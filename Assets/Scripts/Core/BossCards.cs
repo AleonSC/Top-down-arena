@@ -15,6 +15,7 @@ namespace Arena
         /// The pool's groups and their weights (first guesses): shape cards 40, Box / Hall 15, service cards 20, Floor kits 15, Mini-boss 10.
         static readonly int[] GroupWeights = { 40, 15, 20, 15, 10 };
         static readonly RoomCard[] Basics = { RoomCard.Box, RoomCard.Hall };
+        static readonly RoomCard[] Services = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms, RoomCard.BuilderShop };  // (the service cards and the Builder Shop)
 
         public static bool IsKit(int code) => code >= KitBase;
         public static RoomCard CardOf(int code) => IsKit(code) ? RoomCard.None : (RoomCard)code;
@@ -48,7 +49,7 @@ namespace Arena
                 {
                     case 0: code = (int)Expansion.ShapeCards[rng.Int(Expansion.ShapeCards.Length)]; break;
                     case 1: code = (int)Basics[rng.Int(Basics.Length)]; break;
-                    case 2: code = (int)Expansion.ServiceCards[rng.Int(Expansion.ServiceCards.Length)]; break;
+                    case 2: code = (int)Services[rng.Int(Services.Length)]; break;
                     case 3: code = KitCode(floors[rng.Int(floors.Count)]); break;
                     default: code = (int)RoomCard.MiniBoss; break;
                 }

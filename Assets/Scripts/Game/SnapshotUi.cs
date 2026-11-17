@@ -9,7 +9,7 @@ namespace Arena
     {
         List<RunSnapshot.Info> snapList;
         float snapListAt = -99f, snapScroll;
-        string snapName = "", snapDeletePath = "", snapNote = "";
+        string snapName = "", snapDeletePath = "", snapNote = "", snapRenamePath = "", snapRenameText = "";
         bool snapNoteBad;
         string snapToast = "";
         float snapToastT;
@@ -152,7 +152,7 @@ namespace Arena
                 e.Use();
             }
             snapScroll = Mathf.Clamp(snapScroll, 0f, maxScroll);
-            RunSnapshot.Info load = null, delete = null;
+            RunSnapshot.Info load = null, delete = null, rename = null;
             GUI.BeginGroup(list);
             for (int i = 0; i < snapList.Count; i++)
             {
@@ -162,12 +162,30 @@ namespace Arena
                 var s = snapList[i];
                 var rr = new Rect(6f, ry, list.width - 12f - (maxScroll > 0f ? 6f : 0f), row - 6f);
                 DkSub(rr, new Color(1f, 1f, 1f, i == 0 ? 0.06f : 0.03f));
-                Ui.Label(new Rect(rr.x + 14f, rr.y + 5f, rr.width - 250f, 24f), s.Name + (i == 0 ? "   ·  F7" : ""), 14, Color.white, TextAnchor.MiddleLeft, true);
+                bool renaming = snapRenamePath == s.Path;
+                if (renaming)
+                {
+                    snapRenameText = DkField(new Rect(rr.x + 10f, rr.y + 4f, rr.width - 190f, 26f), snapRenameText, 48);
+                    if (e.type == EventType.KeyDown && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter))
+                    {
+                        rename = s;
+                        e.Use();
+                    }
+                }
+                else
+                    Ui.Label(new Rect(rr.x + 14f, rr.y + 5f, rr.width - 330f, 24f), s.Name + (i == 0 ? "   ·  F7" : ""), 14, Color.white, TextAnchor.MiddleLeft, true);
                 string meta = s.Created.ToLocalTime().ToString("MMM d, HH:mm:ss") + "  ·  " + s.Mode + "  ·  wave " + s.Wave + " " + StateWord(s.State) + "  ·  "
                     + s.Enemies + " enemies  ·  " + ReplayClock(s.RunTime) + "  ·  " + (s.Bytes / 1024) + " KB  ·  " + s.Party;
                 Ui.Label(new Rect(rr.x + 14f, rr.y + 30f, rr.width - 28f, 20f), meta, 11, CrtStyle.Desc);
                 float bx = rr.xMax - 12f;
-                if (snapDeletePath == s.Path)
+                if (renaming)
+                {
+                    bx -= 70f;
+                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Cancel", Ui.Neutral, false, 11)) snapRenamePath = "";
+                    bx -= 76f;
+                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Save", Ui.Primary, false, 11)) rename = s;
+                }
+                else if (snapDeletePath == s.Path)
                 {
                     bx -= 70f;
                     if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Keep", Ui.Neutral, false, 11)) snapDeletePath = "";
@@ -177,7 +195,14 @@ namespace Arena
                 else
                 {
                     bx -= 70f;
-                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Delete", Ui.Danger, false, 11)) snapDeletePath = s.Path;
+                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Delete", Ui.Danger, false, 11)) { snapDeletePath = s.Path; snapRenamePath = ""; }
+                    bx -= 76f;
+                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Rename", Ui.Neutral, false, 11))
+                    {
+                        snapRenamePath = s.Path;
+                        snapRenameText = s.Name;
+                        snapDeletePath = "";
+                    }
                     bx -= 82f;
                     GUI.enabled = was && cant == null;
                     if (DkKey(new Rect(bx, rr.y + 6f, 76f, 26f), "LOAD", Ui.Primary, false, 12)) load = s;
@@ -192,6 +217,14 @@ namespace Arena
                 Ui.Fill(new Rect(list.xMax - 4f, ty, 3f, th), new Color(1f, 1f, 1f, 0.3f));
             }
 
+            if (rename != null)
+            {
+                snapRenamePath = "";
+                GUIUtility.keyboardControl = 0;
+                if (snapRenameText.Trim().Length > 0 && !RunSnapshot.Rename(rename.Path, snapRenameText))
+                    SnapSay("Couldn't rename it", true);
+                RefreshSnapshots();
+            }
             if (delete != null)
             {
                 snapDeletePath = "";

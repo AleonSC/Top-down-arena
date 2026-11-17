@@ -5,7 +5,7 @@ using System.IO;
 namespace Arena
 {
     /// A room card (Docs/RoomCards.md): a preset room a player holds and places against a room's wall. New values go at the end.
-    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, Shop, Market, Arms }  // (Shop, Market, Arms: service cards, a tiny 4 x 4 room, Docs/ArmsDealer.md)
+    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms }  // (BuilderShop: a utility card, BuilderShop.cs; Shop, Market, Arms: service cards, a tiny 4 x 4 room, Docs/ArmsDealer.md)
 
     public static partial class Expansion
     {
@@ -23,7 +23,7 @@ namespace Arena
 
         /// The job of the room a card builds: a service card's shop, Black Market or Arms Dealer, a Mini-boss card's duel, else combat.
         public static RoomKind CardRoomKind(RoomCard c)
-            => c == RoomCard.Shop ? RoomKind.Shop : c == RoomCard.Market ? RoomKind.Vendor : c == RoomCard.Arms ? RoomKind.Arms : c == RoomCard.MiniBoss ? RoomKind.Gatekeeper : RoomKind.Combat;
+            => c == RoomCard.Shop ? RoomKind.Shop : c == RoomCard.Market ? RoomKind.Vendor : c == RoomCard.Arms ? RoomKind.Arms : c == RoomCard.BuilderShop ? RoomKind.Builder : c == RoomCard.MiniBoss ? RoomKind.Gatekeeper : RoomKind.Combat;
 
         public static SurpriseShape CardShape(RoomCard c)
         {
@@ -39,6 +39,7 @@ namespace Arena
                 case RoomCard.Shop:
                 case RoomCard.Market:
                 case RoomCard.Arms: return SurpriseShape.Tiny;
+                case RoomCard.BuilderShop: return SurpriseShape.SmallRect;
                 default: return SurpriseShape.Chamfer;
             }
         }
@@ -52,6 +53,7 @@ namespace Arena
                 case RoomCard.Shop: return "Shop";
                 case RoomCard.Market: return "Black Market";
                 case RoomCard.Arms: return "Arms Dealer";
+                case RoomCard.BuilderShop: return "Builder Shop";
                 default: return SurpriseName(CardShape(c));
             }
         }
@@ -72,6 +74,7 @@ namespace Arena
                 case RoomCard.Shop: return "A tiny 4 x 4 shop: upgrade cards for gold, heals and revives. Safe, no enemies spawn in it.";
                 case RoomCard.Market: return "A tiny 4 x 4 Black Market: buildables, services and room cards. Safe, no enemies spawn in it.";
                 case RoomCard.Arms: return "A tiny 4 x 4 Arms Dealer: weapon mods for gold. Safe, no enemies spawn in it.";
+                case RoomCard.BuilderShop: return "A utility room: a shop that sells room cards for vectors, a new shelf each wave, a quarter off.";
                 default: return "";
             }
         }
@@ -91,13 +94,15 @@ namespace Arena
                 case RoomCard.Shop:
                 case RoomCard.Market:
                 case RoomCard.Arms: return 30;  // (not on the Black Market's shelf; a price for completeness)
+                case RoomCard.BuilderShop: return 36;
                 default: return 22;
             }
         }
 
         public const int CardOfferCount = 3;  // the vendor's card shelf
 
-        /// The vendor's card offers for a boss cycle: the same on every machine. One basic, one shape, and a third that is a mini-boss one cycle in three.
+        /// The vendor's card offers for a boss cycle: the same on every machine. One basic, one shape, and a third that is a mini-boss one cycle
+        /// in three, a Builder Shop the cycle before it (BuilderShop.cs), else another shape.
         public static RoomCard[] CardOffers(int seed, int cycle)
         {
             var rng = new DetRandom(seed * 4099 + cycle * 271 + 17);
@@ -106,6 +111,8 @@ namespace Arena
             RoomCard c;
             if (cycle % 3 == 2)
                 c = RoomCard.MiniBoss;
+            else if (cycle % 3 == 1)
+                c = RoomCard.BuilderShop;
             else
                 do c = ShapeCards[rng.Int(ShapeCards.Length)]; while (c == b);
             return new[] { a, b, c };
@@ -270,7 +277,7 @@ namespace Arena
         public void OnPlayCard(int peer, BinaryReader r) => HostPlayCard(peer, r.ReadByte(), r.ReadInt16(), r.ReadInt16(), r.ReadByte(), r.ReadBoolean());
 
         /// Host: the card's room is built at once if it fits there; the card leaves the hand. A Mini-boss card's room holds the coming boss's faction mini-boss;
-        /// a service card's room is a shop, Black Market or Arms Dealer.
+        /// a service card's room is a shop, Black Market or Arms Dealer; a Builder Shop card's room is a card shop (BuilderShop.cs).
         void HostPlayCard(int id, int slot, int x, int y, int turn, bool mirror)
         {
             Player p;

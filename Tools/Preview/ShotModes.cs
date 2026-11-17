@@ -124,7 +124,7 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("RENAME") != null) { set("replayRenamePath", "/tmp/replays/Co-op test, 3 players.replay"); set("replayRenameText", "Co-op test, 3 players"); }
         if (Environment.GetEnvironmentVariable("DELETE") != null) set("replayDeletePath", "/tmp/replays/Boss practice, Warden.replay");
       }
-      if (Environment.GetEnvironmentVariable("DEVSHEET") == "6")  // run snapshots (SnapshotUi.cs): three in the profile's folder; SNAPDEL=1 asks to delete the second
+      if (Environment.GetEnvironmentVariable("DEVSHEET") == "6")  // run snapshots (SnapshotUi.cs): three in the profile's folder; SNAPDEL=1 asks to delete the second, SNAPREN=1 renames the first
       {
         if (Profile.Folder == null) Profile.Folder = Path.Combine(Path.GetTempPath(), "arena-preview-snaps");
         if (Directory.Exists(RunSnapshot.Folder)) Directory.Delete(RunSnapshot.Folder, true);
@@ -134,6 +134,7 @@ static partial class Shot {
           System.Threading.Thread.Sleep(5);
         }
         if (Environment.GetEnvironmentVariable("SNAPDEL") != null) set("snapDeletePath", RunSnapshot.List()[1].Path);
+        if (Environment.GetEnvironmentVariable("SNAPREN") != null) { set("snapRenamePath", RunSnapshot.List()[0].Path); set("snapRenameText", "Wave 9, between waves"); }
       }
       if (Environment.GetEnvironmentVariable("DEVDRAWER") != null) set("devDrawer", int.Parse(Environment.GetEnvironmentVariable("DEVDRAWER")));
       if (Environment.GetEnvironmentVariable("DEVSIDE") != null) set("devSide", true);

@@ -15,7 +15,9 @@ namespace Arena
         static readonly Rgba CardInk = new Rgba(0.45f, 0.85f, 1f), CardOk = new Rgba(0.35f, 1f, 0.55f);
 
         /// A card's colour: the Mini-boss in the Gatekeeper's orange, a service card in its room's colour, the rest in card blue.
-        static Rgba CardColor(RoomCard c) => c == RoomCard.MiniBoss ? GateInk : Expansion.IsServiceCard(c) ? KindInk(Expansion.CardRoomKind(c), PathId.None) : CardInk;
+        static Rgba CardColor(RoomCard c) => c == RoomCard.MiniBoss ? GateInk : c == RoomCard.BuilderShop ? BuilderInk : Expansion.IsServiceCard(c) ? KindInk(Expansion.CardRoomKind(c), PathId.None) : CardInk;
+
+        static Rgba CardInkOf(RoomCard c) => CardColor(c);  // (the Builder Shop's name for it, BuilderShopUi.cs)
 
         RoomCard PickedCard => game.Me != null && expCard >= 0 && expCard < game.Me.Hand.Length ? (RoomCard)game.Me.Hand[expCard] : RoomCard.None;
 
@@ -200,7 +202,7 @@ namespace Arena
             var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
             Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
-            var gi = card == RoomCard.MiniBoss || Expansion.IsServiceCard(card) ? ToColor(CardColor(card)) : rc;
+            var gi = card == RoomCard.MiniBoss || card == RoomCard.BuilderShop || Expansion.IsServiceCard(card) ? ToColor(CardColor(card)) : rc;
             DrawCardGlyph(card, new Rect(tile.x + 8f, tile.y + 8f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), tile.width - 16f, tile.height - 16f), new Color(gi.r, gi.g, gi.b, dim));
             Ui.Label(new Rect(r.x + 8f, r.y + 130f, r.width - 16f, 26f), Expansion.CardName(card), 18, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
             Ui.Fill(new Rect(r.x + 36f, r.y + 160f, r.width - 72f, 1f), new Color(rc.r, rc.g, rc.b, 0.4f));

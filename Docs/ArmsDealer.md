@@ -1,6 +1,6 @@
 # Arms Dealer and the boss card pick
 
-Status: **steps 1-3 built** (protocols 393-395): service cards, the Arms Dealer room, the boss card pick. Step 4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md),
+Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer room, the boss card pick. Step 4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md),
 [`RoomModifiers.md`](RoomModifiers.md) (floor kits), [`MysteryDoors.md`](MysteryDoors.md) and [`Nodes.md`](Nodes.md) (the tiny shop / vendor rooms).
 
 ## Decisions (owner)

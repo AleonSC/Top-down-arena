@@ -1,7 +1,7 @@
 # Room cards: build the Expanding arena from a hand of preset rooms
 
-Status: **steps 1-3 built** (protocol 389), plus designed obstacles inside each card's room (protocol 391): cards, hand, play, sources, the vendor's card shelf, bots, the lobby switch, the build screen's hand and ghost.
-Service cards (Shop, Black Market, Arms Dealer: tiny rooms) added by [`ArmsDealer.md`](ArmsDealer.md) step 1 (protocol 393). Step 4 (balance pass, themed cards) open. Decided with the owner on Nov 17, 2026. Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (the shapes and
+Status: **steps 1-3 built** (protocol 389), plus designed obstacles inside each card's room (protocol 391) and the Builder Shop utility card (protocol 393): cards, hand, play, sources, the vendor's card shelf, bots, the lobby switch, the build screen's hand and ghost.
+Service cards (Shop, Black Market, Arms Dealer: tiny rooms) added by [`ArmsDealer.md`](ArmsDealer.md) step 1 (protocol 394). Step 4 (balance pass, themed cards) open. Decided with the owner on Nov 17, 2026. Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (the shapes and
 their placement), [`VectorBuilding.md`](VectorBuilding.md) (vectors) and [`Nodes.md`](Nodes.md).
 
 ## Why
@@ -33,6 +33,7 @@ their placement), [`VectorBuilding.md`](VectorBuilding.md) (vectors) and [`Nodes
 | Cross | 15 across, arms 3 wide | 30 |
 | Ring | 11 x 11 lane round a 5 x 5 block | 34 |
 | Mini-boss | 8 x 6 duel room (`RoomKind.Gatekeeper`) | 40 |
+| Builder Shop | 5 x 4 card shop (`RoomKind.Builder`) | 36 |
 
 ## Where cards come from (first guesses)
 
@@ -67,11 +68,23 @@ Each card's room has a designed set of obstacles (`Core/RoomCardLayouts.cs`) ins
 | T hall | a pillar facing the stem, a block in each arm and in the stem |
 | Chamfer | a pillar in the middle, a low wall above and below it |
 | Mini-boss | four pillars to fight round |
+| Builder Shop | a pillar in each corner (the workbench in the middle is drawn, not solid) |
 
 - Lane pieces hug a wall and leave at least 220 px to pass. The layout turns and mirrors with the room; a symmetric shape tries every matching turn and keeps
   the one with the most pieces clear of its doors; anything within a door's mouth (its width + 60 px along, 110 px in) is left out.
 - `ExpansionRoom.Card` (the RoomCard, on each box) carries it over the wire and in saves (the `room` line's 15th number).
 - Preview: `EXPANDMAP=0 CARDROOM=<card> [CARDSPOT=n] ZOOM=0.5 Tools/Preview/shot.sh x hud`. Test: suite `roomcards`.
+
+## Utility cards (built, protocol 393)
+
+Cards whose room has a job rather than a fight shape: the **Mini-boss** (above) and the **Builder Shop** (`Core/BuilderShop.cs`, `Game/BuilderShopUi.cs`):
+
+- Its room is `RoomKind.Builder` (amber, a workbench drawn in the middle, no enemy spawns). The vendor sells the card the cycle before a Mini-boss one (`CardOffers`: cycle % 3 == 1).
+- Standing in it during a build round shows its shelf at the bottom of the screen (the arena stays live; clicks on it don't fire): `BuilderOfferCount` (5) cards from
+  `BuilderOffers(seed, wave)`: Box, Hall, three different shapes (a Mini-boss in place of the third one wave in three), the same on every machine, new each wave.
+- Price: `BuilderPrice` = 3/4 of `CardPrice` (rounded up), in vectors; bought cards go to the hand. Refused outside the room, outside a build round, on a full hand
+  or short of vectors (`BuilderRefusal`).
+- Wire: `Msg.BuilderBuy` (client -> host: offer index). Preview: `EXPANDMAP=0 CARDROOM=buildershop BUILDEROPEN=1 [BUILDERVEC=n] Tools/Preview/shot.sh x hud`.
 
 ## Wire and saves
 

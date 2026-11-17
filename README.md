@@ -1071,25 +1071,30 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   many as you can afford, and it can take you past the cap.
 - **Room cards** (the default; the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote**, plus **Team purse**). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
   Every room is a card in your own **hand** (up to **6**). Cards: **Box** (7 x 6), **Hall** (8 x 3), **Chamfer**, **L hall**, **T hall**, **Cross**, **Ring**
-  (the surprise-room shapes), **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it for a prize pick) and the
-  **service cards** **Shop**, **Black Market** and **Arms Dealer** (a tiny 4 x 4 room with that job, open at once and safe: no enemies spawn in it; drawn with a coin,
-  a plus or a crosshair). The Arms Dealer sells weapon mods for gold (below).
+  (the surprise-room shapes), two **utility cards**: **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it
+  for a prize pick) and **Builder Shop** (a 5 x 4 amber shop room, see below), and the **service cards** **Shop**, **Black Market** and **Arms Dealer** (a tiny
+  4 x 4 room with that job, open at once and safe: no enemies spawn in it; drawn with a coin, a plus or a crosshair). The Arms Dealer sells weapon mods for gold (below).
   - **Where they come from**: the first build round deals **Box, Hall and a random shape**; every build round gives everyone a basic card (a **Hall** after odd waves,
     a **Box** after even ones); a cleared wave gives each player a **1 in 4** shape card; a beaten **boss** gives each player a **card pick** (below);
-    an opened **chest node** gives everyone a shape card. A dropped shape card (wave, chest) is a **service card** 1 time in 5.
+    an opened **chest node** gives everyone a shape card. A dropped shape card (wave, chest) is a **service card** 1 time in 5. The **Black Market** sells three cards a boss cycle (a basic, a shape, and a third
+    that is a Mini-boss card one cycle in three, a Builder Shop card the cycle before, else another shape; never a service card) for **vectors**: Hall 10, Box 16, Chamfer 22, L 24, T 26,
+    Cross 30, Ring 34, Builder Shop 36, Mini-boss 40. A full hand drops new cards.
   - **Boss card pick** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): right after the boss's legendary, **BOSS SPOILS!** shows **5 cards**: room cards (Box, Hall),
-    shape cards, service cards, the **Mini-boss** card and **Floor kits** (for the team's kits). Pick one; it can be **rerolled**. A card you can't hold (full hand) or a
+    shape cards, service cards (and the Builder Shop), the **Mini-boss** card and **Floor kits** (for the team's kits). Pick one; it can be **rerolled**. A card you can't hold (full hand) or a
     kit with the team's kits full is greyed out; with neither possible the pick is skipped. It replaces the weapon mod pick and the boss's free shape card, Mini-boss card
-    and Floor kit (the Mini-boss card is no longer free anywhere). The **Black Market** sells three cards a boss cycle (a basic, a shape, and a third
-    that is a Mini-boss card one cycle in three; never a service card) for **vectors**: Hall 10, Box 16, Chamfer 22, L 24, T 26, Cross 30, Ring 34, Mini-boss 40. A full hand drops new cards.
+    and Floor kit (the Mini-boss card is no longer free anywhere).
+  - **Builder Shop**: play it like any card and its room holds a workbench. Stand in it during a build round and its shelf comes up at the bottom of the screen
+    (the arena stays live): **five room cards** (Box, Hall, three different shapes; one wave in three the last is a **Mini-boss** card), a new shelf **every wave**,
+    at **a quarter off** the Black Market's price (Hall 8, Box 12, Chamfer 17, L 18, T 20, Cross 23, Ring 26, Mini-boss 30 vectors). Click **BUY** to put one in
+    your hand. It never sells itself; no enemies come in there.
   - **Playing one**: in a build round open **Build**: the first tool is **Room cards**, with your hand on the right (each card drawn as its room). Pick a card, and dots on the
     map show every spot it fits; the room follows the mouse as a green ghost on the nearest fit (and says how many loops it closes). **R** steps through the other
     turns and mirrors that fit there; **left click** builds it at once (no vote, no vectors); **right click** puts the card back.
   - **Inside the rooms**: each card's room comes with its own obstacles, turned with the room and kept out of its doorways: **Box** four pillars round a low wall;
     **Hall** a block off alternate walls near each end (a zig-zag); **Ring** a buttress on each outer wall and a pillar in each corner; **Cross** a pillar in the
     crossing and a block in each arm (a pinwheel); **L hall** a pillar in the bend and blocks off alternate walls; **T hall** a pillar facing the stem and a block in
-    each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars. Card rooms get no random cover or side walls.
-  - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's cards.
+    each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars; **Builder Shop** a pillar in each corner. Card rooms get no random cover or side walls.
+  - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's and Builder Shop's cards.
 - **Building rounds** (Free draw and Team vote): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
@@ -2236,7 +2241,7 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
 
 Save a run at any moment and load back to that exact state, e.g. to try the same boss phase or bug again and again.
 **F6** in a match saves a snapshot (a line at the top says so), **F7** loads the newest one. **F1 → SNAP** opens the **Run
-snapshots** sheet: type a name and **Take snapshot**, or **LOAD** / **Delete** any saved one (newest first, with its mode,
+snapshots** sheet: type a name and **Take snapshot**, or **LOAD**, **Rename** (Enter or Save keeps it) or **Delete** any saved one (newest first, with its mode,
 wave, enemy count, run time and party). A snapshot keeps everything in the match: players and builds, enemies and their
 AI, shots in the air, the map, timers and the random rolls, so after loading, the run plays on exactly as it did (the
 bot does the same thing again too). Files are kept in the profile's `snapshots` folder (**Open folder**), the newest 40.

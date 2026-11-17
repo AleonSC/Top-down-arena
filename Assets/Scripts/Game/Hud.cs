@@ -153,6 +153,8 @@ namespace Arena
                             DrawShop(me, Time.unscaledTime);  // ShopUi.cs
                         break;
                     }
+                    if (!pauseUp && !tabHeld)
+                        DrawBuilderShop(me, Time.unscaledTime);  // standing in a Builder room in a build round: its card shelf (BuilderShopUi.cs)
                     if (game.ShopOpen && me != null && !pauseUp)
                         DrawShopRoomHint(me);  // the Expanding arena: walk to the shop room (ExpansionUi.cs)
                     var choosing = new List<string>();
