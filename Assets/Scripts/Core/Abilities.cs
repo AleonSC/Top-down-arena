@@ -74,6 +74,8 @@ namespace Arena
             }
             if (p.StandOn && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
+            if (!consumed && p.Slots[slot].Id == AbilityId.WaterWard && WwFull(p))
+                return;  // every drop already out (WaterWard.cs)
             if (!consumed && !Consume(p, slot, true))
                 return;
             p.Run.AbilitiesUsed++;
