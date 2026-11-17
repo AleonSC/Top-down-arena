@@ -297,6 +297,9 @@ enemies and bosses** are only bitten, for **150** (times your damage), at most o
 someone else meanwhile. Its head also **swallows enemy bullets** within 40 px. In its last 0.7 s it turns for home and
 coils back into you (the body drains in after its head). It ends early if you go down or the wave is cleared. Bots that
 have it cast it with four or more enemies near. Mastered: hunts for 7 s and every enemy it devours heals you 3%.
+You hear a rush of wind swell into a deep, fluttering dragon roar with spirit bells as it comes out; each enemy it
+devours gives a snap of the jaws, a deep gulp and a thin shimmer of its soul; a heavy or boss bitten gives a snap, a crunch
+and a thud; and it coiling back in gives a rush of wind pulled into you, settling into a low hum and a bell.
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|

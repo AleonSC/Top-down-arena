@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 382: Dragon's Dogma's sounds: `Sfx.DogmaRoar`, `DogmaDevour`, `DogmaBite`, `DogmaHome` appended (sent with the cast, bites and its return).
 - 381: Dragon's Dogma (Tank Ninja second ultimate): `AbilityId.DragonsDogma`, `FxKind.DragonBite`, player snapshot gains `DogmaOn` (then `DogmaHead`, `DogmaTgt` while it is out).
 - 380: Deployable Cover (Tank Soldier 4th ability): `AbilityId.DeployableCover`, `ZoneKind.Cover` (Aim its facing, GuardFrac its health left), `FxKind.CoverHit`/`CoverBreak`/`CoverFold` (after Water Ward's); the Reinforced Plating card shifts card ids.
 - 379: Water Ward (Healer Elementalist 4th ability): `AbilityId.WaterWard`, `FxKind.WwSplash`/`WwBurst`, `Sfx.WwSplash`/`WwBurst`/`WwCast`, player snapshot gains the drops (count, then `WwAng` and a place + fall byte each)

@@ -130,6 +130,8 @@ namespace Arena
         KwCast, KwHum, KwCatch, KwFull, KwUnleash,
         // Deployable Cover (CoverSoundBank.cs): the throw and build, the cover bursting, folding away, a shot ringing off it. Played by each screen from the zone and FxKind.CoverBreak/CoverFold/CoverHit, never sent.
         CoverDeploy, CoverBreak, CoverFold, CoverTing,
+        // Dragon's Dogma (DogmaSoundBank.cs): the cast's roar, a devour, a big one bitten, it coiling back in. Sent.
+        DogmaRoar, DogmaDevour, DogmaBite, DogmaHome,
     }
 
     public struct SoundCue
