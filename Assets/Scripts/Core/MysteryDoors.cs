@@ -80,6 +80,30 @@ namespace Arena
         /// The sealed doors on the map (synced in Msg.ExpandState).
         public readonly List<MysteryDoor> MysteryDoors = new List<MysteryDoor>();
 
+        /// Every game, for the look: doors that just opened and when (AnimT), for the reveal (Game/MysteryDoorLook.cs).
+        public readonly List<KeyValuePair<MysteryDoor, float>> MysteryOpened = new List<KeyValuePair<MysteryDoor, float>>();
+        public const float RevealTime = 1.2f;
+
+        /// Doors that were in `before` and are gone now, with a doorway where they stood, just opened (an expired one leaves only wall).
+        void NoteOpenedDoors(List<MysteryDoor> before)
+        {
+            MysteryOpened.RemoveAll(kv => AnimT - kv.Value > RevealTime);
+            if (before.Count == 0 || !ExpandingOn)
+                return;
+            var w = ExpansionWorld;
+            foreach (var d in before)
+            {
+                if (MysteryDoors.Exists(o => o.X == d.X && o.Y == d.Y))
+                    continue;
+                foreach (var wd in w.Doors)
+                    if (wd.Pos.CloserThan(d.Pos, 2f))
+                    {
+                        MysteryOpened.Add(new KeyValuePair<MysteryDoor, float>(d, AnimT));
+                        break;
+                    }
+            }
+        }
+
         /// Host only: the room behind each door (same index as MysteryDoors) and the point just behind its wall.
         readonly List<SurpriseOption> mysteryPlans = new List<SurpriseOption>();
         readonly List<V2> mysteryBehind = new List<V2>();
@@ -94,6 +118,7 @@ namespace Arena
             mysteryBehind.Clear();
             mysteryKinds.Clear();
             ambushPending.Clear();
+            MysteryOpened.Clear();
             mysteryMapCount = -1;
         }
 
@@ -363,6 +388,7 @@ namespace Arena
                 else if (kind == MysteryKind.MiniBoss) { q.Kind = Arena.RoomKind.Gatekeeper; q.Mini = (byte)MiniBossNow(); }
                 rooms.Add(q);
             }
+            var doorsBefore = new List<MysteryDoor>(MysteryDoors);
             RemoveMysteryDoor(i);
             var head = rooms[0];
             V2 mid = new V2((head.X + head.X1) / 2f, (head.Y + head.Y1) / 2f);
@@ -376,6 +402,7 @@ namespace Arena
             RaiseRoomsNow();
             TickNodes();
             mysteryMapCount = -1;  // (the other doors are checked against the new map)
+            NoteOpenedDoors(doorsBefore);  // the reveal (MysteryDoorLook.cs)
             Sounds.Add(Sfx.Pick);
             DoLog(p.Name + " opens a mystery door: " + kind + " (" + Expansion.SurpriseName(plan.Value.Shape) + ") for " + price + " vectors");
             if (kind == MysteryKind.Ambush)
@@ -425,10 +452,12 @@ namespace Arena
 
         void ReadMysteryDoors(BinaryReader r)
         {
+            var before = new List<MysteryDoor>(MysteryDoors);
             MysteryDoors.Clear();
             int n = r.ReadByte();
             for (int i = 0; i < n; i++)
                 MysteryDoors.Add(new MysteryDoor { X = r.ReadInt16(), Y = r.ReadInt16(), Vertical = r.ReadBoolean(), Price = r.ReadInt16(), Saver = r.ReadInt32() });
+            NoteOpenedDoors(before);
         }
     }
 }

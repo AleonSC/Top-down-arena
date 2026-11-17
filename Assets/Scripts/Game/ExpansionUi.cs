@@ -668,6 +668,7 @@ namespace Arena
                     RoomMapFrame(bp.X - 8f, bp.Y - 8f, 16f, 16f, 2f, bi);
                 }
                 DrawHoloGates(wd, M, k);  // the gates fitted (BuildMapLook.cs)
+                DrawHoloMystery(M, k);  // sealed mystery doors (MysteryDoorLook.cs)
                 DrawHoloBreaches(M, k, map);  // this wave's breaches
                 if (expGateMode)  // the doors a gate can go on, and the one under the mouse
                     for (int di = 0; di < wd.Doors.Length; di++)
@@ -1118,6 +1119,8 @@ namespace Arena
                 items.Add(new KeyValuePair<string, Rgba>("BREACH", HoloBreachInk));
             if (game.GateFits.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("GATE", HoloGateInk));
+            if (game.MysteryDoors.Count > 0)
+                items.Add(new KeyValuePair<string, Rgba>("MYSTERY DOOR", MysteryHolo));  // (MysteryDoorLook.cs)
             if (game.Links.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("PORTAL", PortalColours[(game.ExpansionWorld.Portals.Length - game.Links.Count) % PortalColours.Length]));
             bool sealedRoom = false;

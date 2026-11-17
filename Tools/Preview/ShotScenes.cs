@@ -2106,6 +2106,14 @@ static partial class Shot {
         typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
         if (xg.MysteryDoors.Count < 2) typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
         Console.Error.WriteLine("mystery doors: " + xg.MysteryDoors.Count);
+        string mop = Environment.GetEnvironmentVariable("MYSTERYOPEN");  // MYSTERYOPEN=<s>: the first door opened that long ago (the reveal)
+        if (mop != null && xg.MysteryDoors.Count > 0) {
+          var md0 = xg.MysteryDoors[0]; Player opener = null; foreach (var pq in xg.Players.Values) { opener = pq; break; } opener.Pos = opener.Disp = md0.Pos; opener.Vectors = opener.VectorCap = 999;
+          typeof(Game).GetMethod("OpenMysteryDoor", mfl).Invoke(xg, new object[] { opener, 0 });
+          xg.MysteryOpened.Clear(); xg.MysteryOpened.Add(new System.Collections.Generic.KeyValuePair<MysteryDoor, float>(md0, xg.AnimT - float.Parse(mop, System.Globalization.CultureInfo.InvariantCulture)));
+          V2 into0 = md0.Vertical ? new V2(1f, 0f) : new V2(0f, 1f); if (xg.CurrentWorld.AreaAt(md0.Pos - into0 * 60f) < 0) into0 = into0 * -1f;
+          int oi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = md0.Pos - into0 * (110f + 60f * oi); oi++; }
+        }
         if (xg.MysteryDoors.Count > 0 && Environment.GetEnvironmentVariable("MYSTERYSAVED") != null) { var md = xg.MysteryDoors[0]; md.Saver = xg.MyId; xg.MysteryDoors[0] = md; }
         if (xg.MysteryDoors.Count > 0 && Environment.GetEnvironmentVariable("MYSTERYAT") != null) {
           var md = xg.MysteryDoors[0]; var mw = xg.CurrentWorld;

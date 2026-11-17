@@ -1,6 +1,6 @@
 # Mystery doors: sealed doors on the outer walls you pay vectors to open
 
-Status: **steps 1-2 built** (protocol 381: doors rolled, opened, saved, expiring, synced, a first look; step 2: every kind behind a door, no wire change). Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
+Status: **steps 1-3 built** (protocol 381: doors rolled, opened, saved, expiring, synced; step 2: every kind behind a door; step 3: the Hologram look, the reveal, minimap and build map marks). Step 4 (bots, balance) open. Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
 [`SurpriseRooms.md`](SurpriseRooms.md) (shapes, placement), [`BreachRooms.md`](BreachRooms.md) (Stash, a door lined up with a
 wall spot), [`Nodes.md`](Nodes.md) (tiny shop / vendor rooms) and [`FactionMinis.md`](FactionMinis.md). **Drawing rooms stays
 exactly as it is**: doors are a second, cheaper way to grow the map.
@@ -75,3 +75,15 @@ doors at the combat price of a mid shape so they don't stand out.
   `Mystery.AmbushCount` enemies of `WavePool(Wave)` in the room (`SpringAmbush`), or as the next wave starts if opened between waves
   (`ambushPending`, `SpringPendingAmbushes` in `Waves.cs`).
 - Tests: `MysteryContentsTest` (suite `mysterydoor`).
+
+## Built (step 3)
+
+- The owner picked the **Hologram** look (of Shutter, Hologram, Vault) and asked for it to stand out from the cyan walls: a dark plate
+  hides the wall, a bright magenta-violet field with drifting scan lines over it, corner brackets that reach past the wall, a halo and a
+  white "?"; lime once saved (`DrawMysteryDoor`). Reveal kept as shown: the plate's halves slide into the wall over 0.5 s and a ring goes
+  out (`MysteryOpened`, `NoteOpenedDoors` on every game: a door gone with a doorway where it stood; `DrawMysteryReveal`).
+- The hint pill sits over you (it hid the door), with *NEED n MORE* when you can't pay; tags are red when unaffordable.
+- Minimap: a violet (lime) mark (`DrawMysteryOnMap`); build map: a bar and diamond on the doorway (`DrawHoloMystery`) and *MYSTERY DOOR* in
+  the map key.
+- Previews: `EXPANDMAP=6 MYSTERY=1 MYSTERYAT=1 ZOOM=2.2 shot.sh x hud 8 3`, `MYSTERYSAVED=1`, `MYSTERYOPEN=<s>` (the reveal),
+  `EXPANDVOTE=4 EXPANDFREE=1 MYSTERY=1 EXPANDDRAW=0,0,0,0` (build map).
