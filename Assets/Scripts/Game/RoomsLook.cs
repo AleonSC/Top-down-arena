@@ -75,6 +75,8 @@ namespace Arena
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
                 if (a.Surprise > 0)  // a surprise room: gold build-in and rim (SurpriseLook.cs)
                     DrawSurpriseRoom(wd, i, a);
+                if (IsKept(i))  // the room kept through the map reset: gold build-in and rim (MapResetLook.cs)
+                    DrawKeptRoom(wd, i, a);
                 if (a.Floating)  // a floating room: a ring and a mark of what it is, breathing while it is sealed
                     DrawFloatingMark(a);
                 if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls
@@ -278,7 +280,7 @@ namespace Arena
             foreach (var n in game.Nodes)  // the nodes: a small square, breathing until a room is built round it
             {
                 V2 np = M(n.Pos);
-                MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, NodeInk(n.Kind).WithAlpha(n.Spent ? 0.25f : Expansion.NodeClaimed(game.Expanded, n) ? 0.9f : 0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
+                MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, (n.Hidden && !Expansion.NodeClaimed(game.Expanded, n) ? FogInk : NodeInk(n.Kind)).WithAlpha(n.Spent ? 0.25f : Expansion.NodeClaimed(game.Expanded, n) ? 0.9f : 0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
             }
             if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
                 foreach (var q in game.ExpandProposals)
@@ -362,6 +364,7 @@ namespace Arena
                 MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.82f, 0.3f));
             }
             DrawGateOnMap(M);  // the boss gate (BossGateLook.cs)
+            DrawMysteryOnMap(M);  // sealed mystery doors (MysteryDoorLook.cs)
             foreach (var co in game.Coins.Values)  // gold coins: a small gold dot (5-gold coins a bit bigger); vector pickups stay off
             {
                 if (co.Vec)

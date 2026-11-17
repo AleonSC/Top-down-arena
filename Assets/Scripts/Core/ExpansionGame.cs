@@ -37,7 +37,7 @@ namespace Arena
         public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
 
         /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
-        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f;
+        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn;  // (room cards build at once: RoomCards.cs)
 
         /// The lobby's "Team purse": builds can spend every player's vectors, not just the builder's.
         public bool TeamPurse => D(DiffKnob.BuildPurse) >= 0.5f;
@@ -60,6 +60,7 @@ namespace Arena
         {
             int take = Math.Min(payer.Vectors, price);
             payer.Vectors -= take;
+            payer.MapSpent += take;  // (half comes back when the map resets, MapReset.cs)
             price -= take;
             while (TeamPurse && price > 0)
             {
@@ -71,6 +72,7 @@ namespace Arena
                     break;
                 take = Math.Min(rich.Vectors, price);
                 rich.Vectors -= take;
+                rich.MapSpent += take;
                 price -= take;
             }
         }
@@ -155,6 +157,7 @@ namespace Arena
             bool boss = BossNow;
             if (boss && IsHost && ModeRules.RunEvents)
                 GrantRoomToken(Expansion.FloorToken(expandSeed, Wave, Expanded, RoomTokens));
+            DropWaveCards(boss);  // RoomCards.cs
             foreach (var p in Players.Values)
             {
                 p.VectorCap = VectorCapBase + p.Stats.VectorCap;
@@ -177,6 +180,8 @@ namespace Arena
         {
             s.Short(ref p.Vectors);
             s.Short(ref p.VectorCap);
+            for (int i = 0; i < p.Hand.Length; i++)
+                s.Byte(ref p.Hand[i]);  // room cards (RoomCards.cs)
         }
 
         // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
@@ -238,6 +243,7 @@ namespace Arena
                 case ShopAction.Vectors:
                     return InServiceRoom(p);
                 case ShopAction.BuyBuild:
+                case ShopAction.BuyCard:
                     return InVendorRoom(p);
                 default:
                     return true;
@@ -328,7 +334,7 @@ namespace Arena
                 added = true;
                 DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule } : new[] { NodeKind.Chest, NodeKind.Rule })  // (a relic node every other cycle, a rule node every cycle; old saves may still hold shop and vendor nodes)
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Tower, NodeKind.Rule, NodeKind.Vein })  // (a relic node every other cycle, a scout tower in the others, a rule node and a gold vein every cycle; old saves may still hold shop and vendor nodes)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -397,9 +403,50 @@ namespace Arena
             LayoutAge = 0f;
             RaiseRoomsNow();
             NoteSurprise(pick.Value.Rooms[0].Surprise);
+            MaybeRoomChest(pick.Value.Rooms.Count);  // (a surprise room rolls a chest like a drawn one)
             Sounds.Add(Sfx.Pick);
             DoLog("surprise room: " + Expansion.SurpriseName(pick.Value.Shape) + " of " + pick.Value.Rooms.Count + " boxes at " + pick.Value.Rooms[0].X + "," + pick.Value.Rooms[0].Y + ", closes " + pick.Value.Loops + " loops");
             BroadcastExpansion();
+        }
+
+        /// Host, as a drawn or surprise room is built (its `count` boxes are the last in Expanded): it may drop a chest node a few tiles outside its wall
+        /// (Expansion.RoomChestFor; synced with the map in Msg.ExpandState).
+        void MaybeRoomChest(int count)
+        {
+            if (!IsHost || !ModeRules.RunEvents)
+                return;
+            var nd = Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
+            if (!nd.HasValue)
+                return;
+            Nodes.Add(nd.Value);
+            DoLog("a chest node appears outside the new room at " + nd.Value.X + "," + nd.Value.Y);
+        }
+
+        public const int VectorChestPickups = 4;  // a vector chest bursts into this many vector pickups (VectorDropSmall each: 24 vectors)
+        public const float VectorChestReach = 46f;  // walk this close (plus your body) to open one
+
+        /// Host, every tick of a wave (from TickNodes): a claimed vector chest opens when a player walks up to it and bursts into vector
+        /// pickups (Coins.cs: they fly to the nearest player); the node is spent.
+        void TickVectorChests()
+        {
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var nd = Nodes[i];
+                if (nd.Kind != NodeKind.VectorChest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
+                    continue;
+                bool touched = false;
+                foreach (var p in Players.Values)
+                    touched |= !p.Downed && p.Pos.CloserThan(nd.Pos, VectorChestReach + p.Def.BodyR);
+                if (!touched)
+                    continue;
+                for (int k = 0; k < VectorChestPickups; k++)
+                    DropVectorAt(nd.Pos, VectorDropSmall);
+                nd.Spent = true;
+                Nodes[i] = nd;
+                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
+                DoLog("a vector chest was opened");
+                BroadcastExpansion();
+            }
         }
 
         /// Host: a claimed chest node holds a real treasure chest (Props.cs: everyone gets their own item). Not synced: node index -> prop id.
@@ -412,6 +459,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
                 return;
             TickRelicNodes();  // Relics.cs
+            TickVectorChests();
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
@@ -426,6 +474,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
+                    ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     continue;
@@ -479,6 +528,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
+                    ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     return;
@@ -546,6 +596,7 @@ namespace Arena
             Openings.Clear();
             Links.Clear();
             ResetGates();
+            ResetMysteryDoors();  // MysteryDoors.cs
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
@@ -553,6 +604,16 @@ namespace Arena
             botVoteT = 0f;
             botProposed = false;
             expandSeed = sideRng.Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run; Game.cs)
+            MapNumber = 1;
+            MapResetAge = 99f;
+            KeepsakeOpen = false;
+            KeepsakeVotes.Clear();
+            KeptHead = -1;
+            MapRefunds.Clear();
+            FoldRooms.Clear();
+            MapRefund = 0;
+            foreach (var p in Players.Values)
+                p.MapSpent = 0;
         }
 
         // --- The building round -------------------------------------------------------------------------------------
@@ -597,6 +658,7 @@ namespace Arena
                 return;
             ExpandOpen = true;
             roundBuilt = 0;
+            DealRoundCards();  // RoomCards.cs
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             botVoteT = 0f;
@@ -672,8 +734,8 @@ namespace Arena
         void HostExpandDraw(int id, int x, int y, int w, int h, PathId theme = PathId.None)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
-                return;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
+                return;  // (room cards: rooms come from cards, not drawings)
             string why;
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
@@ -872,8 +934,8 @@ namespace Arena
         void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
-                return;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
+                return;  // (room cards: rooms come from cards, not drawings)
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
                 DoLog("proposal refused (the " + theme + " theme is still locked)");
@@ -982,6 +1044,7 @@ namespace Arena
                 Expanded.Add(room);
                 Expanded.AddRange(legs);  // (a drawn outline's other pieces, right after the first)
                 DoLog((legs.Count > 0 ? "drawn room of " + (legs.Count + 1) + " boxes" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                MaybeRoomChest(legs.Count + 1);
             }
             expWorld = null;
             LayoutAge = 0f;  // the new walls rise
@@ -1108,6 +1171,7 @@ namespace Arena
         void TickExpansion(float dt)
         {
             TickPushes(dt);
+            TickNodeFog(dt);  // NodeScouting.cs
             if (!ExpandOpen)
             {
                 botVoteT = 0f;
@@ -1132,6 +1196,11 @@ namespace Arena
                 botProposed = true;
                 if (FreeBuild && roundBuilt > 0)
                     return;  // (free building: a bot adds a room only if nobody has this round, so the map doesn't fill at once)
+                if (RoomCardsOn)
+                {
+                    BotPlayCard();  // RoomCards.cs
+                    return;
+                }
                 if (rng.Next(10) < 6 && BotBuildsToFloater())
                     return;
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
@@ -1156,6 +1225,8 @@ namespace Arena
             save.HasExpansion = true;
             save.ExpandSeed = expandSeed;
             save.FloatCycle = floatCycle;
+            save.MapNumber = MapNumber;
+            save.KeepsakePending = KeepsakeOpen;  // (left mid-vote: the vote opens again on Continue)
             foreach (var r in Expanded)
             {
                 var room = r;
@@ -1177,6 +1248,9 @@ namespace Arena
             for (int i = 0; i < Market.Count; i++)
                 seat.Stash[i] = p.Stash[i];
             seat.VectorCap = p.VectorCap;
+            seat.MapSpent = p.MapSpent;
+            foreach (var c in p.Hand)
+                if (c != 0) seat.Hand.Add(c);
             bool any = false;
             for (int i = 0; i < MaxShelf; i++)
                 any |= p.Shelf[i] >= 0;
@@ -1196,6 +1270,10 @@ namespace Arena
                 playerOf[kv.Value] = kv.Key;
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
+            MapNumber = Math.Max(1, save.MapNumber);
+            KeepsakeOpen = false;
+            KeepsakeVotes.Clear();
+            KeptHead = -1;
             duelBoss.Clear();
             Expanded.Clear();
             foreach (var r in save.Rooms)
@@ -1227,6 +1305,7 @@ namespace Arena
                 {
                     p.Vectors = s.Vectors;
                     p.VectorCap = Math.Max(VectorCapBase, s.VectorCap);
+                    p.MapSpent = Math.Max(0, s.MapSpent);
                 }
                 for (int i = 0; i < MaxShelf; i++)
                 {
@@ -1235,6 +1314,10 @@ namespace Arena
                 }
                 for (int i = 0; i < Market.Count; i++)
                     p.Stash[i] = (byte)Math.Min(Market.StashMax, s.Stash[i]);
+                Array.Clear(p.Hand, 0, p.Hand.Length);
+                for (int i = 0; i < s.Hand.Count && i < p.Hand.Length; i++)
+                    p.Hand[i] = (byte)s.Hand[i];
+                p.CardsDealt = s.Hand.Count > 0 || s.Vectors >= 0;  // (a saved seat had its starting hand)
                 p.ShelfSold = s.ShelfSold;
                 p.Restocks = Math.Min(255, s.Restocks);
                 p.ShelfLen = 0;
@@ -1243,6 +1326,8 @@ namespace Arena
                         p.ShelfLen = i + 1;  // (the saved shelf's length: up to its last card)
             }
             DoLog("the Expanding arena's map is back: " + Expansion.BoughtCount(Expanded) + " rooms");
+            if (save.KeepsakePending)
+                OpenKeepsake();  // the run was left mid keepsake vote: it opens again (MapReset.cs)
             BroadcastExpansion();
         }
 
@@ -1320,10 +1405,13 @@ namespace Arena
             w.Write((ushort)Nodes.Count);  // (ushort: a big map can pass 255)
             foreach (var nd in Nodes)
             {
-                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule); w.Write(nd.Cleared);
+                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule); w.Write(nd.Cleared); w.Write(nd.Hidden);
             }
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
+            WriteMysteryDoors(w);  // the sealed doors (MysteryDoors.cs)
+            w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
+            WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -1341,6 +1429,7 @@ namespace Arena
         void ReadExpandState(BinaryReader r)
         {
             var rooms = ReadRooms(r);
+            var oldMap = new List<ExpansionRoom>(Expanded);  // (a map reset folds the old map away, MapReset.cs)
             bool changed = rooms.Count != Expanded.Count, claimsOnly = false;
             for (int i = 0; !changed && i < rooms.Count; i++)
             {
@@ -1415,7 +1504,7 @@ namespace Arena
             int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean(), Hidden = r.ReadBoolean() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);
@@ -1429,6 +1518,9 @@ namespace Arena
             bool hasMark = r.ReadBoolean();
             short markX = r.ReadInt16(), markY = r.ReadInt16();
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
+            ReadMysteryDoors(r);
+            ReadMapNumber(r.ReadByte(), oldMap);  // (MapReset.cs)
+            ReadKeepsake(r);
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();

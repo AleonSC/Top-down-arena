@@ -12,12 +12,40 @@ namespace Arena
 
         static readonly Rgba RuleInk = new Rgba(1f, 0.5f, 0.3f);
 
-        /// A node's colour: a rule node wears its rule's path colour.
-        static Rgba NodeInkOf(MapNode n) => n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
+        static readonly Rgba TowerInk = new Rgba(0.45f, 0.75f, 1f);
+
+        static readonly Rgba VeinInk = new Rgba(1f, 0.9f, 0.25f);
+
+        static readonly Rgba FogInk = new Rgba(0.72f, 0.78f, 0.88f);
+
+        /// A node's colour: a fogged one is grey, a rule node wears its rule's path colour.
+        static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
+
+        /// A node's name for tips and the legend ("Unknown" while fogged).
+        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.ForNode(n, game.Players.Values)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
+
+        /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
+        string NodeBlurb(MapNode n)
+        {
+            if (n.Hidden)
+                return (n.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " : "Build a room round it to claim it. ")
+                    + "Walk within 8 tiles of it, or claim a scout tower near it, to see what it is.";
+            if (n.Kind == NodeKind.Relic)
+                return "Build a room round it and walk up to it: every player gets this relic (it replaces your old one). " + Relics.Desc(Relics.ForNode(n, game.Players.Values));
+            if (n.Kind == NodeKind.Tower)
+                return "Build a room round it to claim it. While it stands, every node within 30 tiles shows what it is, new ones too.";
+            if (n.Kind == NodeKind.Vein)
+                return "Build a room round it to claim it. Each cleared wave it pays everyone " + NodeScouting.VeinGold + " gold, +" + NodeScouting.VeinGoldPerWave + " per wave number.";
+            return "Build a room round it to claim it.";
+        }
 
         static string RuleName(byte rule) => (NodeRule)rule == NodeRule.BloodMoon ? "Blood Moon" : ((NodeRule)rule).ToString();
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk : ChestInk;
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk
+            : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : k == NodeKind.VectorChest ? VecCyan : ChestInk;
+
+        /// A node kind's name for tips and legends.
+        static string NodeName(NodeKind k) => k == NodeKind.VectorChest ? "Vector chest" : k == NodeKind.Tower ? "Scout tower" : k == NodeKind.Vein ? "Gold vein" : k.ToString();
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
         void DrawNodeMark(MapNode n, bool claimed)
@@ -35,7 +63,7 @@ namespace Arena
                 DrawNodeFixture(n.Pos, n.Kind, n.Spent);
                 return;
             }
-            var col = NodeInk(n.Kind).WithAlpha(0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
+            var col = NodeInkOf(n).WithAlpha(0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
             V2 c = n.Pos;
             if (n.Kind == NodeKind.Rule)
             {
@@ -43,14 +71,27 @@ namespace Arena
                 return;
             }
             Arc(c, 36f, 3f, col, 28);
+            if (n.Hidden)  // fogged: a "?" and a slow drift of mist dashes round it
+            {
+                for (int k = 0; k < 3; k++)
+                    Arc(c, 46f, 2f, col.WithAlpha(col.A * 0.6f), 8, game.AnimT * 0.5f + k * MathX.Tau / 3f, 1.1f);
+                FogMark(c, 0.8f, col);
+                return;
+            }
             switch (n.Kind)
             {
+                case NodeKind.Tower: TowerGlyph(c, 0.7f, col); break;
+                case NodeKind.Vein: VeinGlyph(c, 0.7f, col); break;
                 case NodeKind.Shop: Arc(c, 14f, 3f, col, 16); break;
                 case NodeKind.Vendor:
                     Line(c - new V2(16f, 0f), c + new V2(16f, 0f), 4f, col);
                     Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 4f, col);
                     break;
                 case NodeKind.Relic: RelicGem(c, 0.75f, col); break;
+                case NodeKind.VectorChest:
+                    ChestBox(c, 0.7f, col, false);
+                    VectorMark(c + new V2(0f, -30f), 0.6f, col);
+                    break;
                 default: ChestBox(c, 0.7f, col, false); break;
             }
         }
@@ -85,6 +126,11 @@ namespace Arena
             for (int k = 0; k < 4; k++)  // dashes turning slowly round the mark
                 Arc(c, 66f, 3f, ink.WithAlpha(0.45f), 8, t * 0.6f + k * MathX.Tau / 4f, 0.8f);
             var m = ink.WithAlpha(0.95f);
+            if (n.Hidden)  // fogged: its rule shows once someone walks near
+            {
+                FogMark(c, 1.1f, m);
+                return;
+            }
             switch ((NodeRule)n.Rule)
             {
                 case NodeRule.Dark:  // an eye behind drifting mist
@@ -179,6 +225,55 @@ namespace Arena
                     }
                     break;
                 }
+                case NodeKind.Tower:  // a mast on a base with a dish, a radar beam sweeping round it, a ping rippling out
+                {
+                    Circle(c, 70f, ink.WithAlpha(0.05f + 0.04f * pulse), 28);
+                    float sweep = t * 1.6f;
+                    for (int k = 0; k < 6; k++)  // the beam and its fading trail
+                    {
+                        float a = sweep - k * 0.09f;
+                        Line(c, c + new V2(Mathf.Cos(a), Mathf.Sin(a)) * 84f, 3f - k * 0.35f, ink.WithAlpha(0.42f - k * 0.06f));
+                    }
+                    float ping = (t * 0.5f) % 1f;
+                    Arc(c, 30f + 70f * ping, 2f, ink.WithAlpha(0.5f * (1f - ping)), 32);
+                    Arc(c, 84f, 2f, ink.WithAlpha(0.3f), 32);
+                    TowerGlyph(c, 1.1f, ink.WithAlpha(0.95f));
+                    break;
+                }
+                case NodeKind.Vein:  // ore in the floor: dark rocks with gold nuggets, sparkles winking
+                {
+                    Circle(c, 72f, ink.WithAlpha(0.05f + 0.04f * pulse), 28);
+                    VeinGlyph(c, 1.3f, ink.WithAlpha(0.95f));
+                    for (int k = 0; k < 4; k++)
+                    {
+                        float ph = (t * 0.9f + k * 0.37f) % 1f, a = k * 1.7f + 0.4f;
+                        if (ph > 0.5f)
+                            continue;
+                        float sz = 7f * Mathf.Sin(ph * 2f * Mathf.PI);
+                        V2 p = c + new V2(Mathf.Cos(a) * 38f, Mathf.Sin(a) * 28f);
+                        Line(p - new V2(sz, 0f), p + new V2(sz, 0f), 2f, ink.WithAlpha(0.9f));
+                        Line(p - new V2(0f, sz), p + new V2(0f, sz), 2f, ink.WithAlpha(0.9f));
+                    }
+                    break;
+                }
+                case NodeKind.VectorChest:
+                {
+                    if (spent)
+                    {
+                        ChestBox(c, 1f, ink.WithAlpha(0.3f), true);
+                        break;
+                    }
+                    Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
+                    Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
+                    ChestBox(c, 1f, ink.WithAlpha(0.95f), false);
+                    VectorMark(c + new V2(0f, -44f + Mathf.Sin(t * 2.6f) * 3f), 1f, ink.WithAlpha(0.95f));  // the vector arrow bobbing over the lid
+                    for (int k = 0; k < 3; k++)  // motes turning round it
+                    {
+                        float a = t * 1.4f + k * MathX.Tau / 3f;
+                        Circle(c + new V2(Mathf.Cos(a) * 42f, Mathf.Sin(a) * 42f * 0.6f), 2.5f, ink.WithAlpha(0.7f), 8);
+                    }
+                    break;
+                }
                 default:
                     if (!spent)
                     {
@@ -217,6 +312,60 @@ namespace Arena
             Line(left, top, 3f * k, col);
             Line(left, right, 2f * k, col.WithAlpha(col.A * 0.7f));  // the girdle
             Line(top, bottom, 1.5f * k, col.WithAlpha(col.A * 0.45f));
+        }
+
+        /// A fogged node's "?": a hook over a stem and a dot, scaled.
+        void FogMark(V2 c, float k, Rgba col)
+        {
+            Arc(c + new V2(0f, -12f * k), 11f * k, 4f * k, col, 14, MathX.Tau * 0.5f, MathX.Tau * 0.6f);
+            Line(c + new V2(8.9f * k, -5.5f * k), c + new V2(0f, 3f * k), 4f * k, col);
+            Line(c + new V2(0f, 3f * k), c + new V2(0f, 9f * k), 4f * k, col);
+            Circle(c + new V2(0f, 18f * k), 3f * k, col, 8);
+        }
+
+        /// A scout tower: a mast on legs with a dish at the top and two waves off it, scaled.
+        void TowerGlyph(V2 c, float k, Rgba col)
+        {
+            V2 top = c + new V2(0f, -22f * k);
+            Line(c + new V2(-14f * k, 20f * k), top, 3f * k, col);
+            Line(c + new V2(14f * k, 20f * k), top, 3f * k, col);
+            Line(c + new V2(-8f * k, 4f * k), c + new V2(8f * k, 4f * k), 2.5f * k, col);
+            Line(c + new V2(-17f * k, 20f * k), c + new V2(17f * k, 20f * k), 3f * k, col);
+            Circle(top, 4.5f * k, col, 10);
+            Arc(top, 11f * k, 2.5f * k, col.WithAlpha(col.A * 0.8f), 10, -0.9f, 1.1f);
+            Arc(top, 18f * k, 2.5f * k, col.WithAlpha(col.A * 0.55f), 12, -0.9f, 1.1f);
+        }
+
+        /// A gold vein: three rocks, each with a cut nugget, scaled.
+        void VeinGlyph(V2 c, float k, Rgba col)
+        {
+            var rock = new Rgba(0.46f, 0.4f, 0.34f, 0.9f * col.A);
+            V2 a = c + new V2(-15f * k, 7f * k), b = c + new V2(14f * k, 9f * k), d = c + new V2(0f, -9f * k);
+            foreach (var r in new[] { a, b, d })
+            {
+                Circle(r, 13f * k, rock, 7);
+                Arc(r, 13f * k, 2f * k, rock.WithAlpha(rock.A * 0.7f), 7);
+            }
+            V2[] gems = { a + new V2(2f * k, -2f * k), b + new V2(-2f * k, -1f * k), d + new V2(1f * k, 1f * k) };
+            for (int i = 0; i < 3; i++)
+            {
+                V2 r = gems[i];
+                float s = (i == 2 ? 7f : 5f) * k;
+                Line(r + new V2(0f, -s), r + new V2(s, 0f), 2.5f * k, col);
+                Line(r + new V2(s, 0f), r + new V2(0f, s), 2.5f * k, col);
+                Line(r + new V2(0f, s), r + new V2(-s, 0f), 2.5f * k, col);
+                Line(r + new V2(-s, 0f), r + new V2(0f, -s), 2.5f * k, col);
+                Circle(r, s * 0.55f, col, 6);
+            }
+        }
+
+        /// The vector mark: an arrow pointing up and right with a bar under it, scaled.
+        void VectorMark(V2 c, float k, Rgba col)
+        {
+            V2 a = c + new V2(-12f, 10f) * k, b = c + new V2(12f, -10f) * k;
+            Line(a, b, 3.5f * k, col);
+            Line(b, b + new V2(-11f, 0f) * k, 3.5f * k, col);
+            Line(b, b + new V2(0f, 11f) * k, 3.5f * k, col);
         }
 
         /// A chest: body and lid (the lid swung up when open), scaled.

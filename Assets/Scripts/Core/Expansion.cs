@@ -25,7 +25,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule }  // (a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md)
+    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule, VectorChest, Tower, Vein }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -38,7 +38,8 @@ namespace Arena
         public bool Spent;   // a chest that has been opened
         public byte Rule;    // a rule node: its NodeRule
         public bool Cleared; // a rule node whose claimed room has been through a wave: its prize is out (Docs/RuleRooms.md)
-        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared;
+        public bool Hidden;  // fogged: its kind shows as "?" until a player walks near or a scout tower sees it (NodeScouting.cs)
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared && Hidden == o.Hidden;
         public V2 Pos => new V2(X, Y);
     }
 
@@ -327,7 +328,7 @@ namespace Arena
         public const int NodeClear = 90;                  // cover keeps this far off a node
         public const int NodeApart = 800;                 // and at least this far from every other node
         public const int PrizeClear = 600;                // a chest or relic node keeps this far (6 tiles) from every room's edge, and a floating room placed later keeps as far from it (owner Nov 14)
-        public const int MaxNodesWaiting = 6;             // unclaimed nodes on the map at once
+        public const int MaxNodesWaiting = 8;             // unclaimed nodes on the map at once
 
         public const int RuleHalf = 400;  // a rule node covers 8 x 8 tiles round its point; the claiming room must enclose all of it
 
@@ -355,7 +356,13 @@ namespace Arena
         public static int NodeReach(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf + 150 : 250;  // (nodes sit on a tile centre, so the reach is an odd number of half tiles: the room's walls land on the grid)
 
         /// How far every room keeps from this node when it is placed: chest and relic nodes sit well out in the open.
-        public static int NodeRoomClear(MapNode n) => n.Kind == NodeKind.Chest || n.Kind == NodeKind.Relic ? PrizeClear : NodeReach(n);
+        public static int NodeRoomClear(MapNode n) => IsPrizeNode(n.Kind) ? PrizeClear : NodeReach(n);
+
+        /// A treasure chest or a vector chest.
+        public static bool IsChest(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest;
+
+        /// The small nodes that sit well out in the open: chests, relic, scout tower and gold vein.
+        public static bool IsPrizeNode(NodeKind k) => IsChest(k) || k == NodeKind.Relic || k == NodeKind.Tower || k == NodeKind.Vein;
 
         /// The rule a rule node of this boss cycle carries: the same on every machine for the same seed and cycle.
         public static byte RuleFor(int seed, int cycle) => (byte)RuleRoll(seed, cycle);
@@ -506,7 +513,7 @@ namespace Arena
                     y = by0 + 150 + rng.Int((by1 - by0 - 300) / Step + 1) * Step;
                     x = side == 1 ? bx1 + gap + 50 : bx0 - gap - 50;
                 }
-                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind, Rule = kind == NodeKind.Rule ? RuleFor(seed, cycle) : (byte)0 };
+                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind, Rule = kind == NodeKind.Rule ? RuleFor(seed, cycle) : (byte)0, Hidden = true };  // (fogged until seen: NodeScouting.cs)
                 int reach = NodeRoomClear(n);
                 bool ok = true;
                 foreach (var o in nodes)
@@ -525,6 +532,107 @@ namespace Arena
                     return n;  // (it can be built to: a strip out and a room round it fit)
             }
             return null;
+        }
+
+        // --- Room chests (owner Nov 17): building a room may drop a chest node a few tiles outside its wall ---
+
+        public const float RoomChestThin = 0.10f;    // the chance for a hallway (a room 3 tiles wide or less)
+        public const float RoomChestBase = 0.20f;    // a wider room: this plus its area / RoomChestArea tiles...
+        public const int RoomChestArea = 720;
+        public const float RoomChestMax = 0.40f;     // ...up to this (a 6 x 6 room 25%, 10 x 10 34%, 12 x 12 40%)
+        public const int RoomChestNear = 300, RoomChestFar = 500;  // the chest sits 3 to 5 tiles out from the new room's wall
+        public const int RoomChestClear = 300;       // and at least 3 tiles from every room
+        public const int RoomChestWaiting = 2;       // no roll while this many chests wait unclaimed
+        public const int RoomChestLook = 900;
+        public const float RoomChestVectorShare = 0.5f;  // half of them are vector chests (owner Nov 17)        // a spot near other rooms (within 9 tiles) scores higher: the claiming room tends to join branches
+
+        /// The chance a newly built room (its boxes) drops a chest: thin hallways rarely, big rooms more.
+        public static float RoomChestChance(IList<ExpansionRoom> boxes)
+        {
+            int tiles = 0, widest = 0;
+            foreach (var b in boxes)
+            {
+                tiles += b.W / Step * (b.H / Step);
+                widest = Math.Max(widest, Math.Min(b.W, b.H));
+            }
+            if (widest <= 3 * Step)
+                return RoomChestThin;
+            return Math.Min(RoomChestMax, RoomChestBase + tiles / (float)RoomChestArea);
+        }
+
+        /// Unclaimed, unopened chest nodes on the map.
+        public static int ChestsWaiting(IList<ExpansionRoom> built, IList<MapNode> nodes)
+        {
+            int n = 0;
+            foreach (var nd in nodes)
+                if (IsChest(nd.Kind) && !nd.Spent && !NodeClaimed(built, nd))
+                    n++;
+            return n;
+        }
+
+        /// A chest node for the room just built (the last `count` entries of `built`), or null: it rolls RoomChestChance (none while RoomChestWaiting chests wait),
+        /// then takes a spot 3 to 5 tiles out from one of its outer walls, clear of every room and node and the start room, that a room can be built round;
+        /// spots near other rooms (not the new one) score higher, so claiming it tends to join two branches. The same for the same seed and map.
+        public static MapNode? RoomChestFor(int seed, IList<ExpansionRoom> built, IList<MapNode> nodes, int count, bool roll = true)
+        {
+            if (count <= 0 || count > built.Count || ChestsWaiting(built, nodes) >= RoomChestWaiting)
+                return null;
+            int first = built.Count - count;
+            var boxes = new List<ExpansionRoom>();
+            for (int i = first; i < built.Count; i++)
+                boxes.Add(built[i]);
+            var rng = new DetRandom(seed * 6151 + built.Count * 1291 + 17);
+            if (roll && rng.Float() >= RoomChestChance(boxes))
+                return null;
+            var kind = rng.Float() < RoomChestVectorShare ? NodeKind.VectorChest : NodeKind.Chest;
+            var spots = new List<KeyValuePair<MapNode, int>>();
+            int best = -1;
+            foreach (var b in boxes)
+                for (int side = 0; side < 4; side++)
+                    for (int gap = RoomChestNear; gap <= RoomChestFar; gap += Step)
+                    {
+                        bool across = side == 0 || side == 2;  // 0 north, 2 south: the spot runs along a horizontal wall
+                        int lo = (across ? b.X : b.Y) + 50, hi = (across ? b.X1 : b.Y1) - 50;
+                        for (int p = lo; p <= hi; p += Step)
+                        {
+                            int x = across ? p : side == 1 ? b.X1 + gap + 50 : b.X - gap - 50;
+                            int y = across ? (side == 0 ? b.Y - gap - 50 : b.Y1 + gap + 50) : p;
+                            var n = new MapNode { X = (short)x, Y = (short)y, Kind = NodeKind.Chest };
+                            bool ok = true;
+                            for (int i = 0; i <= built.Count && ok; i++)
+                            {
+                                BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
+                                int clear = i == 0 ? StartClear : RoomChestClear;
+                                ok = !Overlaps(x - clear, y - clear, x + clear, y + clear, cx0, cy0, cx1, cy1);
+                            }
+                            foreach (var o in nodes)
+                                ok &= ok && new V2(o.X - x, o.Y - y).Length >= NodeApart + NodeHalf(o);
+                            if (!ok)
+                                continue;
+                            int score = 0;  // other rooms close by: the claiming room may reach them too
+                            for (int i = 1; i <= first; i++)
+                            {
+                                BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
+                                if (!built[i - 1].Floating && Overlaps(x - RoomChestLook, y - RoomChestLook, x + RoomChestLook, y + RoomChestLook, cx0, cy0, cx1, cy1))
+                                    score++;
+                            }
+                            if (score < best)
+                                continue;
+                            if (!NodeReachable(built, n))
+                                continue;
+                            if (score > best)
+                            {
+                                best = score;
+                                spots.Clear();
+                            }
+                            spots.Add(new KeyValuePair<MapNode, int>(n, score));
+                        }
+                    }
+            if (spots.Count == 0)
+                return null;
+            var pick = spots[rng.Int(spots.Count)].Key;
+            pick.Kind = kind;
+            return pick;
         }
 
         public const int StartExtra = 1000;  // nodes and floating rooms placed off the start room sit this much farther out (owner Nov 12: 600; Nov 13: 1000, the Gatekeeper too)
@@ -579,7 +687,7 @@ namespace Arena
                 }
                 if (ok && nodes != null)
                     foreach (var o in nodes)
-                        if (!o.Spent && (o.Kind == NodeKind.Chest || o.Kind == NodeKind.Relic))
+                        if (!o.Spent && IsPrizeNode(o.Kind))
                             ok &= !Overlaps(x - PrizeClear, y - PrizeClear, x1 + PrizeClear, y1 + PrizeClear, o.X, o.Y, o.X, o.Y);  // (and well clear of a waiting chest or relic node)
                 if (!ok || maxX - minX > MaxWidth || maxY - minY > MaxHeight)
                     continue;

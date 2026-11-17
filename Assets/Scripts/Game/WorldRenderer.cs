@@ -74,6 +74,7 @@ namespace Arena
                 Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);
                 Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
             }
+            DrawMapFold();  // the Campaign's map reset: the old rooms fold into the hub (MapResetLook.cs)
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
@@ -229,6 +230,7 @@ namespace Arena
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
+            DrawMysteryDoors();  // sealed mystery doors (MysteryDoorLook.cs)
             DrawPushFlashes();  // a pushed section's new walls and cover flash in (WallPushLook.cs)
             DrawWallPush();  // push mode: the lit wall section and the next row (WallPushLook.cs)
             DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
@@ -471,6 +473,7 @@ namespace Arena
                 DrawArtillery(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
+            DrawCeremonialFloor(p, t);  // Ceremonial Armor's aura, rings and sigil (CeremonialArmorLook.cs)
             if (p.DashT > 0f)  // Healing Dash's sprint: speed lines and a mint wake (NinjaLooks.cs)
                 DrawDashWake(p, t);
             else if (p.Id == game.MyId ? game.SprintT > 0f : p.Sprint > 0)  // the Dodge's held sprint (NinjaLooks.cs)

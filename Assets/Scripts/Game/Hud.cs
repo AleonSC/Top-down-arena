@@ -84,6 +84,7 @@ namespace Arena
             DrawOffscreenMarkers();  // zoomed in: arrows to the enemies and teammates off the edge (OffscreenMarkers.cs)
             DrawRoomsMinimap();  // the Rooms arena's minimap, top right (RoomsLook.cs)
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
+            DrawMysteryHint();   // mystery doors' price tags and keys (MysteryDoorLook.cs)
             DrawWallPushHint();  // by a wall between waves: the Push wall key; pushing: the label and keys (WallPushLook.cs)
             DrawPushNames();     // a new pushed section's style, named over it (WallPushLook.cs)
             DrawGadgetHint();    // holding a gadget: its time and keys (GadgetLook.cs)
@@ -130,6 +131,12 @@ namespace Arena
                     {
                         if (!pauseUp)
                             DrawHuntMap(game.HuntRoute, game.Hunt, Time.unscaledTime);  // HuntMapUi.cs
+                        break;
+                    }
+                    if (KeepsakeWindowUp && !tabHeld)
+                    {
+                        if (!pauseUp)
+                            DrawKeepsakeVote(Time.unscaledTime);  // the room to keep through the map reset (KeepsakeUi.cs)
                         break;
                     }
                     if (ExpandChipUp && !pauseUp && !WaveBoxUp(me))
@@ -204,6 +211,8 @@ namespace Arena
             }
             if (!tabHeld)
                 DrawSurpriseBanner();  // SurpriseLook.cs
+            if (!tabHeld)
+                DrawMapResetBanner();  // MAP n/10 after a map reset (MapResetLook.cs)
             if (!tabHeld && game.Running)
                 DrawStashLabels();  // the +10 over a Stash's cache (SurpriseLook.cs)
             if (!tabHeld && game.Running)

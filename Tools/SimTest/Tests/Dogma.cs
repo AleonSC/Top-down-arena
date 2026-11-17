@@ -84,6 +84,7 @@ static partial class Program
         var jugg = make(EnemyType.Juggernaut, mePos + new V2(-420f, 260f), 1e6f);
         cast();
         Check(me.DogmaOn && me.UltT == Game.DogmaTime && me.DogmaHead.DistanceTo(mePos) < 1f, "the cast: the dragon comes out of you, 5 s");
+        Check(g.Sounds.Any(c => c.Sfx == Sfx.DogmaRoar), "the cast roars (Sfx.DogmaRoar)");
         step(0.1f);
         Check(client.Game.Players[1].DogmaOn && client.Game.Players[1].DogmaTrail.Count > 0, "the other screen sees it and lays its trail");
         step(3.6f);
@@ -105,7 +106,10 @@ static partial class Program
         tick.Invoke(g, new object[] { dt });
         Check(before == 1 && g.Bullets.Count == 0, "it swallows enemy shots round its head");
 
-        step(Game.DogmaTime);
+        bool heardHome = false;
+        for (int f = 0; f < Game.DogmaTime / dt && !heardHome; f++) { step(dt); heardHome = g.Sounds.Any(c => c.Sfx == Sfx.DogmaHome); }
+        Check(heardHome, "it coils home with its own sound (Sfx.DogmaHome)");
+        step(0.2f);
         Check(!me.DogmaOn && me.UltT == 0f && !client.Game.Players[1].DogmaOn, "it comes home and ends");
         step(1f);
         Check(me.DogmaTrail.Count == 0 && client.Game.Players[1].DogmaTrail.Count == 0, "its body drains back in");

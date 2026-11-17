@@ -95,11 +95,16 @@ static partial class Program
         Run(s, dt, 0.3f, null, () => { anchor.FrozenT = 1f; anchor.FireT = 99f; anchor.Pos = new V2(1500f, 80f); });
         g.Bullets.Clear(); g.DevSetGod(1, true);
         var me = g.Players[1]; var friend = g.Players[2];
-        int bottlers = 0, total = 40;
+        int bottlers = 0, total = 40, early = 0;
+        int wave0 = g.Wave; g.Wave = 1;
+        for (int i = 0; i < total; i++) { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Rioter, new V2(100f, 100f), 0f, 0, false }); if (Game.BottleRioter(e)) early++; e.Hp = 0f; }
+        Check(early == 0, "no Rioter carries a bottle on wave 1 (" + early + " of " + total + ")");
+        g.Wave = Math.Max(2, wave0);
         for (int i = 0; i < total; i++) { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Rioter, new V2(100f, 100f), 0f, 0, false }); if (Game.BottleRioter(e)) bottlers++; e.Hp = 0f; }
         Run(s, dt, 0.3f);
         Check(bottlers >= 4 && bottlers <= 22, "some Rioters carry a bottle, not all (" + bottlers + " of " + total + ")");
         float bottleReach = 0f;
+        bool keptBottle = true;
         Func<bool, int> Throws = want =>
         {
             Enemy r; int tries = 0;
@@ -108,13 +113,15 @@ static partial class Program
             friend.Downed = true; g.Bullets.Clear();
             var seen = new HashSet<int>(); float reach = 0f;
             Run(s, dt, 10f, null, () => { anchor.FrozenT = 1f; anchor.FireT = 99f; anchor.Pos = new V2(1500f, 80f); me.Pos = new V2(1000f, 450f); r.Pos = new V2(1200f, 450f); foreach (var b in g.Bullets.Values) if (b.Kind == Defs.BottleShot) { seen.Add(b.Id); reach = Math.Max(reach, b.Pos.DistanceTo(r.Pos)); } });
+            if (want) keptBottle = Game.BottleRioter(r);
             r.Hp = 0f; Run(s, dt, 0.3f);
             if (want) bottleReach = reach;
             return seen.Count;
         };
         int thrown = Throws(true), plain = Throws(false);
         Console.WriteLine("  bottles in 10 s: bottle rioter {0}, plain rioter {1}", thrown, plain);
-        Check(thrown >= 1 && thrown <= 4, "a bottle Rioter throws now and then");
+        Check(thrown == 1, "a bottle Rioter throws its one bottle, once");
+        Check(!keptBottle, "after its throw it has no bottle left");
         Check(plain == 0, "a plain Rioter never throws");
         Check(bottleReach > 150f, "a bottle flies straight out, not in circles (got " + bottleReach.ToString("0") + " px from the thrower)");
     }

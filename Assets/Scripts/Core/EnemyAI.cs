@@ -370,6 +370,8 @@ namespace Arena
                 e.Radius *= HuntMinibossSize;
             }
             RollVariant(e, parent);  // EnemyVariants.cs
+            if (type == EnemyType.Rioter && Wave < BottleFromWave)
+                e.Phase = 2;  // no bottle yet (RiotBrains.cs)
             if (d.IsBoss)
                 ScaleBoss(e);
             e.Hp = e.MaxHp;

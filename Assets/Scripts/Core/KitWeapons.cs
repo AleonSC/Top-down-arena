@@ -52,6 +52,7 @@ namespace Arena
 
         void TickBleed(Enemy e, float dt)
         {
+            e.CauterT = Math.Max(0f, e.CauterT - dt);  // Cauterize.cs
             if (e.BleedT <= 0f)
                 return;
             e.BleedT -= dt;

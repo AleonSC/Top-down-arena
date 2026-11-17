@@ -12,7 +12,7 @@ static partial class Program
         string why;
         var none = new List<ExpansionRoom>();
         var shapes = (SurpriseShape[])Enum.GetValues(typeof(SurpriseShape));
-        int[] tiles = { 96, 81, 54, 63, 47, 15 };  // floor tiles: ring, cross, L, T, chamfer, stash
+        int[] tiles = { 96, 81, 54, 63, 47, 15, 16, 48, 42, 24 };  // floor tiles: ring, cross, L, T, chamfer, stash, tiny, duel (mystery doors), box, hall (room cards)
         foreach (var s in shapes)
         {
             var b = Expansion.SurpriseBase(s);

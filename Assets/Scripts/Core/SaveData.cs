@@ -24,10 +24,11 @@ namespace Arena
         public readonly Dictionary<string, float> Mastery = new Dictionary<string, float>();  // ability name -> XP
         public RunStats Run = new RunStats();
         // The Expanding arena (ExpansionGame.cs): the seat's vectors and its shop room shelf (kept until the next boss cycle).
-        public int Vectors = -1, VectorCap = -1;                   // -1: not saved (a save from another arena, or from before)
+        public int Vectors = -1, VectorCap = -1, MapSpent;  // MapSpent: vectors spent on this map (MapReset.cs);                   // -1: not saved (a save from another arena, or from before)
         public readonly List<string> Shelf = new List<string>();   // upgrade names by slot, "" for an empty slot
         public int ShelfSold, Restocks;
         public readonly int[] Stash = new int[Market.Count];       // Black Market buys not yet placed, by BuildKind
+        public readonly List<int> Hand = new List<int>();          // room cards held (RoomCard values, RoomCards.cs)
 
         /// "Tank Knight, level 12" for lists.
         public string Summary => Role + " " + Defs.KitName(Kit) + ", level " + Level;
@@ -65,7 +66,8 @@ namespace Arena
         // The Expanding arena (ExpansionGame.cs): the map the team built. A room's Owner is its drawer's seat + 1 here (0: none),
         // so it can go back to whoever takes that seat.
         public bool HasExpansion;
-        public int ExpandSeed, FloatCycle = -1;
+        public bool KeepsakePending;  // left during the keepsake vote (MapReset.cs): it opens again on Continue
+        public int ExpandSeed, FloatCycle = -1, MapNumber = 1;  // MapNumber: which map of the run (MapReset.cs)
         public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
         public readonly List<WallCut> Cuts = new List<WallCut>();
         public readonly List<MapNode> Nodes = new List<MapNode>();
@@ -118,7 +120,7 @@ namespace Arena
             Line(sb, "route", string.Join(",", Route));
             if (HasExpansion)
             {
-                Line(sb, "expand", ExpandSeed + " " + FloatCycle);
+                Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber + " " + (KeepsakePending ? 1 : 0));
                 foreach (var r in Rooms)
                     Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Leg, r.Surprise, r.Claimed ? 1 : 0, r.Mini }));
                 foreach (var c in Cuts)
@@ -130,7 +132,7 @@ namespace Arena
                 foreach (var k in Kits)
                     Line(sb, "kit", k.Kind + " " + k.Floor);
                 foreach (var nd in Nodes)
-                    Line(sb, "node", nd.Kind + " " + nd.X + " " + nd.Y + " " + (nd.Spent ? 1 : 0) + " " + nd.Rule + " " + (nd.Cleared ? 1 : 0));
+                    Line(sb, "node", nd.Kind + " " + nd.X + " " + nd.Y + " " + (nd.Spent ? 1 : 0) + " " + nd.Rule + " " + (nd.Cleared ? 1 : 0) + " " + (nd.Hidden ? 1 : 0));
             }
             foreach (var s in Seats)
             {
@@ -146,8 +148,9 @@ namespace Arena
                 Line(sb, "hp", s.HpFrac);
                 Line(sb, "keys", string.Join(",", s.BonusKeys));
                 if (s.Perks.Count > 0) Line(sb, "perks", string.Join(",", s.Perks));
-                if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap);
+                if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap + " " + s.MapSpent);
                 if (Array.Exists(s.Stash, n => n > 0)) Line(sb, "stash", string.Join(" ", s.Stash));
+                if (s.Hand.Count > 0) Line(sb, "hand", string.Join(" ", s.Hand));
                 if (s.Shelf.Count > 0)
                 {
                     Line(sb, "shop", s.Restocks + " " + s.ShelfSold);
@@ -231,6 +234,8 @@ namespace Arena
                             save.HasExpansion = true;
                             save.ExpandSeed = I(p[0]);
                             save.FloatCycle = I(p[1]);
+                            save.MapNumber = p.Length > 2 ? Math.Max(1, I(p[2])) : 1;  // (older saves: the first map)
+                            save.KeepsakePending = p.Length > 3 && I(p[3]) == 1;
                             break;
                         }
                         case "room":
@@ -243,7 +248,7 @@ namespace Arena
                         case "node":
                         {
                             var p = val.Split(' ');
-                            save.Nodes.Add(new MapNode { Kind = Enum<NodeKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Cleared = p.Length > 5 && I(p[5]) != 0 });
+                            save.Nodes.Add(new MapNode { Kind = Enum<NodeKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Cleared = p.Length > 5 && I(p[5]) != 0, Hidden = p.Length > 6 && I(p[6]) != 0 });
                             break;
                         }
                         case "cut":
@@ -327,11 +332,16 @@ namespace Arena
                         s.Stash[i] = Math.Max(0, I(p[i]));
                     break;
                 }
+                case "hand":
+                    foreach (var c in val.Split(' '))
+                        if (c.Length > 0 && s.Hand.Count < Expansion.HandMax) s.Hand.Add(Math.Max(0, I(c)));
+                    break;
                 case "vectors":
                 {
                     var p = val.Split(' ');
                     s.Vectors = Math.Max(0, I(p[0]));
                     s.VectorCap = Math.Max(0, I(p[1]));
+                    s.MapSpent = p.Length > 2 ? Math.Max(0, I(p[2])) : 0;
                     break;
                 }
                 case "shop":

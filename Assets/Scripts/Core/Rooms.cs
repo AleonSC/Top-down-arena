@@ -359,6 +359,7 @@ namespace Arena
             TickNodes();      // chest nodes (ExpansionGame.cs)
             TickStashClaims();  // a breach Stash's vector cache (BreachEvent.cs)
             TickBreachEvent();  // the gold breach and its surprise room (BreachEvent.cs)
+            TickMysteryDoors();  // MysteryDoors.cs
             int players = Players.Count;
             foreach (var rs in RoomStates)
             {

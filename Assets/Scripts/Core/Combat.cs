@@ -45,7 +45,7 @@ namespace Arena
                 amount *= 1f - AdrenalineCut;  // Adrenaline Shot
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
-            amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
+            amount *= 1f - CereCut(p);  // the Ninja's Ceremonial Armor at full regalia (CeremonialArmor.cs)
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = PackSoak(p, amount);  // the Wolf Whistle's pack takes a share (WolfPack.cs)
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
@@ -92,6 +92,8 @@ namespace Arena
         void DownIfDead(Player p, string source)
         {
             if (p.Hp > 0f || p.Downed)
+                return;
+            if (UseBackup(p))  // the Backup relic (Relics.cs)
                 return;
             p.Hp = 0f;
             p.Downed = true;
@@ -1113,6 +1115,7 @@ namespace Arena
                 e.BurnT = Math.Max(e.BurnT, FlameBurnTime + b.IgniteBonus);
                 e.BurnDps = Math.Max(e.BurnDps, b.Ignite);
                 e.BurnBy = b.Owner;
+                Cauterize(e, b.Owner);  // fire on a bleed (Cauterize.cs)
                 if (b.Kind == Defs.FireballShot)
                     Sounds.Add(new SoundCue { Sfx = Sfx.ShotFireballBurn, Ally = b.Owner != MyId });
             }
@@ -1142,6 +1145,7 @@ namespace Arena
                 e.BurnPool += b.Dmg * s.BurnFrac;  // every hit adds to the fire, so fast and slow weapons gain alike
                 e.PoolT = IncendiaryTime;
                 e.BurnBy = b.Owner;
+                Cauterize(e, b.Owner);
             }
             if (s.CryoSlow > 0f && !Heavy(e))
             {

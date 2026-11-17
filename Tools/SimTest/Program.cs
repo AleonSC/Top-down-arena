@@ -63,8 +63,10 @@ static partial class Program
     {
         if (bot)
             s.Game.Bot = true;
-        s.Host(port, name, role, weapon, ability, kit);
+        if (!s.Host(port, name, role, weapon, ability, kit))
+            Console.WriteLine("  HOST FAILED on port " + port + ": " + s.Status + " (another SimTest run using the same ports? give it PORTBASE=n)");
         s.Diff.Set(DiffKnob.Campaign, 0f);  // (the tests expect the usual random waves; CampaignTest turns it on itself)
+        s.Diff.Set(DiffKnob.RoomCards, 0f);  // (the tests draw their rooms; RoomCardsTest turns cards on itself)
         return s;
     }
 
@@ -241,7 +243,7 @@ static partial class Program
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => WeaponSoundsTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
         () => BloodMageTest(Dt), () => BloodLashTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => EnemyNumbersTest(Dt), () => DifficultyTest(Dt), () => PatternsTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => WolfPackTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }, () => BotTeamplayTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => FloodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
-        () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => DevArenaTest(Dt), () => SessionSourcesTest(Dt), () => AuditFixesTest(Dt), () => FavoritesTest(Dt), () => GadgetTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
+        () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => DevArenaTest(Dt), () => SessionSourcesTest(Dt), () => AuditFixesTest(Dt), () => FavoritesTest(Dt), () => GadgetTest(Dt), () => CauterizeTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
     };
 
     static void RunFeatures()
@@ -292,7 +294,7 @@ static partial class Program
         Test("captain", "the Riot Captain: its shield, the charge into a wall, the whistle, its attacks, its room over the network", () => RiotCaptainTest(Dt)),
         Test("guardswing", "the riot Guard swings its baton fast, forehand then backhand, only when you're close and without stopping", () => GuardSwingTest(Dt)),
         Test("guardrally", "a Rioter near a Guard runs faster than one alone", () => GuardRallyTest(Dt)),
-        Test("rioterbottle", "only some Rioters carry a bottle and throw it at a player 110-300 px away", () => RioterBottleTest(Dt)),
+        Test("rioterbottle", "from wave 2 some Rioters carry one bottle and throw it at a player 110-300 px away", () => RioterBottleTest(Dt)),
         Test("security", "the Security Guard walks while it locks on, keeps its strafe side and aims straight at you", () => SecurityTest(Dt)),
         Test("reapercult", "the Twin Reapers' cult: Bound Wraiths' tether and revive, Scythe Wraith's reap, Lamplighter, Mourner", () => ReaperCultTest(Dt)),
         Test("nonshooters", "the Fuse Runner's fuse and blast, the Hookman's yank and open window, the Sapper's Tripwire Pods", () => NonShootersTest(Dt)),
@@ -379,6 +381,7 @@ static partial class Program
         Test("devourer", "the Devourer's three stages and last meal", () => DevourerTest(Dt)),
         Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("pacman", "the Pac-Man maze game: maze, steering, tunnel, dots and pellets, the four role ghosts, lives, levels, the ghost house, co-op", () => PacmanTest(Dt)),
+        Test("mapreset", "the Campaign map resets after each boss: kits kept, half the spent vectors back, saved", () => MapResetTest(Dt)),
         Test("longrun", "the 100-wave Campaign: two legs a track wave, the boss after every tenth, half XP, saves and continuing, the party's level at the first boss", () => LongRunTest(Dt), () => LongRunPaceTest(Dt)),
         Test("wardencycle", "the Campaign's Warden cycle: one lesson a wave (Rioters, guards, shields, gas, tasers, squads, the Riot line) (one guaranteed star enemy each)", () => WardenCycleTest(Dt)),
         Test("checkpoints", "checkpoints and lives: a boss leaves a checkpoint, a wipe with a life left retries from it (score cut), Play again or no lives end the run", () => CheckpointsTest(Dt)),
@@ -422,6 +425,7 @@ static partial class Program
         Test("windclash", "Wind Clash: the crescent hits ahead not behind, the back crescent, the gale lance reaches far down the aim, the clash ring hits all round, each wave shoves, the combo starts over; Tempest hurts, catches shots, slows you, stops attacks, ends at 3 s and cools down; the other screen sees it; Gale Force", () => WindClashTest(Dt)),
         Test("twinauto", "the Twin Rifle Auto: each gun picks the nearest enemy on its side and fires untouched, Alt locks both on the enemy by the cursor (crossfire) until it dies or Alt is pressed again", () => TwinAutoTest(Dt)),
         Test("outofammo", "Out of Ammo: no shots, the five-move knife chain on a close enemy, one swat per rifle, Alt's spin cuts and swats everything then cools down", () => OutOfAmmoTest(Dt)),
+        Test("cauterize", "Cauterize: fire on a bleeding enemy lands the bleed left at once, times 1.25, split bleeder/burner credit, ends the bleed, the look, a 1 s gap", () => CauterizeTest(Dt)),
         Test("poisondart", "Poison Dart: the dart at the enemy nearest the cursor, the poison, the spread on death and the chain, mastered, Virulence", () => PoisonDartTest(Dt)),
         Test("airstrike", "Airstrike: a carpet of bombs across the aim, wall to wall, the burning lane, the mastered second wall, Bigger Boom", () => AirstrikeTest(Dt)),
         Test("cavalry", "Cavalry Call: two lancers (four mastered) ride the aim, hit each enemy once, shove, slow and hurt, Heavy ones barely move, the 20% guard", () => CavalryTest(Dt)),
@@ -442,9 +446,11 @@ static partial class Program
         Test("portals", "spawn portals and surges: bursts through portals, sealing one cancels the rest, flanks behind the party, the surge rhythm", () => SpawnPortalsTest(Dt)),
         Test("layouts", "arena layouts: the six floor plans, walls and pillars, edge gates, enemy gates, steering round walls", () => LayoutsTest(Dt)),
         Test("wings", "the Rooms arena (phase 1): the Arena setting, the Wings rooms and hallways, doors, walls, spawns, steering, boss waves in the hub", () => RoomsArenaTest(Dt)),
-        Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingOutlineTest(Dt), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingThemesTest(Dt), () => ExpandingWallsTest(Dt), () => ExpandingFreeBuildTest(Dt), () => ExpandingPurseTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingRoomSizesTest(Dt), () => ExpandingFloatCostTest(), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingPushTest(Dt)),
+        Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingOutlineTest(Dt), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingThemesTest(Dt), () => ExpandingWallsTest(Dt), () => ExpandingFreeBuildTest(Dt), () => ExpandingPurseTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingRoomSizesTest(Dt), () => ExpandingFloatCostTest(), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingPushTest(Dt), () => ExpandingRoomChestTest(), () => ExpandingVectorChestTest(Dt)),
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
-        Test("push", "wall push (Docs/WallPush.md): sections pushed out of a wall a tile at a time, between waves, paid by width", () => ExpandingPushTest(Dt)),
+        Test("roomcards", "room cards (Docs/RoomCards.md): preset rooms held in a hand and placed against a wall; dealt, dropped, bought, played, saved", () => RoomCardsTest(), () => RoomCardsGameTest(Dt), () => RoomCardsBotTest(Dt)),
+        Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt)),
+        Test("push", "wall push (Docs/WallPush.md): sections pushed out of a wall a tile at a time, between waves, paid by width", () => ExpandingPushTest(Dt), () => ExpandingRoomChestTest()),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("bossgate", "the boss gate (BossGate.cs): opens before the boss, holds the wave until everyone stands in it, bots walk in", () => BossGateTest(Dt)),
         Test("quick", "Quick Play (QuickPlay.cs): the default mode, ten faction waves, a random boss after wave 10, its records, endless", () => QuickPlayTest(Dt), () => QuickBuildTest(Dt), () => TutorialTest(Dt), () => QuickRecordTest(Dt), () => QuickBossHpReport()),
@@ -522,7 +528,7 @@ static partial class Program
         "swordsman", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
-        "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "expand", "roomcards", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 

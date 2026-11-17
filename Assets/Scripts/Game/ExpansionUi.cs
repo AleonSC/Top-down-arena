@@ -332,6 +332,9 @@ namespace Arena
             }
             DrawBuildRail(doorsOnly, free, calm);
             bool roomMode = !expCutMode && !expLinkMode && !expGateMode && !expTrapMode;
+            bool cardMode = roomMode && game.RoomCardsOn;  // room cards: the Room tool plays a card instead of drawing (RoomCardsUi.cs)
+            if (cardMode)
+                roomMode = false;
             if (!roomMode)
                 expPts.Clear();
             var map = DrawMapRect;
@@ -410,7 +413,11 @@ namespace Arena
                 trapWhy = "None in your stash: buy one at the Black Market";
             bool closeRoom = false, laidWall = false;
             List<int[]> dragBox = null;
-            if (roomMode)
+            SurpriseOption? cardPick = null;
+            int cardFits = 0;
+            if (cardMode)
+                cardPick = CardModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), free, out cardFits);
+            else if (roomMode)
             {
                 if ((ev.type == EventType.MouseDown && ev.button == 1) || (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.Escape || ev.keyCode == KeyCode.Backspace)))
                 {
@@ -546,7 +553,7 @@ namespace Arena
                     expPts.Clear();
                 }
             }
-            bool hasBox = !roomMode && !expCutMode && !expLinkMode && !expGateMode && !expTrapMode && rw > 0 && rh > 0;
+            bool hasBox = !roomMode && !cardMode && !expCutMode && !expLinkMode && !expGateMode && !expTrapMode && rw > 0 && rh > 0;
             string why = null;
             ExpansionRoom? box = null;
             WallCut cut = default(WallCut);
@@ -668,6 +675,7 @@ namespace Arena
                     RoomMapFrame(bp.X - 8f, bp.Y - 8f, 16f, 16f, 2f, bi);
                 }
                 DrawHoloGates(wd, M, k);  // the gates fitted (BuildMapLook.cs)
+                DrawHoloMystery(M, k);  // sealed mystery doors (MysteryDoorLook.cs)
                 DrawHoloBreaches(M, k, map);  // this wave's breaches
                 if (expGateMode)  // the doors a gate can go on, and the one under the mouse
                     for (int di = 0; di < wd.Doors.Length; di++)
@@ -703,7 +711,7 @@ namespace Arena
                     if (q.Leg == 0 && game.LegsOf(q.Owner).Count == 0)  // (a room of several boxes shows as one fill, no seams)
                         RoomMapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.85f));
                 }
-                if ((over || expDragging) && !expGateMode)  // the snapped cursor (a cross) and the corner already placed (a square)
+                if ((over || expDragging) && !expGateMode && !cardMode)  // the snapped cursor (a cross) and the corner already placed (a square)
                 {
                     V2 cur = M(Snap(ev.mousePosition));
                     RoomMapRect(cur.X - 7f, cur.Y - 0.5f, 14f, 1f, Rgba.White.WithAlpha(0.8f));
@@ -724,6 +732,8 @@ namespace Arena
                     DrawLinkMark(M(expA), M(expB), linkPrice > 0 ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f), 1f);
                 if (roomMode)
                     DrawOutlineDraft(M, shape, laid, outlineRoom, cursor, over, fillDraft);
+                if (cardMode)
+                    DrawCardGhost(M, cardPick);
                 if (hasBox)
                 {
                     V2 p0 = M(new V2(rx, ry)), p1 = M(new V2(rx + rw, ry + rh));
@@ -747,8 +757,8 @@ namespace Arena
                     }
                     if (map.Contains(Event.current.mousePosition) && TipHover(nr))
                     {
-                        TipStart(nr, nd.Kind == NodeKind.Rule ? "Rule node: " + RuleName(nd.Rule) : nd.Kind.ToString(), ToColor(NodeInkOf(nd)));
-                        TipAdd(nd.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : "Build a room round it to claim it.", 12, Ui.Text);
+                        TipStart(nr, NodeName(nd), ToColor(NodeInkOf(nd)));
+                        TipAdd(nd.Kind == NodeKind.Rule && !nd.Hidden ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : NodeBlurb(nd), 12, Ui.Text);
                     }
                 }
             foreach (var fa in wd.Areas)  // the floating rooms: named in a hover tip too
@@ -773,7 +783,9 @@ namespace Arena
             }
             string line;
             Color lineInk;
-            if (expGateMode && gateDoor >= 0)
+            if (cardMode)
+                line = CardLine(cardPick, cardFits, over, out lineInk);
+            else if (expGateMode && gateDoor >= 0)
             {
                 line = gateWhy ?? "SHUTTER GATE ON THIS DOOR  ·  " + Gates.Price + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  click to propose it";
                 lineInk = gateWhy == null ? Ui.Gold : new Color(1f, 0.45f, 0.5f);
@@ -856,7 +868,9 @@ namespace Arena
             }
             float bx = panel.x + 10f, bw = panel.width - 20f;
             float actY = panel.yMax - 140f;  // the action keys sit just above Close and Done · ready up
-            if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
+            if (cardMode)
+                DrawCardHand(new Rect(bx, py, bw, actY - 46f - py), calm);
+            else if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
                 DrawThemeGrid(new Rect(bx, py, bw, actY - 46f - py), calm);
             if (roomMode && expPts.Count > 0)
             {
@@ -889,7 +903,7 @@ namespace Arena
                 if (free)
                     expOpen = false;
             }
-            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), cardMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the card back   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
             DrawTip(true);
             CrtUi.End(win, t, calm);
         }
@@ -1044,7 +1058,7 @@ namespace Arena
             float x = 48f, w = 158f;
             CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
             Ui.Label(new Rect(x + 2f, 64f, w, 16f), doorsOnly ? "WAVE ON  ·  DOORS ONLY" : free ? "BUILT AS YOU PLACE IT" : "THE TEAM VOTES", 10, doorsOnly ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[] names = { "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
+            string[] names = { game.RoomCardsOn ? "ROOM CARDS" : "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
             int cur = expTrapMode ? 4 : expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0;
             var ev = Event.current;
             int pick = -1;
@@ -1110,14 +1124,16 @@ namespace Arena
             var items = new List<KeyValuePair<string, Rgba>> { new KeyValuePair<string, Rgba>("YOUR MAP", new Rgba(0.4f, 0.64f, 1f)), new KeyValuePair<string, Rgba>("DOOR", new Rgba(0.37f, 0.94f, 1f)) };
             var seen = new HashSet<int>();
             foreach (var nd in game.Nodes)
-                if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add((int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
-                    items.Add(new KeyValuePair<string, Rgba>((nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind.ToString().ToUpperInvariant() + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
+                if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Hidden ? -1 : (int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
+                    items.Add(new KeyValuePair<string, Rgba>((nd.Hidden ? "UNKNOWN NODE" : nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind == NodeKind.Tower || nd.Kind == NodeKind.Vein ? NodeName(nd.Kind) : NodeName(nd.Kind) + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
             items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
             items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
             if (game.ActiveBreaches.Length > 0)
                 items.Add(new KeyValuePair<string, Rgba>("BREACH", HoloBreachInk));
             if (game.GateFits.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("GATE", HoloGateInk));
+            if (game.MysteryDoors.Count > 0)
+                items.Add(new KeyValuePair<string, Rgba>("MYSTERY DOOR", MysteryHolo));  // (MysteryDoorLook.cs)
             if (game.Links.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("PORTAL", PortalColours[(game.ExpansionWorld.Portals.Length - game.Links.Count) % PortalColours.Length]));
             bool sealedRoom = false;
@@ -1212,6 +1228,12 @@ namespace Arena
                 title = "OPEN A WALL";
                 steps = new[] { "Find a cyan wall two rooms share", "Click one end of the stretch", "Click the other end" };
                 tip = (doorsOnly ? "A wave is on: only doors for now. " : "") + "At least " + Expansion.MinCut / 100 + " tiles. You get 1 vector back per tile of wall.";
+            }
+            else if (game.RoomCardsOn)
+            {
+                title = "PLAY A ROOM CARD";
+                steps = new[] { "Pick a card from your hand", "Point where it should go (the dots fit)", "Click to build it  ·  R turns it" };
+                tip = "Every room is a card. You get one each round; bosses, chests and the Black Market give more.";
             }
             else
             {
