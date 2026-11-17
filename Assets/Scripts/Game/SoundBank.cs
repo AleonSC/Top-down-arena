@@ -401,6 +401,7 @@ namespace Arena
                 BuildHeli();  // HeliSoundBank.cs
                 BuildFlood();  // FloodSoundBank.cs
                 BuildWaterWard();  // WaterWardSoundBank.cs
+                BuildCover();  // CoverSoundBank.cs
             }
             catch (Exception ex)
             {

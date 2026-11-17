@@ -128,6 +128,41 @@ namespace Arena
                 CoverPieces(wall, arm, V2.Zero, Rgba.White.WithAlpha(0.8f * flash * alpha), false);
         }
 
+        readonly HashSet<int> coverHeard = new HashSet<int>();  // covers whose build sound has played (by zone id)
+        readonly List<int> coverHeardGone = new List<int>();
+
+        /// Every frame: a cover's build sound the first time it's seen young (one already standing when you arrive stays quiet),
+        /// and a crash for each FxKind.CoverBreak (CoverSoundBank.cs).
+        void UpdateCoverSound()
+        {
+            float now = Time.unscaledTime;
+            coverHeardGone.Clear();
+            foreach (int id in coverHeard)
+                if (!game.Zones.ContainsKey(id))
+                    coverHeardGone.Add(id);
+            foreach (int id in coverHeardGone)
+            {
+                coverHeard.Remove(id);
+                coverLanded.Remove(id);
+                coverGhost.Remove(id);
+            }
+            foreach (var z in game.Zones.Values)
+            {
+                if (z.Kind != ZoneKind.Cover || !coverHeard.Add(z.Id) || Game.CoverAge(z) > 0.3f)
+                    continue;
+                bool mine = z.Owner == game.MyId;
+                sounds?.Play(new SoundCue { Sfx = Sfx.CoverDeploy, Ally = !mine, Quiet = mine ? 0f : game.QuietAt(z.Pos) }, now);
+            }
+            foreach (var fx in game.Effects)
+            {
+                if (fx.Kind != FxKind.CoverBreak || fx.Heard)
+                    continue;
+                fx.Heard = true;
+                if (fx.T < 0.3f)
+                    sounds?.Play(new SoundCue { Sfx = Sfx.CoverBreak, Quiet = game.QuietAt(fx.Pos) }, now);
+            }
+        }
+
         /// A standing (or landing) cover, from the zone layer (DrawZone).
         void DrawCover(Zone z, float t)
         {
