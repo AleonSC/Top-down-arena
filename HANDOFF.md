@@ -257,7 +257,8 @@ The lobby fits about 8 class cards in a row before they get too small.
   prefix (default `Boss`) from `SoundBank.cs` to `Tools/SoundCheck/out/*.wav`, so they can be heard (and their levels
   checked) without Unity.
 - **Sound Forge:** open `Tools/SoundForge/index.html` in a browser: a three-layer synth (tone or noise, pitch glide,
-  FM, envelope, swept filter; drive, bit crush, echo) with presets, that exports 44.1 kHz 16-bit WAVs named after a
+  FM, envelope, swept filter, tremolo/flicker; drive, bit crush, a 5-band EQ over the sound's spectrum, echo,
+  output volume; a seamless loop mode for hums) with presets, that exports 44.1 kHz 16-bit WAVs named after a
   game sound (`ShotRifle.wav`, takes `ShotRifle_1.wav`...) for the sounds folder. `names.py` refreshes its name list
   from the `Sfx` enum; its settings JSON can be pasted to Claude to make a code recipe.
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 16 fixed, seeded scenes (every enemy and minion
