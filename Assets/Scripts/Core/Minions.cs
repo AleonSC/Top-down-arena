@@ -722,6 +722,11 @@ namespace Arena
                     TickThrall(m, owner, dt);  // ForcePact.cs
                     continue;
                 }
+                if (m.Kind == MinionKind.Strider)
+                {
+                    TickStrider(m, owner, dt, speed, dmg);  // Engineer.cs
+                    continue;
+                }
                 if (m.Kind == MinionKind.SoulLantern)
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)

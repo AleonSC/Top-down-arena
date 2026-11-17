@@ -1,6 +1,6 @@
 # Engineer: a vector builder class
 
-Status: **mockup** (Nov 17, 2026). Nothing built yet. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
+Status: **step 1 built** (Nov 17, 2026; protocol 392): the DPS Engineer with the Vector Forge and Strider, Drag Pylon and Breach. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
 (real renders, a playable bench, the kit, a Breach room roller). Numbers are first guesses.
 The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=strider|pylon|breach ENGT=<s> Tools/Preview/shot.sh x hud`
 (`Tools/Preview/ShotEngineer.cs`); the renders are in `Mockups/engineer/`.
@@ -32,3 +32,14 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
 - Role: DPS first? (proposed)
 - Vectors in the kit: Draftsman passive and repairing the Strider with vectors (1 vector = 30 HP)? (proposed: both)
 - Ambush rooms: keep the risk roll? (proposed: keep, double gold)
+
+## Build steps
+
+1. **Built** (protocol 392): `Kit.Engineer`, DPS only (stand-ins lock its other lobby places: `FillsGaps`); Vector Forge
+   (rivets + the Strider: hunt, punch, slam, aggro, Alt lock/post/recall, rebuilt in 8 s), Drag Pylon, Breach (blast; a
+   room behind the Expanding arena's wall with one loot roll, the loot dropped where it lands); looks A Hi-vis and the
+   plated walker. Defaults taken for the open questions: DPS first, no wall = blast + loot at the cursor, Ambush kept.
+   Not yet: the Draftsman passive and vector repairs, walk-in loot in the room, the Strider's build-in animation in a match.
+2. Next: the Draftsman passive (+25% vectors) and Strider repairs with vectors; upgrade cards for the Strider and pylon.
+3. Later: Tank and Healer Engineer kits (two more weapons, abilities and ultimates each).
+

@@ -30,6 +30,24 @@ static partial class Shot {
       e.SpawnT = 0f; e.Pos = e.Disp = p; e.Facing = face; e.FireT = 99f; return e;
     };
     var m = new EngineerMock();
+    if (mode == "real") {
+      // ENGINEER=real: the built class in a match, drawn by the game's own paths (no mock): you as a DPS Engineer, your Strider
+      // (a real MinionKind.Strider, locked on a Charger) and a Drag Pylon zone with grunts crossing it.
+      me.Kit = Kit.Engineer; me.Weapon = Defs.Weapon(Role.Dps, Kit.Engineer, 0);
+      me.Pos = me.Disp = new V2(700f, 560f);
+      var bf = BindingFlags.NonPublic | BindingFlags.Instance;
+      var target = put(EnemyType.Charger, new V2(985f, 440f), MathX.Pi);
+      target.Hp = target.MaxHp * 0.55f;
+      var s = (Minion)typeof(Game).GetMethod("SpawnMinion", bf).Invoke(gm, new object[] { MinionKind.Strider, me, new V2(935f, 450f), -1f, true });
+      s.MaxHp = 500f; s.Hp = 380f; s.Aim = (target.Pos - s.Pos).Angle; s.Wind = 0.8f; s.Stacks = 1; s.LinkTo = target.Id; s.GuardFrac = s.Hp / s.MaxHp;
+      var z = (Zone)typeof(Game).GetMethod("AddZone", bf).Invoke(gm, new object[] { ZoneKind.DragPylon, me, new V2(560f, 330f), Game.PylonRadius, 100000f });
+      z.T = 99990f;
+      put(EnemyType.Grunt, new V2(600f, 300f), MathX.Pi * 0.2f); put(EnemyType.Grunt, new V2(520f, 380f), MathX.Pi * 0.1f);
+      put(EnemyType.Grunt, new V2(1080f, 520f), MathX.Pi * 1.1f);
+      me.Aim = (new V2(600f, 300f) - me.Pos).Angle;
+      Console.Error.WriteLine("engineer: real");
+      return;
+    }
     if (mode == "strider") {
       me.Pos = me.Disp = new V2(770f, 540f);
       var target = put(EnemyType.Charger, new V2(985f, 440f), MathX.Pi);

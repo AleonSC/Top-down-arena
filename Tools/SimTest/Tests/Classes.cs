@@ -40,6 +40,8 @@ static partial class Program
             foreach (var role in roles)
                 for (int c = 0; c < Defs.WeaponCount(role, k.Id); c++)
                 {
+                    if (Defs.WeaponGap(role, k.Id, c))
+                        continue;  // a class still being built: a stand-in, locked in the lobby
                     var w = Defs.Weapon(role, k.Id, c);
                     string wn = who + " " + role + " weapon " + c + " (" + w.Name + ")";
                     need(w.Kit == k.Id && w.Role == role && w.Choice == c, wn + ": in its own lobby place");
@@ -54,8 +56,9 @@ static partial class Program
             // Abilities: three Space abilities per role and an ultimate, all its own, each with a cast.
             foreach (var role in roles)
             {
-                var placed = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Select(c => Upgrades.RoleAbility(role, k.Id, c)).ToList();
-                placed.Add(Upgrades.Ultimate(role, k.Id));
+                var placed = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Where(c => !Upgrades.AbilityGap(role, k.Id, c)).Select(c => Upgrades.RoleAbility(role, k.Id, c)).ToList();
+                if (!Upgrades.UltGap(role, k.Id))
+                    placed.Add(Upgrades.Ultimate(role, k.Id));
                 for (int u = 1; u < Upgrades.UltKeys; u++)  // any other ultimates on the lobby's Ultimate row
                     if (Upgrades.AltUltimate(role, k.Id, u) != AbilityId.None)
                         placed.Add(Upgrades.AltUltimate(role, k.Id, u));

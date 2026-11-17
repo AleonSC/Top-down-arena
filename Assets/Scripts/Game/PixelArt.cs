@@ -196,6 +196,7 @@ namespace Arena
             { "Blood Freeze", "bloodfreeze" },
             { "Martyr", "martyr" },
             { "Arterial Spray", "spray" },
+            { "Drag Pylon", "dragpylon" },
             { "Blood Debt", "debt" },
             { "Vein Rush", "veinrush" },
         };
@@ -338,6 +339,21 @@ namespace Arena
                 ".kRrrrrrRRk.",
                 "..kRRRRRRk..",
                 "...kkkkkk...",
+            },
+            ["class_engineer"] = new[]  // Engineer: a hard hat
+            {
+                "............",
+                "............",
+                "....kkkk....",
+                "...kyywyk...",
+                "..kyyywyyk..",
+                "..kyyywyyYk.",
+                ".kyyyywyyYk.",
+                ".kyyyywyyYk.",
+                "kkkkkkkkkkkk",
+                "kYYYYYYYYYYk",
+                "kkkkkkkkkkkk",
+                "............",
             },
             ["perk_riot"] = new[]  // a riot shield with a viewing slit (Riot Gear, Perks.cs)
             {
@@ -863,6 +879,21 @@ namespace Arena
                 "...krrrrk...",
                 "....krrk....",
                 ".....kk.....",
+            },
+            ["dragpylon"] = new[]  // a pylon with its field (Engineer.cs)
+            {
+                "..v.v.v.v...",
+                ".v..kwk...v.",
+                "....kvk.....",
+                "v...kvk...v.",
+                "...kvVvk....",
+                ".v.kvVvk..v.",
+                "..kvk.kvk...",
+                "v.kvk.kvk.v.",
+                ".kvk...kvk..",
+                ".kk.....kk..",
+                "..v.v.v.v...",
+                "............",
             },
             ["spray"] = new[]
             {

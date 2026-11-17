@@ -736,6 +736,11 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
+                    if (Defs.KitLocked(me.Role, (Kit)i))
+                    {
+                        LockedSlot(b, Defs.KitName((Kit)i) + ": DPS only for now", true);  // a class still being built (the Engineer)
+                        continue;
+                    }
                     if (b.Contains(Event.current.mousePosition))
                     {
                         TipStart(b, Defs.KitName((Kit)i), Ui.Text);
@@ -764,7 +769,7 @@ namespace Arena
                 for (int i = 0; i < weaponSlots; i++)
                 {
                     var b = new Rect(x + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
-                    if (i >= weaponCount)  // (the 4th key is a weapon where the class has a fourth: the Knight DPS's Arc Knuckles)
+                    if (i >= weaponCount || Defs.WeaponGap(me.Role, me.Kit, i))  // (the 4th key is a weapon where the class has a fourth: the Knight DPS's Arc Knuckles; a class still being built has locked keys)
                     {
                         LockedSlot(b, null, true);
                         continue;
@@ -784,7 +789,7 @@ namespace Arena
                 for (int i = 0; i < abilitySlots; i++)
                 {
                     var b = new Rect(ax + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
-                    if (i >= Upgrades.AbilityLimit(me.Role, me.Kit))
+                    if (i >= Upgrades.AbilityLimit(me.Role, me.Kit) || Upgrades.AbilityGap(me.Role, me.Kit, i))
                     {
                         LockedSlot(b, null, true);
                         continue;

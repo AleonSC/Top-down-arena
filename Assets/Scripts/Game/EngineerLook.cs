@@ -75,6 +75,45 @@ namespace Arena
                 DrawHardHat(game.Me.Disp, game.Me.Def.BodyR, game.Me.Aim);
         }
 
+        // --- in a match: drawn from the replicated zone, minion and effect ---
+
+        /// A Drag Pylon zone (ZoneKind.DragPylon): it unfolds as it lands and folds up in its last moment.
+        void DrawDragPylonZone(Zone z, float t)
+        {
+            float age = z.Duration - z.T;
+            float fold = z.T < 0.3f ? 1f - z.T / 0.3f : 0f;
+            DrawDragPylon(z.Pos, age, fold, t, z.Radius);
+            foreach (var e in game.Enemies.Values)
+                if (e.Hp > 0f && e.Disp.CloserThan(z.Pos, z.Radius + e.Radius * 0.5f))
+                    DrawDragTrail(e, t);
+        }
+
+        /// The Strider (MinionKind.Strider): the picked look B (plated walker), Nov 17. Aim its facing, Wind its punch, GuardFrac
+        /// its health, Stacks 1 locked on (LinkTo the enemy: reticle and tether) or 2 posted.
+        public const int StriderLookPick = 1;
+
+        void DrawStriderMinion(Minion m, float t)
+        {
+            Enemy target = null;
+            if (m.Stacks == 1 && m.LinkTo != 0)
+                game.Enemies.TryGetValue(m.LinkTo, out target);
+            if (target != null)
+            {
+                DrawDashed(m.Disp, target.Disp, EngInk.WithAlpha(0.5f), 2f, 12f, 8f, t * 60f);
+                DrawLockReticle(target.Disp, target.Radius + 10f, t);
+            }
+            float step = (m.Disp.X + m.Disp.Y) * 0.09f;
+            DrawStriderLook(StriderLookPick, m.Disp, m.Aim, step, m.Wind, m.GuardFrac, target != null, t);
+        }
+
+        /// FxKind.BreachSmash: the hammer and the hit (Pos the wall, Pos2 one px on into it, T its age).
+        void DrawBreachFx(Effect fx)
+        {
+            V2 o = fx.Pos2 - fx.Pos;
+            var m = new EngineerMock { WallPt = fx.Pos, Out = o.Length > 0.01f ? o.Normalized() : new V2(0f, -1f), BreachT = fx.T };
+            DrawBreach(m, Time.time);
+        }
+
         void DrawDashed(V2 a, V2 b, Rgba c, float w, float dash, float gap, float offset)
         {
             float len = (b - a).Length;
@@ -164,9 +203,9 @@ namespace Arena
                 Arc(at, 30f * k, 2f, EngInk.WithAlpha(0.35f), 32, -MathX.Pi * 0.5f, MathX.Tau * build);
         }
 
-        void DrawDragPylon(V2 at, float age, float fold, float t)
+        void DrawDragPylon(V2 at, float age, float fold, float t, float radius = PylonRadius)
         {
-            float r = PylonRadius * (1f - fold) * Mathf.Clamp01(age / 0.25f);
+            float r = radius * (1f - fold) * Mathf.Clamp01(age / 0.25f);
             if (r > 2f)
             {
                 Circle(at, r, EngSlow.WithAlpha(0.07f), 48);
