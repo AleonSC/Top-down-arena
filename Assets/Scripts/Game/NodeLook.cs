@@ -17,7 +17,10 @@ namespace Arena
 
         static string RuleName(byte rule) => (NodeRule)rule == NodeRule.BloodMoon ? "Blood Moon" : ((NodeRule)rule).ToString();
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk : ChestInk;
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk : k == NodeKind.VectorChest ? VecCyan : ChestInk;
+
+        /// A node's name for tips and legends.
+        static string NodeName(NodeKind k) => k == NodeKind.VectorChest ? "Vector chest" : k.ToString();
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
         void DrawNodeMark(MapNode n, bool claimed)
@@ -51,6 +54,10 @@ namespace Arena
                     Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 4f, col);
                     break;
                 case NodeKind.Relic: RelicGem(c, 0.75f, col); break;
+                case NodeKind.VectorChest:
+                    ChestBox(c, 0.7f, col, false);
+                    VectorMark(c + new V2(0f, -30f), 0.6f, col);
+                    break;
                 default: ChestBox(c, 0.7f, col, false); break;
             }
         }
@@ -179,6 +186,24 @@ namespace Arena
                     }
                     break;
                 }
+                case NodeKind.VectorChest:
+                {
+                    if (spent)
+                    {
+                        ChestBox(c, 1f, ink.WithAlpha(0.3f), true);
+                        break;
+                    }
+                    Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
+                    Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
+                    ChestBox(c, 1f, ink.WithAlpha(0.95f), false);
+                    VectorMark(c + new V2(0f, -44f + Mathf.Sin(t * 2.6f) * 3f), 1f, ink.WithAlpha(0.95f));  // the vector arrow bobbing over the lid
+                    for (int k = 0; k < 3; k++)  // motes turning round it
+                    {
+                        float a = t * 1.4f + k * MathX.Tau / 3f;
+                        Circle(c + new V2(Mathf.Cos(a) * 42f, Mathf.Sin(a) * 42f * 0.6f), 2.5f, ink.WithAlpha(0.7f), 8);
+                    }
+                    break;
+                }
                 default:
                     if (!spent)
                     {
@@ -217,6 +242,15 @@ namespace Arena
             Line(left, top, 3f * k, col);
             Line(left, right, 2f * k, col.WithAlpha(col.A * 0.7f));  // the girdle
             Line(top, bottom, 1.5f * k, col.WithAlpha(col.A * 0.45f));
+        }
+
+        /// The vector mark: an arrow pointing up and right with a bar under it, scaled.
+        void VectorMark(V2 c, float k, Rgba col)
+        {
+            V2 a = c + new V2(-12f, 10f) * k, b = c + new V2(12f, -10f) * k;
+            Line(a, b, 3.5f * k, col);
+            Line(b, b + new V2(-11f, 0f) * k, 3.5f * k, col);
+            Line(b, b + new V2(0f, 11f) * k, 3.5f * k, col);
         }
 
         /// A chest: body and lid (the lid swung up when open), scaled.

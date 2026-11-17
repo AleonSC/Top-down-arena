@@ -65,7 +65,7 @@ namespace Arena
             p.DogmaAng = p.Aim;
             p.DogmaTgt = 0;
             p.DogmaHealOn = mastered;
-            BroadcastFx(FxKind.Ring, p.Pos, DogmaGold, 70f, 0.5f, Sfx.Roar);
+            BroadcastFx(FxKind.Ring, p.Pos, DogmaGold, 70f, 0.5f, Sfx.DogmaRoar);
         }
 
         void EndDogma(Player p)
@@ -109,6 +109,7 @@ namespace Arena
                     p.DogmaTgt = 0;
                     if (p.DogmaHead.CloserThan(p.Pos, DogmaHomeR) || p.UltT <= 0f)
                     {
+                        BroadcastSound(Sfx.DogmaHome);  // (DogmaSoundBank.cs)
                         EndDogma(p);
                         continue;
                     }
@@ -190,7 +191,7 @@ namespace Arena
                             Heal(p, p.MaxHp * DogmaHeal, p);
                     }
                 }
-                BroadcastFx(FxKind.DragonBite, e.Pos, new V2(p.Id, big ? 0f : 1f), e.Def.Color, e.Radius, DogmaBiteFx, Sfx.BossChomp);
+                BroadcastFx(FxKind.DragonBite, e.Pos, new V2(p.Id, big ? 0f : 1f), e.Def.Color, e.Radius, DogmaBiteFx, big ? Sfx.DogmaBite : Sfx.DogmaDevour);
                 if (p.DogmaTgt == e.Id && !big)
                     p.DogmaTgt = 0;
             }

@@ -1110,11 +1110,11 @@ namespace Arena
         }
 
         /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
-        /// slowed, flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
+        /// slowed, blue drop over a wave = wet (Tsunami; its effect bar drains under it), flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
             bool iced = e.Frozen && !LeapCaged(e);
-            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0);
+            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Wet ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
@@ -1141,6 +1141,26 @@ namespace Arena
                     float y = c.Y - 3f + k * 4.5f;
                     Line(new V2(c.X - size * 0.8f, y - 2f), new V2(c.X, y + 2f), 2f, SlowColor);
                     Line(new V2(c.X, y + 2f), new V2(c.X + size * 0.8f, y - 2f), 2f, SlowColor);
+                }
+                x += step;
+            }
+            if (e.Wet)  // Tsunami's wet: a water drop over a rippling wave
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                var water = new Rgba(0.3f, 0.65f, 1f);  // EffectBar.cs's WetBar
+                Circle(c + new V2(0f, -0.5f), size * 0.42f, water, 10);
+                Polygon(c + new V2(0f, -3.5f), size * 0.42f, 3, -MathX.Pi / 2f, water);
+                Circle(c + new V2(-1.2f, -0.5f), size * 0.13f, new Rgba(0.85f, 0.95f, 1f), 6);
+                float ph = t * 5f + e.Id;
+                V2 prev = default;
+                for (int k = 0; k <= 8; k++)  // the wave under it, gently rolling
+                {
+                    float u = k / 8f;
+                    V2 q = c + new V2((u - 0.5f) * size * 1.7f, size * 0.62f + 1.1f * Mathf.Sin(u * MathX.Pi * 2f + ph));
+                    if (k > 0)
+                        Line(prev, q, 1.6f, water);
+                    prev = q;
                 }
                 x += step;
             }

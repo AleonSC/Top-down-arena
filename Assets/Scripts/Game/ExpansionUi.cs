@@ -748,7 +748,7 @@ namespace Arena
                     }
                     if (map.Contains(Event.current.mousePosition) && TipHover(nr))
                     {
-                        TipStart(nr, nd.Kind == NodeKind.Rule ? "Rule node: " + RuleName(nd.Rule) : nd.Kind.ToString(), ToColor(NodeInkOf(nd)));
+                        TipStart(nr, nd.Kind == NodeKind.Rule ? "Rule node: " + RuleName(nd.Rule) : NodeName(nd.Kind), ToColor(NodeInkOf(nd)));
                         TipAdd(nd.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : "Build a room round it to claim it.", 12, Ui.Text);
                     }
                 }
@@ -1112,7 +1112,7 @@ namespace Arena
             var seen = new HashSet<int>();
             foreach (var nd in game.Nodes)
                 if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add((int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
-                    items.Add(new KeyValuePair<string, Rgba>((nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind.ToString().ToUpperInvariant() + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
+                    items.Add(new KeyValuePair<string, Rgba>((nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : NodeName(nd.Kind).ToUpperInvariant() + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
             items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
             items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
             if (game.ActiveBreaches.Length > 0)

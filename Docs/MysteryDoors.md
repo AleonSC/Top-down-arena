@@ -1,6 +1,6 @@
 # Mystery doors: sealed doors on the outer walls you pay vectors to open
 
-Status: **steps 1-3 built** (protocol 382: doors rolled, opened, saved, expiring, synced; step 2: every kind behind a door; step 3: the Hologram look, the reveal, minimap and build map marks). Step 4 (bots, balance) open. Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
+Status: **steps 1-3 built** (protocol 385: doors rolled, opened, saved, expiring, synced; step 2: every kind behind a door; step 3: the Hologram look, the reveal, minimap and build map marks). Step 4 (bots, balance) open. Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
 [`SurpriseRooms.md`](SurpriseRooms.md) (shapes, placement), [`BreachRooms.md`](BreachRooms.md) (Stash, a door lined up with a
 wall spot), [`Nodes.md`](Nodes.md) (tiny shop / vendor rooms) and [`FactionMinis.md`](FactionMinis.md). **Drawing rooms stays
 exactly as it is**: doors are a second, cheaper way to grow the map.
