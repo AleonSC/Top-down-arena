@@ -304,7 +304,7 @@ static partial class Program
         Test("fivemore", "Medicine Darts, Greatsword, Kunai, Wisp Lantern and Imp Caller", () => FiveMoreTest(Dt)),
         Test("fourmore", "Shuriken, Bone Spear and Treant Rod", () => FourMoreTest(Dt)),
         Test("lightbringer", "the Lightbringer: Dawn, Mercy, Noon, the light gauge, a Radiant Noon and the Sunlance", () => LightbringerTest(Dt)),
-        Test("bulwark", "the Bulwark Barrier: the half guard, Rim Cut, Backhand, Boss Slam, the Brace soaking shots into Ram, the Shield Bash and its shards", () => BulwarkTest(Dt)),
+        Test("bulwark", "the Bulwark Barrier: the half guard, Rim Cut, Backhand, Boss Slam, the Shield Throw, the parry reset, the Brace soaking shots and melee into Ram, the Shield Bash and its shards", () => BulwarkTest(Dt)),
         Test("lance", "the Lance: Jab, Second Jab, Wide Sweep, Breaching Thrust, Impact and Hook & Haul", () => LanceTest(Dt)),
         Test("healerfive", "Censer, Spirit Fan, Ofuda, Sprite Staff and Totem Staff", () => HealerFiveTest(Dt)),
         Test("healingrain", "Healing Rain: heals allies inside, slows enemies, ends on time, mastered lasts 10 s", () => HealingRainTest(Dt)),
@@ -352,6 +352,7 @@ static partial class Program
         Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
         Test("bloodlash", "the Blood Lash chain combo: Crack, Backhand, Snap, Reap, the chains and Martyr's Leash", () => BloodLashTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
+        Test("snapshot", "run snapshots (F6 / F7): a loaded snapshot puts the match back and plays on tick for tick", () => RunSnapshotTest(Dt)),
         Test("devarena", "the F1 Dev Arena: no waves, god mode, playing as an enemy (move, attack, attack now, let go)", () => DevArenaTest(Dt)),
         Test("brute", "Brute enrage", () => BruteEnrageTest()),
         Test("trickle", "Campaign handover: fade and trickle", () => TrickleTest()),
@@ -526,7 +527,7 @@ static partial class Program
     /// test; its other test is also in features.)
     static readonly string[] CiExtras =
     {
-        "swordsman", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
+        "swordsman", "snapshot", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "roomcards", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",

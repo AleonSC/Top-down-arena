@@ -11,7 +11,7 @@ namespace Arena
 
         static readonly Rgba VendorInk = new Rgba(0.3f, 0.9f, 0.8f), GateInk = new Rgba(1f, 0.5f, 0.2f);
 
-        static Rgba KindInk(RoomKind k, PathId floor) => k == RoomKind.Shop ? ShopInk : k == RoomKind.Vendor ? VendorInk : k == RoomKind.Gatekeeper ? GateInk : k == RoomKind.Floor ? Paths.Get(floor).Accent : CombatInk;
+        static Rgba KindInk(RoomKind k, PathId floor) => k == RoomKind.Shop ? ShopInk : k == RoomKind.Vendor ? VendorInk : k == RoomKind.Builder ? BuilderInk : k == RoomKind.Gatekeeper ? GateInk : k == RoomKind.Floor ? Paths.Get(floor).Accent : CombatInk;
 
         /// A room's drawer's colour (their class colour), or a neutral blue when they've gone or it was nobody's.
         Rgba OwnerInk(int owner)
@@ -20,7 +20,7 @@ namespace Arena
             return owner != 0 && game.Players.TryGetValue(owner, out p) ? p.Def.Color : new Rgba(0.4f, 0.64f, 1f);
         }
 
-        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Black Market" : r.Kind == RoomKind.Gatekeeper ? FactionMinis.Name((EnemyType)r.Mini) : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
+        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Black Market" : r.Kind == RoomKind.Builder ? "Builder Shop" : r.Kind == RoomKind.Gatekeeper ? FactionMinis.Name((EnemyType)r.Mini) : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
         /// What a rule node's room will do, and what it pays once a wave is cleared there.
         static string RuleBlurb(byte rule)

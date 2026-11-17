@@ -58,6 +58,10 @@ static partial class Program
         var offers = Expansion.CardOffers(7, 2);
         Check(offers.Length == Expansion.CardOfferCount && offers.SequenceEqual(Expansion.CardOffers(7, 2)), "the vendor's cards are the same every time for a seed and cycle");
         Check(Enumerable.Range(0, 9).Count(cy => Expansion.CardOffers(5, cy).Contains(RoomCard.MiniBoss)) == 3, "the vendor sells a mini-boss card one cycle in three");
+        Check(Enumerable.Range(0, 9).Count(cy => Expansion.CardOffers(5, cy).Contains(RoomCard.BuilderShop)) == 3, "and a Builder Shop card one cycle in three");
+        Check(Enumerable.Range(0, 30).All(w => { var of = Expansion.BuilderOffers(9, w); return of.Length == Expansion.BuilderOfferCount && of.Distinct().Count() == of.Length && of.SequenceEqual(Expansion.BuilderOffers(9, w)); })
+              && Enumerable.Range(0, 30).Select(w => string.Join(",", Expansion.BuilderOffers(9, w))).Distinct().Count() > 5,
+            "the Builder Shop's shelf: five different cards, the same for a seed and wave, and it changes from wave to wave");
         Check(Enumerable.Range(0, 30).All(cy => { var of = Expansion.CardOffers(11, cy); return (of[0] == RoomCard.Box || of[0] == RoomCard.Hall) && of[1] != of[2]; }),
             "each shelf: a basic card and two different others");
 
@@ -148,6 +152,50 @@ static partial class Program
         friend.Vectors = 1;
         typeof(Game).GetMethod("BuyRoomCard", flags).Invoke(g, new object[] { friend, 0 });
         Check(Game.HandCount(friend) == 1 && friend.Vectors == 1, "not without the vectors");
+
+        // The Builder Shop (BuilderShop.cs): its card builds a small utility room; standing in it in a build round, its shelf sells room cards for
+        // three quarters of the vendor's price, over the wire too; not outside it, not past a full hand, not without the vectors.
+        Array.Clear(friend.Hand, 0, friend.Hand.Length);
+        friend.Hand[0] = (byte)RoomCard.BuilderShop;
+        Run(s, dt, 0.5f, () => cg.Players[2].Hand[0] == (byte)RoomCard.BuilderShop, noPicks);
+        var bOpt = Expansion.CardOptions(cg.Expanded, RoomCard.BuilderShop)[0];
+        int bStart = g.Expanded.Count;
+        cg.PlayRoomCard(0, bOpt.X, bOpt.Y, bOpt.Turn, bOpt.Mirror);
+        Run(s, dt, 1f, () => cg.Expanded.Count > bStart, noPicks);
+        Check(g.Expanded.Count == bStart + 1 && g.Expanded[bStart].Kind == RoomKind.Builder && cg.Expanded.Count == bStart + 1 && cg.Expanded[bStart].Kind == RoomKind.Builder
+              && g.HasBuilderRoom && cg.HasBuilderRoom && Game.HandCount(friend) == 0, "the Builder Shop card builds a Builder room (both games see it)");
+        var bRoom = g.Expanded[bStart];
+        V2 bMid = new V2((bRoom.X + bRoom.X1) / 2f, (bRoom.Y + bRoom.Y1) / 2f + 120f);
+        var buy = typeof(Game).GetMethod("HostBuilderBuy", flags);
+        friend.Vectors = 100;
+        friend.Pos = friend.Disp = new V2(Game.Width / 2f, Game.Height / 2f);
+        buy.Invoke(g, new object[] { 2, 0 });
+        Check(Game.HandCount(friend) == 0 && friend.Vectors == 100 && !g.BuilderShopOpen(friend), "outside the Builder room its shelf is closed");
+        friend.Pos = friend.Disp = bMid;
+        Check(g.BuilderShopOpen(friend) && g.BuilderCards.Length == Expansion.BuilderOfferCount && g.BuilderCards.All(c => c != RoomCard.BuilderShop && c != RoomCard.None),
+            "standing in it opens its shelf of " + Expansion.BuilderOfferCount + " cards (never itself): " + string.Join(", ", g.BuilderCards.Select(Expansion.CardName)));
+        var bc = g.BuilderCards[3];
+        buy.Invoke(g, new object[] { 2, 3 });
+        Check(friend.Hand[0] == (byte)bc && friend.Vectors == 100 - Expansion.BuilderPrice(bc) && Expansion.BuilderPrice(bc) < Expansion.CardPrice(bc),
+            "it sells a " + Expansion.CardName(bc) + " for " + Expansion.BuilderPrice(bc) + " vectors (the vendor's " + Expansion.CardPrice(bc) + ")");
+        friend.Vectors = 2;
+        buy.Invoke(g, new object[] { 2, 2 });
+        Check(Game.HandCount(friend) == 1 && friend.Vectors == 2 && g.BuilderRefusal(friend, 2) == "Not enough vectors", "not without the vectors");
+        friend.Vectors = 100;
+        for (int i = 0; i < friend.Hand.Length; i++) friend.Hand[i] = (byte)RoomCard.Hall;
+        buy.Invoke(g, new object[] { 2, 0 });
+        Check(friend.Vectors == 100 && g.BuilderRefusal(friend, 0) == "Hand full", "not past a full hand");
+        Array.Clear(friend.Hand, 0, friend.Hand.Length);
+        var cf = cg.Players[2];
+        Run(s, dt, 1f, () => Game.HandCount(cf) == 0 && cf.Vectors == 100, noPicks);  // (the cleared hand reaches the friend's game)
+        cf.Pos = cf.Disp = friend.Pos = friend.Disp = bMid;
+        var wireCard = cg.BuilderCards[1];
+        cg.BuyBuilderCard(1);
+        Run(s, dt, 1f, () => friend.Hand[0] != 0, () => { noPicks(); friend.Pos = friend.Disp = cf.Pos = cf.Disp = bMid; });  // (held in the room)
+        Check(friend.Hand[0] == (byte)wireCard && friend.Vectors == 100 - Expansion.BuilderPrice(wireCard), "the friend buys a " + Expansion.CardName(wireCard) + " over the wire");
+        g.ExpandOpen = false;
+        Check(!g.BuilderShopOpen(friend), "the shelf closes with the build round");
+        g.ExpandOpen = true;
 
         // Off (the lobby's Free draw): no cards dealt, drawing works again.
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.ExpandOpen = false; }

@@ -154,7 +154,7 @@ namespace Arena
             {
                 if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, NovaBlastR + p.Def.HitR))
                     continue;
-                if (p.ParryActive && ParryContact(p, e, NovaBlastDamage))
+                if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, NovaBlastDamage))
                     continue;  // a raised guard facing it takes it
                 Damage(p, NovaBlastDamage, e.Def.Name + " (nova)");
             }

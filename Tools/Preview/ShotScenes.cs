@@ -1104,22 +1104,24 @@ static partial class Shot {
     // BULWARK=<s>: the Tank Knight's Bulwark Barrier (Core/BulwarkBarrier.cs, Game/BulwarkBarrierLook.cs) that long into a scene.
     // BBMODE=chain (default): Fire held from 0 (Rim Cut, Backhand, Boss Slam) at a row of grunts; guard: grunts shooting at you,
     // no input (the plate stops them); brace: the weapon-action key held, grunts shooting (shots soak into Ram); bash: braced at
-    // full Ram, Fire at 0.3 s (the Shield Bash and its shards).
+    // full Ram, Fire at 0.3 s (the Shield Bash and its shards); melee: braced, Brutes walking into the plate (blocked melee
+    // fills Ram). The chain runs on into the Shield Throw after the Boss Slam (about 1 s in).
     if (Environment.GetEnvironmentVariable("BULWARK") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
       gm.Props.Clear(); gm.Layout = LayoutId.Open;
-      me.Role = Role.Tank; me.Kit = Kit.Knight; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Role = Role.Tank; me.Kit = Kit.Knight; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; q0.BarrierT = 0f; q0.ShieldHp = 0f; for (int wi = 0; wi < Player.WallPlates; wi++) { q0.WallPlate[wi] = 0; q0.WallPlateHp[wi] = 0f; } }
       string mode = Environment.GetEnvironmentVariable("BBMODE") ?? "chain";
-      bool shoot = mode == "guard" || mode == "brace", bash = mode == "bash";
+      bool shoot = mode == "guard" || mode == "brace", bash = mode == "bash", melee = mode == "melee";
       V2 home = new V2(bash ? 380f : 480f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
       var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       var foes = new System.Collections.Generic.List<Enemy>();
       var spots = mode == "chain" ? new[] { new V2(70f, -30f), new V2(80f, 35f), new V2(150f, 0f) }
+                : melee ? new[] { new V2(90f, -40f), new V2(110f, 30f), new V2(140f, -5f) }
                 : bash ? new[] { new V2(170f, -40f), new V2(190f, 30f), new V2(240f, -5f), new V2(300f, 50f) }
                 : new[] { new V2(230f, -120f), new V2(260f, 0f), new V2(220f, 120f), new V2(160f, -200f), new V2(-200f, 60f) };
       foreach (var at0 in spots) {
-        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = shoot ? 0.05f + 0.1f * foes.Count : 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { melee ? EnemyType.Brute : EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = melee ? e.Speed : 0f; e.FireT = shoot ? 0.05f + 0.1f * foes.Count : 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
       if (bash) { me.BbRam = Game.BbRamMax; me.BbBrace = true; typeof(Player).GetField("BbStored").SetValue(me, 12); typeof(Player).GetField("BbHeld").SetValue(me, true); }
       var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
       int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("BULWARK"), ci) * 60f));
@@ -1128,7 +1130,7 @@ static partial class Shot {
         float tt = f / 60f;
         foreach (var e in foes) { e.Disp = e.Pos; if (!shoot) e.FireT = 99f; }
         Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
-        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = mode == "chain" || bash && tt >= 0.3f && tt < 0.35f, WeaponAction = mode == "brace" || bash && tt < 0.35f });
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = mode == "chain" || bash && tt >= 0.3f && tt < 0.35f, WeaponAction = mode == "brace" || melee || bash && tt < 0.35f });
         gm.Update(1f / 60f);
         if (!bash) me.Pos = home;
         me.Disp = me.Pos; me.Aim = 0f; me.AimAt = me.Pos + new V2(300f, 0f); me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
@@ -2068,13 +2070,17 @@ static partial class Shot {
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
-      string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=box|hall|ring|cross|lhall|thall|chamfer|miniboss: that room card's room built (its obstacles: RoomCardLayouts.cs), everyone in it; CARDSPOT=<n> picks its nth legal spot
+      string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=box|hall|ring|cross|lhall|thall|chamfer|miniboss|buildershop: that room card's room built (its obstacles: RoomCardLayouts.cs), everyone in it; CARDSPOT=<n> picks its nth legal spot
       if (xcard != null) {
         var xc = (RoomCard)Enum.Parse(typeof(RoomCard), xcard, true);
         var xco = Expansion.CardOptions(xg.Expanded, xc);
         int xci = Math.Min(xco.Count - 1, int.Parse(Environment.GetEnvironmentVariable("CARDSPOT") ?? "0"));
-        if (xci >= 0) { string xcw; var xcr = Expansion.CardRooms(xg.Expanded, xc, xco[xci].X, xco[xci].Y, xco[xci].Turn, xco[xci].Mirror, out xcw); for (int q = 0; q < xcr.Count; q++) { var r2 = xcr[q]; r2.Owner = 1; if (xc == RoomCard.MiniBoss) { r2.Kind = RoomKind.Gatekeeper; r2.Mini = (byte)EnemyType.RiotCaptain; } xcr[q] = r2; } xg.Expanded.AddRange(xcr); var cm = Expansion.OptionMid(xco[xci]); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = cm + new V2(0f, 0f); }
+        if (xci >= 0) { string xcw; var xcr = Expansion.CardRooms(xg.Expanded, xc, xco[xci].X, xco[xci].Y, xco[xci].Turn, xco[xci].Mirror, out xcw); for (int q = 0; q < xcr.Count; q++) { var r2 = xcr[q]; r2.Owner = 1; if (xc == RoomCard.MiniBoss) { r2.Kind = RoomKind.Gatekeeper; r2.Mini = (byte)EnemyType.RiotCaptain; } if (xc == RoomCard.BuilderShop) r2.Kind = RoomKind.Builder; xcr[q] = r2; } xg.Expanded.AddRange(xcr); var cm = Expansion.OptionMid(xco[xci]); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = cm + new V2(0f, 0f); }
         else Console.Error.WriteLine("CARDROOM: no spot fits");
+        if (Environment.GetEnvironmentVariable("BUILDEROPEN") != null) {  // BUILDEROPEN=1 (with CARDROOM=buildershop): a build round, room cards on, so the Builder Shop's shelf shows (BuilderShopUi.cs)
+          xg.Diff.Set(DiffKnob.RoomCards, 1f); xg.ExpandOpen = true; xg.State = MatchState.Intermission;
+          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)RoomCard.Box; pl.Hand[1] = (byte)RoomCard.Ring; pl.Pos = pl.Disp = pl.Pos + new V2(-130f, 110f); }
+        }
       }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" && np[2] != "hidden", Hidden = np.Length > 2 && np[2] == "hidden" }); } }

@@ -1,0 +1,100 @@
+using System;
+using System.IO;
+
+namespace Arena
+{
+    /// The Builder Shop (Docs/RoomCards.md, "Utility cards"): a utility room card whose small room (`RoomKind.Builder`) is a shop for room cards.
+    /// Standing in it during a build round shows its shelf (BuilderShopUi.cs): BuilderOfferCount cards, a new seeded shelf each wave (the same on
+    /// every machine), paid in vectors at a quarter off the vendor's price. Bought cards go to your hand. It never sells itself.
+    public static partial class Expansion
+    {
+        public const int BuilderOfferCount = 5;
+
+        /// What the Builder Shop charges for a card: three quarters of the vendor's price.
+        public static int BuilderPrice(RoomCard c) => (CardPrice(c) * 3 + 3) / 4;
+
+        /// The Builder Shop's shelf for a wave: both basics, then three different shapes; one wave in three the last shape is a Mini-boss card.
+        public static RoomCard[] BuilderOffers(int seed, int wave)
+        {
+            var rng = new DetRandom(seed * 7919 + wave * 389 + 41);
+            var shapes = (RoomCard[])ShapeCards.Clone();
+            for (int i = shapes.Length - 1; i > 0; i--)  // (a seeded shuffle)
+            {
+                int j = rng.Int(i + 1);
+                var t = shapes[i]; shapes[i] = shapes[j]; shapes[j] = t;
+            }
+            return new[] { RoomCard.Box, RoomCard.Hall, shapes[0], shapes[1], wave % 3 == 2 ? RoomCard.MiniBoss : shapes[2] };
+        }
+    }
+
+    public partial class Game
+    {
+        /// The Builder Shop's shelf this wave.
+        public RoomCard[] BuilderCards => Expansion.BuilderOffers(expandSeed, Wave);
+
+        /// A Builder Shop room is on the connected map.
+        public bool HasBuilderRoom
+        {
+            get
+            {
+                if (!ExpandingOn || !RoomsOn)
+                    return false;
+                foreach (var a in ExpansionWorld.Areas)
+                    if (a.Kind == Arena.RoomKind.Builder && !a.Sealed)
+                        return true;
+                return false;
+            }
+        }
+
+        public bool InBuilderRoom(Player p)
+        {
+            var a = ExpandedAreaAt(p.Disp);
+            return a.HasValue && a.Value.Kind == Arena.RoomKind.Builder;
+        }
+
+        /// The Builder Shop's shelf is open for this player: room cards on, a build round, standing in a Builder room.
+        public bool BuilderShopOpen(Player p) => p != null && RoomCardsOn && ExpandOpen && !p.Downed && InBuilderRoom(p);
+
+        /// Why this player can't buy that offer right now (null if they can).
+        public string BuilderRefusal(Player p, int offer)
+        {
+            if (!BuilderShopOpen(p) || offer < 0 || offer >= Expansion.BuilderOfferCount)
+                return "Closed";
+            if (HandCount(p) >= Expansion.HandMax)
+                return "Hand full";
+            if (SpendableVectors(p) < Expansion.BuilderPrice(BuilderCards[offer]))
+                return "Not enough vectors";
+            return null;
+        }
+
+        /// This game's player buys the Builder Shop's card at this offer.
+        public void BuyBuilderCard(int offer)
+        {
+            if (Me == null || BuilderRefusal(Me, offer) != null)
+                return;
+            Sounds.Add(Sfx.Pick);
+            if (IsHost)
+            {
+                HostBuilderBuy(MyId, offer);
+                return;
+            }
+            var w = Proto.Begin(Msg.BuilderBuy);
+            w.Write((byte)offer);
+            session.SendToHost(Proto.End(w));
+        }
+
+        public void OnBuilderBuy(int peer, BinaryReader r) => HostBuilderBuy(peer, r.ReadByte());
+
+        /// Host: the card goes to the buyer's hand for its Builder price in vectors.
+        void HostBuilderBuy(int id, int offer)
+        {
+            Player p;
+            if (!IsHost || !Players.TryGetValue(id, out p) || BuilderRefusal(p, offer) != null)
+                return;
+            var c = BuilderCards[offer];
+            int price = Expansion.BuilderPrice(c);
+            PayVectors(p, price);
+            GiveCard(p, c, "Builder Shop, " + price + " vectors");
+        }
+    }
+}

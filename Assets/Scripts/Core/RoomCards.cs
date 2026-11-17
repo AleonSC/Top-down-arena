@@ -5,7 +5,7 @@ using System.IO;
 namespace Arena
 {
     /// A room card (Docs/RoomCards.md): a preset room a player holds and places against a room's wall. New values go at the end.
-    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss }
+    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop }
 
     public static partial class Expansion
     {
@@ -25,11 +25,12 @@ namespace Arena
                 case RoomCard.LHall: return SurpriseShape.LHall;
                 case RoomCard.THall: return SurpriseShape.THall;
                 case RoomCard.MiniBoss: return SurpriseShape.Duel;
+                case RoomCard.BuilderShop: return SurpriseShape.SmallRect;
                 default: return SurpriseShape.Chamfer;
             }
         }
 
-        public static string CardName(RoomCard c) => c == RoomCard.MiniBoss ? "Mini-boss" : c == RoomCard.None ? "" : SurpriseName(CardShape(c));
+        public static string CardName(RoomCard c) => c == RoomCard.MiniBoss ? "Mini-boss" : c == RoomCard.BuilderShop ? "Builder Shop" : c == RoomCard.None ? "" : SurpriseName(CardShape(c));
 
         /// What the card's room is for, one line (the build screen's tip).
         public static string CardBlurb(RoomCard c)
@@ -44,6 +45,7 @@ namespace Arena
                 case RoomCard.THall: return "Two exits and one choke.";
                 case RoomCard.Chamfer: return "A room with cut corners: nowhere to be pinned.";
                 case RoomCard.MiniBoss: return "A sealed duel room with the coming boss's faction mini-boss. Walk in to wake it; beat it for a prize pick.";
+                case RoomCard.BuilderShop: return "A utility room: a shop that sells room cards for vectors, a new shelf each wave, a quarter off.";
                 default: return "";
             }
         }
@@ -60,13 +62,15 @@ namespace Arena
                 case RoomCard.LHall: return 24;
                 case RoomCard.THall: return 26;
                 case RoomCard.MiniBoss: return 40;
+                case RoomCard.BuilderShop: return 36;
                 default: return 22;
             }
         }
 
         public const int CardOfferCount = 3;  // the vendor's card shelf
 
-        /// The vendor's card offers for a boss cycle: the same on every machine. One basic, one shape, and a third that is a mini-boss one cycle in three.
+        /// The vendor's card offers for a boss cycle: the same on every machine. One basic, one shape, and a third that is a mini-boss one cycle
+        /// in three, a Builder Shop the cycle before it (BuilderShop.cs), else another shape.
         public static RoomCard[] CardOffers(int seed, int cycle)
         {
             var rng = new DetRandom(seed * 4099 + cycle * 271 + 17);
@@ -75,6 +79,8 @@ namespace Arena
             RoomCard c;
             if (cycle % 3 == 2)
                 c = RoomCard.MiniBoss;
+            else if (cycle % 3 == 1)
+                c = RoomCard.BuilderShop;
             else
                 do c = ShapeCards[rng.Int(ShapeCards.Length)]; while (c == b);
             return new[] { a, b, c };
@@ -236,7 +242,8 @@ namespace Arena
 
         public void OnPlayCard(int peer, BinaryReader r) => HostPlayCard(peer, r.ReadByte(), r.ReadInt16(), r.ReadInt16(), r.ReadByte(), r.ReadBoolean());
 
-        /// Host: the card's room is built at once if it fits there; the card leaves the hand. A Mini-boss card's room holds the coming boss's faction mini-boss.
+        /// Host: the card's room is built at once if it fits there; the card leaves the hand. A Mini-boss card's room holds the coming boss's faction mini-boss;
+        /// a Builder Shop card's room is a card shop (BuilderShop.cs).
         void HostPlayCard(int id, int slot, int x, int y, int turn, bool mirror)
         {
             Player p;
@@ -259,6 +266,8 @@ namespace Arena
                     q.Kind = Arena.RoomKind.Gatekeeper;
                     q.Mini = (byte)MiniBossNow();
                 }
+                else if (card == RoomCard.BuilderShop)
+                    q.Kind = Arena.RoomKind.Builder;  // (BuilderShop.cs)
                 made[i] = q;
             }
             TakeCard(p, slot);
