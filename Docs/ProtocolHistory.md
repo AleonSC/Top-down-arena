@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 370: the Rioter's bottle: bullet kind `Defs.BottleShot` (a bottle Rioter winds up on `Enemy.Phase` 1 and throws; the Guard's rally is host-only speed)
 - 369: Wind Clash (Tank Elementalist 4th weapon): `WeaponId.WindClash`, `FxKind.WindWave`/`WindCatch`, player snapshot gains `WcTempestT` and `WcTempestCd`, `Msg.WeaponDash` kind 38 (Tempest).
 - 368: the Ninja DPS's Nunchaku (Twin Storm): WeaponId.Nunchaku, FxKind.NunStep and NunCounter, player NunGuard/NunSwats, WeaponDash DashNunGuard (37).
 - 367: the Summoner DPS's Honeybee Staff: `WeaponId.HoneybeeStaff`, `MinionKind.Bee`, `ZoneKind.HoneyPuddle`, bullet kind `Defs.HoneyGlob` (69), `FxKind.BeeSting`/`HoneyHarvest`, `Msg.WeaponDash` kinds 35/36 (`DashHoneyOn`/`Off`); Player snapshot gains `HoneyFill` (float), `HoneyOn` (bool) after `SsLock`

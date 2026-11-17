@@ -438,8 +438,14 @@ namespace Arena
         {
             V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
             float p = Mathf.Sin(t * 9f + e.Id * 1.7f);  // the run cycle
+            if (game.Rallied(e))  // a Guard is rallying it (RiotBrains.cs): an amber ring pulses under it
+            {
+                float pulse = 0.65f + 0.35f * Mathf.Sin(t * 8f + e.Id);
+                Circle(pos, r * 1.9f, new Rgba(1f, 0.7f, 0.2f, 0.12f * pulse), 24);
+                Arc(pos, r * 1.9f, 2f, new Rgba(1f, 0.75f, 0.25f, 0.55f * pulse), 24, 0f, MathX.Tau);
+            }
             if (e.Variant != EnemyVariant.BallAndChain)
-                DrawRioterBrawler(pos, r, col, f, s, p, e.Facing);
+                DrawRioterBrawler(pos, r, col, f, s, p, e.Facing, Game.BottleRioter(e), e.Phase == 1);
             else
                 DrawRioterBallChain(e, pos, r, col, f, s, p, t);
         }
@@ -456,7 +462,7 @@ namespace Arena
 
         void Oval(V2 c, float rx, float ry, float rot, Rgba col) => Ellipse(c, rx, ry, rot, col, 40);
 
-        void DrawRioterBrawler(V2 pos, float r, Rgba col, V2 f, V2 s, float p, float facing)
+        void DrawRioterBrawler(V2 pos, float r, Rgba col, V2 f, V2 s, float p, float facing, bool bottle = false, bool throwing = false)
         {
             V2 body = pos - f * r * 0.1f;
             float fr = r * 0.25f;
@@ -464,15 +470,31 @@ namespace Arena
             {
                 float punch = Mathf.Max(0f, p * k);  // each arm shoots out in turn
                 V2 hand = pos + f * r * (1.05f + 0.55f * punch) + s * (k * r * (0.75f - 0.35f * punch));
+                if (bottle && k == 1)  // the bottle arm: held out, or cocked back over the shoulder to throw
+                    hand = throwing ? pos - f * r * 0.7f + s * r * 1.15f : pos + f * r * 0.9f + s * r * 0.8f;
                 RioterArm(pos + s * (k * r * 0.8f) - f * r * 0.05f, hand, 5f, col);
                 Circle(hand, fr + RioterInkW, RioterInk, 24);
                 Circle(hand, fr, RioterSkin, 24);  // the fist
                 Arc(hand - f * r * 0.1f, fr + 0.6f, 1.6f, RioterChain, 24, facing + MathX.Pi * 0.55f, MathX.Pi * 0.9f);  // the cuff, at the wrist
+                if (bottle && k == 1)
+                    DrawBottle(hand + f * r * 0.1f, throwing ? facing + MathX.Pi * 0.5f : facing, r * 0.5f);
             }
             Oval(body, r * 0.52f + RioterInkW, r * 1.0f + RioterInkW, facing, RioterInk);
             Oval(body, r * 0.52f, r * 1.0f, facing, col);  // the shoulders
             Cap(pos - f * r * 0.42f - s * r * 0.52f, pos - f * r * 0.42f + s * r * 0.52f, 2.6f, RioterNumber);  // the number band
             RioterHead(pos + f * r * 0.12f, r * 0.42f, f, new Rgba(0.4f, 0.28f, 0.2f, 0.95f));
+        }
+
+        /// A glass bottle (a Rioter's in hand, and thrown): green body, neck and a pale glint, lying along `ang`.
+        void DrawBottle(V2 c, float ang, float len)
+        {
+            V2 d = V2.FromAngle(ang), n = d.Orthogonal();
+            var glass = new Rgba(0.45f, 0.8f, 0.4f);
+            Cap(c - d * len * 0.5f, c + d * len * 0.15f, len * 0.42f + 1.6f, RioterInk);
+            Cap(c + d * len * 0.15f, c + d * len * 0.6f, len * 0.16f + 1.6f, RioterInk);
+            Cap(c - d * len * 0.5f, c + d * len * 0.15f, len * 0.42f, glass);
+            Cap(c + d * len * 0.15f, c + d * len * 0.6f, len * 0.16f, glass);
+            Cap(c - d * len * 0.35f + n * len * 0.1f, c + d * len * 0.05f + n * len * 0.1f, 1.2f, new Rgba(0.9f, 1f, 0.85f, 0.7f));
         }
 
         void DrawRioterBallChain(Enemy e, V2 pos, float r, Rgba col, V2 f, V2 s, float p, float t)

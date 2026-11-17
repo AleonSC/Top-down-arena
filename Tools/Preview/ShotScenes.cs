@@ -297,6 +297,30 @@ static partial class Shot {
         en.LarderStage = stages[i]; en.LarderT = left[i];
       }
     }
+    if (Environment.GetEnvironmentVariable("RALLY") != null) {
+      // RALLY=1: a Guard with Rioters round it (amber rally ring), a lone Rioter at each end; bottle Rioters carry a bottle,
+      // one rcocked to throw, one bottle in flight. KNIGHT=1 ZOOM=2.2.
+      var rgm = host.Game; rgm.Bot = false; rgm.Enemies.Clear(); rgm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(1010f, 640f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      foreach (var pl in rgm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var rspawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var rgd = (Enemy)rspawn.Invoke(rgm, new object[] { EnemyType.Guard, new V2(1010f, 520f), 0f, 0, false });
+      rgd.SpawnT = 0f; rgd.Pos = rgd.Disp = new V2(1010f, 520f); rgd.Facing = MathX.Pi / 2f;
+      var rspots = new[] { new V2(950f, 540f), new V2(1070f, 540f), new V2(980f, 470f), new V2(1050f, 470f), new V2(1010f, 585f), new V2(720f, 520f), new V2(1300f, 520f), new V2(860f, 600f) };
+      bool rcocked = false;
+      for (int ri = 0; ri < rspots.Length; ri++) {
+        bool rwant = !(ri == 0 || ri == 3 || ri == 7);
+        Enemy rr = null;
+        for (int rtries = 0; rtries < 400; rtries++) {
+          rr = (Enemy)rspawn.Invoke(rgm, new object[] { EnemyType.Rioter, rspots[ri], 0f, 0, false });
+          if (Game.BottleRioter(rr) == rwant) break;
+          rgm.Enemies.Remove(rr.Id);
+        }
+        rr.SpawnT = 0f; rr.Pos = rr.Disp = rspots[ri]; rr.Facing = MathX.Pi / 2f;
+        if (Game.BottleRioter(rr) && !rcocked) { rr.Phase = 1; rcocked = true; }
+      }
+      rgm.Bullets[9001] = new Bullet { Id = 9001, Kind = Defs.BottleShot, Pos = new V2(1010f, 600f), Vel = new V2(0f, 330f), Life = 0.6f, Life0 = 1f, Radius = 6f };
+    }
     if (Environment.GetEnvironmentVariable("WARDENCREW") != null) {
       // WARDENCREW=1: the Warden's officers in a row facing you below: Guard, Riot Shield, Gas Grenadier, Taser Guard,
       // Security Guard; WARDENCREW=2: the same caught mid-move (swinging, winding a bash, charging, just fired). KNIGHT=1 ZOOM=2.6.
@@ -936,6 +960,10 @@ static partial class Shot {
         gm.Update(1f / 60f);
         me.Pos = home; me.Hp = me.MaxHp;
         me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // WINDCLASH=<s>: the Tank Elementalist's Wind Clash (Core/WindClash.cs, Game/WindClashLook.cs) that long into the combo, Fire held from 0:
     // crescent at 0, back crescent at 0.34 s, gale lance at 0.68 s, clash ring at 1.12 s. WCALT=1: Alt (Tempest) at 0 instead, the
     // enemies shooting at you (their shots are caught and spin round you).
