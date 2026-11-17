@@ -36,16 +36,18 @@ static partial class Program
             int dx = Math.Max(Math.Max(h1.X - n.X, n.X - h1.X1), 0), dy = Math.Max(Math.Max(h1.Y - n.Y, n.Y - h1.Y1), 0);
             int off = Math.Max(dx, dy);
             bool hubFar = Math.Max(Math.Max(-n.X, n.X - W), Math.Max(-n.Y, n.Y - H)) >= Expansion.StartClear;
-            if (n.Kind != NodeKind.Chest || Expansion.NodeClaimed(hall, n) || off < 350 || off > 550 || !hubFar || !Expansion.NodeReachable(hall, n)
+            if (!Expansion.IsChest(n.Kind) || Expansion.NodeClaimed(hall, n) || off < 350 || off > 550 || !hubFar || !Expansion.NodeReachable(hall, n)
                 || !Expansion.RoomChestFor(seed, hall, new List<MapNode>(), 1, false).Value.Equals(n))
                 bad++;
             if (Expansion.RoomChestFor(seed, hall, new List<MapNode>(), 1).HasValue)
                 rolled++;
         }
+        int vecKind = Enumerable.Range(1, 400).Count(sd => { var q = Expansion.RoomChestFor(sd, hall, new List<MapNode>(), 1, false); return q.HasValue && q.Value.Kind == NodeKind.VectorChest; });
+        Check(vecKind >= 150 && vecKind <= 250, "about half are vector chests (" + vecKind + " of 400)");
         Check(found == 400 && bad == 0, "a forced roll always finds a chest spot 3 to 5 tiles out from the hallway, clear of the start room, buildable to, the same each time (" + found + " found, " + bad + " bad)");
         Check(rolled >= 20 && rolled <= 64, "a hallway drops one about 10% of the time (" + rolled + " of 400)");
 
-        var two = new List<MapNode> { new MapNode { X = 5000, Y = -2000, Kind = NodeKind.Chest }, new MapNode { X = 5000, Y = 3000, Kind = NodeKind.Chest } };
+        var two = new List<MapNode> { new MapNode { X = 5000, Y = -2000, Kind = NodeKind.Chest }, new MapNode { X = 5000, Y = 3000, Kind = NodeKind.VectorChest } };
         Check(Enumerable.Range(1, 50).All(s => !Expansion.RoomChestFor(s, hall, two, 1, false).HasValue), "no chest while two wait unclaimed");
         var spentOne = new List<MapNode> { two[0], new MapNode { X = 5000, Y = 3000, Kind = NodeKind.Chest, Spent = true } };
         Check(Enumerable.Range(1, 50).Any(s => Expansion.RoomChestFor(s, hall, spentOne, 1, false).HasValue), "an opened chest doesn't count");
@@ -64,5 +66,64 @@ static partial class Program
             if (nd.Value.X < nr.X) gapSide++;
         }
         Check(total > 0 && gapSide == total, "the chest sits on the side facing the other branch (" + gapSide + " of " + total + ")");
+    }
+
+    // In a run: a surprise room rolls a chest too, and a claimed vector chest bursts into vector pickups when walked up to.
+    static void ExpandingVectorChestTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+
+        // Surprise rooms roll: over a few seeds, some of them drop a chest node outside their walls.
+        var give = typeof(Game).GetMethod("GiveSurpriseRoom", flags);
+        var seedField = typeof(Game).GetField("expandSeed", flags);
+        int gotChest = 0, tries = 0;
+        for (int sd = 1; sd <= 30; sd++)
+        {
+            g.Expanded.Clear(); g.Nodes.Clear(); seedField.SetValue(g, sd);
+            g.BossSlot = true; g.State = MatchState.Intermission;
+            give.Invoke(g, null);
+            if (g.Expanded.Count == 0) continue;
+            tries++;
+            if (g.Nodes.Count > 0 && Expansion.IsChest(g.Nodes[0].Kind) && !Expansion.NodeClaimed(g.Expanded, g.Nodes[0])) gotChest++;
+        }
+        Check(tries >= 20 && gotChest >= 1 && gotChest < tries, "surprise rooms roll chests too (none within 10 tiles of the start room) (" + gotChest + " of " + tries + ")");
+
+        // A claimed vector chest: nothing until someone walks up, then vector pickups and the node is spent, on both screens.
+        foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        string why;
+        var room = Expansion.Custom(g.Expanded, (int)Game.Width, 200, 1000, 500, out why);
+        Check(room.HasValue, "a room east of the start room (" + why + ")");
+        g.Expanded.Add(room.Value);
+        g.Nodes.Add(new MapNode { X = (short)(Game.Width + 550), Y = 450, Kind = NodeKind.VectorChest });
+        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
+        typeof(Game).GetMethod("BroadcastExpansion", flags).Invoke(g, null);
+        g.State = MatchState.Fighting;
+        foreach (var p in g.Players.Values) p.Pos = p.Disp = new V2(800f, 450f);
+        Run(s, dt, 1f, () => cg.Nodes.Count == 1, noPicks);
+        Check(cg.Nodes.Count == 1 && cg.Nodes[0].Kind == NodeKind.VectorChest && !g.Nodes[0].Spent, "the vector chest reaches the client, shut");
+        int coins0 = g.Coins.Values.Count(c => c.Vec);
+        int vec0 = g.Players.Values.Sum(p => p.Vectors);
+        var me = g.Players[1];
+        me.Pos = me.Disp = g.Nodes[0].Pos + new V2(20f, 0f);
+        Run(s, dt, 0.3f, () => g.Nodes[0].Spent, noPicks);
+        Check(g.Nodes[0].Spent && g.Coins.Values.Count(c => c.Vec) - coins0 + (g.Players.Values.Sum(p => p.Vectors) > vec0 ? Game.VectorChestPickups : 0) >= Game.VectorChestPickups,
+            "walking up to it opens it: " + Game.VectorChestPickups + " vector pickups burst out");
+        Run(s, dt, 3f, () => g.Players.Values.Sum(p => p.Vectors) >= vec0 + Game.VectorChestPickups * Game.VectorDropSmall, noPicks);
+        Check(g.Players.Values.Sum(p => p.Vectors) >= vec0 + Game.VectorChestPickups * Game.VectorDropSmall || g.Players.Values.All(p => p.Vectors >= p.VectorCap),
+            "and the players pick up " + Game.VectorChestPickups * Game.VectorDropSmall + " vectors (" + vec0 + " -> " + g.Players.Values.Sum(p => p.Vectors) + ")");
+        Run(s, dt, 1f, () => cg.Nodes.Count == 1 && cg.Nodes[0].Spent, noPicks);
+        Check(cg.Nodes[0].Spent, "the client sees it spent");
+        int coins1 = g.Coins.Count;
+        Run(s, dt, 0.5f, null, noPicks);
+        Check(g.Nodes[0].Spent && g.Coins.Values.Count(c => c.Vec) <= coins1, "it opens only once");
     }
 }

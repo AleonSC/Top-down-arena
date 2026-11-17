@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 384: Vector chests: `NodeKind.VectorChest` in `Msg.ExpandState`'s node list (room and surprise rooms may drop one).
 - 383: Ceremonial Armor replaces Iron Body (`AbilityId.IronBody` kept): player snapshot drops `IronT`, gains `PlateN` (then `PlateClock`, `PlateNewT`, `PlateMax` and a health byte per plate); `FxKind.CereBlock`/`CereBreak` appended; `Sfx.CereSummon`/`CereBreak` appended.
 - 382: Dragon's Dogma's sounds: `Sfx.DogmaRoar`, `DogmaDevour`, `DogmaBite`, `DogmaHome` appended (sent with the cast, bites and its return).
 - 381: Dragon's Dogma (Tank Ninja second ultimate): `AbilityId.DragonsDogma`, `FxKind.DragonBite`, player snapshot gains `DogmaOn` (then `DogmaHead`, `DogmaTgt` while it is out).
