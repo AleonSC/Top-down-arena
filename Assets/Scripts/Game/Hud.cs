@@ -211,6 +211,8 @@ namespace Arena
             }
             if (!tabHeld)
                 DrawSurpriseBanner();  // SurpriseLook.cs
+            if (!tabHeld)
+                DrawMapResetBanner();  // MAP n/10 after a map reset (MapResetLook.cs)
             if (!tabHeld && game.Running)
                 DrawStashLabels();  // the +10 over a Stash's cache (SurpriseLook.cs)
             if (!tabHeld && game.Running)

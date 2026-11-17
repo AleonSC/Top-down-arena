@@ -603,6 +603,8 @@ namespace Arena
             KeepsakeOpen = false;
             KeepsakeVotes.Clear();
             KeptHead = -1;
+            MapRefunds.Clear();
+            FoldRooms.Clear();
             MapRefund = 0;
             foreach (var p in Players.Values)
                 p.MapSpent = 0;
@@ -1409,6 +1411,7 @@ namespace Arena
         void ReadExpandState(BinaryReader r)
         {
             var rooms = ReadRooms(r);
+            var oldMap = new List<ExpansionRoom>(Expanded);  // (a map reset folds the old map away, MapReset.cs)
             bool changed = rooms.Count != Expanded.Count, claimsOnly = false;
             for (int i = 0; !changed && i < rooms.Count; i++)
             {
@@ -1498,7 +1501,7 @@ namespace Arena
             short markX = r.ReadInt16(), markY = r.ReadInt16();
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
             ReadMysteryDoors(r);
-            ReadMapNumber(r.ReadByte());  // (MapReset.cs)
+            ReadMapNumber(r.ReadByte(), oldMap);  // (MapReset.cs)
             ReadKeepsake(r);
             ExpandProposals.Clear();
             ExpandVotes.Clear();

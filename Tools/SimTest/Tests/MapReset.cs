@@ -116,6 +116,9 @@ static partial class Program
             Console.WriteLine("  after the boss: map {0} (client {1}), rooms {2}/{3}, nodes {4}, kits {5}, vectors {6} {7} (refill {8}), refund {9}",
                 g.MapNumber, cg.MapNumber, g.Expanded.Count, cg.Expanded.Count, g.Nodes.Count, g.RoomTokens.Count, a.Vectors, b.Vectors, cap, g.MapRefund);
             Check(g.MapNumber == 2 && cg.MapNumber == 2 && cg.MapResetAge < 2f, "the boss's death starts map 2 on every game");
+            Check(cg.FoldRooms.Count == 2 && g.FoldRooms.Count == 2, "every game keeps the old map's boxes to fold away");
+            Check(cg.MapRefunds.TryGetValue(2, out int cback) && cback == 7 && cg.MapRefunds.TryGetValue(1, out int hback) && hback == 20, "the client knows what each player got back");
+            Check(g.MapsInRun == 10, "a Campaign plays ten maps (" + g.MapsInRun + ")");
             Check(!g.KeepsakeOpen && !cg.KeepsakeOpen && g.ExpandOpen && cg.ExpandOpen, "the vote is over once everyone voted; the build round opens on the new map");
             Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1 && g.Expanded[0].W * g.Expanded[0].H == 600 * 600 && g.KeptHead == 0 && cg.KeptHead == 0,
                 "a tie keeps the host's pick: the 6 x 6 room, rebuilt by the hub on every game");

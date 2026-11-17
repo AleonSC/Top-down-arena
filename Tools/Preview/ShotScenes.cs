@@ -2074,6 +2074,17 @@ static partial class Shot {
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
       xg.RoomsUp = true; xg.LayoutAge = 5f;
+      string mreset = Environment.GetEnvironmentVariable("MAPRESET");  // MAPRESET=<s since the reset>: the map just reset (MapResetLook.cs): the old rooms folding in, the biggest one kept, map 2, 27 vectors back
+      if (mreset != null) {
+        xg.FoldRooms.Clear(); xg.FoldRooms.AddRange(xg.Expanded);
+        var kept = Expansion.PlaceKeepsake(xg.Expanded, Expansion.BiggestRoom(xg.Expanded, xg.KeepsakeChoices), 5);
+        xg.Expanded.Clear(); xg.Expanded.AddRange(kept); xg.KeptHead = kept.Count > 0 ? 0 : -1;
+        typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+        xg.MapNumber = 2; xg.MapResetAge = float.Parse(mreset, System.Globalization.CultureInfo.InvariantCulture);
+        xg.MapRefunds.Clear(); xg.MapRefunds[xg.MyId] = 27;
+        foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(Game.Width / 2f + 60f * (pl.Id - 1), Game.Height / 2f);
+        foreach (var en in xg.Enemies.Values) en.Pos = en.Disp = new V2(-9000f, -9000f);
+      }
       if (Environment.GetEnvironmentVariable("KEEPSAKE") != null) {  // KEEPSAKE=1: the keepsake vote open between waves (KeepsakeUi.cs), the other player's vote on the biggest room, 9 s left
         xg.State = MatchState.Intermission; xg.KeepsakeOpen = true; xg.KeepsakeLeft = 9f; xg.KeepsakeVotes.Clear();
         foreach (var pl in xg.Players.Values) if (pl.Id != xg.MyId) xg.KeepsakeVotes[pl.Id] = Expansion.BiggestRoom(xg.Expanded, xg.KeepsakeChoices);

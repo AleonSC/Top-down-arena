@@ -75,6 +75,8 @@ namespace Arena
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
                 if (a.Surprise > 0)  // a surprise room: gold build-in and rim (SurpriseLook.cs)
                     DrawSurpriseRoom(wd, i, a);
+                if (IsKept(i))  // the room kept through the map reset: gold build-in and rim (MapResetLook.cs)
+                    DrawKeptRoom(wd, i, a);
                 if (a.Floating)  // a floating room: a ring and a mark of what it is, breathing while it is sealed
                     DrawFloatingMark(a);
                 if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls

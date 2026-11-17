@@ -21,6 +21,27 @@ namespace Arena
         /// Host: the vectors the team got back at the last reset, all players together (for the log and the tests).
         public int MapRefund;
 
+        /// Every game: what each player got back at the last reset (synced in Msg.ExpandState, for the MAP n/10 banner).
+        public readonly Dictionary<int, int> MapRefunds = new Dictionary<int, int>();
+
+        /// Every game, for the look: the old map's boxes at the last reset (they fold into the hub, MapResetLook.cs).
+        public readonly List<ExpansionRoom> FoldRooms = new List<ExpansionRoom>();
+
+        /// How many maps a run plays: one, plus one per boss before the last wave (0: endless).
+        public int MapsInRun
+        {
+            get
+            {
+                if (Endless)
+                    return 0;
+                int n = 1;
+                for (int w = 1; w < LastWave; w++)
+                    if (IsBossWave(w))
+                        n++;
+                return n;
+            }
+        }
+
         /// This mode resets its map after each boss (the Campaign on the Expanding arena).
         public bool MapResetOn => ExpandingOn && ModeRules.MapResets && ModeRules.RunEvents;
 
@@ -40,13 +61,17 @@ namespace Arena
             string keptName = kept != null ? Expanded[keep].Shape : null;
             CollectStrayCoins();
             MapRefund = 0;
+            MapRefunds.Clear();
             foreach (var p in Players.Values)
             {
                 int back = RefundFor(p.MapSpent);
                 p.Vectors = Math.Min(short.MaxValue, p.Vectors + back);
                 MapRefund += back;
+                MapRefunds[p.Id] = back;
                 p.MapSpent = 0;
             }
+            FoldRooms.Clear();
+            FoldRooms.AddRange(Expanded);
             Expanded.Clear();
             Openings.Clear();
             Links.Clear();
@@ -119,10 +144,14 @@ namespace Arena
         static bool InHub(V2 pos, float pad) => pos.X >= -pad && pos.Y >= -pad && pos.X <= Width + pad && pos.Y <= Height + pad;
 
         /// Every game but the host's: the map number from Msg.ExpandState; a higher one is a reset (the look's clock starts).
-        void ReadMapNumber(int n)
+        void ReadMapNumber(int n, List<ExpansionRoom> before)
         {
-            if (n > MapNumber)
+            if (n == MapNumber + 1)  // (a reset; a joiner mid-run jumps further and gets no banner)
+            {
                 MapResetAge = 0f;
+                FoldRooms.Clear();
+                FoldRooms.AddRange(before);
+            }
             MapNumber = Math.Max(1, n);
         }
 
@@ -243,6 +272,12 @@ namespace Arena
 
         void WriteKeepsake(BinaryWriter w)
         {
+            w.Write((byte)Math.Min(255, MapRefunds.Count));
+            foreach (var kv in MapRefunds)
+            {
+                w.Write(kv.Key);
+                w.Write((short)Math.Min(short.MaxValue, kv.Value));
+            }
             w.Write((short)KeptHead);
             w.Write(KeepsakeOpen);
             if (!KeepsakeOpen)
@@ -258,6 +293,13 @@ namespace Arena
 
         void ReadKeepsake(BinaryReader r)
         {
+            MapRefunds.Clear();
+            int nr = r.ReadByte();
+            for (int i = 0; i < nr; i++)
+            {
+                int id = r.ReadInt32();
+                MapRefunds[id] = r.ReadInt16();
+            }
             KeptHead = r.ReadInt16();
             KeepsakeOpen = r.ReadBoolean();
             KeepsakeVotes.Clear();

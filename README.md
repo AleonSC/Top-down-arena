@@ -1170,7 +1170,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   everyone has voted. The kept room is rebuilt free next to the hub, same shape (turned if it fits better), kind, theme and look.
   Your **room kits are kept**, and each player gets **half the vectors they spent on the old map back**, on top of
   the boss refill. Coins still lying in the old rooms go to the nearest player. The run's last boss doesn't reset anything.
-  Leaving during the vote saves it: Continue opens it again.
+  Leaving during the vote saves it: Continue opens it again. The old rooms fold into the hub as blue outlines, the kept room
+  builds in gold and keeps a thin gold rim, and a **MAP n / 10** banner shows the vectors you got back.
   ([`Docs/MapReset.md`](Docs/MapReset.md))
 - **Surprise rooms** (Quick Play; the Campaign resets its map instead): every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops

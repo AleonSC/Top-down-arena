@@ -1,6 +1,6 @@
 # Map reset: a fresh map after every boss
 
-Status: **steps 1-2 built** (protocol 389: the reset, refund, kits kept, map number synced and saved; protocol 390: the keepsake vote and window; suite `mapreset`); steps 3-4 open. Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
+Status: **steps 1-3 built** (protocol 389: the reset, refund, kits kept, map number synced and saved; protocol 390: the keepsake vote and window, each player's refund; step 3: the look; suite `mapreset`); step 4 open. Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
 [`VectorBuilding.md`](VectorBuilding.md), [`SurpriseRooms.md`](SurpriseRooms.md), [`MysteryDoors.md`](MysteryDoors.md) and
 [`Nodes.md`](Nodes.md).
 
@@ -54,8 +54,11 @@ much to follow. Building stays on all the way through; the map resets instead.
    bots vote for the biggest room after 1.5 s, the kept room rebuilt on the bare hub (`Expansion.PlaceKeepsake`: its tile mask
    through `MaskOptions`, any turn or mirror; if it fits nowhere, a surprise shape). A run left mid-vote reopens it on Continue
    (`RunSave.KeepsakePending`). The window (`Game/KeepsakeUi.cs`) came with it so the vote can be played; step 3 polishes it.
-3. **The look.** The kept room highlighted on the map during the vote, the fold-away, the MAP n/10 toast, the keepsake's
-   gold rim. Previews (`shot.sh`) before/after.
+3. **The look** *(built, `Game/MapResetLook.cs`)*. The old map's boxes (`Game.FoldRooms`, every game) fold into the hub's
+   middle as phosphor outlines over 1.6 s, their ghosts fading where they stood, and the hub's walls flash as they arrive; the
+   kept room builds in gold (flash and scan line) as the fold lands, then keeps a thin gold rim; the MAP n/10 banner shows your
+   own vectors back (`Game.MapRefunds`, synced) and whether a room was kept. The vote window shows each room, so no map
+   highlight during the vote. Preview `MAPRESET=<s> ZOOM=0.42 EXPANDMAP=0 EXPANDROOMS=... shot.sh x hud`.
 4. **Balance.** Vector income vs a 10-wave map (how many rooms a team ends a map with), breach counts on small maps
    (`Breaches.CountFor` already scales with rooms), session reports from the owner's runs.
 
