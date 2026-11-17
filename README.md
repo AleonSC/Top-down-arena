@@ -1904,7 +1904,8 @@ under **Settings** on the main menu, and they're saved between sessions.
 (`persistentDataPath/sounds`, read at startup), or an AudioClip in `Assets/Resources/Sfx` to ship it with the game; the folder
 wins. `ShotRifle_1.wav`, `ShotRifle_2.wav`... give it several takes, played in turn. It keeps the sound's volume slider, its
 shortest gap between plays and its small pitch wander. To make one, open `Tools/SoundForge/index.html` in a browser: pick
-a preset, shape it with the sliders and export a WAV already named for the sound you chose (several takes at once if you like).
+a preset, shape it with the sliders and export a WAV already named for the sound you chose (several takes at once if you like). It has an equalizer, an output
+volume, and a seamless loop mode for hums and drones (the game loops `WallHum`, `ArcHum`, `HeliRotor` and `SawWhirr`).
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
 so they never change the fight or what your friend sees):
@@ -1916,7 +1917,18 @@ so they never change the fight or what your friend sees):
   them; with Bending its lines also bow away from every player like a stretched sheet and trail a little behind them as
   they move. Static keeps the lines straight and only shows the colour. Kill ripples run through it either way, and a
   Dodge sends a small, quick ripple from where it started that lights the lines in your colour (your own dodges
-  only).
+  only). The keys under the title pick the floor's **pattern** (Bending / Static is the small lamp key beside it);
+  each works in every arena and reacts the same way (bends round players unless Static, their colour near them,
+  ripples from kills and your Dodge):
+  - **Grid** (the default): the grid above.
+  - **Flux:** a needle every 24 px combed along a slow drifting current; needles swirl round each player, swing into
+    a runner's wake, and a kill's ring combs them outward and stretches them.
+  - **Seismo:** horizontal phosphor lines every 16 px (every 4th brighter) with a slow refresh band rolling down;
+    they lift into a bump round each player that leans behind them, and shake like a seismograph as a ring passes.
+  - **Plates:** 32 px bevelled plates that sink under and round each player and flip like a split-flap board as a
+    ring passes.
+  - **Circuit:** traces on a 32 px grid (straight runs, 45 degree bends, pads), laid per room; they bow round players,
+    and kills, dodges and footsteps send pulses racing along them.
 - **Damage numbers:** damage to each enemy rises off it, merged every 0.15 s (so a fast weapon shows one total);
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.

@@ -2149,6 +2149,7 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("FLOORTINT") != null) ArenaApp.FloorTintAmt = float.Parse(Environment.GetEnvironmentVariable("FLOORTINT"), System.Globalization.CultureInfo.InvariantCulture);  // FLOORTINT=<0-1>: the boss floor wash (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("FLOORBEND") == "0") ArenaApp.PreviewFloorStatic = true;
+    if (Environment.GetEnvironmentVariable("FLOORSTYLE") != null) ArenaApp.PreviewFloorStyle = int.Parse(Environment.GetEnvironmentVariable("FLOORSTYLE"));  // FLOORSTYLE=<n>: the arena floor pattern, 1 Flux 2 Seismo 3 Plates 4 Circuit (FloorStylesLook.cs)
     if (Environment.GetEnvironmentVariable("DASHBURST") != null) ArenaApp.PreviewDashBurst = float.Parse(Environment.GetEnvironmentVariable("DASHBURST"), System.Globalization.CultureInfo.InvariantCulture);  // DASHBURST=<s>: a dash's floor burst that old, by the topmost player (FloorGridLook.cs)  // FLOORBEND=0: the static arena floor (FloorGridLook.cs)
     if (Environment.GetEnvironmentVariable("WALLBOSS") != null) ArenaApp.WallBossOverride = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("WALLBOSS"));  // WALLBOSS=<EnemyType>: walls themed for that boss
     if (Environment.GetEnvironmentVariable("LAYOUT") != null) {  // LAYOUT=<LayoutId number, 1-6>: that floor plan with its cover, everyone out of its walls
