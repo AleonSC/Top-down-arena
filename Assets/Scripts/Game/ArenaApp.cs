@@ -60,6 +60,7 @@ namespace Arena
             game.BalanceFolder = BalanceFolderPath;  // (the balance test records whatever this is set to; BalanceTestUi.cs)
         }
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
+        bool tabSuppress;  // a room card or buildable was used from the Tab screen's Inventory (InventoryUi.cs): the screen stays shut until Tab is let go
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         int pickKey;            // for a card that grants an ability: the key to put it on (1 = Q, 2 = E, 3 = Shift)
         string shownOffer = "";
@@ -292,7 +293,9 @@ namespace Arena
             // Solo, holding Tab pauses the match while the Run stats screen is up (RunStatsUi.cs); in multiplayer
             // it doesn't (the pause menu's Run stats button is for looking together).
             bool tabKey = session.Screen == AppScreen.Game && me != null && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
-            bool soloTab = tabKey && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !ModalScreenOpen
+            if (!tabKey)
+                tabSuppress = false;
+            bool soloTab = tabKey && !tabSuppress && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !ModalScreenOpen
                 && (game.State == MatchState.Fighting || game.State == MatchState.Intermission);
             if (soloTab && !game.Paused)
             {
@@ -340,7 +343,7 @@ namespace Arena
             // Holding Tab opens the loadout, which has buttons (moving abilities between keys). It works
             // while choosing an upgrade too: the cards hide until you let go.
             bool wasTab = tabHeld;
-            tabHeld = tabKey && !menuUp;
+            tabHeld = tabKey && !menuUp && !tabSuppress;
             if (tabHeld && !wasTab)
                 tabOpens++;  // (the TAB hint in the corner retires once you've used it: Hud.cs)
             Keybinds.SetPickerNumbers(choosing && !tabHeld ? Mathf.Min(me.Offer.Length, CardKeys.Length) : 0);  // its card keys win over a bound number key

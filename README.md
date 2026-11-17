@@ -1079,6 +1079,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - **Playing one**: in a build round open **Build**: the first tool is **Room cards**, with your hand on the right (each card drawn as its room). Pick a card, and dots on the
     map show every spot it fits; the room follows the mouse as a green ghost on the nearest fit (and says how many loops it closes). **R** steps through the other
     turns and mirrors that fit there; **left click** builds it at once (no vote, no vectors); **right click** puts the card back.
+  - **Inside the rooms**: each card's room comes with its own obstacles, turned with the room and kept out of its doorways: **Box** four pillars round a low wall;
+    **Hall** a block off alternate walls near each end (a zig-zag); **Ring** a buttress on each outer wall and a pillar in each corner; **Cross** a pillar in the
+    crossing and a block in each arm (a pinwheel); **L hall** a pillar in the bend and blocks off alternate walls; **T hall** a pillar facing the stem and a block in
+    each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars. Card rooms get no random cover or side walls.
   - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's cards.
 - **Building rounds** (Free draw and Team vote): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
@@ -1868,7 +1872,7 @@ Warden in a run; see Boss Hunt). Records also keep each Boss Hunt's plays, wins 
 ## Run stats (Tab)
 
 Hold **Tab** during a match for the **Run stats** screen: hologram panels projected over the arena (in your CRT
-colour, lit by a beam along the bottom of the screen), your stats down the left, and three tabs (click to switch; it
+colour, lit by a beam along the bottom of the screen), your stats down the left, and four tabs (click to switch; it
 remembers the last one):
 
 - **Run so far:** the wave and where you are (path and wave of it, enemies left), time played, score, the next boss
@@ -1880,6 +1884,17 @@ remembers the last one):
   upgrade you've picked, rarest first.
 - **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and
   upgrades.
+- **Inventory:** everything you carry: your **wallet** (gold, vectors with a bar to your cap, revive token, the gadget in
+  your hand with its time left, rerolls), your **relic** and what it does, your **room cards** (six slots, each drawn as its
+  room; hover one for what it is), your **buildables** (the Black Market buys in your stash: teleporters and traps, each
+  of 5), and the team's **room kits**. A list that holds more than fits **scrolls** with the mouse wheel (a bar on its
+  right shows where you are, and "n MORE" under it); the wheel doesn't zoom the camera while this page is up.
+  - **Using things from it:** while a build round is open, **click a room card** (it reads **PLAY ›** under the mouse) and the Tab
+    screen gives way to the build screen with that card picked; **click a buildable** you have (**PLACE ›**) and it opens on the
+    Teleporter or Trap tool with it chosen. The Tab screen stays shut until you let go of Tab. Outside a build round, while downed,
+    or from the pause menu's Run stats you can only look (the hover tip says why).
+  - **Teammates:** keys on the right of the header (**YOU** and each teammate, underlined in their class colour) switch to a
+    teammate's inventory: their wallet, relic, room cards and stash (look only; rerolls show "—", they aren't sent).
 
 The panels **switch on** from a thin line when the screen opens and when you change tab (about a third of a
 second; teammates' live models appear once it settles). With **Reduced effects** or **Visual effects** off they're

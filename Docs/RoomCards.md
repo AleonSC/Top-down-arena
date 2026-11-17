@@ -1,6 +1,6 @@
 # Room cards: build the Expanding arena from a hand of preset rooms
 
-Status: **steps 1-3 built** (protocol 389): cards, hand, play, sources, the vendor's card shelf, bots, the lobby switch, the build screen's hand and ghost.
+Status: **steps 1-3 built** (protocol 389), plus designed obstacles inside each card's room (protocol 391): cards, hand, play, sources, the vendor's card shelf, bots, the lobby switch, the build screen's hand and ghost.
 Step 4 (balance pass, themed cards) open. Decided with the owner on Nov 17, 2026. Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (the shapes and
 their placement), [`VectorBuilding.md`](VectorBuilding.md) (vectors) and [`Nodes.md`](Nodes.md).
 
@@ -52,6 +52,26 @@ Vectors still pay for openings (refund), teleporters (stash), gates, mystery doo
 - Pick a card: the room follows the mouse as a ghost, snapped to the legal spot nearest the pointer (green), with the loops it closes. **R** tries the other turns and mirrors that fit there. **Click** builds it.
 - Builds go up at once (no team vote in cards mode), during a build round, like free building.
 - Card rooms are ordinary rooms (`Price` 0, `Owner` the player): they roll room chests, take room kits, and can be opened into.
+
+## Inside the rooms (built, protocol 391)
+
+Each card's room has a designed set of obstacles (`Core/RoomCardLayouts.cs`) instead of the random cover and side walls a drawn room gets:
+
+| Card | Obstacles |
+|---|---|
+| Box | four pillars round a low wall in the middle |
+| Hall | a block off alternate walls near each end (a zig-zag; the middle stays clear for a door) |
+| Ring | a buttress mid-way along each outer wall, a pillar in each corner |
+| Cross | a pillar in the crossing, a block in each arm turning like a pinwheel |
+| L hall | a pillar in the bend, blocks off alternate walls |
+| T hall | a pillar facing the stem, a block in each arm and in the stem |
+| Chamfer | a pillar in the middle, a low wall above and below it |
+| Mini-boss | four pillars to fight round |
+
+- Lane pieces hug a wall and leave at least 220 px to pass. The layout turns and mirrors with the room; a symmetric shape tries every matching turn and keeps
+  the one with the most pieces clear of its doors; anything within a door's mouth (its width + 60 px along, 110 px in) is left out.
+- `ExpansionRoom.Card` (the RoomCard, on each box) carries it over the wire and in saves (the `room` line's 15th number).
+- Preview: `EXPANDMAP=0 CARDROOM=<card> [CARDSPOT=n] ZOOM=0.5 Tools/Preview/shot.sh x hud`. Test: suite `roomcards`.
 
 ## Wire and saves
 

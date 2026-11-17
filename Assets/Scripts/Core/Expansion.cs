@@ -56,6 +56,7 @@ namespace Arena
         public bool Floating;   // placed by the game off the map (a shop, vendor or Gatekeeper), not drawn: sealed until a built room touches it
         public byte Surprise;   // a surprise room (Docs/SurpriseRooms.md): 1 + its SurpriseShape, on each of its boxes; 0: none
         public bool Claimed;    // a breach Stash's vector cache has been taken (Docs/BreachRooms.md)
+        public byte Card;       // a room card's room (RoomCards.cs): its RoomCard, on each of its boxes (its designed obstacles: RoomCardLayouts.cs); 0: none
         public byte Mini;       // a mini-boss room's foe (an EnemyType, FactionMinis.cs): its boss cycle's faction's; 0: unset (an old save: the current one's)
         public byte Leg;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
         public int X1 => X + W;
@@ -1918,6 +1919,17 @@ namespace Arena
                 var cr = rooms[a - 1];
                 if (IsPush(cr))
                     continue;  // (a pushed section: its own features instead, PushFeatures)
+                if (cr.Card != 0)
+                {
+                    if (group[a] == a)  // a room card's room: its designed layout, once for all its boxes (RoomCardLayouts.cs)
+                    {
+                        var members = new List<int>();
+                        for (int b = 1; b < n; b++)
+                            if (group[b] == a) members.Add(b);
+                        AddCardFeatures(cover, rooms, members, doors);
+                    }
+                    continue;
+                }
                 if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);
@@ -1926,7 +1938,7 @@ namespace Arena
                 if (IsPush(rooms[a - 1]))
                     PushFeatures(rooms, a - 1, spans, cover, doors, nodes);
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
-                if (FinStyle >= 0 && !rooms[a - 1].Floating && !IsPush(rooms[a - 1]) && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
+                if (FinStyle >= 0 && !rooms[a - 1].Floating && !IsPush(rooms[a - 1]) && rooms[a - 1].Card == 0 && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
                     AddFins(spans, cover, rooms, group, a, doors, nodes);
             if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room
                 cover.RemoveAll(c =>

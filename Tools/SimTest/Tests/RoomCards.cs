@@ -26,6 +26,34 @@ static partial class Program
             Check(Expansion.CardRooms(placed, c, o.X, o.Y, o.Turn, o.Mirror, out why) == null, "  and can't go on top of itself (" + why + ")");
             Check(Expansion.CardRooms(empty, c, o.X + 50, o.Y, o.Turn, o.Mirror, out why) == null, "  and must sit on the grid");
         }
+        // Inside the rooms: each card's room gets its designed obstacles (not random cover or side walls), every one on the room's floor and
+        // clear of its door, in whichever turn it was placed.
+        foreach (RoomCard c in Enum.GetValues(typeof(RoomCard)))
+        {
+            if (c == RoomCard.None) continue;
+            var opts = Expansion.CardOptions(empty, c);
+            int okSpots = 0, tried = 0, fewest = 99;
+            for (int i = 0; i < opts.Count; i += Math.Max(1, opts.Count / 10))
+            {
+                tried++;
+                var o = opts[i];
+                var made = Expansion.CardRooms(empty, c, o.X, o.Y, o.Turn, o.Mirror, out _);
+                var w = Expansion.Build(made);
+                var inRoom = w.Cover.Where(s => made.Any(q => s.Pos.X >= q.X && s.Pos.X <= q.X1 && s.Pos.Y >= q.Y && s.Pos.Y <= q.Y1)).ToList();
+                bool onFloor = inRoom.All(s =>
+                {
+                    float hw = s.Round ? s.R : s.HW, hh = s.Round ? s.R : s.HH;
+                    return new[] { new V2(s.Pos.X - hw + 1, s.Pos.Y - hh + 1), new V2(s.Pos.X + hw - 1, s.Pos.Y - hh + 1), new V2(s.Pos.X - hw + 1, s.Pos.Y + hh - 1), new V2(s.Pos.X + hw - 1, s.Pos.Y + hh - 1) }
+                        .All(pt => made.Any(q => pt.X >= q.X && pt.X <= q.X1 && pt.Y >= q.Y && pt.Y <= q.Y1));
+                });
+                var door = w.Doors.Where(d => (d.A == 0) != (d.B == 0)).ToList();
+                bool doorClear = inRoom.All(s => door.All(d => s.Pos.DistanceTo(d.Pos) > d.W / 2f + 40f));
+                bool noFins = w.Spans.All(sp => { var m = sp.Vertical ? new V2(sp.At, (sp.From + sp.Till) / 2f) : new V2((sp.From + sp.Till) / 2f, sp.At); return !made.Any(q => m.X > q.X + 1 && m.X < q.X1 - 1 && m.Y > q.Y + 1 && m.Y < q.Y1 - 1); });
+                fewest = Math.Min(fewest, inRoom.Count);
+                if (inRoom.Count >= 2 && onFloor && doorClear && noFins) okSpots++;
+            }
+            Check(tried > 0 && okSpots == tried, "the " + Expansion.CardName(c) + " room has its obstacles on its floor, clear of the door, no side walls (" + okSpots + " of " + tried + " spots, at least " + fewest + " pieces)");
+        }
         Check(Expansion.CardRooms(empty, RoomCard.Box, 300, 200, 0, false, out _) == null, "a card can't be played in the middle of the start room");
         var offers = Expansion.CardOffers(7, 2);
         Check(offers.Length == Expansion.CardOfferCount && offers.SequenceEqual(Expansion.CardOffers(7, 2)), "the vendor's cards are the same every time for a seed and cycle");
