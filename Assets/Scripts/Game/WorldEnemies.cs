@@ -71,8 +71,8 @@ namespace Arena
                 {
                     if (fxOn)
                     {
-                        DrawMagmaWall(z, t);  // FlameWallLook.cs
-                        break;
+                        DrawFlameRing(z, t);  // FlameWallLook.cs
+                        return;  // no timer ring: the flames sink as it ends
                     }
                     float wall = z.GuardFrac > 0f ? 1f : 0.45f;
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.12f), 40);
