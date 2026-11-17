@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 392: the Engineer class (Kit.Engineer, WeaponId.VectorForge, AbilityId.DragPylon and Breach, MinionKind.Strider, ZoneKind.DragPylon, FxKind.BreachSmash); Wildcard picks renumber (21 class weapons now)
+- 392: the Engineer class (Kit.Engineer, WeaponId.VectorForge, AbilityId.DragPylon and Breach, MinionKind.Strider, ZoneKind.DragPylon, FxKind.BreachSmash, NodeKind.BreachLoot; four Engineer cards); Wildcard picks renumber (21 class weapons now)
 - 391: room cards' obstacles: `ExpansionRoom.Card` (byte, the RoomCard) after `Mini` in every room list (`Msg.ExpandState`, proposals).
 - 390: map reset and keepsake vote (Docs/MapReset.md steps 1-3): `Msg.ExpandState` ends its mystery doors with the map number (byte), `Msg.KeepsakeVote` appended (client -> host, short room head); `Msg.ExpandState` adds each player's refund at the last reset (byte count, then int id + short), the kept room head (short), the vote open flag and, if open, time left and votes.
 - 389: Room cards: `Msg.PlayCard` (slot, x, y, turn, mirror), each player's hand (6 bytes) in the player snapshot, `ShopAction.BuyCard`, `DiffKnob.RoomCards`; `SurpriseShape.Box`/`Hall` appended.

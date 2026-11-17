@@ -102,8 +102,10 @@ static partial class Program
         // It falls and is rebuilt after 8 s.
         hurtGuard.Invoke(g, new object[] { strider(), 1e6f });
         Check(strider() == null && Math.Abs(me.StriderCd - Game.StriderRebuild) < 0.01f, "a broken Strider is gone, its rebuild 8 s away");
-        step(Game.StriderRebuild + 0.5f);
-        Check(strider() != null, "and rebuilt after 8 s");
+        step(Game.StriderRebuild + 0.4f);
+        Check(strider() != null && strider().Wind >= 2f && strider().Wind < 3f, "and rebuilt after 8 s, building in first (Wind 2-3 for the look)");
+        step(Game.StriderBuild);
+        Check(strider().Wind < 2f, "then it's up");
 
         // Drag Pylon: slows enemies inside; the next one folds the old one up.
         g.Enemies.Clear();
@@ -149,6 +151,18 @@ static partial class Program
             Check(g.Expanded.Count > rooms, "Breach at the Expanding arena's wall opens a room behind it (" + (g.Expanded.Count - rooms) + " room pieces)");
             step(0.5f);
             Check(client.Game.Expanded.Count == g.Expanded.Count, "the client gets the new room");
+            bool stash = g.Expanded.Skip(rooms).Any(r => r.Surprise == (byte)(1 + (int)SurpriseShape.Stash));
+            var lootNode = g.Nodes.FindIndex(n => n.Kind == NodeKind.BreachLoot);
+            Check(stash ? lootNode < 0 : lootNode >= 0 && !g.Nodes[lootNode].Spent, "the room holds its loot to walk up to (a Stash: its own vector cache)");
+            Check(client.Game.Nodes.Count(n => n.Kind == NodeKind.BreachLoot) == g.Nodes.Count(n => n.Kind == NodeKind.BreachLoot), "the client sees the loot");
+            // Walking up to it takes it (here a supply crate: 40 gold in coins).
+            g.Nodes.Add(new MapNode { X = 700, Y = 700, Kind = NodeKind.BreachLoot, Rule = 1 });
+            int coins = g.Coins.Count;
+            mePos = new V2(700f, 700f);
+            step(0.2f);
+            var taken = g.Nodes.Last(n => n.Kind == NodeKind.BreachLoot);
+            Check(taken.Spent && g.Coins.Count > coins, "walking up to the loot takes it (a supply crate drops its gold)");
+            mePos = new V2(800f, 80f);
 
             // Draftsman (step 2): +25% vectors from every gain, part-vectors carried over.
             var addVectors = typeof(Game).GetMethod("AddVectors", flags);

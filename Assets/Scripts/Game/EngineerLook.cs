@@ -103,7 +103,35 @@ namespace Arena
                 DrawLockReticle(target.Disp, target.Radius + 10f, t);
             }
             float step = (m.Disp.X + m.Disp.Y) * 0.09f;
+            if (m.Wind >= 2f)  // building (Wind 2-3): the wireframe draws itself in, line by line, then the plates go on
+            {
+                DrawStrider(m.Disp, m.Aim, step, 0f, m.Wind - 2f, -1f, false, -1f, t);
+                return;
+            }
             DrawStriderLook(StriderLookPick, m.Disp, m.Aim, step, m.Wind, m.GuardFrac, target != null, t);
+        }
+
+        static readonly string[] BreachLootNames = { "VECTORS", "SUPPLY CRATE", "REPAIR BAY", "WORKBENCH", "?" };
+
+        /// A Breach room's loot (NodeKind.BreachLoot, its kind in Rule): the icon bobbing in a ring to walk into, a label under it
+        /// (an ambush shows only "?"); gone once taken.
+        void DrawBreachLootNode(MapNode n)
+        {
+            if (n.Spent)
+                return;
+            float t = game.AnimT;
+            int kind = Mathf.Clamp(n.Rule, 0, 4);
+            Rgba c = kind == 4 ? EngAmber : LootInk[kind];
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f);
+            Circle(n.Pos, 58f, c.WithAlpha(0.05f + 0.04f * pulse), 28);
+            Arc(n.Pos, Game.BreachLootReach + 14f + 3f * pulse, 2f, c.WithAlpha(0.35f + 0.25f * pulse), 32);
+            if (kind == 4)
+            {
+                Arc(n.Pos, 14f, 2.4f, c, 20, MathX.Pi, MathX.Pi * 1.5f);
+                Circle(n.Pos + new V2(0f, 14f), 2.2f, c, 8);
+            }
+            else
+                DrawBreachLoot(n.Pos + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), kind, 1f, t);
         }
 
         /// FxKind.BreachSmash: the hammer and the hit (Pos the wall, Pos2 one px on into it, T its age).

@@ -166,6 +166,7 @@ namespace Arena
                 s.SlamT = 1f;
                 BroadcastFx(FxKind.Ring, s.Pos, s.Def.Color, 40f, StriderBuild, Sfx.Summon);
             }
+            TickBreachLoot();
             foreach (var z in Zones.Values)
             {
                 if (z.Kind != ZoneKind.DragPylon)
@@ -197,7 +198,13 @@ namespace Arena
         void TickStrider(Minion m, Player owner, float dt, float speed, float dmg)
         {
             var d = m.Def;
-            m.Wind = Math.Max(0f, m.Wind - dt * 5f);
+            m.SentT += dt;
+            if (m.SentT < StriderBuild)
+            {
+                m.Wind = 2f + m.SentT / StriderBuild;  // building: its lines draw in (Wind 2-3 tells the look; it does nothing yet)
+                return;
+            }
+            m.Wind = m.Wind >= 2f ? 0f : Math.Max(0f, m.Wind - dt * 5f);
             Enemy target = null;
             if (m.GoalEnemy != 0)
             {
@@ -423,22 +430,25 @@ namespace Arena
                     BroadcastExpansion();
                 }
             }
-            V2 lootAt = hit - dir * 30f;
-            if (made != null)
+            if (made == null)
             {
-                float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
-                foreach (var r in made)
-                {
-                    x0 = Math.Min(x0, r.X); y0 = Math.Min(y0, r.Y); x1 = Math.Max(x1, r.X1); y1 = Math.Max(y1, r.Y1);
-                }
-                lootAt = new V2((x0 + x1) / 2f, (y0 + y1) / 2f);
+                ApplyBreachLoot(p, hit - dir * 30f, RollBreachLoot(false));  // no room: the loot lands at once
+                return;
             }
-            BreachLoot(p, lootAt, made != null);
+            if (made[0].Surprise == (byte)(1 + (int)SurpriseShape.Stash))
+                return;  // a Stash holds its own vector cache (BreachEvent.cs): that is its loot
+            var big = made[0];  // the loot waits in the middle of the room's biggest piece, to walk up to (step 3)
+            foreach (var r in made)
+                if (r.W * r.H > big.W * big.H)
+                    big = r;
+            V2 lootAt = new V2((big.X + big.X1) / 2f, (big.Y + big.Y1) / 2f);
+            Nodes.Add(new MapNode { X = (short)Math.Round(lootAt.X), Y = (short)Math.Round(lootAt.Y), Kind = NodeKind.BreachLoot, Rule = (byte)RollBreachLoot(true) });
+            BroadcastExpansion();
         }
 
         /// The one thing behind the wall: 0 vectors, 1 gold, 2 a Strider repair, 3 a workbench, 4 an ambush (only in a real room;
         /// vectors only in the Expanding arena).
-        void BreachLoot(Player p, V2 at, bool room)
+        int RollBreachLoot(bool room)
         {
             int roll = rng.Next(100);
             int kind = roll < 30 ? 0 : roll < 55 ? 1 : roll < 70 ? 2 : roll < 85 ? 3 : 4;
@@ -446,7 +456,38 @@ namespace Arena
                 kind = 1;
             if (kind == 0 && !ExpandingOn)
                 kind = 1;
-            var s = StriderOf(p);
+            return kind;
+        }
+
+        public const float BreachLootReach = 46f;  // walk this close (plus your body) to a Breach room's loot to take it
+
+        /// Host, every tick (the Expanding arena): a Breach room's loot (NodeKind.BreachLoot, its kind in Rule) is taken by the first
+        /// player to walk up to it; an ambush springs then. The node is spent.
+        void TickBreachLoot()
+        {
+            if (!IsHost || !ExpandingOn)
+                return;
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var nd = Nodes[i];
+                if (nd.Kind != NodeKind.BreachLoot || nd.Spent)
+                    continue;
+                Player taker = null;
+                foreach (var p in Players.Values)
+                    if (!p.Downed && p.Pos.CloserThan(nd.Pos, BreachLootReach + p.Def.BodyR))
+                        taker = p;
+                if (taker == null)
+                    continue;
+                nd.Spent = true;
+                Nodes[i] = nd;
+                ApplyBreachLoot(taker, nd.Pos, nd.Rule);
+                BroadcastExpansion();
+            }
+        }
+
+        /// The loot itself, for `p` (who took it), at `at`. Repairs and the workbench go to every Strider.
+        void ApplyBreachLoot(Player p, V2 at, int kind)
+        {
             switch (kind)
             {
                 case 0:
@@ -465,13 +506,15 @@ namespace Arena
                             q.Gold += BreachGold;
                     break;
                 case 2:
-                    if (s != null)
-                        s.Hp = s.MaxHp;
+                    foreach (var m in Minions.Values)
+                        if (m.Kind == MinionKind.Strider)
+                            m.Hp = m.MaxHp;
                     SpawnOrb(at, true);
                     break;
                 case 3:
-                    if (s != null)
-                        s.Hold = 1f;  // +25% Strider damage until the wave ends (TickStrider)
+                    foreach (var m in Minions.Values)
+                        if (m.Kind == MinionKind.Strider)
+                            m.Hold = 1f;  // +25% Strider damage until the wave ends (TickStrider)
                     break;
                 default:
                     for (int i = 0; i < 2; i++)

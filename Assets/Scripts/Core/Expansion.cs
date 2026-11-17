@@ -25,7 +25,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule, VectorChest, Tower, Vein }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
