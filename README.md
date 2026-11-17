@@ -1872,7 +1872,7 @@ Warden in a run; see Boss Hunt). Records also keep each Boss Hunt's plays, wins 
 ## Run stats (Tab)
 
 Hold **Tab** during a match for the **Run stats** screen: hologram panels projected over the arena (in your CRT
-colour, lit by a beam along the bottom of the screen), your stats down the left, and three tabs (click to switch; it
+colour, lit by a beam along the bottom of the screen), your stats down the left, and four tabs (click to switch; it
 remembers the last one):
 
 - **Run so far:** the wave and where you are (path and wave of it, enemies left), time played, score, the next boss
@@ -1884,6 +1884,17 @@ remembers the last one):
   upgrade you've picked, rarest first.
 - **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and
   upgrades.
+- **Inventory:** everything you carry: your **wallet** (gold, vectors with a bar to your cap, revive token, the gadget in
+  your hand with its time left, rerolls), your **relic** and what it does, your **room cards** (six slots, each drawn as its
+  room; hover one for what it is), your **buildables** (the Black Market buys in your stash: teleporters and traps, each
+  of 5), and the team's **room kits**. A list that holds more than fits **scrolls** with the mouse wheel (a bar on its
+  right shows where you are, and "n MORE" under it); the wheel doesn't zoom the camera while this page is up.
+  - **Using things from it:** while a build round is open, **click a room card** (it reads **PLAY ›** under the mouse) and the Tab
+    screen gives way to the build screen with that card picked; **click a buildable** you have (**PLACE ›**) and it opens on the
+    Teleporter or Trap tool with it chosen. The Tab screen stays shut until you let go of Tab. Outside a build round, while downed,
+    or from the pause menu's Run stats you can only look (the hover tip says why).
+  - **Teammates:** keys on the right of the header (**YOU** and each teammate, underlined in their class colour) switch to a
+    teammate's inventory: their wallet, relic, room cards and stash (look only; rerolls show "—", they aren't sent).
 
 The panels **switch on** from a thin line when the screen opens and when you change tab (about a third of a
 second; teammates' live models appear once it settles). With **Reduced effects** or **Visual effects** off they're
