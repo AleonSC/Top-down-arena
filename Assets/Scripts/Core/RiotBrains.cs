@@ -42,7 +42,7 @@ namespace Arena
                 e.LarderCd = BottleEveryMin + IdRoll(e.Id, 12 + (uint)(e.T / 3f)) * BottleEveryRange;
                 float ang = (tpos - e.Pos).Angle;
                 V2 dir = V2.FromAngle(ang);
-                var b = SpawnBullet(Defs.BottleShot, e.Pos + dir * e.Radius, dir * BottleSpeed, 12f, BottleLife, Defs.BulletDamage(Defs.BottleShot), 0, false);
+                var b = SpawnBullet(Defs.BottleShot, e.Pos + dir * e.Radius, dir * BottleSpeed, 0f, BottleLife, Defs.BulletDamage(Defs.BottleShot), 0, false);
                 b.Source = e.Type;
                 b.Shooter = e.Id;
                 BroadcastFx(FxKind.Spark, e.Pos + dir * (e.Radius + 10f), new Rgba(0.6f, 0.9f, 0.5f), 14f, 0.15f, Sfx.Throw);
