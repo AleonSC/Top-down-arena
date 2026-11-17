@@ -294,6 +294,11 @@ namespace Arena
                 DrawBilePatch(pt, t);  // the Devourer's acid (DevourerLook.cs)
                 return;
             }
+            if (pt.Kind == PatchKind.Slick)
+            {
+                DrawSlickPatch(pt, t);  // a Turnkey's mop slick (TurnkeyLook.cs)
+                return;
+            }
             if (pt.Kind == PatchKind.Acid)
             {
                 DrawAcidPatch(pt, t);  // a Spitter's acid (ZombieLook.cs)

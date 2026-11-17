@@ -11,6 +11,7 @@ namespace Arena
         public int From = 1;
         public bool NotFirst;  // not in the first round of a run (Rioters open the Warden's approach alone)
         public int Fade = 3;  // after its boss: the last of the 3 fade waves it is still in (0: gone at the boss, 1-3), Long Campaign only
+        public int Debut;     // this wave of its boss's approach (counted from the last boss, or a Campaign lesson cycle's) always brings one, late (0: none)
     }
 
     /// A boss's world: the enemies of its approach, and squads of them (which count toward the themed share).
@@ -61,6 +62,7 @@ namespace Arena
                     new FactionMember { Type = EnemyType.SecurityGuard, Fade = 1, Weight = 2f, From = 2 },  // its pistol guard: leading tracer rounds, a magazine of seven (SecurityGuard.cs)
                     new FactionMember { Type = EnemyType.Thug, Fade = 2, Weight = 1.5f, From = 2 },  // the prisoners' brute: a Brute with a ball and chain (PrisonKin.cs)
                     new FactionMember { Type = EnemyType.Shiv, Fade = 2, Weight = 1f, From = 3 },  // the prisoners' lunger: a taped shank (PrisonKin.cs)
+                    new FactionMember { Type = EnemyType.Turnkey, Fade = 0, Weight = 0.8f, From = 3, Debut = 3 },  // the trapper: runs, plants traps and Cell Doors (Turnkey.cs); always on the approach's third wave
                 },
                 Squads = new[]
                 {
@@ -675,6 +677,8 @@ namespace Arena
                 foreach (var sl in Approaches.Campaign(n, shown))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
                 {
                     int themed = Math.Min(count, (int)Math.Round(of * (cb != null ? sl.Share - sl.Pool : sl.Share)));
+                    if (themed > 0 && sl.Current)
+                        PickDebuts(sl.Faction, n, ref count, ref themed);  // (a member's debut wave: Turnkey.cs)
                     if (themed > 0 && sl.Current && LessonNow(sl.Faction) != null)
                         PickLesson(sl.Faction, LessonNow(sl.Faction), ref count, themed);  // a Campaign's teaching cycle: this wave's lesson
                     else if (themed > 0 && shown > 0 && !sl.Current && sl.Pool <= 0f)
@@ -698,12 +702,36 @@ namespace Arena
             if (themed1 <= 0)
                 return;
             int reach = ApproachStepAt(n);  // (a hunt's nine waves reach through the faction as a run's four do)
+            PickDebuts(f, n, ref count, ref themed1);  // a member's debut wave always brings one (FactionMember.Debut)
             if (LessonNow(f) != null)
             {
                 PickLesson(f, LessonNow(f), ref count, themed1);
                 return;
             }
             PickFaction(f, reach, Bosses.FinaleWave(n), ref count, themed1);
+        }
+
+        /// Which wave of its boss's approach wave n is: from 1 after the last boss (a Campaign lesson cycle's own count in the Long Campaign).
+        public int ApproachWaveOf(int n)
+        {
+            if (LongLegs && ShownWave >= 1)
+                return (ShownWave - 1) % 10 + 1;
+            return n - Bosses.LastBossWave(n);
+        }
+
+        /// A faction's members whose debut is this wave come in one each, last and alone (like a lesson's star), off the themed share.
+        void PickDebuts(FactionDef f, int n, ref int count, ref int themed)
+        {
+            int at = ApproachWaveOf(n);
+            foreach (var m in f.Members)
+            {
+                if (m.Debut == 0 || m.Debut != at || themed <= 0)
+                    continue;
+                plan.ApproachTrickle.Add(m.Type);
+                plan.Kinds.Add(m.Type);
+                count--;
+                themed--;
+            }
         }
 
         /// Takes `themed` enemies off `count` and picks them from a faction: squads where they fit, singles for the rest.

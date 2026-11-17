@@ -1225,8 +1225,7 @@ namespace Arena
                         DashT = 0f;
                         break;
                     case AbilityId.Blink:
-                        target = me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange);
-                        target = ClampToArena(target, me.Def.BodyR);
+                        target = TeleportLanding(me.Pos, me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange), me.Def.BodyR);  // (Ninja.cs)
                         AddFx(FxKind.Ring, me.Pos, new Rgba(0.7f, 0.6f, 1f), 30f, 0.3f);
                         me.Pos = target;
                         DashT = 0f;

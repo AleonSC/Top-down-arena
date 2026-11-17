@@ -66,7 +66,7 @@ namespace Arena
                 if (r.Type == t)
                     return r.Job;
             var d = Defs.Get(t);
-            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell || t == EnemyType.Heliograph || t == EnemyType.DuskLobber || t == EnemyType.Stormcaller || t == EnemyType.Pylon)
+            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || IsTurnkeyKin(t) || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell || t == EnemyType.Heliograph || t == EnemyType.DuskLobber || t == EnemyType.Stormcaller || t == EnemyType.Pylon)
                 return EnemyJob.Zoner;
             if (t == EnemyType.Grounder)
                 return EnemyJob.Anchor;  // the Storm Herald's shield (Squall.cs)

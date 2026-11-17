@@ -15,6 +15,11 @@ namespace Arena
         /// Behind the body: the fuse's blast ring, the Hookman's aim line, cable and harpoon, a pod's lasers.
         void DrawNonShooterUnder(Enemy e, V2 pos, float r, float t)
         {
+            if (Game.IsTurnkeyKin(e.Type))
+            {
+                DrawTurnkeyUnder(e, pos, r, t);  // TurnkeyLook.cs
+                return;
+            }
             switch (e.Type)
             {
                 case EnemyType.FuseRunner:
@@ -95,6 +100,11 @@ namespace Arena
         /// The body, in place of the usual polygon. col is already tinted by status and the hit flash.
         void DrawNonShooterBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
+            if (Game.IsTurnkeyKin(e.Type))
+            {
+                DrawTurnkeyBody(e, pos, r, col, t);  // the Turnkey, its door and traps (TurnkeyLook.cs)
+                return;
+            }
             switch (e.Type)
             {
                 case EnemyType.FuseRunner:

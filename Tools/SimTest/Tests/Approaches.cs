@@ -357,6 +357,13 @@ static partial class Program
         Run(s2, dt, 0.3f, null, () => { hold(); g2.Me.Pos = spot; });
         typeof(Game).GetMethod("SpawnSquad", NP).Invoke(g2, new object[] { finale });
         var lineIds = g2.Enemies.Values.Where(e => e.SquadId != 0 && (e.Type == EnemyType.RiotShield || e.Type == EnemyType.Guard)).Select(e => e.Id).ToList();
+        {
+            // Stand a fixed march from wherever the line came in (its edge is random), so its wall has room to show.
+            var line = lineIds.Select(id => g2.Enemies[id].Pos).ToList();
+            V2 lc = new V2(line.Average(p => p.X), line.Average(p => p.Y));
+            V2 away = (new V2(800f, 450f) - lc).Normalized();
+            spot = lc + away * 420f;
+        }
         Action still = () => { hold(); g2.Me.Pos = spot; foreach (var p in g2.Players.Values) p.InvulnT = 1f; };
         Run(s2, dt, 2.5f, null, still);
         Func<EnemyType, float> avgDist = t => lineIds.Where(g2.Enemies.ContainsKey).Select(id => g2.Enemies[id]).Where(e => e.Type == t).Select(e => e.Pos.DistanceTo(spot)).DefaultIfEmpty(0f).Average();

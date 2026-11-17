@@ -71,8 +71,8 @@ namespace Arena
                 {
                     if (fxOn)
                     {
-                        DrawMagmaWall(z, t);  // FlameWallLook.cs
-                        break;
+                        DrawFlameRing(z, t);  // FlameWallLook.cs
+                        return;  // no timer ring: the flames sink as it ends
                     }
                     float wall = z.GuardFrac > 0f ? 1f : 0.45f;
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.12f), 40);
@@ -577,7 +577,7 @@ namespace Arena
             DrawJobMarker(e, pos, r);  // JobMarkerLook.cs
             DrawVarietyOnEnemy(e, pos, r, t);  // bubbles, trait markers (VarietyLook.cs)
             // Bosses get a bar at the top of the screen instead.
-            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning && e.Type != EnemyType.SapperMine;
+            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning && !Game.IsTrap(e.Type);
             if (bar)
             {
                 float w = Mathf.Max(30f, r * 2f);

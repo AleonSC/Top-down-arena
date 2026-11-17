@@ -284,6 +284,25 @@ static partial class Program
             "the built room is up on a regular wave: two areas, walled, the same on the client");
         Check(g.LayoutOn && g.ActiveLayout.Name.Contains("Expanding") && g.ActiveLayout.Solids.Length >= g.CurrentWorld.WallsFor(false).Length, "its walls are part of the floor plan (" + g.ActiveLayout.Name + ")");
         Check(g.ExpansionScale > 1f && g.ExpansionScale <= Game.MaxExpandScale, "a bigger map means a bigger crowd (x" + g.ExpansionScale.ToString("0.00") + ")");
+
+        // A teleport (Shadow Step, Blink) never lands in a gap between the rooms or in a wall: it backs up onto the floor.
+        {
+            var landing = typeof(Game).GetMethod("TeleportLanding", flags);
+            var hubArea = g.CurrentWorld.Areas[g.CurrentWorld.Hub];
+            V2 gap = V2.Zero; bool gapFound = false;
+            for (float gx = g.ArenaMin.X + 30f; gx < g.ArenaMax.X - 30f && !gapFound; gx += 20f)
+                for (float gy = g.ArenaMin.Y + 30f; gy < g.ArenaMax.Y - 30f && !gapFound; gy += 20f)
+                {
+                    var c = new V2(gx, gy);
+                    if (!g.CurrentWorld.Areas.Any(a => a.Contains(c, 40f))) { gap = c; gapFound = true; }
+                }
+            V2 from = hubArea.Mid;
+            V2 land = gapFound ? (V2)landing.Invoke(g, new object[] { from, gap, 14f }) : from;
+            V2 wallLand = (V2)landing.Invoke(g, new object[] { from, new V2(hubArea.Max.X, hubArea.Mid.Y), 14f });
+            Func<V2, bool> onFloor = q => g.CurrentWorld.Areas[g.CurrentWorld.AreaAt(q)].Contains(q) && g.PushOutOfProps(q, 14f).DistanceTo(q) < 0.5f;
+            Check(gapFound && onFloor(land) && onFloor(wallLand) && wallLand.X < hubArea.Max.X,
+                "a teleport aimed into a gap between rooms or into a wall lands on the floor (gap " + gapFound + ")");
+        }
         bool inRooms = true, inNew = false;
         // (A spot is the nearest a player of four valid ones, so it follows the players: sample once with everyone in the hub, once with a player by the new room's door.)
         var savedAt = g.Players.ToDictionary(kv => kv.Key, kv => kv.Value.Pos);
