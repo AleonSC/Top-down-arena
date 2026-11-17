@@ -149,6 +149,38 @@ static partial class Program
             Check(g.Expanded.Count > rooms, "Breach at the Expanding arena's wall opens a room behind it (" + (g.Expanded.Count - rooms) + " room pieces)");
             step(0.5f);
             Check(client.Game.Expanded.Count == g.Expanded.Count, "the client gets the new room");
+
+            // Draftsman (step 2): +25% vectors from every gain, part-vectors carried over.
+            var addVectors = typeof(Game).GetMethod("AddVectors", flags);
+            me.VectorCap = 500; me.Vectors = 0; me.DraftCarry = 0f;
+            addVectors.Invoke(g, new object[] { me, 8 });
+            Check(me.Vectors == 10, "Draftsman: 8 vectors come in as 10");
+            addVectors.Invoke(g, new object[] { me, 1 }); addVectors.Invoke(g, new object[] { me, 1 }); addVectors.Invoke(g, new object[] { me, 1 }); addVectors.Invoke(g, new object[] { me, 1 });
+            Check(me.Vectors == 15, "four single vectors come in as five (the quarters add up)");
+            var friend = g.Players[2];
+            friend.VectorCap = 500; friend.Vectors = 0;
+            addVectors.Invoke(g, new object[] { friend, 8 });
+            Check(friend.Vectors == 8, "only the Engineer gets Draftsman's bonus");
+
+            // Repairs: standing by your hurt Strider spends a vector every 0.25 s for 30 health.
+            var rs = strider();
+            mePos = rs.Pos + new V2(40f, 0f);
+            rs.Sent = true; rs.Goal = rs.Pos; g.Enemies.Clear(); make(EnemyType.Grunt, new V2(1500f, 880f));
+            rs.Hp = rs.MaxHp - 100f;
+            int vBefore = me.Vectors;
+            step(1.2f);
+            Check(rs.Hp >= rs.MaxHp - 1f && me.Vectors < vBefore && me.Vectors >= vBefore - 5, "standing by the hurt Strider repairs it with vectors (" + (vBefore - me.Vectors) + " spent for 100 health)");
+            int vFull = me.Vectors;
+            step(0.6f);
+            Check(me.Vectors == vFull, "a whole Strider costs nothing");
+
+            // The class cards.
+            Func<string, UpgradeDef> card = n => Upgrades.All.First(u => u.Name == n);
+            Check(new[] { "Reinforced Frame", "Hydraulic Fists", "Quick Assembly", "Wide Field" }.All(n => Upgrades.All.Count(u => u.Name == n) == 1), "the Engineer's four class cards");
+            var stats = new Stats();
+            card("Reinforced Frame").Apply(stats); card("Quick Assembly").Apply(stats); card("Wide Field").Apply(stats);
+            Check(Math.Abs(stats.StriderHpMult - 1.3f) < 0.001f && Math.Abs(stats.StriderRebuildCut - 2.5f) < 0.001f && Math.Abs(stats.PylonSizeMult - 1.25f) < 0.001f,
+                "Reinforced Frame +30% Strider health, Quick Assembly 2.5 s sooner, Wide Field 25% wider");
         }
         else
             Check(false, "the Expanding arena switches on for the Breach room check");

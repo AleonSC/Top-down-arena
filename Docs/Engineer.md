@@ -1,6 +1,6 @@
 # Engineer: a vector builder class
 
-Status: **step 1 built** (Nov 17, 2026; protocol 392): the DPS Engineer with the Vector Forge and Strider, Drag Pylon and Breach. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
+Status: **steps 1-2 built** (Nov 17, 2026; protocol 392): the DPS Engineer with the Vector Forge and Strider, Drag Pylon and Breach; the Draftsman passive, vector repairs and four class cards. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
 (real renders, a playable bench, the kit, a Breach room roller). Numbers are first guesses.
 The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=strider|pylon|breach ENGT=<s> Tools/Preview/shot.sh x hud`
 (`Tools/Preview/ShotEngineer.cs`); the renders are in `Mockups/engineer/`.
@@ -39,7 +39,10 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
    (rivets + the Strider: hunt, punch, slam, aggro, Alt lock/post/recall, rebuilt in 8 s), Drag Pylon, Breach (blast; a
    room behind the Expanding arena's wall with one loot roll, the loot dropped where it lands); looks A Hi-vis and the
    plated walker. Defaults taken for the open questions: DPS first, no wall = blast + loot at the cursor, Ambush kept.
-   Not yet: the Draftsman passive and vector repairs, walk-in loot in the room, the Strider's build-in animation in a match.
-2. Next: the Draftsman passive (+25% vectors) and Strider repairs with vectors; upgrade cards for the Strider and pylon.
-3. Later: Tank and Healer Engineer kits (two more weapons, abilities and ultimates each).
+   Not yet: walk-in loot in the room, the Strider's build-in animation in a match.
+2. **Built**: Draftsman (+25% from every vector gain, `AddVectors` -> `Draftsman`, part-vectors carried in `Player.DraftCarry`),
+   repairs (within 90 px of your hurt Strider in the Expanding arena: 1 vector per 0.25 s for 30 health) and the class cards
+   Reinforced Frame, Hydraulic Fists, Quick Assembly and Wide Field (`Game.EngineerCards`).
+3. Next: walk-in loot in Breach rooms and the Strider's build-in in a match.
+4. Later: Tank and Healer Engineer kits (two more weapons, abilities and ultimates each).
 

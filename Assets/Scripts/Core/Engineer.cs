@@ -10,6 +10,7 @@ namespace Arena
     ///     (+50% damage and faster until that enemy dies); on the floor it posts it there to guard; near you it calls it back.
     ///     A broken Strider is rebuilt after StriderRebuild seconds.
     ///   Drag Pylon (Space): a pylon at the cursor whose field slows enemies inside; it stays until the next one, which folds it up.
+    ///   Draftsman (passive, step 2): +25% vectors from every gain; standing by a hurt Strider repairs it with vectors.
     ///   Breach (ultimate): a hammer smashes the wall you aim at: a blast by the wall, and in the Expanding arena a free random room
     ///     behind it with one thing in it (vectors, gold, a repair, a workbench or an ambush). No wall in reach: the blast and the loot
     ///     land where you aim.
@@ -18,7 +19,7 @@ namespace Arena
         internal static readonly KitDef EngineerKit = new KitDef
         {
             Id = Kit.Engineer, Name = "Engineer", Icon = "class_engineer", HpMult = 1f, SpeedMult = 0.95f,
-            Blurb = "Builds in vectors: a walker that fights beside you, fields and breaches. DPS only for now. Full health, a little slower.",
+            Blurb = "Builds in vectors: a walker that fights beside you, fields and breaches. Draftsman: +25% vectors, and vectors repair the walker. DPS only for now. Full health, a little slower.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireEngineerWeapon(p, aim, dir, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.EngineerAbility(p, id, target),
             Tick = (g, dt) => g.TickEngineer(dt),
@@ -35,6 +36,33 @@ namespace Arena
         public const float PylonRadius = 130f, PylonSlow = 0.55f, PylonBossSlow = 0.8f, PylonReach = 320f, PylonLinger = 0.6f;
         public const float BreachRange = 220f, BreachRadius = 140f, BreachHitDmg = 80f, BreachShove = 90f, BreachFxTime = 1.3f;
         public const int BreachGold = 40, BreachVectors = 10;
+        public const float DraftsmanMult = 1.25f, RepairReach = 90f, RepairHp = 30f, RepairEvery = 0.25f, RebuildMin = 2f;
+
+        /// Class cards (Upgrades.All gathers them): the Strider's and the Drag Pylon's.
+        internal static readonly UpgradeDef[] EngineerCards =
+        {
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VectorForge }, MaxStacks = 3, Name = "Reinforced Frame", Desc = "Your Strider has 30% more health",
+                Apply = s => s.StriderHpMult += 0.3f },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VectorForge }, MaxStacks = 2, Name = "Hydraulic Fists", Desc = "Your Strider punches and slams 20% more often",
+                Apply = s => s.StriderRateMult += 0.2f },
+            new UpgradeDef { Rarity = Rarity.Uncommon, Weapons = new[] { WeaponId.VectorForge }, MaxStacks = 2, Name = "Quick Assembly", Desc = "A broken Strider is rebuilt 2.5 s sooner",
+                Apply = s => s.StriderRebuildCut += 2.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.DragPylon, MaxStacks = 2, Name = "Wide Field", Desc = "Drag Pylon's field is 25% wider and slows 10% more",
+                Apply = s => { s.PylonSizeMult += 0.25f; s.PylonSlowBonus += 0.1f; } },
+        };
+
+        /// Draftsman, the Engineer's passive: +25% vectors from every gain (part-vectors carried to the next one).
+        int Draftsman(Player p, int n)
+        {
+            if (n <= 0 || p.Kit != Kit.Engineer)
+                return n;
+            float more = n * (DraftsmanMult - 1f) + p.DraftCarry;
+            int whole = (int)Math.Floor(more);
+            p.DraftCarry = more - whole;
+            return n + whole;
+        }
+
+        public static float StriderRebuildTime(Player p) => Math.Max(RebuildMin, StriderRebuild - p.Stats.StriderRebuildCut);
 
         internal static readonly WeaponDef[] EngineerWeapons =
         {
@@ -121,16 +149,20 @@ namespace Arena
                 }
                 if (s != null)
                 {
-                    s.MaxHp = Math.Max(s.MaxHp, StriderMaxHp(Wave));
+                    float max = StriderMaxHp(Wave) * p.Stats.StriderHpMult;
+                    if (max > s.MaxHp)
+                        s.Hp += max - s.MaxHp;  // a bigger frame (a new wave, Reinforced Frame) comes with the health
+                    s.MaxHp = Math.Max(s.MaxHp, max);
                     if (!Battle)
                         s.Hp = s.MaxHp;  // patched up between waves
+                    RepairStrider(p, s, dt);
                     continue;
                 }
                 p.StriderCd -= dt;
                 if (p.StriderCd > 0f)
                     continue;
                 s = SpawnMinion(MinionKind.Strider, p, p.Pos + V2.FromAngle(p.Aim + MathX.Pi * 0.75f) * 50f, -1f, true);
-                s.MaxHp = s.Hp = StriderMaxHp(Wave);
+                s.MaxHp = s.Hp = StriderMaxHp(Wave) * p.Stats.StriderHpMult;
                 s.SlamT = 1f;
                 BroadcastFx(FxKind.Ring, s.Pos, s.Def.Color, 40f, StriderBuild, Sfx.Summon);
             }
@@ -138,10 +170,25 @@ namespace Arena
             {
                 if (z.Kind != ZoneKind.DragPylon)
                     continue;
+                Player owner;
+                float bonus = Players.TryGetValue(z.Owner, out owner) ? owner.Stats.PylonSlowBonus : 0f;
                 foreach (var e in Enemies.Values)
                     if (e.SpawnT <= 0f && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius * 0.5f))
-                        Slow(e, PylonLinger, e.Def.IsBoss ? PylonBossSlow : PylonSlow);
+                        Slow(e, PylonLinger, e.Def.IsBoss ? PylonBossSlow - bonus * 0.5f : PylonSlow - bonus);
             }
+        }
+
+        /// Draftsman's repair (the Expanding arena): standing within RepairReach of your hurt Strider spends a vector every
+        /// RepairEvery seconds for RepairHp health.
+        void RepairStrider(Player p, Minion s, float dt)
+        {
+            p.RepairT -= dt;
+            if (!ExpandingOn || p.Downed || p.Vectors <= 0 || s.Hp >= s.MaxHp || p.Pos.FartherThan(s.Pos, RepairReach + s.Def.Radius) || p.RepairT > 0f)
+                return;
+            p.RepairT = RepairEvery;
+            p.Vectors--;
+            s.Hp = Math.Min(s.MaxHp, s.Hp + RepairHp);
+            BroadcastFx(FxKind.Spark, s.Pos, s.Def.Color, 18f, 0.3f, Sfx.None);
         }
 
         /// Host, from TickMinions: the Strider walks to its target (its lock, else the enemy nearest you or its post), punches it,
@@ -186,7 +233,8 @@ namespace Arena
                 HurtEnemy(target, dmg * mult, m.Owner);
                 Sounds.Add(Sfx.Hit);
             }
-            m.SlamT -= dt;
+            m.Cd -= dt * (owner.Stats.StriderRateMult - 1f);  // Hydraulic Fists (the loop already counted the fire rate)
+            m.SlamT -= dt * owner.Stats.StriderRateMult;
             if (m.SlamT <= 0f && Battle)
             {
                 bool crowd = false;
@@ -296,7 +344,7 @@ namespace Arena
         {
             Player owner;
             if (Players.TryGetValue(m.Owner, out owner))
-                owner.StriderCd = StriderRebuild;
+                owner.StriderCd = StriderRebuildTime(owner);
             BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, 50f, 0.5f, Sfx.Explode);
         }
 
@@ -310,7 +358,7 @@ namespace Arena
             V2 to = target - p.Pos;
             if (to.Length > PylonReach)
                 target = p.Pos + to.Normalized() * PylonReach;
-            AddZone(ZoneKind.DragPylon, p, ClampToArena(target, 10f), PylonRadius * (cap ? 1.4f : 1f), 100000f);
+            AddZone(ZoneKind.DragPylon, p, ClampToArena(target, 10f), PylonRadius * (cap ? 1.4f : 1f) * p.Stats.PylonSizeMult, 100000f);
             BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.DragPylon).Color, 40f, 0.35f, Sfx.Ability);
         }
 

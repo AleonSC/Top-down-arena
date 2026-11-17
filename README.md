@@ -158,6 +158,11 @@ other keys. It wears navy coveralls, an orange safety vest and a yellow hard hat
   **locks it on**: a turning reticle and a dashed line mark the target and the Strider goes for it at +40% speed and
   +50% damage until it dies. Alt on the floor **posts** it there (it guards 200 px around); Alt by you calls it back.
   A broken Strider is **rebuilt after 8 s**.
+- **Draftsman** (passive): every vector gain is 25% bigger for an Engineer (part-vectors add up across gains), and in the
+  Expanding arena standing within 90 px of your hurt Strider **repairs** it: a vector every 0.25 s for 30 health.
+- **Class cards**: **Reinforced Frame** (rare, x3: Strider +30% health), **Hydraulic Fists** (rare, x2: it punches and slams
+  20% more often), **Quick Assembly** (uncommon, x2: rebuilt 2.5 s sooner, never under 2 s) and **Wide Field** (rare, x2,
+  with Drag Pylon: the field 25% wider and slowing 10% more).
 - **Drag Pylon** (Space, 6 s): plants a pylon at your cursor (up to 320 px away). Its violet floor grid (130 px) slows
   enemies inside by 45% (bosses 20%), and they trail drag rings. It stays until you plant the next one, which folds the
   old one up. Mastered: 40% wider.

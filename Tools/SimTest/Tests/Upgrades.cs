@@ -35,12 +35,14 @@ static partial class Program
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
             {
-                placed.Add(Upgrades.Ultimate(role, (Kit)k));
+                if (!Upgrades.UltGap(role, (Kit)k))  // (a class still being built: its stand-ins aren't places of their own)
+                    placed.Add(Upgrades.Ultimate(role, (Kit)k));
                 for (int u = 1; u < Upgrades.UltKeys; u++)  // the other keys of the lobby's Ultimate row (the Juggernaut Suit)
                     if (Upgrades.AltUltimate(role, (Kit)k, u) != AbilityId.None)
                         placed.Add(Upgrades.AltUltimate(role, (Kit)k, u));
                 for (int c = 0; c < Upgrades.AbilityLimit(role, (Kit)k); c++)  // (a 4th where the class has one: Flood)
-                    placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
+                    if (!Upgrades.AbilityGap(role, (Kit)k, c))
+                        placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
             }
         bool lobby = placed.Distinct().Count() == placed.Count && placed.All(a => a != AbilityId.None)
             && placed.All(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly)

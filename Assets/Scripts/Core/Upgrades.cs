@@ -197,6 +197,8 @@ namespace Arena
         public int SsSideBonus; public float SsSlamMult = 1f;              // Stonespear: Tectonic
         public int HarvestBonus; public float PuddleSizeMult = 1f;         // Honeybee Staff: Bigger Hive
         public float EsBlastMult = 1f;                                     // Embolus Spears: Burst Vessels
+        public float StriderHpMult = 1f, StriderRateMult = 1f, StriderRebuildCut;  // the Engineer's Strider: Reinforced Frame, Hydraulic Fists, Quick Assembly (Engineer.cs)
+        public float PylonSizeMult = 1f, PylonSlowBonus;                   // Drag Pylon: Wide Field
         public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
         public float WcReachMult = 1f, WcShoveMult = 1f;                 // Wind Clash: Gale Force
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
@@ -581,7 +583,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 25% more damage",
                 Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.25f; } },
         }, ClassAbilityCards(), Milestones(), VectorCards(), Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards,
-            Game.KnightCards, Game.NinjaCards, Game.HemomancerCards);
+            Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards);
 
         /// After a boss: every weapon mod you can still take, to choose from.
         public static int[] ModOffer(OfferCtx c)
