@@ -101,20 +101,30 @@ namespace Arena
             // approach picks; the Campaign is the Expanding arena unless the Simple Arena modifier is on (Rooms.cs ArenaKind).
             if ((session.Modifiers & RunMod.SimpleArena) == 0)
             {
+                // Building: Room cards (the default, RoomCards.cs) / Free drawing / Team vote, then the Team purse switch.
                 var slot = new Rect(x + colW + colGap, y + rows * rowH + 4f, colW, 24f);
-                bool vote = diff[DiffKnob.BuildVote] >= 0.5f;
-                float bw = (colW - 16f) / 3f;
+                bool cards = diff[DiffKnob.RoomCards] >= 0.5f;
+                bool vote = !cards && diff[DiffKnob.BuildVote] >= 0.5f;
+                float bw = (colW - 24f) / 4f;
                 bool purse = diff[DiffKnob.BuildPurse] >= 0.5f;
                 if (slot.Contains(Event.current.mousePosition))
                 {
                     int hover = (int)((Event.current.mousePosition.x - slot.x) / (bw + 8f));
-                    hoverDesc = hover >= 2 ? "Team purse: " + Difficulty.Knobs[(int)DiffKnob.BuildPurse].Desc : "Building: " + Difficulty.Knobs[(int)DiffKnob.BuildVote].Desc;
+                    hoverDesc = hover >= 3 ? "Team purse: " + Difficulty.Knobs[(int)DiffKnob.BuildPurse].Desc : hover == 0 ? "Room cards: " + Difficulty.Knobs[(int)DiffKnob.RoomCards].Desc : "Building: " + Difficulty.Knobs[(int)DiffKnob.BuildVote].Desc;
                 }
-                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Free building", !vote, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && vote)
+                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Room cards", cards, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit && !cards)
+                    session.SetDifficultyKnob(DiffKnob.RoomCards, 1f);
+                if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Free draw", !cards && !vote, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit && (cards || vote))
+                {
+                    session.SetDifficultyKnob(DiffKnob.RoomCards, 0f);
                     session.SetDifficultyKnob(DiffKnob.BuildVote, 0f);
-                if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Team vote", vote, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !vote)
+                }
+                if (LobbyKit.Key(new Rect(slot.x + 2f * (bw + 8f), slot.y, bw, slot.height), "Team vote", vote, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit && !vote)
+                {
+                    session.SetDifficultyKnob(DiffKnob.RoomCards, 0f);
                     session.SetDifficultyKnob(DiffKnob.BuildVote, 1f);
-                if (LobbyKit.Key(new Rect(slot.x + 2f * (bw + 8f), slot.y, bw, slot.height), "Team purse", purse, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit)
+                }
+                if (LobbyKit.Key(new Rect(slot.x + 3f * (bw + 8f), slot.y, bw, slot.height), "Team purse", purse, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit)
                     session.SetDifficultyKnob(DiffKnob.BuildPurse, purse ? 0f : 1f);
             }
             Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? LobbyKit.Soft : CrtUi.Dim);

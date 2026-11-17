@@ -1,5 +1,7 @@
 # Expanding arena: design plan
 
+**Next (Nov 17): rooms as cards in each player's hand, drawing kept as a lobby switch: see [`RoomCards.md`](RoomCards.md).**
+
 **Next after that: breaches, buyable portals and room fittings: see [`RoomBuilding2.md`](RoomBuilding2.md).**
 
 **Next (Nov 10): paths as themed rooms, and floating shop, vendor and Gatekeeper rooms: see [`FloatingRooms.md`](FloatingRooms.md).**

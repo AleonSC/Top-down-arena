@@ -37,7 +37,7 @@ namespace Arena
         public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
 
         /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
-        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f;
+        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn;  // (room cards build at once: RoomCards.cs)
 
         /// The lobby's "Team purse": builds can spend every player's vectors, not just the builder's.
         public bool TeamPurse => D(DiffKnob.BuildPurse) >= 0.5f;
@@ -155,6 +155,7 @@ namespace Arena
             bool boss = BossNow;
             if (boss && IsHost && ModeRules.RunEvents)
                 GrantRoomToken(Expansion.FloorToken(expandSeed, Wave, Expanded, RoomTokens));
+            DropWaveCards(boss);  // RoomCards.cs
             foreach (var p in Players.Values)
             {
                 p.VectorCap = VectorCapBase + p.Stats.VectorCap;
@@ -177,6 +178,8 @@ namespace Arena
         {
             s.Short(ref p.Vectors);
             s.Short(ref p.VectorCap);
+            for (int i = 0; i < p.Hand.Length; i++)
+                s.Byte(ref p.Hand[i]);  // room cards (RoomCards.cs)
         }
 
         // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
@@ -238,6 +241,7 @@ namespace Arena
                 case ShopAction.Vectors:
                     return InServiceRoom(p);
                 case ShopAction.BuyBuild:
+                case ShopAction.BuyCard:
                     return InVendorRoom(p);
                 default:
                     return true;
@@ -468,6 +472,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
+                    ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     continue;
@@ -521,6 +526,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
+                    ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     return;
@@ -640,6 +646,7 @@ namespace Arena
                 return;
             ExpandOpen = true;
             roundBuilt = 0;
+            DealRoundCards();  // RoomCards.cs
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             botVoteT = 0f;
@@ -715,8 +722,8 @@ namespace Arena
         void HostExpandDraw(int id, int x, int y, int w, int h, PathId theme = PathId.None)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
-                return;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
+                return;  // (room cards: rooms come from cards, not drawings)
             string why;
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
@@ -915,8 +922,8 @@ namespace Arena
         void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
-                return;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
+                return;  // (room cards: rooms come from cards, not drawings)
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
                 DoLog("proposal refused (the " + theme + " theme is still locked)");
@@ -1177,6 +1184,11 @@ namespace Arena
                 botProposed = true;
                 if (FreeBuild && roundBuilt > 0)
                     return;  // (free building: a bot adds a room only if nobody has this round, so the map doesn't fill at once)
+                if (RoomCardsOn)
+                {
+                    BotPlayCard();  // RoomCards.cs
+                    return;
+                }
                 if (rng.Next(10) < 6 && BotBuildsToFloater())
                     return;
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
@@ -1222,6 +1234,8 @@ namespace Arena
             for (int i = 0; i < Market.Count; i++)
                 seat.Stash[i] = p.Stash[i];
             seat.VectorCap = p.VectorCap;
+            foreach (var c in p.Hand)
+                if (c != 0) seat.Hand.Add(c);
             bool any = false;
             for (int i = 0; i < MaxShelf; i++)
                 any |= p.Shelf[i] >= 0;
@@ -1280,6 +1294,10 @@ namespace Arena
                 }
                 for (int i = 0; i < Market.Count; i++)
                     p.Stash[i] = (byte)Math.Min(Market.StashMax, s.Stash[i]);
+                Array.Clear(p.Hand, 0, p.Hand.Length);
+                for (int i = 0; i < s.Hand.Count && i < p.Hand.Length; i++)
+                    p.Hand[i] = (byte)s.Hand[i];
+                p.CardsDealt = s.Hand.Count > 0 || s.Vectors >= 0;  // (a saved seat had its starting hand)
                 p.ShelfSold = s.ShelfSold;
                 p.Restocks = Math.Min(255, s.Restocks);
                 p.ShelfLen = 0;
