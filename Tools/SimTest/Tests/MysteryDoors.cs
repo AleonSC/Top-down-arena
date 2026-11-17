@@ -240,3 +240,58 @@ static partial class Program
         Check(empty.Count == 1 && empty[0].W == 700 && empty[0].H == 600 && empty[0].Kind == RoomKind.Combat && g.Enemies.Count == e0 && ((List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g)).Count == 0, "an empty room (7 x 6 here) is just floor");
     }
 }
+
+// Mystery doors step 4: bots open the doors they can pay for between waves, keeping a reserve back for building.
+static partial class Program
+{
+    static void MysteryBotsTest(float dt)
+    {
+        var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+
+        // One door, a bot host beside it: too poor (inside the reserve) it waits; with the vectors it opens it.
+        string why;
+        var list = new List<ExpansionRoom>();
+        list.Add(Expansion.Custom(list, 1600, 100, 800, 600, out why).Value);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, true, "Host", Role.Tank);
+        var client = JoinAs(port, true, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(list[0]); gg.RoomsUp = true; }
+        typeof(Game).GetField("expandSeed", flags).SetValue(g, 99);
+        Action hold = () => { g.State = MatchState.Intermission; g.StateTimer = 30f; foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        hold();
+        typeof(Game).GetMethod("RollMysteryDoors", flags).Invoke(g, null);
+        Run(s, dt, 0.5f, null, hold);
+        Check(g.MysteryDoors.Count > 0, "a door to try (" + g.MysteryDoors.Count + ")");
+        var d = g.MysteryDoors.OrderBy(x => x.Price).First();
+        var hp = g.Players[g.MyId]; var fp = g.Players[cg.MyId]; var cme = cg.Players[cg.MyId];
+        foreach (var p in new[] { hp, fp, cme }) { p.VectorCap = 999; p.Vectors = d.Price + Mystery.BotReserve - 1; }
+        hp.Pos = hp.Disp = d.Pos + (d.Vertical ? new V2(-70f, 0f) : new V2(0f, -70f));
+        if (g.CurrentWorld.AreaAt(hp.Pos) < 0) hp.Pos = hp.Disp = d.Pos - (hp.Pos - d.Pos);
+        int rooms0 = g.Expanded.Count, doors0 = g.MysteryDoors.Count;
+        Run(s, dt, 3f, null, hold);
+        Check(g.Expanded.Count == rooms0 && g.MysteryDoors.Count == doors0, "a bot that would dip into its " + Mystery.BotReserve + "-vector reserve leaves the doors shut");
+        foreach (var p in new[] { hp, fp, cme }) p.Vectors = 200;
+        Run(s, dt, 12f, () => g.MysteryDoorsOpened > 0, hold);
+        Check(g.MysteryDoorsOpened > 0 && g.Expanded.Count > rooms0, "with the vectors a bot walks to a door and opens it (" + g.MysteryDoorsOpened + " opened, " + g.MysteryVectorsSpent + " vectors)");
+        Run(s, dt, 1f, null, hold);
+        Check(cg.Expanded.Count == g.Expanded.Count && cg.MysteryDoors.Count == g.MysteryDoors.Count, "the friend's game agrees");
+
+        // A run: bots from wave 1, the Expanding arena; the doors get opened along the way. The numbers for the balance pass.
+        port = nextPort++;
+        var h2 = HostAs(new Session { AutoStart = 2, StartWave = 1 }, port, true, "Host", Role.Tank);
+        var c2 = JoinAs(port, true, "Friend", Role.Dps);
+        var s2 = new[] { h2, c2 };
+        WaitForGame(h2, c2, dt);
+        var g2 = h2.Game; var cg2 = c2.Game;
+        g2.DevSetGod(1, true); g2.DevSetGod(2, true);
+        g2.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg2.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        Run(s2, dt, 900f, () => g2.Wave >= 10 && g2.State == MatchState.Fighting);
+        Console.WriteLine("  by wave " + g2.Wave + ": " + g2.MysteryDoorsOpened + " doors opened for " + g2.MysteryVectorsSpent + " vectors, " + g2.Expanded.Count + " rooms in all, " + g2.MysteryDoors.Count + " doors waiting, vectors " + string.Join("/", g2.Players.Values.Select(p => p.Vectors.ToString()).ToArray()));
+        Check(g2.Wave >= 10 && g2.MysteryDoorsOpened >= 1, "bots open mystery doors in a run (" + g2.MysteryDoorsOpened + " by wave " + g2.Wave + ")");
+        Check(cg2.Expanded.Count == g2.Expanded.Count, "both games have the same map");
+    }
+}

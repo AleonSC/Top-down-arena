@@ -89,6 +89,7 @@ namespace Arena
             return new V2(mid.X, door.Y < mid.Y ? r.Y1 - 70f : r.Y + 70f);
         }
 
+        public const int BotReserve = 10;      // a bot keeps this many vectors back for building when it opens a door
         public const float PriceShare = 0.6f;  // a door costs this share of drawing the same room (you don't pick its shape or spot)
         public const int Cap = 3;              // doors on the map at once
         public const float UseRange = 150f;    // stand this close to open or save one
@@ -406,6 +407,8 @@ namespace Arena
                 return false;
             }
             PayVectors(p, price);
+            MysteryDoorsOpened++;
+            MysteryVectorsSpent += price;
             var kind = i < mysteryKinds.Count ? mysteryKinds[i] : MysteryKind.Empty;
             var size = Mystery.RoomOfShape(plan.Value.Shape);
             var rooms = new List<ExpansionRoom>(plan.Value.Rooms.Count);
@@ -498,6 +501,44 @@ namespace Arena
             for (int i = 0; i < n; i++)
                 MysteryDoors.Add(new MysteryDoor { X = r.ReadInt16(), Y = r.ReadInt16(), Vertical = r.ReadBoolean(), Price = r.ReadInt16(), Saver = r.ReadInt32() });
             NoteOpenedDoors(before);
+        }
+
+        /// Host: doors opened this run (the balance numbers, Docs/MysteryDoors.md step 4; not synced).
+        public int MysteryDoorsOpened, MysteryVectorsSpent;
+
+        /// Bots, between waves (each game runs its own bot): walk to the nearest door it can pay for while keeping Mystery.BotReserve
+        /// vectors back, then open it. Not while a level-up pick waits, the boss gate is up, or the bot is down.
+        void BotMysteryDoor(Player me, ref V2 move)
+        {
+            if (!ExpandingOn || me.Downed || me.Offer != null || GateUp || State != MatchState.Intermission || MysteryDoors.Count == 0)
+                return;
+            int best = -1;
+            float bestD = float.MaxValue;
+            int purse = SpendableVectors(me);
+            for (int i = 0; i < MysteryDoors.Count; i++)
+            {
+                var d = MysteryDoors[i];
+                if (purse - d.Price < Mystery.BotReserve || (d.Saver != 0 && d.Saver != me.Id))
+                    continue;
+                float dist = d.Pos.DistanceTo(me.Pos);
+                if (dist < bestD) { bestD = dist; best = i; }
+            }
+            if (best < 0)
+                return;
+            var door = MysteryDoors[best];
+            V2 across = door.Vertical ? new V2(1f, 0f) : new V2(0f, 1f);
+            var w = CurrentWorld;
+            int ar = w.AreaAt(door.Pos + across * 70f);
+            V2 goal = ar >= 0 && w.Areas[ar].Contains(door.Pos + across * 70f) ? door.Pos + across * 70f : door.Pos - across * 70f;  // (just inside the room the door is on)
+            if (MysteryNear(me.Pos) == best && me.Pos.CloserThan(goal, 60f))
+            {
+                move = V2.Zero;
+                if (MathX.Fmod(botT, 0.5f) < tickDt + 0.001f)
+                    UseMysteryDoor(false);
+                return;
+            }
+            V2 straight = (goal - me.Pos).LimitLength(1f);
+            move = RoomsOn && straight.Length > 0.01f ? SteerDir(-2000 - me.Id, me.Pos, botT, me.Def.BodyR + 4f, goal, straight.Normalized()) : straight;
         }
     }
 }

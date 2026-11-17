@@ -1,6 +1,6 @@
 # Mystery doors: sealed doors on the outer walls you pay vectors to open
 
-Status: **steps 1-3 built** (protocol 385: doors rolled, opened, saved, expiring, synced; step 2: every kind behind a door; step 3: the Hologram look, the reveal, minimap and build map marks). Step 4 (bots, balance) open. Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
+Status: **all four steps built** (protocol 385 for the wire; the rooms rework and step 4 changed nothing on the wire). Balance numbers below are a first look. Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
 [`SurpriseRooms.md`](SurpriseRooms.md) (shapes, placement), [`BreachRooms.md`](BreachRooms.md) (Stash, a door lined up with a
 wall spot), [`Nodes.md`](Nodes.md) (tiny shop / vendor rooms) and [`FactionMinis.md`](FactionMinis.md). **Drawing rooms stays
 exactly as it is**: doors are a second, cheaper way to grow the map.
@@ -102,3 +102,13 @@ Replaces step 2's contents (no Stash, no mini-boss room, no surprise shapes behi
   4 + wave / 5 up to 10 in a medium room, 2 fewer (at least 3) in a small one; none round a boss (the room comes empty).
 - A hallway only goes where its door is on a short end and nothing else touches it (`Mystery.HallFits`), also when re-planned.
 - Tests: `MysteryContentsTest` (suite `mysterydoor`); preview `MYSTERYHALL=1` (an opened hallway).
+
+## Built (step 4)
+
+- `BotMysteryDoor` (each game's own bot, from `Game.cs` beside `BotGate`): between waves, not while a pick waits or the boss gate is
+  up, a bot walks (`SteerDir`) to just inside the nearest door it can pay for while keeping `Mystery.BotReserve` (10) vectors back,
+  and presses G. It skips a door someone else saved.
+- Host counters `MysteryDoorsOpened` / `MysteryVectorsSpent` (a run's; a map reset keeps them).
+- Test `MysteryBotsTest` (suite `mysterydoor`): a bot inside its reserve leaves doors shut, with vectors it opens one; a 2-bot run.
+- First numbers (2 god-mode bots, waves 1-10, seed of the run): 3 doors opened for 40 vectors, 21 rooms on the map in all, 2 doors
+  waiting at wave 10. Doors are a small share of the map's growth; the price share (60%) and the 1-2 doors a wave look fine for now.
