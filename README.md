@@ -1138,6 +1138,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. So far there is one:
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, stuck shuriken and Bone Spears don't bounce.
+- **Fog, scout towers and gold veins**: new nodes start **fogged**: you see where they are (a grey **?** on the floor, the minimap and the build map) but not
+  what they are until a player walks within **8 tiles** of one, or a claimed **scout tower** has it in range; building a room round it shows it too. Revealed nodes
+  stay revealed for everyone.
+  - **Scout tower** (a blue mast; every boss cycle with no relic node: the second, fourth, ...): build a room round it and, while it stands, every node within
+    **30 tiles** shows what it is, ones placed later too.
+  - **Gold vein** (gold nuggets in rock; one every boss cycle): build a room round it and every cleared wave pays **every player 10 gold + 1 per wave number**.
+    Veins stack.
 - **Rule nodes** (in progress, Docs/RuleRooms.md): every boss cycle also places a **rule node** (an orange square, 8 x 8 tiles, off to the left or right of the
   map). Only a room that **encloses all of it** (at least 9 x 9 tiles; a drawn outline of any shape counts as one room) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
   Burning, Swarm or Elite. The room you build round it takes that path's ground and rule **in that room only** (Dark: you only see about 350 px round you; Frozen: ice;
