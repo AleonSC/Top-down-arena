@@ -119,6 +119,9 @@ namespace Arena
         // The Nunchaku (NunchakuSoundBank.cs, the Storm set of Docs/Mockups/nunchaku-sounds.html): each combo step and the Twin Counter as
         // pressed, a stick landing, the windmill spinning up, a shot swatted. Sent.
         NunSnap, NunBack, NunFig8, NunCrush, NunCounter, NunHit, NunGuard, NunSwat,
+        // The Attack Helicopter (HeliSoundBank.cs), played by each game itself from the look: the rotor's loop, a chaingun round,
+        // the barrels spinning up on a new target. Not sent.
+        HeliRotor, HeliShot, HeliSpin,
     }
 
     public struct SoundCue

@@ -11,7 +11,8 @@ namespace Arena
     /// that turns onto its target and spins up; amber brackets close on a new target over Game.HeliLock s and turn red; then tracers
     /// fly at Game.HeliRate a second with a muzzle flash, a warm pool of light, brass tumbling down to the floor and sparks on the
     /// target. Replicated state is Player.UltT, HeliGuns, HeliTgt and HeliTgt2; the flight, the lock timing, the tracers and the
-    /// brass are local. With Visual effects off it draws without the sparks, flash pool and brass.
+    /// brass are local. Sounds (HeliSoundBank.cs): the rotor's loop, a chaingun round per tracer, the barrels spinning up on
+    /// a lock from rest. With Visual effects off it draws without the sparks, flash pool and brass.
     public partial class ArenaApp
     {
         class HeliVis
@@ -33,6 +34,7 @@ namespace Arena
         readonly List<HeliBrass> heliBrass = new List<HeliBrass>();
         readonly List<int> heliGone = new List<int>();
         float heliClock = -1f;
+        float heliRotorLevel, heliRotorPitch = 1f, heliRotorAt = -9f;  // the loudest rotor this frame (HeliSoundBank.cs), and when it was set
 
         const float HeliScale = 1.1f, HeliLeaveTime = 1.6f, HeliTracerSpeed = 2600f;
         static readonly Rgba HeliBody = new Rgba(0.31f, 0.35f, 0.23f), HeliDark = new Rgba(0.24f, 0.27f, 0.17f), HeliGlass = new Rgba(0.09f, 0.17f, 0.2f),
@@ -65,6 +67,9 @@ namespace Arena
         {
             float dt = heliClock < 0f ? 0f : Mathf.Clamp(t - heliClock, 0f, 0.05f);
             heliClock = t;
+            heliRotorLevel = 0f;
+            heliRotorPitch = 1f;
+            heliRotorAt = Time.unscaledTime;
             foreach (var p in game.Players.Values)
             {
                 bool on = Game.HeliOut(p);
@@ -83,6 +88,14 @@ namespace Arena
                     v.LeaveAt = t;
                 }
                 HeliFly(p, v, t, dt);
+                // The rotor: swelling in as it comes, fading as it climbs away; quieter higher up, and for someone else's.
+                float swell = v.Out ? Mathf.Lerp(0.3f, 1f, Mathf.Clamp01(Game.HeliSince(p) / Game.HeliArrive)) : Mathf.Clamp01(1f - (t - v.LeaveAt) / HeliLeaveTime);
+                float level = swell / v.Alt * (p == game.Me ? 1f : 0.55f);
+                if (level > heliRotorLevel)
+                {
+                    heliRotorLevel = level;
+                    heliRotorPitch = 1f + 0.06f * (v.Alt - 1f);  // a touch higher while it's working hard (coming in, climbing out)
+                }
                 if (!v.Out && t - v.LeaveAt > HeliLeaveTime)
                     heliGone.Add(p.Id);
             }
@@ -140,6 +153,8 @@ namespace Arena
                 int id = !v.Out ? 0 : g == 0 ? p.HeliTgt : p.HeliTgt2;
                 if (id != v.Tgt[g])
                 {
+                    if (id != 0 && v.Spin < 0.3f && sounds != null)  // the barrels spinning up from rest
+                        sounds.Play(Sfx.HeliSpin, p == game.Me ? 0.55f : 0.28f, Time.unscaledTime);
                     v.Tgt[g] = id;
                     v.LockAt[g] = t;
                     v.Next[g] = 0f;
@@ -180,10 +195,17 @@ namespace Arena
                         V2 side = V2.FromAngle(v.Ang).Orthogonal() * (g == 0 && guns == 2 ? -1f : 1f);
                         heliBrass.Add(new HeliBrass { Pos = m, Vel = side * Rnd(90f, 150f) + v.Vel * 0.6f + new V2(Rnd(-30f, 30f), Rnd(-30f, 30f)), Z = 46f * v.Alt, Spin = Rnd(0f, MathX.Tau), Landed = -1f });
                     }
-                    if (v.Rounds % 2 == 0 && sounds != null)
-                        sounds.Play(Sfx.ShotSmg, p == game.Me ? 0.32f : 0.16f, Time.unscaledTime);
+                    if (sounds != null)
+                        sounds.Play(Sfx.HeliShot, p == game.Me ? 0.4f : 0.2f, Time.unscaledTime);
                 }
             }
+        }
+
+        /// The rotor's loop, every frame (ArenaApp.Update): silent once the look stops being drawn (a menu, the lobby).
+        void TickHeliSound()
+        {
+            if (sounds != null)
+                sounds.SetHeliRotor(Time.unscaledTime - heliRotorAt < 0.25f ? heliRotorLevel * 0.55f : 0f, heliRotorPitch);
         }
 
         /// An angle turned toward another by at most `step`, the short way round.

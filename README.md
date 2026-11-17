@@ -282,7 +282,9 @@ you 230 px out and its nose chaingun works through the enemies one at a time: it
 of 8 damage** (160 a second, times your damage multiplier) until that enemy dies or leaves the 560 px, then turns on the
 next. The rounds hit at once (it flies over walls and props and can't be hit); the tracers, muzzle flash, brass falling
 to the floor and sparks on the target are only the look. It leaves (climbing away) when the time runs out, you go down,
-or the wave is cleared. Mastered: a second gun on the other wing, so two targets at once. Design:
+or the wave is cleared. You hear its rotor (a deep blade whop over a turbine whine) swell in as it arrives and fade as it
+climbs away, the barrels whine up on a fresh target, and every round cracks (all on the Weapons volume). Mastered: a
+second gun on the other wing, so two targets at once. Design:
 [`Docs/Mockups/attack-helicopter.html`](Docs/Mockups/attack-helicopter.html) (the Orbit pattern).
 
 | | Soldier | Elementalist | Summoner | Knight |
