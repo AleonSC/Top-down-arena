@@ -9,17 +9,14 @@ namespace Arena
     {
         sealed class RioterMovePart : MovePart
         {
-            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => g.RioterMove(e, tpos);
-        }
-
-        /// A Rioter: the crowd rush, faster while a Guard is rallying it (GuardRallySpeed).
-        sealed class RallyRioterMovePart : MovePart
-        {
             public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
             {
-                speed *= g.GuardRallySpeed(e);
-                if (e.Phase == 1)
-                    speed *= 0.3f;  // it slows to throw
+                if (e.Type == EnemyType.Rioter)
+                {
+                    speed *= g.GuardRallySpeed(e);  // a Guard's rally, below (the Warden's Rioter only: its kin run alone)
+                    if (e.Phase == 1)
+                        speed *= 0.3f;  // it slows to throw a bottle
+                }
                 return g.RioterMove(e, tpos);
             }
         }
@@ -109,7 +106,7 @@ namespace Arena
             var rioter = new RioterMovePart();
             var guard = new GuardMovePart(false);
             var rush = new Brain { Move = rioter };
-            t[(int)EnemyType.Rioter] = new Brain { Move = new RallyRioterMovePart(), Special = new CodeSpecial((g, e, p, dt) => g.RioterBottle(e, p, dt)) };
+            t[(int)EnemyType.Rioter] = new Brain { Move = rioter, Special = new CodeSpecial((g, e, p, dt) => g.RioterBottle(e, p, dt)) };
             t[(int)EnemyType.Worker] = rush;
             t[(int)EnemyType.Rubble] = rush;
             t[(int)EnemyType.Gnawling] = new Brain { Move = rioter, Special = new EatSpecial() };
