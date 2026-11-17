@@ -772,9 +772,10 @@ namespace Arena
             EmberSpark = 66,   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
             GreatStar = 67,    // the Shuriken's Great Star, flying a drawn route and back (GreatStar.cs, Game/GreatStarLook.cs)
             StoneSpear = 68,   // a Stonespear's earth spear, thrown or sent in a volley (Stonespear.cs, Game/StonespearLook.cs)
-            HoneyGlob = 69;    // a Honeybee Staff honey glob: flies over enemies and lands as a honey puddle (HoneybeeStaff.cs, Game/HoneybeeLook.cs)
+            HoneyGlob = 69,    // a Honeybee Staff honey glob: flies over enemies and lands as a honey puddle (HoneybeeStaff.cs, Game/HoneybeeLook.cs)
+            BottleShot = 70;   // a Rioter's thrown bottle: spins as it flies, then shatters (RiotBrains.cs, Game/WardenLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -859,6 +860,7 @@ namespace Arena
             Row(table, MagmaBolt, radius: 8f, color: new Rgba(1f, 0.48f, 0.23f), damage: 9f);  // the Cinder Priest's magma; a Cinder Priest's bolt (and its lava)
             Row(table, ThrownDagger, radius: 5f, color: new Rgba(0.81f, 0.84f, 1f), damage: 10f);  // a Second's dagger (steel); a Second's dagger
             Row(table, EmberSpark, radius: 5f, color: new Rgba(1f, 0.6f, 0.26f), damage: 5.2f);  // an Ember's spark; an Ember's spark: 6 once the enemy bullet multiplier is on
+            Row(table, BottleShot, radius: 6f, color: new Rgba(0.45f, 0.8f, 0.4f), damage: 7f);  // a Rioter's bottle (glass green)
             Row(table, TracerRound, radius: 5f, color: new Rgba(0.94f, 0.97f, 1f), damage: 6.1f);  // the Security Guard's hot-white tracer; a Security Guard's round: 7 once the enemy bullet multiplier is on
             Row(table, BileShot, radius: 6f, color: new Rgba(0.75f, 0.9f, 0.31f));  // the Devourer's vomit
             Row(table, ToothShot, radius: 10f, color: new Rgba(0.96f, 0.9f, 0.82f), damage: 20f);  // the Devourer's Jaws

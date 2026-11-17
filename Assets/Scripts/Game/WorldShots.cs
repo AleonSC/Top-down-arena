@@ -174,6 +174,11 @@ namespace Arena
                 DrawMagmaBolt(b, t);  // QuarryLook.cs
                 return;
             }
+            if (b.Kind == Defs.BottleShot)
+            {
+                DrawBottle(b.Pos, t * 14f + b.Id, 18f);  // WardenLook.cs: it tumbles as it flies
+                return;
+            }
             if (b.Kind == Defs.EmberSpark)
             {
                 DrawEmberSpark(b, t);  // PenumbralLook.cs

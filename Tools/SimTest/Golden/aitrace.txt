@@ -20,7 +20,7 @@ Brute 46c2c9e3cac9c982 at (647,450) phase 0 hp 805 shots 0
 Lunger d9341387a746df81 at (804,450) phase 3 hp 616 shots 0
 HiveBomber 5e8eccd4630aa975 at (480,450) phase 0 hp 1000000 shots 0
 CageWell 5aecd335e88874c5 at (480,450) phase 0 hp 0 shots 0
-Rioter ec2b6d3df020d41b at (682,459) phase 0 hp 1127 shots 0
+Rioter 73411ffaaca173e1 at (680,449) phase 0 hp 1008 shots 3
 HiveEgg 37d7943cd038f6c5 at (480,450) phase 0 hp 0 shots 0
 Guard c1b282a87ae98111 at (690,450) phase 0 hp 1281 shots 0
 ReaperPillar 61c638bffb03e30d at (480,450) phase 0 hp 0 shots 0
