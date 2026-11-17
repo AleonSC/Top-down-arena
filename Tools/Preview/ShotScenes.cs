@@ -781,6 +781,7 @@ static partial class Shot {
   static void ArenaScenes() {
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
+    DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     FlameWallScene();  // FLAMEWALL=<s since the cast> [FXOFF=1] (ShotFlameWall.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
