@@ -402,6 +402,7 @@ namespace Arena
                 r.Owner = src.Owner;
                 r.Mini = src.Mini;
                 r.Surprise = src.Surprise;
+                r.Card = src.Card;
                 r.Claimed = src.Claimed;
                 r.Price = 0;
                 r.Floating = false;

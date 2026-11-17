@@ -2068,6 +2068,14 @@ static partial class Shot {
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
+      string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=box|hall|ring|cross|lhall|thall|chamfer|miniboss: that room card's room built (its obstacles: RoomCardLayouts.cs), everyone in it; CARDSPOT=<n> picks its nth legal spot
+      if (xcard != null) {
+        var xc = (RoomCard)Enum.Parse(typeof(RoomCard), xcard, true);
+        var xco = Expansion.CardOptions(xg.Expanded, xc);
+        int xci = Math.Min(xco.Count - 1, int.Parse(Environment.GetEnvironmentVariable("CARDSPOT") ?? "0"));
+        if (xci >= 0) { string xcw; var xcr = Expansion.CardRooms(xg.Expanded, xc, xco[xci].X, xco[xci].Y, xco[xci].Turn, xco[xci].Mirror, out xcw); for (int q = 0; q < xcr.Count; q++) { var r2 = xcr[q]; r2.Owner = 1; if (xc == RoomCard.MiniBoss) { r2.Kind = RoomKind.Gatekeeper; r2.Mini = (byte)EnemyType.RiotCaptain; } xcr[q] = r2; } xg.Expanded.AddRange(xcr); var cm = Expansion.OptionMid(xco[xci]); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = cm + new V2(0f, 0f); }
+        else Console.Error.WriteLine("CARDROOM: no spot fits");
+      }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" && np[2] != "hidden", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
