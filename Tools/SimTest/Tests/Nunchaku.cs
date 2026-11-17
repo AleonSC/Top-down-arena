@@ -91,6 +91,25 @@ static partial class Program
         Step(dt * 3f, false, false);
         Check(client.Game.Players[1].NunGuard, "the other screen sees the guard");
 
+        // the spinning discs hurt and shove what touches them, each enemy once every NunDiscGap
+        g.Enemies.Clear(); g.Bullets.Clear();
+        V2 discAt = Game.NunDiscAt(from, me.Aim, true);
+        var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, discAt + new V2(30f, 10f), 0f, 0, false });
+        grunt.MaxHp = grunt.Hp = 1e6f; grunt.Speed = 0f; grunt.FireT = 99f; grunt.SpawnT = 0f;
+        V2 was = grunt.Pos;
+        Step(dt * 2f, false, false);
+        float first = grunt.MaxHp - grunt.Hp;
+        Check(Math.Abs(first - 20f * Game.NunDiscMult * mult) < 0.5f, "an enemy touching a disc takes 6 (" + first.ToString("0.#") + ")");
+        Step(0.2f, false, false);
+        Check(grunt.Pos.DistanceTo(discAt) > was.DistanceTo(discAt) + 10f, "and is shoved out from the disc (" + was.DistanceTo(discAt).ToString("0") + " -> " + grunt.Pos.DistanceTo(discAt).ToString("0") + " px)");
+        grunt.Pos = was;
+        Step(Game.NunDiscGap * 0.5f, false, false);
+        grunt.Pos = was;
+        Step(Game.NunDiscGap * 0.7f, false, false);
+        float twice = grunt.MaxHp - grunt.Hp;
+        Check(twice > first * 1.5f && twice < first * 2.5f, "it's hit again after " + Game.NunDiscGap + " s, not every tick (" + twice.ToString("0.#") + ")");
+        g.Enemies.Clear();
+
         // the discs swat shots back, one count each
         g.Enemies.Clear(); g.Bullets.Clear();
         Dummy(from + new V2(300f, 0f));  // (something for swatted shots to fly at)

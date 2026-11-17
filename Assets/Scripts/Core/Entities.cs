@@ -387,6 +387,7 @@ namespace Arena
         public bool NunGuard;                  // Nunchaku: the Twin Windmill guard is up (replicated; you move slower, the discs swat shots back)
         public int NunSwats;                   // Nunchaku: shots swatted back since the last Twin Counter, up to NunSwatCap (replicated: the pips)
         public float NunSwitchCd;              // host only: until the weapon-action key switches stance again
+        public readonly Dictionary<int, float> NunDiscHit = new Dictionary<int, float>();  // host only: each enemy a disc hit, and how long until it can again
         public float NunAttackT;               // host only: a Twin Counter is playing (the discs are down: nothing is swatted)
         public readonly List<int> SsQueue = new List<int>();  // host only: the volley's slots still to go, in order
         public readonly List<int> ArcTags = new List<int>();  // Arc Lightning: the enemies tagged this draw, in order (replicated; ArcLock.cs)

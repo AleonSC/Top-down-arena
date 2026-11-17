@@ -28,6 +28,8 @@ namespace Arena
         /// The guard: how much slower you move, each disc's reach, a swatted shot's damage and speed, how far it looks for an enemy.
         public const float NunGuardSlow = 0.75f, NunDiscR = 46f, NunSwatDmg = 6f, NunSwatSpeed = 560f, NunSwatSeek = 420f, NunSwitchCd = 0.3f;
         public const int NunSwatCap = 8;
+        /// The discs' contact: each enemy touching one takes this much of the weapon's damage (20 x 0.3 = 6) once every NunDiscGap s and is shoved this far out.
+        public const float NunDiscMult = 0.3f, NunDiscGap = 0.3f, NunDiscKnock = 36f;
         /// The Twin Counter: its line (reach and half width), damage (base and per swat, against the weapon's 20), and the wait after.
         public const float NunCounterReach = 175f, NunCounterWidth = 22f, NunCounterBase = 20f, NunCounterPer = 6f, NunCounterCd = 0.55f;
         static readonly Sfx[] NunStepSounds = { Sfx.NunSnap, Sfx.NunBack, Sfx.NunFig8, Sfx.NunCrush };
@@ -149,6 +151,49 @@ namespace Arena
         }
 
         readonly List<int> nunSwatted = new List<int>();
+        readonly List<Enemy> nunTouched = new List<Enemy>();
+        readonly List<int> nunCooled = new List<int>();
+
+        /// Host: the spinning discs hit what touches them (NunDiscMult of the weapon's damage, each enemy once every NunDiscGap s) and shove
+        /// it straight out from the disc's centre (not bosses or heavies).
+        void DiscContact(Player p, V2 dR, V2 dL, float r, float dt)
+        {
+            var hitAt = p.NunDiscHit;
+            nunCooled.Clear();
+            foreach (var kv in hitAt)
+                if (kv.Value - dt <= 0f)
+                    nunCooled.Add(kv.Key);
+            foreach (int id in nunCooled)
+                hitAt.Remove(id);
+            foreach (int id in new List<int>(hitAt.Keys))
+                hitAt[id] -= dt;
+            nunTouched.Clear();
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e))
+                    continue;
+                if (e.Pos.CloserThan(dR, r + e.Radius) || e.Pos.CloserThan(dL, r + e.Radius))
+                {
+                    if (!hitAt.ContainsKey(e.Id))
+                        nunTouched.Add(e);
+                }
+            }
+            foreach (var e in nunTouched)
+            {
+                hitAt[e.Id] = NunDiscGap;
+                V2 c = e.Pos.DistanceSq(dR) < e.Pos.DistanceSq(dL) ? dR : dL;
+                V2 away = (e.Pos - c).Normalized();
+                if (away.IsZero)
+                    away = V2.FromAngle(p.Aim);
+                WeaponHurt(e, p.Weapon.Damage * NunDiscMult * p.Stats.DmgMult, p.Id);
+                Daze(e);  // a melee hit: it can't hit back for a split second (Daze.cs)
+                if (!Heavy(e))
+                    KnockEnemy(e, away * NunDiscKnock);
+                AddFx(FxKind.Spark, e.Pos - away * e.Radius, NunCrimson, 10f, 0.22f);
+            }
+            if (nunTouched.Count > 0)
+                BroadcastSound(Sfx.NunHit);
+        }
 
         /// Host, every tick for every player: the guard drops with what held it, and its discs swat shots back.
         void TickNunchaku(Player p, float dt)
@@ -161,7 +206,10 @@ namespace Arena
             }
             p.NunSwitchCd = Math.Max(0f, p.NunSwitchCd - dt);
             if (!p.NunGuard)
+            {
+                p.NunDiscHit.Clear();
                 return;
+            }
             if (p.Downed || p.StunT > 0f || p.SwallowT > 0f || State == MatchState.GameOver)
             {
                 p.NunGuard = false;  // (the guard drops with what held it)
@@ -175,6 +223,7 @@ namespace Arena
             }  // mid-counter: the chucks are lashing out, not spinning, so nothing is swatted
             float r = NunDisc(p);
             V2 dR = NunDiscAt(p.Pos, p.Aim, true), dL = NunDiscAt(p.Pos, p.Aim, false);
+            DiscContact(p, dR, dL, r, dt);
             nunSwatted.Clear();
             foreach (var b in Bullets.Values)
             {
