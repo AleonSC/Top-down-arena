@@ -576,7 +576,20 @@ namespace Arena
             if (p.GauntletDown)
                 s.Vec(ref p.GauntletRest);
             s.Float(ref p.VanishT);
-            s.Float(ref p.IronT);
+            s.Byte(ref p.PlateN);  // Ceremonial Armor (CeremonialArmor.cs)
+            if (p.PlateN > 0)
+            {
+                s.Float(ref p.PlateClock);
+                s.Float(ref p.PlateNewT);
+                s.Float(ref p.PlateMax);
+                for (int k = 0; k < p.PlateN && k < Game.CerePlateMax; k++)
+                {
+                    int q = s.Reading ? 0 : (int)Math.Round(MathX.Clamp01(p.PlateHp[k] / Math.Max(1f, p.PlateMax)) * 255f);
+                    s.Byte(ref q);
+                    if (s.Reading)
+                        p.PlateHp[k] = q / 255f * p.PlateMax;
+                }
+            }
             s.Vec(ref p.VanishFrom);
             s.Float(ref p.OrbitT);
             s.Float(ref p.DashT);  // Healing Dash's sprint (Ninja.cs)

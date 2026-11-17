@@ -6,6 +6,8 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 
 - 383: Relics Backup and Hallway Runner: `RelicId.Backup`/`HallwayRunner` before `None` (the relic byte's None moved).
 - 382: Node fog, scout towers and gold veins: `NodeKind.Tower`/`Vein`, and `Msg.ExpandState`'s nodes gain `Hidden` after `Cleared`.
+- 383: Ceremonial Armor replaces Iron Body (`AbilityId.IronBody` kept): player snapshot drops `IronT`, gains `PlateN` (then `PlateClock`, `PlateNewT`, `PlateMax` and a health byte per plate); `FxKind.CereBlock`/`CereBreak` appended; `Sfx.CereSummon`/`CereBreak` appended.
+- 382: Dragon's Dogma's sounds: `Sfx.DogmaRoar`, `DogmaDevour`, `DogmaBite`, `DogmaHome` appended (sent with the cast, bites and its return).
 - 381: Dragon's Dogma (Tank Ninja second ultimate): `AbilityId.DragonsDogma`, `FxKind.DragonBite`, player snapshot gains `DogmaOn` (then `DogmaHead`, `DogmaTgt` while it is out).
 - 380: Deployable Cover (Tank Soldier 4th ability): `AbilityId.DeployableCover`, `ZoneKind.Cover` (Aim its facing, GuardFrac its health left), `FxKind.CoverHit`/`CoverBreak`/`CoverFold` (after Water Ward's); the Reinforced Plating card shifts card ids.
 - 379: Water Ward (Healer Elementalist 4th ability): `AbilityId.WaterWard`, `FxKind.WwSplash`/`WwBurst`, `Sfx.WwSplash`/`WwBurst`/`WwCast`, player snapshot gains the drops (count, then `WwAng` and a place + fall byte each)

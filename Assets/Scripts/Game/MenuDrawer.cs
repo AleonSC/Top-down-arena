@@ -513,6 +513,49 @@ namespace Arena
             }
             var bossAt = new V2(tile.center.x, tile.center.y);
             y += 78f;
+            if (game.Hunt == null && !game.Quick)
+                y = DrawRunCardGate(x, y);
+            DrawRunCardStats(r, x, y + 6f);
+            if (gl && BeginUiGl())
+            {
+                UiClip(tile);
+                DrawEnemyPreview(boss == EnemyType.TwinB ? EnemyType.TwinA : boss, bossAt, 52f, t, true);
+                EndUiGl();
+            }
+        }
+
+        /// The run card's YOUR RUN row: four tiles (damage, kills, accuracy, downs), when there's room above the players.
+        void DrawRunCardStats(Rect card, float x, float y)
+        {
+            Player me;
+            if (!game.Players.TryGetValue(game.MyId, out me))
+                return;
+            const float tileH = 58f;
+            float stackTop = card.yMax - 16f - game.Players.Count * 52f - 30f;  // (DrawPartyStack's "PLAYERS" line)
+            if (y + 22f + tileH > stackTop)
+                return;
+            Ui.Fill(new Rect(x, y, card.width - 40f, 1f), new Color(1f, 1f, 1f, 0.08f));
+            y += 12f;
+            Ui.Label(new Rect(x, y, 200f, 14f), "YOUR RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            y += 22f;
+            var s = me.Run;
+            string[] vals = { ShortNumber(s.DamageDealt), s.Kills.ToString("N0"), s.ShotsFired > 0 ? Mathf.RoundToInt(s.Accuracy * 100f) + "%" : "—", s.Downs.ToString() };
+            string[] names = { "DAMAGE", "KILLS", "ACCURACY", "DOWNED" };
+            const float gap = 8f;
+            float w = (card.width - 40f - gap * 3f) / 4f;
+            for (int i = 0; i < 4; i++)
+            {
+                var b = new Rect(x + i * (w + gap), y, w, tileH);
+                Ui.Fill(b, new Color(1f, 1f, 1f, 0.03f));
+                CrtKit.Frame(b, 1f, new Color(1f, 1f, 1f, 0.1f));
+                DkTitle(new Rect(b.x, b.y + 6f, b.width, 28f), vals[i], 22, i == 3 && s.Downs > 0 ? new Color(1f, 0.6f, 0.6f) : Ui.Gold, TextAnchor.MiddleCenter);
+                Ui.Label(new Rect(b.x, b.yMax - 20f, b.width, 14f), names[i], 10, Ui.Muted, TextAnchor.MiddleCenter, true);
+            }
+        }
+
+        /// The run card's Data Gate line (a Campaign or Survival run: Quick Play and Boss Hunts have none). Returns the y under it.
+        float DrawRunCardGate(float x, float y)
+        {
             // This stretch's challenge room.
             var room = new Rect(x, y, 64f, 64f);
             var rc = lastRoomKind != ChallengeKind.None && (lastRoomWave - 1) / 5 == (Mathf.Max(1, game.Wave) - 1) / 5 ? lastRoomKind : ChallengeKind.None;
@@ -535,14 +578,9 @@ namespace Arena
             {
                 int k = game.Hunt != null || game.Quick ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no Data Gates in a Boss Hunt)
                 DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No Data Gates on a Boss Hunt" : game.Quick ? "No Data Gates in Quick Play" : k >= 1 && k <= 3 && game.Practice == null ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
+                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), k >= 1 && k <= 3 && game.Practice == null ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
-            if (gl && BeginUiGl())
-            {
-                UiClip(tile);
-                DrawEnemyPreview(boss == EnemyType.TwinB ? EnemyType.TwinA : boss, bossAt, 52f, t, true);
-                EndUiGl();
-            }
+            return y + 78f;
         }
 
         static string RoomIcon(ChallengeKind k) =>
@@ -933,7 +971,7 @@ namespace Arena
                     { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself.", "13" } } },
             new HowTo { Name = "Fighting", Icon = "guard_reinforced", Color = new Color(0.55f, 0.8f, 1f), Intro = "Read the shots, parry what you can, and let your abilities grow.",
                 Tips = new[,] { { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.", "7" }, { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.", "5" },
-                    { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire.", "12" }, { "Status icons", "Snowflake = frozen, arrows = slowed, flame = burning, drop = bleeding, crosshair = marked.", "2" },
+                    { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire.", "12" }, { "Status icons", "Snowflake = frozen, arrows = slowed, blue drop = wet, flame = burning, drop = bleeding, crosshair = marked.", "2" },
                     { "Ability mastery", "Abilities level up from 1 to 5 as you use them in fights. Level 5 unlocks a capstone.", "10" } } },
             new HowTo { Name = "Between waves", Icon = "ui_star", Color = Ui.Gold, Intro = "Each break: pick upgrades, open what the wave left behind, then the next wave.",
                 Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it and everyone gets their own item. Stand on it to take ({TakeItem}) or throw away ({DiscardItem}) yours.", "icon:ui_coin" },

@@ -93,8 +93,9 @@ namespace Arena
             for (int i = 0; i < n; i++)  // the glow
             {
                 float u0 = upTo * i / n, u1 = upTo * (i + 1) / n;
-                Line(ArcAt(u0), ArcAt(u1), 12f, blue.WithAlpha(0.05f * alpha));
-                Line(ArcAt(u0), ArcAt(u1), 6f, blue.WithAlpha(0.08f * alpha));
+                float bk = ArcShow(ArcAt(u0));
+                Line(ArcAt(u0), ArcAt(u1), 12f, blue.WithAlpha(0.05f * alpha * bk));
+                Line(ArcAt(u0), ArcAt(u1), 6f, blue.WithAlpha(0.08f * alpha * bk));
             }
             V2 prevUp = default, prevDn = default;
             for (int i = 0; i <= n; i++)  // the body: a strip of quads along the curve, widest at the peak
@@ -104,7 +105,7 @@ namespace Arena
                 if (i > 0)
                 {
                     float mid = Mathf.Sin(Mathf.PI * (u - 0.5f * upTo / n));
-                    SetColor(new Rgba(Mathf.Lerp(0.59f, 0.75f, mid), Mathf.Lerp(0.75f, 0.84f, mid), 1f, Mathf.Lerp(0.55f, 0.98f, mid) * alpha));
+                    SetColor(new Rgba(Mathf.Lerp(0.59f, 0.75f, mid), Mathf.Lerp(0.75f, 0.84f, mid), 1f, Mathf.Lerp(0.55f, 0.98f, mid) * alpha * ArcShow(ArcAt(u))));
                     Tri(prevUp, prevDn, up);
                     Tri(prevDn, dn, up);
                 }
@@ -112,13 +113,14 @@ namespace Arena
                 prevDn = dn;
             }
             float ends = Seg(upTo, 0.05f, 0.2f);
-            Circle(ArcAt(0f), 2.6f * ends, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha), 10);
+            Circle(ArcAt(0f), 2.6f * ends, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha * ArcShow(ArcAt(0f))), 10);
             if (upTo >= 1f)
-                Circle(ArcAt(1f), 2.6f, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha), 10);
+                Circle(ArcAt(1f), 2.6f, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha * ArcShow(ArcAt(1f))), 10);
             float shotIn = MenuIntroK(1.9f, 2.2f) * alpha;
             if (shotIn > 0f)
             {
                 float u = MathX.Fmod(t * 0.22f, 1f);
+                shotIn *= ArcShow(ArcAt(u));
                 const int Tail = 22;
                 const float Len = 0.16f;
                 V2 pl = default, pr = default;
@@ -139,6 +141,19 @@ namespace Arena
                 Circle(ArcAt(u), 2.2f, new Rgba(1f, 1f, 1f, 0.95f * shotIn), 8);
             }
         }
+
+        /// How much of the arc shows at p: it passes behind the title's letters (faint there) and comes out clear over them,
+        /// so the stroke never cuts through the words.
+        float ArcShow(V2 p)
+        {
+            float half = MenuTitleHalfW + 10f, top = MenuTitleY - MenuTitleSize * 0.52f;
+            float inX = Mathf.Clamp01((half - Mathf.Abs(p.X - W / 2f)) / 14f);
+            float inY = Mathf.Clamp01((p.Y - top) / 12f);
+            return 1f - 0.82f * inX * inY;
+        }
+
+        float menuTitleHalfW;
+        float MenuTitleHalfW => menuTitleHalfW > 0f ? menuTitleHalfW : (menuTitleHalfW = Ui.TextWidth("VECTOR COLOSSEUM", (int)MenuTitleSize, true) / 2f);  // (as DrawCrtTitle measures it)
 
         static float ArcWidth(float u) => 0.6f + 3.2f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Mathf.PI * u)), 1.1f);
 
