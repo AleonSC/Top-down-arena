@@ -2134,6 +2134,24 @@ static partial class Shot {
         typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
         if (xg.MysteryDoors.Count < 2) typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
         Console.Error.WriteLine("mystery doors: " + xg.MysteryDoors.Count);
+        if (Environment.GetEnvironmentVariable("MYSTERYHALL") != null) {  // MYSTERYHALL=1: a hallway door opened, its chest at the far end, you at the door
+          typeof(Game).GetMethod("ResetMysteryDoors", mfl).Invoke(xg, null);
+          foreach (var o in Expansion.SurpriseOptions(xg.Expanded, SurpriseShape.LongHall)) {
+            var args = new object[] { o, null, null };
+            if (!(bool)typeof(Game).GetMethod("MysteryDoorOf", mfl).Invoke(xg, args) || !Mystery.HallFits(o, (MysteryDoor)args[1])) continue;
+            var hd = (MysteryDoor)args[1];
+            xg.MysteryDoors.Add(hd);
+            ((System.Collections.Generic.List<SurpriseOption>)typeof(Game).GetField("mysteryPlans", mfl).GetValue(xg)).Add(o);
+            ((System.Collections.Generic.List<V2>)typeof(Game).GetField("mysteryBehind", mfl).GetValue(xg)).Add((V2)args[2]);
+            ((System.Collections.Generic.List<MysteryKind>)typeof(Game).GetField("mysteryKinds", mfl).GetValue(xg)).Add(MysteryKind.Chest);
+            Player op = null; foreach (var pq in xg.Players.Values) { op = pq; break; }
+            op.Vectors = op.VectorCap = 999; op.Pos = op.Disp = hd.Pos;
+            typeof(Game).GetMethod("OpenMysteryDoor", mfl).Invoke(xg, new object[] { op, 0 });
+            var hr = o.Rooms[0]; V2 hm = new V2((hr.X + hr.X1) / 2f, (hr.Y + hr.Y1) / 2f);
+            xg.MysteryOpened.Clear(); int hi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = hm + new V2(30f * hi, 0f); hi++; }
+            break;
+          }
+        }
         string mop = Environment.GetEnvironmentVariable("MYSTERYOPEN");  // MYSTERYOPEN=<s>: the first door opened that long ago (the reveal)
         if (mop != null && xg.MysteryDoors.Count > 0) {
           var md0 = xg.MysteryDoors[0]; Player opener = null; foreach (var pq in xg.Players.Values) { opener = pq; break; } opener.Pos = opener.Disp = md0.Pos; opener.Vectors = opener.VectorCap = 999;

@@ -1060,6 +1060,7 @@ namespace Arena
                 else if (me.Offer == null && ShopOpen && !me.ShopDone && MathX.Fmod(botT, 0.5f) < dt)
                     BotShop(me);  // Shop.cs
                 BotGate(me, ref move);      // into the boss gate (BossGate.cs)
+                BotMysteryDoor(me, ref move);  // open a mystery door it can pay for, between waves (MysteryDoors.cs)
                 BotTreasure(me, ref move);  // open the chest and take your item (Props.cs)
                 BotRoom(me, ref move);      // a portal, a zone, the crystal, the altar (Challenges.cs)
             }
