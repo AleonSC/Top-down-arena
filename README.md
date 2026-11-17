@@ -1583,6 +1583,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (CRT phosphor readouts in bracket corners: health with a 20-cell bar bottom-left (teammates' health in slim rows above it), each ability key over its seconds left (the ult's charge %) and its name at the bottom, the wave and enemies left bottom-right, so the minimap keeps the top right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
 | Aim debug overlay | F3 |
+| Save / load a run snapshot (host, dev) | F6 saves the match as it is now; F7 loads the newest (see *Run snapshots*, under *Testing tricks*) |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
 | Open the folder with `Player.log` (menus, lobby, results; in a run F2 is the DPS meter) | F2 |
@@ -1600,7 +1601,7 @@ any other action, since they click everything else. Click a key, press the new o
 changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. Every action also has a **second key**
 (the "+ ADD" slot beside it): either key does the action; right click a second key to clear it. The
 arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The menu keys
-(Esc, Tab, Enter, F1-F5) can't be changed, and menus are always clicked with the mouse. The number keys can be bound:
+(Esc, Tab, Enter, F1-F7) can't be changed, and menus are always clicked with the mouse. The number keys can be bound:
 while the upgrade picker is open, the numbers of its cards pick a card instead, and while the emote bar is open, the
 numbers of its slots play an emote instead (an action on one of those keys waits until it closes). The HUD, the Tab screen and the
 How to play page show your own keys.
@@ -2160,7 +2161,7 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs 
 
 Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). It's a slim bar across the top of the screen. In a
 match the game keeps running behind it (the mouse only stops shooting while it's over the dock); in the lobby and menus it covers the
-screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE** and **KILL ALL** pinned for one click, four keys that
+screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE**, **KILL ALL** and **SNAP** (run snapshots, below) pinned for one click, four keys that
 open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
 as a drawer on the right, and the bigger tools (DPS meter and dummies, Replays, Balance test) open as one sheet. While you type in one of
 its fields the game's keys are off. Outside a match only VIEW and LABS show.
@@ -2223,6 +2224,19 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
   `Tools/SessionReport`). Tests never count in Records, XP or ranks. Every weapon hit (swings, beams, companions included) counts
   as the weapon; damage from ability zones, minions and other lasting effects can't be traced to the cast that made it and
   shows as "Other". Health paid for blood costs is listed as health spent, not damage taken. Design and fields: `Docs/BalanceTest.md`.
+
+### Run snapshots (F6 / F7)
+
+Save a run at any moment and load back to that exact state, e.g. to try the same boss phase or bug again and again.
+**F6** in a match saves a snapshot (a line at the top says so), **F7** loads the newest one. **F1 → SNAP** opens the **Run
+snapshots** sheet: type a name and **Take snapshot**, or **LOAD** / **Delete** any saved one (newest first, with its mode,
+wave, enemy count, run time and party). A snapshot keeps everything in the match: players and builds, enemies and their
+AI, shots in the air, the map, timers and the random rolls, so after loading, the run plays on exactly as it did (the
+bot does the same thing again too). Files are kept in the profile's `snapshots` folder (**Open folder**), the newest 40.
+- Host only, and loads only with no guests connected; start any solo run first, then load (the mode, map and party all come from the snapshot).
+- Loading marks the run as dev-touched (no records), like god mode. Your BOT and REC switches stay as they are.
+- Snapshots still load after code changes: a field that's gone is skipped and a new one keeps its current value (the
+  sheet's note says how many). A renamed class can't load; the note says which.
 
 ### Replays (F1)
 

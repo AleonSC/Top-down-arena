@@ -245,6 +245,7 @@ namespace Arena
             }
             if (!tabHeld)
                 DrawLagChart();  // F5, over the name tags (LagChartUi.cs)
+            DrawSnapshotToast();  // F6 / F7 (SnapshotUi.cs)
             if (!tabHeld && !pauseMenuOpen)
                 DrawTutorial();  // a first Quick Play's prompts, over the build and upgrade screens they teach (TutorialUi.cs)
         }

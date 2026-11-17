@@ -12,7 +12,7 @@ namespace Arena
     {
         int devDrawer;            // 0 none, 1 wave, 2 party, 3 view, 4 labs
         bool devSide;             // the stat editor, as a side drawer
-        int devSheet;             // 0 none, 1 DPS meter and dummies, 2 Replays, 3 Balance test, 4 Spawn an upgrade, 5 Spawn an enemy
+        int devSheet;             // 0 none, 1 DPS meter and dummies, 2 Replays, 3 Balance test, 4 Spawn an upgrade, 5 Spawn an enemy, 6 Snapshots
         readonly List<Rect> dockHit = new List<Rect>();  // the dock's rects as last drawn (the mouse over one doesn't shoot)
 
         static readonly Rect DockBar = new Rect(16f, 10f, W - 32f, 52f);
@@ -84,10 +84,10 @@ namespace Arena
 
             DkTitle(new Rect(x, y - 4f, 64f, h + 8f), "DEV", 26);
             x += 70f;
-            var wr = new Rect(x, y, 124f, h);
+            var wr = new Rect(x, y, 112f, h);
             DkSub(wr);
             Ui.Label(wr, inMatch ? "WAVE " + Mathf.Max(1, game.ShownWave) + (game.Endless ? " ∞" : " / " + game.ShownLastWave) : "NO MATCH", 13, Color.white, TextAnchor.MiddleCenter, true);
-            x += 136f;
+            x += 122f;
 
             bool was = GUI.enabled;
             if (inMatch)
@@ -116,6 +116,12 @@ namespace Arena
                     game.DevKillAll(game.MyId);
                 x += 96f;
                 GUI.enabled = was;
+                if (DkKey(new Rect(x, y, 70f, h), "SNAP", CrtStyle.Head, devSheet == 6, 13))  // run snapshots (SnapshotUi.cs)
+                {
+                    devSheet = devSheet == 6 ? 0 : 6;
+                    devDrawer = 0;
+                }
+                x += 76f;
                 Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), new Color(ink.r, ink.g, ink.b, 0.35f));
                 x += 14f;
             }
@@ -137,31 +143,31 @@ namespace Arena
                 bool matchOnly = i < 2;
                 if (matchOnly && !inMatch)
                     continue;
-                keyRects[i] = new Rect(x, y, 86f, h);
+                keyRects[i] = new Rect(x, y, 76f, h);
                 if (DkKey(keyRects[i], names[i], CrtStyle.Head, devDrawer == i + 1, 13))
                 {
                     devDrawer = devDrawer == i + 1 ? 0 : i + 1;
                     devSheet = 0;
                 }
-                x += 92f;
+                x += 82f;
             }
 
             float rx = DockBar.xMax - 12f;
             rx -= 44f;
             if (DkKey(new Rect(rx, y, 44f, h), "X", Ui.Danger, false, 14))
                 devMenuOpen = false;
-            rx -= 82f;
+            rx -= 76f;
             bool rec = recordSessions;
-            if (DkKey(new Rect(rx, y, 76f, h), "REC", Ui.Danger, rec, 13))
+            if (DkKey(new Rect(rx, y, 70f, h), "REC", Ui.Danger, rec, 13))
             {
                 recordSessions = !recordSessions;
                 PlayerPrefs.SetInt("record_sessions", recordSessions ? 1 : 0);
                 PlayerPrefs.Save();
                 ApplyRecording();
             }
-            rx -= 82f;
+            rx -= 76f;
             GUI.enabled = was && inMatch;
-            if (DkKey(new Rect(rx, y, 76f, h), "BOT", CrtStyle.Gold, game.Bot, 13))
+            if (DkKey(new Rect(rx, y, 70f, h), "BOT", CrtStyle.Gold, game.Bot, 13))
             {
                 game.Bot = !game.Bot;
                 game.BotLevel = game.Bot ? BotSkill.Good : BotSkill.Off;
@@ -386,7 +392,7 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 1 ? "DPS meter and target dummies" : devSheet == 2 ? "Replays" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 5 ? (game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy") : "Balance test";
+            string title = devSheet == 1 ? "DPS meter and target dummies" : devSheet == 2 ? "Replays" : devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 5 ? (game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy") : "Balance test";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;
@@ -396,6 +402,8 @@ namespace Arena
             }
             else if (devSheet == 2)
                 DrawDevReplays(inner);  // ReplayUi.cs
+            else if (devSheet == 6)
+                DrawDevSnapshots(inner, inMatch);  // SnapshotUi.cs
             else if (devSheet == 4)
             {
                 if (inMatch) DrawDockUpgrades(inner); else DevNotInMatch(inner, "spawn an upgrade");

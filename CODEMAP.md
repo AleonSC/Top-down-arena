@@ -414,6 +414,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Dev tools and editors (Game)
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
+- `Core/RunSnapshot.cs`, `SnapshotUi.cs`: run snapshots (F6 save, F7 load the newest, the dock's SNAP sheet): `RunSnapshot.Capture`/`Restore` write and read every `Game` field by reflection (`GraphWriter`/`GraphReader`: types once, shared objects by reference, objects reached from statics as paths, the Game as the live one; fields matched by name), `Skip` (session, recorders, hooks, Bot), `CantLoad` (host, no guests: `NetPeer.PeerCount`), files in `Profile.Folder/snapshots` (`SaveFile`, `List`, `Kept` 40), `Game.AfterSnapshotLoad`; preview `DEVSHEET=6 [SNAPDEL=1]`, `SNAPTOAST=<text>`; test suite `snapshot` (loads back and replays 8 s tick for tick, random waves and Campaign)
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `BalanceTestUi.cs`: F1 > Balance tab, the TEST strip and the report screen
 - `UiScreens.cs`: the tool-screen stack (`UiScreen`, `OpenScreen`/`CloseScreen`, `HandleScreenEsc`, `DrawScreens`; `devMenuOpen`, `labSetupOpen`, `waveEdOpen` are properties over it): add a window by registering one screen (HANDOFF.md "Adding a screen or a menu row")

@@ -107,6 +107,7 @@ static partial class Shot {
     }
     else if (mode == "dev")
     {
+      if (Environment.GetEnvironmentVariable("SNAPTOAST") != null) { set("snapToast", Environment.GetEnvironmentVariable("SNAPTOAST")); set("snapToastT", 2f); }  // the F6 / F7 line
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
       host.Game.DevSetStat(1, Array.FindIndex(Game.StatFields, x => x.Name == "DmgMult"), 2.5f);
       host.Game.DevSetGod(1, true);
@@ -122,6 +123,17 @@ static partial class Shot {
         SampleReplay("Run 2026-11-02 16-05", 60 * 1110, 21, "Endless", "Mia (Hemomancer)").Save("/tmp/replays/Run 2026-11-02 16-05.replay");
         if (Environment.GetEnvironmentVariable("RENAME") != null) { set("replayRenamePath", "/tmp/replays/Co-op test, 3 players.replay"); set("replayRenameText", "Co-op test, 3 players"); }
         if (Environment.GetEnvironmentVariable("DELETE") != null) set("replayDeletePath", "/tmp/replays/Boss practice, Warden.replay");
+      }
+      if (Environment.GetEnvironmentVariable("DEVSHEET") == "6")  // run snapshots (SnapshotUi.cs): three in the profile's folder; SNAPDEL=1 asks to delete the second
+      {
+        if (Profile.Folder == null) Profile.Folder = Path.Combine(Path.GetTempPath(), "arena-preview-snaps");
+        if (Directory.Exists(RunSnapshot.Folder)) Directory.Delete(RunSnapshot.Folder, true);
+        foreach (var n in new[] { "Wave 3, mid-wave", "Before the Warden", "Wave 9, between waves" })
+        {
+          RunSnapshot.SaveFile(host.Game, n);
+          System.Threading.Thread.Sleep(5);
+        }
+        if (Environment.GetEnvironmentVariable("SNAPDEL") != null) set("snapDeletePath", RunSnapshot.List()[1].Path);
       }
       if (Environment.GetEnvironmentVariable("DEVDRAWER") != null) set("devDrawer", int.Parse(Environment.GetEnvironmentVariable("DEVDRAWER")));
       if (Environment.GetEnvironmentVariable("DEVSIDE") != null) set("devSide", true);
