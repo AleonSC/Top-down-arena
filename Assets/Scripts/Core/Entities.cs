@@ -124,6 +124,8 @@ namespace Arena
         HeliRotor, HeliShot, HeliSpin,
         // Flood (FloodSoundBank.cs): the stamp and splash, the water lapping, the pool draining. Played by each screen from the pool's clock, never sent.
         FloodCast, FloodLap, FloodDrain,
+        // Kinetic Wall (KineticWallSoundBank.cs): the cast, the field's hum (a loop), a catch, the full chime, the unleash. Played by each screen from what it sees, never sent.
+        KwCast, KwHum, KwCatch, KwFull, KwUnleash,
     }
 
     public struct SoundCue

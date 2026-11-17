@@ -364,6 +364,7 @@ namespace Arena
             wallHumVoice = NewSource(owner, 64, true);  // the wall hum (WallHumSoundBank.cs)
             arcHumVoice = NewSource(owner, 64, true);   // Arc Lightning's charge hum (ArcLockSoundBank.cs)
             heliVoice = NewSource(owner, 64, true);     // the Attack Helicopter's rotor (HeliSoundBank.cs)
+            kwHumVoice = NewSource(owner, 64, true);    // Kinetic Wall's field hum (KineticWallSoundBank.cs)
             var folderFiles = OwnSoundFiles();          // the player's own sounds (decoded on the build thread)
             LoadProjectSounds(folderFiles);
             builder = new System.Threading.Thread(() => BuildAll(folderFiles)) { IsBackground = true, Name = "SoundBank build" };
@@ -400,6 +401,7 @@ namespace Arena
                 BuildNunchaku();  // NunchakuSoundBank.cs
                 BuildHeli();  // HeliSoundBank.cs
                 BuildFlood();  // FloodSoundBank.cs
+                BuildKineticWall();  // KineticWallSoundBank.cs
             }
             catch (Exception ex)
             {

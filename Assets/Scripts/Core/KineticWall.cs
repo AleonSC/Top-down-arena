@@ -56,7 +56,7 @@ namespace Arena
             p.KwWide = cap;
             p.KwDots.Clear();
             p.KwPerShot = KwPerShot * p.Stats.KwChargeMult;
-            BroadcastFx(FxKind.Ring, KwDotPos(p, 0f, 0f), KwColor, 60f, 0.35f, Sfx.Freeze);
+            BroadcastFx(FxKind.Ring, KwDotPos(p, 0f, 0f), KwColor, 60f, 0.35f, Sfx.None);  // (its sounds are played by each screen: KineticWallSoundBank.cs)
         }
 
         /// Host, from the enemy-bullet loop in Combat.cs: does a Kinetic Wall catch this shot? Every shot stops in it (aimed ones
@@ -106,7 +106,7 @@ namespace Arena
                 }
                 HurtEnemy(e, D, p.Id);
             }
-            BroadcastFx(FxKind.KwBlast, p.Pos, p.Pos + V2.FromAngle(face) * KwReach, KwColor, charge, KwBlastT, Sfx.BigExplode);
+            BroadcastFx(FxKind.KwBlast, p.Pos, p.Pos + V2.FromAngle(face) * KwReach, KwColor, charge, KwBlastT, Sfx.None);
             ClearKineticWall(p);
         }
 
