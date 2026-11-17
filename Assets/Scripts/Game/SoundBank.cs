@@ -396,6 +396,7 @@ namespace Arena
                 BuildBulletRain();  // BulletRainSoundBank.cs
                 BuildFireball();  // FireballSoundBank.cs
                 BuildNunchaku();  // NunchakuSoundBank.cs
+                BuildFlood();  // FloodSoundBank.cs
             }
             catch (Exception ex)
             {

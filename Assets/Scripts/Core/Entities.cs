@@ -119,6 +119,8 @@ namespace Arena
         // The Nunchaku (NunchakuSoundBank.cs, the Storm set of Docs/Mockups/nunchaku-sounds.html): each combo step and the Twin Counter as
         // pressed, a stick landing, the windmill spinning up, a shot swatted. Sent.
         NunSnap, NunBack, NunFig8, NunCrush, NunCounter, NunHit, NunGuard, NunSwat,
+        // Flood (FloodSoundBank.cs): the stamp and splash, the water lapping, the pool draining. Played by each screen from the pool's clock, never sent.
+        FloodCast, FloodLap, FloodDrain,
     }
 
     public struct SoundCue

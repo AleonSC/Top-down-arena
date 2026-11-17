@@ -17,6 +17,51 @@ namespace Arena
         static readonly Rgba FloodFoam = new Rgba(0.92f, 0.99f, 1f), FloodCrest = new Rgba(0.31f, 0.82f, 0.91f);
         const int FloodSegs = 72;
 
+        // Sounds: when each Flood's next lap is due (by zone id); the stamp plays on first sight (if it's young), the gurgle once as it starts draining.
+        readonly System.Collections.Generic.Dictionary<int, float> floodNext = new System.Collections.Generic.Dictionary<int, float>();
+        readonly System.Collections.Generic.HashSet<int> floodDrained = new System.Collections.Generic.HashSet<int>();
+        readonly System.Collections.Generic.List<int> floodGone = new System.Collections.Generic.List<int>();
+        const float FloodLapEvery = 1.15f;
+
+        void UpdateFloodSound()
+        {
+            float now = Time.unscaledTime;
+            floodGone.Clear();
+            foreach (var kv in floodNext)
+                if (!game.Zones.ContainsKey(kv.Key))
+                    floodGone.Add(kv.Key);
+            foreach (int id in floodGone)
+            {
+                floodNext.Remove(id);
+                floodDrained.Remove(id);
+            }
+            foreach (var z in game.Zones.Values)
+            {
+                if (z.Kind != ZoneKind.Flood)
+                    continue;
+                bool mine = z.Owner == game.MyId;
+                float quiet = mine ? 0f : game.QuietAt(z.Pos);
+                float next;
+                if (!floodNext.TryGetValue(z.Id, out next))
+                {
+                    if (Game.FloodAge(z) < 0.5f)  // (a pool already there when you arrive just laps)
+                        sounds?.Play(new SoundCue { Sfx = Sfx.FloodCast, Ally = !mine, Quiet = quiet }, now);
+                    floodNext[z.Id] = now + FloodLapEvery;
+                    continue;
+                }
+                if (!Game.FloodOn(z))
+                {
+                    if (floodDrained.Add(z.Id))
+                        sounds?.Play(new SoundCue { Sfx = Sfx.FloodDrain, Ally = !mine, Quiet = quiet }, now);
+                }
+                else if (now >= next)
+                {
+                    sounds?.Play(new SoundCue { Sfx = Sfx.FloodLap, Ally = !mine, Quiet = quiet }, now);
+                    floodNext[z.Id] = now + FloodLapEvery;
+                }
+            }
+        }
+
         /// How much of the pool is left as it drains: 1 while it floods, down to 0.
         static float FloodFade(Zone z)
         {
