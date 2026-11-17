@@ -1050,7 +1050,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell ? z.GuardFrac  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;

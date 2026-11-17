@@ -988,7 +988,7 @@ namespace Arena
             }
             foreach (var z in Zones.Values)
             {
-                if (z.BlockHp <= 0f || !Enters(b, z.Pos, z.Radius))
+                if (z.BlockHp <= 0f || z.Kind == ZoneKind.Cover || !Enters(b, z.Pos, z.Radius))  // (a cover blocks by its plates: CoverStops)
                     continue;
                 z.BlockHp -= BlockerWear(b);
                 if (z.BlockHp <= 0f)
@@ -1096,6 +1096,11 @@ namespace Arena
                     TickBloodbath(z, dt);  // Bloodbath.cs
                 if (z.Kind == ZoneKind.Flood)
                     TickFlood(z);  // Flood.cs
+                if (z.Kind == ZoneKind.Cover)
+                {
+                    TickCover(z);  // DeployableCover.cs
+                    continue;  // (not a circle: nothing below applies)
+                }
                 if (z.Kind == ZoneKind.Phalanx)
                 {
                     TickPhalanx(z, dt);  // BonePhalanx.cs

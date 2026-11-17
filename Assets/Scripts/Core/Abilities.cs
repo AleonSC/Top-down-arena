@@ -211,6 +211,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th ability key (DeployableCover.cs)
+                Name = "Deployable Cover", Cooldown = CoverCooldown, Desc = "Two charges. Plant a bracket of steel plate in front of you that stops enemy bullets and enemies until it has taken 400 damage; your team's shots pass through. Up to 3 stand at once (another folds away the oldest), and they fold away when the wave is cleared.",
+                Capstone = "Covers take 600 damage, and each charge comes back 25% sooner.",
+                Bot = b => b.Danger || b.NearEnemies >= 3,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.Adrenaline, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
                 Name = "Adrenaline Shot", Cooldown = AdrenalineCooldown, Desc = "Inject the player closest to your cursor (you, if alone): 8 s of +30% move speed, +40% fire rate and 30% less damage taken.",
                 Capstone = "Also gives the nearest other ally within 250 px a half-length (4 s) dose.",
@@ -267,6 +274,9 @@ namespace Arena
                     if (cap)
                         Knockback(p.Pos, 250f, 120f, 2f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.45f, 0.3f), 320f, 0.5f, Sfx.Roar);
+                    break;
+                case AbilityId.DeployableCover:
+                    CastCover(p, target, cap);  // DeployableCover.cs
                     break;
                 case AbilityId.Bulldoze:
                 {

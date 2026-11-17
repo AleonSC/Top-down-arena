@@ -191,6 +191,17 @@ namespace Arena
                 case FxKind.KwBlast:
                     DrawKwBlastFx(fx);  // KineticWallLook.cs
                     break;
+                case FxKind.CoverHit:
+                    if (fxOn)
+                        DrawCoverHitFx(fx);  // DeployableCoverLook.cs
+                    break;
+                case FxKind.CoverBreak:
+                    if (fxOn)
+                        DrawCoverBreakFx(fx);  // DeployableCoverLook.cs
+                    break;
+                case FxKind.CoverFold:
+                    DrawCoverFoldFx(fx);  // DeployableCoverLook.cs
+                    break;
                 case FxKind.WindCatch:
                     DrawWindCatch(fx);  // WindClashLook.cs
                     break;
