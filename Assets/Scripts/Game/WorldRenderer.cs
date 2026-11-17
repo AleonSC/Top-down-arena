@@ -81,6 +81,7 @@ namespace Arena
             DrawJuiceParts();  // shards, rings and sparks
             DrawHelis(t);      // the Attack Helicopter, flying over the arena's contents (AttackHelicopterLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon, over the arena's contents (DragonsDogmaLook.cs)
+            DrawEngineerMock(t);  // Tools/Preview only: the Engineer mockup (EngineerLook.cs)
             GlowPass();        // the additive glow
             DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)

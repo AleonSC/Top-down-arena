@@ -8,7 +8,6 @@ d=ImageDraw.Draw(img,'RGBA')
 data=open(base+'.tris','rb').read()
 v=struct.unpack('<%df'%(len(data)//4),data)
 def c8(r,g,b,a): return tuple(int(max(0,min(1,x))*255) for x in (r,g,b,a))
-import os
 if os.environ.get('FAST') == '1':  # the old quick look: each triangle flat in its first vertex's colour
     for i in range(0,len(v),18):
         pts=[(v[i+k*6], H-v[i+k*6+1]) for k in range(3)]
@@ -20,10 +19,15 @@ else:  # like the GPU: colour blended across each triangle, alpha blending, the 
     d=ImageDraw.Draw(img,'RGBA')
 img=img.convert('RGBA')
 fonts={}
-def font(size,bold):
-    k=(size,bold)
+GAMEFONTS=os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..','Assets','Resources','Fonts')
+def font(size,bold,name='-'):
+    k=(size,bold,name)
     if k not in fonts:
-        fonts[k]=ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-%s.ttf'%('Bold' if bold else 'Regular'), max(6,size))
+        game=os.path.join(GAMEFONTS,name+'.ttf')
+        if name!='-' and os.path.exists(game):  # the game's own font (Ui.cs: CRT, menu, hand-written)
+            fonts[k]=ImageFont.truetype(game, max(6,size))
+        else:
+            fonts[k]=ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-%s.ttf'%('Bold' if bold else 'Regular'), max(6,size))
     return fonts[k]
 def floats(s): return [float(x) for x in s.split(',')]
 for line in open(base+'.ui',encoding='utf-8'):
@@ -95,8 +99,8 @@ for line in open(base+'.ui',encoding='utf-8'):
         tile=tile.transpose(Image.FLIP_TOP_BOTTOM).resize((max(1,int(w)),max(1,int(h))),Image.BILINEAR if hn==1 or (len(p)>6 and p[6]=='1') else Image.NEAREST)
         layer.paste(tile,(int(x),int(y)))  # (the layer is empty: the tile keeps its own alpha. Masking by the tile squared it, so soft glows and faint scanlines nearly vanished)
     elif kind=='label':
-        col=floats(p[3]); size=int(p[4]); align=int(p[5]); bold=p[6]=='1'; text=p[8].replace('\\n','\n')
-        f=font(size,bold)
+        col=floats(p[3]); size=int(p[4]); align=int(p[5]); bold=p[6]=='1'; text=p[9].replace('\\n','\n')
+        f=font(size,bold,p[8])
         if p[7]=='1':  # word wrap to the rect width, like Unity
             outl=[]
             for para in text.split('\n'):

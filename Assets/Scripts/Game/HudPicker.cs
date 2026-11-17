@@ -18,15 +18,15 @@ namespace Arena
             SyncSelection(me);
             float now = Time.unscaledTime;
             pickParts = PickChangeParts(me, selectedCard);  // what the picked card changes, drawn on that card
-            if (me.OfferMilestone && me.Offer != null)  // milestone cards always show theirs
+            if (me.Offer != null)  // every card shows what it changes (the picked one bright, the others dim), so none has an empty bottom half
             {
-                if (milestoneParts == null || milestoneParts.Length != me.Offer.Length)
-                    milestoneParts = new List<string>[me.Offer.Length];
+                if (cardParts == null || cardParts.Length != me.Offer.Length)
+                    cardParts = new List<string>[me.Offer.Length];
                 for (int i = 0; i < me.Offer.Length; i++)
-                    milestoneParts[i] = PickChangeParts(me, i);
+                    cardParts[i] = PickChangeParts(me, i);
             }
             else
-                milestoneParts = null;
+                cardParts = null;
             bool opening = PickIntroPlaying(me);  // the cards are still flying out of you: nothing can be chosen yet
             RoundBackdrop(PickerDark * (introFull ? Seg(IntroElapsed, 0f, 0.3f) : 1f));  // (RoundWindows.cs)
             const float cardW = 270f, cardH = 384f, gap = 30f;
@@ -265,7 +265,7 @@ namespace Arena
         static readonly Color RerollArmedTint = new Color(0.92f, 0.5f, 0.14f);
         bool RerollArmed => Time.unscaledTime - rerollArmedAt < RerollArmTime;
         List<string> pickParts;                     // what the selected card changes, set each frame by the picker
-        List<string>[] milestoneParts;              // what each milestone card changes (they always show it)
+        List<string>[] cardParts;                   // what each card changes (all cards show it; the picked one also by its key: pickParts)
 
         /// Reroll (button or R): the first press arms it, a second press within RerollArmTime rerolls.
         void RerollPress()
@@ -612,7 +612,8 @@ namespace Arena
                 Ui.Label(new Rect(r.x, r.y + 266f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
 
             // Stack circles: filled for what you hold; on the picked card the next one is ringed. The change goes under them.
-            var shown = ms ? (milestoneParts != null && index < milestoneParts.Length ? milestoneParts[index] : null) : selected ? pickParts : null;
+            var shown = selected ? pickParts : cardParts != null && index < cardParts.Length ? cardParts[index] : null;
+            bool dimParts = !selected;  // (the cards you haven't picked show theirs quieter)
             bool showParts = shown != null;
             if (capped)
             {
@@ -640,10 +641,16 @@ namespace Arena
                 }
                 if (showParts && !grants)
                     for (int i = 0; i < Math.Min(2, shown.Count); i++)
-                        Ui.Label(new Rect(r.x + 6f, r.yMax - 76f + i * 15f, r.width - 12f, 16f), shown[i], shown[i].Length > 34 ? 11 : 12, ms && !selected ? new Color(0.45f, 0.85f, 0.52f) : new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
+                        Ui.Label(new Rect(r.x + 6f, r.yMax - 76f + i * 15f, r.width - 12f, 16f), shown[i], shown[i].Length > 34 ? 11 : 12, dimParts ? new Color(0.45f, 0.85f, 0.52f, ms ? 1f : 0.75f) : new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
             }
             else if (showParts && !grants)
+            {
+                float oldA = Ui.Alpha;
+                if (dimParts && !ms)
+                    Ui.Alpha *= 0.7f;
                 DrawPickStrip(new Rect(r.x + 15.4f, r.yMax - 100f, r.width - 30.8f, 56f), 12, true, shown, Upgrades.Count(me.Taken, me.Offer != null && index < me.Offer.Length ? me.Offer[index] : 0));  // (the mockup's 1.2cqw side margin; the panel's bottom sits 44 px up, over the key)
+                Ui.Alpha = oldA;
+            }
 
             // The key, bottom centre, over the fading rarity line.
             string keyText = (index + 1).ToString();

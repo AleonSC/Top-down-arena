@@ -264,6 +264,7 @@ static partial class Shot {
     ArenaScenes();
     WolfPoses();  // WOLFPACK=lineup: each wolf's stride and bite (ShotWolfPack.cs)
     VectorGainScene();  // VECGAIN=<s since> [VECGAINN=10] (ShotScenes.cs)
+    EngineerScene();  // ENGINEER=strider|pylon|breach [ENGT=<s>] (ShotEngineer.cs)
     // WARDENINTRO=<s>: the Warden's entrance that far in (WardenIntro.cs): a clean arena, the Warden held in the middle (still "spawning", so it gets the entrance, not the card).
     if (Environment.GetEnvironmentVariable("WARDENINTRO") != null)
     {

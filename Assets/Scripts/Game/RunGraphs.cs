@@ -317,7 +317,7 @@ namespace Arena
             {
                 for (int pl = 0; pl < tl.Players.Count; pl++)
                     if (pl != me)
-                        GlSeries(plot, tl, tl.Series(pl, TL.Hp), tmax, 100f, GPlayers[pl % GPlayers.Length].WithAlpha(0.6f), false, 1.5f);
+                        GlSeries(plot, tl, tl.Series(pl, TL.Hp), tmax, 100f, GPlayers[pl % GPlayers.Length].WithAlpha(0.28f), false, 1.2f);  // (faint: your line is the one to read)
                 GlSeries(plot, tl, tl.Series(me, TL.Hp), tmax, 100f, GPlayers[me % GPlayers.Length], false, 2f);
                 foreach (int i in tl.DownSamples(me))
                     Circle(P2(plot.x + plot.width * tl.Samples[i].T / tmax, plot.yMax - plot.height * tl.Samples[i].Get(me, TL.Hp) / 100f), 4.5f, GRed, 10);

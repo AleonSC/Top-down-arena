@@ -309,12 +309,12 @@ namespace Arena
                 bool leading = all.Count > 1 && row.Award != null && val > 0f && val >= top;
                 string text = row.Format(p.Run);
                 float lw = CrtUi.TitleWidth(row.Label, vsize), vw = CrtUi.TitleWidth(text, vsize);
-                CrtUi.Title(new Rect(x, y, lw + 10f, 22f), row.Label, vsize, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                CrtUi.Title(new Rect(x, y, lw + 10f, 22f), row.Label, vsize, Color.Lerp(CrtUi.Dim, Color.white, 0.2f), TextAnchor.MiddleLeft, true);
                 CrtUi.Title(new Rect(x + w - vw - 10f, y, vw + 10f, 22f), text, vsize, leading ? Ui.Gold : Color.white, TextAnchor.MiddleRight, fxReduced);
                 var dotCol = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.4f);
                 for (float dx = x + lw + 12f; dx < x + w - vw - 12f; dx += 5f)  // the dot leader
                     Ui.Fill(new Rect(dx, y + 15f, 2f, 2f), dotCol);
-                if (!compact && top > 0f && row.Award != null)
+                if (!compact && top > 0f && row.Award != null && all.Count > 1)  // (a bar against the team's best: alone, every one would just be full)
                 {
                     Ui.Fill(new Rect(x, y + 22f, w, 3f), new Color(1f, 1f, 1f, 0.05f));
                     Ui.Fill(new Rect(x, y + 22f, w * Mathf.Clamp01(val / top), 3f), leading ? Ui.Gold : new Color(color.r, color.g, color.b, 0.75f));
