@@ -160,7 +160,7 @@ namespace Arena
                     float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
                     if (rel.Length > ReaverSwipeR + e.Radius + p.Def.HitR || off > ReaverCone)
                         continue;
-                    if (p.ParryActive && ParryStrike(p, e, ReaverDamage))
+                    if ((p.ParryActive || p.BbBrace) && ParryStrike(p, e, ReaverDamage))
                         continue;  // a raised guard takes it
                     Damage(p, ReaverDamage, e.Def.Name + " (swipe)");
                     RodTouched(p, e);  // LightningRod.cs

@@ -10,9 +10,15 @@ namespace Arena
     ///     1 Rim Cut (a 110° cut with the rim), 2 Backhand (a 160° return sweep), 3 Boss Slam (a 60° thrust of the boss that
     ///     shoves BbKnock[2] and stuns BbSlamStun). The next press counts once BbNext of a step has played; BbChainWindow after
     ///     a step ends without one, the chain starts over. Each step moves you in a little on your own game (LocalBulwark).
+    ///     4 Shield Throw: the press after the Boss Slam winds up (BbThrowWind) and throws the shield along your aim: it
+    ///     spins out BbThrowRange px, hangs, and comes back to you (BbThrowAt, the same path on every screen), cutting through
+    ///     every enemy it passes (once out, once back) and the small shots in its way. While it is away there is no guard and
+    ///     no Brace; the chain starts over when it is caught. The parry takes back a throw still winding up.
     ///   Alt (hold the weapon-action key; Msg.WeaponDash DashBraceOn / DashBraceOff): Brace. You move at BraceSlow, the guard
     ///     widens to 220° and every shot it stops is soaked into Ram (Player.BbRam, 0-100: BbRamShot a shot, BbRamBig a red or
-    ///     big one). Ram drains BbRamDrain a second once you have been out of the Brace for BbRamHold.
+    ///     big one). Ram drains BbRamDrain a second once you have been out of the Brace for BbRamHold. Braced, the plate also
+    ///     stops enemy melee from the front (bodies, cuts, rakes; BulwarkMelee, from ParryContact and ParryStrike): the hit is
+    ///     blocked, the enemy shoved BbMeleeShove, and BbRamMelee goes into Ram (slower than a shot; a body at most every BbMeleeGap).
     ///   Fire while braced: Shield Bash. A dash of BbBashBase + BbBashPer x Ram px along your aim (untouchable while it runs);
     ///     everything in its lane takes BbBashDmg + BbBashDmgPer x Ram (at the weapon's 12 damage), is shoved and stunned, more
     ///     with more Ram. A bash with no Ram is allowed: a short shove. At full Ram the soaked shots burst out ahead of you as up
@@ -25,15 +31,23 @@ namespace Arena
     public partial class Game
     {
         public const float BbChainWindow = 0.9f;
-        public static readonly float[] BbDur = { 0.34f, 0.38f, 0.56f };      // each step's length (at the base fire rate)
+        public static readonly float[] BbDur = { 0.34f, 0.38f, 0.56f, 0.3f };  // each step's length (at the base fire rate; 4: the throw's wind-up and release)
         public static readonly float[] BbNext = { 0.7f, 0.7f, 0.9f };       // how much of a step plays before the next press counts
         public static readonly float[] BbHitAt = { 0.4f, 0.4f, 0.38f };      // where in the step its hit lands
         public static readonly float[] BbMult = { 1f, 14f / 12f, 26f / 12f };  // each step against the weapon's Damage (12, 14, 26)
         public static readonly float[] BbArc = { 110f, 160f, 60f };          // degrees across
         public static readonly float[] BbExtraReach = { 0f, 6f, 16f };       // past the weapon's Reach
         public static readonly float[] BbKnock = { 18f, 40f, 200f };         // px shoved
-        public static readonly float[] BbStepIn = { 10f, 10f, 26f };         // px you move in (your own game)
+        public static readonly float[] BbStepIn = { 10f, 10f, 26f, 8f };     // px you move in (your own game)
         public const float BbSlamStun = 0.6f;
+
+        // The Shield Throw (step 4): wind-up, then out, a hang at the far end, and back (seconds); 18 a pass at the weapon's 12.
+        public const float BbThrowWind = 0.16f, BbThrowOut = 0.3f, BbThrowHang = 0.07f, BbThrowBack = 0.28f;
+        public const float BbThrowRange = 230f, BbThrowHitR = 24f, BbThrowMult = 18f / 12f, BbThrowKnock = 34f, BbThrowStun = 0.25f;
+        public const float BbThrowFlight = BbThrowOut + BbThrowHang + BbThrowBack, BbThrowCatchFx = 0.22f;
+
+        // Melee stopped on the braced plate.
+        public const float BbRamMelee = 4f, BbMeleeGap = 0.3f, BbMeleeShove = 70f, BbMeleeReach = 8f;
 
         public const float BbGuardGap = 12f;                                   // the plate's distance outside your body
         public const float BbGuardHalf = MathX.Pi / 2f, BbSwingHalf = 75f * MathX.Pi / 180f, BbBraceHalf = 110f * MathX.Pi / 180f;
@@ -56,6 +70,43 @@ namespace Arena
         /// Half the guard's width for `p` now: wider braced, narrower while a chain step plays.
         public static float BulwarkHalf(Player p) => p.BbBrace ? BbBraceHalf : p.BbSwingT < p.BbSwingDur ? BbSwingHalf : BbGuardHalf;
 
+        /// Where a thrown shield is `t` s after it left the hand at `from` for `apex`, coming back to `home` (the thrower now):
+        /// out fast and easing, a hang at the far end, then pulled home faster and faster. `back` once it has turned.
+        public static V2 BbThrowAt(V2 from, V2 apex, V2 home, float t, out bool back)
+        {
+            back = t >= BbThrowOut + BbThrowHang * 0.5f;
+            if (t < BbThrowOut)
+            {
+                float u = t / BbThrowOut;
+                return from + (apex - from) * (1f - (1f - u) * (1f - u) * (1f - u));
+            }
+            if (t < BbThrowOut + BbThrowHang)
+                return apex;
+            float k = Math.Min(1f, (t - BbThrowOut - BbThrowHang) / BbThrowBack);
+            return apex + (home - apex) * (k * k);
+        }
+
+        class ShieldThrow
+        {
+            public int Owner;
+            public float Wait, T, Aim, Range;
+            public V2 From, Apex;
+            public bool Flying;
+            public float Dmg;
+            public readonly HashSet<int> HitOut = new HashSet<int>(), HitBack = new HashSet<int>();
+        }
+
+        readonly List<ShieldThrow> shieldThrows = new List<ShieldThrow>();
+
+        /// Host: `p`'s shield is out of their hand (thrown, or winding up to be).
+        bool BulwarkAway(Player p)
+        {
+            foreach (var th in shieldThrows)
+                if (th.Owner == p.Id)
+                    return true;
+            return false;
+        }
+
         /// How far a Shield Bash with `ram` goes, and how long it takes.
         public static float BashLength(float ram) => BbBashBase + BbBashPer * ram;
         public static float BashTime(float ram) => BbBashTime + BbBashTimePer * ram;
@@ -77,12 +128,19 @@ namespace Arena
                 HostBulwarkBash(p, aim, dmg, extra);
                 return;
             }
+            if (BulwarkAway(p))
+                return;  // (nothing to swing until it comes back)
             var w = p.Weapon;
             int last = TwinBladesMotion.StepOf(p.Combo);
-            int step = last >= 1 && last < 3 && p.ComboT > 0f ? last + 1 : 1;
+            int step = last >= 1 && last < 4 && p.ComboT > 0f ? last + 1 : 1;
             int count = ((p.Combo >> 3) + 1) & 31;
             p.Combo = (count << 3) | step;
             float dur = BbDur[step - 1];
+            if (step == 4)
+            {
+                StartShieldThrow(p, aim, dmg, extra);
+                return;
+            }
             p.ComboT = dur + BbChainWindow;
             p.FireCd = dur * BbNext[step - 1] / FireRate(p);
             p.BbSwingT = 0f;
@@ -103,6 +161,81 @@ namespace Arena
             QueueSwing(s);
             // The whole step, drawn from its age: Radius carries who and which step.
             BroadcastFx(FxKind.BulwarkStep, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, reach), BbGlow, p.Id * 10 + step, dur + 0.2f, Sfx.None);
+        }
+
+        /// Host: the Shield Throw, the step after the Boss Slam: a wind-up (the parry can still take it back), then it flies.
+        void StartShieldThrow(Player p, float aim, float dmg, int extra)
+        {
+            var w = p.Weapon;
+            p.ComboT = BbThrowWind + 0.05f;  // (the chain starts over after it: step 4 has no next)
+            p.FireCd = BbThrowWind + BbThrowFlight;
+            p.BbSwingT = 0f;
+            p.BbSwingDur = BbThrowWind;
+            float range = BbThrowRange + w.Grow * extra;
+            shieldThrows.Add(new ShieldThrow { Owner = p.Id, Wait = BbThrowWind, Range = range, Dmg = w.Damage * dmg * BbThrowMult * (1f + 0.1f * extra) });
+            BroadcastFx(FxKind.BulwarkStep, p.Pos, p.Pos + V2.FromAngle(aim) * range, BbGlow, p.Id * 10 + 4, BbDur[3], Sfx.GreatRaise);
+        }
+
+        /// Host, every tick: wind-ups let go, thrown shields fly and cut, and come back to hand.
+        void TickShieldThrows(float dt)
+        {
+            for (int i = shieldThrows.Count - 1; i >= 0; i--)
+            {
+                var th = shieldThrows[i];
+                Player p;
+                if (!Players.TryGetValue(th.Owner, out p) || p.Downed || p.Weapon.Id != WeaponId.BulwarkBarrier || State == MatchState.GameOver)
+                {
+                    shieldThrows.RemoveAt(i);  // (back in hand at once)
+                    continue;
+                }
+                p.FireCd = Math.Max(p.FireCd, 0.1f);
+                if (!th.Flying)
+                {
+                    if ((th.Wait -= dt) > 0f)
+                        continue;
+                    if (p.StunT > 0f || p.SwallowT > 0f)
+                    {
+                        shieldThrows.RemoveAt(i);
+                        continue;
+                    }
+                    th.Flying = true;
+                    th.Aim = p.Aim;  // thrown along the aim as it leaves the hand
+                    th.From = p.Pos + V2.FromAngle(th.Aim) * BulwarkRadius(p);
+                    th.Apex = ClampToArena(th.From + V2.FromAngle(th.Aim) * th.Range, 16f);
+                    // The flight, drawn from its age: Pos where it left the hand, Pos2 its far end, Radius the thrower.
+                    BroadcastFx(FxKind.BulwarkThrow, th.From, th.Apex, BbGlow, p.Id, BbThrowFlight + BbThrowCatchFx, Sfx.LanceSweep);
+                }
+                th.T += dt;
+                bool back;
+                V2 at = BbThrowAt(th.From, th.Apex, p.Pos, th.T, out back);
+                if (th.T >= BbThrowFlight || back && at.CloserThan(p.Pos, p.Def.BodyR + 12f))
+                {
+                    shieldThrows.RemoveAt(i);
+                    p.FireCd = Math.Min(p.FireCd, 0.12f);
+                    p.Combo &= ~7;  // caught: the chain starts over at the Rim Cut
+                    p.ComboT = 0f;
+                    BroadcastSound(Sfx.GreatBlock);
+                    continue;
+                }
+                var hit = back ? th.HitBack : th.HitOut;
+                float dmg = th.Dmg * p.Stats.DmgMult;
+                foreach (var e in Enemies.Values)
+                {
+                    if (!Targetable(e) || e.Pos.FartherThan(at, e.Radius + BbThrowHitR) || !hit.Add(e.Id))
+                        continue;
+                    V2 dir = e.Pos - at;
+                    dir = dir.IsZero ? V2.FromAngle(th.Aim) : dir.Normalized();
+                    WeaponHurt(e, dmg, p.Id);
+                    ModHit(e, p.Id, dmg, Defs.KnightSlash, dir);
+                    if (!Heavy(e))
+                    {
+                        KnockEnemy(e, dir * BbThrowKnock);
+                        Stun(e, BbThrowStun);
+                    }
+                    BroadcastFx(FxKind.BulwarkBlock, e.Pos, new V2(p.Id, 3), BbSpark, e.Radius, 0.3f, Sfx.Hit);
+                }
+                CutShotsNear(at, BbThrowHitR);
+            }
         }
 
         /// Host: the Shield Bash, `p` braced and pressing Fire along `aim`. Ram sets how far, how hard and how long it stuns; at
@@ -162,7 +295,7 @@ namespace Arena
             TryRaiseBrace(p);
         }
 
-        bool CanBrace(Player p) => !p.Downed && p.StunT <= 0f && p.SwallowT <= 0f && !p.ParryActive && p.BbLock <= 0f && State != MatchState.GameOver;
+        bool CanBrace(Player p) => !BulwarkAway(p) && !p.Downed && p.StunT <= 0f && p.SwallowT <= 0f && !p.ParryActive && p.BbLock <= 0f && State != MatchState.GameOver;
 
         void TryRaiseBrace(Player p)
         {
@@ -181,6 +314,7 @@ namespace Arena
                 p.BbLock = Math.Max(0f, p.BbLock - dt);
                 p.BbSwingT = Math.Min(p.BbSwingT + dt, 5f);
                 p.BbBlockT = Math.Max(0f, p.BbBlockT - dt);
+                p.BbMeleeT = Math.Max(0f, p.BbMeleeT - dt);
                 if (p.Weapon.Id != WeaponId.BulwarkBarrier || p.Downed)
                 {
                     if (p.BbBrace || p.BbRam > 0f || p.BbStored > 0 || p.BbHeld)
@@ -200,6 +334,7 @@ namespace Arena
                         p.BbStored = 0;
                 }
             }
+            TickShieldThrows(dt);
             for (int i = bashShards.Count - 1; i >= 0; i--)
             {
                 var sh = bashShards[i];
@@ -232,7 +367,7 @@ namespace Arena
         /// it stopped (BulwarkHit then soaks or blocks it).
         bool BulwarkBlocks(Player p, Bullet b)
         {
-            if (p.Weapon.Id != WeaponId.BulwarkBarrier || p.Downed || p.SwallowT > 0f)
+            if (p.Weapon.Id != WeaponId.BulwarkBarrier || p.Downed || p.SwallowT > 0f || BulwarkAway(p))
                 return false;
             float r = BulwarkRadius(p) + b.Radius;
             V2 rel = b.Pos - p.Pos;
@@ -262,7 +397,33 @@ namespace Arena
                 BroadcastFx(FxKind.BulwarkBlock, at, new V2(p.Id, 0), BbSpark, b.Radius, 0.25f, sound ? Sfx.Clang : Sfx.None);
         }
 
-        /// Raising the parry cancels the chain: back to the Rim Cut, a step still winding up never lands.
+        /// Host, from ParryContact and ParryStrike: an enemy's melee (`strike`: a cut or rake, which reaches past the plate's
+        /// edge, so only the side counts) meeting the braced plate from the front. Blocked: the enemy is shoved back and the
+        /// blow goes into Ram, slower than a shot. True when it stopped there.
+        bool BulwarkMelee(Player p, Enemy e, float dmg, bool strike)
+        {
+            if (!p.BbBrace || p.Weapon.Id != WeaponId.BulwarkBarrier || p.Downed || p.SwallowT > 0f)
+                return false;
+            V2 rel = e.Pos - p.Pos;
+            float reach = BulwarkRadius(p) + e.Radius + BbMeleeReach;
+            if (!strike && rel.LengthSq > reach * reach || AngleTo(p.Pos, e.Pos, p.Aim) >= BulwarkHalf(p))
+                return false;
+            if (!strike && p.BbMeleeT > 0f)
+                return true;  // (a body leaning on the plate counts once every BbMeleeGap)
+            p.BbMeleeT = BbMeleeGap;
+            V2 dir = rel.IsZero ? V2.FromAngle(p.Aim) : rel.Normalized();
+            bool wasFull = p.BbRam >= BbRamMax - 0.01f;
+            p.BbRam = Math.Min(BbRamMax, p.BbRam + BbRamMelee * p.Stats.BbRamMult);
+            bool nowFull = !wasFull && p.BbRam >= BbRamMax - 0.01f;
+            if (!Heavy(e))
+                KnockEnemy(e, dir * BbMeleeShove);
+            p.BbIdle = 0f;
+            BroadcastFx(FxKind.BulwarkBlock, p.Pos + dir * BulwarkRadius(p), new V2(p.Id, 2), BbGlow, e.Radius, 0.4f, nowFull ? Sfx.GreatFull : Sfx.Clang);
+            return true;
+        }
+
+        /// Raising the parry cancels the chain: back to the Rim Cut, a step still winding up never lands, and a throw still
+        /// winding up stays in hand.
         void ResetBulwarkChain(Player p)
         {
             p.Combo &= ~7;
@@ -270,6 +431,7 @@ namespace Arena
             p.FireCd = 0f;
             p.BbSwingT = 5f;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Bulwark >= 1 && s.Bulwark <= 3 && s.Delay > 0f);
+            shieldThrows.RemoveAll(th => th.Owner == p.Id && !th.Flying);
         }
 
         // --- Your own game ------------------------------------------------------------------------------------------
@@ -313,15 +475,17 @@ namespace Arena
             {
                 bulwarkCountSeen = count;
                 int step = TwinBladesMotion.StepOf(me.Combo);
-                if (step >= 1 && step <= 3 && !me.Downed && me.StunT <= 0f && !me.Parrying)
+                if (step >= 1 && step <= 4 && !me.Downed && me.StunT <= 0f && !me.Parrying)
                 {
                     float dur = BbDur[step - 1];
                     bulwarkStepDir = V2.FromAngle(me.Aim);
                     bulwarkStepFwd = BbStepIn[step - 1];
                     bulwarkStepTime = dur * 0.3f;
-                    bulwarkStepWait = dur * (step == 3 ? 0.3f : 0.12f);
+                    bulwarkStepWait = step == 4 ? BbThrowWind * 0.7f : dur * (step == 3 ? 0.3f : 0.12f);
                 }
             }
+            if (me.Parrying)
+                bulwarkStepWait = -1f;  // (the parry takes back a step's move-in too)
             if (!mine)
                 return false;
             if (pressed || released)
