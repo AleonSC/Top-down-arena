@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arena Design Map</title>
+<style>
+:root{--bg:#0b1220;--panel:#111a2e;--line:#27385c;--fg:#cfe3ff;--dim:#7d93bd;--acc:#5cf2c4}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:13px ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
+#bar{position:fixed;top:0;left:0;right:0;height:42px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;gap:6px;align-items:center;padding:0 8px;z-index:5;overflow-x:auto;white-space:nowrap}
+button,select,input,textarea{font:inherit;background:#0b1220;color:var(--fg);border:1px solid var(--line);padding:4px 8px;border-radius:3px}
+button{cursor:pointer}button:hover{border-color:var(--acc)}
+#side{position:fixed;top:42px;right:0;bottom:0;width:280px;background:var(--panel);border-left:1px solid var(--line);padding:10px;z-index:4;display:none;flex-direction:column;gap:8px}
+#side textarea{flex:1;resize:none}
+svg{position:fixed;top:42px;left:0;width:100%;height:calc(100% - 42px);cursor:grab}
+.node rect{stroke-width:1.5;rx:4}.node text{pointer-events:none;fill:#fff;font-size:12px}
+.node.sel rect{stroke:#fff;stroke-width:3}.node.dim{opacity:.15}
+.edge{stroke:#4a6296;stroke-width:1.2;fill:none;opacity:.6}.edge.hl{stroke:var(--acc);opacity:1;stroke-width:2.5}
+.port{fill:var(--acc);cursor:crosshair}
+.legend span{display:inline-flex;align-items:center;gap:3px;cursor:pointer;margin-right:2px;padding:2px 5px;border:1px solid var(--line);border-radius:3px}
+.legend span.off{opacity:.35}.legend i{width:9px;height:9px;display:inline-block;border-radius:2px}
+</style></head><body>
+<div id="bar">
+ <button id="add">+ Node</button><button id="layout">Auto-layout</button><button id="fit">Fit</button>
+ <input id="q" placeholder="search…" size="14">
+ <span class="legend" id="legend"></span>
+ <span style="flex:1"></span>
+ <button id="save">Save JSON</button><button id="load">Load JSON</button><button id="reset">Reset to seed</button>
+ <span style="color:var(--dim)" id="count"></span><input type="file" id="file" hidden accept=".json">
+</div>
+<svg id="svg"><g id="vp"><g id="edges"></g><g id="nodes"></g><line id="tmp" stroke="#5cf2c4" stroke-dasharray="4" visibility="hidden"/></g></svg>
+<div id="side">
+ <input id="nm" placeholder="name"><select id="ty"></select>
+ <select id="st"><option>idea</option><option>planned</option><option>built</option><option>cut</option></select>
+ <textarea id="nt" placeholder="notes…"></textarea>
+ <div style="color:var(--dim)">Drag the green dot to another node to link. Click a link's mid-dot… or select two nodes and press the button to unlink.</div>
+ <div id="links" style="overflow:auto;max-height:140px"></div>
+ <button id="del">Delete node</button>
+</div>
+<script src="seed.js"></script>
+<script>
+const TYPES={Role:"#d9822b",Class:"#c0479a",Weapon:"#3a7bd5",Ability:"#2fa37a",Enemy:"#b84a4a",Boss:"#8a2be2",System:"#6b7a99",Idea:"#c9a227"};
+const STATUS_DASH={idea:"5 3",planned:"2 2",built:"",cut:"1 4"};
+const W=150,H=30,KEY="arenaDesignMap.v1";
+let S,sel=null,hidden=new Set(),view={x:20,y:20,k:1};
+const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg";
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S)reset(true)}
+function reset(q){S=JSON.parse(JSON.stringify(window.SEED||{nodes:[],edges:[]}));layout();if(!q)render()}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function layout(){const cols={};Object.keys(TYPES).forEach((t,i)=>cols[t]={i,n:0});
+ const by={};S.nodes.forEach(n=>{(by[n.type]=by[n.type]||[]).push(n)});let x=0;
+ for(const t of Object.keys(TYPES)){const a=by[t]||[];if(!a.length)continue;const per=Math.ceil(Math.sqrt(a.length*0.55));
+  a.forEach((n,i)=>{n.x=x+Math.floor(i/per)*(W+14);n.y=(i%per)*(H+10)+0});x+=(Math.ceil(a.length/per))*(W+14)+60}}
+function byId(i){return S.nodes.find(n=>n.id===i)}
+function render(){
+ const vp=$("vp");vp.setAttribute("transform",`translate(${view.x} ${view.y}) scale(${view.k})`);
+ const q=$("q").value.toLowerCase(),E=$("edges"),N=$("nodes");E.innerHTML="";N.innerHTML="";
+ const vis=n=>!hidden.has(n.type);
+ S.edges.forEach(([a,b])=>{const A=byId(a),B=byId(b);if(!A||!B||!vis(A)||!vis(B))return;
+  const hl=sel&&(sel===a||sel===b);if(sel&&!hl&&S.nodes.length>60)return;
+  el("line",{class:"edge"+(hl?" hl":""),x1:A.x+W/2,y1:A.y+H/2,x2:B.x+W/2,y2:B.y+H/2},E)});
+ let shown=0;
+ S.nodes.filter(vis).forEach(n=>{shown++;const m=!q||n.name.toLowerCase().includes(q)||(n.notes||"").toLowerCase().includes(q);
+  const g=el("g",{class:"node"+(sel===n.id?" sel":"")+(m?"":" dim"),transform:`translate(${n.x} ${n.y})`},N);
+  el("rect",{width:W,height:H,fill:TYPES[n.type]||"#444",stroke:"#000","stroke-dasharray":STATUS_DASH[n.status]||"",opacity:n.status==="cut"?.45:1},g);
+  const t=el("text",{x:7,y:19},g);t.textContent=n.name.length>22?n.name.slice(0,21)+"…":n.name;
+  g.addEventListener("pointerdown",e=>startDrag(e,n));
+  const p=el("circle",{class:"port",cx:W,cy:H/2,r:5},g);p.addEventListener("pointerdown",e=>startLink(e,n))});
+ $("count").textContent=`${shown} nodes · ${S.edges.length} links`;
+ const side=$("side");side.style.display=sel?"flex":"none";
+ if(sel){const n=byId(sel);if(n){if(document.activeElement.id!=="nm")$("nm").value=n.name;$("ty").value=n.type;$("st").value=n.status||"idea";if(document.activeElement.id!=="nt")$("nt").value=n.notes||"";
+  $("links").innerHTML="";S.edges.filter(e=>e.includes(sel)).forEach(e=>{const o=byId(e[0]===sel?e[1]:e[0]);if(!o)return;
+   const b=document.createElement("div");b.textContent="✕ "+o.name;b.style.cursor="pointer";b.onclick=()=>{S.edges=S.edges.filter(x=>x!==e);persist();render()};$("links").appendChild(b)})}}
+ persist()}
+const pt=e=>({x:(e.clientX-view.x)/view.k,y:(e.clientY-42-view.y)/view.k});
+function startDrag(e,n){e.stopPropagation();sel=n.id;const s=pt(e),ox=n.x,oy=n.y;let moved=false;
+ const mv=ev=>{const p=pt(ev);n.x=ox+p.x-s.x;n.y=oy+p.y-s.y;moved=true;render()};
+ const up=()=>{removeEventListener("pointermove",mv);removeEventListener("pointerup",up);render()};
+ addEventListener("pointermove",mv);addEventListener("pointerup",up);render()}
+function startLink(e,n){e.stopPropagation();const t=$("tmp");t.setAttribute("visibility","visible");
+ const mv=ev=>{const p=pt(ev);t.setAttribute("x1",n.x+W/2);t.setAttribute("y1",n.y+H/2);t.setAttribute("x2",p.x);t.setAttribute("y2",p.y)};
+ const up=ev=>{removeEventListener("pointermove",mv);removeEventListener("pointerup",up);t.setAttribute("visibility","hidden");
+  const p=pt(ev),o=S.nodes.find(m=>m!==n&&!hidden.has(m.type)&&p.x>=m.x&&p.x<=m.x+W&&p.y>=m.y&&p.y<=m.y+H);
+  if(o&&!S.edges.some(x=>x.includes(n.id)&&x.includes(o.id)))S.edges.push([n.id,o.id]);render()};
+ mv(e);addEventListener("pointermove",mv);addEventListener("pointerup",up)}
+$("svg").addEventListener("pointerdown",e=>{sel=null;const sx=e.clientX,sy=e.clientY,ox=view.x,oy=view.y;
+ const mv=ev=>{view.x=ox+ev.clientX-sx;view.y=oy+ev.clientY-sy;render()};
+ const up=()=>{removeEventListener("pointermove",mv);removeEventListener("pointerup",up)};
+ addEventListener("pointermove",mv);addEventListener("pointerup",up);render()});
+$("svg").addEventListener("wheel",e=>{e.preventDefault();const k=Math.min(3,Math.max(.1,view.k*(e.deltaY<0?1.1:.9)));
+ const mx=e.clientX,my=e.clientY-42;view.x=mx-(mx-view.x)*k/view.k;view.y=my-(my-view.y)*k/view.k;view.k=k;render()},{passive:false});
+$("svg").addEventListener("dblclick",e=>{if(e.target.id!=="svg")return;const p=pt(e);addNode(p.x-W/2,p.y-H/2)});
+function addNode(x,y){const n={id:"n"+Date.now(),type:"Idea",name:"New idea",notes:"",status:"idea",x:x??(-view.x+200)/view.k,y:y??(-view.y+200)/view.k};
+ S.nodes.push(n);sel=n.id;render();$("nm").focus();$("nm").select()}
+function fit(){const a=S.nodes.filter(n=>!hidden.has(n.type));if(!a.length)return;
+ const x0=Math.min(...a.map(n=>n.x)),x1=Math.max(...a.map(n=>n.x+W)),y0=Math.min(...a.map(n=>n.y)),y1=Math.max(...a.map(n=>n.y+H));
+ const w=innerWidth-(sel?280:0),h=innerHeight-42;view.k=Math.min(2,Math.min(w/(x1-x0+40),h/(y1-y0+40)));view.x=20-x0*view.k;view.y=20-y0*view.k;render()}
+$("nm").oninput=e=>{byId(sel).name=e.target.value;render()};$("nt").oninput=e=>{byId(sel).notes=e.target.value;persist()};
+$("ty").onchange=e=>{byId(sel).type=e.target.value;render()};$("st").onchange=e=>{byId(sel).status=e.target.value;render()};
+$("del").onclick=()=>{if(!confirm("Delete this node?"))return;S.nodes=S.nodes.filter(n=>n.id!==sel);S.edges=S.edges.filter(e=>!e.includes(sel));sel=null;render()};
+$("add").onclick=()=>addNode();$("layout").onclick=()=>{layout();fit()};$("fit").onclick=fit;$("q").oninput=render;
+$("reset").onclick=()=>{if(confirm("Discard your map and reload the game's seed data?")){reset();fit()}};
+$("save").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:"application/json"}));a.download="design-map.json";a.click()};
+$("load").onclick=()=>$("file").click();
+$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d.nodes||!d.edges)throw 0;S=d;sel=null;render();fit()}catch(x){alert("Not a design map file")}})};
+addEventListener("keydown",e=>{if(e.key==="Delete"&&sel&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))$("del").click()});
+$("ty").innerHTML=Object.keys(TYPES).map(t=>`<option>${t}</option>`).join("");
+Object.keys(TYPES).forEach(t=>{const s=document.createElement("span");s.innerHTML=`<i style="background:${TYPES[t]}"></i>${t}`;
+ s.onclick=()=>{hidden.has(t)?hidden.delete(t):hidden.add(t);s.classList.toggle("off");render()};$("legend").appendChild(s)});
+load();render();fit();
+</script></body></html>
