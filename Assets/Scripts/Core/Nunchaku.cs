@@ -60,6 +60,7 @@ namespace Arena
                 s.Thrust = true;
                 s.Heavy = true;
                 p.FireCd = NunCounterCd / FireRate(p);
+                p.NunAttackT = c.Dur;  // the discs are down while the chucks lash out (TickNunchaku)
                 BroadcastFx(FxKind.NunStep, p.Pos, p.Pos + V2.FromAngle(aim) * NunCounterReach, NunCrimson, p.Id * 10 + 5, c.Dur + NunchakuMotion.Recover, Sfx.SwingLight);
                 BroadcastFx(FxKind.NunCounter, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, NunCounterReach), NunCrimson, Math.Min(NunSwatCap, p.NunSwats), c.Dur * NunCounterAt + 0.35f, Sfx.None);
                 p.NunSwats = 0;
@@ -164,6 +165,8 @@ namespace Arena
                 p.NunGuard = false;  // (the guard drops with what held it)
                 return;
             }
+            if ((p.NunAttackT -= dt) > 0f)
+                return;  // mid-counter: the chucks are lashing out, not spinning, so nothing is swatted
             float r = NunDisc(p);
             V2 dR = NunDiscAt(p.Pos, p.Aim, true), dL = NunDiscAt(p.Pos, p.Aim, false);
             nunSwatted.Clear();
