@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// The Ninja: quick and lightly protected (85% health, 12% faster), with thrown blades and fast melee for
-    /// every role. Tanks misdirect (clones, smoke, Iron Body), healers keep the party up from close by (mist,
+    /// every role. Tanks misdirect (clones, smoke, Ceremonial Armor), healers keep the party up from close by (mist,
     /// swapping places, wards), and DPS strike from the shadows (Shadow Step, Vanish's ambush, Blade Fan).
     public partial class Game
     {
@@ -41,7 +41,6 @@ namespace Arena
         const int ThousandClonesCount = 12, ThousandClonesCapstone = 20;
         const float CloneSpacing = 140f, CloneNinjaGap = 90f, CloneEdge = 60f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
-        const float IronTime = 2f, IronCut = 0.8f, IronWaveRadius = 140f, IronWaveDamage = 50f;
         const float SubShield = 60f, SubShieldTime = 6f, WardRadius = 140f, WardTime = 8f;
         const float VanishTime = 3f, AmbushGrace = 1f, FanDamage = 18f, KunaiBonus = 0.5f;
         public const float OrbitTime = 4f, BladeOrbitR = 60f, OrbitTurns = 2.2f, OrbitSpin = 0.25f, OrbitCutGap = 0.5f, OrbitBladeR = 8f;  // Blade Fan: how long the kunai circle you, how far out, turns a second, how long they take to spiral out, the gap between cuts on one enemy, a kunai's reach
@@ -324,8 +323,8 @@ namespace Arena
                 Apply = s => { s.CloneBonusTime += 2f; s.CloneHpMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",
                 Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Iron Body lasts 1 s longer and its shockwave hits 50% harder",
-                Apply = s => { s.IronBonusTime += 1f; s.IronWaveMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Ceremonial Armor's plates have 50% more health",
+                Apply = s => s.PlateHpMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingDash, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Dash's footprints heal 50% more and are 25% bigger",
                 Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
@@ -382,9 +381,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.IronBody, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2,
-                Name = "Iron Body", Cooldown = 12f, Desc = "For 2 s you take 80% less damage, then a shockwave hits everything within 140 px for 50.",
-                Capstone = "The shockwave also erases enemy bullets within 160 px.",
-                Bot = b => b.Danger,
+                Name = "Ceremonial Armor", Cooldown = 2.5f, Desc = "Summon a lacquered armour plate that circles you until it breaks: up to 10, 4 on an inner ring and 6 further out. Each has 45 health, stops the enemy bullets it touches and pushes enemies away. With all 10 up you take 20% less damage.",
+                Capstone = "A plate that breaks bursts for 30 damage to enemies within 60 px.",
+                Bot = b => b.Me.PlateN < Game.CerePlateMax,
             },
             new AbilityDef
             {
@@ -473,11 +472,8 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.4f, Sfx.Throw);
                     return true;
                 }
-                case AbilityId.IronBody:
-                    p.IronT = IronTime + s.IronBonusTime;
-                    p.IronPower = pw * s.IronWaveMult;
-                    p.IronMastered = cap;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.75f, 0.78f, 0.85f), 50f, 0.35f, Sfx.Clang);
+                case AbilityId.IronBody:  // Ceremonial Armor (CeremonialArmor.cs)
+                    SummonCerePlate(p, pw, cap);
                     return true;
                 case AbilityId.HealingDash:
                 {
@@ -1463,7 +1459,7 @@ namespace Arena
 
         // --- Timed effects ---------------------------------------------------------------
 
-        /// Host, every tick: Vanish and Iron Body run down (Iron Body ends in a shockwave), Blossom Storm heals
+        /// Host, every tick: Vanish runs down, Ceremonial Armor's plates turn and block, Blossom Storm heals
         /// and clears bullets, and Shadow Clones about to end burst.
         public const float HealDashTime = 3f, HealDashTimeMastered = 4.5f, FootprintLife = 6f, FootprintStep = 64f, FootprintRadius = 40f, FootprintHeal = 12f;  // Healing Dash: the sprint, how long a footprint lasts, the gap between them, their radius, healing a second
         public const float WardSoakMax = 150f, WardRepay = 0.25f;           // Spirit Ward: the damage it takes for allies; the share it heals back when it ends
@@ -1560,21 +1556,8 @@ namespace Arena
                 TickOrbit(p, dt);
                 p.AmbushT = Math.Max(0f, p.AmbushT - dt);
                 if (p.Downed)
-                    p.VanishT = p.AmbushT = p.IronT = 0f;
-                if (p.IronT > 0f)
-                {
-                    p.IronT -= dt;
-                    if (p.IronT <= 0f)
-                    {
-                        p.IronT = 0f;
-                        foreach (var e in Enemies.Values)
-                            if (e.SpawnT <= 0f && e.Pos.CloserThan(p.Pos, IronWaveRadius + e.Radius))
-                                HurtEnemy(e, IronWaveDamage * p.Stats.DmgMult * p.IronPower, p.Id);
-                        if (p.IronMastered)
-                            EraseEnemyBullets(p.Pos, 160f);
-                        BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.8f, 0.82f, 0.9f), IronWaveRadius, 0.35f, Sfx.Shockwave);
-                    }
-                }
+                    p.VanishT = p.AmbushT = 0f;
+                TickCereArmor(p, dt);  // Ceremonial Armor's plates (CeremonialArmor.cs)
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BlossomStorm)
                     foreach (var q in Players.Values)
                     {
@@ -1597,8 +1580,5 @@ namespace Arena
                 BroadcastFx(FxKind.Boom, m.Pos, Kits.Get(MinionKind.Clone).Color, CloneBurstRadius, 0.35f, Sfx.Explode);
             }
         }
-
-        /// Iron Body's damage cut (applied in Damage).
-        static float IronBodyCut(Player p) => p.IronT > 0f ? IronCut : 0f;
     }
 }

@@ -405,6 +405,7 @@ namespace Arena
                 BuildKineticWall();  // KineticWallSoundBank.cs
                 BuildCover();  // CoverSoundBank.cs
                 BuildDogma();  // DogmaSoundBank.cs
+                BuildCeremonialArmor();  // CeremonialArmorSoundBank.cs
             }
             catch (Exception ex)
             {
