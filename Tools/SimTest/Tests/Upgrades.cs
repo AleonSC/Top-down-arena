@@ -39,7 +39,7 @@ static partial class Program
                 for (int u = 1; u < Upgrades.UltKeys; u++)  // the other keys of the lobby's Ultimate row (the Juggernaut Suit)
                     if (Upgrades.AltUltimate(role, (Kit)k, u) != AbilityId.None)
                         placed.Add(Upgrades.AltUltimate(role, (Kit)k, u));
-                for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
+                for (int c = 0; c < Upgrades.AbilityLimit(role, (Kit)k); c++)  // (a 4th where the class has one: Flood)
                     placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
             }
         bool lobby = placed.Distinct().Count() == placed.Count && placed.All(a => a != AbilityId.None)
@@ -407,17 +407,17 @@ static partial class Program
         int right = 0, combos = 0;
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
-                for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
+                for (int c = 0; c < Upgrades.AbilityLimit(role, (Kit)k); c++)
                 {
                     var ab = Upgrades.RoleAbility(role, (Kit)k, c);
                     var offered = cards.Where(i => Upgrades.Available(i, new OfferCtx(role, ab, new List<int>()))).Select(i => Upgrades.All[i].Grants).OrderBy(x => x).ToList();
-                    var expect = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Where(o => o != c).Select(o => Upgrades.RoleAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
+                    var expect = Enumerable.Range(0, Upgrades.AbilityLimit(role, (Kit)k)).Where(o => o != c).Select(o => Upgrades.RoleAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
                     combos++;
                     if (offered.SequenceEqual(expect))
                         right++;
                 }
         Console.WriteLine("  class ability cards: {0} cards; the right two offered for {1}/{2} role/class/ability picks", cards.Count, right, combos);
-        Check(cards.Count == 3 * Defs.KitCount * Upgrades.RoleAbilityChoices && right == combos, "each class is offered exactly its two other Space abilities as very rare cards");
+        Check(cards.Count == 3 * Defs.KitCount * Upgrades.RoleAbilityChoices + 1 && right == combos, "each class is offered exactly its other Space abilities (two, or three with a 4th) as very rare cards");
 
         var rng = new Random(7);
         int veryRare = 0, cls = 0;
