@@ -1331,6 +1331,7 @@ namespace Arena
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
+            TickPistolWhip(dt); // PistolWhip.cs: the Revolver's Alt cooling down
             dmgSrc = tickSrc;
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle

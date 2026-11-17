@@ -812,6 +812,31 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // WHIP=<s>: the Revolver's Pistol Whip (Core/PistolWhip.cs, Game/PistolWhipLook.cs) that long into a fight: grunts in the arc and a
+    // spray of small and big enemy shots flying in, Alt pressed 0.1 s in (WHIPIDLE=1: no press).
+    if (Environment.GetEnvironmentVariable("WHIP") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.WeaponOf(WeaponId.Pistol); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      foreach (var at in new[] { new V2(95f, -55f), new V2(110f, 20f), new V2(60f, 85f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; }
+      for (int i = 0; i < 9; i++) {
+        float a = -1.3f + 2.6f * i / 8f; V2 from = home + V2.FromAngle(a) * (175f + 20f * (i % 3));
+        shoot.Invoke(gm, new object[] { i % 4 == 0 ? Defs.BigShot : Defs.SmallShot, from, (home - from).Normalized() * 160f, 0f, 5f, 10f, -1, false, 0f }); }
+      bool idle = Environment.GetEnvironmentVariable("WHIPIDLE") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("WHIP"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), WeaponAction = !idle && f >= 6 && f < 9 }); gm.Update(1f / 60f);
+        me.Disp = me.Pos = home; me.Aim = 0f; me.Hp = me.MaxHp; foreach (var e in gm.Enemies.Values) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // DOUBLEBARREL=<s>: the Soldier DPS's Double Barrel (Core/DoubleBarrel.cs, Game/DoubleBarrelLook.cs) that long into a fight: three dummies in a line,
     // fire held (DBBOTH=1: Alt pressed 0.3 s in, both barrels at once; DBIDLE=1: not firing, the model at rest).
     if (Environment.GetEnvironmentVariable("DOUBLEBARREL") != null) {

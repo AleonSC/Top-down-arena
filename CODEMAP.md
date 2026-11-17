@@ -79,6 +79,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 ## Combat (Core)
 - `Combat.cs`: bullets, collisions, damage to players/enemies, on-hit/on-kill, burn, orbs
 - `Weapons.cs`: fire rate, firing, volleys, range, Revolver, Mender's Bow
+- `PistolWhip.cs`, `Game/PistolWhipLook.cs`: the Revolver's Alt, the Pistol Whip (`DashWhip` over `Msg.WeaponDash`, `HostPistolWhip`: a Knight swing, 190° and 135 px, that cuts all enemy shots, hits for 1.75x and shoves back; host `Player.WhipCd`, 4 s; `FxKind.PistolWhip` lives the cooldown so `WhipCooldown` reads it on every screen); the look: a brass crescent in the glow pass, sparks and a landing flash, the hand swinging the gun (`WhipHandPose`), the cooldown arc over your head (`DrawWhipReady`); preview `WHIP=<s>`; test suite `pistolwhip`
 - `Slows.cs`: enemy slows (`Slow`: every slow source; the strongest slow plus a backup that takes over, `TickSlow`)
 - `RunReset.cs`: `ResetRunLists`, called by `Stop`: clears the per-run lists keyed by enemy id (swings, stuck stars, shocks, ink, steering)
 - `Abilities.cs`, `Ultimates.cs`, `Mastery.cs`: Soldier abilities, the 12 ultimates (second ultimates: `LightningRod.cs`), ability XP/levels

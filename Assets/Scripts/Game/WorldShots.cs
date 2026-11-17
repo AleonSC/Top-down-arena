@@ -469,6 +469,7 @@ namespace Arena
             int left = Math.Max(0, cap - p.AmmoUsed);
             float r = p.Def.BodyR + 13f;
             var gold = new Rgba(1f, 0.8f, 0.3f);
+            DrawWhipReady(p);  // the Pistol Whip's cooldown over your head (PistolWhipLook.cs)
             if (p.ReloadT > 0f)
             {
                 float f = 1f - MathX.Clamp01(p.ReloadT / Game.RevolverReload);

@@ -404,6 +404,7 @@ static partial class Program
         Test("tankalts", "the Tank Soldier's Alt fires: Double Barrel (shells from point-blank hits, both at once, the kick), Proximity Shell (lies at the cursor, bursts under an enemy), Tear Gas (suppresses to the cap and slows)", () => TankAltTest(Dt)),
         Test("twinnades", "the Twin Rifle's grenade tubes: hits load two, Alt fires left then right, the order holds through a refill", () => TwinGrenadeTest(Dt)),
         Test("grenadelauncher", "the Grenade Launcher: HE bursts at the cursor (less at the rim), six to a drum then a reload, Alt swaps to smoke, the cloud jams a regular enemy and slows it, a mini-boss is only slowed, three canisters back one per 6 s, the other screen sees it", () => GrenadeLauncherTest(Dt)),
+        Test("pistolwhip", "the Revolver's Pistol Whip: Alt swings a wide arc that hurts and shoves back what's in it, destroys enemy shots in it (big ones too), cools down 4 s, works from a client's key", () => PistolWhipTest(Dt)),
         Test("doublebarrel", "the Double Barrel: left then right barrel, 9 pellets each that pierce, two shells then a break-open reload, Alt fires both, damage falls off with range, the other screen sees the reload", () => DoubleBarrelTest(Dt)),
         Test("arclock", "Arc Lightning's lock-on chain: holding tags the enemy in the cone nearest the cursor, up to ten, tags stick outside the cone, letting go chains through them in order for 16 + 4 a tag and a stun, nothing tagged fizzles; Forked Volley hits the three nearest the cursor, then cools down", () => ArcLockTest(Dt)),
         Test("honeybee", "the Honeybee Staff: a bee hatches at the cursor, buzzes, stings the nearest enemy once and dies (or fizzles), the cap, Swarm, held Alt sprays honey puddles that slow and drain the meter, an enemy dying in honey bursts into free bees, the other screen sees it, Bigger Hive", () => HoneybeeTest(Dt)),
@@ -512,7 +513,7 @@ static partial class Program
     {
         "swordsman", "nonshooters", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
+        "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };

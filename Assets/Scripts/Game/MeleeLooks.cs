@@ -287,6 +287,7 @@ namespace Arena
         /// The glow pass (Juice.DrawGlowPass, additive): every melee effect's energy.
         void DrawMeleeGlow()
         {
+            DrawPistolWhipGlow();  // the Revolver's Pistol Whip (PistolWhipLook.cs)
             foreach (var fx in game.Effects)
             {
                 if (!meleeSeen.ContainsKey(fx))
