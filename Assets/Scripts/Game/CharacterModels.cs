@@ -451,7 +451,7 @@ namespace Arena
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
-                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: hold = 2; break;
+                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
@@ -583,6 +583,9 @@ namespace Arena
                     MLine(16f, -4f, 20f, -1f + j, 1.3f, MWhite); MLine(20f, -1f + j, 14f, 1f - j, 1.3f, MWhite); MLine(14f, 1f - j, 16f, 4f, 1.3f, MWhite);
                     break;
                 }
+                case WeaponId.EmbolusSpears:  // a blood javelin in each hand, arms out (EmbolusLook.cs)
+                    DrawEsHeld(p, mHeldTube, t);
+                    break;
                 case WeaponId.Stonespear:  // a chunk of basalt in the hand, amber in its seams (StonespearLook.cs)
                     MPoly(Hx(0x3b3632), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 8f, 6f, 14f, 5f);
                     MPoly(Hx(0x7d746a), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 11f, 0f);

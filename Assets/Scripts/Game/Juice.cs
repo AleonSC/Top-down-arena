@@ -372,6 +372,8 @@ namespace Arena
                     Shake(0.3f);  // a Stonespear slam shakes the ground near you
                 if (fx.Kind == FxKind.HoneyHarvest && me != null && (int)fx.Pos2.X == me.Id)
                     Shake(0.2f);  // your harvest bursting
+                if (fx.Kind == FxKind.EmbolusBlast && me != null && (int)fx.Pos2.X == me.Id)
+                    Shake(0.25f);  // your Embolus Spears bursting (EmbolusLook.cs)
                 KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)

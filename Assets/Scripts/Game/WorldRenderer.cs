@@ -621,6 +621,7 @@ namespace Arena
             DrawPlayer(p, t);
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
+            DrawEmbolus(p, t);  // the Embolus Spears out of the hands (EmbolusLook.cs)
             DrawHoneySpray(p, t);  // the Honeybee Staff's spray (HoneybeeLook.cs)
             if (game.IsHunted(p) && !p.Downed)
                 DrawHuntedMark(p.Disp, p.Def.BodyR, t);  // ModifiersUi.cs

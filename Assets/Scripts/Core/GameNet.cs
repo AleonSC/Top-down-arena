@@ -710,6 +710,12 @@ namespace Arena
             s.Bool(ref p.HoneyOn);
             s.Bool(ref p.NunGuard);  // the Nunchaku (Nunchaku.cs)
             s.Byte(ref p.NunSwats);
+            for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
+            {
+                s.Byte(ref p.EsSt[k]);
+                s.Vec(ref p.EsPos[k]);
+                s.Vec(ref p.EsDir[k]);
+            }
             int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags (ArcLock.cs)
             s.Byte(ref tagged);
             if (s.Reading)

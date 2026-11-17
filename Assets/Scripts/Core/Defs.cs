@@ -146,6 +146,8 @@ namespace Arena
         Nunchaku,
         // the Tank Elementalist's fourth (WindClash.cs)
         WindClash,
+        // the Hemomancer DPS's fourth (EmbolusSpears.cs): a blood spear in each hand
+        EmbolusSpears,
     }
 
     public class WeaponDef

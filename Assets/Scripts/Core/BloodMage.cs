@@ -784,12 +784,18 @@ namespace Arena
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
             new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Speed = 1000f, Life = 0.9f, Damage = 60f, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
                 Desc = "A heavy spear that pierces enemies. Each throw costs a little health, but the spear stays stuck where it stops, and walking over it gives the health back." },
+            new WeaponDef { Id = WeaponId.EmbolusSpears, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
+                Desc = "Arms out, a hardened blood spear in each hand. Fire throws the left, then the right, for 20% of your max health each: they pierce every enemy and stick in the wall. "
+                    + "Fire again to recall both: they pierce again on the way back and give the health back. Alt bursts them where they are instead, for half the health back.",
+                Sound = Sfx.Throw, AreaDesc = "the burst 25% wider" },
         };
 
         /// The Blood Mage's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] HemomancerCards =
         {
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.EmbolusSpears }, MaxStacks = 2, Name = "Burst Vessels", Desc = "The Embolus Spears' burst is 30% wider and hits 30% harder",
+                Apply = s => s.EsBlastMult += 0.3f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",
                 Apply = s => s.ShellBonus += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Blood Wall stands 2 s longer and its drain doubles 1 s slower",

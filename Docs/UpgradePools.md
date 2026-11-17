@@ -220,6 +220,7 @@ One Rare card per Blood Mage weapon (`Weapons = { that weapon }`, `MaxStacks = 2
 | Vein Tether | Lifeline | 15% more of the beam's damage heals (40% → 55%) |
 | Blood Bolts | Hemophilia | Blood Bolts burst an enemy one bleed stack sooner (5 → 4), 30% wider |
 | Implosion | Event Horizon | Pulls enemies in from 30% farther, and the crush hits 40% harder |
+| Embolus Spears | Burst Vessels | The burst is 30% wider and hits 30% harder |
 | Bone Spear | Marrow | The spear pierces 1 more enemy, and picking it up gives 3 more health |
 
 Built (owner approved all nine): in `Game.HemomancerCards`. Hooks (all in `BloodMage.cs`): the lash's reach and

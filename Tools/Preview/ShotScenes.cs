@@ -928,6 +928,39 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // EMBOLUS=<s>: the Hemomancer DPS's Embolus Spears (Core/EmbolusSpears.cs, Game/EmbolusLook.cs) that long into the mockup's loop:
+    // clicks at 0 and 0.3 s (left spear, right spear; they stick in the right edge), 1.7 s (recall), 2.6 and 2.9 s (both again),
+    // Alt at 4.1 s (they burst), hardening back by 4.6 s. ESAIM=<deg>: aim that far down from straight right.
+    if (Environment.GetEnvironmentVariable("EMBOLUS") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Hemomancer; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(330f, 300f); me.Pos = me.Disp = home; me.Aim = 0f;
+      float zoom = Environment.GetEnvironmentVariable("ZOOM") != null ? float.Parse(Environment.GetEnvironmentVariable("ZOOM"), ci) : 1f;
+      float tilt = Environment.GetEnvironmentVariable("ESAIM") != null ? float.Parse(Environment.GetEnvironmentVariable("ESAIM"), ci) * MathX.Pi / 180f : 0f;
+      V2 cursor = home + V2.FromAngle(tilt) * 600f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(150f, -14f), new V2(260f, 16f), new V2(370f, -36f), new V2(450f, 60f), new V2(520f, 8f), new V2(300f, -110f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0.Rotated(tilt), 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("EMBOLUS"), ci) * 60f));
+      Func<float, float, bool> At = (tt, c) => tt >= c && tt < c + 2f / 60f;
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        bool fire = At(tt, 0f) || At(tt, 0.3f) || At(tt, 1.7f) || At(tt, 2.6f) || At(tt, 2.9f);
+        bool alt = tt >= 4.1f && tt < 4.1f + 3f / 60f;
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = me.Disp = home; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos;
+        if (zoom > 1f) { typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, zoom); typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, home + new V2(260f, 0f)); }
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // NUNCHAKU=<s>: the Ninja DPS's Nunchaku, Twin Storm (Core/Nunchaku.cs, Game/NunchakuLook.cs) that long into the mockup's loop: Fire held
     // from 0 to 1.85 s (Snap, Backhand, Double Figure-8, Twin Crush), Alt at 2.1 s (the Twin Windmill guard; small shots fly in from
     // the right from 2.2 s and are swatted), Fire at 3.7 s (the Twin Counter), Alt again at 4.5 s.
