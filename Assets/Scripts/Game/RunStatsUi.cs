@@ -43,7 +43,10 @@ namespace Arena
                 if (statsTab == 0)
                     DrawRunSoFar(me);
                 else if (statsTab == 3)
+                {
+                    invFromPause = fromPause;
                     DrawInventory(me);  // InventoryUi.cs
+                }
                 else
                     DrawTeam(me, t);
             }
