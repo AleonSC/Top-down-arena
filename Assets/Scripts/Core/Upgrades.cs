@@ -35,6 +35,8 @@ namespace Arena
         Flood,        // the Tank Elementalist's fourth Space ability (Flood.cs), the lobby's 4th ability key
         AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
         KineticWall,  // the Elementalist DPS's fourth Space ability (KineticWall.cs), the lobby's 4th ability key
+        WaterWard,    // the Healer Elementalist's fourth Space ability (WaterWard.cs), the lobby's 4th ability key
+        DeployableCover,  // the Tank Soldier's fourth Space ability (DeployableCover.cs), the lobby's 4th ability key
         DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
         None = 255,
     }
@@ -105,6 +107,8 @@ namespace Arena
         public float KwChargeMult = 1f;                                    // Kinetic Wall: Momentum Bank
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
+        public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating
+        public float WwDmgMult = 1f, WwWetBonus;                           // Water Ward: Deep Current
         // Summoner abilities
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor

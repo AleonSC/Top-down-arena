@@ -1,0 +1,531 @@
+<title>Sound Forge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a synth rack on a dark CRT bench. Header strip (name, play, export), scope, preset row, three layer modules, an FX module. */
+:root {
+  --bg: #0b0f14; --panel: #121821; --panel2: #18202b; --line: #243042;
+  --fg: #d7e2ee; --dim: #7f91a6; --accent: #39e6c8; --warm: #ffb347; --hot: #ff5c7a;
+  --l1: #39e6c8; --l2: #ffb347; --l3: #b48cff;
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--fg); }
+body { margin: 0; font: 14px/1.45 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 14px; }
+h1 { font: 700 22px/1 var(--display); letter-spacing: .06em; margin: 0; text-transform: uppercase; }
+h1 span { color: var(--accent); }
+h2 { font: 700 13px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; margin: 0; color: var(--dim); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.bar .grow { flex: 1 1 auto; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0; }
+button, select, input[type=text], input[type=number], textarea {
+  font: 500 13px var(--body); color: var(--fg); background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; padding: 7px 10px;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button.primary { background: var(--accent); color: #04211c; border-color: var(--accent); font-weight: 700; }
+button.primary:hover { filter: brightness(1.1); }
+button.warm { border-color: var(--warm); color: var(--warm); }
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label, .lbl { font: 600 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+#name { width: 230px; font-family: var(--mono); }
+#take { width: 64px; font-family: var(--mono); }
+.file { font: 600 13px var(--mono); color: var(--warm); }
+.scope { position: relative; }
+canvas { display: block; width: 100%; height: 150px; background: #070a0e; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; }
+#refCanvas { height: 70px; margin-top: 8px; }
+.meta { font: 12px var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button { font-size: 12px; padding: 6px 10px; }
+.layers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 900px) { .layers { grid-template-columns: 1fr; } }
+.layer { border-top: 3px solid var(--c); }
+.layer.off { opacity: .45; }
+.layer header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.layer header h2 { color: var(--c); flex: 1; }
+.group { display: grid; gap: 6px; padding: 8px 0; border-top: 1px dashed var(--line); }
+.group.na { opacity: .35; }
+.group:first-of-type { border-top: 0; padding-top: 0; }
+.row { display: grid; grid-template-columns: 78px minmax(0, 1fr) 66px; align-items: center; gap: 8px; }
+.row .val { font: 12px var(--mono); text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); }
+input[type=range] { width: 100%; accent-color: var(--c, var(--accent)); }
+.fx { --c: var(--hot); }
+.fxgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+@media (max-width: 700px) { .fxgrid { grid-template-columns: 1fr; } #name { width: 100%; } }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--dim); }
+.help { color: var(--dim); font-size: 13px; max-width: 75ch; }
+.help code { font-family: var(--mono); color: var(--fg); }
+textarea { width: 100%; min-height: 90px; font-family: var(--mono); font-size: 12px; }
+#status { font: 12px var(--mono); color: var(--accent); min-height: 1em; }
+details summary { cursor: pointer; font: 700 13px var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="bar">
+    <h1>Sound <span>Forge</span></h1>
+    <span class="grow"></span>
+    <span class="meta">Top-Down Arena &middot; 44.1 kHz mono 16-bit WAV</span>
+  </div>
+
+  <div class="panel bar">
+    <div class="field"><label for="name">Game sound</label><input id="name" type="text" list="sfxNames" spellcheck="false" autocomplete="off"></div>
+    <div class="field"><label for="take">Take</label><input id="take" type="number" min="0" max="99" value="0"></div>
+    <div class="field"><label for="takes">Takes to export</label><input id="takes" type="number" min="1" max="8" value="1" style="width:70px"></div>
+    <div class="field"><span class="lbl">File</span><span class="file" id="fileName"></span></div>
+    <span class="grow"></span>
+    <button id="play" class="primary" title="Space">&#9654; Play</button>
+    <button id="export" class="warm">Export WAV</button>
+  </div>
+  <datalist id="sfxNames"></datalist>
+
+  <div class="panel scope">
+    <canvas id="wave" width="1200" height="150" aria-label="Waveform of the current sound"></canvas>
+    <div class="bar" style="margin-top:8px">
+      <span class="meta" id="info"></span>
+      <span class="grow"></span>
+      <label class="toggle"><input type="checkbox" id="autoplay" checked> Play on change</label>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div class="panel">
+    <div class="bar" style="margin-bottom:8px"><h2>Start from</h2><span class="grow"></span>
+      <button id="mutate">Mutate</button><button id="random">Random</button><button id="undo">Undo</button></div>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <div class="layers" id="layers"></div>
+
+  <div class="panel fx">
+    <header class="bar" style="margin-bottom:10px"><h2 style="color:var(--hot);flex:1">Output</h2>
+      <label class="toggle"><input type="checkbox" id="normalize"> Normalize to -1 dB</label></header>
+    <div class="fxgrid" id="fx"></div>
+  </div>
+
+  <div class="panel">
+    <details>
+      <summary>Compare, share, how to use</summary>
+      <div style="display:grid;gap:12px;margin-top:12px">
+        <div class="bar"><span class="lbl">Reference WAV</span><input type="file" id="refFile" accept=".wav,audio/*"><button id="refPlay" disabled>&#9654; Play reference</button></div>
+        <canvas id="refCanvas" width="1200" height="70" hidden></canvas>
+        <div class="field"><label for="json">Settings (copy to share or to ask Claude for a code recipe; paste to load)</label><textarea id="json" spellcheck="false"></textarea></div>
+        <div class="bar"><button id="copyJson">Copy settings</button><button id="loadJson">Load pasted settings</button></div>
+        <p class="help">
+          Pick a <b>Game sound</b> (the names are the game's <code>Sfx</code> list) and export. Put the WAV in the game's
+          <code>sounds</code> folder (<code>persistentDataPath/sounds</code>, read at startup) or in <code>Assets/Resources/Sfx</code>
+          to ship it. It replaces that sound and keeps its volume slider. Takes: <code>ShotRifle_1.wav</code>, <code>ShotRifle_2.wav</code>...
+          are played in turn; <b>Takes to export</b> makes that many, each with a small random pitch change (Variation) and new noise.
+          The reference loads any WAV (for example one from <code>Tools/SoundCheck/render.sh</code>) to compare by ear.
+        </p>
+      </div>
+    </details>
+  </div>
+</div>
+
+<script>
+"use strict";
+const SR = 44100;
+const SFX_NAMES = /*SFX-NAMES*/["EnemyShot","Hit","Hurt","Explode","BigExplode","Ability","Shockwave","Blink","LevelUp","Pick","WaveStart","WaveClear","GameOver","Downed","Revive","ShotShotgun","ShotCannon","ShotRifle","ShotPistol","ShotBow","ShotAssault","ShotSniper","ShotSmg","ShotTurret","ShotNova","Pickup","PickupBig","Roar","Victory","SpellFire","SpellFrost","SpellZap","SpellArcane","SpellHoly","Throw","Summon","Freeze","SwingLight","SwingHeavy","Clang","BossShift","BossCharge","BossPulse","BossChime","BossLaserWarn","BossLaser","BossSlam","BossWhoosh","BossSiren","BossBuzz","BossSplat","BossGong","BossScythe","BossThunder","BossWarp","BossRumble","BossCrack","BossCage","BossChomp","PickRise","PickCardOut","PickCardLand","PickRare","PickReturn","PickAbsorb","LaunchSweep","LaunchRipple","LaunchBeam","LaunchLand","LaunchHud","PauseType","PauseSettle","PauseClose","ShotRepulse","SpellChainCone","SpellChainArc","RadiantCast","RadiantTouch","RadiantFade","ZombieGroan","ZombieRise","ZombieSpit","ZombieGrab","ZombieShriek","ZombieBurst","ZombieMend","ProfSelect","ProfSweep","ProfSweepBack","ProfScratch","ProfBar","ProfChord","TitleKey","TitleSpace","TitleEnter","MenuHover","BayBeep","BayServo","BayServoBack","BayClamp","BayZap","BayWhirr","BayTick","BayLift","BaySeat","BayClack","CrtPower","CrtType","CrtLine","CrtSweep","CrtReady","DiskLift","DiskFly","DiskTip","DiskSlide","DiskEject","DiskClick","DiskRead","DiskReady","SwarmerChomp","SwarmerDie","SpikerFlip","SpikerStab","SpikerDie","BruteStep","BruteGrunt","BruteBash","BruteDie","LungerTell","LungerLeap","LungerLand","LungerDie","SawWhirr","SawDie","SpikeBlockRock","SpikeBlockShake","SpikeBlockLunge","SpikeBlockRest","SpikeBlockDie","SwarmerPatter","SpikerSkitter","LungerPad","ShotKunai","NinjaBlink","NinjaStepCast","NinjaStepStrike","NinjaVanish","NinjaFanOpen","NinjaFanBurst","NinjaLotusCast","KatanaSwipe1","KatanaSwipe2","KatanaWindup","KatanaLunge","KatanaHit","KatanaStrikeCut","KatanaChain1","KatanaChain2","KatanaChain3","KatanaChain4","KatanaChain5","SwingRoot","ShotSeed","ShotSeedHit","GreatWindup","GreatRaise","GreatBlock","GreatFull","GreatRend","TwinCut1","TwinCut2","TwinJab","TwinSpin","TwinShear","TwinHit","TwinHitHeavy","TwinThrow","TwinCross","TwinCatch","LightCut1","LightCut2","LightNoon","LightRadiant","LightHit","LightHeal","LightWard","LanceGather","LanceRelease","LanceFizzle","CenserSweep1","CenserSweep2","CenserWhirl","CenserHit","CenserHitHeavy","CenserBless","CenserBell","CenserThrow","CenserLand","CenserCatch","LanceJab","LanceSweep","LanceBreach","LanceHitSfx","LanceHitHeavy","LanceImpactSfx","LanceWall","LanceHookOut","LanceHaul","PerfectParry","KatanaStanceSwap","DodgeSwish","KatanaBurstSfx","KatanaCaltrops","KatanaFling","TankDouble","TankShellLoad","TankMineLaunch","TankMineArm","TankMineBurst","TankGasLaunch","TankGasHiss","SpellPullStart","SpellPullHum","SpellPullStop","KnuckleJab","KnuckleHook","KnuckleUpper","KnuckleSlam","KnuckleCounter","KnuckleArm","KnuckleRocket","KnuckleRocketHit","KnuckleGrab","KnuckleThrow","KnuckleImpact","KnuckleImpactHeavy","GreatStarThrow","GreatStarCatch","WallHum","NovaBurst","TurretDeploy","TurretFold","RainCast","RainPatter","RainEnd","StoneThrow","StoneWind","StoneSlam","StoneHit","StoneStick","StepThump","StepTick","UiHover","UiClick","WallPush","ArcTag","ArcHop","ArcCrack","ArcFork","ArcFizzle","ArcHum","ShotFireball","ShotFireballBurn","NunSnap","NunBack","NunFig8","NunCrush","NunCounter","NunHit","NunGuard","NunSwat","HeliRotor","HeliShot","HeliSpin","FloodCast","FloodLap","FloodDrain"]/*END*/;
+
+// ---------- parameters ----------
+const WAVES = ["sine", "triangle", "square", "saw", "noise", "pink", "brown"];
+// [key, label, min, max, log, unit, digits]
+const LAYER_GROUPS = [
+  ["Pitch", [["f0","Start",20,12000,1,"Hz",0],["f1","End",20,12000,1,"Hz",0],["curve","Glide",0.1,4,1,"",2],["vib","Vibrato",0,0.5,0,"",2],["vibRate","Vib rate",0.5,40,1,"Hz",1],["pw","Pulse",0.05,0.95,0,"",2]]],
+  ["Metal (FM)", [["fmDepth","Amount",0,8,0,"",2],["fmRatio","Ratio",0.25,8,1,"",2]]],
+  ["Envelope", [["delay","Delay",0,1,0,"s",3],["attack","Attack",0,1,0,"s",3],["hold","Hold",0,1,0,"s",3],["decay","Decay",0.005,3,1,"s",3],["dcurve","Punch",0.3,5,1,"",2]]],
+  ["Filter", [["lp0","Low-pass",40,20000,1,"Hz",0],["lp1","to",40,20000,1,"Hz",0],["q","Resonance",0.5,12,1,"",1],["hp","High-pass",20,4000,1,"Hz",0]]],
+  ["Mix", [["vol","Volume",0,1,0,"",2]]],
+];
+const FX_PARAMS = [["drive","Drive",0,1,0,"",2],["bits","Bit depth",2,16,0,"bit",0],["down","Downsample",1,16,0,"x",0],["echoTime","Echo time",0.02,0.6,0,"s",3],["echoFb","Repeats",0,0.85,0,"",2],["echoMix","Echo mix",0,1,0,"",2],["gain","Gain",-24,6,0,"dB",1],["vary","Variation",0,20,0,"%",1]];
+const PARAM = {};
+for (const g of LAYER_GROUPS) for (const p of g[1]) PARAM[p[0]] = p;
+for (const p of FX_PARAMS) PARAM[p[0]] = p;
+
+function L(o) {
+  return Object.assign({ on: true, wave: "square", f0: 440, f1: 440, curve: 1, vib: 0, vibRate: 6, pw: 0.5, fmDepth: 0, fmRatio: 2,
+    delay: 0, attack: 0.002, hold: 0.02, decay: 0.2, dcurve: 1.5, lp0: 20000, lp1: 20000, q: 0.7, hp: 20, vol: 0.8 }, o);
+}
+const OFF = () => L({ on: false });
+function FX(o) { return Object.assign({ drive: 0, bits: 16, down: 1, echoTime: 0.12, echoFb: 0, echoMix: 0, gain: -3, vary: 4 }, o); }
+
+const PRESETS = {
+  "Gunshot": () => ({ layers: [L({ wave: "noise", lp0: 7000, lp1: 700, q: 1.2, attack: 0.001, hold: 0.008, decay: 0.2, dcurve: 2.5, vol: 1 }), L({ wave: "square", f0: 260, f1: 55, curve: 0.5, hold: 0, decay: 0.09, lp0: 2500, lp1: 400, vol: 0.55 }), L({ on: false, wave: "brown", decay: 0.4, lp0: 600, lp1: 120, vol: 0.5 })], fx: FX({ drive: 0.35 }) }),
+  "Laser": () => ({ layers: [L({ wave: "saw", f0: 1900, f1: 180, curve: 0.6, hold: 0.01, decay: 0.24, lp0: 9000, lp1: 2000, vol: 0.7 }), L({ wave: "square", f0: 950, f1: 90, curve: 0.6, decay: 0.2, pw: 0.25, vol: 0.35 }), OFF()], fx: FX({ echoTime: 0.07, echoFb: 0.25, echoMix: 0.25 }) }),
+  "Explosion": () => ({ layers: [L({ wave: "brown", attack: 0.004, hold: 0.05, decay: 1.2, dcurve: 2, lp0: 1400, lp1: 120, q: 1, vol: 1 }), L({ wave: "noise", hold: 0.01, decay: 0.35, dcurve: 2.5, lp0: 5000, lp1: 300, vol: 0.6 }), L({ wave: "sine", f0: 90, f1: 28, curve: 0.5, hold: 0.04, decay: 0.7, vol: 0.9 })], fx: FX({ drive: 0.15, gain: -2 }) }),
+  "Hit": () => ({ layers: [L({ wave: "noise", hold: 0.004, decay: 0.07, dcurve: 2.5, lp0: 4000, lp1: 600, vol: 0.8 }), L({ wave: "triangle", f0: 320, f1: 80, curve: 0.5, hold: 0.005, decay: 0.11, vol: 0.9 }), OFF()], fx: FX({ drive: 0.2 }) }),
+  "Thump": () => ({ layers: [L({ wave: "sine", f0: 150, f1: 38, curve: 0.4, hold: 0.01, decay: 0.28, vol: 1 }), L({ wave: "noise", hold: 0, decay: 0.03, lp0: 500, lp1: 200, vol: 0.5 }), OFF()], fx: FX({ drive: 0.25 }) }),
+  "Pickup": () => ({ layers: [L({ wave: "square", f0: 880, f1: 880, hold: 0.05, decay: 0.06, pw: 0.3, lp0: 6000, lp1: 6000, vol: 0.5 }), L({ wave: "square", f0: 1320, f1: 1320, delay: 0.06, hold: 0.06, decay: 0.16, pw: 0.3, lp0: 6000, lp1: 6000, vol: 0.5 }), OFF()], fx: FX({ echoTime: 0.09, echoFb: 0.2, echoMix: 0.2 }) }),
+  "Power up": () => ({ layers: [L({ wave: "square", f0: 220, f1: 1300, curve: 1, attack: 0.01, hold: 0.32, decay: 0.12, vib: 0.04, vibRate: 14, pw: 0.35, lp0: 5000, lp1: 9000, vol: 0.5 }), L({ wave: "triangle", f0: 440, f1: 2600, curve: 1, attack: 0.01, hold: 0.32, decay: 0.12, vol: 0.4 }), OFF()], fx: FX({ echoTime: 0.11, echoFb: 0.3, echoMix: 0.25 }) }),
+  "UI click": () => ({ layers: [L({ wave: "sine", f0: 1400, f1: 1100, attack: 0.001, hold: 0.004, decay: 0.035, vol: 0.7 }), L({ wave: "noise", hold: 0, decay: 0.008, hp: 2500, vol: 0.25 }), OFF()], fx: FX({ vary: 2 }) }),
+  "Whoosh": () => ({ layers: [L({ wave: "pink", attack: 0.14, hold: 0.02, decay: 0.26, dcurve: 1.2, lp0: 350, lp1: 3200, q: 3.5, vol: 1 }), OFF(), OFF()], fx: FX({ gain: -1 }) }),
+  "Zap": () => ({ layers: [L({ wave: "saw", f0: 600, f1: 2100, curve: 0.7, hold: 0.04, decay: 0.16, fmDepth: 2, fmRatio: 3.5, lp0: 8000, lp1: 3000, vol: 0.6 }), L({ wave: "noise", hold: 0.02, decay: 0.12, hp: 3000, vol: 0.25 }), OFF()], fx: FX({ bits: 6, down: 2 }) }),
+  "Clang": () => ({ layers: [L({ wave: "sine", f0: 520, f1: 500, attack: 0.001, hold: 0, decay: 0.9, dcurve: 2.5, fmDepth: 1.6, fmRatio: 2.76, vol: 0.7 }), L({ wave: "triangle", f0: 1420, f1: 1400, hold: 0, decay: 0.5, dcurve: 2.5, fmDepth: 1.2, fmRatio: 1.41, vol: 0.4 }), L({ wave: "noise", hold: 0, decay: 0.02, hp: 1500, vol: 0.5 })], fx: FX({ drive: 0.1 }) }),
+  "Alarm": () => ({ layers: [L({ wave: "square", f0: 700, f1: 700, attack: 0.01, hold: 0.5, decay: 0.08, vib: 0.18, vibRate: 7, pw: 0.5, lp0: 3500, lp1: 3500, vol: 0.5 }), OFF(), OFF()], fx: FX() }),
+};
+
+// ---------- state ----------
+let state = PRESETS["Gunshot"]();
+state.name = "ShotRifle"; state.normalize = true;
+const history = [];
+function snapshot() { history.push(JSON.stringify(state)); if (history.length > 50) history.shift(); }
+try { const s = localStorage.getItem("soundforge"); if (s) state = sanitize(JSON.parse(s)); } catch (e) {}
+
+function sanitize(s) {
+  const out = { name: typeof s.name === "string" ? s.name : "ShotRifle", normalize: !!s.normalize, layers: [], fx: FX() };
+  for (let i = 0; i < 3; i++) {
+    const src = (s.layers && s.layers[i]) || { on: false };
+    const l = L();
+    for (const k in l) if (k in src) l[k] = k === "on" ? !!src[k] : k === "wave" ? (WAVES.includes(src[k]) ? src[k] : "square") : clampP(k, +src[k]);
+    out.layers.push(l);
+  }
+  if (s.fx) for (const k in out.fx) if (k in s.fx) out.fx[k] = clampP(k, +s.fx[k]);
+  return out;
+}
+function clampP(k, v) { const p = PARAM[k]; if (!p || !isFinite(v)) return p ? p[2] : 0; return Math.min(p[3], Math.max(p[2], v)); }
+
+// ---------- synthesis ----------
+function rng(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; }; }
+function polyblep(t, dt) {
+  if (t < dt) { t /= dt; return t + t - t * t - 1; }
+  if (t > 1 - dt) { t = (t - 1) / dt; return t * t + t + t + 1; }
+  return 0;
+}
+function layerLength(l) { return l.delay + l.attack + l.hold + l.decay; }
+
+function renderLayer(l, out, rand, pitch) {
+  const dur = l.attack + l.hold + l.decay, n = Math.floor(dur * SR), start = Math.floor(l.delay * SR);
+  let ph = rand(), mph = 0, ic1 = 0, ic2 = 0, hpPrev = 0, hpOut = 0;
+  let b0 = 0, b1 = 0, b2 = 0, brown = 0;
+  const hpA = 1 / (1 + 2 * Math.PI * l.hp / SR);
+  const k = 1 / l.q;
+  for (let i = 0; i < n && start + i < out.length; i++) {
+    const t = i / SR, u = t / dur;
+    let f = l.f0 * Math.pow(l.f1 / l.f0, Math.pow(u, l.curve)) * pitch;
+    if (l.vib > 0) f *= 1 + l.vib * Math.sin(2 * Math.PI * l.vibRate * t);
+    f = Math.min(f, SR * 0.45);
+    let v;
+    const w = l.wave;
+    if (w === "noise") v = rand() * 2 - 1;
+    else if (w === "pink") { const x = rand() * 2 - 1; b0 = 0.99765 * b0 + x * 0.099046; b1 = 0.963 * b1 + x * 0.2965164; b2 = 0.57 * b2 + x * 1.0526913; v = (b0 + b1 + b2 + x * 0.1848) * 0.25; }
+    else if (w === "brown") { brown = (brown + (rand() * 2 - 1) * 0.04) * 0.998; v = brown * 1.3; }
+    else {
+      const dt = f / SR;
+      let p = ph;
+      if (l.fmDepth > 0) { p += l.fmDepth * Math.sin(2 * Math.PI * mph) / (2 * Math.PI); mph += dt * l.fmRatio; mph -= Math.floor(mph); }
+      p -= Math.floor(p);
+      if (w === "sine") v = Math.sin(2 * Math.PI * p);
+      else if (w === "triangle") v = 1 - 4 * Math.abs(p - 0.5);
+      else if (w === "saw") v = 2 * p - 1 - polyblep(p, dt);
+      else { let q = p + 1 - l.pw; q -= Math.floor(q); v = (p < l.pw ? 1 : -1) + polyblep(p, dt) - polyblep(q, dt); }
+      ph += dt; ph -= Math.floor(ph);
+    }
+    // envelope
+    let env;
+    if (t < l.attack) env = t / l.attack;
+    else if (t < l.attack + l.hold) env = 1;
+    else env = Math.pow(Math.max(0, 1 - (t - l.attack - l.hold) / l.decay), l.dcurve);
+    // low-pass (TPT state variable filter, swept)
+    const fc = Math.min(l.lp0 * Math.pow(l.lp1 / l.lp0, u), SR * 0.45);
+    if (fc < 19999 || l.q > 0.71) {
+      const g = Math.tan(Math.PI * fc / SR), a1 = 1 / (1 + g * (g + k)), a2 = g * a1, a3 = g * a2;
+      const v3 = v - ic2, v1 = a1 * ic1 + a2 * v3, v2 = ic2 + a2 * ic1 + a3 * v3;
+      ic1 = 2 * v1 - ic1; ic2 = 2 * v2 - ic2; v = v2;
+    }
+    // high-pass (one pole)
+    if (l.hp > 21) { hpOut = hpA * (hpOut + v - hpPrev); hpPrev = v; v = hpOut; }
+    out[start + i] += v * env * l.vol;
+  }
+}
+
+function render(s, seed, pitch) {
+  const on = s.layers.filter(l => l.on && l.vol > 0);
+  let len = 0.05;
+  for (const l of on) len = Math.max(len, layerLength(l));
+  const fx = s.fx;
+  if (fx.echoMix > 0 && fx.echoFb >= 0) {
+    const repeats = fx.echoFb > 0 ? Math.ceil(Math.log(0.01) / Math.log(fx.echoFb)) : 1;
+    len += Math.min(3, fx.echoTime * Math.max(1, repeats));
+  }
+  len = Math.min(len, 6);
+  const out = new Float32Array(Math.ceil(len * SR) + 1);
+  const rand = rng(seed);
+  for (const l of on) renderLayer(l, out, rand, pitch);
+  // drive
+  if (fx.drive > 0) { const d = 1 + fx.drive * 14, nrm = 1 / Math.tanh(d); for (let i = 0; i < out.length; i++) out[i] = Math.tanh(out[i] * d) * nrm; }
+  // bit crush and downsample
+  if (fx.bits < 16 || fx.down > 1) {
+    const steps = Math.pow(2, fx.bits - 1), hold = Math.round(fx.down); let held = 0;
+    for (let i = 0; i < out.length; i++) { if (i % hold === 0) held = Math.round(out[i] * steps) / steps; out[i] = held; }
+  }
+  // echo
+  if (fx.echoMix > 0) {
+    const d = Math.max(1, Math.round(fx.echoTime * SR)), buf = new Float32Array(out.length);
+    for (let i = 0; i < out.length; i++) { const e = i >= d ? buf[i - d] : 0; buf[i] = out[i] + e * fx.echoFb; out[i] += e * fx.echoMix; }
+  }
+  // level
+  let peak = 0;
+  for (let i = 0; i < out.length; i++) peak = Math.max(peak, Math.abs(out[i]));
+  const gain = s.normalize ? (peak > 0 ? 0.891 / peak : 1) : Math.pow(10, fx.gain / 20);
+  for (let i = 0; i < out.length; i++) out[i] = Math.max(-1, Math.min(1, out[i] * gain));
+  // trim silence, short fade
+  let end = out.length;
+  while (end > 1 && Math.abs(out[end - 1]) < 0.0008) end--;
+  end = Math.min(out.length, end + Math.floor(SR * 0.005));
+  const res = out.slice(0, end), fade = Math.min(res.length, Math.floor(SR * 0.004));
+  for (let i = 0; i < fade; i++) res[res.length - 1 - i] *= i / fade;
+  return { data: res, peak: peak * gain };
+}
+
+// ---------- WAV and ZIP ----------
+function wavBytes(data) {
+  const n = data.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVE"); str(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, SR, true);
+  v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, "data"); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.round(Math.max(-1, Math.min(1, data[i])) * 32767), true);
+  return new Uint8Array(buf);
+}
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipBytes(files) {
+  const parts = [], central = []; let off = 0;
+  for (const f of files) {
+    const name = new TextEncoder().encode(f.name), crc = crc32(f.bytes), size = f.bytes.length;
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, name.length, true);
+    parts.push(new Uint8Array(h.buffer), name, f.bytes);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint32(16, crc, true); c.setUint32(20, size, true); c.setUint32(24, size, true); c.setUint16(28, name.length, true); c.setUint32(42, off, true);
+    central.push(new Uint8Array(c.buffer), name);
+    off += 30 + name.length + size;
+  }
+  let csize = 0; for (const c of central) csize += c.length;
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, csize, true); e.setUint32(16, off, true);
+  const all = [...parts, ...central, new Uint8Array(e.buffer)];
+  let total = 0; for (const a of all) total += a.length;
+  const z = new Uint8Array(total); let p = 0; for (const a of all) { z.set(a, p); p += a.length; }
+  return z;
+}
+
+// ---------- audio ----------
+let ctx = null, current = null, playing = null, playStart = 0, seed = 12345;
+function audio() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); return ctx; }
+function playData(data) {
+  const a = audio();
+  if (playing) try { playing.stop(); } catch (e) {}
+  const b = a.createBuffer(1, data.length, SR); b.getChannelData(0).set(data);
+  const src = a.createBufferSource(); src.buffer = b; src.connect(a.destination); src.start();
+  playing = src; playStart = a.currentTime;
+  requestAnimationFrame(drawCursor);
+}
+
+// ---------- drawing ----------
+const wave = document.getElementById("wave"), wctx = wave.getContext("2d");
+function drawWave(cv, data, color, cursor) {
+  const c = cv.getContext("2d"), W = cv.width, H = cv.height;
+  c.fillStyle = "#070a0e"; c.fillRect(0, 0, W, H);
+  c.strokeStyle = "#1a2433"; c.lineWidth = 1;
+  for (let x = 0; x < W; x += W / 12) { c.beginPath(); c.moveTo(x + 0.5, 0); c.lineTo(x + 0.5, H); c.stroke(); }
+  c.beginPath(); c.moveTo(0, H / 2 + 0.5); c.lineTo(W, H / 2 + 0.5); c.stroke();
+  if (!data || !data.length) return;
+  c.fillStyle = color;
+  const per = data.length / W;
+  for (let x = 0; x < W; x++) {
+    let mn = 1, mx = -1; const a = Math.floor(x * per), b = Math.max(a + 1, Math.floor((x + 1) * per));
+    for (let i = a; i < b && i < data.length; i++) { const v = data[i]; if (v < mn) mn = v; if (v > mx) mx = v; }
+    if (mx < mn) continue;
+    const y0 = (1 - mx) * H / 2, y1 = (1 - mn) * H / 2;
+    c.fillRect(x, y0, 1, Math.max(1, y1 - y0));
+  }
+  if (cursor != null) { c.fillStyle = "#ffffff"; c.fillRect(Math.floor(cursor * W), 0, 2, H); }
+}
+function drawCursor() {
+  if (!current || !ctx) return;
+  const t = (ctx.currentTime - playStart) * SR / current.data.length;
+  drawWave(wave, current.data, "#39e6c8", t < 1 ? t : null);
+  if (t < 1) requestAnimationFrame(drawCursor);
+}
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+function fmt(p, v) { return (p[6] === 0 ? Math.round(v) : v.toFixed(p[6])) + (p[5] ? " " + p[5] : ""); }
+function toSlider(p, v) { return p[4] ? Math.log(v / p[2]) / Math.log(p[3] / p[2]) * 1000 : (v - p[2]) / (p[3] - p[2]) * 1000; }
+function fromSlider(p, s) { const u = s / 1000; let v = p[4] ? p[2] * Math.pow(p[3] / p[2], u) : p[2] + (p[3] - p[2]) * u; if (p[6] === 0) v = Math.round(v); return v; }
+
+function sliderRow(obj, p, idPrefix) {
+  const row = document.createElement("div"); row.className = "row";
+  const id = idPrefix + p[0];
+  row.innerHTML = '<label class="lbl" for="' + id + '">' + p[1] + '</label><input type="range" id="' + id + '" min="0" max="1000" step="1"><span class="val"></span>';
+  const r = row.children[1], val = row.children[2];
+  const sync = () => { r.value = toSlider(p, obj()[p[0]]); val.textContent = fmt(p, obj()[p[0]]); };
+  r.addEventListener("pointerdown", snapshot);
+  r.addEventListener("keydown", snapshot);
+  r.addEventListener("input", () => { obj()[p[0]] = fromSlider(p, +r.value); val.textContent = fmt(p, obj()[p[0]]); changed(false); });
+  r.addEventListener("change", () => changed(true));
+  r.addEventListener("dblclick", () => { snapshot(); const d = p[0] in FX() ? FX()[p[0]] : L()[p[0]]; obj()[p[0]] = d; sync(); changed(true); });
+  syncers.push(sync);
+  return row;
+}
+const syncers = [];
+function buildUI() {
+  const lay = $("layers");
+  ["--l1", "--l2", "--l3"].forEach((c, i) => {
+    const el = document.createElement("div"); el.className = "panel layer"; el.style.setProperty("--c", "var(" + c + ")"); el.id = "layer" + i;
+    const head = document.createElement("header");
+    head.innerHTML = '<input type="checkbox" id="on' + i + '" aria-label="Layer ' + (i + 1) + ' on"><h2>Layer ' + (i + 1) + '</h2><select id="wave' + i + '" aria-label="Layer ' + (i + 1) + ' wave">' + WAVES.map(w => "<option>" + w + "</option>").join("") + "</select>";
+    el.appendChild(head);
+    const on = head.children[0], ws = head.children[2];
+    on.addEventListener("change", () => { snapshot(); state.layers[i].on = on.checked; changed(true); });
+    ws.addEventListener("change", () => { snapshot(); state.layers[i].wave = ws.value; changed(true); });
+    syncers.push(() => { on.checked = state.layers[i].on; ws.value = state.layers[i].wave; el.classList.toggle("off", !state.layers[i].on); });
+    for (const g of LAYER_GROUPS) {
+      const grp = document.createElement("div"); grp.className = "group";
+      grp.innerHTML = '<span class="lbl" style="color:var(--c)">' + g[0] + "</span>";
+      for (const p of g[1]) grp.appendChild(sliderRow(() => state.layers[i], p, "l" + i + "_"));
+      if (g[0] === "Pitch" || g[0] === "Metal (FM)") syncers.push(() => grp.classList.toggle("na", ["noise", "pink", "brown"].includes(state.layers[i].wave)));
+      el.appendChild(grp);
+    }
+    lay.appendChild(el);
+  });
+  const fx = $("fx");
+  for (const p of FX_PARAMS) fx.appendChild(sliderRow(() => state.fx, p, "fx_"));
+  const pr = $("presets");
+  for (const k in PRESETS) {
+    const b = document.createElement("button"); b.textContent = k;
+    b.addEventListener("click", () => { snapshot(); const n = state.name, z = state.normalize; state = PRESETS[k](); state.name = n; state.normalize = z; syncAll(); changed(true); });
+    pr.appendChild(b);
+  }
+  $("sfxNames").innerHTML = SFX_NAMES.map(n => '<option value="' + n + '">').join("");
+}
+function syncAll() {
+  for (const s of syncers) s();
+  $("name").value = state.name; $("normalize").checked = state.normalize;
+  $("fx_gain").disabled = state.normalize;
+}
+
+function fileBase() { return ($("name").value.trim() || "Sound").replace(/[^A-Za-z0-9_]/g, ""); }
+function fileFor(take) { return fileBase() + (take > 0 ? "_" + take : "") + ".wav"; }
+function updateName() {
+  const n = fileBase(), takes = +$("takes").value || 1, t0 = +$("take").value || 0;
+  $("fileName").textContent = takes > 1 ? fileFor(Math.max(1, t0)) + " ... " + fileFor(Math.max(1, t0) + takes - 1) : fileFor(t0);
+  const known = SFX_NAMES.includes(n);
+  $("name").style.borderColor = known ? "" : "var(--hot)";
+  $("name").title = known ? "" : "Not a game sound name: the game will ignore this file";
+}
+
+let pending = 0;
+function changed(play) {
+  for (const s of syncers) s();
+  clearTimeout(pending);
+  pending = setTimeout(() => { rebuild(play && $("autoplay").checked); save(); }, play ? 0 : 60);
+}
+function rebuild(play) {
+  current = render(state, seed, 1);
+  drawWave(wave, current.data, "#39e6c8", null);
+  $("info").textContent = (current.data.length / SR).toFixed(3) + " s  \u00b7  peak " + (20 * Math.log10(Math.max(1e-6, current.peak))).toFixed(1) + " dB  \u00b7  " + Math.round(current.data.length * 2 / 1024) + " KB";
+  $("json").value = JSON.stringify(state, (k, v) => typeof v === "number" ? +v.toFixed(4) : v);
+  if (play) playData(current.data);
+}
+function save() { try { localStorage.setItem("soundforge", JSON.stringify(state)); } catch (e) {} }
+function status(s) { $("status").textContent = s; clearTimeout(status.t); status.t = setTimeout(() => $("status").textContent = "", 5000); }
+
+// random / mutate
+function mutate(amount) {
+  const r = Math.random;
+  for (const l of state.layers) for (const k in l) {
+    const p = PARAM[k]; if (!p || r() < 0.4) continue;
+    if (p[4]) l[k] = clampP(k, l[k] * Math.pow(2, (r() * 2 - 1) * amount));
+    else l[k] = clampP(k, l[k] + (r() * 2 - 1) * amount * 0.25 * (p[3] - p[2]));
+    if (p[6] === 0) l[k] = Math.round(l[k]);
+  }
+}
+function randomize() {
+  const keys = Object.keys(PRESETS), n = state.name, z = state.normalize;
+  state = PRESETS[keys[Math.floor(Math.random() * keys.length)]](); state.name = n; state.normalize = z;
+  if (Math.random() < 0.5) state.layers.forEach(l => { if (Math.random() < 0.3) l.wave = WAVES[Math.floor(Math.random() * WAVES.length)]; });
+  mutate(0.9);
+}
+
+// downloads: claude.ai pages only allow zip; a local copy saves WAVs directly
+let downloads = null;
+if (window.claude && window.claude.use) window.claude.use("downloads").then(d => { downloads = d; }).catch(() => {});
+async function exportFiles() {
+  const takes = Math.max(1, Math.min(8, +$("takes").value || 1)), t0 = +$("take").value || 0;
+  const files = [];
+  for (let k = 0; k < takes; k++) {
+    const take = takes > 1 ? Math.max(1, t0) + k : t0;
+    const pitch = k === 0 && takes === 1 ? 1 : 1 + (Math.random() * 2 - 1) * state.fx.vary / 100;
+    const r = takes === 1 ? current : render(state, seed + k * 7919, pitch);
+    files.push({ name: fileFor(take), bytes: wavBytes(r.data) });
+  }
+  if (downloads) {
+    const zipName = fileBase() + (takes > 1 ? "_takes" : "") + ".zip";
+    try { await downloads.save({ filename: zipName, data: zipBytes(files) }); status("Saved " + zipName + ": unzip it into the sounds folder"); }
+    catch (e) { status(e && e.code === "declined" ? "Save cancelled" : "Couldn't save here (" + (e && e.code || "error") + ")"); }
+    return;
+  }
+  for (const f of files) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([f.bytes], { type: "audio/wav" })); a.download = f.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    await new Promise(r => setTimeout(r, 250));
+  }
+  status("Saved " + files.map(f => f.name).join(", "));
+}
+
+// reference
+let refData = null;
+$("refFile").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const buf = await audio().decodeAudioData(await f.arrayBuffer());
+    const off = new OfflineAudioContext(1, Math.ceil(buf.duration * SR), SR);
+    const s = off.createBufferSource(); s.buffer = buf; s.connect(off.destination); s.start();
+    refData = (await off.startRendering()).getChannelData(0);
+    $("refCanvas").hidden = false; drawWave($("refCanvas"), refData, "#ffb347", null);
+    $("refPlay").disabled = false; status("Reference: " + f.name + ", " + buf.duration.toFixed(3) + " s");
+  } catch (err) { status("Couldn't read that file as audio"); }
+});
+$("refPlay").addEventListener("click", () => refData && playData(refData));
+
+// wiring
+$("play").addEventListener("click", () => { seed = (seed * 1103515245 + 12345) >>> 0; rebuild(true); });
+wave.addEventListener("click", () => current && playData(current.data));
+$("export").addEventListener("click", exportFiles);
+$("mutate").addEventListener("click", () => { snapshot(); mutate(0.25); changed(true); });
+$("random").addEventListener("click", () => { snapshot(); randomize(); syncAll(); changed(true); });
+$("undo").addEventListener("click", () => { if (!history.length) return; state = JSON.parse(history.pop()); syncAll(); changed(true); });
+$("name").addEventListener("input", () => { state.name = $("name").value; updateName(); save(); });
+$("take").addEventListener("input", updateName);
+$("takes").addEventListener("input", updateName);
+$("normalize").addEventListener("change", () => { state.normalize = $("normalize").checked; syncAll(); changed(true); });
+$("copyJson").addEventListener("click", () => {
+  const t = $("json");
+  const sel = () => { t.select(); status("Selected: press Ctrl+C to copy"); };
+  if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(() => status("Settings copied"), sel); else sel();
+});
+$("loadJson").addEventListener("click", () => {
+  try { snapshot(); state = sanitize(JSON.parse($("json").value)); syncAll(); updateName(); changed(true); status("Settings loaded"); }
+  catch (e) { status("Those settings aren't valid JSON"); }
+});
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" && !/INPUT|TEXTAREA|SELECT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); current && playData(current.data); }
+});
+
+buildUI();
+syncAll();
+updateName();
+rebuild(false);
+</script>

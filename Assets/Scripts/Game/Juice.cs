@@ -369,6 +369,8 @@ namespace Arena
                 }
                 if (fx.Kind == FxKind.DoubleBarrel)
                     DoubleBarrelFeel(fx);  // TankAltFx.cs
+                if (fx.Kind == FxKind.CoverBreak && me != null && me.Pos.DistanceTo(fx.Pos) < 450f)
+                    Shake(0.22f);  // a Deployable Cover bursting near you (DeployableCoverLook.cs)
                 if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && me != null && fx.Pos.DistanceTo(me.Pos) < 500f)
                     Shake(0.3f);  // a Stonespear slam shakes the ground near you
                 if (fx.Kind == FxKind.HoneyHarvest && me != null && (int)fx.Pos2.X == me.Id)
