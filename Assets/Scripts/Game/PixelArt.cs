@@ -141,6 +141,7 @@ namespace Arena
             { "Blizzard", "snow" },
             { "Tsunami", "cyclone" },
             { "Kinetic Wall", "mirror" },
+            { "Deployable Cover", "guard_wide" },
             { "Golem Wall", "guard_wide" },
             { "Earthquake", "earthshaker" },
             { "Force Pact", "guard_reinforced" },

@@ -504,6 +504,8 @@ namespace Arena
             if (slot == Upgrades.UltSlot)
                 return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
             float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id) * (slot >= 1 && slot <= Upgrades.BonusSlots ? p.Stats.BonusCdMult : 1f);  // Quartermaster: Q, E, Shift
+            if (id == AbilityId.DeployableCover && Mastered(p, id))
+                cd *= CoverCdMastered;  // its capstone (DeployableCover.cs)
             return cd;
         }
 
@@ -1366,6 +1368,7 @@ namespace Arena
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
+            KeepOffCovers();  // Deployable Cover (DeployableCover.cs): enemies can't walk through its plates
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
