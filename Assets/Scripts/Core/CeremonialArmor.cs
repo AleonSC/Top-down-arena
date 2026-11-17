@@ -55,7 +55,7 @@ namespace Arena
             p.PlateN++;
             p.PlateNewT = CereSummonTime;
             p.PlateBurst = cap;
-            Sounds.Add(Sfx.Summon);
+            Sounds.Add(Sfx.CereSummon);  // (its click lands with the plate, CereSummonTime in)
         }
 
         /// Host, every tick: the clock turns, the newest plate lands, plates stop enemy bullets and push enemies away.
@@ -73,8 +73,6 @@ namespace Arena
             if (p.PlateNewT > 0f)
             {
                 p.PlateNewT = Math.Max(0f, p.PlateNewT - dt);
-                if (p.PlateNewT <= 0f)
-                    Sounds.Add(Sfx.Clang);  // it clicks into its slot
             }
             int live = p.PlateNewT > 0f ? p.PlateN - 1 : p.PlateN;  // (the one still dropping in blocks nothing)
             for (int i = 0; i < live; i++)
@@ -110,7 +108,7 @@ namespace Arena
         {
             float a, r;
             CereSlot(i, p.PlateN, p.PlateClock, out a, out r);
-            BroadcastFx(FxKind.CereBreak, at, at + V2.FromAngle(a), new Rgba(0.76f, 0.21f, 0.17f), p.PlateBurst ? CereBurstRadius : 0f, 0.9f, Sfx.Clang);
+            BroadcastFx(FxKind.CereBreak, at, at + V2.FromAngle(a), new Rgba(0.76f, 0.21f, 0.17f), p.PlateBurst ? CereBurstRadius : 0f, 0.9f, Sfx.CereBreak);
             if (p.PlateBurst)
                 foreach (var e in Enemies.Values)
                     if (e.SpawnT <= 0f && e.Pos.CloserThan(at, CereBurstRadius + e.Radius))

@@ -619,9 +619,19 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Kinetic Wall: everything stops in its lens, red aimed shots too, and charges it (KineticWall.cs)
                         continue;
                     }
+                    if (WardStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Water Ward drop eats it and bursts into mist (WaterWard.cs)
+                        continue;
+                    }
                     if (WallStops(b))
                     {
                         scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
+                        continue;
+                    }
+                    if (CoverStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Deployable Cover: every enemy shot stops on its plates and wears it (DeployableCover.cs)
                         continue;
                     }
                     if (HeroDummyShot(b))

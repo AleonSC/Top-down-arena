@@ -611,6 +611,27 @@ namespace Arena
             }
             else if (s.Reading)
                 p.KwDots.Clear();
+            int drops = Math.Min(Game.WwMax, p.WwOff.Count);  // Water Ward (WaterWard.cs)
+            s.Byte(ref drops);
+            if (drops > 0)
+                s.Float(ref p.WwAng);
+            if (s.Reading)
+            {
+                p.WwOff.Clear();
+                p.WwFall.Clear();
+            }
+            for (int k = 0; k < drops; k++)
+            {
+                int off = s.Reading ? 0 : (int)Math.Round(MathX.Fmod(p.WwOff[k], MathX.Tau) / MathX.Tau * 256f) & 255;
+                int fall = s.Reading ? 0 : Math.Min(255, (int)Math.Ceiling(p.WwFall[k] * 100f));
+                s.Byte(ref off);
+                s.Byte(ref fall);
+                if (s.Reading)
+                {
+                    p.WwOff.Add(off / 256f * MathX.Tau);
+                    p.WwFall.Add(fall / 100f);
+                }
+            }
             s.Float(ref p.RainClock);  // Sanguine Rain (SanguineRain.cs)
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
@@ -1063,7 +1084,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell ? z.GuardFrac  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;

@@ -17,7 +17,7 @@ static partial class Program
         var masteredField = typeof(Game).GetField("castMastered", flags);
 
         Check(Upgrades.AbilityLimit(Role.Dps, Kit.Elementalist) == 4 && Upgrades.RoleAbility(Role.Dps, Kit.Elementalist, 3) == AbilityId.KineticWall
-            && Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 3 && Upgrades.AbilityLimit(Role.Tank, Kit.Soldier) == 3
+            && Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 3 && Upgrades.AbilityLimit(Role.Tank, Kit.Knight) == 3
             && Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 3) == Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0),
             "the Elementalist DPS has a 4th ability key, Kinetic Wall; classes without a 4th keep three");
 

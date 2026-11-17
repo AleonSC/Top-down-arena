@@ -3,7 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 379: Ceremonial Armor replaces Iron Body (`AbilityId.IronBody` kept): player snapshot drops `IronT`, gains `PlateN` (then `PlateClock`, `PlateNewT`, `PlateMax` and a health byte per plate); `FxKind.CereBlock`/`CereBreak` appended.
+- 381: Ceremonial Armor replaces Iron Body (`AbilityId.IronBody` kept): player snapshot drops `IronT`, gains `PlateN` (then `PlateClock`, `PlateNewT`, `PlateMax` and a health byte per plate); `FxKind.CereBlock`/`CereBreak` appended; `Sfx.CereSummon`/`CereBreak` appended.
+- 380: Deployable Cover (Tank Soldier 4th ability): `AbilityId.DeployableCover`, `ZoneKind.Cover` (Aim its facing, GuardFrac its health left), `FxKind.CoverHit`/`CoverBreak`/`CoverFold` (after Water Ward's); the Reinforced Plating card shifts card ids.
+- 379: Water Ward (Healer Elementalist 4th ability): `AbilityId.WaterWard`, `FxKind.WwSplash`/`WwBurst`, `Sfx.WwSplash`/`WwBurst`/`WwCast`, player snapshot gains the drops (count, then `WwAng` and a place + fall byte each)
 - 378: Kinetic Wall (Elementalist DPS 4th ability): `AbilityId.KineticWall`, `FxKind.KwCatch`/`KwBlast`, player snapshot `KwT`/`KwPos`/`KwAim`/`KwWide`/`KwDots`, the Momentum Bank card shifts card ids.
 - 377: Attack Helicopter (DPS Soldier second ultimate): `AbilityId.AttackHelicopter`, player snapshot gains `HeliGuns` (then `HeliTgt`, `HeliTgt2` while it is out); `Sfx.HeliRotor`, `HeliShot`, `HeliSpin` appended (played locally).
 - 376: Flood (Tank Elementalist 4th Space ability): `AbilityId.Flood`, `ZoneKind.Flood`; `LobbyEntry.Ability` can be 3 (the 4th ability key).

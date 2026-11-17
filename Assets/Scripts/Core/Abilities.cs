@@ -74,6 +74,8 @@ namespace Arena
             }
             if (p.StandOn && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
+            if (!consumed && p.Slots[slot].Id == AbilityId.WaterWard && WwFull(p))
+                return;  // every drop already out (WaterWard.cs)
             if (!consumed && !Consume(p, slot, true))
                 return;
             p.Run.AbilitiesUsed++;
@@ -100,6 +102,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Roar, MaxStacks = 2, Name = "Bellow", Desc = "Roar lasts 2 s longer and blocks 15% more damage",
                 Apply = s => { s.RoarBonusTime += 2f; s.RoarExtraReduction += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.DeployableCover, MaxStacks = 2, Name = "Reinforced Plating", Desc = "Deployable Cover takes 40% more damage, and one more can stand at once",
+                Apply = s => { s.CoverHpMult += 0.4f; s.CoverExtra += 1; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MendPulse, MaxStacks = 2, Name = "Greater Mending", Desc = "Mend Pulse heals 60% more and reaches 25% farther",
                 Apply = s => { s.PulseHealMult += 0.6f; s.PulseRangeMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Adrenaline, MaxStacks = 2, Name = "Long Dose", Desc = "Adrenaline Shot lasts 3 s longer",
@@ -211,6 +215,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th ability key (DeployableCover.cs)
+                Name = "Deployable Cover", Cooldown = CoverCooldown, Desc = "Two charges. Plant a bracket of steel plate in front of you that stops enemy bullets and enemies until it has taken 400 damage; your team's shots pass through. Up to 3 stand at once (another folds away the oldest), and they fold away when the wave is cleared.",
+                Capstone = "Covers take 600 damage, and each charge comes back 25% sooner.",
+                Bot = b => b.Danger || b.NearEnemies >= 3,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.Adrenaline, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
                 Name = "Adrenaline Shot", Cooldown = AdrenalineCooldown, Desc = "Inject the player closest to your cursor (you, if alone): 8 s of +30% move speed, +40% fire rate and 30% less damage taken.",
                 Capstone = "Also gives the nearest other ally within 250 px a half-length (4 s) dose.",
@@ -267,6 +278,9 @@ namespace Arena
                     if (cap)
                         Knockback(p.Pos, 250f, 120f, 2f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.45f, 0.3f), 320f, 0.5f, Sfx.Roar);
+                    break;
+                case AbilityId.DeployableCover:
+                    CastCover(p, target, cap);  // DeployableCover.cs
                     break;
                 case AbilityId.Bulldoze:
                 {
