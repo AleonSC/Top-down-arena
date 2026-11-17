@@ -133,6 +133,12 @@ namespace Arena
                             DrawHuntMap(game.HuntRoute, game.Hunt, Time.unscaledTime);  // HuntMapUi.cs
                         break;
                     }
+                    if (KeepsakeWindowUp && !tabHeld)
+                    {
+                        if (!pauseUp)
+                            DrawKeepsakeVote(Time.unscaledTime);  // the room to keep through the map reset (KeepsakeUi.cs)
+                        break;
+                    }
                     if (ExpandChipUp && !pauseUp && !WaveBoxUp(me))
                         DrawExpandChip(me);  // an optional room offer when the wave box isn't up (its tabs / minimized strip carry Build otherwise; ExpansionUi.cs)
                     if (ExpandWindowUp && !tabHeld)
@@ -205,6 +211,8 @@ namespace Arena
             }
             if (!tabHeld)
                 DrawSurpriseBanner();  // SurpriseLook.cs
+            if (!tabHeld)
+                DrawMapResetBanner();  // MAP n/10 after a map reset (MapResetLook.cs)
             if (!tabHeld && game.Running)
                 DrawStashLabels();  // the +10 over a Stash's cache (SurpriseLook.cs)
             if (!tabHeld && game.Running)

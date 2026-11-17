@@ -19,13 +19,14 @@ namespace Arena
         public bool Paths;          // two paths offered after a boss on the classic arena (Paths.cs OfferPaths)
         public bool BossBuildup;    // build-up waves are only the coming boss's faction (Approaches.cs ApproachShare; BasicFaction.cs FactionFor)
         public bool Extras = true;  // the run's dressing: props, layouts, timed waves, zombies, the boss gate, breach warnings (off: the Practice Range plays its plan bare)
+        public bool MapResets;      // the Expanding map goes back to the hub after each boss (MapReset.cs, Docs/MapReset.md)
         public bool Records = true; // recorded on the profile, each mode its own way (RunSaves.cs RecordsRuns)
         public WaveRules Waves = WaveRules.Standard;  // wave size (WaveNumbers.cs)
 
         static readonly ModeDef[] all =
         {
             new ModeDef { Mode = GameMode.Quick,    Key = "quick",    Name = "Quick Play", RunEvents = true, BossBuildup = true },
-            new ModeDef { Mode = GameMode.Campaign, Key = "campaign", Name = "Campaign",   Lives = true, Saves = true, RunEvents = true, Challenges = true, Legs = true, Paths = true },
+            new ModeDef { Mode = GameMode.Campaign, Key = "campaign", Name = "Campaign",   Lives = true, Saves = true, RunEvents = true, Challenges = true, Legs = true, Paths = true, MapResets = true },
             new ModeDef { Mode = GameMode.Hunt,     Key = "hunt",     Name = "Boss Hunt",  Saves = true, BossBuildup = true, Waves = WaveRules.Hunt },
             new ModeDef { Mode = GameMode.Practice, Key = "practice", Name = "Practice",   Extras = false, Records = false },
             // Survival: one clock, never saved (so no lives), no wave clears (so no challenges), its own faction phases (no legs).

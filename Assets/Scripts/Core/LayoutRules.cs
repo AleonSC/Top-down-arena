@@ -122,6 +122,7 @@ namespace Arena
         {
             LayoutAge += dt;
             SurpriseAge += dt;  // (ExpansionGame.cs)
+            MapResetAge = Math.Min(99f, MapResetAge + dt);  // (MapReset.cs)
         }
 
         // --- Walking and shots ----------------------------------------------------------------------

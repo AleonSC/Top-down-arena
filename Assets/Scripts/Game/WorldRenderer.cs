@@ -74,6 +74,7 @@ namespace Arena
                 Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);
                 Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
             }
+            DrawMapFold();  // the Campaign's map reset: the old rooms fold into the hub (MapResetLook.cs)
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)

@@ -63,6 +63,7 @@ namespace Arena
         WallPush,     // client -> host: push a stretch of wall out a tile (area, side, start, width) (Docs/WallPush.md, ExpansionPush.cs)
         MysteryDoor,  // client -> host: open or save the sealed door at (x, y) (x, y, save) (Docs/MysteryDoors.md, MysteryDoors.cs)
         PlayCard,     // client -> host: play the room card in this hand slot with its room's corner at (x, y), turned and mirrored (slot, x, y, turn, mirror) (Docs/RoomCards.md, RoomCards.cs)
+        KeepsakeVote, // client -> host: the room this player wants kept through the map reset (short: its first box) (Docs/MapReset.md, MapReset.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -125,7 +126,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 389;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 390;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -620,6 +621,9 @@ namespace Arena
                     break;
                 case Msg.HuntMapVote:
                     Game.OnHuntMapVote(peer, r);
+                    break;
+                case Msg.KeepsakeVote:
+                    Game.OnKeepsakeVote(peer, r);
                     break;
                 case Msg.SetKey:
                     Game.OnSetKey(peer, r);

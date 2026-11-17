@@ -60,6 +60,7 @@ namespace Arena
         {
             int take = Math.Min(payer.Vectors, price);
             payer.Vectors -= take;
+            payer.MapSpent += take;  // (half comes back when the map resets, MapReset.cs)
             price -= take;
             while (TeamPurse && price > 0)
             {
@@ -71,6 +72,7 @@ namespace Arena
                     break;
                 take = Math.Min(rich.Vectors, price);
                 rich.Vectors -= take;
+                rich.MapSpent += take;
                 price -= take;
             }
         }
@@ -602,6 +604,16 @@ namespace Arena
             botVoteT = 0f;
             botProposed = false;
             expandSeed = sideRng.Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run; Game.cs)
+            MapNumber = 1;
+            MapResetAge = 99f;
+            KeepsakeOpen = false;
+            KeepsakeVotes.Clear();
+            KeptHead = -1;
+            MapRefunds.Clear();
+            FoldRooms.Clear();
+            MapRefund = 0;
+            foreach (var p in Players.Values)
+                p.MapSpent = 0;
         }
 
         // --- The building round -------------------------------------------------------------------------------------
@@ -1213,6 +1225,8 @@ namespace Arena
             save.HasExpansion = true;
             save.ExpandSeed = expandSeed;
             save.FloatCycle = floatCycle;
+            save.MapNumber = MapNumber;
+            save.KeepsakePending = KeepsakeOpen;  // (left mid-vote: the vote opens again on Continue)
             foreach (var r in Expanded)
             {
                 var room = r;
@@ -1234,6 +1248,7 @@ namespace Arena
             for (int i = 0; i < Market.Count; i++)
                 seat.Stash[i] = p.Stash[i];
             seat.VectorCap = p.VectorCap;
+            seat.MapSpent = p.MapSpent;
             foreach (var c in p.Hand)
                 if (c != 0) seat.Hand.Add(c);
             bool any = false;
@@ -1255,6 +1270,10 @@ namespace Arena
                 playerOf[kv.Value] = kv.Key;
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
+            MapNumber = Math.Max(1, save.MapNumber);
+            KeepsakeOpen = false;
+            KeepsakeVotes.Clear();
+            KeptHead = -1;
             duelBoss.Clear();
             Expanded.Clear();
             foreach (var r in save.Rooms)
@@ -1286,6 +1305,7 @@ namespace Arena
                 {
                     p.Vectors = s.Vectors;
                     p.VectorCap = Math.Max(VectorCapBase, s.VectorCap);
+                    p.MapSpent = Math.Max(0, s.MapSpent);
                 }
                 for (int i = 0; i < MaxShelf; i++)
                 {
@@ -1306,6 +1326,8 @@ namespace Arena
                         p.ShelfLen = i + 1;  // (the saved shelf's length: up to its last card)
             }
             DoLog("the Expanding arena's map is back: " + Expansion.BoughtCount(Expanded) + " rooms");
+            if (save.KeepsakePending)
+                OpenKeepsake();  // the run was left mid keepsake vote: it opens again (MapReset.cs)
             BroadcastExpansion();
         }
 
@@ -1388,6 +1410,8 @@ namespace Arena
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
             WriteMysteryDoors(w);  // the sealed doors (MysteryDoors.cs)
+            w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
+            WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -1405,6 +1429,7 @@ namespace Arena
         void ReadExpandState(BinaryReader r)
         {
             var rooms = ReadRooms(r);
+            var oldMap = new List<ExpansionRoom>(Expanded);  // (a map reset folds the old map away, MapReset.cs)
             bool changed = rooms.Count != Expanded.Count, claimsOnly = false;
             for (int i = 0; !changed && i < rooms.Count; i++)
             {
@@ -1494,6 +1519,8 @@ namespace Arena
             short markX = r.ReadInt16(), markY = r.ReadInt16();
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
             ReadMysteryDoors(r);
+            ReadMapNumber(r.ReadByte(), oldMap);  // (MapReset.cs)
+            ReadKeepsake(r);
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();
