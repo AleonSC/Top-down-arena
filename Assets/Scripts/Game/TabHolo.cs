@@ -17,7 +17,7 @@ namespace Arena
         const float HoloStatsX = 24f, HoloStatsW = 250f;                  // YOUR STATS, down the left
         const float HoloPageX = 290f, HoloPageR = W - 24f;                // the page's panels, right of it
         const float HoloHeadH = 92f, HoloGap = 16f;                       // the header panel on every page, the gap between panels
-        const float TabDark = 0.42f;                                      // how dark the arena goes behind (lighter than other windows: it shows through)
+        const float TabDark = 0.6f;                                       // how dark the arena goes behind (lighter than other windows: it shows through, faintly)
         const float HoloBootLen = 0.38f;                                  // a panel switching on
 
         float holoOpenAt = -10f, holoPageAt = -10f;  // when the screen opened, and when its page last changed (the panels switch on)

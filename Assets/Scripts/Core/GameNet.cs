@@ -562,6 +562,14 @@ namespace Arena
             }
             else if (s.Reading)
                 p.HeliTgt = p.HeliTgt2 = 0;
+            s.Bool(ref p.DogmaOn);  // Dragon's Dogma (DragonsDogma.cs): the head and its quarry while it's out
+            if (p.DogmaOn)
+            {
+                s.Vec(ref p.DogmaHead);
+                s.Int(ref p.DogmaTgt);
+            }
+            else if (s.Reading)
+                p.DogmaTgt = 0;
             s.Float(ref p.SteelT);  // Caught Steel (CaughtSteel.cs)
             s.Byte(ref p.Steel);
             s.Bool(ref p.GauntletDown);  // The Gauntlet lying where it hit (Gauntlet.cs)

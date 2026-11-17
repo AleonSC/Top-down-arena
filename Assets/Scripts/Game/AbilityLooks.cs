@@ -44,12 +44,29 @@ namespace Arena
                         stack++;
                 }
                 V2 at = ToUi(p.Disp);  // HUD coordinates; it starts just above their name tag (Hud.cs) and rises
-                at.Y -= p.Def.BodyR * UiWorldScale + 42f + 16f * f + 16f * stack;
+                at.Y -= p.Def.BodyR * UiWorldScale + 42f + 16f * f + 16f * stack + NameLift(p);
                 Color c = ult ? new Color(1f, 0.84f, 0.35f) : Color.Lerp(ToColor(p.Def.Color), Color.white, 0.45f);
                 c.a = fade;
                 int size = Mathf.RoundToInt((ult ? 15f : 12f) * (0.7f + 0.3f * pop));
                 Ui.Shadowed(new Rect(at.X - 90f, at.Y - 10f, 180f, 20f), ult ? def.Name.ToUpperInvariant() : def.Name, size, c);
             }
+        }
+
+        readonly Dictionary<int, Vector2> nameLift = new Dictionary<int, Vector2>();  // per player: the lift now, and the frame it last eased
+
+        /// How far a player's name tag (and the callouts over it) rises to clear a shell drawn round them: Aeroaegis's gust
+        /// shell is wider than the body, and the name sat on its rim. Eases up and back down with the shell.
+        float NameLift(Player p)
+        {
+            float want = p.AegisT > 0f ? Mathf.Max(0f, Game.AegisRadius - p.Def.BodyR) * UiWorldScale * Mathf.Clamp01(p.AegisT / 0.45f) : 0f;
+            Vector2 v;
+            if (!nameLift.TryGetValue(p.Id, out v) || (int)v.y != Time.frameCount)  // (once a frame: OnGUI runs per event)
+            {
+                v.x = Mathf.Lerp(v.x, want, Time.unscaledDeltaTime > 0f ? Mathf.Clamp01(Time.unscaledDeltaTime * 12f) : 1f);  // (no frame time: straight there)
+                v.y = Time.frameCount;
+                nameLift[p.Id] = v;
+            }
+            return v.x;
         }
 
         // --- Buff timers ----------------------------------------------------------------------------------------------
