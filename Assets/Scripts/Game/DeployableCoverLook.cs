@@ -132,7 +132,7 @@ namespace Arena
         readonly List<int> coverHeardGone = new List<int>();
 
         /// Every frame: a cover's build sound the first time it's seen young (one already standing when you arrive stays quiet),
-        /// and a crash for each FxKind.CoverBreak (CoverSoundBank.cs).
+        /// and a crash, fold or ting for each FxKind.CoverBreak, CoverFold and CoverHit (CoverSoundBank.cs).
         void UpdateCoverSound()
         {
             float now = Time.unscaledTime;
@@ -155,11 +155,13 @@ namespace Arena
             }
             foreach (var fx in game.Effects)
             {
-                if (fx.Kind != FxKind.CoverBreak || fx.Heard)
+                if (fx.Heard || fx.Kind != FxKind.CoverBreak && fx.Kind != FxKind.CoverFold && fx.Kind != FxKind.CoverHit)
                     continue;
                 fx.Heard = true;
-                if (fx.T < 0.3f)
-                    sounds?.Play(new SoundCue { Sfx = Sfx.CoverBreak, Quiet = game.QuietAt(fx.Pos) }, now);
+                if (fx.T >= 0.3f)
+                    continue;  // (an old one, seen late)
+                var sfx = fx.Kind == FxKind.CoverBreak ? Sfx.CoverBreak : fx.Kind == FxKind.CoverFold ? Sfx.CoverFold : Sfx.CoverTing;
+                sounds?.Play(new SoundCue { Sfx = sfx, Quiet = game.QuietAt(fx.Pos) }, now);
             }
         }
 

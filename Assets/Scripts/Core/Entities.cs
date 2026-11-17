@@ -126,8 +126,8 @@ namespace Arena
         FloodCast, FloodLap, FloodDrain,
         // Water Ward (WaterWardSoundBank.cs): a drop splashing on an enemy, a drop eating a shot and bursting into mist, the cast. Sent.
         WwSplash, WwBurst, WwCast,
-        // Deployable Cover (CoverSoundBank.cs): the throw and build, the cover bursting. Played by each screen from the zone and FxKind.CoverBreak, never sent.
-        CoverDeploy, CoverBreak,
+        // Deployable Cover (CoverSoundBank.cs): the throw and build, the cover bursting, folding away, a shot ringing off it. Played by each screen from the zone and FxKind.CoverBreak/CoverFold/CoverHit, never sent.
+        CoverDeploy, CoverBreak, CoverFold, CoverTing,
     }
 
     public struct SoundCue
