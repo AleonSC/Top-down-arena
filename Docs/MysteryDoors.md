@@ -1,6 +1,6 @@
 # Mystery doors: sealed doors on the outer walls you pay vectors to open
 
-Status: **step 1 built** (protocol 381: doors rolled, opened, saved, expiring, synced; combat rooms only; a first look). Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
+Status: **steps 1-2 built** (protocol 381: doors rolled, opened, saved, expiring, synced, a first look; step 2: every kind behind a door, no wire change). Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
 [`SurpriseRooms.md`](SurpriseRooms.md) (shapes, placement), [`BreachRooms.md`](BreachRooms.md) (Stash, a door lined up with a
 wall spot), [`Nodes.md`](Nodes.md) (tiny shop / vendor rooms) and [`FactionMinis.md`](FactionMinis.md). **Drawing rooms stays
 exactly as it is**: doors are a second, cheaper way to grow the map.
@@ -62,3 +62,16 @@ doors at the combat price of a mid shape so they don't stand out.
   opening needs the rooms up (the first room raises them between waves).
 - Not saved with the run (`RunSaves`): a loaded run starts with no doors; the next cleared wave rolls new ones.
 - `Game/MysteryDoorLook.cs`: a first look (amber shutter, price tags, key hint); step 3 replaces it.
+
+## Built (step 2)
+
+- `MysteryKind` (host only, never sent) rolled per door by `Mystery.KindFor` with the weights above; no risk before wave 5, round a boss,
+  or without a faction mini-boss. Shapes (`Mystery.ShapeOf`): combat and ambush one of the five surprise shapes, Stash its 5 x 3, chest,
+  shop and vendor the new `SurpriseShape.Tiny` (4 x 4), mini-boss the new `SurpriseShape.Duel` (8 x 6). A loot, shop or mini-boss door
+  that loses its spot is only re-planned in its own shape.
+- Opening: a Stash keeps its Stash mark (`TickStashClaims` pays its cache); a chest room gets a chest node at its middle (`TickNodes`
+  puts the chest in); shop / vendor rooms are `RoomKind.Shop` / `Vendor` (connected, so gold drops and the room shop start); the mini-boss
+  room is `RoomKind.Gatekeeper` with `Mini` = `MiniBossNow()` (the duel as in `GatekeeperRoom.cs`); an ambush springs
+  `Mystery.AmbushCount` enemies of `WavePool(Wave)` in the room (`SpringAmbush`), or as the next wave starts if opened between waves
+  (`ambushPending`, `SpringPendingAmbushes` in `Waves.cs`).
+- Tests: `MysteryContentsTest` (suite `mysterydoor`).

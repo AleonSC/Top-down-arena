@@ -15,9 +15,54 @@ namespace Arena
         public V2 Pos => new V2(X, Y);
     }
 
+    /// What a mystery door hides (host only, never sent: Docs/MysteryDoors.md step 2).
+    public enum MysteryKind : byte { Combat, Stash, Chest, Shop, Vendor, MiniBoss, Ambush }
+
     /// The rules of mystery doors.
     public static class Mystery
     {
+        public const int RiskFrom = 5;         // no mini-boss or ambush before this wave
+        public const int AmbushBase = 4, AmbushMax = 10;  // an ambush is this many enemies, +1 every 5 waves, at most AmbushMax
+
+        /// First-guess weights: combat 50, loot 20 (Stash 10, chest 10), shop / vendor 15 (8, 7), risk 15 (mini-boss 7, ambush 8).
+        static readonly int[] Weights = { 50, 10, 10, 8, 7, 7, 8 };
+
+        /// The kind behind a door, seeded (the same on every machine). Without risk (early waves, around a boss) the risk weights are left out.
+        public static MysteryKind KindFor(int seed, int wave, int n, bool risk)
+        {
+            int total = 0;
+            for (int k = 0; k < Weights.Length; k++)
+                total += !risk && IsRisk((MysteryKind)k) ? 0 : Weights[k];
+            int roll = new DetRandom(seed * 7121 + wave * 389 + n * 53 + 3).Int(total);
+            for (int k = 0; k < Weights.Length; k++)
+            {
+                int wgt = !risk && IsRisk((MysteryKind)k) ? 0 : Weights[k];
+                if (roll < wgt)
+                    return (MysteryKind)k;
+                roll -= wgt;
+            }
+            return MysteryKind.Combat;
+        }
+
+        public static bool IsRisk(MysteryKind k) => k == MysteryKind.MiniBoss || k == MysteryKind.Ambush;
+
+        /// The room shape a kind is built in (combat and ambush: one of the five surprise shapes, picked by the roll).
+        public static SurpriseShape ShapeOf(MysteryKind k, SurpriseShape combat)
+        {
+            switch (k)
+            {
+                case MysteryKind.Stash: return SurpriseShape.Stash;
+                case MysteryKind.Chest:
+                case MysteryKind.Shop:
+                case MysteryKind.Vendor: return SurpriseShape.Tiny;
+                case MysteryKind.MiniBoss: return SurpriseShape.Duel;
+                default: return combat;
+            }
+        }
+
+        /// How many enemies an ambush room holds at this wave.
+        public static int AmbushCount(int wave) => Math.Min(AmbushMax, AmbushBase + wave / 5);
+
         public const float PriceShare = 0.6f;  // a door costs this share of drawing the same room (you don't pick its shape or spot)
         public const int Cap = 3;              // doors on the map at once
         public const float UseRange = 150f;    // stand this close to open or save one
@@ -38,6 +83,8 @@ namespace Arena
         /// Host only: the room behind each door (same index as MysteryDoors) and the point just behind its wall.
         readonly List<SurpriseOption> mysteryPlans = new List<SurpriseOption>();
         readonly List<V2> mysteryBehind = new List<V2>();
+        readonly List<MysteryKind> mysteryKinds = new List<MysteryKind>();
+        readonly List<V2> ambushPending = new List<V2>();  // ambush rooms opened between waves: their enemies come as the wave starts
         int mysteryMapCount = -1;  // Expanded.Count when the plans were last checked against the map
 
         void ResetMysteryDoors()
@@ -45,6 +92,8 @@ namespace Arena
             MysteryDoors.Clear();
             mysteryPlans.Clear();
             mysteryBehind.Clear();
+            mysteryKinds.Clear();
+            ambushPending.Clear();
             mysteryMapCount = -1;
         }
 
@@ -53,6 +102,7 @@ namespace Arena
             MysteryDoors.RemoveAt(i);
             if (i < mysteryPlans.Count) mysteryPlans.RemoveAt(i);
             if (i < mysteryBehind.Count) mysteryBehind.RemoveAt(i);
+            if (i < mysteryKinds.Count) mysteryKinds.RemoveAt(i);
         }
 
         /// The door of a planned room: where its walls meet the map (the first plain door the new rooms share with the old ones), and
@@ -120,14 +170,17 @@ namespace Arena
             }
             int want = Math.Min(Mystery.NewDoors(expandSeed, Wave), Mystery.Cap - MysteryDoors.Count);
             var rg = new DetRandom(expandSeed * 3301 + Wave * 977 + Expanded.Count);
-            int shapes = (int)SurpriseShape.Stash;  // (the five room shapes; the Stash is for step 2's loot)
+            int shapes = (int)SurpriseShape.Stash;  // (the five room shapes)
+            bool risk = Wave >= Mystery.RiskFrom && !BossNow && !BossNext && FactionMinis.Is(MiniBossNow());
             for (int n = 0; n < want; n++)
             {
+                var kind = Mystery.KindFor(expandSeed, Wave, n + Expanded.Count * 7, risk);
                 int first = rg.Int(shapes);
                 bool placed = false;
-                for (int t = 0; t < shapes && !placed; t++)
+                bool combat = kind == MysteryKind.Combat || kind == MysteryKind.Ambush;
+                for (int t = 0; t < (combat ? shapes : 1) && !placed; t++)
                 {
-                    var opts = Expansion.SurpriseOptions(Expanded, (SurpriseShape)((first + t) % shapes));
+                    var opts = Expansion.SurpriseOptions(Expanded, Mystery.ShapeOf(kind, (SurpriseShape)((first + t) % shapes)));
                     int top = Math.Min(opts.Count, 8);  // (the best spots: closing loops, not stretching the map)
                     int start = rg.Int(Math.Max(1, top));
                     for (int k = 0; k < opts.Count && !placed; k++)
@@ -139,8 +192,9 @@ namespace Arena
                         MysteryDoors.Add(d);
                         mysteryPlans.Add(o);
                         mysteryBehind.Add(behind);
+                        mysteryKinds.Add(kind);
                         placed = true;
-                        DoLog("mystery door at " + d.X + "," + d.Y + ": " + Expansion.SurpriseName(o.Shape) + " for " + d.Price + " vectors");
+                        DoLog("mystery door at " + d.X + "," + d.Y + ": " + kind + " (" + Expansion.SurpriseName(o.Shape) + ") for " + d.Price + " vectors");
                     }
                 }
             }
@@ -191,6 +245,8 @@ namespace Arena
             foreach (var o in opts)
                 if (SameRooms(o.Rooms, plan.Rooms))
                     return o;
+            if (plan.Shape >= SurpriseShape.Stash)  // (a loot, shop or mini-boss room keeps its shape: any spot through the door, else nothing)
+                return opts.Count > 0 ? opts[0] : (SurpriseOption?)null;
             string why;
             return Expansion.Surprise(expandSeed, Wave, Expanded, plan.Shape, out why, mysteryBehind[i]);
         }
@@ -294,16 +350,24 @@ namespace Arena
                 return false;
             }
             PayVectors(p, price);
+            var kind = i < mysteryKinds.Count ? mysteryKinds[i] : MysteryKind.Combat;
             var rooms = new List<ExpansionRoom>(plan.Value.Rooms.Count);
             for (int k = 0; k < plan.Value.Rooms.Count; k++)
             {
                 var q = plan.Value.Rooms[k];
-                q.Surprise = 0;  // (a bought room, not a gift: it doesn't turn the surprise rotation)
+                q.Surprise = kind == MysteryKind.Stash ? (byte)(1 + (int)SurpriseShape.Stash) : (byte)0;  // (a bought room, not a gift; a Stash keeps its mark so its cache can be taken)
                 q.Price = k == 0 ? price : 0;
                 q.Owner = p.Id;
+                if (kind == MysteryKind.Shop) q.Kind = Arena.RoomKind.Shop;
+                else if (kind == MysteryKind.Vendor) q.Kind = Arena.RoomKind.Vendor;
+                else if (kind == MysteryKind.MiniBoss) { q.Kind = Arena.RoomKind.Gatekeeper; q.Mini = (byte)MiniBossNow(); }
                 rooms.Add(q);
             }
             RemoveMysteryDoor(i);
+            var head = rooms[0];
+            V2 mid = new V2((head.X + head.X1) / 2f, (head.Y + head.Y1) / 2f);
+            if (kind == MysteryKind.Chest)
+                Nodes.Add(new MapNode { X = (short)mid.X, Y = (short)mid.Y, Kind = NodeKind.Chest });  // (TickNodes puts the chest in it)
             Expanded.AddRange(rooms);
             if (State == MatchState.Fighting)
                 PinBreaches(rooms);  // (the wave's other breaches stay put)
@@ -313,9 +377,41 @@ namespace Arena
             TickNodes();
             mysteryMapCount = -1;  // (the other doors are checked against the new map)
             Sounds.Add(Sfx.Pick);
-            DoLog(p.Name + " opens a mystery door: " + Expansion.SurpriseName(plan.Value.Shape) + " for " + price + " vectors");
+            DoLog(p.Name + " opens a mystery door: " + kind + " (" + Expansion.SurpriseName(plan.Value.Shape) + ") for " + price + " vectors");
+            if (kind == MysteryKind.Ambush)
+            {
+                if (State == MatchState.Fighting)
+                    SpringAmbush(mid);
+                else
+                    ambushPending.Add(mid);  // (between waves: they wait in the dark and come out as the wave starts)
+            }
             BroadcastExpansion();
             return true;
+        }
+
+        /// Host: an ambush room's enemies appear in it (the wave's own types) and swarm out at the players.
+        void SpringAmbush(V2 at)
+        {
+            var pool = WavePool(Math.Max(1, Wave));
+            int n = Mystery.AmbushCount(Wave);
+            for (int k = 0; k < n; k++)
+            {
+                var type = pool[rng.Next(pool.Count)];
+                V2 pos = at + V2.FromAngle(MathX.Tau * k / n) * (60f + 30f * (k % 2));
+                SpawnEnemyAt(type, pos, 0.7f, 0);
+            }
+            BroadcastFx(FxKind.Ring, at, new Rgba(1f, 0.3f, 0.25f), 220f, 0.6f, Sfx.Pick);
+            DoLog("ambush: " + n + " enemies swarm out of a mystery room");
+        }
+
+        /// Host, as a wave starts: the ambushes opened between waves spring.
+        void SpringPendingAmbushes()
+        {
+            if (!IsHost || ambushPending.Count == 0)
+                return;
+            foreach (var at in ambushPending)
+                SpringAmbush(at);
+            ambushPending.Clear();
         }
 
         void WriteMysteryDoors(BinaryWriter w)

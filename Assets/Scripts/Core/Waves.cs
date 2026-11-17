@@ -94,6 +94,7 @@ namespace Arena
                         ResolveBuildRound();  // the building round closes as the wave starts: the winning room is built (ExpansionGame.cs)
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
+                        SpringPendingAmbushes();  // ambush rooms opened between waves (MysteryDoors.cs)
                         spawnTimer = WaveNumbers.OpeningDelay;
                         string bossName;
                         if (SurvivalOn)
