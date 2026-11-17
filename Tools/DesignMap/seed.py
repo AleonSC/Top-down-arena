@@ -30,9 +30,7 @@ for ln in lines:
     elif sec == "Enemies":
         boss = r["Group"] == "Boss"
         add("Boss" if boss else "Enemy", c[0], f"{r['Group']} · HP {r['Health']} · {r['What it does']}"[:300])
-for m in ["Campaign", "Quick Play", "Boss Hunt", "Survival", "Practice Range", "Expanding arena", "Rooms arena",
-          "Data Gates", "Run modifiers", "Difficulty", "Perks", "Paths", "Rank", "Lobby Hangout", "Co-op networking"]:
-    add("System", m)
+exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "curated.py"), encoding="utf-8").read())
 open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed.js"), "w", encoding="utf-8").write(
-    "window.SEED=" + json.dumps({"nodes": nodes, "edges": [e for e in edges if e[1] in seen]}, separators=(",", ":")) + ";\n")
+    "window.SEED=" + json.dumps({"seedVer": 2, "nodes": nodes, "edges": [e for e in edges if e[1] in seen]}, separators=(",", ":")) + ";\n")
 print(len(nodes), "nodes", len(edges), "edges")

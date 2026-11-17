@@ -36,13 +36,13 @@ svg{position:fixed;top:42px;left:0;width:100%;height:calc(100% - 42px);cursor:gr
 </div>
 <script src="seed.js"></script>
 <script>
-const TYPES={Role:"#d9822b",Class:"#c0479a",Weapon:"#3a7bd5",Ability:"#2fa37a",Enemy:"#b84a4a",Boss:"#8a2be2",System:"#6b7a99",Idea:"#c9a227"};
+const TYPES={Goal:"#c9a227",Mode:"#2b8a9e",Mechanic:"#6b7a99",Role:"#d9822b",Class:"#c0479a",Weapon:"#3a7bd5",Ability:"#2fa37a",Enemy:"#b84a4a",Boss:"#8a2be2",Idea:"#8c6bb1"};
 const STATUS_DASH={idea:"5 3",planned:"2 2",built:"",cut:"1 4"};
 const W=150,H=30,KEY="arenaDesignMap.v1";
 let S,sel=null,hidden=new Set(),view={x:20,y:20,k:1};
 const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg";
 const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
-function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S)reset(true)}
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S)reset(true);else if((S.seedVer||1)<(window.SEED.seedVer||1)){const keep=S.nodes.filter(n=>n.type!=='System'&&!window.SEED.nodes.some(m=>m.id===n.id));const fresh=JSON.parse(JSON.stringify(window.SEED));S.nodes=fresh.nodes.concat(keep);S.edges=fresh.edges.concat(S.edges.filter(e=>keep.some(k=>e.includes(k.id))));S.seedVer=fresh.seedVer;layout()}}
 function reset(q){S=JSON.parse(JSON.stringify(window.SEED||{nodes:[],edges:[]}));layout();if(!q)render()}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function layout(){const cols={};Object.keys(TYPES).forEach((t,i)=>cols[t]={i,n:0});
