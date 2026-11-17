@@ -11,7 +11,7 @@ namespace Arena
             pendingSwings.Clear(); steelWalls.Clear(); slams.Clear(); steelLaunches.Clear();
             hookRuns.Clear(); lanceRuns.Clear(); gauntlets.Clear(); boShoves.Clear(); cavalry.Clear(); oaths.Clear();
             holyCrosses.Clear(); bladedRuns.Clear(); castRuns.Clear(); grabRuns.Clear(); airRuns.Clear();
-            hammerThrows.Clear(); hammerSlams.Clear(); hammerSlamCd.Clear();
+            hammerThrows.Clear(); hammerSlams.Clear(); hammerSlamCd.Clear(); shieldThrows.Clear(); bashShards.Clear();
             ionTrails.Clear(); packBiters.Clear(); shocks.Clear(); rodCap.Clear(); splashSeen.Clear();
             // Ninja
             stuckStars.Clear(); fangRuns.Clear(); katanaLater.Clear(); caltrops.Clear();

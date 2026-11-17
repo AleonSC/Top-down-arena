@@ -257,7 +257,7 @@ namespace Arena
                 if (to.Length > e.Radius + p.Def.BodyR + 14f || to.Normalized().Dot(fwd) < 0.45f)
                     continue;
                 p.BashGraceT = RiotKnockGrace;
-                if (p.ParryActive && ParryContact(p, e, RiotBashDamage))
+                if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, RiotBashDamage))
                     continue;  // a raised guard takes it, and you keep your feet
                 if (p.InvulnT <= 0f)
                 {

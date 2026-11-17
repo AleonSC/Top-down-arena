@@ -115,11 +115,11 @@ namespace Arena
         public const float ParryStrikeShove = 120f; // a parried weapon strike (sword cut, rake, reap) throws its enemy back this far
 
         /// Melee enemies running into the shield hit it instead of you, and slide back (Knock.cs) ParryShove px.
-        bool ParryContact(Player p, Enemy e, float dmg) => p.ParryActive && InParryArc(p, e.Pos, e.Radius) && ParryTake(p, e, dmg, ParryShove);
+        bool ParryContact(Player p, Enemy e, float dmg) => p.ParryActive && InParryArc(p, e.Pos, e.Radius) && ParryTake(p, e, dmg, ParryShove) || BulwarkMelee(p, e, dmg, false);  // (or a braced Bulwark Barrier: BulwarkBarrier.cs)
 
         /// A weapon strike (a sword cut, a rake, a reap) reaches past the shield's edge, so only the side counts: a
         /// shield facing the striker takes it, and the striker is thrown back ParryStrikeShove px.
-        bool ParryStrike(Player p, Enemy e, float dmg) => p.ParryActive && Facing(p, e.Pos - p.Pos) && ParryTake(p, e, dmg, ParryStrikeShove);
+        bool ParryStrike(Player p, Enemy e, float dmg) => p.ParryActive && Facing(p, e.Pos - p.Pos) && ParryTake(p, e, dmg, ParryStrikeShove) || BulwarkMelee(p, e, dmg, true);
 
         bool ParryTake(Player p, Enemy e, float dmg, float shove)
         {

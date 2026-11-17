@@ -227,7 +227,7 @@ namespace Arena
                 if (to.Length > e.Radius + p.Def.BodyR + 16f || to.Normalized().Dot(fwd) < 0.3f)
                     continue;
                 p.BashGraceT = RiotKnockGrace;
-                if (p.ParryActive && ParryContact(p, e, CaptainBashDamage))
+                if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, CaptainBashDamage))
                     continue;
                 if (p.InvulnT <= 0f)
                 {

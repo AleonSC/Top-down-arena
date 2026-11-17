@@ -115,6 +115,11 @@ namespace Arena
                 DrawPacChomper(p, r, t, col);  // PacmanLook.cs
                 return;
             }
+            if (engineerMock != null && engineerMock.Model >= 0 && game != null && p == game.Me)
+            {
+                DrawEngineerModel(p.Disp, p.Aim, r, engineerMock.Model, t);  // Tools/Preview only: the Engineer mockup (EngineerModel.cs)
+                return;
+            }
             int kit = (int)p.Kit, role = Mathf.Min((int)p.Role, 2);  // (a Wildcard wears the DPS build in its own purple trim)
             ModelPal K = ModelPals[kit];
             Rgba RC = p.Def.Color;

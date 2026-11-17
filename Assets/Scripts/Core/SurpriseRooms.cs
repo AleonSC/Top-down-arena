@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// The well-shaped rooms the game gives the Expanding arena for free (Docs/SurpriseRooms.md, step 1).
-    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash, Tiny, Duel, Box, Hall }  // (Tiny and Duel: mystery door rooms, MysteryDoors.cs; Box and Hall: room cards only, RoomCards.cs)
+    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash, Tiny, Duel, Box, Hall, SmallRect, Medium, LongHall }  // (Tiny, SmallRect, Medium, Box, LongHall: mystery door rooms, MysteryDoors.cs; Duel, Box and Hall: room cards, RoomCards.cs)
 
     /// A spot for a surprise room: its boxes (Price 0), how many loops it closes and its score.
     public struct SurpriseOption
@@ -33,7 +33,10 @@ namespace Arena
                 case SurpriseShape.LHall: return "L hall";
                 case SurpriseShape.THall: return "T hall";
                 case SurpriseShape.Stash: return "Stash";
-                case SurpriseShape.Tiny: return "Tiny room";
+                case SurpriseShape.Tiny: return "Small room";
+                case SurpriseShape.SmallRect: return "Small room";
+                case SurpriseShape.Medium: return "Medium room";
+                case SurpriseShape.LongHall: return "Long hallway";
                 case SurpriseShape.Duel: return "Duel room";
                 case SurpriseShape.Box: return "Box";
                 case SurpriseShape.Hall: return "Hall";
@@ -59,8 +62,14 @@ namespace Arena
                     cols = 15; rows = 9; f = (c, r) => r <= 2 || (c >= 6 && c <= 8); break;
                 case SurpriseShape.Stash:  // 5 x 3: a small pocket behind a breach (Docs/BreachRooms.md)
                     cols = 5; rows = 3; f = (c, r) => true; break;
-                case SurpriseShape.Tiny:  // 4 x 4: a mystery door's shop, vendor or chest room (Expansion.ShopRoomSide)
+                case SurpriseShape.Tiny:  // 4 x 4: a mystery door's small square room (Expansion.ShopRoomSide)
                     cols = rows = 4; f = (c, r) => true; break;
+                case SurpriseShape.SmallRect:  // 5 x 4: a mystery door's small rectangle
+                    cols = 5; rows = 4; f = (c, r) => true; break;
+                case SurpriseShape.Medium:  // 6 x 6: a mystery door's medium square (its medium rectangle is the Box)
+                    cols = rows = 6; f = (c, r) => true; break;
+                case SurpriseShape.LongHall:  // 12 x 3: a mystery door's long hallway, a chest at its far end
+                    cols = 12; rows = 3; f = (c, r) => true; break;
                 case SurpriseShape.Duel:  // 8 x 6: a mystery door's mini-boss room (the floating one's size)
                     cols = 8; rows = 6; f = (c, r) => true; break;
                 case SurpriseShape.Box:  // 7 x 6: a room card's plain room

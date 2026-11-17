@@ -123,25 +123,36 @@ static partial class Program
     }
 }
 
-// Mystery doors step 2: what is behind a door (Stash, chest, shop, vendor, mini-boss, ambush, or a plain combat room).
+// Mystery doors' rooms (owner Nov 17): small or medium squares and rectangles (mostly enemies, sometimes empty; a small one can be a shop or
+// a Black Market) and long hallways with a chest at the far end.
 static partial class Program
 {
     static void MysteryContentsTest(float dt)
     {
         var flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
-        // The roll: every kind turns up, near the weights; no risk without it.
-        var tally = new int[7];
-        bool noRisk = true;
-        for (int sd = 1; sd <= 4000; sd++)
+        // The roll: the three rooms near their weights; what each holds.
+        var rooms = new int[3]; var small = new int[5]; var medium = new int[5]; bool hallsChest = true, quiet = true;
+        for (int sd = 1; sd <= 6000; sd++)
         {
-            tally[(int)Mystery.KindFor(sd, 9, 0, true)]++;
-            noRisk &= !Mystery.IsRisk(Mystery.KindFor(sd, 9, 0, false));
+            var r = Mystery.RoomFor(sd, 9, 0);
+            rooms[(int)r]++;
+            var k = Mystery.KindFor(sd, 9, 0, r, true);
+            if (r == MysteryRoom.Small) small[(int)k]++;
+            if (r == MysteryRoom.Medium) medium[(int)k]++;
+            if (r == MysteryRoom.Hallway) hallsChest &= k == MysteryKind.Chest;
+            quiet &= Mystery.KindFor(sd, 9, 0, r, false) != MysteryKind.Enemies;
         }
-        Check(tally.All(c => c > 0), "every kind turns up (" + string.Join(" ", tally) + ")");
-        Check(Math.Abs(tally[0] / 4000.0 - 0.5) < 0.05 && Math.Abs((tally[5] + tally[6]) / 4000.0 - 0.15) < 0.03, "about half are combat rooms and 15% risk");
-        Check(noRisk, "early on (and round a boss) no door hides a mini-boss or an ambush");
-        Check(Mystery.AmbushCount(5) == 5 && Mystery.AmbushCount(100) == Mystery.AmbushMax, "an ambush grows with the waves, up to " + Mystery.AmbushMax);
+        Check(rooms.All(c => c > 1500), "small, medium and hallway rooms all turn up (" + string.Join(" ", rooms) + ")");
+        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.Vendor] > 0 && small[(int)MysteryKind.Chest] == 0,
+            "a small room is mostly enemies, sometimes empty, sometimes a shop or a Black Market (" + string.Join(" ", small) + ")");
+        Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.Vendor] + medium[(int)MysteryKind.Chest] == 0,
+            "a medium room is mostly enemies, rarely empty, never a shop (" + string.Join(" ", medium) + ")");
+        Check(hallsChest, "a hallway always holds a chest");
+        Check(quiet, "round a boss no room holds enemies");
+        Check(Mystery.AmbushCount(5) == 5 && Mystery.AmbushCount(100) == Mystery.AmbushMax && Mystery.AmbushCount(5, MysteryRoom.Small) == 3, "enemies grow with the waves, fewer in a small room");
+        var shapeSizes = new[] { MysteryRoom.Small, MysteryRoom.Medium, MysteryRoom.Hallway }.SelectMany(r => Mystery.ShapesOf(r)).Select(sh => Expansion.SurpriseBase(sh)).ToList();
+        Check(shapeSizes.All(m => { int c = 0; foreach (bool b in m) c += b ? 1 : 0; return c == m.GetLength(0) * m.GetLength(1); }), "every mystery room is a plain rectangle");
 
         string why;
         var list = new List<ExpansionRoom>();
@@ -156,21 +167,32 @@ static partial class Program
         var hp = g.Players[g.MyId];
         hp.Vectors = hp.VectorCap = 999;
 
-        // Puts a door of this kind on the map (its room the best spot for its shape) and opens it. Returns the rooms it built.
-        Func<MysteryKind, List<ExpansionRoom>> open = kind =>
+        // A real roll: hallways open at one end, nothing touching their sides.
+        for (int w = 3; w < 40; w++)
+        {
+            g.Wave = w;
+            typeof(Game).GetMethod("RollMysteryDoors", flags).Invoke(g, null);
+        }
+        typeof(Game).GetMethod("ResetMysteryDoors", flags).Invoke(g, null);
+
+        // Puts a door of this room and kind on the map (the first spot that fits) and opens it. Returns the rooms it built and the door.
+        MysteryDoor lastDoor = default(MysteryDoor);
+        Func<SurpriseShape, MysteryKind, List<ExpansionRoom>> open = (shape, kind) =>
         {
             typeof(Game).GetMethod("ResetMysteryDoors", flags).Invoke(g, null);
-            var opts = Expansion.SurpriseOptions(g.Expanded, Mystery.ShapeOf(kind, SurpriseShape.Chamfer));
+            var opts = Expansion.SurpriseOptions(g.Expanded, shape);
             foreach (var o in opts)
             {
                 var args = new object[] { o, null, null };
                 if (!(bool)typeof(Game).GetMethod("MysteryDoorOf", flags).Invoke(g, args)) continue;
                 var d = (MysteryDoor)args[1];
+                if (shape == SurpriseShape.LongHall && !Mystery.HallFits(o, d)) continue;
                 g.MysteryDoors.Add(d);
                 ((List<SurpriseOption>)typeof(Game).GetField("mysteryPlans", flags).GetValue(g)).Add(o);
                 ((List<V2>)typeof(Game).GetField("mysteryBehind", flags).GetValue(g)).Add((V2)args[2]);
                 ((List<MysteryKind>)typeof(Game).GetField("mysteryKinds", flags).GetValue(g)).Add(kind);
                 hp.Pos = hp.Disp = d.Pos;
+                lastDoor = d;
                 int before = g.Expanded.Count;
                 g.UseMysteryDoor(false);
                 PollBoth(host, client);
@@ -180,46 +202,96 @@ static partial class Program
         };
         Func<ExpansionRoom, V2> mid = r => new V2((r.X + r.X1) / 2f, (r.Y + r.Y1) / 2f);
 
-        var stash = open(MysteryKind.Stash);
-        Check(stash.Count == 1 && stash[0].Surprise == 1 + (int)SurpriseShape.Stash && !stash[0].Claimed && stash[0].Price > 0, "a loot door can hide a Stash (5 x 3, its cache waiting, paid for)");
-        hp.Vectors = 100; int vec = hp.Vectors;  // (well under the cap)
-        hp.Pos = hp.Disp = mid(stash[0]);
-        typeof(Game).GetMethod("TickStashClaims", flags).Invoke(g, null);
-        int got = hp.Vectors - vec;
-        hp.Vectors = 999;
-        Check(got == Game.StashVectors && g.Expanded.Any(r => r.Surprise == 1 + (int)SurpriseShape.Stash && r.Claimed), "walking in takes its +" + Game.StashVectors + " vectors");
-
+        // A hallway: 12 x 3, opened at one end, its chest at the other.
         int nodes0 = g.Nodes.Count;
-        var chest = open(MysteryKind.Chest);
-        Check(chest.Count == 1 && chest[0].W == 400 && chest[0].H == 400 && g.Nodes.Count == nodes0 + 1 && g.Nodes.Last().Kind == NodeKind.Chest && Expansion.NodeClaimed(g.Expanded, g.Nodes.Last()), "a loot door can hide a 4 x 4 chest room (a chest node inside it)");
-        Check(g.Props.Values.Any(pr => pr.Kind == PropKind.Chest && pr.Pos.DistanceTo(g.Nodes.Last().Pos) < 2f), "the chest is there at once");
+        var hall = open(SurpriseShape.LongHall, MysteryKind.Chest);
+        var hr = hall.Count == 1 ? hall[0] : default(ExpansionRoom);
+        bool longWay = hall.Count == 1 && Math.Max(hr.W, hr.H) == 1200 && Math.Min(hr.W, hr.H) == 300;
+        Check(longWay && (hr.W > hr.H) == lastDoor.Vertical, "a hallway is 12 x 3 tiles and its door is on a short end (" + hr.W + " x " + hr.H + ")");
+        var chestNode = g.Nodes.Count == nodes0 + 1 ? g.Nodes.Last() : default(MapNode);
+        float doorToChest = chestNode.Pos.DistanceTo(lastDoor.Pos);
+        Check(g.Nodes.Count == nodes0 + 1 && chestNode.Kind == NodeKind.Chest && Expansion.NodeClaimed(g.Expanded, chestNode) && doorToChest > 1000f, "its chest is at the far end (" + doorToChest.ToString("0") + " px from the door)");
+        Check(g.Props.Values.Any(pr => pr.Kind == PropKind.Chest && pr.Pos.DistanceTo(chestNode.Pos) < 2f), "the chest is there at once");
 
-        var shop = open(MysteryKind.Shop);
-        Check(shop.Count == 1 && shop[0].Kind == RoomKind.Shop && g.HasShopRoom, "a door can hide a shop room (4 x 4), open at once");
-        var vendor = open(MysteryKind.Vendor);
-        Check(vendor.Count == 1 && vendor[0].Kind == RoomKind.Vendor && g.HasVendorRoom, "or a vendor room");
+        var shop = open(SurpriseShape.Tiny, MysteryKind.Shop);
+        Check(shop.Count == 1 && shop[0].W == 400 && shop[0].H == 400 && shop[0].Kind == RoomKind.Shop && g.HasShopRoom, "a small room can be a shop");
+        var vendor = open(SurpriseShape.SmallRect, MysteryKind.Vendor);
+        Check(vendor.Count == 1 && vendor[0].W * vendor[0].H == 200000 && vendor[0].Kind == RoomKind.Vendor && g.HasVendorRoom, "or a Black Market (5 x 4)");
         PollBoth(host, client);
         Check(cg.HasShopRoom && cg.HasVendorRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
 
-        var mini = open(MysteryKind.MiniBoss);
-        Check(mini.Count == 1 && mini[0].Kind == RoomKind.Gatekeeper && FactionMinis.Is((EnemyType)mini[0].Mini) && mini[0].W == 800 && mini[0].H == 600, "a risk door can hide a mini-boss room (8 x 6, its faction's foe)");
-
-        // An ambush: mid-wave its enemies appear in the room at once; between waves they wait for the wave to start.
+        // Enemies: mid-wave they appear in the room at once; between waves they wait for the wave to start. A small room holds fewer.
         g.State = MatchState.Fighting;
         int e0 = g.Enemies.Count;
-        var amb = open(MysteryKind.Ambush);
-        var aw = g.CurrentWorld;
-        int inRoom = g.Enemies.Values.Count(e => amb.Any(r => e.Pos.X >= r.X - 20 && e.Pos.X <= r.X1 + 20 && e.Pos.Y >= r.Y - 20 && e.Pos.Y <= r.Y1 + 20));
-        Check(amb.Count > 0 && amb.All(r => r.Kind == RoomKind.Combat && r.Surprise == 0) && g.Enemies.Count - e0 == Mystery.AmbushCount(g.Wave) && inRoom >= Mystery.AmbushCount(g.Wave), "mid-wave an ambush room's " + Mystery.AmbushCount(g.Wave) + " enemies appear in it (" + (g.Enemies.Count - e0) + " new, " + inRoom + " in the room)");
+        var med = open(SurpriseShape.Medium, MysteryKind.Enemies);
+        int want = Mystery.AmbushCount(g.Wave, MysteryRoom.Medium);
+        int inRoom = g.Enemies.Values.Count(e => med.Any(r => e.Pos.X >= r.X - 20 && e.Pos.X <= r.X1 + 20 && e.Pos.Y >= r.Y - 20 && e.Pos.Y <= r.Y1 + 20));
+        Check(med.Count == 1 && med[0].W == 600 && med[0].H == 600 && g.Enemies.Count - e0 == want && inRoom >= want, "mid-wave a medium room's " + want + " enemies appear in it (" + (g.Enemies.Count - e0) + " new, " + inRoom + " in the room)");
         g.State = MatchState.Intermission;
         e0 = g.Enemies.Count;
-        var amb2 = open(MysteryKind.Ambush);
+        var sm = open(SurpriseShape.Tiny, MysteryKind.Enemies);
         var pend = (List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g);
-        Check(amb2.Count > 0 && g.Enemies.Count == e0 && pend.Count == 1, "between waves the ambush waits");
+        Check(sm.Count == 1 && g.Enemies.Count == e0 && pend.Count == 1, "between waves they wait");
         typeof(Game).GetMethod("SpringPendingAmbushes", flags).Invoke(g, null);
-        Check(g.Enemies.Count - e0 == Mystery.AmbushCount(g.Wave) && pend.Count == 0, "and springs as the wave starts");
+        Check(g.Enemies.Count - e0 == Mystery.AmbushCount(g.Wave, MysteryRoom.Small) && pend.Count == 0, "and come out as the wave starts, fewer from a small room");
 
-        var plain = open(MysteryKind.Combat);
-        Check(plain.Count > 0 && plain.All(r => r.Kind == RoomKind.Combat && r.Surprise == 0), "most doors hide a plain combat room");
+        e0 = g.Enemies.Count;
+        var empty = open(SurpriseShape.Box, MysteryKind.Empty);
+        Check(empty.Count == 1 && empty[0].W == 700 && empty[0].H == 600 && empty[0].Kind == RoomKind.Combat && g.Enemies.Count == e0 && ((List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g)).Count == 0, "an empty room (7 x 6 here) is just floor");
+    }
+}
+
+// Mystery doors step 4: bots open the doors they can pay for between waves, keeping a reserve back for building.
+static partial class Program
+{
+    static void MysteryBotsTest(float dt)
+    {
+        var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+
+        // One door, a bot host beside it: too poor (inside the reserve) it waits; with the vectors it opens it.
+        string why;
+        var list = new List<ExpansionRoom>();
+        list.Add(Expansion.Custom(list, 1600, 100, 800, 600, out why).Value);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, true, "Host", Role.Tank);
+        var client = JoinAs(port, true, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(list[0]); gg.RoomsUp = true; }
+        typeof(Game).GetField("expandSeed", flags).SetValue(g, 99);
+        Action hold = () => { g.State = MatchState.Intermission; g.StateTimer = 30f; foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        hold();
+        typeof(Game).GetMethod("RollMysteryDoors", flags).Invoke(g, null);
+        Run(s, dt, 0.5f, null, hold);
+        Check(g.MysteryDoors.Count > 0, "a door to try (" + g.MysteryDoors.Count + ")");
+        var d = g.MysteryDoors.OrderBy(x => x.Price).First();
+        var hp = g.Players[g.MyId]; var fp = g.Players[cg.MyId]; var cme = cg.Players[cg.MyId];
+        foreach (var p in new[] { hp, fp, cme }) { p.VectorCap = 999; p.Vectors = d.Price + Mystery.BotReserve - 1; }
+        hp.Pos = hp.Disp = d.Pos + (d.Vertical ? new V2(-70f, 0f) : new V2(0f, -70f));
+        if (g.CurrentWorld.AreaAt(hp.Pos) < 0) hp.Pos = hp.Disp = d.Pos - (hp.Pos - d.Pos);
+        int rooms0 = g.Expanded.Count, doors0 = g.MysteryDoors.Count;
+        Run(s, dt, 3f, null, hold);
+        Check(g.Expanded.Count == rooms0 && g.MysteryDoors.Count == doors0, "a bot that would dip into its " + Mystery.BotReserve + "-vector reserve leaves the doors shut");
+        foreach (var p in new[] { hp, fp, cme }) p.Vectors = 200;
+        Run(s, dt, 12f, () => g.MysteryDoorsOpened > 0, hold);
+        Check(g.MysteryDoorsOpened > 0 && g.Expanded.Count > rooms0, "with the vectors a bot walks to a door and opens it (" + g.MysteryDoorsOpened + " opened, " + g.MysteryVectorsSpent + " vectors)");
+        Run(s, dt, 1f, null, hold);
+        Check(cg.Expanded.Count == g.Expanded.Count && cg.MysteryDoors.Count == g.MysteryDoors.Count, "the friend's game agrees");
+
+        // A run: bots from wave 1, the Expanding arena; the doors get opened along the way. The numbers for the balance pass.
+        port = nextPort++;
+        var h2 = HostAs(new Session { AutoStart = 2, StartWave = 1 }, port, true, "Host", Role.Tank);
+        var c2 = JoinAs(port, true, "Friend", Role.Dps);
+        var s2 = new[] { h2, c2 };
+        WaitForGame(h2, c2, dt);
+        var g2 = h2.Game; var cg2 = c2.Game;
+        g2.DevSetGod(1, true); g2.DevSetGod(2, true);
+        g2.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg2.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        Run(s2, dt, 900f, () => g2.Wave >= 10 && g2.State == MatchState.Fighting);
+        Console.WriteLine("  by wave " + g2.Wave + ": " + g2.MysteryDoorsOpened + " doors opened for " + g2.MysteryVectorsSpent + " vectors, " + g2.Expanded.Count + " rooms in all, " + g2.MysteryDoors.Count + " doors waiting, vectors " + string.Join("/", g2.Players.Values.Select(p => p.Vectors.ToString()).ToArray()));
+        Check(g2.Wave >= 10 && g2.MysteryDoorsOpened >= 1, "bots open mystery doors in a run (" + g2.MysteryDoorsOpened + " by wave " + g2.Wave + ")");
+        Check(cg2.Expanded.Count == g2.Expanded.Count, "both games have the same map");
     }
 }

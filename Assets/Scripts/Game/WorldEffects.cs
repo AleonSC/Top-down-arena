@@ -185,6 +185,9 @@ namespace Arena
                 case FxKind.BulwarkBlock:
                     DrawBulwarkBlockFx(fx);  // BulwarkBarrierLook.cs
                     break;
+                case FxKind.BulwarkThrow:
+                    DrawBulwarkThrowFx(fx, t);  // BulwarkBarrierLook.cs
+                    break;
                 case FxKind.KwCatch:
                     DrawKwCatchFx(fx);  // KineticWallLook.cs
                     break;
