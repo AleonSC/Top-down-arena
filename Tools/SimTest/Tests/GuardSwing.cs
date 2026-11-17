@@ -48,4 +48,36 @@ static partial class Program
         Check(still < 0.5f, "it keeps walking while it swings (no plant)");
         e.Hp = 0f; Run(s, dt, 0.3f);
     }
+    /// A Guard's rally (RiotBrains.cs): a Rioter near a Guard runs GuardRallySpeedUp faster than one alone.
+    static void GuardRallyTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        var s = StartPlain(dt, 23);
+        var g = s[0].Game;
+        Run(s, dt, 8f, () => g.State == MatchState.Fighting);
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
+        foreach (var e0 in g.Enemies.Values) e0.Hp = 0f;
+        Run(s, dt, 0.3f);
+        g.Bullets.Clear(); g.DevSetGod(1, true);
+        var me = g.Players[1]; var friend = g.Players[2];
+        Func<bool, float> Pace = withGuard =>
+        {
+            me.Pos = new V2(1500f, 450f); friend.Downed = true;
+            var r = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Rioter, new V2(300f, 450f), 0f, 0, false });
+            Enemy guard = null;
+            if (withGuard) { guard = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Guard, new V2(300f, 450f), 0f, 0, false }); guard.SpawnT = 0f; guard.Hp = guard.MaxHp = 1e6f; }
+            r.SpawnT = 0f; r.Hp = r.MaxHp = 1e6f;
+            V2 start = r.Pos;
+            Run(s, dt, 1f, null, () => { me.Pos = new V2(1500f, 450f); if (guard != null) guard.Pos = r.Pos + new V2(-110f, 0f); });
+            float d = r.Pos.DistanceTo(start);
+            r.Hp = 0f; if (guard != null) guard.Hp = 0f;
+            Run(s, dt, 0.3f);
+            return d;
+        };
+        float alone = Pace(false), rallied = Pace(true);
+        Console.WriteLine("  guard rally: rioter 1 s alone {0:0} px, with a guard {1:0} px", alone, rallied);
+        Check(alone > 20f && rallied > alone * 1.1f, "a Rioter beside a Guard runs faster than one alone");
+    }
 }

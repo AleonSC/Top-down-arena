@@ -635,6 +635,8 @@ Step out of the ring, then dig through to it. In the Campaign the Lich's ten wav
 Runners, Spitters, Crawlers, Bloaters, a recap with Shriekers, Menders, Grave Callers, every squad, then the exam with
 the Dead march. Zombies don't get back up outside the modifier, only out of a Caller's graves. His fight itself is unchanged.
 
+Guards **rally** the Rioters: a Rioter within 150 px of a Guard runs 25% faster (it doesn't stack), so kill the Guards first to slow the crowd.
+
 The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9, Taser Guard 11, Security Guard 9),
 so its tougher approach waves don't leave you levels behind at his wave (about level 4 at Blend). The Rioters and Guards of
 his own riot, on the boss wave, still give 2 and 4.

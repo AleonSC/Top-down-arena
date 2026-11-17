@@ -12,6 +12,28 @@ namespace Arena
             public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => g.RioterMove(e, tpos);
         }
 
+        /// A Rioter: the crowd rush, faster while a Guard is rallying it (GuardRallySpeed).
+        sealed class RallyRioterMovePart : MovePart
+        {
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+            {
+                speed *= g.GuardRallySpeed(e);
+                return g.RioterMove(e, tpos);
+            }
+        }
+
+        /// A Guard's baton rally: a Rioter within GuardRallyRadius of a Guard runs GuardRallySpeedUp faster (it doesn't stack).
+        public const float GuardRallyRadius = 150f, GuardRallySpeedUp = 1.25f;
+
+        /// A Rioter's speed multiplier from the Guards round it (1 with none near). Host only: it moves the rioter, so every game sees the pace.
+        float GuardRallySpeed(Enemy e)
+        {
+            foreach (var o in Enemies.Values)
+                if (o.Type == EnemyType.Guard && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, GuardRallyRadius))
+                    return GuardRallySpeedUp;
+            return 1f;
+        }
+
         sealed class GuardMovePart : MovePart
         {
             readonly bool charges;  // a Soldier: faster once it's close
@@ -46,7 +68,7 @@ namespace Arena
             var rioter = new RioterMovePart();
             var guard = new GuardMovePart(false);
             var rush = new Brain { Move = rioter };
-            t[(int)EnemyType.Rioter] = rush;
+            t[(int)EnemyType.Rioter] = new Brain { Move = new RallyRioterMovePart() };
             t[(int)EnemyType.Worker] = rush;
             t[(int)EnemyType.Rubble] = rush;
             t[(int)EnemyType.Gnawling] = new Brain { Move = rioter, Special = new EatSpecial() };

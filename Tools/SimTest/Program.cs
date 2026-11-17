@@ -291,6 +291,7 @@ static partial class Program
         Test("swordsman", "the Swordsman's cone, cut and dodge, the Shield Swordsman's guard and block flash, the wave unlocks", () => SwordsmanTest(Dt)),
         Test("captain", "the Riot Captain: its shield, the charge into a wall, the whistle, its attacks, its room over the network", () => RiotCaptainTest(Dt)),
         Test("guardswing", "the riot Guard swings its baton fast, forehand then backhand, only when you're close and without stopping", () => GuardSwingTest(Dt)),
+        Test("guardrally", "a Rioter near a Guard runs faster than one alone", () => GuardRallyTest(Dt)),
         Test("security", "the Security Guard walks while it locks on, keeps its strafe side and aims straight at you", () => SecurityTest(Dt)),
         Test("reapercult", "the Twin Reapers' cult: Bound Wraiths' tether and revive, Scythe Wraith's reap, Lamplighter, Mourner", () => ReaperCultTest(Dt)),
         Test("nonshooters", "the Fuse Runner's fuse and blast, the Hookman's yank and open window, the Sapper's Tripwire Pods", () => NonShootersTest(Dt)),
@@ -511,7 +512,7 @@ static partial class Program
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "stonespear", "honeybee", "nunchaku", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "newenemies", "guardrally", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
     static int Main(string[] args)
