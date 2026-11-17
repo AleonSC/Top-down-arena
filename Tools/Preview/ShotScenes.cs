@@ -303,7 +303,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("RALLY") != null) {
       // RALLY=1: a Guard with Rioters round it (amber rally ring), a lone Rioter at each end; bottle Rioters carry a bottle,
       // one rcocked to throw, one bottle in flight. KNIGHT=1 ZOOM=2.2.
-      var rgm = host.Game; rgm.Bot = false; rgm.Enemies.Clear(); rgm.Bullets.Clear();
+      var rgm = host.Game; rgm.Bot = false; rgm.Enemies.Clear(); rgm.Bullets.Clear(); rgm.Wave = Math.Max(rgm.Wave, Game.BottleFromWave);
       me.Pos = me.Disp = new V2(1010f, 640f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
       foreach (var pl in rgm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
       var rspawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
