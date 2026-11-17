@@ -151,7 +151,7 @@ namespace Arena
             if (Mouse01(k) && a != KeyAction.Fire && a != KeyAction.Parry)
                 return false;
             if (k == KeyCode.None || k == KeyCode.Escape || k == KeyCode.Tab || k == KeyCode.Return || k == KeyCode.KeypadEnter
-                || k == KeyCode.F1 || k == KeyCode.F2 || k == KeyCode.F3 || k == KeyCode.F4 || k == KeyCode.F5
+                || k == KeyCode.F1 || k == KeyCode.F2 || k == KeyCode.F3 || k == KeyCode.F4 || k == KeyCode.F5 || k == KeyCode.F6 || k == KeyCode.F7
                 || k == KeyCode.UpArrow || k == KeyCode.DownArrow || k == KeyCode.LeftArrow || k == KeyCode.RightArrow)
                 return false;
             return true;

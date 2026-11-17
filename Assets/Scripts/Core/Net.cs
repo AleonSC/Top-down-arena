@@ -59,6 +59,7 @@ namespace Arena
         Task connectTask;
         DateTime connectStarted;
         readonly Dictionary<int, Conn> conns = new Dictionary<int, Conn>();
+        public int PeerCount => conns.Count;  // connected guests (a run snapshot loads only with none, RunSnapshot.cs)
         readonly List<NetEvent> events = new List<NetEvent>();
         int nextId = 2;
 
