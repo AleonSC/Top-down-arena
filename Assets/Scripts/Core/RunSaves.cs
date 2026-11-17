@@ -152,6 +152,7 @@ namespace Arena
                 p.PendingPicks = 0;
                 p.LegendaryQueue.Clear();
                 p.PendingMods = 0;
+                p.PendingCards = 0;
                 p.PendingMilestones = 0;
                 p.Offer = null;
                 NextOffer(p);

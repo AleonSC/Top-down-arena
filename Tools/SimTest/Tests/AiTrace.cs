@@ -59,7 +59,7 @@ static partial class Program
                 ClearSquads(g);
                 g.DevSetGod(me.Id, true);
                 me.Pos = home;
-                me.PendingPicks = me.PendingLegendary = me.PendingMods = 0;
+                me.PendingPicks = me.PendingLegendary = me.PendingMods = me.PendingCards = 0;
                 me.LegendaryQueue.Clear();
                 me.Offer = null;
                 anchor.FrozenT = 1f;

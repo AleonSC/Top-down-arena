@@ -210,7 +210,7 @@ namespace Arena
             else
             {
                 // Ready only means something during the break, and only once this player's own picks are done.
-                if (State != MatchState.Intermission || p.AutoReady || p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingMilestones + p.PrizePicks > 0)
+                if (State != MatchState.Intermission || p.AutoReady || p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingCards + p.PendingMilestones + p.PrizePicks > 0)
                     return;
                 if (p.Ready == value)
                     return;

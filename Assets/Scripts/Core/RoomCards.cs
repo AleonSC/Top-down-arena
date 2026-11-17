@@ -205,8 +205,8 @@ namespace Arena
             }
         }
 
-        /// Host, when a wave is cleared (before the round opens): a boss gives everyone a shape card and one player (round the seats) a
-        /// Mini-boss card; a regular wave gives each player a 1 in CardWaveChance shape card.
+        /// Host, when a wave is cleared (before the round opens): a regular wave gives each player a 1 in CardWaveChance shape card. A boss
+        /// gives nothing here: its reward is the card pick (BossCards.cs).
         void DropWaveCards(bool boss)
         {
             if (!IsHost || !RoomCardsOn || !ModeRules.RunEvents)
@@ -218,12 +218,8 @@ namespace Arena
                 var p = Players[ids[i]];
                 var rng = new DetRandom(expandSeed * 13 + Wave * 977 + ids[i] * 61);
                 if (boss)
-                {
-                    GiveCard(p, Expansion.DropCard(rng), "boss");
-                    if (i == (Wave / Expansion.Milestone) % ids.Count)
-                        GiveCard(p, RoomCard.MiniBoss, "boss");
-                }
-                else if (rng.Int(CardWaveChance) == 0)
+                    continue;  // (a boss gives the card pick instead: BossCards.cs, Docs/ArmsDealer.md)
+                if (rng.Int(CardWaveChance) == 0)
                     GiveCard(p, Expansion.DropCard(rng), "wave drop");
             }
             Free(ids);

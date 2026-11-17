@@ -262,7 +262,7 @@ static partial class Program
             if (g.State == MatchState.Fighting) foreach (var p in g.Players.Values) p.Hp = Math.Min(p.Hp, p.MaxHp * 0.3f);   // (so a Rest after it has something to heal)
             foreach (var p in g.Players.Values) sawPrize |= p.PrizePicks > 0 || p.OfferPrize;
             foreach (var pr in g.Props.Values) if (pr.Kind == PropKind.Chest) { sawChest |= !pr.Open; pr.Open = true; }   // (nobody walks to a chest here: an unopened one holds the wave)
-            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
             foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0) e.Hp = 0f;
         };
         Run(s, dt, 20f, () => g.HuntRoute != null && c.HuntRoute != null && c.HuntRoute.Seed == g.HuntRoute.Seed, keep);

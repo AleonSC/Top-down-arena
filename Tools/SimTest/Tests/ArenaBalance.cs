@@ -55,7 +55,7 @@ static partial class Program
         for (int f = 0; f < 60 * 60 * 90 && g.State != MatchState.GameOver && g.State != MatchState.Victory && g.Wave <= lastWave; f++)
         {
             Step(host, dt); Step(c, dt);
-            foreach (var p in g.Players.Values) { p.PendingMods = 0; }
+            foreach (var p in g.Players.Values) { p.PendingMods = p.PendingCards = 0; }
             if (expanding)  // the building rounds: what the players could afford, what was proposed, what was built
             {
                 if (g.ExpandOpen && openRound == null)

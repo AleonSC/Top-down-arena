@@ -96,7 +96,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
-        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         Check(g.RoomCardsOn && cg.RoomCardsOn && g.FreeBuild && !g.BuildVoting, "room cards on: builds go up at once, no vote");
@@ -136,12 +136,12 @@ static partial class Program
         Run(s, dt, 0.5f, null, noPicks);
         Check(g.Expanded.Count == before && Game.HandCount(friend) == held, "a card that doesn't fit is refused and kept");
 
-        // A boss gives everyone a shape card and one player the mini-boss card.
+        // A boss gives no free cards now: its reward is the card pick (BossCards.cs, tested in suite armsdealer).
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
         g.Wave = 10;
         typeof(Game).GetMethod("DropWaveCards", flags).Invoke(g, new object[] { true });
-        Check(g.Players.Values.All(p => Game.HandCount(p) >= 1 && (Expansion.ShapeCards.Contains((RoomCard)p.Hand[0]) || Expansion.IsServiceCard((RoomCard)p.Hand[0]))), "a boss gives everyone a shape (or service) card");
-        Check(g.Players.Values.Count(p => p.Hand.Contains((byte)RoomCard.MiniBoss)) == 1, "and one player a mini-boss card");
+        Check(g.Players.Values.All(p => Game.HandCount(p) == 0), "a boss drops no free cards (its card pick replaces them)");
+        g.Players.Values.First().Hand[0] = (byte)RoomCard.MiniBoss;
 
         // The mini-boss card builds a duel room holding the coming boss's faction mini-boss.
         var mbOwner = g.Players.Values.First(p => p.Hand.Contains((byte)RoomCard.MiniBoss));
@@ -197,7 +197,7 @@ static partial class Program
         var g = host.Game;
         host.StartMatch();
         var s = new[] { host };
-        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.RoomCards, 1f); g.Expanded.Clear(); g.Nodes.Clear();
         var open = typeof(Game).GetMethod("OpenBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

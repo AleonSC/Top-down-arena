@@ -33,7 +33,7 @@ static partial class Program
             var c = client.Game;
             Action keep = () =>
             {
-                foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+                foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
                 foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss) e.Hp = 0f;
             };
             bool earlyGate = false;

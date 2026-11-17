@@ -24,7 +24,7 @@ static partial class Program
             g.DevSetGod(1, true); g.DevSetGod(2, true);
             var spawnQ = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
             var squadQ = (List<SquadDef>)typeof(Game).GetField("squadQueue", flags).GetValue(g);
-            Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+            Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
 
             // Each Campaign wave of the cycle: what it brings (read as it starts, then everything is cleared away).
             var waves = new Dictionary<int, HashSet<EnemyType>>();

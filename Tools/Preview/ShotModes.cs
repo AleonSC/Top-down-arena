@@ -701,11 +701,16 @@ static partial class Shot {
       else if (mode == "picker" && Environment.GetEnvironmentVariable("PICKCARDS") != null) me.Offer = Array.ConvertAll(Environment.GetEnvironmentVariable("PICKCARDS").Split(','), n => U(n));
       else if (mode == "picker" && Environment.GetEnvironmentVariable("MILESTONE") != null) { host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Second Helping")); me.Offer = new[] { U("Scholar"), U("Second Helping"), U("Wide Choice") }; me.OfferMilestone = true; }  // MILESTONE=1: a milestone pick
       else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Barrage") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
+      else if (mode == "bosscards") {  // the boss card pick (BossCards.cs): BOSSFULL=1 fills your hand so the cards grey out
+        host.Game.Diff.Set(DiffKnob.ArenaExpanding, 1f); host.Game.Diff.Set(DiffKnob.RoomCards, 1f);
+        me.Hand[0] = (byte)RoomCard.Box; me.Hand[1] = (byte)RoomCard.Hall;
+        if (Environment.GetEnvironmentVariable("BOSSFULL") != null) for (int hi = 0; hi < me.Hand.Length; hi++) me.Hand[hi] = (byte)RoomCard.Box;
+        me.Offer = new[] { (int)RoomCard.Ring, (int)RoomCard.Arms, BossCards.KitCode(PathId.SniperRidge), (int)RoomCard.MiniBoss, (int)RoomCard.LHall }; me.OfferCards = true; me.PendingCards = 1; }
       else if (mode == "legendary") { me.Offer = new[] { U("Warden's Guard"), U("Stun Gun"), U("Searchlight") }; me.OfferLegendary = true; }
       else { me.Offer = Upgrades.ModOffer(OfferCtx.Of(me, false)); me.OfferMod = true; }
       me.PendingPicks = 2;
       typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);
-      typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count);
+      typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count + "," + Game.HandCount(me) + "," + host.Game.RoomTokens.Count);
       int pickMark = GUI.Log.Count;
       // INTRO=<seconds>: the picker that long into its opening (PickIntro.cs); INTROREROLL=1 for a reroll's (cards only).
       var intro = Environment.GetEnvironmentVariable("INTRO");

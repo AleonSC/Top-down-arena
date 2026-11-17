@@ -111,7 +111,7 @@ static partial class Program
 
         // The milestone pick comes up before the normal pick, can't be rerolled, and Reroll Cache pays out on the spot.
         me.Taken.Clear(); me.Stats = Upgrades.Compute(me.Taken);
-        me.PendingMilestones = 1; me.PendingPicks = 1; me.PendingLegendary = me.PendingMods = me.PrizePicks = 0; me.LegendaryQueue.Clear(); me.Rerolls = 2;
+        me.PendingMilestones = 1; me.PendingPicks = 1; me.PendingLegendary = me.PendingMods = me.PendingCards = me.PrizePicks = 0; me.LegendaryQueue.Clear(); me.Rerolls = 2;
         var next = typeof(Game).GetMethod("NextOffer", BindingFlags.NonPublic | BindingFlags.Instance);
         next.Invoke(g, new object[] { me });
         Check(me.OfferMilestone && me.Offer != null && me.Offer.All(i => Upgrades.All[i].Rarity == Rarity.Milestone), "the milestone offer comes before the normal pick");

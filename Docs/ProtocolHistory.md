@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 395: the boss card pick (Docs/ArmsDealer.md step 3): the player snapshot adds `PendingCards` (byte) and `OfferCards` (bool) after `OfferPrize`; offers may hold card codes.
 - 394: the Arms Dealer (Docs/ArmsDealer.md step 2): `ShopAction.BuyMod` appended (arg: the mod's upgrade id).
 - 393: service cards (Docs/ArmsDealer.md step 1): `RoomCard.Shop`/`Market`/`Arms` and `RoomKind.Arms` appended (hands and room lists carry them).
 - 392: `FxKind.BulwarkThrow` appended (the Bulwark Barrier's Shield Throw in flight); `FxKind.BulwarkStep` step 4 (its wind-up) and `FxKind.BulwarkBlock` Pos2.Y 2 (melee on the braced plate) and 3 (a thrown shield's cut).

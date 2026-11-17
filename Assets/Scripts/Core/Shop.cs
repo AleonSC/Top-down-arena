@@ -60,7 +60,7 @@ namespace Arena
         public bool GoldUseful => HuntMapOn || ExpandingOn || (OnPath && CurrentPath == PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms;
 
         /// Level-up offers can be swapped for gold; boss rewards, mods, milestones and prizes can't.
-        public bool CanGoldInstead(Player p) => p != null && p.Offer != null && !p.OfferLegendary && !p.OfferMod && !p.OfferMilestone && !p.OfferPrize && GoldUseful;
+        public bool CanGoldInstead(Player p) => p != null && p.Offer != null && !p.OfferLegendary && !p.OfferMod && !p.OfferCards && !p.OfferMilestone && !p.OfferPrize && GoldUseful;
 
         /// Add stock: the price of the next one (25, then +25 each time).
         public static int RestockPrice(Player p) => 25 + 25 * Math.Min(p.Restocks, 255);

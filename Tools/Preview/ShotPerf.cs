@@ -28,7 +28,7 @@ static partial class Shot {
       bool idle = i < idleFor * 60;  // PERFIDLE=<s>: the bots stand still that long, so a crowd builds
       g.Bot = !idle; foreach (var c in others) c.Game.Bot = !idle;
       Step(host); foreach (var c in others) Step(c);
-      foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.Hp = p.MaxHp; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+      foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.Hp = p.MaxHp; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
       Time.time += 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = Time.unscaledDeltaTime = 1f / 60f; Time.frameCount++;
       bool trace = i % 120 == 119;
       var by = new System.Collections.Generic.Dictionary<string, int>();

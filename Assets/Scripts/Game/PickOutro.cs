@@ -20,6 +20,7 @@ namespace Arena
         bool outroGrid;                        // weapon mods: the small cards
         int outroPicked = -1;
         Texture2D outroIcon;
+        bool outroCards;  // the cards were a boss card pick (BossCardsUi.cs)
         V2 outroTarget;
         bool outroDim;                         // the picker's dark backdrop fades out with it (no more picks waiting)
 
@@ -34,16 +35,17 @@ namespace Arena
             outroRects = new Rect[n];
             outroColors = new Rgba[n];
             outroOffer = (int[])me.Offer.Clone();
-            outroGrid = me.OfferMod;  // as the picker draws them (Wide Choice's 4th and 5th level-up cards stay tall)
+            outroGrid = me.OfferMod;
+            outroCards = me.OfferCards;  // as the picker draws them (Wide Choice's 4th and 5th level-up cards stay tall)
             for (int i = 0; i < n; i++)
             {
                 outroRects[i] = pickCardRects[i];
-                outroColors[i] = Upgrades.RarityColor(Upgrades.All[me.Offer[i]].Rarity);
+                outroColors[i] = me.OfferCards ? BossCardRgba(me.Offer[i]) : Upgrades.RarityColor(Upgrades.All[me.Offer[i]].Rarity);
             }
             outroPicked = picked;
-            outroIcon = PixelArt.ForUpgrade(Upgrades.All[me.Offer[picked]].Name);
+            outroIcon = me.OfferCards ? (BossCards.IsKit(me.Offer[picked]) ? PixelArt.Get("floorkit") : null) : PixelArt.ForUpgrade(Upgrades.All[me.Offer[picked]].Name);
             outroTarget = PickHome(me);
-            outroDim = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingMilestones + me.PrizePicks <= 1;
+            outroDim = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingCards + me.PendingMilestones + me.PrizePicks <= 1;
             pickOutroAt = Time.unscaledTime;
         }
 
@@ -53,6 +55,11 @@ namespace Arena
         /// One of the remembered cards, drawn in its slot as the picker draws it.
         void DrawOutroCard(Player me, int i, bool selected, float now)
         {
+            if (outroCards)
+            {
+                DrawBossCardTrophy(me, i, outroOffer[i], outroRects[i], selected, !selected, false, now);
+                return;
+            }
             var u = Upgrades.All[outroOffer[i]];
             if (outroGrid)
                 DrawUpgradeCard(me, i, u, outroRects[i], true, selected, false, now);

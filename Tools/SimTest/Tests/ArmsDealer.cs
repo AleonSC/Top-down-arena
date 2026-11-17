@@ -17,7 +17,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
-        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true; }
 
@@ -78,5 +78,115 @@ static partial class Program
         Run(s, dt, 1f, () => Upgrades.Count(friend.Taken, fm) == 1, noPicks);
         Run(s, dt, 0.5f, null, noPicks);
         Check(Upgrades.Count(friend.Taken, fm) == 1 && friend.Gold == 300 - Game.ModPrices[0] && cg.Players[2].Gold == friend.Gold, "the friend buys a mod too, and sees their gold drop");
+    }
+}
+
+static partial class Program
+{
+    // The boss card pick (Docs/ArmsDealer.md step 3): with room cards on a beaten boss gives a pick of 5 cards and kits (not a weapon mod), no
+    // free cards or kit; it rerolls, a card goes to the hand and a kit to the team; what can't be taken is refused; with cards off, mods as before.
+    static void BossCardsTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        // The offer on its own: 5 different codes, all valid, every group turning up over many rolls.
+        var seen = new System.Collections.Generic.HashSet<int>();
+        bool fine = true;
+        for (int i = 0; i < 400; i++)
+        {
+            var of = BossCards.Offer(new DetRandom(i * 977 + 5), new System.Collections.Generic.List<ExpansionRoom>(), new System.Collections.Generic.List<RoomToken>());
+            fine &= of.Length == BossCards.OfferSize && of.Distinct().Count() == of.Length
+                && of.All(c => BossCards.IsKit(c) ? Array.IndexOf(Expansion.Floors, BossCards.FloorOf(c)) >= 0 : BossCards.CardOf(c) != RoomCard.None);
+            foreach (int c in of) seen.Add(c);
+        }
+        Check(fine, "an offer is " + BossCards.OfferSize + " different cards or kits");
+        Check(Expansion.ShapeCards.All(c => seen.Contains((int)c)) && Expansion.ServiceCards.All(c => seen.Contains((int)c)) && seen.Contains((int)RoomCard.Box)
+              && seen.Contains((int)RoomCard.MiniBoss) && Expansion.Floors.All(f => seen.Contains(BossCards.KitCode(f))), "every shape, service, basic and mini-boss card and every floor kit turns up");
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        noPicks();
+        foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
+        g.RoomTokens.Clear();
+
+        // The boss falls: a legendary, then the card pick (no weapon mod).
+        var boss = new Enemy { Id = 9901, Type = EnemyType.Boss, Def = Defs.Get(EnemyType.Boss), Hp = 0f };
+        typeof(Game).GetField("bossRewarded", flags).SetValue(g, false);
+        typeof(Game).GetMethod("OnEnemyKilled", flags).Invoke(g, new object[] { boss });
+        Check(g.BossCardPicks && g.Players.Values.All(p => p.PendingCards == 1 && p.PendingMods == 0 && p.LegendaryQueue.Count == 1), "with room cards a boss gives a card pick, not a weapon mod");
+        var me = g.Players[1];
+        var nextOffer = typeof(Game).GetMethod("NextOffer", flags);
+        me.LegendaryQueue.Clear();
+        g.State = MatchState.Intermission;
+        nextOffer.Invoke(g, new object[] { me });
+        Check(me.OfferCards && me.Offer != null && me.Offer.Length == BossCards.OfferSize, "after the legendary comes the card pick (" + string.Join(", ", me.Offer.Select(BossCards.Name)) + ")");
+
+        // No free drops: the wave's boss clear gives no shape card and no Floor kit.
+        g.Wave = 10;
+        typeof(Game).GetMethod("DropWaveCards", flags).Invoke(g, new object[] { true });
+        typeof(Game).GetMethod("GrantVectorsForWave", flags).Invoke(g, null);
+        Check(Game.HandCount(me) == 0 && g.RoomTokens.Count == 0, "a boss gives no free card or kit any more");
+
+        // Reroll: a new set, one reroll spent.
+        var before = (int[])me.Offer.Clone();
+        me.Rerolls = 2;
+        g.HostReroll(me.Id);
+        Check(me.Rerolls == 1 && me.OfferCards && !me.Offer.SequenceEqual(before), "the card pick can be rerolled");
+
+        // Take a card: it goes to the hand. Then a kit: it goes to the team.
+        me.Offer = new[] { (int)RoomCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)RoomCard.Arms, (int)RoomCard.Box, (int)RoomCard.MiniBoss };
+        me.PendingCards = 2;
+        g.PickUpgrade(2);
+        Check(me.Hand[0] == (byte)RoomCard.Arms && me.PendingCards == 1 && me.OfferCards, "a picked card goes to your hand, and the next pick comes");
+        me.Offer = new[] { (int)RoomCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)RoomCard.Arms, (int)RoomCard.Box, (int)RoomCard.MiniBoss };
+        g.PickUpgrade(1);
+        Check(g.RoomTokens.Count == 1 && g.RoomTokens[0].Kind == RoomKind.Floor && g.RoomTokens[0].Floor == PathId.FrozenLake && me.PendingCards == 0 && me.Offer == null,
+            "a picked kit goes to the team's kits");
+
+        // A full hand: cards are refused, a kit still works; full kits too: the pick is skipped.
+        for (int i = 0; i < me.Hand.Length; i++) me.Hand[i] = (byte)RoomCard.Box;
+        me.PendingCards = 1;
+        nextOffer.Invoke(g, new object[] { me });
+        me.Offer = new[] { (int)RoomCard.Ring, BossCards.KitCode(PathId.BloodMoon), (int)RoomCard.Arms, (int)RoomCard.Box, (int)RoomCard.MiniBoss };
+        g.PickUpgrade(0);
+        Check(me.PendingCards == 1 && me.Hand.All(h => h == (byte)RoomCard.Box), "with a full hand a card can't be taken");
+        while (g.RoomTokens.Count < Expansion.MaxTokens) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.Sanctuary });
+        nextOffer.Invoke(g, new object[] { me });
+        Check(me.PendingCards == 0 && !me.OfferCards, "with a full hand and full kits the pick is skipped");
+        g.RoomTokens.Clear();
+
+        // The friend's pick reaches their screen, and they pick through the host.
+        var friend = g.Players[2];
+        Array.Clear(friend.Hand, 0, friend.Hand.Length);
+        friend.LegendaryQueue.Clear();
+        friend.PendingCards = 1;
+        nextOffer.Invoke(g, new object[] { friend });
+        Action hold = () => g.State = MatchState.Intermission;  // (keep the break open: picks only count in it)
+        Run(s, dt, 1f, () => cg.Players[2].OfferCards && cg.Players[2].Offer != null && cg.Players[2].Offer.SequenceEqual(friend.Offer), hold);
+        Check(cg.Players[2].OfferCards && cg.Players[2].PendingCards == 1, "the friend sees their card pick");
+        int want = friend.Offer[0];
+        cg.PickUpgrade(0);
+        Run(s, dt, 1f, () => friend.PendingCards == 0, hold);
+        Check(friend.PendingCards == 0 && (BossCards.IsKit(want) ? g.RoomTokens.Count == 1 : friend.Hand[0] == (byte)want), "and their pick (" + BossCards.Name(want) + ") lands");
+
+        // A bot takes a service card the map lacks over the rest.
+        me.Offer = new[] { (int)RoomCard.Box, BossCards.KitCode(PathId.FrozenLake), (int)RoomCard.Arms, (int)RoomCard.MiniBoss, (int)RoomCard.Ring };
+        Array.Clear(me.Hand, 0, me.Hand.Length);
+        int botPick = (int)typeof(Game).GetMethod("BotBossCard", flags).Invoke(g, new object[] { me });
+        Check(botPick == 2, "a bot takes the Arms Dealer card when the map has none");
+
+        // Room cards off: back to the weapon mod pick.
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.RoomCards, 0f);
+        noPicks();
+        g.State = MatchState.Fighting;
+        typeof(Game).GetField("bossRewarded", flags).SetValue(g, false);
+        typeof(Game).GetMethod("OnEnemyKilled", flags).Invoke(g, new object[] { boss });
+        Check(!g.BossCardPicks && g.Players.Values.All(p => p.PendingMods == 1 && p.PendingCards == 0), "with room cards off a boss gives the weapon mod pick as before");
     }
 }

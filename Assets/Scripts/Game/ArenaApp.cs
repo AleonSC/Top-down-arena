@@ -655,7 +655,7 @@ namespace Arena
         /// Forget the highlighted card whenever a new set of cards is shown.
         void SyncSelection(Player me)
         {
-            string key = me.Offer == null ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count;
+            string key = me.Offer == null ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count + "," + Game.HandCount(me) + "," + game.RoomTokens.Count;  // (a boss card pick changes the hand or kits, not Taken)
             if (key != shownOffer)
             {
                 // The same picks taken and different cards: a reroll (the opening skips its fanfare; PickIntro.cs).
@@ -676,7 +676,7 @@ namespace Arena
             rerollArmedAt = -99f;
             StartPickOutro(me, selectedCard);  // the cards fly back into you, yours last (PickOutro.cs)
             int key = 0;
-            if (me != null && me.Offer != null && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
+            if (me != null && me.Offer != null && !me.OfferCards && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
                 key = pickKey;
             game.PickUpgrade(selectedCard, key);
             selectedCard = -1;

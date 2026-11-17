@@ -1,6 +1,6 @@
 # Arms Dealer and the boss card pick
 
-Status: **steps 1-2 built** (protocols 393, 394): service cards, the Arms Dealer room. Steps 3-4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md),
+Status: **steps 1-3 built** (protocols 393-395): service cards, the Arms Dealer room, the boss card pick. Step 4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md),
 [`RoomModifiers.md`](RoomModifiers.md) (floor kits), [`MysteryDoors.md`](MysteryDoors.md) and [`Nodes.md`](Nodes.md) (the tiny shop / vendor rooms).
 
 ## Decisions (owner)
@@ -27,10 +27,13 @@ Status: **steps 1-2 built** (protocols 393, 394): service cards, the Arms Dealer
    Built: `ArmsDealer.cs` (`ModIds`, `ModPrices` 150/250/400, `ModPrice`, `HasArmsRoom`, `InArmsRoom`, `BuyMod`), the shop screen's Arms Dealer
    (`ShopUi.DrawModItem`, items 40+), `Game/ArmsDealerLook.cs` (the stall), small mystery rooms: Arms Dealer 11 of 100. Bought mods are upgrades,
    so saves already keep them. Previews `EXPANDSHOP=4 [SHOPCAT=0] [MODSHELD=a,b]`, `EXPANDMAP=0 CARDROOM=arms CARDDY=260`. Suite `armsdealer`.
-3. **Boss card pick.** In the Expanding arena with room cards on, the boss's `PendingMods` becomes `PendingBossCards`: 5 cards rolled per
+3. (built) **Boss card pick.** In the Expanding arena with room cards on, the boss's `PendingMods` becomes `PendingBossCards`: 5 cards rolled per
    player from Box, Hall, the five shapes, Mini-boss, the service cards and Floor kits (seeded). A card goes to your hand, a kit to the
    team's kits; a full hand or full kit list greys those cards. Remove the free boss drops. Picker look: the room card art in the upgrade
    picker (`HudPicker.cs`). Elsewhere the mod grid stays.
+   Built: `BossCards.cs` (`Offer`: codes, a RoomCard or `KitBase` + a PathId; `Game.BossCardPicks`, `BossCardUsable`, `GrantBossCard`, `BotBossCard`),
+   `Player.PendingCards` / `OfferCards` (snapshot), the picker's BOSS SPOILS! cards (`Game/BossCardsUi.cs`), rerolls, the free boss card, Mini-boss
+   card and Floor kit gone with cards on; a pick nobody can take is skipped. Preview mode `bosscards` (`BOSSFULL=1`). Suite `armsdealer`.
 4. **Bots and balance.** Bots pick cards (prefer a service card the map lacks, else a shape), buy mods at the Arms Dealer, play service
    cards near the hub; `vecbal` / sim runs to check bots still get mods; README, previews.
 

@@ -263,7 +263,7 @@ static partial class Program
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(list[0]); gg.RoomsUp = true; }
         typeof(Game).GetField("expandSeed", flags).SetValue(g, 99);
-        Action hold = () => { g.State = MatchState.Intermission; g.StateTimer = 30f; foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action hold = () => { g.State = MatchState.Intermission; g.StateTimer = 30f; foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         hold();
         typeof(Game).GetMethod("RollMysteryDoors", flags).Invoke(g, null);
         Run(s, dt, 0.5f, null, hold);

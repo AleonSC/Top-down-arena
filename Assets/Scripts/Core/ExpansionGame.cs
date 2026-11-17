@@ -155,7 +155,7 @@ namespace Arena
             if (!ExpandingOn)
                 return;
             bool boss = BossNow;
-            if (boss && IsHost && ModeRules.RunEvents)
+            if (boss && IsHost && ModeRules.RunEvents && !BossCardPicks)  // (with room cards the boss's card pick offers kits instead)
                 GrantRoomToken(Expansion.FloorToken(expandSeed, Wave, Expanded, RoomTokens));
             DropWaveCards(boss);  // RoomCards.cs
             foreach (var p in Players.Values)
