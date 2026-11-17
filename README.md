@@ -1894,6 +1894,7 @@ wins. `ShotRifle_1.wav`, `ShotRifle_2.wav`... give it several takes, played in t
 shortest gap between plays and its small pitch wander. To make one, open `Tools/SoundForge/index.html` in a browser: pick
 a preset, shape it with the sliders and export a WAV already named for the sound you chose (several takes at once if you like). It has an equalizer, an output
 volume, and a seamless loop mode for hums and drones (the game loops `WallHum`, `ArcHum`, `HeliRotor` and `SawWhirr`).
+**My presets** saves your own sounds in the browser; Export/Import moves them to a file and back.
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
 so they never change the fight or what your friend sees):
