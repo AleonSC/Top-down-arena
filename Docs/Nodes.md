@@ -18,6 +18,8 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 | New nodes | May appear **around the current build** as it grows (each boss cycle, placed relative to the built map, never inside it). They are new nodes, not respawns. |
 | Mini-bosses | Unchanged: sealed rooms, touch to open, duel, prize pick. |
 
+**Nov 17 (owner): room chests.** Every drawn room that is built may drop a chest node 3-5 tiles outside its wall (`Expansion.RoomChestFor`, from `ApplyBuilt`): hallways (3 tiles wide or less) 10%, wider rooms 20% + area/720 tiles, up to 40%; none while 2 chests wait; the spot facing the most other rooms within 9 tiles wins, so the claiming room tends to join branches (the hub-and-spokes maps were the problem). No protocol change: nodes were already synced and saved.
+
 ## Build rules
 
 - A node counts as enclosed when its point is inside a built room's box (not on a wall). The draw tool allows boxes that cover a node.
