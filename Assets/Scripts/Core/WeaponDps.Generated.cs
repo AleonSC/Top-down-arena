@@ -73,6 +73,7 @@ namespace Arena
             { WeaponId.BloodBolts, 121f },
             { WeaponId.Implosion, 75f },
             { WeaponId.BoneSpear, 79f },
+            { WeaponId.VectorForge, 105f },
         };
     }
 }

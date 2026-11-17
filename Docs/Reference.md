@@ -22,6 +22,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Knight | x1.15 | x1 | Melee: swings cut small bullets out of the air. Armoured: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee; tricks and misdirection. Fast (+12% speed), 85% health. |
 | Hemomancer | x1 | x1 | Blood spells that drain and heal. Abilities cost health; hits harder the lower your health. |
+| Engineer | x1 | x0.95 | Builds in vectors: a walker that fights beside you, fields and breaches. Draftsman: +25% vectors, and vectors repair the walker. DPS only for now. Full health, a little slower. |
 
 ## Weapons
 
@@ -119,6 +120,20 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in. |
 | Bone Spear | Dps | 0.8 s | 60 | 1000 x 0.9 s | - | 79 | A heavy spear that pierces enemies. Each throw costs a little health, but the spear stays stuck where it stops, and walking over it gives the health back. |
 | Embolus Spears | Dps | 0.25 s | 30 | 1100 x 0 s | - | 63 | Arms out, a hardened blood spear in each hand. Fire throws the left, then the right, for 20% of your max health each: they pierce every enemy and stick in the wall. Fire again to recall both: they pierce again on the way back and give the health back. Alt bursts them where they are instead, for half the health back. |
+
+### Engineer
+
+| Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
+|---|---|---|---|---|---|---|---|
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
 
 ## Abilities
 
@@ -241,6 +256,13 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blood Debt | Dps | Space 2 | 16 s | - | Kills repay 50% more. | Borrow against your blood: your health drops to 25% (or 5% of your max, if you're already that low) and the rest becomes a debt. For 8 s, kills pay it back (a Grunt 4% of your max health, a Heavy or an elite 10%, hurting a boss 10% of the damage) and your hits heal 15% instead of 3%. Pay it all and you keep the 15% for 2 s more; what's unpaid after 8 s is lost. |
 | Vein Rush | Dps | Space 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Pay 10% of your max health and rush 280 px toward your cursor as a streak of blood, untouchable. Every enemy you pass through takes 25 and bleeds, and gives back 2% of your max health. You leave a trail of blood that slows enemies 30% for 2 s. |
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy in the arena (20 damage each) into a floating ball, bigger the more enemies fed it. Press again to throw it at your cursor for a huge blast; it throws itself after 5 s. |
+
+### Engineer
+
+| Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
+|---|---|---|---|---|---|---|
+| Drag Pylon | Dps | Space 1 | 6 s | - | Its field is 40% wider. | Plant a pylon at your cursor (up to 320 px away). Its field slows enemies inside by 45% (bosses 20%). It stays until you plant the next one. |
+| Breach | Dps | ultimate | 70 s | - | The blast is twice as wide. | Smash the wall you aim at (up to 220 px): 80 damage and a shove by the wall. In the Expanding arena a free random room opens behind it with one thing inside: vectors, gold, a Strider repair, a workbench (+25% Strider damage this wave) or an ambush. No wall in reach: the blast and the loot land at your cursor. |
 
 ## Enemies
 

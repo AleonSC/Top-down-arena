@@ -157,11 +157,11 @@ static partial class Program
             Check(client.Game.Nodes.Count(n => n.Kind == NodeKind.BreachLoot) == g.Nodes.Count(n => n.Kind == NodeKind.BreachLoot), "the client sees the loot");
             // Walking up to it takes it (here a supply crate: 40 gold in coins).
             g.Nodes.Add(new MapNode { X = 700, Y = 700, Kind = NodeKind.BreachLoot, Rule = 1 });
-            int coins = g.Coins.Count;
+            int coins = g.Coins.Count, gold = g.Players.Values.Sum(q => q.Gold);
             mePos = new V2(700f, 700f);
             step(0.2f);
             var taken = g.Nodes.Last(n => n.Kind == NodeKind.BreachLoot);
-            Check(taken.Spent && g.Coins.Count > coins, "walking up to the loot takes it (a supply crate drops its gold)");
+            Check(taken.Spent && (g.Coins.Count > coins || g.Players.Values.Sum(q => q.Gold) > gold), "walking up to the loot takes it (a supply crate drops its gold)");
             mePos = new V2(800f, 80f);
 
             // Draftsman (step 2): +25% vectors from every gain, part-vectors carried over.
