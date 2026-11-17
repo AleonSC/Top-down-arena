@@ -600,6 +600,10 @@ static partial class Shot {
           me.Hand[0] = (byte)RoomCard.Ring; me.Hand[1] = (byte)RoomCard.Hall; me.Hand[2] = (byte)RoomCard.Cross; me.Hand[3] = (byte)RoomCard.MiniBoss;
           me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.SpikeTrap] = 3;
           g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake }); g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Shop });
+          g.ExpandOpen = Environment.GetEnvironmentVariable("INVOPEN") != null;  // INVOPEN=1: a build round is open (cards and buildables are usable; MOUSE=x,y hovers one)
+          foreach (var tm2 in g.Players.Values) if (tm2.Id != me.Id) { tm2.Gold = 90; tm2.Vectors = 18; tm2.VectorCap = 70; tm2.Hand[0] = (byte)RoomCard.Box; tm2.Hand[1] = (byte)RoomCard.THall; tm2.Stash[(int)BuildKind.Landmine] = 2; tm2.Relic = RelicId.WallBounce; }
+          if (Environment.GetEnvironmentVariable("INVVIEW") != null) set("invView", int.Parse(Environment.GetEnvironmentVariable("INVVIEW")));  // INVVIEW=<player id>: a teammate's inventory
+          var im = Environment.GetEnvironmentVariable("MOUSE"); if (im != null) { var xy = im.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
           if (Environment.GetEnvironmentVariable("INVFULL") != null) { foreach (var fl in new[] { PathId.SniperRidge, PathId.SwarmFields, PathId.Sanctuary, PathId.BurningGrounds }) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = fl }); me.Hand[4] = (byte)RoomCard.Box; me.Hand[5] = (byte)RoomCard.LHall; }  // INVFULL=1: six kits (the list scrolls) and a full hand
         }
         if (Environment.GetEnvironmentVariable("SOLOTAB") != null) set("tabPaused", true);

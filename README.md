@@ -1889,6 +1889,12 @@ remembers the last one):
   room; hover one for what it is), your **buildables** (the Black Market buys in your stash: teleporters and traps, each
   of 5), and the team's **room kits**. A list that holds more than fits **scrolls** with the mouse wheel (a bar on its
   right shows where you are, and "n MORE" under it); the wheel doesn't zoom the camera while this page is up.
+  - **Using things from it:** while a build round is open, **click a room card** (it reads **PLAY ›** under the mouse) and the Tab
+    screen gives way to the build screen with that card picked; **click a buildable** you have (**PLACE ›**) and it opens on the
+    Teleporter or Trap tool with it chosen. The Tab screen stays shut until you let go of Tab. Outside a build round, while downed,
+    or from the pause menu's Run stats you can only look (the hover tip says why).
+  - **Teammates:** keys on the right of the header (**YOU** and each teammate, underlined in their class colour) switch to a
+    teammate's inventory: their wallet, relic, room cards and stash (look only; rerolls show "—", they aren't sent).
 
 The panels **switch on** from a thin line when the screen opens and when you change tab (about a third of a
 second; teammates' live models appear once it settles). With **Reduced effects** or **Visual effects** off they're
