@@ -105,6 +105,12 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.AttackHelicopter, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,
+                Name = "Attack Helicopter", Cooldown = 70f, Desc = "Call in a gunship for 10 s. It circles you and locks one enemy at a time, the one nearest you, hosing it with a chaingun (20 rounds a second, 8 damage each) until it dies, then the next. It can't be hit.",
+                Capstone = "A second gun on the wing: two targets at once.",
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.BulletRain, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
                 Name = "Bullet Rain", Cooldown = 70f, Desc = "Call a downpour over a big square (520 px) at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet.",
                 Capstone = "Lasts 9 s.",
@@ -206,6 +212,10 @@ namespace Arena
                     p.UltT = 6f;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.6f, 0.25f), 140f, 0.6f, Sfx.Ability);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.8f), 85f, 0.45f, Sfx.None);
+                    break;
+
+                case AbilityId.AttackHelicopter:  // DPS: Soldier, the second ultimate (AttackHelicopter.cs)
+                    CastHeli(p, cap);
                     break;
 
                 case AbilityId.BulletRain:  // DPS: Mage

@@ -31,6 +31,7 @@ namespace Arena
         Bloodbath,    // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
         LightningRod,    // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
+        AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
         None = 255,
     }
 

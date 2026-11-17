@@ -25,7 +25,7 @@ static partial class Program
         Check(def.Name == "Lightning Rod" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1
             && Upgrades.Ultimate(Role.Tank, Kit.Elementalist) == AbilityId.GlacialTomb && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 0) == AbilityId.GlacialTomb
             && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod, "Lightning Rod is the tank Elementalist's second ultimate (70 s); Glacial Tomb stays the default");
-        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 1) == 0 && Upgrades.ClampUlt(Role.Wildcard, Kit.Elementalist, 1) == 0
+        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 1) == 0 && Upgrades.ClampUlt(Role.Wildcard, Kit.Elementalist, Upgrades.WildUlt(Kit.Elementalist, 1)) == Upgrades.WildUlt(Kit.Elementalist, 0)
             && Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 1) == AbilityId.BulletRain, "key 1 is the tank Elementalist's; a DPS Elementalist (and a Wildcard) fall back to their default");
 
         int port = nextPort++;
