@@ -2233,7 +2233,7 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
 
 Save a run at any moment and load back to that exact state, e.g. to try the same boss phase or bug again and again.
 **F6** in a match saves a snapshot (a line at the top says so), **F7** loads the newest one. **F1 → SNAP** opens the **Run
-snapshots** sheet: type a name and **Take snapshot**, or **LOAD** / **Delete** any saved one (newest first, with its mode,
+snapshots** sheet: type a name and **Take snapshot**, or **LOAD**, **Rename** (Enter or Save keeps it) or **Delete** any saved one (newest first, with its mode,
 wave, enemy count, run time and party). A snapshot keeps everything in the match: players and builds, enemies and their
 AI, shots in the air, the map, timers and the random rolls, so after loading, the run plays on exactly as it did (the
 bot does the same thing again too). Files are kept in the profile's `snapshots` folder (**Open folder**), the newest 40.

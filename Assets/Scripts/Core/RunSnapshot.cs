@@ -192,6 +192,39 @@ namespace Arena
             return list;
         }
 
+        /// Give a snapshot file a new name (the name is in its header; the state is copied over unchanged). False if it failed.
+        public static bool Rename(string path, string name)
+        {
+            name = (name ?? "").Trim();
+            if (name.Length == 0)
+                return false;
+            try
+            {
+                var data = File.ReadAllBytes(path);
+                var r = new BinaryReader(new MemoryStream(data), Encoding.UTF8);
+                if (r.ReadString() != Magic || r.ReadInt32() != Format)
+                    return false;
+                r.ReadString();
+                int rest = (int)r.BaseStream.Position;
+                var ms = new MemoryStream();
+                var w = new BinaryWriter(ms, Encoding.UTF8);
+                w.Write(Magic);
+                w.Write(Format);
+                w.Write(name);
+                w.Write(data, rest, data.Length - rest);
+                w.Flush();
+                string tmp = path + ".tmp";
+                File.WriteAllBytes(tmp, ms.ToArray());
+                File.Delete(path);
+                File.Move(tmp, path);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public static string LoadFile(Game g, string path, out string notes)
         {
             notes = "";
