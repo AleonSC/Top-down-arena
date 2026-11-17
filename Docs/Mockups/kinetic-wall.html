@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kinetic Wall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Approximate HTML mockup (browser glow/blur): the Unity look will be built from Ui.cs primitives. Dark only, like the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --a: #8fd8ff;
+  --font-display: "Oxanium", system-ui, sans-serif; --font-body: "Barlow", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark;
+}
+:root[data-theme="light"], :root[data-theme="dark"] { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--font-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 26px; }
+h1, h2 { font-family: var(--font-display); margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--a); }
+h2 { font-size: 20px; letter-spacing: .04em; }
+p { margin: 0; max-width: 74ch; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+.lead { color: var(--soft); }
+.note { color: var(--muted); font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.card h2 small { font: 500 12px var(--font-data); color: var(--muted); margin-left: 6px; }
+canvas { width: 100%; height: auto; display: block; border-radius: 6px; background: #070a0c; border: 1px solid var(--line); }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button[aria-pressed="true"] { background: var(--a); color: #06121a; border-color: var(--a); }
+input[type=range] { flex: 1; min-width: 140px; accent-color: var(--a); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+td { padding: 7px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+td:first-child { color: var(--muted); white-space: nowrap; width: 1%; font: 500 13px var(--font-data); }
+.phase { font: 500 12px var(--font-data); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <div class="eyebrow">Elementalist · DPS · Space ability · mockup</div>
+    <h1>Kinetic <span>Wall</span></h1>
+    <p class="lead">Space: a wall appears in front of you. Enemy bullets that touch it slow to a halt and hang in it, each one charging the wall. Space again (or when it expires): the wall unleashes everything in a big cone forward. Damage grows with the charge.</p>
+    <p class="note">Approximate: browser glow and blur stand in for the game's additive draws. Pick a look, then I'll build it with real draw code and send Tools/Preview shots.</p>
+  </header>
+
+  <div class="ctl">
+    <button id="play" aria-pressed="true">Playing</button>
+    <span class="phase" id="phase">—</span>
+    <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
+  </div>
+
+  <div class="grid">
+    <div class="card"><h2>A · Stasis Pane <small>flat slab</small></h2><canvas id="cA" width="520" height="380"></canvas>
+      <p class="note">Straight cyan slab with hard edges. Bullets freeze in place and glow brighter as the charge climbs. Release: a wedge of light, frozen bullets flung out with it.</p></div>
+    <div class="card"><h2>B · Gravity Lens <small>curved arc</small></h2><canvas id="cB" width="520" height="380"></canvas>
+      <p class="note">An arc bending around you; bullets spiral to a stop and orbit slowly inside the lens. Release: the lens snaps flat and a ripple cone rolls outward.</p></div>
+    <div class="card"><h2>C · Kinetic Grid <small>hex cells</small></h2><canvas id="cC" width="520" height="380"></canvas>
+      <p class="note">A row of hex cells; each cell that catches a bullet lights up (cells = charge readout). Release: every lit cell fires a beam, merging into the cone.</p></div>
+  </div>
+
+  <div class="card">
+    <h2>Proposed numbers</h2>
+    <table>
+      <tr><td>Cast</td><td>Space: wall 160 px wide, 70 px in front of you, facing your cursor. Stays where it was cast (doesn't follow you).</td></tr>
+      <tr><td>Duration</td><td>5 s, or recast Space to unleash early. Auto-unleashes at the end, toward your current cursor.</td></tr>
+      <tr><td>Catch</td><td>Enemy bullets touching it slow to 0 over 0.25 s, then hang (don't hurt). Boss bullets too. Each = +1 charge, cap 40.</td></tr>
+      <tr><td>Blast</td><td>Cone 70°, 420 px. Damage 40 + 6 per charge (max 280), shoves enemies back 80 px. Each enemy hit once.</td></tr>
+      <tr><td>Empty wall</td><td>Still blasts for 40, so it's never wasted.</td></tr>
+      <tr><td>Cooldown</td><td>14 s, starting on the unleash.</td></tr>
+      <tr><td>Mastered</td><td>Wall 220 px wide, cap 60 charge.</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+const LOOP = 7.0; // s
+const T_CAST = 0.4, T_HOLD = 4.8, T_BLAST = 5.0;
+let t = 0, playing = true, last = performance.now();
+const play = document.getElementById('play'), scrub = document.getElementById('scrub'), phaseEl = document.getElementById('phase');
+play.onclick = () => { playing = !playing; play.setAttribute('aria-pressed', playing); play.textContent = playing ? 'Playing' : 'Paused'; };
+scrub.oninput = () => { t = scrub.value / 1000 * LOOP; playing = false; play.setAttribute('aria-pressed', false); play.textContent = 'Paused'; };
+
+// Scene (shared): player bottom-centre facing up, enemies at top firing.
+const W = 520, H = 380, P = { x: 260, y: 320 }, WALL_Y = 250, WALL_W = 160;
+const enemies = [ {x: 120, y: 70}, {x: 230, y: 45}, {x: 330, y: 60}, {x: 420, y: 95}, {x: 180, y: 120} ];
+function rng(s) { return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+// Precompute bullets: spawn time, origin, target x on the wall.
+const bullets = []; { const r = rng(7); for (let i = 0; i < 34; i++) { const e = enemies[i % enemies.length]; const st = 0.3 + r() * 4.2; const tx = P.x + (r() - .5) * WALL_W * 0.95; bullets.push({ st, e, tx, jit: r() }); } }
+const SPEED = 170;
+
+function bulletState(b, time, look) {
+  const dx = b.tx - b.e.x, dy = WALL_Y - b.e.y, d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
+  const age = time - b.st; if (age < 0) return null;
+  const arrive = d / SPEED;
+  if (time >= T_BLAST) { // flung out with the blast
+    if (b.st + arrive > T_BLAST) return null;
+    const k = (time - T_BLAST); const ang = Math.atan2(WALL_Y - 6 - P.y, b.tx - P.x);
+    const sp = 520; const hx = b.tx + Math.cos(ang) * sp * k, hy = WALL_Y - 6 + Math.sin(ang) * sp * k;
+    return k < 0.8 ? { x: hx, y: hy, caught: 2, a: 1 - k / 0.8 } : null;
+  }
+  if (age < arrive) return { x: b.e.x + ux * SPEED * age, y: b.e.y + uy * SPEED * age, caught: 0 };
+  // slows to a halt over 0.25 s into the wall
+  const s = Math.min(1, (age - arrive) / 0.25), ease = 1 - (1 - s) * (1 - s);
+  let x = b.tx + ux * 10 * ease, y = WALL_Y + uy * 10 * ease - 6;
+  if (look === 'B') { const o = (age - arrive) * 0.8 + b.jit * 6; x += Math.cos(o) * 4 * s; y += Math.sin(o) * 3 * s; }
+  return { x, y, caught: 1, s };
+}
+function charge(time) { let c = 0; for (const b of bullets) { const d = Math.hypot(b.tx - b.e.x, WALL_Y - b.e.y); if (b.st + d / SPEED <= Math.min(time, T_BLAST)) c++; } return c; }
+
+function drawBase(g, time) {
+  g.fillStyle = '#070a0c'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(80,110,130,.08)'; g.lineWidth = 1;
+  for (let x = 0; x < W; x += 32) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+  for (let y = 0; y < H; y += 32) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+}
+function drawEnemies(g, time) {
+  for (const e of enemies) {
+    let hit = time > T_BLAST + 0.12 && time < T_BLAST + 0.5, push = hit ? Math.min(1, (time - T_BLAST - .12) / .25) * 22 : (time >= T_BLAST + .5 ? 22 : 0);
+    const ang = Math.atan2(e.y - P.y, e.x - P.x); const x = e.x + Math.cos(ang) * push, y = e.y + Math.sin(ang) * push;
+    g.fillStyle = hit ? '#ffffff' : '#e0556a'; g.beginPath(); g.arc(x, y, 11, 0, 7); g.fill();
+    g.strokeStyle = '#5a1822'; g.lineWidth = 2; g.stroke();
+    if (time > T_BLAST + .12 && time < T_BLAST + 1.4) { const k = (time - T_BLAST - .12); g.globalAlpha = Math.max(0, 1 - k / 1.2);
+      g.fillStyle = '#ffd36b'; g.font = '700 15px Oxanium, sans-serif'; g.textAlign = 'center'; g.fillText(String(40 + 6 * Math.min(40, charge(T_BLAST))), x, y - 18 - k * 18); g.globalAlpha = 1; }
+  }
+}
+function drawPlayer(g, time) {
+  g.fillStyle = '#7fd0ff'; g.beginPath(); g.arc(P.x, P.y, 13, 0, 7); g.fill();
+  g.strokeStyle = '#123247'; g.lineWidth = 2; g.stroke();
+  g.fillStyle = '#d8f3ff'; g.beginPath(); g.moveTo(P.x, P.y - 20); g.lineTo(P.x - 6, P.y - 11); g.lineTo(P.x + 6, P.y - 11); g.fill();
+}
+function drawBullet(g, s, col) {
+  g.globalAlpha = s.a ?? 1;
+  g.fillStyle = s.caught ? col : '#ff8a5c';
+  g.beginPath(); g.arc(s.x, s.y, s.caught === 1 ? 4 : 4.5, 0, 7); g.fill();
+  if (s.caught) { g.shadowBlur = 10; g.shadowColor = col; g.fill(); g.shadowBlur = 0; }
+  g.globalAlpha = 1;
+}
+function chargeBar(g, time, col) {
+  const c = Math.min(40, charge(time)), k = c / 40, live = time >= T_CAST && time < T_BLAST;
+  if (!live) return;
+  const x = P.x - 40, y = P.y + 22; g.fillStyle = '#1a232b'; g.fillRect(x, y, 80, 5);
+  g.fillStyle = col; g.fillRect(x, y, 80 * k, 5);
+  g.fillStyle = '#cfdae2'; g.font = '500 11px "IBM Plex Mono", monospace'; g.textAlign = 'center'; g.fillText(c + ' / 40', P.x, y + 18);
+}
+function cone(g, time, col, style) {
+  const k = time - T_BLAST; if (k < 0 || k > 0.9) return;
+  const R = 420, half = 35 * Math.PI / 180, base = -Math.PI / 2;
+  const grow = Math.min(1, k / 0.18), fade = k < 0.18 ? 1 : Math.max(0, 1 - (k - .18) / .7);
+  g.save(); g.globalCompositeOperation = 'lighter';
+  if (style === 'B') { for (let i = 0; i < 4; i++) { const rr = R * Math.min(1, k * 1.6 + i * .05) - i * 26; if (rr < 20) continue;
+      g.strokeStyle = col; g.globalAlpha = fade * (0.8 - i * .17); g.lineWidth = 5 - i; g.beginPath(); g.arc(P.x, P.y, rr, base - half, base + half); g.stroke(); } }
+  const grd = g.createRadialGradient(P.x, P.y, 20, P.x, P.y, R * grow);
+  grd.addColorStop(0, 'rgba(255,255,255,.85)'); grd.addColorStop(.35, col); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.globalAlpha = fade * (style === 'B' ? .45 : .75); g.fillStyle = grd;
+  g.beginPath(); g.moveTo(P.x, P.y); g.arc(P.x, P.y, R * grow, base - half, base + half); g.closePath(); g.fill();
+  if (style === 'C') { g.globalAlpha = fade; g.strokeStyle = '#ffffff'; g.lineWidth = 2;
+    for (let i = -4; i <= 4; i++) { const a = base + i / 4 * half * .9, sx = P.x + i * 18, sy = WALL_Y; g.beginPath(); g.moveTo(sx, sy); g.lineTo(P.x + Math.cos(a) * R * grow, P.y + Math.sin(a) * R * grow); g.stroke(); } }
+  g.globalAlpha = fade * .9; g.strokeStyle = '#ffffff'; g.lineWidth = 1.5; g.beginPath();
+  g.moveTo(P.x, P.y); g.lineTo(P.x + Math.cos(base - half) * R * grow, P.y + Math.sin(base - half) * R * grow);
+  g.moveTo(P.x, P.y); g.lineTo(P.x + Math.cos(base + half) * R * grow, P.y + Math.sin(base + half) * R * grow); g.stroke();
+  g.restore();
+}
+
+function wallA(g, time, col) {
+  const a = time < T_CAST ? time / T_CAST : 1, k = Math.min(40, charge(time)) / 40, x0 = P.x - WALL_W / 2;
+  const w = WALL_W * (time < T_CAST ? 0.4 + 0.6 * a : 1), xs = P.x - w / 2;
+  g.save(); g.globalAlpha = a;
+  g.fillStyle = `rgba(120,210,255,${.12 + .2 * k})`; g.fillRect(xs, WALL_Y - 14, w, 16);
+  g.shadowBlur = 14 + 16 * k; g.shadowColor = col; g.strokeStyle = col; g.lineWidth = 2; g.strokeRect(xs, WALL_Y - 14, w, 16); g.shadowBlur = 0;
+  g.strokeStyle = 'rgba(220,245,255,.5)'; g.lineWidth = 1; // scan
+  const sx = xs + ((time * 120) % w); g.beginPath(); g.moveTo(sx, WALL_Y - 14); g.lineTo(sx, WALL_Y + 2); g.stroke();
+  g.restore();
+}
+function wallB(g, time, col) {
+  const a = time < T_CAST ? time / T_CAST : 1, k = Math.min(40, charge(time)) / 40;
+  const CY = P.y + 80, R = CY - WALL_Y + 6, span = Math.asin((WALL_W / 2) / R) * (time < T_CAST ? 0.4 + .6 * a : 1), base = -Math.PI / 2;
+  g.save(); g.globalAlpha = a;
+  for (let i = 0; i < 3; i++) { g.strokeStyle = col; g.globalAlpha = a * (0.25 + .25 * k) * (1 - i * .25); g.lineWidth = 16 - i * 5;
+    g.beginPath(); g.arc(P.x, CY, R, base - span, base + span); g.stroke(); }
+  g.globalAlpha = a; g.shadowBlur = 12 + 14 * k; g.shadowColor = col; g.strokeStyle = '#d8f3ff'; g.lineWidth = 1.5;
+  g.beginPath(); g.arc(P.x, CY, R + 8, base - span, base + span); g.stroke(); g.beginPath(); g.arc(P.x, CY, R - 8, base - span, base + span); g.stroke();
+  // inward ripple
+  const rp = (time * 0.9) % 1; g.globalAlpha = a * (1 - rp) * .6; g.beginPath(); g.arc(P.x, CY, R + 8 - rp * 16, base - span, base + span); g.stroke();
+  g.restore();
+}
+function wallC(g, time, col) {
+  const a = time < T_CAST ? time / T_CAST : 1, n = 9, cw = WALL_W / n, r = cw / 1.75;
+  const lit = new Array(n).fill(0);
+  for (const b of bullets) { const s = bulletState(b, Math.min(time, T_BLAST - 0.001), 'C'); if (s && s.caught) { const i = Math.max(0, Math.min(n - 1, Math.floor((b.tx - (P.x - WALL_W / 2)) / cw))); lit[i]++; } }
+  g.save();
+  for (let i = 0; i < n; i++) {
+    const appear = Math.min(1, Math.max(0, (time / T_CAST) * n - Math.abs(i - (n - 1) / 2) * 1.2)); if (appear <= 0) continue;
+    const cx = P.x - WALL_W / 2 + cw * (i + .5), cy = WALL_Y - 6 + (i % 2) * 4, l = Math.min(1, lit[i] / 5);
+    g.beginPath(); for (let j = 0; j < 6; j++) { const an = Math.PI / 6 + j * Math.PI / 3; g.lineTo(cx + Math.cos(an) * r * appear, cy + Math.sin(an) * r * appear); } g.closePath();
+    g.fillStyle = `rgba(120,210,255,${.08 + .4 * l})`; g.fill();
+    g.shadowBlur = 6 + 14 * l; g.shadowColor = col; g.strokeStyle = l > .99 ? '#ffffff' : col; g.lineWidth = 1.5; g.stroke(); g.shadowBlur = 0;
+  }
+  g.restore();
+}
+
+const scenes = [ ['cA', 'A', wallA, '#8fd8ff'], ['cB', 'B', wallB, '#b7a2ff'], ['cC', 'C', wallC, '#7ff0d0'] ]
+  .map(([id, look, wall, col]) => ({ g: document.getElementById(id).getContext('2d'), look, wall, col }));
+
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (playing) { t = (t + dt) % LOOP; scrub.value = Math.round(t / LOOP * 1000); }
+  phaseEl.textContent = t < T_CAST ? 'cast' : t < T_HOLD ? 'catching · charge ' + Math.min(40, charge(t)) : t < T_BLAST ? 'Space again…' : t < T_BLAST + 1 ? 'UNLEASH' : 'cooldown';
+  for (const s of scenes) {
+    const g = s.g; drawBase(g, t); drawEnemies(g, t);
+    if (t < T_BLAST) s.wall(g, t, s.col);
+    for (const b of bullets) { const st = bulletState(b, t, s.look); if (st) drawBullet(g, st, s.col); }
+    cone(g, t, s.col, s.look); drawPlayer(g, t); chargeBar(g, t, s.col);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

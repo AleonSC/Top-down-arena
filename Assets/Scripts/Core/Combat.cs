@@ -614,6 +614,11 @@ namespace Arena
                         scratchIds.Add(b.Id);  // an Ossuary Wall: enemy shots stop on it (BoneGuard.cs)
                         continue;
                     }
+                    if (KineticStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Kinetic Wall: everything stops in its lens, red aimed shots too, and charges it (KineticWall.cs)
+                        continue;
+                    }
                     if (WallStops(b))
                     {
                         scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
