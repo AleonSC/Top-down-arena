@@ -293,7 +293,7 @@ static partial class Program
         Test("captain", "the Riot Captain: its shield, the charge into a wall, the whistle, its attacks, its room over the network", () => RiotCaptainTest(Dt)),
         Test("guardswing", "the riot Guard swings its baton fast, forehand then backhand, only when you're close and without stopping", () => GuardSwingTest(Dt)),
         Test("guardrally", "a Rioter near a Guard runs faster than one alone", () => GuardRallyTest(Dt)),
-        Test("rioterbottle", "only some Rioters carry a bottle and throw it at a player 110-300 px away", () => RioterBottleTest(Dt)),
+        Test("rioterbottle", "from wave 2 some Rioters carry one bottle and throw it at a player 110-300 px away", () => RioterBottleTest(Dt)),
         Test("security", "the Security Guard walks while it locks on, keeps its strafe side and aims straight at you", () => SecurityTest(Dt)),
         Test("reapercult", "the Twin Reapers' cult: Bound Wraiths' tether and revive, Scythe Wraith's reap, Lamplighter, Mourner", () => ReaperCultTest(Dt)),
         Test("nonshooters", "the Fuse Runner's fuse and blast, the Hookman's yank and open window, the Sapper's Tripwire Pods", () => NonShootersTest(Dt)),
