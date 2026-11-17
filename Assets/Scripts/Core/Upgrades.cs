@@ -35,6 +35,7 @@ namespace Arena
         Flood,        // the Tank Elementalist's fourth Space ability (Flood.cs), the lobby's 4th ability key
         AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
         KineticWall,  // the Elementalist DPS's fourth Space ability (KineticWall.cs), the lobby's 4th ability key
+        DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
         None = 255,
     }
 
@@ -295,7 +296,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates));  // the classes' own, then the shared and boss-loot ones
 
         /// Each role and class has its default ultimate (key 0 of the lobby's Ultimate row), and may have others on keys 1-3.
         static readonly AbilityId[] Ultimates = LobbyTable(true);

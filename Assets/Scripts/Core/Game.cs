@@ -906,6 +906,7 @@ namespace Arena
             UpdateHeraldView(dt);  // Herald.cs
             UpdateEclipseView(dt); // Eclipse.cs
             UpdateDevourView(dt);  // Devourer.cs
+            UpdateDogmaView(dt);   // DragonsDogma.cs: the dragon's trail on screen
             if (IsHost)
                 LetGoOfSwallowed();  // Devourer.cs
             UpdateDuelView(dt);    // Duelist.cs
@@ -1378,6 +1379,7 @@ namespace Arena
             SendBounces();    // Relics.cs: shots that bounced off a wall this tick
             TickRods(dt);     // LightningRod.cs: the charge running down, and the bolts this tick's hits called
             TickHelis(dt);    // AttackHelicopter.cs: the gunship's targets and rounds
+            TickDogmas(dt);   // DragonsDogma.cs: the dragon's flight and bites
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
             TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();

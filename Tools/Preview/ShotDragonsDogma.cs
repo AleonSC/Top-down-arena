@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using Arena;
 
-// DOGMA=<s since the cast>: MOCKUP of Dragon's Dogma, a proposed Tank Ninja ultimate (Game/DragonsDogmaLook.cs). You (a Tank
-// Ninja, NINJA=0) stand in the middle; eight enemies round you; the dragon pours out of you, eats them one by one along
-// its path and coils back in at 4.6 s. Each enemy is removed the moment it's eaten. Use with mode hud;
-// a GIF: NINJA=0 Tools/Preview/clip.sh dogma hud VAR=DOGMA=0:5.2:0.1
+// DOGMA=<s since the cast>: Dragon's Dogma, the Tank Ninja's second ultimate (Core/DragonsDogma.cs, Game/DragonsDogmaLook.cs),
+// cast and played through the real game: you (NINJA=0) in the middle, eight enemies round you (a Juggernaut among them, heavy, so only
+// bitten); the dragon hunts them down and coils back in. DOGMACAP=1 mastered (7 s). Use with mode hud; a GIF:
+//   NINJA=0 Tools/Preview/clip.sh dogma hud 3 1 1 DOGMA=0:5.4:0.05
 static partial class Shot {
   static void DragonsDogmaScene() {
     string ts = Environment.GetEnvironmentVariable("DOGMA");
@@ -19,35 +19,42 @@ static partial class Shot {
     V2 home = new V2(800f, 450f);
     foreach (var q in gm.Players.Values) if (q != me) q.Pos = q.Disp = new V2(150f, 820f);
     me.Pos = me.Disp = home; me.Aim = -MathX.Pi / 2f;
-    // The victims, in the order it eats them, and when.
-    var foes = new (EnemyType type, V2 at, float eat)[] {
-      (EnemyType.Grunt,   home + new V2(-60f, -230f), 0.85f),
-      (EnemyType.Charger, home + new V2(-300f, -140f), 1.35f),
-      (EnemyType.Grunt,   home + new V2(-360f, 110f), 1.85f),
-      (EnemyType.Shielder,home + new V2(-120f, 250f), 2.35f),
-      (EnemyType.Grunt,   home + new V2(190f, 210f), 2.85f),
-      (EnemyType.Sniper,  home + new V2(380f, 60f), 3.35f),
-      (EnemyType.Splitter,home + new V2(300f, -200f), 3.85f),
-      (EnemyType.Grunt,   home + new V2(90f, -170f), 4.25f),
+    var foes = new (EnemyType type, V2 at)[] {
+      (EnemyType.Grunt,   home + new V2(-60f, -230f)),
+      (EnemyType.Charger, home + new V2(-300f, -140f)),
+      (EnemyType.Grunt,   home + new V2(-360f, 110f)),
+      (EnemyType.Shielder,home + new V2(-120f, 250f)),
+      (EnemyType.Juggernaut, home + new V2(190f, 210f)),
+      (EnemyType.Sniper,  home + new V2(380f, 60f)),
+      (EnemyType.Splitter,home + new V2(300f, -200f)),
+      (EnemyType.Grunt,   home + new V2(90f, -170f)),
     };
     var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
-    var knots = new List<V2> { home, home + new V2(30f, -90f) };
-    var kt = new List<float> { 0f, 0.4f };
-    var victims = new List<V2>(); var eats = new List<float>(); var cols = new List<Rgba>();
+    var spots = new Dictionary<int, V2>();
     foreach (var f in foes) {
-      knots.Add(f.at); kt.Add(f.eat); victims.Add(f.at); eats.Add(f.eat);
       var e = (Enemy)spawn.Invoke(gm, new object[] { f.type, f.at, 0f, 0, false });
-      e.SpawnT = 0f; e.Hp = e.MaxHp = 1e5f; e.CageT = 999f; e.Pos = e.Disp = f.at;
-      cols.Add(e.Def.Color);
-      if (T >= f.eat) gm.Enemies.Remove(e.Id);
+      e.SpawnT = 0f; e.Pos = e.Disp = f.at;
+      if (f.type == EnemyType.Juggernaut) e.Hp = e.MaxHp = 1e5f;
+      spots[e.Id] = f.at;
     }
-    knots.Add(home + new V2(-70f, -60f)); kt.Add(4.55f);
-    knots.Add(home); kt.Add(4.85f);
-    ArenaApp.DogmaKnots = knots.ToArray(); ArenaApp.DogmaKnotT = kt.ToArray();
-    ArenaApp.DogmaVictims = victims.ToArray(); ArenaApp.DogmaEatT = eats.ToArray(); ArenaApp.DogmaVictimCol = cols.ToArray();
-    ArenaApp.DogmaT = T;
-    for (int i = 0; i < 2; i++) { me.Pos = home; me.InvulnT = 1f; host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(0f, -100f) }); gm.Update(1f / 60f); }
+    var sq = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(gm);
+    sq.Clear(); for (int i = 0; i < 50; i++) sq.Add(EnemyType.Grunt);  // (no new ones spawn in while it hunts)
+    if (Environment.GetEnvironmentVariable("DOGMACAP") != null) me.MasteryXp[AbilityId.DragonsDogma] = 1e6f;
+    gm.State = MatchState.Fighting;
+    var slot = me.Slots[Upgrades.UltSlot]; slot.Charges = 1; slot.Timer = 0f;
+    typeof(Game).GetMethod("HostAbility", flags, null, new[] { typeof(int), typeof(int), typeof(V2), typeof(bool) }, null).Invoke(gm, new object[] { me.Id, Upgrades.UltSlot, home, false });
+    int frames = (int)Math.Round(T * 60f);
+    for (int f = 0; f < frames; f++) {
+      foreach (var id in new List<int>(gm.Enemies.Keys)) {
+        if (!spots.ContainsKey(id)) { gm.Enemies.Remove(id); continue; }
+        var e = gm.Enemies[id]; e.Pos = spots[id];
+      }
+      gm.Bullets.Clear();
+      gm.State = MatchState.Fighting; me.Pos = home; me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(0f, -100f) }); gm.Update(1f / 60f);
+    }
     foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
+    Console.Error.WriteLine("dogma: on {0}, eaten {1}, bites {2}, enemies left {3}", me.DogmaOn, me.DogmaEaten, me.DogmaBites, gm.Enemies.Count);
   }
 }

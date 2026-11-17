@@ -3,95 +3,96 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// MOCKUP: Dragon's Dogma, a proposed Tank Ninja ultimate. A great spirit dragon bursts out of the Ninja and
-    /// hunts across the arena for 5 s, devouring the enemies it reaches, then coils back into the Ninja.
-    /// Drawing only, with no game logic yet: the preview scene (Tools/Preview/ShotDragonsDogma.cs, DOGMA=<s>) sets the
-    /// Dogma* fields below and removes each enemy as it's eaten. Nothing in the game sets them, so this draws nothing.
+    /// Dragon's Dogma, the Tank Ninja's second ultimate (Core/DragonsDogma.cs): a great spirit dragon that bursts out of the
+    /// Ninja, hunts across the arena devouring enemies, and coils back in. Drawn over the arena's contents (WorldRenderer.cs)
+    /// and in the glow pass (Juice.cs). Preview: DOGMA=<s> (Tools/Preview/ShotDragonsDogma.cs).
     ///
-    /// The look, by the clock (DogmaT seconds since the cast):
-    ///   0-0.9 s  a sigil opens under the Ninja and the arena dims; the dragon pours out of them, head first.
-    ///   then     the head follows a smooth path through the knots (DogmaKnots, timed by DogmaKnotT), the body a ribbon
-    ///            680 px long laid along where the head has been: shadow on the floor (it flies), a soft azure body with
-    ///            a bright core, belly scales, a gold spine with fins, two pairs of claws, a mane, antlers, whiskers,
-    ///            and a tail of three flame fronds. Spirit motes peel off its sides.
-    ///   bites    the jaws spread as it nears a victim (DogmaVictims, eaten at DogmaEatT): a shock ring and the enemy's
-    ///            soul spiralling into the maw, then a glowing lump that travels down the body to the tail.
-    ///   4.4-5 s  the head dives back into the Ninja and the body follows it in; the sigil closes.
+    /// The body is laid along Player.DogmaTrail, the points the head has really passed (UpdateDogmaView keeps it on every
+    /// game), DogmaLen (680 px) long:
+    ///   the cast   a sigil opens under the Ninja and the arena dims; the dragon pours out of them, head first (the trail is
+    ///              still short, so only the head and neck show).
+    ///   the hunt   shadow on the floor (it flies), a soft azure body with a bright core, belly scales, a gold spine with
+    ///              fins, two pairs of paddling claws, a mane, antlers, whiskers, a tail of three flame fronds; spirit motes
+    ///              peel off its sides. The jaws spread as the head closes on its quarry (DogmaTgt).
+    ///   a bite     (FxKind.DragonBite) the jaws snap, a shock ring and shards, the enemy's soul spirals into the maw, and a
+    ///              glowing lump runs down the body to the tail. A big one only bitten gets the ring and shards.
+    ///   the end    the head dives into the Ninja and the body drains in after it (DogmaSink); the sigil flashes shut.
+    /// With Visual effects off: no dim, motes, sigil or lumps.
     public partial class ArenaApp
     {
-        public static float DogmaT = -1f;                    // seconds since the cast; < 0: nothing to draw
-        public static V2[] DogmaKnots;                       // the head's path: [0] the Ninja, ..., [last] the Ninja again
-        public static float[] DogmaKnotT;                    // when the head passes each knot
-        public static V2[] DogmaVictims;                     // where each enemy is eaten
-        public static float[] DogmaEatT;                     // when
-        public static Rgba[] DogmaVictimCol;                 // its colour (the soul)
-
-        public const float DogmaDur = 5f, DogmaLen = 680f;
-        static readonly Rgba DgCore = new Rgba(0.82f, 0.97f, 1f), DgBody = new Rgba(0.32f, 0.66f, 1f),
-            DgDeep = new Rgba(0.1f, 0.22f, 0.62f), DgGold = new Rgba(1f, 0.83f, 0.44f), DgMaw = new Rgba(0.55f, 1f, 0.95f);
+        static readonly Rgba DgCore = new Rgba(0.82f, 0.97f, 1f), DgBody = Game.DogmaBlue,
+            DgDeep = new Rgba(0.1f, 0.22f, 0.62f), DgGold = Game.DogmaGold, DgMaw = new Rgba(0.55f, 1f, 0.95f);
+        const float DgStep = 9f;  // px between the body's points
 
         readonly List<V2> dgPts = new List<V2>(80);
-        readonly List<float> dgS = new List<float>(80);
+        readonly List<float> dgU = new List<float>(80);    // each point's place along the body: 0 the head, 1 the tail tip
+        readonly List<float> dgLumps = new List<float>(4); // this dragon's bites still going down (their age / DogmaBiteFx)
+        bool dgHead;                                       // the head is out (not gone back into the Ninja)
 
-        /// The head's position at time t: a Catmull-Rom curve through the knots.
-        static V2 DogmaPath(float t)
+        /// The body of p's dragon: points every DgStep px back along its trail from the head (or, while it drains back in,
+        /// from DogmaSink px behind it), with a slither. False when there's nothing to draw.
+        bool DogmaBody(Player p, float t)
         {
-            var k = DogmaKnots; var kt = DogmaKnotT;
-            if (t <= kt[0]) return k[0];
-            int n = k.Length;
-            if (t >= kt[n - 1]) return k[n - 1];
-            int i = 0;
-            while (i < n - 2 && t > kt[i + 1]) i++;
-            float u = (t - kt[i]) / Mathf.Max(0.001f, kt[i + 1] - kt[i]);
-            V2 p0 = k[Mathf.Max(0, i - 1)], p1 = k[i], p2 = k[i + 1], p3 = k[Mathf.Min(n - 1, i + 2)];
-            float u2 = u * u, u3 = u2 * u;
-            return 0.5f * ((2f * p1) + (p2 - p0) * u + (2f * p0 - 5f * p1 + 4f * p2 - p3) * u2 + (3f * p1 - p0 - 3f * p2 + p3) * u3);
-        }
-
-        /// The body: points every ~9 px back along the head's path, 680 px long (bunched at the Ninja while it's
-        /// still pouring out or already gone back in).
-        void DogmaBody(float t)
-        {
-            dgPts.Clear(); dgS.Clear();
-            V2 prev = DogmaPath(t);
-            dgPts.Add(prev); dgS.Add(0f);
-            float s = 0f, next = 9f, tt = t;
-            for (int guard = 0; guard < 6000 && dgPts.Count < 76; guard++)
+            dgPts.Clear(); dgU.Clear(); dgLumps.Clear();
+            var tr = p.DogmaTrail;
+            if (tr.Count == 0)
+                return false;
+            dgHead = p.DogmaOn;
+            V2 prev = p.DogmaOn ? p.DogmaDisp : tr[tr.Count - 1];
+            float s = 0f, skip = p.DogmaOn ? 0f : p.DogmaSink, next = skip;
+            int i = tr.Count - 1;
+            V2 cur = prev;
+            if (skip <= 0f) { dgPts.Add(cur); dgU.Add(0f); next = DgStep; }
+            while (i >= 0 && s < Game.DogmaLen)
             {
-                tt -= 1f / 400f;
-                V2 p = DogmaPath(tt);
-                s += p.DistanceTo(prev);
-                prev = p;
-                if (s >= next || tt < -1.5f)
+                V2 to = tr[i];
+                float seg = cur.DistanceTo(to);
+                if (s + seg >= next)
                 {
-                    dgPts.Add(p); dgS.Add(s);
-                    next += 9f;
+                    float need = next - s;
+                    cur = cur + (to - cur) * (need / Mathf.Max(0.001f, seg));
+                    s = next;
+                    if (s <= Game.DogmaLen)
+                    {
+                        dgPts.Add(cur); dgU.Add(s / Game.DogmaLen);
+                    }
+                    next += DgStep;
+                }
+                else
+                {
+                    s += seg;
+                    cur = to;
+                    i--;
                 }
             }
+            if (dgPts.Count < 3)
+                return false;
             // A slither: each point swings sideways, a wave running down the body.
-            for (int i = 1; i < dgPts.Count - 1; i++)
+            for (int k = 1; k < dgPts.Count - 1; k++)
             {
-                V2 n = (dgPts[i - 1] - dgPts[i + 1]).Normalized().Orthogonal();
-                float u = i / (float)(dgPts.Count - 1);
-                dgPts[i] = dgPts[i] + n * (Mathf.Sin(i * 0.42f - t * 9f) * 7f * Mathf.Clamp01(u * 4f));
+                V2 n = (dgPts[k - 1] - dgPts[k + 1]).Normalized().Orthogonal();
+                dgPts[k] = dgPts[k] + n * (Mathf.Sin(k * 0.42f - t * 9f) * 7f * Mathf.Clamp01(dgU[k] * 4f));
             }
+            if (fxOn)
+                foreach (var fx in game.Effects)
+                    if (fx.Kind == FxKind.DragonBite && (int)fx.Pos2.X == p.Id && fx.Pos2.Y > 0.5f)
+                        dgLumps.Add(fx.T / Game.DogmaBiteFx);
+            return true;
         }
 
         /// Half-width of the body at u (0 head, 1 tail), with the swallowed lumps.
         float DogmaWidth(float u, float t)
         {
-            float w = 1.45f * (u < 0.08f ? Mathf.Lerp(13f, 17f, u / 0.08f) : u < 0.3f ? Mathf.Lerp(17f, 20f, (u - 0.08f) / 0.22f) : Mathf.Lerp(20f, 2.5f, Mathf.Pow((u - 0.3f) / 0.7f, 1.3f)));
-            return w * (1f + 0.7f * DogmaLump(u, t));
+            float w = 1.45f * (u < 0.08f ? Mathf.Lerp(13f, 17f, u / 0.08f) : u < 0.3f ? Mathf.Lerp(17f, 20f, (u - 0.08f) / 0.22f) : Mathf.Lerp(20f, 2.5f, Mathf.Pow(Mathf.Clamp01((u - 0.3f) / 0.7f), 1.3f)));
+            return w * (1f + 0.7f * DogmaLump(u));
         }
 
         /// How swollen the body is at u by an enemy going down (0..1).
-        float DogmaLump(float u, float t)
+        float DogmaLump(float u)
         {
             float best = 0f;
-            if (DogmaEatT == null) return 0f;
-            foreach (float e in DogmaEatT)
+            foreach (float a in dgLumps)
             {
-                float a = (t - e) / 0.9f;
                 if (a < 0f || a > 1f) continue;
                 float d = Mathf.Abs(u - a * 0.95f) / 0.07f;
                 if (d < 1f) best = Mathf.Max(best, (1f - d * d) * (1f - a * 0.6f));
@@ -101,46 +102,64 @@ namespace Arena
 
         static float DgHash(int i) { float x = Mathf.Sin(i * 127.1f + 311.7f) * 43758.55f; return x - Mathf.Floor(x); }
 
-        /// How open the jaws are (0..1): wide just before each bite, snapping shut on it.
-        static float DogmaJaw(float t)
+        /// How open p's dragon's jaws are (0..1): spreading as the head closes on its quarry, snapping shut on a bite.
+        float DogmaJaw(Player p)
         {
             float open = 0f;
-            if (DogmaEatT == null) return 0f;
-            foreach (float e in DogmaEatT)
+            Enemy e;
+            if (p.DogmaTgt != 0 && game.Enemies.TryGetValue(p.DogmaTgt, out e))
             {
-                float a = e - t;
-                if (a > 0f && a < 0.35f) open = Mathf.Max(open, Mathf.Sin(Mathf.Clamp01(1f - a / 0.35f) * Mathf.PI * 0.5f));
-                else if (a <= 0f && a > -0.08f) open = Mathf.Max(open, 1f + a / 0.08f);
+                float d = p.DogmaDisp.DistanceTo(e.Disp) - e.Radius;
+                open = Mathf.Clamp01(1f - (d - 20f) / 120f);
+                open = Mathf.Sin(open * Mathf.PI * 0.5f);
             }
+            foreach (var fx in game.Effects)
+                if (fx.Kind == FxKind.DragonBite && (int)fx.Pos2.X == p.Id && fx.T < 0.12f)
+                    open = Mathf.Min(open, fx.T / 0.12f);  // just bit: shut, opening again
             return open;
         }
 
-        /// WorldRenderer.cs, after the arena's contents: the whole dragon.
+        /// How strongly the dragon shows (fading in as it comes out, out as its last of it drains in).
+        static float DogmaLife(Player p) =>
+            Mathf.Clamp01(p.DogmaSince / 0.2f) * (p.DogmaOn ? 1f : 1f - Mathf.Clamp01((p.DogmaSink - Game.DogmaLen * 0.6f) / (Game.DogmaLen * 0.4f + 40f)));
+
+        /// WorldRenderer.cs, after the arena's contents: every dragon that's out.
         void DrawDragonsDogma()
         {
-            float t = DogmaT;
-            if (t < 0f || DogmaKnots == null || t > DogmaDur + 0.4f) return;
-            V2 home = DogmaKnots[0];
-            float life = Mathf.Clamp01(t / 0.3f) * (1f - Mathf.Clamp01((t - DogmaDur) / 0.4f));
+            float dim = 0f;
+            foreach (var p in game.Players.Values)
+                if (p.DogmaTrail.Count > 0)
+                    dim = Mathf.Max(dim, DogmaLife(p) * (p.DogmaOn ? 1f : 1f - Mathf.Clamp01(p.DogmaSink / Game.DogmaLen)));
+            if (dim > 0f && fxOn)  // the dim, so the spirit reads as the brightest thing on screen
+            {
+                V2 c = new V2(AW / 2f, AH / 2f);
+                SetColor(new Rgba(0.01f, 0.02f, 0.06f, 0.3f * dim));
+                Quad(c + new V2(-6000f, -6000f), c + new V2(6000f, -6000f), c + new V2(6000f, 6000f), c + new V2(-6000f, 6000f));
+            }
+            foreach (var p in game.Players.Values)
+                if (p.DogmaTrail.Count > 0)
+                    DrawDogma(p);
+        }
 
-            // The dim, so the spirit reads as the brightest thing on screen.
-            SetColor(new Rgba(0.01f, 0.02f, 0.06f, 0.42f * life));
-            Quad(home + new V2(-4000f, -4000f), home + new V2(4000f, -4000f), home + new V2(4000f, 4000f), home + new V2(-4000f, 4000f));
-
-            DrawDogmaSigil(home, t);
-            DogmaBody(t);
+        void DrawDogma(Player p)
+        {
+            float t = game.AnimT, life = DogmaLife(p);
+            if (fxOn)
+                DrawDogmaSigil(p);
+            if (!DogmaBody(p, t))
+            {
+                if (fxOn) DrawDogmaBites(p);
+                return;
+            }
             int n = dgPts.Count;
-            if (n < 3) return;
-            float headIn = 1f - Mathf.Clamp01((t - (DogmaKnotT[DogmaKnotT.Length - 1] - 0.1f)) / 0.25f);  // the head sinking into the Ninja
 
             // Its shadow on the floor, down and right: it's flying.
             V2 sh = new V2(22f, 34f);
             for (int i = n - 2; i >= 0; i--)
             {
-                float u0 = i / (float)(n - 1), u1 = (i + 1) / (float)(n - 1);
                 V2 a = dgPts[i] + sh, b = dgPts[i + 1] + sh;
                 V2 na = Nrm(i), nb = Nrm(i + 1);
-                float wa = DogmaWidth(u0, t), wb = DogmaWidth(u1, t);
+                float wa = DogmaWidth(dgU[i], t), wb = DogmaWidth(dgU[i + 1], t);
                 Rgba c = new Rgba(0f, 0.01f, 0.05f, 0.32f * life);
                 VTri(a + na * wa, c.WithAlpha(0f), b + nb * wb, c.WithAlpha(0f), b, c);
                 VTri(a + na * wa, c.WithAlpha(0f), b, c, a, c);
@@ -148,7 +167,8 @@ namespace Arena
                 VTri(a - na * wa, c.WithAlpha(0f), b, c, b - nb * wb, c.WithAlpha(0f));
             }
 
-            DrawDogmaTail(t, life);
+            if (dgU[n - 1] > 0.9f)
+                DrawDogmaTail(t, life);
 
             // Claws: two pairs, under the body.
             DrawDogmaLegs(0.2f, t, life);
@@ -157,12 +177,12 @@ namespace Arena
             // The body, tail to head: a soft azure band, a brighter core, scales, the gold spine.
             for (int i = n - 2; i >= 0; i--)
             {
-                float u0 = i / (float)(n - 1), u1 = (i + 1) / (float)(n - 1);
+                float u0 = dgU[i], u1 = dgU[i + 1];
                 V2 a = dgPts[i], b = dgPts[i + 1];
                 V2 na = Nrm(i), nb = Nrm(i + 1);
                 float wa = DogmaWidth(u0, t), wb = DogmaWidth(u1, t);
                 float fa = life * (1f - 0.35f * u0), fb = life * (1f - 0.35f * u1);
-                float lumpA = DogmaLump(u0, t), lumpB = DogmaLump(u1, t);
+                float lumpA = DogmaLump(u0), lumpB = DogmaLump(u1);
                 Rgba ea = DgDeep.WithAlpha(0.5f * fa), eb = DgDeep.WithAlpha(0.5f * fb);
                 Rgba ma = DgBody.Mix(DgCore, 0.6f * lumpA).WithAlpha(0.9f * fa), mb = DgBody.Mix(DgCore, 0.6f * lumpB).WithAlpha(0.9f * fb);
                 VTri(a + na * wa, ea, b + nb * wb, eb, b, mb);
@@ -176,10 +196,11 @@ namespace Arena
                 VTri(a + na * ca, ka.WithAlpha(0f), b, kb, a, ka);
                 VTri(a - na * ca, ka.WithAlpha(0f), a, ka, b, kb);
                 VTri(a - na * ca, ka.WithAlpha(0f), b, kb, b - nb * cb, kb.WithAlpha(0f));
+                int k = Mathf.RoundToInt(u0 * Game.DogmaLen / DgStep);  // (the patterns stay put on the body as it drains in)
                 // scales: a chevron every other point, pointing at the head
-                if (i % 2 == 0 && u0 > 0.05f && u0 < 0.92f)
+                if (k % 2 == 0 && u0 > 0.05f && u0 < 0.92f && i > 0)
                 {
-                    V2 fwd = (dgPts[Mathf.Max(0, i - 1)] - b).Normalized();
+                    V2 fwd = (dgPts[i - 1] - b).Normalized();
                     V2 tip = a + fwd * 4f;
                     Rgba sc = DgCore.WithAlpha(0.4f * fa);
                     Line(a + na * (wa * 0.82f) - fwd * 5f, tip, 1.6f, sc);
@@ -187,18 +208,22 @@ namespace Arena
                 }
                 // the spine, gold, with a fin every fourth point
                 Line(a, b, 2f, DgGold.WithAlpha(0.85f * fa));
-                if (i % 4 == 2 && u0 > 0.06f && u0 < 0.85f)
+                if (k % 4 == 2 && u0 > 0.06f && u0 < 0.85f)
                 {
                     V2 back = (b - a).Normalized();
                     float fin = 9f * (1f - u0 * 0.6f);
                     SetColor(DgGold.WithAlpha(0.9f * fa));
-                    Tri(a + na * 3.5f, a - na * 3.5f, a + back * fin * 1.6f + na * Mathf.Sin(t * 12f + i) * 2f);
+                    Tri(a + na * 3.5f, a - na * 3.5f, a + back * fin * 1.6f + na * Mathf.Sin(t * 12f + k) * 2f);
                 }
             }
 
-            DrawDogmaHead(t, life * headIn);
-            DrawDogmaMotes(t, life);
-            DrawDogmaBites(t);
+            if (dgHead)
+                DrawDogmaHead(p, t, life * Mathf.Clamp01(p.DogmaSince / 0.12f));
+            if (fxOn)
+            {
+                DrawDogmaMotes(t, life);
+                DrawDogmaBites(p);
+            }
         }
 
         V2 Nrm(int i)
@@ -209,23 +234,33 @@ namespace Arena
             return d.Normalized().Orthogonal();
         }
 
-        /// The summoning sigil under the Ninja: a ring of runes that opens fast and closes as the dragon returns.
-        void DrawDogmaSigil(V2 c, float t)
+        /// How open the sigil under the Ninja is: opening as the dragon pours out, flashing again as it drains back in.
+        static float DogmaSigilOpen(Player p)
         {
-            float open = Mathf.Clamp01(t / 0.35f), close = 1f - Mathf.Clamp01((t - 0.9f) / 0.6f);
-            float back = Mathf.Clamp01((t - (DogmaDur - 0.7f)) / 0.3f) * (1f - Mathf.Clamp01((t - DogmaDur) / 0.35f));
-            float a = Mathf.Max(close, back) * open;
+            float t = p.DogmaSince;
+            float a = Mathf.Clamp01(t / 0.35f) * (1f - Mathf.Clamp01((t - 0.9f) / 0.6f));
+            if (!p.DogmaOn)
+                a = Mathf.Max(a, Mathf.Clamp01(p.DogmaSink / 120f) * (1f - Mathf.Clamp01((p.DogmaSink - Game.DogmaLen * 0.7f) / (Game.DogmaLen * 0.3f))));
+            return a;
+        }
+
+        /// The summoning sigil under the Ninja: a ring of runes.
+        void DrawDogmaSigil(Player p)
+        {
+            float a = DogmaSigilOpen(p);
             if (a <= 0f) return;
-            float r = 70f * (1f - Mathf.Pow(1f - open, 3f));
+            V2 c = p.Disp;
+            float t = game.AnimT;
+            float r = 70f * (1f - Mathf.Pow(1f - Mathf.Clamp01(p.DogmaOn ? p.DogmaSince / 0.35f : 1f), 3f));
             Arc(c, r, 2.5f, DgGold.WithAlpha(0.85f * a), 48);
             Arc(c, r * 0.78f, 1.5f, DgBody.WithAlpha(0.7f * a), 40);
             for (int k = 0; k < 12; k++)  // runes: tick pairs turning slowly
             {
                 float ang = t * 0.8f + k * MathX.Tau / 12f;
                 V2 d = V2.FromAngle(ang), o = d.Orthogonal();
-                V2 p = c + d * (r * 0.89f);
-                Line(p - d * 4f - o * 3f, p + d * 4f + o * 3f, 1.6f, DgGold.WithAlpha(0.8f * a));
-                if (k % 2 == 0) Line(p - o * 4f, p + o * 4f, 1.2f, DgCore.WithAlpha(0.6f * a));
+                V2 q = c + d * (r * 0.89f);
+                Line(q - d * 4f - o * 3f, q + d * 4f + o * 3f, 1.6f, DgGold.WithAlpha(0.8f * a));
+                if (k % 2 == 0) Line(q - o * 4f, q + o * 4f, 1.2f, DgCore.WithAlpha(0.6f * a));
             }
             for (int k = 0; k < 3; k++)  // a triskele of swirls inside
             {
@@ -237,7 +272,9 @@ namespace Arena
         /// A pair of small four-toed claws at u along the body, paddling.
         void DrawDogmaLegs(float u, float t, float life)
         {
-            int n = dgPts.Count, i = Mathf.Clamp(Mathf.RoundToInt(u * (n - 1)), 1, n - 2);
+            int n = dgPts.Count, i = 1;
+            while (i < n - 2 && dgU[i] < u) i++;
+            if (dgU[i] < u - 0.03f || dgU[i] > u + 0.03f) return;  // (that part isn't out, or has gone back in)
             V2 p = dgPts[i], nn = Nrm(i), fwd = (dgPts[i - 1] - dgPts[i + 1]).Normalized();
             float w = DogmaWidth(u, t);
             for (int side = -1; side <= 1; side += 2)
@@ -273,10 +310,9 @@ namespace Arena
                 VTri(mid + o * 4f, c.WithAlpha(0.5f * life), end + dir * len, c.WithAlpha(0f), mid - o * 4f, c.WithAlpha(0.5f * life));
             }
         }
-
         /// The head: a wedge of a skull with a mane, swept-back gold antlers, long whiskers, white-gold eyes, and
         /// jaws that split sideways to show a glowing maw.
-        void DrawDogmaHead(float t, float a)
+        void DrawDogmaHead(Player p, float t, float a)
         {
             if (a <= 0.01f) return;
             V2 h = dgPts[0];
@@ -284,7 +320,7 @@ namespace Arena
             if (f.LengthSq < 0.5f) return;
             f = f.Normalized();
             V2 s = f.Orthogonal();
-            float jaw = DogmaJaw(t);
+            float jaw = DogmaJaw(p);
             const float HS = 1.55f;
             System.Func<float, float, V2> H = (x, y) => h + f * (x * HS) + s * (y * HS);
             Rgba bc = DgBody.WithAlpha(0.95f * a), cc = DgCore.WithAlpha(0.95f * a), dc = DgDeep.Mix(DgBody, 0.5f).WithAlpha(0.95f * a);
@@ -298,10 +334,10 @@ namespace Arena
                 {
                     float u = q / 6f;
                     float wave = Mathf.Sin(t * 10f + k * 1.3f + u * 3f) * 7f * u;
-                    V2 p = H(-8f - j * 3f - u * (30f + j * 6f), side * (6f + j * 3f + u * (10f + j * 4f) + wave));
-                    SoftLine(prev, p, 10f * (1f - u * 0.6f), DgBody.Mix(DgCore, 0.4f).WithAlpha(0.5f * a * (1f - u * 0.6f)));
-                    Line(prev, p, 1.8f * (1f - u * 0.7f), DgCore.WithAlpha(0.7f * a * (1f - u)));
-                    prev = p;
+                    V2 w = H(-8f - j * 3f - u * (30f + j * 6f), side * (6f + j * 3f + u * (10f + j * 4f) + wave));
+                    SoftLine(prev, w, 10f * (1f - u * 0.6f), DgBody.Mix(DgCore, 0.4f).WithAlpha(0.5f * a * (1f - u * 0.6f)));
+                    Line(prev, w, 1.8f * (1f - u * 0.7f), DgCore.WithAlpha(0.7f * a * (1f - u)));
+                    prev = w;
                 }
             }
 
@@ -321,9 +357,9 @@ namespace Arena
                 for (int k = 1; k <= 12; k++)
                 {
                     float u = k / 12f;
-                    V2 p = H(30f + u * 4f - u * u * 70f, side * (8f + u * 26f + Mathf.Sin(t * 8f + u * 5f) * 8f * u));
-                    Line(prev, p, 1.8f * (1f - u * 0.7f), DgCore.WithAlpha(0.85f * a * (1f - u * 0.6f)));
-                    prev = p;
+                    V2 w = H(30f + u * 4f - u * u * 70f, side * (8f + u * 26f + Mathf.Sin(t * 8f + u * 5f) * 8f * u));
+                    Line(prev, w, 1.8f * (1f - u * 0.7f), DgCore.WithAlpha(0.85f * a * (1f - u * 0.6f)));
+                    prev = w;
                 }
             }
 
@@ -392,66 +428,73 @@ namespace Arena
             }
         }
 
-        /// Each bite: the shock ring, shards, and the enemy's soul spiralling into the maw.
-        void DrawDogmaBites(float t)
+        /// Each bite of p's dragon: the shock ring, shards, and (devoured) the enemy's soul spiralling into the maw.
+        void DrawDogmaBites(Player p)
         {
-            if (DogmaEatT == null) return;
-            for (int v = 0; v < DogmaEatT.Length; v++)
+            foreach (var fx in game.Effects)
             {
-                float a = t - DogmaEatT[v];
-                if (a < 0f || a > 0.7f) continue;
-                V2 at = DogmaVictims[v];
-                float u = a / 0.7f, f = 1f - u;
-                Arc(at, 18f + u * 70f, 3f * f + 0.5f, DgCore.WithAlpha(0.9f * f), 32);
-                Arc(at, 10f + u * 46f, 1.5f, DgGold.WithAlpha(0.7f * f), 28);
+                if (fx.Kind != FxKind.DragonBite || (int)fx.Pos2.X != p.Id)
+                    continue;
+                float a = fx.T;
+                if (a > 0.7f) continue;
+                V2 at = fx.Pos;
+                float u = a / 0.7f, f = 1f - u, s = Mathf.Clamp(fx.Radius / 18f, 0.7f, 2.5f);
+                Arc(at, (18f + u * 70f) * s, 3f * f + 0.5f, DgCore.WithAlpha(0.9f * f), 32);
+                Arc(at, (10f + u * 46f) * s, 1.5f, DgGold.WithAlpha(0.7f * f), 28);
                 for (int k = 0; k < 8; k++)  // shards flung out
                 {
-                    float ang = k * MathX.Tau / 8f + v;
+                    float ang = k * MathX.Tau / 8f + at.X * 0.01f;
                     V2 d = V2.FromAngle(ang);
-                    V2 p = at + d * (14f + u * 60f);
-                    Line(p, p + d * (10f * f), 2f, DgCore.WithAlpha(f));
+                    V2 q = at + d * (14f + u * 60f) * s;
+                    Line(q, q + d * (10f * f), 2f, DgCore.WithAlpha(f));
                 }
-                // the soul: a ghost of the enemy pulled along a spiral into the head
-                V2 head = dgPts[0];
+                if (fx.Pos2.Y < 0.5f)
+                    continue;  // a big one, only bitten
+                V2 head = p.DogmaOn ? p.DogmaDisp : p.Disp;  // the soul: a ghost of the enemy pulled along a spiral into the head
                 for (int k = 0; k < 6; k++)
                 {
                     float q = Mathf.Clamp01(u * 1.6f - k * 0.06f);
                     if (q >= 1f) continue;
-                    V2 p = V2.Lerp(at, head, q * q) + V2.FromAngle(q * 9f + k) * (18f * (1f - q));
-                    Circle(p, (9f - k) * (1f - q * 0.7f), DogmaVictimCol[v].Mix(DgCore, 0.5f).WithAlpha(0.55f * (1f - q)), 10);
+                    V2 pos = V2.Lerp(at, head, q * q) + V2.FromAngle(q * 9f + k) * (18f * (1f - q));
+                    Circle(pos, (9f - k) * (1f - q * 0.7f) * s, fx.Color.Mix(DgCore, 0.5f).WithAlpha(0.55f * (1f - q)), 10);
                 }
             }
         }
 
-        /// Juice.DrawGlowPass: the dragon's light.
+        /// Juice.DrawGlowPass: every dragon's light.
         void DrawDragonsDogmaGlow()
         {
-            float t = DogmaT;
-            if (t < 0f || DogmaKnots == null || t > DogmaDur + 0.4f || dgPts.Count < 3) return;
-            float life = Mathf.Clamp01(t / 0.3f) * (1f - Mathf.Clamp01((t - DogmaDur) / 0.4f));
+            foreach (var p in game.Players.Values)
+                if (p.DogmaTrail.Count > 0)
+                    DrawDogmaGlow(p);
+        }
+
+        void DrawDogmaGlow(Player p)
+        {
+            float t = game.AnimT, life = DogmaLife(p);
+            float sig = DogmaSigilOpen(p);
+            if (sig > 0f && fxOn) GlowDisc(p.Disp, 110f, DgGold, 0.35f * sig);
+            foreach (var fx in game.Effects)
+                if (fx.Kind == FxKind.DragonBite && (int)fx.Pos2.X == p.Id && fx.T < 0.5f)
+                    GlowDisc(fx.Pos, 100f * (0.5f + fx.T), DgCore, 0.6f * (1f - fx.T / 0.5f));
+            if (!DogmaBody(p, t))
+                return;
             int n = dgPts.Count;
             for (int i = 0; i < n; i += 3)
             {
-                float u = i / (float)(n - 1);
+                float u = dgU[i];
                 GlowDisc(dgPts[i], DogmaWidth(u, t) * 2.8f, DgBody, 0.24f * life * (1f - u * 0.5f));
-                float lump = DogmaLump(u, t);
+                float lump = DogmaLump(u);
                 if (lump > 0.05f) GlowDisc(dgPts[i], 44f, DgCore, 0.3f * lump * life);
             }
+            if (!dgHead)
+                return;
             V2 f = (dgPts[0] - dgPts[3]).Normalized(), s = f.Orthogonal();
             GlowDisc(dgPts[0], 70f, DgBody, 0.3f * life);
             for (int side = -1; side <= 1; side += 2)
                 GlowDisc(dgPts[0] + f * 6f + s * (side * 14f), 14f, DgGold, 0.7f * life);
-            float jaw = DogmaJaw(t);
+            float jaw = DogmaJaw(p);
             if (jaw > 0f) GlowDisc(dgPts[0] + f * 45f, 44f, DgMaw, 0.5f * jaw * life);
-            V2 home = DogmaKnots[0];
-            float sig = Mathf.Clamp01(t / 0.35f) * Mathf.Max(1f - Mathf.Clamp01((t - 0.9f) / 0.6f), Mathf.Clamp01((t - (DogmaDur - 0.7f)) / 0.3f) * (1f - Mathf.Clamp01((t - DogmaDur) / 0.35f)));
-            if (sig > 0f) GlowDisc(home, 110f, DgGold, 0.35f * sig);
-            if (DogmaEatT != null)
-                for (int v = 0; v < DogmaEatT.Length; v++)
-                {
-                    float a = t - DogmaEatT[v];
-                    if (a >= 0f && a < 0.5f) GlowDisc(DogmaVictims[v], 100f * (0.5f + a), DgCore, 0.6f * (1f - a / 0.5f));
-                }
         }
     }
 }
