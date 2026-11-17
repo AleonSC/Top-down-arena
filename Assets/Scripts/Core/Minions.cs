@@ -85,6 +85,8 @@ namespace Arena
                 Apply = s => { s.BlizzardRadiusMult += 0.4f; s.BlizzardBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.KineticWall, MaxStacks = 2, Name = "Momentum Bank", Desc = "Each shot Kinetic Wall catches adds 40% more damage to its blast",
                 Apply = s => s.KwChargeMult += 0.4f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WaterWard, MaxStacks = 2, Name = "Deep Current", Desc = "Water Ward's splashes hit 40% harder, and its drops keep enemies wet 2 s longer",
+                Apply = s => { s.WwDmgMult += 0.4f; s.WwWetBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Tsunami, MaxStacks = 2, Name = "Riptide", Desc = "Tsunami's wave is 40% wider and enemies stay wet 4 s longer",
                 Apply = s => { s.TsunamiWidthMult += 0.4f; s.WetBonusTime += 4f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Elementalist, MaxStacks = 2, Name = "Arcane Surge", Desc = "Casting your Space ability makes your weapon fire 25% faster for 3 s",
@@ -163,6 +165,14 @@ namespace Arena
                 Name = "Lumen Ward", Cooldown = 20f, Desc = "A huge cone of light toward your cursor for 6 s that turns as you aim: heals everyone inside 9 HP/s and burns away enemy bullets in it or touching it.",
                 Capstone = "Also freezes enemies outside the light for as long as it lasts (not bosses).",
                 Bot = b => b.AllyHurt || b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.WaterWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th ability key (WaterWard.cs)
+                Name = "Water Ward", Cooldown = WwCooldown,
+                Desc = "Call 2 drops of water down round you; they circle you, up to 10. A drop that touches an enemy splashes: 12 damage to every enemy within 52 px, and they're soaked wet (slowed 30%, lightning arcs to them) for 4 s. A drop that meets an enemy shot eats it and bursts into a mist that soaks everything within 72 px.",
+                Capstone = "Splashes and bursts reach 40% farther.",
+                Bot = b => b.HaveTarget && b.TargetD < 300f || b.Danger,
             },
             new AbilityDef
             {
@@ -451,6 +461,9 @@ namespace Arena
                     break;
                 case AbilityId.Flood:
                     CastFlood(p, cap, pw);  // Flood.cs
+                    break;
+                case AbilityId.WaterWard:
+                    CastWaterWard(p, cap);  // WaterWard.cs
                     break;
                 // Summoner
                 case AbilityId.GolemWall:
