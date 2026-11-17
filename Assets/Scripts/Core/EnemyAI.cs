@@ -658,7 +658,7 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
+                    || e.Type == EnemyType.Morsel || IsPlanted(e.Type) || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
                     || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Heavies hurt to stand in; bosses only hurt guards (below) (the difficulty's per-wave damage growth scales all of these).

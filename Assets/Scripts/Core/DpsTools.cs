@@ -135,7 +135,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (!e.Dummy && e.Type != EnemyType.SapperMine)  // (a Sapper's pods don't hold a wave open: NonShooters.cs)
+                if (!e.Dummy && !IsPlanted(e.Type))  // (a Sapper's pods, a Turnkey's traps and doors don't hold a wave open: Turnkey.cs)
                     n++;
             return n;
         }

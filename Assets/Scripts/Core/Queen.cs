@@ -185,6 +185,8 @@ namespace Arena
                     slow = Math.Min(slow, Zombies.AcidSlow);  // Zombies.cs
                 else if (pt.Kind == PatchKind.Spores)
                     slow = Math.Min(slow, Zombies.SporeSlow);
+                else if (pt.Kind == PatchKind.Slick)
+                    slow = Math.Min(slow, SlickSlow);  // a Turnkey's mop slick (Turnkey.cs)
             }
             return slow;
         }

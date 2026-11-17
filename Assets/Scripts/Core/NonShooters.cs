@@ -29,7 +29,7 @@ namespace Arena
         public const float PodArm = 1f, PodTrigger = 40f, PodWire = 180f, PodBeep = 0.3f, PodLife = 12f,
             PodBlast = 70f, PodDamage = 28f, PodEnemyDamage = 30f;
 
-        public static bool IsNonShooter(EnemyType t) => t == EnemyType.FuseRunner || IsHook(t) || t == EnemyType.Sapper || t == EnemyType.SapperMine || IsSwordsman(t);
+        public static bool IsNonShooter(EnemyType t) => t == EnemyType.FuseRunner || IsHook(t) || t == EnemyType.Sapper || t == EnemyType.SapperMine || IsSwordsman(t) || IsTurnkeyKin(t);  // (the Turnkey's too: Turnkey.cs)
 
         /// A Hookman that just missed takes more damage (Combat.cs HurtEnemy).
         static bool HookIsOpen(Enemy e) => IsHook(e.Type) && e.Phase == 4;
@@ -175,6 +175,8 @@ namespace Arena
                 NonShooterBlast(e, FuseBlast, FuseDamage, FuseEnemyDamage, credit);
             else if (e.Type == EnemyType.SapperMine && e.Phase != 3)
                 NonShooterBlast(e, PodBlast, PodDamage, PodEnemyDamage, credit);
+            else
+                TurnkeyDeath(e);  // a Floor Mine (Turnkey.cs)
         }
 
         // --- Hookman -------------------------------------------------------------------------------------------------
@@ -380,12 +382,12 @@ namespace Arena
             BroadcastFx(FxKind.Target, pod.Pos, pod.Def.Color, PodBlast, PodBeep, Sfx.None);
         }
 
-        /// A wave is cleared without its pods: the ones left fizzle out (Waves.cs WaveCleared).
+        /// A wave is cleared without its pods, a Turnkey's traps and doors: the ones left go (Waves.cs WaveCleared).
         void ClearPods()
         {
             var gone = new List<int>();
             foreach (var o in Enemies.Values)
-                if (o.Type == EnemyType.SapperMine)
+                if (IsPlanted(o.Type))
                     gone.Add(o.Id);
             foreach (int id in gone)
                 Enemies.Remove(id);

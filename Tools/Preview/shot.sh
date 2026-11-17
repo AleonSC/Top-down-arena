@@ -41,6 +41,7 @@
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
 # RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
 # PRISONERS=1 (Thugs and Shivs, both Shiv kinds walking, winding up and lunging; mode hud, ZOOM=3).
+# TURNKEY=1 (the Turnkey running, planting, building; Cell Doors working and jammed; Floor Mines, Shackle Traps, a Mop Slick; NINJA=0 ZOOM=2.2; TurnkeyLook.cs).
 # WARDENCREW=1 (Guard, Riot Shield, Gas Grenadier, Taser Guard, Security Guard in a row; WARDENCREW=2 mid-move; NINJA=0 ZOOM=3.2; OfficerLook.cs).
 # GUARD=1 (the riot Guard walking, drawing back and swinging forehand, then backhand; mode hud, KNIGHT=1 ZOOM=2.6; GuardSwing.cs).
 # GASLOB=<s into the wind-up> (the Gas Grenadier's overhand lob: ring, arm, canister; mode hud; GasLobLook.cs).
