@@ -1135,9 +1135,12 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
   it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
-  separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. So far there is one:
+  separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. Each relic node rolls one of the relics below (never
+  the one every player already holds); its tip on the build map names it once the fog lifts:
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, stuck shuriken and Bone Spears don't bounce.
+  - **Backup**: the first time you would go down, you get straight back up with half your health and 2 s of grace. Then it's gone (your slot is empty).
+  - **Hallway Runner**: you move 25% faster in hallways (boxes 3 tiles wide or less).
 - **Fog, scout towers and gold veins**: new nodes start **fogged**: you see where they are (a grey **?** on the floor, the minimap and the build map) but not
   what they are until a player walks within **8 tiles** of one, or a claimed **scout tower** has it in range; building a room round it shows it too. Revealed nodes
   stay revealed for everyone.

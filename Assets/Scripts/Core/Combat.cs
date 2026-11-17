@@ -93,6 +93,8 @@ namespace Arena
         {
             if (p.Hp > 0f || p.Downed)
                 return;
+            if (UseBackup(p))  // the Backup relic (Relics.cs)
+                return;
             p.Hp = 0f;
             p.Downed = true;
             p.Run.Downs++;

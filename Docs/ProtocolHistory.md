@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 383: Relics Backup and Hallway Runner: `RelicId.Backup`/`HallwayRunner` before `None` (the relic byte's None moved).
 - 382: Node fog, scout towers and gold veins: `NodeKind.Tower`/`Vein`, and `Msg.ExpandState`'s nodes gain `Hidden` after `Cleared`.
 - 381: Dragon's Dogma (Tank Ninja second ultimate): `AbilityId.DragonsDogma`, `FxKind.DragonBite`, player snapshot gains `DogmaOn` (then `DogmaHead`, `DogmaTgt` while it is out).
 - 380: Deployable Cover (Tank Soldier 4th ability): `AbilityId.DeployableCover`, `ZoneKind.Cover` (Aim its facing, GuardFrac its health left), `FxKind.CoverHit`/`CoverBreak`/`CoverFold` (after Water Ward's); the Reinforced Plating card shifts card ids.

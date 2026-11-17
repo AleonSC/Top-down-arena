@@ -515,10 +515,11 @@ static partial class Program
                 pl.Pos = relic.Pos + new V2(400f, 0f);
                 tickNodes.Invoke(g, null);
                 Check(!g.Nodes[rni].Spent && g.Players.Values.All(q => q.Relic == RelicId.None), "a relic node waits for someone to walk up");
+                var wantRelic = Relics.ForNode(relic, g.Players.Values);
                 pl.Pos = relic.Pos;
                 tickNodes.Invoke(g, null);
-                Check(g.Nodes[rni].Spent && g.Players.Values.All(q => q.Relic == RelicId.WallBounce),
-                    "walking onto it gives everyone Wall Bounce and spends the node");
+                Check(g.Nodes[rni].Spent && wantRelic != RelicId.None && g.Players.Values.All(q => q.Relic == wantRelic),
+                    "walking onto it gives everyone its relic (" + Relics.Name(wantRelic) + ") and spends the node");
                 g.Nodes.RemoveAt(rni);
                 foreach (var q in g.Players.Values) q.Relic = RelicId.None;  // (the rest of the suite runs without it)
                 g.Expanded.RemoveAt(ri);
@@ -558,6 +559,39 @@ static partial class Program
             seat.Seats.Add(new SeatSave { Relic = RelicId.WallBounce });
             var back = RunSave.Parse(seat.ToText());
             Check(back != null && back.Seats[0].Relic == RelicId.WallBounce, "the relic survives a saved run");
+        }
+
+        // Rolled relics, Backup and Hallway Runner (Relics.cs).
+        {
+            var rolled = new HashSet<RelicId>();
+            for (int x = 0; x < 40; x++) rolled.Add(Relics.ForNode(new MapNode { X = (short)(x * 100 + 50), Y = (short)(x * 300 - 650), Kind = NodeKind.Relic }));
+            Check(rolled.Count == Relics.Count && !rolled.Contains(RelicId.None), "relic nodes roll every relic across spots (" + rolled.Count + ")");
+            var rn = new MapNode { X = 1250, Y = -650, Kind = NodeKind.Relic };
+            var r0 = Relics.ForNode(rn);
+            var keepRel = g.Players.Values.ToDictionary(q => q.Id, q => q.Relic);
+            foreach (var q in g.Players.Values) q.Relic = r0;
+            Check(Relics.ForNode(rn, g.Players.Values) != r0 && Relics.ForNode(rn, g.Players.Values) != RelicId.None, "a node never rolls the relic every player already holds");
+            var pl = g.Players.Values.First();
+            pl.Relic = RelicId.Backup;
+            float hp0 = pl.Hp;
+            pl.Hp = 0f; pl.Downed = false;
+            typeof(Game).GetMethod("DownIfDead", flags).Invoke(g, new object[] { pl, "test" });
+            Check(!pl.Downed && pl.Hp >= pl.MaxHp * Relics.BackupHp - 1f && pl.Relic == RelicId.None, "Backup gets you straight back up at half health once, then it's gone");
+            pl.Hp = 0f;
+            typeof(Game).GetMethod("DownIfDead", flags).Invoke(g, new object[] { pl, "test" });
+            Check(pl.Downed, "the next time you go down");
+            typeof(Game).GetMethod("RevivePlayer", flags).Invoke(g, new object[] { pl, 1f, null });
+            pl.Hp = hp0;
+            var hallWorld = Expansion.Build(new List<ExpansionRoom> { new ExpansionRoom { Parent = 0, X = (int)Game.Width, Y = 400, W = 600, H = 300 } }, null, null, null);
+            V2 inHall = new V2(Game.Width + 300f, 550f), inHub = new V2(Game.Width / 2f, Game.Height / 2f);
+            Check(Relics.InHall(hallWorld, inHall) && !Relics.InHall(hallWorld, inHub), "a 3-tile strip is a hallway, the start room isn't");
+            pl.Relic = RelicId.HallwayRunner;
+            var speedAt = typeof(Game).GetMethod("RelicSpeedAt", flags);
+            var keepPos = pl.Pos;
+            pl.Pos = inHub;
+            Check(Math.Abs((float)speedAt.Invoke(g, new object[] { pl }) - 1f) < 0.001f, "Hallway Runner adds nothing in a room");
+            foreach (var q in g.Players.Values) q.Relic = keepRel[q.Id];
+            pl.Pos = keepPos;
         }
 
         // Nodes (Docs/Nodes.md): 10+ tiles out, deterministic, 8+ tiles apart, claimed by a room built round them, which takes on their job.

@@ -22,14 +22,16 @@ namespace Arena
         static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
-        static string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : n.Kind == NodeKind.Tower ? "Scout tower" : n.Kind == NodeKind.Vein ? "Gold vein" : n.Kind.ToString();
+        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.ForNode(n, game.Players.Values)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : n.Kind == NodeKind.Tower ? "Scout tower" : n.Kind == NodeKind.Vein ? "Gold vein" : n.Kind.ToString();
 
         /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
-        static string NodeBlurb(MapNode n)
+        string NodeBlurb(MapNode n)
         {
             if (n.Hidden)
                 return (n.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " : "Build a room round it to claim it. ")
                     + "Walk within 8 tiles of it, or claim a scout tower near it, to see what it is.";
+            if (n.Kind == NodeKind.Relic)
+                return "Build a room round it and walk up to it: every player gets this relic (it replaces your old one). " + Relics.Desc(Relics.ForNode(n, game.Players.Values));
             if (n.Kind == NodeKind.Tower)
                 return "Build a room round it to claim it. While it stands, every node within 30 tiles shows what it is, new ones too.";
             if (n.Kind == NodeKind.Vein)

@@ -1,24 +1,53 @@
+using System;
 using System.Collections.Generic;
 
 namespace Arena
 {
     /// A relic: a map-themed modifier, one slot per player (a new one replaces the old). Earned by building a room round a
     /// relic node on the Expanding arena (Docs/Nodes.md, "Relic nodes"). Separate from the bosses' weapon mods.
-    public enum RelicId : byte { WallBounce, None }
+    public enum RelicId : byte { WallBounce, Backup, HallwayRunner, None }
 
     public static class Relics
     {
         public const int WallBounces = 1;        // Wall Bounce: bounces off walls and pillars per shot
         public const float WallBounceDmg = 0.7f; // the damage a shot keeps each bounce
         public const float TakeReach = 46f;      // how close a player walks to a relic node to take it
+        public const float BackupHp = 0.5f;      // Backup: the share of max health you get back up with (owner Nov 17: an auto revive, gone after use)
+        public const float BackupInvuln = 2f;    // and the grace after it
+        public const float HallSpeed = 1.25f;    // Hallway Runner: move speed in a hallway
+        public const float HallWidth = 300f;     // a box this narrow or less (3 tiles) is a hallway
+        public const int Count = (int)RelicId.None;
 
-        public static string Name(RelicId r) => r == RelicId.WallBounce ? "Wall Bounce" : "";
+        public static string Name(RelicId r) => r == RelicId.WallBounce ? "Wall Bounce" : r == RelicId.Backup ? "Backup" : r == RelicId.HallwayRunner ? "Hallway Runner" : "";
 
-        public static string Desc(RelicId r) => r == RelicId.WallBounce
-            ? "Your shots bounce off walls and pillars once, keeping 70% of their damage." : "";
+        public static string Desc(RelicId r) => r == RelicId.WallBounce ? "Your shots bounce off walls and pillars once, keeping 70% of their damage."
+            : r == RelicId.Backup ? "The first time you would go down, you get straight back up with half your health. Then it's gone."
+            : r == RelicId.HallwayRunner ? "You move 25% faster in hallways (3 tiles wide or less)." : "";
 
-        /// The relic a node holds: one kind for now (later rolled from the node's spot).
-        public static RelicId ForNode(MapNode n) => RelicId.WallBounce;
+        /// The relic a node holds: rolled from its spot (the same on every machine), never the relic every player already holds.
+        public static RelicId ForNode(MapNode n, IEnumerable<Player> players = null)
+        {
+            uint h = (uint)(n.X * 73856093 ^ n.Y * 19349663);
+            var r = (RelicId)(int)(h % (uint)Count);
+            if (players == null)
+                return r;
+            bool allHold = true, any = false;
+            foreach (var p in players)
+            {
+                any = true;
+                allHold &= p.Relic == r;
+            }
+            return any && allHold ? (RelicId)(((int)r + 1) % Count) : r;
+        }
+
+        /// Whether a point is in a hallway of this world: its box is 3 tiles wide or less (Hallway Runner).
+        public static bool InHall(World w, V2 at)
+        {
+            if (w == null || w.Areas.Length == 0)
+                return false;
+            var a = w.Areas[w.AreaAt(at)];
+            return a.Contains(at) && Math.Min(a.Size.X, a.Size.Y) <= HallWidth + 1f;
+        }
     }
 
     public partial class Game
@@ -38,7 +67,7 @@ namespace Arena
                         touched = true;
                 if (!touched)
                     continue;
-                var r = Relics.ForNode(nd);
+                var r = Relics.ForNode(nd, Players.Values);
                 foreach (var p in Players.Values)
                     p.Relic = r;
                 nd.Spent = true;
@@ -48,6 +77,22 @@ namespace Arena
                 BroadcastExpansion();
             }
         }
+
+        /// Host, as a player would go down (DownIfDead): Backup gets them straight back up once, then the relic is gone.
+        bool UseBackup(Player p)
+        {
+            if (p.Relic != RelicId.Backup)
+                return false;
+            p.Relic = RelicId.None;
+            p.Hp = Math.Max(1f, Math.Min(p.HealCap, p.MaxHp * Relics.BackupHp));
+            p.InvulnT = Math.Max(p.InvulnT, Relics.BackupInvuln);
+            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.82f, 0.3f), 120f, 0.6f, Sfx.Revive);
+            DoLog("Backup gets player " + p.Id + " back up");
+            return true;
+        }
+
+        /// Your own game, moving you: Hallway Runner's speed in a hallway.
+        float RelicSpeedAt(Player p) => p.Relic == RelicId.HallwayRunner && Relics.InHall(CurrentWorld, p.Pos) ? Relics.HallSpeed : 1f;
 
         readonly List<Bullet> bounced = new List<Bullet>();
 
