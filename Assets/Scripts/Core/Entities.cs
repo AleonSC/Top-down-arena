@@ -128,6 +128,8 @@ namespace Arena
         WwSplash, WwBurst, WwCast,
         // Kinetic Wall (KineticWallSoundBank.cs): the cast, the field's hum (a loop), a catch, the full chime, the unleash. Played by each screen from what it sees, never sent.
         KwCast, KwHum, KwCatch, KwFull, KwUnleash,
+        // Deployable Cover (CoverSoundBank.cs): the throw and build, the cover bursting, folding away, a shot ringing off it. Played by each screen from the zone and FxKind.CoverBreak/CoverFold/CoverHit, never sent.
+        CoverDeploy, CoverBreak, CoverFold, CoverTing,
     }
 
     public struct SoundCue
