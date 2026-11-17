@@ -594,6 +594,14 @@ static partial class Shot {
           if (pl.Id != 1) foreach (var n in new[] { "Hollow Points", "Multishot", "Fortitude", "Vitality", "Vitality", "Executioner", "Piercing Rounds", "Sprinter", "Quick Trigger" }) g.GrantUpgrade(pl.Id, U(n));
         }
         set("statsTab", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
+        if (Environment.GetEnvironmentVariable("STATSTAB") == "3" && Environment.GetEnvironmentVariable("INVEMPTY") == null) {  // STATSTAB=3: the Inventory page, stocked (INVEMPTY=1: nothing held, Classic arena)
+          g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.RoomCards, 1f);
+          me.Gold = 245; me.Vectors = 52; me.VectorCap = 90; me.ReviveToken = true; me.Gadget = GadgetId.Magnet; me.GadgetLeft = 6.4f; me.Relic = RelicId.WallBounce;
+          me.Hand[0] = (byte)RoomCard.Ring; me.Hand[1] = (byte)RoomCard.Hall; me.Hand[2] = (byte)RoomCard.Cross; me.Hand[3] = (byte)RoomCard.MiniBoss;
+          me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.SpikeTrap] = 3;
+          g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake }); g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Shop });
+          if (Environment.GetEnvironmentVariable("INVFULL") != null) { foreach (var fl in new[] { PathId.SniperRidge, PathId.SwarmFields, PathId.Sanctuary, PathId.BurningGrounds }) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = fl }); me.Hand[4] = (byte)RoomCard.Box; me.Hand[5] = (byte)RoomCard.LHall; }  // INVFULL=1: six kits (the list scrolls) and a full hand
+        }
         if (Environment.GetEnvironmentVariable("SOLOTAB") != null) set("tabPaused", true);
         // The screen as if already open (its panels settled); HOLOAT=<s>: that far into the page's panels switching on (TabHolo.cs).
         set("statsLastFrame", Time.frameCount); set("statsShown", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));

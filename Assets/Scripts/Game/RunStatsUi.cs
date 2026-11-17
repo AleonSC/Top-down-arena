@@ -11,7 +11,7 @@ namespace Arena
     /// right, the tab keys above; the panels switch on when the screen opens and when the page changes.
     public partial class ArenaApp
     {
-        int statsTab;          // 0 Run so far, 1 Your build, 2 Team (kept between openings)
+        int statsTab;          // 0 Run so far, 1 Your build, 2 Team, 3 Inventory (InventoryUi.cs) (kept between openings)
         bool runStatsOpen;     // opened from the pause menu
 
 
@@ -42,6 +42,8 @@ namespace Arena
                     DrawHoloStats(me);
                 if (statsTab == 0)
                     DrawRunSoFar(me);
+                else if (statsTab == 3)
+                    DrawInventory(me);  // InventoryUi.cs
                 else
                     DrawTeam(me, t);
             }
@@ -49,10 +51,10 @@ namespace Arena
             // The tab keys, over the page; Back (from the pause menu) or how to close, on the right.
             bool calm = HoloCalm;
             int mates = game.Players.Count - (me != null ? 1 : 0);
-            string[] names = { "RUN SO FAR", "YOUR BUILD", "TEAM" + (mates > 0 ? " (" + mates + ")" : "") };
-            const float tw = 168f, gap = 8f;
-            float tx = 420f;
-            for (int i = 0; i < 3; i++)
+            string[] names = { "RUN SO FAR", "YOUR BUILD", "TEAM" + (mates > 0 ? " (" + mates + ")" : ""), "INVENTORY" };
+            const float tw = 150f, gap = 8f;
+            float tx = 300f;
+            for (int i = 0; i < names.Length; i++)
                 if (LobbyKit.Key(new Rect(tx + i * (tw + gap), 12f, tw, 32f), names[i], statsTab == i, calm, size: 15, minSize: 11))
                     statsTab = i;
             if (fromPause)
