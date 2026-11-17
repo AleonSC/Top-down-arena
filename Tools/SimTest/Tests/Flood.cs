@@ -26,7 +26,7 @@ static partial class Program
         bool othersThree = true;
         foreach (Role r in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
-                if (!(r == Role.Tank && (Kit)k == Kit.Elementalist))
+                if (!((r == Role.Tank || r == Role.Dps) && (Kit)k == Kit.Elementalist))  // (Flood and Kinetic Wall are their 4th keys)
                     othersThree &= Upgrades.AbilityLimit(r, (Kit)k) == 3 && Upgrades.RoleAbility(r, (Kit)k, 3) == Upgrades.RoleAbility(r, (Kit)k, 0);
         Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every other class has three (a 4th pick falls back to the first)");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.Flood), "Flood is a very rare card for Tank Elementalists who picked another");
