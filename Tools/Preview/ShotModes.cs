@@ -331,11 +331,11 @@ static partial class Shot {
       set("glMaterial", new Material(null));
       set("addressList", "100.123.48.122, 192.168.1.163");
       if (Environment.GetEnvironmentVariable("INFO") != null) set("connInfoOpen", true);
-      // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability[,ultimate pick]; ABILITY=n hovers that ability.
+      // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability[,ultimate pick]; ABILITY=n clicks that ability key: it's picked, its detail box opens and the preview casts it (the lobby has no hover state since the declutter).
       var lo = Environment.GetEnvironmentVariable("LOADOUT");
       if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); if (q.Length > 4) le.Ult = byte.Parse(q[4]); }  // (a fifth number: the Ultimate row's key)
       var ab = Environment.GetEnvironmentVariable("ABILITY");
-      if (ab != null) set("abilityHover", int.Parse(ab));
+      if (ab != null) { host.Lobby[host.MyId].Ability = byte.Parse(ab); set("detailSel", 1); }
       {
         var le = host.Lobby[host.MyId];
         int shown = ab != null ? int.Parse(ab) : le.Ability;

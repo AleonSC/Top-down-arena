@@ -310,7 +310,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   drawn big), `NINJA=<weapon>` / `BLOOD=<weapon>` (like `KNIGHT=`), `MOUSE=x,y`, `AIMLINE=<px>` (mouse that far from
   you, with the aim line), `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup), `BG=n` (also in `hud`: the
   arena background), `PICKCARDS=a,b,c` (picker: these three cards), `LOADOUT=role,kit,weapon,ability` / `ABILITY=n`
-  (hover) / `SHOWT=secs` (the lobby's live preview). The renderer is approximate (no text fields, faint seams in big
+  (click that ability key: picked, detail box, preview casting it) / `SHOWT=secs` (the lobby's live preview). The renderer is approximate (no text fields, faint seams in big
   circles, thin translucent lines look a few times brighter than in Unity; translucent UI and rimmed cards were fixed
   to match Unity in Oct 2026, so older preview PNGs look fainter); use it to check layout, then ask the owner to look
   in Unity.
