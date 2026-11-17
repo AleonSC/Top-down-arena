@@ -1154,6 +1154,8 @@ namespace Arena
                     continue;
                 if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
                     continue;  // nothing to mark: don't waste the cooldown
+                if (me.Slots[slot].Id == AbilityId.IronBody && me.PlateN >= CerePlateMax)
+                    continue;  // Ceremonial Armor with all 10 plates up: don't waste the cooldown
                 if (me.StandOn && MovesYou(me.Slots[slot].Id))
                     continue;  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)

@@ -81,7 +81,7 @@ namespace Arena
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
         public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
         // Ninja abilities
-        public float CloneBonusTime, CloneHpMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, IronBonusTime, IronWaveMult = 1f;
+        public float CloneBonusTime, CloneHpMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, PlateHpMult = 1f;
         public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
         public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
         public int FanExtraKunai;

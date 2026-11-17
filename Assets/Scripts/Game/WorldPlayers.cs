@@ -138,8 +138,8 @@ namespace Arena
         void DrawNinja(Player p, float r, float t, Rgba col)
         {
             // Abilities
-            if (p.IronT > 0f)  // Iron Body: a steel-grey shell
-                Polygon(p.Disp, r + 8f, 8, t * 0.6f, new Rgba(0.75f, 0.78f, 0.85f, 0.35f + 0.15f * Mathf.Sin(t * 10f)));
+            if (p.PlateN > 0)  // Ceremonial Armor's plates (CeremonialArmorLook.cs; the rings and sigil are under the model)
+                DrawCeremonialArmor(p, t);
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BlossomStorm)  // petals swirling round
                 for (int k = 0; k < 10; k++)
                     Circle(p.Disp + V2.FromAngle(t * 1.5f + MathX.Tau * k / 10f) * (r + 30f + 8f * Mathf.Sin(t * 2f + k)), 3f, new Rgba(1f, 0.7f, 0.85f, 0.8f), 6);
