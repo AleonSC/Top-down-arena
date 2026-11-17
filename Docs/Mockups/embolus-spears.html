@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Embolus Spears</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Mockup of the DPS Hemomancer's Embolus Spears: one live arena, three looks, the rules, open questions.
+   Single dark look (the game's palette) in both themes. Approximate: browser canvas, not Ui.cs. */
+:root{
+  --bg:#0e0407; --panel:#1b080d; --fg:#f3e6e6; --muted:#b58a91; --line:#3c1520;
+  --acc:#ff3d55; --acc2:#7d0a1e; --heal:#ffb3bd; --arena:#090405;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0407}}
+:root[data-theme="dark"]{--bg:#0e0407}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;padding:28px 16px 64px}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
+h1{font:700 clamp(40px,7vw,68px)/.95 var(--display);text-transform:uppercase;margin:0 0 12px}
+.lede{margin:0;max-width:62ch;color:var(--muted);font-size:17px}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;color:var(--acc)}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 18px 50px -20px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:720/400;cursor:crosshair;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-top:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0}
+.seg button[aria-pressed="true"]{background:var(--acc);color:#12060a}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.check{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--body);cursor:pointer}
+.check input{accent-color:var(--acc);width:16px;height:16px}
+.hint{margin:10px 0 0;color:var(--muted);font-size:14px}
+.readout{margin:10px 0 0;font:500 14px var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 13px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.readout b{color:var(--acc);font-weight:500}
+.looks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.looks article{border-top:2px solid var(--line);padding-top:10px;cursor:pointer}
+.looks article.on{border-top-color:var(--acc)}
+.looks h3{font:700 20px/1.1 var(--display);text-transform:uppercase;margin:0 0 6px}
+.looks h3 span{color:var(--acc);margin-right:8px}
+.looks p{margin:0;color:var(--muted);font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font:500 13px var(--mono);color:var(--acc);white-space:nowrap;width:1%}
+td.n{font-family:var(--mono);color:var(--heal);white-space:nowrap}
+ol{margin:0;padding-left:20px;color:var(--muted)} ol li{margin:4px 0} ol b{color:var(--fg)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <p class="eyebrow">DPS · Hemomancer · new weapon · mockup</p>
+  <h1>Embolus Spears</h1>
+  <p class="lede">Arms out, a hardened blood spear in each hand. Click throws one, click throws the other, a third click rips both back. You pay in blood and get it back on the catch, or blow them up for half.</p>
+</header>
+
+<section aria-labelledby="st">
+  <h2 id="st">Live preview</h2>
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Embolus Spears arena preview"></canvas></div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Look">
+      <button data-look="0" aria-pressed="true">A · Clot Javelin</button><button data-look="1" aria-pressed="false">B · Barbed Thrombus</button><button data-look="2" aria-pressed="false">C · Hemoglass</button>
+    </div>
+    <label class="check"><input type="checkbox" id="auto" checked> Auto demo</label>
+    <button id="bFire">Throw / Recall</button>
+    <button id="bAlt">Detonate</button>
+  </div>
+  <p class="readout" id="ro">…</p>
+  <p class="hint">Click the arena to take over: aim with the mouse, <b>left click</b> throw / recall, <b>right click</b> (or E) detonate, WASD to move. Browser canvas: the Unity version would be redrawn with the game's own draw code.</p>
+</section>
+
+<section aria-labelledby="lk">
+  <h2 id="lk">Three looks</h2>
+  <div class="looks">
+    <article data-look="0" class="on"><h3><span>A</span>Clot Javelin</h3><p>Dark congealed shaft, a faceted ruby head. Leaves a drip trail; lodges with a crack and a splat. Blast: one heavy ring and a spray of clots.</p></article>
+    <article data-look="1"><h3><span>B</span>Barbed Thrombus</h3><p>Thicker, veined, barbs swept back like a harpoon. A pulsing vein runs its length. Blast: the barbs fly out as spikes.</p></article>
+    <article data-look="2"><h3><span>C</span>Hemoglass</h3><p>Translucent crimson crystal with a hot white core and a glow. Clean light streak. Blast: a flash and a burst of glass shards.</p></article>
+  </div>
+</section>
+
+<section aria-labelledby="rl">
+  <h2 id="rl">Rules (proposed numbers)</h2>
+  <table>
+    <tr><td>Click 1 / 2</td><td>Throw the left spear, then the right. Each costs <b>20% max health</b>.</td><td class="n">−20% each</td></tr>
+    <tr><td>Flight</td><td>Fast (1100 px/s), pierces every enemy, sticks into the first wall or pillar it hits.</td><td class="n">30 per enemy</td></tr>
+    <tr><td>Click 3</td><td>Recall both (lodged or still flying). They tear back to your hands, piercing again.</td><td class="n">30 per enemy</td></tr>
+    <tr><td>Catch</td><td>Each spear caught heals back what it cost.</td><td class="n">+20% each</td></tr>
+    <tr><td>Alt</td><td>Detonate every spear that's out: 120 px blast. They re-form in your hands after 0.45 s.</td><td class="n">90→45 · +10% each</td></tr>
+    <tr><td>Floor</td><td>Can't throw if it would take you to 0 (needs more than 20%).</td><td class="n">—</td></tr>
+  </table>
+</section>
+
+<section aria-labelledby="oq">
+  <h2 id="oq">Open questions</h2>
+  <ol>
+    <li><b>Look:</b> A, B or C?</li>
+    <li><b>Recall one at a time?</b> Third click recalls both (as asked), or one per click?</li>
+    <li><b>Upgrade (level-up):</b> +1 spear per arm, or spears grow / blast +30%?</li>
+    <li><b>Bleed:</b> should pierces add bleed stacks so it combos with Blood Bolts' 5-stack burst?</li>
+    <li><b>Downed:</b> if you go down with spears out, do they drop (health lost) or auto-recall on revive?</li>
+  </ol>
+</section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+const W=720,H=400,WT=20,L=56;
+const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;cx.scale(dpr,dpr);
+const pillar={x:500,y:178,w:28,h:56};
+const COST=20,DMG=30,BLAST_R=120,BLAST_MAX=90,BLAST_MIN=45,SPEED=1100,BACK=1300;
+let look=0,auto=true;
+const P={x:130,y:200,ax:1,ay:0,hp:100,kick:[0,0]};
+let mouse={x:600,y:200},aim={x:600,y:200};
+const keys={};
+const spears=[mk(-1),mk(1)];
+function mk(side){return{side,st:'hand',x:0,y:0,dx:1,dy:0,hit:new Set(),pen:0,trail:[],t:0}}
+let enemies=[],parts=[],stains=[],cracks=[],blasts=[],nums=[],msg={t:0,s:''};
+function rnd(a,b){return a+Math.random()*(b-a)}
+function spawnEnemy(){let e;do{e={x:rnd(260,680),y:rnd(40,360)}}while(inSolid(e.x,e.y,16));
+  Object.assign(e,{vx:rnd(-30,30),vy:rnd(-30,30),hp:120,max:120,r:rnd(11,15),fl:0,dead:0});return e}
+for(let i=0;i<8;i++)enemies.push(spawnEnemy());
+
+function inSolid(x,y,pad=0){
+  if(x<WT+pad||x>W-WT-pad||y<WT+pad||y>H-WT-pad)return true;
+  return x>pillar.x-pad&&x<pillar.x+pillar.w+pad&&y>pillar.y-pad&&y<pillar.y+pillar.h+pad}
+function hand(side){const px=-P.ay,py=P.ax,k=P.kick[side<0?0:1];
+  return{x:P.x+P.ax*(20+k*8)+px*side*11,y:P.y+P.ay*(20+k*8)+py*side*11}}
+
+// --- actions
+function primary(){
+  const inHand=spears.filter(s=>s.st==='hand');
+  if(inHand.length===0){
+    const out=spears.filter(s=>s.st==='fly'||s.st==='lodged');
+    for(const s of out){s.st='recall';s.hit=new Set();s.trail=[]}
+    if(out.length)say('Recall');return}
+  if(P.hp<=COST){say('Not enough blood');return}
+  const s=inHand.length===2?spears[0]:inHand[0];
+  const h=hand(s.side);let dx=aim.x-h.x,dy=aim.y-h.y,d=Math.hypot(dx,dy)||1;
+  // converge both arms on the cursor
+  s.dx=dx/d;s.dy=dy/d;s.x=h.x;s.y=h.y;s.st='fly';s.hit=new Set();s.trail=[];s.pen=0;
+  P.hp-=COST;P.kick[s.side<0?0:1]=1;
+  num(P.x,P.y-24,'−'+COST+'%','#ff3d55');
+  for(let i=0;i<8;i++)drop(h.x,h.y,rnd(-80,80)-s.dx*60,rnd(-80,80)-s.dy*60,'#b0101f');
+}
+function alt(){
+  const out=spears.filter(s=>s.st==='fly'||s.st==='lodged'||s.st==='recall');
+  if(!out.length){say('No spears out');return}
+  for(const s of out){
+    blasts.push({x:s.x,y:s.y,t:0,ang:Math.atan2(s.dy,s.dx)});
+    for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.x-s.x,e.y-s.y);
+      if(d<BLAST_R+e.r){hurt(e,Math.round(BLAST_MAX-(BLAST_MAX-BLAST_MIN)*Math.min(1,d/BLAST_R)),s.x,s.y,true)}}
+    const n=look===1?18:look===2?26:22;
+    for(let i=0;i<n;i++){const a=rnd(0,6.283),v=rnd(120,420);
+      parts.push({x:s.x,y:s.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rnd(.35,.7),max:.7,k:look,sz:rnd(2,4),a})}
+    for(let i=0;i<6;i++)stains.push({x:s.x+rnd(-50,50),y:s.y+rnd(-50,50),r:rnd(5,14),a:.5});
+    P.hp=Math.min(100,P.hp+COST/2);num(P.x,P.y-24,'+'+COST/2+'%','#ffb3bd');
+    s.st='regrow';s.t=0;s.trail=[];
+  }
+  shake=8;
+}
+function say(s){msg={t:1.2,s}}
+function num(x,y,s,c){nums.push({x,y,s,c,t:0})}
+function drop(x,y,vx,vy,c){parts.push({x,y,vx,vy,life:rnd(.25,.5),max:.5,k:-1,sz:rnd(1.5,3),c,stain:Math.random()<.5})}
+function hurt(e,dmg,sx,sy,big){
+  e.hp-=dmg;e.fl=.12;num(e.x+rnd(-6,6),e.y-e.r-4,String(dmg),big?'#ffd36b':'#f3e6e6');
+  for(let i=0;i<(big?3:6);i++)drop(e.x,e.y,rnd(-120,120),rnd(-120,120),'#c3142a');
+  if(e.hp<=0){e.dead=1.6;for(let i=0;i<14;i++)drop(e.x,e.y,rnd(-200,200),rnd(-200,200),'#8a0a1a');stains.push({x:e.x,y:e.y,r:e.r*1.4,a:.6})}
+}
+
+// --- auto demo script (loops)
+const SCRIPT=[[.5,'aim',690,105],[.8,'fire'],[1.2,'aim',515,215],[1.5,'fire'],[2.9,'fire'],
+  [4.3,'aim',690,190],[4.6,'fire'],[5.0,'aim',620,370],[5.3,'fire'],[6.5,'alt'],[8.6,'loop']];
+let at=0,si=0;
+function runScript(dt){at+=dt;while(si<SCRIPT.length&&at>=SCRIPT[si][0]){const c=SCRIPT[si++];
+  if(c[1]==='aim')mouse={x:c[2],y:c[3]};else if(c[1]==='fire')primary();else if(c[1]==='alt')alt();
+  else{at=0;si=0;P.hp=100;P.x=130;P.y=200}}}
+
+// --- update
+let shake=0,clock=0;
+function update(dt){
+  clock+=dt;
+  if(auto)runScript(dt);
+  else{const sp=170;let mx=(keys.d?1:0)-(keys.a?1:0),my=(keys.s?1:0)-(keys.w?1:0);
+    const nx=P.x+mx*sp*dt,ny=P.y+my*sp*dt;if(!inSolid(nx,P.y,16))P.x=nx;if(!inSolid(P.x,ny,16))P.y=ny;
+    P.hp=Math.min(100,P.hp+2*dt)}
+  aim.x+=(mouse.x-aim.x)*Math.min(1,dt*(auto?9:30));aim.y+=(mouse.y-aim.y)*Math.min(1,dt*(auto?9:30));
+  let dx=aim.x-P.x,dy=aim.y-P.y,d=Math.hypot(dx,dy)||1;P.ax=dx/d;P.ay=dy/d;
+  P.kick=P.kick.map(k=>Math.max(0,k-dt*5));
+  for(const s of spears)stepSpear(s,dt);
+  for(const e of enemies){
+    if(e.dead){e.dead-=dt;if(e.dead<=0)Object.assign(e,spawnEnemy());continue}
+    e.fl=Math.max(0,e.fl-dt);e.x+=e.vx*dt;e.y+=e.vy*dt;
+    if(inSolid(e.x,e.y,e.r)||e.x<240){e.vx*=-1;e.vy*=-1;e.x+=e.vx*dt*2;e.y+=e.vy*dt*2}
+    if(Math.random()<dt*.5){e.vx=rnd(-30,30);e.vy=rnd(-30,30)}}
+  for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=1-dt*4;p.vy*=1-dt*4;p.life-=dt;
+    if(p.life<=0&&p.stain&&!inSolid(p.x,p.y))stains.push({x:p.x,y:p.y,r:p.sz*1.2,a:.45})}
+  parts=parts.filter(p=>p.life>0);if(stains.length>140)stains.splice(0,stains.length-140);
+  blasts.forEach(b=>b.t+=dt);blasts=blasts.filter(b=>b.t<.7);
+  nums.forEach(n=>n.t+=dt);nums=nums.filter(n=>n.t<.9);
+  msg.t-=dt;shake=Math.max(0,shake-dt*30);
+}
+function stepSpear(s,dt){
+  if(s.st==='regrow'){s.t+=dt;if(s.t>=.45)s.st='hand';return}
+  if(s.st==='hand'||s.st==='lodged'){if(s.st==='lodged')s.t+=dt;return}
+  s.trail.push({x:s.x,y:s.y});if(s.trail.length>10)s.trail.shift();
+  if(s.st==='fly'){
+    let dist=SPEED*dt;while(dist>0){const st=Math.min(6,dist);dist-=st;
+      s.x+=s.dx*st;s.y+=s.dy*st;
+      const tx=s.x+s.dx*L/2,ty=s.y+s.dy*L/2;
+      if(s.pen>0||inSolid(tx,ty)){s.pen+=st;if(s.pen>=14){s.st='lodged';s.t=0;
+        const ex=tx-s.dx*14,ey=ty-s.dy*14;cracks.push({x:ex,y:ey,a:Math.atan2(s.dy,s.dx),seed:Math.random()*99});
+        if(cracks.length>12)cracks.shift();
+        for(let i=0;i<10;i++)drop(ex,ey,-s.dx*rnd(40,200)+rnd(-90,90),-s.dy*rnd(40,200)+rnd(-90,90),'#c3142a');
+        shake=Math.max(shake,3);return}}
+      pierce(s)}
+  }else if(s.st==='recall'){
+    const h=hand(s.side);let dx=h.x-s.x,dy=h.y-s.y,d=Math.hypot(dx,dy);
+    if(d<18){s.st='hand';P.hp=Math.min(100,P.hp+COST);num(P.x,P.y-24,'+'+COST+'%','#ffb3bd');
+      for(let i=0;i<8;i++)drop(h.x,h.y,rnd(-60,60),rnd(-60,60),'#ff5a6e');return}
+    // spear flies butt-first back toward the hand
+    s.dx=-dx/d;s.dy=-dy/d;let dist=Math.min(d,BACK*dt);
+    while(dist>0){const st=Math.min(6,dist);dist-=st;s.x-=s.dx*st;s.y-=s.dy*st;pierce(s)}
+  }
+}
+function pierce(s){
+  for(const e of enemies){if(e.dead||s.hit.has(e))continue;
+    const ax=s.x-s.dx*L/2,ay=s.y-s.dy*L/2,bx=s.x+s.dx*L/2,by=s.y+s.dy*L/2;
+    const t=Math.max(0,Math.min(1,((e.x-ax)*(bx-ax)+(e.y-ay)*(by-ay))/(L*L)));
+    if(Math.hypot(e.x-(ax+(bx-ax)*t),e.y-(ay+(by-ay)*t))<e.r+3){s.hit.add(e);hurt(e,DMG,s.x,s.y,false)}}
+}
+
+// --- draw
+const LOOKC=[['#5a0d17','#c01f33','#8f0f22','#ff4a5e'],['#6b0a18','#ff3d55','#7d0a1e','#ff6b7d'],['rgba(220,20,50,.8)','#ffd0d6','rgba(255,40,70,.28)','#ff8a9a']];
+function drawSpear(x,y,dx,dy,a=1,sc=1){sc*=1.35;
+  cx.save();cx.translate(x,y);cx.rotate(Math.atan2(dy,dx));cx.scale(sc,sc);cx.globalAlpha=a;
+  const h=L/2,c=LOOKC[look];
+  if(look===0){
+    cx.strokeStyle=c[0];cx.lineWidth=4.5;cx.lineCap='round';line(-h,0,h-12,0);
+    cx.strokeStyle=c[1];cx.lineWidth=1.3;line(-h+3,-1.2,h-14,-1.2);
+    poly([[h-17,0],[h-8,-5.5],[h+5,0],[h-8,5.5]],c[2],c[3]);
+    cx.strokeStyle=c[3];cx.lineWidth=.8;line(h-17,0,h+5,0);
+    circ(-h,0,3,c[0]);
+  }else if(look===1){
+    cx.strokeStyle=c[0];cx.lineWidth=6.5;cx.lineCap='round';line(-h,0,h-10,0);
+    cx.strokeStyle=c[1];cx.lineWidth=1.2;cx.beginPath();
+    for(let i=0;i<=20;i++){const u=-h+i*(L-12)/20;cx.lineTo(u,Math.sin(u*.35+clock*14)*1.6)}cx.stroke();
+    for(let i=0;i<4;i++){const u=-h+8+i*11,sd=i%2?1:-1;poly([[u,sd*3],[u-8,sd*8],[u-3,sd*3]],c[2],c[3])}
+    poly([[h-12,-4.5],[h+7,0],[h-12,4.5]],c[2],c[3]);
+  }else{
+    cx.strokeStyle=c[2];cx.lineWidth=11;cx.lineCap='round';line(-h+4,0,h,0);
+    poly([[-h,0],[-h+10,-3],[h-14,-4],[h+6,0],[h-14,4],[-h+10,3]],c[0],'#ff9aa8');
+    cx.strokeStyle='rgba(255,255,255,.55)';cx.lineWidth=.8;line(-h+10,-3,h-14,-4);line(h-14,-4,h-14,4);
+    cx.strokeStyle=c[1];cx.lineWidth=1.2;line(-h+6,0,h,0);
+  }
+  cx.restore();
+}
+function line(a,b,c,d){cx.beginPath();cx.moveTo(a,b);cx.lineTo(c,d);cx.stroke()}
+function poly(pts,f,s){cx.beginPath();pts.forEach((p,i)=>i?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1]));cx.closePath();
+  if(f){cx.fillStyle=f;cx.fill()}if(s){cx.strokeStyle=s;cx.lineWidth=1;cx.stroke()}}
+function circ(x,y,r,f){cx.beginPath();cx.arc(x,y,r,0,6.283);cx.fillStyle=f;cx.fill()}
+
+function draw(){
+  cx.save();if(shake)cx.translate(rnd(-shake,shake)*.4,rnd(-shake,shake)*.4);
+  cx.fillStyle='#0b0406';cx.fillRect(-10,-10,W+20,H+20);
+  cx.strokeStyle='rgba(120,30,45,.08)';cx.lineWidth=1;
+  for(let x=WT;x<W;x+=40)line(x,0,x,H);for(let y=WT;y<H;y+=40)line(0,y,W,y);
+  for(const s of stains){cx.globalAlpha=s.a;circ(s.x,s.y,s.r,'#3a0610')}cx.globalAlpha=1;
+  // enemies
+  for(const e of enemies){if(e.dead)continue;
+    circ(e.x,e.y,e.r,e.fl>0?'#fff':'#2a2030');cx.strokeStyle='#8a7a96';cx.lineWidth=1.5;cx.beginPath();cx.arc(e.x,e.y,e.r,0,6.283);cx.stroke();
+    cx.fillStyle='#000';cx.fillRect(e.x-12,e.y-e.r-7,24,3);cx.fillStyle='#ff3d55';cx.fillRect(e.x-12,e.y-e.r-7,24*Math.max(0,e.hp/e.max),3)}
+  // trails
+  for(const s of spears){if(s.trail.length<2)continue;
+    for(let i=1;i<s.trail.length;i++){const a=i/s.trail.length,p=s.trail[i-1],q=s.trail[i];
+      cx.strokeStyle=look===2?`rgba(255,120,140,${a*.55})`:`rgba(190,20,40,${a*.6})`;
+      cx.lineWidth=look===2?3*a:look===1?5*a:3.5*a;line(p.x,p.y,q.x,q.y)}}
+  // recall tethers: a thin blood thread from hand to the spear while it is out
+  for(const s of spears){if(s.st!=='lodged'&&s.st!=='recall'&&s.st!=='fly')continue;
+    const h=hand(s.side);const bx=s.x-s.dx*L/2,by=s.y-s.dy*L/2;
+    cx.setLineDash([2,6]);cx.lineDashOffset=-clock*30;cx.strokeStyle=s.st==='recall'?'rgba(255,90,110,.7)':'rgba(160,20,40,.35)';
+    cx.lineWidth=1;line(h.x,h.y,bx,by);cx.setLineDash([])}
+  // spears out (under walls so lodged tips sink in)
+  for(const s of spears){if(s.st==='fly'||s.st==='recall'){drawSpear(s.x,s.y,s.dx,s.dy)}
+    else if(s.st==='lodged'){const w=Math.sin(Math.max(0,.35-s.t)*60)*Math.max(0,.35-s.t)*.5;
+      drawSpear(s.x,s.y,Math.cos(Math.atan2(s.dy,s.dx)+w),Math.sin(Math.atan2(s.dy,s.dx)+w));
+      // a slow pulse so you can see they're ready to be called back
+      const p=.5+.5*Math.sin(clock*6);cx.globalAlpha=.25+.25*p;circ(s.x-s.dx*L/2,s.y-s.dy*L/2,3+p*2,'#ff3d55');cx.globalAlpha=1}}
+  // player: body, two arms out front, spears held
+  const ang=Math.atan2(P.ay,P.ax);
+  for(const sd of[-1,1]){const h=hand(sd),px=-P.ay,py=P.ax;
+    const shx=P.x+px*sd*11,shy=P.y+py*sd*11;cx.strokeStyle='#9a3a4c';cx.lineWidth=6;cx.lineCap='round';line(shx,shy,h.x,h.y);
+    circ(h.x,h.y,3.4,'#7d0a1e')}
+  circ(P.x,P.y,14,'#2b0d14');cx.strokeStyle='#ff3d55';cx.lineWidth=2;cx.beginPath();cx.arc(P.x,P.y,14,0,6.283);cx.stroke();
+  circ(P.x+P.ax*6,P.y+P.ay*6,3,'#ffb3bd');
+  for(const s of spears){const h=hand(s.side);
+    if(s.st==='hand')drawSpear(h.x+P.ax*18,h.y+P.ay*18,P.ax,P.ay,1,.55);
+    else if(s.st==='regrow'){const k=s.t/.45;drawSpear(h.x+P.ax*18*k,h.y+P.ay*18*k,P.ax,P.ay,k,.55*k)}
+    else{const k=.5+.5*Math.sin(clock*10+s.side);circ(h.x,h.y,2+k,'#c3142a')}}
+  // walls
+  cx.fillStyle='#1d080d';cx.fillRect(0,0,W,WT);cx.fillRect(0,H-WT,W,WT);cx.fillRect(0,0,WT,H);cx.fillRect(W-WT,0,WT,H);
+  cx.fillRect(pillar.x,pillar.y,pillar.w,pillar.h);
+  cx.strokeStyle='#3c1520';cx.lineWidth=2;cx.strokeRect(WT,WT,W-2*WT,H-2*WT);cx.strokeRect(pillar.x,pillar.y,pillar.w,pillar.h);
+  for(const c of cracks){cx.save();cx.translate(c.x,c.y);cx.rotate(c.a);cx.strokeStyle='rgba(255,61,85,.55)';cx.lineWidth=1;
+    for(let i=0;i<5;i++){const a=(i-2)*.45+Math.sin(c.seed+i)*.2;line(2,0,2+Math.cos(a)*(8+(i%2)*6),Math.sin(a)*(8+(i%2)*6))}
+    circ(0,0,3,'#6b0a18');cx.restore()}
+  // blasts
+  for(const b of blasts){const k=b.t/.7,r=BLAST_R*(look===2?Math.min(1,k*3):Math.min(1,k*2.2));
+    if(b.t<.08){cx.globalAlpha=1-b.t/.08;circ(b.x,b.y,BLAST_R*.7,look===2?'#ffe3e7':'#ff6b7d');cx.globalAlpha=1}
+    cx.globalAlpha=(1-k)*.35;circ(b.x,b.y,r,look===2?'#ff8a9a':'#8f0f22');cx.globalAlpha=1-k;
+    cx.strokeStyle=look===2?'#ffd0d6':'#ff3d55';cx.lineWidth=look===0?5*(1-k)+1:2.5;cx.beginPath();cx.arc(b.x,b.y,r,0,6.283);cx.stroke();
+    if(look===0){cx.lineWidth=1.5;cx.beginPath();cx.arc(b.x,b.y,r*.65,0,6.283);cx.stroke()}
+    cx.globalAlpha=1}
+  // particles
+  for(const p of parts){const a=Math.max(0,p.life/p.max);cx.globalAlpha=a;
+    if(p.k===-1)circ(p.x,p.y,p.sz,p.c);
+    else if(p.k===0)circ(p.x,p.y,p.sz*1.2,'#a3101f');
+    else if(p.k===1){cx.save();cx.translate(p.x,p.y);cx.rotate(Math.atan2(p.vy,p.vx));poly([[6,0],[-6,-2.5],[-4,0],[-6,2.5]],'#7d0a1e','#ff6b7d');cx.restore()}
+    else{cx.save();cx.translate(p.x,p.y);cx.rotate(p.a+clock*8);poly([[0,-p.sz*1.6],[p.sz,0],[0,p.sz*1.6],[-p.sz*.6,0]],'rgba(255,90,110,.85)','#ffe3e7');cx.restore()}}
+  cx.globalAlpha=1;
+  // numbers
+  cx.font='600 13px "IBM Plex Mono",monospace';cx.textAlign='center';
+  for(const n of nums){cx.globalAlpha=1-n.t/.9;cx.fillStyle=n.c;cx.fillText(n.s,n.x,n.y-n.t*30)}cx.globalAlpha=1;
+  // aim reticle
+  cx.strokeStyle='rgba(255,61,85,.6)';cx.lineWidth=1;cx.beginPath();cx.arc(aim.x,aim.y,7,0,6.283);cx.stroke();
+  cx.restore();
+  // HUD: health bar with "in the spears" ghost segments
+  const bx=32,by=H-WT-22,bw=190,bh=10;
+  cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(bx-4,by-16,bw+8,bh+22);
+  cx.fillStyle='#2a0a10';cx.fillRect(bx,by,bw,bh);cx.fillStyle='#ff3d55';cx.fillRect(bx,by,bw*P.hp/100,bh);
+  let gx=bx+bw*P.hp/100;
+  for(const s of spears)if(s.st==='fly'||s.st==='lodged'||s.st==='recall'){const gw=bw*COST/100;
+    cx.strokeStyle='#ffb3bd';cx.setLineDash([3,2]);cx.strokeRect(gx+.5,by+.5,Math.min(gw,bx+bw-gx)-1,bh-1);cx.setLineDash([]);gx+=gw}
+  cx.font='500 11px "IBM Plex Mono",monospace';cx.textAlign='left';cx.fillStyle='#f3e6e6';
+  cx.fillText('HP '+Math.round(P.hp)+'%   dashed = held in spears',bx,by-4);
+  if(msg.t>0){cx.globalAlpha=Math.min(1,msg.t*3);cx.font='700 22px "Barlow Condensed",sans-serif';cx.textAlign='center';
+    cx.fillStyle='#ff3d55';cx.fillText(msg.s.toUpperCase(),W/2,48);cx.globalAlpha=1}
+}
+
+// --- readout
+const ro=document.getElementById('ro');const NAME={hand:'in hand',fly:'flying',lodged:'lodged',recall:'returning',regrow:'re-forming'};
+function readout(){const inHand=spears.filter(s=>s.st==='hand').length;
+  const next=inHand===2?'throw left':inHand===1?'throw right':spears.some(s=>s.st==='fly'||s.st==='lodged')?'recall both':'—';
+  ro.innerHTML=`HP <b>${Math.round(P.hp)}%</b> · left <b>${NAME[spears[0].st]}</b> · right <b>${NAME[spears[1].st]}</b> · next click: <b>${next}</b>`}
+
+// --- input
+function toCanvas(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+const autoBox=document.getElementById('auto');
+function manual(){if(auto){auto=false;autoBox.checked=false}}
+cv.addEventListener('pointermove',e=>{if(!auto)mouse=toCanvas(e)});
+cv.addEventListener('pointerdown',e=>{manual();mouse=toCanvas(e);aim={...mouse};if(e.button===2)alt();else primary()});
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if('wasd'.includes(k)&&k.length===1){keys[k]=1;if(document.activeElement===document.body)manual()}
+  if(k==='e'){manual();alt()}});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
+autoBox.addEventListener('change',()=>{auto=autoBox.checked;at=0;si=0;P.hp=100;spears.forEach(s=>{s.st='hand';s.trail=[]})});
+document.getElementById('bFire').onclick=()=>{manual();primary()};
+document.getElementById('bAlt').onclick=()=>{manual();alt()};
+function setLook(n){look=n;document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.look==n));
+  document.querySelectorAll('.looks article').forEach(a=>a.classList.toggle('on',a.dataset.look==n))}
+document.querySelectorAll('[data-look]').forEach(el=>el.addEventListener('click',()=>setLook(+el.dataset.look)));
+
+let last=performance.now();
+function frame(t){const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();readout();requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
