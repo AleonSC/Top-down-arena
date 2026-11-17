@@ -1113,6 +1113,7 @@ namespace Arena
                 e.BurnT = Math.Max(e.BurnT, FlameBurnTime + b.IgniteBonus);
                 e.BurnDps = Math.Max(e.BurnDps, b.Ignite);
                 e.BurnBy = b.Owner;
+                Cauterize(e, b.Owner);  // fire on a bleed (Cauterize.cs)
                 if (b.Kind == Defs.FireballShot)
                     Sounds.Add(new SoundCue { Sfx = Sfx.ShotFireballBurn, Ally = b.Owner != MyId });
             }
@@ -1142,6 +1143,7 @@ namespace Arena
                 e.BurnPool += b.Dmg * s.BurnFrac;  // every hit adds to the fire, so fast and slow weapons gain alike
                 e.PoolT = IncendiaryTime;
                 e.BurnBy = b.Owner;
+                Cauterize(e, b.Owner);
             }
             if (s.CryoSlow > 0f && !Heavy(e))
             {

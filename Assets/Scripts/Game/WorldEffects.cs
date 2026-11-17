@@ -308,6 +308,9 @@ namespace Arena
                     break;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
                 case FxKind.DragonBite:
                     break;  // drawn with its dragon (DragonsDogmaLook.cs)
+                case FxKind.Cauterize:
+                    DrawCauterizeFx(fx);  // CauterizeLook.cs
+                    break;
                 case FxKind.RodBolt:
                     DrawRodBoltFx(fx);  // LightningRodLook.cs
                     break;
