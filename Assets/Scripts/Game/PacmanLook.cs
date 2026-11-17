@@ -16,7 +16,7 @@ namespace Arena
         /// Regular enemies become ghosts; bosses, spawners, mines, eggs and zombies keep their own look.
         static bool PacGhostable(Enemy e)
         {
-            return !e.Def.IsBoss && !Zombies.Is(e.Type) && e.Type != EnemyType.SapperMine && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.HiveBomber
+            return !e.Def.IsBoss && !Zombies.Is(e.Type) && !Game.IsPlanted(e.Type) && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.HiveBomber
                 && e.Type != EnemyType.Gatekeeper && !FactionMinis.Is(e.Type) && e.Type != EnemyType.Shadow && e.Type != EnemyType.ReaperPillar && e.Type != EnemyType.Singularity;
         }
 

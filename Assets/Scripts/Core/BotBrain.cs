@@ -84,7 +84,8 @@ namespace Arena
             return me.Pos.WithinReach(e.Pos, Math.Max(reach, pref) + 40f);
         }
 
-        const float MarkFocus = 220f;  // how much a marked enemy is preferred as the target (a boss scores 0 to 300)
+        const float MarkFocus = 220f;
+        const float TurnkeyFocus = 180f;  // how much a Turnkey (or a door it keeps working) is preferred as the target  // how much a marked enemy is preferred as the target (a boss scores 0 to 300)
 
         /// Swings me.Aim toward `want` by at most `maxStep` radians; true once it's within ~0.25 rad (close enough to fire).
         bool TurnAim(Player me, float want, float maxStep)
@@ -139,6 +140,8 @@ namespace Arena
                 float score = e.Def.IsBoss ? d * 0.25f + e.Hp / Math.Max(1f, e.MaxHp) * 200f : d;
                 if (e.Marked || e.MarkT > 0f)
                     score -= MarkFocus;  // the team's Mark for Death: everyone piles onto it
+                if (e.Type == EnemyType.Turnkey || e.Type == EnemyType.CellDoor && e.Phase == 1)
+                    score -= TurnkeyFocus;  // the Turnkey (and its working doors) before what they let out (Turnkey.cs)
                 if (score < bestScore)
                 {
                     bestScore = score;
@@ -709,6 +712,9 @@ namespace Arena
                                     if (o.Type == EnemyType.SapperMine && o.Phase == 1 && o.Id > e.Id && o.Pos.CloserThan(e.Pos, PodWire) && SegmentDistance(p, e.Pos, o.Pos) < hitR + 8f)
                                         d += w * 2.5f;
                         }
+                        else if ((e.Type == EnemyType.FloorMine || e.Type == EnemyType.ShackleTrap) && e.Phase >= 1 && e.Phase < 3
+                            && e.Pos.DistanceTo(p) < (e.Phase == 2 && e.Type == EnemyType.FloorMine ? FloorMineBlast : FloorMineTrigger) + hitR + 8f)
+                            d += w * 3f;  // a Turnkey's traps (Turnkey.cs)
                         if (e.Type == EnemyType.BeamSentry && (e.Phase == 3 || e.Phase == 2 && e.PhaseT < t + 0.3f))
                         {
                             // It sweeps a quarter turn either way from where it points: keep clear of that fan near its line.

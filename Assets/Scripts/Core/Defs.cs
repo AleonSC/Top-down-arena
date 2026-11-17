@@ -108,6 +108,9 @@ namespace Arena
         // step 3: a Thunderhead walks at you dropping rows of strikes ahead of it (the faction's Ball Lightning is the
         // Herald's own BallLightning, made to work in waves)
         Thunderhead,
+        // the Warden's faction: the Turnkey runs from you planting traps and Cell Doors that let Rioters out; a Floor Mine and
+        // a Shackle Trap are its traps (its third, the Mop Slick, is a patch: PatchKind.Slick) (Turnkey.cs, Game/TurnkeyLook.cs)
+        Turnkey, CellDoor, FloorMine, ShackleTrap,
     }
 
     public class RoleDef
@@ -517,6 +520,14 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Hooks a player with a charge. When it runs out it jumps to every ally nearby. The marked player walks away from the team." },
             new EnemyDef { Name = "Thunderhead", Hp = 220f, Radius = 24f, Speed = 55f, Score = 12, Xp = 20, Sides = 9, Color = new Rgba(0.6f, 0.68f, 0.82f), Melee = true, Contact = 20f, Heavy = true,
                 Picker = PickerGroup.Melee, Blurb = "A slow, heavy storm cloud. As it rolls at you it drops a row of strikes ahead of it. Sidestep the row." },
+            new EnemyDef { Name = "Turnkey", Hp = 70f, Radius = 13f, Speed = 160f, Score = 12, Xp = 16, Sides = 8, Color = new Rgba(0.95f, 0.78f, 0.3f), Melee = true, Contact = 6f,
+                Picker = PickerGroup.Ranged, Blurb = "A prison janitor with a ring of keys. Runs from you, stops to plant mines, shackle traps and wet floors, and builds Cell Doors that let Rioters out. Corner it while it works." },
+            new EnemyDef { Name = "Cell Door", Hp = 90f, Radius = 16f, Speed = 0f, Score = 4, Xp = 5, Sides = 4, Color = new Rgba(0.6f, 0.66f, 0.74f), Melee = true, Heavy = true,
+                Picker = PickerGroup.Hidden, Blurb = "A Turnkey's cell door: lets a Rioter out every few seconds. It jams shut when its Turnkey dies." },
+            new EnemyDef { Name = "Floor Mine", Hp = 1f, Radius = 8f, Speed = 0f, Score = 0, Xp = 0, Sides = 8, Color = new Rgba(1f, 0.45f, 0.3f), Melee = true, Heavy = true,
+                Picker = PickerGroup.Hidden, Blurb = "A Turnkey's mine: arms, then beeps and blows when you step close. Shoot it to blow it on enemies." },
+            new EnemyDef { Name = "Shackle Trap", Hp = 1f, Radius = 9f, Speed = 0f, Score = 0, Xp = 0, Sides = 8, Color = new Rgba(0.75f, 0.78f, 0.85f), Melee = true, Heavy = true,
+                Picker = PickerGroup.Hidden, Blurb = "A Turnkey's shackle: arms, then snaps shut on the first player over it and holds them a moment. Shoot it to break it." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
