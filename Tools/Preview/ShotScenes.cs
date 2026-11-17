@@ -2102,6 +2102,27 @@ static partial class Shot {
         int gi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = gd.Pos + side * (90f + 60f * gi) + gd.Along * 40f; gi++; }
         int ei = 0; foreach (var en in xg.Enemies.Values) { if (en.Def.IsBoss || ei >= 6) continue; en.Pos = en.Disp = gd.Pos - side * (40f + 26f * (ei % 3)) + gd.Along * (-50f + 34f * (ei / 3) + 10f * (ei % 2)); ei++; }
       }
+      if (Environment.GetEnvironmentVariable("MYSTERY") != null) {  // MYSTERY=1: mystery doors rolled on the map (MysteryDoorLook.cs); MYSTERYAT=1 stands you by the first, MYSTERYSAVED=1 the first saved
+        var mfl = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        xg.Wave = Math.Max(xg.Wave, 3);
+        typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
+        if (xg.MysteryDoors.Count < 2) typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
+        Console.Error.WriteLine("mystery doors: " + xg.MysteryDoors.Count);
+        string mop = Environment.GetEnvironmentVariable("MYSTERYOPEN");  // MYSTERYOPEN=<s>: the first door opened that long ago (the reveal)
+        if (mop != null && xg.MysteryDoors.Count > 0) {
+          var md0 = xg.MysteryDoors[0]; Player opener = null; foreach (var pq in xg.Players.Values) { opener = pq; break; } opener.Pos = opener.Disp = md0.Pos; opener.Vectors = opener.VectorCap = 999;
+          typeof(Game).GetMethod("OpenMysteryDoor", mfl).Invoke(xg, new object[] { opener, 0 });
+          xg.MysteryOpened.Clear(); xg.MysteryOpened.Add(new System.Collections.Generic.KeyValuePair<MysteryDoor, float>(md0, xg.AnimT - float.Parse(mop, System.Globalization.CultureInfo.InvariantCulture)));
+          V2 into0 = md0.Vertical ? new V2(1f, 0f) : new V2(0f, 1f); if (xg.CurrentWorld.AreaAt(md0.Pos - into0 * 60f) < 0) into0 = into0 * -1f;
+          int oi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = md0.Pos - into0 * (110f + 60f * oi); oi++; }
+        }
+        if (xg.MysteryDoors.Count > 0 && Environment.GetEnvironmentVariable("MYSTERYSAVED") != null) { var md = xg.MysteryDoors[0]; md.Saver = xg.MyId; xg.MysteryDoors[0] = md; }
+        if (xg.MysteryDoors.Count > 0 && Environment.GetEnvironmentVariable("MYSTERYAT") != null) {
+          var md = xg.MysteryDoors[0]; var mw = xg.CurrentWorld;
+          V2 into = md.Vertical ? new V2(1f, 0f) : new V2(0f, 1f); if (mw.AreaAt(md.Pos + into * 60f) < 0) into = into * -1f;
+          int mi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = md.Pos + into * (80f + 60f * mi); pl.Vectors = 40; mi++; }
+        }
+      }
       string bage = Environment.GetEnvironmentVariable("BREACHAGE");  // BREACHAGE=<s>: this wave's breaches opened that long ago (BreachLook.cs); BREACHAT=1 stands you by the first
       if (bage != null) {
         xg.State = MatchState.Fighting;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// The well-shaped rooms the game gives the Expanding arena for free (Docs/SurpriseRooms.md, step 1).
-    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash }
+    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash, Tiny, Duel }  // (Tiny and Duel: mystery door rooms, MysteryDoors.cs)
 
     /// A spot for a surprise room: its boxes (Price 0), how many loops it closes and its score.
     public struct SurpriseOption
@@ -14,6 +14,7 @@ namespace Arena
         public int Loops;      // existing rooms it joins besides its parent
         public bool DeadEnd;   // it touches a room with a single door
         public int Score;
+        public int Price;      // what drawing it would cost (Expansion.Cost of its outline; a mystery door charges a share, MysteryDoors.cs)
     }
 
     public static partial class Expansion
@@ -29,6 +30,8 @@ namespace Arena
                 case SurpriseShape.LHall: return "L hall";
                 case SurpriseShape.THall: return "T hall";
                 case SurpriseShape.Stash: return "Stash";
+                case SurpriseShape.Tiny: return "Tiny room";
+                case SurpriseShape.Duel: return "Duel room";
                 default: return "Chamfer";
             }
         }
@@ -51,6 +54,10 @@ namespace Arena
                     cols = 15; rows = 9; f = (c, r) => r <= 2 || (c >= 6 && c <= 8); break;
                 case SurpriseShape.Stash:  // 5 x 3: a small pocket behind a breach (Docs/BreachRooms.md)
                     cols = 5; rows = 3; f = (c, r) => true; break;
+                case SurpriseShape.Tiny:  // 4 x 4: a mystery door's shop, vendor or chest room (Expansion.ShopRoomSide)
+                    cols = rows = 4; f = (c, r) => true; break;
+                case SurpriseShape.Duel:  // 8 x 6: a mystery door's mini-boss room (the floating one's size)
+                    cols = 8; rows = 6; f = (c, r) => true; break;
                 default:  // 9 x 7 with 2 x 2 corners notched out
                     cols = 9; rows = 7; f = (c, r) => !((c < 2 || c > 6) && (r < 2 || r > 4)); break;
             }
@@ -145,7 +152,7 @@ namespace Arena
                                     continue;
                                 if (through.HasValue && !made.Exists(q => through.Value.X >= q.X && through.Value.X < q.X1 && through.Value.Y >= q.Y && through.Value.Y < q.Y1))
                                     continue;
-                                var opt = new SurpriseOption { Rooms = made, Shape = shape };
+                                var opt = new SurpriseOption { Rooms = made, Shape = shape, Price = made[0].Price };
                                 for (int p = 0; p < made.Count; p++)
                                     made[p] = Free(made[p], shape);
                                 int touched = 0;
