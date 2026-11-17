@@ -1079,6 +1079,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - **Playing one**: in a build round open **Build**: the first tool is **Room cards**, with your hand on the right (each card drawn as its room). Pick a card, and dots on the
     map show every spot it fits; the room follows the mouse as a green ghost on the nearest fit (and says how many loops it closes). **R** steps through the other
     turns and mirrors that fit there; **left click** builds it at once (no vote, no vectors); **right click** puts the card back.
+  - **Inside the rooms**: each card's room comes with its own obstacles, turned with the room and kept out of its doorways: **Box** four pillars round a low wall;
+    **Hall** a block off alternate walls near each end (a zig-zag); **Ring** a buttress on each outer wall and a pillar in each corner; **Cross** a pillar in the
+    crossing and a block in each arm (a pinwheel); **L hall** a pillar in the bend and blocks off alternate walls; **T hall** a pillar facing the stem and a block in
+    each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars. Card rooms get no random cover or side walls.
   - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's cards.
 - **Building rounds** (Free draw and Team vote): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each

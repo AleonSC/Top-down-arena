@@ -99,6 +99,7 @@ namespace Arena
                 var q = made[i];
                 q.Price = 0;
                 q.Surprise = 0;
+                q.Card = (byte)card;
                 made[i] = q;
             }
             return made;
