@@ -527,6 +527,103 @@ namespace Arena
             return null;
         }
 
+        // --- Room chests (owner Nov 17): building a room may drop a chest node a few tiles outside its wall ---
+
+        public const float RoomChestThin = 0.10f;    // the chance for a hallway (a room 3 tiles wide or less)
+        public const float RoomChestBase = 0.20f;    // a wider room: this plus its area / RoomChestArea tiles...
+        public const int RoomChestArea = 720;
+        public const float RoomChestMax = 0.40f;     // ...up to this (a 6 x 6 room 25%, 10 x 10 34%, 12 x 12 40%)
+        public const int RoomChestNear = 300, RoomChestFar = 500;  // the chest sits 3 to 5 tiles out from the new room's wall
+        public const int RoomChestClear = 300;       // and at least 3 tiles from every room
+        public const int RoomChestWaiting = 2;       // no roll while this many chests wait unclaimed
+        public const int RoomChestLook = 900;        // a spot near other rooms (within 9 tiles) scores higher: the claiming room tends to join branches
+
+        /// The chance a newly built room (its boxes) drops a chest: thin hallways rarely, big rooms more.
+        public static float RoomChestChance(IList<ExpansionRoom> boxes)
+        {
+            int tiles = 0, widest = 0;
+            foreach (var b in boxes)
+            {
+                tiles += b.W / Step * (b.H / Step);
+                widest = Math.Max(widest, Math.Min(b.W, b.H));
+            }
+            if (widest <= 3 * Step)
+                return RoomChestThin;
+            return Math.Min(RoomChestMax, RoomChestBase + tiles / (float)RoomChestArea);
+        }
+
+        /// Unclaimed, unopened chest nodes on the map.
+        public static int ChestsWaiting(IList<ExpansionRoom> built, IList<MapNode> nodes)
+        {
+            int n = 0;
+            foreach (var nd in nodes)
+                if (nd.Kind == NodeKind.Chest && !nd.Spent && !NodeClaimed(built, nd))
+                    n++;
+            return n;
+        }
+
+        /// A chest node for the room just built (the last `count` entries of `built`), or null: it rolls RoomChestChance (none while RoomChestWaiting chests wait),
+        /// then takes a spot 3 to 5 tiles out from one of its outer walls, clear of every room and node and the start room, that a room can be built round;
+        /// spots near other rooms (not the new one) score higher, so claiming it tends to join two branches. The same for the same seed and map.
+        public static MapNode? RoomChestFor(int seed, IList<ExpansionRoom> built, IList<MapNode> nodes, int count, bool roll = true)
+        {
+            if (count <= 0 || count > built.Count || ChestsWaiting(built, nodes) >= RoomChestWaiting)
+                return null;
+            int first = built.Count - count;
+            var boxes = new List<ExpansionRoom>();
+            for (int i = first; i < built.Count; i++)
+                boxes.Add(built[i]);
+            var rng = new DetRandom(seed * 6151 + built.Count * 1291 + 17);
+            if (roll && rng.Float() >= RoomChestChance(boxes))
+                return null;
+            var spots = new List<KeyValuePair<MapNode, int>>();
+            int best = -1;
+            foreach (var b in boxes)
+                for (int side = 0; side < 4; side++)
+                    for (int gap = RoomChestNear; gap <= RoomChestFar; gap += Step)
+                    {
+                        bool across = side == 0 || side == 2;  // 0 north, 2 south: the spot runs along a horizontal wall
+                        int lo = (across ? b.X : b.Y) + 50, hi = (across ? b.X1 : b.Y1) - 50;
+                        for (int p = lo; p <= hi; p += Step)
+                        {
+                            int x = across ? p : side == 1 ? b.X1 + gap + 50 : b.X - gap - 50;
+                            int y = across ? (side == 0 ? b.Y - gap - 50 : b.Y1 + gap + 50) : p;
+                            var n = new MapNode { X = (short)x, Y = (short)y, Kind = NodeKind.Chest };
+                            bool ok = true;
+                            for (int i = 0; i <= built.Count && ok; i++)
+                            {
+                                BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
+                                int clear = i == 0 ? StartClear : RoomChestClear;
+                                ok = !Overlaps(x - clear, y - clear, x + clear, y + clear, cx0, cy0, cx1, cy1);
+                            }
+                            foreach (var o in nodes)
+                                ok &= ok && new V2(o.X - x, o.Y - y).Length >= NodeApart + NodeHalf(o);
+                            if (!ok)
+                                continue;
+                            int score = 0;  // other rooms close by: the claiming room may reach them too
+                            for (int i = 1; i <= first; i++)
+                            {
+                                BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
+                                if (!built[i - 1].Floating && Overlaps(x - RoomChestLook, y - RoomChestLook, x + RoomChestLook, y + RoomChestLook, cx0, cy0, cx1, cy1))
+                                    score++;
+                            }
+                            if (score < best)
+                                continue;
+                            if (!NodeReachable(built, n))
+                                continue;
+                            if (score > best)
+                            {
+                                best = score;
+                                spots.Clear();
+                            }
+                            spots.Add(new KeyValuePair<MapNode, int>(n, score));
+                        }
+                    }
+            if (spots.Count == 0)
+                return null;
+            return spots[rng.Int(spots.Count)].Key;
+        }
+
         public const int StartExtra = 1000;  // nodes and floating rooms placed off the start room sit this much farther out (owner Nov 12: 600; Nov 13: 1000, the Gatekeeper too)
         public const int StartClear = 1000;  // and nothing is placed closer than this to the start room, whichever room it was placed off (owner Nov 13)
         public const int MaxSealed = 6;
