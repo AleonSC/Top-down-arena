@@ -34,6 +34,7 @@ namespace Arena
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
         Flood,        // the Tank Elementalist's fourth Space ability (Flood.cs), the lobby's 4th ability key
         AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
+        KineticWall,  // the Elementalist DPS's fourth Space ability (KineticWall.cs), the lobby's 4th ability key
         None = 255,
     }
 
@@ -100,6 +101,7 @@ namespace Arena
         public float LumenBonusTime, LumenHealMult = 1f;                   // Lumen Ward: Dawnlight
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
+        public float KwChargeMult = 1f;                                    // Kinetic Wall: Momentum Bank
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         // Summoner abilities
@@ -365,7 +367,7 @@ namespace Arena
 
         public const int RoleAbilityChoices = 3;
 
-        /// A class's 4th Space ability (AbilityDef.Fourth; only the Tank Elementalist's Flood so far), None where it has none.
+        /// A class's 4th Space ability (AbilityDef.Fourth; the Tank Elementalist's Flood, the DPS Elementalist's Kinetic Wall), None where it has none.
         static readonly AbilityId[] FourthAbilities = FourthTable();
 
         /// How many Space abilities this role and class can pick in the lobby: three, or four where it has a 4th.

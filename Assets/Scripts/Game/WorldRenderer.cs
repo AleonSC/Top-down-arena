@@ -479,6 +479,8 @@ namespace Arena
                 DrawTithe(p, t);
             if (p.RainClock > 0f)  // Sanguine Rain: siphon, seeds, rings, tether (SanguineRainLook.cs)
                 DrawRain(p, t);
+            if (p.KwT > 0f)  // Kinetic Wall's lens and the shots hung in it (KineticWallLook.cs)
+                DrawKineticWall(p, t);
             if (p.HarvestHold > 0f)  // Crimson Harvest's ball and tendrils (CrimsonHarvestLook.cs)
                 DrawHarvest(p, t);
             if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)

@@ -147,6 +147,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Airstrike | Dps | Space 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Throw a flare at your cursor: a jet carpets a line across the arena through it, across your aim (55 a bomb), and the line burns for 3 s. |
 | Mark for Death | Dps | Space 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark the enemy nearest your cursor: it takes 50% more damage for 6 s. |
 | Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | For 6 s you fire three times as fast, with +2 extra projectiles. |
+| Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | Call in a gunship for 10 s. It circles you and locks one enemy at a time, the one nearest you, hosing it with a chaingun (20 rounds a second, 8 damage each) until it dies, then the next. It can't be hit. |
 
 ### Elementalist
 
@@ -157,6 +158,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Flame Wall | Tank | Space 3 | 14 s | - | The fire also slows enemies by 40%. | A wall of fire at your cursor for 5 s: burns enemies and blocks bullets. |
 | Glacial Tomb | Tank | ultimate | 75 s | - | Enemies stay frozen for 6 s and bosses take 500. | Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead). |
 | Lightning Rod | Tank | ultimate | 70 s | - | Lasts 8 s and each bolt arcs to 3 enemies. | For 6 s you crackle with charge: you take 80% less damage and every enemy, bosses too, goes for you. Each enemy hit on you calls a bolt from the sky on whoever landed it (30), which arcs on to the 2 enemies nearest it (15 each). Wet enemies take extra arcs. |
+| Flood | Tank | Space 5 | 16 s | - | Deluge: the flood is 30% wider and lasts 9 s. | Stamp and flood the ground 190 px round you for 6 s: enemies touching you are thrown back 60 px (10 damage), and every enemy wading in the water is slowed 40% (heavies and bosses 20%) and soaked wet, so lightning arcs to it, while it's in and 3 s after. |
 | Healing Rain | Healer | Space 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor for 6 s: heals allies inside 8 HP/s and slows enemies by 30%. |
 | Energy Ward | Healer | Space 2 | 14 s | - | The shield soaks 120 damage. | Wrap you and allies within 300 px in a bubble of energy that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing. |
 | Lumen Ward | Healer | Space 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A huge cone of light toward your cursor for 6 s that turns as you aim: heals everyone inside 9 HP/s and burns away enemy bullets in it or touching it. |
@@ -165,6 +167,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blizzard | Dps | Space 2 | 14 s | - | Lasts 10 s. | A storm at your cursor for 5 s that slows and damages enemies. |
 | Tsunami | Dps | Space 3 | 16 s | - | Wet lasts 14 s, and the wave rolls back to you, wetting what it missed. | A wave rolls out where you aim: 12 damage, and it leaves enemies wet for 8 s, slowed 30%. Lightning (Arc Lightning, Storm Hammer, Chain Light, Nimbus) arcs to every wet enemy on the map. |
 | Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | Call a downpour over a big square (520 px) at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet. |
+| Kinetic Wall | Dps | Space 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A curved wall in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back. |
 
 ### Summoner
 
@@ -381,3 +384,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Pylon | Ranged | 55 | 110 | 12 | - | 5 | 7 |  | Comes in pairs that plant either side of you. The arc between them flickers, then fires. Step off the line, or kill one. |
 | Lineman | Ranged | 60 | 85 | 13 | - | 8 | 11 |  | Hooks a player with a charge. When it runs out it jumps to every ally nearby. The marked player walks away from the team. |
 | Thunderhead | Melee | 220 | 55 | 24 | 20 | 12 | 20 | melee, heavy | A slow, heavy storm cloud. As it rolls at you it drops a row of strikes ahead of it. Sidestep the row. |
+| Turnkey | Ranged | 70 | 160 | 13 | 6 | 12 | 16 | melee | A prison janitor with a ring of keys. Runs from you, stops to plant mines, shackle traps and wet floors, and builds Cell Doors that let Rioters out. Corner it while it works. |
+| Cell Door | Hidden | 90 | 0 | 16 | - | 4 | 5 | melee, heavy | A Turnkey's cell door: lets a Rioter out every few seconds. It jams shut when its Turnkey dies. |
+| Floor Mine | Hidden | 1 | 0 | 8 | - | 0 | 0 | melee, heavy | A Turnkey's mine: arms, then beeps and blows when you step close. Shoot it to blow it on enemies. |
+| Shackle Trap | Hidden | 1 | 0 | 9 | - | 0 | 0 | melee, heavy | A Turnkey's shackle: arms, then snaps shut on the first player over it and holds them a moment. Shoot it to break it. |
