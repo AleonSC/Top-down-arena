@@ -94,9 +94,11 @@ static partial class Program
             var list = RunSnapshot.List();
             Check(path != null && list.Count == 1 && list[0].Wave == g.ShownWave && list[0].Enemies == enemies && list[0].Name == "Wave " + g.ShownWave,
                 "a snapshot file is saved and listed with its wave and enemy count");
+            Check(RunSnapshot.Rename(path, "  Boss bug repro ") && RunSnapshot.List()[0].Name == "Boss bug repro" && RunSnapshot.List()[0].Wave == list[0].Wave
+                && !RunSnapshot.Rename(path, "   "), "a snapshot can be renamed (a blank name is refused)");
             Step(s, dt);
             err = RunSnapshot.LoadFile(g, path, out notes);
-            Check(err == null && SnapPrint(g) == before, "it loads from the file");
+            Check(err == null && SnapPrint(g) == before, "it loads from the file (after the rename too)");
             File.WriteAllBytes(Path.Combine(RunSnapshot.Folder, "junk" + RunSnapshot.Ext), Encoding.UTF8.GetBytes("nope"));
             Check(RunSnapshot.List().Count == 1, "a file that isn't a snapshot isn't listed");
             err = RunSnapshot.LoadFile(g, Path.Combine(RunSnapshot.Folder, "junk" + RunSnapshot.Ext), out notes);
