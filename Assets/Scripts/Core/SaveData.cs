@@ -28,6 +28,7 @@ namespace Arena
         public readonly List<string> Shelf = new List<string>();   // upgrade names by slot, "" for an empty slot
         public int ShelfSold, Restocks;
         public readonly int[] Stash = new int[Market.Count];       // Black Market buys not yet placed, by BuildKind
+        public readonly List<int> Hand = new List<int>();          // room cards held (RoomCard values, RoomCards.cs)
 
         /// "Tank Knight, level 12" for lists.
         public string Summary => Role + " " + Defs.KitName(Kit) + ", level " + Level;
@@ -149,6 +150,7 @@ namespace Arena
                 if (s.Perks.Count > 0) Line(sb, "perks", string.Join(",", s.Perks));
                 if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap + " " + s.MapSpent);
                 if (Array.Exists(s.Stash, n => n > 0)) Line(sb, "stash", string.Join(" ", s.Stash));
+                if (s.Hand.Count > 0) Line(sb, "hand", string.Join(" ", s.Hand));
                 if (s.Shelf.Count > 0)
                 {
                     Line(sb, "shop", s.Restocks + " " + s.ShelfSold);
@@ -330,6 +332,10 @@ namespace Arena
                         s.Stash[i] = Math.Max(0, I(p[i]));
                     break;
                 }
+                case "hand":
+                    foreach (var c in val.Split(' '))
+                        if (c.Length > 0 && s.Hand.Count < Expansion.HandMax) s.Hand.Add(Math.Max(0, I(c)));
+                    break;
                 case "vectors":
                 {
                     var p = val.Split(' ');

@@ -19,7 +19,8 @@ namespace Arena
 
         static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "floorkit", "compass" };
         // Service ids: 0-5 as named below, 6-9 the Black Market's buildables (6 + BuildKind).
-        static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, MarketItems = { 6, 7, 8, 9, 2, 3, 1, 5, 4 };
+        // 20-22: the Black Market's room cards (20 + offer, Game.VendorCards; RoomCardsUi.cs), first among the buildables when room cards are on.
+        static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, MarketItems = { 6, 7, 8, 9, 2, 3, 1, 5, 4 }, MarketCardItems = { 20, 21, 22, 6, 7, 8, 9, 2, 3, 1, 5, 4 };
         static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
 
         /// Esc in the shop or Black Market: closes a popup, then the open category, then leaves (Done shopping).
@@ -62,7 +63,7 @@ namespace Arena
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
             Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
             DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : "THE BLACK MARKET") : "THE BAZAAR", 34, market ? mk : Ui.Gold, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(0f, 92f, W, 18f), market ? "Buys wait in your stash. Place them from the draw screen in the break." : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0f, 92f, W, 18f), market ? (game.RoomCardsOn ? "Room cards cost vectors and go to your hand. The rest waits in your stash." : "Buys wait in your stash. Place them from the draw screen in the break.") : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
             var wallet = new Rect(W - 210f, 22f, 190f, 54f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
             Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 13f, 28f, 28f), PixelArt.Get("ui_coin"));
@@ -71,8 +72,9 @@ namespace Arena
 
             // The list: the shelf's cards, then the services.
             int count = market ? 0 : Game.ShelfCount(me);  // (the Black Market has no shelf)
-            int[] svc = market ? MarketItems : game.ExpandingOn ? AllServices : BazaarServices;  // (the room kit and vector pack are sold in the Expanding arena)
-            int nSvc = svc.Length, n = count + nSvc, split = market ? Market.Count : count, nSecond = n - split;
+            bool cardShelf = market && game.RoomCardsOn;  // (room cards: the vendor sells them too, for vectors)
+            int[] svc = market ? (cardShelf ? MarketCardItems : MarketItems) : game.ExpandingOn ? AllServices : BazaarServices;  // (the room kit and vector pack are sold in the Expanding arena)
+            int nSvc = svc.Length, n = count + nSvc, split = market ? Market.Count + (cardShelf ? Expansion.CardOfferCount : 0) : count, nSecond = n - split;
             if (shopSel < 0)
             {
                 shopSel = 0;
@@ -98,7 +100,7 @@ namespace Arena
 
             const float railY = 158f, cardW = 250f, cardH = 372f;
             float tabY = 118f;
-            string firstTab = market ? "BUILDABLES  (" + Market.Count + ")" : "UPGRADES  (" + count + ")", secondTab = "SERVICES  (" + nSecond + ")";
+            string firstTab = market ? "BUILDABLES  (" + split + ")" : "UPGRADES  (" + count + ")", secondTab = "SERVICES  (" + nSecond + ")";
             if (shopCat < 0)
                 DrawShopCategories(me, svc, count, split, market, railY, popup, t);
             else
@@ -260,6 +262,12 @@ namespace Arena
                 return;
             }
             int k = svc[item - count];
+            if (k >= 20)
+            {
+                if (atVendor && game.RoomCardsOn && Game.HandCount(me) < Expansion.HandMax && game.SpendableVectors(me) >= Expansion.CardPrice(game.VendorCards[k - 20]))
+                    game.Shop(ShopAction.BuyCard, k - 20);
+                return;
+            }
             int price = ServicePrice(me, k, out bool used);
             if (used || me.Gold < price || !SvcAllowed(k, atShop, atVendor))
                 return;
@@ -278,6 +286,7 @@ namespace Arena
         /// at what's inside. Clicking one (or Enter on the one the arrow keys point at) opens its carousel.
         void DrawShopCategories(Player me, int[] svc, int count, int split, bool market, float railY, bool popup, float t)
         {
+            bool cardShelf = market && game.RoomCardsOn;
             const float pw = 380f, ph = 330f, gap = 44f;
             var ev = Event.current;
             if (!popup && ev.type == EventType.KeyDown)
@@ -320,7 +329,7 @@ namespace Arena
                     if (Game.Sold(me, i))
                         bought++;
                 string sub = c == 1 ? (market ? "Heals, revives, sales and floor kits." : "Restock, sell, heal, revive" + (svc.Length > 4 ? ", build" : "") + ".")
-                    : market ? "Teleporters and traps for your stash." : count + " cards on your shelf" + (bought > 0 ? "  ·  " + bought + " bought" : "");
+                    : cardShelf ? "Room cards, teleporters and traps." : market ? "Teleporters and traps for your stash." : count + " cards on your shelf" + (bought > 0 ? "  ·  " + bought + " bought" : "");
                 Ui.Label(new Rect(r.x + 16f, r.y + 90f, r.width - 32f, 20f), sub, 13, Ui.Text, TextAnchor.MiddleCenter, true);
                 Ui.Fill(new Rect(r.x + 50f, r.y + 120f, r.width - 100f, 1f), new Color(ac.r, ac.g, ac.b, 0.4f));
 
@@ -357,6 +366,8 @@ namespace Arena
                         if (me.Shelf[i] >= 0)
                             Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[me.Shelf[i]].Name), da);
                     }
+                    else if (k >= 20)
+                        DrawCardGlyph(game.VendorCards[k - 20], new Rect(tile.x + 6f, tile.y + 6f, tile.width - 12f, tile.height - 12f), ToColor(VendorInk));
                     else if (k >= 6)
                     {
                         var m = GUI.matrix;
@@ -398,6 +409,11 @@ namespace Arena
         /// A service's price, and whether it can't be used right now.
         int ServicePrice(Player me, int k, out bool used)
         {
+            if (k >= 20)  // a room card: paid in vectors, so never the cheapest gold price
+            {
+                used = Game.HandCount(me) >= Expansion.HandMax;
+                return int.MaxValue;
+            }
             if (k >= 6)
             {
                 used = me.Stash[k - 6] >= Market.StashMax;
@@ -531,6 +547,11 @@ namespace Arena
         /// One service in the same frame as the cards, in gold: Add stock, Sell upgrade, Full heal, Revive token, Floor kit, Vector pack.
         void DrawShopService(Player me, int k, Rect r, bool selected, float t, bool shopping, bool allowed)
         {
+            if (k >= 20)
+            {
+                DrawRoomCardItem(me, k - 20, r, selected, t, shopping && allowed);
+                return;
+            }
             if (k >= 6)
             {
                 DrawBuildCard(me, k - 6, r, selected, t, shopping && allowed);

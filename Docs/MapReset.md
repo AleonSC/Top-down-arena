@@ -1,6 +1,6 @@
 # Map reset: a fresh map after every boss
 
-Status: **steps 1-3 built** (protocol 389: the reset, refund, kits kept, map number synced and saved; protocol 390: the keepsake vote and window, each player's refund; step 3: the look; suite `mapreset`); step 4 open. Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
+Status: **steps 1-3 built** (protocol 390: the reset, refund, kits kept, map number synced and saved, the keepsake vote and window, each player's refund; step 3: the look; suite `mapreset`); step 4 open. Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
 [`VectorBuilding.md`](VectorBuilding.md), [`SurpriseRooms.md`](SurpriseRooms.md), [`MysteryDoors.md`](MysteryDoors.md) and
 [`Nodes.md`](Nodes.md).
 

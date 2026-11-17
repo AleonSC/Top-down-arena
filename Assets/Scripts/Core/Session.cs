@@ -62,6 +62,7 @@ namespace Arena
         StarThrow,    // client -> host: the Shuriken's Great Star thrown along a drawn route (a byte count, then the points); host -> all: (bullet id, owner, count, points) to fly it along (GreatStar.cs)
         WallPush,     // client -> host: push a stretch of wall out a tile (area, side, start, width) (Docs/WallPush.md, ExpansionPush.cs)
         MysteryDoor,  // client -> host: open or save the sealed door at (x, y) (x, y, save) (Docs/MysteryDoors.md, MysteryDoors.cs)
+        PlayCard,     // client -> host: play the room card in this hand slot with its room's corner at (x, y), turned and mirrored (slot, x, y, turn, mirror) (Docs/RoomCards.md, RoomCards.cs)
         KeepsakeVote, // client -> host: the room this player wants kept through the map reset (short: its first box) (Docs/MapReset.md, MapReset.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
@@ -662,6 +663,9 @@ namespace Arena
                     break;
                 case Msg.MysteryDoor:
                     Game.OnMysteryDoor(peer, r);
+                    break;
+                case Msg.PlayCard:
+                    Game.OnPlayCard(peer, r);  // RoomCards.cs
                     break;
                 case Msg.PlaceBuild:
                     Game.OnPlaceBuild(peer, r);

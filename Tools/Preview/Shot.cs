@@ -845,6 +845,14 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's vote after a boss (ExpansionUi.cs)
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); if (Environment.GetEnvironmentVariable("EXPANDFREE") == null) eg.Diff.Set(DiffKnob.BuildVote, 1f); eg.State = MatchState.Intermission;  // EXPANDFREE=1: free building (the default setting; the vote shows by default here)
+      string cardsEnv = Environment.GetEnvironmentVariable("CARDS");  // CARDS=box,hall,ring,...: room cards on (RoomCards.cs) with that hand; CARDSEL=n the picked slot (-1 none); MOUSE=x,y the pointer
+      eg.Diff.Set(DiffKnob.RoomCards, cardsEnv != null ? 1f : 0f);
+      if (cardsEnv != null) {
+        var cbf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        int ci2 = 0; foreach (var cn in cardsEnv.Split(',')) { if (cn.Length == 0 || ci2 >= eg.Me.Hand.Length) continue; RoomCard rc; if (Enum.TryParse(cn, true, out rc)) eg.Me.Hand[ci2++] = (byte)rc; else Console.Error.WriteLine("CARDS: no card " + cn); }
+        if (Environment.GetEnvironmentVariable("CARDSEL") != null) typeof(ArenaApp).GetField("expCard", cbf).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("CARDSEL")));
+        var cm = Environment.GetEnvironmentVariable("MOUSE"); if (cm != null) { var xy = cm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
+      }
       int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));
       for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
       string ebuilt = Environment.GetEnvironmentVariable("EXPANDBUILT");  // EXPANDBUILT=x,y,w,h;...: drawn boxes on the map first (Expansion.Custom), owner 1
@@ -906,8 +914,12 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("EXPANDSHOP") != null) {  // EXPANDSHOP=1: the shop is open in the Expanding arena and you're not in the shop room (hint banner); EXPANDSHOP=2: you're in it (the shop)
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f); xg.State = MatchState.Intermission; xg.RoomsUp = true;
-      string xw; var xr = Expansion.Custom(xg.Expanded, 1600, 300, 600, 300, out xw).Value; xr.Kind = RoomKind.Shop; xg.Expanded.Add(xr);
-      foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") == "2" ? xg.CurrentWorld.Areas[1].Mid : new V2(800f, 450f); }
+      bool atVendor = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (RoomCards.cs); SHOPCAT=0|1 opens a category
+      xg.Diff.Set(DiffKnob.RoomCards, Environment.GetEnvironmentVariable("CARDS") != null ? 1f : 0f);
+      string xw; var xr = Expansion.Custom(xg.Expanded, 1600, 300, 600, 300, out xw).Value; xr.Kind = atVendor ? RoomKind.Vendor : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+      var xa = Array.Find(xg.CurrentWorld.Areas, a => a.Kind == xr.Kind);  // (the scene may have rooms of its own: find the shop's)
+      foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)RoomCard.Box; pl.Hand[1] = (byte)RoomCard.Hall; } }
+      if (Environment.GetEnvironmentVariable("SHOPCAT") != null) typeof(ArenaApp).GetField("shopCat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("SHOPCAT")));
       typeof(Game).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(xg, null);
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null || Environment.GetEnvironmentVariable("EXPANDVOTE") != null || Environment.GetEnvironmentVariable("EXPANDSHOP") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }

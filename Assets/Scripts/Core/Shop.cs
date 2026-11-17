@@ -10,7 +10,7 @@ namespace Arena
     /// gold to teammates. There's no timer: the shop closes when everyone has clicked Done (the host can close it
     /// after a minute), and each player's leftover gold becomes their XP. Host-authoritative: clients send
     /// Msg.Shop requests and see the result in the snapshot.
-    public enum ShopAction : byte { Buy, Restock, Sell, Heal, Revive, Done, Give, Close, RoomKit, Vectors, BuyBuild }  // (BuyBuild: the Black Market, arg = BuildKind)
+    public enum ShopAction : byte { Buy, Restock, Sell, Heal, Revive, Done, Give, Close, RoomKit, Vectors, BuyBuild, BuyCard }  // (BuyBuild: the Black Market, arg = BuildKind)
 
     public class ShopNotice
     {
@@ -264,6 +264,11 @@ namespace Arena
                     p.Gold -= Market.Prices[arg];
                     p.Stash[arg]++;
                     DoLog(p.Role + " bought a " + Market.Names[arg].ToLowerInvariant() + " for " + Market.Prices[arg]);
+                    break;
+                case ShopAction.BuyCard:  // the vendor sells a room card for vectors (RoomCards.cs)
+                    if (!shopping || !ExpandingOn)
+                        return;
+                    BuyRoomCard(p, arg);
                     break;
                 case ShopAction.Done:
                     p.ShopDone = arg != 0;
