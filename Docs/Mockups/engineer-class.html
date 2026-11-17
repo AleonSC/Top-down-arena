@@ -67,11 +67,17 @@ h2 small{font:500 12px var(--mono);letter-spacing:.1em;color:var(--muted);margin
 .hint{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px}
 .hint b{color:var(--fg);font-weight:500}
 
+.shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:820px){.shots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.shots{grid-template-columns:1fr}}
+.shots figure{margin:0;border:1px solid var(--line);background:var(--panel);min-width:0}
+.shots img{display:block;width:100%;height:auto;aspect-ratio:800/440}
+.shots figcaption{font:12px var(--mono);color:var(--muted);padding:8px 10px}
 /* kit */
 .kit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 @media (max-width:900px){.kit{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
-.card canvas{display:block;width:100%;height:auto;aspect-ratio:360/170;border-bottom:1px solid var(--line);background:var(--bg)}
+.card img{display:block;width:100%;height:auto;aspect-ratio:800/440;border-bottom:1px solid var(--line);background:var(--bg)}
 .card .in{padding:16px;display:flex;flex-direction:column;gap:10px}
 .slot{font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
 .card.slow .slot{color:var(--slow)} .card.ult .slot{color:var(--amber)}
@@ -139,8 +145,21 @@ tr:last-child td{border-bottom:0}
     </div>
   </header>
 
+  <section class="sec" aria-labelledby="h-game">
+    <h2 id="h-game">In the game <small>real draw code · Tools/Preview</small></h2>
+    <p>Rendered by the game's own renderer (Game/EngineerLook.cs) in the real arena, with real enemies, walls and the Stash build-in. This is what it will look like in Unity.</p>
+    <div class="shots">
+      <figure><img src="engineer/build.png" alt="The Strider drawing itself in"><figcaption>Strider building in, line by line</figcaption></figure>
+      <figure><img src="engineer/strider.png" alt="The Strider locked on"><figcaption>Alt: locked on a Charger, punching</figcaption></figure>
+      <figure><img src="engineer/pylon.png" alt="Drag Pylon"><figcaption>Drag Pylon; the old one folds up</figcaption></figure>
+      <figure><img src="engineer/swing.png" alt="Breach hammer swinging"><figcaption>Breach: the hammer draws and swings</figcaption></figure>
+      <figure><img src="engineer/hit.png" alt="Breach hit"><figcaption>The hit: flash, shards, the hole</figcaption></figure>
+      <figure><img src="engineer/room.png" alt="Room behind the wall"><figcaption>The room behind builds in</figcaption></figure>
+    </div>
+  </section>
+
   <section class="sec" aria-labelledby="h-bench">
-    <h2 id="h-bench">Test bench <small>live · try it</small></h2>
+    <h2 id="h-bench">Test bench <small>live · approximate (browser canvas)</small></h2>
     <div class="bench">
       <div class="stage">
         <canvas id="arena" width="1920" height="1320" aria-label="Sandbox: the Engineer, his Strider, a Drag Pylon and a breachable top wall"></canvas>
@@ -167,7 +186,7 @@ tr:last-child td{border-bottom:0}
     <h2 id="h-kit">The kit</h2>
     <div class="kit">
       <article class="card">
-        <canvas id="c1" width="720" height="340" aria-hidden="true"></canvas>
+        <img src="engineer/strider.png" alt="The Strider locked on to a Charger, in the arena">
         <div class="in">
           <div class="slot">Weapon · Vector Forge</div>
           <h3>Strider</h3>
@@ -177,7 +196,7 @@ tr:last-child td{border-bottom:0}
         </div>
       </article>
       <article class="card slow">
-        <canvas id="c2" width="720" height="340" aria-hidden="true"></canvas>
+        <img src="engineer/pylon.png" alt="A Drag Pylon slowing grunts, the old pylon folding">
         <div class="in">
           <div class="slot">Space · 6 s</div>
           <h3>Drag Pylon</h3>
@@ -186,7 +205,7 @@ tr:last-child td{border-bottom:0}
         </div>
       </article>
       <article class="card ult">
-        <canvas id="c3" width="720" height="340" aria-hidden="true"></canvas>
+        <img src="engineer/room.png" alt="The room behind a breached wall">
         <div class="in">
           <div class="slot">Ultimate · 70 s</div>
           <h3>Breach</h3>
@@ -605,7 +624,7 @@ addEventListener('keydown',ev=>{if(!benchFocus)return;const k=ev.key.toLowerCase
 addEventListener('keyup',ev=>{S.keys[ev.key.toLowerCase()]=false});
 
 /* ---------- kit card loops ---------- */
-function cardLoop(id,fn){const c=document.getElementById(id),x=c.getContext('2d');let t=0,l=performance.now(),vis=true;
+function cardLoop(id,fn){const c=document.getElementById(id);if(!c||!c.getContext)return;const x=c.getContext('2d');let t=0,l=performance.now(),vis=true;
   new IntersectionObserver(es=>vis=es[0].isIntersecting).observe(c);
   (function f(n){const dt=clamp((n-l)/1000,0,.05);l=n;if(vis){t+=RM?0:dt;x.setTransform(2,0,0,2,0,0);x.clearRect(0,0,360,170);
     x.strokeStyle=C.grid;x.lineWidth=1;for(let i=0;i<360;i+=20){x.beginPath();x.moveTo(i,0);x.lineTo(i,170);x.stroke()}for(let i=0;i<170;i+=20){x.beginPath();x.moveTo(0,i);x.lineTo(360,i);x.stroke()}

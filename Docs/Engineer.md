@@ -1,7 +1,9 @@
 # Engineer: a vector builder class
 
 Status: **mockup** (Nov 17, 2026). Nothing built yet. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
-(a playable bench, the kit, a Breach room roller). Numbers are first guesses.
+(real renders, a playable bench, the kit, a Breach room roller). Numbers are first guesses.
+The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=strider|pylon|breach ENGT=<s> Tools/Preview/shot.sh x hud`
+(`Tools/Preview/ShotEngineer.cs`); the renders are in `Mockups/engineer/`.
 
 ## The class
 
