@@ -122,8 +122,16 @@ namespace Arena
                     DrawFumaBlades(p.Disp + at, 0.45f, -spin * 1.6f + i, 1f, 1f);
                 }
             }
-            // forget the trails of stars no longer in flight (ids restart with a new game, e.g. the lobby preview
-            // switching weapons, so an id now held by another kind of shot drops its trail too)
+            PruneFumaTrails();
+        }
+
+        /// Forget the trails of stars no longer in flight (ids restart with a new game, e.g. the lobby preview switching
+        /// weapons, so an id now held by another kind of shot drops its trail too). Run from both passes, so a screen that
+        /// draws only one of them (the lobby preview) can't keep dead trails on screen.
+        void PruneFumaTrails()
+        {
+            if (fumaShotTrail.Count == 0)
+                return;
             fumaGone.Clear();
             Bullet fb;
             foreach (var id in fumaShotTrail.Keys)
@@ -136,6 +144,7 @@ namespace Arena
         /// The glow pass: trails as glowing ribbons and a halo round each star.
         void DrawFumaGlow()
         {
+            PruneFumaTrails();
             foreach (var p in game.Players.Values)
             {
                 if (p.Weapon == null || p.Weapon.Id != WeaponId.FumaShuriken || p.Downed || p.FumaStance != 1)
