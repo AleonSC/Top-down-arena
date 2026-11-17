@@ -124,8 +124,8 @@ namespace Arena
         HeliRotor, HeliShot, HeliSpin,
         // Flood (FloodSoundBank.cs): the stamp and splash, the water lapping, the pool draining. Played by each screen from the pool's clock, never sent.
         FloodCast, FloodLap, FloodDrain,
-        // Water Ward (WaterWardSoundBank.cs): a drop splashing on an enemy, a drop eating a shot and bursting into mist. Sent.
-        WwSplash, WwBurst,
+        // Water Ward (WaterWardSoundBank.cs): a drop splashing on an enemy, a drop eating a shot and bursting into mist, the cast. Sent.
+        WwSplash, WwBurst, WwCast,
     }
 
     public struct SoundCue

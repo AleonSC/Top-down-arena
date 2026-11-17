@@ -40,7 +40,7 @@ namespace Arena
                 p.WwOff.Add(WwGap(p));  // the middle of the widest gap, so the ring spreads out least
                 p.WwFall.Add(WwFall + k * WwFallGap);
             }
-            BroadcastFx(FxKind.Ring, p.Pos, WwColor, WwOrbit + 14f, 0.5f, Sfx.Ability);
+            BroadcastFx(FxKind.Ring, p.Pos, WwColor, WwOrbit + 14f, 0.5f, Sfx.WwCast);  // (its sound lands each drop in time: WaterWardSoundBank.cs)
         }
 
         /// The middle of the widest gap between a player's drops (any angle when there are none).
