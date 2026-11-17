@@ -26,9 +26,9 @@ static partial class Program
         bool othersThree = true;
         foreach (Role r in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
-                if (!(r == Role.Tank && (Kit)k == Kit.Elementalist))
+                if ((Kit)k != Kit.Elementalist && !(r == Role.Tank && (Kit)k == Kit.Soldier))  // (every Elementalist role has a 4th: Flood, Water Ward, Kinetic Wall; the Tank Soldier: Deployable Cover)
                     othersThree &= Upgrades.AbilityLimit(r, (Kit)k) == 3 && Upgrades.RoleAbility(r, (Kit)k, 3) == Upgrades.RoleAbility(r, (Kit)k, 0);
-        Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every other class has three (a 4th pick falls back to the first)");
+        Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every non-Elementalist class has three (a 4th pick falls back to the first)");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.Flood), "Flood is a very rare card for Tank Elementalists who picked another");
 
         // A 4th pick for a class without one is clamped by the host.
@@ -42,7 +42,7 @@ static partial class Program
             int cid = lc.MyId;
             Func<int, bool> settle = want => { for (int i = 0; i < 200; i++) { Step(lh, dt); Step(lc, dt); if (lh.Lobby[cid].Ability == want && lc.Lobby[cid].Ability == want) return true; System.Threading.Thread.Sleep(1); } return false; };
             Check(lh.Lobby.ContainsKey(cid) && settle(3), "a Tank Elementalist can pick the 4th key, and everyone sees it");
-            lc.RequestKit(Kit.Soldier);
+            lc.RequestKit(Kit.Knight);
             Check(settle(0), "changing to a class with three abilities goes back to the first");
             lc.RequestAbility(3);
             for (int i = 0; i < 20; i++) { Step(lh, dt); Step(lc, dt); }

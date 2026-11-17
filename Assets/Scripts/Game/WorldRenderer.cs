@@ -485,6 +485,7 @@ namespace Arena
                 DrawHarvest(p, t);
             if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)
                 DrawBladeOrbit(p, t);
+            DrawWaterWard(p, t);  // Water Ward's circling drops (WaterWardLook.cs; returns at once without any)
         }
 
         /// The parry shield: an arc toward the cursor, with its durability gauge around the outside.
