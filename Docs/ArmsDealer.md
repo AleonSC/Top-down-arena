@@ -1,6 +1,6 @@
 # Arms Dealer and the boss card pick
 
-Status: **planned** (Nov 17, 2026), nothing built. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md),
+Status: **step 1 built** (protocol 392): service cards. Steps 2-4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md),
 [`RoomModifiers.md`](RoomModifiers.md) (floor kits), [`MysteryDoors.md`](MysteryDoors.md) and [`Nodes.md`](Nodes.md) (the tiny shop / vendor rooms).
 
 ## Decisions (owner)
@@ -17,9 +17,11 @@ Status: **planned** (Nov 17, 2026), nothing built. Expanding arena with room car
 
 ## Plan
 
-1. **Service cards.** `RoomCard.Shop`, `Market`, `Arms` (added at the end of the enum); each plays a tiny 4 x 4 room (`SurpriseShape.Tiny`)
+1. (built) **Service cards.** `RoomCard.Shop`, `Market`, `Arms` (added at the end of the enum); each plays a tiny 4 x 4 room (`SurpriseShape.Tiny`)
    of `RoomKind.Shop` / `Vendor` / `Arms` (new, at the end), already open. Card art in `RoomCardsUi.cs`. Sources as shape cards: the
    1 in 4 wave drop and chest nodes can roll them, and the boss pick. Tests in suite `roomcards`.
+   Built: `Expansion.ServiceCards`, `IsServiceCard`, `CardRoomKind`, `DropCard` (1 in `ServiceCardChance` 5); the tiny room gets the floating rooms' mark
+   (`RoomsLook.TinyService`, also mystery-door shops), the card a coin / plus / crosshair (`RoomCardsUi.DrawServiceIcon`). Preview `CARDROOM=arms`.
 2. **Arms Dealer room.** `RoomKind.Arms`, `MysteryKind.Arms` (in the shop / vendor slot of the door table), a stall look (`NodeLook.cs`),
    its screen: every weapon mod as a CRT card with its stacks and price, `ShopAction.BuyMod` (host checks gold, room, stack cap). Saves.
 3. **Boss card pick.** In the Expanding arena with room cards on, the boss's `PendingMods` becomes `PendingBossCards`: 5 cards rolled per

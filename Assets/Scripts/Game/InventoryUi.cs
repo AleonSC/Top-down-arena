@@ -221,7 +221,7 @@ namespace Arena
                     }
                     continue;
                 }
-                var ci = ToColor(card == RoomCard.MiniBoss ? GateInk : CardInk);
+                var ci = ToColor(CardColor(card));
                 bool hot = canUse && c.Contains(Event.current.mousePosition);
                 Ui.Fill(c, new Color(ci.r, ci.g, ci.b, hot ? 0.2f : 0.08f));
                 CrtKit.Frame(c, hot ? 2f : 1f, hot ? Color.Lerp(ci, Color.white, 0.5f) : new Color(ci.r, ci.g, ci.b, 0.6f));

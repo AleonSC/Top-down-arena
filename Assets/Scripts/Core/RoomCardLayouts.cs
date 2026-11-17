@@ -36,6 +36,10 @@ namespace Arena
                     return new[] { P(150, 150, 30), B(620, 230, 700, 300), B(940, 0, 1020, 70), B(230, 560, 300, 640) };
                 case RoomCard.THall:  // a 15-tile bar, a 9-tile stem: a pillar facing the stem, blocks in each arm and the stem
                     return new[] { P(750, 110, 34), B(280, 230, 360, 300), B(1140, 230, 1220, 300), B(600, 600, 670, 680) };
+                case RoomCard.Shop:
+                case RoomCard.Market:
+                case RoomCard.Arms:  // 4 x 4 service rooms: kept clear for the stall
+                    return new Piece[0];
                 case RoomCard.MiniBoss:  // 8 x 6 duel room: four pillars to fight round
                     return new[] { P(200, 160, 34), P(600, 160, 34), P(200, 440, 34), P(600, 440, 34) };
                 default:  // Chamfer, 9 x 7 with notched corners: a pillar in the middle, a low wall above and below it

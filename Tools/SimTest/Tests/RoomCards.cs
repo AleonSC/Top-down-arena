@@ -30,7 +30,7 @@ static partial class Program
         // clear of its door, in whichever turn it was placed.
         foreach (RoomCard c in Enum.GetValues(typeof(RoomCard)))
         {
-            if (c == RoomCard.None) continue;
+            if (c == RoomCard.None || Expansion.IsServiceCard(c)) continue;  // (service rooms stay clear: checked below)
             var opts = Expansion.CardOptions(empty, c);
             int okSpots = 0, tried = 0, fewest = 99;
             for (int i = 0; i < opts.Count; i += Math.Max(1, opts.Count / 10))
@@ -55,6 +55,23 @@ static partial class Program
             Check(tried > 0 && okSpots == tried, "the " + Expansion.CardName(c) + " room has its obstacles on its floor, clear of the door, no side walls (" + okSpots + " of " + tried + " spots, at least " + fewest + " pieces)");
         }
         Check(Expansion.CardRooms(empty, RoomCard.Box, 300, 200, 0, false, out _) == null, "a card can't be played in the middle of the start room");
+        // Service cards (Docs/ArmsDealer.md): each builds a tiny 4 x 4 room with its job and nothing in it; drops roll them now and then.
+        foreach (var c in Expansion.ServiceCards)
+        {
+            var o = Expansion.CardOptions(empty, c)[0];
+            var made = Expansion.CardRooms(empty, c, o.X, o.Y, o.Turn, o.Mirror, out _);
+            var w = Expansion.Build(made);
+            Check(made.Count == 1 && made[0].W == Expansion.ShopRoomSide && made[0].H == Expansion.ShopRoomSide
+                  && !w.Cover.Any(sd => sd.Pos.X >= made[0].X && sd.Pos.X <= made[0].X1 && sd.Pos.Y >= made[0].Y && sd.Pos.Y <= made[0].Y1),
+                "the " + Expansion.CardName(c) + " card builds a clear 4 x 4 room");
+        }
+        Check(Expansion.CardRoomKind(RoomCard.Shop) == RoomKind.Shop && Expansion.CardRoomKind(RoomCard.Market) == RoomKind.Vendor
+              && Expansion.CardRoomKind(RoomCard.Arms) == RoomKind.Arms && Expansion.CardRoomKind(RoomCard.Ring) == RoomKind.Combat, "each service card names its room's job");
+        var drops = Enumerable.Range(0, 2000).Select(i => Expansion.DropCard(i * 7919 + 3)).ToList();
+        int service = drops.Count(Expansion.IsServiceCard);
+        Check(service > 300 && service < 500 && Expansion.ServiceCards.All(c => drops.Contains(c)) && drops.All(c => Expansion.IsServiceCard(c) || Expansion.ShapeCards.Contains(c)),
+            "a dropped card is a service card about 1 in " + Expansion.ServiceCardChance + " times (" + service + " of 2000), else a shape");
+        Check(Enumerable.Range(0, 60).All(cy => Expansion.CardOffers(11, cy).All(c => !Expansion.IsServiceCard(c))), "the Black Market doesn't sell service cards");
         var offers = Expansion.CardOffers(7, 2);
         Check(offers.Length == Expansion.CardOfferCount && offers.SequenceEqual(Expansion.CardOffers(7, 2)), "the vendor's cards are the same every time for a seed and cycle");
         Check(Enumerable.Range(0, 9).Count(cy => Expansion.CardOffers(5, cy).Contains(RoomCard.MiniBoss)) == 3, "the vendor sells a mini-boss card one cycle in three");
@@ -123,7 +140,7 @@ static partial class Program
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
         g.Wave = 10;
         typeof(Game).GetMethod("DropWaveCards", flags).Invoke(g, new object[] { true });
-        Check(g.Players.Values.All(p => Game.HandCount(p) >= 1 && Expansion.ShapeCards.Contains((RoomCard)p.Hand[0])), "a boss gives everyone a shape card");
+        Check(g.Players.Values.All(p => Game.HandCount(p) >= 1 && (Expansion.ShapeCards.Contains((RoomCard)p.Hand[0]) || Expansion.IsServiceCard((RoomCard)p.Hand[0]))), "a boss gives everyone a shape (or service) card");
         Check(g.Players.Values.Count(p => p.Hand.Contains((byte)RoomCard.MiniBoss)) == 1, "and one player a mini-boss card");
 
         // The mini-boss card builds a duel room holding the coming boss's faction mini-boss.
@@ -133,6 +150,22 @@ static partial class Program
         typeof(Game).GetMethod("HostPlayCard", flags).Invoke(g, new object[] { mbOwner.Id, mbSlot, mbOpt.X, mbOpt.Y, (int)mbOpt.Turn, mbOpt.Mirror });
         var duel = g.Expanded[g.Expanded.Count - 1];
         Check(duel.Kind == RoomKind.Gatekeeper && duel.Mini == (byte)g.MiniBossNow() && !mbOwner.Hand.Contains((byte)RoomCard.MiniBoss), "the mini-boss card builds a duel room with the faction mini-boss");
+
+        // Service cards build their tiny room, already open: a shop, a Black Market and an Arms Dealer, all safe from spawns.
+        foreach (var sc in Expansion.ServiceCards)
+        {
+            Array.Clear(friend.Hand, 0, friend.Hand.Length);
+            friend.Hand[0] = (byte)sc;
+            var so = Expansion.CardOptions(g.Expanded, sc)[0];
+            int n0 = g.Expanded.Count;
+            typeof(Game).GetMethod("HostPlayCard", flags).Invoke(g, new object[] { friend.Id, 0, so.X, so.Y, (int)so.Turn, so.Mirror });
+            var built = g.Expanded[g.Expanded.Count - 1];
+            var area = g.ExpansionWorld.Areas[g.Expanded.Count];
+            float weight = (float)typeof(Game).GetMethod("SpawnWeight", flags).Invoke(g, new object[] { area });
+            Check(g.Expanded.Count == n0 + 1 && built.Kind == Expansion.CardRoomKind(sc) && built.Owner == friend.Id && !area.Sealed && area.Kind == built.Kind && weight == 0f
+                  && Game.HandCount(friend) == 0, "the " + Expansion.CardName(sc) + " card builds an open, safe " + built.Kind + " room");
+        }
+        Check(g.HasShopRoom && g.HasVendorRoom && g.ExpansionWorld.Areas.Any(a => a.Kind == RoomKind.Arms), "the map now has a shop, a Black Market and an Arms Dealer");
 
         // A full hand drops what comes in.
         for (int i = 0; i < friend.Hand.Length; i++) friend.Hand[i] = (byte)RoomCard.Box;

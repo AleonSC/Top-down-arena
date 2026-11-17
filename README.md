@@ -1071,11 +1071,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   many as you can afford, and it can take you past the cap.
 - **Room cards** (the default; the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote**, plus **Team purse**). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
   Every room is a card in your own **hand** (up to **6**). Cards: **Box** (7 x 6), **Hall** (8 x 3), **Chamfer**, **L hall**, **T hall**, **Cross**, **Ring**
-  (the surprise-room shapes) and **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it for a prize pick).
+  (the surprise-room shapes), **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it for a prize pick) and the
+  **service cards** **Shop**, **Black Market** and **Arms Dealer** (a tiny 4 x 4 room with that job, open at once and safe: no enemies spawn in it; drawn with a coin,
+  a plus or a crosshair). The Arms Dealer room is built but sells nothing yet ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)).
   - **Where they come from**: the first build round deals **Box, Hall and a random shape**; every build round gives everyone a basic card (a **Hall** after odd waves,
     a **Box** after even ones); a cleared wave gives each player a **1 in 4** shape card; a beaten **boss** gives everyone a shape card and one player (taking turns)
-    a **Mini-boss** card; an opened **chest node** gives everyone a shape card. The **Black Market** sells three cards a boss cycle (a basic, a shape, and a third
-    that is a Mini-boss card one cycle in three) for **vectors**: Hall 10, Box 16, Chamfer 22, L 24, T 26, Cross 30, Ring 34, Mini-boss 40. A full hand drops new cards.
+    a **Mini-boss** card; an opened **chest node** gives everyone a shape card. A dropped shape card (wave, boss, chest) is a **service card** 1 time in 5. The **Black Market** sells three cards a boss cycle (a basic, a shape, and a third
+    that is a Mini-boss card one cycle in three; never a service card) for **vectors**: Hall 10, Box 16, Chamfer 22, L 24, T 26, Cross 30, Ring 34, Mini-boss 40. A full hand drops new cards.
   - **Playing one**: in a build round open **Build**: the first tool is **Room cards**, with your hand on the right (each card drawn as its room). Pick a card, and dots on the
     map show every spot it fits; the room follows the mouse as a green ghost on the nearest fit (and says how many loops it closes). **R** steps through the other
     turns and mirrors that fit there; **left click** builds it at once (no vote, no vectors); **right click** puts the card back.
