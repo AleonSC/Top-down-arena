@@ -600,6 +600,7 @@ static partial class Shot {
           me.Hand[0] = (byte)RoomCard.Ring; me.Hand[1] = (byte)RoomCard.Hall; me.Hand[2] = (byte)RoomCard.Cross; me.Hand[3] = (byte)RoomCard.MiniBoss;
           me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.SpikeTrap] = 3;
           g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake }); g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Shop });
+          if (Environment.GetEnvironmentVariable("INVFULL") != null) { foreach (var fl in new[] { PathId.SniperRidge, PathId.SwarmFields, PathId.Sanctuary, PathId.BurningGrounds }) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = fl }); me.Hand[4] = (byte)RoomCard.Box; me.Hand[5] = (byte)RoomCard.LHall; }  // INVFULL=1: six kits (the list scrolls) and a full hand
         }
         if (Environment.GetEnvironmentVariable("SOLOTAB") != null) set("tabPaused", true);
         // The screen as if already open (its panels settled); HOLOAT=<s>: that far into the page's panels switching on (TabHolo.cs).

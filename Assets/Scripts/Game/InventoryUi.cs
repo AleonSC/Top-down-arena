@@ -36,6 +36,38 @@ namespace Arena
             HoloPanel(kits, holoPageAt, () => DrawInvKits(kits));
         }
 
+        /// The Tab screen is open on the Inventory page (drawn this frame or the last): the mouse wheel is its lists', not the camera's.
+        bool InventoryUp => statsTab == 3 && Time.frameCount - statsLastFrame <= 1;
+
+        readonly Dictionary<string, int> invScroll = new Dictionary<string, int>();  // each list's first row shown
+
+        /// A list that can hold more rows than fit: the mouse wheel over it scrolls a row at a time, and a thin bar down its right edge
+        /// shows where you are (only when it overflows). Returns the first row to draw.
+        int InvScroll(string key, Rect area, int total, int shown)
+        {
+            int max = Mathf.Max(0, total - shown), s;
+            invScroll.TryGetValue(key, out s);
+            var ev = Event.current;
+            if (max > 0 && ev.type == EventType.ScrollWheel && area.Contains(ev.mousePosition))
+            {
+                s += ev.delta.y > 0f ? 1 : -1;
+                ev.Use();
+            }
+            s = Mathf.Clamp(s, 0, max);
+            invScroll[key] = s;
+            if (max > 0)
+            {
+                var ink = CrtUi.Ink;
+                var track = new Rect(area.xMax - 4f, area.y, 4f, area.height);
+                Ui.Fill(track, new Color(ink.r, ink.g, ink.b, 0.15f));
+                float th = Mathf.Max(18f, area.height * shown / total), ty = area.y + (area.height - th) * s / max;
+                Ui.Fill(new Rect(track.x, ty, track.width, th), new Color(ink.r, ink.g, ink.b, 0.8f));
+                if (s < max)
+                    Ui.Label(new Rect(area.x, area.yMax - 2f, area.width - 10f, 14f), "▼ " + (max - s) + " MORE  ·  SCROLL", 9, HoloDim, TextAnchor.MiddleRight, true);
+            }
+            return s;
+        }
+
         /// Gold and vectors as big tiles (the vectors with a bar to the cap), then the revive token and the gadget.
         void DrawInvWallet(Player me, Rect r)
         {
@@ -85,10 +117,16 @@ namespace Arena
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room cards", game.RoomCardsOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
-            float gap = 10f, cw = (r.width - 24f - gap * (cols - 1)) / cols, ch = (r.height - 58f - gap) / 2f;
-            for (int i = 0; i < Expansion.HandMax; i++)
+            const float minH = 96f;
+            float gap = 10f, avail = r.height - 58f;
+            int rows = (Expansion.HandMax + cols - 1) / cols, shown = Mathf.Clamp(Mathf.FloorToInt((avail + gap) / (minH + gap)), 1, rows);
+            var list = new Rect(r.x + 12f, r.y + 46f, r.width - 24f, avail);
+            int first = InvScroll("hand", list, rows, shown);
+            float cw = (list.width - (rows > shown ? 10f : 0f) - gap * (cols - 1)) / cols, ch = (avail - gap * (shown - 1)) / shown;
+            for (int i = first * cols; i < Mathf.Min(Expansion.HandMax, (first + shown) * cols); i++)
             {
-                var c = new Rect(r.x + 12f + (i % cols) * (cw + gap), r.y + 46f + (i / cols) * (ch + gap), cw, ch);
+                int row = i / cols - first;
+                var c = new Rect(list.x + (i % cols) * (cw + gap), list.y + row * (ch + gap), cw, ch);
                 var card = (RoomCard)me.Hand[i];
                 if (card == RoomCard.None)
                 {
@@ -126,10 +164,14 @@ namespace Arena
         void DrawInvStash(Player me, Rect r)
         {
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", "your stash", HoloCalm);
-            float rowH = (r.height - 58f) / Market.Count;
-            for (int k = 0; k < Market.Count; k++)
+            float avail = r.height - 58f;
+            int shown = Mathf.Clamp(Mathf.FloorToInt(avail / 40f), 1, Market.Count);
+            var list = new Rect(r.x + 12f, r.y + 46f, r.width - 24f, avail);
+            int first = InvScroll("stash", list, Market.Count, shown);
+            float rowH = avail / shown, rowW = list.width - (Market.Count > shown ? 10f : 0f);
+            for (int k = first; k < first + shown; k++)
             {
-                var row = new Rect(r.x + 12f, r.y + 46f + k * rowH, r.width - 24f, rowH - 4f);
+                var row = new Rect(list.x, list.y + (k - first) * rowH, rowW, rowH - 4f);
                 int have = me.Stash[k];
                 var ink = CrtUi.Ink;
                 if (k % 2 == 0)
@@ -153,11 +195,15 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 40f), "None held. Bosses give a floor kit, won challenges a shop kit, and the vendor sells them.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);
                 return;
             }
-            float rowH = 34f;
-            for (int i = 0; i < game.RoomTokens.Count; i++)
+            const float rowH = 34f;
+            float avail = r.height - 58f;
+            int n = game.RoomTokens.Count, shown = Mathf.Clamp(Mathf.FloorToInt((avail + 4f) / (rowH + 4f)), 1, n);
+            var list = new Rect(r.x + 12f, r.y + 46f, r.width - 24f, avail);
+            int first = InvScroll("kits", list, n, shown);
+            for (int i = first; i < first + shown; i++)
             {
                 var t = game.RoomTokens[i];
-                var row = new Rect(r.x + 12f, r.y + 46f + i * (rowH + 4f), r.width - 24f, rowH);
+                var row = new Rect(list.x, list.y + (i - first) * (rowH + 4f), list.width - (n > shown ? 10f : 0f), rowH);
                 var ki = ToColor(t.Kind == RoomKind.Shop ? ShopInk : Paths.Get(t.Floor).Accent);
                 Ui.Fill(row, new Color(ki.r, ki.g, ki.b, 0.1f));
                 Ui.Fill(new Rect(row.x, row.y, 4f, row.height), ki);
