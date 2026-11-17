@@ -23,7 +23,28 @@ namespace Arena
         const float HudTileW = 150f, HudTileH = 58f, HudTileGap = 8f;
         const float HudBarW = HudTileW * Upgrades.SlotCount + HudTileGap * (Upgrades.SlotCount - 1);
         const float HudBarX = (W - HudBarW) / 2f, HudTileY = SideY + (SideH - HudTileH) / 2f;
-        static Rect HudTile(int i) => new Rect(HudBarX + i * (HudTileW + HudTileGap), HudTileY, HudTileW, HudTileH);
+        // An empty key shrinks to a stub (its key cap in a dashed box) and the filled keys widen into the room, up to HudTileMaxW, the
+        // row centred in the bar. `emptyK` (per key, 0 = filled, 1 = empty) eases, so the keys slide when a new ability arrives.
+        const float HudStubW = 58f, HudTileMaxW = 200f;
+        static Rect HudTile(int i, float[] emptyK)
+        {
+            float empties = 0f;
+            for (int k = 0; k < emptyK.Length; k++)
+                empties += emptyK[k];
+            float filled = emptyK.Length - empties;
+            float full = filled > 0.01f ? Mathf.Min(HudTileMaxW, (HudBarW - HudTileGap * (emptyK.Length - 1) - empties * HudStubW) / filled) : HudTileW;
+            float total = HudTileGap * (emptyK.Length - 1), x = 0f, w = 0f;
+            for (int k = 0; k < emptyK.Length; k++)
+            {
+                float wk = Mathf.Lerp(full, HudStubW, emptyK[k]);
+                if (k < i)
+                    x += wk + HudTileGap;
+                else if (k == i)
+                    w = wk;
+                total += wk;
+            }
+            return new Rect(HudBarX + (HudBarW - total) / 2f + x, HudTileY, w, HudTileH);
+        }
         /// The XP strip over the keys (the segmented gold bar with "LV 3 · 48%").
         static readonly Rect HudXpStrip = new Rect(HudBarX, HudTileY - 30f, HudBarW, 14f);
         /// What the keys' group (the bar and the XP strip) scales round as the HUD hides and shows.

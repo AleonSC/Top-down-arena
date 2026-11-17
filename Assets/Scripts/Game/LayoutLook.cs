@@ -70,6 +70,9 @@ namespace Arena
             PropHoloBlue = Ink.Mix(new Rgba(1f, 1f, 1f), 0.3f);
         }
 
+        /// How bright the walls, pillars and edge gates draw (1 = full): a touch under, so the fight reads over them.
+        const float WallBrightness = 0.95f;
+
         /// Under the props: walls and pillars (they rise out of the floor when a new cycle starts), then the edge gates.
         void DrawLayout(float t)
         {
@@ -80,6 +83,7 @@ namespace Arena
             float lift = (1f - rise * rise) * 22f;
             if (d.HasHold)
                 DrawHoldPoint(d.HoldPos, d.HoldR, t, a);
+            a *= WallBrightness;
             foreach (var s in d.Solids)  // discs one by one; boxes merged below so corners and crossings read as one solid
                 if (s.Round && (!s.Edge || !game.Walled))
                     DrawSolid(s, s.Edge ? 0f : lift, s.Edge, a);
