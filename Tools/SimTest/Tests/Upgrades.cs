@@ -423,7 +423,7 @@ static partial class Program
         var rng = new Random(7);
         int veryRare = 0, cls = 0;
         for (int n = 0; n < 4000; n++)
-            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, AbilityId.Roar, new List<int>()), 20))
+            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(Role.Healer, AbilityId.Adrenaline, new List<int>()), 20))  // (a class with three Space abilities: two cards)
                 if (Upgrades.All[id].Rarity == Rarity.VeryRare)
                 {
                     veryRare++;
