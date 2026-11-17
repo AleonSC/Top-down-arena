@@ -444,12 +444,22 @@ namespace Arena
                 Circle(pos, r * 1.9f, new Rgba(1f, 0.7f, 0.2f, 0.12f * pulse), 24);
                 Arc(pos, r * 1.9f, 2f, new Rgba(1f, 0.75f, 0.25f, 0.55f * pulse), 24, 0f, MathX.Tau);
             }
+            if (e.Phase == 1 && Game.BottleRioter(e))  // winding up a bottle: a dashed green line out to where it lands, flickering
+            {
+                V2 land = pos + f * (Game.BottleSpeed * Game.BottleLife);
+                float on = 0.75f + 0.25f * Mathf.Sin(t * 26f + e.Id);
+                Line(pos, land, 8f, BottleTell.WithAlpha(0.14f * on));
+                DashedLine(pos + f * r, land, 2.5f, BottleTell.WithAlpha(0.95f * on));
+                Arc(land, 13f, 2.5f, BottleTell.WithAlpha(0.9f * on), 24, 0f, MathX.Tau);
+                Circle(land, 13f, BottleTell.WithAlpha(0.18f * on), 24);
+            }
             if (e.Variant != EnemyVariant.BallAndChain)
                 DrawRioterBrawler(pos, r, col, f, s, p, e.Facing, Game.BottleRioter(e), e.Phase == 1);
             else
                 DrawRioterBallChain(e, pos, r, col, f, s, p, t);
         }
 
+        static readonly Rgba BottleTell = new Rgba(0.55f, 0.95f, 0.45f);  // a bottle throw's warning line
         const float RioterInkW = 1.4f;  // the outline round each part
 
         /// A line with round ends (no square corners at the elbows and shoulders).

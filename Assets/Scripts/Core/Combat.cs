@@ -45,7 +45,7 @@ namespace Arena
                 amount *= 1f - AdrenalineCut;  // Adrenaline Shot
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
-            amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
+            amount *= 1f - CereCut(p);  // the Ninja's Ceremonial Armor at full regalia (CeremonialArmor.cs)
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = PackSoak(p, amount);  // the Wolf Whistle's pack takes a share (WolfPack.cs)
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
@@ -92,6 +92,8 @@ namespace Arena
         void DownIfDead(Player p, string source)
         {
             if (p.Hp > 0f || p.Downed)
+                return;
+            if (UseBackup(p))  // the Backup relic (Relics.cs)
                 return;
             p.Hp = 0f;
             p.Downed = true;

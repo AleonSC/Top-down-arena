@@ -304,7 +304,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("RALLY") != null) {
       // RALLY=1: a Guard with Rioters round it (amber rally ring), a lone Rioter at each end; bottle Rioters carry a bottle,
       // one rcocked to throw, one bottle in flight. KNIGHT=1 ZOOM=2.2.
-      var rgm = host.Game; rgm.Bot = false; rgm.Enemies.Clear(); rgm.Bullets.Clear();
+      var rgm = host.Game; rgm.Bot = false; rgm.Enemies.Clear(); rgm.Bullets.Clear(); rgm.Wave = Math.Max(rgm.Wave, Game.BottleFromWave);
       me.Pos = me.Disp = new V2(1010f, 640f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
       foreach (var pl in rgm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
       var rspawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -783,6 +783,7 @@ static partial class Shot {
   }
   static void ArenaScenes() {
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
+    CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     FlameWallScene();  // FLAMEWALL=<s since the cast> [FXOFF=1] (ShotFlameWall.cs)
@@ -2067,8 +2068,8 @@ static partial class Shot {
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
-      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent" or "cleared"), e.g. inside an EXPANDROOMS room
-      if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" }); } }
+      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
+      if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" && np[2] != "hidden", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
@@ -2101,6 +2102,27 @@ static partial class Shot {
         V2 side = gd.Across * -1f; if (gw.AreaAt(gd.Pos + side * 60f) != gd.A) side = gd.Across;
         int gi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = gd.Pos + side * (90f + 60f * gi) + gd.Along * 40f; gi++; }
         int ei = 0; foreach (var en in xg.Enemies.Values) { if (en.Def.IsBoss || ei >= 6) continue; en.Pos = en.Disp = gd.Pos - side * (40f + 26f * (ei % 3)) + gd.Along * (-50f + 34f * (ei / 3) + 10f * (ei % 2)); ei++; }
+      }
+      if (Environment.GetEnvironmentVariable("MYSTERY") != null) {  // MYSTERY=1: mystery doors rolled on the map (MysteryDoorLook.cs); MYSTERYAT=1 stands you by the first, MYSTERYSAVED=1 the first saved
+        var mfl = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        xg.Wave = Math.Max(xg.Wave, 3);
+        typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
+        if (xg.MysteryDoors.Count < 2) typeof(Game).GetMethod("RollMysteryDoors", mfl).Invoke(xg, null);
+        Console.Error.WriteLine("mystery doors: " + xg.MysteryDoors.Count);
+        string mop = Environment.GetEnvironmentVariable("MYSTERYOPEN");  // MYSTERYOPEN=<s>: the first door opened that long ago (the reveal)
+        if (mop != null && xg.MysteryDoors.Count > 0) {
+          var md0 = xg.MysteryDoors[0]; Player opener = null; foreach (var pq in xg.Players.Values) { opener = pq; break; } opener.Pos = opener.Disp = md0.Pos; opener.Vectors = opener.VectorCap = 999;
+          typeof(Game).GetMethod("OpenMysteryDoor", mfl).Invoke(xg, new object[] { opener, 0 });
+          xg.MysteryOpened.Clear(); xg.MysteryOpened.Add(new System.Collections.Generic.KeyValuePair<MysteryDoor, float>(md0, xg.AnimT - float.Parse(mop, System.Globalization.CultureInfo.InvariantCulture)));
+          V2 into0 = md0.Vertical ? new V2(1f, 0f) : new V2(0f, 1f); if (xg.CurrentWorld.AreaAt(md0.Pos - into0 * 60f) < 0) into0 = into0 * -1f;
+          int oi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = md0.Pos - into0 * (110f + 60f * oi); oi++; }
+        }
+        if (xg.MysteryDoors.Count > 0 && Environment.GetEnvironmentVariable("MYSTERYSAVED") != null) { var md = xg.MysteryDoors[0]; md.Saver = xg.MyId; xg.MysteryDoors[0] = md; }
+        if (xg.MysteryDoors.Count > 0 && Environment.GetEnvironmentVariable("MYSTERYAT") != null) {
+          var md = xg.MysteryDoors[0]; var mw = xg.CurrentWorld;
+          V2 into = md.Vertical ? new V2(1f, 0f) : new V2(0f, 1f); if (mw.AreaAt(md.Pos + into * 60f) < 0) into = into * -1f;
+          int mi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = md.Pos + into * (80f + 60f * mi); pl.Vectors = 40; mi++; }
+        }
       }
       string bage = Environment.GetEnvironmentVariable("BREACHAGE");  // BREACHAGE=<s>: this wave's breaches opened that long ago (BreachLook.cs); BREACHAT=1 stands you by the first
       if (bage != null) {

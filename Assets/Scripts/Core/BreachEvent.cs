@@ -126,6 +126,7 @@ namespace Arena
             expWorld = null;
             LayoutAge = 0f;
             NoteSurprise(rooms[0].Surprise);
+            MaybeRoomChest(rooms.Count);  // (it rolls a chest like any built room)
             Sounds.Add(Sfx.Pick);
             DoLog("breach event: the wall opens onto a " + Expansion.SurpriseName((SurpriseShape)(rooms[0].Surprise - 1)));
             BroadcastExpansion();

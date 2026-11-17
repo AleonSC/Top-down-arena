@@ -377,6 +377,12 @@ namespace Arena
                 case FxKind.DeathLotus:
                     DrawDeathLotusFx(fx);  // DeathLotusLook.cs
                     break;
+                case FxKind.CereBlock:
+                    DrawCereBlockFx(fx);  // CeremonialArmorLook.cs
+                    break;
+                case FxKind.CereBreak:
+                    DrawCereBreakFx(fx);
+                    break;
                 case FxKind.RiotBlock:
                     DrawRiotBlockFx(fx);  // RiotGearLook.cs
                     break;

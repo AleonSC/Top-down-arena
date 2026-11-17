@@ -1,0 +1,363 @@
+<title>Ceremonial Armor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: one dark lacquer stage; three live arenas side by side (stacked on phones), proposal sheet below. Single dark look on purpose. */
+:root{
+  --ink:#0f0d11; --panel:#17141a; --line:#2c2630;
+  --lacquer:#c2362b; --gold:#d9a441; --lace:#7fb0d2; --paper:#ece4d4; --muted:#9b8f86;
+  --display:"Shippori Mincho","Hiragino Mincho ProN",Georgia,serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--ink);color:var(--paper)}
+body{font-family:var(--body);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,4vw,42px);margin:2px 0 0;line-height:1.1;text-wrap:balance}
+h1 small{font-family:var(--body);font-weight:400;font-size:14px;color:var(--muted);margin-left:8px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,.sw{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--paper);background:var(--panel);border:1px solid var(--line);padding:8px 12px;cursor:pointer}
+button:hover,.sw:hover{border-color:var(--gold)}
+button:focus-visible,.sw:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.primary{background:var(--lacquer);border-color:var(--lacquer)}
+button.primary:hover{border-color:var(--gold)}
+.sw[aria-pressed="true"]{color:var(--gold);border-color:var(--gold)}
+kbd{font:600 11px var(--mono);border:1px solid currentColor;padding:0 4px;margin-left:6px;opacity:.8}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+canvas{display:block;width:100%;max-width:100%;aspect-ratio:220/170;image-rendering:pixelated;background:#0b0a0d}
+.meta{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.meta h2{font-family:var(--display);font-weight:800;font-size:20px;margin:0;display:flex;gap:8px;align-items:baseline}
+.meta h2 span{font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.meta p{margin:0;color:var(--muted)}
+.hud{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;font:12px var(--mono);font-variant-numeric:tabular-nums}
+.pips{display:flex;gap:3px}
+.pip{width:9px;height:12px;border:1px solid #5a3a33;background:transparent}
+.pip.on{background:var(--lacquer);border-color:var(--gold)}
+.cd{width:70px;height:6px;background:#2a2228;position:relative}
+.cd i{position:absolute;inset:0 auto 0 0;background:var(--gold)}
+.hud b{color:var(--paper);font-weight:600}
+.hud em{font-style:normal;color:var(--muted)}
+.sheet{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.sheet{grid-template-columns:minmax(0,1fr)}}
+.sheet section{background:var(--panel);border:1px solid var(--line);padding:14px 16px}
+.sheet h3{font-family:var(--display);font-size:18px;margin:0 0 8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--muted);width:42%;padding-right:10px}
+td b{font-family:var(--mono);color:var(--gold);font-weight:600}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.old{font-size:12px;color:var(--muted);margin-top:10px}
+.note{font-size:12px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Ninja · Tank · ability 2 · rework of Iron Body</div>
+      <h1>Ceremonial Armor <small>approximate mockup, not the real draw code</small></h1>
+    </div>
+    <div class="controls">
+      <button class="primary" id="summon">Summon plate<kbd>E</kbd></button>
+      <button class="sw" id="auto" aria-pressed="true">Auto-summon</button>
+      <button class="sw" id="fire" aria-pressed="true">Enemy fire</button>
+      <button class="sw" id="heavy" aria-pressed="false">Heavy fire</button>
+      <button id="reset">Reset</button>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="sheet">
+    <section>
+      <h3>Proposed numbers</h3>
+      <table>
+        <tr><td>Cooldown</td><td><b>2.5 s</b>, summons 1 plate</td></tr>
+        <tr><td>Max plates</td><td><b>10</b>; they stay until broken (rounds too)</td></tr>
+        <tr><td>Plate health</td><td><b>45</b> (3 normal bullets)</td></tr>
+        <tr><td>What a plate does</td><td>Blocks enemy bullets it touches; enemies that touch it are pushed back</td></tr>
+        <tr><td>Summon animation</td><td><b>0.55 s</b>: gold sigil at your feet, plate drops in spinning and clicks into its slot; the others re-space</td></tr>
+        <tr><td>Full set (10)</td><td>"Full regalia" gold aura pulse; suggested bonus: 20% less damage</td></tr>
+        <tr><td>Capstone idea</td><td>A plate that breaks bursts for 30 to enemies within 60 px</td></tr>
+        <tr><td>Tempered Steel (upgrade)</td><td>Plates have 50% more health</td></tr>
+      </table>
+      <div class="old">Replaces: 2 s of 80% less damage, then a 50-damage shockwave (12 s cooldown).</div>
+    </section>
+    <section>
+      <h3>The three layouts</h3>
+      <ul>
+        <li><b>Halo</b>: one even ring that spins steadily. Easiest to read; gaps open as plates break.</li>
+        <li><b>Mandala</b>: the first 4 plates spin fast close in, the next 6 counter-spin further out. Two layers are hard to slip through; the showiest.</li>
+        <li><b>Bulwark</b>: plates fan out in an arc toward the nearest incoming shot and close into a full ring at 10. Blocks the most; feels the most like a tank.</li>
+      </ul>
+      <p class="note">Each arena runs the same fire pattern, so the Blocked and Hits taken counters compare the layouts directly.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+const TAU = Math.PI * 2, W = 220, H = 170, CX = 110, CY = 88;
+const CFG = { max: 10, cd: 2.5, hp: 45, dmg: 15, summon: 0.55 };
+const COL = { lacquer:'#c2362b', lacquerDk:'#7e1f19', gold:'#d9a441', goldLt:'#f3d58a', lace:'#7fb0d2', edge:'#1b0f0e', paper:'#ece4d4' };
+const VARIANTS = [
+  { id:'halo', name:'Halo', tag:'one ring', desc:'Even spacing, steady spin.' },
+  { id:'mandala', name:'Mandala', tag:'two rings', desc:'Inner 4 spin fast, outer 6 counter-spin.' },
+  { id:'bulwark', name:'Bulwark', tag:'facing arc', desc:'Fans toward incoming fire; full ring at 10.' },
+];
+const opts = { auto:true, fire:true, heavy:false };
+const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
+const easeOutBack = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+
+// Shared deterministic fire pattern so the three arenas compare fairly.
+function rng(seed){ let s = seed >>> 0; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
+const TURRETS = [ {x:14,y:20}, {x:206,y:30}, {x:200,y:152}, {x:20,y:150}, {x:110,y:8} ];
+
+class Sim {
+  constructor(v, root){
+    this.v = v;
+    root.innerHTML = `<canvas width="${W}" height="${H}" aria-label="${v.name} layout animation"></canvas>
+      <div class="meta"><h2>${v.name}<span>${v.tag}</span></h2><p>${v.desc}</p>
+      <div class="hud"><div class="pips">${'<div class="pip"></div>'.repeat(10)}</div>
+      <div class="cd"><i></i></div><span><em>Blocked</em> <b data-k="blocked">0</b></span><span><em>Hits taken</em> <b data-k="taken">0</b></span></div></div>`;
+    this.cv = root.querySelector('canvas'); this.ctx = this.cv.getContext('2d');
+    this.pips = [...root.querySelectorAll('.pip')]; this.cdBar = root.querySelector('.cd i');
+    this.nB = root.querySelector('[data-k=blocked]'); this.nT = root.querySelector('[data-k=taken]');
+    this.reset();
+  }
+  reset(){
+    this.t = 0; this.cd = 0; this.plates = []; this.bullets = []; this.fx = []; this.parts = [];
+    this.blocked = 0; this.taken = 0; this.hurt = 0; this.aim = -Math.PI / 2; this.rand = rng(7);
+    this.turretT = TURRETS.map((_, i) => 0.6 + i * 0.45);
+    for (let i = 0; i < 6; i++) this.plates.push(this.newPlate(1));
+    this.layout(0, true);
+  }
+  newPlate(spawn){ return { a:0, r:34, hp:CFG.hp, spawn, hit:0, wob:Math.random() * TAU }; }
+  summon(){
+    if (this.plates.length >= CFG.max || this.cd > 0) return;
+    const p = this.newPlate(0); this.plates.push(p); this.cd = CFG.cd;
+    this.layout(0, false); p.a = p.ta; p.r = p.tr; // land exactly in its slot
+    this.fx.push({ k:'sigil', t:0, life:0.75 });
+  }
+  slots(n){
+    const t = this.t, out = [];
+    if (this.v.id === 'halo') for (let i = 0; i < n; i++) out.push({ a: t * 1.3 + i * TAU / n, r: 36 });
+    else if (this.v.id === 'mandala') {
+      const k = Math.min(n, 4), m = n - k;
+      for (let i = 0; i < n; i++) out.push(i < k ? { a: t * 2.1 + i * TAU / k, r: 22 } : { a: -t * 1.0 + (i - k) * TAU / m + 0.3, r: 43 });
+    } else {
+      const arc = Math.min(TAU, n * 0.62);
+      for (let i = 0; i < n; i++) {
+        if (arc >= TAU - 0.01) out.push({ a: this.aim + t * 0.6 + i * TAU / n, r: 36 });
+        else out.push({ a: this.aim + (n === 1 ? 0 : (i / (n - 1) - 0.5) * arc), r: 30 + Math.sin(t * 3 + i) * 1.2 });
+      }
+    }
+    return out;
+  }
+  layout(dt, snap){
+    const s = this.slots(this.plates.length);
+    this.plates.forEach((p, i) => {
+      p.ta = s[i].a; p.tr = s[i].r;
+      if (snap) { p.a = p.ta; p.r = p.tr; return; }
+      const k = Math.min(1, dt * 7);
+      p.a += wrapA(p.ta - p.a) * k; p.r += (p.tr - p.r) * k;
+    });
+  }
+  fireFrom(i){
+    const T = TURRETS[i], base = Math.atan2(CY - T.y, CX - T.x), sp = 52;
+    const fan = this.rand() < (opts.heavy ? 0.5 : 0.25) ? [-0.22, 0, 0.22] : [ (this.rand() - 0.5) * 0.1 ];
+    fan.forEach(o => this.bullets.push({ x:T.x, y:T.y, vx:Math.cos(base + o) * sp, vy:Math.sin(base + o) * sp }));
+    this.fx.push({ k:'muzzle', x:T.x, y:T.y, t:0, life:0.2 });
+  }
+  burst(x, y, n, colors, spd, life){
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * TAU, s = spd * (0.4 + Math.random() * 0.8);
+      this.parts.push({ x, y, vx:Math.cos(a) * s, vy:Math.sin(a) * s, t:0, life:life * (0.6 + Math.random() * 0.6), c:colors[i % colors.length], rot:Math.random() * TAU, vr:(Math.random() - 0.5) * 14, sz:1 + (Math.random() < 0.4 ? 1 : 0) });
+    }
+  }
+  step(dt){
+    this.t += dt; this.cd = Math.max(0, this.cd - dt); this.hurt = Math.max(0, this.hurt - dt);
+    if (opts.auto && this.cd === 0 && this.plates.length < CFG.max) this.summon();
+    // Bulwark aim: nearest incoming bullet, else drift.
+    let best = null, bd = 1e9;
+    for (const b of this.bullets) { const d = Math.hypot(b.x - CX, b.y - CY); if (d < bd && d < 110) { bd = d; best = b; } }
+    const want = best ? Math.atan2(best.y - CY, best.x - CX) : this.aim + dt * 0.4;
+    this.aim += wrapA(want - this.aim) * Math.min(1, dt * 4);
+    this.layout(dt, false);
+    for (const p of this.plates) {
+      if (p.spawn < 1) {
+        const was = p.spawn; p.spawn = Math.min(1, p.spawn + dt / CFG.summon);
+        if (was < 1 && p.spawn >= 1) {
+          const x = CX + Math.cos(p.a) * p.r, y = CY + Math.sin(p.a) * p.r;
+          this.fx.push({ k:'land', x, y, t:0, life:0.35 });
+          this.burst(x, y, 8, [COL.goldLt, COL.gold], 45, 0.35);
+        }
+      }
+      p.hit = Math.max(0, p.hit - dt);
+    }
+    if (opts.fire) this.turretT = this.turretT.map((tt, i) => { tt -= dt * (opts.heavy ? 1.8 : 1); if (tt <= 0) { this.fireFrom(i); tt += 2.1 + (i % 2) * 0.5; } return tt; });
+    // Bullets vs plates vs player.
+    this.bullets = this.bullets.filter(b => {
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      for (const p of this.plates) {
+        if (p.spawn < 1) continue;
+        const px = CX + Math.cos(p.a) * p.r, py = CY + Math.sin(p.a) * p.r;
+        if (Math.hypot(b.x - px, b.y - py) < 6) {
+          p.hp -= CFG.dmg; p.hit = 0.12; this.blocked++;
+          this.burst(b.x, b.y, 5, [COL.goldLt, '#ffffff'], 40, 0.25);
+          if (p.hp <= 0) { p.dead = true; this.shatter(px, py, p.a); }
+          return false;
+        }
+      }
+      if (Math.hypot(b.x - CX, b.y - CY) < 5) { this.taken++; this.hurt = 0.25; this.burst(b.x, b.y, 6, ['#ff5a7a', '#ffffff'], 40, 0.3); return false; }
+      return b.x > -5 && b.x < W + 5 && b.y > -5 && b.y < H + 5;
+    });
+    this.plates = this.plates.filter(p => !p.dead);
+    this.fx = this.fx.filter(f => (f.t += dt) < f.life);
+    this.parts = this.parts.filter(q => { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= 0.93; q.vy *= 0.93; q.rot += q.vr * dt; return q.t < q.life; });
+  }
+  shatter(x, y, a){
+    for (let i = 0; i < 7; i++) {
+      const d = a + (Math.random() - 0.5) * 2.2, s = 30 + Math.random() * 50;
+      this.parts.push({ x, y, vx:Math.cos(d) * s, vy:Math.sin(d) * s, t:0, life:0.7 + Math.random() * 0.4, c:i % 3 ? COL.lacquer : COL.gold, rot:Math.random() * TAU, vr:(Math.random() - 0.5) * 18, sz:2, shard:true });
+    }
+    this.fx.push({ k:'break', x, y, t:0, life:0.3 });
+  }
+  // ---------- drawing ----------
+  draw(){
+    const c = this.ctx; c.imageSmoothingEnabled = false;
+    c.fillStyle = '#0d0b0f'; c.fillRect(0, 0, W, H);
+    c.fillStyle = '#1b1720';
+    for (let x = 10; x < W; x += 20) for (let y = 10; y < H; y += 20) c.fillRect(x, y, 1, 1);
+    // tatami-ish border
+    c.strokeStyle = '#231e27'; c.strokeRect(3.5, 3.5, W - 7, H - 7);
+    // orbit guides
+    c.setLineDash([2, 4]); c.strokeStyle = 'rgba(217,164,65,0.12)';
+    const radii = this.v.id === 'mandala' ? [22, 43] : [this.v.id === 'bulwark' && this.plates.length < 10 ? 30 : 36];
+    radii.forEach(r => { c.beginPath(); c.arc(CX, CY, r, 0, TAU); c.stroke(); });
+    c.setLineDash([]);
+    // turrets
+    TURRETS.forEach(T => {
+      c.save(); c.translate(T.x, T.y); c.rotate(Math.atan2(CY - T.y, CX - T.x));
+      c.fillStyle = '#3a2350'; c.beginPath(); c.moveTo(6, 0); c.lineTo(0, 5); c.lineTo(-5, 0); c.lineTo(0, -5); c.closePath(); c.fill();
+      c.fillStyle = '#b07ad8'; c.fillRect(0, -1, 2, 2); c.restore();
+    });
+    // full regalia aura
+    if (this.plates.length >= CFG.max) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.t * 4);
+      const g = c.createRadialGradient(CX, CY, 4, CX, CY, 52);
+      g.addColorStop(0, `rgba(243,213,138,${0.18 + pulse * 0.12})`); g.addColorStop(1, 'rgba(243,213,138,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(CX, CY, 52, 0, TAU); c.fill();
+    }
+    // sigils under the player
+    this.fx.filter(f => f.k === 'sigil').forEach(f => this.drawSigil(f));
+    this.drawPlayer();
+    // plates: back half first for a little depth
+    const sorted = [...this.plates].sort((a, b) => Math.sin(a.a) - Math.sin(b.a));
+    sorted.forEach(p => this.drawPlate(p));
+    // bullets
+    this.bullets.forEach(b => {
+      c.fillStyle = 'rgba(255,90,122,0.35)'; c.beginPath(); c.arc(b.x, b.y, 3, 0, TAU); c.fill();
+      c.fillStyle = '#ff5a7a'; c.fillRect(b.x - 1.5, b.y - 1.5, 3, 3); c.fillStyle = '#fff'; c.fillRect(b.x - 0.5, b.y - 0.5, 1, 1);
+    });
+    // fx
+    this.fx.forEach(f => {
+      const k = f.t / f.life;
+      if (f.k === 'land') { c.strokeStyle = `rgba(243,213,138,${1 - k})`; c.lineWidth = 1; c.beginPath(); c.arc(f.x, f.y, 3 + k * 10, 0, TAU); c.stroke(); }
+      if (f.k === 'break') { c.fillStyle = `rgba(255,255,255,${0.8 * (1 - k)})`; c.beginPath(); c.arc(f.x, f.y, 4 + k * 6, 0, TAU); c.fill(); }
+      if (f.k === 'muzzle') { c.fillStyle = `rgba(176,122,216,${1 - k})`; c.beginPath(); c.arc(f.x, f.y, 2 + k * 4, 0, TAU); c.fill(); }
+    });
+    this.parts.forEach(q => {
+      const a = 1 - q.t / q.life; c.globalAlpha = Math.max(0, a); c.fillStyle = q.c;
+      if (q.shard) { c.save(); c.translate(q.x, q.y); c.rotate(q.rot); c.beginPath(); c.moveTo(-2, -1.5); c.lineTo(2.5, 0); c.lineTo(-1, 2); c.closePath(); c.fill(); c.restore(); }
+      else c.fillRect(Math.round(q.x), Math.round(q.y), q.sz, q.sz);
+      c.globalAlpha = 1;
+    });
+  }
+  drawSigil(f){
+    const c = this.ctx, k = f.t / f.life, r = 6 + easeOutBack(Math.min(1, k * 1.6)) * 14, a = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+    c.save(); c.translate(CX, CY + 4); c.scale(1, 0.55); c.globalAlpha = a;
+    c.strokeStyle = COL.gold; c.lineWidth = 1;
+    c.beginPath(); c.arc(0, 0, r, 0, TAU); c.stroke();
+    c.beginPath(); c.arc(0, 0, r * 0.62, 0, TAU); c.stroke();
+    c.rotate(this.t * 3);
+    for (let i = 0; i < 8; i++) { c.rotate(TAU / 8); c.fillStyle = i % 2 ? COL.goldLt : COL.gold; c.fillRect(r * 0.62, -1, r * 0.38, 2); }
+    c.restore();
+  }
+  drawPlayer(){
+    const c = this.ctx, bob = Math.sin(this.t * 5) * 0.6, x = CX, y = CY + bob;
+    c.fillStyle = 'rgba(0,0,0,0.45)'; c.beginPath(); c.ellipse(CX, CY + 6, 6, 2.5, 0, 0, TAU); c.fill();
+    // scarf tail
+    c.strokeStyle = '#c2362b'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 2, y - 2);
+    c.quadraticCurveTo(x + 7, y - 1 + Math.sin(this.t * 8) * 2, x + 11, y + 1 + Math.sin(this.t * 8 + 1) * 2); c.stroke();
+    c.fillStyle = this.hurt > 0 ? '#ff7a8a' : '#2a3044'; c.beginPath(); c.arc(x, y, 5, 0, TAU); c.fill();
+    c.fillStyle = '#3c4560'; c.fillRect(x - 4, y - 4, 3, 2);
+    c.fillStyle = '#e8d6b8'; c.fillRect(x - 3, y - 2, 6, 1.5);
+    c.fillStyle = '#c2362b'; c.fillRect(x - 5, y + 0.5, 10, 1.5);
+  }
+  drawPlate(p){
+    const c = this.ctx, k = p.spawn, e = easeOutBack(k);
+    const x = CX + Math.cos(p.a) * p.r, y = CY + Math.sin(p.a) * p.r - (1 - e) * 46;
+    c.save();
+    if (k < 1) { // beam of light from above into the slot
+      c.fillStyle = `rgba(243,213,138,${0.25 * (1 - k)})`; c.fillRect(x - 1, 0, 2, y);
+      c.globalAlpha = Math.min(1, k * 2.5);
+    }
+    c.translate(x, y); c.rotate(p.a + Math.PI / 2 + (1 - k) * TAU * 1.5);
+    const s = 1 + (1 - e) * 0.6; c.scale(s, s);
+    // a little hover wobble
+    c.translate(0, Math.sin(this.t * 4 + p.wob) * 0.4);
+    // outline + lacquer body (3 lamellar rows)
+    c.fillStyle = COL.edge; c.fillRect(-5.5, -4.5, 11, 9);
+    c.fillStyle = COL.lacquer; c.fillRect(-4.5, -3.5, 9, 7);
+    c.fillStyle = COL.lacquerDk; c.fillRect(-4.5, -1, 9, 0.8); c.fillRect(-4.5, 1.5, 9, 0.8);
+    // gold crown trim (faces outward) and corner studs
+    c.fillStyle = COL.gold; c.fillRect(-4.5, -3.5, 9, 1.4);
+    c.fillStyle = COL.goldLt; c.fillRect(-4.5, -3.5, 1.2, 1.2); c.fillRect(3.3, -3.5, 1.2, 1.2);
+    // silk lacing
+    c.fillStyle = COL.lace; for (const lx of [-3, -1, 1, 3]) { c.fillRect(lx - 0.4, -0.6, 0.8, 0.8); c.fillRect(lx - 0.4, 2.0, 0.8, 0.8); }
+    // glint sweep
+    const g = ((this.t * 0.7 + p.wob) % 2.4) - 0.6;
+    if (g > -0.5 && g < 0.5) { c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillRect(g * 10 - 0.5, -3.5, 1, 7); }
+    // cracks as health drops
+    if (p.hp < CFG.hp * 0.67) { c.strokeStyle = '#f4e9d8'; c.lineWidth = 0.6; c.beginPath(); c.moveTo(-2, -3.5); c.lineTo(-0.5, -0.5); c.lineTo(-1.8, 3.5); c.stroke(); }
+    if (p.hp < CFG.hp * 0.34) { c.beginPath(); c.moveTo(2.5, -3.5); c.lineTo(1, 0.5); c.lineTo(3, 3.5); c.moveTo(-0.5, -0.5); c.lineTo(1, 0.5); c.stroke(); }
+    if (p.hit > 0) { c.fillStyle = `rgba(255,255,255,${p.hit / 0.12})`; c.fillRect(-5.5, -4.5, 11, 9); }
+    c.restore();
+  }
+  hud(){
+    const n = this.plates.length;
+    this.pips.forEach((el, i) => el.classList.toggle('on', i < n));
+    this.cdBar.style.width = (n >= CFG.max ? 100 : (1 - this.cd / CFG.cd) * 100) + '%';
+    this.nB.textContent = this.blocked; this.nT.textContent = this.taken;
+  }
+}
+
+const grid = document.getElementById('grid');
+const sims = VARIANTS.map(v => { const el = document.createElement('div'); el.className = 'card'; grid.appendChild(el); return new Sim(v, el); });
+sims.forEach(s => { s.draw(); s.hud(); });
+
+const summonAll = () => sims.forEach(s => s.summon());
+document.getElementById('summon').onclick = summonAll;
+document.getElementById('reset').onclick = () => sims.forEach(s => s.reset());
+for (const id of ['auto', 'fire', 'heavy']) {
+  const b = document.getElementById(id);
+  b.onclick = () => { opts[id] = !opts[id]; b.setAttribute('aria-pressed', opts[id]); };
+}
+addEventListener('keydown', e => { if ((e.key === 'e' || e.key === 'E') && !e.repeat) summonAll(); });
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let last = performance.now(), hudT = 0;
+function frame(now){
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  sims.forEach(s => { s.step(reduce ? dt * 0.5 : dt); s.draw(); });
+  if ((hudT += dt) > 0.1) { hudT = 0; sims.forEach(s => s.hud()); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

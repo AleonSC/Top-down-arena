@@ -1091,7 +1091,7 @@ namespace Arena
             }
             else
             {
-                V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos);
+                V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos) * RelicSpeedAt(me);
                 if (OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake)
                 {
                     // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
@@ -1159,6 +1159,8 @@ namespace Arena
                     continue;  // nothing to mark: don't waste the cooldown
                 if (me.Slots[slot].Id == AbilityId.WaterWard && WwFull(me))
                     continue;  // every drop already out: don't waste the cooldown (WaterWard.cs)
+                if (me.Slots[slot].Id == AbilityId.IronBody && me.PlateN >= CerePlateMax)
+                    continue;  // Ceremonial Armor with all 10 plates up: don't waste the cooldown
                 if (me.StandOn && MovesYou(me.Slots[slot].Id))
                     continue;  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)

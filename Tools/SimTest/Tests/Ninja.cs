@@ -224,17 +224,37 @@ static partial class Program
         FumaOrbitTest(g, client, hp, s, dt, run, dummy, place, keep);
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);
 
-        // Iron Body: 80% less damage for 2 s, then a shockwave.
+        // Ceremonial Armor (was Iron Body): each cast summons one plate that circles you until it breaks (up to 10); plates stop
+        // enemy bullets and lose their damage in health; all 10 up cut damage by 20%.
         place(1, 650f); run(0.2f);
-        use(1, AbilityId.IronBody, hp.Pos);
+        hp.PlateN = 0;
+        for (int k = 0; k < 3; k++) { use(1, AbilityId.IronBody, hp.Pos); run(0.6f); }
+        bool three = hp.PlateN == 3 && hp.PlateNewT <= 0f && Math.Abs(Game.CerePlate(hp, 0).DistanceTo(hp.Pos) - Game.CereInnerR) < 1f;
+        run(0.1f);
+        var cerC = client.Game.Players[1];
+        bool clientPlates = cerC.PlateN == 3 && Math.Abs(cerC.PlateHp[0] - hp.PlateHp[0]) < 1f && Math.Abs(cerC.PlateClock - hp.PlateClock) < 0.2f;
+        V2 plate0 = Game.CerePlate(hp, 0);
+        var shot = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, plate0, new V2(0f, 1f), 0f, 3f, 15f, 0, false, 0f });
+        run(0.05f);
+        bool blocked = !g.Bullets.ContainsKey(shot.Id) && hp.PlateHp[0] < hp.PlateMax - 10f;
+        hp.PlateHp[0] = 1f;
+        shot = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, Game.CerePlate(hp, 0), new V2(0f, 1f), 0f, 3f, 15f, 0, false, 0f });
+        run(0.05f);
+        bool broke = hp.PlateN == 2;
+        Console.WriteLine("  ceremonial armor: {0} plates after 3 casts, client {1}; shot blocked {2}, plate broke {3}", three ? 3 : hp.PlateN, cerC.PlateN, blocked, broke);
+        Check(three, "Ceremonial Armor summons one plate a cast, on the inner ring");
+        Check(clientPlates, "Ceremonial Armor's plates, their health and clock reach the client");
+        Check(blocked && broke, "a plate stops an enemy bullet, loses its damage in health, and breaks at 0");
+        hp.PlateN = Game.CerePlateMax; hp.PlateNewT = 0f;
+        for (int k = 0; k < Game.CerePlateMax; k++) hp.PlateHp[k] = 1000f;
+        hp.PlateMax = 1000f;
         hp.DevGod = false; float hp0 = hp.Hp = hp.MaxHp;
         damage.Invoke(g, new object[] { hp, 100f / g.EnemyDamageScale(g.Wave), "test" });
         float taken = hp0 - hp.Hp;
         hp.Hp = hp.MaxHp; hp.DevGod = true;
-        float dhp = d1.Hp;
-        run(2.2f);
-        Console.WriteLine("  iron body: took {0:0} of 100; shockwave dealt {1:0}", taken, dhp - d1.Hp);
-        Check(Math.Abs(taken - 20f) < 1f && d1.Hp < dhp, "Iron Body takes 80% less damage, then ends in a shockwave");
+        Console.WriteLine("  ceremonial armor at full regalia: took {0:0} of 100", taken);
+        Check(Math.Abs(taken - 80f) < 1f, "with all 10 plates up you take 20% less damage");
+        hp.PlateN = 0;
 
         // Smoke Bomb: enemy bullets inside crawl at half speed (host and client); allies inside take 30% less.
         place(1, 400f); run(0.2f);
@@ -275,7 +295,7 @@ static partial class Program
         hp.Pos = hp.Disp = w0.Pos - (w0.Pos - hp.Pos).Normalized() * 8f;
         run(0.3f);
         Check(w0.Pos.DistanceTo(w0Was) > 4f, "walking into a wall clone shoves it");
-        dhp = d1.Hp;
+        float dhp = d1.Hp;
         run(7.5f);
         Check(!g.Minions.Values.Any(m => m.Kind == MinionKind.CloneWall) && d1.Hp >= dhp, "the wall fades after 7 s and does no damage");
 
