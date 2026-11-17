@@ -31,6 +31,7 @@ namespace Arena
         public const float Rest = 2.6f;  // the handle's angle at rest: tucked back along the forearm
         const float S = 1.15f;           // the mockup's units to the arena's
         public const float GuardTime = 2.4f, GuardSpin = MathX.Tau * 10f / GuardTime;  // the guard's discs: turns a second (rad/s)
+        public const float GuardSpinUp = 0.2f;  // seconds the discs take to come up to speed (raising the guard, or back from the counter)
         public const float GuardX = 18f * S, GuardY = 12f * S;  // where each disc spins, in the aim's frame
         public static float Reach => Handle + Link + Stick;
 
@@ -77,7 +78,7 @@ namespace Arena
         /// The guard `g` seconds after it went up: a disc spinning at each side in front, the right one one way and the left the other.
         public static Pose Guard(float g)
         {
-            float a = GuardSpin * g;
+            float a = g < GuardSpinUp ? GuardSpin * g * g / (2f * GuardSpinUp) : GuardSpin * (g - GuardSpinUp / 2f);  // (it spins up over GuardSpinUp)
             return new Pose { R = new Hand { X = GuardX, Y = GuardY, Th = R - a }, L = new Hand { X = GuardX, Y = -GuardY, Th = -R + a } };
         }
 
