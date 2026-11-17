@@ -122,6 +122,8 @@ namespace Arena
         // The Attack Helicopter (HeliSoundBank.cs), played by each game itself from the look: the rotor's loop, a chaingun round,
         // the barrels spinning up on a new target. Not sent.
         HeliRotor, HeliShot, HeliSpin,
+        // Flood (FloodSoundBank.cs): the stamp and splash, the water lapping, the pool draining. Played by each screen from the pool's clock, never sent.
+        FloodCast, FloodLap, FloodDrain,
     }
 
     public struct SoundCue
