@@ -477,7 +477,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - **Melee grace:** when a melee swing hits something, bodies you're touching can't hurt you for 0.3 s (contact damage only, not bullets or boss attacks). It keeps a melee build from being punished for standing close to land its hits.
 - Your hitbox is the small coloured dot ringed in white in the middle of your character, not the whole circle.
 - **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't
-  move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **blood drop** = bleeding
+  move or shoot), **blue double arrow** = slowed, **blue drop over a wave** = wet (a blue bar
+  over its health bar drains as it dries), **flame** = burning (flames rise off it), **blood drop** = bleeding
   (drops fall off it), **red crosshair** = marked (takes extra damage).
 - At 0 HP you're **downed**. Stand next to a downed ally for 4 seconds (Normal difficulty) to revive them (or the
   healer can pulse them back). Going down plays out on screen: your model glitches into red and cyan copies and
