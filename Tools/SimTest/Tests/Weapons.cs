@@ -563,6 +563,7 @@ static partial class Program
             me.CompanionCd = 0f;
             me.PackStarted = false;  // (the Wolf Whistle's starting wolves come again: WolfPack.cs)
             me.SsMask = 0; me.SsWindT = 0f; me.SsCdT = 0f; me.SsQueue.Clear();  // (the Stonespear starts each trial with no spears up)
+            me.EsSt[0] = me.EsSt[1] = Game.EsInHand; me.Hp = me.MaxHp;  // (the Embolus Spears start each trial in hand)
             int spawned = 0, totems = 0;  // totems: now the most ink dots down at once (Spirit Chalk's extra projectiles are more ink)
             var seen = new HashSet<int>();
             for (int f = 0; f < 6 * 60; f++)
@@ -794,6 +795,12 @@ static partial class Program
                 {
                     // No shots: the knife chain and the rifles' swats work close in front of you (OutOfAmmo.cs); the aim line shows that reach.
                     if (Math.Abs(range - (me.Def.BodyR + Game.AmmoReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
+                if (w.Id == WeaponId.EmbolusSpears)
+                {
+                    // No bullets: a spear flies until a wall stops it, or EsRange (EmbolusSpears test); the aim line shows that.
+                    if (Math.Abs(range - Game.EsRange) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
                     continue;
                 }
                 if (w.Id == WeaponId.HoneybeeStaff)
