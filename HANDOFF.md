@@ -84,6 +84,7 @@ Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)    
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
 Tools/RenderCheck/     proves a refactor left the arena's drawing byte-identical      [added Oct 2026]
 Tools/SoundCheck/      renders the synthesized sounds to WAV to listen without Unity  [added Nov 2026]
+Tools/SoundForge/      browser synth that exports WAVs named after game sounds (replace any Sfx)
 Docs/                  design docs, mockups, history
 ```
 
@@ -255,6 +256,11 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Sound check:** `Tools/SoundCheck/render.sh [prefix]` renders the synthesized sound effects whose names start with
   prefix (default `Boss`) from `SoundBank.cs` to `Tools/SoundCheck/out/*.wav`, so they can be heard (and their levels
   checked) without Unity.
+- **Sound Forge:** open `Tools/SoundForge/index.html` in a browser: a three-layer synth (tone or noise, pitch glide,
+  FM, envelope, swept filter, tremolo/flicker; drive, bit crush, a 5-band EQ over the sound's spectrum, echo,
+  output volume; a seamless loop mode for hums) with presets and your own saved presets (browser storage, Export/Import JSON), that exports 44.1 kHz 16-bit WAVs named after a
+  game sound (`ShotRifle.wav`, takes `ShotRifle_1.wav`...) for the sounds folder. `names.py` refreshes its name list
+  from the `Sfx` enum; its settings JSON can be pasted to Claude to make a code recipe.
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 16 fixed, seeded scenes (every enemy and minion
   type, each class's abilities and ultimate; four Ninja and three Hemomancer scenes, so every class's own shots are
   drawn; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default

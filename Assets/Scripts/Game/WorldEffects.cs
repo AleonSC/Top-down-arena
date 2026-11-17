@@ -191,6 +191,23 @@ namespace Arena
                 case FxKind.KwBlast:
                     DrawKwBlastFx(fx);  // KineticWallLook.cs
                     break;
+                case FxKind.WwSplash:
+                    DrawWwSplashFx(fx);  // WaterWardLook.cs
+                    break;
+                case FxKind.WwBurst:
+                    DrawWwBurstFx(fx);  // WaterWardLook.cs
+                    break;
+                case FxKind.CoverHit:
+                    if (fxOn)
+                        DrawCoverHitFx(fx);  // DeployableCoverLook.cs
+                    break;
+                case FxKind.CoverBreak:
+                    if (fxOn)
+                        DrawCoverBreakFx(fx);  // DeployableCoverLook.cs
+                    break;
+                case FxKind.CoverFold:
+                    DrawCoverFoldFx(fx);  // DeployableCoverLook.cs
+                    break;
                 case FxKind.WindCatch:
                     DrawWindCatch(fx);  // WindClashLook.cs
                     break;
@@ -289,6 +306,8 @@ namespace Arena
                     break;
                 case FxKind.BathHeal:
                     break;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
+                case FxKind.DragonBite:
+                    break;  // drawn with its dragon (DragonsDogmaLook.cs)
                 case FxKind.RodBolt:
                     DrawRodBoltFx(fx);  // LightningRodLook.cs
                     break;

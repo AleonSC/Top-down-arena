@@ -761,9 +761,13 @@ namespace Arena
             WinLabel(new Rect(x, y, half, 24f), "Screen shake", null, !fxOn);
             int shake = WinChoices(new Rect(x, y + 28f, half, 34f), new[] { "Off", "Low", "Full" }, fxShake, !fxOn);
             if (shake != fxShake) { fxShake = shake; changed = true; }
-            WinLabel(new Rect(x + half + 36f, y, half, 24f), "Arena floor", null, !fxOn);  // FloorGridLook.cs
-            int bend = WinChoices(new Rect(x + half + 36f, y + 28f, half, 34f), new[] { "Bending", "Static" }, floorBend ? 0 : 1, !fxOn);
-            if (bend != (floorBend ? 0 : 1)) { floorBend = bend == 0; changed = true; }
+            // Arena floor: the pattern (FloorStylesLook.cs), and Bending / Static as a small lamp key by the title (FloorGridLook.cs)
+            float fx0 = x + half + 36f;
+            WinLabel(new Rect(fx0, y, half - 110f, 24f), "Arena floor", null, !fxOn);
+            if (WinKey(new Rect(fx0 + half - 104f, y - 2f, 104f, 26f), floorBend ? "BENDING" : "STATIC", false, 13, !fxOn ? CrtUi.Dim : floorBend ? CrtUi.Ink : CrtUi.Dim, true, floorBend))
+            { floorBend = !floorBend; changed = true; }
+            int style = FloorStyleChoices(new Rect(fx0, y + 28f, half, 34f), floorStyle, !fxOn);
+            if (style != floorStyle) { floorStyle = style; changed = true; }
             y += 74f;
             bool names = SwitchRow(new Rect(x, y, half, 54f), fxCallouts, "Ability names", "Each ability's name over whoever casts it");
             if (names != fxCallouts) { fxCallouts = names; changed = true; }

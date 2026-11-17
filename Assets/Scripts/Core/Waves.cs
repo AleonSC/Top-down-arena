@@ -206,6 +206,7 @@ namespace Arena
             ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)
             ClearPods();  // a Sapper's pods left over fizzle out (NonShooters.cs)
             ClearRisers();
+            FoldAllCovers();  // Deployable Covers fold away with a look rather than vanishing (DeployableCover.cs)
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();

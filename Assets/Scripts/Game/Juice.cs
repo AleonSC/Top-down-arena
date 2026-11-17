@@ -36,6 +36,7 @@ namespace Arena
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
             fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
             floorBend = PlayerPrefs.GetInt("floor_bend", 1) == 1;  // FloorGridLook.cs
+            floorStyle = Mathf.Clamp(PlayerPrefs.GetInt("floor_style", 0), 0, FloorStyleNames.Length - 1);  // FloorStylesLook.cs
             CrtUi.Theme = PlayerPrefs.GetInt("crt_theme", 0);
             mateShotAlpha = Mathf.Clamp(PlayerPrefs.GetFloat("mate_shot_alpha", 1f), 0.25f, 1f);
         }
@@ -55,6 +56,7 @@ namespace Arena
             PlayerPrefs.SetInt("fx_reduced", fxReduced ? 1 : 0);
             PlayerPrefs.SetInt("fx_callouts", fxCallouts ? 1 : 0);
             PlayerPrefs.SetInt("floor_bend", floorBend ? 1 : 0);
+            PlayerPrefs.SetInt("floor_style", floorStyle);
             PlayerPrefs.SetInt("crt_theme", CrtUi.Theme);
             PlayerPrefs.Save();
             if (!fxOn)
@@ -369,6 +371,8 @@ namespace Arena
                 }
                 if (fx.Kind == FxKind.DoubleBarrel)
                     DoubleBarrelFeel(fx);  // TankAltFx.cs
+                if (fx.Kind == FxKind.CoverBreak && me != null && me.Pos.DistanceTo(fx.Pos) < 450f)
+                    Shake(0.22f);  // a Deployable Cover bursting near you (DeployableCoverLook.cs)
                 if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && me != null && fx.Pos.DistanceTo(me.Pos) < 500f)
                     Shake(0.3f);  // a Stonespear slam shakes the ground near you
                 if (fx.Kind == FxKind.HoneyHarvest && me != null && (int)fx.Pos2.X == me.Id)
@@ -1079,6 +1083,7 @@ namespace Arena
             DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             DrawArcLightningGlow();  // Arc Lightning's lock-on chain (ArcLockLook.cs)
             DrawWindClashGlow();  // Wind Clash's waves and Tempest (WindClashLook.cs)
+            DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
             DrawLightGlow();  // the Lightbringer's Sundial, Sunrise crescents, Spear, ward plates and marks (LightbringerFxLook.cs)
             foreach (var e in game.Enemies.Values)

@@ -624,6 +624,12 @@ namespace Arena
             DrawCrtCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · " + SlotKeys[4] : SlotKeys[i], keyCol);
             // Name: bright when ready, dimmer while recharging.
             Ui.Label(new Rect(r.x + 8f, r.y + 22f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, Upgrades.Ability(slot.Id).Name.Length > 12 ? 18 : 22, ready ? keyCol : new Color(0.62f, 0.7f, 0.9f), TextAnchor.MiddleLeft, false);
+            if (slot.Id == AbilityId.WaterWard)  // the drops circling you, out of 10 (WaterWard.cs)
+            {
+                bool full = Game.WwFull(me);
+                DkTitle(new Rect(r.x + 64f, r.y + 4f, r.width - 120f, 20f), full ? "FULL" : me.WwOff.Count + "/" + Game.WwMax, 15,
+                    full ? new Color(0.95f, 0.78f, 0.42f) : new Color(0.45f, 0.86f, 0.95f), TextAnchor.MiddleLeft);
+            }
             if (ready)
             {
                 Color lo = ultimate ? Ui.Gold : Ui.Good;

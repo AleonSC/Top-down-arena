@@ -504,6 +504,8 @@ namespace Arena
             if (slot == Upgrades.UltSlot)
                 return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
             float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id) * (slot >= 1 && slot <= Upgrades.BonusSlots ? p.Stats.BonusCdMult : 1f);  // Quartermaster: Q, E, Shift
+            if (id == AbilityId.DeployableCover && Mastered(p, id))
+                cd *= CoverCdMastered;  // its capstone (DeployableCover.cs)
             return cd;
         }
 
@@ -906,6 +908,7 @@ namespace Arena
             UpdateHeraldView(dt);  // Herald.cs
             UpdateEclipseView(dt); // Eclipse.cs
             UpdateDevourView(dt);  // Devourer.cs
+            UpdateDogmaView(dt);   // DragonsDogma.cs: the dragon's trail on screen
             if (IsHost)
                 LetGoOfSwallowed();  // Devourer.cs
             UpdateDuelView(dt);    // Duelist.cs
@@ -1154,6 +1157,8 @@ namespace Arena
                     continue;
                 if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
                     continue;  // nothing to mark: don't waste the cooldown
+                if (me.Slots[slot].Id == AbilityId.WaterWard && WwFull(me))
+                    continue;  // every drop already out: don't waste the cooldown (WaterWard.cs)
                 if (me.StandOn && MovesYou(me.Slots[slot].Id))
                     continue;  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
@@ -1315,6 +1320,7 @@ namespace Arena
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickKineticWalls(dt);  // KineticWall.cs: lenses run down and unleash
+            TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
             TickShockwaves(dt);   // Shockwave.cs: the Shockwave ability's wave running out
@@ -1363,6 +1369,7 @@ namespace Arena
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
+            KeepOffCovers();  // Deployable Cover (DeployableCover.cs): enemies can't walk through its plates
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
@@ -1378,6 +1385,7 @@ namespace Arena
             SendBounces();    // Relics.cs: shots that bounced off a wall this tick
             TickRods(dt);     // LightningRod.cs: the charge running down, and the bolts this tick's hits called
             TickHelis(dt);    // AttackHelicopter.cs: the gunship's targets and rounds
+            TickDogmas(dt);   // DragonsDogma.cs: the dragon's flight and bites
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
             TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();
