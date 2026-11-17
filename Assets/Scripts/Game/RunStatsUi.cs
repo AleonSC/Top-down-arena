@@ -118,8 +118,9 @@ namespace Arena
                 {
                     int nextBoss = game.NextBossWave(wave, game.State == MatchState.Fighting);
                     string boss = BossName(game.BossAt(nextBoss));
-                    float bw = Mathf.Max(130f, CrtUi.TitleWidth(boss, 24) + 24f);
-                    HoloTile(new Rect(right - bw, ty, bw, 56f), boss, game.BossNow && game.State == MatchState.Fighting ? "boss now" : "next boss · after wave " + nextBoss, new Color(1f, 0.45f, 0.52f), 24, TextAnchor.MiddleCenter);
+                    string bossLine = game.BossNow && game.State == MatchState.Fighting ? "boss now" : "next boss · after wave " + nextBoss;
+                    float bw = Mathf.Max(Mathf.Max(130f, CrtUi.TitleWidth(boss, 24) + 24f), Ui.TextWidth(bossLine.ToUpperInvariant(), 10, true) + 16f);  // (wide enough for its caption too)
+                    HoloTile(new Rect(right - bw, ty, bw, 56f), boss, bossLine, new Color(1f, 0.45f, 0.52f), 24, TextAnchor.MiddleCenter);
                     right -= bw + 8f;
                 }
                 HoloTile(new Rect(right - 110f, ty, 110f, 56f), game.Score.ToString("N0"), "score", null, 24, TextAnchor.MiddleCenter);
