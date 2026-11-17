@@ -30,7 +30,8 @@ Dragons, Tidebreaker) were not picked.
 - Every small enemy shot (not unblockable ones) touching a disc is **swatted** back at the nearest enemy within 420 px as your own
   shot (6 damage) and counted, up to 8 (ticks over your head).
 - **Fire in the guard: Twin Counter.** Both chucks lash 175 px straight ahead (22 px either side) for 20 + 6 a swat (68 at 8),
-  0.55 s between counters. It uses the swats up; the guard stays.
+  0.55 s between counters. It uses the swats up. The discs drop while it plays (nothing is swatted), then the chucks return to the windmill, which
+  spins back up over 0.2 s: the windmill is the stance's resting state.
 
 ## Card
 - **Iron Links** (Rare, 2 stacks): the discs are 25% wider, and each swat adds 2 more to the Twin Counter.

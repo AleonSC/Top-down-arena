@@ -118,6 +118,18 @@ static partial class Program
         float hit = line.MaxHp - line.Hp;
         Check(Math.Abs(hit - (20f + 6f * 4f) * mult) < 1f, "it reaches 150 px for 20 + 6 a swat (44: " + hit.ToString("0.#") + ")");
 
+        // while the counter lashes out the discs are down (nothing swatted); once it's back in the windmill they swat again
+        me.FireCd = 0f;
+        Step(dt * 2f, true, false);
+        var mid = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, Game.NunDiscAt(from, me.Aim, true) + new V2(30f, 0f), new V2(-300f, 0f), 0f, 2f, 5f, 0, false, 0f });
+        Step(dt * 3f, false, false);
+        Check(g.Bullets.ContainsKey(mid.Id) && me.NunSwats == 0, "mid-counter the windmill is down: a shot reaching a disc isn't swatted");
+        g.Bullets.Clear();
+        Step(NunchakuMotion.Counter.Dur, false, false);
+        shoot.Invoke(g, new object[] { Defs.SmallShot, Game.NunDiscAt(from, me.Aim, true) + new V2(30f, 0f), new V2(-300f, 0f), 0f, 2f, 5f, 0, false, 0f });
+        Step(dt * 3f, false, false);
+        Check(me.NunSwats == 1, "after it the windmill is back up and swats again (" + me.NunSwats + ")");
+
         // Alt again drops it
         Step(0.4f, false, false);
         Step(dt * 4f, false, true);

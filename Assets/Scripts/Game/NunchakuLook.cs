@@ -15,11 +15,11 @@ namespace Arena
     {
         static readonly Rgba NunLacquer = new Rgba(0.1f, 0.08f, 0.09f), NunBand = new Rgba(1f, 0.3f, 0.37f), NunCap = new Rgba(0.81f, 0.84f, 0.87f),
             NunChain = new Rgba(0.64f, 0.67f, 0.71f), NunInk = new Rgba(0.03f, 0.03f, 0.04f), NunSleeve = new Rgba(0.13f, 0.13f, 0.18f), NunWrap = new Rgba(0.78f, 0.6f, 0.4f);
-        const float NunBlend = 0.1f, NunStickW = 4.6f;
+        const float NunBlend = 0.1f, NunStickW = 4.6f, NunDiscIn = 0.2f, NunDiscOut = 0.08f;
         const int NunTrailN = 9;
         const float NunTrailDt = 0.014f;
 
-        class NunView { public int Key = -1; public float Since = 99f; public NunchakuMotion.Pose From, Last; public float GuardSince = 99f; public bool Guard; }
+        class NunView { public int Key = -1; public float Since = 99f; public NunchakuMotion.Pose From, Last; public float GuardSince = 99f, Disc; public bool Guard; }
         readonly Dictionary<int, NunView> nunViews = new Dictionary<int, NunView>();
 
         /// The step effect of this player that is playing now (the newest), or null.
@@ -73,6 +73,8 @@ namespace Arena
             int key = step != null ? fx.GetHashCode() : v.Guard ? 1 : 0;
             if (key != v.Key)
             {
+                if (key == 1 && v.Key != 0)
+                    v.GuardSince = 0f;  // back from the counter: the windmill spins up again from the guard's start
                 v.Key = key;
                 v.From = v.Last;
                 v.Since = 0f;
@@ -91,8 +93,11 @@ namespace Arena
             }
             v.Last = now;
             V2 o = p.Disp;
-            if (v.Guard)
-                DrawNunDiscs(p, o, p.Aim, t);
+            // the windmill's discs: gone while an attack plays, spun back up as the chucks return to it
+            float discTo = v.Guard && step == null ? 1f : 0f;
+            v.Disc = Mathf.MoveTowards(v.Disc, discTo, dt / (discTo > v.Disc ? NunDiscIn : NunDiscOut));
+            if (v.Disc > 0.01f)
+                DrawNunDiscs(p, o, p.Aim, t, v.Disc * v.Disc * (3f - 2f * v.Disc));
             if (step != null)
                 DrawNunTrail(o, aim, fx, step, t);
             DrawNunPose(o, aim, now, lag, 1f);
@@ -209,9 +214,10 @@ namespace Arena
         }
 
         /// The Twin Windmill's two discs: a faint crimson disc at each side in front, three arcs spinning in it (opposite ways).
-        void DrawNunDiscs(Player p, V2 o, float aim, float t)
+        /// `k` 0..1 fades and grows them in (an attack from the guard drops them; they spin back up after).
+        void DrawNunDiscs(Player p, V2 o, float aim, float t, float k)
         {
-            float r = Game.NunDisc(p);
+            float r = Game.NunDisc(p) * (0.55f + 0.45f * k);
             for (int h = 0; h < 2; h++)
             {
                 V2 c = Game.NunDiscAt(o, aim, h == 0);
@@ -219,12 +225,12 @@ namespace Arena
                 for (int i = 0; i < N; i++)
                 {
                     float a0 = MathX.Tau * i / N, a1 = MathX.Tau * (i + 1) / N;
-                    VTri(c, NunBand.WithAlpha(0.02f), c + V2.FromAngle(a0) * r, NunBand.WithAlpha(0.13f), c + V2.FromAngle(a1) * r, NunBand.WithAlpha(0.13f));
+                    VTri(c, NunBand.WithAlpha(0.02f * k), c + V2.FromAngle(a0) * r, NunBand.WithAlpha(0.13f * k), c + V2.FromAngle(a1) * r, NunBand.WithAlpha(0.13f * k));
                 }
                 float spin = (h == 0 ? -1f : 1f) * NunchakuMotion.GuardSpin * t;
                 for (int i = 0; i < 3; i++)
-                    Arc(c, r - 5f - i * 7f, 2f - i * 0.45f, NunBand.WithAlpha(0.5f - 0.1f * i), 12, spin + i * 2.1f, 1.4f);
-                Arc(c, r, 1f, NunBand.WithAlpha(0.25f), 28);
+                    Arc(c, r - 5f - i * 7f, 2f - i * 0.45f, NunBand.WithAlpha((0.5f - 0.1f * i) * k), 12, spin + i * 2.1f, 1.4f);
+                Arc(c, r, 1f, NunBand.WithAlpha(0.25f * k), 28);
             }
         }
 
