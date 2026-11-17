@@ -970,6 +970,10 @@ namespace Arena
             if (e.Role == Role.Wildcard)
             {
                 e.Kit = Kit.Soldier;  // a Wildcard has no class of its own: no class health, speed or passives
+                if (e.Weapon < Defs.WildcardChoices && Defs.WeaponGap(Role.Dps, (Kit)(e.Weapon / Defs.WeaponsPerRole), e.Weapon % Defs.WeaponsPerRole))
+                    e.Weapon = (byte)(e.Weapon / Defs.WeaponsPerRole * Defs.WeaponsPerRole);  // a locked place (a class still being built): its first weapon
+                if (Upgrades.AbilityGap(Role.Dps, (Kit)(Defs.WildSecond(e.Ability) / Upgrades.RoleAbilityChoices), Defs.WildSecond(e.Ability) % Upgrades.RoleAbilityChoices))
+                    e.Ability = (byte)(Defs.WildSecond(e.Ability) / Upgrades.RoleAbilityChoices * Upgrades.RoleAbilityChoices);
                 int first = Defs.WildSecond(e.Ability), second = Defs.WildSecond(e.Wild);
                 if (second == first)
                     second = (second + 1) % Defs.WildcardChoices;

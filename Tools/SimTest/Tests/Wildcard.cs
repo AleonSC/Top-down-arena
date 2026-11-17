@@ -115,9 +115,11 @@ static partial class Program
         for (int i = 0; i < Defs.WildcardChoices; i++)
         {
             var wd = Defs.Weapon(Role.Wildcard, Kit.Soldier, i);
-            Check(wd.Role == Role.Dps && (int)wd.Kit * 3 + wd.Choice == i, "Wildcard weapon " + i + " is that class's DPS weapon");
+            if (!Defs.WeaponGap(Role.Dps, (Kit)(i / 3), i % 3))  // (a class still being built: its locked places are stand-ins)
+                Check(wd.Role == Role.Dps && (int)wd.Kit * 3 + wd.Choice == i, "Wildcard weapon " + i + " is that class's DPS weapon");
             var ab = Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, i));
-            Check(ab.Role == Role.Dps && (int)ab.Kit * 3 + ab.Choice == i, "Wildcard ability " + i + " is that class's DPS ability");
+            if (!Upgrades.AbilityGap(Role.Dps, (Kit)(i / 3), i % 3))
+                Check(ab.Role == Role.Dps && (int)ab.Kit * 3 + ab.Choice == i, "Wildcard ability " + i + " is that class's DPS ability");
         }
 
         // The unlock: a win with each of the other three roles (any class, solo or co-op).

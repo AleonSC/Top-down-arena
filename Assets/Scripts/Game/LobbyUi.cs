@@ -1166,6 +1166,11 @@ namespace Arena
             {
                 int idx = Defs.WildWeaponPick((Kit)bk, c);
                 var b = new Rect(px + c * (ww + 4f), y + 15f, ww, 32f);
+                if (Defs.WeaponGap(Role.Dps, (Kit)bk, c))
+                {
+                    LockedSlot(b, null, true);  // a class still being built (the Engineer)
+                    continue;
+                }
                 if (LobbyKit.Key(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
                 {
                     if (me.Weapon != idx)
@@ -1183,6 +1188,11 @@ namespace Arena
             {
                 int idx = bk * per + c;
                 var b = new Rect(px + c * (cw + 4f), ay + 15f, cw, 32f);
+                if (Upgrades.AbilityGap(Role.Dps, (Kit)bk, c))
+                {
+                    LockedSlot(b, null, true);  // a class still being built (the Engineer)
+                    continue;
+                }
                 int inSlot = me.Ability == idx ? 1 : second == idx ? 2 : 0;
                 bool on = inSlot == wildTab + 1;
                 if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), on, calm, size: 13, minSize: 8))
