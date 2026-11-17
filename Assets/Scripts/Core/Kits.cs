@@ -43,7 +43,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood }
 
     public class ZoneDef
     {
@@ -146,7 +146,8 @@ namespace Arena
             new ZoneDef { Name = "Tear Gas", Color = new Rgba(0.92f, 0.9f, 0.7f) },  // the Riot Repeater's Alt (TankAlts.cs): suppresses and slows by its own tick
             new ZoneDef { Name = "Ossuary Wall", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Bone Guard's Alt (BoneGuard.cs): Pos the middle, Aim the way it was thrown, Radius half its length
             new ZoneDef { Name = "Smoke Shell", Color = new Rgba(0.37f, 0.83f, 0.74f) },  // the Grenade Launcher's smoke (GrenadeLauncher.cs): Aim the way it flew in, GuardFrac its flight distance; slows and jams by its own tick
-            new ZoneDef { Name = "Honey Puddle", Color = new Rgba(1f, 0.71f, 0.18f), Slow = 0.4f },  // the Honeybee Staff's spray (HoneybeeStaff.cs): slows enemies; an enemy dying in it bursts into bees
+            new ZoneDef { Name = "Honey Puddle", Color = new Rgba(1f, 0.71f, 0.18f), Slow = 0.4f },
+            new ZoneDef { Name = "Flood", Color = new Rgba(0.31f, 0.82f, 0.91f) },  // the Tank Elementalist's Flood (Flood.cs): slows and soaks by its own tick  // the Honeybee Staff's spray (HoneybeeStaff.cs): slows enemies; an enemy dying in it bursts into bees
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

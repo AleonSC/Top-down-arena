@@ -123,7 +123,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 374;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 375;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -964,7 +964,7 @@ namespace Arena
             {
                 if (e.Weapon >= Defs.WeaponLimit(e.Role, e.Kit))
                     e.Weapon = 0;  // (three weapons, or four where the class has a fourth)
-                if (e.Ability >= Upgrades.RoleAbilityChoices)
+                if (e.Ability >= Upgrades.AbilityLimit(e.Role, e.Kit))
                     e.Ability = 0;
                 e.Wild = 0;
                 e.Ult = (byte)Upgrades.ClampUlt(e.Role, e.Kit, e.Ult);  // only keys this role and class has an ultimate on

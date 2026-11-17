@@ -67,6 +67,8 @@ namespace Arena
         {
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ArcaneAegis, MaxStacks = 2, Name = "Eye of the Storm", Desc = "Aeroaegis's vortex lasts 1.5 s longer and the bullets it reflects hit 50% harder",
                 Apply = s => { s.AegisBonusTime += 1.5f; s.AegisReflectBonus += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Flood, MaxStacks = 2, Name = "High Tide", Desc = "Flood spreads 25% wider and lasts 2 s longer",
+                Apply = s => { s.FloodRadiusMult += 0.25f; s.FloodBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrostNova, MaxStacks = 2, Name = "Permafrost", Desc = "Frost Nova freezes 1 s longer and reaches 30% farther",
                 Apply = s => { s.NovaFreezeBonus += 1f; s.NovaRangeMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FlameWall, MaxStacks = 2, Name = "Inferno", Desc = "Flame Wall stands 2 s longer and burns 50% hotter",
@@ -131,6 +133,13 @@ namespace Arena
                 Id = AbilityId.FlameWall, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2,
                 Name = "Flame Wall", Cooldown = 14f, Desc = "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets.",
                 Capstone = "The fire also slows enemies by 40%.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Flood, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th ability key (Flood.cs)
+                Name = "Flood", Cooldown = FloodCooldown, Desc = "Stamp and flood the ground 190 px round you for 6 s: enemies touching you are thrown back 60 px (10 damage), and every enemy wading in the water is slowed 40% (heavies and bosses 20%) and soaked wet, so lightning arcs to it, while it's in and 3 s after.",
+                Capstone = "Deluge: the flood is 30% wider and lasts 9 s.",
+                Bot = b => b.NearEnemies >= 3 || b.Danger && b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
             {
@@ -427,6 +436,9 @@ namespace Arena
                     break;
                 case AbilityId.Tsunami:
                     CastTsunami(p, cap, pw);
+                    break;
+                case AbilityId.Flood:
+                    CastFlood(p, cap, pw);  // Flood.cs
                     break;
                 // Summoner
                 case AbilityId.GolemWall:
@@ -1070,6 +1082,8 @@ namespace Arena
                     TickDrawbridge(z);  // Drawbridge.cs
                 if (z.Kind == ZoneKind.Bloodbath)
                     TickBloodbath(z, dt);  // Bloodbath.cs
+                if (z.Kind == ZoneKind.Flood)
+                    TickFlood(z);  // Flood.cs
                 if (z.Kind == ZoneKind.Phalanx)
                 {
                     TickPhalanx(z, dt);  // BonePhalanx.cs

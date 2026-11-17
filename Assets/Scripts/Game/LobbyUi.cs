@@ -784,7 +784,7 @@ namespace Arena
                 for (int i = 0; i < abilitySlots; i++)
                 {
                     var b = new Rect(ax + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
-                    if (i >= Upgrades.RoleAbilityChoices)
+                    if (i >= Upgrades.AbilityLimit(me.Role, me.Kit))
                     {
                         LockedSlot(b, null, true);
                         continue;

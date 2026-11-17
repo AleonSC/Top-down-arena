@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Arena
@@ -31,18 +32,19 @@ namespace Arena
         Bloodbath,    // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
         LightningRod,    // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
+        Flood,        // the Tank Elementalist's fourth Space ability (Flood.cs), the lobby's 4th ability key
         None = 255,
     }
 
     /// Everything about one ability except its cast code (which is in its class's file, next to its entry).
     public class AbilityDef
     {
-        public const int CardOnly = -1, Ult = 3;
+        public const int CardOnly = -1, Ult = 3, Fourth = 4;  // Fourth: a class's 4th Space ability (the lobby's 4th ability key, choice 3)
 
         public AbilityId Id;
         public Kit Kit;
         public Role Role;
-        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Ult, or CardOnly (very rare cards only)
+        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Fourth, Ult, or CardOnly (very rare cards only)
         public int UltKey;             // an ultimate's key on the lobby's Ultimate row: 0 the default one, 1-3 the ones picked instead (LobbyEntry.Ult)
         public string Name, Desc;
         public string Capstone;        // what mastering it (level 5) adds
@@ -98,6 +100,7 @@ namespace Arena
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
+        public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         // Summoner abilities
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
@@ -354,10 +357,37 @@ namespace Arena
                 choice = choice >= 0 && choice < Defs.WildcardChoices ? choice : 0;
                 return RoleAbilities[((int)Role.Dps * Defs.KitCount + choice / RoleAbilityChoices) * RoleAbilityChoices + choice % RoleAbilityChoices];
             }
+            if (choice == RoleAbilityChoices && r != Role.Wildcard && (int)r < 3 && (int)kit < Defs.KitCount && FourthAbilities[(int)r * Defs.KitCount + (int)kit] != AbilityId.None)
+                return FourthAbilities[(int)r * Defs.KitCount + (int)kit];
             return RoleAbilities[((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
         }
 
         public const int RoleAbilityChoices = 3;
+
+        /// A class's 4th Space ability (AbilityDef.Fourth; only the Tank Elementalist's Flood so far), None where it has none.
+        static readonly AbilityId[] FourthAbilities = FourthTable();
+
+        /// How many Space abilities this role and class can pick in the lobby: three, or four where it has a 4th.
+        public static int AbilityLimit(Role r, Kit kit) =>
+            r != Role.Wildcard && (int)r < 3 && (int)kit < Defs.KitCount && FourthAbilities[(int)r * Defs.KitCount + (int)kit] != AbilityId.None
+                ? RoleAbilityChoices + 1 : RoleAbilityChoices;
+
+        static AbilityId[] FourthTable()
+        {
+            var table = new AbilityId[3 * Defs.KitCount];
+            for (int i = 0; i < table.Length; i++)
+                table[i] = AbilityId.None;
+            foreach (var a in Abilities)
+            {
+                if (a.Choice != AbilityDef.Fourth)
+                    continue;
+                int i = (int)a.Role * Defs.KitCount + (int)a.Kit;
+                if (table[i] != AbilityId.None)
+                    throw new InvalidOperationException(a.Id + " and " + table[i] + " are both 4th abilities of one class");
+                table[i] = a.Id;
+            }
+            return table;
+        }
 
         public static AbilityDef Ability(AbilityId id) => Abilities[(int)id];
 
@@ -395,7 +425,7 @@ namespace Arena
                 table[i] = AbilityId.None;
             foreach (var a in Abilities)
             {
-                if (a.Choice == AbilityDef.CardOnly || ultimates != (a.Choice == AbilityDef.Ult) || a.UltKey != 0)
+                if (a.Choice == AbilityDef.CardOnly || a.Choice == AbilityDef.Fourth || ultimates != (a.Choice == AbilityDef.Ult) || a.UltKey != 0)
                     continue;  // (the other keys of the Ultimate row are found by AltUltimate)
                 int i = ((int)a.Role * Defs.KitCount + (int)a.Kit) * per + (ultimates ? 0 : a.Choice);
                 if (table[i] != AbilityId.None)
@@ -629,7 +659,7 @@ namespace Arena
         static UpgradeDef[] ClassAbilityCards()
         {
             var all = new List<UpgradeDef>();
-            foreach (var id in RoleAbilities)
+            foreach (var id in RoleAbilities.Concat(FourthAbilities.Where(f => f != AbilityId.None)))
             {
                 var a = Ability(id);
                 all.Add(new UpgradeDef
@@ -699,6 +729,8 @@ namespace Arena
         static int KitOf(AbilityId id)
         {
             int i = Array.IndexOf(RoleAbilities, id);
+            if (i < 0 && id != AbilityId.None)
+                return Array.IndexOf(FourthAbilities, id);  // a 4th ability: the same role-and-class index
             return i < 0 ? -1 : i / RoleAbilityChoices;
         }
 
