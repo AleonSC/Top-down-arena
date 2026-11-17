@@ -11,7 +11,8 @@ namespace Arena
     ///   solid from CoverSolid s after the throw: enemy bullets that touch a plate stop there and wear it (CoverStops, from the
     ///     enemy-bullet loop in Combat.cs) and enemies can't walk through it (KeepOffCovers); your team's shots and bodies pass;
     ///   at most CoverMax standing per player: one more folds away the oldest; all of them fold when the fight ends.
-    /// Mastered: CoverHpMastered health and CoverCdMastered of the cooldown. FxKind.CoverHit is a shot ringing off a plate,
+    /// Mastered: CoverHpMastered health and CoverCdMastered of the cooldown. Its Rare card Reinforced Plating adds Stats.CoverHpMult
+    /// and CoverExtra (one more standing). FxKind.CoverHit is a shot ringing off a plate,
     /// CoverBreak one bursting apart and CoverFold one folding away (Game/DeployableCoverLook.cs draws them and the cover).
     public partial class Game
     {
@@ -83,17 +84,20 @@ namespace Arena
             return list;
         }
 
+        /// How many covers this player can have standing: CoverMax, plus one per Reinforced Plating.
+        public static int CoverCap(Player p) => CoverMax + p.Stats.CoverExtra;
+
         void CastCover(Player p, V2 target, bool cap)
         {
             var mine = CoversOf(p.Id);
-            for (int i = 0; i <= mine.Count - CoverMax; i++)
+            for (int i = 0; i <= mine.Count - CoverCap(p); i++)
                 FoldCover(mine[i]);  // a fourth folds away the oldest
             V2 to = target - p.Pos;
             float aim = to.LengthSq > 1f ? to.Angle : p.Aim;
             V2 at = ClampToArena(p.Pos + V2.FromAngle(aim) * CoverAhead, CoverHalf * 0.5f);
             var z = AddZone(ZoneKind.Cover, p, at, CoverHalf, CoverLife);
             z.Aim = aim;
-            z.SoakMax = z.BlockHp = cap ? CoverHpMastered : CoverHp;
+            z.SoakMax = z.BlockHp = (cap ? CoverHpMastered : CoverHp) * p.Stats.CoverHpMult;
             z.GuardFrac = 1f;
             Sounds.Add(Sfx.TurretDeploy);
         }

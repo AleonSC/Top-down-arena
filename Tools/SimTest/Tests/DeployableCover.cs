@@ -148,15 +148,29 @@ static partial class Program
         float plain = Game.CoverCooldown * me.Stats.CdMult * Game.MasteryCooldown(me, AbilityId.DeployableCover);
         Check(Math.Abs(g.Cooldown(me, 0) - plain * Game.CoverCdMastered) < 0.01f, "mastered: each charge comes back 25% sooner");
 
+        // Reinforced Plating (Rare, two stacks): 40% more health and one more standing.
+        var card = Upgrades.All.FirstOrDefault(u => u.Name == "Reinforced Plating");
+        Check(card != null && card.Rarity == Rarity.Rare && card.RequiresAbility == AbilityId.DeployableCover && card.MaxStacks == 2, "Reinforced Plating: a Rare card for Deployable Cover, two stacks");
+        reset();
+        var st = new Stats();
+        card.Apply(st);
+        me.Stats.CoverHpMult = st.CoverHpMult; me.Stats.CoverExtra = st.CoverExtra;
+        for (int k = 0; k < 5; k++) { cast(new V2(900f, 100f + k * 180f)); step(0.1f); }
+        var plated = covers();
+        Check(plated.Count == 4 && Game.CoverCap(me) == 4, "with it, four stand at once (a fifth folds the oldest)");
+        Check(plated.All(z => Math.Abs(z.BlockHp - Game.CoverHp * 1.4f) < 0.5f), "and each takes 560 damage");
+        me.Stats.CoverHpMult = 1f; me.Stats.CoverExtra = 0;
+
         // The fight ends: they fold away.
         me.MasteryXp.Remove(AbilityId.DeployableCover);
         step(0.5f);
         cast(new V2(900f, 200f));
         step(0.5f);
-        Check(covers().Count == 2, "(two standing before the wave ends)");
+        int standing = covers().Count;
+        Check(standing >= 2, "(covers standing before the wave ends)");
         g.Effects.Clear();
         typeof(Game).GetMethod("WaveCleared", flags).Invoke(g, null);
-        Check(covers().Count == 0 && g.Effects.Count(e => e.Kind == FxKind.CoverFold) == 2, "they fold away when the wave is cleared");
+        Check(covers().Count == 0 && g.Effects.Count(e => e.Kind == FxKind.CoverFold) == standing, "they fold away when the wave is cleared");
 
         host.Leave(""); client.Leave("");
     }
