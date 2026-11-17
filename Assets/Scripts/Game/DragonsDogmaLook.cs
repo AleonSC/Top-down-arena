@@ -296,7 +296,7 @@ namespace Arena
         void DrawDogmaTail(float t, float life)
         {
             int n = dgPts.Count;
-            V2 end = dgPts[n - 1], back = (dgPts[n - 1] - dgPts[n - 4]).Normalized();
+            V2 end = dgPts[n - 1], back = (dgPts[n - 1] - dgPts[Mathf.Max(0, n - 4)]).Normalized();
             if (back.LengthSq < 0.5f) return;
             for (int k = -1; k <= 1; k++)
             {
@@ -316,7 +316,7 @@ namespace Arena
         {
             if (a <= 0.01f) return;
             V2 h = dgPts[0];
-            V2 f = (dgPts[0] - dgPts[3]);
+            V2 f = (dgPts[0] - dgPts[Mathf.Min(3, dgPts.Count - 1)]);
             if (f.LengthSq < 0.5f) return;
             f = f.Normalized();
             V2 s = f.Orthogonal();
@@ -489,7 +489,7 @@ namespace Arena
             }
             if (!dgHead)
                 return;
-            V2 f = (dgPts[0] - dgPts[3]).Normalized(), s = f.Orthogonal();
+            V2 f = (dgPts[0] - dgPts[Mathf.Min(3, dgPts.Count - 1)]).Normalized(), s = f.Orthogonal();
             GlowDisc(dgPts[0], 70f, DgBody, 0.3f * life);
             for (int side = -1; side <= 1; side += 2)
                 GlowDisc(dgPts[0] + f * 6f + s * (side * 14f), 14f, DgGold, 0.7f * life);
