@@ -304,7 +304,7 @@ static partial class Program
         Test("fivemore", "Medicine Darts, Greatsword, Kunai, Wisp Lantern and Imp Caller", () => FiveMoreTest(Dt)),
         Test("fourmore", "Shuriken, Bone Spear and Treant Rod", () => FourMoreTest(Dt)),
         Test("lightbringer", "the Lightbringer: Dawn, Mercy, Noon, the light gauge, a Radiant Noon and the Sunlance", () => LightbringerTest(Dt)),
-        Test("bulwark", "the Bulwark Barrier: the half guard, Rim Cut, Backhand, Boss Slam, the Brace soaking shots into Ram, the Shield Bash and its shards", () => BulwarkTest(Dt)),
+        Test("bulwark", "the Bulwark Barrier: the half guard, Rim Cut, Backhand, Boss Slam, the Shield Throw, the parry reset, the Brace soaking shots and melee into Ram, the Shield Bash and its shards", () => BulwarkTest(Dt)),
         Test("lance", "the Lance: Jab, Second Jab, Wide Sweep, Breaching Thrust, Impact and Hook & Haul", () => LanceTest(Dt)),
         Test("healerfive", "Censer, Spirit Fan, Ofuda, Sprite Staff and Totem Staff", () => HealerFiveTest(Dt)),
         Test("healingrain", "Healing Rain: heals allies inside, slows enemies, ends on time, mastered lasts 10 s", () => HealingRainTest(Dt)),

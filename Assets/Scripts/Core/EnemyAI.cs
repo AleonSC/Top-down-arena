@@ -678,7 +678,7 @@ namespace Arena
                 {
                     if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.MeleeGraceT > 0f)
                         continue;
-                    if (p.ParryActive && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.BodyR + ParryReach) && ParryContact(p, e, contact))
+                    if ((p.ParryActive || p.BbBrace) && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.BodyR + ParryReach) && ParryContact(p, e, contact))
                         continue;
                     if (p.Pos.CloserThan(e.Pos, e.Radius + p.Def.HitR))
                     {
@@ -868,7 +868,7 @@ namespace Arena
             {
                 if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, BomberBlast + p.Def.HitR))
                     continue;
-                if (p.ParryActive && ParryContact(p, e, BomberDamage))
+                if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, BomberDamage))
                     continue;  // a raised guard facing the blast takes it
                 Damage(p, BomberDamage, e.Def.Name);
             }
