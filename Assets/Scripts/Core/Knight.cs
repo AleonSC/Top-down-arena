@@ -55,6 +55,7 @@ namespace Arena
         public byte CenserStep;       // a Censer step (1-3; Censer.cs): its hits light Embers, and it leaves incense as it lands
         public byte LanceKind;        // a Lance step (1-4; Lance.cs): its hits are cued and spark, and what it shoves can Impact; Hook & Haul takes back one still winding up
         public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
+        public byte Bulwark;          // a Bulwark Barrier hit (1-3 the chain, 4 the Shield Bash; BulwarkBarrier.cs): the parry takes back a chain step still winding up
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
         public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
@@ -140,6 +141,9 @@ namespace Arena
                 }
                 case WeaponId.Lance:
                     FireLance(p, aim, dmg, extra);  // the Breach's next step (Lance.cs)
+                    break;
+                case WeaponId.BulwarkBarrier:
+                    FireBulwark(p, aim, dmg, extra);  // the Shield Chain's next step, or the Shield Bash while braced (BulwarkBarrier.cs)
                     break;
                 case WeaponId.Halberd:
                 {
@@ -694,6 +698,8 @@ namespace Arena
                 Desc = "A four-step chain with a lance and shield: two quick jabs, a wide sweep that bats enemies aside, then a Breaching Thrust that shoves everything in front far back and stuns it. Shoved enemies that hit another enemy or a wall take Impact damage. The weapon-action key hooks the enemy nearest your cursor, hauls it in and makes your next attack the Breaching Thrust." },
             new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and a return sweep (60% damage)", Name = "Halberd", FireInterval = 0.6f,
                 Desc = "Sweeps a long, thin blade across in front of you, hitting each enemy once per sweep." },
+            new WeaponDef { Id = WeaponId.BulwarkBarrier, Kit = Kit.Knight, Role = Role.Tank, Choice = 3, Damage = 12f, Reach = 80f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach on the chain and +20% Shield Bash damage", Name = "Bulwark Barrier", FireInterval = 0.3f,
+                Desc = "A kite shield that always guards your front half: every enemy shot that hits it stops, red aimed shots too. Fire is a three-hit chain: Rim Cut, Backhand, then a Boss Slam that shoves and stuns. Hold the weapon-action key to brace: you move slower, the guard widens and every shot it stops fills Ram. Fire while braced for a Shield Bash: a dash that hits, shoves and stuns harder with more Ram; at full Ram the soaked shots burst out as steel shards." },
             // Healer
             new WeaponDef { Id = WeaponId.HolyMace, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 120f, Melee = true, ExtraDesc = "+1 Jab stack limit (3 to start)", Name = "Quarterstaff", FireInterval = 0.5f,
                 Desc = "Left and right staff swipes that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies and stores a Jab stack (up to 3); the weapon-action key spends one on a cone jab." },
@@ -740,6 +746,8 @@ namespace Arena
                 Apply = s => { s.BreachKnockMult += 0.3f; s.ImpactMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Halberd }, MaxStacks = 2, Name = "Long Haft", Desc = "The Halberd's blade reaches 15% farther and sweeps 20° wider",
                 Apply = s => { s.HalberdReachMult += 0.15f; s.HalberdSweepBonus += 10f * MathX.Pi / 180f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BulwarkBarrier }, MaxStacks = 2, Name = "Iron Boss", Desc = "Bulwark Barrier: Ram fills 30% faster, and the Shield Bash and its shards hit 30% harder",
+                Apply = s => { s.BbRamMult += 0.3f; s.BbBashMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HolyMace }, MaxStacks = 2, Name = "Pilgrim's Staff", Desc = "Each Quarterstaff hit heals 1 more, and you can store 1 more Jab stack",
                 Apply = s => { s.StaffHealBonus += 1f; s.StaffExtraStacks += 1; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Lightbringer }, MaxStacks = 2, Name = "Daybreak", Desc = "The light gauge fills 30% faster and the Sunlance heals 30% more",

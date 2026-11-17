@@ -1,4 +1,4 @@
-<title>Bastion Shield</title>
+<title>Bulwark Barrier</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -52,7 +52,7 @@ li{margin:4px 0}
 <main>
 <header>
   <p class="eyebrow">Tank Knight · 4th weapon · mockup</p>
-  <h1>Bastion</h1>
+  <h1>Bulwark Barrier</h1>
   <p>A kite shield. It always guards your front half. Left click chains three shield strikes; hold Alt to brace, soak bullets into Ram, then left click to bash.</p>
 </header>
 
@@ -64,7 +64,7 @@ li{margin:4px 0}
     <button id="bHeavy" aria-pressed="false">Heavy fire</button>
     <button id="bBoxes" aria-pressed="false">Hitboxes</button>
   </div>
-  <div class="frame"><canvas id="stage" tabindex="0" aria-label="Bastion live demo"></canvas></div>
+  <div class="frame"><canvas id="stage" tabindex="0" aria-label="Bulwark Barrier live demo"></canvas></div>
   <p class="keys"><kbd>WASD</kbd> move · <kbd>mouse</kbd> aim · <kbd>LMB</kbd> chain / bash · hold <kbd>RMB</kbd> or <kbd>Shift</kbd> brace</p>
 </section>
 
@@ -96,9 +96,9 @@ li{margin:4px 0}
 <section>
   <h2>Open points</h2>
   <ul>
-    <li>Name: Bastion is a placeholder.</li>
-    <li>Greatsword guard and Rapier stance also block in a stance. Bastion differs by the always-on half guard and turning soaked shots into a dash.</li>
-    <li>Bash at zero Ram: allowed as a short shove (shown), or locked until one pip.</li>
+    <li>Name: Bulwark Barrier (owner, Nov 2026). Built at protocol 373; damage tuned to 12 / 14 / 26 in the game.</li>
+    <li>Greatsword guard and Rapier stance also block in a stance. Bulwark Barrier differs by the always-on half guard and turning soaked shots into a dash.</li>
+    <li>Bash at zero Ram: allowed, a short shove (owner).</li>
   </ul>
   <p class="note" style="margin-top:10px">Browser mockup: shapes and glow are approximate, not the game's draw code.</p>
 </section>
@@ -530,7 +530,7 @@ function drawHud(g,w,caption){
   const p=w.p,H=w.h,W=w.w;
   const x=16,y=H-70;
   g.fillStyle='rgba(6,11,20,.82)';g.strokeStyle='rgba(120,160,220,.28)';g.lineWidth=1;g.beginPath();g.roundRect(x,y,236,54,6);g.fill();g.stroke();
-  g.textAlign='left';g.font='700 12px "IBM Plex Mono",monospace';g.fillStyle='#cfe0ff';g.fillText('BASTION',x+12,y+19);
+  g.textAlign='left';g.font='700 12px "IBM Plex Mono",monospace';g.fillStyle='#cfe0ff';g.fillText('BULWARK',x+12,y+19);
   const st=p.bash?'SHIELD BASH':p.swT>=0?STEPS[p.step].name:p.braceK>.5?'BRACED':'GUARD';
   g.textAlign='right';g.fillStyle=p.bash?'#ffffff':p.braceK>.5?'#8fd3ff':'#8a9bb8';g.font='500 11px "IBM Plex Mono",monospace';g.fillText(st,x+224,y+19);
   // chain pips

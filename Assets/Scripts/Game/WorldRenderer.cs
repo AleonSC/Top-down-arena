@@ -301,6 +301,7 @@ namespace Arena
                 DrawKnuckleLock(p, t);  // the Arc Knuckles' lock-on reticle (ArcKnucklesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
                 DrawLanceIdle(p, t);  // the Lance and shield held at the ready (LanceLook.cs)
+                DrawBulwarkHeld(p, t);  // the Bulwark Barrier round your front half, and its Ram pips (BulwarkBarrierLook.cs)
                 DrawMercyWard(p, t);  // a Lightbringer's ward on anyone (LightbringerLook.cs)
                 DrawCenser(p, t);  // the Censer held, swung and thrown (CenserLook.cs)
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)

@@ -706,7 +706,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -946,6 +946,8 @@ namespace Arena
             LocalLanceStep(me, dt);  // the Lance's steps forward (Lance.cs)
             if (LocalLanceHook(me, aimAt, pressed))
                 return;  // the Lance's Hook & Haul (Lance.cs)
+            if (LocalBulwark(me, aimAt, pressed, released, dt))
+                return;  // the Bulwark Barrier's Brace, held, and its bash and steps moving you (BulwarkBarrier.cs)
             LocalCenserTick(dt);    // Censer Cast's cooldown (Censer.cs)
             if (LocalArcFork(me, pressed, aimAt, dt))
                 return;  // Arc Lightning's Forked Volley (ArcLock.cs)
@@ -1220,6 +1222,11 @@ namespace Arena
             if (kind == DashWhirlOn || kind == DashWhirlOff)
             {
                 HostKusariWhirl(p, kind == DashWhirlOn);
+                return;
+            }
+            if (kind == DashBraceOn || kind == DashBraceOff)
+            {
+                HostBrace(p, kind == DashBraceOn);  // the Bulwark Barrier's Brace (BulwarkBarrier.cs)
                 return;
             }
             if (kind == DashGuardOn || kind == DashGuardOff)
