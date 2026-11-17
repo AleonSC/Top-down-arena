@@ -174,6 +174,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
 - `MeleeGrunts.cs`: the Buzzsaw (momentum steering, rapid touches), the zig-zagging Spiker and the Spike Block's lunge
 - `NonShooters.cs`: the enemies that don't shoot: the Fuse Runner (fuse, blast that hurts enemies too), the Hookman (aim, harpoon, yank via `KnockPlayer`, open window), the Sapper and its Tripwire Pods (`SapperMine`: arming, lasers, beep, blast; not counted by `Foes`); drawn in `Game/NonShooterLooks.cs`
+- `Turnkey.cs`, `Game/TurnkeyLook.cs`: the Warden faction's Turnkey (runs from players, `TurnkeyRun`/`Slide` off walls and out of corners; plants Floor Mines, Shackle Traps and Mop Slicks (`PatchKind.Slick`); builds Cell Doors that let Rioters out, jammed when it dies); `IsPlanted`/`IsTrap` (don't hold a wave open, `ClearPods`); its debut wave is `FactionMember.Debut` (`PickDebuts`, `ApproachWaveOf` in `Approaches.cs`); preview `TURNKEY=1 NINJA=0 ZOOM=2.4 shot.sh x hud 3`; test suite `turnkey`
 - `WaveRecipe.cs`: the late wave recipe from wave 13: `EnemyJob` (Pressure, Hunter, Zoner, Disruptor, Anchor), job shares, headliners, types and squads retiring (`Docs/EnemyRoles.md`; report `wavemix`)
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
 - `Game/JobMarkerLook.cs`: the job marker under each regular enemy (bar + shape: dot Pressure, chevron Hunter, ring Zoner, diamond Disruptor, square Anchor; `Docs/EnemyReadability.md`)

@@ -296,6 +296,7 @@ static partial class Program
         Test("security", "the Security Guard walks while it locks on, keeps its strafe side and aims straight at you", () => SecurityTest(Dt)),
         Test("reapercult", "the Twin Reapers' cult: Bound Wraiths' tether and revive, Scythe Wraith's reap, Lamplighter, Mourner", () => ReaperCultTest(Dt)),
         Test("nonshooters", "the Fuse Runner's fuse and blast, the Hookman's yank and open window, the Sapper's Tripwire Pods", () => NonShootersTest(Dt)),
+        Test("turnkey", "the Warden faction's Turnkey: its wave-3 debut, running, traps, Cell Doors and their Rioters", () => TurnkeyTest(Dt)),
         Test("hitfx", "hit feedback: fire alone doesn't flash an enemy, steady fire softens the flash, Explosive Rounds' blasts are thinned", () => HitFxTest(Dt)),
         Test("upgradefix", "Velocity Rounds land airbursts at the cursor; Incendiary Rounds add up", () => UpgradeFixesTest(Dt)),
         Test("fivemore", "Medicine Darts, Greatsword, Kunai, Wisp Lantern and Imp Caller", () => FiveMoreTest(Dt)),
@@ -512,7 +513,7 @@ static partial class Program
     /// test; its other test is also in features.)
     static readonly string[] CiExtras =
     {
-        "swordsman", "nonshooters", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
+        "swordsman", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",

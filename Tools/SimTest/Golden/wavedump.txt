@@ -1,17 +1,17 @@
 campaign w1: Rioter*12
 campaign w2: Thug*2 Guard | Guard Rioter*6
-campaign w3: Rioter Guard Thug*2 RiotShield Rioter | RiotShield*2 Rioter*4
-campaign w4: SecurityGuard Guard SecurityGuard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
+campaign w3: Shiv RiotShield Rioter Thug Rioter Turnkey | RiotShield*2 Rioter*4
+campaign w4: Thug Guard SecurityGuard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
 campaign w5: SecurityGuard | SecurityGuard*3 Rioter*2 | RiotShield*4 Guard*5
 campaign w5 boss: Boss Grunt*2
 campaign w6: Worker*3 | Soldier Worker*6 | RiotShield*2 Rioter*4
-campaign w7: Guard SecurityGuard CombShield Rioter*2 Soldier | Needler*3 Worker*2 | Soldier Worker*6
-campaign w8: Stinger GasGrenadier RiotShield Shiv | Needler*3 Worker*2 | Needler*3 Worker*2 | CombShield*2 Worker*4
-campaign w9: CombShield Bumble Hornet TaserGuard | Bumble Worker*3 Hornet | CombShield*2 Worker*4 | Soldier Worker*6
+campaign w7: RiotShield Thug CombShield Rioter*2 Soldier | Needler*3 Worker*2 | Soldier Worker*6
+campaign w8: Stinger TaserGuard GasGrenadier Shiv | Needler*3 Worker*2 | Needler*3 Worker*2 | CombShield*2 Worker*4
+campaign w9: CombShield Bumble Hornet SecurityGuard | Bumble Worker*3 Hornet | CombShield*2 Worker*4 | Soldier Worker*6
 campaign w10: Worker CombShield Worker CombShield Soldier | CombShield*4 Soldier*5 | Bumble Worker*3 Hornet | Needler*3 Worker*2
 campaign w10 boss: HiveQueen
-campaign w11: Needler Worker Wisp TaserGuard Wisp*4 Shiv Wisp*3 SecurityGuard Worker Needler Wisp | Needler*3 Worker*2 | Acolyte Wisp*6
-campaign w12: Rioter BoundWraith Wisp*3 GasGrenadier Rioter | Acolyte Wisp*6 | Acolyte Wisp*6 | Soldier Worker*6
+campaign w11: Needler Worker Wisp SecurityGuard Wisp*4 Turnkey Wisp*3 SecurityGuard Worker Needler Wisp | Needler*3 Worker*2 | Acolyte Wisp*6
+campaign w12: Rioter BoundWraith Wisp*3 TaserGuard Rioter | Acolyte Wisp*6 | Acolyte Wisp*6 | Soldier Worker*6
 campaign w13: Wisp Acolyte Shielder*5 Swarmer Wisp Swarmer Acolyte Swarmer Wisp Swarmer | Acolyte Wisp*6 | Gravedigger BoundWraith*2 | Acolyte Wisp*6 # Shielder Swarmer
 campaign w14: Acolyte*17 | Guard Rioter*6 Guard Rioter*6 Thug # Grunt Lunger
 campaign w15: Wisp Sniper Wisp Mortar Wisp Mortar Acolyte*2 | Acolyte Wisp*6 | Mourner*2 BoundWraith*2 Acolyte*6 | Acolyte Wisp*6 # Mortar Sniper
@@ -60,26 +60,26 @@ campaign w50: Moonward Heliograph Ember Spinner Ember DuskLobber Sickle Spinner 
 campaign w50 boss: Eclipse
 campaign w51: Spinner Ember Rioter Guard Mortar Spinner Rioter Swarmer CoronaPriest Heliograph Guard*2 Swarmer*2 Rioter Swarmer Guard Rioter | Guard Rioter*6 | Heliograph*2 | CoronaPriest Ember*6 | Guard Rioter*6 | Heliograph*2 # Spinner Swarmer Mortar
 campaign w52: Rioter Mortar*3 Grunt Mortar Thug Mortar Rioter*2 RiotShield Mortar RiotShield Grunt Rioter Mortar Brute*2 RiotShield Brute*3 | Guard Rioter*6 | Guard Rioter*6 | SecurityGuard*3 Rioter*2 # Mortar Grunt Brute
-campaign w53: Rioter Mortar Shiv Mortar Rioter Grunt Mortar*2 RiotShield | Thug Rioter*3 Shiv | Swarmer*5 | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv # Grunt Swarmer Mortar
+campaign w53: Rioter Sniper Rioter RiotShield Grunt Rioter Grunt Turnkey RiotShield Sniper Rioter Sniper Shiv Turnkey | Swarmer*5 | RiotShield*2 Rioter*4 | RiotShield*2 Rioter*4 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv # Sniper Grunt Swarmer
 campaign w54: Rioter Guard Rioter RiotShield Rioter*3 RiotShield Rioter RiotShield Guard Rioter*2 | RiotShield*2 Rioter*4 | Guard Rioter*6 | Guard Rioter*6 | BileSpitter*6 Gulper # Shielder Grunt Lunger
 campaign w55: RiotShield Rioter Mortar Rioter Mortar Guard GasGrenadier Mortar Lunger | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2 | RiotShield*2 Rioter*4 | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2 # Lunger Swarmer Mortar
 campaign w55 boss: Boss Grunt*27
 campaign w56: Grunt Shielder Worker*2 Grunt Swarmer*2 Soldier Swarmer RiotShield Soldier Swarmer Worker*3 Soldier | Soldier Worker*6 | Guard Rioter*6 | Soldier Worker*6 | RiotShield*2 Rioter*4 # Shielder Swarmer Grunt
-campaign w57: Sniper GasGrenadier Worker Sniper GasGrenadier Sniper CombShield GasGrenadier Brute GasGrenadier*7 | Needler*3 Worker*2 | Soldier Worker*6 | Needler*3 Worker*2 | Soldier Worker*6 # Brute Swarmer Sniper
+campaign w57: Sniper TaserGuard Worker Sniper TaserGuard Sniper CombShield TaserGuard Brute TaserGuard*7 | Needler*3 Worker*2 | Soldier Worker*6 | Needler*3 Worker*2 | Soldier Worker*6 # Brute Swarmer Sniper
 campaign w58: Soldier Worker Soldier*2 Worker Soldier Worker*3 Soldier*2 Worker*4 | Soldier Worker*6 | Soldier Worker*6 | Second*3 Fencer*2 Second*3 Fencer*2 Harlequin # Shielder Sniper Brute
 campaign w59: Worker CombShield Mortar Worker*2 Bumble Soldier Worker*2 Mortar Soldier Stinger Worker Mortar Bumble Mortar Swarmer*4 Bumble Worker | Soldier Worker*6 | CombShield*2 Worker*4 | Soldier Worker*6 # Lunger Swarmer Mortar
 campaign w60: Hornet Spinner*3 Swarmer*2 CombShield Swarmer*2 CombShield | CombShield*4 Soldier*5 | Needler*3 Worker*2 | Soldier Worker*6 | Soldier Worker*6 | Needler*3 Worker*2 # Swarmer Brute Spinner
 campaign w60 boss: HiveQueen
 quick w1: Rioter*12
 quick w2: Rioter*2 Guard Rioter*8
-quick w3: RiotShield*2 Guard RiotShield SecurityGuard | Guard Rioter*6
+quick w3: SecurityGuard Guard RiotShield*4 Turnkey | SecurityGuard*3 Rioter*2
 quick w4: Thug | SecurityGuard*3 Rioter*2 | Guard Rioter*6
 quick w5: RiotShield Rioter*2 Guard Shiv Guard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
-quick w6: TaserGuard SecurityGuard Rioter*2 | Guard Rioter*6 | SecurityGuard*3 Rioter*2
+quick w6: SecurityGuard Thug Rioter*2 | Guard Rioter*6 | SecurityGuard*3 Rioter*2
 quick w7: Rioter*4 | Guard Rioter*6 | Guard Rioter*6
-quick w8: SecurityGuard Rioter TaserGuard Guard RiotShield SecurityGuard Guard RiotShield Rioter RiotShield | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2
-quick w9: Rioter*2 RiotShield Thug SecurityGuard Shiv | Thug Rioter*3 Shiv | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
-quick w10: Guard RiotShield Thug RiotShield Thug Rioter RiotShield Rioter GasGrenadier | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
+quick w8: Thug Rioter TaserGuard Guard RiotShield SecurityGuard Guard RiotShield Rioter RiotShield | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2
+quick w9: Rioter*2 GasGrenadier Thug*2 Turnkey | Thug Rioter*3 Shiv | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
+quick w10: Guard RiotShield Shiv RiotShield Thug Rioter RiotShield Rioter GasGrenadier | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
 quick w10 boss: Boss Grunt*5
 quick w11: Worker*2 Soldier*2 Worker Soldier Worker Soldier*2 Worker*3 | Soldier Worker*6 | Soldier Worker*6
 quick w12: Soldier Worker*5 Soldier Worker*3 Soldier Worker*3 | Soldier Worker*6 | Soldier Worker*6
@@ -99,19 +99,19 @@ quick w24: BoundWraith Lamplighter Acolyte BoundWraith Gravedigger Acolyte Grave
 quick w25: Wisp*4 ScytheWraith Wisp*2 ScytheWraith | Acolyte Wisp*6 | Acolyte*4 Lamplighter*2 | ScytheWraith*2 Shade*2 Wisp*3 | Acolyte*4 Lamplighter*2 # Swarmer Shielder Lunger
 hunt w1: Rioter*12
 hunt w2: Guard*3 | Guard Rioter*6
-hunt w3: SecurityGuard RiotShield GasGrenadier RiotShield Rioter*2 Guard | SecurityGuard*3 Rioter*2
+hunt w3: GasGrenadier SecurityGuard Rioter GasGrenadier Rioter RiotShield Turnkey | SecurityGuard*3 Rioter*2
 hunt w4: RiotShield Rioter*2 GasGrenadier | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2
-hunt w5: RiotShield Rioter*4 Thug GasGrenadier Rioter SecurityGuard Rioter | RiotShield*2 Rioter*4
+hunt w5: RiotShield Rioter*4 Shiv GasGrenadier Rioter SecurityGuard Rioter | RiotShield*2 Rioter*4
 hunt w6: Guard | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2
-hunt w7: Thug TaserGuard*2 | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv
-hunt w8: Guard Rioter Shiv Rioter*2 GasGrenadier Rioter | Guard Rioter*6 | RiotShield*2 Rioter*4
+hunt w7: Shiv SecurityGuard TaserGuard | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv
+hunt w8: Guard Rioter Turnkey Rioter*2 TaserGuard Rioter | Guard Rioter*6 | RiotShield*2 Rioter*4
 hunt w9: Guard GasGrenadier RiotShield | Thug Rioter*3 Shiv | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2
 hunt w10 boss: Boss Grunt*5
 campaign100 w1: Rioter*12
-campaign100 w2: Rioter*4 Thug*2 | Guard*2 | Guard*2
+campaign100 w2: Rioter*4 Turnkey Thug*2 | Guard*2 | Guard*2
 campaign100 w3: SecurityGuard*2 Rioter*4 Guard | Thug Rioter*3 Shiv
 campaign100 w4: RiotShield GasGrenadier*2 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
-campaign100 w5: GasGrenadier Guard Shiv GasGrenadier | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
+campaign100 w5: TaserGuard Guard Turnkey TaserGuard | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
 campaign100 w5 boss: Boss Grunt*2
 campaign100 w6: Worker Shiv Worker*2 Shiv Thug Worker*4 Guard Worker*2 Shiv SecurityGuard Worker
 campaign100 w7: Worker*2 Soldier Guard Bumble*2 | Worker*5 | Soldier*2 | Worker*5
@@ -120,7 +120,7 @@ campaign100 w9: CombShield Needler CombShield Worker HoneyLobber*2 | Bumble Work
 campaign100 w10: Bumble Worker Bumble CombShield Bumble | Soldier Worker*6 | CombShield*2 Worker*4 | CombShield*2 Worker*4
 campaign100 w10 boss: HiveQueen
 campaign100 w11: Wisp Needler Wisp Worker Wisp*2 Soldier Wisp Soldier Bumble Rioter Soldier Rioter Wisp*3 TaserGuard Worker Wisp*5 Worker Wisp Soldier Bumble Wisp
-campaign100 w12: Soldier Acolyte Wisp Lamplighter Soldier Shiv Wisp Thug Acolyte Wisp Acolyte Wisp*2 Lamplighter SecurityGuard Acolyte Wisp Acolyte Lamplighter*4 | Acolyte*4 Lamplighter*2
+campaign100 w12: Soldier Acolyte Wisp Lamplighter Soldier Turnkey Wisp Thug Acolyte Wisp Acolyte Wisp*2 Lamplighter Thug Acolyte Wisp Acolyte Lamplighter*4 | Acolyte*4 Lamplighter*2
 campaign100 w13: Gravedigger Mortar Wisp*2 Gravedigger Lamplighter Wisp*2 Lamplighter Wisp Sniper Wisp Mortar Wisp*3 Gravedigger*2 | Acolyte Wisp*6 | Acolyte Wisp*6 # Mortar Sniper
 campaign100 w14: ScytheWraith*17 | Guard Rioter*6 Guard Rioter*6 Thug # Spinner Brute
 campaign100 w15: Acolyte Gravedigger Acolyte Gravedigger Sniper*2 Gravedigger Lamplighter BoundWraith Lamplighter*2 Acolyte Lunger Acolyte | Gravedigger BoundWraith*2 | Acolyte*4 Lamplighter*2 | Gravedigger BoundWraith*2 | Acolyte*4 Lamplighter*2 # Sniper Lunger
@@ -171,7 +171,7 @@ campaign100leg2 w1: Rioter*6 Guard*2 | Rioter*5
 campaign100leg2 w2: Rioter*4 SecurityGuard*2 | Thug Rioter*3 Shiv
 campaign100leg2 w3: Rioter*2 SecurityGuard Thug Guard RiotShield*2 | SecurityGuard*3 Rioter*2
 campaign100leg2 w4: Rioter Guard Rioter GasGrenadier Rioter*2 TaserGuard*2 | Thug Rioter*3 Shiv
-campaign100leg2 w5: RiotShield SecurityGuard Rioter SecurityGuard Thug Rioter | Guard Rioter*6 Guard Rioter*6 Thug | RiotShield*4 Guard*5
+campaign100leg2 w5: RiotShield GasGrenadier SecurityGuard Shiv Thug Guard | RiotShield*4 Guard*5 | Guard Rioter*6 Guard Rioter*6 Thug
 campaign100leg2 w5 boss: Boss Grunt*2
 campaign100leg2 w6: Shiv Worker*6 Rioter Thug Worker*5 Rioter Soldier*2
 campaign100leg2 w7: Bumble Soldier Bumble Worker*3 Bumble Needler*2 | Soldier*2 | Bumble Worker*3 Hornet | Soldier*2
@@ -179,8 +179,8 @@ campaign100leg2 w8: Soldier*2 Bumble CombShield*2 | Bumble Worker*3 Hornet | Nee
 campaign100leg2 w9: Worker CombShield Worker Stinger*2 | CombShield*2 Worker*4 | Bumble Worker*3 Hornet | CombShield*2 Worker*4
 campaign100leg2 w10: Worker Stinger Worker HoneyLobber Soldier CombShield Bumble Worker HoneyLobber Stinger Bumble CombShield HoneyLobber Bumble Worker | Soldier Worker*6 Soldier Worker*6 Bumble | CombShield*4 Soldier*5
 campaign100leg2 w10 boss: HiveQueen
-campaign100leg2 w11: Soldier Wisp*2 Worker Wisp GasGrenadier Wisp RiotShield Worker Wisp Worker Rioter*2 Wisp*4 Worker Acolyte*2 | Acolyte Wisp*6
-campaign100leg2 w12: GasGrenadier Wisp BoundWraith*2 Wisp BoundWraith Wisp Guard Wisp*4 RiotShield Wisp*5 BoundWraith*4 | Gravedigger BoundWraith*2 | Gravedigger BoundWraith*2
+campaign100leg2 w11: Soldier Wisp*2 Worker Wisp TaserGuard Wisp RiotShield Worker Wisp Worker Rioter*2 Wisp*4 Worker Acolyte*2 | Acolyte Wisp*6
+campaign100leg2 w12: GasGrenadier Wisp BoundWraith*2 Wisp BoundWraith Wisp RiotShield Wisp*4 RiotShield Wisp*5 BoundWraith*4 | Gravedigger BoundWraith*2 | Gravedigger BoundWraith*2
 campaign100leg2 w13: Acolyte*2 Wisp Acolyte GasGrenadier Wisp Acolyte GasGrenadier Mourner*2 Acolyte GasGrenadier Wisp Mourner Wisp Acolyte*2 Wisp Mourner Wisp*2 Acolyte Mourner*2 Wisp*2 Mourner Acolyte Mourner*4 # Brute Mortar
 campaign100leg2 w14: Wisp*18 | Guard Rioter*6 Guard Rioter*6 Thug # Shielder Brute
 campaign100leg2 w15: Wisp*2 Brute Wisp*2 Acolyte Brute Wisp*3 Mourner Acolyte Wisp*2 Lunger | Mourner*2 BoundWraith*2 Acolyte*6 | Acolyte Wisp*6 # Lunger Brute
@@ -241,8 +241,8 @@ zombie w30: Shambler Spitter Crawler Shambler Spitter Shambler*2 Bloater Shamble
 zombie w30 boss: Duelist
 hard w1: Rioter*12
 hard w2: Thug Guard Rioter Thug Rioter | SecurityGuard*3 Rioter*2
-hard w3: Thug RiotShield SecurityGuard*3 Shiv SecurityGuard | Thug Rioter*3 Shiv
-hard w4: Rioter*2 Thug SecurityGuard GasGrenadier Thug | Guard Rioter*6
+hard w3: Thug TaserGuard RiotShield Turnkey SecurityGuard Thug Turnkey | Thug Rioter*3 Shiv
+hard w4: Rioter*2 Shiv SecurityGuard GasGrenadier Thug | Guard Rioter*6
 hard w5:  | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
 hard w5 boss: Boss Grunt*2
 hard w6: SecurityGuard Soldier*3 | Soldier Worker*6 | Thug Rioter*3 Shiv
@@ -287,33 +287,33 @@ hard w38: Stormcaller DustDevil*2 Stormcaller DustDevil Stormcaller*2 DustDevil*
 hard w39: Grounder Lineman Spinner*2 DustDevil Thunderhead Grounder*2 Spinner Stormcaller Grounder Lineman | Brute*2 Lunger | Grounder*2 Stormcaller*3 | Stormcaller*2 DustDevil*3 | Thunderhead Lineman DustDevil*3 | Thunderhead Lineman DustDevil*3 | Grounder*2 Stormcaller*3 # Brute Spinner Lunger
 hard w40: Grounder Sniper*2 Thunderhead Grounder Sniper DustDevil Pylon*2 Grounder Thunderhead*2 Lunger | Stormcaller*3 Grounder*2 Stormcaller*3 | Pylon*2 | Stormcaller*2 DustDevil*3 | Pylon*2 | Stormcaller*2 DustDevil*3 | Grounder*2 Stormcaller*3 # Sniper Lunger Brute
 hard w40 boss: StormHerald Sniper*5
-path-SwarmFields w6: Thug Rioter Worker GasGrenadier Rioter Soldier RiotShield SecurityGuard Worker | Soldier Worker*6
-path-SwarmFields w7: Needler Worker Rioter*2 TaserGuard Needler*2 Thug | Needler*3 Worker*2 | Needler*3 Worker*2
+path-SwarmFields w6: Thug Rioter Worker GasGrenadier Rioter Soldier RiotShield Thug Worker | Soldier Worker*6
+path-SwarmFields w7: Needler Worker Rioter*2 SecurityGuard Needler*2 Shiv | Needler*3 Worker*2 | Needler*3 Worker*2
 path-SwarmFields w8: TaserGuard Worker Rioter*2 Soldier | Needler*3 Worker*2 | Bumble Worker*3 Hornet | Bumble Worker*3 Hornet
-path-SwarmFields w9: SecurityGuard Needler*3 HoneyLobber Stinger HoneyLobber Stinger Needler*2 CombShield | CombShield*2 Worker*4 | Needler*3 Worker*2
+path-SwarmFields w9: Thug Needler*3 HoneyLobber Stinger HoneyLobber Stinger Needler*2 CombShield | CombShield*2 Worker*4 | Needler*3 Worker*2
 path-SwarmFields w10: Hornet HoneyLobber | CombShield*2 Worker*4 | CombShield*4 Soldier*5 | Soldier Worker*6
 path-SwarmFields w10 boss: HiveQueen
-path-SniperRidge w6: SecurityGuard RiotShield Rioter*2 Thug Worker Soldier Worker Guard | Soldier Worker*6
+path-SniperRidge w6: SecurityGuard RiotShield Rioter*2 Shiv Worker Soldier Worker Guard | Soldier Worker*6
 path-SniperRidge w7: CombShield Needler SecurityGuard Rioter Guard Rioter | Needler*3 Worker*2 | Soldier Worker*6
 path-SniperRidge w8: Rioter CombShield Bumble GasGrenadier Needler Bumble HoneyLobber Stinger Needler Hornet Soldier Worker Rioter | Soldier Worker*6
 path-SniperRidge w9: Worker CombShield HoneyLobber Rioter*2 Bumble Worker HoneyLobber CombShield Worker Bumble | Bumble Worker*3 Hornet | Soldier Worker*6
 path-SniperRidge w10: Worker Needler Soldier Stinger | CombShield*4 Soldier*5 | Needler*3 Worker*2 | CombShield*2 Worker*4
 path-SniperRidge w10 boss: HiveQueen
-path-EliteGauntlet w6: Worker Sniper RiotShield Rioter Soldier*2 Brute Rioter Worker Soldier Sniper*2
+path-EliteGauntlet w6: Swarmer GasGrenadier Lunger SecurityGuard Worker Soldier Worker Soldier Guard Soldier Lunger Swarmer
 path-EliteGauntlet w7: Lunger HoneyLobber CombShield Swarmer Worker Grunt RiotShield Brute Rioter*2 Worker Soldier Needler Worker
 path-EliteGauntlet w8: Spinner Swarmer Sniper Rioter CombShield Rioter Sniper Needler Swarmer | CombShield*2 Worker*4
 path-EliteGauntlet w9: Worker Grunt Brute Guard Grunt Needler Lunger Spinner Bumble | Soldier Worker*6
 path-EliteGauntlet w10: Needler Stinger Swarmer HoneyLobber Shielder*2 Grunt Sniper Grunt | CombShield*4 Soldier*5
 path-EliteGauntlet w10 boss: HiveQueen
 path-BurningGrounds w6: Guard Worker*2 Soldier | Soldier Worker*6 | SecurityGuard*3 Rioter*2
-path-BurningGrounds w7: CombShield Needler Worker Bumble Shiv Bumble TaserGuard CombShield Worker Soldier*2 GasGrenadier Guard | Needler*3 Worker*2
+path-BurningGrounds w7: CombShield Needler Worker Bumble Turnkey Bumble TaserGuard CombShield Worker Soldier*2 GasGrenadier Guard | Needler*3 Worker*2
 path-BurningGrounds w8: Hornet Rioter HoneyLobber Soldier RiotShield Rioter HoneyLobber Worker CombShield | CombShield*2 Worker*4 | Bumble Worker*3 Hornet
-path-BurningGrounds w9: RiotShield Needler HoneyLobber | Bumble Worker*3 Hornet | Soldier Worker*6 | Soldier Worker*6
+path-BurningGrounds w9: GasGrenadier Needler HoneyLobber | Bumble Worker*3 Hornet | Soldier Worker*6 | Soldier Worker*6
 path-BurningGrounds w10: Bumble | CombShield*4 Soldier*5 | Soldier Worker*6 | Soldier Worker*6
 path-BurningGrounds w10 boss: HiveQueen
 path-Sanctuary w6: Soldier*2 Rioter Soldier Sniper Rioter Spinner | Soldier Worker*6 | Thug Rioter*3 Shiv
 path-Sanctuary w7: RiotShield TaserGuard Needler*2 HoneyLobber Brute Soldier Rioter CombShield Soldier Bumble Brute Rioter CombShield Needler | Needler*3 Worker*2
-path-Sanctuary w8: Needler CombShield Rioter HoneyLobber Thug Mortar SecurityGuard Sniper Rioter Hornet | CombShield*2 Worker*4 | Soldier Worker*6
+path-Sanctuary w8: Needler CombShield Rioter HoneyLobber Shiv Mortar Thug Sniper Rioter Hornet | CombShield*2 Worker*4 | Soldier Worker*6
 path-Sanctuary w9: CombShield Soldier Worker RiotShield Stinger Worker Brute Mortar | CombShield*2 Worker*4 | Bumble Worker*3 Hornet | Needler*3 Worker*2
 path-Sanctuary w10: Stinger Shielder HoneyLobber Shielder Bumble Soldier HoneyLobber | CombShield*4 Soldier*5 | Needler*3 Worker*2 | Needler*3 Worker*2
 path-Sanctuary w10 boss: HiveQueen
@@ -323,26 +323,26 @@ path-FrozenLake w8: Worker*3 Bumble Stinger GasGrenadier CombShield Rioter*2 | C
 path-FrozenLake w9: Stinger Rioter Worker Needler Rioter Worker | Soldier Worker*6 | Needler*3 Worker*2 | Bumble Worker*3 Hornet
 path-FrozenLake w10: Worker*2 CombShield | CombShield*4 Soldier*5 | Bumble Worker*3 Hornet | Soldier Worker*6
 path-FrozenLake w10 boss: HiveQueen
-path-BloodMoon w6: SecurityGuard Worker Guard Worker TaserGuard Guard SecurityGuard Worker SecurityGuard | Soldier Worker*6
+path-BloodMoon w6: SecurityGuard Worker Guard Worker SecurityGuard Guard SecurityGuard Worker SecurityGuard | Soldier Worker*6
 path-BloodMoon w7: Rioter*2 Worker TaserGuard HoneyLobber Soldier Worker Guard | Needler*3 Worker*2 | Needler*3 Worker*2
-path-BloodMoon w8: Shiv HoneyLobber*2 Worker Guard SecurityGuard Stinger CombShield Hornet | Bumble Worker*3 Hornet | CombShield*2 Worker*4
-path-BloodMoon w9: Stinger*2 Needler Hornet Shiv CombShield Needler Soldier Needler | Soldier Worker*6 | CombShield*2 Worker*4
+path-BloodMoon w8: Turnkey HoneyLobber*2 Worker Guard SecurityGuard Stinger CombShield Hornet | Bumble Worker*3 Hornet | CombShield*2 Worker*4
+path-BloodMoon w9: Stinger*2 Needler Hornet Turnkey CombShield Needler Soldier Needler | Soldier Worker*6 | CombShield*2 Worker*4
 path-BloodMoon w10: Soldier Needler Soldier Needler Worker | CombShield*4 Soldier*5 | Bumble Worker*3 Hornet | Needler*3 Worker*2
 path-BloodMoon w10 boss: HiveQueen
 path-Fogbound w6: TaserGuard RiotShield TaserGuard Soldier Rioter Worker*2 GasGrenadier Rioter | Soldier Worker*6
-path-Fogbound w7: RiotShield Shiv Bumble*3 Worker Shiv CombShield Worker Shiv Soldier | Soldier Worker*6
+path-Fogbound w7: RiotShield Turnkey Bumble*3 Worker Shiv CombShield Worker Turnkey Soldier | Soldier Worker*6
 path-Fogbound w8: Bumble CombShield Needler Rioter CombShield Rioter Worker Guard Stinger CombShield | Needler*3 Worker*2 | Bumble Worker*3 Hornet
 path-Fogbound w9: Needler Bumble Worker Soldier Shiv | CombShield*2 Worker*4 | Bumble Worker*3 Hornet | CombShield*2 Worker*4
 path-Fogbound w10: CombShield Soldier Stinger CombShield Hornet CombShield Soldier Needler | Soldier Worker*6 | CombShield*4 Soldier*5
 path-Fogbound w10 boss: HiveQueen
-path-NarrowPass w6: Worker RiotShield Shiv Soldier Worker TaserGuard Rioter RiotShield Rioter | Soldier Worker*6
-path-NarrowPass w7: Bumble*2 Shiv Soldier TaserGuard SecurityGuard TaserGuard Soldier | Needler*3 Worker*2 | Needler*3 Worker*2
-path-NarrowPass w8: Stinger Bumble Thug Bumble Soldier RiotShield Soldier TaserGuard | Needler*3 Worker*2 | Soldier Worker*6
+path-NarrowPass w6: Worker RiotShield Turnkey Soldier Worker SecurityGuard Rioter RiotShield Rioter | Soldier Worker*6
+path-NarrowPass w7: Bumble*2 Turnkey Soldier SecurityGuard Thug TaserGuard Soldier | Needler*3 Worker*2 | Needler*3 Worker*2
+path-NarrowPass w8: Stinger Bumble Shiv Bumble Soldier RiotShield Soldier TaserGuard | Needler*3 Worker*2 | Soldier Worker*6
 path-NarrowPass w9: Guard Needler | CombShield*2 Worker*4 | Soldier Worker*6 | Soldier Worker*6
 path-NarrowPass w10: Needler Worker Hornet CombShield Worker | Needler*3 Worker*2 | CombShield*4 Soldier*5 | Needler*3 Worker*2
 path-NarrowPass w10 boss: HiveQueen
-path-Bazaar w6: Rioter GasGrenadier Rioter Worker Soldier*2 TaserGuard Worker Soldier SecurityGuard Worker SecurityGuard Worker Soldier Worker*2
-path-Bazaar w7: Needler*2 TaserGuard CombShield Soldier SecurityGuard RiotShield CombShield*2 TaserGuard CombShield | Soldier Worker*6
+path-Bazaar w6: Rioter TaserGuard Rioter Worker Soldier*2 SecurityGuard Worker Soldier SecurityGuard Worker SecurityGuard Worker Soldier Worker*2
+path-Bazaar w7: Needler*2 TaserGuard CombShield Soldier SecurityGuard RiotShield CombShield*2 SecurityGuard CombShield | Soldier Worker*6
 path-Bazaar w8: Bumble Hornet HoneyLobber GasGrenadier*2 Bumble CombShield RiotShield | Soldier Worker*6 | Bumble Worker*3 Hornet
 path-Bazaar w9: RiotShield Worker Soldier*2 HoneyLobber CombShield | CombShield*2 Worker*4 | Bumble Worker*3 Hornet | Bumble Worker*3 Hornet
 path-Bazaar w10: Needler Worker | CombShield*4 Soldier*5 | CombShield*2 Worker*4 | Soldier Worker*6
