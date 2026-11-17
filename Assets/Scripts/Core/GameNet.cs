@@ -554,6 +554,14 @@ namespace Arena
                 s.Byte(ref p.WallPlate[k]);
             s.Float(ref p.UnbreakT);
             s.Float(ref p.RodT);    // Lightning Rod's charge (LightningRod.cs)
+            s.Byte(ref p.HeliGuns);  // the Attack Helicopter (AttackHelicopter.cs): its guns, then their targets while it's out
+            if (p.HeliGuns > 0)
+            {
+                s.Int(ref p.HeliTgt);
+                s.Int(ref p.HeliTgt2);
+            }
+            else if (s.Reading)
+                p.HeliTgt = p.HeliTgt2 = 0;
             s.Float(ref p.SteelT);  // Caught Steel (CaughtSteel.cs)
             s.Byte(ref p.Steel);
             s.Bool(ref p.GauntletDown);  // The Gauntlet lying where it hit (Gauntlet.cs)

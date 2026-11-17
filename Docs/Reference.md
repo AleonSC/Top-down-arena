@@ -147,6 +147,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Airstrike | Dps | Space 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Throw a flare at your cursor: a jet carpets a line across the arena through it, across your aim (55 a bomb), and the line burns for 3 s. |
 | Mark for Death | Dps | Space 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark the enemy nearest your cursor: it takes 50% more damage for 6 s. |
 | Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | For 6 s you fire three times as fast, with +2 extra projectiles. |
+| Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | Call in a gunship for 10 s. It circles you and locks one enemy at a time, the one nearest you, hosing it with a chaingun (20 rounds a second, 8 damage each) until it dies, then the next. It can't be hit. |
 
 ### Elementalist
 

@@ -261,8 +261,8 @@ Parry upgrades show up like any other card:
 
 **F** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and the Tank Elementalist: **Lightning Rod**, below the table; and the
-Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; a
-Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
+DPS Soldier: **Attack Helicopter**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -274,6 +274,18 @@ tracer. A shot the plates take whole gives no hit grace, so a stream of fire kee
 10 s run out, the armour is gone (the rest of that hit reaches your health), you go down, or the wave is cleared (as
 Last Stand), and the plates fall off. Bots that have it put it on with four or more enemies within 260 px. Mastered:
 450 armour and 18 a shard. Design: [`Docs/Mockups/juggernaut-suit.html`](Docs/Mockups/juggernaut-suit.html).
+
+**Attack Helicopter** (DPS Soldier, picked instead of Artillery Assault, 70 s): a gold radio ring goes out from you and
+an olive gunship drops in from off-screen over 0.9 s (high and big, its shadow tightening), then for **10 s** it circles
+you 230 px out and its nose chaingun works through the enemies one at a time: it locks the enemy **nearest you** within
+**560 px** (amber brackets close on it over 0.25 s and turn red), the barrels spin up, and it fires **20 rounds a second
+of 8 damage** (160 a second, times your damage multiplier) until that enemy dies or leaves the 560 px, then turns on the
+next. The rounds hit at once (it flies over walls and props and can't be hit); the tracers, muzzle flash, brass falling
+to the floor and sparks on the target are only the look. It leaves (climbing away) when the time runs out, you go down,
+or the wave is cleared. You hear its rotor (a deep blade whop over a turbine whine) swell in as it arrives and fade as it
+climbs away, the barrels whine up on a fresh target, and every round cracks (all on the Weapons volume). Mastered: a
+second gun on the other wing, so two targets at once. Design:
+[`Docs/Mockups/attack-helicopter.html`](Docs/Mockups/attack-helicopter.html) (the Orbit pattern).
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|

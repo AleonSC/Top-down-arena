@@ -119,6 +119,9 @@ namespace Arena
         // The Nunchaku (NunchakuSoundBank.cs, the Storm set of Docs/Mockups/nunchaku-sounds.html): each combo step and the Twin Counter as
         // pressed, a stick landing, the windmill spinning up, a shot swatted. Sent.
         NunSnap, NunBack, NunFig8, NunCrush, NunCounter, NunHit, NunGuard, NunSwat,
+        // The Attack Helicopter (HeliSoundBank.cs), played by each game itself from the look: the rotor's loop, a chaingun round,
+        // the barrels spinning up on a new target. Not sent.
+        HeliRotor, HeliShot, HeliSpin,
     }
 
     public struct SoundCue
@@ -367,6 +370,10 @@ namespace Arena
         public float UltT;                     // ultimate time left (Fortress: its dome's time, too)
         public float RodT;                     // Lightning Rod: seconds of charge left (replicated; LightningRod.cs)
         public int RodArcs;                    // host: how many enemies each bolt arcs on to (2, 3 mastered)
+        public byte HeliGuns;                  // Attack Helicopter: its guns (1, 2 mastered; 0 = not out), replicated (AttackHelicopter.cs)
+        public int HeliTgt, HeliTgt2;          // Attack Helicopter: each gun's target's enemy id (0 = none), replicated
+        public float HeliLock, HeliLock2, HeliCd, HeliCd2, HeliSpin;  // host: each gun's lock-on and next round, the barrels' spin-up
+        public int HeliRounds;                 // host: rounds that hit (tests)
         public float DomeT;                    // Fortress: the dome's time left (replicated; Dome.cs)
         public V2 DomePos;                     // Fortress: where the dome stands (replicated)
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
