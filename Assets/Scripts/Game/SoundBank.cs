@@ -403,6 +403,7 @@ namespace Arena
                 BuildFlood();  // FloodSoundBank.cs
                 BuildWaterWard();  // WaterWardSoundBank.cs
                 BuildKineticWall();  // KineticWallSoundBank.cs
+                BuildDogma();  // DogmaSoundBank.cs
             }
             catch (Exception ex)
             {

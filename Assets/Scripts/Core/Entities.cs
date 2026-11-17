@@ -128,6 +128,8 @@ namespace Arena
         WwSplash, WwBurst, WwCast,
         // Kinetic Wall (KineticWallSoundBank.cs): the cast, the field's hum (a loop), a catch, the full chime, the unleash. Played by each screen from what it sees, never sent.
         KwCast, KwHum, KwCatch, KwFull, KwUnleash,
+        // Dragon's Dogma (DogmaSoundBank.cs): the cast's roar, a devour, a big one bitten, it coiling back in. Sent.
+        DogmaRoar, DogmaDevour, DogmaBite, DogmaHome,
     }
 
     public struct SoundCue
