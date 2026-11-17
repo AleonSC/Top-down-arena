@@ -1071,19 +1071,25 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   many as you can afford, and it can take you past the cap.
 - **Room cards** (the default; the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote**, plus **Team purse**). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
   Every room is a card in your own **hand** (up to **6**). Cards: **Box** (7 x 6), **Hall** (8 x 3), **Chamfer**, **L hall**, **T hall**, **Cross**, **Ring**
-  (the surprise-room shapes) and **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it for a prize pick).
+  (the surprise-room shapes), and two **utility cards**: **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it
+  for a prize pick) and **Builder Shop** (a 5 x 4 amber shop room, see below).
   - **Where they come from**: the first build round deals **Box, Hall and a random shape**; every build round gives everyone a basic card (a **Hall** after odd waves,
     a **Box** after even ones); a cleared wave gives each player a **1 in 4** shape card; a beaten **boss** gives everyone a shape card and one player (taking turns)
     a **Mini-boss** card; an opened **chest node** gives everyone a shape card. The **Black Market** sells three cards a boss cycle (a basic, a shape, and a third
-    that is a Mini-boss card one cycle in three) for **vectors**: Hall 10, Box 16, Chamfer 22, L 24, T 26, Cross 30, Ring 34, Mini-boss 40. A full hand drops new cards.
+    that is a Mini-boss card one cycle in three, a Builder Shop card the cycle before, else another shape) for **vectors**: Hall 10, Box 16, Chamfer 22, L 24, T 26,
+    Cross 30, Ring 34, Builder Shop 36, Mini-boss 40. A full hand drops new cards.
+  - **Builder Shop**: play it like any card and its room holds a workbench. Stand in it during a build round and its shelf comes up at the bottom of the screen
+    (the arena stays live): **five room cards** (Box, Hall, three different shapes; one wave in three the last is a **Mini-boss** card), a new shelf **every wave**,
+    at **a quarter off** the Black Market's price (Hall 8, Box 12, Chamfer 17, L 18, T 20, Cross 23, Ring 26, Mini-boss 30 vectors). Click **BUY** to put one in
+    your hand. It never sells itself; no enemies come in there.
   - **Playing one**: in a build round open **Build**: the first tool is **Room cards**, with your hand on the right (each card drawn as its room). Pick a card, and dots on the
     map show every spot it fits; the room follows the mouse as a green ghost on the nearest fit (and says how many loops it closes). **R** steps through the other
     turns and mirrors that fit there; **left click** builds it at once (no vote, no vectors); **right click** puts the card back.
   - **Inside the rooms**: each card's room comes with its own obstacles, turned with the room and kept out of its doorways: **Box** four pillars round a low wall;
     **Hall** a block off alternate walls near each end (a zig-zag); **Ring** a buttress on each outer wall and a pillar in each corner; **Cross** a pillar in the
     crossing and a block in each arm (a pinwheel); **L hall** a pillar in the bend and blocks off alternate walls; **T hall** a pillar facing the stem and a block in
-    each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars. Card rooms get no random cover or side walls.
-  - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's cards.
+    each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars; **Builder Shop** a pillar in each corner. Card rooms get no random cover or side walls.
+  - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's and Builder Shop's cards.
 - **Building rounds** (Free draw and Team vote): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
