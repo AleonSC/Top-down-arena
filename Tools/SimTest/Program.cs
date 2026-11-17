@@ -63,7 +63,8 @@ static partial class Program
     {
         if (bot)
             s.Game.Bot = true;
-        s.Host(port, name, role, weapon, ability, kit);
+        if (!s.Host(port, name, role, weapon, ability, kit))
+            Console.WriteLine("  HOST FAILED on port " + port + ": " + s.Status + " (another SimTest run using the same ports? give it PORTBASE=n)");
         s.Diff.Set(DiffKnob.Campaign, 0f);  // (the tests expect the usual random waves; CampaignTest turns it on itself)
         return s;
     }
