@@ -66,7 +66,7 @@ static partial class Shot {
       foreach (var e in gm.Enemies.Values) if (et >= 0.75f) { V2 d = (e.Pos - wall); e.Pos = e.Disp = e.Pos + d.Normalized() * 70f; }
     }
     m.Model = int.Parse(Environment.GetEnvironmentVariable("ENGMODEL") ?? "0");  // ENGMODEL=0-2 the Engineer look, -1 the stand-in Soldier
-    m.FollowLook = int.Parse(Environment.GetEnvironmentVariable("ENGFOLLOW") ?? "0");  // ENGFOLLOW=0-2 the Strider look
+    m.FollowLook = int.Parse(Environment.GetEnvironmentVariable("ENGFOLLOW") ?? "1");  // ENGFOLLOW=0-2 the Strider look (default 1, the picked plated walker)
     ArenaApp.engineerMock = m;
     Console.Error.WriteLine("engineer: " + mode + " t=" + et + " enemies=" + gm.Enemies.Count);
   }

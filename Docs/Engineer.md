@@ -21,7 +21,7 @@ speed x0.95. Passive **Draftsman**: +25% vectors (Expanding arena). DPS first; T
 Breach reuses the breach-room work ([`BreachRooms.md`](BreachRooms.md), `SurpriseOptions`, `PinBreaches`): the room is
 placed so its floor covers the hole, shifting sideways around neighbours; no legal spot = blast only.
 
-## Looks (to pick)
+## Looks (picked Nov 17: Engineer A Hi-vis, Strider B plated walker)
 
 `Game/EngineerModel.cs`, sheets in `Mockups/engineer/look-*.png`: Engineer A Hi-vis / B Drafter / C Welder; Strider A wireframe /
 B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
