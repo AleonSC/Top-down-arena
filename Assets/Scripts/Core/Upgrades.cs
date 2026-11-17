@@ -33,6 +33,7 @@ namespace Arena
         LightningRod,    // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
         Flood,        // the Tank Elementalist's fourth Space ability (Flood.cs), the lobby's 4th ability key
+        AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
         None = 255,
     }
 

@@ -1375,6 +1375,7 @@ namespace Arena
             FirePendingClaps();  // Squall.cs: Grounders' Thunderclaps charged by this tick's hits
             SendBounces();    // Relics.cs: shots that bounced off a wall this tick
             TickRods(dt);     // LightningRod.cs: the charge running down, and the bolts this tick's hits called
+            TickHelis(dt);    // AttackHelicopter.cs: the gunship's targets and rounds
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
             TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();
