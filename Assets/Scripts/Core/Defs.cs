@@ -148,6 +148,8 @@ namespace Arena
         WindClash,
         // the Hemomancer DPS's fourth (EmbolusSpears.cs): a blood spear in each hand
         EmbolusSpears,
+        // the Tank Knight's fourth (BulwarkBarrier.cs): a kite shield
+        BulwarkBarrier,
     }
 
     public class WeaponDef

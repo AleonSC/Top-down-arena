@@ -683,6 +683,8 @@ namespace Arena
                     if (c > 0f) MCirc(33f, 0f, 9f + 5f * c, new Rgba(1f, 0.82f, 0.3f, 0.15f + 0.3f * c), 14);
                     break;
                 }
+                case WeaponId.BulwarkBarrier:
+                    break;  // BulwarkBarrierLook.cs draws the shield round your front half
                 case WeaponId.Lance:
                     break;  // LanceLook.cs draws the arms, shield and lance, held and swung (the model leaves its own out)
                 case WeaponId.Halberd:

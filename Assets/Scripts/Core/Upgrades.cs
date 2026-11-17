@@ -117,6 +117,7 @@ namespace Arena
         public float HealthCostMult = 1f;                                  // Blood Mage: Bloodthirst (health paid for abilities)
         // Knight weapon cards (Weapons; Docs/UpgradePools.md step 7)
         public float HammerAreaMult = 1f, HammerStunBonus;                 // Warhammer: Quake Hammer
+        public float BbRamMult = 1f, BbBashMult = 1f;                     // Bulwark Barrier: Iron Boss
         public float BreachKnockMult = 1f, ImpactMult = 1f;                // Lance: Breacher
         public float HalberdReachMult = 1f, HalberdSweepBonus;             // Halberd: Long Haft (sweep bonus in radians, each side)
         public float StaffHealBonus; public int StaffExtraStacks;          // Quarterstaff: Pilgrim's Staff
