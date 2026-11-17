@@ -159,7 +159,7 @@ namespace Arena
                 HurtEnemy(e, dmg, p.Id);
                 e.WetT = Math.Max(e.WetT, wet);
             }
-            BroadcastFx(FxKind.WwSplash, at, p.Pos, WwColor, r, WwSplashT, Sfx.None);
+            BroadcastFx(FxKind.WwSplash, at, p.Pos, WwColor, r, WwSplashT, Sfx.WwSplash);
         }
 
         /// Host, from the enemy-bullet loop in Combat.cs: does a landed Water Ward drop eat this shot? It bursts into a soaking mist.
@@ -182,7 +182,7 @@ namespace Arena
                     foreach (var e in Enemies.Values)
                         if (Targetable(e) && d.CloserThan(e.Pos, r + e.Radius * 0.5f))
                             e.WetT = Math.Max(e.WetT, wet);
-                    BroadcastFx(FxKind.WwBurst, d, b.Pos, WwColor, r, WwBurstT, Sfx.None);
+                    BroadcastFx(FxKind.WwBurst, d, b.Pos, WwColor, r, WwBurstT, Sfx.WwBurst);
                     WwRemove(p, i);
                     return true;
                 }
