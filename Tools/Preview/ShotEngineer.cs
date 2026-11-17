@@ -45,6 +45,10 @@ static partial class Shot {
       put(EnemyType.Grunt, new V2(600f, 300f), MathX.Pi * 0.2f); put(EnemyType.Grunt, new V2(520f, 380f), MathX.Pi * 0.1f);
       put(EnemyType.Grunt, new V2(1080f, 520f), MathX.Pi * 1.1f);
       me.Aim = (new V2(600f, 300f) - me.Pos).Angle;
+      string eb = Environment.GetEnvironmentVariable("ENGBUILD");  // ENGBUILD=<0-1>: the Strider that far through building in
+      if (eb != null) { s.Wind = 2f + float.Parse(eb, inv); s.Stacks = 0; s.LinkTo = 0; }
+      string el = Environment.GetEnvironmentVariable("ENGLOOT");  // ENGLOOT=<0-4>: a Breach room's loot node beside you (vectors, crate, repair, bench, ambush)
+      if (el != null) gm.Nodes.Add(new MapNode { X = 860, Y = 640, Kind = NodeKind.BreachLoot, Rule = byte.Parse(el) });
       Console.Error.WriteLine("engineer: real");
       return;
     }
