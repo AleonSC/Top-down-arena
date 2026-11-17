@@ -3,8 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 374: the Revolver's Pistol Whip (Alt): `FxKind.PistolWhip`, `Msg.WeaponDash` kind 42 (`DashWhip`).
+- 373: Bulwark Barrier (Tank Knight 4th weapon): `WeaponId.BulwarkBarrier`, `FxKind.BulwarkStep`, `BulwarkBlock`, `BulwarkBash`, player snapshot gains `BbBrace`, `BbRam`, `BbBashes`, `BbBashTo`, `Msg.WeaponDash` kinds 40-41 (the Brace held and let go).
 
-- 373: the Revolver's Pistol Whip (Alt): `FxKind.PistolWhip`, `Msg.WeaponDash` kind 40 (`DashWhip`).
 - 372: Embolus Spears (Hemomancer DPS 4th weapon): `WeaponId.EmbolusSpears`, `FxKind.EmbolusBlast`, player snapshot gains `EsSt`, `EsPos` and `EsDir` for both hands, `Msg.WeaponDash` kind 39 (the burst).
 - 371: the Nunchaku's sounds: `Sfx.NunSnap`, `NunBack`, `NunFig8`, `NunCrush`, `NunCounter`, `NunHit`, `NunGuard`, `NunSwat` appended
 - 370: the Rioter's bottle: bullet kind `Defs.BottleShot` (a bottle Rioter winds up on `Enemy.Phase` 1 and throws; the Guard's rally is host-only speed)

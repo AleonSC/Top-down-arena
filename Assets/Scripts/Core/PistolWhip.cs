@@ -9,7 +9,7 @@ namespace Arena
     /// swing, Knight.cs, with its own look instead of the sword's).
     public partial class Game
     {
-        const byte DashWhip = 40;
+        const byte DashWhip = 42;
         public const float WhipReach = 135f, WhipArc = 190f;  // the arc's radius (px) and width (degrees)
         public const float WhipMult = 1.75f;                  // damage against a round's
         public const float WhipKnock = 180f;

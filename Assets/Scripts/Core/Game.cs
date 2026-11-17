@@ -1324,6 +1324,7 @@ namespace Arena
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
+            TickBulwark(dt);  // BulwarkBarrier.cs: the Brace held or dropped, Ram draining, a full bash's shards
             TickLance(dt);  // Lance.cs: Hook & Haul's cooldown and hooks landing
             TickCenser(dt);      // Censer.cs: the rite forgetting its place, Censer Cast landing
             TickKatanaLater(dt);  // Katana.cs: the Katana's timed cuts, the Momentum Burst, the caltrops

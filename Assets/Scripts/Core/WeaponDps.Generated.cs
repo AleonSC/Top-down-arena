@@ -47,6 +47,7 @@ namespace Arena
             { WeaponId.Warhammer, 64f },
             { WeaponId.Lance, 60f },
             { WeaponId.Halberd, 48f },
+            { WeaponId.BulwarkBarrier, 49f },
             { WeaponId.HolyMace, 36f },
             { WeaponId.Lightbringer, 58f },
             { WeaponId.Censer, 35f },

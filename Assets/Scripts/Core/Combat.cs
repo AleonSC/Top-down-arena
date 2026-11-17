@@ -653,6 +653,12 @@ namespace Arena
                             StandHit(p, b);
                             break;
                         }
+                        if (BulwarkBlocks(p, b))
+                        {
+                            scratchIds.Add(b.Id);  // the Bulwark Barrier: everything at your front half stops, red aimed shots too (BulwarkBarrier.cs)
+                            BulwarkHit(p, b);
+                            break;
+                        }
                         if (p.ShellOn && Enters(b, p.Pos, ShellRadius))
                         {
                             scratchIds.Add(b.Id);  // Blood Shell: stops everything, red aimed shots too, and bills its owner (BloodShell.cs)
