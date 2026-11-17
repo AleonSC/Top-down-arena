@@ -57,6 +57,7 @@ namespace Arena
         public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
+        public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -487,6 +488,8 @@ namespace Arena
                 TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
             if (hits.Count > 0 && s.LanceKind > 0)
                 LanceHitCue(p, s.LanceKind, hits.Count);  // a Lance step hit something: its sound, your hit-pause and shake (Lance.cs)
+            if (s.Nun && hits.Count > 0)
+                BroadcastSound(Sfx.NunHit);  // a Nunchaku stick landed (the step's own sound was sent at the press)
             if (s.Rapier && hits.Count > 0)
                 RapierGainTempo(p, hits.Count);
             if (s.Knuckle == 7)

@@ -30,6 +30,7 @@ namespace Arena
         public const int NunSwatCap = 8;
         /// The Twin Counter: its line (reach and half width), damage (base and per swat, against the weapon's 20), and the wait after.
         public const float NunCounterReach = 175f, NunCounterWidth = 22f, NunCounterBase = 20f, NunCounterPer = 6f, NunCounterCd = 0.55f;
+        static readonly Sfx[] NunStepSounds = { Sfx.NunSnap, Sfx.NunBack, Sfx.NunFig8, Sfx.NunCrush };
         public static readonly Rgba NunCrimson = new Rgba(1f, 0.3f, 0.37f);
 
         float nunSwitchLocalCd;  // your own game: until the key switches again (the host checks its own)
@@ -55,13 +56,13 @@ namespace Arena
             if (p.NunGuard)
             {
                 var c = NunchakuMotion.Counter;
-                var s = NunSwing(p, aim, NunCounterReach, 0f, NunCounterDamage(p) * dmg, c.Dur * NunCounterAt, Sfx.SwingLight);
+                var s = NunSwing(p, aim, NunCounterReach, 0f, NunCounterDamage(p) * dmg, c.Dur * NunCounterAt, Sfx.None);
                 s.HalfWidth = NunCounterWidth;
                 s.Thrust = true;
                 s.Heavy = true;
                 p.FireCd = NunCounterCd / FireRate(p);
                 p.NunAttackT = c.Dur;  // the discs are down while the chucks lash out (TickNunchaku)
-                BroadcastFx(FxKind.NunStep, p.Pos, p.Pos + V2.FromAngle(aim) * NunCounterReach, NunCrimson, p.Id * 10 + 5, c.Dur + NunchakuMotion.Recover, Sfx.SwingLight);
+                BroadcastFx(FxKind.NunStep, p.Pos, p.Pos + V2.FromAngle(aim) * NunCounterReach, NunCrimson, p.Id * 10 + 5, c.Dur + NunchakuMotion.Recover, Sfx.NunCounter);
                 BroadcastFx(FxKind.NunCounter, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, NunCounterReach), NunCrimson, Math.Min(NunSwatCap, p.NunSwats), c.Dur * NunCounterAt + 0.35f, Sfx.None);
                 p.NunSwats = 0;
                 return;
@@ -78,17 +79,17 @@ namespace Arena
             {
                 case 1:
                 {
-                    var s = NunSwing(p, aim, NunSnapReach, 0f, hit, d.Dur * NunSnapAt, Sfx.SwingLight);
+                    var s = NunSwing(p, aim, NunSnapReach, 0f, hit, d.Dur * NunSnapAt, Sfx.None);
                     s.HalfWidth = NunSnapWidth;
                     s.Thrust = true;
                     break;
                 }
                 case 2:
-                    NunSwing(p, aim, NunBackReach, NunBackArc, hit, d.Dur * NunBackAt, Sfx.SwingLight);
+                    NunSwing(p, aim, NunBackReach, NunBackArc, hit, d.Dur * NunBackAt, Sfx.None);
                     break;
                 case 3:
                     for (int k = 0; k < 4; k++)  // each crossing: both chucks
-                        NunSwing(p, aim, NunFigReach, NunFigArc, hit, d.Dur * (k < 2 ? NunFigAt1 : NunFigAt2) + 0.01f * (k & 1), k == 0 || k == 2 ? Sfx.SwingLight : Sfx.None);
+                        NunSwing(p, aim, NunFigReach, NunFigArc, hit, d.Dur * (k < 2 ? NunFigAt1 : NunFigAt2) + 0.01f * (k & 1), Sfx.None);
                     break;
                 default:
                 {
@@ -96,7 +97,7 @@ namespace Arena
                     for (int k = 0; k <= extra; k++)  // each extra projectile: an aftershock ring, further out
                     {
                         float at = NunCrushAt0 + NunAftershockOut * k;
-                        var s = NunSwing(p, aim, at, 0f, hit * (k == 0 ? 1f : NunAftershockMult), d.Dur * NunCrushAt + NunAftershockDelay * k, Sfx.SwingHeavy);
+                        var s = NunSwing(p, aim, at, 0f, hit * (k == 0 ? 1f : NunAftershockMult), d.Dur * NunCrushAt + NunAftershockDelay * k, Sfx.None);
                         s.Circle = NunCrushR * reachMult;
                         s.CircleAt = at;
                         s.Knock = NunCrushKnock;
@@ -110,7 +111,7 @@ namespace Arena
             }
             // The whole step, drawn from its age: Radius carries who and which step.
             BroadcastFx(FxKind.NunStep, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, w.Reach), NunCrimson, p.Id * 10 + step,
-                d.Dur + NunchakuMotion.Recover + (step == 4 ? NunAftershockDelay * extra : 0f), Sfx.None);
+                d.Dur + NunchakuMotion.Recover + (step == 4 ? NunAftershockDelay * extra : 0f), NunStepSounds[step - 1]);  // (timed so its crack lands with the hit)
         }
 
         /// One hit of a step, landing `delay` after the press; `sound` plays as it lands.
@@ -121,6 +122,7 @@ namespace Arena
             s.NoFx = true;  // the step's own effect draws it
             s.Sound = sound;
             s.Twin = true;  // (the parry takes back one still winding up: ResetNunChain)
+            s.Nun = true;  // its hits sound Sfx.NunHit
             QueueSwing(s);
             return s;
         }
@@ -143,7 +145,7 @@ namespace Arena
             p.NunGuard = !p.NunGuard;
             p.Combo &= ~7;  // either way the combo starts over at the Snap
             p.ComboT = 0f;
-            BroadcastFx(FxKind.Ring, p.Pos, NunCrimson, 34f, 0.3f, p.NunGuard ? Sfx.GreatRaise : Sfx.SwingLight);
+            BroadcastFx(FxKind.Ring, p.Pos, NunCrimson, 34f, 0.3f, p.NunGuard ? Sfx.NunGuard : Sfx.SwingLight);
         }
 
         readonly List<int> nunSwatted = new List<int>();
@@ -165,8 +167,12 @@ namespace Arena
                 p.NunGuard = false;  // (the guard drops with what held it)
                 return;
             }
-            if ((p.NunAttackT -= dt) > 0f)
-                return;  // mid-counter: the chucks are lashing out, not spinning, so nothing is swatted
+            if (p.NunAttackT > 0f)
+            {
+                if ((p.NunAttackT -= dt) <= 0f)
+                    BroadcastSound(Sfx.NunGuard);  // the counter is done: the windmill spins back up
+                return;
+            }  // mid-counter: the chucks are lashing out, not spinning, so nothing is swatted
             float r = NunDisc(p);
             V2 dR = NunDiscAt(p.Pos, p.Aim, true), dL = NunDiscAt(p.Pos, p.Aim, false);
             nunSwatted.Clear();
@@ -204,7 +210,7 @@ namespace Arena
                 p.NunSwats = Math.Min(NunSwatCap, p.NunSwats + 1);
             }
             if (nunSwatted.Count > 0)
-                BroadcastSound(Sfx.Clang);
+                BroadcastSound(Sfx.NunSwat);
         }
 
         /// Your own game, every tick: the weapon-action key switches the guard (the host checks the rest). Returns true while the
