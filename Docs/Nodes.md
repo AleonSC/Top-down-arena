@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-3 built (protocol 282)**, step 4 open; fog, scout towers and gold veins built (protocol 382). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **steps 1-3 built (protocol 282)**, step 4 open; fog, scout towers and gold veins built (protocol 384). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -80,12 +80,12 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 - `NodeKind.Relic`: one per **even** boss cycle (0, 2, 4, ...), placed like chests (`PlaceFloatingRooms`). Claimed the same way (a room round it); the first player to walk
   up to it (`Relics.TakeReach`) gives **everyone** its relic and spends the node (`Relics.cs` `TickRelicNodes`).
 - Wall Bounce: a player's shot that reaches a wall or pillar bounces once (mirrored off the face), keeping 70% damage (`Relics.WallBounces`, `WallBounceDmg`).
-- Nov 17 (owner): two more relics, and each node rolls its relic (`Relics.ForNode`: from the node's spot, never the relic every player holds; protocol 383), named in the build map's tip:
+- Nov 17 (owner): two more relics, and each node rolls its relic (`Relics.ForNode`: from the node's spot, never the relic every player holds; protocol 385), named in the build map's tip:
   **Backup** (an auto revive: the first time you'd go down you're back up at 50% health with 2 s grace, then the slot empties; `UseBackup` from `DownIfDead`) and
   **Hallway Runner** (+25% move speed in a box 3 tiles wide or less; `RelicSpeedAt`, `Relics.InHall`).
 - Open: more relics (Home Turf, Gatecrasher, Portal Ward, Spiked Walls were offered), a pick-up banner, bots walking to relic nodes.
 
-## Fog, scout towers and gold veins (built, protocol 382)
+## Fog, scout towers and gold veins (built, protocol 384)
 
 - Owner (Nov 17): picked fog (7), scout tower (4) and gold vein (1) from the node ideas. Decisions: fog hides the **kind only** (a grey "?" where the node is); a node is
   revealed for everyone by a player within **8 tiles** or a claimed scout tower; the tower is a **permanent radar** (30 tiles, nodes placed later too); the vein is **plain passive** gold.
