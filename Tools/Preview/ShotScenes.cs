@@ -1104,7 +1104,7 @@ static partial class Shot {
     // BULWARK=<s>: the Tank Knight's Bulwark Barrier (Core/BulwarkBarrier.cs, Game/BulwarkBarrierLook.cs) that long into a scene.
     // BBMODE=chain (default): Fire held from 0 (Rim Cut, Backhand, Boss Slam) at a row of grunts; guard: grunts shooting at you,
     // no input (the plate stops them); brace: the weapon-action key held, grunts shooting (shots soak into Ram); bash: braced at
-    // full Ram, Fire at 0.3 s (the Shield Bash and its shards); melee: braced, grunts walking into the plate (blocked melee
+    // full Ram, Fire at 0.3 s (the Shield Bash and its shards); melee: braced, Brutes walking into the plate (blocked melee
     // fills Ram). The chain runs on into the Shield Throw after the Boss Slam (about 1 s in).
     if (Environment.GetEnvironmentVariable("BULWARK") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
@@ -1121,7 +1121,7 @@ static partial class Shot {
                 : bash ? new[] { new V2(170f, -40f), new V2(190f, 30f), new V2(240f, -5f), new V2(300f, 50f) }
                 : new[] { new V2(230f, -120f), new V2(260f, 0f), new V2(220f, 120f), new V2(160f, -200f), new V2(-200f, 60f) };
       foreach (var at0 in spots) {
-        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = melee ? e.Speed : 0f; e.FireT = shoot ? 0.05f + 0.1f * foes.Count : 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { melee ? EnemyType.Brute : EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = melee ? e.Speed : 0f; e.FireT = shoot ? 0.05f + 0.1f * foes.Count : 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
       if (bash) { me.BbRam = Game.BbRamMax; me.BbBrace = true; typeof(Player).GetField("BbStored").SetValue(me, 12); typeof(Player).GetField("BbHeld").SetValue(me, true); }
       var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
       int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("BULWARK"), ci) * 60f));
