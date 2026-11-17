@@ -1,0 +1,273 @@
+<title>Flood</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one ability stage (canvas, look picker, replay/slow-mo), then the proposed numbers and the beat-by-beat.
+   Colour: Tsunami's wet cyan (0.31,0.82,0.91) for water, the arena's dark green-black ground. */
+:root{
+  --bg:#e9eff0; --fg:#14211f; --muted:#56696a; --panel:#f6fafa; --line:#c8d6d7;
+  --water:#137f97; --chip:#dbe6e7; --chip-on:#14211f; --chip-on-fg:#eef6f6;
+  --arena:#141a17;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1213; --fg:#e2eeee; --muted:#8ea3a4; --panel:#151d1e; --line:#273436;
+  --water:#4fd1e8; --chip:#1f2a2c; --chip-on:#e2eeee; --chip-on-fg:#0d1213; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1213; --fg:#e2eeee; --muted:#8ea3a4; --panel:#151d1e; --line:#273436;
+  --water:#4fd1e8; --chip:#1f2a2c; --chip-on:#e2eeee; --chip-on-fg:#0d1213; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1{font:700 clamp(36px,6vw,58px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 8px}
+h1 small{font:500 13px var(--mono);color:var(--water);letter-spacing:.06em;display:block;margin-bottom:6px;text-transform:uppercase}
+header p{margin:0;max-width:62ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/420;max-width:100%}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfe0de;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.seg button,.btn{font:600 15px var(--display);letter-spacing:.05em;text-transform:uppercase;border:0;background:var(--chip);color:var(--fg);padding:8px 14px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+.btn{border:1px solid var(--line);border-radius:6px}
+button:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.look{margin:10px 0 0;color:var(--muted);max-width:70ch;min-height:3em}
+.look b{color:var(--fg)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;min-width:0}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:last-child{text-align:right;font-family:var(--mono);font-size:13.5px;white-space:nowrap;padding-left:12px;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+ol li span{font:500 12.5px var(--mono);color:var(--water);margin-right:6px}
+.note{font-size:14px;color:var(--muted);margin:12px 0 0}
+</style>
+
+<main>
+<header>
+  <h1><small>Tank · Elementalist · 4th Space ability · decided: look B Breaker, numbers as below</small>Flood</h1>
+  <p>You stamp and the ground floods: a 190 px pool of water spreads out round you. Enemies wading in it are slowed and soaked <b>wet</b>, so Storm Hammer, Lightning Rod and every other lightning hit arcs through the whole pool.</p>
+</header>
+
+<section>
+  <h2>Pick a look</h2>
+  <div class="frame"><canvas id="cv" width="720" height="420"></canvas><div class="hud" id="hud"></div></div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Look">
+      <button id="lookA" aria-pressed="true" data-look="0">A · Still Water</button>
+      <button id="lookB" aria-pressed="false" data-look="1">B · Breaker</button>
+      <button id="lookC" aria-pressed="false" data-look="2">C · Maelstrom</button>
+    </div>
+    <button class="btn" id="replay">Replay</button>
+    <button class="btn" id="slow" aria-pressed="false">Slow-mo</button>
+  </div>
+  <p class="look" id="lookText"></p>
+</section>
+
+<section class="grid">
+  <div class="card">
+    <h2>Proposed numbers</h2>
+    <table>
+      <tr><td>Pool radius</td><td>190 px</td></tr>
+      <tr><td>Spreads out over</td><td>0.5 s</td></tr>
+      <tr><td>Lasts (stays where cast)</td><td>6 s</td></tr>
+      <tr><td>Slow while wading</td><td>40% (heavy, boss 20%)</td></tr>
+      <tr><td>Wet (30% slow, lightning arcs)</td><td>in pool + 3 s</td></tr>
+      <tr><td>Cast surge: shove from your feet</td><td>60 px, 10 dmg</td></tr>
+      <tr><td>Cooldown</td><td>16 s</td></tr>
+      <tr><td>Mastery: <b>Deluge</b></td><td>+30% radius, 9 s</td></tr>
+    </table>
+    <p class="note">Wading slow and wet don't stack: the stronger applies (40%), and wet keeps 30% for 3 s after they leave.</p>
+  </div>
+  <div class="card">
+    <h2>Beat by beat</h2>
+    <ol>
+      <li><span>0.00 s</span>Stamp: a splash at your feet, enemies touching you are shoved out 60 px.</li>
+      <li><span>0.00–0.50</span>Water spreads to 190 px; every enemy the edge passes is soaked.</li>
+      <li><span>0.50–6.00</span>Enemies wade: slowed 40%, wet bar refilled, drips and wake ripples behind them.</li>
+      <li><span>any time</span>A lightning hit on a wet enemy arcs to the other wet ones (Tsunami's <code>WetArcs</code>).</li>
+      <li><span>6.00–6.80</span>The pool drains in from the edge; wet keeps ticking 3 s on each enemy.</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),hud=document.getElementById('hud');
+const W=720,H=420,DPR=Math.min(2,window.devicePixelRatio||1);
+cv.width=W*DPR;cv.height=H*DPR;ctx.scale(DPR,DPR);
+const P={x:360,y:215},R=190,LOOP=9.5,CAST=0.6,RISE=0.5,LAST=6,DRAIN=0.8,WET=3;
+const LOOKS=[
+ '<b>Still Water.</b> A calm translucent pool with sliding light caustics and a thin bright shoreline. Wading enemies leave ring ripples. The quietest read: it never hides bullets.',
+ '<b>Breaker.</b> The cast is a foam-crested wave crashing outward to the edge, then the pool churns with a broken white foam rim and slow swells rolling out from you.',
+ '<b>Maelstrom.</b> Darker water with current arms spiralling round you; foam streaks ride the spiral. Reads most clearly as a zone, and the turning hints at the slow.'];
+let look=0,slow=false,t0=performance.now(),last=t0,t=0;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rnd=(s=>()=>(s=(s*16807)%2147483647)/2147483647)(7);
+let enemies=[],ripples=[],drops=[],bolt=null;
+function reset(){
+  t=0;ripples=[];drops=[];bolt=null;enemies=[];
+  const spots=[[80,70,0],[650,90,0],[60,330,1],[640,350,0],[200,30,0],[540,400,0],[30,200,0],[700,230,2],[300,410,0],[460,20,0]];
+  for(const [x,y,k] of spots) enemies.push({x,y,k,hp:1,wet:0,peak:WET,rip:0,tri:k!==2,sp:k===1?22:k===2?14:34});
+}
+reset();
+function inPool(e,r){return Math.hypot(e.x-P.x,e.y-P.y)<r}
+function radius(t){
+  if(t<CAST)return 0; const a=t-CAST;
+  if(a<RISE){const k=a/RISE;return R*(1-Math.pow(1-k,3));}
+  if(a<LAST)return R;
+  if(a<LAST+DRAIN){const k=(a-LAST)/DRAIN;return R*(1-k*k);}
+  return 0;
+}
+function step(dt){
+  t+=dt; if(t>LOOP){reset();return}
+  const r=radius(t);
+  // surge shove at cast
+  for(const e of enemies){
+    const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1;
+    let sp=e.sp; const wading=r>0&&d<r;
+    if(wading){sp*=e.k===2?0.8:0.6; e.wet=WET; e.peak=WET;}
+    else if(e.wet>0){sp*=e.k===2?0.85:0.7; e.wet=Math.max(0,e.wet-dt);}
+    if(d>34){e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt;}
+    if(t>=CAST&&t-dt<CAST&&d<90){e.x-=dx/d*60;e.y-=dy/d*60;}
+    if(wading){e.rip-=dt; if(e.rip<=0){e.rip=0.45;ripples.push({x:e.x,y:e.y,a:0});}}
+    if(e.wet>0&&rnd()<dt*5)drops.push({x:e.x+(rnd()-.5)*10,y:e.y+4,a:0});
+  }
+  for(const q of ripples)q.a+=dt; ripples=ripples.filter(q=>q.a<1.1);
+  for(const q of drops)q.a+=dt; drops=drops.filter(q=>q.a<0.5);
+  // a Storm Hammer hit at 3.6 s arcs through every wet enemy
+  if(t>=3.6&&!bolt){const wet=enemies.filter(e=>e.wet>0).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y));
+    if(wet.length)bolt={a:0,chain:wet.slice(0,6).map(e=>({x:e.x,y:e.y}))};}
+  if(bolt)bolt.a+=dt;
+}
+// ---------- drawing ----------
+function ground(){
+  ctx.fillStyle='#141a17';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1d2621';ctx.lineWidth=1;
+  for(let x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,H);ctx.stroke();}
+  for(let y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(W,y+.5);ctx.stroke();}
+}
+const C='79,209,232';
+function edgePath(r,wob,ph){
+  ctx.beginPath();
+  for(let i=0;i<=96;i++){const a=i/96*Math.PI*2;
+    const rr=r+wob*(Math.sin(a*7+ph)*.6+Math.sin(a*13-ph*1.7)*.4);
+    const x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr; i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+  ctx.closePath();
+}
+function poolA(r,T){
+  const g=ctx.createRadialGradient(P.x,P.y,r*.1,P.x,P.y,r);
+  g.addColorStop(0,`rgba(${C},.16)`);g.addColorStop(.85,`rgba(${C},.22)`);g.addColorStop(1,`rgba(${C},.34)`);
+  edgePath(r,2,T*1.2);ctx.fillStyle=g;ctx.fill();
+  ctx.save();edgePath(r,2,T*1.2);ctx.clip();
+  ctx.strokeStyle=`rgba(190,245,255,.13)`;ctx.lineWidth=1.5;
+  for(let k=-12;k<12;k++){ctx.beginPath();
+    for(let x=P.x-r;x<=P.x+r;x+=8){const y=P.y+k*16+Math.sin(x*.045+T*1.6+k)*5+Math.sin(x*.02-T*.9)*4;
+      x===P.x-r?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke();}
+  ctx.restore();
+  edgePath(r,2,T*1.2);ctx.strokeStyle=`rgba(200,250,255,.75)`;ctx.lineWidth=2;ctx.stroke();
+  edgePath(r+5,2,T*1.2+1);ctx.strokeStyle=`rgba(${C},.18)`;ctx.lineWidth=3;ctx.stroke();
+}
+function poolB(r,T,a){
+  const g=ctx.createRadialGradient(P.x,P.y,0,P.x,P.y,r);
+  g.addColorStop(0,`rgba(${C},.2)`);g.addColorStop(1,`rgba(${C},.36)`);
+  edgePath(r,5,T*2.4);ctx.fillStyle=g;ctx.fill();
+  ctx.save();edgePath(r,5,T*2.4);ctx.clip();
+  for(let i=0;i<3;i++){const sr=((T*45+i*R/3)%R);ctx.beginPath();ctx.arc(P.x,P.y,sr,0,7);
+    ctx.strokeStyle=`rgba(210,250,255,${.16*(1-sr/R)})`;ctx.lineWidth=6;ctx.stroke();}
+  ctx.restore();
+  // foam rim: broken white blobs
+  for(let i=0;i<70;i++){const an=i/70*Math.PI*2+Math.sin(i*3.1)*.03;
+    const rr=r+Math.sin(an*9+T*3+i)*3-2,s=2+((i*37)%5)*.7+Math.sin(T*4+i)*.8;
+    ctx.beginPath();ctx.arc(P.x+Math.cos(an)*rr,P.y+Math.sin(an)*rr,Math.max(.5,s),0,7);
+    ctx.fillStyle=`rgba(235,252,255,${.55+.3*Math.sin(i+T*5)})`;ctx.fill();}
+  // the crashing surge during the rise
+  if(a>=0&&a<RISE+.25){const k=Math.min(1,a/RISE),sr=R*(1-Math.pow(1-k,3))+6,al=1-Math.max(0,(a-RISE)/.25);
+    ctx.beginPath();ctx.arc(P.x,P.y,sr,0,7);ctx.strokeStyle=`rgba(255,255,255,${.85*al})`;ctx.lineWidth=7;ctx.stroke();
+    ctx.beginPath();ctx.arc(P.x,P.y,Math.max(1,sr-10),0,7);ctx.strokeStyle=`rgba(${C},${.6*al})`;ctx.lineWidth=10;ctx.stroke();
+    for(let i=0;i<40;i++){const an=i/40*7+i;const d=sr+4+((i*13)%9);
+      ctx.beginPath();ctx.arc(P.x+Math.cos(an)*d,P.y+Math.sin(an)*d,1.6,0,7);ctx.fillStyle=`rgba(255,255,255,${al})`;ctx.fill();}}
+}
+function poolC(r,T){
+  const g=ctx.createRadialGradient(P.x,P.y,0,P.x,P.y,r);
+  g.addColorStop(0,'rgba(10,60,80,.55)');g.addColorStop(.5,`rgba(30,120,150,.35)`);g.addColorStop(1,`rgba(${C},.3)`);
+  edgePath(r,1.5,T);ctx.fillStyle=g;ctx.fill();
+  ctx.save();edgePath(r,1.5,T);ctx.clip();
+  for(let arm=0;arm<5;arm++){ctx.beginPath();
+    for(let s=0;s<=40;s++){const f=s/40,rr=14+f*r,an=arm/5*Math.PI*2+T*.9+f*3.2;
+      const x=P.x+Math.cos(an)*rr,y=P.y+Math.sin(an)*rr; s?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+    ctx.strokeStyle=`rgba(${C},.35)`;ctx.lineWidth=9;ctx.stroke();
+    ctx.strokeStyle='rgba(220,250,255,.35)';ctx.lineWidth=1.5;ctx.stroke();}
+  for(let i=0;i<26;i++){const f=((i*.137+T*.12)%1),rr=20+f*r,an=i*2.4+T*.9+f*3.2;
+    ctx.beginPath();ctx.arc(P.x+Math.cos(an)*rr,P.y+Math.sin(an)*rr,1.8,0,7);ctx.fillStyle=`rgba(240,255,255,${.7*(1-f)})`;ctx.fill();}
+  ctx.restore();
+  edgePath(r,1.5,T);ctx.strokeStyle='rgba(200,250,255,.6)';ctx.lineWidth=2;ctx.stroke();
+}
+function player(T){
+  // splash at cast
+  if(t>=CAST&&t<CAST+.5){const k=(t-CAST)/.5;ctx.beginPath();ctx.arc(P.x,P.y,20+k*70,0,7);
+    ctx.strokeStyle=`rgba(230,252,255,${1-k})`;ctx.lineWidth=4*(1-k)+1;ctx.stroke();}
+  ctx.beginPath();ctx.ellipse(P.x,P.y+14,16,6,0,0,7);ctx.fillStyle='rgba(0,0,0,.35)';ctx.fill();
+  ctx.beginPath();ctx.arc(P.x,P.y,14,0,7);ctx.fillStyle='#3f86d8';ctx.fill();
+  ctx.lineWidth=3;ctx.strokeStyle='#cfe4ff';ctx.stroke();
+  ctx.beginPath();ctx.arc(P.x,P.y,5,0,7);ctx.fillStyle='#9ff0ff';ctx.fill();
+  // wind-up glow before the cast
+  if(t<CAST){const k=t/CAST;ctx.beginPath();ctx.arc(P.x,P.y,18+6*k,0,7);ctx.strokeStyle=`rgba(${C},${k})`;ctx.lineWidth=2;ctx.stroke();}
+}
+function enemy(e){
+  const r=radius(t),wading=r>0&&inPool(e,r),s=e.k===2?20:e.k===1?13:10;
+  if(wading){ctx.beginPath();ctx.ellipse(e.x,e.y+s*.55,s*1.1,s*.4,0,0,7);ctx.strokeStyle='rgba(220,250,255,.55)';ctx.lineWidth=1.5;ctx.stroke();}
+  ctx.save();ctx.translate(e.x,e.y);ctx.rotate(Math.atan2(P.y-e.y,P.x-e.x));
+  ctx.beginPath();
+  if(e.k===2){ctx.rect(-s*.8,-s*.8,s*1.6,s*1.6);}else if(e.k===1){for(let i=0;i<5;i++){const a=i/5*7;ctx.lineTo(Math.cos(a)*s,Math.sin(a)*s)}ctx.closePath();}
+  else{ctx.moveTo(s,0);ctx.lineTo(-s*.8,s*.75);ctx.lineTo(-s*.8,-s*.75);ctx.closePath();}
+  ctx.fillStyle=e.k===2?'#a8323a':e.k===1?'#d0622c':'#d23b3b';ctx.fill();
+  ctx.lineWidth=1.5;ctx.strokeStyle=e.wet>0?'#9fe8f5':'#3a0d0d';ctx.stroke();ctx.restore();
+  // health bar + Wet effect bar (EffectBar.cs)
+  const bw=26,by=e.y-s-12;
+  ctx.fillStyle='#2a0d0d';ctx.fillRect(e.x-bw/2,by,bw,3);ctx.fillStyle='#e04848';ctx.fillRect(e.x-bw/2,by,bw*.8,3);
+  if(e.wet>0){ctx.fillStyle='rgba(79,209,232,.25)';ctx.fillRect(e.x-bw/2,by-3,bw,2);ctx.fillStyle=`rgb(${C})`;ctx.fillRect(e.x-bw/2,by-3,bw*e.wet/e.peak,2);}
+}
+function drawBolt(){
+  if(!bolt||bolt.a>.45)return;const al=1-bolt.a/.45;
+  const pts=[{x:P.x+120,y:-10},...bolt.chain];
+  ctx.lineCap='round';
+  for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];
+    for(const [w,c] of [[6,`rgba(120,200,255,${.35*al})`],[2,`rgba(235,248,255,${al})`]]){
+      ctx.beginPath();ctx.moveTo(a.x,a.y);
+      for(let s=1;s<8;s++){const f=s/8;ctx.lineTo(a.x+(b.x-a.x)*f+(Math.sin(i*9+s*5.3+Math.floor(bolt.a*30))*9),a.y+(b.y-a.y)*f+(Math.cos(i*7+s*3.1+Math.floor(bolt.a*30))*9));}
+      ctx.lineTo(b.x,b.y);ctx.strokeStyle=c;ctx.lineWidth=w;ctx.stroke();}
+    ctx.beginPath();ctx.arc(b.x,b.y,10*al+4,0,7);ctx.fillStyle=`rgba(200,235,255,${.4*al})`;ctx.fill();
+    if(i>0){ctx.font='600 12px IBM Plex Mono, monospace';ctx.fillStyle=`rgba(160,230,255,${al})`;ctx.fillText('ARC',b.x+10,b.y-14);}
+  }
+}
+function frame(now){
+  let dt=Math.min(.05,(now-last)/1000);last=now;if(slow)dt*=.3;if(reduce)dt*=.6;
+  step(dt);const T=t,r=radius(t),a=t-CAST;
+  ground();
+  if(r>1){if(look===0)poolA(r,T);else if(look===1)poolB(r,T,a);else poolC(r,T);}
+  else if(look===1&&a>=0&&a<RISE+.25)poolB(0,T,a);
+  for(const q of ripples){ctx.beginPath();ctx.ellipse(q.x,q.y+6,6+q.a*26,(6+q.a*26)*.45,0,0,7);ctx.strokeStyle=`rgba(210,250,255,${.5*(1-q.a/1.1)})`;ctx.lineWidth=1.2;ctx.stroke();}
+  player(T);
+  for(const e of enemies)enemy(e);
+  for(const q of drops){ctx.fillStyle=`rgba(${C},${1-q.a*2})`;ctx.fillRect(q.x,q.y+q.a*22,1.6,3.5);}
+  drawBolt();
+  const ph=t<CAST?'wind-up':a<RISE?'spreading':a<LAST?'flooded':a<LAST+DRAIN?'draining':'dry (wet wears off)';
+  const wet=enemies.filter(e=>e.wet>0).length;
+  hud.textContent=`t ${t.toFixed(2)} s · ${ph} · wet ${wet}/${enemies.length}${t>=3.6&&t<4.1?' · Storm Hammer hit arcs through the wet':''}`;
+  requestAnimationFrame(frame);
+}
+const lt=document.getElementById('lookText');
+function setLook(i){look=i;document.querySelectorAll('[data-look]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.look===i));lt.innerHTML=LOOKS[i];}
+document.querySelectorAll('[data-look]').forEach(b=>b.onclick=()=>{setLook(+b.dataset.look);reset();});
+document.getElementById('replay').onclick=reset;
+const sb=document.getElementById('slow');sb.onclick=()=>{slow=!slow;sb.setAttribute('aria-pressed',slow);sb.textContent=slow?'Normal speed':'Slow-mo';};
+setLook(1);requestAnimationFrame(frame);
+})();
+</script>
