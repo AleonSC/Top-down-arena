@@ -1561,6 +1561,7 @@ namespace Arena
                     DrawJuiceFloor();
                 }
                 DrawArenaContents(sg.AnimT);
+                DrawFumaWorld(sg.AnimT);  // the Fuma's circling stars, and forgetting thrown stars' trails once they land (else they pile up and stay drawn)
                 if (fx)
                 {
                     DrawJuiceParts();
