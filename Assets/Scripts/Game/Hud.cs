@@ -64,7 +64,7 @@ namespace Arena
                     continue;  // not landed yet (LaunchIntro.cs)
                 DrawLaunchIcon(p, at, r);
                 if (!(hudMode == 2 && p.Id == game.MyId))  // (the "on the player" HUD puts your health there instead; the name rises over a Juggernaut Suit's armour bar)
-                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f - (Game.JuggOn(p) ? 8f * UiWorldScale : 0f), 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
+                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f - (Game.JuggOn(p) ? 8f * UiWorldScale : 0f) - NameLift(p), 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
                     ToColor(p.Def.Color.WithAlpha(0.95f)), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
                 if (p.LevelFlash > 0f)
                 {
@@ -171,7 +171,7 @@ namespace Arena
                     if (DrawWaveCleared(me, sub))  // the squad tally with Ready and Auto-ready (WaveClearedUi.cs)
                     {
                         if (!wcMin)
-                            DrawNewEnemyChips(WcY + WcH + 10f, CabCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
+                            DrawNewEnemyChips(WcY + WcH + 6f, CabCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
                         break;
                     }
                     if (pr != null)
@@ -213,12 +213,19 @@ namespace Arena
                 DrawRunStatsScreen(me, false);  // RunStatsUi.cs
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
-                if (!pauseMenuOpen)  // (the pause menu carries this hint at the foot of its drawer)
+                // The TAB / H hint: for the first waves, until you've opened the Tab screen a couple of times; then it fades out.
+                bool hintWanted = game.ShownWave <= TabHintWaves && tabOpens < TabHintOpens;
+                if (tabHintFrame != Time.frameCount)  // (once a frame: OnGUI runs per event)
+                {
+                    tabHintFrame = Time.frameCount;
+                    tabHintA = Mathf.MoveTowards(tabHintA, hintWanted ? 1f : 0f, Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime / 0.8f : 1f);
+                }
+                if (!pauseMenuOpen && tabHintA > 0.01f)  // (the pause menu carries this hint at the foot of its drawer)
                 HudGroup(3, new Vector2(0f, -60f), HudHintPill, () =>
                 {
                     var hint = HudHintPill;
-                    Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
-                    Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  HUD mode", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
+                    Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f * tabHintA));
+                    Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  HUD mode", 11, new Color(1f, 1f, 1f, 0.55f * tabHintA), TextAnchor.MiddleCenter, true);
                 });
                 // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
                 float back = hudMode == 3 ? Mathf.Clamp01((0.35f - hudT) / 0.35f) : 0f;  // (only when fully hidden: the partial HUDs are their own reminder)
@@ -519,21 +526,44 @@ namespace Arena
             DrawScanBand(title, sub, left, right, game.Practice != null ? -1f : 1f - tm / bandMax, boss ? Ui.Gold : CrtUi.Ink, (now - bandShownAt) / 0.25f, false);
         }
 
+        /// The corner's TAB / H hint shows through this many waves, and until the Tab screen has been opened this many times.
+        const int TabHintWaves = 3, TabHintOpens = 2;
+        float tabHintA = 1f;  // its fade
+        int tabOpens;         // Tab screen opens this session
+        int tabHintFrame = -1;
+
+        readonly float[] tileEmptyK = new float[Upgrades.SlotCount];  // each key's ease toward its stub (HudLayout.cs HudTile)
+        int tileEmptyFrame = -1;
+
         /// XP bar plus the ability tiles (Space / Q / E / Shift / ultimate) along the bottom.
         void DrawAbilityBar(Player me)
         {
-            // XP strip with the level inside it (the CRT console look: a segmented gold bar, "LV 3 · 48%" at its left end).
+            // XP strip (the CRT console look): "LV 3 · 48%" in gold on its own dark plate at the left end, then the segmented gold bar.
             var xp = HudXpStrip;  // (the strip and the keys: HudLayout.cs)
             float xpFrac = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
+            Color gold = new Color(1f, 0.82f, 0.3f, 0.95f);
             Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
             Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
-            for (float sx = 0f; sx < xp.width * xpFrac; sx += 8f)
-                Ui.Fill(new Rect(xp.x + sx, xp.y, Mathf.Min(6f, xp.width * xpFrac - sx), xp.height), new Color(1f, 0.82f, 0.3f, 0.95f));
-            Ui.Label(new Rect(xp.x + 7f, xp.y, 120f, xp.height), "LV " + me.Level + "  ·  " + Mathf.RoundToInt(xpFrac * 100f) + "%", 10, new Color(0.03f, 0.04f, 0.1f), TextAnchor.MiddleLeft, true);
+            string lvText = "LV " + me.Level + "  ·  " + Mathf.RoundToInt(xpFrac * 100f) + "%";
+            float plateW = Ui.TextWidth(lvText, 10, true) + 12f;
+            var plate = new Rect(xp.x, xp.y, plateW, xp.height);
+            Ui.Fill(plate, new Color(0.02f, 0.03f, 0.07f, 1f));
+            Ui.Fill(new Rect(plate.xMax, xp.y, 1f, xp.height), new Color(gold.r, gold.g, gold.b, 0.45f));
+            Ui.Label(plate, lvText, 10, gold, TextAnchor.MiddleCenter, true);
+            float barX = plate.xMax + 3f, barW = xp.xMax - barX;
+            for (float sx = 0f; sx < barW * xpFrac; sx += 8f)
+                Ui.Fill(new Rect(barX + sx, xp.y, Mathf.Min(6f, barW * xpFrac - sx), xp.height), gold);
 
+            if (tileEmptyFrame != Time.frameCount)  // (once a frame: OnGUI runs per event)
+            {
+                float step = Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime / 0.35f : 1f;  // (no frame time, the preview: straight there)
+                for (int i = 0; i < Upgrades.SlotCount; i++)
+                    tileEmptyK[i] = Mathf.MoveTowards(tileEmptyK[i], me.Slots[i].Id == AbilityId.None ? 1f : 0f, tileEmptyFrame < 0 ? 1f : step);
+                tileEmptyFrame = Time.frameCount;
+            }
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
-                var r = HudTile(i);
+                var r = HudTile(i, tileEmptyK);
                 var look = TileLookFor(i, i == Upgrades.UltSlot);  // how the tile reacts this frame (HudTiles.cs)
                 int slotIndex = i;
                 TileTransformed(r.center, look.Scale, look.Dx, () => DrawAbilityTile(me, slotIndex, r, look));
@@ -569,10 +599,11 @@ namespace Arena
             bool ultimate = i == Upgrades.UltSlot;
             if (slot.Id == AbilityId.None)
             {
+                // A stub: the key's cap centred in a dashed box, a dim + under it (very rare upgrades fill these keys).
                 CrtKeyBox(r, CrtUi.Dim, true);
-                DrawCrtCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), SlotKeys[i], CrtUi.Dim);
-                Ui.Label(new Rect(r.x + 8f, r.y + 24f, r.width - 16f, 18f), "Empty", 19, CrtUi.Dim, TextAnchor.MiddleLeft, false);
-                Ui.Label(new Rect(r.x + 8f, r.y + 41f, r.width - 16f, 14f), "from a very rare upgrade", 9, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.8f), TextAnchor.MiddleLeft);
+                float cw = 12f + SlotKeys[i].Length * 7f;
+                DrawCrtCap(new Rect(r.center.x - cw / 2f, r.y + 10f, 0f, 16f), SlotKeys[i], CrtUi.Dim);
+                Ui.Label(new Rect(r.x, r.y + 28f, r.width, 22f), "+", 22, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.7f), TextAnchor.MiddleCenter, false);
                 return;
             }
             bool ready = slot.Charges > 0;

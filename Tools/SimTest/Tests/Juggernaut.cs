@@ -36,8 +36,8 @@ static partial class Program
         for (int r = 0; r < 3; r++)
             for (int k = 0; k < Defs.KitCount; k++)
                 for (int u = 1; u < Upgrades.UltKeys; u++)
-                    if (Upgrades.AltUltimate((Role)r, (Kit)k, u) != AbilityId.None && !((Role)r == Role.Tank && (Kit)k == Kit.Summoner) && !((Role)r == Role.Dps && (Kit)k == Kit.Soldier))
-                        alts++;  // (the Tank Summoner's Bone Phalanx is checked in Phalanx.cs, the DPS Soldier's Attack Helicopter in Helicopter.cs)
+                    if (Upgrades.AltUltimate((Role)r, (Kit)k, u) != AbilityId.None && !((Role)r == Role.Tank && (Kit)k == Kit.Summoner) && !((Role)r == Role.Dps && (Kit)k == Kit.Soldier) && !((Role)r == Role.Tank && (Kit)k == Kit.Ninja))
+                        alts++;  // (the Tank Summoner's Bone Phalanx is checked in Phalanx.cs, the DPS Soldier's Attack Helicopter in Helicopter.cs, the Tank Ninja's Dragon's Dogma in Dogma.cs)
         Check(alts == 3 && Upgrades.AltUltimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath, "only the Tank Soldier, Tank Elementalist (Lightning Rod) and Tank Hemomancer (Bloodbath) have a key 1; every other role and class keeps its three locked slots");
 
         int port = nextPort++;

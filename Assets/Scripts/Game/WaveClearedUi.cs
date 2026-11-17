@@ -10,7 +10,7 @@ namespace Arena
     /// the frame from RoundWindows.cs. Core side: Core/WaveReady.cs.
     public partial class ArenaApp
     {
-        const float WcW = 940f, WcH = 454f, WcY = 96f;
+        const float WcW = 940f, WcH = 454f, WcY = 70f;  // (high enough that the new-enemy chips under it clear the XP strip)
         int wcStep;                   // 0 Results, 1 Build, 2 Ready: the break runs in that order (the tabs along the tube's top)
         bool wcSawWindow;             // the build window was open last frame (closing it with Done moves on to Ready)
         int autoReadySent = -1;       // the Auto-ready choice the host was last told (-1: not yet this run)
@@ -396,6 +396,8 @@ namespace Arena
             float nw = WcColKills - WcColName - 8f;
             Ui.Label(new Rect(x + WcColName, row.y + 8f, nw, 18f), LobbyKit.Truncate(p.Name, 14, nw), 14, Color.white, TextAnchor.MiddleLeft, true);
             string cls = (Defs.KitName(p.Kit) + " " + p.Def.Name).ToUpperInvariant();
+            if (Ui.TextWidth(cls, 9, true) > nw)
+                cls = Defs.KitName(p.Kit).ToUpperInvariant();  // (too long for the column: the class alone, not a cut-off "ELEMENTALIST TA…")
             Ui.Label(new Rect(x + WcColName, row.y + 27f, nw, 14f), LobbyKit.Truncate(cls, 9, nw), 9, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             DrawNums(row, line.Kills, line.Damage, line.Taken, Color.white, line.Taken <= 0.5f ? Ui.Good : Color.white);
 
@@ -469,11 +471,18 @@ namespace Arena
                 var now = Game.WavePool(game.NextTrackWave);
                 var before = Game.WavePool(game.Wave);
                 int shown = 0;
+                int rows = Mathf.Min(5, now.Count);
+                float step = rows <= 3 ? 34f : 26f;  // (a short list spreads out, each type with its job under the name)
                 for (int i = now.Count - 1; i >= 0 && shown < 5; i--, shown++)  // the newest types first
                 {
                     var d = Defs.Get(now[i]);
+                    int job = (int)Game.JobOf(now[i]);
                     Ui.Dot(new Rect(x, y + 5f, 11f, 11f), ToColor(d.Color));
                     Ui.Label(new Rect(x + 20f, y, w - 70f, 21f), d.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
+                    if (rows <= 3)
+                        HudCrt(new Rect(x + 20f, y + 18f, w - 70f, 13f), JobNames[job], 13, ToColor(JobColors[job]));
+                    else
+                        HudCrt(new Rect(x + 20f, y, w - 76f, 21f), JobNames[job], 13, ToColor(JobColors[job]), TextAnchor.MiddleRight);
                     if (!before.Contains(now[i]))
                     {
                         var chip = new Rect(r.xMax - 14f - 38f, y + 2f, 38f, 17f);
@@ -483,7 +492,7 @@ namespace Arena
                         Ui.Label(chip, "NEW", 15, new Color(0.11f, 0.07f, 0f), TextAnchor.MiddleCenter, false);
                         Ui.CrtFont = was;
                     }
-                    y += 22f;
+                    y += step;
                 }
             }
             DrawBossRoad(new Rect(x, r.yMax - 12f - 56f, w, 56f));

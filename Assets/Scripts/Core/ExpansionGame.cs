@@ -402,6 +402,19 @@ namespace Arena
             BroadcastExpansion();
         }
 
+        /// Host, as a drawn room is built (its `count` boxes are the last in Expanded): it may drop a chest node a few tiles outside its wall
+        /// (Expansion.RoomChestFor; synced with the map in Msg.ExpandState).
+        void MaybeRoomChest(int count)
+        {
+            if (!IsHost || !ModeRules.RunEvents)
+                return;
+            var nd = Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
+            if (!nd.HasValue)
+                return;
+            Nodes.Add(nd.Value);
+            DoLog("a chest node appears outside the new room at " + nd.Value.X + "," + nd.Value.Y);
+        }
+
         /// Host: a claimed chest node holds a real treasure chest (Props.cs: everyone gets their own item). Not synced: node index -> prop id.
         readonly Dictionary<int, int> nodeChests = new Dictionary<int, int>();
 
@@ -983,6 +996,7 @@ namespace Arena
                 Expanded.Add(room);
                 Expanded.AddRange(legs);  // (a drawn outline's other pieces, right after the first)
                 DoLog((legs.Count > 0 ? "drawn room of " + (legs.Count + 1) + " boxes" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                MaybeRoomChest(legs.Count + 1);
             }
             expWorld = null;
             LayoutAge = 0f;  // the new walls rise

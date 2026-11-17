@@ -98,8 +98,7 @@ namespace Arena
             var z = AddZone(ZoneKind.Cover, p, at, CoverHalf, CoverLife);
             z.Aim = aim;
             z.SoakMax = z.BlockHp = (cap ? CoverHpMastered : CoverHp) * p.Stats.CoverHpMult;
-            z.GuardFrac = 1f;
-            Sounds.Add(Sfx.TurretDeploy);
+            z.GuardFrac = 1f;  // (its sounds play on each screen: DeployableCoverLook.cs UpdateCoverSound)
         }
 
         /// Folds a cover away (FxKind.CoverFold draws it sinking); it goes at the end of this tick.
@@ -141,7 +140,7 @@ namespace Arena
                 BroadcastFx(FxKind.CoverHit, b.Pos, z.Pos + V2.FromAngle(z.Aim), Kits.Get(ZoneKind.Cover).Color, b.Radius, 0.22f, Sfx.None);
                 if (z.BlockHp <= 0f)
                 {
-                    BroadcastFx(FxKind.CoverBreak, z.Pos, z.Pos + V2.FromAngle(z.Aim), Kits.Get(ZoneKind.Cover).Color, z.Id, 3f, Sfx.Clang);
+                    BroadcastFx(FxKind.CoverBreak, z.Pos, z.Pos + V2.FromAngle(z.Aim), Kits.Get(ZoneKind.Cover).Color, z.Id, 3f, Sfx.None);  // (its crash plays on each screen)
                     z.T = 0f;  // gone at the end of this tick
                 }
                 return true;

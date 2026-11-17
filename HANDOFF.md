@@ -257,7 +257,8 @@ The lobby fits about 8 class cards in a row before they get too small.
   prefix (default `Boss`) from `SoundBank.cs` to `Tools/SoundCheck/out/*.wav`, so they can be heard (and their levels
   checked) without Unity.
 - **Sound Forge:** open `Tools/SoundForge/index.html` in a browser: a three-layer synth (tone or noise, pitch glide,
-  FM, envelope, swept filter; drive, bit crush, echo) with presets, that exports 44.1 kHz 16-bit WAVs named after a
+  FM, envelope, swept filter, tremolo/flicker; drive, bit crush, a 5-band EQ over the sound's spectrum, echo,
+  output volume; a seamless loop mode for hums) with presets and your own saved presets (browser storage, Export/Import JSON), that exports 44.1 kHz 16-bit WAVs named after a
   game sound (`ShotRifle.wav`, takes `ShotRifle_1.wav`...) for the sounds folder. `names.py` refreshes its name list
   from the `Sfx` enum; its settings JSON can be pasted to Claude to make a code recipe.
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 16 fixed, seeded scenes (every enemy and minion
@@ -298,7 +299,10 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`. The arena's
   triangles are drawn like the GPU (`Tools/Preview/raster.py`: colour blended across each triangle, alpha blending, the
   glow pass adding light, 2x supersampled; about 7 s); `FAST=1` gives the old quick look (each triangle flat in its
-  first vertex's colour, no glow), which can't show gradients or glows, so don't judge effects with it. `SHOTW=<WeaponId>` fires that weapon three times (shots at 0.06 / 0.18 / 0.3 s) for comparing shot looks with
+  first vertex's colour, no glow), which can't show gradients or glows, so don't judge effects with it. Text is drawn
+  in the game's own fonts (VT323 for the CRT text, Rajdhani for menus: `Resources.Load<Font>` in the stubs returns a named
+  font, `TextW` measures with its width table, `shot.py` draws with `Assets/Resources/Fonts`); unstyled labels stay
+  Arial (Liberation Sans). `SHOTW=<WeaponId>` fires that weapon three times (shots at 0.06 / 0.18 / 0.3 s) for comparing shot looks with
   `Docs/Mockups/projectiles.html`. `LINEAR=1` shows
   how a Linear-colour-space project would draw it (washed out); the game is meant for **Gamma** (see below). Modes: `hud`,
   `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `bg` (with
