@@ -31,6 +31,7 @@
 # DART=<s into the scene> (Poison Dart played through the game like the mockup: dart at 0.5 s, deaths at 2.2 and 3.9 s; DARTCAP=1 mastered; ShotPoisonDart.cs).
 # MOMENT=multi|clear|level|lowhp|marks MOMENTN=<n> MOMENTT=<s> MULTISTYLE=1 (the juice moments: multikill call, last kill, level shock, heartbeat, floor marks; ShotJuice.cs).
 # SHOCK=<s since the cast> (the Shockwave ability played through the game; SHOCKCAP=1 mastered; ShotShockwave.cs).
+# FLAMEWALL=<s since the cast> (Flame Wall cast at your cursor, shots flying in; ShotFlameWall.cs).
 # TURRET=<s> / NOVA=<s> since the cast (the Turret and Nova abilities played through the game; ABILCAP=1 mastered, TURRETEND=1 its last seconds; ShotSentryNova.cs).
 # WOLFPACK=pack|alpha|merge WOLFT=<s> (the Wolf Whistle's pack hunting three grunts: four wolves with two hurt and kill pips, an alpha of three, or five merging at 0.6 s; ShotWolfPack.cs).
 # BONEGUARD=<s into the scene> (the Bone Guard's Marrow Tether, then its Ossuary Wall Alt at 1.6 s; ShotBoneGuard.cs).
