@@ -597,6 +597,7 @@ namespace Arena
             Links.Clear();
             ResetGates();
             ResetMysteryDoors();  // MysteryDoors.cs
+            MysteryDoorsOpened = MysteryVectorsSpent = 0;  // (a run's numbers; a map reset keeps them)
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
