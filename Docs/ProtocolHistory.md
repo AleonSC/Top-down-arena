@@ -4,7 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 392: service cards (Docs/ArmsDealer.md step 1): `RoomCard.Shop`/`Market`/`Arms` and `RoomKind.Arms` appended (hands and room lists carry them).
+- 394: the Arms Dealer (Docs/ArmsDealer.md step 2): `ShopAction.BuyMod` appended (arg: the mod's upgrade id).
+- 393: service cards (Docs/ArmsDealer.md step 1): `RoomCard.Shop`/`Market`/`Arms` and `RoomKind.Arms` appended (hands and room lists carry them).
 - 392: `FxKind.BulwarkThrow` appended (the Bulwark Barrier's Shield Throw in flight); `FxKind.BulwarkStep` step 4 (its wind-up) and `FxKind.BulwarkBlock` Pos2.Y 2 (melee on the braced plate) and 3 (a thrown shield's cut).
 - 391: room cards' obstacles: `ExpansionRoom.Card` (byte, the RoomCard) after `Mini` in every room list (`Msg.ExpandState`, proposals).
 - 390: map reset and keepsake vote (Docs/MapReset.md steps 1-3): `Msg.ExpandState` ends its mystery doors with the map number (byte), `Msg.KeepsakeVote` appended (client -> host, short room head); `Msg.ExpandState` adds each player's refund at the last reset (byte count, then int id + short), the kept room head (short), the vote open flag and, if open, time left and votes.

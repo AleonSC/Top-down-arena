@@ -132,7 +132,7 @@ static partial class Program
         var flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
         // The roll: the three rooms near their weights; what each holds.
-        var rooms = new int[3]; var small = new int[5]; var medium = new int[5]; bool hallsChest = true, quiet = true;
+        var rooms = new int[3]; var small = new int[6]; var medium = new int[6]; bool hallsChest = true, quiet = true;
         for (int sd = 1; sd <= 6000; sd++)
         {
             var r = Mystery.RoomFor(sd, 9, 0);
@@ -144,8 +144,8 @@ static partial class Program
             quiet &= Mystery.KindFor(sd, 9, 0, r, false) != MysteryKind.Enemies;
         }
         Check(rooms.All(c => c > 1500), "small, medium and hallway rooms all turn up (" + string.Join(" ", rooms) + ")");
-        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.Vendor] > 0 && small[(int)MysteryKind.Chest] == 0,
-            "a small room is mostly enemies, sometimes empty, sometimes a shop or a Black Market (" + string.Join(" ", small) + ")");
+        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.Vendor] > 0 && small[(int)MysteryKind.Arms] > 0 && small[(int)MysteryKind.Chest] == 0,
+            "a small room is mostly enemies, sometimes empty, sometimes a shop, a Black Market or an Arms Dealer (" + string.Join(" ", small) + ")");
         Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.Vendor] + medium[(int)MysteryKind.Chest] == 0,
             "a medium room is mostly enemies, rarely empty, never a shop (" + string.Join(" ", medium) + ")");
         Check(hallsChest, "a hallway always holds a chest");
@@ -217,8 +217,10 @@ static partial class Program
         Check(shop.Count == 1 && shop[0].W == 400 && shop[0].H == 400 && shop[0].Kind == RoomKind.Shop && g.HasShopRoom, "a small room can be a shop");
         var vendor = open(SurpriseShape.SmallRect, MysteryKind.Vendor);
         Check(vendor.Count == 1 && vendor[0].W * vendor[0].H == 200000 && vendor[0].Kind == RoomKind.Vendor && g.HasVendorRoom, "or a Black Market (5 x 4)");
+        var armsRoom = open(SurpriseShape.Tiny, MysteryKind.Arms);
+        Check(armsRoom.Count == 1 && armsRoom[0].Kind == RoomKind.Arms && g.HasArmsRoom, "or an Arms Dealer (Docs/ArmsDealer.md)");
         PollBoth(host, client);
-        Check(cg.HasShopRoom && cg.HasVendorRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
+        Check(cg.HasShopRoom && cg.HasVendorRoom && cg.HasArmsRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
 
         // Enemies: mid-wave they appear in the room at once; between waves they wait for the wave to start. A small room holds fewer.
         g.State = MatchState.Fighting;

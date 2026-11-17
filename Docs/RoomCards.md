@@ -1,7 +1,7 @@
 # Room cards: build the Expanding arena from a hand of preset rooms
 
 Status: **steps 1-3 built** (protocol 389), plus designed obstacles inside each card's room (protocol 391): cards, hand, play, sources, the vendor's card shelf, bots, the lobby switch, the build screen's hand and ghost.
-Service cards (Shop, Black Market, Arms Dealer: tiny rooms) added by [`ArmsDealer.md`](ArmsDealer.md) step 1 (protocol 392). Step 4 (balance pass, themed cards) open. Decided with the owner on Nov 17, 2026. Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (the shapes and
+Service cards (Shop, Black Market, Arms Dealer: tiny rooms) added by [`ArmsDealer.md`](ArmsDealer.md) step 1 (protocol 393). Step 4 (balance pass, themed cards) open. Decided with the owner on Nov 17, 2026. Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (the shapes and
 their placement), [`VectorBuilding.md`](VectorBuilding.md) (vectors) and [`Nodes.md`](Nodes.md).
 
 ## Why

@@ -21,11 +21,16 @@ namespace Arena
 
         /// A tiny service room built from a card or a mystery door (not floating): it gets the same mark as a floating one.
         static bool TinyService(RoomArea a)
-            => (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms) && a.Size.X <= Expansion.ShopRoomSide && a.Size.Y <= Expansion.ShopRoomSide;
+            => (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms) && a.Size.X <= Expansion.ShopRoomSide + Expansion.Step && a.Size.Y <= Expansion.ShopRoomSide + Expansion.Step;  // (4 x 4, or a mystery door's 5 x 4)
 
         /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor), a crosshair (Arms Dealer) or a diamond (Gatekeeper).
         void DrawFloatingMark(RoomArea a)
         {
+            if (!a.Sealed && a.Kind == RoomKind.Arms)  // an Arms Dealer: its stall (ArmsDealerLook.cs)
+            {
+                DrawArmsStall(a.Mid);
+                return;
+            }
             if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor))  // an opened shop or vendor room: its stall or pedestal
             {
                 DrawNodeFixture(a.Mid, a.Kind == RoomKind.Shop ? NodeKind.Shop : NodeKind.Vendor, false);

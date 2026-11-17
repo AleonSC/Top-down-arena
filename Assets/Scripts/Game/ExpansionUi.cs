@@ -1394,7 +1394,11 @@ namespace Arena
             var me = game.Me;
             if (!game.ShopOpen || !game.ServiceRooms || me == null || me.ShopDone)
                 return false;
-            string text = "SHOP OPEN  ·  " + me.Gold + " GOLD  ·  walk into the " + (game.HasShopRoom && game.HasVendorRoom ? "shop room or Black Market" : game.HasShopRoom ? "shop room" : "Black Market");
+            var where = new List<string>();
+            if (game.HasShopRoom) where.Add("shop room");
+            if (game.HasVendorRoom) where.Add("Black Market");
+            if (game.HasArmsRoom) where.Add("Arms Dealer");
+            string text = "SHOP OPEN  ·  " + me.Gold + " GOLD  ·  walk into the " + (where.Count > 1 ? string.Join(", ", where.GetRange(0, where.Count - 1).ToArray()) + " or " + where[where.Count - 1] : where.Count == 1 ? where[0] : "shop");
             float w = 30f + text.Length * 6.2f;
             var chip = new Rect(x, y, w, 20f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));

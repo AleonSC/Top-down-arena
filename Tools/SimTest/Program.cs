@@ -450,6 +450,7 @@ static partial class Program
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingOutlineTest(Dt), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingThemesTest(Dt), () => ExpandingWallsTest(Dt), () => ExpandingFreeBuildTest(Dt), () => ExpandingPurseTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingRoomSizesTest(Dt), () => ExpandingFloatCostTest(), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingPushTest(Dt), () => ExpandingRoomChestTest(), () => ExpandingVectorChestTest(Dt)),
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
         Test("roomcards", "room cards (Docs/RoomCards.md): preset rooms held in a hand and placed against a wall; dealt, dropped, bought, played, saved", () => RoomCardsTest(), () => RoomCardsGameTest(Dt), () => RoomCardsBotTest(Dt)),
+        Test("armsdealer", "the Arms Dealer (Docs/ArmsDealer.md): a service room selling every weapon mod for gold, priced by your stacks", () => ArmsDealerTest(Dt)),
         Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt), () => MysteryBotsTest(Dt)),
         Test("push", "wall push (Docs/WallPush.md): sections pushed out of a wall a tile at a time, between waves, paid by width", () => ExpandingPushTest(Dt), () => ExpandingRoomChestTest()),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
@@ -529,7 +530,7 @@ static partial class Program
         "swordsman", "snapshot", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
-        "expand", "roomcards", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "expand", "roomcards", "armsdealer", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 

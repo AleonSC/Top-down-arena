@@ -914,11 +914,12 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("EXPANDSHOP") != null) {  // EXPANDSHOP=1: the shop is open in the Expanding arena and you're not in the shop room (hint banner); EXPANDSHOP=2: you're in it (the shop)
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f); xg.State = MatchState.Intermission; xg.RoomsUp = true;
-      bool atVendor = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (RoomCards.cs); SHOPCAT=0|1 opens a category
+      bool atVendor = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  bool atArms = Environment.GetEnvironmentVariable("EXPANDSHOP") == "4";  // EXPANDSHOP=4: the Arms Dealer (ArmsDealer.cs; MODSHELD=a,b gives you those mods first)  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (RoomCards.cs); SHOPCAT=0|1 opens a category
       xg.Diff.Set(DiffKnob.RoomCards, Environment.GetEnvironmentVariable("CARDS") != null ? 1f : 0f);
-      string xw; var xr = Expansion.Custom(xg.Expanded, 1600, 300, 600, 300, out xw).Value; xr.Kind = atVendor ? RoomKind.Vendor : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+      string xw; var xr = Expansion.Custom(xg.Expanded, 1600, 300, 600, 300, out xw).Value; xr.Kind = atArms ? RoomKind.Arms : atVendor ? RoomKind.Vendor : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
       var xa = Array.Find(xg.CurrentWorld.Areas, a => a.Kind == xr.Kind);  // (the scene may have rooms of its own: find the shop's)
       foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)RoomCard.Box; pl.Hand[1] = (byte)RoomCard.Hall; } }
+      if (Environment.GetEnvironmentVariable("MODSHELD") != null) foreach (var mn in Environment.GetEnvironmentVariable("MODSHELD").Split(',')) { int mi = Array.FindIndex(Upgrades.All, u => u.Name == mn); if (mi >= 0) xg.GrantUpgrade(xg.MyId, mi); else Console.Error.WriteLine("MODSHELD: no upgrade " + mn); }
       if (Environment.GetEnvironmentVariable("SHOPCAT") != null) typeof(ArenaApp).GetField("shopCat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("SHOPCAT")));
       typeof(Game).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(xg, null);
     }
