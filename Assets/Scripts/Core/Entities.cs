@@ -126,6 +126,8 @@ namespace Arena
         FloodCast, FloodLap, FloodDrain,
         // Water Ward (WaterWardSoundBank.cs): a drop splashing on an enemy, a drop eating a shot and bursting into mist, the cast. Sent.
         WwSplash, WwBurst, WwCast,
+        // Kinetic Wall (KineticWallSoundBank.cs): the cast, the field's hum (a loop), a catch, the full chime, the unleash. Played by each screen from what it sees, never sent.
+        KwCast, KwHum, KwCatch, KwFull, KwUnleash,
     }
 
     public struct SoundCue
