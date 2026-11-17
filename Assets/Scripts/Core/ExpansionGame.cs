@@ -328,7 +328,7 @@ namespace Arena
                 added = true;
                 DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule } : new[] { NodeKind.Chest, NodeKind.Rule })  // (a relic node every other cycle, a rule node every cycle; old saves may still hold shop and vendor nodes)
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Tower, NodeKind.Rule, NodeKind.Vein })  // (a relic node every other cycle, a scout tower in the others, a rule node and a gold vein every cycle; old saves may still hold shop and vendor nodes)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -1152,6 +1152,7 @@ namespace Arena
         void TickExpansion(float dt)
         {
             TickPushes(dt);
+            TickNodeFog(dt);  // NodeScouting.cs
             if (!ExpandOpen)
             {
                 botVoteT = 0f;
@@ -1364,7 +1365,7 @@ namespace Arena
             w.Write((ushort)Nodes.Count);  // (ushort: a big map can pass 255)
             foreach (var nd in Nodes)
             {
-                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule); w.Write(nd.Cleared);
+                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule); w.Write(nd.Cleared); w.Write(nd.Hidden);
             }
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
@@ -1460,7 +1461,7 @@ namespace Arena
             int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean(), Hidden = r.ReadBoolean() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);

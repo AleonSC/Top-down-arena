@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-3 built (protocol 282)**, step 4 open. **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **steps 1-3 built (protocol 282)**, step 4 open; fog, scout towers and gold veins built (protocol 386). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -18,7 +18,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 | New nodes | May appear **around the current build** as it grows (each boss cycle, placed relative to the built map, never inside it). They are new nodes, not respawns. |
 | Mini-bosses | Unchanged: sealed rooms, touch to open, duel, prize pick. |
 
-**Nov 17 (owner): room chests.** Every drawn room that is built may drop a chest node 3-5 tiles outside its wall (`Expansion.RoomChestFor`, from `ApplyBuilt`): hallways (3 tiles wide or less) 10%, wider rooms 20% + area/720 tiles, up to 40%; none while 2 chests wait; the spot facing the most other rooms within 9 tiles wins, so the claiming room tends to join branches (the hub-and-spokes maps were the problem). No protocol change: nodes were already synced and saved. Same day: surprise rooms (`GiveSurpriseRoom`, `RevealBreachEvent`; not breach Stashes) roll too, and half of room chests are **vector chests** (`NodeKind.VectorChest`, protocol 384): walk up to a claimed one (`TickVectorChests`) and it bursts into `VectorChestPickups` (4) vector pickups of 6; preview `EXPANDNODE=vectorchest:x,y`.
+**Nov 17 (owner): room chests.** Every drawn room that is built may drop a chest node 3-5 tiles outside its wall (`Expansion.RoomChestFor`, from `ApplyBuilt`): hallways (3 tiles wide or less) 10%, wider rooms 20% + area/720 tiles, up to 40%; none while 2 chests wait; the spot facing the most other rooms within 9 tiles wins, so the claiming room tends to join branches (the hub-and-spokes maps were the problem). No protocol change: nodes were already synced and saved. Same day: surprise rooms (`GiveSurpriseRoom`, `RevealBreachEvent`; not breach Stashes) roll too, and half of room chests are **vector chests** (`NodeKind.VectorChest`, protocol 386): walk up to a claimed one (`TickVectorChests`) and it bursts into `VectorChestPickups` (4) vector pickups of 6; preview `EXPANDNODE=vectorchest:x,y`.
 
 ## Build rules
 
@@ -80,4 +80,19 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 - `NodeKind.Relic`: one per **even** boss cycle (0, 2, 4, ...), placed like chests (`PlaceFloatingRooms`). Claimed the same way (a room round it); the first player to walk
   up to it (`Relics.TakeReach`) gives **everyone** its relic and spends the node (`Relics.cs` `TickRelicNodes`).
 - Wall Bounce: a player's shot that reaches a wall or pillar bounces once (mirrored off the face), keeping 70% damage (`Relics.WallBounces`, `WallBounceDmg`).
-- Open: more relics (Home Turf, Hallway Runner, Gatecrasher, Portal Ward, Spiked Walls were offered), rolling which relic a node holds, a pick-up banner, bots walking to relic nodes.
+- Nov 17 (owner): two more relics, and each node rolls its relic (`Relics.ForNode`: from the node's spot, never the relic every player holds; protocol 387), named in the build map's tip:
+  **Backup** (an auto revive: the first time you'd go down you're back up at 50% health with 2 s grace, then the slot empties; `UseBackup` from `DownIfDead`) and
+  **Hallway Runner** (+25% move speed in a box 3 tiles wide or less; `RelicSpeedAt`, `Relics.InHall`).
+- Open: more relics (Home Turf, Gatecrasher, Portal Ward, Spiked Walls were offered), a pick-up banner, bots walking to relic nodes.
+
+## Fog, scout towers and gold veins (built, protocol 386)
+
+- Owner (Nov 17): picked fog (7), scout tower (4) and gold vein (1) from the node ideas. Decisions: fog hides the **kind only** (a grey "?" where the node is); a node is
+  revealed for everyone by a player within **8 tiles** or a claimed scout tower; the tower is a **permanent radar** (30 tiles, nodes placed later too); the vein is **plain passive** gold.
+- `MapNode.Hidden` (synced after `Cleared`, saved as a 7th `node` field; old saves and hand-made nodes are unfogged). `NodeFor` places every node fogged.
+- `NodeKind.Tower` (odd boss cycles, in place of the relic node) and `NodeKind.Vein` (every cycle); both keep `PrizeClear` from rooms like chests. `MaxNodesWaiting` 6 -> 8.
+- `NodeScouting.cs`: `TickNodeFog` (host, from `TickExpansion`, every 0.25 s; also reveals a claimed node), `PayVeins` (from `WaveCleared`: `VeinGold` 10 + 1 per wave to each player, per vein).
+- Look (`NodeLook.cs`): fogged ghost ("?" with drifting mist dashes; a fogged rule node keeps its area, grey, with a "?" mark), tower (mast, sweeping beam, ping), vein (rocks and
+  nuggets, sparkles); grey on the minimap and build map, "UNKNOWN NODE" / "SCOUT TOWER" / "GOLD VEIN" in the legend, tips name and explain them.
+- Bots still build toward fogged nodes. Not done: the tower's range drawn on the build map; numbers are first guesses (tune with `vecbal`).
+- Preview: `EXPANDMAP=0 EXPANDROOMS="1600,200,900,500" EXPANDAT=2400,450 EXPANDNODE="tower:2850,250;vein:2850,650;chest:2950,450:hidden"` (hud).

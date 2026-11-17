@@ -748,8 +748,8 @@ namespace Arena
                     }
                     if (map.Contains(Event.current.mousePosition) && TipHover(nr))
                     {
-                        TipStart(nr, nd.Kind == NodeKind.Rule ? "Rule node: " + RuleName(nd.Rule) : NodeName(nd.Kind), ToColor(NodeInkOf(nd)));
-                        TipAdd(nd.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : "Build a room round it to claim it.", 12, Ui.Text);
+                        TipStart(nr, NodeName(nd), ToColor(NodeInkOf(nd)));
+                        TipAdd(nd.Kind == NodeKind.Rule && !nd.Hidden ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : NodeBlurb(nd), 12, Ui.Text);
                     }
                 }
             foreach (var fa in wd.Areas)  // the floating rooms: named in a hover tip too
@@ -1111,8 +1111,8 @@ namespace Arena
             var items = new List<KeyValuePair<string, Rgba>> { new KeyValuePair<string, Rgba>("YOUR MAP", new Rgba(0.4f, 0.64f, 1f)), new KeyValuePair<string, Rgba>("DOOR", new Rgba(0.37f, 0.94f, 1f)) };
             var seen = new HashSet<int>();
             foreach (var nd in game.Nodes)
-                if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add((int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
-                    items.Add(new KeyValuePair<string, Rgba>((nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : NodeName(nd.Kind).ToUpperInvariant() + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
+                if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Hidden ? -1 : (int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
+                    items.Add(new KeyValuePair<string, Rgba>((nd.Hidden ? "UNKNOWN NODE" : nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind == NodeKind.Tower || nd.Kind == NodeKind.Vein ? NodeName(nd.Kind) : NodeName(nd.Kind) + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
             items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
             items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
             if (game.ActiveBreaches.Length > 0)

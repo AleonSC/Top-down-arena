@@ -278,7 +278,7 @@ namespace Arena
             foreach (var n in game.Nodes)  // the nodes: a small square, breathing until a room is built round it
             {
                 V2 np = M(n.Pos);
-                MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, NodeInk(n.Kind).WithAlpha(n.Spent ? 0.25f : Expansion.NodeClaimed(game.Expanded, n) ? 0.9f : 0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
+                MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, (n.Hidden && !Expansion.NodeClaimed(game.Expanded, n) ? FogInk : NodeInk(n.Kind)).WithAlpha(n.Spent ? 0.25f : Expansion.NodeClaimed(game.Expanded, n) ? 0.9f : 0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
             }
             if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
                 foreach (var q in game.ExpandProposals)

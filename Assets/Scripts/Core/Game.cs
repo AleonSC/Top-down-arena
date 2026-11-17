@@ -1091,7 +1091,7 @@ namespace Arena
             }
             else
             {
-                V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos);
+                V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos) * RelicSpeedAt(me);
                 if (OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake)
                 {
                     // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
