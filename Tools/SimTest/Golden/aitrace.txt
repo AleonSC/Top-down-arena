@@ -20,7 +20,7 @@ Brute 46c2c9e3cac9c982 at (647,450) phase 0 hp 805 shots 0
 Lunger ac066e77b51c122e at (799,449) phase 3 hp 476 shots 0
 HiveBomber 5e8eccd4630aa975 at (480,450) phase 0 hp 1000000 shots 0
 CageWell 5aecd335e88874c5 at (480,450) phase 0 hp 0 shots 0
-Rioter b4daaee0142e35ef at (680,449) phase 0 hp 1008 shots 3
+Rioter b35cca249712b28f at (679,459) phase 2 hp 1057 shots 1
 HiveEgg 37d7943cd038f6c5 at (480,450) phase 0 hp 0 shots 0
 Guard c1b282a87ae98111 at (690,450) phase 0 hp 1281 shots 0
 ReaperPillar 61c638bffb03e30d at (480,450) phase 0 hp 0 shots 0
@@ -126,7 +126,7 @@ Grounder c51428a1b815d69d at (610,450) phase 3 hp 0 shots 28
 Pylon 1cb88018ae1b99b3 at (791,597) phase 1 hp 497 shots 0
 Lineman b97fcc146ed4eb82 at (502,488) phase 0 hp 0 shots 16
 Thunderhead 7675104ef053f2b0 at (800,450) phase 1 hp 1505 shots 0
-Turnkey fa22988b230ff8dc at (665,131) phase 1 hp 0 shots 1
+Turnkey fc74cc91a50a744d at (665,131) phase 1 hp 0 shots 1
 CellDoor 50207f286b726965 at (480,450) phase 2 hp 0 shots 0
 FloorMine 97f9901cedbfc2d5 at (480,450) phase 1 hp 0 shots 0
 ShackleTrap a647ddacf7ffbebd at (480,450) phase 1 hp 0 shots 0
