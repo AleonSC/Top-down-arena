@@ -105,7 +105,7 @@ static partial class Shot {
     melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA") ?? Environment.GetEnvironmentVariable("BLOOD");
     meleeKit = Environment.GetEnvironmentVariable("NINJA") != null ? Kit.Ninja : Environment.GetEnvironmentVariable("BLOOD") != null ? Kit.Hemomancer : Kit.Knight;
     var rodEnv = Environment.GetEnvironmentVariable("ROD");  // ROD=<seconds since the cast>: you take Lightning Rod (the tank Elementalist's second ultimate) and cast it that long before the shot
-    host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, melee != null ? int.Parse(melee) : 0, 0, melee != null ? meleeKit : Kit.Elementalist, 0, rodEnv != null && melee == null ? 1 : 0);
+    host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, melee != null ? int.Parse(melee) : 0, 0, melee != null ? meleeKit : Kit.Elementalist, 0, (rodEnv != null && melee == null) || Environment.GetEnvironmentVariable("DOGMA") != null ? 1 : 0);  // (DOGMA=: Dragon's Dogma, key 1 of the Tank Ninja's Ultimate row)
     others = new System.Collections.Generic.List<Session>();
     string[] names = { "Aleon", "Sam" }; Role[] roles = { Role.Dps, Role.Healer }; Kit[] kits = melee != null ? new[] { meleeKit, meleeKit } : new[] { Kit.Soldier, Kit.Summoner };
     for (int i = 1; i < players; i++) { var c = new Session(); c.Game.Bot = true; c.Join("127.0.0.1", host.Port, names[i-1], roles[i-1], 0, 0, kits[i-1]); others.Add(c); }
@@ -264,6 +264,7 @@ static partial class Shot {
     ArenaScenes();
     WolfPoses();  // WOLFPACK=lineup: each wolf's stride and bite (ShotWolfPack.cs)
     VectorGainScene();  // VECGAIN=<s since> [VECGAINN=10] (ShotScenes.cs)
+    EngineerScene();  // ENGINEER=strider|pylon|breach [ENGT=<s>] (ShotEngineer.cs)
     // WARDENINTRO=<s>: the Warden's entrance that far in (WardenIntro.cs): a clean arena, the Warden held in the middle (still "spawning", so it gets the entrance, not the card).
     if (Environment.GetEnvironmentVariable("WARDENINTRO") != null)
     {

@@ -254,6 +254,7 @@ namespace Arena
             game.Sounds.Clear();
             sounds.SetSawLoop(game.SawWhirrLevel);  // the Buzzsaw's contact whirr (MeleeSounds.cs)
             TickHeliSound();  // the Attack Helicopter's rotor (AttackHelicopterLook.cs, HeliSoundBank.cs)
+            TickKineticWallSounds();  // Kinetic Wall's cast, catches, chime, unleash and hum (KineticWallLook.cs; before TickArcLockSounds, which marks effects heard)
             TickArcLockSounds();  // Arc Lightning's tags, hops, forks and charge hum (ArcLockSoundBank.cs)
             TickVectorGain(Time.unscaledDeltaTime);  // vectors coming in: the bursts, the "+10 VECTORS" and the chip (VectorGainLook.cs)
             TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
@@ -338,7 +339,10 @@ namespace Arena
             // parry: a press that starts while one is up is ignored until the button is released.
             // Holding Tab opens the loadout, which has buttons (moving abilities between keys). It works
             // while choosing an upgrade too: the cards hide until you let go.
+            bool wasTab = tabHeld;
             tabHeld = tabKey && !menuUp;
+            if (tabHeld && !wasTab)
+                tabOpens++;  // (the TAB hint in the corner retires once you've used it: Hud.cs)
             Keybinds.SetPickerNumbers(choosing && !tabHeld ? Mathf.Min(me.Offer.Length, CardKeys.Length) : 0);  // its card keys win over a bound number key
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || game.HuntMapVoting || ExpandWindowUp);

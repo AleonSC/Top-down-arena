@@ -7,7 +7,8 @@ namespace Arena
     /// lines bow away from each player like a stretched sheet and trail a little behind them while they move, and
     /// light up in the player's class colour near them; a kill's ripple runs through it (Juice.cs `Warp`). Your Dodge sends a
     /// small burst ripple from where it started (`FloorDashBurst`).
-    /// Settings > Visual effects > Arena floor: Bending (the default) or Static (the lines stay straight, only the colour shows).
+    /// Settings > Visual effects > Arena floor: Bending (the default) or Static (the lines stay straight, only the colour shows),
+    /// and the pattern: this grid or one of the others in FloorStylesLook.cs.
     /// With Visual effects off it draws the plain grid, as before.
     public partial class ArenaApp
     {
@@ -105,6 +106,7 @@ namespace Arena
         void DrawFloorGrid(V2 lo, V2 hi, V2 first, Rgba grid)
         {
             GatherFloorPulls();
+            V2 areaLo = lo, areaHi = hi;  // (the whole area, before the cut to the view below)
             bool warpAll = Juicy && ripples.Count > 0, bend = FloorBends;
             float reach = FloorR * 2.4f;
             if (CamZoomed)
@@ -124,6 +126,11 @@ namespace Arena
                 hi = new V2(Mathf.Min(hi.X, x1), Mathf.Min(hi.Y, y1));
                 if (lo.X >= hi.X || lo.Y >= hi.Y)
                     return;
+            }
+            if (Juicy && FloorStyle != 0)  // Flux, Seismo, Plates or Circuit (FloorStylesLook.cs)
+            {
+                DrawFloorPattern(areaLo, areaHi, lo, hi, grid);
+                return;
             }
             for (float x = first.X; x <= hi.X + 0.5f; x += FloorStep)
             {

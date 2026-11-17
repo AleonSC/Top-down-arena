@@ -142,8 +142,8 @@ namespace Arena
         }
 
         /// A digital key in the cabinet's options screen: its name and a small line, inverse video under the mouse or when
-        /// it's the selected one (`on`). `key` is a hint tag at the right (Esc), `tag` a plain note there. Texts type in one
-        /// key after another during the opening and retype when the list switches. Returns true when clicked.
+        /// it's the selected one (`on`). `key` is a hint tag at the right (Esc), `tag` a plain note there. Texts show with the key
+        /// and retype when the list switches. Returns true when clicked.
         bool DrawerRow(Rect r, Texture2D icon, string name, string line, string key, string tag, Color col, bool on, Color? tagColor = null, bool danger = false)
         {
             int i = rowIndex++;
@@ -155,9 +155,9 @@ namespace Arena
             if (!KeyOpening(r, i, out ka))
                 return false;
             string slot = "cab.r" + i;
-            float d = HoloBoot.Wipe + 0.05f + i * 0.04f;  // the texts type once the keys are lit
-            string n = CabText(slot + ".n", name, d);
-            string s = string.IsNullOrEmpty(line) ? null : CabText(slot + ".s", line, d + 0.05f);
+            // The texts are there as soon as the key is (blank keys read as broken while they typed in); they still retype when the list switches.
+            string n = CrtKit.Typed(slot + ".n", name, WinNow, CabCalm, -10f);
+            string s = string.IsNullOrEmpty(line) ? null : CrtKit.Typed(slot + ".s", line, WinNow, CabCalm, -10f);
             if (s != null && s.Length == 0)
                 s = " ";  // (the two-line layout holds while the line is still typing)
             bool clicked = CrtKit.Key(r, n, s, icon, on, CabCalm, WinNow, null, r.height >= 54f ? 24 : 20, col, danger);
