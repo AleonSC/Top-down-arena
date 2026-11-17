@@ -438,6 +438,7 @@ namespace Arena
                 aimDebug = !aimDebug;  // aim debug overlay
             DpsMeterKeys();  // F2: the DPS meter (DpsMeterUi.cs)
             TextEditKeys();  // F4: the dev text editor
+            SnapshotKeys();  // F6 / F7: take / load a run snapshot (SnapshotUi.cs)
             if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 SetHudMode(hudMode + 1);  // H: full > corner text > on the player > hidden (HudModes.cs)
             TickMapView(Time.unscaledDeltaTime);  // M: minimap > full map > off (MapView.cs)
