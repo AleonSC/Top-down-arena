@@ -1,0 +1,222 @@
+<title>Flame Wall Ring</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one arena stage with a style picker and playback controls, then a beat list. Drawn only with circles, arcs and
+   flat triangles (what WorldRenderer.cs has): no blur, no gradients, no additive blending. */
+:root{
+  --bg:#efece8; --fg:#221a16; --muted:#6a5d55; --panel:#f8f6f3; --line:#d8cfc8;
+  --acc:#c2470a; --chip:#e4ddd6; --chip-on:#221a16; --chip-on-fg:#f6f1ec;
+  --arena:#141a17; --grid:#1f2824;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#110e0c; --fg:#ece4de; --muted:#a39288; --panel:#1a1512; --line:#33291f;
+  --acc:#ff8a3c; --chip:#251e19; --chip-on:#ece4de; --chip-on-fg:#110e0c; --arena:#0b0f0d; --grid:#161d19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#110e0c; --fg:#ece4de; --muted:#a39288; --panel:#1a1512; --line:#33291f;
+  --acc:#ff8a3c; --chip:#251e19; --chip-on:#ece4de; --chip-on-fg:#110e0c; --arena:#0b0f0d; --grid:#161d19; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font:700 clamp(32px,6vw,52px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0;color:var(--acc);text-wrap:balance}
+.sub{margin:0;color:var(--muted);max-width:64ch}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;max-width:100%}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfd8cc;opacity:.85;pointer-events:none}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--acc);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 18px}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;color:var(--muted)}
+.card ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.card li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px}
+.card li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.note{font-size:14px;color:var(--muted);margin:0}
+</style>
+
+<main>
+  <h1>Flame Wall · Ring of Fire</h1>
+  <p class="sub">Mockup (approximate). Cast at the cursor as today. A spark spirals out from the centre to the ring's edge and the fire draws itself round from there. Shots from the right are stopped at the ring; enemies that walk through burn.</p>
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Flame Wall ring animation"></canvas><div class="hud" id="hud"></div></div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Draw-in style">
+      <input type="radio" name="v" id="vA" value="A"><label for="vA">A · Fuse</label>
+      <input type="radio" name="v" id="vB" value="B"><label for="vB">B · Twin fuse</label>
+      <input type="radio" name="v" id="vC" value="C" checked><label for="vC">C · Spiral fuse</label>
+    </div>
+    <button type="button" id="replay">Replay</button>
+    <button type="button" id="pause">Pause</button>
+    <label class="chk" for="slow"><input type="checkbox" id="slow"> Slow-mo (0.25×)</label>
+  </div>
+  <div class="card"><h3>Beats</h3><ol id="beats"></ol></div>
+  <p class="note">Built from the shapes the game already draws (circles, arcs, flat triangles), so it should port closely. Radius 90 px, 5 s, as today.</p>
+</main>
+
+<script>
+(function(){
+var W=720,H=400,TAU=Math.PI*2,R=78,LIFE=5,CAST=.35;
+var cv=document.getElementById('cv'),c=cv.getContext('2d'),hud=document.getElementById('hud');
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var ver='C',paused=false,slow=reduce,CX=450,CY=205;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function eo(f){f=clamp(f,0,1);return 1-Math.pow(1-f,3)}
+function eb(f){f=clamp(f,0,1);var s=1.9;return 1+(s+1)*Math.pow(f-1,3)+s*Math.pow(f-1,2)}  // ease-out-back (overshoot)
+function rnd(a,b){return a+Math.random()*(b-a)}
+function hash(i){var s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+function rgba(k,a){return 'rgba('+k[0]+','+k[1]+','+k[2]+','+clamp(a,0,1)+')'}
+function circ(x,y,r,f){c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);c.fillStyle=f;c.fill()}
+function arcS(x,y,r,a0,a1,col,lw){c.beginPath();c.arc(x,y,r,a0,a1);c.lineWidth=lw;c.strokeStyle=col;c.lineCap='butt';c.stroke()}
+function angd(a,b){return Math.atan2(Math.sin(a-b),Math.cos(a-b))}
+var RED=[200,40,16],ORG=[255,110,24],YEL=[255,196,64],WHT=[255,246,200],SMK=[60,48,44];
+
+var BEATS={
+  A:[['0.00 s','Cast. A spark drops at the tank\'s feet on the side it faces.'],['0.00–0.55 s','A fuse head races once round the ring; flames burst up behind it, overshoot, then settle.'],['0.55 s','The head meets its own tail with a flash and an ember pop.'],['0.55–5.0 s','A full ring of flickering tongues leaning up-screen, a hot band at the base, embers rising.'],['last 0.6 s','Flames sink into a smouldering ring and smoke.']],
+  B:[['0.00 s','Cast. A spark drops on the side the tank faces.'],['0.00–0.40 s','Two fuse heads split and race round both ways; flames burst up behind each.'],['0.40 s','The heads collide behind the tank in a flare and ember burst.'],['0.40–5.0 s','Full ring of flame, hot base band, embers.'],['last 0.6 s','Flames sink and smoke.']],
+  C:[['0.00–0.22 s','Cast at the cursor. A spark spirals out from the centre to the ring\'s edge.'],['0.22–0.75 s','It hits the edge and runs once round, lighting the flames behind it.'],['0.75 s','Head meets tail: flash and ember pop.'],['0.75–5.0 s','Full ring of flame, hot base band, embers.'],['last 0.6 s','Flames sink and smoke.']]};
+function beats(){var el=document.getElementById('beats');el.innerHTML='';BEATS[ver].forEach(function(r){var li=document.createElement('li'),b=document.createElement('b'),s=document.createElement('span');b.textContent=r[0];s.textContent=r[1];li.appendChild(b);li.appendChild(s);el.appendChild(li)})}
+
+var S;
+function reset(){
+  S={t:0,parts:[],bul:[],nextB:.9,met:false,cx:0,cy:0,
+    en:[0,1,2,3].map(function(i){return {x:760+i*60,y:120+i*55,r:12,alive:true,burn:0,flash:0,id:i}})};
+  place(0);S.cx=CX;S.cy=CY;
+}
+function place(t){S.px=170+Math.sin(t*.55)*40;S.py=205+Math.sin(t*1.1)*50;S.face=0}
+function add(p){p.life=0;p.vx=p.vx||0;p.vy=p.vy||0;p.drag=p.drag||0;S.parts.push(p)}
+
+/* how far the fire has drawn: returns, for angle a, a 0..1 "lit for" time-ish value and the head position(s) */
+var START=0;  // facing: right
+function timing(){return ver==='A'?{pre:0,sweep:.55}:ver==='B'?{pre:0,sweep:.4}:{pre:.22,sweep:.53}}
+function litK(a,age){  // 0 = not reached yet, then grows with time since the fuse passed
+  var tm=timing(),k=(age-tm.pre)/tm.sweep;if(k<0)return 0;
+  var d;
+  if(ver==='B'){d=Math.abs(angd(a,START))/Math.PI;}else{d=((a-START)%TAU+TAU)%TAU/TAU;}
+  var reach=eo(Math.min(k,1))*1.0;if(k>=1)reach=1;
+  if(d>reach+1e-4)return 0;
+  // time since head passed this angle (seconds-ish)
+  var passed=(reach-d)*tm.sweep+(k>1?(k-1)*tm.sweep:0);
+  return passed;
+}
+function heads(age){
+  var tm=timing(),k=(age-tm.pre)/tm.sweep,out=[];
+  if(ver==='C'&&age<tm.pre){var q=age/tm.pre,rr=R*eo(q),aa=START-TAU*.75*(1-q);out.push({x:S.cx+Math.cos(aa)*rr,y:S.cy+Math.sin(aa)*rr,a:aa});return out}
+  if(k<0||k>=1)return out;var e=eo(k);
+  if(ver==='B'){[1,-1].forEach(function(s){var a=START+s*Math.PI*e;out.push({x:S.cx+Math.cos(a)*R,y:S.cy+Math.sin(a)*R,a:a})})}
+  else{var a=START+TAU*e;out.push({x:S.cx+Math.cos(a)*R,y:S.cy+Math.sin(a)*R,a:a})}
+  return out;
+}
+
+/* one flame tongue: layered kites (flat triangles), leaning outward + up-screen for fake height */
+function tongue(x,y,a,h,w,t,i){
+  var ox=Math.cos(a),oy=Math.sin(a),dx=ox*.45,dy=oy*.45-1,l=Math.hypot(dx,dy);dx/=l;dy/=l;
+  var nx=-dy,ny=dx,sway=Math.sin(t*9+i*1.7)*.35;
+  var L=[[RED,1,1,.85],[ORG,.78,.74,.9],[YEL,.52,.48,.95],[WHT,.26,.24,.9]];
+  for(var j=0;j<L.length;j++){var col=L[j][0],hh=h*L[j][1],ww=w*L[j][2];
+    var tx=x+dx*hh+nx*sway*ww*1.6,ty=y+dy*hh+ny*sway*ww*1.6;
+    var mx=x+dx*hh*.38,my=y+dy*hh*.38;
+    c.beginPath();c.moveTo(x+nx*ww*.55,y+ny*ww*.55);c.lineTo(mx+nx*ww,my+ny*ww);c.lineTo(tx,ty);c.lineTo(mx-nx*ww,my-ny*ww);c.lineTo(x-nx*ww*.55,y-ny*ww*.55);c.closePath();
+    c.fillStyle=rgba(col,L[j][3]);c.fill()}
+}
+
+function update(dt){
+  S.t+=dt;var t=S.t,age=t-CAST,on=age>=0&&age<LIFE;
+  place(t);
+  // fuse head trails sparks
+  if(on)heads(age).forEach(function(h){for(var i=0;i<3;i++){var s=rnd(30,140),aa=h.a+Math.PI/2+rnd(-1.2,1.2);add({type:'spark',x:h.x,y:h.y,vx:Math.cos(aa)*s,vy:Math.sin(aa)*s-30,drag:3,max:rnd(.2,.4),col:YEL})}});
+  // head meets: burst
+  var tm=timing();if(on&&!S.met&&age>=tm.pre+tm.sweep){S.met=true;var ma=ver==='B'?START+Math.PI:START,mx=S.cx+Math.cos(ma)*R,my=S.cy+Math.sin(ma)*R;
+    add({type:'flash',x:mx,y:my,r:34,max:.3});
+    for(var i=0;i<26;i++){var a=rnd(0,TAU),s=rnd(60,240);add({type:'ember',x:mx,y:my,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,drag:2.4,size:rnd(1.8,3.4),max:rnd(.5,.9),col:ORG})}
+    add({type:'ringP',x:S.cx,y:S.cy,r0:R-6,r1:R+22,max:.4,col:ORG,follow:true})}
+  if(age<0)S.met=false;
+  // embers + smoke off the ring
+  if(on&&S.met){var fade=age>LIFE-.6;if(Math.random()<dt*(fade?8:26)){var a=rnd(0,TAU);add({type:'ember',x:S.cx+Math.cos(a)*R,y:S.cy+Math.sin(a)*R-rnd(4,14),vx:rnd(-10,10),vy:rnd(-70,-30),size:rnd(1.4,2.6),max:rnd(.6,1.1),col:ORG})}
+    if(Math.random()<dt*(fade?22:5)){var b=rnd(0,TAU);add({type:'smoke',x:S.cx+Math.cos(b)*R,y:S.cy+Math.sin(b)*R-10,vx:rnd(-6,6),vy:-26,size:rnd(7,12),max:1.2})}}
+  // bullets from the right at the tank
+  S.nextB-=dt;if(S.nextB<=0&&t<CAST+LIFE+.4){S.nextB=rnd(.25,.45);var by=rnd(60,340),ang=Math.atan2(S.py-by,S.px-730);S.bul.push({x:730,y:by,vx:Math.cos(ang)*260,vy:Math.sin(ang)*260})}
+  for(var i=S.bul.length-1;i>=0;i--){var b=S.bul[i];b.x+=b.vx*dt;b.y+=b.vy*dt;
+    var dx=b.x-S.cx,dy=b.y-S.cy,d=Math.hypot(dx,dy),ba=Math.atan2(dy,dx);
+    if(on&&d<R+6&&litK(ba,age)>0){S.bul.splice(i,1);for(var k=0;k<8;k++){var a2=ba+rnd(-1,1),s2=rnd(60,180);add({type:'spark',x:b.x,y:b.y,vx:Math.cos(a2)*s2,vy:Math.sin(a2)*s2,drag:3,max:rnd(.15,.3),col:YEL})}
+      add({type:'smoke',x:b.x,y:b.y,vx:0,vy:-20,size:8,max:.7});add({type:'hit',a:ba,max:.25});continue}
+    if(Math.hypot(b.x-S.px,b.y-S.py)<16||b.x<-20)S.bul.splice(i,1)}
+  // enemies walk at the tank; inside the fire they burn
+  S.en.forEach(function(e){if(!e.alive)return;var dx=S.px-e.x,dy=S.py-e.y,d=Math.hypot(dx,dy);if(d>30){e.x+=dx/d*48*dt;e.y+=dy/d*48*dt}
+    var dz=Math.hypot(e.x-S.cx,e.y-S.cy),inF=on&&S.met&&Math.abs(dz-R)<24;
+    if(inF){e.burn+=dt;e.flash=Math.max(0,e.flash-dt);if(Math.random()<dt*14)add({type:'ember',x:e.x+rnd(-8,8),y:e.y+rnd(-6,6),vx:rnd(-10,10),vy:rnd(-60,-30),size:2,max:.5,col:ORG})}
+    if(e.burn>1.1){e.alive=false;for(var k=0;k<16;k++){var a=rnd(0,TAU),s=rnd(40,140);add({type:'ember',x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-30,drag:2,size:rnd(2,3),max:rnd(.4,.8),col:ORG})}add({type:'smoke',x:e.x,y:e.y,vx:0,vy:-20,size:14,max:1})}});
+  for(var j=S.parts.length-1;j>=0;j--){var p=S.parts[j];p.life+=dt;var f=Math.exp(-p.drag*dt);p.vx*=f;p.vy*=f;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.life>=p.max)S.parts.splice(j,1)}
+  if(t>CAST+LIFE+1.1)reset();
+}
+
+function drawRing(t){
+  var age=t-CAST;if(age<0||age>=LIFE)return;
+  var x=S.cx,y=S.cy,end=clamp((LIFE-age)/.6,0,1),N=44;
+  // scorched ground under the lit part
+  for(var i=0;i<N;i++){var a=i/N*TAU,lk=litK(a+TAU/N/2,age);if(lk<=0)continue;var g=eo(lk/.25);
+    arcS(x,y,R,a,a+TAU/N+.01,rgba([24,10,6],.75*g),20);
+    arcS(x,y,R,a,a+TAU/N+.01,rgba(RED,(.55+.15*Math.sin(t*6+i))*g*(.4+.6*end)),9);
+    arcS(x,y,R,a,a+TAU/N+.01,rgba(YEL,(.7+.3*Math.sin(t*11+i*2))*g*end),2.5)}
+  // hit flares
+  S.parts.forEach(function(p){if(p.type==='hit'){var k=1-p.life/p.max;arcS(x,y,R,p.a-.3,p.a+.3,rgba(WHT,.9*k),6);circ(x+Math.cos(p.a)*R,y+Math.sin(p.a)*R,14*k+6,rgba(YEL,.45*k))}});
+  // flame tongues: back half first (above the tank on screen), front half after the tank is drawn
+  return function(front){
+    var M=56;for(var i=0;i<M;i++){var a=i/M*TAU+hash(i)*.05,sy=Math.sin(a);if(front?sy<0:sy>=0)continue;
+      var lk=litK(a,age);if(lk<=0)continue;var grow=eb(lk/.32);
+      var h=(17+7*Math.sin(t*11+i*2.3)+4*Math.sin(t*17.3+i))*grow*(.25+.75*end)*(.85+hash(i+3)*.35);
+      tongue(x+Math.cos(a)*R,y+Math.sin(a)*R,a,h,5.2*(.8+.4*hash(i+7))*Math.min(1,grow+.2),t,i)}
+  };
+}
+
+function drawPlayer(x,y,flash){
+  c.save();c.translate(x,y);
+  c.fillStyle='#3a3f58';c.fillRect(6,-2.5,32,5);circ(40,0,6,'rgb(255,150,60)');
+  circ(0,0,17,'#2a3350');circ(0,0,14,'#5b6d9a');c.fillStyle='#46557f';c.fillRect(-6,-19,12,6);c.fillRect(-6,13,12,6);
+  circ(2,0,9,'#39446a');circ(2,0,7,'#a9b6dc');circ(5,0,3,'#1d2238');c.restore()}
+
+function draw(){
+  var cs=getComputedStyle(document.documentElement),t=S.t,age=t-CAST;
+  c.fillStyle=cs.getPropertyValue('--arena').trim()||'#141a17';c.fillRect(0,0,W,H);
+  c.strokeStyle=cs.getPropertyValue('--grid').trim()||'#1f2824';c.lineWidth=1;c.beginPath();
+  for(var gx=0;gx<=W;gx+=40){c.moveTo(gx+.5,0);c.lineTo(gx+.5,H)}for(var gy=0;gy<=H;gy+=40){c.moveTo(0,gy+.5);c.lineTo(W,gy+.5)}c.stroke();
+  // warm light on the floor inside the ring
+  if(age>=0&&age<LIFE&&S.met){var e=clamp((LIFE-age)/.6,0,1);circ(S.cx,S.cy,R-8,rgba([255,110,30],.07*e));circ(S.cx,S.cy,R-30,rgba([255,110,30],.05*e))}
+  S.parts.forEach(function(p){if(p.type==='smoke'){var k=p.life/p.max;circ(p.x,p.y,p.size*(.6+k*1.3),rgba(SMK,.35*(1-k)))}});
+  var flames=drawRing(t);if(flames)flames(false);
+  // enemies
+  S.en.forEach(function(e){if(!e.alive)return;var hot=clamp(e.burn/1.1,0,1);
+    circ(e.x,e.y,e.r+3,'#33263f');circ(e.x,e.y,e.r,'rgb('+Math.round(138+117*hot)+','+Math.round(115-30*hot)+','+Math.round(156-120*hot)+')');
+    circ(e.x-5,e.y-3,2.2,'#1b1320');circ(e.x-5,e.y+3,2.2,'#1b1320')});
+  drawPlayer(S.px,S.py);
+  if(flames)flames(true);
+  // fuse heads
+  if(age>=0&&age<LIFE)heads(age).forEach(function(h){var p=.8+.2*Math.sin(t*60);circ(h.x,h.y,13*p,rgba(ORG,.35));circ(h.x,h.y,8*p,rgba(YEL,.8));circ(h.x,h.y,4,rgba(WHT,1))});
+  // cast spark at the start point
+  if(age>=0&&age<.18){var k=age/.18,sa=ver==='C'?null:START,sx=sa===null?S.cx:S.cx+Math.cos(sa)*R,sy=sa===null?S.cy:S.cy+Math.sin(sa)*R;circ(sx,sy,26*eo(k),rgba(WHT,.6*(1-k)));circ(sx,sy,10,rgba(YEL,.9*(1-k)))}
+  // bullets
+  S.bul.forEach(function(b){circ(b.x,b.y,6,'rgb(160,60,10)');circ(b.x,b.y,4,'rgb(255,170,60)')});
+  // particles
+  S.parts.forEach(function(p){var k=p.life/p.max,ik=1-k;
+    if(p.type==='spark'){c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x-p.vx*.04,p.y-p.vy*.04);c.lineWidth=2;c.strokeStyle=rgba(p.col,ik);c.stroke()}
+    else if(p.type==='ember'){circ(p.x,p.y,p.size*(1-k*.6)*2,rgba(p.col,.3*ik));circ(p.x,p.y,p.size*(1-k*.6),rgba(WHT,ik))}
+    else if(p.type==='flash'){circ(p.x,p.y,p.r*eo(k),rgba(WHT,.7*ik));circ(p.x,p.y,p.r*.6*eo(k),rgba(YEL,.9*ik))}
+    else if(p.type==='ringP'){c.beginPath();c.arc(S.cx,S.cy,p.r0+(p.r1-p.r0)*eo(k),0,TAU);c.lineWidth=6*ik;c.strokeStyle=rgba(p.col,.8*ik);c.stroke()}});
+  hud.textContent=ver+' · '+Math.max(0,age).toFixed(2)+' s'+(age>=0&&age<LIFE?' · wall up':'');
+}
+
+var last=performance.now();
+function loop(now){var dt=Math.min(.05,(now-last)/1000);last=now;if(!paused)update(dt*(slow?.25:1));draw();requestAnimationFrame(loop)}
+document.querySelectorAll('input[name=v]').forEach(function(i){i.addEventListener('change',function(){ver=i.value;beats();reset()})});
+document.getElementById('replay').onclick=reset;
+var pb=document.getElementById('pause');pb.onclick=function(){paused=!paused;pb.textContent=paused?'Play':'Pause'};
+var sl=document.getElementById('slow');sl.checked=slow;sl.onchange=function(e){slow=e.target.checked};
+beats();reset();requestAnimationFrame(loop);
+})();
+</script>
