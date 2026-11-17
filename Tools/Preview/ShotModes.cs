@@ -500,6 +500,30 @@ static partial class Shot {
         Ui.Label(new Rect(140f + w * 400f, 215f + r * 230f, 200f, 20f), Defs.Weapon((Role)r, kitArg, w).Name, 14, Color.white, TextAnchor.MiddleCenter, true);
       GL.ToUi = false;
     }
+    else if (mode == "englook")
+    {
+      // ENGSHEET=0 the Engineer's three looks, 1 the follower's three looks, 2 the kit (firing + rivets, Drag Pylon, Breach hammer).
+      GL.Tris.Clear();
+      set("drawScale", 1f);
+      typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
+      Event.current.type = EventType.Repaint;
+      set("glMaterial", new Material(null));
+      int sheet = int.Parse(Environment.GetEnvironmentVariable("ENGSHEET") ?? "0");
+      var begin = typeof(ArenaApp).GetMethod("BeginUiGl", f2); var at = typeof(ArenaApp).GetMethod("UiModelAt", f2);
+      var cell = typeof(ArenaApp).GetMethod("DrawEngineerSheetCell", f2); var end = typeof(ArenaApp).GetMethod("EndUiGl", f2);
+      string[][] names = { new[] { "A  Hi-vis", "B  Drafter", "C  Welder" }, new[] { "A  Wireframe walker", "B  Plated walker", "C  Spider rig" }, new[] { "Vector Forge: rivets", "Drag Pylon", "Breach: the hammer" } };
+      float[] zoom = { 8.5f, 3.4f, 2.2f };
+      GL.ToUi = true;
+      begin.Invoke(app, null);
+      for (int i = 0; i < 3; i++) {
+        at.Invoke(app, new object[] { new V2(213f + i * 427f, 420f), sheet != 2 ? zoom[sheet] : i == 0 ? 5f : i == 1 ? 1.5f : 1.6f });
+        cell.Invoke(app, new object[] { sheet, i, 2.3f });
+      }
+      end.Invoke(app, null);
+      for (int i = 0; i < 3; i++)
+        Ui.Label(new Rect(63f + i * 427f, 640f, 300f, 24f), names[sheet][i], 18, Color.white, TextAnchor.MiddleCenter, true);
+      GL.ToUi = false;
+    }
     else if (mode == "practicehud")
     {
       System.Collections.Generic.List<string> pr;

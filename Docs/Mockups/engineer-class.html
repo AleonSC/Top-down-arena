@@ -98,6 +98,19 @@ tr:last-child td{border-bottom:0}
     </div>
   </div>
 
+  <section class="sec" aria-labelledby="h-looks">
+    <h2 id="h-looks">Look options <small>the game's model code · pick one of each</small></h2>
+    <p>Built like every other class's model (back piece, shoulders, the DPS trim, arms, the held weapon, head). Big here so the detail reads; the row under it is the same pairs at real arena scale.</p>
+    <figure><div class="shot"><img src="engineer/look-bodies.png" alt="Engineer looks: Hi-vis, Drafter, Welder"><span class="tag">The Engineer</span></div><figcaption>A Hi-vis: navy coveralls, safety vest, yellow hard hat with headlamp, cable-spool pack · B Drafter: glowing cyan seams, white hard hat with visor band, drafting tube · C Welder: leather, welding mask, twin gas tanks</figcaption></figure>
+    <figure><div class="shot"><img src="engineer/look-followers.png" alt="Strider looks: wireframe, plated, spider"><span class="tag">The follower</span></div><figcaption>A Wireframe walker: pure vector ink · B Plated walker: steel hull, hazard stripes, cyan visor and seams · C Spider rig: four legs, a claw arm, a spinning cyan core</figcaption></figure>
+    <figure><div class="shot"><img src="engineer/look-kit.png" alt="Vector Forge rivets, Drag Pylon, Breach hammer"><span class="tag">Weapon and abilities</span></div><figcaption>Vector Forge: a rivet gun with a rivet hopper and a cyan emitter; rivets fly with a short cyan trail · Drag Pylon · Breach hammer</figcaption></figure>
+    <div class="seq">
+      <figure><div class="shot"><img src="engineer/arena-look0.png" alt="Hi-vis with the wireframe walker in the arena"></div><figcaption>A + A in the arena</figcaption></figure>
+      <figure><div class="shot"><img src="engineer/arena-look1.png" alt="Drafter with the plated walker in the arena"></div><figcaption>B + B in the arena</figcaption></figure>
+      <figure><div class="shot"><img src="engineer/arena-look2.png" alt="Welder with the spider rig in the arena"></div><figcaption>C + C in the arena</figcaption></figure>
+    </div>
+  </section>
+
   <section class="sec" aria-labelledby="h-kit">
     <h2 id="h-kit">Kit</h2>
     <div class="kit">
@@ -184,5 +197,5 @@ tr:last-child td{border-bottom:0}
     </div>
   </section>
 
-  <p class="foot">Every picture is the game's renderer: <code>Game/EngineerLook.cs</code> via <code>ENGINEER=strider|pylon|breach Tools/Preview/shot.sh</code>. The player is a Soldier body with the Engineer's hard hat until the class has its own look; the HUD around it is cropped off.</p>
+  <p class="foot">Every picture is the game's renderer: <code>Game/EngineerLook.cs</code> via <code>ENGINEER=strider|pylon|breach Tools/Preview/shot.sh</code>. The Engineer and follower looks are <code>Game/EngineerModel.cs</code> (sheets: <code>ENGSHEET=0|1|2 shot.sh x englook</code>); older shots above still show the stand-in Soldier body. The HUD around the arena shots is cropped off.</p>
 </main>
