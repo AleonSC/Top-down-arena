@@ -387,6 +387,7 @@ namespace Arena
         public bool NunGuard;                  // Nunchaku: the Twin Windmill guard is up (replicated; you move slower, the discs swat shots back)
         public int NunSwats;                   // Nunchaku: shots swatted back since the last Twin Counter, up to NunSwatCap (replicated: the pips)
         public float NunSwitchCd;              // host only: until the weapon-action key switches stance again
+        public readonly Dictionary<int, float> NunDiscHit = new Dictionary<int, float>();  // host only: each enemy a disc hit, and how long until it can again
         public float NunAttackT;               // host only: a Twin Counter is playing (the discs are down: nothing is swatted)
         public readonly int[] EsSt = new int[2];          // Embolus Spears: each hand's spear (Game.EsInHand, EsFlying, EsStuck, EsReturning, EsHardening; replicated; EmbolusSpears.cs)
         public readonly V2[] EsPos = new V2[2], EsDir = new V2[2];  // Embolus Spears: each spear's middle and the way its point faces (replicated)

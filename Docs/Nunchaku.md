@@ -27,6 +27,8 @@ Dragons, Tidebreaker) were not picked.
 ## Alt: the Twin Windmill guard
 - Press to raise it, again to drop it (0.3 s between). Either way the combo starts over.
 - Both chucks spin a disc (46 px) at each side in front of you; you move at 75%.
+- **Contact:** an enemy touching a disc takes 6 (0.3 of the weapon's damage) and is shoved 36 px out from the disc's centre,
+  each enemy once every 0.3 s (bosses and heavies take the damage but aren't shoved). Not while the counter plays.
 - Every small enemy shot (not unblockable ones) touching a disc is **swatted** back at the nearest enemy within 420 px as your own
   shot (6 damage) and counted, up to 8 (ticks over your head).
 - **Fire in the guard: Twin Counter.** Both chucks lash 175 px straight ahead (22 px either side) for 20 + 6 a swat (68 at 8),
