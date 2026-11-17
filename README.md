@@ -480,6 +480,10 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   move or shoot), **blue double arrow** = slowed, **blue drop over a wave** = wet (a blue bar
   over its health bar drains as it dries), **flame** = burning (flames rise off it), **blood drop** = bleeding
   (drops fall off it), **red crosshair** = marked (takes extra damage).
+- **Cauterize (Bleed + Burn):** fire landing on a bleeding enemy (the Flamethrower, the Fireball, Incendiary Rounds)
+  sears the wound shut: all the bleed it had left lands at once, times 1.25, and the bleed ends. Whoever made it bleed
+  is credited the bleed's share, whoever brought the fire the extra quarter, so fire never wastes an ally's bleed. A
+  white-hot flash, a searing ring and a hiss of steam; an enemy can't be cauterized again for 1 s.
 - At 0 HP you're **downed**. Stand next to a downed ally for 4 seconds (Normal difficulty) to revive them (or the
   healer can pulse them back). Going down plays out on screen: your model glitches into red and cyan copies and
   flickers out while flecks of its costume colours shed and fall, leaving a dim red disc with an X. A red **DOWNED** scan
