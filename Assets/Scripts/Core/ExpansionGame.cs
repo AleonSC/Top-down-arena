@@ -397,12 +397,13 @@ namespace Arena
             LayoutAge = 0f;
             RaiseRoomsNow();
             NoteSurprise(pick.Value.Rooms[0].Surprise);
+            MaybeRoomChest(pick.Value.Rooms.Count);  // (a surprise room rolls a chest like a drawn one)
             Sounds.Add(Sfx.Pick);
             DoLog("surprise room: " + Expansion.SurpriseName(pick.Value.Shape) + " of " + pick.Value.Rooms.Count + " boxes at " + pick.Value.Rooms[0].X + "," + pick.Value.Rooms[0].Y + ", closes " + pick.Value.Loops + " loops");
             BroadcastExpansion();
         }
 
-        /// Host, as a drawn room is built (its `count` boxes are the last in Expanded): it may drop a chest node a few tiles outside its wall
+        /// Host, as a drawn or surprise room is built (its `count` boxes are the last in Expanded): it may drop a chest node a few tiles outside its wall
         /// (Expansion.RoomChestFor; synced with the map in Msg.ExpandState).
         void MaybeRoomChest(int count)
         {
@@ -415,6 +416,33 @@ namespace Arena
             DoLog("a chest node appears outside the new room at " + nd.Value.X + "," + nd.Value.Y);
         }
 
+        public const int VectorChestPickups = 4;  // a vector chest bursts into this many vector pickups (VectorDropSmall each: 24 vectors)
+        public const float VectorChestReach = 46f;  // walk this close (plus your body) to open one
+
+        /// Host, every tick of a wave (from TickNodes): a claimed vector chest opens when a player walks up to it and bursts into vector
+        /// pickups (Coins.cs: they fly to the nearest player); the node is spent.
+        void TickVectorChests()
+        {
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var nd = Nodes[i];
+                if (nd.Kind != NodeKind.VectorChest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
+                    continue;
+                bool touched = false;
+                foreach (var p in Players.Values)
+                    touched |= !p.Downed && p.Pos.CloserThan(nd.Pos, VectorChestReach + p.Def.BodyR);
+                if (!touched)
+                    continue;
+                for (int k = 0; k < VectorChestPickups; k++)
+                    DropVectorAt(nd.Pos, VectorDropSmall);
+                nd.Spent = true;
+                Nodes[i] = nd;
+                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
+                DoLog("a vector chest was opened");
+                BroadcastExpansion();
+            }
+        }
+
         /// Host: a claimed chest node holds a real treasure chest (Props.cs: everyone gets their own item). Not synced: node index -> prop id.
         readonly Dictionary<int, int> nodeChests = new Dictionary<int, int>();
 
@@ -425,6 +453,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
                 return;
             TickRelicNodes();  // Relics.cs
+            TickVectorChests();
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
@@ -559,6 +588,7 @@ namespace Arena
             Openings.Clear();
             Links.Clear();
             ResetGates();
+            ResetMysteryDoors();  // MysteryDoors.cs
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
@@ -1339,6 +1369,7 @@ namespace Arena
             }
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
+            WriteMysteryDoors(w);  // the sealed doors (MysteryDoors.cs)
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -1444,6 +1475,7 @@ namespace Arena
             bool hasMark = r.ReadBoolean();
             short markX = r.ReadInt16(), markY = r.ReadInt16();
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
+            ReadMysteryDoors(r);
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();

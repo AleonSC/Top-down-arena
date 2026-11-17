@@ -21,12 +21,14 @@ namespace Arena
             }
         }
 
-        /// Some Rioters (BottleChance of them, by id: every game can tell) carry a bottle and now and then throw it at a player
-        /// from BottleMin to BottleMax px away: a BottleWind s wind-up (Enemy.Phase 1: it raises its arm), then a bottle that spins out
-        /// BottleLife s. Its cooldown is Enemy.LarderCd.
-        public const float BottleChance = 0.3f, BottleMin = 110f, BottleMax = 300f, BottleWind = 0.45f, BottleSpeed = 330f, BottleLife = 1.0f, BottleEveryMin = 4f, BottleEveryRange = 3f;
+        /// From wave BottleFromWave, some Rioters (BottleChance of them, by id: every game can tell) carry one bottle and throw it at a
+        /// player BottleMin to BottleMax px away: a BottleWind s wind-up (Enemy.Phase 1: it raises its arm and a dashed line marks the
+        /// throw, WardenLook.cs), then a bottle that spins out BottleLife s. Phase 2: no bottle (spawned before BottleFromWave, or
+        /// thrown; it doesn't get another). Its first throw waits Enemy.LarderCd.
+        public const float BottleChance = 0.3f, BottleMin = 110f, BottleMax = 300f, BottleWind = 0.6f, BottleSpeed = 330f, BottleLife = 1.0f;
+        public const int BottleFromWave = 2;
 
-        public static bool BottleRioter(Enemy e) => e.Type == EnemyType.Rioter && IdRoll(e.Id, 11) < BottleChance;
+        public static bool BottleRioter(Enemy e) => e.Type == EnemyType.Rioter && e.Phase != 2 && IdRoll(e.Id, 11) < BottleChance;
 
         /// Host, in Special: a bottle Rioter winds up and throws.
         void RioterBottle(Enemy e, V2 tpos, float dt)
@@ -38,8 +40,7 @@ namespace Arena
                 e.LarderT -= dt;
                 if (e.LarderT > 0f)
                     return;
-                e.Phase = 0;
-                e.LarderCd = BottleEveryMin + IdRoll(e.Id, 12 + (uint)(e.T / 3f)) * BottleEveryRange;
+                e.Phase = 2;  // thrown: no bottle left
                 float ang = (tpos - e.Pos).Angle;
                 V2 dir = V2.FromAngle(ang);
                 var b = SpawnBullet(Defs.BottleShot, e.Pos + dir * e.Radius, dir * BottleSpeed, 0f, BottleLife, Defs.BulletDamage(Defs.BottleShot), 0, false);

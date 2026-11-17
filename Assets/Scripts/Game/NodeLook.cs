@@ -22,7 +22,7 @@ namespace Arena
         static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
-        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.ForNode(n, game.Players.Values)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : n.Kind == NodeKind.Tower ? "Scout tower" : n.Kind == NodeKind.Vein ? "Gold vein" : n.Kind.ToString();
+        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.ForNode(n, game.Players.Values)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
 
         /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
         string NodeBlurb(MapNode n)
@@ -42,7 +42,10 @@ namespace Arena
         static string RuleName(byte rule) => (NodeRule)rule == NodeRule.BloodMoon ? "Blood Moon" : ((NodeRule)rule).ToString();
 
         static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk
-            : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : ChestInk;
+            : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : k == NodeKind.VectorChest ? VecCyan : ChestInk;
+
+        /// A node kind's name for tips and legends.
+        static string NodeName(NodeKind k) => k == NodeKind.VectorChest ? "Vector chest" : k == NodeKind.Tower ? "Scout tower" : k == NodeKind.Vein ? "Gold vein" : k.ToString();
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
         void DrawNodeMark(MapNode n, bool claimed)
@@ -85,6 +88,10 @@ namespace Arena
                     Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 4f, col);
                     break;
                 case NodeKind.Relic: RelicGem(c, 0.75f, col); break;
+                case NodeKind.VectorChest:
+                    ChestBox(c, 0.7f, col, false);
+                    VectorMark(c + new V2(0f, -30f), 0.6f, col);
+                    break;
                 default: ChestBox(c, 0.7f, col, false); break;
             }
         }
@@ -249,6 +256,24 @@ namespace Arena
                     }
                     break;
                 }
+                case NodeKind.VectorChest:
+                {
+                    if (spent)
+                    {
+                        ChestBox(c, 1f, ink.WithAlpha(0.3f), true);
+                        break;
+                    }
+                    Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
+                    Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
+                    ChestBox(c, 1f, ink.WithAlpha(0.95f), false);
+                    VectorMark(c + new V2(0f, -44f + Mathf.Sin(t * 2.6f) * 3f), 1f, ink.WithAlpha(0.95f));  // the vector arrow bobbing over the lid
+                    for (int k = 0; k < 3; k++)  // motes turning round it
+                    {
+                        float a = t * 1.4f + k * MathX.Tau / 3f;
+                        Circle(c + new V2(Mathf.Cos(a) * 42f, Mathf.Sin(a) * 42f * 0.6f), 2.5f, ink.WithAlpha(0.7f), 8);
+                    }
+                    break;
+                }
                 default:
                     if (!spent)
                     {
@@ -332,6 +357,15 @@ namespace Arena
                 Line(r + new V2(-s, 0f), r + new V2(0f, -s), 2.5f * k, col);
                 Circle(r, s * 0.55f, col, 6);
             }
+        }
+
+        /// The vector mark: an arrow pointing up and right with a bar under it, scaled.
+        void VectorMark(V2 c, float k, Rgba col)
+        {
+            V2 a = c + new V2(-12f, 10f) * k, b = c + new V2(12f, -10f) * k;
+            Line(a, b, 3.5f * k, col);
+            Line(b, b + new V2(-11f, 0f) * k, 3.5f * k, col);
+            Line(b, b + new V2(0f, 11f) * k, 3.5f * k, col);
         }
 
         /// A chest: body and lid (the lid swung up when open), scaled.

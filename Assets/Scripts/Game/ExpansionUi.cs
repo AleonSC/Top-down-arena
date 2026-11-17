@@ -668,6 +668,7 @@ namespace Arena
                     RoomMapFrame(bp.X - 8f, bp.Y - 8f, 16f, 16f, 2f, bi);
                 }
                 DrawHoloGates(wd, M, k);  // the gates fitted (BuildMapLook.cs)
+                DrawHoloMystery(M, k);  // sealed mystery doors (MysteryDoorLook.cs)
                 DrawHoloBreaches(M, k, map);  // this wave's breaches
                 if (expGateMode)  // the doors a gate can go on, and the one under the mouse
                     for (int di = 0; di < wd.Doors.Length; di++)
@@ -1111,13 +1112,15 @@ namespace Arena
             var seen = new HashSet<int>();
             foreach (var nd in game.Nodes)
                 if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Hidden ? -1 : (int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
-                    items.Add(new KeyValuePair<string, Rgba>((nd.Hidden ? "UNKNOWN NODE" : nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind == NodeKind.Tower ? "SCOUT TOWER" : nd.Kind == NodeKind.Vein ? "GOLD VEIN" : nd.Kind.ToString().ToUpperInvariant() + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
+                    items.Add(new KeyValuePair<string, Rgba>((nd.Hidden ? "UNKNOWN NODE" : nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind == NodeKind.Tower || nd.Kind == NodeKind.Vein ? NodeName(nd.Kind) : NodeName(nd.Kind) + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
             items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
             items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
             if (game.ActiveBreaches.Length > 0)
                 items.Add(new KeyValuePair<string, Rgba>("BREACH", HoloBreachInk));
             if (game.GateFits.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("GATE", HoloGateInk));
+            if (game.MysteryDoors.Count > 0)
+                items.Add(new KeyValuePair<string, Rgba>("MYSTERY DOOR", MysteryHolo));  // (MysteryDoorLook.cs)
             if (game.Links.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("PORTAL", PortalColours[(game.ExpansionWorld.Portals.Length - game.Links.Count) % PortalColours.Length]));
             bool sealedRoom = false;
