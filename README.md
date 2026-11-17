@@ -108,7 +108,7 @@ Ninjas are quick (+12% move speed) and lightly protected (85% health). They mix 
 
 | | Weapons | Space abilities | Ultimate |
 |---|---|---|---|
-| **Tank** | **Kusarigama** (a two-piece combo: a quick sickle cut, then the iron weight thrown 280 px to bite the first enemy in its lane, stun it and drag it to your feet; hold the weapon-action key to whirl the weight around you, pulling enemies within 200 px in and cutting what it sweeps, and let go for a stunning snap), **Bo Staff** (a chain that never times out: a cone slash, a jab, then a full spin, cutting small bullets; press the weapon-action key to shove a bar of staff ahead of you, which knocks enemies back and starts the chain over), **Fuma Shuriken** (a giant star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways; press the weapon-action key for the **Orbit stance**: the star circles you at 80 px, cutting small bullets, Fire lashes it out across your aim and every third press is a wide Cyclone; parry to reverse the circle and cut its ring, perfect-parry to steal shots as small stars that fly back at their shooters; parry with a star in flight to catch it into orbit) | **Shadow Clone** (a wall of 9 afterimage clones for 7 s that every enemy aims at; each soaks 50 damage and never fights; walk into them to shove the wall; capstone: double health), **Smoke Bomb** (a 140 px cloud for 5 s: enemy bullets inside slow to half speed, allies inside take 30% less damage), **Iron Body** (2 s of 80% less damage, then a 50-damage shockwave) | **Thousand Clones** (70 s): twelve violet ink clones appear all over the map and every enemy goes for the nearest one at once; each soaks 100 damage, bursts for 60 when killed, and stays until it dies or the round ends; capstone twenty clones |
+| **Tank** | **Kusarigama** (a two-piece combo: a quick sickle cut, then the iron weight thrown 280 px to bite the first enemy in its lane, stun it and drag it to your feet; hold the weapon-action key to whirl the weight around you, pulling enemies within 200 px in and cutting what it sweeps, and let go for a stunning snap), **Bo Staff** (a chain that never times out: a cone slash, a jab, then a full spin, cutting small bullets; press the weapon-action key to shove a bar of staff ahead of you, which knocks enemies back and starts the chain over), **Fuma Shuriken** (a giant star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways; press the weapon-action key for the **Orbit stance**: the star circles you at 80 px, cutting small bullets, Fire lashes it out across your aim and every third press is a wide Cyclone; parry to reverse the circle and cut its ring, perfect-parry to steal shots as small stars that fly back at their shooters; parry with a star in flight to catch it into orbit) | **Shadow Clone** (a wall of 9 afterimage clones for 7 s that every enemy aims at; each soaks 50 damage and never fights; walk into them to shove the wall; capstone: double health), **Smoke Bomb** (a 140 px cloud for 5 s: enemy bullets inside slow to half speed, allies inside take 30% less damage), **Iron Body** (2 s of 80% less damage, then a 50-damage shockwave) | **Thousand Clones** (70 s): twelve violet ink clones appear all over the map and every enemy goes for the nearest one at once; each soaks 100 damage, bursts for 60 when killed, and stays until it dies or the round ends; capstone twenty clones. Or pick **Dragon's Dogma** (70 s) on the lobby's Ultimate row: a spirit dragon that hunts for 5 s, devouring regular enemies whole and biting heavies and bosses for 150 (see [Ultimates](#ultimates)) |
 | **Healer** | **Medicine Darts** (fast needles that dose what they hit: stacking poison on enemies, stacking healing over time on allies), **Spirit Fan** (alternates blowing enemies away and drawing them in; a short gust that heals allies in it and blows small enemy bullets back), **Ofuda** (charms lie at your cursor as wards that burst under enemies, healing allies near; slow homing paper charms that burst for 25 and heal allies near the burst for 8) | **Healing Dash** (sprint 70% faster for 3 s, leaving glowing footprints that last 6 s and heal 12 HP a second, you and your allies, while you stand near one; overlapping footprints don't stack; capstone 4.5 s sprint; Morning Dew makes them heal 50% more and 25% bigger), **Substitution** (swap places with the ally nearest your cursor and shield them for 60; alone, slip toward your cursor and shield yourself), **Spirit Ward** (a talisman at your cursor for 8 s that takes the damage allies near it would take, up to 150; when it breaks or ends, a quarter of what it took heals them) | **Blossom Storm** (80 s): for 5 s the whole party heals 20 HP/s and enemy bullets near every ally are erased |
 | **DPS** | **Shuriken** (tight fans of 3 stars that stick in what they hit and come back after 5 s for another hit; the weapon-action key switches to the **Great Star** stance, recalling them: hold Fire to draw a route, let go to throw one huge star along it and home, cutting everything both ways), **Katana** (two stance combos, switched with the weapon-action key; the one you leave keeps its place: **Hayate** dashes and slices and ends in a **Momentum Burst** that shoves enemies away and marks them, **Senbon** sweeps, spins and slashes and ends in a storm of **caltrops**; the Burst flings caltrops on the ground, and caltrops thrown after a Burst seek what it marked), **Kunai** (every throw leaves a mark: press the weapon-action key to blink there for a double hit; slow, heavy knives, +50% damage to enemies that aren't targeting you), **Nunchaku** (the 4th weapon key; Twin Storm, a chuck in each hand: a four-step combo of Snap, Backhand, Double Figure-8 and a stunning Twin Crush; the weapon-action key raises the **Twin Windmill** guard, whose two spinning discs swat small shots back, and Fire in it is a **Twin Counter** that hits harder for every shot swatted) | **Shadow Step** (teleport behind the enemy nearest your cursor, up to 450 px away, and strike it for 80; like Blink, it never lands in a wall or off the map: the spot backs up toward you onto the floor), **Vanish** (for 3 s enemies lose track of you and shoot at the smoke bank where you vanished; your next hit deals double), **Blade Fan** (12 kunai spin around you for 4 s, cutting enemies they touch for 18, at most once every 0.5 s each, and erasing enemy bullets; press it again, or wait, and they fly out in a ring, 18 each; 12 s cooldown) | **Death Lotus** (65 s): strike up to 8 enemies near your cursor in a flurry of cuts, 100 each (the arena darkens, each target takes three white-hot crimson cuts and leaves a crimson lotus stain, and the cuts show one after another over about a second) |
 
@@ -262,7 +262,7 @@ Parry upgrades show up like any other card:
 **F** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and the Tank Elementalist: **Lightning Rod**, below the table; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
-DPS Soldier: **Attack Helicopter**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Ninja: **Dragon's Dogma**, below; and the DPS Soldier: **Attack Helicopter**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -286,6 +286,17 @@ or the wave is cleared. You hear its rotor (a deep blade whop over a turbine whi
 climbs away, the barrels whine up on a fresh target, and every round cracks (all on the Weapons volume). Mastered: a
 second gun on the other wing, so two targets at once. Design:
 [`Docs/Mockups/attack-helicopter.html`](Docs/Mockups/attack-helicopter.html) (the Orbit pattern).
+
+**Dragon's Dogma** (Tank Ninja, picked instead of Thousand Clones, 70 s): a gold sigil opens under you, the arena dims
+and a great azure spirit dragon (680 px long, gold spine and antlers, a shadow on the floor) pours out of you head first.
+For **5 s** it hunts across the whole arena: its head flies at 760 px/s and swoops after the enemy **nearest it** (it
+turns harder as it closes in, so it never circles its prey; with nobody about it circles you). Every regular enemy its
+jaws reach (30 px past its edge) is **devoured**: killed outright, whatever its health; the jaws spread as it closes in,
+a ring bursts where it bit, the enemy's soul spirals into the maw and a glowing lump runs down the body. **Heavy
+enemies and bosses** are only bitten, for **150** (times your damage), at most once every 1.2 s each, and it hunts
+someone else meanwhile. Its head also **swallows enemy bullets** within 40 px. In its last 0.7 s it turns for home and
+coils back into you (the body drains in after its head). It ends early if you go down or the wave is cleared. Bots that
+have it cast it with four or more enemies near. Mastered: hunts for 7 s and every enemy it devours heals you 3%.
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
@@ -360,6 +371,7 @@ once mastered); the Tab menu shows the level.
 | **Last Stand** | You take 5% of the damage instead of 10%. | **Hallowed Blade** | Three swords fall: one at your cursor and one either side. |
 | **Drawbridge** | The bridge stands for 8 s. | **Lightning Rod** | Lasts 8 s and each bolt arcs to 3 enemies. |
 | **Flood** | Deluge: the flood is 30% wider and lasts 9 s. | **Bone Phalanx** | 10 skeletons with 180 health each (a 250 px front). |
+| **Dragon's Dogma** | Hunts for 7 s, and every enemy it devours heals you 3%. |  |  |
 
 A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next one
 fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -369,7 +381,7 @@ with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
 the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, **Lightning Rod**
-for the Tank Elementalist, **Bloodbath** for the Tank Hemomancer and **Bone Phalanx** for the Tank Summoner), and the rest
+for the Tank Elementalist, **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner and **Dragon's Dogma** for the Tank Ninja), and the rest
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
 charge time, what it does and what mastering it adds, and the preview casts it. Changing role or class goes back to
@@ -1566,11 +1578,13 @@ motion is the game's own clock, so everyone sees it; the rest is on your own scr
 
 ## The HUD
 
-Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip)
-in the middle, the **wave panel** left of it (wave, enemies left, score, progress; the path and modifier chips
+Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip:
+the level and percent on a dark plate at its left end) in the middle; a key with no ability yet is a small stub (its key
+and a +, filled by very rare upgrades) and the filled keys widen into the room, sliding over when a new ability arrives; the **wave panel** left of it (wave, enemies left, score, progress; the path and modifier chips
 stack above it) and **your card** right of it (health, shield, level, XP). Teammates show as slim rows above
 your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
-the top middle, and the "Hold TAB" hint is in the top-right corner.
+the top middle, and the "Hold TAB" hint is in the top-right corner for the first three waves (it fades out sooner once
+you've opened the Tab screen twice). A player's name tag rises clear of an Aeroaegis shell round them.
 
 **Between waves.** When the last enemy dies a **Wave n cleared** box drops in: a CRT screen like the lobby's, in your
 CRT colour (Settings > Visual effects), its title gold after a boss. It shows the wave's **clear time** and **score**, a row per player with **kills, damage
@@ -1893,7 +1907,9 @@ under **Settings** on the main menu, and they're saved between sessions.
 (`persistentDataPath/sounds`, read at startup), or an AudioClip in `Assets/Resources/Sfx` to ship it with the game; the folder
 wins. `ShotRifle_1.wav`, `ShotRifle_2.wav`... give it several takes, played in turn. It keeps the sound's volume slider, its
 shortest gap between plays and its small pitch wander. To make one, open `Tools/SoundForge/index.html` in a browser: pick
-a preset, shape it with the sliders and export a WAV already named for the sound you chose (several takes at once if you like).
+a preset, shape it with the sliders and export a WAV already named for the sound you chose (several takes at once if you like). It has an equalizer, an output
+volume, and a seamless loop mode for hums and drones (the game loops `WallHum`, `ArcHum`, `HeliRotor` and `SawWhirr`).
+**My presets** saves your own sounds in the browser; Export/Import moves them to a file and back.
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
 so they never change the fight or what your friend sees):
@@ -1905,7 +1921,18 @@ so they never change the fight or what your friend sees):
   them; with Bending its lines also bow away from every player like a stretched sheet and trail a little behind them as
   they move. Static keeps the lines straight and only shows the colour. Kill ripples run through it either way, and a
   Dodge sends a small, quick ripple from where it started that lights the lines in your colour (your own dodges
-  only).
+  only). The keys under the title pick the floor's **pattern** (Bending / Static is the small lamp key beside it);
+  each works in every arena and reacts the same way (bends round players unless Static, their colour near them,
+  ripples from kills and your Dodge):
+  - **Grid** (the default): the grid above.
+  - **Flux:** a needle every 24 px combed along a slow drifting current; needles swirl round each player, swing into
+    a runner's wake, and a kill's ring combs them outward and stretches them.
+  - **Seismo:** horizontal phosphor lines every 16 px (every 4th brighter) with a slow refresh band rolling down;
+    they lift into a bump round each player that leans behind them, and shake like a seismograph as a ring passes.
+  - **Plates:** 32 px bevelled plates that sink under and round each player and flip like a split-flap board as a
+    ring passes.
+  - **Circuit:** traces on a 32 px grid (straight runs, 45 degree bends, pads), laid per room; they bow round players,
+    and kills, dodges and footsteps send pulses racing along them.
 - **Damage numbers:** damage to each enemy rises off it, merged every 0.15 s (so a fast weapon shows one total);
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
