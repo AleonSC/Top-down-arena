@@ -28,6 +28,7 @@
 # TAGS=1 (a row of enemies on first sight, each with its name and job tag; uses a fresh profile).
 # WAVECLEARED=1 WCWAVE=17 (the between-waves box after wave 17: the new-enemy chips for wave 18).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
+# KWALL=<s into the scene> (Kinetic Wall like the mockup: cast at 0.5 s, shots from 0.4 s; KWBLAST=<s> unleashes it then; KWCAP=1 mastered; ShotKineticWall.cs).
 # DART=<s into the scene> (Poison Dart played through the game like the mockup: dart at 0.5 s, deaths at 2.2 and 3.9 s; DARTCAP=1 mastered; ShotPoisonDart.cs).
 # MOMENT=multi|clear|level|lowhp|marks MOMENTN=<n> MOMENTT=<s> MULTISTYLE=1 (the juice moments: multikill call, last kill, level shock, heartbeat, floor marks; ShotJuice.cs).
 # SHOCK=<s since the cast> (the Shockwave ability played through the game; SHOCKCAP=1 mastered; ShotShockwave.cs).

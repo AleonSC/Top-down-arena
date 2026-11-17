@@ -1,0 +1,100 @@
+using System.Linq;
+using System;
+using System.Collections.Generic;
+using Arena;
+
+// Kinetic Wall (KineticWall.cs): the Elementalist DPS's 4th lobby ability (pick 3 reaching the match), the lens catching enemy shots
+// (each a charge, up to the cap), the unleash on a second press (cone damage that grows with the charge, shoves) or when it runs
+// out, the mastered lens, replication, and going down.
+static partial class Program
+{
+    static void KineticWallTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var hostAbility = typeof(Game).GetMethod("HostAbility", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        var masteredField = typeof(Game).GetField("castMastered", flags);
+
+        Check(Upgrades.AbilityCount(Role.Dps, Kit.Elementalist) == 4 && Upgrades.RoleAbility(Role.Dps, Kit.Elementalist, 3) == AbilityId.KineticWall
+            && Upgrades.AbilityCount(Role.Dps, Kit.Soldier) == 3 && Upgrades.AbilityCount(Role.Tank, Kit.Elementalist) == 3
+            && Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 3) == Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0),
+            "the Elementalist DPS has a 4th ability key, Kinetic Wall; the other classes keep three");
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Mage", Role.Dps, 0, 3, Kit.Elementalist);
+        var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Knight);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        Check(me.RoleAbility == AbilityId.KineticWall && me.Slots[0].Id == AbilityId.KineticWall, "picking the 4th key brings Kinetic Wall into the match on Space");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+
+        V2 mePos = new V2(300f, 450f), aim = new V2(900f, 450f);
+        var spots = new Dictionary<Enemy, V2>();
+        Func<V2, Enemy> pin = at =>
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+            e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FireT = 99f; spots[e] = at; return e;
+        };
+        Action<float> step = secs => { for (int f = 0; f < secs / dt; f++) { foreach (var kv in spots) { kv.Key.Pos = kv.Value; kv.Key.FireT = 99f; } me.Pos = mePos; me.Aim = 0f; host.Poll(); client.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = aim }); } };
+        Action reset = () => { g.Enemies.Clear(); spots.Clear(); g.Bullets.Clear(); g.Effects.Clear(); me.Pos = mePos; me.Aim = 0f; me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f; };
+        Action<int> volley = n => { for (int i = 0; i < n; i++) shoot.Invoke(g, new object[] { Defs.SmallShot, new V2(640f + i * 6f, 450f + (i % 9 - 4) * 15f), new V2(-260f, 0f), 0f, 6f, 5f, 0, false, 0f }); };
+        Action press = () => hostAbility.Invoke(g, new object[] { 1, 0, aim, false });
+
+        // The cast and the catch.
+        reset();
+        masteredField.SetValue(g, false);
+        var keep = pin(new V2(1500f, 900f));  // (somewhere out of the way, so the wave doesn't end)
+        press();
+        Check(me.KwT > Game.KwTime - 0.01f && me.KwPos.DistanceTo(mePos) < 1f && !me.KwWide, "Space puts the lens up for 5 s where you stand");
+        volley(12);
+        step(1.6f);
+        Check(me.KwDots.Count == 12 && !g.Bullets.Values.Any(b => b.Owner == 0), "every enemy shot that reaches the lens stops there and charges it");
+        Check(client.Game.Players[1].KwT > 0f && client.Game.Players[1].KwDots.Count == 12, "other screens see the lens and the shots hung in it");
+        Check(g.Effects.Any(e => e.Kind == FxKind.KwCatch), "each catch is sent as a look");
+
+        // The unleash: a second press. In the cone: hit for 40 + 6 per charge, shoved; outside: nothing.
+        var inCone = pin(new V2(560f, 470f));
+        var behind = pin(new V2(100f, 450f));
+        var wide = pin(new V2(300f, 750f));
+        var start = inCone.Pos;
+        float D = Game.KwDamage(12) * me.Stats.DmgMult;
+        press();
+        Check(me.KwT == 0f && me.KwDots.Count == 0 && g.Effects.Any(e => e.Kind == FxKind.KwBlast && e.Radius == 12f), "pressing again unleashes it (no new cast) and sends the blast with its charge");
+        float hit = inCone.MaxHp - inCone.Hp;
+        Console.WriteLine("  kinetic wall: 12 charges, hit {0:0.0} of {1:0.0}", hit, D);
+        Check(Math.Abs(hit - D) < 1f, "an enemy in the cone takes 40 + 6 per charge");
+        Check(behind.Hp == behind.MaxHp && wide.Hp == wide.MaxHp, "enemies behind you or off to the side aren't hit");
+        Check(inCone.KnockLeft.Length > 1f || inCone.Pos.DistanceTo(start) > 1f, "enemies hit are shoved back");
+        Check(me.Slots[0].Charges == 0 || me.Slots[0].Timer > 0f, "the cooldown is running");
+
+        // Running out: it unleashes itself. The cap.
+        reset();
+        keep = pin(new V2(1500f, 900f));
+        press();
+        volley(55);
+        step(2.8f);
+        Check(me.KwDots.Count == Game.KwCap, "it holds up to 40 charges (the rest are still stopped)");
+        Check(!g.Bullets.Values.Any(b => b.Owner == 0), "shots past the cap still stop in it");
+        step(Game.KwTime - 2.8f + 0.2f);
+        Check(me.KwT == 0f && g.Effects.Any(e => e.Kind == FxKind.KwBlast && e.Radius == Game.KwCap), "when the time runs out it unleashes by itself");
+
+        // Mastered: wider, holds more.
+        reset();
+        keep = pin(new V2(1500f, 900f));
+        masteredField.SetValue(g, true);
+        typeof(Game).GetMethod("CastKineticWall", flags).Invoke(g, new object[] { me, true });
+        Check(me.KwWide && Game.KwCapOf(me) == Game.KwCapMastered && Game.KwSpan(me) > (float)Math.Asin(Game.KwHalfWidth / Game.KwRadius) + 0.1f, "mastered: wider, and it holds up to 60");
+
+        // Going down: the lens is gone.
+        me.Downed = true;
+        step(dt);
+        Check(me.KwT == 0f && me.KwDots.Count == 0, "going down takes the lens away");
+        me.Downed = false;
+        masteredField.SetValue(g, false);
+        s[0].Leave(""); s[1].Leave("");
+    }
+}

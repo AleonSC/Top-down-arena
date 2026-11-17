@@ -395,6 +395,7 @@ static partial class Program
         Test("nimbuschalk", "the Nimbus (cloud, rain, strikes) and Spirit Chalk (ink, loops that pen enemies in)", () => NimbusChalkTest(Dt)),
         Test("tsunami", "Tsunami: the wave, wet, the slow, lightning arcing to every wet enemy, wearing off, the mastered return", () => TsunamiTest(Dt)),
         Test("holycross", "Consecrate's Holy Cross: it grows as it flies, heals and hastens allies, hurts, slows and knocks back enemies, hits each once, the mastered fan", () => HolyCrossTest(Dt)),
+        Test("kineticwall", "Kinetic Wall: the Elementalist DPS's 4th ability key; the lens catches enemy shots as charges (cap 40), a second press or the timer unleashes a cone of 40 + 6 per charge, mastered, replicated, going down", () => KineticWallTest(Dt)),
         Test("harvest", "Crimson Harvest: rips 20 and the blood of every enemy into a ball, a 5 s hold, a second press throws it for a blast that scales with the blood", () => HarvestTest(Dt)),
         Test("bloodfreeze", "Blood Freeze: 25% health, a charge then a 260 px wave that freezes every enemy it reaches for 5 s (bosses 3 s), no damage, allies untouched, Hungry Earth, mastered +25% damage", () => BloodFreezeTest(Dt)),
         Test("rod", "Lightning Rod and the lobby's ultimate choice: the pick reaching the match and saves, 80% cut, taunt, a bolt per hit with 2 arcs, the per-enemy cap, wet arcs, ends on time or on going down", () => RodTest(Dt)),

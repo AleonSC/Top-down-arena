@@ -39,7 +39,7 @@ static partial class Program
                 for (int u = 1; u < Upgrades.UltKeys; u++)  // the other keys of the lobby's Ultimate row (the Juggernaut Suit)
                     if (Upgrades.AltUltimate(role, (Kit)k, u) != AbilityId.None)
                         placed.Add(Upgrades.AltUltimate(role, (Kit)k, u));
-                for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
+                for (int c = 0; c < Upgrades.AbilityCount(role, (Kit)k); c++)
                     placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
             }
         bool lobby = placed.Distinct().Count() == placed.Count && placed.All(a => a != AbilityId.None)

@@ -31,18 +31,19 @@ namespace Arena
         Bloodbath,    // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
         LightningRod,    // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
+        KineticWall,  // the Elementalist DPS's 4th Space ability (KineticWall.cs), the lobby's 4th ability key
         None = 255,
     }
 
     /// Everything about one ability except its cast code (which is in its class's file, next to its entry).
     public class AbilityDef
     {
-        public const int CardOnly = -1, Ult = 3;
+        public const int CardOnly = -1, Ult = 3, Fourth = 4;  // Fourth: the lobby's 4th ability key (pick 3), where the class has one (FourthAbility)
 
         public AbilityId Id;
         public Kit Kit;
         public Role Role;
-        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Ult, or CardOnly (very rare cards only)
+        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Fourth (the 4th key), Ult, or CardOnly (very rare cards only)
         public int UltKey;             // an ultimate's key on the lobby's Ultimate row: 0 the default one, 1-3 the ones picked instead (LobbyEntry.Ult)
         public string Name, Desc;
         public string Capstone;        // what mastering it (level 5) adds
@@ -97,6 +98,7 @@ namespace Arena
         public float LumenBonusTime, LumenHealMult = 1f;                   // Lumen Ward: Dawnlight
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
+        public float KwChargeMult = 1f;                                    // Kinetic Wall: Momentum Bank
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         // Summoner abilities
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
@@ -354,10 +356,42 @@ namespace Arena
                 choice = choice >= 0 && choice < Defs.WildcardChoices ? choice : 0;
                 return RoleAbilities[((int)Role.Dps * Defs.KitCount + choice / RoleAbilityChoices) * RoleAbilityChoices + choice % RoleAbilityChoices];
             }
+            if (choice == RoleAbilityChoices && FourthAbility(r, kit) != AbilityId.None)
+                return FourthAbility(r, kit);
             return RoleAbilities[((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
         }
 
         public const int RoleAbilityChoices = 3;
+        public const int MaxAbilityChoices = 4;  // with a fourth (the Elementalist DPS's Kinetic Wall)
+
+        /// How many Space abilities a role and class has in the lobby: three, or four where it has a fourth (AbilityDef.Fourth).
+        /// A Wildcard picks from every class's first three DPS ones.
+        public static int AbilityCount(Role r, Kit kit) => r != Role.Wildcard && FourthAbility(r, kit) != AbilityId.None ? RoleAbilityChoices + 1 : RoleAbilityChoices;
+
+        static AbilityId[] fourthAbilities;
+
+        /// A role and class's 4th Space ability (AbilityDef.Choice == Fourth), or None.
+        public static AbilityId FourthAbility(Role r, Kit kit)
+        {
+            if (fourthAbilities == null)
+            {
+                var t = new AbilityId[3 * Defs.KitCount];
+                for (int i = 0; i < t.Length; i++)
+                    t[i] = AbilityId.None;
+                foreach (var a in Abilities)
+                    if (a.Choice == AbilityDef.Fourth)
+                    {
+                        int i = (int)a.Role * Defs.KitCount + (int)a.Kit;
+                        if (t[i] != AbilityId.None)
+                            throw new InvalidOperationException(a.Id + " and " + t[i] + " are both the 4th ability of " + a.Role + " " + a.Kit);
+                        t[i] = a.Id;
+                    }
+                fourthAbilities = t;
+            }
+            if (r == Role.Wildcard || (int)r >= 3 || (int)kit < 0 || (int)kit >= Defs.KitCount)
+                return AbilityId.None;
+            return fourthAbilities[(int)r * Defs.KitCount + (int)kit];
+        }
 
         public static AbilityDef Ability(AbilityId id) => Abilities[(int)id];
 
@@ -395,7 +429,7 @@ namespace Arena
                 table[i] = AbilityId.None;
             foreach (var a in Abilities)
             {
-                if (a.Choice == AbilityDef.CardOnly || ultimates != (a.Choice == AbilityDef.Ult) || a.UltKey != 0)
+                if (a.Choice == AbilityDef.CardOnly || a.Choice == AbilityDef.Fourth || ultimates != (a.Choice == AbilityDef.Ult) || a.UltKey != 0)
                     continue;  // (the other keys of the Ultimate row are found by AltUltimate)
                 int i = ((int)a.Role * Defs.KitCount + (int)a.Kit) * per + (ultimates ? 0 : a.Choice);
                 if (table[i] != AbilityId.None)
@@ -699,6 +733,8 @@ namespace Arena
         static int KitOf(AbilityId id)
         {
             int i = Array.IndexOf(RoleAbilities, id);
+            if (i < 0 && id != AbilityId.None && Ability(id).Choice == AbilityDef.Fourth)
+                return (int)Ability(id).Role * Defs.KitCount + (int)Ability(id).Kit;  // a 4th ability (Kinetic Wall)
             return i < 0 ? -1 : i / RoleAbilityChoices;
         }
 

@@ -81,6 +81,8 @@ namespace Arena
                 Apply = s => { s.MeteorDmgMult += 0.5f; s.MeteorRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Blizzard, MaxStacks = 2, Name = "Whiteout", Desc = "Blizzard is 40% bigger and lasts 2 s longer",
                 Apply = s => { s.BlizzardRadiusMult += 0.4f; s.BlizzardBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.KineticWall, MaxStacks = 2, Name = "Momentum Bank", Desc = "Each shot Kinetic Wall catches adds 40% more damage to its blast",
+                Apply = s => s.KwChargeMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Tsunami, MaxStacks = 2, Name = "Riptide", Desc = "Tsunami's wave is 40% wider and enemies stay wet 4 s longer",
                 Apply = s => { s.TsunamiWidthMult += 0.4f; s.WetBonusTime += 4f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Elementalist, MaxStacks = 2, Name = "Arcane Surge", Desc = "Casting your Space ability makes your weapon fire 25% faster for 3 s",
@@ -170,6 +172,13 @@ namespace Arena
                 Id = AbilityId.Tsunami, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2,
                 Name = "Tsunami", Cooldown = 16f, Desc = "A wave rolls out where you aim: 12 damage, and it leaves enemies wet for 8 s, slowed 30%. Lightning (Arc Lightning, Storm Hammer, Chain Light, Nimbus) arcs to every wet enemy on the map.",
                 Capstone = "Wet lasts 14 s, and the wave rolls back to you, wetting what it missed.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.KineticWall, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Fourth,
+                Name = "Kinetic Wall", Cooldown = 18f,
+                Desc = "A curved wall in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back.",
+                Capstone = "The wall is 40% wider and holds up to 60 charges.",
             },
         };
 
@@ -427,6 +436,9 @@ namespace Arena
                     break;
                 case AbilityId.Tsunami:
                     CastTsunami(p, cap, pw);
+                    break;
+                case AbilityId.KineticWall:
+                    CastKineticWall(p, cap);  // KineticWall.cs
                     break;
                 // Summoner
                 case AbilityId.GolemWall:

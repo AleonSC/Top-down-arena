@@ -780,11 +780,11 @@ namespace Arena
                     if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), Defs.Weapon(me.Role, me.Kit, i).Name, WeaponKeyOn(me, i), calm))
                         ascOpen = i;
                 }
-                int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
+                int abilityCount = Upgrades.AbilityCount(me.Role, me.Kit), abilitySlots = Mathf.Max(AbilitySlots, abilityCount);
                 for (int i = 0; i < abilitySlots; i++)
                 {
                     var b = new Rect(ax + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
-                    if (i >= Upgrades.RoleAbilityChoices)
+                    if (i >= abilityCount)  // (the 4th key is an ability where the class has a fourth: the Elementalist DPS's Kinetic Wall)
                     {
                         LockedSlot(b, null, true);
                         continue;

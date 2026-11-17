@@ -165,6 +165,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blizzard | Dps | Space 2 | 14 s | - | Lasts 10 s. | A storm at your cursor for 5 s that slows and damages enemies. |
 | Tsunami | Dps | Space 3 | 16 s | - | Wet lasts 14 s, and the wave rolls back to you, wetting what it missed. | A wave rolls out where you aim: 12 damage, and it leaves enemies wet for 8 s, slowed 30%. Lightning (Arc Lightning, Storm Hammer, Chain Light, Nimbus) arcs to every wet enemy on the map. |
 | Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | Call a downpour over a big square (520 px) at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet. |
+| Kinetic Wall | Dps | Space 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A curved wall in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back. |
 
 ### Summoner
 

@@ -569,6 +569,27 @@ namespace Arena
             s.Float(ref p.HarvestClock);  // Crimson Harvest (CrimsonHarvest.cs)
             s.Float(ref p.HarvestBlood);
             s.Float(ref p.HarvestHold);
+            s.Float(ref p.KwT);  // Kinetic Wall (KineticWall.cs)
+            if (p.KwT > 0f)
+            {
+                s.Vec(ref p.KwPos);
+                s.Float(ref p.KwAim);
+                s.Bool(ref p.KwWide);
+                int dots = Math.Min(255, p.KwDots.Count);
+                s.Byte(ref dots);
+                if (s.Reading)
+                    p.KwDots.Clear();
+                for (int k = 0; k < dots; k++)
+                {
+                    int v = s.Reading ? 0 : p.KwDots[k], lat = v & 255, rad = (v >> 8) & 255;
+                    s.Byte(ref lat);
+                    s.Byte(ref rad);
+                    if (s.Reading)
+                        p.KwDots.Add(lat | (rad << 8));
+                }
+            }
+            else if (s.Reading)
+                p.KwDots.Clear();
             s.Float(ref p.RainClock);  // Sanguine Rain (SanguineRain.cs)
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
