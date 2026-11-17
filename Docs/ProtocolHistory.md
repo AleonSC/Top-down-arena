@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 389: Room cards: `Msg.PlayCard` (slot, x, y, turn, mirror), each player's hand (6 bytes) in the player snapshot, `ShopAction.BuyCard`, `DiffKnob.RoomCards`; `SurpriseShape.Box`/`Hall` appended.
 - 388: Cauterize (Bleed + Burn combo): `FxKind.Cauterize` appended (Pos2 = (enemy id, burst damage)).
 - 387: Relics Backup and Hallway Runner: `RelicId.Backup`/`HallwayRunner` before `None` (the relic byte's None moved).
 - 386: Node fog, scout towers and gold veins: `NodeKind.Tower`/`Vein`, and `Msg.ExpandState`'s nodes gain `Hidden` after `Cleared`.

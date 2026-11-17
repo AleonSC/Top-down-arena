@@ -66,6 +66,7 @@ static partial class Program
         if (!s.Host(port, name, role, weapon, ability, kit))
             Console.WriteLine("  HOST FAILED on port " + port + ": " + s.Status + " (another SimTest run using the same ports? give it PORTBASE=n)");
         s.Diff.Set(DiffKnob.Campaign, 0f);  // (the tests expect the usual random waves; CampaignTest turns it on itself)
+        s.Diff.Set(DiffKnob.RoomCards, 0f);  // (the tests draw their rooms; RoomCardsTest turns cards on itself)
         return s;
     }
 
@@ -446,6 +447,7 @@ static partial class Program
         Test("wings", "the Rooms arena (phase 1): the Arena setting, the Wings rooms and hallways, doors, walls, spawns, steering, boss waves in the hub", () => RoomsArenaTest(Dt)),
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingOutlineTest(Dt), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingThemesTest(Dt), () => ExpandingWallsTest(Dt), () => ExpandingFreeBuildTest(Dt), () => ExpandingPurseTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingRoomSizesTest(Dt), () => ExpandingFloatCostTest(), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingPushTest(Dt), () => ExpandingRoomChestTest(), () => ExpandingVectorChestTest(Dt)),
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
+        Test("roomcards", "room cards (Docs/RoomCards.md): preset rooms held in a hand and placed against a wall; dealt, dropped, bought, played, saved", () => RoomCardsTest(), () => RoomCardsGameTest(Dt), () => RoomCardsBotTest(Dt)),
         Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt)),
         Test("push", "wall push (Docs/WallPush.md): sections pushed out of a wall a tile at a time, between waves, paid by width", () => ExpandingPushTest(Dt), () => ExpandingRoomChestTest()),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
@@ -525,7 +527,7 @@ static partial class Program
         "swordsman", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
-        "expand", "mysterydoor", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "expand", "roomcards", "mysterydoor", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
