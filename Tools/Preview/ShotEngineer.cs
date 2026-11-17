@@ -31,7 +31,7 @@ static partial class Shot {
     };
     var m = new EngineerMock();
     if (mode == "strider") {
-      me.Pos = me.Disp = new V2(560f, 560f);
+      me.Pos = me.Disp = new V2(770f, 540f);
       var target = put(EnemyType.Charger, new V2(985f, 440f), MathX.Pi);
       target.Hp = target.MaxHp * 0.45f;
       put(EnemyType.Grunt, new V2(1060f, 360f), MathX.Pi * 0.9f);
@@ -41,7 +41,7 @@ static partial class Shot {
       m.Strider = true; m.StriderPos = new V2(935f, 445f); m.Face = (target.Pos - m.StriderPos).Angle;
       m.Build = Math.Min(1f, et / 1.2f); m.Step = 1.1f; m.Punch = 0.85f; m.Hp = 0.72f; m.LockOn = target.Id;
     } else if (mode == "pylon") {
-      me.Pos = me.Disp = new V2(560f, 600f); me.Aim = (new V2(900f, 450f) - me.Pos).Angle;
+      me.Pos = me.Disp = new V2(700f, 580f); me.Aim = (new V2(900f, 450f) - me.Pos).Angle;
       m.Pylon = true; m.PylonPos = new V2(900f, 450f); m.PylonAge = 2f; m.OldPylonPos = new V2(520f, 300f); m.OldFold = 0.45f;
       var spots = new[] { new V2(1120f, 400f), new V2(990f, 420f), new V2(900f, 520f), new V2(820f, 380f), new V2(1150f, 520f) };
       foreach (var s in spots) put(EnemyType.Grunt, s, MathX.Pi);
@@ -65,6 +65,8 @@ static partial class Shot {
       }
       foreach (var e in gm.Enemies.Values) if (et >= 0.75f) { V2 d = (e.Pos - wall); e.Pos = e.Disp = e.Pos + d.Normalized() * 70f; }
     }
+    m.Model = int.Parse(Environment.GetEnvironmentVariable("ENGMODEL") ?? "0");  // ENGMODEL=0-2 the Engineer look, -1 the stand-in Soldier
+    m.FollowLook = int.Parse(Environment.GetEnvironmentVariable("ENGFOLLOW") ?? "0");  // ENGFOLLOW=0-2 the Strider look
     ArenaApp.engineerMock = m;
     Console.Error.WriteLine("engineer: " + mode + " t=" + et + " enemies=" + gm.Enemies.Count);
   }

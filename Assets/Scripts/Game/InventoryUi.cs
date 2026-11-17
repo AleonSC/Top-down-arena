@@ -9,17 +9,33 @@ namespace Arena
     /// Preview: `STATSTAB=3 Tools/Preview/shot.sh x tab 23 12.2 3`.
     public partial class ArenaApp
     {
+        int invView;  // whose inventory the page shows: a teammate's player id, or 0 for yours
+        bool invFromPause;  // the screen was opened from the pause menu: look only (nothing to use while paused)
+
         void DrawInventory(Player me)
         {
             float x = HoloPageX, w = HoloPageR - HoloPageX;
             var head = new Rect(x, HoloTop, w, HoloHeadH);
-            int cards = me != null ? Game.HandCount(me) : 0, stash = 0;
-            if (me != null)
-                foreach (var n in me.Stash) stash += n;
-            HoloPanel(head, holoPageAt, () => HoloTitle(head.x + 18f, head.y + 14f, "INVENTORY",
-                (cards + " room card" + (cards == 1 ? "" : "s") + " · " + stash + " in your stash · " + game.RoomTokens.Count + " team room kit" + (game.RoomTokens.Count == 1 ? "" : "s")).ToUpperInvariant(), HoloDim));
             if (me == null)
                 return;
+            Player p;
+            if (invView == 0 || invView == me.Id || !game.Players.TryGetValue(invView, out p))
+            {
+                invView = 0;
+                p = me;
+            }
+            bool mine = p == me;
+            bool canUse = mine && !invFromPause && game.ExpandOpen && !me.Downed;  // (room cards and buildables go down in a build round)
+            int cards = Game.HandCount(p), stash = 0;
+            foreach (var n in p.Stash) stash += n;
+            string sub = (mine ? "" : p.Name + "'s · ") + cards + " room card" + (cards == 1 ? "" : "s") + " · " + stash + " in " + (mine ? "your" : "their") + " stash · " + game.RoomTokens.Count + " team room kit" + (game.RoomTokens.Count == 1 ? "" : "s");
+            string hint = !mine ? "Looking only: teammates use their own" : canUse ? "Click a room card or buildable to use it" : invFromPause ? "Use them from the Tab screen in a build round" : "Usable in the break, while a build round is open";
+            HoloPanel(head, holoPageAt, () =>
+            {
+                HoloTitle(head.x + 18f, head.y + 14f, "INVENTORY", sub.ToUpperInvariant(), mine ? HoloDim : Color.Lerp(ToColor(p.Def.Color), Color.white, 0.35f));
+                Ui.Label(new Rect(head.x + 18f, head.yMax - 20f, 600f, 14f), hint.ToUpperInvariant(), 10, canUse ? CrtStyle.Gold : HoloDim, TextAnchor.MiddleLeft, true);
+                DrawInvWho(me, head);
+            });
             float top = HoloTop + HoloHeadH + HoloGap;
             const float leftW = 300f, upperH = 270f;
             var wallet = new Rect(x, top, leftW, upperH);
@@ -29,11 +45,72 @@ namespace Arena
             float lowY = hand.yMax + HoloGap, lowH = HoloBottom - lowY, half = (rw - HoloGap) / 2f;
             var builds = new Rect(rx, lowY, half, lowH);
             var kits = new Rect(builds.xMax + HoloGap, lowY, half, lowH);
-            HoloPanel(wallet, holoPageAt, () => DrawInvWallet(me, wallet));
-            HoloPanel(relic, holoPageAt, () => DrawInvRelic(me, relic));
-            HoloPanel(hand, holoPageAt, () => DrawInvHand(me, hand));
-            HoloPanel(builds, holoPageAt, () => DrawInvStash(me, builds));
+            HoloPanel(wallet, holoPageAt, () => DrawInvWallet(p, wallet, mine));
+            HoloPanel(relic, holoPageAt, () => DrawInvRelic(p, relic));
+            HoloPanel(hand, holoPageAt, () => DrawInvHand(p, hand, canUse));
+            HoloPanel(builds, holoPageAt, () => DrawInvStash(p, builds, canUse));
             HoloPanel(kits, holoPageAt, () => DrawInvKits(kits));
+        }
+
+        /// Whose inventory: YOU and each teammate, keys on the right of the header (a teammate's key in their class colour).
+        void DrawInvWho(Player me, Rect head)
+        {
+            var ids = new List<int> { me.Id };
+            foreach (var q in game.Players.Values)
+                if (q.Id != me.Id) ids.Add(q.Id);
+            if (ids.Count < 2)
+                return;
+            const float kw = 132f, gap = 6f;
+            float kx = head.xMax - 18f - ids.Count * kw - (ids.Count - 1) * gap;
+            for (int i = 0; i < ids.Count; i++)
+            {
+                var q = game.Players[ids[i]];
+                bool on = (invView == 0 ? me.Id : invView) == q.Id;
+                var r = new Rect(kx + i * (kw + gap), head.y + 18f, kw, 30f);
+                if (LobbyKit.Key(r, q.Id == me.Id ? "YOU" : LobbyKit.Truncate(q.Name.ToUpperInvariant(), 13, kw - 16f), on, HoloCalm, size: 13, minSize: 10) && !on)
+                {
+                    invView = q.Id == me.Id ? 0 : q.Id;
+                    holoPageAt = Time.unscaledTime;  // (the panels switch on again for the new view)
+                }
+                if (q.Id != me.Id)
+                    Ui.Fill(new Rect(r.x + 6f, r.yMax - 4f, r.width - 12f, 2f), ToColor(q.Def.Color));
+            }
+        }
+
+        /// Why an item can't be used from here right now.
+        string InvUseWhy(Player p) => p != game.Me ? "Theirs: only they can use it." : invFromPause ? "From the pause menu you can only look: use it from the Tab screen." : !game.ExpandOpen ? "Usable in the break, while a build round is open." : "You're down.";
+
+        /// Use a room card or buildable from the inventory: the Tab screen gives way (until Tab is let go) and the build screen opens on it.
+        void InvOpenBuild()
+        {
+            tabSuppress = true;
+            runStatsOpen = false;
+            expOpen = true;
+            expModify = false;
+            expDrawing = true;
+            expDragging = expHeld = false;
+            expA = expB = V2.Zero;
+            expPts.Clear();
+            expCutMode = expLinkMode = expGateMode = expTrapMode = false;
+        }
+
+        void UseInvCard(int slot)
+        {
+            InvOpenBuild();
+            expCard = slot;
+            expCardTurn = 0;
+        }
+
+        void UseInvBuild(int kind)
+        {
+            InvOpenBuild();
+            if (kind == (int)BuildKind.Teleporter)
+                expLinkMode = true;
+            else
+            {
+                expTrapMode = true;
+                expTrapKind = kind;
+            }
         }
 
         /// The Tab screen is open on the Inventory page (drawn this frame or the last): the mouse wheel is its lists', not the camera's.
@@ -69,7 +146,7 @@ namespace Arena
         }
 
         /// Gold and vectors as big tiles (the vectors with a bar to the cap), then the revive token and the gadget.
-        void DrawInvWallet(Player me, Rect r)
+        void DrawInvWallet(Player me, Rect r, bool mine)
         {
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Wallet", null, HoloCalm);
             float tw = (r.width - 36f) / 2f;
@@ -82,7 +159,7 @@ namespace Arena
             {
                 { "Revive token", me.ReviveToken ? "1" : "0" },
                 { "Gadget", me.Gadget == GadgetId.None ? "—" : "MAGNET " + Mathf.CeilToInt(me.GadgetLeft) + "s" },
-                { "Rerolls", me.Rerolls.ToString() },
+                { "Rerolls", mine ? me.Rerolls.ToString() : "—" },  // (not sent for teammates)
             };
             HoloRows(r.x + 12f, r.y + 134f, r.width - 24f, rows);
         }
@@ -111,9 +188,11 @@ namespace Arena
             }
         }
 
-        /// Your hand of room cards: six slots, each drawn as its room with its name; empty slots dashed.
-        void DrawInvHand(Player me, Rect r)
+        /// A hand of room cards: six slots, each drawn as its room with its name; empty slots dashed. canUse: a click plays the card
+        /// (the build screen opens on it, UseInvCard).
+        void DrawInvHand(Player me, Rect r, bool canUse)
         {
+            canUse &= game.RoomCardsOn;
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room cards", game.RoomCardsOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
@@ -143,15 +222,19 @@ namespace Arena
                     continue;
                 }
                 var ci = ToColor(card == RoomCard.MiniBoss ? GateInk : CardInk);
-                Ui.Fill(c, new Color(ci.r, ci.g, ci.b, 0.08f));
-                CrtKit.Frame(c, 1f, new Color(ci.r, ci.g, ci.b, 0.6f));
+                bool hot = canUse && c.Contains(Event.current.mousePosition);
+                Ui.Fill(c, new Color(ci.r, ci.g, ci.b, hot ? 0.2f : 0.08f));
+                CrtKit.Frame(c, hot ? 2f : 1f, hot ? Color.Lerp(ci, Color.white, 0.5f) : new Color(ci.r, ci.g, ci.b, 0.6f));
                 DrawCardGlyph(card, new Rect(c.x + 10f, c.y + 8f, c.width - 20f, c.height - 40f), ci);
-                Ui.Label(new Rect(c.x, c.yMax - 28f, c.width, 18f), Expansion.CardName(card).ToUpperInvariant(), 13, Color.white, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(c.x, c.yMax - 28f, c.width, 18f), hot ? "PLAY  ›" : Expansion.CardName(card).ToUpperInvariant(), 13, hot ? CrtStyle.Gold : Color.white, TextAnchor.MiddleCenter, true);
                 if (TipHover(c))
                 {
                     TipStart(c, Expansion.CardName(card), ci);
                     TipAdd(Expansion.CardBlurb(card), 12, Ui.Text);
+                    TipAdd(canUse ? "Click to play it: the build screen opens with it picked." : InvUseWhy(me), 11, canUse ? CrtStyle.Gold : Ui.Muted);
                 }
+                if (canUse && Ui.HitArea(c))
+                    UseInvCard(i);
             }
             if (!game.RoomCardsOn)
             {
@@ -160,10 +243,11 @@ namespace Arena
             }
         }
 
-        /// The Black Market buys waiting in your stash: each buildable's mark and how many you carry.
-        void DrawInvStash(Player me, Rect r)
+        /// The Black Market buys waiting in a stash: each buildable's mark and how many are carried. canUse: a click on one you have
+        /// opens the build screen in its tool (Teleporter or Trap, UseInvBuild).
+        void DrawInvStash(Player me, Rect r, bool canUse)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", "your stash", HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", me == game.Me ? "your stash" : "their stash", HoloCalm);
             float avail = r.height - 58f;
             int shown = Mathf.Clamp(Mathf.FloorToInt(avail / 40f), 1, Market.Count);
             var list = new Rect(r.x + 12f, r.y + 46f, r.width - 24f, avail);
@@ -174,15 +258,26 @@ namespace Arena
                 var row = new Rect(list.x, list.y + (k - first) * rowH, rowW, rowH - 4f);
                 int have = me.Stash[k];
                 var ink = CrtUi.Ink;
-                if (k % 2 == 0)
-                    Ui.Fill(row, new Color(ink.r, ink.g, ink.b, 0.07f));
+                bool usable = canUse && have > 0, hot = usable && row.Contains(Event.current.mousePosition);
+                if (k % 2 == 0 || hot)
+                    Ui.Fill(row, new Color(ink.r, ink.g, ink.b, hot ? 0.2f : 0.07f));
+                if (hot)
+                    CrtKit.Frame(row, 1f, CrtStyle.Gold);
+                if (usable && Ui.HitArea(row))
+                    UseInvBuild(k);
+                if (have > 0 && TipHover(row))
+                {
+                    TipStart(row, Market.Names[k], ToColor(VendorInk));
+                    TipAdd(Market.Blurbs[k], 12, Ui.Text);
+                    TipAdd(usable ? "Click to place it: the build screen opens on its tool." : InvUseWhy(me), 11, usable ? CrtStyle.Gold : Ui.Muted);
+                }
                 var m = GUI.matrix;
                 var icon = new Rect(row.x + 4f, row.y + (row.height - 36f) / 2f, 36f, 36f);
                 GUIUtility.ScaleAroundPivot(new Vector2(0.42f, 0.42f), icon.center);
                 DrawBuildGlyph((BuildKind)k, new Rect(icon.center.x - 40f, icon.center.y - 40f, 80f, 80f), have > 0 ? 1f : 0.3f);
                 GUI.matrix = m;
                 Ui.Label(new Rect(icon.xMax + 10f, row.y, row.width - 110f, row.height), Market.Names[k], 13, have > 0 ? HoloBody : HoloDim, TextAnchor.MiddleLeft, false);
-                CrtUi.Title(new Rect(row.x, row.y, row.width - 8f, row.height), have + " / " + Market.StashMax, 20, have > 0 ? Color.white : HoloDim, TextAnchor.MiddleRight, true);
+                CrtUi.Title(new Rect(row.x, row.y, row.width - 8f, row.height), hot ? "PLACE ›" : have + " / " + Market.StashMax, 20, hot ? CrtStyle.Gold : have > 0 ? Color.white : HoloDim, TextAnchor.MiddleRight, true);
             }
         }
 

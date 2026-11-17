@@ -17,7 +17,7 @@ namespace Arena
         public bool Strider; public V2 StriderPos; public float Face, Step, Punch, Build = 1f, Hp = 1f, Slam = -1f; public int LockOn = -1;
         public bool Pylon; public V2 PylonPos; public float PylonAge; public V2 OldPylonPos; public float OldFold = -1f;
         public bool Breach; public V2 WallPt, Out; public float BreachT; public int Loot = -1; public V2 LootPos; public float LootAge;
-        public bool Hat = true;
+        public bool Hat; public int Model = -1, FollowLook;  // Model: the Engineer look drawn in place of your own model (EngineerModel.cs)
     }
 
     public partial class ArenaApp
@@ -62,7 +62,10 @@ namespace Arena
                 }
                 if (m.Build >= 1f && game.Me != null)
                     DrawDashed(game.Me.Disp, m.StriderPos, EngInk.WithAlpha(0.25f), 1.5f, 3f, 7f, 0f);
-                DrawStrider(m.StriderPos, m.Face, m.Step, m.Punch, m.Build, m.Hp, target != null, m.Slam, t);
+                if (m.FollowLook > 0 && m.Build >= 1f)
+                    DrawStriderLook(m.FollowLook, m.StriderPos, m.Face, m.Step, m.Punch, m.Hp, target != null, t);
+                else
+                    DrawStrider(m.StriderPos, m.Face, m.Step, m.Punch, m.Build, m.Hp, target != null, m.Slam, t);
             }
             if (m.Breach)
                 DrawBreach(m, t);
