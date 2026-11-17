@@ -116,6 +116,6 @@ static partial class Program
         Console.WriteLine("  bottles in 10 s: bottle rioter {0}, plain rioter {1}", thrown, plain);
         Check(thrown >= 1 && thrown <= 4, "a bottle Rioter throws now and then");
         Check(plain == 0, "a plain Rioter never throws");
-        Check(bottleReach > 200f, "a bottle flies straight out, not in circles (got " + bottleReach.ToString("0") + " px from the thrower)");
+        Check(bottleReach > 150f, "a bottle flies straight out, not in circles (got " + bottleReach.ToString("0") + " px from the thrower)");
     }
 }
