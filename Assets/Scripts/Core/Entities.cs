@@ -488,6 +488,7 @@ namespace Arena
         public RelicId Relic = RelicId.None;   // the relic slot (Relics.cs, replicated)
         public readonly byte[] Stash = new byte[Market.Count];  // Black Market buys not yet placed, by BuildKind (Market.cs, replicated)
         public int Vectors = Game.VectorStart, VectorCap = Game.VectorCapBase;  // the Expanding arena's drawing budget and the most you hold (ExpansionGame.cs, replicated)
+        public int MapSpent;  // host: vectors this player spent on the map in play; half come back when it resets (MapReset.cs, saved, not on the wire)
         public readonly int[] Shelf = NewShelf();  // this player's shop: upgrade ids, the first Game.ShelfLen of them are live (replicated)
         public int ShelfSold;                  // bit per shelf slot: bought (replicated)
         public int ShelfLen;                   // cards on the shelf now (replicated; Game.MaxShelf at most)

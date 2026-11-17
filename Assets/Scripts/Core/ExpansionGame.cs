@@ -60,6 +60,7 @@ namespace Arena
         {
             int take = Math.Min(payer.Vectors, price);
             payer.Vectors -= take;
+            payer.MapSpent += take;  // (half comes back when the map resets, MapReset.cs)
             price -= take;
             while (TeamPurse && price > 0)
             {
@@ -71,6 +72,7 @@ namespace Arena
                     break;
                 take = Math.Min(rich.Vectors, price);
                 rich.Vectors -= take;
+                rich.MapSpent += take;
                 price -= take;
             }
         }
@@ -596,6 +598,11 @@ namespace Arena
             botVoteT = 0f;
             botProposed = false;
             expandSeed = sideRng.Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run; Game.cs)
+            MapNumber = 1;
+            MapResetAge = 99f;
+            MapRefund = 0;
+            foreach (var p in Players.Values)
+                p.MapSpent = 0;
         }
 
         // --- The building round -------------------------------------------------------------------------------------
@@ -1201,6 +1208,7 @@ namespace Arena
             save.HasExpansion = true;
             save.ExpandSeed = expandSeed;
             save.FloatCycle = floatCycle;
+            save.MapNumber = MapNumber;
             foreach (var r in Expanded)
             {
                 var room = r;
@@ -1222,6 +1230,7 @@ namespace Arena
             for (int i = 0; i < Market.Count; i++)
                 seat.Stash[i] = p.Stash[i];
             seat.VectorCap = p.VectorCap;
+            seat.MapSpent = p.MapSpent;
             bool any = false;
             for (int i = 0; i < MaxShelf; i++)
                 any |= p.Shelf[i] >= 0;
@@ -1241,6 +1250,7 @@ namespace Arena
                 playerOf[kv.Value] = kv.Key;
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
+            MapNumber = Math.Max(1, save.MapNumber);
             duelBoss.Clear();
             Expanded.Clear();
             foreach (var r in save.Rooms)
@@ -1272,6 +1282,7 @@ namespace Arena
                 {
                     p.Vectors = s.Vectors;
                     p.VectorCap = Math.Max(VectorCapBase, s.VectorCap);
+                    p.MapSpent = Math.Max(0, s.MapSpent);
                 }
                 for (int i = 0; i < MaxShelf; i++)
                 {
@@ -1370,6 +1381,7 @@ namespace Arena
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
             WriteMysteryDoors(w);  // the sealed doors (MysteryDoors.cs)
+            w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -1476,6 +1488,7 @@ namespace Arena
             short markX = r.ReadInt16(), markY = r.ReadInt16();
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
             ReadMysteryDoors(r);
+            ReadMapNumber(r.ReadByte());  // (MapReset.cs)
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();

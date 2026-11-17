@@ -1163,7 +1163,12 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Blood Moon: no regeneration or orbs, kills heal; Burning: fire patches; Swarm: a doubled melee crowd; Elite: a doubled all-elite crowd). Clear a wave there and it pays:
   a **chest** (Dark, Burning, Swarm, Elite), a **relic** to walk up to (Blood Moon) or **gold and vectors** at once (Frozen).
   (The Gatekeeper has its own room, below.)
-- **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
+- **Map reset (Campaign)**: every boss you clear starts a **fresh map**. The rooms, openings, portals, gates, traps,
+  nodes and mystery doors go, and the team stands in the bare hub again, so a 100-wave run plays on ten maps of about ten
+  waves each. Your **room kits are kept**, and each player gets **half the vectors they spent on the old map back**, on top of
+  the boss refill. Coins still lying in the old rooms go to the nearest player. The run's last boss doesn't reset anything.
+  ([`Docs/MapReset.md`](Docs/MapReset.md))
+- **Surprise rooms** (Quick Play; the Campaign resets its map instead): every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops
   (and touches a dead end), so it mends the map's shape; nobody pays. It builds in with a gold flash and scan line, a **SURPRISE ROOM** chip names it, and it stays
   gold-rimmed on the arena floor and minimap for the rest of that wave. The shapes come round in turn. It counts towards the 24-room cap and

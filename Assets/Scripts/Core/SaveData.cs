@@ -24,7 +24,7 @@ namespace Arena
         public readonly Dictionary<string, float> Mastery = new Dictionary<string, float>();  // ability name -> XP
         public RunStats Run = new RunStats();
         // The Expanding arena (ExpansionGame.cs): the seat's vectors and its shop room shelf (kept until the next boss cycle).
-        public int Vectors = -1, VectorCap = -1;                   // -1: not saved (a save from another arena, or from before)
+        public int Vectors = -1, VectorCap = -1, MapSpent;  // MapSpent: vectors spent on this map (MapReset.cs);                   // -1: not saved (a save from another arena, or from before)
         public readonly List<string> Shelf = new List<string>();   // upgrade names by slot, "" for an empty slot
         public int ShelfSold, Restocks;
         public readonly int[] Stash = new int[Market.Count];       // Black Market buys not yet placed, by BuildKind
@@ -65,7 +65,7 @@ namespace Arena
         // The Expanding arena (ExpansionGame.cs): the map the team built. A room's Owner is its drawer's seat + 1 here (0: none),
         // so it can go back to whoever takes that seat.
         public bool HasExpansion;
-        public int ExpandSeed, FloatCycle = -1;
+        public int ExpandSeed, FloatCycle = -1, MapNumber = 1;  // MapNumber: which map of the run (MapReset.cs)
         public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
         public readonly List<WallCut> Cuts = new List<WallCut>();
         public readonly List<MapNode> Nodes = new List<MapNode>();
@@ -118,7 +118,7 @@ namespace Arena
             Line(sb, "route", string.Join(",", Route));
             if (HasExpansion)
             {
-                Line(sb, "expand", ExpandSeed + " " + FloatCycle);
+                Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber);
                 foreach (var r in Rooms)
                     Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Leg, r.Surprise, r.Claimed ? 1 : 0, r.Mini }));
                 foreach (var c in Cuts)
@@ -146,7 +146,7 @@ namespace Arena
                 Line(sb, "hp", s.HpFrac);
                 Line(sb, "keys", string.Join(",", s.BonusKeys));
                 if (s.Perks.Count > 0) Line(sb, "perks", string.Join(",", s.Perks));
-                if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap);
+                if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap + " " + s.MapSpent);
                 if (Array.Exists(s.Stash, n => n > 0)) Line(sb, "stash", string.Join(" ", s.Stash));
                 if (s.Shelf.Count > 0)
                 {
@@ -231,6 +231,7 @@ namespace Arena
                             save.HasExpansion = true;
                             save.ExpandSeed = I(p[0]);
                             save.FloatCycle = I(p[1]);
+                            save.MapNumber = p.Length > 2 ? Math.Max(1, I(p[2])) : 1;  // (older saves: the first map)
                             break;
                         }
                         case "room":
@@ -332,6 +333,7 @@ namespace Arena
                     var p = val.Split(' ');
                     s.Vectors = Math.Max(0, I(p[0]));
                     s.VectorCap = Math.Max(0, I(p[1]));
+                    s.MapSpent = p.Length > 2 ? Math.Max(0, I(p[2])) : 0;
                     break;
                 }
                 case "shop":

@@ -237,14 +237,16 @@ namespace Arena
                     if (ModeRules.Paths)
                         OfferPaths();  // after a boss: two paths for the next stretch (not in Quick Play; the Expanding arena has none)
                 }
-                else
-                    GiveSurpriseRoom();  // ...but a free, well-shaped room that closes a loop (ExpansionGame.cs, Docs/SurpriseRooms.md)
+                else if (!MapResetOn)
+                    GiveSurpriseRoom();  // ...but a free, well-shaped room that closes a loop (ExpansionGame.cs, Docs/SurpriseRooms.md; the Campaign resets the map instead)
             }
             else if (ServiceRooms && RoomsOn && !ShopOpen && ModeRules.RunEvents)
                 OpenShopRoom(Wave % Expansion.Milestone == 1 && FirstLeg);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
             RevealBreachRooms();  // every breach that is left opens onto a small room (BreachEvent.cs, Docs/BreachRooms.md)
             RevealBreachEvent();  // a breach event the wave ended before it opened: the room opens now (BreachEvent.cs)
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
+            if (BossSlot && Hunt == null && MapResetOn)
+                ResetMap();  // the Campaign: a fresh map after each boss, half the vectors spent on the old one back (MapReset.cs)
             OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
             RollMysteryDoors();  // last round's unsaved doors expire, 1-2 new sealed doors appear (MysteryDoors.cs)
             RemoveTemporaryMinions();

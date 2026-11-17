@@ -1,6 +1,6 @@
 # Map reset: a fresh map after every boss
 
-Status: **planned, nothing built.** Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
+Status: **step 1 built** (protocol 389: the reset, refund, kits kept, map number synced and saved; suite `mapreset`); steps 2-4 open. Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
 [`VectorBuilding.md`](VectorBuilding.md), [`SurpriseRooms.md`](SurpriseRooms.md), [`MysteryDoors.md`](MysteryDoors.md) and
 [`Nodes.md`](Nodes.md).
 
@@ -24,7 +24,7 @@ much to follow. Building stays on all the way through; the map resets instead.
 
 1. Boss dies → the usual break opens. A **KEEPSAKE** vote replaces the post-boss surprise room: every room on the map is a
    choice, each player clicks one (the build vote UI and timer), a tie goes to the host and the timer picks the biggest room.
-2. When the break's Ready countdown ends (or the boss gate opens), the map **folds away**: rooms collapse toward the hub
+2. As the boss wave is cleared (step 1: at once, before the build round; the boss wave already keeps the rooms down, so the team is in the hub), the map **folds away**: rooms collapse toward the hub
    (about 1.5 s), coins and pickups fly to their nearest player, the camera pulls in.
 3. The new map: the hub, plus the keepsake on its best hub wall (`Expansion.Placement`, loops scored as for surprise rooms).
    The toast reads **MAP n/10 · +x VECTORS BACK**. The next wave's breaches, nodes and doors roll from a new `expandSeed`.
@@ -36,20 +36,20 @@ much to follow. Building stays on all the way through; the map resets instead.
 | Bought, surprise, Stash and door rooms | gone (except the keepsake) |
 | Nodes, chests, mystery doors, gates, portals, openings, traps (`PlacedBuild`) | gone |
 | Room kits | kept |
-| Player vectors | kept, plus 50% of `Player.MapSpent` (new, reset to 0 per map) |
+| Player vectors | kept, plus 50% of `Player.MapSpent` (reset to 0 per map), on top of the boss refill and above the cap |
 | Coins on the floor | collected by the nearest living player |
-| Shop / vendor rooms | rebuilt as tiny rooms by the hub as on a fresh run |
-| The keepsake's Gatekeeper | kept as a plain combat room (its mini-boss is beaten or forfeited) |
+| Shop / vendor / Gatekeeper rooms | gone; the next regular wave places the new boss cycle's floating ones as usual |
 | `expandSeed` | new (from `sideRng`, as in `ResetExpansion`) |
 
 ## Steps
 
-1. **The reset (core + wire).** `Game.ResetMap()` in a new `MapReset.cs`: keeps kits, refunds `MapSpent`, clears the rest
+1. **The reset (core + wire)** *(built)*. `Game.ResetMap()` in a new `MapReset.cs`: keeps kits, refunds `MapSpent`, clears the rest
    (shares `ResetExpansion`'s clearing), moves players to the hub, runs after a boss in place of `GiveSurpriseRoom` in the
-   Campaign. `Player.MapSpent` counted wherever vectors are spent (`ExpansionGame.cs` purse, doors, gates, links, kits) and saved in
-   `RunSave`. `Game.MapNumber` in `Msg.ExpandState`. Protocol bump. Test suite `mapreset` (also in `expand`, `longrun`): the map
+   Campaign. `Player.MapSpent` counted in `PayVectors` (every vector spend: rooms, doors, pushes) and saved in
+   `RunSave`. `Game.MapNumber` in `Msg.ExpandState`. Protocol bump. Test suite `mapreset` (in the feature run): the map
    resets on each boss, the refund is right, kits stay, a save in the middle of a map restores `MapSpent`.
-2. **The keepsake vote.** `Msg.KeepsakeVote`, host tally, bots vote for the biggest room, the kept room rebuilt by the hub
+2. **The keepsake vote.** The vote has to happen on the old map before it goes: the reset moves to the end of a short vote
+   (about 15 s) at the start of the break. `Msg.KeepsakeVote`, host tally, bots vote for the biggest room, the kept room rebuilt by the hub
    (`Expansion.Placement`; a room that fits nowhere shrinks to the largest surprise shape that does). Protocol bump. Tests.
 3. **The look.** The vote's room highlight and tally (DevKit widgets), the fold-away, the MAP n/10 toast, the keepsake's
    gold rim. Previews (`shot.sh`) before/after.

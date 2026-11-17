@@ -380,6 +380,7 @@ static partial class Program
         Test("devourer", "the Devourer's three stages and last meal", () => DevourerTest(Dt)),
         Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("pacman", "the Pac-Man maze game: maze, steering, tunnel, dots and pellets, the four role ghosts, lives, levels, the ghost house, co-op", () => PacmanTest(Dt)),
+        Test("mapreset", "the Campaign map resets after each boss: kits kept, half the spent vectors back, saved", () => MapResetTest(Dt)),
         Test("longrun", "the 100-wave Campaign: two legs a track wave, the boss after every tenth, half XP, saves and continuing, the party's level at the first boss", () => LongRunTest(Dt), () => LongRunPaceTest(Dt)),
         Test("wardencycle", "the Campaign's Warden cycle: one lesson a wave (Rioters, guards, shields, gas, tasers, squads, the Riot line) (one guaranteed star enemy each)", () => WardenCycleTest(Dt)),
         Test("checkpoints", "checkpoints and lives: a boss leaves a checkpoint, a wipe with a life left retries from it (score cut), Play again or no lives end the run", () => CheckpointsTest(Dt)),
@@ -525,7 +526,7 @@ static partial class Program
         "swordsman", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
-        "expand", "mysterydoor", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "expand", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
