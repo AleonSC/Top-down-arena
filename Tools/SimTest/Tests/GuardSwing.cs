@@ -99,20 +99,23 @@ static partial class Program
         for (int i = 0; i < total; i++) { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Rioter, new V2(100f, 100f), 0f, 0, false }); if (Game.BottleRioter(e)) bottlers++; e.Hp = 0f; }
         Run(s, dt, 0.3f);
         Check(bottlers >= 4 && bottlers <= 22, "some Rioters carry a bottle, not all (" + bottlers + " of " + total + ")");
+        float bottleReach = 0f;
         Func<bool, int> Throws = want =>
         {
             Enemy r; int tries = 0;
             do { r = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Rioter, new V2(1200f, 450f), 0f, 0, false }); if (Game.BottleRioter(r) == want) break; r.Hp = 0f; } while (++tries < 400);
             r.SpawnT = 0f; r.Hp = r.MaxHp = 1e6f; r.Speed = 0f;
             friend.Downed = true; g.Bullets.Clear();
-            var seen = new HashSet<int>();
-            Run(s, dt, 10f, null, () => { anchor.FrozenT = 1f; anchor.FireT = 99f; anchor.Pos = new V2(1500f, 80f); me.Pos = new V2(1000f, 450f); r.Pos = new V2(1200f, 450f); foreach (var b in g.Bullets.Values) if (b.Kind == Defs.BottleShot) seen.Add(b.Id); });
+            var seen = new HashSet<int>(); float reach = 0f;
+            Run(s, dt, 10f, null, () => { anchor.FrozenT = 1f; anchor.FireT = 99f; anchor.Pos = new V2(1500f, 80f); me.Pos = new V2(1000f, 450f); r.Pos = new V2(1200f, 450f); foreach (var b in g.Bullets.Values) if (b.Kind == Defs.BottleShot) { seen.Add(b.Id); reach = Math.Max(reach, b.Pos.DistanceTo(r.Pos)); } });
             r.Hp = 0f; Run(s, dt, 0.3f);
+            if (want) bottleReach = reach;
             return seen.Count;
         };
         int thrown = Throws(true), plain = Throws(false);
         Console.WriteLine("  bottles in 10 s: bottle rioter {0}, plain rioter {1}", thrown, plain);
         Check(thrown >= 1 && thrown <= 4, "a bottle Rioter throws now and then");
         Check(plain == 0, "a plain Rioter never throws");
+        Check(bottleReach > 150f, "a bottle flies straight out, not in circles (got " + bottleReach.ToString("0") + " px from the thrower)");
     }
 }
