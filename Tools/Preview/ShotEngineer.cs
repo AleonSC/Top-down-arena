@@ -45,6 +45,22 @@ static partial class Shot {
       put(EnemyType.Grunt, new V2(600f, 300f), MathX.Pi * 0.2f); put(EnemyType.Grunt, new V2(520f, 380f), MathX.Pi * 0.1f);
       put(EnemyType.Grunt, new V2(1080f, 520f), MathX.Pi * 1.1f);
       me.Aim = (new V2(600f, 300f) - me.Pos).Angle;
+      string er = Environment.GetEnvironmentVariable("ENGROLE");  // ENGROLE=tank|healer: that role's kit instead (Sentinel and a Vector Wall; med-drone, Med Pylon and Safe Room)
+      if (er != null) {
+        var spawnM = typeof(Game).GetMethod("SpawnMinion", bf); var addZ = typeof(Game).GetMethod("AddZone", bf);
+        gm.Minions.Remove(s.Id); gm.Zones.Clear();
+        me.Role = er == "tank" ? Role.Tank : Role.Healer; me.Def = Defs.Get(me.Role); me.Weapon = Defs.Weapon(me.Role, Kit.Engineer, 0);
+        if (er == "tank") {
+          var sn = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.Sentinel, me, new V2(920f, 455f), -1f, true });
+          sn.MaxHp = 1000f; sn.Hp = 820f; sn.GuardFrac = 0.82f; sn.Aim = (target.Pos - sn.Pos).Angle; sn.Wind = 0.6f; sn.Stacks = 1; sn.LinkTo = target.Id;
+          for (int i = 0; i < 5; i++) { var b = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.VectorBlock, me, new V2(560f + i * 2f, 300f + (i - 2) * 36f), 8f, false }); b.Aim = 0f; b.GuardFrac = 1f; b.T = 6f; }
+        } else {
+          var dr = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.MediDrone, me, me.Pos + new V2(40f, -30f), -1f, true });
+          var mp = (Zone)addZ.Invoke(gm, new object[] { ZoneKind.MedPylon, me, new V2(560f, 330f), Game.PylonRadius, 100000f }); mp.T = 99990f;
+          var sr = (Zone)addZ.Invoke(gm, new object[] { ZoneKind.SafeRoom, me, new V2(1000f, 520f), Game.SafeDomeRadius, 12f }); sr.T = 8f;
+          me.Hp = me.MaxHp * 0.6f;
+        }
+      }
       string eb = Environment.GetEnvironmentVariable("ENGBUILD");  // ENGBUILD=<0-1>: the Strider that far through building in
       if (eb != null) { s.Wind = 2f + float.Parse(eb, inv); s.Stacks = 0; s.LinkTo = 0; }
       string el = Environment.GetEnvironmentVariable("ENGLOOT");  // ENGLOOT=<0-4>: a Breach room's loot node beside you (vectors, crate, repair, bench, ambush)

@@ -40,6 +40,7 @@ namespace Arena
         DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
         DragPylon,     // the Engineer's Space ability (Engineer.cs)
         Breach,        // the Engineer's ultimate (Engineer.cs)
+        VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's Space abilities and ultimates (Engineer.cs, step 4)
         None = 255,
     }
 
@@ -457,10 +458,11 @@ namespace Arena
             for (int i = 0; i < table.Length; i++)
                 if (table[i] == AbilityId.None)
                 {
-                    int kit = i / per % Defs.KitCount;
-                    foreach (var a in Abilities)
-                        if (table[i] == AbilityId.None && a.FillsGaps && (int)a.Kit == kit && (a.Choice == AbilityDef.Ult) == ultimates)
-                            table[i] = a.Id;
+                    int kit = i / per % Defs.KitCount, role = i / per / Defs.KitCount;
+                    for (int pass = 0; pass < 2 && table[i] == AbilityId.None; pass++)  // its own role's stand-in first
+                        foreach (var a in Abilities)
+                            if (table[i] == AbilityId.None && a.FillsGaps && (int)a.Kit == kit && (a.Choice == AbilityDef.Ult) == ultimates && (pass == 1 || (int)a.Role == role))
+                                table[i] = a.Id;
                     if (table[i] != AbilityId.None)
                         (ultimates ? ultGaps : spaceGaps).Add(i);
                 }

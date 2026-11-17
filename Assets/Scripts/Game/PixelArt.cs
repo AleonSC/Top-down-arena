@@ -197,6 +197,8 @@ namespace Arena
             { "Martyr", "martyr" },
             { "Arterial Spray", "spray" },
             { "Drag Pylon", "dragpylon" },
+            { "Vector Wall", "vectorwall" },
+            { "Med Pylon", "medpylon" },
             { "Blood Debt", "debt" },
             { "Vein Rush", "veinrush" },
         };
@@ -879,6 +881,36 @@ namespace Arena
                 "...krrrrk...",
                 "....krrk....",
                 ".....kk.....",
+            },
+            ["vectorwall"] = new[]  // a row of glowing blocks (Engineer.cs)
+            {
+                "............",
+                "............",
+                "kkkkkkkkkkkk",
+                "kccckccckcck",
+                "kcwckcwckcwk",
+                "kccckccckcck",
+                "kkkkkkkkkkkk",
+                "..kccckccck.",
+                "..kcwckcwck.",
+                "..kccckccck.",
+                "..kkkkkkkkk.",
+                "............",
+            },
+            ["medpylon"] = new[]  // a pylon with a cross in its field (Engineer.cs)
+            {
+                "..n.n.n.n...",
+                ".n..kwk...n.",
+                "....knk.....",
+                "n...knk..kk.",
+                "...knNnkkwwk",
+                ".n.knNnk.kk.",
+                "..knk.knk...",
+                "n.knk.knk.n.",
+                ".knk...knk..",
+                ".kk.....kk..",
+                "..n.n.n.n...",
+                "............",
             },
             ["dragpylon"] = new[]  // a pylon with its field (Engineer.cs)
             {

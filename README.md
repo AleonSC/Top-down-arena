@@ -47,8 +47,8 @@ row lists its class wheel's class, and a saved run's seats keep theirs.
   below).
 - **Hemomancer**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its
   health; full health (see below).
-- **Engineer**: a builder who works in vectors; DPS only for now (its Tank and Healer cards are locked, and so are its
-  other weapon and ability keys); full health, 95% speed (see below).
+- **Engineer**: a builder who works in vectors; one weapon, Space ability and ultimate per role for now (its other keys
+  are locked); full health, 95% speed (see below).
 
 | | Soldier | Elementalist | Summoner |
 |---|---|---|---|
@@ -146,9 +146,9 @@ them), and blink before vanishing after 12 seconds.
 
 ### The Engineer
 
-A builder whose constructions draw themselves in the cyan ink of the Expanding arena's walls (Docs/Engineer.md). It is
-**DPS only** for now: one weapon, one Space ability and one ultimate; the lobby locks its Tank and Healer cards and its
-other keys. It wears navy coveralls, an orange safety vest and a yellow hard hat with a headlamp.
+A builder whose constructions draw themselves in the cyan ink of the Expanding arena's walls (Docs/Engineer.md). Each
+role has one weapon, one Space ability and one ultimate for now; the lobby locks its other keys. It wears navy coveralls,
+an orange safety vest and a yellow hard hat with a headlamp, in its role's trim. The DPS kit:
 
 - **Vector Forge** (weapon): Fire is a light rivet gun (10 a rivet, 0.3 s; each extra projectile adds a rivet, fanned).
   The weapon keeps one **Strider** at your side: a plated two-legged walker with 450 health (+8% a wave, full again between
@@ -173,6 +173,27 @@ other keys. It wears navy coveralls, an orange safety vest and a yellow hard hat
   waits in the middle of the room in a pulsing ring: the first player to walk up to it takes it (a Stash holds its usual
   vector cache instead). Elsewhere, or with no wall in reach, the blast and the loot (no ambush) land at your cursor at
   once. Mastered: the blast is twice as wide. A new Strider draws itself in as a cyan wireframe over 1.2 s, then plates on.
+
+The **Tank** Engineer:
+
+- **Bulwark Forge** (weapon): a nail shotgun (six nails of 7 in a 29° spread, 0.55 s; +2 nails per extra projectile). Its
+  walker is the **Sentinel**: a bigger, slower plated walker with amber trim and 900 health (+8% a wave) that punches
+  (26, 0.8 s), slams (45 in 100 px) and draws in enemies from **220 px**. Alt orders it like the Strider; a broken one is
+  rebuilt after 10 s.
+- **Vector Wall** (Space, 10 s): five glowing tiles across your aim, centred on the cursor (60-220 px away). They stop
+  enemy shots, each soaking 400 damage, for 8 s. Mastered: seven tiles for 12 s.
+- **Bastion** (ultimate, 75 s): a ring of 12 tiles round you (130 px) for 10 s, with four gaps to shoot out of. Mastered:
+  the gaps are closed for the first 3 s and it lasts 14 s.
+
+The **Healer** Engineer:
+
+- **Medi-Drone Forge** (weapon): a light rivet gun (8, 0.3 s). A **med-drone** (a small rotor drone with a green cross)
+  flies to the most hurt ally and heals everyone within 70 px for 12 a second; each extra projectile adds a drone.
+- **Med Pylon** (Space, 6 s): the Drag Pylon's green twin: its field (130 px) heals allies inside for 10 a second, with
+  plus marks rising off the floor; one at a time. Mastered: 40% wider.
+- **Safe Room** (ultimate, 80 s): the Breach hammer (half its damage) opens the wall you aim at; in the Expanding arena
+  the room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. With no room,
+  a 160 px dome at your cursor does the same. Mastered: 18 s.
 
 ### Weapons
 

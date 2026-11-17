@@ -17,17 +17,23 @@ static partial class Program
 
         // The table: a DPS-only class, its other places locked stand-ins.
         Check(Defs.Weapon(Role.Dps, Kit.Engineer, 0).Id == WeaponId.VectorForge && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 0)
-            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 1) && Defs.WeaponGap(Role.Tank, Kit.Engineer, 0), "the Vector Forge is the DPS Engineer's weapon; its other places are locked");
-        Check(Defs.KitLocked(Role.Tank, Kit.Engineer) && Defs.KitLocked(Role.Healer, Kit.Engineer) && !Defs.KitLocked(Role.Dps, Kit.Engineer) && !Defs.KitLocked(Role.Tank, Kit.Soldier),
-            "the Engineer is DPS only for now");
+            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 1), "the Vector Forge is the DPS Engineer's weapon; its other places are locked");
+        Check(Defs.Weapon(Role.Tank, Kit.Engineer, 0).Id == WeaponId.BulwarkForge && Defs.Weapon(Role.Healer, Kit.Engineer, 0).Id == WeaponId.MediDroneForge
+            && Defs.Weapon(Role.Tank, Kit.Engineer, 2).Id == WeaponId.BulwarkForge && Defs.WeaponGap(Role.Tank, Kit.Engineer, 2),
+            "the Tank and Healer Engineers have the Bulwark Forge and the Medi-Drone Forge (their own stand-ins fill the locked places)");
+        Check(!Defs.KitLocked(Role.Tank, Kit.Engineer) && !Defs.KitLocked(Role.Healer, Kit.Engineer) && !Defs.KitLocked(Role.Dps, Kit.Engineer),
+            "every role can pick the Engineer");
+        Check(Upgrades.RoleAbility(Role.Tank, Kit.Engineer, 0) == AbilityId.VectorWall && Upgrades.Ultimate(Role.Tank, Kit.Engineer) == AbilityId.Bastion
+            && Upgrades.RoleAbility(Role.Healer, Kit.Engineer, 0) == AbilityId.MedPylon && Upgrades.Ultimate(Role.Healer, Kit.Engineer) == AbilityId.SafeRoom
+            && Upgrades.RoleAbility(Role.Tank, Kit.Engineer, 1) == AbilityId.VectorWall, "Vector Wall and Bastion for the Tank, Med Pylon and Safe Room for the Healer");
         Check(Upgrades.RoleAbility(Role.Dps, Kit.Engineer, 0) == AbilityId.DragPylon && Upgrades.AbilityGap(Role.Dps, Kit.Engineer, 1)
             && Upgrades.Ultimate(Role.Dps, Kit.Engineer) == AbilityId.Breach && !Upgrades.UltGap(Role.Dps, Kit.Engineer), "Drag Pylon on Space and Breach on the Ultimate row");
         Check(Upgrades.All.Count(u => u.Name == "Drag Pylon") == 1, "one Drag Pylon card, not one per place it stands in for");
 
-        // A Tank asking for the Engineer stays a Soldier.
+        // A locked weapon key is refused: the lobby keeps the first.
         int tport = nextPort++;
-        var tank = HostAs(new Session(), tport, false, "Tank", Role.Tank, 0, 0, Kit.Engineer);
-        Check(tank.Lobby[1].Kit == Kit.Soldier, "a Tank can't pick the Engineer yet (the lobby keeps the Soldier)");
+        var tank = HostAs(new Session(), tport, false, "Tank", Role.Tank, 2, 1, Kit.Engineer);
+        Check(tank.Lobby[1].Kit == Kit.Engineer && tank.Lobby[1].Weapon == 0 && tank.Lobby[1].Ability == 0, "a locked weapon or ability pick goes back to the first");
         tank.Leave("");
 
         int port = nextPort++;
@@ -138,6 +144,7 @@ static partial class Program
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, new V2(700f, 450f), false });
         Check(hit.Hp < hitBefore - 50f && g.Effects.Any(fx => fx.Kind == FxKind.BreachSmash), "Breach with no wall in reach: the hammer's blast lands at the cursor");
 
+        // Step 4 lives in its own match below.
         // Breach in the Expanding arena: a room opens behind the wall.
         foreach (var gg in new[] { g, client.Game }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         step(0.2f);
@@ -198,6 +205,108 @@ static partial class Program
         }
         else
             Check(false, "the Expanding arena switches on for the Breach room check");
+        host.Leave(""); client.Leave("");
+        EngineerTankHealerTest(dt);
+    }
+
+    // Step 4: the Tank Engineer (Bulwark Forge and its Sentinel, Vector Wall, Bastion) and the Healer Engineer (the med-drone,
+    // Med Pylon, Safe Room).
+    static void EngineerTankHealerTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var hostAbility = typeof(Game).GetMethod("HostAbility", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Engineer);
+        var client = JoinAs(port, false, "Medic", Role.Healer, 0, 0, Kit.Engineer);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var tank = g.Players[1]; var medic = g.Players[2];
+        Check(tank.Weapon.Id == WeaponId.BulwarkForge && tank.Slots[0].Id == AbilityId.VectorWall && tank.Slots[Upgrades.UltSlot].Id == AbilityId.Bastion
+            && medic.Weapon.Id == WeaponId.MediDroneForge && medic.Slots[0].Id == AbilityId.MedPylon && medic.Slots[Upgrades.UltSlot].Id == AbilityId.SafeRoom,
+            "a Tank and a Healer Engineer start with their own kits");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        V2 tPos = new V2(500f, 450f), mPos = new V2(400f, 600f);
+        Action<float> step = secs =>
+        {
+            for (int f = 0; f < secs / dt; f++)
+            {
+                tank.Pos = tPos; medic.Pos = mPos;
+                foreach (var e in g.Enemies.Values) e.FireT = 99f;
+                host.Poll(); client.Poll();
+                g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) });
+            }
+        };
+        Func<EnemyType, V2, Enemy> make = (type, at) =>
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
+            e.Hp = e.MaxHp = 5000f; e.SpawnT = 0f; e.FireT = 99f;
+            return e;
+        };
+        g.Enemies.Clear();
+        make(EnemyType.Grunt, new V2(1500f, 880f));
+        step(2f);
+        var sentinel = g.Minions.Values.FirstOrDefault(m => m.Kind == MinionKind.Sentinel && m.Owner == 1);
+        Check(sentinel != null && Math.Abs(sentinel.MaxHp - Game.StriderMaxHp(g.Wave, MinionKind.Sentinel)) < 1f, "the Bulwark Forge builds a Sentinel with " + Game.StriderMaxHp(g.Wave, MinionKind.Sentinel) + " health");
+        Check(!g.Minions.Values.Any(m => m.Kind == MinionKind.Strider), "(no Strider: that is the DPS's)");
+        var drone = g.Minions.Values.FirstOrDefault(m => m.Kind == MinionKind.MediDrone && m.Owner == 2);
+        Check(drone != null, "the Medi-Drone Forge brings a med-drone");
+        Check(client.Game.Minions.Values.Any(m => m.Kind == MinionKind.Sentinel) && client.Game.Minions.Values.Any(m => m.Kind == MinionKind.MediDrone), "the client sees both");
+
+        // The Sentinel taunts from 220 px.
+        var striderTarget = typeof(Game).GetMethod("StriderTarget", flags);
+        var far = make(EnemyType.Grunt, sentinel.Pos + new V2(200f, 0f));
+        Check(((V2)striderTarget.Invoke(g, new object[] { far, new V2(1500f, 900f) })).DistanceTo(sentinel.Pos) < 1f, "an enemy 200 px from the Sentinel goes for it");
+        g.Enemies.Remove(far.Id);
+
+        // The nail shotgun: six nails a shot.
+        var fire = typeof(Game).GetMethod("FireEngineerWeapon", flags);
+        int before = g.Bullets.Count;
+        fire.Invoke(g, new object[] { tank, 0f, new V2(1f, 0f), tank.Pos + new V2(20f, 0f), 1f, 0 });
+        Check(g.Bullets.Count - before == 6, "the Bulwark Forge fires six nails");
+
+        // The med-drone heals the hurt Tank.
+        tank.Hp = tank.MaxHp * 0.5f;
+        float hurt = tank.Hp;
+        step(3f);
+        Check(tank.Hp > hurt + 10f, "the med-drone flies to the hurt ally and heals it (" + (tank.Hp - hurt).ToString("0") + ")");
+
+        // Vector Wall: five tiles across the aim that stop enemy shots.
+        g.Bullets.Clear();
+        tank.Slots[0].Timer = 0f; tank.Slots[0].Charges = 1;
+        hostAbility.Invoke(g, new object[] { 1, 0, new V2(700f, 450f), false });
+        var tiles = g.Minions.Values.Where(m => m.Kind == MinionKind.VectorBlock && m.Owner == 1).ToList();
+        Check(tiles.Count == Game.VWallTiles && tiles.All(m => Math.Abs(m.Pos.X - 700f) < 1f), "Vector Wall draws five tiles across your aim at the cursor");
+        var shot = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, new V2(800f, 450f), new V2(-500f, 0f), 0f, 3f, 10f, 0, false, 0f });
+        step(0.4f);
+        Check(!g.Bullets.Values.Contains(shot) && tiles.Any(m => m.BlockHp < m.MaxHp || !g.Minions.ContainsKey(m.Id)), "an enemy shot stops on the wall");
+        step(Game.VWallLife);
+        Check(!g.Minions.Values.Any(m => m.Kind == MinionKind.VectorBlock && m.Owner == 1), "the wall is gone after 8 s");
+
+        // Bastion: a ring of 12 tiles (16 places, 4 gaps).
+        tank.Slots[Upgrades.UltSlot].Timer = 0f; tank.Slots[Upgrades.UltSlot].Charges = 1;
+        hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, new V2(900f, 450f), false });
+        var ring = g.Minions.Values.Where(m => m.Kind == MinionKind.VectorBlock && m.Owner == 1).ToList();
+        Check(ring.Count == Game.BastionTiles - Game.BastionGaps && ring.All(m => Math.Abs(m.Pos.DistanceTo(tPos) - Game.BastionRadius) < 2f), "Bastion rings you with 12 tiles, four gaps");
+
+        // Med Pylon: heals allies inside; one at a time.
+        tank.Hp = tank.MaxHp * 0.5f;
+        float h0 = tank.Hp;
+        medic.Slots[0].Timer = 0f; medic.Slots[0].Charges = 1;
+        hostAbility.Invoke(g, new object[] { 2, 0, tPos, false });
+        g.Minions.Remove(drone.Id);  // (only the pylon heals here)
+        step(1f);
+        Check(g.Zones.Values.Count(z => z.Kind == ZoneKind.MedPylon) == 1 && tank.Hp > h0 + 5f, "Med Pylon's field heals allies inside");
+
+        // Safe Room with no wall in reach: a healing dome that cuts damage.
+        medic.Slots[Upgrades.UltSlot].Timer = 0f; medic.Slots[Upgrades.UltSlot].Charges = 1;
+        hostAbility.Invoke(g, new object[] { 2, Upgrades.UltSlot, tPos, false });
+        var safe = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.SafeRoom);
+        Check(safe != null && safe.Radius == Game.SafeDomeRadius && safe.DamageCut == Game.SafeRoomCut && Math.Abs(safe.Duration - Game.SafeRoomLife) < 0.01f,
+            "Safe Room with no wall: a 160 px dome for 12 s that cuts damage by 30%");
         host.Leave(""); client.Leave("");
     }
 }

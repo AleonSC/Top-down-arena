@@ -155,6 +155,8 @@ namespace Arena
         BulwarkBarrier,
         // the Engineer DPS's weapon (Engineer.cs): a rivet gun that builds and commands the Strider
         VectorForge,
+        // the Engineer Tank's and Healer's weapons (Engineer.cs, step 4): a nail shotgun with the Sentinel; a rivet gun with a med-drone
+        BulwarkForge, MediDroneForge,
     }
 
     public class WeaponDef
@@ -718,11 +720,12 @@ namespace Arena
             for (int i = 0; i < all.Length; i++)
                 if (all[i] == null)
                 {
-                    int kit = i / WeaponsPerRole % KitCount;
-                    foreach (var list in lists)
-                        foreach (var w in list)
-                            if (all[i] == null && w.FillsGaps && (int)w.Kit == kit)
-                                all[i] = w;
+                    int kit = i / WeaponsPerRole % KitCount, role = i / (KitCount * WeaponsPerRole);
+                    for (int pass = 0; pass < 2 && all[i] == null; pass++)  // its own role's stand-in first, else any of the class's
+                        foreach (var list in lists)
+                            foreach (var w in list)
+                                if (all[i] == null && w.FillsGaps && (int)w.Kit == kit && (pass == 1 || (int)w.Role == role))
+                                    all[i] = w;
                     gap[i] = all[i] != null;
                 }
             for (int i = 0; i < all.Length; i++)
