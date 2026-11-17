@@ -165,6 +165,8 @@ namespace Arena
             }
             if (p.Weapon.Id == WeaponId.WindClash)
                 WcHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // the hands sweep, thrust and fling with each wave (WindClashLook.cs)
+            float whipRot;
+            WhipHandPose(p, ref rhx, ref rhy, out whipRot);  // the Revolver swung round for a Pistol Whip (PistolWhipLook.cs)
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
             // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
@@ -198,7 +200,7 @@ namespace Arena
                     ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
                 }
             }
-            MFrame(rhx, rhy, -twist + climbR, wk, false);  // (the climb turns each gun outward)
+            MFrame(rhx, rhy, -twist + climbR + whipRot, wk, false);  // (the climb turns each gun outward)
             float keepA = mAlpha;
             mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
             if (mAlpha > 0.01f && !ownArms)
@@ -489,7 +491,7 @@ namespace Arena
                     float kick, spin;
                     bool fx = GunLook(p, out kick, out spin);  // with Visual effects on: it kicks back and the cylinder clicks round (GunBowLooks.cs)
                     if (fx)
-                        MFrame(mOx - 4f * kick, mOy, -0.12f * kick, mWs, false);
+                        MFrame(mOx - 4f * kick, mOy, mAng - 0.12f * kick, mWs, false);
                     MRect(-5f, -2.2f, 7f, 8f, MWood); MRect(0f, -2.6f, 10f, 5.2f, MDark); MLine(8f, 0f, 17f, 0f, 3f, MSteel); MCirc(5f, 0f, 3.6f, Hx(0x6a7685), 10);
                     if (fx)
                         for (int i = 0; i < 6; i++)

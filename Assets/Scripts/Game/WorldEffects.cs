@@ -161,6 +161,9 @@ namespace Arena
                 case FxKind.EmbolusBlast:
                     DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
                     break;
+                case FxKind.PistolWhip:
+                    DrawPistolWhipFx(fx);  // PistolWhipLook.cs
+                    break;
                 case FxKind.StoneSlam:
                     DrawStoneSlamFx(fx);  // StonespearLook.cs
                     break;
