@@ -1,6 +1,6 @@
 # Map reset: a fresh map after every boss
 
-Status: **step 1 built** (protocol 389: the reset, refund, kits kept, map number synced and saved; suite `mapreset`); steps 2-4 open. Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
+Status: **steps 1-2 built** (protocol 389: the reset, refund, kits kept, map number synced and saved; protocol 390: the keepsake vote and window; suite `mapreset`); steps 3-4 open. Decided with the owner on Nov 17, 2026. Campaign (Expanding arena) only. Builds on
 [`VectorBuilding.md`](VectorBuilding.md), [`SurpriseRooms.md`](SurpriseRooms.md), [`MysteryDoors.md`](MysteryDoors.md) and
 [`Nodes.md`](Nodes.md).
 
@@ -22,9 +22,11 @@ much to follow. Building stays on all the way through; the map resets instead.
 
 ## How it plays
 
-1. Boss dies → the usual break opens. A **KEEPSAKE** vote replaces the post-boss surprise room: every room on the map is a
-   choice, each player clicks one (the build vote UI and timer), a tie goes to the host and the timer picks the biggest room.
-2. As the boss wave is cleared (step 1: at once, before the build round; the boss wave already keeps the rooms down, so the team is in the hub), the map **folds away**: rooms collapse toward the hub
+1. Boss dies → the break opens with the **KEEP ONE ROOM** vote (15 s, holds the break; replaces the post-boss surprise room):
+   every room on the map but the game's floating ones is a card, each player clicks KEEP on one. Most votes wins, a tie goes
+   to the host's pick, no votes to the biggest room; it ends early once everyone has voted. With no room to keep, no vote.
+2. When the vote ends the map resets (the boss wave already keeps the rooms down, so the team is in the hub); the build
+   round and new mystery doors open on the new map. Step 3: the map **folds away**: rooms collapse toward the hub
    (about 1.5 s), coins and pickups fly to their nearest player, the camera pulls in.
 3. The new map: the hub, plus the keepsake on its best hub wall (`Expansion.Placement`, loops scored as for surprise rooms).
    The toast reads **MAP n/10 · +x VECTORS BACK**. The next wave's breaches, nodes and doors roll from a new `expandSeed`.
@@ -48,10 +50,11 @@ much to follow. Building stays on all the way through; the map resets instead.
    Campaign. `Player.MapSpent` counted in `PayVectors` (every vector spend: rooms, doors, pushes) and saved in
    `RunSave`. `Game.MapNumber` in `Msg.ExpandState`. Protocol bump. Test suite `mapreset` (in the feature run): the map
    resets on each boss, the refund is right, kits stay, a save in the middle of a map restores `MapSpent`.
-2. **The keepsake vote.** The vote has to happen on the old map before it goes: the reset moves to the end of a short vote
-   (about 15 s) at the start of the break. `Msg.KeepsakeVote`, host tally, bots vote for the biggest room, the kept room rebuilt by the hub
-   (`Expansion.Placement`; a room that fits nowhere shrinks to the largest surprise shape that does). Protocol bump. Tests.
-3. **The look.** The vote's room highlight and tally (DevKit widgets), the fold-away, the MAP n/10 toast, the keepsake's
+2. **The keepsake vote** *(built)*. The reset waits for the vote at the start of the break. `Msg.KeepsakeVote`, host tally,
+   bots vote for the biggest room after 1.5 s, the kept room rebuilt on the bare hub (`Expansion.PlaceKeepsake`: its tile mask
+   through `MaskOptions`, any turn or mirror; if it fits nowhere, a surprise shape). A run left mid-vote reopens it on Continue
+   (`RunSave.KeepsakePending`). The window (`Game/KeepsakeUi.cs`) came with it so the vote can be played; step 3 polishes it.
+3. **The look.** The kept room highlighted on the map during the vote, the fold-away, the MAP n/10 toast, the keepsake's
    gold rim. Previews (`shot.sh`) before/after.
 4. **Balance.** Vector income vs a 10-wave map (how many rooms a team ends a map with), breach counts on small maps
    (`Breaches.CountFor` already scales with rooms), session reports from the owner's runs.

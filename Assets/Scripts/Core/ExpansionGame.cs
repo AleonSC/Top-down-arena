@@ -600,6 +600,9 @@ namespace Arena
             expandSeed = sideRng.Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run; Game.cs)
             MapNumber = 1;
             MapResetAge = 99f;
+            KeepsakeOpen = false;
+            KeepsakeVotes.Clear();
+            KeptHead = -1;
             MapRefund = 0;
             foreach (var p in Players.Values)
                 p.MapSpent = 0;
@@ -1209,6 +1212,7 @@ namespace Arena
             save.ExpandSeed = expandSeed;
             save.FloatCycle = floatCycle;
             save.MapNumber = MapNumber;
+            save.KeepsakePending = KeepsakeOpen;  // (left mid-vote: the vote opens again on Continue)
             foreach (var r in Expanded)
             {
                 var room = r;
@@ -1251,6 +1255,9 @@ namespace Arena
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
             MapNumber = Math.Max(1, save.MapNumber);
+            KeepsakeOpen = false;
+            KeepsakeVotes.Clear();
+            KeptHead = -1;
             duelBoss.Clear();
             Expanded.Clear();
             foreach (var r in save.Rooms)
@@ -1299,6 +1306,8 @@ namespace Arena
                         p.ShelfLen = i + 1;  // (the saved shelf's length: up to its last card)
             }
             DoLog("the Expanding arena's map is back: " + Expansion.BoughtCount(Expanded) + " rooms");
+            if (save.KeepsakePending)
+                OpenKeepsake();  // the run was left mid keepsake vote: it opens again (MapReset.cs)
             BroadcastExpansion();
         }
 
@@ -1382,6 +1391,7 @@ namespace Arena
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
             WriteMysteryDoors(w);  // the sealed doors (MysteryDoors.cs)
             w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
+            WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -1489,6 +1499,7 @@ namespace Arena
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
             ReadMysteryDoors(r);
             ReadMapNumber(r.ReadByte());  // (MapReset.cs)
+            ReadKeepsake(r);
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();

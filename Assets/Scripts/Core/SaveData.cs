@@ -65,6 +65,7 @@ namespace Arena
         // The Expanding arena (ExpansionGame.cs): the map the team built. A room's Owner is its drawer's seat + 1 here (0: none),
         // so it can go back to whoever takes that seat.
         public bool HasExpansion;
+        public bool KeepsakePending;  // left during the keepsake vote (MapReset.cs): it opens again on Continue
         public int ExpandSeed, FloatCycle = -1, MapNumber = 1;  // MapNumber: which map of the run (MapReset.cs)
         public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
         public readonly List<WallCut> Cuts = new List<WallCut>();
@@ -118,7 +119,7 @@ namespace Arena
             Line(sb, "route", string.Join(",", Route));
             if (HasExpansion)
             {
-                Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber);
+                Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber + " " + (KeepsakePending ? 1 : 0));
                 foreach (var r in Rooms)
                     Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Leg, r.Surprise, r.Claimed ? 1 : 0, r.Mini }));
                 foreach (var c in Cuts)
@@ -232,6 +233,7 @@ namespace Arena
                             save.ExpandSeed = I(p[0]);
                             save.FloatCycle = I(p[1]);
                             save.MapNumber = p.Length > 2 ? Math.Max(1, I(p[2])) : 1;  // (older saves: the first map)
+                            save.KeepsakePending = p.Length > 3 && I(p[3]) == 1;
                             break;
                         }
                         case "room":

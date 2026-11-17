@@ -76,10 +76,11 @@ namespace Arena
                     TickHuntCheckpoint();  // the step-10 save, before the vote can pick a node (HuntMapGame.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
                     TickDuelRooms(dt);  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
+                    TickKeepsake(dt);  // the vote on the room to keep through the map reset (MapReset.cs)
                     TickMysteryDoors();  // a door whose room no longer fits is re-planned or goes (MysteryDoors.cs)
                     if (RoomsOn)
                         TickStashClaims();  // a breach Stash's cache can be walked into between waves too (BreachEvent.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
+                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && !KeepsakeOpen && Room == RoomPhase.None)  // (and while a portal is open)
                     {
                         if (!TickBossGate(ref StateTimer, dt))  // before a boss: everyone in the boss gate instead (BossGate.cs)
                             TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
@@ -245,10 +246,11 @@ namespace Arena
             RevealBreachRooms();  // every breach that is left opens onto a small room (BreachEvent.cs, Docs/BreachRooms.md)
             RevealBreachEvent();  // a breach event the wave ended before it opened: the room opens now (BreachEvent.cs)
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
-            if (BossSlot && Hunt == null && MapResetOn)
-                ResetMap();  // the Campaign: a fresh map after each boss, half the vectors spent on the old one back (MapReset.cs)
-            OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
-            RollMysteryDoors();  // last round's unsaved doors expire, 1-2 new sealed doors appear (MysteryDoors.cs)
+            if (!(BossSlot && Hunt == null && MapResetOn && OpenKeepsake()))  // the Campaign: a vote on the room to keep, then a fresh map with half the spent vectors back (MapReset.cs)
+            {
+                OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
+                RollMysteryDoors();  // last round's unsaved doors expire, 1-2 new sealed doors appear (MysteryDoors.cs)
+            }
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
             ClearEnemyBullets();

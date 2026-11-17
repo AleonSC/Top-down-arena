@@ -1165,8 +1165,12 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   (The Gatekeeper has its own room, below.)
 - **Map reset (Campaign)**: every boss you clear starts a **fresh map**. The rooms, openings, portals, gates, traps,
   nodes and mystery doors go, and the team stands in the bare hub again, so a 100-wave run plays on ten maps of about ten
-  waves each. Your **room kits are kept**, and each player gets **half the vectors they spent on the old map back**, on top of
+  waves each. First the **KEEP ONE ROOM** vote opens (15 s, it holds the break): every room is a card with its outline to scale,
+  click **KEEP** on the one you want. Most votes wins, a tie goes to the host's pick, no votes keep the biggest; it ends early once
+  everyone has voted. The kept room is rebuilt free next to the hub, same shape (turned if it fits better), kind, theme and look.
+  Your **room kits are kept**, and each player gets **half the vectors they spent on the old map back**, on top of
   the boss refill. Coins still lying in the old rooms go to the nearest player. The run's last boss doesn't reset anything.
+  Leaving during the vote saves it: Continue opens it again.
   ([`Docs/MapReset.md`](Docs/MapReset.md))
 - **Surprise rooms** (Quick Play; the Campaign resets its map instead): every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops

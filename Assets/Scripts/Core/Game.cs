@@ -900,6 +900,7 @@ namespace Arena
             TickShopNotices(dt);
             TickExpansion(dt);     // a bot player's vote (ExpansionGame.cs)
             TickHuntMapView(dt);   // the hunt map's vote timer on a client, a bot's vote (HuntMapGame.cs)
+            TickKeepsakeView(dt);  // the keepsake vote's timer on a client, a bot's vote (MapReset.cs)
             TickGates(dt);         // the shutter gates' clocks (Gates.cs)
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
