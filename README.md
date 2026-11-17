@@ -1564,11 +1564,13 @@ motion is the game's own clock, so everyone sees it; the rest is on your own scr
 
 ## The HUD
 
-Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip)
-in the middle, the **wave panel** left of it (wave, enemies left, score, progress; the path and modifier chips
+Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip:
+the level and percent on a dark plate at its left end) in the middle; a key with no ability yet is a small stub (its key
+and a +, filled by very rare upgrades) and the filled keys widen into the room, sliding over when a new ability arrives; the **wave panel** left of it (wave, enemies left, score, progress; the path and modifier chips
 stack above it) and **your card** right of it (health, shield, level, XP). Teammates show as slim rows above
 your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
-the top middle, and the "Hold TAB" hint is in the top-right corner.
+the top middle, and the "Hold TAB" hint is in the top-right corner for the first three waves (it fades out sooner once
+you've opened the Tab screen twice). A player's name tag rises clear of an Aeroaegis shell round them.
 
 **Between waves.** When the last enemy dies a **Wave n cleared** box drops in: a CRT screen like the lobby's, in your
 CRT colour (Settings > Visual effects), its title gold after a boss. It shows the wave's **clear time** and **score**, a row per player with **kills, damage

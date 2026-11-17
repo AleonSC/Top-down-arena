@@ -22,25 +22,44 @@ namespace UnityEngine {
   public class GUIContent { public string text; public GUIContent(){} public GUIContent(string t){ text = t; } public static GUIContent none; }
   public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
   public enum FontStyle { Normal, Bold }
-  public class Font : Object { }
+  public class Font : Object { }  // (Resources.Load gives one named after its file, so labels log and measure in the game's own fonts)
   public class GUIStyleState { public Color textColor; public Texture2D background; }
   public class RectOffset { public int left,right,top,bottom; public int horizontal { get { return left + right; } } public RectOffset(int l,int r,int t,int b){left=l;right=r;top=t;bottom=b;} }
   public enum TextureFormat { RGBA32, RGB24 } public enum FilterMode { Point, Bilinear } public enum TextureWrapMode { Clamp, Repeat }
-  // Text widths like Arial (the game's default font; the preview draws with Liberation Sans, which has the same metrics), so TextWidth / TextHeight in the preview match what Unity measures.
+  // Text widths like Unity measures them: Arial for the default font (the preview draws it with Liberation Sans, same metrics), and the
+  // game's own fonts (VT323, Rajdhani, Permanent Marker) by their tables below; shot.py draws each label in its font.
   public static class TextW {
     static readonly short[] reg = { 278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278, 556,556,556,556,556,556,556,556,556,556, 278,278,584,584,584,556, 1015, 667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611, 278,278,278,469,556,333, 556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500, 334,260,334,584 };
     static readonly short[] bold = { 278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278, 556,556,556,556,556,556,556,556,556,556, 333,333,584,584,584,611, 975, 722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611, 333,278,333,584,556,333, 556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500, 389,280,389,584 };
-    public static float Width(string t, int size, bool b) { var w = b ? bold : reg; float x = 0; foreach (char ch in t) { int i = ch - 32; x += (i >= 0 && i < w.Length ? w[i] : 600) * size / 1000f; } return x; }
-    public static int Lines(string t, int size, bool b, float width) {
+    // The game's own fonts (Assets/Resources/Fonts), per 1000 em: ASCII 32-126, then "·—…→×✓". Regenerate with PIL's getlength if a font changes.
+    static readonly System.Collections.Generic.Dictionary<string, short[]> fonts = new System.Collections.Generic.Dictionary<string, short[]> {
+      { "VT323-Regular", new short[] { 400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400,400 } },
+      { "Rajdhani-Medium", new short[] { 254,237,337,675,511,724,603,186,290,290,404,535,194,312,194,400,520,322,482,500,526,489,505,395,526,505,194,194,528,542,542,471,751,540,549,541,556,480,457,541,572,241,505,538,451,705,581,553,526,560,537,555,427,554,506,797,514,500,493,297,400,297,479,372,277,507,510,399,510,492,318,510,512,221,221,443,221,777,512,500,510,507,323,433,349,512,431,686,427,463,418,303,214,303,535,207,565,596,600,501,600 } },
+      { "Rajdhani-Bold", new short[] { 220,238,353,669,527,741,618,188,306,306,398,565,204,312,204,409,536,334,493,509,541,506,525,431,542,525,204,204,563,567,567,466,746,557,555,538,553,479,450,545,576,267,521,558,449,726,585,552,530,569,547,539,443,560,521,807,540,517,521,323,409,323,511,372,298,518,526,411,526,494,354,519,523,247,247,472,247,798,523,509,526,518,349,438,353,523,468,696,462,471,449,315,231,315,565,207,633,607,600,521,600 } },
+      { "PermanentMarker-Regular", new short[] { 370,261,492,703,493,644,600,266,361,361,674,579,204,609,229,401,687,322,650,562,582,580,501,576,537,529,241,245,625,587,635,557,732,702,687,611,589,627,575,789,695,516,669,776,633,974,685,744,640,744,646,576,607,695,584,994,623,493,664,388,353,403,519,709,755,581,573,514,497,521,455,652,582,320,534,646,533,814,564,629,524,625,541,464,480,585,485,825,507,400,548,448,332,481,581,227,879,769,370,490,370 } },
+    };
+    const string Extra = "·—…→×✓";
+    public static float Width(string t, int size, bool b) { return Width(t, size, b, null); }
+    public static float Width(string t, int size, bool b, string font) {
+      short[] fw = null; if (font != null) fonts.TryGetValue(font, out fw);
+      var w = b ? bold : reg; float x = 0;
+      foreach (char ch in t) {
+        int i = ch - 32;
+        if (fw != null) { int e = Extra.IndexOf(ch); x += (i >= 0 && i < 95 ? fw[i] : e >= 0 ? fw[95 + e] : fw[0] * 1.5f) * size / 1000f; }
+        else x += (i >= 0 && i < w.Length ? w[i] : 600) * size / 1000f;
+      }
+      return x;
+    }
+    public static int Lines(string t, int size, bool b, float width, string font = null) {
       int lines = 0;
       foreach (var para in t.Split('\n')) {
-        lines++; float x = 0, sp = Width(" ", size, b);
-        foreach (var word in para.Split(' ')) { float ww = Width(word, size, b); if (x > 0 && x + ww > width) { lines++; x = 0; } x += ww + sp; }
+        lines++; float x = 0, sp = Width(" ", size, b, font);
+        foreach (var word in para.Split(' ')) { float ww = Width(word, size, b, font); if (x > 0 && x + ww > width) { lines++; x = 0; } x += ww + sp; }
       }
       return lines;
     }
   }
-  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2(TextW.Width(c.text ?? "", fontSize, fontStyle == FontStyle.Bold) + 6f, fontSize + 8f); } public float CalcHeight(GUIContent c, float w){ int lines = TextW.Lines(c.text ?? "", fontSize, fontStyle == FontStyle.Bold, System.Math.Max(1f, w - 6f)); return lines * fontSize * 1.18f + 4f; } public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public Font font; public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
+  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2(TextW.Width(c.text ?? "", fontSize, fontStyle == FontStyle.Bold, font != null ? font.name : null) + 6f, fontSize + 8f); } public float CalcHeight(GUIContent c, float w){ int lines = TextW.Lines(c.text ?? "", fontSize, fontStyle == FontStyle.Bold, System.Math.Max(1f, w - 6f), font != null ? font.name : null); return lines * fontSize * 1.18f + 4f; } public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){font=o.font; fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public Font font; public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
   public sealed class GUILayoutOption {}
   public class GUISkin { public GUIStyle label = new GUIStyle(); }
   public class GUI { public static void DrawTextureWithTexCoords(Rect r, Texture t, Rect uv){} public static void SetNextControlName(string n){} public static void FocusControl(string n){} public static string TextArea(Rect r, string t, GUIStyle s){return t;} public static string GetNameOfFocusedControl(){return "";}
@@ -59,11 +78,11 @@ namespace UnityEngine {
     static string Hex(Texture2D t){ var sb = new System.Text.StringBuilder(); if (t.px32 != null) foreach (var c in t.px32) sb.Append(c.r.ToString("x2")+c.g.ToString("x2")+c.b.ToString("x2")+c.a.ToString("x2")); else foreach (var c in t.px) sb.Append(((int)System.Math.Round(c.r*255f)).ToString("x2")+((int)System.Math.Round(c.g*255f)).ToString("x2")+((int)System.Math.Round(c.b*255f)).ToString("x2")+((int)System.Math.Round(c.a*255f)).ToString("x2")); return sb.ToString(); }
     // A styled box: the style's texture 9-sliced into the rect (its border on every side), tinted like Unity does.
     static void Styled(Rect r, GUIStyle s, Color tint){ var t = s == null ? null : s.normal.background; if (t == null || t.px == null) return; Log.Add("box9\t"+R(r)+"\t"+Clip()+"\t"+C(tint)+"\t"+t.w+"\t"+t.h+"\t"+s.border.left+"\t"+Hex(t)+"\t"+C(color)); }
-    public static string TextField(Rect r, string t, int max, GUIStyle s){return t;} public static float HorizontalSlider(Rect r, float v, float a, float b, GUIStyle s, GUIStyle t){return v;} public static bool Toggle(Rect r, bool v, GUIContent c, GUIStyle s){return v;} public static float HorizontalSlider(Rect r, float v, float a, float b){return v;} public static bool Toggle(Rect r, bool v, string t){return v;}
+    public static string TextField(Rect r, string t, int max, GUIStyle s){ if (t != null && s != null) Label(r, t, s); return t;} public static float HorizontalSlider(Rect r, float v, float a, float b, GUIStyle s, GUIStyle t){return v;} public static bool Toggle(Rect r, bool v, GUIContent c, GUIStyle s){return v;} public static float HorizontalSlider(Rect r, float v, float a, float b){return v;} public static bool Toggle(Rect r, bool v, string t){return v;}
     public static bool enabled = true;
     public static bool Button(Rect r, string t, GUIStyle s){ Styled(r, s, backgroundColor); if (t != null) Label(r, t, s); return false;} public static bool Button(Rect r, GUIContent c, GUIStyle s){return false;}
     public static GUISkin skin = new GUISkin(); public static Matrix4x4 matrix; public static Color color = new Color(1,1,1,1);
-    public static void Label(Rect r, string t, GUIStyle s){ Log.Add("label\t"+R(r)+"\t"+Clip()+"\t"+C(s.normal.textColor)+"\t"+Fs(s.fontSize)+"\t"+(int)s.alignment+"\t"+(s.fontStyle==FontStyle.Bold?1:0)+"\t"+(s.wordWrap?1:0)+"\t"+t.Replace("\n","\\n")); }
+    public static void Label(Rect r, string t, GUIStyle s){ Log.Add("label\t"+R(r)+"\t"+Clip()+"\t"+C(s.normal.textColor)+"\t"+Fs(s.fontSize)+"\t"+(int)s.alignment+"\t"+(s.fontStyle==FontStyle.Bold?1:0)+"\t"+(s.wordWrap?1:0)+"\t"+(s.font!=null?s.font.name:"-")+"\t"+t.Replace("\n","\\n")); }
     public static void DrawTexture(Rect r, Texture t){ var t2 = t as Texture2D; if (t2 != null && (t2.px32 != null || t2.px != null)) { Log.Add("img\t"+R(r)+"\t"+Clip()+"\t"+t2.w+"\t"+Hex(t2)+"\t"+C(color)+"\t"+(t2.filterMode==FilterMode.Bilinear?1:0)); return; } Log.Add("fill\t"+R(r)+"\t"+Clip()+"\t"+C(color)); } }
   public class GUILayout {
     public static void BeginArea(Rect r, GUIStyle s){} public static void EndArea(){} public static void Space(float p){} public static void FlexibleSpace(){}
@@ -93,7 +112,7 @@ namespace UnityEngine {
 }
 namespace UnityEngine {
   public class ScriptableObject : Object {}
-  public class Resources { public static T Load<T>(string p) where T: Object {return null;} public static T[] LoadAll<T>(string p) where T: Object {return new T[0];} }
+  public class Resources { public static T Load<T>(string p) where T: Object { if (typeof(T) == typeof(Font) && p.StartsWith("Fonts/")) return (T)(Object)new Font { name = p.Substring(6) }; return null; } public static T[] LoadAll<T>(string p) where T: Object {return new T[0];} }
   public class CreateAssetMenuAttribute : System.Attribute { public string menuName, fileName; public int order; }
   public class TooltipAttribute : System.Attribute { public TooltipAttribute(string s){} }
   public class RangeAttribute : System.Attribute { public RangeAttribute(float a, float b){} }
