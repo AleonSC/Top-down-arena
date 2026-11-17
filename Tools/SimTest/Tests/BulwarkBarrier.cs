@@ -42,19 +42,21 @@ static partial class Program
             ally.Pos = client.Game.Me.Pos = from + new V2(-300f, 200f);
             host.Poll(); g.FixedStep(dt, input); g.Update(dt);
             client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
-            foreach (var e in client.Game.Effects) if ((e.Kind == FxKind.BulwarkStep || e.Kind == FxKind.BulwarkBlock || e.Kind == FxKind.BulwarkBash) && !fxSeen.Contains(e)) fxSeen.Add(e);
+            foreach (var e in client.Game.Effects) if ((e.Kind == FxKind.BulwarkStep || e.Kind == FxKind.BulwarkBlock || e.Kind == FxKind.BulwarkBash || e.Kind == FxKind.BulwarkThrow) && !fxSeen.Contains(e)) fxSeen.Add(e);
         };
         Action<float, PlayerInput, bool> play = (secs, input, pin) => { for (int f = 0; f < secs * 60; f++) frame(input, pin); };
         var aimRight = new PlayerInput { AimAt = from + new V2(300f, 0f) };
+        var brace = new PlayerInput { AimAt = from + new V2(300f, 0f), WeaponAction = true };
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); g.Bullets.Clear(); me.Combo = 0; me.ComboT = 0f; me.FireCd = 0f; me.BbRam = 0f; me.BbBrace = false; play(0.3f, aimRight, true); fxSeen.Clear(); };
         // An enemy round from `at` flying at you.
         Func<V2, byte, Bullet> fire = (at, kind) => (Bullet)shot.Invoke(g, new object[] { kind, at, (from - at).Normalized() * 300f, 0f, 3f, 10f, -1, false, 0f });
         play(0.4f, aimRight, true);
 
-        // The chain: held fire runs Rim Cut, Backhand, Boss Slam and starts over; the other screen sees every step.
+        // The chain: held fire runs Rim Cut, Backhand, Boss Slam, the Shield Throw, and starts over once the shield is
+        // caught; the other screen sees every step and the throw.
         reset();
         var steps = new List<int>();
-        for (int f = 0; f < 300 && steps.Count < 4; f++)
+        for (int f = 0; f < 400 && steps.Count < 5; f++)
         {
             frame(new PlayerInput { Fire = true, AimAt = from + new V2(300f, 0f) }, true);
             int st = TwinBladesMotion.StepOf(me.Combo);
@@ -64,7 +66,8 @@ static partial class Program
         var fxSteps = fxSeen.Where(e => e.Kind == FxKind.BulwarkStep).Select(e => (int)Math.Round(e.Radius) % 10).Distinct().OrderBy(x => x);
         play(1.3f, aimRight, true);
         Console.WriteLine("  chain: steps {0}, on the other screen {1}; after a pause the step is {2}", string.Join(",", steps), string.Join(",", fxSteps), TwinBladesMotion.StepOf(me.Combo));
-        Check(string.Join(",", steps) == "1,2,3,1" && string.Join(",", fxSteps) == "1,2,3", "the chain runs Rim Cut, Backhand, Boss Slam, then starts over");
+        Check(string.Join(",", steps) == "1,2,3,4,1" && string.Join(",", fxSteps) == "1,2,3,4", "the chain runs Rim Cut, Backhand, Boss Slam, Shield Throw, then starts over");
+        Check(fxSeen.Any(e => e.Kind == FxKind.BulwarkThrow), "the other screen sees the shield thrown");
         Check(TwinBladesMotion.StepOf(me.Combo) == 0, "the chain starts over after a pause");
 
         // The Boss Slam: hits harder and stuns.
@@ -77,6 +80,62 @@ static partial class Program
         play(0.4f, aimRight, true);
         Console.WriteLine("  slam: took {0:0}, stunned {1:0.00} s", hp0 - slammed.Hp, slammed.FrozenT);
         Check(hp0 - slammed.Hp >= 25f && slammed.FrozenT > 0.1f, "the Boss Slam hits for 26 and stuns");
+
+        // The Shield Throw: the press after the Boss Slam throws the shield; it cuts through both enemies in its line on the
+        // way out and again on the way back, and while it is away there is no guard and no Brace.
+        reset();
+        var nearT = dummy(from + new V2(130f, 0f));
+        var farT = dummy(from + new V2(200f, 6f));
+        float nearHp = nearT.Hp, farHp = farT.Hp;
+        me.Combo = (2 << 3) | 3; me.ComboT = 1f;
+        frame(new PlayerInput { Fire = true, AimAt = from + new V2(300f, 0f) }, true);
+        play(Game.BbThrowWind + 0.12f, aimRight, true);
+        var awayShot = fire(from + new V2(60f, -60f), Defs.SmallShot);  // (clear of the shield's own line, which cuts shots)
+        play(0.35f, new PlayerInput { AimAt = from + new V2(300f, 0f), WeaponAction = true }, true);
+        bool bracedAway = me.BbBrace, shotThrough = !g.Bullets.ContainsKey(awayShot.Id) && !fxSeen.Any(e => e.Kind == FxKind.BulwarkBlock && e.Pos2.Y < 0.5f);
+        play(Game.BbThrowFlight, aimRight, true);
+        float cut = Game.BbThrowMult * me.Weapon.Damage;
+        Console.WriteLine("  throw: near took {0:0}, far took {1:0} (a pass is {2:0}); braced while away {3}, a front shot got through {4}; step after the catch {5}",
+            nearHp - nearT.Hp, farHp - farT.Hp, cut, bracedAway, shotThrough, TwinBladesMotion.StepOf(me.Combo));
+        Check(nearHp - nearT.Hp >= 2f * cut - 1f && farHp - farT.Hp >= 2f * cut - 1f, "the thrown shield cuts through every enemy in its line, out and back");
+        Check(!bracedAway && shotThrough, "while the shield is away there is no guard and no Brace");
+        Check(TwinBladesMotion.StepOf(me.Combo) == 0 && me.FireCd < 0.2f, "caught, the shield is ready and the chain starts over");
+
+        // The parry: raised during a step it starts the chain over, and a throw still winding up never leaves the hand.
+        reset();
+        me.Combo = (2 << 3) | 3; me.ComboT = 1f;
+        frame(new PlayerInput { Fire = true, AimAt = from + new V2(300f, 0f) }, true);
+        play(0.05f, new PlayerInput { AimAt = from + new V2(300f, 0f), Parry = true }, true);
+        play(0.6f, aimRight, true);
+        bool thrown = fxSeen.Any(e => e.Kind == FxKind.BulwarkThrow);
+        Console.WriteLine("  parry in the throw's wind-up: thrown {0}, step {1}", thrown, TwinBladesMotion.StepOf(me.Combo));
+        Check(!thrown && TwinBladesMotion.StepOf(me.Combo) == 0, "the parry takes back a throw still winding up and starts the chain over");
+        reset();
+        frame(new PlayerInput { Fire = true, AimAt = from + new V2(300f, 0f) }, true);
+        play(0.25f, new PlayerInput { Fire = true, AimAt = from + new V2(300f, 0f) }, true);
+        int before = TwinBladesMotion.StepOf(me.Combo);
+        play(0.05f, new PlayerInput { AimAt = from + new V2(300f, 0f), Parry = true }, true);
+        play(0.5f, aimRight, true);
+        frame(new PlayerInput { Fire = true, AimAt = from + new V2(300f, 0f) }, true);
+        Console.WriteLine("  parry mid-chain: step {0} -> next press {1}", before, TwinBladesMotion.StepOf(me.Combo));
+        Check(before >= 2 && TwinBladesMotion.StepOf(me.Combo) == 1, "the parry starts the chain over at the Rim Cut");
+        play(0.6f, aimRight, true);
+
+        // Melee on the braced plate: a body leaning on it is blocked and fills Ram, slower than shots; unbraced, nothing.
+        reset();
+        var leaner = dummy(from + new V2(me.Def.HitR + 20f, 0f));
+        leaner.FrozenT = 0f; leaner.Speed = 0f;
+        play(0.2f, aimRight, true);
+        float unbracedRam = me.BbRam;
+        play(0.2f, brace, true);
+        leaner.Pos = from + new V2(me.Def.HitR + leaner.Radius - 4f, 0f);
+        play(1f, brace, true);
+        int meleeFx = fxSeen.Count(e => e.Kind == FxKind.BulwarkBlock && Math.Abs(e.Pos2.Y - 2f) < 0.1f);
+        Console.WriteLine("  melee on the braced plate: Ram {0:0} after 1 s ({1} blocks), unbraced {2:0}", me.BbRam, meleeFx, unbracedRam);
+        Check(me.BbRam > 0f && meleeFx > 0, "melee stopped on the braced plate fills Ram");
+        Check(Game.BbRamMelee < Game.BbRamShot && me.BbRam <= meleeFx * Game.BbRamMelee + 0.1f, "a melee blow fills Ram slower than a shot");
+        Check(unbracedRam == 0f, "unbraced, melee fills nothing");
+        play(0.2f, aimRight, true);
 
         // The guard: a shot from the front stops on the plate (red aimed shots too); one from behind gets through it.
         reset();
@@ -95,7 +154,6 @@ static partial class Program
         // The Brace: held, you slow down and shots soak into Ram (7 a round, 14 a red one); the other screen sees it.
         reset();
         float walk = me.Speed;
-        var brace = new PlayerInput { AimAt = from + new V2(300f, 0f), WeaponAction = true };
         play(0.2f, brace, true);
         float braced = me.Speed;
         fire(from + new V2(160f, 0f), Defs.SmallShot);

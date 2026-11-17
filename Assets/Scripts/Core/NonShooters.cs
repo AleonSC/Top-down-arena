@@ -154,7 +154,7 @@ namespace Arena
             {
                 if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, radius + p.Def.HitR))
                     continue;
-                if (p.ParryActive && ParryContact(p, e, playerDamage))
+                if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, playerDamage))
                     continue;  // a raised guard facing the blast takes it
                 Damage(p, playerDamage, e.Def.Name);
             }
@@ -222,7 +222,7 @@ namespace Arena
                             continue;
                         if (p.InvulnT > 0f)
                             continue;  // a dodge's invulnerability: it passes through
-                        if (p.ParryActive && ParryContact(p, e, 0f))
+                        if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, 0f))
                         {
                             BroadcastFx(FxKind.Spark, p.Pos, new Rgba(0.85f, 0.9f, 1f), 24f, 0.25f, Sfx.Clang);
                             HookMissed(e);
