@@ -1892,7 +1892,8 @@ under **Settings** on the main menu, and they're saved between sessions.
 (`persistentDataPath/sounds`, read at startup), or an AudioClip in `Assets/Resources/Sfx` to ship it with the game; the folder
 wins. `ShotRifle_1.wav`, `ShotRifle_2.wav`... give it several takes, played in turn. It keeps the sound's volume slider, its
 shortest gap between plays and its small pitch wander. To make one, open `Tools/SoundForge/index.html` in a browser: pick
-a preset, shape it with the sliders and export a WAV already named for the sound you chose (several takes at once if you like).
+a preset, shape it with the sliders and export a WAV already named for the sound you chose (several takes at once if you like). It has an equalizer, an output
+volume, and a seamless loop mode for hums and drones (the game loops `WallHum`, `ArcHum`, `HeliRotor` and `SawWhirr`).
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
 so they never change the fight or what your friend sees):
