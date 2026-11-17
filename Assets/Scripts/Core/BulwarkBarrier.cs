@@ -18,7 +18,7 @@ namespace Arena
     ///     with more Ram. A bash with no Ram is allowed: a short shove. At full Ram the soaked shots burst out ahead of you as up
     ///     to BbShardsMax steel shards. Your own game moves you when Player.BbBashes changes (LocalBulwark), as the Arc Knuckles'
     ///     Rocket Dash does; the host lands the hit as one box Swing along the lane.
-    ///   Extra projectiles: +15 px chain reach and +20% bash damage each. Iron Boss (Rare card): Ram fills 30% faster, the bash
+    ///   Extra projectiles: +15 px chain reach, +10% chain damage and +20% bash damage each. Iron Boss (Rare card): Ram fills 30% faster, the bash
     ///     hits 30% harder.
     ///   The look (Game/BulwarkBarrierLook.cs) draws the shield round you from the replicated aim, BbBrace and BbRam, each chain
     ///   step from its FxKind.BulwarkStep, the bash from its FxKind.BulwarkBash, and each stopped shot from FxKind.BulwarkBlock.
@@ -88,7 +88,7 @@ namespace Arena
             p.BbSwingT = 0f;
             p.BbSwingDur = dur;
             float reach = w.Reach + BbExtraReach[step - 1] + w.Grow * extra;
-            var s = NewSwing(p, aim, reach, BbArc[step - 1], w.Damage * dmg * BbMult[step - 1]);
+            var s = NewSwing(p, aim, reach, BbArc[step - 1], w.Damage * dmg * BbMult[step - 1] * (1f + 0.1f * extra));
             s.Delay = dur * BbHitAt[step - 1];
             s.Knock = BbKnock[step - 1];
             s.NoFx = true;  // the step's own effect draws it
