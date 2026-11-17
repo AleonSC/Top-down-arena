@@ -626,7 +626,7 @@ namespace Arena
         public void RerollOffer()
         {
             var me = Me;
-            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.OfferMilestone || me.OfferPrize || me.Rerolls <= 0 || RerollPending)
+            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.OfferMilestone || me.OfferPrize || me.Rerolls <= 0 || RerollPending)  // (a boss card pick can be rerolled)
                 return;
             Sounds.Add(Sfx.Pick);
             if (IsHost)
@@ -647,7 +647,7 @@ namespace Arena
                 return;
             p.Rerolls--;
             Recorder?.Rerolled(p);
-            p.Offer = Upgrades.RollOffer(rng, OfferFor(p), p.Level);
+            p.Offer = p.OfferCards ? BossCardOffer(p) : Upgrades.RollOffer(rng, OfferFor(p), p.Level);
             DoLog(p.Role + " rerolled (" + p.Rerolls + " left)");
             SendSnapshot();
         }
@@ -678,6 +678,19 @@ namespace Arena
             }
             if (index < 0 || index >= p.Offer.Length)
                 return;
+            if (p.OfferCards)  // a boss card pick (BossCards.cs): to the hand or the team's kits
+            {
+                int code = p.Offer[index];
+                if (!BossCardUsable(p, code))
+                    return;
+                Recorder?.PickedNamed(this, p, Array.ConvertAll(p.Offer, BossCards.Name), BossCards.Name(code), "boss card");
+                GrantBossCard(p, code);
+                p.PendingCards = Math.Max(0, p.PendingCards - 1);
+                NextOffer(p);
+                DoLog(p.Role + " picked a " + BossCards.Name(code));
+                SendSnapshot();
+                return;
+            }
             int upgrade = p.Offer[index];
             Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : p.OfferMilestone ? "milestone" : p.OfferPrize ? "prize" : "level");
             if (p.OfferLegendary)
@@ -698,7 +711,7 @@ namespace Arena
             SendSnapshot();  // show the next offer right away
         }
 
-        /// Boss rewards come first (legendaries, then weapon mods), then regular level-up picks.
+        /// Boss rewards come first (legendaries, then weapon mods or the boss card pick), then regular level-up picks.
         /// Who this player's card offers are for (role, class, Space ability, picks, weapon, the Expanding arena):
         /// every offer and Upgrades.Available take one (Docs/UpgradePools.md step 2).
         public OfferCtx OfferFor(Player p) => OfferCtx.Of(p, ExpandingOn);
@@ -708,14 +721,24 @@ namespace Arena
             p.PendingLegendary = p.LegendaryQueue.Count;
             p.OfferLegendary = p.LegendaryQueue.Count > 0;
             p.OfferMod = false;
+            p.OfferCards = false;
             p.OfferMilestone = false;
             p.OfferPrize = false;
-            int[] mods = null;
+            int[] mods = null, cards = null;
             if (!p.OfferLegendary && p.PendingMods > 0)
             {
                 mods = Upgrades.ModOffer(OfferFor(p));
                 if (mods == null)
                     p.PendingMods = 0;  // every mod maxed out
+            }
+            if (!p.OfferLegendary && mods == null && p.PendingCards > 0)
+            {
+                cards = BossCardOffer(p);
+                if (!AnyBossCardUsable(p, cards))
+                {
+                    p.PendingCards = 0;  // a full hand and full kits: nothing to take
+                    cards = null;
+                }
             }
             if (p.OfferLegendary)
                 p.Offer = Upgrades.LegendaryOffer(rng, p.LegendaryQueue[0], OfferFor(p));
@@ -723,6 +746,11 @@ namespace Arena
             {
                 p.Offer = mods;
                 p.OfferMod = true;
+            }
+            else if (cards != null)
+            {
+                p.Offer = cards;
+                p.OfferCards = true;
             }
             else if (p.PrizePicks > 0)
             {
@@ -819,7 +847,7 @@ namespace Arena
         public bool AnyonePicking()
         {
             foreach (var p in Players.Values)
-                if (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0 || p.PendingMilestones > 0 || p.PrizePicks > 0)  // (a challenge room's prize too: the break used to run out under it)
+                if (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0 || p.PendingCards > 0 || p.PendingMilestones > 0 || p.PrizePicks > 0)  // (a challenge room's prize too: the break used to run out under it)
                     return true;
             return false;
         }
@@ -1055,7 +1083,7 @@ namespace Arena
                         RerollOffer();
                     }
                     else
-                        PickUpgrade(rng.Next(me.Offer.Length));
+                        PickUpgrade(me.OfferCards ? BotBossCard(me) : rng.Next(me.Offer.Length));
                 }
                 else if (me.Offer == null && ShopOpen && !me.ShopDone && MathX.Fmod(botT, 0.5f) < dt)
                     BotShop(me);  // Shop.cs

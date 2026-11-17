@@ -58,7 +58,7 @@ static partial class Program
             WaitForGame(host, client, dt);
             var g = host.Game; var cg = client.Game;
             g.DevSetGod(1, true); g.DevSetGod(2, true);
-            Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+            Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
             bool killBoss = false;
             Action clear = () =>
             {

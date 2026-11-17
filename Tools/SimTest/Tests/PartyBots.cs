@@ -177,7 +177,7 @@ static partial class Program
         Check(g.LongLegs && g.ExpandingOn && bg.ExpandingOn, "a Campaign with a lobby bot is played on the Expanding arena, on the bot's game too");
         Check(g.Unrecorded && g.LivesMax == bg.LivesMax, "it stays unrecorded, and the lives are the same as a run without bots");
         foreach (var p in g.Players.Values) g.DevSetGod(p.Id, true);
-        run(90f, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } return g.ExpandOpen && bg.ExpandOpen; });
+        run(90f, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } return g.ExpandOpen && bg.ExpandOpen; });
         Console.WriteLine("  wave {0} state {1}, build round open host/bot {2}/{3}", g.Wave, g.State, g.ExpandOpen, bg.ExpandOpen);
         Check(g.ExpandOpen && bg.ExpandOpen, "a cleared wave opens the building round with a bot in the party");
         host.Leave("");

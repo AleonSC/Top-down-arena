@@ -5,7 +5,7 @@ using System.IO;
 namespace Arena
 {
     /// A room card (Docs/RoomCards.md): a preset room a player holds and places against a room's wall. New values go at the end.
-    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop }
+    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms }  // (BuilderShop: a utility card, BuilderShop.cs; Shop, Market, Arms: service cards, a tiny 4 x 4 room, Docs/ArmsDealer.md)
 
     public static partial class Expansion
     {
@@ -13,6 +13,17 @@ namespace Arena
 
         /// The shape cards (not the basics, not the mini-boss): what drops and chests give.
         public static readonly RoomCard[] ShapeCards = { RoomCard.Ring, RoomCard.Cross, RoomCard.LHall, RoomCard.THall, RoomCard.Chamfer };
+
+        /// The service cards: each builds a tiny 4 x 4 room with a job (Docs/ArmsDealer.md). They drop like shape cards.
+        public static readonly RoomCard[] ServiceCards = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms };
+
+        public const int ServiceCardChance = 5;  // a shape-card roll (a drop, a chest) is a service card 1 in this many times
+
+        public static bool IsServiceCard(RoomCard c) => c == RoomCard.Shop || c == RoomCard.Market || c == RoomCard.Arms;
+
+        /// The job of the room a card builds: a service card's shop, Black Market or Arms Dealer, a Mini-boss card's duel, else combat.
+        public static RoomKind CardRoomKind(RoomCard c)
+            => c == RoomCard.Shop ? RoomKind.Shop : c == RoomCard.Market ? RoomKind.Vendor : c == RoomCard.Arms ? RoomKind.Arms : c == RoomCard.BuilderShop ? RoomKind.Builder : c == RoomCard.MiniBoss ? RoomKind.Gatekeeper : RoomKind.Combat;
 
         public static SurpriseShape CardShape(RoomCard c)
         {
@@ -25,12 +36,27 @@ namespace Arena
                 case RoomCard.LHall: return SurpriseShape.LHall;
                 case RoomCard.THall: return SurpriseShape.THall;
                 case RoomCard.MiniBoss: return SurpriseShape.Duel;
+                case RoomCard.Shop:
+                case RoomCard.Market:
+                case RoomCard.Arms: return SurpriseShape.Tiny;
                 case RoomCard.BuilderShop: return SurpriseShape.SmallRect;
                 default: return SurpriseShape.Chamfer;
             }
         }
 
-        public static string CardName(RoomCard c) => c == RoomCard.MiniBoss ? "Mini-boss" : c == RoomCard.BuilderShop ? "Builder Shop" : c == RoomCard.None ? "" : SurpriseName(CardShape(c));
+        public static string CardName(RoomCard c)
+        {
+            switch (c)
+            {
+                case RoomCard.None: return "";
+                case RoomCard.MiniBoss: return "Mini-boss";
+                case RoomCard.Shop: return "Shop";
+                case RoomCard.Market: return "Black Market";
+                case RoomCard.Arms: return "Arms Dealer";
+                case RoomCard.BuilderShop: return "Builder Shop";
+                default: return SurpriseName(CardShape(c));
+            }
+        }
 
         /// What the card's room is for, one line (the build screen's tip).
         public static string CardBlurb(RoomCard c)
@@ -45,6 +71,9 @@ namespace Arena
                 case RoomCard.THall: return "Two exits and one choke.";
                 case RoomCard.Chamfer: return "A room with cut corners: nowhere to be pinned.";
                 case RoomCard.MiniBoss: return "A sealed duel room with the coming boss's faction mini-boss. Walk in to wake it; beat it for a prize pick.";
+                case RoomCard.Shop: return "A tiny 4 x 4 shop: upgrade cards for gold, heals and revives. Safe, no enemies spawn in it.";
+                case RoomCard.Market: return "A tiny 4 x 4 Black Market: buildables, services and room cards. Safe, no enemies spawn in it.";
+                case RoomCard.Arms: return "A tiny 4 x 4 Arms Dealer: weapon mods for gold. Safe, no enemies spawn in it.";
                 case RoomCard.BuilderShop: return "A utility room: a shop that sells room cards for vectors, a new shelf each wave, a quarter off.";
                 default: return "";
             }
@@ -62,6 +91,9 @@ namespace Arena
                 case RoomCard.LHall: return 24;
                 case RoomCard.THall: return 26;
                 case RoomCard.MiniBoss: return 40;
+                case RoomCard.Shop:
+                case RoomCard.Market:
+                case RoomCard.Arms: return 30;  // (not on the Black Market's shelf; a price for completeness)
                 case RoomCard.BuilderShop: return 36;
                 default: return 22;
             }
@@ -86,8 +118,14 @@ namespace Arena
             return new[] { a, b, c };
         }
 
-        /// A seeded shape card (a drop, a chest).
+        /// A seeded shape card (the starting hand): never a service card.
         public static RoomCard RandomShapeCard(int seed) => ShapeCards[new DetRandom(seed).Int(ShapeCards.Length)];
+
+        /// A dropped card (a wave drop, a chest): a shape card, or a service card 1 in ServiceCardChance times.
+        public static RoomCard DropCard(DetRandom rng)
+            => rng.Int(ServiceCardChance) == 0 ? ServiceCards[rng.Int(ServiceCards.Length)] : ShapeCards[rng.Int(ShapeCards.Length)];
+
+        public static RoomCard DropCard(int seed) => DropCard(new DetRandom(seed));
 
         /// The card's room with its mask's corner at (x, y), turned and mirrored: its boxes (Price 0) if it is legal there (the outline rules:
         /// no overlap, a door's worth of shared wall, the size caps), else null with `why`.
@@ -174,8 +212,8 @@ namespace Arena
             }
         }
 
-        /// Host, when a wave is cleared (before the round opens): a boss gives everyone a shape card and one player (round the seats) a
-        /// Mini-boss card; a regular wave gives each player a 1 in CardWaveChance shape card.
+        /// Host, when a wave is cleared (before the round opens): a regular wave gives each player a 1 in CardWaveChance shape card. A boss
+        /// gives nothing here: its reward is the card pick (BossCards.cs).
         void DropWaveCards(bool boss)
         {
             if (!IsHost || !RoomCardsOn || !ModeRules.RunEvents)
@@ -187,24 +225,20 @@ namespace Arena
                 var p = Players[ids[i]];
                 var rng = new DetRandom(expandSeed * 13 + Wave * 977 + ids[i] * 61);
                 if (boss)
-                {
-                    GiveCard(p, Expansion.ShapeCards[rng.Int(Expansion.ShapeCards.Length)], "boss");
-                    if (i == (Wave / Expansion.Milestone) % ids.Count)
-                        GiveCard(p, RoomCard.MiniBoss, "boss");
-                }
-                else if (rng.Int(CardWaveChance) == 0)
-                    GiveCard(p, Expansion.ShapeCards[rng.Int(Expansion.ShapeCards.Length)], "wave drop");
+                    continue;  // (a boss gives the card pick instead: BossCards.cs, Docs/ArmsDealer.md)
+                if (rng.Int(CardWaveChance) == 0)
+                    GiveCard(p, Expansion.DropCard(rng), "wave drop");
             }
             Free(ids);
         }
 
-        /// Host: a chest node was opened: everyone gets a shape card.
+        /// Host: a chest node was opened: everyone gets a shape card (or a service card, Expansion.DropCard).
         void ChestCards(int nodeIndex)
         {
             if (!IsHost || !RoomCardsOn)
                 return;
             foreach (var p in Players.Values)
-                GiveCard(p, Expansion.RandomShapeCard(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), "chest");
+                GiveCard(p, Expansion.DropCard(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), "chest");
         }
 
         /// The vendor's cards this boss cycle.
@@ -243,7 +277,7 @@ namespace Arena
         public void OnPlayCard(int peer, BinaryReader r) => HostPlayCard(peer, r.ReadByte(), r.ReadInt16(), r.ReadInt16(), r.ReadByte(), r.ReadBoolean());
 
         /// Host: the card's room is built at once if it fits there; the card leaves the hand. A Mini-boss card's room holds the coming boss's faction mini-boss;
-        /// a Builder Shop card's room is a card shop (BuilderShop.cs).
+        /// a service card's room is a shop, Black Market or Arms Dealer; a Builder Shop card's room is a card shop (BuilderShop.cs).
         void HostPlayCard(int id, int slot, int x, int y, int turn, bool mirror)
         {
             Player p;
@@ -261,13 +295,9 @@ namespace Arena
             {
                 var q = made[i];
                 q.Owner = id;
+                q.Kind = Expansion.CardRoomKind(card);  // (a service card's shop, Black Market or Arms Dealer, already open)
                 if (card == RoomCard.MiniBoss)
-                {
-                    q.Kind = Arena.RoomKind.Gatekeeper;
                     q.Mini = (byte)MiniBossNow();
-                }
-                else if (card == RoomCard.BuilderShop)
-                    q.Kind = Arena.RoomKind.Builder;  // (BuilderShop.cs)
                 made[i] = q;
             }
             TakeCard(p, slot);

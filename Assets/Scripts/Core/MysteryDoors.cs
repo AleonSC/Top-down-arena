@@ -18,9 +18,9 @@ namespace Arena
     /// The room behind a mystery door (host only, never sent; owner Nov 17): a small or medium square or rectangle, or a long hallway.
     public enum MysteryRoom : byte { Small, Medium, Hallway }
 
-    /// What is in it (host only, never sent): enemies (most square rooms), nothing (rarer), a shop or a Black Market (small rooms only),
-    /// or a chest at the far end (hallways).
-    public enum MysteryKind : byte { Enemies, Empty, Shop, Vendor, Chest }
+    /// What is in it (host only, never sent): enemies (most square rooms), nothing (rarer), a shop, a Black Market or an Arms Dealer (small
+    /// rooms only), or a chest at the far end (hallways).
+    public enum MysteryKind : byte { Enemies, Empty, Shop, Vendor, Chest, Arms }
 
     /// The rules of mystery doors.
     public static class Mystery
@@ -30,8 +30,9 @@ namespace Arena
 
         /// Room weights: small 35, medium 35, hallway 30.
         static readonly int[] RoomWeights = { 35, 35, 30 };
-        /// What a small room holds: enemies 56, empty 20, shop 12, Black Market 12. A medium room: enemies 78, empty 22. A hallway: a chest.
-        static readonly int[] SmallWeights = { 56, 20, 12, 12 }, MediumWeights = { 78, 22 };
+        /// What a small room holds: enemies 50, empty 17, shop 11, Black Market 11, Arms Dealer 11. A medium room: enemies 78, empty 22. A hallway: a chest.
+        static readonly int[] SmallWeights = { 50, 17, 11, 11, 11 }, MediumWeights = { 78, 22 };
+        static readonly MysteryKind[] SmallKinds = { MysteryKind.Enemies, MysteryKind.Empty, MysteryKind.Shop, MysteryKind.Vendor, MysteryKind.Arms };
 
         static int Pick(DetRandom rg, int[] w)
         {
@@ -52,7 +53,7 @@ namespace Arena
         public static MysteryKind KindFor(int seed, int wave, int n, MysteryRoom room, bool enemies)
         {
             var rg = new DetRandom(seed * 5167 + wave * 211 + n * 89 + 7);
-            MysteryKind k = room == MysteryRoom.Hallway ? MysteryKind.Chest : (MysteryKind)Pick(rg, room == MysteryRoom.Small ? SmallWeights : MediumWeights);
+            MysteryKind k = room == MysteryRoom.Hallway ? MysteryKind.Chest : room == MysteryRoom.Small ? SmallKinds[Pick(rg, SmallWeights)] : (MysteryKind)Pick(rg, MediumWeights);
             return k == MysteryKind.Enemies && !enemies ? MysteryKind.Empty : k;
         }
 
@@ -420,6 +421,7 @@ namespace Arena
                 q.Owner = p.Id;
                 if (kind == MysteryKind.Shop) q.Kind = Arena.RoomKind.Shop;
                 else if (kind == MysteryKind.Vendor) q.Kind = Arena.RoomKind.Vendor;
+                else if (kind == MysteryKind.Arms) q.Kind = Arena.RoomKind.Arms;
                 rooms.Add(q);
             }
             var doorsBefore = new List<MysteryDoor>(MysteryDoors);

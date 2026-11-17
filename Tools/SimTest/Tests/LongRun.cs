@@ -30,7 +30,7 @@ static partial class Program
             WaitForGame(host, client, dt);
             var g = host.Game; var cg = client.Game;
             g.DevSetGod(1, true); g.DevSetGod(2, true);
-            Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+            Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
             Action Clear = () =>
             {
                 NoPicks();
@@ -107,7 +107,7 @@ static partial class Program
                 WaitForGame(host, client, dt);
                 g = host.Game; cg = client.Game;
                 g.DevSetGod(1, true); g.DevSetGod(2, true);
-                Run(s, dt, 30f, () => g.State == MatchState.Fighting, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+                Run(s, dt, 30f, () => g.State == MatchState.Fighting, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
                 Run(s, dt, 0.5f);
                 Console.WriteLine("  continued: track wave {0} leg {1}, shown {2} (client {3}), campaign {4}/{5}", g.Wave, g.Leg, g.ShownWave, cg.ShownWave, g.LongRun, cg.LongRun);
                 Check(g.LongRun && cg.LongRun && g.Wave == 6 && g.Leg == 1 && g.ShownWave == 12 && cg.ShownWave == 12, "continuing plays the second leg, shown wave 12, on every game");
@@ -173,7 +173,7 @@ static partial class Program
                 g.DevSetGod(1, true); g.DevSetGod(2, true);
                 Run(s, dt, 900f, () => g.BossSlot && g.State == MatchState.Fighting, () =>
                 {
-                    foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
+                    foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
                     foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss) e.Hp = 0f;
                 });
                 levels[mode] = (float)g.Players.Values.Average(p => p.Level + p.Xp / Defs.XpToNext(p.Level));

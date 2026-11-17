@@ -33,7 +33,7 @@ namespace Arena
                     if (Passed(pickSoundIntro, e, IntroLanded(i)))
                     {
                         sounds.Play(Sfx.PickCardLand, 0.7f, now);
-                        if (Upgrades.All[me.Offer[i]].Rarity >= Rarity.VeryRare)
+                        if (!me.OfferCards && Upgrades.All[me.Offer[i]].Rarity >= Rarity.VeryRare)
                             sounds.Play(Sfx.PickRare, 0.7f, now);
                     }
                 }

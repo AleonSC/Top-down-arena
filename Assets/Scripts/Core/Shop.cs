@@ -10,7 +10,7 @@ namespace Arena
     /// gold to teammates. There's no timer: the shop closes when everyone has clicked Done (the host can close it
     /// after a minute), and each player's leftover gold becomes their XP. Host-authoritative: clients send
     /// Msg.Shop requests and see the result in the snapshot.
-    public enum ShopAction : byte { Buy, Restock, Sell, Heal, Revive, Done, Give, Close, RoomKit, Vectors, BuyBuild, BuyCard }  // (BuyBuild: the Black Market, arg = BuildKind)
+    public enum ShopAction : byte { Buy, Restock, Sell, Heal, Revive, Done, Give, Close, RoomKit, Vectors, BuyBuild, BuyCard, BuyMod }  // (BuyBuild: the Black Market, arg = BuildKind; BuyMod: the Arms Dealer, arg = upgrade id)
 
     public class ShopNotice
     {
@@ -60,7 +60,7 @@ namespace Arena
         public bool GoldUseful => HuntMapOn || ExpandingOn || (OnPath && CurrentPath == PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms;
 
         /// Level-up offers can be swapped for gold; boss rewards, mods, milestones and prizes can't.
-        public bool CanGoldInstead(Player p) => p != null && p.Offer != null && !p.OfferLegendary && !p.OfferMod && !p.OfferMilestone && !p.OfferPrize && GoldUseful;
+        public bool CanGoldInstead(Player p) => p != null && p.Offer != null && !p.OfferLegendary && !p.OfferMod && !p.OfferCards && !p.OfferMilestone && !p.OfferPrize && GoldUseful;
 
         /// Add stock: the price of the next one (25, then +25 each time).
         public static int RestockPrice(Player p) => 25 + 25 * Math.Min(p.Restocks, 255);
@@ -269,6 +269,10 @@ namespace Arena
                     if (!shopping || !ExpandingOn)
                         return;
                     BuyRoomCard(p, arg);
+                    break;
+                case ShopAction.BuyMod:  // the Arms Dealer sells a weapon mod for gold (ArmsDealer.cs)
+                    if (!shopping || !ExpandingOn || !BuyMod(p, arg))
+                        return;
                     break;
                 case ShopAction.Done:
                     p.ShopDone = arg != 0;

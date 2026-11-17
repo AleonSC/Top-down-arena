@@ -50,7 +50,7 @@ static partial class Program
         var g = host.Game;
         var cg = client.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Action Quiet = () =>
         {
             ((IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Clear();

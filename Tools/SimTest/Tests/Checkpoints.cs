@@ -35,7 +35,7 @@ static partial class Program
             g.DevSetGod(1, true); g.DevSetGod(2, true);
             var spawnQ = (IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
             var squadQ = (IList)typeof(Game).GetField("squadQueue", flags).GetValue(g);
-            Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+            Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
             Action Clear = () =>
             {
                 NoPicks();
@@ -136,7 +136,7 @@ static partial class Program
             squadQ = (IList)typeof(Game).GetField("squadQueue", flags).GetValue(g);
             Action SoloClear = () =>
             {
-                foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
+                foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
                 if (g.PathOffer != null) g.ChoosePath(0);
                 spawnQ.Clear(); squadQ.Clear();
                 foreach (var e in g.Enemies.Values) e.Hp = 0f;

@@ -24,7 +24,7 @@ static partial class Program
         var g = host.Game;
         g.Diff.Set(DiffKnob.ApproachShare, 0f);  // (the Hive Queen's approach would theme waves 6-9; these test the paths alone)
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         // Beat the wave-5 boss.
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Enemies.Count > 0);
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; });
@@ -361,7 +361,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Enemies.Count > 0);
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; });
         NoPicks();
@@ -389,7 +389,7 @@ static partial class Program
         g.State = MatchState.Intermission;
         me.Offer = Upgrades.RollOffer(new Random(4), OfferCtx.Of(me, false), me.Level);
         me.OfferLegendary = false; me.OfferMod = false; me.OfferMilestone = false; me.OfferPrize = false;
-        me.PendingPicks = 1; me.PendingMods = 0; me.PendingMilestones = 0; me.PrizePicks = 0; me.LegendaryQueue.Clear();
+        me.PendingPicks = 1; me.PendingMods = me.PendingCards = 0; me.PendingMilestones = 0; me.PrizePicks = 0; me.LegendaryQueue.Clear();
         int goldBefore = me.Gold;
         g.TakeGoldInstead();
         Check(me.Gold == goldBefore + Game.GoldInsteadAmount(7) && me.PendingPicks == 0 && me.Offer == null, "gold instead of a card pays the wave's amount and uses the pick up (" + (me.Gold - goldBefore) + " gold at wave 7)");

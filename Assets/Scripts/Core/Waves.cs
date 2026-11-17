@@ -37,6 +37,8 @@ namespace Arena
                 p.PendingLegendary = 0;
                 p.PendingMods = 0;
                 p.OfferMod = false;
+                p.PendingCards = 0;
+                p.OfferCards = false;
                 p.PendingMilestones = 0;
                 p.OfferMilestone = false;
             }

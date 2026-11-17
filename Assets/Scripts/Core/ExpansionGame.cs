@@ -155,7 +155,7 @@ namespace Arena
             if (!ExpandingOn)
                 return;
             bool boss = BossNow;
-            if (boss && IsHost && ModeRules.RunEvents)
+            if (boss && IsHost && ModeRules.RunEvents && !BossCardPicks)  // (with room cards the boss's card pick offers kits instead)
                 GrantRoomToken(Expansion.FloorToken(expandSeed, Wave, Expanded, RoomTokens));
             DropWaveCards(boss);  // RoomCards.cs
             foreach (var p in Players.Values)
@@ -212,7 +212,7 @@ namespace Arena
 
         /// The Expanding arena has a shop or vendor you can walk into: kills drop gold, the shop opens in each intermission without holding the
         /// countdown, your gold and shelf are kept between waves, and what you can do depends on the room you stand in.
-        public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasVendorRoom);
+        public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasVendorRoom || HasArmsRoom);
 
         /// The shop is open and the wave has to wait for it (the Bazaar and Gold Rush shops; the room shops never hold the countdown).
         public bool ShopBlocksWave => ShopOpen && !ServiceRooms;
@@ -223,7 +223,7 @@ namespace Arena
             return a.HasValue && a.Value.Kind == Arena.RoomKind.Vendor;
         }
 
-        public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p);
+        public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p) || InArmsRoom(p);
 
         /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the vendor (the Black Market),
         /// and the services (heal, revive, sell, Floor kit, vectors) in either.
@@ -245,6 +245,8 @@ namespace Arena
                 case ShopAction.BuyBuild:
                 case ShopAction.BuyCard:
                     return InVendorRoom(p);
+                case ShopAction.BuyMod:
+                    return InArmsRoom(p);
                 default:
                     return true;
             }

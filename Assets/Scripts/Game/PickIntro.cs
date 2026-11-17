@@ -160,7 +160,7 @@ namespace Arena
             EndUiGl();
         }
 
-        static Rgba PickColor(Player me, int i) => me.Offer != null && i < me.Offer.Length ? Upgrades.RarityColor(Upgrades.All[me.Offer[i]].Rarity) : new Rgba(1f, 0.8f, 0.35f);
+        static Rgba PickColor(Player me, int i) => me.Offer != null && i < me.Offer.Length && me.OfferCards ? BossCardRgba(me.Offer[i]) : me.Offer != null && i < me.Offer.Length ? Upgrades.RarityColor(Upgrades.All[me.Offer[i]].Rarity) : new Rgba(1f, 0.8f, 0.35f);
 
         /// The title during a full opening: popping in large in the middle on a dark band (like the run launch's GET
         /// READY), then sliding up to its place. Returns its y and font size, and how much of the band to show.
