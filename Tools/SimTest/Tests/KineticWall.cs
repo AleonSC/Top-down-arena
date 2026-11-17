@@ -16,10 +16,10 @@ static partial class Program
         var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
         var masteredField = typeof(Game).GetField("castMastered", flags);
 
-        Check(Upgrades.AbilityCount(Role.Dps, Kit.Elementalist) == 4 && Upgrades.RoleAbility(Role.Dps, Kit.Elementalist, 3) == AbilityId.KineticWall
-            && Upgrades.AbilityCount(Role.Dps, Kit.Soldier) == 3 && Upgrades.AbilityCount(Role.Tank, Kit.Elementalist) == 3
+        Check(Upgrades.AbilityLimit(Role.Dps, Kit.Elementalist) == 4 && Upgrades.RoleAbility(Role.Dps, Kit.Elementalist, 3) == AbilityId.KineticWall
+            && Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 3 && Upgrades.AbilityLimit(Role.Tank, Kit.Soldier) == 3
             && Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 3) == Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0),
-            "the Elementalist DPS has a 4th ability key, Kinetic Wall; the other classes keep three");
+            "the Elementalist DPS has a 4th ability key, Kinetic Wall; classes without a 4th keep three");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Mage", Role.Dps, 0, 3, Kit.Elementalist);

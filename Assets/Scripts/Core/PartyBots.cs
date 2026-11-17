@@ -92,7 +92,7 @@ namespace Arena
         {
             bot.S.RequestKit((Kit)rng.Next(Defs.KitCount));
             bot.S.RequestWeapon(rng.Next(Defs.MaxWeapons));  // (the host turns a fourth pick the class doesn't have into the first)
-            bot.S.RequestAbility(rng.Next(Upgrades.MaxAbilityChoices));  // (the host keeps it to what the class has)
+            bot.S.RequestAbility(rng.Next(Upgrades.RoleAbilityChoices + 1));  // (the host keeps it to what the class has)
         }
 
         public void Remove(PartyBot bot)

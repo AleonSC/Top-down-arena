@@ -3,7 +3,8 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 376: Kinetic Wall (Elementalist DPS 4th ability): `AbilityId.KineticWall`, `FxKind.KwCatch`/`KwBlast`, player snapshot `KwT`/`KwPos`/`KwAim`/`KwWide`/`KwDots`, lobby ability pick 3; the Momentum Bank card shifts card ids.
+- 377: Kinetic Wall (Elementalist DPS 4th ability): `AbilityId.KineticWall`, `FxKind.KwCatch`/`KwBlast`, player snapshot `KwT`/`KwPos`/`KwAim`/`KwWide`/`KwDots`, the Momentum Bank card shifts card ids.
+- 376: Flood (Tank Elementalist 4th Space ability): `AbilityId.Flood`, `ZoneKind.Flood`; `LobbyEntry.Ability` can be 3 (the 4th ability key).
 - 375: the Turnkey (Warden faction): `EnemyType.Turnkey`, `CellDoor`, `FloorMine`, `ShackleTrap` (their `PhaseT`/`T2` sent with the non-shooters), `PatchKind.Slick` (Turnkey.cs).
 - 374: the Revolver's Pistol Whip (Alt): `FxKind.PistolWhip`, `Msg.WeaponDash` kind 42 (`DashWhip`).
 - 373: Bulwark Barrier (Tank Knight 4th weapon): `WeaponId.BulwarkBarrier`, `FxKind.BulwarkStep`, `BulwarkBlock`, `BulwarkBash`, player snapshot gains `BbBrace`, `BbRam`, `BbBashes`, `BbBashTo`, `Msg.WeaponDash` kinds 40-41 (the Brace held and let go).

@@ -692,6 +692,30 @@ static partial class Shot {
         for (int k = 0; k < 3; k++)
           gm.Effects.Add(new Effect { Kind = FxKind.BathHeal, Pos = me.Pos + new V2(k * 7f, 0f), Pos2 = new V2(me.Id, 0f), Color = new Rgba(1f, 0.35f, 0.4f), Radius = 6f + k * 3f, Dur = Game.BathHealFxTime, T = 0.1f + k * 0.28f });
     }
+    if (Environment.GetEnvironmentVariable("FLOOD") != null) {
+      // A tank Elementalist's Flood (FloodLook.cs): FLOOD=<seconds since the cast> (the crest spreads to 0.5 s, it floods to 6 s, then drains over 0.8;
+      // use 0.3, 3 or 6.4), with enemies wading in it and around it, the wading ones wet. FLOODMASTERED=1: 247 px. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Elementalist; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[0].Id = AbilityId.Flood;
+      V2 from = new V2(700f, 480f);
+      me.Pos = me.Disp = from + new V2(20f, 10f); me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f);
+      float ft = float.Parse(Environment.GetEnvironmentVariable("FLOOD"));
+      float R = Environment.GetEnvironmentVariable("FLOODMASTERED") != null ? Game.FloodRadiusMastered : Game.FloodRadius;
+      var fz = new Zone { Id = 9101, Kind = ZoneKind.Flood, Owner = me.Id, Pos = from, Radius = R, Duration = Game.FloodTime + Game.FloodDrain };
+      fz.T = Math.Max(0.01f, fz.Duration - ft);
+      gm.Zones[fz.Id] = fz;
+      V2[] spots = { new V2(110f, -70f), new V2(-130f, -40f), new V2(30f, 130f), new V2(150f, 80f), new V2(-80f, 120f), new V2(330f, -40f), new V2(-330f, 90f), new V2(270f, 210f) };
+      for (int i = 0; i < spots.Length; i++) {
+        V2 at = from + spots[i];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Juggernaut : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
+        bool wading = Game.InFlood(fz, at, en.Radius);
+        en.Wet = wading || i == 5; en.WetT = en.Wet ? Game.FloodWetAfter : 0f; en.WetLeft = en.WetT; en.WetPeak = Game.FloodWetAfter;
+        if (i == 5) en.WetLeft = 1.4f;  // stepped out a moment ago: its bar drains
+      }
+    }
     if (Environment.GetEnvironmentVariable("RAIN") != null) {
       // A Hemomancer's Sanguine Rain (SanguineRainLook.cs): RAIN=<seconds since the cast> (siphon to 1.8 s, seeds to 2.4 s, then rain; use 4 or 6), with the allies
       // standing near. RAINEND=<seconds since it ended> shows the rings splashing away instead. Use with mode hud.
