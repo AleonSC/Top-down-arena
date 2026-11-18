@@ -76,25 +76,6 @@ namespace Arena
                 expOpen = true;
         }
 
-        // --- Doors mid-wave (free building) ---------------------------------------------------------------------
-
-        /// Free building with a wave on: a small prompt to open a wall (doors only, no new rooms until the wave is over).
-        bool DoorChipUp => game.DoorsOpen && !expOpen && game.Me != null && !game.Me.Downed;
-
-        void DrawDoorChip(Player me)
-        {
-            Ui.Alpha = 1f;
-            var chip = new Rect(W / 2f - 190f, 36f, 380f, 28f);
-            Ui.Pill(chip, new Color(0f, 0.08f, 0.12f, 0.7f));
-            Ui.Label(chip, "[" + Keybinds.KeyName(Keybinds.Get(KeyAction.OpenDoors)).ToUpperInvariant() + "]  OPEN A DOOR  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 12, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleCenter, true);
-            var ev = Event.current;
-            if (Keybinds.IsEvent(KeyAction.OpenDoors, ev) && GUIUtility.keyboardControl == 0)
-            {
-                expOpen = true;
-                ev.Use();
-            }
-        }
-
         // --- The shop room ------------------------------------------------------------------------------------
 
         /// The shop covers your screen: in the Expanding arena, only while you stand in a shop room (and haven't clicked Done).
@@ -125,13 +106,13 @@ namespace Arena
         int expKit;  // the kit picked in the modify screen  // expOpen: the round's window is open (otherwise just its chip shows)
 
         /// The room window covers the screen (you opened it from the chip).
-        bool ExpandWindowUp => game.CanCut && expOpen && !BeamShowing;  // (not over the boss beam-in: BossBeamLook.cs)
+        bool ExpandWindowUp => game.ExpandOpen && expOpen && !BeamShowing;  // (not over the boss beam-in: BossBeamLook.cs)
         V2 expA, expB;  // the drawing's two corners, world px (snapped to the 100 px grid when read)
 
         void DrawExpansionChoice(float t)
         {
             var me = game.Me;
-            if (!game.CanCut || me == null)
+            if (!game.ExpandOpen || me == null)
             {
                 expDrawing = expDragging = expOpen = expModify = false;
                 return;
@@ -239,28 +220,15 @@ namespace Arena
             CrtUi.End(win, t, calm);
         }
 
-        /// The drawing screen: the whole map, zoomed out; drag a box on the 100 px grid. It's checked live (Expansion.Custom) and goes to the vote on release.
+        /// The build screen: the whole map, zoomed out; place a piece from your hand on a door spot (GridRoomsUi.cs), or open a wall, fit a gate,
+        /// a portal pair or a trap.
         void DrawExpansionDraw(float t, bool calm)
         {
             RoundBackdrop(PathDim);
             var win = CrtWindowBegin();
             TipClear();
-            bool free = game.FreeBuild, doorsOnly = !game.ExpandOpen;  // doorsOnly: free building with a wave on, walls only
-            if (doorsOnly)
-            {
-                expCutMode = true;
-                expLinkMode = expGateMode = expTrapMode = false;
-            }
-            DrawBuildRail(doorsOnly, free, calm);
-            bool roomMode = !expCutMode && !expLinkMode && !expGateMode && !expTrapMode;
-            bool cardMode = roomMode && game.RoomCardsOn;  // room cards: the Room tool plays a card instead of drawing (RoomCardsUi.cs)
-            if (cardMode)
-                roomMode = false;
-            bool gridMode = roomMode && game.GridRoomsOn;  // grid rooms: the Room tool snaps a room to a door spot instead of drawing (GridRoomsUi.cs)
-            if (gridMode)
-                roomMode = false;
-            if (!roomMode)
-                expPts.Clear();
+            DrawBuildRail(calm);
+            bool gridMode = !expLinkMode && !expGateMode && !expTrapMode;  // the Pieces tool: a piece snaps to a door spot (GridRoomsUi.cs)
             var map = DrawMapRect;
             var wd = game.ExpansionWorld;
             float pad = 1300f;
@@ -327,65 +295,16 @@ namespace Arena
                 ev.Use();  // (gate mode never draws a box)
             if (expDragging && ev.type != EventType.Layout && ev.type != EventType.Used)
                 expB = Snap(ev.mousePosition);
-            // The room is an outline: left clicks lay corners (a slanted click an L), the first corner or Enter closes it and puts it
-            // to the vote, right click (Esc, Backspace) takes the last corner back; with none laid, a press, drag and let go draws a box.
             V2 cursor = Snap(ev.mousePosition);
             V2 trapSpot = cursor;  // trap mode: where a click would put the trap, and whether it fits
             string trapWhy = null;
             bool trapOk = expTrapMode && over && game.Me != null && game.Me.Stash[expTrapKind] > 0 && Expansion.PlaceSpot(wd, game.Placed, trapSpot, out trapWhy);
             if (expTrapMode && over && trapWhy == null && (game.Me == null || game.Me.Stash[expTrapKind] == 0))
                 trapWhy = "None in your stash: buy one at the Black Market";
-            bool closeRoom = false, laidWall = false;
-            List<int[]> dragBox = null;
-            SurpriseOption? cardPick = null;
-            int cardFits = 0;
             GridPieceOption? gridPick = null;
             int gridFits = 0;
-            if (cardMode)
-                cardPick = CardModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), free, out cardFits);
-            else if (gridMode)
-                gridPick = GridModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), free, out gridFits);
-            else if (roomMode)
-            {
-                if ((ev.type == EventType.MouseDown && ev.button == 1) || (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.Escape || ev.keyCode == KeyCode.Backspace)))
-                {
-                    if (expHeld) expHeld = false;
-                    else if (expPts.Count > 0) expPts.RemoveAt(expPts.Count - 1);
-                    else
-                    {
-                        expDrawing = false;
-                        if (free)
-                            expOpen = false;
-                    }
-                    ev.Use();
-                }
-                else if (ev.type == EventType.MouseDown && ev.button == 0 && over)
-                {
-                    expHeld = true;
-                    expPressAt = ev.mousePosition;
-                    expA = cursor;
-                    ev.Use();
-                }
-                else if (ev.type == EventType.MouseUp && ev.button == 0 && expHeld)
-                {
-                    expHeld = false;
-                    if (expPts.Count == 0 && (ev.mousePosition - expPressAt).magnitude > 12f && expA.X != cursor.X && expA.Y != cursor.Y)
-                        dragBox = BoxCorners(expA, cursor);
-                    else if (expPts.Count >= 3 && expPts[0][0] == (int)cursor.X && expPts[0][1] == (int)cursor.Y)
-                        closeRoom = true;
-                    else if (expPts.Count < Expansion.MaxPoints)
-                    {
-                        AddWall(expPts, (int)cursor.X, (int)cursor.Y);
-                        laidWall = true;
-                    }
-                    ev.Use();
-                }
-                else if (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter) && expPts.Count >= 2)
-                {
-                    closeRoom = true;
-                    ev.Use();
-                }
-            }
+            if (gridMode)
+                gridPick = GridModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), true, out gridFits);
             else if ((ev.type == EventType.MouseDown && ev.button == 1) || (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.Escape))
             {
                 if (expDragging)
@@ -394,11 +313,7 @@ namespace Arena
                     expA = expB = V2.Zero;
                 }
                 else
-                {
-                    expDrawing = false;
-                    if (free)
-                        expOpen = false;
-                }
+                    expDrawing = expOpen = false;
                 ev.Use();
             }
             else if (expTrapMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
@@ -407,7 +322,7 @@ namespace Arena
                     game.PlaceBuild((BuildKind)expTrapKind, (int)trapSpot.X, (int)trapSpot.Y);
                 ev.Use();
             }
-            else if (!roomMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
+            else if (ev.type == EventType.MouseDown && ev.button == 0 && over)
             {
                 if (!expDragging)
                 {
@@ -419,7 +334,7 @@ namespace Arena
                     confirm = true;
                 ev.Use();
             }
-            else if (!roomMode && ev.type == EventType.MouseUp && ev.button == 0 && expHeld)
+            else if (ev.type == EventType.MouseUp && ev.button == 0 && expHeld)
             {
                 expHeld = false;
                 if (expDragging && (ev.mousePosition - expPressAt).magnitude > 12f)
@@ -427,66 +342,8 @@ namespace Arena
                 ev.Use();
             }
             int rx = (int)Mathf.Min(expA.X, expB.X), ry = (int)Mathf.Min(expA.Y, expB.Y), rw = (int)Mathf.Abs(expA.X - expB.X), rh = (int)Mathf.Abs(expA.Y - expB.Y);
-            // The outline as it stands: the corners laid, the wall to the cursor, and back to the first corner (or the box being dragged).
-            List<int[]> shape = null, laid = null;
-            List<ExpansionRoom> outlineRoom = null;
-            string outlineWhy = null;
-            bool fillDraft = false;  // the walls run from one wall to another and fence a space in (no closing back to the first corner)
             int myVectors = game.SpendableVectors(game.Me);
-            if (roomMode)
-            {
-                if (dragBox != null) shape = dragBox;
-                else if (expHeld && expPts.Count == 0 && (ev.mousePosition - expPressAt).magnitude > 12f && expA.X != cursor.X && expA.Y != cursor.Y) shape = BoxCorners(expA, cursor);
-                else if (expPts.Count > 0)
-                {
-                    laid = new List<int[]>(expPts);
-                    if (!closeRoom && over)
-                        AddWall(laid, (int)cursor.X, (int)cursor.Y);
-                    shape = Closed(laid);
-                    // Ending on another room's wall: the map's walls may close it off, and the space fenced in is the room (Expansion.Fill).
-                    if (laid.Count >= 2 && Expansion.OnWall(game.Expanded, laid[laid.Count - 1]))
-                    {
-                        var filled = Expansion.Fill(game.Expanded, laid, expTheme, out string fillWhy);
-                        if (filled != null)
-                        {
-                            fillDraft = true;
-                            shape = laid;
-                            outlineRoom = filled;
-                            if (filled[0].Price > myVectors) { outlineWhy = "Can't afford it: " + filled[0].Price + " vectors, you have " + myVectors; outlineRoom = null; }
-                        }
-                    }
-                }
-                if (fillDraft)
-                {
-                    if (outlineRoom != null && (laidWall || closeRoom))  // the wall just reached another wall and fences a space in: propose it
-                    {
-                        game.ProposeExpandOutline(expPts, expTheme, true);
-                        expDrawing = false;
-                        expPts.Clear();
-                        outlineRoom = null;
-                        shape = null;
-                    }
-                }
-                else if (shape != null && shape.Count >= 4)
-                {
-                    outlineRoom = Expansion.Outline(game.Expanded, shape, expTheme, out outlineWhy);
-                    if (outlineRoom != null && outlineRoom[0].Price > myVectors) { outlineWhy = "Can't afford it: " + outlineRoom[0].Price + " vectors, you have " + myVectors; outlineRoom = null; }
-                }
-                else if (shape != null)
-                    outlineWhy = "Keep going: click more corners";
-                if ((closeRoom || dragBox != null) && outlineRoom != null)
-                {
-                    game.ProposeExpandOutline(shape, expTheme);
-                    expDrawing = false;
-                    expPts.Clear();
-                }
-            }
-            bool hasBox = !roomMode && !cardMode && !gridMode && !expCutMode && !expLinkMode && !expGateMode && !expTrapMode && rw > 0 && rh > 0;
             string why = null;
-            ExpansionRoom? box = null;
-            WallCut cut = default(WallCut);
-            int cutRefund = 0;
-            bool hasCut = expCutMode && (rw > 0 || rh > 0);
             bool hasLink = expLinkMode && (rw > 0 || rh > 0);
             var link = new PortalLink { AX = (short)expA.X, AY = (short)expA.Y, BX = (short)expB.X, BY = (short)expB.Y };
             int linkPrice = 0;
@@ -495,33 +352,9 @@ namespace Arena
                 linkPrice = Expansion.LinkPrice(wd, game.Links.Count, link, out why);
                 if (linkPrice > 0 && (game.Me == null || game.Me.Stash[(int)BuildKind.Teleporter] == 0)) { why = "No teleporter in your stash: buy one at the Black Market"; linkPrice = 0; }
             }
-            if (hasCut)
-            {
-                cut.Vertical = rh > rw;
-                cut.At = (short)(cut.Vertical ? expA.X : expA.Y);
-                cut.From = (short)(cut.Vertical ? ry : rx);
-                cut.Till = (short)(cut.Vertical ? ry + rh : rx + rw);
-                cutRefund = Expansion.CutRefund(game.Expanded, game.Openings, cut, out why);
-            }
-            if (hasBox)
-            {
-                box = Expansion.Custom(game.Expanded, rx, ry, rw, rh, expTheme, out why);
-                int have = game.SpendableVectors(game.Me);
-                if (box.HasValue && box.Value.Price > have) { why = "Can't afford it: " + box.Value.Price + " vectors, you have " + have; box = null; }
-            }
             if (confirm)
             {
-                if (box.HasValue)
-                {
-                    game.ProposeExpandRoom(rx, ry, rw, rh, expTheme);
-                    expDrawing = expDragging = false;
-                }
-                else if (cutRefund > 0)
-                {
-                    game.ProposeExpandCut(cut);
-                    expDrawing = expDragging = false;
-                }
-                else if (linkPrice > 0)
+                if (linkPrice > 0)
                 {
                     game.ProposeExpandLink(link);
                     expDrawing = expDragging = false;
@@ -536,15 +369,7 @@ namespace Arena
             {
                 roomClip = map;
                 RoomMapRect(map.x, map.y, map.width, map.height, new Rgba(0.01f, 0.03f, 0.08f, 0.7f));
-                if (game.GridRoomsOn)
-                    DrawGridLattice(M, lo, hi);  // the lattice, fading out from the map (GridRoomsUi.cs)
-                else
-                {
-                    for (float gx = Mathf.Ceil(lo.X / 500f) * 500f; gx <= hi.X; gx += 500f)  // a faint grid every 5 tiles
-                        RoomMapRect(M(new V2(gx, lo.Y)).X, map.y, 1f, map.height, new Rgba(0.4f, 0.64f, 1f, 0.07f));
-                    for (float gy = Mathf.Ceil(lo.Y / 500f) * 500f; gy <= hi.Y; gy += 500f)
-                        RoomMapRect(map.x, M(new V2(lo.X, gy)).Y, map.width, 1f, new Rgba(0.4f, 0.64f, 1f, 0.07f));
-                }
+                DrawGridLattice(M, lo, hi);  // the lattice, fading out from the map (GridRoomsUi.cs)
                 for (int ai = 0; ai < wd.Areas.Length; ai++)
                 {
                     var a = wd.Areas[ai];
@@ -585,12 +410,6 @@ namespace Arena
                     else
                         RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(0.37f, 0.94f, 1f, 0.8f));
                 }
-                if (expCutMode)  // the walls two rooms share: where an opening can go
-                    foreach (var sw in Expansion.SharedWalls(wd))
-                    {
-                        V2 w0 = M(new V2(sw[0] == 1 ? sw[1] : sw[2], sw[0] == 1 ? sw[2] : sw[1])), w1 = M(new V2(sw[0] == 1 ? sw[1] : sw[3], sw[0] == 1 ? sw[3] : sw[1]));
-                        RoomMapRect(Mathf.Min(w0.X, w1.X) - 1.5f, Mathf.Min(w0.Y, w1.Y) - 1.5f, Mathf.Abs(w1.X - w0.X) + 3f, Mathf.Abs(w1.Y - w0.Y) + 3f, new Rgba(0.37f, 0.94f, 1f, 0.35f));
-                    }
                 for (int li = 0; li < game.Links.Count; li++)  // the portal pairs built, in their pair's colour
                     DrawLinkMark(wd, M, game.Links[li].A, game.Links[li].B, PortalColours[(wd.Portals.Length - game.Links.Count + li) % PortalColours.Length], 1f);
                 foreach (var pb in game.Placed)  // the Black Market traps standing on the map
@@ -621,7 +440,7 @@ namespace Arena
                         float s2 = hot ? 9f : 6f;
                         RoomMapFrame(dc.X - s2, dc.Y - s2, 2f * s2, 2f * s2, hot ? 2f : 1.5f, (hot ? (gateWhy == null ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f)) : new Rgba(1f, 0.85f, 0.4f)).WithAlpha(hot ? 1f : 0.5f + 0.3f * Mathf.Sin(Time.unscaledTime * 3f)));
                     }
-                if ((over || expDragging) && !expGateMode && !cardMode && !gridMode)  // the snapped cursor (a cross) and the corner already placed (a square)
+                if ((over || expDragging) && !expGateMode && !gridMode)  // the snapped cursor (a cross) and the corner already placed (a square)
                 {
                     V2 cur = M(Snap(ev.mousePosition));
                     RoomMapRect(cur.X - 7f, cur.Y - 0.5f, 14f, 1f, Rgba.White.WithAlpha(0.8f));
@@ -632,29 +451,11 @@ namespace Arena
                     V2 anchor = M(expA);
                     RoomMapRect(anchor.X - 4f, anchor.Y - 4f, 8f, 8f, new Rgba(1f, 0.85f, 0.4f, 0.95f));
                 }
-                if (hasCut)
-                {
-                    V2 p0 = M(new V2(cut.Vertical ? cut.At : cut.From, cut.Vertical ? cut.From : cut.At)), p1 = M(new V2(cut.Vertical ? cut.At : cut.Till, cut.Vertical ? cut.Till : cut.At));
-                    var ink = cutRefund > 0 ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f);
-                    RoomMapRect(Mathf.Min(p0.X, p1.X) - 2.5f, Mathf.Min(p0.Y, p1.Y) - 2.5f, Mathf.Abs(p1.X - p0.X) + 5f, Mathf.Abs(p1.Y - p0.Y) + 5f, ink);
-                }
                 if (hasLink)
                     DrawLinkMark(wd, M, expA, expB, linkPrice > 0 ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f), 1f);
-                if (roomMode)
-                    DrawOutlineDraft(M, shape, laid, outlineRoom, cursor, over, fillDraft);
-                if (cardMode)
-                    DrawCardGhost(M, cardPick);
                 if (gridMode)
                     DrawGridGhost(M, gridPick);
-                if (game.GridRoomsOn)
-                    DrawPlaceFx(M, k);  // a piece just built slams in (GridRoomsUi.cs)
-                if (hasBox)
-                {
-                    V2 p0 = M(new V2(rx, ry)), p1 = M(new V2(rx + rw, ry + rh));
-                    var ink = box.HasValue ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f);
-                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha(0.25f));
-                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 2f, ink);
-                }
+                DrawPlaceFx(M, k);  // a piece just built slams in (GridRoomsUi.cs)
                 roomClip = null;
                 EndUiGl();
             }
@@ -688,9 +489,7 @@ namespace Arena
                 }
             string line;
             Color lineInk;
-            if (cardMode)
-                line = CardLine(cardPick, cardFits, over, out lineInk);
-            else if (gridMode)
+            if (gridMode)
                 line = GridRoomLine(gridPick, gridFits, over, out lineInk);
             else if (expGateMode && gateDoor >= 0)
             {
@@ -701,11 +500,6 @@ namespace Arena
             {
                 line = "A gate shuts its doorway to everyone. Shots still pass.";
                 lineInk = Ui.Muted;
-            }
-            else if (hasCut && cutRefund > 0)
-            {
-                line = "OPEN " + cut.Length / Expansion.Step + " TILES OF WALL  ·  +" + cutRefund + " VECTORS (you have " + game.SpendableVectors(game.Me) + " of " + (game.Me != null ? game.Me.VectorCap : 0) + ")  ·  click to " + "build it" + "";
-                lineInk = Ui.Gold;
             }
             else if (expTrapMode)
             {
@@ -722,51 +516,15 @@ namespace Arena
                 line = why ?? "";
                 lineInk = new Color(1f, 0.45f, 0.5f);
             }
-            else if (hasCut)
-            {
-                line = why ?? "";
-                lineInk = new Color(1f, 0.45f, 0.5f);
-            }
-            else if (roomMode && outlineRoom != null)
-            {
-                int loops = 0;
-                foreach (var pr in outlineRoom) loops += Expansion.LoopsOf(game.Expanded, pr);
-                line = "ROOM  ·  " + Expansion.FloorTiles(outlineRoom[0], outlineRoom.GetRange(1, outlineRoom.Count - 1)) + " TILES OF FLOOR  ·  " + outlineRoom[0].Price + " VECTORS (of " + myVectors + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + (fillDraft ? "  ·  FENCED IN BY THE WALLS AROUND IT: click to build it" : expPts.Count >= 3 ? "  ·  click the first corner or press Enter to build it" : "");
-                lineInk = Ui.Gold;
-            }
-            else if (roomMode && shape != null)
-            {
-                line = outlineWhy ?? "";
-                lineInk = new Color(1f, 0.45f, 0.5f);
-            }
-            else if (roomMode && expPts.Count == 0)
-            {
-                line = "Builds the moment you close it.";
-                lineInk = Ui.Muted;
-            }
-            else if (hasBox && box.HasValue)
-            {
-                int loops = Expansion.LoopsOf(game.Expanded, box.Value);
-                line = "ROOM " + rw / 100 + " x " + rh / 100 + " tiles  ·  " + box.Value.Price + " VECTORS (of " + game.SpendableVectors(game.Me) + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + "  ·  click to " + "build it" + "";
-                lineInk = Ui.Gold;
-            }
-            else if (hasBox)
-            {
-                line = why ?? "";
-                lineInk = new Color(1f, 0.45f, 0.5f);
-            }
             else
             {
                 line = "Builds the moment you place it.";
                 lineInk = Ui.Muted;
             }
             int pending = 0;  // what the thing being drawn costs (a refund is negative), for the wallet bar
-            if (roomMode && outlineRoom != null) pending = outlineRoom[0].Price;
-            else if (hasBox && box.HasValue) pending = box.Value.Price;
-            else if (hasCut && cutRefund > 0) pending = -cutRefund;
-            else if (expGateMode && gateDoor >= 0 && gateWhy == null) pending = Gates.Price;
+            if (expGateMode && gateDoor >= 0 && gateWhy == null) pending = Gates.Price;
             var panel = new Rect(map.xMax + 16f, map.y, win.xMax - map.xMax - 32f, H - 30f - map.y);
-            float py = DrawBuildPanelTop(panel, doorsOnly, roomMode, pending, gateDoor);
+            float py = DrawBuildPanelTop(panel, pending, gateDoor);
             if (!lineInk.Equals(Ui.Muted) && !string.IsNullOrEmpty(line))  // (the standing hints are hover tips now: only live feedback shows here)
             {
                 DkSub(new Rect(panel.x + 10f, py, panel.width - 20f, 74f), new Color(0f, 0f, 0f, 0.35f));
@@ -775,30 +533,12 @@ namespace Arena
             }
             float bx = panel.x + 10f, bw = panel.width - 20f;
             float actY = panel.yMax - 140f;  // the action keys sit just above Close and Done · ready up
-            if (cardMode)
-                DrawCardHand(new Rect(bx, py, bw, actY - 46f - py), calm);
-            else if (gridMode)
+            if (gridMode)
                 DrawGridPalette(new Rect(bx, py, bw, actY - 46f - py), calm);
-            else if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
-                DrawThemeGrid(new Rect(bx, py, bw, actY - 46f - py), calm);
-            if (roomMode && expPts.Count > 0)
-            {
-                var laidRoom = LaidRoom(out var closedLaid, out bool laidFill);
-                bool can = laidRoom != null && laidRoom[0].Price <= myVectors;
-                float hw = (bw - 6f) / 2f;
-                if (CrtUi.SoftKey(new Rect(bx, actY, hw + 30f, 36f), can ? "BUILD  ·  " + laidRoom[0].Price : "BUILD", null, 15, calm, lit: can) && can)
-                {
-                    game.ProposeExpandOutline(closedLaid, expTheme, laidFill);
-                    expDrawing = false;
-                    expPts.Clear();
-                }
-                if (CrtUi.SoftKey(new Rect(bx + hw + 36f, actY, hw - 30f, 36f), "UNDO", null, 15, calm) && expPts.Count > 0)
-                    expPts.RemoveAt(expPts.Count - 1);
-            }
-            // Free building: Close (back to the arena, the wave box folds into its strip) and Done · ready up (closes and readies you).
+            // Close (back to the arena, the wave box folds into its strip) and Done · ready up (closes and readies you).
             // Readying needs the break (not mid-wave, not before a boss: the gate decides, nor with Auto-ready on).
             var meR = game.Me;
-            bool canReady = free && meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
+            bool canReady = meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
             if (canReady && CrtUi.SoftKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", null, 18, calm, lit: true))
             {
                 expDrawing = expDragging = false;
@@ -806,13 +546,12 @@ namespace Arena
                 if (!meR.Ready)
                     game.SetMyReady(true);
             }
-            if (CrtUi.SoftKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), free ? "CLOSE" : "BACK", null, canReady ? 18 : 22, calm))
+            if (CrtUi.SoftKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), "CLOSE", null, canReady ? 18 : 22, calm))
             {
                 expDrawing = expDragging = false;
-                if (free)
-                    expOpen = false;
+                expOpen = false;
             }
-            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), cardMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the card back   ·   ESC  close" : gridMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the piece back   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), gridMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the piece back   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
             DrawTip(true);
             CrtUi.End(win, t, calm);
         }
@@ -822,116 +561,10 @@ namespace Arena
         bool expPan;  // middle mouse is panning it
         bool expHeld;  // the mouse button of the box being drawn is still down
         Vector2 expPressAt;
-        bool expCutMode;  // the draw screen opens a wall instead of drawing a room
         bool expLinkMode;  // the draw screen places a portal pair (Docs/RoomBuilding2.md step 2): a teleporter from the stash (Market.cs)
         bool expTrapMode;  // the draw screen places a trap from the stash (Market.cs), one click
         int expTrapKind = (int)BuildKind.SpikeTrap;
         bool expGateMode;  // the draw screen fits a shutter gate to a door (Docs/RoomBuilding2.md step 3)
-        readonly List<int[]> expPts = new List<int[]>();   // the room outline's corners laid so far: x, y (Expansion.Outline)
-
-        /// A wall from the last corner to (x, y): straight on, or an L (the longer way first) when the click is slanted.
-        static void AddWall(List<int[]> pts, int x, int y)
-        {
-            if (pts.Count > 0)
-            {
-                var l = pts[pts.Count - 1];
-                if (l[0] == x && l[1] == y)
-                    return;
-                if (l[0] != x && l[1] != y)
-                    pts.Add(Mathf.Abs(x - l[0]) >= Mathf.Abs(y - l[1]) ? new[] { x, l[1] } : new[] { l[0], y });
-            }
-            pts.Add(new[] { x, y });
-        }
-
-        /// The corners with the walls back to the first one added.
-        // The side panel's room from the corners laid so far (no cursor), kept while the corners, the theme and the map
-        // stay the same: Fill and Outline rasterise the whole map, and OnGUI asks every frame. (Kept at most a quarter
-        // second, since a room can change type in place without the map's count changing.)
-        int laidKey;
-        float laidAt = float.NegativeInfinity;
-        List<int[]> laidClosed;
-        bool laidWasFill;
-        List<ExpansionRoom> laidResult;
-
-        List<ExpansionRoom> LaidRoom(out List<int[]> closedLaid, out bool laidFill)
-        {
-            int key = 17;
-            unchecked
-            {
-                foreach (var p in expPts)
-                    key = (key * 31 + p[0]) * 31 + p[1];
-                key = (key * 31 + (int)expTheme) * 31 + game.Expanded.Count;
-            }
-            float now = Time.unscaledTime;
-            if (key != laidKey || now - laidAt > 0.25f || laidClosed == null)
-            {
-                laidKey = key;
-                laidAt = now;
-                laidWasFill = expPts.Count >= 2 && Expansion.OnWall(game.Expanded, expPts[expPts.Count - 1]);
-                laidClosed = laidWasFill ? new List<int[]>(expPts) : Closed(new List<int[]>(expPts));
-                laidResult = laidWasFill ? Expansion.Fill(game.Expanded, laidClosed, expTheme, out string fw0) : null;
-                if (laidResult == null)
-                {
-                    laidWasFill = false;
-                    laidClosed = Closed(new List<int[]>(expPts));
-                    laidResult = laidClosed.Count >= 4 ? Expansion.Outline(game.Expanded, laidClosed, expTheme, out string fw1) : null;
-                }
-            }
-            closedLaid = laidClosed;
-            laidFill = laidWasFill;
-            return laidResult;
-        }
-
-        static List<int[]> Closed(List<int[]> pts)
-        {
-            var c = new List<int[]>(pts);
-            if (c.Count < 2)
-                return c;
-            var f = c[0];
-            AddWall(c, f[0], f[1]);
-            if (c.Count > 1 && c[c.Count - 1][0] == f[0] && c[c.Count - 1][1] == f[1])
-                c.RemoveAt(c.Count - 1);
-            return c;
-        }
-
-        static List<int[]> BoxCorners(V2 a, V2 b) => new List<int[]>
-        {
-            new[] { (int)a.X, (int)a.Y }, new[] { (int)b.X, (int)a.Y }, new[] { (int)b.X, (int)b.Y }, new[] { (int)a.X, (int)b.Y },
-        };
-
-        /// The outline being drawn: its floor (green when it fits, the pieces it would be built from), the walls laid (bright), the wall to
-        /// the cursor and the way back to the first corner (dim), each corner, and the first corner ringed when clicking it would close it.
-        void DrawOutlineDraft(System.Func<V2, V2> M, List<int[]> shape, List<int[]> laid, List<ExpansionRoom> room, V2 cursor, bool over, bool open = false)
-        {
-            if (shape == null)
-                return;
-            var ink = room != null ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f);
-            if (room != null)
-                foreach (var r in room)
-                {
-                    V2 p0 = M(new V2(r.X, r.Y)), p1 = M(new V2(r.X1, r.Y1));
-                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha(0.22f));
-                }
-            int solid = laid == null ? shape.Count : expPts.Count - 1;  // walls up to here are laid; the rest follow the cursor
-            for (int i = 0; i < shape.Count; i++)
-            {
-                if (laid != null && i == shape.Count - 1 && (shape.Count < 3 || open))
-                    break;  // (an open run of walls has no way back to its first corner)
-                V2 a = M(new V2(shape[i][0], shape[i][1])), b = M(new V2(shape[(i + 1) % shape.Count][0], shape[(i + 1) % shape.Count][1]));
-                bool firm = i < solid;
-                float th = firm ? 2.5f : 1.5f;
-                RoomMapRect(Mathf.Min(a.X, b.X) - th / 2f, Mathf.Min(a.Y, b.Y) - th / 2f, Mathf.Abs(b.X - a.X) + th, Mathf.Abs(b.Y - a.Y) + th, ink.WithAlpha(firm ? 1f : 0.5f));
-            }
-            for (int i = 0; i < expPts.Count; i++)
-            {
-                V2 c = M(new V2(expPts[i][0], expPts[i][1]));
-                float s = i == 0 ? 5f : 3f;
-                RoomMapRect(c.X - s, c.Y - s, 2f * s, 2f * s, i == 0 ? new Rgba(1f, 0.85f, 0.4f, 0.95f) : Rgba.White.WithAlpha(0.9f));
-            }
-            if (over && expPts.Count >= 3 && expPts[0][0] == (int)cursor.X && expPts[0][1] == (int)cursor.Y)
-                Arc(M(cursor), 10f, 2f, new Rgba(1f, 0.85f, 0.4f, 0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 6f)), 20);
-        }
-
         /// A portal pair on a map: a dashed line between its ends, and at each end a bar along its wall with a chevron into the room
         /// (a wall portal), or a ring (an end off the walls: an older save's floor portal, or a click not on an outer wall yet).
         void DrawLinkMark(World wd, System.Func<V2, V2> M, V2 wa, V2 wb, Rgba ink, float alpha)
@@ -970,34 +603,30 @@ namespace Arena
                 spin += 3f;
             }
         }
-        PathId expTheme = PathId.None;  // the theme the next drawn room carries
-
-        /// The themes you can draw a room with: Plain, then each path as a room (its extra vectors; locked until enough bosses are down).
         /// The draw screen's map area: between the tool rail on the left and the guide panel on the right.
         Rect DrawMapRect => new Rect(222f, 34f, W - 222f - 290f, H - 34f - 74f);
 
-        /// The draw screen's tool rail: the title, the four tools (keys 1-4), the kit key and what the map's colours mean.
-        void DrawBuildRail(bool doorsOnly, bool free, bool calm)
+        /// The build screen's tool rail: the title, the tools (keys 1-4: pieces, teleporter, gate, trap), the kit key and what the map's colours mean.
+        void DrawBuildRail(bool calm)
         {
             float x = 48f, w = 158f;
             CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
-            Ui.Label(new Rect(x + 2f, 64f, w, 16f), doorsOnly ? "WAVE ON  ·  DOORS ONLY" : "BUILT AS YOU PLACE IT", 10, doorsOnly ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[] names = { game.RoomCardsOn ? "ROOM CARDS" : game.GridRoomsOn ? "PIECES" : "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
-            // The tools shown: Open wall only where it is in play (not in a Grid run), the buildables only while you own one (owner Nov 18).
+            Ui.Label(new Rect(x + 2f, 64f, w, 16f), "BUILT AS YOU PLACE IT", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            string[] names = { "PIECES", "TELEPORTER", "GATE", "TRAP" };
+            // The tools shown: the buildables only while you own one (owner Nov 18).
             var me0 = game.Me;
             bool trapsHeld = false;
             if (me0 != null)
                 for (int tk = 1; tk < Market.Count; tk++)
                     trapsHeld |= me0.Stash[tk] > 0;
             var shown = new List<int> { 0 };
-            if (game.OpenWallsOn) shown.Add(1);
-            if (me0 != null && me0.Stash[(int)BuildKind.Teleporter] > 0 || expLinkMode) shown.Add(2);
-            shown.Add(3);
-            if (trapsHeld || expTrapMode) shown.Add(4);
-            int cur = expTrapMode ? 4 : expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0;
+            if (me0 != null && me0.Stash[(int)BuildKind.Teleporter] > 0 || expLinkMode) shown.Add(1);
+            shown.Add(2);
+            if (trapsHeld || expTrapMode) shown.Add(3);
+            int cur = BuildTool;
             var ev = Event.current;
             int pick = -1;
-            if (!doorsOnly && ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode < KeyCode.Alpha1 + shown.Count)
+            if (ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode < KeyCode.Alpha1 + shown.Count)
             {
                 pick = shown[ev.keyCode - KeyCode.Alpha1];
                 ev.Use();
@@ -1007,20 +636,14 @@ namespace Arena
                 int i = shown[si0];
                 var r = new Rect(x, 92f + si0 * 42f, w, 36f);
                 bool on = i == cur;
-                if (doorsOnly && i != 1)
-                {
-                    Ui.Pill(r, new Color(0f, 0f, 0f, 0.4f));
-                    Ui.Label(r, names[i], 14, new Color(1f, 1f, 1f, 0.25f), TextAnchor.MiddleCenter, true);
-                    continue;
-                }
-                if (CrtUi.SoftKey(r, names[i], null, 15, calm, lit: on) && !doorsOnly)
+                if (CrtUi.SoftKey(r, names[i], null, 15, calm, lit: on))
                     pick = i;
                 Ui.Label(new Rect(r.x + 8f, r.y, 14f, r.height), (si0 + 1).ToString(), 10, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
                 if (TipHover(r))
                 {
                     string tt, tp;
                     string[] st;
-                    BuildToolHelp(i, doorsOnly, out tt, out st, out tp);
+                    BuildToolHelp(i, out tt, out st, out tp);
                     TipStart(r, tt, CrtUi.Ink);
                     for (int si = 0; si < st.Length; si++)
                         TipAdd((si + 1) + "  " + st[si], 12, Ui.Text);
@@ -1029,15 +652,14 @@ namespace Arena
             }
             if (pick >= 0 && pick != cur)
             {
-                expCutMode = pick == 1;
-                expLinkMode = pick == 2;
-                expGateMode = pick == 3;
-                expTrapMode = pick == 4;
+                expLinkMode = pick == 1;
+                expGateMode = pick == 2;
+                expTrapMode = pick == 3;
                 expDragging = false;
                 expA = expB = V2.Zero;
             }
             float y = 92f + shown.Count * 42f + 6f;
-            if (expTrapMode && !doorsOnly && game.Me != null)  // the traps in your stash: pick which one a click places
+            if (expTrapMode && game.Me != null)  // the traps in your stash: pick which one a click places
             {
                 for (int tk = 1; tk < Market.Count; tk++)
                 {
@@ -1047,7 +669,7 @@ namespace Arena
                 }
                 y += 4f;
             }
-            if (free && !doorsOnly && game.RoomTokens.Count > 0)  // (free building has no vote window to hold the kit key)
+            if (game.RoomTokens.Count > 0)
             {
                 if (CrtUi.SoftKey(new Rect(x, y, w, 32f), "ROOM KITS  ·  " + game.RoomTokens.Count, null, 14, calm))
                 {
@@ -1101,7 +723,7 @@ namespace Arena
 
         /// The top of the draw screen's guide panel: the wallet (with what the drawing would cost), the tool's name and its three steps.
         /// Returns where the panel's next part goes.
-        float DrawBuildPanelTop(Rect p, bool doorsOnly, bool roomMode, int pending, int gateDoor)
+        float DrawBuildPanelTop(Rect p, int pending, int gateDoor)
         {
             DkSub(p, new Color(0.02f, 0.05f, 0.12f, 0.6f));
             float x = p.x + 14f, w = p.width - 28f, y = p.y + 10f;
@@ -1132,97 +754,41 @@ namespace Arena
             CrtKit.Frame(new Rect(x, y - 8f, w, 1f), 1f, new Color(1f, 1f, 1f, 0.08f));
             string title, tip;
             string[] steps;
-            BuildToolHelp(expTrapMode ? 4 : expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0, doorsOnly, out title, out steps, out tip);
+            BuildToolHelp(BuildTool, out title, out steps, out tip);
             CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
             y += 32f;
             return y + 4f;
         }
 
-        /// What each build tool does, for its hover tip: tool 0 room, 1 open wall, 2 teleporter, 3 gate, 4 trap.
-        void BuildToolHelp(int tool, bool doorsOnly, out string title, out string[] steps, out string tip)
+        /// The build tool in use: 0 pieces, 1 teleporter, 2 gate, 3 trap.
+        int BuildTool => expTrapMode ? 3 : expGateMode ? 2 : expLinkMode ? 1 : 0;
+
+        /// What each build tool does, for its hover tip (BuildTool's numbers).
+        void BuildToolHelp(int tool, out string title, out string[] steps, out string tip)
         {
-            if (tool == 3)
+            if (tool == 2)
             {
                 title = "FIT A GATE";
                 steps = new[] { "Point at a door (gold squares)", "Click it to fit a gate: " + Gates.Price + " vectors", "In a wave, by it press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() };
                 tip = "Shuts for " + (int)Gates.CloseTime + " s, " + (int)Gates.Cooldown + " s to recharge.  " + game.GateFits.Count + " of " + Gates.Max + " fitted.";
             }
-            else if (tool == 2)
+            else if (tool == 1)
             {
                 title = "TELEPORTER PAIR";
                 steps = new[] { "Click a room's outer wall", "Click another room's outer wall", "Walk into one, out of the other" };
                 tip = "Uses one from your stash (" + (game.Me != null ? game.Me.Stash[(int)BuildKind.Teleporter] : 0) + "). Enemies use them too.  " + game.Links.Count + " of " + Expansion.MaxLinks + " built.";
             }
-            else if (tool == 4)
+            else if (tool == 3)
             {
                 title = "PLACE A TRAP";
                 steps = new[] { "Pick one from your stash", "Point at a spot in a room", "Click to place it" };
                 tip = "Bought at the Black Market. They stand on the map, " + game.Placed.Count + " of " + Market.MaxPlaced + ". They have no effect yet.";
             }
-            else if (tool == 1)
-            {
-                title = "OPEN A WALL";
-                steps = new[] { "Find a cyan wall two rooms share", "Click one end of the stretch", "Click the other end" };
-                tip = (doorsOnly ? "A wave is on: only doors for now. " : "") + "At least " + Expansion.MinCut / 100 + " tiles. You get 1 vector back per tile of wall.";
-            }
-            else if (game.GridRoomsOn)
+            else
             {
                 title = "PLACE A PIECE";
                 steps = new[] { "Pick a piece from your hand", "Point at a glowing door spot on a wall", "Click to build it  ·  R turns it" };
                 tip = "Every room is a piece card. Pieces snap to door spots on the walls of rooms you have built, and playing one is free.";
-            }
-            else if (game.RoomCardsOn)
-            {
-                title = "PLAY A ROOM CARD";
-                steps = new[] { "Pick a card from your hand", "Point where it should go (the dots fit)", "Click to build it  ·  R turns it" };
-                tip = "Every room is a card. You get one each round; bosses, chests and the Black Market give more.";
-            }
-            else
-            {
-                title = "DRAW A ROOM";
-                steps = new[] { "Click a corner on the grid", "Click more corners", "Click the first corner or a wall" };
-                tip = "A slanted click makes an L. Or drag a box. " + Expansion.MinSide / 100 + " tiles wide everywhere.";
-            }
-        }
-
-        /// The room types for a drawn room, two to a row; the locked ones say which boss unlocks them, the picked one says what it does.
-        void DrawThemeGrid(Rect area, bool calm)
-        {
-            var themes = new List<PathId> { PathId.None };
-            themes.AddRange(Expansion.Floors);
-            if (!Expansion.ThemeUnlocked(expTheme, game.Wave))
-                expTheme = PathId.None;
-            Ui.Label(new Rect(area.x, area.y, area.width, 16f), "ROOM TYPE", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            float gap = 6f, cw = (area.width - gap) / 2f, ch = 34f, y0 = area.y + 20f;
-            int lockedCount = 0;
-            var open = new List<PathId>();
-            foreach (var f in themes)
-                if (Expansion.ThemeUnlocked(f, game.Wave)) open.Add(f);
-                else lockedCount++;
-            for (int i = 0; i < open.Count; i++)
-            {
-                var f = open[i];
-                var r = new Rect(area.x + (i % 2) * (cw + gap), y0 + (i / 2) * (ch + gap), cw, ch);
-                string name = f == PathId.None ? "PLAIN" : Paths.Get(f).Name.ToUpperInvariant();
-                bool on = expTheme == f;
-                if (CrtUi.SoftKey(r, "", null, 11, calm, lit: on))
-                    expTheme = f;
-                Ui.Label(new Rect(r.x, r.y + 3f, r.width, 16f), name, 11, on ? Color.white : CrtUi.Ink, TextAnchor.MiddleCenter, true);
-                Ui.Label(new Rect(r.x, r.y + 18f, r.width, 13f), f == PathId.None ? "FREE" : "+" + Expansion.ThemeCost(f) + " VECTORS", 9, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
-                if (TipHover(r))
-                {
-                    TipStart(r, name, CrtUi.Ink);
-                    TipAdd(f == PathId.None ? "An ordinary room: no theme, no extra cost." : FloorBlurb(f), 12, Ui.Text);
-                }
-            }
-            float y = y0 + ((open.Count + 1) / 2) * (ch + gap);
-            if (lockedCount > 0)
-            {
-                int next = 99;
-                foreach (var f in themes)
-                    if (!Expansion.ThemeUnlocked(f, game.Wave)) next = Mathf.Min(next, Expansion.ThemeBoss(f));
-                Ui.Label(new Rect(area.x, y, area.width, 16f), "+" + lockedCount + " more after boss " + next, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-                y += 20f;
             }
         }
 
@@ -1252,7 +818,7 @@ namespace Arena
             if (!game.ExpandingOn || me == null)
                 return false;
             bool full = me.Vectors >= me.VectorCap;
-            string text = "VECTORS  " + VectorChipCount(me) + " / " + me.VectorCap + (full ? "  FULL" : "") + PushChipNote;  // (pushing a wall: what the next push spends; counting up as vectors come in, VectorGainLook.cs)
+            string text = "VECTORS  " + VectorChipCount(me) + " / " + me.VectorCap + (full ? "  FULL" : "");  // (counting up as vectors come in, VectorGainLook.cs)
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
             vecChipRect = chip;

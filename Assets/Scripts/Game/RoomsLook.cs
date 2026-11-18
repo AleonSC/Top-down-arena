@@ -76,12 +76,12 @@ namespace Arena
         }
 
         /// Is this area one of a Grid run's core rooms (GridRooms.cs)? They look like the start room: no tint of their own, and the openings between them draw no door.
-        bool CoreArea(int area) => game.GridRoomsOn && area >= 1 && area <= game.Expanded.Count && Expansion.IsGridCore(game.Expanded[area - 1]);
+        bool CoreArea(int area) => game.ExpandingOn && area >= 1 && area <= game.Expanded.Count && Expansion.IsGridCore(game.Expanded[area - 1]);
 
         bool CoreSeam(World wd, int door)
         {
             var d = wd.Doors[door];
-            return game.GridRoomsOn && d.B >= 1 && (d.A == 0 || CoreArea(d.A)) && CoreArea(d.B);
+            return game.ExpandingOn && d.B >= 1 && (d.A == 0 || CoreArea(d.A)) && CoreArea(d.B);
         }
 
         void DrawRoomsFloor(Rgba grid)

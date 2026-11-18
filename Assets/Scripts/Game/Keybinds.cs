@@ -40,14 +40,15 @@ namespace Arena
             "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
             "Cycles the minimap, the full map and no map",
         };
-        /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one).
+        /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one, except PushWall:
+        /// retired with wall push, Nov 18, kept so saved keys keep their slots).
         public static readonly string[] GroupNames = { "MOVEMENT", "ABILITIES", "WEAPON", "ITEMS AND PICKS", "TOGGLES" };
         public static readonly KeyAction[][] Groups =
         {
             new[] { KeyAction.MoveUp, KeyAction.MoveDown, KeyAction.MoveLeft, KeyAction.MoveRight, KeyAction.Dodge },
             new[] { KeyAction.Ability, KeyAction.Ultimate, KeyAction.AbilityQ, KeyAction.AbilityE, KeyAction.AbilityShift },
             new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
-            new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.PushWall, KeyAction.OpenDoors, KeyAction.Reroll },
+            new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.OpenDoors, KeyAction.Reroll },
             new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
         };
 

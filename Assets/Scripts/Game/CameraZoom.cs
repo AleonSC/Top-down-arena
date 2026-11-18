@@ -61,7 +61,7 @@ namespace Arena
             }
             if (game.Paused)
                 return;  // (the picture holds still behind a pause menu, and the wheel is the menu's)
-            if (scrollZoom && !EndingOn && !devMenuOpen && !devFrozen && !PushingWall && !ShopScreenUp(me) && !InventoryUp)  // (the Tab screen's Inventory page: the wheel scrolls its lists, InventoryUi.cs)  // (the shop and Black Market cover the screen: no zoom behind them; pushing a wall: the wheel sets its width, WallPushLook.cs)
+            if (scrollZoom && !EndingOn && !devMenuOpen && !devFrozen && !ShopScreenUp(me) && !InventoryUp)  // (the Tab screen's Inventory page: the wheel scrolls its lists, InventoryUi.cs)  // (the shop and Black Market cover the screen: no zoom behind them)
             {
                 float wheel = Input.mouseScrollDelta.y;
                 if (wheel > 0.01f || wheel < -0.01f)
@@ -91,7 +91,7 @@ namespace Arena
                 }
                 if (zoomHintT > 0f)
                     zoomHintT = zoomWant <= 1.02f ? 0f : zoomHintT - dt;
-                V2 want2 = PushingWall ? PushFocus(subject, camZoom) : RoomsFocus(subject, camZoom);  // (pushing a wall: leaning toward it, past the map's edge, WallPushLook.cs)
+                V2 want2 = RoomsFocus(subject, camZoom);
                 if (fresh || (want2 - camFocus).Length > 1600f)
                     camFocus = want2;  // (the rooms just came up, or a teleport: a cut)
                 else
