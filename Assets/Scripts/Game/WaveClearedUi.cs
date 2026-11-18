@@ -332,9 +332,9 @@ namespace Arena
             float x = r.x + 14f, y = r.y + 12f, w = r.width - 28f;
             HudCrt(new Rect(x, y, w, 18f), "BUILD THE ARENA", 18, CrtUi.Dim);
             y += 26f;
-            int vec = game.TeamPurse ? game.SpendableVectors(me) : me.Vectors;
+            int vec = me.Vectors;
             CrtUi.Title(new Rect(x, y, 90f, 44f), vec.ToString(), 40, CrtStyle.Gold, TextAnchor.MiddleLeft, calm);
-            HudCrt(new Rect(x + 96f, y + 10f, w - 96f, 22f), (game.TeamPurse ? "TEAM PURSE" : "VECTORS") + " / " + me.VectorCap, 20, CrtUi.Dim);
+            HudCrt(new Rect(x + 96f, y + 10f, w - 96f, 22f), "VECTORS / " + me.VectorCap, 20, CrtUi.Dim);
             y += 52f;
             float pw = Mathf.Min(w, 25f * 14f);
             int cap = Mathf.Max(1, me.VectorCap);

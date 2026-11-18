@@ -709,9 +709,8 @@ Boss approach below. Boss Hunts are unchanged.
 
 Only with **Campaign buildup** off (above), and in runs saved before the 100-wave Campaign (there, halve the wave numbers
 here). The eight waves before each boss are its **approach**, in four steps of two waves: part of each wave is the boss's own kind of enemy, so you meet
-its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)). How much is a lobby setting
-(Difficulty tab, below): **Blend** (the default) builds up over the four steps, 34%, 51%, 68% then 85% of each wave;
-**Fully themed** makes all eight waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix,
+its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)). It's always **Blend** (no lobby picker since Nov 18):
+it builds up over the four steps, 34%, 51%, 68% then 85% of each wave. The rest of each wave is the usual mix,
 paths still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the
 boss fight itself is the same. A line at the top of the screen says "The Warden  in 2 waves", and the banner before
 the first and last waves says you're on the road to the boss, then that it's near. The **Warden**'s faction (waves 1-8), and the last two waves before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 11-18): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last two waves. The **Singularity** has one too (waves 31-38): the **Infall**, eight enemies with four squads (below), and on the last two waves the **Accretion ring**: eight Debris and four Orbiters in a ring round you, 320 px out, with **two gaps**. It turns slowly and closes in to 110 px over about 10 s while the Orbiters sling their orbs inward: walk out through a gap. A faint violet **band** runs along the ring, with the two gaps left dark, edged in green and marked with chevrons pointing out. Bots walk out through a gap, keep clear of a White Dwarf's flash, Small Wells and Implosions. It breaks up after 12 s or once half of it is down. The **Lich** has one too (waves 61-68): eight, all seven of Zombie Infection's zombies and his own **Grave Caller**.
@@ -1126,7 +1125,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
-- **Room cards** (the old cards, off by default since Grid became the default; the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote** / **Grid**, plus **Team purse**). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
+- **Room cards** (**retired** Nov 18: no longer in the lobby, the code is kept; only saved runs from before still use them). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
   Every room is a card in your own **hand** (up to **6**). Cards: **Box** (7 x 6), **Hall** (8 x 3), **Chamfer**, **L hall**, **T hall**, **Cross**, **Ring**
   (the surprise-room shapes), two **utility cards**: **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it
   for a prize pick) and **Builder Shop** (a 5 x 4 amber shop room, see below), and the **service cards** **Shop**, **Black Market** and **Arms Dealer** (a tiny
@@ -1152,14 +1151,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
     crossing and a block in each arm (a pinwheel); **L hall** a pillar in the bend and blocks off alternate walls; **T hall** a pillar facing the stem and a block in
     each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars; **Builder Shop** a pillar in each corner. Card rooms get no random cover or side walls.
   - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's and Builder Shop's cards.
-- **Grid** (the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote** / **Grid**, plus **Team purse**; **the default**). Design: [`Docs/GridRooms.md`](Docs/GridRooms.md) and [`Docs/GridPieces.md`](Docs/GridPieces.md). A saved run from before keeps its old building mode. Rooms are built on a grid from **piece cards** (below): every room hangs off a glowing **door spot** on a built room's wall.
+- **Grid** (**the only building mode**: the lobby's Building row is gone since Nov 18). Design: [`Docs/GridRooms.md`](Docs/GridRooms.md) and [`Docs/GridPieces.md`](Docs/GridPieces.md). A saved run from before keeps its old building mode. Rooms are built on a grid from **piece cards** (below): every room hangs off a glowing **door spot** on a built room's wall.
   - **The core**: the run starts with the start room grown to 4 x 3 cells (2400 x 1800) by four free rooms round it, the walls between them open, so there are 14 door spots round the core. Every room sits on one lattice of 6-tile cells.
   - Built at once (no vote). Drawn rooms, outlines, wall push and the old room cards are off in this mode; open walls, teleporters, gates and traps work as usual.
   - **Nodes and chests** sit at the middle of a room-sized cell, so building out along the grid claims them with the chest or relic in the middle of its room (a chest or relic always stands in the middle of the room that claims it).
   - Bots build on door spots too.
   - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or on a floor) and one-cell service cards. They come as the room cards do: a starting hand, a card each round, wave drops, chests, the vendor, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run.
   - **Mini-bosses**: each boss cycle a sealed two-cell mini-boss room waits on the grid, one cell out from the map. Build a piece into the cell between to open it, then walk in to wake the coming boss's faction mini-boss (as before: the room locks, beat it for a prize pick).
-- **Building rounds** (Free draw and Team vote): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
+- **Building rounds** (Free draw and Team vote, both **retired** Nov 18: not in the lobby, code kept for saved runs): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
   **Propose**) to close it. You don't have to close it yourself: **end a run of walls on another room's wall** and, if the map's
@@ -1211,10 +1210,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
-- **Free building (the default)**: the lobby's **Free building / Team vote** pair (Difficulty tab, shown with the Expanding arena, host only) sets how it's built.
+- **Free building** (retired with Free draw): the old lobby pair **Free building / Team vote** set how it was built.
   With **Free building** there is no vote: a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
   anyone can build as many as they can afford in a round (the round window is just the draw screen; **Close** closes it, **Done · ready up** closes it and readies you; either way the wave box comes back as its minimized strip). **Nothing can be built mid-wave**: rooms, doors and portals all wait for the break between waves. Bots still add one room a round, and only if nobody has built that round.
-  The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
+  (The old **Team purse** is gone: every build is paid from the builder's own vectors.)
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
 - **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
   own proposal counts for you (the round never ends just because the last player drew). **The moment one choice is backed by more than
@@ -1479,8 +1478,8 @@ and green when it's easier. Hover a number for what it does.
 | Approach ramp (build up over the four steps) | On | **On** | On | On | On / Off |
 
 The two **boss approach** numbers are flavour, not difficulty: they're the same on every preset, changing them doesn't
-make the difficulty Custom, and picking a preset keeps them. **Blend** and **Fully themed** buttons under them set
-both at once (60% with the ramp; 100% without).
+make the difficulty Custom, and picking a preset keeps them. They're fixed at Blend (85% with the ramp): the lobby's
+Blend / Fully themed picker is gone (Nov 18).
 The arena isn't picked here any more: the Campaign is the Expanding arena, the **Simple Arena** modifier keeps the open
 arena with its floor plans (always on), and the Rooms arena is a prototype in the dev dock. A run saved before the
 Campaign keeps the arena it was saved with.

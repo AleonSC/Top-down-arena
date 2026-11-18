@@ -76,7 +76,7 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
 - **Features are rebuilt from the box**, like `AddFins`: rows 1 to depth-2 get the rolled feature, so every machine
   builds the same map from the room list. New solids since the last build use the existing rise animation (`LayoutAge`).
 - **Wire**: a client sends `Msg.WallPush` (area, side, start tile, width). The host checks it (between waves, free building,
-  reach with some slack, rules, cost), grows or makes the box, charges the pusher (the Team purse applies) and sends the map with
+  reach with some slack, rules, cost), grows or makes the box, charges the pusher (from their own vectors) and sends the map with
   `BroadcastExpansion`, at most 10 times a second while someone holds the button. **Protocol bump** in step 1.
 - Breaches use the new outer wall automatically. A map node in the new space is claimed the same way as when a drawn room
   covers it (`TickNodes`). The parent's side walls (`AddFins`) skip the open join like any door.
@@ -89,8 +89,8 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
   pushed walls* (40), *Can't push this room's walls*). Pushing a section's far wall over its full width grows it; any other stretch
   starts a new section off it.
 - Host: `Game.CanPush` (free building, between waves), `PushWall` / `Msg.WallPush` / `HostWallPush`: the player within 10 tiles
-  (`PushReach` 700 + `PushSlack` 300) of the wall's middle, not downed, at most one push per 0.15 s each; pays like any build (Team purse
-  too), then `BroadcastExpansion`. Protocol 349.
+  (`PushReach` 700 + `PushSlack` 300) of the wall's middle, not downed, at most one push per 0.15 s each; pays like any build (own vectors only),
+  then `BroadcastExpansion`. Protocol 349.
 - `Expansion.Grown`: a pushed wall alone raises the map (`Rooms.cs`). Sections get no random cover or fins (`Build`); step 3 gives them features.
 - Saves carry sections through `Leg` (no format change). Test `ExpandingPushTest` (suites `expand` and `push`).
 
