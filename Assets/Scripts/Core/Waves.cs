@@ -39,6 +39,8 @@ namespace Arena
                 p.OfferMod = false;
                 p.PendingCards = 0;
                 p.OfferCards = false;
+                p.WavePicks = 0;
+                p.OfferWave = false;
                 p.PendingMilestones = 0;
                 p.OfferMilestone = false;
             }

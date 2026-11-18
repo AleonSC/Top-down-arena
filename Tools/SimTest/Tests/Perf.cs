@@ -26,11 +26,11 @@ static partial class Program
         host.StartMatch();
         WaitForGame(host, client, dt);
         var g = host.Game; var c = client.Game;
-        string why;
+        string why = null;
         var rooms = new List<ExpansionRoom>();
         foreach (var box in new[] { new[] { 1600, 100, 800, 600 }, new[] { -900, 100, 800, 600 } })
         {
-            var r = Expansion.Custom(rooms, box[0], box[1], box[2], box[3], out why);
+            var r = Box(box[0], box[1], box[2], box[3]);
             if (r.HasValue) rooms.Add(r.Value);
         }
         foreach (var gg in new[] { g, c }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(rooms); }

@@ -12,37 +12,30 @@ static partial class Program
     static void ExpansionTest()
     {
         var none = new List<ExpansionRoom>();
-        var a = Expansion.Offers(11, 5, none);
-        var b = Expansion.Offers(11, 5, none);
-        Check(a.Count == 3 && a.SequenceEqual(b), "the same seed, round and map give the same three offers");
-        Check(Enumerable.Range(1, 40).Any(s => !Expansion.Offers(s, 5, none).SequenceEqual(a)) && !Expansion.Offers(11, 10, none).SequenceEqual(a), "other seeds and rounds give other offers");
-        Check(a.All(o => o.Parent == 0 && o.Price > 0 && o.Kind != RoomKind.Shop), "the first offers all join the hub, cost something and none is a shop");
-
         var hubOnly = Expansion.Build(none);
         Check(hubOnly.Areas.Length == 1 && hubOnly.Doors.Length == 0 && hubOnly.WallsFor(false).Length == 4 && hubOnly.Max.X == Game.Width && hubOnly.Max.Y == Game.Height,
-            "with nothing bought the world is the hub alone, walled in");
+            "with nothing built the world is the hub alone, walled in");
 
-        int coverSeen = 0, hallCover = 0, badCover = 0, loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, offersSeen = 0;
-        var shapes = new HashSet<string>(); var kinds = new HashSet<RoomKind>(); var floors = new HashSet<PathId>();
-        int maxShops = 0; int prevPriceBad = 0;
+        int coverSeen = 0, hallCover = 0, badCover = 0, loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, piecesSeen = 0;
+        var pieceKinds = (GridPiece[])Enum.GetValues(typeof(GridPiece));
         for (int seed = 1; seed <= 60; seed++)
         {
-            var built = new List<ExpansionRoom>();
+            var built = Expansion.GridCore();  // (random Grid maps: pieces placed at random door spots until the cap)
             var rng = new Random(seed);
-            for (int round = 5; ; round += 5)
+            for (int guard = 0; guard < 200; guard++)
             {
-                var offers = Expansion.Offers(seed, round, built);
-                if (built.Count >= Expansion.MaxRooms) { badCap += offers.Count; break; }
-                if (offers.Count == 0) break;
-                offersSeen += offers.Count;
-                foreach (var o in offers) { shapes.Add(o.Shape); kinds.Add(o.Kind); if (o.Kind == RoomKind.Floor) floors.Add(o.Floor); }
-                var pick = offers[rng.Next(offers.Count)];
-                if (pick.Price != Expansion.Cost(built, pick)) prevPriceBad++;
-                built.Add(pick);
+                var opts = Expansion.GridPieceOptions(built, pieceKinds[rng.Next(pieceKinds.Length)]);
+                if (opts.Count == 0)
+                {
+                    if (Expansion.BoughtCount(built) >= Expansion.MaxRooms) break;
+                    continue;
+                }
+                built.AddRange(opts[rng.Next(opts.Count)].Rooms);
+                piecesSeen++;
             }
+            if (Expansion.BoughtCount(built) > Expansion.MaxRooms) badCap++;
             worlds++;
             var w = Expansion.Build(built);
-            maxShops = Math.Max(maxShops, built.Count(r => r.Kind == RoomKind.Shop));
             // no overlaps, and only the parent shares a wall
             for (int i = 0; i < w.Areas.Length; i++)
                 for (int j = i + 1; j < w.Areas.Length; j++)
@@ -81,7 +74,7 @@ static partial class Program
                     for (float t = 10f; t < (side < 2 ? ar.Size.Y : ar.Size.X); t += 25f)
                     {
                         V2 pt = side == 0 ? new V2(ar.Min.X, ar.Min.Y + t) : side == 1 ? new V2(ar.Max.X, ar.Min.Y + t) : side == 2 ? new V2(ar.Min.X + t, ar.Min.Y) : new V2(ar.Min.X + t, ar.Max.Y);
-                        bool atDoor = w.Doors.Any(d => pt.DistanceTo(d.Pos) < Rooms.DoorW / 2f + 14f);
+                        bool atDoor = w.Doors.Any(d => pt.DistanceTo(d.Pos) < Math.Max(Rooms.DoorW, d.Width) / 2f + 14f);  // (a piece's inner seams are open full width)
                         if (!atDoor && !plan.Solids.Any(sd => Layouts.Inside(sd, pt, 0f))) badWallGap++;
                     }
             // obstacles: inside their room clear of its walls (a narrow strip's to one side, leaving a lane), off every door, the same every time
@@ -99,8 +92,8 @@ static partial class Program
             for (int i = 0; i < w.Areas.Length; i++)
                 if (plan.Solids.Any(sd => Layouts.Inside(sd, w.Areas[i].Mid, 0f)) || w.AreaAt(w.Areas[i].Mid) != i) badWall++;
         }
-        Check(offersSeen > 600, "offers keep coming until the cap (" + offersSeen + " seen over " + worlds + " maps)");
-        Check(badCover == 0 && coverSeen > 60 && hallCover > 10, "built rooms hold obstacles and bars of wall: inside their room clear of its walls, narrow strips' to one side with a lane past them, off every door, the same on every build (" + coverSeen + " over " + worlds + " maps, " + hallCover + " in strips, " + badCover + " bad)");
+        Check(piecesSeen > 600, "pieces keep going down until the cap (" + piecesSeen + " over " + worlds + " maps)");
+        Check(badCover == 0 && coverSeen > 60, "built rooms hold obstacles and bars of wall: inside their room clear of its walls, off every door, the same on every build (" + coverSeen + " over " + worlds + " maps, " + badCover + " bad)");
         Check(badWallGap == 0, "every wall is closed all the way along, even where a room is wider than the one it joins (" + badWallGap + " gaps)");
         Check(loopDoors > worlds * 3, "rooms touching along a door's width get a door, so loops form (" + loopDoors + " doors over " + worlds + " maps)");
         Check(badFit == 0, "rooms never overlap, never touch in a sliver, and every shared stretch of wall has its door (" + badFit + " bad)");
@@ -108,74 +101,11 @@ static partial class Program
         Check(badDoor == 0 && badSteer == 0, "every door sits on both rooms' shared wall, is open, and has a steering spot each side (" + badDoor + "/" + badSteer + " bad)");
         Check(badWall == 0, "every room's middle is open ground in its own area (" + badWall + " bad)");
         Check(badCap == 0, "the map stops at " + Expansion.MaxRooms + " rooms and its size cap (" + badCap + " over)");
-        Check(shapes.Count == Expansion.Shapes.Length && kinds.Count == 3 && floors.Count >= 4, "the offers use every shape (" + shapes.Count + "), every kind and several floors (" + floors.Count + ")");
-        Check(maxShops >= 1 && maxShops <= 1 + Expansion.MaxRooms / 6, "shops turn up, a few at most (" + maxShops + ")");
-        Check(prevPriceBad == 0, "every offer costs its vector cost (the new wall length)");
 
-        // Drawn rooms (Expansion.Custom): a narrow room off the hub is fine; thin, huge, off the grid, overlapping and floating boxes are refused.
-        string why;
-        var hall = Expansion.Custom(none, 500, -600, 300, 600, out why);
-        Check(hall.HasValue && hall.Value.Parent == 0 && hall.Value.Shape == "Room" && hall.Value.Kind == RoomKind.Combat && hall.Value.Price > 0, "a 3-wide room off the hub is accepted (" + (hall.HasValue ? hall.Value.Price + " gold" : why) + ")");
-        Check(Expansion.Custom(none, 500, -600, 100, 600, out why) == null && why.Contains("thin"), "too thin is refused: " + why);
-        Check(Expansion.Custom(none, 500, -1300, 1300, 1300, out why) == null && why.Contains("big"), "too big is refused: " + why);
-        Check(Expansion.Custom(none, 550, -600, 300, 600, out why) == null && why.Contains("grid"), "off the grid is refused: " + why);
-        Check(Expansion.Custom(none, 100, 100, 300, 300, out why) == null && why.Contains("Overlaps"), "overlapping the hub is refused: " + why);
-        Check(Expansion.Custom(none, 3000, 3000, 300, 300, out why) == null && why.Contains("share"), "floating off by itself is refused: " + why);
-        var east = Expansion.Custom(none, 1600, 0, 600, 300, out why).Value;
-        var withEast = new List<ExpansionRoom> { east };
-        var under = Expansion.Custom(withEast, 1600, 300, 600, 300, out why);
-        Check(under.HasValue && Expansion.LoopsOf(withEast, under.Value) == 1 && under.Value.Parent == 1, "a box touching two rooms closes a loop (parent = the longer wall)");
-        var loopWorld = Expansion.Build(new List<ExpansionRoom> { east, under.Value });
-        Check(loopWorld.Doors.Length == 3 && loopWorld.Doors.Count(d => d.Joins(0)) == 2, "and gets a door to each (" + loopWorld.Doors.Length + " doors)");
-        Check(Expansion.Custom(Enumerable.Range(0, Expansion.MaxRooms).Select(i => east).ToList(), 500, -600, 300, 600, out why) == null, "a full map takes no more");
-
-        // Floating rooms (Docs/FloatingRooms.md): placed off the map, deterministic, clear of everything, sealed until a built room touches them.
-        var shopF = Expansion.FloatingFor(7, 0, none, RoomKind.Shop);
-        Check(shopF.HasValue && shopF.Value.Floating && shopF.Value.Kind == RoomKind.Shop && Expansion.FloatingFor(7, 0, none, RoomKind.Shop).Value.Equals(shopF.Value)
-            && !Expansion.FloatingFor(7, 1, none, RoomKind.Shop).Value.Equals(shopF.Value), "a floating room is the same for the same seed and cycle, and another one for the next cycle");
-        int badFloat = 0, floatsMade = 0, cutOff = 0;
-        for (int seed = 1; seed <= 80; seed++)
-        {
-            var map = new List<ExpansionRoom>();
-            for (int k = 0; k < 4; k++)
-            {
-                var fk = Expansion.FloatingFor(seed, k, map, k % 2 == 0 ? RoomKind.Shop : RoomKind.Gatekeeper);
-                if (!fk.HasValue) { badFloat++; continue; }
-                var f = fk.Value; floatsMade++;
-                foreach (var o in map.Concat(new[] { new ExpansionRoom { X = 0, Y = 0, W = (int)Game.Width, H = (int)Game.Height } }))
-                {
-                    bool clear = f.X - 200 >= o.X1 || f.X1 + 200 <= o.X || f.Y - 200 >= o.Y1 || f.Y1 + 200 <= o.Y;
-                    if (!clear) badFloat++;
-                }
-                map.Add(f);
-                for (int i = 0; i < map.Count; i++)
-                    if (!Expansion.ConnectorFor(map, i).HasValue) cutOff++;
-                var all = Expansion.Build(map);
-                if (all.Max.X - all.Min.X > Expansion.MaxWidth || all.Max.Y - all.Min.Y > Expansion.MaxHeight) badFloat++;
-            }
-            if (Expansion.SealedCount(map) != map.Count) badFloat++;
-            if (Expansion.Build(map).Doors.Length != 0 || Expansion.BoughtCount(map) != 0) badFloat++;
-        }
-        Check(badFloat == 0 && floatsMade > 250, "floating rooms are 2 tiles clear of every room, inside the size cap, and sealed: no doors, none counted as bought (" + floatsMade + " made, " + badFloat + " bad)");
-        Check(cutOff == 0, "a floating room never takes the only spot a box to an earlier one fits (" + cutOff + " cut off)");
-        var floater = new ExpansionRoom { X = 500, Y = -1200, W = 600, H = 400, Kind = RoomKind.Shop, Floating = true };
-        var withFloater = new List<ExpansionRoom> { floater };
-        int fp, fl2; string fwhy;
-        Check(!Expansion.Placement(withFloater, 500, -1600, 600, 400, out fp, out fl2, out fwhy) && fwhy.Contains("connected"), "a box touching only a floating room is refused: " + fwhy);
-        var link = Expansion.Custom(withFloater, 700, -800, 300, 800, out why);
-        Check(link.HasValue && link.Value.Parent == 0 && Expansion.LoopsOf(withFloater, link.Value) == 1, "a strip from the hub to the floating room is accepted and opens it (" + (link.HasValue ? "ok" : why) + ")");
-        var opened = new List<ExpansionRoom> { floater, link.Value };
-        var openedWorld = Expansion.Build(opened);
-        Check(Expansion.SealedCount(withFloater) == 1 && Expansion.SealedCount(opened) == 0 && openedWorld.Areas[1].Floating && !openedWorld.Areas[1].Sealed && openedWorld.Doors.Any(d => d.Joins(1)) && Expansion.BoughtCount(opened) == 1,
-            "built rooms that touch it give it a door: it is no longer sealed, and only the strip counts as bought");
-        // Vector cost (Docs/VectorBuilding.md): the new wall length, so a shared wall is free and a loop is cheap.
-        Check(Expansion.Cost(none, 500, -400, 600, 400) == 14, "a 6 x 4 closet along the hub's wall costs its perimeter 20 less the 6 it shares: 14 (" + Expansion.Cost(none, 500, -400, 600, 400) + ")");
-        Check(Expansion.Cost(none, 500, -1200, 300, 1200) == 27, "a 3 x 12 room standing off the hub pays its new wall like any room (30 less the 3 it shares): 27 (" + Expansion.Cost(none, 500, -1200, 300, 1200) + ")");
-        Check(Expansion.Cost(withEast, under.Value) == 9, "a box that touches two rooms costs less again: 18 less 3 and 6 = 9 (" + Expansion.Cost(withEast, under.Value) + ")");
-        Check(Expansion.Cost(none, 500, -400, 600, 400) < Expansion.Cost(none, 500, -400, 1200, 400), "a bigger room costs more");
+        var east = Expansion.GridPieceOptions(Expansion.GridCore(), GridPiece.Mono).First(o => o.Side == 3).Rooms[0];
         var owned = east; owned.Owner = 2;
-        var ownedWorld = Expansion.Build(new List<ExpansionRoom> { owned });
-        Check(ownedWorld.Areas[1].Owner == 2 && ownedWorld.Areas[0].Owner == 0, "a built room remembers who drew it (the hub nobody)");
+        var ownedWorld = Expansion.Build(new List<ExpansionRoom>(Expansion.GridCore()) { owned });
+        Check(ownedWorld.Areas[5].Owner == 2 && ownedWorld.Areas[0].Owner == 0, "a built room remembers who placed it (the hub nobody)");
     }
 
     // The Expanding arena in a run (ExpansionGame.cs): the Arena setting, the purse, the vote on the offer, the bought
@@ -195,8 +125,8 @@ static partial class Program
                 for (int y = ay0 - bh + 300; y <= ay1 - 300; y += 100) { cands.Add(new[] { ax1, y, bw, bh }); cands.Add(new[] { ax0 - bw, y, bw, bh }); }
                 foreach (var c in cands)
                 {
-                    string why;
-                    if (Expansion.Custom(built, c[0], c[1], c[2], c[3], out why).HasValue && !found.Any(f => f[0] == c[0] && f[1] == c[1] && f[2] == c[2] && f[3] == c[3]))
+                    string why = null;
+                    if (Box(c[0], c[1], c[2], c[3]).HasValue && !found.Any(f => f[0] == c[0] && f[1] == c[1] && f[2] == c[2] && f[3] == c[3]))
                     {
                         found.Add(c);
                         if (found.Count >= count)
@@ -359,32 +289,31 @@ static partial class Program
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
         Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest || n.Kind == NodeKind.VectorChest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : n.Kind == NodeKind.Vein ? 3 : 9;
-        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsPrizeNode(n.Kind)) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
+        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic || n.Kind == NodeKind.Vein) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
               && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
             "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests, relics and veins as fit, none fogged, the same on the client");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
-        // An old save's sealed shop room still opens and draws bots as before.
+        // A sealed room waiting on the lattice (the cycle's mini-boss room, GridCards.cs): no crowd, no spawns, until a piece reaches it.
         {
-            var oldShop = Expansion.FloatingFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, RoomKind.Shop, g.Nodes);
-            Check(oldShop.HasValue, "an old save's floating shop room fits");
-            if (oldShop.HasValue) g.Expanded.Add(oldShop.Value);
+            var mini = Expansion.GridMiniFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, g.Nodes);
+            Check(mini.HasValue, "a sealed mini-boss room fits on the lattice");
+            if (mini.HasValue) g.Expanded.Add(mini.Value);
             typeof(Game).GetField("expWorld", flags).SetValue(g, null);
         }
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
-        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the rooms stay sealed, add no crowd and a sealed shop room isn't a shop yet");
+        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f, "the room stays sealed and adds no crowd");
         {
-            int si = g.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop);
-            var con = si >= 0 ? Expansion.ConnectorFor(g.Expanded, si) : null;
-            Check(con.HasValue, "a box can be built up to the shop room");
-            if (con.HasValue)
+            int si = g.Expanded.FindIndex(r => r.Floating);
+            var reach = si >= 0 ? Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono).Where(o => { var m = new List<ExpansionRoom>(g.Expanded); m.AddRange(o.Rooms); return !Expansion.Build(m).Areas[si + 1].Sealed; }).ToList() : new List<GridPieceOption>();
+            Check(reach.Count > 0, "a single cell can be built into the cell between, reaching it");
+            if (reach.Count > 0)
             {
-                var open = new List<ExpansionRoom>(g.Expanded) { con.Value };
-                var ow = Expansion.Build(open);
-                var sa = ow.Areas[si + 1];
-                Check(!sa.Sealed && sa.Kind == RoomKind.Shop && ow.Areas.Any(x => x.Hub) && floatWorld.Areas[si + 1].Sealed,
-                    "touching it with a built box opens its door: you walk into a shop room");
+                var open = new List<ExpansionRoom>(g.Expanded);
+                open.AddRange(reach[0].Rooms);
+                var sa = Expansion.Build(open).Areas[si + 1];
+                Check(!sa.Sealed && sa.Kind == RoomKind.Gatekeeper && floatWorld.Areas[si + 1].Sealed, "and that opens its door");
             }
         }
         int inSealed = 0;
@@ -403,7 +332,7 @@ static partial class Program
             for (int cy = -1200; cy <= 1700 && !extra.HasValue; cy += 100)
                 for (int cx = -1200; cx <= 2700 && !extra.HasValue; cx += 100)  // (anywhere touching the map: round the core, or beside an old save's sealed rooms)
                 {
-                    var cand = Expansion.Custom(g.Expanded, cx, cy, 500, 500, out string whyNot);
+                    var cand = Box(cx, cy, 500, 500);
                     if (cand.HasValue && !g.Nodes.Any(nd => Expansion.NodeEncloses(cand.Value, nd)))  // (not round a node already out there)
                         extra = cand;
                 }
@@ -534,44 +463,8 @@ static partial class Program
             pl.Pos = keepPos;
         }
 
-        // Nodes (Docs/Nodes.md): 10+ tiles out, deterministic, 8+ tiles apart, claimed by a room built round them, which takes on their job.
+        // Nodes survive a saved run (where they are placed: GridNodeFor, the gridrooms suite).
         {
-            var nodeMap = new List<ExpansionRoom>();
-            bool placedOk = true, farOk = true, hallOk = true, claimOk = true, sameOk = true;
-            int placedN = 0;
-            for (int seed = 1; seed <= 40; seed++)
-            {
-                var list = new List<MapNode>();
-                foreach (var nk in new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest })
-                {
-                    var nd = Expansion.NodeFor(seed, seed % 5, nodeMap, list, nk);
-                    if (!nd.HasValue) { placedOk = false; continue; }
-                    placedN++;
-                    var n = nd.Value;
-                    var again = Expansion.NodeFor(seed, seed % 5, nodeMap, list, nk);
-                    sameOk &= again.HasValue && again.Value.Equals(n);
-                    farOk &= n.X <= -1000 || n.X >= Game.Width + 1000 || n.Y <= -1000 || n.Y >= Game.Height + 1000;
-                    foreach (var o in list) farOk &= new V2(o.X - n.X, o.Y - n.Y).Length >= Expansion.NodeApart;
-                    var step = Expansion.NodeStep(nodeMap, n);
-                    hallOk &= step.HasValue && step.Value.Kind == RoomKind.Combat && !Expansion.NodeClaimed(nodeMap, n) && Expansion.NodeReachable(nodeMap, n);
-                    var built = new List<ExpansionRoom>(nodeMap);
-                    if (step.HasValue) built.Add(step.Value);
-                    if (step.HasValue && !Expansion.NodeClaimed(built, n))  // (a strip first, then the room round it)
-                    {
-                        var step2 = Expansion.NodeStep(built, n);
-                        hallOk &= Math.Min(step.Value.W, step.Value.H) == 300;
-                        if (step2.HasValue) built.Add(step2.Value);
-                    }
-                    int at = built.FindIndex(br => Expansion.NodeEncloses(br, n)) + 1;
-                    var kind = nk == NodeKind.Shop ? RoomKind.Shop : nk == NodeKind.Vendor ? RoomKind.Vendor : RoomKind.Combat;
-                    var with = Expansion.Build(built, null, null, new List<MapNode> { n });
-                    claimOk &= at > nodeMap.Count && with.Areas[at].Kind == kind && Expansion.Build(built).Areas[at].Kind == RoomKind.Combat && (at == nodeMap.Count + 1 || with.Areas[nodeMap.Count + 1].Kind == RoomKind.Combat);
-                    list.Add(n);
-                }
-            }
-            Check(placedOk && placedN == 120 && sameOk, "a node is found for every seed, the same each time (" + placedN + " placed)");
-            Check(farOk, "nodes sit 10 or more tiles off the start room and 8 or more tiles apart");
-            Check(hallOk && claimOk, "a room (or a strip, then a room) can be built to each: a strip alone claims nothing, and the room takes on the node's job (only with the node in the map)");
             var saved = new RunSave { Wave = 6, HasExpansion = true };
             saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Vendor });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
@@ -581,10 +474,15 @@ static partial class Program
             Check(back != null && back.Nodes.Count == 3 && back.Nodes[0].Equals(saved.Nodes[0]) && back.Nodes[1].Equals(saved.Nodes[1]) && back.Nodes[2].Equals(saved.Nodes[2]), "nodes survive a saved run (a fogged scout tower too)");
         }
 
-        // The map stops growing at the cap.
-        var full = new List<ExpansionRoom>();
-        for (int i = 0; i < Expansion.MaxRooms; i++) full.Add(Expansion.Offers(3, 5 + 5 * i, full)[0]);
-        Check(Expansion.Offers(3, 100, full).Count == 0, "a full map offers nothing more");
+        // The map stops growing at the cap: no piece has a place once the rooms reach it.
+        var full = Expansion.GridCore();
+        while (Expansion.BoughtCount(full) < Expansion.MaxRooms)
+        {
+            var o = Expansion.GridPieceOptions(full, GridPiece.Mono);
+            if (o.Count == 0) break;
+            full.AddRange(o[0].Rooms);
+        }
+        Check(Expansion.BoughtCount(full) == Expansion.MaxRooms && Expansion.GridPieceOptions(full, GridPiece.Mono).Count == 0, "a full map takes no more pieces");
     }
 }
 
@@ -643,8 +541,8 @@ static partial class Program
         var built = new List<ExpansionRoom>();
         Func<int, int, int, int, RoomKind, PathId, ExpansionRoom> add = (x, y, w, h, kind, floor) =>
         {
-            string why;
-            var r = Expansion.Custom(built, x, y, w, h, out why);
+            string why = null;
+            var r = Box(x, y, w, h);
             if (!r.HasValue) throw new Exception("test map: " + why);
             var room = r.Value; room.Kind = kind; room.Floor = floor;
             built.Add(room);
@@ -809,12 +707,12 @@ static partial class Program
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
-        string why;
+        string why = null;
         var list = new List<ExpansionRoom>();
-        var hall = Expansion.Custom(list, 1600, 100, 800, 600, out why);
+        var hall = Box(1600, 100, 800, 600);
         Check(hall.HasValue, "the connecting room fits: " + why);
         list.Add(hall.Value);
-        var r = Expansion.Custom(list, 2400, 100, 600, 600, out why);
+        var r = Box(2400, 100, 600, 600);
         Check(r.HasValue, "the test room fits: " + why);
         var room = r.Value; room.Kind = RoomKind.Gatekeeper; room.Floating = true;
         foreach (var gg in new[] { g, cg })
@@ -924,32 +822,19 @@ static partial class Program
             Check(g.Me.PrizePicks == 0 && g.Me.Ready, "after picking it, Ready works between waves");
         }
 
-        // A rule node is a big area: only a room that encloses all of it claims it, and the bot steps reach it.
+        // A rule node is a big area: only a room that encloses all of it claims it.
         {
-            var ruleNode = Expansion.NodeFor(5, 0, new List<ExpansionRoom>(), new List<MapNode>(), NodeKind.Rule);
-            Check(ruleNode.HasValue && ruleNode.Value.Kind == NodeKind.Rule && ruleNode.Value.Rule < 6, "a rule node is placed");
-            if (ruleNode.HasValue)
-            {
-                var rn = ruleNode.Value;
-                Check(!Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 250, Y = rn.Y - 250, W = 500, H = 500 }, rn) && !Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 400, Y = rn.Y - 400, W = 800, H = 800 }, rn)
-                    && Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 450, Y = rn.Y - 450, W = 900, H = 900 }, rn), "a 5 x 5 or 8 x 8 room round a rule node does not claim it, a 9 x 9 room does (the whole area must be inside the walls)");
-                var plan = new List<ExpansionRoom>();
-                for (int i = 0; i < 4 && !Expansion.NodeClaimed(plan, rn); i++) { var st = Expansion.NodeStep(plan, rn); if (st.HasValue) plan.Add(st.Value); }
-                Check(Expansion.NodeClaimed(plan, rn) && Expansion.NodeReachable(new List<ExpansionRoom>(), rn), "NodeStep builds up to a room that claims the rule node (" + plan.Count + " boxes)");
-                var rr = plan.LastOrDefault();
-                Check(plan.Count > 0 && rr.W >= 900 && rr.H >= 900, "and that room is at least 9 x 9 tiles");
-            }
+            var rn = RuleNodeMap(out var rplan);
+            Check(!Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 250, Y = rn.Y - 250, W = 500, H = 500 }, rn) && !Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 400, Y = rn.Y - 400, W = 800, H = 800 }, rn)
+                && Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 450, Y = rn.Y - 450, W = 900, H = 900 }, rn), "a 5 x 5 or 8 x 8 room round a rule node does not claim it, a 9 x 9 room does (the whole area must be inside the walls)");
+            Check(Expansion.NodeClaimed(rplan, rn), "a 2 x 2 cell piece round it claims it");
         }
 
         // A claimed rule room takes the rule's ground, and its prize comes out when a wave is cleared.
         {
-            var plan = new List<ExpansionRoom>();
-            var rn = Expansion.NodeFor(5, 0, plan, new List<MapNode>(), NodeKind.Rule);
-            Check(rn.HasValue, "a rule node for the room test");
-            if (rn.HasValue)
+            MapNode? rn = RuleNodeMap(out var plan);
             {
                 var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
-                for (int i = 0; i < 4 && !Expansion.NodeClaimed(plan, rn.Value); i++) { var st = Expansion.NodeStep(plan, rn.Value); if (st.HasValue) plan.Add(st.Value); }
                 foreach (NodeRule rule in System.Enum.GetValues(typeof(NodeRule)))
                 {
                     var nd = rn.Value; nd.Rule = (byte)rule;
@@ -958,7 +843,7 @@ static partial class Program
                     Check(rule1.Count >= 1, "a room round a " + rule + " node has " + Expansion.RuleFloor(nd.Rule) + " ground");
                 }
                 var wUn = Expansion.Build(plan.Take(plan.Count - 1).ToList(), null, null, new List<MapNode> { rn.Value });
-                Check(wUn.Areas.All(a => a.Kind != RoomKind.Floor), "the hallway on the way to it is no rule room");
+                Check(wUn.Areas.All(a => a.Kind != RoomKind.Floor), "the map without it has no rule room");
                 var clearRules = typeof(Game).GetMethod("ClearRuleRooms", flags);
                 var tickNodes2 = typeof(Game).GetMethod("TickNodes", flags);
                 foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(plan); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
@@ -987,8 +872,7 @@ static partial class Program
             var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
             var tickFog = typeof(Game).GetMethod("TickNodeFog", flags);
             var payVeins = typeof(Game).GetMethod("PayVeins", flags);
-            var plan = new List<ExpansionRoom>();
-            var tw = Expansion.NodeFor(5, 1, plan, new List<MapNode>(), NodeKind.Chest);
+            var tw = Expansion.GridNodeFor(5, 1, Expansion.GridCore(), new List<MapNode>(), NodeKind.Chest);
             Check(tw.HasValue && !tw.Value.Hidden, "a node is placed unfogged");
             if (tw.HasValue)
             {
@@ -1005,13 +889,12 @@ static partial class Program
                 Check(cg.Nodes.Count == 1 && cg.Nodes.All(n => !n.Hidden), "the client sees it revealed too");
                 pl.Pos = homes[0];
                 // A gold vein pays every player each cleared wave while its room stands.
-                var vn = Expansion.NodeFor(5, 0, new List<ExpansionRoom>(), new List<MapNode>(), NodeKind.Vein);
+                var vn = Expansion.GridNodeFor(5, 0, Expansion.GridCore(), new List<MapNode>(), NodeKind.Vein);
                 Check(vn.HasValue, "a gold vein node is placed");
                 if (vn.HasValue)
                 {
                     var vein = vn.Value; vein.Hidden = false;
-                    var vp = new List<ExpansionRoom>();
-                    for (int i = 0; i < 4 && !Expansion.NodeClaimed(vp, vein); i++) { var st = Expansion.NodeStep(vp, vein); if (st.HasValue) vp.Add(st.Value); }
+                    var vp = GridChainTo(Expansion.GridCore(), vein, 3) ?? Expansion.GridCore();
                     var golds = g.Players.Values.ToDictionary(p => p.Id, p => p.Gold);
                     g.Expanded.Clear(); g.Expanded.AddRange(vp.Take(vp.Count - 1)); typeof(Game).GetField("expWorld", flags).SetValue(g, null);
                     g.Nodes.Clear(); g.Nodes.Add(vein);
@@ -1028,10 +911,9 @@ static partial class Program
 
         // A node's far room (a long hallway, then a room round it): an enemy there still walks all the way back to the players in the hub.
         {
-            var far = new List<ExpansionRoom>();
-            var node = Expansion.NodeFor(5, 0, far, new List<MapNode>(), NodeKind.Chest);
+            var node = Expansion.GridNodeFor(5, 0, Expansion.GridCore(), new List<MapNode>(), NodeKind.Chest);
             Check(node.HasValue, "a node for the path test");
-            for (int i = 0; i < 4 && node.HasValue && !Expansion.NodeClaimed(far, node.Value); i++) { var st = Expansion.NodeStep(far, node.Value); if (st.HasValue) far.Add(st.Value); }
+            var far = (node.HasValue ? GridChainTo(Expansion.GridCore(), node.Value, 3) : null) ?? Expansion.GridCore();
             foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(far); gg.Nodes.Clear(); if (node.HasValue) gg.Nodes.Add(node.Value); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
             pickRooms.Invoke(g, null);
             Run(s, dt, 0.3f, null, NoPicks);
@@ -1058,9 +940,9 @@ static partial class Program
     // Breaches (Docs/RoomBuilding2.md step 1): enemies come in through the outer wall, the same breaches on every machine.
     static void ExpandingBreachesTest(float dt)
     {
-        string why;
+        string why = null;
         var list = new List<ExpansionRoom>();
-        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;  // a dead end off the hub's east wall
+        var east = Box(1600, 100, 800, 600).Value;  // a dead end off the hub's east wall
         list.Add(east);
         var w = Expansion.Build(list);
         var cand = Breaches.Candidates(w);
@@ -1081,13 +963,13 @@ static partial class Program
         bool apart = true;
         for (int i = 0; i < b1.Length; i++) for (int j = i + 1; j < b1.Length; j++) apart &= b1[i].Pos.DistanceTo(b1[j].Pos) >= Breaches.Apart;
         Check(apart, "and kept apart");
-        var withShop = new List<ExpansionRoom>(list);
-        var fl = Expansion.FloatingFor(3, 0, withShop, RoomKind.Shop);
-        if (fl.HasValue)
+        var withMini = new List<ExpansionRoom>(Expansion.GridCore());
+        var mini = Expansion.GridMiniFor(3, 0, withMini, new List<MapNode>());
+        if (mini.HasValue)
         {
-            withShop.Add(fl.Value);
-            var ws = Expansion.Build(withShop);
-            Check(Breaches.Candidates(ws).All(c => !ws.Areas[c.Key.Area].Floating), "a floating room's walls never break");
+            withMini.Add(mini.Value);
+            var ws = Expansion.Build(withMini);
+            Check(Breaches.Candidates(ws).All(c => !ws.Areas[c.Key.Area].Floating), "a sealed room's walls never break");
         }
 
         int port = nextPort++;
@@ -1150,9 +1032,9 @@ static partial class Program
     // Shutter gates (Docs/RoomBuilding2.md step 3): a gate on a door, voted, synced; G shuts it for everyone for 8 s, then it recharges.
     static void ExpandingGatesTest(float dt)
     {
-        string why;
+        string why = null;
         var list = new List<ExpansionRoom>();
-        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value; list.Add(east);
+        var east = Box(1600, 100, 800, 600).Value; list.Add(east);
         var w = Expansion.Build(list);
         var door = w.Doors[0];
         Check(Gates.CanFit(w, new List<GateFit>(), door.Pos, out why), "a plain door takes a gate" + (why != null ? " (" + why + ")" : ""));
@@ -1193,8 +1075,8 @@ static partial class Program
 
         // Steering: with a loop round the gated door, an enemy heads for the other way round while it's shut.
         var loop = new List<ExpansionRoom>();
-        var eastL = Expansion.Custom(loop, 1600, 100, 800, 800, out why).Value; loop.Add(eastL);
-        var southL = Expansion.Custom(loop, 1100, 900, 1200, 400, out why);
+        var eastL = Box(1600, 100, 800, 800).Value; loop.Add(eastL);
+        var southL = Box(1100, 900, 1200, 400);
         Check(southL.HasValue, "a loop room fits" + (why != null ? " (" + why + ")" : ""));
         if (!southL.HasValue) return;
         loop.Add(southL.Value);
@@ -1220,10 +1102,10 @@ static partial class Program
     // Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, priced by the walking it saves, voted, synced.
     static void ExpandingLinksTest(float dt)
     {
-        string why;
+        string why = null;
         var list = new List<ExpansionRoom>();
-        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value; list.Add(east);
-        var south = Expansion.Custom(list, 0, 900, 800, 600, out why).Value; list.Add(south);
+        var east = Box(1600, 100, 800, 600).Value; list.Add(east);
+        var south = Box(0, 900, 800, 600).Value; list.Add(south);
         var w = Expansion.Build(list);
         Func<RoomArea, List<V2>> wallSpots = a =>  // the grid spots on a room's outer wall (the wall faces into it)
         {
@@ -1323,110 +1205,6 @@ static partial class Program
 
     static bool Strip(RoomArea a) => Math.Min(a.Size.X, a.Size.Y) <= Expansion.StripMax;
 
-    // Room sizes (no hallways: any box 2 to 24 tiles a side, up to 144 tiles of floor, priced by its new wall), a room that only
-    // brushes another's wall (no door there, no breach on it), and side walls: built from the map alone (the same every build), out
-    // from a room's own outer walls, off its doors, clear of its middle, and every design turns up.
-    static void ExpandingRoomSizesTest(float dt)
-    {
-        string why;
-        var none = new List<ExpansionRoom>();
-        Check(Expansion.Custom(none, 0, -200, 2400, 200, out why).HasValue, "a 24 x 2 strip along the hub is fine (" + why + ")");
-        Check(Expansion.Custom(none, 500, -600, 2400, 600, out why).HasValue, "a 24 x 6 room is fine (" + why + ")");
-        Check(Expansion.Custom(none, 500, -2500, 300, 2500, out why) == null && why.Contains("big"), "25 tiles is too long: " + why);
-        Check(Expansion.Custom(none, 500, -1300, 1200, 1300, out why) == null && why.Contains("big"), "more than 144 tiles of floor is too big: " + why);
-        Check(Expansion.Custom(none, 500, -1200, 1200, 1200, out why).HasValue, "a 12 x 12 room is fine (" + why + ")");
-        // Brushing: a box that shares 3 tiles with the hub and 1 with the east room: accepted, a door to the hub only, no breach on the brushed stretch.
-        var east = Expansion.Custom(none, 1600, 0, 600, 300, out why).Value;
-        var withEast = new List<ExpansionRoom> { east };
-        var brush = Expansion.Custom(withEast, 1300, -300, 400, 300, out why);
-        Check(brush.HasValue && brush.Value.Parent == 0, "a room that only brushes another room's wall is fine (" + why + ")");
-        if (!brush.HasValue) return;
-        var bw = Expansion.Build(new List<ExpansionRoom> { east, brush.Value });
-        Check(!bw.Doors.Any(d => d.Joins(1) && d.Joins(2)) && bw.Doors.Count(d => d.Joins(0) && d.Joins(2)) == 1, "it gets no door where it brushes, and its own door to the hub");
-        int badBreach = Breaches.Candidates(bw).Count(c => bw.Areas.Any(ar => ar.Contains(c.Key.Pos + c.Key.In * 20f)) && bw.Areas.Any(ar => ar.Contains(c.Key.Pos - c.Key.In * 20f)));
-        Check(badBreach == 0, "no breach spot has floor on both sides (" + badBreach + ")");
-
-        // Side walls (Expansion.AddFins): every design, forced and rolled, on rooms of many sizes off the hub's north wall.
-        int finRooms = 0, badFin = 0, notSame = 0, small = 0, smallBare = 0;
-        var styles = new HashSet<int>();
-        for (int style = 0; style <= 4; style++)
-            for (int w = 200; w <= 1600; w += 100)
-                for (int h = 200; h * w <= Expansion.MaxArea && h <= 1600; h += 100)
-                {
-                    Expansion.FinStyle = style;
-                    var r = Expansion.Custom(none, 0, -h, w, h, out why);
-                    if (!r.HasValue) continue;
-                    var map = new List<ExpansionRoom> { r.Value };
-                    var wd = Expansion.Build(map);
-                    var plain = wd.Spans.Where(sp => !Inner(wd, sp)).Count();
-                    var fins = wd.Spans.Where(sp => Inner(wd, sp)).ToList();
-                    if (fins.Count > 0) { finRooms++; if (style > 0) styles.Add(style); }
-                    if (Math.Min(w, h) < 500 && Math.Max(w, h) >= 400) { small++; if (fins.Count == 0) { smallBare++; Console.WriteLine("  bare: style " + style + " " + w + " x " + h); } }
-                    var again = Expansion.Build(map);
-                    if (again.Spans.Length != wd.Spans.Length) notSame++;
-                    var room = wd.Areas[1];
-                    foreach (var sp in fins)
-                    {
-                        V2 a = sp.Vertical ? new V2(sp.At, sp.From) : new V2(sp.From, sp.At), b = sp.Vertical ? new V2(sp.At, sp.Till) : new V2(sp.Till, sp.At);
-                        if (!room.Contains(a, 1f) || !room.Contains(b, 1f)) badFin++;                                     // inside its room
-                        foreach (var d in wd.Doors) if (Math.Min(d.Pos.DistanceTo(a), d.Pos.DistanceTo(b)) < 150f) badFin++;  // off the doors
-                    }
-                    foreach (var sd in wd.WallsFor(false)) if (Layouts.Inside(sd, room.Mid, 30f)) badFin++;               // the middle is open
-                }
-        Expansion.FinStyle = 0;
-        Check(finRooms > 100 && badFin == 0 && notSame == 0, "rooms grow side walls inside, off their doors, clear of their middle, the same every build (" + finRooms + " rooms, " + badFin + " bad)");
-        Check(smallBare == 0, "small rooms and narrow strips get side walls too (" + (small - smallBare) + " of " + small + ")");
-        Check(styles.Count == 4, "every design turns up: fins, baffles, pincers, T-fins (" + styles.Count + ")");
-        var rolled = new HashSet<int>();
-        for (int w = 500; w <= 1200; w += 100) { var r = Expansion.Custom(none, 0, -800, w, 800, out why); if (r.HasValue) rolled.Add(Expansion.Build(new List<ExpansionRoom> { r.Value }).Spans.Count(sp => Inner(Expansion.Build(new List<ExpansionRoom> { r.Value }), sp))); }
-        Check(rolled.Count >= 2, "rolled per room, rooms differ (" + rolled.Count + " different wall counts)");
-    }
-
-    /// A wall span with the same room on both sides: a side wall.
-    static bool Inner(World w, WallSpan sp)
-    {
-        float mid = (sp.From + sp.Till) / 2f;
-        V2 across = sp.Vertical ? new V2(1f, 0f) : new V2(0f, 1f), on = sp.Vertical ? new V2(sp.At, mid) : new V2(mid, sp.At);
-        int a = -1, b = -1;
-        for (int i = 0; i < w.Areas.Length; i++) { if (w.Areas[i].Contains(on + across * 20f)) a = i; if (w.Areas[i].Contains(on - across * 20f)) b = i; }
-        return a >= 0 && a == b;
-    }
-
-    // Balance (Docs/FloatingRooms.md step 5): what it costs to connect a floating room, against the vectors a player has.
-    static void ExpandingFloatCostTest()
-    {
-        var costs = new List<int>();
-        int noConnector = 0;
-        for (int seed = 1; seed <= 40; seed++)
-        {
-            var map = new List<ExpansionRoom>();
-            var rng = new Random(seed);
-            for (int k = 0; k < rng.Next(0, 5); k++)
-            {
-                var boxes = FindBoxes(map, 12);
-                if (boxes.Count == 0) break;
-                var b = boxes[rng.Next(boxes.Count)];
-                string why;
-                var r = Expansion.Custom(map, b[0], b[1], b[2], b[3], out why);
-                if (r.HasValue) map.Add(r.Value);
-            }
-            foreach (var kind in new[] { RoomKind.Shop, RoomKind.Vendor, RoomKind.Gatekeeper })
-            {
-                var f = Expansion.FloatingFor(seed, seed % 4, map, kind);
-                if (!f.HasValue) continue;
-                map.Add(f.Value);
-                var c = Expansion.ConnectorFor(map, map.Count - 1);
-                if (!c.HasValue) noConnector++;
-                else costs.Add(c.Value.Price);
-                map.RemoveAt(map.Count - 1);
-            }
-        }
-        costs.Sort();
-        Console.WriteLine("  floating rooms: connector cost min " + costs[0] + ", median " + costs[costs.Count / 2] + ", max " + costs[costs.Count - 1] + " vectors over " + costs.Count + " rooms (" + noConnector + " with none)");
-        Check(noConnector == 0, "every floating room can be reached by some box");
-        Check(costs[costs.Count / 2] >= 4 && costs[costs.Count - 1] <= 44, "reaching a floating room mostly takes a narrow strip (median 4+, at most 44 vectors, median " + costs[costs.Count / 2] + ")");
-    }
-
     // Vectors (ExpansionGame.cs, Docs/VectorBuilding.md step 1): the start, the cap, a cleared wave, every 25 kills, a boss refill, synced.
     static void ExpandingVectorsTest(float dt)
     {
@@ -1513,7 +1291,7 @@ static partial class Program
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         g.Expanded.Add(new ExpansionRoom { Parent = 0, X = 1600, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
         g.Expanded.Add(new ExpansionRoom { Parent = 0, X = -800, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
-        string why;
+        string why = null;
         var shop = new RoomToken { Kind = RoomKind.Shop };
         var fl = Expansion.FloorToken(5, 10, g.Expanded, g.RoomTokens);
         Check(fl.Kind == RoomKind.Floor && Array.IndexOf(Expansion.Floors, fl.Floor) >= 0, "a Floor kit names a floor a room can carry");
@@ -1551,4 +1329,14 @@ static partial class Program
         Check(g.Expanded[0].Kind == RoomKind.Shop && g.RoomTokens.Count == 0, "a Shop kit makes a shop room");
         g.ExpandOpen = false; cg.ExpandOpen = false;
     }
+
+    /// Test helper: the Grid core with a 2 x 2 cell piece east of it, and a rule node at that piece's middle (claimed by it).
+    static MapNode RuleNodeMap(out List<ExpansionRoom> plan)
+    {
+        plan = GridMap(GridPiece.TetO);
+        var r = plan[plan.Count - 1];
+        int x0 = plan.Skip(4).Min(q => q.X), y0 = plan.Skip(4).Min(q => q.Y), x1 = plan.Skip(4).Max(q => q.X1), y1 = plan.Skip(4).Max(q => q.Y1);
+        return new MapNode { X = (short)((x0 + x1) / 2), Y = (short)((y0 + y1) / 2), Kind = NodeKind.Rule };
+    }
+
 }
