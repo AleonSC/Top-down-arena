@@ -1212,28 +1212,25 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Shop and vendor rooms, chest nodes and the mini-boss room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
-  4 x 4 tile squares) and a **mini-boss** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
-  out (at least 8 tiles from other nodes; chest and relic nodes keep 6 tiles clear of every room, and later floating rooms keep as far from them, and never take the only spot a room could be built to reach an earlier sealed room). All of them keep well away from the start room: 10 tiles farther out when placed off it, and never within 10 tiles of it. Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
-  (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
+- **Chest nodes**: every boss cycle the game places a **chest node**: a point 10 to 16 tiles straight out from the map (at least 8 tiles from other nodes;
+  chest and relic nodes keep 6 tiles clear of every room), never within 10 tiles of the start room. Nodes are always in plain view: a big lit ring in the
+  node's colour with its mark at full size and a beacon rippling out, and a bold square on the minimap. Shop, vendor (Black Market) and mini-boss rooms are no
+  longer placed on the map: they come from **room cards** and **mystery doors** only (old saves keep their sealed rooms, which still open when a built room
+  shares 2 tiles of wall with one).
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
   appear around the current map. **Room chests:** every room you draw and build, and every surprise room (after a boss or from a breach event), may also drop a chest node 3 to 5 tiles outside its wall (a hallway 3 tiles wide or less 10%, a wider room 20% plus 1% per 7 tiles of floor, up to 40%: a 6 x 6 room 25%, 12 x 12 40%; none while 2 chests wait unclaimed). It lands on the side facing your other rooms when it can, so the room that claims it tends to join two branches. Half of these are **vector chests** (cyan, with an arrow over the lid): once a room encloses one, walk up to it and it bursts into 4 vector pickups (24 vectors) that fly to the nearest player. Nothing drops within 10 tiles of the start room.
-  Bots build up to the shop room first, then the vendor, then a rule node's room, then chest and relic nodes, then the mini-boss room (they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
+  Bots build toward a rule node's room, then chest and relic nodes (and an old save's sealed rooms; they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
   it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
   separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. Each relic node rolls one of the relics below (never
-  the one every player already holds); its tip on the build map names it once the fog lifts:
+  the one every player already holds); its tip on the build map names it:
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, and stuck shuriken don't bounce.
   - **Backup**: the first time you would go down, you get straight back up with half your health and 2 s of grace. Then it's gone (your slot is empty).
   - **Hallway Runner**: you move 25% faster in hallways (boxes 3 tiles wide or less).
-- **Fog, scout towers and gold veins**: new nodes start **fogged**: you see where they are (a grey **?** on the floor, the minimap and the build map) but not
-  what they are until a player walks within **8 tiles** of one, or a claimed **scout tower** has it in range; building a room round it shows it too. Revealed nodes
-  stay revealed for everyone.
-  - **Scout tower** (a blue mast; every boss cycle with no relic node: the second, fourth, ...): build a room round it and, while it stands, every node within
-    **30 tiles** shows what it is, ones placed later too.
+- **Gold veins** (no fog: every node shows what it is from the moment it appears; scout towers are no longer placed, old saves keep theirs):
   - **Gold vein** (gold nuggets in rock; one every boss cycle): build a room round it and every cleared wave pays **every player 10 gold + 1 per wave number**.
     Veins stack.
 - **Rule nodes** (in progress, Docs/RuleRooms.md): every boss cycle also places a **rule node** (an orange square, 8 x 8 tiles, off to the left or right of the

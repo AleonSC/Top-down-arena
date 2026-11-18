@@ -296,10 +296,16 @@ namespace Arena
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 RimFrame(wd, i, M, 1f, line, true);
             }
-            foreach (var n in game.Nodes)  // the nodes: a small square, breathing until a room is built round it
+            foreach (var n in game.Nodes)  // the nodes: a square with a dark edge, breathing and haloed until a room is built round it
             {
                 V2 np = M(n.Pos);
-                MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, (n.Hidden && !Expansion.NodeClaimed(game.Expanded, n) ? FogInk : NodeInk(n.Kind)).WithAlpha(n.Spent ? 0.25f : Expansion.NodeClaimed(game.Expanded, n) ? 0.9f : 0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
+                bool claimed = Expansion.NodeClaimed(game.Expanded, n);
+                var ink = n.Hidden && !claimed ? FogInk : NodeInk(n.Kind);
+                float br = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 2.5f);
+                if (!n.Spent && !claimed)
+                    MapRect(np.X - 8f, np.Y - 8f, 16f, 16f, ink.WithAlpha(0.15f + 0.15f * br));
+                MapRect(np.X - 6f, np.Y - 6f, 12f, 12f, new Rgba(0f, 0f, 0f, n.Spent ? 0.25f : 0.6f));
+                MapRect(np.X - 5f, np.Y - 5f, 10f, 10f, ink.WithAlpha(n.Spent ? 0.25f : claimed ? 0.9f : 0.8f + 0.2f * br));
             }
             if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
                 foreach (var q in game.ExpandProposals)
