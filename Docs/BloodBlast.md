@@ -42,9 +42,10 @@
   and the look step is as big as the core step.
 - Stacks: small blood drops circling the enemy with a ×N count.
 - **Blood return** (a stacked enemy dies): the blood flies back into the Hemomancer, the heal lands when it arrives
-  (not on the kill), and the Hemomancer flashes with an absorb ring and a green +N number. Four options in the mockup,
-  **pick pending**: Homing Drops (1.0 s), Blood Ribbon (0.9 s), Vein Draw (1.1 s), Blood Vortex (1.15 s). Each scales with
-  the stack count (more drops, a wider ribbon, fatter pulses, a bigger orb) and leaves a blood stain where the enemy died.
+  (not on the kill), and the Hemomancer flashes with an absorb ring and a green +N number. Owner's pick: **Blood Vortex**
+  (1.15 s): the blood spins up out of the body into a swirling orb (0.45 s), which then flies to the Hemomancer trailing
+  a helix of drops (0.5 s); the heal lands as it arrives. More stacks: a bigger orb and more drops (stacks + 4). The enemy
+  leaves a blood stain where it died. (Homing Drops, Blood Ribbon and Vein Draw were the other options.)
 - Every press shows a small red −N health number.
 
 ## Build steps
@@ -52,7 +53,7 @@
 1. **Core**: `WeaponId.BloodBlast` (end of the enum), the six-step chain in `Core/BloodBlast.cs` (step in `Player.Combo`,
    health costs, hits), `Enemy.BlastStacks` + owner (replicated), the kill heal; suite `bloodblast`; protocol bump.
 2. **Alt**: Crimson Tide on the weapon-action key (next free `Dash` byte), charge and wave, stacks on hit; tests.
-3. **Look**: `Game/BloodBlastLook.cs`: the six moves, the Tide, stack drops and the chosen blood return (an `FxKind`); `Tools/Preview`
+3. **Look**: `Game/BloodBlastLook.cs`: the six moves, the Tide, stack drops and the Blood Vortex return (an `FxKind`); `Tools/Preview`
    renders of each step.
 4. **Polish**: per-weapon upgrade (`ExtraDesc`) and a Rare card, sounds, README rows, bot range, balance check from a
    session report.

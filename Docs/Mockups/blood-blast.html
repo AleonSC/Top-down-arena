@@ -502,7 +502,7 @@ document.getElementById('copyBtn').onclick=()=>{const t=document.getElementById(
   const ok=()=>{toast.textContent='Copied';setTimeout(()=>toast.textContent='',1500)};
   try{navigator.clipboard.writeText(t).then(ok,()=>{selectCode();toast.textContent='Selected, press Ctrl+C'})}catch(e){selectCode();toast.textContent='Selected, press Ctrl+C'}};
 function selectCode(){const r=document.createRange();r.selectNodeContents(document.getElementById('code'));const s=getSelection();s.removeAllRanges();s.addRange(r)}
-pickRet(A.ret||'ribbon');renderChain();if(A.alt){const a=A.alt;A.alt=null;pickAlt(a)}
+pickRet(A.ret||'spiral');renderChain();if(A.alt){const a=A.alt;A.alt=null;pickAlt(a)}
 
 /* ---------- loop ---------- */
 const hpFill=document.getElementById('hpFill'),hpTxt=document.getElementById('hpTxt'),dealtEl=document.getElementById('dealt'),engEl=document.getElementById('engorged'),spentEl=document.getElementById('spent'),healedEl=document.getElementById('healed');
