@@ -124,6 +124,15 @@ static partial class Program
         // The big room: the same world on both machines, four times the arena, walls and props in it, the camera held inside it.
         Check(g.RoomsOn && c.RoomsOn && g.CurrentWorld == SurvivalRoom.World && c.CurrentWorld == SurvivalRoom.World, "both games play in Survival's big room");
         Check(g.ArenaMax.X == Game.Width * 2f && g.ArenaMax.Y == Game.Height * 2f && g.ArenaMin.X == 0f, "the room is 3200 x 1800: four times today's arena");
+        var sw = SurvivalRoom.World;
+        var exL = sw.PortalExitFor(new V2(10f, SurvivalRoom.H / 2f + 20f), 10f);
+        var exT = sw.PortalExitFor(new V2(SurvivalRoom.W / 2f - 15f, 10f), 10f);
+        Check(sw.Portals.Length == 2 && sw.Portals[0].Wall && sw.Portals[1].Wall && exL.HasValue && exL.Value.X > SurvivalRoom.W - 200f && exL.Value.X < SurvivalRoom.W
+            && Math.Abs(exL.Value.Y - (SurvivalRoom.H / 2f + 20f)) < 0.5f && exT.HasValue && exT.Value.Y > SurvivalRoom.H - 200f && exT.Value.Y < SurvivalRoom.H,
+            "wall portals join the left wall with the right and the top with the bottom (" + exL + ", " + exT + ")");
+        Check(!sw.PortalExitFor(new V2(10f, 300f), 10f).HasValue, "the rest of the wall is still a wall");
+        Check(g.Props.Values.All(pr => Array.TrueForAll(sw.Portals, pt => !pr.Pos.CloserThan(pt.A, pt.Half + 60f) && !pr.Pos.CloserThan(pt.B, pt.Half + 60f))),
+            "no crate or barrel sits in front of a portal");
         var vc = g.CurrentWorld.ViewCentre(new V2(100f, 100f), 800f, 450f, false);
         var vm = g.CurrentWorld.ViewCentre(new V2(1600f, 900f), 800f, 450f, false);
         Check(vc.X == 800f && vc.Y == 450f && vm.X == 1600f && vm.Y == 900f, "the camera follows you and stops at the room's edges");

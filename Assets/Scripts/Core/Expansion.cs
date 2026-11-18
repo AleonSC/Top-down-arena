@@ -504,18 +504,18 @@ namespace Arena
         /// A new node for this boss cycle: 10 to 16 tiles (20 to 26 off the start room, never within 10 of it) straight out from a room on the connected map (so a strip and a room can reach it), clear of every
         /// room and at least 8 tiles from every other node, inside the size cap. The same on every machine for the same seed, cycle and map.
         /// Null if nothing fits.
-        public static MapNode? NodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind)
+        public static MapNode? NodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind, int ring = -1)
         {
-            var rng = new DetRandom(seed * 7919 + cycle * 3571 + (int)kind * 211 + 5);
+            var rng = new DetRandom(seed * 7919 + cycle * 3571 + (int)kind * 211 + 5 + (ring + 1) * 977);
             var linked = ConnectedAreas(built);
             for (int attempt = 0; attempt < (kind == NodeKind.Rule ? 400 : 160); attempt++)
             {
-                int a = rng.Int(built.Count + 1);
+                int a = ring >= 0 ? 0 : rng.Int(built.Count + 1);  // (a ring node goes off the hub, on side ring % 4)
                 if (!linked[a])
                     continue;
                 BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
                 // (a rule node goes out to the side: the map is wider than tall, so its big room fits)
-                int side = kind == NodeKind.Rule ? 1 + 2 * rng.Int(2) : rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
+                int side = ring >= 0 ? ring % 4 : kind == NodeKind.Rule ? 1 + 2 * rng.Int(2) : rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
                 if (side == 0 || side == 2)
                 {
                     x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;

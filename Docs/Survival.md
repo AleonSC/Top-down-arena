@@ -100,7 +100,7 @@ owner's own runs feel, then move the base, the slope or the phase length (`Survi
 
 ## The big room (built)
 
-- `SurvivalRoom.World` (3200 x 1800) is a `World` like the Rooms arena's, so walls, enemy steering and the following camera work as they do there (`Game.CurrentWorld`, `ArenaKind.Survival`). The Rooms arena's 1.3x enemy damage is off.
+- `SurvivalRoom.World` (3200 x 1800) is a `World` like the Rooms arena's, so walls, enemy steering and the following camera work as they do there (`Game.CurrentWorld`, `ArenaKind.Survival`). The Rooms arena's 1.3x enemy damage is off. Two pairs of wall portals (the Expanding arena's, `WorldPortal.Half`) join the middles of opposite walls, left with right and top with bottom; props keep clear of them.
 - Cover: a plus of walls in the middle with a 140 px gap at its centre, and an L bracket (360 px arms) in each corner, 160 px in from the walls.
 - Props: 160 crates (often in pairs), 50 pots and 10 barrels at the start; every 15 s a few come back, out of everyone's view.
 - Camera: follows you at the normal zoom (Survival skips the Rooms arena's zoomed-in start); everyone starts near the middle, clear of the walls.

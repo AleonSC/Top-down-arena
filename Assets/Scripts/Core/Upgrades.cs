@@ -74,7 +74,7 @@ namespace Arena
         public int ExtraShots, Pierce;
         public int VectorCap;  // the Expanding arena: vectors you can hold beyond the base (Docs/VectorBuilding.md)
         public int Fan;  // Barrage: extra copies of every shot, fanned out to the sides
-        public int RoleCharges, ExtraCharges;
+        public int[] UseBonus = new int[4];  // extra uses per key: Space, Q, E, Shift (the Extra Use card)
         public float BarrierRadiusMult = 1f, BarrierBonusTime, BarrierCapacityMult = 1f;
         public float PulseHealMult = 1f, PulseRangeMult = 1f, AuraRangeMult = 1f, AuraHealMult = 1f;
         public float VenomMult = 1f, VenomReachBonus;  // Virulence (Poison Dart, PoisonDart.cs)
@@ -293,6 +293,7 @@ namespace Arena
         public int Weight = 1;                      // how many times it counts among the cards of its rarity
         public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
         public bool Unoffered;                      // kept (old saves, dev tools) but never offered: the Queen's and the Twin Reapers' old cards (Swarm Rounds, Royal Jelly, Brood Mother; Executioner, Twin Fang, Soul Harvest)
+        public bool PicksSlot;                      // the Extra Use card: you choose the key (Space, Q, E, Shift) it goes on when you pick it
         public Action<Stats> Apply;
     }
 
@@ -501,7 +502,11 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 2, Name = "Wide Guard", Desc = "Your parry shield covers a 30% wider arc", Apply = s => s.ParryArcMult += 0.3f },
 
             // Rare: ability upgrades and weapon mods
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, Name = "Second Charge", Desc = "Your Space ability gets a second charge", Apply = s => s.RoleCharges += 1 },
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = UseSlots, PicksSlot = true, Name = "Extra Use", Desc = "+1 use for one ability: you choose which key (Space, Q, E or Shift)" },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: Space", Desc = "Your Space ability gets +1 use", Apply = s => s.UseBonus[0]++ },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: Q", Desc = "Your Q ability gets +1 use", Apply = s => s.UseBonus[1]++ },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: E", Desc = "Your E ability gets +1 use", Apply = s => s.UseBonus[2]++ },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: Shift", Desc = "Your Shift ability gets +1 use", Apply = s => s.UseBonus[3]++ },
             new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Healer, MaxStacks = 2, Name = "Sanctuary", Desc = "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
                 Apply = s => { s.AuraRangeMult += 0.4f; s.AuraHealMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
@@ -513,8 +518,6 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Counterstance", Desc = "A perfect parry gives +50% fire rate for 2.5 s",
                 Apply = s => s.CounterFireRate += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, Name = "Light Guard", Desc = "You don't slow down while parrying", Apply = s => s.ParryNoSlow = true },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, NeedsExtraAbility = true, Name = "Overcharge", Desc = "Your Q, E and Shift abilities get a second charge",
-                Apply = s => s.ExtraCharges += 1 },
 
             // Very rare: a new Q / E / Shift ability
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Shockwave, Name = "Shockwave", Desc = "New ability: a shockwave runs out from you, erasing enemy bullets and shoving enemies back" },
@@ -782,6 +785,24 @@ namespace Arena
             return false;
         }
 
+        public const int UseSlots = 4;  // Space, Q, E, Shift
+
+        /// The card behind an Extra Use pick on this key (0 Space, 1 Q, 2 E, 3 Shift).
+        public static int UseCard(int slot)
+        {
+            string n = "Extra Use: " + (slot == 0 ? "Space" : slot == 1 ? "Q" : slot == 2 ? "E" : "Shift");
+            return Array.FindIndex(All, x => x.Name == n);
+        }
+
+        /// How many Extra Use picks these cards hold.
+        public static int UsesTaken(List<int> taken)
+        {
+            int n = 0;
+            for (int k = 0; k < UseSlots; k++)
+                n += Count(taken, UseCard(k));
+            return n;
+        }
+
         /// Can this upgrade be offered to a player with these picks and role?
         public static bool Available(int id, OfferCtx c)
         {
@@ -803,6 +824,8 @@ namespace Arena
                 return false;
             if (u.ClassAbility && (u.Grants == roleAbility || KitOf(u.Grants) != KitOf(roleAbility)))
                 return false;  // only your own class's other two Space abilities
+            if (u.PicksSlot && UsesTaken(taken) >= UseSlots)
+                return false;  // one per key
             if (Count(taken, id) >= (u.Grants != AbilityId.None ? 1 : u.MaxStacks))
                 return false;  // each bonus ability can only be owned once
             int grants = 0;

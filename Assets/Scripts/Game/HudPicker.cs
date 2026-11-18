@@ -149,7 +149,14 @@ namespace Arena
             // A card that grants a new ability: choose which key it goes on. The key switch sits between Reroll and Choose;
             // the two buttons spring apart to make room for it (and back) so nothing below the cards moves down.
             bool grantCard = !me.OfferCards && selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None;
-            if (grantCard)
+            bool useCard = !me.OfferCards && selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].PicksSlot;
+            if (useCard)
+            {
+                if (pickKey < 1 || pickKey > Upgrades.UseSlots)
+                    pickKey = 1;  // default: Space
+                grantCard = true;
+            }
+            else if (grantCard)
             {
                 if (pickKey < 1 || pickKey > Upgrades.BonusSlots)
                 {
@@ -241,8 +248,10 @@ namespace Arena
         {
             if (keySwitch < 0.02f || selectedCard < 0 || selectedCard >= me.Offer.Length)
                 return;
-            var grant = Upgrades.All[me.Offer[selectedCard]].Grants;
-            if (grant == AbilityId.None)
+            var card = Upgrades.All[me.Offer[selectedCard]];
+            var grant = card.Grants;
+            bool uses = card.PicksSlot;  // the Extra Use card: pick Space, Q, E or Shift
+            if (grant == AbilityId.None && !uses)
                 return;  // (still sliding away after the card changed: nothing to name)
             float a = Mathf.Clamp01(keySwitch * 1.5f) * rowAlpha;
             var oldColor = GUI.color;
@@ -252,14 +261,17 @@ namespace Arena
             GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, a);
             float sc = Mathf.Lerp(0.6f, 1f, keySwitch);
             GUIUtility.ScaleAroundPivot(new Vector2(sc, sc), new Vector2(mid, by + 24f));
-            Ui.Label(new Rect(mid - w / 2f - 20f, by - 22f, w + 40f, 18f), Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
-            float kw = w / Upgrades.BonusSlots;
-            for (int k = 1; k <= Upgrades.BonusSlots; k++)
+            Ui.Label(new Rect(mid - w / 2f - 20f, by - 22f, w + 40f, 18f), uses ? "+1 USE ON" : Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
+            int n = uses ? Upgrades.UseSlots : Upgrades.BonusSlots;
+            float kw = w / n;
+            for (int j = 0; j < n; j++)
             {
-                var r = new Rect(mid - w / 2f + (k - 1) * kw, by, kw, 48f);
-                string hint = me.Slots[k].Id != AbilityId.None ? "swap" : "empty";
-                if (DkChoice(new Rect(r.x, r.y, r.width, r.height - 14f), SlotKeys[k], pickKey == k, ToColor(me.Def.Color)) && !opening)
-                    pickKey = k;
+                int k = uses ? j : j + 1;  // the slot (0 Space, 1-3 Q, E, Shift)
+                var r = new Rect(mid - w / 2f + j * kw, by, kw, 48f);
+                string hint = uses ? (me.Slots[k].Id != AbilityId.None ? Upgrades.Ability(me.Slots[k].Id).Name : "empty") : me.Slots[k].Id != AbilityId.None ? "swap" : "empty";
+                int val = uses ? k + 1 : k;  // what pickKey holds
+                if (DkChoice(new Rect(r.x, r.y, r.width, r.height - 14f), SlotKeys[k], pickKey == val, ToColor(me.Def.Color)) && !opening && (!uses || me.Slots[k].Id != AbilityId.None))
+                    pickKey = val;
                 Ui.Label(new Rect(r.x, r.yMax - 14f, r.width, 14f), hint, 10, CrtStyle.Desc, TextAnchor.MiddleCenter);
             }
             GUI.matrix = oldMatrix;
@@ -318,10 +330,10 @@ namespace Arena
             {
                 statsTaken.Clear();
                 statsTaken.AddRange(me.Taken);
-                statsTaken.Add(extra);
+                statsTaken.Add(Upgrades.All[extra].PicksSlot ? Upgrades.UseCard(Math.Max(0, key - 1)) : extra);
                 taken = statsTaken;
             }
-            lines = StatSheet.Describe(me, taken, key, game.PassiveRegen);
+            lines = StatSheet.Describe(me, taken, extra >= 0 && Upgrades.All[extra].PicksSlot ? 0 : key, game.PassiveRegen);
             statsCache[k] = lines;
             return lines;
         }
@@ -742,6 +754,8 @@ namespace Arena
             int have = me.Offer != null && index < me.Offer.Length ? Upgrades.Count(me.Taken, me.Offer[index]) : 0;  // (the offer is cleared the moment you pick, while the card is still flying out)
             if (u.Rarity == Rarity.Mod)
                 return have > 0 ? "YOU HAVE " + have + " / " + u.MaxStacks : "NEW";
+            if (u.PicksSlot)
+                return index == selectedCard && pickKey >= 1 ? "Goes on " + SlotKeys[pickKey - 1] + " (choose with the keys)" : "You choose its key";
             if (u.Grants != AbilityId.None)
             {
                 string cls = u.ClassAbility ? "Class ability  ·  " : "";

@@ -179,7 +179,7 @@ static partial class Shot {
       g.AddProp(PropKind.HealthBarrel, new V2(1000f, 430f));
       var open = g.AddProp(PropKind.Chest, new V2(820f, 560f)); open.Open = true; open.OpenT = 0.8f;
       foreach (var p in g.Props.Values) p.Age = 3f + p.Id;
-      int item = Environment.GetEnvironmentVariable("PROPS") == "2" ? UL("Warden's Guard") : UL("Second Charge");
+      int item = Environment.GetEnvironmentVariable("PROPS") == "2" ? UL("Warden's Guard") : UL("Extra Use");
       if (item < 0) item = 0;
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;

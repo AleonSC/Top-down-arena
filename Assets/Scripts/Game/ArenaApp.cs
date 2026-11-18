@@ -676,7 +676,7 @@ namespace Arena
             rerollArmedAt = -99f;
             StartPickOutro(me, selectedCard);  // the cards fly back into you, yours last (PickOutro.cs)
             int key = 0;
-            if (me != null && me.Offer != null && !me.OfferCards && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
+            if (me != null && me.Offer != null && !me.OfferCards && selectedCard < me.Offer.Length && (Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None || Upgrades.All[me.Offer[selectedCard]].PicksSlot))
                 key = pickKey;
             game.PickUpgrade(selectedCard, key);
             selectedCard = -1;
