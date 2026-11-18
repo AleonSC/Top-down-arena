@@ -643,7 +643,7 @@ namespace Arena
         public void HostReroll(int id)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.OfferMilestone || p.OfferPrize || p.Rerolls <= 0 || State != MatchState.Intermission)
+            if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.OfferMilestone || p.OfferPrize || p.OfferWave || p.Rerolls <= 0 || State != MatchState.Intermission)
                 return;
             p.Rerolls--;
             Recorder?.Rerolled(p);
@@ -686,16 +686,19 @@ namespace Arena
                 {
                     if (!AnyBossCardUsable(p, p.Offer))  // (the hand filled while the offer was up: nothing in it can be taken, so the pick is skipped, as NextOffer would)
                     {
-                        p.PendingCards = Math.Max(0, p.PendingCards - 1);
+                        UseCardPick(p);
                         NextOffer(p);
                         BroadcastUpgrades(p);
                         SendSnapshot();
                     }
                     return;
                 }
-                Recorder?.PickedNamed(this, p, Array.ConvertAll(p.Offer, BossCards.Name), BossCards.Name(code), "boss card");
-                GrantBossCard(p, code);
-                p.PendingCards = Math.Max(0, p.PendingCards - 1);
+                Recorder?.PickedNamed(this, p, Array.ConvertAll(p.Offer, BossCards.Name), BossCards.Name(code), p.OfferWave ? "wave card" : "boss card");
+                if (p.OfferWave)
+                    GiveCard(p, BossCards.CardOf(code), "wave pick");
+                else
+                    GrantBossCard(p, code);
+                UseCardPick(p);
                 NextOffer(p);
                 DoLog(p.Role + " picked a " + BossCards.Name(code));
                 BroadcastUpgrades(p);  // (tells a client its pick landed, so it takes offers again: a boss card adds no upgrade to say so)
@@ -735,6 +738,8 @@ namespace Arena
             p.OfferLegendary = p.LegendaryQueue.Count > 0;
             p.OfferMod = false;
             p.OfferCards = false;
+            p.OfferWave = false;
+            p.WavePicks = Math.Min(p.WavePicks, p.PendingCards);
             p.OfferMilestone = false;
             p.OfferPrize = false;
             int[] mods = null, cards = null;
@@ -746,12 +751,15 @@ namespace Arena
             }
             if (!p.OfferLegendary && mods == null && p.PendingCards > 0)
             {
-                cards = BossCardOffer(p);
+                bool wave = p.PendingCards <= p.WavePicks;  // the boss's picks first, then the wave's (Hand.cs)
+                cards = wave ? WaveCardOffer(p) : BossCardOffer(p);
                 if (!AnyBossCardUsable(p, cards))
                 {
-                    p.PendingCards = 0;  // a full hand and full kits: nothing to take
+                    p.PendingCards = p.WavePicks = 0;  // a full hand and full kits: nothing to take
                     cards = null;
                 }
+                else
+                    p.OfferWave = wave;
             }
             if (p.OfferLegendary)
                 p.Offer = Upgrades.LegendaryOffer(rng, p.LegendaryQueue[0], OfferFor(p));

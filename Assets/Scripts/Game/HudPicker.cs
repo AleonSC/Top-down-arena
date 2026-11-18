@@ -36,7 +36,7 @@ namespace Arena
             Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
                 : me.OfferMilestone ? ToColor(Upgrades.RarityColor(Rarity.Milestone))
                 : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : me.OfferCards ? BossCardsTheme : me.OfferPrize ? ToColor(Upgrades.RarityColor(Rarity.VeryRare)) : Ui.Gold;
-            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferCards ? "BOSS SPOILS!" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
+            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferWave ? "WAVE SPOILS" : me.OfferCards ? "BOSS SPOILS!" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
             float titleY, band;
             int titleSize;
             PickTitleMotion(72f, 54, out titleY, out titleSize, out band);  // a full opening pops it in the middle first
@@ -50,7 +50,7 @@ namespace Arena
                 Ui.Glow(new Rect(W / 2f - CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)) / 2f, titleR.center.y - titleSize * 0.35f, CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)), titleSize * 0.7f), titleCol, 0.16f);
             CrtUi.Title(titleR, title, (int)(titleSize * 1.3f), Color.Lerp(titleCol, Color.white, 0.8f), TextAnchor.MiddleCenter, fxReduced);
             int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingCards + me.PendingMilestones + me.PrizePicks - 1;
-            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferCards ? "PICK A CARD OR A FLOOR KIT  ·  WEAPON MODS ARE AT THE ARMS DEALER" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
+            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferWave ? "PICK ONE PIECE FOR YOUR HAND" : me.OfferCards ? "PICK A CARD OR A FLOOR KIT  ·  WEAPON MODS ARE AT THE ARMS DEALER" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
                 sub += "  ·  " + more + " MORE AFTER THIS";
             if (titleY <= 73f)
@@ -173,7 +173,7 @@ namespace Arena
             by = Mathf.Min(by, H - (goldOffer ? 120f : 70f));
             bool wasEnabled = GUI.enabled;
             bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length && (!me.OfferCards || game.BossCardUsable(me, me.Offer[selectedCard]));
-            bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferMilestone && !me.OfferPrize;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
+            bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferMilestone && !me.OfferPrize && !me.OfferWave;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
             const float rerollW = 300f, takeW = 300f, bgap = 18f, keysW = 230f;
             float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
             float spread = keySwitch * (keysW + bgap * 2f) / 2f;  // with Reroll: each button moves half the switch and its gaps outward

@@ -102,7 +102,8 @@ namespace Arena
             p.Hand[p.Hand.Length - 1] = (byte)RoomCard.None;
         }
 
-        /// Host, as a build round opens: anyone not dealt yet gets the starting hand (Expansion.GridStartHand), then everyone the round's basic piece.
+        /// Host, as a build round opens: anyone not dealt yet gets the starting hand (Expansion.GridStartHand), then everyone a wave card pick
+        /// (WaveCardOffer: take one of two, after any boss pick).
         void DealRoundCards()
         {
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents)
@@ -116,8 +117,22 @@ namespace Arena
                         foreach (var c in Expansion.GridStartHand(expandSeed + p.Id * 31))
                             GiveCard(p, c, "starting hand");
                 }
-                GiveCard(p, Expansion.GridRoundCard(Wave), "build round");
+                p.PendingCards++;
+                p.WavePicks++;
+                if (p.Offer == null)
+                    NextOffer(p);
             }
+        }
+
+        /// Host: a wave card pick's two cards: the round's basic piece (Expansion.GridRoundCard) and a dropped card (Expansion.GridDropCard), seeded per player and wave.
+        int[] WaveCardOffer(Player p)
+        {
+            int basic = (int)Expansion.GridRoundCard(Wave);
+            var rng = new DetRandom(expandSeed * 31 + Wave * 1009 + p.Id * 67);
+            int drop = basic;
+            for (int tries = 0; drop == basic && tries < 20; tries++)
+                drop = (int)Expansion.GridDropCard(rng, Math.Max(1, Wave));
+            return new[] { basic, drop };
         }
 
         /// Host, when a wave is cleared (before the round opens): a regular wave gives each player a 1 in CardWaveChance card. A boss

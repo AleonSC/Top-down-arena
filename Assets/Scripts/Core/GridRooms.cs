@@ -30,7 +30,7 @@ namespace Arena
         /// One of the core's four rooms (they cost nothing and don't count towards the room cap).
         public static bool IsGridCore(ExpansionRoom r)
         {
-            if (r.Price != 0 || r.Owner != 0 || r.Card != 0 || r.Leg != 0)
+            if (r.Price != 0 || r.Owner != 0 || r.Leg != 0)
                 return false;
             foreach (var c in GridCore())
                 if (c.X == r.X && c.Y == r.Y && c.W == r.W && c.H == r.H)

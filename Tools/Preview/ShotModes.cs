@@ -668,9 +668,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; SHOPSEL picks the card, BUILDS=1 puts some in your stash
       {
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
-        var vk = Expansion.FloatingFor(3, 2, g.Expanded, RoomKind.Vendor); if (vk.HasValue) g.Expanded.Add(vk.Value);
-        int vi = g.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Vendor);
-        var vc = vi >= 0 ? Expansion.ConnectorFor(g.Expanded, vi) : null; if (vc.HasValue) { var v2 = vc.Value; v2.Owner = 1; g.Expanded.Add(v2); }
+        g.Expanded.Clear(); g.Expanded.AddRange(Expansion.GridCore()); g.Openings.AddRange(Expansion.GridCoreCuts());
+        var vo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono); if (vo.Count > 0) { var v2 = vo[0].Rooms[0]; v2.Owner = 1; v2.Kind = RoomKind.Vendor; g.Expanded.Add(v2); }  // (a one-cell Black Market off the core)
         typeof(Game).GetField("expWorld", f2).SetValue(g, null);
         g.RoomsUp = true;
         var va = g.ExpansionWorld.Areas[g.ExpansionWorld.Areas.Length - 1];
@@ -711,7 +710,8 @@ static partial class Shot {
         host.Game.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         me.Hand[0] = (byte)RoomCard.Box; me.Hand[1] = (byte)RoomCard.Hall;
         if (Environment.GetEnvironmentVariable("BOSSFULL") != null) for (int hi = 0; hi < me.Hand.Length; hi++) me.Hand[hi] = (byte)RoomCard.Box;
-        me.Offer = new[] { (int)RoomCard.Ring, (int)RoomCard.Arms, BossCards.KitCode(PathId.SniperRidge), (int)RoomCard.MiniBoss, (int)RoomCard.LHall }; me.OfferCards = true; me.PendingCards = 1; }
+        me.Offer = new[] { (int)RoomCard.Ring, (int)RoomCard.Arms, BossCards.KitCode(PathId.SniperRidge), (int)RoomCard.MiniBoss, (int)RoomCard.LHall }; me.OfferCards = true; me.PendingCards = 1;
+        if (Environment.GetEnvironmentVariable("WAVECARDS") != null) { me.Offer = new[] { (int)Expansion.GridRoundCard(3), (int)Expansion.PieceCard(GridPiece.TetT) }; me.OfferWave = true; me.WavePicks = 1; } }  // WAVECARDS=1: the wave card pick
       else if (mode == "legendary") { me.Offer = new[] { U("Warden's Guard"), U("Stun Gun"), U("Searchlight") }; me.OfferLegendary = true; }
       else { me.Offer = Upgrades.ModOffer(OfferCtx.Of(me, false)); me.OfferMod = true; }
       me.PendingPicks = 2;

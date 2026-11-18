@@ -59,7 +59,7 @@ namespace Arena
             foreach (int i in order)
             {
                 string why;
-                var pick = Expansion.SurpriseFor(ExpandingOn, expandSeed, Wave, Expanded, NextSurpriseShape(), out why, bs[i].Pos - bs[i].In * BreachEvent.Behind);
+                var pick = Expansion.SurpriseFor(expandSeed, Wave, Expanded, NextSurpriseShape(), out why, bs[i].Pos - bs[i].In * BreachEvent.Behind);
                 if (pick.HasValue)
                 {
                     eventPlan = new BreachEventPlan { At = bs[i], Option = pick.Value };
@@ -189,7 +189,7 @@ namespace Arena
                     break;
                 if (EventMark.HasValue && b.Pos.CloserThan(EventMark.Value, 3f))
                     continue;  // (the gold breach's room opens there later)
-                var opts = Expansion.SurpriseOptionsFor(ExpandingOn, Expanded, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);  // (a Grid run: one cell on the lattice)
+                var opts = Expansion.GridSurpriseOptions(Expanded, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);  // (a Grid run: one cell on the lattice)
                 opts.RemoveAll(o => TouchesPlannedEventRoom(o.Rooms));
                 CentreOnBreach(opts, b, CurrentWorld);
                 if (opts.Count == 0)

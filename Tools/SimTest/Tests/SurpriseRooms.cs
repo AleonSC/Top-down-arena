@@ -9,88 +9,40 @@ static partial class Program
 {
     static void ExpandingSurpriseTest()
     {
-        string why;
-        var none = new List<ExpansionRoom>();
-        var shapes = (SurpriseShape[])Enum.GetValues(typeof(SurpriseShape));
-        int[] tiles = { 96, 81, 54, 63, 47, 15, 16, 48, 42, 24, 20, 36, 36 };  // floor tiles: ring, cross, L, T, chamfer, stash, tiny, duel, box, hall (room cards), small rect, medium, long hall (mystery doors)
-        foreach (var s in shapes)
+        string why = null;
+        var core = Expansion.GridCore();
+        var gifts = new[] { SurpriseShape.Ring, SurpriseShape.Cross, SurpriseShape.LHall, SurpriseShape.THall, SurpriseShape.Chamfer, SurpriseShape.Stash };
+        foreach (var sh in gifts)
         {
-            var b = Expansion.SurpriseBase(s);
-            int n = 0;
-            foreach (bool f in b) n += f ? 1 : 0;
-            Check(n == tiles[(int)s] && n * 10000 <= Expansion.MaxArea, Expansion.SurpriseName(s) + " has " + n + " floor tiles (" + tiles[(int)s] + ")");
-            // Four turns and a mirror keep the floor, and a quarter turn swaps the footprint.
-            var t = Expansion.SurpriseMask(s, 1, true);
-            int m = 0;
-            foreach (bool f in t) m += f ? 1 : 0;
-            Check(m == n && t.GetLength(0) == b.GetLength(1) && t.GetLength(1) == b.GetLength(0), Expansion.SurpriseName(s) + " keeps its floor when turned and mirrored");
-            var opts = Expansion.SurpriseOptions(none, s);
-            Check(opts.Count > 0, Expansion.SurpriseName(s) + " fits on the plain hub (" + opts.Count + " spots)");
-            if (opts.Count == 0) continue;
-            for (int i = 0; i < opts.Count; i += Math.Max(1, opts.Count / 12))
+            var opts = Expansion.GridSurpriseOptions(core, sh);
+            Check(opts.Count > 0, Expansion.SurpriseName(sh) + " fits round the core (" + opts.Count + " spots)");
+            bool ok = true;
+            foreach (var o in opts.Take(12))
             {
-                var o = opts[i];
-                var w = Expansion.Build(o.Rooms);
-                bool ok = o.Rooms.All(r => r.Price == 0 && r.Kind == RoomKind.Combat) && Expansion.ConnectedAreas(o.Rooms).All(c => c)
-                          && Expansion.BoughtCount(o.Rooms) == 1 && w.Areas.Length == o.Rooms.Count + 1;
-                for (int a = 0; a < o.Rooms.Count && ok; a++)
-                {
-                    bool hub = o.Rooms[a].X < (int)Game.Width && o.Rooms[a].X1 > 0 && o.Rooms[a].Y < (int)Game.Height && o.Rooms[a].Y1 > 0;
-                    ok &= !hub;
-                    for (int c = a + 1; c < o.Rooms.Count; c++)
-                        ok &= o.Rooms[a].X1 <= o.Rooms[c].X || o.Rooms[c].X1 <= o.Rooms[a].X || o.Rooms[a].Y1 <= o.Rooms[c].Y || o.Rooms[c].Y1 <= o.Rooms[a].Y;
-                }
-                int floor = o.Rooms.Sum(r => r.W * r.H / 10000);
-                Check(ok && floor == tiles[(int)s], Expansion.SurpriseName(s) + " spot " + i + ": free, one room, connected, no overlap, " + floor + " tiles");
-                if (s == SurpriseShape.Stash)  // the cache sits in the middle: no cover on it (and the room still gets some)
-                {
-                    var rm = o.Rooms[0]; V2 mid = new V2((rm.X + rm.X1) / 2f, (rm.Y + rm.Y1) / 2f);
-                    bool clearMid = w.Cover.All(c => c.Round ? c.Pos.DistanceTo(mid) > c.R + 40f : Math.Abs(c.Pos.X - mid.X) > c.HW + 40f || Math.Abs(c.Pos.Y - mid.Y) > c.HH + 40f);
-                    int inside = w.Cover.Count(c => c.Pos.X > rm.X && c.Pos.X < rm.X1 && c.Pos.Y > rm.Y && c.Pos.Y < rm.Y1);
-                    Check(clearMid && inside > 0, "Stash spot " + i + ": cover in the room (" + inside + "), none on the cache");
-                }
+                var map = new List<ExpansionRoom>(core);
+                map.AddRange(o.Rooms);
+                ok &= o.Rooms.All(r => r.Price == 0 && r.Surprise == 1 + (int)sh) && Expansion.ConnectedAreas(map).All(c => c) && Expansion.BoughtCount(map) == 1
+                      && o.Rooms.All(r => map.Count(q => r.X < q.X1 && q.X < r.X1 && r.Y < q.Y1 && q.Y < r.Y1) == 1);
             }
+            Check(ok, Expansion.SurpriseName(sh) + ": free, marked, one room, connected, overlapping nothing");
         }
-        // The ring is a loop: its lane joins all the way round (every piece has two neighbours or more).
-        var ring = Expansion.SurpriseOptions(none, SurpriseShape.Ring)[0].Rooms;
-        var rw = Expansion.Build(ring);
-        var deg = new int[ring.Count + 1];
-        foreach (var d in rw.Doors) { deg[d.A]++; deg[d.B]++; }
-        int ringPieces = 0, closed = 0;
-        for (int a = 1; a <= ring.Count; a++) { ringPieces++; closed += deg[a] >= 2 ? 1 : 0; }
-        Check(ring.Count >= 4 && closed == ringPieces, "the ring is four boxes or more with a way round (" + ring.Count + " boxes)");
 
-        // Closing a loop: two rooms above the hub with a gap; the best spot touches both.
-        string fw;
-        var pair = new List<ExpansionRoom> { Expansion.Custom(none, 0, -600, 600, 600, out fw).Value };
-        pair.Add(Expansion.Custom(pair, 1000, -600, 600, 600, out fw).Value);
-        bool anyLoop = false;
-        foreach (var s in shapes)
-        {
-            var o = Expansion.SurpriseOptions(pair, s);
-            Check(o.Count > 0 && o.Zip(o.Skip(1), (p, q) => p.Score >= q.Score).All(x => x), Expansion.SurpriseName(s) + " options come best first");
-            anyLoop |= o.Count > 0 && o[0].Loops >= 1;
-        }
-        Check(anyLoop, "with a gap between two rooms, some shape's best spot closes a loop");
-
-        // Deterministic, free, and the pick is one of the best three.
-        var a1 = Expansion.Surprise(7, 10, pair, SurpriseShape.Cross, out why);
-        var a2 = Expansion.Surprise(7, 10, pair, SurpriseShape.Cross, out why);
-        Check(a1.HasValue && a2.HasValue && a1.Value.Rooms[0].X == a2.Value.Rooms[0].X && a1.Value.Rooms[0].Y == a2.Value.Rooms[0].Y && a1.Value.Shape == a2.Value.Shape, "the same seed, wave and map give the same room");
-        var top = Expansion.SurpriseOptions(pair, a1.Value.Shape).Take(Expansion.SurpriseTop).Select(o => o.Rooms[0].X + "," + o.Rooms[0].Y).ToList();
-        Check(top.Contains(a1.Value.Rooms[0].X + "," + a1.Value.Rooms[0].Y), "it is one of the " + Expansion.SurpriseTop + " best spots");
+        // Deterministic: the same seed, wave and map give the same spot; other seeds pick among the best few.
+        var a1 = Expansion.SurpriseFor(7, 10, core, SurpriseShape.Cross, out why);
+        var a2 = Expansion.SurpriseFor(7, 10, core, SurpriseShape.Cross, out why);
+        Check(a1.HasValue && a2.HasValue && a1.Value.Rooms[0].X == a2.Value.Rooms[0].X && a1.Value.Rooms[0].Y == a2.Value.Rooms[0].Y, "the same seed, wave and map give the same surprise room");
         var picks = new HashSet<string>();
         for (int sd = 1; sd < 40; sd++)
         {
-            var p = Expansion.Surprise(sd, 10, pair, SurpriseShape.Cross, out why);
+            var p = Expansion.SurpriseFor(sd, 10, core, SurpriseShape.Cross, out why);
             if (p.HasValue) picks.Add(p.Value.Rooms[0].X + "," + p.Value.Rooms[0].Y);
         }
-        Check(picks.Count >= 2 && picks.Count <= Expansion.SurpriseTop, "other seeds pick other spots (" + picks.Count + ")");
+        Check(picks.Count >= 2 && picks.Count <= Expansion.SurpriseTop, "other seeds pick other spots among the best " + Expansion.SurpriseTop + " (" + picks.Count + ")");
 
         // A full map gets nothing.
-        var full = new List<ExpansionRoom>();
-        for (int i = 0; i < Expansion.MaxRooms; i++) full.Add(new ExpansionRoom { Parent = 0, X = 10000 + i * 400, Y = 0, W = 300, H = 300 });
-        Check(Expansion.Surprise(1, 10, full, SurpriseShape.Ring, out why) == null && why != null, "a full map gets no surprise room: " + why);
+        var full = Expansion.GridCore();
+        for (int i = 0; i < Expansion.MaxRooms; i++) full.Add(new ExpansionRoom { Parent = 0, X = 10000 + i * 700, Y = 0, W = 600, H = 600 });
+        Check(Expansion.SurpriseFor(1, 10, full, SurpriseShape.Ring, out why) == null && why != null, "a full map gets no surprise room: " + why);
     }
 
     // In a run (step 2): the host gives a surprise room, both screens get it free with its flag, the look's clock starts, and the world's areas carry the flag.
@@ -146,16 +98,15 @@ static partial class Program
         Check(rate > 0.4 && rate < 0.6, "about half of those have one (" + rate.ToString("0.000") + ")");
 
         // A room behind a breach: every spot has floor on the point just behind the wall, and a plain map still gets a plan.
-        string why;
-        var list = new List<ExpansionRoom>();
-        list.Add(Expansion.Custom(list, 1600, 100, 800, 600, out why).Value);
+        string why = null;
+        var list = GridMap(GridPiece.TriI);
         var w = Expansion.Build(list);
         var bs = Breaches.For(w, 15);
         bool any = false, behind = true;
         foreach (var b in bs)
         {
             V2 pt = b.Pos - b.In * BreachEvent.Behind;
-            var opts = Expansion.SurpriseOptions(list, SurpriseShape.LHall, pt);
+            var opts = Expansion.GridSurpriseOptions(list, SurpriseShape.LHall, pt);
             any |= opts.Count > 0;
             foreach (var o in opts) behind &= o.Rooms.Any(q => pt.X >= q.X && pt.X < q.X1 && pt.Y >= q.Y && pt.Y < q.Y1);
         }

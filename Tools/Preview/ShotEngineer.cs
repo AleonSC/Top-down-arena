@@ -92,7 +92,7 @@ static partial class Shot {
       m.Breach = true; m.WallPt = wall; m.Out = new V2(0f, -1f); m.BreachT = et;
       put(EnemyType.Grunt, new V2(690f, 70f), MathX.Pi * 1.4f); put(EnemyType.Grunt, new V2(930f, 80f), MathX.Pi * 1.7f);
       if (et >= 0.75f) {
-        var opts = Expansion.SurpriseOptions(gm.Expanded, shape, wall + new V2(0f, -120f));
+        var opts = Expansion.GridSurpriseOptions(gm.Expanded, shape, wall + new V2(0f, -120f));
         if (opts.Count > 0) {
           var rooms = opts[0].Rooms; gm.Expanded.AddRange(rooms);
           typeof(Game).GetField("expWorld", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(gm, null);
