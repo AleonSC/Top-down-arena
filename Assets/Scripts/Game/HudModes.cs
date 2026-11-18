@@ -170,7 +170,6 @@ namespace Arena
             {
                 string hp = Mathf.CeilToInt(me.Hp).ToString();
                 MiniText(new Rect(hr.x, hr.y, hr.width, 16f), "HEALTH", 16, dim, a);
-                MiniText(new Rect(hr.x, hr.y, hr.width, 16f), "LV " + me.Level, 16, Ui.Gold, a, TextAnchor.MiddleRight);  // your level, its progress the gold line below
                 MiniText(new Rect(hr.x, hr.y + 12f, hr.width, 50f), hp, 52, hc, a);
                 MiniText(new Rect(hr.x + CrtUi.TitleWidth(hp, 52) + 8f, hr.y + 30f, 120f, 26f), "/ " + Mathf.CeilToInt(me.MaxHp), 24, low ? red : dim, a);
                 MiniCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), frac, 20, hc, low ? MiniBlink(a) : a);
@@ -178,8 +177,11 @@ namespace Arena
             if (!me.Downed)  // the level's progress: a thin gold line under the health cells
             {
                 float xf = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
-                Ui.Fill(new Rect(hr.x, hr.y + 75f, hr.width, 2f), MiniA(Ui.Gold, 0.18f * a));
-                Ui.Fill(new Rect(hr.x, hr.y + 75f, hr.width * xf, 2f), MiniA(Ui.Gold, a));
+                string lv = "LV " + me.Level;  // your level at the line's right end, level with it
+                float lw = CrtUi.TitleWidth(lv, 14), lineW = hr.width - lw - 8f;
+                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW, 2f), MiniA(Ui.Gold, 0.18f * a));
+                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW * xf, 2f), MiniA(Ui.Gold, a));
+                MiniText(new Rect(hr.x + lineW + 4f, hr.y + 71f, lw + 4f, 14f), lv, 14, Ui.Gold, a, TextAnchor.MiddleRight);
             }
             MiniScan(new Rect(hr.x - 4f, hr.y - 4f, hr.width + 8f, hr.height + 8f), a);
 
@@ -246,14 +248,14 @@ namespace Arena
             MiniScan(new Rect(wr.x - 4f, wr.y - 4f, wr.width + 8f, wr.height + 8f), a);
 
             // What you carry: one slim row each above the wave, as the teammates sit above your health (only what this run has)
-            float ry = wr.y - 34f;  // (clear of the brackets)
+            float ry = wr.y - 30f;  // (clear of the brackets)
             if (game.ExpandingOn)
             {
                 bool vfull = me.Vectors >= me.VectorCap;
                 Color vc = Color.Lerp(vfull ? Ui.Gold : new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * VectorChipFlash);  // (flashes as vectors come in: VectorGainLook.cs)
                 if (vfull && vecFullNear)  // a pickup or Stash waiting by you: pulse amber
                     vc = MiniA(vc, 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f));
-                MiniRow(wr, ry, "VECTORS", VectorChipCount(me) + " / " + me.VectorCap + PushChipNote, vc, a, Mathf.Clamp01((float)me.Vectors / Mathf.Max(1, me.VectorCap)));
+                MiniRow(wr, ry, "VECTORS", VectorChipCount(me) + " / " + me.VectorCap + PushChipNote, vc, a, -1f);  // (the number only)
                 vecChipRect = new Rect(wr.xMax - 60f, ry, 60f, 16f);  // where the shards land
                 ry -= 22f;
             }
