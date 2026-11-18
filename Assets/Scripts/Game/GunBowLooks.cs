@@ -182,5 +182,16 @@ namespace Arena
                 }
             }
         }
+
+        /// A four-pointed sparkle (two thin diamonds).
+        void Star4(V2 c, float r, Rgba col)
+        {
+            if (r < 0.3f)
+                return;
+            SetColor(col);
+            float k = r * 0.22f;
+            Quad(c + new V2(-r, 0f), c + new V2(0f, -k), c + new V2(r, 0f), c + new V2(0f, k));
+            Quad(c + new V2(0f, -r), c + new V2(k, 0f), c + new V2(0f, r), c + new V2(-k, 0f));
+        }
     }
 }
