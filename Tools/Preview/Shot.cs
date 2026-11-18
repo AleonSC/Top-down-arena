@@ -2,6 +2,9 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // Renders one screen to GL triangles and an IMGUI log (shot.sh turns them into a PNG). Main sets up a match and
 // runs it; ShotScenes.cs poses it (the environment flags), ShotModes.cs draws the chosen screen.
 static partial class Shot {
+  // A plain box room for a scene (no checks: the scene's own map).
+  static ExpansionRoom? Box(int x, int y, int w, int h, PathId floor = PathId.None) => new ExpansionRoom { X = x, Y = y, W = w, H = h, Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor };
+
   // The preview's "now" for made-up saves and replays: fixed, so their dates (and uishots.sh -r compares) don't change.
   public static readonly DateTime Now = new DateTime(2026, 11, 7, 18, 0, 0, DateTimeKind.Utc);
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
@@ -867,12 +870,11 @@ static partial class Shot {
         var gm = Environment.GetEnvironmentVariable("MOUSE"); if (gm != null) { var xy = gm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       }
       int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));
-      for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
-      string ebuilt = Environment.GetEnvironmentVariable("EXPANDBUILT");  // EXPANDBUILT=x,y,w,h;...: drawn boxes on the map first (Expansion.Custom), owner 1
-      if (ebuilt != null) foreach (var part in ebuilt.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string bw; var br = Expansion.Custom(eg.Expanded, q[0], q[1], q[2], q[3], out bw); if (br.HasValue) { var b2 = br.Value; b2.Owner = 1; eg.Expanded.Add(b2); } else Console.Error.WriteLine("EXPANDBUILT " + part + ": " + bw); }
+      if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.InsertRange(0, Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (every Expanding map starts from its core)
+      for (int k = 0; k < bought; k++) { var bo = Expansion.GridPieceOptions(eg.Expanded, k % 2 == 0 ? GridPiece.Domino : GridPiece.Mono); if (bo.Count > 0) { var bp = bo[(k * 5) % bo.Count]; foreach (var br0 in bp.Rooms) { var b1 = br0; b1.Owner = 1 + k % 2; eg.Expanded.Add(b1); } } }  // EXPANDVOTE=<n>: n pieces placed
+      string ebuilt = Environment.GetEnvironmentVariable("EXPANDBUILT");  // EXPANDBUILT=x,y,w,h;...: plain boxes on the map first, owner 1
+      if (ebuilt != null) foreach (var part in ebuilt.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string bw = null; var br = Box(q[0], q[1], q[2], q[3]); if (br.HasValue) { var b2 = br.Value; b2.Owner = 1; eg.Expanded.Add(b2); } else Console.Error.WriteLine("EXPANDBUILT " + part + ": " + bw); }
 
-      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null && eg.Nodes.Count == 0) { foreach (var fk in new[] { RoomKind.Gatekeeper, RoomKind.Shop, RoomKind.Vendor }) { var gk = Expansion.FloatingFor(3, 2, eg.Expanded, fk); if (gk.HasValue) eg.Expanded.Add(gk.Value); } foreach (var nk in new[] { NodeKind.Chest }) { var nn = Expansion.NodeFor(3, 0, eg.Expanded, eg.Nodes, nk); if (nn.HasValue) eg.Nodes.Add(nn.Value); } if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "2" && eg.Nodes.Count > 0) { for (int stp = 0; stp < 3 && !Expansion.NodeClaimed(eg.Expanded, eg.Nodes[0]); stp++) { var hh = Expansion.NodeStep(eg.Expanded, eg.Nodes[0]); if (!hh.HasValue) break; var h2 = hh.Value; h2.Owner = 1; eg.Expanded.Add(h2); } } }  // EXPANDFLOAT=1: floating Gatekeeper, shop and vendor rooms and a chest node off the map; =2 also builds a hallway and a room round the chest node; =3 builds a box up to the shop room (opened)=1: a floating shop, vendor and Gatekeeper room off the map
-      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "3") { int sfi = eg.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop); var sfc = sfi >= 0 ? Expansion.ConnectorFor(eg.Expanded, sfi) : null; if (sfc.HasValue) { var sf2 = sfc.Value; sf2.Owner = 1; eg.Expanded.Add(sf2);  typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); } }  // EXPANDFLOAT=3: a box built up to the shop room, so it is open
       if (gridEnv != null) typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null);  // (the rooms just added show)
       eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open
       if (Environment.GetEnvironmentVariable("EXPANDMIDWAVE") != null) { eg.State = MatchState.Fighting; eg.ExpandOpen = false; eg.Wave = 7; eg.RoomsUp = true; eg.BreachAge = 12f; MockBreachRooms(eg); }  // EXPANDMIDWAVE=1: the draw screen mid-wave (Open wall only; a breach wave, so its breaches show)
@@ -907,7 +909,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("EXPANDSHOP") != null) {  // EXPANDSHOP=1: the shop is open in the Expanding arena and you're not in the shop room (hint banner); EXPANDSHOP=2: you're in it (the shop)
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f); xg.State = MatchState.Intermission; xg.RoomsUp = true;
       bool atVendor = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  bool atArms = Environment.GetEnvironmentVariable("EXPANDSHOP") == "4";  // EXPANDSHOP=4: the Arms Dealer (ArmsDealer.cs; MODSHELD=a,b gives you those mods first)  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (RoomCards.cs); SHOPCAT=0|1 opens a category
-      string xw; var xr = Expansion.Custom(xg.Expanded, 1600, 300, 600, 300, out xw).Value; xr.Kind = atArms ? RoomKind.Arms : atVendor ? RoomKind.Vendor : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+      string xw; var xr = Box(1600, 300, 600, 300).Value; xr.Kind = atArms ? RoomKind.Arms : atVendor ? RoomKind.Vendor : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
       var xa = Array.Find(xg.CurrentWorld.Areas, a => a.Kind == xr.Kind);  // (the scene may have rooms of its own: find the shop's)
       foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)RoomCard.Box; pl.Hand[1] = (byte)RoomCard.Hall; } }
       if (Environment.GetEnvironmentVariable("MODSHELD") != null) foreach (var mn in Environment.GetEnvironmentVariable("MODSHELD").Split(',')) { int mi = Array.FindIndex(Upgrades.All, u => u.Name == mn); if (mi >= 0) xg.GrantUpgrade(xg.MyId, mi); else Console.Error.WriteLine("MODSHELD: no upgrade " + mn); }

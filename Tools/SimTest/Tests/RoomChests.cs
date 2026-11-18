@@ -11,8 +11,8 @@ static partial class Program
     {
         Func<List<ExpansionRoom>, int, int, int, int, ExpansionRoom> add = (list, x, y, w, h) =>
         {
-            string why;
-            var r = Expansion.Custom(list, x, y, w, h, out why);
+            string why = null;
+            var r = Box(x, y, w, h);
             Check(r.HasValue, "room " + x + "," + y + " " + w + "x" + h + " fits" + (why != null ? " (" + why + ")" : ""));
             list.Add(r.Value);
             return r.Value;
@@ -23,49 +23,31 @@ static partial class Program
               && Math.Abs(Expansion.RoomChestChance(new[] { box(1200, 1200) }) - 0.40f) < 0.001f,
             "the chance: a hallway 10%, a 6 x 6 room 25%, a 12 x 12 room 40%");
 
-        int W = (int)Game.Width, H = (int)Game.Height;
-        var hall = new List<ExpansionRoom>();
-        var h1 = add(hall, W, 0, 1600, 300);  // a 16-tile hallway east off the start room
+        // On the grid: a chest for the room just built sits at the middle of a free cell against it, so building that cell claims it.
+        var hall = GridMap(GridPiece.TetI);  // (a line of four cells east of the core)
         int found = 0, bad = 0, rolled = 0;
         for (int seed = 1; seed <= 400; seed++)
         {
-            var nd = Expansion.RoomChestFor(seed, hall, new List<MapNode>(), 1, false);
+            var nd = Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1, false);
             if (!nd.HasValue) continue;
             found++;
             var n = nd.Value;
-            int dx = Math.Max(Math.Max(h1.X - n.X, n.X - h1.X1), 0), dy = Math.Max(Math.Max(h1.Y - n.Y, n.Y - h1.Y1), 0);
-            int off = Math.Max(dx, dy);
-            bool hubFar = Math.Max(Math.Max(-n.X, n.X - W), Math.Max(-n.Y, n.Y - H)) >= Expansion.StartClear;
-            if (!Expansion.IsChest(n.Kind) || Expansion.NodeClaimed(hall, n) || off < 350 || off > 550 || !hubFar || !Expansion.NodeReachable(hall, n)
-                || !Expansion.RoomChestFor(seed, hall, new List<MapNode>(), 1, false).Value.Equals(n))
+            bool onCell = Expansion.GridPieceOptions(hall, GridPiece.Mono).Any(o => o.Mid.Equals(n.Pos));
+            if (!Expansion.IsChest(n.Kind) || Expansion.NodeClaimed(hall, n) || !onCell || !Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1, false).Value.Equals(n))
                 bad++;
-            if (Expansion.RoomChestFor(seed, hall, new List<MapNode>(), 1).HasValue)
+            if (Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1).HasValue)
                 rolled++;
         }
-        int vecKind = Enumerable.Range(1, 400).Count(sd => { var q = Expansion.RoomChestFor(sd, hall, new List<MapNode>(), 1, false); return q.HasValue && q.Value.Kind == NodeKind.VectorChest; });
+        int vecKind = Enumerable.Range(1, 400).Count(sd => { var q = Expansion.GridChestFor(sd, hall, new List<MapNode>(), 1, false); return q.HasValue && q.Value.Kind == NodeKind.VectorChest; });
         Check(vecKind >= 150 && vecKind <= 250, "about half are vector chests (" + vecKind + " of 400)");
-        Check(found == 400 && bad == 0, "a forced roll always finds a chest spot 3 to 5 tiles out from the hallway, clear of the start room, buildable to, the same each time (" + found + " found, " + bad + " bad)");
-        Check(rolled >= 20 && rolled <= 64, "a hallway drops one about 10% of the time (" + rolled + " of 400)");
+        Check(found == 400 && bad == 0, "a forced roll always finds a chest at the middle of a free cell against the new room, unclaimed, the same each time (" + found + " found, " + bad + " bad)");
+        float chance = Expansion.RoomChestChance(hall.Skip(4).ToList());
+        Check(rolled >= 400 * chance * 0.6f && rolled <= 400 * chance * 1.4f, "the roll drops one at about the room's chance (" + rolled + " of 400, " + (chance * 100f).ToString("0") + "%)");
 
         var two = new List<MapNode> { new MapNode { X = 5000, Y = -2000, Kind = NodeKind.Chest }, new MapNode { X = 5000, Y = 3000, Kind = NodeKind.VectorChest } };
-        Check(Enumerable.Range(1, 50).All(s => !Expansion.RoomChestFor(s, hall, two, 1, false).HasValue), "no chest while two wait unclaimed");
+        Check(Enumerable.Range(1, 50).All(sd => !Expansion.GridChestFor(sd, hall, two, 1, false).HasValue), "no chest while two wait unclaimed");
         var spentOne = new List<MapNode> { two[0], new MapNode { X = 5000, Y = 3000, Kind = NodeKind.Chest, Spent = true } };
-        Check(Enumerable.Range(1, 50).Any(s => Expansion.RoomChestFor(s, hall, spentOne, 1, false).HasValue), "an opened chest doesn't count");
-
-        // Two branches with a gap between them: the chest goes in the gap, so the room that claims it touches both.
-        var map = new List<ExpansionRoom>();
-        add(map, W, 0, 2200, 300);        // A: a hallway east along the top
-        add(map, W, 500, 1200, 400);      // D: a room east off the start room, lower down
-        var nr = add(map, W + 1900, 300, 300, 1200);  // N, the new one: a hallway south off A's far end
-        int gapSide = 0, total = 0;
-        for (int seed = 1; seed <= 100; seed++)
-        {
-            var nd = Expansion.RoomChestFor(seed, map, new List<MapNode>(), 1, false);
-            if (!nd.HasValue) continue;
-            total++;
-            if (nd.Value.X < nr.X) gapSide++;
-        }
-        Check(total > 0 && gapSide == total, "the chest sits on the side facing the other branch (" + gapSide + " of " + total + ")");
+        Check(Enumerable.Range(1, 50).Any(sd => Expansion.GridChestFor(sd, hall, spentOne, 1, false).HasValue), "an opened chest doesn't count");
     }
 
     // In a run: a surprise room rolls a chest too, and a claimed vector chest bursts into vector pickups when walked up to.
@@ -129,10 +111,10 @@ static partial class Program
     // Owner Nov 18: a claimed chest or relic stands in the middle of its room (World.NodeSpots), clear of a card room's obstacles.
     static void ExpandingNodeCentreTest()
     {
-        string why;
+        string why = null;
         int W = (int)Game.Width;
         var built = new List<ExpansionRoom>();
-        var room = Expansion.Custom(built, W, 200, 1000, 500, out why);
+        var room = Box(W, 200, 1000, 500);
         Check(room.HasValue, "a 10 x 5 room east of the start room (" + why + ")");
         built.Add(room.Value);
         var nodes = new List<MapNode>

@@ -27,7 +27,7 @@ static partial class Program
         {
             var core = Expansion.GridCore();
             var map = new List<ExpansionRoom>(core);
-            string why;
+            string why = null;
             var spot = Expansion.GridPieceOptions(map, GridPiece.TetL).First(o => o.Side == 3);
             var ell = Expansion.GridPieceRooms(map, GridPiece.TetL, spot.Orient, spot.X, spot.Y, out why);
             Check(ell != null, "an L of four cells east of the core (" + why + ")");
@@ -79,7 +79,7 @@ static partial class Program
             // The team's map before the boss dies: the core and two rooms (a domino, then a single), a node, a kit, a coin left in a room, vectors spent.
             g.Expanded.Clear(); g.Nodes.Clear();
             g.Expanded.AddRange(Expansion.GridCore());
-            string why;
+            string why = null;
             var dom = Expansion.GridPieceOptions(g.Expanded, GridPiece.Domino).First(o => o.Side == 3);
             var room = Expansion.GridPieceRooms(g.Expanded, GridPiece.Domino, dom.Orient, dom.X, dom.Y, out why);
             Check(room != null, "a domino east of the core (" + why + ")");

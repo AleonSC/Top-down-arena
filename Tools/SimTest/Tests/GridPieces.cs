@@ -14,7 +14,7 @@ static partial class Program
         Check(expect.Keys.Sum(k => Expansion.GridPieceOrients(k).Count) == 28 && expect.Keys.All(k => Expansion.GridPieceOrients(k).All(o => o.Length == Expansion.GridPieceCells(k))), "28 orientations in all, each with the piece's cells");
 
         var core = Expansion.GridCore();
-        string why;
+        string why = null;
         foreach (var kv in expect)
         {
             var opts = Expansion.GridPieceOptions(core, kv.Key);
@@ -130,15 +130,15 @@ static partial class Program
     {
         var core = Expansion.GridCore();
         Func<ExpansionRoom, bool> onLattice = r => (r.X - Expansion.GridX0) % 600 == 0 && (r.Y - Expansion.GridY0) % 600 == 0 && r.W % 600 == 0 && r.H % 600 == 0;
-        var stash = Expansion.SurpriseOptionsFor(true, core, SurpriseShape.Stash, new V2(2100f, 500f));
+        var stash = Expansion.GridSurpriseOptions(core, SurpriseShape.Stash, new V2(2100f, 500f));
         Check(stash.Count > 0 && stash.All(o => o.Rooms.Count == 1 && o.Rooms[0].W == 600 && o.Rooms[0].H == 600 && onLattice(o.Rooms[0]) && o.Rooms[0].X < 2100 && 2100 < o.Rooms[0].X1 && o.Rooms[0].Surprise == 1 + (int)SurpriseShape.Stash && o.Rooms[0].Price == 0),
             "a Stash behind a breach on the core's right wall is the cell behind it, free, marked a Stash (" + stash.Count + ")");
         foreach (var shape in new[] { SurpriseShape.Ring, SurpriseShape.Cross, SurpriseShape.LHall, SurpriseShape.THall, SurpriseShape.Chamfer })
         {
-            string why;
-            var pick = Expansion.SurpriseFor(true, 5, 11, core, shape, out why);
+            string why = null;
+            var pick = Expansion.SurpriseFor(5, 11, core, shape, out why);
             int area = pick.HasValue ? pick.Value.Rooms.Sum(r => r.W * r.H) : 0;
-            Check(pick.HasValue && pick.Value.Rooms.All(onLattice) && area == 4 * 600 * 600 && pick.Value.Rooms.All(r => r.Surprise == 1 + (int)shape) && Expansion.SurpriseFor(true, 5, 11, core, shape, out why).Value.X == pick.Value.X,
+            Check(pick.HasValue && pick.Value.Rooms.All(onLattice) && area == 4 * 600 * 600 && pick.Value.Rooms.All(r => r.Surprise == 1 + (int)shape) && Expansion.SurpriseFor(5, 11, core, shape, out why).Value.X == pick.Value.X,
                 "a boss's " + Expansion.SurpriseName(shape) + " gift is a 4-cell piece on the lattice, the same each time");
         }
     }
@@ -298,5 +298,10 @@ static partial class Program
             typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, null);
         }
     }
+
+
+    /// Test helper: a plain box room (no checks: the test's own map), as the drawn rooms of old tests were. A theme makes it a Floor room.
+    static ExpansionRoom? Box(int x, int y, int w, int h, PathId floor = PathId.None)
+        => new ExpansionRoom { X = x, Y = y, W = w, H = h, Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor };
 
 }
