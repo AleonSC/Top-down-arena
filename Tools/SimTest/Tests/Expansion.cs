@@ -1892,7 +1892,7 @@ static partial class Program
         }
     }
 
-    /// Team purse: a build can spend the whole team's vectors, the builder paying first then the richest teammate; off, only your own.
+    /// The retired Team purse: a build only ever spends the builder's own vectors, even with the old knob on.
     static void ExpandingPurseTest(float dt)
     {
         string why;
@@ -1908,12 +1908,11 @@ static partial class Program
         Check(west.Price > 5 && west.Price <= 35, "(the test room costs more than the friend holds: " + west.Price + ")");
         cg.ProposeExpandRoom(-800, 100, 800, 600);
         Run(s, dt, 0.4f);
-        Check(g.Expanded.Count == 0, "without Team purse the friend can't afford it");
+        Check(g.Expanded.Count == 0, "the friend can't afford it with their own vectors");
         foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.BuildPurse, 1f);
-        Check(g.SpendableVectors(g.Players[2]) == 35, "Team purse counts everyone's vectors (" + g.SpendableVectors(g.Players[2]) + ")");
+        Check(g.SpendableVectors(g.Players[2]) == 5, "the retired Team purse knob is ignored (" + g.SpendableVectors(g.Players[2]) + ")");
         cg.ProposeExpandRoom(-800, 100, 800, 600);
-        Run(s, dt, 0.5f, () => cg.Expanded.Count == 1);
-        Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1, "with it the room is built");
-        Check(g.Players[2].Vectors == 0 && g.Players[1].Vectors == 35 - west.Price, "the builder pays first, then the richest teammate (" + g.Players[2].Vectors + ", " + g.Players[1].Vectors + ")");
+        Run(s, dt, 0.5f);
+        Check(g.Expanded.Count == 0 && g.Players[1].Vectors == 30, "still not built, and nobody else pays");
     }
 }
