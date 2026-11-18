@@ -19,14 +19,15 @@
 
 | Step | Move | Damage | Shape | Health | Time |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Crimson Slash | 22 | 115 px, 120° sweep left → right | 4 | 0.42 s |
-| 2 | Backcut | 22 | 108 px, 130° sweep right → left | 4 | 0.40 s |
-| 3 | Thorn Flurry | 3 × 9 | 85 px, 100°, three alternating cuts | 5 | 0.50 s |
-| 4 | Vein Whirl | 18 | 95 px, full 360° spin | 6 | 0.58 s |
-| 5 | Sanguine Cleave | 40 | 70 px circle centred 105 px ahead, shove 130 | 9 | 0.78 s |
-| 6 | Crescent Flight | 26 | an 80° crescent flying 260 px, pierces | 7 | 0.62 s |
+| 1 | Crimson Slash | 22 | 115 px, 120° sweep left → right | 2.7 | 0.42 s |
+| 2 | Backcut | 22 | 108 px, 130° sweep right → left | 2.7 | 0.40 s |
+| 3 | Thorn Flurry | 3 × 9 | 85 px, 100°, three alternating cuts | 3.3 | 0.50 s |
+| 4 | Vein Whirl | 18 | 95 px, full 360° spin | 4 | 0.58 s |
+| 5 | Sanguine Cleave | 40 | 70 px circle centred 105 px ahead, shove 130 | 6 | 0.78 s |
+| 6 | Crescent Flight | 26 | an 80° crescent flying 260 px, pierces | 4.7 | 0.62 s |
 
-- A full loop: 35 health (17.5% of the Tank's 200), 157 damage to one target, about 3.3 s.
+- A full loop: about 23 health (11.7% of the Tank's 200), 157 damage to one target, about 3.3 s. (Health on a 200 Tank;
+  the owner cut the mockup's costs by a third after the balance check.)
 - **Crimson Tide** (weapon-action key): 12% max health, 8 s cooldown. 0.65 s charge (blood gathers in front of you),
   then a 100° crescent wave rolls out 400 px, piercing, 60 damage and a 150 shove; +1 stack on each enemy hit.
 - Stacks belong to the last Blood Blast user to hit the enemy (two Blood Blasts on one enemy share its stacks); whoever
@@ -66,8 +67,9 @@
 
 ## Open tuning
 
-- Measured: 53 damage a second on one target (tank melee runs 45-65), for about 10.5 health a second while swinging
-  nonstop (a full loop costs 35 in 3.3 s), so a 200-health tank empties in about 19 s without kills. The Gore Mortar pays
+- Measured: 53 damage a second on one target (tank melee runs 45-65), for about 7 health a second while swinging
+  nonstop (a full loop costs 23 in 3.3 s; it was 10.5 a second before the owner cut costs by a third), so a 200-health tank
+  empties in about 28 s without kills. The Gore Mortar pays
   16 a second for 133 damage a second.
 
 - 2 health a stack with 10 max is a first guess: a kill pays 2 to 20. Check sustain against session reports.

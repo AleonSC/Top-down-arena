@@ -51,7 +51,7 @@ static partial class Program
         }
         Console.WriteLine("  steps {0}; front {1} stacks, back {2}", string.Join(",", steps), front.BlastStacks, back.BlastStacks);
         Check(string.Join(",", steps) == "1,2,3,4,5,6", "Fire runs the chain: Slash, Backcut, Flurry, Whirl, Cleave, Flight");
-        Check(costs, "each step costs its share of max health (2, 2, 2.5, 3, 4.5, 3.5%)");
+        Check(costs, "each step costs its share of max health (1.3, 1.3, 1.7, 2, 3, 2.3%)");
         Check(front.BlastStacks == 6 && front.BlastOwner == hp.Id, "every press stacks an enemy it hits once (Thorn Flurry's three cuts add one)");
         Check(back.BlastStacks == 1, "only Vein Whirl's spin reaches behind you");
         var ce = client.Game.Enemies[front.Id];

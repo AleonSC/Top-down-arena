@@ -730,7 +730,7 @@ namespace Arena
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
             new WeaponDef { Id = WeaponId.BloodBlast, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 3, Damage = 22f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "+15% damage and reach", Name = "Blood Blast", FireInterval = 0.42f,
                 Desc = "Your blood shaped into a blade, a six-step chain that never times out: Crimson Slash, Backcut, Thorn Flurry, Vein Whirl, Sanguine Cleave, Crescent Flight. "
-                    + "Every attack costs 2-4.5% of your max health and puts a blood stack on each enemy it hits (up to 10). When a stacked enemy dies, its blood flies back and heals you 2 a stack." },
+                    + "Every attack costs 1.3-3% of your max health and puts a blood stack on each enemy it hits (up to 10). When a stacked enemy dies, its blood flies back and heals you 2 a stack." },
             // Healer
             new WeaponDef { Id = WeaponId.TransfusionDarts, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
                 Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them more health than it costs you. Each enemy hit steals a sliver back." },

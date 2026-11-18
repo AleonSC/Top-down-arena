@@ -24,7 +24,7 @@ namespace Arena
         /// its reach, its arc in degrees (360: a spin), and when it lands after the press.
         public static readonly float[] BlastTime = { 0.42f, 0.40f, 0.50f, 0.58f, 0.78f, 0.62f };
         public static readonly float[] BlastMult = { 1f, 1f, 9f / 22f, 18f / 22f, 40f / 22f, 26f / 22f };
-        public static readonly float[] BlastCostFrac = { 0.02f, 0.02f, 0.025f, 0.03f, 0.045f, 0.035f };
+        public static readonly float[] BlastCostFrac = { 0.04f / 3f, 0.04f / 3f, 0.05f / 3f, 0.02f, 0.03f, 0.07f / 3f };  // a third off the mockup's 2, 2, 2.5, 3, 4.5, 3.5%
         public static readonly float[] BlastReach = { 115f, 108f, 85f, 95f, 105f, 260f };
         public static readonly float[] BlastArc = { 120f, 130f, 100f, 360f, 0f, 80f };
         public static readonly float[] BlastDelay = { 0.08f, 0.08f, 0.05f, 0.2f, 0.38f, 0.3f };
