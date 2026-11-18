@@ -603,7 +603,7 @@ namespace Arena
 
         // --- The HUD: your item's card, and what the wave is waiting for ---------------------------------
 
-        /// Standing on your chest item: its card, with G to take it and X to discard it. Otherwise a line saying
+        /// Standing on your chest item: its card, with G to take it and B to discard it. Otherwise a line saying
         /// what's left to do (open the chest, fetch your item, or wait for a teammate's).
         void DrawTreasureHud(Player me)
         {
