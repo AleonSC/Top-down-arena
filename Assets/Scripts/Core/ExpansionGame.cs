@@ -478,12 +478,15 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
-                    ChestCards(i);  // RoomCards.cs
+                    if (pr.Chest == ChestKind.RoomCard)
+                        ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     continue;
                 }
-                nodeChests[i] = AddProp(PropKind.Chest, nd.Pos).Id;
+                var chest = AddProp(PropKind.Chest, nd.Pos);
+                chest.Chest = NodeChestKind(nd);
+                nodeChests[i] = chest.Id;
             }
         }
 
@@ -532,12 +535,17 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
-                    ChestCards(kv.Key);  // RoomCards.cs
+                    if (c.Chest == ChestKind.RoomCard)
+                        ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     return;
                 }
         }
+
+        /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
+        /// (the node's look). Room card only with room cards on.
+        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, RoomCardsOn);
 
         /// Host: is this prop the chest of a chest node (it never holds the wave)?
         bool IsNodeChest(Prop p)

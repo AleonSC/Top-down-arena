@@ -15,6 +15,11 @@ namespace Arena
     /// Pot is retired (no longer placed or drawn); its slot stays so the wire numbers don't move.
     public enum PropKind : byte { Crate, HeavyCrate, Pot, Barrel, Chest, HealthBarrel }
 
+    /// What a chest holds, and so how it looks (Game/ChestLooks.cs). A wave's chest is Upgrade (everyone's own card);
+    /// an Expanding chest node rolls Gold (a burst of coins), Room card, Buildables (one Black Market build each) or Upgrade.
+    /// Vector and Relic are the vector chest and relic nodes' looks (they are nodes, not props). New kinds go at the end.
+    public enum ChestKind : byte { Upgrade, Gold, Vector, Relic, RoomCard, Buildable }
+
     public class Prop
     {
         public int Id;
@@ -39,6 +44,7 @@ namespace Arena
         public float Hp, MaxHp;  // crates: enemy hits left; the rest: 1 until broken
         public float Fuse;       // a barrel: time left before it blows (0 = not lit)
         public bool Open;        // a chest that's been opened
+        public ChestKind Chest;  // a chest: what it holds (in the snapshot)
         public int Seed;         // look variety
         public int LitBy;        // host: the player who set a barrel off (kill credit)
         // Every game, for the look.
@@ -602,20 +608,71 @@ namespace Arena
             c.Open = true;
             c.OpenT = 0f;
             SpendNodeOfChest(c);
-            BroadcastFx(FxKind.Ring, c.Pos, new Rgba(1f, 0.85f, 0.35f), 70f, 0.6f, Sfx.LevelUp);
-            int n = Players.Count, i = 0;
-            foreach (var pl in Players.Values)
+            BroadcastFx(FxKind.Ring, c.Pos, ChestFxInk(c.Chest), 70f, 0.6f, Sfx.LevelUp);
+            switch (c.Chest)
             {
-                int u = RollChestLoot(pl);
-                if (u >= 0)
-                {
-                    V2 at = ClampToArena(c.Pos + new V2((i - (n - 1) / 2f) * 46f, ChestH / 2f + 34f), 20f);
-                    var l = new Loot { Id = nextLootId++, Owner = pl.Id, Upgrade = u, Pos = at };
-                    Loots[l.Id] = l;
-                }
-                i++;
+                case ChestKind.Gold:
+                    DropGoldBurst(c.Pos, Players.Count * (ChestGold + ChestGoldPerWave * Math.Max(1, Wave)));
+                    break;
+                case ChestKind.Buildable:
+                    foreach (var pl in Players.Values)
+                        GiveChestBuild(pl);
+                    break;
+                case ChestKind.RoomCard:
+                    break;  // (the cards: SpendNodeOfChest -> ChestCards)
+                default:
+                    int n = Players.Count, i = 0;
+                    foreach (var pl in Players.Values)
+                    {
+                        int u = RollChestLoot(pl);
+                        if (u >= 0)
+                        {
+                            V2 at = ClampToArena(c.Pos + new V2((i - (n - 1) / 2f) * 46f, ChestH / 2f + 34f), 20f);
+                            var l = new Loot { Id = nextLootId++, Owner = pl.Id, Upgrade = u, Pos = at };
+                            Loots[l.Id] = l;
+                        }
+                        i++;
+                    }
+                    break;
             }
-            DoLog("chest opened");
+            DoLog(c.Chest + " chest opened");
+        }
+
+        /// A Gold chest's payout per player (spilled as coins anyone can pick up), and how many coins it spills.
+        public const int ChestGold = 40, ChestGoldPerWave = 4, ChestGoldCoins = 14;
+
+        static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.RoomCard ? new Rgba(1f, 0.55f, 0.3f)
+            : k == ChestKind.Buildable ? new Rgba(1f, 0.4f, 0.72f) : new Rgba(0.4f, 1f, 0.5f);
+
+        /// Host: a Gold chest's coins, gold in all, spread in a ring round pos (ChestGoldCoins coins, the last carrying what's left).
+        void DropGoldBurst(V2 pos, int gold)
+        {
+            int each = Math.Max(1, gold / ChestGoldCoins);
+            for (int k = 0; k < ChestGoldCoins && gold > 0; k++)
+            {
+                int v = k == ChestGoldCoins - 1 ? gold : Math.Min(gold, each);
+                gold -= v;
+                var c = new Coin { Id = nextCoinId++, Value = v };
+                float ang = k * MathX.Tau / ChestGoldCoins + (float)rng.NextDouble() * 0.3f;
+                c.Pos = ClampToArena(pos + V2.FromAngle(ang) * (34f + 30f * (float)rng.NextDouble()), 12f);
+                c.Disp = c.Pos;
+                Coins[c.Id] = c;
+            }
+        }
+
+        /// Host: a Buildables chest puts one random Black Market build in this player's stash (a kind they still have room for).
+        void GiveChestBuild(Player p)
+        {
+            int start = rng.Next(Market.Count);
+            for (int k = 0; k < Market.Count; k++)
+            {
+                int kind = (start + k) % Market.Count;
+                if (p.Stash[kind] >= Market.StashMax)
+                    continue;
+                p.Stash[kind]++;
+                DoLog(p.Role + " got a " + Market.Names[kind] + " from a chest");
+                return;
+            }
         }
 
         /// What a chest holds for this player: sometimes a legendary (from a boss met so far, or the next one), else an
@@ -843,6 +900,7 @@ namespace Arena
             V2 pos = p != null ? p.Pos : default(V2);
             float hp = p != null ? p.Hp : 0f, max = p != null ? p.MaxHp : 0f, fuse = p != null ? p.Fuse : 0f;
             bool open = p != null && p.Open;
+            int chest = p != null ? (int)p.Chest : 0;
             s.Int(ref id);
             s.Byte(ref kind);
             s.Byte(ref seed);
@@ -851,6 +909,7 @@ namespace Arena
             s.Float(ref max);
             s.Float(ref fuse);
             s.Bool(ref open);
+            s.Byte(ref chest);
             if (s.Reading)
             {
                 if (!Props.TryGetValue(id, out p))
@@ -864,6 +923,7 @@ namespace Arena
                 p.MaxHp = max;
                 p.Fuse = fuse;
                 p.Open = open;
+                p.Chest = (ChestKind)chest;
             }
             return id;
         }

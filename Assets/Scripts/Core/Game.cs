@@ -467,7 +467,7 @@ namespace Arena
             {
                 var slot = p.Slots[i];
                 var def = ids[i] == AbilityId.None ? null : Upgrades.Ability(ids[i]);
-                int max = def == null ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges)
+                int max = def == null ? 0 : i == Upgrades.UltSlot ? 1 : 1 + p.Stats.UseBonus[i]
                     + def.ExtraCharges + (def.CapstoneCharge && Mastered(p, def.Id) ? 1 : 0);
                 AbilitySlot was;
                 if (slot.Id != ids[i] && ids[i] != AbilityId.None && moved.TryGetValue(ids[i], out was))
@@ -704,7 +704,7 @@ namespace Arena
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
             PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
-            GrantUpgrade(id, upgrade);
+            GrantUpgrade(id, upgrade, key);
             p.Rerolls += Upgrades.All[upgrade].RerollsNow;  // Reroll Cache
             NextOffer(p);
             DoLog(p.Role + " picked " + Upgrades.All[upgrade].Name);
@@ -769,11 +769,14 @@ namespace Arena
         }
 
         /// Host only: give a player an upgrade and tell everyone.
-        public void GrantUpgrade(int id, int upgrade)
+        /// key: for the Extra Use card, the key it goes on (1 Space, 2 Q, 3 E, 4 Shift; 0 Space).
+        public void GrantUpgrade(int id, int upgrade, int key = 0)
         {
             Player p;
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
+            if (Upgrades.All[upgrade].PicksSlot)
+                upgrade = Upgrades.UseCard(Math.Max(0, Math.Min(Upgrades.UseSlots - 1, key - 1)));  // it is stored as the key's own card
             p.Taken.Add(upgrade);
             Recalc(p);
             if (ExpandingOn)

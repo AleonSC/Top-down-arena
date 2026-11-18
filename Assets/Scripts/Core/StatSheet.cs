@@ -60,7 +60,7 @@ namespace Arena
             if (s.MilestoneChance > 0f)
                 lines.Add(new StatLine { Label = "Milestone chance", Value = Math.Round(s.MilestoneChance * 100f) + "%" });
             lines.Add(new StatLine { Label = "Parry durability", Value = ((int)(Game.ParryCapacity * s.ParryCapacityMult)).ToString() });
-            lines.Add(new StatLine { Label = Upgrades.Ability(p.RoleAbility).Name + " charges", Value = (1 + s.RoleCharges).ToString() });
+            lines.Add(new StatLine { Label = Upgrades.Ability(p.RoleAbility).Name + " charges", Value = (1 + s.UseBonus[0]).ToString() });
 
             var bonus = new List<string>();
             var legendary = new Dictionary<string, int>();
@@ -97,7 +97,9 @@ namespace Arena
                 for (int i = 0; i < keys.Length; i++)
                     if (layout[i] != AbilityId.None)
                         lines.Add(new StatLine { Label = keys[i], Value = Upgrades.Ability(layout[i]).Name });
-                lines.Add(new StatLine { Label = "Bonus charges", Value = (1 + s.ExtraCharges).ToString() });
+                for (int i = 0; i < keys.Length; i++)
+                    if (s.UseBonus[i + 1] > 0)
+                        lines.Add(new StatLine { Label = keys[i] + " uses", Value = (1 + s.UseBonus[i + 1]).ToString() });
             }
             if (mods.Count > 0)
             {
