@@ -63,7 +63,58 @@ static partial class Program
         }
     }
 
+    /// Each weapon with an Alt rule: a bot in a small fight (tough enemies close and far, a volley of shots now and then,
+    /// a hurt friend nearby) presses its Alt at least once in 10 s.
     static void BotAltTest(float dt)
     {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var spawnShot = typeof(Game).GetMethod("SpawnBullet", flags);
+        V2 center = new V2(Game.Width / 2f, Game.Height / 2f);
+        var weapons = new[]
+        {
+            WeaponId.Scattergun, WeaponId.FlakCannon, WeaponId.RiotRepeater, WeaponId.TwinRifle, WeaponId.Pistol, WeaponId.LightBolt,
+            WeaponId.FrostLance, WeaponId.StormHammer, WeaponId.Nimbus, WeaponId.ArcLightning, WeaponId.BoneGuard,
+            WeaponId.Lance, WeaponId.HolyMace, WeaponId.Lightbringer, WeaponId.Censer, WeaponId.TwinBlades, WeaponId.Greatsword, WeaponId.Rapier,
+            WeaponId.Kusarigama, WeaponId.BoStaff, WeaponId.FumaShuriken, WeaponId.Katana, WeaponId.Kunai,
+            WeaponId.BloodLash, WeaponId.BoneSpear,
+            WeaponId.ArcKnuckles, WeaponId.TwinRifleAuto, WeaponId.OutOfAmmo, WeaponId.DoubleBarrel, WeaponId.Stonespear, WeaponId.GrenadeLauncher,
+            WeaponId.HoneybeeStaff, WeaponId.Nunchaku, WeaponId.WindClash, WeaponId.EmbolusSpears, WeaponId.BulwarkBarrier, WeaponId.VectorForge,
+        };
+        var missed = new System.Collections.Generic.List<string>();
+        foreach (var wid in weapons)
+        {
+            var def = Defs.WeaponOf(wid);
+            var (s, g, bot) = BotWeaponSetup(dt, BotSkill.Good, def.Role, def.Choice, def.Kit);
+            var friend = g.Players[2];
+            foreach (var e in g.Enemies.Values) e.Hp = 0f;
+            Run(s, dt, 0.2f);
+            bot.Pos = center;
+            var mine = new System.Collections.Generic.List<Enemy>();
+            for (int k = 0; k < 6; k++)
+            {
+                float r = k < 4 ? 140f : 300f;
+                var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, center + V2.FromAngle(k * 1.05f) * r, 0f, -7, false });
+                e.SpawnT = 0f; e.MaxHp = e.Hp = 99999f;
+                mine.Add(e);
+            }
+            int presses0 = g.BotAltPresses;
+            for (float t = 0f; t < 10f; t += dt)
+            {
+                foreach (var e in g.Enemies.Values) if (!mine.Contains(e)) e.Hp = 0f;
+                foreach (var e in mine) e.Hp = Math.Max(e.Hp, 50000f);
+                friend.Pos = bot.Pos + new V2(-120f, 60f);
+                friend.Hp = Math.Min(friend.Hp, friend.MaxHp * 0.4f);
+                if (bot.Pos.DistanceTo(center) > 300f) bot.Pos = center;
+                if (MathX.Fmod(t, 2f) < dt)
+                    for (int k = -3; k <= 3; k++)
+                        spawnShot.Invoke(g, new object[] { Defs.SmallShot, bot.Pos + new V2(220f, k * 20f), new V2(-480f, 0f), 0f, 2f, 5f, -1, false, 0f });
+                Run(s, dt, dt);
+            }
+            int presses = g.BotAltPresses - presses0;
+            Console.WriteLine("  {0}: Alt pressed {1} times in 10 s", wid, presses);
+            if (presses == 0) missed.Add(wid.ToString());
+        }
+        Check(missed.Count == 0, "every weapon with an Alt rule uses it in a fight" + (missed.Count > 0 ? " (missed: " + string.Join(", ", missed) + ")" : ""));
     }
 }

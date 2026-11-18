@@ -2383,6 +2383,17 @@ boss plays out and what to change.
   Mender's Bow arrow or Transfusion Dart through a hurt teammate within 420 px. A Roar tank roars when a teammate is
   hurt or down with enemies on top of them (or when it is under half health); a Knight tank plants **Last Stand** over
   a downed ally and keeps it up while they're being stood back up. Tests: `Tools/SimTest/run.sh 1 30 botteam`.
+- **Bot parry and weapon Alts** (same bots): a bot raises the **parry** toward a shot or a sword cut it can't step out of,
+  timed for a perfect parry (a Casual bot's timing drifts, a Good one blocks once its best step still looks risky, an
+  Expert takes any clean perfect parry), keeps it up while more come from that side, and drops it when the side is clear
+  or the shield is under a quarter. It also uses its **weapon's Alt** the way a person would: Double Barrel and
+  Scattergun shells point-blank, mines, gas and Twin Rifle grenades on crowds or the boss, Hook & Haul on an enemy just
+  out of reach, Twin Fang and the Moonwheel at range, the Sunlance through a hurt or downed ally, Censer Cast once Embers
+  are lit, Absolute Zero, the Tempest, Out of Ammo's spin, the Nunchaku guard, the Pistol Whip and the Bulwark's Brace
+  under a barrage, the Kusarigama whirl and Undertow on a group, the Katana switch to the other stance's finisher, Kunai
+  blinks, Rocket Dash, the Twin Rifle Auto lock, Stonespear volleys, Embolus bursts, Sympathy, Martyr's Leash, the honey
+  spray, the smoke drum and the Vector Forge's walker on a new target. The Shuriken's Great Star stance isn't used (it
+  needs a drawn route). Tests: `Tools/SimTest/run.sh 1 30 botweapon`.
 - Lab fights aren't saved as session recordings. Starting the lab leaves any match you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where

@@ -2,13 +2,313 @@ using System;
 
 namespace Arena
 {
+    /// The smart bot's weapon Alt (the weapon-action key, PlayerInput.WeaponAction; LocalWeaponDash in Ninja.cs reads it):
+    /// one rule per weapon with a secondary, saying when a person would press it, hold it or let go. A tap is one tick
+    /// down and at least one up; holds keep it down until the rule lets go. Cooldowns the host keeps are timed here
+    /// with the bot's own clock (botAltCd). Weapons with no rule (or whose Alt needs a drawn route: the Shuriken's
+    /// Great Star) never press it.
     public partial class Game
     {
-        bool botAltHeld;
+        bool botAltHeld, botAltWas;
+        float botAltCd, botAltHoldT;
+        int botAltLock, botKatanaIdx, botKatanaStance;  // the enemy the Vector Forge's walker was last sent at
+        public int BotAltPresses;  // presses (tests)
+
+        /// What the rules see this tick.
+        struct AltView
+        {
+            public Player Me;
+            public Enemy Target, ShootAt;
+            public bool InReach;
+            public float ShootD;   // distance to what it shoots at (9999 without)
+            public int Near;       // enemies within BotNearReach
+            public int Incoming;   // noticed enemy shots on course to hit within half a second
+            public Player Downed, Lowest;
+        }
 
         bool BotWeaponAlt(Player me, float dt, Enemy target, Enemy shootAt, bool inReach, Player downed, Player lowest, ref bool firing, ref V2 aimAt)
         {
+            botAltCd -= dt;
+            var v = new AltView
+            {
+                Me = me, Target = target, ShootAt = shootAt, InReach = inReach, Downed = downed, Lowest = lowest,
+                ShootD = shootAt != null ? shootAt.Pos.DistanceTo(me.Pos) : 9999f,
+                Near = EnemiesNear(me.Pos, BotNearReach),
+                Incoming = IncomingShots(me, 0.5f),
+            };
+            bool down = me.StunT <= 0f && AltRule(v, dt, ref firing, ref aimAt);
+            if (down && !botAltWas)
+                BotAltPresses++;
+            botAltHoldT = down ? botAltHoldT + dt : 0f;
+            botAltWas = down;
+            botAltHeld = down && HoldAlt(me.Weapon.Id);
+            return down;
+        }
+
+        /// Alts that are held down rather than tapped (the parry stays down while one is held: it would let go of it).
+        static bool HoldAlt(WeaponId w) => w == WeaponId.Kusarigama || w == WeaponId.BulwarkBarrier || w == WeaponId.HoneybeeStaff
+            || w == WeaponId.LightBolt || w == WeaponId.BloodLash || w == WeaponId.HolyMace;
+
+        /// A press: down for one tick when `want` and the bot's own cooldown allow, then up (the key reads edges).
+        bool Tap(bool want, float cd)
+        {
+            if (!want || botAltWas || botAltCd > 0f)
+                return false;
+            botAltCd = cd;
+            return true;
+        }
+
+        /// Noticed enemy shots on course to hit the bot within `look` s.
+        int IncomingShots(Player me, float look)
+        {
+            int n = 0;
+            float hitR = me.Def.HitR;
+            foreach (var b in botThreats)
+            {
+                if (!Bullets.ContainsKey(b.Id))
+                    continue;
+                V2 rel = b.Pos - me.Pos;
+                float vv = b.Vel.LengthSq;
+                if (vv < 1f)
+                    continue;
+                float t = -rel.Dot(b.Vel) / vv;
+                if (t >= 0f && t <= look && (rel + b.Vel * t).Length <= hitR + b.Radius + 12f)
+                    n++;
+            }
+            return n;
+        }
+
+        /// Enemies within `r` of `at` and in front of the bot (within `half` radians of its aim).
+        int EnemiesAhead(Player me, float r, float half)
+        {
+            int n = 0;
+            foreach (var e in Enemies.Values)
+            {
+                if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f)
+                    continue;
+                V2 d = e.Pos - me.Pos;
+                if (d.Length - e.Radius < r && Math.Abs(MathX.Fmod(d.Angle - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi) < half)
+                    n++;
+            }
+            return n;
+        }
+
+        bool AltRule(AltView v, float dt, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            bool late = DashT > 0f;  // the Alts read after a dash's check would lose the press (LocalWeaponDash)
+            switch (me.Weapon.Id)
+            {
+                // --- Soldier
+                case WeaponId.Scattergun:  // Double Barrel point-blank (its kick also gets you out)
+                    return !late && Tap(me.ScatShells > 0 && (e != null && v.ShootD < 150f || BotDanger > 2f && v.Near > 0), 1f);
+                case WeaponId.FlakCannon:  // a proximity mine where the enemies are coming from
+                    return !late && e != null && v.ShootD < 320f && Tap(MineLocalCd <= 0f, 2f);
+                case WeaponId.RiotRepeater:  // tear gas on a crowd or the boss
+                    return !late && e != null && v.InReach && Tap(GasLocalCd <= 0f && (e.Def.IsBoss || EnemiesNear(e.Pos, 100f) >= 3), 2f);
+                case WeaponId.TwinRifle:  // a loaded grenade at a crowd or the boss
+                    return !late && e != null && v.InReach && Tap(me.TwinNades > 0 && (e.Def.IsBoss || EnemiesNear(e.Pos, 90f) >= 2), 0.6f);
+                case WeaponId.Pistol:  // Pistol Whip: bullets on top of you, or something in your face
+                    return !late && Tap(v.Incoming >= 2 || e != null && v.ShootD < 110f, WhipCd);
+                case WeaponId.LightBolt:  // Undertow: pull a spread-out group in, then let go and blast
+                    if (botAltWas)
+                        return botAltHoldT < 2f && me.RepelMeter > 5 && EnemiesAhead(me, 70f, 1f) == 0 && v.Incoming < 3;
+                    return Tap(me.RepelMeter >= 30 && EnemiesAhead(me, 300f, 0.6f) >= 2 && EnemiesAhead(me, 90f, 0.6f) == 0, 3f);
+
+                // --- Mage
+                case WeaponId.FrostLance:  // Absolute Zero round you, with nothing about to hit during the charge
+                    return Tap(ZeroLocalCd <= 0f && me.FlZeroT <= 0f && EnemiesNear(me.Pos, 250f) >= 3 && IncomingShots(me, 0.8f) == 0, 1f);
+                case WeaponId.StormHammer:  // the slam on a group in front
+                    return !late && Tap(EnemiesAhead(me, 250f, 1.2f) >= 2 || e != null && e.Def.IsBoss && v.ShootD < 220f, 6f);
+                case WeaponId.Nimbus:  // Eye of the Storm on a crowd
+                    return e != null && v.InReach && Tap(StormLocalCd <= 0f && (EnemiesNear(e.Pos, 160f) >= 2 || e.Def.IsBoss), 2f);
+                case WeaponId.ArcLightning:  // Forked Volley whenever it's up
+                    return e != null && v.InReach && Tap(ForkLocalCd <= 0f, 0.5f);
+
+                // --- Summoner
+                case WeaponId.BoneGuard:  // an Ossuary Wall in the way of a group coming in
+                    if (late || e == null || v.ShootD > 360f || !Tap(BoneWallLocalCd <= 0f && (EnemiesNear(me.Pos, 260f) >= 3 || v.Incoming >= 3), 2f))
+                        return false;
+                    aimAt = me.Pos + (e.Pos - me.Pos) * 0.5f;
+                    return true;
+
+                // --- Knight
+                case WeaponId.Lance:  // Hook & Haul an enemy just out of reach, then Fire is the Breaching Thrust
+                    return e != null && !e.Def.IsBoss && v.ShootD > 110f && v.ShootD < HookRange - 10f && Tap(true, HookCooldown + 0.2f);
+                case WeaponId.HolyMace:  // jab while stacks last, at something close or shots coming in
+                    return me.StaffStacks > 0 && !late && (EnemiesAhead(me, 170f, 0.8f) > 0 || v.Incoming >= 2);
+                case WeaponId.Lightbringer:  // the Sunlance through a downed or hurt ally
+                {
+                    Player ally = v.Downed ?? (v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.6f ? v.Lowest : null);
+                    if (ally == null || me.Light < LanceNeed || SunlanceCd > 0f || ally.Pos.FartherThan(me.Pos, 440f) || !BotSees(me.Pos, ally.Pos))
+                        return false;
+                    if (SunlanceTarget(me, ally.Pos) != ally || !Tap(true, 1f))
+                        return false;
+                    aimAt = ally.Pos;
+                    return true;
+                }
+                case WeaponId.Censer:  // the Cast on a crowd once a few Embers are lit (sooner with an ally to heal)
+                    if (e == null || v.ShootD > 270f || me.Embers == 0 || CenserCastCd > 0f)
+                        return false;
+                    if (!Tap(me.Embers >= 3 || v.Downed != null || v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.6f, 1f))
+                        return false;
+                    aimAt = e.Pos;
+                    return true;
+                case WeaponId.TwinBlades:  // Twin Fang at an enemy out of the chain's reach
+                case WeaponId.Greatsword:  // the Moonwheel
+                {
+                    // The nearest enemy it can see 150-400 px off: thrown while closing in, or into a crowd.
+                    Enemy far = null;
+                    foreach (var en in Enemies.Values)
+                    {
+                        float d = en.Pos.DistanceTo(me.Pos);
+                        if (!IsSpawning(en) && !SoulBound(en) && en.Hp > 0f && d >= 150f && d <= 400f && (far == null || d < far.Pos.DistanceTo(me.Pos)) && BotSees(me.Pos, en.Pos))
+                            far = en;
+                    }
+                    if (far == null || me.FangOut != 0 || TwinFangCd > 0f || !Tap(!v.InReach || EnemiesNear(me.Pos, 400f) >= 4, 1f))
+                        return false;
+                    aimAt = far.Pos;
+                }
+                    return true;
+                case WeaponId.Rapier:  // Riposte: raise it into a barrage, then lunge at the target
+                    if (!me.RapierGuard)
+                        return Tap(v.Incoming >= 3 && e != null, 2f);
+                    firing = e != null && MathX.Fmod(botClock, 1.2f) < dt * 1.5f;  // one click: the lunge
+                    if (firing)
+                        aimAt = e.Pos;
+                    return false;
+
+                // --- Ninja
+                case WeaponId.Kusarigama:  // whirl a crowd in, let go for the snap once it's close
+                    if (botAltWas)
+                        return botAltHoldT < 2.5f && (botAltHoldT < 0.4f || EnemiesNear(me.Pos, 100f) < 3);
+                    return !me.KusariWhirl && Tap(EnemiesNear(me.Pos, 200f) >= 3, 3.5f);
+                case WeaponId.BoStaff:  // shove off something hugging you
+                    return !late && Tap(EnemiesAhead(me, 80f, 0.9f) > 0 && (me.Hp < me.MaxHp * 0.6f || v.Near >= 2), 1.2f);
+                case WeaponId.FumaShuriken:  // Orbit up close or under small shots, Throw at range
+                {
+                    bool orbit = v.ShootD < 190f || v.Incoming >= 3;
+                    return Tap((me.FumaStance == 1) != orbit && (orbit || v.Incoming == 0), 1.5f);
+                }
+                case WeaponId.Katana:  // switch when the other stance's finisher is next and a few are close
+                {
+                    // Switch when this stance's finisher has just played (its step wraps to the start), to build the other one,
+                    // or when the other stance's finisher is next.
+                    int idx = me.KatanaStance == 0 ? me.KatanaHay : me.KatanaSen;
+                    bool wrapped = idx == 0 && botKatanaIdx > 0 && botKatanaStance == me.KatanaStance;
+                    botKatanaIdx = idx;
+                    botKatanaStance = me.KatanaStance;
+                    return !late && v.Near >= 1 && Tap(wrapped || (me.KatanaStance == 0 ? me.KatanaSen == 4 : me.KatanaHay == 3), 1.5f);
+                }
+                case WeaponId.Kunai:  // blink to a mark near the target when it's safe there, or away from danger
+                    return !late && me.KunaiMarkT > 0f && Tap(e != null && me.KunaiMark.CloserThan(e.Pos, 140f) && BotDanger < 1f || BotDanger > 2.5f && me.KunaiMark.FartherThan(me.Pos, 120f), 0.5f);
+
+                // --- Blood Mage
+                case WeaponId.BloodLash:  // Martyr's Leash on a chained pack while healthy (it bleeds you)
+                    if (botAltWas)
+                        return botAltHoldT < 2f && me.Hp > me.MaxHp * 0.4f;
+                    return !me.LeashOn && Tap(me.Chains.Count >= 2 && me.Hp > me.MaxHp * 0.5f && (BotDanger > 1f || v.Downed != null || v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.5f), 6f);
+                case WeaponId.BoneSpear:  // Sympathy when the mark has company
+                {
+                    if (late || me.BsTarget == 0 || me.SympT > 0f || !Enemies.TryGetValue(me.BsTarget, out var mark))
+                        return false;
+                    return Tap(EnemiesNear(mark.Pos, 170f) >= 2, 8.5f);
+                }
+
+                // --- Fourth weapons
+                case WeaponId.ArcKnuckles:  // Rocket Dash to close the gap
+                    return !late && !me.Parrying && e != null && v.ShootD > 80f && v.ShootD < 260f && Tap(KnuckleDashCd <= 0f, 0.5f);
+                case WeaponId.TwinRifleAuto:  // lock on the target (and let go of a lock that's lost)
+                {
+                    bool lost = me.TwinLock != 0 && !Enemies.ContainsKey(me.TwinLock);
+                    if (me.TwinLock == 0 && e != null && v.InReach)
+                    {
+                        if (!Tap(true, 1f))
+                            return false;
+                        aimAt = e.Pos;
+                        return true;
+                    }
+                    return !late && Tap(lost, 1f);
+                }
+                case WeaponId.OutOfAmmo:  // the spin when shots or bodies are right on you
+                    return !late && me.AmmoSpin <= 0f && Tap(v.Incoming >= 3 || EnemiesNear(me.Pos, 90f) >= 2, 7.4f);
+                case WeaponId.DoubleBarrel:  // both barrels point-blank
+                    if (late || e == null || v.ShootD > 150f || me.DbUsed != 0 || me.DbReload > 0f)
+                        return false;
+                    if (Tap(true, 0.3f))
+                    {
+                        firing = false;
+                        return true;
+                    }
+                    return false;
+                case WeaponId.Stonespear:  // the volley at the boss or out of reach, with a few spears up
+                    return !late && e != null && CountBits(me.SsMask) >= 2 && Tap(e.Def.IsBoss || !v.InReach || EnemiesNear(e.Pos, 120f) >= 2, 2f);
+                case WeaponId.GrenadeLauncher:  // smoke when a pack closes in, back to HE when it's spent or clear
+                {
+                    if (late || me.GlSwap > 0f)
+                        return false;
+                    bool smoke = EnemiesNear(me.Pos, 220f) >= 3 && me.GlSmokeUsed < GlSmokeMax;
+                    return Tap(me.GlMode == 1 ? !smoke : smoke, 2f);
+                }
+                case WeaponId.HoneybeeStaff:  // spray a group a little way off while the meter lasts
+                    if (botAltWas)
+                        return me.HoneyFill > 10f && e != null && v.ShootD < 260f;
+                    if (e == null || v.ShootD < 100f || v.ShootD > 250f || me.HoneyFill < 40f || !Tap(EnemiesNear(e.Pos, 120f) >= 2, 1f))
+                        return false;
+                    aimAt = e.Pos;
+                    return true;
+                case WeaponId.Nunchaku:  // the guard under small shots, the Counter once it has some, off when it's quiet
+                    if (me.NunGuard)
+                    {
+                        if (me.NunSwats >= 3 && e != null && v.ShootD < 170f)
+                            firing = true;  // the Twin Counter
+                        return Tap(v.Incoming == 0 && BotDanger < 0.5f, 1f);
+                    }
+                    return Tap(v.Incoming >= 3, 1f);
+                case WeaponId.WindClash:  // the Tempest into a barrage or a crowd
+                    return Tap(TempestLocalCd <= 0f && me.WcTempestT <= 0f && (v.Incoming >= 3 || EnemiesNear(me.Pos, 120f) >= 3), 1f);
+                case WeaponId.EmbolusSpears:  // burst the spears where they sit among enemies
+                    if (late || !(EsOut(me.EsSt[0]) || EsOut(me.EsSt[1])))
+                        return false;
+                    foreach (var en in Enemies.Values)
+                        if (!IsSpawning(en) && en.Hp > 0f && EnemiesNear(en.Pos, 90f) >= 2 && EsNear(me, en.Pos, 90f))
+                            return Tap(true, 1f);
+                    return false;
+                case WeaponId.BulwarkBarrier:  // Brace into a barrage; bash with it once Ram has built
+                    if (botAltWas)
+                    {
+                        if (me.BbRam >= 60f && e != null && v.ShootD < 260f)
+                            firing = true;  // the Shield Bash
+                        return botAltHoldT < 4f && (v.Incoming >= 1 || BotDanger > 0.8f);
+                    }
+                    return Tap(v.Incoming >= 3 || EnemiesAhead(me, 70f, 1.2f) >= 2, 0.8f);
+                case WeaponId.VectorForge:  // send the walker at a new target
+                case WeaponId.BulwarkForge:
+                    if (late || v.Target == null || v.Target.Id == botAltLock || v.Target.Pos.FartherThan(me.Pos, 500f) || !Tap(true, 1f))
+                        return false;
+                    botAltLock = v.Target.Id;
+                    aimAt = v.Target.Pos;
+                    return true;
+            }
             return false;
+        }
+
+        /// Is one of the bot's thrown Embolus Spears within `r` of `at`?
+        static bool EsNear(Player me, V2 at, float r)
+        {
+            for (int i = 0; i < 2; i++)
+                if (EsOut(me.EsSt[i]) && me.EsPos[i].CloserThan(at, r))
+                    return true;
+            return false;
+        }
+
+        static int CountBits(int m)
+        {
+            int n = 0;
+            for (; m != 0; m &= m - 1)
+                n++;
+            return n;
         }
     }
 }
