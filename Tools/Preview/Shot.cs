@@ -838,6 +838,10 @@ static partial class Shot {
       set("wcBorn", Time.unscaledTime - wct); set("wcWave", wg.Wave);
       if (Environment.GetEnvironmentVariable("WCSTEP") != null) set("wcStep", int.Parse(Environment.GetEnvironmentVariable("WCSTEP")));  // WCSTEP=0|2: the Results or Next wave tab (Next wave needs EXPANDVOTE=<rooms> EXPANDCHIP=1)
       if (Environment.GetEnvironmentVariable("WCMIN") != null) set("wcMin", true);  // WCMIN=1: minimized to the strip at the top
+      if (Environment.GetEnvironmentVariable("WCSTATUS") != null) {  // WCSTATUS=pbslr-: each player's status chip in id order (picking, building, shopping, looting, ready, none)
+        var wids = new System.Collections.Generic.List<int>(wg.Players.Keys); wids.Sort(); string ws = Environment.GetEnvironmentVariable("WCSTATUS");
+        for (int k = 0; k < wids.Count && k < ws.Length; k++) { var wp = wg.Players[wids[k]]; int si = "-pbslr".IndexOf(ws[k]); wp.Break = (BreakStatus)Math.Max(0, si); wp.Ready = ws[k] == 'r'; wp.AutoReady = false; }
+      }
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's building round (ExpansionUi.cs)

@@ -39,9 +39,21 @@ static partial class Program
         float t0 = g.StateTimer;
         Run(s, dt, 6f);
         Check(g.State == MatchState.Intermission && Math.Abs(g.StateTimer - t0) < 0.01f, "nobody ready: the break waits (timer still {0:0.0})".Replace("{0:0.0}", g.StateTimer.ToString("0.0")));
+        // Status chips (Docs/RoundFlow.md step 2): the client says its build window is open, the host works out the chip and sends it back.
+        c.SetMyBreakUi(Game.BreakUiBuild); g.SetMyBreakUi(Game.BreakUiOut);
+        Run(s, dt, 0.5f);
+        Check(g.Players[2].Break == BreakStatus.Building && c.Players[2].Break == BreakStatus.Building, "a client's open build window shows as Building on both screens: " + g.Players[2].Break + "/" + c.Players[2].Break);
+        Check(g.Players[1].Break == BreakStatus.Looting && c.Players[1].Break == BreakStatus.Looting, "the host out in the arena shows as Looting: " + c.Players[1].Break);
+        c.SetMyBreakUi(Game.BreakUiShop);
+        Run(s, dt, 0.5f);
+        Check(c.Players[2].Break == BreakStatus.Shopping, "the shop screen shows as Shopping");
+        g.Players[2].PendingPicks = 1;
+        Check(g.StatusOf(g.Players[2]) == BreakStatus.Picking, "picks still to make show as Picking, ahead of the rest");
+        g.Players[2].PendingPicks = 0;
         g.SetMyReady(true);
         Run(s, dt, 0.5f);
         Check(g.Players[1].Ready && c.Players[1].Ready, "the host's Ready reaches the client");
+        Check(c.Players[1].Break == BreakStatus.Ready, "Ready shows as Ready, whatever the screen shows");
         Run(s, dt, 6f);
         Check(g.State == MatchState.Intermission, "one of two ready: still waiting");
         c.SetMyReady(true);

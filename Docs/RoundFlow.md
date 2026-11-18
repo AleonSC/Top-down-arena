@@ -1,6 +1,6 @@
 # Round flow: a smoother break, per-player loot and remote chests
 
-Status: **step 1 built** (no protocol change, 407); steps 2-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
+Status: **steps 1-2 built** (step 1 no protocol change; step 2 protocol 412); steps 3-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
 time ("start on step N").
 
 ## Why
@@ -25,7 +25,8 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
   key, "3 pieces saved for later" makes skipping a choice you can see.
 - **Auto-ready counts from the start of the break**, once your picks are done, except in a building round while you hold
   pieces and haven't opened the build window (or pressed Start) that break, so it never skips building by accident.
-- **Status chips.** Each player row shows Picking / Building / Looting / Ready.
+- **Status chips.** Each player row shows Picking / Building / Shopping / Looting, or the ready mark (tick, A, dashed box)
+  while they're on the box. (Shopping added while building it: the shop screen is a common reason to wait.)
 - **Per-player pickups.** Gold coins, vector pickups, health orbs and Magnets drop as **a full copy for each player**
   (not split). You see and pick up only your own. Shared as before: the Healer's orbs, Medkit orbs, chest loot cards
   (already per-player).

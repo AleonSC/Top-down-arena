@@ -37,6 +37,8 @@ namespace Arena
                 return;
             }
             TickWcSteps();
+            if (game.State == MatchState.Intermission)  // the host shows your status chip from this (Core/WaveReady.cs)
+                game.SetMyBreakUi(ExpandWindowUp ? Game.BreakUiBuild : ShopScreenUp(me) ? Game.BreakUiShop : wcMin ? Game.BreakUiOut : Game.BreakUiBox);
             int pref = AutoReadyPref && !WcHoldsAuto(me) ? 1 : 0;  // Auto-ready only counts once you reach the Ready step
             if (autoReadySent != pref)
             {
@@ -401,11 +403,26 @@ namespace Arena
             Ui.Label(new Rect(x + WcColName, row.y + 27f, nw, 14f), LobbyKit.Truncate(cls, 9, nw), 9, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             DrawNums(row, line.Kills, line.Damage, line.Taken, Color.white, line.Taken <= 0.5f ? Ui.Good : Color.white);
 
+            // The status chip (Docs/RoundFlow.md step 2): what they're doing in the break, at the row's right end; the awards stop short of it.
+            var st = game.State == MatchState.Intermission ? p.Break : BreakStatus.None;
+            string chip = st == BreakStatus.Picking ? "PICKING" : st == BreakStatus.Building ? "BUILDING" : st == BreakStatus.Shopping ? "SHOPPING" : st == BreakStatus.Looting ? "LOOTING" : null;
+            float limit = x + WcColAwardsEnd;
+            if (chip != null)
+            {
+                Color cc = BreakChipColor(st);
+                float cw = CrtUi.TitleWidth(chip, 13) + 8f;
+                var cr = new Rect(row.xMax - 4f - cw, cy - 10f, cw, 20f);
+                Ui.Fill(cr, new Color(cc.r, cc.g, cc.b, 0.16f));
+                CrtKit.Frame(cr, 1f, cc);
+                HudCrt(cr, chip, 13, cc, TextAnchor.MiddleCenter);  // (small enough that two awards still fit beside it)
+                limit = Mathf.Min(limit, cr.x - 3f);
+            }
+
             // Awards: inverse-video tags (gold, or the ink for the healers' ones), left to right, as many as fit.
-            float ax = x + WcColAwards, limit = x + WcColAwardsEnd;
+            float ax = x + WcColAwards;
             foreach (var a in AwardList(line.Awards))
             {
-                float w = CrtUi.TitleWidth(a.Item1, 15) + 10f;
+                float w = CrtUi.TitleWidth(a.Item1, 15) + 8f;
                 if (ax + w > limit)
                     break;
                 var tag = new Rect(ax, cy - 9f, w, 18f);
@@ -414,11 +431,11 @@ namespace Arena
                 Ui.CrtFont = true;
                 Ui.Label(tag, a.Item1, 15, a.Item2 ? CrtUi.Bg : new Color(0.11f, 0.07f, 0f), TextAnchor.MiddleCenter, false);
                 Ui.CrtFont = was;
-                ax += w + 4f;
+                ax += w + 3f;
             }
 
-            // Ready mark (Ready step only): A for auto-ready, a green tick when ready, a dashed empty box while they are not.
-            if (!showReady)
+            // Ready mark (not before a boss): A for auto-ready, a green tick when ready, a dashed empty box while they are not (and have no chip).
+            if (!showReady || chip != null)
                 return;
             var dot = new Rect(x + WcColTick + 8f, cy - 13f, 26f, 26f);
             if (p.AutoReady)
@@ -435,6 +452,10 @@ namespace Arena
             else
                 CrtKit.Dashed(dot, 2f, CrtUi.Dim);
         }
+
+        /// A status chip's colour: picking orange, building violet, shopping gold, out looting the ink.
+        static Color BreakChipColor(BreakStatus st) => st == BreakStatus.Picking ? new Color(1f, 0.54f, 0.24f) : st == BreakStatus.Building ? new Color(0.76f, 0.55f, 1f)
+            : st == BreakStatus.Shopping ? CrtStyle.Gold : CrtUi.Ink;
 
         /// (text, blue?) for each award someone has, in the order they show.
         static List<System.Tuple<string, bool>> AwardList(WaveAward a)
@@ -595,7 +616,7 @@ namespace Arena
                 var names = new List<string>();
                 foreach (var p in game.Players.Values)
                     if (!p.Ready && !p.AutoReady)
-                        names.Add(p.Id == game.MyId ? "you" : p.Name);
+                        names.Add(p.Id == game.MyId ? "you" : p.Name);  // (what they're doing is on their row's chip)
                 status = "Waiting for " + string.Join(" and ", names.ToArray()) + " · no timer yet";
             }
             var sr = new Rect(r.x + 280f, r.y + 10f, r.width - 280f - 350f, 26f);  // between the switch and the Ready key

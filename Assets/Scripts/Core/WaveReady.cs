@@ -24,6 +24,10 @@ namespace Arena
         public WaveLine For(int id) => Lines.Find(l => l.Id == id);
     }
 
+    /// A player's status chip in the break (the wave box's rows, Docs/RoundFlow.md step 2): None while they're on the wave box.
+    /// New values go at the end.
+    public enum BreakStatus : byte { None, Picking, Building, Shopping, Looting, Ready }
+
     /// The between-waves "ready" system. Each player presses Ready (or turns on Auto-ready, which is remembered between runs).
     /// The break's countdown only runs once everyone is ready: if everyone is on auto-ready it is the usual countdown
     /// (so a solo player with auto-ready keeps today's pace), otherwise it is a short one (ReadyCountdown) after the last
@@ -173,6 +177,62 @@ namespace Arena
         public void SetMyReady(bool ready) => SendReady(0, ready);
         public void SetMyAutoReady(bool auto) => SendReady(1, auto);
 
+        // What a player's screen shows in the break (kind 2 of Msg.WaveReady): the wave box, the build window, the shop, or out in the arena.
+        public const byte BreakUiBox = 0, BreakUiBuild = 1, BreakUiShop = 2, BreakUiOut = 3;
+        byte myBreakUiSent = 255;
+
+        /// The app, each frame in the break: tells the host what this screen shows (sent only when it changes).
+        public void SetMyBreakUi(byte ui)
+        {
+            if (Me == null || ui == myBreakUiSent)
+                return;
+            myBreakUiSent = ui;
+            if (IsHost)
+            {
+                Me.BreakUi = ui;
+                return;
+            }
+            var w = Proto.Begin(Msg.WaveReady);
+            w.Write((byte)2);
+            w.Write(ui);
+            session.SendToHost(Proto.End(w));
+        }
+
+        /// Host: what this player is doing in the break. Picks come first (they hold the wave), then Ready, then what their screen shows.
+        public BreakStatus StatusOf(Player p)
+        {
+            if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingCards + p.PendingMilestones + p.PrizePicks > 0 || p.Offer != null)
+                return BreakStatus.Picking;
+            if (p.Ready || p.AutoReady)
+                return BreakStatus.Ready;
+            switch (p.BreakUi)
+            {
+                case BreakUiBuild: return BreakStatus.Building;
+                case BreakUiShop: return BreakStatus.Shopping;
+                case BreakUiOut: return BreakStatus.Looting;
+                default: return BreakStatus.None;
+            }
+        }
+
+        /// Host, each tick of the break: everyone's chip, sent with the ready flags when one changes.
+        void TickBreakStatus()
+        {
+            if (!IsHost)
+                return;
+            bool changed = false;
+            foreach (var p in Players.Values)
+            {
+                var st = StatusOf(p);
+                if (st != p.Break)
+                {
+                    p.Break = st;
+                    changed = true;
+                }
+            }
+            if (changed)
+                BroadcastReady();
+        }
+
         void SendReady(byte kind, bool value)
         {
             if (Me == null)
@@ -191,6 +251,14 @@ namespace Arena
         public void OnWaveReady(int peer, BinaryReader r)
         {
             byte kind = r.ReadByte();
+            if (kind == 2)
+            {
+                byte ui = r.ReadByte();
+                Player p;
+                if (Players.TryGetValue(peer, out p) && ui <= BreakUiOut)
+                    p.BreakUi = ui;  // (the chip follows on the next tick: TickBreakStatus)
+                return;
+            }
             HostReady(peer, kind, r.ReadBoolean());
         }
 
@@ -231,6 +299,7 @@ namespace Arena
                 w.Write(p.Id);
                 w.Write(p.Ready);
                 w.Write(p.AutoReady);
+                w.Write((byte)p.Break);
             }
             session.Broadcast(Proto.End(w));
         }
@@ -242,11 +311,13 @@ namespace Arena
             {
                 int id = r.ReadInt32();
                 bool ready = r.ReadBoolean(), auto = r.ReadBoolean();
+                var st = (BreakStatus)r.ReadByte();
                 Player p;
                 if (Players.TryGetValue(id, out p))
                 {
                     p.Ready = ready;
                     p.AutoReady = auto;
+                    p.Break = st;
                 }
             }
         }
