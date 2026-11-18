@@ -16,8 +16,8 @@ static partial class Program
         string mx = Environment.GetEnvironmentVariable("VECMAX");  // VECMAX=<x>: try another crowd scale ceiling
         if (mx != null) Game.MaxExpandScale = float.Parse(mx, System.Globalization.CultureInfo.InvariantCulture);
         string endC = "(skipped)", endE;
-        var classic = skipClassic ? new Dictionary<int, ArenaWave>() : PlayArena(dt, false, lastWave, seed, out endC);
-        var expanding = PlayArena(dt, false, lastWave, seed, out endE, true);
+        var classic = skipClassic ? new Dictionary<int, ArenaWave>() : PlayArena(dt, lastWave, seed, out endC);
+        var expanding = PlayArena(dt, lastWave, seed, out endE, true);
         var rounds = arenaRounds;
         Console.WriteLine("  Good bot duo, seed {0}. Classic: {1}. Expanding: {2}.", seed, endC, endE);
         Console.WriteLine("  wave | length s     | dmg taken % max HP | downs");

@@ -25,7 +25,7 @@ namespace Arena
         //   step: Clear three patterns without a hit      (as many step lines as you like)
         //   example: yes                   (optional)
         //   loop: no                       (then the waves, exactly as in a Practice setup)
-        //   wave 3: Burster x2, Spinner x1
+        //   wave 3: Mortar x2, Spinner x1
         public static TrainingDrill Parse(string id, string text, out List<string> problems)
         {
             var d = new TrainingDrill { Id = id ?? "" };
@@ -71,13 +71,13 @@ namespace Arena
                 "name: Dodge Basics\n" +
                 "group: Move & Dodge\n" +
                 "goal: Slip through three bullet patterns.\n" +
-                "step: Rings: find the gap in each Burster ring and step through it\n" +
+                "step: Rings: step off each Mortar's landing mark, then through the gap in its ring\n" +
                 "step: Spirals: weave between the Spinners' arms, then strike in their 2 s pause\n" +
                 "step: Volley: dodge (Ctrl) through the mix; the dash's 0.22 s makes you untouchable\n" +
                 "loop: no\n" +
-                "wave 1: Burster x3\n" +
+                "wave 1: Mortar x3\n" +
                 "wave 1: Spinner x2\n" +
-                "wave 2: Burster x2, Spinner x1, Grunt x3\n",
+                "wave 2: Mortar x2, Spinner x1, Grunt x3\n",
                 out problems));
         }
 

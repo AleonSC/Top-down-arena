@@ -253,7 +253,6 @@ namespace Arena
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
-            sounds.SetSawLoop(game.SawWhirrLevel);  // the Buzzsaw's contact whirr (MeleeSounds.cs)
             TickHeliSound();  // the Attack Helicopter's rotor (AttackHelicopterLook.cs, HeliSoundBank.cs)
             TickKineticWallSounds();  // Kinetic Wall's cast, catches, chime, unleash and hum (KineticWallLook.cs; before TickArcLockSounds, which marks effects heard)
             TickArcLockSounds();  // Arc Lightning's tags, hops, forks and charge hum (ArcLockSoundBank.cs)

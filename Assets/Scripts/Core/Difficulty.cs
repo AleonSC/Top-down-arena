@@ -32,7 +32,7 @@ namespace Arena
         ApproachShare,  // share: the themed share of the last wave before each boss (Approaches.cs); 0 = off
         ApproachRamp,   // on/off: the four approach waves rise to that share (on) or all use it (off)
         ArenaLayouts,   // on/off: each boss cycle gets a fixed floor plan (Layouts.cs); off = always the open arena
-        ArenaRooms,     // on/off: the Arena setting, Rooms (on: side rooms and hallways on regular waves, Rooms.cs) or Classic (off)
+        ArenaRooms,     // retired (Nov 18): was the Rooms arena (the Wings map); ignored, kept so the knob order stays the same
         ArenaExpanding, // on/off: the Arena setting, Expanding (on: starts as the Classic box and grows by rooms the team buys, ExpansionGame.cs); wins over Rooms
         Campaign,       // on/off: every wave is themed enemies, the last boss's fading out and the next one's building up (Approaches.cs, Docs/Campaign.md); off = the Boss approach setting
         BuildVote,      // retired (Nov 18): was Team vote building; ignored, kept so the knob order stays the same
@@ -295,13 +295,13 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.ArenaLayouts, Name = "Arena layouts", Flavour = true,
                 Desc = "On: each boss cycle gets a fixed floor plan with walls, pillars and edge gates (and 30% more enemies). Off: always the open arena.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
-            // The Arena (Rooms.cs, Docs/Rooms.md): flavour. Off is Classic, today's arena, the default until Rooms is tuned.
-            new KnobDef { Knob = DiffKnob.ArenaRooms, Name = "Rooms arena", Flavour = true,
-                Desc = "On: regular waves spread into side rooms and hallways round the arena, joined by doors (boss waves stay in the middle). Off: the Classic arena.",
+            // Retired (Nov 18): was "Rooms arena" (the Wings map); ignored, kept so the knob order stays the same.
+            new KnobDef { Knob = DiffKnob.ArenaRooms, Name = "Rooms arena (retired)", Flavour = true,
+                Desc = "Retired (Nov 18): ignored; the Rooms map is gone.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
             // The Expanding arena (ExpansionGame.cs, Docs/ExpandingArena.md): flavour. Starts as the Classic box; after each boss the team votes on rooms to buy.
             new KnobDef { Knob = DiffKnob.ArenaExpanding, Name = "Expanding arena", Flavour = true,
-                Desc = "On: the arena starts as the Classic box and grows: after each boss the team votes on a new room to buy with a shared purse (paths are off). Off: the other arenas.",
+                Desc = "On: the arena starts as the Classic box and grows: after each boss the team votes on a new room to buy with a shared purse (paths are off). Off: the Classic arena.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
             // The campaign buildup (Approaches.cs, Docs/Campaign.md): flavour. Every wave is faction enemies; Boss approach and its ramp only apply when this is off.
             new KnobDef { Knob = DiffKnob.Campaign, Name = "Campaign buildup", Flavour = true,

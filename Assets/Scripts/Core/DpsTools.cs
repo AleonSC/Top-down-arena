@@ -135,7 +135,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (!e.Dummy && !IsPlanted(e.Type))  // (a Sapper's pods, a Turnkey's traps and doors don't hold a wave open: Turnkey.cs)
+                if (!e.Dummy && !IsPlanted(e.Type))  // (a Turnkey's traps and doors don't hold a wave open: Turnkey.cs)
                     n++;
             return n;
         }
@@ -159,7 +159,7 @@ namespace Arena
             return sum;
         }
 
-        /// Put a target dummy in front of this player: a Juggernaut that never moves (unless DummyMoves), never shoots,
+        /// Put a target dummy in front of this player: a Thug that never moves (unless DummyMoves), never shoots,
         /// never hurts, never dies, and counts the damage it takes. It doesn't hold up the wave.
         public Enemy DevSpawnDummy(int id)
         {
@@ -170,7 +170,7 @@ namespace Arena
             V2 fwd = V2.FromAngle(p.Aim);
             V2 side = new V2(-fwd.Y, fwd.X);
             float shift = ((n + 1) / 2) * 90f * (n % 2 == 1 ? 1f : -1f);
-            var e = SpawnEnemyAt(EnemyType.Juggernaut, p.Pos + fwd * 260f + side * shift, 0f, 0);
+            var e = SpawnEnemyAt(EnemyType.Thug, p.Pos + fwd * 260f + side * shift, 0f, 0);
             e.Dummy = true;
             e.Elite = false;
             e.MaxHp = e.Hp = LabDummyHp;

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Rooms arena's balance (Docs/Rooms.md, phase 3): a duo of Good bots plays the same seed on the Classic arena and on
-// the Rooms arena, and each regular wave's numbers are printed side by side: how long it took, the damage each player
+// The Expanding arena's balance: a duo of Good bots plays the same seed on the Classic arena and on the Expanding
+// arena, and each regular wave's numbers are printed side by side: how long it took, the damage each player
 // took (as a share of their max health), how many threats were in a 1x view at once (on average and at worst; Classic's
 // view is the whole arena), and downs. Run: run.sh 1 1 arenabal [last wave] [seed]
 static partial class Program
@@ -27,7 +27,7 @@ static partial class Program
 
     const float StallSeconds = 600f;  // a regular wave longer than this ends the run as stalled (the bots can't finish it)
 
-    static Dictionary<int, ArenaWave> PlayArena(float dt, bool rooms, int lastWave, int seed, out string ending, bool expanding = false)
+    static Dictionary<int, ArenaWave> PlayArena(float dt, int lastWave, int seed, out string ending, bool expanding = false)
     {
         arenaRounds = new List<ArenaRound>();
         Game.SeedForTests(seed);
@@ -35,8 +35,7 @@ static partial class Program
         host.Game.Bot = true; host.Game.BotLevel = BotSkill.Good; host.Game.BotRerolls = false;
         int port = nextPort++;
         host.Host(port, "A", Role.Tank, 0);
-        host.Diff.Set(DiffKnob.ArenaRooms, rooms && !expanding ? 1f : 0f);  // (after Host: hosting starts from the saved lobby)
-        host.Diff.Set(DiffKnob.ArenaExpanding, expanding ? 1f : 0f);
+        host.Diff.Set(DiffKnob.ArenaExpanding, expanding ? 1f : 0f);  // (after Host: hosting starts from the saved lobby)
         var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = BotSkill.Good; c.Game.BotRerolls = false;
         c.Join("127.0.0.1", port, "B", Role.Dps, 0);
         WaitForGame(host, c, dt);
@@ -76,7 +75,7 @@ static partial class Program
             }
             // The bots can get stuck on crates going for a chest or an item (they don't steer round props, in either arena):
             // after 20 s with nothing left to fight, take the treasure for them, as a person would.
-            idle = g.State == MatchState.Fighting && g.Foes() - g.Enemies.Values.Count(e => g.InVault(e)) == 0 ? idle + dt : 0f;  // (the vault's mini-boss is optional)
+            idle = g.State == MatchState.Fighting && g.Foes() == 0 ? idle + dt : 0f;
             if (idle > 20f)
             {
                 foreach (var pr in g.Props.Values.Where(pr => pr.Kind == PropKind.Chest).ToList()) g.Props.Remove(pr.Id);
@@ -89,16 +88,16 @@ static partial class Program
                     bool was;
                     downSeen.TryGetValue(p.Id, out was);
                     if (p.Downed && !was)
-                        Console.WriteLine("  [{0}] wave {1} t={2:0}: player {3} down at {4:0},{5:0} ({6}, locked {7}); near: {8}", rooms ? "R" : "C", g.Wave, g.RunTime, p.Id, p.Pos.X, p.Pos.Y,
-                            Rooms.Areas[Rooms.AreaAt(p.Pos)].Name, g.AreaLocked(Rooms.AreaAt(p.Pos)),
-                            string.Join(", ", g.Enemies.Values.Where(e => e.Pos.DistanceTo(p.Pos) < 300f).Select(e => e.Type + (e.Spilled ? "*" : ""))));
+                        Console.WriteLine("  [{0}] wave {1} t={2:0}: player {3} down at {4:0},{5:0} (area {6}, locked {7}); near: {8}", expanding ? "E" : "C", g.Wave, g.RunTime, p.Id, p.Pos.X, p.Pos.Y,
+                            g.AreaAt(p.Pos), g.AreaLocked(g.AreaAt(p.Pos)),
+                            string.Join(", ", g.Enemies.Values.Where(e => e.Pos.DistanceTo(p.Pos) < 300f).Select(e => e.Type.ToString())));
                     downSeen[p.Id] = p.Downed;
                 }
             bool fighting = g.State == MatchState.Fighting && !g.BossNow && !g.InRoom;
             if (fighting && curWave != g.Wave)
             {
                 curWave = g.Wave;
-                if (Environment.GetEnvironmentVariable("ARENADBG") != null) Console.WriteLine("  [{0}] wave {1}: roomsUp {2} arena {3} path {4} mods {5}", rooms ? "R" : "C", g.Wave, g.RoomsUp, g.RoomsArena, g.CurrentPath, g.Mods);
+                if (Environment.GetEnvironmentVariable("ARENADBG") != null) Console.WriteLine("  [{0}] wave {1}: roomsUp {2} arena {3} path {4} mods {5}", expanding ? "E" : "C", g.Wave, g.RoomsUp, g.ArenaKind, g.CurrentPath, g.Mods);
                 cur = waves[g.Wave] = new ArenaWave();
                 startT = g.RunTime;
                 foreach (var p in g.Players.Values) { taken0[p.Id] = p.Run.DamageTaken; downs0[p.Id] = p.Run.Downs; }
@@ -111,9 +110,8 @@ static partial class Program
                     if (cur.Length > StallSeconds && Environment.GetEnvironmentVariable("ARENADBG") == null) { stalled = true; break; }  // a wave that never ends (bots that can't reach the last foes): stop, say so
                     if (cur.Length > 150f && !dumped && Environment.GetEnvironmentVariable("ARENADBG") != null)
                     {
-                        Console.WriteLine("  STUCK wave {0}: remaining {1}, foes {2}, rooms {3}, vault {4}", g.Wave, g.Remaining, g.Foes(),
-                            string.Join("; ", g.RoomStates.Select(r => r.Area + " nest " + r.NestAlive + " clr " + r.Cleared + " spill " + r.SpillT.ToString("0"))), g.VaultUp);
-                        foreach (var e in g.Enemies.Values) Console.WriteLine("    {0} at {1:0},{2:0} home {3} spilled {4} hp {5:0} spawnT {6}", e.Type, e.Pos.X, e.Pos.Y, e.Home, e.Spilled, e.Hp, e.SpawnT);
+                        Console.WriteLine("  STUCK wave {0}: remaining {1}, foes {2}", g.Wave, g.Remaining, g.Foes());
+                        foreach (var e in g.Enemies.Values) Console.WriteLine("    {0} at {1:0},{2:0} home {3} hp {4:0} spawnT {5}", e.Type, e.Pos.X, e.Pos.Y, e.Home, e.Hp, e.SpawnT);
                         if (g.RoomsOn) foreach (var e in g.Enemies.Values) { var w = g.CurrentWorld; int ai = w.AreaAt(e.Pos); Console.WriteLine("    {0} is in area {1} {2} {3:0},{4:0}-{5:0},{6:0} (floating {7}, sealed {8}); {9} areas", e.Type, ai, w.Areas[ai].Name, w.Areas[ai].Min.X, w.Areas[ai].Min.Y, w.Areas[ai].Max.X, w.Areas[ai].Max.Y, w.Areas[ai].Floating, w.Areas[ai].Sealed, w.Areas.Length); }
                         foreach (var p in g.Players.Values) Console.WriteLine("    player {0} at {1:0},{2:0} downed {3}", p.Id, p.Pos.X, p.Pos.Y, p.Downed);
                         foreach (var pr in g.Props.Values) Console.WriteLine("    prop {0} at {1:0},{2:0} open {3} hp {4}", pr.Kind, pr.Pos.X, pr.Pos.Y, pr.Open, pr.Hp);
@@ -134,7 +132,7 @@ static partial class Program
                             V2 lo, hi;
                             if (g.RoomsOn)
                             {
-                                V2 mid = g.CurrentWorld.ViewCentre(p.Pos, Game.Width / 2f, Game.Height / 2f, g.VaultOn);
+                                V2 mid = g.CurrentWorld.ViewCentre(p.Pos, Game.Width / 2f, Game.Height / 2f);
                                 lo = mid - new V2(Game.Width / 2f, Game.Height / 2f); hi = mid + new V2(Game.Width / 2f, Game.Height / 2f);
                             }
                             else { lo = V2.Zero; hi = new V2(Game.Width, Game.Height); }
@@ -161,12 +159,12 @@ static partial class Program
         float keepMult = Rooms.EnemyDamageMult;
         if (roomsDamage > 0f) Rooms.EnemyDamageMult = roomsDamage;
         string endC, endR;
-        var classic = PlayArena(dt, false, lastWave, seed, out endC);
-        var rooms = PlayArena(dt, true, lastWave, seed, out endR);
-        Console.WriteLine("  Good bot duo, seed {0}, Rooms damage x{3}. Classic: {1}. Rooms: {2}.", seed, endC, endR, Rooms.EnemyDamageMult);
+        var classic = PlayArena(dt, lastWave, seed, out endC);
+        var rooms = PlayArena(dt, lastWave, seed, out endR, true);
+        Console.WriteLine("  Good bot duo, seed {0}, Expanding damage x{3}. Classic: {1}. Expanding: {2}.", seed, endC, endR, Rooms.EnemyDamageMult);
         Rooms.EnemyDamageMult = keepMult;
         Console.WriteLine("  wave | length s     | dmg taken % max HP | threats in view avg / max | shots in view | downs");
-        Console.WriteLine("       | Class  Rooms | Class   Rooms      | Class       Rooms         | Class  Rooms  | C  R");
+        Console.WriteLine("       | Class  Expnd | Class   Expnd      | Class       Expnd         | Class  Expnd  | C  E");
         foreach (int w in classic.Keys.Union(rooms.Keys).OrderBy(x => x))
         {
             ArenaWave a, b;

@@ -1,9 +1,7 @@
 # Rooms: a hub with side rooms on every regular wave
 
-**Status: open map since Nov 10 (protocol 237): one big map (hub, rooms, hallways, doors), enemies coming in at random
-spots anywhere, a free camera starting at 1.5x zoom with a prompt to zoom out, the vault with its lock. The room-by-room
-version (phases 2-3: nests, spills, room locks, overflow) is parked behind `Rooms.RoomByRoom` (off). See "Open map" at
-the end.**
+**Status: removed (Nov 18, protocol 410). The Rooms arena (the Wings map, its nests, spills and vault) is gone; the
+shared walled-world code lives on for the Expanding arena and Survival (World.cs, Rooms.cs). Kept as background.**
 
 ## Why
 

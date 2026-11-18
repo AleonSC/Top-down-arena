@@ -96,7 +96,7 @@ static partial class Program
                     for (int k = 0; k < 3; k++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
                     foreach (var id in g.Minions.Keys.ToList()) g.Minions.Remove(id);
                     me.Weapon = weapon;
-                    var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
+                    var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Thunderhead, new V2(800f, 450f), 0f, 0, false });
                     target.Hp = target.MaxHp = 1e7f;
                     me.Weapon = weapon;
                     float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + target.Radius : Math.Min(250f, g.WeaponRange(me) * 0.75f);  // short-range guns stand in reach
@@ -138,7 +138,7 @@ static partial class Program
                 g.DevSetGod(1, true);
                 foreach (var e in g.Enemies.Values) e.Hp = 0f;
                 for (int i = 0; i < 3; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
-                var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
+                var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Thunderhead, new V2(800f, 450f), 0f, 0, false });
                 target.Hp = target.MaxHp = 1e7f;
                 me.Slots[Upgrades.UltSlot].Charges = 1;
                 me.Slots[Upgrades.UltSlot].Timer = 0f;
@@ -276,7 +276,7 @@ static partial class Program
         // gains[fight][upgrade][0 = one pick, 1 = full stack] -> one gain per weapon
         var gains = fights.ToDictionary(f => f, f => ups.ToDictionary(u => u, u => new[] { new List<float>(), new List<float>() }));
         var weaponNames = new List<string>();
-        var bossDef = (EnemyDef)typeof(object).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(Defs.Get(EnemyType.Juggernaut), null);
+        var bossDef = (EnemyDef)typeof(object).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(Defs.Get(EnemyType.Thunderhead), null);
         bossDef.IsBoss = true;
         var perWeapon = new Dictionary<string, Dictionary<string, float>>();  // weapon -> "fight/upgrade" -> one-pick gain
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
@@ -314,7 +314,7 @@ static partial class Program
                         float range = baseRange;  // where enemies stand doesn't move with reach upgrades
                         V2 at = new V2(800f, 450f), from = new V2(800f - range, 450f);
                         V2[] spots; float hp; EnemyType type = EnemyType.Brute;
-                        if (fight == "boss") { spots = new[] { at }; hp = bossHp; type = EnemyType.Juggernaut; }
+                        if (fight == "boss") { spots = new[] { at }; hp = bossHp; type = EnemyType.Thunderhead; }
                         else if (fight == "pack") { spots = new[] { at, at + new V2(40f, 25f), at + new V2(40f, -25f), at + new V2(75f, 0f) }; hp = Math.Max(100f, bossHp / 4f); }
                         else  // 8 enemies 100-130 px apart in a wide arc in front of you; you switch target every half second
                         {
@@ -483,7 +483,7 @@ static partial class Program
         var rec = g.Recorder = new SessionRecorder(folder);
         rec.Begin(g, g.Wave);
         rec.WaveStart(g, g.Wave, null);
-        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
+        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Thunderhead, new V2(800f, 450f), 0f, 0, false });
         target.Hp = target.MaxHp = 1e6f;
         float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + target.Radius : Math.Max(60f, Math.Min(440f, g.WeaponRange(me) * dist));
         float held = 0f;
@@ -539,7 +539,7 @@ static partial class Program
                         g.DevSetGod(1, true);
                         foreach (var e in g.Enemies.Values) e.Hp = 0f;
                         for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
-                        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
+                        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Thunderhead, new V2(800f, 450f), 0f, 0, false });
                         target.Hp = target.MaxHp = 1e6f;
                         float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + target.Radius : Math.Max(60f, Math.Min(440f, g.WeaponRange(me) * dist));
                         float held = 0f, measured = 0f, startHp = 0f;

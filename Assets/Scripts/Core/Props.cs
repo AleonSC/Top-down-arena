@@ -807,7 +807,7 @@ namespace Arena
         /// Bots: once the enemies are down, open the chest and take their item.
         void BotTreasure(Player me, ref V2 move)
         {
-            if (State != MatchState.Fighting || FoesOutsideVault() > 0 || me.Downed)  // (the Rooms arena's vault is optional: Rooms.cs)
+            if (State != MatchState.Fighting || Foes() > 0 || me.Downed)
                 return;
             V2? goal = null;
             var mine = MyLoot;

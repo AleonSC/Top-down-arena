@@ -9,7 +9,7 @@ namespace Arena
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
     public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon, Fogbound, NarrowPass, Bazaar }
 
-    public enum PatchKind : byte { Fire, Heal, Gas, Honey, Lava, Bile, Embers, Acid, Spores, Rubble, Slab, DuelCircle, Grave, Dusk, Slick }  // Slick: a Turnkey's mop slick, slows you (Turnkey.cs)  // Dusk: a Dusk Lobber's pool of dark (Penumbral.cs)  // Grave: a Grave Caller's grave, a Shambler climbs out as it opens (Zombies.cs)  // DuelCircle: a Marshal's circle round a player (CourtFaction.cs)  // Rubble: a Rock Hurler's pile, Slab: a Slab Bearer's dropped slab (R1 is its facing); both stop shots (QuarryFaction.cs)  // Acid: a Spitter's puddle; Spores: a Bloater's cloud (Zombies.cs)  // Gas: the Warden's canisters (Warden.cs); Honey: the Hive Queen's puddles (Queen.cs); Lava: the Colossus's pools (Colossus.cs); Bile: the Devourer's acid (Devourer.cs); Embers: a Scorcher's trail (Variety.cs)
+    public enum PatchKind : byte { Fire, Heal, Gas, Honey, Lava, Bile, Acid, Spores, Rubble, Slab, DuelCircle, Grave, Dusk, Slick }  // Slick: a Turnkey's mop slick, slows you (Turnkey.cs)  // Dusk: a Dusk Lobber's pool of dark (Penumbral.cs)  // Grave: a Grave Caller's grave, a Shambler climbs out as it opens (Zombies.cs)  // DuelCircle: a Marshal's circle round a player (CourtFaction.cs)  // Rubble: a Rock Hurler's pile, Slab: a Slab Bearer's dropped slab (R1 is its facing); both stop shots (QuarryFaction.cs)  // Acid: a Spitter's puddle; Spores: a Bloater's cloud (Zombies.cs)  // Gas: the Warden's canisters (Warden.cs); Honey: the Hive Queen's puddles (Queen.cs); Lava: the Colossus's pools (Colossus.cs); Bile: the Devourer's acid (Devourer.cs); Embers: a Scorcher's trail (Variety.cs)
 
     /// A patch of a hazard floor (Burning Grounds' fire, Sanctuary's healing pools). The host spawns it and tells
     /// everyone once; each game then ages, grows and expires it the same way.
@@ -45,7 +45,7 @@ namespace Arena
         {
             new PathDef { Id = PathId.SwarmFields, Name = "Swarm Fields", Kind = "Enemy mix", Danger = 2,
                 Blurb = "Open grassland overrun by rushers.",
-                Rules = new[] { "Mostly melee rushers: Swarmers, Spikers, Brutes, Lungers", "Twice as many of them, at 60% health" },
+                Rules = new[] { "Mostly melee rushers: Swarmers, Brutes, Lungers", "Twice as many of them, at 60% health" },
                 Floor = new Rgba(0.16f, 0.32f, 0.14f), Accent = new Rgba(0.55f, 0.95f, 0.45f),
                 Showcase = new[] { EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger } },
             new PathDef { Id = PathId.SniperRidge, Name = "Sniper Ridge", Kind = "Enemy mix", Danger = 2,
@@ -393,7 +393,7 @@ namespace Arena
             get
             {
                 if (RoomsOn)
-                    return CurrentWorld.MinFor(VaultUp);  // the side rooms and hallways round the hub, and the vault (Rooms.cs)
+                    return CurrentWorld.Min;  // the rooms round the hub (Rooms.cs)
                 float f = NarrowF * NarrowF * (3f - 2f * NarrowF);
                 return new V2(Math.Max(Paths.NarrowInsetX * f, TinyInset.X), Math.Max(Paths.NarrowInsetY * f, TinyInset.Y));
             }

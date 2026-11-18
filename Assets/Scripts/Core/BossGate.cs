@@ -25,7 +25,7 @@ namespace Arena
         /// Where it opens: the middle of the hub, clear of props.
         V2 GateSpot()
         {
-            V2 at = RoomsOn ? Rooms.Areas[Rooms.Hub].Mid : new V2(Width / 2f, Height / 2f);
+            V2 at = new V2(Width / 2f, Height / 2f);
             return PushOutOfProps(at, GateR * 0.5f);
         }
 

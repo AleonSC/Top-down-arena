@@ -234,9 +234,9 @@ bossslot f728 Rioter (42,830) rem 5
 bossslot f780 Swarmer (1561,775) rem 4
 bossslot f1224 wave 5 boss remaining 3
 bossslot f1254 Boss (800,450) rem 3
-bossslot f1429 Grunt (44,684) rem 3
-bossslot f1481 Grunt (134,856) rem 2
-bossslot end wave 5 score 429
+bossslot f1429 SecurityGuard (45,683) rem 3
+bossslot f1481 SecurityGuard (135,855) rem 2
+bossslot end wave 5 score 427
 zombie f180 wave 1 remaining 18
 zombie f210 Shambler (362,44) rem 18
 zombie f236 Shambler (338,856) rem 18

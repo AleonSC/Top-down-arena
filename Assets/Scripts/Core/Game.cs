@@ -1014,7 +1014,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
             {
                 e.Disp = e.Disp.FartherThan(e.Pos, 600f) ? e.Pos : V2.Lerp(e.Disp, e.Pos, k);  // (a jump through a Rooms portal: snap, don't slide)
-                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder || IsSecurity(e.Type) || IsInfall(e.Type) || IsPenumbral(e.Type) || IsSquall(e.Type))  // (the Warder's, the Security Guard's, the Infall's and the Court's looks are timed the same way)
+                if (IsSwordsman(e.Type) || IsSecurity(e.Type) || IsInfall(e.Type) || IsPenumbral(e.Type) || IsSquall(e.Type))  // (the Security Guard's, the Infall's and the Court's looks are timed the same way)
                 {
                     if (e.Phase != e.SeenPhase)
                     {

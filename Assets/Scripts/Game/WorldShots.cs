@@ -219,11 +219,6 @@ namespace Arena
                 DrawCrescentShot(b, t);  // EclipseLook.cs
                 return;
             }
-            if (b.Kind == Defs.PauseShot || b.Kind == Defs.StitchShot)
-            {
-                DrawPatternShot(b, c, t);  // VarietyLook.cs
-                return;
-            }
             if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
             {
                 V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();

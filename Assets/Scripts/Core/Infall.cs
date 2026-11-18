@@ -42,7 +42,7 @@ namespace Arena
         public const float AcolyteRange = 280f, AcolyteEvery = 2.4f, AcolyteSpread = 0.5f, AcolyteOrbSpeed = 150f;
         public const float PulsarRange = 300f, PulsarWarn = 1f, PulsarSweep = 4f, PulsarRest = 2.5f, PulsarArc = MathX.Pi / 2f,
             PulsarLead = 0.5f, PulsarBeamLen = 900f, PulsarBeamWidth = 14f;
-        float PulsarDamage => 16f;  // a touch; the difficulty's per-wave damage growth scales it, like the Beam Sentry's
+        float PulsarDamage => 16f;  // a touch; the difficulty's per-wave damage growth scales it
 
         public const float GravitonRange = 320f, GravitonEvery = 6f, GravitonWindUp = 0.6f, GravitonFlight = 0.8f, GravitonScatter = 50f,
             MiniWellLife = 4f, MiniWellDriftRange = 240f, MiniWellDrift = 80f, MiniWellBendRange = 150f;

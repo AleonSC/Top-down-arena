@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 410: the Medic: `RoomKind.Medic`, `RoomCard.Medic` (hands, offers and rooms); heals and revives only at the Medic; the Black Market's card shelf (`ShopAction.BuyCard`) is retired
+- 410: 24 enemies no faction used are removed (Burster, Charger, Splitter, Medic, Phantom, Hexer, Juggernaut, Nest, Spiker, Beam Sentry, Scorcher, Reaver, Warder, Pauser, Leader, Stitcher, Buzzsaw, Spike Block, Fuse Runner, Hookman, Sapper, Sapper Mine, Swordsman, Shield Swordsman): `EnemyType` values after Grunt renumber; `PatchKind.Embers` and the Spiker/Spike Block/Buzzsaw `Sfx` values are gone (later values shift); the enemy snapshot drops its Warder id; the Rooms map (Wings) is gone, so the layout sync no longer carries the rooms' nests, spills or vault (`DiffKnob.ArenaRooms` ignored)
 - 409: `ExpansionRoom.Card` (the old room card marker) is gone from `Msg.ExpandState` rooms; mystery doors price by cells (`Mystery.PriceForCells`)
 - 408: the wave card pick: `Player.WavePicks` and `OfferWave` in the player snapshot (the build round's free card is now a pick of two)
 - 407: Room cards, Free draw, Open wall and wall push removed: `Msg.ExpandDraw`, `ExpandCut`, `ExpandOutline`, `PlayCard` and `WallPush` are retired; the Expanding arena always builds grid pieces (`DiffKnob.RoomCards` and `GridRooms` ignored)

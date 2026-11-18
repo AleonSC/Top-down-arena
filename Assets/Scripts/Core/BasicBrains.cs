@@ -4,9 +4,8 @@ namespace Arena
 {
     /// Step 8a of the enemy behaviour classes (Docs/EnemyBehaviours.md): the basic faction and the plain early enemies.
     /// Each one's code moved here unchanged from EnemyAI.cs's type switches; its parts call it.
-    /// Shooters that keep a distance (KeepMove: Grunt, Sniper, Burster, Mortar, Shielder, Medic, Splitter), the Hive Queen's
-    /// Shard drones, the Charger (wind-up, dash, ring), the Spinner (wanders, bursts), and the melee Spiker, Buzzsaw and
-    /// Spike Block (MeleeGrunts.cs). The Shielder's shield is a guard part (ShielderGuard).
+    /// Shooters that keep a distance (KeepMove: Grunt, Sniper, Mortar, Shielder), the Hive Queen's Shard drones and the
+    /// Spinner (wanders, bursts). The Shielder's shield is a guard part (ShielderGuard).
     public partial class Game
     {
         // --- the moved code ----------------------------------------------------------------------------------------------
@@ -16,15 +15,6 @@ namespace Arena
             e.FireT = 1.8f;
             for (int i = 0; i < 3; i++)
                 EnemyShot(e, aim + (i - 1) * 0.22f, 175f, Defs.SmallShot);
-        }
-
-        void BursterFire(Enemy e, V2 tpos, float aim)
-        {
-            e.FireT = 2.4f;
-            int n = 8 + Math.Min(Wave / 2, 4);  // the ring grows up to 12 bullets (wave 8), with gaps to slip through (was up to 18 at 135)
-            e.Ang += MathX.Pi / n;
-            for (int i = 0; i < n; i++)
-                EnemyShot(e, e.Ang + MathX.Tau * i / n, 115f, Defs.SmallShot);
         }
 
         void SniperFire(Enemy e, V2 tpos, float aim)
@@ -48,25 +38,6 @@ namespace Arena
             e.Ang += 0.27f;
             for (int k = 0; k < 3; k++)
                 EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 125f, Defs.SmallShot, 0.25f);
-        }
-
-        void ChargerAim(Enemy e, V2 tpos, float aim)
-        {
-            if (e.Phase == 0)
-            {
-                e.Phase = 1;      // start winding up toward the target
-                e.PhaseT = 0.7f;
-                e.Facing = aim;
-                BroadcastFx(FxKind.Target, ClampToArena(e.Pos + V2.FromAngle(aim) * (ChargerDashSpeed * ChargerDashTime), e.Radius), e.Def.Color, ChargerRingMark, 0.7f + ChargerDashTime, Sfx.None);  // where its ring will burst, from the start of the wind-up
-            }
-            e.FireT = 99f;        // the dash cycle resets this
-        }
-
-        void SplitterFire(Enemy e, V2 tpos, float aim)
-        {
-            e.FireT = 2f;
-            EnemyShot(e, aim - 0.08f, 150f, Defs.SmallShot);
-            EnemyShot(e, aim + 0.08f, 150f, Defs.SmallShot);
         }
 
         void ShardFire(Enemy e, V2 tpos, float aim)
@@ -94,50 +65,9 @@ namespace Arena
                 EnemyShot(e, e.Facing + (i - 2) * 0.15f, 190f, Defs.SmallShot);
         }
 
-        void MedicFire(Enemy e, V2 tpos, float aim)
-        {
-            e.FireT = 2.5f;
-            EnemyShot(e, aim, 160f, Defs.SmallShot);
-        }
-
         void ShielderDecay(Enemy e, V2 tpos, float dt)
         {
             WearShield(e, e.ShieldMax * ShieldDecay * dt);
-        }
-
-        void ChargerDash(Enemy e, V2 tpos, float dt)
-        {
-            // Phase 1: wind up (telegraph line); phase 2: dash, then burst.
-            if (e.Phase == 0)
-                return;
-            e.PhaseT -= dt;
-            if (e.PhaseT > 0f)
-                return;
-            if (e.Phase == 1)
-            {
-                e.Phase = 2;
-                e.PhaseT = ChargerDashTime;
-            }
-            else
-            {
-                e.Phase = 0;
-                e.FireT = 3.2f;
-                for (int i = 0; i < 8; i++)  // its ring: 8, slow enough to step through (was 10 at 140)
-                    EnemyShot(e, e.Facing + MathX.Tau * i / 8f, 120f, Defs.SmallShot);
-            }
-        }
-
-        void MedicHeal(Enemy e, V2 tpos, float dt)
-        {
-            e.PhaseT -= dt;
-            if (e.PhaseT <= 0f)
-            {
-                e.PhaseT = 3f;
-                foreach (var o in Enemies.Values)
-                    if (o != e && !o.Def.IsBoss && o.Pos.CloserThan(e.Pos, 180f))
-                        o.Hp = Math.Min(o.MaxHp, o.Hp + o.MaxHp * 0.15f);
-                BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 180f, 0.5f, Sfx.None);
-            }
         }
 
         /// A Shielder's shield: a hit it stopped (or time) wears it down; it cracks in three steps, then shatters.
@@ -182,7 +112,7 @@ namespace Arena
                 this.range = range; this.strafe = strafe; this.strafes = strafes; this.slowTurn = slowTurn; this.contact = contact;
             }
 
-            /// Its touch damage (a Juggernaut's 25); below 0: the usual.
+            /// Its touch damage; below 0: the usual.
             public override float Contact(Game g, Enemy e) => contact;
 
             public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) =>
@@ -206,63 +136,9 @@ namespace Arena
                 g.DroneGoingHome(e) ? g.DroneHomeMove(e, ref speed) : KeepDistance(dir, dist, 180f) + dir.Orthogonal() * e.Strafe;
         }
 
-        /// Keeps 300 px and strafes; a straight dash in Phase 2 (locked in while winding up and dashing; it hurts more).
-        sealed class ChargerMove : MovePart
-        {
-            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
-            {
-                if (e.Phase == 0)
-                    return KeepDistance(dir, dist, 300f) + dir.Orthogonal() * e.Strafe * 0.5f;
-                if (e.Phase == 2)
-                {
-                    speed = ChargerDashSpeed;
-                    return V2.FromAngle(e.Facing);
-                }
-                return V2.Zero;
-            }
-
-            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => e.Phase != 0;
-            public override float Contact(Game g, Enemy e) => e.Phase == 2 ? 25f : -1f;
-        }
-
         sealed class SpinnerMove : MovePart
         {
             public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => g.SpinnerWander(e, dt);
-        }
-
-        /// Heads for you in a zig-zag (MeleeGrunts.cs).
-        sealed class SpikerMovePart : MovePart
-        {
-            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => g.SpikerMove(e, dir, dist, dt);
-        }
-
-        /// Swoops in on curves, steering with momentum.
-        sealed class SawMove : MovePart
-        {
-            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
-            {
-                e.Vel += (dir - e.Vel) * Math.Min(1f, dt * SawTurn);
-                return e.Vel;
-            }
-        }
-
-        /// Rocks from side to side as it closes in; stands still to wind up and recover; a locked lunge in Phase 2.
-        sealed class SpikeBlockMove : MovePart
-        {
-            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
-            {
-                if (e.Phase == 0)
-                    return dir * 0.6f + dir.Orthogonal() * (float)Math.Sin(e.T * 2.6f + e.Id) * 0.8f;
-                if (e.Phase == 2)
-                {
-                    speed = SpikeLungeSpeed;
-                    return V2.FromAngle(e.Facing);
-                }
-                return V2.Zero;
-            }
-
-            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => e.Phase >= 1;
-            public override float Contact(Game g, Enemy e) => e.Phase == 2 ? SpikeLungeDamage : -1f;
         }
 
         delegate V2 MoveFn(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
@@ -312,18 +188,11 @@ namespace Arena
         {
             t[(int)EnemyType.Grunt] = new Brain { Move = new KeepMove(230f, 0.6f), Fire = new CodeFire((g, e, p, a) => g.GruntFire(e, p, a)) };
             t[(int)EnemyType.Sniper] = new Brain { Move = new KeepMove(420f, 0.8f), Fire = new CodeFire((g, e, p, a) => g.SniperFire(e, p, a)) };
-            t[(int)EnemyType.Burster] = new Brain { Move = new KeepMove(160f, strafes: false), Fire = new CodeFire((g, e, p, a) => g.BursterFire(e, p, a)) };
             t[(int)EnemyType.Mortar] = new Brain { Move = new KeepMove(450f, 0.4f), Fire = new CodeFire((g, e, p, a) => g.MortarFire(e, p, a)) };
             t[(int)EnemyType.Shielder] = new Brain { Move = new KeepMove(200f, strafes: false, slowTurn: true), Fire = new CodeFire((g, e, p, a) => g.ShielderFire(e, p, a)),
                 Special = new CodeSpecial((g, e, p, dt) => g.ShielderDecay(e, p, dt)), Guard = new ShielderGuard() };
-            t[(int)EnemyType.Medic] = new Brain { Move = new KeepMove(360f, 0.5f), Fire = new CodeFire((g, e, p, a) => g.MedicFire(e, p, a)), Special = new CodeSpecial((g, e, p, dt) => g.MedicHeal(e, p, dt)) };
-            t[(int)EnemyType.Splitter] = new Brain { Move = new KeepMove(220f, strafes: false), Fire = new CodeFire((g, e, p, a) => g.SplitterFire(e, p, a)) };
             t[(int)EnemyType.Shard] = new Brain { Move = new ShardMove(), Fire = new CodeFire((g, e, p, a) => g.ShardFire(e, p, a)) };
-            t[(int)EnemyType.Charger] = new Brain { Move = new ChargerMove(), Fire = new CodeFire((g, e, p, a) => g.ChargerAim(e, p, a)), Special = new CodeSpecial((g, e, p, dt) => g.ChargerDash(e, p, dt)) };
             t[(int)EnemyType.Spinner] = new Brain { Move = new SpinnerMove(), Fire = new CodeFire((g, e, p, a) => g.SpinnerFire(e, p, a)) };
-            t[(int)EnemyType.Spiker] = new Brain { Move = new SpikerMovePart() };
-            t[(int)EnemyType.Buzzsaw] = new Brain { Move = new SawMove() };
-            t[(int)EnemyType.SpikeBlock] = new Brain { Move = new SpikeBlockMove(), Special = new CodeSpecial((g, e, p, dt) => g.SpikeBlockSpecial(e, p, dt)) };
         }
     }
 }

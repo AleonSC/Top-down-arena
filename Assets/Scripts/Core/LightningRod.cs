@@ -13,7 +13,7 @@ namespace Arena
     ///   - an enemy bullet: on the enemy that fired it (Bullet.ShooterId, stamped by SpawnBullet while that enemy is acting;
     ///     a shot fired by nobody known strikes the enemy nearest to where it was fired from). If the shooter has died
     ///     since, the bolt still lands where it stood and arcs from there;
-    ///   - a melee or contact hit (a body, the Swordsman's sword, a Reaver's swipe, a Riot Shield's bash, the Devourer's
+    ///   - a melee or contact hit (a body, the Acolyte's sickle, a Riot Shield's bash, the Devourer's
     ///     bite, a Reaper's reap): on the enemy that hit.
     /// A bolt does RodBoltDamage (30) on the struck enemy, then arcs to the RodArcs (2, 3 mastered) nearest enemies within
     /// RodArcReach of it for RodArcDamage (15) each, all scaled by the tank's damage multiplier. It counts as lightning:

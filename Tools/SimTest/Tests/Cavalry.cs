@@ -63,7 +63,7 @@ static partial class Program
         // A Heavy enemy takes the hit, a short shove and a lighter slow.
         g.Enemies.Clear(); spots.Clear();
         var big = make(new V2(560f, 450f), EnemyType.Brute);
-        big.Def = Defs.Get(EnemyType.Juggernaut);
+        big.Def = Defs.Get(EnemyType.Thunderhead);
         bool bigHeavy = big.Def.Heavy || big.Def.IsBoss;
         cast.Invoke(g, new object[] { me, 0, new V2(900f, 450f) });
         for (int f = 0; f < 3f / dt && big.Hp == big.MaxHp; f++) step(dt);

@@ -89,9 +89,9 @@ namespace Arena
             if (spawnQueue.Count == 0)
                 return;
             var first = spawnQueue[0];
-            if (first == EnemyType.Nest || Defs.Get(first).IsBoss)
+            if (Defs.Get(first).IsBoss)
             {
-                SpawnNextSingle();  // (a Nest picks its own spot in the arena)
+                SpawnNextSingle();
                 return;
             }
             int open = PortalsOpen();
@@ -104,7 +104,7 @@ namespace Arena
             if (quiet && portalsThisWave > 0)
                 size = Math.Min(size, Math.Max(debt, 2));
             var cargo = new List<EnemyType>();
-            while (cargo.Count < size && spawnQueue.Count > 0 && spawnQueue[0] != EnemyType.Nest && !Defs.Get(spawnQueue[0]).IsBoss)
+            while (cargo.Count < size && spawnQueue.Count > 0 && !Defs.Get(spawnQueue[0]).IsBoss)
             {
                 cargo.Add(spawnQueue[0]);
                 spawnQueue.RemoveAt(0);

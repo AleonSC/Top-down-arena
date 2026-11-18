@@ -153,7 +153,7 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Gravedigger, Fade = 2, Weight = 1.5f, From = 2 },  // the cult's brute (a Brute with a shovel)
                     new FactionMember { Type = EnemyType.Mourner, Fade = 0, Weight = 1.5f, From = 3 },
                     new FactionMember { Type = EnemyType.ScytheWraith, Fade = 0, Weight = 1.5f, From = 3 },
-                    new FactionMember { Type = EnemyType.Shade, Fade = 2, Weight = 1f, From = 3 },  // the cult's Phantom
+                    new FactionMember { Type = EnemyType.Shade, Fade = 2, Weight = 1f, From = 3 },  // the cult's blinker
                 },
                 Squads = new[]
                 {

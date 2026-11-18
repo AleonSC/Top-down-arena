@@ -15,16 +15,16 @@
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
-# NONSHOOT=1 (the Fuse Runner, Hookman and Sapper caught mid-move, with Tripwire Pods).
+# NONSHOOT=1 (the Hook Thrower caught mid-move: aiming, harpoon out, spinning, open after a miss).
 # PORTALS=1 (spawn portals: opening, letting a burst out, a flank behind you with its arrow, closing; SpawnPortalLook.cs; PORTALSURGE=1 in a surge, PORTALSEAL=<0-1> a sealed flash that far through).
 # CULT=1 (the Twin Reapers' cult mid-move: Wisps, Acolyte, Gravedigger, Shade, Bound pairs (tether, revive), Scythe Wraith, Lamplighters, Mourner).
 # PERFRUN=<secs>[,boss] PERFIDLE=<secs> (draw cost: a Quick Play breach wave drawn every frame, printing vertices and draw ms; ShotPerf.cs; e.g. shot.sh x hud 7 1 2; with SURVIVAL=840 SURVMARKS=55: Survival's room).
-# SWORD=1 (the Swordsman and Shield Swordsman in each phase: closing in, wind-up, cut, recovery; SWORDBLOCK=1 flashes the shield).
-# LUNGE=0.5 (the Lunger, Spike Block, Charger and Riot Shield part-way through their wind-up: the shared lane).
+# SWORD=1 (the Acolyte's sickle cut in each phase: closing in, wind-up, cut, recovery).
+# LUNGE=0.5 (the Lunger, Shiv, Scythe Wraith and Riot Shield part-way through their wind-up: the shared lane).
 # TASER=0.3 (the Taser Guard charging, a Fork Bolt in flight over a field of bullets, and the hit on you 0.3 s ago; TASER=-1 for no hit; mode hud).
 # SECURITY=0.2 (the Security Guard: locking on with its lane, just fired with a casing and a tracer, reloading, ready and empty; mode hud).
 # SECSHIRT=1 (a riot Guard, then Security Guards walking, locking on, just fired, reloading, close up; SECSHIRT=2 Taser Guards idle and charging, SECSHIRT=3 Riot Shields, SECSHIRT=4 Gas Grenadiers; mode hud, KNIGHT=1 ZOOM=2.6).
-# AIM=0.7 (the aimed shooters winding up: Sniper, Shard, Medic, Splitter, Phantom, Grunt with their aim lines).
+# AIM=0.7 (the aimed shooters winding up: Sniper, Shard, Shade, Taser Guard, Grunt with their aim lines).
 # TAGS=1 (a row of enemies on first sight, each with its name and job tag; uses a fresh profile).
 # WAVECLEARED=1 WCWAVE=17 (the between-waves box after wave 17: the new-enemy chips for wave 18).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).

@@ -140,7 +140,7 @@ namespace Arena
             BroadcastFx(FxKind.PactSnap, m.Pos, owner.Pos, new Rgba(0.75f, 0.55f, 1f), (float)m.Pact, 1f, Sfx.Hit);
         }
 
-        struct ThrallAtk { public bool Melee, Ring, Heal; public float Dmg, Interval, Range, Spread; public int Shots; }
+        struct ThrallAtk { public bool Melee, Ring; public float Dmg, Interval, Range, Spread; public int Shots; }
 
         /// What each enemy type does for you (Docs/Mockups/force-pact.html's roster). Numbers before the 75% a thrall deals.
         static ThrallAtk ThrallAttack(EnemyType t)
@@ -149,14 +149,9 @@ namespace Arena
             {
                 case EnemyType.Grunt: return new ThrallAtk { Shots = 3, Spread = 0.25f, Dmg = 9f, Interval = 1.1f, Range = 380f };
                 case EnemyType.Sniper: return new ThrallAtk { Shots = 1, Dmg = 25f, Interval = 0.8f, Range = 540f };
-                case EnemyType.Burster: return new ThrallAtk { Ring = true, Shots = 10, Dmg = 7f, Interval = 2.2f, Range = 300f };
                 case EnemyType.Spinner: return new ThrallAtk { Ring = true, Shots = 6, Dmg = 6f, Interval = 1.2f, Range = 280f };
                 case EnemyType.Mortar: return new ThrallAtk { Shots = 1, Dmg = 30f, Interval = 1.8f, Range = 420f };
-                case EnemyType.Medic: return new ThrallAtk { Heal = true, Dmg = 8f, Range = 200f };
                 case EnemyType.Shielder: return new ThrallAtk { Melee = true, Dmg = 16f, Interval = 0.8f };
-                case EnemyType.Charger: return new ThrallAtk { Melee = true, Dmg = 30f, Interval = 1f };
-                case EnemyType.Splitter: return new ThrallAtk { Melee = true, Dmg = 18f, Interval = 0.7f };
-                case EnemyType.Spiker: return new ThrallAtk { Melee = true, Dmg = 10f, Interval = 0.45f };
                 case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger: return new ThrallAtk { Melee = true, Dmg = 24f, Interval = 0.7f };
                 case EnemyType.Lunger: case EnemyType.Shiv: case EnemyType.ScytheWraith: return new ThrallAtk { Melee = true, Dmg = 18f, Interval = 0.6f };
             }
@@ -166,7 +161,7 @@ namespace Arena
         }
 
         /// A thrall's turn (TickMinions): it goes for enemies near you (melee ones up close, shooters from a distance), else
-        /// walks at your side; a Medic heals you and your minions instead.
+        /// walks at your side.
         void TickThrall(Minion m, Player owner, float dt)
         {
             var type = (EnemyType)m.Pact;
@@ -176,11 +171,10 @@ namespace Arena
             float dmg = atk.Dmg * ThrallDmgMult * owner.Stats.DmgMult * m.Power;
             float leash = atk.Melee ? ThrallLeash : ThrallRangedLeash;
             Enemy target = null;
-            if (!atk.Heal)
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.CloserThan(owner.Pos, leash + e.Radius)
-                        && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
-                        target = e;
+            foreach (var e in Enemies.Values)
+                if (Targetable(e) && e.Pos.CloserThan(owner.Pos, leash + e.Radius)
+                    && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
+                    target = e;
             V2 home = owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + m.Ang) * 45f;
             V2 goal = home;
             float stop = 4f;
@@ -213,13 +207,6 @@ namespace Arena
                 m.Aim = to.Angle;
             m.Pos = ClampToArena(m.Pos, def.Radius);
 
-            if (atk.Heal)
-            {
-                foreach (var q in Players.Values)
-                    if (!q.Downed && q.Pos.CloserThan(m.Pos, atk.Range))
-                        Heal(q, atk.Dmg * m.Power * dt, owner);
-                return;
-            }
             if (target == null || m.Cd > 0f || !Battle)
                 return;
             if (atk.Melee)
