@@ -720,7 +720,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 44: DashSympathy in BoneSpear.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 42: DashWhip in PistolWhip.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 42: DashWhip in PistolWhip.cs; 43: DashStrider; 44: DashZero in FrostLance; 45: DashSympathy in BoneSpear.cs.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -969,6 +969,8 @@ namespace Arena
                 return;  // the Nimbus's Eye of the Storm (Nimbus.cs)
             if (LocalTempest(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // Wind Clash's Tempest (WindClash.cs)
+            if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
+                return;  // the Frost Lance's Absolute Zero (FrostLance.cs)
             if (LocalKatana(me, aimAt, pressed, dt))
                 return;  // the Katana's stance switch and steps (Katana.cs)
             if (LocalKnuckleDash(me, aimAt, pressed, dt))
@@ -1365,6 +1367,11 @@ namespace Arena
             if (kind == DashStorm)
             {
                 HostNimbusStorm(p);  // the Nimbus's Alt (Nimbus.cs)
+                return;
+            }
+            if (kind == DashZero)
+            {
+                HostAbsoluteZero(p);  // the Frost Lance's Alt (FrostLance.cs)
                 return;
             }
             if (kind == DashTempest)

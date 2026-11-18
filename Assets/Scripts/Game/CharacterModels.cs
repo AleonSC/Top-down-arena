@@ -176,6 +176,8 @@ namespace Arena
             }
             if (p.Weapon.Id == WeaponId.WindClash)
                 WcHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // the hands sweep, thrust and fling with each wave (WindClashLook.cs)
+            if (p.Weapon.Id == WeaponId.FrostLance && !p.Downed)
+                FlHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // both hands on the lance's shaft, wherever it swings (FrostLanceLook.cs)
             float whipRot;
             WhipHandPose(p, ref rhx, ref rhy, out whipRot);  // the Revolver swung round for a Pistol Whip (PistolWhipLook.cs)
             rhx -= gKick; lhx -= gKick + gPump * wk;
@@ -455,7 +457,7 @@ namespace Arena
             hold = 0; offX = 0f;
             switch (id)
             {
-                case WeaponId.Scattergun: case WeaponId.RiotRepeater: case WeaponId.FrostLance: hold = 1; offX = 14f; break;
+                case WeaponId.Scattergun: case WeaponId.RiotRepeater: hold = 1; offX = 14f; break;
                 case WeaponId.FlakCannon: case WeaponId.Halberd: case WeaponId.BoStaff: case WeaponId.BoneSpear: hold = 1; offX = 10f; break;
                 case WeaponId.LightBolt: case WeaponId.BurstSmg: case WeaponId.HolyMace: hold = 1; offX = 8f; break;
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
@@ -465,7 +467,7 @@ namespace Arena
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
+                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
@@ -555,9 +557,7 @@ namespace Arena
                     MPoly(new Rgba(1f, 0.59f, 0.16f, 0.85f), 28f, 0f, 28f, -2f, 36f + Mathf.Sin(t * 20f) * 2f, 0f, 28f, 2f);
                     MRect(0f, 5f, 14f, 6f, Hx(0xb8442a)); MLine(6f, 5f, 6f, 11f, 1.4f, Hx(0xffd24a));
                     break;
-                case WeaponId.FrostLance:
-                    MLine(-8f, 0f, 30f, 0f, 2.6f, Hx(0x9ab9d6)); MPoly(Hx(0xbff1ff), 30f, -4f, 44f, 0f, 30f, 4f); MPoly(Hx(0x9fe6ff), 22f, -3f, 27f, -7f, 29f, -3f); MPoly(Hx(0x9fe6ff), 22f, 3f, 27f, 7f, 29f, 3f);
-                    MCirc(16f, 0f, 2f, Hx(0xe8fbff), 8);
+                case WeaponId.FrostLance:  // drawn in the world over the arms, swung through its chain (FrostLanceLook.cs)
                     break;
                 case WeaponId.StormHammer:
                     DrawStormHammerHeld(p, t);  // StormHammerLook.cs: raised, thrown, slammed and re-formed with the throw and the slam

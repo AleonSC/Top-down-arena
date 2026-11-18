@@ -187,7 +187,7 @@ namespace Arena
         public float GlCloudMult = 1f;                                      // Grenade Launcher: Heavy Drum (smoke cloud size)
         // Elementalist weapon cards (Docs/UpgradePools.md step 12)
         public float FlameReachMult = 1f, FlameBurnMult = 1f;              // Flamethrower: Napalm
-        public float IceReachMult = 1f, IceSlowBonus;                      // Frost Lance: Glacier
+        public float IceReachMult = 1f, IceFreezeBonus;                    // Frost Lance: Glacier (reach, seconds more a freeze lasts)
         public int ShockJumpBonus; public float ShockArcMult = 1f;         // Storm Hammer: Stormcaller
         public float OrbSizeMult = 1f, OrbHealMult2 = 1f;                  // Radiant Orb: Sunstone
         public float ConeReachMult = 1f, ConeWidenBonus;                   // Chain Light: Prism (radians each side)

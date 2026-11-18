@@ -30,7 +30,7 @@ namespace Arena
         public const float BsMoveCost = 1f, BsBurstCost = 3f;
         public const float SympRange = 170f, SympTime = 4f, SympCooldown = 8f, SympMult = 0.5f;
         public const int SympMax = 4;
-        const byte DashSympathy = 44;
+        const byte DashSympathy = 45;
         static readonly Rgba BsRed = new Rgba(0.9f, 0.16f, 0.24f);
 
         class BsHit

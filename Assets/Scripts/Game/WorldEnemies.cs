@@ -586,6 +586,7 @@ namespace Arena
                 else
                     DrawIceBlock(e, pos, r, t);
             }
+            DrawFrostChill(e, pos, r);  // the Frost Lance's chill pips (FrostLanceLook.cs)
             if (bfStates.Count > 0)
                 DrawBloodShatter(e, pos, r, t);  // the crystal breaking as the freeze ends (BloodFreezeLook.cs)
             if (tombStates.Count > 0)

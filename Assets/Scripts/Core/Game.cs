@@ -1378,6 +1378,7 @@ namespace Arena
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
             TickSmokeShells(dt);  // GrenadeLauncher.cs: smoke clouds; the launcher refills when put away
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
+            TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
             TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickArcKnuckles(dt);  // ArcKnuckles.cs: an unused Counter Hammer fading
@@ -1516,6 +1517,8 @@ namespace Arena
                     ClearEmbolus(p);  // (EmbolusSpears.cs)
                 if ((p.Weapon.Id != WeaponId.WindClash || p.Downed) && (p.WcStep != 0 || p.WcTempestT > 0f))
                     ClearWindClash(p);  // (WindClash.cs)
+                if ((p.Weapon.Id != WeaponId.FrostLance || p.Downed) && (p.FlStep != 0 || p.FlZeroT > 0f || p.FlRime))
+                    ClearFrostLance(p);  // (FrostLance.cs)
                 TickArcLock(p, dt);  // Arc Lightning's tags, chain and Forked Volley (ArcLock.cs)
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
@@ -1543,6 +1546,8 @@ namespace Arena
                     TickStonespear(p, dt);  // the slam, the hovering spears, the volley (Stonespear.cs)
                 else if (p.Weapon.Id == WeaponId.WindClash)
                     TickWindClash(p, dt);  // (WindClash.cs)
+                else if (p.Weapon.Id == WeaponId.FrostLance)
+                    TickFrostLance(p, dt);  // the five-step chain (FrostLance.cs)
                 else if (p.Weapon.Id == WeaponId.EmbolusSpears)
                     TickEmbolus(p, dt);  // the spears thrown, stuck, recalled and hardening; Fire throws or recalls (EmbolusSpears.cs)  // the four-step combo of air waves (WindClash.cs)
                 else if (ChargeWeapon(p.Weapon.Id))
