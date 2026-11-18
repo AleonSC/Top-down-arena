@@ -1037,6 +1037,42 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // BONESPEAR=<s>: the Hemomancer DPS's Bone Spear, the Marionette (Core/BoneSpear.cs, Game/BoneSpearLook.cs) that long into a loop on
+    // one marked Grunt with five around it: Pulse at 0 s, Reel at 0.45 s, Heart Lift at 0.95 s, Marrow Burst at 1.5 s, Alt (Sympathy)
+    // at 2.4 s, then Pulse at 2.7 s and Reel at 3.1 s echoing onto the bound ones. BSAIM=<deg> tilts the line; BSHAND=1 centres on the
+    // Hemomancer's bleeding hand (zoom in with ZOOM=4).
+    if (Environment.GetEnvironmentVariable("BONESPEAR") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Hemomancer; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 2); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(330f, 300f); me.Pos = me.Disp = home; me.Aim = 0f; me.Combo = 0;
+      float zoom = Environment.GetEnvironmentVariable("ZOOM") != null ? float.Parse(Environment.GetEnvironmentVariable("ZOOM"), ci) : 1f;
+      float tilt = Environment.GetEnvironmentVariable("BSAIM") != null ? float.Parse(Environment.GetEnvironmentVariable("BSAIM"), ci) * MathX.Pi / 180f : 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(300f, 0f), new V2(340f, -110f), new V2(400f, 80f), new V2(250f, 120f), new V2(450f, -30f), new V2(560f, 150f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0.Rotated(tilt), 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var target = foes[0];
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("BONESPEAR"), ci) * 60f));
+      Func<float, float, bool> At = (tt, c) => tt >= c && tt < c + 2f / 60f;
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        bool fire = At(tt, 0f) || At(tt, 0.45f) || At(tt, 0.95f) || At(tt, 1.5f) || At(tt, 2.7f) || At(tt, 3.1f);
+        bool alt = tt >= 2.4f && tt < 2.4f + 3f / 60f;
+        V2 cursor = target.Pos;
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = me.Disp = home; me.Aim = (target.Pos - me.Pos).Angle; me.AimAt = target.Pos; foreach (var e in foes) e.Disp = e.Pos;
+        if (Environment.GetEnvironmentVariable("BSHAND") != null) { me.Flash = 0f; me.Hp = me.MaxHp; }  // (the health each move costs flashes the model white: show its colours)
+        if (zoom > 1f) { typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, zoom); typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, home + new V2(Environment.GetEnvironmentVariable("BSHAND") != null ? 30f : 220f, 0f).Rotated(tilt)); }
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // NUNCHAKU=<s>: the Ninja DPS's Nunchaku, Twin Storm (Core/Nunchaku.cs, Game/NunchakuLook.cs) that long into the mockup's loop: Fire held
     // from 0 to 1.85 s (Snap, Backhand, Double Figure-8, Twin Crush), Alt at 2.1 s (the Twin Windmill guard; small shots fly in from
     // the right from 2.2 s and are swatted), Fire at 3.7 s (the Twin Counter), Alt again at 4.5 s.

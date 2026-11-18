@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 399: Bone Spear rework (Docs/BoneSpearMarionette.md): the player snapshot adds `BsTarget`, `BsT`, `SympT`, `SympSrc` and the `SympBound` list after `LeashT`; WeaponDash kind 45 (DashSympathy); `FxKind.BsBlow`
 
 - 399: the Frost Lance's sounds: `Sfx.FrostCrescent`, `FrostBackhand`, `FrostWaltz`, `FrostFan`, `FrostSlamWind`, `FrostSlam`, `FrostFreeze`, `FrostShatter`, `FrostBreak`, `ZeroCharge`, `ZeroWave`, `ZeroShatter` appended (sent with the steps, bursts, break and Absolute Zero).
 - 398: the Frost Lance rework (FrostLance.cs): FxKind FrostStep, FrostBurst, FrostBreak and AbsoluteZero; the player snapshot adds FlZeroT, FlZeroCd (float) and FlRime (bool) after WcTempestCd; the enemy snapshot adds FrostChill (byte) after its variant; Msg.WeaponDash kind 44 (DashZero).

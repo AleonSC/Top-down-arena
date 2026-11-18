@@ -72,7 +72,7 @@ namespace Arena
             { WeaponId.VeinTether, 48f },
             { WeaponId.BloodBolts, 121f },
             { WeaponId.Implosion, 75f },
-            { WeaponId.BoneSpear, 79f },
+            { WeaponId.BoneSpear, 80f },
             { WeaponId.VectorForge, 105f },
             { WeaponId.BulwarkForge, 118f },
             { WeaponId.MediDroneForge, 27f },

@@ -481,6 +481,8 @@ namespace Arena
                 DrawSprintWake(p, t, p.Id == game.MyId ? game.SprintFade : p.Sprint / 255f);
             if (p.Chains.Count > 0 || p.LeashOn)  // the Blood Lash's chains and Martyr's Leash (BloodLashLook.cs)
                 DrawLashChains(p, t);
+            if (p.BsTarget != 0 || p.SympT > 0f)  // the Bone Spear's thread, mark and Sympathy (BoneSpearLook.cs)
+                DrawBsThread(p, t);
             if (p.TitheClock > 0f)  // Vein Tithe: heart, arteries, cuffs (VeinTitheLook.cs)
                 DrawTithe(p, t);
             if (p.RainClock > 0f)  // Sanguine Rain: siphon, seeds, rings, tether (SanguineRainLook.cs)

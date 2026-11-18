@@ -479,12 +479,13 @@ static partial class Program
         keep.Remove(d2); keep.Remove(off); d2.Hp = off.Hp = 0f;
         d1.BleedT = 0f; d1.BleedDps = 0f;  // (the cut's bleed would add to the next test's numbers)
 
-        // Bone Spear: 2 health a throw.
+        // Bone Spear: with no enemy under the cursor a press does nothing and costs nothing (the string itself: suite bonespear).
         g.Bullets.Clear();
         hp.Hp = 50f;
         hp.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 2);
+        hp.AimAt = hp.Pos + new V2(0f, -2000f);
         typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 0 });
-        Check(Math.Abs(hp.Hp - 48f) < 0.01f && g.Bullets.Values.Any(b => b.Kind == Defs.BoneSpearShot), "a Bone Spear costs 2 health a throw");
+        Check(Math.Abs(hp.Hp - 50f) < 0.01f && !g.Bullets.Values.Any(b => b.Kind == Defs.BoneSpearShot), "a Bone Spear press with no enemy under the cursor does nothing");
 
         // Implosion: the enemy you click collapses (34), enemies against it take 15 and are pulled in;
         // an extra projectile collapses one more enemy nearby (60%). Nothing under the cursor, nothing fires.

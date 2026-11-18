@@ -23,7 +23,7 @@ namespace Arena
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
         public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
         const float GraspLetGo = 1.3f, GraspHold = 0.3f, GraspFuse = 5f, GraspCooldown = 1f, GraspCost = 0.02f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
-        public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
+        public const float TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
         const float ShellTime = 5f;  // (Blood Gift's shield; Blood Shell itself is BloodShell.cs)
         const float DrainRadius = 220f, DrainAmount = 20f;  // Exsanguinate (Exsanguinate.cs)
         const float GiftMult = 2f, GiftSplash = 200f, MartyrRevive = 0.5f;
@@ -116,18 +116,8 @@ namespace Arena
                     break;
                 }
                 case WeaponId.BoneSpear:
-                {
-                    PayHealth(p, BoneSpearCost, p.Weapon.Name);
-                    int n = 1 + extra;
-                    for (int i = 0; i < n; i++)
-                    {
-                        var b = SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.Pierce += 3 + p.Stats.SpearPierceBonus;  // (Marrow: one more)
-                        b.Bolts = true;  // it pierces: Ricochet flings bounce bolts off it
-                        b.DropsSpear = i == 0;  // stays stuck where it stops: walk over it for its health back
-                    }
+                    FireBoneSpear(p, dmg, extra);  // the Marionette string on the enemy under the cursor (BoneSpear.cs)
                     break;
-                }
             }
         }
 
@@ -349,8 +339,8 @@ namespace Arena
             return best;
         }
 
-        /// Implosion only fires with an enemy under the cursor; otherwise holding fire waits (and keeps the cooldown).
-        bool ImplodeReady(Player p) => p.Weapon.Id != WeaponId.Implosion || ImplodeTarget(p, p.AimAt) != null;
+        /// Implosion and the Bone Spear only fire with an enemy under the cursor; otherwise holding fire waits (and keeps the cooldown).
+        bool ImplodeReady(Player p) => p.Weapon.Id != WeaponId.Implosion && p.Weapon.Id != WeaponId.BoneSpear || ImplodeTarget(p, p.AimAt) != null;  // (and the Bone Spear's string: BoneSpear.cs)
 
         /// Called from Collide after the beams: each implosion hurts its target, then the enemies pressed against
         /// it (pulled in a little), then one more enemy near the target per extra projectile (one not hit yet; with
@@ -596,36 +586,6 @@ namespace Arena
             BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
         }
 
-        // --- Bone Spear: pick your spears back up -----------------------------------------------------
-
-        public const float SpearPickupTime = 8f, SpearPickupRadius = 16f;
-
-        /// A Bone Spear stopped: it stays stuck in the ground there.
-        void DropSpear(Bullet b)
-        {
-            Player p;
-            if (b.DropsSpear && Players.TryGetValue(b.Owner, out p))
-                AddZone(ZoneKind.BoneSpear, p, ClampToArena(b.Pos, 10f), SpearPickupRadius, SpearPickupTime);
-        }
-
-        /// Host, every tick: a Bone Spear its thrower walks over gives them its health back.
-        void TickSpearPickups()
-        {
-            List<int> taken = null;
-            foreach (var z in Zones.Values)
-            {
-                Player p;
-                if (z.Kind != ZoneKind.BoneSpear || !Players.TryGetValue(z.Owner, out p) || p.Downed || p.Pos.FartherThan(z.Pos, z.Radius + p.Def.BodyR))
-                    continue;
-                Heal(p, BoneSpearCost + p.Stats.SpearPickupBonus, p);  // (Marrow: more back)
-                AddFx(FxKind.Spark, z.Pos, z.Def.Color, 16f, 0.25f);
-                (taken = taken ?? new List<int>()).Add(z.Id);
-            }
-            if (taken != null)
-                foreach (int id in taken)
-                    Zones.Remove(id);
-        }
-
         /// A Gore Mortar's clot landed: it splashes every enemy under it (weapon mods apply to each, as on a melee hit)
         /// and spreads a pool of blood.
         void LandClot(Bullet b)
@@ -782,8 +742,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
-            new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Speed = 1000f, Life = 0.9f, Damage = 60f, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
-                Desc = "A heavy spear that pierces enemies. Each throw costs a little health, but the spear stays stuck where it stops, and walking over it gives the health back." },
+            new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Bone Spear", FireInterval = Game.BsPulseTime,
+                Desc = "Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too.",
+                Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.EmbolusSpears, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
                 Desc = "Arms out, a hardened blood spear in each hand. Fire throws the left, then the right, for 20% of your max health each: they pierce every enemy and stick in the wall. "
                     + "Fire again to recall both: they pierce again on the way back and give the health back. Alt bursts them where they are instead, for half the health back.",
@@ -832,8 +793,8 @@ namespace Arena
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
                 Apply = s => { s.ImplodeReachMult += 0.3f; s.ImplodeDmgMult += 0.4f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoneSpear }, MaxStacks = 2, Name = "Marrow", Desc = "The Bone Spear pierces 1 more enemy, and picking it up gives 3 more health",
-                Apply = s => { s.SpearPierceBonus += 1; s.SpearPickupBonus += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoneSpear }, MaxStacks = 2, Name = "Marrow", Desc = "The Bone Spear's Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy",
+                Apply = s => { s.BsShardBonus += 2; s.SympBonus += 1; } },
         };
 
         /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)
@@ -1055,6 +1016,7 @@ namespace Arena
                     p.UltT = 0f;
             TickReels(dt);  // Exsanguinate.cs
             TickBloodLash(dt);  // BloodLash.cs: chains, Reap, Martyr's Leash
+            TickBoneSpear(dt);  // BoneSpear.cs: the string, the mark, Sympathy
             foreach (var p in Players.Values)
             {
                 TickGrasp(p, dt);  // Leech Tendrils: cooldown, charge, cost, bursts

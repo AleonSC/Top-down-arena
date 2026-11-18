@@ -765,9 +765,9 @@ static partial class Program
                     if (inCone && !pastCone) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside " + inCone + ", outside " + pastCone + ")");
                     continue;
                 }
-                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt || w.Id == WeaponId.ChainLight)
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.BoneSpear || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt || w.Id == WeaponId.ChainLight)
                 {
-                    // A beam, an implosion, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    // A beam, an implosion, the Bone Spear's string, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
                         me.Grasp.Clear(); me.GraspCharge.Clear(); me.GraspCd = 0f;
@@ -779,6 +779,11 @@ static partial class Program
                         volley.Invoke(g, new object[] { me, 0f, extra });
                         host.Poll(); dummy.FrozenT = 1f; dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
                         g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
+                        for (int k = 0; w.Id == WeaponId.BoneSpear && k < 6; k++)  // (the Bone Spear's Pulse lands a moment after the press)
+                        {
+                            dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
+                            g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
+                        }
                         return w.Id == WeaponId.LeechBeam ? me.Grasp.Contains(dummy.Id) : dummy.Hp < dummy.MaxHp;  // (tendrils only hold on; they hurt when they burst)
                     };
                     bool inside = Hits(range - 4f), outside = Hits(range + (w.Id == WeaponId.VeinTether ? Game.VeinBeamHalfWidth : 0f) + 4f);
