@@ -244,7 +244,7 @@ namespace Arena
             bool freeze = DkSwitch(col.Next(26f), game.DevFreeze, "Freeze enemies (still killable)");
             if (freeze != game.DevFreeze)
                 game.DevSetFreeze(freeze);
-            bool killAll = DockSwitch(col.Next(26f), devKillAllKey, "Kill-all key", "X");
+            bool killAll = DockSwitch(col.Next(26f), devKillAllKey, "Kill-all key", "B");
             if (killAll != devKillAllKey)
             {
                 devKillAllKey = killAll;

@@ -37,7 +37,7 @@ namespace Arena
         bool fireOnMenu, parryOnMenu, fireBlocked, parryBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
-        bool devKillAllKey;              // F1 dev tool: X kills every enemy on the field (host only; saved)
+        bool devKillAllKey;              // F1 dev tool: the discard key (B) kills every enemy on the field (host only; saved)
         bool devPauseKey;                // F1 dev tool: P freezes the match with no menu, for screenshots (saved)
         /// The frame time for things the drawing moves by itself (sweeping lasers, spark rates): zero while P has frozen the match.
         float ViewDt => devFrozen ? 0f : Time.deltaTime;
@@ -477,7 +477,7 @@ namespace Arena
                 if (!chatOpen && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))) ConfirmPick();
                 else if (Keybinds.Down(KeyAction.Reroll)) RerollPress();  // (a second press within a moment rerolls)
             }
-            // Standing on your chest item: G takes it, X throws it away (Props.cs).
+            // Standing on your chest item: G takes it, B throws it away (Props.cs).
             if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.MyLootInReach != null)
             {
                 if (Keybinds.Down(KeyAction.TakeItem))
@@ -493,8 +493,8 @@ namespace Arena
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.GateNear(game.Me.Pos) >= 0
                      && Keybinds.Down(KeyAction.TakeItem))
                 game.UseGate();
-            // The F1 kill-all key (X), when it's on: every enemy on the field dies as your kill. Not while you're standing
-            // on a chest item (X throws that away), and only the host can (DevTools.cs).
+            // The F1 kill-all key (the discard key, B), when it's on: every enemy on the field dies as your kill. Not while you're standing
+            // on a chest item (that key throws it away), and only the host can (DevTools.cs).
             else if (devKillAllKey && session.IsHost && session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0
                      && Keybinds.Down(KeyAction.DiscardItem))
                 game.DevKillAll(game.MyId);

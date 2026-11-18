@@ -27,7 +27,7 @@ namespace Arena
     {
         public readonly Dictionary<int, Gadget> Gadgets = new Dictionary<int, Gadget>();
         int nextGadgetId = 1;
-        public const float MagnetTime = 10f, MagnetPull = 620f, GadgetThrowRange = 340f, GadgetFlyTime = 0.5f, GadgetGrabR = 18f, GadgetNoCatchT = 0.15f;
+        public const float MagnetTime = 60f, MagnetPull = 620f, GadgetThrowRange = 340f, GadgetFlyTime = 0.5f, GadgetGrabR = 18f, GadgetNoCatchT = 0.15f;
         /// The Magnet drops 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) while fewer than one per player exist.
         public const int MagnetDropChance = 90, MagnetEliteChance = 10;
 
