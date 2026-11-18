@@ -88,29 +88,27 @@ static partial class Program
         int gotChest = 0, tries = 0;
         for (int sd = 1; sd <= 30; sd++)
         {
-            g.Expanded.Clear(); g.Nodes.Clear(); seedField.SetValue(g, sd);
+            UseMap(new[] { g }, Expansion.GridCore()); g.Nodes.Clear(); seedField.SetValue(g, sd);
             g.BossSlot = true; g.State = MatchState.Intermission;
             give.Invoke(g, null);
-            if (g.Expanded.Count == 0) continue;
+            if (g.Expanded.Count == 4) continue;
             tries++;
             if (g.Nodes.Count > 0 && Expansion.IsChest(g.Nodes[0].Kind) && !Expansion.NodeClaimed(g.Expanded, g.Nodes[0])) gotChest++;
         }
         Check(tries >= 20 && gotChest >= 1 && gotChest < tries, "surprise rooms roll chests too (none within 10 tiles of the start room) (" + gotChest + " of " + tries + ")");
 
         // A claimed vector chest: nothing until someone walks up, then vector pickups and the node is spent, on both screens.
-        foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Nodes.Clear(); }
-        string why;
-        var room = Expansion.Custom(g.Expanded, (int)Game.Width, 200, 1000, 500, out why);
-        Check(room.HasValue, "a room east of the start room (" + why + ")");
-        g.Expanded.Add(room.Value);
-        g.Nodes.Add(new MapNode { X = (short)(Game.Width + 550), Y = 450, Kind = NodeKind.VectorChest });
-        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
+        foreach (var gg in new[] { g, cg }) gg.Nodes.Clear();
+        UseMap(new[] { g, cg }, GridMap(GridPiece.Mono));
+        var cell = g.Expanded[4];  // (a single cell east of the core)
+        var mid = new V2((cell.X + cell.X1) / 2f, (cell.Y + cell.Y1) / 2f);
+        g.Nodes.Add(new MapNode { X = (short)mid.X, Y = (short)mid.Y, Kind = NodeKind.VectorChest });
         typeof(Game).GetMethod("BroadcastExpansion", flags).Invoke(g, null);
         g.State = MatchState.Fighting;
         foreach (var p in g.Players.Values) p.Pos = p.Disp = new V2(800f, 450f);
         Run(s, dt, 1f, () => cg.Nodes.Count == 1, noPicks);
         Check(cg.Nodes.Count == 1 && cg.Nodes[0].Kind == NodeKind.VectorChest && !g.Nodes[0].Spent, "the vector chest reaches the client, shut");
-        Check(g.NodeSpot(0).Equals(new V2(Game.Width + 500f, 450f)) && cg.NodeSpot(0).Equals(g.NodeSpot(0)), "it stands in the middle of its room, on both screens (" + g.NodeSpot(0).X + "," + g.NodeSpot(0).Y + ")");
+        Check(g.NodeSpot(0).Equals(mid) && cg.NodeSpot(0).Equals(g.NodeSpot(0)), "it stands in the middle of its room, on both screens (" + g.NodeSpot(0).X + "," + g.NodeSpot(0).Y + ")");
         int coins0 = g.Coins.Values.Count(c => c.Vec);
         int vec0 = g.Players.Values.Sum(p => p.Vectors);
         var me = g.Players[1];
@@ -150,23 +148,5 @@ static partial class Program
         Check(wd.NodeSpots != null && wd.NodeSpots.Length == nodes.Count, "the world gives every node a spot");
         Check(wd.NodeSpots[0].Equals(mid) && wd.NodeSpots[1].Equals(mid) && wd.NodeSpots[2].Equals(mid), "a claimed chest, relic and vector chest stand in the room's middle");
         Check(wd.NodeSpots[3].Equals(nodes[3].Pos) && wd.NodeSpots[4].Equals(nodes[4].Pos), "a shop node and an unclaimed chest stay where they are");
-
-        // A Ring card's middle is a solid block: the chest stands on the lane, clear of every obstacle, still inside the room.
-        var ring = Expansion.CardOptions(new List<ExpansionRoom>(), RoomCard.Ring);
-        Check(ring.Count > 0, "the Ring card has a spot");
-        var rr = Expansion.CardRooms(new List<ExpansionRoom>(), RoomCard.Ring, ring[0].X, ring[0].Y, ring[0].Turn, ring[0].Mirror, out why);
-        Check(rr != null, "the Ring card builds (" + why + ")");
-        var b0 = rr[0];
-        var cn = new List<MapNode> { new MapNode { X = (short)((b0.X + b0.X1) / 2), Y = (short)((b0.Y + b0.Y1) / 2), Kind = NodeKind.Chest } };
-        if (!Expansion.NodeClaimed(rr, cn[0]))
-            cn[0] = new MapNode { X = (short)(b0.X + 150), Y = (short)(b0.Y + 150), Kind = NodeKind.Chest };
-        var w2 = Expansion.Build(rr, null, null, cn);
-        var sp = w2.NodeSpots[0];
-        bool inside = false, hits = false;
-        foreach (var b in rr)
-            inside |= sp.X > b.X && sp.X < b.X1 && sp.Y > b.Y && sp.Y < b.Y1;
-        foreach (var c in w2.Cover)
-            hits |= Math.Abs(c.Pos.X - sp.X) < c.HW + c.R && Math.Abs(c.Pos.Y - sp.Y) < c.HH + c.R;
-        Check(Expansion.NodeClaimed(rr, cn[0]) && inside && !hits, "in a Ring card room it stands inside the room and clear of its obstacles (" + sp.X + "," + sp.Y + ")");
     }
 }

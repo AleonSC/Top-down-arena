@@ -1,5 +1,7 @@
 # Expanding arena: design plan
 
+**Nov 18 (protocol 406): the arena is built only from grid pieces ([`GridPieces.md`](GridPieces.md)); drawing, room cards, open walls, wall push and the team vote are removed. The drawing sections below are history.**
+
 **Next (Nov 17): rooms as cards in each player's hand, drawing kept as a lobby switch: see [`RoomCards.md`](RoomCards.md).**
 
 **Next after that: breaches, buyable portals and room fittings: see [`RoomBuilding2.md`](RoomBuilding2.md).**

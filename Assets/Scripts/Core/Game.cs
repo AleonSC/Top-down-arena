@@ -673,6 +673,7 @@ namespace Arena
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
                 NextOffer(p);
                 DoLog(p.Role + " took " + gold + " gold instead of a card");
+                BroadcastUpgrades(p);  // (tells a client its pick landed, so it takes offers again: no card was taken to say so)
                 SendSnapshot();
                 return;
             }
@@ -682,12 +683,22 @@ namespace Arena
             {
                 int code = p.Offer[index];
                 if (!BossCardUsable(p, code))
+                {
+                    if (!AnyBossCardUsable(p, p.Offer))  // (the hand filled while the offer was up: nothing in it can be taken, so the pick is skipped, as NextOffer would)
+                    {
+                        p.PendingCards = Math.Max(0, p.PendingCards - 1);
+                        NextOffer(p);
+                        BroadcastUpgrades(p);
+                        SendSnapshot();
+                    }
                     return;
+                }
                 Recorder?.PickedNamed(this, p, Array.ConvertAll(p.Offer, BossCards.Name), BossCards.Name(code), "boss card");
                 GrantBossCard(p, code);
                 p.PendingCards = Math.Max(0, p.PendingCards - 1);
                 NextOffer(p);
                 DoLog(p.Role + " picked a " + BossCards.Name(code));
+                BroadcastUpgrades(p);  // (tells a client its pick landed, so it takes offers again: a boss card adds no upgrade to say so)
                 SendSnapshot();
                 return;
             }

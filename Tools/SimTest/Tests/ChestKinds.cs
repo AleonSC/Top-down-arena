@@ -32,7 +32,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.GridRooms, 0f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         var open = typeof(Game).GetMethod("OpenChest", flags);
         V2 at = new V2(800f, 300f);
 
@@ -74,12 +74,9 @@ static partial class Program
         for (int k = 0; k < Market.Count; k++) full.Stash[k] = 0;
 
         // A Grid piece chest node: a room round it, the chest comes out as Grid piece, opening it deals a card each and no upgrade card.
-        string why;
-        var room = Expansion.Custom(g.Expanded, (int)Game.Width, 200, 1000, 500, out why);
-        Check(room.HasValue, "a room east of the start room (" + why + ")");
-        g.Expanded.Add(room.Value);
-        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-        var node = new MapNode { X = (short)(Game.Width + 550), Y = 450, Kind = NodeKind.Chest };
+        UseMap(new[] { g }, GridMap(GridPiece.Mono));
+        var cell = g.Expanded[4];  // (a single cell east of the core)
+        var node = new MapNode { X = (short)((cell.X + cell.X1) / 2), Y = (short)((cell.Y + cell.Y1) / 2), Kind = NodeKind.Chest };
         var seedField = typeof(Game).GetField("expandSeed", flags);
         int sd = 1;
         while (sd < 200 && Expansion.NodeChestKind(sd, node.X, node.Y, true) != ChestKind.Piece) sd++;
@@ -87,7 +84,6 @@ static partial class Program
         g.Nodes.Add(node);
         g.Props.Clear(); g.Loots.Clear();
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
-        g.Diff.Set(DiffKnob.GridRooms, 1f);  // (a Grid run: piece cards; on after the test room, which isn't on the lattice)
         var tickNodes = typeof(Game).GetMethod("TickNodes", flags);
         tickNodes.Invoke(g, null);
         var chest = g.Props.Values.FirstOrDefault(q => q.Kind == PropKind.Chest);

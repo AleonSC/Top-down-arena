@@ -19,7 +19,8 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true; }
+        Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);  // (the Grid core)
 
         // An Arms Dealer and a shop, from their cards.
         var me = g.Players[1];
@@ -27,8 +28,8 @@ static partial class Program
         {
             Array.Clear(me.Hand, 0, me.Hand.Length);
             me.Hand[0] = (byte)card;
-            var o = Expansion.CardOptions(g.Expanded, card)[0];
-            typeof(Game).GetMethod("HostPlayCard", flags).Invoke(g, new object[] { me.Id, 0, o.X, o.Y, (int)o.Turn, o.Mirror });
+            var o = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono)[0];
+            typeof(Game).GetMethod("HostGridCard", flags).Invoke(g, new object[] { me.Id, 0, o.Orient, o.X, o.Y });
             var r = g.Expanded[g.Expanded.Count - 1];
             return new V2((r.X + r.X1) / 2f, (r.Y + r.Y1) / 2f);
         };
@@ -93,14 +94,14 @@ static partial class Program
         bool fine = true;
         for (int i = 0; i < 400; i++)
         {
-            var of = BossCards.Offer(new DetRandom(i * 977 + 5), new System.Collections.Generic.List<ExpansionRoom>(), new System.Collections.Generic.List<RoomToken>());
+            var of = BossCards.Offer(new DetRandom(i * 977 + 5), new System.Collections.Generic.List<ExpansionRoom>(), new System.Collections.Generic.List<RoomToken>(), 12);
             fine &= of.Length == BossCards.OfferSize && of.Distinct().Count() == of.Length
                 && of.All(c => BossCards.IsKit(c) ? Array.IndexOf(Expansion.Floors, BossCards.FloorOf(c)) >= 0 : BossCards.CardOf(c) != RoomCard.None);
             foreach (int c in of) seen.Add(c);
         }
         Check(fine, "an offer is " + BossCards.OfferSize + " different cards or kits");
-        Check(Expansion.ShapeCards.All(c => seen.Contains((int)c)) && Expansion.ServiceCards.All(c => seen.Contains((int)c)) && seen.Contains((int)RoomCard.Box)
-              && seen.Contains((int)RoomCard.MiniBoss) && Expansion.Floors.All(f => seen.Contains(BossCards.KitCode(f))), "every shape, service, basic and mini-boss card and every floor kit turns up");
+        Check(seen.Any(c => !BossCards.IsKit(c) && Expansion.IsPieceCard(BossCards.CardOf(c))) && Expansion.ServiceCards.All(c => seen.Contains((int)c)) && seen.Contains((int)RoomCard.BuilderShop)
+              && Expansion.Floors.All(f => seen.Contains(BossCards.KitCode(f))), "pieces, every service card, the Builder Shop and every floor kit turn up");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
@@ -110,7 +111,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         noPicks();
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
         g.RoomTokens.Clear();
@@ -152,8 +153,8 @@ static partial class Program
         // A full hand: cards are refused, a kit still works; full kits too: the pick is skipped.
         for (int i = 0; i < me.Hand.Length; i++) me.Hand[i] = (byte)RoomCard.Box;
         me.PendingCards = 1;
-        nextOffer.Invoke(g, new object[] { me });
-        me.Offer = new[] { (int)RoomCard.Ring, BossCards.KitCode(PathId.BloodMoon), (int)RoomCard.Arms, (int)RoomCard.Box, (int)RoomCard.MiniBoss };
+        me.Offer = new[] { (int)Expansion.PieceCard(GridPiece.Mono), BossCards.KitCode(PathId.BloodMoon), (int)RoomCard.Arms, (int)RoomCard.Shop, (int)RoomCard.BuilderShop };
+        me.OfferCards = true;  // (set by hand: a rolled offer may hold no kit, and then a full hand skips the pick)
         g.PickUpgrade(0);
         Check(me.PendingCards == 1 && me.Hand.All(h => h == (byte)RoomCard.Box), "with a full hand a card can't be taken");
         while (g.RoomTokens.Count < Expansion.MaxTokens) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.Sanctuary });
@@ -181,8 +182,8 @@ static partial class Program
         int botPick = (int)typeof(Game).GetMethod("BotBossCard", flags).Invoke(g, new object[] { me });
         Check(botPick == 2, "a bot takes the Arms Dealer card when the map has none");
 
-        // Room cards off: back to the weapon mod pick.
-        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.RoomCards, 0f);
+        // Out of the Expanding arena: back to the weapon mod pick.
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 0f);
         noPicks();
         g.State = MatchState.Fighting;
         typeof(Game).GetField("bossRewarded", flags).SetValue(g, false);
