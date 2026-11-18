@@ -152,7 +152,7 @@ namespace Arena
             float tw = (r.width - 36f) / 2f;
             HoloTile(new Rect(r.x + 12f, r.y + 46f, tw, 64f), me.Gold.ToString(), "Gold");
             bool expanding = game.ExpandingOn;
-            HoloTile(new Rect(r.x + 24f + tw, r.y + 46f, tw, 64f), expanding ? me.Vectors.ToString() : "—", expanding ? "Vectors / " + me.VectorCap : "Vectors", new Color(0.55f, 0.9f, 1f));
+            HoloTile(new Rect(r.x + 24f + tw, r.y + 46f, tw, 64f), expanding ? me.Vectors + " / " + me.VectorCap : "—", "Vectors",new Color(0.55f, 0.9f, 1f));
             var rows = new string[,]
             {
                 { "Revive token", me.ReviveToken ? "1" : "0" },
