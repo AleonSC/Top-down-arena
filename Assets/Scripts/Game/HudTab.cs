@@ -45,9 +45,7 @@ namespace Arena
             {
                 var rc = ToColor(me.Def.Color);
                 HoloTitle(r.x + 16f, r.y + 12f, "YOUR STATS", null, rc, 30);
-                Ui.Label(new Rect(r.x + 16f, r.y + 46f, r.width - 32f, 16f), LobbyKit.Truncate(me.Weapon.Name + " · " + Upgrades.Ability(me.RoleAbility).Name, 12, r.width - 32f), 12,
-                    Color.Lerp(rc, Color.white, 0.3f), TextAnchor.MiddleLeft, true);
-                DrawTabStats(me, new Rect(r.x + 10f, r.y + 70f, r.width - 20f, r.height - 80f));
+                DrawTabStats(me, new Rect(r.x + 10f, r.y + 54f, r.width - 20f, r.height - 64f));
             });
         }
 
