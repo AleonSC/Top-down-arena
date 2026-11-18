@@ -9,19 +9,31 @@ static partial class Program
 {
     static void ChestKindsTest(float dt)
     {
-        // The node roll: seeded, the same every time, all four kinds, no Grid piece with cards off.
-        var seen = new HashSet<ChestKind>(); int unstable = 0, cardsOff = 0;
-        for (int x = 0; x < 20; x++)
-            for (int y = 0; y < 20; y++)
-            {
-                var k = Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, true);
-                seen.Add(k);
-                if (k != Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, true)) unstable++;
-                if (Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, false) == ChestKind.Piece) cardsOff++;
-            }
-        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.Piece, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0,
-            "a chest node rolls Gold, Grid piece, Buildables or Upgrade, the same each time (" + string.Join(",", seen) + ")");
+        // The node roll by tier (owner Nov 18): inner Gold, middle Grid piece or Buildables (Buildables with room cards off), outer Upgrade; seeded, the same every time.
+        var seen = new HashSet<ChestKind>(); int unstable = 0, cardsOff = 0, wrongTier = 0;
+        for (int i = 0; i < 400; i++)
+        {
+            int x = (int)Game.Width + 50 + i * 10, y = 450, tier = Expansion.NodeTier(x, y);
+            var k = Expansion.NodeChestKind(7, x, y, true);
+            seen.Add(k);
+            if (k != Expansion.NodeChestKind(7, x, y, true)) unstable++;
+            if (Expansion.NodeChestKind(7, x, y, false) == ChestKind.Piece) cardsOff++;
+            if (tier == 0 ? k != ChestKind.Gold : tier == 1 ? k != ChestKind.Piece && k != ChestKind.Buildable : k != ChestKind.Upgrade) wrongTier++;
+        }
+        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.Piece, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0 && wrongTier == 0,
+            "a chest node's kind follows its tier: Gold inner, Grid piece or Buildables middle, Upgrade outer, the same each time (" + string.Join(",", seen) + ")");
+        Check(Expansion.NodeTier((int)Game.Width + Expansion.TierMid - 10, 450) == 0 && Expansion.NodeTier((int)Game.Width + Expansion.TierMid, 450) == 1
+            && Expansion.NodeTier(800, -Expansion.TierOuter) == 2 && Expansion.NodeTier(800, 450) == 0, "tiers by distance from the hub's wall (15 and 30 tiles)");
         Check(cardsOff == 0, "no Grid piece chest with cards off");
+        int tieredOk = 0;
+        for (int i = 0; i < 300; i++)
+        {
+            var tn = Expansion.Tiered(7, new MapNode { X = (short)(Game.Width + 50 + i * 15), Y = 450, Kind = NodeKind.Relic });
+            int tier = Expansion.NodeTier(tn);
+            if (tier == 0 ? Expansion.IsChest(tn.Kind) : tier == 1 ? tn.Kind == NodeKind.Chest : tn.Kind == NodeKind.Chest || tn.Kind == NodeKind.Relic) tieredOk++;
+        }
+        Check(tieredOk == 300 && Expansion.Tiered(7, new MapNode { X = 3000, Y = 450, Kind = NodeKind.Vein }).Kind == NodeKind.Vein,
+            "a prize node takes its tier's kind (inner gold or vector chest, middle chest, outer chest or relic); a vein stays a vein");
 
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         int port = nextPort++;
@@ -74,9 +86,9 @@ static partial class Program
         for (int k = 0; k < Market.Count; k++) full.Stash[k] = 0;
 
         // A Grid piece chest node: a room round it, the chest comes out as Grid piece, opening it deals a card each and no upgrade card.
-        UseMap(new[] { g }, GridMap(GridPiece.Mono));
-        var cell = g.Expanded[4];  // (a single cell east of the core)
-        var node = new MapNode { X = (short)((cell.X + cell.X1) / 2), Y = (short)((cell.Y + cell.Y1) / 2), Kind = NodeKind.Chest };
+        UseMap(new[] { g }, GridMap(GridPiece.TetI));  // (a line of four cells east of the core: the chest out at its far end, a middle-tier spot)
+        var far = g.Expanded.Skip(4).OrderBy(r => -r.X1).First();
+        var node = new MapNode { X = (short)(far.X1 - Expansion.GridCell / 2), Y = (short)((far.Y + far.Y1) / 2), Kind = NodeKind.Chest };
         var seedField = typeof(Game).GetField("expandSeed", flags);
         int sd = 1;
         while (sd < 200 && Expansion.NodeChestKind(sd, node.X, node.Y, true) != ChestKind.Piece) sd++;

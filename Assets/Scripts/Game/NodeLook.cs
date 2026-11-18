@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -30,7 +31,11 @@ namespace Arena
         string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
 
         /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
-        string NodeBlurb(MapNode n)
+        string NodeBlurb(MapNode n) => (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic ? TierNames[Expansion.NodeTier(n)] + " tier. " : "") + NodeBlurbOf(n);
+
+        static readonly string[] TierNames = { "Inner", "Middle", "Outer" };
+
+        string NodeBlurbOf(MapNode n)
         {
             if (n.Hidden)
                 return (n.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " : "Build a room round it to claim it. ")
@@ -102,6 +107,8 @@ namespace Arena
                 float ph = (t * 0.45f + k * 0.5f) % 1f;
                 Arc(c, 60f + 110f * ph, 3f, ink.WithAlpha(0.5f * (1f - ph)), 40);
             }
+            if (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic)
+                DrawNodeTier(c, Expansion.NodeTier(n), t);
             if (n.Hidden)  // (an old save's fogged node, until the host clears it)
             {
                 FogMark(c, 1.3f, col);
@@ -241,11 +248,14 @@ namespace Arena
                 }
                 case NodeKind.Relic:
                 {
+                    long key = OpenKey(c, ChestKind.Relic);
                     if (spent)
                     {
-                        DrawChestLook(c, 0.3f, t, ChestKind.Relic, true, 99f);  // opened, lid up and dim
+                        DrawNodeOpening(c, t, NodeOpenAge(key, t), ChestKind.Relic);
                         break;
                     }
+                    nodeSeenShut.Add(key);
+                    nodeOpenedAt.Remove(key);
                     Arc(c, Relics.TakeReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     DrawChestLook(c, 1f, t, ChestKind.Relic, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
@@ -288,8 +298,14 @@ namespace Arena
                 }
                 case NodeKind.VectorChest:
                 {
+                    long key = OpenKey(c, ChestKind.Vector);
                     if (spent)
+                    {
+                        DrawNodeOpening(c, t, NodeOpenAge(key, t), ChestKind.Vector);
                         break;
+                    }
+                    nodeSeenShut.Add(key);
+                    nodeOpenedAt.Remove(key);
                     Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     DrawChestLook(c, 1f, t, ChestKind.Vector, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
@@ -307,6 +323,117 @@ namespace Arena
                     }
                     break;  // (a claimed chest is the real prop, Props.cs; nothing is drawn once it is spent)
             }
+        }
+
+        // The relic and vector chest nodes' opening (each is spent the moment someone walks up, so each screen times it from when it saw the change).
+        readonly HashSet<long> nodeSeenShut = new HashSet<long>();
+        readonly Dictionary<long, float> nodeOpenedAt = new Dictionary<long, float>();
+        internal static float PreviewOpenAge = -1f;  // preview RELICOPEN=<s> / VECOPEN=<s>: every spent relic or vector chest node opened that long ago
+
+        static long OpenKey(V2 c, ChestKind k) => ((long)Mathf.RoundToInt(c.X) << 32) ^ (uint)Mathf.RoundToInt(c.Y) ^ ((long)k << 60);
+
+        /// Seconds since this node opened: from when this screen first saw it spent after seeing it shut; one already spent when first seen is long open.
+        float NodeOpenAge(long key, float t)
+        {
+            if (PreviewOpenAge >= 0f)
+                return PreviewOpenAge;
+            float at;
+            if (nodeOpenedAt.TryGetValue(key, out at))
+                return t - at;
+            if (!nodeSeenShut.Remove(key))
+                return 99f;
+            nodeOpenedAt[key] = t;
+            return 0f;
+        }
+
+        /// A chest opening (the relic and vector chest nodes, and every chest prop): the chest shakes and flashes, the lid flies up, rings burst out in its ink, light pours up with
+        /// its emblems rising, and the prize (the relic's gem, or the vector arrow) climbs out, spins and shoots off; then it settles dim with the lid up.
+        void DrawNodeOpening(V2 c, float t, float age, ChestKind kind, float fade = 1f)
+        {
+            var ink = ChestInkOf(kind);
+            if (age >= 3f)
+            {
+                DrawChestLook(c, 0.3f * fade, t, kind, true, 99f);  // opened, lid up and dim
+                return;
+            }
+            float settle = Mathf.Clamp01((age - 2.2f) / 0.8f), a = Mathf.Lerp(1f, 0.3f, settle) * fade;
+            V2 shake = age < 0.12f ? new V2(Mathf.Sin(t * 120f), Mathf.Cos(t * 97f)) * 2.5f * (1f - age / 0.12f) : default(V2);
+            DrawChestLook(c + shake, a, t, kind, true, age);
+            float hw = Game.ChestW / 2f, hh = Game.ChestH / 2f;
+            if (age < 0.3f)  // the flash
+            {
+                float f = 1f - age / 0.3f;
+                FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, new Rgba(1f, 1f, 1f, 0.6f * f * fade));
+                Circle(c, hw + 18f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(0.35f * f * fade), 28);
+            }
+            for (int k = 0; k < 2; k++)  // two rings bursting out
+            {
+                float rk = Mathf.Clamp01((age - k * 0.15f) / 0.7f);
+                if (rk <= 0f || rk >= 1f)
+                    continue;
+                GlowArc(c, 30f + 120f * rk, 2.5f - k, ink.WithAlpha(0.8f * (1f - rk) * fade), 40);
+            }
+            for (int k = 0; k < 8; k++)  // sparks flung out
+            {
+                float sk = Mathf.Clamp01(age / 0.6f);
+                if (sk >= 1f)
+                    break;
+                V2 d = V2.FromAngle(k * MathX.Tau / 8f + 0.3f);
+                GlowLine(c + d * (20f + 70f * sk), c + d * (30f + 90f * sk), 1.5f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha((1f - sk) * fade));
+            }
+            // The prize climbs out (0.2-1.2 s), hangs spinning, then shoots up and away (1.6-2.1 s).
+            if (age > 0.2f && age < 2.1f)
+            {
+                float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((age - 0.2f) / 1f)), go = Mathf.Clamp01((age - 1.6f) / 0.5f);
+                float scale = 0.6f + 0.8f * rise + 0.6f * go, al = (1f - go) * fade;
+                V2 p = c + new V2(0f, -hh - 20f - 70f * rise - 160f * go * go + Mathf.Sin(t * 4f) * 2f * rise);
+                Circle(p, 18f * scale, ink.WithAlpha(0.18f * al), 20);
+                float spin = Mathf.Cos(age * 6f);  // turning: squash it side to side
+                if (kind == ChestKind.Gold)
+                    CoinSpin(p, scale, spin, ink.WithAlpha(al));
+                else if (kind == ChestKind.Vector)
+                    VectorMark(p, 0.75f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), ink.Mix(new Rgba(1f, 1f, 1f), 0.4f).WithAlpha(al));
+                else if (kind == ChestKind.Relic)
+                    RelicGemSpin(p, scale, spin, ink.WithAlpha(al));
+                else  // Upgrade, Grid piece, Buildables: their emblem, turning (ChestLooks.cs)
+                {
+                    var em = ink.WithAlpha(al);
+                    ChestEmblem(kind, p, 1.6f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), em, ink.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(al), al);
+                }
+            }
+        }
+
+        /// A big gold coin turning: an ellipse squashed by spin (-1..1), its rim, and a bright mark on the face.
+        void CoinSpin(V2 c, float k, float spin, Rgba col)
+        {
+            float r = 11f * k, w = r * Mathf.Max(0.12f, Mathf.Abs(spin));
+            const int n = 20;
+            SetColor(col.WithAlpha(col.A * 0.45f));
+            for (int i = 0; i < n; i++)
+            {
+                float a0 = i * MathX.Tau / n, a1 = (i + 1) * MathX.Tau / n;
+                Tri(c, c + new V2(Mathf.Cos(a0) * w, Mathf.Sin(a0) * r), c + new V2(Mathf.Cos(a1) * w, Mathf.Sin(a1) * r));
+            }
+            var hot = col.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(col.A);
+            for (int i = 0; i < n; i++)
+            {
+                float a0 = i * MathX.Tau / n, a1 = (i + 1) * MathX.Tau / n;
+                GlowLine(c + new V2(Mathf.Cos(a0) * w, Mathf.Sin(a0) * r), c + new V2(Mathf.Cos(a1) * w, Mathf.Sin(a1) * r), 1.5f, hot);
+            }
+            if (Mathf.Abs(spin) > 0.35f)
+                GlowLine(c + new V2(0f, -r * 0.45f), c + new V2(0f, r * 0.45f), 1.5f, hot);
+        }
+
+        /// The relic's gem turning: a diamond squashed by spin (-1..1) with a bright face.
+        void RelicGemSpin(V2 c, float k, float spin, Rgba col)
+        {
+            float w = 9f * k * Mathf.Max(0.15f, Mathf.Abs(spin)), up = 11f * k, dn = 13f * k, mid = 3f * k;
+            V2 top = c + new V2(0f, -up), l = c + new V2(-w, -mid), r = c + new V2(w, -mid), bot = c + new V2(0f, dn);
+            SetColor(col.WithAlpha(col.A * 0.45f));
+            Quad(top, r, bot, l);
+            var hot = col.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(col.A);
+            GlowLine(top, r, 1.5f, hot); GlowLine(r, bot, 1.5f, hot); GlowLine(bot, l, 1.5f, hot); GlowLine(l, top, 1.5f, hot);
+            GlowLine(l, r, 1f, col);
         }
 
         /// The HUD chip for your relic slot (Relics.cs), with the wave panel's other chips.
@@ -407,6 +534,36 @@ namespace Arena
                 Line(new V2(c.X - hw, c.Y - 6f * k), new V2(c.X - hw - 8f * k, c.Y - 6f * k - lh - 8f * k), 3f * k, col);
                 Line(new V2(c.X + hw, c.Y - 6f * k), new V2(c.X + hw + 8f * k, c.Y - 6f * k - lh - 8f * k), 3f * k, col);
             }
+        }
+
+        /// The tier metals (owner Nov 18, Docs/Nodes.md "Node tiers"): bronze inner, silver middle, gold outer.
+        static readonly Rgba[] TierInk = { new Rgba(0.88f, 0.56f, 0.3f), new Rgba(0.8f, 0.87f, 0.95f), new Rgba(1f, 0.83f, 0.25f) };
+
+        /// A prize node's tier round its ghost marker (owner Nov 18): HUD corner brackets in the tier's metal and, under the node, a row of three
+        /// square pixel cells, filled up to the tier, the rest outlined dim; a cursor cell blinks after them.
+        void DrawNodeTier(V2 c, int tier, float t)
+        {
+            var ink = TierInk[tier];
+            float glint = 0.75f + 0.25f * Mathf.Sin(t * 3f), h = 118f, arm = 26f, cell = 22f, gap = 6f;
+            var bc = ink.WithAlpha(0.85f * glint);
+            for (int sx = -1; sx <= 1; sx += 2)
+                for (int sy = -1; sy <= 1; sy += 2)
+                {
+                    var p = c + new V2(sx * h, sy * h);
+                    Line(p, p - new V2(sx * arm, 0f), 4f, bc);
+                    Line(p, p - new V2(0f, sy * arm), 4f, bc);
+                }
+            float x0 = c.X - (3f * cell + 2f * gap) / 2f, y = c.Y + h - cell + 2f;
+            for (int k = 0; k < 3; k++)
+            {
+                float x = x0 + k * (cell + gap);
+                if (k <= tier)
+                    FillRect(x, y, cell, cell, ink.WithAlpha(glint));
+                else
+                    NodeFrame(x, y, cell, cell, 3f, ink.WithAlpha(0.3f));
+            }
+            if ((int)(t * 2f) % 2 == 0)
+                FillRect(x0 + 3f * (cell + gap), y + cell - 6f, 12f, 6f, ink.WithAlpha(0.8f));
         }
 
         void NodeFrame(float x, float y, float w, float h, float t, Rgba c)

@@ -58,10 +58,11 @@ namespace Arena
         }
 
         /// The shapes a room comes in (one picked by the roll): small 4 x 4 or 5 x 4, medium 6 x 6 or 7 x 6, the hallway 12 x 3.
-        /// The grid pieces a room comes as in a Grid run: small one cell (a shop, Black Market or Arms Dealer always one cell), medium a domino or a corner, the hallway a line of 3 or 4.
+        /// The grid pieces a room comes as in a Grid run: small one cell (a shop, Black Market or Arms Dealer always one cell), medium a domino, a corner or a
+        /// square, T, S or L tetromino, the hallway a line of 3 or 4. Every piece shape can come from a door (owner Nov 18).
         public static GridPiece[] PiecesOf(MysteryRoom r) =>
             r == MysteryRoom.Small ? new[] { GridPiece.Mono }
-            : r == MysteryRoom.Medium ? new[] { GridPiece.Domino, GridPiece.TriL }
+            : r == MysteryRoom.Medium ? new[] { GridPiece.Domino, GridPiece.TriL, GridPiece.TetO, GridPiece.TetT, GridPiece.TetS, GridPiece.TetL }
             : new[] { GridPiece.TriI, GridPiece.TetI };
 
         public static SurpriseShape[] ShapesOf(MysteryRoom r) =>

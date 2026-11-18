@@ -400,10 +400,17 @@ namespace Arena
                 bool claimed = Expansion.NodeClaimed(game.Expanded, n);
                 var ink = n.Hidden && !claimed ? FogInk : NodeInk(n.Kind);
                 float br = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 2.5f);
+                bool tiered = !n.Spent && !claimed && (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic);  // (owner Nov 18: an unclaimed prize node's edge and halo wear its tier's metal)
+                var edge = tiered ? TierInk[Expansion.NodeTier(n)] : ink;
                 if (!n.Spent && !claimed)
-                    MapRect(np.X - 8f, np.Y - 8f, 16f, 16f, ink.WithAlpha(0.15f + 0.15f * br));
-                MapRect(np.X - 6f, np.Y - 6f, 12f, 12f, new Rgba(0f, 0f, 0f, n.Spent ? 0.25f : 0.6f));
-                MapRect(np.X - 5f, np.Y - 5f, 10f, 10f, ink.WithAlpha(n.Spent ? 0.25f : claimed ? 0.9f : 0.8f + 0.2f * br));
+                    MapRect(np.X - 8f, np.Y - 8f, 16f, 16f, edge.WithAlpha((tiered ? 0.3f : 0.15f) + 0.15f * br));
+                MapRect(np.X - 6f, np.Y - 6f, 12f, 12f, tiered ? edge : new Rgba(0f, 0f, 0f, n.Spent ? 0.25f : 0.6f));
+                if (tiered)
+                    MapRect(np.X - 5f, np.Y - 5f, 10f, 10f, new Rgba(0f, 0f, 0f, 0.7f));
+                if (tiered)
+                    MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, ink.WithAlpha(0.8f + 0.2f * br));
+                else
+                    MapRect(np.X - 5f, np.Y - 5f, 10f, 10f, ink.WithAlpha(n.Spent ? 0.25f : claimed ? 0.9f : 0.8f + 0.2f * br));
             }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
