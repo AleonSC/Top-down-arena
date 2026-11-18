@@ -665,17 +665,20 @@ static partial class Shot {
         host.Game.GrantUpgrade(1, U(n));
       var g = host.Game;
       if (Environment.GetEnvironmentVariable("SHOPEXPAND") != null) g.Diff.Set(DiffKnob.ArenaExpanding, 1f);  // SHOPEXPAND=1: the Expanding arena's services (Floor kit, Vector pack)
-      if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; SHOPSEL picks the card, BUILDS=1 puts some in your stash
+      if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; MARKET=shop|arms|medic: that room instead; SHOPSEL picks the card, BUILDS=1 puts some in your stash
       {
+        string mv = Environment.GetEnvironmentVariable("MARKET");
+        var mkind = mv == "shop" ? RoomKind.Shop : mv == "arms" ? RoomKind.Arms : mv == "medic" ? RoomKind.Medic : RoomKind.Vendor;
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         g.Expanded.Clear(); g.Expanded.AddRange(Expansion.GridCore()); g.Openings.AddRange(Expansion.GridCoreCuts());
-        var vo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono); if (vo.Count > 0) { var v2 = vo[0].Rooms[0]; v2.Owner = 1; v2.Kind = RoomKind.Vendor; g.Expanded.Add(v2); }  // (a one-cell Black Market off the core)
+        var vo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono); if (vo.Count > 0) { var v2 = vo[0].Rooms[0]; v2.Owner = 1; v2.Kind = mkind; g.Expanded.Add(v2); }  // (a one-cell Black Market off the core)
         typeof(Game).GetField("expWorld", f2).SetValue(g, null);
         g.RoomsUp = true;
         var va = g.ExpansionWorld.Areas[g.ExpansionWorld.Areas.Length - 1];
-        foreach (var ar in g.ExpansionWorld.Areas) if (ar.Kind == RoomKind.Vendor) va = ar;
+        foreach (var ar in g.ExpansionWorld.Areas) if (ar.Kind == mkind) va = ar;
         me.Pos = va.Mid; me.Disp = va.Mid;
         if (Environment.GetEnvironmentVariable("BUILDS") != null) { me.Stash[0] = 1; me.Stash[1] = 2; me.Stash[2] = 5; }
+        if (mkind == RoomKind.Medic) me.Hp = me.MaxHp * 0.45f;  // (hurt, so the heal shows what it gives)
       }
       g.CurrentPath = PathId.Bazaar; g.PathFrom = 11; g.PathTo = 14; g.Wave = 14; g.State = MatchState.Intermission;
       typeof(Game).GetMethod("OpenShop", f2).Invoke(g, null);

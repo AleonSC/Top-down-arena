@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 410: the Medic: `RoomKind.Medic`, `RoomCard.Medic` (hands, offers and rooms); heals and revives only at the Medic; the Black Market's card shelf (`ShopAction.BuyCard`) is retired
 - 409: `ExpansionRoom.Card` (the old room card marker) is gone from `Msg.ExpandState` rooms; mystery doors price by cells (`Mystery.PriceForCells`)
 - 408: the wave card pick: `Player.WavePicks` and `OfferWave` in the player snapshot (the build round's free card is now a pick of two)
 - 407: Room cards, Free draw, Open wall and wall push removed: `Msg.ExpandDraw`, `ExpandCut`, `ExpandOutline`, `PlayCard` and `WallPush` are retired; the Expanding arena always builds grid pieces (`DiffKnob.RoomCards` and `GridRooms` ignored)
