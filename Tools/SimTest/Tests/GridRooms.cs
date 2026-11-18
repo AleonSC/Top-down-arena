@@ -13,7 +13,7 @@ static partial class Program
         Check(empty.All(Expansion.IsGridCore) && Expansion.BoughtCount(empty) == 0, "the core is four free rooms that don't count towards the room cap");
         var cw = Expansion.Build(empty, Expansion.GridCoreCuts());
         Check(cw.Doors.Count(d => d.Width >= 400) == 8 && cw.Doors.Any(d => d.Width == 1600), "the core's inner walls are opened: eight wide gaps, the hub's walls full width (" + string.Join(",", cw.Doors.Select(d => d.Width)) + ")");
-        Func<float, float, bool> walled = (px, py) => cw.WallsFor(false).Any(c => Math.Abs(c.Pos.X - px) <= c.HW && Math.Abs(c.Pos.Y - py) <= c.HH);
+        Func<float, float, bool> walled = (px, py) => cw.Walls().Any(c => Math.Abs(c.Pos.X - px) <= c.HW && Math.Abs(c.Pos.Y - py) <= c.HH);
         Check(!walled(800f, 0f) && !walled(800f, 900f) && !walled(0f, 450f) && !walled(1600f, 450f) && walled(800f, -400f), "no wall stands across the middle of the hub's four sides, but the core's outer wall does: one open room");
         var rooms = Expansion.GridPieceOptions(empty, GridPiece.Mono);
         Check(rooms.Count == 14, "fourteen door spots round the core: four top, four bottom, three each side (" + rooms.Count + ")");

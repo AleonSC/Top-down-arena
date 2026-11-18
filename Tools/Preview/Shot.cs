@@ -796,7 +796,7 @@ static partial class Shot {
       if (camAt != null) { var cp = camAt.Split(','); focus = new V2(float.Parse(cp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(cp[1], System.Globalization.CultureInfo.InvariantCulture)); }
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, focus.X)), Math.Max(hy, Math.Min(Game.Height - hy, focus.Y))));
     }
-    if (Environment.GetEnvironmentVariable("ROOMS") != null || Environment.GetEnvironmentVariable("EXPANDMAP") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
+    if (Environment.GetEnvironmentVariable("EXPANDMAP") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
       float z = (float)typeof(ArenaApp).GetField("camZoom", f2).GetValue(app);
       typeof(ArenaApp).GetField("camFollow", f2).SetValue(app, true);
       if (Environment.GetEnvironmentVariable("ZOOMHINT") != null) typeof(ArenaApp).GetField("zoomHintT", f2).SetValue(app, 6f);  // ZOOMHINT=1: the open Rooms map's "scroll to zoom out" prompt

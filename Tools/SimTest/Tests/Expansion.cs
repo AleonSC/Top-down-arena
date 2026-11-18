@@ -19,7 +19,7 @@ static partial class Program
         Check(a.All(o => o.Parent == 0 && o.Price > 0 && o.Kind != RoomKind.Shop), "the first offers all join the hub, cost something and none is a shop");
 
         var hubOnly = Expansion.Build(none);
-        Check(hubOnly.Areas.Length == 1 && hubOnly.Doors.Length == 0 && hubOnly.WallsFor(false).Length == 4 && hubOnly.Max.X == Game.Width && hubOnly.Max.Y == Game.Height,
+        Check(hubOnly.Areas.Length == 1 && hubOnly.Doors.Length == 0 && hubOnly.Walls().Length == 4 && hubOnly.Max.X == Game.Width && hubOnly.Max.Y == Game.Height,
             "with nothing bought the world is the hub alone, walled in");
 
         int coverSeen = 0, hallCover = 0, badCover = 0, loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, offersSeen = 0;
@@ -236,11 +236,9 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
         Quiet();
 
-        // The setting: Expanding wins over Rooms, and the arena is its walled world: the hub and the Grid core round it (GridRooms.cs).
+        // The setting: the arena is its walled world: the hub and the Grid core round it (GridRooms.cs).
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
-        g.Diff.Set(DiffKnob.ArenaRooms, 1f);
-        Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting wins over Rooms");
-        g.Diff.Set(DiffKnob.ArenaRooms, 0f);
+        Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting makes the Expanding arena");
         Run(s, dt, 1f, () => cg.Expanded.Count == 4);
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f);
@@ -265,7 +263,7 @@ static partial class Program
         Run(s, dt, 0.4f);
         Check(g.RoomsOn && cg.RoomsOn && g.CurrentWorld.Areas.Length == 6 && g.ArenaMax.DistanceTo(g.CurrentWorld.Max) < 0.01f && cg.CurrentWorld.Areas.Length == 6 && g.Walled,
             "the built room is up on a regular wave: the hub, the core and the piece, walled, the same on the client");
-        Check(g.LayoutOn && g.ActiveLayout.Name.Contains("Expanding") && g.ActiveLayout.Solids.Length >= g.CurrentWorld.WallsFor(false).Length, "its walls are part of the floor plan (" + g.ActiveLayout.Name + ")");
+        Check(g.LayoutOn && g.ActiveLayout.Name.Contains("Expanding") && g.ActiveLayout.Solids.Length >= g.CurrentWorld.Walls().Length, "its walls are part of the floor plan (" + g.ActiveLayout.Name + ")");
         Check(g.ExpansionScale > 1f && g.ExpansionScale <= Game.MaxExpandScaleEarly, "a bigger map means a bigger crowd (x" + g.ExpansionScale.ToString("0.00") + ")");
 
         // A teleport (Shadow Step, Blink) never lands in a gap between the rooms or in a wall: it backs up onto the floor.
@@ -1371,7 +1369,7 @@ static partial class Program
                         if (!room.Contains(a, 1f) || !room.Contains(b, 1f)) badFin++;                                     // inside its room
                         foreach (var d in wd.Doors) if (Math.Min(d.Pos.DistanceTo(a), d.Pos.DistanceTo(b)) < 150f) badFin++;  // off the doors
                     }
-                    foreach (var sd in wd.WallsFor(false)) if (Layouts.Inside(sd, room.Mid, 30f)) badFin++;               // the middle is open
+                    foreach (var sd in wd.Walls()) if (Layouts.Inside(sd, room.Mid, 30f)) badFin++;               // the middle is open
                 }
         Expansion.FinStyle = 0;
         Check(finRooms > 100 && badFin == 0 && notSame == 0, "rooms grow side walls inside, off their doors, clear of their middle, the same every build (" + finRooms + " rooms, " + badFin + " bad)");

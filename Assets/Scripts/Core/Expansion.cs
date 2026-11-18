@@ -993,7 +993,7 @@ namespace Arena
             V2 mouth = p + inn * WorldPortal.MouthIn, along = inn.Orthogonal();
             foreach (var c in w.Cover)
                 if (Layouts.Inside(c, mouth, 50f)) { why = "An obstacle is in the way"; return false; }
-            foreach (var c in w.WallsFor(false))  // (a room's side walls, standing out from the portal's wall)
+            foreach (var c in w.Walls())  // (a room's side walls, standing out from the portal's wall)
                 for (int k = -1; k <= 1; k++)
                     if (Layouts.Inside(c, p + inn * 36f + along * (k * (LinkHalf - 20f)), 4f)) { why = "A wall is in the way"; return false; }
             foreach (var d in w.Doors)
@@ -1076,7 +1076,7 @@ namespace Arena
             if (OpenArea(w, p, LinkEdge) < 0) { why = "Must be inside a connected room, off its walls"; return false; }
             foreach (var c in w.Cover)
                 if (Layouts.Inside(c, p, 50f)) { why = "An obstacle is in the way"; return false; }
-            foreach (var c in w.WallsFor(false))
+            foreach (var c in w.Walls())
                 if (Layouts.Inside(c, p, 50f)) { why = "A wall is in the way"; return false; }
             foreach (var d in w.Doors)
                 if (d.Pos.CloserThan(p, LinkDoor)) { why = "Too near a door"; return false; }
@@ -2094,8 +2094,8 @@ namespace Arena
             {
                 Name = "Expanding",
                 Areas = areas, Doors = doors.ToArray(), Portals = portals, Spans = spans.ToArray(), Cover = cover.ToArray(), NodeSpots = spots,
-                Min = new V2(minX, minY), VaultMin = new V2(minX, minY), Max = new V2(maxX, maxY),
-                Hub = 0, Vault = -1,
+                Min = new V2(minX, minY), Max = new V2(maxX, maxY),
+                Hub = 0,
             };
         }
     }

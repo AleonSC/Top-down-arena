@@ -26,7 +26,7 @@ namespace Arena
         /// The walls and fins (World.WallsFor: cut at the doors) and the cover, over the floors.
         void DrawHoloSolids(World wd, System.Func<V2, V2> M, float k, Rect map)
         {
-            foreach (var s in wd.WallsFor(false))
+            foreach (var s in wd.Walls())
                 HoloBox(s, M, k, HoloWallInk, true);
             foreach (var s in wd.Cover)
                 HoloSolid(s, M, k, map);

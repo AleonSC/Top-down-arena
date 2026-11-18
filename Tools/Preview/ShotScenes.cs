@@ -2170,24 +2170,6 @@ static partial class Shot {
       float wf = float.Parse(Environment.GetEnvironmentVariable("WOUND"), System.Globalization.CultureInfo.InvariantCulture);
       foreach (var wp in host.Game.Players.Values) { wp.Wound = wp.MaxHp * wf; wp.Hp = wp.MaxHp * 0.55f; }
     }
-    if (Environment.GetEnvironmentVariable("ROOMS") != null) {  // ROOMS=x,y: the Rooms arena's side rooms up (Rooms.cs), you at x,y, the enemies spread over the rooms and hallways
-      var rg = host.Game; rg.Diff.Set(DiffKnob.ArenaRooms, 1f); rg.RoomsUp = true; rg.LayoutAge = 5f;
-      rg.VaultUp = Environment.GetEnvironmentVariable("VAULT") != null;  // VAULT=1: a vault wave (the Gatekeeper in the vault off the top hall)
-      typeof(Game).GetMethod("StartRoomsWave", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(rg, null);  // the nests (and the vault's mini-boss)
-      foreach (var ne in rg.Enemies.Values) if (ne.Home >= 0) { ne.SpawnT = 0f; ne.Spawning = false; }
-      rg.RoomStates[0].SpillT = 1.2f;  // the West room's door about to spill (amber); the East room cleared when ROOMCLEAR=1
-      if (Environment.GetEnvironmentVariable("ROOMCLEAR") != null) { var er = rg.RoomStates[1]; er.Cleared = true; er.NestAlive = false; rg.Enemies.Remove(er.NestId); }
-      var rp = Environment.GetEnvironmentVariable("ROOMS").Split(',');
-      var at = new V2(float.Parse(rp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(rp[1], System.Globalization.CultureInfo.InvariantCulture));
-      int pi = 0;
-      foreach (var pl in rg.Players.Values) { pl.Pos = pl.Disp = rg.PushOutOfProps(at + new V2(70f * pi, 40f * pi), 14f); pi++; }
-      var rrng = new System.Random(7); int ei = 0;
-      foreach (var en in rg.Enemies.Values) {
-        if (en.Def.IsBoss || en.Home >= 0) continue;
-        var ar = Rooms.Areas[1 + ei++ % 4];
-        en.Pos = en.Disp = rg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)rrng.NextDouble() * (ar.Size.X - 120f), ar.Min.Y + 50f + (float)rrng.NextDouble() * (ar.Size.Y - 100f)), en.Radius);
-      }
-    }
     if (Environment.GetEnvironmentVariable("EXPANDMAP") != null) {  // EXPANDMAP=<rooms bought>: the Expanding arena with that many rooms up, you in the hub, enemies spread over the rooms
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
       if (Environment.GetEnvironmentVariable("FINSTYLE") != null) Expansion.FinStyle = int.Parse(Environment.GetEnvironmentVariable("FINSTYLE"));  // FINSTYLE=<n>: a drawn room's side walls (Expansion.AddFins)

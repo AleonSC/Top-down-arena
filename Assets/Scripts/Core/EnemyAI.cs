@@ -261,15 +261,15 @@ namespace Arena
             spawnHome = -1;
         }
 
-        /// Where a regular enemy (or a spawn portal: SpawnPortals.cs) comes in: anywhere on the Rooms map away from you (or by a
-        /// room's nest), through a layout's enemy gate, or a random spot along an edge of the open arena.
+        /// Where a regular enemy (or a spawn portal: SpawnPortals.cs) comes in: anywhere in the walled world away from you,
+        /// through a layout's enemy gate, or a random spot along an edge of the open arena.
         V2 SpawnSpot(float radius, bool mapRules, out int home)
         {
             home = -1;
             float m = radius + 30f;
             V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
             if (RoomsOn && mapRules)
-                return Rooms.RoomByRoom ? RoomSpawnSpot(radius, out home) : RoomsRandomSpot(radius);  // anywhere on the map, away from you (or by a room's nest: Rooms.cs)
+                return RoomsRandomSpot(radius);  // anywhere on the map, away from you (Rooms.cs)
             if (LayoutOn && mapRules)
                 return LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
             switch (rng.Next(4))
@@ -414,8 +414,7 @@ namespace Arena
             Enemy parentE;
             if (parent != 0 && Enemies.TryGetValue(parent, out parentE))
             {
-                e.Home = parentE.Home;  // (a Splitter's halves, a Nest's shards: the Rooms arena's room of their parent)
-                e.Spilled = parentE.Spilled;
+                e.Home = parentE.Home;  // (a child: its parent's room)
             }
             else
                 e.Home = spawnHome;
@@ -596,7 +595,7 @@ namespace Arena
                 tpos = StriderTarget(e, tpos);  // an Engineer's Strider draws in enemies near it (Engineer.cs)
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
-                bool held = RoomsLeash(e, ref tpos);  // the Rooms arena: guarding its nest, or the vault (Rooms.cs)
+                bool held = RoomsLeash(e, ref tpos);  // a Gatekeeper room's mini-boss keeps to its room (Rooms.cs)
                 bool mine = IsPossessed(e);  // the Dev Arena's enemy being played: it goes for the cursor (DevArena.cs)
                 if (mine)
                 {
@@ -612,7 +611,7 @@ namespace Arena
                 else
                     MoveEnemy(e, tpos, dt);
                 RoomsKeepHome(e);  // a mini-boss can't charge out of its locked room (Rooms.cs)
-                if (RoomsOn && !e.Def.IsBoss && e.Home != Rooms.Vault)
+                if (RoomsOn && !e.Def.IsBoss)
                 {
                     V2 was = e.Pos;
                     e.Pos = RoomsPortal(e.Pos, ref e.PortalT, dt, e.Radius);  // wraparound portals (Rooms.cs)

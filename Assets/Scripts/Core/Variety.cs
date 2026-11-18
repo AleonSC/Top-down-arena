@@ -214,12 +214,7 @@ namespace Arena
             if (breach.HasValue)
                 basePos = breach.Value + breachIn * 80f;  // (a squad forms up a little further in: its back row stands behind it)
             else if (RoomsOn && !at.HasValue)
-            {
-                if (Rooms.RoomByRoom)
-                    basePos = RoomSpawnSpot(60f, out spawnHome);  // by a room's nest (Rooms.cs); its members guard that room
-                else
-                    basePos = RoomsRandomSpot(80f);  // anywhere on the map, away from you (Rooms.cs)
-            }
+                basePos = RoomsRandomSpot(80f);  // anywhere on the map, away from you (Rooms.cs)
             else if (LayoutOn && !at.HasValue)
                 basePos = LayoutSquadBase();  // in front of an enemy gate (LayoutRules.cs)
             V2 fwd = breach.HasValue ? breachIn : (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();  // (through a breach: facing into the map)

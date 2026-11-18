@@ -55,7 +55,6 @@ namespace Arena
                 },
                 Cover = Cover(),
                 Min = V2.Zero,
-                VaultMin = V2.Zero,
                 Max = new V2(W, H),
             };
         }

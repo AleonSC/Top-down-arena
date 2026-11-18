@@ -393,7 +393,7 @@ namespace Arena
             get
             {
                 if (RoomsOn)
-                    return CurrentWorld.MinFor(VaultUp);  // the side rooms and hallways round the hub, and the vault (Rooms.cs)
+                    return CurrentWorld.Min;  // the rooms round the hub (Rooms.cs)
                 float f = NarrowF * NarrowF * (3f - 2f * NarrowF);
                 return new V2(Math.Max(Paths.NarrowInsetX * f, TinyInset.X), Math.Max(Paths.NarrowInsetY * f, TinyInset.Y));
             }

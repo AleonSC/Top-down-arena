@@ -131,13 +131,10 @@ namespace Arena
             // --- Target: the boss (or the Reaper that can be hurt), unless something small is right on top of us.
             Enemy target = null, close = null;
             float bestScore = float.MaxValue, closeD = 170f;
-            bool inVault = VaultOn && CurrentWorld.AreaAt(me.Pos) == Rooms.Vault;
             foreach (var e in Enemies.Values)
             {
                 if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f)
                     continue;
-                if (!inVault && InVault(e))
-                    continue;  // the Rooms arena's vault is optional: the bot leaves it alone (Rooms.cs)
                 float d = e.Pos.DistanceTo(me.Pos);
                 float score = e.Def.IsBoss ? d * 0.25f + e.Hp / Math.Max(1f, e.MaxHp) * 200f : d;
                 if (e.Marked || e.MarkT > 0f)

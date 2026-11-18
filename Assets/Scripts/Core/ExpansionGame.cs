@@ -68,7 +68,7 @@ namespace Arena
 
         public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings, Links, Nodes));
 
-        /// More floor means more enemies (the Rooms arena makes up for its size with damage instead, Rooms.EnemyDamageMult).
+        /// More floor means more enemies (Rooms.EnemyDamageMult also makes its enemies hit harder).
         public float ExpansionScale
         {
             get

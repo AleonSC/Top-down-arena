@@ -133,8 +133,8 @@ static partial class Program
         Check(!sw.PortalExitFor(new V2(10f, 300f), 10f).HasValue, "the rest of the wall is still a wall");
         Check(g.Props.Values.All(pr => Array.TrueForAll(sw.Portals, pt => !pr.Pos.CloserThan(pt.A, pt.Half + 60f) && !pr.Pos.CloserThan(pt.B, pt.Half + 60f))),
             "no crate or barrel sits in front of a portal");
-        var vc = g.CurrentWorld.ViewCentre(new V2(100f, 100f), 800f, 450f, false);
-        var vm = g.CurrentWorld.ViewCentre(new V2(1600f, 900f), 800f, 450f, false);
+        var vc = g.CurrentWorld.ViewCentre(new V2(100f, 100f), 800f, 450f);
+        var vm = g.CurrentWorld.ViewCentre(new V2(1600f, 900f), 800f, 450f);
         Check(vc.X == 800f && vc.Y == 450f && vm.X == 1600f && vm.Y == 900f, "the camera follows you and stops at the room's edges");
         Check(g.Props.Count >= 120 && g.Props.Values.Count(pr => pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate) >= 90, "the room is full of crates (" + g.Props.Count + " props)");
         var layout = g.ActiveLayout;

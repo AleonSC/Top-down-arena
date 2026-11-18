@@ -31,8 +31,8 @@ static partial class Shot {
       // EMOTEBAR=1: the emote bar open (rank 60); EMOTE=n[,age]: emote number n showing over player 1, that many seconds in (EmoteBar.cs)
       if (Environment.GetEnvironmentVariable("EMOTEBAR") != null) { Profile.Current.Xp = Rank.XpAt(60); set("emoteBarOpen", true); set("emoteBarK", 1f); }
       if (Environment.GetEnvironmentVariable("EMOTE") != null) { var ep = Environment.GetEnvironmentVariable("EMOTE").Split(','); host.Emotes[1] = new Session.EmoteShow { Index = byte.Parse(ep[0]), At = Session.Clock - (ep.Length > 1 ? float.Parse(ep[1]) : 0.8f) }; }
-      bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null || Environment.GetEnvironmentVariable("ROOMS") != null || Environment.GetEnvironmentVariable("LAG") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null;  // (the off-screen markers and the lag chart's lines draw with GL on the HUD; OffscreenMarkers.cs, LagChartUi.cs)
-      // MAPVIEW=<from>,<to>,<t>: the Map key's switch (0 minimap, 1 full map, 2 off) that far through (MapView.cs); use with ROOMS or EXPANDMAP
+      bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null || Environment.GetEnvironmentVariable("LAG") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null;  // (the off-screen markers and the lag chart's lines draw with GL on the HUD; OffscreenMarkers.cs, LagChartUi.cs)
+      // MAPVIEW=<from>,<to>,<t>: the Map key's switch (0 minimap, 1 full map, 2 off) that far through (MapView.cs); use with EXPANDMAP
       // MAPCYCLE=<s>: that far through a scripted run of the Map key (minimap, M, full map, M, off, M, minimap), for clip.sh MAPCYCLE=0:3.6:0.05
       if (Environment.GetEnvironmentVariable("MAPCYCLE") != null) {
         float mc = float.Parse(Environment.GetEnvironmentVariable("MAPCYCLE"), System.Globalization.CultureInfo.InvariantCulture);

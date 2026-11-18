@@ -135,10 +135,9 @@ namespace Arena
                                 Wave++;
                             }
                             PlaceFloatingRooms();  // a new boss cycle: its floating shop, vendor and Gatekeeper rooms (ExpansionGame.cs)
-                            PickRooms();   // the side rooms and hallways, on a regular wave with the Rooms arena (Rooms.cs)
+                            PickRooms();   // the Expanding arena's walled world, on a regular wave (Rooms.cs)
                             PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);
-                            StartRoomsWave();  // the rooms' nests and the vault's mini-boss (Rooms.cs)
                             if (BreachesOn)
                             {
                                 FloodBreachWave();  // a breach wave: three times the enemies (Breaches.cs)
@@ -172,14 +171,14 @@ namespace Arena
                         break;  // F1 dev tool: nothing new spawns and the wave doesn't clear (DevTools.cs)
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
                     TickDesign(dt);  // a designed wave's groups arriving on their timers (WaveDesign.cs)
-                    TickRoomsWave(dt);  // the Rooms arena's nests, spills and cleared rooms (Rooms.cs)
+                    TickRoomsWave(dt);  // the Expanding arena's rooms (Rooms.cs)
                     if (TickSpawning(dt))
                     {
                         // (the wave's queue is still coming in: Spawner.cs)
                     }
-                    else if (FoesOutsideVault() == 0 && PropsHoldWave())
+                    else if (Foes() == 0 && PropsHoldWave())
                         HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
-                    else if (FoesOutsideVault() == 0 && !ZombiesRising && DesignPending == 0)  // (the vault is optional: Rooms.cs)
+                    else if (Foes() == 0 && !ZombiesRising && DesignPending == 0)
                     {
                         if (Practice != null)
                         {
@@ -204,7 +203,7 @@ namespace Arena
         {
             PayVeins();  // every claimed gold vein pays out (NodeScouting.cs)
             ClearRuleRooms();  // a claimed rule room has been through the wave: its prize (ExpansionGame.cs)
-            EndRoomsWave();  // the vault closes with the wave (Rooms.cs)
+            EndRoomsWave();  // an unbeaten Gatekeeper duel ends with the wave (Rooms.cs)
             Recorder?.WaveEnd(this);
             TestWaveCleared();  // BalanceTest.cs
             SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
