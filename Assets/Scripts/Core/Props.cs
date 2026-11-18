@@ -16,9 +16,9 @@ namespace Arena
     public enum PropKind : byte { Crate, HeavyCrate, Pot, Barrel, Chest, HealthBarrel }
 
     /// What a chest holds, and so how it looks (Game/ChestLooks.cs). A wave's chest is Upgrade (everyone's own card);
-    /// an Expanding chest node rolls Gold (a burst of coins), Room card, Buildables (one Black Market build each) or Upgrade.
+    /// an Expanding chest node rolls Gold (a burst of coins), Grid piece (a piece card each), Buildables (one Black Market build each) or Upgrade.
     /// Vector and Relic are the vector chest and relic nodes' looks (they are nodes, not props). New kinds go at the end.
-    public enum ChestKind : byte { Upgrade, Gold, Vector, Relic, RoomCard, Buildable }
+    public enum ChestKind : byte { Upgrade, Gold, Vector, Relic, Piece, Buildable }
 
     public class Prop
     {
@@ -625,8 +625,8 @@ namespace Arena
                     foreach (var pl in Players.Values)
                         GiveChestBuild(pl);
                     break;
-                case ChestKind.RoomCard:
-                    break;  // (the cards: SpendNodeOfChest -> ChestCards)
+                case ChestKind.Piece:
+                    break;  // (the piece cards: SpendNodeOfChest -> ChestCards)
                 default:
                     int n = Players.Count, i = 0;
                     foreach (var pl in Players.Values)
@@ -648,7 +648,7 @@ namespace Arena
         /// A Gold chest's payout per player (spilled as coins anyone can pick up), and how many coins it spills.
         public const int ChestGold = 40, ChestGoldPerWave = 4, ChestGoldCoins = 14;
 
-        static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.RoomCard ? new Rgba(1f, 0.55f, 0.3f)
+        static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.Piece ? new Rgba(1f, 0.55f, 0.3f)
             : k == ChestKind.Buildable ? new Rgba(1f, 0.4f, 0.72f) : new Rgba(0.4f, 1f, 0.5f);
 
         /// Host: a Gold chest's coins, gold in all, spread in a ring round pos (ChestGoldCoins coins, the last carrying what's left).

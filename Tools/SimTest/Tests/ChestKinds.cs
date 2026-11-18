@@ -4,12 +4,12 @@ using System.Linq;
 using Arena;
 
 // Chest kinds (owner Nov 18, ChestKind in Props.cs, look Game/ChestLooks.cs): a wave's chest is Upgrade; an Expanding chest
-// node rolls Gold (a burst of coins), Room card (a card each), Buildables (a Black Market build each) or Upgrade (a card each).
+// node rolls Gold (a burst of coins), Grid piece (a card each), Buildables (a Black Market build each) or Upgrade (a card each).
 static partial class Program
 {
     static void ChestKindsTest(float dt)
     {
-        // The node roll: seeded, the same every time, all four kinds, no Room card with room cards off.
+        // The node roll: seeded, the same every time, all four kinds, no Grid piece with cards off.
         var seen = new HashSet<ChestKind>(); int unstable = 0, cardsOff = 0;
         for (int x = 0; x < 20; x++)
             for (int y = 0; y < 20; y++)
@@ -17,11 +17,11 @@ static partial class Program
                 var k = Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, true);
                 seen.Add(k);
                 if (k != Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, true)) unstable++;
-                if (Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, false) == ChestKind.RoomCard) cardsOff++;
+                if (Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, false) == ChestKind.Piece) cardsOff++;
             }
-        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.RoomCard, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0,
-            "a chest node rolls Gold, Room card, Buildables or Upgrade, the same each time (" + string.Join(",", seen) + ")");
-        Check(cardsOff == 0, "no Room card chest with room cards off");
+        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.Piece, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0,
+            "a chest node rolls Gold, Grid piece, Buildables or Upgrade, the same each time (" + string.Join(",", seen) + ")");
+        Check(cardsOff == 0, "no Grid piece chest with cards off");
 
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         int port = nextPort++;
@@ -32,7 +32,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.GridRooms, 0f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         var open = typeof(Game).GetMethod("OpenChest", flags);
         V2 at = new V2(800f, 300f);
 
@@ -73,7 +73,7 @@ static partial class Program
         Check(full.Stash.All(b => b == Market.StashMax), "and gives nothing past the cap");
         for (int k = 0; k < Market.Count; k++) full.Stash[k] = 0;
 
-        // A Room card chest node: a room round it, the chest comes out as Room card, opening it deals a card each and no upgrade card.
+        // A Grid piece chest node: a room round it, the chest comes out as Grid piece, opening it deals a card each and no upgrade card.
         string why;
         var room = Expansion.Custom(g.Expanded, (int)Game.Width, 200, 1000, 500, out why);
         Check(room.HasValue, "a room east of the start room (" + why + ")");
@@ -82,19 +82,20 @@ static partial class Program
         var node = new MapNode { X = (short)(Game.Width + 550), Y = 450, Kind = NodeKind.Chest };
         var seedField = typeof(Game).GetField("expandSeed", flags);
         int sd = 1;
-        while (sd < 200 && Expansion.NodeChestKind(sd, node.X, node.Y, true) != ChestKind.RoomCard) sd++;
+        while (sd < 200 && Expansion.NodeChestKind(sd, node.X, node.Y, true) != ChestKind.Piece) sd++;
         seedField.SetValue(g, sd);
         g.Nodes.Add(node);
         g.Props.Clear(); g.Loots.Clear();
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
+        g.Diff.Set(DiffKnob.GridRooms, 1f);  // (a Grid run: piece cards; on after the test room, which isn't on the lattice)
         var tickNodes = typeof(Game).GetMethod("TickNodes", flags);
         tickNodes.Invoke(g, null);
         var chest = g.Props.Values.FirstOrDefault(q => q.Kind == PropKind.Chest);
-        Check(chest != null && chest.Chest == ChestKind.RoomCard && g.NodeChestKind(node) == ChestKind.RoomCard, "the node's chest comes out as its rolled kind (Room card)");
+        Check(chest != null && chest.Chest == ChestKind.Piece && g.NodeChestKind(node) == ChestKind.Piece, "the node's chest comes out as its rolled kind (Grid piece)");
         if (chest != null)
         {
             open.Invoke(g, new object[] { chest });
-            Check(g.Nodes[0].Spent && g.Players.Values.All(p => Game.HandCount(p) == 1) && g.Loots.Count == 0, "Room card: every player gets a room card, no upgrade card");
+            Check(g.Nodes[0].Spent && g.Players.Values.All(p => Game.HandCount(p) == 1 && Expansion.IsGridCard((RoomCard)p.Hand[0])) && g.Loots.Count == 0, "Grid piece: every player gets a grid piece card, no upgrade card");
         }
     }
 }

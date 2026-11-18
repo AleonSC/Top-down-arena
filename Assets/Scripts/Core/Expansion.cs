@@ -370,7 +370,7 @@ namespace Arena
         public static int NodeRoomClear(MapNode n) => IsPrizeNode(n.Kind) ? PrizeClear : NodeReach(n);
 
         /// A treasure chest or a vector chest.
-        /// A chest node's kind (Props.cs ChestKind): Gold, Room card, Buildables or Upgrade, one each in turn of a seeded roll.
+        /// A chest node's kind (Props.cs ChestKind): Gold, Grid piece, Buildables or Upgrade, one each in turn of a seeded roll.
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
         {
             var r = new DetRandom(seed * 31 + x * 7919 + y * 104729 + 5);
@@ -378,7 +378,7 @@ namespace Arena
             return pick[r.Int(pick.Length)];
         }
 
-        static readonly ChestKind[] ChestRoll = { ChestKind.Gold, ChestKind.RoomCard, ChestKind.Buildable, ChestKind.Upgrade };
+        static readonly ChestKind[] ChestRoll = { ChestKind.Gold, ChestKind.Piece, ChestKind.Buildable, ChestKind.Upgrade };
         static readonly ChestKind[] ChestRollNoCards = { ChestKind.Gold, ChestKind.Buildable, ChestKind.Upgrade };
 
         public static bool IsChest(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest;
