@@ -348,30 +348,30 @@ namespace Arena
 
         /// A relic or vector chest node opening: the chest shakes and flashes, the lid flies up, rings burst out in its ink, light pours up with
         /// its emblems rising, and the prize (the relic's gem, or the vector arrow) climbs out, spins and shoots off; then it settles dim with the lid up.
-        void DrawNodeOpening(V2 c, float t, float age, ChestKind kind)
+        void DrawNodeOpening(V2 c, float t, float age, ChestKind kind, float fade = 1f)
         {
             var ink = ChestInkOf(kind);
             if (age >= 3f)
             {
-                DrawChestLook(c, 0.3f, t, kind, true, 99f);  // opened, lid up and dim
+                DrawChestLook(c, 0.3f * fade, t, kind, true, 99f);  // opened, lid up and dim
                 return;
             }
-            float settle = Mathf.Clamp01((age - 2.2f) / 0.8f), a = Mathf.Lerp(1f, 0.3f, settle);
+            float settle = Mathf.Clamp01((age - 2.2f) / 0.8f), a = Mathf.Lerp(1f, 0.3f, settle) * fade;
             V2 shake = age < 0.12f ? new V2(Mathf.Sin(t * 120f), Mathf.Cos(t * 97f)) * 2.5f * (1f - age / 0.12f) : default(V2);
             DrawChestLook(c + shake, a, t, kind, true, age);
             float hw = Game.ChestW / 2f, hh = Game.ChestH / 2f;
             if (age < 0.3f)  // the flash
             {
                 float f = 1f - age / 0.3f;
-                FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, new Rgba(1f, 1f, 1f, 0.6f * f));
-                Circle(c, hw + 18f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(0.35f * f), 28);
+                FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, new Rgba(1f, 1f, 1f, 0.6f * f * fade));
+                Circle(c, hw + 18f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(0.35f * f * fade), 28);
             }
             for (int k = 0; k < 2; k++)  // two rings bursting out
             {
                 float rk = Mathf.Clamp01((age - k * 0.15f) / 0.7f);
                 if (rk <= 0f || rk >= 1f)
                     continue;
-                GlowArc(c, 30f + 120f * rk, 2.5f - k, ink.WithAlpha(0.8f * (1f - rk)), 40);
+                GlowArc(c, 30f + 120f * rk, 2.5f - k, ink.WithAlpha(0.8f * (1f - rk) * fade), 40);
             }
             for (int k = 0; k < 8; k++)  // sparks flung out
             {
@@ -379,21 +379,44 @@ namespace Arena
                 if (sk >= 1f)
                     break;
                 V2 d = V2.FromAngle(k * MathX.Tau / 8f + 0.3f);
-                GlowLine(c + d * (20f + 70f * sk), c + d * (30f + 90f * sk), 1.5f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(1f - sk));
+                GlowLine(c + d * (20f + 70f * sk), c + d * (30f + 90f * sk), 1.5f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha((1f - sk) * fade));
             }
             // The prize climbs out (0.2-1.2 s), hangs spinning, then shoots up and away (1.6-2.1 s).
             if (age > 0.2f && age < 2.1f)
             {
                 float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((age - 0.2f) / 1f)), go = Mathf.Clamp01((age - 1.6f) / 0.5f);
-                float scale = 0.6f + 0.8f * rise + 0.6f * go, al = 1f - go;
+                float scale = 0.6f + 0.8f * rise + 0.6f * go, al = (1f - go) * fade;
                 V2 p = c + new V2(0f, -hh - 20f - 70f * rise - 160f * go * go + Mathf.Sin(t * 4f) * 2f * rise);
                 Circle(p, 18f * scale, ink.WithAlpha(0.18f * al), 20);
                 float spin = Mathf.Cos(age * 6f);  // turning: squash it side to side
-                if (kind == ChestKind.Vector)
+                if (kind == ChestKind.Gold)
+                    CoinSpin(p, scale, spin, ink.WithAlpha(al));
+                else if (kind == ChestKind.Vector)
                     VectorMark(p, 0.75f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), ink.Mix(new Rgba(1f, 1f, 1f), 0.4f).WithAlpha(al));
                 else
                     RelicGemSpin(p, scale, spin, ink.WithAlpha(al));
             }
+        }
+
+        /// A big gold coin turning: an ellipse squashed by spin (-1..1), its rim, and a bright mark on the face.
+        void CoinSpin(V2 c, float k, float spin, Rgba col)
+        {
+            float r = 11f * k, w = r * Mathf.Max(0.12f, Mathf.Abs(spin));
+            const int n = 20;
+            SetColor(col.WithAlpha(col.A * 0.45f));
+            for (int i = 0; i < n; i++)
+            {
+                float a0 = i * MathX.Tau / n, a1 = (i + 1) * MathX.Tau / n;
+                Tri(c, c + new V2(Mathf.Cos(a0) * w, Mathf.Sin(a0) * r), c + new V2(Mathf.Cos(a1) * w, Mathf.Sin(a1) * r));
+            }
+            var hot = col.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(col.A);
+            for (int i = 0; i < n; i++)
+            {
+                float a0 = i * MathX.Tau / n, a1 = (i + 1) * MathX.Tau / n;
+                GlowLine(c + new V2(Mathf.Cos(a0) * w, Mathf.Sin(a0) * r), c + new V2(Mathf.Cos(a1) * w, Mathf.Sin(a1) * r), 1.5f, hot);
+            }
+            if (Mathf.Abs(spin) > 0.35f)
+                GlowLine(c + new V2(0f, -r * 0.45f), c + new V2(0f, r * 0.45f), 1.5f, hot);
         }
 
         /// The relic's gem turning: a diamond squashed by spin (-1..1) with a bright face.

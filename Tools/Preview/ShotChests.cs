@@ -2,7 +2,7 @@ using System;
 using Arena;
 
 // CHESTLOOKS=1: the six chest kinds (Core ChestKind, Game/ChestLooks.cs): Gold, Vector, Upgrade, Relic, Room card, Buildables,
-// closed on the top row and just opened on the bottom. Use with mode hud, ZOOM=2 CAMAT=640,470 (you stand off view).
+// closed on the top row and just opened on the bottom (CHESTOPENT=<s>: opened that long ago, default 0.7). Use with mode hud, ZOOM=2 CAMAT=640,470 (you stand off view).
 static partial class Shot {
   static void ChestLooksScene() {
     if (Environment.GetEnvironmentVariable("CHESTLOOKS") == null) return;
@@ -17,7 +17,7 @@ static partial class Shot {
       for (int i = 0; i < 6; i++) {
         var p = gm.AddProp(PropKind.Chest, new V2(420f + 88f * i, row == 0 ? 400f : 590f));
         p.Age = 5f; p.SeenAt = p.Pos;
-        if (row == 1) { p.Open = true; p.OpenT = 0.7f; }
+        if (row == 1) { p.Open = true; p.OpenT = Environment.GetEnvironmentVariable("CHESTOPENT") != null ? float.Parse(Environment.GetEnvironmentVariable("CHESTOPENT"), System.Globalization.CultureInfo.InvariantCulture) : 0.7f; }
         p.Chest = kinds[i];
       }
     me.Pos = me.Disp = new V2(150f, 900f); me.Hp = me.MaxHp; me.InvulnT = 99f;

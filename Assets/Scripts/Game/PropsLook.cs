@@ -463,7 +463,10 @@ namespace Arena
             }
             if (fxOn)
             {
-                DrawChestLook(c, a, t, p.Chest, p.Open, p.OpenT);  // ChestLooks.cs
+                if (p.Open && p.Chest == ChestKind.Gold)
+                    DrawNodeOpening(c, t, p.OpenT, ChestKind.Gold, a);  // bursts open like a relic node, a big coin climbing out (NodeLook.cs)
+                else
+                    DrawChestLook(c, a, t, p.Chest, p.Open, p.OpenT);  // ChestLooks.cs
                 return;
             }
             // Plain: wood with trim in its kind's ink, and its emblem on the lock plate.
