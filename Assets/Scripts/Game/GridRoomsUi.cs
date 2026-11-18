@@ -203,5 +203,137 @@ namespace Arena
             float y = y0 + ((n + 1) / 2) * (ch + gap);
             Ui.Label(new Rect(area.x, y, area.width, 30f), "+1 piece each round. More from bosses, chests, the Black Market and the Builder Shop.", 10, Ui.Muted, TextAnchor.UpperLeft, true, true);
         }
+    
+        // --- The map's lattice and the placing effect (owner Nov 18: grid C, effect C) --------------------------------------------
+
+        /// The lattice the pieces snap to, faint, fading out with distance from the map: cell lines (6 tiles) nearest the rooms you have, gone 15 tiles out.
+        void DrawGridLattice(System.Func<V2, V2> M, V2 lo, V2 hi)
+        {
+            int bx0 = 0, by0 = 0, bx1 = (int)Game.Width, by1 = (int)Game.Height;
+            foreach (var r in game.Expanded)
+                if (!r.Floating)
+                {
+                    bx0 = Mathf.Min(bx0, r.X); by0 = Mathf.Min(by0, r.Y); bx1 = Mathf.Max(bx1, r.X1); by1 = Mathf.Max(by1, r.Y1);
+                }
+            int c = Expansion.GridCell;
+            int x0 = Expansion.GridX0 + Mathf.FloorToInt((lo.X - Expansion.GridX0) / c) * c, y0 = Expansion.GridY0 + Mathf.FloorToInt((lo.Y - Expansion.GridY0) / c) * c;
+            for (int x = x0; x <= hi.X; x += c)
+                for (int y = y0; y <= hi.Y; y += c)
+                {
+                    float mx = x + c / 2f, my = y + c / 2f;
+                    float dx = Mathf.Max(0f, Mathf.Max(bx0 - mx, mx - bx1)), dy = Mathf.Max(0f, Mathf.Max(by0 - my, my - by1));
+                    float a = 0.16f * (1f - Mathf.Sqrt(dx * dx + dy * dy) / 1500f);
+                    if (a <= 0.005f)
+                        continue;
+                    var ink = GridInk.WithAlpha(a);
+                    V2 p0 = M(new V2(x, y)), p1 = M(new V2(x + c, y + c));
+                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, 1f, ink);  // (each cell its top and left edge: every line drawn once)
+                    RoomMapRect(p0.X, p0.Y, 1f, p1.Y - p0.Y, ink);
+                }
+        }
+
+        int placeFxSeen = -1;            // the map's room count last frame (-1: not looked yet)
+        float placeFxT0 = -9f;
+        readonly List<ExpansionRoom> placeFxRooms = new List<ExpansionRoom>();
+        V2 placeFxDoor, placeFxDir;      // where the new piece meets the map, and the way it faces (out from the map)
+        float placeFxEdge0, placeFxEdge1; // the shared stretch along that wall
+        bool placeFxVertical;
+
+        /// A piece just built slides in from a cell out and slams into the wall: a white flash over it, the wall it joins pulsing gold, sparks at the door.
+        void DrawPlaceFx(System.Func<V2, V2> M, float k)
+        {
+            var built = game.Expanded;
+            if (placeFxSeen < 0 || built.Count < placeFxSeen)
+                placeFxSeen = built.Count;
+            if (built.Count > placeFxSeen)
+            {
+                int first = placeFxSeen;
+                placeFxSeen = built.Count;
+                placeFxRooms.Clear();
+                for (int i = first; i < built.Count; i++)
+                    if (!built[i].Floating)
+                        placeFxRooms.Add(built[i]);
+                if (placeFxRooms.Count > 0 && placeFxRooms.Count <= 8 && FindPlaceDoor(built, first))
+                    placeFxT0 = Time.unscaledTime;
+            }
+            float t = Time.unscaledTime - placeFxT0;
+            if (t < 0f || t > 1.4f || placeFxRooms.Count == 0)
+                return;
+            float sl = Mathf.Min(1f, t / 0.35f), off = (1f - sl * sl) * Expansion.GridCell;
+            foreach (var r in placeFxRooms)
+            {
+                V2 p0 = M(new V2(r.X, r.Y) + placeFxDir * off), p1 = M(new V2(r.X1, r.Y1) + placeFxDir * off);
+                RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, GridInk.WithAlpha(sl < 1f ? 0.3f : 0f));
+                if (sl < 1f)
+                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 2f, GridInk.WithAlpha(0.95f));
+            }
+            float after = t - 0.35f;
+            if (after < 0f)
+                return;
+            float flash = Mathf.Max(0f, 1f - after * 2.5f);
+            if (flash > 0f)
+                foreach (var r in placeFxRooms)
+                {
+                    V2 p0 = M(new V2(r.X, r.Y)), p1 = M(new V2(r.X1, r.Y1));
+                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, new Rgba(1f, 1f, 1f, 0.55f * flash));
+                }
+            float pulse = Mathf.Max(0f, 1f - after * 1.6f);
+            if (pulse > 0f)
+            {
+                var gold = new Rgba(1f, 0.78f, 0.29f, pulse);
+                V2 e0 = M(placeFxVertical ? new V2(placeFxDoor.X, placeFxEdge0) : new V2(placeFxEdge0, placeFxDoor.Y));
+                V2 e1 = M(placeFxVertical ? new V2(placeFxDoor.X, placeFxEdge1) : new V2(placeFxEdge1, placeFxDoor.Y));
+                RoomMapRect(Mathf.Min(e0.X, e1.X) - 2f, Mathf.Min(e0.Y, e1.Y) - 2f, Mathf.Abs(e1.X - e0.X) + 4f, Mathf.Abs(e1.Y - e0.Y) + 4f, gold);
+            }
+            float spark = Mathf.Max(0f, 1f - after * 1.8f);
+            if (spark > 0f)
+            {
+                V2 side = new V2(-placeFxDir.Y, placeFxDir.X);
+                for (int i = 0; i < 14; i++)
+                {
+                    float f = (i / 13f - 0.5f) * 2.4f, reach = 0.6f + 0.4f * ((i * 37) % 7) / 7f;
+                    V2 dir = (placeFxDir * Mathf.Cos(f) + side * Mathf.Sin(f));
+                    V2 p = M(placeFxDoor + dir * (after * 300f * reach));
+                    RoomMapRect(p.X - 1.5f, p.Y - 1.5f, 3f, 3f, new Rgba(1f, 0.86f, 0.47f, spark));
+                }
+            }
+        }
+
+        /// Where the new rooms (from `first` on) meet the old map: the longest wall they share, its middle, and the way out from the map.
+        bool FindPlaceDoor(IList<ExpansionRoom> built, int first)
+        {
+            float best = 0f;
+            for (int i = first; i < built.Count; i++)
+            {
+                var n = built[i];
+                for (int a = 0; a <= first; a++)
+                {
+                    int ox0, oy0, ox1, oy1;
+                    if (a == 0) { ox0 = 0; oy0 = 0; ox1 = (int)Game.Width; oy1 = (int)Game.Height; }
+                    else { var o = built[a - 1]; ox0 = o.X; oy0 = o.Y; ox1 = o.X1; oy1 = o.Y1; }
+                    bool v = n.X == ox1 || n.X1 == ox0, h = n.Y == oy1 || n.Y1 == oy0;
+                    float run = v ? Mathf.Min(n.Y1, oy1) - Mathf.Max(n.Y, oy0) : h ? Mathf.Min(n.X1, ox1) - Mathf.Max(n.X, ox0) : 0f;
+                    if (run <= best)
+                        continue;
+                    best = run;
+                    placeFxVertical = v;
+                    if (v)
+                    {
+                        float x = n.X == ox1 ? n.X : n.X1;
+                        placeFxEdge0 = Mathf.Max(n.Y, oy0); placeFxEdge1 = Mathf.Min(n.Y1, oy1);
+                        placeFxDoor = new V2(x, (placeFxEdge0 + placeFxEdge1) / 2f);
+                        placeFxDir = new V2(n.X == ox1 ? 1f : -1f, 0f);
+                    }
+                    else
+                    {
+                        float y = n.Y == oy1 ? n.Y : n.Y1;
+                        placeFxEdge0 = Mathf.Max(n.X, ox0); placeFxEdge1 = Mathf.Min(n.X1, ox1);
+                        placeFxDoor = new V2((placeFxEdge0 + placeFxEdge1) / 2f, y);
+                        placeFxDir = new V2(0f, n.Y == oy1 ? 1f : -1f);
+                    }
+                }
+            }
+            return best > 0f;
+        }
     }
 }

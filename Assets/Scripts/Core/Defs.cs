@@ -157,6 +157,8 @@ namespace Arena
         VectorForge,
         // the Engineer Tank's and Healer's weapons (Engineer.cs, step 4): a nail shotgun with the Sentinel; a rivet gun with a med-drone
         BulwarkForge, MediDroneForge,
+        // the Tank Hemomancer's fourth (BloodBlast.cs): a six-step chain of blood cuts
+        BloodBlast,
     }
 
     public class WeaponDef

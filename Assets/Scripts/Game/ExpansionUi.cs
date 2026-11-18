@@ -536,10 +536,15 @@ namespace Arena
             {
                 roomClip = map;
                 RoomMapRect(map.x, map.y, map.width, map.height, new Rgba(0.01f, 0.03f, 0.08f, 0.7f));
-                for (float gx = Mathf.Ceil(lo.X / 500f) * 500f; gx <= hi.X; gx += 500f)  // a faint grid every 5 tiles
-                    RoomMapRect(M(new V2(gx, lo.Y)).X, map.y, 1f, map.height, new Rgba(0.4f, 0.64f, 1f, 0.07f));
-                for (float gy = Mathf.Ceil(lo.Y / 500f) * 500f; gy <= hi.Y; gy += 500f)
-                    RoomMapRect(map.x, M(new V2(lo.X, gy)).Y, map.width, 1f, new Rgba(0.4f, 0.64f, 1f, 0.07f));
+                if (game.GridRoomsOn)
+                    DrawGridLattice(M, lo, hi);  // the lattice, fading out from the map (GridRoomsUi.cs)
+                else
+                {
+                    for (float gx = Mathf.Ceil(lo.X / 500f) * 500f; gx <= hi.X; gx += 500f)  // a faint grid every 5 tiles
+                        RoomMapRect(M(new V2(gx, lo.Y)).X, map.y, 1f, map.height, new Rgba(0.4f, 0.64f, 1f, 0.07f));
+                    for (float gy = Mathf.Ceil(lo.Y / 500f) * 500f; gy <= hi.Y; gy += 500f)
+                        RoomMapRect(map.x, M(new V2(lo.X, gy)).Y, map.width, 1f, new Rgba(0.4f, 0.64f, 1f, 0.07f));
+                }
                 for (int ai = 0; ai < wd.Areas.Length; ai++)
                 {
                     var a = wd.Areas[ai];
@@ -568,8 +573,8 @@ namespace Arena
                     }
                 for (int di = 0; di < wd.Doors.Length; di++)
                 {
-                    if (wd.Seam(di))
-                        continue;  // (inside one room)
+                    if (wd.Seam(di) || CoreSeam(wd, di))
+                        continue;  // (inside one room; a Grid run's core is one room with the start room)
                     var d = wd.Doors[di];
                     V2 c = M(d.Pos);
                     if (d.Width > 0f)  // an opened wall: its whole length
@@ -641,6 +646,8 @@ namespace Arena
                     DrawCardGhost(M, cardPick);
                 if (gridMode)
                     DrawGridGhost(M, gridPick);
+                if (game.GridRoomsOn)
+                    DrawPlaceFx(M, k);  // a piece just built slams in (GridRoomsUi.cs)
                 if (hasBox)
                 {
                     V2 p0 = M(new V2(rx, ry)), p1 = M(new V2(rx + rw, ry + rh));
@@ -976,17 +983,29 @@ namespace Arena
             CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
             Ui.Label(new Rect(x + 2f, 64f, w, 16f), doorsOnly ? "WAVE ON  ·  DOORS ONLY" : "BUILT AS YOU PLACE IT", 10, doorsOnly ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
             string[] names = { game.RoomCardsOn ? "ROOM CARDS" : game.GridRoomsOn ? "PIECES" : "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
+            // The tools shown: Open wall only where it is in play (not in a Grid run), the buildables only while you own one (owner Nov 18).
+            var me0 = game.Me;
+            bool trapsHeld = false;
+            if (me0 != null)
+                for (int tk = 1; tk < Market.Count; tk++)
+                    trapsHeld |= me0.Stash[tk] > 0;
+            var shown = new List<int> { 0 };
+            if (game.OpenWallsOn) shown.Add(1);
+            if (me0 != null && me0.Stash[(int)BuildKind.Teleporter] > 0 || expLinkMode) shown.Add(2);
+            shown.Add(3);
+            if (trapsHeld || expTrapMode) shown.Add(4);
             int cur = expTrapMode ? 4 : expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0;
             var ev = Event.current;
             int pick = -1;
-            if (!doorsOnly && ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode <= KeyCode.Alpha5)
+            if (!doorsOnly && ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode < KeyCode.Alpha1 + shown.Count)
             {
-                pick = ev.keyCode - KeyCode.Alpha1;
+                pick = shown[ev.keyCode - KeyCode.Alpha1];
                 ev.Use();
             }
-            for (int i = 0; i < names.Length; i++)
+            for (int si0 = 0; si0 < shown.Count; si0++)
             {
-                var r = new Rect(x, 92f + i * 42f, w, 36f);
+                int i = shown[si0];
+                var r = new Rect(x, 92f + si0 * 42f, w, 36f);
                 bool on = i == cur;
                 if (doorsOnly && i != 1)
                 {
@@ -996,7 +1015,7 @@ namespace Arena
                 }
                 if (CrtUi.SoftKey(r, names[i], null, 15, calm, lit: on) && !doorsOnly)
                     pick = i;
-                Ui.Label(new Rect(r.x + 8f, r.y, 14f, r.height), (i + 1).ToString(), 10, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 8f, r.y, 14f, r.height), (si0 + 1).ToString(), 10, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
                 if (TipHover(r))
                 {
                     string tt, tp;
@@ -1017,7 +1036,7 @@ namespace Arena
                 expDragging = false;
                 expA = expB = V2.Zero;
             }
-            float y = 92f + names.Length * 42f + 6f;
+            float y = 92f + shown.Count * 42f + 6f;
             if (expTrapMode && !doorsOnly && game.Me != null)  // the traps in your stash: pick which one a click places
             {
                 for (int tk = 1; tk < Market.Count; tk++)

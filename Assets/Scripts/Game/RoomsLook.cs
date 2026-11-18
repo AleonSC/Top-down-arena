@@ -380,9 +380,19 @@ namespace Arena
                 else if (rs != null && rs.Cleared) { fill = DoorTeal.WithAlpha(0.3f); line = DoorTeal; }
                 else if (rs != null && rs.Seen) { fill = DoorRed.WithAlpha(0.2f); line = DoorRed; }
                 else { fill = new Rgba(0.4f, 0.64f, 1f, 0.04f); line = new Rgba(0.4f, 0.64f, 1f, 0.3f); }
+                bool core = CoreArea(i) || a.Hub && CoreArea(1);  // a Grid run's core: one room with the start room, its rim drawn once below
+                if (core && !a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); }
                 V2 p0 = M(a.Min), p1 = M(a.Max);
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
-                RimFrame(wd, i, M, 1f, line, true);
+                if (!core)
+                    RimFrame(wd, i, M, 1f, line, true);
+            }
+            if (CoreArea(1))  // the core's one outline (GridRooms.cs)
+            {
+                V2 c0 = M(new V2(Expansion.GridX0, Expansion.GridY0)), c1 = M(new V2(Expansion.GridX0 + 4 * Expansion.GridCell, Expansion.GridY0 + 3 * Expansion.GridCell));
+                var cl = new Rgba(0.4f, 0.64f, 1f, 0.75f);
+                MapRect(c0.X, c0.Y, c1.X - c0.X, 1f, cl); MapRect(c0.X, c1.Y - 1f, c1.X - c0.X, 1f, cl);
+                MapRect(c0.X, c0.Y, 1f, c1.Y - c0.Y, cl); MapRect(c1.X - 1f, c0.Y, 1f, c1.Y - c0.Y, cl);
             }
             foreach (var n in game.Nodes)  // the nodes: a square with a dark edge, breathing and haloed until a room is built round it
             {

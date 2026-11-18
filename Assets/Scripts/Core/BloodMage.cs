@@ -47,6 +47,9 @@ namespace Arena
                 case WeaponId.BloodLash:
                     FireBloodLash(p, aim, dmg, extra);  // the chain combo (BloodLash.cs)
                     break;
+                case WeaponId.BloodBlast:
+                    FireBloodBlast(p, aim, dmg, extra);  // the six-step chain of blood cuts (BloodBlast.cs)
+                    break;
                 case WeaponId.ClotBolt:
                 {
                     // The Gore Mortar: lobbed over enemies like the Golem Staff's boulder, as far as the charge sends it;
@@ -708,7 +711,7 @@ namespace Arena
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickBloodMages(dt),
             OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Blood Mage shots drain, pool and drop orbs
-            OnKill = (g, e) => g.DebtKill(e),  // a kill pays back Blood Debt (BloodDebt.cs)
+            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs) and sends Blood Blast stacks home (BloodBlast.cs)
         };
 
         /// The Hemomancer's weapons (Kit.Hemomancer; FireBloodWeapon).
@@ -725,6 +728,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils that grasp nearby enemies and hold them stunned. The longer you hold, the more blood builds up in them, and after 5 seconds they burst. Let go early and they burst for the share built up so far. Holding costs 2% of your max health a second, and the tendrils need 1 second to recover after a burst.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
+            new WeaponDef { Id = WeaponId.BloodBlast, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 3, Damage = 22f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "+15% damage and reach", Name = "Blood Blast", FireInterval = 0.42f,
+                Desc = "Your blood shaped into a blade, a six-step chain that never times out: Crimson Slash, Backcut, Thorn Flurry, Vein Whirl, Sanguine Cleave, Crescent Flight. "
+                    + "Every attack costs 1.3-3% of your max health and puts a blood stack on each enemy it hits (up to 10). When a stacked enemy dies, its blood flies back and heals you 2 a stack." },
             // Healer
             new WeaponDef { Id = WeaponId.TransfusionDarts, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
                 Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them more health than it costs you. Each enemy hit steals a sliver back." },
@@ -755,6 +761,8 @@ namespace Arena
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] HemomancerCards =
         {
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBlast }, MaxStacks = 2, Name = "Blood Harvest", Desc = "The Blood Blast's stacks heal 1 more each, and an enemy holds 5 more",
+                Apply = s => { s.BlastHealBonus += 1f; s.BlastCapBonus += 5; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.EmbolusSpears }, MaxStacks = 2, Name = "Burst Vessels", Desc = "The Embolus Spears' burst is 30% wider and hits 30% harder",
                 Apply = s => s.EsBlastMult += 0.3f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",

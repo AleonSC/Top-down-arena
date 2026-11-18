@@ -970,6 +970,10 @@ namespace Arena
             s.Byte(ref variant);  // a variant of its type (EnemyVariants.cs)
             int frostChill = !s.Reading ? e.FrostChill : 0;
             s.Byte(ref frostChill);  // the Frost Lance's chill on it (FrostLance.cs)
+            int blastStacks = !s.Reading ? e.BlastStacks : 0, blastOwner = !s.Reading ? e.BlastOwner : 0;
+            s.Byte(ref blastStacks);  // Blood Blast stacks on it, and whose (BloodBlast.cs)
+            if (blastStacks > 0)
+                s.Byte(ref blastOwner);
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -988,6 +992,8 @@ namespace Arena
                 e.Dazed = dazed;
                 e.Variant = (EnemyVariant)variant;
                 e.FrostChill = (byte)frostChill;
+                e.BlastStacks = (byte)blastStacks;
+                e.BlastOwner = blastStacks > 0 ? blastOwner : 0;
                 e.Spawning = spawning;
                 e.Facing = facing;
                 e.Phase = phase;
