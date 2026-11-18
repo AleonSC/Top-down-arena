@@ -307,7 +307,7 @@ namespace Arena
                     var rn = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
                     if (!rn.HasValue)
                         continue;
-                    Nodes.Add(rn.Value);
+                    Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
                     added = true;
                     DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
                 }
@@ -319,7 +319,7 @@ namespace Arena
                 var nd = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
                 if (!nd.HasValue)
                     continue;
-                Nodes.Add(nd.Value);
+                Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
                 added = true;
                 DoLog("a " + kind + " node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
@@ -397,7 +397,7 @@ namespace Arena
             var nd = GridRoomsOn ? Expansion.GridChestFor(expandSeed, Expanded, Nodes, count) : Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
             if (!nd.HasValue)
                 return;
-            Nodes.Add(nd.Value);
+            Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
             DoLog("a chest node appears outside the new room at " + nd.Value.X + "," + nd.Value.Y);
         }
 
@@ -453,7 +453,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
-                    if (pr.Chest == ChestKind.RoomCard)
+                    if (pr.Chest == ChestKind.Piece)
                         ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
@@ -510,7 +510,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
-                    if (c.Chest == ChestKind.RoomCard)
+                    if (c.Chest == ChestKind.Piece)
                         ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
