@@ -1,6 +1,6 @@
 # Blood Blast: blood-slash chain
 
-**Status: built** (steps 1-4, protocol 404): the chain, health costs, stacks, kill heal and Crimson Tide in `Assets/Scripts/Core/BloodBlast.cs`, the look in `Assets/Scripts/Game/BloodBlastLook.cs`, tests `Tools/SimTest/run.sh 1 30 bloodblast`, preview `BLOODBLAST=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`. Sounds in `Assets/Scripts/Game/BloodBlastSoundBank.cs` (`Tools/SoundCheck/render.sh Blast`). Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
+**Status: built** (steps 1-4, protocol 405): the chain, health costs, stacks, kill heal and Crimson Tide in `Assets/Scripts/Core/BloodBlast.cs`, the look in `Assets/Scripts/Game/BloodBlastLook.cs`, tests `Tools/SimTest/run.sh 1 30 bloodblast`, preview `BLOODBLAST=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`. Sounds in `Assets/Scripts/Game/BloodBlastSoundBank.cs` (`Tools/SoundCheck/render.sh Blast`). Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
 (published: https://claude.ai/artifact/ENVDpfrNckiH4KoUpHvEp2).
 
 ## Owner's decisions
@@ -51,7 +51,7 @@
 
 ## Build steps
 
-1. **Core** (done, protocol 404): `WeaponId.BloodBlast`, the six-step chain in `Core/BloodBlast.cs` (each step a `Swing`;
+1. **Core** (done, protocol 405): `WeaponId.BloodBlast`, the six-step chain in `Core/BloodBlast.cs` (each step a `Swing`;
    Crescent Flight is a 260 px, 80° cut until step 3 draws it flying), health costs, `Enemy.BlastStacks` + owner
    (replicated), the kill heal on arrival; suite `bloodblast`. Placeholder look: the red slash and a drain line home.
 2. **Alt** (done): Crimson Tide on the weapon-action key (`DashTide` 46; `LocalTide`, `HostTide`, `TickTide`): pay, gather
