@@ -256,6 +256,7 @@ static partial class Shot {
     PlayerScenes();
     app = new ArenaApp();
     f2 = BindingFlags.NonPublic | BindingFlags.Instance;
+    if (Environment.GetEnvironmentVariable("LIVESUSED") != null) { host.Game.Quick = false; host.Game.LivesUsed = int.Parse(Environment.GetEnvironmentVariable("LIVESUSED")); }  // the lives on the HUD (a Campaign run)
     if (Environment.GetEnvironmentVariable("GOLD") != null) me.Gold = int.Parse(Environment.GetEnvironmentVariable("GOLD"));  // the Bazaar's gold on the HUD
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
@@ -282,11 +283,11 @@ static partial class Shot {
       set("launchT", launchAt); set("launchFromLobby", true); set("launchRippled", true);
       host.Game.State = launchAt < 5f ? MatchState.Intermission : MatchState.Fighting; host.Game.Wave = launchAt < 5f ? 0 : 1; host.Game.StateTimer = Math.Max(0.1f, 5f - launchAt);
       host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); foreach (var pl in host.Game.Players.Values) { pl.Offer = null; pl.PendingPicks = 0; }
-      float hk = Math.Max(0f, Math.Min(1f, (launchAt - 1.7f) / 0.35f)); set("hudT", hk);
+      float hk = Math.Max(0f, Math.Min(1f, (launchAt - 1.7f) / 0.35f)); set("miniT", hk);
     }
     // RECALL=<seconds>: everyone beaming out back to the lobby, that far in (Recall.cs).
     recallAt = Environment.GetEnvironmentVariable("RECALL") != null ? float.Parse(Environment.GetEnvironmentVariable("RECALL"), System.Globalization.CultureInfo.InvariantCulture) : -1f;
-    if (recallAt >= 0f) { host.Screen = AppScreen.Game; set("recallT", recallAt); set("hudT", Math.Max(0f, 1f - recallAt / 0.3f)); }
+    if (recallAt >= 0f) { host.Screen = AppScreen.Game; set("recallT", recallAt); set("miniT", Math.Max(0f, 1f - recallAt / 0.3f)); }
     // ENDING=<seconds>: a run ending, that far in (RunEnding.cs); with mode gameover or victory.
     endingAt = Environment.GetEnvironmentVariable("ENDING") != null ? float.Parse(Environment.GetEnvironmentVariable("ENDING")) : -1f;
     if (endingAt >= 0f) {
@@ -924,8 +925,8 @@ static partial class Shot {
       typeof(Game).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(xg, null);
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null || Environment.GetEnvironmentVariable("EXPANDVOTE") != null || Environment.GetEnvironmentVariable("EXPANDSHOP") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
-    if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("hudT", ht); set("hudShown", ht > 0.5f); }
-    if (Environment.GetEnvironmentVariable("HUDMODE") != null) { int hm = int.Parse(Environment.GetEnvironmentVariable("HUDMODE")); set("hudMode", hm); set("hudShown", hm == 0); set("hudT", hm == 0 ? 1f : 0f); set("miniT", hm == 1 || hm == 2 ? 1f : 0f); }
+    if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("miniT", ht); }  // (the corner HUD easing in; the full console is retired)
+    if (Environment.GetEnvironmentVariable("HUDMODE") != null) { int hm = int.Parse(Environment.GetEnvironmentVariable("HUDMODE")); set("hudMode", hm); set("miniT", hm < 2 ? 1f : 0f); }  // HUDMODE=0 corner (default), 1 on the player, 2 hidden
     DrawMode();
     Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawCabEdges", f2).Invoke(app, null);  // the cabinet menus' soft edges, as ArenaApp.OnGUI draws them (CrtWindows.cs)
     using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);

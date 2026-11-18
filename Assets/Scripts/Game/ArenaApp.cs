@@ -140,7 +140,7 @@ namespace Arena
             LoadCamZoom();     // CameraZoom.cs
             LoadHoverNames();  // EnemyTagLook.cs
             LoadLagChart();  // LagChartUi.cs
-            SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
+            SetHudMode(SavedHudMode(), false);  // the HUD mode, remembered (HudModes.cs)
             LoadMapView();  // minimap, full map or off, remembered (MapView.cs)
             LoadBackgroundSettings();
             InitLobbyCrt();  // build the lobby CRT's textures now, not on the New run boot's first frame (LobbyCrt.cs)
@@ -440,7 +440,7 @@ namespace Arena
             TextEditKeys();  // F4: the dev text editor
             SnapshotKeys();  // F6 / F7: take / load a run snapshot (SnapshotUi.cs)
             if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
-                SetHudMode(hudMode + 1);  // H: full > corner text > on the player > hidden (HudModes.cs)
+                SetHudMode(hudMode + 1);  // H: corner > on the player > hidden (HudModes.cs)
             TickMapView(Time.unscaledDeltaTime);  // M: minimap > full map > off (MapView.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
