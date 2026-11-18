@@ -8,7 +8,7 @@ namespace Arena
     {
         static readonly Rgba ChestInk = new Rgba(0.82f, 0.5f, 1f);
 
-        static readonly Rgba RelicInk = new Rgba(1f, 0.78f, 0.28f);
+        static readonly Rgba RelicInk = new Rgba(0.78f, 0.5f, 1f);  // (the Relic chest's violet, ChestLooks.cs)
 
         static readonly Rgba RuleInk = new Rgba(1f, 0.5f, 0.3f);
 
@@ -21,8 +21,13 @@ namespace Arena
         /// A node's colour: a fogged one is grey, a rule node wears its rule's path colour.
         static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
 
+        /// A chest node's colour once seen: its chest kind's ink (Gold, Room card, Buildables or Upgrade).
+        Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
+
+        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Room card chest", "Buildables chest" };
+
         /// A node's name for tips and the legend ("Unknown" while fogged).
-        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.ForNode(n, game.Players.Values)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
+        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.ForNode(n, game.Players.Values)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
 
         /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
         string NodeBlurb(MapNode n)
@@ -32,6 +37,14 @@ namespace Arena
                     + "Walk within 8 tiles of it, or claim a scout tower near it, to see what it is.";
             if (n.Kind == NodeKind.Relic)
                 return "Build a room round it and walk up to it: every player gets this relic (it replaces your old one). " + Relics.Desc(Relics.ForNode(n, game.Players.Values));
+            if (n.Kind == NodeKind.Chest)
+                switch (game.NodeChestKind(n))
+                {
+                    case ChestKind.Gold: return "Build a room round it and touch the chest: it bursts into gold coins for everyone to pick up.";
+                    case ChestKind.RoomCard: return "Build a room round it and touch the chest: every player gets a room card.";
+                    case ChestKind.Buildable: return "Build a room round it and touch the chest: every player gets a Black Market build in their stash.";
+                    default: return "Build a room round it and touch the chest: every player gets their own upgrade card.";
+                }
             if (n.Kind == NodeKind.Tower)
                 return "Build a room round it to claim it. While it stands, every node within 30 tiles shows what it is, new ones too.";
             if (n.Kind == NodeKind.Vein)
@@ -62,13 +75,13 @@ namespace Arena
                     if (n.Cleared && Expansion.RuleHoldsRelic(n))
                         DrawNodeFixture(n.Pos, NodeKind.Relic, n.Spent);
                     else if (n.Cleared && Expansion.RuleHoldsChest(n))
-                        DrawNodeFixture(n.Pos, NodeKind.Chest, n.Spent);
+                        DrawNodeFixture(n.Pos, NodeKind.Chest, n.Spent, game.NodeChestKind(n));
                     return;
                 }
-                DrawNodeFixture(n.Pos, n.Kind, n.Spent);
+                DrawNodeFixture(n.Pos, n.Kind, n.Spent, n.Kind == NodeKind.Chest ? game.NodeChestKind(n) : ChestKind.Upgrade);
                 return;
             }
-            var col = NodeInkOf(n).WithAlpha(0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
+            var col = NodeInkOfChest(n).WithAlpha(0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
             V2 c = n.Pos;
             if (n.Kind == NodeKind.Rule)
             {
@@ -97,7 +110,10 @@ namespace Arena
                     ChestBox(c, 0.7f, col, false);
                     VectorMark(c + new V2(0f, -30f), 0.6f, col);
                     break;
-                default: ChestBox(c, 0.7f, col, false); break;
+                default:
+                    ChestBox(c, 0.7f, col, false);
+                    ChestEmblem(game.NodeChestKind(n), c + new V2(0f, -30f), 1.3f, col, col, col.A);  // what it holds
+                    break;
             }
         }
 
@@ -184,9 +200,9 @@ namespace Arena
         }
 
         /// The shop's stall, the vendor's pedestal or the chest, centred on the node (or on an opened floating shop or vendor room).
-        void DrawNodeFixture(V2 c, NodeKind kind, bool spent)
+        void DrawNodeFixture(V2 c, NodeKind kind, bool spent, ChestKind chest = ChestKind.Upgrade)
         {
-            var ink = NodeInk(kind);
+            var ink = kind == NodeKind.Chest ? ChestInkOf(chest) : NodeInk(kind);
             float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
             switch (kind)
             {
@@ -216,13 +232,11 @@ namespace Arena
                 {
                     if (spent)
                     {
-                        Arc(c, 30f, 3f, ink.WithAlpha(0.3f), 24);  // the empty plinth
+                        DrawChestLook(c, 0.3f, t, ChestKind.Relic, true, 99f);  // opened, lid up and dim
                         break;
                     }
-                    Circle(c, 66f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
-                    Arc(c, 30f, 4f, ink.WithAlpha(0.6f), 24);  // the plinth
                     Arc(c, Relics.TakeReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
-                    RelicGem(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f - 4f), 1f, ink.WithAlpha(0.95f));
+                    DrawChestLook(c, 1f, t, ChestKind.Relic, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
                     {
                         float a = t * 1.4f + k * MathX.Tau / 3f;
@@ -265,13 +279,11 @@ namespace Arena
                 {
                     if (spent)
                     {
-                        ChestBox(c, 1f, ink.WithAlpha(0.3f), true);
+                        DrawChestLook(c, 0.3f, t, ChestKind.Vector, true, 99f);  // opened, lid up and dim
                         break;
                     }
-                    Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
                     Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
-                    ChestBox(c, 1f, ink.WithAlpha(0.95f), false);
-                    VectorMark(c + new V2(0f, -44f + Mathf.Sin(t * 2.6f) * 3f), 1f, ink.WithAlpha(0.95f));  // the vector arrow bobbing over the lid
+                    DrawChestLook(c, 1f, t, ChestKind.Vector, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
                     {
                         float a = t * 1.4f + k * MathX.Tau / 3f;
@@ -286,7 +298,7 @@ namespace Arena
                         Arc(c, 66f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     }
                     if (spent)  // (a claimed, unopened chest is the real prop, Props.cs)
-                        ChestBox(c, 1f, ink.WithAlpha(spent ? 0.3f : 0.95f), spent);
+                        DrawChestLook(c, 0.3f, t, chest, true, 99f);
                     break;
             }
         }

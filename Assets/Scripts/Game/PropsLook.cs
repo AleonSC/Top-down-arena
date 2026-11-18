@@ -444,34 +444,32 @@ namespace Arena
             a *= fade;
             if (a <= 0f)
                 return;
-            if (MockChestLooks.TryGetValue(p.Id, out var mockLook))  // MOCKUP (ChestLooks.cs)
-            {
-                DrawChestLook(p, c, a, t, mockLook);
-                return;
-            }
-            // A soft golden glow under it while it waits, and twinkles around it.
+            // A soft glow in its kind's ink under it while it waits (the hologram draws its own), and twinkles around it.
+            var kindInk = ChestInkOf(p.Chest);
             if (!p.Open)
             {
                 float pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f);
-                Circle(c, hw + 14f + 4f * pulse, new Rgba(1f, 0.8f, 0.3f, 0.08f + 0.06f * pulse), 28);
+                if (!fxOn)
+                    Circle(c, hw + 14f + 4f * pulse, kindInk.WithAlpha(0.08f + 0.06f * pulse), 28);
                 for (int k = 0; k < 4; k++)
                 {
                     float f = MathX.Fmod(t * 0.7f + k * 0.25f, 1f);
                     V2 s = c + V2.FromAngle(k * 1.9f + p.Seed) * (hw + 6f) + new V2(0f, -18f * f);
                     float sz = 4f * Mathf.Sin(f * Mathf.PI);
-                    var tw = new Rgba(1f, 0.95f, 0.7f, 0.9f * Mathf.Sin(f * Mathf.PI));
+                    var tw = kindInk.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(0.9f * Mathf.Sin(f * Mathf.PI));
                     Line(s - new V2(sz, 0f), s + new V2(sz, 0f), 1.4f, tw);
                     Line(s - new V2(0f, sz), s + new V2(0f, sz), 1.4f, tw);
                 }
             }
             if (fxOn)
             {
-                DrawChestHolo(p, c, a, hw, hh);
+                DrawChestLook(c, a, t, p.Chest, p.Open, p.OpenT);  // ChestLooks.cs
                 return;
             }
+            // Plain: wood with trim in its kind's ink, and its emblem on the lock plate.
             var wood = new Rgba(0.5f, 0.28f, 0.14f, a);
-            var gold = PropGold.WithAlpha(a);
-            var goldDark = new Rgba(0.75f, 0.52f, 0.15f, a);
+            var gold = (p.Chest == ChestKind.Gold ? PropGold : kindInk).WithAlpha(a);
+            var goldDark = gold.Darkened(0.25f);
             if (p.Open)
             {
                 // Open: the lid stands up behind it, the inside glows, and light pours up out of it.
@@ -479,11 +477,11 @@ namespace Arena
                 FillRect(c.X - hw, c.Y - hh - 18f * k, hw * 2f, hh * 0.9f, wood.Darkened(0.2f));
                 FillRect(c.X - hw, c.Y - hh - 18f * k, hw * 2f, 3f, gold);
                 FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, wood);
-                FillRect(c.X - hw + 5f, c.Y - hh + 4f, hw * 2f - 10f, hh - 2f, new Rgba(1f, 0.85f, 0.4f, 0.85f * a));
+                FillRect(c.X - hw + 5f, c.Y - hh + 4f, hw * 2f - 10f, hh - 2f, kindInk.Mix(new Rgba(1f, 1f, 1f), 0.35f).WithAlpha(0.85f * a));
                 for (int i = 0; i < 4; i++)
                 {
                     float w = hw * (1.1f - i * 0.22f), up = 70f + i * 20f;
-                    SetColor(new Rgba(1f, 0.88f, 0.45f, 0.1f * a));
+                    SetColor(kindInk.Mix(new Rgba(1f, 1f, 1f), 0.3f).WithAlpha(0.1f * a));
                     Quad(new V2(c.X - hw * 0.8f, c.Y - hh + 4f), new V2(c.X + hw * 0.8f, c.Y - hh + 4f), new V2(c.X + w, c.Y - hh - up), new V2(c.X - w, c.Y - hh - up));
                 }
             }
@@ -502,10 +500,9 @@ namespace Arena
             FillRect(c.X + hw * 0.55f - 2.5f, c.Y - hh, 5f, hh * 2f, gold);
             if (!p.Open)
             {
-                FillRect(c.X - 6f, c.Y - 4f, 12f, 12f, gold);
-                FillRect(c.X - 4f, c.Y - 2f, 8f, 8f, goldDark);
-                Circle(c + new V2(0f, 1f), 1.6f, new Rgba(0.1f, 0.06f, 0.02f, a), 6);
-                FillRect(c.X - 0.8f, c.Y + 1f, 1.6f, 4f, new Rgba(0.1f, 0.06f, 0.02f, a));
+                FillRect(c.X - 8f, c.Y - 6f, 16f, 16f, gold);
+                FillRect(c.X - 6.5f, c.Y - 4.5f, 13f, 13f, new Rgba(0.16f, 0.1f, 0.05f, a));
+                ChestEmblem(p.Chest, c + new V2(0f, 2f), 0.8f, gold, gold.Mix(new Rgba(1f, 1f, 1f), 0.4f), a);
             }
         }
 

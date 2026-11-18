@@ -1,37 +1,39 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
 {
-    /// MOCKUP: six chest kinds, each a holo chest in its own ink with its own emblem, trim and spill
-    /// (Gold, Vector, Upgrade, Relic, Room card, Buildables). Not wired to the game yet: only the preview
-    /// (CHESTLOOKS=1, Tools/Preview/ShotChests.cs) fills MockChestLooks.
+    /// The chests' look with Visual effects on (Core ChestKind, Props.cs): a hologram chest in its kind's ink, with its own trim, an emblem
+    /// on the lock plate, and once open light pouring out with the emblem rising out of it. Upgrade (green, chevrons), Gold (coin),
+    /// Vector (the vector arrow, also the vector chest node), Relic (violet, cut corners, a gem; the relic node), Room card (orange, a
+    /// floor-plan card) and Buildables (pink, blueprint grid, a wrench). Preview: CHESTLOOKS=1 (Tools/Preview/ShotChests.cs).
     public partial class ArenaApp
     {
-        public enum ChestLook : byte { Gold, Vector, Upgrade, Relic, RoomCard, Buildable }
-        internal static readonly Dictionary<int, ChestLook> MockChestLooks = new Dictionary<int, ChestLook>();
-
-        static readonly Rgba[] ChestLookInk =
+        static readonly Rgba[] ChestKindInk =  // by ChestKind
         {
+            new Rgba(0.4f, 1f, 0.5f),     // Upgrade
             new Rgba(1f, 0.81f, 0.35f),   // Gold
             new Rgba(0.3f, 0.88f, 1f),    // Vector (VecCyan)
-            new Rgba(0.4f, 1f, 0.5f),     // Upgrade
             new Rgba(0.78f, 0.5f, 1f),    // Relic
             new Rgba(1f, 0.55f, 0.3f),    // Room card
             new Rgba(1f, 0.4f, 0.72f),    // Buildables (Black Market)
         };
 
-        void DrawChestLook(Prop p, V2 c, float a, float t, ChestLook look)
+        static Rgba ChestInkOf(ChestKind k) => (int)k < ChestKindInk.Length ? ChestKindInk[(int)k] : ChestKindInk[0];
+
+        /// A chest of this kind centred on c: closed, or open openT seconds ago (the light and the rising emblems fade by 2.5 s, so a spent
+        /// node's chest passes a big openT and shows just the lifted lid).
+        void DrawChestLook(V2 c, float a, float t, ChestKind look, bool isOpen, float openT)
         {
             float hw = Game.ChestW / 2f, hh = Game.ChestH / 2f;
-            var ink = ChestLookInk[(int)look];
+            var ink = ChestInkOf(look);
             var col = ink.WithAlpha(a);
             var hot = ink.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(a);
             float pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f + (int)look);
-            float open = p.Open ? Mathf.Clamp01(p.OpenT / 0.25f) : 0f;
-            if (!p.Open)
+            float open = isOpen ? Mathf.Clamp01(openT / 0.25f) : 0f;
+            bool spill = isOpen && openT < 2.5f;
+            if (!isOpen)
                 Circle(c, hw + 14f + 4f * pulse, ink.WithAlpha((0.08f + 0.06f * pulse) * a), 28);
-            else
+            else if (spill)
                 for (int i = 0; i < 4; i++)  // light pours up in its ink
                 {
                     float w = hw * (1.1f - i * 0.22f), up = 70f + i * 20f;
@@ -45,14 +47,14 @@ namespace Arena
             if (!fxReduced)
                 for (float y = -hh + 1f; y < hh; y += 3f)
                     FillRect(c.X - hw, c.Y + y, hw * 2f, 1f, ink.WithAlpha(0.06f * a));
-            if (look == ChestLook.Buildable)  // blueprint grid
+            if (look == ChestKind.Buildable)  // blueprint grid
                 for (float gx = -hw + 8f; gx < hw; gx += 8f)
                     FillRect(c.X + gx - 0.5f, c.Y - hh, 1f, hh * 2f, ink.WithAlpha(0.22f * a));
-            if (p.Open)
+            if (spill)
                 FillRect(c.X - hw + 5f, c.Y - hh + 4f, hw * 2f - 10f, hh - 2f, hot.WithAlpha(0.55f * a));
 
             // Outline: Relic has cut corners, the rest a box.
-            float ch = look == ChestLook.Relic ? 7f : 0f;
+            float ch = look == ChestKind.Relic ? 7f : 0f;
             V2[] o =
             {
                 new V2(c.X - hw + ch, c.Y - hh), new V2(c.X + hw - ch, c.Y - hh), new V2(c.X + hw, c.Y - hh + ch), new V2(c.X + hw, c.Y + hh - ch),
@@ -66,7 +68,7 @@ namespace Arena
                     GlowLine(o[i], o[(i + 1) % 8], 1.5f, col);
 
             // Lid: the seam, or lifted away as an outline.
-            if (p.Open)
+            if (isOpen)
             {
                 float ly = c.Y - hh - 18f * open, lh = hh * 0.9f;
                 var lid = col.WithAlpha(0.7f * a);
@@ -81,11 +83,11 @@ namespace Arena
             // Trim: each kind its own.
             switch (look)
             {
-                case ChestLook.Gold:  // two straps
+                case ChestKind.Gold:  // two straps
                     GlowLine(new V2(c.X - hw * 0.55f, c.Y - hh), new V2(c.X - hw * 0.55f, c.Y + hh), 1f, col);
                     GlowLine(new V2(c.X + hw * 0.55f, c.Y - hh), new V2(c.X + hw * 0.55f, c.Y + hh), 1f, col);
                     break;
-                case ChestLook.Vector:  // chevrons along the base
+                case ChestKind.Vector:  // chevrons along the base
                     for (int s = -1; s <= 1; s += 2)
                         for (int k = 0; k < 2; k++)
                         {
@@ -94,7 +96,7 @@ namespace Arena
                             GlowLine(new V2(x + s * 0.5f, y), new V2(x - s * 2.5f, y + 3f), 1f, col);
                         }
                     break;
-                case ChestLook.Upgrade:  // up ticks on both sides
+                case ChestKind.Upgrade:  // up ticks on both sides
                     for (int s = -1; s <= 1; s += 2)
                     {
                         float x = c.X + s * hw * 0.7f;
@@ -103,25 +105,25 @@ namespace Arena
                         GlowLine(new V2(x + 3f, c.Y - hh * 0.15f + 7f), new V2(x, c.Y - hh * 0.15f + 4f), 1f, col);
                     }
                     break;
-                case ChestLook.Relic:  // rune dots in the cut corners
+                case ChestKind.Relic:  // rune dots in the cut corners
                     for (int i = 0; i < 4; i++)
                     {
                         float sx = (i & 1) != 0 ? 1f : -1f, sy = (i & 2) != 0 ? 1f : -1f;
                         Circle(c + new V2(sx * (hw - 7f), sy * (hh - 6f)), 1.4f, hot, 6);
                     }
                     break;
-                case ChestLook.RoomCard:  // card edges stacked on the lid
+                case ChestKind.RoomCard:  // card edges stacked on the lid
                     for (int k = 0; k < 3; k++)
                         GlowLine(new V2(c.X - hw + 6f + k * 2f, c.Y - hh - 3f - k * 2.5f), new V2(c.X + hw - 6f - k * 2f, c.Y - hh - 3f - k * 2.5f), 0.9f, col.WithAlpha((0.75f - 0.2f * k) * a));
                     break;
-                case ChestLook.Buildable:  // hazard ticks on the base
+                case ChestKind.Buildable:  // hazard ticks on the base
                     for (float x = -hw + 4f; x < hw - 4f; x += 6f)
                         GlowLine(new V2(c.X + x, c.Y + hh - 1.5f), new V2(c.X + x + 3f, c.Y + hh - 5f), 1f, col.WithAlpha(0.8f * a));
                     break;
             }
 
             // Corner brackets (Relic's are its cut corners).
-            if (look != ChestLook.Relic)
+            if (look != ChestKind.Relic)
             {
                 const float L = 9f, e = 1.4f;
                 for (int i = 0; i < 4; i++)
@@ -133,7 +135,7 @@ namespace Arena
                 }
             }
 
-            if (!p.Open)
+            if (!isOpen)
             {
                 // The emblem plate on the seam.
                 V2 m = c + new V2(0f, 1f);
@@ -141,10 +143,10 @@ namespace Arena
                 Quad(m + new V2(-8f, -8f), m + new V2(8f, -8f), m + new V2(8f, 8f), m + new V2(-8f, 8f));
                 ChestEmblem(look, m, 1f, col, hot, a);
             }
-            else
+            else if (spill)
             {
                 // What's inside rises out of the light.
-                float k = Mathf.Clamp01((p.OpenT - 0.1f) / 0.6f);
+                float k = Mathf.Clamp01((openT - 0.1f) / 0.6f);
                 for (int i = 0; i < 3; i++)
                 {
                     float kk = Mathf.Clamp01(k * 1.4f - i * 0.2f);
@@ -156,16 +158,16 @@ namespace Arena
         }
 
         /// Each chest kind's mark, centred on m, scaled by s.
-        void ChestEmblem(ChestLook look, V2 m, float s, Rgba col, Rgba hot, float a)
+        void ChestEmblem(ChestKind look, V2 m, float s, Rgba col, Rgba hot, float a)
         {
             switch (look)
             {
-                case ChestLook.Gold:  // a coin
+                case ChestKind.Gold:  // a coin
                     GlowArc(m, 5.5f * s, 1.3f, col, 16);
                     Circle(m, 3.6f * s, col.WithAlpha(0.35f * col.A), 12);
                     GlowLine(m + new V2(0f, -2.6f) * s, m + new V2(0f, 2.6f) * s, 1.3f, hot);
                     break;
-                case ChestLook.Vector:  // the vector arrow
+                case ChestKind.Vector:  // the vector arrow
                 {
                     V2 f = m + new V2(-5f, 5f) * s, b = m + new V2(5f, -5f) * s;
                     GlowLine(f, b, 1.5f, hot);
@@ -173,7 +175,7 @@ namespace Arena
                     GlowLine(b, b + new V2(0f, 5f) * s, 1.5f, hot);
                     break;
                 }
-                case ChestLook.Upgrade:  // two stacked up chevrons
+                case ChestKind.Upgrade:  // two stacked up chevrons
                     for (int k = 0; k < 2; k++)
                     {
                         V2 tip = m + new V2(0f, (-4f + k * 5f) * s);
@@ -181,7 +183,7 @@ namespace Arena
                         GlowLine(tip, tip + new V2(5f, 4f) * s, 1.5f, k == 0 ? hot : col);
                     }
                     break;
-                case ChestLook.Relic:  // a faceted gem
+                case ChestKind.Relic:  // a faceted gem
                 {
                     V2 tp = m + new V2(0f, -6f) * s, l = m + new V2(-5.5f, -1.5f) * s, r = m + new V2(5.5f, -1.5f) * s, bt = m + new V2(0f, 6.5f) * s;
                     SetColor(col.WithAlpha(0.35f * col.A));
@@ -192,7 +194,7 @@ namespace Arena
                     GlowLine(m + new V2(2f, -1.5f) * s, bt, 0.8f, col);
                     break;
                 }
-                case ChestLook.RoomCard:  // a card with a two-room plan
+                case ChestKind.RoomCard:  // a card with a two-room plan
                 {
                     float w = 5f * s, h = 7f * s;
                     GlowLine(m + new V2(-w, -h), m + new V2(w, -h), 1.2f, col);
@@ -205,7 +207,7 @@ namespace Arena
                     FillRect(m.X - 3.2f * s, m.Y + 0.6f * s, 6.4f * s, 4f * s, room);
                     break;
                 }
-                case ChestLook.Buildable:  // a wrench
+                case ChestKind.Buildable:  // a wrench
                 {
                     V2 head = m + new V2(3f, -3f) * s, tail = m + new V2(-5f, 5f) * s;
                     GlowLine(tail, head, 2f, hot);
