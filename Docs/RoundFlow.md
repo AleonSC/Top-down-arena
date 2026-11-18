@@ -1,6 +1,6 @@
 # Round flow: a smoother break, per-player loot and remote chests
 
-Status: **planned, nothing built** (protocol 407 when written). Decided with the owner on Nov 18, 2026. Build one step at a
+Status: **planned, nothing built** (protocol 407 when written). Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
 time ("start on step N").
 
 ## Why
@@ -15,8 +15,13 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
 
 ## Decisions
 
-- **Tabs, not steps.** Results / Build / Chests / Ready are tabs. The box opens on Results, and Ready works from any tab.
-- **The Ready key says what blocks it**, e.g. "2 PICKS LEFT". Pressing it opens the first pending pick.
+- **Tabs, not steps.** Results / Build / Chests are tabs. The box opens on Results, and the start key sits on the bottom
+  bar of every tab (it doesn't need a tab of its own).
+- **The key reads "START WAVE 8"** (not "Ready", which could read as "ready to build"). While you have picks left it reads
+  "2 PICKS LEFT" and opens the first pending pick.
+- **Building is hard to miss, but never forced** (players can save pieces for later). Results shows a gold strip with the
+  pieces in your hand and a Build key. The Build tab shows a piece count and pulses until you open it. Under the start
+  key, "3 pieces saved for later" makes skipping a choice you can see.
 - **Auto-ready counts from the start of the break**, once your picks are done.
 - **Status chips.** Each player row shows Picking / Building / Looting / Ready.
 - **Per-player pickups.** Gold coins, vector pickups, health orbs and Magnets drop as **a full copy for each player**
@@ -40,8 +45,9 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
 
 ## Steps
 
-1. **Break flow (no protocol change).** Tabs with Ready from any tab, the Ready key showing "n PICKS LEFT" and opening
-   the first one, auto-ready counting from the start of the break. Previews: `uishots.sh` before and after.
+1. **Break flow (no protocol change).** Tabs with the START WAVE n key on every tab, "n PICKS LEFT" opening the first
+   pick, the Results build strip, the pulsing Build tab and the "n pieces saved" line, auto-ready counting from the start
+   of the break. Previews: `uishots.sh` before and after.
 2. **Status chips (protocol bump).** The host works out each player's break status (picks pending, the build window
    open, outside the hub, ready) and sends it with `Msg.WaveReady`. The client sends "build window open". Chips go on
    the player rows.
