@@ -170,7 +170,7 @@ sharpens what the weapon already does and doesn't repeat a general card (damage,
 | Lightbringer | Daybreak | The light gauge fills 30% faster and the Sunlance heals 30% more |
 | Censer | Thick Incense | Incense clouds are 30% bigger and last 2 s longer |
 | Twin Blades | Whirling Sabres | The thrown sabres follow the cursor 25% longer and hit 30% harder |
-| Greatsword | Tempered Blade | Rend hits 30% harder, and guarding builds Temper 25% faster |
+| Greatsword | Lunar Arc | The thrown sword (Moonwheel) flies 25% farther and hits 30% harder |
 | Rapier | Duelist's Edge | Each thrust skewers 1 more bullet, and Tempo holds 0.5 s longer |
 | Arc Knuckles | Live Wire | The Rocket Dash reaches 25% farther, and the Twin Hammer stuns 0.3 s longer |
 

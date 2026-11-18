@@ -62,7 +62,7 @@ namespace Arena
                 case WeaponId.Rapier: ang -= 0.2f; reach = 78f; return true;
                 case WeaponId.Katana:  // Hayate: low and out to the side; Senbon: forward (KatanaLook.cs)
                     ang -= p.KatanaStance == 0 ? 1.15f : 0.12f; reach *= p.KatanaStance == 0 ? 0.72f : 0.78f; bend = 0.4f; return true;
-                case WeaponId.Greatsword: ang -= 0.45f; bend = 1f; return !p.GreatGuard;
+                case WeaponId.Greatsword: ang -= 0.45f; bend = 1f; return !p.GreatGuard && p.FangOut == 0;  // (the Moonwheel: thrown)
                 case WeaponId.HolyMace: ang -= 0.3f; reach *= 0.85f; return true;
                 case WeaponId.Kusarigama: ang -= 0.35f; reach = 36f; return true;  // the sickle in hand, its chain in
                 case WeaponId.BloodLash: ang -= 0.55f; reach = 52f; return true;   // the whip hanging slack beside you
@@ -228,7 +228,7 @@ namespace Arena
             if (best.Weapon.Id == WeaponId.BloodLash)
                 sign = Game.LashStepOf(best.Combo) == 2 ? -1f : 1f;  // the Backhand sweeps back (BloodLash.cs)
             if (best.Weapon.Id == WeaponId.Greatsword)
-                sign = best.GreatStep == 2 ? -1f : 1f;  // the return cut sweeps back; the cut and the rend sweep forward (GreatswordLook.cs)
+                sign = GreatSlashSign(best);  // Backstep Reap and Cross Cut's second cut sweep back (GreatswordLook.cs)
             seen = new MeleeSeen { Owner = best.Id, Weapon = best.Weapon.Id, Sign = sign, BaseReach = Game.MeleeReach(best, best.Weapon.Reach) };
             meleeSeen[fx] = seen;
             meleeNewest[best.Id] = fx;

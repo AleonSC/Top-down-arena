@@ -4,18 +4,18 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Greatsword's chain, guard and Rend (Docs/Mockups/greatsword-combo.html, the Moonlit Crescent look). Drawing only, with Visual effects on.
-    ///   - the cuts and the overhead rend are ordinary Slash effects drawn by MeleeLooks.cs; the owner's GreatStep says which way
-    ///     each sweeps (the return cut goes back), and DrawSteelWallFx (WorldEffects.cs) hangs each crescent the same way;
-    ///   - the chain shows as three diamonds behind you (DrawGreatPips), the Temper as six, gold when full or when the next chain
-    ///     starts on the rend;
-    ///   - the overhead rend's wind-up (the host delays the cut by GreatRendWind): seen as the owner's GreatStep turning to 3, the blade
-    ///     swings back from the aim to where the cut will start while a ring tightens round them (DrawGreatWindup);
-    ///   - the guard pose (DrawGreatGuardPose): while the key is held the sword is drawn braced out along the aim in both hands, its blade
-    ///     brighter for every point of Temper and gold at six; letting go kicks it forward for the Rend;
-    ///   - the guard is a glassy 120 degree arc in front of you (DrawGreatGuard) that brightens where a bullet died on it;
-    ///   - the Rend (FxKind.GreatRend: Pos to Pos2 along the aim, Radius half its width, the colour's alpha its Temper) is a lance
-    ///     of light with a crescent head and a trail of fading ones, wider for every point of Temper and gold at six.
+    /// The Greatsword's ten-step chain, Moonwheel, and its old guard and Rend (Docs/Mockups/greatsword-chain-forge.html; the Moonlit
+    /// Crescent look). Drawing only, with Visual effects on.
+    ///   - the sweeps (Undertow, Cross Cut, Backstep Reap, Full Moon) are ordinary Slash effects drawn by MeleeLooks.cs; GreatSlashSign
+    ///     says which way each goes (Backstep Reap and Cross Cut's second cut come back), and DrawSteelWallFx (WorldEffects.cs) hangs
+    ///     each crescent the same way (GreatWallSign);
+    ///   - DrawGreatMove: each step as it starts (seen as the owner's swing count changing): the blade drawn back to where its sweep
+    ///     starts, the hilt driven out for a Pommel Bash, the blade raised through Comet Leap's jump with a ring where you land, and
+    ///     Eclipse's golden wind-up and slam (its lance is FxKind.GreatRend, drawn by DrawGreatRendFx, gold);
+    ///   - ten diamonds behind you for the chain (DrawGreatPips), the tenth gold (Eclipse);
+    ///   - the Moonwheel (DrawGreatWheel): the sword spinning where the host says it is (Player.FangOut, FangAt), smoothed, and a ring
+    ///     under your own feet while it comes back;
+    ///   - the old guard (DrawGreatGuard, DrawGreatGuardPose) and Rend, unused since the Moonwheel (Greatsword.cs).
     public partial class ArenaApp
     {
         static readonly Rgba GreatMoon = new Rgba(0.78f, 0.88f, 1f), GreatGold = new Rgba(1f, 0.84f, 0.51f);
@@ -41,7 +41,7 @@ namespace Arena
                     best = p;
                 }
             }
-            sign = best != null && best.GreatStep == 2 ? -1f : 1f;
+            sign = best != null ? Game.GreatSweepSign(Game.GreatMoveOf(best.GreatStep), 0) : 1f;
             if (greatWallSign.Count > 24)
             {
                 var live = new HashSet<Effect>(game.Effects);
@@ -56,35 +56,219 @@ namespace Arena
             return sign;
         }
 
-        readonly Dictionary<int, byte> greatStepSeen = new Dictionary<int, byte>();
-        readonly Dictionary<int, float> greatWindAt = new Dictionary<int, float>();
+        readonly Dictionary<int, int> greatSlashCount = new Dictionary<int, int>(), greatSlashN = new Dictionary<int, int>();
 
-        /// The overhead rend's wind-up: the blade swings back to where the cut starts and a ring tightens round the swordsman, for the
-        /// GreatRendWind the host waits before the cut lands (the sweep's own effect takes over from the last pose).
-        void DrawGreatWindup(Player p)
+        /// Which way a new Greatsword sweep goes (MeleeLooks.cs, as it first sees the Slash): its step's, the second cut of a
+        /// Cross Cut the other way.
+        public float GreatSlashSign(Player p)
         {
-            byte prev;
-            greatStepSeen.TryGetValue(p.Id, out prev);
-            greatStepSeen[p.Id] = p.GreatStep;
-            float now = Time.unscaledTime, at;
-            if (p.GreatStep == 3 && prev != 3 && !p.Downed)
-                greatWindAt[p.Id] = now;
-            if (!fxOn || p.Downed || p.GreatStep != 3 || !greatWindAt.TryGetValue(p.Id, out at))
-                return;
-            float u = (now - at) / Game.GreatRendWind;
-            if (u < 0f || u > 1.4f)
-                return;
-            float uc = Mathf.Clamp01(u), e = uc * uc * (3f - 2f * uc), half = Game.GreatRendArc * MathX.Pi / 360f;
-            V2 o = p.Disp;
-            if (u < 1f)
+            int c = p.Combo >> 3, seen, n = 0;
+            if (greatSlashCount.TryGetValue(p.Id, out seen) && seen == c)
+                greatSlashN.TryGetValue(p.Id, out n);
+            greatSlashCount[p.Id] = c;
+            greatSlashN[p.Id] = n + 1;
+            return Game.GreatSweepSign(Game.GreatMoveOf(p.GreatStep), n);
+        }
+
+        class GreatMoveView { public int Count; public float At = -99f; public byte Step; public V2 From; public float Aim; }
+        public static float GreatPreviewAge = -1f;  // Tools/Preview: >= 0 shows the step a player is on as started this long ago
+        readonly Dictionary<int, GreatMoveView> greatMoveViews = new Dictionary<int, GreatMoveView>();
+
+        /// The step this player started last and how long ago (a new one is a change in their swing count).
+        GreatMoveView WatchGreatMove(Player p)
+        {
+            GreatMoveView v;
+            int c = p.Combo >> 3;
+            if (!greatMoveViews.TryGetValue(p.Id, out v))
+                greatMoveViews[p.Id] = v = GreatPreviewAge >= 0f
+                    ? new GreatMoveView { Count = c, At = Time.unscaledTime - GreatPreviewAge, Step = p.GreatStep, From = p.Disp, Aim = p.Aim }
+                    : new GreatMoveView { Count = c };  // (no move on first sight)
+            if (v.Count != c)
             {
-                Arc(o, 60f - 34f * e, 2.5f, GreatMoon.WithAlpha(0.2f + 0.5f * e), 24);
-                GlowDisc(o, 70f, GreatMoon, 0.18f * e);
+                v.Count = c;
+                v.At = Time.unscaledTime;
+                v.Step = p.GreatStep;
+                v.From = p.Disp;
+                v.Aim = p.Aim;
             }
-            if (u >= 1f && MeleeSwingShowing(p))
-                return;  // the rend's own cut has the sword now
-            float ang = p.Aim - Mathf.Lerp(GreatRestOff, half + 0.2f, e);  // from the held pose back to where the cut starts
-            DrawMeleeModel(WeaponId.Greatsword, o, ang, Game.MeleeReach(p, p.Weapon.Reach), 1f, GreatMoon, u > 0.7f, 1f, ArmColor(p.Id));
+            return v;
+        }
+
+        /// Where a step's sweep starts, as an angle off the aim (MeleeLooks.cs sweeps from aim - sign * half).
+        static float GreatSweepStart(Game.GreatMove m)
+        {
+            switch (m)
+            {
+                case Game.GreatMove.Undertow: return -Game.UndertowArc * MathX.Pi / 360f;
+                case Game.GreatMove.Cross: return -0.35f - Game.CrossArc * MathX.Pi / 360f;
+                case Game.GreatMove.Backstep: return Game.BackstepArc * MathX.Pi / 360f;
+                case Game.GreatMove.FullMoon: return -MathX.Pi;
+                default: return 0f;
+            }
+        }
+
+        void DrawGreatWindup(Player p) => DrawGreatMove(p, true);
+
+        /// Each step's own pose before its hit (and the moves with no Slash of their own): see the class notes. True while it draws the
+        /// sword (the held pose waits).
+        bool DrawGreatMove(Player p, bool draw)
+        {
+            var v = WatchGreatMove(p);
+            if (!fxOn || p.Downed || p.FangOut != 0)
+                return false;
+            var m = Game.GreatMoveOf(v.Step);
+            if (m == Game.GreatMove.None)
+                return false;
+            var d = Game.GreatMoves[(int)m];
+            float a = Time.unscaledTime - v.At, reach = Game.MeleeReach(p, p.Weapon.Reach), rest = p.Aim - GreatRestOff;
+            V2 o = p.Disp, dir = V2.FromAngle(p.Aim);
+            Rgba arm = ArmColor(p.Id);
+            switch (m)
+            {
+                case Game.GreatMove.Pommel:
+                {
+                    if (a > d.Dur)
+                        return false;
+                    if (!draw)
+                        return true;
+                    float q = Mathf.Clamp01(a / 0.14f), push = 20f * Mathf.Sin(MathX.Pi * q);
+                    float ang = p.Aim + MathX.Pi - 0.35f + 0.25f * q;  // the blade back over the shoulder, the hilt leading
+                    DrawMeleeModel(WeaponId.Greatsword, o + dir * push, ang, reach * 0.9f, 1f, GreatMoon, false, 1f, arm);
+                    if (a >= d.Wind)
+                    {
+                        float k = Mathf.Clamp01((a - d.Wind) / 0.15f);
+                        V2 at = o + dir * (Game.PommelReach * 0.75f);
+                        GlowDisc(at, 20f * (1f - k * 0.3f), Rgba.White, 0.7f * (1f - k));
+                        Arc(at, 8f + 18f * EaseOut3(k), 2.5f, GreatMoon.WithAlpha(0.8f * (1f - k)), 16);
+                    }
+                    return true;
+                }
+                case Game.GreatMove.Leap:
+                {
+                    if (a > d.Wind + 0.2f)
+                        return false;
+                    if (!draw)
+                        return true;
+                    V2 vdir = V2.FromAngle(v.Aim);
+                    V2 land = v.From + vdir * d.Fwd;
+                    if (a < d.Wind)
+                    {
+                        float u = a / d.Wind, e = u * u * (3f - 2f * u);
+                        float lr = Game.MeleeReach(p, Game.LeapRadius);
+                        Arc(land, lr * (1.25f - 0.25f * e), 2f, GreatMoon.WithAlpha(0.15f + 0.4f * e), 32);  // where you come down
+                        GlowDisc(land, 30f, GreatMoon, 0.12f + 0.2f * e);
+                        DrawMeleeModel(WeaponId.Greatsword, o, p.Aim - 1.7f * (1f - e), reach * (0.8f + 0.2f * e), 1f, GreatMoon, u > 0.6f, 1f, arm);
+                    }
+                    else
+                    {
+                        float k = (a - d.Wind) / 0.2f;
+                        DrawMeleeModel(WeaponId.Greatsword, o, p.Aim, reach, 1f, GreatMoon, k < 0.5f, 1f, arm);
+                    }
+                    return true;
+                }
+                case Game.GreatMove.Eclipse:
+                {
+                    if (a > d.Wind + 0.4f)
+                        return false;
+                    if (!draw)
+                        return true;
+                    if (a < d.Wind)
+                    {
+                        float u = a / d.Wind, e = u * u * (3f - 2f * u);
+                        Arc(o, 64f - 36f * e, 3f, GreatGold.WithAlpha(0.2f + 0.6f * e), 28);
+                        GlowDisc(o, 80f, GreatGold, 0.22f * e);
+                        DrawMeleeModel(WeaponId.Greatsword, o, Mathf.Lerp(rest, p.Aim + MathX.Pi - 0.3f, e), reach * (1f - 0.35f * e), 1f, GreatGold, u > 0.5f, 1f, arm);
+                    }
+                    else
+                    {
+                        float k = (a - d.Wind) / 0.4f;
+                        DrawMeleeModel(WeaponId.Greatsword, o, p.Aim, reach, 1f, k < 0.6f ? GreatGold : GreatMoon, k < 0.6f, 1f, arm);
+                        GlowDisc(o + dir * reach, 30f * (1f - k), GreatGold, 0.6f * (1f - k));
+                    }
+                    return true;
+                }
+                default:  // a sweep: the blade drawn back to where it starts, then its Slash takes the sword
+                {
+                    if (a > d.Wind + 0.08f || (a >= d.Wind && MeleeSwingShowing(p)))
+                        return false;
+                    if (!draw)
+                        return true;
+                    float u = Mathf.Clamp01(a / d.Wind), e = u * u * (3f - 2f * u);
+                    float start = p.Aim + GreatSweepStart(m);
+                    if (m == Game.GreatMove.Undertow)  // the current gathering: arcs drifting in from its reach
+                        for (int i = 0; i < 3; i++)
+                        {
+                            float r = Game.MeleeReach(p, Game.UndertowReach) * (1f - 0.35f * Mathf.Repeat(u + i / 3f, 1f));
+                            Arc(o, r, 2f, GreatMoon.WithAlpha(0.35f * e), 20, p.Aim - 1.4f, 2.8f);
+                        }
+                    if (m == Game.GreatMove.FullMoon)
+                        Arc(o, 60f - 30f * e, 2.5f, GreatMoon.WithAlpha(0.2f + 0.5f * e), 24);
+                    DrawMeleeModel(WeaponId.Greatsword, o, Mathf.Lerp(rest, start, e), reach, 1f, GreatMoon, u > 0.7f, 1f, arm);
+                    return true;
+                }
+            }
+        }
+
+        readonly Dictionary<int, V2> greatWheelShown = new Dictionary<int, V2>();
+
+        /// The Moonwheel: the sword spinning about its middle where the host says it is, with a pale wheel of light; drawn back
+        /// before the throw; a ring under your own feet while its cooldown runs.
+        void DrawGreatWheel(Player p)
+        {
+            if (p.Id == game.MyId && game.TwinFangCd > 0f && !p.Downed)
+            {
+                float k = 1f - game.TwinFangCd / Game.WheelCooldown;
+                Arc(p.Disp, p.Def.BodyR + 7f, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
+                Arc(p.Disp, p.Def.BodyR + 7f, 2f, GreatMoon.WithAlpha(0.6f), 28, -MathX.Pi / 2f, MathX.Tau * k);
+            }
+            if (!fxOn || p.Downed || p.FangOut == 0)
+            {
+                greatWheelShown.Remove(p.Id);
+                return;
+            }
+            float reach = Game.MeleeReach(p, p.Weapon.Reach);
+            if (p.FangOut == 1)
+            {
+                DrawMeleeModel(WeaponId.Greatsword, p.Disp, p.Aim + MathX.Pi * 0.7f, reach, 1f, GreatMoon, true, 1f, ArmColor(p.Id));
+                return;
+            }
+            V2 c;
+            if (!greatWheelShown.TryGetValue(p.Id, out c))
+                c = p.FangAt;
+            c = c + (p.FangAt - c) * (1f - Mathf.Exp(-Time.unscaledDeltaTime * 20f));
+            greatWheelShown[p.Id] = c;
+            float spin = -Time.unscaledTime * Game.WheelSpinRate, L = reach * 0.98f;
+            Arc(c, L * 0.5f, 7f, GreatMoon.WithAlpha(0.18f), 32);
+            Arc(c, L * 0.5f, 2f, Rgba.White.WithAlpha(0.35f), 32);
+            for (int k = 1; k <= 3; k++)
+                DrawGreatBlade(c - V2.FromAngle(spin + k * 0.35f) * (L * 0.45f), spin + k * 0.35f, L, 0.22f / k, false);
+            DrawGreatBlade(c - V2.FromAngle(spin) * (L * 0.45f), spin, L, 1f, true);
+            GlowDisc(c, 26f, GreatMoon, 0.3f);
+        }
+
+        /// The Greatsword alone (no arms), its pommel at `o`: the thrown one.
+        void DrawGreatBlade(V2 o, float ang, float reach, float alpha, bool bright)
+        {
+            V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+            const float gx = 36f;
+            float L = reach, w = 7.6f;
+            Line(o - dir * 6f, o + dir * gx, 5f, new Rgba(0.23f, 0.17f, 0.12f, alpha));
+            Line(o - dir * 6f, o + dir * gx, 3f, MeleeHandle.WithAlpha(alpha));
+            Circle(o - dir * 7f, 3.4f, new Rgba(0.72f, 0.6f, 0.29f, alpha), 8);
+            V2 g0 = o + dir * (gx - 3f), g1 = o + dir * (gx + 3f);
+            SetColor(MeleeGuard.WithAlpha(alpha));
+            Quad(g0 - side * 12f, g1 - side * 10f, g1 + side * 10f, g0 + side * 12f);
+            V2 b0 = o + dir * (gx + 1f);
+            float bl = L - gx - 1f;
+            V2 q0 = b0 - side * w, q1 = b0 + dir * (bl - 18f) - side * w * 0.82f, tip = b0 + dir * bl, q3 = b0 + dir * (bl - 18f) + side * w * 0.5f, q4 = b0 + side * w * 0.62f;
+            SetColor((bright ? Rgba.White : new Rgba(0.88f, 0.93f, 0.99f)).WithAlpha(alpha));
+            Quad(q0, q1, q3, q4);
+            Tri(q1, tip, q3);
+            var edge = Rgba.White.WithAlpha(0.95f * alpha);
+            Line(q0, q1, 1.1f, edge);
+            Line(q1, tip, 1.1f, edge);
+            Line(tip, q3, 1.1f, edge);
+            Line(q3, q4, 1.1f, edge);
         }
 
         /// The Greatsword held at the ready in both gloved hands, drawn over the body in place of the model's own blade. A cut, the
@@ -97,11 +281,11 @@ namespace Arena
             DrawMeleeModel(WeaponId.Greatsword, p.Disp, ang, reach, 1f, GreatMoon, false, bend, ArmColor(p.Id));
         }
 
-        /// True while the rend's wind-up or the guard pose (with its thrust) draws the sword (DrawGreatWindup, DrawGreatGuardPose).
+        /// True while a step's own pose, the Moonwheel or the old guard pose (with its thrust) draws the sword.
         bool GreatPoseShowing(Player p)
         {
             float at;
-            if (p.GreatStep == 3 && greatWindAt.TryGetValue(p.Id, out at) && (Time.unscaledTime - at) / Game.GreatRendWind <= 1.4f)
+            if (p.FangOut != 0 || DrawGreatMove(p, false))
                 return true;
             return p.GreatGuard || (greatKickAt.TryGetValue(p.Id, out at) && Time.unscaledTime - at < GreatKickTime);
         }
@@ -179,14 +363,16 @@ namespace Arena
             }
             if (p.GreatStep == 0)
                 return;
-            for (int d = 0; d < 3; d++)
+            int steps = Game.GreatChain.Length;
+            for (int d = 0; d < steps; d++)  // the chain's ten diamonds on an arc behind you, Eclipse's gold
             {
-                float da = p.Aim + MathX.Pi + (d - 1f) * 0.4f;
-                V2 c = p.Disp + V2.FromAngle(da) * 30f;
-                bool lit = d < p.GreatStep;
-                Polygon(c, lit ? 5f : 4.3f, 4, 0f, lit ? GreatMoon : new Rgba(1f, 1f, 1f, 0.14f));
-                if (d == 2 && p.GreatStep == 2)  // the rend is next
-                    Polygon(c, 6.5f + 1.5f * Mathf.Sin(t * 10f), 4, 0f, Rgba.White.WithAlpha(0.35f));
+                float da = p.Aim + MathX.Pi + (d - (steps - 1) / 2f) * 0.2f;
+                V2 c = p.Disp + V2.FromAngle(da) * 31f;
+                bool lit = d < p.GreatStep, last = d == steps - 1;
+                Rgba on = last ? GreatGold : GreatMoon;
+                Polygon(c, (last ? 4.4f : 3.3f) + (lit ? 0.5f : 0f), 4, 0f, lit ? on : new Rgba(1f, 1f, 1f, 0.14f));
+                if (d == p.GreatStep && last)  // Eclipse is next
+                    Polygon(c, 6.5f + 1.5f * Mathf.Sin(t * 10f), 4, 0f, GreatGold.WithAlpha(0.4f));
             }
         }
 
