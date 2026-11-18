@@ -1197,6 +1197,7 @@ namespace Arena
         {
             TickPushes(dt);
             TickNodeFog(dt);  // NodeScouting.cs
+            TickGridCore();  // GridRooms.cs
             if (!ExpandOpen)
             {
                 botVoteT = 0f;

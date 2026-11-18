@@ -279,7 +279,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (!r.Floating && r.Leg == 0)  // (a drawn outline is one room, however many boxes)
+                if (!r.Floating && r.Leg == 0 && !IsGridCore(r))  // (a drawn outline is one room, however many boxes; a Grid run's core is free)
                     n++;
             return n;
         }

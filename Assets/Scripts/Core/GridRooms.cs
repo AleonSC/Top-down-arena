@@ -17,7 +17,8 @@ namespace Arena
 
     public static partial class Expansion
     {
-        public const int GridCell = 600;  // one cell: a 6 x 6 tile room; a wall holds as many door spots as it has whole cells, centred
+        public const int GridCell = 600;  // one cell: a 6 x 6 tile room
+        public const int GridX0 = -400, GridY0 = -400;  // the lattice origin: the core's top-left corner. Every grid room's walls sit on lines GridCell apart from here.
 
         /// Width and height in px of each GridShape: a Room is one cell, a Gauntlet two across, a Hall two down, an Arena two by two.
         public static readonly int[][] GridSizes = { new[] { 600, 600 }, new[] { 1200, 600 }, new[] { 600, 1200 }, new[] { 1200, 1200 } };
@@ -30,11 +31,41 @@ namespace Arena
              : s == GridShape.Arena ? "Four cells: the big one for boss fights and crowds."
              : "One cell: 6 x 6 tiles, the standard room.";
 
-        static int GridSnap(double v) => (int)Math.Floor(v / Step + 0.5) * Step;
+        /// The core (Docs/GridRooms.md): the start room made 4 x 3 cells (2400 x 1800) by four rooms round it, built free when a Grid run begins, with the
+        /// walls between them and the start room open. Every wall of the core has a door spot on each cell.
+        public static List<ExpansionRoom> GridCore() => new List<ExpansionRoom>
+        {
+            new ExpansionRoom { Parent = 0, X = -400, Y = -400, W = 2400, H = 400, Kind = RoomKind.Combat },
+            new ExpansionRoom { Parent = 0, X = -400, Y = 900, W = 2400, H = 500, Kind = RoomKind.Combat },
+            new ExpansionRoom { Parent = 0, X = -400, Y = 0, W = 400, H = 900, Kind = RoomKind.Combat },
+            new ExpansionRoom { Parent = 0, X = 1600, Y = 0, W = 400, H = 900, Kind = RoomKind.Combat },
+        };
 
-        /// Every spot a room of this shape can go: each box's four walls hold door spots (a wall's whole cells, centred), and the room hangs off a
-        /// spot with its middle on it, snapped to the 100 px grid. Only spots Expansion.Custom accepts (no overlap, a door's worth of shared
-        /// wall, the caps) are returned, each once.
+        /// The walls inside the core opened up, so the core is one open room.
+        public static List<WallCut> GridCoreCuts() => new List<WallCut>
+        {
+            new WallCut { Vertical = false, At = 0, From = 0, Till = 1600 }, new WallCut { Vertical = false, At = 900, From = 0, Till = 1600 },
+            new WallCut { Vertical = true, At = 0, From = 0, Till = 900 }, new WallCut { Vertical = true, At = 1600, From = 0, Till = 900 },
+            new WallCut { Vertical = false, At = 0, From = -400, Till = 0 }, new WallCut { Vertical = false, At = 0, From = 1600, Till = 2000 },
+            new WallCut { Vertical = false, At = 900, From = -400, Till = 0 }, new WallCut { Vertical = false, At = 900, From = 1600, Till = 2000 },
+        };
+
+        /// One of the core's four rooms (they cost nothing and don't count towards the room cap).
+        public static bool IsGridCore(ExpansionRoom r)
+        {
+            if (r.Price != 0 || r.Owner != 0 || r.Card != 0 || r.Leg != 0)
+                return false;
+            foreach (var c in GridCore())
+                if (c.X == r.X && c.Y == r.Y && c.W == r.W && c.H == r.H)
+                    return true;
+            return false;
+        }
+
+        static int GridMod(int v, int origin) => ((v - origin) % GridCell + GridCell) % GridCell;
+
+        /// Every spot a room of this shape can go: each cell along the outside of a built room's wall (a wall on a lattice line) is a door spot, and the room
+        /// hangs off it flush with the wall, in the first alignment that fits (so a big room can sit a cell to either side). Only spots Expansion.Custom accepts
+        /// (no overlap, a door's worth of shared wall, the caps) are returned, each room once.
         public static List<GridOption> GridOptions(IList<ExpansionRoom> built, GridShape shape)
         {
             var res = new List<GridOption>();
@@ -42,31 +73,36 @@ namespace Arena
                 return res;
             int w = GridSizes[(int)shape][0], h = GridSizes[(int)shape][1];
             var seen = new HashSet<long>();
-            for (int a = 0; a <= built.Count; a++)
+            for (int a = 1; a <= built.Count; a++)
             {
-                if (a > 0 && (built[a - 1].Floating || IsPush(built[a - 1])))
+                if (built[a - 1].Floating || IsPush(built[a - 1]))
                     continue;
                 BoxOf(built, a, out int x0, out int y0, out int x1, out int y1);
                 for (int side = 0; side < 4; side++)
                 {
                     bool across = side < 2;  // top and bottom walls run across
-                    int len = across ? x1 - x0 : y1 - y0;
-                    int n = Math.Max(1, len / GridCell), start = (len - n * GridCell) / 2 + GridCell / 2;
-                    for (int k = 0; k < n; k++)
+                    int line = side == 0 ? y0 : side == 1 ? y1 : side == 2 ? x0 : x1;
+                    if (GridMod(line, across ? GridY0 : GridX0) != 0)
+                        continue;  // (a wall off the lattice, like a surprise room's: no door spots)
+                    int lo = across ? x0 : y0, hi = across ? x1 : y1, along = across ? GridX0 : GridY0;
+                    for (int c = lo - GridMod(lo, along); c < hi; c += GridCell)
                     {
-                        int c = (across ? x0 : y0) + start + k * GridCell;
-                        int x = across ? GridSnap(c - w / 2.0) : side == 2 ? x0 - w : x1;
-                        int y = across ? (side == 0 ? y0 - h : y1) : GridSnap(c - h / 2.0);
-                        if (!seen.Add(((long)x << 32) ^ (uint)y))
-                            continue;
-                        var room = Custom(built, x, y, w, h, out _);
-                        if (!room.HasValue)
-                            continue;
-                        res.Add(new GridOption
+                        int span = across ? w : h;
+                        for (int k = 0; k < span / GridCell; k++)
                         {
-                            Room = room.Value, Side = (byte)side,
-                            SX = across ? c : side == 2 ? x0 : x1, SY = across ? (side == 0 ? y0 : y1) : c,
-                        });
+                            int x = across ? c - k * GridCell : side == 2 ? x0 - w : x1;
+                            int y = across ? (side == 0 ? y0 - h : y1) : c - k * GridCell;
+                            var room = Custom(built, x, y, w, h, out _);
+                            if (!room.HasValue)
+                                continue;
+                            if (seen.Add(((long)x << 32) ^ (uint)y))
+                                res.Add(new GridOption
+                                {
+                                    Room = room.Value, Side = (byte)side,
+                                    SX = across ? c + GridCell / 2 : line, SY = across ? line : c + GridCell / 2,
+                                });
+                            break;
+                        }
                     }
                 }
             }
@@ -164,6 +200,19 @@ namespace Arena
     {
         /// The run builds on the grid (the lobby's Building: Grid, Docs/GridRooms.md): rooms snap to door spots on the walls of rooms already built.
         public bool GridRoomsOn => ExpandingOn && !RoomCardsOn && D(DiffKnob.GridRooms) >= 0.5f;
+
+        /// Host, every frame: a Grid run's bare map (a new run, or after a map reset) gets its core: four free rooms round the start room, the walls between opened.
+        void TickGridCore()
+        {
+            if (!IsHost || !GridRoomsOn || Expanded.Count > 0)
+                return;
+            Expanded.AddRange(Expansion.GridCore());
+            Openings.AddRange(Expansion.GridCoreCuts());
+            expWorld = null;
+            LayoutAge = 0f;
+            RaiseRoomsNow();
+            BroadcastExpansion();
+        }
 
         /// Bot: a random affordable room on a door spot, one in three a bigger one.
         void BotGridBuild()
