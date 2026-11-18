@@ -41,6 +41,7 @@ namespace Arena
             {
                 tileReady[i] += dt; tileCharge[i] += dt; tileUse[i] += dt; tileDeny[i] += dt;
             }
+            TickMasteryTiles(me, dt);  // (HudMastery.cs)
             if (me == null)
             {
                 tilesFor = -1;
@@ -48,7 +49,6 @@ namespace Arena
             }
             bool fresh = tilesFor != me.Id;
             tilesFor = me.Id;
-            TickMasteryTiles(me, fresh, dt);  // (HudMastery.cs; before tileIds moves on)
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
                 var s = me.Slots[i];

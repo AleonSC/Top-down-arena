@@ -232,8 +232,13 @@ namespace Arena
                     string val = ult ? (full ? "READY" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : MiniSecs(me.Slots[i].Timer);
                     MiniText(new Rect(x - 10f, y + 24f, colW + 20f, 24f), val, 24, ult ? Ui.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleCenter);
                     MiniCells(new Rect(barX, y + 52f, minW, 4f), f, 6, ult ? Ui.Gold : ready ? KeyGreen : ink, a);
-                    MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, ult ? Ui.Gold : ready ? ink : dim, a, TextAnchor.MiddleCenter);
-                    MiniMastery(me, i, cx, y + 77f, a);
+                    Color nameCol = ult ? Ui.Gold : ready ? ink : dim;
+                    if (MasteryLook != 2)
+                        MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, nameCol, a, TextAnchor.MiddleCenter);
+                    if (MasteryLook != 0)
+                        MiniMasteryLook(me, i, new Rect(x, y, colW, 80f), y, name, nameSize, nameCol, a);  // the prototype looks (HudMastery.cs)
+                    else
+                        MiniMastery(me, i, cx, y + 77f, a);
                     x += colW + gap;
                 }
                 MiniScan(new Rect(W / 2f - total / 2f - 12f, y - 2f, total + 24f, 84f), a);

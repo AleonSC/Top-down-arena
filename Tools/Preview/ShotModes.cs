@@ -26,7 +26,7 @@ static partial class Shot {
         typeof(ArenaApp).GetMethod("PreviewTileMoment", f2).Invoke(app, new object[] { tp[0], tp.Length > 1 ? float.Parse(tp[1]) : 0.05f });
       }
       // MASTERYLOOK=n: the mastery prototype look (HudMastery.cs); MXFX=gain|level,<s>,<xp>[,slot]: the tile (default Q) that far into an XP gain or a level-up
-      if (Environment.GetEnvironmentVariable("MASTERYLOOK") != null) ArenaApp.MasteryLook = int.Parse(Environment.GetEnvironmentVariable("MASTERYLOOK"));
+      if (Environment.GetEnvironmentVariable("MASTERYLOOK") != null) { ArenaApp.MasteryLook = int.Parse(Environment.GetEnvironmentVariable("MASTERYLOOK")); }
       var mxfx = Environment.GetEnvironmentVariable("MXFX");
       if (mxfx != null) { var mp = mxfx.Split(','); typeof(ArenaApp).GetMethod("PreviewMasteryMoment", f2).Invoke(app, new object[] { mp[0], mp.Length > 1 ? float.Parse(mp[1]) : 0.1f, mp.Length > 2 ? float.Parse(mp[2]) : 30f, mp.Length > 3 ? int.Parse(mp[3]) : 1 }); }
       // EMOTEBAR=1: the emote bar open (rank 60); EMOTE=n[,age]: emote number n showing over player 1, that many seconds in (EmoteBar.cs)
