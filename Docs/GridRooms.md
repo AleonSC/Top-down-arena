@@ -1,6 +1,6 @@
 # Grid rooms: build the Expanding arena on a grid of door spots
 
-Status: **built** (protocol 402): the lobby's **Building: Grid** switch, door spots, four sizes, host rule, bots, nodes and room chests on cells, preview `GRID=`, suite `gridrooms`. Decided with the owner on Nov 18, 2026 after a mockup
+Status: **built** (protocol 402; one lattice and a 4 x 3 cell core since the mockup pass): the lobby's **Building: Grid** switch, door spots, four sizes, host rule, bots, nodes and room chests on cells, preview `GRID=`, suite `gridrooms`. Decided with the owner on Nov 18, 2026 after a mockup
 (free place / uniform grid / grid + big rooms): "the grid, with unique rooms bigger", as a new lobby switch beside Room cards, Free draw and Team vote.
 
 ## Why
@@ -12,7 +12,8 @@ Status: **built** (protocol 402): the lobby's **Building: Grid** switch, door sp
 
 | Question | Decision |
 |---|---|
-| Where a room goes | On a **door spot** on the wall of a built room (or the start room). A wall holds as many spots as whole 6-tile (600 px) cells, centred; the new room's middle sits on the spot, snapped to the 100 px grid. |
+| The core | A Grid run starts with the start room grown to **4 x 3 cells (2400 x 1800)**: four free rooms round it (`Expansion.GridCore`, seeded by `TickGridCore` on a bare map, again after a map reset) with the walls between them and the start room opened (`GridCoreCuts`). They cost nothing and don't count towards the 24-room cap. Owner Nov 18: "make the core room bigger to compensate", to match the mockup. |
+| Where a room goes | **One lattice** of 6-tile (600 px) cells from the core's corner (`GridX0`, `GridY0`). Every cell along the outside of a wall on a lattice line is a **door spot**; a room hangs off it flush with the wall, in the first alignment that fits (a big room can sit a cell to either side). The core has 14 spots (4 top, 4 bottom, 3 each side). |
 | Sizes | **Room** 6 x 6, **Gauntlet** 12 x 6, **Hall** 6 x 12, **Arena** 12 x 12 (tiles). Same rules as any room (no overlap, a door's worth of shared wall, caps). |
 | Cost and build | The new wall in vectors (`Expansion.Cost`), built at once like free building; no team vote. |
 | Switch | `DiffKnob.GridRooms` (flavour, off by default). Room cards win over it; the lobby's row keeps the four options exclusive. |
@@ -21,7 +22,7 @@ Status: **built** (protocol 402): the lobby's **Building: Grid** switch, door sp
 
 ## Where it lives
 
-- `Core/GridRooms.cs`: `GridShape`, `GridOption`, `Expansion.GridOptions` / `GridLegal` / `GridNodeFor` / `GridChestFor`, `Game.GridRoomsOn`, `BotGridBuild`.
+- `Core/GridRooms.cs`: `GridShape`, `GridOption`, `Expansion.GridCore` / `GridCoreCuts` / `GridOptions` / `GridLegal` / `GridNodeFor` / `GridChestFor`, `Game.GridRoomsOn`, `TickGridCore`, `BotGridBuild`.
 - `HostExpandDraw` refuses any box that is not a `GridOptions` spot (the client UI sends the same `Msg.ExpandDraw`); `HostExpandOutline` and wall push are off.
 - `Game/GridRoomsUi.cs`: the palette, door-spot marks, the ghost under the mouse (`DrawExpansionDraw`'s grid mode, like cards mode).
 - Preview: `EXPANDVOTE=0 EXPANDFREE=1 EXPANDDRAW=0,0,0,0 GRID=room|gauntlet|hall|arena [MOUSE=x,y] [EXPANDBUILT=x,y,w,h;...] Tools/Preview/shot.sh x hud`. Suite: `gridrooms`.
