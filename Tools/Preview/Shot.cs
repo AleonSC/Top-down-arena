@@ -850,14 +850,6 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's building round (ExpansionUi.cs)
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;  // (free building: the team vote is gone)
-      string cardsEnv = Environment.GetEnvironmentVariable("CARDS");  // CARDS=box,hall,ring,...: room cards on (RoomCards.cs) with that hand; CARDSEL=n the picked slot (-1 none); MOUSE=x,y the pointer
-      eg.Diff.Set(DiffKnob.RoomCards, cardsEnv != null ? 1f : 0f);
-      if (cardsEnv != null) {
-        var cbf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-        int ci2 = 0; foreach (var cn in cardsEnv.Split(',')) { if (cn.Length == 0 || ci2 >= eg.Me.Hand.Length) continue; RoomCard rc; if (Enum.TryParse(cn, true, out rc)) eg.Me.Hand[ci2++] = (byte)rc; else Console.Error.WriteLine("CARDS: no card " + cn); }
-        if (Environment.GetEnvironmentVariable("CARDSEL") != null) typeof(ArenaApp).GetField("expCard", cbf).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("CARDSEL")));
-        var cm = Environment.GetEnvironmentVariable("MOUSE"); if (cm != null) { var xy = cm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
-      }
       string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, GridPieces.cs); GRIDCARDS=tril,tetl:burninggrounds,shop,... the hand (piece[:floor] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
         eg.Diff.Set(DiffKnob.GridRooms, 1f);
@@ -931,7 +923,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("EXPANDSHOP") != null) {  // EXPANDSHOP=1: the shop is open in the Expanding arena and you're not in the shop room (hint banner); EXPANDSHOP=2: you're in it (the shop)
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f); xg.State = MatchState.Intermission; xg.RoomsUp = true;
       bool atVendor = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  bool atArms = Environment.GetEnvironmentVariable("EXPANDSHOP") == "4";  // EXPANDSHOP=4: the Arms Dealer (ArmsDealer.cs; MODSHELD=a,b gives you those mods first)  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (RoomCards.cs); SHOPCAT=0|1 opens a category
-      xg.Diff.Set(DiffKnob.RoomCards, Environment.GetEnvironmentVariable("CARDS") != null ? 1f : 0f);
+      xg.Diff.Set(DiffKnob.GridRooms, Environment.GetEnvironmentVariable("CARDS") != null ? 1f : 0f);  // (CARDS=1: a Grid run, so the vendor sells pieces)
       string xw; var xr = Expansion.Custom(xg.Expanded, 1600, 300, 600, 300, out xw).Value; xr.Kind = atArms ? RoomKind.Arms : atVendor ? RoomKind.Vendor : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
       var xa = Array.Find(xg.CurrentWorld.Areas, a => a.Kind == xr.Kind);  // (the scene may have rooms of its own: find the shop's)
       foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)RoomCard.Box; pl.Hand[1] = (byte)RoomCard.Hall; } }

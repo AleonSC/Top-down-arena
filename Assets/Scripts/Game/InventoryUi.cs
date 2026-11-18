@@ -97,14 +97,8 @@ namespace Arena
         void UseInvCard(int slot)
         {
             InvOpenBuild();
-            if (game.GridRoomsOn)  // a Grid run: the piece is picked on the build screen (GridRoomsUi.cs)
-            {
-                expGridSlot = slot;
-                expGridTurn = 0;
-                return;
-            }
-            expCard = slot;
-            expCardTurn = 0;
+            expGridSlot = slot;  // the piece is picked on the build screen (GridRoomsUi.cs)
+            expGridTurn = 0;
         }
 
         void UseInvBuild(int kind)

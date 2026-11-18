@@ -253,9 +253,6 @@ namespace Arena
             }
             DrawBuildRail(doorsOnly, free, calm);
             bool roomMode = !expCutMode && !expLinkMode && !expGateMode && !expTrapMode;
-            bool cardMode = roomMode && game.RoomCardsOn;  // room cards: the Room tool plays a card instead of drawing (RoomCardsUi.cs)
-            if (cardMode)
-                roomMode = false;
             bool gridMode = roomMode && game.GridRoomsOn;  // grid rooms: the Room tool snaps a room to a door spot instead of drawing (GridRoomsUi.cs)
             if (gridMode)
                 roomMode = false;
@@ -337,13 +334,9 @@ namespace Arena
                 trapWhy = "None in your stash: buy one at the Black Market";
             bool closeRoom = false, laidWall = false;
             List<int[]> dragBox = null;
-            SurpriseOption? cardPick = null;
-            int cardFits = 0;
             GridPieceOption? gridPick = null;
             int gridFits = 0;
-            if (cardMode)
-                cardPick = CardModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), free, out cardFits);
-            else if (gridMode)
+            if (gridMode)
                 gridPick = GridModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), free, out gridFits);
             else if (roomMode)
             {
@@ -481,7 +474,7 @@ namespace Arena
                     expPts.Clear();
                 }
             }
-            bool hasBox = !roomMode && !cardMode && !gridMode && !expCutMode && !expLinkMode && !expGateMode && !expTrapMode && rw > 0 && rh > 0;
+            bool hasBox = !roomMode && !gridMode && !expCutMode && !expLinkMode && !expGateMode && !expTrapMode && rw > 0 && rh > 0;
             string why = null;
             ExpansionRoom? box = null;
             WallCut cut = default(WallCut);
@@ -621,7 +614,7 @@ namespace Arena
                         float s2 = hot ? 9f : 6f;
                         RoomMapFrame(dc.X - s2, dc.Y - s2, 2f * s2, 2f * s2, hot ? 2f : 1.5f, (hot ? (gateWhy == null ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f)) : new Rgba(1f, 0.85f, 0.4f)).WithAlpha(hot ? 1f : 0.5f + 0.3f * Mathf.Sin(Time.unscaledTime * 3f)));
                     }
-                if ((over || expDragging) && !expGateMode && !cardMode && !gridMode)  // the snapped cursor (a cross) and the corner already placed (a square)
+                if ((over || expDragging) && !expGateMode && !gridMode)  // the snapped cursor (a cross) and the corner already placed (a square)
                 {
                     V2 cur = M(Snap(ev.mousePosition));
                     RoomMapRect(cur.X - 7f, cur.Y - 0.5f, 14f, 1f, Rgba.White.WithAlpha(0.8f));
@@ -642,8 +635,6 @@ namespace Arena
                     DrawLinkMark(wd, M, expA, expB, linkPrice > 0 ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f), 1f);
                 if (roomMode)
                     DrawOutlineDraft(M, shape, laid, outlineRoom, cursor, over, fillDraft);
-                if (cardMode)
-                    DrawCardGhost(M, cardPick);
                 if (gridMode)
                     DrawGridGhost(M, gridPick);
                 if (game.GridRoomsOn)
@@ -688,9 +679,7 @@ namespace Arena
                 }
             string line;
             Color lineInk;
-            if (cardMode)
-                line = CardLine(cardPick, cardFits, over, out lineInk);
-            else if (gridMode)
+            if (gridMode)
                 line = GridRoomLine(gridPick, gridFits, over, out lineInk);
             else if (expGateMode && gateDoor >= 0)
             {
@@ -775,9 +764,7 @@ namespace Arena
             }
             float bx = panel.x + 10f, bw = panel.width - 20f;
             float actY = panel.yMax - 140f;  // the action keys sit just above Close and Done · ready up
-            if (cardMode)
-                DrawCardHand(new Rect(bx, py, bw, actY - 46f - py), calm);
-            else if (gridMode)
+            if (gridMode)
                 DrawGridPalette(new Rect(bx, py, bw, actY - 46f - py), calm);
             else if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
                 DrawThemeGrid(new Rect(bx, py, bw, actY - 46f - py), calm);
@@ -812,7 +799,7 @@ namespace Arena
                 if (free)
                     expOpen = false;
             }
-            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), cardMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the card back   ·   ESC  close" : gridMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the piece back   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), gridMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the piece back   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
             DrawTip(true);
             CrtUi.End(win, t, calm);
         }
@@ -982,7 +969,7 @@ namespace Arena
             float x = 48f, w = 158f;
             CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
             Ui.Label(new Rect(x + 2f, 64f, w, 16f), doorsOnly ? "WAVE ON  ·  DOORS ONLY" : "BUILT AS YOU PLACE IT", 10, doorsOnly ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[] names = { game.RoomCardsOn ? "ROOM CARDS" : game.GridRoomsOn ? "PIECES" : "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
+            string[] names = { game.GridRoomsOn ? "PIECES" : "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
             // The tools shown: Open wall only where it is in play (not in a Grid run), the buildables only while you own one (owner Nov 18).
             var me0 = game.Me;
             bool trapsHeld = false;
@@ -1170,12 +1157,6 @@ namespace Arena
                 title = "PLACE A PIECE";
                 steps = new[] { "Pick a piece from your hand", "Point at a glowing door spot on a wall", "Click to build it  ·  R turns it" };
                 tip = "Every room is a piece card. Pieces snap to door spots on the walls of rooms you have built, and playing one is free.";
-            }
-            else if (game.RoomCardsOn)
-            {
-                title = "PLAY A ROOM CARD";
-                steps = new[] { "Pick a card from your hand", "Point where it should go (the dots fit)", "Click to build it  ·  R turns it" };
-                tip = "Every room is a card. You get one each round; bosses, chests and the Black Market give more.";
             }
             else
             {

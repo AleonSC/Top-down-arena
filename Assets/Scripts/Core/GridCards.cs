@@ -171,7 +171,7 @@ namespace Arena
         }
 
         /// Cards are in play: room cards, or a Grid run (whose cards are grid pieces).
-        public bool HandOn => RoomCardsOn || GridRoomsOn;
+        public bool HandOn => GridRoomsOn;
 
         /// This game's player plays the card in this hand slot as a grid piece: its orientation, with its cell box's corner at (x, y). Only in a Grid run's build round.
         public void PlayGridCard(int slot, int orient, int x, int y)

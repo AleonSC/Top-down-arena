@@ -150,23 +150,5 @@ static partial class Program
         Check(wd.NodeSpots != null && wd.NodeSpots.Length == nodes.Count, "the world gives every node a spot");
         Check(wd.NodeSpots[0].Equals(mid) && wd.NodeSpots[1].Equals(mid) && wd.NodeSpots[2].Equals(mid), "a claimed chest, relic and vector chest stand in the room's middle");
         Check(wd.NodeSpots[3].Equals(nodes[3].Pos) && wd.NodeSpots[4].Equals(nodes[4].Pos), "a shop node and an unclaimed chest stay where they are");
-
-        // A Ring card's middle is a solid block: the chest stands on the lane, clear of every obstacle, still inside the room.
-        var ring = Expansion.CardOptions(new List<ExpansionRoom>(), RoomCard.Ring);
-        Check(ring.Count > 0, "the Ring card has a spot");
-        var rr = Expansion.CardRooms(new List<ExpansionRoom>(), RoomCard.Ring, ring[0].X, ring[0].Y, ring[0].Turn, ring[0].Mirror, out why);
-        Check(rr != null, "the Ring card builds (" + why + ")");
-        var b0 = rr[0];
-        var cn = new List<MapNode> { new MapNode { X = (short)((b0.X + b0.X1) / 2), Y = (short)((b0.Y + b0.Y1) / 2), Kind = NodeKind.Chest } };
-        if (!Expansion.NodeClaimed(rr, cn[0]))
-            cn[0] = new MapNode { X = (short)(b0.X + 150), Y = (short)(b0.Y + 150), Kind = NodeKind.Chest };
-        var w2 = Expansion.Build(rr, null, null, cn);
-        var sp = w2.NodeSpots[0];
-        bool inside = false, hits = false;
-        foreach (var b in rr)
-            inside |= sp.X > b.X && sp.X < b.X1 && sp.Y > b.Y && sp.Y < b.Y1;
-        foreach (var c in w2.Cover)
-            hits |= Math.Abs(c.Pos.X - sp.X) < c.HW + c.R && Math.Abs(c.Pos.Y - sp.Y) < c.HH + c.R;
-        Check(Expansion.NodeClaimed(rr, cn[0]) && inside && !hits, "in a Ring card room it stands inside the room and clear of its obstacles (" + sp.X + "," + sp.Y + ")");
     }
 }
