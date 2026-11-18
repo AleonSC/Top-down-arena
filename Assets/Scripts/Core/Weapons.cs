@@ -584,8 +584,8 @@ namespace Arena
                     return p.KatanaStance == 0 ? MeleeReach(p, KatanaDashLen) : MeleeReach(p, w.Reach);
                 case WeaponId.BoStaff:  // each step of the chain has its own reach (Ninja.cs)
                     return MeleeReach(p, (p.BoStep == 1 ? BoJabReach : p.BoStep == 2 ? BoSpinReach : w.Reach) + w.Grow * x);
-                case WeaponId.Greatsword:  // the cuts' reach (extra projectiles only add sword waves to the overhead rend)
-                    return MeleeReach(p, w.Reach);
+                case WeaponId.Greatsword:  // the next chain step's reach (GreatswordChain.cs; extra projectiles only add Eclipse's sword waves)
+                    return GreatNextReach(p);
                 case WeaponId.Lance:  // the jabs' reach, or the Breaching Thrust's when it is next (extra projectiles only lengthen the thrust; Lance.cs)
                     return MeleeReach(p, p.LancePrimed || TwinBladesMotion.StepOf(p.Combo) == 3 ? w.Reach + BreachExtraReach + w.Grow * x : w.Reach);
             }

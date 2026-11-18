@@ -52,7 +52,7 @@ namespace Arena
             { WeaponId.Lightbringer, 58f },
             { WeaponId.Censer, 35f },
             { WeaponId.TwinBlades, 98f },
-            { WeaponId.Greatsword, 89f },
+            { WeaponId.Greatsword, 87f },
             { WeaponId.Rapier, 85f },
             { WeaponId.ArcKnuckles, 88f },
             { WeaponId.Kusarigama, 37f },

@@ -17,8 +17,9 @@ namespace Arena
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
         public bool FromWeapon;       // queued by the player's weapon (QueueSwing): the session recording credits its hits to the weapon
-        public bool Rend;             // the Greatsword's Rend (Greatsword.cs): a long box drawn as a lance of light, Power = Temper / GreatTemperMax
-        public int Waves;             // sword waves launched as it lands (the Greatsword's overhead rend with extra projectiles)
+        public bool Rend;             // a long box drawn as a lance of light (the Greatsword's Eclipse, and its old guard's Rend), Power = Temper / GreatTemperMax (1: gold)
+        public byte Great;            // a Greatsword chain hit (Game.GreatMove; GreatswordChain.cs): the parry takes back one still winding up, a ring draws as one
+        public int Waves;             // sword waves launched as it lands (the Greatsword's Eclipse with extra projectiles)
         public float WaveDmg;
         public bool Staff;            // each enemy it hits adds a Jab stack (the Quarterstaff's swipes; Quarterstaff.cs)
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
@@ -194,28 +195,8 @@ namespace Arena
                     FireTwinBlades(p, aim, dmg, extra);  // the Crescent Waltz's next step (TwinBlades.cs)
                     break;
                 case WeaponId.Greatsword:
-                {
-                    // Cut, return cut, overhead rend (Greatsword.cs). A full-Temper Rend makes the next chain start on the rend.
-                    int step = p.GreatStep == 1 || p.GreatStep == 2 ? p.GreatStep + 1 : (p.GreatPrimed ? 3 : 1);
-                    if (step == 3 && p.GreatStep != 2)
-                        p.GreatPrimed = false;
-                    p.GreatStep = (byte)step;
-                    p.GreatGap = 0f;
-                    p.FireCd = GreatInterval[step - 1] / FireRate(p);
-                    var s = NewSwing(p, aim, w.Reach, step == 3 ? GreatRendArc : GreatCutArc, w.Damage * dmg * GreatMult[step - 1]);
-                    s.Heavy = true;
-                    if (step == 3)
-                    {
-                        s.Delay = GreatRendWind;  // the blade goes up first
-                        BroadcastSound(Sfx.GreatWindup);
-                        s.Knock = GreatRendKnock;
-                        s.Waves = extra;
-                        s.WaveDmg = GreatWaveDmg * dmg;
-                    }
-                    QueueSwing(s);
-                    SteelWall(p, aim, s.Reach, s.HalfArc, GreatWall[step - 1], s.Delay);  // the sweep's edge lingers, stopping bullets
+                    FireGreatsword(p, aim, dmg, extra);  // the ten-step chain's next step (GreatswordChain.cs)
                     break;
-                }
                 case WeaponId.ArcKnuckles:
                     FireArcKnuckles(p, aim, dmg, extra);  // the next punch, or the Counter Hammer (ArcKnuckles.cs)
                     break;
@@ -385,6 +366,8 @@ namespace Arena
                 BroadcastFx(FxKind.RootLash, origin, origin + dir * s.Reach, new Rgba(0.55f, 0.36f, 0.17f), s.HalfWidth, RootFxTime, Sfx.None);
             else if (s.DrawCut)
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);
+            else if (circle && s.Great != 0)  // a Greatsword ring (Comet Leap's landing, Eclipse's strike)
+                BroadcastFx(FxKind.Ring, circleAt, s.Great == (byte)GreatMove.Eclipse ? new Rgba(1f, 0.84f, 0.51f) : Defs.BulletColor(Defs.KnightSlash), s.Circle, 0.4f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
                 BroadcastFx(FxKind.Jab, origin, circleAt, HammerBoomColor.WithAlpha(0.2f + 0.8f * s.Power), s.Circle, 0.26f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (s.Rend)  // the Greatsword's Rend: a lance of light (Game/GreatswordLook.cs); Radius is its half width, the colour's alpha is its Temper
@@ -707,8 +690,8 @@ namespace Arena
             // DPS
             new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 16f, Reach = 90f, Melee = true, ExtraDesc = "+1 crescent: the Pirouette and the Crescent Shear each launch one more wave, fanned out", Name = "Twin Blades", FireInterval = 0.18f,
                 Desc = "Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back." },
-            new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 40f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword wave: the overhead rend launches a piercing crescent (50% damage)", Name = "Greatsword", FireInterval = 0.7f,
-                Desc = "A three-hit chain: two quick cuts, then a slow overhead rend. The edge of each sweep hangs in the air as a crescent of steel that stops enemy bullets. Hold the weapon-action key to guard: the arc stops bullets and builds Temper, and letting go fires a beam that hits harder for every point of Temper." },
+            new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 40f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword wave: Eclipse launches a piercing crescent", Name = "Greatsword", FireInterval = 0.5f,
+                Desc = "A ten-step chain: Undertow drags enemies in, Pommel Bash stuns, Cross Cut, Backstep Reap hops you back behind a crescent that stops bullets, Comet Leap jumps in and crashes down, then Full Moon spins and Eclipse brings down a golden lance of light. The weapon-action key throws the sword spinning to your cursor and back." },
             new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.48f,  // the first thrust; Tempo makes them quicker (Rapier.cs)
                 Desc = "Precise thrusts at the nearest enemy in front, and they skewer enemy bullets along their line. The first thrust is slow, but every enemy you hit adds Tempo, and Tempo makes the thrusts quicker. Stop hitting and it holds a moment, then drains. The weapon-action key spends it on a Flourish: the blade whips back and forth, each swing throwing a crescent wave." },
             new WeaponDef { Id = WeaponId.ArcKnuckles, Kit = Kit.Knight, Role = Role.Dps, Choice = 3, Damage = 22f, Reach = 80f, Melee = true, ExtraDesc = "+1 aftershock: the Twin Hammer slams again 0.2 s later, 40 px further out (60% damage)", Name = "Arc Knuckles", FireInterval = 0.24f,
@@ -753,8 +736,8 @@ namespace Arena
                 Apply = s => { s.IncenseSizeMult += 0.3f; s.IncenseBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.TwinBlades }, MaxStacks = 2, Name = "Whirling Sabres", Desc = "The thrown sabres follow your cursor 25% longer and hit 30% harder",
                 Apply = s => { s.FangTimeMult += 0.25f; s.FangDmgMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Greatsword }, MaxStacks = 2, Name = "Tempered Blade", Desc = "The guard's Rend hits 30% harder, and guarding builds Temper 25% faster",
-                Apply = s => { s.GreatRendMult += 0.3f; s.TemperGainMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Greatsword }, MaxStacks = 2, Name = "Lunar Arc", Desc = "The thrown sword flies 25% farther and hits 30% harder",
+                Apply = s => { s.WheelRangeMult += 0.25f; s.WheelDmgMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Rapier }, MaxStacks = 2, Name = "Duelist's Edge", Desc = "Each thrust skewers 1 more bullet, and Tempo holds 0.5 s longer",
                 Apply = s => { s.SkewerBonus += 1; s.TempoHoldBonus += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcKnuckles }, MaxStacks = 2, Name = "Live Wire", Desc = "The Rocket Dash reaches 25% farther, and the Twin Hammer stuns 0.3 s longer",

@@ -1499,14 +1499,39 @@ static partial class Shot {
           if (Environment.GetEnvironmentVariable("STAFFJAB") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.StaffJabReach), -Game.StaffJabArc * MathX.Pi / 360f, 0f, 0.24f);
           else fx(FxKind.Slash, to, Game.StaffSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
           break;
-        case WeaponId.Greatsword:  // GREAT=guard (TEMPER=<n> points held), GREAT=wind (the overhead rend's wind-up, first frame), GREAT=rend (the Rend, TEMPER=<n>), else the cut
+        case WeaponId.Greatsword:  // GREATSTEP=1..10 a step of the chain (SWING = seconds after the press: its own pose, then its Slash, ring or lance once it lands), GREATSTEP=wheel the Moonwheel 180 px out; GREAT=guard (TEMPER=<n>) the old guard
         {
-          string gmode = Environment.GetEnvironmentVariable("GREAT") ?? "cut";
-          int gn = int.Parse(Environment.GetEnvironmentVariable("TEMPER") ?? "3");
-          if (gmode == "guard") { me.GreatGuard = true; me.GreatTemper = (byte)gn; }
-          else if (gmode == "wind") me.GreatStep = 3;
-          else if (gmode == "rend") gm.Effects.Add(new Effect { Kind = FxKind.GreatRend, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.GreatRendReach, Color = col.WithAlpha(0.2f + 0.8f * gn / Game.GreatTemperMax), Radius = Game.GreatRendWidth + Game.GreatRendWidthPer * gn, T = st, Dur = Game.GreatRendFxTime });
-          else { me.GreatStep = 1; fx(FxKind.Slash, to, Game.GreatCutArc * MathX.Pi / 360f, 0f, 0.16f); }
+          string gsn = Environment.GetEnvironmentVariable("GREATSTEP") ?? "1";
+          if (Environment.GetEnvironmentVariable("GREAT") == "guard") { me.GreatGuard = true; me.GreatTemper = (byte)int.Parse(Environment.GetEnvironmentVariable("TEMPER") ?? "3"); break; }
+          if (gsn == "wheel") { me.FangOut = 2; me.FangAt = me.Pos + V2.FromAngle(me.Aim) * 180f; break; }
+          int gi = int.Parse(gsn);
+          var gm2 = Game.GreatMoveOf(gi);
+          var gd = Game.GreatMoves[(int)gm2];
+          me.GreatStep = (byte)gi;
+          me.Combo = 1 << 3;
+          ArenaApp.GreatPreviewAge = st;
+          float since = st - gd.Wind;  // the hit landed this long ago
+          if (since < 0f) break;
+          float half = 0f, rch = 0f;
+          switch (gm2)
+          {
+            case Game.GreatMove.Undertow: half = Game.UndertowArc; rch = Game.UndertowReach; break;
+            case Game.GreatMove.Cross: half = Game.CrossArc; rch = Game.CrossReach; break;
+            case Game.GreatMove.Backstep: half = Game.BackstepArc; rch = Game.BackstepReach; break;
+            case Game.GreatMove.FullMoon: half = 360f; rch = Game.MoonReach; break;
+          }
+          if (rch > 0f)
+          {
+            float aimOff = gm2 == Game.GreatMove.Cross ? -0.35f : 0f;
+            gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim + aimOff) * Game.MeleeReach(me, rch), Color = col, Radius = half * MathX.Pi / 360f, T = since, Dur = 0.24f });
+          }
+          else if (gm2 == Game.GreatMove.Leap)
+            gm.Effects.Add(new Effect { Kind = FxKind.Ring, Pos = me.Pos, Color = col, Radius = Game.MeleeReach(me, Game.LeapRadius), T = since, Dur = 0.4f });
+          else if (gm2 == Game.GreatMove.Eclipse)
+          {
+            gm.Effects.Add(new Effect { Kind = FxKind.GreatRend, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.EclipseReach), Color = col.WithAlpha(1f), Radius = Game.EclipseHalfWidth, T = since, Dur = Game.GreatRendFxTime });
+            gm.Effects.Add(new Effect { Kind = FxKind.Ring, Pos = me.Pos + V2.FromAngle(me.Aim) * Game.EclipseRingAt, Color = new Rgba(1f, 0.84f, 0.51f), Radius = Game.EclipseRing, T = since, Dur = 0.4f });
+          }
           break;
         }
         case WeaponId.Censer:  // CENSERSTEP=1..3 a step of the Thurible Rite (default 1), CENSERSTEP=cast Censer Cast (SWING = seconds after the click), EMBERS=<n> held

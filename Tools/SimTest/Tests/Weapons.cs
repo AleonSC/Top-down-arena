@@ -310,111 +310,106 @@ static partial class Program
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
         float mult = me.Stats.DmgMult, baseDmg = me.Weapon.Damage * mult;
 
-        // The chain: cut, return cut, overhead rend, then round again.
-        var dummy = Dummy(new V2(590f, 450f));
-        Func<float> Taken = () => { float t = dummy.MaxHp - dummy.Hp; dummy.Hp = dummy.MaxHp; return t; };
-        Step(6, true, false);
-        float d1 = Taken();
-        Check(me.GreatStep == 1 && Math.Abs(d1 - baseDmg) < 0.5f, "the first cut lands at once for the weapon's damage (" + d1 + " vs " + baseDmg + ")");
-        Step(30, false, false);
-        Step(6, true, false);
-        float d2 = Taken();
-        Check(me.GreatStep == 2 && Math.Abs(d2 - baseDmg) < 0.5f, "the return cut is the same (" + d2 + ")");
-        Step(30, false, false);
-        Step(3, true, false);
-        float early = Taken();
-        Check(me.GreatStep == 3 && early == 0f, "the overhead rend winds up first: nothing lands in its first frames");
-        Check(heard.Contains(Sfx.GreatWindup), "and the blade lifting is heard");
-        Step(30, false, false);
-        float d3 = Taken();
-        Check(Math.Abs(d3 - baseDmg * Game.GreatMult[2]) < 0.5f && d3 > 2f * d1, "then lands for 2.25 times a cut (" + d3 + " vs " + d1 + ")");
-        Step(70, false, false);
-        Check(me.GreatStep == 0, "the chain starts over after 0.9 s without a swing");
-        Console.WriteLine("  greatsword chain: {0:0} / {1:0} / {2:0}", d1, d2, d3);
-
-        // The cuts leave crescents that hang for their own times.
-        Step(70, false, false);
-        g.Bullets.Clear();
-        Step(3, true, false);
-        var wall1 = Shot(from + new V2(Game.MeleeReach(me, me.Weapon.Reach) + 40f, 0f), new V2(-300f, 0f), Defs.BigShot);
-        Step(10, false, false);
-        Check(!g.Bullets.ContainsKey(wall1.Id), "a cut's crescent stops a bullet crossing it");
-        Step(60, false, false);
-        var wall2 = Shot(from + new V2(Game.MeleeReach(me, me.Weapon.Reach) + 40f, 0f), new V2(-300f, 0f), Defs.BigShot);
-        Step(10, false, false);
-        Check(g.Bullets.ContainsKey(wall2.Id), "and after 0.35 s it has gone");
-        g.Bullets.Clear();
-        Step(80, false, false);
-
-        // Guard: hold the weapon-action key.
-        float speed0 = me.Speed;
-        g.Enemies.Clear();
-        var near = Dummy(new V2(590f, 450f));
-        near.Hp = near.MaxHp;
-        Step(5, true, true);
-        Check(me.GreatGuard, "holding the weapon-action key raises the guard");
-        Check(heard.Contains(Sfx.GreatRaise), "the guard going up is heard");
-        Check(Math.Abs(me.Speed - speed0 * Game.GreatGuardSlow) < 0.01f, "you move at half speed while guarding");
-        Check(near.Hp == near.MaxHp && me.GreatStep == 0, "and you can't swing while it's up");
-        int temper0 = me.GreatTemper;
-        var b1 = Shot(from + new V2(Game.GreatGuardRadius + 40f, 0f), new V2(-300f, 0f), Defs.BigShot);
-        Step(20, false, true);
-        Check(heard.Contains(Sfx.GreatBlock), "a bullet stopped on the arc rings");
-        Check(!g.Bullets.ContainsKey(b1.Id) && me.GreatTemper == temper0 + 1, "a bullet hitting the arc is stopped and adds a point of Temper (" + me.GreatTemper + ")");
-        var red = Shot(from + new V2(Game.GreatGuardRadius + 40f, 0f), new V2(-300f, 0f), Defs.PierceShot);
-        Step(6, false, true);
-        Check(g.Bullets.ContainsKey(red.Id) && me.GreatTemper == temper0 + 1, "an aimed red shot goes through and gives nothing");
-        g.Bullets.Clear();
-        Shot(from + new V2(-(Game.GreatGuardRadius + 40f), 0f), new V2(300f, 0f), Defs.BigShot);
-        Step(14, false, true);
-        Check(me.GreatTemper == temper0 + 1, "a bullet from behind is not stopped by the arc in front");
-        g.Bullets.Clear();
-        for (int k = 0; k < 8; k++)
+        // The chain: the owner's ten steps, in order, then round again. A dummy 70 px ahead is in reach of every step.
+        V2 dAt = new V2(570f, 450f);
+        var dummy = Dummy(dAt);
+        Func<float> Taken = () => { float t = dummy.MaxHp - dummy.Hp; dummy.Hp = dummy.MaxHp; dummy.Pos = dummy.Disp = dAt; dummy.StunT = 0f; return t; };
+        var dealt = new float[10];
+        var steps = new int[10];
+        bool pommelStuns = true, eclipseWaits = false;
+        int count0 = me.Combo >> 3;
+        for (int i = 0; i < 10; i++)
         {
-            Shot(from + new V2(Game.GreatGuardRadius + 30f, 0f), new V2(-300f, 0f), Defs.BigShot);
-            Step(12, false, true);
+            var m = Game.GreatMoveOf(i + 1);
+            var d = Game.GreatMoves[(int)m];
+            Taken();
+            Step(1, true, false);
+            steps[i] = me.GreatStep;
+            if (m == Game.GreatMove.Eclipse)
+            {
+                Step(2, false, false);
+                eclipseWaits = dummy.Hp == dummy.MaxHp;
+            }
+            Step((int)Math.Ceiling(d.Dur / dt) + 1, false, false);
+            if (m == Game.GreatMove.Pommel && dummy.StunT <= 0f) pommelStuns = false;
+            dealt[i] = Taken();
         }
-        Check(me.GreatTemper == Game.GreatTemperMax, "Temper stops at six (" + me.GreatTemper + ")");
-        Check(heard.Contains(Sfx.GreatFull), "and a chime says it is full");
-        heard.Remove(Sfx.GreatRend);
+        Console.WriteLine("  greatsword chain: " + string.Join(" / ", dealt.Select((x, i) => Game.GreatMoves[(int)Game.GreatMoveOf(i + 1)].Name + " " + x.ToString("0"))));
+        Check(steps.SequenceEqual(Enumerable.Range(1, 10)), "each press plays the next of the ten steps (" + string.Join(",", steps) + ")");
+        Check((me.Combo >> 3) - count0 == 10 && (me.Combo & 7) == 0, "and the swing count goes up by one a step (your own game moves you on it)");
+        Func<int, float> Want = i => baseDmg * Game.GreatMoves[(int)Game.GreatMoveOf(i + 1)].Mult;
+        Check(Math.Abs(dealt[0] - Want(0)) < 0.5f && Math.Abs(dealt[7] - Want(7)) < 0.5f, "Undertow hits for its share (" + dealt[0] + ")");
+        Check(Math.Abs(dealt[1] - Want(1)) < 0.5f && pommelStuns, "Pommel Bash is a light hit that stuns");
+        Check(Math.Abs(dealt[2] - 2f * Want(2)) < 0.5f, "Cross Cut hits twice (" + dealt[2] + ")");
+        Check(Math.Abs(dealt[5] - Want(5)) < 0.5f, "Comet Leap's landing ring hits where you come down (" + dealt[5] + ")");
+        Check(Math.Abs(dealt[8] - Want(8)) < 0.5f, "Full Moon hits all round (" + dealt[8] + ")");
+        Check(eclipseWaits && heard.Contains(Sfx.GreatWindup), "Eclipse winds up first, and the blade lifting is heard");
+        Check(Math.Abs(dealt[9] - (Want(9) + baseDmg * Game.EclipseRingMult)) < 0.5f && dealt[9] > 4f * dealt[0], "then the lance and its ring land hard (" + dealt[9] + ")");
+        Check(heard.Contains(Sfx.GreatRend), "and the lance is heard");
+        Step(1, true, false);
+        Check(me.GreatStep == 1, "after Eclipse the chain starts over");
+        Step(90, false, false);
+        Check(me.GreatStep == 0, "and it starts over too after a pause without a swing");
 
-        // Release: the Rend. Full Temper, so it also primes the next chain.
-        g.Enemies.Clear(); g.Bullets.Clear();
-        var inLine = Dummy(new V2(700f, 450f)); var farLine = Dummy(new V2(1050f, 450f)); var wide = Dummy(new V2(700f, 520f));
-        Step(10, false, false);
-        float full = Game.GreatRendDamage(Game.GreatTemperMax) * mult;
-        float hIn = inLine.MaxHp - inLine.Hp, hFar = farLine.MaxHp - farLine.Hp;
-        Console.WriteLine("  greatsword rend at full Temper: first in line took {0:0}, second {1:0}, off the line {2:0}", hIn, hFar, wide.MaxHp - wide.Hp);
-        Check(!me.GreatGuard && me.GreatTemper == 0, "letting go drops the guard and spends the Temper");
-        Check(heard.Contains(Sfx.GreatRend), "and the Rend is heard");
-        Check(Math.Abs(hIn - full) < 0.5f && Math.Abs(hFar - full) < 0.5f, "a six-point Rend pierces everything in its line for 120 (" + hIn + ", " + hFar + ")");
-        Check(wide.Hp == wide.MaxHp, "and misses what is off the line");
-        Check(me.GreatPrimed, "a full Rend primes the next chain");
-        Step(30, false, false);
-        Step(3, true, false);
-        Check(me.GreatStep == 3 && !me.GreatPrimed, "which starts on the overhead rend (" + me.GreatStep + ")");
+        // Backstep Reap and Full Moon leave crescents that stop bullets.
+        g.Bullets.Clear();
+        me.GreatStep = 4; me.GreatGap = 0f;
+        Step(1, true, false);
+        var wall1 = Shot(from + new V2(Game.MeleeReach(me, Game.BackstepReach) + 50f, 0f), new V2(-300f, 0f), Defs.BigShot);
+        Step(20, false, false);
+        Check(me.GreatStep == 5 && !g.Bullets.ContainsKey(wall1.Id), "Backstep Reap's crescent stops a bullet crossing it");
+        g.Bullets.Clear();
+        Step(90, false, false);
 
-        // A short guard still fires a small Rend, and the guard can't go straight back up.
-        Step(80, false, false);
+        // Your own game: Comet Leap jumps you forward (untouchable in the air), Backstep Reap hops you back.
         g.Enemies.Clear();
-        var small = Dummy(new V2(700f, 450f));
-        Step(4, false, true);
-        me.GreatTemper = 2;
-        Step(10, false, false);
-        float dSmall = small.MaxHp - small.Hp;
-        Check(Math.Abs(dSmall - Game.GreatRendDamage(2) * mult) < 0.5f, "a Rend with two points deals 60 (" + dSmall + ")");
-        Step(10, false, true);
-        Check(!me.GreatGuard, "the guard can't go straight back up after a Rend");
-        Step(2, false, false);
-        Step(60, false, false);
-        Step(4, false, true);
-        Check(me.GreatGuard, "but can after a moment");
+        Func<int, float> MoveOf = step =>
+        {
+            me.Pos = from; me.GreatStep = (byte)(step - 1); me.GreatGap = 0f; me.FireCd = 0f;
+            float x0 = me.Pos.X;
+            for (int f = 0; f < 50; f++)
+            {
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = aimAt, Fire = f == 0 } : new PlayerInput()); }
+                if (f == 5 && step == 6) Check(me.InvulnT > 0f, "Comet Leap: you can't be hit in the air");
+            }
+            return me.Pos.X - x0;
+        };
+        float leap = MoveOf(6), back = MoveOf(5);
+        Console.WriteLine("  greatsword moves: Comet Leap {0:0} px, Backstep Reap {1:0} px", leap, back);
+        Check(leap > 120f && leap < 160f, "Comet Leap carries you about 150 px forward");
+        Check(back < -50f && back > -80f, "Backstep Reap hops you about 70 px back");
+        me.Pos = from;
+        Step(90, false, false);
 
-        // Putting the sword away clears everything.
-        me.GreatTemper = 3;
+        // Moonwheel: the sword flies to the cursor and back, cutting what it passes on each leg; no swings until it is caught.
+        g.Enemies.Clear(); g.Bullets.Clear();
+        var onPath = Dummy(new V2(700f, 450f));
+        typeof(Game).GetField("fangLocalCd", bf).SetValue(g, 0f);
+        Step(1, false, true);
+        Step(4, false, false);
+        Check(me.FangOut != 0, "the weapon-action key throws the sword");
+        Check(heard.Contains(Sfx.TwinThrow), "and the throw is heard");
+        float far = 0f; int outFrames = 0;
+        for (int f = 0; f < 150 && me.FangOut != 0; f++)
+        {
+            Step(1, f % 2 == 0, false);
+            far = Math.Max(far, me.FangAt.X - from.X);
+            outFrames++;
+        }
+        float cut = onPath.MaxHp - onPath.Hp, wheel = me.Weapon.Damage * mult * Game.WheelMult;
+        Console.WriteLine("  greatsword moonwheel: out to {0:0} px, back in {1:0.00} s, the dummy on its path took {2:0} ({3:0} a pass)", far, outFrames * dt, cut, wheel);
+        Check(far > 280f && far < 305f, "it flies out to the cursor's distance, at most 290 px (" + far + ")");
+        Check(Math.Abs(cut - 2f * wheel) < 0.5f, "it cuts an enemy on its path once going out and once coming back");
+        Check(me.FangOut == 0 && me.FangCd > 0f && me.FangCd <= Game.WheelCooldown && me.GreatStep == 0, "you catch it, its cooldown starts, and you couldn't swing while it was out");
+        Step(1, false, true);
+        Step(3, false, false);
+        Check(me.FangOut == 0, "it can't be thrown again until the cooldown is over");
+
+        // Putting the sword away clears the chain.
+        me.GreatStep = 3;
         me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 0);
         Step(4, false, false);
-        Check(!me.GreatGuard && me.GreatTemper == 0 && me.GreatStep == 0, "the guard and Temper go when the sword is put away");
+        Check(me.GreatStep == 0, "the chain goes when the sword is put away");
         s[0].Leave(""); s[1].Leave("");
     }
 
@@ -607,7 +602,7 @@ static partial class Program
                 case WeaponId.SpriteStaff: ok = b[2] == a[2] + 2; break;                 // +1 sprite each
                 case WeaponId.SpiritChalk: ok = b[3] > a[3]; break;                      // more ink: a longer line
                 case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
-                case WeaponId.Greatsword: ok = b[1] > a[1] && ratio > 1.1f; break;       // the overhead rend's sword waves: only one cut in three has them
+                case WeaponId.Greatsword: ok = b[1] > a[1] && ratio > 1.05f; break;      // Eclipse's sword waves: only one step in ten has them
                 case WeaponId.TwinBlades: ok = b[1] > a[1] && ratio > 1.1f; break;       // crescents off the Pirouette and the Shear: two steps in five have them
                 case WeaponId.BearTotem: ok = ratio > 1.1f; break;                        // claws plus the Bear's cleave (it wanders)
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
