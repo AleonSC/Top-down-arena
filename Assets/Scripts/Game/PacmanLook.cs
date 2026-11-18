@@ -25,9 +25,7 @@ namespace Arena
         {
             switch (Game.SharesWith(e.Type))
             {
-                case EnemyType.Medic: case EnemyType.Warder: case EnemyType.Nest:
-                    return PacHealPink;
-                case EnemyType.Shielder: case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger: case EnemyType.Juggernaut: case EnemyType.Colossus:
+                case EnemyType.Shielder: case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger: case EnemyType.Colossus:
                     return PacTankCyan;
             }
             switch (Game.JobOf(e.Type))

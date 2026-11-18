@@ -444,7 +444,7 @@ namespace Arena
             }
             UiModelAt(center, zoom);
             e.Disp = bob;
-            menuPreview = true;  // e.g. a Phantom doesn't flicker out of sight in its tile
+            menuPreview = true;  // e.g. a Shade doesn't flicker out of sight in its tile
             DrawEnemy(e, t * speed);
             menuPreview = false;
         }

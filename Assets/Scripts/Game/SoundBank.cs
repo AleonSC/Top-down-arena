@@ -332,10 +332,9 @@ namespace Arena
             Sfx.EnemyShot, Sfx.BossShift, Sfx.BossCharge, Sfx.BossPulse, Sfx.BossChime, Sfx.BossLaserWarn, Sfx.BossLaser, Sfx.BossSlam,
             Sfx.BossWhoosh, Sfx.BossSiren, Sfx.BossBuzz, Sfx.BossSplat, Sfx.BossGong, Sfx.BossScythe, Sfx.BossThunder, Sfx.BossWarp, Sfx.BossRumble,
             Sfx.BossCrack, Sfx.BossCage, Sfx.BossChomp, Sfx.ZombieGroan, Sfx.ZombieRise, Sfx.ZombieSpit, Sfx.ZombieGrab, Sfx.ZombieShriek,
-            Sfx.ZombieBurst, Sfx.ZombieMend, Sfx.SwarmerChomp, Sfx.SwarmerDie, Sfx.SpikerFlip, Sfx.SpikerStab, Sfx.SpikerDie, Sfx.BruteStep,
-            Sfx.BruteGrunt, Sfx.BruteBash, Sfx.BruteDie, Sfx.LungerTell, Sfx.LungerLeap, Sfx.LungerLand, Sfx.LungerDie, Sfx.SawWhirr, Sfx.SawDie,
-            Sfx.SpikeBlockRock, Sfx.SpikeBlockShake, Sfx.SpikeBlockLunge, Sfx.SpikeBlockRest, Sfx.SpikeBlockDie, Sfx.SwarmerPatter,
-            Sfx.SpikerSkitter, Sfx.LungerPad })
+            Sfx.ZombieBurst, Sfx.ZombieMend, Sfx.SwarmerChomp, Sfx.SwarmerDie, Sfx.BruteStep,
+            Sfx.BruteGrunt, Sfx.BruteBash, Sfx.BruteDie, Sfx.LungerTell, Sfx.LungerLeap, Sfx.LungerLand, Sfx.LungerDie,
+            Sfx.SwarmerPatter, Sfx.LungerPad })
                 c[(int)s] = Category.Enemies;
             return c;
         }
@@ -361,7 +360,6 @@ namespace Arena
             voiceStart = new float[VoiceCount];
             for (int i = 0; i < voices.Length; i++)
                 voices[i] = NewSource(owner, 128, false);
-            sawVoice = NewSource(owner, 64, true);      // the Buzzsaw's contact whirr (MeleeSoundBank.cs)
             wallHumVoice = NewSource(owner, 64, true);  // the wall hum (WallHumSoundBank.cs)
             arcHumVoice = NewSource(owner, 64, true);   // Arc Lightning's charge hum (ArcLockSoundBank.cs)
             heliVoice = NewSource(owner, 64, true);     // the Attack Helicopter's rotor (HeliSoundBank.cs)

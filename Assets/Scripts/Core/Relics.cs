@@ -123,7 +123,7 @@ namespace Arena
         /// Returns true when it bounced (the shot flies on); false lets the wall stop it as usual.
         bool WallBounce(Bullet b)
         {
-            if (b.WallHops >= Relics.WallBounces || Defs.IsEnemyShot(b.Kind) || b.Sticks || b.Rush)
+            if (b.WallHops >= Relics.WallBounces || Defs.IsEnemyShot(b.Kind) || b.Sticks)
                 return false;
             Player p;
             if (!Players.TryGetValue(b.Owner, out p) || p.Relic != RelicId.WallBounce)

@@ -24,7 +24,7 @@ namespace Arena
     /// Step 3: the Gutworm (its own moves) walks at you, then dives (LarderStage 1, can't be hurt or touched): a ripple
     /// chases you for GutChase s at its speed, stops and marks GutMarkR for GutMark s (stage 2, still underground), then
     /// erupts: a bite (GutBite) on whoever's in the mark and a ring of GutRing shots; it rests GutEvery s on the surface.
-    /// The Hook Thrower is the Hookman (NonShooters.cs, IsHook) with a meat hook: a longer line (HookThrowAim), a slower
+    /// The Hook Thrower throws a meat hook (NonShooters.cs, IsHook): a longer line (HookThrowAim), a slower
     /// hook (HookThrowSpeed), a shorter reel (HookThrowYank) and HookThrowDamage on a hit. The Maw Priest moves and charges
     /// like a Taser Guard but fires a fan of three (MawFan); it turns at PriestTurn (PriestFace), and a shot into the
     /// maw in front (PriestMawHalf either side) heals it for half while one in its back does PriestBackMult

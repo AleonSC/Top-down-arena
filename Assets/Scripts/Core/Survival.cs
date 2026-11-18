@@ -143,7 +143,7 @@ namespace Arena
             {
                 float fade = (float)Math.Pow(OldFactionFade, fs.Count - 1 - fi);
                 foreach (var m in fs[fi].Members)
-                    if (m.From <= reach && !Game.IsRetired(m.Type) && RangedShare(m.Type, t) > 0f)
+                    if (m.From <= reach && RangedShare(m.Type, t) > 0f)
                         pool.Add(new KeyValuePair<EnemyType, float>(m.Type, m.Weight * fade * RangedShare(m.Type, t)));
             }
             return pool;
@@ -171,7 +171,7 @@ namespace Arena
             {
                 int copies = fi == fs.Count - 1 ? 2 : 1;  // the newest faction's squads come a bit more often
                 foreach (var s in fs[fi].Squads)
-                    if (s.From <= reach && Game.SquadLive(s) && Array.TrueForAll(s.Members, m => RangedShare(m, t) >= 1f))  // (no squad with a shooter until they have all come in)
+                    if (s.From <= reach && Array.TrueForAll(s.Members, m => RangedShare(m, t) >= 1f))  // (no squad with a shooter until they have all come in)
                         for (int c = 0; c < copies; c++) opts.Add(s);
             }
             return opts.Count == 0 ? null : opts[rng.Next(opts.Count)];

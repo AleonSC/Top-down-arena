@@ -23,7 +23,7 @@ static partial class Program
             "the Gnawling, Butcher, Carcass Bearer and Bile Spitter have their counterpart's health, speed, contact damage and XP");
         Check(Defs.Get(EnemyType.Gulper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Gulper), "the Gulper is a tougher Brute (180 health)");
         Check(kin.Keys.Concat(new[] { EnemyType.Gutworm, EnemyType.HookThrower }).All(t => Game.EnemyNote(t).Length > 0 && LarderKin.Is(t)), "each has a new-enemy note");
-        Check(Game.IsHook(EnemyType.HookThrower) && Game.IsNonShooter(EnemyType.HookThrower) && !Game.IsRetired(EnemyType.HookThrower), "the Hook Thrower throws like the Hookman, and isn't retired");
+        Check(Game.IsHook(EnemyType.HookThrower) && Game.IsNonShooter(EnemyType.HookThrower), "the Hook Thrower throws a hook (the Hookman's, now its own)");
 
         // --- Playing them: a solo host, one enemy at a time -------------------------------------------------------------------
         Game.SeedForTests(4417);

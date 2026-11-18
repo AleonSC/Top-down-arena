@@ -34,7 +34,7 @@ static partial class Program
             return e.Pos.X - at.X;
         };
         float cut = push(1, EnemyType.Grunt), jab = push(3, EnemyType.Grunt), spin = push(4, EnemyType.Grunt), shear = push(5, EnemyType.Grunt);
-        float heavy = push(1, EnemyType.Juggernaut);
+        float heavy = push(1, EnemyType.Thunderhead);
         Console.WriteLine("  twin blades push: cut {0:0.0}, jab {1:0.0}, spin {2:0.0}, shear {3:0.0}, heavy {4:0.0}", cut, jab, spin, shear, heavy);
         Check(Math.Abs(cut - Game.MeleeKnock) < 2f, "a cut gives the standard melee shove (MeleeHit.cs)");
         Check(Math.Abs(jab - 2f * Game.MeleeKnock) < 4f, "the Double Jab: the standard shove a thrust");

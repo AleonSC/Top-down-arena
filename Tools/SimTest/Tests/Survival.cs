@@ -57,7 +57,9 @@ static partial class Program
         Check(run.Count > 200, "a fifteen-minute run spawns plenty (" + run.Count + ")");
         Check(maxLive <= Survival.MaxLive, "never more than " + Survival.MaxLive + " alive (" + maxLive + ")");
         Check(maxThreat <= Survival.Pressure(900f) + 6f * 6f + 30f, "the live threat stays near the budget (peak " + maxThreat.ToString("0") + ")");
-        Check(!run.Any(r => Game.IsRetired(r.s.Type)), "no retired enemy is ever spawned");
+        var owned = new HashSet<EnemyType>(Survival.FactionsAt(99999f).SelectMany(f => f.Members.Select(m => m.Type)
+            .Concat(f.Squads.Concat(new[] { f.Finale }).Where(q => q != null).SelectMany(q => q.Members))));
+        Check(run.All(r => owned.Contains(r.s.Type)), "every enemy spawned is one of its factions'");
         Check(!run.Any(r => r.t < Survival.RangedFrom && !Defs.Get(r.s.Type).Melee), "the first two minutes are melee only: no shooter, alone or in a squad");
         Check(run.Any(r => r.t >= Survival.RangedFrom + Survival.RangedRamp && !Defs.Get(r.s.Type).Melee), "shooters join after that");
         Check(Survival.Pressure(0f) < 0.5f * Survival.Pressure(120f) && Survival.Pressure(120f) < Survival.Pressure(300f), "the budget starts slow: under half of its two-minute level at the start");
@@ -133,8 +135,8 @@ static partial class Program
         Check(!sw.PortalExitFor(new V2(10f, 300f), 10f).HasValue, "the rest of the wall is still a wall");
         Check(g.Props.Values.All(pr => Array.TrueForAll(sw.Portals, pt => !pr.Pos.CloserThan(pt.A, pt.Half + 60f) && !pr.Pos.CloserThan(pt.B, pt.Half + 60f))),
             "no crate or barrel sits in front of a portal");
-        var vc = g.CurrentWorld.ViewCentre(new V2(100f, 100f), 800f, 450f, false);
-        var vm = g.CurrentWorld.ViewCentre(new V2(1600f, 900f), 800f, 450f, false);
+        var vc = g.CurrentWorld.ViewCentre(new V2(100f, 100f), 800f, 450f);
+        var vm = g.CurrentWorld.ViewCentre(new V2(1600f, 900f), 800f, 450f);
         Check(vc.X == 800f && vc.Y == 450f && vm.X == 1600f && vm.Y == 900f, "the camera follows you and stops at the room's edges");
         Check(g.Props.Count >= 120 && g.Props.Values.Count(pr => pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate) >= 90, "the room is full of crates (" + g.Props.Count + " props)");
         var layout = g.ActiveLayout;

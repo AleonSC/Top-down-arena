@@ -643,17 +643,17 @@ static partial class Program
         Console.WriteLine("  standing in a flare's lane: hurt {0}", me.Run.DamageTaken > taken);
         Check(me.Run.DamageTaken > taken, "a solar flare burns a player in its lane");
 
-        // 80%: it changes stage (can't be hurt, the screen clears), then the Penumbra: the moon and two Phantoms.
+        // 80%: it changes stage (can't be hurt, the screen clears), then the Penumbra: the moon and two Embers.
         h.Hp = h.MaxHp * 0.78f;
         Run(s, dt, 0.3f, null, safe);
         float hp = h.Hp; hurt.Invoke(g, new object[] { h, 500f, 1 });
         bool immune = h.Eclipse.TransT > 0f && h.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.Eclipse) && g.Hazards.Count == 0;
         Run(s, dt, 3.5f, () => h.Eclipse.Stage == EclipseStage.Penumbra && h.Eclipse.TransT <= 0f, safe);
         Run(s, dt, 0.5f, null, safe);
-        int phantoms = g.Enemies.Values.Count(e => e.Type == EnemyType.Phantom);
-        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), moon {3:0} px out (client {4:0}), phantoms {5}", immune, h.Eclipse.Stage, cs()?.Stage, h.Eclipse.MoonD, cs()?.MoonD, phantoms);
+        int embers = g.Enemies.Values.Count(e => e.Type == EnemyType.Ember);
+        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), moon {3:0} px out (client {4:0}), embers {5}", immune, h.Eclipse.Stage, cs()?.Stage, h.Eclipse.MoonD, cs()?.MoonD, embers);
         Check(immune && h.Eclipse.Stage == EclipseStage.Penumbra && cs()?.Stage == EclipseStage.Penumbra, "at 80% it changes stage (can't be hurt, screen cleared), then the Penumbra (seen on the client)");
-        Check(h.Eclipse.MoonD > 0f && cs()?.MoonD > 0f && phantoms == 2, "the moon orbits it (the client knows where), and two Phantoms come");
+        Check(h.Eclipse.MoonD > 0f && cs()?.MoonD > 0f && embers == 2, "the moon orbits it (the client knows where), and two Embers come");
 
         // The moon soaks players' shots.
         typeof(Game).GetMethod("FindEclipseMoon", flags).Invoke(g, null);
@@ -680,11 +680,11 @@ static partial class Program
         Console.WriteLine("  eclipse flash: in the shadow took {0:0}, in the light took {1:0}", me.Run.DamageTaken - meTaken, g.Players[2].Run.DamageTaken - allyTaken);
         Check(shadowed && me.Run.DamageTaken == meTaken && g.Players[2].Run.DamageTaken > allyTaken, "the Eclipse flash hits everyone outside the moon's shadow");
 
-        // 60%: the Umbra. Sunspots (seen on the client), Hexers; the dark drains you; crescents; closing rings.
+        // 60%: the Umbra. Sunspots (seen on the client), Corona Priests; the dark drains you; crescents; closing rings.
         h.Hp = h.MaxHp * 0.58f;
         Run(s, dt, 4f, () => h.Eclipse.Stage == EclipseStage.Umbra && h.Eclipse.TransT <= 0f, safe);
         Run(s, dt, 0.5f, null, safe);
-        int hexers = g.Enemies.Values.Count(e => e.Type == EnemyType.Hexer);
+        int priests = g.Enemies.Values.Count(e => e.Type == EnemyType.CoronaPriest);
         int spots = h.Eclipse.Spots.Count, clientSpots = cs()?.Spots.Count ?? 0;
         quiet();
         taken = me.Run.DamageTaken;
@@ -698,8 +698,8 @@ static partial class Program
             g.Hazards.Clear(); foreach (var b in g.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) b.Life = 0f;
         });
         float drained = me.Run.DamageTaken - taken;
-        Console.WriteLine("  umbra: sunspots {0} (client {1}), hexers {2}; 2 s in the dark drained {3:0}", spots, clientSpots, hexers, drained);
-        Check(spots == 3 && clientSpots == 3 && hexers == 2, "the Umbra: three sunspots (seen on the client) and two Hexers");
+        Console.WriteLine("  umbra: sunspots {0} (client {1}), corona priests {2}; 2 s in the dark drained {3:0}", spots, clientSpots, priests, drained);
+        Check(spots == 3 && clientSpots == 3 && priests == 2, "the Umbra: three sunspots (seen on the client) and two Corona Priests");
         float flat = drained / g.EnemyDamageScale(g.Wave);  // before the difficulty's damage growth
         Check(flat >= 9f && flat <= 15f, "the dark drains about 6 health a second outside the light (times the difficulty's enemy damage)");
         bool looped = false;

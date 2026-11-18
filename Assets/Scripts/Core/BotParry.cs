@@ -110,11 +110,6 @@ namespace Arena
                     reach = SwordReachOf(e.Type);
                     half = SwordHalfOf(e.Type);
                 }
-                else if (e.Type == EnemyType.Reaver)
-                {
-                    reach = ReaverSwipeR + e.Radius;
-                    half = ReaverCone;
-                }
                 else
                     continue;
                 V2 rel = me.Pos - e.Pos;

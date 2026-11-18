@@ -37,8 +37,6 @@ namespace Arena
 
         SpawnPacing Pacing()
         {
-            if (RoomsOn && Rooms.RoomByRoom && !RoomsSpawnReady())
-                return SpawnPacing.Hold;  // every room full (or every nest down: the rest is called off)
             return timedWave ? SpawnPacing.Timed : SpawnPacing.Interval;
         }
 

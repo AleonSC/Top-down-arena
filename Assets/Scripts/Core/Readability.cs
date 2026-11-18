@@ -17,7 +17,7 @@ namespace Arena
     ///   A wind-up: a regular shooter glows for WindUp seconds before each volley (Enemy.Winding, replicated).
     ///   Shapes: an enemy bullet aimed at a player is a dart, a curving one a crescent, a ring's a round shot.
     /// Bosses aren't limited (their patterns are their fight); the ring attacks were made slower and sparser in their
-    /// own code (Burster, Charger, Phantom, Mortar bombs, Volatile, Death Throes).
+    /// own code (Shade, Mortar bombs, Volatile, Death Throes).
     public partial class Game
     {
         public const float ShooterTurn = 5f, ShooterRest = 1.5f, WindUp = 0.3f;
@@ -44,9 +44,8 @@ namespace Arena
                 if (e.ShootT > 0f)
                 {
                     e.ShootT -= dt;
-                    // A turn ends on time, but not halfway through a Leader's aim.
-                    bool busy = e.Type == EnemyType.Leader && e.Phase == 1;
-                    if ((e.ShootT <= 0f && !busy) || e.Hp <= 0f || !TakesTurns(e))
+                    // A turn ends on time.
+                    if (e.ShootT <= 0f || e.Hp <= 0f || !TakesTurns(e))
                     {
                         e.ShootT = 0f;
                         e.ShootRest = ShooterRest;

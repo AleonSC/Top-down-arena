@@ -2,91 +2,21 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the Warder and the bubbles it (and Shielded elites) hold up look. Built from the mockups in
-    /// Docs/Mockups/warder-rework.html (option A, the Censer Priest) and Docs/Mockups/shield-tells.html (option A, Cells).
+    /// How a Shielded elite's bubble looks. Built from the mockup in Docs/Mockups/shield-tells.html (option A, Cells).
     ///
     /// The bubble is twelve cells round the rim. Each cell is a twelfth of the shield and wears down on its own: a hit
     /// flashes and weakens the cell facing the shooter, then breaks it into shards (Variety.cs works out which; this
     /// peer sees it as the Enemy.Cells mask and flashes whatever changed).
     public partial class ArenaApp
     {
-        static readonly Rgba WardLite = new Rgba(0.9f, 0.86f, 1f);
         static readonly Rgba EliteLite = new Rgba(0.87f, 0.95f, 1f);
-        static readonly Rgba WardInk = new Rgba(0.11f, 0.08f, 0.19f);
-        const float CellFlashLen = 0.3f, CellBreakLen = 0.45f, SigilFlight = 0.5f;
-
-        /// The Warder's body: a pointed diamond aimed at its target, a lit facet, an eye that goes white while it charges,
-        /// three hex sigils orbiting it (one leaves for each ally it wards), and a chevron over it while a ward is up.
-        void DrawWarderBody(Enemy e, V2 pos, float r, Rgba col, float t)
-        {
-            float k = e.Phase == 1 ? Mathf.Clamp01(e.SeenT / Game.WarderCharge) : 0f;  // charging up to its next ward
-            float R = r * 1.25f, ang = e.Facing + Mathf.Sin(t * 0.8f + e.Id) * 0.08f;
-            V2 f = V2.FromAngle(ang), s = f.Orthogonal();
-            V2 tip = pos + f * (R * 1.15f), right = pos + s * (R * 0.8f), back = pos - f * (R * 0.95f), left = pos - s * (R * 0.8f);
-            SetColor(col.Darkened(0.22f));
-            Tri(tip, right, back);
-            Tri(tip, back, left);
-            SetColor(col);  // the lit facet
-            Tri(tip, right, pos - f * (R * 0.1f));
-            Line(tip, right, 2.2f, WardInk);
-            Line(right, back, 2.2f, WardInk);
-            Line(back, left, 2.2f, WardInk);
-            Line(left, tip, 2.2f, WardInk);
-            Circle(pos + f * (R * 0.18f), R * 0.22f + k * 2f, k > 0.05f ? Rgba.White : WardInk, 12);
-
-            int warded = 0;
-            foreach (var o in game.Enemies.Values)
-                if (o.WardId == e.Id && o.BubbleFrac > 0f)
-                    warded++;
-            float spin = 1.1f + k * 5f;
-            for (int i = 0; i < 3 - Mathf.Min(3, warded); i++)  // the ones not out holding a bubble
-            {
-                float a = t * spin + i * MathX.Tau / 3f + e.Id;
-                V2 at = pos + V2.FromAngle(a) * (r + 15f + k * 4f);
-                float sr = 4.5f + k * 1.5f;
-                Polygon(at, sr + 1.4f, 6, a, WardInk);
-                Polygon(at, sr, 6, a, k > 0.05f ? WardLite : col);
-            }
-            if (warded > 0 && !game.IsSpawning(e))  // a chevron: this is the one to shoot first
-            {
-                float dy = Mathf.Sin(t * 3f) * 2f;
-                V2 m = pos + new V2(0f, -r - 22f + dy);
-                SetColor(WardLite);
-                Tri(m + new V2(-6f, -9f), m + new V2(6f, -9f), m);
-                Line(m + new V2(-6f, -14f), m + new V2(0f, -9f), 2.2f, WardLite);
-                Line(m + new V2(6f, -14f), m + new V2(0f, -9f), 2.2f, WardLite);
-            }
-        }
-
-        /// The Warder's reach filling up while it charges, drawn on the floor under everything.
-        void DrawWarderCharge(Enemy e, V2 pos)
-        {
-            if (e.Phase != 1)
-                return;
-            float k = Mathf.Clamp01(e.SeenT / Game.WarderCharge);
-            Arc(pos, Game.WarderRange, 1.5f, WardViolet.WithAlpha(0.1f + 0.25f * k), 64);
-            Circle(pos, Game.WarderRange * k, WardViolet.WithAlpha(0.06f * (1f - k)), 48);
-        }
-
-        /// A tether from the Warder to a warded enemy: a faint line with beads flowing along it.
-        void DrawWardTether(V2 a, V2 b, float t)
-        {
-            Line(a, b, 1f, WardViolet.WithAlpha(0.3f));
-            V2 d = b - a;
-            float len = d.Length;
-            if (len < 20f)
-                return;
-            V2 u = d / len;
-            for (float s = (t * 55f) % 16f; s < len; s += 16f)
-                Circle(a + u * s, 2f, WardLite.WithAlpha(0.9f), 6);
-        }
+        const float CellFlashLen = 0.3f, CellBreakLen = 0.45f;
 
         /// A bubble over an enemy: twelve cells round the rim, a honeycomb inside that only shows where its cell is
-        /// still up, shards where a cell broke, and a sigil flying in from the Warder as a ward lands.
+        /// still up, and shards where a cell broke.
         void DrawBubble(Enemy e, V2 pos, float r, float t)
         {
-            bool warded = e.WardId != 0;
-            Rgba c = warded ? WardViolet : BubbleBlue, lite = warded ? WardLite : EliteLite;
+            Rgba c = BubbleBlue, lite = EliteLite;
             int m = e.Cells;
             if (m == 0)  // an old peer's snapshot: the plain ring
             {
@@ -172,19 +102,9 @@ namespace Arena
                         }
                 }
             }
-
-            Enemy w;
-            if (warded && t - e.BubbleBornT < SigilFlight && game.Enemies.TryGetValue(e.WardId, out w))  // the sigil flying in
-            {
-                float u = (t - e.BubbleBornT) / SigilFlight, ease = 1f - (1f - u) * (1f - u) * (1f - u);
-                V2 d = pos - w.Disp, side = d.IsZero ? V2.Zero : d.Orthogonal().Normalized();
-                V2 at = w.Disp + d * ease + side * (Mathf.Sin(ease * Mathf.PI) * 14f);
-                Polygon(at, 5.4f, 6, t * 6f, WardInk);
-                Polygon(at, 4f, 6, t * 6f, WardLite);
-            }
         }
 
-        /// Called for an enemy with no bubble: the next one that goes up is new, so it grows in and a sigil flies to it.
+        /// Called for an enemy with no bubble: the next one that goes up is new, so it grows in.
         void NoBubble(Enemy e)
         {
             e.CellsSeen = 0;
@@ -197,7 +117,7 @@ namespace Arena
             float w = Mathf.Max(30f, r * 2f);
             V2 b = pos + new V2(-w / 2f, -r - 17f);
             Line(b, b + new V2(w, 0f), 3f, new Rgba(0f, 0f, 0f, 0.6f));
-            Line(b, b + new V2(w * Mathf.Clamp01(e.BubbleFrac), 0f), 3f, e.WardId != 0 ? WardLite : EliteLite);
+            Line(b, b + new V2(w * Mathf.Clamp01(e.BubbleFrac), 0f), 3f, EliteLite);
         }
     }
 }

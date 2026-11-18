@@ -24,11 +24,11 @@ static partial class Program
         };
         var basic = new HashSet<EnemyType>(BasicFaction.Types);
 
-        Check(BasicFaction.Types.Length == 8 && !BasicFaction.Types.Any(Game.IsRetired)
+        Check(BasicFaction.Types.Length == 8 && BasicFaction.Types.All(t => Defs.Get(t) != null && !Defs.Get(t).IsBoss)
             && BasicFaction.Def.Members.All(m => basic.Contains(m.Type))
             && BasicFaction.Def.Squads.Concat(new[] { BasicFaction.Def.Finale }).All(q => q.Members.All(basic.Contains))
             && Approaches.All.All(f => f != BasicFaction.Def),
-            "the basic faction is eight plain enemies, none retired; its squads and set piece use only them; no boss owns it");
+            "the basic faction is eight plain enemies; its squads and set piece use only them; no boss owns it");
 
         // Quick Play: a boss with no faction (the Eclipse's taken away for the test) is led up to by the basic faction alone; a faction boss by its own.
         NoFaction(EnemyType.Eclipse, () =>
@@ -48,17 +48,24 @@ static partial class Program
             return 0;
         });
 
-        // The Campaign and plain runs: no retired enemy in any wave, ever (squads, the recipe, paths' pools included).
+        // The Campaign and plain runs: every enemy in a wave belongs to a faction, the basic one or a boss's (squads, the recipe,
+        // paths' pools included).
         var gc = new Session().Game;
         var seen = new HashSet<EnemyType>();
         for (int n = 1; n <= 60; n++)
             if (n % 5 != 0)
                 for (int k = 0; k < 2; k++)
                     foreach (var t in wave(gc, n)) seen.Add(t);
-        var retired = seen.Where(Game.IsRetired).ToList();
-        Console.WriteLine("  Campaign waves 1-60: {0} types; retired seen: {1}", seen.Count, retired.Count == 0 ? "none" : string.Join(", ", retired));
-        Check(retired.Count == 0 && BasicFaction.Types.All(seen.Contains), "no retired enemy in the Campaign's waves 1-60; all eight basic ones show up");
-        Check(Enumerable.Range(1, 60).All(n => Game.WavePool(n).All(t => !Game.IsRetired(t))), "the wave pool holds only basic enemies");
+        var owned = new HashSet<EnemyType>(basic);
+        foreach (var f in Approaches.All)
+        {
+            foreach (var m in f.Members) owned.Add(m.Type);
+            foreach (var q in f.Squads.Concat(f.LessonSquads).Concat(new[] { f.Finale }).Where(q => q != null)) foreach (var t in q.Members) owned.Add(t);
+        }
+        var stray = seen.Where(t => !owned.Contains(t)).ToList();
+        Console.WriteLine("  Campaign waves 1-60: {0} types; not in any faction: {1}", seen.Count, stray.Count == 0 ? "none" : string.Join(", ", stray));
+        Check(stray.Count == 0 && BasicFaction.Types.All(seen.Contains), "every enemy in the Campaign's waves 1-60 is a faction's; all eight basic ones show up");
+        Check(Enumerable.Range(1, 60).All(n => Game.WavePool(n).All(basic.Contains)), "the wave pool holds only basic enemies");
     }
 }
 

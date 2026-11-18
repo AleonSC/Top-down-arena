@@ -4,8 +4,8 @@ namespace Arena
 {
     /// The Twin Reapers' faction, the Dusk and Dawn cult (Docs/Mockups/reaper-faction.html, Approaches.cs). Each member previews
     /// one Reaper mechanic; each is sworn to Dusk (pink) or Dawn (blue) by its id, which only changes its colour (Game/ReaperCultLook.cs).
-    ///   Wisp: a Swarmer (straight at you, in threes). Gravedigger: a Brute (PrisonKin.cs IsBrute). Shade: a Phantom (LateGame.cs).
-    ///   Acolyte: a Swordsman with a sickle, shorter and wider (Swordsman.cs SickleReach...).
+    ///   Wisp: a Swarmer (straight at you, in threes). Gravedigger: a Brute (PrisonKin.cs IsBrute). Shade: blinks near you and fires a ring (LateGame.cs).
+    ///   Acolyte: a sickle that cuts a cone (Swordsman.cs SickleReach...).
     ///   Scythe Wraith: a Lunger (PrisonKin.cs IsLunger) that marks from further out, locks its line after ScytheTrack s, dashes
     ///     ScytheSpeed * ScytheDash px and reaps ScytheReap px either side of its path (the Sundered reaps).
     ///   Bound Wraiths: always a pair (SpawnEnemyAt brings the partner, Enemy.LinkId). They circle a point that follows you,

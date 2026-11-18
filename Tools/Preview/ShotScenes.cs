@@ -1,7 +1,7 @@
 using System; using System.IO; using System.Reflection; using System.Threading; using Arena; using UnityEngine;
 // Shot.cs scene setup from environment flags: PlayerScenes poses the player and their weapon (POSE, BOW, VEIN,
 // FLAME, the boss legendaries, CAST, ...) before the ArenaApp exists; ArenaScenes poses the arena with it (AIMLINE,
-// ROOM, APPROACH, PATTERNS, PATCHES, MODS, PATHON, ...).
+// ROOM, APPROACH, PATCHES, MODS, PATHON, ...).
 static partial class Shot {
   // BREACHROOMS=1: a small free Stash room behind every breach (mockup, Docs/BreachRooms.md)
   static void MockBreachRooms(Game xg) {
@@ -63,7 +63,6 @@ static partial class Shot {
     WolfPackScene();  // WOLFPACK=pack|alpha|merge [WOLFT=<s>] (ShotWolfPack.cs)
     BoneGuardScene();  // BONEGUARD=<s into the scene> [FXOFF=1] (ShotBoneGuard.cs)
     CarrierScene();  // CARRIER=1 (ShotCarrier.cs)
-    WarderScene();  // WARDER=<s into the scene> [FXOFF=1] (ShotWarder.cs)
     KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|dive|bridge KDT=<s> (ShotKnightDps.cs)
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
@@ -709,7 +708,7 @@ static partial class Shot {
       V2[] spots = { new V2(90f, -60f), new V2(-110f, -40f), new V2(40f, 110f), new V2(130f, 70f), new V2(-60f, 120f), new V2(330f, -40f), new V2(-320f, 90f), new V2(260f, 200f) };
       for (int i = 0; i < spots.Length; i++) {
         V2 at = from + spots[i];
-        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Juggernaut : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Thunderhead : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
         en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
       }
       foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = from + new V2(-40f, -110f); break; }
@@ -734,7 +733,7 @@ static partial class Shot {
       V2[] spots = { new V2(110f, -70f), new V2(-130f, -40f), new V2(30f, 130f), new V2(150f, 80f), new V2(-80f, 120f), new V2(330f, -40f), new V2(-330f, 90f), new V2(270f, 210f) };
       for (int i = 0; i < spots.Length; i++) {
         V2 at = from + spots[i];
-        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Juggernaut : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Thunderhead : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
         en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
         bool wading = Game.InFlood(fz, at, en.Radius);
         en.Wet = wading || i == 5; en.WetT = en.Wet ? Game.FloodWetAfter : 0f; en.WetLeft = en.WetT; en.WetPeak = Game.FloodWetAfter;
@@ -1787,8 +1786,8 @@ static partial class Shot {
         gg.RoomGoal = 44; gg.RoomKills = 27; gg.ZoneIndex = 1; gg.ZoneFill = 0.6f;
         gg.RoomZones[0] = Challenges.ZoneSpots[0]; gg.RoomZones[1] = Challenges.ZoneSpots[1]; gg.RoomZones[2] = Challenges.ZoneSpots[2];
         if (gg.Room == RoomPhase.Active) {
-          if (gg.RoomKind == ChallengeKind.Defend) { put(EnemyType.Grunt, new V2(560f, 300f)); put(EnemyType.Spiker, new V2(690f, 380f)); put(EnemyType.Brute, new V2(1000f, 520f)); rps[0].Pos = rps[0].Disp = new V2(760f, 560f); }
-          if (gg.RoomKind == ChallengeKind.KillRush) for (int i = 0; i < 9; i++) put(i % 3 == 0 ? EnemyType.Grunt : EnemyType.Spiker, new V2(300f + i * 120f, 250f + (i % 3) * 90f));
+          if (gg.RoomKind == ChallengeKind.Defend) { put(EnemyType.Grunt, new V2(560f, 300f)); put(EnemyType.Swarmer, new V2(690f, 380f)); put(EnemyType.Brute, new V2(1000f, 520f)); rps[0].Pos = rps[0].Disp = new V2(760f, 560f); }
+          if (gg.RoomKind == ChallengeKind.KillRush) for (int i = 0; i < 9; i++) put(i % 3 == 0 ? EnemyType.Grunt : EnemyType.Swarmer, new V2(300f + i * 120f, 250f + (i % 3) * 90f));
           if (gg.RoomKind == ChallengeKind.HoldZones) { rps[0].Pos = rps[0].Disp = gg.RoomZones[1] + new V2(-30f, 20f); put(EnemyType.Grunt, gg.RoomZones[1] + new V2(140f, -90f)); put(EnemyType.Sniper, new V2(800f, 160f)); }
           if (gg.RoomKind == ChallengeKind.MiniBoss) { var gk = put(EnemyType.Gatekeeper, new V2(800f, 330f)); gk.Hp = gk.MaxHp * 0.42f; gk.Phase = 1; gk.Facing = (rps[0].Pos - gk.Pos).Angle; }
           if (gg.RoomKind == ChallengeKind.Mirror) foreach (var pl in rps) { var sh = put(EnemyType.Shadow, new V2(1600f - pl.Pos.X, 900f - pl.Pos.Y)); gg.ShadowOf[sh.Id] = pl.Id; sh.Facing = (pl.Pos - sh.Pos).Angle; }
@@ -1959,33 +1958,6 @@ static partial class Shot {
       fl(new V2(560f, 330f), 2.6f, 1); fl(new V2(1060f, 360f), 0.6f, 1);
       fl(new V2(470f, 560f), 0f, 2); fl(new V2(1150f, 520f), MathX.Pi, 2);
       var qn = (Enemy)sef.Invoke(host.Game, new object[] { EnemyType.HiveQueen, new V2(800f, 160f), 0f, 0, false }); qn.SpawnT = 0f; qn.Disp = qn.Pos;
-    }
-    if (Environment.GetEnvironmentVariable("PATTERNS") != null) {
-      // The new shooting patterns: a Pauser with its shots hanging, a Leader aiming ahead, a Stitcher's orbs and threads.
-      var sbp = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
-      var sep = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
-      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
-      me.Pos = me.Disp = new V2(800f, 470f);
-      Func<EnemyType, V2, Enemy> put = (ty, at) => { var en = (Enemy)sep.Invoke(host.Game, new object[] { ty, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; return en; };
-      var pa = put(EnemyType.Pauser, new V2(420f, 250f));
-      float aimP = (me.Pos - pa.Pos).Angle;
-      for (int k = 0; k < Game.PauseShots; k++) {
-        V2 d = V2.FromAngle(aimP + Game.PauseFan * (k / (Game.PauseShots - 1f) - 0.5f));
-        var b = (Bullet)sbp.Invoke(host.Game, new object[] { Defs.PauseShot, pa.Pos + d * (pa.Radius + 102f), d * Game.PauseSpeed, 0f, Game.PauseFly + Game.PauseHold, 12f, 0, false, 0f });
-        b.Life = Game.PauseHold * 0.4f;
-      }
-      var le = put(EnemyType.Leader, new V2(1250f, 260f)); le.Phase = 1; le.Facing = (me.Pos + new V2(160f, 40f) - le.Pos).Angle;
-      var s1 = put(EnemyType.Stitcher, new V2(1150f, 760f)); var s2 = put(EnemyType.Stitcher, new V2(1380f, 560f));
-      // The pair's volley closing in, and an older one further along; a lone Stitcher's two orbs.
-      foreach (float f in new[] { 0.35f, 0.75f }) {
-        sbp.Invoke(host.Game, new object[] { Defs.StitchShot, s1.Pos + (me.Pos - s1.Pos) * f, (me.Pos - s1.Pos).Normalized() * 105f, 0f, 7f, 12f, 0, false, 0f });
-        sbp.Invoke(host.Game, new object[] { Defs.StitchShot, s2.Pos + (me.Pos - s2.Pos) * f, (me.Pos - s2.Pos).Normalized() * 105f, 0f, 7f, 12f, 0, false, 0f });
-      }
-      var s3 = put(EnemyType.Stitcher, new V2(300f, 780f));
-      for (int k = -1; k <= 1; k += 2) {
-        V2 d = V2.FromAngle((me.Pos - s3.Pos).Angle + k * Game.StitchSpread);
-        sbp.Invoke(host.Game, new object[] { Defs.StitchShot, s3.Pos + d * 260f, d * 105f, 0f, 7f, 12f, 0, false, 0f });
-      }
     }
     if (Environment.GetEnvironmentVariable("BOULDER") != null) {
       // The Golem Staff: charging a throw (BOULDER=<draw seconds>, with the landing marker), and boulders in flight.
@@ -2169,24 +2141,6 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("WOUND") != null) {  // WOUND=0.2: everyone wounded that share of max health and down to 55% (Combat.cs, Docs/PowerStacking.md)
       float wf = float.Parse(Environment.GetEnvironmentVariable("WOUND"), System.Globalization.CultureInfo.InvariantCulture);
       foreach (var wp in host.Game.Players.Values) { wp.Wound = wp.MaxHp * wf; wp.Hp = wp.MaxHp * 0.55f; }
-    }
-    if (Environment.GetEnvironmentVariable("ROOMS") != null) {  // ROOMS=x,y: the Rooms arena's side rooms up (Rooms.cs), you at x,y, the enemies spread over the rooms and hallways
-      var rg = host.Game; rg.Diff.Set(DiffKnob.ArenaRooms, 1f); rg.RoomsUp = true; rg.LayoutAge = 5f;
-      rg.VaultUp = Environment.GetEnvironmentVariable("VAULT") != null;  // VAULT=1: a vault wave (the Gatekeeper in the vault off the top hall)
-      typeof(Game).GetMethod("StartRoomsWave", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(rg, null);  // the nests (and the vault's mini-boss)
-      foreach (var ne in rg.Enemies.Values) if (ne.Home >= 0) { ne.SpawnT = 0f; ne.Spawning = false; }
-      rg.RoomStates[0].SpillT = 1.2f;  // the West room's door about to spill (amber); the East room cleared when ROOMCLEAR=1
-      if (Environment.GetEnvironmentVariable("ROOMCLEAR") != null) { var er = rg.RoomStates[1]; er.Cleared = true; er.NestAlive = false; rg.Enemies.Remove(er.NestId); }
-      var rp = Environment.GetEnvironmentVariable("ROOMS").Split(',');
-      var at = new V2(float.Parse(rp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(rp[1], System.Globalization.CultureInfo.InvariantCulture));
-      int pi = 0;
-      foreach (var pl in rg.Players.Values) { pl.Pos = pl.Disp = rg.PushOutOfProps(at + new V2(70f * pi, 40f * pi), 14f); pi++; }
-      var rrng = new System.Random(7); int ei = 0;
-      foreach (var en in rg.Enemies.Values) {
-        if (en.Def.IsBoss || en.Home >= 0) continue;
-        var ar = Rooms.Areas[1 + ei++ % 4];
-        en.Pos = en.Disp = rg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)rrng.NextDouble() * (ar.Size.X - 120f), ar.Min.Y + 50f + (float)rrng.NextDouble() * (ar.Size.Y - 100f)), en.Radius);
-      }
     }
     if (Environment.GetEnvironmentVariable("EXPANDMAP") != null) {  // EXPANDMAP=<rooms bought>: the Expanding arena with that many rooms up, you in the hub, enemies spread over the rooms
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);

@@ -4,7 +4,7 @@ using Arena;
 
 // PHALANX=<seconds since the cast>: the Tank Summoner's Bone Phalanx (Core/BonePhalanx.cs, Game/BonePhalanxLook.cs)
 // played through the real game, like the mockup's "The wave" (Docs/Mockups/bone-phalanx.html): you aim right, grunts and
-// a Juggernaut walk in, snipers fire at you (a red aimed shot every so often), the line marches, shoves, spears and
+// a Thunderhead walk in, snipers fire at you (a red aimed shot every so often), the line marches, shoves, spears and
 // blocks. PHALANXCAP=1 casts it mastered. FXOFF=1 shows the plain fallback (Visual effects off).
 // Use with mode hud. The cast is at (420, 450) facing right, so crop about (300, 250)-(1000, 650).
 static partial class Shot {
@@ -33,7 +33,7 @@ static partial class Shot {
     var walkers = new System.Collections.Generic.List<Enemy>();
     var spots = new[] { new V2(780f, 360f), new V2(830f, 430f), new V2(870f, 500f), new V2(930f, 390f), new V2(760f, 480f), new V2(990f, 460f), new V2(950f, 540f), new V2(1030f, 380f) };
     foreach (var s in spots) walkers.Add(Mob(EnemyType.Grunt, s, 60f));
-    walkers.Add(Mob(EnemyType.Juggernaut, new V2(840f, 406f), 420f));
+    walkers.Add(Mob(EnemyType.Thunderhead, new V2(840f, 406f), 420f));
     var guns = new[] { Mob(EnemyType.Sniper, new V2(1120f, 330f), 80f), Mob(EnemyType.Sniper, new V2(1150f, 560f), 80f), Mob(EnemyType.Sniper, new V2(1100f, 450f), 80f) };
     me.Slots[Upgrades.UltSlot].Id = AbilityId.BonePhalanx; me.Slots[Upgrades.UltSlot].Charges = 1; me.Slots[Upgrades.UltSlot].Timer = 0f;
     me.Pos = me.Disp = home; me.Aim = 0f;

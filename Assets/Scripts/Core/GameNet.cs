@@ -890,7 +890,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
-            int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, ward = 0, cells = 0;
+            int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
             bool winding = false, penned = false, wet = false, hit = false, venom = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
@@ -909,7 +909,6 @@ namespace Arena
                 e.Venomed = venom;
                 e.BubbleFrac = e.BubbleHp > 0f && e.BubbleMax > 0f ? Math.Min(1f, e.BubbleHp / e.BubbleMax) : 0f;
                 bubble = (int)Math.Ceiling(e.BubbleFrac * 255f);
-                ward = e.BubbleHp > 0f ? e.WardId : 0;
                 if (e.BubbleHp > 0f)
                     SyncCells(e);
                 cells = CellMask(e);
@@ -947,9 +946,8 @@ namespace Arena
             s.Byte(ref status);
             s.Byte(ref bleedStacks);  // bleed stacks on it, drawn as drops gathering on it
             s.Byte(ref stars);       // Shuriken stars stuck in it
-            s.Byte(ref traits);      // elite traits, a bubble and the Warder holding it up (Variety.cs)
+            s.Byte(ref traits);      // elite traits and a bubble (Variety.cs)
             s.Byte(ref bubble);
-            s.Int(ref ward);
             if (bubble > 0)
                 s.Int(ref cells);  // the bubble's twelve cells (Variety.cs)
             s.Bool(ref winding);  // about to fire (Readability.cs)
@@ -1012,7 +1010,6 @@ namespace Arena
                 e.StarsStuck = stars;
                 e.Traits = (byte)traits;
                 e.BubbleFrac = bubble / 255f;
-                e.WardId = ward;
                 e.Cells = bubble > 0 ? cells : 0;
                 e.Winding = winding;
                 e.Penned = penned;

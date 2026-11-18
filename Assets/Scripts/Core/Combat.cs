@@ -23,7 +23,7 @@ namespace Arena
             if (!tickDamage && RiotBlocks(p, source))
                 return;  // Riot Gear took the hit (RiotGear.cs)
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
-            amount *= RoomsDamageMult;  // the Rooms arena's waves hit harder: fewer threats at once, each one counts (Rooms.cs)
+            amount *= RoomsDamageMult;  // a grown Expanding arena's waves hit harder (Rooms.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             amount *= RodMult(p);  // Lightning Rod's charge (LightningRod.cs)
@@ -266,10 +266,7 @@ namespace Arena
                     PullIntoWells(b, dt);
                 if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
                     BendRoundLenses(b, dt);  // round a Lens's face (Infall.cs)
-                if (b.Kind == Defs.PauseShot)
-                    b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b));  // slows to a stop, then hangs (Variety.cs)
-                else
-                    b.Pos += b.Vel * (dt * SmokeSpeed(b));
+                b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 if (!wind.IsZero && !Lobbed(b.Kind))
                     b.Pos += wind * dt;
                 b.Life -= dt;
@@ -283,7 +280,7 @@ namespace Arena
                     scratchIds.Add(b.Id);
                     if (Walled && b.Life > 0f)
                         AddFx(FxKind.Ring, b.Pos.Clamp(lo, hi), Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
-                    if ((b.Burst > 0 || b.Rush) && b.Life <= 0f)
+                    if (b.Burst > 0 && b.Life <= 0f)
                         landed.Add(b);
                     if (b.ShadowKunai)
                         ShadowKunaiLanded(b, b.Pos);  // a shadow kunai that missed marks where it stopped (host only: clients don't know which it was)
@@ -294,11 +291,6 @@ namespace Arena
             // Host only (Burst is never set on clients): landed mortar bombs and grenades explode.
             foreach (var b in landed)
             {
-                if (b.Rush)
-                {
-                    PauseRush(b);  // Variety.cs
-                    continue;
-                }
                 if (b.Kind == Defs.MedkitShot)
                 {
                     LandMedkit(b);  // Medkit.cs
@@ -863,7 +855,7 @@ namespace Arena
                 PortalSealed(e);  // a spawn portal shot closed: the rest of its burst is cancelled (SpawnPortals.cs)
                 DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
                 MummerDied(e);    // a Mummer's copies vanish with it; a copy shot down just puffs (CourtFaction.cs)
-                NonShooterDeath(e);  // a Fuse Runner killed during its fuse, a Tripwire Pod (NonShooters.cs)
+                NonShooterDeath(e);  // a Floor Mine (NonShooters.cs, Turnkey.cs)
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
                 SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
@@ -946,10 +938,8 @@ namespace Arena
                 dmg *= TotalityMult;  // the Eclipse's Totality (Eclipse.cs)
             if (NovaLit(e))
                 dmg *= NovaLitMult;  // a Nova with its fuse lit (Penumbral.cs)
-            if (ReaverIsOpen(e))
-                dmg *= ReaverOpenMult;  // just swiped (Variety.cs)
             if (HookIsOpen(e))
-                dmg *= HookOpenMult;  // a Hookman that just missed (NonShooters.cs)
+                dmg *= HookOpenMult;  // a Hook Thrower that just missed (NonShooters.cs)
             if (RiotShieldBroken(e))
                 dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
             if (SoldierCharging(e))
@@ -982,7 +972,7 @@ namespace Arena
                 return;  // into the Devourer's Maw: it fed on that (Devourer.cs)
             if (!PriestHit(e, ref dmg))
                 return;  // into a Maw Priest's maw: it fed on that (LarderFaction.cs)
-            dmg = SoakBubble(e, dmg, attacker);  // a Shielded elite's or a Warder's bubble takes it first (Variety.cs)
+            dmg = SoakBubble(e, dmg, attacker);  // a Shielded elite's bubble takes it first (Variety.cs)
             if (dmg <= 0f)
             {
                 e.Flash = 0.06f;

@@ -375,12 +375,12 @@ static partial class Program
         Check(Math.Abs(distHook - dist0) < 2f && stunned && notYet && clientFx, "Exsanguinate hooks enemies in range and holds them, stunned, before the yank (the client sees the tendril)");
         Check(d1.Pos.DistanceTo(hp.Pos) < touch + 3f && hpAfter >= 19.9f && dHp0 - d1.Hp >= 19.9f, "Exsanguinate yanks enemies in to touching you and drains 20 from each as it lands");
         Check(d1.ReelBy == 0, "the reel lets go once it lands");
-        var jug = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, hp.Pos + new V2(0f, 150f), 0f, 0, false });
+        var jug = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Thunderhead, hp.Pos + new V2(0f, 150f), 0f, 0, false });
         jug.Hp = jug.MaxHp = 1e6f; keep.Add(jug); run(0.2f);
         V2 jug0 = jug.Pos; float jugHp = jug.Hp;
         use(AbilityId.Exsanguinate, hp.Pos);
         run(1.1f);
-        Console.WriteLine("  exsanguinate on a Juggernaut: moved {0:0.0} px, drained {1:0}", jug.Pos.DistanceTo(jug0), jugHp - jug.Hp);
+        Console.WriteLine("  exsanguinate on a Thunderhead: moved {0:0.0} px, drained {1:0}", jug.Pos.DistanceTo(jug0), jugHp - jug.Hp);
         Check(jug.Pos.DistanceTo(jug0) < 3f && jugHp - jug.Hp >= 19.9f, "a heavy enemy isn't yanked in, but is still drained");
         keep.Remove(jug); jug.Hp = 0f; run(0.1f);
 

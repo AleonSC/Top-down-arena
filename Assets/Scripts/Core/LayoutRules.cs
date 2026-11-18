@@ -24,7 +24,7 @@ namespace Arena
             get
             {
                 if (RoomsOn)
-                    return CurrentWorld.With(Layout, VaultUp);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
+                    return CurrentWorld.With(Layout);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
                 if (Layout == LayoutId.Open || InRoom || !ModeRules.Extras || ShowcaseMode)
                     return null;
                 return Layouts.Get(Layout);
@@ -43,14 +43,7 @@ namespace Arena
             lastLayout = LayoutId.Open;
             layoutFresh = false;
             LayoutAge = 0f;
-            RoomsUp = VaultUp = VaultCleared = false;
-            vaultStretch = vaultWave = -1;
-            foreach (var rs in RoomStates)
-            {
-                rs.NestAlive = rs.Seen = false;
-                rs.Cleared = true;
-                rs.NextDoor = -1;
-            }
+            RoomsUp = false;
         }
 
         /// Host, at the start of each wave: boss waves are the open arena; every other cycle (the waves between two
@@ -115,7 +108,6 @@ namespace Arena
                 Layout = lay;
                 RoomsUp = rooms;
             }
-            SyncRooms(s);  // the nests, spills and the vault (Rooms.cs)
         }
 
         void TickLayout(float dt)
@@ -264,7 +256,7 @@ namespace Arena
             return LayoutSpawn(50f);
         }
 
-        /// A Pincer squad's Hexers come in from the left and right edges: their y on that side.
+        /// A Pincer squad's first two come in from the left and right edges: their y on that side.
         float LayoutSideY(int side, float margin)
         {
             var d = ActiveLayout;

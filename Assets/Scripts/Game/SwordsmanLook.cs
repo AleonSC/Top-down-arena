@@ -2,15 +2,15 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Swordsman and the Shield Swordsman (Core/Swordsman.cs), drawn as in Docs/Mockups/swordsman.html: a crimson body with a
-    /// cloak, steel pauldrons and a crested helmet, a long tapered blade, and (the Shield Swordsman) a blue-steel shield held
-    /// in front. On the floor, its cone: a curved band from the hand to the tip that is exactly what the blade covers. It
-    /// fills red as the wind-up runs, then the bright wedge shows where the cut has passed. A blocked shot flashes the plate.
+    /// The sword cut (Core/Swordsman.cs; today the Acolyte's sickle), drawn as in Docs/Mockups/swordsman.html: a body with a
+    /// cloak, steel pauldrons and a crested helmet, and a tapered blade. On the floor, its cone: a curved band from the hand
+    /// to the tip that is exactly what the blade covers. It fills red as the wind-up runs, then the bright wedge shows where
+    /// the cut has passed.
     /// Timed from the age of the phase this peer sees (Enemy.SeenT), since PhaseT only arrives with each snapshot.
     public partial class ArenaApp
     {
         static readonly Rgba SwordAmber = new Rgba(1f, 0.69f, 0.18f), SwordRed = new Rgba(1f, 0.28f, 0.2f), SwordCream = new Rgba(1f, 0.95f, 0.85f);
-        static readonly Rgba SteelLight = new Rgba(0.82f, 0.86f, 0.89f), SteelDark = new Rgba(0.35f, 0.4f, 0.44f), ShieldDark = new Rgba(0.15f, 0.26f, 0.37f), ShieldLight = new Rgba(0.44f, 0.61f, 0.77f);
+        static readonly Rgba SteelLight = new Rgba(0.82f, 0.86f, 0.89f), SteelDark = new Rgba(0.35f, 0.4f, 0.44f);
 
         static float SmoothStep(float u) { u = Mathf.Clamp01(u); return u * u * (3f - 2f * u); }
 
@@ -95,28 +95,6 @@ namespace Arena
             Tri(SwordPt(pos, fwd, side, s, -6f, -13f), SwordPt(pos, fwd, side, s, -31f, 4f), SwordPt(pos, fwd, side, s, -6f, 13f));
             Circle(pos, r, col.Darkened(0.45f), 24);
             Circle(pos, r - 1.8f, col, 24);
-
-            // the shield, up in front, or lowered at its side
-            if (e.Type == EnemyType.ShieldSwordsman)
-            {
-                float g = Game.SwordGuardAt(e.Type, e.Phase, e.SeenT);
-                float sc = f + Mathf.Lerp(-1.5f, 0f, g), hw = Mathf.Lerp(0.6f, Game.GuardHalf, g), rr = Mathf.Lerp(25f, 35f, g);
-                Line(SwordPt(pos, fwd, side, s, 0f, -11f), pos + V2.FromAngle(sc) * (rr - 3f), 7f * s, col.Darkened(0.4f));
-                if (g > 0.4f)
-                    Arc(pos, rr, 20f, ShieldLight.WithAlpha(0.1f * g), 24, sc - hw, hw * 2f);
-                Arc(pos, rr, 14f, ShieldDark, 24, sc - hw, hw * 2f);
-                Arc(pos, rr, 9f, ShieldLight, 24, sc - hw, hw * 2f);
-                Arc(pos, rr + 3f, 1.5f, Rgba.White.WithAlpha(0.6f), 24, sc - hw, hw * 2f);
-                for (int k = -1; k <= 1; k++)
-                    Circle(pos + V2.FromAngle(sc + k * hw * 0.62f) * rr, 1.8f, new Rgba(0.86f, 0.91f, 0.96f), 6);
-                float fl = Mathf.Clamp01(e.T2 / Game.SwordBlockFlash);  // a blocked shot: the whole plate flashes
-                if (fl > 0f)
-                {
-                    fl = Mathf.Pow(fl, 1.5f);
-                    Arc(pos, rr, 26f, new Rgba(0.63f, 0.84f, 1f, 0.28f * fl), 24, sc - hw, hw * 2f);
-                    Arc(pos, rr, 14f, new Rgba(0.94f, 0.98f, 1f, 0.9f * fl), 24, sc - hw, hw * 2f);
-                }
-            }
 
             // the sword arm and the blade: the tip sits exactly on the cone's rim
             float a = f + SwordRel(e);
