@@ -407,7 +407,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return;
             string why;
-            var pick = Expansion.Surprise(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);
+            var pick = Expansion.SurpriseFor(GridRoomsOn, expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, GridPieces.cs)
             if (!pick.HasValue)
             {
                 DoLog("no surprise room: " + why);

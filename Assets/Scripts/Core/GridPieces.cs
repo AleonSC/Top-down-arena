@@ -169,6 +169,69 @@ namespace Arena
             return res;
         }
 
+        /// The grid piece a surprise shape becomes in a Grid run (owner Nov 18: boss surprise rooms and breach rooms on the lattice): a Stash one cell, the
+        /// boss gifts tetrominoes (the L hall an L, the T hall and the Cross a T, the Ring and the Chamfer a square), the rest a domino.
+        public static GridPiece GridPieceOfShape(SurpriseShape s)
+        {
+            switch (s)
+            {
+                case SurpriseShape.Stash: case SurpriseShape.Tiny: return GridPiece.Mono;
+                case SurpriseShape.LHall: return GridPiece.TetL;
+                case SurpriseShape.THall: case SurpriseShape.Cross: return GridPiece.TetT;
+                case SurpriseShape.Ring: case SurpriseShape.Chamfer: return GridPiece.TetO;
+                case SurpriseShape.LongHall: return GridPiece.TetI;
+                default: return GridPiece.Domino;
+            }
+        }
+
+        /// SurpriseOptions on the lattice: every place the shape's piece can go (one of whose rooms covers `through`, if given), marked as that surprise shape,
+        /// free. Same order on every machine.
+        public static List<SurpriseOption> GridSurpriseOptions(IList<ExpansionRoom> built, SurpriseShape shape, V2? through = null)
+        {
+            var res = new List<SurpriseOption>();
+            foreach (var o in GridPieceOptions(built, GridPieceOfShape(shape)))
+            {
+                if (through.HasValue)
+                {
+                    bool hit = false;
+                    foreach (var q in o.Rooms)
+                        hit |= through.Value.X > q.X && through.Value.X < q.X1 && through.Value.Y > q.Y && through.Value.Y < q.Y1;
+                    if (!hit)
+                        continue;
+                }
+                var rooms = new List<ExpansionRoom>(o.Rooms.Count);
+                foreach (var q in o.Rooms)
+                    rooms.Add(Free(q, shape));
+                res.Add(new SurpriseOption { Rooms = rooms, Shape = shape, Price = 0, X = o.X, Y = o.Y });
+            }
+            return res;
+        }
+
+        /// SurpriseOptions or, in a Grid run, GridSurpriseOptions.
+        public static List<SurpriseOption> SurpriseOptionsFor(bool grid, IList<ExpansionRoom> built, SurpriseShape shape, V2? through = null)
+            => grid ? GridSurpriseOptions(built, shape, through) : SurpriseOptions(built, shape, through);
+
+        /// Surprise or, in a Grid run, the same pick among the lattice's places (the wanted shape's piece, else the other gifts' pieces).
+        public static SurpriseOption? SurpriseFor(bool grid, int seed, int wave, IList<ExpansionRoom> built, SurpriseShape wanted, out string why, V2? through = null)
+        {
+            if (!grid)
+                return Surprise(seed, wave, built, wanted, out why, through);
+            why = null;
+            var tries = new List<SurpriseShape> { wanted };
+            foreach (var s in new[] { SurpriseShape.Chamfer, SurpriseShape.THall, SurpriseShape.LHall, SurpriseShape.Cross, SurpriseShape.Ring, SurpriseShape.Box })
+                if (!tries.Contains(s))
+                    tries.Add(s);
+            var rng = new DetRandom(seed * 7919 + wave * 104729 + built.Count + 13);
+            foreach (var shape in tries)
+            {
+                var options = GridSurpriseOptions(built, shape, through);
+                if (options.Count > 0)
+                    return options[rng.Int(Math.Min(SurpriseTop, options.Count))];
+            }
+            why = BoughtCount(built) >= MaxRooms ? "The map is full" : "No spot fits a surprise room";
+            return null;
+        }
+
         /// A Grid run's mystery door rooms (MysteryDoors.cs): every place a piece can go, as surprise options priced as drawing them (a mystery door charges a share).
         public static List<SurpriseOption> GridMysteryOptions(IList<ExpansionRoom> built, GridPiece piece)
         {
