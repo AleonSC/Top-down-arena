@@ -72,7 +72,7 @@ namespace Arena
                 CrtKit.SeedRows(16, now);
             cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
             // The soft sweep (HoloBoot, LobbyFx.cs): the box shows top-down under a feathered edge as it opens (EndDrawer).
-            cabBootE = calm || winCloseK > 0f ? 99f : age;
+            cabBootE = calm ? 99f : age;  // (closing, the pause menu's clock is stopped: a half-swept box slides out as it is)
             cabBootRect = new Rect(dx + CabX, CabY, CabW + 2f, CabH + 2f);
             float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
