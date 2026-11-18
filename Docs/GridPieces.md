@@ -24,7 +24,8 @@ Status: **plan agreed with the owner; steps 1-4 built, step 5 in part (Grid is t
 
 ## Still open (small, settle while building)
 
-- Which room types a piece can roll beyond plain and floor (a combat variant?), and how a themed piece shows on the card before you play it.
+- Which modifiers a piece can roll beyond plain and floor (enemy modifiers: owner will give specifics). **The slot is built (Nov 18)**: a piece card carries one modifier number (`Expansion.CardMod`, 0 plain, 1-10 the floors, 11-13 free for new kinds; `ModKind`, `ModName`, `ModBlurb`, `ModPrice`, `RollMods`, `ApplyPieceMod` in `GridCards.cs`), shown under the piece's name on the card.
+- Mystery doors open any of the nine pieces (medium: domino, corner, square, T, S, L; Nov 18).
 - Mini-boss rooms are two cells and one waits at a time (first guess; tune after play).
 
 ## Steps
