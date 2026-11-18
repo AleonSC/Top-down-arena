@@ -328,6 +328,8 @@ static partial class Shot {
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
         set("practiceSel", 1);
         if (Environment.GetEnvironmentVariable("GRIDSCROLL") != null) set("practiceGridScroll", int.Parse(Environment.GetEnvironmentVariable("GRIDSCROLL")));  // GRIDSCROLL=n: the enemy grid scrolled n lines
+        // PRSORT=0-2: the enemy grid sorted by faction, job or A-Z (PracticeSortUi.cs)
+        if (Environment.GetEnvironmentVariable("PRSORT") != null) set("practiceSort", int.Parse(Environment.GetEnvironmentVariable("PRSORT")));
       }
       // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the gold Saved star showing.
       var favs = Environment.GetEnvironmentVariable("FAVS");
@@ -639,7 +641,7 @@ static partial class Shot {
           g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
           me.Gold = 245; me.Vectors = 52; me.VectorCap = 90; me.ReviveToken = true; me.Gadget = GadgetId.Magnet; me.GadgetLeft = 6.4f; me.Relic = RelicId.WallBounce;
           me.Hand[0] = (byte)RoomCard.Ring; me.Hand[1] = (byte)RoomCard.Hall; me.Hand[2] = (byte)RoomCard.Cross; me.Hand[3] = (byte)RoomCard.MiniBoss;
-          me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.SpikeTrap] = 3;
+          me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.Turret] = 3;
           g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake }); g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Shop });
           g.ExpandOpen = Environment.GetEnvironmentVariable("INVOPEN") != null;  // INVOPEN=1: a build round is open (cards and buildables are usable; MOUSE=x,y hovers one)
           foreach (var tm2 in g.Players.Values) if (tm2.Id != me.Id) { tm2.Gold = 90; tm2.Vectors = 18; tm2.VectorCap = 70; tm2.Hand[0] = (byte)RoomCard.Box; tm2.Hand[1] = (byte)RoomCard.THall; tm2.Stash[(int)BuildKind.Landmine] = 2; tm2.Relic = RelicId.WallBounce; }

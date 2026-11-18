@@ -793,7 +793,14 @@ static partial class Program
         Console.WriteLine("  totality: {0}; 100 damage dealt {1:0}; the nova took {2:0} from you and healed it {3:0}", totality, dealt, me.Run.DamageTaken - novaTaken, h.Hp - before);
         Check(totality, "below 5%: Totality in the middle, the moon gone, the edge gone");
         Check(dealt > 140f && dealt < 160f, "it takes +50% damage in Totality");
-        Check(me.Run.DamageTaken - novaTaken > me.MaxHp * 0.5f && h.Hp > before, "the nova hits everyone hard and heals it");
+        Check(me.Run.DamageTaken - novaTaken > me.MaxHp * 0.5f && Math.Abs(h.Hp - before - dealt * Game.EclipseNovaHealShare) < 1f,
+            "the nova hits everyone hard and heals it back half of what it lost since Totality began");
+        // A nova after nothing hurt it heals nothing: every cycle leaves it lower, so Totality can always be won.
+        before = h.Hp;
+        h.Eclipse.NovaT = 0.5f;
+        Run(s, dt, 1f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 0f; quiet(); });
+        Console.WriteLine("  a nova with no damage since healed it {0:0}", h.Hp - before);
+        Check(Math.Abs(h.Hp - before) < 1f, "a nova with no damage taken since the last heals nothing");
         s[0].Leave(""); s[1].Leave("");
     }
 
