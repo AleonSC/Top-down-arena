@@ -142,4 +142,44 @@ static partial class Program
         for (int k = 0; k < 4; k++) stacked.Taken.Add(idOf("Hollow Points"));
         Check(Game.BotCardScore(stacked, idOf("Hollow Points")) < score(Role.Dps, "Hollow Points"), "a card already taken a few times counts for less (its copies diminish)");
     }
+
+    /// The bot at the shop (Shop.cs BotShop): heals first when badly hurt, buys the card worth the most for its gold,
+    /// leaves cards that are worth little to it, then it's done.
+    static void BotShopTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var openShop = typeof(Game).GetMethod("OpenShop", flags);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = -5 }, port, false, "Bot", Role.Dps);
+        var client = JoinAs(port, false, "Friend", Role.Tank);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Enemies.Count > 0);
+        Run(s, dt, 30f, () => g.State == MatchState.Intermission, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; });
+        noPicks();
+        g.PathOffer = new[] { PathId.Bazaar, PathId.SniperRidge };
+        g.ChoosePath(0);
+        Run(s, dt, 0.5f, null, noPicks);
+        openShop.Invoke(g, null);
+        var me = g.Players[1];
+        Func<string, int> idOf = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        int boots = idOf("Light Boots"), points = idOf("Hollow Points"), vitality = idOf("Vitality"), trigger = idOf("Hair Trigger");
+        me.Shelf[0] = vitality; me.Shelf[1] = boots; me.Shelf[2] = points;
+        for (int i = 3; i < me.Shelf.Length; i++) me.Shelf[i] = -1;
+        me.ShelfLen = 3; me.ShelfSold = 0; me.Restocks = 9;  // (no adding stock in this test)
+        me.Gold = 170; me.ReviveToken = true;
+        me.DevGod = false; me.Hp = me.MaxHp * 0.3f;
+        int had = me.Taken.Count;
+        g.Bot = true; g.BotLevel = BotSkill.Good; g.BotRerolls = false;
+        Run(s, dt, 8f, () => me.ShopDone, noPicks);
+        Console.WriteLine("  bot shop: done {0}, health {1:0}/{2:0}, gold left {3}, bought {4}", me.ShopDone, me.Hp, me.MaxHp, me.Gold,
+            string.Join(", ", me.Taken.GetRange(had, me.Taken.Count - had).ConvertAll(id => Upgrades.All[id].Name)));
+        Check(me.ShopDone, "the bot finishes shopping");
+        Check(me.Hp >= me.MaxHp - 0.5f, "a badly hurt bot heals at the shop");
+        Check(me.Taken.Contains(points), "the bot buys the card worth the most to it (+20% damage)");
+        Check(!me.Taken.GetRange(had, me.Taken.Count - had).Contains(vitality), "it leaves a card worth little to it (+15 health on a DPS)");
+    }
 }
