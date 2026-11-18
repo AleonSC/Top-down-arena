@@ -134,19 +134,5 @@ namespace Arena
             Arc(to, 14f, 2f, MagRed.WithAlpha(0.85f), 20);
             Arc(to, 14f + 4f * Mathf.Sin(t * 6f), 1f, MagRed.WithAlpha(0.4f), 20);
         }
-
-        /// DrawHud: holding a gadget, a pill under you with its name, time left and keys.
-        void DrawGadgetHint()
-        {
-            var me = game.Me;
-            if (me == null || me.Downed || me.Gadget == GadgetId.None || tabHeld)
-                return;
-            string key = Keybinds.KeyName(Keybinds.Get(KeyAction.Gadget)).ToUpperInvariant();
-            string text = Game.GadgetName(me.Gadget).ToUpperInvariant() + "  " + me.GadgetLeft.ToString("0.0") + " s  ·  " + key + (me.GadgetOn ? " OFF" : " ON") + "  ·  HOLD " + key + " THROW";
-            V2 at = ToUi(me.Disp);
-            var r = new Rect(at.X - 120f, at.Y + 34f, 240f, 20f);
-            Ui.Pill(r, me.GadgetOn ? new Color(0.92f, 0.2f, 0.22f, 0.85f) : new Color(0f, 0f, 0f, 0.6f));
-            Ui.Label(r, text, 11, me.GadgetOn ? new Color(1f, 0.95f, 0.95f) : new Color(1f, 0.7f, 0.7f), TextAnchor.MiddleCenter, true);
-        }
     }
 }

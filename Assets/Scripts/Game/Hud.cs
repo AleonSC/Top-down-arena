@@ -63,8 +63,8 @@ namespace Arena
                 if (LaunchHides(p))
                     continue;  // not landed yet (LaunchIntro.cs)
                 DrawLaunchIcon(p, at, r);
-                if (!(hudMode == 2 && p.Id == game.MyId))  // (the "on the player" HUD puts your health there instead; the name rises over a Juggernaut Suit's armour bar)
-                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f - (Game.JuggOn(p) ? 8f * UiWorldScale : 0f) - NameLift(p), 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
+                if (p.Id != game.MyId)  // (no text over your own player; the name rises over a Juggernaut Suit's armour bar)
+                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f - (Game.JuggOn(p) ? 8f * UiWorldScale : 0f) - NameLift(p), 200f, 18f), p.Name, 12, NameFxOf(p.Id), Time.unscaledTime,
                     ToColor(p.Def.Color.WithAlpha(0.95f)), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
                 if (p.LevelFlash > 0f)
                 {
@@ -87,7 +87,6 @@ namespace Arena
             DrawMysteryHint();   // mystery doors' price tags and keys (MysteryDoorLook.cs)
             DrawWallPushHint();  // by a wall between waves: the Push wall key; pushing: the label and keys (WallPushLook.cs)
             DrawPushNames();     // a new pushed section's style, named over it (WallPushLook.cs)
-            DrawGadgetHint();    // holding a gadget: its time and keys (GadgetLook.cs)
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
             DrawGateToast(me);   // the boss gate just opened (BossGateLook.cs)
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
