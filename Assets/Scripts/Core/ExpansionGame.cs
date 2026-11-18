@@ -356,6 +356,7 @@ namespace Arena
                 added = true;
                 DoLog("a " + kind + " node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
+            added |= PlaceGridMini(cycle);  // GridCards.cs: a Grid run's mini-boss waits on the lattice
             if (added)
             {
                 expWorld = null;

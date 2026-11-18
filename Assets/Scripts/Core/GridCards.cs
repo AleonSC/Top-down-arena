@@ -96,8 +96,80 @@ namespace Arena
         }
     }
 
+    public static partial class Expansion
+    {
+        /// A Grid run's mini-boss room (Docs/GridPieces.md step 4): two cells (a domino, 1200 x 600 either way) waiting sealed on the lattice one cell out from the map,
+        /// so building a piece into the cell between joins it. Seeded; null if no spot fits. Kind Gatekeeper, Floating (GatekeeperRoom.cs runs the duel once it opens).
+        public static ExpansionRoom? GridMiniFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes)
+        {
+            var rng = new DetRandom(seed * 6007 + cycle * 811 + 71);
+            var start = new V2(Game.Width / 2f, Game.Height / 2f);
+            var firsts = GridPieceOptions(built, GridPiece.Mono);
+            firsts.Sort((p, q) => q.Mid.DistanceTo(start).CompareTo(p.Mid.DistanceTo(start)));
+            for (int tries = 0; tries < Math.Min(firsts.Count, 24); tries++)
+            {
+                var step = firsts[(rng.Int(Math.Max(1, firsts.Count / 2)) + tries) % firsts.Count];
+                var map = new List<ExpansionRoom>(built);
+                map.AddRange(step.Rooms);
+                var outs = GridPieceOptions(map, GridPiece.Domino);
+                var ok = new List<ExpansionRoom>();
+                foreach (var o in outs)
+                {
+                    var r = o.Rooms[0];
+                    if (o.Rooms.Count != 1)
+                        continue;
+                    bool clear = true;
+                    for (int i = 0; i <= built.Count && clear; i++)  // touches only the cell between, never the built map
+                    {
+                        BoxOf(built, i, out int bx0, out int by0, out int bx1, out int by1);
+                        clear = !Overlaps(r.X - 1, r.Y - 1, r.X1 + 1, r.Y1 + 1, bx0, by0, bx1, by1);
+                    }
+                    foreach (var nd in nodes)
+                        clear &= nd.Spent || !(nd.X > r.X - NodeApart / 2 && nd.X < r.X1 + NodeApart / 2 && nd.Y > r.Y - NodeApart / 2 && nd.Y < r.Y1 + NodeApart / 2);
+                    if (clear)
+                        ok.Add(r);
+                }
+                if (ok.Count == 0)
+                    continue;
+                var pick = ok[rng.Int(ok.Count)];
+                pick.Floating = true;
+                pick.Kind = RoomKind.Gatekeeper;
+                pick.Price = 0;
+                pick.Parent = -1;
+                return pick;
+            }
+            return null;
+        }
+
+        /// Sealed mini-boss rooms still waiting for a piece.
+        public static int GridMinisWaiting(IList<ExpansionRoom> built)
+        {
+            var linked = ConnectedAreas(built);
+            int n = 0;
+            for (int i = 0; i < built.Count; i++)
+                if (built[i].Floating && built[i].Kind == RoomKind.Gatekeeper && !linked[i + 1])
+                    n++;
+            return n;
+        }
+    }
+
     public partial class Game
     {
+        /// Host, as a boss cycle's nodes are placed: a Grid run gets a mini-boss room waiting on the lattice when none waits (its foe the coming boss's faction's).
+        bool PlaceGridMini(int cycle)
+        {
+            if (!IsHost || !GridRoomsOn || Expansion.GridMinisWaiting(Expanded) > 0)
+                return false;
+            var r = Expansion.GridMiniFor(expandSeed, cycle, Expanded, Nodes);
+            if (!r.HasValue)
+                return false;
+            var q = r.Value;
+            q.Mini = (byte)MiniBossNow();
+            Expanded.Add(q);
+            DoLog("a mini-boss room waits at " + q.X + "," + q.Y);
+            return true;
+        }
+
         /// Cards are in play: room cards, or a Grid run (whose cards are grid pieces).
         public bool HandOn => RoomCardsOn || GridRoomsOn;
 

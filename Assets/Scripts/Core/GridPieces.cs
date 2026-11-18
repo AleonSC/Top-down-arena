@@ -144,10 +144,11 @@ namespace Arena
         {
             var res = new List<GridSpot>();
             var seen = new HashSet<long>();
+            var linked = ConnectedAreas(built);
             for (int a = 1; a <= built.Count; a++)
             {
-                if (built[a - 1].Floating || IsPush(built[a - 1]))
-                    continue;
+                if (built[a - 1].Floating && !linked[a] || IsPush(built[a - 1]))
+                    continue;  // (a sealed floating room, like a waiting mini-boss room, has no door spots until a piece reaches it)
                 BoxOf(built, a, out int x0, out int y0, out int x1, out int y1);
                 for (int side = 0; side < 4; side++)
                 {

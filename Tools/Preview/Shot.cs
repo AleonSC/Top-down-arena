@@ -862,6 +862,7 @@ static partial class Shot {
       if (gridEnv != null) {
         eg.Diff.Set(DiffKnob.GridRooms, 1f); eg.Diff.Set(DiffKnob.BuildVote, 0f);
         eg.RoomsUp = true; eg.LayoutAge = 5f; eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts());  // (the core a Grid run starts with)
+        if (Environment.GetEnvironmentVariable("GRIDMINI") != null) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridCards.cs)
         var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {

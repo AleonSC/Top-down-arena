@@ -94,6 +94,29 @@ static partial class Program
         Check(back.Seats.Count == 1 && back.Seats[0].Hand.SequenceEqual(seat.Hand), "a hand of pieces is saved and read back");
     }
 
+    // Step 4: a mini-boss room waits sealed on the lattice, two cells, one cell out from the map; a piece into the cell between opens it.
+    static void GridMiniTest()
+    {
+        var core = Expansion.GridCore();
+        var mini = Expansion.GridMiniFor(9, 0, core, new List<MapNode>());
+        Check(mini.HasValue, "a mini-boss room finds a spot off the core");
+        if (!mini.HasValue) return;
+        var m = mini.Value;
+        bool lattice = (m.X - Expansion.GridX0) % 600 == 0 && (m.Y - Expansion.GridY0) % 600 == 0 && (m.W == 1200 && m.H == 600 || m.W == 600 && m.H == 1200);
+        Check(m.Floating && m.Kind == RoomKind.Gatekeeper && lattice && Expansion.GridMiniFor(9, 0, core, new List<MapNode>()).Value.Equals(m), "it is two cells on the lattice, a floating mini-boss room, the same each time (" + m.X + "," + m.Y + " " + m.W + "x" + m.H + ")");
+        var map = new List<ExpansionRoom>(core) { m };
+        Check(Expansion.GridMinisWaiting(map) == 1 && Expansion.BoughtCount(map) == 0 && !core.Any(c => c.X < m.X1 + 1 && m.X - 1 < c.X1 && c.Y < m.Y1 + 1 && m.Y - 1 < c.Y1), "it waits sealed, apart from the map, and isn't a bought room");
+        Check(!Expansion.GridSpots(map).Any(sp => sp.X >= m.X - 600 && sp.X < m.X1 && sp.Y >= m.Y - 600 && sp.Y < m.Y1 && (sp.SX == m.X || sp.SX == m.X1 || sp.SY == m.Y || sp.SY == m.Y1)), "a sealed room has no door spots of its own");
+        var bridge = Expansion.GridPieceOptions(map, GridPiece.Mono).FirstOrDefault(o => o.Rooms.Any(r => (r.X1 == m.X || r.X == m.X1) && r.Y < m.Y1 && m.Y < r.Y1 || (r.Y1 == m.Y || r.Y == m.Y1) && r.X < m.X1 && m.X < r.X1));
+        Check(bridge.Rooms != null, "a single fits in the cell between the map and the mini-boss room");
+        if (bridge.Rooms == null) return;
+        map.AddRange(bridge.Rooms);
+        var w = Expansion.Build(map);
+        int area = core.Count + 1;
+        Check(Expansion.GridMinisWaiting(map) == 0 && !w.Areas[area].Sealed && w.Areas[area].Kind == RoomKind.Gatekeeper, "built, it joins the map: the mini-boss room is open");
+        Check(Expansion.GridSpots(map).Any(sp => sp.SX == m.X || sp.SX == m.X1 || sp.SY == m.Y || sp.SY == m.Y1), "and its walls get door spots");
+    }
+
     static void GridPiecesGameTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -180,5 +203,11 @@ static partial class Program
         g.PlayGridCard(0, 0, po.X, po.Y);
         Run(s, dt, 0.3f, null, noPicks);
         Check(Game.HandCount(g.Players[1]) == 1, "with Grid off, no piece is played");
+        g.Diff.Set(DiffKnob.GridRooms, 1f);
+        var place = typeof(Game).GetMethod("PlaceGridMini", flags);
+        int before4 = g.Expanded.Count;
+        bool first = (bool)place.Invoke(g, new object[] { 1 }), second = (bool)place.Invoke(g, new object[] { 1 });
+        var waiting = g.Expanded.Skip(before4).ToList();
+        Check(first && !second && waiting.Count == 1 && waiting[0].Floating && waiting[0].Kind == Arena.RoomKind.Gatekeeper && waiting[0].Mini == (byte)g.MiniBossNow(), "a boss cycle places one mini-boss room on the lattice, holding the coming boss's faction's mini-boss; one waits at a time");
     }
 }
