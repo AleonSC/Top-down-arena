@@ -1195,9 +1195,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   one side and nothing on the other, 2 tiles of plain wall (no corner or door in it), nothing standing just in front, 150 px from a door and
   250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. Bots don't build them. (Pairs
   from older saves, standing in the middle of a room, still work as floor portals.)
-- **Black Market traps (placeholders)**: the Black Market also sells a **Spike trap** (60), **Landmine** (80) and **Slow field** (90). Switch the
+- **Black Market turret and traps**: the Black Market also sells a **Turret** (120), a **Landmine** (80) and a **Slow field** (90). Switch the
   draw screen to **Trap**, pick one from your stash and click a spot in a room (90 px off walls, 150 px from doors, 120 px from portals and other
-  traps; at most 12). They stand on the map and have **no effect yet**. A stash holds at most 5 of a kind.
+  traps; at most 12 on the map). A stash holds at most 5 of a kind.
+  - **Turret**: a heavy teal sentry on four feet, ringed in its owner's colour, with a twin-barrelled head that tracks the nearest enemy. In a wave it
+    shoots the nearest enemy within 560 px, about 3 shots a second, each for 12 + 1.5 per wave (your shots: your mods apply, kills are yours).
+    It fights **5 waves** (a lit pip under it for each wave left) and goes when the 5th is cleared. You can have **3** up at once. Enemies don't attack it.
+  - The **Landmine** and **Slow field** have **no effect yet**. (The Spike trap is gone; an old save's placed ones are dropped.)
 - **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate is fitted at once,
   for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
   for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its

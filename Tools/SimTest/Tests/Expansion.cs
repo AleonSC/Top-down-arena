@@ -1167,10 +1167,10 @@ static partial class Program
         g.ShopOpen = true;
         g.Shop(ShopAction.BuyBuild, (int)BuildKind.Teleporter);
         Check(g.Players[1].Stash[0] == 1 && g.Players[1].Gold == 200 - Market.Prices[0], "the Black Market sells a teleporter for gold into the stash");
-        g.Shop(ShopAction.BuyBuild, (int)BuildKind.SpikeTrap);
+        g.Shop(ShopAction.BuyBuild, (int)BuildKind.Landmine);
         g.ShopOpen = false;
         g.Players[2].Stash[0] = 1;
-        g.Players[2].Stash[(int)BuildKind.SpikeTrap] = 1;
+        g.Players[2].Stash[(int)BuildKind.Landmine] = 1;
         cg.ProposeExpandLink(link);
         Run(s, dt, 0.5f, () => cg.Links.Count == 1);
         Check(g.Links.Count == 1 && cg.Links.Count == 1 && g.Players[2].Vectors == 3 && g.Players[2].Stash[0] == 0, "a teleporter from the stash builds the pair at once on both screens, for no vectors");
@@ -1181,9 +1181,9 @@ static partial class Program
             for (float ty = ar.Min.Y; ty <= ar.Max.Y && !spotOk; ty += 100f)
                 for (float tx = ar.Min.X; tx <= ar.Max.X && !spotOk; tx += 100f)
                     spotOk = Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap = new V2(tx, ty), out pw);
-        cg.PlaceBuild(BuildKind.SpikeTrap, (int)trap.X, (int)trap.Y);
+        cg.PlaceBuild(BuildKind.Landmine, (int)trap.X, (int)trap.Y);
         Run(s, dt, 0.5f, () => cg.Placed.Count == 1);
-        Check(spotOk && g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.SpikeTrap] == 0, "a trap from the stash is placed on both screens (" + pw + ")");
+        Check(spotOk && g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.Landmine] == 0, "a trap from the stash is placed on both screens (" + pw + ")");
         Check(!Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw), "and a second one right on it is refused (" + pw + ")");
         Check(g.ExpansionWorld.Portals.Length == 1 && cg.ExpansionWorld.Portals.Length == 1, "and both maps have the portals");
         // An enemy in the east room after a player in the south room takes the wall portal: it walks to the mouth, into the wall, and out.

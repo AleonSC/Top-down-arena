@@ -237,6 +237,7 @@ namespace Arena
             DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
             DrawTourFlash();  // the breach warning's flash on the breach the camera is on (BreachTour.cs)
             DrawProps(t);  // crates, barrels and the chest (PropsLook.cs)
+            DrawTurrets();  // the Black Market's turrets (TurretLook.cs)
             DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, the Drawbridge's slam (KnightDpsLook.cs)
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)

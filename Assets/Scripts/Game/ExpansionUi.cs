@@ -301,6 +301,11 @@ namespace Arena
             bool trapOk = expTrapMode && over && game.Me != null && game.Me.Stash[expTrapKind] > 0 && Expansion.PlaceSpot(wd, game.Placed, trapSpot, out trapWhy);
             if (expTrapMode && over && trapWhy == null && (game.Me == null || game.Me.Stash[expTrapKind] == 0))
                 trapWhy = "None in your stash: buy one at the Black Market";
+            if (trapOk && expTrapKind == (int)BuildKind.Turret && game.TurretsOf(game.MyId) >= Market.TurretsEach)
+            {
+                trapOk = false;
+                trapWhy = "You have " + Market.TurretsEach + " turrets up already";
+            }
             GridPieceOption? gridPick = null;
             int gridFits = 0;
             if (gridMode)
@@ -418,6 +423,9 @@ namespace Arena
                     var bi = VendorInk;
                     RoomMapFrame(bp.X - 7f, bp.Y - 7f, 14f, 14f, 1.5f, bi);
                     RoomMapRect(bp.X - 3f, bp.Y - 3f, 6f, 6f, bi.WithAlpha(0.8f));
+                    if (pb.Kind == BuildKind.Turret)  // a turret: a pip for each wave it has left
+                        for (int wi = 0; wi < pb.Waves; wi++)
+                            RoomMapRect(bp.X - 7f + wi * 3f, bp.Y + 9f, 2f, 2f, bi);
                 }
                 if (expTrapMode && over)  // the trap about to go down: green where it fits, red where it doesn't
                 {
@@ -563,7 +571,7 @@ namespace Arena
         Vector2 expPressAt;
         bool expLinkMode;  // the draw screen places a portal pair (Docs/RoomBuilding2.md step 2): a teleporter from the stash (Market.cs)
         bool expTrapMode;  // the draw screen places a trap from the stash (Market.cs), one click
-        int expTrapKind = (int)BuildKind.SpikeTrap;
+        int expTrapKind = (int)BuildKind.Turret;
         bool expGateMode;  // the draw screen fits a shutter gate to a door (Docs/RoomBuilding2.md step 3)
         /// A portal pair on a map: a dashed line between its ends, and at each end a bar along its wall with a chevron into the room
         /// (a wall portal), or a ring (an end off the walls: an older save's floor portal, or a click not on an outer wall yet).
@@ -782,7 +790,7 @@ namespace Arena
             {
                 title = "PLACE A TRAP";
                 steps = new[] { "Pick one from your stash", "Point at a spot in a room", "Click to place it" };
-                tip = "Bought at the Black Market. They stand on the map, " + game.Placed.Count + " of " + Market.MaxPlaced + ". They have no effect yet.";
+                tip = "Bought at the Black Market. They stand on the map, " + game.Placed.Count + " of " + Market.MaxPlaced + ". Turrets fight " + Market.TurretWaves + " waves, " + Market.TurretsEach + " each; the others have no effect yet.";
             }
             else
             {

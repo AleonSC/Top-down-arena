@@ -641,7 +641,7 @@ static partial class Shot {
           g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
           me.Gold = 245; me.Vectors = 52; me.VectorCap = 90; me.ReviveToken = true; me.Gadget = GadgetId.Magnet; me.GadgetLeft = 6.4f; me.Relic = RelicId.WallBounce;
           me.Hand[0] = (byte)RoomCard.Ring; me.Hand[1] = (byte)RoomCard.Hall; me.Hand[2] = (byte)RoomCard.Cross; me.Hand[3] = (byte)RoomCard.MiniBoss;
-          me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.SpikeTrap] = 3;
+          me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.Turret] = 3;
           g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake }); g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Shop });
           g.ExpandOpen = Environment.GetEnvironmentVariable("INVOPEN") != null;  // INVOPEN=1: a build round is open (cards and buildables are usable; MOUSE=x,y hovers one)
           foreach (var tm2 in g.Players.Values) if (tm2.Id != me.Id) { tm2.Gold = 90; tm2.Vectors = 18; tm2.VectorCap = 70; tm2.Hand[0] = (byte)RoomCard.Box; tm2.Hand[1] = (byte)RoomCard.THall; tm2.Stash[(int)BuildKind.Landmine] = 2; tm2.Relic = RelicId.WallBounce; }

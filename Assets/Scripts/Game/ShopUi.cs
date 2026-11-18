@@ -476,7 +476,7 @@ namespace Arena
             CrtKit.Frame(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.5f) : new Color(rc.r, rc.g, rc.b, 0.45f));
             var ribbon = new Rect(r.center.x - 40f, r.y + 12f, 80f, 20f);
             Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f * dim));
-            Ui.Label(ribbon, kind == 0 ? "Teleport" : "Trap", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+            Ui.Label(ribbon, kind == 0 ? "Teleport" : kind == (int)BuildKind.Turret ? "Sentry" : "Trap", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
             var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
             Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
@@ -508,14 +508,13 @@ namespace Arena
                     for (int i = 0; i < 3; i++)
                         Ui.Fill(new Rect(cx - 3f + i * 0f, cy - 9f + i * 8f, 6f, 3f), ink);
                     break;
-                case BuildKind.SpikeTrap:
-                    Ui.Fill(new Rect(cx - 24f, cy + 14f, 48f, 4f), ink);
+                case BuildKind.Turret:  // a sentry from above: four feet, the plate, the head and twin barrels
                     for (int i = 0; i < 4; i++)
-                    {
-                        float sx = cx - 22f + i * 12f;
-                        Ui.Fill(new Rect(sx + 2f, cy - 14f, 4f, 28f), ink);
-                        Ui.Fill(new Rect(sx + 3f, cy - 20f, 2f, 8f), ink);
-                    }
+                        Ui.Fill(new Rect(cx + (i % 2 == 0 ? -26f : 18f), cy + (i < 2 ? -26f : 18f), 8f, 8f), ink);
+                    Ui.Dot(new Rect(cx - 22f, cy - 22f, 44f, 44f), ink, true);
+                    Ui.Dot(new Rect(cx - 10f, cy - 10f, 20f, 20f), ink);
+                    Ui.Fill(new Rect(cx + 4f, cy - 7f, 26f, 4f), ink);
+                    Ui.Fill(new Rect(cx + 4f, cy + 3f, 26f, 4f), ink);
                     break;
                 case BuildKind.Landmine:
                     Ui.Dot(new Rect(cx - 22f, cy - 22f, 44f, 44f), ink, true);

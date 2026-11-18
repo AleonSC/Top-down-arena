@@ -4,16 +4,19 @@ using System.IO;
 namespace Arena
 {
     /// What the Black Market (the vendor's room, Docs/BlackMarket.md) sells to build around the map. Bought with gold into the
-    /// buyer's stash, placed in the break between waves (the draw screen's Teleporter and Trap tools). Only the teleporter does anything yet:
-    /// the traps are bought and placed, and have no effect.
-    public enum BuildKind : byte { Teleporter, SpikeTrap, Landmine, SlowField }  // (new kinds go at the end)
+    /// buyer's stash, placed in the break between waves (the draw screen's Teleporter and Trap tools). The teleporter and the turret
+    /// (Turret.cs) work; the landmine and slow field are bought and placed, and have no effect yet.
+    public enum BuildKind : byte { Teleporter, Turret, Landmine, SlowField }  // (new kinds go at the end; Turret took the retired Spike trap's slot)
 
     public struct PlacedBuild : IEquatable<PlacedBuild>
     {
         public BuildKind Kind;
         public short X, Y;
+        public byte Owner;   // who placed it (a turret's shots are theirs)
+        public byte Waves;   // a turret: the waves it still fights (Market.TurretWaves when placed; it goes when this reaches 0)
+        public float Cd;     // a turret's shot cooldown (host only, not sent)
         public V2 Pos => new V2(X, Y);
-        public bool Equals(PlacedBuild o) => Kind == o.Kind && X == o.X && Y == o.Y;
+        public bool Equals(PlacedBuild o) => Kind == o.Kind && X == o.X && Y == o.Y && Owner == o.Owner && Waves == o.Waves;
     }
 
     public static class Market
@@ -23,12 +26,15 @@ namespace Arena
         public const int MaxPlaced = 12;   // traps standing on the map at once (teleporters are Expansion.MaxLinks pairs)
         public const float PlaceClear = 120f;
 
-        public static readonly string[] Names = { "Teleporter pair", "Spike trap", "Landmine", "Slow field" };
-        public static readonly int[] Prices = { 150, 60, 80, 90 };
+        public const int TurretWaves = 5;      // a turret fights this many waves, then goes
+        public const int TurretsEach = 3;      // turrets one player may have standing at once
+
+        public static readonly string[] Names = { "Teleporter pair", "Turret", "Landmine", "Slow field" };
+        public static readonly int[] Prices = { 150, 120, 80, 90 };
         public static readonly string[] Blurbs =
         {
             "Two portals in two rooms. Step in one, come out the other. Enemies use them too.",
-            "Hits whatever steps on it.",
+            "A sentry that shoots the nearest enemy in range for 5 waves. Up to 3 of yours at once.",
             "Goes off once when an enemy walks over it.",
             "Slows everything that crosses it.",
         };
@@ -71,13 +77,17 @@ namespace Arena
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || !Market.Valid((int)kind) || !Market.IsTrap(kind) || p.Stash[(int)kind] == 0)
                 return;
             string why;
-            if (!Expansion.PlaceSpot(ExpansionWorld, Placed, new V2(x, y), out why))
+            if (kind == BuildKind.Turret && TurretsOf(id) >= Market.TurretsEach)
+                why = "You have " + Market.TurretsEach + " turrets up already";
+            else
+                Expansion.PlaceSpot(ExpansionWorld, Placed, new V2(x, y), out why);
+            if (why != null)
             {
                 DoLog("trap refused (" + why + ")");
                 return;
             }
             p.Stash[(int)kind]--;
-            Placed.Add(new PlacedBuild { Kind = kind, X = (short)x, Y = (short)y });
+            Placed.Add(new PlacedBuild { Kind = kind, X = (short)x, Y = (short)y, Owner = (byte)id, Waves = kind == BuildKind.Turret ? (byte)Market.TurretWaves : (byte)0 });
             DoLog(p.Name + " placed a " + Market.Names[(int)kind].ToLowerInvariant());
             Sounds.Add(Sfx.Pick);
             BroadcastExpansion();
