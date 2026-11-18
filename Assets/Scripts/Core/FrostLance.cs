@@ -46,6 +46,7 @@ namespace Arena
         public const int ZeroChill = 3;
         public static readonly Rgba FlColor = new Rgba(0.56f, 0.89f, 1f);
         const byte DashZero = 44;
+        static readonly Sfx[] FlStepSounds = { Sfx.FrostCrescent, Sfx.FrostBackhand, Sfx.FrostWaltz, Sfx.FrostFan, Sfx.FrostSlamWind };  // FrostSoundBank.cs
 
         /// When each of a step's hits lands (s into the step): one for the sweeps, spin and slam, one per ray for the fan.
         public static float FlHitAt(int step, int hit) => step == 0 || step == 1 ? 0.1f : step == 2 ? 0.18f : step == 3 ? 0.1f + Math.Abs(hit - 2) * 0.03f : 0.25f;
@@ -88,7 +89,7 @@ namespace Arena
             frostStrikes.Add(s);
             // Pos the origin, Pos2 (aim, owner * 8 + step), Radius the size; alpha 0.5 marks a Rime Counter (the look skips the wind-up too).
             BroadcastFx(FxKind.FrostStep, s.O, new V2(s.Aim, p.Id * 8 + step), FlColor.WithAlpha(s.Bonus > 0 ? 0.5f : 1f), s.Scale, FlLife[step],
-                step == 2 ? Sfx.SwingHeavy : step == 3 ? Sfx.SpellFrost : step == 4 ? Sfx.BossWhoosh : Sfx.SwingLight);
+                FlStepSounds[step]);
             p.FireCd = FlGap[step] * (p.Weapon.FireInterval / FlBaseInterval) / FireRate(p);
             p.FlStep = (step + 1) % 5;
             p.FlIdle = 0f;
@@ -114,7 +115,7 @@ namespace Arena
                         continue;
                     s.Done[h] = true;
                     if (s.Step == 4)
-                        BroadcastFx(FxKind.FrostBurst, s.O + V2.FromAngle(s.Aim) * (FlSlamAt * s.Scale), FlColor, 4f, 0.9f, Sfx.BossSlam);
+                        BroadcastFx(FxKind.FrostBurst, s.O + V2.FromAngle(s.Aim) * (FlSlamAt * s.Scale), FlColor, 4f, 0.9f, Sfx.FrostSlam);
                     LandFrostHit(owner, s, h);
                 }
             }
@@ -178,7 +179,7 @@ namespace Arena
                 dmg *= FlShatterMult;
                 e.FrozenT = e.StunT;  // the ice breaks (a stun underneath still holds it)
                 e.FrostChill = 0;
-                BroadcastFx(FxKind.FrostBurst, e.Pos, FlColor, 1f, 0.9f, Sfx.BossCrack);
+                BroadcastFx(FxKind.FrostBurst, e.Pos, FlColor, 1f, 0.9f, Sfx.FrostShatter);
                 frozen = false;
             }
             WeaponHurt(e, dmg, owner.Id);
@@ -195,7 +196,7 @@ namespace Arena
                     {
                         e.FrostChill = 0;
                         e.FrozenT = Math.Max(e.FrozenT, (e.Def.Heavy ? FlHeavyFreeze : FlFreezeTime) + owner.Stats.IceFreezeBonus);
-                        BroadcastFx(FxKind.FrostBurst, e.Pos, FlColor, 0f, 2.4f, Sfx.Freeze);
+                        BroadcastFx(FxKind.FrostBurst, e.Pos, FlColor, 0f, 2.4f, Sfx.FrostFreeze);
                     }
                 }
             }
@@ -214,7 +215,7 @@ namespace Arena
                     s.Age = FlDur[s.Step];  // (removed next tick; nothing more lands)
                 }
             if (live)
-                BroadcastFx(FxKind.FrostBreak, p.Pos, new V2(p.Aim, p.Id), FlColor, 0f, 0.5f, Sfx.SpellFrost);
+                BroadcastFx(FxKind.FrostBreak, p.Pos, new V2(p.Aim, p.Id), FlColor, 0f, 0.5f, Sfx.FrostBreak);
             p.FireCd = 0f;
         }
 
@@ -261,7 +262,7 @@ namespace Arena
             p.FlZeroT = ZeroDur;
             p.FlZeroAt = p.Pos;
             p.FlZeroStage = 0;
-            BroadcastFx(FxKind.AbsoluteZero, p.Pos, new V2(p.Id, p.Aim), FlColor, ZeroROf(p), ZeroDur, Sfx.SpellFrost);
+            BroadcastFx(FxKind.AbsoluteZero, p.Pos, new V2(p.Id, p.Aim), FlColor, ZeroROf(p), ZeroDur, Sfx.ZeroCharge);
         }
 
         /// Host, every tick: the charge, the freezing wave, the shattering wave.
@@ -278,9 +279,9 @@ namespace Arena
             p.FlZeroT = Math.Max(0f, p.FlZeroT - dt);
             float age = ZeroDur - p.FlZeroT;
             if (p.FlZeroStage == 0 && age >= ZeroWaveAt)
-                ZeroWave(p, ZeroMult, ZeroChill, false, 2f, Sfx.Freeze);
+                ZeroWave(p, ZeroMult, ZeroChill, false, 2f, Sfx.ZeroWave);
             else if (p.FlZeroStage == 1 && age >= ZeroShatterAt)
-                ZeroWave(p, ZeroShatterMult, 0, true, 3f, Sfx.BossCrack);
+                ZeroWave(p, ZeroShatterMult, 0, true, 3f, Sfx.ZeroShatter);
         }
 
         void ZeroWave(Player p, float mult, int chill, bool shatter, float mark, Sfx sound)

@@ -310,7 +310,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample
   fire/pools). Others: `TEXTEDIT=1` (lobby in text-edit mode, outline under `MOUSE`) or `TEXTEDIT=<text>` (its edit
   box; `TEXTBUF` = typed), `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BOTS=1|edit` (a bot in Aleon's seat; `edit` also opens its loadout), 
-  `DEVDRAWER=1..4` / `DEVSIDE=1` / `DEVSHEET=1..3` (F1 dock: drawer, stat editor, sheet), `FROST=<0..1>` (a Frost Lance icicle that far through, with its splinters), `SHOCK=<s>` (the Shockwave ability that long after the cast, played through the game; `SHOCKCAP=1` mastered), `HAMMER=1` (Storm
+  `DEVDRAWER=1..4` / `DEVSIDE=1` / `DEVSHEET=1..3` (F1 dock: drawer, stat editor, sheet), `SHOCK=<s>` (the Shockwave ability that long after the cast, played through the game; `SHOCKCAP=1` mastered), `HAMMER=1` (Storm
   Hammers in flight and an electrified enemy arcing), `BOULDER=<draw secs>` (the Golem Staff charging, with its
   landing marker, and boulders in flight), `CAGE=1` (a Bone Guard cage, with guard shots), `WEAPONS5=1` (Fuma
   Shuriken, Chain Light, Sanguine Orb coating, Fireballs and Arc Lightning in one scene), `HEMO=1` (enemies with 1-4

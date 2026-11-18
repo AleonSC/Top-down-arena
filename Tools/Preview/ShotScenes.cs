@@ -1591,16 +1591,6 @@ static partial class Shot {
       for (int i = 0; i < 70; i++) { track.Add(i % 3 == 0 ? 9f : 22f, i % 4 == 0 ? 3f : 0f); track.Advance(0.1f); }
       host.Game.Dps[1] = track;
     }
-    if (Environment.GetEnvironmentVariable("FROST") != null) {
-      // The Frost Lance's icicle FROST=<0..1> of the way through, with its splinters once they've gone off.
-      float x = float.Parse(Environment.GetEnvironmentVariable("FROST")), it = x * Game.IcicleFxTime, st = it - Game.SplinterDelay;
-      me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.3f; host.Game.Bot = false;
-      V2 tipAt = me.Pos + V2.FromAngle(me.Aim) * 230f;
-      var frost = Defs.BulletColor(Defs.FrostShot);
-      host.Game.Effects.Add(new Effect { Kind = FxKind.Icicle, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.IcicleHalfWidth, Dur = Game.IcicleFxTime, T = it });
-      if (st > 0f && st < Game.SplinterFxTime)
-        host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = Game.SplinterFxTime, T = st });
-    }
     if (Environment.GetEnvironmentVariable("REPULSE") != null) {
       // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
       float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));
