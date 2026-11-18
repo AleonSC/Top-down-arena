@@ -844,12 +844,12 @@ static partial class Shot {
       float wct = Environment.GetEnvironmentVariable("WCT") != null ? float.Parse(Environment.GetEnvironmentVariable("WCT"), System.Globalization.CultureInfo.InvariantCulture) : 1f;
       if (Time.unscaledTime < 5f) Time.unscaledTime = 5f;  // (a negative birth time reads as "not up yet")
       set("wcBorn", Time.unscaledTime - wct); set("wcWave", wg.Wave);
-      if (Environment.GetEnvironmentVariable("WCSTEP") != null) set("wcStep", int.Parse(Environment.GetEnvironmentVariable("WCSTEP")));  // WCSTEP=0|1|2: Results, Build (needs EXPANDVOTE=<rooms> EXPANDFREE=1), Ready
+      if (Environment.GetEnvironmentVariable("WCSTEP") != null) set("wcStep", int.Parse(Environment.GetEnvironmentVariable("WCSTEP")));  // WCSTEP=0|1|2: Results, Build (needs EXPANDVOTE=<rooms>), Ready
       if (Environment.GetEnvironmentVariable("WCMIN") != null) set("wcMin", true);  // WCMIN=1: minimized to the strip at the top
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
-    if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's vote after a boss (ExpansionUi.cs)
-      var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); if (Environment.GetEnvironmentVariable("EXPANDFREE") == null) eg.Diff.Set(DiffKnob.BuildVote, 1f); eg.State = MatchState.Intermission;  // EXPANDFREE=1: free building (the default setting; the vote shows by default here)
+    if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's building round (ExpansionUi.cs)
+      var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;  // (free building: the team vote is gone)
       string cardsEnv = Environment.GetEnvironmentVariable("CARDS");  // CARDS=box,hall,ring,...: room cards on (RoomCards.cs) with that hand; CARDSEL=n the picked slot (-1 none); MOUSE=x,y the pointer
       eg.Diff.Set(DiffKnob.RoomCards, cardsEnv != null ? 1f : 0f);
       if (cardsEnv != null) {
@@ -860,9 +860,9 @@ static partial class Shot {
       }
       string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, GridPieces.cs); GRIDCARDS=tril,tetl:burninggrounds,shop,... the hand (piece[:floor] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
-        eg.Diff.Set(DiffKnob.GridRooms, 1f); eg.Diff.Set(DiffKnob.BuildVote, 0f);
-        eg.RoomsUp = true; eg.LayoutAge = 5f; eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts());  // (the core a Grid run starts with)
-        if (Environment.GetEnvironmentVariable("GRIDMINI") != null) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridCards.cs)
+        eg.Diff.Set(DiffKnob.GridRooms, 1f);
+        eg.RoomsUp = true; eg.LayoutAge = 5f; if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (the core a Grid run starts with, once)
+        if (Environment.GetEnvironmentVariable("GRIDMINI") != null && Expansion.GridMinisWaiting(eg.Expanded) == 0) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridCards.cs)
         var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {
@@ -884,19 +884,11 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null && eg.Nodes.Count == 0) { foreach (var fk in new[] { RoomKind.Gatekeeper, RoomKind.Shop, RoomKind.Vendor }) { var gk = Expansion.FloatingFor(3, 2, eg.Expanded, fk); if (gk.HasValue) eg.Expanded.Add(gk.Value); } foreach (var nk in new[] { NodeKind.Chest }) { var nn = Expansion.NodeFor(3, 0, eg.Expanded, eg.Nodes, nk); if (nn.HasValue) eg.Nodes.Add(nn.Value); } if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "2" && eg.Nodes.Count > 0) { for (int stp = 0; stp < 3 && !Expansion.NodeClaimed(eg.Expanded, eg.Nodes[0]); stp++) { var hh = Expansion.NodeStep(eg.Expanded, eg.Nodes[0]); if (!hh.HasValue) break; var h2 = hh.Value; h2.Owner = 1; eg.Expanded.Add(h2); } } }  // EXPANDFLOAT=1: floating Gatekeeper, shop and vendor rooms and a chest node off the map; =2 also builds a hallway and a room round the chest node; =3 builds a box up to the shop room (opened)=1: a floating shop, vendor and Gatekeeper room off the map
       if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "3") { int sfi = eg.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop); var sfc = sfi >= 0 ? Expansion.ConnectorFor(eg.Expanded, sfi) : null; if (sfc.HasValue) { var sf2 = sfc.Value; sf2.Owner = 1; eg.Expanded.Add(sf2);  typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); } }  // EXPANDFLOAT=3: a box built up to the shop room, so it is open
       if (gridEnv != null) typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null);  // (the rooms just added show)
-      eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open: each player's proposal, the first one backed
+      eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open
       if (Environment.GetEnvironmentVariable("EXPANDMIDWAVE") != null) { eg.State = MatchState.Fighting; eg.ExpandOpen = false; eg.Wave = 7; eg.RoomsUp = true; eg.BreachAge = 12f; MockBreachRooms(eg); }  // EXPANDMIDWAVE=1: the draw screen mid-wave (Open wall only; a breach wave, so its breaches show)
       if (Environment.GetEnvironmentVariable("MYSTERY") != null) { eg.Wave = Math.Max(eg.Wave, 3); var mfl2 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance; typeof(Game).GetMethod("RollMysteryDoors", mfl2).Invoke(eg, null); if (eg.MysteryDoors.Count < 2) typeof(Game).GetMethod("RollMysteryDoors", mfl2).Invoke(eg, null); }  // MYSTERY=1: mystery doors on the draw screen's map too
-      var propPool = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded); int pk = 0;
-      foreach (var pl in eg.Players.Values) { pl.Vectors = 30 + 8 * pk; if (pk < propPool.Count) { var pr = propPool[pk]; pr.Owner = pl.Id; eg.ExpandProposals.Add(pr); } pk++; }
-      if (Environment.GetEnvironmentVariable("EXPANDGATECARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDGATECARD=1: the first proposal is a shutter gate
-        var gp = Gates.Proposal(Gates.Of(eg.ExpansionWorld.Doors[eg.ExpansionWorld.Doors.Length - 1])); gp.Owner = eg.ExpandProposals[0].Owner; eg.ExpandProposals[0] = gp;
-      }
-      if (Environment.GetEnvironmentVariable("EXPANDLINKCARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDLINKCARD=1: the first proposal is a portal pair
-        string lw; var bl = Expansion.BestLink(eg.ExpansionWorld, 0);
-        if (bl.HasValue) { var lp = Expansion.LinkProposal(bl.Value, Expansion.LinkPrice(eg.ExpansionWorld, 0, bl.Value, out lw)); lp.Owner = eg.ExpandProposals[0].Owner; eg.ExpandProposals[0] = lp; }
-      }
-      if (eg.ExpandProposals.Count > 0) eg.ExpandVotes[eg.MyId] = eg.ExpandProposals[0].Owner;
+      int pk = 0;
+      foreach (var pl in eg.Players.Values) pl.Vectors = 30 + 8 * pk++;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
       if (Environment.GetEnvironmentVariable("EXPANDCHIP") != "1") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
       string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the drawing screen with that box dragged out

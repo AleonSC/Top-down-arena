@@ -544,6 +544,27 @@ static partial class Shot {
         en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
       }
     }
+    if (Environment.GetEnvironmentVariable("VOLLEY") != null) {
+      // A DPS Knight's Warhorn Volley (WarhornVolleyLook.cs): VOLLEY=<seconds after the cast> (horn 0.18-0.9 s, arrows land 0.6 s to Game.VolEndT),
+      // VOLMASTERED=1 for the wider lane, VOLAIM=<radians>. Enemies the front has passed burn. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Knight; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps);
+      float vt = float.Parse(Environment.GetEnvironmentVariable("VOLLEY"));
+      float aimV = float.Parse(Environment.GetEnvironmentVariable("VOLAIM") ?? "0.08");
+      V2 fromV = new V2(300f, 460f), dirV = V2.FromAngle(aimV);
+      me.Pos = me.Disp = fromV; me.Aim = aimV; me.AimAt = fromV + dirV * 300f;
+      bool capV = Environment.GetEnvironmentVariable("VOLMASTERED") != null;
+      gm.Effects.Add(new Effect { Kind = FxKind.WarhornVolley, Pos = fromV, Pos2 = fromV + dirV * Game.VolRange, Color = new Rgba(1f, 0.55f, 0.18f, Game.VolHalfOf(capV) / 1000f), Radius = me.Id, Dur = Game.VolFxDur, T = vt });
+      float[,] spotsV = { { 260f, 30f }, { 360f, -120f }, { 420f, 150f }, { 520f, -20f }, { 640f, 220f }, { 700f, -200f }, { 820f, 60f }, { 900f, -90f }, { 1000f, 170f }, { 560f, 300f } };
+      for (int i = 0; i < 10; i++) {
+        V2 at = fromV + dirV * spotsV[i, 0] + dirV.Orthogonal() * spotsV[i, 1];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i % 4 == 3 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+        en.Burning = spotsV[i, 0] < Game.VolFront(vt);
+      }
+    }
     if (Environment.GetEnvironmentVariable("HARVEST") != null || Environment.GetEnvironmentVariable("HARVESTTHROW") != null) {
       // A Hemomancer's Crimson Harvest (CrimsonHarvestLook.cs): HARVEST=<seconds since the cast> (rip to 2.2 s, then the hold; HARVESTBLOOD=<blood> sets the ball's size, default 26),
       // or HARVESTTHROW=<seconds since the throw> for the flight (to 0.65 s), blast and stain. Use with mode hud.
@@ -1132,6 +1153,41 @@ static partial class Shot {
         foreach (var e in foes) { e.Disp = e.Pos; if (!alt) e.FireT = 99f; }
         Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
         gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f < 3 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // BLOODBLAST=<s>: the Tank Hemomancer's Blood Blast (Core/BloodBlast.cs, Game/BloodBlastLook.cs) that long into its chain, Fire held
+    // from 0: Crimson Slash at 0, Backcut 0.42 s, Thorn Flurry 0.82 s, Vein Whirl 1.32 s, Sanguine Cleave 1.9 s, Crescent Flight 2.68 s.
+    // BBSTEP=<1-6>: start the chain at that step instead. BBALT=1: Alt (Crimson Tide) at 0 instead. BBSTACKS=<n>: the grunts start with
+    // n stacks; BBKILL=<s>: they all die at that time (the Blood Vortex).
+    if (Environment.GetEnvironmentVariable("BLOODBLAST") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Hemomancer; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      gm.Props.Clear(); gm.Layout = LayoutId.Open;
+      bool alt = Environment.GetEnvironmentVariable("BBALT") != null;
+      int step0 = int.Parse(Environment.GetEnvironmentVariable("BBSTEP") ?? "1"), stacks0 = int.Parse(Environment.GetEnvironmentVariable("BBSTACKS") ?? "0");
+      float killAt = float.Parse(Environment.GetEnvironmentVariable("BBKILL") ?? "-1", ci);
+      if (step0 > 1) { me.BlastStep = (byte)(step0 - 1); me.Combo = step0 - 1; }
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = alt ? new[] { new V2(120f, -40f), new V2(210f, 50f), new V2(300f, -30f), new V2(-90f, 80f) }
+                      : new[] { new V2(80f, -40f), new V2(100f, 45f), new V2(170f, 0f), new V2(-70f, -40f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos;
+        e.BlastStacks = (byte)stacks0; e.BlastOwner = me.Id; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("BLOODBLAST"), ci) * 60f));
+      V2 cursor = home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        if (killAt >= 0f && Math.Abs(f / 60f - killAt) < 0.5f / 60f) foreach (var e in foes) { e.Hp = 0f; }
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt && killAt < 0f, WeaponAction = alt && f < 3 });
         gm.Update(1f / 60f);
         me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
       }
@@ -2142,10 +2198,6 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("GRIDCORE") != null) { xg.Diff.Set(DiffKnob.GridRooms, 1f); xg.Diff.Set(DiffKnob.RoomCards, 0f); xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }  // GRIDCORE=1 (with EXPANDMAP=0): a Grid run's core (GridRooms.cs); EXPANDAT=x,y ZOOM=z to look at it
       string xs = Environment.GetEnvironmentVariable("EXPANDSHAPES");  // EXPANDSHAPES=x,y;x,y;...|...: rooms drawn as outlines added in order (Expansion.Outline), owner 1
       if (xs != null) foreach (var sh in xs.Split('|')) { var pts = new System.Collections.Generic.List<int[]>(); foreach (var part in sh.Split(';')) pts.Add(Array.ConvertAll(part.Split(','), int.Parse)); string why; var made = Expansion.Outline(xg.Expanded, pts, PathId.None, out why); if (made != null) foreach (var mr in made) { var m2 = mr; m2.Owner = 1; xg.Expanded.Add(m2); } else Console.Error.WriteLine("EXPANDSHAPES " + sh + ": " + why); }
-      if (Environment.GetEnvironmentVariable("EXPANDPROP") != null) {  // EXPANDPROP=1: a building round is open with a proposal from each player
-        xg.ExpandOpen = true; int pi = 0;
-        foreach (var pl in xg.Players.Values) { var pr = Expansion.Offers(9, 20 + pi, xg.Expanded); if (pr.Count > pi) { var q = pr[pi]; q.Owner = pl.Id; xg.ExpandProposals.Add(q); } pi++; }
-      }
       string xsur = Environment.GetEnvironmentVariable("EXPANDSURPRISE");  // EXPANDSURPRISE=ring|cross|l|t|chamfer: that surprise room built, SURPRISEAGE=<s since it appeared> (default 0.6)
       if (xsur != null) {
         var xsh = (SurpriseShape)Array.IndexOf(new[] { "ring", "cross", "l", "t", "chamfer" }, xsur); string xwhy;
@@ -2170,6 +2222,16 @@ static partial class Shot {
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
+      if (Environment.GetEnvironmentVariable("RELICOPEN") != null) {  // RELICOPEN=<s>: a 6 x 6 room built beside the map with a spent relic node in it, opened that long ago, you standing below it (NodeLook.cs)
+        ArenaApp.PreviewRelicAge = float.Parse(Environment.GetEnvironmentVariable("RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
+        ExpansionRoom? rr = null;
+        for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Expansion.Custom(xg.Expanded, rx, ry, 600, 600, out wn); if (cand.HasValue) rr = cand; }
+        if (rr.HasValue) {
+          xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+          var rn = new MapNode { Kind = NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
+        }
+      }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
       string mreset = Environment.GetEnvironmentVariable("MAPRESET");  // MAPRESET=<s since the reset>: the map just reset (MapResetLook.cs): the old rooms folding in, the biggest one kept, map 2, 27 vectors back
       if (mreset != null) {

@@ -132,7 +132,8 @@ static partial class Program
         Run(s, dt, 0.1f);
         g.ResolveLoot(true);
         Run(s, dt, 0.3f);
-        Check(me.Taken.Count == had + 1 && me.Taken.Last() == hostLoot.Upgrade && !g.Loots.ContainsKey(hostLoot.Id), "standing on your item and taking it gives you the upgrade");
+        int stored = Upgrades.All[hostLoot.Upgrade].PicksSlot ? Upgrades.UseCard(0) : hostLoot.Upgrade;  // Extra Use is stored as its key's own card (GrantUpgrade)
+        Check(me.Taken.Count == had + 1 && me.Taken.Last() == stored && !g.Loots.ContainsKey(hostLoot.Id), "standing on your item and taking it gives you the upgrade");
         int friendHad = friend.Taken.Count;
         cg.Players[2].Pos = friendLoot.Pos;
         Run(s, dt, 0.3f);

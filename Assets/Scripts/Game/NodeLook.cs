@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -21,10 +22,10 @@ namespace Arena
         /// A node's colour: a fogged one is grey, a rule node wears its rule's path colour.
         static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
 
-        /// A chest node's colour once seen: its chest kind's ink (Gold, Room card, Buildables or Upgrade).
+        /// A chest node's colour once seen: its chest kind's ink (Gold, Grid piece, Buildables or Upgrade).
         Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
 
-        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Room card chest", "Buildables chest" };
+        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Grid piece chest", "Buildables chest" };
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
         string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
@@ -41,7 +42,7 @@ namespace Arena
                 switch (game.NodeChestKind(n))
                 {
                     case ChestKind.Gold: return "Build a room round it and touch the chest: it bursts into gold coins for everyone to pick up.";
-                    case ChestKind.RoomCard: return "Build a room round it and touch the chest: every player gets a room card.";
+                    case ChestKind.Piece: return "Build a room round it and touch the chest: every player gets a grid piece card.";
                     case ChestKind.Buildable: return "Build a room round it and touch the chest: every player gets a Black Market build in their stash.";
                     default: return "Build a room round it and touch the chest: every player gets their own upgrade card.";
                 }
@@ -241,11 +242,14 @@ namespace Arena
                 }
                 case NodeKind.Relic:
                 {
+                    long key = RelicKey(c);
                     if (spent)
                     {
-                        DrawChestLook(c, 0.3f, t, ChestKind.Relic, true, 99f);  // opened, lid up and dim
+                        DrawRelicOpening(c, t, RelicOpenAge(key, t));
                         break;
                     }
+                    relicSeenShut.Add(key);
+                    relicOpenedAt.Remove(key);
                     Arc(c, Relics.TakeReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     DrawChestLook(c, 1f, t, ChestKind.Relic, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
@@ -307,6 +311,86 @@ namespace Arena
                     }
                     break;  // (a claimed chest is the real prop, Props.cs; nothing is drawn once it is spent)
             }
+        }
+
+        // The relic node's opening (it is spent the moment someone walks up, so each screen times it from when it saw the change).
+        readonly HashSet<long> relicSeenShut = new HashSet<long>();
+        readonly Dictionary<long, float> relicOpenedAt = new Dictionary<long, float>();
+        internal static float PreviewRelicAge = -1f;  // preview RELICOPEN=<s>: every spent relic opened that long ago
+
+        static long RelicKey(V2 c) => ((long)Mathf.RoundToInt(c.X) << 32) ^ (uint)Mathf.RoundToInt(c.Y);
+
+        /// Seconds since this relic node opened: from when this screen first saw it spent after seeing it shut; one already spent when first seen is long open.
+        float RelicOpenAge(long key, float t)
+        {
+            if (PreviewRelicAge >= 0f)
+                return PreviewRelicAge;
+            float at;
+            if (relicOpenedAt.TryGetValue(key, out at))
+                return t - at;
+            if (!relicSeenShut.Remove(key))
+                return 99f;
+            relicOpenedAt[key] = t;
+            return 0f;
+        }
+
+        /// A relic node opening: the chest shakes and flashes, the lid flies up, a violet ring bursts out, light pours up with gems rising,
+        /// and the relic itself climbs out, spins and shoots off towards the players; then it settles dim with the lid up.
+        void DrawRelicOpening(V2 c, float t, float age)
+        {
+            var ink = ChestInkOf(ChestKind.Relic);
+            if (age >= 3f)
+            {
+                DrawChestLook(c, 0.3f, t, ChestKind.Relic, true, 99f);  // opened, lid up and dim
+                return;
+            }
+            float settle = Mathf.Clamp01((age - 2.2f) / 0.8f), a = Mathf.Lerp(1f, 0.3f, settle);
+            V2 shake = age < 0.12f ? new V2(Mathf.Sin(t * 120f), Mathf.Cos(t * 97f)) * 2.5f * (1f - age / 0.12f) : default(V2);
+            DrawChestLook(c + shake, a, t, ChestKind.Relic, true, age);
+            float hw = Game.ChestW / 2f, hh = Game.ChestH / 2f;
+            if (age < 0.3f)  // the flash
+            {
+                float f = 1f - age / 0.3f;
+                FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, new Rgba(1f, 1f, 1f, 0.6f * f));
+                Circle(c, hw + 18f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(0.35f * f), 28);
+            }
+            for (int k = 0; k < 2; k++)  // two rings bursting out
+            {
+                float rk = Mathf.Clamp01((age - k * 0.15f) / 0.7f);
+                if (rk <= 0f || rk >= 1f)
+                    continue;
+                GlowArc(c, 30f + 120f * rk, 2.5f - k, ink.WithAlpha(0.8f * (1f - rk)), 40);
+            }
+            for (int k = 0; k < 8; k++)  // sparks flung out
+            {
+                float sk = Mathf.Clamp01(age / 0.6f);
+                if (sk >= 1f)
+                    break;
+                V2 d = V2.FromAngle(k * MathX.Tau / 8f + 0.3f);
+                GlowLine(c + d * (20f + 70f * sk), c + d * (30f + 90f * sk), 1.5f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(1f - sk));
+            }
+            // The relic climbs out (0.2-1.2 s), hangs spinning, then shoots up and away (1.6-2.1 s).
+            if (age > 0.2f && age < 2.1f)
+            {
+                float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((age - 0.2f) / 1f)), go = Mathf.Clamp01((age - 1.6f) / 0.5f);
+                float scale = 0.6f + 0.8f * rise + 0.6f * go, al = 1f - go;
+                V2 p = c + new V2(0f, -hh - 20f - 70f * rise - 160f * go * go + Mathf.Sin(t * 4f) * 2f * rise);
+                Circle(p, 18f * scale, ink.WithAlpha(0.18f * al), 20);
+                float spin = Mathf.Cos(age * 6f);  // turning: squash it side to side
+                RelicGemSpin(p, scale, spin, ink.WithAlpha(al));
+            }
+        }
+
+        /// The relic's gem turning: a diamond squashed by spin (-1..1) with a bright face.
+        void RelicGemSpin(V2 c, float k, float spin, Rgba col)
+        {
+            float w = 9f * k * Mathf.Max(0.15f, Mathf.Abs(spin)), up = 11f * k, dn = 13f * k, mid = 3f * k;
+            V2 top = c + new V2(0f, -up), l = c + new V2(-w, -mid), r = c + new V2(w, -mid), bot = c + new V2(0f, dn);
+            SetColor(col.WithAlpha(col.A * 0.45f));
+            Quad(top, r, bot, l);
+            var hot = col.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(col.A);
+            GlowLine(top, r, 1.5f, hot); GlowLine(r, bot, 1.5f, hot); GlowLine(bot, l, 1.5f, hot); GlowLine(l, top, 1.5f, hot);
+            GlowLine(l, r, 1f, col);
         }
 
         /// The HUD chip for your relic slot (Relics.cs), with the wave panel's other chips.

@@ -380,9 +380,19 @@ namespace Arena
                 else if (rs != null && rs.Cleared) { fill = DoorTeal.WithAlpha(0.3f); line = DoorTeal; }
                 else if (rs != null && rs.Seen) { fill = DoorRed.WithAlpha(0.2f); line = DoorRed; }
                 else { fill = new Rgba(0.4f, 0.64f, 1f, 0.04f); line = new Rgba(0.4f, 0.64f, 1f, 0.3f); }
+                bool core = CoreArea(i) || a.Hub && CoreArea(1);  // a Grid run's core: one room with the start room, its rim drawn once below
+                if (core && !a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); }
                 V2 p0 = M(a.Min), p1 = M(a.Max);
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
-                RimFrame(wd, i, M, 1f, line, true);
+                if (!core)
+                    RimFrame(wd, i, M, 1f, line, true);
+            }
+            if (CoreArea(1))  // the core's one outline (GridRooms.cs)
+            {
+                V2 c0 = M(new V2(Expansion.GridX0, Expansion.GridY0)), c1 = M(new V2(Expansion.GridX0 + 4 * Expansion.GridCell, Expansion.GridY0 + 3 * Expansion.GridCell));
+                var cl = new Rgba(0.4f, 0.64f, 1f, 0.75f);
+                MapRect(c0.X, c0.Y, c1.X - c0.X, 1f, cl); MapRect(c0.X, c1.Y - 1f, c1.X - c0.X, 1f, cl);
+                MapRect(c0.X, c0.Y, 1f, c1.Y - c0.Y, cl); MapRect(c1.X - 1f, c0.Y, 1f, c1.Y - c0.Y, cl);
             }
             foreach (var n in game.Nodes)  // the nodes: a square with a dark edge, breathing and haloed until a room is built round it
             {
@@ -395,26 +405,6 @@ namespace Arena
                 MapRect(np.X - 6f, np.Y - 6f, 12f, 12f, new Rgba(0f, 0f, 0f, n.Spent ? 0.25f : 0.6f));
                 MapRect(np.X - 5f, np.Y - 5f, 10f, 10f, ink.WithAlpha(n.Spent ? 0.25f : claimed ? 0.9f : 0.8f + 0.2f * br));
             }
-            if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
-                foreach (var q in game.ExpandProposals)
-                {
-                    V2 q0 = M(new V2(q.X, q.Y)), q1 = M(new V2(q.X + q.W, q.Y + q.H));
-                    var qi = OwnerInk(q.Owner);
-                    float pulse = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 3f);
-                    if (q.Kind == RoomKind.Gate)
-                    {
-                        MapRect(q0.X - 3f, q0.Y - 3f, 6f, 6f, qi.WithAlpha(0.95f * pulse));
-                        continue;
-                    }
-                    if (q.Kind == RoomKind.Link)  // a portal pair: two dots
-                    {
-                        MapRect(q0.X - 3f, q0.Y - 3f, 6f, 6f, qi.WithAlpha(0.95f * pulse));
-                        MapRect(q1.X - 3f, q1.Y - 3f, 6f, 6f, qi.WithAlpha(0.95f * pulse));
-                        continue;
-                    }
-                    MapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.16f * pulse));
-                    MapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.95f));
-                }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
                 if (!wd.DoorUp(i, vault) || wd.Seam(i) || CoreSeam(wd, i))
@@ -529,18 +519,12 @@ namespace Arena
             DrawMapLabels(geo);  // the full map's title and legend, the "Map off" note (MapView.cs)
         }
 
-        /// What the map shows: the world (with the vault if it's up), the nodes and the open round's proposals.
+        /// What the map shows: the world (with the vault if it's up) and the nodes.
         void MapBounds(out V2 lo, out V2 hi)
         {
             var wd = game.CurrentWorld;
             lo = wd.MinFor(game.VaultOn); hi = wd.Max;
             IncludeNodes(ref lo, ref hi);
-            if (game.ExpandOpen)  // the open round's proposals count too
-                foreach (var q in game.ExpandProposals)
-                {
-                    lo = new V2(Mathf.Min(lo.X, Mathf.Min(q.X, q.X + q.W)), Mathf.Min(lo.Y, Mathf.Min(q.Y, q.Y + q.H)));  // (a portal pair's W and H can be negative)
-                    hi = new V2(Mathf.Max(hi.X, Mathf.Max(q.X, q.X + q.W)), Mathf.Max(hi.Y, Mathf.Max(q.Y, q.Y + q.H)));
-                }
         }
 
         /// When set, RoomMapRect clips to it (the zoomed drawing map).

@@ -155,6 +155,9 @@ namespace Arena
                 case FxKind.CavalryCall:
                     DrawCavalryCallFx(fx);  // CavalryCallLook.cs
                     break;
+                case FxKind.WarhornVolley:
+                    DrawWarhornGround(fx);  // WarhornVolleyLook.cs
+                    break;
                 case FxKind.Airstrike:
                     DrawAirstrikeFx(fx);  // AirstrikeLook.cs
                     break;
@@ -178,6 +181,15 @@ namespace Arena
                     break;
                 case FxKind.WindWave:
                     DrawWindWave(fx);  // WindClashLook.cs
+                    break;
+                case FxKind.BlastCut:
+                    DrawBlastCut(fx);  // BloodBlastLook.cs
+                    break;
+                case FxKind.BlastTide:
+                    DrawBlastTide(fx);  // BloodBlastLook.cs
+                    break;
+                case FxKind.BlastReturn:
+                    DrawBlastReturn(fx);  // BloodBlastLook.cs
                     break;
                 case FxKind.FrostStep:
                     DrawFrostStepFx(fx);  // FrostLanceLook.cs

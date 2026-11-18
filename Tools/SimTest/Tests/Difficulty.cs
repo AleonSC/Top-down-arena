@@ -28,7 +28,7 @@ static partial class Program
         custom.Set(DiffKnob.EnemyDamage, 2.35f);
         custom.Set(DiffKnob.Regen, 0f);
         var back = Difficulty.Parse(custom.ToText());
-        Check(custom.Level == DifficultyLevel.Custom && back.SameAs(custom) && Difficulty.Parse("Nightmare").SameAs(Difficulty.Of(DifficultyLevel.Nightmare))
+        Check(custom.Level == DifficultyLevel.Custom && back.SameAs(custom) && Difficulty.Parse(Difficulty.Of(DifficultyLevel.Nightmare).ToText()).SameAs(Difficulty.Of(DifficultyLevel.Nightmare))  // (a preset's text names its building mode since Grid became the default: a bare "Nightmare" is an old save, read as room cards)
               && Difficulty.Parse("nonsense").Level == DifficultyLevel.Normal,
             "changing a number makes it Custom, and a difficulty writes to text and reads back the same");
         var save = new RunSave { Diff = custom };
