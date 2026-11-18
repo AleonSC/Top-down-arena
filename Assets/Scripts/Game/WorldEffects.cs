@@ -155,6 +155,9 @@ namespace Arena
                 case FxKind.CavalryCall:
                     DrawCavalryCallFx(fx);  // CavalryCallLook.cs
                     break;
+                case FxKind.WarhornVolley:
+                    DrawWarhornGround(fx);  // WarhornVolleyLook.cs
+                    break;
                 case FxKind.Airstrike:
                     DrawAirstrikeFx(fx);  // AirstrikeLook.cs
                     break;

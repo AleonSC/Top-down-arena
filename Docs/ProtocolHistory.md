@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 403: Warhorn Volley: a new `AbilityId.WarhornVolley` (the DPS Knight's 4th key), `FxKind.WarhornVolley` and `Sfx.Warhorn` on the wire
 - 402: a new difficulty knob, `DiffKnob.GridRooms` (the lobby's Building: Grid), so the difficulty list on the wire is one value longer
 - 401: relics are per player: a `MapNode` on `Msg.ExpandState` adds a `Drop` byte (the relic a player left in a relic node, RelicId + 1; 0 = the rolled one)
 - 401: a prop's snapshot carries its chest kind (`Prop.Chest`, `ChestKind`: Upgrade, Gold, Vector, Relic, Room card, Buildables) after `Open`

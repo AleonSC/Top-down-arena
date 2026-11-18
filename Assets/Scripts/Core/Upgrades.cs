@@ -41,6 +41,7 @@ namespace Arena
         DragPylon,     // the Engineer's Space ability (Engineer.cs)
         Breach,        // the Engineer's ultimate (Engineer.cs)
         VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's Space abilities and ultimates (Engineer.cs, step 4)
+        WarhornVolley,  // the DPS Knight's fourth Space ability (WarhornVolley.cs), the lobby's 4th ability key
         None = 255,
     }
 

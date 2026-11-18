@@ -408,6 +408,7 @@ namespace Arena
                 BuildDogma();  // DogmaSoundBank.cs
                 BuildCeremonialArmor();  // CeremonialArmorSoundBank.cs
                 BuildFrost();  // FrostSoundBank.cs
+                BuildWarhorn();  // WarhornSoundBank.cs
             }
             catch (Exception ex)
             {

@@ -1383,6 +1383,7 @@ namespace Arena
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
+            TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickKineticWalls(dt);  // KineticWall.cs: lenses run down and unleash

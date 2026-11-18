@@ -826,6 +826,14 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th ability key (WarhornVolley.cs)
+                Name = "Warhorn Volley", Cooldown = 14f,
+                Desc = "Blow a warhorn and a volley of fire arrows falls behind you and sweeps across the field along your aim (1,400 px ahead, 700 wide). Every enemy it reaches takes 36, burns for 8 a second for 4 s and is pinned (40% slower for 2 s). Enemy shots in its path are knocked out of the air (red aimed shots fly on).",
+                Capstone = "The volley is 40% wider and the fire burns for 8 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 900f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "Last Stand", Cooldown = 70f, Desc = "You plant yourself and brace a wall of steel plates 120 px out, 178° wide, facing your cursor (it turns slowly). It stops every enemy bullet from the front; your teammates' shots pass out through it. You take 10% of the damage it stops. You can't move while it stands, and it has no timer: it stays until you go down or press the ability again, and the cooldown starts when it comes down.",
                 Capstone = "You take 5% of the damage instead of 10%.",
@@ -918,6 +926,9 @@ namespace Arena
                     return true;
                 case AbilityId.BattleFury:
                     CastCaughtSteel(p, pw, cap);  // CaughtSteel.cs
+                    return true;
+                case AbilityId.WarhornVolley:
+                    CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs
                     return true;
 
                 // Ultimates
