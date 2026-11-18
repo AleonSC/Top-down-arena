@@ -2196,6 +2196,7 @@ static partial class Shot {
           foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)RoomCard.Box; pl.Hand[1] = (byte)RoomCard.Ring; pl.Pos = pl.Disp = pl.Pos + new V2(-130f, 110f); }
         }
       }
+      { string tl = Environment.GetEnvironmentVariable("NODETIERLOOK"); if (tl != null) ArenaApp.TierLook = int.Parse(tl); }  // NODETIERLOOK=0|1|2: the node tier mark (pips, rings, chevrons)
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" && np[2] != "hidden", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there

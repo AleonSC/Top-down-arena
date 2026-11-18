@@ -307,7 +307,7 @@ namespace Arena
                     var rn = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
                     if (!rn.HasValue)
                         continue;
-                    Nodes.Add(rn.Value);
+                    Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
                     added = true;
                     DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
                 }
@@ -319,7 +319,7 @@ namespace Arena
                 var nd = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
                 if (!nd.HasValue)
                     continue;
-                Nodes.Add(nd.Value);
+                Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
                 added = true;
                 DoLog("a " + kind + " node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
@@ -397,7 +397,7 @@ namespace Arena
             var nd = GridRoomsOn ? Expansion.GridChestFor(expandSeed, Expanded, Nodes, count) : Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
             if (!nd.HasValue)
                 return;
-            Nodes.Add(nd.Value);
+            Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
             DoLog("a chest node appears outside the new room at " + nd.Value.X + "," + nd.Value.Y);
         }
 

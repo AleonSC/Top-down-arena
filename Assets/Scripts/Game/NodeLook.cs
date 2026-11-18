@@ -102,6 +102,8 @@ namespace Arena
                 float ph = (t * 0.45f + k * 0.5f) % 1f;
                 Arc(c, 60f + 110f * ph, 3f, ink.WithAlpha(0.5f * (1f - ph)), 40);
             }
+            if (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic)
+                DrawNodeTier(c, Expansion.NodeTier(n), t);
             if (n.Hidden)  // (an old save's fogged node, until the host clears it)
             {
                 FogMark(c, 1.3f, col);
@@ -406,6 +408,93 @@ namespace Arena
             {
                 Line(new V2(c.X - hw, c.Y - 6f * k), new V2(c.X - hw - 8f * k, c.Y - 6f * k - lh - 8f * k), 3f * k, col);
                 Line(new V2(c.X + hw, c.Y - 6f * k), new V2(c.X + hw + 8f * k, c.Y - 6f * k - lh - 8f * k), 3f * k, col);
+            }
+        }
+
+        /// The tier metals (owner Nov 18, Docs/Nodes.md "Node tiers"): bronze inner, silver middle, gold outer.
+        static readonly Rgba[] TierInk = { new Rgba(0.88f, 0.56f, 0.3f), new Rgba(0.8f, 0.87f, 0.95f), new Rgba(1f, 0.83f, 0.25f) };
+
+        /// Which tier mark to draw (preview NODETIERLOOK: 0 pips, 1 metal rings, 2 chevron crown, 3 segment meter, 4 brackets and signal bars, 5 pixel cells).
+        public static int TierLook = 0;
+
+        /// A prize node's tier, round its ghost marker: the farther from the hub, the more and brighter the marks.
+        void DrawNodeTier(V2 c, int tier, float t)
+        {
+            var ink = TierInk[tier];
+            float glint = 0.75f + 0.25f * Mathf.Sin(t * 3f);
+            if (TierLook == 3)  // a segmented meter ring: three arcs round the node, one lit per tier, the rest dim; a scan tick sweeps it
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    bool lit = k <= tier;
+                    float a0 = -MathX.Tau / 4f - MathX.Tau / 6f + k * MathX.Tau / 3f + 0.08f;
+                    for (int q = 0; q < 6; q++)  // each arc in six cells
+                        Arc(c, 104f, lit ? 7f : 4f, lit ? ink.WithAlpha(0.95f * glint) : ink.WithAlpha(0.15f), 3, a0 + q * (MathX.Tau / 3f - 0.16f) / 6f, (MathX.Tau / 3f - 0.16f) / 6f - 0.03f);
+                }
+                float sw = t * 1.6f % MathX.Tau;
+                Line(c + V2.FromAngle(sw) * 96f, c + V2.FromAngle(sw) * 114f, 3f, ink.WithAlpha(0.8f));
+                return;
+            }
+            if (TierLook == 4)  // HUD brackets round the node and signal bars under it, one lit per tier
+            {
+                float h = 118f, L = 26f;
+                var bc = ink.WithAlpha(0.85f * glint);
+                for (int sx = -1; sx <= 1; sx += 2)
+                    for (int sy = -1; sy <= 1; sy += 2)
+                    {
+                        var p = c + new V2(sx * h, sy * h);
+                        Line(p, p - new V2(sx * L, 0f), 4f, bc);
+                        Line(p, p - new V2(0f, sy * L), 4f, bc);
+                    }
+                for (int k = 0; k < 3; k++)
+                {
+                    float bh = 10f + 8f * k, x = c.X - 22f + k * 16f;
+                    FillRect(x, c.Y + h - bh + 4f, 11f, bh, k <= tier ? ink.WithAlpha(glint) : ink.WithAlpha(0.18f));
+                }
+                return;
+            }
+            if (TierLook == 5)  // a pixel readout: a row of square cells under the node, filled per tier, with a blinking cursor cell
+            {
+                float y = c.Y + 106f;
+                for (int k = 0; k < 3; k++)
+                {
+                    float x = c.X - 40f + k * 28f;
+                    if (k <= tier)
+                        FillRect(x, y, 22f, 22f, ink.WithAlpha(glint));
+                    else
+                        NodeFrame(x, y, 22f, 22f, 3f, ink.WithAlpha(0.3f));
+                }
+                if ((int)(t * 2f) % 2 == 0)
+                    FillRect(c.X + 44f, y + 16f, 12f, 6f, ink.WithAlpha(0.8f));
+                return;
+            }
+            if (TierLook == 1)  // metal rings: one per tier, round the node's own rings
+            {
+                for (int k = 0; k <= tier; k++)
+                    Arc(c, 100f + 11f * k, 4f, ink.WithAlpha(0.9f * glint), 48);
+                if (tier == 2)
+                    for (int k = 0; k < 8; k++)  // and the gold tier's studs
+                        Polygon(c + V2.FromAngle(k * MathX.Tau / 8f + t * 0.2f) * 122f, 6f, 4, k * MathX.Tau / 8f + t * 0.2f, ink);
+                return;
+            }
+            if (TierLook == 2)  // a crown of chevrons over the mark, one per tier
+            {
+                for (int k = 0; k <= tier; k++)
+                {
+                    float x = (k - tier * 0.5f) * 30f, y = -112f - (k == tier / 2f ? 6f : 0f);
+                    var p = c + new V2(x, y);
+                    Line(p + new V2(-12f, 8f), p, 6f, ink.WithAlpha(glint));
+                    Line(p, p + new V2(12f, 8f), 6f, ink.WithAlpha(glint));
+                }
+                Arc(c, 100f, 3f, ink.WithAlpha(0.7f), 48);
+                return;
+            }
+            // pips: a row of diamonds under the mark, one per tier, on a metal arc
+            Arc(c, 100f, 3f, ink.WithAlpha(0.55f), 24, MathX.Tau * 0.18f, MathX.Tau * 0.14f);
+            for (int k = 0; k <= tier; k++)
+            {
+                var p = c + new V2((k - tier * 0.5f) * 30f, 112f);
+                Polygon(p, 11f, 4, MathX.Tau / 4f, ink.WithAlpha(glint));
             }
         }
 
