@@ -51,7 +51,7 @@ namespace Arena
         public const float GreatChainWindow = 0.7f;
         public const float UndertowReach = 155f, UndertowArc = 210f, UndertowPull = -55f;
         public const float PommelReach = 58f, PommelArc = 70f, PommelStun = 0.8f;
-        public const float CrossReach = 112f, CrossArc = 110f, CrossSecond = 0.29f;
+        public const float CrossReach = 112f, CrossArc = 110f, CrossSecond = 0.265f;
         public const float BackstepReach = 126f, BackstepArc = 190f, BackstepWall = 0.7f;
         public const float LeapRadius = 88f, LeapKnock = 60f;
         public const float MoonReach = 108f, MoonWall = 0.5f;

@@ -145,7 +145,10 @@ namespace Arena
                 }
                 case Game.GreatMove.Leap:
                 {
-                    if (a > d.Wind + 0.2f)
+                    // In the air the blade rises over the shoulder; it sweeps down into the landing (GreatSweepsOf) as the ring lands.
+                    var lp = GreatSweepsOf(m);
+                    float end = lp[0].T0 + lp[0].W + lp[0].Act + GreatHold + GreatRecover;
+                    if (a > end)
                         return false;
                     if (!draw)
                         return true;
@@ -157,13 +160,8 @@ namespace Arena
                         float lr = Game.MeleeReach(p, Game.LeapRadius);
                         Arc(land, lr * (1.25f - 0.25f * e), 2f, GreatMoon.WithAlpha(0.15f + 0.4f * e), 32);  // where you come down
                         GlowDisc(land, 30f, GreatMoon, 0.12f + 0.2f * e);
-                        DrawMeleeModel(WeaponId.Greatsword, o, p.Aim - 1.7f * (1f - e), reach * (0.8f + 0.2f * e), 1f, GreatMoon, u > 0.6f, 1f, arm);
                     }
-                    else
-                    {
-                        float k = (a - d.Wind) / 0.2f;
-                        DrawMeleeModel(WeaponId.Greatsword, o, p.Aim, reach, 1f, GreatMoon, k < 0.5f, 1f, arm);
-                    }
+                    DrawGreatSweeps(p, v, lp, a, arm);
                     return true;
                 }
                 case Game.GreatMove.Eclipse:
@@ -187,26 +185,142 @@ namespace Arena
                     }
                     return true;
                 }
-                default:  // a sweep: the blade drawn back to where it starts, then its Slash takes the sword
+                default:  // a sweep (or two): the whole motion from the click (DrawGreatSweeps)
                 {
-                    if (a > d.Wind + 0.08f || (a >= d.Wind && MeleeSwingShowing(p)))
+                    var sw = GreatSweepsOf(m);
+                    var last = sw[sw.Length - 1];
+                    if (a > last.T0 + last.W + last.Act + GreatHold + GreatRecover)
                         return false;
                     if (!draw)
                         return true;
-                    float u = Mathf.Clamp01(a / d.Wind), e = u * u * (3f - 2f * u);
-                    float start = p.Aim + GreatSweepStart(m);
-                    if (m == Game.GreatMove.Undertow)  // the current gathering: arcs drifting in from its reach
+                    float u = Mathf.Clamp01(a / Mathf.Max(0.01f, sw[0].W)), e = u * u * (3f - 2f * u);
+                    if (m == Game.GreatMove.Undertow && a < sw[0].W + sw[0].Act)  // the current gathering: arcs drifting in from its reach
                         for (int i = 0; i < 3; i++)
                         {
-                            float r = Game.MeleeReach(p, Game.UndertowReach) * (1f - 0.35f * Mathf.Repeat(u + i / 3f, 1f));
-                            Arc(o, r, 2f, GreatMoon.WithAlpha(0.35f * e), 20, p.Aim - 1.4f, 2.8f);
+                            float r = Game.MeleeReach(p, Game.UndertowReach) * (1f - 0.35f * Mathf.Repeat(a * 4f + i / 3f, 1f));
+                            Arc(o, r, 2f, GreatMoon.WithAlpha(0.3f * e * (1f - Mathf.Clamp01((a - sw[0].W) / sw[0].Act))), 20, p.Aim - 1.4f, 2.8f);
                         }
-                    if (m == Game.GreatMove.FullMoon)
+                    if (m == Game.GreatMove.FullMoon && a < sw[0].W)
                         Arc(o, 60f - 30f * e, 2.5f, GreatMoon.WithAlpha(0.2f + 0.5f * e), 24);
-                    DrawMeleeModel(WeaponId.Greatsword, o, Mathf.Lerp(rest, start, e), reach, 1f, GreatMoon, u > 0.7f, 1f, arm);
+                    DrawGreatSweeps(p, v, sw, a, arm);
                     return true;
                 }
             }
+        }
+
+        /// One sweep of a step, as in the mockup: from the click, T0 until it starts, W drawing the blade back to A0 (degrees off
+        /// the aim), Act sweeping it to A1 (eased out). The host's hit lands W + 0.55 Act in (GreatswordChain.cs GreatMoves.Wind).
+        struct GreatSweep { public float T0, W, Act, A0, A1, Reach, Rin; }
+
+        static GreatSweep Sw(float t0, float w, float act, float a0, float a1, float reach, float rin = 22f)
+            => new GreatSweep { T0 = t0, W = w, Act = act, A0 = a0, A1 = a1, Reach = reach, Rin = rin };
+
+        static readonly GreatSweep[] SwUndertow = { Sw(0f, 0.14f, 0.16f, -105f, 105f, Game.UndertowReach, 40f) };
+        static readonly GreatSweep[] SwCross = { Sw(0f, 0.06f, 0.08f, -75f, 35f, Game.CrossReach), Sw(0.2f, 0.02f, 0.08f, 75f, -35f, Game.CrossReach) };
+        static readonly GreatSweep[] SwBackstep = { Sw(0f, 0.05f, 0.16f, 95f, -95f, Game.BackstepReach) };
+        static readonly GreatSweep[] SwMoon = { Sw(0f, 0.12f, 0.32f, -180f, 180f, Game.MoonReach) };
+        static readonly GreatSweep[] SwLeap = { Sw(0f, 0.28f, 0.1f, -95f, 0f, 112f) };
+
+        static GreatSweep[] GreatSweepsOf(Game.GreatMove m)
+        {
+            switch (m)
+            {
+                case Game.GreatMove.Undertow: return SwUndertow;
+                case Game.GreatMove.Cross: return SwCross;
+                case Game.GreatMove.Backstep: return SwBackstep;
+                case Game.GreatMove.FullMoon: return SwMoon;
+                default: return SwLeap;
+            }
+        }
+
+        const float GreatHold = 0.06f, GreatRecover = 0.22f, GreatTrailFade = 0.14f, GreatPull = 12f * MathX.Pi / 180f;
+        readonly Dictionary<int, float> greatBladeAng = new Dictionary<int, float>(), greatBladeAt = new Dictionary<int, float>();
+
+        /// The blade through a step's sweeps, with each one's tapered crescent trail, then back to the held pose. A new step picks up
+        /// from where the last left the blade, so a chain flows.
+        void DrawGreatSweeps(Player p, GreatMoveView v, GreatSweep[] sw, float a, Rgba arm)
+        {
+            float now = Time.unscaledTime, aim = p.Aim, rest = -GreatRestOff, D = MathX.Pi / 180f;
+            V2 o = p.Disp;
+            // where the blade was when this step began (the last step's end, if it was still drawing), as an angle off the aim
+            float from = rest, was, wasAt;
+            if (greatBladeAng.TryGetValue(p.Id, out was) && greatBladeAt.TryGetValue(p.Id, out wasAt) && wasAt >= v.At - 0.05f && wasAt <= v.At + 0.05f)
+                from = was;
+            int cur = 0;
+            for (int i = 0; i < sw.Length; i++)
+                if (a >= sw[i].T0)
+                    cur = i;
+            // trails first, under the blade
+            for (int i = 0; i <= cur; i++)
+            {
+                var q = sw[i];
+                float t = a - q.T0 - q.W;
+                if (t < 0f)
+                    continue;
+                float fade = t < q.Act ? 1f : 1f - Mathf.Clamp01((t - q.Act) / GreatTrailFade);
+                if (fade <= 0f)
+                    continue;
+                float at = Mathf.Lerp(q.A0, q.A1, EaseOut3(Mathf.Clamp01(t / q.Act)));
+                float r1 = Game.MeleeReach(p, q.Reach) + 2f;
+                DrawGreatCrescent(o, aim + q.A0 * D, aim + at * D, q.Rin + 34f, r1, 0.85f * fade, GreatMoon, true);
+            }
+            var c = sw[cur];
+            float lt = a - c.T0, prev = cur == 0 ? from : sw[cur - 1].A1 * D, ang, sg = Mathf.Sign(c.A1 - c.A0);
+            float start = c.A0 * D - sg * GreatPull, endA = c.A1 * D, reach = Game.MeleeReach(p, c.Reach) - 4f;
+            bool bright = false;
+            if (lt < c.W)
+            {
+                float u = lt / c.W;
+                ang = Mathf.Lerp(prev, start, u * u * (3f - 2f * u));
+                bright = u > 0.6f;
+            }
+            else if (lt < c.W + c.Act)
+            {
+                ang = Mathf.Lerp(start, endA, EaseOut3((lt - c.W) / c.Act));
+                bright = true;
+            }
+            else
+            {
+                float r = cur < sw.Length - 1 ? 0f : Mathf.Clamp01((lt - c.W - c.Act - GreatHold) / GreatRecover);
+                float back = Mathf.Repeat(endA - rest + MathX.Pi, MathX.Tau) - MathX.Pi;  // the short way back round to the held pose
+                ang = endA - back * (r * r * (3f - 2f * r));
+                reach = Mathf.Lerp(reach, Game.MeleeReach(p, p.Weapon.Reach), r);
+            }
+            greatBladeAng[p.Id] = ang;
+            greatBladeAt[p.Id] = now;
+            DrawMeleeModel(WeaponId.Greatsword, o, aim + ang, reach, 1f, GreatMoon, bright, 1f, arm);
+            if (lt >= c.W && lt < c.W + c.Act)
+                GlowDisc(o + V2.FromAngle(aim + ang) * reach, 18f, GreatMoon, 0.45f);  // the tip's light as it cuts
+        }
+
+        /// The mockup's crescent: a band from angle a0 to a1 between r0 and r1, filled with light that brightens to its outer edge,
+        /// with a white rim. `trail`: thin where it began, full at a1 (a cut's wake); otherwise thickest in the middle (a hanging moon).
+        void DrawGreatCrescent(V2 c, float a0, float a1, float r0, float r1, float alpha, Rgba col, bool trail)
+        {
+            if (alpha <= 0.01f || Mathf.Abs(a1 - a0) < 0.01f)
+                return;
+            int n = Mathf.Clamp((int)(Mathf.Abs(a1 - a0) * 9f), 6, 40);
+            var outer = col.WithAlpha(0.85f * alpha);
+            var mid = col.WithAlpha(0.32f * alpha);
+            var none = col.WithAlpha(0f);
+            V2 po = V2.Zero, pm = V2.Zero, pi = V2.Zero;
+            for (int i = 0; i <= n; i++)
+            {
+                float u = (float)i / n, an = Mathf.Lerp(a0, a1, u);
+                float th = trail ? Mathf.Pow(u, 0.8f) : Mathf.Pow(Mathf.Sin(MathX.Pi * u), 0.7f);
+                float ri = r1 - (r1 - r0) * th, rm = r1 - (r1 - ri) * 0.3f;
+                V2 d = V2.FromAngle(an), qo = c + d * r1, qm = c + d * rm, qi = c + d * ri;
+                if (i > 0)
+                {
+                    VTri(qo, outer, po, outer, pm, mid);
+                    VTri(qo, outer, pm, mid, qm, mid);
+                    VTri(pi, none, qm, mid, pm, mid);  // (the clear vertex first: the preview colours a triangle by its first)
+                    VTri(qi, none, qm, mid, pi, none);
+                }
+                po = qo; pm = qm; pi = qi;
+            }
+            float sweep = a1 - a0;
+            Arc(c, r1, 1.8f, Rgba.White.WithAlpha(0.9f * alpha), n, a0, sweep);
         }
 
         readonly Dictionary<int, V2> greatWheelShown = new Dictionary<int, V2>();
