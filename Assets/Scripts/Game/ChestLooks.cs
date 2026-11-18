@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The chests' look with Visual effects on (Core ChestKind, Props.cs): a hologram chest in its kind's ink, with its own trim, an emblem
     /// on the lock plate, and once open light pouring out with the emblem rising out of it. Upgrade (green, chevrons), Gold (coin),
-    /// Vector (the vector arrow, also the vector chest node), Relic (violet, cut corners, a gem; the relic node), Room card (orange, a
+    /// Vector (the vector arrow, also the vector chest node), Relic (violet, cut corners, a gem; the relic node), Grid piece (orange, a
     /// floor-plan card) and Buildables (pink, blueprint grid, a wrench). Preview: CHESTLOOKS=1 (Tools/Preview/ShotChests.cs).
     public partial class ArenaApp
     {
@@ -14,7 +14,7 @@ namespace Arena
             new Rgba(1f, 0.81f, 0.35f),   // Gold
             new Rgba(0.3f, 0.88f, 1f),    // Vector (VecCyan)
             new Rgba(0.78f, 0.5f, 1f),    // Relic
-            new Rgba(1f, 0.55f, 0.3f),    // Room card
+            new Rgba(1f, 0.55f, 0.3f),    // Grid piece
             new Rgba(1f, 0.4f, 0.72f),    // Buildables (Black Market)
         };
 
@@ -112,7 +112,7 @@ namespace Arena
                         Circle(c + new V2(sx * (hw - 7f), sy * (hh - 6f)), 1.4f, hot, 6);
                     }
                     break;
-                case ChestKind.RoomCard:  // card edges stacked on the lid
+                case ChestKind.Piece:  // piece cards stacked on the lid
                     for (int k = 0; k < 3; k++)
                         GlowLine(new V2(c.X - hw + 6f + k * 2f, c.Y - hh - 3f - k * 2.5f), new V2(c.X + hw - 6f - k * 2f, c.Y - hh - 3f - k * 2.5f), 0.9f, col.WithAlpha((0.75f - 0.2f * k) * a));
                     break;
@@ -194,17 +194,16 @@ namespace Arena
                     GlowLine(m + new V2(2f, -1.5f) * s, bt, 0.8f, col);
                     break;
                 }
-                case ChestKind.RoomCard:  // a card with a two-room plan
+                case ChestKind.Piece:  // a T grid piece: four cells with gaps, as on the piece cards
                 {
-                    float w = 5f * s, h = 7f * s;
-                    GlowLine(m + new V2(-w, -h), m + new V2(w, -h), 1.2f, col);
-                    GlowLine(m + new V2(w, -h), m + new V2(w, h), 1.2f, col);
-                    GlowLine(m + new V2(w, h), m + new V2(-w, h), 1.2f, col);
-                    GlowLine(m + new V2(-w, h), m + new V2(-w, -h), 1.2f, col);
-                    var room = hot.WithAlpha(0.85f * hot.A);  // a 2 x 2 floor plan
-                    FillRect(m.X - 3.2f * s, m.Y - 4.6f * s, 2.8f * s, 4f * s, room);
-                    FillRect(m.X + 0.4f * s, m.Y - 4.6f * s, 2.8f * s, 4f * s, room);
-                    FillRect(m.X - 3.2f * s, m.Y + 0.6f * s, 6.4f * s, 4f * s, room);
+                    float u = 5.4f * s, g = 0.9f * s;
+                    var cell = hot.WithAlpha(0.9f * hot.A);
+                    int[,] t = { { -1, -1 }, { 0, -1 }, { 1, -1 }, { 0, 0 } };
+                    for (int k = 0; k < 4; k++)
+                    {
+                        float x = m.X + (t[k, 0] - 0.5f) * u + g / 2f, y = m.Y + (t[k, 1] - 0f) * u + g / 2f;
+                        FillRect(x, y, u - g, u - g, cell);
+                    }
                     break;
                 }
                 case ChestKind.Buildable:  // a wrench

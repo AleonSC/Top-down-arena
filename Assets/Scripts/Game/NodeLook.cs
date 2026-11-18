@@ -21,10 +21,10 @@ namespace Arena
         /// A node's colour: a fogged one is grey, a rule node wears its rule's path colour.
         static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
 
-        /// A chest node's colour once seen: its chest kind's ink (Gold, Room card, Buildables or Upgrade).
+        /// A chest node's colour once seen: its chest kind's ink (Gold, Grid piece, Buildables or Upgrade).
         Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
 
-        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Room card chest", "Buildables chest" };
+        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Grid piece chest", "Buildables chest" };
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
         string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
@@ -41,7 +41,7 @@ namespace Arena
                 switch (game.NodeChestKind(n))
                 {
                     case ChestKind.Gold: return "Build a room round it and touch the chest: it bursts into gold coins for everyone to pick up.";
-                    case ChestKind.RoomCard: return "Build a room round it and touch the chest: every player gets a room card.";
+                    case ChestKind.Piece: return "Build a room round it and touch the chest: every player gets a grid piece card.";
                     case ChestKind.Buildable: return "Build a room round it and touch the chest: every player gets a Black Market build in their stash.";
                     default: return "Build a room round it and touch the chest: every player gets their own upgrade card.";
                 }
