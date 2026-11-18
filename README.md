@@ -1453,7 +1453,10 @@ screen and the wave keeps running behind it:
   **level** (1-50) sets how strong its enemies are: their health and fire rate as on that track wave of a normal run (level n is Campaign waves 2n-1 and 2n).
   Tick **Loop the waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
 - **Enemies:** every regular enemy and boss is shown moving, as in a match, so you don't need to know their
-  names. The grid scrolls (mouse wheel, or click the bar at its right). Click one to add it to the selected wave,
+  names. **SORT** lists them by **Faction** (the basic eight, then each boss's faction in Campaign order, the boss first, each
+  section in its boss's colour with how many of it are in the wave), by **Job** (Pressure, Hunters, Zoners, Disruptors,
+  Anchors, then Bosses) or **A–Z**. The grid scrolls (mouse wheel, or click the bar at its right; sorted by faction, the
+  bar is striped in each faction's colour, so a click jumps to it). Click one to add it to the selected wave,
   right-click (or its corner **-**) to take one away; hovering shows what it does. Bosses spawn first and bring their usual adds; the Twin Reapers come
   as a pair.
 - **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave

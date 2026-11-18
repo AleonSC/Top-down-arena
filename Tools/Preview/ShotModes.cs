@@ -328,6 +328,8 @@ static partial class Shot {
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
         set("practiceSel", 1);
         if (Environment.GetEnvironmentVariable("GRIDSCROLL") != null) set("practiceGridScroll", int.Parse(Environment.GetEnvironmentVariable("GRIDSCROLL")));  // GRIDSCROLL=n: the enemy grid scrolled n lines
+        // PRSORT=0-2: the enemy grid sorted by faction, job or A-Z (PracticeSortUi.cs)
+        if (Environment.GetEnvironmentVariable("PRSORT") != null) set("practiceSort", int.Parse(Environment.GetEnvironmentVariable("PRSORT")));
       }
       // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the gold Saved star showing.
       var favs = Environment.GetEnvironmentVariable("FAVS");
