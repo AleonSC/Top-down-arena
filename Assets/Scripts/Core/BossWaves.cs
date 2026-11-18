@@ -24,7 +24,7 @@ namespace Arena
 
         static readonly Row[] Rows =
         {
-            With(EnemyType.Boss, EnemyType.Grunt, 2),                              // the Warden
+            With(EnemyType.Boss, EnemyType.SecurityGuard, 2),                      // the Warden: his own Security Guards
             Alone(EnemyType.HiveQueen),                                            // she brings her own swarm
             new Row { Boss = EnemyType.TwinA, Partner = EnemyType.TwinB },         // the Reapers come as a pair
             With(EnemyType.Singularity, EnemyType.Grunt, 6, EnemyType.Sniper),
