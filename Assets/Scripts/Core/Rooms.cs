@@ -218,7 +218,7 @@ namespace Arena
         public bool VaultOn => RoomsOn && VaultUp;
 
         /// Enemy damage to players: Rooms.EnemyDamageMult while the rooms are up, else 1 (Combat.cs).
-        public float RoomsDamageMult => RoomsOn && !SurvivalOn ? Rooms.EnemyDamageMult : 1f;  // (Survival's big room is tuned at 1x)
+        public float RoomsDamageMult => RoomsOn && !SurvivalOn && (ArenaKind != ArenaLayout.Expanding || Expansion.Grown(Expanded)) ? Rooms.EnemyDamageMult : 1f;  // (Survival's big room is tuned at 1x; so is the Expanding arena's bare hub)
 
         /// The run's Arena setting is Rooms (the lobby's Difficulty tab; Classic, today's arena, by default).
         public bool RoomsArena => D(DiffKnob.ArenaRooms) >= 0.5f;
@@ -238,7 +238,7 @@ namespace Arena
         void PickRooms()
         {
             bool was = RoomsUp, vaultWas = VaultUp;
-            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expansion.Grown(Expanded);  // (the Expanding arena is the plain box until the first room is bought or wall pushed)
+            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding;  // (the Expanding arena is its walled world from wave 1, the hub alone until a room is bought or a wall pushed: no wrap round the edges, the camera follows you)
             RoomsUp = (wings || grown) && ModeRules.RunEvents && !ShowcaseMode && !BossNow
                 && !Has(RunMod.TinyArena) && !OnPathOf(PathId.NarrowPass);
             VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave) && FirstLeg;  // (a Campaign: the vault's wave's first leg)

@@ -122,8 +122,8 @@ in that layout with a switch; don't delete code.
 ## Step 3 (built, protocol 244)
 
 - **Setting**: `DiffKnob.ArenaExpanding` (on wins over Rooms); the lobby's Arena row has a third key. `Game.ArenaKind`
-  = Expanding / Wings / Single; `Game.CurrentWorld` is the geometry in play (Single until the first room is bought,
-  and on boss waves, which stay in the hub alone).
+  = Expanding / Wings / Single; `Game.CurrentWorld` is the geometry in play (the Expanding world from wave 1, the hub alone
+  until the first room is bought, so no wrap and a following camera; Single on boss waves).
 - **Purse**: every kill adds its gold (`GoldPerXp` x `PurseRate` 1.0) to `Game.Purse`, synced in the snapshot.
   Measured with two bots: about 280 at the first boss.
 - **Vote** (`ExpansionGame.cs`): after each boss the host makes `Expansion.Offers` (seeded) and sends them in
