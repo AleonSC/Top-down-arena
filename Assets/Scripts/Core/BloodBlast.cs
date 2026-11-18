@@ -43,6 +43,12 @@ namespace Arena
         /// The Blood Blast step in `combo` (1-6; 0 none yet).
         public static int BlastStepOf(int combo) => combo & 7;
 
+        /// The step the next press plays (from the replicated Combo, so every game agrees).
+        public static int BlastNextStep(Player p) => BlastStepOf(p.Combo) % BlastSteps + 1;
+
+        /// How far the next press reaches (the aim line): the cut's reach, the Cleave's circle centre, the Flight's end.
+        public float BlastNextReach(Player p) => MeleeReach(p, BlastReach[BlastNextStep(p) - 1] * (1f + BlastGrow * ExtraShots(p)));
+
         /// What a step costs `p` (step 1-6).
         public static float BlastCost(Player p, int step) => p.MaxHp * BlastCostFrac[step - 1];
 
@@ -50,7 +56,7 @@ namespace Arena
         void FireBloodBlast(Player p, float aim, float dmg, int extra)
         {
             var w = p.Weapon;
-            int step = p.BlastStep % BlastSteps + 1;  // never times out: always the next step
+            int step = p.BlastStep == 0 ? 1 : BlastNextStep(p);  // never times out: always the next step (fresh: the first)
             p.BlastStep = (byte)step;
             int count = ((p.Combo >> 3) + 1) & 31;
             p.Combo = (count << 3) | step;
@@ -151,6 +157,7 @@ namespace Arena
         void ClearBloodBlast(Player p)
         {
             p.BlastStep = 0;
+            p.Combo &= ~7;
         }
 
         // ---- Crimson Tide (Alt) ----
