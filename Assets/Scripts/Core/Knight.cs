@@ -826,14 +826,6 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th ability key (WarhornVolley.cs)
-                Name = "Warhorn Volley", Cooldown = 14f,
-                Desc = "Blow a warhorn and a volley of fire arrows falls behind you and sweeps across the field along your aim (1,400 px ahead, 700 wide). Every enemy it reaches takes 36, burns for 8 a second for 4 s and is pinned (40% slower for 2 s). Enemy shots in its path are knocked out of the air (red aimed shots fly on).",
-                Capstone = "The volley is 40% wider and the fire burns for 8 s.",
-                Bot = b => b.HaveTarget && b.TargetD < 900f,
-            },
-            new AbilityDef
-            {
                 Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "Last Stand", Cooldown = 70f, Desc = "You plant yourself and brace a wall of steel plates 120 px out, 178° wide, facing your cursor (it turns slowly). It stops every enemy bullet from the front; your teammates' shots pass out through it. You take 10% of the damage it stops. You can't move while it stands, and it has no timer: it stays until you go down or press the ability again, and the cooldown starts when it comes down.",
                 Capstone = "You take 5% of the damage instead of 10%.",
@@ -851,6 +843,14 @@ namespace Arena
                 Name = "Drawbridge", Cooldown = 75f, Desc = "A gatehouse rises behind you and its drawbridge falls along your aim: 500 px long and 100 wide, it crushes everything in the lane for 260 and throws enemies at its edges aside (45). Then it lies there for 5 s as a walkway: enemies can't step onto it and the rails grind any pressed against them (80 a second), and their shots stop at its rails, red aimed shots too.",
                 Capstone = "The bridge stands for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 450f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,  // picked instead of the Drawbridge on the lobby's Ultimate row (WarhornVolley.cs)
+                Name = "Warhorn Volley", Cooldown = 70f,
+                Desc = "Blow a warhorn and a volley of fire arrows falls behind you and sweeps across the field along your aim (1,400 px ahead, 700 wide). Every enemy it reaches takes 120, burns for 20 a second for 5 s and is pinned (40% slower for 3 s). Enemy shots in its path are knocked out of the air (red aimed shots fly on).",
+                Capstone = "The volley is 40% wider and the fire burns for 8 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 900f,
             },
         };
 
@@ -927,9 +927,6 @@ namespace Arena
                 case AbilityId.BattleFury:
                     CastCaughtSteel(p, pw, cap);  // CaughtSteel.cs
                     return true;
-                case AbilityId.WarhornVolley:
-                    CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs
-                    return true;
 
                 // Ultimates
                 case AbilityId.LastStand:
@@ -953,6 +950,9 @@ namespace Arena
                 }
                 case AbilityId.BladeTempest:
                     CastDrawbridge(p, target, cap);  // Drawbridge.cs
+                    return true;
+                case AbilityId.WarhornVolley:
+                    CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs (picked instead of the Drawbridge)
                     return true;
             }
             return false;

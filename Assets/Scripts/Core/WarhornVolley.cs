@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Warhorn Volley, the DPS Knight's 4th Space ability (the lobby's 4th ability key), the Fire Arrows look of
+    /// Warhorn Volley, the DPS Knight's second ultimate (key 1 on the lobby's Ultimate row, picked instead of the Drawbridge), the Fire Arrows look of
     /// Docs/Mockups/warhorn-volley.html. You blow a warhorn (VolHornT s; you keep moving and fighting) and archers you never see
     /// answer it: burning arrows fall in a front that lands VolBehind px behind you at VolLandT and crosses the field along your
     /// aim at VolSpeed px/s, out to VolRange px ahead, VolHalf px to either side. Every enemy the front reaches is hit once:
@@ -17,7 +17,7 @@ namespace Arena
     {
         public const float VolHornT = 0.9f, VolBlastT = 0.18f, VolLandT = 0.6f, VolFallT = 0.4f;
         public const float VolBehind = 150f, VolRange = 1400f, VolSpeed = 700f, VolHalf = 350f, VolMasterWide = 1.4f;
-        public const float VolDamage = 36f, VolBurnDps = 8f, VolBurnTime = 4f, VolBurnTimeMastered = 8f, VolPin = 0.4f, VolPinTime = 2f;
+        public const float VolDamage = 120f, VolBurnDps = 20f, VolBurnTime = 5f, VolBurnTimeMastered = 8f, VolPin = 0.4f, VolPinTime = 3f;
         public const float VolBand = 80f, VolShotBand = 60f, VolLinger = 2.2f;
 
         /// When the front reaches the far end, and how long the look lasts (the shafts stay in the floor VolLinger s).
