@@ -323,23 +323,15 @@ static partial class Shot {
         Time.unscaledTime = 105f + dv;
       }
     }
-    if (Environment.GetEnvironmentVariable("NONSHOOT") != null) {  // NONSHOOT=1: the enemies that don't shoot, each caught mid-move (NonShooterLooks.cs)
+    if (Environment.GetEnvironmentVariable("NONSHOOT") != null) {  // NONSHOOT=1: the Hook Thrower, caught mid-move (NonShooterLooks.cs)
       var ng = host.Game; ng.Enemies.Clear(); ng.Bullets.Clear();
       var nsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       Func<EnemyType, V2, byte, float, float, float, Enemy> put = (t, at, ph, pt, t2, face) => { var e = (Enemy)nsp.Invoke(ng, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Phase = ph; e.PhaseT = pt; e.T2 = t2; e.Facing = face; return e; };
       me.Pos = me.Disp = new V2(560f, 450f);
-      put(EnemyType.FuseRunner, new V2(500f, 400f), 0, 0f, 0f, 0.6f);                       // running
-      put(EnemyType.FuseRunner, new V2(330f, 500f), 1, 0.35f, 0f, 0f);                      // fuse half burnt
-      put(EnemyType.Hookman, new V2(860f, 300f), 1, 0.2f, 0f, (me.Pos - new V2(860f, 300f)).Angle);   // aiming
-      put(EnemyType.Hookman, new V2(900f, 600f), 2, 0f, 210f, (me.Pos - new V2(900f, 600f)).Angle);   // harpoon out
-      put(EnemyType.Hookman, new V2(1150f, 450f), 0, 0.5f, 0f, MathX.Pi);                   // spinning
-      put(EnemyType.Hookman, new V2(1250f, 250f), 4, 0.6f, 60f, MathX.Pi);                  // open after a miss
-      put(EnemyType.Sapper, new V2(400f, 200f), 0, 1f, 0f, 0.3f);
-      put(EnemyType.SapperMine, new V2(250f, 180f), 1, 0f, 3f, 0f);
-      put(EnemyType.SapperMine, new V2(380f, 120f), 1, 0f, 3f, 0f);
-      put(EnemyType.SapperMine, new V2(230f, 310f), 0, 0f, 0.4f, 0f);                       // arming
-      put(EnemyType.SapperMine, new V2(700f, 180f), 2, 0.15f, 3f, 0f);                      // beeping
-      foreach (var e in ng.Enemies.Values) if (e.Type == EnemyType.SapperMine) { e.Hp = e.MaxHp = 1f; }
+      put(EnemyType.HookThrower, new V2(860f, 300f), 1, 0.2f, 0f, (me.Pos - new V2(860f, 300f)).Angle);   // aiming
+      put(EnemyType.HookThrower, new V2(900f, 600f), 2, 0f, 210f, (me.Pos - new V2(900f, 600f)).Angle);   // harpoon out
+      put(EnemyType.HookThrower, new V2(1150f, 450f), 0, 0.5f, 0f, MathX.Pi);                   // spinning
+      put(EnemyType.HookThrower, new V2(1250f, 250f), 4, 0.6f, 60f, MathX.Pi);                  // open after a miss
     }
     if (Environment.GetEnvironmentVariable("PORTALS") != null) {  // PORTALS=1: spawn portals opening, letting a burst out, a flank behind you (with its arrow) and one closing (SpawnPortalLook.cs)
       var pg = host.Game; pg.Enemies.Clear(); pg.Bullets.Clear();
@@ -367,7 +359,7 @@ static partial class Shot {
       tg.ProfileOverride = new Profile();
       var tsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       me.Pos = me.Disp = new V2(1200f, 900f);
-      var tk = new[] { EnemyType.Grunt, EnemyType.Swarmer, EnemyType.Mortar, EnemyType.Hookman, EnemyType.Medic, EnemyType.Sapper };
+      var tk = new[] { EnemyType.Grunt, EnemyType.Swarmer, EnemyType.Mortar, EnemyType.HookThrower, EnemyType.Shade, EnemyType.Lunger };
       for (int k = 0; k < tk.Length; k++) { var e = (Enemy)tsp.Invoke(tg, new object[] { tk[k], new V2(250f + 170f * k, 300f), 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; }
     }
     if (Environment.GetEnvironmentVariable("AIM") != null) {  // AIM=<0-1>: the aimed shooters winding up (ShooterAimLook.cs); draw once, then move the clock on
@@ -375,7 +367,7 @@ static partial class Shot {
       var asp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       Func<EnemyType, V2, Enemy> aput = (t, at) => { var e = (Enemy)asp.Invoke(ag, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Winding = true; e.Facing = 0f; return e; };
       me.Pos = me.Disp = new V2(1200f, 900f);
-      var kinds = new[] { EnemyType.Sniper, EnemyType.Shard, EnemyType.Medic, EnemyType.Splitter, EnemyType.Phantom, EnemyType.Grunt };
+      var kinds = new[] { EnemyType.Sniper, EnemyType.Shard, EnemyType.Shade, EnemyType.TaserGuard, EnemyType.Grunt };
       for (int k = 0; k < kinds.Length; k++) aput(kinds[k], new V2(250f, 130f + 105f * k));
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       ag.AnimT += float.Parse(Environment.GetEnvironmentVariable("AIM"), System.Globalization.CultureInfo.InvariantCulture) * 0.3f;
@@ -749,22 +741,20 @@ static partial class Shot {
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       Func<EnemyType, V2, Enemy> lput = (t, at) => { var e = (Enemy)lsp.Invoke(lg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Phase = 1; e.PhaseT = 0.5f; e.Facing = 0f; return e; };
       me.Pos = me.Disp = new V2(1200f, 900f);
-      lput(EnemyType.Lunger, new V2(300f, 200f)); lput(EnemyType.SpikeBlock, new V2(300f, 330f)); lput(EnemyType.Charger, new V2(300f, 460f));
+      lput(EnemyType.Lunger, new V2(300f, 200f)); lput(EnemyType.Shiv, new V2(300f, 330f)); lput(EnemyType.ScytheWraith, new V2(300f, 460f));
       var rs = lput(EnemyType.RiotShield, new V2(300f, 590f)); rs.Phase = 0; typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { rs, Game.RiotWinding, 0.4f });
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LUNGE"), System.Globalization.CultureInfo.InvariantCulture) * 0.6f;
     }
-    if (Environment.GetEnvironmentVariable("SWORD") != null) {  // SWORD=1: the Swordsman (top row) and the Shield Swordsman (bottom row) in each phase: closing in, wind-up, cut, recovery (SwordsmanLook.cs); SWORDBLOCK=1 flashes the plate
+    if (Environment.GetEnvironmentVariable("SWORD") != null) {  // SWORD=1: the Acolyte's sickle cut in each phase: closing in, wind-up, cut, recovery (SwordsmanLook.cs)
       var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear();
       var ssp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       me.Pos = me.Disp = new V2(1500f, 900f);
       var ages = new[] { 0f, 0.3f, 0.07f, 0.35f };
-      for (int row = 0; row < 2; row++)
-        for (int ph = 0; ph < 4; ph++) {
-          var e = (Enemy)ssp.Invoke(sg, new object[] { row == 0 ? EnemyType.Swordsman : EnemyType.ShieldSwordsman, new V2(260f + 260f * ph, 230f + 280f * row), 0f, 0, false });
-          e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f; e.Phase = (byte)ph; e.SeenPhase = (byte)ph; e.SeenT = ages[ph];
-          if (Environment.GetEnvironmentVariable("SWORDBLOCK") != null) e.T2 = 0.2f;
-        }
+      for (int ph = 0; ph < 4; ph++) {
+        var e = (Enemy)ssp.Invoke(sg, new object[] { EnemyType.Acolyte, new V2(260f + 260f * ph, 370f), 0f, 0, false });
+        e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f; e.Phase = (byte)ph; e.SeenPhase = (byte)ph; e.SeenT = ages[ph];
+      }
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     }
     if (Environment.GetEnvironmentVariable("CULT") != null) {  // CULT=1: the Twin Reapers' cult caught mid-move (ReaperCultLook.cs): Wisps, an Acolyte raising its sickle, a Gravedigger, a Shade; a Bound pair with its tether and one channelling a revive; a Scythe Wraith marking; Lamplighters' lines and cross; a Mourner weeping

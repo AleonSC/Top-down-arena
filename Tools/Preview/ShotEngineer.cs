@@ -4,7 +4,7 @@ using System.Reflection;
 using Arena;
 
 // ENGINEER=strider|pylon|breach [ENGT=<s>]: the Engineer mockup (Docs/Engineer.md, Game/EngineerLook.cs) drawn in the real arena.
-//   strider: you (a DPS with the hard hat) at (560, 560), the Strider punching a locked-on Charger with grunts round it; ENGT is
+//   strider: you (a DPS with the hard hat) at (560, 560), the Strider punching a locked-on Brute with grunts round it; ENGT is
 //     its build time (ENGT=0.6: half drawn; default 9 = built, mid-slam).
 //   pylon: a Drag Pylon at (900, 450) with five grunts crossing it (their drag rings), and the old pylon folding at (520, 300).
 //   breach: with EXPANDMAP=0 (the hub only): you under the top wall, ENGT seconds into Breach (0.4 hammer drawing, 0.8 the hit,
@@ -32,11 +32,11 @@ static partial class Shot {
     var m = new EngineerMock();
     if (mode == "real") {
       // ENGINEER=real: the built class in a match, drawn by the game's own paths (no mock): you as a DPS Engineer, your Strider
-      // (a real MinionKind.Strider, locked on a Charger) and a Drag Pylon zone with grunts crossing it.
+      // (a real MinionKind.Strider, locked on a Brute) and a Drag Pylon zone with grunts crossing it.
       me.Kit = Kit.Engineer; me.Weapon = Defs.Weapon(Role.Dps, Kit.Engineer, 0);
       me.Pos = me.Disp = new V2(700f, 560f);
       var bf = BindingFlags.NonPublic | BindingFlags.Instance;
-      var target = put(EnemyType.Charger, new V2(985f, 440f), MathX.Pi);
+      var target = put(EnemyType.Brute, new V2(985f, 440f), MathX.Pi);
       target.Hp = target.MaxHp * 0.55f;
       var s = (Minion)typeof(Game).GetMethod("SpawnMinion", bf).Invoke(gm, new object[] { MinionKind.Strider, me, new V2(935f, 450f), -1f, true });
       s.MaxHp = 500f; s.Hp = 380f; s.Aim = (target.Pos - s.Pos).Angle; s.Wind = 0.8f; s.Stacks = 1; s.LinkTo = target.Id; s.GuardFrac = s.Hp / s.MaxHp;
@@ -70,7 +70,7 @@ static partial class Shot {
     }
     if (mode == "strider") {
       me.Pos = me.Disp = new V2(770f, 540f);
-      var target = put(EnemyType.Charger, new V2(985f, 440f), MathX.Pi);
+      var target = put(EnemyType.Brute, new V2(985f, 440f), MathX.Pi);
       target.Hp = target.MaxHp * 0.45f;
       put(EnemyType.Grunt, new V2(1060f, 360f), MathX.Pi * 0.9f);
       put(EnemyType.Grunt, new V2(1080f, 520f), MathX.Pi * 1.1f);

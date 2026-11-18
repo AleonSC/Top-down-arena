@@ -96,7 +96,7 @@ static partial class Program
         reset();
         var close = make(EnemyType.Grunt, mePos + new V2(40f, 0f));
         pinned.Remove(close.Id);
-        var heavy = make(EnemyType.Juggernaut, mePos + new V2(-50f, 0f));
+        var heavy = make(EnemyType.Thunderhead, mePos + new V2(-50f, 0f));
         pinned.Remove(heavy.Id);
         var mid = make(EnemyType.Grunt, mePos + new V2(0f, 150f));
         float ch = close.Hp, hh = heavy.Hp, mh = mid.Hp;

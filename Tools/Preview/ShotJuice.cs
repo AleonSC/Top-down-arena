@@ -43,7 +43,7 @@ static partial class Shot {
       e.SpawnT = 0f; e.Spawning = false; e.Hp = e.MaxHp = 5000f; e.Pos = e.Disp = home + V2.FromAngle(a) * d; e.FireT = 99f; mobs.Add(e); spots.Add(e.Pos);
     }
     Action frame = () => {
-      for (int i = 0; i < mobs.Count; i++) { mobs[i].FireT = 99f; if (mobs[i].Hp > 0f) { mobs[i].Pos = mobs[i].Disp = spots[i]; mobs[i].Vel = new V2(0f, 0f); } }
+      for (int i = 0; i < mobs.Count; i++) { mobs[i].FireT = 99f; if (mobs[i].Hp > 0f) { mobs[i].Pos = mobs[i].Disp = spots[i]; } }
       me.Pos = home; me.InvulnT = 1f;
       host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(100f, 0f) }); gm.Update(1f / 60f);
       Time.unscaledTime += 1f / 60f;

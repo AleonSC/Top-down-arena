@@ -52,7 +52,7 @@ static partial class Program
         Check(hadTurn.Count == crowd.Count, "the turns go round: every Grunt got one");
         Check(clientWinding && !windingWithoutTurn, "a shooter glows before it fires (seen on the client), and only on its turn");
 
-        // Shapes: aimed shots are darts, curving ones crescents (on the client too), a Burster's ring is round.
+        // Shapes: aimed shots are darts, curving ones crescents (on the client too), a ring is round.
         var shots = g.Bullets.Values.Where(b => b.Source == EnemyType.Grunt).ToList();
         int darts = shots.Count(b => b.Look == ShotLook.Dart);
         int clientDarts = shots.Count(b => { Bullet cb; return c.Bullets.TryGetValue(b.Id, out cb) && cb.Look == ShotLook.Dart; });
@@ -62,21 +62,24 @@ static partial class Program
         foreach (var e in crowd) e.Hp = 0f;
         foreach (var b in g.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) b.Life = 0f;  // an empty screen, under the bullet budget
         Run(s, dt, 0.3f);
-        var hexer = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Hexer, new V2(800f, 200f), 0f, 0, false });
-        var burster = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Burster, new V2(400f, 200f), 0f, 0, false });
-        hexer.Hp = hexer.MaxHp = burster.Hp = burster.MaxHp = 1e5f;
-        hexer.FireT = burster.FireT = 0.3f;
-        Run(s, dt, 4f, () => g.Bullets.Values.Any(b => b.Source == EnemyType.Hexer) && g.Bullets.Values.Any(b => b.Source == EnemyType.Burster),
-            () => { ClearSquads(g); ((List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Clear(); foreach (var e in g.Enemies.Values) if (e != hexer && e != burster && e != anchor && !e.Def.IsBoss) e.Hp = 0f; anchor.FrozenT = 1f; });
-        Run(s, dt, 0.2f, null, () => { hexer.FireT = burster.FireT = 9f; });
-        var hex = g.Bullets.Values.Where(b => b.Source == EnemyType.Hexer).ToList();
-        var ring = g.Bullets.Values.Where(b => b.Source == EnemyType.Burster).ToList();
+        // A Spinner's spiral curves (crescents); a Shade's blink ring is a ring (round). Its aimed pair is held off.
+        var spinner = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Spinner, new V2(800f, 200f), 0f, 0, false });
+        var shade = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shade, new V2(400f, 200f), 0f, 0, false });
+        spinner.Hp = spinner.MaxHp = shade.Hp = shade.MaxHp = 1e5f;
+        spinner.FireT = 0.3f;
+        shade.Phase = 1; shade.PhaseT = 0.3f; shade.Waypoint = new V2(400f, 260f);
+        Func<Bullet, bool> fromRing = b => b.Source == EnemyType.Shade && Math.Abs(b.Vel.Length - 115f) < 1f;
+        Run(s, dt, 4f, () => g.Bullets.Values.Any(b => b.Source == EnemyType.Spinner) && g.Bullets.Values.Any(fromRing),
+            () => { ClearSquads(g); ((List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Clear(); foreach (var e in g.Enemies.Values) if (e != spinner && e != shade && e != anchor && !e.Def.IsBoss) e.Hp = 0f; anchor.FrozenT = 1f; shade.FireT = 9f; });
+        Run(s, dt, 0.2f, null, () => { spinner.FireT = shade.FireT = 9f; shade.PhaseT = 9f; });
+        var hex = g.Bullets.Values.Where(b => b.Source == EnemyType.Spinner).ToList();
+        var ring = g.Bullets.Values.Where(fromRing).ToList();
         bool clientCrescent = hex.Any(b => { Bullet cb; return c.Bullets.TryGetValue(b.Id, out cb) && cb.Look == ShotLook.Crescent; });
-        Console.WriteLine("  shapes: Grunt shots {0} darts of {1} (client {2}); Hexer {3} crescents of {4}; Burster ring {5} shots, {6} round",
+        Console.WriteLine("  shapes: Grunt shots {0} darts of {1} (client {2}); Spinner {3} crescents of {4}; Shade ring {5} shots, {6} round",
             darts, shots.Count, clientDarts, hex.Count(b => b.Look == ShotLook.Crescent), hex.Count, ring.Count, ring.Count(b => b.Look == ShotLook.Round));
         Check(shots.Count > 0 && darts == shots.Count && clientDarts == darts, "aimed shots are darts, on every screen");
         Check(hex.Count > 0 && hex.All(b => b.Look == ShotLook.Crescent) && clientCrescent, "curving shots are crescents, on every screen");
-        Check(ring.Count == 12 && ring.All(b => b.Look == ShotLook.Round), "a Burster's ring is 12 shots (was 18), all round");
+        Check(ring.Count == 8 && ring.All(b => b.Look == ShotLook.Round), "a Shade's blink ring is 8 shots, all round");
         s[0].Leave(""); s[1].Leave("");
     }
 }

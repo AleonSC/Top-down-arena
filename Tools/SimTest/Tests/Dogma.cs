@@ -81,7 +81,7 @@ static partial class Program
         var grunts = new List<Enemy>();
         for (int k = 0; k < 5; k++)
             grunts.Add(make(EnemyType.Grunt, mePos + V2.FromAngle(k * 1.25f) * (180f + k * 40f), 5000f));
-        var jugg = make(EnemyType.Juggernaut, mePos + new V2(-420f, 260f), 1e6f);
+        var heavy = make(EnemyType.Thunderhead, mePos + new V2(-420f, 260f), 1e6f);
         cast();
         Check(me.DogmaOn && me.UltT == Game.DogmaTime && me.DogmaHead.DistanceTo(mePos) < 1f, "the cast: the dragon comes out of you, 5 s");
         Check(g.Sounds.Any(c => c.Sfx == Sfx.DogmaRoar), "the cast roars (Sfx.DogmaRoar)");
@@ -89,11 +89,11 @@ static partial class Program
         Check(client.Game.Players[1].DogmaOn && client.Game.Players[1].DogmaTrail.Count > 0, "the other screen sees it and lays its trail");
         step(3.6f);
         int eaten = grunts.Count(e => !g.Enemies.ContainsKey(e.Id) || e.Hp <= 0f);
-        Console.WriteLine("  dogma: eaten {0}/5, big bites {1}, juggernaut lost {2:0}", eaten, me.DogmaBites, 1e6f - jugg.Hp);
+        Console.WriteLine("  dogma: eaten {0}/5, big bites {1}, heavy lost {2:0}", eaten, me.DogmaBites, 1e6f - heavy.Hp);
         Check(eaten == 5 && me.DogmaEaten >= 5, "it devours every regular enemy it reaches, whatever its health (" + eaten + " of 5)");
-        Check(g.Enemies.ContainsKey(jugg.Id) && jugg.Hp > 0f, "a heavy is never devoured");
+        Check(g.Enemies.ContainsKey(heavy.Id) && heavy.Hp > 0f, "a heavy is never devoured");
         float bite = Game.DogmaBigBite * me.Stats.DmgMult;
-        Check(me.DogmaBites >= 1 && Math.Abs((1e6f - jugg.Hp) - me.DogmaBites * bite) < 1f, "a heavy takes 150 (times your damage) a bite");
+        Check(me.DogmaBites >= 1 && Math.Abs((1e6f - heavy.Hp) - me.DogmaBites * bite) < 1f, "a heavy takes 150 (times your damage) a bite");
         int b0 = me.DogmaBites;
         step(0.5f);
         Check(me.DogmaBites - b0 <= 1, "at most one bite a heavy every 1.2 s");

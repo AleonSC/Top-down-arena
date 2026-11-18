@@ -4,7 +4,7 @@ using System.Reflection;
 using Arena;
 
 // DOGMA=<s since the cast>: Dragon's Dogma, the Tank Ninja's second ultimate (Core/DragonsDogma.cs, Game/DragonsDogmaLook.cs),
-// cast and played through the real game: you (NINJA=0) in the middle, eight enemies round you (a Juggernaut among them, heavy, so only
+// cast and played through the real game: you (NINJA=0) in the middle, eight enemies round you (a Thunderhead among them, heavy, so only
 // bitten); the dragon hunts them down and coils back in. DOGMACAP=1 mastered (7 s). Use with mode hud; a GIF:
 //   NINJA=0 Tools/Preview/clip.sh dogma hud 3 1 1 DOGMA=0:5.4:0.05
 static partial class Shot {
@@ -21,12 +21,12 @@ static partial class Shot {
     me.Pos = me.Disp = home; me.Aim = -MathX.Pi / 2f;
     var foes = new (EnemyType type, V2 at)[] {
       (EnemyType.Grunt,   home + new V2(-60f, -230f)),
-      (EnemyType.Charger, home + new V2(-300f, -140f)),
+      (EnemyType.Brute,   home + new V2(-300f, -140f)),
       (EnemyType.Grunt,   home + new V2(-360f, 110f)),
       (EnemyType.Shielder,home + new V2(-120f, 250f)),
-      (EnemyType.Juggernaut, home + new V2(190f, 210f)),
+      (EnemyType.Thunderhead, home + new V2(190f, 210f)),
       (EnemyType.Sniper,  home + new V2(380f, 60f)),
-      (EnemyType.Splitter,home + new V2(300f, -200f)),
+      (EnemyType.Spinner, home + new V2(300f, -200f)),
       (EnemyType.Grunt,   home + new V2(90f, -170f)),
     };
     var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -34,7 +34,7 @@ static partial class Shot {
     foreach (var f in foes) {
       var e = (Enemy)spawn.Invoke(gm, new object[] { f.type, f.at, 0f, 0, false });
       e.SpawnT = 0f; e.Pos = e.Disp = f.at;
-      if (f.type == EnemyType.Juggernaut) e.Hp = e.MaxHp = 1e5f;
+      if (f.type == EnemyType.Thunderhead) e.Hp = e.MaxHp = 1e5f;
       spots[e.Id] = f.at;
     }
     var sq = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(gm);

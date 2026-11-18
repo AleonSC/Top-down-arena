@@ -638,7 +638,7 @@ static partial class Program
         vp.Vectors = vpWas;
         PutBoth(hubAt, hubAt);
         Quiet();
-        for (int k = 0; k < 5 && g.Enemies.Count > 0; k++) { Run(s, dt, 0.2f); Quiet(); }  // (what Quiet killed may leave something behind: a Splitter's Shards)
+        for (int k = 0; k < 5 && g.Enemies.Count > 0; k++) { Run(s, dt, 0.2f); Quiet(); }  // (what Quiet killed may leave something behind: a Splitting elite's Shards)
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, NoPicks);
         Run(s, dt, 1f, () => cg.Players[1].Vectors == g.Players[1].Vectors, NoPicks);  // (the wave's vectors reach the client with the next snapshot)
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");

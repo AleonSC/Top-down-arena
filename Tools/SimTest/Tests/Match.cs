@@ -278,6 +278,9 @@ static partial class Program
         MusicTest();
         PauseTest(dt);
         RunStatsTest(dt);
+        // The late bosses are fought by simple bots, and some rolls leave the Storm Herald or the Eclipse standing at the
+        // time limit. Start from the latewaves suite's own rolls, so what the sweeps before it drew doesn't decide it.
+        SeedAs("latewaves#0");
         LateWaves(dt);
         ExploitTest(dt);
         BossMechanics(dt);

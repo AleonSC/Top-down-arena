@@ -57,7 +57,9 @@ static partial class Program
         Check(run.Count > 200, "a fifteen-minute run spawns plenty (" + run.Count + ")");
         Check(maxLive <= Survival.MaxLive, "never more than " + Survival.MaxLive + " alive (" + maxLive + ")");
         Check(maxThreat <= Survival.Pressure(900f) + 6f * 6f + 30f, "the live threat stays near the budget (peak " + maxThreat.ToString("0") + ")");
-        Check(!run.Any(r => Game.IsRetired(r.s.Type)), "no retired enemy is ever spawned");
+        var owned = new HashSet<EnemyType>(Survival.FactionsAt(99999f).SelectMany(f => f.Members.Select(m => m.Type)
+            .Concat(f.Squads.Concat(new[] { f.Finale }).Where(q => q != null).SelectMany(q => q.Members))));
+        Check(run.All(r => owned.Contains(r.s.Type)), "every enemy spawned is one of its factions'");
         Check(!run.Any(r => r.t < Survival.RangedFrom && !Defs.Get(r.s.Type).Melee), "the first two minutes are melee only: no shooter, alone or in a squad");
         Check(run.Any(r => r.t >= Survival.RangedFrom + Survival.RangedRamp && !Defs.Get(r.s.Type).Melee), "shooters join after that");
         Check(Survival.Pressure(0f) < 0.5f * Survival.Pressure(120f) && Survival.Pressure(120f) < Survival.Pressure(300f), "the budget starts slow: under half of its two-minute level at the start");

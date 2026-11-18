@@ -323,7 +323,7 @@ static partial class Shot {
       if (mode == "lobbypr") {
         System.Collections.Generic.List<string> pr;
         host.Mode = GameMode.Practice;
-        host.Plan = PracticePlan.Parse("loop: no\nwave 3: Grunt x4, Sniper x2, Swarmer x6\nwave 6: Spinner x2, Medic x1, Shielder x2, Charger x1\nwave 10: The Warden x1, Grunt x3\nwave 15: Twin Reapers x1\nwave 20: The Singularity x1", out pr);
+        host.Plan = PracticePlan.Parse("loop: no\nwave 3: Grunt x4, Sniper x2, Swarmer x6\nwave 6: Spinner x2, Lunger x1, Shielder x2, Brute x1\nwave 10: The Warden x1, Grunt x3\nwave 15: Twin Reapers x1\nwave 20: The Singularity x1", out pr);
         host.OthersCanEdit = Environment.GetEnvironmentVariable("EDIT") != null;
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
         set("practiceSel", 1);
