@@ -128,7 +128,7 @@ namespace Arena
                 foreach (var l in Portals)
                     Line(sb, "portal", l.AX + " " + l.AY + " " + l.BX + " " + l.BY);
                 foreach (var b in Builds)
-                    Line(sb, "build", b.Kind + " " + b.X + " " + b.Y);
+                    Line(sb, "build", b.Kind + " " + b.X + " " + b.Y + " " + b.Owner + " " + b.Waves);
                 foreach (var k in Kits)
                     Line(sb, "kit", k.Kind + " " + k.Floor);
                 foreach (var nd in Nodes)
@@ -266,7 +266,10 @@ namespace Arena
                         case "build":
                         {
                             var p = val.Split(' ');
-                            save.Builds.Add(new PlacedBuild { Kind = Enum<BuildKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]) });
+                            if (p[0].Trim() == "SpikeTrap")
+                                break;  // (the retired Spike trap: its slot is the Turret's now)
+                            save.Builds.Add(new PlacedBuild { Kind = Enum<BuildKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]),
+                                Owner = p.Length > 3 ? (byte)I(p[3]) : (byte)0, Waves = p.Length > 4 ? (byte)I(p[4]) : (byte)Market.TurretWaves });
                             break;
                         }
                         case "kit":

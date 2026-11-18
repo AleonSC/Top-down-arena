@@ -18,6 +18,12 @@ static partial class Program
         // The picker lists what each EnemyDef says, and every listed enemy has a blurb.
         Check(PracticePlan.Choices.Length > 20 && PracticePlan.Choices.All(t => PracticePlan.BlurbOf(t).Length > 0)
             && PracticePlan.Choices.Distinct().Count() == PracticePlan.Choices.Length, "every enemy in the Practice picker has a blurb");
+        // The picker's faction sections (PracticeFactions.cs): every listed enemy in exactly one, each boss heading its own.
+        var groups = PracticeFactions.All;
+        Check(PracticePlan.Choices.All(t => groups.Count(f => f.Types.Contains(t)) == 1)
+            && groups.Sum(f => f.Types.Length) == PracticePlan.Choices.Length
+            && groups.All(f => f.Boss == null || f.Types[0] == f.Boss.Value) && groups.Count(f => f.Boss != null) == Approaches.All.Length,
+            "every Practice picker enemy is in one faction section, its boss first");
 
         // Text format: what's saved loads back the same; typos are reported, not fatal.
         var plan = new PracticePlan { Loop = false };

@@ -161,7 +161,7 @@ namespace Arena
 
         /// The Expanding arena has a shop or vendor you can walk into: kills drop gold, the shop opens in each intermission without holding the
         /// countdown, your gold and shelf are kept between waves, and what you can do depends on the room you stand in.
-        public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasVendorRoom || HasArmsRoom);
+        public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasVendorRoom || HasArmsRoom || HasMedicRoom);
 
         /// The shop is open and the wave has to wait for it (the Bazaar and Gold Rush shops; the room shops never hold the countdown).
         public bool ShopBlocksWave => ShopOpen && !ServiceRooms;
@@ -172,10 +172,10 @@ namespace Arena
             return a.HasValue && a.Value.Kind == Arena.RoomKind.Vendor;
         }
 
-        public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p) || InArmsRoom(p);
+        public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p) || InArmsRoom(p) || InMedicRoom(p);
 
-        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the vendor (the Black Market),
-        /// and the services (heal, revive, sell, Floor kit, vectors) in either.
+        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the vendor (the Black Market), mods at the
+        /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) at the shop or vendor.
         bool ServiceAllowed(Player p, ShopAction action)
         {
             if (!ServiceRooms)
@@ -187,13 +187,15 @@ namespace Arena
                     return InShopRoom(p);
                 case ShopAction.Heal:
                 case ShopAction.Revive:
+                    return InMedicRoom(p);
                 case ShopAction.Sell:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
-                    return InServiceRoom(p);
+                    return InShopRoom(p) || InVendorRoom(p);
                 case ShopAction.BuyBuild:
-                case ShopAction.BuyCard:
                     return InVendorRoom(p);
+                case ShopAction.BuyCard:
+                    return false;  // (retired: the Black Market no longer sells cards)
                 case ShopAction.BuyMod:
                     return InArmsRoom(p);
                 default:
@@ -921,7 +923,7 @@ namespace Arena
             w.Write((ushort)Placed.Count);  // (ushort: a big map can pass 255)
             foreach (var b in Placed)
             {
-                w.Write((byte)b.Kind); w.Write(b.X); w.Write(b.Y);
+                w.Write((byte)b.Kind); w.Write(b.X); w.Write(b.Y); w.Write(b.Owner); w.Write(b.Waves);
             }
             w.Write((ushort)GateFits.Count);  // (ushort: a big map can pass 255)
             foreach (var g in GateFits)
@@ -1013,7 +1015,7 @@ namespace Arena
             int npb = r.ReadUInt16();
             Placed.Clear();
             for (int i = 0; i < npb; i++)
-                Placed.Add(new PlacedBuild { Kind = (BuildKind)r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16() });
+                Placed.Add(new PlacedBuild { Kind = (BuildKind)r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16(), Owner = r.ReadByte(), Waves = r.ReadByte() });
             int ng = r.ReadUInt16();
             GateFits.Clear();
             for (int i = 0; i < ng; i++)

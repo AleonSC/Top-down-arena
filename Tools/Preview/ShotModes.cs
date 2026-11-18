@@ -328,6 +328,8 @@ static partial class Shot {
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
         set("practiceSel", 1);
         if (Environment.GetEnvironmentVariable("GRIDSCROLL") != null) set("practiceGridScroll", int.Parse(Environment.GetEnvironmentVariable("GRIDSCROLL")));  // GRIDSCROLL=n: the enemy grid scrolled n lines
+        // PRSORT=0-2: the enemy grid sorted by faction, job or A-Z (PracticeSortUi.cs)
+        if (Environment.GetEnvironmentVariable("PRSORT") != null) set("practiceSort", int.Parse(Environment.GetEnvironmentVariable("PRSORT")));
       }
       // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the gold Saved star showing.
       var favs = Environment.GetEnvironmentVariable("FAVS");
@@ -639,7 +641,7 @@ static partial class Shot {
           g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
           me.Gold = 245; me.Vectors = 52; me.VectorCap = 90; me.ReviveToken = true; me.Gadget = GadgetId.Magnet; me.GadgetLeft = 6.4f; me.Relic = RelicId.WallBounce;
           me.Hand[0] = (byte)RoomCard.Ring; me.Hand[1] = (byte)RoomCard.Hall; me.Hand[2] = (byte)RoomCard.Cross; me.Hand[3] = (byte)RoomCard.MiniBoss;
-          me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.SpikeTrap] = 3;
+          me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.Turret] = 3;
           g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake }); g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Shop });
           g.ExpandOpen = Environment.GetEnvironmentVariable("INVOPEN") != null;  // INVOPEN=1: a build round is open (cards and buildables are usable; MOUSE=x,y hovers one)
           foreach (var tm2 in g.Players.Values) if (tm2.Id != me.Id) { tm2.Gold = 90; tm2.Vectors = 18; tm2.VectorCap = 70; tm2.Hand[0] = (byte)RoomCard.Box; tm2.Hand[1] = (byte)RoomCard.THall; tm2.Stash[(int)BuildKind.Landmine] = 2; tm2.Relic = RelicId.WallBounce; }
@@ -665,17 +667,20 @@ static partial class Shot {
         host.Game.GrantUpgrade(1, U(n));
       var g = host.Game;
       if (Environment.GetEnvironmentVariable("SHOPEXPAND") != null) g.Diff.Set(DiffKnob.ArenaExpanding, 1f);  // SHOPEXPAND=1: the Expanding arena's services (Floor kit, Vector pack)
-      if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; SHOPSEL picks the card, BUILDS=1 puts some in your stash
+      if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; MARKET=shop|arms|medic: that room instead; SHOPSEL picks the card, BUILDS=1 puts some in your stash
       {
+        string mv = Environment.GetEnvironmentVariable("MARKET");
+        var mkind = mv == "shop" ? RoomKind.Shop : mv == "arms" ? RoomKind.Arms : mv == "medic" ? RoomKind.Medic : RoomKind.Vendor;
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         g.Expanded.Clear(); g.Expanded.AddRange(Expansion.GridCore()); g.Openings.AddRange(Expansion.GridCoreCuts());
-        var vo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono); if (vo.Count > 0) { var v2 = vo[0].Rooms[0]; v2.Owner = 1; v2.Kind = RoomKind.Vendor; g.Expanded.Add(v2); }  // (a one-cell Black Market off the core)
+        var vo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono); if (vo.Count > 0) { var v2 = vo[0].Rooms[0]; v2.Owner = 1; v2.Kind = mkind; g.Expanded.Add(v2); }  // (a one-cell Black Market off the core)
         typeof(Game).GetField("expWorld", f2).SetValue(g, null);
         g.RoomsUp = true;
         var va = g.ExpansionWorld.Areas[g.ExpansionWorld.Areas.Length - 1];
-        foreach (var ar in g.ExpansionWorld.Areas) if (ar.Kind == RoomKind.Vendor) va = ar;
+        foreach (var ar in g.ExpansionWorld.Areas) if (ar.Kind == mkind) va = ar;
         me.Pos = va.Mid; me.Disp = va.Mid;
         if (Environment.GetEnvironmentVariable("BUILDS") != null) { me.Stash[0] = 1; me.Stash[1] = 2; me.Stash[2] = 5; }
+        if (mkind == RoomKind.Medic) me.Hp = me.MaxHp * 0.45f;  // (hurt, so the heal shows what it gives)
       }
       g.CurrentPath = PathId.Bazaar; g.PathFrom = 11; g.PathTo = 14; g.Wave = 14; g.State = MatchState.Intermission;
       typeof(Game).GetMethod("OpenShop", f2).Invoke(g, null);

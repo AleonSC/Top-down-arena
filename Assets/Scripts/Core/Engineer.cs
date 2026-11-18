@@ -712,9 +712,10 @@ namespace Arena
                             m.Hold = 1f;  // +25% Strider damage until the wave ends (TickStrider)
                     break;
                 default:
+                    var ambush = AmbushPool();  // (the wave's own types: MysteryDoors.cs)
                     for (int i = 0; i < 2; i++)
                     {
-                        var e = SpawnEnemyAt(EnemyType.Grunt, at + new V2(i == 0 ? -20f : 20f, 0f), 0.6f, 0, true);
+                        var e = SpawnEnemyAt(ambush[rng.Next(ambush.Count)], at + new V2(i == 0 ? -20f : 20f, 0f), 0.6f, 0, true);
                         if (e != null)
                             e.Pos = e.Disp = ClampToArena(e.Pos, e.Radius);
                     }

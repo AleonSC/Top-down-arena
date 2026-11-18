@@ -1465,6 +1465,7 @@ namespace Arena
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
+            TickTurrets(dt);  // Turret.cs: the Black Market's turrets shoot
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
             TickCoins(dt);  // Coins.cs

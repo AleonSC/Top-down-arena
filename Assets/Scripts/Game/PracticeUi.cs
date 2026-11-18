@@ -13,6 +13,7 @@ namespace Arena
     public partial class ArenaApp
     {
         int practiceSel, practiceScroll, practiceGridScroll, practiceSeenRev = -1;
+        int practiceSort;  // the enemy grid's sort: 0 Faction, 1 Job, 2 A-Z (PracticeSortUi.cs)
         float practiceFlashT = -10f;
         bool practiceLoadOpen;
         string practiceName = "my practice", practiceStatus = "";
@@ -230,70 +231,104 @@ namespace Arena
             Ui.Fill(new Rect(r.x + 14f, r.y + PracticeTop - 8f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
         }
 
-        /// The enemies to pick from, each drawn live and grouped Melee, Ranged, Late and Bosses: click to add one, right-click (or the corner -) to take one away.
+        /// The enemies to pick from, each drawn live, in one scrolling list of sections by the sort (faction, job or A-Z;
+        /// PracticeSortUi.cs): click to add one, right-click (or the corner -) to take one away.
         void DrawEnemyGrid(Rect g, PracticeWave sel, bool canEdit, float t, bool calm)
         {
-            const int cols = 6;
             const float gap = 5f, infoH = 44f, headH = 18f, titleH = 34f, th = 50f, barW = 12f;
-            var types = PracticePlan.Choices;
+            var ev = Event.current;
+
+            LobbyKit.Heading(g.x, g.y - 6f, g.width, "Enemies in wave " + (practiceSel + 1), "", calm, 16);  // (the count is on each section)
+            float keysX = g.xMax;
+            if (canEdit && sel.Total > 0)
+            {
+                keysX -= 62f;
+                if (LobbyKit.Key(new Rect(keysX, g.y - 2f, 62f, 22f), "CLEAR", false, calm, size: 11, minSize: 9, danger: true))
+                {
+                    sel.Counts.Clear();
+                    PracticeChanged();
+                }
+                keysX -= 8f;
+            }
+            // The sort: Faction, Job, A-Z.
+            {
+                string[] sorts = { "FACTION", "JOB", "A–Z" };
+                for (int k = sorts.Length - 1; k >= 0; k--)
+                {
+                    keysX -= 58f;
+                    if (DkKey(new Rect(keysX, g.y - 2f, 56f, 22f), sorts[k], PracticeCyan, practiceSort == k, 10) && practiceSort != k)
+                    {
+                        practiceSort = k;
+                        practiceGridScroll = 0;
+                    }
+                }
+                Ui.Label(new Rect(keysX - 46f, g.y - 2f, 42f, 22f), "SORT", 10, CrtUi.Dim, TextAnchor.MiddleRight, true);
+            }
+
+            float top = g.y + titleH - 6f, viewH = g.yMax - infoH - 8f - top;
+            var area = new Rect(g.x, top, g.width, viewH);
+            const int cols = 6;
+
+            // The sections, then the grid as lines (a section heading, or a row of tiles). There are too many to fit, so it
+            // scrolls a line at a time (wheel, or click the bar at the right).
+            var sections = PracticeSections(practiceSort);
+            var types = sections.SelectMany(x => x.Types).ToArray();
             var tiles = new Rect[types.Length];
             var shown = new bool[types.Length];
-            var ev = Event.current;
-            // The grid as lines (a group heading, or a row of tiles), two blocks: regular enemies then bosses.
-            // There are too many to fit, so it scrolls a line at a time (wheel, or click the bar at the right).
-            var lines = new List<KeyValuePair<int, int>>();  // (first type, -1 for a heading or the row's tile count)
-            for (int i = 0; i < types.Length; )
+            var lines = new List<KeyValuePair<int, int>>();  // (first type, -1 - section for a heading, or the row's tile count)
+            for (int si = 0, i = 0; si < sections.Count; si++)
             {
-                int to = i + 1;
-                while (to < types.Length && Defs.Get(types[to]).IsBoss == Defs.Get(types[i]).IsBoss)
-                    to++;
-                lines.Add(new KeyValuePair<int, int>(i, -1));
+                int to = i + sections[si].Types.Length;
+                if (sections[si].Head != null)
+                    lines.Add(new KeyValuePair<int, int>(i, -1 - si));
                 for (int k = i; k < to; k += cols)
                     lines.Add(new KeyValuePair<int, int>(k, Math.Min(cols, to - k)));
                 i = to;
             }
-            float top = g.y + titleH - 6f, viewH = g.yMax - infoH - 8f - top;
             System.Func<int, float> lineH = li => lines[li].Value < 0 ? headH : th + gap;
             // The furthest it scrolls: the last lines just fill the view.
             int maxScroll = lines.Count - 1;
             for (float fill = 0f; maxScroll >= 0 && fill + lineH(maxScroll) <= viewH; maxScroll--)
                 fill += lineH(maxScroll);
             maxScroll = Math.Max(0, maxScroll + 1);
-            var view = new Rect(g.x, top, g.width, viewH);
+            var view = new Rect(area.x, top, area.width, viewH);
             if (ev.type == EventType.ScrollWheel && view.Contains(ev.mousePosition))
             {
                 practiceGridScroll += ev.delta.y > 0 ? 2 : -2;
                 ev.Use();
             }
             practiceGridScroll = Mathf.Clamp(practiceGridScroll, 0, maxScroll);
-            float tw = (g.width - (maxScroll > 0 ? barW + 6f : 0f) - gap * (cols - 1)) / cols;
+            float tw = (area.width - (maxScroll > 0 ? barW + 6f : 0f) - gap * (cols - 1)) / cols;
 
-            LobbyKit.Heading(g.x, g.y - 6f, g.width, "Enemies in wave " + (practiceSel + 1), sel.Total.ToString(), calm, 16);
-            if (canEdit && sel.Total > 0 && LobbyKit.Key(new Rect(g.xMax - 66f, g.y - 2f, 66f, 22f), "CLEAR", false, calm, size: 11, minSize: 9, danger: true))
-            {
-                sel.Counts.Clear();
-                PracticeChanged();
-            }
             float y = top;
             for (int li = practiceGridScroll; li < lines.Count && y + lineH(li) - (lines[li].Value < 0 ? 0f : gap) <= view.yMax; li++)
             {
                 int from = lines[li].Key;
                 if (lines[li].Value < 0)
                 {
-                    bool bosses = Defs.Get(types[from]).IsBoss;
-                    LobbyKit.Spaced(new Rect(g.x, y, g.width, headH), bosses ? "BOSSES  ·  they bring their usual adds" : "ENEMIES", 10, bosses ? CrtStyle.Gold : CrtUi.Dim, TextAnchor.MiddleLeft, 1.3f);
+                    var sec = sections[-1 - lines[li].Value];
+                    int picked = sec.Types.Sum(x => { int c; return sel.Counts.TryGetValue(x, out c) ? c : 0; });
+                    var hr = new Rect(area.x, y, area.width - (maxScroll > 0 ? barW + 6f : 0f), headH);
+                    Ui.Fill(new Rect(hr.x, hr.y + 4f, 3f, headH - 8f), sec.Ink);
+                    const float tx = 8f;
+                    LobbyKit.Spaced(new Rect(hr.x + tx, hr.y, hr.width - tx, headH), sec.Head, 10, sec.Ink, TextAnchor.MiddleLeft, 1.3f);
+                    {
+                        Ui.Label(new Rect(hr.x, hr.y, hr.width, headH), picked > 0 ? "×" + picked + " in wave" : sec.Types.Length.ToString(), 10,
+                            picked > 0 ? PracticeCyan : CrtUi.Dim, TextAnchor.MiddleRight, picked > 0);
+                        Ui.Fill(new Rect(hr.x + tx + Ui.TextWidth(sec.Head, 10, true) * 1.15f + 16f, hr.center.y, hr.width * 0.5f, 1f), new Color(sec.Ink.r, sec.Ink.g, sec.Ink.b, 0.18f));
+                    }
                 }
                 else
                     for (int k = 0; k < lines[li].Value; k++)
                     {
-                        tiles[from + k] = new Rect(g.x + k * (tw + gap), y, tw, th);
+                        tiles[from + k] = new Rect(area.x + k * (tw + gap), y, tw, th);
                         shown[from + k] = true;
                     }
                 y += lineH(li);
             }
             if (maxScroll > 0)  // the scroll bar: where you are in the list; click it to jump there
             {
-                var bar = new Rect(g.xMax - barW, top, barW, viewH);
+                var bar = new Rect(area.xMax - barW, top, barW, viewH);
                 float all = 0f, before = 0f;
                 for (int li = 0; li < lines.Count; li++)
                 {
@@ -303,10 +338,29 @@ namespace Arena
                 }
                 bool overBar = bar.Contains(ev.mousePosition);
                 Ui.Fill(bar, new Color(0f, 0f, 0f, 0.3f));
+                if (practiceSort == 0)  // each faction's stretch of the list, in its colour: click one to jump to it
+                {
+                    float acc = 0f;
+                    for (int li = 0; li < lines.Count; li++)
+                    {
+                        float h = lineH(li);
+                        if (lines[li].Value < 0)
+                        {
+                            var sec = sections[-1 - lines[li].Value];
+                            float len = h + (th + gap) * Mathf.Ceil(sec.Types.Length / (float)cols);
+                            Ui.Fill(new Rect(bar.x + 3f, bar.y + 2f + (bar.height - 4f) * acc / all, bar.width - 6f, Mathf.Max(2f, (bar.height - 4f) * len / all - 2f)),
+                                new Color(sec.Ink.r, sec.Ink.g, sec.Ink.b, 0.55f));
+                        }
+                        acc += h;
+                    }
+                }
                 CrtKit.Frame(bar, 1f, LobbyKit.Ink(overBar ? 0.5f : 0.25f));
                 var thumb = new Rect(bar.x + 2f, bar.y + 2f + (bar.height - 4f) * before / all, bar.width - 4f, Mathf.Max(20f, (bar.height - 4f) * viewH / all));
                 thumb.y = Mathf.Min(thumb.y, bar.yMax - 2f - thumb.height);
-                Ui.Fill(thumb, new Color(PracticeCyan.r, PracticeCyan.g, PracticeCyan.b, overBar ? 0.75f : 0.5f));
+                if (practiceSort == 0)
+                    CrtKit.Frame(thumb, 2f, new Color(1f, 1f, 1f, overBar ? 0.9f : 0.7f));
+                else
+                    Ui.Fill(thumb, new Color(PracticeCyan.r, PracticeCyan.g, PracticeCyan.b, overBar ? 0.75f : 0.5f));
                 if ((ev.type == EventType.MouseDown || ev.type == EventType.MouseDrag) && ev.button == 0 && overBar)
                 {
                     practiceGridScroll = Mathf.Clamp(Mathf.RoundToInt((ev.mousePosition.y - bar.y) / bar.height * (maxScroll + 1) - 0.5f), 0, maxScroll);

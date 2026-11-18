@@ -644,7 +644,7 @@ static partial class Program
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
-        // The room shops: upgrades and restocks only in the shop room, services (heals, revives, sales) in either room, nothing in the hub.
+        // The room shops: upgrades and restocks only in the shop room, sales in either room, heals and revives in neither (the Medic sells them), nothing in the hub.
         Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a vendor room the shop never holds the countdown");
         V2 vendorAt = g.CurrentWorld.Areas[6].Mid;
         var pm = g.Players[1];
@@ -657,7 +657,7 @@ static partial class Program
         g.Shop(ShopAction.Buy, slot);
         Check(pm.Gold == 1000, "the vendor sells no upgrades");
         g.Shop(ShopAction.Heal);
-        Check(pm.Gold == 1000 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the vendor heals");
+        Check(pm.Gold == 1000 && pm.Hp < pm.MaxHp * 0.6f, "the vendor doesn't heal (only the Medic does)");
         pm.Pos = pm.Disp = shopAt;
         int gold1 = pm.Gold;
         g.Shop(ShopAction.Buy, slot);
@@ -665,9 +665,9 @@ static partial class Program
         pm.Hp = pm.MaxHp * 0.5f;
         int gold2 = pm.Gold;
         g.Shop(ShopAction.Heal);
-        Check(pm.Gold == gold2 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the shop room's services work too: it heals");
+        Check(pm.Gold == gold2 && pm.Hp < pm.MaxHp * 0.6f, "nor does the shop room");
         g.Shop(ShopAction.BuyBuild, 0);
-        Check(pm.Gold == gold2 - Game.HealPrice && pm.Stash[0] == 0, "buildables are only sold at the vendor");
+        Check(pm.Gold == gold2 && pm.Stash[0] == 0, "buildables are only sold at the vendor");
         g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
@@ -1167,10 +1167,10 @@ static partial class Program
         g.ShopOpen = true;
         g.Shop(ShopAction.BuyBuild, (int)BuildKind.Teleporter);
         Check(g.Players[1].Stash[0] == 1 && g.Players[1].Gold == 200 - Market.Prices[0], "the Black Market sells a teleporter for gold into the stash");
-        g.Shop(ShopAction.BuyBuild, (int)BuildKind.SpikeTrap);
+        g.Shop(ShopAction.BuyBuild, (int)BuildKind.Landmine);
         g.ShopOpen = false;
         g.Players[2].Stash[0] = 1;
-        g.Players[2].Stash[(int)BuildKind.SpikeTrap] = 1;
+        g.Players[2].Stash[(int)BuildKind.Landmine] = 1;
         cg.ProposeExpandLink(link);
         Run(s, dt, 0.5f, () => cg.Links.Count == 1);
         Check(g.Links.Count == 1 && cg.Links.Count == 1 && g.Players[2].Vectors == 3 && g.Players[2].Stash[0] == 0, "a teleporter from the stash builds the pair at once on both screens, for no vectors");
@@ -1181,9 +1181,9 @@ static partial class Program
             for (float ty = ar.Min.Y; ty <= ar.Max.Y && !spotOk; ty += 100f)
                 for (float tx = ar.Min.X; tx <= ar.Max.X && !spotOk; tx += 100f)
                     spotOk = Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap = new V2(tx, ty), out pw);
-        cg.PlaceBuild(BuildKind.SpikeTrap, (int)trap.X, (int)trap.Y);
+        cg.PlaceBuild(BuildKind.Landmine, (int)trap.X, (int)trap.Y);
         Run(s, dt, 0.5f, () => cg.Placed.Count == 1);
-        Check(spotOk && g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.SpikeTrap] == 0, "a trap from the stash is placed on both screens (" + pw + ")");
+        Check(spotOk && g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.Landmine] == 0, "a trap from the stash is placed on both screens (" + pw + ")");
         Check(!Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw), "and a second one right on it is refused (" + pw + ")");
         Check(g.ExpansionWorld.Portals.Length == 1 && cg.ExpansionWorld.Portals.Length == 1, "and both maps have the portals");
         // An enemy in the east room after a player in the south room takes the wall portal: it walks to the mouth, into the wall, and out.

@@ -249,6 +249,8 @@ namespace Arena
             RevealBreachRooms();  // every breach that is left opens onto a small room (BreachEvent.cs, Docs/BreachRooms.md)
             RevealBreachEvent();  // a breach event the wave ended before it opened: the room opens now (BreachEvent.cs)
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
+            if (IsHost)
+                AgeTurrets();  // a wave fewer for every turret (Turret.cs)
             if (!(BossSlot && Hunt == null && MapResetOn && OpenKeepsake()))  // the Campaign: a vote on the room to keep, then a fresh map with half the spent vectors back (MapReset.cs)
             {
                 OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)

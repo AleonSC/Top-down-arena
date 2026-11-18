@@ -256,7 +256,8 @@ static partial class Program
                 foreach (var p in s[0].Game.Players.Values)
                     s[0].Game.DevSetGod(p.Id, true);
             }
-            Run(s, dt, boss == EnemyType.Lich ? 700 : 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
+            // (The Storm Herald gets longer: 475k health against a duo of Good bots doing about 1,000 a second on a slow seed.)
+            Run(s, dt, boss == EnemyType.Lich ? 700 : boss == EnemyType.StormHerald ? 600 : 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
             {
                 var cb = Find(s[1], boss);
                 switch (boss)
