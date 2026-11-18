@@ -212,7 +212,7 @@ namespace Arena
             var built = new List<ExpansionRoom>(Expanded);
             return b =>
             {
-                var opts = Expansion.SurpriseOptionsFor(ExpandingOn, built, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
+                var opts = Expansion.GridSurpriseOptions(built, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
                 CentreOnBreach(opts, b, w);
                 if (opts.Count == 0)
                     return false;

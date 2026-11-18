@@ -11,7 +11,7 @@ static partial class Shot {
     var bfl2 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
     var bs2 = xg.ActiveBreaches; var made = new System.Collections.Generic.List<ExpansionRoom>(); int ok = 0;
     foreach (var b in bs2) {
-      var opts = Expansion.SurpriseOptions(xg.Expanded, shp, b.Pos - b.In * BreachEvent.Behind);
+      var opts = Expansion.GridSurpriseOptions(xg.Expanded, shp, b.Pos - b.In * BreachEvent.Behind);
       if (opts.Count == 0) continue;
       xg.Expanded.AddRange(opts[0].Rooms); made.AddRange(opts[0].Rooms); ok++;
     }
@@ -2174,16 +2174,16 @@ static partial class Shot {
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
       if (Environment.GetEnvironmentVariable("FINSTYLE") != null) Expansion.FinStyle = int.Parse(Environment.GetEnvironmentVariable("FINSTYLE"));  // FINSTYLE=<n>: a drawn room's side walls (Expansion.AddFins)
       int nb = int.Parse(Environment.GetEnvironmentVariable("EXPANDMAP"));
-      for (int k = 0; k < nb; k++) { var rr = Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]; rr.Owner = 1 + k % 2; xg.Expanded.Add(rr); }
-      string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: drawn rooms added in order (each must fit, Expansion.Custom)
-      if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why; var cr = Expansion.Custom(xg.Expanded, q[0], q[1], q[2], q[3], out why); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
+      if (nb > 0) { xg.Expanded.AddRange(Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); }  // EXPANDMAP=<n>: the core and n pieces round it (0: the bare hub)
+      for (int k = 0; k < nb; k++) { var mo = Expansion.GridPieceOptions(xg.Expanded, k % 3 == 0 ? GridPiece.TetL : k % 3 == 1 ? GridPiece.Domino : GridPiece.Mono); if (mo.Count == 0) break; foreach (var mr in mo[(k * 7) % mo.Count].Rooms) { var m2 = mr; m2.Owner = 1 + k % 2; xg.Expanded.Add(m2); } }
+      string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: plain boxes added in order (no checks)
+      if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why = null; var cr = Box(q[0], q[1], q[2], q[3]); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
       if (Environment.GetEnvironmentVariable("GRIDCORE") != null) { xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }  // GRIDCORE=1 (with EXPANDMAP=0): a Grid run's core (GridRooms.cs); EXPANDAT=x,y ZOOM=z to look at it
-      string xs = Environment.GetEnvironmentVariable("EXPANDSHAPES");  // EXPANDSHAPES=x,y;x,y;...|...: rooms drawn as outlines added in order (Expansion.Outline), owner 1
-      if (xs != null) foreach (var sh in xs.Split('|')) { var pts = new System.Collections.Generic.List<int[]>(); foreach (var part in sh.Split(';')) pts.Add(Array.ConvertAll(part.Split(','), int.Parse)); string why; var made = Expansion.Outline(xg.Expanded, pts, PathId.None, out why); if (made != null) foreach (var mr in made) { var m2 = mr; m2.Owner = 1; xg.Expanded.Add(m2); } else Console.Error.WriteLine("EXPANDSHAPES " + sh + ": " + why); }
       string xsur = Environment.GetEnvironmentVariable("EXPANDSURPRISE");  // EXPANDSURPRISE=ring|cross|l|t|chamfer: that surprise room built, SURPRISEAGE=<s since it appeared> (default 0.6)
       if (xsur != null) {
         var xsh = (SurpriseShape)Array.IndexOf(new[] { "ring", "cross", "l", "t", "chamfer" }, xsur); string xwhy;
-        var xsp = Expansion.Surprise(5, 10, xg.Expanded, xsh, out xwhy);
+        if (!xg.Expanded.Exists(Expansion.IsGridCore)) { xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); }
+        var xsp = Expansion.SurpriseFor(5, 10, xg.Expanded, xsh, out xwhy);
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
@@ -2208,7 +2208,7 @@ static partial class Shot {
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
         ArenaApp.PreviewOpenAge = float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
         ExpansionRoom? rr = null;
-        for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Expansion.Custom(xg.Expanded, rx, ry, 600, 600, out wn); if (cand.HasValue) rr = cand; }
+        for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Box(rx, ry, 600, 600); if (cand.HasValue) rr = cand; }
         if (rr.HasValue) {
           xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
           var rn = new MapNode { Kind = vecOpen ? NodeKind.VectorChest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
@@ -2232,8 +2232,6 @@ static partial class Shot {
         xg.State = MatchState.Intermission; xg.KeepsakeOpen = true; xg.KeepsakeLeft = 9f; xg.KeepsakeVotes.Clear();
         foreach (var pl in xg.Players.Values) if (pl.Id != xg.MyId) xg.KeepsakeVotes[pl.Id] = Expansion.BiggestRoom(xg.Expanded, xg.KeepsakeChoices);
       }
-      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null && xg.Nodes.Count == 0) { foreach (var fk in new[] { RoomKind.Gatekeeper, RoomKind.Shop, RoomKind.Vendor }) { var gk = Expansion.FloatingFor(3, 2, xg.Expanded, fk); if (gk.HasValue) xg.Expanded.Add(gk.Value); } foreach (var nk in new[] { NodeKind.Chest }) { var nn = Expansion.NodeFor(3, 0, xg.Expanded, xg.Nodes, nk); if (nn.HasValue) xg.Nodes.Add(nn.Value); } if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "2" && xg.Nodes.Count > 0) { for (int stp = 0; stp < 3 && !Expansion.NodeClaimed(xg.Expanded, xg.Nodes[0]); stp++) { var hh = Expansion.NodeStep(xg.Expanded, xg.Nodes[0]); if (!hh.HasValue) break; var h2 = hh.Value; h2.Owner = 1; xg.Expanded.Add(h2); } } }  // EXPANDFLOAT=1: floating Gatekeeper, shop and vendor rooms and a chest node off the map; =2 also builds a hallway and a room round the chest node; =3 builds a box up to the shop room (opened)=1: a floating shop, vendor and Gatekeeper room off the map
-      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "3") { int sfi = xg.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop); var sfc = sfi >= 0 ? Expansion.ConnectorFor(xg.Expanded, sfi) : null; if (sfc.HasValue) { var sf2 = sfc.Value; sf2.Owner = 1; xg.Expanded.Add(sf2);  typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); } if (sfi >= 0) { var sr = xg.Expanded[sfi]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(sr.X + sr.W / 2, sr.Y + sr.H - 90); } }  // EXPANDFLOAT=3 (you stand in it, in the arena view): a box built up to the shop room, so it is open
 
       var xrng = new System.Random(7); int xi = 0;
       foreach (var en in xg.Enemies.Values) {
@@ -2270,9 +2268,9 @@ static partial class Shot {
         Console.Error.WriteLine("mystery doors: " + xg.MysteryDoors.Count);
         if (Environment.GetEnvironmentVariable("MYSTERYHALL") != null) {  // MYSTERYHALL=1: a hallway door opened, its chest at the far end, you at the door
           typeof(Game).GetMethod("ResetMysteryDoors", mfl).Invoke(xg, null);
-          foreach (var o in Expansion.SurpriseOptions(xg.Expanded, SurpriseShape.LongHall)) {
+          foreach (var o in Expansion.GridMysteryOptions(xg.Expanded, GridPiece.TetI)) {
             var args = new object[] { o, null, null };
-            if (!(bool)typeof(Game).GetMethod("MysteryDoorOf", mfl).Invoke(xg, args) || !Mystery.HallFits(o, (MysteryDoor)args[1])) continue;
+            if (!(bool)typeof(Game).GetMethod("MysteryDoorOf", mfl).Invoke(xg, args)) continue;
             var hd = (MysteryDoor)args[1];
             xg.MysteryDoors.Add(hd);
             ((System.Collections.Generic.List<SurpriseOption>)typeof(Game).GetField("mysteryPlans", mfl).GetValue(xg)).Add(o);

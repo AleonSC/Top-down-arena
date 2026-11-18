@@ -8,9 +8,9 @@ static partial class Program
 {
     static void ExpandingStayInRoomsTest(float dt)
     {
-        string why;
+        string why = null;
         var list = new List<ExpansionRoom>();
-        list.Add(Expansion.Custom(list, 1600, 300, 900, 200, out why).Value);  // a hallway off the hub's east wall
+        list.Add(Box(1600, 300, 900, 200).Value);  // a hallway off the hub's east wall
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, true, "Host", Role.Tank);
         var client = JoinAs(port, true, "Friend", Role.Dps);

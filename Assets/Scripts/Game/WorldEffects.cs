@@ -754,9 +754,7 @@ namespace Arena
             if (run0 <= 0.01f)
                 return;
             float from = aim - sg * half;
-            Arc(fx.Pos, reach, Game.SteelWallBand * 2f, moonCol.WithAlpha(0.13f * fade), 24, from, sg * run0);
-            Arc(fx.Pos, reach, 7f, moonCol.WithAlpha(0.4f * fade), 24, from, sg * run0);
-            Arc(fx.Pos, reach, 2.4f, Rgba.White.WithAlpha(0.55f * fade), 24, from, sg * run0);
+            DrawGreatCrescent(fx.Pos, from, from + sg * run0, reach - 26f, reach + 2f, 0.75f * Mathf.Sqrt(Mathf.Max(0f, fade)), moonCol, false);  // the mockup's hanging moon (GreatswordLook.cs)
             float gl = Mathf.Clamp01((T - MeleeSweepTime) / (fx.Dur > MeleeSweepTime ? 0.84f * (fx.Dur - MeleeSweepTime) : 0.42f));
             if (gl > 0f && gl < 1f)
             {

@@ -94,6 +94,6 @@ static partial class Program
         }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
         Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4 && g.Expanded.All(Expansion.IsGridCore) && g.Openings.Count == 8 && cg.Openings.Count == 8, "a Grid run's bare map gets its core, with the walls inside open, on both screens");
-        Check(g.ExpandingOn && cg.ExpandingOn && g.FreeBuild, "the Expanding arena is a Grid run: builds go up at once");
+        Check(g.ExpandingOn && cg.ExpandingOn, "the Expanding arena is a Grid run");
     }
 }

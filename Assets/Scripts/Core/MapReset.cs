@@ -359,23 +359,6 @@ namespace Arena
             return best;
         }
 
-        /// A room's tiles as a mask (mask[col, row] from its top-left corner).
-        public static bool[,] RoomMask(IList<ExpansionRoom> rooms, int head)
-        {
-            var group = RoomGroup(rooms, head);
-            int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue;
-            foreach (int i in group)
-            {
-                x0 = Math.Min(x0, rooms[i].X); y0 = Math.Min(y0, rooms[i].Y); x1 = Math.Max(x1, rooms[i].X1); y1 = Math.Max(y1, rooms[i].Y1);
-            }
-            var mask = new bool[(x1 - x0) / Step, (y1 - y0) / Step];
-            foreach (int i in group)
-                for (int x = rooms[i].X; x < rooms[i].X1; x += Step)
-                    for (int y = rooms[i].Y; y < rooms[i].Y1; y += Step)
-                        mask[(x - x0) / Step, (y - y0) / Step] = true;
-            return mask;
-        }
-
         /// The kept room rebuilt against a fresh core (MapReset.cs): its boxes moved whole by whole cells onto the lattice, one of its cells on a door spot of
         /// the core, overlapping nothing; the spot nearest where it stood wins. It keeps its kind, floor, owner, mini-boss and gold look; it's free. Empty if
         /// it fits nowhere (or isn't on the lattice).
