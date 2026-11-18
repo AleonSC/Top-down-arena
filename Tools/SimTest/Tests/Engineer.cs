@@ -151,14 +151,15 @@ static partial class Program
         // Step 4 lives in its own match below.
         // Breach in the Expanding arena: a room opens behind the wall.
         foreach (var gg in new[] { g, client.Game }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.Update(dt);  // the Grid core is built in the frame update (TickGridCore), which step doesn't run
         step(0.2f);
         if (g.ExpandingOn)
         {
             int rooms = g.Expanded.Count;
-            mePos = new V2(800f, 80f);
+            mePos = new V2(800f, -330f);  // by the core's top wall (y -400)
             me.Pos = mePos;
             me.Slots[Upgrades.UltSlot].Timer = 0f; me.Slots[Upgrades.UltSlot].Charges = 1;
-            hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, new V2(800f, -300f), false });
+            hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, new V2(800f, -700f), false });
             Check(g.Expanded.Count > rooms, "Breach at the Expanding arena's wall opens a room behind it (" + (g.Expanded.Count - rooms) + " room pieces)");
             step(0.5f);
             Check(client.Game.Expanded.Count == g.Expanded.Count, "the client gets the new room");
