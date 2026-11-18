@@ -182,7 +182,7 @@ namespace Arena
             else
             {
                 Ui.Label(new Rect(slot.xMax + 12f, slot.y, r.width - 100f, slot.height), "Empty slot", 14, HoloDim, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 14f, slot.yMax + 12f, r.width - 28f, 40f), "Relic nodes fill everyone's slot. A new one replaces the old.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);
+                Ui.Label(new Rect(r.x + 14f, slot.yMax + 12f, r.width - 28f, 40f), "Walk up to a relic node to take its relic. Your old one is left in the node.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);
             }
         }
 

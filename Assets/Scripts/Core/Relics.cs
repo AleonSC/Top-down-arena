@@ -24,21 +24,15 @@ namespace Arena
             : r == RelicId.Backup ? "The first time you would go down, you get straight back up with half your health. Then it's gone."
             : r == RelicId.HallwayRunner ? "You move 25% faster in hallways (3 tiles wide or less)." : "";
 
-        /// The relic a node holds: rolled from its spot (the same on every machine), never the relic every player already holds.
-        public static RelicId ForNode(MapNode n, IEnumerable<Player> players = null)
+        /// The relic a node starts with: rolled from its spot (the same on every machine).
+        public static RelicId ForNode(MapNode n)
         {
             uint h = (uint)(n.X * 73856093 ^ n.Y * 19349663);
-            var r = (RelicId)(int)(h % (uint)Count);
-            if (players == null)
-                return r;
-            bool allHold = true, any = false;
-            foreach (var p in players)
-            {
-                any = true;
-                allHold &= p.Relic == r;
-            }
-            return any && allHold ? (RelicId)(((int)r + 1) % Count) : r;
+            return (RelicId)(int)(h % (uint)Count);
         }
+
+        /// The relic a node holds now: the one a player left in it, else the one rolled from its spot.
+        public static RelicId Held(MapNode n) => n.Drop != 0 && n.Drop <= Count ? (RelicId)(n.Drop - 1) : ForNode(n);
 
         /// Whether a point is in a hallway of this world: its box is 3 tiles wide or less (Hallway Runner).
         public static bool InHall(World w, V2 at)
@@ -52,28 +46,57 @@ namespace Arena
 
     public partial class Game
     {
-        /// Host, every tick of a wave (from TickNodes): a claimed relic node is taken by the first player to walk up to it. Everyone in the
-        /// party gets the relic in their slot (replacing the old one) and the node is spent.
+        /// Host: player id -> the relic node (index) they just swapped at; they can take from it again only after walking out of its reach.
+        readonly Dictionary<int, int> relicSwapped = new Dictionary<int, int>();
+
+        /// Host, every tick of a wave (from TickNodes): a claimed relic node gives its relic to the first player to walk up to it (one who
+        /// doesn't already hold that relic). That player's own relic, if any, is left in the node in its place; with no old relic the node is spent.
         void TickRelicNodes()
         {
+            if (relicSwapped.Count > 0)
+            {
+                var gone = new List<int>();
+                foreach (var kv in relicSwapped)
+                {
+                    Player sp;
+                    if (!Players.TryGetValue(kv.Key, out sp) || kv.Value >= Nodes.Count || !sp.Pos.CloserThan(Nodes[kv.Value].Pos, Relics.TakeReach + sp.Def.BodyR + 12f))
+                        gone.Add(kv.Key);
+                }
+                foreach (var id in gone)
+                    relicSwapped.Remove(id);
+            }
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
                 if (nd.Kind != NodeKind.Relic && !(Expansion.RuleHoldsRelic(nd) && nd.Cleared) || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
                     continue;
-                bool touched = false;
+                var r = Relics.Held(nd);
+                Player taker = null;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.Pos.CloserThan(nd.Pos, Relics.TakeReach + p.Def.BodyR))
-                        touched = true;
-                if (!touched)
+                {
+                    int lockedAt;
+                    if (p.Downed || p.Relic == r || (relicSwapped.TryGetValue(p.Id, out lockedAt) && lockedAt == i) || !p.Pos.CloserThan(nd.Pos, Relics.TakeReach + p.Def.BodyR))
+                        continue;
+                    taker = p;
+                    break;
+                }
+                if (taker == null)
                     continue;
-                var r = Relics.ForNode(nd, Players.Values);
-                foreach (var p in Players.Values)
-                    p.Relic = r;
-                nd.Spent = true;
+                var old = taker.Relic;
+                taker.Relic = r;
+                if (old == RelicId.None)
+                {
+                    nd.Spent = true;
+                    nd.Drop = 0;
+                }
+                else
+                {
+                    nd.Drop = (byte)((int)old + 1);  // (their old relic stays in the node for anyone to take)
+                    relicSwapped[taker.Id] = i;
+                }
                 Nodes[i] = nd;
                 BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(1f, 0.82f, 0.3f), 90f, 0.5f, Sfx.Pick);
-                DoLog("a relic node was taken: " + Relics.Name(r));
+                DoLog("player " + taker.Id + " took a relic: " + Relics.Name(r) + (old != RelicId.None ? " (left " + Relics.Name(old) + ")" : ""));
                 BroadcastExpansion();
             }
         }

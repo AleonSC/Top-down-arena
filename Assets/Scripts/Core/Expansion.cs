@@ -26,7 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -40,7 +40,8 @@ namespace Arena
         public byte Rule;    // a rule node: its NodeRule
         public bool Cleared; // a rule node whose claimed room has been through a wave: its prize is out (Docs/RuleRooms.md)
         public bool Hidden;  // fogged: its kind shows as "?" until a player walks near or a scout tower sees it (NodeScouting.cs)
-        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared && Hidden == o.Hidden;
+        public byte Drop;    // a relic node: the relic a player left in it, as RelicId + 1 (0: it still holds the relic rolled from its spot; Relics.cs)
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared && Hidden == o.Hidden && Drop == o.Drop;
         public V2 Pos => new V2(X, Y);
     }
 

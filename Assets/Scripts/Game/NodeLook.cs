@@ -27,7 +27,7 @@ namespace Arena
         static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Room card chest", "Buildables chest" };
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
-        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.ForNode(n, game.Players.Values)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
+        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
 
         /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
         string NodeBlurb(MapNode n)
@@ -36,7 +36,7 @@ namespace Arena
                 return (n.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " : "Build a room round it to claim it. ")
                     + "Walk within 8 tiles of it, or claim a scout tower near it, to see what it is.";
             if (n.Kind == NodeKind.Relic)
-                return "Build a room round it and walk up to it: every player gets this relic (it replaces your old one). " + Relics.Desc(Relics.ForNode(n, game.Players.Values));
+                return "Build a room round it and walk up to it to take this relic. Your old one is left in its place for anyone to take. " + Relics.Desc(Relics.Held(n));
             if (n.Kind == NodeKind.Chest)
                 switch (game.NodeChestKind(n))
                 {
