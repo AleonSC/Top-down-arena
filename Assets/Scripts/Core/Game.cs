@@ -703,7 +703,9 @@ namespace Arena
                 p.PrizePicks = Math.Max(0, p.PrizePicks - 1);
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
+            var keysBefore = (AbilityId[])p.BonusKeys.Clone();
             PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
+            FollowExtraUses(p, keysBefore);
             GrantUpgrade(id, upgrade, key);
             p.Rerolls += Upgrades.All[upgrade].RerollsNow;  // Reroll Cache
             NextOffer(p);
@@ -796,6 +798,33 @@ namespace Arena
             session.Broadcast(Proto.End(w));
         }
 
+        /// Extra Use cards are stored per key; when abilities change keys, their extra uses move with them.
+        void FollowExtraUses(Player p, AbilityId[] before)
+        {
+            var old = new int[Upgrades.UseSlots];
+            for (int k = 0; k < old.Length; k++)
+                old[k] = Upgrades.Count(p.Taken, Upgrades.UseCard(k));
+            var now = (int[])old.Clone();
+            bool changed = false;
+            for (int j = 1; j <= Upgrades.BonusSlots; j++)
+            {
+                if (p.BonusKeys[j - 1] == before[j - 1])
+                    continue;
+                int from = p.BonusKeys[j - 1] == AbilityId.None ? -1 : Array.IndexOf(before, p.BonusKeys[j - 1]);
+                now[j] = from >= 0 ? old[from + 1] : 0;
+                changed = true;
+            }
+            if (!changed)
+                return;
+            for (int k = 0; k < now.Length; k++)
+            {
+                int card = Upgrades.UseCard(k);
+                p.Taken.RemoveAll(t => t == card);
+                for (int n = 0; n < now[k]; n++)
+                    p.Taken.Add(card);
+            }
+        }
+
         /// Put a bonus ability on a key (1 = Q, 2 = E, 3 = Shift). Whatever was there swaps to its old key.
         public static void PlaceOnKey(AbilityId[] k, AbilityId id, int key)
         {
@@ -842,7 +871,9 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(playerId, out p) || Array.IndexOf(p.BonusKeys, id) < 0)
                 return;  // you can only move abilities you have
+            var before = (AbilityId[])p.BonusKeys.Clone();
             PlaceOnKey(p.BonusKeys, id, key);
+            FollowExtraUses(p, before);
             Recalc(p);
             BroadcastUpgrades(p);
         }

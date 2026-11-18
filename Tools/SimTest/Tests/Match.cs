@@ -230,6 +230,14 @@ static partial class Program
             }
             Check(slotsOk, "new abilities fill Q, E, then Shift, in pick order, on the client too");
             Check(overchargeOk, "Extra Use gives the chosen keys (Q, E) a second charge");
+            {
+                var h1 = host.Game.Players[1];
+                host.Game.GrantUpgrade(1, U("Extra Use"), 2);  // +1 use on Q
+                var onQ = h1.BonusKeys[0];
+                host.Game.SetAbilityKey(onQ, 2);  // Q <-> E swap
+                int at = Array.FindIndex(h1.Slots, sl => sl.Id == onQ);
+                Check(at == 2 && h1.Slots[at].MaxCharges == 2 && h1.Slots[1].MaxCharges == 1, "an Extra Use follows its ability to the key it moves to");
+            }
             Check(!hasTurret || turretsSeen > 0, "turret shows up on the client");
             Check(ghostsAfter == 0, "still in sync while using new abilities");
         }
