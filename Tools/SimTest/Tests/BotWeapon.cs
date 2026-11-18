@@ -117,4 +117,29 @@ static partial class Program
         }
         Check(missed.Count == 0, "every weapon with an Alt rule uses it in a fight" + (missed.Count > 0 ? " (missed: " + string.Join(", ", missed) + ")" : ""));
     }
+
+    /// The bots' level-up picks (BotPicks.cs): a card's worth from what it does, its rarity and who it was made for.
+    static void BotPicksTest(float dt)
+    {
+        Func<string, int> idOf = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        foreach (var role in new[] { Role.Dps, Role.Tank, Role.Healer })
+        {
+            var me = new Player { Role = role };
+            var scored = new List<(float, string)>();
+            for (int i = 0; i < Upgrades.All.Length; i++)
+                if (!Upgrades.All[i].Unoffered && Upgrades.All[i].Rarity <= Rarity.Rare)
+                    scored.Add((Game.BotCardScore(me, i), Upgrades.All[i].Rarity + " " + Upgrades.All[i].Name));
+            scored.Sort((a, b) => b.Item1.CompareTo(a.Item1));
+            Console.WriteLine("  {0}: best {1}; worst {2}", role,
+                string.Join(", ", scored.GetRange(0, 4).ConvertAll(x => x.Item2 + " " + x.Item1.ToString("0"))),
+                string.Join(", ", scored.GetRange(scored.Count - 3, 3).ConvertAll(x => x.Item2 + " " + x.Item1.ToString("0"))));
+        }
+        Func<Role, string, float> score = (role, name) => Game.BotCardScore(new Player { Role = role }, idOf(name));
+        Check(score(Role.Dps, "Hollow Points") > score(Role.Dps, "Fortitude"), "a DPS bot takes +20% damage over +40 health");
+        Check(score(Role.Tank, "Fortitude") > score(Role.Tank, "Sprinter"), "a tank bot takes +40 health over +12% speed");
+        Check(score(Role.Dps, "Hollow Points") > score(Role.Dps, "Light Boots"), "an uncommon damage card beats a common speed card");
+        var stacked = new Player { Role = Role.Dps };
+        for (int k = 0; k < 4; k++) stacked.Taken.Add(idOf("Hollow Points"));
+        Check(Game.BotCardScore(stacked, idOf("Hollow Points")) < score(Role.Dps, "Hollow Points"), "a card already taken a few times counts for less (its copies diminish)");
+    }
 }

@@ -1112,7 +1112,7 @@ namespace Arena
             }
             if (Bot)
             {
-                // Both bots: level-up picks (reroll once per pick while rerolls last, then pick at random) and the Bazaar.
+                // Both bots: level-up picks (reroll once per pick while rerolls last, then take the best-scored card: BotPicks.cs) and the Bazaar.
                 if (me.Offer != null && MathX.Fmod(botT, 0.5f) < dt)
                 {
                     if (BotRerolls && me.Rerolls > 0 && botRerolledAt != me.Taken.Count)
@@ -1121,7 +1121,7 @@ namespace Arena
                         RerollOffer();
                     }
                     else
-                        PickUpgrade(me.OfferCards ? BotBossCard(me) : rng.Next(me.Offer.Length));
+                        PickUpgrade(me.OfferCards ? BotBossCard(me) : BotPickUpgrade(me));  // BotPicks.cs
                 }
                 else if (me.Offer == null && ShopOpen && !me.ShopDone && MathX.Fmod(botT, 0.5f) < dt)
                     BotShop(me);  // Shop.cs
