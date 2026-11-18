@@ -324,7 +324,21 @@ namespace Arena
             floatCycle = cycle;
             bool added = false;
             // (no floating rooms any more, owner Nov 18: shop, vendor and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Rule, NodeKind.Vein })  // (a relic node every other cycle, a rule node and a gold vein every cycle; no scout towers since the fog went, Nov 18; old saves may still hold shop, vendor and tower nodes)
+            // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
+            if (cycle == 0)
+            {
+                var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
+                for (int i = 0; i < ringKinds.Length; i++)
+                {
+                    var rn = Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
+                    if (!rn.HasValue)
+                        continue;
+                    Nodes.Add(rn.Value);
+                    added = true;
+                    DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
+                }
+            }
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Vein })
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
