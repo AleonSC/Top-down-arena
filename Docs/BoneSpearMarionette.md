@@ -1,6 +1,6 @@
 # Bone Spear: Marionette
 
-**Status: step 1 built (core, protocol 398); steps 2-3 to do.** Code `Assets/Scripts/Core/BoneSpear.cs`, tests `Tools/SimTest/run.sh 1 30 bonespear`. Mockup `Docs/Mockups/bone-spear-rework.html`. Rework of the DPS Hemomancer's Bone
+**Status: steps 1-2 built (core and look, protocol 399); step 3 (balance) to do.** Code `Assets/Scripts/Core/BoneSpear.cs`, look `Assets/Scripts/Game/BoneSpearLook.cs` (preview `BONESPEAR=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`), tests `Tools/SimTest/run.sh 1 30 bonespear`. Mockup `Docs/Mockups/bone-spear-rework.html`. Rework of the DPS Hemomancer's Bone
 Spear (`WeaponId.BoneSpear` kept): a ranged string the Hemomancer lands by working the target's blood, as phantom
 melee blows from inside its body.
 

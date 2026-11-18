@@ -476,7 +476,8 @@ namespace Arena
             Rgba col = Game.IsReaperCult(e.Type) ? CultTint(e) : e.Def.Color;  // the Reapers' cult: its sworn side (ReaperCultLook.cs)
             if (Game.IsBrute(e.Type))
                 col = col.Mix(new Rgba(1f, 0.15f, 0.1f), 0.7f * Game.BruteRage(e));  // enrage: redder as it is shot (BruteEnrage.cs)
-            V2 pos = e.Disp;
+            float lift = BsLiftOf(e);  // thrown up by the Bone Spear's Heart Lift: drawn above its shadow (BoneSpearLook.cs)
+            V2 pos = e.Disp - new V2(0f, lift);
             float r = (e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius) * JuiceScale(e);  // its Radius grows with the event horizon (SingularityLook.cs); JuiceScale: a hit's bulge (Juice.cs)
             bool spawning = game.IsSpawning(e);
             if (spawning && e.Type == EnemyType.Boss && WardenIntroOn)
@@ -516,7 +517,7 @@ namespace Arena
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
-            DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
+            DrawEnemyShadow(e, pos + new V2(0f, lift), r * (1f - lift / 120f));  // EnemyPresenceLook.cs (on the ground under a lifted one)
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
             if (Game.IsReaperCult(e.Type) && !pac)
                 DrawCultUnder(e, pos, r, col, spawning, t);  // a tether, a revive's ghost, a lantern's lanes (ReaperCultLook.cs)

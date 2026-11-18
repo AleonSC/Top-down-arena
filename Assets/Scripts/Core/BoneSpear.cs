@@ -31,7 +31,7 @@ namespace Arena
         public const float SympRange = 170f, SympTime = 4f, SympCooldown = 8f, SympMult = 0.5f;
         public const int SympMax = 4;
         const byte DashSympathy = 44;
-        static readonly Rgba BsRed = new Rgba(0.9f, 0.16f, 0.24f), BsBone = new Rgba(0.94f, 0.89f, 0.8f);
+        static readonly Rgba BsRed = new Rgba(0.9f, 0.16f, 0.24f);
 
         class BsHit
         {
@@ -48,7 +48,10 @@ namespace Arena
         /// How long step `step` takes before the next press can land.
         public static float BsStepTime(int step) => step == 1 ? BsPulseTime : step == 2 ? BsReelTime : step == 3 ? BsLiftTime : BsBurstTime;
 
-        static float BsHitDelay(int step) => step == 1 ? BsPulseHit : step == 2 ? BsReelHit : step == 3 ? BsLiftHit : BsBurstHit;
+        public static float BsHitDelay(int step) => step == 1 ? BsPulseHit : step == 2 ? BsReelHit : step == 3 ? BsLiftHit : BsBurstHit;
+
+        /// How long a move's FxKind.BsBlow plays: its wind-up, then the blow (Heart Lift: the whole time in the air).
+        public static float BsFxDur(int step) => BsHitDelay(step) + (step == 1 ? 0.3f : step == 2 ? 0.35f : step == 3 ? BsLiftAir : 0.5f);
 
         /// Host: one press of fire with the Bone Spear (from FireBloodWeapon): the next step of the string on the enemy under the cursor.
         void FireBoneSpear(Player p, float dmg, int extra)
@@ -72,14 +75,17 @@ namespace Arena
                 PayHealth(p, step == 4 ? BsBurstCost : BsMoveCost, p.Weapon.Name);
             float d = p.Weapon.Damage * dmg;
             QueueBsMove(p, e, step, d, false);
+            BroadcastFx(FxKind.BsBlow, e.Pos, new V2(e.Id, p.Id), BsRed, step, BsFxDur(step), step == 4 ? Sfx.SpellArcane : Sfx.SwingLight);
             if (p.SympT > 0f && p.SympSrc == e.Id)
                 foreach (int id in p.SympBound)
                 {
                     Enemy o;
                     if (Enemies.TryGetValue(id, out o) && Targetable(o))
+                    {
                         QueueBsMove(p, o, step, d * SympMult, true);
+                        BroadcastFx(FxKind.BsBlow, o.Pos, new V2(o.Id, p.Id), BsRed, step + 10, BsFxDur(step), Sfx.None);
+                    }
                 }
-            BroadcastFx(FxKind.Drain, p.Pos, e.Pos, BsRed, 2f, 0.15f, step == 4 ? Sfx.SpellArcane : Sfx.SwingLight);
         }
 
         void QueueBsMove(Player p, Enemy e, int step, float dmg, bool echo) =>
@@ -111,7 +117,6 @@ namespace Arena
                     BsHurt(p, e, h.Dmg, away);
                     if (moves)
                         KnockEnemy(e, away * BsPulseShove);
-                    BroadcastFx(FxKind.Ring, e.Pos, BsRed, e.Radius + 8f, 0.2f, Sfx.None);
                     break;
                 case 2:  // Reel: dragged toward you by its own veins (never into you)
                 {
@@ -119,7 +124,6 @@ namespace Arena
                     float room = e.Pos.DistanceTo(p.Pos) - e.Radius - p.Def.BodyR - 20f;
                     if (moves && room > 0f)
                         KnockEnemy(e, away * -Math.Min(BsReelPull, room));
-                    BroadcastFx(FxKind.Drain, e.Pos, p.Pos, BsRed, 3f, 0.2f, Sfx.None);
                     break;
                 }
                 case 3:  // Heart Lift: thrown in the air, stunned while it's up
@@ -129,7 +133,6 @@ namespace Arena
                         e.BsLiftT = BsLiftAir;
                         Stun(e, BsLiftAir);
                     }
-                    BroadcastFx(FxKind.Ring, e.Pos, BsRed, e.Radius + 16f, 0.35f, Sfx.None);
                     break;
                 default:  // Marrow Burst: it bursts into bone shards
                 {
@@ -142,7 +145,8 @@ namespace Arena
                         V2 dir = V2.FromAngle(off + MathX.Tau * i / n);
                         SpawnBullet(Defs.BoneSpearShot, e.Pos + dir * (e.Radius + 6f), dir * BsShardSpeed, 0f, BsShardReach / BsShardSpeed, h.Dmg * BsShardMult, p.Id);
                     }
-                    BroadcastFx(FxKind.Implode, e.Pos, BsBone, e.Radius + 30f, 0.35f, Sfx.Explode);
+                    if (!h.Echo)
+                        BroadcastSound(Sfx.Explode);  // (the burst itself is drawn from the move's FxKind.BsBlow)
                     break;
                 }
             }
