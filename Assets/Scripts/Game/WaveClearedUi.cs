@@ -288,7 +288,7 @@ namespace Arena
                     wcStep = 2;
                     PressReady(me);
                 }
-                if (build && LobbyKit.Key(bb, game.FreeBuild ? "BUILD" : "BUILD / VOTE", false, calm, size: 16, minSize: 11))
+                if (build && LobbyKit.Key(bb, "BUILD", false, calm, size: 16, minSize: 11))
                     expOpen = true;
                 if (LobbyKit.Key(ob, "OPEN", false, calm, size: 16, minSize: 11))
                     wcMin = false;
@@ -349,7 +349,7 @@ namespace Arena
             int kits = game.RoomTokens.Count;
             HudCrt(new Rect(x, y, w, 20f), "ROOM KITS  " + kits, 20, kits > 0 ? CrtStyle.Gold : CrtUi.Dim);
             y += 28f;
-            string hint = game.FreeBuild ? "Built the moment you place it." : "Draw a room, the team votes.";
+            string hint = "Built the moment you place it.";
             Ui.Label(new Rect(x, y, w, 20f), hint, 12, Ui.Muted, TextAnchor.UpperLeft, true);
         }
 

@@ -103,10 +103,7 @@ static partial class Program
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
-        Check(g.RoomCardsOn && cg.RoomCardsOn && g.FreeBuild && !g.BuildVoting, "room cards on: builds go up at once, no vote");
-        g.Diff.Set(DiffKnob.BuildVote, 1f);
-        Check(!g.BuildVoting, "even with the team vote set, cards never go to a vote");
-        g.Diff.Set(DiffKnob.BuildVote, 0f);
+        Check(g.RoomCardsOn && cg.RoomCardsOn && g.FreeBuild, "room cards on: builds go up at once");
 
         // The first build round deals the starting hand (Box, Hall, a shape) and the round's basic card, and the friend sees theirs.
         typeof(Game).GetMethod("OpenBuildRound", flags).Invoke(g, null);  // (mid-wave here: the round stays open, as in ExpandingFreeBuildTest)

@@ -1158,17 +1158,16 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - Bots build on door spots too.
   - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or on a floor) and one-cell service cards. They come as the room cards do: a starting hand, a card each round, wave drops, chests, the vendor, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run.
   - **Mini-bosses**: each boss cycle a sealed two-cell mini-boss room waits on the grid, one cell out from the map. Build a piece into the cell between to open it, then walk in to wake the coming boss's faction mini-boss (as before: the room locks, beat it for a prize pick).
-- **Building rounds** (Free draw and Team vote, both **retired** Nov 18: not in the lobby, code kept for saved runs): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
+- **Building rounds** (Free draw, **retired** Nov 18: not in the lobby, code kept for saved runs): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
-  **Propose**) to close it. You don't have to close it yourself: **end a run of walls on another room's wall** and, if the map's
-  own walls close off the space on one side, that space fills in as the room and goes to the vote (the green fill shows it; if both sides
+  **Build**) to close it. You don't have to close it yourself: **end a run of walls on another room's wall** and, if the map's
+  own walls close off the space on one side, that space fills in as the room and is built (the green fill shows it; if both sides
   are closed off, the smaller one). You pay only for the walls you drew. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
   with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **2 tiles
   wide everywhere**, at most 144 tiles of floor and 24 tiles each way, its walls don't cross, it shares 2 tiles of one wall with a room
   and overlaps nothing (a shorter touch with another room's wall is fine, it just stays wall). The map shows it green when it fits (red,
-  with the reason, when not). It is built as one room, however many boxes it takes inside, and it becomes **your proposal**; a newer
-  drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
+  with the reason, when not). It is built as one room, however many boxes it takes inside, **the moment you place it**. You can only build what you can afford. A room costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a room that touches two rooms (a loop)
   cheaper again.
 - **Any size**: there are no hallways, just rooms. A dragged box can be anything from **2 to 24 tiles a side**, up to **144 tiles**
@@ -1209,19 +1208,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Minimap**: top right (the Map key, M, cycles it, the full map and no map), a fixed-size window that follows you (centred on you, held inside the map; the whole map when it fits). Gold coins show as small gold dots on it.
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
-  colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
-- **Free building** (retired with Free draw): the old lobby pair **Free building / Team vote** set how it was built.
-  With **Free building** there is no vote: a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
+  colour.
+- **Free building** (retired with Free draw): a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
   anyone can build as many as they can afford in a round (the round window is just the draw screen; **Close** closes it, **Done · ready up** closes it and readies you; either way the wave box comes back as its minimized strip). **Nothing can be built mid-wave**: rooms, doors and portals all wait for the break between waves. Bots still add one room a round, and only if nobody has built that round.
   (The old **Team purse** is gone: every build is paid from the builder's own vectors.)
-  **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
-- **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
-  own proposal counts for you (the round never ends just because the last player drew). **The moment one choice is backed by more than
-  half the team its room is built** (no waiting for the wave). Otherwise, when everyone has clicked a vote, or the
-  next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
-  tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
-  shares a door's width of wall with (loops). Paths are off in this arena.
-  **Solo players skip the vote**: your proposal is built the moment you make it.
+  (**Team vote** building is gone, Nov 18: there are no proposals or votes; every build goes up at once.)
 - **Chest nodes**: every boss cycle the game places a **chest node**: a point 10 to 16 tiles straight out from the map (at least 8 tiles from other nodes;
   chest and relic nodes keep 6 tiles clear of every room), never within 10 tiles of the start room. Nodes are always in plain view: a big lit ring in the
   node's colour with its mark at full size and a beacon rippling out, and a bold square on the minimap. Shop, vendor (Black Market) and mini-boss rooms are no
@@ -1232,7 +1223,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Buildables** (pink, blueprint grid, a wrench: one random Black Market build in each player's stash, a kind with room under the 5 cap) or **Upgrade** (green, chevrons: every
   player gets their own item, like a wave chest). It opens once and never holds the wave up. No cover stands on a node. Nothing respawns: new ones
   appear around the current map. **Room chests:** every room you draw and build, and every surprise room (after a boss or from a breach event), may also drop a chest node 3 to 5 tiles outside its wall (a hallway 3 tiles wide or less 10%, a wider room 20% plus 1% per 7 tiles of floor, up to 40%: a 6 x 6 room 25%, 12 x 12 40%; none while 2 chests wait unclaimed). It lands on the side facing your other rooms when it can, so the room that claims it tends to join two branches. Half of these are **vector chests** (cyan, chevrons on the base and the vector arrow on the lock): once a room encloses one, walk up to it and it bursts into 4 vector pickups (24 vectors) that fly to the nearest player. Nothing drops within 10 tiles of the start room.
-  Bots build toward a rule node's room, then chest and relic nodes (and an old save's sealed rooms; they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
+  Bots build toward a rule node's room, then chest and relic nodes (and an old save's sealed rooms; they don't walk to chests' loot).
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (a violet diamond; once claimed, a violet **Relic chest** with cut corners and a gem on the lock). Build a room round it and walk up to
   it: **you** get its relic in your **relic slot** (one each, never shared; it stays for the run, saves included). If your slot was full, your **old relic is left in the node** in its place for anyone to take (walk away and back to swap again). Relics are
@@ -1273,10 +1264,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   each breach lets its share of the wave in (the wave's enemies split evenly over its breaches), then nothing more comes through it; if every breach has had its share the rest come in at the usual spots. When zoomed out, a teal edge arrow points to a cache nobody has taken.
 - **Mystery doors** (Docs/MysteryDoors.md): every cleared wave puts **1 or 2 sealed doors** on the map's outer wall (at most **3** at once): a magenta-violet hologram over a dark plate, with corner brackets and a white **?**, and a **? price** tag over it (red when you can't afford it). They show as violet marks on the minimap and the build map (*MYSTERY DOOR* in its key). A room is already rolled behind each, but you can't see what it is. Stand by one and press **G** to pay its price from your own vectors (**60%** of what drawing the same room would cost) and it opens at once, **mid-wave too**; the room is yours, like one you drew: the hologram splits and slides into the wall and a ring goes out from the doorway. **What's behind** (never shown; roughly): only plain rectangles. A third of doors open a **small room** (4 x 4 or 5 x 4): usually 3-8 of the wave's **enemies** that swarm out, sometimes **empty**, and sometimes a **shop** or a **Black Market** or an **Arms Dealer** (each about 1 in 9). A third open a **medium room** (6 x 6 or 7 x 6): usually 4-10 **enemies**, sometimes **empty**. The rest open a **long hallway** (12 x 3, the door at one end) with a **treasure chest at the far end**. Enemies opened between waves come out as the next wave starts; around a boss the rooms come empty. Small rooms and hallways cost less than medium rooms. Doors nobody opened **expire when the next wave is cleared**, unless a player **saves** one: press **B** by a door (it turns lime, *SAVED* on its tag). Each player saves **one** door at a time (saving another moves your save, B on your own lets it go, and you can't take over someone else's); a saved door stays until it's opened. If a drawn room takes a door's space, the door gets another room behind the same spot, or goes. Drawing rooms works as before. **Bots** open doors too: between waves a bot walks to the nearest door it can pay for while keeping 10 vectors back for building.
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
-  opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
-  one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
+  opened, nor a sealed floating room's). It is made at once: that stretch of wall comes down (a short stretch is a door, a long
+  one joins the rooms) and its opener gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
 - **Teleporters (portals)**: buy a **Teleporter pair** (150 gold) at the **Black Market** (the vendor room), then on the draw screen switch to
-  **Teleporter** and click a room's **outer wall**, then another room's outer wall: the pair is **built at once** from your stash (no vote, no
+  **Teleporter** and click a room's **outer wall**, then another room's outer wall: the pair is **built at once** from your stash (no
   vectors). Like the classic arena's edge gates, each end turns **2 tiles of that wall into a portal**: a dark gap in its pair's colour,
   bracketed at both ends, with chevrons pointing into the room. Walk into it and you come out of the other wall, keeping your place along it
   (enemies use them too, and steer through them when it's shorter). It must save at least 6 tiles of walking. Each end needs a connected room on
@@ -1286,7 +1277,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Black Market traps (placeholders)**: the Black Market also sells a **Spike trap** (60), **Landmine** (80) and **Slow field** (90). Switch the
   draw screen to **Trap**, pick one from your stash and click a spot in a room (90 px off walls, 150 px from doors, 120 px from portals and other
   traps; at most 12). They stand on the map and have **no effect yet**. A stash holds at most 5 of a kind.
-- **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate goes to the vote like a room,
+- **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate is fitted at once,
   for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
   for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its
   posts). Anyone on the team can work it. Enemies (and bots) route round a shut gate through another door; with no other way in, they wait at it. Plain doors only (not an opened wall), one gate a door, at most **6** on the map. A red bar marks
@@ -1513,7 +1504,7 @@ stretch lit, your best time a gold line).
 - **Win, then end or keep going.** Beating the boss is **QUICK PLAY CLEAR!**; the host can **Keep going [C]** into endless: ten
   more waves and a new random boss, after wave 20, 30, ... for as long as the party lasts.
 - **Room building:** Quick Play is played on the **Expanding arena** (below), as the Campaign is: vectors, a build round after
-  every wave from wave 1, the vote, and a free surprise room after each boss. Vectors come in at the full rate (+8 a wave, not
+  every wave from wave 1, building, and a free surprise room after each boss. Vectors come in at the full rate (+8 a wave, not
   the Campaign's half), so a party builds about one room a wave. The **Simple Arena** modifier keeps the open arena.
 - **The tutorial:** a profile's first Quick Play shows a prompt at the top left that ticks off as you go, in five lessons:
   **The basics** (move, aim, shoot, dodge), **Level up** (pick a card), **Build a room** (click BUILD, draw a room,
