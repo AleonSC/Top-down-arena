@@ -5,7 +5,8 @@ namespace Arena
 {
     /// Survival's arena (Docs/Survival.md): one big room, 3200 x 1800 (four times today's arena), walled all round, with simple
     /// walls in the very middle and the corners. It is a World like the Rooms arena's (World.cs), so the walls, the enemies'
-    /// steering and the camera that follows you (World.ViewCentre) work as they do there. No doors, no portals, no vault.
+    /// steering and the camera that follows you (World.ViewCentre) work as they do there. No doors, no vault; two pairs of
+    /// wall portals (the Expanding arena's, WorldPortal.Half) in the middle of opposite walls: left with right, top with bottom.
     public static class SurvivalRoom
     {
         public const float W = Game.Width * 2f, H = Game.Height * 2f;
@@ -42,7 +43,11 @@ namespace Arena
                 Name = "Survival",
                 Areas = new[] { new RoomArea { Name = "Room", Min = V2.Zero, Max = new V2(W, H), Hub = true } },
                 Doors = new RoomDoor[0],
-                Portals = new WorldPortal[0],
+                Portals = new[]
+                {
+                    new WorldPortal { A = new V2(0f, H / 2f), B = new V2(W, H / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f), Half = Expansion.LinkHalf },
+                    new WorldPortal { A = new V2(W / 2f, 0f), B = new V2(W / 2f, H), InA = new V2(0f, 1f), InB = new V2(0f, -1f), Half = Expansion.LinkHalf },
+                },
                 Spans = new[]
                 {
                     new WallSpan(false, 0f, 0f, W), new WallSpan(false, H, 0f, W),

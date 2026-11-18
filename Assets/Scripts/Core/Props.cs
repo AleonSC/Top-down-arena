@@ -375,6 +375,13 @@ namespace Arena
                 return false;
             if (NearSolid(at, size + 16f))
                 return false;  // and clear of the layout's walls and pillars (LayoutRules.cs)
+            if (RoomsOn)
+                foreach (var pt in CurrentWorld.Portals)  // and off the portals and the floor in front of them
+                {
+                    float keep = (pt.Wall ? pt.Half + 60f : CurrentWorld.PortalR + CurrentWorld.PortalExit) + size;
+                    if (at.CloserThan(pt.A, keep) || at.CloserThan(pt.B, keep))
+                        return false;
+                }
             foreach (var pl in Players.Values)
                 if (pl.Pos.CloserThan(at, playerGap + size))
                     return false;
