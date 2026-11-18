@@ -718,6 +718,8 @@ namespace Arena
                 Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
                 Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WarhornVolley, MaxStacks = 2, Name = "Bodkin Points", Desc = "Warhorn Volley's arrows hit 25% harder and the volley is 20% wider",
+                Apply = s => { s.VolleyDamage += 0.25f; s.VolleyWide += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Knight, MaxStacks = 2, Name = "Plate Armour", Desc = "Take 8% less damage, and your swings cut bullets out of the air 20% farther out",
                 Apply = s => { s.DamageTaken *= 0.92f; s.CutReachMult += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Warhammer }, MaxStacks = 2, Name = "Quake Hammer", Desc = "The Warhammer's slam is 20% wider and stuns 0.3 s longer",
@@ -830,6 +832,14 @@ namespace Arena
                 Capstone = "The bridge stands for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 450f,
             },
+            new AbilityDef
+            {
+                Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,  // picked instead of the Drawbridge on the lobby's Ultimate row (WarhornVolley.cs)
+                Name = "Warhorn Volley", Cooldown = 70f,
+                Desc = "Blow a warhorn and a volley of fire arrows falls behind you and sweeps across the field along your aim (1,400 px ahead, 700 wide). Every enemy it reaches takes 120, burns for 20 a second for 5 s and is pinned (40% slower for 3 s). Enemy shots in its path are knocked out of the air (red aimed shots fly on).",
+                Capstone = "The volley is 40% wider and the fire burns for 8 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 900f,
+            },
         };
 
         /// Knight abilities and ultimates. Returns false if `id` isn't one.
@@ -928,6 +938,9 @@ namespace Arena
                 }
                 case AbilityId.BladeTempest:
                     CastDrawbridge(p, target, cap);  // Drawbridge.cs
+                    return true;
+                case AbilityId.WarhornVolley:
+                    CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs (picked instead of the Drawbridge)
                     return true;
             }
             return false;

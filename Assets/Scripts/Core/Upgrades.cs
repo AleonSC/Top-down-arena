@@ -41,6 +41,7 @@ namespace Arena
         DragPylon,     // the Engineer's Space ability (Engineer.cs)
         Breach,        // the Engineer's ultimate (Engineer.cs)
         VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's Space abilities and ultimates (Engineer.cs, step 4)
+        WarhornVolley,  // the DPS Knight's second ultimate (WarhornVolley.cs), picked on the lobby's Ultimate row
         None = 255,
     }
 
@@ -87,6 +88,7 @@ namespace Arena
         public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
         public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
+        public float VolleyDamage, VolleyWide;  // Bodkin Points (WarhornVolley.cs): +25% damage, +20% width a stack
         // Ninja abilities
         public float CloneBonusTime, CloneHpMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, PlateHpMult = 1f;
         public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
@@ -246,14 +248,15 @@ namespace Arena
         public readonly List<int> Taken;
         public readonly WeaponId? Weapon;  // null: no weapon (weapon cards are never offered)
         public readonly bool Expanding;    // the Expanding arena (the vector cards)
+        public readonly AbilityId Ult;     // your ultimate (F): cards for it (RequiresAbility) are offered too
 
         /// `kit` defaults to the class of the Space ability. A Wildcard has no class of its own: it counts as the class
         /// of its Space ability, of its weapon and of its second ability (`second`, on Q/E/Shift), so any of those
         /// classes' cards can turn up (Docs/UpgradePools.md step 3).
         public OfferCtx(Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false, Kit? kit = null,
-            AbilityId second = AbilityId.None)
+            AbilityId second = AbilityId.None, AbilityId ult = AbilityId.None)
         {
-            Role = role; RoleAbility = roleAbility; Taken = taken; Weapon = weapon; Expanding = expanding;
+            Role = role; RoleAbility = roleAbility; Taken = taken; Weapon = weapon; Expanding = expanding; Ult = ult;
             if (role != Role.Wildcard)
                 Kits = Bit(kit ?? KitOf(roleAbility));
             else
@@ -274,7 +277,7 @@ namespace Arena
 
         /// A player's offers: their role, class (a Wildcard: its gear's classes), Space ability, picks and weapon.
         public static OfferCtx Of(Player p, bool expanding) =>
-            new OfferCtx(p.Role, p.RoleAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.StartBonus);
+            new OfferCtx(p.Role, p.RoleAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.StartBonus, p.Slots[Upgrades.UltSlot].Id);
     }
 
     public class UpgradeDef
@@ -822,7 +825,7 @@ namespace Arena
                 return false;
             if (u.Role.HasValue && u.Role.Value != role)
                 return false;
-            if (u.RequiresAbility != AbilityId.None && !HasAbility(u.RequiresAbility, roleAbility, taken))
+            if (u.RequiresAbility != AbilityId.None && u.RequiresAbility != c.Ult && !HasAbility(u.RequiresAbility, roleAbility, taken))
                 return false;
             if (u.ClassAbility && (u.Grants == roleAbility || KitOf(u.Grants) != KitOf(roleAbility)))
                 return false;  // only your own class's other two Space abilities

@@ -409,6 +409,7 @@ namespace Arena
                 BuildCeremonialArmor();  // CeremonialArmorSoundBank.cs
                 BuildFrost();  // FrostSoundBank.cs
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
+                BuildWarhorn();  // WarhornSoundBank.cs
             }
             catch (Exception ex)
             {
