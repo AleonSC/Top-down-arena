@@ -593,6 +593,7 @@ namespace Arena
                 }
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
+                tpos = StriderTarget(e, tpos);  // an Engineer's Strider draws in enemies near it (Engineer.cs)
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // the Rooms arena: guarding its nest, or the vault (Rooms.cs)

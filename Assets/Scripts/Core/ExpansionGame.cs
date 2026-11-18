@@ -145,6 +145,7 @@ namespace Arena
         /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
         void AddVectors(Player p, int n)
         {
+            n = Draftsman(p, n);  // the Engineer's passive: +25% (Engineer.cs)
             if (n > 0 && p.Vectors < p.VectorCap)
                 p.Vectors = Math.Min(p.VectorCap, p.Vectors + n);
         }

@@ -268,6 +268,13 @@ namespace Arena
                 case ZoneKind.Cover:
                     DrawCover(z, t);  // DeployableCoverLook.cs
                     return;
+                case ZoneKind.DragPylon:
+                case ZoneKind.MedPylon:
+                    DrawDragPylonZone(z, t);  // EngineerLook.cs
+                    return;  // no timer ring: it stays until the next one
+                case ZoneKind.SafeRoom:
+                    DrawSafeRoom(z, t);  // EngineerLook.cs (its own time ring)
+                    return;
                 case ZoneKind.Flood:
                     DrawFlood(z, t);  // FloodLook.cs (its own time ring when Visual effects are off)
                     return;
@@ -323,6 +330,21 @@ namespace Arena
             if (m.Kind == MinionKind.Turret && fxOn)
             {
                 DrawSentry(m, t);  // SentryNovaLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.MediDrone)
+            {
+                DrawMediDrone(m, t);  // EngineerLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.VectorBlock)
+            {
+                DrawVectorBlock(m, t);  // EngineerLook.cs
+                return;
+            }
+            if (Game.IsWalker(m.Kind))
+            {
+                DrawStriderMinion(m, t);  // EngineerLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Hydra)

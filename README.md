@@ -47,6 +47,8 @@ row lists its class wheel's class, and a saved run's seats keep theirs.
   below).
 - **Hemomancer**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its
   health; full health (see below).
+- **Engineer** (a locked class: win a run to unlock it; open to everyone for now): a builder who works in vectors; one weapon, Space ability and ultimate per role for now (its other keys
+  are locked); full health, 95% speed (see below).
 
 | | Soldier | Elementalist | Summoner |
 |---|---|---|---|
@@ -141,6 +143,57 @@ Enemies sometimes drop **health orbs**: small green ones heal 15 HP (18% chance)
 with a gold ring heal 60 HP (3% chance). Bosses always drop a large orb plus four small ones. Orbs drift
 toward a hurt player who gets close, are left alone by players at full health (so your ally can grab
 them), and blink before vanishing after 12 seconds.
+
+### The Engineer
+
+A builder whose constructions draw themselves in the cyan ink of the Expanding arena's walls (Docs/Engineer.md). Each
+role has one weapon, one Space ability and one ultimate for now; the lobby locks its other keys. It wears navy coveralls,
+an orange safety vest and a yellow hard hat with a headlamp, in its role's trim. The DPS kit:
+
+- **Vector Forge** (weapon): Fire is a light rivet gun (10 a rivet, 0.3 s; each extra projectile adds a rivet, fanned).
+  The weapon keeps one **Strider** at your side: a plated two-legged walker with 450 health (+8% a wave, full again between
+  waves) that hunts the enemy nearest you (within 340 px), punches (34, 0.55 s; your damage and fire-rate upgrades count)
+  and, when enemies crowd it, **slams** every 4 s (60 in 80 px, a 0.4 s stun and a shove). Enemies within 150 px of it go
+  for it instead of you; it stops enemy shots and takes contact hits. **Alt** (the weapon-action key) on an enemy
+  **locks it on**: a turning reticle and a dashed line mark the target and the Strider goes for it at +40% speed and
+  +50% damage until it dies. Alt on the floor **posts** it there (it guards 200 px around); Alt by you calls it back.
+  A broken Strider is **rebuilt after 8 s**.
+- **Draftsman** (passive): every vector gain is 25% bigger for an Engineer (part-vectors add up across gains), and in the
+  Expanding arena standing within 90 px of your hurt Strider **repairs** it: a vector every 0.25 s for 30 health.
+- **Class cards**: **Reinforced Frame** (rare, x3: Strider +30% health), **Hydraulic Fists** (rare, x2: it punches and slams
+  20% more often), **Quick Assembly** (uncommon, x2: rebuilt 2.5 s sooner, never under 2 s) and **Wide Field** (rare, x2,
+  with Drag Pylon: the field 25% wider and slowing 10% more).
+- **Drag Pylon** (Space, 6 s): plants a pylon at your cursor (up to 320 px away). Its violet floor grid (130 px) slows
+  enemies inside by 45% (bosses 20%), and they trail drag rings. It stays until you plant the next one, which folds the
+  old one up. Mastered: 40% wider.
+- **Breach** (ultimate, 70 s): a vector hammer smashes the wall you aim at (up to 220 px): 80 damage and a shove within
+  140 px. In the **Expanding arena** a free random room (Stash, Cross, L or T hall, Ring or Chamfer) opens behind the
+  wall with one thing in it: **vectors** (+10), **gold** (40), a **Strider repair** (full health, and a big health orb),
+  a **workbench** (every Strider +25% damage for the wave) or an **ambush** (two elite grunts, shown as "?"). The loot
+  waits in the middle of the room in a pulsing ring: the first player to walk up to it takes it (a Stash holds its usual
+  vector cache instead). Elsewhere, or with no wall in reach, the blast and the loot (no ambush) land at your cursor at
+  once. Mastered: the blast is twice as wide. A new Strider draws itself in as a cyan wireframe over 1.2 s, then plates on.
+
+The **Tank** Engineer:
+
+- **Bulwark Forge** (weapon): a nail shotgun (six nails of 7 in a 29° spread, 0.55 s; +2 nails per extra projectile). Its
+  walker is the **Sentinel**: a bigger, slower plated walker with amber trim and 900 health (+8% a wave) that punches
+  (26, 0.8 s), slams (45 in 100 px) and draws in enemies from **220 px**. Alt orders it like the Strider; a broken one is
+  rebuilt after 10 s.
+- **Vector Wall** (Space, 10 s): five glowing tiles across your aim, centred on the cursor (60-220 px away). They stop
+  enemy shots, each soaking 400 damage, for 8 s. Mastered: seven tiles for 12 s.
+- **Bastion** (ultimate, 75 s): a ring of 12 tiles round you (130 px) for 10 s, with four gaps to shoot out of. Mastered:
+  the gaps are closed for the first 3 s and it lasts 14 s.
+
+The **Healer** Engineer:
+
+- **Medi-Drone Forge** (weapon): a light rivet gun (8, 0.3 s). A **med-drone** (a small rotor drone with a green cross)
+  flies to the most hurt ally and heals everyone within 70 px for 12 a second; each extra projectile adds a drone.
+- **Med Pylon** (Space, 6 s): the Drag Pylon's green twin: its field (130 px) heals allies inside for 10 a second, with
+  plus marks rising off the floor; one at a time. Mastered: 40% wider.
+- **Safe Room** (ultimate, 80 s): the Breach hammer (half its damage) opens the wall you aim at; in the Expanding arena
+  the room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. With no room,
+  a 160 px dome at your cursor does the same. Mastered: 18 s.
 
 ### Weapons
 

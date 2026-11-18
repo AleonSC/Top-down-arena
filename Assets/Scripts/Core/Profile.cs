@@ -32,6 +32,7 @@ namespace Arena
         /// then check Profile.IsUnlocked("first-win") wherever it should matter (a lobby choice, a modifier...).
         public static readonly List<UnlockDef> All = new List<UnlockDef>
         {
+            new UnlockDef { Id = "class-engineer", Name = "Engineer", Desc = "Win a run: the Engineer class (open to everyone for now)", Earned = p => p.RunsWon > 0 },
             new UnlockDef { Id = "hunt-warden", Name = "Warden Hunt", Desc = "Beat the Warden in a run: hunt it any time from the lobby's Boss Hunt", Earned = p => p.Beaten(EnemyType.Boss) > 0 },
         };
 
@@ -292,6 +293,10 @@ namespace Arena
 
         /// Wildcard unlocks once you have won a run as a Tank, a Healer and a DPS (a co-op win counts). It stays out of the lobby, the
         /// Practice Range and the loadout pickers until then (Docs/Wildcard.md).
+        /// The Engineer (Docs/Engineer.md) is a locked class: it opens once you have won a run (Unlocks "class-engineer").
+        /// For now the lobby opens it for everyone (ArenaApp.EngineerUnlockedForTesting).
+        public bool EngineerUnlocked => IsUnlocked("class-engineer") || RunsWon > 0;
+
         public bool WildcardUnlocked => DevAllUnlocked || WinsWithRole(Role.Tank) > 0 && WinsWithRole(Role.Healer) > 0 && WinsWithRole(Role.Dps) > 0;
 
         public void BossBeaten(EnemyType boss, int wave)

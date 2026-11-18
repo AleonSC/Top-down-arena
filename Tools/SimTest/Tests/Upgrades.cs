@@ -35,12 +35,14 @@ static partial class Program
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
             {
-                placed.Add(Upgrades.Ultimate(role, (Kit)k));
+                if (!Upgrades.UltGap(role, (Kit)k))  // (a class still being built: its stand-ins aren't places of their own)
+                    placed.Add(Upgrades.Ultimate(role, (Kit)k));
                 for (int u = 1; u < Upgrades.UltKeys; u++)  // the other keys of the lobby's Ultimate row (the Juggernaut Suit)
                     if (Upgrades.AltUltimate(role, (Kit)k, u) != AbilityId.None)
                         placed.Add(Upgrades.AltUltimate(role, (Kit)k, u));
                 for (int c = 0; c < Upgrades.AbilityLimit(role, (Kit)k); c++)  // (a 4th where the class has one: Flood)
-                    placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
+                    if (!Upgrades.AbilityGap(role, (Kit)k, c))
+                        placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
             }
         bool lobby = placed.Distinct().Count() == placed.Count && placed.All(a => a != AbilityId.None)
             && placed.All(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly)
@@ -404,21 +406,26 @@ static partial class Program
     {
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         var cards = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].ClassAbility).ToList();
-        int right = 0, combos = 0;
+        int right = 0, combos = 0, gaps = 0;
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
                 for (int c = 0; c < Upgrades.AbilityLimit(role, (Kit)k); c++)
                 {
+                    if (Upgrades.AbilityGap(role, (Kit)k, c))
+                    {
+                        gaps++;
+                        continue;  // a class still being built: a stand-in, locked in the lobby
+                    }
                     var ab = Upgrades.RoleAbility(role, (Kit)k, c);
                     var offered = cards.Where(i => Upgrades.Available(i, new OfferCtx(role, ab, new List<int>()))).Select(i => Upgrades.All[i].Grants).OrderBy(x => x).ToList();
-                    var expect = Enumerable.Range(0, Upgrades.AbilityLimit(role, (Kit)k)).Where(o => o != c).Select(o => Upgrades.RoleAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
+                    var expect = Enumerable.Range(0, Upgrades.AbilityLimit(role, (Kit)k)).Where(o => o != c && !Upgrades.AbilityGap(role, (Kit)k, o)).Select(o => Upgrades.RoleAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
                     combos++;
                     if (offered.SequenceEqual(expect))
                         right++;
                 }
         Console.WriteLine("  class ability cards: {0} cards; the right two offered for {1}/{2} role/class/ability picks", cards.Count, right, combos);
         int fourths = new[] { Role.Tank, Role.Healer, Role.Dps }.Sum(r => Enumerable.Range(0, Defs.KitCount).Count(k => Upgrades.AbilityLimit(r, (Kit)k) > Upgrades.RoleAbilityChoices));  // (Flood, Kinetic Wall)
-        Check(cards.Count == 3 * Defs.KitCount * Upgrades.RoleAbilityChoices + fourths && right == combos, "each class is offered exactly its other Space abilities (two, or three with a 4th) as very rare cards");
+        Check(cards.Count == 3 * Defs.KitCount * Upgrades.RoleAbilityChoices + fourths - gaps && right == combos, "each class is offered exactly its other Space abilities (two, or three with a 4th) as very rare cards");
 
         var rng = new Random(7);
         int veryRare = 0, cls = 0;

@@ -722,6 +722,11 @@ namespace Arena
                     TickThrall(m, owner, dt);  // ForcePact.cs
                     continue;
                 }
+                if (IsWalker(m.Kind))
+                {
+                    TickStrider(m, owner, dt, speed, dmg);  // Engineer.cs
+                    continue;
+                }
                 if (m.Kind == MinionKind.SoulLantern)
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)
@@ -988,7 +993,7 @@ namespace Arena
             {
                 if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (IsTitanLike(m.Kind) && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
-                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
+                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall || m.Kind == MinionKind.VectorBlock ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)

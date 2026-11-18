@@ -11,7 +11,7 @@ namespace Arena
     ///   2 Welder: rust leather, a welding mask with a lit slit, twin gas tanks.
     /// The weapon, the Vector Forge: a chunky rivet gun with a rivet hopper and a cyan emitter at the nose.
     /// Followers (the Strider): 0 the vector wireframe walker (EngineerLook.cs), 1 a plated walker, 2 a four-legged spider rig.
-    /// Only Tools/Preview draws these yet (the `englook` mode, ShotEngineer.cs).
+    /// In matches: look A and the plated walker (picked Nov 17); Tools/Preview draws all three (the `englook` mode, ShotEngineer.cs).
     public partial class ArenaApp
     {
         struct EngPal { public ModelPal K; public Rgba Hat, HatDark, Accent; }
@@ -27,21 +27,22 @@ namespace Arena
         };
         static readonly Rgba EngCyan = new Rgba(0.36f, 0.88f, 1f), EngSteel = Hx(0x8a96a8), EngIron = Hx(0x4a5361);
 
-        void EngFrame(V2 at, float aim, float bodyR, float t)
+        void EngFrame(V2 at, float aim, float bodyR, float t, float alpha = 1f, float white = 0f)
         {
             mO = at; mAim = aim; mDir = V2.FromAngle(aim); mSide = new V2(-mDir.Y, mDir.X); mU = bodyR / 18f; mT = t;
-            mAlpha = 1f; mWhite = 0f; mTintA = 0f;
+            mAlpha = alpha; mWhite = white; mTintA = 0f;
             MFrame(0f, 0f, 0f, 1f, false);
         }
 
         /// The Engineer as a DPS: `fire` 0-1 is the rivet gun's kick.
-        internal void DrawEngineerModel(V2 at, float aim, float bodyR, int look, float t, float fire = 0f)
+        internal void DrawEngineerModel(V2 at, float aim, float bodyR, int look, float t, float fire = 0f, float alpha = 1f, float white = 0f, int role = 2)
         {
             var P = EngPals[look];
             var K = P.K;
-            Rgba RC = Defs.Get(Role.Dps).Color;
-            EngFrame(at, aim, bodyR, t);
-            float rx = 9f, ry = 12.5f;
+            Rgba RC = Defs.Get((Role)role).Color;
+            EngFrame(at, aim, bodyR, t, alpha, white);
+            float[] sh = ModelBuild[role];
+            float rx = sh[0], ry = sh[1];
             MEll(1f, 2f, rx + 2f, ry + 1f, new Rgba(0f, 0f, 0f, 0.28f));
 
             // the back piece
@@ -92,7 +93,7 @@ namespace Arena
                 MRect(-3f, -ry + 2f, 6f, 2f * ry - 4f, K.Dark);
                 MRect(-1.6f, -ry + 3f, 3.2f, 2.6f, Hx(0xc9a043)); MRect(-1.6f, ry - 5.6f, 3.2f, 2.6f, Hx(0xc9a043));
             }
-            ModelRoleTrim(2, K, RC, rx, ry, t, true);
+            ModelRoleTrim(role, K, RC, rx, ry, t, true);
 
             // arms on the Vector Forge (two hands: grip and foregrip)
             float kick = fire * 3f;
@@ -105,7 +106,7 @@ namespace Arena
             MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove);
 
             // the head
-            float hx = 2.5f, hr = 8.4f;
+            float hx = sh[3], hr = 8.4f;
             if (look == 2)  // a welding mask with a lit slit
             {
                 MCirc(hx, 0f, hr, P.HatDark, 14); MCirc(hx, 0f, hr - 1.2f, P.Hat, 14);
@@ -131,6 +132,29 @@ namespace Arena
                     MArc(hx - 0.6f, 0f, hr - 0.8f, -0.75f, 0.75f, 5f, EngCyan.WithAlpha(0.18f));
                 }
             }
+        }
+
+        /// The Engineer's look in a match: the picked look A (Hi-vis), Nov 17. The rivet gun kicks for a moment after each shot.
+        public const int EngineerLook = 0;
+
+        void DrawEngineerPlayer(Player p, float r, float t, Rgba col)
+        {
+            float fire = MathX.Clamp01(1f - (p.Weapon.FireInterval - p.FireCd) / 0.12f);
+            if (p.FireCd <= 0f) fire = 0f;
+            DrawEngineerModel(p.Disp, p.Aim, r, EngineerLook, t, fire, col.A, p.Flash > 0f ? 0.85f : 0f, Mathf.Min((int)p.Role, 2));
+        }
+
+        /// KitLook.Body: nothing over the model yet.
+        void DrawEngineerBody(Player p, float r, float t) { }
+
+        /// KitLook.Shot: an Engineer's DPS shots are rivets.
+        bool DrawEngineerShot(Bullet b, Rgba c, float t)
+        {
+            Player owner;
+            if (b.Kind != Defs.DpsShot || game == null || !game.Players.TryGetValue(b.Owner, out owner) || owner.Kit != Kit.Engineer)
+                return false;
+            DrawRivet(b.Pos, b.Vel.Angle, 0.8f);
+            return true;
         }
 
         /// The Vector Forge in its weapon frame: grip at (0,0), +x along the aim.
@@ -164,7 +188,7 @@ namespace Arena
         }
 
         /// The follower in one of its looks: 0 the wireframe walker, 1 plated, 2 spider rig. `scale` 1 = the Strider's size.
-        internal void DrawStriderLook(int look, V2 at, float face, float step, float punch, float hp, bool locked, float t, float scale = 1f)
+        internal void DrawStriderLook(int look, V2 at, float face, float step, float punch, float hp, bool locked, float t, float scale = 1f, bool sentinel = false)
         {
             if (look == 0)
             {
@@ -173,7 +197,7 @@ namespace Arena
             }
             EngFrame(at, face, 18f * StriderScale * scale * 1.2f, t);
             float l = Mathf.Sin(step) * 6f, p = punch * 9f;
-            Rgba hull = Hx(0x34445e), hullD = Hx(0x161e2c), hz = Hx(0xffb547);
+            Rgba hull = sentinel ? Hx(0x4a4436) : Hx(0x34445e), hullD = Hx(0x161e2c), hz = Hx(0xffb547);
             Rgba ink = locked ? EngInkHot : EngInk;
             if (look == 1)  // plated walker
             {

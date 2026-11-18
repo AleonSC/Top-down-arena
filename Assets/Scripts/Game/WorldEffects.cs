@@ -314,6 +314,9 @@ namespace Arena
                 case FxKind.Cauterize:
                     DrawCauterizeFx(fx);  // CauterizeLook.cs
                     break;
+                case FxKind.BreachSmash:
+                    DrawBreachFx(fx);  // EngineerLook.cs
+                    break;
                 case FxKind.RodBolt:
                     DrawRodBoltFx(fx);  // LightningRodLook.cs
                     break;

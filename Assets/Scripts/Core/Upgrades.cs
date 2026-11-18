@@ -38,6 +38,9 @@ namespace Arena
         WaterWard,    // the Healer Elementalist's fourth Space ability (WaterWard.cs), the lobby's 4th ability key
         DeployableCover,  // the Tank Soldier's fourth Space ability (DeployableCover.cs), the lobby's 4th ability key
         DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
+        DragPylon,     // the Engineer's Space ability (Engineer.cs)
+        Breach,        // the Engineer's ultimate (Engineer.cs)
+        VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's Space abilities and ultimates (Engineer.cs, step 4)
         None = 255,
     }
 
@@ -50,6 +53,7 @@ namespace Arena
         public Kit Kit;
         public Role Role;
         public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Fourth, Ult, or CardOnly (very rare cards only)
+        public bool FillsGaps;         // a class still being built (the Engineer): stands in for the class's empty Space (or, an ultimate, Ultimate) places; the lobby shows them locked
         public int UltKey;             // an ultimate's key on the lobby's Ultimate row: 0 the default one, 1-3 the ones picked instead (LobbyEntry.Ult)
         public string Name, Desc;
         public string Capstone;        // what mastering it (level 5) adds
@@ -194,6 +198,8 @@ namespace Arena
         public int SsSideBonus; public float SsSlamMult = 1f;              // Stonespear: Tectonic
         public int HarvestBonus; public float PuddleSizeMult = 1f;         // Honeybee Staff: Bigger Hive
         public float EsBlastMult = 1f;                                     // Embolus Spears: Burst Vessels
+        public float StriderHpMult = 1f, StriderRateMult = 1f, StriderRebuildCut;  // the Engineer's Strider: Reinforced Frame, Hydraulic Fists, Quick Assembly (Engineer.cs)
+        public float PylonSizeMult = 1f, PylonSlowBonus;                   // Drag Pylon: Wide Field
         public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
         public float WcReachMult = 1f, WcShoveMult = 1f;                 // Wind Clash: Gale Force
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
@@ -301,6 +307,8 @@ namespace Arena
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
             Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates));  // the classes' own, then the shared and boss-loot ones
+
+        static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
         /// Each role and class has its default ultimate (key 0 of the lobby's Ultimate row), and may have others on keys 1-3.
         static readonly AbilityId[] Ultimates = LobbyTable(true);
@@ -425,6 +433,13 @@ namespace Arena
 
         /// The lobby's ultimates (one per role and class) or Space choices (RoleAbilityChoices per role and class),
         /// from where each entry says it goes. Every place must be filled exactly once.
+        /// True when this Space place has no ability of its own yet (a class still being built): the lobby shows it locked.
+        public static bool AbilityGap(Role r, Kit kit, int choice) =>
+            (int)r < 3 && (int)kit < Defs.KitCount && choice >= 0 && choice < RoleAbilityChoices && spaceGaps.Contains(((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + choice);
+
+        /// True when this role and class has no ultimate of its own yet.
+        public static bool UltGap(Role r, Kit kit) => (int)r < 3 && (int)kit < Defs.KitCount && ultGaps.Contains((int)r * Defs.KitCount + (int)kit);
+
         static AbilityId[] LobbyTable(bool ultimates)
         {
             int per = ultimates ? 1 : RoleAbilityChoices;
@@ -440,6 +455,17 @@ namespace Arena
                     throw new InvalidOperationException(a.Id + " and " + table[i] + " are in the same lobby place");
                 table[i] = a.Id;
             }
+            for (int i = 0; i < table.Length; i++)
+                if (table[i] == AbilityId.None)
+                {
+                    int kit = i / per % Defs.KitCount, role = i / per / Defs.KitCount;
+                    for (int pass = 0; pass < 2 && table[i] == AbilityId.None; pass++)  // its own role's stand-in first
+                        foreach (var a in Abilities)
+                            if (table[i] == AbilityId.None && a.FillsGaps && (int)a.Kit == kit && (a.Choice == AbilityDef.Ult) == ultimates && (pass == 1 || (int)a.Role == role))
+                                table[i] = a.Id;
+                    if (table[i] != AbilityId.None)
+                        (ultimates ? ultGaps : spaceGaps).Add(i);
+                }
             int empty = Array.IndexOf(table, AbilityId.None);
             if (empty >= 0)
                 throw new InvalidOperationException("No " + (Role)(empty / per / Defs.KitCount) + " " + (ultimates ? "ultimate" : "Space ability (Choice " + empty % per + ")")
@@ -559,7 +585,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 25% more damage",
                 Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.25f; } },
         }, ClassAbilityCards(), Milestones(), VectorCards(), Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards,
-            Game.KnightCards, Game.NinjaCards, Game.HemomancerCards);
+            Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards);
 
         /// After a boss: every weapon mod you can still take, to choose from.
         public static int[] ModOffer(OfferCtx c)
@@ -667,7 +693,7 @@ namespace Arena
         static UpgradeDef[] ClassAbilityCards()
         {
             var all = new List<UpgradeDef>();
-            foreach (var id in RoleAbilities.Concat(FourthAbilities.Where(f => f != AbilityId.None)))
+            foreach (var id in RoleAbilities.Concat(FourthAbilities.Where(f => f != AbilityId.None)).Distinct())  // (a stand-in fills several places: one card)
             {
                 var a = Ability(id);
                 all.Add(new UpgradeDef
@@ -736,7 +762,10 @@ namespace Arena
         /// Which role and class a Space ability belongs to (each belongs to exactly one), or -1.
         static int KitOf(AbilityId id)
         {
-            int i = Array.IndexOf(RoleAbilities, id);
+            int i = -1;
+            for (int k = 0; k < RoleAbilities.Length && i < 0; k++)
+                if (RoleAbilities[k] == id && !spaceGaps.Contains(k))
+                    i = k;  // (its own place, not one it stands in for)
             if (i < 0 && id != AbilityId.None)
                 return Array.IndexOf(FourthAbilities, id);  // a 4th ability: the same role-and-class index
             return i < 0 ? -1 : i / RoleAbilityChoices;

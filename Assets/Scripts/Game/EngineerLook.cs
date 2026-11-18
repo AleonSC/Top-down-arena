@@ -75,6 +75,145 @@ namespace Arena
                 DrawHardHat(game.Me.Disp, game.Me.Def.BodyR, game.Me.Aim);
         }
 
+        // --- in a match: drawn from the replicated zone, minion and effect ---
+
+        /// A Drag Pylon zone (ZoneKind.DragPylon): it unfolds as it lands and folds up in its last moment.
+        void DrawDragPylonZone(Zone z, float t)
+        {
+            float age = z.Duration - z.T;
+            float fold = z.T < 0.3f ? 1f - z.T / 0.3f : 0f;
+            bool med = z.Kind == ZoneKind.MedPylon;
+            DrawDragPylon(z.Pos, age, fold, t, z.Radius, med);
+            if (med)  // a Med Pylon: plus marks rising off the floor instead of drag rings
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    float ph = Mathf.Repeat(t * 0.5f + i * 0.25f, 1f);
+                    V2 c = z.Pos + V2.FromAngle(i * 1.9f + 0.6f) * (z.Radius * 0.55f) + new V2(0f, -20f * ph);
+                    float a = Mathf.Sin(ph * MathX.Pi) * 0.8f;
+                    Line(c - new V2(5f, 0f), c + new V2(5f, 0f), 2.4f, EngGood.WithAlpha(a));
+                    Line(c - new V2(0f, 5f), c + new V2(0f, 5f), 2.4f, EngGood.WithAlpha(a));
+                }
+                return;
+            }
+            foreach (var e in game.Enemies.Values)
+                if (e.Hp > 0f && e.Disp.CloserThan(z.Pos, z.Radius + e.Radius * 0.5f))
+                    DrawDragTrail(e, t);
+        }
+
+        /// The Strider (MinionKind.Strider): the picked look B (plated walker), Nov 17. Aim its facing, Wind its punch, GuardFrac
+        /// its health, Stacks 1 locked on (LinkTo the enemy: reticle and tether) or 2 posted.
+        public const int StriderLookPick = 1;
+
+        void DrawStriderMinion(Minion m, float t)
+        {
+            Enemy target = null;
+            if (m.Stacks == 1 && m.LinkTo != 0)
+                game.Enemies.TryGetValue(m.LinkTo, out target);
+            if (target != null)
+            {
+                DrawDashed(m.Disp, target.Disp, EngInk.WithAlpha(0.5f), 2f, 12f, 8f, t * 60f);
+                DrawLockReticle(target.Disp, target.Radius + 10f, t);
+            }
+            float step = (m.Disp.X + m.Disp.Y) * 0.09f;
+            if (m.Wind >= 2f)  // building (Wind 2-3): the wireframe draws itself in, line by line, then the plates go on
+            {
+                DrawStrider(m.Disp, m.Aim, step, 0f, m.Wind - 2f, -1f, false, -1f, t);
+                return;
+            }
+            if (m.Kind == MinionKind.Sentinel)  // the Tank's walker: the plated look, bigger, amber trim
+                DrawStriderLook(1, m.Disp, m.Aim, step, m.Wind, m.GuardFrac, target != null, t, 1.4f, true);
+            else
+                DrawStriderLook(StriderLookPick, m.Disp, m.Aim, step, m.Wind, m.GuardFrac, target != null, t);
+        }
+
+        static readonly string[] BreachLootNames = { "VECTORS", "SUPPLY CRATE", "REPAIR BAY", "WORKBENCH", "?" };
+
+        /// A Breach room's loot (NodeKind.BreachLoot, its kind in Rule): the icon bobbing in a ring to walk into, a label under it
+        /// (an ambush shows only "?"); gone once taken.
+        void DrawBreachLootNode(MapNode n)
+        {
+            if (n.Spent)
+                return;
+            float t = game.AnimT;
+            int kind = Mathf.Clamp(n.Rule, 0, 4);
+            Rgba c = kind == 4 ? EngAmber : LootInk[kind];
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f);
+            Circle(n.Pos, 58f, c.WithAlpha(0.05f + 0.04f * pulse), 28);
+            Arc(n.Pos, Game.BreachLootReach + 14f + 3f * pulse, 2f, c.WithAlpha(0.35f + 0.25f * pulse), 32);
+            if (kind == 4)
+            {
+                Arc(n.Pos, 14f, 2.4f, c, 20, MathX.Pi, MathX.Pi * 1.5f);
+                Circle(n.Pos + new V2(0f, 14f), 2.2f, c, 8);
+            }
+            else
+                DrawBreachLoot(n.Pos + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), kind, 1f, t);
+        }
+
+        /// The Healer Engineer's med-drone: a small rotor drone with a green cross, a soft ring while it heals someone near it.
+        void DrawMediDrone(Minion m, float t)
+        {
+            V2 c = m.Disp;
+            bool healing = false;
+            foreach (var q in game.Players.Values)
+                healing |= !q.Downed && q.Hp < q.MaxHp && q.Disp.CloserThan(c, m.Def.Range);
+            if (healing)
+                Arc(c, m.Def.Range, 1.6f, EngGood.WithAlpha(0.35f + 0.2f * Mathf.Sin(t * 5f)), 32);
+            Circle(c + new V2(2f, 3f), 11f, new Rgba(0f, 0f, 0f, 0.25f), 14);
+            for (int k = 0; k < 4; k++)  // rotor arms and spinning rotors
+            {
+                V2 d = V2.FromAngle(MathX.Pi * 0.25f + k * MathX.Pi * 0.5f);
+                Line(c, c + d * 10f, 2f, EngIron);
+                Arc(c + d * 10f, 4.5f, 1.2f, EngInk.WithAlpha(0.7f), 10, t * 20f + k, 2.2f);
+            }
+            Circle(c, 6.5f, Hx(0x161e2c), 14);
+            Circle(c, 5.2f, Hx(0xe9eef2), 14);
+            Line(c - new V2(3f, 0f), c + new V2(3f, 0f), 1.8f, EngGood);
+            Line(c - new V2(0f, 3f), c + new V2(0f, 3f), 1.8f, EngGood);
+        }
+
+        /// One Vector Wall or Bastion tile: a glowing cyan block turned to its Aim, fading in its last second; GuardFrac its soak left.
+        void DrawVectorBlock(Minion m, float t)
+        {
+            float a = m.T >= 0f && m.T < 1f ? m.T : 1f;
+            float age = m.Duration - m.T;
+            float grow = Mathf.Clamp01(age / 0.2f);
+            V2 f = V2.FromAngle(m.Aim), s = new V2(-f.Y, f.X);
+            float hw = 17f * grow, hd = 8f * grow;
+            V2 p0 = m.Disp - f * hd - s * hw, p1 = m.Disp + f * hd - s * hw, p2 = m.Disp + f * hd + s * hw, p3 = m.Disp - f * hd + s * hw;
+            SetColor(EngPlate.WithAlpha(0.85f * a)); Quad(p0, p1, p2, p3);
+            SetColor(EngInk.WithAlpha(0.12f * a * (0.4f + 0.6f * m.GuardFrac))); Quad(p0, p1, p2, p3);
+            EngStroke(p0, p1, 1.8f, EngInk, a); EngStroke(p1, p2, 1.8f, EngInk, a); EngStroke(p2, p3, 1.8f, EngInk, a); EngStroke(p3, p0, 1.8f, EngInk, a);
+            Line(m.Disp - s * hw * 0.8f, m.Disp + s * hw * 0.8f, 1f, EngInk.WithAlpha(0.4f * a));
+        }
+
+        /// Safe Room: the room (or dome) washed green, a dashed cyan rim, plus marks rising; the cut shown as a faint shield hatch.
+        void DrawSafeRoom(Zone z, float t)
+        {
+            float left = Mathf.Clamp01(z.T / Mathf.Max(0.01f, z.Duration)), a = z.T < 1f ? z.T : 1f;
+            Circle(z.Pos, z.Radius, EngGood.WithAlpha(0.08f * a), 48);
+            int dashes = 32;
+            for (int i = 0; i < dashes; i++)
+                Arc(z.Pos, z.Radius, 2.2f, EngGood.WithAlpha(0.8f * a), 4, MathX.Tau * i / dashes + t * 0.2f, MathX.Tau / dashes * 0.5f);
+            Arc(z.Pos, z.Radius + 6f, 2.5f, EngInk.WithAlpha(0.6f * a), 48, -MathX.Pi / 2f, MathX.Tau * left);
+            for (int i = 0; i < 6; i++)
+            {
+                float ph = Mathf.Repeat(t * 0.4f + i / 6f, 1f);
+                V2 c = z.Pos + V2.FromAngle(i * 2.4f) * (z.Radius * 0.6f) + new V2(0f, -26f * ph);
+                float al = Mathf.Sin(ph * MathX.Pi) * 0.8f * a;
+                Line(c - new V2(6f, 0f), c + new V2(6f, 0f), 2.6f, EngGood.WithAlpha(al));
+                Line(c - new V2(0f, 6f), c + new V2(0f, 6f), 2.6f, EngGood.WithAlpha(al));
+            }
+        }
+
+        /// FxKind.BreachSmash: the hammer and the hit (Pos the wall, Pos2 one px on into it, T its age).
+        void DrawBreachFx(Effect fx)
+        {
+            V2 o = fx.Pos2 - fx.Pos;
+            var m = new EngineerMock { WallPt = fx.Pos, Out = o.Length > 0.01f ? o.Normalized() : new V2(0f, -1f), BreachT = fx.T };
+            DrawBreach(m, Time.time);
+        }
+
         void DrawDashed(V2 a, V2 b, Rgba c, float w, float dash, float gap, float offset)
         {
             float len = (b - a).Length;
@@ -164,40 +303,41 @@ namespace Arena
                 Arc(at, 30f * k, 2f, EngInk.WithAlpha(0.35f), 32, -MathX.Pi * 0.5f, MathX.Tau * build);
         }
 
-        void DrawDragPylon(V2 at, float age, float fold, float t)
+        void DrawDragPylon(V2 at, float age, float fold, float t, float radius = PylonRadius, bool med = false)
         {
-            float r = PylonRadius * (1f - fold) * Mathf.Clamp01(age / 0.25f);
+            Rgba ink = med ? EngGood : EngSlow;
+            float r = radius * (1f - fold) * Mathf.Clamp01(age / 0.25f);
             if (r > 2f)
             {
-                Circle(at, r, EngSlow.WithAlpha(0.07f), 48);
+                Circle(at, r, ink.WithAlpha(0.07f), 48);
                 const float sp = 26f;
                 float o = Mathf.Repeat(t * 12f, sp);
                 for (float x = -r + o; x < r; x += sp)
                 {
                     float h = Mathf.Sqrt(Mathf.Max(0f, r * r - x * x));
-                    Line(at + new V2(x, -h), at + new V2(x, h), 1.2f, EngSlow.WithAlpha(0.28f));
-                    Line(at + new V2(-h, x), at + new V2(h, x), 1.2f, EngSlow.WithAlpha(0.28f));
+                    Line(at + new V2(x, -h), at + new V2(x, h), 1.2f, ink.WithAlpha(0.28f));
+                    Line(at + new V2(-h, x), at + new V2(h, x), 1.2f, ink.WithAlpha(0.28f));
                 }
                 int dashes = 28;
                 for (int i = 0; i < dashes; i++)
                 {
                     float a0 = MathX.Tau * i / dashes - t * 0.25f;
-                    Arc(at, r, 2.4f, EngSlow, 4, a0, MathX.Tau / dashes * 0.55f);
+                    Arc(at, r, 2.4f, ink, 4, a0, MathX.Tau / dashes * 0.55f);
                 }
-                Arc(at, r, 9f, EngSlow.WithAlpha(0.12f), 48);
+                Arc(at, r, 9f, ink.WithAlpha(0.12f), 48);
                 float pu = Mathf.Repeat(t * 0.6f, 1f);
-                Arc(at, r * pu, 1.4f, EngSlow.WithAlpha(0.5f * (1f - pu)), 40);
+                Arc(at, r * pu, 1.4f, ink.WithAlpha(0.5f * (1f - pu)), 40);
             }
             float k = 1f - fold;
             if (k <= 0.02f)
                 return;
             V2 tip = at + new V2(0f, -18f * k);
             Circle(at + new V2(0f, 4f), 13f * k, new Rgba(0f, 0f, 0f, 0.3f), 16);
-            EngStroke(at + new V2(-11f * k, 9f * k), tip, 2.2f, EngSlow);
-            EngStroke(at + new V2(11f * k, 9f * k), tip, 2.2f, EngSlow);
-            EngStroke(at + new V2(0f, 9f * k), tip, 2.2f, EngSlow);
+            EngStroke(at + new V2(-11f * k, 9f * k), tip, 2.2f, ink);
+            EngStroke(at + new V2(11f * k, 9f * k), tip, 2.2f, ink);
+            EngStroke(at + new V2(0f, 9f * k), tip, 2.2f, ink);
             float blink = 0.6f + 0.4f * Mathf.Sin(t * 6f);
-            Circle(tip, 7f * k, EngSlow.WithAlpha(0.3f * blink), 12);
+            Circle(tip, 7f * k, ink.WithAlpha(0.3f * blink), 12);
             Circle(tip, 3.2f * k, EngWhite, 10);
         }
 

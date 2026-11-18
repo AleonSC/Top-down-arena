@@ -127,7 +127,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 396;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 397;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -970,6 +970,10 @@ namespace Arena
             if (e.Role == Role.Wildcard)
             {
                 e.Kit = Kit.Soldier;  // a Wildcard has no class of its own: no class health, speed or passives
+                if (e.Weapon < Defs.WildcardChoices && Defs.WeaponGap(Role.Dps, (Kit)(e.Weapon / Defs.WeaponsPerRole), e.Weapon % Defs.WeaponsPerRole))
+                    e.Weapon = (byte)(e.Weapon / Defs.WeaponsPerRole * Defs.WeaponsPerRole);  // a locked place (a class still being built): its first weapon
+                if (Upgrades.AbilityGap(Role.Dps, (Kit)(Defs.WildSecond(e.Ability) / Upgrades.RoleAbilityChoices), Defs.WildSecond(e.Ability) % Upgrades.RoleAbilityChoices))
+                    e.Ability = (byte)(Defs.WildSecond(e.Ability) / Upgrades.RoleAbilityChoices * Upgrades.RoleAbilityChoices);
                 int first = Defs.WildSecond(e.Ability), second = Defs.WildSecond(e.Wild);
                 if (second == first)
                     second = (second + 1) % Defs.WildcardChoices;
@@ -978,9 +982,11 @@ namespace Arena
             }
             else
             {
-                if (e.Weapon >= Defs.WeaponLimit(e.Role, e.Kit))
+                if (Defs.KitLocked(e.Role, e.Kit))
+                    e.Kit = Kit.Soldier;  // a class with nothing for this role yet (the Engineer outside DPS)
+                if (e.Weapon >= Defs.WeaponLimit(e.Role, e.Kit) || Defs.WeaponGap(e.Role, e.Kit, e.Weapon))
                     e.Weapon = 0;  // (three weapons, or four where the class has a fourth)
-                if (e.Ability >= Upgrades.AbilityLimit(e.Role, e.Kit))
+                if (e.Ability >= Upgrades.AbilityLimit(e.Role, e.Kit) || Upgrades.AbilityGap(e.Role, e.Kit, e.Ability))
                     e.Ability = 0;
                 e.Wild = 0;
                 e.Ult = (byte)Upgrades.ClampUlt(e.Role, e.Kit, e.Ult);  // only keys this role and class has an ultimate on
@@ -1000,6 +1006,7 @@ namespace Arena
                 e.Ult = 0;
             }
             e.Kit = ClampKit(kit);
+            ClampLoadout(e);  // (a class this role can't play yet goes back to the Soldier)
             e.Ready = false;
             BroadcastLobby();
         }

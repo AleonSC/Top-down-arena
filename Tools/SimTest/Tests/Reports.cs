@@ -561,7 +561,8 @@ static partial class Program
                         host.Leave("");
                     }
                     line.Add(string.Format("{0} {1:0}", weapon.Name, best));
-                    rows.Add(string.Format("            {{ WeaponId.{0}, {1:0}f }},", weapon.Id, best));
+                    if (!Defs.WeaponGap((Role)r, (Kit)k, wi))  // (a stand-in, a class still being built: its own place writes it)
+                        rows.Add(string.Format("            {{ WeaponId.{0}, {1:0}f }},", weapon.Id, best));
                 }
                 Console.WriteLine("  {0,-6} {1,-12} {2}", (Role)r, Defs.KitName((Kit)k), string.Join(" | ", line));
             }

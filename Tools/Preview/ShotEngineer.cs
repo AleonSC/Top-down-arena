@@ -30,6 +30,44 @@ static partial class Shot {
       e.SpawnT = 0f; e.Pos = e.Disp = p; e.Facing = face; e.FireT = 99f; return e;
     };
     var m = new EngineerMock();
+    if (mode == "real") {
+      // ENGINEER=real: the built class in a match, drawn by the game's own paths (no mock): you as a DPS Engineer, your Strider
+      // (a real MinionKind.Strider, locked on a Charger) and a Drag Pylon zone with grunts crossing it.
+      me.Kit = Kit.Engineer; me.Weapon = Defs.Weapon(Role.Dps, Kit.Engineer, 0);
+      me.Pos = me.Disp = new V2(700f, 560f);
+      var bf = BindingFlags.NonPublic | BindingFlags.Instance;
+      var target = put(EnemyType.Charger, new V2(985f, 440f), MathX.Pi);
+      target.Hp = target.MaxHp * 0.55f;
+      var s = (Minion)typeof(Game).GetMethod("SpawnMinion", bf).Invoke(gm, new object[] { MinionKind.Strider, me, new V2(935f, 450f), -1f, true });
+      s.MaxHp = 500f; s.Hp = 380f; s.Aim = (target.Pos - s.Pos).Angle; s.Wind = 0.8f; s.Stacks = 1; s.LinkTo = target.Id; s.GuardFrac = s.Hp / s.MaxHp;
+      var z = (Zone)typeof(Game).GetMethod("AddZone", bf).Invoke(gm, new object[] { ZoneKind.DragPylon, me, new V2(560f, 330f), Game.PylonRadius, 100000f });
+      z.T = 99990f;
+      put(EnemyType.Grunt, new V2(600f, 300f), MathX.Pi * 0.2f); put(EnemyType.Grunt, new V2(520f, 380f), MathX.Pi * 0.1f);
+      put(EnemyType.Grunt, new V2(1080f, 520f), MathX.Pi * 1.1f);
+      me.Aim = (new V2(600f, 300f) - me.Pos).Angle;
+      string er = Environment.GetEnvironmentVariable("ENGROLE");  // ENGROLE=tank|healer: that role's kit instead (Sentinel and a Vector Wall; med-drone, Med Pylon and Safe Room)
+      if (er != null) {
+        var spawnM = typeof(Game).GetMethod("SpawnMinion", bf); var addZ = typeof(Game).GetMethod("AddZone", bf);
+        gm.Minions.Remove(s.Id); gm.Zones.Clear();
+        me.Role = er == "tank" ? Role.Tank : Role.Healer; me.Def = Defs.Get(me.Role); me.Weapon = Defs.Weapon(me.Role, Kit.Engineer, 0);
+        if (er == "tank") {
+          var sn = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.Sentinel, me, new V2(920f, 455f), -1f, true });
+          sn.MaxHp = 1000f; sn.Hp = 820f; sn.GuardFrac = 0.82f; sn.Aim = (target.Pos - sn.Pos).Angle; sn.Wind = 0.6f; sn.Stacks = 1; sn.LinkTo = target.Id;
+          for (int i = 0; i < 5; i++) { var b = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.VectorBlock, me, new V2(560f + i * 2f, 300f + (i - 2) * 36f), 8f, false }); b.Aim = 0f; b.GuardFrac = 1f; b.T = 6f; }
+        } else {
+          var dr = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.MediDrone, me, me.Pos + new V2(40f, -30f), -1f, true });
+          var mp = (Zone)addZ.Invoke(gm, new object[] { ZoneKind.MedPylon, me, new V2(560f, 330f), Game.PylonRadius, 100000f }); mp.T = 99990f;
+          var sr = (Zone)addZ.Invoke(gm, new object[] { ZoneKind.SafeRoom, me, new V2(1000f, 520f), Game.SafeDomeRadius, 12f }); sr.T = 8f;
+          me.Hp = me.MaxHp * 0.6f;
+        }
+      }
+      string eb = Environment.GetEnvironmentVariable("ENGBUILD");  // ENGBUILD=<0-1>: the Strider that far through building in
+      if (eb != null) { s.Wind = 2f + float.Parse(eb, inv); s.Stacks = 0; s.LinkTo = 0; }
+      string el = Environment.GetEnvironmentVariable("ENGLOOT");  // ENGLOOT=<0-4>: a Breach room's loot node beside you (vectors, crate, repair, bench, ambush)
+      if (el != null) gm.Nodes.Add(new MapNode { X = 860, Y = 640, Kind = NodeKind.BreachLoot, Rule = byte.Parse(el) });
+      Console.Error.WriteLine("engineer: real");
+      return;
+    }
     if (mode == "strider") {
       me.Pos = me.Disp = new V2(770f, 540f);
       var target = put(EnemyType.Charger, new V2(985f, 440f), MathX.Pi);
@@ -66,7 +104,7 @@ static partial class Shot {
       foreach (var e in gm.Enemies.Values) if (et >= 0.75f) { V2 d = (e.Pos - wall); e.Pos = e.Disp = e.Pos + d.Normalized() * 70f; }
     }
     m.Model = int.Parse(Environment.GetEnvironmentVariable("ENGMODEL") ?? "0");  // ENGMODEL=0-2 the Engineer look, -1 the stand-in Soldier
-    m.FollowLook = int.Parse(Environment.GetEnvironmentVariable("ENGFOLLOW") ?? "0");  // ENGFOLLOW=0-2 the Strider look
+    m.FollowLook = int.Parse(Environment.GetEnvironmentVariable("ENGFOLLOW") ?? "1");  // ENGFOLLOW=0-2 the Strider look (default 1, the picked plated walker)
     ArenaApp.engineerMock = m;
     Console.Error.WriteLine("engineer: " + mode + " t=" + et + " enemies=" + gm.Enemies.Count);
   }

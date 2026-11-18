@@ -1,6 +1,6 @@
 # Engineer: a vector builder class
 
-Status: **mockup** (Nov 17, 2026). Nothing built yet. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
+Status: **steps 1-4 built** (Nov 17, 2026; protocol 397): the DPS Engineer with the Vector Forge and Strider, Drag Pylon and Breach; the Draftsman passive, vector repairs and four class cards. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
 (real renders, a playable bench, the kit, a Breach room roller). Numbers are first guesses.
 The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=strider|pylon|breach ENGT=<s> Tools/Preview/shot.sh x hud`
 (`Tools/Preview/ShotEngineer.cs`); the renders are in `Mockups/engineer/`.
@@ -21,7 +21,7 @@ speed x0.95. Passive **Draftsman**: +25% vectors (Expanding arena). DPS first; T
 Breach reuses the breach-room work ([`BreachRooms.md`](BreachRooms.md), `SurpriseOptions`, `PinBreaches`): the room is
 placed so its floor covers the hole, shifting sideways around neighbours; no legal spot = blast only.
 
-## Looks (to pick)
+## Looks (picked Nov 17: Engineer A Hi-vis, Strider B plated walker)
 
 `Game/EngineerModel.cs`, sheets in `Mockups/engineer/look-*.png`: Engineer A Hi-vis / B Drafter / C Welder; Strider A wireframe /
 B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
@@ -32,3 +32,32 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
 - Role: DPS first? (proposed)
 - Vectors in the kit: Draftsman passive and repairing the Strider with vectors (1 vector = 30 HP)? (proposed: both)
 - Ambush rooms: keep the risk roll? (proposed: keep, double gold)
+
+## Build steps
+
+1. **Built** (protocol 397): `Kit.Engineer`, DPS only (stand-ins lock its other lobby places: `FillsGaps`); Vector Forge
+   (rivets + the Strider: hunt, punch, slam, aggro, Alt lock/post/recall, rebuilt in 8 s), Drag Pylon, Breach (blast; a
+   room behind the Expanding arena's wall with one loot roll, the loot dropped where it lands); looks A Hi-vis and the
+   plated walker. Defaults taken for the open questions: DPS first, no wall = blast + loot at the cursor, Ambush kept.
+2. **Built**: Draftsman (+25% from every vector gain, `AddVectors` -> `Draftsman`, part-vectors carried in `Player.DraftCarry`),
+   repairs (within 90 px of your hurt Strider in the Expanding arena: 1 vector per 0.25 s for 30 health) and the class cards
+   Reinforced Frame, Hydraulic Fists, Quick Assembly and Wide Field (`Game.EngineerCards`).
+3. **Built**: Breach rooms keep their loot as a map node (`NodeKind.BreachLoot`, the kind in `Rule`) taken by the first player to
+   walk up to it (`TickBreachLoot`; a Stash keeps its own vector cache); the Strider builds in for 1.2 s (`Minion.Wind` 2-3: the
+   wireframe draws in, then the plated walker).
+4. **Built** (protocol 397): **Tank and Healer kits** (decided Nov 17; one weapon, Space ability and ultimate each, like the DPS):
+   - Tank: **Bulwark Forge** (a nail shotgun; the follower is a heavy **Sentinel** walker that soaks shots and taunts wider,
+     Alt orders it like the Strider), **Vector Wall** (Space: a 5-tile wall from you toward the cursor that stops enemy shots
+     for 8 s), **Bastion** (ultimate: a ring of vector walls round you for 10 s, with gaps to shoot out of).
+   - Healer: **Medi-Drone Forge** (a light rivet gun; the follower is a flying **med-drone** that heals the most hurt ally),
+     **Med Pylon** (Space: a pylon whose field heals allies; one at a time), **Safe Room** (ultimate: Breach a wall into a
+     room that heals everyone inside for 12 s; elsewhere a healing dome at the cursor).
+   Built as: the Sentinel runs the Strider's tick (`IsWalker`), Vector Wall and Bastion tiles are `MinionKind.VectorBlock`
+   (static blockers that wear by the damage they stop), the med-drone is a weapon companion (`MinionMove.FollowHurt`,
+   `MinionAttack.Heal`), Med Pylon shares the Drag Pylon's cast (`CastPylon`), Safe Room shares Breach's hammer (`SmashWall`)
+   and is a `ZoneKind.SafeRoom` with `Zone.DamageCut`. The model wears its role's build and trim. Stand-ins now prefer their
+   own role's (`FillsGaps`).
+5. Next: more weapons, abilities and ultimates per role (each role has two locked weapon keys and two locked ability keys).
+
+Unlock (Nov 18): a locked class, `Unlocks` "class-engineer" (win a run; `Profile.EngineerUnlocked`), with a padlock card in the lobby and
+the Wildcard wheel until then. Open to everyone for now: `EngineerUnlockedForTesting` in `LobbyUi.cs`.

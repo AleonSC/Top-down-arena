@@ -123,7 +123,7 @@ namespace Arena
     /// Soldier is the original gun-based kit; Mage and Summoner are the alternatives for each role.
     /// The classes, in lobby order (the order is sent over the network and indexes the class tables: add new ones at the end).
     /// Each has a KitDef (Classes.cs). Run saves from before the October 2026 rename say "Mage" and "BloodMage" (KitFromSave).
-    public enum Kit : byte { Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer }
+    public enum Kit : byte { Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer, Engineer }
 
     public enum WeaponId : byte
     {
@@ -153,6 +153,10 @@ namespace Arena
         EmbolusSpears,
         // the Tank Knight's fourth (BulwarkBarrier.cs): a kite shield
         BulwarkBarrier,
+        // the Engineer DPS's weapon (Engineer.cs): a rivet gun that builds and commands the Strider
+        VectorForge,
+        // the Engineer Tank's and Healer's weapons (Engineer.cs, step 4): a nail shotgun with the Sentinel; a rivet gun with a med-drone
+        BulwarkForge, MediDroneForge,
     }
 
     public class WeaponDef
@@ -172,6 +176,7 @@ namespace Arena
         // Summoner weapons keep companions around. Imps blow themselves up, so a new one
         // arrives every CompanionRespawn seconds; the others stay until they are lost.
         public MinionKind Companion = MinionKind.None;
+        public bool FillsGaps;    // a class still being built (the Engineer): this weapon stands in for the class's empty lobby places, which the lobby shows locked
         public int CompanionCount;
         public float CompanionRespawn = 3f;
         public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana and the Blood Lash too)
@@ -533,12 +538,21 @@ namespace Arena
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
         public const int MaxWeapons = 6;  // (the fifth and sixth are the Twin Rifle's variant weapons, Choice 4 and 5: the Auto and Out of Ammo; the Soldier DPS's fourth is the Double Barrel)
 
-        public const int KitCount = 6;
+        public const int KitCount = 7;
 
         /// Every weapon, in lobby order (Role, then Kit, then Choice), gathered from each class's list: Weapons.cs (Soldier),
         /// Minions.cs (Mage, Summoner), Knight.cs, Ninja.cs, BloodMage.cs. Every place must be filled exactly once.
         /// The three weapons of every role and class come first (indexed by role, kit and choice); the fourth weapons follow them.
         public static readonly WeaponDef[] Weapons = WeaponRegistry(Classes.WeaponLists());
+
+        static bool[] gap;          // lobby places a FillsGaps weapon stands in for (locked in the lobby): [((role * KitCount) + kit) * 3 + choice]
+
+        /// True when this lobby place has no weapon of its own yet (a class still being built): the lobby shows it locked.
+        public static bool WeaponGap(Role role, Kit kit, int index) =>
+            gap != null && (int)role < 3 && (int)kit < KitCount && index >= 0 && index < WeaponsPerRole && gap[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
+
+        /// A class with no weapons of its own for this role (the Engineer outside DPS): the lobby won't pick it for that role.
+        public static bool KitLocked(Role role, Kit kit) => role != Role.Wildcard && WeaponGap(role, kit, 0);
 
         static WeaponDef[] fifth;   // a role and class's fifth weapon (Choice 4, a variant), or null
         static WeaponDef[] sixth;   // a role and class's sixth weapon (Choice 5, a second variant), or null
@@ -701,6 +715,18 @@ namespace Arena
                         throw new InvalidOperationException("Two WeaponDefs for " + w.Id);
                     all[i] = w;
                     seen[(int)w.Id] = true;
+                }
+            gap = new bool[all.Length];
+            for (int i = 0; i < all.Length; i++)
+                if (all[i] == null)
+                {
+                    int kit = i / WeaponsPerRole % KitCount, role = i / (KitCount * WeaponsPerRole);
+                    for (int pass = 0; pass < 2 && all[i] == null; pass++)  // its own role's stand-in first, else any of the class's
+                        foreach (var list in lists)
+                            foreach (var w in list)
+                                if (all[i] == null && w.FillsGaps && (int)w.Kit == kit && (pass == 1 || (int)w.Role == role))
+                                    all[i] = w;
+                    gap[i] = all[i] != null;
                 }
             for (int i = 0; i < all.Length; i++)
                 if (all[i] == null)

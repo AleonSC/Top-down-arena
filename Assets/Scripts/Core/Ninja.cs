@@ -1127,6 +1127,8 @@ namespace Arena
                 return;  // the Stonespear's volley (Stonespear.cs)
             if (LocalEmbolusBlast(me, pressed, aimAt))
                 return;  // the Embolus Spears burst (EmbolusSpears.cs)
+            if (LocalStriderOrder(me, pressed, aimAt, dt))
+                return;  // the Vector Forge's Strider orders (Engineer.cs)
             if (LocalPistolWhip(me, pressed, aimAt, dt))
                 return;  // the Revolver's Pistol Whip (PistolWhip.cs)
             if (LocalHammerSlamReady(me, pressed, dt))
@@ -1326,6 +1328,11 @@ namespace Arena
             if (kind == DashNunGuard)
             {
                 HostNunSwitch(p);  // the Nunchaku's combo to Twin Windmill and back (Nunchaku.cs)
+                return;
+            }
+            if (kind == DashStrider)
+            {
+                HostStriderOrder(p, target);  // the Vector Forge's Alt (Engineer.cs)
                 return;
             }
             if (kind == DashWhip)

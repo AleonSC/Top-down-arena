@@ -54,6 +54,7 @@ namespace Arena
             new KitLists(Game.KnightKit, Game.KnightWeapons, Game.KnightAbilities),
             new KitLists(Game.NinjaKit, Game.NinjaWeapons, Game.NinjaAbilities),
             new KitLists(Game.HemomancerKit, Game.HemomancerWeapons, Game.HemomancerAbilities),
+            new KitLists(Game.EngineerKit, Game.EngineerWeapons, Game.EngineerAbilities),
         };
 
         /// Every class's weapon list, for Defs.Weapons.
@@ -73,7 +74,7 @@ namespace Arena
         }
 
         /// Every class, in Kit order. The game refuses to start if one is missing, doubled or out of place.
-        public static readonly KitDef[] All = Registry(Lists[0].Kit, Lists[1].Kit, Lists[2].Kit, Lists[3].Kit, Lists[4].Kit, Lists[5].Kit);
+        public static readonly KitDef[] All = Registry(Lists[0].Kit, Lists[1].Kit, Lists[2].Kit, Lists[3].Kit, Lists[4].Kit, Lists[5].Kit, Lists[6].Kit);
 
         public static KitDef Get(Kit k) => All[(int)k];
 

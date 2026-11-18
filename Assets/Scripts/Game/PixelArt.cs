@@ -196,6 +196,9 @@ namespace Arena
             { "Blood Freeze", "bloodfreeze" },
             { "Martyr", "martyr" },
             { "Arterial Spray", "spray" },
+            { "Drag Pylon", "dragpylon" },
+            { "Vector Wall", "vectorwall" },
+            { "Med Pylon", "medpylon" },
             { "Blood Debt", "debt" },
             { "Vein Rush", "veinrush" },
         };
@@ -338,6 +341,21 @@ namespace Arena
                 ".kRrrrrrRRk.",
                 "..kRRRRRRk..",
                 "...kkkkkk...",
+            },
+            ["class_engineer"] = new[]  // Engineer: a hard hat
+            {
+                "............",
+                "............",
+                "....kkkk....",
+                "...kyywyk...",
+                "..kyyywyyk..",
+                "..kyyywyyYk.",
+                ".kyyyywyyYk.",
+                ".kyyyywyyYk.",
+                "kkkkkkkkkkkk",
+                "kYYYYYYYYYYk",
+                "kkkkkkkkkkkk",
+                "............",
             },
             ["perk_riot"] = new[]  // a riot shield with a viewing slit (Riot Gear, Perks.cs)
             {
@@ -863,6 +881,51 @@ namespace Arena
                 "...krrrrk...",
                 "....krrk....",
                 ".....kk.....",
+            },
+            ["vectorwall"] = new[]  // a row of glowing blocks (Engineer.cs)
+            {
+                "............",
+                "............",
+                "kkkkkkkkkkkk",
+                "kccckccckcck",
+                "kcwckcwckcwk",
+                "kccckccckcck",
+                "kkkkkkkkkkkk",
+                "..kccckccck.",
+                "..kcwckcwck.",
+                "..kccckccck.",
+                "..kkkkkkkkk.",
+                "............",
+            },
+            ["medpylon"] = new[]  // a pylon with a cross in its field (Engineer.cs)
+            {
+                "..n.n.n.n...",
+                ".n..kwk...n.",
+                "....knk.....",
+                "n...knk..kk.",
+                "...knNnkkwwk",
+                ".n.knNnk.kk.",
+                "..knk.knk...",
+                "n.knk.knk.n.",
+                ".knk...knk..",
+                ".kk.....kk..",
+                "..n.n.n.n...",
+                "............",
+            },
+            ["dragpylon"] = new[]  // a pylon with its field (Engineer.cs)
+            {
+                "..v.v.v.v...",
+                ".v..kwk...v.",
+                "....kvk.....",
+                "v...kvk...v.",
+                "...kvVvk....",
+                ".v.kvVvk..v.",
+                "..kvk.kvk...",
+                "v.kvk.kvk.v.",
+                ".kvk...kvk..",
+                ".kk.....kk..",
+                "..v.v.v.v...",
+                "............",
             },
             ["spray"] = new[]
             {

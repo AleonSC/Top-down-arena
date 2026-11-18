@@ -101,6 +101,7 @@ namespace Arena
             Pal(0xaab6c8, 0x5d6a7c, 0x8795ab, 0xcfd8e6),  // Knight: steel
             Pal(0x2a2a38, 0x13131a, 0x1d1d28, 0x0e0e14),  // Ninja: charcoal
             Pal(0x8c1626, 0x3a0a12, 0x6a101c, 0x2a0a10),  // Hemomancer: crimson
+            Pal(0x2c3e5c, 0x172238, 0x354a6e, 0xd98a2b),  // Engineer: navy coveralls, amber gloves (its own model: EngineerModel.cs)
         };
         static readonly Rgba MSteel = Hx(0xcfd8e6), MDark = Hx(0x3a4250), MWood = Hx(0x8a6a45), MGold = Hx(0xe8c25a), MBone = Hx(0xefe9d8), MWhite = Hx(0xffffff);
 
@@ -113,6 +114,11 @@ namespace Arena
             if (PacSkin)
             {
                 DrawPacChomper(p, r, t, col);  // PacmanLook.cs
+                return;
+            }
+            if (p.Kit == Kit.Engineer && (engineerMock == null || engineerMock.Model < 0))
+            {
+                DrawEngineerPlayer(p, r, t, col);  // EngineerModel.cs
                 return;
             }
             if (engineerMock != null && engineerMock.Model >= 0 && game != null && p == game.Me)

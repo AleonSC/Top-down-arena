@@ -45,11 +45,16 @@ namespace Arena
             : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : k == NodeKind.VectorChest ? VecCyan : ChestInk;
 
         /// A node kind's name for tips and legends.
-        static string NodeName(NodeKind k) => k == NodeKind.VectorChest ? "Vector chest" : k == NodeKind.Tower ? "Scout tower" : k == NodeKind.Vein ? "Gold vein" : k.ToString();
+        static string NodeName(NodeKind k) => k == NodeKind.BreachLoot ? "Breach loot" : k == NodeKind.VectorChest ? "Vector chest" : k == NodeKind.Tower ? "Scout tower" : k == NodeKind.Vein ? "Gold vein" : k.ToString();
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
         void DrawNodeMark(MapNode n, bool claimed)
         {
+            if (n.Kind == NodeKind.BreachLoot)
+            {
+                DrawBreachLootNode(n);  // EngineerLook.cs
+                return;
+            }
             if (claimed)
             {
                 if (n.Kind == NodeKind.Rule)  // a rule room's prize shows once it is cleared (a chest, or a relic to walk up to); Frozen pays at once
