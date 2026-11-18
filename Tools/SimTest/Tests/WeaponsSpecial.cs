@@ -546,7 +546,7 @@ static partial class Program
         // Piercing Rounds on weapons without bullets that run out of pierce: each stack reaches 10% farther.
         var longer = new List<string>();
         bool allLonger = true;
-        foreach (var id in new[] { WeaponId.Flamethrower, WeaponId.FrostLance, WeaponId.FumaShuriken, WeaponId.LightBolt, WeaponId.RadiantOrb,
+        foreach (var id in new[] { WeaponId.Flamethrower, WeaponId.FumaShuriken, WeaponId.LightBolt, WeaponId.RadiantOrb,
             WeaponId.ChainLight, WeaponId.SpiritFan, WeaponId.Ofuda, WeaponId.ArcLightning, WeaponId.WispLantern, WeaponId.ImpCaller })
         {
             me.Weapon = Defs.Weapons.First(w => w.Id == id);
@@ -575,22 +575,22 @@ static partial class Program
         Check(reached[0] == 0f && reached[1] > 0f, "with Piercing Rounds the Chain Light's cone reaches enemies past its plain length");
 
         // Multishot / Barrage per weapon (balance item I).
-        // Frost Lance: each extra projectile is 25% more damage, as well as a longer icicle.
+        // Frost Lance: each extra projectile is 20% more damage on every step of its chain (FrostLance.cs).
         var icicle = new float[2];
         for (int pass = 0; pass < 2; pass++)
         {
             clear();
             build("Multishot", pass);
             me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.FrostLance);
+            me.FlStep = 0; me.FireCd = 0f;
             V2 at = from + new V2(80f, 0f);
             var a1 = dummy(at);
             me.Pos = from; me.AimAt = at;
-            volley.Invoke(g, new object[] { me, 0f, g.ExtraShots(me) });  // FireVolley takes the extra projectiles
-            for (int f = 0; f < 20; f++) { a1.Pos = at; a1.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = at }); }
+            for (int f = 0; f < 12; f++) { a1.Pos = at; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = f < 2, AimAt = at }); }
             icicle[pass] = a1.MaxHp - a1.Hp;
         }
-        Console.WriteLine("  frost lance: one icicle {0:0.0}, with Multishot {1:0.0}", icicle[0], icicle[1]);
-        Check(icicle[0] > 0f && Math.Abs(icicle[1] / icicle[0] - 1.25f) < 0.02f, "Multishot makes the Frost Lance's icicle hit 25% harder");
+        Console.WriteLine("  frost lance: one crescent {0:0.0}, with Multishot {1:0.0}", icicle[0], icicle[1]);
+        Check(icicle[0] > 0f && Math.Abs(icicle[1] / icicle[0] - 1.2f) < 0.02f, "Multishot makes the Frost Lance hit 20% harder");
 
         // Radiant Orb: Multishot and Barrage each add a light orb, and they circle the orb while it's out.
         clear();

@@ -803,6 +803,13 @@ static partial class Program
                     if (Math.Abs(range - Game.EsRange) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.FrostLance)
+                {
+                    // No shots: the chain's sweeps reach FlArcR (10% more an extra projectile; FrostLance test); the aim line shows that.
+                    float want = me.Def.BodyR + Game.FlArcR * (1f + 0.1f * extra);
+                    if (Math.Abs(range - want) < 0.5f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + want.ToString("0") + " vs " + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.HoneybeeStaff)
                 {
                     // No shots: a bee hatches at the cursor, no farther than HatchReach (HoneybeeStaff test); the aim line shows how far.
@@ -914,39 +921,139 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
+    /// The Frost Lance's chain (FrostLance.cs): Fire held runs Shiver Crescent (ahead, not behind), Backhand Rime, Frost Waltz (all
+    /// round), Crystal Fan (down the rays) and the Avalanche Slam (ahead) and comes round; three chilling hits freeze a regular enemy
+    /// (the other screen sees the chill), the slam shatters a frozen one for 2.5x; raising the parry breaks the step (its hit never
+    /// lands) and keeps the chain's place; a Rime Counter skips the slam's wind-up and adds chill; stopping starts it over; Alt's
+    /// Absolute Zero slows you while it charges, stops your attacks, freezes everything in reach, then shatters it, and cools down.
     static void FrostLanceTest(float dt)
     {
-        // The Frost Lance: an icicle juts out from you, then splinters off its sides into enemies beside it. Both slow.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-        var volley = typeof(Game).GetMethod("FireVolley", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 1 }, port, false, "Solo", Role.Tank, 1, 0, Kit.Elementalist);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Rime", Role.Tank, 1, 0, Kit.Elementalist);
+        var client = JoinAs(port, false, "Friend", Role.Dps, 0, 0, Kit.Soldier);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
         var g = host.Game;
-        host.StartMatch();
+        g.Bot = client.Game.Bot = false;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        g.DevSetGod(1, true);
-        Check(me.Weapon.Id == WeaponId.FrostLance, "the Mage Tank's second weapon is the Frost Lance");
-        g.Enemies.Clear(); g.Bullets.Clear();
-        me.Pos = new V2(200f, 450f);
-        var spots = new[] { new V2(350f, 450f), new V2(300f, 495f), new V2(300f, 560f), new V2(480f, 450f) };  // on the line, beside it, too far beside, past its point
-        var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
-        Action pin = () => { for (int k = 0; k < dummies.Length; k++) { dummies[k].Pos = spots[k]; dummies[k].FrozenT = 1f; } me.Pos = new V2(200f, 450f); };
-        Action<int> step = n => { for (int f = 0; f < n; f++) { pin(); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) }); } };
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        step(2);
-        float[] early = dummies.Select(e => e.MaxHp - e.Hp).ToArray();
-        step(20);
-        float[] took = dummies.Select(e => e.MaxHp - e.Hp).ToArray();
-        Console.WriteLine("  frost lance: line {0:0.0} (after 2 ticks {1:0.0}), beside {2:0.0} (after 2 ticks {3:0.0}), far beside {4:0.0}, past the point {5:0.0}; bullets {6}",
-            took[0], early[0], took[1], early[1], took[2], took[3], g.Bullets.Values.Count(b => b.Owner == 1));
-        Check(early[0] > 0f && took[0] == early[0] && took[2] == 0f && took[3] == 0f && !g.Bullets.Values.Any(b => b.Owner == 1),
-            "the Frost Lance is an icicle out from you to its reach: no flying spear, only what's on its line is hit at once (and only once)");
-        Check(early[1] == 0f && Math.Abs(took[1] - took[0] * Game.SplinterMult) < 0.5f,
-            "a moment later it splinters off its sides into enemies beside it for half damage");
-        Check(dummies[0].SlowT > 0f && dummies[1].SlowT > 0f && dummies[0].SlowMult < 0.75f && dummies[1].SlowMult < 0.75f, "the icicle and its splinters both slow");
-        Check(Math.Abs(g.WeaponRange(me) - Game.MeleeReach(me, me.Weapon.Reach)) < 0.5f, "the aim line reaches as far as the icicle");
-        host.Leave("");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Check(me.Weapon.Id == WeaponId.FrostLance, "the Tank Elementalist's second weapon is the Frost Lance (" + me.Weapon.Id + ")");
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+        V2 from = new V2(500f, 450f), right = from + new V2(400f, 0f);
+        var pinned = new Dictionary<Enemy, V2>();
+        Func<EnemyType, V2, Enemy> Dummy = (type, at) =>
+        {
+            var d = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
+            d.MaxHp = d.Hp = 1e6f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
+            pinned[d] = at;
+            return d;
+        };
+        Action<float, bool, bool, bool> Step = (secs, fire, alt, parry) =>
+        {
+            for (int f = 0; f < secs / dt; f++)
+            {
+                me.Pos = from; queue.Clear();
+                foreach (var kv in pinned) { kv.Key.Pos = kv.Value; kv.Key.FireT = 99f; }
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = right, Fire = fire, WeaponAction = alt && f < 3, Parry = parry } : new PlayerInput()); }
+            }
+        };
+        Action Clear = () => { g.Enemies.Clear(); g.Bullets.Clear(); pinned.Clear(); };
+        Func<Enemy, float> took = e => e.MaxHp - e.Hp;
+        Func<float, float, bool> near = (a, b) => Math.Abs(a - b) < 0.6f;
+        float unit = me.Weapon.Damage * me.Stats.DmgMult;
+        Clear();
+
+        // the chain, Fire held (Brutes: heavy, so they don't slide off)
+        var ahead = Dummy(EnemyType.Brute, from + new V2(110f, 0f));
+        var behind = Dummy(EnemyType.Brute, from + new V2(-90f, 0f));
+        var far = Dummy(EnemyType.Brute, from + new V2(200f, 0f));
+        Step(0.2f, true, false, false);
+        Check(near(took(ahead), Game.FlMult[0] * unit) && took(behind) == 0f, "Shiver Crescent hits the enemy ahead for " + (Game.FlMult[0] * unit).ToString("0.#") + ", not the one behind (" + took(ahead).ToString("0.#") + ", " + took(behind).ToString("0.#") + ")");
+        Check(client.Game.Effects.Any(e => e.Kind == FxKind.FrostStep), "the other screen sees the step (FxKind.FrostStep)");
+        Check(client.Game.Enemies.Values.Any(e => e.FrostChill == 1), "and the chill on the enemy it hit");
+        Step(0.34f, true, false, false);
+        Check(near(took(ahead), (Game.FlMult[0] + Game.FlMult[1]) * unit) && took(behind) == 0f, "Backhand Rime hits it again (" + took(ahead).ToString("0.#") + ")");
+        Step(0.36f, true, false, false);
+        Check(near(took(behind), Game.FlMult[2] * unit), "the Frost Waltz hits all round, the one behind too (" + took(behind).ToString("0.#") + ")");
+        Check(Game.IceFrozen(ahead) || ahead.Def.Heavy, "three chilling hits freeze an enemy");
+        float farBefore = took(far);
+        Step(0.42f, true, false, false);
+        Check(took(far) - farBefore >= Game.FlMult[3] * unit - 0.6f, "the Crystal Fan's centre ray reaches 200 px down the aim (" + (took(far) - farBefore).ToString("0.#") + ")");
+        Check(me.FlStep == 4, "the Avalanche Slam is next (" + me.FlStep + ")");
+        Step(0.75f, true, false, false);
+        Check(me.FlStep == 0 || me.FlStep == 1, "the chain comes round to the first step again (" + me.FlStep + ")");
+
+        // freeze and shatter on a regular enemy
+        Clear();
+        Step(1.2f, false, false, false);
+        Check(me.FlStep == 0, "stop for a moment and the chain starts over");
+        var grunt = Dummy(EnemyType.Grunt, from + new V2(130f, 0f));
+        grunt.FrostChill = 2; grunt.FrostChillT = 5f;
+        me.FireCd = 0f;
+        Step(0.15f, true, false, false);
+        Check(Game.IceFrozen(grunt) && grunt.FrostChill == 0, "the third chill freezes a regular enemy");
+        Check(g.Effects.Any(e => e.Kind == FxKind.FrostBurst && Math.Round(e.Radius) == 0), "with a freeze burst (FxKind.FrostBurst)");
+        Step(1.2f, false, false, false);
+        me.FlStep = 4; me.FlIdle = 0f; me.FireCd = 0f;
+        grunt.FrozenT = 3f;
+        float g0 = took(grunt);
+        Step(0.3f, true, false, false);
+        float slam = took(grunt) - g0;
+        Check(near(slam, Game.FlMult[4] * unit * Game.FlShatterMult) && !Game.IceFrozen(grunt), "the Avalanche Slam shatters a frozen enemy for 2.5x (" + slam.ToString("0.#") + ")");
+
+        // the parry: it breaks the step in your hands, keeps the chain's place
+        Clear();
+        Step(1.2f, false, false, false);
+        var target = Dummy(EnemyType.Brute, from + new V2(110f, 0f));
+        me.FireCd = 0f;
+        Step(dt * 2f, true, false, false);
+        int stepAfter = me.FlStep;
+        Step(0.2f, false, false, true);
+        Check(took(target) == 0f, "raising the parry before the sweep lands breaks it: no hit (" + took(target).ToString("0.#") + ")");
+        Check(g.Effects.Any(e => e.Kind == FxKind.FrostBreak), "the lance bursts (FxKind.FrostBreak)");
+        Check(me.FlStep == stepAfter && stepAfter == 1, "and the chain keeps its place (" + me.FlStep + ")");
+        Step(0.4f, false, false, false);
+
+        // the Rime Counter (a perfect parry primes it): the slam comes out with no wind-up and one more chill
+        Clear();
+        var rimeT = Dummy(EnemyType.Grunt, from + new V2(140f, 0f));
+        me.FlStep = 4; me.FlIdle = 0f; me.FireCd = 0f; me.FlRime = true;
+        Step(0.08f, true, false, false);
+        Check(took(rimeT) > 0f && !me.FlRime, "a Rime Counter slam lands without its wind-up (" + took(rimeT).ToString("0.#") + " after 0.08 s)");
+        Check(Game.IceFrozen(rimeT), "and adds one more chill: the slam's 2 + 1 freeze it");
+        Step(1.2f, false, false, false);
+
+        // Alt: Absolute Zero
+        Clear();
+        var near1 = Dummy(EnemyType.Grunt, from + new V2(150f, 80f));
+        var near2 = Dummy(EnemyType.Grunt, from + new V2(-200f, -60f));
+        var outside = Dummy(EnemyType.Grunt, from + new V2(0f, 360f));
+        float walk = me.Speed;
+        me.FireCd = 0f;
+        Step(dt * 4f, false, true, false);
+        Check(me.FlZeroT > 0f && me.FlZeroCd > Game.ZeroCd - 1f, "Alt starts Absolute Zero and its cooldown");
+        Check(Math.Abs(me.Speed / walk - Game.ZeroSlow) < 0.01f, "you move at half speed while it charges");
+        int steps = g.Effects.Count(e => e.Kind == FxKind.FrostStep);
+        Step(0.3f, true, false, false);
+        Check(g.Effects.Count(e => e.Kind == FxKind.FrostStep) == steps, "you can't attack while it charges");
+        Check(client.Game.Players[1].FlZeroT > 0f, "the other screen sees it");
+        Step(0.5f, false, false, false);
+        Check(Game.IceFrozen(near1) && Game.IceFrozen(near2) && !Game.IceFrozen(outside) && took(outside) == 0f, "the wave freezes every regular enemy in reach, not one outside");
+        float z0 = took(near1);
+        Step(0.8f, false, false, false);
+        Check(near(took(near1) - z0, Game.ZeroShatterMult * unit * Game.FlShatterMult) && !Game.IceFrozen(near1), "then shatters them for 2.5x (" + (took(near1) - z0).ToString("0.#") + ")");
+        Step(0.5f, false, false, false);
+        Check(me.FlZeroT == 0f, "it ends");
+        Step(dt * 4f, false, true, false);
+        Check(me.FlZeroT == 0f, "and Alt does nothing again while it cools down");
+
+        Check(Math.Abs(g.WeaponRange(me) - (me.Def.BodyR + Game.FlArcR)) < 0.5f, "the aim line reaches as far as the sweeps");
+        var card = Upgrades.All.FirstOrDefault(u => u.Name == "Glacier");
+        Check(card != null && card.Weapons != null && card.Weapons.Contains(WeaponId.FrostLance), "Glacier is a Frost Lance card");
+        host.Leave(""); client.Leave("");
     }
 
     static void StormHammerTest(float dt)
