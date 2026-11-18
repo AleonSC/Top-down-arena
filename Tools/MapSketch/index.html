@@ -71,7 +71,7 @@ function ui(){
  [...tools.children].forEach(b=>b.classList.toggle("on",b.dataset.t===S.tool));
  [...inks.children].forEach((b,i)=>b.classList.toggle("on",i===S.ink));
  $("bSnap").classList.toggle("on",S.snap);$("bFill").classList.toggle("on",S.fill);$("bGrid").classList.toggle("on",S.grid);
- $("bFinger").classList.toggle("on",S.finger);$("dim").style.display=S.tool==="edit"?"flex":"none";if(S.tool!=="edit")S.sel=null;draw();$("bSize").innerHTML="Size<small>"+["thin","normal","thick"][S.size-1]+"</small>";
+ $("bFinger").classList.toggle("on",S.finger);const showDim=["edit","rect","ell","pillar"].includes(S.tool);$("dim").style.display=showDim?"flex":"none";if(!showDim)S.sel=null;syncDim();draw();$("bSize").innerHTML="Size<small>"+["thin","normal","thick"][S.size-1]+"</small>";
  $("hint").textContent=S.finger?"Finger and Pencil both draw · two fingers pan / zoom":"Pencil draws · one finger pans · two fingers zoom";
 }
 
@@ -264,7 +264,7 @@ function selectAt(p){
 }
 function syncDim(){
  const d=S.sel&&dimsOf(S.sel);
- $("dimName").textContent=d?(S.sel.t==="pillar"?"Pillar (diameter)":S.sel.t==="rect"?"Box":"Circle"):"Tap a box";
+ $("dimName").textContent=d?(S.sel.t==="pillar"?"Pillar (diameter)":S.sel.t==="rect"?"Box":"Circle"):(S.tool==="edit"?"Tap a box":"Draw a shape to size it");
  $("dhl").style.display=S.sel&&S.sel.t==="pillar"?"none":"flex";
  if(d){$("dw").value=tiles(d.w);$("dh").value=tiles(d.h)}
 }
@@ -287,8 +287,9 @@ function begin(e){
  if(t==="edit"){selectAt(p);return}
  if(t==="erase"){push();erased=false;drawing={t};eraseAt(p);return}
  if(t==="spawn"){addShape({t:"spawn",x:p.x,y:p.y,r:24,ink:S.ink,w:lw()});return}
- if(t==="pillar"){drawing={t,p0:p};live={t:"pillar",x:p.x,y:p.y,r:GRID/2,ink:S.ink,w:lw()};draw();return}
+ if(t==="pillar"){S.sel=null;syncDim();drawing={t,p0:p};live={t:"pillar",x:p.x,y:p.y,r:GRID/2,ink:S.ink,w:lw()};draw();return}
  if(t==="label"){const s=prompt("Label text");if(s)addShape({t:"label",x:p.x,y:p.y,txt:s.slice(0,40),s:28,ink:S.ink});return}
+ if(t==="rect"||t==="ell"){S.sel=null;syncDim()}
  drawing={t,p0:p,raw:[p]};if(t==="pen")liveReset();
  live={t:t==="pen"?"path":t,pts:[p,p],ink:S.ink,w:lw(),fill:S.fill};draw();
 }
@@ -326,6 +327,7 @@ function addShape(sh){
   const c=cache.getContext("2d");ctx=c;ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.translate(W/2,H/2);ctx.scale(S.cam.z,S.cam.z);ctx.translate(-S.cam.x,-S.cam.y);
   drawShape(sh);ctx.restore();ctx=mainCtx;cacheShapes=S.shapes;
  }
+ if(sh.t==="rect"||sh.t==="ell"||sh.t==="pillar"){S.sel=sh;syncDim()}
  draw();save();
 }
 function eraseAt(p){
