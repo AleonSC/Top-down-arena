@@ -1,6 +1,6 @@
 # Round flow: a smoother break, per-player loot and remote chests
 
-Status: **planned, nothing built** (protocol 407 when written). Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
+Status: **step 1 built** (no protocol change, 407); steps 2-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
 time ("start on step N").
 
 ## Why
@@ -15,14 +15,16 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
 
 ## Decisions
 
-- **Tabs, not steps.** Results / Build / Chests are tabs. The box opens on Results, and the start key sits on the bottom
-  bar of every tab (it doesn't need a tab of its own).
+- **Tabs, not steps.** Results / Build · n / Next wave (Chests joins in step 5) are tabs, in any order. The box opens on
+  Results; Build opens the build window; the start key sits on the bottom bar of every tab.
 - **The key reads "START WAVE 8"** (not "Ready", which could read as "ready to build"). While you have picks left it reads
-  "2 PICKS LEFT" and opens the first pending pick.
+  "2 PICKS LEFT" and opens the first pending pick. (Built without this: pending picks open on their own before the box
+  shows, so the key never needed it.)
 - **Building is hard to miss, but never forced** (players can save pieces for later). Results shows a gold strip with the
   pieces in your hand and a Build key. The Build tab shows a piece count and pulses until you open it. Under the start
   key, "3 pieces saved for later" makes skipping a choice you can see.
-- **Auto-ready counts from the start of the break**, once your picks are done.
+- **Auto-ready counts from the start of the break**, once your picks are done, except in a building round while you hold
+  pieces and haven't opened the build window (or pressed Start) that break, so it never skips building by accident.
 - **Status chips.** Each player row shows Picking / Building / Looting / Ready.
 - **Per-player pickups.** Gold coins, vector pickups, health orbs and Magnets drop as **a full copy for each player**
   (not split). You see and pick up only your own. Shared as before: the Healer's orbs, Medkit orbs, chest loot cards
