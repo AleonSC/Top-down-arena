@@ -85,7 +85,7 @@ footer{color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-
       <span>Dealt <b id="dealt" style="color:var(--fg)">0</b></span>
       <span>Spent <b id="spent" style="color:var(--blood-hi)">0</b></span>
       <span>Healed <b id="healed" style="color:var(--heal)">0</b></span>
-      <label>Heal per stack <select id="stackSel"><option>2</option><option selected>3</option><option>5</option><option>8</option></select></label>
+      <label>Heal per stack <select id="stackSel"><option selected>2</option><option>3</option><option>5</option><option>8</option></select></label>
       <label>Enemy HP <select id="dhpSel"><option>60</option><option selected>110</option><option>200</option><option>400</option></select></label>
       <span class="badge" id="engorged"></span>
     </div>
@@ -94,6 +94,7 @@ footer{color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-
       <button class="key" id="slowBtn">Slow-mo</button>
       <button class="key" id="altBtn" disabled>Fire alt</button>
       <span class="arrow">|</span>
+      <button class="key ghost" data-preset="mine">Preset: Your pick</button>
       <button class="key ghost" data-preset="basic">Preset: Basic</button>
       <button class="key ghost" data-preset="whirl">Preset: Whirlwind</button>
       <button class="key ghost" data-preset="exec">Preset: Executioner</button>
@@ -110,6 +111,12 @@ footer{color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-
   <h2>Moves</h2>
   <p class="sub">Click a move (or its preview) to add it to the end of the chain. Damage is per enemy hit; HP is what each swing costs you.</p>
   <div class="grid" id="moves"></div>
+</section>
+
+<section>
+  <h2>Blood return</h2>
+  <p class="sub">What you see when a stacked enemy dies and its blood flies back to heal you. Each one is shown with a 6-stack kill. Pick one; the chain preview uses it.</p>
+  <div class="grid" id="rets"></div>
 </section>
 
 <section>
@@ -290,9 +297,53 @@ const ALTS=[
 ];
 const BY={};MOVES.forEach(m=>BY[m.id]=m);ALTS.forEach(a=>BY[a.id]=a);
 
+/* ---------- blood return styles ---------- */
+const bez=(a,b,c2,t)=>(1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c2;
+function tube(c,pts,wf,al){ // pts: [[x,y]...], wf(t)->half width
+  for(const[s,col]of[[1,`rgba(84,0,14,${.9*al})`],[.55,`rgba(210,20,46,${al})`],[.18,`rgba(255,150,160,${al})`]]){
+    c.beginPath();const n=pts.length-1,L=[],R=[];
+    for(let i=0;i<=n;i++){const p=pts[i],q=pts[Math.min(n,i+1)],o=pts[Math.max(0,i-1)];let dx=q[0]-o[0],dy=q[1]-o[1];const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;const w=wf(i/n)*s;L.push([p[0]-dy*w,p[1]+dx*w]);R.push([p[0]+dy*w,p[1]-dx*w])}
+    c.moveTo(...L[0]);for(const p of L)c.lineTo(...p);for(let i=n;i>=0;i--)c.lineTo(...R[i]);c.closePath();c.fillStyle=col;c.fill()}
+}
+function dropAt(c,x,y,vx,vy,r,al){const a=Math.atan2(vy,vx);c.save();c.translate(x,y);c.rotate(a);c.globalAlpha=al;
+  c.fillStyle='#8a0618';c.beginPath();c.moveTo(-r*3,0);c.quadraticCurveTo(0,-r*1.1,r,0);c.quadraticCurveTo(0,r*1.1,-r*3,0);c.fill();
+  c.fillStyle='#e0203c';c.beginPath();c.arc(0,0,r*.8,0,TAU);c.fill();c.fillStyle='rgba(255,190,195,.9)';c.beginPath();c.arc(r*.2,-r*.3,r*.3,0,TAU);c.fill();c.restore()}
+function curvePt(r,S,u,bend){const mx=(r.x+S.px)/2,my=(r.y+S.py)/2,dx=S.px-r.x,dy=S.py-r.y,L=Math.hypot(dx,dy)||1,cx=mx-dy/L*bend,cy=my+dx/L*bend;return[bez(r.x,cx,S.px,u),bez(r.y,cy,S.py,u)]}
+const RET={
+  drops:{name:'Homing Drops',dur:1.0,arrive:.82,desc:'The stacks burst out of the body as fat drops, fan wide, then curve in and hit you one after another.',
+    draw(c,S,r,q){for(let i=0;i<r.n;i++){const a=r.seed+i*TAU/r.n,qi=clamp((q-i*.025)/.78,0,1);if(qi<=0||qi>=1)continue;
+      const ox=r.x+Math.cos(a)*(50+r.n*3),oy=r.y+Math.sin(a)*(50+r.n*3),u=easeIn(qi)*.85+qi*.15;
+      const P=t=>[bez(r.x,ox,S.px,t),bez(r.y,oy,S.py,t)];const[x,y]=P(u),[x2,y2]=P(Math.max(0,u-.06));
+      c.strokeStyle='rgba(180,10,32,.45)';c.lineWidth=2.4;c.beginPath();c.moveTo(x2,y2);c.lineTo(x,y);c.stroke();dropAt(c,x,y,x-x2,y-y2,3.4,1);
+      if(Math.random()<.2)S.parts.push({x,y,vx:0,vy:0,l:.25,s:1.4})}}},
+  ribbon:{name:'Blood Ribbon',dur:.9,arrive:.7,desc:'The body unravels into one thick ribbon of blood that arcs through the air and pours into you. Wider with more stacks.',
+    draw(c,S,r,q){const head=easeOut(clamp(q/.7,0,1)),tail=easeIn(clamp((q-.18)/.7,0,1));if(head<=tail)return;const bend=Math.sin(r.seed)*70+30*Math.sign(Math.sin(r.seed)),N=26,pts=[];
+      for(let i=0;i<=N;i++){const u=lerp(tail,head,i/N);const[x,y]=curvePt(r,S,u,bend);const w=Math.sin(u*TAU*2-S.time*14)*2;pts.push([x+w,y-w])}
+      const W=3+r.n*.8;tube(c,pts,t=>W*Math.sin(Math.PI*Math.pow(t,.7))+.4,1);
+      const[hx,hy]=pts[N];S.drip(hx,hy,rnd(0,TAU),60,40);
+      if(q<.25){c.fillStyle=`rgba(120,0,20,${1-q*4})`;c.beginPath();c.ellipse(r.x,r.y,12*(1-q*2),9*(1-q*2),0,0,TAU);c.fill()}}},
+  veins:{name:'Vein Draw',dur:1.1,arrive:.78,desc:'Three veins snap from the body to you, then thick pulses of blood pump along them. The puddle drains as they go.',
+    draw(c,S,r,q){const grow=easeOut(clamp(q/.22,0,1)),fade=1-clamp((q-.82)/.18,0,1);
+      c.fillStyle=`rgba(110,0,20,${.8*(1-clamp((q-.2)/.6,0,1))})`;c.beginPath();c.ellipse(r.x,r.y,16,11,0,0,TAU);c.fill();
+      for(let v=0;v<3;v++){const bend=(v-1)*55+Math.sin(r.seed+v)*15,N=22,pts=[];for(let i=0;i<=N;i++){const u=i/N*grow;const[x,y]=curvePt(r,S,u,bend);const j=Math.sin(u*30+v*2)*2*(1-u);pts.push([x+j,y+j])}
+        c.strokeStyle=`rgba(70,0,14,${fade})`;c.lineWidth=3.2;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.stroke();
+        c.strokeStyle=`rgba(200,20,44,${fade})`;c.lineWidth=1.3;c.stroke();
+        for(let b=0;b<2;b++){const bq=(q-.22-b*.18-v*.05)/.4;if(bq<=0||bq>=1)continue;const u=easeIO(bq);const[x,y]=curvePt(r,S,u,bend);const R=2.5+r.n*.25;
+          c.fillStyle='#8a0618';c.beginPath();c.ellipse(x,y,R*1.8,R*1.25,Math.atan2(S.py-y,S.px-x),0,TAU);c.fill();c.fillStyle='#ff4d61';c.beginPath();c.arc(x,y,R*.8,0,TAU);c.fill()}}}},
+  spiral:{name:'Blood Vortex',dur:1.15,arrive:.84,desc:'Blood spins up out of the body into a swirling orb, which then flies to you trailing a helix of drops.',
+    draw(c,S,r,q){const n=r.n+4;let ox,oy,orbR;
+      if(q<.38){const g=q/.38;ox=r.x;oy=r.y;orbR=(2+r.n*.5)*easeOut(g);
+        for(let i=0;i<n;i++){const a=r.seed+i*TAU/n+g*9,R=34*(1-easeIn(g))+4;dropAt(c,ox+Math.cos(a)*R,oy+Math.sin(a)*R*.8,-Math.sin(a),Math.cos(a),2.4,1)}}
+      else{const g=easeIn(clamp((q-.38)/.46,0,1));ox=lerp(r.x,S.px,g);oy=lerp(r.y,S.py,g);orbR=(2+r.n*.5)*(1-g*.4);
+        const dx=S.px-r.x,dy=S.py-r.y,L=Math.hypot(dx,dy)||1;for(let i=0;i<n;i++){const back=i*.035,gg=Math.max(0,g-back),bx=lerp(r.x,S.px,gg),by=lerp(r.y,S.py,gg),w=Math.sin(S.time*16+i*1.3)*9;
+          dropAt(c,bx-dy/L*w,by+dx/L*w,dx,dy,1.8,1-i/n*.6)}}
+      if(q<.88){const g2=c.createRadialGradient(ox,oy,1,ox,oy,orbR*2.6);g2.addColorStop(0,'rgba(255,80,100,.5)');g2.addColorStop(1,'rgba(255,40,60,0)');c.fillStyle=g2;c.beginPath();c.arc(ox,oy,orbR*2.6,0,TAU);c.fill();
+        c.fillStyle='#8a0618';c.beginPath();c.arc(ox,oy,orbR,0,TAU);c.fill();c.fillStyle='#e0203c';c.beginPath();c.arc(ox,oy,orbR*.7,0,TAU);c.fill();c.fillStyle='rgba(255,200,205,.9)';c.beginPath();c.arc(ox-orbR*.25,oy-orbR*.3,orbR*.25,0,TAU);c.fill()}}}
+};
+
 /* ---------- stage ---------- */
 class Stage{
-  constructor(cv,{px,dum,hp=200,dhp=70,sh=3}){this.dhp=dhp;this.stackHeal=sh;this.orbs=[];this.healed=0;this.spent=0;
+  constructor(cv,{px,dum,hp=200,dhp=70,sh=3}){this.dhp=dhp;this.stackHeal=sh;this.rets=[];this.ret='ribbon';this.absorb=0;this.healed=0;this.spent=0;
     this.cv=cv;this.c=cv.getContext('2d');this.W=cv.width;this.H=cv.height;
     const dpr=Math.min(2,devicePixelRatio||1);cv.width=this.W*dpr;cv.height=this.H*dpr;this.c.setTransform(dpr,0,0,dpr,0,0);
     this.hx=px*this.W;this.hy=this.H/2;this.ox=0;this.aim=0;this.k=1;this.emp=0;this.maxHp=hp;this.hp=hp;
@@ -309,8 +360,9 @@ class Stage{
   burst(x,y,n,spd,col){for(let i=0;i<n;i++){const a=rnd(0,TAU),v=spd*rnd(.2,1);this.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:rnd(.2,.6),s:rnd(.8,2.6),col})}}
   hit(d,dmg,kb=50){const e=this.cur&&this.cur.emp,v=Math.round(dmg*(e?1.5:1));d.fl=1;const dx=d.x-this.px,dy=d.y-this.py,L=Math.hypot(dx,dy)||1;
     if(!d.hold){d.vx+=dx/L*kb*2.2;d.vy+=dy/L*kb*2.2}this.num(d.x+rnd(-6,6),d.y-16,String(v),e?'emp':'dmg');this.burst(d.x,d.y,10,150);this.dealt+=v;if(d.dead)return;if(this.cur&&!this.cur.m.alt&&!this.cur.stk.has(d)){d.st++;this.cur.stk.add(d)}d.hp-=v;if(d.hp<=0)this.kill(d)}
-  kill(d){const heal=d.st*this.stackHeal;d.dead=true;d.rt=1.1;d.hold=false;this.burst(d.x,d.y,34,260);this.shake=Math.max(this.shake,2);
-    if(heal){this.num(d.x,d.y-30,d.st+' stacks','emp');for(let i=0;i<Math.min(d.st,14);i++){const a=rnd(0,TAU),v=rnd(80,220);this.orbs.push({x:d.x,y:d.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,last:i===Math.min(d.st,14)-1,heal})}}
+  kill(d){const heal=d.st*this.stackHeal;d.dead=true;d.rt=1.4;d.hold=false;this.burst(d.x,d.y,30,240);this.shake=Math.max(this.shake,2);
+    for(let i=0;i<6;i++)this.decals.push({x:d.x+rnd(-10,10),y:d.y+rnd(-10,10),r:rnd(4,9),a:.7,rx:rnd(.6,1),rot:rnd(0,TAU)});
+    if(heal){this.num(d.x,d.y-30,d.st+' stacks','emp');const st=RET[this.ret];this.rets.push({x:d.x,y:d.y,n:Math.min(d.st,10),heal,t:0,dur:st.dur,style:this.ret,seed:rnd(0,TAU),paid:false})}
     d.st=0}
   step(dt){
     this.dt=dt;this.time+=dt;const cur=this.cur;let p=0;
@@ -325,9 +377,8 @@ class Stage{
     this.parts=this.parts.filter(q=>q.l>0);if(this.parts.length>400)this.parts.splice(0,this.parts.length-400);
     for(const d of this.decals)d.a-=dt*.05;this.decals=this.decals.filter(d=>d.a>0);if(this.decals.length>160)this.decals.splice(0,this.decals.length-160);
     for(const n of this.nums)n.l-=dt*1.3;this.nums=this.nums.filter(n=>n.l>0);
-    for(const o of this.orbs){o.t+=dt;const dx=this.px-o.x,dy=this.py-o.y,L=Math.hypot(dx,dy)||1,acc=900*Math.min(1,o.t*3);o.vx+=dx/L*acc*dt;o.vy+=dy/L*acc*dt;const dr2=Math.pow(.2,dt);o.vx*=dr2;o.vy*=dr2;o.x+=o.vx*dt;o.y+=o.vy*dt;
-      if(L<12&&o.t>.15){o.done=1;if(o.last){this.hp=Math.min(this.maxHp,this.hp+o.heal);this.healed+=o.heal;this.num(this.px,this.py-30,'+'+o.heal+' HP','heal')}this.burst(this.px,this.py,3,80,'255,90,110')}}
-    this.orbs=this.orbs.filter(o=>!o.done&&o.t<2.5);
+    for(const r of this.rets){r.t+=dt;if(!r.paid&&r.t>=r.dur*RET[r.style].arrive){r.paid=true;this.hp=Math.min(this.maxHp,this.hp+r.heal);this.healed+=r.heal;this.num(this.px,this.py-30,'+'+r.heal+' HP','heal');this.absorb=1;this.burst(this.px,this.py,10,120,'255,90,110')}}
+    this.rets=this.rets.filter(r=>r.t<r.dur);this.absorb=Math.max(0,this.absorb-dt*2.2);
     this.shake=Math.max(0,this.shake-dt*30);
     this.draw(cur,p);
     if(cur&&p>=1){this.cur=null;this.k=1;cur.done&&cur.done()}
@@ -344,7 +395,7 @@ class Stage{
       c.fillStyle='rgba(0,0,0,.6)';c.fillRect(d.x-13,d.y-20,26,4);c.fillStyle='#c9d2ee';c.fillRect(d.x-13,d.y-20,26*Math.max(0,d.hp/this.dhp),4);
       const n=Math.min(d.st,10);for(let i=0;i<n;i++){const a=this.time*1.8+i*TAU/n,x=d.x+Math.cos(a)*17,y=d.y+Math.sin(a)*15;c.fillStyle='#e0203c';c.beginPath();c.moveTo(x,y-4);c.quadraticCurveTo(x+3.2,y+1,x,y+2.6);c.quadraticCurveTo(x-3.2,y+1,x,y-4);c.fill()}
       if(d.st){c.font='600 10px "IBM Plex Mono",monospace';c.textAlign='left';c.fillStyle='#ff6b7a';c.fillText('×'+d.st,d.x+15,d.y-14)}c.globalAlpha=1}
-    for(const o of this.orbs){c.strokeStyle='rgba(224,32,60,.5)';c.lineWidth=2;c.beginPath();c.moveTo(o.x,o.y);c.lineTo(o.x-o.vx*.04,o.y-o.vy*.04);c.stroke();c.fillStyle='#ff5d6c';c.beginPath();c.arc(o.x,o.y,3,0,TAU);c.fill()}
+    for(const r of this.rets)RET[r.style].draw(c,this,r,Math.min(1,r.t/r.dur));
     this.drawPlayer(c);
     if(cur)cur.m.draw(c,this,p,cur);
     for(const q of this.parts){const a=Math.min(1,q.l*3);c.fillStyle=q.col?`rgba(${q.col},${a})`:`rgba(${q.s>1.8?150:210},${q.s>1.8?8:22},${q.s>1.8?24:44},${a})`;c.beginPath();c.arc(q.x,q.y,q.s,0,TAU);c.fill()}
@@ -357,8 +408,10 @@ class Stage{
     const x=this.px,y=this.py,t=this.time,emp=this.emp>0||(this.cur&&this.cur.emp);
     c.fillStyle='rgba(0,0,0,.4)';c.beginPath();c.ellipse(x+2,y+6,15,8,0,0,TAU);c.fill();
     if(emp){const g=c.createRadialGradient(x,y,6,x,y,34);g.addColorStop(0,`rgba(255,40,60,${.35+.15*Math.sin(t*10)})`);g.addColorStop(1,'rgba(255,40,60,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,34,0,TAU);c.fill()}
+    if(this.absorb>0){const a=this.absorb,R=14+26*(1-a);c.strokeStyle=`rgba(255,110,125,${a})`;c.lineWidth=3*a;c.beginPath();c.arc(x,y,R,0,TAU);c.stroke();
+      const g=c.createRadialGradient(x,y,4,x,y,30);g.addColorStop(0,`rgba(255,60,80,${.55*a})`);g.addColorStop(1,'rgba(255,60,80,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,30,0,TAU);c.fill()}
     c.fillStyle='#c3142f';for(let i=0;i<3;i++){const a=t*2.6+i*TAU/3;c.beginPath();c.arc(x+Math.cos(a)*20,y+Math.sin(a)*17,2.2,0,TAU);c.fill()}
-    c.fillStyle='#1d1526';c.strokeStyle=emp?'#ff4d61':'#8e1f33';c.lineWidth=2;c.beginPath();c.arc(x,y,13,0,TAU);c.fill();c.stroke();
+    c.fillStyle='#1d1526';c.strokeStyle=emp||this.absorb>.2?'#ff4d61':'#8e1f33';c.lineWidth=2;c.beginPath();c.arc(x,y,13*(1+.12*Math.sin(this.absorb*Math.PI)),0,TAU);c.fill();c.stroke();
     c.fillStyle='#3a1a2a';c.beginPath();c.arc(x-Math.cos(this.aim)*3,y-Math.sin(this.aim)*3,8,0,TAU);c.fill();
     c.fillStyle='#e0203c';c.beginPath();c.arc(x+Math.cos(this.aim)*13,y+Math.sin(this.aim)*13,4,0,TAU);c.fill();
   }
@@ -388,14 +441,22 @@ function makeCard(m,isAlt){
 const movesEl=document.getElementById('moves'),altsEl=document.getElementById('alts');
 MOVES.forEach(m=>movesEl.appendChild(makeCard(m,false)));
 ALTS.forEach(a=>altsEl.appendChild(makeCard(a,true)));
+const retsEl=document.getElementById('rets');
+Object.entries(RET).forEach(([id,r])=>{const el=document.createElement('article');el.className='card';el.dataset.id=id;
+  el.innerHTML=`<div class="screen"><canvas width="320" height="190"></canvas></div><h3><span>${r.name}</span><span class="tag">${r.dur.toFixed(1)} s</span></h3><p>${r.desc}</p><div class="row"><button class="key pick">Pick</button></div>`;
+  const cv=el.querySelector('canvas'),st=new Stage(cv,{px:.2,dum:[[.72,.42]],dhp:9999,sh:2});st.ret=id;cv._stage=st;io.observe(cv);stages.push(st);st.anim=!reduce;
+  if(reduce){cv.addEventListener('mouseenter',()=>st.anim=true);cv.addEventListener('mouseleave',()=>st.anim=false)}
+  const loop=()=>{const d=st.dum[0];if(d.dead){st.wait=.3;st.after=loop;return}d.st=6;d.hp=1;st.hp=Math.max(120,st.hp-20);st.wait=.6;st.after=()=>{st.kill(d);st.wait=1.9;st.after=loop}};st.wait=rnd(.1,.8);st.after=loop;
+  el.querySelector('.pick').onclick=()=>pickRet(id);retsEl.appendChild(el)});
+function pickRet(id){A.ret=id;AS.ret=id;document.querySelectorAll('#rets .card').forEach(c=>{const on=c.dataset.id===id;c.classList.toggle('picked',on);const b=c.querySelector('.pick');b.textContent=on?'Picked ✓':'Pick';b.classList.toggle('on',on)});renderChain()}
 
 /* ---------- arena / chain ---------- */
-const PRESETS={basic:['slash','backcut','pike','cleave'],whirl:['slash','backcut','whirl','whirl','nova'],exec:['fang','lunge','reap','cleave'],
+const PRESETS={mine:['slash','backcut','flurry','whirl','cleave','flight'],basic:['slash','backcut','pike','cleave'],whirl:['slash','backcut','whirl','whirl','nova'],exec:['fang','lunge','reap','cleave'],
  long:['flurry','slash','backcut','pike','fang','spikes','whirl','flight','reap','cleave']};
 let saved=null;try{saved=JSON.parse(localStorage.getItem('bb-chain')||'null')}catch(e){}
-const A={chain:(saved&&Array.isArray(saved.chain)?saved.chain.filter(id=>MOVES.some(m=>m.id===id)):PRESETS.basic.slice()),alt:saved&&BY[saved.alt]?saved.alt:null,i:0,playing:!reduce,slow:false,pend:false,active:-1};
+const A={chain:(saved&&Array.isArray(saved.chain)?saved.chain.filter(id=>MOVES.some(m=>m.id===id)):PRESETS.mine.slice()),alt:saved&&BY[saved.alt]?saved.alt:'tide',ret:saved&&saved.ret,i:0,playing:!reduce,slow:false,pend:false,active:-1};
 const arenaCv=document.getElementById('arena');
-const AS=new Stage(arenaCv,{dhp:110,sh:3,px:.27,dum:[[.43,.38],[.45,.64],[.53,.5],[.6,.3],[.63,.72]]});
+const AS=new Stage(arenaCv,{dhp:110,sh:2,px:.27,dum:[[.43,.38],[.45,.64],[.53,.5],[.6,.3],[.63,.72]]});
 AS.visible=true;arenaCv._stage=AS;io.observe(arenaCv);
 function arenaNext(){
   if(A.pend&&A.alt){A.pend=false;const a=BY[A.alt];setActive(-1);AS.play(a,()=>{if(a.id==='harpoon'&&A.chain.length)A.i=A.chain.length-1;AS.wait=.14;AS.after=arenaNext});return}
@@ -406,7 +467,7 @@ function arenaNext(){
 AS.wait=.3;AS.after=arenaNext;
 const chainEl=document.getElementById('chain');
 function setActive(i){A.active=i;chainEl.querySelectorAll('.chip').forEach(ch=>ch.classList.toggle('on',+ch.dataset.i===i))}
-function save(){try{localStorage.setItem('bb-chain',JSON.stringify({chain:A.chain,alt:A.alt}))}catch(e){}}
+function save(){try{localStorage.setItem('bb-chain',JSON.stringify({chain:A.chain,alt:A.alt,ret:A.ret}))}catch(e){}}
 function renderChain(){
   chainEl.innerHTML='';
   if(!A.chain.length)chainEl.innerHTML='<span class="empty">Empty chain. Add moves from the library below.</span>';
@@ -417,7 +478,7 @@ function renderChain(){
     chainEl.appendChild(ch)});
   const dmg=A.chain.reduce((s,id)=>s+BY[id].dmg,0),hp=A.chain.reduce((s,id)=>s+BY[id].hp,0),t=A.chain.reduce((s,id)=>s+BY[id].dur+.12,0);
   document.getElementById('stats').innerHTML=`<span>Moves <b>${A.chain.length}</b></span><span>Length <b>${t.toFixed(2)} s</b></span><span>Damage per target <b>${dmg}</b></span><span>HP cost <b style="color:var(--blood-hi)">${hp}</b> (${Math.round(hp/2)}% of 200)</span><span>Damage per HP <b>${hp?(dmg/hp).toFixed(1):'–'}</b></span>`;
-  document.getElementById('code').textContent='Blood Blast chain: '+(A.chain.map(id=>BY[id].name).join(' → ')||'(empty)')+'  |  Alt: '+(A.alt?BY[A.alt].name:'none')+'  |  '+AS.stackHeal+' HP per stack';
+  document.getElementById('code').textContent='Blood Blast chain: '+(A.chain.map(id=>BY[id].name).join(' → ')||'(empty)')+'  |  Alt: '+(A.alt?BY[A.alt].name:'none')+'  |  '+AS.stackHeal+' HP per stack  |  Return: '+RET[AS.ret].name;
   save();
 }
 function addMove(id){A.chain.push(id);renderChain()}
@@ -441,7 +502,7 @@ document.getElementById('copyBtn').onclick=()=>{const t=document.getElementById(
   const ok=()=>{toast.textContent='Copied';setTimeout(()=>toast.textContent='',1500)};
   try{navigator.clipboard.writeText(t).then(ok,()=>{selectCode();toast.textContent='Selected, press Ctrl+C'})}catch(e){selectCode();toast.textContent='Selected, press Ctrl+C'}};
 function selectCode(){const r=document.createRange();r.selectNodeContents(document.getElementById('code'));const s=getSelection();s.removeAllRanges();s.addRange(r)}
-renderChain();if(A.alt){const a=A.alt;A.alt=null;pickAlt(a)}
+pickRet(A.ret||'ribbon');renderChain();if(A.alt){const a=A.alt;A.alt=null;pickAlt(a)}
 
 /* ---------- loop ---------- */
 const hpFill=document.getElementById('hpFill'),hpTxt=document.getElementById('hpTxt'),dealtEl=document.getElementById('dealt'),engEl=document.getElementById('engorged'),spentEl=document.getElementById('spent'),healedEl=document.getElementById('healed');
