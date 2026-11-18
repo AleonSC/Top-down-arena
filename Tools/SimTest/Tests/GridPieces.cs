@@ -87,8 +87,6 @@ static partial class Program
             if (Expansion.GridPieceCells(Expansion.CardPiece(c)) == 4) tet++;
         }
         Check(bad == 0 && service >= 80 && service <= 160 && themed >= 60 && themed <= 200 && tet >= 120, "drops: about 1 in 5 a service card, a quarter of the pieces on a floor, a third tetrominoes (" + service + " service, " + themed + " floor, " + tet + " of " + pieces + " pieces)");
-        var offers = Expansion.GridCardOffers(7, 0);
-        Check(offers.Length == Expansion.CardOfferCount && offers.All(Expansion.IsGridCard) && offers.SequenceEqual(Expansion.GridCardOffers(7, 0)) && Expansion.GridCardOffers(7, 1).Contains(RoomCard.BuilderShop), "the vendor's three cards are grid cards, the same each time, a Builder Shop one cycle in three");
         var shelf = Expansion.GridBuilderOffers(7, 3);
         Check(shelf.Length == Expansion.BuilderOfferCount && shelf.All(Expansion.IsGridCard) && Expansion.BuilderPrice(shelf[0]) < Expansion.CardPrice(shelf[0]), "the Builder Shop's five are grid cards at a quarter off");
         var spoils = BossCards.Offer(new DetRandom(3), Expansion.GridCore(), new List<RoomToken>(), 12);
@@ -216,17 +214,12 @@ static partial class Program
         var shop = g.Expanded.Last();
         Check(g.Expanded.Count == n2 + 1 && shop.Kind == Arena.RoomKind.Shop && shop.W == 600 && shop.H == 600, "a Shop card builds one cell as a shop");
 
-        // Sources: a chest gives everyone a grid card; the vendor sells grid cards for vectors; the Builder Shop has five.
+        // Sources: a chest gives everyone a grid card; the Builder Shop has five (the Black Market sells no cards).
         var chest = typeof(Game).GetMethod("ChestCards", flags);
         var before = g.Players.Values.ToDictionary(p => p.Id, p => Game.HandCount(p));
         for (int i = 0; i < Expansion.HandMax; i++) { foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length); }
         chest.Invoke(g, new object[] { 3 });
         Check(g.Players.Values.All(p => Game.HandCount(p) == 1 && Expansion.IsGridCard((RoomCard)p.Hand[0])), "a chest gives everyone a grid card");
-        var buy = typeof(Game).GetMethod("BuyRoomCard", flags);
-        friend.Vectors = 100;
-        var offer0 = g.VendorCards[0];
-        buy.Invoke(g, new object[] { friend, 0 });
-        Check(Game.HandCount(friend) == 2 && friend.Vectors == 100 - Expansion.CardPrice(offer0) && Expansion.IsGridCard(offer0), "the vendor sells a grid card for its price in vectors (" + Expansion.CardName(offer0) + ", " + Expansion.CardPrice(offer0) + ")");
         Check(g.BuilderCards.Length == 5 && g.BuilderCards.All(Expansion.IsGridCard), "the Builder Shop sells five grid cards");
 
         // A bot plays a piece from its hand.

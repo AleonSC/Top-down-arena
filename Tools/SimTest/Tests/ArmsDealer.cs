@@ -5,7 +5,8 @@ using Arena;
 static partial class Program
 {
     // The Arms Dealer (Docs/ArmsDealer.md step 2): its room sells every weapon mod for gold while the room shops are open, priced by the
-    // stacks you hold, only to someone standing in it; a client buys through the host.
+    // stacks you hold, only to someone standing in it; a client buys through the host. A boss cycle without one deals an Arms Dealer card.
+    // The Medic (Medic.cs): the only room shop with heals and revive tokens.
     static void ArmsDealerTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -21,6 +22,32 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true; }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);  // (the Grid core)
+
+        // The guarantee: a boss cycle with no Arms Dealer on the map and no Arms Dealer card in a hand deals one, once a cycle.
+        var guarantee = typeof(Game).GetMethod("GuaranteeArmsCard", flags);
+        Func<int> armsCards = () => g.Players.Values.Sum(p => p.Hand.Count(c => c == (byte)RoomCard.Arms));
+        Action clearHands = () => { foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length); };
+        clearHands();
+        g.Wave = 6;
+        guarantee.Invoke(g, null);
+        Check(armsCards() == 1, "with no Arms Dealer anywhere, someone is dealt an Arms Dealer card");
+        clearHands();
+        guarantee.Invoke(g, null);
+        Check(armsCards() == 0, "only once a boss cycle");
+        g.Wave = 10;
+        g.Players[2].Hand[0] = (byte)RoomCard.Arms;
+        guarantee.Invoke(g, null);
+        Check(armsCards() == 1, "not while someone holds one");
+        clearHands();
+        g.Wave = 15;
+        foreach (var p in g.Players.Values) for (int i = 0; i < p.Hand.Length; i++) p.Hand[i] = (byte)RoomCard.Shop;
+        guarantee.Invoke(g, null);
+        Check(armsCards() == 0, "every hand full: nobody gets it yet");
+        g.Players[2].Hand[3] = (byte)RoomCard.None;
+        guarantee.Invoke(g, null);
+        Check(g.Players[2].Hand.Contains((byte)RoomCard.Arms), "the next round it goes to the hand with room");
+        clearHands();
+        g.Wave = 6;
 
         // An Arms Dealer and a shop, from their cards.
         var me = g.Players[1];
@@ -68,7 +95,8 @@ static partial class Program
         Check(me.Gold == 100 && Upgrades.Count(me.Taken, Game.ModIds[1]) == 0, "not without the gold");
         me.Gold = 500; me.Hp = me.MaxHp * 0.5f;
         g.Shop(ShopAction.Heal);
-        Check(me.Gold == 500 - Game.HealPrice && me.Hp >= me.MaxHp, "its services work too: it heals");
+        g.Shop(ShopAction.Revive);
+        Check(me.Gold == 500 && me.Hp < me.MaxHp * 0.6f && !me.ReviveToken, "it sells no heals or revives (the Medic does)");
 
         // The friend buys through the host, standing in the room.
         var friend = g.Players[2];
@@ -79,6 +107,32 @@ static partial class Program
         Run(s, dt, 1f, () => Upgrades.Count(friend.Taken, fm) == 1, noPicks);
         Run(s, dt, 0.5f, null, noPicks);
         Check(Upgrades.Count(friend.Taken, fm) == 1 && friend.Gold == 300 - Game.ModPrices[0] && cg.Players[2].Gold == friend.Gold, "the friend buys a mod too, and sees their gold drop");
+
+        // With an Arms Dealer on the map the guarantee deals nothing.
+        g.Wave = 20;
+        guarantee.Invoke(g, null);
+        Check(armsCards() == 0, "with an Arms Dealer on the map nobody is dealt another");
+
+        // The Medic (Medic.cs): heals and revive tokens, only in its room, and nothing else.
+        V2 medicAt = play(RoomCard.Medic);
+        Check(g.HasMedicRoom && Expansion.CardRoomKind(RoomCard.Medic) == RoomKind.Medic, "a Medic card builds a Medic");
+        me.Pos = me.Disp = medicAt;
+        me.Gold = 500; me.Hp = me.MaxHp * 0.5f; me.ReviveToken = false;
+        int taken = me.Taken.Count;
+        g.Shop(ShopAction.Heal);
+        Check(me.Gold == 500 - Game.HealPrice && me.Hp >= me.MaxHp, "the Medic heals you to full for " + Game.HealPrice);
+        g.Shop(ShopAction.Revive);
+        Check(me.ReviveToken && me.Gold == 500 - Game.HealPrice - Game.RevivePrice, "and sells a revive token for " + Game.RevivePrice);
+        int g3 = me.Gold;
+        g.Shop(ShopAction.Sell, me.Taken[0]);
+        g.Shop(ShopAction.BuyMod, Game.ModIds[3]);
+        g.Shop(ShopAction.BuyBuild, 0);
+        Check(me.Gold == g3 && me.Taken.Count == taken && me.Stash[0] == 0, "it sells nothing else and buys nothing back");
+        friend.Gold = 200; friend.Hp = friend.MaxHp * 0.5f; friend.Pos = friend.Disp = medicAt;
+        PollBoth(host, client);
+        cg.Shop(ShopAction.Heal);
+        Run(s, dt, 1f, () => friend.Hp >= friend.MaxHp, noPicks);
+        Check(cg.HasMedicRoom && friend.Hp >= friend.MaxHp && friend.Gold == 200 - Game.HealPrice, "the friend heals there through the host");
     }
 }
 

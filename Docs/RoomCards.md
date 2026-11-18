@@ -100,7 +100,7 @@ Cards whose room has a job rather than a fight shape: the **Mini-boss** (above) 
 
 1. (built) Cards, hand, sources, `Msg.PlayCard`, the lobby switch, bots (play a Hall toward the nearest shop, vendor or node, else the best spot), saves; tests (suite `roomcards`).
 2. (built) Build screen: the Cards tool, the hand panel, the ghost and R; previews `CARDS=box,hall,ring,miniboss [CARDSEL=n] [MOUSE=x,y]` with `EXPANDVOTE=<n> EXPANDFREE=1 EXPANDDRAW=0,0,0,0`.
-3. (built) The vendor's card shelf (three offers a boss cycle, vector prices).
+3. (built, retired Nov 18) The vendor's card shelf (three offers a boss cycle, vector prices): the Black Market sells no cards now.
 4. Balance pass with `vecbal` (card rates, prices, hand size); themed cards (a card with a path floor) if wanted.
 
 ## Open questions (defaults in bold)
