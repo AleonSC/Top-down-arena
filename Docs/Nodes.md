@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-3 built (protocol 282)**, step 4 open; fog, scout towers and gold veins built (protocol 386). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **steps 1-3 built (protocol 282)**, step 4 open; fog, scout towers and gold veins built (protocol 386). **Nov 18 (owner): fog off, no scout towers, no floating shop / vendor / Gatekeeper rooms (room cards and mystery doors only), bigger node marks** (see the end). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -96,3 +96,9 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
   nuggets, sparkles); grey on the minimap and build map, "UNKNOWN NODE" / "SCOUT TOWER" / "GOLD VEIN" in the legend, tips name and explain them.
 - Bots still build toward fogged nodes. Not done: the tower's range drawn on the build map; numbers are first guesses (tune with `vecbal`).
 - Preview: `EXPANDMAP=0 EXPANDROOMS="1600,200,900,500" EXPANDAT=2400,450 EXPANDNODE="tower:2850,250;vein:2850,650;chest:2950,450:hidden"` (hud).
+
+## Nov 18 (owner): no room nodes, no fog, bolder nodes (no protocol change)
+
+- "Room nodes ... delegated to only room card placement or mystery rooms": `PlaceFloatingRooms` no longer places shop, vendor or Gatekeeper rooms; old saves keep theirs.
+- Fog removed: `NodeFor` places nodes unfogged; `TickNodeFog` clears an old save's fogged node at once. Scout towers are no longer placed (odd cycles: chest, rule, vein). `MapNode.Hidden` stays on the wire for old saves.
+- Look (`NodeLook.cs`): an unclaimed node is a lit disc, a bold double ring, turning dashes and two beacon rings rippling out, its mark at full size; the minimap square is 10 px with a dark edge and halo (`RoomsLook.cs`).

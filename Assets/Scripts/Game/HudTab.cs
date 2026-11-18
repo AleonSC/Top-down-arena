@@ -26,7 +26,7 @@ namespace Arena
             var head = new Rect(x, HoloTop, w, HoloHeadH);
             var rc = ToColor(me.Def.Color);
             HoloPanel(head, holoPageAt, () => HoloTitle(head.x + 18f, head.y + 14f, "YOUR LOADOUT",
-                (Defs.KitName(me.Kit) + " " + me.Def.Name + " · Level " + me.Level + " · " + me.Rerolls + " reroll" + (me.Rerolls == 1 ? "" : "s") + " left").ToUpperInvariant(),
+                (Defs.KitName(me.Kit) + " " + me.Def.Name + " · Level " + me.Level).ToUpperInvariant(),
                 Color.Lerp(rc, Color.white, 0.35f)));
             float top = HoloTop + HoloHeadH + HoloGap;
             var abilBox = new Rect(x, top, 360f, HoloBottom - top);
@@ -45,9 +45,7 @@ namespace Arena
             {
                 var rc = ToColor(me.Def.Color);
                 HoloTitle(r.x + 16f, r.y + 12f, "YOUR STATS", null, rc, 30);
-                Ui.Label(new Rect(r.x + 16f, r.y + 46f, r.width - 32f, 16f), LobbyKit.Truncate(me.Weapon.Name + " · " + Upgrades.Ability(me.RoleAbility).Name, 12, r.width - 32f), 12,
-                    Color.Lerp(rc, Color.white, 0.3f), TextAnchor.MiddleLeft, true);
-                DrawTabStats(me, new Rect(r.x + 10f, r.y + 70f, r.width - 20f, r.height - 80f));
+                DrawTabStats(me, new Rect(r.x + 10f, r.y + 54f, r.width - 20f, r.height - 64f));
             });
         }
 

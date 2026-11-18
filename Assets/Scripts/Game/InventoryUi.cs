@@ -145,16 +145,14 @@ namespace Arena
             return s;
         }
 
-        /// Gold and vectors as big tiles (the vectors with a bar to the cap), then the revive token and the gadget.
+        /// Gold and vectors as big tiles, then the revive token and the gadget.
         void DrawInvWallet(Player me, Rect r, bool mine)
         {
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Wallet", null, HoloCalm);
             float tw = (r.width - 36f) / 2f;
             HoloTile(new Rect(r.x + 12f, r.y + 46f, tw, 64f), me.Gold.ToString(), "Gold");
             bool expanding = game.ExpandingOn;
-            HoloTile(new Rect(r.x + 24f + tw, r.y + 46f, tw, 64f), expanding ? me.Vectors.ToString() : "—", expanding ? "Vectors / " + me.VectorCap : "Vectors", new Color(0.55f, 0.9f, 1f));
-            if (expanding)
-                HoloBar(new Rect(r.x + 24f + tw, r.y + 114f, tw, 6f), me.VectorCap > 0 ? (float)me.Vectors / me.VectorCap : 0f, new Color(0.45f, 0.85f, 1f));
+            HoloTile(new Rect(r.x + 24f + tw, r.y + 46f, tw, 64f), expanding ? me.Vectors + " / " + me.VectorCap : "—", "Vectors",new Color(0.55f, 0.9f, 1f));
             var rows = new string[,]
             {
                 { "Revive token", me.ReviveToken ? "1" : "0" },
@@ -248,24 +246,32 @@ namespace Arena
         void DrawInvStash(Player me, Rect r, bool canUse)
         {
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", me == game.Me ? "your stash" : "their stash", HoloCalm);
-            float avail = r.height - 58f;
-            int shown = Mathf.Clamp(Mathf.FloorToInt(avail / 40f), 1, Market.Count);
-            var list = new Rect(r.x + 12f, r.y + 46f, r.width - 24f, avail);
-            int first = InvScroll("stash", list, Market.Count, shown);
-            float rowH = avail / shown, rowW = list.width - (Market.Count > shown ? 10f : 0f);
-            for (int k = first; k < first + shown; k++)
+            var owned = new List<int>();
+            for (int q = 0; q < Market.Count; q++)
+                if (me.Stash[q] > 0) owned.Add(q);
+            if (owned.Count == 0)
             {
-                var row = new Rect(list.x, list.y + (k - first) * rowH, rowW, rowH - 4f);
-                int have = me.Stash[k];
+                Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 40f), "None held. Teleporters and traps are sold at the Black Market.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);
+                return;
+            }
+            float avail = r.height - 58f;
+            int n = owned.Count, shown = Mathf.Clamp(Mathf.FloorToInt(avail / 40f), 1, n);
+            var list = new Rect(r.x + 12f, r.y + 46f, r.width - 24f, avail);
+            int first = InvScroll("stash", list, n, shown);
+            float rowH = Mathf.Min(avail / shown, 48f), rowW = list.width - (n > shown ? 10f : 0f);
+            for (int i = first; i < first + shown; i++)
+            {
+                int k = owned[i], have = me.Stash[k];
+                var row = new Rect(list.x, list.y + (i - first) * rowH, rowW, rowH - 4f);
                 var ink = CrtUi.Ink;
-                bool usable = canUse && have > 0, hot = usable && row.Contains(Event.current.mousePosition);
-                if (k % 2 == 0 || hot)
+                bool usable = canUse, hot = usable && row.Contains(Event.current.mousePosition);
+                if (i % 2 == 0 || hot)
                     Ui.Fill(row, new Color(ink.r, ink.g, ink.b, hot ? 0.2f : 0.07f));
                 if (hot)
                     CrtKit.Frame(row, 1f, CrtStyle.Gold);
                 if (usable && Ui.HitArea(row))
                     UseInvBuild(k);
-                if (have > 0 && TipHover(row))
+                if (TipHover(row))
                 {
                     TipStart(row, Market.Names[k], ToColor(VendorInk));
                     TipAdd(Market.Blurbs[k], 12, Ui.Text);
@@ -274,10 +280,10 @@ namespace Arena
                 var m = GUI.matrix;
                 var icon = new Rect(row.x + 4f, row.y + (row.height - 36f) / 2f, 36f, 36f);
                 GUIUtility.ScaleAroundPivot(new Vector2(0.42f, 0.42f), icon.center);
-                DrawBuildGlyph((BuildKind)k, new Rect(icon.center.x - 40f, icon.center.y - 40f, 80f, 80f), have > 0 ? 1f : 0.3f);
+                DrawBuildGlyph((BuildKind)k, new Rect(icon.center.x - 40f, icon.center.y - 40f, 80f, 80f), 1f);
                 GUI.matrix = m;
-                Ui.Label(new Rect(icon.xMax + 10f, row.y, row.width - 110f, row.height), Market.Names[k], 13, have > 0 ? HoloBody : HoloDim, TextAnchor.MiddleLeft, false);
-                CrtUi.Title(new Rect(row.x, row.y, row.width - 8f, row.height), hot ? "PLACE ›" : have + " / " + Market.StashMax, 20, hot ? CrtStyle.Gold : have > 0 ? Color.white : HoloDim, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(icon.xMax + 10f, row.y, row.width - 110f, row.height), Market.Names[k], 13, HoloBody, TextAnchor.MiddleLeft, false);
+                CrtUi.Title(new Rect(row.x, row.y, row.width - 8f, row.height), hot ? "PLACE ›" : have + " / " + Market.StashMax, 20, hot ? CrtStyle.Gold : Color.white, TextAnchor.MiddleRight, true);
             }
         }
 

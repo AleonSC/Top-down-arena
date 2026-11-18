@@ -31,8 +31,7 @@ namespace Arena
     {
         float fogT;
 
-        /// Host, every frame (throttled): a fogged node is revealed for everyone when a standing player comes within 8 tiles of it, when
-        /// a claimed scout tower has it in range, or when its room is built.
+        /// Host, every frame (throttled): fog is off (owner, Nov 18), so a fogged node from an old save is revealed for everyone at once.
         void TickNodeFog(float dt)
         {
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
@@ -47,11 +46,7 @@ namespace Arena
                 var nd = Nodes[i];
                 if (!nd.Hidden)
                     continue;
-                bool seen = Expansion.NodeClaimed(Expanded, nd) || NodeScouting.TowerSees(Expanded, Nodes, nd.Pos);
-                foreach (var p in Players.Values)
-                    seen |= !p.Downed && p.Pos.CloserThan(nd.Pos, NodeScouting.RevealReach + Expansion.NodeHalf(nd));
-                if (!seen)
-                    continue;
+                // (fog is off since Nov 18, owner: nodes are always visible; an old save's fogged node clears at once)
                 nd.Hidden = false;
                 Nodes[i] = nd;
                 changed = true;
