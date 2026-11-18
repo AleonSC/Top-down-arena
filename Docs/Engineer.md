@@ -58,3 +58,6 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
    and is a `ZoneKind.SafeRoom` with `Zone.DamageCut`. The model wears its role's build and trim. Stand-ins now prefer their
    own role's (`FillsGaps`).
 5. Next: more weapons, abilities and ultimates per role (each role has two locked weapon keys and two locked ability keys).
+
+Unlock (Nov 18): a locked class, `Unlocks` "class-engineer" (win a run; `Profile.EngineerUnlocked`), with a padlock card in the lobby and
+the Wildcard wheel until then. Open to everyone for now: `EngineerUnlockedForTesting` in `LobbyUi.cs`.

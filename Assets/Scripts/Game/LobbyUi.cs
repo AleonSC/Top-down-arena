@@ -736,6 +736,11 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
+                    if (!KitOpen((Kit)i))
+                    {
+                        LockedSlot(b, EngineerLockText, true);  // a locked class: its card shows the padlock until it's unlocked
+                        continue;
+                    }
                     if (Defs.KitLocked(me.Role, (Kit)i))
                     {
                         LockedSlot(b, Defs.KitName((Kit)i) + ": DPS only for now", true);  // a class still being built (the Engineer)
@@ -1035,6 +1040,11 @@ namespace Arena
         const string WildcardLockText = "Win a run as a Tank, a Healer and a DPS to unlock";
         const bool WildcardUnlockedForTesting = true;  // TODO: set false on release so the Profile.WildcardUnlocked requirement applies
         bool WildcardOpen => WildcardUnlockedForTesting || game.Profile == null || game.Profile.WildcardUnlocked;
+        const bool EngineerUnlockedForTesting = true;  // the owner's call (Nov 18): open by default for now; set false so Profile.EngineerUnlocked (win a run) applies
+        bool EngineerOpen => EngineerUnlockedForTesting || game.Profile == null || game.Profile.EngineerUnlocked;
+        /// A class this profile hasn't unlocked yet (the Engineer: win a run).
+        bool KitOpen(Kit k) => k != Kit.Engineer || EngineerOpen;
+        const string EngineerLockText = "Engineer: win a run to unlock";
 
         Rect lockedTip;          // the locked slot under the mouse, if any (its tooltip is drawn last, on top)
         bool lockedTipOn;
@@ -1166,9 +1176,9 @@ namespace Arena
             {
                 int idx = Defs.WildWeaponPick((Kit)bk, c);
                 var b = new Rect(px + c * (ww + 4f), y + 15f, ww, 32f);
-                if (Defs.WeaponGap(Role.Dps, (Kit)bk, c))
+                if (Defs.WeaponGap(Role.Dps, (Kit)bk, c) || !KitOpen((Kit)bk))
                 {
-                    LockedSlot(b, null, true);  // a class still being built (the Engineer)
+                    LockedSlot(b, KitOpen((Kit)bk) ? null : EngineerLockText, true);  // a class still being built (the Engineer), or one not unlocked yet
                     continue;
                 }
                 if (LobbyKit.Key(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
@@ -1188,9 +1198,9 @@ namespace Arena
             {
                 int idx = bk * per + c;
                 var b = new Rect(px + c * (cw + 4f), ay + 15f, cw, 32f);
-                if (Upgrades.AbilityGap(Role.Dps, (Kit)bk, c))
+                if (Upgrades.AbilityGap(Role.Dps, (Kit)bk, c) || !KitOpen((Kit)bk))
                 {
-                    LockedSlot(b, null, true);  // a class still being built (the Engineer)
+                    LockedSlot(b, KitOpen((Kit)bk) ? null : EngineerLockText, true);  // a class still being built (the Engineer), or one not unlocked yet
                     continue;
                 }
                 int inSlot = me.Ability == idx ? 1 : second == idx ? 2 : 0;

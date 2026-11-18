@@ -28,6 +28,10 @@ static partial class Program
             && Upgrades.RoleAbility(Role.Tank, Kit.Engineer, 1) == AbilityId.VectorWall, "Vector Wall and Bastion for the Tank, Med Pylon and Safe Room for the Healer");
         Check(Upgrades.RoleAbility(Role.Dps, Kit.Engineer, 0) == AbilityId.DragPylon && Upgrades.AbilityGap(Role.Dps, Kit.Engineer, 1)
             && Upgrades.Ultimate(Role.Dps, Kit.Engineer) == AbilityId.Breach && !Upgrades.UltGap(Role.Dps, Kit.Engineer), "Drag Pylon on Space and Breach on the Ultimate row");
+        var fresh = new Profile();
+        Check(Unlocks.Get("class-engineer") != null && !fresh.EngineerUnlocked, "the Engineer is a locked class on a new profile (the lobby opens it for everyone for now)");
+        fresh.RunsWon = 1;
+        Check(fresh.EngineerUnlocked && Unlocks.Get("class-engineer").Earned(fresh), "winning a run unlocks it");
         Check(Upgrades.All.Count(u => u.Name == "Drag Pylon") == 1, "one Drag Pylon card, not one per place it stands in for");
 
         // A locked weapon key is refused: the lobby keeps the first.

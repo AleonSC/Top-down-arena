@@ -47,7 +47,7 @@ row lists its class wheel's class, and a saved run's seats keep theirs.
   below).
 - **Hemomancer**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its
   health; full health (see below).
-- **Engineer**: a builder who works in vectors; one weapon, Space ability and ultimate per role for now (its other keys
+- **Engineer** (a locked class: win a run to unlock it; open to everyone for now): a builder who works in vectors; one weapon, Space ability and ultimate per role for now (its other keys
   are locked); full health, 95% speed (see below).
 
 | | Soldier | Elementalist | Summoner |
