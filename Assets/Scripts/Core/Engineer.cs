@@ -537,7 +537,7 @@ namespace Arena
                 int start = rng.Next(BreachShapes.Length);
                 for (int k = 0; k < BreachShapes.Length && made == null; k++)
                 {
-                    var opts = Expansion.SurpriseOptionsFor(ExpandingOn, Expanded, BreachShapes[(start + k) % BreachShapes.Length], through);
+                    var opts = Expansion.GridSurpriseOptions(Expanded, BreachShapes[(start + k) % BreachShapes.Length], through);
                     if (opts.Count > 0)
                         made = opts[0].Rooms;
                 }

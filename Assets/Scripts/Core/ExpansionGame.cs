@@ -41,9 +41,6 @@ namespace Arena
             payer.MapSpent += take;  // (half comes back when the map resets, MapReset.cs)
         }
 
-        /// Free building: anyone builds with their own vectors the moment they place it, any number a round (Team vote is gone, Nov 18).
-        public bool FreeBuild => ExpandingOn;
-
         int expandSeed;
         int roundBuilt;  // free building: drawings built since this round opened (bots only build when it's 0)
         float botBuildT;
@@ -281,7 +278,7 @@ namespace Arena
                 var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
                 for (int i = 0; i < ringKinds.Length; i++)
                 {
-                    var rn = ExpandingOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
+                    var rn = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
                     if (!rn.HasValue)
                         continue;
                     Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
@@ -293,7 +290,7 @@ namespace Arena
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = ExpandingOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
+                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind);
                 if (!nd.HasValue)
                     continue;
                 Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
@@ -348,7 +345,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return;
             string why;
-            var pick = Expansion.SurpriseFor(ExpandingOn, expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, GridPieces.cs)
+            var pick = Expansion.SurpriseFor(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, GridPieces.cs)
             if (!pick.HasValue)
             {
                 DoLog("no surprise room: " + why);
@@ -371,7 +368,7 @@ namespace Arena
         {
             if (!IsHost || !ModeRules.RunEvents)
                 return;
-            var nd = ExpandingOn ? Expansion.GridChestFor(expandSeed, Expanded, Nodes, count) : Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
+            var nd = Expansion.GridChestFor(expandSeed, Expanded, Nodes, count);
             if (!nd.HasValue)
                 return;
             Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
@@ -693,12 +690,6 @@ namespace Arena
                 Links.Add(Expansion.LinkOf(room));
                 PayVectors(Players[pick], room.Price);
                 DoLog("portal pair built by " + Players[pick].Name);
-            }
-            else if (room.Kind == Arena.RoomKind.Opening)
-            {
-                Openings.Add(Expansion.CutOf(room));
-                AddVectors(Players[pick], -room.Price);
-                DoLog("wall opened: " + (room.W + room.H) / Expansion.Step + " tiles by " + Players[pick].Name + " for +" + -room.Price + " vectors");
             }
             else
             {

@@ -199,15 +199,6 @@ namespace Arena
             return -1;
         }
 
-        /// (Dormant since the vector economy: a gold price from the purse days. Rooms now cost Cost vectors.) A room's price: bigger costs more, a shop and a floor cost a little extra, and each room already bought makes the next dearer.
-        public static int PriceFor(RoomKind kind, int w, int h, int built)
-        {
-            float p = 120f + w * h / 4000f;
-            p *= kind == RoomKind.Shop ? 1.3f : kind == RoomKind.Floor ? 1.15f : 1f;
-            p *= 1f + 0.2f * built;
-            return (int)Math.Round(p / 5f) * 5;
-        }
-
         // --- Geometry ----------------------------------------------------------------------------------------------
 
         /// The box of area i (0 is the hub).
@@ -320,17 +311,6 @@ namespace Arena
                 }
             }
             return seen;
-        }
-
-        /// How many floating rooms nobody has connected yet.
-        public static int SealedCount(IList<ExpansionRoom> rooms)
-        {
-            var linked = ConnectedAreas(rooms);
-            int n = 0;
-            for (int i = 0; i < rooms.Count; i++)
-                if (rooms[i].Floating && !linked[i + 1])
-                    n++;
-            return n;
         }
 
         // --- Map nodes (Docs/Nodes.md): shop and vendor points out in empty space, claimed by building a room around them ---
@@ -725,176 +705,9 @@ namespace Arena
         public const int RingMin = 700, RingMax = 1000;  // the first cycle's ring nodes sit 7 to 10 tiles off the hub's wall (owner Nov 18: closer)
         public const int StartExtra = 1000;  // nodes and floating rooms placed off the start room sit this much farther out (owner Nov 12: 600; Nov 13: 1000, the Gatekeeper too)
         public const int StartClear = 1000;  // and nothing is placed closer than this to the start room, whichever room it was placed off (owner Nov 13)
-        public const int MaxSealed = 6;
         public const int ShopRoomSide = 400;  // a floating shop or vendor room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 
-        /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 4 to 8 tiles off a room on the (14 to 18 off the start room, never within 10 of it)
-        /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap, and leaving a box to every sealed room
-        /// placed before it. The same on every machine for the same seed, cycle and map. Null if nothing fits.
-        public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind, IList<MapNode> nodes = null)
-        {
-            int w = kind == RoomKind.Gatekeeper ? 800 : ShopRoomSide, h = kind == RoomKind.Gatekeeper ? 600 : ShopRoomSide;  // (shop and vendor: a tiny square room)
-            var rng = new DetRandom(seed * 40503 + cycle * 9176 + (int)kind * 131);
-            var linked = ConnectedAreas(built);
-            List<int> waiting = null;  // the sealed floating rooms a box can reach now: a new one mustn't take their only spot
-            for (int i = 0; i < built.Count; i++)
-                if (built[i].Floating && !linked[i + 1] && ConnectorFor(built, i).HasValue)
-                    (waiting ?? (waiting = new List<int>())).Add(i);
-            for (int attempt = 0; attempt < 400; attempt++)
-            {
-                int a = rng.Int(built.Count + 1);
-                if (!linked[a])
-                    continue;
-                int bx0, by0, bx1, by1;
-                BoxOf(built, a, out bx0, out by0, out bx1, out by1);
-                int side = rng.Int(4), gap = 400 + rng.Int(5) * 100 + (a == 0 ? StartExtra : 0), x, y;
-                if (side == 0 || side == 2)
-                {
-                    int lo = bx0 - w / 2, hi = bx1 - w / 2;
-                    x = lo + rng.Int((hi - lo) / Step + 1) * Step;
-                    y = side == 0 ? by0 - gap - h : by1 + gap;
-                }
-                else
-                {
-                    int lo = by0 - h / 2, hi = by1 - h / 2;
-                    y = lo + rng.Int((hi - lo) / Step + 1) * Step;
-                    x = side == 1 ? bx1 + gap : bx0 - gap - w;
-                }
-                if (x % Step != 0 || y % Step != 0)
-                    continue;
-                int x1 = x + w, y1 = y + h;
-                bool ok = true;
-                int minX = Math.Min(0, x), minY = Math.Min(0, y), maxX = Math.Max((int)Game.Width, x1), maxY = Math.Max((int)Game.Height, y1);
-                for (int i = 0; i <= built.Count && ok; i++)
-                {
-                    int cx0, cy0, cx1, cy1;
-                    BoxOf(built, i, out cx0, out cy0, out cx1, out cy1);
-                    int clear = i == 0 ? StartClear : 200;  // (two tiles clear of everything, farther from the start room)
-                    ok = !Overlaps(x - clear, y - clear, x1 + clear, y1 + clear, cx0, cy0, cx1, cy1);
-                    minX = Math.Min(minX, cx0); minY = Math.Min(minY, cy0); maxX = Math.Max(maxX, cx1); maxY = Math.Max(maxY, cy1);
-                }
-                if (ok && nodes != null)
-                    foreach (var o in nodes)
-                        if (!o.Spent && IsPrizeNode(o.Kind))
-                            ok &= !Overlaps(x - PrizeClear, y - PrizeClear, x1 + PrizeClear, y1 + PrizeClear, o.X, o.Y, o.X, o.Y);  // (and well clear of a waiting chest or relic node)
-                if (!ok || maxX - minX > MaxWidth || maxY - minY > MaxHeight)
-                    continue;
-                var found = new ExpansionRoom { Parent = 0, X = x, Y = y, W = w, H = h, Kind = kind, Floating = true };
-                var with = new List<ExpansionRoom>(built) { found };
-                if (!ConnectorFor(with, with.Count - 1).HasValue)
-                    continue;  // (a floating room nobody could ever build to isn't worth placing)
-                bool blocks = false;
-                if (waiting != null)
-                    foreach (int i in waiting)
-                        blocks |= !blocks && !ConnectorFor(with, i).HasValue;
-                if (blocks)
-                    continue;  // (nor one that seals off a room placed before it: a Gatekeeper on the only spot a box to the old shop fits)
-                return found;
-            }
-            return null;
-        }
-
-        /// The cheapest box that would connect a sealed floating room (its index in `built`) to the map: touching it and a connected room.
-        /// Null if none fits. Bots use it to build to shops; the balance report reads its price.
-        public static ExpansionRoom? ConnectorFor(IList<ExpansionRoom> built, int floatIndex)
-        {
-            var f = built[floatIndex];
-            ExpansionRoom? best = null;
-            string why;
-            for (int side = 0; side < 4; side++)
-                for (int along = 300; along <= 600; along += Step)      // the box's width along the floating room's wall
-                    for (int reach = 300; reach <= 900 + StartExtra; reach += Step)       // ...and how far it reaches out from it
-                    {
-                        bool horizontalWall = side < 2;                  // 0 north, 1 south: the box sits above or below
-                        int w = horizontalWall ? along : reach, h = horizontalWall ? reach : along;
-                        int lo = (horizontalWall ? f.X : f.Y) - along + MinDoorRun, hi = (horizontalWall ? f.X1 : f.Y1) - MinDoorRun;
-                        for (int p = lo; p <= hi; p += Step)
-                        {
-                            int x = horizontalWall ? p : side == 2 ? f.X - w : f.X1;
-                            int y = horizontalWall ? (side == 0 ? f.Y - h : f.Y1) : p;
-                            var c = Custom(built, x, y, w, h, out why);
-                            if (c.HasValue && (!best.HasValue || c.Value.Price < best.Value.Price))
-                                best = c;
-                        }
-                    }
-            return best;
-        }
-
-        /// How many loops a room would close (other rooms it gets a door to besides its parent).
-        public static int LoopsOf(IList<ExpansionRoom> built, ExpansionRoom r)
-        {
-            int p, loops; string why;
-            return Placement(built, r.X, r.Y, r.W, r.H, out p, out loops, out why) ? loops : 0;
-        }
-
         // --- Opened walls: a stretch of wall between two rooms the team opens for vectors (1 per tile) ---
-
-        public const int MinCut = 200, MaxCuts = 40;  // the shortest opening (2 tiles), and how many a map can hold
-
-        /// A proposal's ExpansionRoom for a wall opening: the stretch as a thin box (width or height 0), priced at minus the refund.
-        public static ExpansionRoom CutProposal(WallCut c, int refund) => new ExpansionRoom
-        {
-            Kind = RoomKind.Opening,
-            X = c.Vertical ? c.At : c.From, Y = c.Vertical ? c.From : c.At,
-            W = c.Vertical ? 0 : c.Till - c.From, H = c.Vertical ? c.Till - c.From : 0,
-            Price = -refund,
-        };
-
-        public static WallCut CutOf(ExpansionRoom r) => r.W == 0
-            ? new WallCut { Vertical = true, At = (short)r.X, From = (short)r.Y, Till = (short)(r.Y + r.H) }
-            : new WallCut { Vertical = false, At = (short)r.Y, From = (short)r.X, Till = (short)(r.X + r.W) };
-
-        /// Every stretch of wall two rooms share on this map (vertical?, its line, from, till): where an opening can go.
-        public static List<int[]> SharedWalls(World w)
-        {
-            var list = new List<int[]>();
-            for (int a = 0; a < w.Areas.Length; a++)
-                for (int b = a + 1; b < w.Areas.Length; b++)
-                {
-                    var p = w.Areas[a]; var q = w.Areas[b];
-                    int px0 = (int)p.Min.X, py0 = (int)p.Min.Y, px1 = (int)p.Max.X, py1 = (int)p.Max.Y, qx0 = (int)q.Min.X, qy0 = (int)q.Min.Y, qx1 = (int)q.Max.X, qy1 = (int)q.Max.Y;
-                    int lo = Math.Max(py0, qy0), hi = Math.Min(py1, qy1);
-                    if (hi > lo && (px1 == qx0 || qx1 == px0))
-                        list.Add(new[] { 1, px1 == qx0 ? px1 : px0, lo, hi, a, b });
-                    lo = Math.Max(px0, qx0); hi = Math.Min(px1, qx1);
-                    if (hi > lo && (py1 == qy0 || qy1 == py0))
-                        list.Add(new[] { 0, py1 == qy0 ? py1 : py0, lo, hi, a, b });
-                }
-            return list;
-        }
-
-        /// What opening this stretch gives back: 1 vector per tile of it that is still wall. 0 with `why` set if it can't be opened
-        /// (not on the grid, too short, not a wall two rooms share, a sealed room behind it, or already open).
-        public static int CutRefund(IList<ExpansionRoom> rooms, IList<WallCut> cuts, WallCut c, out string why)
-        {
-            why = null;
-            if (c.At % Step != 0 || c.From % Step != 0 || c.Till % Step != 0) { why = "Not on the grid"; return 0; }
-            if (c.Length < MinCut) { why = "Too short (at least " + MinCut / Step + " tiles)"; return 0; }
-            if (cuts != null && cuts.Count >= MaxCuts) { why = "Too many openings"; return 0; }
-            var w = Build(rooms, cuts);
-            foreach (var s in SharedWalls(w))
-            {
-                if ((s[0] == 1) != c.Vertical || s[1] != c.At || c.From < s[2] || c.Till > s[3])
-                    continue;
-                if (w.Areas[s[4]].Sealed || w.Areas[s[5]].Sealed) { why = "A sealed room: build to it first"; return 0; }
-                int open = 0;
-                for (int u = c.From; u < c.Till; u += Step)
-                {
-                    float mid = u + Step / 2f;
-                    foreach (var d in w.Doors)
-                        if (d.Vertical == c.Vertical && Math.Abs((c.Vertical ? d.Pos.X : d.Pos.Y) - c.At) < 0.5f && Math.Abs((c.Vertical ? d.Pos.Y : d.Pos.X) - mid) < d.W / 2f)
-                        {
-                            open++;
-                            break;
-                        }
-                }
-                int refund = c.Length / Step - open;
-                if (refund <= 0) { why = "Already open"; return 0; }
-                return refund;
-            }
-            why = "Not a wall between two rooms";
-            return 0;
-        }
 
         // --- Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, bought with vectors ---
 
@@ -1167,8 +980,6 @@ namespace Arena
         public const int MaxPoints = 32;         // corners an outline may have
         public const int OutlineMaxSide = 2400;  // an outline's bounding box, each way
         public const int OutlineCoverMin = 500;  // an outline's piece narrower than this gets no cover
-
-        public static bool IsPiece(ExpansionRoom r) => r.Leg >= PieceBase;
 
         /// The corners of an outline with the in-between points of straight walls taken out (each point {x, y}). Null with `why` set
         /// if it isn't a closed loop of straight walls on the grid (each wall across or up, corners apart, no wall doubling back).
@@ -1527,15 +1338,6 @@ namespace Arena
                     return true;
             }
             return false;
-        }
-
-        /// How many tiles of floor a room has (its boxes together).
-        public static int FloorTiles(ExpansionRoom head, IList<ExpansionRoom> rest)
-        {
-            int n = head.W * head.H;
-            foreach (var r in rest)
-                n += r.W * r.H;
-            return n / (Step * Step);
         }
 
         /// Doors an area has (to its parent, children and loops).

@@ -57,35 +57,33 @@ namespace Arena
             return k == MysteryKind.Enemies && !enemies ? MysteryKind.Empty : k;
         }
 
-        /// The shapes a room comes in (one picked by the roll): small 4 x 4 or 5 x 4, medium 6 x 6 or 7 x 6, the hallway 12 x 3.
-        /// The grid pieces a room comes as in a Grid run: small one cell (a shop, Black Market or Arms Dealer always one cell), medium a domino, a corner or a
+        /// The grid pieces a room comes as: small one cell (a shop, Black Market or Arms Dealer always one cell), medium a domino, a corner or a
         /// square, T, S or L tetromino, the hallway a line of 3 or 4. Every piece shape can come from a door (owner Nov 18).
         public static GridPiece[] PiecesOf(MysteryRoom r) =>
             r == MysteryRoom.Small ? new[] { GridPiece.Mono }
             : r == MysteryRoom.Medium ? new[] { GridPiece.Domino, GridPiece.TriL, GridPiece.TetO, GridPiece.TetT, GridPiece.TetS, GridPiece.TetL }
             : new[] { GridPiece.TriI, GridPiece.TetI };
 
-        public static SurpriseShape[] ShapesOf(MysteryRoom r) =>
-            r == MysteryRoom.Small ? new[] { SurpriseShape.Tiny, SurpriseShape.SmallRect }
-            : r == MysteryRoom.Medium ? new[] { SurpriseShape.Medium, SurpriseShape.Box }
-            : new[] { SurpriseShape.LongHall };
+        /// The size a planned room counts as: one cell is small, a single straight line of cells a hallway, the rest medium.
+        public static MysteryRoom RoomOf(List<ExpansionRoom> rooms)
+        {
+            int cells = 0;
+            foreach (var q in rooms)
+                cells += q.W / Expansion.GridCell * (q.H / Expansion.GridCell);
+            if (cells <= 1)
+                return MysteryRoom.Small;
+            var r = rooms[0];
+            return rooms.Count == 1 && Math.Min(r.W, r.H) == Expansion.GridCell && Math.Max(r.W, r.H) >= 3 * Expansion.GridCell ? MysteryRoom.Hallway : MysteryRoom.Medium;
+        }
 
-        public static MysteryRoom RoomOfShape(SurpriseShape s) => s == SurpriseShape.LongHall ? MysteryRoom.Hallway : s == SurpriseShape.Tiny || s == SurpriseShape.SmallRect ? MysteryRoom.Small : MysteryRoom.Medium;
+        /// What a door costs: by the cells behind it (you don't pick its shape or spot): 9 for one cell, 24 for four.
+        public static int PriceForCells(int cells) => PriceBase + PricePerCell * cells;
 
         /// How many enemies a room of this size holds at this wave.
         public static int AmbushCount(int wave, MysteryRoom r = MysteryRoom.Medium)
         {
             int n = Math.Min(AmbushMax, AmbushBase + wave / 5);
             return r == MysteryRoom.Small ? Math.Max(3, n - SmallFewer) : n;
-        }
-
-        /// A hallway's door must be on one of its short ends (so its chest is at the far end); a single box with no other room touching.
-        public static bool HallFits(SurpriseOption o, MysteryDoor d)
-        {
-            if (o.Rooms.Count != 1 || o.Loops > 0)
-                return false;
-            var r = o.Rooms[0];
-            return (r.W > r.H) == d.Vertical;  // (a long box lying left-right opens through an up-down wall at one end)
         }
 
         /// Where a hallway's chest goes: the middle of its far end, 70 px in.
@@ -98,13 +96,10 @@ namespace Arena
         }
 
         public const int BotReserve = 10;      // a bot keeps this many vectors back for building when it opens a door
-        public const float PriceShare = 0.6f;  // a door costs this share of drawing the same room (you don't pick its shape or spot)
+        public const int PriceBase = 4, PricePerCell = 5;  // a door's price (PriceForCells)
         public const int Cap = 3;              // doors on the map at once
         public const float UseRange = 150f;    // stand this close to open or save one
         public const float Behind = 30f;       // the planned room has floor this far behind the door's wall
-
-        /// What opening a room that would cost `drawPrice` to draw costs.
-        public static int PriceFor(int drawPrice) => Math.Max(1, (int)Math.Round(PriceShare * drawPrice));
 
         /// How many new doors a cleared wave rolls: 1 or 2, seeded (the same on every machine).
         public static int NewDoors(int seed, int wave) => 1 + new DetRandom(seed * 4421 + wave * 613 + 29).Int(2);
@@ -185,7 +180,7 @@ namespace Arena
                 int fresh = aOld ? d.B : d.A;
                 var a = w.Areas[fresh];
                 V2 inside = a.Contains(d.Pos + d.Across * Mystery.Behind) ? d.Pos + d.Across * Mystery.Behind : d.Pos - d.Across * Mystery.Behind;
-                door = new MysteryDoor { X = (short)Math.Round(d.Pos.X), Y = (short)Math.Round(d.Pos.Y), Vertical = d.Vertical, Price = (short)Mystery.PriceFor(plan.Price) };
+                door = new MysteryDoor { X = (short)Math.Round(d.Pos.X), Y = (short)Math.Round(d.Pos.Y), Vertical = d.Vertical, Price = (short)plan.Price };
                 behind = inside;
                 return true;
             }
@@ -237,22 +232,20 @@ namespace Arena
             {
                 var room = Mystery.RoomFor(expandSeed, Wave, n + Expanded.Count * 7);
                 var kind = Mystery.KindFor(expandSeed, Wave, n + Expanded.Count * 7, room, enemies);
-                var shapes = Mystery.ShapesOf(room);
-                var pieces = Mystery.PiecesOf(room);
-                bool grid = ExpandingOn;  // (a Grid run: the room behind is a piece on the lattice, a shop or vendor one cell; owner Nov 18)
-                int nShapes = grid ? pieces.Length : shapes.Length;
+                var pieces = Mystery.PiecesOf(room);  // (the room behind is a piece on the lattice, a shop or vendor one cell; owner Nov 18)
+                int nShapes = pieces.Length;
                 int first = rg.Int(nShapes);
                 bool placed = false;
                 for (int t = 0; t < nShapes && !placed; t++)
                 {
-                    var opts = grid ? Expansion.GridMysteryOptions(Expanded, pieces[(first + t) % pieces.Length]) : Expansion.SurpriseOptions(Expanded, shapes[(first + t) % shapes.Length]);
+                    var opts = Expansion.GridMysteryOptions(Expanded, pieces[(first + t) % pieces.Length]);
                     int top = Math.Min(opts.Count, 8);  // (the best spots: closing loops, not stretching the map)
                     int start = rg.Int(Math.Max(1, top));
                     for (int k = 0; k < opts.Count && !placed; k++)
                     {
                         var o = opts[(start + k) % opts.Count];
                         MysteryDoor d; V2 behind;
-                        if (!MysteryDoorOf(o, out d, out behind) || MysteryClashes(o, d, -1) || (!grid && room == MysteryRoom.Hallway && !Mystery.HallFits(o, d)))
+                        if (!MysteryDoorOf(o, out d, out behind) || MysteryClashes(o, d, -1))
                             continue;
                         MysteryDoors.Add(d);
                         mysteryPlans.Add(o);
@@ -305,36 +298,12 @@ namespace Arena
         /// The room behind door i on today's map: its plan if that is still legal, else the best that fits through the same spot.
         SurpriseOption? StillFits(int i)
         {
-            var plan = mysteryPlans[i];
-            if (ExpandingOn)  // a Grid run's piece behind the door: kept while nothing sits on it (no re-plan: another spot would leave the lattice look)
-            {
-                foreach (var q in plan.Rooms)
-                    foreach (var r in Expanded)
-                        if (q.X < r.X1 && r.X < q.X1 && q.Y < r.Y1 && r.Y < q.Y1)
-                            return null;
-                return plan;
-            }
-            var opts = Expansion.SurpriseOptions(Expanded, plan.Shape, mysteryBehind[i]);
-            foreach (var o in opts)
-                if (SameRooms(o.Rooms, plan.Rooms))
-                    return o;
-            foreach (var o in opts)  // (else the same shape through the same door; a hallway still opens at one end)
-            {
-                MysteryDoor d; V2 behind;
-                if (plan.Shape != SurpriseShape.LongHall || (MysteryDoorOf(o, out d, out behind) && Mystery.HallFits(o, d)))
-                    return o;
-            }
-            return null;
-        }
-
-        static bool SameRooms(List<ExpansionRoom> a, List<ExpansionRoom> b)
-        {
-            if (a.Count != b.Count)
-                return false;
-            for (int i = 0; i < a.Count; i++)
-                if (a[i].X != b[i].X || a[i].Y != b[i].Y || a[i].W != b[i].W || a[i].H != b[i].H)
-                    return false;
-            return true;
+            var plan = mysteryPlans[i];  // (the piece behind the door: kept while nothing sits on it; no re-plan, another spot would leave the lattice look)
+            foreach (var q in plan.Rooms)
+                foreach (var r in Expanded)
+                    if (q.X < r.X1 && r.X < q.X1 && q.Y < r.Y1 && r.Y < q.Y1)
+                        return null;
+            return plan;
         }
 
         /// The door a player at p can work (closest within Mystery.UseRange), or -1.
@@ -419,7 +388,7 @@ namespace Arena
                 BroadcastExpansion();
                 return false;
             }
-            int price = Mystery.PriceFor(plan.Value.Price);
+            int price = plan.Value.Price;
             if (price > SpendableVectors(p))
             {
                 DoLog("mystery door refused: needs " + price + " vectors, " + p.Name + " has " + p.Vectors);
@@ -429,7 +398,7 @@ namespace Arena
             MysteryDoorsOpened++;
             MysteryVectorsSpent += price;
             var kind = i < mysteryKinds.Count ? mysteryKinds[i] : MysteryKind.Empty;
-            var size = Mystery.RoomOfShape(plan.Value.Shape);
+            var size = Mystery.RoomOf(plan.Value.Rooms);
             var rooms = new List<ExpansionRoom>(plan.Value.Rooms.Count);
             for (int k = 0; k < plan.Value.Rooms.Count; k++)
             {
