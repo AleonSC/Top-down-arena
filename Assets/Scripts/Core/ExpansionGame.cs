@@ -908,18 +908,23 @@ namespace Arena
         {
             ExpansionRoom? pick = null;
             int bestRank = 99;
+            float bestScore = 0f;
             foreach (var nd in Nodes)
             {
-                if (Expansion.NodeClaimed(Expanded, nd))
+                if (Expansion.NodeClaimed(Expanded, nd) || nd.Spent)
                     continue;
                 int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : nd.Kind == NodeKind.Rule ? 2 : 3;  // (a rule room first: it is the big one, and pays a chest or relic too)
-                if (rank >= bestRank)
+                float score = rank == 3 ? Expansion.BotNodeScore(BotNodeWant(nd), nd.Pos) : 0f;  // (prize nodes: the one it needs most, owner Nov 18)
+                if (rank == 3 && score <= 0f)
+                    continue;  // (a relic or buildables: ignored)
+                if (rank > bestRank || (rank == bestRank && (rank < 3 || score <= bestScore)))
                     continue;
                 var hall = Expansion.NodeStep(Expanded, nd);
                 if (hall.HasValue)
                 {
                     pick = hall;
                     bestRank = rank;
+                    bestScore = score;
                 }
             }
             for (int i = 0; i < Expanded.Count; i++)
@@ -937,6 +942,19 @@ namespace Arena
                 }
             }
             return pick;
+        }
+
+        /// How much this bot wants a prize node, by what it needs (Expansion.BotNodeWant): its gold, its vector bar and the grid pieces in its hand.
+        float BotNodeWant(MapNode nd)
+        {
+            var me = Me;
+            if (me == null)
+                return 0f;
+            int pieces = 0;
+            for (int i = 0; i < me.Hand.Length; i++)
+                if (me.Hand[i] != 0 && Expansion.IsGridCard((RoomCard)me.Hand[i]))
+                    pieces++;
+            return Expansion.BotNodeWant(nd.Kind, nd.Kind == NodeKind.Chest ? NodeChestKind(nd) : ChestKind.Upgrade, me.Vectors, me.VectorCap, me.Gold, pieces);
         }
 
         /// Every frame, every game: a bot player builds a room it can afford a moment after the round opens.

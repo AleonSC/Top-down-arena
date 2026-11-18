@@ -35,6 +35,16 @@ static partial class Program
         Check(tieredOk == 300 && Expansion.Tiered(7, new MapNode { X = 3000, Y = 450, Kind = NodeKind.Vein }).Kind == NodeKind.Vein,
             "a prize node takes its tier's kind (inner gold or vector chest, middle chest, outer chest or relic); a vein stays a vein");
 
+        // Bots want prize nodes by what they need (owner Nov 18): relics and buildables never, coins when poor, vectors when the bar is low, pieces when the hand is empty.
+        Func<NodeKind, ChestKind, int, int, int, float> want = (k, c, vec, gold, pieces) => Expansion.BotNodeWant(k, c, vec, 100, gold, pieces);
+        Check(want(NodeKind.Relic, ChestKind.Upgrade, 0, 0, 0) == 0f && want(NodeKind.Chest, ChestKind.Buildable, 0, 0, 0) == 0f, "bots ignore relics and buildables chests");
+        Check(want(NodeKind.Chest, ChestKind.Gold, 50, 0, 3) > want(NodeKind.Chest, ChestKind.Gold, 50, 500, 3) && want(NodeKind.Chest, ChestKind.Gold, 50, 0, 3) > want(NodeKind.Chest, ChestKind.Upgrade, 50, 0, 3),
+            "a bot short of gold wants a gold chest most");
+        Check(want(NodeKind.VectorChest, ChestKind.Upgrade, 0, 500, 3) > want(NodeKind.Chest, ChestKind.Upgrade, 0, 500, 3) && want(NodeKind.VectorChest, ChestKind.Upgrade, 100, 500, 3) < want(NodeKind.Chest, ChestKind.Upgrade, 100, 500, 3),
+            "a vector chest beats an upgrade with an empty bar, not with a full one");
+        Check(want(NodeKind.Chest, ChestKind.Piece, 100, 500, 0) > want(NodeKind.Chest, ChestKind.Upgrade, 100, 500, 0) && want(NodeKind.Chest, ChestKind.Piece, 100, 500, 3) < want(NodeKind.Chest, ChestKind.Upgrade, 100, 500, 3),
+            "a grid piece chest comes first with an empty hand, after upgrades with a full one");
+
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
