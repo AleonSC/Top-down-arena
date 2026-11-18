@@ -124,6 +124,24 @@ static partial class Program
         Check(Expansion.GridSpots(map).Any(sp => sp.SX == m.X || sp.SX == m.X1 || sp.SY == m.Y || sp.SY == m.Y1), "and its walls get door spots");
     }
 
+    // Owner Nov 18: a Grid run's boss surprise rooms and breach rooms (Stashes, the gold breach's room, the Engineer's Breach) sit on the lattice.
+    static void GridSurpriseTest()
+    {
+        var core = Expansion.GridCore();
+        Func<ExpansionRoom, bool> onLattice = r => (r.X - Expansion.GridX0) % 600 == 0 && (r.Y - Expansion.GridY0) % 600 == 0 && r.W % 600 == 0 && r.H % 600 == 0;
+        var stash = Expansion.SurpriseOptionsFor(true, core, SurpriseShape.Stash, new V2(2100f, 500f));
+        Check(stash.Count > 0 && stash.All(o => o.Rooms.Count == 1 && o.Rooms[0].W == 600 && o.Rooms[0].H == 600 && onLattice(o.Rooms[0]) && o.Rooms[0].X < 2100 && 2100 < o.Rooms[0].X1 && o.Rooms[0].Surprise == 1 + (int)SurpriseShape.Stash && o.Rooms[0].Price == 0),
+            "a Stash behind a breach on the core's right wall is the cell behind it, free, marked a Stash (" + stash.Count + ")");
+        foreach (var shape in new[] { SurpriseShape.Ring, SurpriseShape.Cross, SurpriseShape.LHall, SurpriseShape.THall, SurpriseShape.Chamfer })
+        {
+            string why;
+            var pick = Expansion.SurpriseFor(true, 5, 11, core, shape, out why);
+            int area = pick.HasValue ? pick.Value.Rooms.Sum(r => r.W * r.H) : 0;
+            Check(pick.HasValue && pick.Value.Rooms.All(onLattice) && area == 4 * 600 * 600 && pick.Value.Rooms.All(r => r.Surprise == 1 + (int)shape) && Expansion.SurpriseFor(true, 5, 11, core, shape, out why).Value.X == pick.Value.X,
+                "a boss's " + Expansion.SurpriseName(shape) + " gift is a 4-cell piece on the lattice, the same each time");
+        }
+    }
+
     static void GridPiecesGameTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -210,6 +228,29 @@ static partial class Program
         g.PlayGridCard(0, 0, po.X, po.Y);
         Run(s, dt, 0.3f, null, noPicks);
         Check(Game.HandCount(g.Players[1]) == 1, "with Grid off, no piece is played");
+        g.Diff.Set(DiffKnob.GridRooms, 1f);
+        // No Open wall in a Grid run (owner Nov 18).
+        int cuts0 = g.Openings.Count;
+        g.ExpandOpen = true;
+        g.ProposeExpandCut(new WallCut { Vertical = true, At = 2000, From = -400, Till = 200 });
+        Run(s, dt, 0.3f, null, noPicks);
+        Check(!g.OpenWallsOn && !g.DoorsOpen && g.Openings.Count == cuts0, "no Open wall in a Grid run");
+        // Mystery doors: the room behind each is a piece on the lattice; a small room (a shop or vendor) is one cell.
+        var roll = typeof(Game).GetMethod("RollMysteryDoors", flags);
+        var plans = (System.Collections.IList)typeof(Game).GetField("mysteryPlans", flags).GetValue(g);
+        bool lattice = true, cellSmall = true; int seen = 0;
+        for (int w = 0; w < 6; w++)
+        {
+            g.Wave = 7 + w;
+            roll.Invoke(g, null);
+            foreach (SurpriseOption pl in plans)
+            {
+                seen++;
+                lattice &= pl.Rooms.All(r => (r.X - Expansion.GridX0) % 600 == 0 && (r.Y - Expansion.GridY0) % 600 == 0 && r.W % 600 == 0 && r.H % 600 == 0) && pl.Price > 0;
+                if (pl.Rooms.Count == 1 && pl.Rooms[0].W == pl.Rooms[0].H) cellSmall &= pl.Rooms[0].W == 600;
+            }
+        }
+        Check(seen > 0 && lattice && cellSmall, "mystery door rooms are pieces on the lattice, priced, a small one exactly a cell (" + seen + " plans)");
         g.Diff.Set(DiffKnob.GridRooms, 1f);
         var place = typeof(Game).GetMethod("PlaceGridMini", flags);
         int before4 = g.Expanded.Count;

@@ -51,7 +51,7 @@ namespace Arena
         {
             get
             {
-                if (!FreeBuild || ExpandOpen || !ModeRules.RunEvents || State != MatchState.Intermission
+                if (!OpenWallsOn || !FreeBuild || ExpandOpen || !ModeRules.RunEvents || State != MatchState.Intermission
                     || WaveReport == null || WaveReport.Wave != Wave)
                     return false;
                 for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
@@ -63,6 +63,9 @@ namespace Arena
 
         /// A wall can be opened now: in a building round, or (free building, full map) between waves.
         public bool CanCut => ExpandOpen || DoorsOpen;
+
+        /// The Open wall tool is in play: not in a Grid run (owner Nov 18: removed, the grid's rooms keep their own walls and doors).
+        public bool OpenWallsOn => !GridRoomsOn;
 
         int expandSeed;
         int roundBuilt;  // free building: drawings built since this round opened (bots only build when it's 0)
@@ -368,7 +371,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return;
             string why;
-            var pick = Expansion.Surprise(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);
+            var pick = Expansion.SurpriseFor(GridRoomsOn, expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, GridPieces.cs)
             if (!pick.HasValue)
             {
                 DoLog("no surprise room: " + why);
@@ -663,7 +666,7 @@ namespace Arena
         /// This game's player proposes opening a stretch of interior wall (it pays vectors back, 1 per tile still wall).
         public void ProposeExpandCut(WallCut c)
         {
-            if (!CanCut || Me == null)
+            if (!CanCut || !OpenWallsOn || Me == null)
                 return;
             if (IsHost)
             {
@@ -681,7 +684,7 @@ namespace Arena
         void HostExpandCut(int id, WallCut c)
         {
             Player p;
-            if (!IsHost || !CanCut || !Players.TryGetValue(id, out p))
+            if (!IsHost || !CanCut || !OpenWallsOn || !Players.TryGetValue(id, out p))
                 return;
             string why;
             int refund = Expansion.CutRefund(Expanded, Openings, c, out why);
