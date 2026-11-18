@@ -96,18 +96,15 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.BuildVote, 0f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
             gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true;
         }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
         Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4 && g.Expanded.All(Expansion.IsGridCore) && g.Openings.Count == 8 && cg.Openings.Count == 8, "a Grid run's bare map gets its core, with the walls inside open, on both screens");
-        Check(g.GridRoomsOn && cg.GridRoomsOn && g.FreeBuild && !g.BuildVoting && !g.CanPush, "grid rooms on: builds go up at once, no vote, no wall push");
+        Check(g.GridRoomsOn && cg.GridRoomsOn && g.FreeBuild && !g.CanPush, "grid rooms on: builds go up at once, no wall push");
         g.Diff.Set(DiffKnob.RoomCards, 1f);
         Check(!g.GridRoomsOn && g.RoomCardsOn, "room cards win over grid rooms");
         g.Diff.Set(DiffKnob.RoomCards, 0f);
-        g.Diff.Set(DiffKnob.BuildVote, 1f);
-        Check(!g.BuildVoting, "and the team vote never applies to them");
-        g.Diff.Set(DiffKnob.BuildVote, 0f);
 
         g.Players[2].Vectors = g.Players[1].Vectors = 200;
         g.Players[2].VectorCap = g.Players[1].VectorCap = 200;

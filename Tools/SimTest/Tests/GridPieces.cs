@@ -87,7 +87,7 @@ static partial class Program
         var spoils = BossCards.Offer(new DetRandom(3), Expansion.GridCore(), new List<RoomToken>(), 12);
         Check(spoils.Length == BossCards.OfferSize && spoils.Distinct().Count() == spoils.Length && spoils.All(c => BossCards.IsKit(c) || Expansion.IsGridCard((RoomCard)c)) && !spoils.Contains((int)RoomCard.MiniBoss), "a Grid boss pick: pieces, service cards and floor kits, no Mini-boss card");
         var dflt = new Difficulty();
-        Check(dflt[DiffKnob.GridRooms] >= 0.5f && dflt[DiffKnob.RoomCards] < 0.5f && dflt[DiffKnob.BuildVote] < 0.5f, "Grid is the lobby's default building mode (Nov 18)");
+        Check(dflt[DiffKnob.GridRooms] >= 0.5f && dflt[DiffKnob.RoomCards] < 0.5f, "Grid is the lobby's default building mode (Nov 18)");
         var round = Difficulty.Parse(dflt.ToText());
         var oldCards = Difficulty.Parse("Normal");
         var oldDraw = Difficulty.Parse("Hard RoomCards=0");
@@ -155,7 +155,7 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.BuildVote, 0f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
             gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true;
         }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
