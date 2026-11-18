@@ -573,7 +573,8 @@ namespace Arena
                     return p.Def.BodyR + AutoShoulder + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Fireball:  // Piercing Rounds roll it farther (Minions.cs)
                     return p.Def.BodyR + w.Speed * w.Life * p.Stats.ShotSpeedMult * PierceReach(p);
-                case WeaponId.FrostLance:  // the icicle, out from you
+                case WeaponId.FrostLance:  // the sweeps' reach (FrostLance.cs)
+                    return p.Def.BodyR + FlArcR * AreaMult(p) * (1f + 0.1f * x) * p.Stats.IceReachMult;
                 case WeaponId.TreantRod:   // the root lash, out from you
                     return MeleeReach(p, w.Reach + w.Grow * x);
                 case WeaponId.Katana:  // Hayate's dashes reach further than Senbon's swipes (Katana.cs)

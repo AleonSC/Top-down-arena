@@ -1101,6 +1101,36 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // FROSTLANCE=<s>: the Tank Elementalist's Frost Lance (Core/FrostLance.cs, Game/FrostLanceLook.cs) that long into its chain, Fire
+    // held from 0: Shiver Crescent at 0, Backhand Rime at 0.34 s, Frost Waltz at 0.68 s, Crystal Fan at 1.08 s, Avalanche Slam at 1.5 s.
+    // FLALT=1: Alt (Absolute Zero) at 0 instead. FLCHILL=<n>: the grunts start with n chill (2: the next hit freezes them).
+    if (Environment.GetEnvironmentVariable("FROSTLANCE") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Elementalist; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Elementalist, 1); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      gm.Props.Clear(); gm.Layout = LayoutId.Open;
+      bool alt = Environment.GetEnvironmentVariable("FLALT") != null;
+      int chill0 = int.Parse(Environment.GetEnvironmentVariable("FLCHILL") ?? "0");
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = alt ? new[] { new V2(200f, -60f), new V2(-180f, 90f), new V2(60f, 210f), new V2(-90f, -200f), new V2(230f, 120f), new V2(120f, -150f) }
+                      : new[] { new V2(120f, -60f), new V2(150f, 40f), new V2(200f, -10f), new V2(90f, 90f), new V2(-80f, -70f), new V2(170f, 110f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; e.FrostChill = (byte)chill0; e.FrostChillT = 99f; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("FROSTLANCE"), ci) * 60f));
+      V2 cursor = home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.time += 1f / 60f; Time.frameCount++;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f < 3 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // BULWARK=<s>: the Tank Knight's Bulwark Barrier (Core/BulwarkBarrier.cs, Game/BulwarkBarrierLook.cs) that long into a scene.
     // BBMODE=chain (default): Fire held from 0 (Rim Cut, Backhand, Boss Slam) at a row of grunts; guard: grunts shooting at you,
     // no input (the plate stops them); brace: the weapon-action key held, grunts shooting (shots soak into Ram); bash: braced at

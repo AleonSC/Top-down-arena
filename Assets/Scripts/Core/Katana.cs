@@ -504,6 +504,11 @@ namespace Arena
                 ResetNunChain(p);  // Nunchaku.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.FrostLance)
+            {
+                ResetFrostChain(p);  // FrostLance.cs: the step breaks, the chain keeps its place
+                return;
+            }
             if (p.Weapon.Id != WeaponId.Katana)
                 return;
             p.FireCd = 0f;

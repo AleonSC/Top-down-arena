@@ -764,9 +764,9 @@ static partial class Program
         var fm0 = fireE(WeaponId.Flamethrower, "Napalm", 0)[0]; var fm1 = fireE(WeaponId.Flamethrower, "Napalm", 1)[0];
         Check(near(fm1.Life / fm0.Life, 1.15f, 0.001f) && near(fm1.Ignite / fm0.Ignite, 1.4f, 0.001f), "Napalm: the stream reaches 15% farther and burns 40% hotter");
 
-        var fl0e = kitSwing(WeaponId.FrostLance, "Glacier", 0); var fl1e = kitSwing(WeaponId.FrostLance, "Glacier", 1);
-        Check(near(fl1e[0].Reach / fl0e[0].Reach, 1.2f, 0.01f) && near(fl1e[0].Slow - fl0e[0].Slow, 0.15f, 0.001f) && near(fl1e[1].Slow - fl0e[1].Slow, 0.15f, 0.001f),
-            "Glacier: the icicle is 20% longer and both it and its splinters slow 15% more");
+        arm(WeaponId.FrostLance, "Glacier", 0); float glR0 = g.WeaponRange(me) - me.Def.BodyR, glF0 = me.Stats.IceFreezeBonus;
+        arm(WeaponId.FrostLance, "Glacier", 1); float glR1 = g.WeaponRange(me) - me.Def.BodyR, glF1 = me.Stats.IceFreezeBonus;
+        Check(near(glR1 / glR0, 1.2f, 0.01f) && near(glF1 - glF0, 0.6f, 0.001f), "Glacier: the Frost Lance reaches 20% farther and its freezes last 0.6 s longer");
 
         var electrify = typeof(Game).GetMethod("Electrify", flags);
         var shocksF = typeof(Game).GetField("shocks", flags);

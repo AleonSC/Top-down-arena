@@ -87,28 +87,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.FrostLance:
-                {
-                    // A great icicle juts out from you along your aim, then splinters off its sides into
-                    // whatever stands beside it. Both slow.
-                    dmg *= HomingCost(p);  // Homing Rounds widen the splinters instead (AreaMult)
-                    dmg *= 1f + FrostLanceGrow * extra;  // extra projectiles: a bigger, harder icicle
-                    float iceReach = MeleeReach(p, w.Reach + w.Grow * extra) * p.Stats.IceReachMult;  // Piercing Rounds lengthen it (and Glacier)
-                    var ice = NewSwing(p, aim, iceReach, 0f, w.Damage * dmg);
-                    ice.HalfWidth = IcicleHalfWidth;
-                    ice.Ice = 1;
-                    ice.Slow = IcicleSlow + p.Stats.IceSlowBonus;
-                    ice.NoCut = true;
-                    QueueSwing(ice);
-                    var shards = NewSwing(p, aim, iceReach, 0f, w.Damage * SplinterMult * dmg);
-                    shards.HalfWidth = (SplinterReach + SplinterGrow * extra) * AreaMult(p);
-                    shards.Hollow = IcicleHalfWidth;
-                    shards.Delay = SplinterDelay;
-                    shards.Ice = 2;
-                    shards.Slow = IcicleSlow + p.Stats.IceSlowBonus;
-                    shards.NoCut = true;
-                    QueueSwing(shards);
-                    break;
-                }
+                    break;  // its chain goes from TickFrostLance, never from FireVolley (FrostLance.cs)
                 case WeaponId.StormHammer:  // most of its damage is the smash; the electrified enemy's arcs are a little extra
                     QueueHammerThrow(p, extra, dmg);  // the hammer rises, snaps forward and leaves your hand (StormHammer.cs)
                     break;
@@ -204,7 +183,6 @@ namespace Arena
 
         /// Companions a player's weapon keeps around: the weapon's own, plus one per extra projectile
         /// (Golems top out at 3). The Radiant Orb gets Light Orbs; the Treant grows instead of multiplying.
-        public const float FrostLanceGrow = 0.25f;  // Frost Lance: more damage per extra projectile (icicle and splinters)
         public const float LightOrbRing = 45f, LightOrbSpeed = 900f;  // Radiant Orb's light orbs: their ring round the orb; how fast they follow it
         public MinionKind CompanionKind(Player p) => p.Weapon.Id == WeaponId.RadiantOrb ? MinionKind.LightOrb : p.Weapon.Companion;
 

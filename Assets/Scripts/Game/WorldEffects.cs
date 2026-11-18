@@ -176,6 +176,18 @@ namespace Arena
                 case FxKind.WindWave:
                     DrawWindWave(fx);  // WindClashLook.cs
                     break;
+                case FxKind.FrostStep:
+                    DrawFrostStepFx(fx);  // FrostLanceLook.cs
+                    break;
+                case FxKind.FrostBurst:
+                    DrawFrostBurstFx(fx);  // FrostLanceLook.cs
+                    break;
+                case FxKind.FrostBreak:
+                    DrawFrostBreakFx(fx);  // FrostLanceLook.cs
+                    break;
+                case FxKind.AbsoluteZero:
+                    DrawAbsoluteZeroFx(fx);  // FrostLanceLook.cs
+                    break;
                 case FxKind.BulwarkStep:
                     DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
                     break;

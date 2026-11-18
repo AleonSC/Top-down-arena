@@ -774,6 +774,9 @@ namespace Arena
             s.Float(ref p.GlCharge);
             s.Float(ref p.WcTempestT);  // Wind Clash's Tempest (WindClash.cs)
             s.Float(ref p.WcTempestCd);
+            s.Float(ref p.FlZeroT);  // the Frost Lance's Absolute Zero and Rime Counter (FrostLance.cs)
+            s.Float(ref p.FlZeroCd);
+            s.Bool(ref p.FlRime);
             s.Bool(ref p.BbBrace);  // the Bulwark Barrier (BulwarkBarrier.cs)
             s.Float(ref p.BbRam);
             s.Byte(ref p.BbBashes);
@@ -950,6 +953,8 @@ namespace Arena
             s.Bool(ref dazed);  // dazed by a close-in hit: the stars over its head (Daze.cs)
             int variant = !s.Reading ? (int)e.Variant : 0;
             s.Byte(ref variant);  // a variant of its type (EnemyVariants.cs)
+            int frostChill = !s.Reading ? e.FrostChill : 0;
+            s.Byte(ref frostChill);  // the Frost Lance's chill on it (FrostLance.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -967,6 +972,7 @@ namespace Arena
                 e.KatanaShocked = katanaShock;
                 e.Dazed = dazed;
                 e.Variant = (EnemyVariant)variant;
+                e.FrostChill = (byte)frostChill;
                 e.Spawning = spawning;
                 e.Facing = facing;
                 e.Phase = phase;
