@@ -46,6 +46,8 @@ namespace Arena
 
         public static string CardName(RoomCard c)
         {
+            if (IsPieceCard(c))
+                return PieceCardName(c);
             switch (c)
             {
                 case RoomCard.None: return "";
@@ -61,6 +63,8 @@ namespace Arena
         /// What the card's room is for, one line (the build screen's tip).
         public static string CardBlurb(RoomCard c)
         {
+            if (IsPieceCard(c))
+                return PieceCardBlurb(c);
             switch (c)
             {
                 case RoomCard.Box: return "A plain 7 x 6 room.";
@@ -82,6 +86,8 @@ namespace Arena
         /// What the vendor charges for one, in vectors.
         public static int CardPrice(RoomCard c)
         {
+            if (IsPieceCard(c))
+                return PiecePrice(c);
             switch (c)
             {
                 case RoomCard.Box: return 16;
@@ -194,8 +200,9 @@ namespace Arena
         /// Host, as a build round opens: anyone not dealt yet gets the starting hand (Box, Hall, a seeded shape), then everyone a basic card.
         void DealRoundCards()
         {
-            if (!IsHost || !RoomCardsOn || !ModeRules.RunEvents)
+            if (!IsHost || !HandOn || !ModeRules.RunEvents)
                 return;
+            bool grid = GridRoomsOn;
             foreach (var p in Players.Values)
             {
                 if (!p.CardsDealt)
@@ -203,12 +210,18 @@ namespace Arena
                     p.CardsDealt = true;
                     if (HandCount(p) == 0)
                     {
-                        GiveCard(p, RoomCard.Box, "starting hand");
-                        GiveCard(p, RoomCard.Hall, "starting hand");
-                        GiveCard(p, Expansion.RandomShapeCard(expandSeed + p.Id * 31), "starting hand");
+                        if (grid)
+                            foreach (var c in Expansion.GridStartHand(expandSeed + p.Id * 31))
+                                GiveCard(p, c, "starting hand");
+                        else
+                        {
+                            GiveCard(p, RoomCard.Box, "starting hand");
+                            GiveCard(p, RoomCard.Hall, "starting hand");
+                            GiveCard(p, Expansion.RandomShapeCard(expandSeed + p.Id * 31), "starting hand");
+                        }
                     }
                 }
-                GiveCard(p, Wave % 2 == 1 ? RoomCard.Hall : RoomCard.Box, "build round");
+                GiveCard(p, grid ? Expansion.GridRoundCard(Wave) : Wave % 2 == 1 ? RoomCard.Hall : RoomCard.Box, "build round");
             }
         }
 
@@ -216,7 +229,7 @@ namespace Arena
         /// gives nothing here: its reward is the card pick (BossCards.cs).
         void DropWaveCards(bool boss)
         {
-            if (!IsHost || !RoomCardsOn || !ModeRules.RunEvents)
+            if (!IsHost || !HandOn || !ModeRules.RunEvents)
                 return;
             var ids = SnapKeys(Players);
             ids.Sort();
@@ -227,7 +240,7 @@ namespace Arena
                 if (boss)
                     continue;  // (a boss gives the card pick instead: BossCards.cs, Docs/ArmsDealer.md)
                 if (rng.Int(CardWaveChance) == 0)
-                    GiveCard(p, Expansion.DropCard(rng), "wave drop");
+                    GiveCard(p, GridRoomsOn ? Expansion.GridDropCard(rng, Wave) : Expansion.DropCard(rng), "wave drop");
             }
             Free(ids);
         }
@@ -235,19 +248,19 @@ namespace Arena
         /// Host: a chest node was opened: everyone gets a shape card (or a service card, Expansion.DropCard).
         void ChestCards(int nodeIndex)
         {
-            if (!IsHost || !RoomCardsOn)
+            if (!IsHost || !HandOn)
                 return;
             foreach (var p in Players.Values)
-                GiveCard(p, Expansion.DropCard(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), "chest");
+                GiveCard(p, GridRoomsOn ? Expansion.GridDropCard(new DetRandom(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), Wave) : Expansion.DropCard(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), "chest");
         }
 
         /// The vendor's cards this boss cycle.
-        public RoomCard[] VendorCards => Expansion.CardOffers(expandSeed, (Math.Max(1, Wave) - 1) / Expansion.Milestone);
+        public RoomCard[] VendorCards => GridRoomsOn ? Expansion.GridCardOffers(expandSeed, (Math.Max(1, Wave) - 1) / Expansion.Milestone) : Expansion.CardOffers(expandSeed, (Math.Max(1, Wave) - 1) / Expansion.Milestone);
 
         /// Host: the vendor sells a card from its shelf (offer index) for vectors (Shop.cs, ShopAction.BuyCard).
         void BuyRoomCard(Player p, int offer)
         {
-            if (!RoomCardsOn || offer < 0 || offer >= Expansion.CardOfferCount || HandCount(p) >= Expansion.HandMax)
+            if (!HandOn || offer < 0 || offer >= Expansion.CardOfferCount || HandCount(p) >= Expansion.HandMax)
                 return;
             var c = VendorCards[offer];
             int price = Expansion.CardPrice(c);

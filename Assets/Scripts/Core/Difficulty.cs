@@ -208,18 +208,31 @@ namespace Arena
         {
             var sb = new StringBuilder(Level.ToString());
             foreach (var k in Knobs)
-                if (Level == DifficultyLevel.Custom || k.Flavour && Math.Abs(this[k.Knob] - k.Normal) > 1e-5f)  // a preset adds its flavour knobs only when they're changed
+                if (Level == DifficultyLevel.Custom || k.Flavour && Math.Abs(this[k.Knob] - k.Normal) > 1e-5f || k.Knob == DiffKnob.RoomCards || k.Knob == DiffKnob.GridRooms)  // (the building mode always: its defaults changed Nov 18)  // a preset adds its flavour knobs only when they're changed
                     sb.Append(' ').Append(k.Knob).Append('=').Append(this[k.Knob].ToString("R", CultureInfo.InvariantCulture));
             return sb.ToString();
         }
 
-        /// Reads ToText; unknown knobs are skipped and missing ones stay Normal.
+        /// Reads ToText; unknown knobs are skipped and missing ones stay Normal, except the building mode: a save from before Grid was the default (no GridRooms
+        /// written) keeps its old mode, room cards unless it said otherwise.
         public static Difficulty Parse(string text)
+        {
+            var d0 = ParseKnobs(text);
+            if (d0 != null && !(text ?? "").Contains("GridRooms="))
+            {
+                d0.Values[(int)DiffKnob.GridRooms] = 0f;
+                if (!(text ?? "").Contains("RoomCards="))
+                    d0.Values[(int)DiffKnob.RoomCards] = 1f;
+            }
+            return d0 ?? new Difficulty();
+        }
+
+        static Difficulty ParseKnobs(string text)
         {
             var parts = (text ?? "").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             DifficultyLevel level;
             if (parts.Length == 0 || !Enum.TryParse(parts[0], out level) || !Enum.IsDefined(typeof(DifficultyLevel), level))
-                return new Difficulty();
+                return null;
             var d = Of(level == DifficultyLevel.Custom ? DifficultyLevel.Normal : level);
             d.Level = level;
             for (int i = 1; i < parts.Length; i++)
@@ -316,14 +329,14 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.Lives, Name = "Lives", HarderUp = false,
                 Desc = "Retries from the last boss's checkpoint when everyone goes down: the run comes back as it was there, and its score drops by a quarter each time.",
                 Unit = KnobUnit.Count, Min = 0f, Max = 5f, Step = 1f, Presets = new[] { 3f, 2f, 1f, 0f } },
-            // Room cards (RoomCards.cs, Docs/RoomCards.md): flavour. On by default; off brings back drawing rooms (free, or the team vote).
+            // Room cards (RoomCards.cs, Docs/RoomCards.md): flavour. Off by default since Grid became the default (Nov 18); on brings back the old cards.
             new KnobDef { Knob = DiffKnob.RoomCards, Name = "Room cards", Flavour = true,
                 Desc = "On: rooms come as cards you hold and place: a hand to start, one a round, drops, chests and the vendor. Off: you draw your rooms with vectors.",
-                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
-            // Grid rooms (GridRooms.cs, Docs/GridRooms.md): flavour, off by default.
-            new KnobDef { Knob = DiffKnob.GridRooms, Name = "Grid rooms", Flavour = true,
-                Desc = "On: rooms snap to door spots on the walls of rooms you have built, in fixed sizes (a room, a gauntlet, a hall, an arena), paid in vectors. Off: cards or free drawing.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
+            // Grid rooms (GridRooms.cs, GridPieces.cs, Docs/GridPieces.md): flavour, the default building mode since Nov 18 (owner).
+            new KnobDef { Knob = DiffKnob.GridRooms, Name = "Grid rooms", Flavour = true,
+                Desc = "On: rooms are piece cards (1 to 4 cells) you place on door spots of the rooms you have built; a hand to start, one a round, drops, chests and the vendor. Off: the old room cards or free drawing.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
         };
     }
 

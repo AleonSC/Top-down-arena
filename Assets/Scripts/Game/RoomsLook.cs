@@ -75,6 +75,15 @@ namespace Arena
                 }
         }
 
+        /// Is this area one of a Grid run's core rooms (GridRooms.cs)? They look like the start room: no tint of their own, and the openings between them draw no door.
+        bool CoreArea(int area) => game.GridRoomsOn && area >= 1 && area <= game.Expanded.Count && Expansion.IsGridCore(game.Expanded[area - 1]);
+
+        bool CoreSeam(World wd, int door)
+        {
+            var d = wd.Doors[door];
+            return game.GridRoomsOn && d.B >= 1 && (d.A == 0 || CoreArea(d.A)) && CoreArea(d.B);
+        }
+
         void DrawRoomsFloor(Rgba grid)
         {
             bool vault = game.VaultOn;
@@ -83,7 +92,7 @@ namespace Arena
             for (int i = 0; i < wd.Areas.Length; i++)
             {
                 var a = wd.Areas[i];
-                if (a.Hub || a.Vault && !vault)
+                if (a.Hub || a.Vault && !vault || CoreArea(i))
                     continue;
                 var rs = RoomStateOf(i);
                 var tint = a.Surprise > 0 ? SurpriseInk(a.Surprise).WithAlpha(0.06f) : a.Floating || TinyService(a) ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Builder ? BuilderInk.WithAlpha(0.07f) : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
@@ -126,7 +135,7 @@ namespace Arena
             }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!wd.DoorUp(i, vault) || wd.Seam(i))
+                if (!wd.DoorUp(i, vault) || wd.Seam(i) || CoreSeam(wd, i))
                     continue;
                 var d = wd.Doors[i];
                 bool locked;
@@ -408,7 +417,7 @@ namespace Arena
                 }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!wd.DoorUp(i, vault) || wd.Seam(i))
+                if (!wd.DoorUp(i, vault) || wd.Seam(i) || CoreSeam(wd, i))
                     continue;
                 bool locked;
                 var col = DoorColour(i, out locked);

@@ -418,7 +418,7 @@ namespace Arena
             List<int[]> dragBox = null;
             SurpriseOption? cardPick = null;
             int cardFits = 0;
-            GridOption? gridPick = null;
+            GridPieceOption? gridPick = null;
             int gridFits = 0;
             if (cardMode)
                 cardPick = CardModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), free, out cardFits);
@@ -916,7 +916,7 @@ namespace Arena
                 if (free)
                     expOpen = false;
             }
-            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), cardMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the card back   ·   ESC  close" : gridMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   Q / E  room size   ·   RIGHT CLICK  close   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), cardMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the card back   ·   ESC  close" : gridMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the piece back   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
             DrawTip(true);
             CrtUi.End(win, t, calm);
         }
@@ -1086,7 +1086,7 @@ namespace Arena
             float x = 48f, w = 158f;
             CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
             Ui.Label(new Rect(x + 2f, 64f, w, 16f), doorsOnly ? "WAVE ON  ·  DOORS ONLY" : free ? "BUILT AS YOU PLACE IT" : "THE TEAM VOTES", 10, doorsOnly ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[] names = { game.RoomCardsOn ? "ROOM CARDS" : game.GridRoomsOn ? "GRID ROOMS" : "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
+            string[] names = { game.RoomCardsOn ? "ROOM CARDS" : game.GridRoomsOn ? "PIECES" : "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
             int cur = expTrapMode ? 4 : expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0;
             var ev = Event.current;
             int pick = -1;
@@ -1259,9 +1259,9 @@ namespace Arena
             }
             else if (game.GridRoomsOn)
             {
-                title = "BUILD A GRID ROOM";
-                steps = new[] { "Pick a size (Q / E)", "Point at a glowing door spot on a wall", "Click to build it" };
-                tip = "Rooms snap to door spots on the walls of rooms you have built. A room costs its new wall in vectors.";
+                title = "PLACE A PIECE";
+                steps = new[] { "Pick a piece from your hand", "Point at a glowing door spot on a wall", "Click to build it  ·  R turns it" };
+                tip = "Every room is a piece card. Pieces snap to door spots on the walls of rooms you have built, and playing one is free.";
             }
             else if (game.RoomCardsOn)
             {

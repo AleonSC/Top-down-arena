@@ -92,7 +92,7 @@ namespace Arena
 
             // The list: the shelf's cards, then the services.
             int count = market || arms ? 0 : Game.ShelfCount(me);  // (the Black Market and the Arms Dealer have no shelf)
-            bool cardShelf = market && game.RoomCardsOn;  // (room cards: the vendor sells them too, for vectors)
+            bool cardShelf = market && game.HandOn;  // (room cards: the vendor sells them too, for vectors)
             int[] svc = arms ? ArmsItems : market ? (cardShelf ? MarketCardItems : MarketItems) : game.ExpandingOn ? AllServices : BazaarServices;  // (the room kit and vector pack are sold in the Expanding arena)
             int nSvc = svc.Length, n = count + nSvc, split = arms ? Game.ModIds.Length : market ? Market.Count + (cardShelf ? Expansion.CardOfferCount : 0) : count, nSecond = n - split;
             if (shopSel < 0)
@@ -291,7 +291,7 @@ namespace Arena
             }
             if (k >= 20)
             {
-                if (atVendor && game.RoomCardsOn && Game.HandCount(me) < Expansion.HandMax && game.SpendableVectors(me) >= Expansion.CardPrice(game.VendorCards[k - 20]))
+                if (atVendor && game.HandOn && Game.HandCount(me) < Expansion.HandMax && game.SpendableVectors(me) >= Expansion.CardPrice(game.VendorCards[k - 20]))
                     game.Shop(ShopAction.BuyCard, k - 20);
                 return;
             }
@@ -313,7 +313,7 @@ namespace Arena
         /// at what's inside. Clicking one (or Enter on the one the arrow keys point at) opens its carousel.
         void DrawShopCategories(Player me, int[] svc, int count, int split, bool market, float railY, bool popup, float t)
         {
-            bool cardShelf = market && game.RoomCardsOn;
+            bool cardShelf = market && game.HandOn;
             const float pw = 380f, ph = 330f, gap = 44f;
             var ev = Event.current;
             if (!popup && ev.type == EventType.KeyDown)
