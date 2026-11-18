@@ -56,7 +56,7 @@ static partial class Program
             && Difficulty.Of(DifficultyLevel.Nightmare)[DiffKnob.ApproachShare] == 0.85f && Difficulty.Knobs[(int)DiffKnob.ApproachRamp].Format(1f) == "On",
             "the approach settings don't make a preset Custom, and save and read back with the difficulty");
         hard.SetLevel(DifficultyLevel.Normal);
-        Check(hard[DiffKnob.ApproachShare] == 1f && Difficulty.Of(DifficultyLevel.Normal).ToText() == "Normal", "picking another preset keeps the approach setting");
+        Check(hard[DiffKnob.ApproachShare] == 1f && Difficulty.Parse(Difficulty.Of(DifficultyLevel.Normal).ToText()).SameAs(Difficulty.Of(DifficultyLevel.Normal)), "picking another preset keeps the approach setting");
 
         // --- Waves built with it (host only, no fighting) --------------------------------------------------------------
         var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
