@@ -10,7 +10,7 @@ namespace Arena
     public partial class Game
     {
         bool botAltHeld, botAltWas;
-        float botAltCd, botAltHoldT;
+        float botAltCd, botAltHoldT, botRapierT;
         int botAltLock, botKatanaIdx, botKatanaStance;  // the enemy the Vector Forge's walker was last sent at
         public int BotAltPresses;  // presses (tests)
 
@@ -171,13 +171,17 @@ namespace Arena
                     aimAt = far.Pos;
                 }
                     return true;
-                case WeaponId.Rapier:  // Riposte: raise it into a barrage, then lunge at the target
+                case WeaponId.Rapier:  // Riposte: raise it into shots or toward an enemy to lunge at, click once to lunge
                     if (!me.RapierGuard)
-                        return Tap(v.Incoming >= 3 && e != null, 2f);
-                    firing = e != null && MathX.Fmod(botClock, 1.2f) < dt * 1.5f;  // one click: the lunge
+                    {
+                        botRapierT = 0f;
+                        return e != null && Tap(v.Incoming >= 2 || v.ShootD > 200f && v.ShootD < 600f, 2f);
+                    }
+                    botRapierT += dt;
+                    firing = e != null && botRapierT >= 0.6f && botRapierT < 0.6f + dt * 1.5f;  // one click (Fire was up till now): the lunge
                     if (firing)
                         aimAt = e.Pos;
-                    return false;
+                    return botRapierT > 2.5f && Tap(true, 2f);  // no lunge came of it: drop the stance
 
                 // --- Ninja
                 case WeaponId.Kusarigama:  // whirl a crowd in, let go for the snap once it's close

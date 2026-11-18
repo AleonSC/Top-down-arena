@@ -2398,6 +2398,13 @@ boss plays out and what to change.
   blinks, Rocket Dash, the Twin Rifle Auto lock, Stonespear volleys, Embolus bursts, Sympathy, Martyr's Leash, the honey
   spray, the smoke drum and the Vector Forge's walker on a new target. The Shuriken's Great Star stance isn't used (it
   needs a drawn route). Tests: `Tools/SimTest/run.sh 1 30 botweapon`.
+- **Bot level-up picks and shopping** (same bots): a bot takes the card worth the most to it instead of a random one.
+  It weighs what the card does to damage, fire rate, extra shots, health, damage taken, cooldowns and speed by its role
+  (a tank values health and damage taken, a healer cooldowns), counts cards made for its weapon, class or ability above
+  other special cards, adds for rarity and a new ability while a key is free, and values a card it already has less as
+  its copies weaken. At the shop it heals first when under half health, then buys the shelf card worth the most for its
+  gold (skipping cards worth little to it), a revive token if it has none, adds stock only with gold to spare, tops up
+  its health, and is done. Tests: `Tools/SimTest/run.sh 1 30 botpicks`.
 - Lab fights aren't saved as session recordings. Starting the lab leaves any match you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where
