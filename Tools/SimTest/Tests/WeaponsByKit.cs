@@ -583,7 +583,7 @@ static partial class Program
 
     static void FourMoreTest(float dt)
     {
-        // Shuriken stars stick and are recalled; Bone Spears stay stuck as health pickups; the
+        // Shuriken stars stick and are recalled; the
         // Treant Rod's Treant roots with a vine to you that heals and slows.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
@@ -640,23 +640,6 @@ static partial class Program
         reset();
 
 
-        // Bone Spear.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoneSpear);
-        me.Kit = Kit.Hemomancer;
-        me.Hp = me.MaxHp * 0.5f;
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        float paid = me.MaxHp * 0.5f - me.Hp;
-        play(1.2f, new PlayerInput());
-        var spear = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.BoneSpear && z.Owner == 1);
-        bool clientSpear = client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.BoneSpear);
-        float h0 = me.Hp;
-        if (spear != null) { pinMe = false; me.Pos = spear.Pos; play(0.1f, new PlayerInput()); pinMe = true; }
-        Console.WriteLine("  bone spear: paid {0:0.0}; stuck at {1:0} px (client saw it {2}); walking over it gave {3:0.0} back; gone {4}",
-            paid, spear != null ? spear.Pos.X - from.X : -1f, clientSpear, me.Hp - h0, !g.Zones.Values.Any(z => z.Kind == ZoneKind.BoneSpear));
-        Check(spear != null && clientSpear && me.Hp - h0 >= Game.BoneSpearCost - 0.01f && me.Hp - h0 < Game.BoneSpearCost + 1f && !g.Zones.Values.Any(z => z.Kind == ZoneKind.BoneSpear),  // (plus a little regeneration)
-            "a Bone Spear stays stuck where it stops, and walking over it gives its health back");
-        me.Kit = Kit.Knight;
-        reset();
 
         // (The Lightbringer has its own suite: run.sh 1 30 lightbringer, Tests/Lightbringer.cs.)
 

@@ -244,15 +244,6 @@ namespace Arena
                     Quad(z.Pos + new V2(-7f, -12f), z.Pos + new V2(7f, -12f), z.Pos + new V2(7f, 12f), z.Pos + new V2(-7f, 12f));
                     Line(z.Pos + new V2(0f, -8f), z.Pos + new V2(0f, 8f), 2.5f, new Rgba(0.9f, 0.2f, 0.2f));
                     break;
-                case ZoneKind.BoneSpear:  // a Bone Spear stuck in the ground, glowing to be picked up
-                {
-                    V2 sd = V2.FromAngle(z.Id * 1.7f);
-                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.06f * Mathf.Sin(t * 5f + z.Id)), 16);
-                    Line(z.Pos - sd * 14f, z.Pos + sd * 10f, 3f, c);
-                    SetColor(c);
-                    Tri(z.Pos + sd * 16f, z.Pos + sd * 9f + sd.Orthogonal() * 3.5f, z.Pos + sd * 9f - sd.Orthogonal() * 3.5f);
-                    break;
-                }
                 case ZoneKind.BloodPool:
                     DrawBloodZone(z, c, t);  // ClotCannonLook.cs
                     break;

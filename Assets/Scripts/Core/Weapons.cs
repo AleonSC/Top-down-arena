@@ -547,6 +547,7 @@ namespace Arena
                 case WeaponId.FumaShuriken:  // the far end of its widest loop (Ninja.cs)
                     return FumaReach * FumaSize(x) * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
+                case WeaponId.BoneSpear:  // (BoneSpear.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
                 case WeaponId.Flamethrower:  // the lead flame's reach (Minions.cs)
                 case WeaponId.SpiritFan:     // the gust's reach (Ninja.cs)

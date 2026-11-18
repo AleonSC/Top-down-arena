@@ -301,6 +301,12 @@ namespace Arena
         public readonly List<float> ChainT = new List<float>();  // host: until each chain's next link fades
         public bool LeashOn;                          // Martyr's Leash is held (replicated); LeashT: how long (replicated), LeashCd: host
         public float LeashT, LeashCd;
+        public int BsTarget;                          // Bone Spear: the marked enemy (replicated; BoneSpear.cs); BsT: the thread's time left (replicated)
+        public float BsT;
+        public int BsHits, BsExtra;                   // host: hits landed in this string, extra projectiles
+        public float SympT, SympCd;                   // Sympathy: time left (replicated), cooldown (host)
+        public int SympSrc;                           // the marked enemy the bound ones echo (replicated)
+        public readonly List<int> SympBound = new List<int>();  // the enemies bound to it (replicated)
         public float HarvestClock, HarvestBlood, HarvestHold;  // Crimson Harvest (CrimsonHarvest.cs), all replicated: seconds since the cast, blood in the ball, and the hold's length (0 = no ball)
         public float KwT, KwAim;    // Kinetic Wall (KineticWall.cs), replicated: seconds the lens has left (0 = none), and the way it faces
         public V2 KwPos;            // ...where it was cast (replicated)
@@ -627,6 +633,7 @@ namespace Arena
         public float WallDartT;             // host: until an Ossuary Wall it's pressed against darts it again (BoneGuard.cs)
         public float SmokeT;                 // host: jammed in a Grenade Launcher smoke cloud (no attacking; GrenadeLauncher.cs)
         public float DazeT, DazeImmuneT;    // host: dazed by a close-in hit (no attacking), and until it can be dazed again (Daze.cs)
+        public float BsLiftT;               // host: thrown in the air by the Bone Spear's Heart Lift (BoneSpear.cs)
         public float StunT;                 // host: stunned (Daze.cs Stun): held like FrozenT, but shown as stars over its head, not ice
         public bool Dazed;                  // replicated, for the stars over its head
         public int LastHitBy;
@@ -696,7 +703,6 @@ namespace Arena
         public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
         public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to
         public bool Sticks;       // host only: a Shuriken star, which sticks in what it hits (to be recalled)
-        public bool DropsSpear;   // host only: a Bone Spear, which stays stuck where it stops (a pickup)
         public bool Ward;         // host only: an Ofuda charm flying to where it will lie as a ward
         public bool Bolts;        // host only: a piercing shot whose hits fling Ricochet's bounce bolts instead of it bouncing (Combat.cs)
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)

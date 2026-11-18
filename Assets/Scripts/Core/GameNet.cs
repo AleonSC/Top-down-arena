@@ -749,6 +749,21 @@ namespace Arena
             }
             s.Bool(ref p.LeashOn);  // Martyr's Leash
             s.Float(ref p.LeashT);
+            s.Int(ref p.BsTarget);  // the Bone Spear's mark, thread and Sympathy (BoneSpear.cs)
+            s.Float(ref p.BsT);
+            s.Float(ref p.SympT);
+            s.Int(ref p.SympSrc);
+            int bound = Math.Min(255, p.SympBound.Count);
+            s.Byte(ref bound);
+            if (s.Reading)
+                p.SympBound.Clear();
+            for (int k = 0; k < bound; k++)
+            {
+                int boundId = s.Reading ? 0 : p.SympBound[k];
+                s.Int(ref boundId);
+                if (s.Reading)
+                    p.SympBound.Add(boundId);
+            }
             int reserve = (int)p.BloodReserve;
             s.Byte(ref reserve);
             if (s.Reading)

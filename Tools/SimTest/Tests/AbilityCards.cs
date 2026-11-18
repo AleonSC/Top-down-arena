@@ -620,8 +620,8 @@ static partial class Program
         float cr0 = crush(0), cr1 = crush(1);
         Check(cr0 > 0f && near(cr1 / cr0, 1.4f, 0.01f) && near(me.Stats.ImplodeReachMult, 1.3f, 0.001f), "Event Horizon: the crush hits 40% harder and pulls from 30% farther");
 
-        var bs0 = shot(WeaponId.BoneSpear, "Marrow", 0); var bs1 = shot(WeaponId.BoneSpear, "Marrow", 1);
-        Check(bs1.Pierce - bs0.Pierce == 1 && near(me.Stats.SpearPickupBonus, 3f, 0.001f), "Marrow: the spear pierces one more enemy and gives 3 more health back");
+        arm(WeaponId.BoneSpear, "Marrow", 1);
+        Check(me.Stats.BsShardBonus == 2 && me.Stats.SympBonus == 1, "Marrow: Marrow Burst throws 2 more shards and Sympathy binds 1 more enemy");
 
         // --- Summoner weapon cards (Docs/UpgradePools.md step 10) ---
         Check(new[] { "Granite Golem", "Ossuary", "Deep Claws", "Wildfire Seeds", "Deep Roots", "Alpha Pack", "Will-o'-Wisp", "Imp Horde" }

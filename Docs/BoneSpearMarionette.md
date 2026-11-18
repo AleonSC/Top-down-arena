@@ -1,6 +1,6 @@
 # Bone Spear: Marionette
 
-**Status: designed, not built.** Mockup `Docs/Mockups/bone-spear-rework.html`. Rework of the DPS Hemomancer's Bone
+**Status: step 1 built (core, protocol 398); steps 2-3 to do.** Code `Assets/Scripts/Core/BoneSpear.cs`, tests `Tools/SimTest/run.sh 1 30 bonespear`. Mockup `Docs/Mockups/bone-spear-rework.html`. Rework of the DPS Hemomancer's Bone
 Spear (`WeaponId.BoneSpear` kept): a ranged string the Hemomancer lands by working the target's blood, as phantom
 melee blows from inside its body.
 
@@ -35,8 +35,8 @@ Marrow Burst lands while the target is still airborne from Heart Lift, so it get
 
 ## Upgrades
 
-- Marrow card: rewrite to "+1 shard on Marrow Burst and Sympathy binds one more enemy; Marrow Burst costs no health"
-  (to confirm when built).
+- Marrow card (built): Marrow Burst throws 2 more bone shards and Sympathy binds 1 more enemy, a stack (up to 2).
+- Extra projectiles (Multishot and the like): the same, +2 shards and +1 bound enemy each.
 
 ## Build steps
 
