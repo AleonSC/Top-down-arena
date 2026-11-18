@@ -17,6 +17,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:b
 #tools{left:calc(8px + env(safe-area-inset-left));top:50%;transform:translateY(-50%);flex-direction:column;max-height:calc(100% - 100px);overflow:auto}
 #top{top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);align-items:center;max-width:calc(100% - 16px);overflow:auto}
 #inks{right:calc(8px + env(safe-area-inset-right));top:50%;transform:translateY(-50%);flex-direction:column}
+input{font:inherit;color:#fff;background:rgba(0,0,0,.4);border:1px solid var(--dim);border-radius:4px;width:84px;min-height:46px;padding:4px 8px;-webkit-user-select:text;user-select:text;font-size:16px}
+#dim{bottom:calc(36px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);align-items:center;display:none}
+#dim label{display:flex;align-items:center;gap:6px;color:var(--dim)}
 button{font:inherit;color:var(--ink);background:rgba(102,163,255,.07);border:1px solid var(--dim);border-radius:4px;min-width:52px;min-height:46px;padding:4px 8px;letter-spacing:.04em;cursor:pointer}
 button.on{background:rgba(102,163,255,.28);border-color:var(--ink);box-shadow:0 0 10px rgba(102,163,255,.55),inset 0 0 8px rgba(102,163,255,.3);color:#fff}
 button:active{background:rgba(102,163,255,.4)}
@@ -31,6 +34,7 @@ button small{display:block;font-size:10px;opacity:.7;font-weight:400}
 <div class="bar" id="top"></div>
 <div class="bar" id="tools"></div>
 <div class="bar" id="inks"></div>
+<div class="bar" id="dim"><span id="dimName">Tap a box</span><label>W<input id="dw" type="number" inputmode="numeric" step="10" min="10" value="400"></label><label id="dhl">H<input id="dh" type="number" inputmode="numeric" step="10" min="10" value="300"></label><button id="dapply">Apply</button><button id="dadd">Add box</button></div>
 <div id="hint">Pencil draws · two fingers pan / pinch zoom</div>
 <div id="toast"></div>
 <input type="file" id="file" accept=".json,application/json" hidden>
@@ -40,14 +44,14 @@ const $=id=>document.getElementById(id);
 const cv=$("c");let ctx=cv.getContext("2d",{alpha:false,desynchronized:true});const mainCtx=ctx;
 const INKS=[["#5ff0ff","Cyan"],["#ff8c1f","Warden"],["#ffe026","Hive"],["#ff4de6","Dusk"],["#ad59ff","Void"],["#40ff80","Lich"],["#ff3359","Devourer"],["#e6ebff","Silver"]];
 const GATE="#3fd6c4",GRID=40;
-let S={cam:{x:0,y:0,z:.5},shapes:[],tool:"pen",ink:0,snap:true,fill:true,finger:false,size:1,grid:true};
+let S={sel:null,cam:{x:0,y:0,z:.5},shapes:[],tool:"pen",ink:0,snap:true,fill:true,finger:false,size:1,grid:true};
 let undo=[],redo=[];
 try{const j=JSON.parse(localStorage.getItem("mapsketch")||"null");if(j){S.shapes=j.shapes||[];S.cam=j.cam||S.cam;S.ink=j.ink||0}}catch(e){}
 let saveT=0;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem("mapsketch",JSON.stringify({shapes:S.shapes,cam:S.cam,ink:S.ink}))}catch(e){}},500)}
 function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,1600)}
 
 /* ---------- UI ---------- */
-const TOOLS=[["pen","Pen","free"],["line","Line","wall"],["rect","Room","box"],["ell","Circle","arena"],["pillar","Pillar","solid"],["gate","Gate","door"],["spawn","Spawn","pt"],["label","Text","abc"],["erase","Erase","x"],["hand","Move","pan"]];
+const TOOLS=[["pen","Pen","free"],["line","Line","wall"],["rect","Room","box"],["ell","Circle","arena"],["pillar","Pillar","solid"],["gate","Gate","door"],["spawn","Spawn","pt"],["label","Text","abc"],["edit","Size","w×h"],["erase","Erase","x"],["hand","Move","pan"]];
 const tools=$("tools");
 TOOLS.forEach(([id,n,s])=>{const b=document.createElement("button");b.dataset.t=id;b.innerHTML=n+"<small>"+s+"</small>";b.onclick=()=>{S.tool=id;ui()};tools.appendChild(b)});
 const inks=$("inks");
@@ -65,7 +69,7 @@ function ui(){
  [...tools.children].forEach(b=>b.classList.toggle("on",b.dataset.t===S.tool));
  [...inks.children].forEach((b,i)=>b.classList.toggle("on",i===S.ink));
  $("bSnap").classList.toggle("on",S.snap);$("bFill").classList.toggle("on",S.fill);$("bGrid").classList.toggle("on",S.grid);
- $("bFinger").classList.toggle("on",S.finger);$("bSize").innerHTML="Size<small>"+["thin","normal","thick"][S.size-1]+"</small>";
+ $("bFinger").classList.toggle("on",S.finger);$("dim").style.display=S.tool==="edit"?"flex":"none";if(S.tool!=="edit")S.sel=null;draw();$("bSize").innerHTML="Size<small>"+["thin","normal","thick"][S.size-1]+"</small>";
  $("hint").textContent=S.finger?"Finger and Pencil both draw · two fingers pan / zoom":"Pencil draws · one finger pans · two fingers zoom";
 }
 
@@ -145,6 +149,18 @@ function drawShape(sh,a=1){
  }
 }
 let live=null,hover=null;
+let liveCv=null,liveCx=null,overlay=null;
+function liveReset(){
+ if(!liveCv){liveCv=document.createElement("canvas");liveCx=liveCv.getContext("2d")}
+ if(liveCv.width!==Math.round(W*dpr)||liveCv.height!==Math.round(H*dpr)){liveCv.width=Math.round(W*dpr);liveCv.height=Math.round(H*dpr)}
+ liveCx.setTransform(1,0,0,1,0,0);liveCx.clearRect(0,0,liveCv.width,liveCv.height);
+}
+function liveSeg(a,b){ // one cheap opaque segment of the stroke being drawn (smoothed + glowed when it is finished)
+ const z=S.cam.z,c=INKS[S.ink][0],k=lw(),x=liveCx;
+ x.setTransform(dpr,0,0,dpr,0,0);x.lineCap=x.lineJoin="round";
+ const A=[(a.x-S.cam.x)*z+W/2,(a.y-S.cam.y)*z+H/2],B=[(b.x-S.cam.x)*z+W/2,(b.y-S.cam.y)*z+H/2];
+ for(const[w,col]of[[3.2*k,c],[1.1*k,"#ffffff"]]){x.strokeStyle=col;x.lineWidth=w;x.beginPath();x.moveTo(A[0],A[1]);x.lineTo(B[0],B[1]);x.stroke()}
+}
 let raf=0,cache=null,cacheShapes=null,cacheGrid=null,cacheCam=null,camTimer=0;
 function draw(){if(!raf)raf=requestAnimationFrame(()=>{raf=0;render()})}
 function buildCache(){
@@ -171,7 +187,21 @@ function render(){
   ctx.drawImage(cache,0,0,W,H);ctx.setTransform(dpr,0,0,dpr,0,0);
   clearTimeout(camTimer);camTimer=setTimeout(()=>{buildCache();draw()},140);
  }else ctx.drawImage(cache,0,0,W,H);
- if(live){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawShape(live,.9);ctx.restore()}
+ if(S.sel&&!S.shapes.includes(S.sel)){S.sel=null;syncDim()}
+ overlay=()=>{
+  let sh=S.sel,d=sh&&dimsOf(sh);
+  if(!d&&live&&(live.t==="rect"||live.t==="ell"||live.t==="pillar")){sh=live;d=dimsOf(live)}
+  if(!d)return;
+  const b=bounds(sh),sx=v=>(v-S.cam.x)*z+W/2,sy=v=>(v-S.cam.y)*z+H/2;
+  if(sh===S.sel){ctx.save();ctx.setLineDash([6,5]);ctx.strokeStyle="#ffffffcc";ctx.lineWidth=1.2;ctx.strokeRect(sx(b.x0)-4,sy(b.y0)-4,(b.x1-b.x0)*z+8,(b.y1-b.y0)*z+8);ctx.restore()}
+  const txt=sh.t==="pillar"?"Ø "+Math.round(d.w):Math.round(d.w)+" × "+Math.round(d.h);
+  ctx.font="600 14px 'Courier New',monospace";const tw=ctx.measureText(txt).width+14,cx=sx((b.x0+b.x1)/2),cy=sy(b.y1)+22;
+  ctx.fillStyle="rgba(3,8,20,.85)";ctx.fillRect(cx-tw/2,cy-12,tw,24);ctx.strokeStyle="#66a3ff";ctx.lineWidth=1;ctx.strokeRect(cx-tw/2,cy-12,tw,24);
+  ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(txt,cx,cy);
+ };
+ if(drawing&&drawing.t==="pen"&&liveCv)ctx.drawImage(liveCv,0,0,W,H);
+ else if(live){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawShape(live,.9);ctx.restore()}
+ ctx.setTransform(dpr,0,0,dpr,0,0);overlay();
 }
 function drawGrid(){
  const z=S.cam.z,x0=S.cam.x-W/2/z,x1=S.cam.x+W/2/z,y0=S.cam.y-H/2/z,y1=S.cam.y+H/2/z;
@@ -218,20 +248,53 @@ function moveGesture(e){
  zoomAt(mx,my,d/gesture.d);gesture.d=d;gesture.mx=mx;gesture.my=my;
 }
 function cancelDraw(){drawing=null;live=null;draw()}
+function dimsOf(sh){
+ if(sh.t==="pillar")return{w:sh.r*2,h:sh.r*2};
+ if(sh.t==="rect"||sh.t==="ell"){const[a,b]=sh.pts;return{w:Math.abs(b.x-a.x),h:Math.abs(b.y-a.y)}}
+ return null;
+}
+function selectAt(p){
+ const tol=10/S.cam.z;S.sel=null;
+ for(let i=S.shapes.length-1;i>=0;i--){const sh=S.shapes[i];
+  if(sh.t==="pillar"){if(Math.hypot(p.x-sh.x,p.y-sh.y)<=sh.r+tol){S.sel=sh;break}}
+  else if(sh.t==="rect"||sh.t==="ell"){const[a,b]=sh.pts;if(p.x>=Math.min(a.x,b.x)-tol&&p.x<=Math.max(a.x,b.x)+tol&&p.y>=Math.min(a.y,b.y)-tol&&p.y<=Math.max(a.y,b.y)+tol){S.sel=sh;break}}}
+ syncDim();draw();
+}
+function syncDim(){
+ const d=S.sel&&dimsOf(S.sel);
+ $("dimName").textContent=d?(S.sel.t==="pillar"?"Pillar (diameter)":S.sel.t==="rect"?"Box":"Circle"):"Tap a box";
+ $("dhl").style.display=S.sel&&S.sel.t==="pillar"?"none":"flex";
+ if(d){$("dw").value=Math.round(d.w);$("dh").value=Math.round(d.h)}
+}
+$("dapply").onclick=()=>{
+ const sh=S.sel,w=Math.max(10,+$("dw").value||0),h=Math.max(10,+$("dh").value||0);
+ if(!sh||!dimsOf(sh)){toast("Tap a box first");return}
+ let n;
+ if(sh.t==="pillar")n={...sh,r:w/2};
+ else{const[a,b]=sh.pts,x0=Math.min(a.x,b.x),y0=Math.min(a.y,b.y);n={...sh,pts:[{x:x0,y:y0},{x:x0+w,y:y0+h}]}}
+ push();S.shapes=S.shapes.map(q=>q===sh?n:q);S.sel=n;syncDim();draw();save();
+};
+$("dadd").onclick=()=>{
+ const w=Math.max(10,+$("dw").value||400),h=Math.max(10,+$("dh").value||300);
+ const x0=snapv(S.cam.x-w/2),y0=snapv(S.cam.y-h/2);
+ const n={t:"rect",pts:[{x:x0,y:y0},{x:x0+w,y:y0+h}],ink:S.ink,w:lw(),fill:S.fill};
+ addShape(n);S.sel=n;syncDim();draw();
+};
 function begin(e){
- const t=S.tool,p=pt(e,t!=="pen"&&t!=="erase");
+ const t=S.tool,p=pt(e,t!=="pen"&&t!=="erase"&&t!=="edit");
+ if(t==="edit"){selectAt(p);return}
  if(t==="erase"){push();erased=false;drawing={t};eraseAt(p);return}
  if(t==="spawn"){addShape({t:"spawn",x:p.x,y:p.y,r:24,ink:S.ink,w:lw()});return}
  if(t==="pillar"){drawing={t,p0:p};live={t:"pillar",x:p.x,y:p.y,r:GRID/2,ink:S.ink,w:lw()};draw();return}
  if(t==="label"){const s=prompt("Label text");if(s)addShape({t:"label",x:p.x,y:p.y,txt:s.slice(0,40),s:28,ink:S.ink});return}
- drawing={t,p0:p,raw:[p]};
+ drawing={t,p0:p,raw:[p]};if(t==="pen")liveReset();
  live={t:t==="pen"?"path":t,pts:[p,p],ink:S.ink,w:lw(),fill:S.fill};draw();
 }
 function move(e){
  const t=drawing.t,p=pt(e,t!=="pen"&&t!=="erase");
  if(t==="erase"){eraseAt(p);return}
  if(t==="pillar"){live.r=Math.max(GRID/4,S.snap?snapv(Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y)):Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y));draw();return}
- if(t==="pen"){const l=drawing.raw[drawing.raw.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)*S.cam.z>5){drawing.raw.push(p);live.pts=drawing.raw}}
+ if(t==="pen"){const l=drawing.raw[drawing.raw.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)*S.cam.z>4){drawing.raw.push(p);live.pts=drawing.raw;liveSeg(l,p)}}
  else if(t==="line"||t==="gate"){let q=p;if(e.shiftKey)q=p;live.pts=[drawing.p0,q]}
  else live.pts=[drawing.p0,p];
  draw();
