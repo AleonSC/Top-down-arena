@@ -1130,7 +1130,7 @@ namespace Arena
             if (LocalEmbolusBlast(me, pressed, aimAt))
                 return;  // the Embolus Spears burst (EmbolusSpears.cs)
             if (LocalSympathy(me, pressed, aimAt))
-                return;  // the Bone Spear's Sympathy (BoneSpear.cs)
+                return;  // the Blood Brawler's Sympathy (BoneSpear.cs)
             if (LocalStriderOrder(me, pressed, aimAt, dt))
                 return;  // the Vector Forge's Strider orders (Engineer.cs)
             if (LocalPistolWhip(me, pressed, aimAt, dt))
@@ -1346,7 +1346,7 @@ namespace Arena
             }
             if (kind == DashSympathy)
             {
-                HostSympathy(p);  // the Bone Spear's Alt (BoneSpear.cs)
+                HostSympathy(p);  // the Blood Brawler's Alt (BoneSpear.cs)
                 return;
             }
             if (kind == DashEmbolus)

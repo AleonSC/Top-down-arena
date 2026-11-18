@@ -221,7 +221,7 @@ One Rare card per Blood Mage weapon (`Weapons = { that weapon }`, `MaxStacks = 2
 | Blood Bolts | Hemophilia | Blood Bolts burst an enemy one bleed stack sooner (5 → 4), 30% wider |
 | Implosion | Event Horizon | Pulls enemies in from 30% farther, and the crush hits 40% harder |
 | Embolus Spears | Burst Vessels | The burst is 30% wider and hits 30% harder |
-| Bone Spear | Marrow | Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy |
+| Blood Brawler | Marrow | Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy |
 
 Built (owner approved all nine): in `Game.HemomancerCards`. Hooks (all in `BloodMage.cs`): the lash's reach and
 `ClotCut`, the clot's `Pool` / `PoolTime`, the grasp's `Dmg`, the dart's `HealAlly`, `ReserveGain`

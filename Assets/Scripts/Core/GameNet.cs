@@ -749,7 +749,7 @@ namespace Arena
             }
             s.Bool(ref p.LeashOn);  // Martyr's Leash
             s.Float(ref p.LeashT);
-            s.Int(ref p.BsTarget);  // the Bone Spear's mark, thread and Sympathy (BoneSpear.cs)
+            s.Int(ref p.BsTarget);  // the Blood Brawler's mark, thread and Sympathy (BoneSpear.cs)
             s.Float(ref p.BsT);
             s.Float(ref p.SympT);
             s.Int(ref p.SympSrc);

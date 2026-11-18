@@ -1037,7 +1037,7 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
-    // BONESPEAR=<s>: the Hemomancer DPS's Bone Spear, the Marionette (Core/BoneSpear.cs, Game/BoneSpearLook.cs) that long into a loop on
+    // BONESPEAR=<s>: the Hemomancer DPS's Blood Brawler, the Marionette (Core/BoneSpear.cs, Game/BoneSpearLook.cs) that long into a loop on
     // one marked Grunt with five around it: Pulse at 0 s, Reel at 0.45 s, Heart Lift at 0.95 s, Marrow Burst at 1.5 s, Alt (Sympathy)
     // at 2.4 s, then Pulse at 2.7 s and Reel at 3.1 s echoing onto the bound ones. BSAIM=<deg> tilts the line; BSHAND=1 centres on the
     // Hemomancer's bleeding hand (zoom in with ZOOM=4).
