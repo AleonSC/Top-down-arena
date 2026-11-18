@@ -346,7 +346,7 @@ namespace Arena
             return 0f;
         }
 
-        /// A relic or vector chest node opening: the chest shakes and flashes, the lid flies up, rings burst out in its ink, light pours up with
+        /// A chest opening (the relic and vector chest nodes, and every chest prop): the chest shakes and flashes, the lid flies up, rings burst out in its ink, light pours up with
         /// its emblems rising, and the prize (the relic's gem, or the vector arrow) climbs out, spins and shoots off; then it settles dim with the lid up.
         void DrawNodeOpening(V2 c, float t, float age, ChestKind kind, float fade = 1f)
         {
@@ -393,8 +393,13 @@ namespace Arena
                     CoinSpin(p, scale, spin, ink.WithAlpha(al));
                 else if (kind == ChestKind.Vector)
                     VectorMark(p, 0.75f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), ink.Mix(new Rgba(1f, 1f, 1f), 0.4f).WithAlpha(al));
-                else
+                else if (kind == ChestKind.Relic)
                     RelicGemSpin(p, scale, spin, ink.WithAlpha(al));
+                else  // Upgrade, Grid piece, Buildables: their emblem, turning (ChestLooks.cs)
+                {
+                    var em = ink.WithAlpha(al);
+                    ChestEmblem(kind, p, 1.6f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), em, ink.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(al), al);
+                }
             }
         }
 
