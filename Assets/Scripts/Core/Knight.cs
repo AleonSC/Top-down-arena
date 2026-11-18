@@ -59,6 +59,7 @@ namespace Arena
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
         public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
+        public int BlastPress;        // != 0: a Blood Blast cut, this press's number: what it hits gets one blood stack per press (BloodBlast.cs)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -377,7 +378,7 @@ namespace Arena
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else
-                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, s.Tip > 0f || s.Links > 0 ? LashRed : Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, s.Tip > 0f || s.Links > 0 || s.BlastPress != 0 ? LashRed : Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
                     s.Silent ? Sfx.None : s.Sound != Sfx.None ? s.Sound : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
 
             // Who's in the arc (the Rapier only takes the nearest few).
@@ -527,6 +528,8 @@ namespace Arena
                         if (q.Pos.CloserThan(origin, s.HealRange))
                             Heal(q, s.HealPerHit, p);
                 }
+                if (s.BlastPress != 0)
+                    BlastLanded(p, e, s);  // a blood stack (BloodBlast.cs)
                 if (s.Links > 0)
                     LashLanded(p, e, s, crack);  // the tip's taunt and the chains (BloodLash.cs)
                 else if (s.Taunt > 0f)

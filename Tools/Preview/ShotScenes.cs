@@ -1138,6 +1138,41 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // BLOODBLAST=<s>: the Tank Hemomancer's Blood Blast (Core/BloodBlast.cs, Game/BloodBlastLook.cs) that long into its chain, Fire held
+    // from 0: Crimson Slash at 0, Backcut 0.42 s, Thorn Flurry 0.82 s, Vein Whirl 1.32 s, Sanguine Cleave 1.9 s, Crescent Flight 2.68 s.
+    // BBSTEP=<1-6>: start the chain at that step instead. BBALT=1: Alt (Crimson Tide) at 0 instead. BBSTACKS=<n>: the grunts start with
+    // n stacks; BBKILL=<s>: they all die at that time (the Blood Vortex).
+    if (Environment.GetEnvironmentVariable("BLOODBLAST") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Hemomancer; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      gm.Props.Clear(); gm.Layout = LayoutId.Open;
+      bool alt = Environment.GetEnvironmentVariable("BBALT") != null;
+      int step0 = int.Parse(Environment.GetEnvironmentVariable("BBSTEP") ?? "1"), stacks0 = int.Parse(Environment.GetEnvironmentVariable("BBSTACKS") ?? "0");
+      float killAt = float.Parse(Environment.GetEnvironmentVariable("BBKILL") ?? "-1", ci);
+      if (step0 > 1) { me.BlastStep = (byte)(step0 - 1); me.Combo = step0 - 1; }
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = alt ? new[] { new V2(120f, -40f), new V2(210f, 50f), new V2(300f, -30f), new V2(-90f, 80f) }
+                      : new[] { new V2(80f, -40f), new V2(100f, 45f), new V2(170f, 0f), new V2(-70f, -40f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos;
+        e.BlastStacks = (byte)stacks0; e.BlastOwner = me.Id; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("BLOODBLAST"), ci) * 60f));
+      V2 cursor = home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        if (killAt >= 0f && Math.Abs(f / 60f - killAt) < 0.5f / 60f) foreach (var e in foes) { e.Hp = 0f; }
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt && killAt < 0f, WeaponAction = alt && f < 3 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // FROSTLANCE=<s>: the Tank Elementalist's Frost Lance (Core/FrostLance.cs, Game/FrostLanceLook.cs) that long into its chain, Fire
     // held from 0: Shiver Crescent at 0, Backhand Rime at 0.34 s, Frost Waltz at 0.68 s, Crystal Fan at 1.08 s, Avalanche Slam at 1.5 s.
     // FLALT=1: Alt (Absolute Zero) at 0 instead. FLCHILL=<n>: the grunts start with n chill (2: the next hit freezes them).

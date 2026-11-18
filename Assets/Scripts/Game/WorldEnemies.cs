@@ -610,6 +610,8 @@ namespace Arena
                 DrawBoneCage(pos, r, t);
             if (e.BleedStacks > 0)
                 DrawBleedDrops(e, pos, r, t);  // BloodMageLook.cs
+            if (e.BlastStacks > 0 && !spawning)
+                DrawBlastStacks(e, pos, r, t);  // BloodBlastLook.cs
             for (int k = 0; k < e.StarsStuck && k < 8; k++)  // Shuriken stars stuck in it, waiting to be recalled
                 DrawStar(pos + V2.FromAngle(k * 2.4f + e.Id) * (r * 0.75f), 4f, k * 0.7f, Defs.BulletColor(Defs.StarShot));
             foreach (var hunter in game.Players.Values)
