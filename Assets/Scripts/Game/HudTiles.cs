@@ -41,6 +41,7 @@ namespace Arena
             {
                 tileReady[i] += dt; tileCharge[i] += dt; tileUse[i] += dt; tileDeny[i] += dt;
             }
+            TickMasteryTiles(me, dt);  // (HudMastery.cs)
             if (me == null)
             {
                 tilesFor = -1;
