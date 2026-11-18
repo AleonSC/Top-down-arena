@@ -579,7 +579,10 @@ namespace Arena
                 int slotIndex = i;
                 TileTransformed(r.center, look.Scale, look.Dx, () => DrawAbilityTile(me, slotIndex, r, look));
             }
-            DrawMasteryToasts(HudMasteryToastAt.X, HudMasteryToastAt.Y);
+            if (MasteryLook != 0)
+                DrawMasteryCards();
+            else
+                DrawMasteryToasts(HudMasteryToastAt.X, HudMasteryToastAt.Y);
         }
 
         /// One ability tile: key, name, READY or the timer, mastery and recharge lines, charge pips; `look` adds the
@@ -665,15 +668,20 @@ namespace Arena
             // recharge line, the pair one strip.
             float mxp;
             me.MasteryXp.TryGetValue(slot.Id, out mxp);
+            if (MasteryLook != 0)
+                DrawMasteryFoot(me, i, r, keyCol, fill);  // the prototype looks (HudMastery.cs)
+            else
+            {
             var strip = new Rect(r.x + 8f, r.yMax - 13f, r.width - 16f, 7f);
             const float xpH = 3f;
             Ui.Fill(strip, new Color(1f, 1f, 1f, 0.1f));
             Ui.Fill(new Rect(strip.x, strip.y, strip.width * Game.MasteryProgress(mxp), xpH), new Color(0.35f, 0.9f, 0.45f));
             Ui.Fill(new Rect(strip.x, strip.y + xpH, strip.width * Mathf.Clamp01(fill), strip.height - xpH), keyCol);
+            }
             if (slot.MaxCharges > 1)
                 for (int k = 0; k < slot.MaxCharges; k++)
                 {
-                    var pip = new Rect(r.xMax - 12f - k * 9f, r.y + 30f, 6f, 6f);
+                    var pip = new Rect(r.xMax - 12f - (MasteryLook == 2 ? 30f : 0f) - k * 9f, r.y + 30f, 6f, 6f);
                     if (k == look.Pip)
                     {
                         // The charge that just came back: a fading halo spreading round it, and the pip popping.
