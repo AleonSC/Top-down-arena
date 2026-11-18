@@ -397,6 +397,13 @@ namespace Arena
         }
 
         /// A bot shops: the cheapest thing it can afford, then a heal if it needs one, then done.
+        int botShopGold = -1, botShopIdle;  // the bot's gold at its last shop action, and actions in a row that changed nothing
+
+        /// The bot at the shop (both bots, every half second while it's open): one action at a time, the way a person shops.
+        /// Hurt badly: heal first. Then the shelf card worth the most for its gold (BotCardScore per price; only cards
+        /// that are worth something to it), then a revive token while it has none, then add stock once the shelf has nothing
+        /// it wants (only with gold to spare after it), and a top-up heal last. An action the shop turns down (the room
+        /// shops only sell some things) counts as idle; after a few in a row it's done.
         void BotShop(Player me)
         {
             if (ServiceRooms && !InServiceRoom(me))
@@ -404,18 +411,51 @@ namespace Arena
                 Shop(ShopAction.Done, 1);  // (the room shops: a bot doesn't walk to them)
                 return;
             }
+            botShopIdle = me.Gold == botShopGold ? botShopIdle + 1 : 0;
+            botShopGold = me.Gold;
+            if (botShopIdle >= 3)
+            {
+                botShopIdle = 0;
+                botShopGold = -1;
+                Shop(ShopAction.Done, 1);
+                return;
+            }
+            bool hurt = !me.Downed && me.Hp < me.MaxHp;
+            if (hurt && me.Hp < me.MaxHp * 0.5f && me.Gold >= HealPrice && botShopIdle == 0)
+            {
+                Shop(ShopAction.Heal);
+                return;
+            }
             int best = -1;
+            float bestValue = 0f;
             for (int i = 0; i < ShelfCount(me); i++)
-                if (me.Shelf[i] >= 0 && !Sold(me, i) && Price(me.Shelf[i]) <= me.Gold && Upgrades.Available(me.Shelf[i], OfferFor(me))
-                    && (best < 0 || Price(me.Shelf[i]) < Price(me.Shelf[best])))
+            {
+                if (me.Shelf[i] < 0 || Sold(me, i) || Price(me.Shelf[i]) > me.Gold || !Upgrades.Available(me.Shelf[i], OfferFor(me)))
+                    continue;
+                float score = BotCardScore(me, me.Shelf[i]);
+                float value = score / Price(me.Shelf[i]);  // worth per gold
+                if (score >= BotShopWorth && value > bestValue)
+                {
+                    bestValue = value;
                     best = i;
-            if (best >= 0)
+                }
+            }
+            if (best >= 0 && botShopIdle < 2)
                 Shop(ShopAction.Buy, best);
-            else if (me.Hp < me.MaxHp && !me.Downed && me.Gold >= HealPrice)
+            else if (!me.ReviveToken && me.Gold >= RevivePrice && botShopIdle < 2)
+                Shop(ShopAction.Revive);
+            else if (me.Gold >= RestockPrice(me) + 100 && me.Restocks < 3 && botShopIdle < 2)
+                Shop(ShopAction.Restock);
+            else if (hurt && me.Hp < me.MaxHp * 0.85f && me.Gold >= HealPrice)
                 Shop(ShopAction.Heal);
             else
+            {
+                botShopGold = -1;
                 Shop(ShopAction.Done, 1);
+            }
         }
+
+        public const float BotShopWorth = 6f;  // a shelf card has to score at least this (BotPicks.cs) for the bot to buy it
 
         void SyncShop(NetSync s, Player p)
         {

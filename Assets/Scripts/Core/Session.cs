@@ -663,9 +663,6 @@ namespace Arena
                 case Msg.MysteryDoor:
                     Game.OnMysteryDoor(peer, r);
                     break;
-                case Msg.PlayCard:
-                    Game.OnPlayCard(peer, r);  // RoomCards.cs
-                    break;
                 case Msg.GridPiece:
                     Game.OnGridPiece(peer, r);  // GridPieces.cs
                     break;

@@ -13,9 +13,7 @@ namespace Arena
         public const int KitBase = 1000;
 
         /// The pool's groups and their weights (first guesses): shape cards 40, Box / Hall 15, service cards 20, Floor kits 15, Mini-boss 10.
-        static readonly int[] GroupWeights = { 40, 15, 20, 15, 10 };
         static readonly int[] GridWeights = { 65, 20, 15 };  // (a Grid run: pieces 65, service cards 20, floor kits 15)
-        static readonly RoomCard[] Basics = { RoomCard.Box, RoomCard.Hall };
         static readonly RoomCard[] Services = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms, RoomCard.BuilderShop };  // (the service cards and the Builder Shop)
 
         public static bool IsKit(int code) => code >= KitBase;
@@ -45,23 +43,8 @@ namespace Arena
             var offer = new List<int>(OfferSize);
             for (int tries = 0; offer.Count < OfferSize && tries < 200; tries++)
             {
-                int code;
-                if (gridWave > 0)  // a Grid run: pieces (plain or floor), service cards and floor kits; the mini-boss waits on the lattice instead (Docs/GridPieces.md)
-                {
-                    int g = Pick(rng, GridWeights);
-                    code = g == 0 ? (int)Expansion.GridDropCard(rng, gridWave) : g == 1 ? (int)Services[rng.Int(Services.Length)] : KitCode(floors[rng.Int(floors.Count)]);
-                    if (!offer.Contains(code))
-                        offer.Add(code);
-                    continue;
-                }
-                switch (Pick(rng, GroupWeights))
-                {
-                    case 0: code = (int)Expansion.ShapeCards[rng.Int(Expansion.ShapeCards.Length)]; break;
-                    case 1: code = (int)Basics[rng.Int(Basics.Length)]; break;
-                    case 2: code = (int)Services[rng.Int(Services.Length)]; break;
-                    case 3: code = KitCode(floors[rng.Int(floors.Count)]); break;
-                    default: code = (int)RoomCard.MiniBoss; break;
-                }
+                int g = Pick(rng, GridWeights);  // pieces (plain or floor), service cards and floor kits; mini-bosses wait on the lattice (Docs/GridPieces.md)
+                int code = g == 0 ? (int)Expansion.GridDropCard(rng, Math.Max(1, gridWave)) : g == 1 ? (int)Services[rng.Int(Services.Length)] : KitCode(floors[rng.Int(floors.Count)]);
                 if (!offer.Contains(code))
                     offer.Add(code);
             }
@@ -120,7 +103,7 @@ namespace Arena
                 if (!BossCardUsable(me, c))
                     continue;
                 var card = BossCards.CardOf(c);
-                int score = BossCards.IsKit(c) ? 1 : card == RoomCard.MiniBoss ? 0 : Array.IndexOf(Expansion.ShapeCards, card) >= 0 ? 3 : 2;
+                int score = BossCards.IsKit(c) ? 1 : Expansion.IsPieceCard(card) ? 2 + Expansion.GridPieceCells(Expansion.CardPiece(card)) / 2 : 2;  // (a bigger piece first)
                 if (Expansion.IsServiceCard(card))
                 {
                     var job = Expansion.CardRoomKind(card);

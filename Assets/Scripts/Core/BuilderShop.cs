@@ -12,25 +12,12 @@ namespace Arena
 
         /// What the Builder Shop charges for a card: three quarters of the vendor's price.
         public static int BuilderPrice(RoomCard c) => (CardPrice(c) * 3 + 3) / 4;
-
-        /// The Builder Shop's shelf for a wave: both basics, then three different shapes; one wave in three the last shape is a Mini-boss card.
-        public static RoomCard[] BuilderOffers(int seed, int wave)
-        {
-            var rng = new DetRandom(seed * 7919 + wave * 389 + 41);
-            var shapes = (RoomCard[])ShapeCards.Clone();
-            for (int i = shapes.Length - 1; i > 0; i--)  // (a seeded shuffle)
-            {
-                int j = rng.Int(i + 1);
-                var t = shapes[i]; shapes[i] = shapes[j]; shapes[j] = t;
-            }
-            return new[] { RoomCard.Box, RoomCard.Hall, shapes[0], shapes[1], wave % 3 == 2 ? RoomCard.MiniBoss : shapes[2] };
-        }
     }
 
     public partial class Game
     {
         /// The Builder Shop's shelf this wave.
-        public RoomCard[] BuilderCards => GridRoomsOn ? Expansion.GridBuilderOffers(expandSeed, Wave) : Expansion.BuilderOffers(expandSeed, Wave);
+        public RoomCard[] BuilderCards => Expansion.GridBuilderOffers(expandSeed, Wave);
 
         /// A Builder Shop room is on the connected map.
         public bool HasBuilderRoom

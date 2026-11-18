@@ -1134,35 +1134,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
-- **Room cards** (**retired** Nov 18: no longer in the lobby, the code is kept; only saved runs from before still use them). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
-  Every room is a card in your own **hand** (up to **6**). Cards: **Box** (7 x 6), **Hall** (8 x 3), **Chamfer**, **L hall**, **T hall**, **Cross**, **Ring**
-  (the surprise-room shapes), two **utility cards**: **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it
-  for a prize pick) and **Builder Shop** (a 5 x 4 amber shop room, see below), and the **service cards** **Shop**, **Black Market** and **Arms Dealer** (a tiny
-  4 x 4 room with that job, open at once and safe: no enemies spawn in it; drawn with a coin, a plus or a crosshair). The Arms Dealer sells weapon mods for gold (below).
-  - **Where they come from**: the first build round deals **Box, Hall and a random shape**; every build round gives everyone a basic card (a **Hall** after odd waves,
-    a **Box** after even ones); a cleared wave gives each player a **1 in 4** shape card; a beaten **boss** gives each player a **card pick** (below);
-    an opened **Grid piece chest** gives everyone a card (a grid piece in a Grid run). A dropped shape card (wave, chest) is a **service card** 1 time in 5. The **Black Market** sells three cards a boss cycle (a basic, a shape, and a third
-    that is a Mini-boss card one cycle in three, a Builder Shop card the cycle before, else another shape; never a service card) for **vectors**: Hall 10, Box 16, Chamfer 22, L 24, T 26,
-    Cross 30, Ring 34, Builder Shop 36, Mini-boss 40. A full hand drops new cards.
-  - **Boss card pick** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): right after the boss's legendary, **BOSS SPOILS!** shows **5 cards**: room cards (Box, Hall),
-    shape cards, service cards (and the Builder Shop), the **Mini-boss** card and **Floor kits** (for the team's kits). Pick one; it can be **rerolled**. A card you can't hold (full hand) or a
-    kit with the team's kits full is greyed out; with neither possible the pick is skipped. It replaces the weapon mod pick and the boss's free shape card, Mini-boss card
-    and Floor kit (the Mini-boss card is no longer free anywhere).
-  - **Builder Shop**: play it like any card and its room holds a workbench. Stand in it during a build round and its shelf comes up at the bottom of the screen
-    (the arena stays live): **five room cards** (Box, Hall, three different shapes; one wave in three the last is a **Mini-boss** card), a new shelf **every wave**,
-    at **a quarter off** the Black Market's price (Hall 8, Box 12, Chamfer 17, L 18, T 20, Cross 23, Ring 26, Mini-boss 30 vectors). Click **BUY** to put one in
-    your hand. It never sells itself; no enemies come in there.
-  - **Playing one**: in a build round open **Build**: the first tool is **Room cards**, with your hand on the right (each card drawn as its room). Pick a card, and dots on the
-    map show every spot it fits; the room follows the mouse as a green ghost on the nearest fit (and says how many loops it closes). **R** steps through the other
-    turns and mirrors that fit there; **left click** builds it at once (no vote, no vectors); **right click** puts the card back.
-  - **Inside the rooms**: each card's room comes with its own obstacles, turned with the room and kept out of its doorways: **Box** four pillars round a low wall;
-    **Hall** a block off alternate walls near each end (a zig-zag); **Ring** a buttress on each outer wall and a pillar in each corner; **Cross** a pillar in the
-    crossing and a block in each arm (a pinwheel); **L hall** a pillar in the bend and blocks off alternate walls; **T hall** a pillar facing the stem and a block in
-    each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars; **Builder Shop** a pillar in each corner. Card rooms get no random cover or side walls.
-  - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's and Builder Shop's cards.
+- **Room cards**: **retired and deleted** (Nov 18): Grid pieces replaced them (below). The hand, the service cards (Shop, Black Market, Arms Dealer) and the Builder Shop carry on as Grid cards; an old save's room cards stay in the hand but can't be played. Design history: [`Docs/RoomCards.md`](Docs/RoomCards.md).
 - **Grid** (**the only building mode**: the lobby's Building row is gone since Nov 18). Design: [`Docs/GridRooms.md`](Docs/GridRooms.md) and [`Docs/GridPieces.md`](Docs/GridPieces.md). A saved run from before keeps its old building mode. Rooms are built on a grid from **piece cards** (below): every room hangs off a glowing **door spot** on a built room's wall.
   - **The core**: the run starts with the start room grown to 4 x 3 cells (2400 x 1800) by four free rooms round it, the walls between them open, so there are 14 door spots round the core. Every room sits on one lattice of 6-tile cells.
-  - Built at once (no vote). Drawn rooms, outlines, wall push and the old room cards are off in this mode; open walls, teleporters, gates and traps work as usual.
+  - Built at once (no vote). Drawn rooms, outlines and wall push are off in this mode; open walls, teleporters, gates and traps work as usual.
   - **Nodes and chests** sit at the middle of a room-sized cell, so building out along the grid claims them with the chest or relic in the middle of its room (a chest or relic always stands in the middle of the room that claims it).
   - Bots build on door spots too.
   - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or with a **modifier**: today a floor, such as Burning Grounds; about 1 in 4 dropped pieces has one, and the vendor's and Builder Shop's last card always does; more modifier kinds to come) and one-cell service cards. They come as the room cards do: a starting hand, a card each round, wave drops, chests, the vendor, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run.
@@ -2390,6 +2365,24 @@ boss plays out and what to change.
   Mender's Bow arrow or Transfusion Dart through a hurt teammate within 420 px. A Roar tank roars when a teammate is
   hurt or down with enemies on top of them (or when it is under half health); a Knight tank plants **Last Stand** over
   a downed ally and keeps it up while they're being stood back up. Tests: `Tools/SimTest/run.sh 1 30 botteam`.
+- **Bot parry and weapon Alts** (same bots): a bot raises the **parry** toward a shot or a sword cut it can't step out of,
+  timed for a perfect parry (a Casual bot's timing drifts, a Good one blocks once its best step still looks risky, an
+  Expert takes any clean perfect parry), keeps it up while more come from that side, and drops it when the side is clear
+  or the shield is under a quarter. It also uses its **weapon's Alt** the way a person would: Double Barrel and
+  Scattergun shells point-blank, mines, gas and Twin Rifle grenades on crowds or the boss, Hook & Haul on an enemy just
+  out of reach, Twin Fang and the Moonwheel at range, the Sunlance through a hurt or downed ally, Censer Cast once Embers
+  are lit, Absolute Zero, the Tempest, Out of Ammo's spin, the Nunchaku guard, the Pistol Whip and the Bulwark's Brace
+  under a barrage, the Kusarigama whirl and Undertow on a group, the Katana switch to the other stance's finisher, Kunai
+  blinks, Rocket Dash, the Twin Rifle Auto lock, Stonespear volleys, Embolus bursts, Sympathy, Martyr's Leash, the honey
+  spray, the smoke drum and the Vector Forge's walker on a new target. The Shuriken's Great Star stance isn't used (it
+  needs a drawn route). Tests: `Tools/SimTest/run.sh 1 30 botweapon`.
+- **Bot level-up picks and shopping** (same bots): a bot takes the card worth the most to it instead of a random one.
+  It weighs what the card does to damage, fire rate, extra shots, health, damage taken, cooldowns and speed by its role
+  (a tank values health and damage taken, a healer cooldowns), counts cards made for its weapon, class or ability above
+  other special cards, adds for rarity and a new ability while a key is free, and values a card it already has less as
+  its copies weaken. At the shop it heals first when under half health, then buys the shelf card worth the most for its
+  gold (skipping cards worth little to it), a revive token if it has none, adds stock only with gold to spare, tops up
+  its health, and is done. Tests: `Tools/SimTest/run.sh 1 30 botpicks`.
 - Lab fights aren't saved as session recordings. Starting the lab leaves any match you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where

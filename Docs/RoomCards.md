@@ -1,5 +1,7 @@
 # Room cards: build the Expanding arena from a hand of preset rooms
 
+**Retired and deleted (Nov 18, owner):** Grid pieces ([`GridPieces.md`](GridPieces.md)) replaced the room cards. Their placement, card layouts, the build screen's card mode, the old sources and `Msg.PlayCard` handling are gone; the hand, the service cards and the Builder Shop live on as Grid cards. What follows is history.
+
 Status: **steps 1-3 built** (protocol 389), plus designed obstacles inside each card's room (protocol 391) and the Builder Shop utility card (protocol 393): cards, hand, play, sources, the vendor's card shelf, bots, the lobby switch, the build screen's hand and ghost.
 Service cards (Shop, Black Market, Arms Dealer: tiny rooms) added by [`ArmsDealer.md`](ArmsDealer.md) step 1 (protocol 394). Step 4 (balance pass, themed cards) open. Decided with the owner on Nov 17, 2026. Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (the shapes and
 their placement), [`VectorBuilding.md`](VectorBuilding.md) (vectors) and [`Nodes.md`](Nodes.md).

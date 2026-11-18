@@ -23,9 +23,6 @@ static partial class Program
             bool openRoom = opts.All(o => { var m = new List<ExpansionRoom>(core); m.AddRange(o.Rooms); return Expansion.GroupOf(m, core.Count).Count == o.Rooms.Count && Expansion.BoughtCount(m) == 0 + 1; });
             Check(opts.Count > 0 && aligned && free && openRoom, Expansion.GridPieceName(kv.Key) + ": " + opts.Count + " places round the core, every box on the lattice, free, one open room");
         }
-        var mono = Expansion.GridPieceOptions(core, GridPiece.Mono).Select(o => o.X + "," + o.Y).OrderBy(k => k).ToList();
-        var cell = Expansion.GridOptions(core, GridShape.Room).Select(o => o.Room.X + "," + o.Room.Y).OrderBy(k => k).ToList();
-        Check(mono.SequenceEqual(cell), "a single cell goes exactly where a Room goes (" + mono.Count + " spots)");
 
         Check(Expansion.GridPieceRooms(core, GridPiece.Domino, 0, 2100, 0, out why) == null && why == "Off the grid", "a piece off the lattice is refused (" + why + ")");
         Check(Expansion.GridPieceRooms(core, GridPiece.Mono, 0, 5000 + 600 - 200 - 0, -400, out why) == null, "far from the map is refused (" + why + ")");
@@ -97,12 +94,10 @@ static partial class Program
         var spoils = BossCards.Offer(new DetRandom(3), Expansion.GridCore(), new List<RoomToken>(), 12);
         Check(spoils.Length == BossCards.OfferSize && spoils.Distinct().Count() == spoils.Length && spoils.All(c => BossCards.IsKit(c) || Expansion.IsGridCard((RoomCard)c)) && !spoils.Contains((int)RoomCard.MiniBoss), "a Grid boss pick: pieces, service cards and floor kits, no Mini-boss card");
         var dflt = new Difficulty();
-        Check(dflt[DiffKnob.GridRooms] >= 0.5f && dflt[DiffKnob.RoomCards] < 0.5f, "Grid is the lobby's default building mode (Nov 18)");
+        Check(dflt[DiffKnob.GridRooms] >= 0.5f, "Grid is the lobby's default building mode (Nov 18)");
         var round = Difficulty.Parse(dflt.ToText());
-        var oldCards = Difficulty.Parse("Normal");
-        var oldDraw = Difficulty.Parse("Hard RoomCards=0");
-        Check(round[DiffKnob.GridRooms] >= 0.5f && round[DiffKnob.RoomCards] < 0.5f && oldCards[DiffKnob.GridRooms] < 0.5f && oldCards[DiffKnob.RoomCards] >= 0.5f && oldDraw[DiffKnob.GridRooms] < 0.5f && oldDraw[DiffKnob.RoomCards] < 0.5f,
-            "a new save keeps Grid; a save from before keeps its old mode (room cards, or drawing)");
+        var oldSave = Difficulty.Parse("Normal");
+        Check(round[DiffKnob.GridRooms] >= 0.5f && oldSave[DiffKnob.GridRooms] < 0.5f, "a new save keeps Grid; a save from before Grid keeps drawing its rooms");
         var save = new RunSave();
         var seat = new SeatSave { Vectors = 30, VectorCap = 70 };
         seat.Hand.AddRange(new[] { (int)Expansion.PieceCard(GridPiece.TetL, PathId.Fogbound), (int)Expansion.PieceCard(GridPiece.Mono), (int)RoomCard.Shop });
@@ -165,11 +160,11 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
             gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true;
         }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
-        Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4 && g.HandOn && !g.RoomCardsOn, "the core is up first; cards are in play without the old Room cards");
+        Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4 && g.HandOn, "the core is up first; cards are in play");
 
         // The first build round deals the hand: the starting pieces and the round's card, and the friend's game has them.
         typeof(Game).GetMethod("OpenBuildRound", flags).Invoke(g, null);

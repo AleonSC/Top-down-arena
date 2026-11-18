@@ -38,8 +38,8 @@ namespace Arena
         BuildVote,      // retired (Nov 18): was Team vote building; ignored, kept so the knob order stays the same
         BuildPurse,     // retired (Nov 18): was the Team purse; ignored, kept so the knob order stays the same
         Lives,          // count: retries from the last boss's checkpoint when everyone goes down (Checkpoints.cs)
-        RoomCards,      // on/off: the Expanding arena is built from room cards (RoomCards.cs, Docs/RoomCards.md); off = drawing (free or by vote)
-        GridRooms,      // on/off: the Expanding arena is built on a grid: rooms snap to door spots on built rooms' walls (GridRooms.cs, Docs/GridRooms.md); wins over drawing, loses to room cards
+        RoomCards,      // retired (Nov 18): was the old room cards; ignored, kept so the knob order stays the same
+        GridRooms,      // on/off: the Expanding arena is built on a grid from piece cards (GridRooms.cs, GridPieces.cs, Docs/GridPieces.md); off = drawing (an old save)
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff, Count }
@@ -208,7 +208,7 @@ namespace Arena
         {
             var sb = new StringBuilder(Level.ToString());
             foreach (var k in Knobs)
-                if (Level == DifficultyLevel.Custom || k.Flavour && Math.Abs(this[k.Knob] - k.Normal) > 1e-5f || k.Knob == DiffKnob.RoomCards || k.Knob == DiffKnob.GridRooms)  // (the building mode always: its defaults changed Nov 18)  // a preset adds its flavour knobs only when they're changed
+                if (Level == DifficultyLevel.Custom || k.Flavour && Math.Abs(this[k.Knob] - k.Normal) > 1e-5f || k.Knob == DiffKnob.GridRooms)  // (the building mode always: its defaults changed Nov 18)  // a preset adds its flavour knobs only when they're changed
                     sb.Append(' ').Append(k.Knob).Append('=').Append(this[k.Knob].ToString("R", CultureInfo.InvariantCulture));
             return sb.ToString();
         }
@@ -221,8 +221,6 @@ namespace Arena
             if (d0 != null && !(text ?? "").Contains("GridRooms="))
             {
                 d0.Values[(int)DiffKnob.GridRooms] = 0f;
-                if (!(text ?? "").Contains("RoomCards="))
-                    d0.Values[(int)DiffKnob.RoomCards] = 1f;
             }
             return d0 ?? new Difficulty();
         }
@@ -329,9 +327,9 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.Lives, Name = "Lives", HarderUp = false,
                 Desc = "Retries from the last boss's checkpoint when everyone goes down: the run comes back as it was there, and its score drops by a quarter each time.",
                 Unit = KnobUnit.Count, Min = 0f, Max = 5f, Step = 1f, Presets = new[] { 3f, 2f, 1f, 0f } },
-            // Room cards (RoomCards.cs, Docs/RoomCards.md): flavour. Off by default since Grid became the default (Nov 18); on brings back the old cards.
-            new KnobDef { Knob = DiffKnob.RoomCards, Name = "Room cards", Flavour = true,
-                Desc = "On: rooms come as cards you hold and place: a hand to start, one a round, drops, chests and the vendor. Off: you draw your rooms with vectors.",
+            // Room cards: retired Nov 18 (Grid pieces replaced them); kept so the knob order stays the same.
+            new KnobDef { Knob = DiffKnob.RoomCards, Name = "Room cards (retired)", Flavour = true,
+                Desc = "Retired: Grid pieces replaced the old room cards.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
             // Grid rooms (GridRooms.cs, GridPieces.cs, Docs/GridPieces.md): flavour, the default building mode since Nov 18 (owner).
             new KnobDef { Knob = DiffKnob.GridRooms, Name = "Grid rooms", Flavour = true,

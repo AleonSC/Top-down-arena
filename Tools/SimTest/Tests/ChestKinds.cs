@@ -44,7 +44,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 0f); gg.Diff.Set(DiffKnob.GridRooms, 0f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.GridRooms, 0f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         var open = typeof(Game).GetMethod("OpenChest", flags);
         V2 at = new V2(800f, 300f);
 

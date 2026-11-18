@@ -639,8 +639,8 @@ namespace Arena
         void HostExpandDraw(int id, int x, int y, int w, int h, PathId theme = PathId.None)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
-                return;  // (room cards: rooms come from cards, not drawings)
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
             string why = null;
             if (GridRoomsOn)
             {
@@ -813,7 +813,7 @@ namespace Arena
         void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn || GridRoomsOn)
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || GridRoomsOn)
                 return;  // (room cards and grid rooms: rooms come from cards or door spots, not drawn outlines)
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
@@ -969,11 +969,6 @@ namespace Arena
                 botProposed = true;
                 if (roundBuilt > 0)
                     return;  // (free building: a bot adds a room only if nobody has this round, so the map doesn't fill at once)
-                if (RoomCardsOn)
-                {
-                    BotPlayCard();  // RoomCards.cs
-                    return;
-                }
                 if (GridRoomsOn)
                 {
                     BotPlayGridCard();  // GridCards.cs
