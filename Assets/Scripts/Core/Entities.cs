@@ -111,7 +111,7 @@ namespace Arena
         // (SentryNovaSoundBank.cs), Bullet Rain (BulletRainSoundBank.cs), the Stonespear (StonespearSoundBank.cs), footsteps' two layers
         // (FootstepSoundBank.cs), the menus' hover tick and click, and a wall pushed out (SoundBank.cs).
         NovaBurst, TurretDeploy, TurretFold, RainCast, RainPatter, RainEnd, StoneThrow, StoneWind, StoneSlam, StoneHit, StoneStick,
-        StepThump, StepTick, UiHover, UiClick, WallPush,
+        StepThump, StepTick, UiHover, UiClick, WallPush /* retired with wall push, Nov 18: no sound */,
         // Arc Lightning's lock-on (ArcLockSoundBank.cs): a tag, a hop, letting go, a Forked Volley bolt, a fizzle, and the charge hum (a loop). Never sent.
         ArcTag, ArcHop, ArcCrack, ArcFork, ArcFizzle, ArcHum,
         // The Fireball (FireballSoundBank.cs, Deep Roar of Docs/Mockups/fireball-sounds.html): the launch roar (the weapon's Sound) and the burn when it ignites an enemy. Sent.

@@ -35,16 +35,6 @@ static partial class Program
         Check(tieredOk == 300 && Expansion.Tiered(7, new MapNode { X = 3000, Y = 450, Kind = NodeKind.Vein }).Kind == NodeKind.Vein,
             "a prize node takes its tier's kind (inner gold or vector chest, middle chest, outer chest or relic); a vein stays a vein");
 
-        // Bots want prize nodes by what they need (owner Nov 18): relics and buildables never, coins when poor, vectors when the bar is low, pieces when the hand is empty.
-        Func<NodeKind, ChestKind, int, int, int, float> want = (k, c, vec, gold, pieces) => Expansion.BotNodeWant(k, c, vec, 100, gold, pieces);
-        Check(want(NodeKind.Relic, ChestKind.Upgrade, 0, 0, 0) == 0f && want(NodeKind.Chest, ChestKind.Buildable, 0, 0, 0) == 0f, "bots ignore relics and buildables chests");
-        Check(want(NodeKind.Chest, ChestKind.Gold, 50, 0, 3) > want(NodeKind.Chest, ChestKind.Gold, 50, 500, 3) && want(NodeKind.Chest, ChestKind.Gold, 50, 0, 3) > want(NodeKind.Chest, ChestKind.Upgrade, 50, 0, 3),
-            "a bot short of gold wants a gold chest most");
-        Check(want(NodeKind.VectorChest, ChestKind.Upgrade, 0, 500, 3) > want(NodeKind.Chest, ChestKind.Upgrade, 0, 500, 3) && want(NodeKind.VectorChest, ChestKind.Upgrade, 100, 500, 3) < want(NodeKind.Chest, ChestKind.Upgrade, 100, 500, 3),
-            "a vector chest beats an upgrade with an empty bar, not with a full one");
-        Check(want(NodeKind.Chest, ChestKind.Piece, 100, 500, 0) > want(NodeKind.Chest, ChestKind.Upgrade, 100, 500, 0) && want(NodeKind.Chest, ChestKind.Piece, 100, 500, 3) < want(NodeKind.Chest, ChestKind.Upgrade, 100, 500, 3),
-            "a grid piece chest comes first with an empty hand, after upgrades with a full one");
-
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
@@ -54,7 +44,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.GridRooms, 0f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         var open = typeof(Game).GetMethod("OpenChest", flags);
         V2 at = new V2(800f, 300f);
 
@@ -96,15 +86,9 @@ static partial class Program
         for (int k = 0; k < Market.Count; k++) full.Stash[k] = 0;
 
         // A Grid piece chest node: a room round it, the chest comes out as Grid piece, opening it deals a card each and no upgrade card.
-        string why;
-        var hall = Expansion.Custom(g.Expanded, (int)Game.Width, 300, 1400, 300, out why);
-        Check(hall.HasValue, "a hallway east of the start room (" + why + ")");
-        if (hall.HasValue) g.Expanded.Add(hall.Value);
-        var room = Expansion.Custom(g.Expanded, (int)Game.Width + 1400, 200, 600, 500, out why);
-        Check(room.HasValue, "a middle-tier room at its end (" + why + ")");
-        if (room.HasValue) g.Expanded.Add(room.Value);
-        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-        var node = new MapNode { X = (short)(Game.Width + 1650), Y = 450, Kind = NodeKind.Chest };
+        UseMap(new[] { g }, GridMap(GridPiece.TetI));  // (a line of four cells east of the core: the chest out at its far end, a middle-tier spot)
+        var far = g.Expanded.Skip(4).OrderBy(r => -r.X1).First();
+        var node = new MapNode { X = (short)(far.X1 - Expansion.GridCell / 2), Y = (short)((far.Y + far.Y1) / 2), Kind = NodeKind.Chest };
         var seedField = typeof(Game).GetField("expandSeed", flags);
         int sd = 1;
         while (sd < 200 && Expansion.NodeChestKind(sd, node.X, node.Y, true) != ChestKind.Piece) sd++;
@@ -112,7 +96,6 @@ static partial class Program
         g.Nodes.Add(node);
         g.Props.Clear(); g.Loots.Clear();
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
-        g.Diff.Set(DiffKnob.GridRooms, 1f);  // (a Grid run: piece cards; on after the test room, which isn't on the lattice)
         var tickNodes = typeof(Game).GetMethod("TickNodes", flags);
         tickNodes.Invoke(g, null);
         var chest = g.Props.Values.FirstOrDefault(q => q.Kind == PropKind.Chest);

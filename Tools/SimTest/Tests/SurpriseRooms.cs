@@ -168,7 +168,8 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(list[0]); }
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        UseMap(new[] { g, cg }, GridMap(GridPiece.TriI));
         int seedPick = Enumerable.Range(1, 100000).First(sd => BreachEvent.IsEventWave(sd, 15));
         typeof(Game).GetField("expandSeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, seedPick);
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.BreachAge > 0.2f, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
@@ -189,10 +190,10 @@ static partial class Program
         Check(cg.Expanded.Count == g.Expanded.Count && !cg.EventMark.HasValue && cg.SurpriseKind > 0 && cg.SurpriseAge < 3f, "the friend gets it too, with the build-in and the chip");
         var after = g.ActiveBreaches.Select(b => b.Pos).ToList();
         Check(after.All(p => before.Any(q => q.DistanceTo(p) < 1f)) &&  cg.ActiveBreaches.Select(b => b.Pos).SequenceEqual(after), "the wave's other breaches stay where they were, the same on both screens");
-        // Breach rooms (Docs/BreachRooms.md): at the same 20 s every breach left opens onto a free 5 x 3 Stash worth vectors; not a gift, so the rotation stays.
+        // Breach rooms (Docs/BreachRooms.md): at the same 20 s every breach left opens onto a free one-cell Stash worth vectors; not a gift, so the rotation stays.
         var stashes = g.Expanded.Where(r => r.Surprise == stashKind).ToList();
         int left = before.Count;
-        Check(stashes.Count > 0 && stashes.Count == left - 1 && stashes.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "the breaches open onto free Stashes right away (" + stashes.Count + " of " + left + ")");
+        Check(stashes.Count > 0 && stashes.Count == left - 1 && stashes.All(r => r.Price == 0 && r.W == Expansion.GridCell && r.H == Expansion.GridCell), "the breaches open onto free one-cell Stashes right away (" + stashes.Count + " of " + left + ")");
         var sw = g.CurrentWorld; float worstDoor = 0f;
         foreach (var b in g.ActiveBreaches)
         {
@@ -201,7 +202,7 @@ static partial class Program
             var dr = sw.Doors.Where(d => d.Joins(ai) && d.Vertical == b.Vertical).ToList();
             worstDoor = Math.Max(worstDoor, dr.Count == 0 ? 999f : dr.Min(d => d.Pos.DistanceTo(b.Pos)));
         }
-        Check(worstDoor <= 60f, "each Stash's doorway lines up with its breach (worst " + worstDoor.ToString("0") + " px off)");
+        Check(worstDoor <= Expansion.GridCell / 2f, "each Stash's doorway is on its breach's cell (worst " + worstDoor.ToString("0") + " px off)");
         Check(cg.Expanded.Count == g.Expanded.Count && Game.SurpriseCount(g.Expanded) == 1, "the friend gets them too, and they are not counted as gifts");
         Check(gp.Vectors == 10 && stashes.All(r => !r.Claimed), "opening a Stash pays nobody: its vector cache waits to be walked into");
         int count = g.Expanded.Count;

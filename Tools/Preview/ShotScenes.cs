@@ -2195,7 +2195,7 @@ static partial class Shot {
       for (int k = 0; k < nb; k++) { var rr = Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]; rr.Owner = 1 + k % 2; xg.Expanded.Add(rr); }
       string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: drawn rooms added in order (each must fit, Expansion.Custom)
       if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why; var cr = Expansion.Custom(xg.Expanded, q[0], q[1], q[2], q[3], out why); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
-      if (Environment.GetEnvironmentVariable("GRIDCORE") != null) { xg.Diff.Set(DiffKnob.GridRooms, 1f); xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }  // GRIDCORE=1 (with EXPANDMAP=0): a Grid run's core (GridRooms.cs); EXPANDAT=x,y ZOOM=z to look at it
+      if (Environment.GetEnvironmentVariable("GRIDCORE") != null) { xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }  // GRIDCORE=1 (with EXPANDMAP=0): a Grid run's core (GridRooms.cs); EXPANDAT=x,y ZOOM=z to look at it
       string xs = Environment.GetEnvironmentVariable("EXPANDSHAPES");  // EXPANDSHAPES=x,y;x,y;...|...: rooms drawn as outlines added in order (Expansion.Outline), owner 1
       if (xs != null) foreach (var sh in xs.Split('|')) { var pts = new System.Collections.Generic.List<int[]>(); foreach (var part in sh.Split(';')) pts.Add(Array.ConvertAll(part.Split(','), int.Parse)); string why; var made = Expansion.Outline(xg.Expanded, pts, PathId.None, out why); if (made != null) foreach (var mr in made) { var m2 = mr; m2.Owner = 1; xg.Expanded.Add(m2); } else Console.Error.WriteLine("EXPANDSHAPES " + sh + ": " + why); }
       string xsur = Environment.GetEnvironmentVariable("EXPANDSURPRISE");  // EXPANDSURPRISE=ring|cross|l|t|chamfer: that surprise room built, SURPRISEAGE=<s since it appeared> (default 0.6)
@@ -2205,18 +2205,16 @@ static partial class Shot {
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
-      string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=shop|market|arms|buildershop: a Grid run's core with that service card's one cell built off it (GridCards.cs); CARDSPOT=n which door spot
+      string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=buildershop|shop|market|arms: that card's one-cell room built on the lattice, everyone in it; CARDSPOT=<n> picks its nth door spot
       if (xcard != null) {
         var xc = (RoomCard)Enum.Parse(typeof(RoomCard), xcard, true);
-        xg.Diff.Set(DiffKnob.GridRooms, 1f);
-        if (!xg.Expanded.Exists(Expansion.IsGridCore)) { xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); }
         var xco = Expansion.GridPieceOptions(xg.Expanded, GridPiece.Mono);
         int xci = Math.Min(xco.Count - 1, int.Parse(Environment.GetEnvironmentVariable("CARDSPOT") ?? "0"));
-        if (xci >= 0) { var r2 = xco[xci].Rooms[0]; r2.Owner = 1; r2.Kind = Expansion.CardRoomKind(xc); xg.Expanded.Add(r2); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }
+        if (xci >= 0) { var r2 = xco[xci].Rooms[0]; r2.Owner = 1; r2.Kind = Expansion.CardRoomKind(xc); xg.Expanded.Add(r2); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = xco[xci].Mid + new V2(0f, float.Parse(Environment.GetEnvironmentVariable("CARDDY") ?? "0")); }  // (CARDDY=<px>: stand that far below the room's middle)
         else Console.Error.WriteLine("CARDROOM: no spot fits");
         if (Environment.GetEnvironmentVariable("BUILDEROPEN") != null) {  // BUILDEROPEN=1 (with CARDROOM=buildershop): a build round, so the Builder Shop's shelf shows (BuilderShopUi.cs)
           xg.ExpandOpen = true; xg.State = MatchState.Intermission;
-          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.PieceCard(GridPiece.Mono); pl.Hand[1] = (byte)Expansion.PieceCard(GridPiece.TetT); if (xci >= 0) { var bc = xco[xci].Mid; pl.Pos = pl.Disp = bc + new V2(-130f + 60f * (pl.Id - 1), 110f); } }
+          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.PieceCard(GridPiece.Mono); pl.Hand[1] = (byte)Expansion.PieceCard(GridPiece.TetL); }
         }
       }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
@@ -2239,8 +2237,9 @@ static partial class Shot {
       string mreset = Environment.GetEnvironmentVariable("MAPRESET");  // MAPRESET=<s since the reset>: the map just reset (MapResetLook.cs): the old rooms folding in, the biggest one kept, map 2, 27 vectors back
       if (mreset != null) {
         xg.FoldRooms.Clear(); xg.FoldRooms.AddRange(xg.Expanded);
-        var kept = Expansion.PlaceKeepsake(xg.Expanded, Expansion.BiggestRoom(xg.Expanded, xg.KeepsakeChoices), 5);
-        xg.Expanded.Clear(); xg.Expanded.AddRange(kept); xg.KeptHead = kept.Count > 0 ? 0 : -1;
+        var mcore = Expansion.GridCore();
+        var kept = xg.KeepsakeChoices.Count > 0 ? Expansion.PlaceKeepsake(xg.Expanded, Expansion.BiggestRoom(xg.Expanded, xg.KeepsakeChoices), mcore) : new System.Collections.Generic.List<ExpansionRoom>();
+        xg.Expanded.Clear(); xg.Expanded.AddRange(mcore); xg.Openings.Clear(); xg.Openings.AddRange(Expansion.GridCoreCuts()); xg.KeptHead = kept.Count > 0 ? xg.Expanded.Count : -1; xg.Expanded.AddRange(kept);
         typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
         xg.MapNumber = 2; xg.MapResetAge = float.Parse(mreset, System.Globalization.CultureInfo.InvariantCulture);
         xg.MapRefunds.Clear(); xg.MapRefunds[xg.MyId] = 27;
@@ -2330,39 +2329,6 @@ static partial class Shot {
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
       MockBreachRooms(xg);
-      if (Environment.GetEnvironmentVariable("PUSHFEAT") != null) Expansion.PushStyleOverride = (int)(PushStyle)Enum.Parse(typeof(PushStyle), Environment.GetEnvironmentVariable("PUSHFEAT"), true);  // PUSHFEAT=fins|baffles|pincers|tfins|divider|cover|none: every pushed section has that style
-      string xpush = Environment.GetEnvironmentVariable("PUSHES");  // PUSHES=area,side,start,width,times;...: walls pushed out (Docs/WallPush.md; side 0 W, 1 E, 2 N, 3 S; a section grows when pushed again, area = its index + 1)
-      if (xpush != null) {
-        foreach (var part in xpush.Split(';')) {
-          var q = Array.ConvertAll(part.Split(','), int.Parse);
-          var wpp = new WallPush { Area = (short)q[0], Side = (byte)q[1], Start = (short)q[2], Width = (byte)q[3] };
-          for (int k = 0; k < (q.Length > 4 ? q[4] : 1); k++) {
-            int pidx, pcost; string pwhy;
-            var pb = Expansion.Push(xg.Expanded, wpp, out pidx, out pcost, out pwhy);
-            if (!pb.HasValue) { Console.Error.WriteLine("push refused: " + pwhy); break; }
-            var pbv = pb.Value; pbv.Owner = 1;
-            if (pidx < 0) { xg.Expanded.Add(pbv); wpp.Area = (short)xg.Expanded.Count; } else xg.Expanded[pidx] = pbv;
-          }
-        }
-        typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-      }
-      if (Environment.GetEnvironmentVariable("PUSHHINT") != null) xg.ExpandOpen = true;  // PUSHHINT=1: between waves (a building round), so the Push wall prompt shows by a wall in reach
-      string xflash = Environment.GetEnvironmentVariable("PUSHFLASH");  // PUSHFLASH=<s>: the last push of PUSHES just happened that long ago: its new pieces flash in (and a new section's style is named)
-      if (xflash != null && xpush != null) {
-        var prev = new System.Collections.Generic.List<ExpansionRoom>(xg.Expanded); int li = prev.FindLastIndex(r => Expansion.IsPush(r)); var lr = prev[li]; int la = Expansion.PushAway(prev, li);
-        if (Expansion.PushDepth(lr, la) <= 1) prev.RemoveAt(li); else { if (la == 0) { lr.X += Expansion.Step; lr.W -= Expansion.Step; } else if (la == 1) lr.W -= Expansion.Step; else if (la == 2) { lr.Y += Expansion.Step; lr.H -= Expansion.Step; } else lr.H -= Expansion.Step; prev[li] = lr; }
-        var bfx = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-        ArenaApp.PushPreviewAge = float.Parse(xflash, System.Globalization.CultureInfo.InvariantCulture);
-        var realRooms = new System.Collections.Generic.List<ExpansionRoom>(xg.Expanded); xg.Expanded.Clear(); xg.Expanded.AddRange(prev);
-        typeof(ArenaApp).GetMethod("TrackPushPieces", bfx).Invoke(app, new object[] { Expansion.Build(prev), 0f });
-        xg.Expanded.Clear(); xg.Expanded.AddRange(realRooms);
-      }
-      string xsel = Environment.GetEnvironmentVariable("PUSHSEL");  // PUSHSEL=x,y: push mode on, the mouse over that world point (PUSHW=<width>, default 4); put yourself in reach with EXPANDAT
-      if (xsel != null) {
-        var q = Array.ConvertAll(xsel.Split(','), float.Parse); ArenaApp.PushMouseOverride = new V2(q[0], q[1]); typeof(ArenaApp).GetField("pushOn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
-        if (Environment.GetEnvironmentVariable("PUSHW") != null) typeof(ArenaApp).GetField("pushWidth", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("PUSHW")));
-        xg.ExpandOpen = true;
-      }
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }

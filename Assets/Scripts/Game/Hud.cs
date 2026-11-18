@@ -85,8 +85,6 @@ namespace Arena
             DrawRoomsMinimap();  // the Rooms arena's minimap, top right (RoomsLook.cs)
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
             DrawMysteryHint();   // mystery doors' price tags and keys (MysteryDoorLook.cs)
-            DrawWallPushHint();  // by a wall between waves: the Push wall key; pushing: the label and keys (WallPushLook.cs)
-            DrawPushNames();     // a new pushed section's style, named over it (WallPushLook.cs)
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
             DrawGateToast(me);   // the boss gate just opened (BossGateLook.cs)
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
@@ -203,13 +201,8 @@ namespace Arena
                 DrawSurvivalPhase();  // a new faction joins (SurvivalUi.cs)
             if (game.State == MatchState.Fighting && !PauseMenuWanted)
                 DrawBreachWarning();  // a breach wave's start: letterbox and BREACH n/N while the camera tours (BreachTour.cs)
-            if (me != null && !PauseMenuWanted)  // free building: doors mid-wave (ExpansionUi.cs; between waves the Intermission case above draws the window)
-            {
-                if (DoorChipUp && !tabHeld)
-                    DrawDoorChip(me);
-                if (game.State == MatchState.Fighting && ExpandWindowUp && !tabHeld)
-                    DrawExpansionChoice(Time.unscaledTime);
-            }
+            if (me != null && !PauseMenuWanted && game.State == MatchState.Fighting && ExpandWindowUp && !tabHeld)  // (between waves the Intermission case above draws the window)
+                DrawExpansionChoice(Time.unscaledTime);
             if (!tabHeld)
                 DrawSurpriseBanner();  // SurpriseLook.cs
             if (!tabHeld)

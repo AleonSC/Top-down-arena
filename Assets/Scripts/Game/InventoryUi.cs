@@ -25,11 +25,11 @@ namespace Arena
                 p = me;
             }
             bool mine = p == me;
-            bool canUse = mine && !invFromPause && game.ExpandOpen && !me.Downed;  // (room cards and buildables go down in a build round)
+            bool canUse = mine && !invFromPause && game.ExpandOpen && !me.Downed;  // (cards and buildables go down in a build round)
             int cards = Game.HandCount(p), stash = 0;
             foreach (var n in p.Stash) stash += n;
-            string sub = (mine ? "" : p.Name + "'s · ") + cards + " room card" + (cards == 1 ? "" : "s") + " · " + stash + " in " + (mine ? "your" : "their") + " stash · " + game.RoomTokens.Count + " team room kit" + (game.RoomTokens.Count == 1 ? "" : "s");
-            string hint = !mine ? "Looking only: teammates use their own" : canUse ? "Click a room card or buildable to use it" : invFromPause ? "Use them from the Tab screen in a build round" : "Usable in the break, while a build round is open";
+            string sub = (mine ? "" : p.Name + "'s · ") + cards + " card" + (cards == 1 ? "" : "s") + " · " + stash + " in " + (mine ? "your" : "their") + " stash · " + game.RoomTokens.Count + " team room kit" + (game.RoomTokens.Count == 1 ? "" : "s");
+            string hint = !mine ? "Looking only: teammates use their own" : canUse ? "Click a card or buildable to use it" : invFromPause ? "Use them from the Tab screen in a build round" : "Usable in the break, while a build round is open";
             HoloPanel(head, holoPageAt, () =>
             {
                 HoloTitle(head.x + 18f, head.y + 14f, "INVENTORY", sub.ToUpperInvariant(), mine ? HoloDim : Color.Lerp(ToColor(p.Def.Color), Color.white, 0.35f));
@@ -90,14 +90,13 @@ namespace Arena
             expDrawing = true;
             expDragging = expHeld = false;
             expA = expB = V2.Zero;
-            expPts.Clear();
-            expCutMode = expLinkMode = expGateMode = expTrapMode = false;
+            expLinkMode = expGateMode = expTrapMode = false;
         }
 
         void UseInvCard(int slot)
         {
             InvOpenBuild();
-            expGridSlot = slot;  // the piece is picked on the build screen (GridRoomsUi.cs)
+            expGridSlot = slot;  // (the piece is picked on the build screen, GridRoomsUi.cs)
             expGridTurn = 0;
         }
 
@@ -190,8 +189,8 @@ namespace Arena
         /// (the build screen opens on it, UseInvCard).
         void DrawInvHand(Player me, Rect r, bool canUse)
         {
-            canUse &= game.HandOn;
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.GridRoomsOn ? "Pieces" : "Room cards", game.HandOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
+            canUse &= game.ExpandingOn;
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Pieces" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
             const float minH = 96f;
@@ -234,10 +233,10 @@ namespace Arena
                 if (canUse && Ui.HitArea(c))
                     UseInvCard(i);
             }
-            if (!game.HandOn)
+            if (!game.ExpandingOn)
             {
                 Ui.Fill(new Rect(r.x + 12f, r.y + 46f, r.width - 24f, r.height - 58f), new Color(0f, 0f, 0f, 0.45f));
-                Ui.Label(new Rect(r.x, r.center.y - 10f, r.width, 20f), game.ExpandingOn ? "This run draws its rooms (Room cards are off)" : "Room cards are for the Expanding arena", 13, HoloDim, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x, r.center.y - 10f, r.width, 20f), "Pieces are for the Expanding arena", 13, HoloDim, TextAnchor.MiddleCenter, true);
             }
         }
 

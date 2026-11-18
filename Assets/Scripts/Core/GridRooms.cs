@@ -93,8 +93,9 @@ namespace Arena
             var opts = GridPieceOptions(built, GridPiece.Mono).FindAll(o =>
             {
                 bool touches = false;
+                var c = o.Rooms[0];
                 foreach (var b in boxes)
-                    touches |= SharedRun(o.Rooms[0].X, o.Rooms[0].Y, o.Rooms[0].X1, o.Rooms[0].Y1, b.X, b.Y, b.X1, b.Y1) > 0;
+                    touches |= SharedRun(c.X, c.Y, c.X1, c.Y1, b.X, b.Y, b.X1, b.Y1) > 0;
                 if (!touches)
                     return false;
                 foreach (var nd in nodes)
@@ -111,13 +112,10 @@ namespace Arena
 
     public partial class Game
     {
-        /// The run builds on the grid (the lobby's Building: Grid, Docs/GridRooms.md): rooms snap to door spots on the walls of rooms already built.
-        public bool GridRoomsOn => ExpandingOn && D(DiffKnob.GridRooms) >= 0.5f;
-
         /// Host, every frame: a Grid run's bare map (a new run, or after a map reset) gets its core: four free rooms round the start room, the walls between opened.
         void TickGridCore()
         {
-            if (!IsHost || !GridRoomsOn || Expanded.Count > 0)
+            if (!IsHost || !ExpandingOn || Expanded.Count > 0)
                 return;
             Expanded.AddRange(Expansion.GridCore());
             Openings.AddRange(Expansion.GridCoreCuts());

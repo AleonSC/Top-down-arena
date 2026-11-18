@@ -49,7 +49,7 @@ namespace Arena
                 return;
             }
             float fx = 0f, fy = 0f, fw = AW, fh = AH;
-            if (game.GridRoomsOn && game.Expanded.Count >= 4 && Expansion.IsGridCore(game.Expanded[0]))  // a Grid run's core is one room with the start room: the wash covers all of it (GridRooms.cs)
+            if (game.ExpandingOn && game.Expanded.Count >= 4 && Expansion.IsGridCore(game.Expanded[0]))  // a Grid run's core is one room with the start room: the wash covers all of it (GridRooms.cs)
             {
                 fx = Expansion.GridX0; fy = Expansion.GridY0; fw = 4 * Expansion.GridCell; fh = 3 * Expansion.GridCell;
             }

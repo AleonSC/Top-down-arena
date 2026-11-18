@@ -7,7 +7,7 @@ namespace Arena
     /// for, and where it goes (your hand, the team's kits). One you can't take (a full hand, full kits) is dimmed. Preview: `bosscards`.
     public partial class ArenaApp
     {
-        static readonly Color BossCardsTheme = new Color(0.45f, 0.85f, 1f);  // the room cards' blue
+        static readonly Color BossCardsTheme = new Color(0.45f, 0.85f, 1f);  // the cards' blue
 
         /// A code's colour: a card in its card colour (RoomCardsUi.CardColor), a kit in its path's accent.
         static Color BossCardColor(int code) => BossCards.IsKit(code) ? ToColor(Paths.Get(BossCards.FloorOf(code)).Accent) : ToColor(CardColor(BossCards.CardOf(code)));
@@ -18,7 +18,7 @@ namespace Arena
         {
             if (BossCards.IsKit(code)) return "FLOOR KIT";
             var c = BossCards.CardOf(code);
-            return c == RoomCard.MiniBoss ? "MINI-BOSS" : Expansion.IsServiceCard(c) ? "SERVICE ROOM" : c == RoomCard.Box || c == RoomCard.Hall ? "ROOM CARD" : "SHAPE CARD";
+            return Expansion.IsServiceCard(c) ? "SERVICE ROOM" : c == RoomCard.BuilderShop ? "UTILITY ROOM" : "PIECE CARD";
         }
 
         /// What taking it changes: your hand, or the team's kits.

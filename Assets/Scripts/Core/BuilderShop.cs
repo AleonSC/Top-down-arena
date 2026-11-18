@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Arena
 {
-    /// The Builder Shop (Docs/RoomCards.md, "Utility cards"): a utility room card whose small room (`RoomKind.Builder`) is a shop for room cards.
+    /// The Builder Shop (Docs/RoomCards.md, "Utility cards"): a utility card whose one-cell room (`RoomKind.Builder`) is a shop for piece cards.
     /// Standing in it during a build round shows its shelf (BuilderShopUi.cs): BuilderOfferCount cards, a new seeded shelf each wave (the same on
     /// every machine), paid in vectors at a quarter off the vendor's price. Bought cards go to your hand. It never sells itself.
     public static partial class Expansion
@@ -39,8 +39,8 @@ namespace Arena
             return a.HasValue && a.Value.Kind == Arena.RoomKind.Builder;
         }
 
-        /// The Builder Shop's shelf is open for this player: room cards on, a build round, standing in a Builder room.
-        public bool BuilderShopOpen(Player p) => p != null && HandOn && ExpandOpen && !p.Downed && InBuilderRoom(p);
+        /// The Builder Shop's shelf is open for this player: a build round, standing in a Builder room.
+        public bool BuilderShopOpen(Player p) => p != null && ExpandingOn && ExpandOpen && !p.Downed && InBuilderRoom(p);
 
         /// Why this player can't buy that offer right now (null if they can).
         public string BuilderRefusal(Player p, int offer)

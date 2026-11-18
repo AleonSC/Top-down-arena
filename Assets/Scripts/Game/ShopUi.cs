@@ -83,7 +83,7 @@ namespace Arena
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
             Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
             DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : arms ? "THE ARMS DEALER" : "THE BLACK MARKET") : "THE BAZAAR", 34, market || arms ? mk : Ui.Gold, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(0f, 92f, W, 18f), arms ? "Every weapon mod, up to 3 stacks each. Each stack you hold makes the next one dearer." : market ? (game.HandOn ? "Pieces cost vectors and go to your hand. The rest waits in your stash." : "Buys wait in your stash. Place them from the draw screen in the break.") : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0f, 92f, W, 18f), arms ? "Every weapon mod, up to 3 stacks each. Each stack you hold makes the next one dearer." : market ? "Piece cards cost vectors and go to your hand. The rest waits in your stash." : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
             var wallet = new Rect(W - 210f, 22f, 190f, 54f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
             Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 13f, 28f, 28f), PixelArt.Get("ui_coin"));
@@ -92,7 +92,7 @@ namespace Arena
 
             // The list: the shelf's cards, then the services.
             int count = market || arms ? 0 : Game.ShelfCount(me);  // (the Black Market and the Arms Dealer have no shelf)
-            bool cardShelf = market && game.HandOn;  // (room cards: the vendor sells them too, for vectors)
+            bool cardShelf = market && game.ExpandingOn;  // (room cards: the vendor sells them too, for vectors)
             int[] svc = arms ? ArmsItems : market ? (cardShelf ? MarketCardItems : MarketItems) : game.ExpandingOn ? AllServices : BazaarServices;  // (the room kit and vector pack are sold in the Expanding arena)
             int nSvc = svc.Length, n = count + nSvc, split = arms ? Game.ModIds.Length : market ? Market.Count + (cardShelf ? Expansion.CardOfferCount : 0) : count, nSecond = n - split;
             if (shopSel < 0)
@@ -291,7 +291,7 @@ namespace Arena
             }
             if (k >= 20)
             {
-                if (atVendor && game.HandOn && Game.HandCount(me) < Expansion.HandMax && game.SpendableVectors(me) >= Expansion.CardPrice(game.VendorCards[k - 20]))
+                if (atVendor && game.ExpandingOn && Game.HandCount(me) < Expansion.HandMax && game.SpendableVectors(me) >= Expansion.CardPrice(game.VendorCards[k - 20]))
                     game.Shop(ShopAction.BuyCard, k - 20);
                 return;
             }
@@ -313,7 +313,7 @@ namespace Arena
         /// at what's inside. Clicking one (or Enter on the one the arrow keys point at) opens its carousel.
         void DrawShopCategories(Player me, int[] svc, int count, int split, bool market, float railY, bool popup, float t)
         {
-            bool cardShelf = market && game.HandOn;
+            bool cardShelf = market && game.ExpandingOn;
             const float pw = 380f, ph = 330f, gap = 44f;
             var ev = Event.current;
             if (!popup && ev.type == EventType.KeyDown)

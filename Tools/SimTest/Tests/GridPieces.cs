@@ -93,11 +93,7 @@ static partial class Program
         Check(shelf.Length == Expansion.BuilderOfferCount && shelf.All(Expansion.IsGridCard) && Expansion.BuilderPrice(shelf[0]) < Expansion.CardPrice(shelf[0]), "the Builder Shop's five are grid cards at a quarter off");
         var spoils = BossCards.Offer(new DetRandom(3), Expansion.GridCore(), new List<RoomToken>(), 12);
         Check(spoils.Length == BossCards.OfferSize && spoils.Distinct().Count() == spoils.Length && spoils.All(c => BossCards.IsKit(c) || Expansion.IsGridCard((RoomCard)c)) && !spoils.Contains((int)RoomCard.MiniBoss), "a Grid boss pick: pieces, service cards and floor kits, no Mini-boss card");
-        var dflt = new Difficulty();
-        Check(dflt[DiffKnob.GridRooms] >= 0.5f, "Grid is the lobby's default building mode (Nov 18)");
-        var round = Difficulty.Parse(dflt.ToText());
-        var oldSave = Difficulty.Parse("Normal");
-        Check(round[DiffKnob.GridRooms] >= 0.5f && oldSave[DiffKnob.GridRooms] < 0.5f, "a new save keeps Grid; a save from before Grid keeps drawing its rooms");
+        Check(new Difficulty().ToText() == "Normal" && Difficulty.Parse("Normal").SameAs(new Difficulty()), "a preset saves as its name alone (the retired building knobs aren't written)");
         var save = new RunSave();
         var seat = new SeatSave { Vectors = 30, VectorCap = 70 };
         seat.Hand.AddRange(new[] { (int)Expansion.PieceCard(GridPiece.TetL, PathId.Fogbound), (int)Expansion.PieceCard(GridPiece.Mono), (int)RoomCard.Shop });
@@ -160,11 +156,11 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
             gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true;
         }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
-        Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4 && g.HandOn, "the core is up first; cards are in play");
+        Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "the core is up first");
 
         // The first build round deals the hand: the starting pieces and the round's card, and the friend's game has them.
         typeof(Game).GetMethod("OpenBuildRound", flags).Invoke(g, null);
@@ -227,19 +223,6 @@ static partial class Program
         int n3 = g.Expanded.Count;
         bool played = (bool)typeof(Game).GetMethod("BotPlayGridCard", flags).Invoke(g, null);
         Check(played && g.Expanded.Count > n3 && Game.HandCount(g.Players[1]) == 0, "a bot plays its piece at a door spot");
-        g.Diff.Set(DiffKnob.GridRooms, 0f);
-        g.Players[1].Hand[0] = (byte)Expansion.PieceCard(GridPiece.Mono);
-        var po = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono).FirstOrDefault();
-        g.PlayGridCard(0, 0, po.X, po.Y);
-        Run(s, dt, 0.3f, null, noPicks);
-        Check(Game.HandCount(g.Players[1]) == 1, "with Grid off, no piece is played");
-        g.Diff.Set(DiffKnob.GridRooms, 1f);
-        // No Open wall in a Grid run (owner Nov 18).
-        int cuts0 = g.Openings.Count;
-        g.ExpandOpen = true;
-        g.ProposeExpandCut(new WallCut { Vertical = true, At = 2000, From = -400, Till = 200 });
-        Run(s, dt, 0.3f, null, noPicks);
-        Check(!g.OpenWallsOn && !g.DoorsOpen && g.Openings.Count == cuts0, "no Open wall in a Grid run");
         // Mystery doors: the room behind each is a piece on the lattice; a small room (a shop or vendor) is one cell.
         var roll = typeof(Game).GetMethod("RollMysteryDoors", flags);
         var plans = (System.Collections.IList)typeof(Game).GetField("mysteryPlans", flags).GetValue(g);
@@ -256,11 +239,52 @@ static partial class Program
             }
         }
         Check(seen > 0 && lattice && cellSmall, "mystery door rooms are pieces on the lattice, priced, a small one exactly a cell (" + seen + " plans)");
-        g.Diff.Set(DiffKnob.GridRooms, 1f);
         var place = typeof(Game).GetMethod("PlaceGridMini", flags);
         int before4 = g.Expanded.Count;
         bool first = (bool)place.Invoke(g, new object[] { 1 }), second = (bool)place.Invoke(g, new object[] { 1 });
         var waiting = g.Expanded.Skip(before4).ToList();
         Check(first && !second && waiting.Count == 1 && waiting[0].Floating && waiting[0].Kind == Arena.RoomKind.Gatekeeper && waiting[0].Mini == (byte)g.MiniBossNow(), "a boss cycle places one mini-boss room on the lattice, holding the coming boss's faction's mini-boss; one waits at a time");
     }
+
+    /// Test helper: `who` plays a piece (put in their last hand slot on the host) at its first place round the map (or the first `where` accepts),
+    /// and the run waits until both screens have it. Returns the place, or null if none fits.
+    static GridPieceOption? PlayPiece(Session[] s, float dt, Game host, Game who, GridPiece piece, PathId floor = PathId.None, Func<GridPieceOption, bool> where = null)
+    {
+        var hand = host.Players[who.MyId].Hand;
+        hand[hand.Length - 1] = (byte)Expansion.PieceCard(piece, floor);
+        var opts = Expansion.GridPieceOptions(host.Expanded, piece).Where(o => where == null || where(o)).ToList();
+        if (opts.Count == 0)
+            return null;
+        int n = host.Expanded.Count;
+        who.PlayGridCard(hand.Length - 1, opts[0].Orient, opts[0].X, opts[0].Y);
+        Run(s, dt, 1f, () => host.Expanded.Count > n && s.All(x => x.Game.Expanded.Count == host.Expanded.Count));
+        return opts[0];
+    }
+
+
+    /// Test helper: the Grid core and these pieces, each at the first place round the map on the core's east side (else anywhere).
+    static List<ExpansionRoom> GridMap(params GridPiece[] pieces)
+    {
+        var map = Expansion.GridCore();
+        foreach (var p in pieces)
+        {
+            var opts = Expansion.GridPieceOptions(map, p);
+            var o = opts.FirstOrDefault(q => q.Side == 3);
+            if (o.Rooms == null && opts.Count > 0) o = opts[0];
+            if (o.Rooms != null) map.AddRange(o.Rooms);
+        }
+        return map;
+    }
+
+    /// Test helper: these games' maps are this one, with the core's inner walls open (as TickGridCore builds it).
+    static void UseMap(IEnumerable<Game> games, List<ExpansionRoom> map)
+    {
+        foreach (var g in games)
+        {
+            g.Expanded.Clear(); g.Expanded.AddRange(map);
+            g.Openings.Clear(); g.Openings.AddRange(Expansion.GridCoreCuts());
+            typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, null);
+        }
+    }
+
 }

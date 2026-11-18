@@ -46,23 +46,23 @@ namespace Arena
         Respawn,      // client -> host: Practice Range only: kind 0 = get back up where you fell, 1 = restart the wave (the host's own only) (PracticeRespawn.cs)
         ExpandState,  // host -> all: the Expanding arena's rooms bought, the offer on the table and the votes so far (ExpansionGame.cs)
         ExpandVote,   // retired (Nov 18, Team vote building removed): no longer sent or read
-        ExpandDraw,   // client -> host: a room this player drew (x, y, width, height) to put to the vote (ExpansionGame.cs)
+        ExpandDraw,   // retired (Nov 18, Free draw removed): no longer sent or read
         ExpandApply,  // client -> host: spend this room kit (index) on this bought room (index) (Docs/RoomModifiers.md, ExpansionGame.cs)
-        ExpandCut,    // client -> host: a stretch of interior wall this player proposes to open (vertical, at, from, till) (ExpansionGame.cs)
+        ExpandCut,    // retired (Nov 18, Open wall removed): no longer sent or read
         ExpandLink,   // client -> host: a portal pair this player proposes (ax, ay, bx, by) (Docs/RoomBuilding2.md step 2, ExpansionGame.cs)
         ExpandHall,   // retired (hallways are gone: protocol 286); kept so the numbers after it stay put
         ExpandGate,   // client -> host: a shutter gate this player proposes on the door at (x, y) (Docs/RoomBuilding2.md step 3, Gates.cs)
         GateUse,      // client -> host: shut this gate (index) (Gates.cs)
         GateState,    // host -> all: a gate's clocks: index, seconds shut, seconds of cooldown (Gates.cs)
-        ExpandOutline, // client -> host: a room this player drew as an outline (theme, fill?, corners, then x, y each; fill: an open run of walls that fences in a space) (ExpansionGame.cs)
+        ExpandOutline, // retired (Nov 18, Free draw removed): no longer sent or read
         PlaceBuild,   // client -> host: put a trap from this player's stash on the map (kind, x, y) (Market.cs)
         Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to) (Gadgets.cs)
         HuntMapState, // host -> all: the hunt map: its seed, the nodes cleared, the one being fought, and the vote on the next so far (HuntMapGame.cs)
         HuntMapVote,  // client -> host: this player's vote on the next node (its index in the row, -1 for none) and whether they have locked it in (HuntMapGame.cs)
         StarThrow,    // client -> host: the Shuriken's Great Star thrown along a drawn route (a byte count, then the points); host -> all: (bullet id, owner, count, points) to fly it along (GreatStar.cs)
-        WallPush,     // client -> host: push a stretch of wall out a tile (area, side, start, width) (Docs/WallPush.md, ExpansionPush.cs)
+        WallPush,     // retired (Nov 18, wall push removed): no longer sent or read
         MysteryDoor,  // client -> host: open or save the sealed door at (x, y) (x, y, save) (Docs/MysteryDoors.md, MysteryDoors.cs)
-        PlayCard,     // client -> host: play the room card in this hand slot with its room's corner at (x, y), turned and mirrored (slot, x, y, turn, mirror) (Docs/RoomCards.md, RoomCards.cs)
+        PlayCard,     // retired (Nov 18, Room cards removed): no longer sent or read
         KeepsakeVote, // client -> host: the room this player wants kept through the map reset (short: its first box) (Docs/MapReset.md, MapReset.cs)
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
         GridPiece,    // client -> host: place a grid piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, GridPieces.cs)
@@ -128,7 +128,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 406;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 407;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -636,14 +636,8 @@ namespace Arena
                 case Msg.Dodge:
                     Game.OnDodge(peer, r);
                     break;
-                case Msg.ExpandDraw:
-                    Game.OnExpandDraw(peer, r);
-                    break;
                 case Msg.ExpandApply:
                     Game.OnExpandApply(peer, r);
-                    break;
-                case Msg.ExpandCut:
-                    Game.OnExpandCut(peer, r);
                     break;
                 case Msg.ExpandLink:
                     Game.OnExpandLink(peer, r);
@@ -653,12 +647,6 @@ namespace Arena
                     break;
                 case Msg.GateUse:
                     Game.OnGateUse(peer, r);
-                    break;
-                case Msg.ExpandOutline:
-                    Game.OnExpandOutline(peer, r);
-                    break;
-                case Msg.WallPush:
-                    Game.OnWallPush(peer, r);
                     break;
                 case Msg.MysteryDoor:
                     Game.OnMysteryDoor(peer, r);

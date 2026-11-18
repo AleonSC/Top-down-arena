@@ -368,8 +368,8 @@ namespace Arena
                 fireOnMenu = false;
             if (!Keybinds.Held(KeyAction.Parry))
                 parryOnMenu = false;
-            fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen || PushingWall;  // (pushing a wall: a click pushes, WallPushLook.cs)
-            parryBlocked = overlay || parryOnMenu || PushingWall;  // (right click ends push mode)
+            fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
+            parryBlocked = overlay || parryOnMenu;
             bool inMenus = session.Screen != AppScreen.Game;
             bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me) || PracticeDownedUp(me) || BalanceReportUp()
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
@@ -500,7 +500,6 @@ namespace Arena
                 game.DevKillAll(game.MyId);
 
             TickGadgetKey(me, session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0);  // GadgetLook.cs
-            TickWallPush(me, session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && !overlay);  // WallPushLook.cs
 
             bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)

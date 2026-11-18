@@ -237,7 +237,7 @@ namespace Arena
         void DrawWcStrip(Player me, string waiting, bool calm)
         {
             bool build = ExpandChipUp;
-            float y = DoorChipUp ? 72f : 34f;  // (under the door chip)
+            float y = 34f;
             const float sh = 44f, kh = 32f, kTop = 6f, rw = 160f, bw = 120f, ow = 92f, kGap = 8f, info = 206f;
             float sw = info + rw + kGap + (build ? bw + kGap : 0f) + ow + 12f;
             var r = new Rect(W / 2f - sw / 2f, y, sw, sh);

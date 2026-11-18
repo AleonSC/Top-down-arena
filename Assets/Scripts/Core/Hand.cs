@@ -3,23 +3,23 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// A card in a player's hand. In a Grid run (the only building mode since Nov 18) a hand code from Expansion.PieceCardBase up is a grid piece
-    /// (GridCards.cs); below it are the service cards (Shop, Market, Arms, Builder Shop: one cell each). Box..Chamfer and MiniBoss are the retired room cards
-    /// (Docs/RoomCards.md): an old save's hand may still hold them; they can't be played. New values go at the end.
+    /// A card code in a player's hand (Docs/GridPieces.md): codes from Expansion.PieceCardBase up are grid pieces (GridCards.cs); below it the
+    /// service and utility cards, which build one cell. New values go at the end. Box to Chamfer and MiniBoss were the old room cards (retired
+    /// with them, Nov 18): kept so the codes stay the same.
     public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms }
 
     public static partial class Expansion
     {
         public const int HandMax = 6;  // cards a player holds; more are dropped
 
-        /// The service cards: each builds one cell with a job (Docs/ArmsDealer.md). They drop like pieces.
+        /// The service cards: each builds one cell with a job (Docs/ArmsDealer.md).
         public static readonly RoomCard[] ServiceCards = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms };
 
-        public const int ServiceCardChance = 5;  // a drop (a wave, a chest) is a service card 1 in this many times
+        public const int ServiceCardChance = 5;  // a dropped card (a wave drop, a chest) is a service card 1 in this many times
 
         public static bool IsServiceCard(RoomCard c) => c == RoomCard.Shop || c == RoomCard.Market || c == RoomCard.Arms;
 
-        /// The job of the room a card builds: a service card's shop, Black Market or Arms Dealer, the Builder Shop's card shop, else combat.
+        /// The job of the room a card builds: a service card's shop, Black Market or Arms Dealer, a Builder Shop card's card shop, else combat.
         public static RoomKind CardRoomKind(RoomCard c)
             => c == RoomCard.Shop ? RoomKind.Shop : c == RoomCard.Market ? RoomKind.Vendor : c == RoomCard.Arms ? RoomKind.Arms : c == RoomCard.BuilderShop ? RoomKind.Builder : RoomKind.Combat;
 
@@ -29,12 +29,11 @@ namespace Arena
                 return PieceCardName(c);
             switch (c)
             {
-                case RoomCard.None: return "";
                 case RoomCard.Shop: return "Shop";
                 case RoomCard.Market: return "Black Market";
                 case RoomCard.Arms: return "Arms Dealer";
                 case RoomCard.BuilderShop: return "Builder Shop";
-                default: return "Old room card";
+                default: return "";
             }
         }
 
@@ -45,11 +44,11 @@ namespace Arena
                 return PieceCardBlurb(c);
             switch (c)
             {
-                case RoomCard.Shop: return "One cell of shop: upgrade cards for gold, heals and revives. Safe, no enemies spawn in it.";
-                case RoomCard.Market: return "One cell of Black Market: buildables, services and pieces. Safe, no enemies spawn in it.";
-                case RoomCard.Arms: return "One cell of Arms Dealer: weapon mods for gold. Safe, no enemies spawn in it.";
-                case RoomCard.BuilderShop: return "One cell of Builder Shop: pieces for vectors, a new shelf each wave, a quarter off.";
-                default: return "A room card from before Grid: it can't be played.";
+                case RoomCard.Shop: return "A one-cell shop: upgrade cards for gold, heals and revives. Safe, no enemies spawn in it.";
+                case RoomCard.Market: return "A one-cell Black Market: buildables, services and piece cards. Safe, no enemies spawn in it.";
+                case RoomCard.Arms: return "A one-cell Arms Dealer: weapon mods for gold. Safe, no enemies spawn in it.";
+                case RoomCard.BuilderShop: return "A utility room: a shop that sells piece cards for vectors, a new shelf each wave, a quarter off.";
+                default: return "";
             }
         }
 
@@ -58,7 +57,11 @@ namespace Arena
         {
             if (IsPieceCard(c))
                 return PiecePrice(c);
-            return c == RoomCard.BuilderShop ? 36 : IsServiceCard(c) ? 30 : 0;
+            switch (c)
+            {
+                case RoomCard.BuilderShop: return 36;
+                default: return 30;  // (a service card: not on the Black Market's shelf; a price for completeness)
+            }
         }
 
         public const int CardOfferCount = 3;  // the vendor's card shelf
@@ -99,10 +102,10 @@ namespace Arena
             p.Hand[p.Hand.Length - 1] = (byte)RoomCard.None;
         }
 
-        /// Host, as a build round opens: anyone not dealt yet gets the starting hand (a single, a domino, a tromino), then everyone the round's piece.
+        /// Host, as a build round opens: anyone not dealt yet gets the starting hand (Expansion.GridStartHand), then everyone the round's basic piece.
         void DealRoundCards()
         {
-            if (!IsHost || !HandOn || !ModeRules.RunEvents)
+            if (!IsHost || !ExpandingOn || !ModeRules.RunEvents)
                 return;
             foreach (var p in Players.Values)
             {
@@ -121,8 +124,8 @@ namespace Arena
         /// gives nothing here: its reward is the card pick (BossCards.cs).
         void DropWaveCards(bool boss)
         {
-            if (!IsHost || !HandOn || !ModeRules.RunEvents || boss)
-                return;  // (a boss gives the card pick instead: BossCards.cs, Docs/ArmsDealer.md)
+            if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || boss)
+                return;
             var ids = SnapKeys(Players);
             ids.Sort();
             for (int i = 0; i < ids.Count; i++)
@@ -134,10 +137,10 @@ namespace Arena
             Free(ids);
         }
 
-        /// Host: a chest node was opened: everyone gets a card (a piece or a service card, Expansion.GridDropCard).
+        /// Host: a chest node was opened: everyone gets a card (Expansion.GridDropCard).
         void ChestCards(int nodeIndex)
         {
-            if (!IsHost || !HandOn)
+            if (!IsHost || !ExpandingOn)
                 return;
             foreach (var p in Players.Values)
                 GiveCard(p, Expansion.GridDropCard(new DetRandom(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), Wave), "chest");
@@ -149,7 +152,7 @@ namespace Arena
         /// Host: the vendor sells a card from its shelf (offer index) for vectors (Shop.cs, ShopAction.BuyCard).
         void BuyRoomCard(Player p, int offer)
         {
-            if (!HandOn || offer < 0 || offer >= Expansion.CardOfferCount || HandCount(p) >= Expansion.HandMax)
+            if (!ExpandingOn || offer < 0 || offer >= Expansion.CardOfferCount || HandCount(p) >= Expansion.HandMax)
                 return;
             var c = VendorCards[offer];
             int price = Expansion.CardPrice(c);
@@ -159,7 +162,7 @@ namespace Arena
             GiveCard(p, c, "bought for " + price + " vectors");
         }
 
-        /// What a bot builds toward: the nearest sealed shop or vendor room, else the nearest unclaimed node (null if none).
+        /// What a bot builds toward: the nearest sealed room waiting off the map (not a mini-boss's), else the nearest unclaimed node (null if none).
         V2? BotCardGoal()
         {
             V2? goal = null;
@@ -173,12 +176,11 @@ namespace Arena
                 }
             if (goal.HasValue)
                 return goal;
-            float bestScore = 0f;  // (owner Nov 18: the prize node it needs most; relics and buildables ignored)
             foreach (var nd in Nodes)
                 if (!nd.Spent && !Expansion.NodeClaimed(Expanded, nd))
                 {
-                    float score = Expansion.BotNodeScore(BotNodeWant(nd), nd.Pos);
-                    if (score > bestScore) { bestScore = score; goal = nd.Pos; }
+                    float d = nd.Pos.DistanceTo(new V2(Width / 2f, Height / 2f));
+                    if (d < best) { best = d; goal = nd.Pos; }
                 }
             return goal;
         }

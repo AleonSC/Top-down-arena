@@ -141,7 +141,7 @@ namespace Arena
             float a = Mathf.Clamp01((GateToastTime - age) / 1f) * Mathf.Clamp01(age / 0.25f);
             var ink = BossGateInk();
             var col = new Color(ink.R, ink.G, ink.B, a);
-            float y = DoorChipUp ? 144f : 110f;  // (under the minimized strip)
+            float y = 110f;  // (under the minimized strip)
             var r = new Rect(W / 2f - 260f, y, 520f, 54f);
             var was = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);

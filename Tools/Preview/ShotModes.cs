@@ -636,7 +636,7 @@ static partial class Shot {
         }
         set("statsTab", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
         if (Environment.GetEnvironmentVariable("STATSTAB") == "3" && Environment.GetEnvironmentVariable("INVEMPTY") == null) {  // STATSTAB=3: the Inventory page, stocked (INVEMPTY=1: nothing held, Classic arena)
-          g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.GridRooms, 1f);
+          g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
           me.Gold = 245; me.Vectors = 52; me.VectorCap = 90; me.ReviveToken = true; me.Gadget = GadgetId.Magnet; me.GadgetLeft = 6.4f; me.Relic = RelicId.WallBounce;
           me.Hand[0] = (byte)RoomCard.Ring; me.Hand[1] = (byte)RoomCard.Hall; me.Hand[2] = (byte)RoomCard.Cross; me.Hand[3] = (byte)RoomCard.MiniBoss;
           me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.SpikeTrap] = 3;
@@ -708,7 +708,7 @@ static partial class Shot {
       else if (mode == "picker" && Environment.GetEnvironmentVariable("MILESTONE") != null) { host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Second Helping")); me.Offer = new[] { U("Scholar"), U("Second Helping"), U("Wide Choice") }; me.OfferMilestone = true; }  // MILESTONE=1: a milestone pick
       else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Barrage") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
       else if (mode == "bosscards") {  // the boss card pick (BossCards.cs): BOSSFULL=1 fills your hand so the cards grey out
-        host.Game.Diff.Set(DiffKnob.ArenaExpanding, 1f); host.Game.Diff.Set(DiffKnob.GridRooms, 1f);
+        host.Game.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         me.Hand[0] = (byte)RoomCard.Box; me.Hand[1] = (byte)RoomCard.Hall;
         if (Environment.GetEnvironmentVariable("BOSSFULL") != null) for (int hi = 0; hi < me.Hand.Length; hi++) me.Hand[hi] = (byte)RoomCard.Box;
         me.Offer = new[] { (int)RoomCard.Ring, (int)RoomCard.Arms, BossCards.KitCode(PathId.SniperRidge), (int)RoomCard.MiniBoss, (int)RoomCard.LHall }; me.OfferCards = true; me.PendingCards = 1; }

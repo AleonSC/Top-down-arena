@@ -239,7 +239,7 @@ namespace Arena
                 var kind = Mystery.KindFor(expandSeed, Wave, n + Expanded.Count * 7, room, enemies);
                 var shapes = Mystery.ShapesOf(room);
                 var pieces = Mystery.PiecesOf(room);
-                bool grid = GridRoomsOn;  // (a Grid run: the room behind is a piece on the lattice, a shop or vendor one cell; owner Nov 18)
+                bool grid = ExpandingOn;  // (a Grid run: the room behind is a piece on the lattice, a shop or vendor one cell; owner Nov 18)
                 int nShapes = grid ? pieces.Length : shapes.Length;
                 int first = rg.Int(nShapes);
                 bool placed = false;
@@ -306,7 +306,7 @@ namespace Arena
         SurpriseOption? StillFits(int i)
         {
             var plan = mysteryPlans[i];
-            if (GridRoomsOn)  // a Grid run's piece behind the door: kept while nothing sits on it (no re-plan: another spot would leave the lattice look)
+            if (ExpandingOn)  // a Grid run's piece behind the door: kept while nothing sits on it (no re-plan: another spot would leave the lattice look)
             {
                 foreach (var q in plan.Rooms)
                     foreach (var r in Expanded)

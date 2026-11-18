@@ -57,7 +57,8 @@ namespace Arena
                 return;
             int rooms = Expansion.BoughtCount(Expanded);
             int newSeed = sideRng.Next(1, 1 << 30);  // a new map rolls new breaches, nodes and doors (sideRng: ResetExpansion)
-            var kept = keep >= 0 && keep < Expanded.Count ? Expansion.PlaceKeepsake(Expanded, keep, newSeed) : null;
+            var core = Expansion.GridCore();
+            var kept = keep >= 0 && keep < Expanded.Count ? Expansion.PlaceKeepsake(Expanded, keep, core) : null;
             string keptName = kept != null ? Expanded[keep].Shape : null;
             CollectStrayCoins();
             MapRefund = 0;
@@ -93,12 +94,14 @@ namespace Arena
             }
             MovePlayersIntoHub();
             KeptHead = -1;
+            Expanded.AddRange(core);  // (the fresh map's core first, GridRooms.cs, then the kept room against it)
+            Openings.AddRange(Expansion.GridCoreCuts());
             if (kept != null && kept.Count > 0)
             {
+                KeptHead = Expanded.Count;
                 Expanded.AddRange(kept);
-                KeptHead = 0;
-                RaiseRoomsNow();
             }
+            RaiseRoomsNow();
             MapNumber++;
             MapResetAge = 0f;
             Sounds.Add(Sfx.Pick);
@@ -330,7 +333,7 @@ namespace Arena
         {
             var list = new List<int>();
             for (int i = 0; i < rooms.Count; i++)
-                if (rooms[i].Leg == 0 && !rooms[i].Floating)
+                if (rooms[i].Leg == 0 && !rooms[i].Floating && !IsGridCore(rooms[i]))  // (the core comes back free with every map)
                     list.Add(i);
             return list;
         }
@@ -373,40 +376,54 @@ namespace Arena
             return mask;
         }
 
-        /// The kept room rebuilt on a bare hub (MapReset.cs): its own shape, turned or mirrored as needed, on the hub's best wall spot
-        /// (SurpriseOptions' scoring: the map grows least); if it fits nowhere, the biggest surprise shape that does. It keeps its kind,
-        /// theme, drawer, mini-boss and gold look; it's free. Empty if nothing fits.
-        public static List<ExpansionRoom> PlaceKeepsake(IList<ExpansionRoom> rooms, int head, int seed)
+        /// The kept room rebuilt against a fresh core (MapReset.cs): its boxes moved whole by whole cells onto the lattice, one of its cells on a door spot of
+        /// the core, overlapping nothing; the spot nearest where it stood wins. It keeps its kind, floor, owner, mini-boss and gold look; it's free. Empty if
+        /// it fits nowhere (or isn't on the lattice).
+        public static List<ExpansionRoom> PlaceKeepsake(IList<ExpansionRoom> rooms, int head, IList<ExpansionRoom> core)
         {
-            var hub = new List<ExpansionRoom>();
-            var opts = MaskOptions(hub, RoomMask(rooms, head), SurpriseShape.Ring);
-            List<ExpansionRoom> made = null;
-            if (opts.Count > 0)
-                made = opts[0].Rooms;
-            else
+            var group = RoomGroup(rooms, head);
+            var cells = new List<int[]>();
+            foreach (int i in group)
             {
-                var s = Surprise(seed, 0, hub, SurpriseShape.Ring, out string why);
-                if (s.HasValue)
-                    made = s.Value.Rooms;
+                var b = rooms[i];
+                if ((b.X - GridX0) % GridCell != 0 || (b.Y - GridY0) % GridCell != 0 || b.W % GridCell != 0 || b.H % GridCell != 0)
+                    return new List<ExpansionRoom>();  // (off the lattice)
+                for (int x = b.X; x < b.X1; x += GridCell)
+                    for (int y = b.Y; y < b.Y1; y += GridCell)
+                        cells.Add(new[] { x, y });
             }
-            if (made == null)
-                return new List<ExpansionRoom>();
-            var src = rooms[head];
-            for (int i = 0; i < made.Count; i++)
-            {
-                var r = made[i];
-                r.Kind = src.Kind;
-                r.Floor = src.Floor;
-                r.Owner = src.Owner;
-                r.Mini = src.Mini;
-                r.Surprise = src.Surprise;
-                r.Card = src.Card;
-                r.Claimed = src.Claimed;
-                r.Price = 0;
-                r.Floating = false;
-                made[i] = r;
-            }
-            return made;
+            List<ExpansionRoom> best = null;
+            long bestD = long.MaxValue;
+            foreach (var o in GridPieceOptions(core, GridPiece.Mono))
+                foreach (var c in cells)
+                {
+                    int dx = o.X - c[0], dy = o.Y - c[1];
+                    long d = (long)dx * dx + (long)dy * dy;
+                    if (d >= bestD)
+                        continue;
+                    bool clear = true;
+                    foreach (int i in group)
+                    {
+                        var b = rooms[i];
+                        foreach (var q in core)
+                            clear &= !(b.X + dx < q.X1 && q.X < b.X1 + dx && b.Y + dy < q.Y1 && q.Y < b.Y1 + dy);
+                    }
+                    if (!clear)
+                        continue;
+                    var made = new List<ExpansionRoom>();
+                    foreach (int i in group)
+                    {
+                        var r = rooms[i];
+                        r.X += dx; r.Y += dy;
+                        r.Price = 0;
+                        r.Floating = false;
+                        r.Parent = 0;
+                        made.Add(r);
+                    }
+                    best = made;
+                    bestD = d;
+                }
+            return best ?? new List<ExpansionRoom>();
         }
     }
 }

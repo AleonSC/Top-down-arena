@@ -44,29 +44,6 @@ namespace Arena
         /// Free building: anyone builds with their own vectors the moment they place it, any number a round (Team vote is gone, Nov 18).
         public bool FreeBuild => ExpandingOn;
 
-        /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave,
-        /// nor in the opening countdown (no wave cleared yet: WaveReport is the last cleared wave's, WaveReady.cs).
-        /// Not while a Gatekeeper duel has its room locked.
-        public bool DoorsOpen
-        {
-            get
-            {
-                if (!OpenWallsOn || !FreeBuild || ExpandOpen || !ModeRules.RunEvents || State != MatchState.Intermission
-                    || WaveReport == null || WaveReport.Wave != Wave)
-                    return false;
-                for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
-                    if (AreaLocked(a))
-                        return false;
-                return true;
-            }
-        }
-
-        /// A wall can be opened now: in a building round, or (free building, full map) between waves.
-        public bool CanCut => ExpandOpen || DoorsOpen;
-
-        /// The Open wall tool is in play: not in a Grid run (owner Nov 18: removed, the grid's rooms keep their own walls and doors).
-        public bool OpenWallsOn => !GridRoomsOn;
-
         int expandSeed;
         int roundBuilt;  // free building: drawings built since this round opened (bots only build when it's 0)
         float botBuildT;
@@ -304,7 +281,7 @@ namespace Arena
                 var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
                 for (int i = 0; i < ringKinds.Length; i++)
                 {
-                    var rn = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
+                    var rn = ExpandingOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
                     if (!rn.HasValue)
                         continue;
                     Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
@@ -316,7 +293,7 @@ namespace Arena
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
+                var nd = ExpandingOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
                 if (!nd.HasValue)
                     continue;
                 Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
@@ -371,7 +348,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return;
             string why;
-            var pick = Expansion.SurpriseFor(GridRoomsOn, expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, GridPieces.cs)
+            var pick = Expansion.SurpriseFor(ExpandingOn, expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, GridPieces.cs)
             if (!pick.HasValue)
             {
                 DoLog("no surprise room: " + why);
@@ -394,7 +371,7 @@ namespace Arena
         {
             if (!IsHost || !ModeRules.RunEvents)
                 return;
-            var nd = GridRoomsOn ? Expansion.GridChestFor(expandSeed, Expanded, Nodes, count) : Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
+            var nd = ExpandingOn ? Expansion.GridChestFor(expandSeed, Expanded, Nodes, count) : Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
             if (!nd.HasValue)
                 return;
             Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
@@ -520,7 +497,7 @@ namespace Arena
 
         /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
         /// (the node's look). Room card only with room cards on.
-        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, HandOn);
+        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, ExpandingOn);
 
         /// Host: is this prop the chest of a chest node (it never holds the wave)?
         bool IsNodeChest(Prop p)
@@ -618,86 +595,6 @@ namespace Arena
             DoLog("building round opens");
         }
 
-        /// This game's player draws a room (a box in world px on the 100 px grid); it's built at once.
-        public void ProposeExpandRoom(int x, int y, int w, int h, PathId theme = PathId.None)
-        {
-            if (!ExpandOpen || Me == null)
-                return;
-            if (IsHost)
-            {
-                HostExpandDraw(MyId, x, y, w, h, theme);
-                return;
-            }
-            var pw = Proto.Begin(Msg.ExpandDraw);
-            pw.Write((short)x); pw.Write((short)y); pw.Write((short)w); pw.Write((short)h); pw.Write((byte)theme);
-            session.SendToHost(Proto.End(pw));
-        }
-
-        public void OnExpandDraw(int peer, BinaryReader r) => HostExpandDraw(peer, r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), (PathId)r.ReadByte());
-
-        /// Host: a drawing is built at once if it fits and the drawer has the vectors.
-        void HostExpandDraw(int id, int x, int y, int w, int h, PathId theme = PathId.None)
-        {
-            Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
-                return;
-            string why = null;
-            if (GridRoomsOn)
-            {
-                DoLog("proposal refused (a Grid run builds from piece cards, Docs/GridPieces.md)");
-                return;
-            }
-            if (!Expansion.ThemeUnlocked(theme, Wave))
-            {
-                DoLog("proposal refused (the " + theme + " theme is still locked)");
-                return;
-            }
-            var made = Expansion.Custom(Expanded, x, y, w, h, theme, out why);
-            if (!made.HasValue || made.Value.Price > SpendableVectors(p))
-            {
-                DoLog("proposal refused (" + (why ?? "needs " + made.Value.Price + " vectors, has " + p.Vectors) + ")");
-                return;
-            }
-            var room = made.Value;
-            room.Owner = id;
-            BuildNow(id, room, null);
-        }
-
-        /// This game's player proposes opening a stretch of interior wall (it pays vectors back, 1 per tile still wall).
-        public void ProposeExpandCut(WallCut c)
-        {
-            if (!CanCut || !OpenWallsOn || Me == null)
-                return;
-            if (IsHost)
-            {
-                HostExpandCut(MyId, c);
-                return;
-            }
-            var pw = Proto.Begin(Msg.ExpandCut);
-            pw.Write(c.Vertical); pw.Write(c.At); pw.Write(c.From); pw.Write(c.Till);
-            session.SendToHost(Proto.End(pw));
-        }
-
-        public void OnExpandCut(int peer, BinaryReader r) => HostExpandCut(peer, new WallCut { Vertical = r.ReadBoolean(), At = r.ReadInt16(), From = r.ReadInt16(), Till = r.ReadInt16() });
-
-        /// Host: a wall opening is made at once (it pays its opener).
-        void HostExpandCut(int id, WallCut c)
-        {
-            Player p;
-            if (!IsHost || !CanCut || !OpenWallsOn || !Players.TryGetValue(id, out p))
-                return;
-            string why;
-            int refund = Expansion.CutRefund(Expanded, Openings, c, out why);
-            if (refund <= 0)
-            {
-                DoLog("opening refused (" + why + ")");
-                return;
-            }
-            var cutRoom = Expansion.CutProposal(c, refund);
-            cutRoom.Owner = id;
-            BuildNow(id, cutRoom, null);
-        }
-
         /// This game's player proposes a shutter gate on the door at `at` (Docs/RoomBuilding2.md step 3).
         public void ProposeExpandGate(V2 at)
         {
@@ -774,71 +671,6 @@ namespace Arena
             SendSnapshot();
         }
 
-        /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up); it's
-        /// built at once. fill: the corners are an open run of walls from one room's wall to another, and the space they fence in is the room (Expansion.Fill).
-        public void ProposeExpandOutline(IList<int[]> points, PathId theme = PathId.None, bool fill = false)
-        {
-            if (!ExpandOpen || Me == null || points == null || points.Count < (fill ? 2 : 4) || points.Count > Expansion.MaxPoints)
-                return;
-            if (IsHost)
-            {
-                HostExpandOutline(MyId, points, theme, fill);
-                return;
-            }
-            var pw = Proto.Begin(Msg.ExpandOutline);
-            pw.Write((byte)theme);
-            pw.Write(fill);
-            pw.Write((byte)points.Count);
-            foreach (var p in points)
-            {
-                pw.Write((short)p[0]); pw.Write((short)p[1]);
-            }
-            session.SendToHost(Proto.End(pw));
-        }
-
-        public void OnExpandOutline(int peer, BinaryReader r)
-        {
-            var theme = (PathId)r.ReadByte();
-            bool fill = r.ReadBoolean();
-            int n = r.ReadByte();
-            if (n > Expansion.MaxPoints)
-                return;
-            var points = new List<int[]>(n);
-            for (int i = 0; i < n; i++)
-                points.Add(new int[] { r.ReadInt16(), r.ReadInt16() });
-            HostExpandOutline(peer, points, theme, fill);
-        }
-
-        /// Host: a drawn outline (one head and its pieces) is built at once, if it fits and they can pay.
-        void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
-        {
-            Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || GridRoomsOn)
-                return;  // (room cards and grid rooms: rooms come from cards or door spots, not drawn outlines)
-            if (!Expansion.ThemeUnlocked(theme, Wave))
-            {
-                DoLog("proposal refused (the " + theme + " theme is still locked)");
-                return;
-            }
-            string why;
-            var made = fill ? Expansion.Fill(Expanded, points, theme, out why) : Expansion.Outline(Expanded, points, theme, out why);
-            if (made == null || made[0].Price > SpendableVectors(p))
-            {
-                DoLog("proposal refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
-                return;
-            }
-            var ohead = made[0];
-            ohead.Owner = id;
-            var opieces = new List<ExpansionRoom>();
-            for (int i = 1; i < made.Count; i++)
-            {
-                var piece = made[i];
-                piece.Owner = id;
-                opieces.Add(piece);
-            }
-            BuildNow(id, ohead, opieces);
-        }
-
         /// Host, free building: a drawing is built the moment it's valid, its drawer pays (an opening pays them), everyone is told.
         void BuildNow(int id, ExpansionRoom room, List<ExpansionRoom> legs)
         {
@@ -892,75 +724,9 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// A bot builds toward what matters most: a sealed shop room (or an old save's shop node), then a vendor, then a rule node, then a chest or relic node
-        /// (a 3-tile strip out to it, then a room round it), then the Gatekeeper's room, if it can afford the box. True if it proposed one.
-        bool BotBuildsToFloater()
-        {
-            var pick = BotFloaterPick();
-            if (!pick.HasValue || pick.Value.Price > SpendableVectors(Me))
-                return false;
-            ProposeExpandRoom(pick.Value.X, pick.Value.Y, pick.Value.W, pick.Value.H);
-            return true;
-        }
-
-        /// The next box toward what matters most (BotBuildsToFloater), or null. The same for every bot: they all see the same map.
-        ExpansionRoom? BotFloaterPick()
-        {
-            ExpansionRoom? pick = null;
-            int bestRank = 99;
-            float bestScore = 0f;
-            foreach (var nd in Nodes)
-            {
-                if (Expansion.NodeClaimed(Expanded, nd) || nd.Spent)
-                    continue;
-                int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : nd.Kind == NodeKind.Rule ? 2 : 3;  // (a rule room first: it is the big one, and pays a chest or relic too)
-                float score = rank == 3 ? Expansion.BotNodeScore(BotNodeWant(nd), nd.Pos) : 0f;  // (prize nodes: the one it needs most, owner Nov 18)
-                if (rank == 3 && score <= 0f)
-                    continue;  // (a relic or buildables: ignored)
-                if (rank > bestRank || (rank == bestRank && (rank < 3 || score <= bestScore)))
-                    continue;
-                var hall = Expansion.NodeStep(Expanded, nd);
-                if (hall.HasValue)
-                {
-                    pick = hall;
-                    bestRank = rank;
-                    bestScore = score;
-                }
-            }
-            for (int i = 0; i < Expanded.Count; i++)
-            {
-                if (!Expanded[i].Floating || !ExpansionWorld.Areas[i + 1].Sealed)
-                    continue;
-                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 4;
-                if (rank >= bestRank)
-                    continue;
-                var c = Expansion.ConnectorFor(Expanded, i);
-                if (c.HasValue)
-                {
-                    pick = c;
-                    bestRank = rank;
-                }
-            }
-            return pick;
-        }
-
-        /// How much this bot wants a prize node, by what it needs (Expansion.BotNodeWant): its gold, its vector bar and the grid pieces in its hand.
-        float BotNodeWant(MapNode nd)
-        {
-            var me = Me;
-            if (me == null)
-                return 0f;
-            int pieces = 0;
-            for (int i = 0; i < me.Hand.Length; i++)
-                if (me.Hand[i] != 0 && Expansion.IsGridCard((RoomCard)me.Hand[i]))
-                    pieces++;
-            return Expansion.BotNodeWant(nd.Kind, nd.Kind == NodeKind.Chest ? NodeChestKind(nd) : ChestKind.Upgrade, me.Vectors, me.VectorCap, me.Gold, pieces);
-        }
-
         /// Every frame, every game: a bot player builds a room it can afford a moment after the round opens.
         void TickExpansion(float dt)
         {
-            TickPushes(dt);
             TickNodeFog(dt);  // NodeScouting.cs
             TickGridCore();  // GridRooms.cs
             if (!ExpandOpen)
@@ -986,23 +752,8 @@ namespace Arena
             {
                 botProposed = true;
                 if (roundBuilt > 0)
-                    return;  // (free building: a bot adds a room only if nobody has this round, so the map doesn't fill at once)
-                if (GridRoomsOn)
-                {
-                    BotPlayGridCard();  // GridCards.cs
-                    return;
-                }
-                if (rng.Next(10) < 6 && BotBuildsToFloater())
-                    return;
-                foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
-                {
-                    var theme = o.Kind == Arena.RoomKind.Floor && Expansion.ThemeUnlocked(o.Floor, Wave) ? o.Floor : PathId.None;
-                    if (o.Price + Expansion.ThemeCost(theme) <= SpendableVectors(Me) && rng.Next(10) < 7)
-                    {
-                        ProposeExpandRoom(o.X, o.Y, o.W, o.H, theme);
-                        break;
-                    }
-                }
+                    return;  // (a bot adds a room only if nobody has this round, so the map doesn't fill at once)
+                BotPlayGridCard();  // GridCards.cs
             }
         }
 

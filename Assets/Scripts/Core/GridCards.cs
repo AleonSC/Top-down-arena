@@ -197,7 +197,7 @@ namespace Arena
         /// Host, as a boss cycle's nodes are placed: a Grid run gets a mini-boss room waiting on the lattice when none waits (its foe the coming boss's faction's).
         bool PlaceGridMini(int cycle)
         {
-            if (!IsHost || !GridRoomsOn || Expansion.GridMinisWaiting(Expanded) > 0)
+            if (!IsHost || !ExpandingOn || Expansion.GridMinisWaiting(Expanded) > 0)
                 return false;
             var r = Expansion.GridMiniFor(expandSeed, cycle, Expanded, Nodes);
             if (!r.HasValue)
@@ -209,13 +209,10 @@ namespace Arena
             return true;
         }
 
-        /// Cards are in play: room cards, or a Grid run (whose cards are grid pieces).
-        public bool HandOn => GridRoomsOn;
-
         /// This game's player plays the card in this hand slot as a grid piece: its orientation, with its cell box's corner at (x, y). Only in a Grid run's build round.
         public void PlayGridCard(int slot, int orient, int x, int y)
         {
-            if (!ExpandOpen || Me == null || !GridRoomsOn)
+            if (!ExpandOpen || Me == null || !ExpandingOn)
                 return;
             if (IsHost)
             {
@@ -234,7 +231,7 @@ namespace Arena
         void HostGridCard(int id, int slot, int orient, int x, int y)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !GridRoomsOn || !Players.TryGetValue(id, out p) || slot < 0 || slot >= p.Hand.Length)
+            if (!IsHost || !ExpandOpen || !ExpandingOn || !Players.TryGetValue(id, out p) || slot < 0 || slot >= p.Hand.Length)
                 return;
             var card = (RoomCard)p.Hand[slot];
             if (!Expansion.IsGridCard(card))

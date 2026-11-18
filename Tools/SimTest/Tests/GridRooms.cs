@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// Grid rooms (Docs/GridRooms.md): rooms snap to door spots on built rooms' walls in four fixed sizes; the host refuses anything else;
+// Grid rooms (Docs/GridRooms.md): the core, door spots on built rooms' walls on one lattice;
 // nodes and room chests sit at the middle of a grid cell so claiming them puts the fixture in the room's middle.
 static partial class Program
 {
@@ -17,13 +17,16 @@ static partial class Program
         Check(!walled(800f, 0f) && !walled(800f, 900f) && !walled(0f, 450f) && !walled(1600f, 450f) && walled(800f, -400f), "no wall stands across the middle of the hub's four sides, but the core's outer wall does: one open room");
         var rooms = Expansion.GridPieceOptions(empty, GridPiece.Mono);
         Check(rooms.Count == 14, "fourteen door spots round the core: four top, four bottom, three each side (" + rooms.Count + ")");
-        Check(rooms.All(o => (o.X - Expansion.GridX0) % 600 == 0 && (o.Y - Expansion.GridY0) % 600 == 0), "every cell sits on the one lattice");
+        Check(rooms.All(o => (o.Rooms[0].X - Expansion.GridX0) % 600 == 0 && (o.Rooms[0].Y - Expansion.GridY0) % 600 == 0 && o.Rooms[0].W == 600 && o.Rooms[0].H == 600), "every one is a 6 x 6 cell on the one lattice");
         var right = rooms.First(o => o.Side == 3);
-        Check(right.X == 2000 && right.SX == 2000, "the right wall's spots hang off x = 2000, the core's edge");
+        Check(right.Rooms[0].X == 2000 && right.SX == 2000, "the right wall's spots hang off x = 2000, the core's edge");
+
+        // A chain: a room on the right wall brings its own spots (top, bottom, right), and none overlaps what is built.
         var map = new List<ExpansionRoom>(empty);
         map.AddRange(right.Rooms);
         var next = Expansion.GridPieceOptions(map, GridPiece.Mono);
-        Check(next.Any(o => o.X == right.X + 600 && o.Y == right.Y), "a new cell has door spots of its own: another goes straight out from it");
+        Check(next.Count > rooms.Count - 1 && next.Any(o => o.Rooms[0].X == right.Rooms[0].X1 && o.Rooms[0].Y == right.Rooms[0].Y), "the new room has spots of its own: another room goes straight out from it");
+        Check(next.All(o => !map.Any(b => o.Rooms[0].X < b.X1 && b.X < o.Rooms[0].X1 && o.Rooms[0].Y < b.Y1 && b.Y < o.Rooms[0].Y1)), "no spot on the grown map overlaps a room");
 
         // Nodes: the ring round the hub and a later cycle each sit at the middle of a room-sized cell that building out along the grid reaches.
         var nodes = new List<MapNode>();
@@ -50,7 +53,7 @@ static partial class Program
               && Expansion.GridPieceOptions(one, GridPiece.Mono).Any(o => o.Mid.Equals(cn.Value.Pos)), "a room chest in Grid mode sits at the middle of a free cell against the new room");
     }
 
-    // The shortest chain of Room-shape rooms (at most `depth`) built along door spots whose last room is the cell the node is the middle of; null if none.
+    // The shortest chain of one-cell rooms (at most `depth`) built along door spots whose last room is the cell the node is the middle of; null if none.
     static List<ExpansionRoom> GridChainTo(List<ExpansionRoom> built, MapNode n, int depth)
     {
         for (int d = 1; d <= depth; d++)
@@ -86,24 +89,11 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.GridRooms, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
             gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true;
         }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
         Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4 && g.Expanded.All(Expansion.IsGridCore) && g.Openings.Count == 8 && cg.Openings.Count == 8, "a Grid run's bare map gets its core, with the walls inside open, on both screens");
-        Check(g.GridRoomsOn && cg.GridRoomsOn && g.FreeBuild && !g.CanPush, "grid rooms on: builds go up at once, no wall push");
-
-        g.Players[2].Vectors = g.Players[1].Vectors = 200;
-        g.Players[2].VectorCap = g.Players[1].VectorCap = 200;
-        // A drawn room that is not on a door spot is refused; a grid room goes up for its price.
-        cg.ProposeExpandRoom(1600, 100, 800, 600);
-        cg.ProposeExpandRoom(2000, 100, 600, 600);
-        Run(s, dt, 0.5f, null, noPicks);
-        Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "a drawn room and a room off its door spot are refused");
-        // A Grid run builds from piece cards (Docs/GridPieces.md step 3): even a box on a door spot is refused as a drawing, and the bots don't draw.
-        var spot = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono).First(o => o.Side == 3);
-        cg.ProposeExpandRoom(spot.X, spot.Y, 600, 600);
-        Run(s, dt, 1f, null, noPicks);
-        Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "a room drawn on a door spot is refused: pieces only");
+        Check(g.ExpandingOn && cg.ExpandingOn && g.FreeBuild, "the Expanding arena is a Grid run: builds go up at once");
     }
 }

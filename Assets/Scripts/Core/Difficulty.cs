@@ -38,8 +38,8 @@ namespace Arena
         BuildVote,      // retired (Nov 18): was Team vote building; ignored, kept so the knob order stays the same
         BuildPurse,     // retired (Nov 18): was the Team purse; ignored, kept so the knob order stays the same
         Lives,          // count: retries from the last boss's checkpoint when everyone goes down (Checkpoints.cs)
-        RoomCards,      // retired (Nov 18): was the old room cards; ignored, kept so the knob order stays the same
-        GridRooms,      // on/off: the Expanding arena is built on a grid from piece cards (GridRooms.cs, GridPieces.cs, Docs/GridPieces.md); off = drawing (an old save)
+        RoomCards,      // retired (Nov 18): was Room cards; ignored, kept so the knob order stays the same
+        GridRooms,      // retired (Nov 18): was Grid rooms (now always on); ignored, kept so the knob order stays the same
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff, Count }
@@ -208,22 +208,13 @@ namespace Arena
         {
             var sb = new StringBuilder(Level.ToString());
             foreach (var k in Knobs)
-                if (Level == DifficultyLevel.Custom || k.Flavour && Math.Abs(this[k.Knob] - k.Normal) > 1e-5f || k.Knob == DiffKnob.GridRooms)  // (the building mode always: its defaults changed Nov 18)  // a preset adds its flavour knobs only when they're changed
+                if (Level == DifficultyLevel.Custom || k.Flavour && Math.Abs(this[k.Knob] - k.Normal) > 1e-5f)  // a preset adds its flavour knobs only when they're changed
                     sb.Append(' ').Append(k.Knob).Append('=').Append(this[k.Knob].ToString("R", CultureInfo.InvariantCulture));
             return sb.ToString();
         }
 
-        /// Reads ToText; unknown knobs are skipped and missing ones stay Normal, except the building mode: a save from before Grid was the default (no GridRooms
-        /// written) keeps its old mode, room cards unless it said otherwise.
-        public static Difficulty Parse(string text)
-        {
-            var d0 = ParseKnobs(text);
-            if (d0 != null && !(text ?? "").Contains("GridRooms="))
-            {
-                d0.Values[(int)DiffKnob.GridRooms] = 0f;
-            }
-            return d0 ?? new Difficulty();
-        }
+        /// Reads ToText; unknown knobs are skipped and missing ones stay Normal.
+        public static Difficulty Parse(string text) => ParseKnobs(text) ?? new Difficulty();
 
         static Difficulty ParseKnobs(string text)
         {
@@ -327,14 +318,13 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.Lives, Name = "Lives", HarderUp = false,
                 Desc = "Retries from the last boss's checkpoint when everyone goes down: the run comes back as it was there, and its score drops by a quarter each time.",
                 Unit = KnobUnit.Count, Min = 0f, Max = 5f, Step = 1f, Presets = new[] { 3f, 2f, 1f, 0f } },
-            // Room cards: retired Nov 18 (Grid pieces replaced them); kept so the knob order stays the same.
+            // Retired (Nov 18): were Room cards and Grid rooms; the Expanding arena always builds on the grid now. Ignored, kept so the knob order stays the same.
             new KnobDef { Knob = DiffKnob.RoomCards, Name = "Room cards (retired)", Flavour = true,
-                Desc = "Retired: Grid pieces replaced the old room cards.",
+                Desc = "Retired (Nov 18): ignored; rooms are grid pieces.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
-            // Grid rooms (GridRooms.cs, GridPieces.cs, Docs/GridPieces.md): flavour, the default building mode since Nov 18 (owner).
-            new KnobDef { Knob = DiffKnob.GridRooms, Name = "Grid rooms", Flavour = true,
-                Desc = "On: rooms are piece cards (1 to 4 cells) you place on door spots of the rooms you have built; a hand to start, one a round, drops, chests and the vendor. Off: the old room cards or free drawing.",
-                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
+            new KnobDef { Knob = DiffKnob.GridRooms, Name = "Grid rooms (retired)", Flavour = true,
+                Desc = "Retired (Nov 18): ignored; the Expanding arena always builds on the grid.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
         };
     }
 

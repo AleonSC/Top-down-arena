@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 407: Room cards, Free draw, Open wall and wall push removed: `Msg.ExpandDraw`, `ExpandCut`, `ExpandOutline`, `PlayCard` and `WallPush` are retired; the Expanding arena always builds grid pieces (`DiffKnob.RoomCards` and `GridRooms` ignored)
 - 406: Warhorn Volley: a new `AbilityId.WarhornVolley` (the DPS Knight's second ultimate), `FxKind.WarhornVolley` and `Sfx.Warhorn` on the wire, and the Bodkin Points card (card ids after it shift by one)
 - 405: enemies carry Blood Blast stacks (a byte) and, when there are any, their owner (a byte); WeaponId.BloodBlast; `Msg.WeaponDash` kind 46 (DashTide, Crimson Tide).
 - 404: Team vote building removed: `Msg.ExpandState` no longer carries the open round's proposals and votes after `ExpandOpen`; `Msg.ExpandVote` is retired

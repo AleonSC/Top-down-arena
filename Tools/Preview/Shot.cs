@@ -801,7 +801,6 @@ static partial class Shot {
       typeof(ArenaApp).GetField("camFollow", f2).SetValue(app, true);
       if (Environment.GetEnvironmentVariable("ZOOMHINT") != null) typeof(ArenaApp).GetField("zoomHintT", f2).SetValue(app, 6f);  // ZOOMHINT=1: the open Rooms map's "scroll to zoom out" prompt
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, typeof(ArenaApp).GetMethod("RoomsFocus", f2).Invoke(app, new object[] { me.Disp, z }));
-      if (Environment.GetEnvironmentVariable("PUSHSEL") != null) { typeof(ArenaApp).GetMethod("PushRefresh", f2).Invoke(app, new object[] { me }); typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, typeof(ArenaApp).GetMethod("PushFocus", f2).Invoke(app, new object[] { me.Disp, z })); }  // push mode: the camera leans to the wall (WallPushLook.cs)
       if (Environment.GetEnvironmentVariable("BREACHTOUR") != null) {  // BREACHTOUR=1 (with BREACHAGE on a breach wave): the warning's camera tour (BreachTour.cs), no enemies yet
         host.Game.Enemies.Clear();
         var tourArgs = new object[] { typeof(ArenaApp).GetField("camFocus", f2).GetValue(app), null };
@@ -852,7 +851,6 @@ static partial class Shot {
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;  // (free building: the team vote is gone)
       string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, GridPieces.cs); GRIDCARDS=tril,tetl:burninggrounds,shop,... the hand (piece[:floor] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
-        eg.Diff.Set(DiffKnob.GridRooms, 1f);
         eg.RoomsUp = true; eg.LayoutAge = 5f; if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (the core a Grid run starts with, once)
         if (Environment.GetEnvironmentVariable("GRIDMINI") != null && Expansion.GridMinisWaiting(eg.Expanded) == 0) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridCards.cs)
         var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
@@ -883,14 +881,12 @@ static partial class Shot {
       foreach (var pl in eg.Players.Values) pl.Vectors = 30 + 8 * pk++;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
       if (Environment.GetEnvironmentVariable("EXPANDCHIP") != "1") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
-      string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the drawing screen with that box dragged out
+      string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the build screen with the tool's two points there (a portal pair's ends)
       if (drawAt != null) {
         var dq = drawAt.Split(','); var ci = System.Globalization.CultureInfo.InvariantCulture;
         var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         float dx0 = float.Parse(dq[0], ci), dy0 = float.Parse(dq[1], ci), dw0 = float.Parse(dq[2], ci), dh0 = float.Parse(dq[3], ci);
         typeof(ArenaApp).GetField("expDrawing", bf).SetValue(app, true);
-        string themeName = Environment.GetEnvironmentVariable("EXPANDTHEME");  // EXPANDTHEME=FrozenLake: that theme picked on the drawing screen
-        if (themeName != null) typeof(ArenaApp).GetField("expTheme", bf).SetValue(app, (PathId)Enum.Parse(typeof(PathId), themeName));
         typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(dx0, dy0));
         typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(dx0 + dw0, dy0 + dh0));
         string dz = Environment.GetEnvironmentVariable("EXPANDZOOM");  // EXPANDZOOM=z,x,y: the draw map zoomed z times on that world point
@@ -906,24 +902,11 @@ static partial class Shot {
           var next = Expansion.BestLink(eg.ExpansionWorld, eg.Links.Count);
           if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
         }
-        string outl = Environment.GetEnvironmentVariable("EXPANDOUTLINE");  // EXPANDOUTLINE=x,y;x,y;...: the draw screen in Room mode with those corners laid (closed back to the first)
-        if (outl != null) {
-          var pts = (System.Collections.Generic.List<int[]>)typeof(ArenaApp).GetField("expPts", bf).GetValue(app);
-          foreach (var part in outl.Split(';')) pts.Add(Array.ConvertAll(part.Split(','), int.Parse));
-          eg.Me.Vectors = 60;
-        }
-        if (Environment.GetEnvironmentVariable("EXPANDCUT") != null) {  // EXPANDCUT=1: the draw screen in Open wall mode with the first shared wall dragged out
-          typeof(ArenaApp).GetField("expCutMode", bf).SetValue(app, true);
-          string cw; var cr = Expansion.Custom(eg.Expanded, 1600, 100, 800, 600, out cw); if (cr.HasValue) { eg.Expanded.Add(cr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); }
-          var sws = Expansion.SharedWalls(eg.ExpansionWorld);
-          if (sws.Count > 0) { var sw = sws[0]; bool vtc = sw[0] == 1; typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(vtc ? sw[1] : sw[2], vtc ? sw[2] : sw[1])); typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(vtc ? sw[1] : Math.Min(sw[3], sw[2] + 400), vtc ? Math.Min(sw[3], sw[2] + 400) : sw[1])); }
-        }
       }
     }
     if (Environment.GetEnvironmentVariable("EXPANDSHOP") != null) {  // EXPANDSHOP=1: the shop is open in the Expanding arena and you're not in the shop room (hint banner); EXPANDSHOP=2: you're in it (the shop)
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f); xg.State = MatchState.Intermission; xg.RoomsUp = true;
       bool atVendor = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  bool atArms = Environment.GetEnvironmentVariable("EXPANDSHOP") == "4";  // EXPANDSHOP=4: the Arms Dealer (ArmsDealer.cs; MODSHELD=a,b gives you those mods first)  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (RoomCards.cs); SHOPCAT=0|1 opens a category
-      xg.Diff.Set(DiffKnob.GridRooms, Environment.GetEnvironmentVariable("CARDS") != null ? 1f : 0f);  // (CARDS=1: a Grid run, so the vendor sells pieces)
       string xw; var xr = Expansion.Custom(xg.Expanded, 1600, 300, 600, 300, out xw).Value; xr.Kind = atArms ? RoomKind.Arms : atVendor ? RoomKind.Vendor : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
       var xa = Array.Find(xg.CurrentWorld.Areas, a => a.Kind == xr.Kind);  // (the scene may have rooms of its own: find the shop's)
       foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)RoomCard.Box; pl.Hand[1] = (byte)RoomCard.Hall; } }

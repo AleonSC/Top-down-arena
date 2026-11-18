@@ -88,29 +88,27 @@ static partial class Program
         int gotChest = 0, tries = 0;
         for (int sd = 1; sd <= 30; sd++)
         {
-            g.Expanded.Clear(); g.Nodes.Clear(); seedField.SetValue(g, sd);
+            UseMap(new[] { g }, Expansion.GridCore()); g.Nodes.Clear(); seedField.SetValue(g, sd);
             g.BossSlot = true; g.State = MatchState.Intermission;
             give.Invoke(g, null);
-            if (g.Expanded.Count == 0) continue;
+            if (g.Expanded.Count == 4) continue;
             tries++;
             if (g.Nodes.Count > 0 && Expansion.IsChest(g.Nodes[0].Kind) && !Expansion.NodeClaimed(g.Expanded, g.Nodes[0])) gotChest++;
         }
         Check(tries >= 20 && gotChest >= 1 && gotChest < tries, "surprise rooms roll chests too (none within 10 tiles of the start room) (" + gotChest + " of " + tries + ")");
 
         // A claimed vector chest: nothing until someone walks up, then vector pickups and the node is spent, on both screens.
-        foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Nodes.Clear(); }
-        string why;
-        var room = Expansion.Custom(g.Expanded, (int)Game.Width, 200, 1000, 500, out why);
-        Check(room.HasValue, "a room east of the start room (" + why + ")");
-        g.Expanded.Add(room.Value);
-        g.Nodes.Add(new MapNode { X = (short)(Game.Width + 550), Y = 450, Kind = NodeKind.VectorChest });
-        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
+        foreach (var gg in new[] { g, cg }) gg.Nodes.Clear();
+        UseMap(new[] { g, cg }, GridMap(GridPiece.Mono));
+        var cell = g.Expanded[4];  // (a single cell east of the core)
+        var mid = new V2((cell.X + cell.X1) / 2f, (cell.Y + cell.Y1) / 2f);
+        g.Nodes.Add(new MapNode { X = (short)mid.X, Y = (short)mid.Y, Kind = NodeKind.VectorChest });
         typeof(Game).GetMethod("BroadcastExpansion", flags).Invoke(g, null);
         g.State = MatchState.Fighting;
         foreach (var p in g.Players.Values) p.Pos = p.Disp = new V2(800f, 450f);
         Run(s, dt, 1f, () => cg.Nodes.Count == 1, noPicks);
         Check(cg.Nodes.Count == 1 && cg.Nodes[0].Kind == NodeKind.VectorChest && !g.Nodes[0].Spent, "the vector chest reaches the client, shut");
-        Check(g.NodeSpot(0).Equals(new V2(Game.Width + 500f, 450f)) && cg.NodeSpot(0).Equals(g.NodeSpot(0)), "it stands in the middle of its room, on both screens (" + g.NodeSpot(0).X + "," + g.NodeSpot(0).Y + ")");
+        Check(g.NodeSpot(0).Equals(mid) && cg.NodeSpot(0).Equals(g.NodeSpot(0)), "it stands in the middle of its room, on both screens (" + g.NodeSpot(0).X + "," + g.NodeSpot(0).Y + ")");
         int coins0 = g.Coins.Values.Count(c => c.Vec);
         int vec0 = g.Players.Values.Sum(p => p.Vectors);
         var me = g.Players[1];

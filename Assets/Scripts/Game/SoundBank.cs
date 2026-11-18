@@ -793,18 +793,6 @@ namespace Arena
             Set(Sfx.UiClick, Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f), 0.05f);
             Jitter(0.06f, Sfx.UiHover);
             Jitter(0.05f, Sfx.UiClick);
-            // A wall pushed out a tile (Docs/WallPush.md): a low stone thunk under a short gritty slide (local: the map change is what's sent).
-            Set(Sfx.WallPush, Finish(Mix(
-                Tone(0.22f, Osc.Sine, 95f, 55f, 0.5f, attack: 0.004f, decay: 2.2f),
-                Tone(0.18f, Osc.Saw, 180f, 90f, 0.16f, noise: 0.55f, lowpass: 0.18f, attack: 0.01f, decay: 2.5f),
-                Tone(0.06f, Osc.Triangle, 1400f, 900f, 0.06f, noise: 0.4f, lowpass: 0.5f, attack: 0.001f, decay: 5f)), 0.5f), 0.06f);
-        }
-
-        /// A wall pushed out (WallPushLook.cs), at the Effects volume, a little lower in pitch the deeper the section.
-        public void PlayWallPush(float now, int depth)
-        {
-            float pitch = 1.1f - 0.025f * Mathf.Clamp(depth, 0, 16) + ((float)playRng.NextDouble() - 0.5f) * 0.04f;
-            Play(Sfx.WallPush, 0.8f, now, -1, pitch);
         }
 
         /// The menus' click, at the Effects volume.

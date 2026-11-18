@@ -126,6 +126,15 @@ namespace Arena
             return new RoomToken { Kind = RoomKind.Floor, Floor = pool[new DetRandom(seed * 31 + wave).Int(pool.Length)] };
         }
 
+        /// The map has grown past the plain hub: a room was built (the floating rooms the game places don't count).
+        public static bool Grown(IList<ExpansionRoom> rooms)
+        {
+            foreach (var r in rooms)
+                if (!r.Floating)
+                    return true;
+            return false;
+        }
+
         /// Can this token turn this bought room (index into the list) into its kind? Combat rooms only: not a floating room, not one already changed.
         public static bool CanRetype(IList<ExpansionRoom> built, int index, RoomToken token, out string why)
         {
@@ -135,7 +144,6 @@ namespace Arena
             if (token.Kind == RoomKind.Floor && Array.IndexOf(Floors, token.Floor) < 0) { why = "Not a floor"; return false; }
             var r = built[index];
             if (r.Floating) { why = "Floating rooms keep their job"; return false; }
-            if (IsPush(r)) { why = "Part of the room it was pushed from"; return false; }  // (Docs/WallPush.md: change that room, and its sections change with it)
             if (r.Kind != RoomKind.Combat) { why = "Already changed: one modifier per room"; return false; }
             return true;
         }
@@ -387,26 +395,6 @@ namespace Arena
 
         public static int NodeTier(MapNode n) => NodeTier(n.X, n.Y);
 
-        /// How much a bot wants a prize node (owner Nov 18: by what it needs): coins (gold chest, gold vein) the less gold it holds, vectors (vector chest)
-        /// the emptier its vector bar, grid pieces (grid piece chest) the fewer cards in its hand, upgrades always fairly; relics and buildables 0 (ignored).
-        public static float BotNodeWant(NodeKind kind, ChestKind chest, int vectors, int vectorCap, int gold, int pieces)
-        {
-            if (kind == NodeKind.Vein || (kind == NodeKind.Chest && chest == ChestKind.Gold))
-                return 0.3f + 0.7f * (1f - Math.Min(1f, gold / (float)BotGoldEnough));
-            if (kind == NodeKind.VectorChest)
-                return 0.3f + 0.7f * (1f - Math.Min(1f, vectors / (float)Math.Max(1, vectorCap)));
-            if (kind == NodeKind.Chest && chest == ChestKind.Piece)
-                return pieces <= 0 ? 1f : pieces == 1 ? 0.6f : 0.3f;
-            if (kind == NodeKind.Chest && chest == ChestKind.Upgrade)
-                return 0.7f;
-            return 0f;
-        }
-
-        public const int BotGoldEnough = 300;  // a bot holding this much gold wants coins least
-
-        /// A bot's score for a node it wants: the want, a little less the farther the node is from the hub's middle.
-        public static float BotNodeScore(float want, V2 at) => want / (1f + at.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) / 4000f);
-
         /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
         /// middle a chest (grid piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
         public static MapNode Tiered(int seed, MapNode n)
@@ -478,8 +466,7 @@ namespace Arena
         public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest || k == NodeKind.Relic;
 
         /// Where a chest or relic node stands: the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
-        /// is floor, else of the box holding the node), moved, in a card room, to the nearest half-tile point clear of its designed pillars and blocks (an ordinary room's random
-        /// cover is cleared instead). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
+        /// is floor, else of the box holding the node; the random cover round it is cleared). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
         public const int HallMaxWidth = 300;  // a room this narrow or less is a hallway
 
         public static V2 NodeSpotIn(IList<ExpansionRoom> rooms, MapNode nd, IList<Solid> cover)
@@ -510,31 +497,7 @@ namespace Arena
                 var h = rooms[held];
                 tx = (h.X + h.X1) / 2.0; ty = (h.Y + h.Y1) / 2.0;
             }
-            if (rooms[held].Card == 0)  // an ordinary room: its middle itself (Build clears the random cover round it; walls keep clear of a room's middle)
-                return new V2((float)tx, (float)ty);
-            double best = double.MaxValue;
-            var spot = nd.Pos;
-            foreach (int i in group)
-            {
-                var b = rooms[i];
-                if (b.Floating)
-                    continue;
-                for (int y = b.Y + Step / 2; y < b.Y1; y += Step / 2)  // (every half tile: an even-sized room's middle is on a grid line)
-                    for (int x = b.X + Step / 2; x < b.X1; x += Step / 2)
-                    {
-                        double d = (x - tx) * (x - tx) + (y - ty) * (y - ty);
-                        if (d >= best)
-                            continue;
-                        bool clear = true;
-                        foreach (var c in cover)
-                            if (Math.Abs(c.Pos.X - x) < c.HW + c.R + NodeClear && Math.Abs(c.Pos.Y - y) < c.HH + c.R + NodeClear) { clear = false; break; }
-                        if (!clear)
-                            continue;
-                        best = d;
-                        spot = new V2(x, y);
-                    }
-            }
-            return spot;
+            return new V2((float)tx, (float)ty);  // (Build clears the random cover round it; walls keep clear of a room's middle)
         }
 
         /// A built room (a drawn outline as a whole) encloses this node.
@@ -1990,7 +1953,6 @@ namespace Arena
                     int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);
                     if (run < MinDoorRun && !(joined && run > 0))
                         continue;
-                    joined |= PushMeets(rooms, a, b) || PushMeets(rooms, b, a);  // a pushed section's face that reached a room: it broke through, open full width (ExpansionPush.cs)
                     int ox0 = Math.Max(x0, bx0), ox1 = Math.Min(x1, bx1), oy0 = Math.Max(y0, by0), oy1 = Math.Min(y1, by1);
                     float open = joined ? Math.Max(ox1 - ox0, oy1 - oy0) : 0f;
                     if (x0 == bx1) doors.Add(new RoomDoor { Pos = new V2(x0, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
@@ -2104,17 +2066,12 @@ namespace Arena
                     if (d.Joins(a))
                         doorSpots.Add(d.Pos);
                 var cr = rooms[a - 1];
-                if (IsPush(cr))
-                    continue;  // (a pushed section: its own features instead, PushFeatures)
                 if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);
             }
-            for (int a = 1; a < n; a++)  // a pushed section's features: walls and cover row by row as it grows (ExpansionPush.cs)
-                if (IsPush(rooms[a - 1]))
-                    PushFeatures(rooms, a - 1, spans, cover, doors, nodes);
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
-                if (FinStyle >= 0 && !rooms[a - 1].Floating && !IsPush(rooms[a - 1]) && rooms[a - 1].Card == 0 && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
+                if (FinStyle >= 0 && !rooms[a - 1].Floating && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
                     AddFins(spans, cover, rooms, group, a, doors, nodes);
             V2[] spots = null;
             if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room (a claimed chest or relic stands in its room's middle)

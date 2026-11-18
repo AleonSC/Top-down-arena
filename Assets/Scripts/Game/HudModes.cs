@@ -255,7 +255,7 @@ namespace Arena
                 Color vc = Color.Lerp(vfull ? Ui.Gold : new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * VectorChipFlash);  // (flashes as vectors come in: VectorGainLook.cs)
                 if (vfull && vecFullNear)  // a pickup or Stash waiting by you: pulse amber
                     vc = MiniA(vc, 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f));
-                MiniRow(wr, ry, "VECTORS", VectorChipCount(me) + " / " + me.VectorCap + PushChipNote, vc, a, -1f);  // (the number only)
+                MiniRow(wr, ry, "VECTORS", VectorChipCount(me) + " / " + me.VectorCap, vc, a, -1f);  // (the number only)
                 vecChipRect = new Rect(wr.xMax - 60f, ry, 60f, 16f);  // where the shards land
                 ry -= 22f;
             }
