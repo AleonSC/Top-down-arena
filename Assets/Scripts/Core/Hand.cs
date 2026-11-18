@@ -6,22 +6,22 @@ namespace Arena
     /// A card code in a player's hand (Docs/GridPieces.md): codes from Expansion.PieceCardBase up are grid pieces (GridCards.cs); below it the
     /// service and utility cards, which build one cell. New values go at the end. Box to Chamfer and MiniBoss were the old room cards (retired
     /// with them, Nov 18): kept so the codes stay the same.
-    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms }
+    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms, Medic }
 
     public static partial class Expansion
     {
         public const int HandMax = 6;  // cards a player holds; more are dropped
 
         /// The service cards: each builds one cell with a job (Docs/ArmsDealer.md).
-        public static readonly RoomCard[] ServiceCards = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms };
+        public static readonly RoomCard[] ServiceCards = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms, RoomCard.Medic };
 
         public const int ServiceCardChance = 5;  // a dropped card (a wave drop, a chest) is a service card 1 in this many times
 
-        public static bool IsServiceCard(RoomCard c) => c == RoomCard.Shop || c == RoomCard.Market || c == RoomCard.Arms;
+        public static bool IsServiceCard(RoomCard c) => c == RoomCard.Shop || c == RoomCard.Market || c == RoomCard.Arms || c == RoomCard.Medic;
 
-        /// The job of the room a card builds: a service card's shop, Black Market or Arms Dealer, a Builder Shop card's card shop, else combat.
+        /// The job of the room a card builds: a service card's shop, Black Market, Arms Dealer or Medic, a Builder Shop card's card shop, else combat.
         public static RoomKind CardRoomKind(RoomCard c)
-            => c == RoomCard.Shop ? RoomKind.Shop : c == RoomCard.Market ? RoomKind.Vendor : c == RoomCard.Arms ? RoomKind.Arms : c == RoomCard.BuilderShop ? RoomKind.Builder : RoomKind.Combat;
+            => c == RoomCard.Shop ? RoomKind.Shop : c == RoomCard.Market ? RoomKind.Vendor : c == RoomCard.Arms ? RoomKind.Arms : c == RoomCard.Medic ? RoomKind.Medic : c == RoomCard.BuilderShop ? RoomKind.Builder : RoomKind.Combat;
 
         public static string CardName(RoomCard c)
         {
@@ -32,6 +32,7 @@ namespace Arena
                 case RoomCard.Shop: return "Shop";
                 case RoomCard.Market: return "Black Market";
                 case RoomCard.Arms: return "Arms Dealer";
+                case RoomCard.Medic: return "Medic";
                 case RoomCard.BuilderShop: return "Builder Shop";
                 default: return "";
             }
@@ -44,15 +45,16 @@ namespace Arena
                 return PieceCardBlurb(c);
             switch (c)
             {
-                case RoomCard.Shop: return "A one-cell shop: upgrade cards for gold, heals and revives. Safe, no enemies spawn in it.";
-                case RoomCard.Market: return "A one-cell Black Market: buildables, services and piece cards. Safe, no enemies spawn in it.";
+                case RoomCard.Shop: return "A one-cell shop: upgrade cards for gold, selling, floor kits and vector packs. Safe, no enemies spawn in it.";
+                case RoomCard.Market: return "A one-cell Black Market: teleporters and traps for gold, and services. Safe, no enemies spawn in it.";
                 case RoomCard.Arms: return "A one-cell Arms Dealer: weapon mods for gold. Safe, no enemies spawn in it.";
+                case RoomCard.Medic: return "A one-cell Medic: full heals and revive tokens for gold. Safe, no enemies spawn in it.";
                 case RoomCard.BuilderShop: return "A utility room: a shop that sells piece cards for vectors, a new shelf each wave, a quarter off.";
                 default: return "";
             }
         }
 
-        /// What the vendor charges for one, in vectors.
+        /// A card's base price in vectors (the Builder Shop charges three quarters of it, BuilderShop.cs).
         public static int CardPrice(RoomCard c)
         {
             if (IsPieceCard(c))
@@ -60,11 +62,9 @@ namespace Arena
             switch (c)
             {
                 case RoomCard.BuilderShop: return 36;
-                default: return 30;  // (a service card: not on the Black Market's shelf; a price for completeness)
+                default: return 30;  // (a service card: no shop sells one; a price for completeness)
             }
         }
-
-        public const int CardOfferCount = 3;  // the vendor's card shelf
     }
 
     public partial class Game
@@ -122,6 +122,7 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
+            GuaranteeArmsCard();  // ArmsDealer.cs
         }
 
         /// Host: a wave card pick's two cards: the round's basic piece (Expansion.GridRoundCard) and a dropped card (Expansion.GridDropCard), seeded per player and wave.
@@ -159,22 +160,6 @@ namespace Arena
                 return;
             foreach (var p in Players.Values)
                 GiveCard(p, Expansion.GridDropCard(new DetRandom(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), Wave), "chest");
-        }
-
-        /// The vendor's cards this boss cycle.
-        public RoomCard[] VendorCards => Expansion.GridCardOffers(expandSeed, (Math.Max(1, Wave) - 1) / Expansion.Milestone);
-
-        /// Host: the vendor sells a card from its shelf (offer index) for vectors (Shop.cs, ShopAction.BuyCard).
-        void BuyRoomCard(Player p, int offer)
-        {
-            if (!ExpandingOn || offer < 0 || offer >= Expansion.CardOfferCount || HandCount(p) >= Expansion.HandMax)
-                return;
-            var c = VendorCards[offer];
-            int price = Expansion.CardPrice(c);
-            if (SpendableVectors(p) < price)
-                return;
-            PayVectors(p, price);
-            GiveCard(p, c, "bought for " + price + " vectors");
         }
 
         /// What a bot builds toward: the nearest sealed room waiting off the map (not a mini-boss's), else the nearest unclaimed node (null if none).

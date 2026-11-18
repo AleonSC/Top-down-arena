@@ -132,7 +132,7 @@ static partial class Program
         var flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
         // The roll: the three rooms near their weights; what each holds.
-        var rooms = new int[3]; var small = new int[6]; var medium = new int[6]; bool hallsChest = true, quiet = true;
+        var rooms = new int[3]; var small = new int[7]; var medium = new int[7]; bool hallsChest = true, quiet = true;
         for (int sd = 1; sd <= 6000; sd++)
         {
             var r = Mystery.RoomFor(sd, 9, 0);
@@ -144,9 +144,9 @@ static partial class Program
             quiet &= Mystery.KindFor(sd, 9, 0, r, false) != MysteryKind.Enemies;
         }
         Check(rooms.All(c => c > 1500), "small, medium and hallway rooms all turn up (" + string.Join(" ", rooms) + ")");
-        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.Vendor] > 0 && small[(int)MysteryKind.Arms] > 0 && small[(int)MysteryKind.Chest] == 0,
-            "a small room is mostly enemies, sometimes empty, sometimes a shop, a Black Market or an Arms Dealer (" + string.Join(" ", small) + ")");
-        Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.Vendor] + medium[(int)MysteryKind.Chest] == 0,
+        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.Vendor] > 0 && small[(int)MysteryKind.Arms] > 0 && small[(int)MysteryKind.Medic] > 0 && small[(int)MysteryKind.Chest] == 0,
+            "a small room is mostly enemies, sometimes empty, sometimes a shop, a Black Market, an Arms Dealer or a Medic (" + string.Join(" ", small) + ")");
+        Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.Vendor] + medium[(int)MysteryKind.Medic] + medium[(int)MysteryKind.Chest] == 0,
             "a medium room is mostly enemies, rarely empty, never a shop (" + string.Join(" ", medium) + ")");
         Check(hallsChest, "a hallway always holds a chest");
         Check(quiet, "round a boss no room holds enemies");
@@ -216,16 +216,25 @@ static partial class Program
         Check(vendor.Count == 1 && vendor[0].Kind == RoomKind.Vendor && g.HasVendorRoom, "or a Black Market");
         var armsRoom = open(GridPiece.Mono, MysteryKind.Arms);
         Check(armsRoom.Count == 1 && armsRoom[0].Kind == RoomKind.Arms && g.HasArmsRoom, "or an Arms Dealer (Docs/ArmsDealer.md)");
+        var medicRoom = open(GridPiece.Mono, MysteryKind.Medic);
+        Check(medicRoom.Count == 1 && medicRoom[0].Kind == RoomKind.Medic && g.HasMedicRoom, "or a Medic");
         PollBoth(host, client);
-        Check(cg.HasShopRoom && cg.HasVendorRoom && cg.HasArmsRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
+        Check(cg.HasShopRoom && cg.HasVendorRoom && cg.HasArmsRoom && cg.HasMedicRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
 
         // Enemies: mid-wave they appear in the room at once; between waves they wait for the wave to start. A small room holds fewer.
         g.State = MatchState.Fighting;
+        g.Enemies.Clear();
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+        var queueWas = new List<EnemyType>(queue);
+        queue.Clear(); queue.Add(EnemyType.Rioter); queue.Add(EnemyType.Guard);  // (this wave's own types: a Warden wave)
         int e0 = g.Enemies.Count;
         var med = open(GridPiece.TetO, MysteryKind.Enemies);
         int want = Mystery.AmbushCount(g.Wave, MysteryRoom.Medium);
         int inRoom = g.Enemies.Values.Count(e => med.Any(r => e.Pos.X >= r.X - 20 && e.Pos.X <= r.X1 + 20 && e.Pos.Y >= r.Y - 20 && e.Pos.Y <= r.Y1 + 20));
         Check(med.Count == 1 && med[0].W == 1200 && med[0].H == 1200 && g.Enemies.Count - e0 == want && inRoom >= want, "mid-wave a medium room's " + want + " enemies appear in it (" + (g.Enemies.Count - e0) + " new, " + inRoom + " in the room)");
+        var kinds = g.Enemies.Values.Select(e => e.Type).Distinct().ToList();
+        Check(kinds.All(t => t == EnemyType.Rioter || t == EnemyType.Guard), "they're the wave's own types, not the old basic pool's Grunts (" + string.Join(", ", kinds) + ")");
+        queue.Clear(); queue.AddRange(queueWas);
         g.State = MatchState.Intermission;
         e0 = g.Enemies.Count;
         var sm = open(GridPiece.Mono, MysteryKind.Enemies);

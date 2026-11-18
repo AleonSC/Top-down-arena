@@ -2159,7 +2159,7 @@ static partial class Shot {
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
-      string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=buildershop|shop|market|arms: that card's one-cell room built on the lattice, everyone in it; CARDSPOT=<n> picks its nth door spot
+      string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=buildershop|shop|market|arms|medic: that card's one-cell room built on the lattice, everyone in it; CARDSPOT=<n> picks its nth door spot
       if (xcard != null) {
         var xc = (RoomCard)Enum.Parse(typeof(RoomCard), xcard, true);
         var xco = Expansion.GridPieceOptions(xg.Expanded, GridPiece.Mono);
