@@ -15,7 +15,7 @@ namespace Arena
         static readonly Rgba CardInk = new Rgba(0.45f, 0.85f, 1f), CardOk = new Rgba(0.35f, 1f, 0.55f);
 
         /// A card's colour: the Mini-boss in the Gatekeeper's orange, a service card in its room's colour, the rest in card blue.
-        static Rgba CardColor(RoomCard c) => c == RoomCard.MiniBoss ? GateInk : c == RoomCard.BuilderShop ? BuilderInk : Expansion.IsServiceCard(c) ? KindInk(Expansion.CardRoomKind(c), PathId.None) : CardInk;
+        static Rgba CardColor(RoomCard c) => Expansion.IsPieceCard(c) ? (Expansion.CardFloor(c) != PathId.None ? KindInk(Arena.RoomKind.Floor, Expansion.CardFloor(c)) : GridInk) : c == RoomCard.MiniBoss ? GateInk : c == RoomCard.BuilderShop ? BuilderInk : Expansion.IsServiceCard(c) ? KindInk(Expansion.CardRoomKind(c), PathId.None) : CardInk;
 
         static Rgba CardInkOf(RoomCard c) => CardColor(c);  // (the Builder Shop's name for it, BuilderShopUi.cs)
 
@@ -220,6 +220,16 @@ namespace Arena
         {
             if (card == RoomCard.None)
                 return;
+            if (Expansion.IsPieceCard(card))  // a grid piece: its cells (Docs/GridPieces.md)
+            {
+                var cells = Expansion.GridPieceOrients(Expansion.CardPiece(card))[0];
+                var size = Expansion.GridPieceSize(cells);
+                float u = Mathf.Min(r.width / Mathf.Max(2, size[0]), r.height / Mathf.Max(2, size[1]));
+                float gx = r.center.x - size[0] * u / 2f, gy = r.center.y - size[1] * u / 2f;
+                foreach (var c in cells)
+                    Ui.Fill(new Rect(gx + c[0] * u + 1f, gy + c[1] * u + 1f, u - 2f, u - 2f), new Color(ink.r, ink.g, ink.b, 0.6f));
+                return;
+            }
             var m = Expansion.SurpriseMask(Expansion.CardShape(card), 0, false);
             int cols = m.GetLength(0), rows = m.GetLength(1);
             float s = Mathf.Min(r.width / cols, r.height / rows);

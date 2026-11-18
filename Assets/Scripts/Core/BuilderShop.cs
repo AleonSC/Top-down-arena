@@ -30,7 +30,7 @@ namespace Arena
     public partial class Game
     {
         /// The Builder Shop's shelf this wave.
-        public RoomCard[] BuilderCards => Expansion.BuilderOffers(expandSeed, Wave);
+        public RoomCard[] BuilderCards => GridRoomsOn ? Expansion.GridBuilderOffers(expandSeed, Wave) : Expansion.BuilderOffers(expandSeed, Wave);
 
         /// A Builder Shop room is on the connected map.
         public bool HasBuilderRoom
@@ -53,7 +53,7 @@ namespace Arena
         }
 
         /// The Builder Shop's shelf is open for this player: room cards on, a build round, standing in a Builder room.
-        public bool BuilderShopOpen(Player p) => p != null && RoomCardsOn && ExpandOpen && !p.Downed && InBuilderRoom(p);
+        public bool BuilderShopOpen(Player p) => p != null && HandOn && ExpandOpen && !p.Downed && InBuilderRoom(p);
 
         /// Why this player can't buy that offer right now (null if they can).
         public string BuilderRefusal(Player p, int offer)

@@ -552,7 +552,7 @@ namespace Arena
 
         /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
         /// (the node's look). Room card only with room cards on.
-        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, RoomCardsOn);
+        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, HandOn);
 
         /// Host: is this prop the chest of a chest node (it never holds the wave)?
         bool IsNodeChest(Prop p)
@@ -1229,7 +1229,8 @@ namespace Arena
                 }
                 if (GridRoomsOn)
                 {
-                    BotGridBuild();  // GridRooms.cs
+                    if (!BotPlayGridCard())  // GridCards.cs
+                        BotGridBuild();  // GridRooms.cs
                     return;
                 }
                 if (rng.Next(10) < 6 && BotBuildsToFloater())

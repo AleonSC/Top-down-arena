@@ -195,49 +195,4 @@ namespace Arena
             return res;
         }
     }
-
-    public partial class Game
-    {
-        /// This game's player places a grid piece (Docs/GridPieces.md) with its cell box's corner at (x, y), in this orientation. Only in a Grid run's build round.
-        public void PlayGridPiece(GridPiece piece, int orient, int x, int y)
-        {
-            if (!ExpandOpen || Me == null || !GridRoomsOn)
-                return;
-            if (IsHost)
-            {
-                HostGridPiece(MyId, piece, orient, x, y);
-                return;
-            }
-            var w = Proto.Begin(Msg.GridPiece);
-            w.Write((byte)piece); w.Write((byte)orient); w.Write((short)x); w.Write((short)y);
-            session.SendToHost(Proto.End(w));
-        }
-
-        public void OnGridPiece(int peer, BinaryReader r) => HostGridPiece(peer, (GridPiece)r.ReadByte(), r.ReadByte(), r.ReadInt16(), r.ReadInt16());
-
-        /// Host: the piece's open room is built at once if it fits there, free (Docs/GridPieces.md: playing a piece costs nothing; step 2 makes it a card from the player's hand).
-        void HostGridPiece(int id, GridPiece piece, int orient, int x, int y)
-        {
-            Player p;
-            if (!IsHost || !ExpandOpen || !GridRoomsOn || !Players.TryGetValue(id, out p) || (int)piece >= Enum.GetValues(typeof(GridPiece)).Length)
-                return;
-            string why;
-            var made = Expansion.GridPieceRooms(Expanded, piece, orient, x, y, out why);
-            if (made == null)
-            {
-                DoLog("piece refused (" + why + ")");
-                return;
-            }
-            var head = made[0];
-            head.Owner = id;
-            var legs = new List<ExpansionRoom>();
-            for (int i = 1; i < made.Count; i++)
-            {
-                var q = made[i];
-                q.Owner = id;
-                legs.Add(q);
-            }
-            BuildNow(id, head, legs);
-        }
-    }
 }
