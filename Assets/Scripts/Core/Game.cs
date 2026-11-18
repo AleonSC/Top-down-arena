@@ -1619,6 +1619,8 @@ namespace Arena
                     TickKatanaFire(p);  // the Katana's dash or swipe, or the Bo Staff's slash, jab, spin, with the next one queued if you tap ahead (Katana.cs)
                 else if (p.Weapon.Id == WeaponId.OutOfAmmo)
                     TickOutOfAmmo(p, dt);  // the swats, the knife chain and Alt's spin, no trigger (OutOfAmmo.cs)
+                else if (IsBotWeapon(p.Weapon.Id))
+                    TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))

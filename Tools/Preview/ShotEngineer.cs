@@ -30,6 +30,44 @@ static partial class Shot {
       e.SpawnT = 0f; e.Pos = e.Disp = p; e.Facing = face; e.FireT = 99f; return e;
     };
     var m = new EngineerMock();
+    if (mode == "bots") {
+      // ENGINEER=bots ENGROLE=dps|tank|healer [ENGBUILD=<0-1>] (ZOOM=2.2): the robot weapons (Core/EngineerBots.cs, Game/EngineerBotLook.cs),
+      // drawn by the game's own paths: you mid-attack (the Vector Blade's swipe, the Iron Fist's shove, the Stasis Gun's field on
+      // two grunts) and your robot sent at a Brute (ENGBUILD: still building in).
+      var bf = BindingFlags.NonPublic | BindingFlags.Instance;
+      var spawnM = typeof(Game).GetMethod("SpawnMinion", bf); var addZ = typeof(Game).GetMethod("AddZone", bf);
+      string role = Environment.GetEnvironmentVariable("ENGROLE") ?? "dps";
+      me.Role = role == "tank" ? Role.Tank : role == "healer" ? Role.Healer : Role.Dps; me.Def = Defs.Get(me.Role);
+      me.Kit = Kit.Engineer; me.Weapon = Defs.Weapon(me.Role, Kit.Engineer, 1);
+      me.MaxHp = me.Def.Hp; me.Hp = me.MaxHp;
+      me.Pos = me.Disp = new V2(640f, 520f);
+      var target = put(EnemyType.Brute, new V2(905f, 470f), MathX.Pi);
+      target.Hp = target.MaxHp * 0.6f;
+      var kind = Game.BotFor(me.Weapon.Id);
+      var b = (Minion)spawnM.Invoke(gm, new object[] { kind, me, new V2(800f, 500f), -1f, true });
+      b.MaxHp = Game.BotMaxHp(3, kind); b.Hp = b.MaxHp * 0.75f; b.GuardFrac = 0.75f; b.Aim = (target.Pos - b.Pos).Angle;
+      b.Wind = 0.7f; b.Stacks = 1; b.LinkTo = target.Id; b.SentT = 5f;
+      string eb2 = Environment.GetEnvironmentVariable("ENGBUILD");
+      if (eb2 != null) { b.Wind = 2f + float.Parse(eb2, inv); b.Stacks = 0; b.LinkTo = 0; }
+      if (me.Role == Role.Healer) {
+        var g1 = put(EnemyType.Grunt, new V2(545f, 445f), 0.4f); var g2 = put(EnemyType.Grunt, new V2(585f, 420f), 0.9f);
+        var z = (Zone)addZ.Invoke(gm, new object[] { ZoneKind.Stasis, me, new V2(565f, 435f), Game.StasisRadius, 100000f }); z.T = 99990f;
+        me.Aim = (z.Pos - me.Pos).Angle; me.Firing = me.FiringSeen = true;
+        me.Hp = me.MaxHp * 0.7f;
+        put(EnemyType.Grunt, new V2(900f, 600f), MathX.Pi * 1.1f);
+      } else {
+        var near = put(EnemyType.Grunt, new V2(700f, 470f), MathX.Pi);
+        var near2 = put(EnemyType.Grunt, new V2(712f, 545f), MathX.Pi);
+        me.Aim = (near.Pos - me.Pos).Angle;
+        V2 tip = me.Pos + V2.FromAngle(me.Aim) * (me.Role == Role.Tank ? 95f : 88f);
+        me.FireCd = me.Weapon.FireInterval * 0.8f;
+        gm.Effects.Add(new Effect { Kind = me.Role == Role.Tank ? FxKind.FistShove : FxKind.Slash, Pos = me.Pos, Pos2 = tip,
+          Color = Kits.Get(kind).Color, Radius = me.Role == Role.Tank ? Game.FistHalf : Game.BladeHalf, T = 0.08f, Dur = me.Role == Role.Tank ? 0.35f : 0.22f });
+        if (me.Role == Role.Tank) { near.Pos = near.Disp = new V2(745f, 450f); near2.Pos = near2.Disp = new V2(752f, 580f); }
+      }
+      Console.Error.WriteLine("engineer: bots " + role);
+      return;
+    }
     if (mode == "real") {
       // ENGINEER=real: the built class in a match, drawn by the game's own paths (no mock): you as a DPS Engineer, your Strider
       // (a real MinionKind.Strider, locked on a Brute) and a Drag Pylon zone with grunts crossing it.

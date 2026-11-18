@@ -148,6 +148,8 @@ namespace Arena
         BulwarkForge, MediDroneForge,
         // the Tank Hemomancer's fourth (BloodBlast.cs): a six-step chain of blood cuts
         BloodBlast,
+        // the Engineer's second weapons (EngineerBots.cs): Fire summons a robot Engineer of the role, then is a basic attack
+        IronFist, StasisGun, VectorBlade,
     }
 
     public class WeaponDef

@@ -263,6 +263,9 @@ namespace Arena
                 case ZoneKind.MedPylon:
                     DrawDragPylonZone(z, t);  // EngineerLook.cs
                     return;  // no timer ring: it stays until the next one
+                case ZoneKind.Stasis:
+                    DrawStasisZone(z, t);  // EngineerBotLook.cs
+                    return;  // no timer ring: it lasts while Fire is held
                 case ZoneKind.SafeRoom:
                     DrawSafeRoom(z, t);  // EngineerLook.cs (its own time ring)
                     return;
@@ -336,6 +339,11 @@ namespace Arena
             if (Game.IsWalker(m.Kind))
             {
                 DrawStriderMinion(m, t);  // EngineerLook.cs
+                return;
+            }
+            if (Game.IsBot(m.Kind))
+            {
+                DrawEngineerBot(m, t);  // EngineerBotLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Hydra)

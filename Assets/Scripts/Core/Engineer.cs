@@ -93,6 +93,25 @@ namespace Arena
                 FireInterval = 0.3f, BotRange = 300f, Name = "Medi-Drone Forge", Sound = Sfx.ShotPistol, Companion = MinionKind.MediDrone, CompanionCount = 1,
                 Desc = "A light rivet gun. A med-drone flies with you, goes to the most hurt ally and heals everyone near it for 12 a second.",
                 ExtraDesc = "+1 rivet and +1 med-drone" },
+            // the second weapons: a robot Engineer of the role, and a basic attack (EngineerBots.cs)
+            new WeaponDef { Id = WeaponId.IronFist, Kit = Kit.Engineer, Role = Role.Tank, Choice = 1, Melee = true, Reach = 95f, Grow = 15f, Damage = 10f,
+                FireInterval = 0.7f, BotRange = 80f, Name = "Iron Fist", Sound = Sfx.SwingHeavy,
+                Desc = "Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. "
+                    + "Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, "
+                    + "10 damage and a long push. A broken robot can be summoned again after 8 s.",
+                ExtraDesc = "the fist's arc reaches 15 px further" },
+            new WeaponDef { Id = WeaponId.StasisGun, Kit = Kit.Engineer, Role = Role.Healer, Choice = 1, Reach = StasisReach, Damage = 14f,
+                FireInterval = 0.1f, BotRange = 250f, Name = "Stasis Gun", Sound = Sfx.Ability,
+                Desc = "Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. "
+                    + "Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): "
+                    + "enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s.",
+                ExtraDesc = "the stasis field is 8 px wider" },
+            new WeaponDef { Id = WeaponId.VectorBlade, Kit = Kit.Engineer, Role = Role.Dps, Choice = 1, Melee = true, Reach = 88f, Grow = 12f, Damage = 24f,
+                FireInterval = 0.4f, BotRange = 75f, Name = "Vector Blade", Sound = Sfx.SwingLight,
+                Desc = "Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. "
+                    + "Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. "
+                    + "A broken robot can be summoned again after 8 s.",
+                ExtraDesc = "the swipe reaches 12 px further" },
         };
 
         internal static readonly AbilityDef[] EngineerAbilities =
@@ -167,6 +186,10 @@ namespace Arena
                     for (int i = 0; i <= extra; i++)
                         SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(aim + (i - extra / 2f) * 0.1f) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
+                case WeaponId.IronFist:
+                case WeaponId.StasisGun:
+                case WeaponId.VectorBlade:
+                    break;  // the robot weapons: the summon and the basic attacks are TickBotWeapon's (EngineerBots.cs)
             }
         }
 
@@ -219,6 +242,9 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
+                KeepBots(p, dt);  // the robots (EngineerBots.cs)
+                if (p.Weapon.Id != WeaponId.StasisGun || p.Downed || !p.Firing)
+                    EndStasis(p);
                 var s = StriderOf(p);
                 var kind = WalkerFor(p.Weapon.Id);
                 if (s != null && s.Kind != kind)
@@ -361,15 +387,15 @@ namespace Arena
             m.LinkTo = isLocked ? target.Id : 0;
         }
 
-        /// Where an enemy goes (EnemyAI): an enemy close to a Strider goes for it instead.
+        /// Where an enemy goes (EnemyAI): an enemy close to a Strider (or a robot, EngineerBots.cs) goes for it instead.
         V2 StriderTarget(Enemy e, V2 tpos)
         {
             Minion best = null;
             float bestD = float.MaxValue;
             foreach (var m in Minions.Values)
-                if (IsWalker(m.Kind))
+                if (IsWalker(m.Kind) || IsBot(m.Kind) && m.SentT >= BotBuild)
                 {
-                    float dd = m.Pos.DistanceSq(e.Pos), taunt = m.Kind == MinionKind.Sentinel ? SentinelTaunt : StriderTaunt;
+                    float dd = m.Pos.DistanceSq(e.Pos), taunt = IsBot(m.Kind) ? BotTaunt(m.Kind) : m.Kind == MinionKind.Sentinel ? SentinelTaunt : StriderTaunt;
                     if (dd < taunt * taunt && dd < bestD && dd < tpos.DistanceSq(e.Pos))
                     {
                         bestD = dd;
