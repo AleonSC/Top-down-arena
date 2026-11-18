@@ -318,7 +318,7 @@ static partial class Program
             swings().Clear();
             return got;
         };
-        Check(new[] { "Quake Hammer", "Breacher", "Long Haft", "Pilgrim's Staff", "Daybreak", "Thick Incense", "Whirling Sabres", "Tempered Blade", "Duelist's Edge", "Live Wire" }
+        Check(new[] { "Quake Hammer", "Breacher", "Long Haft", "Pilgrim's Staff", "Daybreak", "Thick Incense", "Whirling Sabres", "Lunar Arc", "Duelist's Edge", "Live Wire" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Upgrades.All[U(n)].Weapons.Length == 1 && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Knight),
             "all ten Knight weapon cards exist, each for one Knight weapon");
 
@@ -391,27 +391,21 @@ static partial class Program
         me.FangOut = 0;
         Check(near(fr1 / fr0, 1.25f, 0.01f) && near(me.Stats.FangDmgMult, 1.3f, 0.001f), "Whirling Sabres: the thrown sabres follow the cursor 25% longer (" + fr0 + " -> " + fr1 + " s) and hit 30% harder");
 
-        var guard = typeof(Game).GetMethod("HostGreatGuard", flags);
-        var block = typeof(Game).GetMethod("GreatGuardBlock", flags);
-        Func<int, float[]> great = n =>
+        var wheel = typeof(Game).GetMethod("HostMoonwheel", flags);
+        Func<int, float> lunar = n =>
         {
-            arm(WeaponId.Greatsword, "Tempered Blade", n);
-            me.GreatLock = 0f; me.GreatGuard = false; me.TemperCarry = 0f;
-            guard.Invoke(g, new object[] { me, true, there });
-            g.Bullets.Clear();
-            for (int i = 0; i < 4; i++)
-                g.Bullets[90000 + i] = new Bullet { Id = 90000 + i, Kind = Defs.SmallShot, Pos = me.Pos + V2.FromAngle(me.Aim + (i - 1.5f) * 0.2f) * Game.GreatGuardRadius, Radius = 4f, Life = 5f };
-            block.Invoke(g, new object[] { me });
-            float temper = me.GreatTemper;
-            me.GreatTemper = 6;
-            swings().Clear();
-            guard.Invoke(g, new object[] { me, false, there });
-            float rend = swings().Where(x => x.Rend).Select(x => x.Dmg).DefaultIfEmpty(0f).Max();
-            swings().Clear();
-            return new[] { temper, rend };
+            arm(WeaponId.Greatsword, "Lunar Arc", n);
+            me.FangCd = 0f; me.FangOut = 0;
+            ((IList)runsF.GetValue(g)).Clear();
+            wheel.Invoke(g, new object[] { me, me.Pos + new V2(1000f, 0f) });
+            var run = ((IList)runsF.GetValue(g))[0];
+            me.FangOut = 0;
+            return ((V2)run.GetType().GetField("Target").GetValue(run)).DistanceTo(me.Pos);
         };
-        var gt0 = great(0); var gt1 = great(1);
-        Check(gt0[0] == 4f && gt1[0] == 5f && gt0[1] > 0f && near(gt1[1] / gt0[1], 1.3f, 0.01f), "Tempered Blade: guarding builds Temper 25% faster (4 -> 5 for four bullets) and the Rend hits 30% harder");
+        float wr0 = lunar(0), wr1 = lunar(1);
+        ((IList)runsF.GetValue(g)).Clear();
+        me.FangOut = 0;
+        Check(near(wr1 / wr0, 1.25f, 0.01f) && near(me.Stats.WheelDmgMult, 1.3f, 0.001f), "Lunar Arc: the thrown greatsword flies 25% farther (" + wr0 + " -> " + wr1 + " px) and hits 30% harder");
 
         var tickRapier = typeof(Game).GetMethod("TickRapier", flags);
         Func<int, int> tempo = n =>

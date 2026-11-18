@@ -100,8 +100,8 @@ static partial class Program
         for (int f = 0; f < 120; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); dummy.FrozenT = second.FrozenT = 1f; dummy.Pos = new V2(700f, 450f); second.Pos = new V2(720f, 450f); }
         bool skewer = second.Hp < before2;
         me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 1);
-        bool beams = false;  // watched every frame: the beams only live 0.6 s
-        for (int f = 0; f < 150; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); beams |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave && b.Owner == 1); }
+        bool beams = false;  // watched every frame: the beams only live 0.6 s (Eclipse, the tenth step, throws them)
+        for (int f = 0; f < 420; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); beams |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave && b.Owner == 1); }
         second.Hp = 0f;
         Console.WriteLine("  Multishot: rapier skewers a 2nd enemy {0}; greatsword throws beams {1}", skewer, beams);
         Check(skewer && beams, "extra projectiles upgrade each Knight weapon its own way");

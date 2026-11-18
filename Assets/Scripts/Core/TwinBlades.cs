@@ -31,6 +31,8 @@ namespace Arena
             public float T;          // seconds since the press
             public float Follow;     // seconds it follows the cursor (Whirling Sabres: longer)
             public bool Back;        // flying back to the hand (a wall stopped it, or its time ran out)
+            public bool Great;       // a Greatsword's Moonwheel (GreatswordChain.cs FlyWheel): out to Target and straight back
+            public V2 Target;
             public float CueT;       // until the next hit cue (so a long cut doesn't shake every tick)
             public readonly Dictionary<int, float> Hit = new Dictionary<int, float>();  // enemy id -> when it can be cut again
         }
@@ -115,7 +117,7 @@ namespace Arena
             {
                 var r = fangRuns[i];
                 Player p;
-                if (!Players.TryGetValue(r.Owner, out p) || p.Weapon.Id != WeaponId.TwinBlades || r.T > TwinBladesMotion.FangRelease + r.Follow + 6f)
+                if (!Players.TryGetValue(r.Owner, out p) || p.Weapon.Id != (r.Great ? WeaponId.Greatsword : WeaponId.TwinBlades) || r.T > TwinBladesMotion.FangRelease + r.Follow + 6f)
                 {
                     fangRuns.RemoveAt(i);
                     if (p != null)
@@ -126,9 +128,9 @@ namespace Arena
                 {
                     fangRuns.RemoveAt(i);
                     p.FangOut = 0;
-                    p.FangCd = FangCooldown;
+                    p.FangCd = r.Great ? WheelCooldown : FangCooldown;
                     if (!p.Downed)
-                        BroadcastSound(Sfx.TwinCatch);  // both sabres back in hand
+                        BroadcastSound(Sfx.TwinCatch);  // both sabres (or the greatsword) back in hand
                 }
             }
         }
@@ -139,6 +141,8 @@ namespace Arena
             r.T += dt;
             r.CueT -= dt;
             p.FireCd = Math.Max(p.FireCd, 0.1f);  // no swings until they're caught
+            if (r.Great)
+                return FlyWheel(p, r, dt);
             if (r.T < TwinBladesMotion.FangRelease)
             {
                 r.Pos = p.Pos;
@@ -274,7 +278,7 @@ namespace Arena
         void LocalTwinStep(Player me, float dt)
         {
             if (me.FangOut != 0)
-                fangLocalCd = FangCooldown;  // the cooldown counts from the catch
+                fangLocalCd = me.Weapon.Id == WeaponId.Greatsword ? WheelCooldown : FangCooldown;  // the cooldown counts from the catch
             else
                 fangLocalCd = Math.Max(0f, fangLocalCd - dt);
             int count = me.Combo >> 3;

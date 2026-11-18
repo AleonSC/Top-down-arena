@@ -954,6 +954,7 @@ namespace Arena
             bool pressed = weaponAction && !wasWeaponAction, released = !weaponAction && wasWeaponAction;
             wasWeaponAction = weaponAction;
             LocalTwinStep(me, dt);  // the Twin Blades' steps forward (TwinBlades.cs)
+            LocalGreatStep(me);     // the Greatsword's hop back and leap (GreatswordChain.cs)
             LocalLightStep(me, dt);  // the Lightbringer's steps forward (Lightbringer.cs)
             if (LocalSunlance(me, aimAt, pressed))
                 return;  // the Lightbringer's Sunlance (Lightbringer.cs)
@@ -993,7 +994,7 @@ namespace Arena
                 }
                 return;
             }
-            if (me.Weapon.Id == WeaponId.Greatsword && (pressed || released))  // the Greatsword's guard: held, so both edges go to the host (Greatsword.cs)
+            if (GreatGuardOn && me.Weapon.Id == WeaponId.Greatsword && (pressed || released))  // the Greatsword's old guard: held, so both edges go to the host (Greatsword.cs; unused)
             {
                 byte guardKind = pressed ? DashGuardOn : DashGuardOff;
                 if (IsHost)
@@ -1021,9 +1022,9 @@ namespace Arena
                 }
                 return;
             }
-            if (me.Weapon.Id == WeaponId.TwinBlades && pressed && fangLocalCd <= 0f && !me.Downed && me.StunT <= 0f)
+            if ((me.Weapon.Id == WeaponId.TwinBlades || me.Weapon.Id == WeaponId.Greatsword) && pressed && fangLocalCd <= 0f && !me.Downed && me.StunT <= 0f)
             {
-                fangLocalCd = FangCooldown;  // Twin Fang (TwinBlades.cs): no move, the host throws both sabres at the cursor
+                fangLocalCd = me.Weapon.Id == WeaponId.Greatsword ? WheelCooldown : FangCooldown;  // Twin Fang (TwinBlades.cs) or the Moonwheel (GreatswordChain.cs): no move, the host throws at the cursor
                 if (IsHost)
                     HostWeaponDash(MyId, DashStrike, aimAt);
                 else
@@ -1309,7 +1310,10 @@ namespace Arena
             }
             if (kind == DashStrike)
             {
-                HostTwinFang(p, target);  // (target: where they were aiming)
+                if (p.Weapon.Id == WeaponId.Greatsword)
+                    HostMoonwheel(p, target);  // GreatswordChain.cs
+                else
+                    HostTwinFang(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashLance)

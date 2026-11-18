@@ -39,42 +39,15 @@ namespace Arena
         /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
         public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn && !GridRoomsOn;  // (room cards build at once: RoomCards.cs)
 
-        /// The lobby's "Team purse": builds can spend every player's vectors, not just the builder's.
-        public bool TeamPurse => D(DiffKnob.BuildPurse) >= 0.5f;
+        /// What this player can put towards a build: their own vectors (the old Team purse is gone, Nov 18).
+        public int SpendableVectors(Player p) => p != null ? p.Vectors : 0;
 
-        /// What this player can put towards a build: their own vectors, or (Team purse) the whole team's.
-        public int SpendableVectors(Player p)
-        {
-            if (p == null)
-                return 0;
-            if (!TeamPurse)
-                return p.Vectors;
-            int n = 0;
-            foreach (var q in Players.Values)
-                n += q.Vectors;
-            return n;
-        }
-
-        /// Host: charge a build. The payer goes first, then (Team purse) the richest teammates until it's covered.
+        /// Host: charge a build to its payer.
         void PayVectors(Player payer, int price)
         {
             int take = Math.Min(payer.Vectors, price);
             payer.Vectors -= take;
             payer.MapSpent += take;  // (half comes back when the map resets, MapReset.cs)
-            price -= take;
-            while (TeamPurse && price > 0)
-            {
-                Player rich = null;
-                foreach (var q in Players.Values)
-                    if (q.Vectors > 0 && (rich == null || q.Vectors > rich.Vectors))
-                        rich = q;
-                if (rich == null)
-                    break;
-                take = Math.Min(rich.Vectors, price);
-                rich.Vectors -= take;
-                rich.MapSpent += take;
-                price -= take;
-            }
         }
 
         /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.

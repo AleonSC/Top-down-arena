@@ -76,7 +76,7 @@ namespace Arena
             Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f, 0.6f + 0.4f * pulse));
             if (!mine)
                 CrtKit.Frame(chip, 1.5f, new Color(0.37f, 0.94f, 1f, 0.35f + 0.5f * pulse));
-            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS" + (game.RoomTokens.Count > 0 ? "  ·  " + game.RoomTokens.Count + " KIT" + (game.RoomTokens.Count == 1 ? "" : "S") : "") + "  ·  " + (free ? game.Expanded.Count + " ROOMS" : n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + (game.TeamPurse ? "  ·  TEAM PURSE " + game.SpendableVectors(me) : "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap), 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS" + (game.RoomTokens.Count > 0 ? "  ·  " + game.RoomTokens.Count + " KIT" + (game.RoomTokens.Count == 1 ? "" : "S") : "") + "  ·  " + (free ? game.Expanded.Count + " ROOMS" : n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), (free ? "Build freely with your own vectors" : game.ExpandVotes.Count + " of " + game.Players.Count + " voted") + "  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
             if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), game.FreeBuild ? "BUILD" : "BUILD / VOTE", null, 15, calm))
                 expOpen = true;
@@ -1217,7 +1217,7 @@ namespace Arena
             DkSub(p, new Color(0.02f, 0.05f, 0.12f, 0.6f));
             float x = p.x + 14f, w = p.width - 28f, y = p.y + 10f;
             int have = game.SpendableVectors(game.Me);
-            Ui.Label(new Rect(x, y, w, 30f), game.TeamPurse ? "TEAM PURSE" : "YOUR VECTORS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x, y, w, 30f), "YOUR VECTORS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             CrtUi.Text(new Rect(x, y - 2f, w, 34f), have.ToString(), 30, Ui.Gold, TextAnchor.MiddleRight, true, CabCalm);
             y += 36f;
             int cap = Mathf.Max(Mathf.Max(have, game.Me != null ? game.Me.VectorCap : have), 1);
