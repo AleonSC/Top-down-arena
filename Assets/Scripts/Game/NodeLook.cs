@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// How map nodes look (Docs/Nodes.md): a breathing ring and mark in empty space until a room is built round one, then a fixture of that
-    /// room: a shop's stall, a vendor's pedestal, a chest (lid up and dim once opened). Preview: EXPANDFLOAT=1, or EXPANDNODE=shop|vendor|chest[,spent].
+    /// room: a shop's stall, a vendor's pedestal, a chest. Preview: EXPANDFLOAT=1, or EXPANDNODE=shop|vendor|chest[,spent].
     public partial class ArenaApp
     {
         static readonly Rgba ChestInk = new Rgba(0.82f, 0.5f, 1f);
@@ -81,38 +81,49 @@ namespace Arena
                 DrawNodeFixture(n.Pos, n.Kind, n.Spent, n.Kind == NodeKind.Chest ? game.NodeChestKind(n) : ChestKind.Upgrade);
                 return;
             }
-            var col = NodeInkOfChest(n).WithAlpha(0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
-            V2 c = n.Pos;
             if (n.Kind == NodeKind.Rule)
             {
                 DrawRuleNode(n);
                 return;
             }
-            Arc(c, 36f, 3f, col, 28);
-            if (n.Hidden)  // fogged: a "?" and a slow drift of mist dashes round it
+            // (owner, Nov 18: nodes stand out: a lit disc, a bold double ring, a beacon ping rippling out and turning dashes, the glyph at full size)
+            float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.5f);
+            var ink = NodeInkOfChest(n);
+            var col = ink.WithAlpha(0.85f + 0.15f * pulse);
+            V2 c = n.Pos;
+            Circle(c, 92f, ink.WithAlpha(0.05f + 0.04f * pulse), 32);
+            Circle(c, 58f, ink.WithAlpha(0.12f + 0.06f * pulse), 28);
+            Arc(c, 58f, 5f, col, 32);
+            Arc(c, 70f, 2f, ink.WithAlpha(0.45f), 32);
+            for (int k = 0; k < 4; k++)  // dashes turning round it
+                Arc(c, 80f, 3f, ink.WithAlpha(0.6f), 8, t * 0.7f + k * MathX.Tau / 4f, 0.7f);
+            for (int k = 0; k < 2; k++)  // the beacon: two rings rippling out
             {
-                for (int k = 0; k < 3; k++)
-                    Arc(c, 46f, 2f, col.WithAlpha(col.A * 0.6f), 8, game.AnimT * 0.5f + k * MathX.Tau / 3f, 1.1f);
-                FogMark(c, 0.8f, col);
+                float ph = (t * 0.45f + k * 0.5f) % 1f;
+                Arc(c, 60f + 110f * ph, 3f, ink.WithAlpha(0.5f * (1f - ph)), 40);
+            }
+            if (n.Hidden)  // (an old save's fogged node, until the host clears it)
+            {
+                FogMark(c, 1.3f, col);
                 return;
             }
             switch (n.Kind)
             {
-                case NodeKind.Tower: TowerGlyph(c, 0.7f, col); break;
-                case NodeKind.Vein: VeinGlyph(c, 0.7f, col); break;
-                case NodeKind.Shop: Arc(c, 14f, 3f, col, 16); break;
+                case NodeKind.Tower: TowerGlyph(c, 1.2f, col); break;
+                case NodeKind.Vein: VeinGlyph(c, 1.2f, col); break;
+                case NodeKind.Shop: Arc(c, 22f, 5f, col, 20); break;
                 case NodeKind.Vendor:
-                    Line(c - new V2(16f, 0f), c + new V2(16f, 0f), 4f, col);
-                    Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 4f, col);
+                    Line(c - new V2(24f, 0f), c + new V2(24f, 0f), 6f, col);
+                    Line(c - new V2(0f, 24f), c + new V2(0f, 24f), 6f, col);
                     break;
-                case NodeKind.Relic: RelicGem(c, 0.75f, col); break;
+                case NodeKind.Relic: RelicGem(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.25f, col); break;
                 case NodeKind.VectorChest:
-                    ChestBox(c, 0.7f, col, false);
-                    VectorMark(c + new V2(0f, -30f), 0.6f, col);
+                    ChestBox(c + new V2(0f, 8f), 1.1f, col, false);
+                    VectorMark(c + new V2(0f, -34f + Mathf.Sin(t * 2.6f) * 3f), 0.9f, col);
                     break;
                 default:
-                    ChestBox(c, 0.7f, col, false);
-                    ChestEmblem(game.NodeChestKind(n), c + new V2(0f, -30f), 1.3f, col, col, col.A);  // what it holds
+                    ChestBox(c + new V2(0f, 6f), 1.2f, col, false);
+                    ChestEmblem(game.NodeChestKind(n), c + new V2(0f, -34f + Mathf.Sin(t * 2.6f) * 3f), 1.8f, col, col, col.A);  // what it holds
                     break;
             }
         }
@@ -278,10 +289,7 @@ namespace Arena
                 case NodeKind.VectorChest:
                 {
                     if (spent)
-                    {
-                        DrawChestLook(c, 0.3f, t, ChestKind.Vector, true, 99f);  // opened, lid up and dim
                         break;
-                    }
                     Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     DrawChestLook(c, 1f, t, ChestKind.Vector, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
@@ -297,9 +305,7 @@ namespace Arena
                         Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
                         Arc(c, 66f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     }
-                    if (spent)  // (a claimed, unopened chest is the real prop, Props.cs)
-                        DrawChestLook(c, 0.3f, t, chest, true, 99f);
-                    break;
+                    break;  // (a claimed chest is the real prop, Props.cs; nothing is drawn once it is spent)
             }
         }
 

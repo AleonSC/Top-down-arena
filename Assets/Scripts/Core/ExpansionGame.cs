@@ -312,8 +312,8 @@ namespace Arena
 
         int floatCycle = -1;
 
-        /// Host, as a regular wave starts: a new boss cycle gets a mini-boss room (its faction's, FactionMinis.cs), a shop and a vendor room off the connected map (sealed until a built
-        /// room touches it; shop and vendor are tiny 4 x 4 tile rooms) and a chest node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
+        /// Host, as a regular wave starts: a new boss cycle gets its nodes off the connected map (chest, relic, rule, vein; Docs/Nodes.md). Nothing placed is ever
+        /// placed again: at most MaxNodesWaiting nodes wait. Shop, vendor and Gatekeeper rooms are no longer placed here (room cards and mystery doors only).
         void PlaceFloatingRooms()
         {
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents)
@@ -323,21 +323,8 @@ namespace Arena
                 return;
             floatCycle = cycle;
             bool added = false;
-            foreach (var rk in new[] { Arena.RoomKind.Gatekeeper, Arena.RoomKind.Shop, Arena.RoomKind.Vendor })  // (shop and vendor: tiny 4 x 4 tile rooms you open and walk into)
-            {
-                if (Expansion.SealedCount(Expanded) >= Expansion.MaxSealed)
-                    break;
-                var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, rk, Nodes);
-                if (!f.HasValue)
-                    continue;
-                var room = f.Value;
-                if (rk == Arena.RoomKind.Gatekeeper)
-                    room.Mini = (byte)MiniBossNow();  // this cycle's faction's mini-boss (FactionMinis.cs)
-                Expanded.Add(room);
-                added = true;
-                DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
-            }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Tower, NodeKind.Rule, NodeKind.Vein })  // (a relic node every other cycle, a scout tower in the others, a rule node and a gold vein every cycle; old saves may still hold shop and vendor nodes)
+            // (no floating rooms any more, owner Nov 18: shop, vendor and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Rule, NodeKind.Vein })  // (a relic node every other cycle, a rule node and a gold vein every cycle; no scout towers since the fog went, Nov 18; old saves may still hold shop, vendor and tower nodes)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;

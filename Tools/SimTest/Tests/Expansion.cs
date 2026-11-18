@@ -236,14 +236,15 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
         Quiet();
 
-        // The setting: Expanding wins over Rooms, and until a room is built the arena is the plain Classic box.
+        // The setting: Expanding wins over Rooms, and from wave 1 the arena is its walled world (the hub alone until a room is built).
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Diff.Set(DiffKnob.ArenaRooms, 1f);
         Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting wins over Rooms");
         g.Diff.Set(DiffKnob.ArenaRooms, 0f);
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f);
-        Check(!g.RoomsOn && !cg.RoomsOn && g.CurrentWorld == World.Single && g.ArenaMin.X == 0f && g.ExpansionScale == 1f, "before the first room the Expanding arena is the plain box");
+        Check(g.RoomsOn && cg.RoomsOn && g.Walled && cg.Walled && !g.EdgesGated && g.CurrentWorld == g.ExpansionWorld && g.ArenaMin.X == 0f && g.ExpansionScale == 1f && g.RoomsDamageMult == 1f,
+            "before the first room the Expanding arena is the walled hub (no wrap round the edges, enemy damage 1x)");
 
         // A building round opens: everyone sees it, nobody has proposed.
         openRound.Invoke(g, null);
@@ -412,8 +413,8 @@ static partial class Program
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
         Check(g.Expanded.Count == builtNow + 1 && g.Expanded[g.Expanded.Count - 1].Owner == 1 && cg.Expanded.Count == g.Expanded.Count, "when the wave starts the votes cast count: the only vote builds that room");
 
-        // A new boss cycle places sealed Gatekeeper, shop and vendor rooms (shop and vendor tiny 4 x 4 tile squares) and a chest node (Docs/Nodes.md),
-        // the same on the client, adding no crowd and no spawns.
+        // A new boss cycle places nodes only (owner, Nov 18: no floating shop, vendor or Gatekeeper rooms; those come from room cards and mystery doors),
+        // never fogged, the same on the client, adding no crowd and no spawns.
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
         int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count, nodesNow = g.Nodes.Count;
         int waveHere = g.Wave;
@@ -421,19 +422,22 @@ static partial class Program
         float scale0 = g.ExpansionScale;
         placeFloating.Invoke(g, null);
         Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count && cg.Nodes.Count == g.Nodes.Count);
-        var added = g.Expanded.Skip(allNow).ToList();
-        Check(added.Count == 3 && added.All(r => r.Floating) && added.Any(r => r.Kind == RoomKind.Gatekeeper) && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
-            "a new boss cycle places floating Gatekeeper, shop and vendor rooms, the same on the client, and they aren't counted as bought");
-        Check(added.Count(r => r.Kind == RoomKind.Shop && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1 && added.Count(r => r.Kind == RoomKind.Vendor && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1,
-            "the shop and vendor rooms are tiny 4 x 4 tile squares");
+        Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, vendor or Gatekeeper)");
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
-        Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic || n.Kind == NodeKind.Tower ? 1 : n.Kind == NodeKind.Rule ? 2 : n.Kind == NodeKind.Vein ? 3 : 9;
-        Check(newCount >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !(newNodes.Any(n => n.Kind == NodeKind.Relic) && newNodes.Any(n => n.Kind == NodeKind.Tower))
-              && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
-            "and a chest node, a relic node (even cycles) or a scout tower (odd), a rule node and a gold vein, as many as fit, all fogged (no shop or vendor nodes any more), the same on the client");
+        Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : n.Kind == NodeKind.Vein ? 3 : 9;
+        Check(newCount >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
+              && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
+            "it places a chest node, a rule node and a gold vein (a relic node on even cycles; no scout towers any more), as many as fit, none fogged, the same on the client");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 3 && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
+        // An old save's sealed shop room still opens and draws bots as before.
+        {
+            var oldShop = Expansion.FloatingFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, RoomKind.Shop, g.Nodes);
+            Check(oldShop.HasValue, "an old save's floating shop room fits");
+            if (oldShop.HasValue) g.Expanded.Add(oldShop.Value);
+            typeof(Game).GetField("expWorld", flags).SetValue(g, null);
+        }
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
         Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the rooms stay sealed, add no crowd and a sealed shop room isn't a shop yet");
@@ -1044,41 +1048,27 @@ static partial class Program
             }
         }
 
-        // Node fog, scout towers and gold veins (NodeScouting.cs).
+        // No fog (owner, Nov 18): nodes are placed in plain view, and an old save's fogged node clears at once; gold veins (NodeScouting.cs).
         {
             var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
             var tickFog = typeof(Game).GetMethod("TickNodeFog", flags);
             var payVeins = typeof(Game).GetMethod("PayVeins", flags);
             var plan = new List<ExpansionRoom>();
-            var tw = Expansion.NodeFor(5, 1, plan, new List<MapNode>(), NodeKind.Tower);
-            Check(tw.HasValue && tw.Value.Hidden, "a scout tower node is placed fogged");
+            var tw = Expansion.NodeFor(5, 1, plan, new List<MapNode>(), NodeKind.Chest);
+            Check(tw.HasValue && !tw.Value.Hidden, "a node is placed unfogged");
             if (tw.HasValue)
             {
-                var tower = tw.Value;
-                for (int i = 0; i < 4 && !Expansion.NodeClaimed(plan, tower); i++) { var st = Expansion.NodeStep(plan, tower); if (st.HasValue) plan.Add(st.Value); }
-                Check(Expansion.NodeClaimed(plan, tower), "a room can be built round it");
-                V2 hub = new V2(Game.Width / 2f, Game.Height / 2f), dir = (tower.Pos - hub) * (1f / (tower.Pos - hub).Length);
-                V2 nearP = tower.Pos + dir * 1500f, farP = tower.Pos + dir * 3600f;
-                var nearNode = new MapNode { X = (short)nearP.X, Y = (short)nearP.Y, Kind = NodeKind.Chest, Hidden = true };
-                var farNode = new MapNode { X = (short)farP.X, Y = (short)farP.Y, Kind = NodeKind.Vein, Hidden = true };
-                var homes = g.Players.Values.Select(p => p.Pos).ToList();
-                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(plan.Take(plan.Count - 1)); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
-                g.Nodes.Add(tower); g.Nodes.Add(nearNode); g.Nodes.Add(farNode);
-                tickFog.Invoke(g, new object[] { 1f });
-                Check(g.Nodes.All(n => n.Hidden), "fogged nodes stay fogged while nobody is near and no tower stands");
-                g.Expanded.Add(plan[plan.Count - 1]); typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-                tickFog.Invoke(g, new object[] { 1f });
-                Check(!g.Nodes[0].Hidden && !g.Nodes[1].Hidden && g.Nodes[2].Hidden, "a claimed scout tower shows itself and a node 15 tiles off, not one 36 tiles off");
-                var later = new MapNode { X = (short)(tower.X - (int)(dir.X * 1200f)), Y = (short)(tower.Y - (int)(dir.Y * 1200f)), Kind = NodeKind.Rule, Hidden = true };
-                g.Nodes.Add(later);
-                tickFog.Invoke(g, new object[] { 1f });
-                Check(!g.Nodes[3].Hidden, "and a node placed later in its range too");
                 var pl = g.Players.Values.First();
-                pl.Pos = farP + new V2(700f, 0f);
+                var homes = g.Players.Values.Select(p => p.Pos).ToList();
+                V2 hub = new V2(Game.Width / 2f, Game.Height / 2f), dir = (tw.Value.Pos - hub) * (1f / (tw.Value.Pos - hub).Length);
+                V2 farP = tw.Value.Pos + dir * 3600f;
+                var old = new MapNode { X = (short)farP.X, Y = (short)farP.Y, Kind = NodeKind.Vein, Hidden = true };
+                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
+                g.Nodes.Add(old);
                 tickFog.Invoke(g, new object[] { 1f });
-                Check(!g.Nodes[2].Hidden, "a player walking within 8 tiles reveals a fogged node");
+                Check(!g.Nodes[0].Hidden, "an old save's fogged node far from everyone is revealed at once");
                 Run(s, dt, 3f, () => cg.Nodes.Count == g.Nodes.Count && cg.Nodes.All(n => !n.Hidden));
-                Check(cg.Nodes.Count == 4 && cg.Nodes.All(n => !n.Hidden), "the client sees them revealed too");
+                Check(cg.Nodes.Count == 1 && cg.Nodes.All(n => !n.Hidden), "the client sees it revealed too");
                 pl.Pos = homes[0];
                 // A gold vein pays every player each cleared wave while its room stands.
                 var vn = Expansion.NodeFor(5, 0, new List<ExpansionRoom>(), new List<MapNode>(), NodeKind.Vein);

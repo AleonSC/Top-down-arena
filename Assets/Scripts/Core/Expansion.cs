@@ -526,7 +526,7 @@ namespace Arena
                     y = by0 + 150 + rng.Int((by1 - by0 - 300) / Step + 1) * Step;
                     x = side == 1 ? bx1 + gap + 50 : bx0 - gap - 50;
                 }
-                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind, Rule = kind == NodeKind.Rule ? RuleFor(seed, cycle) : (byte)0, Hidden = true };  // (fogged until seen: NodeScouting.cs)
+                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind, Rule = kind == NodeKind.Rule ? RuleFor(seed, cycle) : (byte)0 };  // (never fogged since Nov 18: nodes always show what they are)
                 int reach = NodeRoomClear(n);
                 bool ok = true;
                 foreach (var o in nodes)

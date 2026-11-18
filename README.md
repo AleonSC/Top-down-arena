@@ -386,9 +386,11 @@ it** during a run. Each cast during a fight earns XP equal to the ability's cool
 slow abilities level at about the same pace. Instant abilities (Shockwave, Frost Nova, Mend Pulse, ...)
 earn by what they did: half for a cast that hit nothing, up to 1.5x for one that hit, healed or erased a
 lot. Casting between waves or with no enemies around earns nothing. Levels need 100 / 300 / 550 / 850 XP in
-total: about level 3 by wave 16-20 and level 5 by wave 40-50 if you use it whenever it's ready. On the
-ability bar, the thin green line on top of each ability's recharge bar is its progress to the next level (full
-once mastered); the Tab menu shows the level.
+total: about level 3 by wave 16-20 and level 5 by wave 40-50 if you use it whenever it's ready. Under
+each ability key, four cells (one per level-up, the current one filling; gold once mastered) and the level digit
+("M" at 5) show its mastery. Each cast that earns XP floats "+24" off the key; a level-up flashes brackets round
+the key, pops "LV 3" over it and shows a line above the keys with what it gave (+8% power, -4% cooldown), or
+"MASTERED" and the capstone. The Tab menu shows the level too.
 
 - **Each level:** +8% to everything the ability does (damage, healing, shields, buff duration, and the zones,
   minions and shots it creates) and 4% off its cooldown. Level 5 is +32% and -16%.
@@ -1110,7 +1112,8 @@ wave, everyone gets a shop before the boss:
 
 **The Campaign's and Quick Play's arena**: every new Campaign and Quick Play is played here (the **Simple Arena** modifier keeps the open arena
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
-[`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
+[`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the Classic box, already walled (no wrapping round the edges) with the camera following you at 1.5x
+(scroll to zoom out), and grows as you play:
 
 **Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-20 add up to 2.4x enemies on a big map (1.1 per extra hub of floor); later waves up to 1.4x.
 
@@ -1212,30 +1215,27 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Shop and vendor rooms, chest nodes and the mini-boss room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
-  4 x 4 tile squares) and a **mini-boss** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
-  out (at least 8 tiles from other nodes; chest and relic nodes keep 6 tiles clear of every room, and later floating rooms keep as far from them, and never take the only spot a room could be built to reach an earlier sealed room). All of them keep well away from the start room: 10 tiles farther out when placed off it, and never within 10 tiles of it. Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
-  (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
-  A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest of one of four **kinds**, rolled from the map (its ghost marker and tip show which):
+- **Chest nodes**: every boss cycle the game places a **chest node**: a point 10 to 16 tiles straight out from the map (at least 8 tiles from other nodes;
+  chest and relic nodes keep 6 tiles clear of every room), never within 10 tiles of the start room. Nodes are always in plain view: a big lit ring in the
+  node's colour with its mark at full size and a beacon rippling out, and a bold square on the minimap. Shop, vendor (Black Market) and mini-boss rooms are no
+  longer placed on the map: they come from **room cards** and **mystery doors** only (old saves keep their sealed rooms, which still open when a built room
+  shares 2 tiles of wall with one).
+  A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest of one of four **kinds**, rolled from the map (its marker and tip show which):
   **Gold** (gold trim, a coin: bursts into 14 gold coins worth 40 + 4 per wave for each player, for anyone to pick up), **Room card** (orange, a floor-plan card: every player gets a room card; only with room cards on),
   **Buildables** (pink, blueprint grid, a wrench: one random Black Market build in each player's stash, a kind with room under the 5 cap) or **Upgrade** (green, chevrons: every
-  player gets their own item, like a wave chest). It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
+  player gets their own item, like a wave chest). It opens once and never holds the wave up. No cover stands on a node. Nothing respawns: new ones
   appear around the current map. **Room chests:** every room you draw and build, and every surprise room (after a boss or from a breach event), may also drop a chest node 3 to 5 tiles outside its wall (a hallway 3 tiles wide or less 10%, a wider room 20% plus 1% per 7 tiles of floor, up to 40%: a 6 x 6 room 25%, 12 x 12 40%; none while 2 chests wait unclaimed). It lands on the side facing your other rooms when it can, so the room that claims it tends to join two branches. Half of these are **vector chests** (cyan, chevrons on the base and the vector arrow on the lock): once a room encloses one, walk up to it and it bursts into 4 vector pickups (24 vectors) that fly to the nearest player. Nothing drops within 10 tiles of the start room.
-  Bots build up to the shop room first, then the vendor, then a rule node's room, then chest and relic nodes, then the mini-boss room (they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
+  Bots build toward a rule node's room, then chest and relic nodes (and an old save's sealed rooms; they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (a violet diamond; once claimed, a violet **Relic chest** with cut corners and a gem on the lock). Build a room round it and walk up to
   it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
   separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. Each relic node rolls one of the relics below (never
-  the one every player already holds); its tip on the build map names it once the fog lifts:
+  the one every player already holds); its tip on the build map names it:
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, and stuck shuriken don't bounce.
   - **Backup**: the first time you would go down, you get straight back up with half your health and 2 s of grace. Then it's gone (your slot is empty).
   - **Hallway Runner**: you move 25% faster in hallways (boxes 3 tiles wide or less).
-- **Fog, scout towers and gold veins**: new nodes start **fogged**: you see where they are (a grey **?** on the floor, the minimap and the build map) but not
-  what they are until a player walks within **8 tiles** of one, or a claimed **scout tower** has it in range; building a room round it shows it too. Revealed nodes
-  stay revealed for everyone.
-  - **Scout tower** (a blue mast; every boss cycle with no relic node: the second, fourth, ...): build a room round it and, while it stands, every node within
-    **30 tiles** shows what it is, ones placed later too.
+- **Gold veins** (no fog: every node shows what it is from the moment it appears; scout towers are no longer placed, old saves keep theirs):
   - **Gold vein** (gold nuggets in rock; one every boss cycle): build a room round it and every cleared wave pays **every player 10 gold + 1 per wave number**.
     Veins stack.
 - **Rule nodes** (in progress, Docs/RuleRooms.md): every boss cycle also places a **rule node** (an orange square, 8 x 8 tiles, off to the left or right of the
@@ -1651,7 +1651,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Zoom in / out | Mouse scroll wheel during a match: up zooms in on you (up to 2x, the view follows you and stays inside the arena), down zooms back out to the whole arena. Eases back out when a run ends. While zoomed, arrows at the edge of the view point to everything off-screen: teammates in their colour with their name (pulsing red when downed), enemies in red (elites orange, bosses a big crimson arrow with a ring), and any unopened treasure chest in a pulsing arrow with a ring in its kind's colour (also a square on the Rooms minimap); nearer ones are bigger. Settings → Gameplay → Scroll-wheel zoom turns it off (on by default) |
 | Teammate shots 25–100% | Settings → Gameplay (100% by default). How solid other players' bullets are drawn, so a crowd of them doesn't hide the fight; yours and the enemies' stay full. Local only, saved on your machine |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
-| Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles three modes: Corner (the default; CRT phosphor readouts in bracket corners: health with a 20-cell bar, your level and a thin gold line for its progress bottom-left (teammates' health in slim rows above it), each ability key over its seconds left (the ult's charge %), its name and its mastery pips at the bottom, the wave and enemies left bottom-right with slim rows above it for what the run has: lives, gold, vectors (flashing as they come in), relic, path and hunt sector; the minimap keeps the top right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode) |
+| Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles three modes: Corner (the default; CRT phosphor readouts in bracket corners: health with a 20-cell bar, your level and a thin gold line for its progress bottom-left (teammates' health in slim rows above it), each ability key over its seconds left (the ult's charge %), its name and its mastery cells and level at the bottom, the wave and enemies left bottom-right with slim rows above it for what the run has: lives, gold, vectors (flashing as they come in), relic, path and hunt sector; the minimap keeps the top right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode) |
 | Aim debug overlay | F3 |
 | Save / load a run snapshot (host, dev) | F6 saves the match as it is now; F7 loads the newest (see *Run snapshots*, under *Testing tricks*) |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
