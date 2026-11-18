@@ -145,6 +145,18 @@ function drawShape(sh,a=1){
  }
 }
 let live=null,hover=null;
+let liveCv=null,liveCx=null;
+function liveReset(){
+ if(!liveCv){liveCv=document.createElement("canvas");liveCx=liveCv.getContext("2d")}
+ if(liveCv.width!==Math.round(W*dpr)||liveCv.height!==Math.round(H*dpr)){liveCv.width=Math.round(W*dpr);liveCv.height=Math.round(H*dpr)}
+ liveCx.setTransform(1,0,0,1,0,0);liveCx.clearRect(0,0,liveCv.width,liveCv.height);
+}
+function liveSeg(a,b){ // one cheap opaque segment of the stroke being drawn (smoothed + glowed when it is finished)
+ const z=S.cam.z,c=INKS[S.ink][0],k=lw(),x=liveCx;
+ x.setTransform(dpr,0,0,dpr,0,0);x.lineCap=x.lineJoin="round";
+ const A=[(a.x-S.cam.x)*z+W/2,(a.y-S.cam.y)*z+H/2],B=[(b.x-S.cam.x)*z+W/2,(b.y-S.cam.y)*z+H/2];
+ for(const[w,col]of[[3.2*k,c],[1.1*k,"#ffffff"]]){x.strokeStyle=col;x.lineWidth=w;x.beginPath();x.moveTo(A[0],A[1]);x.lineTo(B[0],B[1]);x.stroke()}
+}
 let raf=0,cache=null,cacheShapes=null,cacheGrid=null,cacheCam=null,camTimer=0;
 function draw(){if(!raf)raf=requestAnimationFrame(()=>{raf=0;render()})}
 function buildCache(){
@@ -171,7 +183,8 @@ function render(){
   ctx.drawImage(cache,0,0,W,H);ctx.setTransform(dpr,0,0,dpr,0,0);
   clearTimeout(camTimer);camTimer=setTimeout(()=>{buildCache();draw()},140);
  }else ctx.drawImage(cache,0,0,W,H);
- if(live){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawShape(live,.9);ctx.restore()}
+ if(drawing&&drawing.t==="pen"&&liveCv)ctx.drawImage(liveCv,0,0,W,H);
+ else if(live){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawShape(live,.9);ctx.restore()}
 }
 function drawGrid(){
  const z=S.cam.z,x0=S.cam.x-W/2/z,x1=S.cam.x+W/2/z,y0=S.cam.y-H/2/z,y1=S.cam.y+H/2/z;
@@ -224,14 +237,14 @@ function begin(e){
  if(t==="spawn"){addShape({t:"spawn",x:p.x,y:p.y,r:24,ink:S.ink,w:lw()});return}
  if(t==="pillar"){drawing={t,p0:p};live={t:"pillar",x:p.x,y:p.y,r:GRID/2,ink:S.ink,w:lw()};draw();return}
  if(t==="label"){const s=prompt("Label text");if(s)addShape({t:"label",x:p.x,y:p.y,txt:s.slice(0,40),s:28,ink:S.ink});return}
- drawing={t,p0:p,raw:[p]};
+ drawing={t,p0:p,raw:[p]};if(t==="pen")liveReset();
  live={t:t==="pen"?"path":t,pts:[p,p],ink:S.ink,w:lw(),fill:S.fill};draw();
 }
 function move(e){
  const t=drawing.t,p=pt(e,t!=="pen"&&t!=="erase");
  if(t==="erase"){eraseAt(p);return}
  if(t==="pillar"){live.r=Math.max(GRID/4,S.snap?snapv(Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y)):Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y));draw();return}
- if(t==="pen"){const l=drawing.raw[drawing.raw.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)*S.cam.z>5){drawing.raw.push(p);live.pts=drawing.raw}}
+ if(t==="pen"){const l=drawing.raw[drawing.raw.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)*S.cam.z>4){drawing.raw.push(p);live.pts=drawing.raw;liveSeg(l,p)}}
  else if(t==="line"||t==="gate"){let q=p;if(e.shiftKey)q=p;live.pts=[drawing.p0,q]}
  else live.pts=[drawing.p0,p];
  draw();
