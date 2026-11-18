@@ -65,7 +65,7 @@ topBar.appendChild(Object.assign(document.createElement("div"),{className:"sep"}
 tb("Snap",()=>{S.snap=!S.snap;ui()},"bSnap");tb("Fill",()=>{S.fill=!S.fill;ui();draw()},"bFill");tb("Grid",()=>{S.grid=!S.grid;ui();draw()},"bGrid");
 tb("Size",()=>{S.size=S.size%3+1;ui()},"bSize");tb("Finger",()=>{S.finger=!S.finger;ui()},"bFinger");
 topBar.appendChild(Object.assign(document.createElement("div"),{className:"sep"}));
-tb("Fit",()=>fit());tb("PNG",()=>exportPng());tb("Save",()=>exportJson());tb("Open",()=>$("file").click());
+tb("Main room<small>16×9</small>",()=>addMain());tb("Fit",()=>fit());tb("PNG",()=>exportPng());tb("Save",()=>exportJson());tb("Open",()=>$("file").click());
 tb("Clear",()=>{if(S.shapes.length&&confirm("Clear the whole map?")){push();S.shapes=[];draw();save()}});
 function ui(){
  [...tools.children].forEach(b=>b.classList.toggle("on",b.dataset.t===S.tool));
@@ -140,7 +140,8 @@ function drawShape(sh,a=1){
  switch(sh.t){
   case"path":{const P=sh.pts;if(sh.closed&&sh.fill)hatch(P,c,a,true);neon(P,c,w,sh.closed,a,null,true);break}
   case"line":neon(sh.pts,c,w,false,a);break;
-  case"rect":case"ell":{const P=polyOf(sh);if(sh.fill)hatch(P,c,a);neon(P,c,w,true,a);break}
+  case"rect":case"ell":{const P=polyOf(sh);if(sh.fill)hatch(P,c,a);neon(P,c,w,true,a);
+   if(sh.main){const[p,q]=sh.pts;ctx.font="600 40px 'Courier New',monospace";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle=hex(c,.55*a);ctx.fillText("MAIN ROOM",(p.x+q.x)/2,(p.y+q.y)/2)}break}
   case"pillar":{const P=[];for(let i=0;i<=24;i++){const q=i/24*Math.PI*2;P.push({x:sh.x+Math.cos(q)*sh.r,y:sh.y+Math.sin(q)*sh.r})}hatch(P,c,a);neon(P,c,w,true,a);break}
   case"gate":{const[p,q]=sh.pts;neon([p,q],GATE,w,false,a,[10/S.cam.z,7/S.cam.z]);for(const e of[p,q]){ctx.beginPath();ctx.arc(e.x,e.y,5/S.cam.z,0,7);ctx.fillStyle=hex(GATE,.9*a);ctx.fill()}break}
   case"spawn":{const P=[];for(let i=0;i<=24;i++){const q=i/24*Math.PI*2;P.push({x:sh.x+Math.cos(q)*sh.r,y:sh.y+Math.sin(q)*sh.r})}
@@ -273,7 +274,7 @@ function nudge(dx,dy){
 }
 function syncDim(){
  const d=S.sel&&dimsOf(S.sel);
- $("dimName").textContent=d?(S.sel.t==="pillar"?"Pillar (diameter)":S.sel.t==="rect"?"Box":"Circle"):(S.sel?"Drag to move":S.tool==="edit"?"Tap a shape":"Draw a shape to size it");
+ $("dimName").textContent=d?(S.sel.t==="pillar"?"Pillar (diameter)":S.sel.main?"Main room":S.sel.t==="rect"?"Box":"Circle"):(S.sel?"Drag to move":S.tool==="edit"?"Tap a shape":"Draw a shape to size it");
  $("dhl").style.display=S.sel&&S.sel.t==="pillar"?"none":"flex";
  if(d){$("dw").value=tiles(d.w);$("dh").value=tiles(d.h)}
 }
@@ -344,6 +345,12 @@ function finish(e){
  if(Math.hypot(a.x-b.x,a.y-b.y)*S.cam.z<6){draw();return}
  if(d.t==="gate")sh.ink=0;
  addShape(sh);
+}
+function addMain(){ // the game's hub: Game.Width x Game.Height = 1600 x 900 (16 x 9 tiles), corner at the origin
+ const have=S.shapes.find(q=>q.main);
+ S.cam={x:800,y:450,z:Math.min((W-260)/1600,(H-220)/900,1)};
+ if(have){S.sel=have;syncDim();draw();save();toast("Main room is already on the map");return}
+ addShape({t:"rect",pts:[{x:0,y:0},{x:1600,y:900}],ink:S.ink,w:lw(),fill:S.fill,main:true});
 }
 function addShape(sh){
  push();const old=S.shapes;S.shapes=[...old,sh];
