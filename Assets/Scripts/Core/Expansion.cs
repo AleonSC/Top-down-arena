@@ -434,6 +434,8 @@ namespace Arena
         /// Where a chest or relic node stands: the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
         /// is floor, else of the box holding the node), moved, in a card room, to the nearest half-tile point clear of its designed pillars and blocks (an ordinary room's random
         /// cover is cleared instead). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
+        public const int HallMaxWidth = 300;  // a room this narrow or less is a hallway
+
         public static V2 NodeSpotIn(IList<ExpansionRoom> rooms, MapNode nd, IList<Solid> cover)
         {
             int at = -1;
@@ -443,6 +445,8 @@ namespace Arena
             if (at < 0)
                 return nd.Pos;
             var group = GroupOf(rooms, at);
+            if (group.Count == 1 && Math.Min(rooms[at].W, rooms[at].H) <= HallMaxWidth)
+                return nd.Pos;  // a hallway keeps its chest where it was put (a mystery door's chest sits at the far end)
             int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue, held = at;
             foreach (int i in group)
             {
