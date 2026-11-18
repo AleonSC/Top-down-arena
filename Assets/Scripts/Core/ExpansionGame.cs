@@ -923,7 +923,7 @@ namespace Arena
             w.Write((ushort)Placed.Count);  // (ushort: a big map can pass 255)
             foreach (var b in Placed)
             {
-                w.Write((byte)b.Kind); w.Write(b.X); w.Write(b.Y);
+                w.Write((byte)b.Kind); w.Write(b.X); w.Write(b.Y); w.Write(b.Owner); w.Write(b.Waves);
             }
             w.Write((ushort)GateFits.Count);  // (ushort: a big map can pass 255)
             foreach (var g in GateFits)
@@ -1015,7 +1015,7 @@ namespace Arena
             int npb = r.ReadUInt16();
             Placed.Clear();
             for (int i = 0; i < npb; i++)
-                Placed.Add(new PlacedBuild { Kind = (BuildKind)r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16() });
+                Placed.Add(new PlacedBuild { Kind = (BuildKind)r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16(), Owner = r.ReadByte(), Waves = r.ReadByte() });
             int ng = r.ReadUInt16();
             GateFits.Clear();
             for (int i = 0; i < ng; i++)

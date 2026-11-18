@@ -2175,6 +2175,10 @@ static partial class Shot {
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" && np[2] != "hidden", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
+      if (Environment.GetEnvironmentVariable("TURRETS") != null) {  // TURRETS=1: three Black Market turrets round player 1 (5, 3 and 1 waves left; TurretLook.cs)
+        var tp = xg.Players[1].Pos; int ti = 0;
+        foreach (var to in new[] { new V2(-170f, -90f), new V2(170f, -90f), new V2(0f, 150f) }) { xg.Placed.Add(new PlacedBuild { Kind = BuildKind.Turret, X = (short)(tp.X + to.X), Y = (short)(tp.Y + to.Y), Owner = 1, Waves = (byte)(5 - 2 * ti) }); ti++; }
+      }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
       if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;

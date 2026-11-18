@@ -629,7 +629,7 @@ namespace Arena
         public static bool PlaceSpot(World w, IList<PlacedBuild> placed, V2 p, out string why)
         {
             why = null;
-            if (placed.Count >= Market.MaxPlaced) { why = "The map holds " + Market.MaxPlaced + " traps at most"; return false; }
+            if (placed.Count >= Market.MaxPlaced) { why = "The map holds " + Market.MaxPlaced + " traps and turrets at most"; return false; }
             if ((int)p.X % Step != 0 || (int)p.Y % Step != 0) { why = "Not on the grid"; return false; }
             if (OpenArea(w, p, LinkEdge) < 0) { why = "Must be inside a connected room, off its walls"; return false; }
             foreach (var c in w.Cover)
