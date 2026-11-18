@@ -3,24 +3,31 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The HUD modes on H: 0 full (Hud.cs), 1 corner text, 2 on the player, 3 hidden. The two partial modes keep only
-    /// what you act on mid-fight: health, ability cooldowns and enemies left (a boss's slim bar stays, as when hidden), in the
+    /// The HUD modes on H: 0 corner text (the default), 1 on the player, 2 hidden. (The full console of Hud.cs is no longer a
+    /// mode: hudShown stays false.) The corner HUD keeps what you act on mid-fight plus the run's state: health and level,
+    /// teammates, the keys with their mastery, the wave and enemies left, and lives, gold, vectors, the path and relic (a boss's
+    /// slim bar stays, as when hidden). Both are in the
     /// CRT console's look: Docs/Mockups/crt-hud-modes.html, A (Phosphor Corners) and E (Callout Tag). Every number sits by its
     /// key with the ability's name, and the ult shows its charge % as on the full HUD. Local to each player: no protocol change.
     public partial class ArenaApp
     {
-        public const int HudModeCount = 4;
-        static readonly string[] HudModeNames = { "Full", "Corner text", "On the player", "Hidden" };
-        int hudMode;          // 0 full, 1 corner text, 2 on the player, 3 hidden
-        float miniT;          // 0..1: the partial HUD easing in and out
+        public const int HudModeCount = 3;
+        public const int HudCorner = 0, HudOnPlayer = 1, HudHidden = 2;
+        static readonly string[] HudModeNames = { "Corner", "On the player", "Hidden" };
+        int hudMode;          // HudCorner, HudOnPlayer or HudHidden
+        float miniT = 1f;     // 0..1: the partial HUD easing in and out
+
+        /// The saved mode: "hud_view" (0 corner, 1 on the player, 2 hidden), else the old four-mode "hud_mode" moved over
+        /// (full and corner text both become corner).
+        static int SavedHudMode() => PlayerPrefs.HasKey("hud_view") ? PlayerPrefs.GetInt("hud_view", 0) : Math.Max(0, PlayerPrefs.GetInt("hud_mode", 0) - 1);
 
         void SetHudMode(int mode, bool save = true)
         {
             hudMode = ((mode % HudModeCount) + HudModeCount) % HudModeCount;
-            hudShown = hudMode == 0;  // the full console only shows in mode 0 (Hud.cs)
+            hudShown = false;  // the full console (Hud.cs) is retired
             if (save)
             {
-                PlayerPrefs.SetInt("hud_mode", hudMode);  // remembered between launches
+                PlayerPrefs.SetInt("hud_view", hudMode);  // remembered between launches
                 PlayerPrefs.Save();
             }
         }
@@ -28,7 +35,7 @@ namespace Arena
         /// Eases the partial HUD in or out (called every frame from Update).
         void TickMiniHud()
         {
-            bool want = (hudMode == 1 || hudMode == 2) && !LaunchHoldsHud && !BossIntroHoldsHud && !RecallActive;
+            bool want = hudMode != HudHidden && !LaunchHoldsHud && !BossIntroHoldsHud && !RecallActive;
             miniT = MathX.MoveTowards(miniT, want ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
         }
 
@@ -37,9 +44,9 @@ namespace Arena
             if (me == null || miniT <= 0f)
                 return;
             float a = miniT * miniT * (3f - 2f * miniT);
-            if (hudMode == 2)
+            if (hudMode == HudOnPlayer)
                 MiniOnPlayer(me, a);
-            else if (hudMode == 1)
+            else if (hudMode == HudCorner)
                 MiniCorners(me, a);
         }
 
@@ -167,10 +174,19 @@ namespace Arena
                 MiniText(new Rect(hr.x + CrtUi.TitleWidth(hp, 52) + 8f, hr.y + 30f, 120f, 26f), "/ " + Mathf.CeilToInt(me.MaxHp), 24, low ? red : dim, a);
                 MiniCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), frac, 20, hc, low ? MiniBlink(a) : a);
             }
+            if (!me.Downed)  // the level's progress: a thin gold line under the health cells
+            {
+                float xf = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
+                string lv = "LV " + me.Level;  // your level at the line's right end, level with it
+                float lw = CrtUi.TitleWidth(lv, 14), lineW = hr.width - lw - 8f;
+                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW, 2f), MiniA(Ui.Gold, 0.18f * a));
+                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW * xf, 2f), MiniA(Ui.Gold, a));
+                MiniText(new Rect(hr.x + lineW + 4f, hr.y + 71f, lw + 4f, 14f), lv, 14, Ui.Gold, a, TextAnchor.MiddleRight);
+            }
             MiniScan(new Rect(hr.x - 4f, hr.y - 4f, hr.width + 8f, hr.height + 8f), a);
 
             // Teammates: one slim row each, stacked above your health
-            float ty = hr.y - 20f;
+            float ty = hr.y - 36f;  // (clear of the brackets)
             foreach (var p in game.Players.Values)
             {
                 if (p.Id == game.MyId)
@@ -201,7 +217,7 @@ namespace Arena
                         shown++;
                     }
                 total += Mathf.Max(0, shown - 1) * gap;
-                float x = W / 2f - total / 2f, y = H - 98f;
+                float x = W / 2f - total / 2f, y = H - 104f;
                 for (int i = 0; i < Upgrades.SlotCount; i++)
                 {
                     if (!MiniSlot(me, i, out bool ready, out float f))
@@ -217,9 +233,10 @@ namespace Arena
                     MiniText(new Rect(x - 10f, y + 24f, colW + 20f, 24f), val, 24, ult ? Ui.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleCenter);
                     MiniCells(new Rect(barX, y + 52f, minW, 4f), f, 6, ult ? Ui.Gold : ready ? KeyGreen : ink, a);
                     MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, ult ? Ui.Gold : ready ? ink : dim, a, TextAnchor.MiddleCenter);
+                    MiniMastery(me, i, cx, y + 77f, a);
                     x += colW + gap;
                 }
-                MiniScan(new Rect(W / 2f - total / 2f - 12f, y - 2f, total + 24f, 78f), a);
+                MiniScan(new Rect(W / 2f - total / 2f - 12f, y - 2f, total + 24f, 84f), a);
             }
 
             // The wave and the enemies left
@@ -229,6 +246,82 @@ namespace Arena
             MiniText(new Rect(wr.x, wr.y + 12f, wr.width, 50f), game.Remaining.ToString(), 52, ink, a, TextAnchor.MiddleRight);
             MiniText(new Rect(wr.x, wr.y + 60f, wr.width, 16f), "ENEMIES LEFT", 16, dim, a, TextAnchor.MiddleRight);
             MiniScan(new Rect(wr.x - 4f, wr.y - 4f, wr.width + 8f, wr.height + 8f), a);
+
+            // What you carry: one slim row each above the wave, as the teammates sit above your health (only what this run has)
+            float ry = wr.y - 30f;  // (clear of the brackets)
+            if (game.ExpandingOn)
+            {
+                bool vfull = me.Vectors >= me.VectorCap;
+                Color vc = Color.Lerp(vfull ? Ui.Gold : new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * VectorChipFlash);  // (flashes as vectors come in: VectorGainLook.cs)
+                if (vfull && vecFullNear)  // a pickup or Stash waiting by you: pulse amber
+                    vc = MiniA(vc, 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f));
+                MiniRow(wr, ry, "VECTORS", VectorChipCount(me) + " / " + me.VectorCap + PushChipNote, vc, a, -1f);  // (the number only)
+                vecChipRect = new Rect(wr.xMax - 60f, ry, 60f, 16f);  // where the shards land
+                ry -= 22f;
+            }
+            if (me.Gold > 0 || game.CurrentPath == PathId.Bazaar)
+            {
+                MiniRow(wr, ry, "GOLD", me.Gold.ToString(), Ui.Gold, a, -1f);
+                Ui.Icon(new Rect(wr.xMax - CrtUi.TitleWidth(me.Gold.ToString(), 16) - 20f, ry + 1f, 14f, 14f), PixelArt.Get("ui_coin"), MiniA(Color.white, a));
+                ry -= 22f;
+            }
+            if (game.LivesMax > 0)
+            {
+                int max = game.LivesMax, left = game.LivesLeft, n = Mathf.Min(max, 5);
+                MiniText(new Rect(wr.x, ry, wr.width, 16f), "LIVES", 16, dim, a);
+                var heart = PixelArt.Get("mod_secondwind");
+                for (int i = 0; i < n; i++)
+                    Ui.Icon(new Rect(wr.xMax - (n - i) * 15f, ry + 2f, 12f, 12f), heart, i < left ? MiniA(LifeRed, a) : new Color(1f, 1f, 1f, 0.18f * a));
+                ry -= 22f;
+            }
+            if (me.Relic != RelicId.None)
+            {
+                MiniRow(wr, ry, "RELIC", Relics.Name(me.Relic).ToUpperInvariant(), ToColor(RelicInk), a, -1f);
+                ry -= 22f;
+            }
+            var path = Paths.Get(game.CurrentPath);
+            if (path != null)
+            {
+                int pl = game.PathWavesLeft;
+                MiniRow(wr, ry, path.Name.ToUpperInvariant(), game.OnPath ? pl + " LEFT" : "NEXT WAVE", ToColor(path.Accent), a, -1f);
+                ry -= 22f;
+            }
+            if (game.HuntMapOn && game.HuntRoute != null && game.Hunt != null)
+            {
+                MiniRow(wr, ry, "SECTOR", (game.HuntRoute.Step + 1) + " / " + game.HuntRoute.Length, ink, a, -1f);
+                ry -= 22f;
+            }
+        }
+
+        /// Slot i's mastery under its name: a small pip per level, gold once mastered, the next one filling.
+        void MiniMastery(Player me, int i, float cx, float y, float a)
+        {
+            var id = me.Slots[i].Id;
+            me.MasteryXp.TryGetValue(id, out float mxp);
+            int level = Game.MasteryLevelFor(mxp);
+            float prog = Game.MasteryProgress(mxp);
+            bool max = level >= Game.MasteryMax;
+            Color on = max ? Ui.Gold : new Color(0.6f, 0.85f, 1f);
+            const float pw = 8f, pg = 3f;
+            float x0 = cx - (Game.MasteryMax * pw + (Game.MasteryMax - 1) * pg) / 2f;
+            for (int k = 0; k < Game.MasteryMax; k++)
+            {
+                var pip = new Rect(x0 + k * (pw + pg), y, pw, 3f);
+                Ui.Fill(pip, MiniA(Color.white, 0.18f * a));
+                if (k < level)
+                    Ui.Fill(pip, MiniA(on, a));
+                else if (k == level && prog > 0f)
+                    Ui.Fill(new Rect(pip.x, pip.y, pip.width * prog, pip.height), MiniA(on, 0.55f * a));
+            }
+        }
+
+        /// A slim right-column row: the label left, the value right in c, and (frac >= 0) a cell bar under it.
+        void MiniRow(Rect col, float y, string label, string value, Color c, float a, float frac)
+        {
+            MiniText(new Rect(col.x, y, 110f, 16f), label, 16, CrtUi.Dim, a);
+            MiniText(new Rect(col.x + 60f, y, col.width - 60f, 16f), value, 16, c, a, TextAnchor.MiddleRight);
+            if (frac >= 0f)
+                MiniCells(new Rect(col.x, y + 17f, col.width, 4f), frac, 20, c, a);
         }
 
         // ---- E: Callout Tag. A leader line from you to a small glass tag (up and to the left; it flips right near the left wall

@@ -21,6 +21,8 @@ namespace Arena
         bool shifted;
 
         float WinNow => Time.unscaledTime;
+        float winFreeze;  // while the pause menu closes: how long since it started closing (its windows' clocks stop there)
+        float WinClock => WinNow - winFreeze;  // the clock a window's power-on runs on (CrtWindows.cs)
         float WinT => WinNow - winOpenAt;  // seconds since the window opened
 
         /// A window (not the pause menu) is sliding out: nothing in it can be clicked.
@@ -105,6 +107,7 @@ namespace Arena
 
         float pauseAnim;     // 0 closed .. 1 fully slid in; opening and closing take 0.3 s
         float pauseOpenedAt = -10f;  // when the pause menu last opened: its cabinet's clock (the opening plays once from here, CrtWindows.cs)
+        float pauseClosedAt = -1f;   // when it started closing (-1: it isn't): its opening's clock stops there, so nothing pops in as it slides out
 
         /// Is the pause menu (or a screen opened from it) wanted?
         bool PauseMenuWanted => session.Screen == AppScreen.Game && (pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen)) && !ModalScreenOpen && !RecallActive;
@@ -124,9 +127,17 @@ namespace Arena
             {
                 drawerKey = null;  // its cabinet comes in afresh (also when a friend paused)
                 pauseOpenedAt = Time.unscaledTime;
+                pauseClosedAt = -1f;
                 ResetCabWindow();
                 sounds.Play(Sfx.PauseSettle, 0.6f, Time.unscaledTime);  // a soft thunk as it slides in
             }
+            else if (want && pauseClosedAt >= 0f)
+            {
+                pauseOpenedAt += Time.unscaledTime - pauseClosedAt;  // reopened while sliding out: its opening carries on from where it stopped
+                pauseClosedAt = -1f;
+            }
+            if (!want && pauseClosedAt < 0f && pauseAnim > 0f)
+                pauseClosedAt = Time.unscaledTime;
             if (!want && before >= 1f && pauseAnim < 1f)
                 sounds.Play(Sfx.PauseClose, 0.5f, Time.unscaledTime);
         }
@@ -137,12 +148,18 @@ namespace Arena
             bool closing = !PauseMenuWanted;
             if (closing && Event.current.type != EventType.Repaint)
                 return;
-            // The window clock runs from when the menu opened (its opening plays once); closing, everything is in and it slides out.
+            // Just wanted (Esc this frame): its opening starts next frame (StepPauseAnim); drawn now, the last opening's clock would show it fully open.
+            if (!closing && pauseAnim <= 0f)
+                return;
+            // The window clock runs from when the menu opened (its opening plays once); closing, it stops where it was (a half-done opening
+            // slides out half-done, nothing still to come pops in) and the menu slides out.
             float savedOpen = winOpenAt, savedClose = winCloseK;
-            winOpenAt = closing ? WinNow - 10f : pauseOpenedAt;
+            winOpenAt = closing ? pauseOpenedAt + WinNow - (pauseClosedAt >= 0f ? pauseClosedAt : WinNow) : pauseOpenedAt;
             winCloseK = closing ? 1f - pauseAnim : 0f;
+            winFreeze = closing && pauseClosedAt >= 0f ? WinNow - pauseClosedAt : 0f;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f * WindowVis));
             DrawPauseWindow();
+            winFreeze = 0f;
             if (closing)
             {
                 winOpenAt = savedOpen;

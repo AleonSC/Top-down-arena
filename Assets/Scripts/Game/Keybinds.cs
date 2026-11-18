@@ -23,7 +23,7 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.G, KeyCode.X, KeyCode.B, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M,
+            KeyCode.G, KeyCode.B, KeyCode.X, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M,
         };
         static readonly string[] Titles =
         {
@@ -250,6 +250,17 @@ namespace Arena
                     keys[i] = KeyCode.None;  // a save from before the Map key: M was Mute's old default, and goes to the map now
                 int v2 = PlayerPrefs.GetInt("key2_" + (KeyAction)i, 0);
                 keys2[i] = Allowed((KeyCode)v2, (KeyAction)i) ? (KeyCode)v2 : KeyCode.None;
+            }
+            if (!PlayerPrefs.HasKey("key_gadget_x"))  // a save from before X became the gadget key: swap the old defaults (gadget B, discard X)
+            {
+                PlayerPrefs.SetInt("key_gadget_x", 1);
+                int g = (int)KeyAction.Gadget, d = (int)KeyAction.DiscardItem;
+                if (keys[g] == KeyCode.B && keys[d] == KeyCode.X)
+                {
+                    keys[g] = KeyCode.X;
+                    keys[d] = KeyCode.B;
+                    Save();
+                }
             }
             for (int i = 0; i < keys.Length; i++)  // a hand-edited save with a key on two actions: the later one goes back
             {
