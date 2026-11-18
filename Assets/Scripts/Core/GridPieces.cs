@@ -119,7 +119,7 @@ namespace Arena
 
         /// The open room this piece builds with its cell box's corner at (x, y) (on the lattice): its boxes, the first holding the room, Price 0, if it is legal
         /// there (no overlap, a door's worth of shared wall with the connected map, the size caps), else null with `why`.
-        public static List<ExpansionRoom> GridPieceRooms(IList<ExpansionRoom> built, GridPiece piece, int orient, int x, int y, out string why, bool free = true)
+        public static List<ExpansionRoom> GridPieceRooms(IList<ExpansionRoom> built, GridPiece piece, int orient, int x, int y, out string why)
         {
             why = null;
             var orients = GridPieceOrients(piece);
@@ -132,8 +132,7 @@ namespace Arena
             for (int i = 0; i < made.Count; i++)
             {
                 var q = made[i];
-                if (free)
-                    q.Price = 0;  // (not free: the head keeps what drawing it would cost, a mystery door's price)
+                q.Price = 0;
                 q.Surprise = 0;
                 made[i] = q;
             }
@@ -207,15 +206,9 @@ namespace Arena
             return res;
         }
 
-        /// SurpriseOptions or, in a Grid run, GridSurpriseOptions.
-        public static List<SurpriseOption> SurpriseOptionsFor(bool grid, IList<ExpansionRoom> built, SurpriseShape shape, V2? through = null)
-            => grid ? GridSurpriseOptions(built, shape, through) : SurpriseOptions(built, shape, through);
-
-        /// Surprise or, in a Grid run, the same pick among the lattice's places (the wanted shape's piece, else the other gifts' pieces).
-        public static SurpriseOption? SurpriseFor(bool grid, int seed, int wave, IList<ExpansionRoom> built, SurpriseShape wanted, out string why, V2? through = null)
+        /// A surprise room's pick among the lattice's places (the wanted shape's piece, else the other gifts' pieces): seeded among the best few.
+        public static SurpriseOption? SurpriseFor(int seed, int wave, IList<ExpansionRoom> built, SurpriseShape wanted, out string why, V2? through = null)
         {
-            if (!grid)
-                return Surprise(seed, wave, built, wanted, out why, through);
             why = null;
             var tries = new List<SurpriseShape> { wanted };
             foreach (var s in new[] { SurpriseShape.Chamfer, SurpriseShape.THall, SurpriseShape.LHall, SurpriseShape.Cross, SurpriseShape.Ring, SurpriseShape.Box })
@@ -232,15 +225,13 @@ namespace Arena
             return null;
         }
 
-        /// A Grid run's mystery door rooms (MysteryDoors.cs): every place a piece can go, as surprise options priced as drawing them (a mystery door charges a share).
+        /// Mystery door rooms (MysteryDoors.cs): every place a piece can go, as surprise options priced by its cells (Mystery.PriceForCells).
         public static List<SurpriseOption> GridMysteryOptions(IList<ExpansionRoom> built, GridPiece piece)
         {
             var res = new List<SurpriseOption>();
             foreach (var o in GridPieceOptions(built, piece))
             {
-                var priced = GridPieceRooms(built, piece, o.Orient, o.X, o.Y, out _, false);
-                if (priced != null)
-                    res.Add(new SurpriseOption { Rooms = priced, Shape = SurpriseShape.Box, Price = priced[0].Price, X = o.X, Y = o.Y });
+                res.Add(new SurpriseOption { Rooms = o.Rooms, Shape = SurpriseShape.Box, Price = Mystery.PriceForCells(GridPieceCells(piece)), X = o.X, Y = o.Y });
             }
             return res;
         }
