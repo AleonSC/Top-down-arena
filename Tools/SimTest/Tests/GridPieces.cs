@@ -211,6 +211,29 @@ static partial class Program
         Run(s, dt, 0.3f, null, noPicks);
         Check(Game.HandCount(g.Players[1]) == 1, "with Grid off, no piece is played");
         g.Diff.Set(DiffKnob.GridRooms, 1f);
+        // No Open wall in a Grid run (owner Nov 18).
+        int cuts0 = g.Openings.Count;
+        g.ExpandOpen = true;
+        g.ProposeExpandCut(new WallCut { Vertical = true, At = 2000, From = -400, Till = 200 });
+        Run(s, dt, 0.3f, null, noPicks);
+        Check(!g.OpenWallsOn && !g.DoorsOpen && g.Openings.Count == cuts0, "no Open wall in a Grid run");
+        // Mystery doors: the room behind each is a piece on the lattice; a small room (a shop or vendor) is one cell.
+        var roll = typeof(Game).GetMethod("RollMysteryDoors", flags);
+        var plans = (System.Collections.IList)typeof(Game).GetField("mysteryPlans", flags).GetValue(g);
+        bool lattice = true, cellSmall = true; int seen = 0;
+        for (int w = 0; w < 6; w++)
+        {
+            g.Wave = 7 + w;
+            roll.Invoke(g, null);
+            foreach (SurpriseOption pl in plans)
+            {
+                seen++;
+                lattice &= pl.Rooms.All(r => (r.X - Expansion.GridX0) % 600 == 0 && (r.Y - Expansion.GridY0) % 600 == 0 && r.W % 600 == 0 && r.H % 600 == 0) && pl.Price > 0;
+                if (pl.Rooms.Count == 1 && pl.Rooms[0].W == pl.Rooms[0].H) cellSmall &= pl.Rooms[0].W == 600;
+            }
+        }
+        Check(seen > 0 && lattice && cellSmall, "mystery door rooms are pieces on the lattice, priced, a small one exactly a cell (" + seen + " plans)");
+        g.Diff.Set(DiffKnob.GridRooms, 1f);
         var place = typeof(Game).GetMethod("PlaceGridMini", flags);
         int before4 = g.Expanded.Count;
         bool first = (bool)place.Invoke(g, new object[] { 1 }), second = (bool)place.Invoke(g, new object[] { 1 });

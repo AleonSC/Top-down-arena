@@ -119,7 +119,7 @@ namespace Arena
 
         /// The open room this piece builds with its cell box's corner at (x, y) (on the lattice): its boxes, the first holding the room, Price 0, if it is legal
         /// there (no overlap, a door's worth of shared wall with the connected map, the size caps), else null with `why`.
-        public static List<ExpansionRoom> GridPieceRooms(IList<ExpansionRoom> built, GridPiece piece, int orient, int x, int y, out string why)
+        public static List<ExpansionRoom> GridPieceRooms(IList<ExpansionRoom> built, GridPiece piece, int orient, int x, int y, out string why, bool free = true)
         {
             why = null;
             var orients = GridPieceOrients(piece);
@@ -132,7 +132,8 @@ namespace Arena
             for (int i = 0; i < made.Count; i++)
             {
                 var q = made[i];
-                q.Price = 0;
+                if (free)
+                    q.Price = 0;  // (not free: the head keeps what drawing it would cost, a mystery door's price)
                 q.Surprise = 0;
                 made[i] = q;
             }
@@ -164,6 +165,19 @@ namespace Arena
                             res.Add(new GridSpot { Side = (byte)side, X = cx, Y = cy, SX = across ? c + GridCell / 2 : line, SY = across ? line : c + GridCell / 2 });
                     }
                 }
+            }
+            return res;
+        }
+
+        /// A Grid run's mystery door rooms (MysteryDoors.cs): every place a piece can go, as surprise options priced as drawing them (a mystery door charges a share).
+        public static List<SurpriseOption> GridMysteryOptions(IList<ExpansionRoom> built, GridPiece piece)
+        {
+            var res = new List<SurpriseOption>();
+            foreach (var o in GridPieceOptions(built, piece))
+            {
+                var priced = GridPieceRooms(built, piece, o.Orient, o.X, o.Y, out _, false);
+                if (priced != null)
+                    res.Add(new SurpriseOption { Rooms = priced, Shape = SurpriseShape.Box, Price = priced[0].Price, X = o.X, Y = o.Y });
             }
             return res;
         }

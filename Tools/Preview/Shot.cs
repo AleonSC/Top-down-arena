@@ -861,8 +861,8 @@ static partial class Shot {
       string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, GridPieces.cs); GRIDCARDS=tril,tetl:burninggrounds,shop,... the hand (piece[:floor] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
         eg.Diff.Set(DiffKnob.GridRooms, 1f); eg.Diff.Set(DiffKnob.BuildVote, 0f);
-        eg.RoomsUp = true; eg.LayoutAge = 5f; eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts());  // (the core a Grid run starts with)
-        if (Environment.GetEnvironmentVariable("GRIDMINI") != null) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridCards.cs)
+        eg.RoomsUp = true; eg.LayoutAge = 5f; if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (the core a Grid run starts with, once)
+        if (Environment.GetEnvironmentVariable("GRIDMINI") != null && Expansion.GridMinisWaiting(eg.Expanded) == 0) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridCards.cs)
         var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {

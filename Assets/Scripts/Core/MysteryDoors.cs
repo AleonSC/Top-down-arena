@@ -58,6 +58,12 @@ namespace Arena
         }
 
         /// The shapes a room comes in (one picked by the roll): small 4 x 4 or 5 x 4, medium 6 x 6 or 7 x 6, the hallway 12 x 3.
+        /// The grid pieces a room comes as in a Grid run: small one cell (a shop, Black Market or Arms Dealer always one cell), medium a domino or a corner, the hallway a line of 3 or 4.
+        public static GridPiece[] PiecesOf(MysteryRoom r) =>
+            r == MysteryRoom.Small ? new[] { GridPiece.Mono }
+            : r == MysteryRoom.Medium ? new[] { GridPiece.Domino, GridPiece.TriL }
+            : new[] { GridPiece.TriI, GridPiece.TetI };
+
         public static SurpriseShape[] ShapesOf(MysteryRoom r) =>
             r == MysteryRoom.Small ? new[] { SurpriseShape.Tiny, SurpriseShape.SmallRect }
             : r == MysteryRoom.Medium ? new[] { SurpriseShape.Medium, SurpriseShape.Box }
@@ -231,18 +237,21 @@ namespace Arena
                 var room = Mystery.RoomFor(expandSeed, Wave, n + Expanded.Count * 7);
                 var kind = Mystery.KindFor(expandSeed, Wave, n + Expanded.Count * 7, room, enemies);
                 var shapes = Mystery.ShapesOf(room);
-                int first = rg.Int(shapes.Length);
+                var pieces = Mystery.PiecesOf(room);
+                bool grid = GridRoomsOn;  // (a Grid run: the room behind is a piece on the lattice, a shop or vendor one cell; owner Nov 18)
+                int nShapes = grid ? pieces.Length : shapes.Length;
+                int first = rg.Int(nShapes);
                 bool placed = false;
-                for (int t = 0; t < shapes.Length && !placed; t++)
+                for (int t = 0; t < nShapes && !placed; t++)
                 {
-                    var opts = Expansion.SurpriseOptions(Expanded, shapes[(first + t) % shapes.Length]);
+                    var opts = grid ? Expansion.GridMysteryOptions(Expanded, pieces[(first + t) % pieces.Length]) : Expansion.SurpriseOptions(Expanded, shapes[(first + t) % shapes.Length]);
                     int top = Math.Min(opts.Count, 8);  // (the best spots: closing loops, not stretching the map)
                     int start = rg.Int(Math.Max(1, top));
                     for (int k = 0; k < opts.Count && !placed; k++)
                     {
                         var o = opts[(start + k) % opts.Count];
                         MysteryDoor d; V2 behind;
-                        if (!MysteryDoorOf(o, out d, out behind) || MysteryClashes(o, d, -1) || (room == MysteryRoom.Hallway && !Mystery.HallFits(o, d)))
+                        if (!MysteryDoorOf(o, out d, out behind) || MysteryClashes(o, d, -1) || (!grid && room == MysteryRoom.Hallway && !Mystery.HallFits(o, d)))
                             continue;
                         MysteryDoors.Add(d);
                         mysteryPlans.Add(o);
@@ -296,6 +305,14 @@ namespace Arena
         SurpriseOption? StillFits(int i)
         {
             var plan = mysteryPlans[i];
+            if (GridRoomsOn)  // a Grid run's piece behind the door: kept while nothing sits on it (no re-plan: another spot would leave the lattice look)
+            {
+                foreach (var q in plan.Rooms)
+                    foreach (var r in Expanded)
+                        if (q.X < r.X1 && r.X < q.X1 && q.Y < r.Y1 && r.Y < q.Y1)
+                            return null;
+                return plan;
+            }
             var opts = Expansion.SurpriseOptions(Expanded, plan.Shape, mysteryBehind[i]);
             foreach (var o in opts)
                 if (SameRooms(o.Rooms, plan.Rooms))
