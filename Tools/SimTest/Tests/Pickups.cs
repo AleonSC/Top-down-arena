@@ -1,0 +1,82 @@
+using System;
+using System.Linq;
+using Arena;
+
+// Per-player pickups (Docs/RoundFlow.md step 3, Core/Coins.cs): every coin, vector pickup, health orb and Magnet a drop makes is one
+// player's own copy. Only its player can take it (walking over it, or with a Magnet), the owner reaches the other screen, and a
+// teammate's copy stays put.
+static partial class Program
+{
+    static void PickupsTest(float dt)
+    {
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action Quiet = () =>
+        {
+            foreach (var e in g.Enemies.Values) e.Hp = 0f;
+            foreach (var q in g.Bullets.Values.Where(q => Defs.IsEnemyShot(q.Kind)).ToList()) g.Bullets.Remove(q.Id);
+            foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
+        };
+        V2 a = new V2(500f, 450f), b = new V2(900f, 450f);
+        Action Put = () => { g.Players[1].Pos = g.Players[1].Disp = a; cg.Players[2].Pos = cg.Players[2].Disp = b; g.Players[2].Pos = b; };
+        Put();
+        Run(s, dt, 0.4f, null, () => { Quiet(); Put(); });
+        g.Coins.Clear(); g.Orbs.Clear(); g.Gadgets.Clear();
+
+        // Coins: the host stands on its own coin and on its teammate's; only its own is taken.
+        g.Players[1].Gold = g.Players[2].Gold = 0;
+        g.Coins[7001] = new Coin { Id = 7001, Value = 5, Owner = 1, Pos = a, Disp = a };
+        g.Coins[7002] = new Coin { Id = 7002, Value = 5, Owner = 2, Pos = a + new V2(4f, 0f), Disp = a };
+        Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
+        Check(cg.Coins.ContainsKey(7002) && cg.Coins[7002].Owner == 2 && cg.MinePickup(cg.Coins[7002].Owner) && (!cg.Coins.ContainsKey(7001) || !cg.MinePickup(cg.Coins[7001].Owner)),
+            "the owner reaches the client, which shows its own coin and hides its teammate's");
+        Run(s, dt, 1f, null, () => { Quiet(); Put(); });
+        Check(!g.Coins.ContainsKey(7001) && g.Coins.ContainsKey(7002) && g.Players[1].Gold == 5 && g.Players[2].Gold == 0, "standing on both, a player takes only their own coin (" + g.Players[1].Gold + " gold)");
+        b = a;
+        Run(s, dt, 1f, () => !g.Coins.ContainsKey(7002), () => { Quiet(); Put(); });
+        Check(!g.Coins.ContainsKey(7002) && g.Players[2].Gold == 5, "its owner walks over it and takes it");
+        b = new V2(900f, 450f);
+
+        // A Magnet pulls only its holder's own coins and vector pickups.
+        g.Players[1].Gadget = GadgetId.Magnet; g.Players[1].GadgetLeft = 30f; g.Players[1].GadgetOn = true;
+        g.Coins[7003] = new Coin { Id = 7003, Value = 5, Owner = 1, Pos = new V2(1300f, 200f), Disp = new V2(1300f, 200f) };
+        g.Coins[7004] = new Coin { Id = 7004, Value = 5, Owner = 2, Pos = new V2(1300f, 260f), Disp = new V2(1300f, 260f) };
+        Run(s, dt, 3f, () => !g.Coins.ContainsKey(7003), () => { Quiet(); Put(); });
+        Check(!g.Coins.ContainsKey(7003) && g.Coins.ContainsKey(7004) && g.Coins[7004].Pos.DistanceTo(new V2(1300f, 260f)) < 1f, "the Magnet pulls its holder's coin and leaves the teammate's where it lies");
+        g.Players[1].Gadget = GadgetId.None; g.Players[1].GadgetOn = false;
+        g.Coins.Clear();
+
+        // Health orbs: a hurt player only drinks their own.
+        g.DevSetGod(1, false);
+        var h = g.Players[1];
+        h.Hp = h.MaxHp * 0.5f;
+        g.Orbs[7101] = new Orb { Id = 7101, Owner = 2, Pos = a, Disp = a, Life = 10f };
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(g.Orbs.ContainsKey(7101) && h.Hp < h.MaxHp * 0.5f + 3f, "a hurt player leaves their teammate's orb alone (" + g.Orbs.ContainsKey(7101) + ", " + h.Hp.ToString("0.0") + "/" + (h.MaxHp * 0.5f).ToString("0.0") + ")");
+        g.Orbs[7102] = new Orb { Id = 7102, Owner = 1, Pos = a + new V2(20f, 0f), Disp = a, Life = 10f };
+        Run(s, dt, 1f, () => !g.Orbs.ContainsKey(7102), () => { Quiet(); Put(); });
+        Check(!g.Orbs.ContainsKey(7102) && h.Hp > h.MaxHp * 0.5f + 3f, "...and drinks their own");
+        g.Orbs.Clear();
+        g.DevSetGod(1, true);
+
+        // Magnets: a teammate's Magnet lies where it is; its owner picks it up; once carried and dropped it's anyone's.
+        var mag = g.SpawnGadget(GadgetId.Magnet, a, Game.MagnetTime);
+        mag.Owner = 2;
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(g.Gadgets.ContainsKey(mag.Id) && g.Players[1].Gadget == GadgetId.None && cg.Gadgets.ContainsKey(mag.Id) && cg.Gadgets[mag.Id].Owner == 2, "a player walks over their teammate's Magnet and leaves it (the owner reaches the client)");
+        b = a;
+        Run(s, dt, 1f, () => g.Players[2].Gadget == GadgetId.Magnet, () => { Quiet(); Put(); });
+        Check(g.Players[2].Gadget == GadgetId.Magnet && !g.Gadgets.ContainsKey(mag.Id), "its owner picks it up");
+        b = a + new V2(200f, 0f);  // (inside the throw range)
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        cg.ThrowGadget(a);
+        Run(s, dt, 2f, () => g.Players[1].Gadget == GadgetId.Magnet, () => { Quiet(); Put(); });
+        Check(g.Players[1].Gadget == GadgetId.Magnet, "thrown to the teammate, they catch it: a carried Magnet is anyone's");
+        s[0].Leave(""); s[1].Leave("");
+    }
+}

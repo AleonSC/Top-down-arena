@@ -757,6 +757,7 @@ namespace Arena
     public class Orb
     {
         public int Id;
+        public int Owner;       // the player this copy is for (an enemy's or a crate's orb, Combat.cs SpawnOrbEach); 0: anyone's
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
         public bool Med;        // a Deployable Medkit's orb (Medkit.cs)
         public float MedHeal;   // host: what it heals

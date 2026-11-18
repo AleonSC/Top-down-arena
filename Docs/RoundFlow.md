@@ -1,6 +1,6 @@
 # Round flow: a smoother break, per-player loot and remote chests
 
-Status: **steps 1-2 built** (step 1 no protocol change; step 2 protocol 413); steps 3-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
+Status: **steps 1-3 built** (step 1 no protocol change; steps 2 and 3 protocol 413); steps 4-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
 time ("start on step N").
 
 ## Why
@@ -57,7 +57,9 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
 3. **Per-player pickups (protocol bump).** `Owner` added to `Coin`, `Orb` and the gadget (0 = shared). `DropGold`,
    `DropVectors`, `SpawnOrb` and `DropGadget` make one copy per player. Coins and orbs can only be picked up, or pulled
    by a Magnet, by their owner. Other players' pickups aren't drawn. Off-screen markers count only your own. Test suite
-   `pickups`, plus the balance numbers.
+   `pickups`, plus the balance numbers. (Built: also a Gold chest's burst, a breach's and a sealed portal's gold, crates' orbs;
+   every 8th kill's vector stays the killer's alone; the arena's orbs (health barrels, the Warden's, a Gatekeeper room's, a
+   breach's Strider repair) stay shared; a player who leaves takes their copies.)
 4. **Auto-collect at wave start (no protocol change).** When the break ends, the host gives each player their own coins,
    vector pickups and unclaimed chest loot cards, with a pickup sound and a "+n gold" toast.
 5. **Uncollected chests tab (protocol bump).** `Msg.CollectChest` (a chest id); the host checks the fee, takes it and

@@ -56,7 +56,7 @@ static partial class Program
             Run(s, dt, 1f, () => cg.Props.ContainsKey(c.Id), noPicks);
             Check(cg.Props.ContainsKey(c.Id) && cg.Props[c.Id].Chest == kind, kind + " chest: the client sees its kind");
             int stash0 = g.Players.Values.Sum(p => p.Stash.Sum(b => b));
-            int gold = g.Players.Count * (Game.ChestGold + Game.ChestGoldPerWave * g.Wave);
+            int gold = g.Players.Count * (Game.ChestGold + Game.ChestGoldPerWave * g.Wave);  // (each player's own burst: Docs/RoundFlow.md step 3)
             open.Invoke(g, new object[] { c });
             int coins = g.Coins.Values.Count(q => !q.Vec), coinGold = g.Coins.Values.Where(q => !q.Vec).Sum(q => q.Value);
             int stash = g.Players.Values.Sum(p => p.Stash.Sum(b => b)) - stash0;
@@ -66,7 +66,8 @@ static partial class Program
                     Check(g.Players.Values.All(p => g.Loots.Values.Any(l => l.Owner == p.Id)) && coins == 0 && stash == 0, "Upgrade: every player gets their own card, nothing else");
                     break;
                 case ChestKind.Gold:
-                    Check(coins == Game.ChestGoldCoins && coinGold == gold && g.Loots.Count == 0, "Gold: " + Game.ChestGoldCoins + " coins worth " + gold + " burst out (" + coins + " worth " + coinGold + "), no cards");
+                    Check(coins == Game.ChestGoldCoins * g.Players.Count && coinGold == gold && g.Loots.Count == 0 && g.Players.Values.All(p => g.Coins.Values.Count(q => q.Owner == p.Id) == Game.ChestGoldCoins),
+                        "Gold: " + Game.ChestGoldCoins + " coins for each player, worth " + gold + " in all, burst out (" + coins + " worth " + coinGold + "), no cards");
                     break;
                 case ChestKind.Buildable:
                     Check(stash == g.Players.Count && g.Loots.Count == 0 && coins == 0, "Buildables: one Black Market build in each player's stash (" + stash + ")");

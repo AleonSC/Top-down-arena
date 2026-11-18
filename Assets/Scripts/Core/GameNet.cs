@@ -1152,7 +1152,7 @@ namespace Arena
         /// A health orb; returns its id.
         int SyncOrb(NetSync s, Orb o)
         {
-            int id = o != null ? o.Id : 0;
+            int id = o != null ? o.Id : 0, owner = o != null ? o.Owner : 0;
             bool big = o != null && o.Big, tiny = o != null && o.Tiny, med = o != null && o.Med;
             V2 pos = o != null ? o.Pos : default(V2);
             float life = o != null ? o.Life : 0f;
@@ -1160,13 +1160,14 @@ namespace Arena
             s.Bool(ref big);
             s.Bool(ref tiny);
             s.Bool(ref med);
+            s.Int(ref owner);
             s.Vec(ref pos);
             s.Float(ref life);
             if (s.Reading)
             {
                 if (!Orbs.TryGetValue(id, out o))
                 {
-                    o = new Orb { Id = id, Big = big, Tiny = tiny, Med = med, Pos = pos, Disp = pos };
+                    o = new Orb { Id = id, Big = big, Tiny = tiny, Med = med, Owner = owner, Pos = pos, Disp = pos };
                     Orbs[id] = o;
                 }
                 o.Pos = pos;

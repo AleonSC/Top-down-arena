@@ -307,15 +307,15 @@ namespace Arena
         /// Coins scattered round pos, gold in all (a coin per 5, then ones; at most 10 coins).
         void DropGold(V2 pos, int gold)
         {
-            int n = 0;
-            while (gold > 0 && n++ < 10)
+            foreach (int owner in LootOwners())  // (a full copy each: Coins.cs)
             {
-                int v = gold >= 5 ? 5 : 1;
-                gold -= v;
-                var c = new Coin { Id = nextCoinId++, Value = v };
-                c.Pos = ClampToArena(pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * (10f + 24f * (float)rng.NextDouble()), 12f);
-                c.Disp = c.Pos;
-                Coins[c.Id] = c;
+                int left = gold, n = 0;
+                while (left > 0 && n++ < 10)
+                {
+                    int v = left >= 5 ? 5 : 1;
+                    left -= v;
+                    AddCoin(owner, v, false, pos, 10f, 24f);
+                }
             }
         }
     }

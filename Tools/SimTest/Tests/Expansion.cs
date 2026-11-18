@@ -607,16 +607,22 @@ static partial class Program
         for (int i = 0; i < 4; i++) spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, shopAt + new V2(30f * i, 0f), 0f, 0, false });
         Quiet();
         Run(s, dt, 0.5f);
-        int coinGold = g.Coins.Values.Where(c => !c.Vec).Sum(c => c.Value);  // (a rare vector pickup among them adds vectors, not gold)
+        // Each player gets a full copy of every drop (Docs/RoundFlow.md step 3): their own coins, which only they can take.
+        int coinGold = g.Coins.Values.Where(c => !c.Vec && c.Owner == 2).Sum(c => c.Value);  // (a rare vector pickup among them adds vectors, not gold)
+        int ownGold1 = g.Coins.Values.Where(c => !c.Vec && c.Owner == 1).Sum(c => c.Value);
         Check(g.Coins.Count > 0 && cg.Coins.Count == g.Coins.Count && g.Players.Values.All(p => p.Gold == 0), "kills drop coins that stay on the ground, on both screens, until someone walks over them (" + g.Coins.Count + "/" + cg.Coins.Count + " coins, " + g.Players[1].Gold + "/" + g.Players[2].Gold + " held, " + coinGold + " gold)");
+        Check(coinGold > 0 && ownGold1 == coinGold && g.Coins.Values.All(c => c.Owner == 1 || c.Owner == 2), "every coin is one player's copy, the same gold each (" + ownGold1 + "/" + coinGold + ")");
         PutBoth(hubAt, shopAt + new V2(45f, 0f));
-        Run(s, dt, 2f, () => g.Coins.Count == 0);
-        for (int k = 0; k < 20 && g.Coins.Count > 0; k++)  // (a grunt can wander off before it dies: walk to each coin left)
+        Func<bool> p2Done = () => !g.Coins.Values.Any(c => c.Owner == 2);
+        Run(s, dt, 2f, p2Done);
+        for (int k = 0; k < 20 && !p2Done(); k++)  // (a grunt can wander off before it dies: walk to each coin left)
         {
-            PutBoth(hubAt, g.Coins.Values.First().Pos);
-            Run(s, dt, 0.5f, () => g.Coins.Count == 0);
+            PutBoth(hubAt, g.Coins.Values.First(c => c.Owner == 2).Pos);
+            Run(s, dt, 0.5f, p2Done);
         }
-        Check(g.Coins.Count == 0 && g.Players[2].Gold == coinGold && g.Players[1].Gold == 0, "the player who walks over the coins gets their gold (" + g.Players[2].Pos.DistanceTo(shopAt) + " away, " + g.Players[1].Gold + "/" + g.Players[2].Gold + "/" + coinGold + ")");
+        Check(p2Done() && g.Players[2].Gold == coinGold && g.Players[1].Gold == 0 && g.Coins.Values.Any(c => c.Owner == 1),
+            "the player who walks over the coins gets their own gold, and their teammate's copies stay (" + g.Players[2].Pos.DistanceTo(shopAt) + " away, " + g.Players[1].Gold + "/" + g.Players[2].Gold + "/" + coinGold + ")");
+        g.Coins.Clear();
         // Vector pickups (Coins.cs, Docs/VectorBuilding.md): the rare drop adds vectors to whoever walks over it, waits while their stock is full, and shows on both screens.
         var vp = g.Players[2];
         int vpWas = vp.Vectors, p1Was = g.Players[1].Vectors;

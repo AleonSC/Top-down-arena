@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 413: break status chips: `Msg.WaveReady` from a client can be kind 2 (a byte: what its screen shows in the break), and the host's broadcast adds each player's `BreakStatus` byte
+- 413: break status chips: `Msg.WaveReady` from a client can be kind 2 (a byte: what its screen shows in the break), and the host's broadcast adds each player's `BreakStatus` byte; per-player pickups: the coin, orb and gadget snapshots each add an owner int
 - 412: the Black Market's Turret (`BuildKind.Turret` in the old Spike trap slot): `PlacedBuild` sends `Owner` and `Waves` in `Msg.ExpandState`
 - 411: the Medic: `RoomKind.Medic`, `RoomCard.Medic` (hands, offers and rooms); heals and revives only at the Medic; the Black Market's card shelf (`ShopAction.BuyCard`) is retired
 - 410: 24 enemies no faction used are removed (Burster, Charger, Splitter, Medic, Phantom, Hexer, Juggernaut, Nest, Spiker, Beam Sentry, Scorcher, Reaver, Warder, Pauser, Leader, Stitcher, Buzzsaw, Spike Block, Fuse Runner, Hookman, Sapper, Sapper Mine, Swordsman, Shield Swordsman): `EnemyType` values after Grunt renumber; `PatchKind.Embers` and the Spiker/Spike Block/Buzzsaw `Sfx` values are gone (later values shift); the enemy snapshot drops its Warder id; the Rooms map (Wings) is gone, so the layout sync no longer carries the rooms' nests, spills or vault (`DiffKnob.ArenaRooms` ignored)

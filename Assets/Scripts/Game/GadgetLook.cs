@@ -65,7 +65,7 @@ namespace Arena
         {
             foreach (var g in game.Gadgets.Values)
             {
-                if (g.Kind != GadgetId.Magnet)
+                if (g.Kind != GadgetId.Magnet || !game.MinePickup(g.Owner))
                     continue;
                 float lift = 0f, spin = t * 0.8f + g.Id;
                 V2 ground = g.Disp;

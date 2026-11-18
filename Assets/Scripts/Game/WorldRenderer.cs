@@ -250,9 +250,12 @@ namespace Arena
             SweepGolemWalls(t);  // GolemWallLook.cs
             DrawFrenzyMinions(t);  // Alpha Call's frenzied minions (AbilityLooks.cs)
             foreach (var o in game.Orbs.Values)
-                DrawOrb(o, t);
+                if (game.MinePickup(o.Owner))  // (teammates' copies of a drop aren't shown: Core/Coins.cs)
+                    DrawOrb(o, t);
             foreach (var c in game.Coins.Values)
             {
+                if (!game.MinePickup(c.Owner))
+                    continue;
                 if (c.Vec)
                     DrawVectorPickup(c, t);  // VectorPickupLook.cs
                 else

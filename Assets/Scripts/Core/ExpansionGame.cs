@@ -118,11 +118,11 @@ namespace Arena
         }
 
         /// Host, on a kill: every VectorKillEvery kills a player has made drop a small vector pickup where the enemy fell (Coins.cs;
-        /// whoever walks over it gets it, like any vector pickup).
+        /// the killer's own, like their copy of any vector pickup).
         void GrantVectorKill(Player killer, V2 at)
         {
             if (ExpandingOn && killer != null && killer.Run.Kills > 0 && killer.Run.Kills % VectorKillEvery == 0)
-                DropVectorAt(at, 1);
+                AddCoin(killer.Id, 1, true, at, 10f, 14f);  // (the killer's own reward: theirs alone, not a copy each)
         }
 
         void SyncVectors(NetSync s, Player p)

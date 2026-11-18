@@ -572,7 +572,7 @@ namespace Arena
                 case PropKind.HeavyCrate:
                     BroadcastFx(FxKind.Debris, p.Pos, p.Kind == PropKind.HeavyCrate ? new Rgba(0.6f, 0.5f, 0.4f) : new Rgba(0.78f, 0.56f, 0.3f), HalfW(p) * 1.6f, 0.5f, Sfx.Clang);
                     if (rng.NextDouble() < 0.1)
-                        SpawnOrb(p.Pos, false);
+                        SpawnOrbEach(p.Pos, false);
                     break;
                 case PropKind.Barrel:
                     ExplodeBarrel(p);
@@ -619,7 +619,7 @@ namespace Arena
             switch (c.Chest)
             {
                 case ChestKind.Gold:
-                    DropGoldBurst(c.Pos, Players.Count * (ChestGold + ChestGoldPerWave * Math.Max(1, Wave)));
+                    DropGoldBurst(c.Pos, ChestGold + ChestGoldPerWave * Math.Max(1, Wave));  // (each player's own burst, the same gold each as before)
                     break;
                 case ChestKind.Buildable:
                     foreach (var pl in Players.Values)
@@ -651,19 +651,23 @@ namespace Arena
         static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.Piece ? new Rgba(1f, 0.55f, 0.3f)
             : k == ChestKind.Buildable ? new Rgba(1f, 0.4f, 0.72f) : new Rgba(0.4f, 1f, 0.5f);
 
-        /// Host: a Gold chest's coins, gold in all, spread in a ring round pos (ChestGoldCoins coins, the last carrying what's left).
-        void DropGoldBurst(V2 pos, int gold)
+        /// Host: a Gold chest's coins, `perPlayer` gold for each player (their own copy), spread in a ring round pos (ChestGoldCoins
+        /// coins each, the last carrying what's left).
+        void DropGoldBurst(V2 pos, int perPlayer)
         {
-            int each = Math.Max(1, gold / ChestGoldCoins);
-            for (int k = 0; k < ChestGoldCoins && gold > 0; k++)
+            foreach (int owner in LootOwners())
             {
-                int v = k == ChestGoldCoins - 1 ? gold : Math.Min(gold, each);
-                gold -= v;
-                var c = new Coin { Id = nextCoinId++, Value = v };
-                float ang = k * MathX.Tau / ChestGoldCoins + (float)rng.NextDouble() * 0.3f;
-                c.Pos = ClampToArena(pos + V2.FromAngle(ang) * (34f + 30f * (float)rng.NextDouble()), 12f);
-                c.Disp = c.Pos;
-                Coins[c.Id] = c;
+                int gold = perPlayer, each = Math.Max(1, gold / ChestGoldCoins);
+                for (int k = 0; k < ChestGoldCoins && gold > 0; k++)
+                {
+                    int v = k == ChestGoldCoins - 1 ? gold : Math.Min(gold, each);
+                    gold -= v;
+                    var c = new Coin { Id = nextCoinId++, Value = v, Owner = owner };
+                    float ang = k * MathX.Tau / ChestGoldCoins + (float)rng.NextDouble() * 0.3f;
+                    c.Pos = ClampToArena(pos + V2.FromAngle(ang) * (34f + 30f * (float)rng.NextDouble()), 12f);
+                    c.Disp = c.Pos;
+                    Coins[c.Id] = c;
+                }
             }
         }
 

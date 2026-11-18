@@ -118,9 +118,12 @@ namespace Arena
                 if (InHub(c.Pos, 0f))
                     continue;
                 Player nearest = null;
-                foreach (var p in Players.Values)
-                    if (!p.Downed && (nearest == null || p.Pos.DistanceSq(c.Pos) < nearest.Pos.DistanceSq(c.Pos)))
-                        nearest = p;
+                if (c.Owner != 0)
+                    Players.TryGetValue(c.Owner, out nearest);  // (your own copy goes to you)
+                else
+                    foreach (var p in Players.Values)
+                        if (!p.Downed && (nearest == null || p.Pos.DistanceSq(c.Pos) < nearest.Pos.DistanceSq(c.Pos)))
+                            nearest = p;
                 if (nearest == null)
                     continue;
                 if (c.Vec)

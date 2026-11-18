@@ -28,6 +28,8 @@ namespace Arena
         {
             foreach (var o in game.Orbs.Values)
             {
+                if (!game.MinePickup(o.Owner))
+                    continue;
                 OrbSeen s;
                 if (!seenOrbs.TryGetValue(o.Id, out s))
                 {
