@@ -1,6 +1,6 @@
 # Round flow: a smoother break, per-player loot and remote chests
 
-Status: **steps 1-2 built** (step 1 no protocol change; step 2 protocol 412); steps 3-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
+Status: **steps 1-2 built** (step 1 no protocol change; step 2 protocol 413); steps 3-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
 time ("start on step N").
 
 ## Why
