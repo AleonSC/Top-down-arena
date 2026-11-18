@@ -331,7 +331,7 @@ namespace Arena
         public const int NodeClear = 90;                  // cover keeps this far off a node
         public const int NodeApart = 800;                 // and at least this far from every other node
         public const int PrizeClear = 600;                // a chest or relic node keeps this far (6 tiles) from every room's edge, and a floating room placed later keeps as far from it (owner Nov 14)
-        public const int MaxNodesWaiting = 8;             // unclaimed nodes on the map at once
+        public const int MaxNodesWaiting = 12;             // unclaimed nodes on the map at once
 
         public const int RuleHalf = 400;  // a rule node covers 8 x 8 tiles round its point; the claiming room must enclose all of it
 
@@ -517,7 +517,12 @@ namespace Arena
                 BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
                 // (a rule node goes out to the side: the map is wider than tall, so its big room fits)
                 int side = ring >= 0 ? ring % 4 : kind == NodeKind.Rule ? 1 + 2 * rng.Int(2) : rng.Int(4), gap = ring >= 0 ? RingMin + rng.Int((RingMax - RingMin) / Step + 1) * Step : NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
-                if (side == 0 || side == 2)
+                if (ring >= 4)  // (rings 4 to 7 go off the hub's corners, to draw rooms that join the sides)
+                {
+                    x = (ring & 1) == 0 ? bx0 - gap - 50 : bx1 + gap + 50;
+                    y = (ring & 2) == 0 ? by0 - gap - 50 : by1 + gap + 50;
+                }
+                else if (side == 0 || side == 2)
                 {
                     x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;
                     y = side == 0 ? by0 - gap - 50 : by1 + gap + 50;
@@ -543,7 +548,7 @@ namespace Arena
                     int sc = ring >= 0 ? PrizeClear + 100 : StartClear;
                     ok = !Overlaps(x - sc, y - sc, x + sc, y + sc, hx0, hy0, hx1, hy1);  // (never near the start room, whichever room it was placed off)
                 }
-                if (ok && NodeReachable(built, n))
+                if (ok && (ring >= 4 || NodeReachable(built, n)))  // (a corner node isn't a straight build from the hub: it takes rooms built out from the sides, joined)
                     return n;  // (it can be built to: a strip out and a room round it fit)
             }
             return null;

@@ -429,6 +429,9 @@ static partial class Program
         Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsPrizeNode(n.Kind)) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
               && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
             "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests, relics and veins as fit, none fogged, the same on the client");
+        var ringNodes = new List<MapNode>();
+        for (int ri = 0; ri < 8; ri++) { var rn = Expansion.NodeFor(77, 0, new List<ExpansionRoom>(), ringNodes, ri % 3 == 1 ? NodeKind.Relic : NodeKind.Chest, ri); if (rn.HasValue) ringNodes.Add(rn.Value); }
+        Check(ringNodes.Count == 8 && ringNodes.Skip(4).All(n => Math.Abs(n.X) > 600 && Math.Abs(n.Y) > 300), "the hub ring places 8 nodes: four off its sides and four off its corners (" + ringNodes.Count + ")");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // An old save's sealed shop room still opens and draws bots as before.
