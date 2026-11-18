@@ -512,18 +512,35 @@ static partial class Program
                 Check(g.Props.Values.Count(q => q.Kind == PropKind.Chest && !q.Open && q.Pos.DistanceTo(chest.Pos) < 1f) == 0, "a spent node holds no second chest");
                 g.Nodes.RemoveAt(ci);
 
-                // A relic node (Relics.cs): walking up to it fills every player's relic slot, once.
+                // A relic node (Relics.cs): walking up to it gives that player its relic; an old relic is left in the node.
                 var relic = new MapNode { X = chest.X, Y = chest.Y, Kind = NodeKind.Relic };
                 g.Nodes.Add(relic);
                 int rni = g.Nodes.Count - 1;
                 pl.Pos = relic.Pos + new V2(400f, 0f);
                 tickNodes.Invoke(g, null);
                 Check(!g.Nodes[rni].Spent && g.Players.Values.All(q => q.Relic == RelicId.None), "a relic node waits for someone to walk up");
-                var wantRelic = Relics.ForNode(relic, g.Players.Values);
+                var wantRelic = Relics.ForNode(relic);
                 pl.Pos = relic.Pos;
                 tickNodes.Invoke(g, null);
-                Check(g.Nodes[rni].Spent && wantRelic != RelicId.None && g.Players.Values.All(q => q.Relic == wantRelic),
-                    "walking onto it gives everyone its relic (" + Relics.Name(wantRelic) + ") and spends the node");
+                Check(g.Nodes[rni].Spent && wantRelic != RelicId.None && pl.Relic == wantRelic && g.Players.Values.All(q => q == pl || q.Relic == RelicId.None),
+                    "walking onto it gives only that player its relic (" + Relics.Name(wantRelic) + ") and spends the node");
+                // swapping: a player holding another relic leaves it in the node
+                var swapRelic = wantRelic == RelicId.Backup ? RelicId.HallwayRunner : RelicId.Backup;
+                relic = new MapNode { X = chest.X, Y = chest.Y, Kind = NodeKind.Relic };
+                g.Nodes[rni] = relic;
+                pl.Relic = swapRelic;
+                tickNodes.Invoke(g, null);
+                Check(!g.Nodes[rni].Spent && pl.Relic == wantRelic && Relics.Held(g.Nodes[rni]) == swapRelic, "taking a relic leaves your old one in the node");
+                tickNodes.Invoke(g, null);
+                Check(pl.Relic == wantRelic, "you can't swap straight back while standing on it");
+                pl.Pos = relic.Pos + new V2(400f, 0f);
+                tickNodes.Invoke(g, null);
+                pl.Pos = relic.Pos;
+                tickNodes.Invoke(g, null);
+                Check(pl.Relic == swapRelic && Relics.Held(g.Nodes[rni]) == wantRelic, "walking away and back swaps again");
+                var save2 = new RunSave { Wave = 6, HasExpansion = true, Nodes = { g.Nodes[rni] } }; save2.Seats.Add(new SeatSave());
+                var back2 = RunSave.Parse(save2.ToText());
+                Check(back2 != null && back2.Nodes.Count == 1 && back2.Nodes[0].Drop == g.Nodes[rni].Drop, "a relic left in a node survives a saved run");
                 g.Nodes.RemoveAt(rni);
                 foreach (var q in g.Players.Values) q.Relic = RelicId.None;  // (the rest of the suite runs without it)
                 g.Expanded.RemoveAt(ri);
@@ -571,10 +588,8 @@ static partial class Program
             for (int x = 0; x < 40; x++) rolled.Add(Relics.ForNode(new MapNode { X = (short)(x * 100 + 50), Y = (short)(x * 300 - 650), Kind = NodeKind.Relic }));
             Check(rolled.Count == Relics.Count && !rolled.Contains(RelicId.None), "relic nodes roll every relic across spots (" + rolled.Count + ")");
             var rn = new MapNode { X = 1250, Y = -650, Kind = NodeKind.Relic };
-            var r0 = Relics.ForNode(rn);
             var keepRel = g.Players.Values.ToDictionary(q => q.Id, q => q.Relic);
-            foreach (var q in g.Players.Values) q.Relic = r0;
-            Check(Relics.ForNode(rn, g.Players.Values) != r0 && Relics.ForNode(rn, g.Players.Values) != RelicId.None, "a node never rolls the relic every player already holds");
+            Check(Relics.Held(rn) == Relics.ForNode(rn) && Relics.Held(new MapNode { X = rn.X, Y = rn.Y, Kind = NodeKind.Relic, Drop = (byte)((int)RelicId.Backup + 1) }) == RelicId.Backup, "a node holds the relic left in it, else the rolled one");
             var pl = g.Players.Values.First();
             pl.Relic = RelicId.Backup;
             float hp0 = pl.Hp;
