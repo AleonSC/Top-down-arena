@@ -1,6 +1,6 @@
 # Grid pieces: room cards as Tetris pieces on the grid
 
-Status: **plan agreed with the owner; step 1 built** (protocol 403, Nov 18, 2026). Builds on [`GridRooms.md`](GridRooms.md) (the lattice, the core, door spots) and replaces most of [`RoomCards.md`](RoomCards.md). Owner wants Grid to be the default and the cards reworked "like Tetris: pieces made to fit together, gaps filled with different pieces".
+Status: **plan agreed with the owner; steps 1 and 2 built** (protocol 403, Nov 18, 2026). Builds on [`GridRooms.md`](GridRooms.md) (the lattice, the core, door spots) and replaces most of [`RoomCards.md`](RoomCards.md). Owner wants Grid to be the default and the cards reworked "like Tetris: pieces made to fit together, gaps filled with different pieces".
 
 ## Decisions (owner, Nov 18)
 
@@ -21,3 +21,17 @@ Status: **plan agreed with the owner; step 1 built** (protocol 403, Nov 18, 2026
 
 - The lattice from the core's corner, the free 4 x 3 cell core, 14 door spots, host-side legality (`Expansion.GridLegal` becomes a piece check), bots, nodes and room chests at a cell's middle, a claimed chest or relic at the middle of its room.
 - The palette of four sizes (Room, Gauntlet, Hall, Arena) is replaced by the hand.
+
+## Still open (small, settle while building)
+
+- Which room types a piece can roll beyond plain and floor (a combat variant?), and how a themed piece shows on the card before you play it.
+- The mini-bosses' preset sizes (cells) and how many wait at once.
+
+## Steps
+
+1. **Built (protocol 403).** `Core/GridPieces.cs`: `GridPiece` (Mono, Domino, TriI, TriL, TetI, TetO, TetT, TetS, TetL), `Expansion.GridPieceOrients` (the 28 distinct turns and mirrors; an orientation is a small index), `GridPieceRooms` (one open room of boxes from `FromTiles`, free, on the lattice), `GridSpots` / `GridPieceOptions` (a cell of the piece on a door spot), `Msg.GridPiece`.
+2. **Built (protocol 403).** `Core/GridCards.cs`: a hand code from 32 up is a piece (`Expansion.PieceCard(piece, floor)` = 32 + floor x 16 + piece), so any piece is a plain combat room or a floor room; below it the old cards and the service cards (Shop, Market, Arms, Builder Shop), which build one cell in a Grid run; the Mini-boss card is not played in Grid (step 4). `Game.HandOn` (room cards or Grid) now gates the sources: the starting hand (a single, a domino, a seeded tromino) and the round card (a domino after odd waves, a single after even), wave drops and chests (`GridDropCard`: 1 in 5 a service card, a third tetrominoes, a quarter on a floor), the vendor shelf (`GridCardOffers`, 6 vectors a cell, 8 more for a floor), the Builder Shop (`GridBuilderOffers`) and the boss pick (pieces, service cards and floor kits). Playing: `Msg.GridPiece` is (slot, orientation, x, y) and `HostGridCard` takes the card out of the hand and builds it free (`Game.PlayGridCard`); bots play pieces (`BotPlayGridCard`). Hands sync and save as raw codes. The inventory shows the hand as "Pieces". Tests: `Tests/GridPieces.cs`. The build screen still uses the size palette until step 3.
+3. Build screen: the hand of pieces drawn as polyomino glyphs, the piece as a ghost on the door spots, R turns it; the size palette goes.
+4. Room types and shops, vendors, mini-bosses as cell-sized rooms (the mini-boss as a preset room waiting on the lattice).
+5. Grid the default in the lobby; the old Room cards option retired (list what is left, ask before deleting); README, balance pass.
+

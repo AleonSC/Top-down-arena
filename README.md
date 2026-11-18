@@ -1157,6 +1157,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - **Price**: the new wall in vectors, as for drawn rooms; built at once (no vote). Drawn outlines, themes, wall push and room cards are off in this mode; open walls, teleporters, gates and traps work as usual.
   - **Nodes and chests** sit at the middle of a room-sized cell, so building out along the grid claims them with the chest or relic in the middle of its room (a chest or relic always stands in the middle of the room that claims it).
   - Bots build on door spots too.
+  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or on a floor) and one-cell service cards. They come as the room cards do: a starting hand, a card each round, wave drops, chests, the vendor, the Builder Shop and the boss pick. Playing one is free. The inventory shows them as **Pieces**; the build screen still places rooms from the size palette for now.
 - **Building rounds** (Free draw and Team vote): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
