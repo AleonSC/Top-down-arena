@@ -57,6 +57,7 @@ static partial class Shot {
     KineticWallScene();  // KWALL=<s into the scene> [KWBLAST=<s>] [KWCAP=1] (ShotKineticWall.cs)
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
     CauterizeScene();  // CAUTER=1 (ShotCauterize.cs)
+    ChestLooksScene();  // CHESTLOOKS=1 (ShotChests.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     WolfPackScene();  // WOLFPACK=pack|alpha|merge [WOLFT=<s>] (ShotWolfPack.cs)

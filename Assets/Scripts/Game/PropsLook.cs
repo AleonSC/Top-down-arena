@@ -444,6 +444,11 @@ namespace Arena
             a *= fade;
             if (a <= 0f)
                 return;
+            if (MockChestLooks.TryGetValue(p.Id, out var mockLook))  // MOCKUP (ChestLooks.cs)
+            {
+                DrawChestLook(p, c, a, t, mockLook);
+                return;
+            }
             // A soft golden glow under it while it waits, and twinkles around it.
             if (!p.Open)
             {

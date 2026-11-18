@@ -791,7 +791,10 @@ static partial class Shot {
       float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);
       float hx = Game.Width / (2f * z), hy = Game.Height / (2f * z);
       typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
-      typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, me.Disp.X)), Math.Max(hy, Math.Min(Game.Height - hy, me.Disp.Y))));
+      V2 focus = me.Disp;
+      string camAt = Environment.GetEnvironmentVariable("CAMAT");  // CAMAT=x,y: centre the zoom there instead of on you
+      if (camAt != null) { var cp = camAt.Split(','); focus = new V2(float.Parse(cp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(cp[1], System.Globalization.CultureInfo.InvariantCulture)); }
+      typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, focus.X)), Math.Max(hy, Math.Min(Game.Height - hy, focus.Y))));
     }
     if (Environment.GetEnvironmentVariable("ROOMS") != null || Environment.GetEnvironmentVariable("EXPANDMAP") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
       float z = (float)typeof(ArenaApp).GetField("camZoom", f2).GetValue(app);
