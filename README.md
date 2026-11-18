@@ -1110,7 +1110,8 @@ wave, everyone gets a shop before the boss:
 
 **The Campaign's and Quick Play's arena**: every new Campaign and Quick Play is played here (the **Simple Arena** modifier keeps the open arena
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
-[`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
+[`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the Classic box, already walled (no wrapping round the edges) with the camera following you at 1.5x
+(scroll to zoom out), and grows as you play:
 
 **Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-20 add up to 2.4x enemies on a big map (1.1 per extra hub of floor); later waves up to 1.4x.
 
