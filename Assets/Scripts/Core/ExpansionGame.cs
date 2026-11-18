@@ -115,6 +115,13 @@ namespace Arena
 
         /// The portal pairs the team bought (Docs/RoomBuilding2.md step 2; synced after the openings in Msg.ExpandState).
         public readonly List<PortalLink> Links = new List<PortalLink>();
+        /// Where node i stands now: a claimed chest or relic stands in the middle of its room (World.NodeSpots, Expansion.NodeSpotIn), else at its own point.
+        public V2 NodeSpot(int i)
+        {
+            var w = Nodes[i].Kind != NodeKind.Rule && Expansion.CentresInRoom(Nodes[i].Kind) ? ExpansionWorld : null;
+            return w != null && w.NodeSpots != null && i < w.NodeSpots.Length ? w.NodeSpots[i] : Nodes[i].Pos;
+        }
+
         public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings, Links, Nodes));
 
         /// More floor means more enemies (the Rooms arena makes up for its size with damage instead, Rooms.EnemyDamageMult).
@@ -440,14 +447,14 @@ namespace Arena
                     continue;
                 bool touched = false;
                 foreach (var p in Players.Values)
-                    touched |= !p.Downed && p.Pos.CloserThan(nd.Pos, VectorChestReach + p.Def.BodyR);
+                    touched |= !p.Downed && p.Pos.CloserThan(NodeSpot(i), VectorChestReach + p.Def.BodyR);
                 if (!touched)
                     continue;
                 for (int k = 0; k < VectorChestPickups; k++)
-                    DropVectorAt(nd.Pos, VectorDropSmall);
+                    DropVectorAt(NodeSpot(i), VectorDropSmall);
                 nd.Spent = true;
                 Nodes[i] = nd;
-                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, NodeSpot(i), new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
                 DoLog("a vector chest was opened");
                 BroadcastExpansion();
             }
@@ -484,7 +491,7 @@ namespace Arena
                     BroadcastExpansion();
                     continue;
                 }
-                var chest = AddProp(PropKind.Chest, nd.Pos);
+                var chest = AddProp(PropKind.Chest, NodeSpot(i));
                 chest.Chest = NodeChestKind(nd);
                 nodeChests[i] = chest.Id;
             }

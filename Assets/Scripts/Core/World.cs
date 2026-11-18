@@ -46,6 +46,7 @@ namespace Arena
         public WorldPortal[] Portals;
         public WallSpan[] Spans;
         public Solid[] Cover;
+        public V2[] NodeSpots;             // the Expanding map's nodes (same order): where each stands now. A claimed chest or relic stands at the middle of its room (Expansion.NodeSpotIn); null if none
         public V2 Min, VaultMin, Max;      // the world's box (VaultMin: with the vault open)
         public int Hub, Vault = -1;        // area indexes (Vault -1: no vault)
         public float PortalR = 42f, PortalExit = 70f;

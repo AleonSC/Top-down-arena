@@ -428,6 +428,63 @@ namespace Arena
             return true;
         }
 
+        /// The nodes whose fixture stands in the middle of the room that claims them (owner Nov 18): chests, vector chests and relics.
+        public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest || k == NodeKind.Relic;
+
+        /// Where a chest or relic node stands: the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
+        /// is floor, else of the box holding the node), moved to the nearest half-tile point that is clear of cover (a card room's pillars and
+        /// blocks stay). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
+        public static V2 NodeSpotIn(IList<ExpansionRoom> rooms, MapNode nd, IList<Solid> cover)
+        {
+            int at = -1;
+            for (int i = 0; i < rooms.Count && at < 0; i++)
+                if (NodeEnclosedBy(rooms, i, nd))
+                    at = i;
+            if (at < 0)
+                return nd.Pos;
+            var group = GroupOf(rooms, at);
+            int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue, held = at;
+            foreach (int i in group)
+            {
+                var b = rooms[i];
+                x0 = Math.Min(x0, b.X); y0 = Math.Min(y0, b.Y); x1 = Math.Max(x1, b.X1); y1 = Math.Max(y1, b.Y1);
+                if (NodeEncloses(b, nd))
+                    held = i;
+            }
+            double tx = (x0 + x1) / 2.0, ty = (y0 + y1) / 2.0;
+            bool onFloor = false;
+            foreach (int i in group)
+                onFloor |= tx > rooms[i].X && tx < rooms[i].X1 && ty > rooms[i].Y && ty < rooms[i].Y1;
+            if (!onFloor)
+            {
+                var h = rooms[held];
+                tx = (h.X + h.X1) / 2.0; ty = (h.Y + h.Y1) / 2.0;
+            }
+            double best = double.MaxValue;
+            var spot = nd.Pos;
+            foreach (int i in group)
+            {
+                var b = rooms[i];
+                if (b.Floating)
+                    continue;
+                for (int y = b.Y + Step / 2; y < b.Y1; y += Step / 2)  // (every half tile: an even-sized room's middle is on a grid line)
+                    for (int x = b.X + Step / 2; x < b.X1; x += Step / 2)
+                    {
+                        double d = (x - tx) * (x - tx) + (y - ty) * (y - ty);
+                        if (d >= best)
+                            continue;
+                        bool clear = true;
+                        foreach (var c in cover)
+                            if (Math.Abs(c.Pos.X - x) < c.HW + c.R + NodeClear && Math.Abs(c.Pos.Y - y) < c.HH + c.R + NodeClear) { clear = false; break; }
+                        if (!clear)
+                            continue;
+                        best = d;
+                        spot = new V2(x, y);
+                    }
+            }
+            return spot;
+        }
+
         /// A built room (a drawn outline as a whole) encloses this node.
         public static bool NodeClaimed(IList<ExpansionRoom> built, MapNode n)
         {
@@ -2018,21 +2075,27 @@ namespace Arena
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
                 if (FinStyle >= 0 && !rooms[a - 1].Floating && !IsPush(rooms[a - 1]) && rooms[a - 1].Card == 0 && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
                     AddFins(spans, cover, rooms, group, a, doors, nodes);
-            if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room
+            V2[] spots = null;
+            if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room (a claimed chest or relic stands in its room's middle)
+            {
+                spots = new V2[nodes.Count];
+                for (int i = 0; i < spots.Length; i++)
+                    spots[i] = CentresInRoom(nodes[i].Kind) ? NodeSpotIn(rooms, nodes[i], cover) : nodes[i].Pos;
                 cover.RemoveAll(c =>
                 {
-                    foreach (var nd in nodes)
-                        if (Math.Abs(c.Pos.X - nd.X) < c.HW + c.R + NodeClear && Math.Abs(c.Pos.Y - nd.Y) < c.HH + c.R + NodeClear)
+                    foreach (var sp in spots)
+                        if (Math.Abs(c.Pos.X - sp.X) < c.HW + c.R + NodeClear && Math.Abs(c.Pos.Y - sp.Y) < c.HH + c.R + NodeClear)
                             return true;
                     return false;
                 });
+            }
             var portals = new WorldPortal[links == null ? 0 : links.Count];  // bought portal pairs (Docs/RoomBuilding2.md step 2)
             for (int i = 0; i < portals.Length; i++)
                 portals[i] = PortalOf(areas, links[i]);
             return new World
             {
                 Name = "Expanding",
-                Areas = areas, Doors = doors.ToArray(), Portals = portals, Spans = spans.ToArray(), Cover = cover.ToArray(),
+                Areas = areas, Doors = doors.ToArray(), Portals = portals, Spans = spans.ToArray(), Cover = cover.ToArray(), NodeSpots = spots,
                 Min = new V2(minX, minY), VaultMin = new V2(minX, minY), Max = new V2(maxX, maxY),
                 Hub = 0, Vault = -1,
             };
