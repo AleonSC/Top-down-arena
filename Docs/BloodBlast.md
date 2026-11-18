@@ -1,6 +1,6 @@
 # Blood Blast: blood-slash chain
 
-**Status: planned** (no code yet). Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
+**Status: step 1 built** (protocol 404): the chain, health costs, stacks and kill heal in `Assets/Scripts/Core/BloodBlast.cs`, tests `Tools/SimTest/run.sh 1 30 bloodblast`. Steps 2-4 to do. Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
 (published: https://claude.ai/artifact/ENVDpfrNckiH4KoUpHvEp2).
 
 ## Owner's decisions
@@ -29,8 +29,8 @@
 - A full loop: 35 health (17.5% of the Tank's 200), 157 damage to one target, about 3.3 s.
 - **Crimson Tide** (weapon-action key): 12% max health, 8 s cooldown. 0.65 s charge (blood gathers in front of you),
   then a 100° crescent wave rolls out 400 px, piercing, 60 damage and a 150 shove; +1 stack on each enemy hit.
-- Stacks belong to the Hemomancer who put them on; whoever lands the kill, that Hemomancer is healed when the
-  returning blood reaches them. Stacks never fade
+- Stacks belong to the last Blood Blast user to hit the enemy (two Blood Blasts on one enemy share its stacks); whoever
+  lands the kill, that Hemomancer is healed when the returning blood reaches them (`BlastReturnTime`, 0.97 s). Stacks never fade
   while the enemy lives. A boss holds at most 10 like anything else (20 health on its death).
 - Health costs follow the Hemomancer rules (`BloodMage.cs`): they can't take you below 1 and count as `healthSpent` in
   the session report. The kill heal is ordinary healing.
@@ -50,8 +50,9 @@
 
 ## Build steps
 
-1. **Core**: `WeaponId.BloodBlast` (end of the enum), the six-step chain in `Core/BloodBlast.cs` (step in `Player.Combo`,
-   health costs, hits), `Enemy.BlastStacks` + owner (replicated), the kill heal; suite `bloodblast`; protocol bump.
+1. **Core** (done, protocol 404): `WeaponId.BloodBlast`, the six-step chain in `Core/BloodBlast.cs` (each step a `Swing`;
+   Crescent Flight is a 260 px, 80° cut until step 3 draws it flying), health costs, `Enemy.BlastStacks` + owner
+   (replicated), the kill heal on arrival; suite `bloodblast`. Placeholder look: the red slash and a drain line home.
 2. **Alt**: Crimson Tide on the weapon-action key (next free `Dash` byte), charge and wave, stacks on hit; tests.
 3. **Look**: `Game/BloodBlastLook.cs`: the six moves, the Tide, stack drops and the Blood Vortex return (an `FxKind`); `Tools/Preview`
    renders of each step.

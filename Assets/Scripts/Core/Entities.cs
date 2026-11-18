@@ -442,6 +442,7 @@ namespace Arena
         public float FlZeroT, FlZeroCd;        // Frost Lance: Absolute Zero playing (counts down from ZeroDur), its cooldown (replicated)
         public V2 FlZeroAt;                    // host: where Absolute Zero was cast
         public int FlZeroStage;                // host: Absolute Zero's waves gone (0, 1, 2)
+        public byte BlastStep;                 // Blood Blast: the chain's last step, 1-6 (0: none yet; host; BloodBlast.cs)
         public int WcStep;                     // Wind Clash: the combo's next step, 0-3 (host; WindClash.cs)
         public float WcIdle;                   // Wind Clash: since the last step (host: WcComboReset starts the combo over)
         public float WcTempestT, WcTempestCd;  // Wind Clash: the Tempest blowing, its cooldown (replicated: the slow, the storm, the HUD ring)
@@ -676,6 +677,8 @@ namespace Arena
         public float KatanaShockT;    // host: marked by a Katana's Momentum Burst for this long (caltrops thrown then seek it; Katana.cs)
         public bool KatanaShocked;    // marked (replicated)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
+        public byte BlastStacks;             // Blood Blast stacks on it, up to Game.BlastStackMax: its blood heals BlastOwner when it dies (replicated, with the owner; BloodBlast.cs)
+        public int BlastOwner, BlastPress;   // the player whose stacks they are (replicated); host: the last press that stacked it
         public int BleedStacks;              // bleed stacks on it from any source, up to five (KitWeapons.cs); a Blood Bolt that fills them bursts it (BloodMage.cs); replicated, drawn as drops
         public float KusariCd;               // host: the Kusarigama's whirl can hit it again after this long
         public float Suppress;               // host: the Riot Repeater's suppression, 0 to SuppressMax (slows its shooting)

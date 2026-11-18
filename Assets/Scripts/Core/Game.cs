@@ -1412,6 +1412,7 @@ namespace Arena
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
             TickSmokeShells(dt);  // GrenadeLauncher.cs: smoke clouds; the launcher refills when put away
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
+            TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
             TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
@@ -1549,6 +1550,8 @@ namespace Arena
                     ClearStonespear(p);  // (Stonespear.cs)
                 if ((p.Weapon.Id != WeaponId.EmbolusSpears || p.Downed) && (p.EsSt[0] != EsInHand || p.EsSt[1] != EsInHand))
                     ClearEmbolus(p);  // (EmbolusSpears.cs)
+                if ((p.Weapon.Id != WeaponId.BloodBlast || p.Downed) && p.BlastStep != 0)
+                    ClearBloodBlast(p);  // (BloodBlast.cs)
                 if ((p.Weapon.Id != WeaponId.WindClash || p.Downed) && (p.WcStep != 0 || p.WcTempestT > 0f))
                     ClearWindClash(p);  // (WindClash.cs)
                 if ((p.Weapon.Id != WeaponId.FrostLance || p.Downed) && (p.FlStep != 0 || p.FlZeroT > 0f || p.FlRime))
