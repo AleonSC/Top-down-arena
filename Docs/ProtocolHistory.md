@@ -4,7 +4,10 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 394: the Engineer class (Kit.Engineer, WeaponId.VectorForge, AbilityId.DragPylon and Breach, MinionKind.Strider, ZoneKind.DragPylon, FxKind.BreachSmash, NodeKind.BreachLoot; four Engineer cards; the Tank and Healer kits: WeaponId.BulwarkForge and MediDroneForge, AbilityId.VectorWall, Bastion, MedPylon and SafeRoom, MinionKind.Sentinel, MediDrone and VectorBlock, ZoneKind.MedPylon and SafeRoom); Wildcard picks renumber (21 class weapons now)
+- 397: the Engineer class (Kit.Engineer, WeaponId.VectorForge, AbilityId.DragPylon and Breach, MinionKind.Strider, ZoneKind.DragPylon, FxKind.BreachSmash, NodeKind.BreachLoot; four Engineer cards; the Tank and Healer kits: WeaponId.BulwarkForge and MediDroneForge, AbilityId.VectorWall, Bastion, MedPylon and SafeRoom, MinionKind.Sentinel, MediDrone and VectorBlock, ZoneKind.MedPylon and SafeRoom); Wildcard picks renumber (21 class weapons now)
+- 396: the boss card pick (Docs/ArmsDealer.md step 3): the player snapshot adds `PendingCards` (byte) and `OfferCards` (bool) after `OfferPrize`; offers may hold card codes.
+- 395: the Arms Dealer (Docs/ArmsDealer.md step 2): `ShopAction.BuyMod` appended (arg: the mod's upgrade id).
+- 394: service cards (Docs/ArmsDealer.md step 1): `RoomCard.Shop`/`Market`/`Arms` (after `BuilderShop`) and `RoomKind.Arms` (after `Builder`) appended (hands and room lists carry them).
 - 393: `Msg.BuilderBuy` appended (buy a Builder Shop card: offer index); `RoomCard.BuilderShop` and `RoomKind.Builder` appended (the Builder Shop utility room card).
 - 392: `FxKind.BulwarkThrow` appended (the Bulwark Barrier's Shield Throw in flight); `FxKind.BulwarkStep` step 4 (its wind-up) and `FxKind.BulwarkBlock` Pos2.Y 2 (melee on the braced plate) and 3 (a thrown shield's cut).
 - 391: room cards' obstacles: `ExpansionRoom.Card` (byte, the RoomCard) after `Mini` in every room list (`Msg.ExpandState`, proposals).

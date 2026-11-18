@@ -19,9 +19,18 @@ namespace Arena
             VaultTint = new Rgba(1f, 0.62f, 0.3f, 0.06f), ShopTint = new Rgba(1f, 0.82f, 0.3f, 0.07f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorRed = new Rgba(1f, 0.3f, 0.36f),
             DoorAmber = new Rgba(1f, 0.7f, 0.28f), DoorTeal = new Rgba(0.25f, 0.9f, 0.7f), DoorGold = new Rgba(1f, 0.82f, 0.4f);
 
-        /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor) or a diamond (Gatekeeper).
+        /// A tiny service room built from a card or a mystery door (not floating): it gets the same mark as a floating one.
+        static bool TinyService(RoomArea a)
+            => (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms) && a.Size.X <= Expansion.ShopRoomSide + Expansion.Step && a.Size.Y <= Expansion.ShopRoomSide + Expansion.Step;  // (4 x 4, or a mystery door's 5 x 4)
+
+        /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor), a crosshair (Arms Dealer) or a diamond (Gatekeeper).
         void DrawFloatingMark(RoomArea a)
         {
+            if (!a.Sealed && a.Kind == RoomKind.Arms)  // an Arms Dealer: its stall (ArmsDealerLook.cs)
+            {
+                DrawArmsStall(a.Mid);
+                return;
+            }
             if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor))  // an opened shop or vendor room: its stall or pedestal
             {
                 DrawNodeFixture(a.Mid, a.Kind == RoomKind.Shop ? NodeKind.Shop : NodeKind.Vendor, false);
@@ -38,6 +47,13 @@ namespace Arena
                 case RoomKind.Vendor:
                     Line(c - new V2(24f, 0f), c + new V2(24f, 0f), 5f, col);
                     Line(c - new V2(0f, 24f), c + new V2(0f, 24f), 5f, col);
+                    break;
+                case RoomKind.Arms:  // a crosshair: a ring with four ticks
+                    Arc(c, 20f, 3f, col, 20);
+                    Line(c + new V2(-34f, 0f), c + new V2(-12f, 0f), 4f, col);
+                    Line(c + new V2(12f, 0f), c + new V2(34f, 0f), 4f, col);
+                    Line(c + new V2(0f, -34f), c + new V2(0f, -12f), 4f, col);
+                    Line(c + new V2(0f, 12f), c + new V2(0f, 34f), 4f, col);
                     break;
                 default:  // the Gatekeeper: a diamond
                     Line(c + new V2(0f, -30f), c + new V2(30f, 0f), 4f, col);
@@ -70,7 +86,7 @@ namespace Arena
                 if (a.Hub || a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
-                var tint = a.Surprise > 0 ? SurpriseInk(a.Surprise).WithAlpha(0.06f) : a.Floating ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Builder ? BuilderInk.WithAlpha(0.07f) : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
+                var tint = a.Surprise > 0 ? SurpriseInk(a.Surprise).WithAlpha(0.06f) : a.Floating || TinyService(a) ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Builder ? BuilderInk.WithAlpha(0.07f) : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
                     : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
                 if (a.Surprise > 0)  // a surprise room: gold build-in and rim (SurpriseLook.cs)
@@ -79,7 +95,7 @@ namespace Arena
                     DrawKeptRoom(wd, i, a);
                 if (a.Kind == RoomKind.Builder && !a.Floating)  // a Builder Shop card's room: its counter (BuilderShopUi.cs)
                     DrawBuilderCounter(a.Mid);
-                if (a.Floating)  // a floating room: a ring and a mark of what it is, breathing while it is sealed
+                if (a.Floating || TinyService(a))  // a floating room (or a tiny service room): a ring and a mark of what it is, breathing while it is sealed
                     DrawFloatingMark(a);
                 if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls
                 {
@@ -267,6 +283,7 @@ namespace Arena
                 else if (a.Surprise > 0 && game.SurpriseFresh) { fill = SurpriseInk(a.Surprise).WithAlpha(0.22f); line = SurpriseInk(a.Surprise); }
                 else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
                 else if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
+                else if (a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms) { fill = KindInk(a.Kind, a.Floor).WithAlpha(0.2f); line = KindInk(a.Kind, a.Floor); }  // (a Black Market or Arms Dealer from a card or a door)
                 else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }
                 else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
                 else if (a.Hall) { fill = new Rgba(0.4f, 0.64f, 1f, 0.06f); line = new Rgba(0.4f, 0.64f, 1f, 0.35f); }

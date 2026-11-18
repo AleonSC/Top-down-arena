@@ -95,7 +95,7 @@ static partial class Program
 
             Action keep = () =>
             {
-                foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+                foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
                 foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0) e.Hp = 0f;
             };
             bool portal = false, pathOffered = false, bossEarly = false;
@@ -187,7 +187,7 @@ static partial class Program
         Check(g.Quick && g.ExpandingOn && c.ExpandingOn, "Quick Play is played on the Expanding arena (every game knows)");
         Action keep = () =>
         {
-            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
             foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0 && g.State == MatchState.Fighting && e.Hp > 0f && g.RunTime % 3f < 0.02f) e.Hp = 0f;
         };
         int lastWave = 0, rounds = 0;

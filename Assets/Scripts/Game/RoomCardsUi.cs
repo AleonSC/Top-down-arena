@@ -14,8 +14,10 @@ namespace Arena
 
         static readonly Rgba CardInk = new Rgba(0.45f, 0.85f, 1f), CardOk = new Rgba(0.35f, 1f, 0.55f);
 
-        /// A card's ink: the utility cards in their room's colour (the Mini-boss orange, the Builder Shop amber), the rest blue.
-        static Rgba CardInkOf(RoomCard c) => c == RoomCard.MiniBoss ? GateInk : c == RoomCard.BuilderShop ? BuilderInk : CardInk;
+        /// A card's colour: the Mini-boss in the Gatekeeper's orange, a service card in its room's colour, the rest in card blue.
+        static Rgba CardColor(RoomCard c) => c == RoomCard.MiniBoss ? GateInk : c == RoomCard.BuilderShop ? BuilderInk : Expansion.IsServiceCard(c) ? KindInk(Expansion.CardRoomKind(c), PathId.None) : CardInk;
+
+        static Rgba CardInkOf(RoomCard c) => CardColor(c);  // (the Builder Shop's name for it, BuilderShopUi.cs)
 
         RoomCard PickedCard => game.Me != null && expCard >= 0 && expCard < game.Me.Hand.Length ? (RoomCard)game.Me.Hand[expCard] : RoomCard.None;
 
@@ -107,7 +109,7 @@ namespace Arena
         {
             if (PickedCard == RoomCard.None)
                 return;
-            var ink = CardInkOf(PickedCard);
+            var ink = CardColor(PickedCard);
             foreach (var o in CardOptionsNow())
             {
                 V2 c = M(Expansion.OptionMid(o));
@@ -167,7 +169,7 @@ namespace Arena
                     expCard = on ? -1 : i;
                     expCardTurn = 0;
                 }
-                var ink = ToColor(CardInkOf(card));
+                var ink = ToColor(CardColor(card));
                 DrawCardGlyph(card, new Rect(r.x + 8f, r.y + 6f, r.width - 16f, 40f), on ? Color.white : ink);
                 Ui.Label(new Rect(r.x, r.y + 48f, r.width, 16f), Expansion.CardName(card).ToUpperInvariant(), 11, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
                 if (TipHover(r))
@@ -200,7 +202,7 @@ namespace Arena
             var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
             Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
-            var gi = card == RoomCard.MiniBoss || card == RoomCard.BuilderShop ? ToColor(CardInkOf(card)) : rc;
+            var gi = card == RoomCard.MiniBoss || card == RoomCard.BuilderShop || Expansion.IsServiceCard(card) ? ToColor(CardColor(card)) : rc;
             DrawCardGlyph(card, new Rect(tile.x + 8f, tile.y + 8f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), tile.width - 16f, tile.height - 16f), new Color(gi.r, gi.g, gi.b, dim));
             Ui.Label(new Rect(r.x + 8f, r.y + 130f, r.width - 16f, 26f), Expansion.CardName(card), 18, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
             Ui.Fill(new Rect(r.x + 36f, r.y + 160f, r.width - 72f, 1f), new Color(rc.r, rc.g, rc.b, 0.4f));
@@ -226,6 +228,40 @@ namespace Arena
                 for (int k = 0; k < rows; k++)
                     if (m[c, k])
                         Ui.Fill(new Rect(x0 + c * s, y0 + k * s, s - (s > 3f ? 0.6f : 0f), s - (s > 3f ? 0.6f : 0f)), new Color(ink.r, ink.g, ink.b, 0.55f));
+            if (Expansion.IsServiceCard(card))
+                DrawServiceIcon(card, new Rect(x0, y0, cols * s, rows * s), ink);
+        }
+
+        /// A service card's job over its tiny room: a coin (shop), a plus (Black Market) or a crosshair (Arms Dealer), as on the map.
+        static void DrawServiceIcon(RoomCard card, Rect room, Color ink)
+        {
+            float u = Mathf.Max(1f, Mathf.Round(room.width / 14f));  // stroke
+            var c = room.center;
+            float h = room.width * 0.32f;
+            var dark = new Color(0.02f, 0.04f, 0.06f, 0.85f);
+            var col = new Color(Mathf.Lerp(ink.r, 1f, 0.55f), Mathf.Lerp(ink.g, 1f, 0.55f), Mathf.Lerp(ink.b, 1f, 0.55f), ink.a);
+            switch (card)
+            {
+                case RoomCard.Shop:
+                    Ui.Dot(new Rect(c.x - h, c.y - h, 2f * h, 2f * h), dark);
+                    Ui.Dot(new Rect(c.x - h + u, c.y - h + u, 2f * (h - u), 2f * (h - u)), col, true);
+                    Ui.Fill(new Rect(c.x - u / 2f, c.y - h * 0.5f, u, h), col);
+                    break;
+                case RoomCard.Market:
+                    Ui.Fill(new Rect(c.x - h - u, c.y - u * 1.5f, 2f * (h + u), 3f * u), dark);
+                    Ui.Fill(new Rect(c.x - u * 1.5f, c.y - h - u, 3f * u, 2f * (h + u)), dark);
+                    Ui.Fill(new Rect(c.x - h, c.y - u / 2f, 2f * h, u), col);
+                    Ui.Fill(new Rect(c.x - u / 2f, c.y - h, u, 2f * h), col);
+                    break;
+                default:  // Arms Dealer: a crosshair
+                    Ui.Dot(new Rect(c.x - h, c.y - h, 2f * h, 2f * h), dark);
+                    Ui.Dot(new Rect(c.x - h * 0.6f, c.y - h * 0.6f, 1.2f * h, 1.2f * h), col, true);
+                    Ui.Fill(new Rect(c.x - h, c.y - u / 2f, h * 0.45f, u), col);
+                    Ui.Fill(new Rect(c.x + h * 0.55f, c.y - u / 2f, h * 0.45f, u), col);
+                    Ui.Fill(new Rect(c.x - u / 2f, c.y - h, u, h * 0.45f), col);
+                    Ui.Fill(new Rect(c.x - u / 2f, c.y + h * 0.55f, u, h * 0.45f), col);
+                    break;
+            }
         }
     }
 }

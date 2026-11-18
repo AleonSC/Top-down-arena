@@ -183,7 +183,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         Run(s, dt, 40f, () => g.State == MatchState.Intermission && g.Wave == 6 && !g.AnyonePicking(), () => { NoPicks(); foreach (var e in g.Enemies.Values) e.Hp = 0f; });

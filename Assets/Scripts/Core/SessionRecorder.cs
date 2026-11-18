@@ -585,6 +585,10 @@ namespace Arena
             picks.Add(new PickRec { Player = p.Id, Wave = g.Wave, Level = p.Level, Kind = kind, Offered = names, Picked = Upgrades.All[picked].Name, RerollsLeft = p.Rerolls });
         }
 
+        /// A pick that isn't an upgrade (the boss card pick): its names as shown.
+        public void PickedNamed(Game g, Player p, string[] offered, string picked, string kind)
+            => picks.Add(new PickRec { Player = p.Id, Wave = g.Wave, Level = p.Level, Kind = kind, Offered = offered, Picked = picked, RerollsLeft = p.Rerolls });
+
         public void Rerolled(Player p) => Add(rerolls, p.Id, 1);
 
         // --- Writing --------------------------------------------------------------------

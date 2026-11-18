@@ -53,7 +53,7 @@ static partial class Program
         var g = host.Game;
         var cg = client.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         // Players stand where they're told (the client moves its own player).
         V2 hostAt = new V2(200f, 200f), friendAt = new V2(1400f, 200f);
         Action hold = () => { g.Players[1].Pos = hostAt; cg.Players[2].Pos = friendAt; };
@@ -128,7 +128,7 @@ static partial class Program
         // Nobody picks for a while: the break waits for the prize (it used to run out after 4 s, start the next wave
         // with the cards still up, and then refuse the pick, leaving the player unable to fire), and the pick still works.
         // (Only the prize left to pick: level-ups from the room's kills would hold the break by themselves.)
-        foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.PrizePicks = 1; }
+        foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.PrizePicks = 1; }
         typeof(Game).GetMethod("NextOffer", flags).Invoke(g, new object[] { me });
         typeof(Game).GetMethod("NextOffer", flags).Invoke(g, new object[] { friend });
         g.StateTimer = 4f;

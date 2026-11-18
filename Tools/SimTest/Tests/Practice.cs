@@ -48,7 +48,7 @@ static partial class Program
         {
             for (int f = 0; f < secs * 60; f++)
             {
-                foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; }
+                foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.Offer = null; }
                 Step(host, dt);
                 if (stop != null && stop()) break;
             }
@@ -206,7 +206,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         host.Game.DevSetGod(1, true); host.Game.DevSetGod(2, true);
         Run(s, dt, 15f, () => host.Game.State == MatchState.Fighting && host.Game.PracticeIndex == 1 && client.Game.PracticeIndex == 1,
-            () => { foreach (var e in host.Game.Enemies.Values) e.Hp = 0f; foreach (var p in host.Game.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; } });
+            () => { foreach (var e in host.Game.Enemies.Values) e.Hp = 0f; foreach (var p in host.Game.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.Offer = null; } });
         Check(client.Game.Practice != null && client.Game.Practice.Waves.Count == 2 && client.Game.PracticeIndex == 1 && host.Game.PracticeIndex == 1,
             "a practice match plays the lobby's waves, and everyone's HUD follows which one it is");
         host.Leave("");
@@ -285,7 +285,7 @@ static partial class Program
         var g = host.Game;
         Action<float> Run = secs => { for (int f = 0; f < secs * 60; f++) { Step(host, dt); Step(client, dt); } };
         Func<bool> Fighting = () => g.State == MatchState.Fighting;
-        for (int f = 0; f < 60 * 20 && !Fighting(); f++) { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; } Step(host, dt); Step(client, dt); }
+        for (int f = 0; f < 60 * 20 && !Fighting(); f++) { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.Offer = null; } Step(host, dt); Step(client, dt); }
         Check(Fighting() && g.Players.Count == 2, "a two-player practice run is under way");
 
         // A wipe doesn't end it, and a downed player can get back up.
@@ -312,7 +312,7 @@ static partial class Program
         g.Players[1].Hp = 10f;
         g.RequestRespawn(Game.RespawnRestart);
         Check(g.State == MatchState.Intermission && g.Enemies.Count == 0 && g.Players[1].Hp >= g.Players[1].MaxHp * 0.99f, "Restart wave clears the arena and heals everyone");
-        for (int f = 0; f < 60 * 12 && !(Fighting() && g.Enemies.Count > 0); f++) { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; } Step(host, dt); Step(client, dt); }
+        for (int f = 0; f < 60 * 12 && !(Fighting() && g.Enemies.Count > 0); f++) { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.Offer = null; } Step(host, dt); Step(client, dt); }
         Check(Fighting() && g.PracticeIndex == idx && g.Enemies.Count > 0, "...and the same practice wave starts again");
 
         // Respawn means nothing outside the Practice Range.

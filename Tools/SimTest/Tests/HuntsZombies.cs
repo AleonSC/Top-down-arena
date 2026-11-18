@@ -62,7 +62,7 @@ static partial class Program
         // Through the waves (enemies cleared as they come, picks skipped), to the Warden.
         Action keep = () =>
         {
-            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
             foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0) e.Hp = 0f;
         };
         bool portal = false, pathOffered = false;

@@ -1114,7 +1114,10 @@ namespace Arena
                 p.Rerolls += BossRerolls + p.Stats.BossRerolls;  // (Reroll Cache adds to it)
                 p.LegendaryQueue.Add(bossKey);  // picked at the end of the wave
                 p.PendingLegendary = p.LegendaryQueue.Count;
-                p.PendingMods++;                // then a weapon mod
+                if (BossCardPicks)
+                    p.PendingCards++;           // then a card pick (BossCards.cs; mods are sold at the Arms Dealer)
+                else
+                    p.PendingMods++;            // then a weapon mod
             }
             DoLog(e.Def.Name + " defeated: everyone gets " + BossRerolls + "+ rerolls");
             return true;

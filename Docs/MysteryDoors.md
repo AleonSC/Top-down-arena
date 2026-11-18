@@ -94,7 +94,7 @@ Replaces step 2's contents (no Stash, no mini-boss room, no surprise shapes behi
 
 | Room | Shapes | Weight | What's in it |
 |---|---|---|---|
-| Small | 4 x 4 (`Tiny`), 5 x 4 (`SmallRect`) | 35 | enemies 56, empty 20, shop 12, Black Market 12 |
+| Small | 4 x 4 (`Tiny`), 5 x 4 (`SmallRect`) | 35 | enemies 50, empty 17, shop 11, Black Market 11, Arms Dealer 11 (Docs/ArmsDealer.md) |
 | Medium | 6 x 6 (`Medium`), 7 x 6 (`Box`) | 35 | enemies 78, empty 22 |
 | Hallway | 12 x 3 (`LongHall`) | 30 | a chest node at the far end, 70 px in (`Mystery.FarEnd`) |
 

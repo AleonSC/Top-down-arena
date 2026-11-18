@@ -38,7 +38,7 @@ static partial class Program
                 g.DevSetGod(1, true);
                 foreach (var p in g.Players.Values)
                 {
-                    p.PendingPicks = p.PendingLegendary = p.PendingMods = 0;
+                    p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0;
                     p.LegendaryQueue.Clear();
                     p.Offer = null;
                 }

@@ -20,6 +20,25 @@ namespace Arena
         static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "floorkit", "compass" };
         // Service ids: 0-5 as named below, 6-9 the Black Market's buildables (6 + BuildKind).
         // 20-22: the Black Market's room cards (20 + offer, Game.VendorCards; RoomCardsUi.cs), first among the buildables when room cards are on.
+        /// The Arms Dealer's list: every weapon mod (40 + its index in Game.ModIds), then a heal and a revive token.
+        static int[] armsItems;
+        static int[] ArmsItems
+        {
+            get
+            {
+                if (armsItems == null)
+                {
+                    var l = new List<int>();
+                    for (int i = 0; i < Game.ModIds.Length; i++) l.Add(40 + i);
+                    l.Add(2); l.Add(3);
+                    armsItems = l.ToArray();
+                }
+                return armsItems;
+            }
+        }
+
+        bool shopAtArms;  // this frame's shop screen is the Arms Dealer's
+
         static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, MarketItems = { 6, 7, 8, 9, 2, 3, 1, 5, 4 }, MarketCardItems = { 20, 21, 22, 6, 7, 8, 9, 2, 3, 1, 5, 4 };
         static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
 
@@ -53,17 +72,18 @@ namespace Arena
 
             // The room shops: upgrades in the shop room, buildables at the vendor, services in either (SvcAllowed).
             bool atShop = !game.ServiceRooms || game.InShopRoom(me), atVendor = !game.ServiceRooms || game.InVendorRoom(me);
-            bool market = game.ServiceRooms && !atShop;  // the vendor's room is the Black Market (Docs/BlackMarket.md)
-            var mk = ToColor(VendorInk);
+            bool arms = shopAtArms = game.ServiceRooms && game.InArmsRoom(me);  // the Arms Dealer: every weapon mod for gold (Docs/ArmsDealer.md)
+            bool market = game.ServiceRooms && !atShop && !arms;  // the vendor's room is the Black Market (Docs/BlackMarket.md)
+            var mk = ToColor(arms ? ArmsInk : VendorInk);
 
             // Heading and wallet.
-            string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND SERVICES" : "BLACK MARKET  ·  BUILDABLES AND SERVICES") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
+            string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND SERVICES" : arms ? "ARMS DEALER  ·  WEAPON MODS AND SERVICES" : "BLACK MARKET  ·  BUILDABLES AND SERVICES") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
             float tagW = 30f + tag.Length * 7.5f;
             var tagRect = new Rect(W / 2f - tagW / 2f, 24f, tagW, 22f);
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
             Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : "THE BLACK MARKET") : "THE BAZAAR", 34, market ? mk : Ui.Gold, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(0f, 92f, W, 18f), market ? (game.RoomCardsOn ? "Room cards cost vectors and go to your hand. The rest waits in your stash." : "Buys wait in your stash. Place them from the draw screen in the break.") : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+            DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : arms ? "THE ARMS DEALER" : "THE BLACK MARKET") : "THE BAZAAR", 34, market || arms ? mk : Ui.Gold, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(0f, 92f, W, 18f), arms ? "Every weapon mod, up to 3 stacks each. Each stack you hold makes the next one dearer." : market ? (game.RoomCardsOn ? "Room cards cost vectors and go to your hand. The rest waits in your stash." : "Buys wait in your stash. Place them from the draw screen in the break.") : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
             var wallet = new Rect(W - 210f, 22f, 190f, 54f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
             Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 13f, 28f, 28f), PixelArt.Get("ui_coin"));
@@ -71,10 +91,10 @@ namespace Arena
             Ui.Label(new Rect(wallet.x + 112f, wallet.y + 7f, 74f, 40f), game.ServiceRooms ? "your gold" : "your gold\nleftover → XP", 10, new Color(1f, 0.85f, 0.6f, 0.75f), TextAnchor.MiddleLeft);
 
             // The list: the shelf's cards, then the services.
-            int count = market ? 0 : Game.ShelfCount(me);  // (the Black Market has no shelf)
+            int count = market || arms ? 0 : Game.ShelfCount(me);  // (the Black Market and the Arms Dealer have no shelf)
             bool cardShelf = market && game.RoomCardsOn;  // (room cards: the vendor sells them too, for vectors)
-            int[] svc = market ? (cardShelf ? MarketCardItems : MarketItems) : game.ExpandingOn ? AllServices : BazaarServices;  // (the room kit and vector pack are sold in the Expanding arena)
-            int nSvc = svc.Length, n = count + nSvc, split = market ? Market.Count + (cardShelf ? Expansion.CardOfferCount : 0) : count, nSecond = n - split;
+            int[] svc = arms ? ArmsItems : market ? (cardShelf ? MarketCardItems : MarketItems) : game.ExpandingOn ? AllServices : BazaarServices;  // (the room kit and vector pack are sold in the Expanding arena)
+            int nSvc = svc.Length, n = count + nSvc, split = arms ? Game.ModIds.Length : market ? Market.Count + (cardShelf ? Expansion.CardOfferCount : 0) : count, nSecond = n - split;
             if (shopSel < 0)
             {
                 shopSel = 0;
@@ -100,7 +120,7 @@ namespace Arena
 
             const float railY = 158f, cardW = 250f, cardH = 372f;
             float tabY = 118f;
-            string firstTab = market ? "BUILDABLES  (" + split + ")" : "UPGRADES  (" + count + ")", secondTab = "SERVICES  (" + nSecond + ")";
+            string firstTab = arms ? "WEAPON MODS  (" + split + ")" : market ? "BUILDABLES  (" + split + ")" : "UPGRADES  (" + count + ")", secondTab = "SERVICES  (" + nSecond + ")";
             if (shopCat < 0)
                 DrawShopCategories(me, svc, count, split, market, railY, popup, t);
             else
@@ -262,6 +282,13 @@ namespace Arena
                 return;
             }
             int k = svc[item - count];
+            if (k >= 40)
+            {
+                int id = Game.ModIds[k - 40];
+                if (shopAtArms && Upgrades.Available(id, game.OfferFor(me)) && me.Gold >= Game.ModPrice(me, id))
+                    game.Shop(ShopAction.BuyMod, id);
+                return;
+            }
             if (k >= 20)
             {
                 if (atVendor && game.RoomCardsOn && Game.HandCount(me) < Expansion.HandMax && game.SpendableVectors(me) >= Expansion.CardPrice(game.VendorCards[k - 20]))
@@ -280,7 +307,7 @@ namespace Arena
         }
 
         /// Where a service is sold in the room shops (Game.ServiceAllowed): Add stock in the shop room, buildables at the vendor, the rest in either.
-        static bool SvcAllowed(int k, bool atShop, bool atVendor) => k == 0 ? atShop : k >= 6 ? atVendor : atShop || atVendor;
+        bool SvcAllowed(int k, bool atShop, bool atVendor) => k >= 40 ? shopAtArms : k == 0 ? atShop : k >= 6 ? atVendor : atShop || atVendor || shopAtArms;
 
         /// The two category panels the shop opens on: the upgrades (the Black Market's buildables) and the services, each with a peek
         /// at what's inside. Clicking one (or Enter on the one the arrow keys point at) opens its carousel.
@@ -310,7 +337,7 @@ namespace Arena
                 if (hover)
                     shopCatHover = c;
                 bool on = !empty && shopCatHover == c;
-                Color ac = c == 1 ? Ui.Gold : market ? ToColor(VendorInk) : new Color(0.45f, 0.75f, 1f);
+                Color ac = c == 1 ? Ui.Gold : shopAtArms ? ToColor(ArmsInk) : market ? ToColor(VendorInk) : new Color(0.45f, 0.75f, 1f);
                 float lift = on && !fxReduced ? 3f * Mathf.Sin(t * 3f) : 0f;
                 Ui.Glow(r, ac, on ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.16f);
                 DrawHolo(r, ac, t);
@@ -322,14 +349,18 @@ namespace Arena
                 var ribbon = new Rect(r.center.x - 44f, r.y + 16f, 88f, 20f);
                 Ui.Pill(ribbon, new Color(ac.r, ac.g, ac.b, 0.85f));
                 Ui.Label(ribbon, "Category", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
-                string name = c == 1 ? "SERVICES" : market ? "BUILDABLES" : "UPGRADES";
+                string name = c == 1 ? "SERVICES" : shopAtArms ? "WEAPON MODS" : market ? "BUILDABLES" : "UPGRADES";
                 DkTitle(new Rect(r.x, r.y + 44f + lift, r.width, 44f), name, 32, ac, TextAnchor.MiddleCenter);
                 int bought = 0;
                 for (int i = 0; i < count; i++)
                     if (Game.Sold(me, i))
                         bought++;
-                string sub = c == 1 ? (market ? "Heals, revives, sales and floor kits." : "Restock, sell, heal, revive" + (svc.Length > 4 ? ", build" : "") + ".")
-                    : cardShelf ? "Room cards, teleporters and traps." : market ? "Teleporters and traps for your stash." : count + " cards on your shelf" + (bought > 0 ? "  ·  " + bought + " bought" : "");
+                int maxed = 0;
+                if (shopAtArms)
+                    foreach (int id in Game.ModIds)
+                        if (!Upgrades.Available(id, game.OfferFor(me))) maxed++;
+                string sub = c == 1 ? (shopAtArms ? "Heals and revives." : market ? "Heals, revives, sales and floor kits." : "Restock, sell, heal, revive" + (svc.Length > 4 ? ", build" : "") + ".")
+                    : shopAtArms ? Game.ModIds.Length + " mods" + (maxed > 0 ? "  ·  " + maxed + " maxed" : "") + "  ·  priced by your stacks" : cardShelf ? "Room cards, teleporters and traps." : market ? "Teleporters and traps for your stash." : count + " cards on your shelf" + (bought > 0 ? "  ·  " + bought + " bought" : "");
                 Ui.Label(new Rect(r.x + 16f, r.y + 90f, r.width - 32f, 20f), sub, 13, Ui.Text, TextAnchor.MiddleCenter, true);
                 Ui.Fill(new Rect(r.x + 50f, r.y + 120f, r.width - 100f, 1f), new Color(ac.r, ac.g, ac.b, 0.4f));
 
@@ -355,6 +386,8 @@ namespace Arena
                     int k = i < count ? -1 : svc[i - count];
                     if (i < count && me.Shelf[i] >= 0)
                         tc = ToColor(Upgrades.RarityColor(Upgrades.All[me.Shelf[i]].Rarity));
+                    else if (k >= 40)
+                        tc = ToColor(Upgrades.RarityColor(Rarity.Mod));
                     else if (k >= 6)
                         tc = ToColor(VendorInk);
                     float da = i < count && Game.Sold(me, i) ? 0.4f : 1f;
@@ -366,6 +399,8 @@ namespace Arena
                         if (me.Shelf[i] >= 0)
                             Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[me.Shelf[i]].Name), da);
                     }
+                    else if (k >= 40)
+                        Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[Game.ModIds[k - 40]].Name), Upgrades.Available(Game.ModIds[k - 40], game.OfferFor(me)) ? 1f : 0.4f);
                     else if (k >= 20)
                         DrawCardGlyph(game.VendorCards[k - 20], new Rect(tile.x + 6f, tile.y + 6f, tile.width - 12f, tile.height - 12f), ToColor(VendorInk));
                     else if (k >= 6)
@@ -409,6 +444,12 @@ namespace Arena
         /// A service's price, and whether it can't be used right now.
         int ServicePrice(Player me, int k, out bool used)
         {
+            if (k >= 40)  // an Arms Dealer mod: maxed once you can't take another stack
+            {
+                int id = Game.ModIds[k - 40];
+                used = !Upgrades.Available(id, game.OfferFor(me));
+                return used ? int.MaxValue : Game.ModPrice(me, id);
+            }
             if (k >= 20)  // a room card: paid in vectors, so never the cheapest gold price
             {
                 used = Game.HandCount(me) >= Expansion.HandMax;
@@ -544,9 +585,62 @@ namespace Arena
                 DrawPriceTag(new Rect(r.center.x - 34f, r.yMax - 38f, 68f, 26f), price, afford);
         }
 
+        /// One of the Arms Dealer's weapon mods, in the mod teal: its icon, what it does, the stacks you hold and what the next one costs.
+        void DrawModItem(Player me, int id, Rect r, bool selected, float t, bool allowed)
+        {
+            var u = Upgrades.All[id];
+            Color rc = ToColor(Upgrades.RarityColor(Rarity.Mod)), ak = ToColor(ArmsInk);
+            int held = Upgrades.Count(me.Taken, id), price = Game.ModPrice(me, id);
+            bool maxed = !Upgrades.Available(id, game.OfferFor(me)), afford = me.Gold >= price;
+            float dim = maxed || !afford ? 0.5f : 1f;
+            Ui.Glow(r, rc, selected ? 0.55f + 0.1f * Mathf.Sin(t * 4f) : 0.2f * dim);
+            DrawHolo(r, rc, t);
+            if (dim < 1f)
+                Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.5f));
+            CrtKit.Frame(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.55f) : new Color(rc.r, rc.g, rc.b, 0.5f * dim + 0.1f));
+            var ribbon = new Rect(r.center.x - 48f, r.y + 12f, 96f, 20f);
+            Ui.Pill(ribbon, new Color(ak.r, ak.g, ak.b, 0.85f * dim));
+            Ui.Label(ribbon, "Weapon mod", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+            var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
+            Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
+            Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
+            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 60f, 60f), PixelArt.ForUpgrade(u.Name), dim);
+            // The stacks you hold: a square each, filled.
+            for (int s = 0; s < u.MaxStacks; s++)
+            {
+                var sq = new Rect(r.center.x - u.MaxStacks * 7f + s * 14f + 2f, tile.yMax + 6f, 10f, 10f);
+                Ui.Fill(sq, s < held ? rc : new Color(rc.r, rc.g, rc.b, 0.18f));
+            }
+            Ui.Label(new Rect(r.x + 8f, r.y + 140f, r.width - 16f, 24f), u.Name, u.Name.Length > 16 ? 15 : 18, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
+            Ui.Fill(new Rect(r.x + 36f, r.y + 168f, r.width - 72f, 1f), new Color(rc.r, rc.g, rc.b, 0.4f));
+            string desc = Upgrades.DescFor(u, me.Weapon);
+            Ui.Label(new Rect(r.x + 14f, r.y + 174f, r.width - 28f, selected ? 72f : 124f), desc, desc.Length > 70 ? 11 : 13, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), TextAnchor.UpperCenter, false, true);
+            if (selected && !maxed)
+            {
+                var parts = ChangeParts(me, id, 0, false);
+                if (parts != null)
+                    DrawPickStrip(new Rect(r.x + 10f, r.yMax - 50f, r.width - 20f, 0f), 13, true, parts, held);
+            }
+            if (maxed)
+            {
+                var stamp = new Rect(r.center.x - 60f, r.yMax - 40f, 120f, 30f);
+                Ui.Pill(stamp, new Color(0.05f, 0.2f, 0.08f, 0.92f));
+                Ui.Label(stamp, held >= u.MaxStacks ? "MAXED" : "NOT FOR YOU", 15, Ui.Good, TextAnchor.MiddleCenter, true);
+            }
+            else if (selected)
+                DrawPriceTag(new Rect(r.center.x - 55f, r.yMax - 38f, 110f, 28f), price, afford, afford && allowed ? "Buy · " : "");
+            else
+                DrawPriceTag(new Rect(r.center.x - 34f, r.yMax - 38f, 68f, 26f), price, afford);
+        }
+
         /// One service in the same frame as the cards, in gold: Add stock, Sell upgrade, Full heal, Revive token, Floor kit, Vector pack.
         void DrawShopService(Player me, int k, Rect r, bool selected, float t, bool shopping, bool allowed)
         {
+            if (k >= 40)
+            {
+                DrawModItem(me, Game.ModIds[k - 40], r, selected, t, shopping && allowed);
+                return;
+            }
             if (k >= 20)
             {
                 DrawRoomCardItem(me, k - 20, r, selected, t, shopping && allowed);

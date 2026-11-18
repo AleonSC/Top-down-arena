@@ -253,7 +253,7 @@ namespace Arena
         void TickSurvivalPicks()
         {
             foreach (var p in Players.Values)
-                if (p.Offer == null && (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0 || p.PendingMilestones > 0 || p.PrizePicks > 0))
+                if (p.Offer == null && (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0 || p.PendingCards > 0 || p.PendingMilestones > 0 || p.PrizePicks > 0))
                     NextOffer(p);
             if (!AnyonePicking())
                 State = MatchState.Fighting;

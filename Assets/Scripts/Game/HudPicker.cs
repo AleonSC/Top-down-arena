@@ -35,8 +35,8 @@ namespace Arena
             // Heading: a big outlined title in the offer's colour, and a line under it.
             Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
                 : me.OfferMilestone ? ToColor(Upgrades.RarityColor(Rarity.Milestone))
-                : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : me.OfferPrize ? ToColor(Upgrades.RarityColor(Rarity.VeryRare)) : Ui.Gold;
-            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
+                : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : me.OfferCards ? BossCardsTheme : me.OfferPrize ? ToColor(Upgrades.RarityColor(Rarity.VeryRare)) : Ui.Gold;
+            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferCards ? "BOSS SPOILS!" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
             float titleY, band;
             int titleSize;
             PickTitleMotion(72f, 54, out titleY, out titleSize, out band);  // a full opening pops it in the middle first
@@ -44,13 +44,13 @@ namespace Arena
                 for (int k = 0; k < 7; k++)  // a dark band behind it, soft at the edges
                     Ui.Fill(new Rect(0f, titleY - 70f + k * 20f, W, 20f), new Color(0f, 0f, 0f, 0.55f * band * Mathf.Sin((k + 0.5f) / 7f * Mathf.PI)));
             // The CRT title: VT323, glowing in the offer's colour (the lobby's blue for a plain level-up).
-            var titleCol = me.OfferLegendary || me.OfferMod || me.OfferMilestone || me.OfferPrize ? theme : CrtUi.Ink;
+            var titleCol = me.OfferLegendary || me.OfferMod || me.OfferCards || me.OfferMilestone || me.OfferPrize ? theme : CrtUi.Ink;
             var titleR = new Rect(0f, titleY - 32f - (titleSize - 54) * 0.6f, W, 64f + (titleSize - 54) * 1.2f);
             if (Event.current.type == EventType.Repaint && !fxReduced)
                 Ui.Glow(new Rect(W / 2f - CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)) / 2f, titleR.center.y - titleSize * 0.35f, CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)), titleSize * 0.7f), titleCol, 0.16f);
             CrtUi.Title(titleR, title, (int)(titleSize * 1.3f), Color.Lerp(titleCol, Color.white, 0.8f), TextAnchor.MiddleCenter, fxReduced);
-            int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingMilestones + me.PrizePicks - 1;
-            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
+            int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingCards + me.PendingMilestones + me.PrizePicks - 1;
+            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferCards ? "PICK A ROOM CARD OR A FLOOR KIT  ·  WEAPON MODS ARE AT THE ARMS DEALER" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
                 sub += "  ·  " + more + " MORE AFTER THIS";
             if (titleY <= 73f)
@@ -109,13 +109,20 @@ namespace Arena
                 const float top = 150f;
                 for (int i = 0; i < me.Offer.Length; i++)
                 {
-                    var u = Upgrades.All[me.Offer[i]];
+                    var u = me.OfferCards ? null : Upgrades.All[me.Offer[i]];
+                    int code = me.Offer[i];
                     var slot = slots[i];
                     pickCardRects[i] = slot;
                     bool hover = !opening && slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
                     float a = IntroCardsAt + Mathf.Min(i, 5) * IntroCardGap, f = EaseOut(Seg(IntroElapsed, a, a + IntroCardFly));
                     if (f > 0f)
-                        DrawCardInFlight(home, slot, i, f, Mathf.Min(1f, f * 3f), () => DrawTrophyCard(me, i, u, slot, selected, selectedCard >= 0 && !selected, hover, now));
+                        DrawCardInFlight(home, slot, i, f, Mathf.Min(1f, f * 3f), () =>
+                        {
+                            if (u == null)
+                                DrawBossCardTrophy(me, i, code, slot, selected, selectedCard >= 0 && !selected, hover, now);  // (a boss card pick: BossCardsUi.cs)
+                            else
+                                DrawTrophyCard(me, i, u, slot, selected, selectedCard >= 0 && !selected, hover, now);
+                        });
                     if (!opening && Ui.HitArea(slot) && selectedCard != i)
                     {
                         selectedCard = i;
@@ -141,7 +148,7 @@ namespace Arena
 
             // A card that grants a new ability: choose which key it goes on. The key switch sits between Reroll and Choose;
             // the two buttons spring apart to make room for it (and back) so nothing below the cards moves down.
-            bool grantCard = selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None;
+            bool grantCard = !me.OfferCards && selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None;
             if (grantCard)
             {
                 if (pickKey < 1 || pickKey > Upgrades.BonusSlots)
@@ -158,7 +165,7 @@ namespace Arena
             bool goldOffer = game.CanGoldInstead(me);  // level-up offers where a shop will take gold: a slim key under the row
             by = Mathf.Min(by, H - (goldOffer ? 120f : 70f));
             bool wasEnabled = GUI.enabled;
-            bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length;
+            bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length && (!me.OfferCards || game.BossCardUsable(me, me.Offer[selectedCard]));
             bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferMilestone && !me.OfferPrize;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
             const float rerollW = 300f, takeW = 300f, bgap = 18f, keysW = 230f;
             float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
@@ -184,7 +191,7 @@ namespace Arena
             }
             GUI.enabled = picked && !game.RerollPending;
             var chooseR = new Rect(chooseX, by, takeW, 48f);
-            if (LobbyKit.Key(chooseR, "CHOOSE UPGRADE", false, fxReduced, PixelArt.Get("ui_check"), size: 22, minSize: 14, locked: !picked) && !opening)
+            if (LobbyKit.Key(chooseR, me.OfferCards ? "TAKE CARD" : "CHOOSE UPGRADE", false, fxReduced, PixelArt.Get("ui_check"), size: 22, minSize: 14, locked: !picked) && !opening)
                 ConfirmPick();
             if (picked)  // the lamp: lit once there is something to choose
             {
@@ -286,8 +293,8 @@ namespace Arena
         /// its key. Null with nothing selected. Drawn on the picked card itself.
         List<string> PickChangeParts(Player me, int index)
         {
-            if (index < 0 || me.Offer == null || index >= me.Offer.Length)
-                return null;
+            if (index < 0 || me.Offer == null || index >= me.Offer.Length || me.OfferCards)
+                return null;  // (a boss card draws its own line: BossCardsUi.cs)
             return ChangeParts(me, me.Offer[index], pickKey, pickKey >= 1 && index == selectedCard);
         }
 
@@ -757,7 +764,7 @@ namespace Arena
             List<StatLine> after = null;
             if (shopPreview >= 0)
                 after = Stats(me, shopPreview, 0);
-            else if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
+            else if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length && !me.OfferCards)
                 after = Stats(me, me.Offer[selectedCard], pickKey);
             var lines = after ?? now;
             var green = new Color(0.45f, 1f, 0.5f);
