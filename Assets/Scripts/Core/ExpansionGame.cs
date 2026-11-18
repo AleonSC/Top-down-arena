@@ -757,10 +757,10 @@ namespace Arena
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
                 return;  // (room cards: rooms come from cards, not drawings)
             string why = null;
-            if (GridRoomsOn && (theme != PathId.None || !Expansion.GridLegal(Expanded, x, y, w, h, out why)))
+            if (GridRoomsOn)
             {
-                DoLog("proposal refused (" + (why ?? "grid rooms have no themes") + ")");
-                return;  // (grid rooms: only the door spots, Docs/GridRooms.md)
+                DoLog("proposal refused (a Grid run builds from piece cards, Docs/GridPieces.md)");
+                return;
             }
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
@@ -1229,8 +1229,7 @@ namespace Arena
                 }
                 if (GridRoomsOn)
                 {
-                    if (!BotPlayGridCard())  // GridCards.cs
-                        BotGridBuild();  // GridRooms.cs
+                    BotPlayGridCard();  // GridCards.cs
                     return;
                 }
                 if (rng.Next(10) < 6 && BotBuildsToFloater())

@@ -858,12 +858,21 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("CARDSEL") != null) typeof(ArenaApp).GetField("expCard", cbf).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("CARDSEL")));
         var cm = Environment.GetEnvironmentVariable("MOUSE"); if (cm != null) { var xy = cm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       }
-      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=room|gauntlet|hall|arena: grid rooms on (GridRooms.cs) with that size picked; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
+      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, GridPieces.cs); GRIDCARDS=tril,tetl:burninggrounds,shop,... the hand (piece[:floor] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
         eg.Diff.Set(DiffKnob.GridRooms, 1f); eg.Diff.Set(DiffKnob.BuildVote, 0f);
-        eg.Expanded.AddRange(Expansion.GridCore()); eg.RoomsUp = true; eg.LayoutAge = 5f; eg.Openings.AddRange(Expansion.GridCoreCuts());  // (the core a Grid run starts with, GridRooms.cs)
-        GridShape gsh; if (!Enum.TryParse(gridEnv, true, out gsh)) { gsh = GridShape.Room; Console.Error.WriteLine("GRID: no size " + gridEnv); }
-        typeof(ArenaApp).GetField("expGrid", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, gsh);
+        eg.RoomsUp = true; eg.LayoutAge = 5f; eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts());  // (the core a Grid run starts with)
+        var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
+        int gi = 0;
+        foreach (var gc in gcards.Split(',')) {
+          if (gc.Length == 0 || gi >= eg.Me.Hand.Length) continue;
+          var gp = gc.Split(':'); GridPiece piece; RoomCard rc; PathId pf = PathId.None;
+          if (gp.Length > 1 && !Enum.TryParse(gp[1], true, out pf)) Console.Error.WriteLine("GRIDCARDS: no floor " + gp[1]);
+          if (Enum.TryParse(gp[0], true, out piece) && Enum.IsDefined(typeof(GridPiece), piece)) eg.Me.Hand[gi++] = (byte)Expansion.PieceCard(piece, pf);
+          else if (Enum.TryParse(gp[0], true, out rc)) eg.Me.Hand[gi++] = (byte)rc;
+          else Console.Error.WriteLine("GRIDCARDS: no piece " + gc);
+        }
+        if (Environment.GetEnvironmentVariable("GRIDSEL") != null) typeof(ArenaApp).GetField("expGridSlot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("GRIDSEL")));
         var gm = Environment.GetEnvironmentVariable("MOUSE"); if (gm != null) { var xy = gm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       }
       int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));

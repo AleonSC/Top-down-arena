@@ -97,6 +97,12 @@ namespace Arena
         void UseInvCard(int slot)
         {
             InvOpenBuild();
+            if (game.GridRoomsOn)  // a Grid run: the piece is picked on the build screen (GridRoomsUi.cs)
+            {
+                expGridSlot = slot;
+                expGridTurn = 0;
+                return;
+            }
             expCard = slot;
             expCardTurn = 0;
         }
@@ -190,7 +196,7 @@ namespace Arena
         /// (the build screen opens on it, UseInvCard).
         void DrawInvHand(Player me, Rect r, bool canUse)
         {
-            canUse &= game.RoomCardsOn;
+            canUse &= game.HandOn;
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.GridRoomsOn ? "Pieces" : "Room cards", game.HandOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
