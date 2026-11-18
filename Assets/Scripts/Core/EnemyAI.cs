@@ -81,29 +81,10 @@ namespace Arena
         public static List<EnemyType> WavePool(int n)
         {
             var pool = new List<EnemyType> { EnemyType.Grunt };
-            if (n >= 2) pool.Add(EnemyType.Burster);
             if (n >= 3) pool.Add(EnemyType.Sniper);
             if (n >= 4) pool.Add(EnemyType.Spinner);
-            if (n >= 6) pool.Add(EnemyType.Charger);
-            if (n >= 7) pool.Add(EnemyType.Splitter);
             if (n >= 8) pool.Add(EnemyType.Mortar);
             if (n >= 9) pool.Add(EnemyType.Shielder);
-            if (n >= 11) pool.Add(EnemyType.Medic);
-            if (n >= 14) pool.Add(EnemyType.Pauser);   // new shooting patterns (Variety.cs)
-            if (n >= 15) pool.Add(EnemyType.FuseRunner);  // enemies that don't shoot (NonShooters.cs; waves from 13 are built by WaveRecipe.cs)
-            if (n >= 17) pool.Add(EnemyType.Hookman);
-            if (n >= 18) pool.Add(EnemyType.Sapper);
-            if (n >= 16) pool.Add(EnemyType.Phantom);
-            if (n >= 18) pool.Add(EnemyType.BeamSentry);  // the second half's new enemies (Variety.cs)
-            if (n >= 19) pool.Add(EnemyType.Leader);
-            if (n >= 21) pool.Add(EnemyType.Hexer);
-            if (n >= 22) pool.Add(EnemyType.Stitcher);
-            if (n >= 24) pool.Add(EnemyType.Scorcher);
-            if (n >= 26) pool.Add(EnemyType.Juggernaut);
-            if (n >= 28) pool.Add(EnemyType.Reaver);
-            if (n >= 31) pool.Add(EnemyType.Nest);
-            if (n >= 36) pool.Add(EnemyType.Warder);
-            pool.RemoveAll(IsRetired);  // only the basic faction's are left (BasicFaction.cs)
             return pool;
         }
 
@@ -165,13 +146,8 @@ namespace Arena
             // The first waves are melee rushers; shooters take over a little more each wave until
             // the melee are gone by wave 13.
             var melee = plan.Melee = new List<EnemyType> { EnemyType.Swarmer };  // the first waves: packs of plain Swarmers
-            if (n >= 2) melee.Add(EnemyType.Spiker);
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
-            if (n >= 5) { melee.Add(EnemyType.Buzzsaw); melee.Add(EnemyType.SpikeBlock); }  // the melee grunts (MeleeGrunts.cs)
-            if (n >= SwordsmanFrom) melee.Add(EnemyType.Swordsman);  // the swordsmen (Swordsman.cs)
-            if (n >= ShieldSwordsmanFrom) melee.Add(EnemyType.ShieldSwordsman);
-            melee.RemoveAll(IsRetired);  // (BasicFaction.cs)
             // A recipe wave shows at most KindCap(n) distinct types, the boss factions' enemies included (WaveRecipe.cs): the
             // factions may bring in all but the headliners' places, then the recipe fills up to the cap.
             plan.KindCap = n >= RecipeFrom ? KindCap(n) : 99;
@@ -213,9 +189,7 @@ namespace Arena
                 {
                     var type = plan.Melee[rng.Next(plan.Melee.Count)];
                     spawnQueue.Add(type);
-                    if (type == EnemyType.Spiker)
-                        spawnQueue.Add(type);  // spikers come in pairs
-                    else if (type == EnemyType.Swarmer)
+                    if (type == EnemyType.Swarmer)
                     {
                         spawnQueue.Add(type);  // swarmers come in packs of four
                         spawnQueue.Add(type);
@@ -241,8 +215,6 @@ namespace Arena
             var bossAt = BossWaves.SpawnPoint(type, Width, Height);
             if (bossAt.HasValue)
                 pos = bossAt.Value;
-            else if (type == EnemyType.Nest)
-                pos = RandomInArena(Walled ? 80f : 160f, Walled ? 80f : 120f);
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = RollElite(d);
@@ -667,7 +639,7 @@ namespace Arena
                 var cb = BrainOf(e.Type);
                 float brainContact = cb != null && cb.Move != null ? cb.Move.Contact(this, e) : -1f;  // a lunger's leap (Brain.cs)
                 float contact = e.Def.IsBoss ? 25f
-                    : brainContact >= 0f ? brainContact  // a Charger's dash, a lunger's leap, a Spike Block's lunge (their brains)
+                    : brainContact >= 0f ? brainContact  // a lunger's leap (their brains)
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))
@@ -692,8 +664,6 @@ namespace Arena
                         Damage(p, contact, e.Def.Name + " (contact)");
                         RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
                         DevilTouched(p, e);  // a Dust Devil shoves you (Squall.cs)
-                        if (e.Type == EnemyType.Buzzsaw && !p.Downed)
-                            p.InvulnT = Math.Min(p.InvulnT, SawGrace);  // its touches come fast, not once per hit grace
                     }
                 }
             }
@@ -926,9 +896,9 @@ namespace Arena
                 speed *= WorkerPackSpeed(e);  // a crowd of Workers runs faster (HiveBees.cs)
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
-            // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
-            // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && !IsSecurity(e.Type) && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris && e.Type != EnemyType.SquallGunner)
+            // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's
+            // (Infall.cs) (the roll still happens, keeping the RNG sequence).
+            if (rng.NextDouble() < dt * 0.3 && !IsSecurity(e.Type) && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris && e.Type != EnemyType.SquallGunner)
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
@@ -1043,7 +1013,7 @@ namespace Arena
         {
             if (InRoom)
                 RoomKilled(e);  // the kill rush's count, a shadow gone (Challenges.cs)
-            VarietyKilled(e);  // Volatile, Splitting, a Warder's bubbles (Variety.cs)
+            VarietyKilled(e);  // Volatile, Splitting (Variety.cs)
             ReaperCultKilled(e);  // a Bound Wraith's partner channels it back (ReaperFaction.cs)
             if (e.Type == EnemyType.Boss)
             {
@@ -1073,12 +1043,6 @@ namespace Arena
                 foreach (var o in Enemies.Values)
                     if (o.Type == EnemyType.Morsel)
                         o.Hp = 0f;
-            }
-            if (e.Type == EnemyType.Splitter)
-            {
-                int n = e.Elite ? 5 : 3;
-                for (int i = 0; i < n; i++)
-                    SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(MathX.Tau * i / n) * 20f, 0.15f, 0);
             }
             if (!e.Def.IsBoss)
                 return false;

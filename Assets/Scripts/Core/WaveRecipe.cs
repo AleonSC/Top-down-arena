@@ -40,25 +40,16 @@ namespace Arena
         /// The types the recipe draws from, the wave each joins, and its job.
         static readonly (EnemyType Type, int From, EnemyJob Job)[] RecipeTypes =
         {
-            (EnemyType.Grunt, 1, EnemyJob.Pressure), (EnemyType.Burster, 2, EnemyJob.Pressure), (EnemyType.Sniper, 3, EnemyJob.Pressure),
-            (EnemyType.Spinner, 4, EnemyJob.Pressure), (EnemyType.Splitter, 7, EnemyJob.Pressure), (EnemyType.Mortar, 8, EnemyJob.Pressure),
-            (EnemyType.Shielder, 9, EnemyJob.Pressure), (EnemyType.Pauser, 14, EnemyJob.Pressure), (EnemyType.Phantom, 16, EnemyJob.Pressure),
-            (EnemyType.Leader, 19, EnemyJob.Pressure), (EnemyType.Hexer, 21, EnemyJob.Pressure), (EnemyType.Stitcher, 22, EnemyJob.Pressure),
-            (EnemyType.Juggernaut, 26, EnemyJob.Pressure),
-            (EnemyType.Swarmer, 1, EnemyJob.Hunter), (EnemyType.Spiker, 2, EnemyJob.Hunter), (EnemyType.Brute, 3, EnemyJob.Hunter),
-            (EnemyType.Lunger, 5, EnemyJob.Hunter), (EnemyType.Buzzsaw, 5, EnemyJob.Hunter), (EnemyType.SpikeBlock, 5, EnemyJob.Hunter),
-            (EnemyType.Charger, 6, EnemyJob.Hunter), (EnemyType.FuseRunner, 15, EnemyJob.Hunter), (EnemyType.Reaver, 28, EnemyJob.Hunter),
-            (EnemyType.BeamSentry, 18, EnemyJob.Zoner), (EnemyType.Sapper, 18, EnemyJob.Zoner), (EnemyType.Scorcher, 24, EnemyJob.Zoner),
-            (EnemyType.Hookman, 17, EnemyJob.Disruptor),
-            (EnemyType.Medic, 11, EnemyJob.Anchor), (EnemyType.Nest, 31, EnemyJob.Anchor), (EnemyType.Warder, 36, EnemyJob.Anchor),
+            (EnemyType.Grunt, 1, EnemyJob.Pressure), (EnemyType.Sniper, 3, EnemyJob.Pressure), (EnemyType.Spinner, 4, EnemyJob.Pressure),
+            (EnemyType.Mortar, 8, EnemyJob.Pressure), (EnemyType.Shielder, 9, EnemyJob.Pressure),
+            (EnemyType.Swarmer, 1, EnemyJob.Hunter), (EnemyType.Brute, 3, EnemyJob.Hunter), (EnemyType.Lunger, 5, EnemyJob.Hunter),
         };
 
         /// At most this many of a type from the recipe's singles in one wave (squads can add more).
-        static int RecipeCap(EnemyType t) =>
-            t == EnemyType.Hookman || t == EnemyType.Sapper ? 3 : t == EnemyType.Medic || t == EnemyType.Warder || t == EnemyType.Nest ? 2 : 99;
+        const int RecipeCap = 99;
 
         /// How many one pick of a type brings (packs).
-        static int PackOf(EnemyType t) => t == EnemyType.Swarmer ? 4 : t == EnemyType.Spiker || t == EnemyType.FuseRunner ? 2 : 1;
+        static int PackOf(EnemyType t) => t == EnemyType.Swarmer ? 4 : 1;
 
         public static EnemyJob JobOf(EnemyType t)
         {
@@ -66,7 +57,7 @@ namespace Arena
                 if (r.Type == t)
                     return r.Job;
             var d = Defs.Get(t);
-            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || IsTurnkeyKin(t) || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell || t == EnemyType.Heliograph || t == EnemyType.DuskLobber || t == EnemyType.Stormcaller || t == EnemyType.Pylon)
+            if (t == EnemyType.HiveEgg || IsTurnkeyKin(t) || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell || t == EnemyType.Heliograph || t == EnemyType.DuskLobber || t == EnemyType.Stormcaller || t == EnemyType.Pylon)
                 return EnemyJob.Zoner;
             if (t == EnemyType.Grounder)
                 return EnemyJob.Anchor;  // the Storm Herald's shield (Squall.cs)
@@ -93,7 +84,7 @@ namespace Arena
             {
                 bool any = false;
                 foreach (var r in RecipeTypes)
-                    any |= (int)r.Job == j && r.From <= n && !IsRetired(r.Type);  // (BasicFaction.cs)
+                    any |= (int)r.Job == j && r.From <= n;
                 if (any)
                     continue;
                 shares[j == (int)EnemyJob.Disruptor ? (int)EnemyJob.Hunter : (int)EnemyJob.Pressure] += shares[j];
@@ -115,12 +106,12 @@ namespace Arena
             {
                 float total = 0f;
                 foreach (var r in RecipeTypes)
-                    if (r.Job != EnemyJob.Anchor && !Headliners.Contains(r.Type) && !IsRetired(r.Type))
+                    if (r.Job != EnemyJob.Anchor && !Headliners.Contains(r.Type))
                         total += RecipeWeight(r.From, n) * (n - r.From < 8 ? 2f : 1f);  // newer ones headline more
                 float roll = (float)rng.NextDouble() * total;
                 foreach (var r in RecipeTypes)
                 {
-                    if (r.Job == EnemyJob.Anchor || Headliners.Contains(r.Type) || IsRetired(r.Type))
+                    if (r.Job == EnemyJob.Anchor || Headliners.Contains(r.Type))
                         continue;
                     float w = RecipeWeight(r.From, n) * (n - r.From < 8 ? 2f : 1f);
                     if (w <= 0f)
@@ -188,20 +179,20 @@ namespace Arena
         {
             if (rng.NextDouble() < HeadlinerPick)
             {
-                var heads = Headliners.FindAll(h => JobOf(h) == job && !(taken.TryGetValue(h, out int hc) && hc >= RecipeCap(h)) && KindOk(h));
+                var heads = Headliners.FindAll(h => JobOf(h) == job && !(taken.TryGetValue(h, out int hc) && hc >= RecipeCap) && KindOk(h));
                 if (heads.Count > 0)
                     return heads[rng.Next(heads.Count)];
             }
             float total = 0f;
             foreach (var r in RecipeTypes)
-                if (r.Job == job && !IsRetired(r.Type))
+                if (r.Job == job)
                     total += SingleWeight(r, n, taken);
             if (total <= 0f)
                 return null;
             float roll = (float)rng.NextDouble() * total;
             foreach (var r in RecipeTypes)
             {
-                if (r.Job != job || IsRetired(r.Type))
+                if (r.Job != job)
                     continue;
                 float w = SingleWeight(r, n, taken);
                 if (w <= 0f)
@@ -215,7 +206,7 @@ namespace Arena
 
         float SingleWeight((EnemyType Type, int From, EnemyJob Job) r, int n, Dictionary<EnemyType, int> taken)
         {
-            if (taken.TryGetValue(r.Type, out int c) && c >= RecipeCap(r.Type))
+            if (taken.TryGetValue(r.Type, out int c) && c >= RecipeCap)
                 return 0f;
             if (!KindOk(r.Type))
                 return 0f;

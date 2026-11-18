@@ -145,9 +145,9 @@ static partial class Program
         bool marked = g.Effects.Exists(fx => fx.Kind == FxKind.Target && fx.Pos.DistanceTo(ph.Waypoint) < 1f);
         Check(ph.Phase == 1 && marked && g.Bullets.Count == 0, "a Phantom marks where it will blink and fires nothing yet");
         V2 before = ph.Pos;
-        special.Invoke(g, new object[] { ph, target, Game.PhantomWarn * 0.5f });
+        special.Invoke(g, new object[] { ph, target, Game.ShadeWarn * 0.5f });
         Check(ph.Pos.DistanceTo(before) < 1f && g.Bullets.Count == 0, "...and waits out the warning");
-        special.Invoke(g, new object[] { ph, target, Game.PhantomWarn });
+        special.Invoke(g, new object[] { ph, target, Game.ShadeWarn });
         Check(ph.Phase == 0 && ph.Pos.DistanceTo(ph.Waypoint) < 1f && g.Bullets.Count == 8, "then blinks to the marked spot and fires its ring of 8");
         g.Effects.Clear(); g.Bullets.Clear();
         var mo = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Mortar, new V2(200f, 200f), 0f, 0, false });

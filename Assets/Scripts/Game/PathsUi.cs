@@ -284,11 +284,6 @@ namespace Arena
                 DrawDuelCirclePatch(pt, t);  // a Marshal's circle (CourtLook.cs)
                 return;
             }
-            if (pt.Kind == PatchKind.Embers)
-            {
-                DrawEmbers(pt, r, t);  // a Scorcher's trail (VarietyLook.cs)
-                return;
-            }
             if (pt.Kind == PatchKind.Bile)
             {
                 DrawBilePatch(pt, t);  // the Devourer's acid (DevourerLook.cs)

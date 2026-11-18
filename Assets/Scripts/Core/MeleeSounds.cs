@@ -3,11 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Sounds for the melee rushers (Swarmer, Spiker, Brute, Lunger, Buzzsaw, Spike Block), from Docs/Mockups/melee-enemy-sounds.html.
+    /// Sounds for the melee rushers (Swarmer, Brute, Lunger and their faction kin), from Docs/Mockups/melee-enemy-sounds.html.
     /// They're made on every machine from the enemies' replicated state (type, position, Phase), so nothing is sent.
     ///   - Distance: a cue gets `SoundCue.Quiet` from `QuietAt`: full volume inside `EarNear`, easing down to `EarFloor` of it at `EarFar`.
     ///     Enemy shots use it too.
-    ///   - Buzzsaw: no tick per touch. One whirr loops while a saw touches someone (`SawWhirrLevel`, 0..1; the front end plays it).
     ///   - Deaths: each type has its own. Several of the same type dying together (within `DeathWindow`) make one sound, the nearest one's.
     ///   - Footsteps: every walker has a step sound; a crowd of one kind makes one step a frame, at the nearest one's volume.
     ///   - Min gaps in SoundBank still cap how often one cue can play.
@@ -17,9 +16,6 @@ namespace Arena
         public const float EarFloor = 0.12f;                // the share of its volume a far cue keeps
         public const float DeathWindow = 0.15f;             // same-type deaths this close together share one sound
         const float BiteEvery = 0.45f;
-
-        /// How loud the Buzzsaw's contact whirr should be right now, 0 (silent) to 1. Read by the front end each frame.
-        public float SawWhirrLevel;
 
         class MeleeVoice
         {
@@ -41,7 +37,6 @@ namespace Arena
         {
             meleeVoices.Clear();
             lastMeleeDeath.Clear();
-            SawWhirrLevel = 0f;
             meleeClock = 0f;
         }
 
@@ -81,8 +76,7 @@ namespace Arena
 
         static bool IsMeleeVoice(EnemyType t)
         {
-            return t == EnemyType.Swarmer || t == EnemyType.Wisp || t == EnemyType.Spiker || IsBrute(t) || IsLunger(t)
-                || t == EnemyType.Buzzsaw || t == EnemyType.SpikeBlock;
+            return t == EnemyType.Swarmer || t == EnemyType.Wisp || IsBrute(t) || IsLunger(t);
         }
 
         /// A walker's step: how often it steps, and what that sounds like (null if it doesn't walk).
@@ -91,10 +85,8 @@ namespace Arena
             switch (SharesWith(t))
             {
                 case EnemyType.Swarmer: case EnemyType.Wisp: every = 0.28f; return Sfx.SwarmerPatter;
-                case EnemyType.Spiker: every = 0.16f; return Sfx.SpikerSkitter;
                 case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger: every = 0.3f; return Sfx.BruteStep;
                 case EnemyType.Lunger: case EnemyType.Shiv: case EnemyType.ScytheWraith: every = 0.3f; return Sfx.LungerPad;
-                case EnemyType.SpikeBlock: every = 0.5f; return Sfx.SpikeBlockRock;
                 default: every = 0f; return Sfx.None;
             }
         }
@@ -118,21 +110,18 @@ namespace Arena
             switch (SharesWith(t))
             {
                 case EnemyType.Swarmer: case EnemyType.Wisp: return Sfx.SwarmerDie;
-                case EnemyType.Spiker: return Sfx.SpikerDie;
                 case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger: return Sfx.BruteDie;
                 case EnemyType.Lunger: case EnemyType.Shiv: case EnemyType.ScytheWraith: return Sfx.LungerDie;
-                case EnemyType.Buzzsaw: return Sfx.SawDie;
-                default: return Sfx.SpikeBlockDie;
+                default: return Sfx.None;
             }
         }
 
         void UpdateMeleeSounds(float dt)
         {
-            if (Enemies.Count == 0 && meleeVoices.Count == 0 && SawWhirrLevel <= 0f)
+            if (Enemies.Count == 0 && meleeVoices.Count == 0)
                 return;
             meleeClock += dt;
             stepQuiet.Clear();
-            float sawTarget = 0f;
             foreach (var m in meleeVoices.Values)
                 m.Seen = false;
 
@@ -166,12 +155,6 @@ namespace Arena
                         if (bite)
                             MeleeCue(Sfx.SwarmerChomp, q);
                         break;
-                    case EnemyType.Spiker:
-                        if (changed)
-                            MeleeCue(Sfx.SpikerFlip, q);
-                        if (bite)
-                            MeleeCue(Sfx.SpikerStab, q);
-                        break;
                     case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger:
                         if (!fresh && !m.Alerted && q <= 0.2f)
                         {
@@ -189,23 +172,11 @@ namespace Arena
                         else if (changed && e.Phase == 3)
                             MeleeCue(Sfx.LungerLand, q);
                         break;
-                    case EnemyType.Buzzsaw:  // no ticks: one whirr while it touches someone
-                        if (touching)
-                            sawTarget = Math.Max(sawTarget, 1f - q);
-                        break;
-                    case EnemyType.SpikeBlock:  // 0 rocks in, 1 shakes (the tell), 2 lunges, 3 rests
-                        if (changed && e.Phase == 1)
-                            MeleeCue(Sfx.SpikeBlockShake, q);
-                        else if (changed && e.Phase == 2)
-                            MeleeCue(Sfx.SpikeBlockLunge, q);
-                        else if (changed && e.Phase == 3)
-                            MeleeCue(Sfx.SpikeBlockRest, q);
-                        break;
                 }
-                // Footsteps while it moves (a Spike Block's rocking while it closes in), one sound per kind per frame: the nearest one's.
+                // Footsteps while it moves, one sound per kind per frame: the nearest one's.
                 float every;
                 Sfx step = StepSound(e.Type, out every);
-                if (step != Sfx.None && moved && m.StepT <= 0f && (e.Type != EnemyType.SpikeBlock || e.Phase == 0))
+                if (step != Sfx.None && moved && m.StepT <= 0f)
                 {
                     m.StepT = every;
                     float best;
@@ -216,12 +187,6 @@ namespace Arena
             }
             foreach (var kv in stepQuiet)
                 MeleeCue(kv.Key, kv.Value);
-
-            // Whirr: rises quickly when a saw touches you, fades out over about a third of a second.
-            float rate = sawTarget > SawWhirrLevel ? 8f : 3f;
-            SawWhirrLevel = SawWhirrLevel < sawTarget
-                ? Math.Min(sawTarget, SawWhirrLevel + rate * dt)
-                : Math.Max(sawTarget, SawWhirrLevel - rate * dt);
 
             // Anything that was here and now isn't has died. One sound per type per DeathWindow, at the nearest one's volume.
             goneVoices.Clear();

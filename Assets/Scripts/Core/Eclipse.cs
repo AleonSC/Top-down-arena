@@ -66,9 +66,9 @@ namespace Arena
     /// as the fight goes on, and each stage keeps a mechanic from the one before.
     ///   Corona (100-80%): it orbits the middle as before; Spiral and Corona rings (as before), Solar flares.
     ///   Penumbra (80-60%): the moon orbits it, soaking your shots; its shadow is the only shelter from the Eclipse
-    ///     flash. Lunar wake (the moon trails shots), Eclipse flash, Gravity (as before). Two Phantoms.
+    ///     flash. Lunar wake (the moon trails shots), Eclipse flash, Gravity (as before). Two Embers (Penumbral.cs).
     ///   Umbra (60-40%): the arena goes dark; three sunspots drift about and the dark drains you. Crescents (they
-    ///     loop out through you and back), Closing umbra (rings of shadow with two gaps), Dark spiral. Two Hexers.
+    ///     loop out through you and back), Closing umbra (rings of shadow with two gaps), Dark spiral. Two Corona Priests.
     ///   Echoes (40-20%): turns borrowed from the bosses before it: the Colossus's stomps, the Lich's sweep, the Storm
     ///     Herald's strike rain, the Singularity's pull and disk. The moon shoots back.
     ///   Last Light (20-5%): the edges of the arena burn and close in; Frantic spiral, Shadow nova (two flashes, the
@@ -646,13 +646,13 @@ namespace Arena
             if (stage == EclipseStage.Penumbra)
             {
                 for (int i = 0; i < 2; i++)
-                    SpawnEnemyAt(EnemyType.Phantom, e.Pos + V2.FromAngle(MathX.Pi * i) * 200f, 0.8f, e.Id);
+                    SpawnEnemyAt(EnemyType.Ember, e.Pos + V2.FromAngle(MathX.Pi * i) * 200f, 0.8f, e.Id);  // its own court (Penumbral.cs)
                 BroadcastSound(Sfx.Summon);
             }
             if (stage == EclipseStage.Umbra)
             {
                 for (int i = 0; i < 2; i++)
-                    SpawnEnemyAt(EnemyType.Hexer, e.Pos + V2.FromAngle(MathX.Pi * i + MathX.Pi / 2f) * 200f, 0.8f, e.Id);
+                    SpawnEnemyAt(EnemyType.CoronaPriest, e.Pos + V2.FromAngle(MathX.Pi * i + MathX.Pi / 2f) * 200f, 0.8f, e.Id);
                 BroadcastSound(Sfx.Summon);
                 for (int i = 0; i < 3; i++)
                     s.Spots.Add(new Sunspot { Pos = new V2(300f + i * 500f, i == 1 ? 250f : Height - 220f), Dir = Rand(0f, MathX.Tau) });

@@ -38,7 +38,7 @@ namespace Arena
         readonly Dictionary<Effect, BearSeen> bearSeen = new Dictionary<Effect, BearSeen>();
         readonly HashSet<Effect> bearLive = new HashSet<Effect>();
 
-        /// A Bear Totem's claws (other FxKind.Claw effects, the Reaver's and the Wolf pack's, keep their old look).
+        /// A Bear Totem's claws (other FxKind.Claw effects, the Wolf pack's, keep their old look).
         static bool IsBearClaw(Effect fx)
         {
             if (fx.Kind != FxKind.Claw)

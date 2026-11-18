@@ -103,7 +103,7 @@ namespace Arena
                 11, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
 
             var dummy = new Rect(body.x, meter.yMax + 14f, body.width, 230f);
-            y = DevCard(dummy, "Target dummy", "A Juggernaut that never dies, shoots or hurts, and doesn't hold up the wave. Up to " + Game.MaxDummies + ".", DpsColor);
+            y = DevCard(dummy, "Target dummy", "A Thug that never dies, shoots or hurts, and doesn't hold up the wave. Up to " + Game.MaxDummies + ".", DpsColor);
             int count = host ? game.DummyCount() : 0;
             GUI.enabled = host && count < Game.MaxDummies;
             if (DkKey(new Rect(dummy.x + 16f, y, 220f, 34f), "Spawn one in front of you", Ui.Primary))

@@ -548,7 +548,6 @@ namespace Arena
                 botThreats.Sort((x, y) => x.Pos.DistanceSq(at).CompareTo(y.Pos.DistanceSq(at)));
                 botThreats.RemoveRange(sk.Attention, botThreats.Count - sk.Attention);
             }
-            StitchLinks(Bullets.Values, botThreads);  // Stitcher threads (Variety.cs): treated as standing still
             // Misjudging where things are by a few pixels.
             float misjudge = (float)Math.Sin(botClock * 7.1f + me.Id * 3f) * sk.Noise;
             if (botSeen.Count > Bullets.Count + 400)
@@ -676,8 +675,7 @@ namespace Arena
                     float w = 1.6f - t / T;  // sooner hits matter more
                     foreach (var b in botThreats)
                     {
-                        V2 bp = b.Kind == Defs.PauseShot ? b.Pos + b.Vel * PauseTravel(b, t)  // slowing to a stop, then hanging (Variety.cs)
-                            : b.AngVel == 0f ? b.Pos + b.Vel * t : b.Pos + b.Vel.Rotated(b.AngVel * t * 0.5f) * t;
+                        V2 bp = b.AngVel == 0f ? b.Pos + b.Vel * t : b.Pos + b.Vel.Rotated(b.AngVel * t * 0.5f) * t;
                         float r = hitR + b.Radius + sk.Margin + misjudge;
                         float dd = bp.DistanceSq(p);
                         if (dd < r * r)
@@ -696,41 +694,17 @@ namespace Arena
                     foreach (var h in Hazards.Values)
                         if (h.T < t + 0.2f && h.Pos.CloserThan(p, h.Radius + hitR + 8f))
                             d += w * 3f;
-                    foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile, a Scorcher's embers or tear gas: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Dusk || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.CloserThan(p, pt.Radius + hitR + 8f))
+                    foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile or tear gas: burning now or about to (Paths.cs)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Dusk || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.CloserThan(p, pt.Radius + hitR + 8f))
                             d += w * 3f;
-                    foreach (var th in botThreads)
-                        if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)
-                            d += w * 2.5f;
                     if (AccretionBands.Count > 0)
                         d += w * AccretionBotDanger(p, hitR);  // a closing Accretion ring: out through a gap (Infall.cs)
-                    foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
+                    foreach (var e in Enemies.Values)  // the factions' lines, beams and traps
                     {
-                        // The enemies that don't shoot (NonShooters.cs): a lit fuse's blast, the Hookman's line, pods and their lasers.
-                        if (e.Type == EnemyType.FuseRunner && e.Phase == 1 && e.Pos.CloserThan(p, FuseBlast + hitR + 10f))
-                            d += w * 3f;
-                        else if (e.Type == EnemyType.Hookman && e.Phase == 1 && SegmentDistance(p, e.Pos, e.Pos + V2.FromAngle(e.Facing) * HookReach) < hitR + 22f)
-                            d += w * 2.5f;
-                        else if (e.Type == EnemyType.SapperMine && e.Phase >= 1)
-                        {
-                            if (e.Pos.DistanceTo(p) < (e.Phase == 2 ? PodBlast : PodTrigger) + hitR + 8f)
-                                d += w * 3f;
-                            if (e.Phase == 1)
-                                foreach (var o in Enemies.Values)
-                                    if (o.Type == EnemyType.SapperMine && o.Phase == 1 && o.Id > e.Id && o.Pos.CloserThan(e.Pos, PodWire) && SegmentDistance(p, e.Pos, o.Pos) < hitR + 8f)
-                                        d += w * 2.5f;
-                        }
-                        else if ((e.Type == EnemyType.FloorMine || e.Type == EnemyType.ShackleTrap) && e.Phase >= 1 && e.Phase < 3
+                        if ((e.Type == EnemyType.FloorMine || e.Type == EnemyType.ShackleTrap) && e.Phase >= 1 && e.Phase < 3
                             && e.Pos.DistanceTo(p) < (e.Phase == 2 && e.Type == EnemyType.FloorMine ? FloorMineBlast : FloorMineTrigger) + hitR + 8f)
                             d += w * 3f;  // a Turnkey's traps (Turnkey.cs)
-                        if (e.Type == EnemyType.BeamSentry && (e.Phase == 3 || e.Phase == 2 && e.PhaseT < t + 0.3f))
-                        {
-                            // It sweeps a quarter turn either way from where it points: keep clear of that fan near its line.
-                            float ang = (p - e.Pos).Angle, off = Math.Abs(MathX.Fmod(ang - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
-                            if (p.CloserThan(e.Pos, SentryBeamLen) && off < (e.Phase == 3 ? 0.35f : 0.6f))
-                                d += w * 2.5f;
-                        }
-                        else if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
+                        if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
                             d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
                         else if (e.Type == EnemyType.Pylon && e.Phase >= PylonFlicker && PylonLineDistance(e, PylonPartner(e), p) < hitR + 30f)
                             d += w * 2.5f;  // a Pylon pair's arc about to fire (Squall.cs)
@@ -756,17 +730,10 @@ namespace Arena
                         }
                         else if (IsSwordsman(e.Type) && e.Phase == 1 && e.PhaseT < t + 0.35f)
                         {
-                            // A Swordsman about to cut: stay out of its cone (Swordsman.cs).
+                            // An Acolyte about to cut: stay out of its cone (Swordsman.cs).
                             V2 rel = p - e.Pos;
                             float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
                             if (rel.Length < SwordReachOf(e.Type) + hitR + 10f && off < SwordHalfOf(e.Type) + 0.25f)
-                                d += w * 3f;
-                        }
-                        else if (e.Type == EnemyType.Reaver && e.Phase == 1)
-                        {
-                            V2 rel = p - e.Pos;
-                            float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
-                            if (rel.Length < ReaverSwipeR + e.Radius + hitR + 15f && off < ReaverCone + 0.2f)
                                 d += w * 3f;
                         }
                     }

@@ -210,7 +210,7 @@ namespace Arena
             DrawLarderFloor(t);    // the Butcher's chop, the Gulper's cone (LarderLook.cs)
             DrawGuardFloor(t);     // the Guard's swing arc (WardenLook.cs)
             DrawEclipseFloor(t);   // the Eclipse's shadow, sunspots, flares, rings and echoes (EclipseLook.cs)
-            DrawVarietyFloor(t);   // Beam Sentry beams, Reaver cones, Warder tethers (VarietyLook.cs)
+            DrawVarietyFloor(t);   // the factions' beams and lines, aim lanes (VarietyLook.cs)
             DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             DrawLaunchWorld(t);      // a run launching: the ripple's ring, the players' pillars of light (LaunchIntro.cs)

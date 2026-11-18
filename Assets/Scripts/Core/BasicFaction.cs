@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The basic "faction": the eight plain enemies left once the rest were retired, one per role, standing in for every
+    /// The basic "faction": the eight plain enemies left once the rest were removed (Nov 18), one per role, standing in for every
     /// boss that has no faction of its own yet (from the Duelist on) until its faction pack is built. Quick Play's and a
     /// Boss Hunt's build-up waves use it like a real faction (Game.FactionFor); the Campaign's usual mix is these eight.
     public static class BasicFaction
@@ -45,26 +45,6 @@ namespace Arena
 
     public partial class Game
     {
-        /// Retired from every wave (kept in the code for the faction reskins and future packs): the plain enemies that
-        /// aren't in BasicFaction. Boss attacks, the Rooms map's nests and the Wave Lab can still bring them.
-        public static bool IsRetired(EnemyType t)
-        {
-            switch (t)
-            {
-                case EnemyType.Spiker: case EnemyType.Buzzsaw: case EnemyType.SpikeBlock: case EnemyType.Swordsman:
-                case EnemyType.ShieldSwordsman: case EnemyType.Burster: case EnemyType.Charger: case EnemyType.Splitter:
-                case EnemyType.Medic: case EnemyType.Pauser: case EnemyType.FuseRunner: case EnemyType.Hookman:
-                case EnemyType.Sapper: case EnemyType.Phantom: case EnemyType.BeamSentry: case EnemyType.Leader:
-                case EnemyType.Hexer: case EnemyType.Stitcher: case EnemyType.Scorcher: case EnemyType.Juggernaut:
-                case EnemyType.Reaver: case EnemyType.Nest: case EnemyType.Warder:
-                    return true;
-            }
-            return false;
-        }
-
-        /// A squad the regular waves may still bring: none of its members retired.
-        public static bool SquadLive(SquadDef q) => !Array.Exists(q.Members, IsRetired);
-
         /// The faction Quick Play's and a Boss Hunt's build-up waves draw from: the boss's own, else the basic one.
         public static FactionDef FactionFor(EnemyType boss) => Approaches.For(boss) ?? BasicFaction.Def;
     }

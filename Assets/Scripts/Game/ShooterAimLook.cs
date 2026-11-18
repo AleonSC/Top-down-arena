@@ -6,9 +6,8 @@ namespace Arena
     /// The shooting line every enemy that shoots straight at you shares (Docs/EnemyReadability.md section 2). While a shooter
     /// winds up (Enemy.Winding, the beat before a volley) a slim lane in its colour fills from the muzzle out to where the
     /// shot will go, brighter toward the far end, and closes with a cap when the shot is due (DrawAimLane): Sniper, Shard,
-    /// Medic, Splitter, Phantom, Taser Guard and Security Guard one lane along the shot, the Grunt its three-shot fan. The
-    /// Leader and the Beam Sentry keep their own blinking marks, and rings, spirals and lobs have their own (Burster,
-    /// Spinner, Mortar). A shooter's Facing is the aim. Front end only.
+    /// Shade, Taser Guard and Security Guard one lane along the shot, the Grunt its three-shot fan. Rings, spirals and lobs
+    /// have their own (Spinner, Mortar). A shooter's Facing is the aim. Front end only.
     public partial class ArenaApp
     {
         readonly Dictionary<int, float> aimSince = new Dictionary<int, float>();
@@ -21,9 +20,7 @@ namespace Arena
             {
                 case EnemyType.Sniper: reach = 420f; return true;
                 case EnemyType.Shard: reach = 300f; return true;
-                case EnemyType.Medic: reach = 240f; return true;
-                case EnemyType.Splitter: reach = 260f; return true;
-                case EnemyType.Phantom: case EnemyType.Shade: reach = 300f; return true;
+                case EnemyType.Shade: reach = 300f; return true;
                 case EnemyType.Grunt: reach = 230f; fan = 0.22f; return true;
                 case EnemyType.TaserGuard: reach = 420f; return true;
             }

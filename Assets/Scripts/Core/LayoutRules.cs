@@ -256,7 +256,7 @@ namespace Arena
             return LayoutSpawn(50f);
         }
 
-        /// A Pincer squad's Hexers come in from the left and right edges: their y on that side.
+        /// A Pincer squad's first two come in from the left and right edges: their y on that side.
         float LayoutSideY(int side, float margin)
         {
             var d = ActiveLayout;

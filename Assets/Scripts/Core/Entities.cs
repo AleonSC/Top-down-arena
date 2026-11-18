@@ -52,11 +52,10 @@ namespace Arena
         // the drive slot (and the eject going back), the latch click, the drive reading, and a ready chime. Your own screen only, never sent.
         DiskLift, DiskFly, DiskTip, DiskSlide, DiskEject, DiskClick, DiskRead, DiskReady,
         // The melee rushers (MeleeSounds.cs, from Docs/Mockups/melee-enemy-sounds.html): made on every machine from the enemies' replicated state, never sent.
-        // Quieter the further they are from you. SawWhirr is a loop while a Buzzsaw touches someone (played by SoundBank.SetSawLoop, not as a cue).
-        SwarmerChomp, SwarmerDie, SpikerFlip, SpikerStab, SpikerDie, BruteStep, BruteGrunt, BruteBash, BruteDie,
-        LungerTell, LungerLeap, LungerLand, LungerDie, SawWhirr, SawDie,
-        SpikeBlockRock, SpikeBlockShake, SpikeBlockLunge, SpikeBlockRest, SpikeBlockDie,
-        SwarmerPatter, SpikerSkitter, LungerPad,  // their footsteps
+        // Quieter the further they are from you.
+        SwarmerChomp, SwarmerDie, BruteStep, BruteGrunt, BruteBash, BruteDie,
+        LungerTell, LungerLeap, LungerLand, LungerDie,
+        SwarmerPatter, LungerPad,  // their footsteps
         // The Ninja DPS (NinjaSoundBank.cs, the Shinobi set of Docs/Mockups/ninja-dps-sounds.html): the Kunai's whoosh (named Shot so it uses the Weapons
         // volume), its blink, Shadow Step's smoke and its strike, Vanish, Blade Fan opening and flying out, and Death Lotus darkening the arena. Sent, so quieter for allies.
         ShotKunai, NinjaBlink, NinjaStepCast, NinjaStepStrike, NinjaVanish, NinjaFanOpen, NinjaFanBurst, NinjaLotusCast,
@@ -177,7 +176,7 @@ namespace Arena
         public float BaseHp;
         public string Name;
         public V2 Pos, Disp;
-        public V2 Motion, MotionFrom;  // host only: how fast and which way they're moving, smoothed (the Leader aims ahead with it; Variety.cs)
+        public V2 Motion, MotionFrom;  // host only: how fast and which way they're moving, smoothed (Props.cs shoves crates with it; Variety.cs)
         public float Aim;
         public V2 AimAt;         // the point they're aiming at (Implosion picks the enemy under it; sent with inputs)
         public bool Firing;
@@ -589,7 +588,6 @@ namespace Arena
         public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash, T2;
         public float FlashHeat;  // every peer, drawing only: rises while it keeps getting hit, so a hit's white flash softens under sustained fire (Juice.cs HitFlashMix)
         public float Facing;    // direction it faces (shields, charges)
-        public V2 Vel;          // host only: a Buzzsaw's steering velocity (it swoops instead of turning on the spot)
         public byte Phase;      // per-type state, e.g. charger wind-up / dash, boss shield
         public float PhaseT;
         public byte SeenPhase;  // every peer, drawing only: the Phase the swing look last saw, and how long ago it changed (Game.cs; Swordsman.cs)
@@ -598,7 +596,7 @@ namespace Arena
         public EnemyVariant Variant;  // a variant of its type that spawned in its place (EnemyVariants.cs; replicated)
         public byte Traits;           // an elite's traits (EliteTrait flags; Variety.cs; replicated)
         public int SquadId, SquadSlot;  // host: the squad it arrived with, and its place in it (Variety.cs)
-        public float BubbleHp, BubbleMax, BubbleT;  // a bubble that soaks damage first: Shielded, or a Warder's (host; drawn from BubbleFrac)
+        public float BubbleHp, BubbleMax, BubbleT;  // a bubble that soaks damage first: a Shielded elite's (host; drawn from BubbleFrac)
         public float BubbleFrac;      // replicated
         public float[] CellHp;        // host: a bubble's twelve cells, each holding a twelfth of its health; a hit wears down the cells on the side it came from (Variety.cs)
         public int Cells;             // replicated: bits 0-11 are the cells still up, bits 12-23 the ones worn down (drawn from Variety's look)
@@ -606,10 +604,8 @@ namespace Arena
         public float[] CellHitT;      // drawing only: when each cell last took a hit
         public float[] CellDieT;      // drawing only: when each cell last broke
         public float BubbleBornT = -99f;  // drawing only: when this peer first saw the bubble go up (-98: seen without one, so the next bubble is new; -99: never seen without, so no growing in)
-        public int WardId;            // the Warder holding up its bubble (replicated, for the tether)
         public int LinkId;            // a Bound Wraith's partner (replicated, for the tether; ReaperFaction.cs)
         public int MirrorCount;       // host: player shots that have hit it (Mirrored bounces every fourth)
-        public float WardT;           // host: a Warder's time until it wards again
         public float MarkT, MarkMult = 1f;  // Mark for Death (host); Marked is the replicated flag
         public float ChallengeT;            // replicated: seconds left of a Gauntlet's Challenge (Gauntlet.cs)
         public int ChallengeBy;             // replicated: who threw it
@@ -714,7 +710,6 @@ namespace Arena
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public ShotLook Look;     // its shape: a dart (aimed), a crescent (curving) or round (sent with its spawn; Readability.cs)
         public Bullet Sent;       // host only: its entry in the spawn message still to go out (so its Look can be set after)
-        public bool Rush;         // host only: a Pauser's shot; when it runs out (after hanging still) one rushes at a player from where it hung
         public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
         public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
         public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to

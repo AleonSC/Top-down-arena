@@ -19,7 +19,7 @@ namespace Arena
             coatings.Clear(); freezeWaves.Clear(); shockRuns.Clear(); harvestTargets.Clear(); harvests.Clear(); waves.Clear();
             Ink.Clear(); pens.Clear(); hands.Clear();
             // enemies and bosses
-            dives.Clear(); scytheCuts.Clear(); throwHits.Clear(); botThreads.Clear(); stitchLinks.Clear();
+            dives.Clear(); scytheCuts.Clear(); throwHits.Clear();
             steerMem.Clear();  // LayoutRules.cs: keyed by enemy id
             hostDodgeAt.Clear();  // Dodge.cs (keyed by player id)
         }

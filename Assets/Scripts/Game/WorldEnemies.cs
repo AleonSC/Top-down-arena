@@ -526,7 +526,7 @@ namespace Arena
             if (Game.IsSecurity(e.Type) && e.Type != EnemyType.Second && !spawning)  // (a Second fans its daggers: CourtLook.cs)
                 DrawSecurityUnder(e, pos, r, t);  // its locked shot and its reload ring (SecurityLook.cs)
             if (Game.IsNonShooter(e.Type) && !spawning)
-                DrawNonShooterUnder(e, pos, r, t);  // the fuse, the aim line and harpoon, a pod's lasers (NonShooterLooks.cs)
+                DrawNonShooterUnder(e, pos, r, t);  // the hook's aim line and cable, the Acolyte's cone, the Turnkey's traps (NonShooterLooks.cs)
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
             col = DrawEnemyStatus(e, pos, r, col, t);
@@ -542,8 +542,6 @@ namespace Arena
                 DrawThugBody(e, pos, r, col, t);  // PrisonLook.cs: the hunched bruiser
             else if (e.Type == EnemyType.Rioter)
                 DrawRioterBody(e, pos, r, col, t);  // WardenLook.cs: a Brawler or a Ball and Chain
-            else if (e.Type == EnemyType.Warder)
-                DrawWarderBody(e, pos, r, col, t);  // WarderLook.cs
             else if (e.Type == EnemyType.Swarmer)
                 DrawChomper(e, pos, r, col, t);
             else if (HiveKin.Is(e.Type))
@@ -605,7 +603,7 @@ namespace Arena
                 GhostBar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, e.Venomed ? VenomBar : new Rgba(1f, 0.3f, 0.3f), EnemyKey(e.Id));  // (green while Poison Dart's venom eats it)  // HealthBars.cs
             }
             if (e.BubbleFrac > 0f && !spawning && !e.Def.IsBoss)
-                DrawShieldBar(e, pos, r);  // WarderLook.cs
+                DrawShieldBar(e, pos, r);  // BubbleLook.cs
             if (e.Caged)
                 DrawBoneCage(pos, r, t);
             if (e.BleedStacks > 0)
@@ -673,13 +671,8 @@ namespace Arena
 
         void DrawMeleeSpikes(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            if (e.Type == EnemyType.Spiker || e.Type == EnemyType.SpikeBlock)
-            {
-                DrawFaceSpikes(e, pos, r, col);  // MeleeGrunts: a spike on each face
-                return;
-            }
             int spikes = Game.IsBrute(e.Type) ? 10 : 8;
-            float spin = e.Type == EnemyType.Buzzsaw ? t * 7f + e.Id : t * 0.6f;  // a Buzzsaw's turn about once a second
+            float spin = t * 0.6f;
             for (int k = 0; k < spikes; k++)
             {
                 float a = spin + MathX.Tau * k / spikes;
@@ -689,36 +682,7 @@ namespace Arena
             }
         }
 
-        /// A Swarmer's three long thin spikes (one per face of its triangle) and a Spike Block's four big ones (one per face of its
-        /// square). The body is turned so the faces line up with the spikes (EnemyRotation). A Spike Block's spikes glow while it winds up and leaps.
-        void DrawFaceSpikes(Enemy e, V2 pos, float r, Rgba col)
-        {
-            bool block = e.Type == EnemyType.SpikeBlock;
-            int faces = block ? 4 : 3;
-            bool hot = block && (e.Phase == 1 || e.Phase == 2);
-            Rgba c = hot ? new Rgba(1f, 0.92f, 0.9f, col.A) : col.Mix(new Rgba(1f, 0.95f, 0.85f, col.A), 0.45f);
-            float apothem = block ? r * 0.7071f : r * 0.5f;       // centre to the middle of a face
-            float len = block ? r * 1.05f : r * 1.4f;              // how far a spike sticks out of its face
-            float half = block ? r * 0.4f : r * 0.16f;             // half the spike's width at its base
-            float first = block ? e.Facing : e.Facing + MathX.Pi / 3f;  // a Spiker's faces lie between its corners
-            for (int k = 0; k < faces; k++)
-            {
-                V2 d = V2.FromAngle(first + MathX.Tau * k / faces), side = d.Orthogonal();
-                SetColor(c);
-                Tri(pos + d * (apothem + len), pos + d * (apothem - 1f) + side * half, pos + d * (apothem - 1f) - side * half);
-            }
-        }
-
-        /// Winding up: the shared lane. Leaping: a smear behind it. Resting: dim.
-        void DrawSpikeBlockTell(Enemy e, V2 pos, float r, Rgba col, float t)
-        {
-            DrawLungeLane(e, pos, r, t);  // the wind-up: the shared lane (LungeLaneLook.cs)
-            if (e.Phase == 2)
-                for (int k = 1; k <= 3; k++)
-                    Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
-        }
-
-        /// Each type's effects behind its body. Returns the body colour (a Phantom flickers).
+        /// Each type's effects behind its body. Returns the body colour (a Shade flickers).
         Rgba DrawEnemyUnderlay(Enemy e, V2 pos, float r, Rgba col, bool spawning, float t)
         {
             switch (Game.SharesWith(e.Type))
@@ -734,12 +698,6 @@ namespace Arena
                 case EnemyType.Shiv:
                 case EnemyType.ScytheWraith:
                     DrawLungerTell(e, pos, r, col, t);
-                    break;
-                case EnemyType.SpikeBlock:
-                    DrawSpikeBlockTell(e, pos, r, col, t);
-                    break;
-                case EnemyType.Charger:
-                    DrawChargerTell(e, pos, r, col, t);
                     break;
                 case EnemyType.RiotShield:
                     DrawLungeLane(e, pos, r, t);  // its bash wind-up, same lane as the others (LungeLaneLook.cs)
@@ -777,15 +735,8 @@ namespace Arena
                 case EnemyType.SingShard:
                     DrawSingShardUnderlay(e, pos, r, col, t);
                     break;
-                case EnemyType.Phantom:
                 case EnemyType.Shade:
                     col = col.WithAlpha((menuPreview ? 0.75f : 0.45f) + (menuPreview ? 0.2f : 0.35f) * Mathf.Sin(t * 9f + e.Id));  // flickers in and out
-                    break;
-                case EnemyType.Juggernaut:
-                    Arc(pos, r + 4f, 5f, new Rgba(0.75f, 0.75f, 0.8f, 0.9f), 8);  // armor plating
-                    break;
-                case EnemyType.Nest:
-                    Circle(pos, r + 6f + 3f * Mathf.Sin(t * 3f), col.WithAlpha(0.2f), 24);
                     break;
                 case EnemyType.Lich:
                     col = DrawLichUnderlay(e, pos, r, col, t);  // LichLook.cs
@@ -828,14 +779,6 @@ namespace Arena
             if (e.Phase == 2)
                 for (int k = 1; k <= 3; k++)
                     Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
-        }
-
-        /// Wind-up: the shared lane. Dashing: a smear behind it.
-        void DrawChargerTell(Enemy e, V2 pos, float r, Rgba col, float t)
-        {
-            DrawLungeLane(e, pos, r, t);  // the wind-up: the shared lane (LungeLaneLook.cs)
-            if (e.Phase == 2)
-                Circle(pos - V2.FromAngle(e.Facing) * r, r * 0.9f, col.WithAlpha(0.3f), 16);
         }
 
         /// The Twin Reapers: an enraged glow, or Soul Bond's immune shell with orbiting runes.
@@ -921,11 +864,7 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.SpikeBlock:
-                    return e.Facing + MathX.Pi / 4f;  // a corner is 45 degrees off a face, and its spikes point out of the faces
-                case EnemyType.Spiker:
                 case EnemyType.Swarmer:
-                case EnemyType.Charger:
                 case EnemyType.Lunger:
                 case EnemyType.Brute:
                 case EnemyType.Wisp:
@@ -947,11 +886,7 @@ namespace Arena
                 case EnemyType.Shrieker:
                 case EnemyType.Mender:
                 case EnemyType.GraveCaller:
-                case EnemyType.FuseRunner:
-                case EnemyType.Hookman:
                 case EnemyType.HookThrower:
-                case EnemyType.Sapper:
-                    return e.Facing;  // point where they're aiming (zombies: where they're going)
                 case EnemyType.Spinner:
                     return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
                 case EnemyType.Singularity:
@@ -959,8 +894,6 @@ namespace Arena
                 case EnemyType.Duelist:
                 case EnemyType.Decoy:
                     return e.Facing;  // its point is its blade (DuelistLook.cs); the decoys copy it
-                case EnemyType.Medic:
-                    return MathX.Pi / 4f;
                 default:
                     return t * 0.4f + e.Id;
             }
@@ -1043,16 +976,8 @@ namespace Arena
                 case EnemyType.Shielder:
                     DrawShielderShield(e, pos, r);
                     break;
-                case EnemyType.Medic:
-                    Line(pos - new V2(r * 0.5f, 0), pos + new V2(r * 0.5f, 0), 3f, Rgba.White);
-                    Line(pos - new V2(0, r * 0.5f), pos + new V2(0, r * 0.5f), 3f, Rgba.White);
-                    break;
                 case EnemyType.Mortar:
                     Line(pos, pos + V2.FromAngle(e.Facing) * (r + 8f), 6f, col);
-                    break;
-                case EnemyType.Splitter:
-                    Line(pos - new V2(r * 0.6f, 0), pos + new V2(r * 0.6f, 0), 2f, col.WithAlpha(0.6f));
-                    Line(pos - new V2(0, r * 0.6f), pos + new V2(0, r * 0.6f), 2f, col.WithAlpha(0.6f));
                     break;
                 case EnemyType.Singularity:
                     Circle(pos, r * 0.45f, new Rgba(0f, 0f, 0f, 1f), 24);
