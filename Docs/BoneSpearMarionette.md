@@ -1,7 +1,7 @@
-# Bone Spear: Marionette
+# Blood Brawler (was the Bone Spear)
 
 **Status: built (steps 1-3, protocol 399).** Code `Assets/Scripts/Core/BoneSpear.cs`, look `Assets/Scripts/Game/BoneSpearLook.cs` (preview `BONESPEAR=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`), tests `Tools/SimTest/run.sh 1 30 bonespear`. Mockup `Docs/Mockups/bone-spear-rework.html`. Rework of the DPS Hemomancer's Bone
-Spear (`WeaponId.BoneSpear` kept): a ranged string the Hemomancer lands by working the target's blood, as phantom
+Spear, renamed the Blood Brawler (`WeaponId.BoneSpear`, `BoneSpear.cs` and the `bonespear` suite kept): a ranged string the Hemomancer lands by working the target's blood, as phantom
 melee blows from inside its body.
 
 ## Owner's decisions

@@ -767,7 +767,7 @@ static partial class Program
                 }
                 if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.BoneSpear || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt || w.Id == WeaponId.ChainLight)
                 {
-                    // A beam, an implosion, the Bone Spear's string, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    // A beam, an implosion, the Blood Brawler's string, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
                         me.Grasp.Clear(); me.GraspCharge.Clear(); me.GraspCd = 0f;
@@ -779,7 +779,7 @@ static partial class Program
                         volley.Invoke(g, new object[] { me, 0f, extra });
                         host.Poll(); dummy.FrozenT = 1f; dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
                         g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
-                        for (int k = 0; w.Id == WeaponId.BoneSpear && k < 6; k++)  // (the Bone Spear's Pulse lands a moment after the press)
+                        for (int k = 0; w.Id == WeaponId.BoneSpear && k < 6; k++)  // (the Blood Brawler's Pulse lands a moment after the press)
                         {
                             dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
                             g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });

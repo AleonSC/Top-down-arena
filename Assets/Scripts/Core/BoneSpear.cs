@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The DPS Hemomancer's Bone Spear, the Marionette (Docs/BoneSpearMarionette.md; mockup Docs/Mockups/bone-spear-rework.html):
+    /// The DPS Hemomancer's Blood Brawler (WeaponId.BoneSpear kept; was the Bone Spear), the Marionette (Docs/BoneSpearMarionette.md; mockup Docs/Mockups/bone-spear-rework.html):
     /// the Hemomancer works an enemy's blood from range, landing phantom melee blows from inside its body.
     ///   - Fire needs the cursor on an enemy within the weapon's Reach (the Implosion's targeting: ImplodeTarget, ImplodeReady).
     ///     That enemy is marked (`Player.BsTarget`, replicated, with the thread's time left `BsT`) and takes the next step of a
@@ -12,7 +12,7 @@ namespace Arena
     ///     Twin Blades and the Blood Lash (low 3 bits: the step, 1-4; a count of steps above).
     ///   - Each move costs BsMoveCost health (Marrow Burst BsBurstCost) and lands after a short wind-up (`bsHits`):
     ///     Pulse shoves BsPulseShove px away, Reel pulls BsReelPull px in, Heart Lift throws it in the air for BsLiftAir s
-    ///     (stunned; `Enemy.BsLiftT`), and every Bone Spear hit on an airborne enemy deals BsAirMult. Marrow Burst hits for
+    ///     (stunned; `Enemy.BsLiftT`), and every Blood Brawler hit on an airborne enemy deals BsAirMult. Marrow Burst hits for
     ///     BsBurstBase + BsBurstPer a hit landed earlier in the string, and bursts into BsShards bone shards (Defs.BoneSpearShot,
     ///     Marrow: more) that cut out to BsShardReach. Each extra projectile lands every move on one more enemy near the mark, at SympMult. Heavies and bosses take the hits but aren't moved.
     ///   - Alt (Msg.WeaponDash, DashSympathy), Sympathy: binds up to SympMax enemies within SympRange of the marked one
@@ -42,7 +42,7 @@ namespace Arena
 
         readonly List<BsHit> bsHits = new List<BsHit>();
 
-        /// The Bone Spear step in `combo` (1 Pulse, 2 Reel, 3 Heart Lift, 4 Marrow Burst; 0 none yet).
+        /// The Blood Brawler step in `combo` (1 Pulse, 2 Reel, 3 Heart Lift, 4 Marrow Burst; 0 none yet).
         public static int BsStepOf(int combo) => combo & 7;
 
         /// How long step `step` takes before the next press can land.
@@ -53,7 +53,7 @@ namespace Arena
         /// How long a move's FxKind.BsBlow plays: its wind-up, then the blow (Heart Lift: the whole time in the air).
         public static float BsFxDur(int step) => BsHitDelay(step) + (step == 1 ? 0.3f : step == 2 ? 0.35f : step == 3 ? BsLiftAir : 0.5f);
 
-        /// Host: one press of fire with the Bone Spear (from FireBloodWeapon): the next step of the string on the enemy under the cursor.
+        /// Host: one press of fire with the Blood Brawler (from FireBloodWeapon): the next step of the string on the enemy under the cursor.
         void FireBoneSpear(Player p, float dmg, int extra)
         {
             var e = ImplodeTarget(p, p.AimAt);
@@ -103,7 +103,7 @@ namespace Arena
         void QueueBsMove(Player p, Enemy e, int step, float dmg, bool echo) =>
             bsHits.Add(new BsHit { Owner = p.Id, Target = e.Id, Step = step, T = -BsHitDelay(step), Dmg = dmg, Echo = echo });
 
-        /// A Bone Spear hit: the damage (more on an airborne enemy), credited to the weapon, through the usual on-hit effects.
+        /// A Blood Brawler hit: the damage (more on an airborne enemy), credited to the weapon, through the usual on-hit effects.
         void BsHurt(Player p, Enemy e, float dmg, V2 dir)
         {
             if (e.BsLiftT > 0f)
@@ -181,7 +181,7 @@ namespace Arena
             p.SympBound.Clear();
         }
 
-        /// Host: Alt with the Bone Spear: Sympathy binds the enemies near the marked one to it.
+        /// Host: Alt with the Blood Brawler: Sympathy binds the enemies near the marked one to it.
         void HostSympathy(Player p)
         {
             Enemy t;
@@ -209,7 +209,7 @@ namespace Arena
             BroadcastFx(FxKind.Ring, t.Pos, BsRed, SympRange, 0.4f, Sfx.SpellArcane);
         }
 
-        /// Your own game: Alt was pressed with the Bone Spear (the host checks the rest).
+        /// Your own game: Alt was pressed with the Blood Brawler (the host checks the rest).
         bool LocalSympathy(Player me, bool pressed, V2 aimAt)
         {
             if (me.Weapon.Id != WeaponId.BoneSpear)
