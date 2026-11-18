@@ -1125,7 +1125,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
-- **Room cards** (the default; the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote**, plus **Team purse**). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
+- **Room cards** (the old cards, off by default since Grid became the default; the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote** / **Grid**, plus **Team purse**). Design: [`Docs/RoomCards.md`](Docs/RoomCards.md).
   Every room is a card in your own **hand** (up to **6**). Cards: **Box** (7 x 6), **Hall** (8 x 3), **Chamfer**, **L hall**, **T hall**, **Cross**, **Ring**
   (the surprise-room shapes), two **utility cards**: **Mini-boss** (an 8 x 6 duel room with the coming boss's faction mini-boss: walk in to wake it, beat it
   for a prize pick) and **Builder Shop** (a 5 x 4 amber shop room, see below), and the **service cards** **Shop**, **Black Market** and **Arms Dealer** (a tiny
@@ -1151,12 +1151,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
     crossing and a block in each arm (a pinwheel); **L hall** a pillar in the bend and blocks off alternate walls; **T hall** a pillar facing the stem and a block in
     each arm and the stem; **Chamfer** a pillar with a low wall above and below; **Mini-boss** four pillars; **Builder Shop** a pillar in each corner. Card rooms get no random cover or side walls.
   - Drawing is off while cards are on; vectors still pay for openings, teleporters, gates, mystery doors and the Black Market's and Builder Shop's cards.
-- **Grid** (the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote** / **Grid**, plus **Team purse**; off by default). Design: [`Docs/GridRooms.md`](Docs/GridRooms.md). Rooms are built on a grid: **the build screen's first tool** shows a glowing **door spot** on every wall where the picked room fits, and a click builds it there.
+- **Grid** (the lobby's **Building** row: **Room cards** / **Free draw** / **Team vote** / **Grid**, plus **Team purse**; **the default**). Design: [`Docs/GridRooms.md`](Docs/GridRooms.md) and [`Docs/GridPieces.md`](Docs/GridPieces.md). A saved run from before keeps its old building mode. Rooms are built on a grid from **piece cards** (below): every room hangs off a glowing **door spot** on a built room's wall.
   - **The core**: the run starts with the start room grown to 4 x 3 cells (2400 x 1800) by four free rooms round it, the walls between them open, so there are 14 door spots round the core. Every room sits on one lattice of 6-tile cells.
-  - **Sizes** (Q / E steps through them): **Room** 6 x 6 tiles, **Gauntlet** 12 x 6, **Hall** 6 x 12, **Arena** 12 x 12. A room hangs flush off a door spot (a big one can sit a cell to either side).
-  - **Price**: the new wall in vectors, as for drawn rooms; built at once (no vote). Drawn outlines, themes, wall push and room cards are off in this mode; open walls, teleporters, gates and traps work as usual.
+  - Built at once (no vote). Drawn rooms, outlines, wall push and the old room cards are off in this mode; open walls, teleporters, gates and traps work as usual.
   - **Nodes and chests** sit at the middle of a room-sized cell, so building out along the grid claims them with the chest or relic in the middle of its room (a chest or relic always stands in the middle of the room that claims it).
   - Bots build on door spots too.
+  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or on a floor) and one-cell service cards. They come as the room cards do: a starting hand, a card each round, wave drops, chests, the vendor, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run.
+  - **Mini-bosses**: each boss cycle a sealed two-cell mini-boss room waits on the grid, one cell out from the map. Build a piece into the cell between to open it, then walk in to wake the coming boss's faction mini-boss (as before: the room locks, beat it for a prize pick).
 - **Building rounds** (Free draw and Team vote): every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or

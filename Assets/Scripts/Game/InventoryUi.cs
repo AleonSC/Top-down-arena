@@ -97,6 +97,12 @@ namespace Arena
         void UseInvCard(int slot)
         {
             InvOpenBuild();
+            if (game.GridRoomsOn)  // a Grid run: the piece is picked on the build screen (GridRoomsUi.cs)
+            {
+                expGridSlot = slot;
+                expGridTurn = 0;
+                return;
+            }
             expCard = slot;
             expCardTurn = 0;
         }
@@ -190,8 +196,8 @@ namespace Arena
         /// (the build screen opens on it, UseInvCard).
         void DrawInvHand(Player me, Rect r, bool canUse)
         {
-            canUse &= game.RoomCardsOn;
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room cards", game.RoomCardsOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
+            canUse &= game.HandOn;
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.GridRoomsOn ? "Pieces" : "Room cards", game.HandOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
             const float minH = 96f;
@@ -234,7 +240,7 @@ namespace Arena
                 if (canUse && Ui.HitArea(c))
                     UseInvCard(i);
             }
-            if (!game.RoomCardsOn)
+            if (!game.HandOn)
             {
                 Ui.Fill(new Rect(r.x + 12f, r.y + 46f, r.width - 24f, r.height - 58f), new Color(0f, 0f, 0f, 0.45f));
                 Ui.Label(new Rect(r.x, r.center.y - 10f, r.width, 20f), game.ExpandingOn ? "This run draws its rooms (Room cards are off)" : "Room cards are for the Expanding arena", 13, HoloDim, TextAnchor.MiddleCenter, true);

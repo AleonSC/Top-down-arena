@@ -16,7 +16,7 @@ Status: **built** (protocol 402; one lattice and a 4 x 3 cell core since the moc
 | Where a room goes | **One lattice** of 6-tile (600 px) cells from the core's corner (`GridX0`, `GridY0`). Every cell along the outside of a wall on a lattice line is a **door spot**; a room hangs off it flush with the wall, in the first alignment that fits (a big room can sit a cell to either side). The core has 14 spots (4 top, 4 bottom, 3 each side). |
 | Sizes | **Room** 6 x 6, **Gauntlet** 12 x 6, **Hall** 6 x 12, **Arena** 12 x 12 (tiles). Same rules as any room (no overlap, a door's worth of shared wall, caps). |
 | Cost and build | The new wall in vectors (`Expansion.Cost`), built at once like free building; no team vote. |
-| Switch | `DiffKnob.GridRooms` (flavour, off by default). Room cards win over it; the lobby's row keeps the four options exclusive. |
+| Switch | `DiffKnob.GridRooms` (flavour, **the default since Nov 18**; Docs/GridPieces.md). Room cards win over it; the lobby's row keeps the four options exclusive. |
 | Off in this mode | Drawn outlines, themes, wall push, room cards. Open wall, teleporter, gate and trap still work. |
 | Nodes | `Expansion.GridNodeFor`: the middle of a cell two or three rooms out (the first ring one side each); `GridChestFor`: a chest at the middle of a free cell against the new room. Claiming a node puts its chest or relic at the middle of the room ([`Nodes.md`](Nodes.md), `Expansion.NodeSpotIn`). |
 
