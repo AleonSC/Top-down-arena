@@ -14,7 +14,7 @@ namespace Arena
     }
 
     /// Which outer walls break open each wave. Worked out the same on every machine from the map and the wave number, so
-    /// nothing goes over the wire. Every 100 px of outer wall is a spot, so long walls break more often, and a dead end's (one door) more still.
+    /// nothing goes over the wire. Every lattice cell's side on the outer wall is a spot (at its middle), so long walls break more often, and a dead end's (one door) more still.
     public static class Breaches
     {
         public const float Telegraph = 1.5f;  // the barrier flickers up this long before the first enemy steps through
@@ -57,7 +57,7 @@ namespace Arena
 
         static bool Spawnable(RoomArea a) => a.Kind == RoomKind.Combat || a.Kind == RoomKind.Floor;
 
-        /// Every spot on the outer wall a breach could open at (one per 100 px tile, off the ends), with its weight.
+        /// Every spot on the outer wall a breach could open at (the middle of each lattice cell's side, off the ends), with its weight.
         public static List<KeyValuePair<Breach, float>> Candidates(World w)
         {
             var doorsOf = new int[w.Areas.Length];
@@ -80,7 +80,10 @@ namespace Arena
                     continue;
                 V2 inward = plus >= 0 ? across : across * -1f;
                 float weight = 1f + (doorsOf[area] <= 1 && !w.Areas[area].Hub ? DeadEnd : 0f);  // (a long wall has more spots, so it breaks more often already)
-                for (float u = s.From + EndPad + Len / 2f; u <= s.Till - EndPad - Len / 2f + 0.5f; u += Expansion.Step)
+                // one spot per lattice cell, at the middle of the cell's side (Expansion.GridCell, GridRooms.cs)
+                float origin = (s.Vertical ? Expansion.GridY0 : Expansion.GridX0) + Expansion.GridCell / 2f, lo = s.From + EndPad + Len / 2f;
+                float first = origin + (float)Math.Ceiling((lo - origin) / Expansion.GridCell - 0.001f) * Expansion.GridCell;
+                for (float u = first; u <= s.Till - EndPad - Len / 2f + 0.5f; u += Expansion.GridCell)
                 {
                     V2 spot = s.Vertical ? new V2(s.At, u) : new V2(u, s.At);
                     if (OpenAreaAt(w, spot + across * 20f) >= 0 && OpenAreaAt(w, spot - across * 20f) >= 0)
