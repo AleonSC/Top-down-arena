@@ -1,0 +1,243 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace Arena
+{
+    /// A grid piece (Docs/GridPieces.md): a polyomino of 1 to 4 cells (a cell is a 6 x 6 tile room, Expansion.GridCell). New values go at the end.
+    public enum GridPiece : byte { Mono, Domino, TriI, TriL, TetI, TetO, TetT, TetS, TetL }
+
+    /// One legal placement of a piece: the open room it builds (its boxes, Price 0), which of the piece's turns and mirrors it is, where its cell box starts,
+    /// and the door spot it hangs off.
+    public struct GridPieceOption
+    {
+        public GridPiece Piece;
+        public int Orient;     // index into Expansion.GridPieceOrients(piece)
+        public int X, Y;       // the top-left of the piece's cell box, world px, on the lattice
+        public List<ExpansionRoom> Rooms;
+        public byte Side;      // the parent's side it hangs off: 0 top, 1 bottom, 2 left, 3 right
+        public int SX, SY;     // the door spot's middle (world px)
+        public V2 Mid;         // the middle of the piece's cell box
+    }
+
+    /// A cell just outside a built room's wall on a lattice line: where a piece's cell can sit against that wall.
+    public struct GridSpot
+    {
+        public byte Side;
+        public int X, Y;       // the cell's top-left, world px
+        public int SX, SY;     // the middle of the cell's edge on the wall
+    }
+
+    public static partial class Expansion
+    {
+        static readonly int[][][] gridPieceBase =
+        {
+            new[] { new[] { 0, 0 } },
+            new[] { new[] { 0, 0 }, new[] { 1, 0 } },
+            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 2, 0 } },
+            new[] { new[] { 0, 0 }, new[] { 0, 1 }, new[] { 1, 1 } },
+            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 2, 0 }, new[] { 3, 0 } },
+            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 0, 1 }, new[] { 1, 1 } },
+            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 2, 0 }, new[] { 1, 1 } },
+            new[] { new[] { 1, 0 }, new[] { 2, 0 }, new[] { 0, 1 }, new[] { 1, 1 } },
+            new[] { new[] { 0, 0 }, new[] { 0, 1 }, new[] { 0, 2 }, new[] { 1, 2 } },
+        };
+
+        static List<int[][]>[] gridPieceOrients;
+
+        public static string GridPieceName(GridPiece p)
+        {
+            switch (p)
+            {
+                case GridPiece.Mono: return "Single";
+                case GridPiece.Domino: return "Domino";
+                case GridPiece.TriI: return "Line of 3";
+                case GridPiece.TriL: return "Corner";
+                case GridPiece.TetI: return "Line of 4";
+                case GridPiece.TetO: return "Square";
+                case GridPiece.TetT: return "T";
+                case GridPiece.TetS: return "S";
+                default: return "L";
+            }
+        }
+
+        public static int GridPieceCells(GridPiece p) => gridPieceBase[(int)p].Length;
+
+        /// Every distinct turn and mirror of a piece (a Square has 1, a Line 2, a T 4, an L 8): each a list of {col, row} cells with the box's corner at {0, 0}.
+        /// The same order everywhere, so an orientation is a small index.
+        public static List<int[][]> GridPieceOrients(GridPiece p)
+        {
+            if (gridPieceOrients == null)
+            {
+                var all = new List<int[][]>[gridPieceBase.Length];
+                for (int i = 0; i < all.Length; i++)
+                {
+                    all[i] = new List<int[][]>();
+                    var keys = new HashSet<string>();
+                    for (int mirror = 0; mirror < 2; mirror++)
+                        for (int turn = 0; turn < 4; turn++)
+                        {
+                            var cells = new List<int[]>();
+                            foreach (var c in gridPieceBase[i])
+                            {
+                                int x = mirror == 1 ? -c[0] : c[0], y = c[1];
+                                for (int t = 0; t < turn; t++) { int nx = -y; y = x; x = nx; }
+                                cells.Add(new[] { x, y });
+                            }
+                            int mx = int.MaxValue, my = int.MaxValue;
+                            foreach (var c in cells) { mx = Math.Min(mx, c[0]); my = Math.Min(my, c[1]); }
+                            foreach (var c in cells) { c[0] -= mx; c[1] -= my; }
+                            cells.Sort((a, b) => a[1] != b[1] ? a[1].CompareTo(b[1]) : a[0].CompareTo(b[0]));
+                            var key = string.Join(";", cells.ConvertAll(c => c[0] + "," + c[1]));
+                            if (keys.Add(key))
+                                all[i].Add(cells.ToArray());
+                        }
+                }
+                gridPieceOrients = all;
+            }
+            return gridPieceOrients[(int)p];
+        }
+
+        /// A piece orientation's size in cells {cols, rows}.
+        public static int[] GridPieceSize(int[][] cells)
+        {
+            int w = 0, h = 0;
+            foreach (var c in cells) { w = Math.Max(w, c[0] + 1); h = Math.Max(h, c[1] + 1); }
+            return new[] { w, h };
+        }
+
+        static bool[,] GridPieceMask(int[][] cells)
+        {
+            int n = GridCell / Step, w = GridPieceSize(cells)[0], h = GridPieceSize(cells)[1];
+            var m = new bool[w * n, h * n];
+            foreach (var c in cells)
+                for (int i = 0; i < n; i++)
+                    for (int j = 0; j < n; j++)
+                        m[c[0] * n + i, c[1] * n + j] = true;
+            return m;
+        }
+
+        /// The open room this piece builds with its cell box's corner at (x, y) (on the lattice): its boxes, the first holding the room, Price 0, if it is legal
+        /// there (no overlap, a door's worth of shared wall with the connected map, the size caps), else null with `why`.
+        public static List<ExpansionRoom> GridPieceRooms(IList<ExpansionRoom> built, GridPiece piece, int orient, int x, int y, out string why)
+        {
+            why = null;
+            var orients = GridPieceOrients(piece);
+            if (orient < 0 || orient >= orients.Count) { why = "No such turn"; return null; }
+            if (GridMod(x, GridX0) != 0 || GridMod(y, GridY0) != 0) { why = "Off the grid"; return null; }
+            if (BoughtCount(built) >= MaxRooms) { why = "The map is full"; return null; }
+            var made = FromTiles(built, GridPieceMask(orients[orient]), x, y, PathId.None, out why);
+            if (made == null)
+                return null;
+            for (int i = 0; i < made.Count; i++)
+            {
+                var q = made[i];
+                q.Price = 0;
+                q.Surprise = 0;
+                made[i] = q;
+            }
+            return made;
+        }
+
+        /// The cells just outside each built room's lattice walls where a piece's cell can sit: a door spot per cell along a wall.
+        public static List<GridSpot> GridSpots(IList<ExpansionRoom> built)
+        {
+            var res = new List<GridSpot>();
+            var seen = new HashSet<long>();
+            for (int a = 1; a <= built.Count; a++)
+            {
+                if (built[a - 1].Floating || IsPush(built[a - 1]))
+                    continue;
+                BoxOf(built, a, out int x0, out int y0, out int x1, out int y1);
+                for (int side = 0; side < 4; side++)
+                {
+                    bool across = side < 2;
+                    int line = side == 0 ? y0 : side == 1 ? y1 : side == 2 ? x0 : x1;
+                    if (GridMod(line, across ? GridY0 : GridX0) != 0)
+                        continue;
+                    int lo = across ? x0 : y0, hi = across ? x1 : y1, along = across ? GridX0 : GridY0;
+                    for (int c = lo - GridMod(lo, along); c < hi; c += GridCell)
+                    {
+                        int cx = across ? c : side == 2 ? x0 - GridCell : x1, cy = across ? (side == 0 ? y0 - GridCell : y1) : c;
+                        if (seen.Add(((long)cx << 32) ^ (uint)cy))
+                            res.Add(new GridSpot { Side = (byte)side, X = cx, Y = cy, SX = across ? c + GridCell / 2 : line, SY = across ? line : c + GridCell / 2 });
+                    }
+                }
+            }
+            return res;
+        }
+
+        /// Every place this piece can go: each turn and mirror with one of its cells on a door spot, only what GridPieceRooms accepts, each once.
+        public static List<GridPieceOption> GridPieceOptions(IList<ExpansionRoom> built, GridPiece piece)
+        {
+            var res = new List<GridPieceOption>();
+            if (BoughtCount(built) >= MaxRooms)
+                return res;
+            var orients = GridPieceOrients(piece);
+            var seen = new HashSet<string>();
+            foreach (var spot in GridSpots(built))
+                for (int o = 0; o < orients.Count; o++)
+                    foreach (var cell in orients[o])
+                    {
+                        int x = spot.X - cell[0] * GridCell, y = spot.Y - cell[1] * GridCell;
+                        if (!seen.Add(o + ":" + x + "," + y))
+                            continue;
+                        var rooms = GridPieceRooms(built, piece, o, x, y, out _);
+                        if (rooms == null)
+                            continue;
+                        var size = GridPieceSize(orients[o]);
+                        res.Add(new GridPieceOption
+                        {
+                            Piece = piece, Orient = o, X = x, Y = y, Rooms = rooms, Side = spot.Side, SX = spot.SX, SY = spot.SY,
+                            Mid = new V2(x + size[0] * GridCell / 2f, y + size[1] * GridCell / 2f),
+                        });
+                    }
+            return res;
+        }
+    }
+
+    public partial class Game
+    {
+        /// This game's player places a grid piece (Docs/GridPieces.md) with its cell box's corner at (x, y), in this orientation. Only in a Grid run's build round.
+        public void PlayGridPiece(GridPiece piece, int orient, int x, int y)
+        {
+            if (!ExpandOpen || Me == null || !GridRoomsOn)
+                return;
+            if (IsHost)
+            {
+                HostGridPiece(MyId, piece, orient, x, y);
+                return;
+            }
+            var w = Proto.Begin(Msg.GridPiece);
+            w.Write((byte)piece); w.Write((byte)orient); w.Write((short)x); w.Write((short)y);
+            session.SendToHost(Proto.End(w));
+        }
+
+        public void OnGridPiece(int peer, BinaryReader r) => HostGridPiece(peer, (GridPiece)r.ReadByte(), r.ReadByte(), r.ReadInt16(), r.ReadInt16());
+
+        /// Host: the piece's open room is built at once if it fits there, free (Docs/GridPieces.md: playing a piece costs nothing; step 2 makes it a card from the player's hand).
+        void HostGridPiece(int id, GridPiece piece, int orient, int x, int y)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !GridRoomsOn || !Players.TryGetValue(id, out p) || (int)piece >= Enum.GetValues(typeof(GridPiece)).Length)
+                return;
+            string why;
+            var made = Expansion.GridPieceRooms(Expanded, piece, orient, x, y, out why);
+            if (made == null)
+            {
+                DoLog("piece refused (" + why + ")");
+                return;
+            }
+            var head = made[0];
+            head.Owner = id;
+            var legs = new List<ExpansionRoom>();
+            for (int i = 1; i < made.Count; i++)
+            {
+                var q = made[i];
+                q.Owner = id;
+                legs.Add(q);
+            }
+            BuildNow(id, head, legs);
+        }
+    }
+}
