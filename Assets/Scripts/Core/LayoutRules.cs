@@ -518,10 +518,19 @@ namespace Arena
             // Both ends pulled clear of the walls' padding first: a target standing against a wall (or an enemy sliding
             // along one) sits inside that padding, and every line to it would read as blocked, sending enemies off
             // round far corners instead of straight at you.
+            V2 raw = pos;
             pos = ClearOfWalls(d, pos, r);
             tpos = ClearOfWalls(d, tpos, r);
             if (!SegBlocked(d, pos, tpos, r))
                 return dir;
+            if (d.Mouths != null && d.Mouths.Length > 0)  // at a wall portal its route goes through: walk into the wall (World.cs)
+                foreach (var mo in d.Mouths)
+                {
+                    V2 o = raw - mo.At;
+                    float off = o.Dot(mo.In), along = Math.Abs(o.Dot(mo.In.Orthogonal()));
+                    if (off < WorldPortal.MouthIn + 16f && off > 0f && along < mo.Half - 8f && GoalCosts(d, tpos, r).Next[mo.Wp] == mo.Partner)
+                        return -mo.In;
+                }
             SteerMem m;
             if (!steerMem.TryGetValue(key, out m))
             {

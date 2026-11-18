@@ -1291,7 +1291,7 @@ namespace Arena
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
             me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
             me.Pos = KeepInMarshalCircles(before, me.Pos, me.Def.BodyR);  // a Marshal's circle holds you (CourtFaction.cs)
-            me.Pos = RoomsPortal(me.Pos, ref me.PortalT, dt);  // wraparound portals (Rooms.cs)
+            me.Pos = RoomsPortal(me.Pos, ref me.PortalT, dt, me.Def.BodyR);  // wraparound portals (Rooms.cs)
             if (me.Pos.FartherThan(before, 600f))
             {
                 me.Disp = me.Pos;

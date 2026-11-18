@@ -659,7 +659,7 @@ namespace Arena
                         RoomMapRect(Mathf.Min(w0.X, w1.X) - 1.5f, Mathf.Min(w0.Y, w1.Y) - 1.5f, Mathf.Abs(w1.X - w0.X) + 3f, Mathf.Abs(w1.Y - w0.Y) + 3f, new Rgba(0.37f, 0.94f, 1f, 0.35f));
                     }
                 for (int li = 0; li < game.Links.Count; li++)  // the portal pairs built, in their pair's colour
-                    DrawLinkMark(M(game.Links[li].A), M(game.Links[li].B), PortalColours[(wd.Portals.Length - game.Links.Count + li) % PortalColours.Length], 1f);
+                    DrawLinkMark(wd, M, game.Links[li].A, game.Links[li].B, PortalColours[(wd.Portals.Length - game.Links.Count + li) % PortalColours.Length], 1f);
                 foreach (var pb in game.Placed)  // the Black Market traps standing on the map
                 {
                     V2 bp = M(pb.Pos);
@@ -699,7 +699,7 @@ namespace Arena
                     }
                     if (q.Kind == RoomKind.Link)
                     {
-                        DrawLinkMark(q0, q1, qi, 0.85f);
+                        DrawLinkMark(wd, M, Expansion.LinkOf(q).A, Expansion.LinkOf(q).B, qi, 0.85f);
                         continue;
                     }
                     if (q.Kind == RoomKind.Opening)
@@ -729,7 +729,7 @@ namespace Arena
                     RoomMapRect(Mathf.Min(p0.X, p1.X) - 2.5f, Mathf.Min(p0.Y, p1.Y) - 2.5f, Mathf.Abs(p1.X - p0.X) + 5f, Mathf.Abs(p1.Y - p0.Y) + 5f, ink);
                 }
                 if (hasLink)
-                    DrawLinkMark(M(expA), M(expB), linkPrice > 0 ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f), 1f);
+                    DrawLinkMark(wd, M, expA, expB, linkPrice > 0 ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f), 1f);
                 if (roomMode)
                     DrawOutlineDraft(M, shape, laid, outlineRoom, cursor, over, fillDraft);
                 if (cardMode)
@@ -807,7 +807,7 @@ namespace Arena
             }
             else if (hasLink && linkPrice > 0)
             {
-                line = "TELEPORTER PAIR  ·  from your stash  ·  saves " + Mathf.RoundToInt(Expansion.WalkDistance(wd, link.A, link.B) / 100f) + " tiles of walking  ·  click to build it";
+                line = "TELEPORTER PAIR  ·  from your stash  ·  saves " + Mathf.RoundToInt(Expansion.LinkWalk(wd, link) / 100f) + " tiles of walking  ·  click to build it";
                 lineInk = Ui.Gold;
             }
             else if (hasLink)
@@ -1023,9 +1023,11 @@ namespace Arena
                 Arc(M(cursor), 10f, 2f, new Rgba(1f, 0.85f, 0.4f, 0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 6f)), 20);
         }
 
-        /// A portal pair on a map: a ring at each end and a dashed line between them.
-        void DrawLinkMark(V2 a, V2 b, Rgba ink, float alpha)
+        /// A portal pair on a map: a dashed line between its ends, and at each end a bar along its wall with a chevron into the room
+        /// (a wall portal), or a ring (an end off the walls: an older save's floor portal, or a click not on an outer wall yet).
+        void DrawLinkMark(World wd, System.Func<V2, V2> M, V2 wa, V2 wb, Rgba ink, float alpha)
         {
+            V2 a = M(wa), b = M(wb);
             float pulse = 0.65f + 0.35f * Mathf.Sin(Time.unscaledTime * 3f);
             V2 d = b - a;
             float len = d.Length;
@@ -1039,9 +1041,22 @@ namespace Arena
                 }
             }
             float spin = Time.unscaledTime * 2f;
-            foreach (var e in new[] { a, b })  // each end: a ring and a turning inner arc (the portal in the arena)
+            for (int k = 0; k < 2; k++)
             {
-                Arc(e, 7f, 2f, ink.WithAlpha(alpha * pulse), 18);
+                V2 we = k == 0 ? wa : wb, e = k == 0 ? a : b;
+                var side = Expansion.OuterWall(wd, we);
+                if (side.HasValue)  // a wall end: the stretch of wall it turns into the portal, and a chevron pointing into the room
+                {
+                    V2 inn = side.Value, along = inn.Orthogonal();
+                    V2 e0 = M(we - along * Expansion.LinkHalf), e1 = M(we + along * Expansion.LinkHalf);
+                    Line(e0, e1, 7f, ink.WithAlpha(0.25f * alpha * pulse));
+                    Line(e0, e1, 3f, ink.WithAlpha(alpha));
+                    V2 tip = e + inn * 9f;
+                    Line(e + inn * 4f + along * 4f, tip, 1.5f, ink.WithAlpha(alpha * pulse));
+                    Line(e + inn * 4f - along * 4f, tip, 1.5f, ink.WithAlpha(alpha * pulse));
+                    continue;
+                }
+                Arc(e, 7f, 2f, ink.WithAlpha(alpha * pulse), 18);  // a ring and a turning inner arc (the portal in the arena)
                 Arc(e, 3.5f, 1.5f, ink.WithAlpha(alpha), 12, spin, 4f);
                 spin += 3f;
             }
@@ -1214,7 +1229,7 @@ namespace Arena
             else if (tool == 2)
             {
                 title = "TELEPORTER PAIR";
-                steps = new[] { "Click a spot in one room", "Click a spot in another room", "Walk in one, come out the other" };
+                steps = new[] { "Click a room's outer wall", "Click another room's outer wall", "Walk into one, out of the other" };
                 tip = "Uses one from your stash (" + (game.Me != null ? game.Me.Stash[(int)BuildKind.Teleporter] : 0) + "). Enemies use them too.  " + game.Links.Count + " of " + Expansion.MaxLinks + " built.";
             }
             else if (tool == 4)
@@ -1308,8 +1323,8 @@ namespace Arena
             bool drawn = legs.Count > 0 && Expansion.IsPiece(legs[0]);  // a room drawn as an outline
             bool mineCard = o.Owner == game.MyId;
             CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), (mineCard ? "YOUR " : "") + (o.Kind == RoomKind.Gate ? "SHUTTER GATE" : o.Kind == RoomKind.Link ? "PORTAL PAIR" : o.Kind == RoomKind.Opening ? "OPEN A WALL" : (o.Kind == RoomKind.Floor ? Paths.Get(o.Floor).Name.ToUpperInvariant() + " " : "") + (drawn ? "DRAWN ROOM" : o.Shape.ToUpperInvariant())), r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
-            CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (owner != null ? "DRAWN BY " + owner.Name.ToUpperInvariant() : "DRAWN") + "  ·  " + (o.Kind == RoomKind.Gate ? "on a door" : o.Kind == RoomKind.Link ? "saves " + Mathf.RoundToInt(Expansion.WalkDistance(game.ExpansionWorld, Expansion.LinkOf(o).A, Expansion.LinkOf(o).B) / 100f) + " tiles of walking" : o.Kind == RoomKind.Opening ? (o.W + o.H) / 100 + " tiles of wall" : drawn ? Expansion.FloorTiles(o, legs) + " tiles of floor" + (loops > 0 ? "  ·  LOOP" : "") : o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : "")), 15, afford ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
-            string blurb = o.Kind == RoomKind.Gate ? "A red laser grid on this door. Stand by it and press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + " to shut it for " + (int)Gates.CloseTime + " s and split a crowd." : o.Kind == RoomKind.Link ? "Two portals: step into one and come out of the other. Enemies use them too." : o.Kind == RoomKind.Opening ? "Takes this stretch of wall down: the rooms either side open into one, and the proposer gets the vectors back." : o.Kind == RoomKind.Floor ? FloorBlurb(o.Floor) : loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
+            CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (owner != null ? "DRAWN BY " + owner.Name.ToUpperInvariant() : "DRAWN") + "  ·  " + (o.Kind == RoomKind.Gate ? "on a door" : o.Kind == RoomKind.Link ? "saves " + Mathf.RoundToInt(Expansion.LinkWalk(game.ExpansionWorld, Expansion.LinkOf(o)) / 100f) + " tiles of walking" : o.Kind == RoomKind.Opening ? (o.W + o.H) / 100 + " tiles of wall" : drawn ? Expansion.FloorTiles(o, legs) + " tiles of floor" + (loops > 0 ? "  ·  LOOP" : "") : o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : "")), 15, afford ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
+            string blurb = o.Kind == RoomKind.Gate ? "A red laser grid on this door. Stand by it and press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + " to shut it for " + (int)Gates.CloseTime + " s and split a crowd." : o.Kind == RoomKind.Link ? "Two stretches of outer wall turn into portals: walk into one and out of the other. Enemies use them too." : o.Kind == RoomKind.Opening ? "Takes this stretch of wall down: the rooms either side open into one, and the proposer gets the vectors back." : o.Kind == RoomKind.Floor ? FloorBlurb(o.Floor) : loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
             CrtUi.Text(new Rect(r.x + 22f, ty + 62f, r.width - 44f, 70f), blurb, 14, dim, TextAnchor.UpperLeft, false, calm, true);
             int votes = game.VotesFor(o.Owner);
             CrtUi.Text(new Rect(r.x + 22f, r.yMax - 82f, r.width - 44f, 30f), (o.Price < 0 ? "+" + -o.Price : o.Price.ToString()) + " VECTORS" + (owner != null ? "  ·  " + owner.Name.ToUpperInvariant() + " HAS " + owner.Vectors : ""), r.width < 330f ? 17 : 20, afford ? new Color(0.37f, 0.94f, 1f) : dim, TextAnchor.MiddleLeft, true, calm);
@@ -1376,7 +1391,7 @@ namespace Arena
                 RoomMapFrame(gc.X - 8f, gc.Y - 8f, 16f, 16f, 2.5f, new Rgba(1f, 0.3f, 0.32f, (afford ? 1f : 0.5f) * pulse));
             }
             else if (o.Kind == RoomKind.Link)  // the two portals it would place
-                DrawLinkMark(M(Expansion.LinkOf(o).A), M(Expansion.LinkOf(o).B), ink.WithAlpha(afford ? 1f : 0.5f), 1f);
+                DrawLinkMark(wd, M, Expansion.LinkOf(o).A, Expansion.LinkOf(o).B, ink.WithAlpha(afford ? 1f : 0.5f), 1f);
             else if (isCut)  // the stretch of wall it would open
             {
                 var c = Expansion.CutOf(o);

@@ -229,6 +229,7 @@ namespace Arena
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)
+            DrawWallPortals(t);  // the Expanding arena's wall portals, over their walls (RoomsLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
             DrawMysteryDoors();  // sealed mystery doors (MysteryDoorLook.cs)
             DrawPushFlashes();  // a pushed section's new walls and cover flash in (WallPushLook.cs)
