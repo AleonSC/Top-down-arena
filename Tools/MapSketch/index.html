@@ -145,16 +145,33 @@ function drawShape(sh,a=1){
  }
 }
 let live=null,hover=null;
-function draw(){
- ctx.setTransform(dpr,0,0,dpr,0,0);
+let raf=0,cache=null,cacheShapes=null,cacheGrid=null,cacheCam=null,camTimer=0;
+function draw(){if(!raf)raf=requestAnimationFrame(()=>{raf=0;render()})}
+function buildCache(){
+ if(!cache)cache=document.createElement("canvas");
+ cache.width=Math.round(W*dpr);cache.height=Math.round(H*dpr);
+ ctx=cache.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);
  ctx.fillStyle="#030814";ctx.fillRect(0,0,W,H);
  const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);g.addColorStop(0,"rgba(40,90,170,.14)");g.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- const z=S.cam.z;
- ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);
+ const z=S.cam.z;ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);
  if(S.grid)drawGrid();
  for(const sh of S.shapes)drawShape(sh);
- if(live)drawShape(live,.9);
- ctx.restore();
+ ctx.restore();ctx=mainCtx;
+ cacheShapes=S.shapes;cacheGrid=S.grid;cacheCam={...S.cam};
+}
+function render(){
+ const z=S.cam.z;
+ if(!cache||cacheShapes!==S.shapes||cacheGrid!==S.grid||cache.width!==Math.round(W*dpr)||cache.height!==Math.round(H*dpr))buildCache();
+ const c=cacheCam;
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ if(c.x!==S.cam.x||c.y!==S.cam.y||c.z!==z){
+  // reuse the stale bitmap while panning / zooming, re-render sharp once idle
+  const r=z/c.z;ctx.fillStyle="#030814";ctx.fillRect(0,0,W,H);
+  ctx.setTransform(dpr*r,0,0,dpr*r,dpr*((c.x-S.cam.x)*z+W/2-r*W/2),dpr*((c.y-S.cam.y)*z+H/2-r*H/2));
+  ctx.drawImage(cache,0,0,W,H);ctx.setTransform(dpr,0,0,dpr,0,0);
+  clearTimeout(camTimer);camTimer=setTimeout(()=>{buildCache();draw()},140);
+ }else ctx.drawImage(cache,0,0,W,H);
+ if(live){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawShape(live,.9);ctx.restore()}
 }
 function drawGrid(){
  const z=S.cam.z,x0=S.cam.x-W/2/z,x1=S.cam.x+W/2/z,y0=S.cam.y-H/2/z,y1=S.cam.y+H/2/z;
