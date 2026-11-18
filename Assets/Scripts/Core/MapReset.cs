@@ -82,8 +82,6 @@ namespace Arena
             ResetMysteryDoors();
             EventMark = null;
             ExpandOpen = false;
-            ExpandProposals.Clear();
-            ExpandVotes.Clear();
             botProposed = false;
             expWorld = null;
             LayoutAge = 0f;

@@ -235,13 +235,5 @@ static partial class Program
         // A save keeps the section.
         var save = RunSave.Parse(new RunSave { HasExpansion = true, Rooms = { g.Expanded[0] }, Seats = { new SeatSave { Name = "Host" } } }.ToText());
         Check(save != null && save.Rooms.Count == 1 && Expansion.IsPush(save.Rooms[0]) && save.Rooms[0].W == 300, "a saved run keeps its pushed sections");
-
-        // Team vote: off.
-        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.BuildVote, 1f);
-        Check(!g.CanPush && !cg.CanPush, "with Team vote building, pushing is off");
-        Run(ss, dt, 0.3f, null, stand);
-        cg.PushWall(grow);
-        Run(ss, dt, 0.5f, null, stand);
-        Check(g.Expanded[0].W == 300, "and a push is refused");
     }
 }
