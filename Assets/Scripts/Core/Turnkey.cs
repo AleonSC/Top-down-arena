@@ -33,7 +33,7 @@ namespace Arena
         public static bool IsTurnkeyKin(EnemyType t) => t == EnemyType.Turnkey || t == EnemyType.CellDoor || t == EnemyType.FloorMine || t == EnemyType.ShackleTrap;
 
         /// Planted things: they don't hold a wave open (Foes), don't bump into you, and go when the wave is cleared.
-        public static bool IsPlanted(EnemyType t) => t == EnemyType.SapperMine || t == EnemyType.FloorMine || t == EnemyType.ShackleTrap || t == EnemyType.CellDoor;
+        public static bool IsPlanted(EnemyType t) => t == EnemyType.FloorMine || t == EnemyType.ShackleTrap || t == EnemyType.CellDoor;
 
         /// ...but a door, unlike the traps, is a target with a health bar.
         public static bool IsTrap(EnemyType t) => IsPlanted(t) && t != EnemyType.CellDoor;

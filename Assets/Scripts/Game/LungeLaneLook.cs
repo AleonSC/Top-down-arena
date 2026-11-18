@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Arena
 {
     /// The shared lunge telegraph (Docs/EnemyReadability.md section 2, option A "Lane" of Docs/Mockups/lunge-telegraph.html):
-    /// the Lunger, Spike Block, Charger and Riot Shield all show the same thing while they wind up to lunge. A strip on the
+    /// the Lunger (and its kin) and the Riot Shield show the same thing while they wind up to lunge. A strip on the
     /// floor, a body wide and as long as the lunge reaches, in the Hunter red; it fills out from the enemy over the wind-up
-    /// and flashes white for the last 0.1 s. It replaces their four older looks (a blinking line, a halo, a flashing slab).
+    /// and flashes white for the last 0.1 s.
     /// The wind-up timer isn't sent, so each client times the fill from the moment it first sees the wind-up. Front end only.
     public partial class ArenaApp
     {
@@ -22,8 +22,6 @@ namespace Arena
             {
                 case EnemyType.Lunger: case EnemyType.Shiv: windUp = 0.6f; reach = 230f; winding = e.Phase == 1; return true;
                 case EnemyType.ScytheWraith: windUp = Game.ScytheMark; reach = Game.ScytheSpeed * Game.ScytheDash + 20f; winding = e.Phase == 1; return true;  // its mark (ReaperFaction.cs)
-                case EnemyType.SpikeBlock: windUp = Game.SpikeWindUp; reach = 175f; winding = e.Phase == 1; return true;
-                case EnemyType.Charger: windUp = 0.7f; reach = 260f; winding = e.Phase == 1; return true;
                 case EnemyType.RiotShield:
                     windUp = Game.RiotWindup; reach = Game.RiotLungeSpeed * Game.RiotLunge + 20f;
                     winding = Game.RiotState(e) == Game.RiotWinding;

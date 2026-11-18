@@ -18,9 +18,9 @@ namespace Arena
     /// The room behind a mystery door (host only, never sent; owner Nov 17): a small or medium square or rectangle, or a long hallway.
     public enum MysteryRoom : byte { Small, Medium, Hallway }
 
-    /// What is in it (host only, never sent): enemies (most square rooms), nothing (rarer), a shop, a Black Market or an Arms Dealer (small
+    /// What is in it (host only, never sent): enemies (most square rooms), nothing (rarer), a shop, a Black Market, an Arms Dealer or a Medic (small
     /// rooms only), or a chest at the far end (hallways).
-    public enum MysteryKind : byte { Enemies, Empty, Shop, Vendor, Chest, Arms }
+    public enum MysteryKind : byte { Enemies, Empty, Shop, Vendor, Chest, Arms, Medic }
 
     /// The rules of mystery doors.
     public static class Mystery
@@ -30,9 +30,9 @@ namespace Arena
 
         /// Room weights: small 35, medium 35, hallway 30.
         static readonly int[] RoomWeights = { 35, 35, 30 };
-        /// What a small room holds: enemies 50, empty 17, shop 11, Black Market 11, Arms Dealer 11. A medium room: enemies 78, empty 22. A hallway: a chest.
-        static readonly int[] SmallWeights = { 50, 17, 11, 11, 11 }, MediumWeights = { 78, 22 };
-        static readonly MysteryKind[] SmallKinds = { MysteryKind.Enemies, MysteryKind.Empty, MysteryKind.Shop, MysteryKind.Vendor, MysteryKind.Arms };
+        /// What a small room holds: enemies 50, empty 17, shop 11, Black Market 11, Arms Dealer 11, Medic 11. A medium room: enemies 78, empty 22. A hallway: a chest.
+        static readonly int[] SmallWeights = { 50, 17, 11, 11, 11, 11 }, MediumWeights = { 78, 22 };
+        static readonly MysteryKind[] SmallKinds = { MysteryKind.Enemies, MysteryKind.Empty, MysteryKind.Shop, MysteryKind.Vendor, MysteryKind.Arms, MysteryKind.Medic };
 
         static int Pick(DetRandom rg, int[] w)
         {
@@ -57,7 +57,7 @@ namespace Arena
             return k == MysteryKind.Enemies && !enemies ? MysteryKind.Empty : k;
         }
 
-        /// The grid pieces a room comes as: small one cell (a shop, Black Market or Arms Dealer always one cell), medium a domino, a corner or a
+        /// The grid pieces a room comes as: small one cell (a shop, Black Market, Arms Dealer or Medic always one cell), medium a domino, a corner or a
         /// square, T, S or L tetromino, the hallway a line of 3 or 4. Every piece shape can come from a door (owner Nov 18).
         public static GridPiece[] PiecesOf(MysteryRoom r) =>
             r == MysteryRoom.Small ? new[] { GridPiece.Mono }
@@ -409,6 +409,7 @@ namespace Arena
                 if (kind == MysteryKind.Shop) q.Kind = Arena.RoomKind.Shop;
                 else if (kind == MysteryKind.Vendor) q.Kind = Arena.RoomKind.Vendor;
                 else if (kind == MysteryKind.Arms) q.Kind = Arena.RoomKind.Arms;
+                else if (kind == MysteryKind.Medic) q.Kind = Arena.RoomKind.Medic;
                 rooms.Add(q);
             }
             var doorsBefore = new List<MysteryDoor>(MysteryDoors);

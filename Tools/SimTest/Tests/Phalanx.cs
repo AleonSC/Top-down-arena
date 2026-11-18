@@ -190,12 +190,12 @@ static partial class Program
         float spears = (1e6f - g1.Hp) / (Game.PhalanxSpear * z.DmgMult);
         Check(spears >= 3f && spears <= 5f, "it is speared for 15 (times your damage) about every 0.5 s");
         Check(Math.Abs(freePace - Game.PhalanxMarch / Game.PhalanxMarchTime) < 2f, "a light enemy doesn't slow the march");
-        var jug = Mob(EnemyType.Juggernaut, new V2(z.Pos.X + 30f, 450f), 1e6f);
+        var jug = Mob(EnemyType.Thunderhead, new V2(z.Pos.X + 30f, 450f), 1e6f);
         Tick(0.4f);
         x0 = z.Marched;
         Tick(1f);
         float heavyPace = z.Marched - x0;
-        Console.WriteLine("  phalanx: shoving a Juggernaut {0:0.0} px/s", heavyPace);
+        Console.WriteLine("  phalanx: shoving a Thunderhead {0:0.0} px/s", heavyPace);
         Check(Math.Abs(heavyPace - Game.PhalanxMarch / Game.PhalanxMarchTime * Game.PhalanxHeavyPace) < 2.5f && jug.Pos.X > z.Pos.X + Game.PhalanxFace + jug.Radius - 1f,
             "a Heavy enemy is shoved more slowly");
 

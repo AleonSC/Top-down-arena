@@ -73,7 +73,7 @@ class JuiceCheck {
     Check(shown == (int)Math.Round(full), "a one-shot kill shows its killing blow as a number (" + shown + ")");
 
     // A big enemy's death holds the picture: the next frame replays the last one exactly.
-    var j = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(900f, 500f), 0f, 0, false });
+    var j = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Thunderhead, new V2(900f, 500f), 0f, 0, false });
     j.SpawnT = 0f;
     tick(); frame(); tick(); frame();
     set("holdGap", 0f);

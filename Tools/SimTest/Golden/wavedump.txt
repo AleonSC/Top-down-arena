@@ -3,7 +3,7 @@ campaign w2: Thug*2 Guard | Guard Rioter*6
 campaign w3: Shiv RiotShield Rioter Thug Rioter Turnkey | RiotShield*2 Rioter*4
 campaign w4: Thug Guard SecurityGuard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
 campaign w5: SecurityGuard | SecurityGuard*3 Rioter*2 | RiotShield*4 Guard*5
-campaign w5 boss: Boss Grunt*2
+campaign w5 boss: Boss SecurityGuard*2
 campaign w6: Worker*3 | Soldier Worker*6 | RiotShield*2 Rioter*4
 campaign w7: RiotShield Thug CombShield Rioter*2 Soldier | Needler*3 Worker*2 | Soldier Worker*6
 campaign w8: Stinger TaserGuard GasGrenadier Shiv | Needler*3 Worker*2 | Needler*3 Worker*2 | CombShield*2 Worker*4
@@ -63,7 +63,7 @@ campaign w52: Rioter Mortar*3 Grunt Mortar Thug Mortar Rioter*2 RiotShield Morta
 campaign w53: Rioter Sniper Rioter RiotShield Grunt Rioter Grunt Turnkey RiotShield Sniper Rioter Sniper Shiv Turnkey | Swarmer*5 | RiotShield*2 Rioter*4 | RiotShield*2 Rioter*4 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv # Sniper Grunt Swarmer
 campaign w54: Rioter Guard Rioter RiotShield Rioter*3 RiotShield Rioter RiotShield Guard Rioter*2 | RiotShield*2 Rioter*4 | Guard Rioter*6 | Guard Rioter*6 | BileSpitter*6 Gulper # Shielder Grunt Lunger
 campaign w55: RiotShield Rioter Mortar Rioter Mortar Guard GasGrenadier Mortar Lunger | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2 | RiotShield*2 Rioter*4 | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2 # Lunger Swarmer Mortar
-campaign w55 boss: Boss Grunt*27
+campaign w55 boss: Boss SecurityGuard*27
 campaign w56: Grunt Shielder Worker*2 Grunt Swarmer*2 Soldier Swarmer RiotShield Soldier Swarmer Worker*3 Soldier | Soldier Worker*6 | Guard Rioter*6 | Soldier Worker*6 | RiotShield*2 Rioter*4 # Shielder Swarmer Grunt
 campaign w57: Sniper TaserGuard Worker Sniper TaserGuard Sniper CombShield TaserGuard Brute TaserGuard*7 | Needler*3 Worker*2 | Soldier Worker*6 | Needler*3 Worker*2 | Soldier Worker*6 # Brute Swarmer Sniper
 campaign w58: Soldier Worker Soldier*2 Worker Soldier Worker*3 Soldier*2 Worker*4 | Soldier Worker*6 | Soldier Worker*6 | Second*3 Fencer*2 Second*3 Fencer*2 Harlequin # Shielder Sniper Brute
@@ -80,7 +80,7 @@ quick w7: Rioter*4 | Guard Rioter*6 | Guard Rioter*6
 quick w8: Thug Rioter TaserGuard Guard RiotShield SecurityGuard Guard RiotShield Rioter RiotShield | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2
 quick w9: Rioter*2 GasGrenadier Thug*2 Turnkey | Thug Rioter*3 Shiv | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
 quick w10: Guard RiotShield Shiv RiotShield Thug Rioter RiotShield Rioter GasGrenadier | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
-quick w10 boss: Boss Grunt*5
+quick w10 boss: Boss SecurityGuard*5
 quick w11: Worker*2 Soldier*2 Worker Soldier Worker Soldier*2 Worker*3 | Soldier Worker*6 | Soldier Worker*6
 quick w12: Soldier Worker*5 Soldier Worker*3 Soldier Worker*3 | Soldier Worker*6 | Soldier Worker*6
 quick w13: CombShield Soldier*2 Worker Soldier*2 | Soldier Worker*6 | Soldier Worker*6 | Needler*3 Worker*2 | Needler*3 Worker*2 # Swarmer Shielder
@@ -106,13 +106,13 @@ hunt w6: Guard | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv | SecurityGuard*3
 hunt w7: Shiv SecurityGuard TaserGuard | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv
 hunt w8: Guard Rioter Turnkey Rioter*2 TaserGuard Rioter | Guard Rioter*6 | RiotShield*2 Rioter*4
 hunt w9: Guard GasGrenadier RiotShield | Thug Rioter*3 Shiv | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2
-hunt w10 boss: Boss Grunt*5
+hunt w10 boss: Boss SecurityGuard*5
 campaign100 w1: Rioter*12
 campaign100 w2: Rioter*4 Turnkey Thug*2 | Guard*2 | Guard*2
 campaign100 w3: SecurityGuard*2 Rioter*4 Guard | Thug Rioter*3 Shiv
 campaign100 w4: RiotShield GasGrenadier*2 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
 campaign100 w5: TaserGuard Guard Turnkey TaserGuard | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
-campaign100 w5 boss: Boss Grunt*2
+campaign100 w5 boss: Boss SecurityGuard*2
 campaign100 w6: Worker Shiv Worker*2 Shiv Thug Worker*4 Guard Worker*2 Shiv SecurityGuard Worker
 campaign100 w7: Worker*2 Soldier Guard Bumble*2 | Worker*5 | Soldier*2 | Worker*5
 campaign100 w8: Worker Bumble Needler Bumble Worker | Needler*3 Worker*2 | Bumble Worker*3 Hornet | Bumble Worker*3 Hornet
@@ -172,7 +172,7 @@ campaign100leg2 w2: Rioter*4 SecurityGuard*2 | Thug Rioter*3 Shiv
 campaign100leg2 w3: Rioter*2 SecurityGuard Thug Guard RiotShield*2 | SecurityGuard*3 Rioter*2
 campaign100leg2 w4: Rioter Guard Rioter GasGrenadier Rioter*2 TaserGuard*2 | Thug Rioter*3 Shiv
 campaign100leg2 w5: RiotShield GasGrenadier SecurityGuard Shiv Thug Guard | RiotShield*4 Guard*5 | Guard Rioter*6 Guard Rioter*6 Thug
-campaign100leg2 w5 boss: Boss Grunt*2
+campaign100leg2 w5 boss: Boss SecurityGuard*2
 campaign100leg2 w6: Shiv Worker*6 Rioter Thug Worker*5 Rioter Soldier*2
 campaign100leg2 w7: Bumble Soldier Bumble Worker*3 Bumble Needler*2 | Soldier*2 | Bumble Worker*3 Hornet | Soldier*2
 campaign100leg2 w8: Soldier*2 Bumble CombShield*2 | Bumble Worker*3 Hornet | Needler*3 Worker*2 | Bumble Worker*3 Hornet
@@ -208,7 +208,7 @@ zombie w2: Shambler*16
 zombie w3: Runner*3 Shambler Runner*3 Shambler*5 Runner*6 Shambler*2
 zombie w4: Shambler*2 Runner*3 Shambler Runner*6 Shambler*11
 zombie w5: Shambler*2 Runner*6 Shambler*7 Runner*3 Shambler*9
-zombie w5 boss: Boss Grunt*2
+zombie w5 boss: Boss SecurityGuard*2
 zombie w6: Shambler*2 Spitter Shambler Spitter Shambler Spitter Shambler Spitter Shambler*6 Runner*3 Shambler*6 Runner*3 Shambler*3
 zombie w7: Shambler*2 Spitter Shambler*2 Runner*3 Spitter*2 Shambler*3 Spitter Shambler*2 Runner*3 Shambler*6 Runner*11
 zombie w8: Shambler*2 Spitter Bloater Spitter Shambler Runner*3 Shambler*2 Bloater Shambler*3 Runner*3 Bloater Spitter Bloater Spitter Shambler*2 Bloater Shambler Bloater Runner*3 Shambler*10 Runner
@@ -244,7 +244,7 @@ hard w2: Thug Guard Rioter Thug Rioter | SecurityGuard*3 Rioter*2
 hard w3: Thug TaserGuard RiotShield Turnkey SecurityGuard Thug Turnkey | Thug Rioter*3 Shiv
 hard w4: Rioter*2 Shiv SecurityGuard GasGrenadier Thug | Guard Rioter*6
 hard w5:  | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
-hard w5 boss: Boss Grunt*2
+hard w5 boss: Boss SecurityGuard*2
 hard w6: SecurityGuard Soldier*3 | Soldier Worker*6 | Thug Rioter*3 Shiv
 hard w7: RiotShield Rioter Worker Rioter Guard Worker | Needler*3 Worker*2 | Soldier Worker*6
 hard w8: TaserGuard Rioter*2 Stinger HoneyLobber Stinger Needler Stinger | Needler*3 Worker*2 | Soldier Worker*6

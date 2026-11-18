@@ -129,7 +129,7 @@ static partial class Program
         }
     }
 
-    /// The Phantom's blink and the Mortar's bomb mark where they land (a Target ring) before they burst.
+    /// The Shade's blink and the Mortar's bomb mark where they land (a Target ring) before they burst.
     static void LandingMarksTest()
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -139,27 +139,21 @@ static partial class Program
         var g = new Session().Game;
         g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear();
         var target = new V2(600f, 400f);
-        var ph = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Phantom, new V2(200f, 200f), 0f, 0, false });
+        var ph = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shade, new V2(200f, 200f), 0f, 0, false });
         ph.Spawning = false; ph.PhaseT = 0f;
         special.Invoke(g, new object[] { ph, target, 0.016f });
         bool marked = g.Effects.Exists(fx => fx.Kind == FxKind.Target && fx.Pos.DistanceTo(ph.Waypoint) < 1f);
-        Check(ph.Phase == 1 && marked && g.Bullets.Count == 0, "a Phantom marks where it will blink and fires nothing yet");
+        Check(ph.Phase == 1 && marked && g.Bullets.Count == 0, "a Shade marks where it will blink and fires nothing yet");
         V2 before = ph.Pos;
-        special.Invoke(g, new object[] { ph, target, Game.PhantomWarn * 0.5f });
+        special.Invoke(g, new object[] { ph, target, Game.ShadeWarn * 0.5f });
         Check(ph.Pos.DistanceTo(before) < 1f && g.Bullets.Count == 0, "...and waits out the warning");
-        special.Invoke(g, new object[] { ph, target, Game.PhantomWarn });
+        special.Invoke(g, new object[] { ph, target, Game.ShadeWarn });
         Check(ph.Phase == 0 && ph.Pos.DistanceTo(ph.Waypoint) < 1f && g.Bullets.Count == 8, "then blinks to the marked spot and fires its ring of 8");
         g.Effects.Clear(); g.Bullets.Clear();
         var mo = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Mortar, new V2(200f, 200f), 0f, 0, false });
         mo.Spawning = false; mo.FireT = 0f;
         fire.Invoke(g, new object[] { mo, target });
         Check(g.Effects.Exists(fx => fx.Kind == FxKind.Target), "a Mortar's bomb comes with a landing ring");
-        g.Effects.Clear(); g.Bullets.Clear();
-        var ch = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Charger, new V2(200f, 400f), 0f, 0, false });
-        ch.Spawning = false; ch.FireT = 0f;
-        fire.Invoke(g, new object[] { ch, new V2(900f, 400f) });
-        V2 end = new V2(200f + Game.ChargerDashSpeed * Game.ChargerDashTime, 400f);
-        Check(ch.Phase == 1 && g.Effects.Exists(fx => fx.Kind == FxKind.Target && fx.Pos.DistanceTo(end) < 2f), "a Charger marks where its dash ends (and its ring will burst) from the start of the wind-up");
     }
 
     /// The new-enemy chips: which types a wave brings, and a note for each.
@@ -167,8 +161,8 @@ static partial class Program
     {
         Check(Game.NewTypesAt(1).Contains(EnemyType.Grunt) && Game.NewTypesAt(1).Contains(EnemyType.Swarmer), "wave 1 brings the Grunt and the Swarmer");
         Check(Game.NewTypesAt(9).SequenceEqual(new[] { EnemyType.Shielder }), "wave 9 brings the Shielder only");
-        Check(Enumerable.Range(1, 40).All(n => !Game.NewTypesAt(n).Any(Game.IsRetired)), "no wave brings a retired enemy as new (BasicFaction.cs)");
-        Check(Game.NewTypesAt(5).Contains(EnemyType.Lunger) && !Game.NewTypesAt(5).Contains(EnemyType.SpikeBlock), "wave 5 brings the Lunger (the melee grunts are retired)");
+        Check(Enumerable.Range(1, 40).All(n => Game.NewTypesAt(n).All(BasicFaction.Types.Contains)), "every type a wave brings as new is a basic one (BasicFaction.cs)");
+        Check(Game.NewTypesAt(5).Contains(EnemyType.Lunger), "wave 5 brings the Lunger");
         var missing = new List<EnemyType>();
         for (int n = 1; n <= 40; n++)
             foreach (var t in Game.NewTypesAt(n))
@@ -189,7 +183,7 @@ static partial class Program
         var build = typeof(Game).GetMethod("BuildWave", flags);
         var queueF = typeof(Game).GetField("spawnQueue", flags);
         var squadF = typeof(Game).GetField("squadQueue", flags);
-        var support = new HashSet<EnemyType> { EnemyType.Medic, EnemyType.Warder, EnemyType.Nest };
+        var support = new HashSet<EnemyType>();  // (no basic enemy supports the others now: the Medic, Warder and Nest are gone)
         var g = new Session().Game;
         Console.WriteLine("  wave  enemies  shoot  melee  support  heads  kinds   most common   (heads: the wave's headliners, from wave 13)");
         foreach (int n in new[] { 1, 3, 6, 9, 12, 14, 17, 19, 22, 24, 27, 29, 33, 37, 39 })
@@ -207,7 +201,7 @@ static partial class Program
                     total++;
                     kinds[t] = kinds.TryGetValue(t, out int k) ? k + 1 : 1;
                     if (support.Contains(t)) sup++;
-                    else if (Defs.Get(t).Melee) melee++;  // contact, charges, lunges, and the enemies that don't shoot (Hookman, Sapper)
+                    else if (Defs.Get(t).Melee) melee++;  // contact, charges, lunges, and the enemies that don't shoot (the Hook Thrower)
                     else shoot++;
                 }
             }

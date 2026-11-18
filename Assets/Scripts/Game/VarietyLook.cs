@@ -2,89 +2,31 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the second half's new enemies and elite traits look (Variety.cs): the Beam Sentry's aim line and beam,
-    /// the Reaver's cone and its opening, the Warder's tethers, bubbles, trait markers over elites, and the
-    /// Scorcher's embers. Built from the mockup in Docs/Mockups/enemy-variety.html.
+    /// How elite traits look (Variety.cs): bubbles, trait markers over elites, a Commander's reach, and the floor pass
+    /// that calls the factions' floor drawing. Built from the mockup in Docs/Mockups/enemy-variety.html.
     public partial class ArenaApp
     {
-        static readonly Rgba SentryCyan = new Rgba(0.44f, 0.89f, 1f);
         static readonly Rgba BubbleBlue = new Rgba(0.56f, 0.82f, 1f);
-        static readonly Rgba WardViolet = new Rgba(0.71f, 0.61f, 1f);
-        static readonly Rgba PauseTeal = new Rgba(0.45f, 0.95f, 0.85f);
-        static readonly Rgba LeaderPink = new Rgba(1f, 0.55f, 0.85f);
-        static readonly Rgba StitchGold = new Rgba(1f, 0.82f, 0.45f);
-        readonly System.Collections.Generic.List<Game.StitchThread> drawThreads = new System.Collections.Generic.List<Game.StitchThread>();
 
-        /// On the floor, under the enemies: beams, cones and tethers.
+        /// On the floor, under the enemies: the factions' beams and lines, aim lines, a Commander's reach.
         void DrawVarietyFloor(float t)
         {
-            // Stitcher threads between the orbs: a glow, a bright core, and stitches running along it.
-            Game.StitchLinks(game.Bullets.Values, drawThreads);
-            foreach (var th in drawThreads)
-            {
-                Line(th.A, th.B, 10f, StitchGold.WithAlpha(0.18f));
-                Line(th.A, th.B, Game.StitchWidth * 0.5f, new Rgba(1f, 0.95f, 0.8f, 0.95f));
-                V2 d = th.B - th.A;
-                float len = d.Length;
-                if (len < 1f)
-                    continue;
-                V2 u = d / len, side = u.Orthogonal();
-                float off = (t * 40f) % 18f;
-                for (float s = off; s < len; s += 18f)
-                {
-                    V2 at = th.A + u * s;
-                    Line(at - side * 4f - u * 3f, at + side * 4f + u * 3f, 1.5f, StitchGold.WithAlpha(0.8f));
-                }
-            }
             DrawAccretionBands(t);  // the Singularity's Accretion rings (InfallLook.cs)
             foreach (var e in game.Enemies.Values)
             {
                 if (game.IsSpawning(e))
                     continue;
                 V2 pos = e.Disp;
-                if (e.Type == EnemyType.BeamSentry && (e.Phase == 2 || e.Phase == 3))
-                {
-                    V2 tip = pos + V2.FromAngle(e.Facing) * Game.SentryBeamLen;
-                    if (e.Phase == 2)
-                        DashedLine(pos, tip, 2f, SentryCyan.WithAlpha(0.35f + 0.3f * Mathf.Sin(t * 14f)));
-                    else
-                    {
-                        Line(pos, tip, 32f, SentryCyan.WithAlpha(0.28f));
-                        Line(pos, tip, Game.SentryBeamWidth * 0.6f, new Rgba(0.87f, 0.97f, 1f));
-                    }
-                }
                 DrawInfallFloor(e, pos, t);  // a Pulsar's beams (InfallLook.cs)
                 DrawPenumbralFloor(e, pos, t);   // a Heliograph's line (PenumbralLook.cs)
                 DrawSquallFloor(e, pos, t);  // a Pylon pair's line, a Lineman's mark (SquallLook.cs)
-                if (e.Type == EnemyType.Warder)
-                    DrawWarderCharge(e, pos);  // WarderLook.cs
                 DrawShooterAim(e, pos, t);  // a regular shooter's aim line while it winds up (ShooterAimLook.cs)
-                if (e.Type == EnemyType.Leader && e.Phase == 1)  // its aim line, pointing where it thinks you'll be
-                {
-                    V2 tip = pos + V2.FromAngle(e.Facing) * 520f;
-                    Line(pos, tip, 6f, LeaderPink.WithAlpha(0.2f));
-                    DashedLine(pos, tip, 2f, LeaderPink.WithAlpha(0.5f + 0.35f * Mathf.Sin(t * 22f)));
-                }
-                if (e.Type == EnemyType.Reaver && e.Phase == 1)  // the rake's cone, filling as it winds up
-                {
-                    float reach = Game.ReaverSwipeR + e.Radius;
-                    for (int k = 0; k < 6; k++)
-                        Arc(pos, reach * (k + 0.5f) / 6f, reach / 6f, e.Def.Color.WithAlpha(0.1f + 0.05f * k), 10, e.Facing - Game.ReaverCone, Game.ReaverCone * 2f);
-                    Line(pos, pos + V2.FromAngle(e.Facing - Game.ReaverCone) * reach, 2f, e.Def.Color.WithAlpha(0.8f));
-                    Line(pos, pos + V2.FromAngle(e.Facing + Game.ReaverCone) * reach, 2f, e.Def.Color.WithAlpha(0.8f));
-                }
-                if (e.WardId != 0 && e.BubbleFrac > 0f)  // a tether back to the Warder holding its bubble up
-                {
-                    Enemy w;
-                    if (game.Enemies.TryGetValue(e.WardId, out w))
-                        DrawWardTether(w.Disp, pos, t);  // WarderLook.cs
-                }
                 if (Game.HasTrait(e, EliteTrait.Commander))  // its reach, faint
                     Arc(pos, Game.CommandRange, 1.5f, new Rgba(1f, 0.42f, 0.6f, 0.18f), 48);
             }
         }
 
-        /// Over an enemy's body: a bubble, the Reaver's opening, a planted Beam Sentry's legs, and trait markers.
+        /// Over an enemy's body: the wind-up glow, a bubble, a Core Carrier's halo, and trait markers.
         void DrawVarietyOnEnemy(Enemy e, V2 pos, float r, float t)
         {
             if (e.Winding && !Game.IsSecurity(e.Type) && Game.SharesWith(e.Type) != EnemyType.GasGrenadier)  // about to fire: a white-hot core and a ring closing in on it (Readability.cs; the Security Guard shows its red lane instead)
@@ -94,42 +36,9 @@ namespace Arena
                 Arc(pos, r + 5f + 5f * (1f - k), 2.5f, e.Def.Color.Mix(Rgba.White, 0.6f).WithAlpha(0.9f), 22);
             }
             if (e.BubbleFrac > 0f)
-                DrawBubble(e, pos, r, t);  // twelve cells (WarderLook.cs)
+                DrawBubble(e, pos, r, t);  // twelve cells (BubbleLook.cs)
             else if (e.CellsSeen != 0 || e.BubbleBornT != -98f)
                 NoBubble(e);
-            if (Game.ReaverIsOpen(e))
-                Arc(pos, r + 8f, 3f, BubbleBlue.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 20f)), 24);
-            if (e.Type == EnemyType.Pauser)  // an hourglass
-            {
-                float h = r * 0.5f, w = r * 0.38f;
-                var c = new Rgba(0.08f, 0.2f, 0.2f, 0.9f);
-                SetColor(c);
-                Tri(pos + new V2(-w, -h), pos + new V2(w, -h), pos);
-                Tri(pos + new V2(-w, h), pos + new V2(w, h), pos);
-                SetColor(PauseTeal.Mix(Rgba.White, 0.6f));
-                float sand = 0.5f + 0.5f * Mathf.Sin(t * 2f + e.Id);
-                Tri(pos + new V2(-w * sand, h), pos + new V2(w * sand, h), pos + new V2(0f, h * (1f - sand)));
-            }
-            if (e.Type == EnemyType.Leader)  // a crosshair, red while it's aiming
-            {
-                var c = e.Phase == 1 ? new Rgba(1f, 0.25f, 0.4f) : new Rgba(0.25f, 0.05f, 0.18f, 0.9f);
-                Arc(pos, r * 0.42f, 1.6f, c, 14);
-                Line(pos + new V2(-r * 0.62f, 0f), pos + new V2(r * 0.62f, 0f), 1.4f, c);
-                Line(pos + new V2(0f, -r * 0.62f), pos + new V2(0f, r * 0.62f), 1.4f, c);
-            }
-            if (e.Type == EnemyType.Stitcher)  // a needle through it, its thread trailing
-            {
-                V2 d = V2.FromAngle(e.Facing + 0.8f);
-                Line(pos - d * r * 0.7f, pos + d * r * 0.7f, 2f, new Rgba(0.95f, 0.95f, 1f));
-                Arc(pos - d * r * 0.55f, 3f, 1.2f, new Rgba(0.2f, 0.12f, 0.02f), 8);
-                Arc(pos + d.Orthogonal() * 3f, r * 0.45f, 1.4f, new Rgba(0.35f, 0.2f, 0.02f, 0.9f), 12, e.Facing + t * 2f, 3.5f);
-            }
-            if (e.Type == EnemyType.BeamSentry && e.Phase >= 1)
-                for (int k = 0; k < 3; k++)
-                {
-                    V2 d = V2.FromAngle(MathX.Tau * k / 3f + 0.5f);
-                    Line(pos + d * r, pos + d * (r + 12f), 2f, SentryCyan.WithAlpha(0.6f));
-                }
             if (Game.HasTrait(e, EliteTrait.CoreCarrier))  // a Core Carrier: a pulsing gold halo with a few sparks (Docs/Variants.md)
             {
                 Circle(pos, r + 11f + 2.5f * Mathf.Sin(t * 6f + e.Id), new Rgba(1f, 0.82f, 0.25f, 0.3f), 20);
@@ -201,51 +110,6 @@ namespace Arena
                         Line(at, at + V2.FromAngle(MathX.Tau * k / 5f - MathX.Pi / 2f) * 5.5f, 2f, new Rgba(1f, 0.42f, 0.6f));
                     break;
             }
-        }
-
-        /// A Scorcher's embers: a small smouldering patch that dims as it burns out.
-        void DrawEmbers(PathPatch pt, float r, float t)
-        {
-            float fade = Mathf.Clamp01((pt.Life - pt.Age) / 0.8f), on = pt.Active ? 1f : 0.4f;
-            Circle(pt.Pos, r, new Rgba(0.85f, 0.3f, 0.06f, 0.3f * fade * on), 16);
-            Circle(pt.Pos, r * (0.55f + 0.08f * Mathf.Sin(t * 10f + pt.Id)), new Rgba(1f, 0.62f, 0.2f, 0.32f * fade * on), 14);
-            for (int k = 0; k < 2; k++)
-            {
-                float f = MathX.Fmod(t * 1.1f + k * 0.5f + pt.Id * 0.21f, 1f);
-                Circle(pt.Pos + new V2((k - 0.5f) * r * 0.7f, -f * r * 1.2f), 1.8f * (1f - f) + 0.5f, new Rgba(1f, 0.8f, 0.35f, 0.8f * (1f - f) * fade), 6);
-            }
-        }
-
-        /// The new shooting patterns' bullets: a Pauser's shot (brightening and ringed while it hangs, the ring
-        /// closing as the rush nears) and a Stitcher's orb (a gold bead with a turning cross).
-        void DrawPatternShot(Bullet b, Rgba c, float t)
-        {
-            if (b.Kind == Defs.PauseShot)
-            {
-                float age = b.Life0 - b.Life;
-                if (age >= Game.PauseFly)
-                {
-                    float k = Mathf.Clamp01((age - Game.PauseFly) / Game.PauseHold);
-                    Circle(b.Pos, b.Radius + 6f, c.WithAlpha(0.25f + 0.25f * k), 12);
-                    Arc(b.Pos, b.Radius + 4f + 12f * (1f - k), 1.6f, Rgba.White.WithAlpha(0.4f + 0.5f * k), 16);
-                    Circle(b.Pos, b.Radius, c.Mix(Rgba.White, 0.3f + 0.5f * k), 12);
-                    Circle(b.Pos, b.Radius * 0.5f, Rgba.White, 8);
-                    return;
-                }
-                Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
-                Circle(b.Pos, b.Radius, c, 12);
-                Circle(b.Pos, b.Radius * 0.45f, new Rgba(1f, 1f, 1f, 0.9f), 8);
-                return;
-            }
-            Circle(b.Pos, b.Radius + 4f, c.WithAlpha(0.25f), 14);
-            Circle(b.Pos, b.Radius, c, 14);
-            float a = t * 3f + b.Id;
-            for (int k = 0; k < 2; k++)
-            {
-                V2 d = V2.FromAngle(a + k * MathX.Pi / 2f) * (b.Radius * 0.8f);
-                Line(b.Pos - d, b.Pos + d, 1.6f, new Rgba(0.4f, 0.25f, 0.05f));
-            }
-            Circle(b.Pos, b.Radius * 0.3f, Rgba.White, 6);
         }
 
         /// Enemy shots by what they'll do (Readability.cs): an aimed shot is a dart pointing where it flies, a curving

@@ -114,7 +114,6 @@ namespace Arena
             LobBrains(t);     // step 5 (LobBrains.cs)
             ShootBrains(t);   // step 6 (ShootBrains.cs)
             BasicBrains(t);   // step 8a (BasicBrains.cs)
-            VarietyBrains(t); // step 8b (VarietyBrains.cs)
             NonShooterBrains(t);  // step 8c (NonShooters.cs)
             TurnkeyBrains(t);     // the Warden faction's Turnkey, its doors and traps (Turnkey.cs)
             ReaperCultBrains(t);  // step 8d (ReaperFaction.cs)

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). Floor rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link, Gate, Builder, Arms }  // (Builder: a Builder Shop card's room, BuilderShop.cs; Arms: the Arms Dealer, Docs/ArmsDealer.md; Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
+    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link, Gate, Builder, Arms, Medic }  // (Medic: the Medic, heals and revive tokens, Medic.cs; Builder: a Builder Shop card's room, BuilderShop.cs; Arms: the Arms Dealer, Docs/ArmsDealer.md; Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
 
     /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
     public struct WallCut : IEquatable<WallCut>
@@ -551,7 +551,7 @@ namespace Arena
             V2 mouth = p + inn * WorldPortal.MouthIn, along = inn.Orthogonal();
             foreach (var c in w.Cover)
                 if (Layouts.Inside(c, mouth, 50f)) { why = "An obstacle is in the way"; return false; }
-            foreach (var c in w.WallsFor(false))  // (a room's side walls, standing out from the portal's wall)
+            foreach (var c in w.Walls())  // (a room's side walls, standing out from the portal's wall)
                 for (int k = -1; k <= 1; k++)
                     if (Layouts.Inside(c, p + inn * 36f + along * (k * (LinkHalf - 20f)), 4f)) { why = "A wall is in the way"; return false; }
             foreach (var d in w.Doors)
@@ -634,7 +634,7 @@ namespace Arena
             if (OpenArea(w, p, LinkEdge) < 0) { why = "Must be inside a connected room, off its walls"; return false; }
             foreach (var c in w.Cover)
                 if (Layouts.Inside(c, p, 50f)) { why = "An obstacle is in the way"; return false; }
-            foreach (var c in w.WallsFor(false))
+            foreach (var c in w.Walls())
                 if (Layouts.Inside(c, p, 50f)) { why = "A wall is in the way"; return false; }
             foreach (var d in w.Doors)
                 if (d.Pos.CloserThan(p, LinkDoor)) { why = "Too near a door"; return false; }
@@ -1139,7 +1139,7 @@ namespace Arena
                     outline[group[a]] = true;
                 areas[a] = new RoomArea
                 {
-                    Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.Vendor ? "Black Market" : FactionMinis.Name((EnemyType)rooms[a - 1].Mini)) : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Vendor ? " (Black Market)" : kind == RoomKind.Arms ? " (Arms Dealer)" : kind == RoomKind.Builder ? " (builder shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
+                    Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.Vendor ? "Black Market" : FactionMinis.Name((EnemyType)rooms[a - 1].Mini)) : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Vendor ? " (Black Market)" : kind == RoomKind.Arms ? " (Arms Dealer)" : kind == RoomKind.Medic ? " (Medic)" : kind == RoomKind.Builder ? " (builder shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0,
                     Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating, Surprise = a == 0 ? (byte)0 : rooms[a - 1].Surprise,
                 };
@@ -1293,8 +1293,8 @@ namespace Arena
             {
                 Name = "Expanding",
                 Areas = areas, Doors = doors.ToArray(), Portals = portals, Spans = spans.ToArray(), Cover = cover.ToArray(), NodeSpots = spots,
-                Min = new V2(minX, minY), VaultMin = new V2(minX, minY), Max = new V2(maxX, maxY),
-                Hub = 0, Vault = -1,
+                Min = new V2(minX, minY), Max = new V2(maxX, maxY),
+                Hub = 0,
             };
         }
     }

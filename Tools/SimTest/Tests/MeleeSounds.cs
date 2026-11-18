@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// The melee rushers' sounds (MeleeSounds.cs): quieter with distance, one whirr for Buzzsaw contact, distinct deaths that merge when several of a kind fall together.
+// The melee rushers' sounds (MeleeSounds.cs): quieter with distance, distinct deaths that merge when several of a kind fall together.
 static partial class Program
 {
     static void MeleeSoundsTest(float dt)
@@ -47,18 +47,9 @@ static partial class Program
         Check(heard(Sfx.LungerLand).Count == 2, "the landing is heard");
         clear();
 
-        // Spike Block: shake, lunge, rest.
-        var sb = put(EnemyType.SpikeBlock, p.Pos + new V2(200f, 0f));
-        tick(dt); g.Sounds.Clear();
-        sb.Phase = 1; tick(dt);
-        sb.Phase = 2; tick(dt);
-        sb.Phase = 3; tick(dt);
-        Check(heard(Sfx.SpikeBlockShake).Count == 1 && heard(Sfx.SpikeBlockLunge).Count == 1 && heard(Sfx.SpikeBlockRest).Count == 1, "a Spike Block's shake, lunge and rest each sound once");
-        clear();
-
         // Footsteps: every walker has a step sound; a crowd makes one a frame, at the nearest one's volume; standing still is silent.
         {
-            var walkers = new Dictionary<EnemyType, Sfx> { { EnemyType.Swarmer, Sfx.SwarmerPatter }, { EnemyType.Spiker, Sfx.SpikerSkitter }, { EnemyType.Brute, Sfx.BruteStep }, { EnemyType.Lunger, Sfx.LungerPad }, { EnemyType.SpikeBlock, Sfx.SpikeBlockRock } };
+            var walkers = new Dictionary<EnemyType, Sfx> { { EnemyType.Swarmer, Sfx.SwarmerPatter }, { EnemyType.Brute, Sfx.BruteStep }, { EnemyType.Lunger, Sfx.LungerPad } };
             foreach (var w in walkers)
             {
                 var a = put(w.Key, p.Pos + new V2(200f, 0f));
@@ -73,32 +64,22 @@ static partial class Program
                 Check(steps.Count == 1 && steps[0].Quiet == 0f, w.Key + ": three walking make one step, at the nearest one's volume (" + steps.Count + ")");
                 clear();
             }
+            // Let the last walkers' deaths in clear() pass, so the kinds below get their own (the sound clock only runs
+            // while something is on the field).
+            var idle = put(EnemyType.Grunt, new V2(1500f, 800f));
+            tick(1f); g.Enemies.Remove(idle.Id); g.Sounds.Clear();
         }
-
-        // Buzzsaw: no tick per touch. One whirr that rises while it touches you and fades after.
-        var saw = put(EnemyType.Buzzsaw, p.Pos + new V2(300f, 0f));
-        tick(dt);
-        Check(g.SawWhirrLevel == 0f, "a Buzzsaw that isn't touching anyone is silent");
-        saw.Pos = p.Pos;
-        for (int i = 0; i < 30; i++) tick(dt);
-        Check(g.SawWhirrLevel > 0.95f, "touching you, its whirr is up (" + g.SawWhirrLevel.ToString("0.00") + ")");
-        Check(g.Sounds.All(c => c.Sfx.ToString().StartsWith("Saw") == false), "no tick cue for each touch");
-        saw.Pos = p.Pos + new V2(300f, 0f);
-        for (int i = 0; i < 90; i++) tick(dt);
-        Check(g.SawWhirrLevel == 0f, "the whirr fades out when it lets go");
-        clear();
 
         // Deaths: each kind has its own, and several of a kind falling together make one.
         var pack = new List<Enemy>();
         for (int i = 0; i < 4; i++) pack.Add(put(EnemyType.Swarmer, p.Pos + new V2(200f + i * 10f, 0f)));
         var brute = put(EnemyType.Brute, p.Pos + new V2(0f, 250f));
-        var spiker = put(EnemyType.Spiker, p.Pos + new V2(0f, 300f));
         var lunger = put(EnemyType.Lunger, p.Pos + new V2(0f, 350f));
         tick(dt); g.Sounds.Clear();
-        foreach (var e in pack.Concat(new[] { brute, spiker, lunger })) g.Enemies.Remove(e.Id);
+        foreach (var e in pack.Concat(new[] { brute, lunger })) g.Enemies.Remove(e.Id);
         tick(dt);
         Check(heard(Sfx.SwarmerDie).Count == 1, "four Swarmers dying together make one sound (" + heard(Sfx.SwarmerDie).Count + ")");
-        Check(heard(Sfx.BruteDie).Count == 1 && heard(Sfx.SpikerDie).Count == 1 && heard(Sfx.LungerDie).Count == 1, "Brute, Spiker and Lunger each have their own death");
+        Check(heard(Sfx.BruteDie).Count == 1 && heard(Sfx.LungerDie).Count == 1, "Brute and Lunger each have their own death");
         // A second one a moment later is still the same moment; a third a second later is its own.
         var again = put(EnemyType.Swarmer, p.Pos + new V2(200f, 0f)); tick(dt); g.Sounds.Clear();
         g.Enemies.Remove(again.Id); tick(0.05f);
@@ -109,13 +90,13 @@ static partial class Program
         clear();
 
         // The merged death is as loud as the nearest of them.
-        var nearPop = put(EnemyType.Spiker, p.Pos + new V2(200f, 0f));
-        var farPop = put(EnemyType.Spiker, new V2(1500f, 800f));
+        var nearPop = put(EnemyType.Brute, p.Pos + new V2(200f, 0f));
+        var farPop = put(EnemyType.Brute, new V2(1500f, 800f));
         tick(1f); g.Sounds.Clear();
         g.Enemies.Remove(nearPop.Id); g.Enemies.Remove(farPop.Id);
         tick(1f);
-        var pops = heard(Sfx.SpikerDie);
-        Check(pops.Count == 1 && pops[0].Quiet == 0f, "a near and a far Spiker dying together sound at the near one's volume");
+        var pops = heard(Sfx.BruteDie);
+        Check(pops.Count == 1 && pops[0].Quiet == 0f, "a near and a far Brute dying together sound at the near one's volume");
 
         clear();
         s[0].Leave(""); s[1].Leave("");

@@ -31,8 +31,8 @@ static partial class Shot {
       // EMOTEBAR=1: the emote bar open (rank 60); EMOTE=n[,age]: emote number n showing over player 1, that many seconds in (EmoteBar.cs)
       if (Environment.GetEnvironmentVariable("EMOTEBAR") != null) { Profile.Current.Xp = Rank.XpAt(60); set("emoteBarOpen", true); set("emoteBarK", 1f); }
       if (Environment.GetEnvironmentVariable("EMOTE") != null) { var ep = Environment.GetEnvironmentVariable("EMOTE").Split(','); host.Emotes[1] = new Session.EmoteShow { Index = byte.Parse(ep[0]), At = Session.Clock - (ep.Length > 1 ? float.Parse(ep[1]) : 0.8f) }; }
-      bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null || Environment.GetEnvironmentVariable("ROOMS") != null || Environment.GetEnvironmentVariable("LAG") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null;  // (the off-screen markers and the lag chart's lines draw with GL on the HUD; OffscreenMarkers.cs, LagChartUi.cs)
-      // MAPVIEW=<from>,<to>,<t>: the Map key's switch (0 minimap, 1 full map, 2 off) that far through (MapView.cs); use with ROOMS or EXPANDMAP
+      bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null || Environment.GetEnvironmentVariable("LAG") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null;  // (the off-screen markers and the lag chart's lines draw with GL on the HUD; OffscreenMarkers.cs, LagChartUi.cs)
+      // MAPVIEW=<from>,<to>,<t>: the Map key's switch (0 minimap, 1 full map, 2 off) that far through (MapView.cs); use with EXPANDMAP
       // MAPCYCLE=<s>: that far through a scripted run of the Map key (minimap, M, full map, M, off, M, minimap), for clip.sh MAPCYCLE=0:3.6:0.05
       if (Environment.GetEnvironmentVariable("MAPCYCLE") != null) {
         float mc = float.Parse(Environment.GetEnvironmentVariable("MAPCYCLE"), System.Globalization.CultureInfo.InvariantCulture);
@@ -323,7 +323,7 @@ static partial class Shot {
       if (mode == "lobbypr") {
         System.Collections.Generic.List<string> pr;
         host.Mode = GameMode.Practice;
-        host.Plan = PracticePlan.Parse("loop: no\nwave 3: Grunt x4, Sniper x2, Swarmer x6\nwave 6: Spinner x2, Medic x1, Shielder x2, Charger x1\nwave 10: The Warden x1, Grunt x3\nwave 15: Twin Reapers x1\nwave 20: The Singularity x1", out pr);
+        host.Plan = PracticePlan.Parse("loop: no\nwave 3: Grunt x4, Sniper x2, Swarmer x6\nwave 6: Spinner x2, Lunger x1, Shielder x2, Brute x1\nwave 10: The Warden x1, Grunt x3\nwave 15: Twin Reapers x1\nwave 20: The Singularity x1", out pr);
         host.OthersCanEdit = Environment.GetEnvironmentVariable("EDIT") != null;
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
         set("practiceSel", 1);
@@ -665,17 +665,20 @@ static partial class Shot {
         host.Game.GrantUpgrade(1, U(n));
       var g = host.Game;
       if (Environment.GetEnvironmentVariable("SHOPEXPAND") != null) g.Diff.Set(DiffKnob.ArenaExpanding, 1f);  // SHOPEXPAND=1: the Expanding arena's services (Floor kit, Vector pack)
-      if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; SHOPSEL picks the card, BUILDS=1 puts some in your stash
+      if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; MARKET=shop|arms|medic: that room instead; SHOPSEL picks the card, BUILDS=1 puts some in your stash
       {
+        string mv = Environment.GetEnvironmentVariable("MARKET");
+        var mkind = mv == "shop" ? RoomKind.Shop : mv == "arms" ? RoomKind.Arms : mv == "medic" ? RoomKind.Medic : RoomKind.Vendor;
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         g.Expanded.Clear(); g.Expanded.AddRange(Expansion.GridCore()); g.Openings.AddRange(Expansion.GridCoreCuts());
-        var vo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono); if (vo.Count > 0) { var v2 = vo[0].Rooms[0]; v2.Owner = 1; v2.Kind = RoomKind.Vendor; g.Expanded.Add(v2); }  // (a one-cell Black Market off the core)
+        var vo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono); if (vo.Count > 0) { var v2 = vo[0].Rooms[0]; v2.Owner = 1; v2.Kind = mkind; g.Expanded.Add(v2); }  // (a one-cell Black Market off the core)
         typeof(Game).GetField("expWorld", f2).SetValue(g, null);
         g.RoomsUp = true;
         var va = g.ExpansionWorld.Areas[g.ExpansionWorld.Areas.Length - 1];
-        foreach (var ar in g.ExpansionWorld.Areas) if (ar.Kind == RoomKind.Vendor) va = ar;
+        foreach (var ar in g.ExpansionWorld.Areas) if (ar.Kind == mkind) va = ar;
         me.Pos = va.Mid; me.Disp = va.Mid;
         if (Environment.GetEnvironmentVariable("BUILDS") != null) { me.Stash[0] = 1; me.Stash[1] = 2; me.Stash[2] = 5; }
+        if (mkind == RoomKind.Medic) me.Hp = me.MaxHp * 0.45f;  // (hurt, so the heal shows what it gives)
       }
       g.CurrentPath = PathId.Bazaar; g.PathFrom = 11; g.PathTo = 14; g.Wave = 14; g.State = MatchState.Intermission;
       typeof(Game).GetMethod("OpenShop", f2).Invoke(g, null);

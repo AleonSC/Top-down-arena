@@ -84,14 +84,14 @@ namespace Arena
             {
                 bool fresh = !camFollow;
                 camFollow = true;
-                if (fresh && !Rooms.RoomByRoom && scrollZoom && !game.SurvivalOn)  // (Survival's big room starts at the normal zoom)
+                if (fresh && scrollZoom && !game.SurvivalOn)  // (Survival's big room starts at the normal zoom)
                 {
                     zoomWant = camZoom = Rooms.StartZoom;  // room rounds start zoomed in, with a prompt to zoom out (DrawZoomHint)
                     zoomHintT = ZoomHintTime;
                 }
                 if (zoomHintT > 0f)
                     zoomHintT = zoomWant <= 1.02f ? 0f : zoomHintT - dt;
-                V2 want2 = RoomsFocus(subject, camZoom);
+                V2 want2 = subject;
                 if (fresh || (want2 - camFocus).Length > 1600f)
                     camFocus = want2;  // (the rooms just came up, or a teleport: a cut)
                 else
@@ -114,10 +114,6 @@ namespace Arena
             float hx = AW / (2f * camZoom), hy = AH / (2f * camZoom);
             camFocus = new V2(Mathf.Clamp(camFocusRaw.X, hx, AW - hx), Mathf.Clamp(camFocusRaw.Y, hy, AH - hy));
         }
-
-        /// Where the rooms' camera looks: on the open map, right at you, even at the map's edge (the space past it shows, so
-        /// you stay in the middle of the screen); the parked room-by-room version holds it inside your area (World.ViewCentre).
-        V2 RoomsFocus(V2 at, float zoom) => Rooms.RoomByRoom ? game.CurrentWorld.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom), game.VaultOn) : at;
 
         /// DrawHud: the open Rooms map starts zoomed in; this asks you to zoom out, low in the middle, until you do (or a while).
         void DrawZoomHint()

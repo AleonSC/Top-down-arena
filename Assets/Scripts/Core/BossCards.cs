@@ -14,7 +14,7 @@ namespace Arena
 
         /// The pool's groups and their weights: pieces 65, service cards 20, floor kits 15 (the mini-boss waits on the lattice instead, Docs/GridPieces.md).
         static readonly int[] Weights = { 65, 20, 15 };
-        static readonly RoomCard[] Services = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms, RoomCard.BuilderShop };  // (the service cards and the Builder Shop)
+        static readonly RoomCard[] Services = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms, RoomCard.Medic, RoomCard.BuilderShop };  // (the service cards and the Builder Shop)
 
         public static bool IsKit(int code) => code >= KitBase;
         public static RoomCard CardOf(int code) => IsKit(code) ? RoomCard.None : (RoomCard)code;
@@ -115,7 +115,7 @@ namespace Arena
                 if (Expansion.IsServiceCard(card))
                 {
                     var job = Expansion.CardRoomKind(card);
-                    bool have = job == Arena.RoomKind.Shop ? HasShopRoom : job == Arena.RoomKind.Vendor ? HasVendorRoom : HasArmsRoom;
+                    bool have = job == Arena.RoomKind.Shop ? HasShopRoom : job == Arena.RoomKind.Vendor ? HasVendorRoom : job == Arena.RoomKind.Medic ? HasMedicRoom : HasArmsRoom;
                     score = have ? 2 : 4;
                 }
                 if (score > bestScore) { bestScore = score; best = i; }

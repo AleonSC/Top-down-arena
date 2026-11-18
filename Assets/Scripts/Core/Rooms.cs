@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// One part of the Rooms world: the hub (today's arena), a side room, a hallway or the vault. A box in world coordinates.
+    /// One part of a walled world (World.cs): the hub (today's arena), a room or a hallway. A box in world coordinates.
     public struct RoomArea
     {
         public string Name;
@@ -12,7 +12,7 @@ namespace Arena
         public bool Floating, Sealed;  // a floating room off the map, and one nobody has connected yet (Expansion.cs)
         public byte Surprise;   // a surprise room: 1 + its SurpriseShape (Docs/SurpriseRooms.md); 0: none
         public int Owner;       // the player who drew it (the Expanding arena; 0: none)
-        public RoomKind Kind;   // what the room does (Expansion.cs; the Wings rooms are all Combat)
+        public RoomKind Kind;   // what the room does (Expansion.cs)
         public PathId Floor;    // a Floor room's path (its ground and hazards); None otherwise
         public int Group;       // a multi-box room (an Expanding arena outline or bent hallway): its head's area index + 1, shared by its boxes; 0: a plain box
         public V2 Mid => (Min + Max) * 0.5f;
@@ -27,236 +27,66 @@ namespace Arena
         public bool Vertical;
         public float Width;  // the gap's length (0: Rooms.DoorW); the Expanding arena's opened walls are wider
         public float W => Width > 0f ? Width : Rooms.DoorW;
-        public int A, B;  // the areas it joins (indexes into Rooms.Areas)
+        public int A, B;  // the areas it joins (indexes into its World's Areas)
         public V2 Across => Vertical ? new V2(1f, 0f) : new V2(0f, 1f);  // through the door
         public V2 Along => Vertical ? new V2(0f, 1f) : new V2(1f, 0f);   // along the wall
         public bool Joins(int area) => A == area || B == area;
         public int Other(int area) => A == area ? B : A;
-        /// The spot DoorPad in from the door on the given area's side.
-        public V2 Side(int area) => Rooms.Areas[area].Contains(Pos + Across * Rooms.DoorPad) ? Pos + Across * Rooms.DoorPad : Pos - Across * Rooms.DoorPad;
     }
 
-    /// The Rooms arena (Docs/Rooms.md, the Arena setting): on regular waves the arena grows past today's 1600x900 hub
-    /// into side rooms joined by hallways. This is the first map, Wings: a big room left and right of the hub, each with
-    /// a door into it, and a hallway above and below the hub joining the two rooms into a loop round it (a door from
-    /// each room into each hallway). The hub's own edges are wall except the two room doors, so nothing wraps.
-    /// One regular wave in ten also opens the vault, a small room off the top hallway with a mini-boss in it.
-    /// The world is a box (-900..2500 by -260..1160, or from -660 with the vault), so Game.ArenaMin and ArenaMax simply
-    /// grow (Paths.cs). The walls are ordinary layout solids: Rooms.With adds them to the boss cycle's floor plan, so
-    /// walking, shots and the enemies' steering (LayoutRules.cs) work through the doors as is.
+    /// The walled worlds' shared numbers (World.cs): the Expanding arena (Expansion.cs) and Survival's big room
+    /// (SurvivalWorld.cs) are built from areas joined by doors. (The fixed Rooms map, Wings, was removed Nov 18.)
     public static class Rooms
     {
-        public const float RoomW = 900f, HallH = 260f, DoorW = 160f, WallT = 24f, DoorPad = 60f;
-        public const float VaultW = 500f, VaultH = 400f;
-        const float W = Game.Width, H = Game.Height;
+        public const float DoorW = 160f, WallT = 24f, DoorPad = 60f;
+        public const float PortalR = 42f, PortalCooldown = 1.2f;
 
-        public const int Hub = 0, West = 1, East = 2, TopHall = 3, BottomHall = 4, Vault = 5;
+        /// No enemy comes in closer than SpawnClear to a player and, where there is a choice, no farther than SpawnReach.
+        public const float SpawnClear = 350f, SpawnReach = 1500f;
 
-        /// The rooms with a nest in them (Docs/Rooms.md: each room's nest keeps it stocked and spills into the hub).
-        public static readonly int[] NestRooms = { West, East };
-
-        public const float PortalR = 42f, PortalExit = 70f, PortalCooldown = 1.2f, PortalInset = 40f;
-
-        /// The Wings map as a World (geometry as data, World.cs). The members below (Areas, Doors, WallsFor, ...) are the
-        /// Wings world's, kept so the Rooms code and its tests read the same as before.
-        public static readonly World Wings = BuildWings();
-
-        static World BuildWings()
-        {
-            V2 lo = new V2(-RoomW, -HallH), hi = new V2(W + RoomW, H + HallH);
-            var areas = new[]
-            {
-                new RoomArea { Name = "Hub", Min = new V2(0f, 0f), Max = new V2(W, H), Hub = true },
-                new RoomArea { Name = "West room", Min = new V2(-RoomW, 0f), Max = new V2(0f, H) },
-                new RoomArea { Name = "East room", Min = new V2(W, 0f), Max = new V2(W + RoomW, H) },
-                new RoomArea { Name = "Top hall", Min = new V2(-RoomW, -HallH), Max = new V2(W + RoomW, 0f), Hall = true },
-                new RoomArea { Name = "Bottom hall", Min = new V2(-RoomW, H), Max = new V2(W + RoomW, H + HallH), Hall = true },
-                new RoomArea { Name = "Vault", Min = new V2(W / 2f - VaultW / 2f, -HallH - VaultH), Max = new V2(W / 2f + VaultW / 2f, -HallH), Vault = true },
-            };
-            var doors = new[]
-            {
-                new RoomDoor { Pos = new V2(0f, H / 2f), Vertical = true, A = Hub, B = West },
-                new RoomDoor { Pos = new V2(W, H / 2f), Vertical = true, A = Hub, B = East },
-                new RoomDoor { Pos = new V2(-RoomW / 2f, 0f), A = West, B = TopHall },
-                new RoomDoor { Pos = new V2(W + RoomW / 2f, 0f), A = East, B = TopHall },
-                new RoomDoor { Pos = new V2(-RoomW / 2f, H), A = West, B = BottomHall },
-                new RoomDoor { Pos = new V2(W + RoomW / 2f, H), A = East, B = BottomHall },
-                new RoomDoor { Pos = new V2(W / 2f, 0f), A = Hub, B = TopHall },     // the hub's top and bottom doors (owner, Nov 10: less linear)
-                new RoomDoor { Pos = new V2(W / 2f, H), A = Hub, B = BottomHall },
-                new RoomDoor { Pos = new V2(W / 2f, -HallH), A = TopHall, B = Vault },  // the vault's: only on a vault wave (keep it last: VaultDoor)
-            };
-            // Wraparound portals (owner, Nov 10): step into one and you come out of its partner on the far side of the map,
-            // which makes the map a ring. Players and enemies both use them (enemies steer through them when it's shorter).
-            // Pairs: the West room's far wall with the East room's, and each hallway's two ends.
-            var portals = new[]
-            {
-                new WorldPortal { A = new V2(-RoomW + PortalInset, H / 2f), B = new V2(W + RoomW - PortalInset, H / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
-                new WorldPortal { A = new V2(-RoomW + PortalInset, -HallH / 2f), B = new V2(W + RoomW - PortalInset, -HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
-                new WorldPortal { A = new V2(-RoomW + PortalInset, H + HallH / 2f), B = new V2(W + RoomW - PortalInset, H + HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
-            };
-            var v = areas[Vault];
-            var spans = new[]
-            {
-                new WallSpan(true, 0f, 0f, H),                    // hub | west room
-                new WallSpan(true, W, 0f, H),                     // hub | east room
-                new WallSpan(false, 0f, lo.X, hi.X),              // top hall | west room, hub, east room
-                new WallSpan(false, H, lo.X, hi.X),               // bottom hall | west room, hub, east room
-                new WallSpan(true, lo.X, lo.Y, hi.Y),             // the world's own edges (the top one has the vault's door)
-                new WallSpan(true, hi.X, lo.Y, hi.Y),
-                new WallSpan(false, lo.Y, lo.X, hi.X),
-                new WallSpan(false, hi.Y, lo.X, hi.X),
-                new WallSpan(true, v.Min.X, v.Min.Y, v.Max.Y, true),                              // the vault's walls
-                new WallSpan(true, v.Max.X, v.Min.Y, v.Max.Y, true),
-                new WallSpan(false, v.Min.Y, v.Min.X - WallT / 2f, v.Max.X + WallT / 2f, true),
-            };
-            // The small obstacles in the rooms and hallways (Docs/Rooms.md decision 11).
-            float wx = -RoomW / 2f, ex = W + RoomW / 2f;
-            var cover = new[]
-            {
-                World.Pillar(wx, 250f, 40f), World.Pillar(wx, H - 250f, 40f), World.Box(-RoomW + 165f, H / 2f - 120f, -RoomW + 195f, H / 2f + 120f),  // west room
-                World.Pillar(ex, 250f, 40f), World.Pillar(ex, H - 250f, 40f), World.Box(W + RoomW - 195f, H / 2f - 120f, W + RoomW - 165f, H / 2f + 120f),  // east room
-                World.Box(170f, -HallH / 2f - 30f, 230f, -HallH / 2f + 30f), World.Box(W - 230f, -HallH / 2f - 30f, W - 170f, -HallH / 2f + 30f),  // top hall
-                World.Pillar(200f, H + HallH / 2f, 26f), World.Pillar(W - 200f, H + HallH / 2f, 26f),  // bottom hall
-            };
-            return new World
-            {
-                Name = "Wings",
-                Areas = areas, Doors = doors, Portals = portals, Spans = spans, Cover = cover,
-                Min = lo, VaultMin = new V2(-RoomW, -HallH - VaultH), Max = hi,
-                Hub = Hub, Vault = Vault, PortalR = PortalR, PortalExit = PortalExit,
-            };
-        }
-
-        public static V2 WorldMin => Wings.Min;
-        public static V2 VaultWorldMin => Wings.VaultMin;
-        public static V2 WorldMax => Wings.Max;
-        public static V2 MinFor(bool vault) => Wings.MinFor(vault);
-        public static RoomArea[] Areas => Wings.Areas;
-        public static RoomDoor[] Doors => Wings.Doors;
-        public static WorldPortal[] Portals => Wings.Portals;
-        public static Solid[] Cover => Wings.Cover;
-        public static Solid[] Walls => Wings.WallsFor(false);
-        public static int VaultDoor => Wings.VaultDoor;
-        public static V2? PortalExitFor(V2 at) => Wings.PortalExitFor(at);
-        public static bool DoorUp(int i, bool vault) => Wings.DoorUp(i, vault);
-        public static int AreaAt(V2 p) => Wings.AreaAt(p);
-        public static Solid[] WallsFor(bool vault) => Wings.WallsFor(vault);
-        public static V2 ViewCentre(V2 at, float hx, float hy, bool vault) => Wings.ViewCentre(at, hx, hy, vault);
-        public static LayoutDef With(LayoutId hub, bool vault = false) => Wings.With(hub, vault);
-
-        /// Where a room's nest stands: in the far half of the room from the hub, clear of its cover.
-        public static V2 NestSpot(int room) => room == West ? new V2(-RoomW / 2f - 110f, H / 2f) : new V2(W + RoomW / 2f + 110f, H / 2f);
-
-        // --- Pacing (Docs/Rooms.md, "How a wave plays") ----------------------------------------------------------------
-
-        /// The room-by-room version (phases 2-3: nests, spills, room locks, overflow, a camera held to the room you're in).
-        /// Off since Nov 10 (owner: "too cookie cutter"): the map is one open space, enemies come in at random spots and
-        /// the camera follows you anywhere. Parked, not deleted: the code below still works with this on (the tests do).
-        public static bool RoomByRoom = false;
-
-        /// Open map: no enemy comes in closer than this to a player.
-        public const float SpawnClear = 350f, SpawnReach = 1500f;  // (enemies come in at least SpawnClear and, where there is a choice, at most SpawnReach from a player)
-
-        /// Open map: room rounds start at this zoom, with a prompt to zoom out (CameraZoom.cs).
+        /// Room rounds start at this zoom, with a prompt to zoom out (CameraZoom.cs).
         public const float StartZoom = 1.5f;
 
-        public const float NestHpMult = 3f;      // a room's nest: this many times a Nest's health at the wave
-        public const float SpillWarn = 2f;       // the door flashes this long before a spill
-        public const float SpillClear = 180f;    // a spill picks another door if someone stands this close to where it would come out
-        public const float FirstSpill = 18f;     // the first spill of a wave comes after this (plus a few seconds per room)
-        public const int VaultEvery = 10;        // one regular wave in each stretch of this many has the vault
-        public const int FirstVault = 6;         // the first stretch's vault comes after the first boss (its mini-boss is a Data Gate duel's strength)
-
-        /// Room enemies kept alive at once in each room while its nest lives: more later and with more players. (Phase 3:
-        /// from 5 + wave/8 + 2 a player, max 12, so a room's worst moment stays near the 8-10 threats in view the design
-        /// asks for; measured with run.sh 1 1 arenabal.)
-        public static int RoomCap(int wave, int players) => Math.Min(10, 4 + wave / 7 + Math.Max(0, players - 1));
-
-        /// Phase 3: everything that hurts players hits this much harder while the rooms are up (regular waves of the Rooms
-        /// arena only: boss waves and the Classic arena are unchanged). Fewer threats at once, so each one counts.
+        /// Everything that hurts players hits this much harder while a grown Expanding arena is up (Game.RoomsDamageMult).
         public static float EnemyDamageMult = 1.3f;  // (static, not const: the balance report tries others)
-
-        /// Seconds between a room's spills: shorter later in the run.
-        public static float SpillTime(int wave) => Math.Max(11f, 22f - wave * 0.25f);
-
-        /// How long a room's enemy guards its nest before it overflows out of the room to hunt you: shorter later in the run.
-        public static float GuardTime(int wave) => Math.Max(5f, 10f - wave * 0.15f);
-
-        /// Runners in each spill.
-        public static int SpillSize(int wave, int players) => 3 + wave / 15 + Math.Max(0, players - 1);
-
-        /// A cleared room's XP for everyone.
-        public static float ClearXp(int wave) => 30f + wave * 3f;
-    }
-
-    /// One room's state (Docs/Rooms.md): its nest, whether it's cleared, its spill timer and the door the next spill uses.
-    public sealed class RoomState
-    {
-        public int Area;
-        public int NestId;          // host: the nest enemy
-        public bool NestAlive, Cleared, Seen;
-        public float SpillT;        // seconds to the next spill (synced in tenths)
-        public int NextDoor = -1;   // index into Rooms.Doors
     }
 
     public partial class Game
     {
-        /// Host, at each wave's start: the Rooms world is up for this wave (synced in the snapshot with the layout).
+        /// Host, at each wave's start: the walled world is up for this wave (synced in the snapshot with the layout).
         public bool RoomsUp;
 
-        /// The vault is open on this wave (one regular wave in ten; synced).
-        public bool VaultUp;
-        public bool VaultCleared;   // its mini-boss is down (synced)
-        int vaultStretch = -1, vaultWave = -1, vaultBossId;
-
-        /// The rooms with nests (Wings: West and East).
-        public readonly RoomState[] RoomStates = { new RoomState { Area = Rooms.West }, new RoomState { Area = Rooms.East } };
-
-        /// The Rooms world is what you're playing in right now (not in a Data Gate's challenge, the Practice Range or
+        /// The walled world is what you're playing in right now (not in a Data Gate's challenge, the Practice Range or
         /// the Showcase).
         public bool RoomsOn => RoomsUp && !InRoom && ModeRules.Extras && !ShowcaseMode;
-        public bool VaultOn => RoomsOn && VaultUp;
 
-        /// Enemy damage to players: Rooms.EnemyDamageMult while the rooms are up, else 1 (Combat.cs).
-        public float RoomsDamageMult => RoomsOn && !SurvivalOn && (ArenaKind != ArenaLayout.Expanding || Expansion.Grown(Expanded)) ? Rooms.EnemyDamageMult : 1f;  // (Survival's big room is tuned at 1x; so is the Expanding arena's bare hub)
+        /// Enemy damage to players: Rooms.EnemyDamageMult in a grown Expanding arena, else 1 (Combat.cs).
+        public float RoomsDamageMult => RoomsOn && !SurvivalOn && ArenaKind == ArenaLayout.Expanding && Expansion.Grown(Expanded) ? Rooms.EnemyDamageMult : 1f;  // (Survival's big room is tuned at 1x; so is the Expanding arena's bare hub)
 
-        /// The run's Arena setting is Rooms (the lobby's Difficulty tab; Classic, today's arena, by default).
-        public bool RoomsArena => D(DiffKnob.ArenaRooms) >= 0.5f;
-
-        /// The run's arena layout (Docs/ExpandingArena.md): Wings with the Rooms setting on, else Single. Expanding comes later.
-        /// The Campaign (a 100-wave run, Hunts.cs LongLegs) and Quick Play (QuickPlay.cs) are the Expanding arena; the Simple Arena modifier keeps it the open
-        /// arena; the Rooms arena (Wings) is a prototype set from the dev dock. Older 50-wave saves keep their Arena knobs.
+        /// The run's arena layout (Docs/ExpandingArena.md). The Campaign (a 100-wave run, Hunts.cs LongLegs) and Quick Play
+        /// (QuickPlay.cs) are the Expanding arena; the Simple Arena modifier keeps it the open arena.
         public ArenaLayout ArenaKind => SurvivalOn ? ArenaLayout.Survival : Has(RunMod.SimpleArena) ? ArenaLayout.Single
-            : D(DiffKnob.ArenaExpanding) >= 0.5f || (LongLegs || Quick) && !RoomsArena ? ArenaLayout.Expanding : RoomsArena ? ArenaLayout.Wings : ArenaLayout.Single;
+            : D(DiffKnob.ArenaExpanding) >= 0.5f || LongLegs || Quick ? ArenaLayout.Expanding : ArenaLayout.Single;
 
-        /// The geometry being played on right now: the Wings world while the rooms are up, else the plain arena box.
-        public World CurrentWorld => RoomsOn ? (SurvivalOn ? SurvivalRoom.World : ArenaKind == ArenaLayout.Expanding ? ExpansionWorld : Rooms.Wings) : World.Single;
+        /// The geometry being played on right now: the walled world while it is up, else the plain arena box.
+        public World CurrentWorld => RoomsOn ? (SurvivalOn ? SurvivalRoom.World : ExpansionWorld) : World.Single;
 
         /// Host, at the start of each wave (with PickLayout): regular waves get the rooms, boss waves the hub alone
         /// (bosses are tuned for 1600x900). Not with Tiny Arena or on Narrow Pass, which wall the hub in themselves,
         /// and not in a Boss Hunt, the Practice Range or the Showcase.
         void PickRooms()
         {
-            bool was = RoomsUp, vaultWas = VaultUp;
-            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding;  // (the Expanding arena is its walled world from wave 1, the hub alone until a room is bought or a wall pushed: no wrap round the edges, the camera follows you)
-            RoomsUp = (wings || grown) && ModeRules.RunEvents && !ShowcaseMode && !BossNow
+            bool was = RoomsUp;
+            bool grown = ArenaKind == ArenaLayout.Expanding;  // (the Expanding arena is its walled world from wave 1, the hub alone until a room is bought or a wall pushed: no wrap round the edges, the camera follows you)
+            RoomsUp = grown && ModeRules.RunEvents && !ShowcaseMode && !BossNow
                 && !Has(RunMod.TinyArena) && !OnPathOf(PathId.NarrowPass);
-            VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave) && FirstLeg;  // (a Campaign: the vault's wave's first leg)
-            VaultCleared = false;
-            if (RoomsUp != was || VaultUp != vaultWas)
+            if (RoomsUp != was)
             {
                 LayoutAge = 0f;  // the walls rise (or the old ones go) with the change
-                DoLog(RoomsUp ? "rooms: up (" + (wings ? "Wings" : "Expanding, " + Expanded.Count + " rooms") + (VaultUp ? ", the vault" : "") + ")" : "rooms: down (the hub alone)");
+                DoLog(RoomsUp ? "rooms: up (Expanding, " + Expanded.Count + " rooms)" : "rooms: down (the hub alone)");
             }
             if (was && !RoomsUp)
                 PullIntoHub();
-            foreach (var rs in RoomStates)
-            {
-                rs.NestAlive = rs.Seen = false;
-                rs.Cleared = true;
-                rs.NestId = 0;
-                rs.NextDoor = -1;
-            }
         }
 
         /// Host: a room was just built or gifted between waves. The Expanding arena is the plain box until the first room exists, and
@@ -271,86 +101,7 @@ namespace Arena
             DoLog("rooms: up (Expanding, " + Expanded.Count + " rooms, built between waves)");
         }
 
-        /// The wave in this stretch of ten that has the vault (picked once per stretch, among its regular waves still to come).
-        int VaultWaveFor(int wave)
-        {
-            int stretch = (wave - 1) / Rooms.VaultEvery;
-            if (stretch != vaultStretch)
-            {
-                vaultStretch = stretch;
-                var pool = new List<int>();
-                int from = stretch == 0 ? Rooms.FirstVault : stretch * Rooms.VaultEvery + 2;  // (not before the first boss)
-                for (int w = Math.Max(wave, from); w <= (stretch + 1) * Rooms.VaultEvery; w++)
-                    pool.Add(w);  // (the boss after wave 5, 10... isn't a wave number any more)
-                vaultWave = pool.Count > 0 ? pool[rng.Next(pool.Count)] : -1;
-            }
-            return vaultWave;
-        }
-
-        /// Host, once the wave is built: each room's nest goes down and its spill timer starts; the vault gets its mini-boss.
-        void StartRoomsWave()
-        {
-            if (!RoomsOn)
-                return;
-            int i = 0;
-            foreach (var rs in RoomStates)
-            {
-                if (!Rooms.RoomByRoom)
-                    break;  // (the open map: no nests)
-                var nest = SpawnEnemyAt(EnemyType.Nest, Rooms.NestSpot(rs.Area), 0.9f, 0);
-                nest.Home = rs.Area;
-                nest.MaxHp *= Rooms.NestHpMult;
-                nest.Hp = nest.MaxHp;
-                rs.NestId = nest.Id;
-                rs.NestAlive = true;
-                rs.Cleared = rs.Seen = false;
-                rs.SpillT = Rooms.FirstSpill + 4f * i++;
-                rs.NextDoor = PickSpillDoor(rs.Area);
-            }
-            if (VaultUp)
-            {
-                // The vault's mini-boss (Docs/Rooms.md decision 7): the next boss's faction's (FactionMinis.cs; the Gatekeeper is back in the Data Gates).
-                var v = Rooms.Areas[Rooms.Vault];
-                var boss = SpawnEnemyAt(MiniBossNow(), v.Mid - new V2(0f, 40f), 1.2f, 0);
-                boss.Home = Rooms.Vault;
-                boss.T2 = 2.5f;
-                vaultBossId = boss.Id;
-            }
-        }
-
-        /// A random door out of a room for its next spill: into the hub or a hallway, never into another room.
-        int PickSpillDoor(int area, bool clearOfPlayers = false)
-        {
-            var ok = new List<int>();
-            for (int i = 0; i < Rooms.Doors.Length; i++)
-            {
-                var d = Rooms.Doors[i];
-                if (d.Joins(area) && !Rooms.Areas[d.Other(area)].Vault && (Rooms.Areas[d.Other(area)].Hub || Rooms.Areas[d.Other(area)].Hall)
-                    && !(clearOfPlayers && PlayerNear(d.Side(d.Other(area)), Rooms.SpillClear)))
-                    ok.Add(i);
-            }
-            if (ok.Count == 0 && clearOfPlayers)
-                return PickSpillDoor(area);  // every door has someone at it: any will do
-            return ok.Count > 0 ? ok[rng.Next(ok.Count)] : -1;
-        }
-
-        bool PlayerNear(V2 at, float r)
-        {
-            foreach (var p in Players.Values)
-                if (!p.Downed && p.Pos.CloserThan(at, r))
-                    return true;
-            return false;
-        }
-
-        RoomState StateOf(int area)
-        {
-            foreach (var rs in RoomStates)
-                if (rs.Area == area)
-                    return rs;
-            return null;
-        }
-
-        /// Host, every tick of a wave: nests, spills and cleared rooms.
+        /// Host, every tick of a wave: the Expanding arena's rooms.
         void TickRoomsWave(float dt)
         {
             if (!RoomsOn || State != MatchState.Fighting)
@@ -360,86 +111,9 @@ namespace Arena
             TickStashClaims();  // a breach Stash's vector cache (BreachEvent.cs)
             TickBreachEvent();  // the gold breach and its surprise room (BreachEvent.cs)
             TickMysteryDoors();  // MysteryDoors.cs
-            int players = Players.Count;
-            foreach (var rs in RoomStates)
-            {
-                if (rs.Cleared)
-                    continue;
-                var area = Rooms.Areas[rs.Area];
-                if (!rs.Seen)
-                    foreach (var p in Players.Values)
-                        rs.Seen |= area.Contains(p.Pos, 200f);
-                Enemy nest;
-                rs.NestAlive = Enemies.TryGetValue(rs.NestId, out nest) && nest.Hp > 0f;
-                if (rs.NestAlive)
-                {
-                    if (rs.SpillT > Rooms.SpillWarn + 0.5f && rs.SpillT - dt <= Rooms.SpillWarn + 0.5f && rs.NextDoor >= 0 && PlayerNear(Rooms.Doors[rs.NextDoor].Side(Rooms.Doors[rs.NextDoor].Other(rs.Area)), Rooms.SpillClear))
-                        rs.NextDoor = PickSpillDoor(rs.Area, true);  // someone's standing where it would come out: another door (before its warning shows)
-                    rs.SpillT -= dt;
-                    if (rs.SpillT <= 0f && rs.NextDoor >= 0)
-                        Spill(rs, players);
-                    continue;
-                }
-                bool left = false;
-                foreach (var e in Enemies.Values)
-                    if (e.Home == rs.Area && !e.Spilled && e.Hp > 0f)
-                    {
-                        left = true;
-                        break;
-                    }
-                if (!left)
-                    ClearRoom(rs);
-            }
-            if (VaultUp && !VaultCleared)
-            {
-                Enemy boss;
-                if (!Enemies.TryGetValue(vaultBossId, out boss) || boss.Hp <= 0f)
-                    WinVault();
-            }
         }
 
-        /// A room sends a squad of fast runners out through its chosen door (Docs/Rooms.md decision 10).
-        void Spill(RoomState rs, int players)
-        {
-            var door = Rooms.Doors[rs.NextDoor];
-            V2 at = door.Side(door.Other(rs.Area));  // just outside, in the hub or the hallway
-            int n = Rooms.SpillSize(Wave, players);
-            for (int i = 0; i < n; i++)
-            {
-                var e = SpawnEnemyAt(EnemyType.Runner, at + door.Along * ((i - (n - 1) / 2f) * 26f), 0.3f, 0);
-                e.Home = rs.Area;
-                e.Spilled = true;
-            }
-            BroadcastFx(FxKind.Ring, door.Pos, new Rgba(1f, 0.7f, 0.28f), 120f, 0.5f, Sfx.None);
-            DoLog("spill: " + Rooms.Areas[rs.Area].Name + " -> " + Rooms.Areas[door.Other(rs.Area)].Name + " (" + n + ")");
-            rs.SpillT = Rooms.SpillTime(Wave);
-            rs.NextDoor = PickSpillDoor(rs.Area);
-        }
-
-        /// A room's nest and everything it kept are down: its doors open for good, and a small reward (decision 4).
-        void ClearRoom(RoomState rs)
-        {
-            rs.Cleared = true;
-            rs.NestAlive = false;
-            V2 at = Rooms.NestSpot(rs.Area);
-            SpawnOrb(at + new V2(-20f, 0f), true);
-            SpawnOrb(at + new V2(20f, 0f), true);
-            GrantXp(Rooms.ClearXp(Wave));
-            BroadcastFx(FxKind.Ring, at, new Rgba(0.25f, 0.9f, 0.7f), 300f, 0.7f, Sfx.LevelUp);
-            DoLog("room cleared: " + Rooms.Areas[rs.Area].Name);
-        }
-
-        /// The vault's mini-boss is down: everyone gets a prize pick (rare or better, sometimes a legendary), as the
-        /// Gatekeeper's Data Gate gave (Challenges.cs ClaimPrize).
-        void WinVault()
-        {
-            VaultCleared = true;
-            ClearCaptainAdds(vaultBossId);  // its men go with it (RiotCaptain.cs)
-            GrantVaultPrize(Rooms.Areas[Rooms.Vault].Mid);
-            DoLog("vault cleared");
-        }
-
-        /// A mini-boss duel is won (the Wings vault or an Expanding Gatekeeper room): a prize pick for everyone, sometimes a legendary.
+        /// A mini-boss duel is won (an Expanding Gatekeeper room): a prize pick for everyone, sometimes a legendary.
         void GrantVaultPrize(V2 at)
         {
             var bossType = BossAt(Math.Min(MaxWave, Bosses.NextBossWaveFrom(Wave)));  // the boss this cycle leads up to
@@ -455,37 +129,8 @@ namespace Arena
             BroadcastFx(FxKind.Ring, at, new Rgba(1f, 0.85f, 0.4f), 400f, 0.8f, Sfx.WaveClear);
         }
 
-        /// The wave's queue can spawn now: a room with a living nest has room for more. With every nest down the rest
-        /// of the queue is called off (kill the nests fast and fewer come).
-        bool RoomsSpawnReady()
-        {
-            bool anyNest = false;
-            foreach (var rs in RoomStates)
-                if (rs.NestAlive)
-                {
-                    anyNest = true;
-                    if (RoomCount(rs.Area) < Rooms.RoomCap(Wave, Players.Count))
-                        return true;
-                }
-            if (!anyNest && State == MatchState.Fighting)
-            {
-                spawnQueue.Clear();
-                squadQueue.Clear();
-            }
-            return false;
-        }
-
-        int RoomCount(int area)
-        {
-            int n = 0;
-            foreach (var e in Enemies.Values)
-                if (e.Home == area && !e.Spilled && e.Type != EnemyType.Nest && e.Hp > 0f)
-                    n++;
-            return n;
-        }
-
-        /// The open map: where an enemy (or a squad) comes in: a random spot anywhere on the map (an area picked by its
-        /// size, never the vault), clear of walls and at least SpawnClear from every player.
+        /// Where an enemy (or a squad) comes in: a random spot anywhere on the map (an area picked by its
+        /// size), clear of walls and at least SpawnClear from every player.
         V2 RoomsRandomSpot(float radius)
         {
             V2 at = new V2(Width / 2f, Height / 2f), best = at, nearBest = at;
@@ -525,7 +170,7 @@ namespace Arena
             var counts = new int[CurrentWorld.Areas.Length];
             foreach (var e in Enemies.Values)
             {
-                if (e.Hp <= 0f || e.Type == EnemyType.Nest)
+                if (e.Hp <= 0f)
                     continue;
                 int ai = CurrentWorld.AreaAt(e.Pos);
                 if (ai >= 0 && ai < counts.Length)
@@ -534,62 +179,12 @@ namespace Arena
             return counts;
         }
 
-        /// Where the next of the wave's enemies comes in: by the nest of the room with the most room to spare.
-        V2 RoomSpawnSpot(float radius, out int home)
-        {
-            RoomState best = null;
-            int bestFree = 0, cap = Rooms.RoomCap(Wave, Players.Count);
-            foreach (var rs in RoomStates)
-                if (rs.NestAlive)
-                {
-                    int free = cap - RoomCount(rs.Area);
-                    if (best == null || free > bestFree)
-                    {
-                        best = rs;
-                        bestFree = free;
-                    }
-                }
-            if (best == null)
-            {
-                home = -1;
-                return RandomInArena(80f);
-            }
-            home = best.Area;
-            V2 nest = Rooms.NestSpot(best.Area);
-            for (int i = 0; i < 12; i++)
-            {
-                V2 at = nest + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 180f);
-                if (Rooms.Areas[best.Area].Contains(at, -radius - 20f) && !NearSolid(at, radius + 6f))
-                    return at;
-            }
-            return nest + new V2(0f, 60f);
-        }
-
-        /// Host, from TickEnemies: a room's enemies guard their nest while it lives and nobody's in the room; the vault's
-        /// mini-boss never leaves the vault. Returns true while holding (no shooting at nothing).
+        /// Host, from TickEnemies: a duel room's mini-boss stays in its room, after whoever is in it. Returns true while
+        /// holding (no shooting at nothing).
         bool RoomsLeash(Enemy e, ref V2 tpos)
         {
-            if (!RoomsOn || e.Home < 0)
+            if (!RoomsOn || e.Home < 0 || !ExpandingOn || !FactionMinis.Duels(e.Type) || e.Home >= CurrentWorld.Areas.Length)
                 return false;
-            if (e.Spilled)
-            {
-                if (e.ExitDoor >= 0)
-                {
-                    var door = Rooms.Doors[e.ExitDoor];
-                    if (Rooms.AreaAt(e.Pos) == e.Home)
-                    {
-                        V2 outward = (door.Side(door.Other(e.Home)) - door.Pos).Normalized();
-                        tpos = door.Pos + outward * 500f + door.Along * (((e.Id % 5) - 2) * 18f);  // on its way out through its door (aimed well past it: shooters stop short of what they head for)
-                        return true;
-                    }
-                    e.ExitDoor = -1;  // out: now it hunts
-                }
-                return false;
-            }
-            bool vault = e.Home == Rooms.Vault || ExpandingOn && FactionMinis.Duels(e.Type);
-            var rs = vault ? null : StateOf(e.Home);
-            if (!vault && (rs == null || !rs.NestAlive))
-                return false;  // the nest is down: what's left comes for you
             var area = CurrentWorld.Areas[e.Home];
             Player near = null;
             foreach (var p in Players.Values)
@@ -600,36 +195,18 @@ namespace Arena
                 tpos = near.Pos;
                 return false;
             }
-            if (!vault && e.Type != EnemyType.Nest)
-            {
-                // Overflow (owner, Nov 2026): it guards only so long, then leaves through one of the room's doors, picked at
-                // random, and hunts. The nest refills the room behind it, so while a nest lives the rooms keep pouring out.
-                e.HomeT += tickDt;
-                if (e.HomeT >= Rooms.GuardTime(Wave))
-                {
-                    e.Spilled = true;
-                    e.ExitDoor = PickSpillDoor(e.Home);
-                    return RoomsLeash(e, ref tpos);
-                }
-            }
-            V2 home = vault ? area.Mid : Rooms.NestSpot(e.Home);
             float rx = Math.Min(150f, area.Size.X / 3f), ry = Math.Min(130f, area.Size.Y / 3f);
-            tpos = home + new V2((float)Math.Cos(e.T * 0.5f + e.Id) * rx, (float)Math.Sin(e.T * 0.4f + e.Id * 1.7f) * ry);
+            tpos = area.Mid + new V2((float)Math.Cos(e.T * 0.5f + e.Id) * rx, (float)Math.Sin(e.T * 0.4f + e.Id * 1.7f) * ry);
             return true;
         }
 
-        /// Is this area's door locked for whoever is in it (decision 9): a room while its nest lives, the vault while its
-        /// mini-boss does. One way: you can come in, not go out.
+        /// Is this area's door locked for whoever is in it: a Gatekeeper room while its duel is on. One way: you can
+        /// come in, not go out.
         public bool AreaLocked(int area)
         {
-            if (!RoomsOn)
+            if (!RoomsOn || !ExpandingOn)
                 return false;
-            if (ExpandingOn)
-                return DuelBoss(area) != null;  // (a Gatekeeper room locks while its duel is on)
-            if (area == Rooms.Vault)
-                return VaultUp && !VaultCleared;
-            var rs = StateOf(area);
-            return rs != null && rs.NestAlive && !rs.Cleared;
+            return DuelBoss(area) != null;
         }
 
         /// Your own game, after you move: in a locked room you stay in it (a dodge or dash can't take you out either).
@@ -644,51 +221,29 @@ namespace Arena
             return now.Clamp(area.Min + new V2(r, r), area.Max - new V2(r, r));
         }
 
-        /// Host, after an enemy moves: the vault's (or a duel room's) mini-boss stays in its room while the door is locked,
+        /// Host, after an enemy moves: a duel room's mini-boss stays in its room while the door is locked,
         /// so a charge down the doorway stops at it like a wall (the Riot Captain is dazed) instead of leaving.
         void RoomsKeepHome(Enemy e)
         {
-            if (!RoomsOn || e.Home < 0 || e.Home >= CurrentWorld.Areas.Length || e.Spilled)
+            if (!RoomsOn || e.Home < 0 || e.Home >= CurrentWorld.Areas.Length)
                 return;
-            if (!(e.Home == Rooms.Vault && !ExpandingOn || ExpandingOn && FactionMinis.Duels(e.Type)) || !AreaLocked(e.Home))
+            if (!ExpandingOn || !FactionMinis.Duels(e.Type) || !AreaLocked(e.Home))
                 return;
             var area = CurrentWorld.Areas[e.Home];
             e.Pos = e.Pos.Clamp(area.Min + new V2(e.Radius, e.Radius), area.Max - new V2(e.Radius, e.Radius));
         }
 
-        /// Host, when a wave is cleared: the vault closes with it (an unbeaten mini-boss goes, anyone inside is let out).
+        /// Host, when a wave is cleared: an unbeaten duel ends with it (GatekeeperRoom.cs).
         void EndRoomsWave()
         {
             EndDuels();
-            if (!VaultUp)
-                return;
-            Enemy boss;
-            ClearCaptainAdds(vaultBossId);
-            if (Enemies.TryGetValue(vaultBossId, out boss))
-                Enemies.Remove(vaultBossId);
-            var v = Rooms.Areas[Rooms.Vault];
-            var door = Rooms.Doors[Rooms.VaultDoor];
-            foreach (var p in Players.Values)
-                if (v.Contains(p.Pos))
-                    MovePlayer(p, door.Side(Rooms.TopHall) + new V2(0f, 40f));
-        }
-
-        /// The wave's foes, leaving out the vault's (it's optional: the wave ends without it).
-        int FoesOutsideVault()
-        {
-            int n = Foes();
-            if (VaultOn)
-                foreach (var e in Enemies.Values)
-                    if (e.Home == Rooms.Vault)
-                        n--;
-            return n;
         }
 
         /// Host, when the rooms go (a boss wave): everyone outside the hub is brought in, and the props left in the
         /// rooms and hallways are cleared away.
         void PullIntoHub()
         {
-            var hub = Rooms.Areas[Rooms.Hub];
+            var hub = new RoomArea { Min = V2.Zero, Max = new V2(Width, Height) };
             foreach (var p in Players.Values)
                 if (!hub.Contains(p.Pos, -1f))
                 {
@@ -701,39 +256,6 @@ namespace Arena
                     scratchIds.Add(pr.Id);
             foreach (int id in scratchIds)
                 Props.Remove(id);
-        }
-
-        /// The rooms' state for everyone (after the layout byte): each nest room's flags, spill timer and next door, then
-        /// the vault. Fixed size, so it reads the same with the rooms up or down.
-        void SyncRooms(NetSync s)
-        {
-            foreach (var rs in RoomStates)
-            {
-                byte f = (byte)((rs.NestAlive ? 1 : 0) | (rs.Cleared ? 2 : 0) | (rs.Seen ? 4 : 0));
-                byte t = (byte)Math.Max(0, Math.Min(255, (int)Math.Ceiling(rs.SpillT * 10f)));
-                byte d = (byte)(rs.NextDoor + 1);
-                s.Byte(ref f);
-                s.Byte(ref t);
-                s.Byte(ref d);
-                if (s.Reading)
-                {
-                    rs.NestAlive = (f & 1) != 0;
-                    rs.Cleared = (f & 2) != 0;
-                    rs.Seen = (f & 4) != 0;
-                    rs.SpillT = t / 10f;
-                    rs.NextDoor = d - 1;
-                }
-            }
-            byte v = (byte)((VaultUp ? 1 : 0) | (VaultCleared ? 2 : 0));
-            s.Byte(ref v);
-            if (s.Reading)
-            {
-                bool up = (v & 1) != 0;
-                if (up != VaultUp)
-                    LayoutAge = 0f;
-                VaultUp = up;
-                VaultCleared = (v & 2) != 0;
-            }
         }
 
         /// Your own game for you, the host for enemies: through a portal if you're in one (and not just out of one).
@@ -754,16 +276,10 @@ namespace Arena
         public V2 HubMin => RoomsOn ? V2.Zero : ArenaMin;
         public V2 HubMax => RoomsOn ? new V2(Width, Height) : ArenaMax;
 
-        /// Is this the vault's mini-boss (any game: by where it stands)? Its intro and boss bar wait till you go to it.
-        public bool InVault(Enemy e) => VaultOn && Rooms.Areas[Rooms.Vault].Contains(e.Disp, 20f);
-
-        /// Is someone at the vault: in it, or in the top hallway near its door?
-        public bool AtVault(Player p) => VaultOn && p != null && (Rooms.Areas[Rooms.Vault].Contains(p.Disp) || p.Disp.CloserThan(Rooms.Doors[Rooms.VaultDoor].Pos, 260f));
-
-        /// Which part of the Rooms world a point is in (the hub when the rooms aren't up).
+        /// Which part of the walled world a point is in (the hub when the rooms aren't up).
         public int AreaAt(V2 p) => CurrentWorld.AreaAt(p);
 
-        /// A random spot in the Rooms world (m from an area's edges): in one of its areas, chosen by size (never the vault).
+        /// A random spot in the walled world (m from an area's edges): in one of its areas, chosen by size.
         /// How likely an area is to be where enemies come in: its size, double for a Floor room of an enemy-mix path (Swarm Fields,
         /// Sniper Ridge, Elite Gauntlet: they're where the fight is), none for a shop room (a safe place to shop).
         float SpawnWeight(RoomArea a)
@@ -771,8 +287,8 @@ namespace Arena
             float w = a.Size.X * a.Size.Y;
             if (!ExpandingOn)
                 return w;
-            if (a.Sealed || a.Kind == Arena.RoomKind.Shop || a.Kind == Arena.RoomKind.Vendor || a.Kind == Arena.RoomKind.Arms || a.Kind == Arena.RoomKind.Builder || a.Kind == Arena.RoomKind.Gatekeeper)
-                return 0f;  // (the shop, vendor, Arms Dealer and builder shop are safe rooms, the Gatekeeper has its own fight, and a sealed room can't be reached)
+            if (a.Sealed || a.Kind == Arena.RoomKind.Shop || a.Kind == Arena.RoomKind.Vendor || a.Kind == Arena.RoomKind.Arms || a.Kind == Arena.RoomKind.Medic || a.Kind == Arena.RoomKind.Builder || a.Kind == Arena.RoomKind.Gatekeeper)
+                return 0f;  // (the shop, vendor, Arms Dealer, Medic and builder shop are safe rooms, the Gatekeeper has its own fight, and a sealed room can't be reached)
             if (a.Kind == Arena.RoomKind.Floor && (a.Floor == PathId.SwarmFields || a.Floor == PathId.SniperRidge || a.Floor == PathId.EliteGauntlet))
                 return w * 2f;
             return w;
@@ -782,13 +298,10 @@ namespace Arena
         {
             float total = 0f;
             foreach (var a in CurrentWorld.Areas)
-                if (!a.Vault)
-                    total += SpawnWeight(a);
+                total += SpawnWeight(a);
             float pick = Rand(0f, total);
             foreach (var a in CurrentWorld.Areas)
             {
-                if (a.Vault)
-                    continue;
                 pick -= SpawnWeight(a);
                 if (pick <= 0f)
                 {

@@ -8,43 +8,32 @@ namespace Arena
 
     public enum EnemyType : byte
     {
-        Grunt, Burster, Sniper, Spinner, Boss,
-        Charger, Splitter, Shard, Mortar, Shielder, Medic,
+        Grunt, Sniper, Spinner, Boss,
+        Shard, Mortar, Shielder,
         HiveQueen, TwinA, TwinB, Singularity,
         // late game
-        Phantom, Hexer, Juggernaut, Nest,
         Colossus, Duelist, Decoy, Lich, Phylactery, StormHerald, Devourer, Eclipse,
         GravityWell,  // the Singularity's adds: they pull players' shots into themselves
         // melee: they never shoot, they run at you (early waves are mostly these)
-        Spiker, Brute, Lunger,
+        Brute, Lunger,
         HiveBomber,  // the Hive Queen's explosive drones: fly straight at where you were and blow up
-        CageWell,    // the Singularity's small wells that ring a player in a shrinking cage
-        Rioter,      // the Warden's riot: prisoners who run at whoever's nearest, the Warden included (Warden.cs)
-        HiveEgg,     // the Hive Queen's eggs: break them before they hatch into drones (Queen.cs)
-        Guard,       // the Warden's riot guards: they beat the rioters left after 10 s, then come for you (Warden.cs)
+        CageWell,  // the Singularity's small wells that ring a player in a shrinking cage
+        Rioter,  // the Warden's riot: prisoners who run at whoever's nearest, the Warden included (Warden.cs)
+        HiveEgg,  // the Hive Queen's eggs: break them before they hatch into drones (Queen.cs)
+        Guard,  // the Warden's riot guards: they beat the rioters left after 10 s, then come for you (Warden.cs)
         DualReaper,  // the Twin Reapers fused into one (Reapers.cs)
         ReaperPillar,  // the Dual Reaper's corner pillars: each one killed leaves a hole that can trap it (Reapers.cs)
-        SingShard,     // the Singularity's Split: shards that orbit and fire; their damage goes to the core (Singularity.cs)
-        BallLightning, // the Storm Herald's Gale: slow orbs that drift at you on the wind and arc to each other (Herald.cs)
-        Morsel,        // the Devourer's Hungry turn: food it spits out and crawls over to eat; shoot it or step on it (Devourer.cs)
-        // the second half of the run (Variety.cs)
-        BeamSentry, Scorcher, Reaver, Warder,
-        // new shooting patterns (Variety.cs)
-        Pauser, Leader, Stitcher,
+        SingShard,  // the Singularity's Split: shards that orbit and fire; their damage goes to the core (Singularity.cs)
+        BallLightning,  // the Storm Herald's Gale: slow orbs that drift at you on the wind and arc to each other (Herald.cs)
+        Morsel,  // the Devourer's Hungry turn: food it spits out and crawls over to eat; shoot it or step on it (Devourer.cs)
         // boss approaches: the Warden's faction (WardenFaction.cs)
         RiotShield, GasGrenadier,
         // challenge rooms (Challenges.cs): the mini-boss, and a Mirror Match's shadows of the players
         Gatekeeper, Shadow,
         // Zombie Infection's horde (Zombies.cs, ZombieLook.cs)
         Shambler, Runner, Spitter, Crawler, Bloater, Shrieker, Mender,
-        // melee grunts from wave 5 (EnemyAI.cs, MeleeGrunts.cs)
-        Buzzsaw, SpikeBlock,
         // the simplest melee grunt: a white chomper that walks straight at you, in packs (EnemyAI.cs)
         Swarmer,
-        // enemies that don't shoot (NonShooters.cs, Docs/EnemyRoles.md): a Hunter, a Disruptor, a Zoner and the Zoner's mines
-        FuseRunner, Hookman, Sapper, SapperMine,
-        // melee swordsmen (Swordsman.cs): a long blade that cuts a cone, and one with a shield up in front
-        Swordsman, ShieldSwordsman,
         // the Warden's faction: a ranged guard whose Fork Bolt stuns you (WardenFaction.cs, Game/TaserLook.cs)
         TaserGuard,
         // the Warden's faction: a guard with a service pistol, seven tracer rounds a magazine (SecurityGuard.cs, Game/SecurityLook.cs)
@@ -56,8 +45,8 @@ namespace Arena
         // the Hive Queen's faction (Docs/HiveFaction.md, HiveKin.cs): each plays like one of the Warden's, in the same order
         Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet,
         // the Twin Reapers' faction, the Dusk and Dawn cult (ReaperFaction.cs, Game/ReaperCultLook.cs): Wisp (a Swarmer), Acolyte
-        // (a Swordsman with a sickle), Bound Wraiths (a tethered pair), Scythe Wraith (a Lunger that reaps), Lamplighter (lines and
-        // the cross), Mourner (the twin spiral), Gravedigger (a Brute), Shade (a Phantom)
+        // (a sickle that cuts a cone), Bound Wraiths (a tethered pair), Scythe Wraith (a Lunger that reaps), Lamplighter (lines and
+        // the cross), Mourner (the twin spiral), Gravedigger (a Brute), Shade (blinks next to you)
         Wisp, Acolyte, BoundWraith, ScytheWraith, Lamplighter, Mourner, Gravedigger, Shade,
         // the Singularity's faction, the Infall (Docs/SingularityFaction.md, Infall.cs, Game/InfallLook.cs): step 1
         Debris, VoidAcolyte, Pulsar,
@@ -97,7 +86,7 @@ namespace Arena
         Moonward, Gnomon, DuskLobber,
         // ...step 3
         Sickle, Nova,
-        // step 3: a Gutworm dives and erupts under you, a Hook Thrower plays like the Hookman (a meat hook), a Maw Priest like a
+        // step 3: a Gutworm dives and erupts under you, a Hook Thrower throws a meat hook that yanks you in, a Maw Priest like a
         // Taser Guard with a maw in front that feeds on your shots
         Gutworm, HookThrower, MawPriest,
         // the Storm Herald's faction, the Squall (Docs/StormFaction.md, Squall.cs, Game/SquallLook.cs): step 1
@@ -250,26 +239,18 @@ namespace Arena
         {
             new EnemyDef { Name = "Grunt", Hp = 60f, Radius = 14f, Speed = 85f, Score = 10, Xp = 10, Sides = 3, Color = new Rgba(1f, 0.35f, 0.35f),
                 Picker = PickerGroup.Ranged, Blurb = "Fires aimed 3-shot spreads." },
-            new EnemyDef { Name = "Burster", Hp = 110f, Radius = 17f, Speed = 55f, Score = 20, Xp = 18, Sides = 6, Color = new Rgba(0.8f, 0.4f, 1f),
-                Picker = PickerGroup.Ranged, Blurb = "Fires rings of bullets; more in each ring on later waves." },
             new EnemyDef { Name = "Sniper", Hp = 50f, Radius = 12f, Speed = 95f, Score = 15, Xp = 14, Sides = 4, Color = new Rgba(1f, 0.9f, 0.3f),
                 Picker = PickerGroup.Ranged, Blurb = "Fast, accurate shots from far away." },
             new EnemyDef { Name = "Spinner", Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f),
                 Picker = PickerGroup.Ranged, Blurb = "Wanders and sprays spirals in bursts; it spins up while bursting." },
             new EnemyDef { Name = "The Warden", IsBoss = true, Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Xp = 150, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f),
                 Picker = PickerGroup.Boss, Blurb = "Boss (wave 5): a prison riot in three stages — searchlight, gates and gas, then rioters." },
-            new EnemyDef { Name = "Charger", Hp = 90f, Radius = 15f, Speed = 70f, Score = 20, Xp = 18, Sides = 3, Color = new Rgba(0.3f, 0.9f, 0.9f),
-                Picker = PickerGroup.Ranged, Blurb = "Flashes a red line, then dashes along it and bursts into a ring." },
-            new EnemyDef { Name = "Splitter", Hp = 120f, Radius = 19f, Speed = 50f, Score = 20, Xp = 16, Sides = 4, Color = new Rgba(0.6f, 1f, 0.3f),
-                Picker = PickerGroup.Ranged, Blurb = "Splits into 3 fast Shards when killed." },
             new EnemyDef { Name = "Shard", Hp = 25f, Radius = 8f, Speed = 130f, Score = 5, Xp = 4, Sides = 3, Color = new Rgba(0.8f, 1f, 0.55f),
-                Picker = PickerGroup.Ranged, Blurb = "Tiny and fast. Comes from Splitters, Nests and the Hive Queen." },
+                Picker = PickerGroup.Ranged, Blurb = "Tiny and fast. Comes from the Hive Queen and Splitting elites." },
             new EnemyDef { Name = "Mortar", Hp = 80f, Radius = 16f, Speed = 40f, Score = 20, Xp = 18, Sides = 7, Color = new Rgba(0.95f, 0.55f, 0.3f),
                 Picker = PickerGroup.Ranged, Blurb = "Lobs bombs at where you stand; they burst into a ring on landing." },
             new EnemyDef { Name = "Shielder", Hp = 140f, Radius = 17f, Speed = 60f, Score = 25, Xp = 22, Sides = 6, Color = new Rgba(0.6f, 0.7f, 0.9f),
                 Picker = PickerGroup.Ranged, Blurb = "A front shield blocks shots and swings. It turns slowly: flank it." },
-            new EnemyDef { Name = "Medic", Hp = 70f, Radius = 13f, Speed = 75f, Score = 25, Xp = 20, Sides = 4, Color = new Rgba(1f, 0.5f, 0.75f),
-                Picker = PickerGroup.Ranged, Blurb = "Heals nearby enemies every few seconds. Kill it first." },
             new EnemyDef { Name = "Hive Queen", IsBoss = true, Hp = 3000f, Radius = 44f, Speed = 40f, Score = 400, Xp = 180, Sides = 6, Color = new Rgba(1f, 0.8f, 0.2f),
                 Picker = PickerGroup.Boss, Blurb = "Boss (wave 10): a hive in three stages — drones and bombers, sealing cells and honey, then a frenzied swarm." },
             new EnemyDef { Name = "Reaper of Dusk", IsBoss = true, Hp = 2600f, Radius = 34f, Speed = 95f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(1f, 0.35f, 0.6f),
@@ -277,14 +258,6 @@ namespace Arena
             new EnemyDef { Name = "Reaper of Dawn", IsBoss = true, Hp = 2600f, Radius = 34f, Speed = 95f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(0.45f, 0.55f, 1f) },
             new EnemyDef { Name = "The Singularity", IsBoss = true, Hp = 3600f, Radius = 40f, Speed = 0f, Score = 500, Xp = 220, Sides = 10, Color = new Rgba(0.6f, 0.35f, 1f),
                 Picker = PickerGroup.Boss, Blurb = "Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages." },
-            new EnemyDef { Name = "Phantom", Hp = 90f, Radius = 13f, Speed = 90f, Score = 25, Xp = 22, Sides = 4, Color = new Rgba(0.55f, 0.85f, 1f),
-                Picker = PickerGroup.Late, Late = true, Blurb = "Flickers, blinks next to you and bursts into a ring." },
-            new EnemyDef { Name = "Hexer", Hp = 100f, Radius = 14f, Speed = 60f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(0.75f, 0.3f, 0.9f),
-                Picker = PickerGroup.Late, Late = true, Blurb = "Fires curving pincer shots that close in from both sides." },
-            new EnemyDef { Name = "Juggernaut", Hp = 420f, Radius = 26f, Speed = 32f, Score = 60, Xp = 50, Sides = 8, Color = new Rgba(0.55f, 0.55f, 0.62f),
-                Picker = PickerGroup.Late, Late = true, Heavy = true, Blurb = "Armored and slow, can't be slowed or knocked back. Rotating stars of orbs." },
-            new EnemyDef { Name = "Nest", Hp = 260f, Radius = 22f, Speed = 0f, Score = 40, Xp = 35, Sides = 6, Color = new Rgba(0.7f, 0.9f, 0.4f),
-                Picker = PickerGroup.Late, Late = true, Heavy = true, Blurb = "Stationary spawner that keeps hatching Shards until destroyed." },
             new EnemyDef { Name = "The Colossus", IsBoss = true, Hp = 6800f, Radius = 54f, Speed = 35f, Score = 600, Xp = 260, Sides = 6, Color = new Rgba(0.78f, 0.62f, 0.45f),
                 Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 25): huge stomp rings with one gap, and thrown rocks." },
             new EnemyDef { Name = "The Duelist", IsBoss = true, Hp = 6000f, Radius = 30f, Speed = 80f, Score = 650, Xp = 280, Sides = 4, Color = new Rgba(0.85f, 0.85f, 1f),
@@ -301,8 +274,6 @@ namespace Arena
                 Picker = PickerGroup.Boss, Late = true, Blurb = "Final boss (wave 50), five stages and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova." },
             new EnemyDef { Name = "Gravity Well", Hp = 260f, Radius = 15f, Speed = 160f, Score = 40, Xp = 15, Sides = 6, Color = new Rgba(0.7f, 0.45f, 1f), Late = true },
             // Melee
-            new EnemyDef { Name = "Spiker", Hp = 22f, Radius = 9f, Speed = 135f, Score = 5, Xp = 5, Sides = 3, Color = new Rgba(1f, 0.6f, 0.3f), Melee = true, Contact = 10f,
-                Picker = PickerGroup.Melee, Blurb = "Small and fast melee rusher with long thin spikes. It zig-zags toward you in pairs." },
             new EnemyDef { Name = "Brute", Hp = 200f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f,
                 Picker = PickerGroup.Melee, Blurb = "Slow, tough melee bruiser that hits hard (24) when it reaches you." },
             new EnemyDef { Name = "Lunger", Hp = 45f, Radius = 12f, Speed = 95f, Score = 12, Xp = 12, Sides = 4, Color = new Rgba(0.95f, 0.35f, 0.65f), Melee = true, Contact = 18f,
@@ -319,20 +290,6 @@ namespace Arena
             new EnemyDef { Name = "Singularity Shard", Hp = 1e6f, Radius = 20f, Speed = 0f, Score = 0, Xp = 0, Sides = 5, Color = new Rgba(0.8f, 0.5f, 1f), Melee = true },
             new EnemyDef { Name = "Ball Lightning", Hp = 70f, Radius = 15f, Speed = 0f, Score = 3, Xp = 2, Sides = 8, Color = new Rgba(0.75f, 0.9f, 1f), Melee = true, Contact = 20f },
             new EnemyDef { Name = "Morsel", Hp = 60f, Radius = 14f, Speed = 0f, Score = 0, Xp = 0, Sides = 7, Color = new Rgba(0.88f, 0.5f, 0.35f), Late = true },
-            new EnemyDef { Name = "Beam Sentry", Hp = 160f, Radius = 17f, Speed = 70f, Score = 30, Xp = 12, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f),
-                Picker = PickerGroup.Late, Blurb = "Plants itself, aims a line at you, then sweeps a beam across your side." },
-            new EnemyDef { Name = "Scorcher", Hp = 130f, Radius = 15f, Speed = 95f, Score = 30, Xp = 12, Sides = 5, Color = new Rgba(1f, 0.71f, 0.28f),
-                Picker = PickerGroup.Late, Blurb = "Circles you leaving a trail of embers. Cut across before it closes." },
-            new EnemyDef { Name = "Reaver", Hp = 240f, Radius = 19f, Speed = 150f, Score = 40, Xp = 16, Sides = 3, Color = new Rgba(1f, 0.3f, 0.43f), Melee = true, Heavy = true, Contact = 20f,
-                Picker = PickerGroup.Late, Blurb = "Armoured melee: a red cone, then a rake. Open for a moment after: +50% damage." },
-            new EnemyDef { Name = "Warder", Hp = 180f, Radius = 16f, Speed = 65f, Score = 40, Xp = 16, Sides = 8, Color = new Rgba(0.71f, 0.61f, 1f),
-                Picker = PickerGroup.Late, Blurb = "Puts bubbles on up to three allies. Kill it and they all pop." },
-            new EnemyDef { Name = "Pauser", Hp = 100f, Radius = 15f, Speed = 60f, Score = 25, Xp = 12, Sides = 6, Color = new Rgba(0.45f, 0.95f, 0.85f),
-                Picker = PickerGroup.Late, Blurb = "Fans out shots that stop dead, glow, then all rush at where you are. Keep moving." },
-            new EnemyDef { Name = "Leader", Hp = 90f, Radius = 13f, Speed = 80f, Score = 25, Xp = 12, Sides = 3, Color = new Rgba(1f, 0.55f, 0.85f),
-                Picker = PickerGroup.Late, Blurb = "Aims where you're going, not where you are. Change direction when it fires." },
-            new EnemyDef { Name = "Stitcher", Hp = 120f, Radius = 15f, Speed = 65f, Score = 30, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.82f, 0.45f),
-                Picker = PickerGroup.Late, Blurb = "Fires slow orbs; nearby orbs are tied by a harmful thread. Slip through the gaps." },
             new EnemyDef { Name = "Riot Shield", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.55f, 0.68f, 0.95f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "An officer in steel-blue riot gear behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast." },
             new EnemyDef { Name = "Gas Grenadier", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.62f, 0.92f, 0.42f),
@@ -356,25 +313,9 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Zombie: hangs back and screams, sending the horde round it into a frenzy. Silence it." },
             new EnemyDef { Name = "Mender", Hp = 50f, Radius = 12f, Speed = 65f, Score = 10, Xp = 14, Sides = 4, Color = new Rgba(0.18f, 0.84f, 0.49f),
                 Picker = PickerGroup.Ranged, Blurb = "Zombie: heals the horde round it and makes the dead rise faster. Kill it first." },
-            new EnemyDef { Name = "Buzzsaw", Hp = 30f, Radius = 12f, Speed = 170f, Score = 8, Xp = 8, Sides = 24, Color = new Rgba(0.35f, 0.82f, 1f), Melee = true, Contact = 4f,
-                Picker = PickerGroup.Melee, Blurb = "A fast ring of spinning spikes that swoops round on curves. Each touch is small, but they come about eight times a second." },
-            new EnemyDef { Name = "Spike Block", Hp = 60f, Radius = 14f, Speed = 120f, Score = 14, Xp = 14, Sides = 4, Color = new Rgba(0.9f, 0.28f, 0.3f), Melee = true, Contact = 12f,
-                Picker = PickerGroup.Melee, Blurb = "Rocks from side to side as it closes in, then stops, flashes a red line and lunges for a big hit (35). Slow to recover." },
             new EnemyDef { Name = "Swarmer", Hp = 14f, Radius = 9f, Speed = 115f, Score = 3, Xp = 3, Sides = 24, Color = new Rgba(0.97f, 0.97f, 0.95f), Melee = true, Contact = 6f,
                 Picker = PickerGroup.Melee, Blurb = "The simplest melee rusher: a white chomper with no eyes that walks straight at you. Weak alone, and it comes in packs." },
             // Enemies that don't shoot (NonShooters.cs). Melee = true keeps them out of the shooting turns; they're drawn without spikes.
-            new EnemyDef { Name = "Fuse Runner", Hp = 50f, Radius = 12f, Speed = 200f, Score = 12, Xp = 10, Sides = 24, Color = new Rgba(1f, 0.55f, 0.15f), Melee = true, Contact = 8f,
-                Picker = PickerGroup.Late, Blurb = "A powder keg on the run: it plants its feet near you and blows up after a 0.8 s fuse, hurting enemies too. Step out, or shoot it early." },
-            new EnemyDef { Name = "Hookman", Hp = 150f, Radius = 15f, Speed = 70f, Score = 25, Xp = 14, Sides = 4, Color = new Rgba(0.73f, 0.55f, 1f), Melee = true,
-                Picker = PickerGroup.Late, Blurb = "Throws a harpoon along a blinking line and yanks you to its squad. Sidestep or parry; a miss leaves it open (+50%)." },
-            new EnemyDef { Name = "Sapper", Hp = 110f, Radius = 14f, Speed = 85f, Score = 25, Xp = 14, Sides = 6, Color = new Rgba(0.91f, 0.81f, 0.29f), Melee = true,
-                Picker = PickerGroup.Late, Blurb = "Plants tripwire pods; armed pods are joined by lasers. Cross a laser or step on a pod and it blows. Shoot a pod to use it on enemies." },
-            new EnemyDef { Name = "Tripwire Pod", Hp = 1f, Radius = 7f, Speed = 0f, Score = 0, Xp = 0, Sides = 6, Color = new Rgba(1f, 0.42f, 0.35f), Melee = true, Heavy = true,
-                Picker = PickerGroup.Hidden, Blurb = "A Sapper's pod: arms in 1 s, then a laser joins it to armed pods near it. Shoot it to blow it up." },
-            new EnemyDef { Name = "Swordsman", Hp = 85f, Radius = 15f, Speed = 95f, Score = 22, Xp = 14, Sides = 24, Color = new Rgba(0.86f, 0.3f, 0.25f), Melee = true, Contact = 8f,
-                Picker = PickerGroup.Melee, Blurb = "Walks up, raises a long sword and cuts the cone drawn on the floor in front of it. Step out of the cone, then hit it while it recovers." },
-            new EnemyDef { Name = "Shield Swordsman", Hp = 85f, Radius = 15f, Speed = 75f, Score = 28, Xp = 16, Sides = 24, Color = new Rgba(0.86f, 0.3f, 0.25f), Melee = true, Contact = 8f,
-                Picker = PickerGroup.Melee, Blurb = "A Swordsman behind a shield that stops every shot from the front. The shield drops when it cuts and stays down while it recovers: shoot it then, or from the side." },
             new EnemyDef { Name = "Taser Guard", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.4f, 0.6f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "An officer in slate with a hi-vis band. Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it." },
             new EnemyDef { Name = "Security Guard", Hp = 45f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(0.42f, 0.61f, 0.7f),
@@ -418,7 +359,7 @@ namespace Arena
             new EnemyDef { Name = "Gravedigger", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 8, Color = new Rgba(1f, 0.35f, 0.6f), Melee = true, Contact = 20f,
                 Picker = PickerGroup.Melee, Blurb = "A cultist brute with a shovel. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Shade", Hp = 90f, Radius = 13f, Speed = 90f, Score = 25, Xp = 22, Sides = 3, Color = new Rgba(0.45f, 0.55f, 1f),
-                Picker = PickerGroup.Late, Late = true, Blurb = "A shrouded Phantom: fades to smoke, shows a ring where it will land, appears and fires." },
+                Picker = PickerGroup.Late, Late = true, Blurb = "A shrouded wraith: fades to smoke, shows a ring where it will land, appears and fires." },
             new EnemyDef { Name = "Debris", Hp = 22f, Radius = 10f, Speed = 125f, Score = 3, Xp = 6, Sides = 7, Color = new Rgba(0.85f, 0.35f, 1f), Melee = true, Contact = 9f,
                 Picker = PickerGroup.Melee, Blurb = "Tumbling rubble that falls at you on a curving inward spiral, so it's hard to line up." },
             new EnemyDef { Name = "Void Acolyte", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f),
@@ -799,8 +740,7 @@ namespace Arena
             BoulderShot = 50, // the Golem Staff's boulder, lobbed: it flies over enemies and crushes where it lands
             FireballShot = 51, // the Fireball: big, rolling on through enemies and setting them burning
             CrescentShot = 52, // the Eclipse's crescent blade (an enemy kind: 10-19 were all taken)
-            PauseShot = 53,    // the Pauser's shots: fly out, stop dead and hang, then the host fires a rush shot from each (Variety.cs)
-            StitchShot = 54,   // the Stitcher's orbs: each is tied to the nearest other one by a harmful thread (Variety.cs)
+            // 53, 54: retired (were the Pauser's and the Stitcher's shots)
             FireflyShot = 55,  // the Sprite Staff's firefly: seeds what it hits, then hops to the nearest enemy that isn't seeded (KitWeapons.cs)
             MedkitShot = 56,   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
             TreantSeed = 57,   // a tiny seed the Treant Rod's Treant flicks at enemies, drawn as a thorn dart (KitWeapons.cs, Game/SeedLook.cs)
@@ -818,7 +758,7 @@ namespace Arena
             HoneyGlob = 69,    // a Honeybee Staff honey glob: flies over enemies and lands as a honey puddle (HoneybeeStaff.cs, Game/HoneybeeLook.cs)
             BottleShot = 70;   // a Rioter's thrown bottle: spins as it flies, then shatters (RiotBrains.cs, Game/WardenLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -896,8 +836,6 @@ namespace Arena
             Row(table, HoneyShot, radius: 9f, color: new Rgba(1f, 0.67f, 0.16f), damage: 14f);  // the Hive Queen's nectar spray
             Row(table, HollowShot, radius: 7f, color: new Rgba(0.9f, 0.91f, 1f), damage: 0f);  // a Duelist decoy's shot: a harmless ring; the Duelist's decoys fire these: they pass through you
             Row(table, CrescentShot, radius: 14f, color: new Rgba(0.89f, 0.83f, 1f), damage: 18f);  // the Eclipse's crescent blade; the Eclipse's crescent blades
-            Row(table, PauseShot, radius: 6.5f, color: new Rgba(0.45f, 0.95f, 0.85f));  // the Pauser's teal
-            Row(table, StitchShot, radius: 8f, color: new Rgba(1f, 0.82f, 0.45f));  // the Stitcher's gold
             Row(table, TaserBolt, radius: 7f, color: new Rgba(0.75f, 0.91f, 1f), damage: 8f);  // the Fork Bolt's ice white; a Taser Guard's Fork Bolt: the same stun
             Row(table, StingBolt, radius: 7f, color: new Rgba(0.784f, 1f, 0.239f), damage: 8f);  // the Stinger's venom lime; a Stinger's dart: the same
             Row(table, MagmaBolt, radius: 8f, color: new Rgba(1f, 0.48f, 0.23f), damage: 9f);  // the Cinder Priest's magma; a Cinder Priest's bolt (and its lava)

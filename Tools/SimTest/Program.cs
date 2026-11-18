@@ -192,8 +192,8 @@ static partial class Program
         public Action<string[]> Run;     // gets the whole command line (wave, seconds, suite, extras)
     }
 
-    /// Run one test with its own repeatable random rolls (the seed comes from the test's name).
-    static void Seeded(string name, Action test)
+    /// The random rolls a test named `name` starts from (SEED=random or SEED=<salt> change them).
+    static void SeedAs(string name)
     {
         string mode = Environment.GetEnvironmentVariable("SEED");
         if (mode == "random")
@@ -207,6 +207,12 @@ static partial class Program
                 h = (h ^ c) * 16777619u;
             Game.SeedForTests((int)(h & 0x7fffffff) ^ salt);
         }
+    }
+
+    /// Run one test with its own repeatable random rolls (the seed comes from the test's name).
+    static void Seeded(string name, Action test)
+    {
+        SeedAs(name);
         Game.PropsByDefault = false;  // props only where a test asks for them (the core match, the props test)
         Game.LayoutsByDefault = false;  // floor plans too (the layouts test)
         Game.ChallengesByDefault = false;  // challenge rooms too (the challenges test)
@@ -241,7 +247,7 @@ static partial class Program
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => ColossusTest(Dt), () => LichTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => WeaponSoundsTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
-        () => BloodMageTest(Dt), () => BloodLashTest(Dt), () => BloodBlastTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => EnemyNumbersTest(Dt), () => DifficultyTest(Dt), () => PatternsTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => WarhornVolleyTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => WolfPackTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }, () => BotTeamplayTest(Dt), () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotPicksTest(Dt), () => BotShopTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => FloodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
+        () => BloodMageTest(Dt), () => BloodLashTest(Dt), () => BloodBlastTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => EnemyNumbersTest(Dt), () => DifficultyTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => WarhornVolleyTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => WolfPackTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }, () => BotTeamplayTest(Dt), () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotPicksTest(Dt), () => BotShopTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => FloodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
         () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => DevArenaTest(Dt), () => SessionSourcesTest(Dt), () => AuditFixesTest(Dt), () => FavoritesTest(Dt), () => GadgetTest(Dt), () => CauterizeTest(Dt), () => EngineerTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
     };
 
@@ -289,14 +295,12 @@ static partial class Program
         Test("bosspowertest", "bosses get more health for a party far above a typical build", () => BossPowerTest(Dt)),
         Test("reaperloot", "the Twin Reapers' legendaries: Twin Scythes, Final Reap, Scythe Throw", () => ReaperLootTest(Dt)),
         Test("queenloot", "the Hive Queen's legendaries: Hive Drones, Royal Dive, Bomber Escort", () => QueenLootTest(Dt)),
-        Test("swordsman", "the Swordsman's cone, cut and dodge, the Shield Swordsman's guard and block flash, the wave unlocks", () => SwordsmanTest(Dt)),
         Test("captain", "the Riot Captain: its shield, the charge into a wall, the whistle, its attacks, its room over the network", () => RiotCaptainTest(Dt)),
         Test("guardswing", "the riot Guard swings its baton fast, forehand then backhand, only when you're close and without stopping", () => GuardSwingTest(Dt)),
         Test("guardrally", "a Rioter near a Guard runs faster than one alone", () => GuardRallyTest(Dt)),
         Test("rioterbottle", "from wave 2 some Rioters carry one bottle and throw it at a player 110-300 px away", () => RioterBottleTest(Dt)),
         Test("security", "the Security Guard walks while it locks on, keeps its strafe side and aims straight at you", () => SecurityTest(Dt)),
         Test("reapercult", "the Twin Reapers' cult: Bound Wraiths' tether and revive, Scythe Wraith's reap, Lamplighter, Mourner", () => ReaperCultTest(Dt)),
-        Test("nonshooters", "the Fuse Runner's fuse and blast, the Hookman's yank and open window, the Sapper's Tripwire Pods", () => NonShootersTest(Dt)),
         Test("turnkey", "the Warden faction's Turnkey: its wave-3 debut, running, traps, Cell Doors and their Rioters", () => TurnkeyTest(Dt)),
         Test("hitfx", "hit feedback: fire alone doesn't flash an enemy, steady fire softens the flash, Explosive Rounds' blasts are thinned", () => HitFxTest(Dt)),
         Test("upgradefix", "Velocity Rounds land airbursts at the cursor; Incendiary Rounds add up", () => UpgradeFixesTest(Dt)),
@@ -356,8 +360,7 @@ static partial class Program
         Test("devarena", "the F1 Dev Arena: no waves, god mode, playing as an enemy (move, attack, attack now, let go)", () => DevArenaTest(Dt)),
         Test("brute", "Brute enrage", () => BruteEnrageTest()),
         Test("trickle", "Campaign handover: fade and trickle", () => TrickleTest()),
-        Test("meleesounds", "melee rushers' sounds: quieter with distance, Buzzsaw contact whirr, distinct deaths that merge", () => MeleeSoundsTest(Dt)),
-        Test("grunts", "melee grunts: Buzzsaw and Spike Block from wave 5, the zig-zagging Spiker", () => MeleeGruntsTest(Dt)),
+        Test("meleesounds", "melee rushers' sounds: quieter with distance, distinct deaths that merge", () => MeleeSoundsTest(Dt)),
         Test("late", "waves 11-13: new enemies and elites", () => LateGameEnemies(Dt)),
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
@@ -378,7 +381,7 @@ static partial class Program
         Test("singularity", "the Singularity's three stages and last stand", () => SingularityTest(Dt), () => SingularityCageTest(Dt)),
         Test("herald", "the Storm Herald's three stages and last stand", () => HeraldTest(Dt)),
         Test("eclipse", "the Eclipse's five stages and Totality", () => EclipseTest(Dt)),
-        Test("variety", "the new late enemies, elite traits and squads", () => VarietyTest(Dt)),
+        Test("variety", "elite traits and squads", () => VarietyTest(Dt)),
         Test("devourer", "the Devourer's three stages and last meal", () => DevourerTest(Dt)),
         Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("pacman", "the Pac-Man maze game: maze, steering, tunnel, dots and pellets, the four role ghosts, lives, levels, the ghost house, co-op", () => PacmanTest(Dt)),
@@ -393,7 +396,7 @@ static partial class Program
         Test("colossus", "the Colossus's three stages, stomp rings, plates and last stand", () => ColossusTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),
         Test("bosses", "every late boss's mechanics, victory and endless", () => BossMechanics(Dt)),
-        Test("latewaves", "waves 25-50: late enemies, each late boss beaten, victory and endless", () => LateWaves(Dt)),
+        Test("latewaves", "waves 25-50: each late boss beaten, victory and endless", () => LateWaves(Dt)),
         Test("exploit", "parking a blocker on a boss", () => ExploitTest(Dt)),
         Test("dpstools", "the DPS meter and target dummies", () => DpsToolsTest(Dt)),
         Test("balancetest", "the F1 Balance tab: five test waves, the log and the report", () => BalanceTestRun(Dt)),
@@ -439,7 +442,6 @@ static partial class Program
         Test("healersolo", "Healers alone: aura self-heal, overheal shields, Martyr's ward, Phoenix, Adrenaline Shot", () => HealerSoloTest(Dt)),
         Test("momentum", "the DPS role passive Momentum: kill stacks, speed and fire rate, ageing, downed, snapshot, DPS only", () => MomentumTest(Dt)),
         Test("adrenaline", "the Adrenaline Shot: cursor targeting, speed, fire rate, damage cut, expiry, Long Dose, capstone", () => AdrenalineTest(Dt)),
-        Test("patterns", "the Pauser, Leader and Stitcher: their shots, threads, sync and bot rules", () => PatternsTest(Dt)),
         Test("difficulty", "difficulty presets and Custom: lobby, sync, saves, and what each number changes", () => DifficultyTest(Dt)),
         Test("readable", "regular waves: shooters take turns, a wind-up, bullet shapes, thinner rings", () => ReadabilityTest(Dt)),
         Test("rulemods", "Hunted, Death Throes, Solid Walls and Second Wind", () => RuleModifiersTest(Dt)),
@@ -450,11 +452,10 @@ static partial class Program
         Test("timed", "timed waves: enemies arrive over a window (ramp, plateau, taper) and the wave clears when all are dead", () => TimedWavesTest(Dt)),
         Test("portals", "spawn portals and surges: bursts through portals, sealing one cancels the rest, flanks behind the party, the surge rhythm", () => SpawnPortalsTest(Dt)),
         Test("layouts", "arena layouts: the six floor plans, walls and pillars, edge gates, enemy gates, steering round walls", () => LayoutsTest(Dt)),
-        Test("wings", "the Rooms arena (phase 1): the Arena setting, the Wings rooms and hallways, doors, walls, spawns, steering, boss waves in the hub", () => RoomsArenaTest(Dt)),
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingRoomChestTest(), () => ExpandingNodeCentreTest(), () => ExpandingVectorChestTest(Dt), () => ChestKindsTest(Dt)),
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
         Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => GridPiecesTest(), () => GridCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => GridPiecesGameTest(Dt)),
-        Test("armsdealer", "the Arms Dealer and the boss card pick (Docs/ArmsDealer.md): a service room selling every weapon mod for gold, priced by your stacks; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),
+        Test("armsdealer", "the Arms Dealer, its once-a-cycle card and the Medic (Docs/ArmsDealer.md): service rooms selling every weapon mod for gold, priced by your stacks, and heals and revives; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),
         Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt), () => MysteryBotsTest(Dt)),
         Test("chests", "chest kinds (Props.cs ChestKind): the node roll, each kind's reward, the kind in the snapshot", () => ChestKindsTest(Dt)),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
@@ -484,7 +485,7 @@ static partial class Program
         Test("runstats", "the Run stats screen's live numbers reach every player", () => RunStatsLiveTest(Dt)),
         Test("waveready", "the between-waves summary, awards, Ready and Auto-ready", () => WaveReadyTest(Dt)),
         Test("wavekinds", "a recipe wave shows at most 6 distinct enemy types (8 from wave 25)", () => WaveKindsTest()),
-        Test("landmarks", "the Phantom's blink, the Mortar's bomb and the Charger's dash end mark where they land", () => LandingMarksTest()),
+        Test("landmarks", "the Shade's blink and the Mortar's bomb mark where they land", () => LandingMarksTest()),
         Test("newenemies", "the new-enemy chips: which types a wave brings and a note for each", () => NewEnemiesTest()),
         Test("enemynumbers", "every weapon has a damage a second, spawn health at your wave, the fire-rate ramp", () => EnemyNumbersTest(Dt)),
         Test("labtest", "the Boss Lab", () => BossLabTest(Dt)),
@@ -507,7 +508,7 @@ static partial class Program
             args => LabRun(int.Parse(args[3]), (BotSkill)int.Parse(args[4]), int.Parse(args[5]), args.Skip(6).ToArray())),
         Report("quickfights", "Quick Play boss fights with bots: every boss after waves 10/20/30, its fight length (run.sh 1 1 quickfights [runs] [waves] [skill] [seats])", args => QuickFightsReport(args)),
         Report("levels", "the level a team of Good bots has at each boss", args => LevelReport(Dt)),
-        Report("arenabal", "the Rooms arena vs Classic: a duo of Good bots, each regular wave's length, damage taken, threats in view (run.sh 1 1 arenabal [last wave] [seed] [Rooms damage x])", args => ArenaBalanceReport(Dt, Arg(args, 3, 20), Arg(args, 4, 1), args.Length > 5 ? float.Parse(args[5], System.Globalization.CultureInfo.InvariantCulture) : 0f)),
+        Report("arenabal", "the Expanding arena vs Classic: a duo of Good bots, each regular wave's length, damage taken, threats in view (run.sh 1 1 arenabal [last wave] [seed] [Expanding damage x])", args => ArenaBalanceReport(Dt, Arg(args, 3, 20), Arg(args, 4, 1), args.Length > 5 ? float.Parse(args[5], System.Globalization.CultureInfo.InvariantCulture) : 0f)),
         Report("vecbal", "the Expanding arena's vector economy: a duo of Good bots on Classic vs Expanding, each round's vectors, proposals and rooms built (run.sh 1 1 vecbal [last wave] [seed])", args => VectorBalanceReport(Dt, Arg(args, 3, 25), Arg(args, 4, 1), Arg(args, 5, 0) == 1)),
         Report("rooms", "a duo of Good bots plays with challenge rooms on: how each room went (run.sh 1 1 rooms [last wave] [seed])", args => RoomsReport(Dt, Arg(args, 3, 30), Arg(args, 4, 1))),
         Report("huntbal", "the hunt map's balance: a duo of Good bots plays the same maps on a safe, an Elite and a random route (run.sh 1 1 huntbal [maps] [first seed] [bot skill 1-3] [routes, e.g. safe,elite,random,plain])", args => HuntMapBalanceReport(Dt, Arg(args, 3, 4), Arg(args, 4, 1), (BotSkill)Arg(args, 5, 2), args.Length > 6 ? args[6] : null)),
@@ -533,9 +534,9 @@ static partial class Program
     /// test; its other test is also in features.)
     static readonly string[] CiExtras =
     {
-        "swordsman", "snapshot", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
-        "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "bonespear", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
+        "snapshot", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
+        "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
+        "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "bonespear", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "armsdealer", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };

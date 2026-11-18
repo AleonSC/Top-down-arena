@@ -13,7 +13,7 @@ static partial class Program
     {
         var none = new List<ExpansionRoom>();
         var hubOnly = Expansion.Build(none);
-        Check(hubOnly.Areas.Length == 1 && hubOnly.Doors.Length == 0 && hubOnly.WallsFor(false).Length == 4 && hubOnly.Max.X == Game.Width && hubOnly.Max.Y == Game.Height,
+        Check(hubOnly.Areas.Length == 1 && hubOnly.Doors.Length == 0 && hubOnly.Walls().Length == 4 && hubOnly.Max.X == Game.Width && hubOnly.Max.Y == Game.Height,
             "with nothing built the world is the hub alone, walled in");
 
         int coverSeen = 0, hallCover = 0, badCover = 0, loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, piecesSeen = 0;
@@ -166,11 +166,9 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
         Quiet();
 
-        // The setting: Expanding wins over Rooms, and the arena is its walled world: the hub and the Grid core round it (GridRooms.cs).
+        // The setting: the arena is its walled world: the hub and the Grid core round it (GridRooms.cs).
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
-        g.Diff.Set(DiffKnob.ArenaRooms, 1f);
-        Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting wins over Rooms");
-        g.Diff.Set(DiffKnob.ArenaRooms, 0f);
+        Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting makes the Expanding arena");
         Run(s, dt, 1f, () => cg.Expanded.Count == 4);
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f);
@@ -195,7 +193,7 @@ static partial class Program
         Run(s, dt, 0.4f);
         Check(g.RoomsOn && cg.RoomsOn && g.CurrentWorld.Areas.Length == 6 && g.ArenaMax.DistanceTo(g.CurrentWorld.Max) < 0.01f && cg.CurrentWorld.Areas.Length == 6 && g.Walled,
             "the built room is up on a regular wave: the hub, the core and the piece, walled, the same on the client");
-        Check(g.LayoutOn && g.ActiveLayout.Name.Contains("Expanding") && g.ActiveLayout.Solids.Length >= g.CurrentWorld.WallsFor(false).Length, "its walls are part of the floor plan (" + g.ActiveLayout.Name + ")");
+        Check(g.LayoutOn && g.ActiveLayout.Name.Contains("Expanding") && g.ActiveLayout.Solids.Length >= g.CurrentWorld.Walls().Length, "its walls are part of the floor plan (" + g.ActiveLayout.Name + ")");
         Check(g.ExpansionScale > 1f && g.ExpansionScale <= Game.MaxExpandScaleEarly, "a bigger map means a bigger crowd (x" + g.ExpansionScale.ToString("0.00") + ")");
 
         // A teleport (Shadow Step, Blink) never lands in a gap between the rooms or in a wall: it backs up onto the floor.
@@ -640,13 +638,13 @@ static partial class Program
         vp.Vectors = vpWas;
         PutBoth(hubAt, hubAt);
         Quiet();
-        for (int k = 0; k < 5 && g.Enemies.Count > 0; k++) { Run(s, dt, 0.2f); Quiet(); }  // (what Quiet killed may leave something behind: a Splitter's Shards)
+        for (int k = 0; k < 5 && g.Enemies.Count > 0; k++) { Run(s, dt, 0.2f); Quiet(); }  // (what Quiet killed may leave something behind: a Splitting elite's Shards)
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, NoPicks);
         Run(s, dt, 1f, () => cg.Players[1].Vectors == g.Players[1].Vectors, NoPicks);  // (the wave's vectors reach the client with the next snapshot)
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
-        // The room shops: upgrades and restocks only in the shop room, services (heals, revives, sales) in either room, nothing in the hub.
+        // The room shops: upgrades and restocks only in the shop room, sales in either room, heals and revives in neither (the Medic sells them), nothing in the hub.
         Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a vendor room the shop never holds the countdown");
         V2 vendorAt = g.CurrentWorld.Areas[6].Mid;
         var pm = g.Players[1];
@@ -659,7 +657,7 @@ static partial class Program
         g.Shop(ShopAction.Buy, slot);
         Check(pm.Gold == 1000, "the vendor sells no upgrades");
         g.Shop(ShopAction.Heal);
-        Check(pm.Gold == 1000 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the vendor heals");
+        Check(pm.Gold == 1000 && pm.Hp < pm.MaxHp * 0.6f, "the vendor doesn't heal (only the Medic does)");
         pm.Pos = pm.Disp = shopAt;
         int gold1 = pm.Gold;
         g.Shop(ShopAction.Buy, slot);
@@ -667,9 +665,9 @@ static partial class Program
         pm.Hp = pm.MaxHp * 0.5f;
         int gold2 = pm.Gold;
         g.Shop(ShopAction.Heal);
-        Check(pm.Gold == gold2 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the shop room's services work too: it heals");
+        Check(pm.Gold == gold2 && pm.Hp < pm.MaxHp * 0.6f, "nor does the shop room");
         g.Shop(ShopAction.BuyBuild, 0);
-        Check(pm.Gold == gold2 - Game.HealPrice && pm.Stash[0] == 0, "buildables are only sold at the vendor");
+        Check(pm.Gold == gold2 && pm.Stash[0] == 0, "buildables are only sold at the vendor");
         g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);

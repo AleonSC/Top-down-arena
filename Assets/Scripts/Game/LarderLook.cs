@@ -15,7 +15,7 @@ namespace Arena
     ///   Gutworm: a brood head on three shrinking segments trailing behind it; underground it's only a ripple of earth
     ///     (DrawLarderFloor), then a red mark that fills before it erupts.
     ///   Hook Thrower: the Butcher's robe with a meat hook swinging round it on a short chain; its line and thrown hook are
-    ///     the Hookman's (DrawHookUnder, NonShooterLooks.cs).
+    ///     the hook's (DrawHookUnder, NonShooterLooks.cs).
     ///   Maw Priest: a dark red robe and hood; the Devourer's jaw in front of it, a 90° maw with bone teeth on both edges
     ///     (DrawLarderFloor), glowing as it charges.
     ///   A fed Gnawling (it ate a morsel) is drawn a third bigger and darker.

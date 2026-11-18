@@ -2,33 +2,36 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The look of the Rooms arena (Rooms.cs, Docs/Rooms.md; mockup Docs/Mockups/rooms.html): the floor grid across the
-    /// whole world, a faint tint on the side rooms and hallways so the hub stands out (the vault in gold), the doors, and
-    /// the minimap. The walls themselves are layout solids, drawn with the floor plan's (LayoutLook.cs).
-    ///   doors    cyan brackets between the hub and a hallway's neighbours; a room's door is red while its nest lives,
-    ///            flashes amber for the 2 s before a spill comes out of it, gets a solid bar across while someone is locked
-    ///            in behind it, and turns teal once the room is cleared. The vault's is gold until its mini-boss falls.
-    ///   minimap  top right, under the hints: every area (rooms red until cleared, dim until someone has seen them, teal
-    ///            once cleared; the vault gold), the doors in their colours with a ring filling up to each room's next spill,
-    ///            enemies (spilled runners orange, nests yellow-green, the vault's mini-boss big and orange), the
-    ///            players, and the box your screen shows.
+    /// The look of the walled worlds (the Expanding arena and Survival's big room; Rooms.cs, World.cs): the floor grid,
+    /// a faint tint on the rooms so the hub stands out, the doors, and the minimap. The walls themselves are layout solids,
+    /// drawn with the floor plan's (LayoutLook.cs).
+    ///   doors    cyan brackets.
+    ///   minimap  top right, under the hints: every area, the doors, the nodes, enemies (mini-bosses and bosses big and
+    ///            orange), the players, and the box your screen shows.
     public partial class ArenaApp
     {
         static readonly Rgba OpenRoomTint = new Rgba(0.45f, 0.6f, 1f, 0.03f);
-        static readonly Rgba RoomTint = new Rgba(1f, 0.3f, 0.35f, 0.03f), ClearTint = new Rgba(0.25f, 0.9f, 0.7f, 0.035f), HallTint = new Rgba(0.2f, 0.3f, 0.6f, 0.05f),
-            VaultTint = new Rgba(1f, 0.62f, 0.3f, 0.06f), ShopTint = new Rgba(1f, 0.82f, 0.3f, 0.07f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorRed = new Rgba(1f, 0.3f, 0.36f),
-            DoorAmber = new Rgba(1f, 0.7f, 0.28f), DoorTeal = new Rgba(0.25f, 0.9f, 0.7f), DoorGold = new Rgba(1f, 0.82f, 0.4f);
+        static readonly Rgba HallTint = new Rgba(0.2f, 0.3f, 0.6f, 0.05f),
+            ShopTint = new Rgba(1f, 0.82f, 0.3f, 0.07f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorGold = new Rgba(1f, 0.82f, 0.4f),
+            DoorTeal = new Rgba(0.25f, 0.9f, 0.7f);
 
         /// A tiny service room built from a card or a mystery door (not floating): it gets the same mark as a floating one.
         static bool TinyService(RoomArea a)
-            => (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms) && a.Size.X <= Expansion.ShopRoomSide + Expansion.Step && a.Size.Y <= Expansion.ShopRoomSide + Expansion.Step;  // (4 x 4, or a mystery door's 5 x 4)
+            => (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic) && a.Size.X <= TinySide && a.Size.Y <= TinySide;  // (4 x 4, a mystery door's 5 x 4, or a Grid run's one cell)
 
-        /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor), a crosshair (Arms Dealer) or a diamond (Gatekeeper).
+        const int TinySide = Expansion.GridCell > Expansion.ShopRoomSide + Expansion.Step ? Expansion.GridCell : Expansion.ShopRoomSide + Expansion.Step;
+
+        /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor), a crosshair (Arms Dealer), a pill (Medic) or a diamond (Gatekeeper).
         void DrawFloatingMark(RoomArea a)
         {
             if (!a.Sealed && a.Kind == RoomKind.Arms)  // an Arms Dealer: its stall (ArmsDealerLook.cs)
             {
                 DrawArmsStall(a.Mid);
+                return;
+            }
+            if (!a.Sealed && a.Kind == RoomKind.Medic)  // a Medic: its bay (MedicLook.cs)
+            {
+                DrawMedicBay(a.Mid);
                 return;
             }
             if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor))  // an opened shop or vendor room: its stall or pedestal
@@ -54,6 +57,13 @@ namespace Arena
                     Line(c + new V2(12f, 0f), c + new V2(34f, 0f), 4f, col);
                     Line(c + new V2(0f, -34f), c + new V2(0f, -12f), 4f, col);
                     Line(c + new V2(0f, 12f), c + new V2(0f, 34f), 4f, col);
+                    break;
+                case RoomKind.Medic:  // a capsule pill on its side
+                    Arc(c - new V2(14f, 0f), 12f, 4f, col, 10, MathX.Tau / 4f, MathX.Tau / 2f);
+                    Arc(c + new V2(14f, 0f), 12f, 4f, col, 10, -MathX.Tau / 4f, MathX.Tau / 2f);
+                    Line(c + new V2(-14f, -12f), c + new V2(14f, -12f), 4f, col);
+                    Line(c + new V2(-14f, 12f), c + new V2(14f, 12f), 4f, col);
+                    Line(c + new V2(0f, -12f), c + new V2(0f, 12f), 4f, col);
                     break;
                 default:  // the Gatekeeper: a diamond
                     Line(c + new V2(0f, -30f), c + new V2(30f, 0f), 4f, col);
@@ -86,17 +96,15 @@ namespace Arena
 
         void DrawRoomsFloor(Rgba grid)
         {
-            bool vault = game.VaultOn;
             var wd = game.CurrentWorld;
-            V2 lo = wd.MinFor(vault), hi = wd.Max;
+            V2 lo = wd.Min, hi = wd.Max;
             for (int i = 0; i < wd.Areas.Length; i++)
             {
                 var a = wd.Areas[i];
-                if (a.Hub || a.Vault && !vault || CoreArea(i))
+                if (a.Hub || CoreArea(i))
                     continue;
-                var rs = RoomStateOf(i);
-                var tint = a.Surprise > 0 ? SurpriseInk(a.Surprise).WithAlpha(0.06f) : a.Floating || TinyService(a) ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Builder ? BuilderInk.WithAlpha(0.07f) : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
-                    : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
+                var tint = a.Surprise > 0 ? SurpriseInk(a.Surprise).WithAlpha(0.06f) : a.Floating || TinyService(a) ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Builder ? BuilderInk.WithAlpha(0.07f) : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
+                    : a.Hall ? HallTint : OpenRoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
                 if (a.Surprise > 0)  // a surprise room: gold build-in and rim (SurpriseLook.cs)
                     DrawSurpriseRoom(wd, i, a);
@@ -135,19 +143,12 @@ namespace Arena
             }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!wd.DoorUp(i, vault) || wd.Seam(i) || CoreSeam(wd, i))
+                if (wd.Seam(i) || CoreSeam(wd, i))
                     continue;
                 var d = wd.Doors[i];
-                bool locked;
-                var col = DoorColour(i, out locked);
+                var col = DoorInk;
                 V2 j0 = d.Pos - d.Along * (d.W / 2f), j1 = d.Pos + d.Along * (d.W / 2f), t = d.Across * (Rooms.WallT * 0.9f);
-                if (locked)  // a solid bar across: you can come in, not go out
-                {
-                    Line(j0, j1, 10f, col.WithAlpha(0.25f * a2));
-                    Line(j0, j1, 4f, col.WithAlpha(0.85f * a2));
-                }
-                else
-                    PhosDash(j0, j1, 10f, 8f, 0f, 1.5f, col.WithAlpha(0.4f * a2));
+                PhosDash(j0, j1, 10f, 8f, 0f, 1.5f, col.WithAlpha(0.4f * a2));
                 foreach (var j in new[] { j0, j1 })
                 {
                     Line(j - t, j + t, 6f, col.WithAlpha(0.2f * a2));
@@ -261,48 +262,6 @@ namespace Arena
             Quad(p, q, r, s);
         }
 
-        RoomState RoomStateOf(int area)
-        {
-            foreach (var rs in game.RoomStates)
-                if (rs.Area == area)
-                    return rs;
-            return null;
-        }
-
-        /// A door's colour, and whether it's locked (someone is shut in behind it).
-        Rgba DoorColour(int i, out bool locked)
-        {
-            var d = game.CurrentWorld.Doors[i];
-            locked = false;
-            foreach (int area in new[] { d.A, d.B })
-            {
-                var a = game.CurrentWorld.Areas[area];
-                if (a.Vault)
-                {
-                    locked = game.AreaLocked(area) && SomeoneIn(a);
-                    return game.VaultCleared ? DoorTeal : DoorGold;
-                }
-                var rs = RoomStateOf(area);
-                if (rs == null || !Rooms.RoomByRoom)
-                    continue;  // (the open map: a room's doors are plain doorways)
-                if (rs.Cleared)
-                    return DoorTeal;
-                locked = game.AreaLocked(area) && SomeoneIn(a);
-                if (rs.NestAlive && rs.NextDoor == i && rs.SpillT < Rooms.SpillWarn)
-                    return Mathf.Repeat(game.AnimT * 6f, 1f) < 0.5f ? DoorAmber : DoorAmber.WithAlpha(0.35f);
-                return DoorRed;
-            }
-            return DoorInk;
-        }
-
-        bool SomeoneIn(RoomArea a)
-        {
-            foreach (var p in game.Players.Values)
-                if (a.Contains(p.Disp))
-                    return true;
-            return false;
-        }
-
         // --- The minimap -------------------------------------------------------------------------------------------
 
         // A fixed-size window that follows you: RoomMapW x RoomMapH px showing RoomMapScale px of minimap per world px, centred on your
@@ -330,13 +289,12 @@ namespace Arena
 
         bool InMap(V2 c) => mapH > 12f && c.X >= mapOx && c.X <= mapOx + mapW && c.Y >= mapOy && c.Y <= mapOy + mapH;
 
-        /// DrawHud: the Rooms and Expanding arenas' map: the minimap (top right), the full map or neither, as the Map key
+        /// DrawHud: the walled worlds' map: the minimap (top right), the full map or neither, as the Map key
         /// last set it (MapView.cs).
         void DrawRoomsMinimap()
         {
             if (!game.RoomsOn || !game.Running)
                 return;
-            bool vault = game.VaultOn;
             var wd = game.CurrentWorld;
             V2 lo, hi;
             MapBounds(out lo, out hi);
@@ -363,23 +321,16 @@ namespace Arena
             for (int i = 0; i < wd.Areas.Length; i++)
             {
                 var a = wd.Areas[i];
-                if (a.Vault && !vault)
-                    continue;
-                var rs = RoomStateOf(i);
                 Rgba fill, line;
                 if (a.Floating) { var fi = KindInk(a.Kind, a.Floor); float fb = a.Sealed ? 0.5f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f; fill = fi.WithAlpha(0.2f * fb); line = fi.WithAlpha(0.9f * fb); }
                 else if (a.Surprise > 0 && game.SurpriseFresh) { fill = SurpriseInk(a.Surprise).WithAlpha(0.22f); line = SurpriseInk(a.Surprise); }
                 else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
                 else if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
-                else if (a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms) { fill = KindInk(a.Kind, a.Floor).WithAlpha(0.2f); line = KindInk(a.Kind, a.Floor); }  // (a Black Market or Arms Dealer from a card or a door)
+                else if (a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic) { fill = KindInk(a.Kind, a.Floor).WithAlpha(0.2f); line = KindInk(a.Kind, a.Floor); }  // (a Black Market, Arms Dealer or Medic from a card or a door)
                 else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }
                 else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
                 else if (a.Hall) { fill = new Rgba(0.4f, 0.64f, 1f, 0.06f); line = new Rgba(0.4f, 0.64f, 1f, 0.35f); }
-                else if (a.Vault) { fill = game.VaultCleared ? DoorTeal.WithAlpha(0.3f) : DoorGold.WithAlpha(0.22f); line = game.VaultCleared ? DoorTeal : DoorGold; }
-                else if (!Rooms.RoomByRoom) { fill = new Rgba(0.4f, 0.64f, 1f, 0.09f); line = new Rgba(0.4f, 0.64f, 1f, 0.5f); }
-                else if (rs != null && rs.Cleared) { fill = DoorTeal.WithAlpha(0.3f); line = DoorTeal; }
-                else if (rs != null && rs.Seen) { fill = DoorRed.WithAlpha(0.2f); line = DoorRed; }
-                else { fill = new Rgba(0.4f, 0.64f, 1f, 0.04f); line = new Rgba(0.4f, 0.64f, 1f, 0.3f); }
+                else { fill = new Rgba(0.4f, 0.64f, 1f, 0.09f); line = new Rgba(0.4f, 0.64f, 1f, 0.5f); }
                 bool core = CoreArea(i) || a.Hub && CoreArea(1);  // a Grid run's core: one room with the start room, its rim drawn once below
                 if (core && !a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); }
                 V2 p0 = M(a.Min), p1 = M(a.Max);
@@ -414,20 +365,11 @@ namespace Arena
             }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!wd.DoorUp(i, vault) || wd.Seam(i) || CoreSeam(wd, i))
+                if (wd.Seam(i) || CoreSeam(wd, i))
                     continue;
-                bool locked;
-                var col = DoorColour(i, out locked);
                 V2 c = M(wd.Doors[i].Pos);
-                MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, col);
+                MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, DoorInk);
             }
-            foreach (var rs in game.RoomStates)  // the next spill: a ring filling up round its door
-                if (rs.NestAlive && !rs.Cleared && rs.NextDoor >= 0)
-                {
-                    float f = Mathf.Clamp01(1f - rs.SpillT / Rooms.SpillTime(game.Wave));
-                    V2 c = M(wd.Doors[rs.NextDoor].Pos);
-                    if (InMap(c)) Arc(c, 7f, 1.5f, (rs.SpillT < Rooms.SpillWarn ? DoorAmber : DoorRed).WithAlpha(0.9f), 16, -Mathf.PI / 2f, MathX.Tau * f);
-                }
             for (int i = 0; i < wd.Portals.Length; i++)  // the portals, in their pair's colour (a wall portal: a bar along its wall)
             {
                 var pt = wd.Portals[i];
@@ -473,9 +415,8 @@ namespace Arena
                 if (e.Hp <= 0f)
                     continue;
                 V2 c = M(e.Disp);
-                if (e.Type == EnemyType.Nest) { MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, new Rgba(0.72f, 0.9f, 0.36f)); continue; }
                 if (e.Def.Mini || e.Def.IsBoss) { MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
-                MapRect(c.X - 1f, c.Y - 1f, 2f, 2f, e.Type == EnemyType.Runner ? new Rgba(1f, 0.55f, 0.24f) : new Rgba(1f, 0.32f, 0.36f, 0.85f));
+                MapRect(c.X - 1f, c.Y - 1f, 2f, 2f, new Rgba(1f, 0.32f, 0.36f, 0.85f));
             }
             foreach (var ch in game.Props.Values)  // unopened treasure chests: a square in the kind's ink
             {
@@ -526,11 +467,11 @@ namespace Arena
             DrawMapLabels(geo);  // the full map's title and legend, the "Map off" note (MapView.cs)
         }
 
-        /// What the map shows: the world (with the vault if it's up) and the nodes.
+        /// What the map shows: the world and the nodes.
         void MapBounds(out V2 lo, out V2 hi)
         {
             var wd = game.CurrentWorld;
-            lo = wd.MinFor(game.VaultOn); hi = wd.Max;
+            lo = wd.Min; hi = wd.Max;
             IncludeNodes(ref lo, ref hi);
         }
 

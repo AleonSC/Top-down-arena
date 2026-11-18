@@ -287,7 +287,7 @@ round of ammo.
 
 Hold **right click** (or your Parry key) to raise a small shield on the side facing your cursor. It blocks enemy bullets from that side
 (including the red aimed shots that barriers can't stop) and melee enemies that run into it, sliding them back 45 px.
-A weapon strike (a Swordsman's cut, a Reaver's rake, a Scythe Wraith's reap) is blocked whenever the shield faces the
+A weapon strike (an Acolyte's sickle, a Scythe Wraith's reap) is blocked whenever the shield faces the
 striker, however far its blade reaches, and throws the striker back 120 px (armoured enemies and bosses stand firm). While
 it's up you **can't shoot** and you move at 70% speed. It soaks **150 damage**, then breaks and can't be raised for 3
 s; it refills when you lower it. Raise it just as a shot arrives for a **perfect parry**: for the first 0.30 s after
@@ -533,8 +533,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Rules
 
-- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 every two waves (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
-- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 8 waves, up to 8) through a **spawn portal**: a violet digital gate whose segmented ring fills like a loading bar while it opens (1 s) where the burst comes in (an edge, a layout's enemy gate, a spot on the Rooms map, never within 160 px of a player, and always with its whole ring clear of walls and pillars), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and it blows apart in a white flash: **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge, when their rings chase faster and more bits pour in); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
+- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 every two waves (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot in the Expanding arena's rooms, of four) to a player that is at least 350 px away, so big maps don't feel empty.
+- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 8 waves, up to 8) through a **spawn portal**: a violet digital gate whose segmented ring fills like a loading bar while it opens (1 s) where the burst comes in (an edge, a layout's enemy gate, a spot in the Expanding arena's rooms, never within 160 px of a player, and always with its whole ring clear of walls and pillars), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and it blows apart in a white flash: **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge, when their rings chase faster and more bits pour in); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
 - **Flank portals:** from wave 5, one burst in 4 (never a wave's first) opens **behind the party**, opposite the way the players are aiming: a red portal that takes 1.6 s to open, and a red arrow round your player points at it.
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
 - **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
@@ -595,7 +595,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - **Reading the shots:** a regular shooter glows (a white core, a ring closing in) for 0.3 s before each volley. Enemy
   bullets show what they'll do: a shot aimed at a player is a **dart** pointing where it flies, a curving shot is a
   **crescent**, and rings and sprays (6 or more shots at once) are **round**. Rings are sparse and slow enough to slip
-  through: Burster up to 12 at 115 px/s, Charger 8, Phantom 8, Mortar bombs 7 (10 elite) at 125, Volatile 12.
+  through: a Shade's 8, Mortar bombs 7 (10 elite) at 125 px/s, Volatile 12.
 
 ## Enemies
 
@@ -603,16 +603,14 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 fours), **Brute** (tank), **Lunger** (charger), **Grunt** (gunner), **Sniper**, **Spinner** (spray), **Mortar** (artillery)
 and **Shielder** (guard). They fill the Campaign's mix around the factions, and in Quick Play and Boss Hunt they stand in as
 the faction of any boss that has no faction yet (squads Rush, Firing line, Brute pack, Shield wall and Barrage, and the
-**Last stand** set piece before the boss). The other plain enemies (Spiker, Buzzsaw, Spike Block, Swordsman, Shield Swordsman,
-Burster, Charger, Splitter, Medic, Pauser, Fuse Runner, Hookman, Sapper, Phantom, Beam Sentry, Leader, Hexer, Stitcher,
-Scorcher, Juggernaut, Reaver, Nest, Warder) are **retired** from the waves until future faction packs bring them back; bosses
-that summon some (the Eclipse's Phantoms and Hexers) and the Rooms map's nests still do, and the Wave editor can still place them.
+**Last stand** set piece before the boss). These eight are the only plain enemies: the old ones no faction used were removed
+(Nov 18).
 
 **Job markers.** A small bar and shape under each regular enemy shows its job: orange dot = Pressure (shoots), red chevron = Hunter (runs at you), yellow ring = Zoner (takes ground), violet diamond = Disruptor (breaks your position), cyan square = Anchor (kill it first). Bosses get none.
 
-The Lunger, Spike Block, Charger and Riot Shield all warn of a lunge the same way: a red strip on the floor that fills up over the wind-up and flashes white just before they go.
+The Lunger (and its kin: Shiv, Scythe Wraith) and the Riot Shield warn of a lunge the same way: a red strip on the floor that fills up over the wind-up and flashes white just before they go.
 
-A Phantom shows a ring where it is about to blink (half a second before it does, and before its ring of shots), and a Mortar's bomb shows a ring where it will land.
+A Shade shows a ring where it is about to blink (half a second before it does, and before its ring of shots), and a Mortar's bomb shows a ring where it will land.
 
 **New enemy chips.** Between waves, under the results box, a small card for each enemy the next wave brings that you haven't met yet: its name, its job and one line on what to do about it (at most three; none before boss waves).
 
@@ -620,9 +618,7 @@ A Phantom shows a ring where it is about to blink (half a second before it does,
 
 **Name tags.** The first three times you see each kind of enemy it carries its name and job for a couple of seconds. Your profile remembers which ones, so you are only taught once.
 
-A Charger shows a ring where its dash will end, which is also where its ring of shots will burst.
-
-Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser Guard, Security Guard) share one **shooting line**: for the instant before they fire, a slim lane in their colour fills from the muzzle along the shot, brighter at its head, and caps off when the shot is due; the Grunt shows all three of its shots. The Leader and Beam Sentry keep their own blinking lines.
+Shooters that fire straight at you (Sniper, Shard, Shade, Grunt, Taser Guard, Security Guard) share one **shooting line**: for the instant before they fire, a slim lane in their colour fills from the muzzle along the shot, brighter at its head, and caps off when the shot is due; the Grunt shows all three of its shots.
 
 From wave 25, a regular wave shows at most 6 different enemy types (8 from wave 49), so each kind is easier to learn; in the Campaign the boss factions' enemies count too (they keep room for the wave's headliners). Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
 
@@ -631,10 +627,10 @@ little more each wave: waves 1-2 are all melee, wave 13 about half.
 
 **From wave 25, every enemy has a job** (design: [`Docs/EnemyRoles.md`](Docs/EnemyRoles.md)), and a wave is built to a
 mix of jobs instead of an even draw from every type seen so far: about 45% **Pressure** (they shoot: weave and use
-cover), 25% **Hunters** (they come for you: Swarmers, Spikers, Brutes, Lungers, Buzzsaws, Spike Blocks, Chargers, Fuse
-Runners, Reavers), 12% **Zoners** (they take ground: Beam Sentries, Sappers, Scorchers), 8% **Disruptors** (the
-Hookman) and 10% **Anchors** (kill them first: Medics, Nests, Warders). A job with nothing unlocked yet passes its share
-on. Each wave has **2 headliners** (3 from wave 49), favouring newer types, that make up a good part of their jobs, so
+cover), 25% **Hunters** (they come for you: Swarmers, Brutes, Lungers), 12% **Zoners** (they take ground), 8%
+**Disruptors** and 10% **Anchors** (kill them first). The plain enemies are all Pressure or Hunters, so the other jobs'
+shares pass on (Disruptor to Hunter, the rest to Pressure); the boss factions bring their own Zoners, Disruptors and
+Anchors. Each wave has **2 headliners** (3 from wave 49), favouring newer types, that make up a good part of their jobs, so
 waves feel different from each other. Types fade out once they've been around for 20 waves (down to 15% as often by 40
 waves in), and so do old squads, so the wave-1 Grunt gives way to what came after it. Squads are half of a late wave, and
 the single enemies fill whatever each job is still short of. `Tools/SimTest/run.sh 1 1 wavemix` shows the mix track wave by track wave
@@ -653,58 +649,28 @@ With **Visual effects** on, the Ninja's **Shadow Step** is smoke: you burst into
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
 five Swarmers), Firing line (5: three Grunts, a Sniper behind), Brute pack (9: the Lunger waits for a Brute to reach
-you), Splinters (13: two Splitters and a Grunt), Sword line (13: three Swordsmen), Shield line (19: two Shield Swordsmen and a Swordsman), Bombardment (15: a Charger and two Mortars), Shield wall (17: a Shielder
-leading two Snipers that keep behind it), Field hospital (21: three Brutes and a Medic behind them), Hold the line
-(27: a Pauser and two Grunts), Demolition (29: two Fuse Runners and a Grunt), Ambush (31: three Phantoms blink in around
-you), Whalers (33: a Hookman and two Lungers waiting for what it hauls in), Minefield (35: a Sapper and two Spike Blocks), Beam battery (35: two Beam Sentries
-guarded by a Shielder), Hunting party (37: two Leaders and a Sniper), Pincer (41: Hexers from opposite edges),
-Seamstresses (43: two Stitchers side by side, and a Grunt), Scorched earth (47: two Scorchers and Spikers), Siege
-(51: a Juggernaut and two Medics), Reaver pack (55: two Reavers and two Lungers), Hive (61: a Nest guarded by
-Splitters), Bastion (71: a Warder, a Juggernaut and two Grunts). Early waves keep their share of rushers (a melee
-squad as often as a melee enemy used to come). Paths with their own mix keep it.
+you) and Shield wall (17: a Shielder leading two Snipers that keep behind it); the boss factions add their own. Early
+waves keep their share of rushers (a melee squad as often as a melee enemy used to come). Paths with their own mix keep it.
 
 | Wave | Melee enemy | What it does |
 |---|---|---|
 | 1 | **Swarmer** | The simplest enemy: a small white chomper with a wedge for a mouth and no eyes. Walks straight at you (115), 14 health, 6 per bite. Comes in packs of four, so cut them down together |
-| 3 | **Spiker** | Small and fast, with a long thin spike on each face. Zig-zags toward you (swinging 40 to 65 degrees off line, flipping side every 0.2 to 0.45 s, straightening as it gets close), comes in pairs. (Called the Swarmer before the plain white one arrived) |
 | 5 | **Brute** | Slow and very tough (200 health); hits hard (24) when it reaches you. **Enrages as it is shot**: the more health it has lost, the faster it walks (up to +80%) and the harder it hits (up to +60%), and it turns redder. Healing calms it down. Burst it down or back off |
 | 9 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
-| 9 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
-| 9 | **Spike Block** | A square with a big spike on each face. Rocks from side to side as it closes in; within about 140 px it stops, shakes and shows a red line (0.55 s, the line is locked), then lunges along it for 35. It rests 0.8 s afterward: shoot it then |
-| 13 | **Swordsman** | A melee enemy with a long blade (85 health, never fires). It closes in until you are about 100 px away, then stops turning and raises its sword for 0.55 s while the cone in front of it fills red. The cone is exactly what the blade covers: 140 px long and 90° wide, a curved band from its hand to the tip. It then cuts across the whole cone in 0.15 s (14 damage to everyone in it, once; a raised parry facing it blocks it and throws it back 120 px) and recovers for 0.8 s. Step out of the cone before the red reaches the edge |
-| 19 | **Shield Swordsman** | A Swordsman (slower: 75 against 95) with a blue-steel shield held up in front that stops every shot from the front within 63° either side (it flashes when it blocks one, and doesn't wear). The shield drops the moment it cuts and stays down for the first 0.75 s of its 1 s recovery, so shoot it then, or from the side or behind |
+
 
 | Wave | Shooter | What it does |
 |---|---|---|
 | 1 | Grunt | Aimed 3-shot spreads |
-| 3 | Burster | Rings of bullets (8, one more every 4 waves, up to 12), slow enough to slip through |
 | 5 | Sniper | Fast, accurate shots from far away |
 | 7 | Spinner | Wanders and sprays spirals in **bursts** (about 1.3 s on, 2 s off); it glows and spins up while bursting |
-| 11 | **Charger** | Flashes a red warning line, then dashes at you and bursts into a ring. Step out of the line |
-| 13 | **Splitter** | Splits into 3 fast Shards when killed |
 | 15 | **Mortar** | Lobs bombs at where you're standing; they burst into a ring when they land. Keep moving |
 | 17 | **Shielder** | A shield on its front blocks your shots. It turns slowly, so flank it. The shield (60% of its health) wears down as it blocks and crumbles on its own (about 33 s), cracking as it goes, then shatters |
-| 21 | **Medic** | Heals nearby enemies every few seconds. Kill it first |
-| 27 | **Pauser** | Fans 8 shots at you that slow to a stop about 100 px out, hang there glowing for 0.7 s (a ring closes in on each), then each rushes at the nearest player from where it hung. Keep moving while they hang, then sidestep the rush |
-| 31 | **Phantom** | Flickers, blinks next to you and bursts into a ring |
-| 35 | **Beam Sentry** | Walks to about 380 px from you and plants itself, aims a thin line at you for 1 s (turning slowly after you), then sweeps a 900 px beam a quarter turn across your side (16, plus 3% every two waves on Normal). Step behind the sweep. At most 3 come in a wave |
-| 37 | **Leader** | Aims where you'll be, not where you are: it works out how you're moving and leads its shots (up to 1.6 s ahead). A thin pink aim line shows where for 0.45 s, then a pair of shots. Change direction or stop when the line shows |
-| 41 | **Hexer** | Fires curving pincer shots that close in from both sides |
-| 43 | **Stitcher** | Fires slow orbs; each orb is tied to the nearest other orb within 280 px by a thread that hurts. Alone it fires two orbs that spread apart until the thread snaps; a pair stands side by side, 240 px apart, and fires together, so a fence sweeps at you. Step round an end. Blockers that eat the orbs (a barrier, flak) cut the thread |
-| 47 | **Scorcher** | Circles you about 260 px out leaving a trail of embers (15/s, 3 s; they only burn players) and fires pairs of shots. Cut across its circle |
-| 51 | **Juggernaut** | Armored and slow; can't be slowed or knocked back; fires rotating stars of big orbs |
-| 55 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a raised parry facing it blocks it, though it's too heavy to throw back). For 0.7 s after a swipe it's **open**: +50% damage |
-| 61 | **Nest** | Stationary spawner that keeps hatching Shards until destroyed |
-| 71 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it by a line of flowing beads. Kill it and every bubble pops. A pointed violet diamond that turns to face you, with three hex sigils orbiting it: they spin faster and its reach fills up for its last 1.4 s before a ward, and one sigil leaves for each ally it wards. A chevron bobs over it while any ward is up: shoot it first |
 
-| Wave | Doesn't shoot | What it does |
+| Wave | Any enemy | What it does |
 |---|---|---|
-| 29 | **Fuse Runner** | A banded orange powder keg with a lit wick (Hunter; comes in pairs). Sprints at you (200), stops within 70 px and a 0.8 s fuse runs down: a red ring shows the 90 px blast, an orange ring closes on the keg and the wick burns down. Then it blows up for 35 (plus 3% every two waves on Normal), and the blast hurts **enemies** too (40, growing with enemy health; bosses take a quarter). Step out, or lead it into its friends first. Shot dead during the fuse, it blows up at once where it stands, and your shot gets the credit for what the blast hits. 50 health |
-| 33 | **Hookman** | A violet diamond with a harpoon spinning round it (Disruptor). Keeps about 260 px off with its squad; every 4 s it locks a thin line on you (0.5 s, blinking faster as the throw nears) and throws the harpoon (320 px). A hit **yanks you 220 px** toward it and whatever's beside it, but does no damage. Sidestep, dodge through it (the dodge's invulnerability), or perfect-parry it; a player's shot across the cable cuts it. A miss leaves it **open** for 1 s, shimmering white: +50% damage. 150 health |
-| 35 | **Sapper** | A yellow hexagon with a red core (Zoner). Circles you about 240 px out, planting a **Tripwire Pod** every 1.6 s (4 at most: the oldest fizzles). A pod takes 1 s to arm, then a red **laser** joins it to every armed pod within 180 px. Step within 40 px of an armed pod or cross a laser and it beeps for 0.3 s, then blows up (70 px, 28 plus 3% every two waves on Normal); crossing a laser sets off both ends. The blast hurts enemies too, and **shooting a pod** blows it up at once (your shot gets the credit). Pods last 12 s, don't count as enemies left in the wave, and fizzle out when it's cleared. Kill the Sapper to stop new ones. 110 health |
-
 | 3-11 | **Hasted mutation** | A regular enemy can carry the Hasted trait (its marker, +40% speed and fire rate) before elites begin: 3% a wave from wave 3, up to 20%; never bosses or spawned children (`Mutations` in `Variety.cs`) |
-| 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a **trait** shown as a marker over it (two traits from wave 35): **Hasted** (40% faster moving and firing), **Shielded** (a bubble worth 40% of its health that grows back 4 s after it was last hit), **Volatile** (bursts into a ring of 16 shots 0.6 s after it dies), **Splitting** (dies into two Shards, four from a Juggernaut, Nest or Brute), **Mirrored** (one in four of your shots that hit it bounce back at you), **Commander** (allies within 220 px fire 30% faster). More common each wave |
+| 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a **trait** shown as a marker over it (two traits from wave 35): **Hasted** (40% faster moving and firing), **Shielded** (a bubble worth 40% of its health that grows back 4 s after it was last hit), **Volatile** (bursts into a ring of 16 shots 0.6 s after it dies), **Splitting** (dies into two Shards, four from a Brute), **Mirrored** (one in four of your shots that hit it bounce back at you), **Commander** (allies within 220 px fire 30% faster). More common each wave |
 
 ### Campaign buildup
 
@@ -775,13 +741,13 @@ wave brings **Dusk and Dawn**: split to opposite edges, a Mourner on each side w
 | From | The Twin Reapers' faction | What it does |
 |---|---|---|
 | 1 | **Wisp** | A soul flame, in threes: drifts straight at you like a Swarmer (14 health, contact 6) |
-| 1 | **Acolyte** | A hooded cultist with a sickle: stops short, raises it over a **pale cone** (96 px, 120°, 0.5 s), then one wide swing (12). A Swordsman's moves, shorter and wider |
+| 1 | **Acolyte** | A hooded cultist with a sickle: stops short, raises it over a **pale cone** (96 px, 120°, 0.5 s), then one wide swing (12) |
 | 3 | **Bound Wraiths** | Always a **pair** (60 health each), circling a point that drifts to just beside you, 75 px out, joined by a **tether** that hurts (10) as it sweeps over you. With a wall in the way they break the orbit and walk round it through the doors. Kill one and the other **stops and channels** it back: a ring fills round the ghost for **3 s**, then it's back at 60% health. Kill the channeller first and neither comes back |
 | 3 | **Lamplighter** | Keeps about 280 px away. It plants its feet, its lantern flares and **gold lines** show the volley (0.6 s), then it fires **three lines** at you, next time a **four-way cross**, streaks of four (every 3.2 s) |
 | 3 | **Gravedigger** | A cultist brute with a shovel: moves and hits like a Brute (140 health, contact 20) |
 | 5 | **Mourner** | Keeps about 260 px away and stands still to weep a **twin spiral**, one arm each way, for 2.5 s, then **rests** 3 s: push in then |
 | 5 | **Scythe Wraith** | A Lunger that reaps: marks a long lane from up to 280 px out (0.8 s; the lane **locks after 0.25 s**), then dashes about 270 px along it and reaps **26 px either side** of its path (22). Leave the lane sideways |
-| 5 | **Shade** | A shrouded Phantom: shows a ring where it will land, blinks there and fires |
+| 5 | **Shade** | A shrouded wraith: shows a ring where it will land, blinks there and fires a ring of shots |
 
 | From | The Singularity's faction (the Infall) | Previews | What it does |
 |---|---|---|---|
@@ -886,7 +852,7 @@ grows (50% more health, drawn bigger), as the Devourer heals from them in its Hu
 | 3 | **Carcass Bearer** | Riot Shield | A hooded butcher behind a side of meat that stops shots and bashes you back (10, 160 px). The meat tears as it wears; broken, it drops in front as a **morsel** and the bearer staggers and takes 50% more |
 | 3 | **Bile Spitter** | Gas Grenadier | A lump of brood with a green bile sac: keeps its distance and, every 3.6 s, its sac swells while a **green ring** fills **where you're heading**, then it lobs a glob. It lands 1 s later as a 70 px **pool of acid** for 4 s (10 a second), the Devourer's Bile in small. Change direction out of the ring |
 | 5 | **Gutworm** | Shiv | A burrowing worm of brood (70 health, contact 12) that walks at you, then **dives**: a ripple chases you underground for 1.8 s (110 px/s; it can't be hurt or touched), stops and **marks** 50 px for 0.6 s, then **erupts**: a bite (16) and a ring of 8 shots, then 3 s on the surface. Get out of the mark. The Devourer's Burrow in small |
-| 5 | **Hook Thrower** | Hookman | A hooded butcher swinging a meat hook. Keeps about 260 px off, shows its **line** for 0.7 s, then throws the hook down it (600 px/s, 320 px). A hit does 8 and **reels you 90 px** toward it. Sidestep, parry it, or shoot across the chain to cut it; a miss leaves it open (+50%) |
+| 5 | **Hook Thrower** | (its own) | A hooded butcher swinging a meat hook. Keeps about 260 px off, shows its **line** for 0.7 s, then throws the hook down it (600 px/s, 320 px). A hit does 8 and **reels you 90 px** toward it. Sidestep, parry it, or shoot across the chain to cut it; a miss leaves it open (+50%) |
 | 5 | **Maw Priest** | Taser Guard | A priest wearing the Devourer's jaw (90 health): a **90° maw** in front. Shots into it **heal it for half**; shots in its back do **25% more**. It turns at 30° a second, keeps its distance and, after a 0.7 s charge, fires a **fan of three** from its maw. Circle round it: the Devourer's Ravenous Maw in small |
 
 The **Eclipse's faction**, the Penumbral Court, leads up to the final fight (waves 91-98 as an approach): sun-cultists and scraps of
@@ -913,7 +879,7 @@ big Dawn).
 | 95 | **Sickle** | Crescents | A grey-robed cultist that keeps 240 px away and strafes. Every 2.4 s its blade glows (0.6 s), then it throws a **crescent** that leaves to one side, **loops through where you stand and comes back** round to it (300 px/s, 21). Dodge it twice |
 | 95 | **Nova** | Totality | A small unstable star (40 health, 230 px/s, contact 10) that darts in zigzagging. Within 140 px it **lights a 3 s fuse** (a ring runs down round it, a faint ring shows its reach) and hangs about you, slowly; while lit it **takes 50% more damage**. Then it **goes nova**: 30 to everyone within 110 px, and it's gone. Burst it or back off |
 
-**Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
+**Bubbles (Shielded elites):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
 ## Bosses
 
@@ -927,7 +893,7 @@ thunder and a deep gong for rites, last stands and the Eclipse's totality. They 
 
 **Players have footsteps.** A quiet digital tick over a short low pulse, faster, louder and brighter the faster you move (about 4 steps a second at 240 px/s); silent when standing still, during a dodge's dash and while downed. Your own steps are loudest; allies' play quieter and fade out by 700 px. They follow the Effects volume. (Mockup: `Docs/Mockups/footstep-sounds.html`, option D.)
 
-**Melee rushers have sounds, and far sounds are quieter.** They all have footsteps (a crowd of one kind makes one step at a time, at the nearest one's volume). Swarmers chomp and pop, Spikers tick as they flip and shatter, Brutes thud, grunt and bash, Lungers zip when their pink line shows and again at the leap and the landing, and Spike Blocks clunk, rattle (the tell), lunge and give a tired hiss when they rest, which is your window to shoot. Every kind dies with its own sound, but a pack of one kind dying together makes one. A Buzzsaw has no tick per touch: a quiet whirr fades in while one touches someone. Enemy sounds and enemy shots get quieter with distance from you: full volume within 260 px, down to about an eighth at 1100 px or more. They follow the Enemies volume. (Mockup: `Docs/Mockups/melee-enemy-sounds.html`.)
+**Melee rushers have sounds, and far sounds are quieter.** They all have footsteps (a crowd of one kind makes one step at a time, at the nearest one's volume). Swarmers chomp and pop, Brutes thud, grunt and bash, and Lungers zip when their pink line shows and again at the leap and the landing. Every kind dies with its own sound, but a pack of one kind dying together makes one. Enemy sounds and enemy shots get quieter with distance from you: full volume within 260 px, down to about an eighth at 1100 px or more. They follow the Enemies volume. (Mockup: `Docs/Mockups/melee-enemy-sounds.html`.)
 
 **Bosses keep up with strong builds.** When a boss arrives, each player's upgrades are scored (damage x fire rate
 x projectiles x crits, plus boss legendaries and companions) and compared with a typical build at that wave (one
@@ -1032,9 +998,8 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   and theirs. Crates stay as they are: they wear away under enemy fire and your shots fly over them. Each layout
   starts the cycle with its own crates; random crates and barrels still turn up, clear of the walls.
   Enemies path round walls to get at you, and so do the ones heading somewhere of their own: squads keeping
-  formation, the Warden's Riot Shields (herding you or marching in a Riot Line), Guards and Rioters, the Warder
-  keeping behind its allies, and the wandering Spinner (its random spots stay clear of the walls). A Phantom never
-  blinks into a wall.
+  formation, the Warden's Riot Shields (herding you or marching in a Riot Line), Guards and Rioters, and the
+  wandering Spinner (its random spots stay clear of the walls). A Shade never blinks into a wall.
 - **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
   through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (stretches of the edge wall that look like the rest of it: red is
   kept for breaches) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
@@ -1124,12 +1089,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the Classic box, already walled (no wrapping round the edges) with the camera following you at 1.5x
 (scroll to zoom out), and grows as you play:
 
+**Hits harder once it grows.** Once the first room is built, everything that hurts you on a regular wave hits **1.3x** as hard (boss waves are in the hub alone and unchanged).
+
 **Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-20 add up to 2.4x enemies on a big map (1.1 per extra hub of floor); later waves up to 1.4x.
 
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. While you're full, pickups near you show **FULL** (a Stash's **+10** too) and the **VECTORS** chip turns amber and pulses. The vectors go to whoever collects it, never past their cap. Whenever your vectors go up, **+n VECTORS** pops over you, shards fly into the **VECTORS** chip, and the chip lights up and counts up; the show scales with the amount (a +1 is a small blip, +12 the whole thing).
 - **Gadgets (the Magnet):** a rare drop you carry in your free hand and can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), while there are fewer than one per player. Walk over it with empty hands to pick it up. **Tap X** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **60 s of pull** in all, then it's gone. **Hold X and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet.
-- **Vectors**: every player holds a building budget (chip under the wave plate, "Vectors 40 / 70"): pieces are free; vectors pay for gates, mystery doors and the Black Market's and Builder Shop's cards.
+- **Vectors**: every player holds a building budget (chip under the wave plate, "Vectors 40 / 70"): pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards.
   You start with 40 and can hold 70; each cleared wave gives 8, every 8th kill drops a small 1-vector pickup where the enemy fell, and a cleared boss wave refills
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
@@ -1139,9 +1106,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - Built at once. Teleporters, gates and traps work on any room.
   - **Nodes and chests** sit at the middle of a room-sized cell, so building out along the grid claims them with the chest or relic in the middle of its room (a chest or relic always stands in the middle of the room that claims it).
   - Bots build on door spots too.
-  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or with a **modifier**: today a floor, such as Burning Grounds; about 1 in 4 dropped pieces has one, and the vendor's and Builder Shop's last card always does; more modifier kinds to come) and one-cell service cards. They come as the room cards do: a starting hand, a **wave pick** after each wave (take one of two: the round's basic piece or a dropped card; no reroll, after any boss pick), wave drops, chests, the vendor, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run.
+  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or with a **modifier**: today a floor, such as Burning Grounds; about 1 in 4 dropped pieces has one, and the Builder Shop's last card always does; more modifier kinds to come) and one-cell service cards. They come as the room cards do: a starting hand, a **wave pick** after each wave (take one of two: the round's basic piece or a dropped card; no reroll, after any boss pick), wave drops, chests, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run.
   - **Build map** (Grid): the core is drawn as one room; a faint lattice of cells fades out from the map; a piece you place slides in from a cell out and slams into the wall (a flash, the wall pulsing gold, sparks at the door). The tool rail shows **Teleporter** and **Trap** only while you own one; there is **no Open wall** in a Grid run.
-  - **Mystery doors** (Grid): the room behind is a piece on the lattice, any of the nine shapes (small: a single; medium: a domino, corner, square, T, S or L; hallway: a line of 3 or 4); a shop, Black Market or Arms Dealer behind one is exactly one cell.
+  - **Mystery doors** (Grid): the room behind is a piece on the lattice, any of the nine shapes (small: a single; medium: a domino, corner, square, T, S or L; hallway: a line of 3 or 4); a shop, Black Market, Arms Dealer or Medic behind one is exactly one cell.
   - **Surprise and breach rooms** (Grid): a boss's surprise room is a 4-cell piece on the lattice (an L, a T or a square), a breach's Stash is the one cell behind it, and the gold breach's room and the Engineer's Breach land on the lattice too.
   - **Mini-bosses**: each boss cycle a sealed two-cell mini-boss room waits on the grid, one cell out from the map. Build a piece into the cell between to open it, then walk in to wake the coming boss's faction mini-boss (as before: the room locks, beat it for a prize pick).
 - **Building rounds**: every cleared wave opens a round (the wave box's **Build** tab or build panel, or **Build** on its minimized strip; the countdown never waits
@@ -1219,7 +1186,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   holds a **vector cache** (a teal diamond marked **+10**): the first player to walk in, during a wave or between waves, takes **+10 vectors** (up to their cap), once; a full stock leaves it for later. Taking it bursts the diamond and streams cyan shards into you. It has a block and a pillar for cover, builds in with a teal flash and
   scan line and a **STASH** chip, and stays for good (no vote, no cost; it stops within 2 rooms of the map's size cap, and a breach only opens on a wall with space behind it for a Stash). The breach itself **never closes**:
   each breach lets its share of the wave in (the wave's enemies split evenly over its breaches), then nothing more comes through it; if every breach has had its share the rest come in at the usual spots. When zoomed out, a teal edge arrow points to a cache nobody has taken.
-- **Mystery doors** (Docs/MysteryDoors.md): every cleared wave puts **1 or 2 sealed doors** on the map's outer wall (at most **3** at once): a magenta-violet hologram over a dark plate, with corner brackets and a white **?**, and a **? price** tag over it (red when you can't afford it). They show as violet marks on the minimap and the build map (*MYSTERY DOOR* in its key). A room is already rolled behind each, but you can't see what it is. Stand by one and press **G** to pay its price from your own vectors (**4 + 5 a cell** behind it: 9 for one cell, 24 for four) and it opens at once, **mid-wave too**; the room is yours, like one you placed: the hologram splits and slides into the wall and a ring goes out from the doorway. **What's behind** (never shown; roughly): a piece on the lattice. A third of doors open a **small room** (one cell): usually 3-8 of the wave's **enemies** that swarm out, sometimes **empty**, and sometimes a **shop** or a **Black Market** or an **Arms Dealer** (each about 1 in 9). A third open a **medium room** (a domino, an L of three, or a square, T, S or L of four cells): usually 4-10 **enemies**, sometimes **empty**. The rest open a **long hallway** (a straight line of three or four cells) with a **treasure chest at the far end**. Enemies opened between waves come out as the next wave starts; around a boss the rooms come empty. Bigger rooms cost more. Doors nobody opened **expire when the next wave is cleared**, unless a player **saves** one: press **B** by a door (it turns lime, *SAVED* on its tag). Each player saves **one** door at a time (saving another moves your save, B on your own lets it go, and you can't take over someone else's); a saved door stays until it's opened. If a piece takes a door's space, the door gets another room behind the same spot, or goes. **Bots** open doors too: between waves a bot walks to the nearest door it can pay for while keeping 10 vectors back for building.
+- **Mystery doors** (Docs/MysteryDoors.md): every cleared wave puts **1 or 2 sealed doors** on the map's outer wall (at most **3** at once): a magenta-violet hologram over a dark plate, with corner brackets and a white **?**, and a **? price** tag over it (red when you can't afford it). They show as violet marks on the minimap and the build map (*MYSTERY DOOR* in its key). A room is already rolled behind each, but you can't see what it is. Stand by one and press **G** to pay its price from your own vectors (**4 + 5 a cell** behind it: 9 for one cell, 24 for four) and it opens at once, **mid-wave too**; the room is yours, like one you placed: the hologram splits and slides into the wall and a ring goes out from the doorway. **What's behind** (never shown; roughly): a piece on the lattice. A third of doors open a **small room** (one cell): usually 3-8 of the wave's **enemies** that swarm out, sometimes **empty**, and sometimes a **shop**, a **Black Market**, an **Arms Dealer** or a **Medic** (each about 1 in 10). A third open a **medium room** (a domino, an L of three, or a square, T, S or L of four cells): usually 4-10 **enemies**, sometimes **empty**. The rest open a **long hallway** (a straight line of three or four cells) with a **treasure chest at the far end**. Enemies opened between waves come out as the next wave starts; around a boss the rooms come empty. Bigger rooms cost more. Doors nobody opened **expire when the next wave is cleared**, unless a player **saves** one: press **B** by a door (it turns lime, *SAVED* on its tag). Each player saves **one** door at a time (saving another moves your save, B on your own lets it go, and you can't take over someone else's); a saved door stays until it's opened. If a piece takes a door's space, the door gets another room behind the same spot, or goes. **Bots** open doors too: between waves a bot walks to the nearest door it can pay for while keeping 10 vectors back for building.
 - **Teleporters (portals)**: buy a **Teleporter pair** (150 gold) at the **Black Market** (the vendor room), then on the draw screen switch to
   **Teleporter** and click a room's **outer wall**, then another room's outer wall: the pair is **built at once** from your stash (no
   vectors). Like the classic arena's edge gates, each end turns **2 tiles of that wall into a portal**: a dark gap in its pair's colour,
@@ -1247,11 +1214,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
   the room's far corners, at most 2 up). Below half health: a quarter faster, it charges twice, 4 fans, 4 canisters.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and add stock in the **shop room**, buildables at the **Black Market** (the vendor room: Buildables and Services categories); the services (heal, revive, sell, Floor kit, Vector pack) work in either room. Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**, buildables at the **Black Market** (the vendor room: Buildables and Services categories; it sells no cards); selling, the Floor kit and the Vector pack work in either room. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room with a gun rack and a rifle on its counter, from its service card or a
   mystery door. While the shop is open, stand in it to buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,
-  **400** the third (3 stacks at most, as before). Its **Services** tab heals and sells revive tokens. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead).
+  **400** the third (3 stacks at most, as before). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead),
+  so **every boss cycle gets one**: when a build round opens with no Arms Dealer on the map and no Arms Dealer card in anyone's hand, the player with the most room in their hand is dealt one (once a cycle; with every hand full, the next round).
+- **Medic**: a tiny rose room with a cot, an IV stand and a heartbeat line, from its service card (wave drops, chests, the boss pick) or a mystery door. While the shop is open, stand in it for a
+  **Full heal** (40) or a **Revive token** (120; one at a time). It is the only room shop that sells them (the Bazaar's and Gold Rush's shops, which have no rooms, still do).
 - **Breaches**: a rare event: on wave 5 and every 8th wave after it (13, 21, 29, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
   from, and a red dash marks each on the minimap). 2 open on a breach wave, one more per 3 rooms built (at most 6), 400 px apart or
@@ -1271,57 +1241,6 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - Runs in this arena are saved like any other: Continue brings back the map (rooms, opened walls, portals, floating
   rooms), the team's room kits and each seat's vectors and shop shelf. A room someone drew keeps their colour for
   whoever takes their seat.
-
-## Rooms arena
-
-A **prototype**, kept for building generated room layouts later: the host turns it on for the next runs with **Rooms arena
-prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is the Expanding arena. It is still being tuned (design: [`Docs/Rooms.md`](Docs/Rooms.md), mockup:
-[`Docs/Mockups/rooms.html`](Docs/Mockups/rooms.html)). What's in so far (phase 1, the map **Wings**):
-
-- On **regular waves** the arena grows: the middle (the hub, today's 1600 x 900 arena) gets a big **room** on each
-  side (900 x 900), and a **hallway** (260 px wide) runs above and below the hub, joining the two rooms into a loop
-  round it. **Doors** (160 px gaps with cyan brackets) join them: one from the hub into each room, and one from each
-  room into each hallway. The hub's top and bottom walls have no door.
-- **Boss waves** are the hub alone (bosses are built for it). Before a boss wave, anyone out in a room or
-  hallway is **beamed into the hub**: a pillar of light in their colour takes them up where they stand, a second one
-  sets them down on a ring that shows in the hub from the start (about 2 s; they can't move or shoot meanwhile, and the
-  boss wave waits for them; the between-waves box, the shop screen and the build window step aside so everyone sees it).
-  The props out there are cleared away when it starts.
-- **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
-  crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
-  their own. Walls stop walking and every shot, as in the layouts.
-- **One open map.** You and the enemies go anywhere through the doors; there's no locking and no room-by-room
-  camera. **The camera follows you** over the whole map and stays centred on you even at its edges (the space past it shows). **Room rounds start zoomed in (1.5x)** with a "SCROLL ▼ TO
-  ZOOM OUT" prompt low in the middle until you scroll out (the zoom goes from 2x in to 1x out, one hub-sized screen).
-  Arrows at the edge of the screen point at enemies and teammates you can't see.
-- **Shortcuts.** The hub has a door into each hallway (top and bottom, in the middle) as well as the two room doors,
-  and **wraparound portals** join the far ends of the map: the West room's far wall with the East room's, and each
-  hallway's two ends (each pair a swirling ring in its own colour, purple, teal or pink, with chevrons pointing the way
-  out; rings on the minimap too). Step into one and you come out of its partner on the far side; enemies use them too,
-  whenever that's the shorter way to you.
-- **Enemies come in anywhere.** Each enemy (and each squad) appears at a random spot on the map, in the hub, a room or
-  a hallway (picked by size), clear of walls, never in the vault and never within 350 px of a player, then makes its
-  way to you through the doors.
-- **Rooms waves hit harder**: while the rooms are up, everything that hurts you hits **1.3x** as hard (fewer
-  threats at once, so each one counts). Boss waves and the Classic arena are unchanged.
-- **The vault**: one regular wave in each stretch of twenty (never before the first boss: waves 11-20, 23-40, 43-60, ...) opens a small gold room off the top hallway with **the
-  next boss's faction's mini-boss** in it (the Warden's **Riot Captain**: see the Expanding arena's mini-boss room). It stays in the
-  vault (its doorway stops a charge like a wall: the Riot Captain is dazed), and the vault locks behind you until it falls. Beat it and everyone gets a **prize pick** (rare or better,
-  sometimes a legendary), as from the Gatekeeper's Data Gate. It's optional: the wave ends without it (it goes with it), and
-  the wave carries on outside while you're in there. Its boss bar shows once you're at the vault.
-- **The minimap** (top right): the hub, rooms, hallways and the vault (gold), the doors, enemies (the vault's
-  Gatekeeper big and orange), the players, and the box your screen shows.
-- (The room-by-room version from before, with nests that kept each room stocked, Runner spills, doors that locked
-  behind you and enemies overflowing out of the rooms, is parked behind a switch, `Rooms.RoomByRoom`, off.)
-- Enemies make their way through the doors and round every wall. The F1 "Bot plays for you" bot walks through doors
-  too.
-- Data Gates open in the hub. The rooms aren't used with **Tiny Arena** or on the **Narrow Pass** path (they wall the
-  hub in themselves), in Boss Hunts, the Practice Range or the Showcase.
-
-Measured with two Good bots over track waves 1-24 (Campaign waves 1-48; 8 seeds, `Tools/SimTest/run.sh 1 1 arenabal`), Rooms against Classic:
-about 4 threats in a 1x view at a time instead of 10, a third of the enemy shots on screen, waves about 45 s instead of
-30, and (with the 1.3x) about 1.7x the damage taken per wave. Still to tune by playing it. Next: the power-stacking nerf
-pass (phase 4). Classic stays as it is.
 
 ## Data Gates
 
@@ -1423,7 +1342,7 @@ The two **boss approach** numbers are flavour, not difficulty: they're the same 
 make the difficulty Custom, and picking a preset keeps them. They're fixed at Blend (85% with the ramp): the lobby's
 Blend / Fully themed picker is gone (Nov 18).
 The arena isn't picked here any more: the Campaign is the Expanding arena, the **Simple Arena** modifier keeps the open
-arena with its floor plans (always on), and the Rooms arena is a prototype in the dev dock. A run saved before the
+arena with its floor plans (always on). (The Rooms arena prototype was removed Nov 18.) A run saved before the
 Campaign keeps the arena it was saved with.
 
 Easy is close to how the game played before difficulties (without the per-wave damage growth). Damage growth
@@ -1490,7 +1409,7 @@ handed a build that fits their strength (levels, legendaries and mods). Records 
 
 ## Survival
 
-**Survival** (Docs/Survival.md) is a lobby mode with no waves and no boss: one clock runs and the pressure climbs with it, and the run ends when everyone is down. The first **two minutes are melee only** (Swarmers, then Brutes and Lungers), the budget starts at about a third of its line and eases in over the same time, and shooters then ramp in over three more minutes (squads with a shooter wait for that too). Enemies top the field up to a budget (killing fast brings more, up to 60 alive); the basic faction comes first and another faction joins every four minutes; a squad arrives every 45 s; Elites grow to 40% of spawns; health and damage scale as one wave per 30 s; two and three players raise the budget 1.5x and 2x. The budget (in Grunts on screen) is 4 plus 0.08 a second to ten minutes, then 0.16 a second, after the slow start; a weak enemy counts for at least 0.6 of a Grunt, so a swarm of them is not free. Good-skill bots fall at about 6-8 minutes. Kills still level you up, and a **level-up pick freezes the world** (clock, enemies and shots) until everyone has chosen. Not saved to continue. The HUD shows the clock (m:ss) where the wave number was, a bar towards the next faction and a notice when one joins; the end screen shows the time survived and the phase reached. Its lobby tab (laid out like the Boss hunt tab) lists the factions in the order they join beside a pressure-over-the-clock scope, then your records and the rules: runs played, longest time, longest time with your current class, and the furthest faction reached. A Survival run is not a Campaign or Quick Play run: it keeps its own records, pays rank XP for the waves of clock survived, and shows in Recent runs as "Survival". It is played in **one big room**, four times the classic arena (3200 x 1800), walled all round, with a plus of walls in the middle (a gap at the centre to walk through) and a bracket in each corner, **wall portals** in the middle of each wall (left with right, top with bottom: walk into one and you come out of the far wall, as do enemies), and crates and barrels all over it (about 130) (smashed ones come back, out of sight). The camera follows you; enemies come in off-screen, with a minimap top right and a small red arrow at the edge of the view for the enemies you cannot see (teammates get arrows in their colour). In Survival, enemies off the view in about the same direction **merge into one arrow with a count** ("x7"; orange if an Elite is among them; a boss keeps its own big arrow). The Rooms arena's 1.3x enemy damage does not apply. Survival has **no lives** (a run isn't saved, so there is nothing to respawn from) and pays **full gold and chests** (the Campaign halves them for its doubled waves).
+**Survival** (Docs/Survival.md) is a lobby mode with no waves and no boss: one clock runs and the pressure climbs with it, and the run ends when everyone is down. The first **two minutes are melee only** (Swarmers, then Brutes and Lungers), the budget starts at about a third of its line and eases in over the same time, and shooters then ramp in over three more minutes (squads with a shooter wait for that too). Enemies top the field up to a budget (killing fast brings more, up to 60 alive); the basic faction comes first and another faction joins every four minutes; a squad arrives every 45 s; Elites grow to 40% of spawns; health and damage scale as one wave per 30 s; two and three players raise the budget 1.5x and 2x. The budget (in Grunts on screen) is 4 plus 0.08 a second to ten minutes, then 0.16 a second, after the slow start; a weak enemy counts for at least 0.6 of a Grunt, so a swarm of them is not free. Good-skill bots fall at about 6-8 minutes. Kills still level you up, and a **level-up pick freezes the world** (clock, enemies and shots) until everyone has chosen. Not saved to continue. The HUD shows the clock (m:ss) where the wave number was, a bar towards the next faction and a notice when one joins; the end screen shows the time survived and the phase reached. Its lobby tab (laid out like the Boss hunt tab) lists the factions in the order they join beside a pressure-over-the-clock scope, then your records and the rules: runs played, longest time, longest time with your current class, and the furthest faction reached. A Survival run is not a Campaign or Quick Play run: it keeps its own records, pays rank XP for the waves of clock survived, and shows in Recent runs as "Survival". It is played in **one big room**, four times the classic arena (3200 x 1800), walled all round, with a plus of walls in the middle (a gap at the centre to walk through) and a bracket in each corner, **wall portals** in the middle of each wall (left with right, top with bottom: walk into one and you come out of the far wall, as do enemies), and crates and barrels all over it (about 130) (smashed ones come back, out of sight). The camera follows you; enemies come in off-screen, with a minimap top right and a small red arrow at the edge of the view for the enemies you cannot see (teammates get arrows in their colour). In Survival, enemies off the view in about the same direction **merge into one arrow with a count** ("x7"; orange if an Elite is among them; a boss keeps its own big arrow). The Expanding arena's 1.3x enemy damage does not apply. Survival has **no lives** (a run isn't saved, so there is nothing to respawn from) and pays **full gold and chests** (the Campaign halves them for its doubled waves).
 
 ## Perks
 
@@ -1551,7 +1470,7 @@ screen and the wave keeps running behind it:
   # Top-Down Arena practice setup: warden drills
   loop: no
   wave 5: Grunt x4, Sniper x2
-  wave 10: The Warden x1, Medic x2
+  wave 10: The Warden x1, Shielder x2
   ```
 
   One line per wave: `wave <level>:` then each enemy as `<name> x<count>` (the count defaults to 1). Names
@@ -1562,7 +1481,7 @@ screen and the wave keeps running behind it:
 Small, one-mechanic drills, laid out as cartridges in rows by group (**Move & Dodge**, **Weapons**, **Abilities**,
 **Enemies**, **Co-op**; four slots each, empty ones dashed). Click a drill to see its goal and steps, then **Load this drill**
 (the host's): its waves go into the Practice setup (so everyone sees them on the Practice tab), and Ready and Start play it
-with the rules above. Built-in drills: **Dodge Basics** (Move & Dodge): three short waves to slip through, Burster rings, Spinner spirals, then a mixed volley with Grunts (dodge through it), ending with PRACTICE COMPLETE. Drills are
+with the rules above. Built-in drills: **Dodge Basics** (Move & Dodge): three short waves to slip through, Mortar rings, Spinner spirals, then a mixed volley with Grunts (dodge through it), ending with PRACTICE COMPLETE. Drills are
 `.training` text files: put them in the `training` folder (next to `practice`; **Folder** opens it, **Reload** re-reads it).
 The file is a Practice setup with a few extra lines first, and is documented in [`Docs/Training.md`](Docs/Training.md).
 
@@ -1586,7 +1505,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
 | Ready for the next wave | Ready button or Y (rebindable), once your upgrade picks are done. Auto-ready switch beside it |
-| Map | M (rebindable), wherever a match has a minimap (the Rooms and Expanding arenas, Survival): cycles **minimap → full map → no map**. The minimap grows into the full map (the whole world fitted mid-screen, the game dimmed behind it, a legend under it) while the view zooms out; the full map and the minimap switch off like an old CRT (folding to a bright line, then a dot) and come back the same way. "MAP OFF · M to bring it back" shows for a moment. Remembered between launches |
+| Map | M (rebindable), wherever a match has a minimap (the Expanding arena, Survival): cycles **minimap → full map → no map**. The minimap grows into the full map (the whole world fitted mid-screen, the game dimmed behind it, a legend under it) while the view zooms out; the full map and the minimap switch off like an old CRT (folding to a bright line, then a dot) and come back the same way. "MAP OFF · M to bring it back" shows for a moment. Remembered between launches |
 | Mute sound | No key by default: give it one in Settings → Keybinds (right click its key to clear it again), or use the switch in Settings → Audio |
 | Ping | Middle mouse (rebindable), in a match. **Tap** to mark your cursor with the ping you used last (Here to begin with). **Hold** for 0.2 s and a six-slice wheel opens at the cursor: move to a slice and let go to send it, let go in the middle to cancel. Everyone sees it in your colour (teal, amber, violet) as a ripple, a beam of light and a glyph ring with your name for a second. **Here** (5 s), **Focus** (6 s: snaps to the enemy nearest your cursor, rings it and follows it until it dies), **Danger** (4 s, pulses faster), **Help** (5 s: also rings you), **Loot** (5 s) and **Go** (5 s). Three live per player (a fourth replaces your oldest), 0.4 s between pings. A click doesn't fire while the wheel is open |
 | Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press its number (1-6, the slot it sits in: the numbers stay put, so what a key plays depends on how far along the bar you have scrolled) to play it. While it is open a click picks instead of firing. Let go and it closes |
@@ -1861,7 +1780,7 @@ players report, and only accepts a frame or trail your rank has. XP, what's equi
 
 **Runs save themselves.** The host's game saves the run as each wave starts (once everyone has picked their
 upgrades, the path is chosen and the shop is closed), and again if the match is left or the game closed between
-waves. Every arena saves (Classic, Rooms and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
+waves. Every arena saves (Classic and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 
 **Records count the Campaign's waves** (1-100): best wave, best endless wave, Recent runs and the run charts. A profile
@@ -2287,7 +2206,7 @@ were hitting something, so walking about doesn't drag it down. Next to it is **s
 lobby shows for that weapon (`Defs.WeaponDps`), and how close you are to it. **Shift+F2** (or the **Reset** button)
 starts the meter over. Only the host sees it; nothing is sent over the network.
 
-**F1 → DPS → Spawn one in front of you** puts a **target dummy** down: a Juggernaut that never dies, never shoots,
+**F1 → DPS → Spawn one in front of you** puts a **target dummy** down: a Thug that never dies, never shoots,
 never hurts to touch and can't be pushed, frozen or caged. It heals to full every tick and counts what it took (the
 meter shows "took N"). It doesn't count as an enemy, so the wave ends with it standing. Up to four; **Patrol side to
 side** makes them strafe to test moving targets, and **Remove all** clears them. Kill all (B) leaves them alone. Using

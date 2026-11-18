@@ -105,24 +105,6 @@ namespace Arena
             return PieceCardMod(set[rng.Int(set.Length)], GridModRoll(rng, wave, 4));
         }
 
-        /// The vendor's piece cards for a boss cycle: a basic, a bigger piece, and a third that is a Builder Shop one cycle in three, else a floor piece. Same on every machine.
-        public static RoomCard[] GridCardOffers(int seed, int cycle)
-        {
-            var rng = new DetRandom(seed * 4099 + cycle * 271 + 29);
-            var a = PieceCard(gridSmall[rng.Int(gridSmall.Length)]);
-            var set = rng.Int(2) == 0 ? gridTri : gridTet;
-            var b = PieceCard(set[rng.Int(set.Length)]);
-            RoomCard c;
-            if (cycle % 3 == 1)
-                c = RoomCard.BuilderShop;
-            else
-            {
-                var m = GridModRoll(rng, cycle * Milestone + 1, 1);
-                c = PieceCardMod(gridTet[rng.Int(gridTet.Length)], m);
-            }
-            return new[] { a, b, c };
-        }
-
         /// The Builder Shop's shelf in a Grid run: a single, a domino, a tromino, a tetromino and a floor piece (seeded by wave).
         public static RoomCard[] GridBuilderOffers(int seed, int wave)
         {

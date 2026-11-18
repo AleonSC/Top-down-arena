@@ -44,4 +44,4 @@ Each step bumps `Session.ProtocolVersion`.
 - Mod prices: **150 / 250 / 400 gold** for your 1st / 2nd / 3rd stack of a mod.
 - Pool weights for the boss pick: shapes 40, Box / Hall 15, service cards 20, Floor kits 15, Mini-boss 10; no duplicates in one offer.
 - Service cards in the wave drop and chests: 1 in 5 of shape-card rolls.
-- The Black Market's card shelf does not sell service cards.
+- The Black Market sells no cards (its card shelf was retired Nov 18). A boss cycle with no Arms Dealer deals someone an Arms Dealer card (`GuaranteeArmsCard`). Heals and revives moved to the Medic (`Medic.cs`).

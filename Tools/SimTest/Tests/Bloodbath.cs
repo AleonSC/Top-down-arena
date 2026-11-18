@@ -122,7 +122,7 @@ static partial class Program
         // The slow: 50%, Heavy enemies 35%, bosses 20%; nothing outside it.
         reset();
         var grunt = make(EnemyType.Grunt, mePos + new V2(60f, 0f));
-        var heavy = make(EnemyType.Juggernaut, mePos + new V2(-70f, 40f));
+        var heavy = make(EnemyType.Thunderhead, mePos + new V2(-70f, 40f));
         var boss = make(EnemyType.Colossus, mePos + new V2(0f, -90f));
         var far = make(EnemyType.Grunt, mePos + new V2(400f, 0f));
         cast();

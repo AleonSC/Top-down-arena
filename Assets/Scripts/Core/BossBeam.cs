@@ -28,7 +28,7 @@ namespace Arena
             {
                 if (!BossStartsNext || !RoomsOn)
                     return false;
-                var hub = Rooms.Areas[Rooms.Hub];
+                var hub = new RoomArea { Min = V2.Zero, Max = new V2(Width, Height) };
                 scratchPts.Clear();
                 foreach (var p in Players.Values)
                 {
