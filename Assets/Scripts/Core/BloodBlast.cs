@@ -12,7 +12,10 @@ namespace Arena
     /// user's to hit it (Enemy.BlastOwner); when the enemy dies (BlastKill, the Hemomancer's KitDef.OnKill) its blood flies back
     /// to them as a Blood Vortex and heals BlastHealPerStack a stack as it arrives, BlastReturnTime later (TickBloodBlast).
     /// The step is the host's (Player.BlastStep) and is mirrored in Player.Combo (count above, step in the low 3 bits) for the look.
-    /// Extra projectiles: +15% damage and reach each (BlastGrow).
+    /// Alt (the weapon-action key, Msg.WeaponDash DashTide), Crimson Tide: TideCost of max health and a TideCd cooldown; the blood
+    /// gathers for TideCharge, then a crescent (TideHalf either side of the aim) rolls out from TideR0 to TideR1 over TideTravel,
+    /// hitting every enemy it reaches once for TideMult x the weapon's damage, shoving it TideKnock and adding a stack (TickTide).
+    /// Extra projectiles: +15% damage and reach each (BlastGrow), the Tide's too.
     public partial class Game
     {
         public const int BlastSteps = 6, BlastStackMax = 10;
@@ -103,11 +106,14 @@ namespace Arena
         }
 
         /// Host: a Blood Blast cut hit `e` (from LandSwing): one stack per press, up to BlastStackMax; the stacks go to `p`.
-        void BlastLanded(Player p, Enemy e, Swing s)
+        void BlastLanded(Player p, Enemy e, Swing s) => StackBlast(p, e, s.BlastPress);
+
+        /// One blood stack on `e` for press number `press` (once a press), the stacks now `p`'s.
+        void StackBlast(Player p, Enemy e, int press)
         {
-            if (e.BlastPress == s.BlastPress)
+            if (e.BlastPress == press || e.Hp <= 0f)
                 return;  // this press already stacked it (Thorn Flurry's later cuts)
-            e.BlastPress = s.BlastPress;
+            e.BlastPress = press;
             e.BlastOwner = p.Id;
             if (e.BlastStacks < BlastStackMax)
                 e.BlastStacks++;
@@ -145,6 +151,111 @@ namespace Arena
         void ClearBloodBlast(Player p)
         {
             p.BlastStep = 0;
+        }
+
+        // ---- Crimson Tide (Alt) ----
+
+        public const float TideCost = 0.12f, TideCd = 8f, TideCharge = 0.65f, TideTravel = 0.65f, TideR0 = 40f, TideR1 = 400f;
+        public const float TideHalf = 50f * MathX.Pi / 180f, TideMult = 60f / 22f, TideKnock = 150f;
+        const byte DashTide = 46;
+
+        class TideRun
+        {
+            public int Owner, Press;
+            public float Aim, T, Dmg, Reach;
+            public V2 From;
+            public bool Out;  // launched (else still charging)
+            public readonly HashSet<int> Hit = new HashSet<int>();
+        }
+
+        readonly List<TideRun> tideRuns = new List<TideRun>();
+        float tideLocalCd;  // your own game: until the Alt can go again (the ring under your feet; Game/TankAltLook.cs)
+        public float TideLocalCd => tideLocalCd;
+
+        /// The Tide's radius `age` seconds after it's let go (eases out to its full reach).
+        public static float TideRadius(float age, float reach) => TideR0 + (reach - TideR0) * WcEase(age / TideTravel);
+
+        /// Your own game: Alt with the Blood Blast. True when it sent something (LocalWeaponDash stops there).
+        bool LocalTide(Player me, V2 aimAt, bool pressed, float dt)
+        {
+            tideLocalCd = Math.Max(0f, tideLocalCd - dt);
+            if (!pressed || me.Weapon.Id != WeaponId.BloodBlast || tideLocalCd > 0f)
+                return false;
+            tideLocalCd = TideCd;
+            if (IsHost)
+                HostWeaponDash(MyId, DashTide, aimAt);
+            else
+            {
+                var w = Proto.Begin(Msg.WeaponDash);
+                w.Write(DashTide);
+                w.Write(aimAt);
+                session.SendToHost(Proto.End(w));
+            }
+            return true;
+        }
+
+        /// Host: Alt pressed with the Blood Blast: pay, then gather the Tide (TickTide lets it go after TideCharge).
+        void HostTide(Player p, V2 target)
+        {
+            if (p.Weapon.Id != WeaponId.BloodBlast || p.Downed || p.StunT > 0f || p.BlastTideCd > 0f || State == MatchState.GameOver)
+                return;
+            p.BlastTideCd = TideCd;
+            float paid = PayHealth(p, p.MaxHp * TideCost, "Crimson Tide");
+            if (paid >= 1f)
+                BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), BlastRed, paid, 0.55f, Sfx.None);
+            float k = 1f + BlastGrow * ExtraShots(p);
+            float aim = (target - p.Pos).IsZero ? p.Aim : (target - p.Pos).Angle;
+            tideRuns.Add(new TideRun { Owner = p.Id, Press = ++blastPresses, Aim = aim, T = TideCharge, Dmg = p.Weapon.Damage * p.Stats.DmgMult * k * TideMult, Reach = TideR1 * k });
+            p.FireCd = Math.Max(p.FireCd, TideCharge);  // no cuts while it gathers
+            BroadcastFx(FxKind.Ring, p.Pos, BlastRed, p.Def.BodyR + 26f, TideCharge, Sfx.SpellArcane);  // (step 3 draws the gathering blood)
+        }
+
+        /// Host, every tick: Tides gather, then roll out, cutting, shoving and stacking every enemy they reach once.
+        void TickTide(float dt)
+        {
+            foreach (var p in Players.Values)
+                p.BlastTideCd = Math.Max(0f, p.BlastTideCd - dt);
+            for (int i = tideRuns.Count - 1; i >= 0; i--)
+            {
+                var r = tideRuns[i];
+                var p = PlayerOrNull(r.Owner);
+                if (p == null || p.Downed)
+                {
+                    tideRuns.RemoveAt(i);
+                    continue;
+                }
+                if (!r.Out)
+                {
+                    r.T -= dt;
+                    if (r.T > 0f)
+                        continue;
+                    r.Out = true;
+                    r.T = 0f;
+                    r.From = p.Pos;
+                    BroadcastFx(FxKind.Slash, r.From, r.From + V2.FromAngle(r.Aim) * r.Reach, BlastRed, TideHalf, TideTravel, Sfx.SwingHeavy);  // (step 3 draws the wave)
+                }
+                r.T += dt;
+                float R = TideRadius(r.T, r.Reach);
+                string was = CreditTo("weapon");
+                foreach (var e in Enemies.Values)
+                {
+                    if (!Targetable(e) || r.Hit.Contains(e.Id) || e.Pos.DistanceTo(r.From) - e.Radius > R)
+                        continue;
+                    if (AngleTo(r.From, e.Pos, r.Aim) > TideHalf + BodySlack(e.Pos.DistanceTo(r.From), e.Radius))
+                        continue;
+                    r.Hit.Add(e.Id);
+                    HurtEnemy(e, r.Dmg, p.Id);
+                    if (!Heavy(e))
+                    {
+                        V2 away = (e.Pos - r.From).Normalized();
+                        KnockEnemy(e, (away.IsZero ? V2.FromAngle(r.Aim) : away) * TideKnock);
+                    }
+                    StackBlast(p, e, r.Press);
+                }
+                dmgSrc = was;
+                if (r.T >= TideTravel)
+                    tideRuns.RemoveAt(i);
+            }
         }
     }
 }

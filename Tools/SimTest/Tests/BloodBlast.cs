@@ -10,6 +10,7 @@ static partial class Program
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var fire = typeof(Game).GetMethod("FireVolley", flags);
+        var weaponDash = typeof(Game).GetMethod("HostWeaponDash", flags);
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 3, 0, Kit.Hemomancer);
@@ -78,6 +79,28 @@ static partial class Program
         float healed = hp.Hp - 100f;
         Console.WriteLine("  kill: {0:0.0} at 0.4 s, {1:0.0} on arrival (10 stacks)", early - 100f, healed);
         Check(early - 100f < 1f && Math.Abs(healed - Game.BlastStackMax * Game.BlastHealPerStack) < 2f, "a stacked kill's blood heals 2 a stack, when it reaches you");
+
+        // Crimson Tide: 12% of max health, a 0.65 s gather, then a 400 px crescent that hits, shoves and stacks once each.
+        var near = dummy(new V2(380f, 450f));
+        var far = dummy(new V2(640f, 450f));
+        var side = dummy(new V2(300f, 300f));
+        hp.Pos = hp.Disp = new V2(300f, 450f);
+        hp.Hp = hp.MaxHp;
+        float tn = near.Hp, tf = far.Hp, ts = side.Hp;
+        weaponDash.Invoke(g, new object[] { 1, 46, new V2(700f, 450f) });
+        float tidePaid = hp.MaxHp - hp.Hp;
+        run(0.4f);
+        bool gathering = near.Hp == tn;
+        run(Game.TideCharge + Game.TideTravel);
+        float tideHit = tn - near.Hp;
+        Console.WriteLine("  tide: paid {0:0.0}; near {1:0.0}, far {2:0.0}, side {3:0.0}; stacks {4}/{5}/{6}", tidePaid, tideHit, tf - far.Hp, ts - side.Hp, near.BlastStacks, far.BlastStacks, side.BlastStacks);
+        Check(Math.Abs(tidePaid - hp.MaxHp * Game.TideCost) < 0.01f, "Crimson Tide costs 12% of max health");
+        Check(gathering && tideHit > 0f && Math.Abs((tf - far.Hp) - tideHit) < 0.5f && ts == side.Hp, "it gathers, then rolls out 400 px along the aim, hitting each enemy once (not off to the side)");
+        Check(Math.Abs(tideHit / (hp.Weapon.Damage * hp.Stats.DmgMult * Game.TideMult) - 1f) < 0.1f, "it hits for about 60 (x your damage; the Hemomancer's low-health bonus on top)");
+        Check(near.BlastStacks == 1 && far.BlastStacks == 1 && side.BlastStacks == 0, "every enemy the Tide hits gets a blood stack");
+        float cdHp = hp.Hp;
+        weaponDash.Invoke(g, new object[] { 1, 46, new V2(700f, 450f) });
+        Check(hp.Hp == cdHp && hp.BlastTideCd > 0f, "it can't go again during its 8 s cooldown");
 
         // Switching weapons starts the chain over.
         hp.BlastStep = 4;

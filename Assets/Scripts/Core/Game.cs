@@ -1413,6 +1413,7 @@ namespace Arena
             TickSmokeShells(dt);  // GrenadeLauncher.cs: smoke clouds; the launcher refills when put away
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
+            TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
             TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets

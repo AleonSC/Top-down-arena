@@ -442,6 +442,7 @@ namespace Arena
         public float FlZeroT, FlZeroCd;        // Frost Lance: Absolute Zero playing (counts down from ZeroDur), its cooldown (replicated)
         public V2 FlZeroAt;                    // host: where Absolute Zero was cast
         public int FlZeroStage;                // host: Absolute Zero's waves gone (0, 1, 2)
+        public float BlastTideCd;              // Blood Blast: Crimson Tide's cooldown (host; BloodBlast.cs)
         public byte BlastStep;                 // Blood Blast: the chain's last step, 1-6 (0: none yet; host; BloodBlast.cs)
         public int WcStep;                     // Wind Clash: the combo's next step, 0-3 (host; WindClash.cs)
         public float WcIdle;                   // Wind Clash: since the last step (host: WcComboReset starts the combo over)
