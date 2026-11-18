@@ -1172,7 +1172,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Teleporter**, **Gate**, **Trap**; keys **1-5**) with a
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan) drawn as the real floor: each room's
   tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan), this wave's
-  breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line), each named in the map key; on the right your vectors with a
+  breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (a bar along each end's wall, joined by a dotted line), each named in the map key; on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
   types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo**, **Close** and **Done · ready up**.
 - **Pushing walls** (shelved: off in the game, `Game.PushShelved`): between waves (free building), walk up to an outer wall and a **C · PUSH WALL** chip shows over you, with that
@@ -1268,10 +1268,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
   one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
 - **Teleporters (portals)**: buy a **Teleporter pair** (150 gold) at the **Black Market** (the vendor room), then on the draw screen switch to
-  **Teleporter** and click a spot in one room, then a spot in another: the pair is **built at once** from your stash (no vote, no vectors). Step
-  into one end and you come out of the other (enemies use them too). It must save at least 6 tiles of walking. Each end sits inside a connected
-  room, 90 px off its walls, clear of obstacles, 150 px from a door and 250 px from another portal. At most **3 pairs**, not counted as rooms.
-  Bots don't build them.
+  **Teleporter** and click a room's **outer wall**, then another room's outer wall: the pair is **built at once** from your stash (no vote, no
+  vectors). Like the classic arena's edge gates, each end turns **2 tiles of that wall into a portal**: a dark gap in its pair's colour,
+  bracketed at both ends, with chevrons pointing into the room. Walk into it and you come out of the other wall, keeping your place along it
+  (enemies use them too, and steer through them when it's shorter). It must save at least 6 tiles of walking. Each end needs a connected room on
+  one side and nothing on the other, 2 tiles of plain wall (no corner or door in it), nothing standing just in front, 150 px from a door and
+  250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. Bots don't build them. (Pairs
+  from older saves, standing in the middle of a room, still work as floor portals.)
 - **Black Market traps (placeholders)**: the Black Market also sells a **Spike trap** (60), **Landmine** (80) and **Slow field** (90). Switch the
   draw screen to **Trap**, pick one from your stash and click a spot in a room (90 px off walls, 150 px from doors, 120 px from portals and other
   traps; at most 12). They stand on the map and have **no effect yet**. A stash holds at most 5 of a kind.

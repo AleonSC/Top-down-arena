@@ -2172,7 +2172,8 @@ static partial class Shot {
         var bl = Expansion.BestLink(xg.ExpansionWorld, 0);
         if (bl.HasValue) {
           xg.Links.Add(bl.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          int pi2 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bl.Value.A + new V2(90f + 50f * pi2, 80f); pi2++; }
+          V2 pin = (Expansion.LinkEnd(xg.ExpansionWorld, bl.Value.A) - bl.Value.A).Normalized();  // (into the room from the wall end)
+          int pi2 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bl.Value.A + pin * (110f + 40f * pi2) + pin.Orthogonal() * (60f * pi2); pi2++; }
         }
       }
       string gshut = Environment.GetEnvironmentVariable("EXPANDGATE");  // EXPANDGATE=<s left shut>: a shutter gate on the hub's first door (0: open, ready), you beside it; GATECOOL=<s> while open

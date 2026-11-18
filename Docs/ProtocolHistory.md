@@ -3,6 +3,8 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+
+- 400: buyable portal pairs (`PortalLink` in `Msg.ExpandLink`/`ExpandState`) are now wall spots: each end on a room's outer wall, the wall becomes the portal
 - 399: Bone Spear rework (Docs/BoneSpearMarionette.md): the player snapshot adds `BsTarget`, `BsT`, `SympT`, `SympSrc` and the `SympBound` list after `LeashT`; WeaponDash kind 45 (DashSympathy); `FxKind.BsBlow`
 
 - 399: the Frost Lance's sounds: `Sfx.FrostCrescent`, `FrostBackhand`, `FrostWaltz`, `FrostFan`, `FrostSlamWind`, `FrostSlam`, `FrostFreeze`, `FrostShatter`, `FrostBreak`, `ZeroCharge`, `ZeroWave`, `ZeroShatter` appended (sent with the steps, bursts, break and Absolute Zero).

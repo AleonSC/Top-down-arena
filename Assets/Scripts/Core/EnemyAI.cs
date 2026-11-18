@@ -615,7 +615,7 @@ namespace Arena
                 if (RoomsOn && !e.Def.IsBoss && e.Home != Rooms.Vault)
                 {
                     V2 was = e.Pos;
-                    e.Pos = RoomsPortal(e.Pos, ref e.PortalT, dt);  // wraparound portals (Rooms.cs)
+                    e.Pos = RoomsPortal(e.Pos, ref e.PortalT, dt, e.Radius);  // wraparound portals (Rooms.cs)
                     if (e.Pos.FartherThan(was, 600f))
                         steerMem.Remove(e.Id);  // a fresh route from the far side
                 }

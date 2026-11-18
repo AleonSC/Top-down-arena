@@ -30,6 +30,15 @@ namespace Arena
         public float Len { get { return To - From; } }
     }
 
+    /// A wall portal's steering spot (World.cs): waypoint Wp, just off the wall at At (facing In, Half long either side),
+    /// joined to waypoint Partner on the far end.
+    public struct PortalMouth
+    {
+        public int Wp, Partner;
+        public V2 At, In;
+        public float Half;
+    }
+
     public struct LayoutCrate
     {
         public V2 Pos;
@@ -48,6 +57,7 @@ namespace Arena
         public EdgeSpan[] EnemyGates;    // the holographic parts of the edge wall enemies come in through
         public V2[] Waypoints;           // corners enemies steer round (LayoutRules.cs)
         public int[] Links;              // pairs of waypoints joined by a portal (the Rooms map: Rooms.cs), or null
+        public PortalMouth[] Mouths;     // the wall portals' waypoints (World.With): there, walk into the wall to go through
         public bool HasHold;             // the Bunker's hold point
         public V2 HoldPos;
         public float HoldR;

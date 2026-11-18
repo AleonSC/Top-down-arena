@@ -85,11 +85,22 @@ namespace Arena
                     V2 spot = s.Vertical ? new V2(s.At, u) : new V2(u, s.At);
                     if (OpenAreaAt(w, spot + across * 20f) >= 0 && OpenAreaAt(w, spot - across * 20f) >= 0)
                         continue;  // (a room brushes this stretch of the wall: there's floor behind it)
+                    if (NearWallPortal(w, spot))
+                        continue;  // (a bought portal is on this stretch of wall)
                     var b = new Breach { Pos = s.Vertical ? new V2(s.At, u) : new V2(u, s.At), In = inward, Vertical = s.Vertical, Area = area };
                     list.Add(new KeyValuePair<Breach, float>(b, weight));
                 }
             }
             return list;
+        }
+
+        /// Whether a breach at spot would run into a wall portal (Expansion.cs portal pairs) on the same wall.
+        static bool NearWallPortal(World w, V2 spot)
+        {
+            foreach (var pt in w.Portals)
+                if (pt.Wall && (pt.A.CloserThan(spot, pt.Half + Len / 2f + 40f) || pt.B.CloserThan(spot, pt.Half + Len / 2f + 40f)))
+                    return true;
+            return false;
         }
 
         /// This wave's breaches on this map (empty for a map with no outer wall to break).

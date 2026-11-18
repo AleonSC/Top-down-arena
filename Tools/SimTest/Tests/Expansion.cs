@@ -1381,31 +1381,50 @@ static partial class Program
         var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value; list.Add(east);
         var south = Expansion.Custom(list, 0, 900, 800, 600, out why).Value; list.Add(south);
         var w = Expansion.Build(list);
-        Func<RoomArea, V2> clearSpot = a =>  // a grid spot in the room clear of its obstacles and doors
+        Func<RoomArea, List<V2>> wallSpots = a =>  // the grid spots on a room's outer wall (the wall faces into it)
         {
-            for (float y = a.Min.Y + 100f; y < a.Max.Y; y += 100f)
-                for (float x = a.Min.X + 100f; x < a.Max.X; x += 100f)
-                {
-                    var p = new V2(x, y);
-                    if (a.Contains(p, -Expansion.LinkEdge) && !w.Cover.Any(c => Layouts.Inside(c, p, 60f)) && w.Doors.All(d => d.Pos.DistanceTo(p) >= 300f))
-                        return p;
-                }
-            return a.Mid;
+            var l = new List<V2>();
+            for (float x = a.Min.X; x <= a.Max.X; x += 100f) { l.Add(new V2(x, a.Min.Y)); l.Add(new V2(x, a.Max.Y)); }
+            for (float y = a.Min.Y; y <= a.Max.Y; y += 100f) { l.Add(new V2(a.Min.X, y)); l.Add(new V2(a.Max.X, y)); }
+            return l.Where(p => { var side = Expansion.OuterWall(w, p); return side.HasValue && a.Contains(p + side.Value * 30f); }).ToList();
         };
-        V2 ea = clearSpot(w.Areas[1]), sb = clearSpot(w.Areas[2]);
-        var link = new PortalLink { AX = (short)ea.X, AY = (short)ea.Y, BX = (short)sb.X, BY = (short)sb.Y };
-        float walk = Expansion.WalkDistance(w, link.A, link.B);
-        int price = Expansion.LinkPrice(w, 0, link, out why);
-        Check(walk > 1800f && price == Math.Min(Expansion.LinkMax, Expansion.LinkBase + (int)Math.Round(walk / 200f)), "a link costs 8 + 1 per 2 tiles of walking it saves (" + (int)walk + " px, " + price + " vectors" + (why != null ? ", " + why : "") + ")");
-        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = link.AX, BY = (short)(link.AY + 200) }, out why) == 0 && why != null, "both ends in one room is refused (" + why + ")");
+        PortalLink link = default(PortalLink);
+        int price = 0;
+        foreach (var ea in wallSpots(w.Areas[1]))
+            foreach (var sb in wallSpots(w.Areas[2]))
+            {
+                var l = new PortalLink { AX = (short)ea.X, AY = (short)ea.Y, BX = (short)sb.X, BY = (short)sb.Y };
+                int pr = Expansion.LinkPrice(w, 0, l, out why);
+                if (price == 0 && pr > 0) { link = l; price = pr; }
+            }
+        float walk = Expansion.LinkWalk(w, link);
+        Check(price > 0 && walk > 1800f && price == Math.Min(Expansion.LinkMax, Expansion.LinkBase + (int)Math.Round(walk / 200f)), "a link goes on two rooms' outer walls and costs 8 + 1 per 2 tiles of walking it saves (" + (int)walk + " px, " + price + " vectors)");
+        var same = wallSpots(w.Areas[1]).OrderByDescending(p => p.DistanceTo(link.A)).First();
+        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = (short)same.X, BY = (short)same.Y }, out why) == 0 && why != null, "both ends in one room is refused (" + why + ")");
         Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = 3000, BY = 400 }, out why) == 0 && why != null, "an end outside the map is refused (" + why + ")");
-        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = 1700, AY = 400, BX = link.BX, BY = link.BY }, out why) == 0 && why != null, "an end by a door is refused (" + why + ")");
+        V2 mid = new V2((float)Math.Round(w.Areas[2].Mid.X / 100f) * 100f, (float)Math.Round(w.Areas[2].Mid.Y / 100f) * 100f);
+        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = (short)mid.X, BY = (short)mid.Y }, out why) == 0 && why != null && why.Contains("outer wall"), "an end in the middle of a room (off the walls) is refused (" + why + ")");
+        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = 1600, AY = 200, BX = link.BX, BY = link.BY }, out why) == 0 && why != null, "an end on a wall two rooms share is refused (" + why + ")");
         Check(Expansion.LinkPrice(w, Expansion.MaxLinks, link, out why) == 0 && why != null, "at most " + Expansion.MaxLinks + " pairs");
         var wl = Expansion.Build(list, null, new List<PortalLink> { link });
-        var exit = wl.PortalExitFor(link.A);
-        Check(wl.Portals.Length == 1 && exit.HasValue && wl.AreaAt(exit.Value) == wl.AreaAt(link.B) && exit.Value.DistanceTo(link.B) < 120f, "built, it is a portal pair: step in one end, come out the other");
-        Check(Expansion.WalkDistance(wl, link.A, link.B) < 1f, "and walking between its ends now takes no time");
-        Check(Expansion.LinkPrice(wl, 1, new PortalLink { AX = (short)(link.AX + 100), AY = link.AY, BX = 1000, BY = 300 }, out why) == 0 && why != null, "a second pair right by the first is refused (" + why + ")");
+        var pt = wl.Portals[0];
+        V2 along = pt.InA.Orthogonal();
+        var exit = wl.PortalExitFor(link.A + pt.InA * (16f + Rooms.WallT / 2f) + along * 40f, 16f);
+        Check(wl.Portals.Length == 1 && pt.Wall && exit.HasValue && wl.AreaAt(exit.Value) == wl.AreaAt(pt.MouthB) && exit.Value.DistanceTo(link.B) < 120f, "built, the walls are a portal pair: walk into one, come out of the other (" + (exit.HasValue ? exit.Value.ToString() : "none") + ")");
+        var exit2 = wl.PortalExitFor(link.A + pt.InA * (16f + Rooms.WallT / 2f) - along * 40f, 16f);
+        Check(exit.HasValue && exit2.HasValue && Math.Abs(exit.Value.DistanceTo(exit2.Value) - 80f) < 1f, "and you keep your place along the wall");
+        Check(!wl.PortalExitFor(link.A + pt.InA * 120f, 16f).HasValue && !wl.PortalExitFor(link.A + pt.InA * 30f + along * (Expansion.LinkHalf + 40f), 16f).HasValue, "not from across the room, or off the end of the portal's stretch");
+        Check(Expansion.WalkDistance(wl, pt.MouthA, pt.MouthB) < 1f, "and walking between its ends now takes no time");
+        Check(Expansion.LinkPrice(wl, 1, link, out why) == 0 && why != null && why.Contains("portal"), "a second pair on the first one's wall is refused (" + why + ")");
+        var plan = wl.With(LayoutId.Open);
+        Check(plan.Mouths != null && plan.Mouths.Length == 2, "enemies steer to each wall portal's mouth, then into the wall");
+        Check(Breaches.Candidates(wl).All(c => c.Key.Pos.FartherThan(link.A, Expansion.LinkHalf + Breaches.Len / 2f) && c.Key.Pos.FartherThan(link.B, Expansion.LinkHalf + Breaches.Len / 2f)), "breaches never open on a portal's wall");
+        var best = Expansion.BestLink(w, 0);
+        Check(best.HasValue && Expansion.OuterWall(w, best.Value.A).HasValue && Expansion.OuterWall(w, best.Value.B).HasValue, "the bots' pick is on outer walls too");
+        V2 fa = new V2(1900, 400), fb = new V2(400, 1200);  // an older save's pair: inside the rooms, a floor portal still
+        var wf = Expansion.Build(list, null, new List<PortalLink> { new PortalLink { AX = (short)fa.X, AY = (short)fa.Y, BX = (short)fb.X, BY = (short)fb.Y } });
+        var fexit = wf.PortalExitFor(fa);
+        Check(!wf.Portals[0].Wall && fexit.HasValue && fexit.Value.DistanceTo(fb) < 120f, "an older save's pair in the middle of rooms still works as floor portals");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
@@ -1443,6 +1462,19 @@ static partial class Program
         Check(spotOk && g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.SpikeTrap] == 0, "a trap from the stash is placed on both screens (" + pw + ")");
         Check(!Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw), "and a second one right on it is refused (" + pw + ")");
         Check(g.ExpansionWorld.Portals.Length == 1 && cg.ExpansionWorld.Portals.Length == 1, "and both maps have the portals");
+        // An enemy in the east room after a player in the south room takes the wall portal: it walks to the mouth, into the wall, and out.
+        var gw = g.ExpansionWorld;
+        var wp = gw.Portals[0];
+        int eastArea = gw.AreaAt(wp.MouthA), southArea = gw.AreaAt(wp.MouthB);
+        foreach (var e in g.Enemies.Values) { e.Pos = e.Disp = new V2(-5000f, -5000f); }
+        g.DevSpawnEnemy(1, EnemyType.Grunt, 1, false);
+        var walker = g.Enemies.Values.OrderByDescending(e => e.Id).First();
+        V2 startAt = wp.MouthA + wp.InA * 150f;
+        walker.Pos = walker.Disp = startAt;
+        foreach (var pl in g.Players.Values) { pl.Pos = pl.Disp = wp.MouthB + wp.InB * 200f; pl.Hp = pl.MaxHp = 99999f; }
+        bool through = false;
+        Run(s, dt, 8f, () => through = gw.AreaAt(walker.Pos) == southArea && walker.Pos.CloserThan(wp.B, 400f), () => { walker.Pos = walker.Pos; foreach (var pl in g.Players.Values) pl.Pos = pl.Disp = wp.MouthB + wp.InB * 200f; });
+        Check(through, "an enemy chasing you through a wall portal walks into the wall and comes out of the other (" + gw.AreaAt(startAt) + " -> " + gw.AreaAt(walker.Pos) + ", at " + (int)walker.Pos.X + "," + (int)walker.Pos.Y + ")");
     }
 
     static bool Strip(RoomArea a) => Math.Min(a.Size.X, a.Size.Y) <= Expansion.StripMax;
