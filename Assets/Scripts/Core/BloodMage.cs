@@ -761,6 +761,8 @@ namespace Arena
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] HemomancerCards =
         {
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBlast }, MaxStacks = 2, Name = "Blood Harvest", Desc = "The Blood Blast's stacks heal 1 more each, and an enemy holds 5 more",
+                Apply = s => { s.BlastHealBonus += 1f; s.BlastCapBonus += 5; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.EmbolusSpears }, MaxStacks = 2, Name = "Burst Vessels", Desc = "The Embolus Spears' burst is 30% wider and hits 30% harder",
                 Apply = s => s.EsBlastMult += 0.3f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",

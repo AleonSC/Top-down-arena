@@ -1,6 +1,6 @@
 # Blood Blast: blood-slash chain
 
-**Status: steps 1-3 built** (protocol 404): the chain, health costs, stacks, kill heal and Crimson Tide in `Assets/Scripts/Core/BloodBlast.cs`, the look in `Assets/Scripts/Game/BloodBlastLook.cs`, tests `Tools/SimTest/run.sh 1 30 bloodblast`, preview `BLOODBLAST=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`. Step 4 to do. Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
+**Status: built** (steps 1-4, protocol 404): the chain, health costs, stacks, kill heal and Crimson Tide in `Assets/Scripts/Core/BloodBlast.cs`, the look in `Assets/Scripts/Game/BloodBlastLook.cs`, tests `Tools/SimTest/run.sh 1 30 bloodblast`, preview `BLOODBLAST=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`. Sounds in `Assets/Scripts/Game/BloodBlastSoundBank.cs` (`Tools/SoundCheck/render.sh Blast`). Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
 (published: https://claude.ai/artifact/ENVDpfrNckiH4KoUpHvEp2).
 
 ## Owner's decisions
@@ -59,9 +59,15 @@
 3. **Look** (done): `Game/BloodBlastLook.cs` from `FxKind.BlastCut` (each press), `BlastTide` (gather, wave) and `BlastReturn`
    (the Blood Vortex), plus the stack drops on enemies and a glow pass; `Tools/Preview`
    renders of each step.
-4. **Polish**: per-weapon upgrade (`ExtraDesc`) and a Rare card, sounds, README rows, bot range, balance check from a
-   session report.
+4. **Polish** (done): Rare card **Blood Harvest** (two stacks: +1 health a stack, +5 stacks an enemy; `Stats.BlastHealBonus`,
+   `BlastCapBonus`), sounds (wet whooshes with a slosh under them and a spatter of drops, a splat once a press that lands,
+   the Cleave's slam, the Tide's gather and wave, the Vortex's swirl and heartbeat as it lands), measured DPS 53
+   (`WeaponDps.Generated.cs`).
 
 ## Open tuning
+
+- Measured: 53 damage a second on one target (tank melee runs 45-65), for about 10.5 health a second while swinging
+  nonstop (a full loop costs 35 in 3.3 s), so a 200-health tank empties in about 19 s without kills. The Gore Mortar pays
+  16 a second for 133 damage a second.
 
 - 2 health a stack with 10 max is a first guess: a kill pays 2 to 20. Check sustain against session reports.

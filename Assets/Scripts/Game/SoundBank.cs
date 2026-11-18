@@ -326,7 +326,7 @@ namespace Arena
                 Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam, Sfx.ArcTag, Sfx.ArcHop, Sfx.ArcCrack, Sfx.ArcFork, Sfx.ArcFizzle, Sfx.ArcHum,
                 Sfx.ShotFireball, Sfx.ShotFireballBurn, Sfx.NunSnap, Sfx.NunBack, Sfx.NunFig8, Sfx.NunCrush, Sfx.NunCounter, Sfx.NunGuard,
                 Sfx.HeliRotor, Sfx.HeliShot, Sfx.HeliSpin, Sfx.FrostCrescent, Sfx.FrostBackhand, Sfx.FrostWaltz, Sfx.FrostFan, Sfx.FrostSlamWind,
-                Sfx.FrostSlam, Sfx.FrostBreak })
+                Sfx.FrostSlam, Sfx.FrostBreak, Sfx.BlastSlash, Sfx.BlastFlurry, Sfx.BlastWhirl, Sfx.BlastCleave, Sfx.BlastFlight, Sfx.BlastTideGather, Sfx.BlastTideWave })
                 c[(int)s] = Category.Weapons;
             foreach (var s in new[] {
             Sfx.EnemyShot, Sfx.BossShift, Sfx.BossCharge, Sfx.BossPulse, Sfx.BossChime, Sfx.BossLaserWarn, Sfx.BossLaser, Sfx.BossSlam,
@@ -408,6 +408,7 @@ namespace Arena
                 BuildDogma();  // DogmaSoundBank.cs
                 BuildCeremonialArmor();  // CeremonialArmorSoundBank.cs
                 BuildFrost();  // FrostSoundBank.cs
+                BuildBloodBlast();  // BloodBlastSoundBank.cs
             }
             catch (Exception ex)
             {

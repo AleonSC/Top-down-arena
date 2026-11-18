@@ -155,6 +155,7 @@ namespace Arena
         // Blood Mage weapon cards (Docs/UpgradePools.md step 9)
         public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip (and LashLinkBonus)
         public int LashLinkBonus;
+        public float BlastHealBonus; public int BlastCapBonus;            // Blood Blast: Blood Harvest (BloodBlast.cs)
         public float PoolSizeMult = 1f, PoolBonusTime;                     // Gore Mortar: Deep Pool
         public float LeechDrainMult = 1f, LeechBlastBonus;                 // Leech Tendrils: Hungry Tendrils (charge rate, blast damage)
         public float TransfuseMult = 1f;                                   // Transfusion Darts: Generous Blood

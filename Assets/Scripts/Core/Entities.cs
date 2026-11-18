@@ -137,6 +137,8 @@ namespace Arena
         // The Frost Lance (FrostSoundBank.cs): the chain's five steps (the slam's swing, then its landing), a freeze, a shatter, a parry
         // breaking the lance, Absolute Zero's charge, wave and shatter. Sent.
         FrostCrescent, FrostBackhand, FrostWaltz, FrostFan, FrostSlamWind, FrostSlam, FrostFreeze, FrostShatter, FrostBreak, ZeroCharge, ZeroWave, ZeroShatter,
+        // The Blood Blast (BloodBlastSoundBank.cs): the chain's steps, a cut landing, Crimson Tide's gather and wave, the Blood Vortex. Sent.
+        BlastSlash, BlastFlurry, BlastWhirl, BlastCleave, BlastFlight, BlastHit, BlastTideGather, BlastTideWave, BlastReturn,
     }
 
     public struct SoundCue

@@ -30,6 +30,7 @@ namespace Arena
         public static readonly float[] BlastDelay = { 0.08f, 0.08f, 0.05f, 0.2f, 0.38f, 0.3f };
         public const float BlastFlurryGap = 0.15f, BlastCleaveRadius = 70f, BlastCleaveKnock = 130f, BlastFlightReach = 260f;
         public const float BlastFxTail = 0.45f, BlastReturnFx = 1.15f;  // a cut's look outlasts it (drops landing); the Blood Vortex's whole show (it lands at BlastReturnTime)
+        static readonly Sfx[] BlastSfx = { Sfx.BlastSlash, Sfx.BlastSlash, Sfx.BlastFlurry, Sfx.BlastWhirl, Sfx.BlastCleave, Sfx.BlastFlight };
         static readonly Rgba BlastRed = new Rgba(0.88f, 0.12f, 0.24f);
 
         class BlastReturn
@@ -81,7 +82,7 @@ namespace Arena
             };
             float fxReach = MeleeReach(p, reach);
             BroadcastFx(FxKind.BlastCut, p.Pos, p.Pos + V2.FromAngle(aim) * fxReach, BlastRed, p.Id * 10 + step, BlastTime[step - 1] / FireRate(p) + BlastFxTail,
-                step == 4 || step == 5 ? Sfx.SwingHeavy : Sfx.SwingLight);
+                BlastSfx[step - 1]);
             switch (step)
             {
                 case 3:  // Thorn Flurry: three short cuts, the middle one tilted the other way
@@ -117,7 +118,23 @@ namespace Arena
         }
 
         /// Host: a Blood Blast cut hit `e` (from LandSwing): one stack per press, up to BlastStackMax; the stacks go to `p`.
-        void BlastLanded(Player p, Enemy e, Swing s) => StackBlast(p, e, s.BlastPress);
+        void BlastLanded(Player p, Enemy e, Swing s)
+        {
+            if (s.BlastPress != blastHitSfx)
+            {
+                blastHitSfx = s.BlastPress;  // one wet splat a press that lands
+                BroadcastSound(Sfx.BlastHit);
+            }
+            StackBlast(p, e, s.BlastPress);
+        }
+
+        int blastHitSfx;
+
+        /// The most stacks one enemy can hold for `p` (Blood Harvest: +5 a card).
+        public static int BlastStackCap(Player p) => BlastStackMax + p.Stats.BlastCapBonus;
+
+        /// What each stack heals `p` (Blood Harvest: +1 a card).
+        public static float BlastHealOf(Player p) => BlastHealPerStack + p.Stats.BlastHealBonus;
 
         /// One blood stack on `e` for press number `press` (once a press), the stacks now `p`'s.
         void StackBlast(Player p, Enemy e, int press)
@@ -126,7 +143,7 @@ namespace Arena
                 return;  // this press already stacked it (Thorn Flurry's later cuts)
             e.BlastPress = press;
             e.BlastOwner = p.Id;
-            if (e.BlastStacks < BlastStackMax)
+            if (e.BlastStacks < BlastStackCap(p))
                 e.BlastStacks++;
         }
 
@@ -139,7 +156,7 @@ namespace Arena
             if (n <= 0 || p == null || p.Downed)
                 return;
             blastReturns.Add(new BlastReturn { Owner = p.Id, Stacks = n, T = BlastReturnTime });
-            BroadcastFx(FxKind.BlastReturn, e.Pos, new V2(p.Id, n), BlastRed, e.Radius, BlastReturnFx, Sfx.SpellArcane);  // the Blood Vortex (Game/BloodBlastLook.cs)
+            BroadcastFx(FxKind.BlastReturn, e.Pos, new V2(p.Id, n), BlastRed, e.Radius, BlastReturnFx, Sfx.BlastReturn);  // the Blood Vortex (Game/BloodBlastLook.cs)
         }
 
         /// Host, every tick: returning blood lands.
@@ -154,7 +171,7 @@ namespace Arena
                 blastReturns.RemoveAt(i);
                 var p = PlayerOrNull(r.Owner);
                 if (p != null && !p.Downed)
-                    Heal(p, r.Stacks * BlastHealPerStack, p, "Blood Blast");
+                    Heal(p, r.Stacks * BlastHealOf(p), p, "Blood Blast");
             }
         }
 
@@ -219,7 +236,7 @@ namespace Arena
             float aim = (target - p.Pos).IsZero ? p.Aim : (target - p.Pos).Angle;
             tideRuns.Add(new TideRun { Owner = p.Id, Press = ++blastPresses, Aim = aim, T = TideCharge, Dmg = p.Weapon.Damage * p.Stats.DmgMult * k * TideMult, Reach = TideR1 * k });
             p.FireCd = Math.Max(p.FireCd, TideCharge);  // no cuts while it gathers
-            BroadcastFx(FxKind.BlastTide, p.Pos, p.Pos + V2.FromAngle(aim), BlastRed, p.Id * 10 + 1, TideCharge, Sfx.SpellArcane);  // the blood gathering (Game/BloodBlastLook.cs)
+            BroadcastFx(FxKind.BlastTide, p.Pos, p.Pos + V2.FromAngle(aim), BlastRed, p.Id * 10 + 1, TideCharge, Sfx.BlastTideGather);  // the blood gathering (Game/BloodBlastLook.cs)
         }
 
         /// Host, every tick: Tides gather, then roll out, cutting, shoving and stacking every enemy they reach once.
@@ -244,7 +261,7 @@ namespace Arena
                     r.Out = true;
                     r.T = 0f;
                     r.From = p.Pos;
-                    BroadcastFx(FxKind.BlastTide, r.From, r.From + V2.FromAngle(r.Aim) * r.Reach, BlastRed, p.Id * 10 + 2, TideTravel + BlastFxTail, Sfx.BossWhoosh);  // the wave (Game/BloodBlastLook.cs)
+                    BroadcastFx(FxKind.BlastTide, r.From, r.From + V2.FromAngle(r.Aim) * r.Reach, BlastRed, p.Id * 10 + 2, TideTravel + BlastFxTail, Sfx.BlastTideWave);  // the wave (Game/BloodBlastLook.cs)
                 }
                 r.T += dt;
                 float R = TideRadius(r.T, r.Reach);

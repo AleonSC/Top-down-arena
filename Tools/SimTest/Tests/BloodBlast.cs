@@ -102,6 +102,19 @@ static partial class Program
         weaponDash.Invoke(g, new object[] { 1, 46, new V2(700f, 450f) });
         Check(hp.Hp == cdHp && hp.BlastTideCd > 0f, "it can't go again during its 8 s cooldown");
 
+        // Blood Harvest (Rare card): +1 health a stack and +5 stacks an enemy.
+        var card = Array.Find(Upgrades.All, u => u.Name == "Blood Harvest");
+        Check(card != null && card.Rarity == Rarity.Rare && card.MaxStacks == 2 && Array.IndexOf(card.Weapons, WeaponId.BloodBlast) >= 0, "Blood Harvest is a Rare Blood Blast card, two stacks");
+        card.Apply(hp.Stats);
+        var tall = dummy(new V2(375f, 450f));
+        for (int i = 0; i < 16; i++) { hp.Pos = hp.Disp = new V2(300f, 450f); tall.Pos = tall.Disp = new V2(375f, 450f); press(); run(0.6f); }
+        hp.Hp = 100f;
+        keep.Remove(tall);
+        tall.Hp = 0f;
+        run(Game.BlastReturnTime + 0.2f);
+        Console.WriteLine("  harvest: cap {0}, healed {1:0.0}", Game.BlastStackCap(hp), hp.Hp - 100f);
+        Check(Game.BlastStackCap(hp) == 15 && Math.Abs((hp.Hp - 100f) - 15 * 3f) < 2f, "with Blood Harvest an enemy holds 15 stacks and each heals 3");
+
         // Switching weapons starts the chain over.
         hp.BlastStep = 4;
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 0);

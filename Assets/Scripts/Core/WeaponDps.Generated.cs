@@ -76,6 +76,7 @@ namespace Arena
             { WeaponId.VectorForge, 105f },
             { WeaponId.BulwarkForge, 118f },
             { WeaponId.MediDroneForge, 27f },
+            { WeaponId.BloodBlast, 53f },
         };
     }
 }

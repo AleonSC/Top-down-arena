@@ -273,7 +273,7 @@ namespace Arena
         void DrawBlastReturn(Effect fx)
         {
             var owner = BlbOwner((int)fx.Pos2.X);
-            int n = Mathf.Clamp((int)fx.Pos2.Y, 1, Game.BlastStackMax) + 4;
+            int n = Mathf.Clamp((int)fx.Pos2.Y, 1, 20) + 4;
             float q = Mathf.Clamp01(fx.T / Mathf.Max(0.05f, fx.Dur)), seed = fx.Pos.X * 0.29f + fx.Pos.Y * 0.61f;
             V2 to = owner != null ? owner.Disp : fx.Pos, from = fx.Pos;
             float orbR = 4f + (n - 4) * 0.8f;
@@ -327,16 +327,17 @@ namespace Arena
         /// An enemy's Blood Blast stacks: a drop each, circling it; they swell a little as they build.
         void DrawBlastStacks(Enemy e, V2 pos, float r, float t)
         {
-            int n = Mathf.Min(e.BlastStacks, Game.BlastStackMax);
-            float f = n / (float)Game.BlastStackMax, ring = r + 9f, sz = 2.6f + 1.2f * f;
+            var owner = BlbOwner(e.BlastOwner);
+            int cap = owner != null ? Game.BlastStackCap(owner) : Game.BlastStackMax, n = Mathf.Min(e.BlastStacks, cap);
+            float f = n / (float)cap, ring = r + 9f + (cap > Game.BlastStackMax ? 4f : 0f), sz = 2.6f + 1.2f * f;
             for (int i = 0; i < n; i++)
             {
-                V2 d = V2.FromAngle(-t * 1.8f + MathX.Tau * i / Game.BlastStackMax + e.Id * 0.7f);
+                V2 d = V2.FromAngle(-t * 1.8f + MathX.Tau * i / cap + e.Id * 0.7f);
                 V2 at = pos + new V2(d.X * ring, d.Y * ring * 0.9f);
                 DrawDrop(at, sz + 1.1f, d.Orthogonal(), BlbDark);
                 DrawDrop(at, sz, d.Orthogonal(), BlbCore);
             }
-            if (n >= Game.BlastStackMax)
+            if (n >= cap)
                 Arc(pos, ring, 1.5f, BlbEdge.WithAlpha(0.35f + 0.2f * Mathf.Sin(t * 6f)), 24);  // full
         }
 
