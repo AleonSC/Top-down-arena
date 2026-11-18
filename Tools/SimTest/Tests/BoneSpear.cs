@@ -60,7 +60,7 @@ static partial class Program
         Check(Math.Abs(hpBefore - me.Hp - Game.BsMoveCost) < 0.2f, "a move costs 1 health (" + Cost() + ")");
         Settle(a);
         float pulse = a.MaxHp - a.Hp;
-        Check(pulse >= 11f && pulse < 25f && a.Pos.X - a0.X > 15f, "Pulse hits (" + pulse.ToString("0") + ") and shoves it away (" + (a.Pos.X - a0.X).ToString("0") + " px)");
+        Check(pulse >= me.Weapon.Damage - 1f && pulse < me.Weapon.Damage * 1.6f && a.Pos.X - a0.X > 15f, "Pulse hits (" + pulse.ToString("0") + ") and shoves it away (" + (a.Pos.X - a0.X).ToString("0") + " px)");
         Step(dt * 3f, On(a), false, false);
         Check(client.Game.Players[1].BsTarget == a.Id, "the other screen sees the mark");
 
@@ -86,7 +86,7 @@ static partial class Program
         float burst = aBefore - a.Hp;
         int shardsSeen = g.Bullets.Values.Count(b => b.Kind == Defs.BoneSpearShot);
         Settle(a);
-        Check(airborne && burst > 12f * (Game.BsBurstBase + 3f * Game.BsBurstPer) * 1.2f, "step 4, Marrow Burst, lands on it still airborne for 24 + 8 a hit, +25% (" + burst.ToString("0") + ")");
+        Check(airborne && burst > me.Weapon.Damage * (Game.BsBurstBase + 3f * Game.BsBurstPer) * 1.2f, "step 4, Marrow Burst, lands on it still airborne for 36 + 12 a hit, +25% (" + burst.ToString("0") + ")");
         Check(by.Hp < byBefore, "its bone shards cut the bystander (" + (byBefore - by.Hp).ToString("0") + "; " + shardsSeen + " shards seen)");
 
         // the string starts over after the Burst; on another enemy; and after the window

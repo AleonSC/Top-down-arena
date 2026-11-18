@@ -49,7 +49,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
 | Flamethrower | Tank | 0.06 s | 3 | 480 x 0.4 s | - | 94 | A short-range stream of fire. Each flame hits the first enemy hard and carries on through the rest, setting them all burning. |
-| Frost Lance | Tank | 0.4 s | 18 | - | 230 | 65 | A great icicle juts out from you, then splinters off its sides into enemies beside it. Both slow. |
+| Frost Lance | Tank | 0.4 s | 18 | - | 178 | 65 | A five-step chain: Shiver Crescent, Backhand Rime, Frost Waltz, Crystal Fan, Avalanche Slam. Hits chill; 3 chill freezes; the slam shatters frozen enemies. Parry cancels a step. Alt: Absolute Zero. |
 | Storm Hammer | Tank | 0.7 s | 40 | 460 x 1.1 s | - | 60 | Throws a spinning hammer that smashes one enemy and electrifies it, so it arcs lightning to the enemies around it. |
 | Wind Clash | Tank | 0.34 s | 18 | - | 170 | 50 | Hold Fire for a combo of air waves that hurt and shove every enemy they pass: two crescents that cross, a gale lance straight out, then a ring that bursts round you. Alt: Tempest, a storm of wind round you for 3 s that hurts enemies in it and catches every enemy shot that comes in; you move 30% slower and can't attack while it blows. |
 | Radiant Orb | Healer | 0.2 s | 8 | - | 520 | 37 | Hold to cast an orb of light out to your cursor; it stays there while you hold. Drag it through enemies to burn them and over allies to heal them. |
@@ -118,7 +118,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | A draining beam that hurts whatever you hold it on. Part of its damage heals, split between you and the nearest ally. |
 | Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Fast bolts of blood that make enemies bleed. A bolt that fills an enemy's bleed bursts it, hurting it and the enemies around it. |
 | Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in. |
-| Bone Spear | Dps | 0.26 s | 12 | - | 520 | 79 | Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too. |
+| Bone Spear | Dps | 0.26 s | 18 | - | 520 | 80 | Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too. |
 | Embolus Spears | Dps | 0.25 s | 30 | 1100 x 0 s | - | 63 | Arms out, a hardened blood spear in each hand. Fire throws the left, then the right, for 20% of your max health each: they pierce every enemy and stick in the wall. Fire again to recall both: they pierce again on the way back and give the health back. Alt bursts them where they are instead, for half the health back. |
 
 ### Engineer

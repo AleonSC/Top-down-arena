@@ -14,7 +14,7 @@ namespace Arena
     ///     Pulse shoves BsPulseShove px away, Reel pulls BsReelPull px in, Heart Lift throws it in the air for BsLiftAir s
     ///     (stunned; `Enemy.BsLiftT`), and every Bone Spear hit on an airborne enemy deals BsAirMult. Marrow Burst hits for
     ///     BsBurstBase + BsBurstPer a hit landed earlier in the string, and bursts into BsShards bone shards (Defs.BoneSpearShot,
-    ///     +2 per extra projectile, Marrow: more) that cut out to BsShardReach. Heavies and bosses take the hits but aren't moved.
+    ///     Marrow: more) that cut out to BsShardReach. Each extra projectile lands every move on one more enemy near the mark, at SympMult. Heavies and bosses take the hits but aren't moved.
     ///   - Alt (Msg.WeaponDash, DashSympathy), Sympathy: binds up to SympMax enemies within SympRange of the marked one
     ///     (`Player.SympBound`, `SympSrc`, `SympT`, replicated) for SympTime s; every move landed on it meanwhile also lands on
     ///     each of them at SympMult. SympCooldown s before the next.
@@ -23,7 +23,7 @@ namespace Arena
         public const float BsWindow = 0.9f, BsThread = 1.4f;
         public const float BsPulseTime = 0.26f, BsReelTime = 0.35f, BsLiftTime = 0.45f, BsBurstTime = 0.65f;
         public const float BsPulseHit = 0.06f, BsReelHit = 0.05f, BsLiftHit = 0.1f, BsBurstHit = 0.18f;
-        public const float BsReelMult = 10f / 12f, BsLiftMult = 1.5f, BsBurstBase = 2f, BsBurstPer = 8f / 12f, BsShardMult = 16f / 12f;  // of the weapon's Damage (the Pulse's 12)
+        public const float BsReelMult = 15f / 18f, BsLiftMult = 1.5f, BsBurstBase = 2f, BsBurstPer = 12f / 18f, BsShardMult = 24f / 18f;  // of the weapon's Damage (the Pulse's 18)
         public const float BsPulseShove = 24f, BsReelPull = 110f, BsLiftAir = 0.7f, BsAirMult = 1.25f;
         public const int BsShards = 8;
         public const float BsShardSpeed = 600f, BsShardReach = 120f;
@@ -70,7 +70,6 @@ namespace Arena
             p.FireCd = dur / FireRate(p);
             p.BsTarget = e.Id;
             p.BsT = BsThread;
-            p.BsExtra = extra;
             if (!casting)
                 PayHealth(p, step == 4 ? BsBurstCost : BsMoveCost, p.Weapon.Name);
             float d = p.Weapon.Damage * dmg;
@@ -86,6 +85,19 @@ namespace Arena
                         BroadcastFx(FxKind.BsBlow, o.Pos, new V2(o.Id, p.Id), BsRed, step + 10, BsFxDur(step), Sfx.None);
                     }
                 }
+            if (extra > 0)  // each extra projectile: the move lands on one more enemy near the mark too, at SympMult (as Sympathy, but the nearest each time)
+            {
+                var near = new List<Enemy>();
+                foreach (var o in Enemies.Values)
+                    if (o != e && Targetable(o) && o.Pos.CloserThan(e.Pos, SympRange + o.Radius) && !(p.SympT > 0f && p.SympSrc == e.Id && p.SympBound.Contains(o.Id)))
+                        near.Add(o);
+                near.Sort((a, b) => a.Pos.DistanceSq(e.Pos).CompareTo(b.Pos.DistanceSq(e.Pos)));
+                for (int i = 0; i < near.Count && i < extra; i++)
+                {
+                    QueueBsMove(p, near[i], step, d * SympMult, true);
+                    BroadcastFx(FxKind.BsBlow, near[i].Pos, new V2(near[i].Id, p.Id), BsRed, step + 10, BsFxDur(step), Sfx.None);
+                }
+            }
         }
 
         void QueueBsMove(Player p, Enemy e, int step, float dmg, bool echo) =>
@@ -138,7 +150,7 @@ namespace Arena
                 {
                     int before = h.Echo ? 0 : p.BsHits;
                     BsHurt(p, e, h.Dmg * (BsBurstBase + BsBurstPer * before), away);
-                    int n = BsShards + 2 * p.BsExtra + p.Stats.BsShardBonus;  // (Marrow: more)
+                    int n = BsShards + p.Stats.BsShardBonus;  // (Marrow: more)
                     float off = Rand(0f, MathX.Tau / n);
                     for (int i = 0; i < n; i++)
                     {
@@ -176,7 +188,7 @@ namespace Arena
             if (p.Weapon.Id != WeaponId.BoneSpear || p.Downed || p.SympCd > 0f || State == MatchState.GameOver
                 || p.BsTarget == 0 || !Enemies.TryGetValue(p.BsTarget, out t) || !Targetable(t))
                 return;
-            int max = SympMax + p.BsExtra + p.Stats.SympBonus;  // (Marrow: one more)
+            int max = SympMax + p.Stats.SympBonus;  // (Marrow: one more)
             var near = new List<Enemy>();
             foreach (var o in Enemies.Values)
                 if (o != t && Targetable(o) && o.Pos.CloserThan(t.Pos, SympRange + o.Radius))

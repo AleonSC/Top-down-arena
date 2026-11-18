@@ -516,7 +516,7 @@ static partial class Program
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
         Report("grid", "the balance grid: every role, class and weapon vs each listed boss (run.sh 1 1 grid <waves> [runs] [roles DTH] [skill] [classes]; Tools/BalanceGrid/grid.sh draws it)", args => BalanceGrid(args)),
         Report("dps", "every weapon's damage per second", args => WeaponDpsReport(Dt)),
-        Report("weapondps", "every weapon's damage a second as the lobby shows it; \"write\" saves Defs.WeaponDps's table", args => MeasuredWeaponDps(Dt, args.Contains("write"))),
+        Report("weapondps", "every weapon's damage a second as the lobby shows it; \"write\" saves Defs.WeaponDps's table; \"only=<WeaponId>\" measures one weapon", args => MeasuredWeaponDps(Dt, args.Contains("write"), args.Where(a => a.StartsWith("only=")).Select(a => a.Substring(5)).FirstOrDefault())),
         Report("weaponsrc", "where each weapon's damage lands in the session recording (weapon vs Other), lowest weapon share first", args => WeaponSourceReport(Dt)),
         Report("upgradecov", "which weapon upgrades each weapon ignores", args => UpgradeCoverageReport(Dt)),
         Report("bosspower", "a typical build's power at each boss wave, and the boss health a strong build would bring", args => BossPowerReport(Dt)),

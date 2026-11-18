@@ -303,7 +303,7 @@ namespace Arena
         public float LeashT, LeashCd;
         public int BsTarget;                          // Bone Spear: the marked enemy (replicated; BoneSpear.cs); BsT: the thread's time left (replicated)
         public float BsT;
-        public int BsHits, BsExtra;                   // host: hits landed in this string, extra projectiles
+        public int BsHits;                            // host: hits landed in this string
         public float SympT, SympCd;                   // Sympathy: time left (replicated), cooldown (host)
         public int SympSrc;                           // the marked enemy the bound ones echo (replicated)
         public readonly List<int> SympBound = new List<int>();  // the enemies bound to it (replicated)
