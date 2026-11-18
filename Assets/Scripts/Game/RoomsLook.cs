@@ -471,13 +471,13 @@ namespace Arena
                 if (e.Def.Mini || e.Def.IsBoss) { MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
                 MapRect(c.X - 1f, c.Y - 1f, 2f, 2f, e.Type == EnemyType.Runner ? new Rgba(1f, 0.55f, 0.24f) : new Rgba(1f, 0.32f, 0.36f, 0.85f));
             }
-            foreach (var ch in game.Props.Values)  // unopened treasure chests: a gold diamond-ish square
+            foreach (var ch in game.Props.Values)  // unopened treasure chests: a square in the kind's ink
             {
                 if (ch.Kind != PropKind.Chest || ch.Open || ch.Hp <= 0f)
                     continue;
                 V2 c = M(ch.Pos);
                 MapRect(c.X - 4f, c.Y - 4f, 8f, 8f, new Rgba(0.02f, 0.03f, 0.06f, 0.9f));
-                MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.82f, 0.3f));
+                MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, ch.Chest == ChestKind.Gold ? new Rgba(1f, 0.82f, 0.3f) : ChestInkOf(ch.Chest));  // its kind's ink (ChestLooks.cs)
             }
             DrawGateOnMap(M);  // the boss gate (BossGateLook.cs)
             DrawMysteryOnMap(M);  // sealed mystery doors (MysteryDoorLook.cs)
