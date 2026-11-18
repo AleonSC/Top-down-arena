@@ -237,7 +237,7 @@ namespace Arena
                     Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  HUD mode", 11, new Color(1f, 1f, 1f, 0.55f * tabHintA), TextAnchor.MiddleCenter, true);
                 });
                 // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
-                float back = hudMode == 3 ? Mathf.Clamp01((0.35f - hudT) / 0.35f) : 0f;  // (only when fully hidden: the partial HUDs are their own reminder)
+                float back = hudMode == HudHidden ? Mathf.Clamp01((0.35f - hudT) / 0.35f) : 0f;  // (only when fully hidden: the partial HUDs are their own reminder)
                 if (back > 0f && !LaunchActive && !RecallActive)  // (not while a run launches, the HUD on its way in, or beams out: Recall.cs)
                 {
                     float breathe = 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 2f);
@@ -253,8 +253,8 @@ namespace Arena
 
         // --- Hiding the HUD (H) ---------------------------------------------------------
 
-        bool hudShown = true;  // the full console is up (HUD mode 0, HudModes.cs; the mode is saved as hud_mode)
-        float hudT = 1f;               // 0 hidden .. 1 shown, eased in Update
+        bool hudShown;  // the full console is up: retired, always false (HudModes.cs)
+        float hudT = 0f;               // 0 hidden .. 1 shown, eased in Update
         const float HudFadeTime = 0.55f, HudStagger = 0.14f;
         const int HudGroups = 4;       // 0 ability bar, 1 wave panel, 2 player cards, 3 top row (boss bars, hints)
 
