@@ -63,6 +63,16 @@ static partial class Program
         Check(Expansion.GridCardShape(RoomCard.Market) == GridPiece.Mono && Expansion.GridCardShape(Expansion.PieceCard(GridPiece.TetL)) == GridPiece.TetL, "a service card is a single cell");
         Check(Expansion.CardName(Expansion.PieceCard(GridPiece.TriL)) == "Corner" && Expansion.CardName(Expansion.PieceCard(GridPiece.TetT, PathId.FrozenLake)).EndsWith(" T") && Expansion.CardPrice(Expansion.PieceCard(GridPiece.TetO)) == 24 && Expansion.CardPrice(Expansion.PieceCard(GridPiece.Mono, PathId.Sanctuary)) == 14,
             "names and prices: a cell is 6 vectors, a floor 8 more");
+        Check(Expansion.PieceModMax == 13 && Expansion.FirstFreeMod == (int)PathId.Bazaar + 1 && Expansion.ModKind(0) == PieceModKind.None && Expansion.ModKind((int)PathId.FrozenLake) == PieceModKind.Floor && Expansion.ModKind(Expansion.FirstFreeMod) == PieceModKind.Unknown
+            && Expansion.PieceCardMod(GridPiece.TetS, (int)PathId.BloodMoon) == Expansion.PieceCard(GridPiece.TetS, PathId.BloodMoon) && (int)Expansion.PieceCardMod(GridPiece.TetL, Expansion.PieceModMax) <= 255,
+            "the modifier slot: 0 plain, 1-10 the floors (same codes as before), 11-13 kept for modifiers to come, all inside a byte");
+        var free = Expansion.PieceCardMod(GridPiece.Domino, Expansion.FirstFreeMod);
+        Check(Expansion.IsPieceCard(free) && Expansion.CardPiece(free) == GridPiece.Domino && Expansion.CardMod(free) == Expansion.FirstFreeMod && Expansion.CardFloor(free) == PathId.None && !Expansion.IsGridCard(free), "a card with a modifier not defined yet reads back but isn't playable");
+        var modded = Expansion.ApplyPieceMod(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, (int)PathId.Sanctuary);
+        var plainRoom = Expansion.ApplyPieceMod(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, 0);
+        Check(modded.Kind == Arena.RoomKind.Floor && modded.Floor == PathId.Sanctuary && plainRoom.Kind == Arena.RoomKind.Combat && Expansion.CardMod(RoomCard.Shop) == 0, "a floor modifier makes the room a floor room; no modifier leaves it a combat room");
+        var allPieces = new[] { MysteryRoom.Small, MysteryRoom.Medium, MysteryRoom.Hallway }.SelectMany(Mystery.PiecesOf).Distinct().Count();
+        Check(allPieces == Enum.GetValues(typeof(GridPiece)).Length, "every piece shape can come from a mystery door (" + allPieces + " shapes)");
         var hand = Expansion.GridStartHand(5);
         Check(hand.Length == 3 && hand[0] == Expansion.PieceCard(GridPiece.Mono) && hand[1] == Expansion.PieceCard(GridPiece.Domino) && Expansion.GridPieceCells(Expansion.CardPiece(hand[2])) == 3 && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: a single, a domino and a tromino, the same each time");
         Check(Expansion.GridRoundCard(1) == Expansion.PieceCard(GridPiece.Domino) && Expansion.GridRoundCard(2) == Expansion.PieceCard(GridPiece.Mono), "the round card: a domino after odd waves, a single after even");

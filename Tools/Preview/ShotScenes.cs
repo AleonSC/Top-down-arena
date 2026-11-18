@@ -544,6 +544,27 @@ static partial class Shot {
         en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
       }
     }
+    if (Environment.GetEnvironmentVariable("VOLLEY") != null) {
+      // A DPS Knight's Warhorn Volley (WarhornVolleyLook.cs): VOLLEY=<seconds after the cast> (horn 0.18-0.9 s, arrows land 0.6 s to Game.VolEndT),
+      // VOLMASTERED=1 for the wider lane, VOLAIM=<radians>. Enemies the front has passed burn. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Knight; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps);
+      float vt = float.Parse(Environment.GetEnvironmentVariable("VOLLEY"));
+      float aimV = float.Parse(Environment.GetEnvironmentVariable("VOLAIM") ?? "0.08");
+      V2 fromV = new V2(300f, 460f), dirV = V2.FromAngle(aimV);
+      me.Pos = me.Disp = fromV; me.Aim = aimV; me.AimAt = fromV + dirV * 300f;
+      bool capV = Environment.GetEnvironmentVariable("VOLMASTERED") != null;
+      gm.Effects.Add(new Effect { Kind = FxKind.WarhornVolley, Pos = fromV, Pos2 = fromV + dirV * Game.VolRange, Color = new Rgba(1f, 0.55f, 0.18f, Game.VolHalfOf(capV) / 1000f), Radius = me.Id, Dur = Game.VolFxDur, T = vt });
+      float[,] spotsV = { { 260f, 30f }, { 360f, -120f }, { 420f, 150f }, { 520f, -20f }, { 640f, 220f }, { 700f, -200f }, { 820f, 60f }, { 900f, -90f }, { 1000f, 170f }, { 560f, 300f } };
+      for (int i = 0; i < 10; i++) {
+        V2 at = fromV + dirV * spotsV[i, 0] + dirV.Orthogonal() * spotsV[i, 1];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i % 4 == 3 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+        en.Burning = spotsV[i, 0] < Game.VolFront(vt);
+      }
+    }
     if (Environment.GetEnvironmentVariable("HARVEST") != null || Environment.GetEnvironmentVariable("HARVESTTHROW") != null) {
       // A Hemomancer's Crimson Harvest (CrimsonHarvestLook.cs): HARVEST=<seconds since the cast> (rip to 2.2 s, then the hold; HARVESTBLOOD=<blood> sets the ball's size, default 26),
       // or HARVESTTHROW=<seconds since the throw> for the flight (to 0.65 s), blast and stain. Use with mode hud.
@@ -2203,6 +2224,17 @@ static partial class Shot {
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
+      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
+        bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
+        ArenaApp.PreviewOpenAge = float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
+        ExpansionRoom? rr = null;
+        for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Expansion.Custom(xg.Expanded, rx, ry, 600, 600, out wn); if (cand.HasValue) rr = cand; }
+        if (rr.HasValue) {
+          xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+          var rn = new MapNode { Kind = vecOpen ? NodeKind.VectorChest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
+        }
+      }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
       string mreset = Environment.GetEnvironmentVariable("MAPRESET");  // MAPRESET=<s since the reset>: the map just reset (MapResetLook.cs): the old rooms folding in, the biggest one kept, map 2, 27 vectors back
       if (mreset != null) {

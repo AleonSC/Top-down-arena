@@ -362,16 +362,42 @@ namespace Arena
         public static int NodeRoomClear(MapNode n) => IsPrizeNode(n.Kind) ? PrizeClear : NodeReach(n);
 
         /// A treasure chest or a vector chest.
-        /// A chest node's kind (Props.cs ChestKind): Gold, Grid piece, Buildables or Upgrade, one each in turn of a seeded roll.
+        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Grid piece or Buildables (Buildables with room cards off), outer Upgrade.
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
         {
+            int tier = NodeTier(x, y);
+            if (tier != 1)
+                return tier == 0 ? ChestKind.Gold : ChestKind.Upgrade;
             var r = new DetRandom(seed * 31 + x * 7919 + y * 104729 + 5);
-            var pick = cards ? ChestRoll : ChestRollNoCards;
-            return pick[r.Int(pick.Length)];
+            return cards && r.Int(2) == 0 ? ChestKind.Piece : ChestKind.Buildable;
         }
 
-        static readonly ChestKind[] ChestRoll = { ChestKind.Gold, ChestKind.Piece, ChestKind.Buildable, ChestKind.Upgrade };
-        static readonly ChestKind[] ChestRollNoCards = { ChestKind.Gold, ChestKind.Buildable, ChestKind.Upgrade };
+        // --- Node tiers (owner Nov 18): the farther a prize node sits from the hub, the better what it holds ---
+
+        public const int TierMid = 1500, TierOuter = 3000;  // a node this far (15 / 30 tiles) or more off the hub's wall is middle / outer tier
+
+        /// A point's tier from its distance to the hub's box: 0 inner (gold and vector chests), 1 middle (grid piece and buildables chests),
+        /// 2 outer (upgrade chests and relics). A pure function of the point, so it needs nothing on the wire or in saves.
+        public static int NodeTier(int x, int y)
+        {
+            float dx = Math.Max(0f, Math.Max(-x, x - Game.Width)), dy = Math.Max(0f, Math.Max(-y, y - Game.Height));
+            float d = (float)Math.Sqrt(dx * dx + dy * dy);
+            return d >= TierOuter ? 2 : d >= TierMid ? 1 : 0;
+        }
+
+        public static int NodeTier(MapNode n) => NodeTier(n.X, n.Y);
+
+        /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
+        /// middle a chest (grid piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
+        public static MapNode Tiered(int seed, MapNode n)
+        {
+            if (!IsChest(n.Kind) && n.Kind != NodeKind.Relic)
+                return n;
+            int tier = NodeTier(n);
+            bool coin = new DetRandom(seed * 53 + n.X * 6007 + n.Y * 7151 + 11).Int(2) == 0;
+            n.Kind = tier == 1 ? NodeKind.Chest : tier == 0 ? (coin ? NodeKind.Chest : NodeKind.VectorChest) : (coin ? NodeKind.Chest : NodeKind.Relic);
+            return n;
+        }
 
         public static bool IsChest(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest;
 

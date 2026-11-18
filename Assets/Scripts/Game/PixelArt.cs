@@ -119,6 +119,7 @@ namespace Arena
             { "Coup de Grace", "bladeddive" },
             { "Iron Grip", "gauntlet" },
             { "Forged Edge", "caughtsteel" },
+            { "Bodkin Points", "firearrows" },
             // Class ability cards (a Space ability for Q/E/Shift) reuse the nearest icon. Two cards that share
             // one never meet in an offer: they belong to different classes, or one needs the ability the other grants.
             { "Barrier", "bubble" },
@@ -159,6 +160,7 @@ namespace Arena
             { "Bladed Dive", "bladeddive" },
             { "The Gauntlet", "gauntlet" },
             { "Caught Steel", "caughtsteel" },
+            { "Warhorn Volley", "firearrows" },
             // Ninja: each ability's upgrade card and its class ability card share an icon (they never meet in an offer).
             { "Mirror Image", "clone" },
             { "Thick Smoke", "smoke" },
@@ -1225,6 +1227,21 @@ namespace Arena
                 "kMk.....YY..",
                 "kk.YYYYY....",
                 "............",
+            },
+            ["firearrows"] = new[]  // Warhorn Volley and Bodkin Points: burning arrows falling
+            {
+                ".g....g.....",
+                "..m....m....",
+                "...m....m...",
+                "....m....m..",
+                ".....y....y.",
+                ".g....o....o",
+                "..m.........",
+                "...m.....r..",
+                "....m...ror.",
+                ".....y......",
+                "......o.....",
+                ".....ror....",
             },
             ["caughtsteel"] = new[]
             {
