@@ -9,9 +9,10 @@ namespace Arena
     /// aim at VolSpeed px/s, out to VolRange px ahead, VolHalf px to either side. Every enemy the front reaches is hit once:
     /// VolDamage (three arrows), set burning (VolBurnDps for VolBurnTime s, the strongest fire on it counts) and pinned (slowed
     /// VolPin for VolPinTime s; bosses aren't pinned). Ordinary enemy shots in the front's path are knocked out of the air (red
-    /// aimed shots fly on). Mastered: the lane is VolMasterWide wider and the fire burns VolBurnTimeMastered s.
+    /// aimed shots fly on). Mastered: the lane is VolMasterWide wider and the fire burns VolBurnTimeMastered s. The rare card Bodkin Points
+    /// (Stats.VolleyDamage, VolleyWide) adds 25% damage and 20% width a stack.
     /// The volley is host logic; clients get one FxKind.WarhornVolley (Pos = where you stood, Pos2 = Pos + the aim * VolRange,
-    /// Radius = your id, colour alpha 1 = mastered, Dur = VolFxDur) and draw the horn and every arrow from its age alone
+    /// Radius = your id, colour alpha = the lane's half width / 1000 (mastered and Bodkin Points widen it), Dur = VolFxDur) and draw the horn and every arrow from its age alone
     /// (Game/WarhornVolleyLook.cs); its sound is Sfx.Warhorn, the horn and the whole volley in one take (WarhornSoundBank.cs).
     public partial class Game
     {
@@ -48,10 +49,10 @@ namespace Arena
             float mult = p.Stats.DmgMult * pw;
             volleys.Add(new Volley
             {
-                Owner = p.Id, Origin = p.Pos, Dir = dir, Dmg = VolDamage * mult, Burn = VolBurnDps * mult,
-                BurnTime = cap ? VolBurnTimeMastered : VolBurnTime, Half = VolHalfOf(cap)
+                Owner = p.Id, Origin = p.Pos, Dir = dir, Dmg = VolDamage * mult * (1f + p.Stats.VolleyDamage), Burn = VolBurnDps * mult,
+                BurnTime = cap ? VolBurnTimeMastered : VolBurnTime, Half = VolHalfOf(cap) * (1f + p.Stats.VolleyWide)
             });
-            BroadcastFx(FxKind.WarhornVolley, p.Pos, p.Pos + dir * VolRange, new Rgba(1f, 0.55f, 0.18f, cap ? 1f : 0.5f), p.Id, VolFxDur, Sfx.Warhorn);
+            BroadcastFx(FxKind.WarhornVolley, p.Pos, p.Pos + dir * VolRange, new Rgba(1f, 0.55f, 0.18f, VolHalfOf(cap) * (1f + p.Stats.VolleyWide) / 1000f), p.Id, VolFxDur, Sfx.Warhorn);  // (alpha: the lane's half width / 1000)
         }
 
         /// Host, every tick: move each volley's front and hit whatever it reaches.

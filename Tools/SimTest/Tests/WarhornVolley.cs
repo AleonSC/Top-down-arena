@@ -61,7 +61,7 @@ static partial class Program
         masteredField.SetValue(g, false);
         cast.Invoke(g, new object[] { me, U, aim });
         var fx = g.Effects.FirstOrDefault(e => e.Kind == FxKind.WarhornVolley);
-        Check(fx != null && (int)fx.Radius == me.Id && fx.Color.A < 0.75f && Math.Abs(fx.Dur - Game.VolFxDur) < 0.01f, "casting it sends the look to every screen (one effect, the knight's id, not mastered)");
+        Check(fx != null && (int)fx.Radius == me.Id && Math.Abs(fx.Color.A * 1000f - Game.VolHalf) < 0.5f && Math.Abs(fx.Dur - Game.VolFxDur) < 0.01f, "casting it sends the look to every screen (one effect, the knight's id, the lane's half width)");
         Check(g.Sounds.Any(c => c.Sfx == Sfx.Warhorn), "the horn sounds (Sfx.Warhorn, sent with the cast)");
 
         step(Game.VolLandT - 0.1f);
@@ -122,9 +122,35 @@ static partial class Program
         masteredField.SetValue(g, true);
         cast.Invoke(g, new object[] { me, U, aim });
         masteredField.SetValue(g, false);
-        Check(g.Effects.Any(e => e.Kind == FxKind.WarhornVolley && e.Color.A > 0.75f), "mastered, the look knows (the wider lane)");
+        Check(g.Effects.Any(e => e.Kind == FxKind.WarhornVolley && Math.Abs(e.Color.A * 1000f - Game.VolHalf * Game.VolMasterWide) < 0.5f), "mastered, the look knows (the wider lane)");
         for (int f = 0; f < 3f / dt && edge.Hp == edge.MaxHp; f++) step(dt);
         Check(edge.Hp < edge.MaxHp && edge.BurnT > Game.VolBurnTimeMastered - 0.2f, "mastered, the lane is 40% wider and the fire burns 8 s");
+        step(Game.VolEndT);
+
+        // Bodkin Points: offered only with Warhorn Volley as your ultimate; each stack +25% damage, +20% width.
+        int bodkin = Array.FindIndex(Upgrades.All, u => u.Name == "Bodkin Points");
+        var none = new List<int>();
+        var dpsKnight = Upgrades.RoleAbility(Role.Dps, Kit.Knight, 0);
+        Check(bodkin >= 0 && Upgrades.All[bodkin].Rarity == Rarity.Rare && Upgrades.All[bodkin].MaxStacks == 2
+            && Upgrades.Available(bodkin, new OfferCtx(Role.Dps, dpsKnight, none, null, false, Kit.Knight, AbilityId.None, AbilityId.WarhornVolley))
+            && !Upgrades.Available(bodkin, new OfferCtx(Role.Dps, dpsKnight, none, null, false, Kit.Knight, AbilityId.None, AbilityId.BladeTempest)),
+            "Bodkin Points (rare, 2 stacks) is offered with Warhorn Volley as your ultimate, not with the Drawbridge");
+        Check(Upgrades.Available(bodkin, OfferCtx.Of(me, false)), "...and the match's offers see the ultimate on F");
+        g.Enemies.Clear(); spots.Clear(); g.Effects.Clear();
+        var bodkinNear = pin(new V2(500f, 450f), EnemyType.Brute);
+        var bodkinEdge = pin(new V2(700f, 450f + 400f), EnemyType.Brute);  // past 350, inside 350 x 1.2 = 420
+        me.Taken.Add(bodkin);
+        typeof(Game).GetMethod("Recalc", flags).Invoke(g, new object[] { me });
+        me.Slots[U].Timer = 0f; me.Slots[U].Charges = 1;
+        cast.Invoke(g, new object[] { me, U, aim });
+        Check(g.Effects.Any(e => e.Kind == FxKind.WarhornVolley && Math.Abs(e.Color.A * 1000f - Game.VolHalf * 1.2f) < 0.5f), "with Bodkin Points the look draws the wider lane");
+        float hp0 = bodkinNear.Hp;
+        for (int f = 0; f < 3f / dt && bodkinNear.Hp == hp0; f++) step(dt);
+        float bodkinHit = hp0 - bodkinNear.Hp, expect = Game.VolDamage * me.Stats.DmgMult * 1.25f;
+        Check(Math.Abs(me.Stats.VolleyDamage - 0.25f) < 0.001f && bodkinHit >= expect - 0.5f && bodkinHit <= expect + Game.VolBurnDps * me.Stats.DmgMult * 0.1f + 0.5f,
+            "with Bodkin Points the arrows hit 25% harder");
+        step(2f);
+        Check(bodkinEdge.Hp < bodkinEdge.MaxHp, "...and reach 20% wider (400 px off the aim)");
         step(Game.VolEndT);
     }
 }

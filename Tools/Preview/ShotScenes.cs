@@ -556,7 +556,7 @@ static partial class Shot {
       V2 fromV = new V2(300f, 460f), dirV = V2.FromAngle(aimV);
       me.Pos = me.Disp = fromV; me.Aim = aimV; me.AimAt = fromV + dirV * 300f;
       bool capV = Environment.GetEnvironmentVariable("VOLMASTERED") != null;
-      gm.Effects.Add(new Effect { Kind = FxKind.WarhornVolley, Pos = fromV, Pos2 = fromV + dirV * Game.VolRange, Color = new Rgba(1f, 0.55f, 0.18f, capV ? 1f : 0.5f), Radius = me.Id, Dur = Game.VolFxDur, T = vt });
+      gm.Effects.Add(new Effect { Kind = FxKind.WarhornVolley, Pos = fromV, Pos2 = fromV + dirV * Game.VolRange, Color = new Rgba(1f, 0.55f, 0.18f, Game.VolHalfOf(capV) / 1000f), Radius = me.Id, Dur = Game.VolFxDur, T = vt });
       float[,] spotsV = { { 260f, 30f }, { 360f, -120f }, { 420f, 150f }, { 520f, -20f }, { 640f, 220f }, { 700f, -200f }, { 820f, 60f }, { 900f, -90f }, { 1000f, 170f }, { 560f, 300f } };
       for (int i = 0; i < 10; i++) {
         V2 at = fromV + dirV * spotsV[i, 0] + dirV.Orthogonal() * spotsV[i, 1];

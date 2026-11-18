@@ -4,7 +4,7 @@ namespace Arena
 {
     /// Warhorn Volley (Core/WarhornVolley.cs), the Fire Arrows look of Docs/Mockups/warhorn-volley.html, drawn from the
     /// FxKind.WarhornVolley effect's age alone (Pos = where the knight stood, Pos2 = the lane's far end, Radius = their id,
-    /// colour alpha 1 = mastered). Every arrow is picked from the effect's own numbers, so every screen draws the same volley.
+    /// colour alpha = the lane's half width / 1000). Every arrow is picked from the effect's own numbers, so every screen draws the same volley.
     ///   DrawWarhornGround (in the effects pass): the volley's shadow riding over the lane, each arrow's shadow racing in,
     ///     the shafts stuck in the floor (quivering as they land, fading after ~2 s) and the little fires at their feet
     ///   DrawWarhornSky (over the arena's contents): the black war horn raised to the knight's helm, the sound rolling out of
@@ -35,7 +35,7 @@ namespace Arena
             return new VolFrame
             {
                 Origin = fx.Pos, Dir = dir, Left = new V2(-dir.Y, dir.X), Sky = sky, Fall = (sky * -1f).Normalized(),
-                Half = Game.VolHalfOf(fx.Color.A > 0.75f), Seed = ((int)(fx.Pos.X * 7.1f) ^ (int)(fx.Pos.Y * 13.3f)) & 0xffff,
+                Half = fx.Color.A > 0.05f ? fx.Color.A * 1000f : Game.VolHalf, Seed = ((int)(fx.Pos.X * 7.1f) ^ (int)(fx.Pos.Y * 13.3f)) & 0xffff,
             };
         }
 

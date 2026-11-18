@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 404: Warhorn Volley: a new `AbilityId.WarhornVolley` (the DPS Knight's second ultimate), `FxKind.WarhornVolley` and `Sfx.Warhorn` on the wire
+- 405: Warhorn Volley: a new `AbilityId.WarhornVolley` (the DPS Knight's second ultimate), `FxKind.WarhornVolley` and `Sfx.Warhorn` on the wire, and the Bodkin Points card (card ids after it shift by one)
 - 404: Team vote building removed: `Msg.ExpandState` no longer carries the open round's proposals and votes after `ExpandOpen`; `Msg.ExpandVote` is retired
 - 404: the Greatsword rework: `Player.GreatStep` runs 1-10 (the ten-step chain) and `Player.Combo` counts its swings; `Player.FangOut`/`FangAt` also carry the Greatsword's thrown Moonwheel; `DashStrike` on `Msg.WeaponDash` throws it (the guard's `DashGuardOn`/`Off` are no longer sent)
 - 403: `Msg.GridPiece` (client -> host: the hand slot of a grid piece card, its orientation and the corner of its cell box); a hand code from 32 up is a grid piece (32 + floor x 16 + piece; Docs/GridPieces.md steps 1-2)
