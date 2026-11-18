@@ -1222,9 +1222,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Bots build up to the shop room first, then the vendor, then a rule node's room, then chest and relic nodes, then the mini-boss room (they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
-  it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
-  separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. Each relic node rolls one of the relics below (never
-  the one every player already holds); its tip on the build map names it once the fog lifts:
+  it: **you** get its relic in your **relic slot** (one each, never shared; it stays for the run, saves included). If your slot was full, your **old relic is left in the node** in its place for anyone to take (walk away and back to swap again). Relics are
+  separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. Each relic node rolls one of the relics below (its tip on the build map names it once the fog lifts:
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, and stuck shuriken don't bounce.
   - **Backup**: the first time you would go down, you get straight back up with half your health and 2 s of grace. Then it's gone (your slot is empty).

@@ -78,9 +78,9 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 
 - Owner (Nov 12): node-earned **relics**, separate from boss weapon mods: **one relic slot per player**, a new one replaces the old. First relic: **Wall Bounce**.
 - `NodeKind.Relic`: one per **even** boss cycle (0, 2, 4, ...), placed like chests (`PlaceFloatingRooms`). Claimed the same way (a room round it); the first player to walk
-  up to it (`Relics.TakeReach`) gives **everyone** its relic and spends the node (`Relics.cs` `TickRelicNodes`).
+  up to it (`Relics.TakeReach`) gives **that player** its relic (nov 18, owner: relics are per player, not shared). Their old relic is left in the node (`MapNode.Drop`, protocol 401; `Relics.Held`) to be taken by anyone, and the swapper must walk out of reach before swapping back; with an empty slot the node is spent (`Relics.cs` `TickRelicNodes`).
 - Wall Bounce: a player's shot that reaches a wall or pillar bounces once (mirrored off the face), keeping 70% damage (`Relics.WallBounces`, `WallBounceDmg`).
-- Nov 17 (owner): two more relics, and each node rolls its relic (`Relics.ForNode`: from the node's spot, never the relic every player holds; protocol 387), named in the build map's tip:
+- Nov 17 (owner): two more relics, and each node rolls its relic (`Relics.ForNode`: from the node's spot; protocol 387), named in the build map's tip:
   **Backup** (an auto revive: the first time you'd go down you're back up at 50% health with 2 s grace, then the slot empties; `UseBackup` from `DownIfDead`) and
   **Hallway Runner** (+25% move speed in a box 3 tiles wide or less; `RelicSpeedAt`, `Relics.InHall`).
 - Open: more relics (Home Turf, Gatecrasher, Portal Ward, Spiked Walls were offered), a pick-up banner, bots walking to relic nodes.
