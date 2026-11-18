@@ -155,10 +155,10 @@ namespace Arena
         int breachTotal;  // host: how many enemies and squads this breach wave brings (FloodBreachWave), shared out over its breaches
         bool breachPinned;  // a surprise room opened mid-wave: keep this wave's other breaches where they are
 
-        /// Are enemies coming in through breaches now? The grown Expanding arena on a breach wave (Breaches.IsBreachWave: a
+        /// Are enemies coming in through breaches now? The grown Expanding arena (a room bought or a wall pushed: not the bare hub the Campaign starts in) on a breach wave (Breaches.IsBreachWave: a
         /// rare event, not the room-by-room version, which uses its nests, and never a boss wave). A Campaign plays each wave
         /// twice (Hunts.cs legs): only its first leg breaches, else the second would reopen the same breaches over their Stashes.
-        public bool BreachesOn => ExpandingOn && RoomsOn && !Rooms.RoomByRoom && !BossNow && State == MatchState.Fighting && Breaches.IsBreachWave(Wave) && (!LongLegs || Leg == 0);
+        public bool BreachesOn => ExpandingOn && RoomsOn && Expansion.Grown(Expanded) && !Rooms.RoomByRoom && !BossNow && State == MatchState.Fighting && Breaches.IsBreachWave(Wave) && (!LongLegs || Leg == 0);
 
         /// The breach warning is playing (Breaches.WarnTime): the cameras are touring the breaches and the players stand still.
         public bool BreachWarnOn => BreachesOn && ModeRules.Extras && BreachAge < Breaches.WarnTime(ActiveBreaches.Length);
