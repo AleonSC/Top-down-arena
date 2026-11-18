@@ -29,6 +29,7 @@ namespace Arena
         public static readonly float[] BlastArc = { 120f, 130f, 100f, 360f, 0f, 80f };
         public static readonly float[] BlastDelay = { 0.08f, 0.08f, 0.05f, 0.2f, 0.38f, 0.3f };
         public const float BlastFlurryGap = 0.15f, BlastCleaveRadius = 70f, BlastCleaveKnock = 130f, BlastFlightReach = 260f;
+        public const float BlastFxTail = 0.45f, BlastReturnFx = 1.15f;  // a cut's look outlasts it (drops landing); the Blood Vortex's whole show (it lands at BlastReturnTime)
         static readonly Rgba BlastRed = new Rgba(0.88f, 0.12f, 0.24f);
 
         class BlastReturn
@@ -73,9 +74,14 @@ namespace Arena
             {
                 var s = NewSwing(p, a, r, arc, hit);
                 s.BlastPress = press;
+                s.NoFx = true;    // drawn from the press's FxKind.BlastCut (Game/BloodBlastLook.cs)
+                s.Silent = true;  // and heard from it
                 s.Delay = BlastDelay[step - 1];
                 return s;
             };
+            float fxReach = MeleeReach(p, reach);
+            BroadcastFx(FxKind.BlastCut, p.Pos, p.Pos + V2.FromAngle(aim) * fxReach, BlastRed, p.Id * 10 + step, BlastTime[step - 1] / FireRate(p) + BlastFxTail,
+                step == 4 || step == 5 ? Sfx.SwingHeavy : Sfx.SwingLight);
             switch (step)
             {
                 case 3:  // Thorn Flurry: three short cuts, the middle one tilted the other way
@@ -83,7 +89,6 @@ namespace Arena
                     {
                         var s = swing(aim + (i == 0 ? -0.2f : i == 1 ? 0.18f : 0f), reach, BlastArc[2]);
                         s.Delay += BlastFlurryGap * i;
-                        s.Silent = i > 0;
                         QueueSwing(s);
                     }
                     break;
@@ -134,7 +139,7 @@ namespace Arena
             if (n <= 0 || p == null || p.Downed)
                 return;
             blastReturns.Add(new BlastReturn { Owner = p.Id, Stacks = n, T = BlastReturnTime });
-            BroadcastFx(FxKind.Drain, e.Pos, p.Pos, BlastRed, 2f + n, BlastReturnTime, Sfx.None);  // (step 3 draws the Blood Vortex)
+            BroadcastFx(FxKind.BlastReturn, e.Pos, new V2(p.Id, n), BlastRed, e.Radius, BlastReturnFx, Sfx.SpellArcane);  // the Blood Vortex (Game/BloodBlastLook.cs)
         }
 
         /// Host, every tick: returning blood lands.
@@ -214,7 +219,7 @@ namespace Arena
             float aim = (target - p.Pos).IsZero ? p.Aim : (target - p.Pos).Angle;
             tideRuns.Add(new TideRun { Owner = p.Id, Press = ++blastPresses, Aim = aim, T = TideCharge, Dmg = p.Weapon.Damage * p.Stats.DmgMult * k * TideMult, Reach = TideR1 * k });
             p.FireCd = Math.Max(p.FireCd, TideCharge);  // no cuts while it gathers
-            BroadcastFx(FxKind.Ring, p.Pos, BlastRed, p.Def.BodyR + 26f, TideCharge, Sfx.SpellArcane);  // (step 3 draws the gathering blood)
+            BroadcastFx(FxKind.BlastTide, p.Pos, p.Pos + V2.FromAngle(aim), BlastRed, p.Id * 10 + 1, TideCharge, Sfx.SpellArcane);  // the blood gathering (Game/BloodBlastLook.cs)
         }
 
         /// Host, every tick: Tides gather, then roll out, cutting, shoving and stacking every enemy they reach once.
@@ -239,7 +244,7 @@ namespace Arena
                     r.Out = true;
                     r.T = 0f;
                     r.From = p.Pos;
-                    BroadcastFx(FxKind.Slash, r.From, r.From + V2.FromAngle(r.Aim) * r.Reach, BlastRed, TideHalf, TideTravel, Sfx.SwingHeavy);  // (step 3 draws the wave)
+                    BroadcastFx(FxKind.BlastTide, r.From, r.From + V2.FromAngle(r.Aim) * r.Reach, BlastRed, p.Id * 10 + 2, TideTravel + BlastFxTail, Sfx.BossWhoosh);  // the wave (Game/BloodBlastLook.cs)
                 }
                 r.T += dt;
                 float R = TideRadius(r.T, r.Reach);

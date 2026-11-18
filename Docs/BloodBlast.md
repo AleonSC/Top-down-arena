@@ -1,6 +1,6 @@
 # Blood Blast: blood-slash chain
 
-**Status: steps 1-2 built** (protocol 404): the chain, health costs, stacks, kill heal and Crimson Tide in `Assets/Scripts/Core/BloodBlast.cs`, tests `Tools/SimTest/run.sh 1 30 bloodblast`. Steps 3-4 to do. Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
+**Status: steps 1-3 built** (protocol 404): the chain, health costs, stacks, kill heal and Crimson Tide in `Assets/Scripts/Core/BloodBlast.cs`, the look in `Assets/Scripts/Game/BloodBlastLook.cs`, tests `Tools/SimTest/run.sh 1 30 bloodblast`, preview `BLOODBLAST=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`. Step 4 to do. Tank Hemomancer, 4th weapon key. Mockup `Docs/Mockups/blood-blast.html`
 (published: https://claude.ai/artifact/ENVDpfrNckiH4KoUpHvEp2).
 
 ## Owner's decisions
@@ -56,7 +56,8 @@
 2. **Alt** (done): Crimson Tide on the weapon-action key (`DashTide` 46; `LocalTide`, `HostTide`, `TickTide`): pay, gather
    0.65 s (no cuts meanwhile), then the wave grows out (`TideRadius`) hitting each enemy once; local cooldown ring under
    your feet (`TankAltLook.cs`). Placeholder look: a ring while it gathers, a wide red slash as it goes.
-3. **Look**: `Game/BloodBlastLook.cs`: the six moves, the Tide, stack drops and the Blood Vortex return (an `FxKind`); `Tools/Preview`
+3. **Look** (done): `Game/BloodBlastLook.cs` from `FxKind.BlastCut` (each press), `BlastTide` (gather, wave) and `BlastReturn`
+   (the Blood Vortex), plus the stack drops on enemies and a glow pass; `Tools/Preview`
    renders of each step.
 4. **Polish**: per-weapon upgrade (`ExtraDesc`) and a Rare card, sounds, README rows, bot range, balance check from a
    session report.
