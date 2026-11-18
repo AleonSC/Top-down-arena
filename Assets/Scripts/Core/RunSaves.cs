@@ -125,7 +125,13 @@ namespace Arena
                 p.Taken.Clear();
                 foreach (var name in s.Taken)
                 {
-                    string card = name == "Cluster Grenade" ? "Airstrike" : name;  // (the Cluster Grenade became Airstrike)
+                    if (name == "Overcharge")  // (merged into Extra Use: it gave Q, E and Shift a charge)
+                    {
+                        foreach (string key in new[] { "Q", "E", "Shift" })
+                            p.Taken.Add(Array.FindIndex(Upgrades.All, x => x.Name == "Extra Use: " + key));
+                        continue;
+                    }
+                    string card = name == "Cluster Grenade" ? "Airstrike" : name == "Second Charge" ? "Extra Use: Space" : name;  // (the Cluster Grenade became Airstrike; Second Charge became Extra Use)
                     int u = Array.FindIndex(Upgrades.All, x => x.Name == card);
                     if (u >= 0)
                         p.Taken.Add(u);
