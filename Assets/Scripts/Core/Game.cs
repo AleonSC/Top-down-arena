@@ -467,7 +467,7 @@ namespace Arena
             {
                 var slot = p.Slots[i];
                 var def = ids[i] == AbilityId.None ? null : Upgrades.Ability(ids[i]);
-                int max = def == null ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges)
+                int max = def == null ? 0 : i == Upgrades.UltSlot ? 1 : 1 + p.Stats.UseBonus[i]
                     + def.ExtraCharges + (def.CapstoneCharge && Mastered(p, def.Id) ? 1 : 0);
                 AbilitySlot was;
                 if (slot.Id != ids[i] && ids[i] != AbilityId.None && moved.TryGetValue(ids[i], out was))
@@ -703,8 +703,10 @@ namespace Arena
                 p.PrizePicks = Math.Max(0, p.PrizePicks - 1);
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
+            var keysBefore = (AbilityId[])p.BonusKeys.Clone();
             PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
-            GrantUpgrade(id, upgrade);
+            FollowExtraUses(p, keysBefore);
+            GrantUpgrade(id, upgrade, key);
             p.Rerolls += Upgrades.All[upgrade].RerollsNow;  // Reroll Cache
             NextOffer(p);
             DoLog(p.Role + " picked " + Upgrades.All[upgrade].Name);
@@ -769,11 +771,14 @@ namespace Arena
         }
 
         /// Host only: give a player an upgrade and tell everyone.
-        public void GrantUpgrade(int id, int upgrade)
+        /// key: for the Extra Use card, the key it goes on (1 Space, 2 Q, 3 E, 4 Shift; 0 Space).
+        public void GrantUpgrade(int id, int upgrade, int key = 0)
         {
             Player p;
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
+            if (Upgrades.All[upgrade].PicksSlot)
+                upgrade = Upgrades.UseCard(Math.Max(0, Math.Min(Upgrades.UseSlots - 1, key - 1)));  // it is stored as the key's own card
             p.Taken.Add(upgrade);
             Recalc(p);
             if (ExpandingOn)
@@ -791,6 +796,33 @@ namespace Arena
             foreach (var k in p.BonusKeys)
                 w.Write((byte)k);
             session.Broadcast(Proto.End(w));
+        }
+
+        /// Extra Use cards are stored per key; when abilities change keys, their extra uses move with them.
+        void FollowExtraUses(Player p, AbilityId[] before)
+        {
+            var old = new int[Upgrades.UseSlots];
+            for (int k = 0; k < old.Length; k++)
+                old[k] = Upgrades.Count(p.Taken, Upgrades.UseCard(k));
+            var now = (int[])old.Clone();
+            bool changed = false;
+            for (int j = 1; j <= Upgrades.BonusSlots; j++)
+            {
+                if (p.BonusKeys[j - 1] == before[j - 1])
+                    continue;
+                int from = p.BonusKeys[j - 1] == AbilityId.None ? -1 : Array.IndexOf(before, p.BonusKeys[j - 1]);
+                now[j] = from >= 0 ? old[from + 1] : 0;
+                changed = true;
+            }
+            if (!changed)
+                return;
+            for (int k = 0; k < now.Length; k++)
+            {
+                int card = Upgrades.UseCard(k);
+                p.Taken.RemoveAll(t => t == card);
+                for (int n = 0; n < now[k]; n++)
+                    p.Taken.Add(card);
+            }
         }
 
         /// Put a bonus ability on a key (1 = Q, 2 = E, 3 = Shift). Whatever was there swaps to its old key.
@@ -839,7 +871,9 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(playerId, out p) || Array.IndexOf(p.BonusKeys, id) < 0)
                 return;  // you can only move abilities you have
+            var before = (AbilityId[])p.BonusKeys.Clone();
             PlaceOnKey(p.BonusKeys, id, key);
+            FollowExtraUses(p, before);
             Recalc(p);
             BroadcastUpgrades(p);
         }

@@ -102,3 +102,5 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 - "Room nodes ... delegated to only room card placement or mystery rooms": `PlaceFloatingRooms` no longer places shop, vendor or Gatekeeper rooms; old saves keep theirs.
 - Fog removed: `NodeFor` places nodes unfogged; `TickNodeFog` clears an old save's fogged node at once. Scout towers are no longer placed (odd cycles: chest, rule, vein). `MapNode.Hidden` stays on the wire for old saves.
 - Look (`NodeLook.cs`): an unclaimed node is a lit disc, a bold double ring, turning dashes and two beacon rings rippling out, its mark at full size; the minimap square is 10 px with a dark edge and halo (`RoomsLook.cs`).
+
+**Nov 18 (owner): no rule nodes by default; a ring of prize nodes round the hub.** `PlaceFloatingRooms` no longer places rule nodes (the modified-floor rooms). The first boss cycle instead rings the hub with six chest, vector chest and relic nodes, one per side in turn (`Expansion.NodeFor(..., ring)`: `ring % 4` is the side off the hub); later cycles add a chest, a relic every other cycle and a gold vein. Old saves and drawn rule nodes still work.

@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 401: relics are per player: a `MapNode` on `Msg.ExpandState` adds a `Drop` byte (the relic a player left in a relic node, RelicId + 1; 0 = the rolled one)
+- 401: a prop's snapshot carries its chest kind (`Prop.Chest`, `ChestKind`: Upgrade, Gold, Vector, Relic, Room card, Buildables) after `Open`
 - 400: buyable portal pairs (`PortalLink` in `Msg.ExpandLink`/`ExpandState`) are now wall spots: each end on a room's outer wall, the wall becomes the portal
 - 399: Bone Spear rework (Docs/BoneSpearMarionette.md): the player snapshot adds `BsTarget`, `BsT`, `SympT`, `SympSrc` and the `SympBound` list after `LeashT`; WeaponDash kind 45 (DashSympathy); `FxKind.BsBlow`
 

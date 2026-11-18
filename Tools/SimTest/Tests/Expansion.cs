@@ -426,9 +426,9 @@ static partial class Program
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
         Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : n.Kind == NodeKind.Vein ? 3 : 9;
-        Check(newCount >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
+        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsPrizeNode(n.Kind)) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
               && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
-            "it places a chest node, a rule node and a gold vein (a relic node on even cycles; no scout towers any more), as many as fit, none fogged, the same on the client");
+            "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests, relics and veins as fit, none fogged, the same on the client");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // An old save's sealed shop room still opens and draws bots as before.
@@ -508,7 +508,7 @@ static partial class Program
                 tickProps.Invoke(g, new object[] { 0.05f });
                 tickNodes.Invoke(g, null);
                 tickNodes.Invoke(g, null);
-                Check(chests[0].Open && g.Nodes[ci].Spent && g.Loots.Values.Any(l => l.Owner == pl.Id), "walking onto it opens it: the node is spent and the player gets their own item");
+                Check(chests[0].Open && g.Nodes[ci].Spent && (chests[0].Chest != ChestKind.Upgrade || g.Loots.Values.Any(l => l.Owner == pl.Id)), "walking onto it opens it: the node is spent and pays its kind (" + chests[0].Chest + ")");
                 Check(g.Props.Values.Count(q => q.Kind == PropKind.Chest && !q.Open && q.Pos.DistanceTo(chest.Pos) < 1f) == 0, "a spent node holds no second chest");
                 g.Nodes.RemoveAt(ci);
 

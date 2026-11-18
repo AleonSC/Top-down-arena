@@ -324,7 +324,21 @@ namespace Arena
             floatCycle = cycle;
             bool added = false;
             // (no floating rooms any more, owner Nov 18: shop, vendor and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Rule, NodeKind.Vein })  // (a relic node every other cycle, a rule node and a gold vein every cycle; no scout towers since the fog went, Nov 18; old saves may still hold shop, vendor and tower nodes)
+            // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
+            if (cycle == 0)
+            {
+                var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
+                for (int i = 0; i < ringKinds.Length; i++)
+                {
+                    var rn = Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
+                    if (!rn.HasValue)
+                        continue;
+                    Nodes.Add(rn.Value);
+                    added = true;
+                    DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
+                }
+            }
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Vein })
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -464,12 +478,15 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
-                    ChestCards(i);  // RoomCards.cs
+                    if (pr.Chest == ChestKind.RoomCard)
+                        ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     continue;
                 }
-                nodeChests[i] = AddProp(PropKind.Chest, nd.Pos).Id;
+                var chest = AddProp(PropKind.Chest, nd.Pos);
+                chest.Chest = NodeChestKind(nd);
+                nodeChests[i] = chest.Id;
             }
         }
 
@@ -518,12 +535,17 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
-                    ChestCards(kv.Key);  // RoomCards.cs
+                    if (c.Chest == ChestKind.RoomCard)
+                        ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     return;
                 }
         }
+
+        /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
+        /// (the node's look). Room card only with room cards on.
+        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, RoomCardsOn);
 
         /// Host: is this prop the chest of a chest node (it never holds the wave)?
         bool IsNodeChest(Prop p)
