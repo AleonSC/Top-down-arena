@@ -1039,7 +1039,8 @@ static partial class Shot {
     }
     // BONESPEAR=<s>: the Hemomancer DPS's Bone Spear, the Marionette (Core/BoneSpear.cs, Game/BoneSpearLook.cs) that long into a loop on
     // one marked Grunt with five around it: Pulse at 0 s, Reel at 0.45 s, Heart Lift at 0.95 s, Marrow Burst at 1.5 s, Alt (Sympathy)
-    // at 2.4 s, then Pulse at 2.7 s and Reel at 3.1 s echoing onto the bound ones. BSAIM=<deg> tilts the line.
+    // at 2.4 s, then Pulse at 2.7 s and Reel at 3.1 s echoing onto the bound ones. BSAIM=<deg> tilts the line; BSHAND=1 centres on the
+    // Hemomancer's bleeding hand (zoom in with ZOOM=4).
     if (Environment.GetEnvironmentVariable("BONESPEAR") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -1065,7 +1066,8 @@ static partial class Shot {
         gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
         gm.Update(1f / 60f);
         me.Pos = me.Disp = home; me.Aim = (target.Pos - me.Pos).Angle; me.AimAt = target.Pos; foreach (var e in foes) e.Disp = e.Pos;
-        if (zoom > 1f) { typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, zoom); typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, home + new V2(220f, 0f).Rotated(tilt)); }
+        if (Environment.GetEnvironmentVariable("BSHAND") != null) { me.Flash = 0f; me.Hp = me.MaxHp; }  // (the health each move costs flashes the model white: show its colours)
+        if (zoom > 1f) { typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, zoom); typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, home + new V2(Environment.GetEnvironmentVariable("BSHAND") != null ? 30f : 220f, 0f).Rotated(tilt)); }
         draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();

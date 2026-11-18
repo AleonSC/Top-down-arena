@@ -307,5 +307,106 @@ namespace Arena
                 }
             }
         }
+
+        // ---- The held hand: open, a cut across the palm, blood running down the fingers and dripping off them ----------------
+
+        static readonly Rgba BsSkin = Hx(0x7a3a36), BsSkinDark = Hx(0x2a080b), BsCut = Hx(0x1e0306);
+        float bsCurl, bsSpread = 1f;  // the hand's pose for DrawBsHand: fingers curled into a fist (0-1), and how wide they spread
+
+        /// The model's right hand with the Bone Spear (CharacterModels.cs): it follows the newest move, pushing out for the Pulse,
+        /// drawing back half-closed for the Reel, rising with fingers spread for the Heart Lift, and closing into a fist through
+        /// Marrow Burst's wind-up before flaring open as it bursts.
+        void BsHandPose(Player p, ref float rhx, ref float rhy)
+        {
+            bsCurl = 0f;
+            bsSpread = 1f;
+            if (p.Downed)
+                return;
+            Effect last = null;
+            foreach (var fx in game.Effects)
+                if (fx.Kind == FxKind.BsBlow && (int)fx.Pos2.Y == p.Id && fx.Radius < 9.5f && (last == null || fx.T < last.T))
+                    last = fx;
+            if (last == null)
+                return;
+            int step = (int)(last.Radius + 0.5f) % 10;
+            float a = last.T, hit = Game.BsHitDelay(step);
+            switch (step)
+            {
+                case 1:  // a push
+                {
+                    float k = Mathf.Sin(MathX.Pi * Mathf.Clamp01(a / (hit + 0.22f)));
+                    rhx += 8f * k;
+                    bsSpread = 1f - 0.3f * k;
+                    break;
+                }
+                case 2:  // a pull, half closed
+                {
+                    float k = Mathf.Sin(MathX.Pi * Mathf.Clamp01(a / 0.45f));
+                    rhx -= 8f * k;
+                    bsCurl = 0.6f * k;
+                    break;
+                }
+                case 3:  // a lift, fingers spread
+                {
+                    float k = Mathf.Sin(MathX.Pi * Mathf.Clamp01(a / 0.55f));
+                    rhx += 3f * k;
+                    rhy -= 3f * k;
+                    bsSpread = 1f + 0.5f * k;
+                    break;
+                }
+                default:  // a fist through the wind-up, then it flares open
+                    if (a < hit)
+                        bsCurl = Mathf.Clamp01(a / hit);
+                    else
+                    {
+                        float k = Mathf.Clamp01((a - hit) / 0.3f);
+                        bsSpread = 1f + 0.6f * (1f - k);
+                        rhx += 6f * (1f - k);
+                    }
+                    break;
+            }
+        }
+
+        /// One finger from (bx, by) at angle `ang`, `len` long; returns its tip.
+        V2 BsFinger(float bx, float by, float ang, float len, float w)
+        {
+            float tx = bx + Mathf.Cos(ang) * len, ty = by + Mathf.Sin(ang) * len;
+            MLine(bx, by, tx, ty, w + 0.8f, BsSkinDark);
+            MLine(bx, by, tx, ty, w, BsSkin);
+            MLine(bx + (tx - bx) * 0.45f, by + (ty - by) * 0.45f, tx, ty, w * 0.85f, BsRedC.WithAlpha(0.85f));  // blood run down to the fingertips
+            return new V2(tx, ty);
+        }
+
+        /// The held hand in the model's frame (wrist at the origin, +x along the aim).
+        void DrawBsHand(float t)
+        {
+            float curl = bsCurl, spread = bsSpread;
+            MCirc(7f, 0f, 11f, BsRedC.WithAlpha(0.12f + 0.06f * Mathf.Sin(t * 4f)), 14);  // a faint red haze round it
+            MCirc(3.6f, 0f, 5f, BsSkinDark, 12);  // the palm
+            MCirc(3.6f, 0f, 4.3f, BsSkin, 12);
+            var bases = new V2[4];
+            var tips = new V2[4];
+            for (int i = 0; i < 4; i++)  // four fingers, splayed forward; they shorten as the hand closes
+            {
+                float by = -2.7f + 1.8f * i, ang = (-0.45f + 0.3f * i) * spread;
+                float len = (i == 1 || i == 2 ? 8.2f : 6.8f) * (1f - 0.68f * curl);
+                bases[i] = new V2(6.4f, by);
+                tips[i] = BsFinger(6.4f, by, ang, len, 1.7f);
+            }
+            BsFinger(2.4f, -3.8f, -1.15f * spread, 5.2f * (1f - 0.5f * curl), 1.9f);  // the thumb
+            MLine(1.8f, -2.4f, 5.6f, 2.3f, 1.8f, BsCut);  // the cut across the palm
+            MLine(2.2f, -1.8f, 5.2f, 1.7f, 0.8f, BsBright);
+            MCirc(4.4f, 0.9f, 2f, BsRedC, 8);  // blood pooling in it
+            for (int i = 0; i < 4; i++)
+            {
+                float u = MathX.Fmod(t * 1.1f + i * 0.31f, 1f);  // a bead running down the finger
+                V2 b = V2.Lerp(bases[i], tips[i], u);
+                MCirc(b.X, b.Y, 1f, BsBright, 6);
+                float d = MathX.Fmod(t * 0.85f + i * 0.27f, 1f);  // a drop falling off its tip
+                V2 dir = (tips[i] - bases[i]).Normalized();
+                V2 f = tips[i] + dir * (2f + 7f * d);
+                MCirc(f.X, f.Y, 1.7f * (1f - 0.5f * d), BsRedC.WithAlpha(1f - d), 6);
+            }
+        }
     }
 }

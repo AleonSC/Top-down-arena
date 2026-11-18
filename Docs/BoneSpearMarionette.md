@@ -38,6 +38,10 @@ Marrow Burst lands while the target is still airborne from Heart Lift, so it get
 - Marrow card (built): Marrow Burst throws 2 more bone shards and Sympathy binds 1 more enemy, a stack (up to 2).
 - Extra projectiles (Multishot and the like): each one lands every move on one more enemy near the mark, at 50% (built; +54% on a crowd with two).
 
+## Held look
+
+- The model holds no spear: an open hand, cut across the palm, blood running down the fingers and dripping off them; it pushes for the Pulse, pulls back half closed for the Reel, spreads for the Heart Lift, closes into a fist through Marrow Burst's wind-up and flares open as it bursts.
+
 ## Balance (step 3)
 
 - Damage raised 1.5x from the mockup (the Pulse 12 to 18; the other moves keep their ratios), so a full string on one boss-sized target matches the old spear; shards and echoes are the crowd damage.
