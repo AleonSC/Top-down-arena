@@ -173,11 +173,12 @@ namespace Arena
                 }
             if (goal.HasValue)
                 return goal;
+            float bestScore = 0f;  // (owner Nov 18: the prize node it needs most; relics and buildables ignored)
             foreach (var nd in Nodes)
                 if (!nd.Spent && !Expansion.NodeClaimed(Expanded, nd))
                 {
-                    float d = nd.Pos.DistanceTo(new V2(Width / 2f, Height / 2f));
-                    if (d < best) { best = d; goal = nd.Pos; }
+                    float score = Expansion.BotNodeScore(BotNodeWant(nd), nd.Pos);
+                    if (score > bestScore) { bestScore = score; goal = nd.Pos; }
                 }
             return goal;
         }

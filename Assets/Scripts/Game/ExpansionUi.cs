@@ -562,7 +562,22 @@ namespace Arena
                             RoomMapFrame(r0.X, r0.Y, r1.X - r0.X, r1.Y - r0.Y, 1.5f, ni.WithAlpha(0.8f));
                         }
                         RoomMapRect(np.X - 6f, np.Y - 6f, 12f, 12f, ni.WithAlpha(0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
-                        RoomMapFrame(np.X - 9f, np.Y - 9f, 18f, 18f, 1.5f, ni);
+                        if (!nd.Spent && (Expansion.IsChest(nd.Kind) || nd.Kind == NodeKind.Relic))  // (owner Nov 18: a prize node's frame in its tier's metal, and the tier's square cells under it)
+                        {
+                            int tier = Expansion.NodeTier(nd);
+                            var ti = TierInk[tier];
+                            RoomMapFrame(np.X - 9f, np.Y - 9f, 18f, 18f, 2f, ti);
+                            for (int q = 0; q < 3; q++)
+                            {
+                                float cx = np.X - 8f + q * 6f, cy = np.Y + 12f;
+                                if (q <= tier)
+                                    RoomMapRect(cx, cy, 4f, 4f, ti);
+                                else
+                                    RoomMapFrame(cx, cy, 4f, 4f, 1f, ti.WithAlpha(0.4f));
+                            }
+                        }
+                        else
+                            RoomMapFrame(np.X - 9f, np.Y - 9f, 18f, 18f, 1.5f, ni);
                     }
                 for (int di = 0; di < wd.Doors.Length; di++)
                 {
@@ -1049,6 +1064,13 @@ namespace Arena
             foreach (var nd in game.Nodes)
                 if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Hidden ? -1 : (int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
                     items.Add(new KeyValuePair<string, Rgba>((nd.Hidden ? "UNKNOWN NODE" : nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind == NodeKind.Tower || nd.Kind == NodeKind.Vein ? NodeName(nd.Kind) : NodeName(nd.Kind) + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
+            var tiers = new HashSet<int>();  // the prize tiers waiting on the map, in their metal
+            foreach (var nd in game.Nodes)
+                if (!nd.Spent && (Expansion.IsChest(nd.Kind) || nd.Kind == NodeKind.Relic) && !Expansion.NodeClaimed(game.Expanded, nd))
+                    tiers.Add(Expansion.NodeTier(nd));
+            for (int ti = 0; ti < 3; ti++)
+                if (tiers.Contains(ti))
+                    items.Add(new KeyValuePair<string, Rgba>(TierNames[ti].ToUpperInvariant() + " TIER", TierInk[ti]));
             items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
             items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
             if (game.ActiveBreaches.Length > 0)

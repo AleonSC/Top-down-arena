@@ -387,6 +387,26 @@ namespace Arena
 
         public static int NodeTier(MapNode n) => NodeTier(n.X, n.Y);
 
+        /// How much a bot wants a prize node (owner Nov 18: by what it needs): coins (gold chest, gold vein) the less gold it holds, vectors (vector chest)
+        /// the emptier its vector bar, grid pieces (grid piece chest) the fewer cards in its hand, upgrades always fairly; relics and buildables 0 (ignored).
+        public static float BotNodeWant(NodeKind kind, ChestKind chest, int vectors, int vectorCap, int gold, int pieces)
+        {
+            if (kind == NodeKind.Vein || (kind == NodeKind.Chest && chest == ChestKind.Gold))
+                return 0.3f + 0.7f * (1f - Math.Min(1f, gold / (float)BotGoldEnough));
+            if (kind == NodeKind.VectorChest)
+                return 0.3f + 0.7f * (1f - Math.Min(1f, vectors / (float)Math.Max(1, vectorCap)));
+            if (kind == NodeKind.Chest && chest == ChestKind.Piece)
+                return pieces <= 0 ? 1f : pieces == 1 ? 0.6f : 0.3f;
+            if (kind == NodeKind.Chest && chest == ChestKind.Upgrade)
+                return 0.7f;
+            return 0f;
+        }
+
+        public const int BotGoldEnough = 300;  // a bot holding this much gold wants coins least
+
+        /// A bot's score for a node it wants: the want, a little less the farther the node is from the hub's middle.
+        public static float BotNodeScore(float want, V2 at) => want / (1f + at.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) / 4000f);
+
         /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
         /// middle a chest (grid piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
         public static MapNode Tiered(int seed, MapNode n)
