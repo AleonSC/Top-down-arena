@@ -59,7 +59,7 @@ namespace Arena
                 foreach (var kv in relicSwapped)
                 {
                     Player sp;
-                    if (!Players.TryGetValue(kv.Key, out sp) || kv.Value >= Nodes.Count || !sp.Pos.CloserThan(Nodes[kv.Value].Pos, Relics.TakeReach + sp.Def.BodyR + 12f))
+                    if (!Players.TryGetValue(kv.Key, out sp) || kv.Value >= Nodes.Count || !sp.Pos.CloserThan(NodeSpot(kv.Value), Relics.TakeReach + sp.Def.BodyR + 12f))
                         gone.Add(kv.Key);
                 }
                 foreach (var id in gone)
@@ -75,7 +75,7 @@ namespace Arena
                 foreach (var p in Players.Values)
                 {
                     int lockedAt;
-                    if (p.Downed || p.Relic == r || (relicSwapped.TryGetValue(p.Id, out lockedAt) && lockedAt == i) || !p.Pos.CloserThan(nd.Pos, Relics.TakeReach + p.Def.BodyR))
+                    if (p.Downed || p.Relic == r || (relicSwapped.TryGetValue(p.Id, out lockedAt) && lockedAt == i) || !p.Pos.CloserThan(NodeSpot(i), Relics.TakeReach + p.Def.BodyR))
                         continue;
                     taker = p;
                     break;
@@ -95,7 +95,7 @@ namespace Arena
                     relicSwapped[taker.Id] = i;
                 }
                 Nodes[i] = nd;
-                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(1f, 0.82f, 0.3f), 90f, 0.5f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, NodeSpot(i), new Rgba(1f, 0.82f, 0.3f), 90f, 0.5f, Sfx.Pick);
                 DoLog("player " + taker.Id + " took a relic: " + Relics.Name(r) + (old != RelicId.None ? " (left " + Relics.Name(old) + ")" : ""));
                 BroadcastExpansion();
             }

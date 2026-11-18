@@ -39,6 +39,7 @@ namespace Arena
         BuildPurse,     // on/off: the Expanding arena's builds are paid from the whole team's vectors, not just the builder's (ExpansionGame.cs)
         Lives,          // count: retries from the last boss's checkpoint when everyone goes down (Checkpoints.cs)
         RoomCards,      // on/off: the Expanding arena is built from room cards (RoomCards.cs, Docs/RoomCards.md); off = drawing (free or by vote)
+        GridRooms,      // on/off: the Expanding arena is built on a grid: rooms snap to door spots on built rooms' walls (GridRooms.cs, Docs/GridRooms.md); wins over drawing, loses to room cards
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff, Count }
@@ -319,6 +320,10 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.RoomCards, Name = "Room cards", Flavour = true,
                 Desc = "On: rooms come as cards you hold and place: a hand to start, one a round, drops, chests and the vendor. Off: you draw your rooms with vectors.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
+            // Grid rooms (GridRooms.cs, Docs/GridRooms.md): flavour, off by default.
+            new KnobDef { Knob = DiffKnob.GridRooms, Name = "Grid rooms", Flavour = true,
+                Desc = "On: rooms snap to door spots on the walls of rooms you have built, in fixed sizes (a room, a gauntlet, a hall, an arena), paid in vectors. Off: cards or free drawing.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
         };
     }
 

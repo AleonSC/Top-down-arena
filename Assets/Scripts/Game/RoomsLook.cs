@@ -105,8 +105,8 @@ namespace Arena
                 }
             }
             if (game.ArenaKind == ArenaLayout.Expanding)
-                foreach (var n in game.Nodes)
-                    DrawNodeMark(n, Expansion.NodeClaimed(game.Expanded, n));
+                for (int i = 0; i < game.Nodes.Count; i++)
+                    DrawNodeMark(game.Nodes[i], Expansion.NodeClaimed(game.Expanded, game.Nodes[i]), game.NodeSpot(i));
             if (game.ArenaKind == ArenaLayout.Expanding)
             {
                 // The Expanding map isn't a full box: the grid runs inside each room only.

@@ -61,7 +61,7 @@ namespace Arena
         static string NodeName(NodeKind k) => k == NodeKind.BreachLoot ? "Breach loot" : k == NodeKind.VectorChest ? "Vector chest" : k == NodeKind.Tower ? "Scout tower" : k == NodeKind.Vein ? "Gold vein" : k.ToString();
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
-        void DrawNodeMark(MapNode n, bool claimed)
+        void DrawNodeMark(MapNode n, bool claimed, V2 at)
         {
             if (n.Kind == NodeKind.BreachLoot)
             {
@@ -78,7 +78,7 @@ namespace Arena
                         DrawNodeFixture(n.Pos, NodeKind.Chest, n.Spent, game.NodeChestKind(n));
                     return;
                 }
-                DrawNodeFixture(n.Pos, n.Kind, n.Spent, n.Kind == NodeKind.Chest ? game.NodeChestKind(n) : ChestKind.Upgrade);
+                DrawNodeFixture(at, n.Kind, n.Spent, n.Kind == NodeKind.Chest ? game.NodeChestKind(n) : ChestKind.Upgrade);  // (a chest or relic stands in its room's middle: Game.NodeSpot)
                 return;
             }
             if (n.Kind == NodeKind.Rule)

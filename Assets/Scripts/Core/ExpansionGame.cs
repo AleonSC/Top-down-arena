@@ -37,7 +37,7 @@ namespace Arena
         public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
 
         /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
-        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn;  // (room cards build at once: RoomCards.cs)
+        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn && !GridRoomsOn;  // (room cards build at once: RoomCards.cs)
 
         /// The lobby's "Team purse": builds can spend every player's vectors, not just the builder's.
         public bool TeamPurse => D(DiffKnob.BuildPurse) >= 0.5f;
@@ -115,6 +115,13 @@ namespace Arena
 
         /// The portal pairs the team bought (Docs/RoomBuilding2.md step 2; synced after the openings in Msg.ExpandState).
         public readonly List<PortalLink> Links = new List<PortalLink>();
+        /// Where node i stands now: a claimed chest or relic stands in the middle of its room (World.NodeSpots, Expansion.NodeSpotIn), else at its own point.
+        public V2 NodeSpot(int i)
+        {
+            var w = Nodes[i].Kind != NodeKind.Rule && Expansion.CentresInRoom(Nodes[i].Kind) ? ExpansionWorld : null;
+            return w != null && w.NodeSpots != null && i < w.NodeSpots.Length ? w.NodeSpots[i] : Nodes[i].Pos;
+        }
+
         public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings, Links, Nodes));
 
         /// More floor means more enemies (the Rooms arena makes up for its size with damage instead, Rooms.EnemyDamageMult).
@@ -330,7 +337,7 @@ namespace Arena
                 var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
                 for (int i = 0; i < ringKinds.Length; i++)
                 {
-                    var rn = Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
+                    var rn = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
                     if (!rn.HasValue)
                         continue;
                     Nodes.Add(rn.Value);
@@ -342,7 +349,7 @@ namespace Arena
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
+                var nd = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
                 if (!nd.HasValue)
                     continue;
                 Nodes.Add(nd.Value);
@@ -419,7 +426,7 @@ namespace Arena
         {
             if (!IsHost || !ModeRules.RunEvents)
                 return;
-            var nd = Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
+            var nd = GridRoomsOn ? Expansion.GridChestFor(expandSeed, Expanded, Nodes, count) : Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
             if (!nd.HasValue)
                 return;
             Nodes.Add(nd.Value);
@@ -440,14 +447,14 @@ namespace Arena
                     continue;
                 bool touched = false;
                 foreach (var p in Players.Values)
-                    touched |= !p.Downed && p.Pos.CloserThan(nd.Pos, VectorChestReach + p.Def.BodyR);
+                    touched |= !p.Downed && p.Pos.CloserThan(NodeSpot(i), VectorChestReach + p.Def.BodyR);
                 if (!touched)
                     continue;
                 for (int k = 0; k < VectorChestPickups; k++)
-                    DropVectorAt(nd.Pos, VectorDropSmall);
+                    DropVectorAt(NodeSpot(i), VectorDropSmall);
                 nd.Spent = true;
                 Nodes[i] = nd;
-                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, NodeSpot(i), new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
                 DoLog("a vector chest was opened");
                 BroadcastExpansion();
             }
@@ -484,7 +491,7 @@ namespace Arena
                     BroadcastExpansion();
                     continue;
                 }
-                var chest = AddProp(PropKind.Chest, nd.Pos);
+                var chest = AddProp(PropKind.Chest, NodeSpot(i));
                 chest.Chest = NodeChestKind(nd);
                 nodeChests[i] = chest.Id;
             }
@@ -749,7 +756,12 @@ namespace Arena
             Player p;
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
                 return;  // (room cards: rooms come from cards, not drawings)
-            string why;
+            string why = null;
+            if (GridRoomsOn && (theme != PathId.None || !Expansion.GridLegal(Expanded, x, y, w, h, out why)))
+            {
+                DoLog("proposal refused (" + (why ?? "grid rooms have no themes") + ")");
+                return;  // (grid rooms: only the door spots, Docs/GridRooms.md)
+            }
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
                 DoLog("proposal refused (the " + theme + " theme is still locked)");
@@ -947,8 +959,8 @@ namespace Arena
         void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
-                return;  // (room cards: rooms come from cards, not drawings)
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn || GridRoomsOn)
+                return;  // (room cards and grid rooms: rooms come from cards or door spots, not drawn outlines)
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
                 DoLog("proposal refused (the " + theme + " theme is still locked)");
@@ -1185,6 +1197,7 @@ namespace Arena
         {
             TickPushes(dt);
             TickNodeFog(dt);  // NodeScouting.cs
+            TickGridCore();  // GridRooms.cs
             if (!ExpandOpen)
             {
                 botVoteT = 0f;
@@ -1212,6 +1225,11 @@ namespace Arena
                 if (RoomCardsOn)
                 {
                     BotPlayCard();  // RoomCards.cs
+                    return;
+                }
+                if (GridRoomsOn)
+                {
+                    BotGridBuild();  // GridRooms.cs
                     return;
                 }
                 if (rng.Next(10) < 6 && BotBuildsToFloater())

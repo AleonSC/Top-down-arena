@@ -110,10 +110,11 @@ static partial class Program
         foreach (var p in g.Players.Values) p.Pos = p.Disp = new V2(800f, 450f);
         Run(s, dt, 1f, () => cg.Nodes.Count == 1, noPicks);
         Check(cg.Nodes.Count == 1 && cg.Nodes[0].Kind == NodeKind.VectorChest && !g.Nodes[0].Spent, "the vector chest reaches the client, shut");
+        Check(g.NodeSpot(0).Equals(new V2(Game.Width + 500f, 450f)) && cg.NodeSpot(0).Equals(g.NodeSpot(0)), "it stands in the middle of its room, on both screens (" + g.NodeSpot(0).X + "," + g.NodeSpot(0).Y + ")");
         int coins0 = g.Coins.Values.Count(c => c.Vec);
         int vec0 = g.Players.Values.Sum(p => p.Vectors);
         var me = g.Players[1];
-        me.Pos = me.Disp = g.Nodes[0].Pos + new V2(20f, 0f);
+        me.Pos = me.Disp = g.NodeSpot(0) + new V2(20f, 0f);  // (a claimed chest stands in its room's middle)
         Run(s, dt, 0.3f, () => g.Nodes[0].Spent, noPicks);
         Check(g.Nodes[0].Spent && g.Coins.Values.Count(c => c.Vec) - coins0 + (g.Players.Values.Sum(p => p.Vectors) > vec0 ? Game.VectorChestPickups : 0) >= Game.VectorChestPickups,
             "walking up to it opens it: " + Game.VectorChestPickups + " vector pickups burst out");
@@ -125,5 +126,47 @@ static partial class Program
         int coins1 = g.Coins.Count;
         Run(s, dt, 0.5f, null, noPicks);
         Check(g.Nodes[0].Spent && g.Coins.Values.Count(c => c.Vec) <= coins1, "it opens only once");
+    }
+
+    // Owner Nov 18: a claimed chest or relic stands in the middle of its room (World.NodeSpots), clear of a card room's obstacles.
+    static void ExpandingNodeCentreTest()
+    {
+        string why;
+        int W = (int)Game.Width;
+        var built = new List<ExpansionRoom>();
+        var room = Expansion.Custom(built, W, 200, 1000, 500, out why);
+        Check(room.HasValue, "a 10 x 5 room east of the start room (" + why + ")");
+        built.Add(room.Value);
+        var nodes = new List<MapNode>
+        {
+            new MapNode { X = (short)(W + 150), Y = 350, Kind = NodeKind.Chest },
+            new MapNode { X = (short)(W + 850), Y = 550, Kind = NodeKind.Relic },
+            new MapNode { X = (short)(W + 150), Y = 550, Kind = NodeKind.VectorChest },
+            new MapNode { X = (short)(W + 850), Y = 350, Kind = NodeKind.Shop },
+            new MapNode { X = (short)(W + 5000), Y = 450, Kind = NodeKind.Chest },  // (nobody has built round it)
+        };
+        var mid = new V2(W + 500f, 450f);
+        var wd = Expansion.Build(built, null, null, nodes);
+        Check(wd.NodeSpots != null && wd.NodeSpots.Length == nodes.Count, "the world gives every node a spot");
+        Check(wd.NodeSpots[0].Equals(mid) && wd.NodeSpots[1].Equals(mid) && wd.NodeSpots[2].Equals(mid), "a claimed chest, relic and vector chest stand in the room's middle");
+        Check(wd.NodeSpots[3].Equals(nodes[3].Pos) && wd.NodeSpots[4].Equals(nodes[4].Pos), "a shop node and an unclaimed chest stay where they are");
+
+        // A Ring card's middle is a solid block: the chest stands on the lane, clear of every obstacle, still inside the room.
+        var ring = Expansion.CardOptions(new List<ExpansionRoom>(), RoomCard.Ring);
+        Check(ring.Count > 0, "the Ring card has a spot");
+        var rr = Expansion.CardRooms(new List<ExpansionRoom>(), RoomCard.Ring, ring[0].X, ring[0].Y, ring[0].Turn, ring[0].Mirror, out why);
+        Check(rr != null, "the Ring card builds (" + why + ")");
+        var b0 = rr[0];
+        var cn = new List<MapNode> { new MapNode { X = (short)((b0.X + b0.X1) / 2), Y = (short)((b0.Y + b0.Y1) / 2), Kind = NodeKind.Chest } };
+        if (!Expansion.NodeClaimed(rr, cn[0]))
+            cn[0] = new MapNode { X = (short)(b0.X + 150), Y = (short)(b0.Y + 150), Kind = NodeKind.Chest };
+        var w2 = Expansion.Build(rr, null, null, cn);
+        var sp = w2.NodeSpots[0];
+        bool inside = false, hits = false;
+        foreach (var b in rr)
+            inside |= sp.X > b.X && sp.X < b.X1 && sp.Y > b.Y && sp.Y < b.Y1;
+        foreach (var c in w2.Cover)
+            hits |= Math.Abs(c.Pos.X - sp.X) < c.HW + c.R && Math.Abs(c.Pos.Y - sp.Y) < c.HH + c.R;
+        Check(Expansion.NodeClaimed(rr, cn[0]) && inside && !hits, "in a Ring card room it stands inside the room and clear of its obstacles (" + sp.X + "," + sp.Y + ")");
     }
 }
