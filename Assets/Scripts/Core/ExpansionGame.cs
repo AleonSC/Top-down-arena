@@ -327,7 +327,7 @@ namespace Arena
             // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
             if (cycle == 0)
             {
-                var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
+                var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Chest, NodeKind.VectorChest, NodeKind.Relic, NodeKind.Chest, NodeKind.Chest, NodeKind.VectorChest };  // (sides first, then the four corners)
                 for (int i = 0; i < ringKinds.Length; i++)
                 {
                     var rn = Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
