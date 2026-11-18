@@ -231,7 +231,7 @@ namespace Arena
             if (!cabWin || cabWinOutAt >= 0f)
             {
                 cabWin = true;
-                cabWinInAt = WinNow;
+                cabWinInAt = WinClock;
                 CrtKit.Forget("win.");
             }
             cabWinOutAt = -1f;
@@ -333,15 +333,15 @@ namespace Arena
                 cabWin = true;
                 cabKind = 0;
                 cabWinOutAt = -1f;
-                cabWinInAt = WinT < 1.3f ? winOpenAt + 1.3f : WinNow;
+                cabWinInAt = WinT < 1.3f ? WinClock + 1.3f - WinT : WinClock;
                 CrtKit.Forget("win.");
             }
             float k = CabWinSlideK();
             float dx = -(DrawerPanel.xMax + 20f) * (1f - k);
-            cabWinPower = cabKind == 0 || !CabCalm ? WinNow - cabWinInAt : WinNow - cabWinInAt - 0.2f;
+            cabWinPower = cabKind == 0 || !CabCalm ? WinClock - cabWinInAt : WinClock - cabWinInAt - 0.2f;
             cabWinRect = new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height);
             cabWinOn = CabCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
-            cabWinBootE = CabCalm || cabWinOutAt >= 0f || winCloseK > 0f ? 99f : cabWinPower;
+            cabWinBootE = CabCalm || cabWinOutAt >= 0f ? 99f : cabWinPower;  // (closing mid-boot, it slides out as it was)
             // The soft sweep (HoloBoot, LobbyFx.cs): the window shows top-down under a feathered edge (EndPanelAnim).
             cabWinBooting = cabWinOn && cabWinBootE < HoloBoot.SoftLen;
             if (cabWinBooting)
@@ -364,7 +364,7 @@ namespace Arena
         /// (CrtKit.EraseAll, held by CrtKit.Hold), then the new one is shown and types in. Not while the window is opening.
         int PanelShown(ref int shown, int want)
         {
-            if (CabCalm || !cabWin || WinNow - cabWinInAt < 0.8f || shown == want)
+            if (CabCalm || !cabWin || WinClock - cabWinInAt < 0.8f || shown == want)
             {
                 shown = want;
                 panelSwitchAt = -1f;
