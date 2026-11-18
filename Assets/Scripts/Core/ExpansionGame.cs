@@ -879,7 +879,6 @@ namespace Arena
                 w.Write(r.Surprise);
                 w.Write(r.Claimed);
                 w.Write(r.Mini);
-                w.Write(r.Card);
             }
         }
 
@@ -899,7 +898,6 @@ namespace Arena
                 room.Surprise = r.ReadByte();
                 room.Claimed = r.ReadBoolean();
                 room.Mini = r.ReadByte();
-                room.Card = r.ReadByte();
                 list.Add(room);
             }
             return list;

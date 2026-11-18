@@ -18,7 +18,7 @@ static partial class Shot {
     var g = host.Game;
     bool surv = g.SurvivalOn;  // with SURVIVAL=<clock s> (and SURVMARKS=<n> for a crowd): Survival's room as it is
     string why; var rooms = new System.Collections.Generic.List<ExpansionRoom>();
-    foreach (var box in new[] { new[] { 1600, 100, 800, 600 }, new[] { -900, 100, 800, 600 } }) { var r = Expansion.Custom(rooms, box[0], box[1], box[2], box[3], out why); if (r.HasValue) rooms.Add(r.Value); }
+    foreach (var box in new[] { new[] { 1600, 100, 800, 600 }, new[] { -900, 100, 800, 600 } }) { rooms.Add(new ExpansionRoom { X = box[0], Y = box[1], W = box[2], H = box[3] }); }
     if (!surv) foreach (var gg in new[] { g }.Concat(others.Select(o => o.Game))) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(rooms); }
     var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
     var partN = typeof(ArenaApp).GetField("partN", f2);

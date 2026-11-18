@@ -58,7 +58,6 @@ namespace Arena
         public bool Floating;   // placed by the game off the map (a shop, vendor or Gatekeeper), not drawn: sealed until a built room touches it
         public byte Surprise;   // a surprise room (Docs/SurpriseRooms.md): 1 + its SurpriseShape, on each of its boxes; 0: none
         public bool Claimed;    // a breach Stash's vector cache has been taken (Docs/BreachRooms.md)
-        public byte Card;       // a room card's room (RoomCards.cs): its RoomCard, on each of its boxes (its designed obstacles: RoomCardLayouts.cs); 0: none
         public byte Mini;       // a mini-boss room's foe (an EnemyType, FactionMinis.cs): its boss cycle's faction's; 0: unset (an old save: the current one's)
         public byte Leg;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
         public int X1 => X + W;
@@ -96,7 +95,7 @@ namespace Arena
         public const int MinDoorRun = 200;       // a room must share at least this much wall with its parent (a door, plus a margin): 2 tiles, so a 2-wide room can join end on
         public const int Milestone = 5;          // an offer every this many waves
         public const int MinSide = 200;          // a drawn room's shortest side (any shape between these: no hallways, just rooms)
-        public const int MaxSide = 2400, MaxArea = 1440000;  // and its limits: 24 tiles a side, 144 tiles of floor
+        public const int MaxArea = 1440000;  // a room's floor at most: 144 tiles
 
         public static readonly int[][] Shapes =
         {
@@ -191,14 +190,6 @@ namespace Arena
             return all;
         }
 
-        static int ShapeIndex(int w, int h)
-        {
-            for (int i = 0; i < Shapes.Length; i++)
-                if (Shapes[i][0] == w && Shapes[i][1] == h)
-                    return i;
-            return -1;
-        }
-
         // --- Geometry ----------------------------------------------------------------------------------------------
 
         /// The box of area i (0 is the hub).
@@ -221,57 +212,6 @@ namespace Arena
                 return Math.Max(0, Math.Min(ax1, bx1) - Math.Max(ax0, bx0));
             return 0;
         }
-
-        /// Can a box go here? It must not overlap a room, must share at least MinDoorRun of wall with some room (that
-        /// room is its parent: the longest shared wall; a shorter touch just stays wall), and the map stays inside
-        /// its size cap. Every other room it shares MinDoorRun of wall with gets a door too: that closes a loop.
-        public static bool Placement(IList<ExpansionRoom> rooms, int x0, int y0, int w, int h, out int parent, out int loops, out string why)
-        {
-            parent = -1; loops = 0; why = null;
-            int x1 = x0 + w, y1 = y0 + h;
-            if (BoughtCount(rooms) >= MaxRooms) { why = "The map is full"; return false; }
-            var linked = ConnectedAreas(rooms);
-            int minX = Math.Min(0, x0), minY = Math.Min(0, y0), maxX = Math.Max((int)Game.Width, x1), maxY = Math.Max((int)Game.Height, y1);
-            for (int i = 0; i < rooms.Count; i++)
-            {
-                minX = Math.Min(minX, rooms[i].X); minY = Math.Min(minY, rooms[i].Y);
-                maxX = Math.Max(maxX, rooms[i].X1); maxY = Math.Max(maxY, rooms[i].Y1);
-            }
-            if (maxX - minX > MaxWidth || maxY - minY > MaxHeight) { why = "The map would get too big"; return false; }
-            int best = 0;
-            for (int a = 0; a <= rooms.Count; a++)
-            {
-                int bx0, by0, bx1, by1;
-                BoxOf(rooms, a, out bx0, out by0, out bx1, out by1);
-                if (Overlaps(x0, y0, x1, y1, bx0, by0, bx1, by1)) { why = "Overlaps a room"; return false; }
-                int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);  // (a shorter stretch is fine: it stays wall, no door)
-                if (run >= MinDoorRun)
-                {
-                    loops++;
-                    if (linked[a] && run > best) { best = run; parent = a; }  // (a floating room nobody has connected can't be the parent)
-                }
-            }
-            if (parent < 0) { why = "Must share at least " + MinDoorRun / Step + " tiles of wall with the connected map"; return false; }
-            loops--;  // (the parent's door isn't a loop)
-            return true;
-        }
-
-        /// What a room costs in vectors (Docs/VectorBuilding.md): its new wall length in tiles, the perimeter minus every wall it
-        /// shares with a room already there, so sharing walls is cheaper and a loop pays.
-        public static int Cost(IList<ExpansionRoom> built, int x, int y, int w, int h)
-        {
-            int shared = 0;
-            for (int a = 0; a <= built.Count; a++)
-            {
-                int bx0, by0, bx1, by1;
-                BoxOf(built, a, out bx0, out by0, out bx1, out by1);
-                shared += SharedRun(x, y, x + w, y + h, bx0, by0, bx1, by1);
-            }
-            int tiles = (2 * (w + h) - shared) / Step;
-            return Math.Max(1, tiles);
-        }
-
-        public static int Cost(IList<ExpansionRoom> built, ExpansionRoom r) => Cost(built, r.X, r.Y, r.W, r.H);
 
         /// Rooms the team has drawn (floating rooms, placed by the game, don't count towards the cap).
         public static int BoughtCount(IList<ExpansionRoom> rooms)
@@ -315,10 +255,8 @@ namespace Arena
 
         // --- Map nodes (Docs/Nodes.md): shop and vendor points out in empty space, claimed by building a room around them ---
 
-        public const int NodeMin = 1000, NodeMax = 1600;  // a node sits this far (10 to 16 tiles) from the room it was placed off
         public const int NodeClear = 90;                  // cover keeps this far off a node
         public const int NodeApart = 800;                 // and at least this far from every other node
-        public const int PrizeClear = 600;                // a chest or relic node keeps this far (6 tiles) from every room's edge, and a floating room placed later keeps as far from it (owner Nov 14)
         public const int MaxNodesWaiting = 8;             // unclaimed nodes on the map at once
 
         public const int RuleHalf = 400;  // a rule node covers 8 x 8 tiles round its point; the claiming room must enclose all of it
@@ -342,12 +280,6 @@ namespace Arena
         public static bool RuleHoldsRelic(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule == NodeRule.BloodMoon;
 
         public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
-
-        /// How far from a node's point a room built round it reaches (NodeStep's room, and the clear space NodeFor keeps).
-        public static int NodeReach(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf + 150 : 250;  // (nodes sit on a tile centre, so the reach is an odd number of half tiles: the room's walls land on the grid)
-
-        /// How far every room keeps from this node when it is placed: chest and relic nodes sit well out in the open.
-        public static int NodeRoomClear(MapNode n) => IsPrizeNode(n.Kind) ? PrizeClear : NodeReach(n);
 
         /// A treasure chest or a vector chest.
         /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Grid piece or Buildables (Buildables with room cards off), outer Upgrade.
@@ -388,19 +320,6 @@ namespace Arena
         }
 
         public static bool IsChest(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest;
-
-        /// The small nodes that sit well out in the open: chests, relic, scout tower and gold vein.
-        public static bool IsPrizeNode(NodeKind k) => IsChest(k) || k == NodeKind.Relic || k == NodeKind.Tower || k == NodeKind.Vein;
-
-        /// The rule a rule node of this boss cycle carries: the same on every machine for the same seed and cycle.
-        public static byte RuleFor(int seed, int cycle) => (byte)RuleRoll(seed, cycle);
-
-        static int RuleRoll(int seed, int cycle)
-        {
-            var rng = new DetRandom(seed * 4093 + cycle * 977 + 31);
-            rng.Int(100); rng.Int(100);  // (the first draws of nearby seeds are alike: skip them)
-            return rng.Int(6);
-        }
 
         public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1)
         {
@@ -498,119 +417,13 @@ namespace Arena
             return n;
         }
 
-        /// The next box on the way to claiming a node (a bot builds it): a 5 x 5 tile room round the node reaching back to a connected room's wall
-        /// if it can, else a 3-tile strip of a room out from that wall to where that room would start. Null if neither fits. Price is filled in.
-        public static ExpansionRoom? NodeStep(IList<ExpansionRoom> built, MapNode n)
-        {
-            var linked = ConnectedAreas(built);
-            ExpansionRoom? best = null;
-            int bestKey = int.MaxValue;
-            for (int a = 0; a <= built.Count; a++)
-            {
-                if (!linked[a])
-                    continue;
-                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
-                for (int side = 0; side < 4; side++)
-                {
-                    int rx, ry, rw, rh, hx, hy, hw, hh, h = NodeReach(n);
-                    switch (side)
-                    {
-                        case 0: if (n.Y + h > by0) continue; rx = n.X - h; ry = n.Y - h; rw = 2 * h; rh = by0 - ry; hx = n.X - 150; hy = n.Y + h; hw = 300; hh = by0 - hy; break;
-                        case 1: if (n.Y - h < by1) continue; rx = n.X - h; ry = by1; rw = 2 * h; rh = n.Y + h - by1; hx = n.X - 150; hy = by1; hw = 300; hh = n.Y - h - by1; break;
-                        case 2: if (n.X + h > bx0) continue; rx = n.X - h; ry = n.Y - h; rw = bx0 - rx; rh = 2 * h; hx = n.X + h; hy = n.Y - 150; hw = bx0 - hx; hh = 300; break;
-                        default: if (n.X - h < bx1) continue; rx = bx1; ry = n.Y - h; rw = n.X + h - bx1; rh = 2 * h; hx = bx1; hy = n.Y - 150; hw = n.X - h - bx1; hh = 300; break;
-                    }
-                    var room = Custom(built, rx, ry, rw, rh, out _);
-                    if (room.HasValue && NodeEncloses(room.Value, n) && room.Value.Price < bestKey)
-                    {
-                        bestKey = room.Value.Price;
-                        best = room;
-                        continue;
-                    }
-                    var strip = hw > 0 && hh > 0 && Math.Min(hw, hh) >= MinSide ? Custom(built, hx, hy, hw, hh, out _) : null;
-                    if (strip.HasValue && 100000 + strip.Value.Price < bestKey)
-                    {
-                        bestKey = 100000 + strip.Value.Price;
-                        best = strip;
-                    }
-                }
-            }
-            return best;
-        }
-
-        /// Could the team claim this node by building NodeStep after NodeStep (at most four boxes)?
-        public static bool NodeReachable(IList<ExpansionRoom> built, MapNode n)
-        {
-            var plan = new List<ExpansionRoom>(built);
-            for (int i = 0; i < 4; i++)
-            {
-                if (NodeClaimed(plan, n))
-                    return true;
-                var step = NodeStep(plan, n);
-                if (!step.HasValue)
-                    return false;
-                plan.Add(step.Value);
-            }
-            return NodeClaimed(plan, n);
-        }
-
-        /// A new node for this boss cycle: 10 to 16 tiles (20 to 26 off the start room, never within 10 of it) straight out from a room on the connected map (so a strip and a room can reach it), clear of every
-        /// room and at least 8 tiles from every other node, inside the size cap. The same on every machine for the same seed, cycle and map.
-        /// Null if nothing fits.
-        public static MapNode? NodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind, int ring = -1)
-        {
-            var rng = new DetRandom(seed * 7919 + cycle * 3571 + (int)kind * 211 + 5 + (ring + 1) * 977);
-            var linked = ConnectedAreas(built);
-            for (int attempt = 0; attempt < (kind == NodeKind.Rule ? 400 : 160); attempt++)
-            {
-                int a = ring >= 0 ? 0 : rng.Int(built.Count + 1);  // (a ring node goes off the hub, on side ring % 4)
-                if (!linked[a])
-                    continue;
-                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
-                // (a rule node goes out to the side: the map is wider than tall, so its big room fits)
-                int side = ring >= 0 ? ring % 4 : kind == NodeKind.Rule ? 1 + 2 * rng.Int(2) : rng.Int(4), gap = ring >= 0 ? RingMin + rng.Int((RingMax - RingMin) / Step + 1) * Step : NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
-                if (side == 0 || side == 2)
-                {
-                    x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;
-                    y = side == 0 ? by0 - gap - 50 : by1 + gap + 50;
-                }
-                else
-                {
-                    y = by0 + 150 + rng.Int((by1 - by0 - 300) / Step + 1) * Step;
-                    x = side == 1 ? bx1 + gap + 50 : bx0 - gap - 50;
-                }
-                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind, Rule = kind == NodeKind.Rule ? RuleFor(seed, cycle) : (byte)0 };  // (never fogged since Nov 18: nodes always show what they are)
-                int reach = NodeRoomClear(n);
-                bool ok = true;
-                foreach (var o in nodes)
-                    ok &= new V2(o.X - x, o.Y - y).Length >= NodeApart + NodeHalf(n) + NodeHalf(o);
-                for (int i = 0; i <= built.Count && ok; i++)
-                {
-                    BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
-                    ok = !Overlaps(x - reach, y - reach, x + reach, y + reach, cx0, cy0, cx1, cy1);  // (clear of every room: 6 tiles for a chest or relic, the claiming room's reach for a rule node)
-                }
-                if (ok)
-                {
-                    BoxOf(built, 0, out int hx0, out int hy0, out int hx1, out int hy1);
-                    int sc = ring >= 0 ? PrizeClear + 100 : StartClear;
-                    ok = !Overlaps(x - sc, y - sc, x + sc, y + sc, hx0, hy0, hx1, hy1);  // (never near the start room, whichever room it was placed off)
-                }
-                if (ok && NodeReachable(built, n))
-                    return n;  // (it can be built to: a strip out and a room round it fit)
-            }
-            return null;
-        }
-
         // --- Room chests (owner Nov 17): building a room may drop a chest node a few tiles outside its wall ---
 
         public const float RoomChestThin = 0.10f;    // the chance for a hallway (a room 3 tiles wide or less)
         public const float RoomChestBase = 0.20f;    // a wider room: this plus its area / RoomChestArea tiles...
         public const int RoomChestArea = 720;
         public const float RoomChestMax = 0.40f;     // ...up to this (a 6 x 6 room 25%, 10 x 10 34%, 12 x 12 40%)
-        public const int RoomChestNear = 300, RoomChestFar = 500;  // the chest sits 3 to 5 tiles out from the new room's wall
-        public const int RoomChestClear = 300;       // and at least 3 tiles from every room
         public const int RoomChestWaiting = 2;       // no roll while this many chests wait unclaimed
-        public const int RoomChestLook = 900;
         public const float RoomChestVectorShare = 0.5f;  // half of them are vector chests (owner Nov 17)        // a spot near other rooms (within 9 tiles) scores higher: the claiming room tends to join branches
 
         /// The chance a newly built room (its boxes) drops a chest: thin hallways rarely, big rooms more.
@@ -637,74 +450,6 @@ namespace Arena
             return n;
         }
 
-        /// A chest node for the room just built (the last `count` entries of `built`), or null: it rolls RoomChestChance (none while RoomChestWaiting chests wait),
-        /// then takes a spot 3 to 5 tiles out from one of its outer walls, clear of every room and node and the start room, that a room can be built round;
-        /// spots near other rooms (not the new one) score higher, so claiming it tends to join two branches. The same for the same seed and map.
-        public static MapNode? RoomChestFor(int seed, IList<ExpansionRoom> built, IList<MapNode> nodes, int count, bool roll = true)
-        {
-            if (count <= 0 || count > built.Count || ChestsWaiting(built, nodes) >= RoomChestWaiting)
-                return null;
-            int first = built.Count - count;
-            var boxes = new List<ExpansionRoom>();
-            for (int i = first; i < built.Count; i++)
-                boxes.Add(built[i]);
-            var rng = new DetRandom(seed * 6151 + built.Count * 1291 + 17);
-            if (roll && rng.Float() >= RoomChestChance(boxes))
-                return null;
-            var kind = rng.Float() < RoomChestVectorShare ? NodeKind.VectorChest : NodeKind.Chest;
-            var spots = new List<KeyValuePair<MapNode, int>>();
-            int best = -1;
-            foreach (var b in boxes)
-                for (int side = 0; side < 4; side++)
-                    for (int gap = RoomChestNear; gap <= RoomChestFar; gap += Step)
-                    {
-                        bool across = side == 0 || side == 2;  // 0 north, 2 south: the spot runs along a horizontal wall
-                        int lo = (across ? b.X : b.Y) + 50, hi = (across ? b.X1 : b.Y1) - 50;
-                        for (int p = lo; p <= hi; p += Step)
-                        {
-                            int x = across ? p : side == 1 ? b.X1 + gap + 50 : b.X - gap - 50;
-                            int y = across ? (side == 0 ? b.Y - gap - 50 : b.Y1 + gap + 50) : p;
-                            var n = new MapNode { X = (short)x, Y = (short)y, Kind = NodeKind.Chest };
-                            bool ok = true;
-                            for (int i = 0; i <= built.Count && ok; i++)
-                            {
-                                BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
-                                int clear = i == 0 ? StartClear : RoomChestClear;
-                                ok = !Overlaps(x - clear, y - clear, x + clear, y + clear, cx0, cy0, cx1, cy1);
-                            }
-                            foreach (var o in nodes)
-                                ok &= ok && new V2(o.X - x, o.Y - y).Length >= NodeApart + NodeHalf(o);
-                            if (!ok)
-                                continue;
-                            int score = 0;  // other rooms close by: the claiming room may reach them too
-                            for (int i = 1; i <= first; i++)
-                            {
-                                BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
-                                if (!built[i - 1].Floating && Overlaps(x - RoomChestLook, y - RoomChestLook, x + RoomChestLook, y + RoomChestLook, cx0, cy0, cx1, cy1))
-                                    score++;
-                            }
-                            if (score < best)
-                                continue;
-                            if (!NodeReachable(built, n))
-                                continue;
-                            if (score > best)
-                            {
-                                best = score;
-                                spots.Clear();
-                            }
-                            spots.Add(new KeyValuePair<MapNode, int>(n, score));
-                        }
-                    }
-            if (spots.Count == 0)
-                return null;
-            var pick = spots[rng.Int(spots.Count)].Key;
-            pick.Kind = kind;
-            return pick;
-        }
-
-        public const int RingMin = 700, RingMax = 1000;  // the first cycle's ring nodes sit 7 to 10 tiles off the hub's wall (owner Nov 18: closer)
-        public const int StartExtra = 1000;  // nodes and floating rooms placed off the start room sit this much farther out (owner Nov 12: 600; Nov 13: 1000, the Gatekeeper too)
-        public const int StartClear = 1000;  // and nothing is placed closer than this to the start room, whichever room it was placed off (owner Nov 13)
         public const int ShopRoomSide = 400;  // a floating shop or vendor room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 
         // --- Opened walls: a stretch of wall between two rooms the team opens for vectors (1 per tile) ---
@@ -932,14 +677,6 @@ namespace Arena
 
         // --- Themed rooms (Docs/FloatingRooms.md step 4): a path as a room's theme, drawn for extra vectors, unlocked by bosses ---
 
-        /// Extra vectors a theme costs on top of the room's walls: its path's danger (1: 3, 2: 6, 3: 10).
-        public static int ThemeCost(PathId floor)
-        {
-            if (floor == PathId.None) return 0;
-            int d = Paths.Get(floor).Danger;
-            return d <= 1 ? 3 : d == 2 ? 6 : 10;
-        }
-
         /// Bosses beaten before the theme can be drawn (danger 1: none, 2: one, 3: two).
         public static int ThemeBoss(PathId floor) => floor == PathId.None ? 0 : Math.Max(0, Paths.Get(floor).Danger - 1);
 
@@ -948,119 +685,11 @@ namespace Arena
 
         public static bool ThemeUnlocked(PathId floor, int wave) => BossesBeaten(wave) >= ThemeBoss(floor);
 
-        /// A room the team drew with a theme: the same room, a Floor room of that path, priced with the theme's vectors on top.
-        public static ExpansionRoom? Custom(IList<ExpansionRoom> built, int x, int y, int w, int h, PathId floor, out string why)
-        {
-            if (floor != PathId.None && Array.IndexOf(Floors, floor) < 0) { why = "Not a theme"; return null; }
-            var room = Custom(built, x, y, w, h, out why);
-            if (!room.HasValue || floor == PathId.None)
-                return room;
-            var r = room.Value;
-            r.Kind = RoomKind.Floor; r.Floor = floor; r.Price += ThemeCost(floor);
-            return r;
-        }
-
-        /// A room the team drew (a box in world px, any 100 px grid position): checks it and prices it. Null with `why` set if it can't go there.
-        public static ExpansionRoom? Custom(IList<ExpansionRoom> built, int x, int y, int w, int h, out string why)
-        {
-            why = null;
-            if (x % Step != 0 || y % Step != 0 || w % Step != 0 || h % Step != 0) { why = "Not on the grid"; return null; }
-            if (w < MinSide || h < MinSide) { why = "Too thin (at least " + MinSide + " px)"; return null; }
-            if (w > MaxSide || h > MaxSide) { why = "Too big (at most " + MaxSide / Step + " tiles a side)"; return null; }
-            if (w * h > MaxArea) { why = "Too big (at most " + MaxArea / (Step * Step) + " tiles of floor)"; return null; }
-            int parent, loops;
-            if (!Placement(built, x, y, w, h, out parent, out loops, out why))
-                return null;
-            return new ExpansionRoom { Parent = parent, X = x, Y = y, W = w, H = h, Kind = RoomKind.Combat, Floor = PathId.None, Price = Cost(built, x, y, w, h) };
-        }
-
         // --- Drawn outlines -----------------------------------------------------------------------------------------
 
         public const byte PieceBase = 16;        // ExpansionRoom.Leg from here up: a piece of a drawn outline (old saves may hold Leg 1 or 2: a retired bent hallway's legs, built the same way)
-        public const int MaxPoints = 32;         // corners an outline may have
         public const int OutlineMaxSide = 2400;  // an outline's bounding box, each way
         public const int OutlineCoverMin = 500;  // an outline's piece narrower than this gets no cover
-
-        /// The corners of an outline with the in-between points of straight walls taken out (each point {x, y}). Null with `why` set
-        /// if it isn't a closed loop of straight walls on the grid (each wall across or up, corners apart, no wall doubling back).
-        public static List<int[]> CleanOutline(IList<int[]> pts, out string why)
-        {
-            why = null;
-            if (pts == null || pts.Count < 4) { why = "Click at least 4 corners"; return null; }
-            if (pts.Count > MaxPoints) { why = "At most " + MaxPoints + " corners"; return null; }
-            int n = pts.Count;
-            for (int i = 0; i < n; i++)
-            {
-                int[] a = pts[i], b = pts[(i + 1) % n];
-                if (a[0] % Step != 0 || a[1] % Step != 0) { why = "Not on the grid"; return null; }
-                if (a[0] == b[0] && a[1] == b[1]) { why = "Two corners in one spot"; return null; }
-                if (a[0] != b[0] && a[1] != b[1]) { why = "Walls run straight across or straight up"; return null; }
-            }
-            var c = new List<int[]>();
-            for (int i = 0; i < n; i++)
-            {
-                int[] p = pts[(i + n - 1) % n], q = pts[i], r = pts[(i + 1) % n];
-                bool across0 = p[1] == q[1], across1 = q[1] == r[1];
-                if (across0 != across1)
-                {
-                    c.Add(new[] { q[0], q[1] });
-                    continue;
-                }
-                // Straight on: fine; doubling back over the wall just drawn is not.
-                int d0 = across0 ? Math.Sign(q[0] - p[0]) : Math.Sign(q[1] - p[1]), d1 = across1 ? Math.Sign(r[0] - q[0]) : Math.Sign(r[1] - q[1]);
-                if (d0 != d1) { why = "A wall doubles back on itself"; return null; }
-            }
-            if (c.Count < 4) { why = "Click at least 4 corners"; return null; }
-            // No two walls may cross or touch, except neighbours at their shared corner.
-            int m = c.Count;
-            for (int i = 0; i < m; i++)
-                for (int j = i + 1; j < m; j++)
-                {
-                    if (j == i + 1 || (i == 0 && j == m - 1))
-                        continue;
-                    if (SegmentsTouch(c[i], c[(i + 1) % m], c[j], c[(j + 1) % m])) { why = "Walls cross or touch"; return null; }
-                }
-            return c;
-        }
-
-        static bool SegmentsTouch(int[] a0, int[] a1, int[] b0, int[] b1)
-        {
-            int ax0 = Math.Min(a0[0], a1[0]), ax1 = Math.Max(a0[0], a1[0]), ay0 = Math.Min(a0[1], a1[1]), ay1 = Math.Max(a0[1], a1[1]);
-            int bx0 = Math.Min(b0[0], b1[0]), bx1 = Math.Max(b0[0], b1[0]), by0 = Math.Min(b0[1], b1[1]), by1 = Math.Max(b0[1], b1[1]);
-            return ax0 <= bx1 && bx0 <= ax1 && ay0 <= by1 && by0 <= ay1;
-        }
-
-        /// The tiles inside a clean outline: inside[col, row] from (x0, y0), Step px each.
-        static bool[,] Tiles(List<int[]> c, out int x0, out int y0)
-        {
-            x0 = int.MaxValue; y0 = int.MaxValue;
-            int x1 = int.MinValue, y1 = int.MinValue;
-            foreach (var p in c)
-            {
-                x0 = Math.Min(x0, p[0]); y0 = Math.Min(y0, p[1]); x1 = Math.Max(x1, p[0]); y1 = Math.Max(y1, p[1]);
-            }
-            int cols = (x1 - x0) / Step, rows = (y1 - y0) / Step;
-            var inside = new bool[cols, rows];
-            for (int row = 0; row < rows; row++)
-            {
-                double cy = y0 + (row + 0.5) * Step;
-                for (int col = 0; col < cols; col++)
-                {
-                    double cx = x0 + (col + 0.5) * Step;
-                    bool inn = false;
-                    for (int i = 0; i < c.Count; i++)  // a ray to the right: count the up-and-down walls it crosses
-                    {
-                        int[] a = c[i], b = c[(i + 1) % c.Count];
-                        if (a[0] != b[0] || a[0] < cx)
-                            continue;
-                        if (cy > Math.Min(a[1], b[1]) && cy < Math.Max(a[1], b[1]))
-                            inn = !inn;
-                    }
-                    inside[col, row] = inn;
-                }
-            }
-            return inside;
-        }
 
         static bool Block(bool[,] inside, int col, int row, int size)
         {
@@ -1103,23 +732,6 @@ namespace Arena
                 open = next;
             }
             return done;
-        }
-
-        /// A room drawn as an outline (Docs/ExpandingArena.md): click corners on the grid, walls running straight across or up, round
-        /// back to the first. It is cut into boxes, the first carrying the whole price and the door to the map, each next one a piece
-        /// (ExpansionRoom.Leg = PieceBase + n) open full width onto the piece it grew from. Rules: at least MinSide wide everywhere,
-        /// at most MaxArea, OutlineMaxSide each way, no overlap, and 2 tiles of wall shared with the connected map. It costs its new wall
-        /// plus the theme. Null with `why` set if it can't go there.
-        public static List<ExpansionRoom> Outline(IList<ExpansionRoom> built, IList<int[]> points, PathId floor, out string why)
-        {
-            if (floor != PathId.None && Array.IndexOf(Floors, floor) < 0) { why = "Not a theme"; return null; }
-            var c = CleanOutline(points, out why);
-            if (c == null)
-                return null;
-            if (BoughtCount(built) >= MaxRooms) { why = "The map is full"; return null; }
-            int x0, y0;
-            var inside = Tiles(c, out x0, out y0);
-            return FromTiles(built, inside, x0, y0, floor, out why);
         }
 
         /// The room for these tiles (inside[col, row] from (x0, y0)): checked against the outline rules, cut into boxes and priced.
@@ -1194,8 +806,6 @@ namespace Arena
                 }
             }
             if (order.Count != pieces.Count) { why = "The shape must be in one piece"; return null; }
-            int tiles = (perimeter - shared) / Step;
-            int price = Math.Max(1, tiles) + ThemeCost(floor);
             var made = new List<ExpansionRoom>();
             for (int k = 0; k < order.Count; k++)
             {
@@ -1205,139 +815,11 @@ namespace Arena
                     Parent = k == 0 ? rootParent : built.Count + 1 + order.IndexOf(from[order[k]]),
                     X = q[0], Y = q[1], W = q[2], H = q[3],
                     Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor,
-                    Price = k == 0 ? price : 0,
+                    Price = 0,
                     Leg = k == 0 ? (byte)0 : (byte)Math.Min(255, PieceBase + k),
                 });
             }
             return made;
-        }
-
-        /// A run of walls (corners {x, y}, not closed) that the map's own walls close off: the space it fences in becomes a room
-        /// (Docs/ExpandingArena.md, "fill"). Both ends must sit on a room's wall. The walls may not run through a room. If it fences in
-        /// a space on both sides, the smaller one is built. The same rules and price as Outline. Null with `why` set if nothing is fenced in.
-        public static List<ExpansionRoom> Fill(IList<ExpansionRoom> built, IList<int[]> points, PathId floor, out string why)
-        {
-            why = null;
-            if (floor != PathId.None && Array.IndexOf(Floors, floor) < 0) { why = "Not a theme"; return null; }
-            if (points == null || points.Count < 2) { why = "Draw a wall from one wall to another"; return null; }
-            if (points.Count > MaxPoints) { why = "At most " + MaxPoints + " corners"; return null; }
-            for (int i = 0; i < points.Count; i++)
-            {
-                int[] a = points[i];
-                if (a[0] % Step != 0 || a[1] % Step != 0) { why = "Not on the grid"; return null; }
-                if (i == 0) continue;
-                int[] p = points[i - 1];
-                if (a[0] == p[0] && a[1] == p[1]) { why = "Two corners in one spot"; return null; }
-                if (a[0] != p[0] && a[1] != p[1]) { why = "Walls run straight across or straight up"; return null; }
-            }
-            if (!OnWall(built, points[0]) || !OnWall(built, points[points.Count - 1])) { why = "Start and end the wall on a room's wall"; return null; }
-            for (int i = 1; i < points.Count; i++)  // no two walls may cross or touch, except neighbours at their corner
-                for (int j = i + 2; j < points.Count; j++)
-                    if (SegmentsTouch(points[i - 1], points[i], points[j - 1], points[j])) { why = "Walls cross or touch"; return null; }
-            if (BoughtCount(built) >= MaxRooms) { why = "The map is full"; return null; }
-            // A tile grid round the walls, big enough for any room: room tiles are solid, the drawn walls stop a step between two tiles.
-            int lx = int.MaxValue, ly = int.MaxValue, hx = int.MinValue, hy = int.MinValue;
-            foreach (var p in points)
-            {
-                lx = Math.Min(lx, p[0]); ly = Math.Min(ly, p[1]); hx = Math.Max(hx, p[0]); hy = Math.Max(hy, p[1]);
-            }
-            int margin = OutlineMaxSide + Step;
-            int gx0 = lx - margin, gy0 = ly - margin, cols = (hx - lx + 2 * margin) / Step, rows = (hy - ly + 2 * margin) / Step;
-            var solid = new bool[cols, rows];
-            for (int a = 0; a <= built.Count; a++)
-            {
-                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
-                for (int i = Math.Max(0, (bx0 - gx0) / Step); i < Math.Min(cols, (bx1 - gx0 + Step - 1) / Step); i++)
-                    for (int j = Math.Max(0, (by0 - gy0) / Step); j < Math.Min(rows, (by1 - gy0 + Step - 1) / Step); j++)
-                        solid[i, j] = true;
-            }
-            var blockX = new bool[cols + 1, rows];  // a wall on the left edge of tile (i, j): no step between i - 1 and i
-            var blockY = new bool[cols, rows + 1];  // a wall on the top edge of tile (i, j)
-            var seeds = new List<int[]>();          // the tiles either side of each drawn wall
-            for (int k = 1; k < points.Count; k++)
-            {
-                int[] a = points[k - 1], b = points[k];
-                if (a[1] == b[1])
-                {
-                    int j = (a[1] - gy0) / Step;
-                    for (int x = Math.Min(a[0], b[0]); x < Math.Max(a[0], b[0]); x += Step)
-                    {
-                        int i = (x - gx0) / Step;
-                        if (solid[i, j - 1] && solid[i, j]) { why = "The wall runs through a room"; return null; }
-                        blockY[i, j] = true;
-                        seeds.Add(new[] { i, j - 1 }); seeds.Add(new[] { i, j });
-                    }
-                }
-                else
-                {
-                    int i = (a[0] - gx0) / Step;
-                    for (int y = Math.Min(a[1], b[1]); y < Math.Max(a[1], b[1]); y += Step)
-                    {
-                        int j = (y - gy0) / Step;
-                        if (solid[i - 1, j] && solid[i, j]) { why = "The wall runs through a room"; return null; }
-                        blockX[i, j] = true;
-                        seeds.Add(new[] { i - 1, j }); seeds.Add(new[] { i, j });
-                    }
-                }
-            }
-            // Fill out from each side: a space that stays small (no bigger than a room may be) is fenced in.
-            int limit = MaxArea / (Step * Step);
-            var seen = new int[cols, rows];  // 0: not reached; else the fill's number
-            int fills = 0;
-            List<int[]> best = null;
-            bool tooBig = false;
-            foreach (var s in seeds)
-            {
-                if (solid[s[0], s[1]] || seen[s[0], s[1]] != 0)
-                    continue;
-                fills++;
-                var got = new List<int[]> { s };
-                seen[s[0], s[1]] = fills;
-                bool open = false;
-                for (int q = 0; q < got.Count && !open; q++)
-                {
-                    int i = got[q][0], j = got[q][1];
-                    for (int d = 0; d < 4; d++)
-                    {
-                        int ni = i + (d == 0 ? -1 : d == 1 ? 1 : 0), nj = j + (d == 2 ? -1 : d == 3 ? 1 : 0);
-                        if (ni < 0 || nj < 0 || ni >= cols || nj >= rows) { open = true; break; }
-                        bool wall = d == 0 ? blockX[i, j] : d == 1 ? blockX[i + 1, j] : d == 2 ? blockY[i, j] : blockY[i, j + 1];
-                        if (wall || solid[ni, nj] || seen[ni, nj] != 0)
-                            continue;
-                        seen[ni, nj] = fills;
-                        got.Add(new[] { ni, nj });
-                    }
-                    if (got.Count > 4 * limit) open = true;  // (far bigger than a room: call it open)
-                }
-                if (open)
-                    continue;
-                if (got.Count > limit) { tooBig = true; continue; }
-                if (best == null || got.Count < best.Count)
-                    best = got;
-            }
-            if (best == null) { why = tooBig ? "Too big to fill (at most " + limit + " tiles of floor)" : "Nothing fenced in yet: end the wall on another room's wall"; return null; }
-            int mi = int.MaxValue, mj = int.MaxValue, xi = 0, xj = 0;
-            foreach (var t in best)
-            {
-                mi = Math.Min(mi, t[0]); mj = Math.Min(mj, t[1]); xi = Math.Max(xi, t[0]); xj = Math.Max(xj, t[1]);
-            }
-            var inside = new bool[xi - mi + 1, xj - mj + 1];
-            foreach (var t in best)
-                inside[t[0] - mi, t[1] - mj] = true;
-            return FromTiles(built, inside, gx0 + mi * Step, gy0 + mj * Step, floor, out why);
-        }
-
-        /// Is this grid point on a room's wall (the edge of the hub or a room)?
-        public static bool OnWall(IList<ExpansionRoom> built, int[] p)
-        {
-            for (int a = 0; a <= built.Count; a++)
-            {
-                BoxOf(built, a, out int x0, out int y0, out int x1, out int y1);
-                bool inX = p[0] >= x0 && p[0] <= x1, inY = p[1] >= y0 && p[1] <= y1;
-                if (inX && inY && (p[0] == x0 || p[0] == x1 || p[1] == y0 || p[1] == y1))
-                    return true;
-            }
-            return false;
         }
 
         /// Doors an area has (to its parent, children and loops).
@@ -1357,91 +839,6 @@ namespace Arena
         }
 
         // --- Offers ------------------------------------------------------------------------------------------------
-
-        /// Up to `count` different rooms the team can buy at this milestone, the same on every machine for the same
-        /// seed, round and rooms bought. Empty at the size cap.
-        public static List<ExpansionRoom> Offers(int seed, int round, IList<ExpansionRoom> built, int count = 3)
-        {
-            var offers = new List<ExpansionRoom>();
-            if (built.Count >= MaxRooms)
-                return offers;
-            var rng = new DetRandom(seed * 7919 + round * 104729 + built.Count);
-            int shops = 0;
-            var usedShape = new int[Shapes.Length];
-            var usedFloor = new HashSet<PathId>();
-            foreach (var r in built)
-            {
-                shops += r.Kind == RoomKind.Shop ? 1 : 0;
-                int si = ShapeIndex(r.W, r.H);
-                if (si >= 0) usedShape[si]++;
-                if (r.Kind == RoomKind.Floor) usedFloor.Add(r.Floor);
-            }
-            for (int attempt = 0; attempt < 300 && offers.Count < count; attempt++)
-            {
-                // A parent: rooms with few doors are likelier, so the map branches rather than strings out.
-                float total = 0f;
-                for (int a = 0; a <= built.Count; a++) total += 1f / (1f + Doors(built, a));
-                float pick = rng.Float() * total;
-                int parent = 0;
-                for (int a = 0; a <= built.Count; a++)
-                {
-                    pick -= 1f / (1f + Doors(built, a));
-                    if (pick <= 0f) { parent = a; break; }
-                }
-                // A shape: ones not bought yet are three times as likely.
-                float st = 0f;
-                for (int i = 0; i < Shapes.Length; i++) st += usedShape[i] == 0 ? 3f : 1f;
-                float sp = rng.Float() * st;
-                int shape = 0;
-                for (int i = 0; i < Shapes.Length; i++)
-                {
-                    sp -= usedShape[i] == 0 ? 3f : 1f;
-                    if (sp <= 0f) { shape = i; break; }
-                }
-                int w = Shapes[shape][0], h = Shapes[shape][1];
-                // A side, and where along it (the room slides in steps, keeping at least MinDoorRun of wall shared).
-                int bx0, by0, bx1, by1;
-                BoxOf(built, parent, out bx0, out by0, out bx1, out by1);
-                int side = rng.Int(4);  // 0 north, 1 east, 2 south, 3 west
-                int x, y;
-                if (side == 0 || side == 2)
-                {
-                    int lo = bx0 - w + MinDoorRun, hi = bx1 - MinDoorRun;
-                    x = lo + rng.Int((hi - lo) / Step + 1) * Step;
-                    y = side == 0 ? by0 - h : by1;
-                }
-                else
-                {
-                    int lo = by0 - h + MinDoorRun, hi = by1 - MinDoorRun;
-                    y = lo + rng.Int((hi - lo) / Step + 1) * Step;
-                    x = side == 1 ? bx1 : bx0 - w;
-                }
-                int placedParent, loops; string why;
-                if (!Placement(built, x, y, w, h, out placedParent, out loops, out why))
-                    continue;
-                parent = placedParent;
-                if (loops == 0 && rng.Float() < 0.4f)
-                    continue;  // a room that closes a loop is likelier to be offered: dead ends get long
-                // A kind: a shop while the map is short of them, a floor (an unused one first), else a fight.
-                float wShop = shops < 1 + built.Count / 6 && built.Count >= 1 ? 3f : 0f, wFloor = 3f, wCombat = 4f;
-                float kp = rng.Float() * (wShop + wFloor + wCombat);
-                var kind = kp < wShop ? RoomKind.Shop : kp < wShop + wFloor ? RoomKind.Floor : RoomKind.Combat;
-                var floor = PathId.None;
-                if (kind == RoomKind.Floor)
-                {
-                    var fresh = new List<PathId>();
-                    foreach (var f in Floors) if (!usedFloor.Contains(f)) fresh.Add(f);
-                    floor = fresh.Count > 0 ? fresh[rng.Int(fresh.Count)] : Floors[rng.Int(Floors.Length)];
-                }
-                var offer = new ExpansionRoom { Parent = parent, X = x, Y = y, W = w, H = h, Kind = kind, Floor = floor, Price = Cost(built, x, y, w, h) };
-                bool dup = false;
-                foreach (var o in offers)
-                    dup |= (o.W == w && o.H == h && o.Kind == kind) || (o.Parent == parent && Math.Abs(o.X - x) + Math.Abs(o.Y - y) < 400);
-                if (!dup)
-                    offers.Add(offer);
-            }
-            return offers;
-        }
 
         // --- The world ---------------------------------------------------------------------------------------------
 

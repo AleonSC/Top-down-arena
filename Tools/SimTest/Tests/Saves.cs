@@ -189,12 +189,12 @@ static partial class Program
         Run(s, dt, 40f, () => g.State == MatchState.Intermission && g.Wave == 6 && !g.AnyonePicking(), () => { NoPicks(); foreach (var e in g.Enemies.Values) e.Hp = 0f; });
 
         // A map: a drawn room (the friend's), a shop room off it, a kit held; vectors and a shelf for the friend.
-        string why;
+        string why = null;
         g.Expanded.Clear();  // (the cycle's floating rooms land at random and could sit where this test builds)
-        var east = Expansion.Custom(g.Expanded, 1600, 300, 600, 300, out why).Value;
+        var east = Box(1600, 300, 600, 300).Value;
         east.Owner = 2;
         g.Expanded.Add(east);
-        var shop = Expansion.Custom(g.Expanded, 2200, 300, 400, 300, out why);
+        var shop = Box(2200, 300, 400, 300);
         if (shop.HasValue) { var sh = shop.Value; sh.Kind = RoomKind.Shop; g.Expanded.Add(sh); }
         g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake });
         var friend = g.Players[2];
