@@ -2086,17 +2086,6 @@ namespace Arena
                 var cr = rooms[a - 1];
                 if (IsPush(cr))
                     continue;  // (a pushed section: its own features instead, PushFeatures)
-                if (cr.Card != 0)
-                {
-                    if (group[a] == a)  // a room card's room: its designed layout, once for all its boxes (RoomCardLayouts.cs)
-                    {
-                        var members = new List<int>();
-                        for (int b = 1; b < n; b++)
-                            if (group[b] == a) members.Add(b);
-                        AddCardFeatures(cover, rooms, members, doors);
-                    }
-                    continue;
-                }
                 if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);

@@ -19,7 +19,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.GridRooms, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); gg.Expanded.AddRange(Expansion.GridCore()); gg.Openings.AddRange(Expansion.GridCoreCuts()); gg.ExpandOpen = true; }
 
         // An Arms Dealer and a shop, from their cards.
         var me = g.Players[1];
@@ -27,8 +27,8 @@ static partial class Program
         {
             Array.Clear(me.Hand, 0, me.Hand.Length);
             me.Hand[0] = (byte)card;
-            var o = Expansion.CardOptions(g.Expanded, card)[0];
-            typeof(Game).GetMethod("HostPlayCard", flags).Invoke(g, new object[] { me.Id, 0, o.X, o.Y, (int)o.Turn, o.Mirror });
+            var o = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono)[0];  // (a service card builds one cell, GridCards.cs)
+            typeof(Game).GetMethod("HostGridCard", flags).Invoke(g, new object[] { me.Id, 0, o.Orient, o.X, o.Y });
             var r = g.Expanded[g.Expanded.Count - 1];
             return new V2((r.X + r.X1) / 2f, (r.Y + r.Y1) / 2f);
         };
@@ -99,8 +99,8 @@ static partial class Program
             foreach (int c in of) seen.Add(c);
         }
         Check(fine, "an offer is " + BossCards.OfferSize + " different cards or kits");
-        Check(Expansion.ShapeCards.All(c => seen.Contains((int)c)) && Expansion.ServiceCards.All(c => seen.Contains((int)c)) && seen.Contains((int)RoomCard.Box)
-              && seen.Contains((int)RoomCard.MiniBoss) && Expansion.Floors.All(f => seen.Contains(BossCards.KitCode(f))), "every shape, service, basic and mini-boss card and every floor kit turns up");
+        Check(Expansion.ServiceCards.All(c => seen.Contains((int)c)) && seen.Count(c => !BossCards.IsKit(c) && Expansion.IsPieceCard((RoomCard)c)) > 10 && !seen.Contains((int)RoomCard.MiniBoss)
+              && Expansion.Floors.All(f => seen.Contains(BossCards.KitCode(f))), "pieces, every service card and every floor kit turn up; no Mini-boss card (it waits on the lattice)");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
@@ -110,7 +110,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.RoomCards, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.GridRooms, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         noPicks();
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
         g.RoomTokens.Clear();
@@ -119,7 +119,7 @@ static partial class Program
         var boss = new Enemy { Id = 9901, Type = EnemyType.Boss, Def = Defs.Get(EnemyType.Boss), Hp = 0f };
         typeof(Game).GetField("bossRewarded", flags).SetValue(g, false);
         typeof(Game).GetMethod("OnEnemyKilled", flags).Invoke(g, new object[] { boss });
-        Check(g.BossCardPicks && g.Players.Values.All(p => p.PendingCards == 1 && p.PendingMods == 0 && p.LegendaryQueue.Count == 1), "with room cards a boss gives a card pick, not a weapon mod");
+        Check(g.BossCardPicks && g.Players.Values.All(p => p.PendingCards == 1 && p.PendingMods == 0 && p.LegendaryQueue.Count == 1), "in a Grid run a boss gives a card pick, not a weapon mod");
         var me = g.Players[1];
         var nextOffer = typeof(Game).GetMethod("NextOffer", flags);
         me.LegendaryQueue.Clear();
@@ -153,6 +153,8 @@ static partial class Program
         for (int i = 0; i < me.Hand.Length; i++) me.Hand[i] = (byte)RoomCard.Box;
         me.PendingCards = 1;
         nextOffer.Invoke(g, new object[] { me });
+        me.PendingCards = 1;  // (the seeded offer may hold no kit, which skips the pick: this checks the card refusal itself)
+        me.OfferCards = true;
         me.Offer = new[] { (int)RoomCard.Ring, BossCards.KitCode(PathId.BloodMoon), (int)RoomCard.Arms, (int)RoomCard.Box, (int)RoomCard.MiniBoss };
         g.PickUpgrade(0);
         Check(me.PendingCards == 1 && me.Hand.All(h => h == (byte)RoomCard.Box), "with a full hand a card can't be taken");
@@ -181,12 +183,12 @@ static partial class Program
         int botPick = (int)typeof(Game).GetMethod("BotBossCard", flags).Invoke(g, new object[] { me });
         Check(botPick == 2, "a bot takes the Arms Dealer card when the map has none");
 
-        // Room cards off: back to the weapon mod pick.
-        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.RoomCards, 0f);
+        // Grid off (an old free-draw save): back to the weapon mod pick.
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.GridRooms, 0f);
         noPicks();
         g.State = MatchState.Fighting;
         typeof(Game).GetField("bossRewarded", flags).SetValue(g, false);
         typeof(Game).GetMethod("OnEnemyKilled", flags).Invoke(g, new object[] { boss });
-        Check(!g.BossCardPicks && g.Players.Values.All(p => p.PendingMods == 1 && p.PendingCards == 0), "with room cards off a boss gives the weapon mod pick as before");
+        Check(!g.BossCardPicks && g.Players.Values.All(p => p.PendingMods == 1 && p.PendingCards == 0), "with Grid off a boss gives the weapon mod pick as before");
     }
 }

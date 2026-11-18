@@ -66,7 +66,6 @@ static partial class Program
         if (!s.Host(port, name, role, weapon, ability, kit))
             Console.WriteLine("  HOST FAILED on port " + port + ": " + s.Status + " (another SimTest run using the same ports? give it PORTBASE=n)");
         s.Diff.Set(DiffKnob.Campaign, 0f);  // (the tests expect the usual random waves; CampaignTest turns it on itself)
-        s.Diff.Set(DiffKnob.RoomCards, 0f);  // (the tests draw their rooms; RoomCardsTest turns cards on itself)
         s.Diff.Set(DiffKnob.GridRooms, 0f);  // (and Grid, the lobby's default, off: the Grid tests turn it on themselves)
         return s;
     }
@@ -456,7 +455,6 @@ static partial class Program
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingOutlineTest(Dt), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingThemesTest(Dt), () => ExpandingWallsTest(Dt), () => ExpandingFreeBuildTest(Dt), () => ExpandingPurseTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingRoomSizesTest(Dt), () => ExpandingFloatCostTest(), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingPushTest(Dt), () => ExpandingRoomChestTest(), () => ExpandingNodeCentreTest(), () => ExpandingVectorChestTest(Dt), () => ChestKindsTest(Dt)),
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
         Test("gridrooms", "grid rooms (Docs/GridRooms.md): rooms snap to door spots on built rooms' walls in four sizes; the host refuses the rest; nodes and chests at a cell's middle", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => GridPiecesTest(), () => GridCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => GridPiecesGameTest(Dt)),
-        Test("roomcards", "room cards (Docs/RoomCards.md): preset rooms held in a hand and placed against a wall; dealt, dropped, bought, played, saved", () => RoomCardsTest(), () => RoomCardsGameTest(Dt), () => RoomCardsBotTest(Dt)),
         Test("armsdealer", "the Arms Dealer and the boss card pick (Docs/ArmsDealer.md): a service room selling every weapon mod for gold, priced by your stacks; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),
         Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt), () => MysteryBotsTest(Dt)),
         Test("chests", "chest kinds (Props.cs ChestKind): the node roll, each kind's reward, the kind in the snapshot", () => ChestKindsTest(Dt)),

@@ -83,7 +83,7 @@ namespace Arena
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
             Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
             DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : arms ? "THE ARMS DEALER" : "THE BLACK MARKET") : "THE BAZAAR", 34, market || arms ? mk : Ui.Gold, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(0f, 92f, W, 18f), arms ? "Every weapon mod, up to 3 stacks each. Each stack you hold makes the next one dearer." : market ? (game.RoomCardsOn ? "Room cards cost vectors and go to your hand. The rest waits in your stash." : "Buys wait in your stash. Place them from the draw screen in the break.") : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0f, 92f, W, 18f), arms ? "Every weapon mod, up to 3 stacks each. Each stack you hold makes the next one dearer." : market ? (game.HandOn ? "Pieces cost vectors and go to your hand. The rest waits in your stash." : "Buys wait in your stash. Place them from the draw screen in the break.") : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
             var wallet = new Rect(W - 210f, 22f, 190f, 54f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
             Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 13f, 28f, 28f), PixelArt.Get("ui_coin"));
