@@ -425,7 +425,7 @@ const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 document.querySelectorAll('.slowcb').forEach(cb=>cb.addEventListener('change',()=>{SLOW=cb.checked;document.querySelectorAll('.slowcb').forEach(o=>o.checked=SLOW)}));
 
 /* ---------------- move cards ---------------- */
-let seq=['jab','hook','rise','impale'];
+let seq=['jab','reel','rise','burst'];
 const lib=document.getElementById('lib');
 for(const id of ORDER){const mv=MOVES[id];
  const b=document.createElement('button');b.type='button';b.className='mv';b.dataset.id=id;
@@ -441,6 +441,7 @@ for(const id of ORDER){const mv=MOVES[id];
 
 /* ---------------- string builder ---------------- */
 const PRESETS=[
+ {n:'Chosen',s:['jab','reel','rise','burst']},
  {n:'Brawler',s:['jab','hook','hook','slam']},
  {n:'Skewer',s:['reel','rise','flurry','impale']},
  {n:'Puppeteer',s:['jab','puppet','twist','burst']},
