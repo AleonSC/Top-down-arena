@@ -314,8 +314,8 @@ namespace Arena
                 {
                     VTri(qo, outer, po, outer, pm, mid);
                     VTri(qo, outer, pm, mid, qm, mid);
-                    VTri(qm, mid, pm, mid, pi, none);
-                    VTri(qm, mid, pi, none, qi, none);
+                    VTri(pi, none, qm, mid, pm, mid);  // (the clear vertex first: the preview colours a triangle by its first)
+                    VTri(qi, none, qm, mid, pi, none);
                 }
                 po = qo; pm = qm; pi = qi;
             }
