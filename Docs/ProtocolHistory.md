@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 408: `ExpansionRoom.Card` (the old room card marker) is gone from `Msg.ExpandState` rooms; mystery doors price by cells (`Mystery.PriceForCells`)
+- 408: the wave card pick: `Player.WavePicks` and `OfferWave` in the player snapshot (the build round's free card is now a pick of two)
 - 407: Room cards, Free draw, Open wall and wall push removed: `Msg.ExpandDraw`, `ExpandCut`, `ExpandOutline`, `PlayCard` and `WallPush` are retired; the Expanding arena always builds grid pieces (`DiffKnob.RoomCards` and `GridRooms` ignored)
 - 406: Warhorn Volley: a new `AbilityId.WarhornVolley` (the DPS Knight's second ultimate), `FxKind.WarhornVolley` and `Sfx.Warhorn` on the wire, and the Bodkin Points card (card ids after it shift by one)
 - 405: enemies carry Blood Blast stacks (a byte) and, when there are any, their owner (a byte); WeaponId.BloodBlast; `Msg.WeaponDash` kind 46 (DashTide, Crimson Tide).

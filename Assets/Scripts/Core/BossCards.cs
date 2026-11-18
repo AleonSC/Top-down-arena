@@ -84,6 +84,14 @@ namespace Arena
             return false;
         }
 
+        /// Host: one card pick is used up (a wave pick counts in WavePicks too).
+        static void UseCardPick(Player p)
+        {
+            if (p.OfferWave)
+                p.WavePicks = Math.Max(0, p.WavePicks - 1);
+            p.PendingCards = Math.Max(0, p.PendingCards - 1);
+        }
+
         /// Host: the picked code goes to the hand or the team's kits.
         void GrantBossCard(Player p, int code)
         {

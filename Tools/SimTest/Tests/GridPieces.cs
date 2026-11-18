@@ -162,10 +162,24 @@ static partial class Program
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
         Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "the core is up first");
 
-        // The first build round deals the hand: the starting pieces and the round's card, and the friend's game has them.
+        // The first build round deals the hand: the starting pieces, then a wave card pick (the round's basic piece or a dropped card), and the friend's game has them.
+        foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.WavePicks = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
         typeof(Game).GetMethod("OpenBuildRound", flags).Invoke(g, null);
         var friend = g.Players[2];
-        Check(Game.HandCount(friend) == 4 && friend.Hand.Take(4).All(h => Expansion.IsPieceCard((RoomCard)h)), "the first round deals three pieces and the round's card (" + string.Join(",", friend.Hand.Take(4)) + ")");
+        Check(Game.HandCount(friend) == 3 && friend.Hand.Take(3).All(h => Expansion.IsPieceCard((RoomCard)h)), "the first round deals three pieces (" + string.Join(",", friend.Hand.Take(3)) + ")");
+        Check(friend.OfferCards && friend.OfferWave && friend.PendingCards == 1 && friend.WavePicks == 1 && friend.Offer.Length == 2
+            && friend.Offer[0] == (int)Expansion.GridRoundCard(g.Wave) && friend.Offer[1] != friend.Offer[0], "and a wave pick of two: the round's basic piece and a dropped card (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
+        var fought = g.State;
+        Action holdPick = () => g.State = MatchState.Intermission;  // (picks only count in a break)
+        friend.Rerolls = 3;
+        cg.RerollOffer();
+        Run(s, dt, 0.5f, () => false, holdPick);
+        Check(friend.Rerolls == 3 && friend.OfferWave, "a wave pick can't be rerolled");
+        int wantWave = friend.Offer[1];
+        cg.PickUpgrade(1);
+        Run(s, dt, 1f, () => friend.PendingCards == 0, holdPick);
+        Check(friend.PendingCards == 0 && friend.WavePicks == 0 && !friend.OfferWave && Game.HandCount(friend) == 4 && friend.Hand[3] == (byte)wantWave, "the picked card goes to the hand (" + BossCards.Name(wantWave) + ")");
+        g.State = fought;
         Run(s, dt, 1f, () => cg.ExpandOpen && Game.HandCount(cg.Players[2]) == 4, noPicks);
         Check(cg.Players[2].Hand.SequenceEqual(friend.Hand), "the friend's game sees the same hand");
 
