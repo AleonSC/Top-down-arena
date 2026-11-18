@@ -245,6 +245,9 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Targets.cs`: shared targeting helpers: `FirstAlive`, `AlivePlayersList`, `NearestPlayer`, `RandomLivingPlayer`,
   `BossTarget(e)` (its target while up, else the first player up) and `Targetable(e)` (host: spawned in and alive)
 - `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot
+- `BotParry.cs`: the smart bot's parry (`BotParry`, `WantParry`, `FirstHit`: the soonest shot or sword cut it can't dodge, timed for a perfect parry; `ParrySkill` per bot skill; `BotParries` counter); test suite `botweapon` (`Tools/SimTest/Tests/BotWeapon.cs`)
+- `BotPicks.cs`: the bots' level-up picks (`BotPickUpgrade` from Game.cs `LocalControl`, `BotCardScore`: core stats by role (`CoreValue`), niche cards made for the kit, rarity, new abilities, diminishing copies); also used by the bot's shop (Shop.cs `BotShop`: heal, best card per gold, revive token, stock, done); suite `botpicks`
+- `BotWeaponAlt.cs`: the smart bot's weapon Alt (`BotWeaponAlt` sets `PlayerInput.WeaponAction` from Game.cs `LocalControl`; `AltRule`: one case per weapon with a secondary, taps via `Tap` with the bot's own cooldowns, holds in `HoldAlt`; `BotAltPresses` counter); suite `botweapon`
 - `PartyBots.cs`: bots that fill the lobby's open slots (extra sessions joined over localhost; stepped by `ArenaApp`; buttons in `LobbyUi.cs`; `Game.BotParty`: their run is unrecorded but not a `LabRun`, so the Campaign keeps the Expanding arena and lives; test `PartyBotCampaignTest`)
 - Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
 
