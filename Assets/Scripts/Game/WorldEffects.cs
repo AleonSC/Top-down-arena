@@ -413,12 +413,6 @@ namespace Arena
                 case FxKind.LeapSlam:
                     DrawLeapSlamFx(fx);  // LeapSlamLook.cs
                     break;
-                case FxKind.Icicle:
-                    DrawIcicleFx(fx, f);
-                    break;
-                case FxKind.Splinter:
-                    DrawSplinterFx(fx, f);
-                    break;
                 case FxKind.LightCone:
                     DrawLightConeFx(fx, f, t);
                     break;
@@ -853,89 +847,6 @@ namespace Arena
                 float a = aim - half * 0.8f + half * 1.6f * k / 4f;
                 Line(fx.Pos + V2.FromAngle(a) * (r * 0.15f), fx.Pos + V2.FromAngle(a) * (r * (0.5f + 0.45f * f)), 1.5f, Rgba.White.WithAlpha(0.45f * fade));
             }
-        }
-
-        /// The Frost Lance's icicle: it shoots out from you to full length, holds a moment, cracks as its
-        /// splinters fly (Splinter), then melts away.
-        void DrawIcicleFx(Effect fx, float f)
-        {
-            if (fxOn)
-            {
-                DrawIcicleCrystal(fx, f);  // the crystal spear (FrostLook.cs); with Visual effects off, the plain wedge below
-                return;
-            }
-            V2 to = fx.Pos2 - fx.Pos;
-            float reach = to.Length, w = fx.Radius;
-            if (reach < 1f)
-                return;
-            V2 dir = to / reach, side = dir.Orthogonal();
-            float g = Mathf.Min(1f, f / 0.2f);
-            g = 1f - (1f - g) * (1f - g);  // shoots out, easing to full length
-            float fade = f < 0.6f ? 1f : 1f - (f - 0.6f) / 0.4f;
-            var ice = new Rgba(0.78f, 0.94f, 1f);
-            V2 l = fx.Pos + side * w, r = fx.Pos - side * w, tip = fx.Pos + dir * (reach * g);
-            SetColor(fx.Color.WithAlpha(0.18f * fade));  // a cold haze round it
-            Tri(l + side * 6f, tip + dir * 8f, r - side * 6f);
-            SetColor(ice.WithAlpha(0.85f * fade));       // the icicle, tapering to its point
-            Tri(l, tip, r);
-            SetColor(Rgba.White.WithAlpha(0.6f * fade)); // light catching one face
-            Tri(l, tip, fx.Pos + side * (w * 0.2f));
-            Line(fx.Pos, tip, 1.2f, Rgba.White.WithAlpha(0.8f * fade));  // the bright ridge
-            // Ridges of frost stepping down its length.
-            for (int k = 1; k <= 4; k++)
-            {
-                float at = reach * g * k / 5f, half = w * (1f - (float)k / 5f);
-                V2 c = fx.Pos + dir * at;
-                Line(c + side * half, c + side * half * 0.3f + dir * 6f, 1.5f, Rgba.White.WithAlpha(0.5f * fade));
-                Line(c - side * half, c - side * half * 0.3f + dir * 6f, 1.5f, Rgba.White.WithAlpha(0.5f * fade));
-            }
-            if (f > 0.35f)  // cracks run through it as it splinters
-            {
-                float k = Mathf.Min(1f, (f - 0.35f) / 0.15f);
-                for (int i = 0; i < 3; i++)
-                {
-                    V2 c = fx.Pos + dir * (reach * (0.25f + 0.25f * i));
-                    float half = w * (1f - (0.25f + 0.25f * i)) * k;
-                    Line(c + side * half + dir * 4f, c - side * half - dir * 4f, 1.2f, new Rgba(0.35f, 0.6f, 0.85f, 0.8f * fade));
-                }
-            }
-        }
-
-        /// The Frost Lance's splinters: shards of ice bursting off both sides of the icicle (Pos to Pos2) out to
-        /// Radius. Seeded by where it was cast, so everyone sees the same burst.
-        void DrawSplinterFx(Effect fx, float f)
-        {
-            if (fxOn)
-            {
-                DrawSplinterCrystal(fx, f);  // tumbling crystal shards (FrostLook.cs)
-                return;
-            }
-            V2 to = fx.Pos2 - fx.Pos;
-            float reach = to.Length, spread = fx.Radius;
-            if (reach < 1f)
-                return;
-            V2 dir = to / reach, side = dir.Orthogonal();
-            uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663 ^ (int)fx.Pos2.X * 83492791) | 1u;
-            float e = 1f - (1f - f) * (1f - f);  // fast out, slowing
-            float fade = 1f - f;
-            var ice = new Rgba(0.78f, 0.94f, 1f);
-            SetColor(fx.Color.WithAlpha(0.1f * fade));  // the frosted band they sweep
-            V2 a0 = fx.Pos + side * (spread * e), a1 = fx.Pos - side * (spread * e);
-            Tri(a0, a0 + dir * reach, a1 + dir * reach);
-            Tri(a0, a1 + dir * reach, a1);
-            int n = Math.Max(4, (int)(reach / 22f));
-            for (int i = 0; i < n; i++)
-                for (int sgn = -1; sgn <= 1; sgn += 2)
-                {
-                    float along = reach * (i + 0.3f + 0.4f * XorRand(ref seed)) / n;
-                    float tilt = (XorRand(ref seed) - 0.5f) * 0.8f, len = 7f + 6f * XorRand(ref seed);
-                    V2 heading = (side * sgn + dir * tilt).Normalized();
-                    V2 at = fx.Pos + dir * along + heading * (spread * e * (0.6f + 0.4f * XorRand(ref seed)));
-                    V2 back = at - heading * len, across = heading.Orthogonal() * 2.2f;
-                    SetColor(ice.WithAlpha(0.95f * fade));
-                    Tri(at + heading * 3f, back + across, back - across);
-                    Line(back - heading * 6f, back, 1f, Rgba.White.WithAlpha(0.4f * fade));  // a frost trail
-                }
         }
 
         void DrawJabFx(Effect fx, float f)

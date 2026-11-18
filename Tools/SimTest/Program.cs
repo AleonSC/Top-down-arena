@@ -422,7 +422,6 @@ static partial class Program
         Test("arclock", "Arc Lightning's lock-on chain: holding tags the enemy in the cone nearest the cursor, up to ten, tags stick outside the cone, letting go chains through them in order for 16 + 4 a tag and a stun, nothing tagged fizzles; Forked Volley hits the three nearest the cursor, then cools down", () => ArcLockTest(Dt)),
         Test("honeybee", "the Honeybee Staff: a bee hatches at the cursor, buzzes, stings the nearest enemy once and dies (or fizzles), the cap, Swarm, held Alt sprays honey puddles that slow and drain the meter, an enemy dying in honey bursts into free bees, the other screen sees it, Bigger Hive", () => HoneybeeTest(Dt)),
         Test("stonespear", "the Stonespear: Fire slams (wind-up, damage round you, six spears up), then throws the risen spear nearest the cursor (pierces one), Alt sends the rest curving in on the enemy nearest the cursor, the next slam waits, the other screen sees the spears and the lock, Tectonic adds a spear a side", () => StonespearTest(Dt)),
-        Test("bonespear", "the Bone Spear: Fire on an enemy marks it and lands Pulse, Reel, Heart Lift and Marrow Burst (costs, shove, pull, airborne, shards), the string starts over, nothing fires without a target, Alt's Sympathy echoes moves onto bound enemies at half, Marrow", () => BoneSpearTest(Dt)),
         Test("embolus", "the Embolus Spears: Fire throws the left then the right spear for 20% health each, they pierce and stick in the wall, a third Fire recalls both (piercing again) and the catch heals it back, Alt bursts them for half back and new ones harden, holding Fire cycles, the other screen sees them, Burst Vessels, putting it away crumbles them", () => EmbolusTest(Dt)),
         Test("nunchaku", "the Nunchaku (Twin Storm): Fire runs Snap, Backhand, Double Figure-8 and the Twin Crush (a stunning shockwave) and starts over; Alt raises the Twin Windmill guard (slower, seen by the other screen), its discs swat shots back and count them, Fire in it is the Twin Counter (20 + 6 a swat), the parry resets the combo, Iron Links", () => NunchakuTest(Dt)),
         Test("frostlance", "the Frost Lance: the five-step chain (crescent ahead not behind, backhand, waltz all round, fan, slam), chill freezes, the slam shatters, the parry breaks a step and keeps the chain, the Rime Counter, Absolute Zero freezes then shatters", () => FrostLanceTest(Dt)),
@@ -516,7 +515,7 @@ static partial class Program
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
         Report("grid", "the balance grid: every role, class and weapon vs each listed boss (run.sh 1 1 grid <waves> [runs] [roles DTH] [skill] [classes]; Tools/BalanceGrid/grid.sh draws it)", args => BalanceGrid(args)),
         Report("dps", "every weapon's damage per second", args => WeaponDpsReport(Dt)),
-        Report("weapondps", "every weapon's damage a second as the lobby shows it; \"write\" saves Defs.WeaponDps's table; \"only=<WeaponId>\" measures one weapon", args => MeasuredWeaponDps(Dt, args.Contains("write"), args.Where(a => a.StartsWith("only=")).Select(a => a.Substring(5)).FirstOrDefault())),
+        Report("weapondps", "every weapon's damage a second as the lobby shows it; \"write\" saves Defs.WeaponDps's table, \"only=<WeaponId>\" measures one weapon", args => MeasuredWeaponDps(Dt, args.Contains("write"), (args.FirstOrDefault(a => a.StartsWith("only=")) ?? "").Replace("only=", ""))),
         Report("weaponsrc", "where each weapon's damage lands in the session recording (weapon vs Other), lowest weapon share first", args => WeaponSourceReport(Dt)),
         Report("upgradecov", "which weapon upgrades each weapon ignores", args => UpgradeCoverageReport(Dt)),
         Report("bosspower", "a typical build's power at each boss wave, and the boss health a strong build would bring", args => BossPowerReport(Dt)),
@@ -532,7 +531,7 @@ static partial class Program
     {
         "swordsman", "snapshot", "nonshooters", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "bonespear", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
+        "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "roomcards", "armsdealer", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
