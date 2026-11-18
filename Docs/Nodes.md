@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-3 built (protocol 282)**, step 4 open; fog, scout towers and gold veins built (protocol 386). **Nov 18 (owner): fog off, no scout towers, no floating shop / vendor / Gatekeeper rooms (room cards and mystery doors only), bigger node marks** (see the end). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **steps 1-3 built (protocol 282)**, node tiers built (no protocol change), step 4 open; fog, scout towers and gold veins built (protocol 386). **Nov 18 (owner): fog off, no scout towers, no floating shop / vendor / Gatekeeper rooms (room cards and mystery doors only), bigger node marks** (see the end). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -107,3 +107,11 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 
 **Nov 18 (owner): chests and relics stand in the middle of their room.** The node point only says where to build; once a room encloses a chest, vector chest or relic node, the fixture stands at the middle of that room (a multi-box room: the middle of its outline if that is floor, else of the box holding the node), moved to the nearest half-tile point clear of cover so a card room's pillars and blocks stay (`Expansion.NodeSpotIn`, `World.NodeSpots`, `Game.NodeSpot`). The chest kind and the relic still roll from the node's own point, so what a ghost marker shows is what you get. Reach checks, the chest prop, the burst and the look all use the spot. No wire change.
 Hallways (3 tiles wide or less) are the exception: their chest stays where it was put, so a mystery door's hallway keeps its chest at the far end.
+
+## Node tiers (owner Nov 18, no protocol change)
+
+- A prize node's tier is its distance from the hub's wall (`Expansion.NodeTier`, `TierMid` 15 / `TierOuter` 30 tiles): a pure function of its point, so nothing new on the wire or in saves.
+- What it holds follows the tier: **inner** Gold chest or vector chest, **middle** Room card or Buildables chest, **outer** Upgrade chest or relic. `Expansion.Tiered` sets the kind of every chest, vector chest and relic node the host places (the first-cycle ring, each cycle's nodes, room chests); `NodeChestKind` rolls the chest kind by tier. Veins are untouched.
+- Look (`DrawNodeTier`, `NodeLook.cs`): HUD corner brackets in the tier's metal (bronze, silver, gold) and a row of three square pixel cells under the node, filled up to its tier, with a blinking cursor cell; the tip starts with the tier.
+- Preview: `EXPANDMAP=0 EXPANDNODE="chest:2600,450;chest:3700,450;relic:4800,450" EXPANDAT=3950,450 ZOOM=1.3 shot.sh x hud 3`. Tests in suite `chests`.
+- Old saves: a chest's kind now follows its tier, so an old save's chest may hold a different kind.

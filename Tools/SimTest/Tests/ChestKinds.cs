@@ -9,19 +9,31 @@ static partial class Program
 {
     static void ChestKindsTest(float dt)
     {
-        // The node roll: seeded, the same every time, all four kinds, no Room card with room cards off.
-        var seen = new HashSet<ChestKind>(); int unstable = 0, cardsOff = 0;
-        for (int x = 0; x < 20; x++)
-            for (int y = 0; y < 20; y++)
-            {
-                var k = Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, true);
-                seen.Add(k);
-                if (k != Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, true)) unstable++;
-                if (Expansion.NodeChestKind(7, x * 100 + 50, y * 100 + 50, false) == ChestKind.RoomCard) cardsOff++;
-            }
-        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.RoomCard, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0,
-            "a chest node rolls Gold, Room card, Buildables or Upgrade, the same each time (" + string.Join(",", seen) + ")");
+        // The node roll by tier (owner Nov 18): inner Gold, middle Room card or Buildables (Buildables with room cards off), outer Upgrade; seeded, the same every time.
+        var seen = new HashSet<ChestKind>(); int unstable = 0, cardsOff = 0, wrongTier = 0;
+        for (int i = 0; i < 400; i++)
+        {
+            int x = (int)Game.Width + 50 + i * 10, y = 450, tier = Expansion.NodeTier(x, y);
+            var k = Expansion.NodeChestKind(7, x, y, true);
+            seen.Add(k);
+            if (k != Expansion.NodeChestKind(7, x, y, true)) unstable++;
+            if (Expansion.NodeChestKind(7, x, y, false) == ChestKind.RoomCard) cardsOff++;
+            if (tier == 0 ? k != ChestKind.Gold : tier == 1 ? k != ChestKind.RoomCard && k != ChestKind.Buildable : k != ChestKind.Upgrade) wrongTier++;
+        }
+        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.RoomCard, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0 && wrongTier == 0,
+            "a chest node's kind follows its tier: Gold inner, Room card or Buildables middle, Upgrade outer, the same each time (" + string.Join(",", seen) + ")");
+        Check(Expansion.NodeTier((int)Game.Width + Expansion.TierMid - 10, 450) == 0 && Expansion.NodeTier((int)Game.Width + Expansion.TierMid, 450) == 1
+            && Expansion.NodeTier(800, -Expansion.TierOuter) == 2 && Expansion.NodeTier(800, 450) == 0, "tiers by distance from the hub's wall (15 and 30 tiles)");
         Check(cardsOff == 0, "no Room card chest with room cards off");
+        int tieredOk = 0;
+        for (int i = 0; i < 300; i++)
+        {
+            var tn = Expansion.Tiered(7, new MapNode { X = (short)(Game.Width + 50 + i * 15), Y = 450, Kind = NodeKind.Relic });
+            int tier = Expansion.NodeTier(tn);
+            if (tier == 0 ? Expansion.IsChest(tn.Kind) : tier == 1 ? tn.Kind == NodeKind.Chest : tn.Kind == NodeKind.Chest || tn.Kind == NodeKind.Relic) tieredOk++;
+        }
+        Check(tieredOk == 300 && Expansion.Tiered(7, new MapNode { X = 3000, Y = 450, Kind = NodeKind.Vein }).Kind == NodeKind.Vein,
+            "a prize node takes its tier's kind (inner gold or vector chest, middle chest, outer chest or relic); a vein stays a vein");
 
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         int port = nextPort++;
@@ -75,11 +87,14 @@ static partial class Program
 
         // A Room card chest node: a room round it, the chest comes out as Room card, opening it deals a card each and no upgrade card.
         string why;
-        var room = Expansion.Custom(g.Expanded, (int)Game.Width, 200, 1000, 500, out why);
-        Check(room.HasValue, "a room east of the start room (" + why + ")");
-        g.Expanded.Add(room.Value);
+        var hall = Expansion.Custom(g.Expanded, (int)Game.Width, 300, 1400, 300, out why);
+        Check(hall.HasValue, "a hallway east of the start room (" + why + ")");
+        if (hall.HasValue) g.Expanded.Add(hall.Value);
+        var room = Expansion.Custom(g.Expanded, (int)Game.Width + 1400, 200, 600, 500, out why);
+        Check(room.HasValue, "a middle-tier room at its end (" + why + ")");
+        if (room.HasValue) g.Expanded.Add(room.Value);
         typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-        var node = new MapNode { X = (short)(Game.Width + 550), Y = 450, Kind = NodeKind.Chest };
+        var node = new MapNode { X = (short)(Game.Width + 1650), Y = 450, Kind = NodeKind.Chest };
         var seedField = typeof(Game).GetField("expandSeed", flags);
         int sd = 1;
         while (sd < 200 && Expansion.NodeChestKind(sd, node.X, node.Y, true) != ChestKind.RoomCard) sd++;
