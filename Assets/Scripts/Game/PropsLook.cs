@@ -507,6 +507,8 @@ namespace Arena
                 FillRect(c.X - 6.5f, c.Y - 4.5f, 13f, 13f, new Rgba(0.16f, 0.1f, 0.05f, a));
                 ChestEmblem(p.Chest, c + new V2(0f, 2f), 0.8f, gold, gold.Mix(new Rgba(1f, 1f, 1f), 0.4f), a);
             }
+            if (p.Open)
+                DrawOpeningFx(c, t, p.OpenT, p.Chest, a);  // the burst, as with Visual effects on (NodeLook.cs)
         }
 
         /// Your chest item (nobody else sees theirs): a card spinning on the spot above a ring, in a beam of its

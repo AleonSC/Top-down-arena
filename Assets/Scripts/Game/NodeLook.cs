@@ -359,6 +359,16 @@ namespace Arena
             float settle = Mathf.Clamp01((age - 2.2f) / 0.8f), a = Mathf.Lerp(1f, 0.3f, settle) * fade;
             V2 shake = age < 0.12f ? new V2(Mathf.Sin(t * 120f), Mathf.Cos(t * 97f)) * 2.5f * (1f - age / 0.12f) : default(V2);
             DrawChestLook(c + shake, a, t, kind, true, age);
+            DrawOpeningFx(c, t, age, kind, fade);
+        }
+
+        /// A chest opening's burst over the chest (the hologram's, or the plain wooden one's): the flash, two rings, sparks, and the prize climbing out,
+        /// turning, then shooting off. age: seconds since it opened; fade scales it all.
+        void DrawOpeningFx(V2 c, float t, float age, ChestKind kind, float fade)
+        {
+            if (age >= 2.1f)
+                return;
+            var ink = ChestInkOf(kind);
             float hw = Game.ChestW / 2f, hh = Game.ChestH / 2f;
             if (age < 0.3f)  // the flash
             {
