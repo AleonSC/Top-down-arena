@@ -232,13 +232,8 @@ namespace Arena
                     string val = ult ? (full ? "READY" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : MiniSecs(me.Slots[i].Timer);
                     MiniText(new Rect(x - 10f, y + 24f, colW + 20f, 24f), val, 24, ult ? Ui.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleCenter);
                     MiniCells(new Rect(barX, y + 52f, minW, 4f), f, 6, ult ? Ui.Gold : ready ? KeyGreen : ink, a);
-                    Color nameCol = ult ? Ui.Gold : ready ? ink : dim;
-                    if (MasteryLook != 2)
-                        MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, nameCol, a, TextAnchor.MiddleCenter);
-                    if (MasteryLook != 0)
-                        MiniMasteryLook(me, i, new Rect(x, y, colW, 80f), y, name, nameSize, nameCol, a);  // the prototype looks (HudMastery.cs)
-                    else
-                        MiniMastery(me, i, cx, y + 77f, a);
+                    MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, ult ? Ui.Gold : ready ? ink : dim, a, TextAnchor.MiddleCenter);
+                    MiniMastery(me, i, new Rect(x, y, colW, 80f), y, a);  // cells, level and its moments (HudMastery.cs)
                     x += colW + gap;
                 }
                 MiniScan(new Rect(W / 2f - total / 2f - 12f, y - 2f, total + 24f, 84f), a);
@@ -295,28 +290,6 @@ namespace Arena
             {
                 MiniRow(wr, ry, "SECTOR", (game.HuntRoute.Step + 1) + " / " + game.HuntRoute.Length, ink, a, -1f);
                 ry -= 22f;
-            }
-        }
-
-        /// Slot i's mastery under its name: a small pip per level, gold once mastered, the next one filling.
-        void MiniMastery(Player me, int i, float cx, float y, float a)
-        {
-            var id = me.Slots[i].Id;
-            me.MasteryXp.TryGetValue(id, out float mxp);
-            int level = Game.MasteryLevelFor(mxp);
-            float prog = Game.MasteryProgress(mxp);
-            bool max = level >= Game.MasteryMax;
-            Color on = max ? Ui.Gold : new Color(0.6f, 0.85f, 1f);
-            const float pw = 8f, pg = 3f;
-            float x0 = cx - (Game.MasteryMax * pw + (Game.MasteryMax - 1) * pg) / 2f;
-            for (int k = 0; k < Game.MasteryMax; k++)
-            {
-                var pip = new Rect(x0 + k * (pw + pg), y, pw, 3f);
-                Ui.Fill(pip, MiniA(Color.white, 0.18f * a));
-                if (k < level)
-                    Ui.Fill(pip, MiniA(on, a));
-                else if (k == level && prog > 0f)
-                    Ui.Fill(new Rect(pip.x, pip.y, pip.width * prog, pip.height), MiniA(on, 0.55f * a));
             }
         }
 

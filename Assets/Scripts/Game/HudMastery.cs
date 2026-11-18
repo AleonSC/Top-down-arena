@@ -2,15 +2,12 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Mastery on the corner HUD's keys (prototype looks for picking one; `MasteryLook` 0 keeps today's five pips):
-    ///   1 Cells   four cells under the name (one per level-up, the current one filling) and the level digit beside them
-    ///   2 Name    the ability's name is the bar: it fills in green left to right as XP comes in, gold once mastered,
-    ///             the level as a small digit after it
-    /// Both share the moments: "+24" rises off the keycap as XP comes in; a level-up flashes brackets round the key,
-    /// pops "LV 3" over it and puts a line above the keys ("SHOCKWAVE · LV 3 · +8% POWER -4% COOLDOWN", or the capstone).
+    /// Mastery on the corner HUD's keys: four cells under each name (one per level-up, the current one filling; green,
+    /// gold once mastered) with the level digit beside them ("M" at 5). Moments: "+24" rises off the keycap as XP comes
+    /// in; a level-up flashes brackets round the key, pops "LV 3" over it and puts a line above the keys
+    /// ("SHOCKWAVE · LV 3" / "+8% POWER -4% COOLDOWN", or "MASTERED" and the capstone). Preview `MXFX=gain|level,<s>,<xp>[,slot]`.
     public partial class ArenaApp
     {
-        internal static int MasteryLook;  // (preview: MASTERYLOOK=n)
         const float MxGainTime = 0.9f, MxLevelTime = 2.8f;
         static readonly Color MxGreen = new Color(0.42f, 1f, 0.6f);
 
@@ -53,9 +50,8 @@ namespace Arena
                 mxLevelAgo[slot] = ago;
         }
 
-        /// Slot i's mastery in the corner HUD's key column (col: the column, y the keycap's top). Returns false when the
-        /// name is drawn here (look 2), so the caller skips its own.
-        void MiniMasteryLook(Player me, int i, Rect col, float y, string name, int nameSize, Color nameCol, float a)
+        /// Slot i's mastery in the corner HUD's key column (col: the column, y the keycap's top).
+        void MiniMastery(Player me, int i, Rect col, float y, float a)
         {
             var id = me.Slots[i].Id;
             me.MasteryXp.TryGetValue(id, out float xp);
@@ -66,36 +62,21 @@ namespace Arena
             float cx = col.center.x;
             float flash = mxLevelAgo[i] < 0.6f ? 1f - mxLevelAgo[i] / 0.6f : 0f;
 
-            if (MasteryLook == 1)
+            // Four cells, one per level-up, and the level beside them.
+            const float cw = 62f;
+            int segs = Game.MasteryMax - 1;
+            float pos = (lv - 1 + (max ? 0f : prog)) / segs;
+            var cells = new Rect(cx - cw / 2f, y + 78f, cw, 4f);
+            float sw = (cw - 3f * (segs - 1)) / segs;
+            for (int k = 0; k < segs; k++)
             {
-                // Four cells, one per level-up, and the level beside them.
-                const float cw = 62f;
-                int segs = Game.MasteryMax - 1;
-                float pos = (lv - 1 + (max ? 0f : prog)) / segs;
-                var cells = new Rect(cx - cw / 2f, y + 78f, cw, 4f);
-                float sw = (cw - 3f * (segs - 1)) / segs;
-                for (int k = 0; k < segs; k++)
-                {
-                    var c = new Rect(cells.x + k * (sw + 3f), cells.y, sw, cells.height);
-                    Ui.Fill(c, MiniA(Color.white, 0.14f * a));
-                    float f = Mathf.Clamp01(pos * segs - k);
-                    if (f > 0f)
-                        Ui.Fill(new Rect(c.x, c.y, sw * f, c.height), MiniA(Color.Lerp(on, Color.white, k == lv - 2 ? flash : 0f), a));
-                }
-                MiniText(new Rect(cells.xMax + 4f, cells.y - 6f, 30f, 16f), max ? "M" : lv.ToString(), 14, Color.Lerp(on, Color.white, flash), a);
+                var c = new Rect(cells.x + k * (sw + 3f), cells.y, sw, cells.height);
+                Ui.Fill(c, MiniA(Color.white, 0.14f * a));
+                float f = Mathf.Clamp01(pos * segs - k);
+                if (f > 0f)
+                    Ui.Fill(new Rect(c.x, c.y, sw * f, c.height), MiniA(Color.Lerp(on, Color.white, k == lv - 2 ? flash : 0f), a));
             }
-            else
-            {
-                // The name is the bar: dim, then lit in the mastery colour as far as this level's XP has come.
-                var nr = new Rect(col.x - 10f, y + 58f, col.width + 20f, 16f);
-                float nw = CrtUi.TitleWidth(name, nameSize);
-                MiniText(nr, name, nameSize, MiniA(nameCol, 0.55f), a, TextAnchor.MiddleCenter);
-                float left = nr.center.x - nw / 2f - 2f;
-                GUI.BeginGroup(new Rect(left, nr.y - 4f, (nw + 4f) * prog, nr.height + 8f));
-                MiniText(new Rect(nr.x - left, 4f, nr.width, nr.height), name, nameSize, Color.Lerp(on, Color.white, flash), a, TextAnchor.MiddleCenter);
-                GUI.EndGroup();
-                MiniText(new Rect(nr.center.x + nw / 2f + 3f, nr.y - 5f, 20f, 14f), lv.ToString(), 12, on, a);
-            }
+            MiniText(new Rect(cells.xMax + 4f, cells.y - 6f, 30f, 16f), max ? "M" : lv.ToString(), 14, Color.Lerp(on, Color.white, flash), a);
 
             // XP coming in: "+24" rising off the keycap.
             if (mxGainAgo[i] < MxGainTime && mxGainAmt[i] > 0f && mxLevelAgo[i] >= MxLevelTime)  // (a level-up says it instead)
