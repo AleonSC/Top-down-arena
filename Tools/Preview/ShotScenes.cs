@@ -2222,13 +2222,14 @@ static partial class Shot {
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
-      if (Environment.GetEnvironmentVariable("RELICOPEN") != null) {  // RELICOPEN=<s>: a 6 x 6 room built beside the map with a spent relic node in it, opened that long ago, you standing below it (NodeLook.cs)
-        ArenaApp.PreviewRelicAge = float.Parse(Environment.GetEnvironmentVariable("RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
+      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
+        bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
+        ArenaApp.PreviewOpenAge = float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
         ExpansionRoom? rr = null;
         for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Expansion.Custom(xg.Expanded, rx, ry, 600, 600, out wn); if (cand.HasValue) rr = cand; }
         if (rr.HasValue) {
           xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          var rn = new MapNode { Kind = NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          var rn = new MapNode { Kind = vecOpen ? NodeKind.VectorChest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
           foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
         }
       }
