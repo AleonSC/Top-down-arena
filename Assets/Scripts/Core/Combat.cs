@@ -287,8 +287,6 @@ namespace Arena
                         landed.Add(b);
                     if (b.ShadowKunai)
                         ShadowKunaiLanded(b, b.Pos);  // a shadow kunai that missed marks where it stopped (host only: clients don't know which it was)
-                    if (b.DropsSpear)
-                        DropSpear(b);  // a Bone Spear stays stuck where it stopped (BloodMage.cs)
                 }
             }
             foreach (int id in scratchIds)
@@ -581,8 +579,6 @@ namespace Arena
                             else
                             {
                                 scratchIds.Add(b.Id);
-                                if (b.DropsSpear)
-                                    DropSpear(b);  // a Bone Spear drops where it's spent (BloodMage.cs)
                                 if (b.Bounces > 0 && !b.Bolts)  // a piercing shot flung bounce bolts instead
                                     ricochets.Add(b);
                                 if (b.Hops > 0)

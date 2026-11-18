@@ -176,6 +176,8 @@ namespace Arena
             }
             if (p.Weapon.Id == WeaponId.WindClash)
                 WcHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // the hands sweep, thrust and fling with each wave (WindClashLook.cs)
+            if (p.Weapon.Id == WeaponId.BoneSpear)
+                BsHandPose(p, ref rhx, ref rhy);  // the bleeding hand pushes, pulls, lifts and clenches with each move (BoneSpearLook.cs)
             if (p.Weapon.Id == WeaponId.FrostLance && !p.Downed)
                 FlHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // both hands on the lance's shaft, wherever it swings (FrostLanceLook.cs)
             float whipRot;
@@ -458,7 +460,7 @@ namespace Arena
             switch (id)
             {
                 case WeaponId.Scattergun: case WeaponId.RiotRepeater: hold = 1; offX = 14f; break;
-                case WeaponId.FlakCannon: case WeaponId.Halberd: case WeaponId.BoStaff: case WeaponId.BoneSpear: hold = 1; offX = 10f; break;
+                case WeaponId.FlakCannon: case WeaponId.Halberd: case WeaponId.BoStaff: hold = 1; offX = 10f; break;
                 case WeaponId.LightBolt: case WeaponId.BurstSmg: case WeaponId.HolyMace: hold = 1; offX = 8f; break;
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
                 case WeaponId.DoubleBarrel: hold = 1; offX = 15f; break;
@@ -467,7 +469,7 @@ namespace Arena
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
+                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BoneSpear:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
@@ -856,8 +858,7 @@ namespace Arena
                     MCirc(14f, 0f, 2.4f, Hx(0x12020a), 8);
                     break;
                 case WeaponId.BoneSpear:
-                    MLine(-14f, 0f, 34f, 0f, 3f, MBone); MLine(0f, -1.6f, 0f, 1.6f, 1f, Hx(0xb9b09a)); MLine(12f, -1.6f, 12f, 1.6f, 1f, Hx(0xb9b09a));
-                    MPoly(MBone, 34f, 0f, 34f, -4.5f, 48f, 0f, 34f, 4.5f); MPoly(MBone, 36f, -4.5f, 34f, -8f, 39f, -4f); MPoly(MBone, 36f, 4.5f, 34f, 8f, 39f, 4f); MLine(34f, 0f, 46f, 0f, 1.4f, Hx(0xb3122a));
+                    DrawBsHand(t);  // an open, bleeding hand (BoneSpearLook.cs)
                     break;
             }
         }
