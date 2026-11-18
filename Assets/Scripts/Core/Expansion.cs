@@ -516,7 +516,7 @@ namespace Arena
                     continue;
                 BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
                 // (a rule node goes out to the side: the map is wider than tall, so its big room fits)
-                int side = ring >= 0 ? ring % 4 : kind == NodeKind.Rule ? 1 + 2 * rng.Int(2) : rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
+                int side = ring >= 0 ? ring % 4 : kind == NodeKind.Rule ? 1 + 2 * rng.Int(2) : rng.Int(4), gap = ring >= 0 ? RingMin + rng.Int((RingMax - RingMin) / Step + 1) * Step : NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
                 if (side == 0 || side == 2)
                 {
                     x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;
@@ -540,7 +540,8 @@ namespace Arena
                 if (ok)
                 {
                     BoxOf(built, 0, out int hx0, out int hy0, out int hx1, out int hy1);
-                    ok = !Overlaps(x - StartClear, y - StartClear, x + StartClear, y + StartClear, hx0, hy0, hx1, hy1);  // (never near the start room, whichever room it was placed off)
+                    int sc = ring >= 0 ? PrizeClear + 100 : StartClear;
+                    ok = !Overlaps(x - sc, y - sc, x + sc, y + sc, hx0, hy0, hx1, hy1);  // (never near the start room, whichever room it was placed off)
                 }
                 if (ok && NodeReachable(built, n))
                     return n;  // (it can be built to: a strip out and a room round it fit)
@@ -649,6 +650,7 @@ namespace Arena
             return pick;
         }
 
+        public const int RingMin = 700, RingMax = 1000;  // the first cycle's ring nodes sit 7 to 10 tiles off the hub's wall (owner Nov 18: closer)
         public const int StartExtra = 1000;  // nodes and floating rooms placed off the start room sit this much farther out (owner Nov 12: 600; Nov 13: 1000, the Gatekeeper too)
         public const int StartClear = 1000;  // and nothing is placed closer than this to the start room, whichever room it was placed off (owner Nov 13)
         public const int MaxSealed = 6;
