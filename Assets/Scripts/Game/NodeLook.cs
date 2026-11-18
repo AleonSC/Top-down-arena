@@ -31,7 +31,11 @@ namespace Arena
         string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
 
         /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
-        string NodeBlurb(MapNode n)
+        string NodeBlurb(MapNode n) => (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic ? TierNames[Expansion.NodeTier(n)] + " tier. " : "") + NodeBlurbOf(n);
+
+        static readonly string[] TierNames = { "Inner", "Middle", "Outer" };
+
+        string NodeBlurbOf(MapNode n)
         {
             if (n.Hidden)
                 return (n.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " : "Build a room round it to claim it. ")
@@ -103,6 +107,8 @@ namespace Arena
                 float ph = (t * 0.45f + k * 0.5f) % 1f;
                 Arc(c, 60f + 110f * ph, 3f, ink.WithAlpha(0.5f * (1f - ph)), 40);
             }
+            if (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic)
+                DrawNodeTier(c, Expansion.NodeTier(n), t);
             if (n.Hidden)  // (an old save's fogged node, until the host clears it)
             {
                 FogMark(c, 1.3f, col);
@@ -500,6 +506,36 @@ namespace Arena
                 Line(new V2(c.X - hw, c.Y - 6f * k), new V2(c.X - hw - 8f * k, c.Y - 6f * k - lh - 8f * k), 3f * k, col);
                 Line(new V2(c.X + hw, c.Y - 6f * k), new V2(c.X + hw + 8f * k, c.Y - 6f * k - lh - 8f * k), 3f * k, col);
             }
+        }
+
+        /// The tier metals (owner Nov 18, Docs/Nodes.md "Node tiers"): bronze inner, silver middle, gold outer.
+        static readonly Rgba[] TierInk = { new Rgba(0.88f, 0.56f, 0.3f), new Rgba(0.8f, 0.87f, 0.95f), new Rgba(1f, 0.83f, 0.25f) };
+
+        /// A prize node's tier round its ghost marker (owner Nov 18): HUD corner brackets in the tier's metal and, under the node, a row of three
+        /// square pixel cells, filled up to the tier, the rest outlined dim; a cursor cell blinks after them.
+        void DrawNodeTier(V2 c, int tier, float t)
+        {
+            var ink = TierInk[tier];
+            float glint = 0.75f + 0.25f * Mathf.Sin(t * 3f), h = 118f, arm = 26f, cell = 22f, gap = 6f;
+            var bc = ink.WithAlpha(0.85f * glint);
+            for (int sx = -1; sx <= 1; sx += 2)
+                for (int sy = -1; sy <= 1; sy += 2)
+                {
+                    var p = c + new V2(sx * h, sy * h);
+                    Line(p, p - new V2(sx * arm, 0f), 4f, bc);
+                    Line(p, p - new V2(0f, sy * arm), 4f, bc);
+                }
+            float x0 = c.X - (3f * cell + 2f * gap) / 2f, y = c.Y + h - cell + 2f;
+            for (int k = 0; k < 3; k++)
+            {
+                float x = x0 + k * (cell + gap);
+                if (k <= tier)
+                    FillRect(x, y, cell, cell, ink.WithAlpha(glint));
+                else
+                    NodeFrame(x, y, cell, cell, 3f, ink.WithAlpha(0.3f));
+            }
+            if ((int)(t * 2f) % 2 == 0)
+                FillRect(x0 + 3f * (cell + gap), y + cell - 6f, 12f, 6f, ink.WithAlpha(0.8f));
         }
 
         void NodeFrame(float x, float y, float w, float h, float t, Rgba c)

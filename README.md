@@ -1231,6 +1231,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   longer placed on the map: they come from **room cards** and **mystery doors** only (old saves keep their sealed rooms, which still open when a built room
   shares 2 tiles of wall with one).
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest of one of four **kinds**, rolled from the map (its marker and tip show which):
+  **Node tiers:** chest, vector chest and relic nodes hold better prizes the farther they sit from the hub's wall: **inner** (under 15 tiles: Gold or vector chests),
+  **middle** (15 to 30 tiles: Grid piece or Buildables chests; Buildables with room cards off) and **outer** (30+ tiles: Upgrade chests or relics). A node's tier shows round its
+  marker as corner brackets in bronze, silver or gold and a row of three square cells, one filled per tier; its tip names the tier. The first cycle's ring round the hub is all inner, so building outward is how you reach the better prizes.
   **Gold** (gold trim, a coin: bursts into 14 gold coins worth 40 + 4 per wave for each player, for anyone to pick up), **Grid piece** (orange, a T piece on the lock: every player gets a grid piece card),
   **Buildables** (pink, blueprint grid, a wrench: one random Black Market build in each player's stash, a kind with room under the 5 cap) or **Upgrade** (green, chevrons: every
   player gets their own item, like a wave chest). It opens once and never holds the wave up. No cover stands on a node. Nothing respawns: new ones
