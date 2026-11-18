@@ -446,10 +446,32 @@ namespace Arena
             return true;
         }
 
+        /// The wave's own enemy types, for an ambush (a mystery room's, a Breach room's loot): what this wave brings (its queues,
+        /// its plan and who's up), with no bosses, planted things or anything another enemy made; the old wave pool only if the
+        /// wave has none. In the Campaign that's the coming boss's faction, not the basic one's Grunts.
+        List<EnemyType> AmbushPool()
+        {
+            var set = new HashSet<EnemyType>(spawnQueue);
+            foreach (var s in squadQueue)
+                foreach (var t in s.Members)
+                    set.Add(t);
+            if (plan != null)
+                set.UnionWith(plan.Kinds);
+            foreach (var e in Enemies.Values)
+                if (e.ParentId == 0)
+                    set.Add(e.Type);
+            var pool = new List<EnemyType>();
+            foreach (var t in set)
+                if (!Defs.Get(t).IsBoss && !IsPlanted(t) && t != EnemyType.Portal)
+                    pool.Add(t);
+            pool.Sort();  // (a set's order isn't fixed: keep the host's rolls the same run to run)
+            return pool.Count > 0 ? pool : WavePool(Math.Max(1, Wave));
+        }
+
         /// Host: an ambush room's enemies appear in it (the wave's own types) and swarm out at the players.
         void SpringAmbush(V2 at, MysteryRoom size)
         {
-            var pool = WavePool(Math.Max(1, Wave));
+            var pool = AmbushPool();
             int n = Mystery.AmbushCount(Wave, size);
             float ring = size == MysteryRoom.Small ? 40f : 60f;
             for (int k = 0; k < n; k++)

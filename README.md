@@ -169,7 +169,7 @@ an orange safety vest and a yellow hard hat with a headlamp, in its role's trim.
 - **Breach** (ultimate, 70 s): a vector hammer smashes the wall you aim at (up to 220 px): 80 damage and a shove within
   140 px. In the **Expanding arena** a free random room (Stash, Cross, L or T hall, Ring or Chamfer) opens behind the
   wall with one thing in it: **vectors** (+10), **gold** (40), a **Strider repair** (full health, and a big health orb),
-  a **workbench** (every Strider +25% damage for the wave) or an **ambush** (two elite grunts, shown as "?"). The loot
+  a **workbench** (every Strider +25% damage for the wave) or an **ambush** (two elite enemies of the wave's own types, shown as "?"). The loot
   waits in the middle of the room in a pulsing ring: the first player to walk up to it takes it (a Stash holds its usual
   vector cache instead). Elsewhere, or with no wall in reach, the blast and the loot (no ambush) land at your cursor at
   once. Mastered: the blast is twice as wide. A new Strider draws itself in as a cyan wireframe over 1.2 s, then plates on.
