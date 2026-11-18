@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Bone Spear's look, the Marionette (Core/BoneSpear.cs; mockup Docs/Mockups/bone-spear-rework.html).
+    /// The Blood Brawler's look, the Marionette (Core/BoneSpear.cs; mockup Docs/Mockups/bone-spear-rework.html).
     ///   - The thread (DrawBsThread, from the replicated `Player.BsTarget`/`BsT`): a sagging line of blood from the hand to the
     ///     marked enemy with beads running along it, pulled straight and bright by Reel, a glow running down it at each press;
     ///     the mark is three bone ticks circling the enemy. Sympathy (`SympBound`): dashed threads from the mark to each bound
@@ -313,7 +313,7 @@ namespace Arena
         static readonly Rgba BsSkin = Hx(0x7a3a36), BsSkinDark = Hx(0x2a080b), BsCut = Hx(0x1e0306);
         float bsCurl, bsSpread = 1f;  // the hand's pose for DrawBsHand: fingers curled into a fist (0-1), and how wide they spread
 
-        /// The model's right hand with the Bone Spear (CharacterModels.cs): it follows the newest move, pushing out for the Pulse,
+        /// The model's right hand with the Blood Brawler (CharacterModels.cs): it follows the newest move, pushing out for the Pulse,
         /// drawing back half-closed for the Reel, rising with fingers spread for the Heart Lift, and closing into a fist through
         /// Marrow Burst's wind-up before flaring open as it bursts.
         void BsHandPose(Player p, ref float rhx, ref float rhy)

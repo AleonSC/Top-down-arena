@@ -229,6 +229,7 @@ namespace Arena
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)
+            DrawWallPortals(t);  // the Expanding arena's wall portals, over their walls (RoomsLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
             DrawMysteryDoors();  // sealed mystery doors (MysteryDoorLook.cs)
             DrawPushFlashes();  // a pushed section's new walls and cover flash in (WallPushLook.cs)
@@ -481,7 +482,7 @@ namespace Arena
                 DrawSprintWake(p, t, p.Id == game.MyId ? game.SprintFade : p.Sprint / 255f);
             if (p.Chains.Count > 0 || p.LeashOn)  // the Blood Lash's chains and Martyr's Leash (BloodLashLook.cs)
                 DrawLashChains(p, t);
-            if (p.BsTarget != 0 || p.SympT > 0f)  // the Bone Spear's thread, mark and Sympathy (BoneSpearLook.cs)
+            if (p.BsTarget != 0 || p.SympT > 0f)  // the Blood Brawler's thread, mark and Sympathy (BoneSpearLook.cs)
                 DrawBsThread(p, t);
             if (p.TitheClock > 0f)  // Vein Tithe: heart, arteries, cuffs (VeinTitheLook.cs)
                 DrawTithe(p, t);

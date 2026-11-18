@@ -176,7 +176,7 @@ static partial class Program
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
 
         Check(Defs.Weapon(Role.Tank, Kit.Hemomancer, 0).Name == "Blood Lash" && Defs.Weapon(Role.Healer, Kit.Hemomancer, 0).Name == "Transfusion Darts"
-            && Defs.Weapon(Role.Dps, Kit.Hemomancer, 2).Name == "Bone Spear" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
+            && Defs.Weapon(Role.Dps, Kit.Hemomancer, 2).Name == "Blood Brawler" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
             && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver" && Defs.Weapon(Role.Tank, Kit.Knight, 1).Name == "Lance",
             "Blood Mage weapons sit in the role/class tables without shifting the others");
         Check(Upgrades.RoleAbility(Role.Healer, Kit.Hemomancer, 2) == AbilityId.Martyr && Upgrades.RoleAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep
@@ -479,13 +479,13 @@ static partial class Program
         keep.Remove(d2); keep.Remove(off); d2.Hp = off.Hp = 0f;
         d1.BleedT = 0f; d1.BleedDps = 0f;  // (the cut's bleed would add to the next test's numbers)
 
-        // Bone Spear: with no enemy under the cursor a press does nothing and costs nothing (the string itself: suite bonespear).
+        // Blood Brawler: with no enemy under the cursor a press does nothing and costs nothing (the string itself: suite bonespear).
         g.Bullets.Clear();
         hp.Hp = 50f;
         hp.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 2);
         hp.AimAt = hp.Pos + new V2(0f, -2000f);
         typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 0 });
-        Check(Math.Abs(hp.Hp - 50f) < 0.01f && !g.Bullets.Values.Any(b => b.Kind == Defs.BoneSpearShot), "a Bone Spear press with no enemy under the cursor does nothing");
+        Check(Math.Abs(hp.Hp - 50f) < 0.01f && !g.Bullets.Values.Any(b => b.Kind == Defs.BoneSpearShot), "a Blood Brawler press with no enemy under the cursor does nothing");
 
         // Implosion: the enemy you click collapses (34), enemies against it take 15 and are pulled in;
         // an extra projectile collapses one more enemy nearby (60%). Nothing under the cursor, nothing fires.

@@ -737,12 +737,12 @@ namespace Arena
         }
 
         /// Your own game for you, the host for enemies: through a portal if you're in one (and not just out of one).
-        V2 RoomsPortal(V2 pos, ref float cooldown, float dt)
+        V2 RoomsPortal(V2 pos, ref float cooldown, float dt, float r = 0f)
         {
             cooldown = Math.Max(0f, cooldown - dt);
             if (!RoomsOn || cooldown > 0f)
                 return pos;
-            var exit = CurrentWorld.PortalExitFor(pos);
+            var exit = CurrentWorld.PortalExitFor(pos, r);
             if (!exit.HasValue)
                 return pos;
             cooldown = Rooms.PortalCooldown;

@@ -118,7 +118,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | A draining beam that hurts whatever you hold it on. Part of its damage heals, split between you and the nearest ally. |
 | Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Fast bolts of blood that make enemies bleed. A bolt that fills an enemy's bleed bursts it, hurting it and the enemies around it. |
 | Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in. |
-| Bone Spear | Dps | 0.26 s | 18 | - | 520 | 80 | Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too. |
+| Blood Brawler | Dps | 0.26 s | 18 | - | 520 | 80 | Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too. |
 | Embolus Spears | Dps | 0.25 s | 30 | 1100 x 0 s | - | 63 | Arms out, a hardened blood spear in each hand. Fire throws the left, then the right, for 20% of your max health each: they pierce every enemy and stick in the wall. Fire again to recall both: they pierce again on the way back and give the health back. Alt bursts them where they are instead, for half the health back. |
 
 ### Engineer

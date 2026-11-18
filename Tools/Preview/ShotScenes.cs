@@ -1037,7 +1037,7 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
-    // BONESPEAR=<s>: the Hemomancer DPS's Bone Spear, the Marionette (Core/BoneSpear.cs, Game/BoneSpearLook.cs) that long into a loop on
+    // BONESPEAR=<s>: the Hemomancer DPS's Blood Brawler, the Marionette (Core/BoneSpear.cs, Game/BoneSpearLook.cs) that long into a loop on
     // one marked Grunt with five around it: Pulse at 0 s, Reel at 0.45 s, Heart Lift at 0.95 s, Marrow Burst at 1.5 s, Alt (Sympathy)
     // at 2.4 s, then Pulse at 2.7 s and Reel at 3.1 s echoing onto the bound ones. BSAIM=<deg> tilts the line; BSHAND=1 centres on the
     // Hemomancer's bleeding hand (zoom in with ZOOM=4).
@@ -2172,7 +2172,8 @@ static partial class Shot {
         var bl = Expansion.BestLink(xg.ExpansionWorld, 0);
         if (bl.HasValue) {
           xg.Links.Add(bl.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          int pi2 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bl.Value.A + new V2(90f + 50f * pi2, 80f); pi2++; }
+          V2 pin = (Expansion.LinkEnd(xg.ExpansionWorld, bl.Value.A) - bl.Value.A).Normalized();  // (into the room from the wall end)
+          int pi2 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bl.Value.A + pin * (110f + 40f * pi2) + pin.Orthogonal() * (60f * pi2); pi2++; }
         }
       }
       string gshut = Environment.GetEnvironmentVariable("EXPANDGATE");  // EXPANDGATE=<s left shut>: a shutter gate on the hub's first door (0: open, ready), you beside it; GATECOOL=<s> while open

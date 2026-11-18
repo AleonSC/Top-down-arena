@@ -119,6 +119,8 @@ namespace Arena
             for (int i = 0; i < wd.Portals.Length; i++)  // the wraparound portals, each pair in its own colour
             {
                 var pt = wd.Portals[i];
+                if (pt.Wall)
+                    continue;  // (a wall portal: drawn over its wall, DrawWallPortals)
                 DrawPortal(pt.A, pt.InA, PortalColours[i % PortalColours.Length], a2, i);
                 DrawPortal(pt.B, pt.InB, PortalColours[i % PortalColours.Length], a2, i + 0.5f);
             }
@@ -171,6 +173,83 @@ namespace Arena
                 Line(c - inward * 6f + side * 8f, c, 2.5f, col.WithAlpha((0.8f - 0.3f * k) * a));
                 Line(c - inward * 6f - side * 8f, c, 2.5f, col.WithAlpha((0.8f - 0.3f * k) * a));
             }
+        }
+
+        /// The wall portals (the Expanding arena's bought pairs), over their walls: like the classic arena's edge gates, the stretch of
+        /// wall opens into a dark gap, bracketed at both ends, with chevrons pointing into the room (the way you come out), in its
+        /// pair's colour; a shimmer runs along it and a glow spills onto the floor.
+        void DrawWallPortals(float t)
+        {
+            if (!game.RoomsOn)
+                return;
+            var wd = game.CurrentWorld;
+            float a = Mathf.Clamp01(game.LayoutAge / 0.35f);
+            for (int i = 0; i < wd.Portals.Length; i++)
+            {
+                var pt = wd.Portals[i];
+                if (!pt.Wall)
+                    continue;
+                var col = PortalColours[i % PortalColours.Length];
+                DrawWallPortal(pt.A, pt.InA, pt.Half, col, a, t, i);
+                DrawWallPortal(pt.B, pt.InB, pt.Half, col, a, t, i + 0.5f);
+            }
+        }
+
+        void DrawWallPortal(V2 at, V2 inward, float half, Rgba col, float a, float t, float seed)
+        {
+            V2 along = inward.Orthogonal();
+            float wt = Rooms.WallT / 2f + 3f;
+            V2 e0 = at - along * half, e1 = at + along * half;
+            // The gap: the wall's stretch dark, the floor's glow spilling in from the room side.
+            Quad2(e0 - inward * wt, e1 - inward * wt, e1 + inward * wt, e0 + inward * wt, new Rgba(0.02f, 0.01f, 0.05f, 0.94f * a));
+            for (int k = 0; k < 4; k++)
+            {
+                float d0 = -wt + k * 2f * wt / 4f;
+                Quad2(e0 + inward * d0, e1 + inward * d0, e1 + inward * (d0 + 2f * wt / 4f), e0 + inward * (d0 + 2f * wt / 4f), col.WithAlpha((0.05f + 0.07f * k) * a));
+            }
+            for (int k = 0; k < 3; k++)  // the floor in front lit
+            {
+                float d0 = wt + k * 14f;
+                Quad2(e0 + inward * d0, e1 + inward * d0, e1 + inward * (d0 + 14f), e0 + inward * (d0 + 14f), col.WithAlpha((0.10f - 0.03f * k) * a));
+            }
+            // The membrane: two lines along the gap, dashes flowing along them.
+            float flow = Mathf.Repeat(t * 40f + seed * 37f, 18f);
+            for (int k = -1; k <= 1; k += 2)
+            {
+                V2 o = inward * (k * wt * 0.45f);
+                Line(e0 + o, e1 + o, 5f, col.WithAlpha(0.12f * a));
+                PhosDash(e0 + o, e1 + o, 10f, 8f, k > 0 ? flow : 18f - flow, 1.5f, col.WithAlpha(0.75f * a));
+            }
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f + seed * 2.1f);
+            Line(e0, e1, 3f + 3f * pulse, col.WithAlpha((0.10f + 0.10f * pulse) * a));
+            // The brackets: a bar across the wall at each end, as on the classic gates.
+            foreach (var e in new[] { e0, e1 })
+            {
+                Line(e - inward * (wt + 2f), e + inward * (wt + 2f), 8f, col.WithAlpha(0.22f * a));
+                Line(e - inward * (wt + 2f), e + inward * (wt + 2f), 3f, col.WithAlpha(a));
+            }
+            // Chevrons pointing into the room, a light running through them outward.
+            int n = Mathf.Max(1, Mathf.FloorToInt(2f * half / 44f));
+            for (int k = 0; k < n; k++)
+            {
+                V2 cp = at + along * ((k - (n - 1) * 0.5f) * 44f) + inward * (wt + 10f);
+                for (int row = 0; row < 2; row++)
+                {
+                    V2 c = cp + inward * (row * 11f), tip = c + inward * 5f;
+                    float lit = 0.45f + 0.55f * Mathf.Clamp01(1f - Mathf.Abs(Mathf.Repeat(t * 1.2f + seed, 1f) * 2f - row) );
+                    float fade = (1f - 0.35f * row) * lit;
+                    Line(c - along * 9f - inward * 5f, tip, 8f, col.WithAlpha(0.2f * fade * a));
+                    Line(c + along * 9f - inward * 5f, tip, 8f, col.WithAlpha(0.2f * fade * a));
+                    Line(c - along * 9f - inward * 5f, tip, 3f, col.WithAlpha(fade * a));
+                    Line(c + along * 9f - inward * 5f, tip, 3f, col.WithAlpha(fade * a));
+                }
+            }
+        }
+
+        void Quad2(V2 p, V2 q, V2 r, V2 s, Rgba c)
+        {
+            SetColor(c);
+            Quad(p, q, r, s);
         }
 
         RoomState RoomStateOf(int area)
@@ -296,10 +375,16 @@ namespace Arena
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 RimFrame(wd, i, M, 1f, line, true);
             }
-            foreach (var n in game.Nodes)  // the nodes: a small square, breathing until a room is built round it
+            foreach (var n in game.Nodes)  // the nodes: a square with a dark edge, breathing and haloed until a room is built round it
             {
                 V2 np = M(n.Pos);
-                MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, (n.Hidden && !Expansion.NodeClaimed(game.Expanded, n) ? FogInk : NodeInk(n.Kind)).WithAlpha(n.Spent ? 0.25f : Expansion.NodeClaimed(game.Expanded, n) ? 0.9f : 0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
+                bool claimed = Expansion.NodeClaimed(game.Expanded, n);
+                var ink = n.Hidden && !claimed ? FogInk : NodeInk(n.Kind);
+                float br = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 2.5f);
+                if (!n.Spent && !claimed)
+                    MapRect(np.X - 8f, np.Y - 8f, 16f, 16f, ink.WithAlpha(0.15f + 0.15f * br));
+                MapRect(np.X - 6f, np.Y - 6f, 12f, 12f, new Rgba(0f, 0f, 0f, n.Spent ? 0.25f : 0.6f));
+                MapRect(np.X - 5f, np.Y - 5f, 10f, 10f, ink.WithAlpha(n.Spent ? 0.25f : claimed ? 0.9f : 0.8f + 0.2f * br));
             }
             if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
                 foreach (var q in game.ExpandProposals)
@@ -337,12 +422,24 @@ namespace Arena
                     V2 c = M(wd.Doors[rs.NextDoor].Pos);
                     if (InMap(c)) Arc(c, 7f, 1.5f, (rs.SpillT < Rooms.SpillWarn ? DoorAmber : DoorRed).WithAlpha(0.9f), 16, -Mathf.PI / 2f, MathX.Tau * f);
                 }
-            for (int i = 0; i < wd.Portals.Length; i++)  // the portals, in their pair's colour
-                foreach (var pp in new[] { wd.Portals[i].A, wd.Portals[i].B })
+            for (int i = 0; i < wd.Portals.Length; i++)  // the portals, in their pair's colour (a wall portal: a bar along its wall)
+            {
+                var pt = wd.Portals[i];
+                for (int end = 0; end < 2; end++)
                 {
+                    V2 pp = end == 0 ? pt.A : pt.B, inn = end == 0 ? pt.InA : pt.InB;
                     V2 c = M(pp);
-                    if (InMap(c)) Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);
+                    if (!InMap(c))
+                        continue;
+                    if (pt.Wall)
+                    {
+                        V2 h = inn.Orthogonal() * 5f;
+                        Line(c - h, c + h, 3.5f, PortalColours[i % PortalColours.Length]);
+                    }
+                    else
+                        Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);
                 }
+            }
             for (int gi = 0; gi < game.GateFits.Count; gi++)  // shutter gates: a red bar, bright while shut (GateLook.cs)
             {
                 if (!game.GateLive(gi))

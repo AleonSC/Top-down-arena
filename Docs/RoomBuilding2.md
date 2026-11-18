@@ -46,6 +46,11 @@ Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals,
 - Draw screen: a **PORTAL** key (`expLinkMode`), built pairs and proposals as rings with a dashed line; proposal cards say "PORTAL PAIR"
   and the tiles saved. Bots propose `BestLink` (one clear spot per room, the pair saving the most) 20% of the time when it costs 15+.
 - Previews: `EXPANDVOTE=6 EXPANDDRAW=0,0,0,0 EXPANDLINK=1` (draw screen), `EXPANDLINKCARD=1` (card), `EXPANDMAP=6 EXPANDPORTAL=1` (in the arena).
+- **Wall portals (Nov 18, protocol 400)**: like the classic arena's edge gates, each end now goes on a room's **outer wall** (grid spot,
+  `Expansion.OuterWall`/`WallSpot`) and turns `LinkHalf` (100 px) either side of it into the portal: `WorldPortal.Half`/`Wall`, touching it
+  (`World.PortalExitFor(at, r)`, `WallHop`) sends you out of the partner wall, your place along it turned with the walls. Enemies steer to its
+  mouth (`MouthA`/`MouthB`, 50 px in) and then walk into the wall (`LayoutDef.Mouths`, `SteerDir`). Breaches skip a portal's wall. Look:
+  `DrawWallPortals` (RoomsLook.cs, after the walls); draw screen and minimap: a bar along the wall. Older saves' floor pairs stay floor portals.
 - Fixed with it (step 1): a squad coming through a breach formed up with its back row in the wall or past a corner (a wave got stuck);
   it now forms 80 px further in and stays inside the room.
 

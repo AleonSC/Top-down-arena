@@ -7,8 +7,19 @@ namespace Arena
     /// arena, Expanding (not built yet) starts as Single and grows by bought rooms.
     public enum ArenaLayout : byte { Single, Wings, Expanding, Survival }
 
-    /// A wraparound portal pair (Rooms.cs): centres, and the way into the map from each.
-    public struct WorldPortal { public V2 A, B; public V2 InA, InB; }
+    /// A wraparound portal pair (Rooms.cs): centres, and the way into the map from each. Half > 0: a wall portal (the Expanding
+    /// arena's bought pairs, like the classic arena's edge gates): A and B sit on a room's outer wall line, and the wall from
+    /// Half either side of them is the portal; you walk into the wall and come out of the partner wall. Half 0: a floor portal.
+    public struct WorldPortal
+    {
+        public V2 A, B; public V2 InA, InB;
+        public float Half;
+        public bool Wall => Half > 0f;
+        public const float MouthIn = 50f;  // a wall portal's steering spot: this far in from its wall line
+        /// Where an end's steering spot is (and where walking distances start): the floor portal itself, or just off the wall.
+        public V2 MouthA => Wall ? A + InA * MouthIn : A;
+        public V2 MouthB => Wall ? B + InB * MouthIn : B;
+    }
 
     /// A straight stretch of wall, cut at the doors on it. Vertical: runs up and down at x = At, from y = From to Till;
     /// else runs along y = At from x = From to Till. VaultOnly lines exist only while the vault is open.
@@ -85,17 +96,46 @@ namespace Arena
             return best;
         }
 
-        /// Where something stepping into a portal at `at` comes out (null: not in a portal). Keeps its offset along the wall.
-        public V2? PortalExitFor(V2 at)
+        /// How near its wall line a body's edge must come to go through a wall portal (the wall's half thickness and a little).
+        public const float WallReach = Rooms.WallT / 2f + 8f;
+
+        /// Where something stepping into a portal at `at` (a body `r` wide) comes out (null: not in a portal). Keeps its offset along the wall.
+        public V2? PortalExitFor(V2 at, float r = 0f)
         {
             foreach (var p in Portals)
             {
+                if (p.Wall)
+                {
+                    V2? x = WallHop(at, r, p.A, p.InA, p.B, p.InB, p.Half);
+                    if (!x.HasValue)
+                        x = WallHop(at, r, p.B, p.InB, p.A, p.InA, p.Half);
+                    if (x.HasValue)
+                        return x;
+                    continue;
+                }
                 if (at.CloserThan(p.A, PortalR))
                     return p.B + p.InB * PortalExit + new V2(0f, at.Y - p.A.Y);
                 if (at.CloserThan(p.B, PortalR))
                     return p.A + p.InA * PortalExit + new V2(0f, at.Y - p.B.Y);
             }
             return null;
+        }
+
+        /// Through a wall portal's end `a` (facing `ina`) and out of `b`: null unless the body touches that stretch of wall. The
+        /// offset along the wall turns with the walls, as if the two walls were one doorway: off the left wall onto the right
+        /// wall keeps your height, like the classic arena's edge gates.
+        static V2? WallHop(V2 at, float r, V2 a, V2 ina, V2 b, V2 inb, float half)
+        {
+            V2 o = at - a, along = ina.Orthogonal();
+            float d = o.Dot(ina), t = o.Dot(along);
+            if (d > r + WallReach || d < -WallReach || Math.Abs(t) > half)
+                return null;
+            t = Math.Max(-(half - Math.Min(r, half * 0.5f)), Math.Min(half - Math.Min(r, half * 0.5f), t));
+            V2 e = -ina;  // the way in; the turn takes it to the way out
+            V2 turn = new V2(inb.X * e.X + inb.Y * e.Y, inb.Y * e.X - inb.X * e.Y);  // inb times e's conjugate, as complex numbers
+            V2 off = along * t;
+            V2 offB = new V2(off.X * turn.X - off.Y * turn.Y, off.X * turn.Y + off.Y * turn.X);
+            return b + inb * (r + WallReach + 30f) + offB;
         }
 
         /// Where the camera centres a view hx by hy half-size on someone at `at`: on them, held inside the world (the open
@@ -276,12 +316,20 @@ namespace Arena
             }
             // The portals: a steering spot in each, linked to its partner (LayoutRules.cs GraphFor), so enemies route through them.
             var links = new List<int>();
+            var mouths = new List<PortalMouth>();
             foreach (var pt in Portals)
             {
-                links.Add(wps.Count); wps.Add(pt.A);
-                links.Add(wps.Count); wps.Add(pt.B);
+                int ia = wps.Count, ib = ia + 1;
+                links.Add(ia); wps.Add(pt.MouthA);
+                links.Add(ib); wps.Add(pt.MouthB);
+                if (pt.Wall)  // a wall portal: from its spot, walk into the wall (LayoutRules.cs SteerDir)
+                {
+                    mouths.Add(new PortalMouth { Wp = ia, Partner = ib, At = pt.A, In = pt.InA, Half = pt.Half });
+                    mouths.Add(new PortalMouth { Wp = ib, Partner = ia, At = pt.B, In = pt.InB, Half = pt.Half });
+                }
             }
             d.Links = links.ToArray();
+            d.Mouths = mouths.ToArray();
             d.Waypoints = wps.ToArray();
             plans[key] = d;
             return d;
