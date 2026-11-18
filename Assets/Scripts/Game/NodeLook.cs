@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// How map nodes look (Docs/Nodes.md): a breathing ring and mark in empty space until a room is built round one, then a fixture of that
-    /// room: a shop's stall, a vendor's pedestal, a chest (lid up and dim once opened). Preview: EXPANDFLOAT=1, or EXPANDNODE=shop|vendor|chest[,spent].
+    /// room: a shop's stall, a vendor's pedestal, a chest. Preview: EXPANDFLOAT=1, or EXPANDNODE=shop|vendor|chest[,spent].
     public partial class ArenaApp
     {
         static readonly Rgba ChestInk = new Rgba(0.82f, 0.5f, 1f);
@@ -275,10 +275,7 @@ namespace Arena
                 case NodeKind.VectorChest:
                 {
                     if (spent)
-                    {
-                        ChestBox(c, 1f, ink.WithAlpha(0.3f), true);
                         break;
-                    }
                     Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
                     Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     ChestBox(c, 1f, ink.WithAlpha(0.95f), false);
@@ -296,9 +293,7 @@ namespace Arena
                         Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
                         Arc(c, 66f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     }
-                    if (spent)  // (a claimed, unopened chest is the real prop, Props.cs)
-                        ChestBox(c, 1f, ink.WithAlpha(spent ? 0.3f : 0.95f), spent);
-                    break;
+                    break;  // (a claimed chest is the real prop, Props.cs; nothing is drawn once it is spent)
             }
         }
 
