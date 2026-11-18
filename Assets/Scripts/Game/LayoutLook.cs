@@ -48,9 +48,14 @@ namespace Arena
                 FillRect(lo.X, lo.Y, hi.X - lo.X, hi.Y - lo.Y, Ink.WithAlpha(FloorTintAmt * 1.5f));
                 return;
             }
-            FillRect(0, 0, AW, AH, Ink.WithAlpha(FloorTintAmt));
-            V2 mid = new V2(AW / 2f, AH / 2f);
-            float r = Mathf.Min(AW, AH) * 0.5f;
+            float fx = 0f, fy = 0f, fw = AW, fh = AH;
+            if (game.GridRoomsOn && game.Expanded.Count >= 4 && Expansion.IsGridCore(game.Expanded[0]))  // a Grid run's core is one room with the start room: the wash covers all of it (GridRooms.cs)
+            {
+                fx = Expansion.GridX0; fy = Expansion.GridY0; fw = 4 * Expansion.GridCell; fh = 3 * Expansion.GridCell;
+            }
+            FillRect(fx, fy, fw, fh, Ink.WithAlpha(FloorTintAmt));
+            V2 mid = new V2(fx + fw / 2f, fy + fh / 2f);
+            float r = Mathf.Min(fw, fh) * 0.5f;
             for (int i = 1; i <= 8; i++)  // stacked discs: smooth falloff to the edge
                 Circle(mid, r * i / 8f, Ink.WithAlpha(FloorTintAmt * 0.125f), 48);
         }

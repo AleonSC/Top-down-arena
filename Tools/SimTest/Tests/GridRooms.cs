@@ -116,20 +116,11 @@ static partial class Program
         cg.ProposeExpandRoom(2000, 100, 600, 600);
         Run(s, dt, 0.5f, null, noPicks);
         Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "a drawn room and a room off its door spot are refused");
+        // A Grid run builds from piece cards (Docs/GridPieces.md step 3): even a box on a door spot is refused as a drawing, and the bots don't draw.
         var spot = Expansion.GridOptions(g.Expanded, GridShape.Hall).First(o => o.Side == 3);
-        int v2 = g.Players[2].Vectors;
         cg.ProposeExpandRoom(spot.Room.X, spot.Room.Y, spot.Room.W, spot.Room.H);
-        Run(s, dt, 1f, () => cg.Expanded.Count == 5, noPicks);
-        Check(g.Expanded.Count == 5 && cg.Expanded.Count == 5 && g.Expanded[4].Owner == 2 && g.Expanded[4].X == spot.Room.X && g.Expanded[4].H == 1200, "a friend's hall on the right wall's spot is built at once on both screens");
-        Run(s, dt, 1f, () => cg.Players[2].Vectors == g.Players[2].Vectors);
-        Check(g.Players[2].Vectors == v2 - spot.Room.Price, "and they pay its new wall (" + spot.Room.Price + " vectors)");
-        // A theme is refused, and a bot builds only on door spots.
-        int before = g.Expanded.Count;
-        g.ProposeExpandRoom(spot.Room.X1, spot.Room.Y, 600, 600, PathId.BurningGrounds);
-        Check(g.Expanded.Count == before, "a themed room is refused in grid mode");
-        var bot = typeof(Game).GetMethod("BotGridBuild", flags);
-        for (int i = 0; i < 12; i++) bot.Invoke(g, null);
-        Check(g.Expanded.Count > before && g.Expanded.Skip(4).All(r => Expansion.GridLegal(g.Expanded.Take(g.Expanded.IndexOf(r)).ToList(), r.X, r.Y, r.W, r.H, out _)),
-            "a bot builds rooms, each on a door spot (" + g.Expanded.Count + " rooms)");
+        typeof(Game).GetMethod("BotGridBuild", flags).Invoke(g, null);
+        Run(s, dt, 1f, null, noPicks);
+        Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "a room drawn on a door spot is refused: pieces only");
     }
 }

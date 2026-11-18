@@ -65,6 +65,7 @@ namespace Arena
         PlayCard,     // client -> host: play the room card in this hand slot with its room's corner at (x, y), turned and mirrored (slot, x, y, turn, mirror) (Docs/RoomCards.md, RoomCards.cs)
         KeepsakeVote, // client -> host: the room this player wants kept through the map reset (short: its first box) (Docs/MapReset.md, MapReset.cs)
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
+        GridPiece,    // client -> host: place a grid piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, GridPieces.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -127,7 +128,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 402;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 403;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -667,6 +668,9 @@ namespace Arena
                     break;
                 case Msg.PlayCard:
                     Game.OnPlayCard(peer, r);  // RoomCards.cs
+                    break;
+                case Msg.GridPiece:
+                    Game.OnGridPiece(peer, r);  // GridPieces.cs
                     break;
                 case Msg.BuilderBuy:
                     Game.OnBuilderBuy(peer, r);  // BuilderShop.cs

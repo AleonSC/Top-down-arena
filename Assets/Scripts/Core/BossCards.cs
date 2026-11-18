@@ -14,6 +14,7 @@ namespace Arena
 
         /// The pool's groups and their weights (first guesses): shape cards 40, Box / Hall 15, service cards 20, Floor kits 15, Mini-boss 10.
         static readonly int[] GroupWeights = { 40, 15, 20, 15, 10 };
+        static readonly int[] GridWeights = { 65, 20, 15 };  // (a Grid run: pieces 65, service cards 20, floor kits 15)
         static readonly RoomCard[] Basics = { RoomCard.Box, RoomCard.Hall };
         static readonly RoomCard[] Services = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms, RoomCard.BuilderShop };  // (the service cards and the Builder Shop)
 
@@ -29,7 +30,7 @@ namespace Arena
             : Expansion.CardBlurb(CardOf(code));
 
         /// A seeded offer: OfferSize different codes, each from a group picked by weight. Floor kits prefer floors nobody has yet.
-        public static int[] Offer(DetRandom rng, IList<ExpansionRoom> built, IList<RoomToken> held)
+        public static int[] Offer(DetRandom rng, IList<ExpansionRoom> built, IList<RoomToken> held, int gridWave = 0)
         {
             var floors = new List<PathId>();
             foreach (var f in Expansion.Floors)
@@ -45,6 +46,14 @@ namespace Arena
             for (int tries = 0; offer.Count < OfferSize && tries < 200; tries++)
             {
                 int code;
+                if (gridWave > 0)  // a Grid run: pieces (plain or floor), service cards and floor kits; the mini-boss waits on the lattice instead (Docs/GridPieces.md)
+                {
+                    int g = Pick(rng, GridWeights);
+                    code = g == 0 ? (int)Expansion.GridDropCard(rng, gridWave) : g == 1 ? (int)Services[rng.Int(Services.Length)] : KitCode(floors[rng.Int(floors.Count)]);
+                    if (!offer.Contains(code))
+                        offer.Add(code);
+                    continue;
+                }
                 switch (Pick(rng, GroupWeights))
                 {
                     case 0: code = (int)Expansion.ShapeCards[rng.Int(Expansion.ShapeCards.Length)]; break;
@@ -76,10 +85,10 @@ namespace Arena
     public partial class Game
     {
         /// Bosses give the card pick instead of a weapon mod: the Expanding arena building from room cards, in a run with events.
-        public bool BossCardPicks => RoomCardsOn && ModeRules.RunEvents;
+        public bool BossCardPicks => HandOn && ModeRules.RunEvents;
 
         /// Host: this player's boss card offer (from the host's random numbers, so a reroll gives a new one).
-        int[] BossCardOffer(Player p) => BossCards.Offer(new DetRandom(rng.Next() ^ (p.Id * 7919)), Expanded, RoomTokens);
+        int[] BossCardOffer(Player p) => BossCards.Offer(new DetRandom(rng.Next() ^ (p.Id * 7919)), Expanded, RoomTokens, GridRoomsOn ? Wave : 0);
 
         /// Can this player take this code now: a card needs room in their hand, a kit room in the team's kits.
         public bool BossCardUsable(Player p, int code) => BossCards.IsKit(code) ? RoomTokens.Count < Expansion.MaxTokens : HandCount(p) < Expansion.HandMax;
