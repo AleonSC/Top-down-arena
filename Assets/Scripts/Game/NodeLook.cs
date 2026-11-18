@@ -242,14 +242,14 @@ namespace Arena
                 }
                 case NodeKind.Relic:
                 {
-                    long key = RelicKey(c);
+                    long key = OpenKey(c, ChestKind.Relic);
                     if (spent)
                     {
-                        DrawRelicOpening(c, t, RelicOpenAge(key, t));
+                        DrawNodeOpening(c, t, NodeOpenAge(key, t), ChestKind.Relic);
                         break;
                     }
-                    relicSeenShut.Add(key);
-                    relicOpenedAt.Remove(key);
+                    nodeSeenShut.Add(key);
+                    nodeOpenedAt.Remove(key);
                     Arc(c, Relics.TakeReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     DrawChestLook(c, 1f, t, ChestKind.Relic, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
@@ -292,8 +292,14 @@ namespace Arena
                 }
                 case NodeKind.VectorChest:
                 {
+                    long key = OpenKey(c, ChestKind.Vector);
                     if (spent)
+                    {
+                        DrawNodeOpening(c, t, NodeOpenAge(key, t), ChestKind.Vector);
                         break;
+                    }
+                    nodeSeenShut.Add(key);
+                    nodeOpenedAt.Remove(key);
                     Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     DrawChestLook(c, 1f, t, ChestKind.Vector, false, 0f);  // ChestLooks.cs
                     for (int k = 0; k < 3; k++)  // motes turning round it
@@ -313,40 +319,40 @@ namespace Arena
             }
         }
 
-        // The relic node's opening (it is spent the moment someone walks up, so each screen times it from when it saw the change).
-        readonly HashSet<long> relicSeenShut = new HashSet<long>();
-        readonly Dictionary<long, float> relicOpenedAt = new Dictionary<long, float>();
-        internal static float PreviewRelicAge = -1f;  // preview RELICOPEN=<s>: every spent relic opened that long ago
+        // The relic and vector chest nodes' opening (each is spent the moment someone walks up, so each screen times it from when it saw the change).
+        readonly HashSet<long> nodeSeenShut = new HashSet<long>();
+        readonly Dictionary<long, float> nodeOpenedAt = new Dictionary<long, float>();
+        internal static float PreviewOpenAge = -1f;  // preview RELICOPEN=<s> / VECOPEN=<s>: every spent relic or vector chest node opened that long ago
 
-        static long RelicKey(V2 c) => ((long)Mathf.RoundToInt(c.X) << 32) ^ (uint)Mathf.RoundToInt(c.Y);
+        static long OpenKey(V2 c, ChestKind k) => ((long)Mathf.RoundToInt(c.X) << 32) ^ (uint)Mathf.RoundToInt(c.Y) ^ ((long)k << 60);
 
-        /// Seconds since this relic node opened: from when this screen first saw it spent after seeing it shut; one already spent when first seen is long open.
-        float RelicOpenAge(long key, float t)
+        /// Seconds since this node opened: from when this screen first saw it spent after seeing it shut; one already spent when first seen is long open.
+        float NodeOpenAge(long key, float t)
         {
-            if (PreviewRelicAge >= 0f)
-                return PreviewRelicAge;
+            if (PreviewOpenAge >= 0f)
+                return PreviewOpenAge;
             float at;
-            if (relicOpenedAt.TryGetValue(key, out at))
+            if (nodeOpenedAt.TryGetValue(key, out at))
                 return t - at;
-            if (!relicSeenShut.Remove(key))
+            if (!nodeSeenShut.Remove(key))
                 return 99f;
-            relicOpenedAt[key] = t;
+            nodeOpenedAt[key] = t;
             return 0f;
         }
 
-        /// A relic node opening: the chest shakes and flashes, the lid flies up, a violet ring bursts out, light pours up with gems rising,
-        /// and the relic itself climbs out, spins and shoots off towards the players; then it settles dim with the lid up.
-        void DrawRelicOpening(V2 c, float t, float age)
+        /// A relic or vector chest node opening: the chest shakes and flashes, the lid flies up, rings burst out in its ink, light pours up with
+        /// its emblems rising, and the prize (the relic's gem, or the vector arrow) climbs out, spins and shoots off; then it settles dim with the lid up.
+        void DrawNodeOpening(V2 c, float t, float age, ChestKind kind)
         {
-            var ink = ChestInkOf(ChestKind.Relic);
+            var ink = ChestInkOf(kind);
             if (age >= 3f)
             {
-                DrawChestLook(c, 0.3f, t, ChestKind.Relic, true, 99f);  // opened, lid up and dim
+                DrawChestLook(c, 0.3f, t, kind, true, 99f);  // opened, lid up and dim
                 return;
             }
             float settle = Mathf.Clamp01((age - 2.2f) / 0.8f), a = Mathf.Lerp(1f, 0.3f, settle);
             V2 shake = age < 0.12f ? new V2(Mathf.Sin(t * 120f), Mathf.Cos(t * 97f)) * 2.5f * (1f - age / 0.12f) : default(V2);
-            DrawChestLook(c + shake, a, t, ChestKind.Relic, true, age);
+            DrawChestLook(c + shake, a, t, kind, true, age);
             float hw = Game.ChestW / 2f, hh = Game.ChestH / 2f;
             if (age < 0.3f)  // the flash
             {
@@ -369,7 +375,7 @@ namespace Arena
                 V2 d = V2.FromAngle(k * MathX.Tau / 8f + 0.3f);
                 GlowLine(c + d * (20f + 70f * sk), c + d * (30f + 90f * sk), 1.5f, ink.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(1f - sk));
             }
-            // The relic climbs out (0.2-1.2 s), hangs spinning, then shoots up and away (1.6-2.1 s).
+            // The prize climbs out (0.2-1.2 s), hangs spinning, then shoots up and away (1.6-2.1 s).
             if (age > 0.2f && age < 2.1f)
             {
                 float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((age - 0.2f) / 1f)), go = Mathf.Clamp01((age - 1.6f) / 0.5f);
@@ -377,7 +383,10 @@ namespace Arena
                 V2 p = c + new V2(0f, -hh - 20f - 70f * rise - 160f * go * go + Mathf.Sin(t * 4f) * 2f * rise);
                 Circle(p, 18f * scale, ink.WithAlpha(0.18f * al), 20);
                 float spin = Mathf.Cos(age * 6f);  // turning: squash it side to side
-                RelicGemSpin(p, scale, spin, ink.WithAlpha(al));
+                if (kind == ChestKind.Vector)
+                    VectorMark(p, 0.75f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), ink.Mix(new Rgba(1f, 1f, 1f), 0.4f).WithAlpha(al));
+                else
+                    RelicGemSpin(p, scale, spin, ink.WithAlpha(al));
             }
         }
 
