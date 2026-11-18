@@ -21,6 +21,8 @@ namespace Arena
         bool shifted;
 
         float WinNow => Time.unscaledTime;
+        float winFreeze;  // while the pause menu closes: how long since it started closing (its windows' clocks stop there)
+        float WinClock => WinNow - winFreeze;  // the clock a window's power-on runs on (CrtWindows.cs)
         float WinT => WinNow - winOpenAt;  // seconds since the window opened
 
         /// A window (not the pause menu) is sliding out: nothing in it can be clicked.
@@ -154,8 +156,10 @@ namespace Arena
             float savedOpen = winOpenAt, savedClose = winCloseK;
             winOpenAt = closing ? pauseOpenedAt + WinNow - (pauseClosedAt >= 0f ? pauseClosedAt : WinNow) : pauseOpenedAt;
             winCloseK = closing ? 1f - pauseAnim : 0f;
+            winFreeze = closing && pauseClosedAt >= 0f ? WinNow - pauseClosedAt : 0f;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f * WindowVis));
             DrawPauseWindow();
+            winFreeze = 0f;
             if (closing)
             {
                 winOpenAt = savedOpen;
