@@ -147,7 +147,7 @@ them), and blink before vanishing after 12 seconds.
 ### The Engineer
 
 A builder whose constructions draw themselves in the cyan ink of the Expanding arena's walls (Docs/Engineer.md). Each
-role has one weapon, one Space ability and one ultimate for now; the lobby locks its other keys. It wears navy coveralls,
+role has two weapons, one Space ability and one ultimate for now; the lobby locks its other keys. It wears navy coveralls,
 an orange safety vest and a yellow hard hat with a headlamp, in its role's trim. The DPS kit:
 
 - **Vector Forge** (weapon): Fire is a light rivet gun (10 a rivet, 0.3 s; each extra projectile adds a rivet, fanned).
@@ -194,6 +194,23 @@ The **Healer** Engineer:
 - **Safe Room** (ultimate, 80 s): the Breach hammer (half its damage) opens the wall you aim at; in the Expanding arena
   the room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. With no room,
   a 160 px dome at your cursor does the same. Mastered: 18 s.
+
+**Robot weapons** (each role's second weapon): the first click (Fire) summons a robot Engineer of your role at your cursor
+(up to 320 px away; it builds in over 0.8 s). It does the fighting: it walks into range of the enemy nearest you (within
+360 px) and shoots it, and enemies near it go for it instead of you. A click on an enemy sends it at that enemy until it dies.
+With the robot out, Fire is a basic attack. A broken robot can be summoned again 8 s later (until then Fire just attacks).
+Its health grows 8% a wave and it is patched up between waves.
+
+- **Iron Fist** (Tank): the **Tank Bot** (850 health, draws enemies from 240 px) fires a five-nail shotgun (6 a nail, 0.75 s).
+  The basic attack is a robotic fist: a shove in an arc in front of you (95 px) for 10 damage that pushes enemies 180 px
+  (heavy ones a third of that, bosses not at all), every 0.7 s. Each extra projectile: the arc reaches 15 px further.
+- **Stasis Gun** (Healer): the **Medic Bot** (420 health, draws enemies from 150 px) fires rivets (9, 0.4 s) and heals allies
+  within 110 px for 9 a second; with nothing to shoot it goes to the most hurt ally. The basic attack: hold Fire for a stasis
+  field at your cursor (60 px, up to 300 px away). Enemies in it are held in place (bosses and heavy enemies slowed by half)
+  and take 14 damage a second; letting go ends it. Each extra projectile: the field 8 px wider.
+- **Vector Blade** (DPS): the **Assault Bot** (380 health, draws enemies from 150 px) fires a rapid rivet gun (11, 0.22 s).
+  The basic attack is a melee swipe of a cyan blade in front of you (88 px) for 24, every 0.4 s. Each extra projectile: the
+  swipe reaches 12 px further.
 
 ### Weapons
 

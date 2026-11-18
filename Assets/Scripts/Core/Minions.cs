@@ -727,6 +727,11 @@ namespace Arena
                     TickStrider(m, owner, dt, speed, dmg);  // Engineer.cs
                     continue;
                 }
+                if (IsBot(m.Kind))
+                {
+                    TickBot(m, owner, dt, speed, dmg);  // EngineerBots.cs
+                    continue;
+                }
                 if (m.Kind == MinionKind.SoulLantern)
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)

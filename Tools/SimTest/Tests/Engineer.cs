@@ -17,7 +17,7 @@ static partial class Program
 
         // The table: a DPS-only class, its other places locked stand-ins.
         Check(Defs.Weapon(Role.Dps, Kit.Engineer, 0).Id == WeaponId.VectorForge && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 0)
-            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 1), "the Vector Forge is the DPS Engineer's weapon; its other places are locked");
+            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 2), "the Vector Forge is the DPS Engineer's first weapon; its third place is locked");
         Check(Defs.Weapon(Role.Tank, Kit.Engineer, 0).Id == WeaponId.BulwarkForge && Defs.Weapon(Role.Healer, Kit.Engineer, 0).Id == WeaponId.MediDroneForge
             && Defs.Weapon(Role.Tank, Kit.Engineer, 2).Id == WeaponId.BulwarkForge && Defs.WeaponGap(Role.Tank, Kit.Engineer, 2),
             "the Tank and Healer Engineers have the Bulwark Forge and the Medi-Drone Forge (their own stand-ins fill the locked places)");

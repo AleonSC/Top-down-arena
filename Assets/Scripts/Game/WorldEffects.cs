@@ -344,6 +344,9 @@ namespace Arena
                 case FxKind.BreachSmash:
                     DrawBreachFx(fx);  // EngineerLook.cs
                     break;
+                case FxKind.FistShove:
+                    DrawFistShoveFx(fx, f);  // EngineerBotLook.cs
+                    break;
                 case FxKind.RodBolt:
                     DrawRodBoltFx(fx);  // LightningRodLook.cs
                     break;

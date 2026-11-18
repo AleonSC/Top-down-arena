@@ -556,6 +556,8 @@ namespace Arena
                     return p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.LightBolt:  // the Repulsion Cannon's cone
                     return p.Def.BodyR + w.Reach * AreaMult(p) * PierceReach(p);
+                case WeaponId.StasisGun:  // how far from you the field can sit (EngineerBots.cs)
+                    return StasisReach * p.Stats.ShotSpeedMult;
                 case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
                     return p.Def.BodyR + GraspReach(p);
                 case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)

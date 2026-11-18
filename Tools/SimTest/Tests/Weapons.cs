@@ -611,6 +611,16 @@ static partial class Program
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
                 case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.1f; break;  // the orbs mostly guard and heal you
+                case WeaponId.IronFist: case WeaponId.VectorBlade: case WeaponId.StasisGun:  // the robot weapons: the robot does the fighting; extras widen the basic attack
+                {
+                    me.Stats.ExtraShots = 0;
+                    float r0 = w.Id == WeaponId.StasisGun ? g.StasisRadiusOf(me) : g.WeaponRange(me);
+                    me.Stats.ExtraShots = 2;
+                    float r2 = w.Id == WeaponId.StasisGun ? g.StasisRadiusOf(me) : g.WeaponRange(me);
+                    me.Stats.ExtraShots = 0;
+                    ok = r2 > r0 + 10f;
+                    break;
+                }
                 default: ok = ratio > 1.2f; break;
             }
             Console.WriteLine("  {0,-17} {1,6:0} -> {2,6:0} (x{3:0.00})  {4,4} -> {5,4}      {6} -> {7}{8}", w.Name, a[0], b[0], ratio, a[1], b[1], a[2], b[2], ok ? "" : "   <-- not stronger");
@@ -749,6 +759,35 @@ static partial class Program
                     };
                     bool touch = Touches(-4f), past = Touches(4f);
                     if (touch && !past) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (orb: touching hit " + touch + ", past hit " + past + ")");
+                    continue;
+                }
+                if (Game.IsBotWeapon(w.Id))
+                {
+                    // The Engineer's robot weapons: the Stasis Gun's field sits no farther than StasisReach; the fist's shove and the
+                    // blade's swipe (with no robot to summon) hit an enemy just inside their reach and not one just past it.
+                    if (w.Id == WeaponId.StasisGun)
+                    {
+                        if (Math.Abs(range - Game.StasisReach * me.Stats.ShotSpeedMult) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                        continue;
+                    }
+                    Func<float, bool> Swipe = edge =>
+                    {
+                        g.Enemies.Clear(); g.Minions.Clear();
+                        me.BotCd = 99f; me.FireCd = 0f; me.BotFireWas = false; me.BotSummonT = 0f;
+                        var dummy = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, new V2(120f, 450f), 0f, 0, false });
+                        dummy.Hp = dummy.MaxHp = 1e5f; dummy.SpawnT = 0f;
+                        V2 at = new V2(120f + edge + dummy.Radius, 450f);
+                        for (int k = 0; k < 2; k++)
+                        {
+                            dummy.Pos = at; dummy.FrozenT = 1f; me.Pos = new V2(120f, 450f);
+                            host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f), Fire = true });
+                        }
+                        host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
+                        me.BotCd = 0f;
+                        return dummy.Hp < dummy.MaxHp;
+                    };
+                    bool inReach = Swipe(range - 4f), pastReach = Swipe(range + 4f);
+                    if (inReach && !pastReach) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inReach + ", outside hit " + pastReach + ")");
                     continue;
                 }
                 if (w.Id == WeaponId.ArcLightning)

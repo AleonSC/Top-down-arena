@@ -1,6 +1,6 @@
 # Engineer: a vector builder class
 
-Status: **steps 1-4 built** (Nov 17, 2026; protocol 397): the DPS Engineer with the Vector Forge and Strider, Drag Pylon and Breach; the Draftsman passive, vector repairs and four class cards. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
+Status: **steps 1-5 built** (Nov 18, 2026; protocol 411; step 5 the robot weapons): the DPS Engineer with the Vector Forge and Strider, Drag Pylon and Breach; the Draftsman passive, vector repairs and four class cards. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
 (real renders, a playable bench, the kit, a Breach room roller). Numbers are first guesses.
 The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=strider|pylon|breach ENGT=<s> Tools/Preview/shot.sh x hud`
 (`Tools/Preview/ShotEngineer.cs`); the renders are in `Mockups/engineer/`.
@@ -57,7 +57,12 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
    `MinionAttack.Heal`), Med Pylon shares the Drag Pylon's cast (`CastPylon`), Safe Room shares Breach's hammer (`SmashWall`)
    and is a `ZoneKind.SafeRoom` with `Zone.DamageCut`. The model wears its role's build and trim. Stand-ins now prefer their
    own role's (`FillsGaps`).
-5. Next: more weapons, abilities and ultimates per role (each role has two locked weapon keys and two locked ability keys).
+5. **Built** (protocol 411): **robot weapons**, each role's second weapon (`EngineerBots.cs`): the first click summons a robot
+   Engineer of the role at the cursor (a click on an enemy sends it there); it fights and draws enemies near it; with it out,
+   Fire is a basic attack. Tank **Iron Fist** (Tank Bot: nail shotgun, 850 HP, taunt 240 px; fist: an arc shove, 10 damage,
+   180 px push), Healer **Stasis Gun** (Medic Bot: rivets + 9/s heal in 110 px; hold Fire: a 60 px field at the cursor that holds
+   enemies in place and hurts 14/s), DPS **Vector Blade** (Assault Bot: rapid rivets; a 24-damage swipe). Rebuild 8 s.
+6. Next: a third weapon and more abilities per role (each role has one locked weapon key and two locked ability keys).
 
 Unlock (Nov 18): a locked class, `Unlocks` "class-engineer" (win a run; `Profile.EngineerUnlocked`), with a padlock card in the lobby and
 the Wildcard wheel until then. Open to everyone for now: `EngineerUnlockedForTesting` in `LobbyUi.cs`.

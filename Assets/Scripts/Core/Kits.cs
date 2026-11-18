@@ -24,6 +24,7 @@ namespace Arena
         Sentinel,     // the Tank Engineer's Bulwark Forge walker: a heavier Strider that soaks shots and draws enemies from farther (Engineer.cs)
         MediDrone,    // the Healer Engineer's Medi-Drone Forge companion: flies to the most hurt ally and heals it (Engineer.cs)
         VectorBlock,  // one tile of a Vector Wall or Bastion: stops enemy shots until its soak is gone or it times out (Engineer.cs)
+        TankBot, MedicBot, AssaultBot,  // the Engineer's robots (Iron Fist, Stasis Gun, Vector Blade): summoned by a click, they fight and draw aggro (EngineerBots.cs)
         None = 255,
     }
 
@@ -47,7 +48,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis }
 
     public class ZoneDef
     {
@@ -124,6 +125,13 @@ namespace Arena
                 Attack = MinionAttack.Heal, HealRate = 12f, Range = 70f },
             new MinionDef { Name = "Vector Block", Radius = 24f, Sides = 4, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static,
                 BlockRadius = 24f, BlockCapacity = 400f },
+            // the Engineer's robots (EngineerBots.cs TickBot): Range is how far they shoot, Interval their fire rate
+            new MinionDef { Name = "Tank Bot", Radius = 24f, Sides = 6, Color = new Rgba(1f, 0.71f, 0.28f), Move = MinionMove.Static, Speed = 115f,
+                Interval = 0.75f, Damage = 6f, Range = 210f },
+            new MinionDef { Name = "Medic Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.44f, 0.94f, 0.66f), Move = MinionMove.Static, Speed = 150f,
+                Interval = 0.4f, Damage = 9f, Range = 330f, HealRate = 9f },
+            new MinionDef { Name = "Assault Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static, Speed = 175f,
+                Interval = 0.22f, Damage = 11f, Range = 340f },
         };
 
         // Indexed by ZoneKind.
@@ -164,6 +172,7 @@ namespace Arena
             new ZoneDef { Name = "Drag Pylon", Color = new Rgba(0.64f, 0.55f, 1f) },
             new ZoneDef { Name = "Med Pylon", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 10f },  // the Healer Engineer's Space ability: heals allies inside; stays until the next one
             new ZoneDef { Name = "Safe Room", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 20f },  // the Healer Engineer's ultimate: a room (or dome) that heals and cuts damage (Zone.DamageCut)  // the Engineer's Space ability (Engineer.cs): slows enemies inside by its own tick; stays until the next one  // the Tank Soldier's Deployable Cover (DeployableCover.cs): Pos its middle, Aim the way it faces, GuardFrac its health left; blocks by CoverStops, not as a circle
+            new ZoneDef { Name = "Stasis", Color = new Rgba(0.55f, 0.85f, 1f) },  // the Stasis Gun's field (EngineerBots.cs): at your cursor while you hold Fire; holds enemies in place and hurts them by its own tick
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];
