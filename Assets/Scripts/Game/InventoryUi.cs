@@ -145,7 +145,7 @@ namespace Arena
             return s;
         }
 
-        /// Gold and vectors as big tiles (the vectors with a bar to the cap), then the revive token and the gadget.
+        /// Gold and vectors as big tiles, then the revive token and the gadget.
         void DrawInvWallet(Player me, Rect r, bool mine)
         {
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Wallet", null, HoloCalm);
@@ -153,8 +153,6 @@ namespace Arena
             HoloTile(new Rect(r.x + 12f, r.y + 46f, tw, 64f), me.Gold.ToString(), "Gold");
             bool expanding = game.ExpandingOn;
             HoloTile(new Rect(r.x + 24f + tw, r.y + 46f, tw, 64f), expanding ? me.Vectors.ToString() : "—", expanding ? "Vectors / " + me.VectorCap : "Vectors", new Color(0.55f, 0.9f, 1f));
-            if (expanding)
-                HoloBar(new Rect(r.x + 24f + tw, r.y + 114f, tw, 6f), me.VectorCap > 0 ? (float)me.Vectors / me.VectorCap : 0f, new Color(0.45f, 0.85f, 1f));
             var rows = new string[,]
             {
                 { "Revive token", me.ReviveToken ? "1" : "0" },
