@@ -22,7 +22,7 @@ waves in play and keep whichever feels better (or leave it to each lobby).
 | Question | Decision |
 |---|---|
 | Redo waves, or a separate mode? | **Neither, first:** approaches are a layer on the existing 50-wave run. A Chapters mode (below) may come later and reuse them. |
-| Blend or fully themed? | **Undecided: a setting.** The lobby's Difficulty tab has Boss approach and Approach ramp, with Blend / Fully themed buttons. They're flavour: the same on every preset, and changing them doesn't make the difficulty Custom. |
+| Blend or fully themed? | **Blend (Nov 18, owner).** The lobby's Blend / Fully themed picker is gone; the knobs stay at Blend (85% with the ramp). |
 | Does the approach change the boss fight? | **No.** A wave only ends when everything in it is dead, so there's nothing to reward; the approach just teaches the boss's enemies. |
 | The Warden's searchlight is too easy (it follows at 150 px/s, slower than every player) | **Riot Shield Guards** (below) come into its turn and bash you toward the light. The light does **not** get faster. A change to the Warden fight itself, not tied to the approach setting. |
 
