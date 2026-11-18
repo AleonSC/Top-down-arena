@@ -532,7 +532,9 @@ namespace Arena
         public int PendingMods;      // weapon mods still to pick (one per boss, after its legendary)
         public bool OfferMod;        // the current offer is the weapon mod list
         public int PendingCards;     // boss card picks still to make (Expanding arena, room cards on: one per boss, after its legendary; BossCards.cs)
-        public bool OfferCards;      // the current offer is a boss card pick: Offer holds BossCards codes, not upgrade ids
+        public bool OfferCards;      // the current offer is a card pick (boss or wave): Offer holds BossCards codes, not upgrade ids
+        public int WavePicks;        // how many of PendingCards are wave card picks (2 cards after each wave, taken after the boss's; Hand.cs)
+        public bool OfferWave;       // the current card offer is a wave card pick (no reroll)
         public int PendingMilestones;  // milestone picks still to take: one every 10 levels, and lucky ones from the Milestone Compass
         public bool OfferMilestone;  // the current offer is from the milestone pool
         public int PrizePicks;       // challenge room prizes still to pick: rare or better (Challenges.cs)
