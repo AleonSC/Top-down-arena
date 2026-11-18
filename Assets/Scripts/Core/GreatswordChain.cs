@@ -67,6 +67,22 @@ namespace Arena
         /// Which way a step's sweep goes on screen (+1 the aim's clockwise way; Backstep Reap and Cross Cut's second cut come back).
         public static float GreatSweepSign(GreatMove m, int hit) => m == GreatMove.Backstep || (m == GreatMove.Cross && hit == 1) ? -1f : 1f;
 
+        /// How far the next chain step reaches (the aim line, bots): Comet Leap's is where its ring's far edge lands.
+        public static float GreatNextReach(Player p)
+        {
+            int next = p.GreatStep >= 1 && p.GreatStep < GreatChain.Length ? p.GreatStep + 1 : 1;
+            switch (GreatChain[next - 1])
+            {
+                case GreatMove.Undertow: return MeleeReach(p, UndertowReach);
+                case GreatMove.Pommel: return MeleeReach(p, PommelReach);
+                case GreatMove.Cross: return MeleeReach(p, CrossReach);
+                case GreatMove.Backstep: return MeleeReach(p, BackstepReach);
+                case GreatMove.Leap: return GreatMoves[(int)GreatMove.Leap].Fwd + MeleeReach(p, LeapRadius);
+                case GreatMove.FullMoon: return MeleeReach(p, MoonReach);
+                default: return MeleeReach(p, EclipseReach);
+            }
+        }
+
         /// Host: one press of the primary with the Greatsword (from FireKnightWeapon): the next step of the chain.
         void FireGreatsword(Player p, float aim, float dmg, int extra)
         {
