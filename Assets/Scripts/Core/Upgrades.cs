@@ -162,7 +162,7 @@ namespace Arena
         public float VeinStealBonus;                                       // Vein Tether: Lifeline
         public int HemoHitCut; public float HemoRadiusMult = 1f;           // Blood Bolts: Hemophilia
         public float ImplodeReachMult = 1f, ImplodeDmgMult = 1f;           // Implosion: Event Horizon
-        public int BsShardBonus, SympBonus;                                // Bone Spear: Marrow (BoneSpear.cs)
+        public int BsShardBonus, SympBonus;                                // Blood Brawler: Marrow (BoneSpear.cs)
         // Summoner weapon cards (Docs/UpgradePools.md step 10)
         public float StaffGolemTough = 1f, BoulderSplashMult = 1f;         // Golem Staff: Granite Golem
         public float CageBonusTime, SkeletonRateMult = 1f;                 // Bone Guard: Ossuary

@@ -339,8 +339,8 @@ namespace Arena
             return best;
         }
 
-        /// Implosion and the Bone Spear only fire with an enemy under the cursor; otherwise holding fire waits (and keeps the cooldown).
-        bool ImplodeReady(Player p) => p.Weapon.Id != WeaponId.Implosion && p.Weapon.Id != WeaponId.BoneSpear || ImplodeTarget(p, p.AimAt) != null;  // (and the Bone Spear's string: BoneSpear.cs)
+        /// Implosion and the Blood Brawler only fire with an enemy under the cursor; otherwise holding fire waits (and keeps the cooldown).
+        bool ImplodeReady(Player p) => p.Weapon.Id != WeaponId.Implosion && p.Weapon.Id != WeaponId.BoneSpear || ImplodeTarget(p, p.AimAt) != null;  // (and the Blood Brawler's string: BoneSpear.cs)
 
         /// Called from Collide after the beams: each implosion hurts its target, then the enemies pressed against
         /// it (pulled in a little), then one more enemy near the target per extra projectile (one not hit yet; with
@@ -742,7 +742,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
-            new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Bone Spear", FireInterval = Game.BsPulseTime,
+            new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
                 Desc = "Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.EmbolusSpears, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
@@ -793,7 +793,7 @@ namespace Arena
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
                 Apply = s => { s.ImplodeReachMult += 0.3f; s.ImplodeDmgMult += 0.4f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoneSpear }, MaxStacks = 2, Name = "Marrow", Desc = "The Bone Spear's Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoneSpear }, MaxStacks = 2, Name = "Marrow", Desc = "The Blood Brawler's Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy",
                 Apply = s => { s.BsShardBonus += 2; s.SympBonus += 1; } },
         };
 

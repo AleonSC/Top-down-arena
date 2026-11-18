@@ -476,7 +476,7 @@ namespace Arena
             Rgba col = Game.IsReaperCult(e.Type) ? CultTint(e) : e.Def.Color;  // the Reapers' cult: its sworn side (ReaperCultLook.cs)
             if (Game.IsBrute(e.Type))
                 col = col.Mix(new Rgba(1f, 0.15f, 0.1f), 0.7f * Game.BruteRage(e));  // enrage: redder as it is shot (BruteEnrage.cs)
-            float lift = BsLiftOf(e);  // thrown up by the Bone Spear's Heart Lift: drawn above its shadow (BoneSpearLook.cs)
+            float lift = BsLiftOf(e);  // thrown up by the Blood Brawler's Heart Lift: drawn above its shadow (BoneSpearLook.cs)
             V2 pos = e.Disp - new V2(0f, lift);
             float r = (e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius) * JuiceScale(e);  // its Radius grows with the event horizon (SingularityLook.cs); JuiceScale: a hit's bulge (Juice.cs)
             bool spawning = game.IsSpawning(e);

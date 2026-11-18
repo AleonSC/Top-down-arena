@@ -15,7 +15,8 @@ namespace Arena
         public int Length => Till - From;
     }
 
-    /// A portal pair the team bought (the Expanding arena, Docs/RoomBuilding2.md step 2): two spots on the 100 px grid, each in a room.
+    /// A portal pair the team bought (the Expanding arena, Docs/RoomBuilding2.md step 2): two spots on the 100 px grid, each on a
+    /// room's outer wall (the wall round them becomes the portal). Older saves' pairs sit inside rooms: floor portals.
     public struct PortalLink : IEquatable<PortalLink>
     {
         public short AX, AY, BX, BY;
@@ -815,6 +816,7 @@ namespace Arena
         public const int LinkBase = 8, LinkMax = 30;  // a link costs 8, +1 per 2 tiles of walking it saves, at most 30
         public const float LinkMinSave = 600f;    // it must save at least 6 tiles of walking
         public const float LinkEdge = 90f, LinkClear = 250f, LinkDoor = 150f;  // kept off walls, other portals and doors
+        public const float LinkHalf = 100f;       // a wall portal turns 200 px of wall into the portal (100 either side of its spot)
 
         public static ExpansionRoom LinkProposal(PortalLink l, int price) => new ExpansionRoom
         {
@@ -838,7 +840,7 @@ namespace Arena
             var areas = new List<int[]> { new[] { OpenArea(w, a, 0f) }, new[] { OpenArea(w, b, 0f) } };
             foreach (var d in w.Doors) { pos.Add(d.Pos); areas.Add(new[] { d.A, d.B }); }
             int firstPortal = pos.Count;
-            foreach (var pt in w.Portals) { pos.Add(pt.A); areas.Add(new[] { w.AreaAt(pt.A) }); pos.Add(pt.B); areas.Add(new[] { w.AreaAt(pt.B) }); }
+            foreach (var pt in w.Portals) { pos.Add(pt.MouthA); areas.Add(new[] { w.AreaAt(pt.MouthA) }); pos.Add(pt.MouthB); areas.Add(new[] { w.AreaAt(pt.MouthB) }); }
             int n = pos.Count;
             var dist = new float[n];
             var done = new bool[n];
@@ -868,61 +870,109 @@ namespace Arena
             return dist[1];
         }
 
-        /// What a link costs on this map; 0 with `why` set if it can't go there (off the grid, in a wall, a sealed room, cover, too near a
-        /// door or another portal, the same room, or saving too little walking).
+        /// Which way is into the room from a wall spot (null: p isn't on the 100 px grid on a room's outer wall). The outer wall:
+        /// a connected room on one side, nothing on the other, LinkHalf either side of p (so no corner, door or seam is in it).
+        public static V2? OuterWall(World w, V2 p)
+        {
+            foreach (var inn in Sides)
+            {
+                V2 along = inn.Orthogonal();
+                bool ok = true;
+                for (int k = -1; k <= 1 && ok; k++)
+                {
+                    V2 q = p + along * (k * (LinkHalf - 10f));
+                    if (OpenArea(w, q + inn * 30f, 0f) < 0)
+                        ok = false;
+                    foreach (var a in w.Areas)
+                        if (a.Contains(q - inn * 30f))
+                            ok = false;
+                }
+                if (ok)
+                    return inn;
+            }
+            return null;
+        }
+
+        static readonly V2[] Sides = { new V2(0f, 1f), new V2(0f, -1f), new V2(1f, 0f), new V2(-1f, 0f) };
+
+        /// Whether one end of a portal pair can go on the wall at p; `inn` is the way into its room, `why` what is wrong.
+        static bool WallSpot(World w, V2 p, out V2 inn, out string why)
+        {
+            why = null;
+            inn = V2.Zero;
+            if ((int)p.X % Step != 0 || (int)p.Y % Step != 0) { why = "Not on the grid"; return false; }
+            var side = OuterWall(w, p);
+            if (!side.HasValue) { why = "Each end goes on a room's outer wall, with 2 tiles of plain wall"; return false; }
+            inn = side.Value;
+            V2 mouth = p + inn * WorldPortal.MouthIn, along = inn.Orthogonal();
+            foreach (var c in w.Cover)
+                if (Layouts.Inside(c, mouth, 50f)) { why = "An obstacle is in the way"; return false; }
+            foreach (var c in w.WallsFor(false))  // (a room's side walls, standing out from the portal's wall)
+                for (int k = -1; k <= 1; k++)
+                    if (Layouts.Inside(c, p + inn * 36f + along * (k * (LinkHalf - 20f)), 4f)) { why = "A wall is in the way"; return false; }
+            foreach (var d in w.Doors)
+                if (d.Pos.CloserThan(p, LinkDoor)) { why = "Too near a door"; return false; }
+            return true;
+        }
+
+        /// Where a link's end starts walking from: just off its wall (a wall end), or the spot itself (an older floor end).
+        public static V2 LinkEnd(World w, V2 p)
+        {
+            var side = OuterWall(w, p);
+            return side.HasValue ? p + side.Value * WorldPortal.MouthIn : p;
+        }
+
+        /// How far a link's two ends are apart on foot today.
+        public static float LinkWalk(World w, PortalLink l) => WalkDistance(w, LinkEnd(w, l.A), LinkEnd(w, l.B));
+
+        /// What a link costs on this map; 0 with `why` set if it can't go there (off the grid, not on a room's outer wall, a sealed
+        /// room, cover or a side wall in front of it, too near a door or another portal, the same room, or saving too little walking).
         public static int LinkPrice(World w, int links, PortalLink l, out string why)
         {
             why = null;
             if (links >= MaxLinks) { why = "The map holds " + MaxLinks + " portal pairs at most"; return 0; }
-            if (l.AX % Step != 0 || l.AY % Step != 0 || l.BX % Step != 0 || l.BY % Step != 0) { why = "Not on the grid"; return 0; }
-            V2 a = l.A, b = l.B;
-            int aa = OpenArea(w, a, LinkEdge), ab = OpenArea(w, b, LinkEdge);
-            if (aa < 0 || ab < 0) { why = "Each end must be inside a connected room, off its walls"; return 0; }
-            if (aa == ab) { why = "The two ends must be in different rooms"; return 0; }
-            foreach (var c in w.Cover)
-                if (Layouts.Inside(c, a, 50f) || Layouts.Inside(c, b, 50f)) { why = "An obstacle is in the way"; return 0; }
-            foreach (var c in w.WallsFor(false))  // (a room's side walls)
-                if (Layouts.Inside(c, a, 50f) || Layouts.Inside(c, b, 50f)) { why = "A wall is in the way"; return 0; }
-            foreach (var d in w.Doors)
-                if (d.Pos.CloserThan(a, LinkDoor) || d.Pos.CloserThan(b, LinkDoor)) { why = "Too near a door"; return 0; }
+            V2 a = l.A, b = l.B, ia, ib;
+            if (!WallSpot(w, a, out ia, out why) || !WallSpot(w, b, out ib, out why))
+                return 0;
+            V2 ma = a + ia * WorldPortal.MouthIn, mb = b + ib * WorldPortal.MouthIn;
+            if (OpenArea(w, ma, 0f) == OpenArea(w, mb, 0f)) { why = "The two ends must be in different rooms"; return 0; }
             foreach (var pt in w.Portals)
                 foreach (var e in new[] { pt.A, pt.B })
                     if (e.CloserThan(a, LinkClear) || e.CloserThan(b, LinkClear)) { why = "Too near another portal"; return 0; }
-            float walk = WalkDistance(w, a, b);
+            float walk = WalkDistance(w, ma, mb);
             if (walk == float.MaxValue) { why = "No way between them"; return 0; }
             if (walk < LinkMinSave) { why = "Saves too little walking (at least " + (int)(LinkMinSave / Step) + " tiles)"; return 0; }
             return Math.Min(LinkMax, LinkBase + (int)Math.Round(walk / (2f * Step)));
         }
 
-        /// The link that saves the most walking on this map (one clear spot per room, nearest its middle), or null. Bots propose it.
+        /// The link that saves the most walking on this map (one clear outer-wall spot per room, nearest its middle), or null. Bots propose it.
         public static PortalLink? BestLink(World w, int links)
         {
             var spots = new List<V2>();
             foreach (var a in w.Areas)
             {
-                if (a.Sealed)
+                if (a.Sealed || a.Floating)
                     continue;
                 V2? best = null;
-                for (float y = (float)Math.Ceiling((a.Min.Y + LinkEdge) / Step) * Step; y <= a.Max.Y - LinkEdge; y += Step)
-                    for (float x = (float)Math.Ceiling((a.Min.X + LinkEdge) / Step) * Step; x <= a.Max.X - LinkEdge; x += Step)
-                    {
-                        var p = new V2(x, y);
-                        bool ok = true;
-                        foreach (var c in w.Cover) ok &= !Layouts.Inside(c, p, 50f);
-                        foreach (var c in w.WallsFor(false)) ok &= !Layouts.Inside(c, p, 50f);
-                        foreach (var d in w.Doors) ok &= d.Pos.FartherOrAt(p, LinkDoor);
-                        if (ok && (!best.HasValue || p.CloserThan(a.Mid, best.Value.DistanceTo(a.Mid))))
-                            best = p;
-                    }
+                var edge = new List<V2>();
+                for (float x = (float)Math.Ceiling(a.Min.X / Step) * Step; x <= a.Max.X; x += Step) { edge.Add(new V2(x, a.Min.Y)); edge.Add(new V2(x, a.Max.Y)); }
+                for (float y = (float)Math.Ceiling(a.Min.Y / Step) * Step; y <= a.Max.Y; y += Step) { edge.Add(new V2(a.Min.X, y)); edge.Add(new V2(a.Max.X, y)); }
+                foreach (var p in edge)
+                {
+                    V2 inn;
+                    string why;
+                    if (WallSpot(w, p, out inn, out why) && a.Contains(p + inn * 30f) && (!best.HasValue || p.CloserThan(a.Mid, best.Value.DistanceTo(a.Mid))))
+                        best = p;
+                }
                 if (best.HasValue)
                     spots.Add(best.Value);
             }
             PortalLink? top = null;
             int topPrice = 0;
-            string why;
             for (int i = 0; i < spots.Count; i++)
                 for (int j = i + 1; j < spots.Count; j++)
                 {
+                    string why;
                     var l = new PortalLink { AX = (short)spots[i].X, AY = (short)spots[i].Y, BX = (short)spots[j].X, BY = (short)spots[j].Y };
                     int price = LinkPrice(w, links, l, out why);
                     if (price > topPrice) { topPrice = price; top = l; }
@@ -945,15 +995,26 @@ namespace Arena
             foreach (var d in w.Doors)
                 if (d.Pos.CloserThan(p, LinkDoor)) { why = "Too near a door"; return false; }
             foreach (var pt in w.Portals)
-                if (pt.A.CloserThan(p, Market.PlaceClear) || pt.B.CloserThan(p, Market.PlaceClear)) { why = "Too near a portal"; return false; }
+                if (pt.MouthA.CloserThan(p, Market.PlaceClear) || pt.MouthB.CloserThan(p, Market.PlaceClear)) { why = "Too near a portal"; return false; }
             foreach (var o in placed)
                 if (o.Pos.CloserThan(p, Market.PlaceClear)) { why = "Too near another trap"; return false; }
             return true;
         }
 
-        /// A built link as a World portal: each end faces into its room (the way you come out).
+        /// A built link as a World portal. An end on a room's wall makes that wall the portal, facing into the room (the first-built
+        /// room if one was built against it since, so every machine agrees); an end inside a room (an older save) is a floor portal
+        /// facing the room's middle.
         static WorldPortal PortalOf(RoomArea[] areas, PortalLink l)
         {
+            Func<V2, V2?> wall = p =>
+            {
+                for (int i = 0; i < areas.Length; i++)
+                    if (!areas[i].Floating)
+                        foreach (var inn in Sides)
+                            if (areas[i].Contains(p + inn * 30f) && !areas[i].Contains(p - inn * 30f) && areas[i].Contains(p + inn * 30f + inn.Orthogonal() * (LinkHalf - 10f)) && areas[i].Contains(p + inn * 30f - inn.Orthogonal() * (LinkHalf - 10f)))
+                                return inn;
+                return null;
+            };
             Func<V2, V2> inward = p =>
             {
                 foreach (var a in areas)
@@ -964,6 +1025,9 @@ namespace Arena
                     }
                 return new V2(0f, 1f);
             };
+            V2? wa = wall(l.A), wb = wall(l.B);
+            if (wa.HasValue && wb.HasValue)
+                return new WorldPortal { A = l.A, B = l.B, InA = wa.Value, InB = wb.Value, Half = LinkHalf };
             return new WorldPortal { A = l.A, B = l.B, InA = inward(l.A), InB = inward(l.B) };
         }
 
