@@ -24,6 +24,7 @@ namespace Arena
             EPal(0x2c3e5c, 0x172238, 0x354a6e, 0xd98a2b, 0xf2c230, 0xa77f12, 0xff7a1f),  // Hi-vis
             EPal(0x2b4a4f, 0x142629, 0x335a60, 0x1c2b2e, 0xe9eef2, 0x8d99a3, 0x5ce1ff),  // Drafter
             EPal(0x8a5228, 0x45260f, 0x734420, 0x3a2a1c, 0x3a4250, 0x1c2129, 0xffb547),  // Welder
+            EPal(0x7d8a9c, 0x2a313c, 0x5d6878, 0x3a4250, 0xb9c4d2, 0x55606e, 0x5ce1ff),  // Robot (look 3: the robot Engineers, EngineerBotLook.cs)
         };
         static readonly Rgba EngCyan = new Rgba(0.36f, 0.88f, 1f), EngSteel = Hx(0x8a96a8), EngIron = Hx(0x4a5361);
 
@@ -35,7 +36,9 @@ namespace Arena
         }
 
         /// The Engineer as a DPS: `fire` 0-1 is the rivet gun's kick.
-        internal void DrawEngineerModel(V2 at, float aim, float bodyR, int look, float t, float fire = 0f, float alpha = 1f, float white = 0f, int role = 2)
+        /// `tool`: what it holds: 0 the rivet gun, 1 the Iron Fist, 2 the Stasis Gun, 3 the Vector Blade (EngineerBotLook.cs); `fire` is then
+        /// the punch, the stasis beam's strength or the swipe.
+        internal void DrawEngineerModel(V2 at, float aim, float bodyR, int look, float t, float fire = 0f, float alpha = 1f, float white = 0f, int role = 2, int tool = 0)
         {
             var P = EngPals[look];
             var K = P.K;
@@ -59,6 +62,12 @@ namespace Arena
                 MCirc(-15f, -ry - 3f, 3.2f, EngIron, 10); MCirc(-9f, ry + 3f, 3.2f, EngIron, 10);
                 MCirc(-15f, -ry - 3f, 1.4f, EngCyan, 8); MCirc(-9f, ry + 3f, 1.4f, EngCyan, 8);
                 MCirc(-17f, 0f, 3f, EngCyan.WithAlpha(0.25f), 10); MCirc(-17f, 0f, 1.6f, EngCyan, 8);
+            }
+            else if (look == 3)  // a robot: a power cell with a cyan core
+            {
+                MRect(-19f, -7f, 12f, 14f, K.Dark); MRect(-18f, -6f, 10f, 12f, EngIron);
+                MCirc(-13f, 0f, 4.2f, EngCyan.WithAlpha(0.25f + 0.15f * Mathf.Sin(t * 4f)), 14); MCirc(-13f, 0f, 2.4f, EngCyan, 10);
+                MLine(-18f, -4f, -8f, -4f, 0.9f, RC); MLine(-18f, 4f, -8f, 4f, 0.9f, RC);
             }
             else  // twin gas tanks and a hose
             {
@@ -88,6 +97,15 @@ namespace Arena
                     MLine(-7f, s * 4f, -7f, s * (ry - 3f), 1.1f, EngCyan.WithAlpha(0.7f));
                 }
             }
+            else if (look == 3)  // plating seams and rivets
+            {
+                for (int s = -1; s <= 1; s += 2)
+                {
+                    MLine(-7f, s * (ry - 3f), 4f, s * (ry - 4f), 1f, K.Dark);
+                    for (int i = 0; i < 3; i++) MCirc(-6f + i * 4.5f, s * (ry - 5.5f), 0.9f, Hx(0xdfe6ee), 6);
+                }
+                MLine(-3f, -ry + 3f, -3f, ry - 3f, 1f, K.Dark);
+            }
             else  // a leather apron band and buckles
             {
                 MRect(-3f, -ry + 2f, 6f, 2f * ry - 4f, K.Dark);
@@ -95,15 +113,20 @@ namespace Arena
             }
             ModelRoleTrim(role, K, RC, rx, ry, t, true);
 
-            // arms on the Vector Forge (two hands: grip and foregrip)
-            float kick = fire * 3f;
-            float rhx = 12f - kick, rhy = 5f, lhx = 20f - kick, lhy = 2.5f;
-            ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
-            ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
-            MFrame(rhx, rhy, 0f, 1f, false);
-            DrawVectorForge(t, fire);
-            MFrame(0f, 0f, 0f, 1f, false);
-            MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove);
+            if (tool != 0)
+                DrawEngineerTool(K, tool, ry, t, fire);  // EngineerBotLook.cs
+            else
+            {
+                // arms on the Vector Forge (two hands: grip and foregrip)
+                float kick = fire * 3f;
+                float rhx = 12f - kick, rhy = 5f, lhx = 20f - kick, lhy = 2.5f;
+                ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
+                ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
+                MFrame(rhx, rhy, 0f, 1f, false);
+                DrawVectorForge(t, fire);
+                MFrame(0f, 0f, 0f, 1f, false);
+                MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove);
+            }
 
             // the head
             float hx = sh[3], hr = 8.4f;
@@ -130,6 +153,12 @@ namespace Arena
                 {
                     MArc(hx - 0.6f, 0f, hr - 0.8f, -0.75f, 0.75f, 2.2f, EngCyan);
                     MArc(hx - 0.6f, 0f, hr - 0.8f, -0.75f, 0.75f, 5f, EngCyan.WithAlpha(0.18f));
+                    if (look == 3)  // a robot: the stripe in its role's colour and an antenna with a blinking tip
+                    {
+                        MLine(hx - hr + 2.4f, 0f, hx + hr - 1.6f, 0f, 1.4f, RC);
+                        MLine(hx - 3f, -hr + 1f, hx - 9f, -hr - 6f, 1.1f, EngIron);
+                        MCirc(hx - 9f, -hr - 6f, 1.6f, Mathf.Sin(t * 6f) > 0f ? RC : EngIron, 8);
+                    }
                 }
             }
         }
@@ -141,7 +170,10 @@ namespace Arena
         {
             float fire = MathX.Clamp01(1f - (p.Weapon.FireInterval - p.FireCd) / 0.12f);
             if (p.FireCd <= 0f) fire = 0f;
-            DrawEngineerModel(p.Disp, p.Aim, r, EngineerLook, t, fire, col.A, p.Flash > 0f ? 0.85f : 0f, Mathf.Min((int)p.Role, 2));
+            int tool = EngineerToolOf(p);
+            if (tool != 0)
+                fire = EngineerToolFire(p, tool);  // EngineerBotLook.cs
+            DrawEngineerModel(p.Disp, p.Aim, r, EngineerLook, t, fire, col.A, p.Flash > 0f ? 0.85f : 0f, Mathf.Min((int)p.Role, 2), tool);
         }
 
         /// KitLook.Body: nothing over the model yet.
