@@ -187,7 +187,8 @@ static partial class Program
             Give(2, "Nova");
             Give(2, "Blink");
             Give(1, "Overdrive");
-            Give(2, "Overcharge");
+            host.Game.GrantUpgrade(2, U("Extra Use"), 2);  // +1 use on Q
+            host.Game.GrantUpgrade(2, U("Extra Use"), 3);  // ...and on E
             int turretsSeen = 0, ghostsAfter = 0;
             for (int i = 0; i < 60 * 12; i++)
             {
@@ -228,7 +229,7 @@ static partial class Program
                     overchargeOk = cs[1].MaxCharges == 2 && cs[2].MaxCharges == 2;
             }
             Check(slotsOk, "new abilities fill Q, E, then Shift, in pick order, on the client too");
-            Check(overchargeOk, "Overcharge gives Q/E a second charge");
+            Check(overchargeOk, "Extra Use gives the chosen keys (Q, E) a second charge");
             Check(!hasTurret || turretsSeen > 0, "turret shows up on the client");
             Check(ghostsAfter == 0, "still in sync while using new abilities");
         }
