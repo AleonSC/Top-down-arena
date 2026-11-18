@@ -282,7 +282,7 @@ static partial class Program
             {
                 V2 was = runner.Pos;
                 moveEnemy.Invoke(g, new object[] { runner, goalE, dt });
-                var pa = new object[] { runner.Pos, runner.PortalT, dt };
+                var pa = new object[] { runner.Pos, runner.PortalT, dt, 0f };
                 runner.Pos = (V2)roomsPortal.Invoke(g, pa);
                 runner.PortalT = (float)pa[1];
                 jumped |= runner.Pos.DistanceTo(was) > 600f;
@@ -354,7 +354,7 @@ static partial class Program
                     var walker = (Enemy)spawnEnemyAt.Invoke(g, new object[] { k % 3 == 2 ? EnemyType.Runner : EnemyType.Brute, from, 0f, 0, false });
                     walker.SpawnT = 0f; walker.Hp = walker.MaxHp = 99999f;
                     float near = 9999f;
-                    var portalArgs = new object[] { walker.Pos, 0f, dt };
+                    var portalArgs = new object[] { walker.Pos, 0f, dt, 0f };
                     for (int i = 0; i < 4000 && near > 50f; i++)
                     {
                         moveEnemy.Invoke(g, new object[] { walker, to, dt });
