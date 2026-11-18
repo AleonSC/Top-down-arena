@@ -37,13 +37,13 @@ button small{display:block;font-size:10px;opacity:.7;font-weight:400}
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const cv=$("c");let ctx=cv.getContext("2d");const mainCtx=ctx;
+const cv=$("c");let ctx=cv.getContext("2d",{alpha:false,desynchronized:true});const mainCtx=ctx;
 const INKS=[["#5ff0ff","Cyan"],["#ff8c1f","Warden"],["#ffe026","Hive"],["#ff4de6","Dusk"],["#ad59ff","Void"],["#40ff80","Lich"],["#ff3359","Devourer"],["#e6ebff","Silver"]];
 const GATE="#3fd6c4",GRID=40;
 let S={cam:{x:0,y:0,z:.5},shapes:[],tool:"pen",ink:0,snap:true,fill:true,finger:false,size:1,grid:true};
 let undo=[],redo=[];
 try{const j=JSON.parse(localStorage.getItem("mapsketch")||"null");if(j){S.shapes=j.shapes||[];S.cam=j.cam||S.cam;S.ink=j.ink||0}}catch(e){}
-function save(){try{localStorage.setItem("mapsketch",JSON.stringify({shapes:S.shapes,cam:S.cam,ink:S.ink}))}catch(e){}}
+let saveT=0;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem("mapsketch",JSON.stringify({shapes:S.shapes,cam:S.cam,ink:S.ink}))}catch(e){}},500)}
 function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,1600)}
 
 /* ---------- UI ---------- */
@@ -77,7 +77,7 @@ addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key==="z"){e.prevent
 
 /* ---------- geometry ---------- */
 let W=0,H=0,dpr=1;
-function resize(){dpr=Math.min(devicePixelRatio||1,3);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;draw()}
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;draw()}
 addEventListener("resize",resize);
 const toWorld=(sx,sy)=>({x:(sx-W/2)/S.cam.z+S.cam.x,y:(sy-H/2)/S.cam.z+S.cam.y});
 const snapv=v=>Math.round(v/GRID)*GRID;
@@ -115,7 +115,7 @@ function tracePoly(P,closed,smooth){
 }
 function hatch(P,c,a,sm){
  ctx.save();tracePoly(P,true,sm);ctx.clip();
- const b=bounds({pts:P}),sp=16;
+ const b=bounds({pts:P}),sp=Math.max(16,Math.ceil(11/S.cam.z/8)*8);
  ctx.strokeStyle=hex(c,.28*a);ctx.lineWidth=1/S.cam.z;ctx.beginPath();
  for(let d=Math.floor((b.x0-b.y1)/sp)*sp;d<b.x1-b.y0;d+=sp){ctx.moveTo(d+b.y0,b.y0);ctx.lineTo(d+b.y1,b.y1)}
  ctx.stroke();ctx.fillStyle=hex(c,.07*a);ctx.fill();ctx.restore();
@@ -124,7 +124,7 @@ function neon(P,c,w,closed,a=1,dash,sm){
  const z=S.cam.z,k=w/z;
  ctx.lineJoin="round";ctx.lineCap="round";
  if(dash)ctx.setLineDash(dash);
- for(const[m,al,col]of[[11,.05,c],[5.5,.11,c],[2.4,.4,c],[.8,.95,"#ffffff"]]){
+ for(const[m,al,col]of[[6,.12,c],[2.6,.4,c],[.9,.95,"#ffffff"]]){
   tracePoly(P,closed,sm);ctx.strokeStyle=hex(col,al*a);ctx.lineWidth=m*k*(m<1?1:1);ctx.stroke();
  }
  ctx.setLineDash([]);
@@ -145,16 +145,33 @@ function drawShape(sh,a=1){
  }
 }
 let live=null,hover=null;
-function draw(){
- ctx.setTransform(dpr,0,0,dpr,0,0);
+let raf=0,cache=null,cacheShapes=null,cacheGrid=null,cacheCam=null,camTimer=0;
+function draw(){if(!raf)raf=requestAnimationFrame(()=>{raf=0;render()})}
+function buildCache(){
+ if(!cache)cache=document.createElement("canvas");
+ cache.width=Math.round(W*dpr);cache.height=Math.round(H*dpr);
+ ctx=cache.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);
  ctx.fillStyle="#030814";ctx.fillRect(0,0,W,H);
  const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);g.addColorStop(0,"rgba(40,90,170,.14)");g.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- const z=S.cam.z;
- ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);
+ const z=S.cam.z;ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);
  if(S.grid)drawGrid();
  for(const sh of S.shapes)drawShape(sh);
- if(live)drawShape(live,.9);
- ctx.restore();
+ ctx.restore();ctx=mainCtx;
+ cacheShapes=S.shapes;cacheGrid=S.grid;cacheCam={...S.cam};
+}
+function render(){
+ const z=S.cam.z;
+ if(!cache||cacheShapes!==S.shapes||cacheGrid!==S.grid||cache.width!==Math.round(W*dpr)||cache.height!==Math.round(H*dpr))buildCache();
+ const c=cacheCam;
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ if(c.x!==S.cam.x||c.y!==S.cam.y||c.z!==z){
+  // reuse the stale bitmap while panning / zooming, re-render sharp once idle
+  const r=z/c.z;ctx.fillStyle="#030814";ctx.fillRect(0,0,W,H);
+  ctx.setTransform(dpr*r,0,0,dpr*r,dpr*((c.x-S.cam.x)*z+W/2-r*W/2),dpr*((c.y-S.cam.y)*z+H/2-r*H/2));
+  ctx.drawImage(cache,0,0,W,H);ctx.setTransform(dpr,0,0,dpr,0,0);
+  clearTimeout(camTimer);camTimer=setTimeout(()=>{buildCache();draw()},140);
+ }else ctx.drawImage(cache,0,0,W,H);
+ if(live){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawShape(live,.9);ctx.restore()}
 }
 function drawGrid(){
  const z=S.cam.z,x0=S.cam.x-W/2/z,x1=S.cam.x+W/2/z,y0=S.cam.y-H/2/z,y1=S.cam.y+H/2/z;
@@ -214,7 +231,7 @@ function move(e){
  const t=drawing.t,p=pt(e,t!=="pen"&&t!=="erase");
  if(t==="erase"){eraseAt(p);return}
  if(t==="pillar"){live.r=Math.max(GRID/4,S.snap?snapv(Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y)):Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y));draw();return}
- if(t==="pen"){const l=drawing.raw[drawing.raw.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)*S.cam.z>3){drawing.raw.push(p);live.pts=drawing.raw}}
+ if(t==="pen"){const l=drawing.raw[drawing.raw.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)*S.cam.z>5){drawing.raw.push(p);live.pts=drawing.raw}}
  else if(t==="line"||t==="gate"){let q=p;if(e.shiftKey)q=p;live.pts=[drawing.p0,q]}
  else live.pts=[drawing.p0,p];
  draw();
@@ -238,7 +255,14 @@ function finish(e){
  if(d.t==="gate")sh.ink=0;
  addShape(sh);
 }
-function addShape(sh){push();S.shapes=[...S.shapes,sh];draw();save()}
+function addShape(sh){
+ push();const old=S.shapes;S.shapes=[...old,sh];
+ if(cache&&cacheShapes===old&&cacheCam.x===S.cam.x&&cacheCam.y===S.cam.y&&cacheCam.z===S.cam.z){
+  const c=cache.getContext("2d");ctx=c;ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.translate(W/2,H/2);ctx.scale(S.cam.z,S.cam.z);ctx.translate(-S.cam.x,-S.cam.y);
+  drawShape(sh);ctx.restore();ctx=mainCtx;cacheShapes=S.shapes;
+ }
+ draw();save();
+}
 function eraseAt(p){
  const tol=14/S.cam.z;
  for(let i=S.shapes.length-1;i>=0;i--)if(hit(S.shapes[i],p,tol)){S.shapes=S.shapes.filter((_,j)=>j!==i);erased=true;break}
