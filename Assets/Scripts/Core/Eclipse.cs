@@ -53,6 +53,7 @@ namespace Arena
         public float DiskT = -1f;       // the Singularity echo's disk: seconds since it started (< 0: none)
         public float Inset;             // Last Light's burning edge: how far in from each side
         public float NovaT;             // Totality: seconds until the nova
+        public float NovaHp;            // host: its health right after the last nova (or as Totality began): the nova heals back at most half of what it lost since
         public readonly List<EclipseFlare> Flares = new List<EclipseFlare>();
         public readonly List<EclipseRing> Rings = new List<EclipseRing>();
         public readonly List<Sunspot> Spots = new List<Sunspot>();
@@ -74,7 +75,8 @@ namespace Arena
     ///   Last Light (20-5%): the edges of the arena burn and close in; Frantic spiral, Shadow nova (two flashes, the
     ///     moon jumps between them), Solar storm (flares and crescents).
     ///   Totality (below 5%): the moon is gone; a 12 s nova timer while it takes +50% damage. The nova hits everyone
-    ///     for 70% of their health and heals it a little, then the timer starts again.
+    ///     for 70% of their health and heals it back half of what it lost since the last nova (at most 2% of its
+    ///     health), then the timer starts again.
     /// Built from the mockup in Docs/Mockups/eclipse-5-stage.html. Drawn in EclipseLook.cs.
     public partial class Game
     {
@@ -91,7 +93,7 @@ namespace Arena
         public const int DiskOrbs = 12;
         public const float DiskSpin = 1.1f, DiskGrow = 95f, DiskStart = 90f, EchoDiskOrbR = 15f, DiskTime = 6f;
         public const float EdgeMax = 160f, EdgeSpeed = 8f, EdgeBurn = 20f;
-        public const float NovaTime = 12f, NovaFrac = 0.7f, EclipseNovaHeal = 0.02f, TotalityMult = 1.5f;
+        public const float NovaTime = 12f, NovaFrac = 0.7f, EclipseNovaHeal = 0.02f, EclipseNovaHealShare = 0.5f, TotalityMult = 1.5f;
         const float CrescentSpeed = 420f, CrescentLoop = 250f;
 
         static readonly EclipseTurn[][] EclipseTurns =
@@ -555,7 +557,11 @@ namespace Arena
                             p.InvulnT = 0f;
                             Damage(p, p.MaxHp * NovaFrac, "The Eclipse (nova)");
                         }
-                    e.Hp = Math.Min(e.MaxHp * EclipseTotalityAt, e.Hp + e.MaxHp * EclipseNovaHeal);
+                    // It heals back at most half of what it lost since the last nova (and never more than EclipseNovaHeal of
+                    // its health), so every nova cycle leaves it lower: Totality can always be won, just slowly.
+                    float heal = Math.Min(e.MaxHp * EclipseNovaHeal, Math.Max(0f, s.NovaHp - e.Hp) * EclipseNovaHealShare);
+                    e.Hp = Math.Min(e.MaxHp * EclipseTotalityAt, e.Hp + heal);
+                    s.NovaHp = e.Hp;
                     BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.9f, 0.8f), 1700f, 1f, Sfx.BigExplode);  // the nova
                     DoLog("the Eclipse: nova");
                 }
@@ -661,6 +667,7 @@ namespace Arena
             {
                 s.Inset = 0f;
                 s.NovaT = NovaTime;
+                s.NovaHp = e.Hp;
                 BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.79f, 0.82f, 0.89f), 400f, 0.8f, Sfx.BossGong);  // the moon breaks apart: totality
             }
             if (stage == EclipseStage.LastLight)

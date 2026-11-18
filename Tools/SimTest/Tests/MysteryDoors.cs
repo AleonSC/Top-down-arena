@@ -223,11 +223,18 @@ static partial class Program
 
         // Enemies: mid-wave they appear in the room at once; between waves they wait for the wave to start. A small room holds fewer.
         g.State = MatchState.Fighting;
+        g.Enemies.Clear();
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+        var queueWas = new List<EnemyType>(queue);
+        queue.Clear(); queue.Add(EnemyType.Rioter); queue.Add(EnemyType.Guard);  // (this wave's own types: a Warden wave)
         int e0 = g.Enemies.Count;
         var med = open(GridPiece.TetO, MysteryKind.Enemies);
         int want = Mystery.AmbushCount(g.Wave, MysteryRoom.Medium);
         int inRoom = g.Enemies.Values.Count(e => med.Any(r => e.Pos.X >= r.X - 20 && e.Pos.X <= r.X1 + 20 && e.Pos.Y >= r.Y - 20 && e.Pos.Y <= r.Y1 + 20));
         Check(med.Count == 1 && med[0].W == 1200 && med[0].H == 1200 && g.Enemies.Count - e0 == want && inRoom >= want, "mid-wave a medium room's " + want + " enemies appear in it (" + (g.Enemies.Count - e0) + " new, " + inRoom + " in the room)");
+        var kinds = g.Enemies.Values.Select(e => e.Type).Distinct().ToList();
+        Check(kinds.All(t => t == EnemyType.Rioter || t == EnemyType.Guard), "they're the wave's own types, not the old basic pool's Grunts (" + string.Join(", ", kinds) + ")");
+        queue.Clear(); queue.AddRange(queueWas);
         g.State = MatchState.Intermission;
         e0 = g.Enemies.Count;
         var sm = open(GridPiece.Mono, MysteryKind.Enemies);
