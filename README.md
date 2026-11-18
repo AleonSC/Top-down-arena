@@ -1111,8 +1111,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - **Mystery doors** (Grid): the room behind is a piece on the lattice, any of the nine shapes (small: a single; medium: a domino, corner, square, T, S or L; hallway: a line of 3 or 4); a shop, Black Market or Arms Dealer behind one is exactly one cell.
   - **Surprise and breach rooms** (Grid): a boss's surprise room is a 4-cell piece on the lattice (an L, a T or a square), a breach's Stash is the one cell behind it, and the gold breach's room and the Engineer's Breach land on the lattice too.
   - **Mini-bosses**: each boss cycle a sealed two-cell mini-boss room waits on the grid, one cell out from the map. Build a piece into the cell between to open it, then walk in to wake the coming boss's faction mini-boss (as before: the room locks, beat it for a prize pick).
-- **Building rounds**: every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
-  for it). Open it to place pieces from your hand on the map (above: **Grid**); everything you place is **built the moment you place it**, any number a round.
+- **Building rounds**: every cleared wave opens a round (the wave box's **Build** tab or build panel, or **Build** on its minimized strip; the countdown never waits
+  for it, though Auto-ready waits until you've opened it while you hold pieces). Open it to place pieces from your hand on the map (above: **Grid**); everything you place is **built the moment you place it**, any number a round.
   **Close** closes the window, **Done · ready up** closes it and readies you; either way the wave box comes back as its minimized strip. Nothing is built mid-wave.
   (Room cards, Free draw, Open wall, wall push, Team vote and Team purse were removed on Nov 18.)
 - **Side walls**: every built room grows walls out from its own outer walls, one design rolled per room
@@ -1571,15 +1571,19 @@ you've opened the Tab screen twice). A player's name tag rises clear of an Aeroa
 CRT colour (Settings > Visual effects), its title gold after a boss. It shows the wave's **clear time** and **score**, a row per player with **kills, damage
 dealt and damage taken** for that wave, and **awards**: **Untouched** (took no damage), **Reviver** (stood a teammate up),
 and in a party **Most damage**, **Most kills** and **Most healing** (only for a single leader with something to show).
-A **Squad** row adds them up. The box has **three steps** (tabs along its top: **Results**, **Build**, **Ready**), in order:
-**Results** (the numbers above, plus your vectors and rooms when a building round is open), then **Build** (**Continue · Build**
-opens the Expanding arena's build window; closing it (**Close**, or **Done · ready up**, which also readies you) folds the box into its minimized strip on the Ready step; the tab is left out when there is no round: Practice, hunts, the last wave,
-a full map, other arenas), then **Ready**: the enemy types the next wave draws from (new ones marked NEW; a boss wave
-names its boss), the **road to the next boss**, the **Ready** key (Y, bottom right, where Continue sits on Results), the **Auto-ready** switch, the
-status and the countdown bar. Y walks the steps (Results, Build, Ready) before it readies you, and Auto-ready only counts once you reach Ready. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
+A **Squad** row adds them up. The box has **tabs** along its top, opened in any order: **Results** (the numbers above, plus a
+gold **build panel** when a building round is open: the pieces in your hand by name, your vectors and **Open build map**),
+**Build · n** (n is the pieces in your hand; it opens the Expanding arena's build window, and pulses gold until you open it
+that break; closing the window (**Close**, or **Done · ready up**, which also readies you) folds the box into its minimized
+strip) and **Next wave** (the enemy types the next wave draws from, new ones marked NEW, a boss wave naming its boss, and
+the **road to the next boss**). Build and Next wave are left out when there is no building round (Practice, hunts, the last
+wave, a full map, other arenas): Results shows the next wave's panel then. Along the bottom of every tab: the **Start wave n**
+key (Y, bottom right), the **Auto-ready** switch, the status and the countdown bar. Skipping the build is fine (pieces keep
+for a later break): while you hold pieces, **n pieces saved for later** shows over the key. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
-old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip (a slim, see-through bar with solid keys) keeps the next wave, the status, Ready, **Build** (during a building round) and **Open** (Y there readies you at once). It opens again at the next break.
+old pace (it is off by default). In a building round, with pieces in your hand, Auto-ready waits until you've opened the
+build window (or pressed Start) that break, so it never skips building by accident. A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip (a slim, see-through bar with solid keys) keeps the next wave, the status, **Start**, **Build** (during a building round; gold until you open it) and **Open** (Y there readies you at once). It opens again at the next break.
 **The boss gate.** In the break before a boss (Quick Play, the Campaign, a Boss Hunt) there's no Ready: a **boss gate**, a
 red summoning circle with a skull in the middle, opens in the middle of the hub, and the fight starts once **every
 player still standing is in it** for 1.2 s (downed players don't count). Take your time to shop, build and pick first: there's no

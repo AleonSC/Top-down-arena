@@ -836,7 +836,7 @@ static partial class Shot {
       float wct = Environment.GetEnvironmentVariable("WCT") != null ? float.Parse(Environment.GetEnvironmentVariable("WCT"), System.Globalization.CultureInfo.InvariantCulture) : 1f;
       if (Time.unscaledTime < 5f) Time.unscaledTime = 5f;  // (a negative birth time reads as "not up yet")
       set("wcBorn", Time.unscaledTime - wct); set("wcWave", wg.Wave);
-      if (Environment.GetEnvironmentVariable("WCSTEP") != null) set("wcStep", int.Parse(Environment.GetEnvironmentVariable("WCSTEP")));  // WCSTEP=0|1|2: Results, Build (needs EXPANDVOTE=<rooms>), Ready
+      if (Environment.GetEnvironmentVariable("WCSTEP") != null) set("wcStep", int.Parse(Environment.GetEnvironmentVariable("WCSTEP")));  // WCSTEP=0|2: the Results or Next wave tab (Next wave needs EXPANDVOTE=<rooms> EXPANDCHIP=1)
       if (Environment.GetEnvironmentVariable("WCMIN") != null) set("wcMin", true);  // WCMIN=1: minimized to the strip at the top
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
