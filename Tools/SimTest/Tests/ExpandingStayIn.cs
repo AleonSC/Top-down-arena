@@ -17,7 +17,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game;
-        foreach (var gg in new[] { g, client.Game }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); }
+        foreach (var gg in new[] { g, client.Game }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); }
         Run(s, dt, 30f, () => g.State == MatchState.Fighting);
         Func<V2, bool> inRooms = p => g.CurrentWorld.Areas.Any(a => !a.Sealed && a.Contains(p));
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;

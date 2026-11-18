@@ -45,7 +45,7 @@ namespace Arena
         NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
         Respawn,      // client -> host: Practice Range only: kind 0 = get back up where you fell, 1 = restart the wave (the host's own only) (PracticeRespawn.cs)
         ExpandState,  // host -> all: the Expanding arena's rooms bought, the offer on the table and the votes so far (ExpansionGame.cs)
-        ExpandVote,   // client -> host: this player's vote on the offer (an offer's index, or the last = buy nothing)
+        ExpandVote,   // retired (Nov 18, Team vote building removed): no longer sent or read
         ExpandDraw,   // client -> host: a room this player drew (x, y, width, height) to put to the vote (ExpansionGame.cs)
         ExpandApply,  // client -> host: spend this room kit (index) on this bought room (index) (Docs/RoomModifiers.md, ExpansionGame.cs)
         ExpandCut,    // client -> host: a stretch of interior wall this player proposes to open (vertical, at, from, till) (ExpansionGame.cs)
@@ -635,9 +635,6 @@ namespace Arena
                     break;
                 case Msg.Dodge:
                     Game.OnDodge(peer, r);
-                    break;
-                case Msg.ExpandVote:
-                    Game.OnExpandVote(peer, r);
                     break;
                 case Msg.ExpandDraw:
                     Game.OnExpandDraw(peer, r);

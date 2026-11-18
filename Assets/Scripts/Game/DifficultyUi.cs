@@ -76,70 +76,8 @@ namespace Arena
                     hoverDesc = k.Name + ": " + k.Desc + "  (Normal: " + k.Format(k.Normal) + ")";
                 DrawKnob(row, k, diff[k.Knob], canEdit);
             }
-            // Quick picks for the boss approach (Approaches.cs), in the slot after the last number.
-            {
-                var slot = new Rect(x, y + rows * rowH + 4f, colW, 24f);  // its own row under the numbers (the numbers fill both columns)
-                bool blend = Mathf.Abs(diff[DiffKnob.ApproachShare] - 0.85f) < 1e-4f && diff[DiffKnob.ApproachRamp] >= 0.5f;
-                bool full = diff[DiffKnob.ApproachShare] >= 0.999f && diff[DiffKnob.ApproachRamp] < 0.5f;
-                float bw = (colW - 8f) / 2f;
-                if (slot.Contains(Event.current.mousePosition))
-                    hoverDesc = "Boss approach: Blend is 85% building up over the four waves (34%, 51%, 68%, 85%); Fully themed makes all four waves the boss's own enemies.";
-                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Blend", blend, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !blend)
-                {
-                    session.SetDifficultyKnob(DiffKnob.ApproachShare, 0.85f);
-                    session.SetDifficultyKnob(DiffKnob.ApproachRamp, 1f);
-                }
-                if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Fully themed", full, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !full)
-                {
-                    session.SetDifficultyKnob(DiffKnob.ApproachShare, 1f);
-                    session.SetDifficultyKnob(DiffKnob.ApproachRamp, 0f);
-                }
-            }
-            // (The arena is no longer chosen here: the Campaign is the Expanding arena, the Simple Arena modifier keeps the open
-            // one with its floor plans, and the Rooms arena is a prototype switch in the dev dock. Rooms.cs ArenaKind.)
-            // How the Expanding arena is built (ExpansionGame.cs): free by default, or every room to a team vote. Right of the
-            // approach picks; the Campaign is the Expanding arena unless the Simple Arena modifier is on (Rooms.cs ArenaKind).
-            if ((session.Modifiers & RunMod.SimpleArena) == 0)
-            {
-                // Building: Room cards (the default, RoomCards.cs) / Free drawing / Team vote, then the Team purse switch.
-                var slot = new Rect(x + colW + colGap, y + rows * rowH + 4f, colW, 24f);
-                bool cards = diff[DiffKnob.RoomCards] >= 0.5f;
-                bool grid = !cards && diff[DiffKnob.GridRooms] >= 0.5f;
-                bool vote = !cards && !grid && diff[DiffKnob.BuildVote] >= 0.5f;
-                float bw = (colW - 32f) / 5f;
-                bool purse = diff[DiffKnob.BuildPurse] >= 0.5f;
-                if (slot.Contains(Event.current.mousePosition))
-                {
-                    int hover = (int)((Event.current.mousePosition.x - slot.x) / (bw + 8f));
-                    hoverDesc = hover >= 4 ? "Team purse: " + Difficulty.Knobs[(int)DiffKnob.BuildPurse].Desc : hover == 3 ? "Grid: " + Difficulty.Knobs[(int)DiffKnob.GridRooms].Desc
-                        : hover == 0 ? "Room cards: " + Difficulty.Knobs[(int)DiffKnob.RoomCards].Desc : "Building: " + Difficulty.Knobs[(int)DiffKnob.BuildVote].Desc;
-                }
-                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Room cards", cards, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit && !cards)
-                {
-                    session.SetDifficultyKnob(DiffKnob.GridRooms, 0f);
-                    session.SetDifficultyKnob(DiffKnob.RoomCards, 1f);
-                }
-                if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Free draw", !cards && !vote && !grid, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit && (cards || vote || grid))
-                {
-                    session.SetDifficultyKnob(DiffKnob.RoomCards, 0f);
-                    session.SetDifficultyKnob(DiffKnob.GridRooms, 0f);
-                    session.SetDifficultyKnob(DiffKnob.BuildVote, 0f);
-                }
-                if (LobbyKit.Key(new Rect(slot.x + 2f * (bw + 8f), slot.y, bw, slot.height), "Team vote", vote, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit && !vote)
-                {
-                    session.SetDifficultyKnob(DiffKnob.RoomCards, 0f);
-                    session.SetDifficultyKnob(DiffKnob.GridRooms, 0f);
-                    session.SetDifficultyKnob(DiffKnob.BuildVote, 1f);
-                }
-                if (LobbyKit.Key(new Rect(slot.x + 3f * (bw + 8f), slot.y, bw, slot.height), "Grid", grid, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit && !grid)
-                {
-                    session.SetDifficultyKnob(DiffKnob.RoomCards, 0f);
-                    session.SetDifficultyKnob(DiffKnob.BuildVote, 0f);
-                    session.SetDifficultyKnob(DiffKnob.GridRooms, 1f);
-                }
-                if (LobbyKit.Key(new Rect(slot.x + 4f * (bw + 8f), slot.y, bw, slot.height), "Team purse", purse, fxReduced, size: 14, minSize: 10, enabled: canEdit) && canEdit)
-                    session.SetDifficultyKnob(DiffKnob.BuildPurse, purse ? 0f : 1f);
-            }
+            // (The boss approach picks and the Building row are gone: the approach stays at its default, Blend under the Campaign's
+            // factions, and Grid is the only building mode; Room cards, Free draw and Team vote are retired, their code kept. Nov 18.)
             Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? LobbyKit.Soft : CrtUi.Dim);
         }
 

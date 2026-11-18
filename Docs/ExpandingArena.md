@@ -10,7 +10,7 @@
 
 Status: **steps 1-5 built** (4: loops and drawn rooms/hallways; 5: shop and floor rooms) (the `World` refactor; rooms, offers and the map builder; the Expanding layout in the game: setting, team vote, purse, sync, camera, minimap, enemy scaling); room features (step 4) and polish/balance (step 5) not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
 
-Update (protocol 272): building is **free** by default (a drawing is built at once, any number a round, doors mid-wave); the team vote below is the lobby's **Team vote** setting (`DiffKnob.BuildVote`).
+Update (protocol 272): building is **free** by default (a drawing is built at once, any number a round, doors mid-wave); the team vote below was the lobby's **Team vote** setting, **removed Nov 18** (protocol 404): every build goes up at once.
 and `Shop.cs`. Numbers are first guesses.
 
 ## The idea

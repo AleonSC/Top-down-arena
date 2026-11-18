@@ -3,24 +3,14 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Greatsword (DPS Knight; Docs/Mockups/greatsword-combo.html, the Moonlit Crescent look).
-    ///   - Chain: the primary button cuts, cuts back, then brings the blade overhead for a rend (the swing is in FireKnightWeapon,
-    ///     Knight.cs). The two cuts are quick; the rend winds up for GreatRendWind first and is the hard hit. The chain starts
-    ///     over after GreatChainWindow without a swing (Player.GreatStep). Every cut leaves its edge hanging as a crescent that
-    ///     stops enemy bullets (SteelWall, Knight.cs); the rend's hangs longest.
-    ///   - Alt: hold the weapon-action key (Left Alt) to Guard. A 120 degree arc rises in front of you that stops enemy bullets
-    ///     (not red aimed shots); you move at half speed and can't swing. Every bullet it stops adds a point of Temper, up to
-    ///     GreatTemperMax. Let go and the Rend fires: a piercing beam for GreatRendBase plus GreatRendPer a point. Six points
-    ///     (a full guard) also make the next chain start on the overhead rend. Your game sends Msg.WeaponDash (DashGuardOn when
-    ///     you press, DashGuardOff when you let go); the host does the rest.
+    /// The Greatsword's old guard and Rend (DPS Knight), kept but unused since the ten-step chain and the Moonwheel took over
+    /// (GreatswordChain.cs; GreatGuardOn turns it back on). Hold the weapon-action key to Guard: a 120 degree arc in front of you
+    /// stops enemy bullets (not red aimed shots) and builds a point of Temper for each, up to GreatTemperMax; you move at half
+    /// speed and can't swing. Let go and the Rend fires: a piercing beam for GreatRendBase plus GreatRendPer a point. Your game
+    /// sends Msg.WeaponDash (DashGuardOn, DashGuardOff). This file also keeps the chain's clock (TickGreat) and its reset.
     public partial class Game
     {
-        public const float GreatCutArc = 150f, GreatRendArc = 200f;   // degrees across
-        public static readonly float[] GreatMult = { 1f, 1f, 2.25f };       // damage of each step against the weapon's Damage (40, 40, 90)
-        public static readonly float[] GreatInterval = { 0.45f, 0.5f, 0.95f };  // seconds from each step to the next press that counts
-        public static readonly float[] GreatWall = { 0.35f, 0.35f, 0.9f };     // how long each step's crescent hangs
-        public const float GreatRendWind = 0.25f, GreatRendKnock = 40f, GreatWaveDmg = 45f;  // the overhead rend's blade-up time, its shove, a sword wave's damage
-        public const float GreatChainWindow = 0.9f;
+        public static readonly bool GreatGuardOn = false;  // the old guard on the weapon-action key (the Moonwheel took it)
 
         public const float GreatGuardRadius = 72f, GreatGuardHalfArc = 60f * MathX.Pi / 180f, GreatGuardBand = 14f;  // the guard arc: distance from you, half its width, how thick it stops
         public const float GreatGuardSlow = 0.5f, GreatGuardLockout = 0.6f;  // your speed while guarding; how soon it can go up again after a Rend
@@ -83,7 +73,7 @@ namespace Arena
                     p.GreatGuard = p.GreatPrimed = false;
                     continue;
                 }
-                if (p.GreatStep != 0 && p.GreatGap > GreatChainWindow)
+                if (p.GreatStep != 0 && p.GreatGap > GreatMoves[(int)GreatMoveOf(p.GreatStep)].Dur / FireRate(p) + GreatChainWindow)
                     p.GreatStep = 0;
                 if (!p.GreatGuard)
                     continue;
@@ -131,13 +121,13 @@ namespace Arena
             }
         }
 
-        /// Raising the parry cancels the chain (ResetAttackChains): back to the first cut, a rend still winding up never lands.
+        /// Raising the parry (or throwing the Moonwheel) cancels the chain: back to Undertow, a hit still winding up never lands.
         void ResetGreatChain(Player p)
         {
             p.GreatStep = 0;
             p.GreatGap = 5f;
             p.FireCd = 0f;
-            pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Delay > 0f && s.Heavy && !s.Rend);
+            pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Delay > 0f && s.Great != 0);
             steelWalls.RemoveAll(c => c.Owner == p.Id && c.Wait > 0f);  // (and the crescent that was waiting for it)
         }
     }

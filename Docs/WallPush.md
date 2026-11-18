@@ -22,7 +22,7 @@ and [`RoomBuilding2.md`](RoomBuilding2.md).
 
 Picked by Claude (change any of these):
 
-- Free building only. With **Team vote** on, pushing is off (it doesn't fit proposals and votes).
+- Free building only (Team vote building is gone, Nov 18).
 - Floating rooms (shop, vendor, Gatekeeper) can't be pushed, connected or not; a room not yet connected to the map can't either. The map's size cap holds.
 - A section stops **1 tile off** other rooms, but boxes of the same room (the room it was pushed from and its other sections) may touch it.
 - A room kit can't change a section on its own: change the room it was pushed from and its sections change with it.
@@ -76,7 +76,7 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
 - **Features are rebuilt from the box**, like `AddFins`: rows 1 to depth-2 get the rolled feature, so every machine
   builds the same map from the room list. New solids since the last build use the existing rise animation (`LayoutAge`).
 - **Wire**: a client sends `Msg.WallPush` (area, side, start tile, width). The host checks it (between waves, free building,
-  reach with some slack, rules, cost), grows or makes the box, charges the pusher (the Team purse applies) and sends the map with
+  reach with some slack, rules, cost), grows or makes the box, charges the pusher (from their own vectors) and sends the map with
   `BroadcastExpansion`, at most 10 times a second while someone holds the button. **Protocol bump** in step 1.
 - Breaches use the new outer wall automatically. A map node in the new space is claimed the same way as when a drawn room
   covers it (`TickNodes`). The parent's side walls (`AddFins`) skip the open join like any door.
@@ -89,8 +89,8 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
   pushed walls* (40), *Can't push this room's walls*). Pushing a section's far wall over its full width grows it; any other stretch
   starts a new section off it.
 - Host: `Game.CanPush` (free building, between waves), `PushWall` / `Msg.WallPush` / `HostWallPush`: the player within 10 tiles
-  (`PushReach` 700 + `PushSlack` 300) of the wall's middle, not downed, at most one push per 0.15 s each; pays like any build (Team purse
-  too), then `BroadcastExpansion`. Protocol 349.
+  (`PushReach` 700 + `PushSlack` 300) of the wall's middle, not downed, at most one push per 0.15 s each; pays like any build (own vectors only),
+  then `BroadcastExpansion`. Protocol 349.
 - `Expansion.Grown`: a pushed wall alone raises the map (`Rooms.cs`). Sections get no random cover or fins (`Build`); step 3 gives them features.
 - Saves carry sections through `Leg` (no format change). Test `ExpandingPushTest` (suites `expand` and `push`).
 
@@ -145,7 +145,7 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
 
 1. **Core**: `Expansion.PushLeg`; the rules and cost (`Expansion.CanPush`, `Push`); the host side (`Msg.WallPush`, charge,
    broadcast); bump the protocol. Tests in suite `expand` (`ExpandingPushTest`): cost = width, a push grows one box, reach,
-   12-tile limit, the gap to other rooms, the hub, Team vote off, between waves only, a save round trip.
+   12-tile limit, the gap to other rooms, the hub, between waves only, a save round trip.
 2. **In the world**: the C key (Keybinds), the prompt chip, push mode (section pick, wheel width, ghost row, label, the
    vectors chip's spend slice, hold to repeat), sounds. Preview flags `PUSHSEL=` and `PUSHAT=`; README *Expanding arena* section.
 3. **Features**: the six rolled features built from a section's depth, the build-in look, the test that every machine

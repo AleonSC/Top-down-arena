@@ -314,7 +314,7 @@ static partial class Program
         Test("lastfour", "Gore Mortar, Transfusion Darts, Rapier (Tempo, Flourish) and the Katana (stance combos, Momentum Burst, caltrops)", () => LastFourTest(Dt)),
         Test("repulsion", "the Repulsion Cannon", () => RepulsionTest(Dt)),
         Test("quarterstaff", "the Quarterstaff", () => { QuarterstaffTest(Dt); QuarterstaffStacksTest(Dt); }),
-        Test("greatsword", "the Greatsword's chain, guard and Rend", () => GreatswordTest(Dt)),
+        Test("greatsword", "the Greatsword's ten-step chain and Moonwheel", () => GreatswordTest(Dt)),
         Test("knuckles", "the Arc Knuckles: the Knight DPS's fourth weapon, its chain, parry cancel and Counter Hammer", () => ArcKnucklesTest(Dt)),
         Test("tankknight", "the Warhammer's charged slam and the Halberd's sweep", () => TankKnightTest(Dt)),
         Test("revolver", "the Revolver", () => RevolverReloadTest(Dt)),

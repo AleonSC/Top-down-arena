@@ -497,7 +497,8 @@ static partial class Program
 
         // Greatsword.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Greatsword);
-        float reach = Game.MeleeReach(me, me.Weapon.Reach);
+        float reach = Game.MeleeReach(me, Game.BackstepReach);
+        me.GreatStep = 4;  // Backstep Reap is next: it leaves a crescent
         volley.Invoke(g, new object[] { me, 0f, 0 });
         var into = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, from + new V2(reach + 60f, 0f), new V2(-300f, 0f), 0f, 2f, 5f, 0, false, 0f });   // flies into the crescent
         var behind = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, from + new V2(-reach - 60f, 0f), new V2(300f, 0f), 0f, 2f, 5f, 0, false, 0f });  // comes from behind
