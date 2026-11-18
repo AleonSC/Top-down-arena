@@ -26,7 +26,7 @@ namespace Arena
             var head = new Rect(x, HoloTop, w, HoloHeadH);
             var rc = ToColor(me.Def.Color);
             HoloPanel(head, holoPageAt, () => HoloTitle(head.x + 18f, head.y + 14f, "YOUR LOADOUT",
-                (Defs.KitName(me.Kit) + " " + me.Def.Name + " · Level " + me.Level + " · " + me.Rerolls + " reroll" + (me.Rerolls == 1 ? "" : "s") + " left").ToUpperInvariant(),
+                (Defs.KitName(me.Kit) + " " + me.Def.Name + " · Level " + me.Level).ToUpperInvariant(),
                 Color.Lerp(rc, Color.white, 0.35f)));
             float top = HoloTop + HoloHeadH + HoloGap;
             var abilBox = new Rect(x, top, 360f, HoloBottom - top);
