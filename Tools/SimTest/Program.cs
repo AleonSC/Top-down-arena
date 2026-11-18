@@ -67,6 +67,7 @@ static partial class Program
             Console.WriteLine("  HOST FAILED on port " + port + ": " + s.Status + " (another SimTest run using the same ports? give it PORTBASE=n)");
         s.Diff.Set(DiffKnob.Campaign, 0f);  // (the tests expect the usual random waves; CampaignTest turns it on itself)
         s.Diff.Set(DiffKnob.RoomCards, 0f);  // (the tests draw their rooms; RoomCardsTest turns cards on itself)
+        s.Diff.Set(DiffKnob.GridRooms, 0f);  // (and Grid, the lobby's default, off: the Grid tests turn it on themselves)
         return s;
     }
 

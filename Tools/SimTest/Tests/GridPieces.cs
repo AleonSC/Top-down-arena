@@ -86,6 +86,13 @@ static partial class Program
         Check(shelf.Length == Expansion.BuilderOfferCount && shelf.All(Expansion.IsGridCard) && Expansion.BuilderPrice(shelf[0]) < Expansion.CardPrice(shelf[0]), "the Builder Shop's five are grid cards at a quarter off");
         var spoils = BossCards.Offer(new DetRandom(3), Expansion.GridCore(), new List<RoomToken>(), 12);
         Check(spoils.Length == BossCards.OfferSize && spoils.Distinct().Count() == spoils.Length && spoils.All(c => BossCards.IsKit(c) || Expansion.IsGridCard((RoomCard)c)) && !spoils.Contains((int)RoomCard.MiniBoss), "a Grid boss pick: pieces, service cards and floor kits, no Mini-boss card");
+        var dflt = new Difficulty();
+        Check(dflt[DiffKnob.GridRooms] >= 0.5f && dflt[DiffKnob.RoomCards] < 0.5f && dflt[DiffKnob.BuildVote] < 0.5f, "Grid is the lobby's default building mode (Nov 18)");
+        var round = Difficulty.Parse(dflt.ToText());
+        var oldCards = Difficulty.Parse("Normal");
+        var oldDraw = Difficulty.Parse("Hard RoomCards=0");
+        Check(round[DiffKnob.GridRooms] >= 0.5f && round[DiffKnob.RoomCards] < 0.5f && oldCards[DiffKnob.GridRooms] < 0.5f && oldCards[DiffKnob.RoomCards] >= 0.5f && oldDraw[DiffKnob.GridRooms] < 0.5f && oldDraw[DiffKnob.RoomCards] < 0.5f,
+            "a new save keeps Grid; a save from before keeps its old mode (room cards, or drawing)");
         var save = new RunSave();
         var seat = new SeatSave { Vectors = 30, VectorCap = 70 };
         seat.Hand.AddRange(new[] { (int)Expansion.PieceCard(GridPiece.TetL, PathId.Fogbound), (int)Expansion.PieceCard(GridPiece.Mono), (int)RoomCard.Shop });
