@@ -12,7 +12,7 @@ static partial class Shot {
     for (int i = 0; i < 3; i++) Step(host);
     gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear(); gm.Minions.Clear(); gm.Orbs.Clear();
     foreach (var q in gm.Players.Values) if (q != me) q.Pos = q.Disp = new V2(150f, 850f);
-    var kinds = new[] { ChestKind.Gold, ChestKind.Vector, ChestKind.Upgrade, ChestKind.Relic, ChestKind.RoomCard, ChestKind.Buildable };
+    var kinds = new[] { ChestKind.Gold, ChestKind.Vector, ChestKind.Upgrade, ChestKind.Relic, ChestKind.Piece, ChestKind.Buildable };
     for (int row = 0; row < 2; row++)
       for (int i = 0; i < 6; i++) {
         var p = gm.AddProp(PropKind.Chest, new V2(420f + 88f * i, row == 0 ? 400f : 590f));

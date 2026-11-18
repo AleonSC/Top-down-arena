@@ -362,21 +362,21 @@ namespace Arena
         public static int NodeRoomClear(MapNode n) => IsPrizeNode(n.Kind) ? PrizeClear : NodeReach(n);
 
         /// A treasure chest or a vector chest.
-        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Room card or Buildables (Buildables with room cards off), outer Upgrade.
+        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Grid piece or Buildables (Buildables with room cards off), outer Upgrade.
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
         {
             int tier = NodeTier(x, y);
             if (tier != 1)
                 return tier == 0 ? ChestKind.Gold : ChestKind.Upgrade;
             var r = new DetRandom(seed * 31 + x * 7919 + y * 104729 + 5);
-            return cards && r.Int(2) == 0 ? ChestKind.RoomCard : ChestKind.Buildable;
+            return cards && r.Int(2) == 0 ? ChestKind.Piece : ChestKind.Buildable;
         }
 
         // --- Node tiers (owner Nov 18): the farther a prize node sits from the hub, the better what it holds ---
 
         public const int TierMid = 1500, TierOuter = 3000;  // a node this far (15 / 30 tiles) or more off the hub's wall is middle / outer tier
 
-        /// A point's tier from its distance to the hub's box: 0 inner (gold and vector chests), 1 middle (room card and buildables chests),
+        /// A point's tier from its distance to the hub's box: 0 inner (gold and vector chests), 1 middle (grid piece and buildables chests),
         /// 2 outer (upgrade chests and relics). A pure function of the point, so it needs nothing on the wire or in saves.
         public static int NodeTier(int x, int y)
         {
@@ -388,7 +388,7 @@ namespace Arena
         public static int NodeTier(MapNode n) => NodeTier(n.X, n.Y);
 
         /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
-        /// middle a chest (room card or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
+        /// middle a chest (grid piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
         public static MapNode Tiered(int seed, MapNode n)
         {
             if (!IsChest(n.Kind) && n.Kind != NodeKind.Relic)

@@ -453,7 +453,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
-                    if (pr.Chest == ChestKind.RoomCard)
+                    if (pr.Chest == ChestKind.Piece)
                         ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
@@ -510,7 +510,7 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
-                    if (c.Chest == ChestKind.RoomCard)
+                    if (c.Chest == ChestKind.Piece)
                         ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
