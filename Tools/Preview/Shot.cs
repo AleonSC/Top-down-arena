@@ -858,6 +858,13 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("CARDSEL") != null) typeof(ArenaApp).GetField("expCard", cbf).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("CARDSEL")));
         var cm = Environment.GetEnvironmentVariable("MOUSE"); if (cm != null) { var xy = cm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       }
+      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=room|gauntlet|hall|arena: grid rooms on (GridRooms.cs) with that size picked; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
+      if (gridEnv != null) {
+        eg.Diff.Set(DiffKnob.GridRooms, 1f); eg.Diff.Set(DiffKnob.BuildVote, 0f);
+        GridShape gsh; if (!Enum.TryParse(gridEnv, true, out gsh)) { gsh = GridShape.Room; Console.Error.WriteLine("GRID: no size " + gridEnv); }
+        typeof(ArenaApp).GetField("expGrid", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, gsh);
+        var gm = Environment.GetEnvironmentVariable("MOUSE"); if (gm != null) { var xy = gm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
+      }
       int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));
       for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
       string ebuilt = Environment.GetEnvironmentVariable("EXPANDBUILT");  // EXPANDBUILT=x,y,w,h;...: drawn boxes on the map first (Expansion.Custom), owner 1

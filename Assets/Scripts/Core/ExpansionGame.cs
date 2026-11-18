@@ -37,7 +37,7 @@ namespace Arena
         public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
 
         /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
-        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn;  // (room cards build at once: RoomCards.cs)
+        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn && !GridRoomsOn;  // (room cards build at once: RoomCards.cs)
 
         /// The lobby's "Team purse": builds can spend every player's vectors, not just the builder's.
         public bool TeamPurse => D(DiffKnob.BuildPurse) >= 0.5f;
@@ -337,7 +337,7 @@ namespace Arena
                 var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
                 for (int i = 0; i < ringKinds.Length; i++)
                 {
-                    var rn = Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
+                    var rn = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
                     if (!rn.HasValue)
                         continue;
                     Nodes.Add(rn.Value);
@@ -349,7 +349,7 @@ namespace Arena
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
+                var nd = GridRoomsOn ? Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind) : Expansion.NodeFor(expandSeed, cycle, Expanded, Nodes, kind);
                 if (!nd.HasValue)
                     continue;
                 Nodes.Add(nd.Value);
@@ -426,7 +426,7 @@ namespace Arena
         {
             if (!IsHost || !ModeRules.RunEvents)
                 return;
-            var nd = Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
+            var nd = GridRoomsOn ? Expansion.GridChestFor(expandSeed, Expanded, Nodes, count) : Expansion.RoomChestFor(expandSeed, Expanded, Nodes, count);
             if (!nd.HasValue)
                 return;
             Nodes.Add(nd.Value);
@@ -756,7 +756,12 @@ namespace Arena
             Player p;
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
                 return;  // (room cards: rooms come from cards, not drawings)
-            string why;
+            string why = null;
+            if (GridRoomsOn && (theme != PathId.None || !Expansion.GridLegal(Expanded, x, y, w, h, out why)))
+            {
+                DoLog("proposal refused (" + (why ?? "grid rooms have no themes") + ")");
+                return;  // (grid rooms: only the door spots, Docs/GridRooms.md)
+            }
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
                 DoLog("proposal refused (the " + theme + " theme is still locked)");
@@ -954,8 +959,8 @@ namespace Arena
         void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn)
-                return;  // (room cards: rooms come from cards, not drawings)
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || RoomCardsOn || GridRoomsOn)
+                return;  // (room cards and grid rooms: rooms come from cards or door spots, not drawn outlines)
             if (!Expansion.ThemeUnlocked(theme, Wave))
             {
                 DoLog("proposal refused (the " + theme + " theme is still locked)");
@@ -1219,6 +1224,11 @@ namespace Arena
                 if (RoomCardsOn)
                 {
                     BotPlayCard();  // RoomCards.cs
+                    return;
+                }
+                if (GridRoomsOn)
+                {
+                    BotGridBuild();  // GridRooms.cs
                     return;
                 }
                 if (rng.Next(10) < 6 && BotBuildsToFloater())

@@ -432,8 +432,8 @@ namespace Arena
         public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest || k == NodeKind.Relic;
 
         /// Where a chest or relic node stands: the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
-        /// is floor, else of the box holding the node), moved to the nearest half-tile point that is clear of cover (a card room's pillars and
-        /// blocks stay). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
+        /// is floor, else of the box holding the node), moved, in a card room, to the nearest half-tile point clear of its designed pillars and blocks (an ordinary room's random
+        /// cover is cleared instead). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
         public static V2 NodeSpotIn(IList<ExpansionRoom> rooms, MapNode nd, IList<Solid> cover)
         {
             int at = -1;
@@ -460,6 +460,8 @@ namespace Arena
                 var h = rooms[held];
                 tx = (h.X + h.X1) / 2.0; ty = (h.Y + h.Y1) / 2.0;
             }
+            if (rooms[held].Card == 0)  // an ordinary room: its middle itself (Build clears the random cover round it; walls keep clear of a room's middle)
+                return new V2((float)tx, (float)ty);
             double best = double.MaxValue;
             var spot = nd.Pos;
             foreach (int i in group)
