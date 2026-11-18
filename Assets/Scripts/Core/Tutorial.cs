@@ -132,10 +132,11 @@ namespace Arena
             }
             if (me.Taken.Count > takenAtStart)
                 done.Add(TutorialStep.PickCard);
-            if (g.ExpandProposals.Exists(q => q.Owner == me.Id))
+            if (Expansion.BoughtCount(g.Expanded) > boughtAtStart)
+            {
                 done.Add(TutorialStep.DrawRoom);
-            if (done.Contains(TutorialStep.DrawRoom) && (g.ExpandVotes.ContainsKey(me.Id) || Expansion.BoughtCount(g.Expanded) > boughtAtStart))
-                done.Add(TutorialStep.Vote);
+                done.Add(TutorialStep.Vote);  // (retired with Team vote: done with the room, Nov 18)
+            }
             if (me.Gold > goldBefore)
                 done.Add(TutorialStep.Gold);
             goldBefore = Math.Min(goldBefore, me.Gold);

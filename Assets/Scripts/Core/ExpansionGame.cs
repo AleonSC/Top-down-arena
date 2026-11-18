@@ -26,18 +26,9 @@ namespace Arena
         /// the team (synced by Msg.ExpandState).
         public bool ExpandOpen;
 
-        /// This round's proposals (at most one per player; Owner is the drawer) and the votes players have cast: voter id -> the
-        /// proposer id voted for, or 0 for "no room". A player who hasn't voted still backs their own proposal (EffectiveVote), but
-        /// only cast votes count towards settling the round early.
-        public readonly List<ExpansionRoom> ExpandProposals = new List<ExpansionRoom>();
-        public readonly Dictionary<int, int> ExpandVotes = new Dictionary<int, int>();
-
         /// The room kits the team holds (spent with ApplyRoomToken; synced in Msg.ExpandState). Bosses give a Floor kit, a won challenge room a
         /// Shop kit, the vendor sells a Floor kit.
         public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
-
-        /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
-        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f && !RoomCardsOn && !GridRoomsOn;  // (room cards build at once: RoomCards.cs)
 
         /// What this player can put towards a build: their own vectors (the old Team purse is gone, Nov 18).
         public int SpendableVectors(Player p) => p != null ? p.Vectors : 0;
@@ -50,8 +41,8 @@ namespace Arena
             payer.MapSpent += take;  // (half comes back when the map resets, MapReset.cs)
         }
 
-        /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.
-        public bool FreeBuild => ExpandingOn && !BuildVoting;
+        /// Free building: anyone builds with their own vectors the moment they place it, any number a round (Team vote is gone, Nov 18).
+        public bool FreeBuild => ExpandingOn;
 
         /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave,
         /// nor in the opening countdown (no wave cleared yet: WaveReport is the last cleared wave's, WaveReady.cs).
@@ -75,7 +66,7 @@ namespace Arena
 
         int expandSeed;
         int roundBuilt;  // free building: drawings built since this round opened (bots only build when it's 0)
-        float botVoteT;
+        float botBuildT;
         bool botProposed;
         World expWorld;
 
@@ -592,10 +583,8 @@ namespace Arena
             ResetMysteryDoors();  // MysteryDoors.cs
             MysteryDoorsOpened = MysteryVectorsSpent = 0;  // (a run's numbers; a map reset keeps them)
             ExpandOpen = false;
-            ExpandProposals.Clear();
-            ExpandVotes.Clear();
             expWorld = null;
-            botVoteT = 0f;
+            botBuildT = 0f;
             botProposed = false;
             expandSeed = sideRng.Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run; Game.cs)
             MapNumber = 1;
@@ -612,39 +601,6 @@ namespace Arena
 
         // --- The building round -------------------------------------------------------------------------------------
 
-        /// This player's proposal in the open round, if any.
-        public ExpansionRoom? ProposalOf(int owner)
-        {
-            foreach (var q in ExpandProposals)
-                if (q.Owner == owner && q.Leg == 0)
-                    return q;
-            return null;
-        }
-
-        /// The open round's proposals, one each (a drawn outline's later pieces left out: LegsOf has them).
-        public List<ExpansionRoom> ProposalHeads => ExpandProposals.FindAll(q => q.Leg == 0);
-
-        /// A drawn outline proposal's later pieces, in order (empty for anything else).
-        public List<ExpansionRoom> LegsOf(int owner) => ExpandProposals.FindAll(q => q.Owner == owner && q.Leg > 0);
-
-        /// Host: this player's proposal is now these entries (a newer one replaces the last, and the votes for the old one go;
-        /// the drawer backs their own until they vote).
-        void SetProposal(int id, List<ExpansionRoom> entries)
-        {
-            bool had = ExpandProposals.RemoveAll(q => q.Owner == id) > 0;
-            if (had)
-                foreach (int voter in new List<int>(ExpandVotes.Keys))
-                    if (ExpandVotes[voter] == id)
-                        ExpandVotes.Remove(voter);
-            foreach (var e in entries)
-            {
-                var q = e;
-                q.Owner = id;
-                ExpandProposals.Add(q);
-            }
-            ExpandVotes.Remove(id);
-        }
-
         /// Host, when a wave is cleared: a building round opens (not in the Practice Range, a Boss Hunt, after the last wave or on a full map).
         void OpenBuildRound()
         {
@@ -653,60 +609,13 @@ namespace Arena
             ExpandOpen = true;
             roundBuilt = 0;
             DealRoundCards();  // RoomCards.cs
-            ExpandProposals.Clear();
-            ExpandVotes.Clear();
-            botVoteT = 0f;
+            botBuildT = 0f;
             botProposed = false;
             BroadcastExpansion();
             DoLog("building round opens");
         }
 
-        /// The proposer id this player backs: the vote they cast (0 = no room), else their own proposal, else -1.
-        public int EffectiveVote(int player)
-        {
-            int v;
-            if (ExpandVotes.TryGetValue(player, out v))
-                return v;
-            return ProposalOf(player).HasValue ? player : -1;
-        }
-
-        /// How many players back this proposal, counting a drawer who hasn't voted as backing their own.
-        public int VotesFor(int owner)
-        {
-            int n = 0;
-            foreach (int id in Players.Keys)
-                if (EffectiveVote(id) == owner)
-                    n++;
-            return n;
-        }
-
-        /// A vote from this game's player: the proposer's id, or 0 for "no room".
-        public void CastExpandVote(int choice)
-        {
-            if (!ExpandOpen || !BuildVoting || Me == null || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
-                return;
-            if (IsHost)
-            {
-                HostExpandVote(MyId, choice);
-                return;
-            }
-            var w = Proto.Begin(Msg.ExpandVote);
-            w.Write((short)choice);
-            session.SendToHost(Proto.End(w));
-            ExpandVotes[MyId] = choice;  // (shown at once; the host's state confirms it)
-        }
-
-        public void OnExpandVote(int peer, BinaryReader r) => HostExpandVote(peer, r.ReadInt16());
-
-        void HostExpandVote(int id, int choice)
-        {
-            if (!IsHost || !ExpandOpen || !BuildVoting || !Players.ContainsKey(id) || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
-                return;
-            ExpandVotes[id] = choice;
-            FinishOrBroadcast();
-        }
-
-        /// This game's player draws a room (a box in world px on the 100 px grid) and puts it to the vote.
+        /// This game's player draws a room (a box in world px on the 100 px grid); it's built at once.
         public void ProposeExpandRoom(int x, int y, int w, int h, PathId theme = PathId.None)
         {
             if (!ExpandOpen || Me == null)
@@ -723,8 +632,7 @@ namespace Arena
 
         public void OnExpandDraw(int peer, BinaryReader r) => HostExpandDraw(peer, r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), (PathId)r.ReadByte());
 
-        /// Host: a drawing becomes its drawer's proposal (a newer one replaces the last, and the votes for the old one go). Drawing
-        /// doesn't cast a vote: the drawer backs their own until they vote, and the round isn't settled early by drawing. It must fit and the drawer must have the vectors; they only pay if it wins.
+        /// Host: a drawing is built at once if it fits and the drawer has the vectors.
         void HostExpandDraw(int id, int x, int y, int w, int h, PathId theme = PathId.None)
         {
             Player p;
@@ -748,15 +656,8 @@ namespace Arena
                 return;
             }
             var room = made.Value;
-            if (FreeBuild)
-            {
-                room.Owner = id;
-                BuildNow(id, room, null);
-                return;
-            }
-            SetProposal(id, new List<ExpansionRoom> { room });
-            DoLog(p.Name + " proposes a " + w + " x " + h + (theme != PathId.None ? " " + theme : "") + " room for " + room.Price + " vectors");
-            FinishOrBroadcast();
+            room.Owner = id;
+            BuildNow(id, room, null);
         }
 
         /// This game's player proposes opening a stretch of interior wall (it pays vectors back, 1 per tile still wall).
@@ -776,7 +677,7 @@ namespace Arena
 
         public void OnExpandCut(int peer, BinaryReader r) => HostExpandCut(peer, new WallCut { Vertical = r.ReadBoolean(), At = r.ReadInt16(), From = r.ReadInt16(), Till = r.ReadInt16() });
 
-        /// Host: a wall opening becomes its proposer's proposal (it replaces their room proposal, if any, and the votes it had).
+        /// Host: a wall opening is made at once (it pays its opener).
         void HostExpandCut(int id, WallCut c)
         {
             Player p;
@@ -789,16 +690,9 @@ namespace Arena
                 DoLog("opening refused (" + why + ")");
                 return;
             }
-            if (FreeBuild)
-            {
-                var cutRoom = Expansion.CutProposal(c, refund);
-                cutRoom.Owner = id;
-                BuildNow(id, cutRoom, null);
-                return;
-            }
-            SetProposal(id, new List<ExpansionRoom> { Expansion.CutProposal(c, refund) });
-            DoLog(p.Name + " proposes opening " + c.Length / Expansion.Step + " tiles of wall for " + refund + " vectors");
-            FinishOrBroadcast();
+            var cutRoom = Expansion.CutProposal(c, refund);
+            cutRoom.Owner = id;
+            BuildNow(id, cutRoom, null);
         }
 
         /// This game's player proposes a shutter gate on the door at `at` (Docs/RoomBuilding2.md step 3).
@@ -818,7 +712,7 @@ namespace Arena
 
         public void OnExpandGate(int peer, BinaryReader r) => HostExpandGate(peer, new V2(r.ReadInt16(), r.ReadInt16()));
 
-        /// Host: a gate becomes its proposer's proposal (replacing theirs, and the votes it had), if the door can take one and they can pay.
+        /// Host: a gate is fitted at once, if the door can take one and they can pay.
         void HostExpandGate(int id, V2 at)
         {
             Player p;
@@ -832,24 +726,7 @@ namespace Arena
             }
             var prop = Gates.Proposal(Gates.Of(ExpansionWorld.Doors[Gates.DoorAt(ExpansionWorld, at)]));
             prop.Owner = id;
-            if (FreeBuild)
-            {
-                BuildNow(id, prop, null);
-                return;
-            }
-            int old = ExpandProposals.FindIndex(q => q.Owner == id);
-            if (old >= 0)
-            {
-                ExpandProposals[old] = prop;
-                foreach (int voter in new List<int>(ExpandVotes.Keys))
-                    if (ExpandVotes[voter] == id)
-                        ExpandVotes.Remove(voter);
-            }
-            else
-                ExpandProposals.Add(prop);
-            ExpandVotes.Remove(id);
-            DoLog(p.Name + " proposes a gate for " + Gates.Price + " vectors");
-            FinishOrBroadcast();
+            BuildNow(id, prop, null);
         }
 
         /// This game's player proposes a portal pair between two rooms (it costs vectors, by the walking it saves).
@@ -869,7 +746,7 @@ namespace Arena
 
         public void OnExpandLink(int peer, BinaryReader r) => HostExpandLink(peer, new PortalLink { AX = r.ReadInt16(), AY = r.ReadInt16(), BX = r.ReadInt16(), BY = r.ReadInt16() });
 
-        /// Host: a portal pair becomes its proposer's proposal (replacing theirs, and the votes it had), if it fits and they can pay.
+        /// Host: a portal pair is built at once from the player's stash, if it fits.
         void HostExpandLink(int id, PortalLink l)
         {
             Player p;
@@ -887,15 +764,15 @@ namespace Arena
                 DoLog("portal refused (" + why + ")");
                 return;
             }
-            p.Stash[(int)BuildKind.Teleporter]--;  // (a teleporter pair from the stash: no vote, no vectors)
+            p.Stash[(int)BuildKind.Teleporter]--;  // (a teleporter pair from the stash: no vectors)
             var linkRoom = Expansion.LinkProposal(l, 0);
             linkRoom.Owner = id;
             BuildNow(id, linkRoom, null);
             SendSnapshot();
         }
 
-        /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up) and puts it
-        /// to the vote. fill: the corners are an open run of walls from one room's wall to another, and the space they fence in is the room (Expansion.Fill).
+        /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up); it's
+        /// built at once. fill: the corners are an open run of walls from one room's wall to another, and the space they fence in is the room (Expansion.Fill).
         public void ProposeExpandOutline(IList<int[]> points, PathId theme = PathId.None, bool fill = false)
         {
             if (!ExpandOpen || Me == null || points == null || points.Count < (fill ? 2 : 4) || points.Count > Expansion.MaxPoints)
@@ -929,7 +806,7 @@ namespace Arena
             HostExpandOutline(peer, points, theme, fill);
         }
 
-        /// Host: a drawn outline becomes its drawer's proposal (one head and its pieces), if it fits and they can pay.
+        /// Host: a drawn outline (one head and its pieces) is built at once, if it fits and they can pay.
         void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
         {
             Player p;
@@ -947,65 +824,16 @@ namespace Arena
                 DoLog("proposal refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
                 return;
             }
-            if (FreeBuild)
+            var ohead = made[0];
+            ohead.Owner = id;
+            var opieces = new List<ExpansionRoom>();
+            for (int i = 1; i < made.Count; i++)
             {
-                var ohead = made[0];
-                ohead.Owner = id;
-                var opieces = new List<ExpansionRoom>();
-                for (int i = 1; i < made.Count; i++)
-                {
-                    var piece = made[i];
-                    piece.Owner = id;
-                    opieces.Add(piece);
-                }
-                BuildNow(id, ohead, opieces);
-                return;
+                var piece = made[i];
+                piece.Owner = id;
+                opieces.Add(piece);
             }
-            SetProposal(id, made);
-            DoLog(p.Name + " proposes a " + points.Count + "-corner " + (fill ? "fenced-in " : "") + "room (" + made.Count + " boxes) for " + made[0].Price + " vectors");
-            FinishOrBroadcast();
-        }
-
-        /// Host: the round is settled the moment a vote decides it (a choice backed by more than half the team, a drawer who
-        /// hasn't voted backing their own) or once everyone has cast a vote; until then everyone is told how it stands.
-        void FinishOrBroadcast()
-        {
-            bool all = true;
-            foreach (int pid in Players.Keys)
-            {
-                // A solo player has nobody to vote with: their proposal is built the moment it is made.
-                if (Players.Count == 1 && ProposalOf(pid).HasValue)
-                    ExpandVotes[pid] = pid;
-                all &= ExpandVotes.ContainsKey(pid);
-            }
-            if (all || HasMajority())
-                ResolveBuildRound();
-            else
-                BroadcastExpansion();
-        }
-
-        /// True when one choice (a standing proposal or "no room") is backed by more than half the players: no later vote can change it.
-        bool HasMajority()
-        {
-            var tally = new Dictionary<int, int>();
-            foreach (int pid in Players.Keys)
-            {
-                int choice = EffectiveVote(pid);
-                if (choice < 0)
-                    continue;
-                if (choice != 0)
-                {
-                    var q = ProposalOf(choice);
-                    if (!q.HasValue || !Players.ContainsKey(choice) || SpendableVectors(Players[choice]) < q.Value.Price)
-                        continue;
-                }
-                int n;
-                tally.TryGetValue(choice, out n);
-                tally[choice] = ++n;
-                if (n * 2 > Players.Count)
-                    return true;
-            }
-            return false;
+            BuildNow(id, ohead, opieces);
         }
 
         /// Host, free building: a drawing is built the moment it's valid, its drawer pays (an opening pays them), everyone is told.
@@ -1052,59 +880,12 @@ namespace Arena
             Sounds.Add(Sfx.Pick);
         }
 
-        /// Host, when everyone has voted or the next wave is about to start: the proposal with the most votes is built, its drawer
-        /// pays; a tie (a 50/50) is a random pick among the tied, and "no room" counts as one of them. Nothing is built with no
-        /// proposals, no votes, or "no room" winning.
+        /// Host, when the next wave is about to start: the building round closes (everything was built as it was placed).
         void ResolveBuildRound()
         {
             if (!IsHost || !ExpandOpen)
                 return;
-            if (!BuildVoting)  // free building: everything was built as it was drawn, the round just closes
-            {
-                ExpandOpen = false;
-                BroadcastExpansion();
-                return;
-            }
-            var standing = ExpandProposals.FindAll(q => q.Leg == 0 && Players.ContainsKey(q.Owner) && SpendableVectors(Players[q.Owner]) >= q.Price);
-            var tally = new Dictionary<int, int>();
-            var snap2 = SnapKeys(Players);
-            foreach (int pid in snap2)
-            {
-                int choice = EffectiveVote(pid);
-                if (choice < 0)
-                    continue;
-                if (choice != 0 && !standing.Exists(q => q.Owner == choice))
-                    continue;
-                int n;
-                tally.TryGetValue(choice, out n);
-                tally[choice] = n + 1;
-            }
-            Free(snap2);
-            int best = 0;
-            foreach (var kv in tally)
-                best = Math.Max(best, kv.Value);
-            if (best > 0 && standing.Count > 0)
-            {
-                var leaders = new List<int>();
-                foreach (var kv in tally)
-                    if (kv.Value == best)
-                        leaders.Add(kv.Key);
-                leaders.Sort();
-                int pick = leaders[rng.Next(leaders.Count)];
-                if (leaders.Count > 1)
-                    DoLog("tied vote: random pick among " + leaders.Count);
-                if (pick != 0)
-                {
-                    ApplyBuilt(pick, standing.Find(q => q.Owner == pick), LegsOf(pick));
-                }
-                else
-                    DoLog("the team voted for no room");
-            }
-            else
-                DoLog("building round closes: nothing built");
             ExpandOpen = false;
-            ExpandProposals.Clear();
-            ExpandVotes.Clear();
             BroadcastExpansion();
         }
 
@@ -1155,18 +936,7 @@ namespace Arena
             return pick;
         }
 
-        /// A bot's vote: the proposal that builds toward a shop, vendor or node when one is up (so a duo doesn't split its votes and build nothing), else a random one.
-        int BotVote()
-        {
-            var want = BotFloaterPick();
-            if (want.HasValue)
-                foreach (var q in ExpandProposals)
-                    if (q.Leg == 0 && q.X == want.Value.X && q.Y == want.Value.Y && q.W == want.Value.W && q.H == want.Value.H)
-                        return q.Owner;
-            return rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner;
-        }
-
-        /// Every frame, every game: a bot player draws a room it can afford a moment after the round opens, then votes.
+        /// Every frame, every game: a bot player builds a room it can afford a moment after the round opens.
         void TickExpansion(float dt)
         {
             TickPushes(dt);
@@ -1174,14 +944,14 @@ namespace Arena
             TickGridCore();  // GridRooms.cs
             if (!ExpandOpen)
             {
-                botVoteT = 0f;
+                botBuildT = 0f;
                 botProposed = false;
                 return;
             }
             if (!Bot || Me == null)
                 return;
-            botVoteT += dt;
-            if (RoomTokens.Count > 0 && botVoteT >= 0.8f)  // a bot spends its team's kit on a random plain room
+            botBuildT += dt;
+            if (RoomTokens.Count > 0 && botBuildT >= 0.8f)  // a bot spends its team's kit on a random plain room
             {
                 var plain = new List<int>();
                 string why;
@@ -1191,10 +961,10 @@ namespace Arena
                 if (plain.Count > 0)
                     ApplyRoomToken(0, plain[rng.Next(plain.Count)]);
             }
-            if (!botProposed && botVoteT >= 1.2f)
+            if (!botProposed && botBuildT >= 1.2f)
             {
                 botProposed = true;
-                if (FreeBuild && roundBuilt > 0)
+                if (roundBuilt > 0)
                     return;  // (free building: a bot adds a room only if nobody has this round, so the map doesn't fill at once)
                 if (RoomCardsOn)
                 {
@@ -1218,8 +988,6 @@ namespace Arena
                     }
                 }
             }
-            if (botVoteT >= 3f && !ExpandVotes.ContainsKey(MyId) && ExpandProposals.Count > 0)
-                CastExpandVote(BotVote());
         }
 
         // --- Saved runs (RunSaves.cs, SaveData.cs) ------------------------------------------------------------------
@@ -1420,16 +1188,6 @@ namespace Arena
             w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
             WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
-            if (ExpandOpen)
-            {
-                WriteRooms(w, ExpandProposals);
-                w.Write((byte)ExpandVotes.Count);
-                foreach (var kv in ExpandVotes)
-                {
-                    w.Write(kv.Key);
-                    w.Write((short)kv.Value);
-                }
-            }
             session.Broadcast(Proto.End(w));
         }
 
@@ -1528,18 +1286,7 @@ namespace Arena
             ReadMysteryDoors(r);
             ReadMapNumber(r.ReadByte(), oldMap);  // (MapReset.cs)
             ReadKeepsake(r);
-            ExpandProposals.Clear();
-            ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();
-            if (!ExpandOpen)
-                return;
-            ExpandProposals.AddRange(ReadRooms(r));
-            int n = r.ReadByte();
-            for (int i = 0; i < n; i++)
-            {
-                int id = r.ReadInt32();
-                ExpandVotes[id] = r.ReadInt16();
-            }
         }
     }
 }

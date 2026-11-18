@@ -22,7 +22,7 @@ and [`RoomBuilding2.md`](RoomBuilding2.md).
 
 Picked by Claude (change any of these):
 
-- Free building only. With **Team vote** on, pushing is off (it doesn't fit proposals and votes).
+- Free building only (Team vote building is gone, Nov 18).
 - Floating rooms (shop, vendor, Gatekeeper) can't be pushed, connected or not; a room not yet connected to the map can't either. The map's size cap holds.
 - A section stops **1 tile off** other rooms, but boxes of the same room (the room it was pushed from and its other sections) may touch it.
 - A room kit can't change a section on its own: change the room it was pushed from and its sections change with it.
@@ -145,7 +145,7 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
 
 1. **Core**: `Expansion.PushLeg`; the rules and cost (`Expansion.CanPush`, `Push`); the host side (`Msg.WallPush`, charge,
    broadcast); bump the protocol. Tests in suite `expand` (`ExpandingPushTest`): cost = width, a push grows one box, reach,
-   12-tile limit, the gap to other rooms, the hub, Team vote off, between waves only, a save round trip.
+   12-tile limit, the gap to other rooms, the hub, between waves only, a save round trip.
 2. **In the world**: the C key (Keybinds), the prompt chip, push mode (section pick, wheel width, ghost row, label, the
    vectors chip's spend slice, hold to repeat), sounds. Preview flags `PUSHSEL=` and `PUSHAT=`; README *Expanding arena* section.
 3. **Features**: the six rolled features built from a section's depth, the build-in look, the test that every machine
