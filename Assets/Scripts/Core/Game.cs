@@ -1079,7 +1079,8 @@ namespace Arena
             V2 aimAt = input.AimAt;
             V2 before = me.Pos;
             me.Aim = (aimAt - me.Pos).Angle;
-            me.Parrying = (input.Parry || HoldParry) && !me.Downed;
+            bool parry = input.Parry || HoldParry, weaponAction = input.WeaponAction;  // (the smart bot sets its own: BotBrain.cs)
+            me.Parrying = parry && !me.Downed;
             bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
             var held = heldScratch;  // (one array, filled each tick)
             held[0] = input.Ability; held[1] = input.AbilityQ; held[2] = input.AbilityE; held[3] = input.AbilityShift; held[4] = input.Ultimate;
@@ -1087,7 +1088,10 @@ namespace Arena
             if (Bot && BotLevel != BotSkill.Off)
             {
                 botT += dt;
-                SmartBot(me, dt, ref move, ref aimAt, ref firing, held);  // BotBrain.cs
+                SmartBot(me, dt, ref move, ref aimAt, ref firing, held, ref weaponAction, ref parry);  // BotBrain.cs
+                me.Parrying = parry && !me.Downed;
+                if (me.ParryActive)
+                    firing = false;
             }
             else if (Bot)
             {
@@ -1320,7 +1324,7 @@ namespace Arena
 
             LocalDodge(me, move, input.Dodge, input.DodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
             me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)

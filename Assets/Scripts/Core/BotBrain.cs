@@ -106,7 +106,7 @@ namespace Arena
             return true;
         }
 
-        void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held)
+        void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held, ref bool weaponAction, ref bool parry)
         {
             var sk = Skill(BotLevel);
             botClock += dt;
@@ -121,6 +121,8 @@ namespace Arena
             {
                 move = V2.Zero;
                 firing = false;
+                weaponAction = parry = false;
+                BotParry(me, sk, dt, true);
                 for (int i = 0; i < held.Length; i++)
                     held[i] = botHeldLast[i] = false;
                 return;
@@ -311,6 +313,15 @@ namespace Arena
             else if (me.Weapon.Id == WeaponId.ClotBolt && bowDraw >= BowMinDraw
                 && ClotDistance(BowCharge(me, bowDraw)) * me.Stats.ShotSpeedMult >= aimAt.DistanceTo(me.Pos))
                 firing = false;  // the Gore Mortar: let go once the clot would land on what it's aimed at
+
+            // --- The weapon's Alt and the parry (BotWeaponAlt.cs, BotParry.cs): a shot it can't step out of is blocked instead.
+            weaponAction = BotWeaponAlt(me, dt, target, shootAt, shootAt != null && InReach(me, shootAt, pref), downed, lowest, ref firing, ref aimAt);
+            parry = BotParry(me, sk, dt, weaponAction || botAltHeld);
+            if (parry)
+            {
+                firing = false;
+                aimAt = me.Pos + V2.FromAngle(me.Aim) * 120f;
+            }
 
             // --- Abilities.
             for (int i = 0; i < held.Length; i++)
