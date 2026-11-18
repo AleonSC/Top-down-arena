@@ -27,8 +27,8 @@ namespace Arena
                 if (fx.Kind != FxKind.Callout)
                     continue;
                 Player p;
-                if (!game.Players.TryGetValue((int)fx.Pos2.X, out p) || LaunchHides(p))
-                    continue;
+                if (!game.Players.TryGetValue((int)fx.Pos2.X, out p) || LaunchHides(p) || p.Id == game.MyId)
+                    continue;  // (no text over your own player)
                 int id = (int)fx.Pos2.Y;
                 if (id <= 0 || id >= Upgrades.Abilities.Length)
                     continue;

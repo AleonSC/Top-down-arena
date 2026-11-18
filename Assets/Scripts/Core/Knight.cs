@@ -36,7 +36,6 @@ namespace Arena
         public int Sweep;             // > 0: one step of a sweep (Halberd): each enemy is hit once per sweep, however many steps reach it
         public bool NoFx;             // draws nothing itself (a Halberd step after the first: the first draws the whole sweep)
         public float FxAim, FxHalf;   // FxHalf > 0: its effect is this arc instead of its own (the Halberd's whole sweep)
-        public byte Ice;              // the Frost Lance (Minions.cs): 1 = its icicle, 2 = the splinters off its sides (drawn as ice, not a jab)
         public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
         public float Slow;            // slows what it hits by this much (as frost shots do)
         public bool DrawCut;          // the Katana's dash-cut: a box (HalfWidth) drawn as a long thin slash, not a jab
@@ -72,8 +71,6 @@ namespace Arena
         public static readonly Rgba LeapBoomColor = new Rgba(0.6f, 0.78f, 1f);  // the landing's Boom: the Bulwark look draws its own impact
         const float WallCapacity = 400f, WallHalfArc = 1.05f;  // 120 degrees across; the capacity is shared out between the plates
         public const float RootHalfWidth = 22f, RootHeal = 10f, RootFxTime = 0.5f;  // the Treant Rod's root lash (KitWeapons.cs)
-        public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f, SplinterFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
-        public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
         // The Warhammer: a slam on a fixed circle in front of you. Holding charges its damage and stun, never its area.
         public const float HammerRadius = 80f, HammerCentreBase = 16f;
         /// How far in front of you the Warhammer's circle is centred, for a weapon reach (Reach upgrades push it out and, through the radius, widen it).
@@ -383,9 +380,6 @@ namespace Arena
             else if (s.ClawSide != 0f)
                 BroadcastFx(FxKind.Claw, origin, origin + dir * s.Reach, BearClawColor, s.ClawSide * s.HalfArc, 0.2f,
                     s.Silent ? Sfx.None : Sfx.SwingLight);
-            else if (s.Ice != 0)
-                BroadcastFx(s.Ice == 1 ? FxKind.Icicle : FxKind.Splinter, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.FrostShot), s.HalfWidth,
-                    s.Ice == 1 ? IcicleFxTime : SplinterFxTime, Sfx.None);
             else if (s.Root)
                 BroadcastFx(FxKind.RootLash, origin, origin + dir * s.Reach, new Rgba(0.55f, 0.36f, 0.17f), s.HalfWidth, RootFxTime, Sfx.None);
             else if (s.DrawCut)
