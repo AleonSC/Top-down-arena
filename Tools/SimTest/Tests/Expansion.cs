@@ -236,14 +236,15 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
         Quiet();
 
-        // The setting: Expanding wins over Rooms, and until a room is built the arena is the plain Classic box.
+        // The setting: Expanding wins over Rooms, and from wave 1 the arena is its walled world (the hub alone until a room is built).
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Diff.Set(DiffKnob.ArenaRooms, 1f);
         Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting wins over Rooms");
         g.Diff.Set(DiffKnob.ArenaRooms, 0f);
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f);
-        Check(!g.RoomsOn && !cg.RoomsOn && g.CurrentWorld == World.Single && g.ArenaMin.X == 0f && g.ExpansionScale == 1f, "before the first room the Expanding arena is the plain box");
+        Check(g.RoomsOn && cg.RoomsOn && g.Walled && cg.Walled && !g.EdgesGated && g.CurrentWorld == g.ExpansionWorld && g.ArenaMin.X == 0f && g.ExpansionScale == 1f && g.RoomsDamageMult == 1f,
+            "before the first room the Expanding arena is the walled hub (no wrap round the edges, enemy damage 1x)");
 
         // A building round opens: everyone sees it, nobody has proposed.
         openRound.Invoke(g, null);
@@ -507,7 +508,7 @@ static partial class Program
                 tickProps.Invoke(g, new object[] { 0.05f });
                 tickNodes.Invoke(g, null);
                 tickNodes.Invoke(g, null);
-                Check(chests[0].Open && g.Nodes[ci].Spent && g.Loots.Values.Any(l => l.Owner == pl.Id), "walking onto it opens it: the node is spent and the player gets their own item");
+                Check(chests[0].Open && g.Nodes[ci].Spent && (chests[0].Chest != ChestKind.Upgrade || g.Loots.Values.Any(l => l.Owner == pl.Id)), "walking onto it opens it: the node is spent and pays its kind (" + chests[0].Chest + ")");
                 Check(g.Props.Values.Count(q => q.Kind == PropKind.Chest && !q.Open && q.Pos.DistanceTo(chest.Pos) < 1f) == 0, "a spent node holds no second chest");
                 g.Nodes.RemoveAt(ci);
 

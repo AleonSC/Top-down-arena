@@ -114,14 +114,15 @@ namespace Arena
                     if (n > 1)
                         markClusters.Add(new[] { tip, dir, new V2(n, size) });
                 }
-                foreach (var c in game.Props.Values)  // unopened treasure chests: a gold arrow with a ring
+                foreach (var c in game.Props.Values)  // unopened treasure chests: an arrow with a ring in the chest kind's ink (ChestLooks.cs)
                 {
                     if (c.Kind != PropKind.Chest || c.Open || c.Hp <= 0f || OffBy(ToUi(c.Pos), Game.ChestW * 0.5f * UiWorldScale) <= 0f)
                         continue;
                     V2 at = ToUi(c.Pos), dir = (at - mid).Normalized(), tip = EdgePoint(mid, at);
                     float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
-                    MarkArrow(tip, dir, 12f, MarkChest.WithAlpha(fade * pulse));
-                    Arc(tip - dir * 5f, 16f, 2f, MarkChest.WithAlpha(fade * 0.55f * pulse), 24);
+                    var ink = c.Chest == ChestKind.Gold ? MarkChest : ChestInkOf(c.Chest);
+                    MarkArrow(tip, dir, 12f, ink.WithAlpha(fade * pulse));
+                    Arc(tip - dir * 5f, 16f, 2f, ink.WithAlpha(fade * 0.55f * pulse), 24);
                 }
                 DrawGateMarker(mid, fade);  // the boss gate (BossGateLook.cs)
                 byte stashKind = (byte)(1 + (int)SurpriseShape.Stash);
