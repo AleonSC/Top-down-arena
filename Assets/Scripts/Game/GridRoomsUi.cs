@@ -187,11 +187,11 @@ namespace Arena
                 if (!playable)
                     ink = new Color(ink.r, ink.g, ink.b, 0.35f);
                 DrawCardGlyph(card, new Rect(r.x + 8f, r.y + 6f, r.width - 16f, 38f), on ? Color.white : ink);
-                bool floor = Expansion.IsPieceCard(card) && Expansion.CardFloor(card) != PathId.None;
+                bool floor = Expansion.CardMod(card) != 0;  // a piece with a modifier (a floor today)
                 string name = Expansion.IsPieceCard(card) ? Expansion.GridPieceName(Expansion.CardPiece(card)) : Expansion.CardName(card);
                 Ui.Label(new Rect(r.x, r.y + (floor ? 46f : 52f), r.width, 16f), name.ToUpperInvariant(), 11, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
-                if (floor)  // a floor piece: its ground under the name, in the floor's colour
-                    Ui.Label(new Rect(r.x + 4f, r.y + 59f, r.width - 8f, 13f), Paths.Get(Expansion.CardFloor(card)).Name.ToUpperInvariant(), 9, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
+                if (floor)  // a modded piece: its modifier under the name, in the card's colour
+                    Ui.Label(new Rect(r.x + 4f, r.y + 59f, r.width - 8f, 13f), Expansion.ModName(Expansion.CardMod(card)).ToUpperInvariant(), 9, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
                 if (TipHover(r))
                 {
                     TipStart(r, Expansion.CardName(card), ink);
