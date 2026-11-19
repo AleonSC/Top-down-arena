@@ -66,6 +66,24 @@ static partial class Program
         Check(Profile.Parse(p.ToText()).Recent[0].Mods == "Death Throes|Frenzy|Tough Crowd", "modifier names with spaces survive saving");
         Check(Profile.Parse("arena-profile 1\nxp banana\nequip - -\nrlog 1 2\n").Xp == 0 && Profile.Parse("arena-profile 1\nruns 1 0 0\n").Xp == 0, "a damaged or old profile loads with no XP");
 
+        // Class expertise (Expertise.cs): the run's XP also goes to the class played; its levels unlock weapon skins.
+        Check(Expertise.Of(0).Level == 0 && Expertise.Of(999).Level == 0 && Expertise.Of(1000).Level == 1 && Expertise.Of(1000).Need == 2000 && Expertise.Of(55000).Maxed && Expertise.Of(999999).Level == Expertise.MaxLevel, "expertise: 1,000 XP to level 1, 2,000 more to 2, level 10 at 55,000");
+        var ep = new Profile();
+        var eg = ep.AwardXp(Rank.Award(true, 10, 2, 0, RunMod.None, DifficultyLevel.Normal), 11, 1, Kit.Knight);
+        Check(ep.ExpertiseXp(Kit.Knight) == eg.Award.Total && ep.ExpertiseXp(Kit.Soldier) == 0 && eg.ExpertiseKit == Kit.Knight && eg.ExpertiseBefore == 0 && eg.ExpertiseAfter == ep.ExpertiseLevel(Kit.Knight) && ep.ExpertiseLevel(Kit.Knight) == 1, "a Knight run's XP goes to Knight expertise only");
+        Check(ep.AwardXp(Rank.Award(false, 1, 0, 0, RunMod.None, DifficultyLevel.Normal), 2, 0).ExpertiseKit == null && ep.ExpertiseXp(Kit.Knight) == eg.Award.Total, "no class given, no expertise");
+        var keepSkins = Expertise.Skins;
+        var tw = Defs.Weapon(Role.Dps, Kit.Soldier, 0);
+        Expertise.Skins = new[] { new WeaponSkinDef { Id = "test-skin-a", Name = "A", Weapon = tw.Id, Level = 1 }, new WeaponSkinDef { Id = "test-skin-b", Name = "B", Weapon = tw.Id, Level = 3 } };
+        Check(Expertise.For(tw.Id).Count == 2 && Expertise.ClassOf(tw.Id) == Kit.Soldier && Expertise.NextFor(Kit.Soldier, 1).Id == "test-skin-b", "a weapon's skins, its class, and the next one to earn");
+        Check(!ep.EquipSkin(tw.Id, "test-skin-a") && ep.SkinOf(tw.Id) == "", "a skin above your class's expertise can't be equipped");
+        ep.ClassXp[Expertise.Key(Kit.Soldier)] = 1000;
+        Check(ep.EquipSkin(tw.Id, "test-skin-a") && ep.SkinOf(tw.Id) == "test-skin-a" && !ep.EquipSkin(tw.Id, "test-skin-b") && !ep.EquipSkin(Defs.Weapon(Role.Dps, Kit.Soldier, 1).Id, "test-skin-a"), "at level 1 the level-1 skin equips on its own weapon, not another's, and not the level-3 one");
+        var eback = Profile.Parse(ep.ToText());
+        Check(eback.ExpertiseXp(Kit.Knight) == ep.ExpertiseXp(Kit.Knight) && eback.ExpertiseXp(Kit.Soldier) == 1000 && eback.SkinOf(tw.Id) == "test-skin-a", "expertise and skins read back the same");
+        Expertise.Skins = keepSkins;
+        Check(Profile.Parse(ep.ToText()).SkinOf(tw.Id) == "" && ep.EquipSkin(tw.Id, "") && ep.SkinOf(tw.Id) == "", "a skin that no longer exists is dropped; an empty id goes back to the standard look");
+
         // The lobby: a friend's rank and frame reach the host and everyone, and the host only believes frames the rank has.
         int port = nextPort++;
         var host = new Session();

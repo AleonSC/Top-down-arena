@@ -9,6 +9,7 @@ menu-play         menu      PLAY=1
 who               who
 profile           profile
 cosmetics         cosmetics
+cosmetics-skin    cosmetics SECTION=7
 records           records
 records-recent    records   SECTION=4
 howto             lobby     LOBBYMENU=howto

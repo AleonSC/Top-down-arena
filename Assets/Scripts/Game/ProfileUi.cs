@@ -30,6 +30,7 @@ namespace Arena
             profileOpen = true;
             profileTab = Mathf.Clamp(tab, 0, ProfileTabs.Length - 1);
             cosmeticsSection = 0;
+            skinWeapon = -1;  // (the Weapon skin section opens on the lobby's weapon)
             rankSection = 0;
             unlocksSection = 0;
             recordsSection = Mathf.Clamp(recordsSection, 0, RecordRowCount - 1);
@@ -96,8 +97,9 @@ namespace Arena
             var l = new List<ProfOpt>();
             if (tab == 0)
             {
-                for (int i = 0; i < 7; i++)
+                for (int i = 0; i < SkinSection; i++)
                     l.Add(new ProfOpt { Name = CosmeticSections[i], Icon = CosmeticIcons[i], Line = EquippedShort(p, KindOfSection(i)) });
+                l.Add(new ProfOpt { Name = CosmeticSections[SkinSection], Icon = SkinIcon, Line = SkinLine(p) });  // WeaponSkinUi.cs
             }
             else if (tab == 1)
             {

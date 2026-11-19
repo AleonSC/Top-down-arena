@@ -9,10 +9,10 @@ namespace Arena
     {
         float ladderScroll = -1f;  // the reward ladder's scroll, in px (-1: it opens at your rank)
         bool editingName;  // the name in your profile is a text field while the pencil is on
-        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Cursor (7: the Reward ladder, which has its own panel)
+        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Cursor, 7 Weapon skin (WeaponSkinUi.cs; 8: the Reward ladder, which has its own panel)
 
-        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Cursor", "Reward ladder" };
-        static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_cursor", "ui_trophy" };
+        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Cursor", "Weapon skin", "Reward ladder" };
+        static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_cursor", "class_soldier", "ui_trophy" };  // (Weapon skin shows the lobby class's icon: SkinIcon)
 
         static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : s == 3 ? CosmeticKind.CardBackground : s == 4 ? CosmeticKind.NameEffect : s == 5 ? CosmeticKind.AimLine : s == 6 ? CosmeticKind.Cursor : CosmeticKind.Background;
 
@@ -46,6 +46,11 @@ namespace Arena
 
         void DrawLookWindow(Profile p, float t, int section)
         {
+            if (section == SkinSection)
+            {
+                DrawSkinWindow(p, t);  // WeaponSkinUi.cs
+                return;
+            }
             var kind = KindOfSection(section);
             OpenSectionPanel(CosmeticSections[section].ToUpperInvariant(), CrtStyle.Ink, LookSubs[section], 1f);
             float px = DrawerPanel.x + 28f, top = DrawerPanel.y + 102f;
