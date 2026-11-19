@@ -19,7 +19,7 @@ static partial class Program
         Check(Mystery.PriceForCells(1) == 9 && Mystery.PriceForCells(4) == 24, "a door costs by the cells behind it: 9 for one, 24 for four");
 
         string why = null;
-        var list = GridMap(GridPiece.Mono);
+        var list = GridMap(PieceShape.Mono);
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
@@ -144,17 +144,17 @@ static partial class Program
             quiet &= Mystery.KindFor(sd, 9, 0, r, false) != MysteryKind.Enemies;
         }
         Check(rooms.All(c => c > 1500), "small, medium and hallway rooms all turn up (" + string.Join(" ", rooms) + ")");
-        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.Vendor] > 0 && small[(int)MysteryKind.Arms] > 0 && small[(int)MysteryKind.Medic] > 0 && small[(int)MysteryKind.Chest] == 0,
+        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.BlackMarket] > 0 && small[(int)MysteryKind.Arms] > 0 && small[(int)MysteryKind.Medic] > 0 && small[(int)MysteryKind.Chest] == 0,
             "a small room is mostly enemies, sometimes empty, sometimes a shop, a Black Market, an Arms Dealer or a Medic (" + string.Join(" ", small) + ")");
-        Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.Vendor] + medium[(int)MysteryKind.Medic] + medium[(int)MysteryKind.Chest] == 0,
+        Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.BlackMarket] + medium[(int)MysteryKind.Medic] + medium[(int)MysteryKind.Chest] == 0,
             "a medium room is mostly enemies, rarely empty, never a shop (" + string.Join(" ", medium) + ")");
         Check(hallsChest, "a hallway always holds a chest");
         Check(quiet, "round a boss no room holds enemies");
         Check(Mystery.AmbushCount(5) == 5 && Mystery.AmbushCount(100) == Mystery.AmbushMax && Mystery.AmbushCount(5, MysteryRoom.Small) == 3, "enemies grow with the waves, fewer in a small room");
-        Check(Mystery.PiecesOf(MysteryRoom.Small).All(pc => pc == GridPiece.Mono) && Mystery.PiecesOf(MysteryRoom.Hallway).All(pc => pc == GridPiece.TriI || pc == GridPiece.TetI), "a small room is one cell, a hallway a straight line of cells");
+        Check(Mystery.PiecesOf(MysteryRoom.Small).All(pc => pc == PieceShape.Mono) && Mystery.PiecesOf(MysteryRoom.Hallway).All(pc => pc == PieceShape.TriI || pc == PieceShape.TetI), "a small room is one cell, a hallway a straight line of cells");
 
         string why = null;
-        var list = GridMap(GridPiece.Mono);
+        var list = GridMap(PieceShape.Mono);
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 8 }, port, false, "Host", Role.Tank);
         var client = JoinAs(port, false, "Friend", Role.Dps);
@@ -176,7 +176,7 @@ static partial class Program
 
         // Puts a door of this room and kind on the map (the first spot that fits) and opens it. Returns the rooms it built and the door.
         MysteryDoor lastDoor = default(MysteryDoor);
-        Func<GridPiece, MysteryKind, List<ExpansionRoom>> open = (piece, kind) =>
+        Func<PieceShape, MysteryKind, List<ExpansionRoom>> open = (piece, kind) =>
         {
             typeof(Game).GetMethod("ResetMysteryDoors", flags).Invoke(g, null);
             var opts = Expansion.GridMysteryOptions(g.Expanded, piece);
@@ -202,24 +202,25 @@ static partial class Program
 
         // A hallway: a line of four cells, its chest at the far end.
         int nodes0 = g.Nodes.Count;
-        var hall = open(GridPiece.TetI, MysteryKind.Chest);
+        var hall = open(PieceShape.TetI, MysteryKind.Chest);
         var hr = hall.Count == 1 ? hall[0] : default(ExpansionRoom);
         Check(hall.Count == 1 && Math.Max(hr.W, hr.H) == 2400 && Math.Min(hr.W, hr.H) == 600, "a hallway is a line of four cells (" + hr.W + " x " + hr.H + ")");
         var chestNode = g.Nodes.Count == nodes0 + 1 ? g.Nodes.Last() : default(MapNode);
         float doorToChest = chestNode.Pos.DistanceTo(lastDoor.Pos);
         Check(g.Nodes.Count == nodes0 + 1 && chestNode.Kind == NodeKind.Chest && Expansion.NodeClaimed(g.Expanded, chestNode) && doorToChest > 600f, "its chest is away from the door (" + doorToChest.ToString("0") + " px from the door)");
-        Check(g.Props.Values.Any(pr => pr.Kind == PropKind.Chest && pr.Pos.DistanceTo(chestNode.Pos) < 2f), "the chest is there at once");
+        V2 chestSpot = g.NodeSpot(g.Nodes.Count - 1);  // (a claimed chest stands in the middle of the room that claims it)
+        Check(g.Props.Values.Any(pr => pr.Kind == PropKind.Chest && pr.Pos.DistanceTo(chestSpot) < 2f), "the chest is there at once");
 
-        var shop = open(GridPiece.Mono, MysteryKind.Shop);
+        var shop = open(PieceShape.Mono, MysteryKind.Shop);
         Check(shop.Count == 1 && shop[0].W == 600 && shop[0].H == 600 && shop[0].Kind == RoomKind.Shop && g.HasShopRoom, "a small room (one cell) can be a shop");
-        var vendor = open(GridPiece.Mono, MysteryKind.Vendor);
-        Check(vendor.Count == 1 && vendor[0].Kind == RoomKind.Vendor && g.HasVendorRoom, "or a Black Market");
-        var armsRoom = open(GridPiece.Mono, MysteryKind.Arms);
+        var vendor = open(PieceShape.Mono, MysteryKind.BlackMarket);
+        Check(vendor.Count == 1 && vendor[0].Kind == RoomKind.BlackMarket && g.HasBlackMarketRoom, "or a Black Market");
+        var armsRoom = open(PieceShape.Mono, MysteryKind.Arms);
         Check(armsRoom.Count == 1 && armsRoom[0].Kind == RoomKind.Arms && g.HasArmsRoom, "or an Arms Dealer (Docs/ArmsDealer.md)");
-        var medicRoom = open(GridPiece.Mono, MysteryKind.Medic);
+        var medicRoom = open(PieceShape.Mono, MysteryKind.Medic);
         Check(medicRoom.Count == 1 && medicRoom[0].Kind == RoomKind.Medic && g.HasMedicRoom, "or a Medic");
         PollBoth(host, client);
-        Check(cg.HasShopRoom && cg.HasVendorRoom && cg.HasArmsRoom && cg.HasMedicRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
+        Check(cg.HasShopRoom && cg.HasBlackMarketRoom && cg.HasArmsRoom && cg.HasMedicRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
 
         // Enemies: mid-wave they appear in the room at once; between waves they wait for the wave to start. A small room holds fewer.
         g.State = MatchState.Fighting;
@@ -228,7 +229,7 @@ static partial class Program
         var queueWas = new List<EnemyType>(queue);
         queue.Clear(); queue.Add(EnemyType.Rioter); queue.Add(EnemyType.Guard);  // (this wave's own types: a Warden wave)
         int e0 = g.Enemies.Count;
-        var med = open(GridPiece.TetO, MysteryKind.Enemies);
+        var med = open(PieceShape.TetO, MysteryKind.Enemies);
         int want = Mystery.AmbushCount(g.Wave, MysteryRoom.Medium);
         int inRoom = g.Enemies.Values.Count(e => med.Any(r => e.Pos.X >= r.X - 20 && e.Pos.X <= r.X1 + 20 && e.Pos.Y >= r.Y - 20 && e.Pos.Y <= r.Y1 + 20));
         Check(med.Count == 1 && med[0].W == 1200 && med[0].H == 1200 && g.Enemies.Count - e0 == want && inRoom >= want, "mid-wave a medium room's " + want + " enemies appear in it (" + (g.Enemies.Count - e0) + " new, " + inRoom + " in the room)");
@@ -237,14 +238,14 @@ static partial class Program
         queue.Clear(); queue.AddRange(queueWas);
         g.State = MatchState.Intermission;
         e0 = g.Enemies.Count;
-        var sm = open(GridPiece.Mono, MysteryKind.Enemies);
+        var sm = open(PieceShape.Mono, MysteryKind.Enemies);
         var pend = (List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g);
         Check(sm.Count == 1 && g.Enemies.Count == e0 && pend.Count == 1, "between waves they wait");
         typeof(Game).GetMethod("SpringPendingAmbushes", flags).Invoke(g, null);
         Check(g.Enemies.Count - e0 == Mystery.AmbushCount(g.Wave, MysteryRoom.Small) && pend.Count == 0, "and come out as the wave starts, fewer from a small room");
 
         e0 = g.Enemies.Count;
-        var empty = open(GridPiece.Domino, MysteryKind.Empty);
+        var empty = open(PieceShape.Domino, MysteryKind.Empty);
         Check(empty.Count == 1 && empty[0].W * empty[0].H == 2 * 600 * 600 && empty[0].Kind == RoomKind.Combat && g.Enemies.Count == e0 && ((List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g)).Count == 0, "an empty room (7 x 6 here) is just floor");
     }
 }
@@ -258,7 +259,7 @@ static partial class Program
 
         // One door, a bot host beside it: too poor (inside the reserve) it waits; with the vectors it opens it.
         string why = null;
-        var list = GridMap(GridPiece.Mono);
+        var list = GridMap(PieceShape.Mono);
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, true, "Host", Role.Tank);
         var client = JoinAs(port, true, "Friend", Role.Dps);

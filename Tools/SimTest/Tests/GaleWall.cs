@@ -29,7 +29,7 @@ static partial class Program
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.FirstAbility == AbilityId.GaleWall && me.Slots[0].Id == AbilityId.GaleWall, "picking the 4th key brings Gale Wall into the run on Space");
+        Check(me.FirstAbility == AbilityId.GaleWall && me.Slots[0].Id == AbilityId.GaleWall, "picking the 4th choice brings Gale Wall into the run as the 1st ability");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(300f, 450f), aim = new V2(900f, 450f);
@@ -49,7 +49,7 @@ static partial class Program
         masteredField.SetValue(g, false);
         var keep = pin(new V2(1500f, 900f));  // (somewhere out of the way, so the wave doesn't end)
         press();
-        Check(me.GaleT > Game.GaleTime - 0.01f && me.GalePos.DistanceTo(mePos) < 1f && !me.GaleWide, "Space puts the lens up for 5 s where you stand");
+        Check(me.GaleT > Game.GaleTime - 0.01f && me.GalePos.DistanceTo(mePos) < 1f && !me.GaleWide, "the 1st ability puts the lens up for 5 s where you stand");
         volley(12);
         step(1.6f);
         Check(me.GaleDots.Count == 12 && !g.Bullets.Values.Any(b => b.Owner == 0), "every enemy shot that reaches the lens stops there and charges it");

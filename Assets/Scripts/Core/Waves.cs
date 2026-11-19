@@ -138,7 +138,7 @@ namespace Arena
                                 BossSlot = false;
                                 Wave++;
                             }
-                            PlaceFloatingRooms();  // a new boss cycle: its floating shop, vendor and Gatekeeper rooms (ExpansionGame.cs)
+                            PlaceFloatingRooms();  // a new boss cycle: its floating shop, Black Market and Gatekeeper rooms (ExpansionGame.cs)
                             PickRooms();   // the Expanding arena's walled world, on a regular wave (Rooms.cs)
                             PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);
@@ -247,7 +247,7 @@ namespace Arena
                     GiveSurpriseRoom();  // ...but a free, well-shaped room that closes a loop (ExpansionGame.cs, Docs/SurpriseRooms.md; the Campaign resets the map instead)
             }
             else if (ServiceRooms && RoomsOn && !ShopOpen && ModeRules.RunEvents)
-                OpenShopRoom(Wave % Expansion.Milestone == 1 && FirstLeg);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
+                OpenShopRoom(Wave % Expansion.Milestone == 1 && FirstLeg);  // a connected shop or Black Market room: open each intermission (walk in); the shelf is new once a boss cycle
             RevealBreachRooms();  // every breach that is left opens onto a small room (BreachEvent.cs, Docs/BreachRooms.md)
             RevealBreachEvent();  // a breach event the wave ended before it opened: the room opens now (BreachEvent.cs)
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)

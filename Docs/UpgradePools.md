@@ -150,7 +150,7 @@ One `Kit` card per class, offered to every player of that class (a Wildcard: the
 | Hemomancer | Bloodthirst | Abilities cost 20% less health, and each kill heals you 2 | Health is its resource |
 
 Built (owner approved all six): each sits in its class's list with `Kit` set. `Stats`: `OrbHealMult`, `BonusCdMult`
-(`Game.Cooldown`, slots 1-3), `SurgeRate` (`Player.SurgeT`, set in `CastAbility` on a Space cast, read by
+(`Game.Cooldown`, slots 1-3), `SurgeRate` (`Player.SurgeT`, set in `CastAbility` on a 1st ability cast, read by
 `FireRate`, sent in the snapshot so your own firing speeds up), `MinionDmgMult` / `MinionToughMult` (`SpawnMinion`:
 `Power` and `BlockHp`, a staggered minion's recovery, thralls' health), `CutReachMult` (`Knight.cs` bullet cutting),
 `GhostCut` / `GhostTime` (`Player.GhostT`, set on a dodge in `Dodge.cs`, read in `Damage`), `HealthCostMult`

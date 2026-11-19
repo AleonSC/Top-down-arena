@@ -27,7 +27,7 @@ static partial class Program
             && Upgrades.FirstAbility(Role.Healer, Kit.Engineer, 0) == AbilityId.MedPylon && Upgrades.Ultimate(Role.Healer, Kit.Engineer) == AbilityId.SafeRoom
             && Upgrades.FirstAbility(Role.Tank, Kit.Engineer, 1) == AbilityId.VectorWall, "Vector Wall and Bastion for the Tank, Med Pylon and Safe Room for the Healer");
         Check(Upgrades.FirstAbility(Role.Dps, Kit.Engineer, 0) == AbilityId.DragPylon && Upgrades.AbilityGap(Role.Dps, Kit.Engineer, 1)
-            && Upgrades.Ultimate(Role.Dps, Kit.Engineer) == AbilityId.Breach && !Upgrades.UltGap(Role.Dps, Kit.Engineer), "Drag Pylon on Space and Breach on the Ultimate row");
+            && Upgrades.Ultimate(Role.Dps, Kit.Engineer) == AbilityId.Breach && !Upgrades.UltGap(Role.Dps, Kit.Engineer), "Drag Pylon as the 1st ability and Breach on the Ultimate row");
         var fresh = new Profile();
         Check(Unlocks.Get("class-engineer") != null && !fresh.EngineerUnlocked, "the Engineer is a locked class on a new profile (the lobby opens it for everyone for now)");
         fresh.RunsWon = 1;

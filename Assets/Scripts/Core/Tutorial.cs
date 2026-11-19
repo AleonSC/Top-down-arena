@@ -25,11 +25,11 @@ namespace Arena
                 Steps = new[] { TutorialStep.Move, TutorialStep.Aim, TutorialStep.Shoot, TutorialStep.Dodge } },
             new TutorialLesson { Title = "LEVEL UP", When = "Between waves", Hint = "Kills give XP. Every level offers three upgrade cards.",
                 Steps = new[] { TutorialStep.PickCard } },
-            new TutorialLesson { Title = "BUILD A ROOM", When = "Between waves: a build round is open", Hint = "Walls cost vectors. Build toward the sealed shop and vendor rooms.",
+            new TutorialLesson { Title = "BUILD A ROOM", When = "Between waves: a build round is open", Hint = "Walls cost vectors. Build toward the sealed shop and Black Market rooms.",
                 Steps = new[] { TutorialStep.OpenBuild, TutorialStep.DrawRoom, TutorialStep.Vote } },
             new TutorialLesson { Title = "YOUR KIT", When = "During a wave", Hint = "Your ability recharges. The parry shield blocks shots.",
                 Steps = new[] { TutorialStep.Ability, TutorialStep.Parry } },
-            new TutorialLesson { Title = "GOLD AND THE SHOP", When = "Once a shop room is connected", Hint = "Kills drop gold once a shop or vendor room joins the map.",
+            new TutorialLesson { Title = "GOLD AND THE SHOP", When = "Once a shop room is connected", Hint = "Kills drop gold once a shop or Black Market room joins the map.",
                 Steps = new[] { TutorialStep.Gold, TutorialStep.Shop } },
         };
 

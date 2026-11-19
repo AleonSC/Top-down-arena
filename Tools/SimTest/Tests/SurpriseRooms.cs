@@ -99,7 +99,7 @@ static partial class Program
 
         // A room behind a breach: every spot has floor on the point just behind the wall, and a plain map still gets a plan.
         string why = null;
-        var list = GridMap(GridPiece.TriI);
+        var list = GridMap(PieceShape.TriI);
         var w = Expansion.Build(list);
         var bs = Breaches.For(w, 15);
         bool any = false, behind = true;
@@ -120,7 +120,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
-        UseMap(new[] { g, cg }, GridMap(GridPiece.TriI));
+        UseMap(new[] { g, cg }, GridMap(PieceShape.TriI));
         int seedPick = Enumerable.Range(1, 100000).First(sd => BreachEvent.IsEventWave(sd, 15));
         typeof(Game).GetField("expandSeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, seedPick);
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.BreachAge > 0.2f, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });

@@ -521,7 +521,7 @@ namespace Arena
                     continue;
                 bool isUp = l.Kind == LootKind.Upgrade;
                 var u = isUp ? Upgrades.All[l.Upgrade] : null;
-                var rc = Game.LootInk(l);  // (an upgrade's rarity; a build's pink or a piece card's orange, like their chests)
+                var rc = Game.LootInk(l);  // (an upgrade's rarity; a build's pink or a piece's orange, like their chests)
                 float grow = Mathf.Clamp01(l.Age / 0.45f), pop = 1f + 0.25f * Mathf.Sin(grow * Mathf.PI);
                 bool near = game.MyLootInReach == l;
                 // The beam and the ring on the ground.
@@ -553,7 +553,7 @@ namespace Arena
                 FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, face ? rc.Darkened(0.78f) : rc.Darkened(0.55f));
                 if (face && isUp)
                     DrawIconGl(PixelArt.RowsFor(u.Name), c, 27f * grow * pop, cos);
-                else if (face)  // a build or a piece card: its chest's emblem
+                else if (face)  // a build or a piece: its chest's emblem
                     ChestEmblem(l.Kind == LootKind.Build ? ChestKind.Buildable : ChestKind.Piece, c, 1.1f * grow * pop * Mathf.Max(0.15f, Mathf.Abs(cos)), rc, rc.Mix(new Rgba(1f, 1f, 1f), 0.5f), 1f);
                 else
                 {
@@ -685,7 +685,7 @@ namespace Arena
                 GUI.EndGroup();
             }
             Ui.Label(new Rect(r.x + 12f, r.y + 10f, 120f, 16f), "FROM A CHEST", 10, CrtStyle.Gold.WithAlpha(0.9f), TextAnchor.MiddleLeft, true);
-            string rarity = up ? Upgrades.RarityName(u.Rarity) : l.Kind == LootKind.Build ? "BUILD" : Expansion.IsServiceCard((RoomCard)l.Item) ? "ROOM CARD" : "PIECE CARD";
+            string rarity = up ? Upgrades.RarityName(u.Rarity) : l.Kind == LootKind.Build ? "BUILD" : Expansion.IsServiceCard((PieceCard)l.Item) ? "ROOM CARD" : "PIECE CARD";
             float rw = 24f + rarity.Length * 7.5f;
             var ribbon = new Rect(r.xMax - rw - 12f, r.y + 8f, rw, 20f);
             Ui.Pill(ribbon, rc.WithAlpha(0.85f));
@@ -715,7 +715,7 @@ namespace Arena
             }
             else
             {
-                var card = (RoomCard)l.Item;
+                var card = (PieceCard)l.Item;
                 DrawCardGlyph(card, new Rect(tile.x + 10f, tile.y + 10f + bobY, 44f, 44f), rc);
                 name = Expansion.CardName(card);
                 int held = Game.HandCount(me);

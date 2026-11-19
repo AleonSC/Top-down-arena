@@ -23,7 +23,7 @@ Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS u
 ## Answers to the first round (owner, Nov 2026)
 
 1. **Bonus slot:** the Wildcard starts with a **Wildcard ability** (two 1st abilities, both from the DPS pool).
-   Open detail: a second key, or Space cycles / both fire? Needs a pick.
+   Open detail: a second key, or the 1st ability key cycles / both fire? Needs a pick.
 2. **Win:** co-op wins count toward the "win once with each role" unlock.
 3. **Hemomancer abilities:** they deal their damage but get **no low-health bonus**. (Whether the health cost stays
    wasn't said; assumed it stays, since it is part of the ability. Confirm.)
@@ -32,7 +32,7 @@ Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS u
 
 ## Still open
 
-- How the second ability is triggered (second key vs. both on Space).
+- How the second ability is triggered (second key vs. both on the 1st ability key).
 - Does the Hemomancer health cost stay?
 - Practice Range: Wildcard unlocked regardless? (assumed yes)
 

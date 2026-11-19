@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Arena
 {
-    /// What the Black Market (the vendor's room, Docs/BlackMarket.md) sells to build around the map. Bought with gold into the
+    /// What the Black Market (the Black Market, Docs/BlackMarket.md) sells to build around the map. Bought with gold into the
     /// buyer's stash, placed in the break between waves (the draw screen's Teleporter and Trap tools). The teleporter and the turret
     /// (Turret.cs) work; the landmine and slow field are bought and placed, and have no effect yet.
     public enum BuildKind : byte { Teleporter, Turret, Landmine, SlowField }  // (new kinds go at the end; Turret took the retired Spike trap's slot)

@@ -167,7 +167,7 @@ static partial class Program
         Check(host.Game.Players[1].Level > 1, "players levelled up");
         Check(mismatches == 0, "client stays in sync (" + mismatches + "/" + samples + " samples off)");
 
-        // New Q/E abilities: grant some directly, then let the bots use them.
+        // New 2nd and 3rd abilities: grant some directly, then let the bots use them.
         if (host.Game.State != MatchState.GameOver)
         {
             Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
@@ -187,8 +187,8 @@ static partial class Program
             Give(2, "Starburst");
             Give(2, "Blink");
             Give(1, "Overdrive");
-            host.Game.GrantUpgrade(2, U("Extra Use"), 2);  // +1 use on Q
-            host.Game.GrantUpgrade(2, U("Extra Use"), 3);  // ...and on E
+            host.Game.GrantUpgrade(2, U("Extra Use"), 2);  // +1 use on the 2nd ability
+            host.Game.GrantUpgrade(2, U("Extra Use"), 3);  // ...and on the 3rd
             int turretsSeen = 0, ghostsAfter = 0;
             for (int i = 0; i < 60 * 12; i++)
             {
@@ -223,18 +223,18 @@ static partial class Program
                     slotsOk &= cs[k].Id == (k - 1 < grants.Count ? grants[k - 1] : AbilityId.None);
                 slotsOk &= new HashSet<AbilityId>(grants).Count == grants.Count;  // no duplicates
                 if (hp.Id == 1)
-                    slotsOk &= grants.Count == 3 && cs[3].Id != AbilityId.None;  // tank fills Shift too
+                    slotsOk &= grants.Count == 3 && cs[3].Id != AbilityId.None;  // tank fills the 4th too
                 hasTurret |= grants.Contains(AbilityId.Turret);
                 if (hp.Id == 2)
                     overchargeOk = cs[1].MaxCharges == 2 && cs[2].MaxCharges == 2;
             }
-            Check(slotsOk, "new abilities fill Q, E, then Shift, in pick order, on the client too");
-            Check(overchargeOk, "Extra Use gives the chosen keys (Q, E) a second charge");
+            Check(slotsOk, "new abilities fill the 2nd, 3rd, then 4th slot, in pick order, on the client too");
+            Check(overchargeOk, "Extra Use gives the chosen abilities (2nd, 3rd) a second charge");
             {
                 var h1 = host.Game.Players[1];
-                host.Game.GrantUpgrade(1, U("Extra Use"), 2);  // +1 use on Q
+                host.Game.GrantUpgrade(1, U("Extra Use"), 2);  // +1 use on the 2nd ability
                 var onQ = h1.CardAbilities[0];
-                host.Game.SetAbilityKey(onQ, 2);  // Q <-> E swap
+                host.Game.SetAbilityKey(onQ, 2);  // 2nd <-> 3rd swap
                 int at = Array.FindIndex(h1.Slots, sl => sl.Id == onQ);
                 Check(at == 2 && h1.Slots[at].MaxCharges == 2 && h1.Slots[1].MaxCharges == 1, "an Extra Use follows its ability to the key it moves to");
             }
@@ -501,14 +501,14 @@ static partial class Program
             Run(s, dt, 0.3f);
         };
         Func<Game, Player, string> Keys = (gm, p) => string.Join(",", new[] { 1, 2, 3 }.Select(k => p.Slots[k].Id == AbilityId.None ? "-" : p.Slots[k].Id.ToString()));
-        Pick("Shockwave", 3);  // straight onto Shift
+        Pick("Shockwave", 3);  // straight onto the 4th
         string a = Keys(host, hp);
-        Pick("Blink", 3);      // also Shift: Shockwave moves to a free key
+        Pick("Blink", 3);      // also the 4th: Shockwave moves to a free slot
         string b = Keys(host, hp);
-        Console.WriteLine("  keys (Q,E,Shift): picked Shockwave on Shift -> {0}; then Blink on Shift -> {1}; client sees {2}", a, b, Keys(s[1].Game, cp));
+        Console.WriteLine("  slots (2nd,3rd,4th): picked Shockwave on the 4th -> {0}; then Blink on the 4th -> {1}; client sees {2}", a, b, Keys(s[1].Game, cp));
         Check(a == "-,-,Shockwave" && b == "Shockwave,-,Blink" && Keys(s[1].Game, cp) == b, "a new ability goes on the key you choose (an ability already there moves to a free key)");
 
-        // Use Blink so it's on cooldown, then move it from Shift to E in the Tab menu.
+        // Use Blink so it's on cooldown, then move it from the 4th to the 3rd in the Tab menu.
         hp.Slots[3].Charges = 0;
         hp.Slots[3].Timer = 5f;
         cp.Slots[3].Charges = 0;
@@ -516,7 +516,7 @@ static partial class Program
         s[1].Game.SetAbilityKey(AbilityId.Blink, 2);
         Run(s, dt, 0.3f);
         string c = Keys(host, hp);
-        Console.WriteLine("  moved Blink to E: {0} (client {1}); its cooldown {2:0.0}s on the host, {3:0.0}s on the client", c, Keys(s[1].Game, cp), hp.Slots[2].Timer, cp.Slots[2].Timer);
+        Console.WriteLine("  moved Blink to the 3rd: {0} (client {1}); its cooldown {2:0.0}s on the host, {3:0.0}s on the client", c, Keys(s[1].Game, cp), hp.Slots[2].Timer, cp.Slots[2].Timer);
         Check(c == "Shockwave,Blink,-" && Keys(s[1].Game, cp) == c && hp.Slots[2].Charges == 0 && hp.Slots[2].Timer > 4f && cp.Slots[2].Timer > 4f,
             "abilities can be moved to another key, and their cooldown moves with them");
         s[1].Game.SetAbilityKey(AbilityId.Shockwave, 2);  // onto Blink's key: they swap

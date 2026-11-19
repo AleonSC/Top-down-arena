@@ -2,7 +2,7 @@
 
 Status: **all four steps built** (protocol 385 for the wire; the rooms rework and step 4 changed nothing on the wire). Balance numbers below are a first look. Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
 [`SurpriseRooms.md`](SurpriseRooms.md) (shapes, placement), [`BreachRooms.md`](BreachRooms.md) (Stash, a door lined up with a
-wall spot), [`Nodes.md`](Nodes.md) (tiny shop / vendor rooms) and [`FactionMinis.md`](FactionMinis.md). **Drawing rooms stays
+wall spot), [`Nodes.md`](Nodes.md) (tiny shop / Black Market rooms) and [`FactionMinis.md`](FactionMinis.md). **Drawing rooms stays
 exactly as it is**: doors are a second, cheaper way to grow the map.
 
 ## Decisions (owner)
@@ -11,7 +11,7 @@ exactly as it is**: doors are a second, cheaper way to grow the map.
 |---|---|
 | Replace drawing? | **No, alongside it.** |
 | How many | **1-2 new doors each cleared wave**, **cap 3** on the map. |
-| Behind a door | ~~Combat room, loot, shop / vendor, risk~~ **Changed Nov 17 (owner):** only **small or medium squares / rectangles** and **long hallways**. Square rooms usually hold enemies, sometimes nothing (rarer); a small room can be a **shop** or a **Black Market**; a hallway has a **chest at the very end**. |
+| Behind a door | ~~Combat room, loot, shop / Black Market, risk~~ **Changed Nov 17 (owner):** only **small or medium squares / rectangles** and **long hallways**. Square rooms usually hold enemies, sometimes nothing (rarer); a small room can be a **shop** or a **Black Market**; a hallway has a **chest at the very end**. |
 | Price | **~60% of drawing** a room of the same size (you don't pick shape or spot). |
 | When | **Any time**, mid-wave too; the room joins the fight at once. |
 | Show the room? | **No**: nothing tells you what is behind a door. |
@@ -33,7 +33,7 @@ exactly as it is**: doors are a second, cheaper way to grow the map.
 |---|---|---|
 | Combat | 50 | a surprise shape (Ring, Cross, L, T, Chamfer), placed by `SurpriseOptions` behind the door's wall |
 | Loot | 20 | a Stash (vector cache) or a small room round a chest |
-| Shop / vendor | 15 | the tiny 4 x 4 shop or vendor room, already open |
+| Shop / Black Market | 15 | the tiny 4 x 4 shop or Black Market room, already open |
 | Risk | 15 | the faction mini-boss room (`MiniBossNow`), or an **ambush**: a squad spawns in the room as it opens |
 
 Risk is never rolled before wave 5 or on the wave after a boss. A door whose room no longer fits (a drawn room took its space) is
@@ -49,7 +49,7 @@ doors at the combat price of a mid shape so they don't stand out.
 1. **Core**: `MysteryDoor` (wall spot, shape + placement, price), the roll (seeded from map + wave, 1-2 per build
    round, cap 3), `Game.MysteryDoors`, `Msg.MysteryDoor` (player -> host) and the doors in `Msg.ExpandState`; opening adds the room to
    `Expanded` and rebuilds the world; mid-wave opening. Suite `mysterydoor`. Protocol bump.
-2. **Contents**: loot / shop / risk rooms (Stash cache, chest, tiny shop / vendor, mini-boss, ambush squad).
+2. **Contents**: loot / shop / risk rooms (Stash cache, chest, tiny shop / Black Market, mini-boss, ambush squad).
 3. **Look**: the sealed shutter, price tag, "?" on the minimap and build map, the reveal; previews.
 4. **Bots and balance**: bots open doors when they can afford them; measure vectors spent per wave and survival vs drawing only.
 
@@ -67,10 +67,10 @@ doors at the combat price of a mid shape so they don't stand out.
 
 - `MysteryKind` (host only, never sent) rolled per door by `Mystery.KindFor` with the weights above; no risk before wave 5, round a boss,
   or without a faction mini-boss. Shapes (`Mystery.ShapeOf`): combat and ambush one of the five surprise shapes, Stash its 5 x 3, chest,
-  shop and vendor the new `SurpriseShape.Tiny` (4 x 4), mini-boss the new `SurpriseShape.Duel` (8 x 6). A loot, shop or mini-boss door
+  shop and Black Market the new `SurpriseShape.Tiny` (4 x 4), mini-boss the new `SurpriseShape.Duel` (8 x 6). A loot, shop or mini-boss door
   that loses its spot is only re-planned in its own shape.
 - Opening: a Stash keeps its Stash mark (`TickStashClaims` pays its cache); a chest room gets a chest node at its middle (`TickNodes`
-  puts the chest in); shop / vendor rooms are `RoomKind.Shop` / `Vendor` (connected, so gold drops and the room shop start); the mini-boss
+  puts the chest in); shop / Black Market rooms are `RoomKind.Shop` / `Vendor` (connected, so gold drops and the room shop start); the mini-boss
   room is `RoomKind.Gatekeeper` with `Mini` = `MiniBossNow()` (the duel as in `GatekeeperRoom.cs`); an ambush springs
   `Mystery.AmbushCount` enemies of `WavePool(Wave)` in the room (`SpringAmbush`), or as the next wave starts if opened between waves
   (`ambushPending`, `SpringPendingAmbushes` in `Waves.cs`).

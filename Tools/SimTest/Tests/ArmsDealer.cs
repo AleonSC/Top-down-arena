@@ -25,7 +25,7 @@ static partial class Program
 
         // The guarantee: a boss cycle with no Arms Dealer on the map and no Arms Dealer card in a hand deals one, once a cycle.
         var guarantee = typeof(Game).GetMethod("GuaranteeArmsCard", flags);
-        Func<int> armsCards = () => g.Players.Values.Sum(p => p.Hand.Count(c => c == (byte)RoomCard.Arms));
+        Func<int> armsCards = () => g.Players.Values.Sum(p => p.Hand.Count(c => c == (byte)PieceCard.Arms));
         Action clearHands = () => { foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length); };
         clearHands();
         g.Wave = 6;
@@ -35,32 +35,32 @@ static partial class Program
         guarantee.Invoke(g, null);
         Check(armsCards() == 0, "only once a boss cycle");
         g.Wave = 10;
-        g.Players[2].Hand[0] = (byte)RoomCard.Arms;
+        g.Players[2].Hand[0] = (byte)PieceCard.Arms;
         guarantee.Invoke(g, null);
         Check(armsCards() == 1, "not while someone holds one");
         clearHands();
         g.Wave = 15;
-        foreach (var p in g.Players.Values) for (int i = 0; i < p.Hand.Length; i++) p.Hand[i] = (byte)RoomCard.Shop;
+        foreach (var p in g.Players.Values) for (int i = 0; i < p.Hand.Length; i++) p.Hand[i] = (byte)PieceCard.Shop;
         guarantee.Invoke(g, null);
         Check(armsCards() == 0, "every hand full: nobody gets it yet");
-        g.Players[2].Hand[3] = (byte)RoomCard.None;
+        g.Players[2].Hand[3] = (byte)PieceCard.None;
         guarantee.Invoke(g, null);
-        Check(g.Players[2].Hand.Contains((byte)RoomCard.Arms), "the next round it goes to the hand with room");
+        Check(g.Players[2].Hand.Contains((byte)PieceCard.Arms), "the next round it goes to the hand with room");
         clearHands();
         g.Wave = 6;
 
         // An Arms Dealer and a shop, from their cards.
         var me = g.Players[1];
-        Func<RoomCard, V2> play = card =>
+        Func<PieceCard, V2> play = card =>
         {
             Array.Clear(me.Hand, 0, me.Hand.Length);
             me.Hand[0] = (byte)card;
-            var o = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono)[0];
-            typeof(Game).GetMethod("HostGridCard", flags).Invoke(g, new object[] { me.Id, 0, o.Orient, o.X, o.Y });
+            var o = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono)[0];
+            typeof(Game).GetMethod("HostPlayPieceCard", flags).Invoke(g, new object[] { me.Id, 0, o.Orient, o.X, o.Y });
             var r = g.Expanded[g.Expanded.Count - 1];
             return new V2((r.X + r.X1) / 2f, (r.Y + r.Y1) / 2f);
         };
-        V2 armsAt = play(RoomCard.Arms), shopAt = play(RoomCard.Shop), hubAt = g.CurrentWorld.Areas[0].Mid;
+        V2 armsAt = play(PieceCard.Arms), shopAt = play(PieceCard.Shop), hubAt = g.CurrentWorld.Areas[0].Mid;
         Check(g.HasArmsRoom && g.ServiceRooms, "an Arms Dealer room makes the room shops open");
         g.ShopOpen = true;
         int mod = Game.ModIds[0];
@@ -78,7 +78,7 @@ static partial class Program
         bool rising = true;
         for (int k = 0; k < Upgrades.All[mod].MaxStacks; k++)
         {
-            int price = Game.ModPrice(me, mod);
+            int price = Game.RoomTypePrice(me, mod);
             rising &= price == Game.ModPrices[Math.Min(k, Game.ModPrices.Length - 1)];
             g.Shop(ShopAction.BuyMod, mod);
             rising &= me.Gold == gold - price && Upgrades.Count(me.Taken, mod) == k + 1;
@@ -114,8 +114,8 @@ static partial class Program
         Check(armsCards() == 0, "with an Arms Dealer on the map nobody is dealt another");
 
         // The Medic (Medic.cs): heals and revive tokens, only in its room, and nothing else.
-        V2 medicAt = play(RoomCard.Medic);
-        Check(g.HasMedicRoom && Expansion.CardRoomKind(RoomCard.Medic) == RoomKind.Medic, "a Medic card builds a Medic");
+        V2 medicAt = play(PieceCard.Medic);
+        Check(g.HasMedicRoom && Expansion.CardRoomKind(PieceCard.Medic) == RoomKind.Medic, "a Medic card builds a Medic");
         me.Pos = me.Disp = medicAt;
         me.Gold = 500; me.Hp = me.MaxHp * 0.5f; me.ReviveToken = false;
         int taken = me.Taken.Count;
@@ -150,11 +150,11 @@ static partial class Program
         {
             var of = BossCards.Offer(new DetRandom(i * 977 + 5), new System.Collections.Generic.List<ExpansionRoom>(), new System.Collections.Generic.List<RoomToken>(), 12);
             fine &= of.Length == BossCards.OfferSize && of.Distinct().Count() == of.Length
-                && of.All(c => BossCards.IsKit(c) ? Array.IndexOf(Expansion.Floors, BossCards.FloorOf(c)) >= 0 : BossCards.CardOf(c) != RoomCard.None);
+                && of.All(c => BossCards.IsKit(c) ? Array.IndexOf(Expansion.Floors, BossCards.FloorOf(c)) >= 0 : BossCards.CardOf(c) != PieceCard.None);
             foreach (int c in of) seen.Add(c);
         }
         Check(fine, "an offer is " + BossCards.OfferSize + " different cards or kits");
-        Check(seen.Any(c => !BossCards.IsKit(c) && Expansion.IsPieceCard(BossCards.CardOf(c))) && Expansion.ServiceCards.All(c => seen.Contains((int)c)) && seen.Contains((int)RoomCard.BuilderShop)
+        Check(seen.Any(c => !BossCards.IsKit(c) && Expansion.IsShapePieceCard(BossCards.CardOf(c))) && Expansion.ServiceCards.All(c => seen.Contains((int)c)) && seen.Contains((int)PieceCard.BuilderShop)
               && Expansion.Floors.All(f => seen.Contains(BossCards.KitCode(f))), "pieces, every service card, the Builder Shop and every floor kit turn up");
 
         int port = nextPort++;
@@ -195,22 +195,22 @@ static partial class Program
         Check(me.Rerolls == 1 && me.OfferCards && !me.Offer.SequenceEqual(before), "the card pick can be rerolled");
 
         // Take a card: it goes to the hand. Then a kit: it goes to the team.
-        me.Offer = new[] { (int)RoomCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)RoomCard.Arms, (int)RoomCard.Box, (int)RoomCard.MiniBoss };
+        me.Offer = new[] { (int)PieceCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)PieceCard.Arms, (int)PieceCard.Box, (int)PieceCard.MiniBoss };
         me.PendingCards = 2;
         g.PickUpgrade(2);
-        Check(me.Hand[0] == (byte)RoomCard.Arms && me.PendingCards == 1 && me.OfferCards, "a picked card goes to your hand, and the next pick comes");
-        me.Offer = new[] { (int)RoomCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)RoomCard.Arms, (int)RoomCard.Box, (int)RoomCard.MiniBoss };
+        Check(me.Hand[0] == (byte)PieceCard.Arms && me.PendingCards == 1 && me.OfferCards, "a picked card goes to your hand, and the next pick comes");
+        me.Offer = new[] { (int)PieceCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)PieceCard.Arms, (int)PieceCard.Box, (int)PieceCard.MiniBoss };
         g.PickUpgrade(1);
         Check(g.RoomTokens.Count == 1 && g.RoomTokens[0].Kind == RoomKind.Floor && g.RoomTokens[0].Floor == PathId.FrozenLake && me.PendingCards == 0 && me.Offer == null,
             "a picked kit goes to the team's kits");
 
         // A full hand: cards are refused, a kit still works; full kits too: the pick is skipped.
-        for (int i = 0; i < me.Hand.Length; i++) me.Hand[i] = (byte)RoomCard.Box;
+        for (int i = 0; i < me.Hand.Length; i++) me.Hand[i] = (byte)PieceCard.Box;
         me.PendingCards = 1;
-        me.Offer = new[] { (int)Expansion.PieceCard(GridPiece.Mono), BossCards.KitCode(PathId.BloodMoon), (int)RoomCard.Arms, (int)RoomCard.Shop, (int)RoomCard.BuilderShop };
+        me.Offer = new[] { (int)Expansion.MakePieceCard(PieceShape.Mono), BossCards.KitCode(PathId.BloodMoon), (int)PieceCard.Arms, (int)PieceCard.Shop, (int)PieceCard.BuilderShop };
         me.OfferCards = true;  // (set by hand: a rolled offer may hold no kit, and then a full hand skips the pick)
         g.PickUpgrade(0);
-        Check(me.PendingCards == 1 && me.Hand.All(h => h == (byte)RoomCard.Box), "with a full hand a card can't be taken");
+        Check(me.PendingCards == 1 && me.Hand.All(h => h == (byte)PieceCard.Box), "with a full hand a card can't be taken");
         while (g.RoomTokens.Count < Expansion.MaxTokens) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.Sanctuary });
         nextOffer.Invoke(g, new object[] { me });
         Check(me.PendingCards == 0 && !me.OfferCards, "with a full hand and full kits the pick is skipped");
@@ -231,7 +231,7 @@ static partial class Program
         Check(friend.PendingCards == 0 && (BossCards.IsKit(want) ? g.RoomTokens.Count == 1 : friend.Hand[0] == (byte)want), "and their pick (" + BossCards.Name(want) + ") lands");
 
         // A bot takes a service card the map lacks over the rest.
-        me.Offer = new[] { (int)RoomCard.Box, BossCards.KitCode(PathId.FrozenLake), (int)RoomCard.Arms, (int)RoomCard.MiniBoss, (int)RoomCard.Ring };
+        me.Offer = new[] { (int)PieceCard.Box, BossCards.KitCode(PathId.FrozenLake), (int)PieceCard.Arms, (int)PieceCard.MiniBoss, (int)PieceCard.Ring };
         Array.Clear(me.Hand, 0, me.Hand.Length);
         int botPick = (int)typeof(Game).GetMethod("BotBossCard", flags).Invoke(g, new object[] { me });
         Check(botPick == 2, "a bot takes the Arms Dealer card when the map has none");

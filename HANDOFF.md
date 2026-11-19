@@ -49,7 +49,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   set piece (e.g. the Warden's Riot line) at 10. The old **boss approach** (faction only in the 4 track waves before a
   boss) is what you get with Campaign buildup turned off.
 - **Arena:** Campaign and Quick Play are played on the **Expanding arena**: it starts as a box and grows as the party
-  builds rooms between waves with **vectors** (draw a room, vote it in; shops/vendors, a free surprise room after each
+  builds rooms between waves with **vectors** (draw a room, vote it in; shops/Black Markets, a free surprise room after each
   boss). The **Simple Arena** modifier keeps the open arena. Boss Hunts and Practice use the open arena; Survival has its
   own 3200 x 1800 room.
 - **Between waves (Campaign):** level-up cards (3 picks, rerolls, or gold instead), room building and gold shops,
@@ -137,6 +137,10 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the
   cast, never below 1 HP.
 
+### Grid vocabulary
+
+See "Building on the grid" in `Docs/Glossary.md`: cell, shape (`PieceShape`), piece card (`PieceCard`), room type, placement, piece chest, Black Market.
+
 ### Adding an enemy
 
 Every non-boss enemy runs on a **brain** (Docs/EnemyBehaviours.md): parts for its move (and turning, touch damage),
@@ -175,12 +179,12 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 2026).
 
 1. **Ids** (always at the end of each enum, before `None`, so the network and saves keep the old numbers): a `Kit`
-   value (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 Space and 3 ultimate `AbilityId`s
+   value (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 1st-ability and 3 ultimate `AbilityId`s
    (`Upgrades.cs`). New player bullet kinds, if any: a `Defs` byte constant with a row in `Defs.BuildBulletTable` (radius,
    colour, and damage for enemy shots) and its drawing in `WorldShots.DrawSmallShot`. **Bump `Session.ProtocolVersion`.**
 2. **`Core/<Class>.cs`** from the template: its `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks), its 9
    `WeaponDef`s (each with `Kit`, `Role`, `Choice` 0-2; `Sound`; `AreaDesc` if its damage lands in an area), its 12
-   `AbilityDef`s (Space `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
+   `AbilityDef`s (1st ability `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
    weapon), the cast method (one `case` per ability, ultimates included, returning true) and a tick if it needs one.
    Extra-projectile, Barrage and Homing texts: `ExtraDesc`, `BarrageDesc`, `HomingDesc` on the weapon.
    Unusual weapon ranges (charge, beam, boomerang) get a case in `WeaponRange` (`Weapons.cs`).

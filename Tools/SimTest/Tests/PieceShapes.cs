@@ -6,95 +6,95 @@ using Arena;
 // Grid pieces (Docs/GridPieces.md step 1): polyominoes of 1 to 4 cells placed on the lattice at door spots, each an open room.
 static partial class Program
 {
-    static void GridPiecesTest()
+    static void PieceShapesTest()
     {
-        var expect = new Dictionary<GridPiece, int> { { GridPiece.Mono, 1 }, { GridPiece.Domino, 2 }, { GridPiece.TriI, 2 }, { GridPiece.TriL, 4 }, { GridPiece.TetI, 2 }, { GridPiece.TetO, 1 }, { GridPiece.TetT, 4 }, { GridPiece.TetS, 4 }, { GridPiece.TetL, 8 } };
+        var expect = new Dictionary<PieceShape, int> { { PieceShape.Mono, 1 }, { PieceShape.Domino, 2 }, { PieceShape.TriI, 2 }, { PieceShape.TriL, 4 }, { PieceShape.TetI, 2 }, { PieceShape.TetO, 1 }, { PieceShape.TetT, 4 }, { PieceShape.TetS, 4 }, { PieceShape.TetL, 8 } };
         foreach (var kv in expect)
-            Check(Expansion.GridPieceOrients(kv.Key).Count == kv.Value, Expansion.GridPieceName(kv.Key) + " has " + kv.Value + " distinct turns and mirrors (" + Expansion.GridPieceOrients(kv.Key).Count + ")");
-        Check(expect.Keys.Sum(k => Expansion.GridPieceOrients(k).Count) == 28 && expect.Keys.All(k => Expansion.GridPieceOrients(k).All(o => o.Length == Expansion.GridPieceCells(k))), "28 orientations in all, each with the piece's cells");
+            Check(Expansion.PieceShapeOrients(kv.Key).Count == kv.Value, Expansion.PieceShapeName(kv.Key) + " has " + kv.Value + " distinct turns and mirrors (" + Expansion.PieceShapeOrients(kv.Key).Count + ")");
+        Check(expect.Keys.Sum(k => Expansion.PieceShapeOrients(k).Count) == 28 && expect.Keys.All(k => Expansion.PieceShapeOrients(k).All(o => o.Length == Expansion.PieceShapeCells(k))), "28 orientations in all, each with the piece's cells");
 
         var core = Expansion.GridCore();
         string why = null;
         foreach (var kv in expect)
         {
-            var opts = Expansion.GridPieceOptions(core, kv.Key);
+            var opts = Expansion.PlacementsFor(core, kv.Key);
             bool aligned = opts.All(o => o.Rooms.All(r => (r.X - Expansion.GridX0) % 600 == 0 && (r.Y - Expansion.GridY0) % 600 == 0 && r.W % 600 == 0 && r.H % 600 == 0));
             bool free = opts.All(o => o.Rooms.All(r => r.Price == 0));
             bool openRoom = opts.All(o => { var m = new List<ExpansionRoom>(core); m.AddRange(o.Rooms); return Expansion.GroupOf(m, core.Count).Count == o.Rooms.Count && Expansion.BoughtCount(m) == 0 + 1; });
-            Check(opts.Count > 0 && aligned && free && openRoom, Expansion.GridPieceName(kv.Key) + ": " + opts.Count + " places round the core, every box on the lattice, free, one open room");
+            Check(opts.Count > 0 && aligned && free && openRoom, Expansion.PieceShapeName(kv.Key) + ": " + opts.Count + " places round the core, every box on the lattice, free, one open room");
         }
 
-        Check(Expansion.GridPieceRooms(core, GridPiece.Domino, 0, 2100, 0, out why) == null && why == "Off the grid", "a piece off the lattice is refused (" + why + ")");
-        Check(Expansion.GridPieceRooms(core, GridPiece.Mono, 0, 5000 + 600 - 200 - 0, -400, out why) == null, "far from the map is refused (" + why + ")");
-        Check(Expansion.GridPieceRooms(core, GridPiece.Mono, 0, 200, -400, out why) == null && why.StartsWith("Overlaps"), "on top of the core is refused (" + why + ")");
-        Check(Expansion.GridPieceRooms(core, GridPiece.Mono, 99, 2000, -400, out why) == null && why == "No such turn", "no such turn is refused");
+        Check(Expansion.PieceShapeRooms(core, PieceShape.Domino, 0, 2100, 0, out why) == null && why == "Off the grid", "a piece off the lattice is refused (" + why + ")");
+        Check(Expansion.PieceShapeRooms(core, PieceShape.Mono, 0, 5000 + 600 - 200 - 0, -400, out why) == null, "far from the map is refused (" + why + ")");
+        Check(Expansion.PieceShapeRooms(core, PieceShape.Mono, 0, 200, -400, out why) == null && why.StartsWith("Overlaps"), "on top of the core is refused (" + why + ")");
+        Check(Expansion.PieceShapeRooms(core, PieceShape.Mono, 99, 2000, -400, out why) == null && why == "No such turn", "no such turn is refused");
 
         // Gaps: two singles on the core's right wall leave one cell between them; a piece fits in it if it fits, and nothing overlaps what is built.
         var map = new List<ExpansionRoom>(core);
         foreach (int y in new[] { -400, 800 })
         {
-            var r = Expansion.GridPieceRooms(map, GridPiece.Mono, 0, 2000, y, out why);
+            var r = Expansion.PieceShapeRooms(map, PieceShape.Mono, 0, 2000, y, out why);
             Check(r != null, "a single at (2000, " + y + ") (" + why + ")");
             if (r != null) map.AddRange(r);
         }
-        Func<GridPiece, bool> coversGap = p => Expansion.GridPieceOptions(map, p).Any(o => o.Rooms.Any(r => 2300 > r.X && 2300 < r.X1 && 500 > r.Y && 500 < r.Y1));
-        Check(coversGap(GridPiece.Mono) && coversGap(GridPiece.Domino) && coversGap(GridPiece.TriI) && coversGap(GridPiece.TetI) && coversGap(GridPiece.TetL), "the gap takes a single, a domino, a line of 3, a line of 4 and an L");
+        Func<PieceShape, bool> coversGap = p => Expansion.PlacementsFor(map, p).Any(o => o.Rooms.Any(r => 2300 > r.X && 2300 < r.X1 && 500 > r.Y && 500 < r.Y1));
+        Check(coversGap(PieceShape.Mono) && coversGap(PieceShape.Domino) && coversGap(PieceShape.TriI) && coversGap(PieceShape.TetI) && coversGap(PieceShape.TetL), "the gap takes a single, a domino, a line of 3, a line of 4 and an L");
         bool clean = true;
-        foreach (GridPiece p in Enum.GetValues(typeof(GridPiece)))
-            foreach (var o in Expansion.GridPieceOptions(map, p))
+        foreach (PieceShape p in Enum.GetValues(typeof(PieceShape)))
+            foreach (var o in Expansion.PlacementsFor(map, p))
                 foreach (var r in o.Rooms)
                     foreach (var b in map)
                         clean &= !(r.X < b.X1 && b.X < r.X1 && r.Y < b.Y1 && b.Y < r.Y1);
         Check(clean, "no place for any piece overlaps a built room");
-        Check(!Expansion.GridPieceOptions(map, GridPiece.TetI).Any(o => o.Rooms.Any(r => r.X <= 2300 && 2300 < r.X1 && r.Y < 500 && 500 < r.Y1 && r.W == 600 && r.H > 600)), "and a line of 4 standing up can't squeeze into the one-cell gap");
+        Check(!Expansion.PlacementsFor(map, PieceShape.TetI).Any(o => o.Rooms.Any(r => r.X <= 2300 && 2300 < r.X1 && r.Y < 500 && 500 < r.Y1 && r.W == 600 && r.H > 600)), "and a line of 4 standing up can't squeeze into the one-cell gap");
     }
 
-    static void GridCardsTest()
+    static void PieceCardsTest()
     {
         bool ok = true;
-        foreach (GridPiece p in Enum.GetValues(typeof(GridPiece)))
+        foreach (PieceShape p in Enum.GetValues(typeof(PieceShape)))
             foreach (var f in new[] { PathId.None, PathId.SwarmFields, PathId.Bazaar })
             {
-                var c = Expansion.PieceCard(p, f);
-                ok &= Expansion.IsPieceCard(c) && Expansion.CardPiece(c) == p && Expansion.CardFloor(c) == f && Expansion.IsGridCard(c) && (int)c < BossCards.KitBase && (int)c <= 255;
+                var c = Expansion.MakePieceCard(p, f);
+                ok &= Expansion.IsShapePieceCard(c) && Expansion.ShapeOfPieceCard(c) == p && Expansion.PieceCardFloor(c) == f && Expansion.IsGridPieceCard(c) && (int)c < BossCards.KitBase && (int)c <= 255;
             }
         Check(ok, "every piece, plain or on a floor, is a hand code that reads back (32 up, below the kit codes)");
-        Check(!Expansion.IsPieceCard(RoomCard.Box) && !Expansion.IsGridCard(RoomCard.Box) && !Expansion.IsGridCard(RoomCard.MiniBoss) && Expansion.IsGridCard(RoomCard.Shop) && Expansion.IsGridCard(RoomCard.BuilderShop), "the old shape cards and the Mini-boss card aren't played in a Grid run; service cards are");
-        Check(Expansion.GridCardShape(RoomCard.Market) == GridPiece.Mono && Expansion.GridCardShape(Expansion.PieceCard(GridPiece.TetL)) == GridPiece.TetL, "a service card is a single cell");
-        Check(Expansion.CardName(Expansion.PieceCard(GridPiece.TriL)) == "Corner" && Expansion.CardName(Expansion.PieceCard(GridPiece.TetT, PathId.FrozenLake)).EndsWith(" T") && Expansion.CardPrice(Expansion.PieceCard(GridPiece.TetO)) == 24 && Expansion.CardPrice(Expansion.PieceCard(GridPiece.Mono, PathId.Sanctuary)) == 14,
+        Check(!Expansion.IsShapePieceCard(PieceCard.Box) && !Expansion.IsGridPieceCard(PieceCard.Box) && !Expansion.IsGridPieceCard(PieceCard.MiniBoss) && Expansion.IsGridPieceCard(PieceCard.Shop) && Expansion.IsGridPieceCard(PieceCard.BuilderShop), "the old shape cards and the Mini-boss card aren't played in a Grid run; service cards are");
+        Check(Expansion.PieceShapeOf(PieceCard.Market) == PieceShape.Mono && Expansion.PieceShapeOf(Expansion.MakePieceCard(PieceShape.TetL)) == PieceShape.TetL, "a service card is a single cell");
+        Check(Expansion.CardName(Expansion.MakePieceCard(PieceShape.TriL)) == "Corner" && Expansion.CardName(Expansion.MakePieceCard(PieceShape.TetT, PathId.FrozenLake)).EndsWith(" T") && Expansion.CardPrice(Expansion.MakePieceCard(PieceShape.TetO)) == 24 && Expansion.CardPrice(Expansion.MakePieceCard(PieceShape.Mono, PathId.Sanctuary)) == 14,
             "names and prices: a cell is 6 vectors, a floor 8 more");
-        Check(Expansion.PieceModMax == 13 && Expansion.FirstFreeMod == (int)PathId.Bazaar + 1 && Expansion.ModKind(0) == PieceModKind.None && Expansion.ModKind((int)PathId.FrozenLake) == PieceModKind.Floor && Expansion.ModKind(Expansion.FirstFreeMod) == PieceModKind.Unknown
-            && Expansion.PieceCardMod(GridPiece.TetS, (int)PathId.BloodMoon) == Expansion.PieceCard(GridPiece.TetS, PathId.BloodMoon) && (int)Expansion.PieceCardMod(GridPiece.TetL, Expansion.PieceModMax) <= 255,
+        Check(Expansion.RoomTypeMax == 13 && Expansion.FirstFreeRoomType == (int)PathId.Bazaar + 1 && Expansion.RoomTypeOf(0) == RoomTypeKind.None && Expansion.RoomTypeOf((int)PathId.FrozenLake) == RoomTypeKind.Floor && Expansion.RoomTypeOf(Expansion.FirstFreeRoomType) == RoomTypeKind.Unknown
+            && Expansion.MakePieceCardRoomType(PieceShape.TetS, (int)PathId.BloodMoon) == Expansion.MakePieceCard(PieceShape.TetS, PathId.BloodMoon) && (int)Expansion.MakePieceCardRoomType(PieceShape.TetL, Expansion.RoomTypeMax) <= 255,
             "the modifier slot: 0 plain, 1-10 the floors (same codes as before), 11-13 kept for modifiers to come, all inside a byte");
-        var free = Expansion.PieceCardMod(GridPiece.Domino, Expansion.FirstFreeMod);
-        Check(Expansion.IsPieceCard(free) && Expansion.CardPiece(free) == GridPiece.Domino && Expansion.CardMod(free) == Expansion.FirstFreeMod && Expansion.CardFloor(free) == PathId.None && !Expansion.IsGridCard(free), "a card with a modifier not defined yet reads back but isn't playable");
-        var modded = Expansion.ApplyPieceMod(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, (int)PathId.Sanctuary);
-        var plainRoom = Expansion.ApplyPieceMod(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, 0);
-        Check(modded.Kind == Arena.RoomKind.Floor && modded.Floor == PathId.Sanctuary && plainRoom.Kind == Arena.RoomKind.Combat && Expansion.CardMod(RoomCard.Shop) == 0, "a floor modifier makes the room a floor room; no modifier leaves it a combat room");
+        var free = Expansion.MakePieceCardRoomType(PieceShape.Domino, Expansion.FirstFreeRoomType);
+        Check(Expansion.IsShapePieceCard(free) && Expansion.ShapeOfPieceCard(free) == PieceShape.Domino && Expansion.PieceCardRoomType(free) == Expansion.FirstFreeRoomType && Expansion.PieceCardFloor(free) == PathId.None && !Expansion.IsGridPieceCard(free), "a card with a modifier not defined yet reads back but isn't playable");
+        var modded = Expansion.ApplyRoomType(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, (int)PathId.Sanctuary);
+        var plainRoom = Expansion.ApplyRoomType(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, 0);
+        Check(modded.Kind == Arena.RoomKind.Floor && modded.Floor == PathId.Sanctuary && plainRoom.Kind == Arena.RoomKind.Combat && Expansion.PieceCardRoomType(PieceCard.Shop) == 0, "a floor modifier makes the room a floor room; no modifier leaves it a combat room");
         var allPieces = new[] { MysteryRoom.Small, MysteryRoom.Medium, MysteryRoom.Hallway }.SelectMany(Mystery.PiecesOf).Distinct().Count();
-        Check(allPieces == Enum.GetValues(typeof(GridPiece)).Length, "every piece shape can come from a mystery door (" + allPieces + " shapes)");
+        Check(allPieces == Enum.GetValues(typeof(PieceShape)).Length, "every piece shape can come from a mystery door (" + allPieces + " shapes)");
         var hand = Expansion.GridStartHand(5);
-        Check(hand.Length == 3 && hand[0] == Expansion.PieceCard(GridPiece.Mono) && hand[1] == Expansion.PieceCard(GridPiece.Domino) && Expansion.GridPieceCells(Expansion.CardPiece(hand[2])) == 3 && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: a single, a domino and a tromino, the same each time");
-        Check(Expansion.GridRoundCard(1) == Expansion.PieceCard(GridPiece.Domino) && Expansion.GridRoundCard(2) == Expansion.PieceCard(GridPiece.Mono), "the round card: a domino after odd waves, a single after even");
+        Check(hand.Length == 3 && hand[0] == Expansion.MakePieceCard(PieceShape.Mono) && hand[1] == Expansion.MakePieceCard(PieceShape.Domino) && Expansion.PieceShapeCells(Expansion.ShapeOfPieceCard(hand[2])) == 3 && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: a single, a domino and a tromino, the same each time");
+        Check(Expansion.GridRoundCard(1) == Expansion.MakePieceCard(PieceShape.Domino) && Expansion.GridRoundCard(2) == Expansion.MakePieceCard(PieceShape.Mono), "the round card: a domino after odd waves, a single after even");
         int service = 0, themed = 0, tet = 0, pieces = 0, bad = 0;
         for (int i = 0; i < 600; i++)
         {
             var c = Expansion.GridDropCard(new DetRandom(i * 37 + 1), 30);
-            if (!Expansion.IsGridCard(c)) bad++;
-            if (!Expansion.IsPieceCard(c)) { service++; continue; }
+            if (!Expansion.IsGridPieceCard(c)) bad++;
+            if (!Expansion.IsShapePieceCard(c)) { service++; continue; }
             pieces++;
-            if (Expansion.CardFloor(c) != PathId.None) themed++;
-            if (Expansion.GridPieceCells(Expansion.CardPiece(c)) == 4) tet++;
+            if (Expansion.PieceCardFloor(c) != PathId.None) themed++;
+            if (Expansion.PieceShapeCells(Expansion.ShapeOfPieceCard(c)) == 4) tet++;
         }
         Check(bad == 0 && service >= 80 && service <= 160 && themed >= 60 && themed <= 200 && tet >= 120, "drops: about 1 in 5 a service card, a quarter of the pieces on a floor, a third tetrominoes (" + service + " service, " + themed + " floor, " + tet + " of " + pieces + " pieces)");
         var shelf = Expansion.GridBuilderOffers(7, 3);
-        Check(shelf.Length == Expansion.BuilderOfferCount && shelf.All(Expansion.IsGridCard) && Expansion.BuilderPrice(shelf[0]) < Expansion.CardPrice(shelf[0]), "the Builder Shop's five are grid cards at a quarter off");
+        Check(shelf.Length == Expansion.BuilderOfferCount && shelf.All(Expansion.IsGridPieceCard) && Expansion.BuilderPrice(shelf[0]) < Expansion.CardPrice(shelf[0]), "the Builder Shop's five are grid cards at a quarter off");
         var spoils = BossCards.Offer(new DetRandom(3), Expansion.GridCore(), new List<RoomToken>(), 12);
-        Check(spoils.Length == BossCards.OfferSize && spoils.Distinct().Count() == spoils.Length && spoils.All(c => BossCards.IsKit(c) || Expansion.IsGridCard((RoomCard)c)) && !spoils.Contains((int)RoomCard.MiniBoss), "a Grid boss pick: pieces, service cards and floor kits, no Mini-boss card");
+        Check(spoils.Length == BossCards.OfferSize && spoils.Distinct().Count() == spoils.Length && spoils.All(c => BossCards.IsKit(c) || Expansion.IsGridPieceCard((PieceCard)c)) && !spoils.Contains((int)PieceCard.MiniBoss), "a Grid boss pick: pieces, service cards and floor kits, no Mini-boss card");
         Check(new Difficulty().ToText() == "Normal" && Difficulty.Parse("Normal").SameAs(new Difficulty()), "a preset saves as its name alone (the retired building knobs aren't written)");
         var save = new RunSave();
         var seat = new SeatSave { Vectors = 30, VectorCap = 70 };
-        seat.Hand.AddRange(new[] { (int)Expansion.PieceCard(GridPiece.TetL, PathId.Fogbound), (int)Expansion.PieceCard(GridPiece.Mono), (int)RoomCard.Shop });
+        seat.Hand.AddRange(new[] { (int)Expansion.MakePieceCard(PieceShape.TetL, PathId.Fogbound), (int)Expansion.MakePieceCard(PieceShape.Mono), (int)PieceCard.Shop });
         save.Seats.Add(seat);
         var back = RunSave.Parse(save.ToText());
         Check(back.Seats.Count == 1 && back.Seats[0].Hand.SequenceEqual(seat.Hand), "a hand of pieces is saved and read back");
@@ -113,7 +113,7 @@ static partial class Program
         var map = new List<ExpansionRoom>(core) { m };
         Check(Expansion.GridMinisWaiting(map) == 1 && Expansion.BoughtCount(map) == 0 && !core.Any(c => c.X < m.X1 + 1 && m.X - 1 < c.X1 && c.Y < m.Y1 + 1 && m.Y - 1 < c.Y1), "it waits sealed, apart from the map, and isn't a bought room");
         Check(!Expansion.GridSpots(map).Any(sp => sp.X >= m.X - 600 && sp.X < m.X1 && sp.Y >= m.Y - 600 && sp.Y < m.Y1 && (sp.SX == m.X || sp.SX == m.X1 || sp.SY == m.Y || sp.SY == m.Y1)), "a sealed room has no door spots of its own");
-        var bridge = Expansion.GridPieceOptions(map, GridPiece.Mono).FirstOrDefault(o => o.Rooms.Any(r => (r.X1 == m.X || r.X == m.X1) && r.Y < m.Y1 && m.Y < r.Y1 || (r.Y1 == m.Y || r.Y == m.Y1) && r.X < m.X1 && m.X < r.X1));
+        var bridge = Expansion.PlacementsFor(map, PieceShape.Mono).FirstOrDefault(o => o.Rooms.Any(r => (r.X1 == m.X || r.X == m.X1) && r.Y < m.Y1 && m.Y < r.Y1 || (r.Y1 == m.Y || r.Y == m.Y1) && r.X < m.X1 && m.X < r.X1));
         Check(bridge.Rooms != null, "a single fits in the cell between the map and the mini-boss room");
         if (bridge.Rooms == null) return;
         map.AddRange(bridge.Rooms);
@@ -141,7 +141,7 @@ static partial class Program
         }
     }
 
-    static void GridPiecesGameTest(float dt)
+    static void PieceShapesGameTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         int port = nextPort++;
@@ -164,7 +164,7 @@ static partial class Program
         foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.WavePicks = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
         typeof(Game).GetMethod("OpenBuildRound", flags).Invoke(g, null);
         var friend = g.Players[2];
-        Check(Game.HandCount(friend) == 3 && friend.Hand.Take(3).All(h => Expansion.IsPieceCard((RoomCard)h)), "the first round deals three pieces (" + string.Join(",", friend.Hand.Take(3)) + ")");
+        Check(Game.HandCount(friend) == 3 && friend.Hand.Take(3).All(h => Expansion.IsShapePieceCard((PieceCard)h)), "the first round deals three pieces (" + string.Join(",", friend.Hand.Take(3)) + ")");
         Check(friend.OfferCards && friend.OfferWave && friend.PendingCards == 1 && friend.WavePicks == 1 && friend.Offer.Length == 2
             && friend.Offer[0] == (int)Expansion.GridRoundCard(g.Wave) && friend.Offer[1] != friend.Offer[0], "and a wave pick of two: the round's basic piece and a dropped card (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
         var fought = g.State;
@@ -181,9 +181,9 @@ static partial class Program
 
         // Playing a card: built at once as its piece, free, the card leaves the hand.
         int vec = friend.Vectors;
-        var card = (RoomCard)friend.Hand[2];
-        var opt = Expansion.GridPieceOptions(g.Expanded, Expansion.CardPiece(card)).First();
-        cg.PlayGridCard(2, opt.Orient, opt.X, opt.Y);
+        var card = (PieceCard)friend.Hand[2];
+        var opt = Expansion.PlacementsFor(g.Expanded, Expansion.ShapeOfPieceCard(card)).First();
+        cg.PlayPieceCard(2, opt.Orient, opt.X, opt.Y);
         Run(s, dt, 1f, () => cg.Expanded.Count == 4 + opt.Rooms.Count, noPicks);
         Check(g.Expanded.Count == 4 + opt.Rooms.Count && cg.Expanded.Count == g.Expanded.Count && g.Expanded.Skip(4).All(r => r.Owner == 2 && r.Kind == Arena.RoomKind.Combat), "the friend's piece is built at once on both screens, all its boxes theirs");
         Run(s, dt, 0.5f, () => Game.HandCount(cg.Players[2]) == 3, noPicks);
@@ -192,38 +192,38 @@ static partial class Program
         // Refusals keep the card: a spot off the lattice, an empty slot, a card that isn't a grid card.
         int n = g.Expanded.Count;
         var held = friend.Hand.ToArray();
-        cg.PlayGridCard(0, 0, opt.X + 100, opt.Y);
-        cg.PlayGridCard(5, 0, opt.X, opt.Y);
-        friend.Hand[1] = (byte)RoomCard.Box;
-        cg.PlayGridCard(1, 0, opt.X, opt.Y);
+        cg.PlayPieceCard(0, 0, opt.X + 100, opt.Y);
+        cg.PlayPieceCard(5, 0, opt.X, opt.Y);
+        friend.Hand[1] = (byte)PieceCard.Box;
+        cg.PlayPieceCard(1, 0, opt.X, opt.Y);
         Run(s, dt, 0.6f, null, noPicks);
-        Check(g.Expanded.Count == n && friend.Hand[0] == held[0] && friend.Hand[1] == (byte)RoomCard.Box, "an off-lattice spot, an empty slot and an old Box card are refused, the cards stay");
+        Check(g.Expanded.Count == n && friend.Hand[0] == held[0] && friend.Hand[1] == (byte)PieceCard.Box, "an off-lattice spot, an empty slot and an old Box card are refused, the cards stay");
 
         // A floor piece is a floor room; a service card is one cell with its job.
-        friend.Hand[0] = (byte)Expansion.PieceCard(GridPiece.Domino, PathId.BurningGrounds);
-        var fo = Expansion.GridPieceOptions(g.Expanded, GridPiece.Domino).First();
-        cg.PlayGridCard(0, fo.Orient, fo.X, fo.Y);
+        friend.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Domino, PathId.BurningGrounds);
+        var fo = Expansion.PlacementsFor(g.Expanded, PieceShape.Domino).First();
+        cg.PlayPieceCard(0, fo.Orient, fo.X, fo.Y);
         Run(s, dt, 1f, () => g.Expanded.Count > n, noPicks);
         var made = g.Expanded.Skip(n).ToList();
         Check(made.Count > 0 && made.All(r => r.Kind == Arena.RoomKind.Floor && r.Floor == PathId.BurningGrounds), "a Burning Grounds domino builds a floor room");
-        friend.Hand[0] = (byte)RoomCard.Shop;
+        friend.Hand[0] = (byte)PieceCard.Shop;
         int n2 = g.Expanded.Count;
-        var so = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono).First();
-        cg.PlayGridCard(0, 0, so.X, so.Y);
+        var so = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).First();
+        cg.PlayPieceCard(0, 0, so.X, so.Y);
         Run(s, dt, 1f, () => g.Expanded.Count > n2, noPicks);
         var shop = g.Expanded.Last();
         Check(g.Expanded.Count == n2 + 1 && shop.Kind == Arena.RoomKind.Shop && shop.W == 600 && shop.H == 600, "a Shop card builds one cell as a shop");
 
         // Sources: a chest gives everyone a grid card; the Builder Shop has five (the Black Market sells no cards).
         var chest = typeof(Game).GetMethod("ChestCardFor", flags);  // (a piece chest offers each player one: Props.cs LootKind.Card)
-        Check(g.Players.Values.All(p => Expansion.IsGridCard((RoomCard)chest.Invoke(g, new object[] { p, 3 }))), "a chest offers everyone a grid card");
-        Check(g.BuilderCards.Length == 5 && g.BuilderCards.All(Expansion.IsGridCard), "the Builder Shop sells five grid cards");
+        Check(g.Players.Values.All(p => Expansion.IsGridPieceCard((PieceCard)chest.Invoke(g, new object[] { p, 3 }))), "a chest offers everyone a grid card");
+        Check(g.BuilderCards.Length == 5 && g.BuilderCards.All(Expansion.IsGridPieceCard), "the Builder Shop sells five grid cards");
 
         // A bot plays a piece from its hand.
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
-        g.Players[1].Hand[0] = (byte)Expansion.PieceCard(GridPiece.TriL);
+        g.Players[1].Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.TriL);
         int n3 = g.Expanded.Count;
-        bool played = (bool)typeof(Game).GetMethod("BotPlayGridCard", flags).Invoke(g, null);
+        bool played = (bool)typeof(Game).GetMethod("BotPlayPieceCard", flags).Invoke(g, null);
         Check(played && g.Expanded.Count > n3 && Game.HandCount(g.Players[1]) == 0, "a bot plays its piece at a door spot");
         // Mystery doors: the room behind each is a piece on the lattice; a small room (a shop or vendor) is one cell.
         var roll = typeof(Game).GetMethod("RollMysteryDoors", flags);
@@ -250,27 +250,27 @@ static partial class Program
 
     /// Test helper: `who` plays a piece (put in their last hand slot on the host) at its first place round the map (or the first `where` accepts),
     /// and the run waits until both screens have it. Returns the place, or null if none fits.
-    static GridPieceOption? PlayPiece(Session[] s, float dt, Game host, Game who, GridPiece piece, PathId floor = PathId.None, Func<GridPieceOption, bool> where = null)
+    static Placement? PlayPieceCard(Session[] s, float dt, Game host, Game who, PieceShape piece, PathId floor = PathId.None, Func<Placement, bool> where = null)
     {
         var hand = host.Players[who.MyId].Hand;
-        hand[hand.Length - 1] = (byte)Expansion.PieceCard(piece, floor);
-        var opts = Expansion.GridPieceOptions(host.Expanded, piece).Where(o => where == null || where(o)).ToList();
+        hand[hand.Length - 1] = (byte)Expansion.MakePieceCard(piece, floor);
+        var opts = Expansion.PlacementsFor(host.Expanded, piece).Where(o => where == null || where(o)).ToList();
         if (opts.Count == 0)
             return null;
         int n = host.Expanded.Count;
-        who.PlayGridCard(hand.Length - 1, opts[0].Orient, opts[0].X, opts[0].Y);
+        who.PlayPieceCard(hand.Length - 1, opts[0].Orient, opts[0].X, opts[0].Y);
         Run(s, dt, 1f, () => host.Expanded.Count > n && s.All(x => x.Game.Expanded.Count == host.Expanded.Count));
         return opts[0];
     }
 
 
     /// Test helper: the Grid core and these pieces, each at the first place round the map on the core's east side (else anywhere).
-    static List<ExpansionRoom> GridMap(params GridPiece[] pieces)
+    static List<ExpansionRoom> GridMap(params PieceShape[] pieces)
     {
         var map = Expansion.GridCore();
         foreach (var p in pieces)
         {
-            var opts = Expansion.GridPieceOptions(map, p);
+            var opts = Expansion.PlacementsFor(map, p);
             var o = opts.FirstOrDefault(q => q.Side == 3);
             if (o.Rooms == null && opts.Count > 0) o = opts[0];
             if (o.Rooms != null) map.AddRange(o.Rooms);

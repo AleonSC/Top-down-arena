@@ -370,7 +370,7 @@ static partial class Program
         run(0.2f);
         var hpsBefore = marks.Select(e => e.Hp).ToArray();
         hp.Slots[Upgrades.UltSlot].Charges = 1;
-        g.ShowcaseSetAbility(AbilityId.DeathLotus);  // on Space for the test
+        g.ShowcaseSetAbility(AbilityId.DeathLotus);  // as the 1st ability for the test
         hp.Slots[0].Charges = 1;
         g.Effects.Clear();
         cast.Invoke(g, new object[] { 1, 0, new V2(1180f, 330f), true });
