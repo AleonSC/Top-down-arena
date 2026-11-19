@@ -30,7 +30,7 @@
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
 # GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
 # WWARD=<s into the scene> (Water Ward: a cast every 3 s from 0.2 s; grunts walk in from WWENEMY s (default 6.5, -1 none); WWSHOOT=1 shots from above from 7 s; ShotWaterWard.cs).
-# ENGINEER=strider|pylon|breach ENGT=<s> (the Engineer mockup in the real arena; breach needs EXPANDMAP=0, BREACHSHAPE=stash|cross|..., BREACHLOOT=0-4; ENGMODEL=0-2 the Engineer look, ENGFOLLOW=0-2 the Strider look; ShotEngineer.cs). Mode englook: ENGSHEET=0 looks, 1 followers, 2 kit (EngineerModel.cs).
+# ENGINEER=pylon|breach|real|bots ENGT=<s> (the Engineer mockup in the real arena; breach needs EXPANDMAP=0, BREACHSHAPE=stash|cross|..., BREACHLOOT=0|1|4; ENGMODEL=0-2 the Engineer look; ShotEngineer.cs). Mode englook: ENGSHEET=0 looks, 1 kit (EngineerModel.cs).
 # COVER=<s into the scene> (Deployable Cover like the mockup: covers thrown at 0.5, 1.5 and 2.5 s; COVERWEAR=1 wears two; COVERBREAK=<s> breaks the first then; ShotCover.cs).
 # CAUTER=1 (Cauterize on four bleeding Brutes at four stages of its look; ZOOM=2.4; ShotCauterize.cs).
 # DART=<s into the scene> (Poison Dart played through the game like the mockup: dart at 0.5 s, deaths at 2.2 and 3.9 s; DARTCAP=1 mastered; ShotPoisonDart.cs).
@@ -49,7 +49,7 @@
 # PRISONERS=1 (Thugs and Shivs, both Shiv kinds walking, winding up and lunging; mode hud, ZOOM=3).
 # TURNKEY=1 (the Turnkey running, planting, building; Cell Doors working and jammed; Floor Mines, Shackle Traps, a Mop Slick; NINJA=0 ZOOM=2.2; TurnkeyLook.cs).
 # WARDENCREW=1 (Guard, Riot Shield, Gas Grenadier, Taser Guard, Security Guard in a row; WARDENCREW=2 mid-move; NINJA=0 ZOOM=3.2; OfficerLook.cs).
-# GUARD=1 (the riot Guard walking, drawing back and swinging forehand, then backhand; mode hud, KNIGHT=1 ZOOM=2.6; GuardSwing.cs).
+# GUARD=1 (the riot Guard walking, drawing back and swinging forehand, then backhand; mode hud, KNIGHT=1 ZOOM=2.6; GuardSwing.cs). GUARD=2: four Guards walking in at 200/150/110/70 px (the ready tell; ZOOM=2.2).
 # GASLOB=<s into the wind-up> (the Gas Grenadier's overhand lob: ring, arm, canister; mode hud; GasLobLook.cs).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.

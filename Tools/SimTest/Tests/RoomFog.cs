@@ -144,7 +144,7 @@ static partial class Program
             Run(s, dt, 0.4f, null, noPicks);
             Check(sleepers.All(e => cg.Enemies.ContainsKey(e.Id) && cg.Enemies[e.Id].Dormant), "the friend's game sees them asleep");
             int foes = g.Foes();
-            Check(foes == g.Enemies.Values.Count(e => !e.Dormant && !e.Dummy && !Game.IsPlanted(e.Type)), "they don't count for the wave");
+            Check(foes == g.Enemies.Values.Count(e => !e.Dormant && !Game.IsPlanted(e.Type)), "they don't count for the wave");
             var at = sleepers.ToDictionary(e => e.Id, e => e.Pos);
             Run(s, dt, 2f, null, noPicks);
             Check(sleepers.All(e => e.Dormant && e.Pos.CloserThan(at[e.Id], 1f)), "they don't move while the room is unseen");

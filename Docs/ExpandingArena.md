@@ -66,7 +66,7 @@ Single = Expanding with zero purchases. Build Expanding first, then the other tw
    (a new snapshot field, also in the join message for late joiners). **Protocol version bump** on the step that adds it.
 8. **Caps.** Max room count and world size so collision, steering graphs, the minimap and the camera stay cheap.
 9. **Enemy scaling.** Spawn count and the ranged share grow with floor area, so a bigger map isn't an easier one
-   (the Rooms 1.3x damage is the model; tune with the bot balance test).
+   (the Rooms 1.3x damage is the model; tune with the `arenabal` bot report).
 
 ## Where paths fit
 

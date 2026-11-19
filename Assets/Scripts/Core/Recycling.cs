@@ -49,7 +49,7 @@ namespace Arena
         /// Not bosses, mini-bosses, things that don't walk (portals, nests), a duel room's own, a bound pair, dummies, or
         /// one held in place (frozen, caged, grasped) or still spawning in.
         static bool Recyclable(Enemy e) =>
-            !e.Def.IsBoss && !e.Def.Mini && e.Def.Speed > 0f && e.Type != EnemyType.SpawnPortal && !e.Dummy && !e.Dormant && e.Home < 0
+            !e.Def.IsBoss && !e.Def.Mini && e.Def.Speed > 0f && e.Type != EnemyType.SpawnPortal && !e.Dormant && e.Home < 0
             && e.LinkId == 0 && e.Hp > 0f && e.SpawnT <= 0f && e.FrozenT <= 0f && e.CageT <= 0f && e.GraspT <= 0f;
 
         /// How far the nearest standing player is (MaxValue with nobody up: nothing recycles toward a wiped party).

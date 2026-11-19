@@ -524,11 +524,6 @@ namespace Arena
                 }
                 if (e.Dormant)
                     continue;  // asleep in an unseen room: still until the room is seen or it is hit (DormantGroups.cs)
-                if (e.Dummy)
-                {
-                    TickDummy(e, dt);  // a balancing dummy (DpsTools.cs)
-                    continue;
-                }
                 if (DevFreeze)
                     continue;  // F1 dev tool: frozen in place, no moving or shooting (DevTools.cs)
                 if (ShowcaseMode)
@@ -566,7 +561,7 @@ namespace Arena
                 }
                 V2 tpos = target != null ? target.Pos : ArenaMid;
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
-                tpos = StriderTarget(e, tpos);  // an Engineer's Strider draws in enemies near it (Engineer.cs)
+                tpos = RobotTarget(e, tpos);  // an Engineer's robot draws in enemies near it (Engineer.cs)
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // a Gatekeeper room's mini-boss keeps to its room (Rooms.cs)
@@ -634,7 +629,7 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || IsPlanted(e.Type) || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
+                    || e.Type == EnemyType.Morsel || IsPlanted(e.Type) || DevourUnder(e) || GutwormUnder(e) || e.DazeT > 0f
                     || e.Type == EnemyType.SmallWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Heavies hurt to stand in; bosses only hurt guards (below) (the difficulty's per-wave damage growth scales all of these).

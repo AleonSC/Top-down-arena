@@ -566,7 +566,7 @@ namespace Arena
             if (b.StunBack && e.Type == EnemyType.Warden)
                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e) * RangeMult(b);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
-            dmgSrc = BulletSrc(b);  // (what the balance test log credits the hit to)
+            dmgSrc = BulletSrc(b);  // (what the session recording credits the hit to)
             HurtEnemy(e, hit, b.Owner);
             dmgSrc = null;
             if (b.Crossfire)
@@ -1285,7 +1285,6 @@ namespace Arena
             {
                 Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)), "status");
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
-                DpsDot(p.Id, Math.Min(dmg, Math.Max(0f, e.Hp)));  // the DPS meter's over-time share (DpsTools.cs)
                 if (e.Def.IsBoss)
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 e.LastHitBy = by;

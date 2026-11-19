@@ -42,7 +42,7 @@ while the prompt still asked for the kit.)
 
 Changed from the plan: it **never holds the wave timer** (between waves the ready-up already waits for you, and a per-seat hold
 would need the network); local only, no protocol change. It ends for good when done, skipped, or once the first Quick Play is
-recorded (`Profile.TutorialDone`). Not for bots, replays, the Boss Lab or the lobby preview.
+recorded (`Profile.TutorialDone`). Not for bots, the Boss Lab or the lobby preview.
 
 ## Steps
 

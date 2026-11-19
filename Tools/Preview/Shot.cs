@@ -5,7 +5,7 @@ static partial class Shot {
   // A plain box room for a scene (no checks: the scene's own map).
   static ExpansionRoom? Box(int x, int y, int w, int h, PathId floor = PathId.None) => new ExpansionRoom { X = x, Y = y, W = w, H = h, Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor };
 
-  // The preview's "now" for made-up saves and replays: fixed, so their dates (and uishots.sh -r compares) don't change.
+  // The preview's "now" for made-up saves: fixed, so their dates (and uishots.sh -r compares) don't change.
   public static readonly DateTime Now = new DateTime(2026, 11, 7, 18, 0, 0, DateTimeKind.Utc);
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
   static bool heraldOn, eclipseOn;
@@ -879,7 +879,7 @@ static partial class Shot {
       if (gridEnv != null) typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null);  // (the rooms just added show)
       eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open
       if (Environment.GetEnvironmentVariable("EXPANDMIDWAVE") != null) { eg.State = MatchState.Fighting; eg.ExpandOpen = false; eg.Wave = 7; eg.RoomsUp = true; eg.BreachAge = 12f; MockBreachRooms(eg); }  // EXPANDMIDWAVE=1: the draw screen mid-wave (Open wall only; a breach wave, so its breaches show)
-      if (Environment.GetEnvironmentVariable("MYSTERY") != null) { eg.Wave = Math.Max(eg.Wave, 3); var mfl2 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance; typeof(Game).GetMethod("RollMysteryDoors", mfl2).Invoke(eg, null); if (eg.MysteryDoors.Count < 2) typeof(Game).GetMethod("RollMysteryDoors", mfl2).Invoke(eg, null); }  // MYSTERY=1: mystery doors on the draw screen's map too
+      if (Environment.GetEnvironmentVariable("MYSTERY") != null) { eg.Wave = Math.Max(eg.Wave, 3); var mfl2 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance; typeof(Game).GetMethod("RollMysteryDoors", mfl2).Invoke(eg, null); if (eg.MysteryDoors.Count < 2) typeof(Game).GetMethod("RollMysteryDoors", mfl2).Invoke(eg, null); if (eg.MysteryDoors.Count > 0 && Environment.GetEnvironmentVariable("MYSTERYSAVED") != null) { var smd = eg.MysteryDoors[0]; smd.Saver = eg.MyId; eg.MysteryDoors[0] = smd; } }  // MYSTERY=1: mystery doors on the draw screen's map too (MYSTERYSAVED=1: the first one yours, saved)
       int pk = 0;
       foreach (var pl in eg.Players.Values) pl.Vectors = 30 + 8 * pk++;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)

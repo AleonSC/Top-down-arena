@@ -67,7 +67,7 @@ namespace Arena
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
         PieceShape,    // client -> host: place a piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, PieceShapes.cs)
         CollectChest, // client -> host: collect a chest from the wave box's Chests tab (node bool, id int) (Docs/RoundFlow.md step 5, RemoteChests.cs)
-        MysteryBuy,   // client -> host: open the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y) (MysteryDoors.cs)
+        MysteryBuy,   // client -> host: open or save the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y, save) (MysteryDoors.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -130,7 +130,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 417;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 419;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -160,7 +160,7 @@ namespace Arena
         public bool QuickMode => PlayMode == GameMode.Quick;          // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
         public bool SurvivalMode => PlayMode == GameMode.Survival;    // Survival (Survival.cs, Docs/Survival.md): one clock, no waves
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
-        public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
+        public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (Wave Lab's test)
         public EnemyType HuntBoss = EnemyType.Warden;
         public string PlanEditor = "";  // who made the last change
         public int PlanEditorSel;       // the wave they were working on
@@ -489,12 +489,8 @@ namespace Arena
             if (Net != null && IsHost)
             {
                 Net.Broadcast(msg);
-                Game.Replay?.Capture(msg);  // (Replay.cs)
             }
         }
-
-        /// A replay (ReplayPlayer): read this message the way a client reads one from the host.
-        public void ReplayApply(byte[] data) => HandleClientMessage(data);
 
         // --- Host side ---------------------------------------------------------
 
@@ -1283,7 +1279,7 @@ namespace Arena
             Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
             Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
             Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
-            Game.Design = PracticeMode && IsHost ? DesignTest : null;  // the F1 wave editor's waves being tested (WaveDesign.cs; the host plays them)
+            Game.Design = PracticeMode && IsHost ? DesignTest : null;  // the designed waves being tested (WaveDesign.cs; the host plays them)
             Game.Mods = Modifiers;
             Game.Diff = Diff.Copy();
         }
@@ -1375,7 +1371,7 @@ namespace Arena
         {
             if (!IsHost)
                 return;
-            DesignTest = null;  // the practice waves were edited: they're what plays now, not a wave editor design
+            DesignTest = null;  // the practice waves were edited: they're what plays now, not a designed set
             Plan = plan;
             PlanEditor = editor;
             PlanEditorSel = sel;

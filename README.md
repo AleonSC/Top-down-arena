@@ -47,7 +47,7 @@ row lists its class wheel's class, and a saved run's seats keep theirs.
   below).
 - **Hemomancer**: blood spells that drain and heal; every 1st ability costs health, and it hits harder the lower its
   health; full health (see below).
-- **Engineer** (a locked class: win a run to unlock it; open to everyone for now): a builder who works in vectors; two weapons (the Forge and a robot weapon), one 1st ability and one ultimate per role for now (its other keys
+- **Engineer** (a locked class: win a run to unlock it; open to everyone for now): a builder who works in vectors; one robot weapon, one 1st ability and one ultimate per role for now (its other keys
   are locked); full health, 95% speed (see below).
 
 | | Soldier | Elementalist | Summoner |
@@ -147,39 +147,23 @@ them), and blink before vanishing after 12 seconds.
 ### The Engineer
 
 A builder whose constructions draw themselves in the cyan ink of the Expanding arena's walls (Docs/Engineer.md). Each
-role has two weapons, one 1st ability and one ultimate for now; the lobby locks its other keys. It wears navy coveralls,
+role has one robot weapon (below), one 1st ability and one ultimate for now; the lobby locks its other keys. It wears navy coveralls,
 an orange safety vest and a yellow hard hat with a headlamp, in its role's trim. The DPS kit:
 
-- **Vector Forge** (weapon): Fire is a light rivet gun (10 a rivet, 0.3 s; each extra projectile adds a rivet, fanned).
-  The weapon keeps one **Strider** at your side: a plated two-legged walker with 450 health (+8% a wave, full again between
-  waves) that hunts the enemy nearest you (within 340 px), punches (34, 0.55 s; your damage and fire-rate upgrades count)
-  and, when enemies crowd it, **slams** every 4 s (60 in 80 px, a 0.4 s stun and a shove). Enemies within 150 px of it go
-  for it instead of you; it stops enemy shots and takes contact hits. **Alt** (the weapon-action key) on an enemy
-  **locks it on**: a turning reticle and a dashed line mark the target and the Strider goes for it at +40% speed and
-  +50% damage until it dies. Alt on the floor **posts** it there (it guards 200 px around); Alt by you calls it back.
-  A broken Strider is **rebuilt after 8 s**.
-- **Draftsman** (passive): every vector gain is 25% bigger for an Engineer (part-vectors add up across gains), and in the
-  Expanding arena standing within 90 px of your hurt Strider **repairs** it: a vector every 0.25 s for 30 health.
-- **Class cards**: **Reinforced Frame** (rare, x3: Strider +30% health), **Hydraulic Fists** (rare, x2: it punches and slams
-  20% more often), **Quick Assembly** (uncommon, x2: rebuilt 2.5 s sooner, never under 2 s) and **Wide Field** (rare, x2,
-  with Drag Pylon: the field 25% wider and slowing 10% more).
+- **Draftsman** (passive): every vector gain is 25% bigger for an Engineer (part-vectors add up across gains).
+- **Class card**: **Wide Field** (rare, x2, with Drag Pylon: the field 25% wider and slowing 10% more).
 - **Drag Pylon** (1st ability, 6 s): plants a pylon at your cursor (up to 320 px away). Its violet floor grid (130 px) slows
   enemies inside by 45% (bosses 20%), and they trail drag rings. It stays until you plant the next one, which folds the
   old one up. Mastered: 40% wider.
 - **Breach** (ultimate, 70 s): a vector hammer smashes the wall you aim at (up to 220 px): 80 damage and a shove within
   140 px. In the **Expanding arena** a free random room (Stash, Cross, L or T hall, Ring or Chamfer) opens behind the
-  wall with one thing in it: **vectors** (+10), **gold** (40), a **Strider repair** (full health, and a big health orb),
-  a **workbench** (every Strider +25% damage for the wave) or an **ambush** (two elite enemies of the wave's own types, shown as "?"). The loot
+  wall with one thing in it: **vectors** (+10), **gold** (40) or an **ambush** (two elite enemies of the wave's own types, shown as "?"). The loot
   waits in the middle of the room in a pulsing ring: the first player to walk up to it takes it (a Stash holds its usual
   vector cache instead). Elsewhere, or with no wall in reach, the blast and the loot (no ambush) land at your cursor at
-  once. Mastered: the blast is twice as wide. A new Strider draws itself in as a cyan wireframe over 1.2 s, then plates on.
+  once. Mastered: the blast is twice as wide.
 
 The **Tank** Engineer:
 
-- **Bulwark Forge** (weapon): a nail shotgun (six nails of 7 in a 29° spread, 0.55 s; +2 nails per extra projectile). Its
-  walker is the **Sentinel**: a bigger, slower plated walker with amber trim and 900 health (+8% a wave) that punches
-  (26, 0.8 s), slams (45 in 100 px) and draws in enemies from **220 px**. Alt orders it like the Strider; a broken one is
-  rebuilt after 10 s.
 - **Vector Wall** (1st ability, 10 s): five glowing tiles across your aim, centred on the cursor (60-220 px away). They stop
   enemy shots, each soaking 400 damage, for 8 s. Mastered: seven tiles for 12 s.
 - **Bastion** (ultimate, 75 s): a ring of 12 tiles round you (130 px) for 10 s, with four gaps to shoot out of. Mastered:
@@ -187,15 +171,13 @@ The **Tank** Engineer:
 
 The **Healer** Engineer:
 
-- **Medi-Drone Forge** (weapon): a light rivet gun (8, 0.3 s). A **med-drone** (a small rotor drone with a green cross)
-  flies to the most hurt ally and heals everyone within 70 px for 12 a second; each extra projectile adds a drone.
 - **Med Pylon** (1st ability, 6 s): the Drag Pylon's green twin: its field (130 px) heals allies inside for 10 a second, with
   plus marks rising off the floor; one at a time. Mastered: 40% wider.
 - **Safe Room** (ultimate, 80 s): the Breach hammer (half its damage) opens the wall you aim at; in the Expanding arena
   the room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. With no room,
   a 160 px dome at your cursor does the same. Mastered: 18 s.
 
-**Robot weapons** (each role's second weapon): the first click (Fire) summons a robot Engineer of your role at your cursor
+**Robot weapons** (each role's one weapon: DPS Vector Blade, Tank Iron Fist, Healer Stasis Gun): the first click (Fire) summons a robot Engineer of your role at your cursor
 (up to 320 px away; it builds in over 0.8 s). It does the fighting: it walks into range of the enemy nearest you (within
 360 px) and shoots it, and enemies near it go for it instead of you. A click on an enemy sends it at that enemy until it dies.
 With the robot out, Fire is a basic attack. A broken robot can be summoned again 8 s later (until then Fire just attacks).
@@ -505,7 +487,7 @@ it clears with the wave. A Healer's overheal shield only takes what goes past fu
 |---|---|---|
 | **Common** | white | Small stat boosts: +10% damage, +10% fire rate, 15% bigger shots (Magnum Rounds), +6% speed, +15 HP, regen, -6% cooldowns, Reinforced Guard (parry) |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...), damage reduction and Wide Guard (parry) |
-| **Rare** | blue | **Extra Use**: +1 use for one ability, you pick the 1st, 2nd, 3rd or 4th ability, an upgrade for a specific ability you have, in any slot (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, tougher Deployable Cover, longer Adrenaline Shot, faster Soul Lantern, wider Airstrike bombs, harsher marks, Greater Mending (Mend Pulse heals 60% more, reaches 25% farther); for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Coup de Grace (Bladed Dive's cuts deal 25% more damage and it rushes 40 px further), Iron Grip (the Gauntlet flies 40% further and its charge hits 50% harder), Forged Edge (Caught Steel's shards hit 8 harder and it catches 6 px further out), Bodkin Points (Warhorn Volley, when it's your ultimate: the arrows hit 25% harder and the volley is 20% wider); for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel; for Hemomancers: Hardened Blood, Blood Oath, Deep Veins, Lifeblood, Hungry Earth, Saint's Blood, High Pressure, Usury, Crimson Tide; for Elementalists: Eye of the Storm (Aeroaegis), Permafrost (Frost Nova), Inferno (Flame Wall), Monsoon (Healing Rain), Overcharged Ward (Energy Ward), Dawnlight (Lumen Ward), Cataclysm (Meteor), Whiteout (Blizzard), Riptide (Tsunami), High Tide (Flood: 25% wider, 2 s longer), Momentum Bank (Gale Wall: each caught shot adds 40% more), Deep Current (Water Ward: splashes 40% harder, wet 2 s longer); for Summoners: Basalt Hide (Golem Wall), Deep Tremor (Earthquake), Kindred Bond (Force Pact), Sprite Choir (Spirit Swarm), Rebirth Flame (Phoenix), Blood Bats (Bat Swarm), Venom Glands (Hydra), Pack Leader (Alpha Call); for the Soldier's Medkit: Field Surgeon), wider aura; one card per class: Quartermaster (Soldier: orbs heal 30% more, 2nd, 3rd and 4th abilities recharge 10% faster), Arcane Surge (Elementalist: a 1st ability cast makes your weapon fire 25% faster for 3 s), Pack Bond (Summoner: minions take 25% more before breaking and hit 15% harder), Plate Armour (Knight: 8% less damage, swings cut bullets 20% farther out), Ghost Step (Ninja: +6% speed, 30% less damage for 1 s after a dodge), Bloodthirst (Hemomancer: abilities cost 20% less health, kills heal 2); weapon cards, only while you hold that weapon: Quake Hammer (Warhammer: slam 20% wider, stuns 0.3 s longer), Breacher (Lance: Breaching Thrust shoves 30% farther, Impact +50%), Long Haft (Halberd: 15% more reach, sweeps 20° wider), Iron Boss (Bulwark Barrier: Ram fills 30% faster, the Shield Bash and its shards hit 30% harder), Pilgrim's Staff (Quarterstaff: hits heal 1 more, one more Jab stack), Daybreak (Lightbringer: light fills 30% faster, Sunlance heals 30% more), Thick Incense (Censer: clouds 30% bigger, 2 s longer), Whirling Sabres (Twin Blades: thrown sabres follow the cursor 25% longer, hit 30% harder), Lunar Arc (Greatsword: the thrown sword flies 25% farther, hits 30% harder), Duelist's Edge (Rapier: skewers one more bullet, Tempo holds 0.5 s longer), Live Wire (Arc Knuckles: Rocket Dash reaches 25% farther, Twin Hammer stuns 0.3 s longer); for Ninjas: Heavy Weight (Kusarigama: weight flies 25% farther, stuns 0.4 s longer), Iron Bo (Bo Staff: shove knocks 40% farther, full spin +30%), Long Loop (Fuma Shuriken: loop 20% bigger, Orbit 20% wider), Potent Dose (Medicine Darts: poison and healing stacks 30% stronger), Gale Fan (Spirit Fan: gust reaches 25% farther, heals 30% more), Blessed Paper (Ofuda: ward bursts 25% wider, heal 30% more), Barbed Stars (Shuriken: stuck stars return 1.5 s sooner, return hit +40%), Honed Edge (Katana: Momentum Burst shoves 30% farther, caltrops last 2 s longer), Shadow Mark (Kunai: the hit after a blink +40%, marks last 2 s longer), Iron Links (Nunchaku: Twin Windmill discs 25% wider, each swatted shot adds 2 more to the Twin Counter); for Hemomancers: Crimson Whip (Blood Lash: 20% more reach, one more link per enemy, each Clot stack cuts 1% more), Deep Pool (Gore Mortar: pool 30% bigger, 2 s longer), Hungry Tendrils (Leech Tendrils: charge 30% faster, bursts 15% harder), Generous Blood (Transfusion Darts: 30% more health given), Rich Blood (Sanguine Orb: reserve fills 30% faster, coat heals 30% more), Lifeline (Vein Tether: 55% of its damage heals), Hemophilia (Blood Bolts: burst one bleed stack sooner, 30% wider), Event Horizon (Implosion: crush +40%, pulls from 30% farther), Marrow (Blood Brawler: Marrow Burst +2 shards, Sympathy binds one more), Blood Harvest (Blood Blast: stacks heal 1 more each, an enemy holds 5 more), Burst Vessels (Embolus Spears: burst 30% wider, 30% harder); for Summoners: Granite Golem (Golem Staff: Golem takes 40% more, boulder 20% wider), Ossuary (Bone Guard: cages 0.5 s longer, skeletons shoot 30% faster), Deep Claws (Bear Totem: 15% more reach, bleed 30% stronger), Wildfire Seeds (Sprite Staff: one more firefly hop, sprites heal 20% more), Deep Roots (Treant Rod: root reaches 20% farther, heals 30% more), Alpha Pack (Wolf Whistle: takedowns 30% harder, stun 0.3 s longer), Will-o'-Wisp (Wisp Lantern: one more wisp), Imp Horde (Imp Caller: one more imp, 20% faster), Bigger Hive (Honeybee Staff: one more harvest bee, puddles 20% wider), Warding Ink (Spirit Chalk: blocks enemy bullets, but each one wears the ink away fast); for Engineers: Reinforced Frame (Strider: 30% more health), Hydraulic Fists (Strider: punches and slams 20% more often), Wide Field (Drag Pylon: field 25% wider, slows 10% more); for Soldiers: Point Blank (Scattergun: double damage reaches 30% farther, shove +30%), Wide Burst (Flak Cannon: bursts 25% wider, Proximity Shell 1 s sooner), Crowd Control (Riot Repeater: suppression 50% faster, Tear Gas 25% bigger), Heavy Drum (Grenade Launcher: +2 HE a drum, smoke clouds 20% bigger), Undertow Pump (Repulsion Cannon: Undertow fills 30% faster, its orbs heal 30% more), Hot Lead (Revolver: heavy rounds triple, reload 25% faster), Steady Draw (Mender's Bow: full draw 20% sooner, pierces one more), Kill Zone (Twin Rifle and Auto: crossfire zone 40% wider, 1.75x), Supercharge (Railgun: charged path 0.5 s longer, 40% hotter), Spin-Up (Burst SMG: spins up 30% sooner, winds down slower), Quick Loader (Double Barrel: reload 25% faster, full damage 30% farther), Gun Kata (Out of Ammo: rifle arms swat bullets 25% farther out, recover 30% faster); for Elementalists: Napalm (Flamethrower: reaches 15% farther, burns 40% hotter), Gale Force (Wind Clash: waves reach 20% farther, shove 30% harder), Glacier (Frost Lance: reaches 20% farther, freezes last 0.6 s longer), Stormcaller (Storm Hammer: arcs to one more enemy, 40% harder), Sunstone (Radiant Orb: 30% bigger, heals 30% more), Prism (Chain Light: cone 20% farther, 20° wider), Cloudburst (Nimbus: rain 30% wider, heals 30% more), Wildfire (Fireball: burns 50% hotter, 1 s longer), Static Field (Arc Lightning: tags 25% faster, stun 0.2 s longer), Frozen Halo (Ice Shards: 2 more in orbit, launch 25% farther out), Tectonic (Stonespear: one more spear a side, slam 20% wider); plus Multishot, Barrage and Piercing Rounds, and the parry cards (see Parry) |
+| **Rare** | blue | **Extra Use**: +1 use for one ability, you pick the 1st, 2nd, 3rd or 4th ability, an upgrade for a specific ability you have, in any slot (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, tougher Deployable Cover, longer Adrenaline Shot, faster Soul Lantern, wider Airstrike bombs, harsher marks, Greater Mending (Mend Pulse heals 60% more, reaches 25% farther); for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Coup de Grace (Bladed Dive's cuts deal 25% more damage and it rushes 40 px further), Iron Grip (the Gauntlet flies 40% further and its charge hits 50% harder), Forged Edge (Caught Steel's shards hit 8 harder and it catches 6 px further out), Bodkin Points (Warhorn Volley, when it's your ultimate: the arrows hit 25% harder and the volley is 20% wider); for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel; for Hemomancers: Hardened Blood, Blood Oath, Deep Veins, Lifeblood, Hungry Earth, Saint's Blood, High Pressure, Usury, Crimson Tide; for Elementalists: Eye of the Storm (Aeroaegis), Permafrost (Frost Nova), Inferno (Flame Wall), Monsoon (Healing Rain), Overcharged Ward (Energy Ward), Dawnlight (Lumen Ward), Cataclysm (Meteor), Whiteout (Blizzard), Riptide (Tsunami), High Tide (Flood: 25% wider, 2 s longer), Momentum Bank (Gale Wall: each caught shot adds 40% more), Deep Current (Water Ward: splashes 40% harder, wet 2 s longer); for Summoners: Basalt Hide (Golem Wall), Deep Tremor (Earthquake), Kindred Bond (Force Pact), Sprite Choir (Spirit Swarm), Rebirth Flame (Phoenix), Blood Bats (Bat Swarm), Venom Glands (Hydra), Pack Leader (Alpha Call); for the Soldier's Medkit: Field Surgeon), wider aura; one card per class: Quartermaster (Soldier: orbs heal 30% more, 2nd, 3rd and 4th abilities recharge 10% faster), Arcane Surge (Elementalist: a 1st ability cast makes your weapon fire 25% faster for 3 s), Pack Bond (Summoner: minions take 25% more before breaking and hit 15% harder), Plate Armour (Knight: 8% less damage, swings cut bullets 20% farther out), Ghost Step (Ninja: +6% speed, 30% less damage for 1 s after a dodge), Bloodthirst (Hemomancer: abilities cost 20% less health, kills heal 2); weapon cards, only while you hold that weapon: Quake Hammer (Warhammer: slam 20% wider, stuns 0.3 s longer), Breacher (Lance: Breaching Thrust shoves 30% farther, Impact +50%), Long Haft (Halberd: 15% more reach, sweeps 20° wider), Iron Boss (Bulwark Barrier: Ram fills 30% faster, the Shield Bash and its shards hit 30% harder), Pilgrim's Staff (Quarterstaff: hits heal 1 more, one more Jab stack), Daybreak (Lightbringer: light fills 30% faster, Sunlance heals 30% more), Thick Incense (Censer: clouds 30% bigger, 2 s longer), Whirling Sabres (Twin Blades: thrown sabres follow the cursor 25% longer, hit 30% harder), Lunar Arc (Greatsword: the thrown sword flies 25% farther, hits 30% harder), Duelist's Edge (Rapier: skewers one more bullet, Tempo holds 0.5 s longer), Live Wire (Arc Knuckles: Rocket Dash reaches 25% farther, Twin Hammer stuns 0.3 s longer); for Ninjas: Heavy Weight (Kusarigama: weight flies 25% farther, stuns 0.4 s longer), Iron Bo (Bo Staff: shove knocks 40% farther, full spin +30%), Long Loop (Fuma Shuriken: loop 20% bigger, Orbit 20% wider), Potent Dose (Medicine Darts: poison and healing stacks 30% stronger), Gale Fan (Spirit Fan: gust reaches 25% farther, heals 30% more), Blessed Paper (Ofuda: ward bursts 25% wider, heal 30% more), Barbed Stars (Shuriken: stuck stars return 1.5 s sooner, return hit +40%), Honed Edge (Katana: Momentum Burst shoves 30% farther, caltrops last 2 s longer), Shadow Mark (Kunai: the hit after a blink +40%, marks last 2 s longer), Iron Links (Nunchaku: Twin Windmill discs 25% wider, each swatted shot adds 2 more to the Twin Counter); for Hemomancers: Crimson Whip (Blood Lash: 20% more reach, one more link per enemy, each Clot stack cuts 1% more), Deep Pool (Gore Mortar: pool 30% bigger, 2 s longer), Hungry Tendrils (Leech Tendrils: charge 30% faster, bursts 15% harder), Generous Blood (Transfusion Darts: 30% more health given), Rich Blood (Sanguine Orb: reserve fills 30% faster, coat heals 30% more), Lifeline (Vein Tether: 55% of its damage heals), Hemophilia (Blood Bolts: burst one bleed stack sooner, 30% wider), Event Horizon (Implosion: crush +40%, pulls from 30% farther), Marrow (Blood Brawler: Marrow Burst +2 shards, Sympathy binds one more), Blood Harvest (Blood Blast: stacks heal 1 more each, an enemy holds 5 more), Burst Vessels (Embolus Spears: burst 30% wider, 30% harder); for Summoners: Granite Golem (Golem Staff: Golem takes 40% more, boulder 20% wider), Ossuary (Bone Guard: cages 0.5 s longer, skeletons shoot 30% faster), Deep Claws (Bear Totem: 15% more reach, bleed 30% stronger), Wildfire Seeds (Sprite Staff: one more firefly hop, sprites heal 20% more), Deep Roots (Treant Rod: root reaches 20% farther, heals 30% more), Alpha Pack (Wolf Whistle: takedowns 30% harder, stun 0.3 s longer), Will-o'-Wisp (Wisp Lantern: one more wisp), Imp Horde (Imp Caller: one more imp, 20% faster), Bigger Hive (Honeybee Staff: one more harvest bee, puddles 20% wider), Warding Ink (Spirit Chalk: blocks enemy bullets, but each one wears the ink away fast); for Engineers: Wide Field (Drag Pylon: field 25% wider, slows 10% more); for Soldiers: Point Blank (Scattergun: double damage reaches 30% farther, shove +30%), Wide Burst (Flak Cannon: bursts 25% wider, Proximity Shell 1 s sooner), Crowd Control (Riot Repeater: suppression 50% faster, Tear Gas 25% bigger), Heavy Drum (Grenade Launcher: +2 HE a drum, smoke clouds 20% bigger), Undertow Pump (Repulsion Cannon: Undertow fills 30% faster, its orbs heal 30% more), Hot Lead (Revolver: heavy rounds triple, reload 25% faster), Steady Draw (Mender's Bow: full draw 20% sooner, pierces one more), Kill Zone (Twin Rifle and Auto: crossfire zone 40% wider, 1.75x), Supercharge (Railgun: charged path 0.5 s longer, 40% hotter), Spin-Up (Burst SMG: spins up 30% sooner, winds down slower), Quick Loader (Double Barrel: reload 25% faster, full damage 30% farther), Gun Kata (Out of Ammo: rifle arms swat bullets 25% farther out, recover 30% faster); for Elementalists: Napalm (Flamethrower: reaches 15% farther, burns 40% hotter), Gale Force (Wind Clash: waves reach 20% farther, shove 30% harder), Glacier (Frost Lance: reaches 20% farther, freezes last 0.6 s longer), Stormcaller (Storm Hammer: arcs to one more enemy, 40% harder), Sunstone (Radiant Orb: 30% bigger, heals 30% more), Prism (Chain Light: cone 20% farther, 20° wider), Cloudburst (Nimbus: rain 30% wider, heals 30% more), Wildfire (Fireball: burns 50% hotter, 1 s longer), Static Field (Arc Lightning: tags 25% faster, stun 0.2 s longer), Frozen Halo (Ice Shards: 2 more in orbit, launch 25% farther out), Tectonic (Stonespear: one more spear a side, slam 20% wider); plus Multishot, Barrage and Piercing Rounds, and the parry cards (see Parry) |
 | **Very rare** | purple | A brand-new **2nd, 3rd or 4th ability** (you choose the slot; each one only once): a universal one (Shockwave, Overdrive, Blink, Starburst (a ring of 24 lilac shots) or Turret (a sentry pod drops at your feet, unfolds on three legs and fires twin cyan tracers for 10 s; ten segments round its feet count down and blink amber near the end, then it folds away)), or one of your **class's two other 1st abilities**, the ones you didn't pick in the lobby (these count triple, so about 6 in 11 very rare cards are class abilities) |
 | **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
 | **Weapon mod** | teal | Also **after every boss**, right after its legendary: choose any mod from the full list (each stacks up to 3 times). In the Expanding arena the boss gives the **card pick** below instead, and mods are bought at the **Arms Dealer** |
@@ -730,7 +712,7 @@ his own riot, on the boss wave, still give 2 and 4.
 | From | The Warden's faction | What it does |
 |---|---|---|
 | 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit: a Brawler (broad shoulders, cuffed fists throwing punches) that weaves at you, in pairs (contact 10). **Variant, Ball and Chain** (30% of Rioters, from wave 3): hunched, dragging an iron ball on its ankle, the same moves but **25% slower**. Squad: Breakout (six Rioters and a Guard) |
-| 1 | **Guard** | A corrections officer (khaki shirt, peaked cap, gold badge) with a side-handle nightstick, straight at you (contact 14). Within about 60 px it swings the stick without stopping, forehand then backhand: a 0.16 s draw-back flashes its 120° arc amber on the floor, then the swing hits everyone in it out to 80 px for 7; one every 0.6 s |
+| 1 | **Guard** | A corrections officer (khaki shirt, peaked cap, gold badge) with a side-handle nightstick, straight at you (contact 14). As it closes in (from about 190 px) its whole swing arc fades in on the floor ahead of it: a dashed amber rim at its 80 px reach, the arc's edges and a curved arrow showing which way the next swing sweeps, while it brings the stick up on that side; with you inside the reach it pulses. Within about 60 px it swings the stick without stopping, forehand then backhand: a 0.16 s draw-back flashes its 120° arc amber on the floor, then the swing hits everyone in it out to 80 px for 7; one every 0.6 s |
 | 3 | **Thug** | A hunched prisoner brute in a tank top, bare tattooed arms and giant taped fists: moves and hits like a Brute (140 health, contact 20). Squad: Yard (a Thug, three Rioters and a Shiv) |
 | 5 | **Shiv** | A prisoner with a taped shank, one of two kinds: Hooded (hood up, the shank held low) or Twin Shanks (shirtless, a shank in each hand); it draws the shank back as it winds up. Circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |
 | 3 | **Riot Shield** | A prison officer in steel-blue riot fatigues and a visored riot helmet, behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (approach step 3): Cell block (two Riot Shields with Rioters pouring past) |
@@ -1151,8 +1133,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   marching edges and spins a quarter turn on **R**; a click where it fits nowhere shakes a red cross. The card you play flies from your hand to its
   spot and the hand closes up behind it; after the slam a ring rolls out, the new door spots pop in one by one and **+1 ROOM** rises. The tool
   frame slides between tools and the panel title types in; spending vectors rolls the number down, floats **−8** and drains the bar.
-- **Buying a mystery room from the build map**: hover a mystery door's diamond for its price, click to open it from wherever you stand (only while
-  the build round is open; the same price and rooms as **G** by the door).
+- **Buying a mystery room from the build map**: hover a mystery door's diamond for its price, click to open it from wherever you stand, or **right click** to save it (right click your
+  own saved door to let it go); a saved door carries a lime **SAVED** tag on the build map (**SAVED · YOURS** for your own). Only while the build round is open; the same price, rooms and one-save rule as **G** and **B** by the door.
 - **Room kits**: a one-use modifier the team holds (up to 6; the Build step counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
@@ -1566,9 +1548,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Aim debug overlay | F3 |
 | Save / load a run snapshot (host, dev) | F6 saves the run as it is now; F7 loads the newest (see *Run snapshots*, under *Testing tricks*) |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
-| DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
-| Open the folder with `Player.log` (menus, lobby, results; in a run F2 is the DPS meter) | F2 |
-| Freeze time with no menu (dev) | P, once the F1 VIEW drawer's freeze-time key is on; everything holds, attacks and effects mid-swing included; P again resumes. Pausing is shared, so it stops everyone |
+| Open the folder with `Player.log` (menus, lobby, results; not in a run) | F2 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory; not in a Boss Hunt); with a life left, Y = respawn, N = give up |
 | Click debug readout (temporary) | F9 |
 
@@ -2142,7 +2122,7 @@ TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 ```
 
 Also: `--name=X`, `--port=N`, `--class=soldier|elementalist|summoner|knight|ninja|hemomancer|engineer`, `--weapon=1-4`, `--ability=1-4`, `--ultimate=N`, `--start-wave=N`
-(jump ahead), `--bot` (your player moves and shoots by itself), `--record` and `--record-replays`.
+(jump ahead), `--bot` (your player moves and shoots by itself), and `--record`.
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs Mono). The default suite is
@@ -2155,7 +2135,7 @@ Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). I
 match the game keeps running behind it (the mouse only stops shooting while it's over the dock); in the lobby and menus it covers the
 screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE**, **KILL ALL** and **SNAP** (run snapshots, below) pinned for one click, four keys that
 open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
-as a drawer on the right, and the bigger tools (DPS meter and dummies, Replays, Balance test) open as one sheet. While you type in one of
+as a drawer on the right, and the bigger tools (Spawn an enemy, Spawn an upgrade, Run snapshots) open as one sheet. While you type in one of
 its fields the game's keys are off. Outside a run only VIEW and LABS show.
 
 - **WAVE drawer (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
@@ -2192,28 +2172,11 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to mastery 5). Joining players can see everyone's stats but not change them.
-- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
-  (a saved switch: P freezes the whole picture, effects and animations included, without opening the pause menu; press it again to resume;
-  hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
   **Account rank** (PARTY drawer) sets this computer's rank without playing for it: **+1**, **+10**,
   **30**, **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
   unlocks everything (every Boss Hunt, every perk, all perk slots, the Wildcard; saved on the profile) and **RESET** locks it
   again. Outside a run (main menu or lobby) the dock bar has a **MAX RANK + UNLOCK ALL** key instead.
-- **VIEW > DPS DETAILS AND TARGET DUMMIES… (host, in a run):** the DPS meter and target dummies, below.
-- **LABS > REPLAYS…:** record the runs you host and watch them back, below.
-- **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
-  F1 > LABS > Balance test…, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
-  runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
-  that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
-  wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
-  damage taken, downs, accuracy), tabs for **Waves**, **Weapons and abilities** (damage by source: your weapon, each ability's
-  own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
-  to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
-  that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
-  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 5, summarised by
-  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Every weapon hit (swings, beams, companions included) counts
-  as the weapon; damage from ability zones, minions and other lasting effects can't be traced to the cast that made it and
-  shows as "Other". Health paid for blood costs is listed as health spent, not damage taken. Design and fields: `Docs/BalanceTest.md`.
 
 ### Run snapshots (F6 / F7)
 
@@ -2227,40 +2190,6 @@ bot does the same thing again too). Files are kept in the profile's `snapshots` 
 - Loading marks the run as dev-touched (no records), like god mode. Your BOT and REC switches stay as they are.
 - Snapshots still load after code changes: a field that's gone is skipped and a new one keeps its current value (the
   sheet's note says how many). A renamed class can't load; the note says which.
-
-### Replays (F1)
-
-**F1 → LABS → Replays…** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
-default) and saves it as a `.replay` file in the `replays` folder when the run ends (or press **Stop and save**). The tab has
-**Open folder**, **Refresh** and a list of your replays, newest first: name, date, mode, wave reached, length, size and who played. Each has **Open**,
-**Rename** (type, then Enter or Save) and **Delete** (asks "Delete for good?" first). Runs under a second, the Practice Range's lobby preview and
-Boss Lab fights aren't saved.
-
-**Open** (from the main menu, not in a lobby) plays the run back in the game window as a spectator, with a **timeline** along the bottom:
-a **wave lane** (a block per wave, red for a boss; click one to jump to where it starts), a **time bar** to click or drag (blue ticks are waves,
-red a boss, amber a player going down), and buttons for **Pause / Play**, **-1 f / +1 f** (one frame), **|< Wave / Wave >|**, and speeds
-**0.1x, 0.5x, 1x, 2x, 4x, 10x forward and 10x, 4x, 1x, 0.5x, 0.1x backward**. Keys: **Space** pause, **, .** step a frame, **[ ]** next slower / faster
-speed (through backward too), **Left / Right** 5 s, **Home / End**, **V** (or the Following button) switch which player's screen you watch, **Esc** or
-**Close replay** back to the menu. It plays to the end and holds there.
-A replay is what a second player on the host's game would have seen, so it shows the run, not your inputs: you can watch, pause, rewind and scrub, but not
-take over and play from a point. Seeking anywhere takes a few milliseconds; shots that were already in the air for more than 6 s before the spot you jumped to
-aren't drawn. Nothing about a replay changes the network protocol.
-
-### DPS meter and target dummy (F2)
-
-For balancing. **F2** (or F1 → VIEW → *DPS details and target dummies…*) shows a **DPS meter** at the top left: for every player, the damage a second over
-the last second (big number), the last 5 seconds, the average, the best second, the total, and how much of it was
-burning, bleeding or poison. Every source counts (shots, minions, burning). The average only counts the time you
-were hitting something, so walking about doesn't drag it down. Next to it is **sim**, the no-upgrades figure the
-lobby shows for that weapon (`Defs.WeaponDps`), and how close you are to it. **Shift+F2** (or the **Reset** button)
-starts the meter over. Only the host sees it; nothing is sent over the network.
-
-**F1 → VIEW → DPS details and target dummies… → Spawn one in front of you** puts a **target dummy** down: a Thug that never dies, never shoots,
-never hurts to touch and can't be pushed, frozen or caged. It heals to full every tick and counts what it took (the
-meter shows "took N"). It doesn't count as an enemy, so the wave ends with it standing. Up to four; **Patrol side to
-side** makes them strafe to test moving targets, and **Remove all** clears them. Kill all (B) leaves them alone. Using
-the dummy marks the run as a dev run, like god mode. In the Practice Range, a wave with no enemies and **Loop** off is
-the quietest place to test.
 
 ### Editing text in the game (F4)
 
@@ -2307,7 +2236,7 @@ boss plays out and what to change.
   are lit, Absolute Zero, the Tempest, Out of Ammo's spin, the Nunchaku guard, the Pistol Whip and the Bulwark's Brace
   under a barrage, the Kusarigama whirl and Undertow on a group, the Katana switch to the other stance's finisher, Kunai
   blinks, Rocket Dash, the Twin Rifle Auto lock, Stonespear volleys, Embolus bursts, Sympathy, Martyr's Leash, the honey
-  spray, the smoke drum and the Vector Forge's walker on a new target. The Shuriken's Great Star stance isn't used (it
+  spray and the smoke drum. The Shuriken's Great Star stance isn't used (it
   needs a drawn route). Tests: `Tools/SimTest/run.sh 1 30 botweapon`.
 - **Bot level-up picks and shopping** (same bots): a bot takes the card worth the most to it instead of a random one.
   It weighs what the card does to damage, fire rate, extra shots, health, damage taken, cooldowns and speed by its role
@@ -2319,7 +2248,7 @@ boss plays out and what to change.
 - Lab fights aren't saved as session recordings. Starting the lab leaves any run you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where
-bullets, enemy bodies, lightning strikes and the Reapers' tether will be. They keep a distance that suits
+bullets, enemy bodies, lightning strikes and the Reapers' tether will be. When one of the Warden's **gates** is coming, they head for its nearest door (or the shot-out lock) in time and walk through it. They keep a distance that suits
 their weapon and role, close in until a target is within their weapon's reach before they pull the trigger (using anything already in reach on the way), lead their shots, and go for the adds that protect a boss first (phylacteries,
 gravity wells, the Queen's shield drones). When a Tank's **Last Stand** is planted they stand in its lee, just behind the tank and away from where the plates face (unless someone needs reviving). They revive downed allies, heal when someone is hurt, use
 defensive abilities when things get tight, and use the rest on the boss.
@@ -2336,34 +2265,12 @@ From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
-### Wave editor (F1)
+### Designed waves (.waves files)
 
-**F1 → LABS → Wave editor** designs waves on a timeline. A design is a set of waves; each wave has a **level** (how
-strong its enemies are, as that wave of a run), **groups** and **props**.
-
-- **Waves strip** (under the title): one numbered key per wave (click to open it), **+ NEW WAVE**, **DUPLICATE**,
-  **DELETE**, `<` `>` to move the wave earlier or later, its **LEVEL**, and **Loop the waves**. **UNDO** / **REDO**
-  (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z) cover every change, including deletes.
-- **Arena map** (top left): the five **spawn points A-E** (drag a letter to move it, for every wave) and the wave's
-  props. With a group selected, click a letter to send the group from it too (click it again to stop), or click empty
-  ground to send it from the nearest point. **Props** mode: click to place the picked prop (crate, big crate,
-  barrel, chest), drag to move, right-click to remove. The map also shows the wave at the playhead: who has arrived
-  and where they're heading.
-- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else; scroll for more),
-  **Squads** (the regular squads and the bosses' own, like the Riot line) and **Bosses**. **Drag** one onto the
-  timeline (a new group that starts where you let go), onto the map (a new group from the nearest spawn point, at the
-  playhead) or onto an existing group's bar (adds that enemy to it). A plain click adds a group at the playhead;
-  Shift-click an enemy to add one more to the selected group.
-- **Selected group** (top right): its name, which spawn points it comes from (several take turns), when it starts,
-  how it arrives (**one by one** with a **gap** between enemies, **together**, side by side in a **line**, or in a
-  **ring** round a player) and how many of each enemy. A squad keeps its own members and formation. **COPY** and
-  **DELETE** (or Ctrl+D and Delete).
-- **Timeline** (bottom): one track per group. Drag a bar to change when it starts, drag its right edge to spread
-  its enemies out; click or drag on the tracks to move the playhead; **PLAY** (or Space) runs the wave on the map.
-  The line under it says what you can do next. A wave ends once every group has arrived and everyone is down.
-- **SAVE** writes `<name>.waves` to the `waves` folder next to the practice folder; **OPEN** opens one (or starts a
-  new set). **TEST IN PRACTICE** plays the waves in the Practice Range, hosted by you, starting on the wave you're
-  editing (from the main menu, the lobby, or a run you host; it replaces that run).
+A designed wave set is a plain-text `.waves` file: spawn points A-E, then each wave's **level** (how strong its enemies
+are, as that wave of a run), its **groups** (who arrives, from which points, when and how: one by one with a gap,
+together, in a line or in a ring round a player; or a squad) and its **props**. Edit one by hand or in **Wave Lab**
+(`Tools/WaveLab/run.sh`), which also plays it.
 
 The `.waves` file is plain text, e.g.
 
@@ -2375,8 +2282,7 @@ wave 6 level 6
   prop crate 610,330
 ```
 
-**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder (in the Unity
-editor, the Load panel's **Save to project** writes it there), then run
+**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder, then run
 
 ```bash
 Tools/WaveGen/build.sh
@@ -2384,8 +2290,7 @@ Tools/WaveGen/build.sh
 
 It reads every file with the game's own parser and writes `Assets/Scripts/Core/DesignedWaves.Generated.cs`, code that
 builds each set, so a final build carries them with no loose files (`DesignedWaves.Get("<name>")`). A file with a
-problem stops it with the file, the line and what's wrong, and nothing is written. The Load panel lists the built-in
-sets under **Built into the game** (open one to look at or change a copy). The `wavegen` sim test fails if a file
+problem stops it with the file, the line and what's wrong, and nothing is written. The `wavegen` sim test fails if a file
 was added or changed without running the script.
 
 ### Session recording (for balancing)

@@ -463,7 +463,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && !e.Dummy && e.Pos.CloserThan(pos, reach + e.Radius))
+                if (Targetable(e) && e.Pos.CloserThan(pos, reach + e.Radius))
                     n++;
             return n;
         }
@@ -626,6 +626,8 @@ namespace Arena
             public DevourState ds;
             public EclipseState es;
             public Player conductor;
+            public List<WardenGate> gates;   // the Warden's gates (Lockdown), or null
+            public float gateX, gateUrg;     // the door to wait in for the next gate, and how much it matters now (0-1)
         }
         readonly MoveScene moveScene = new MoveScene();
 
@@ -696,6 +698,8 @@ namespace Arena
                 if (se.Crack != null)
                     quarryCracks.Add(se.Crack);  // Drillers' and Geomancers' cracks, like its fissures
             }
+
+            ReadWardenGates(me, ms);
 
             // The Reapers' tether.
             ms.twinA = null;
@@ -773,6 +777,48 @@ namespace Arena
                     if (zd < lureD) { lureD = zd; ms.lurePos = z.Pos; ms.lureR = z.Radius - 10f; ms.lure = true; }
                 }
             }
+        }
+
+        /// The Warden's gates (Lockdown, Warden.cs): a wall of push bullets the width of the arena, with doors near the
+        /// side walls. A short lookahead can't see a way round it, so the next gate still to come picks a door (the
+        /// nearest, or the lock it was shot open) and the bot heads there in time to walk it before the gate arrives.
+        void ReadWardenGates(Player me, MoveScene ms)
+        {
+            ms.gates = null;
+            ms.gateUrg = 0f;
+            var wd = TheWarden();
+            if (wd == null || wd.Warden == null || wd.Warden.Gates.Count == 0 || me.Downed)
+                return;
+            ms.gates = wd.Warden.Gates;
+            float pad = GateBulletR + me.Def.HitR, soonest = float.MaxValue;
+            foreach (var g in ms.gates)
+            {
+                float toGo = (me.Pos.Y - g.Front) * g.Dir;  // how far its front row still has to come
+                if (toGo < -(GateRows - 1) * GateRowGap - pad)
+                    continue;  // its back row is past us
+                float arrive = Math.Max(0f, toGo - pad) / GateSpeed + Math.Max(0f, g.Warn + GateHold);
+                if (arrive >= soonest)
+                    continue;
+                soonest = arrive;
+                float best = g.Gap1 + GateDoor / 2f;
+                foreach (float x in new[] { g.Gap2 + GateDoor / 2f, g.LockOpen ? g.LockX : float.NaN })
+                    if (!float.IsNaN(x) && Math.Abs(x - me.Pos.X) < Math.Abs(best - me.Pos.X))
+                        best = x;
+                ms.gateX = best;
+                float walk = Math.Abs(best - me.Pos.X) / Math.Max(60f, me.Speed);
+                ms.gateUrg = Math.Max(0f, Math.Min(1f, (walk + 1.5f - arrive) / 1.5f));
+            }
+        }
+
+        /// A gate's band where it'll be in `t` s covers `p`, outside its doors (narrowed by `m` each side).
+        static bool GateDanger(WardenGate g, V2 p, float t, float pad, float m)
+        {
+            float front = GateFrontIn(g, t), back = front - g.Dir * (GateRows - 1) * GateRowGap;
+            if (p.Y < Math.Min(front, back) - pad || p.Y > Math.Max(front, back) + pad)
+                return false;
+            float half = GateDoor / 2f - 4f - m;
+            return !(Math.Abs(p.X - (g.Gap1 + GateDoor / 2f)) < half || Math.Abs(p.X - (g.Gap2 + GateDoor / 2f)) < half
+                || g.LockOpen && Math.Abs(p.X - g.LockX) < LockDoor / 2f - 4f - m);
         }
 
         /// Noticed shots where they'll be at t.
@@ -855,6 +901,10 @@ namespace Arena
             foreach (var r in stompRings)
                 if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
                     d += w * 2.5f;
+            if (ms.gates != null)
+                foreach (var g in ms.gates)
+                    if (GateDanger(g, p, t, GateBulletR + hitR + sk.Margin + 4f, sk.Margin + Math.Abs(ms.misjudge) * 0.5f))
+                        d += w * 3f;  // the Warden's gates: only a door lets you through
             foreach (var ck in quarryCracks)
                 if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHalfW + 4f)
                     d += w * 1.5f;
@@ -1031,6 +1081,8 @@ namespace Arena
                     position += 1.2f * Math.Min(4f, p.DistanceTo(ms.shadowSpot) / 150f);  // get into the moon's shadow
                 else if (ms.seekLight && !InSunlight(ms.es, p, hitR + 15f))
                     position += 0.6f * Math.Min(3f, p.DistanceTo(ms.sunspot) / 150f);  // back into the light
+                if (ms.gateUrg > 0f)  // the next Warden gate: be in its door by the time it gets here
+                    position += ms.gateUrg * 1.2f * Math.Min(5f, Math.Max(0f, Math.Abs(p.X - ms.gateX) - 18f) / 100f);
                 if (ms.lure)
                     position += 0.3f * Math.Min(3f, Math.Max(0f, p.DistanceTo(ms.lurePos) - ms.lureR) / 150f);
                 if (me.Hp < me.MaxHp * 0.7f)  // hurt: Sanctuary's healing pools are worth standing in (Paths.cs)

@@ -295,6 +295,16 @@ static partial class Shot {
       me.Pos = me.Disp = new V2(800f, 525f); me.InvulnT = 1f; me.Aim = MathX.Pi / 2f;
       foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
       var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      if (Environment.GetEnvironmentVariable("GUARD") == "2") {
+        // GUARD=2: four Guards walking in at 200, 150, 110 and 70 px from you (left to right): the ready tell fading in.
+        var dists = new[] { 200f, 150f, 110f, 70f };
+        for (int i = 0; i < 4; i++) {
+          float ang = MathX.Pi * (0.97f + 0.29f * i);
+          var at = me.Pos + V2.FromAngle(ang) * dists[i];
+          var en = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.Guard, at, 0f, 0, false });
+          en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle; en.MawSide = (byte)(i % 2);
+        }
+      } else {
       var stages = new[] { (byte)0, Game.BatonWinding, Game.BatonActing, Game.BatonWindingBack, Game.BatonActingBack };
       var left = new[] { 0f, Game.BatonWind * 0.3f, Game.BatonFlash * 0.45f, Game.BatonWind * 0.3f, Game.BatonFlash * 0.45f };
       for (int i = 0; i < 5; i++) {
@@ -302,6 +312,7 @@ static partial class Shot {
         var en = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.Guard, at, 0f, 0, false });
         en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = MathX.Pi / 2f;
         en.LarderStage = stages[i]; en.LarderT = left[i];
+      }
       }
     }
     if (Environment.GetEnvironmentVariable("RALLY") != null) {
@@ -1701,15 +1712,6 @@ static partial class Shot {
       typeof(ArenaApp).GetField("aimDebug", f2).SetValue(app, true);
       me.Aim = -0.6f;
       host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
-    }
-    if (Environment.GetEnvironmentVariable("DPSMETER") != null)
-    {
-      // The DPS meter (DpsMeterUi.cs) with a dummy and a few seconds of fake damage; add DEVTAB=3 mode=dev for the F1 tab.
-      typeof(ArenaApp).GetField("dpsMeter", f2).SetValue(app, true);
-      host.Game.DevSpawnDummy(1);
-      var track = new DpsTrack();
-      for (int i = 0; i < 70; i++) { track.Add(i % 3 == 0 ? 9f : 22f, i % 4 == 0 ? 3f : 0f); track.Advance(0.1f); }
-      host.Game.Dps[1] = track;
     }
     if (Environment.GetEnvironmentVariable("REPULSE") != null) {
       // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.

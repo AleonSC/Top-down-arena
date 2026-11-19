@@ -40,7 +40,7 @@ inside a room is the surprise.
 3. **World look:** the dim veil over unseen rooms, the doorway peek, the reveal sweep; preview before/after.
 4. **Hook for hand-made layouts:** a room's own contents (spawns, props) are placed at build time and show only on reveal.
 
-## Dormant groups (owner, Nov 19; built, protocol 417)
+## Dormant groups (owner, Nov 19; built, protocol 419)
 
 When a piece card is built, each of its cells rolls `DormantGroups.CellChance` (40%) for a sleeping group of the faction enemies of
 the wave it was built on (`Game.DormantPool`: the coming boss's faction as far as the wave reaches, no bosses, minis, planted

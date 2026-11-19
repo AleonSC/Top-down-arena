@@ -34,7 +34,7 @@ namespace Arena
         public Profile ProfileOverride;   // tests: a profile per game instead of the computer's
         public bool Unrecorded;           // a Boss Lab fight: never saved, and not in anyone's records (BossLab.cs)
         public bool BotParty;             // lobby bots in the run (PartyBots.cs): Unrecorded too, but played like any run (Campaign arena, lives)
-        /// A Boss Lab fight or a replay: unrecorded and played as a bare fight. A run with lobby bots is only unrecorded.
+        /// A Boss Lab fight: unrecorded and played as a bare fight. A run with lobby bots is only unrecorded.
         public bool LabRun => Unrecorded && !BotParty;
         public Profile Profile => ProfileOverride ?? Profile.Current;
         public readonly List<UnlockToast> UnlockToasts = new List<UnlockToast>();  // the front end draws and ages them

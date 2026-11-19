@@ -306,7 +306,7 @@ namespace Arena
             timelineNext = 0f;
         }
 
-        bool TimelineOn => Running && RecordsRuns && Me != null && !Replaying && !botTouched && !devTouched
+        bool TimelineOn => Running && RecordsRuns && Me != null && !botTouched && !devTouched
             && (State == MatchState.Fighting || State == MatchState.Intermission);
 
         void TickRunTimeline(float dt)

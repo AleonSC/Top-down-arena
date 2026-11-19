@@ -13,7 +13,7 @@ namespace Arena
         public const float Behind = 30f;  // the room has floor this far behind the breach's wall
 
         /// Does this wave have one? A breach wave from FromWave on, about half of them, never the wave after a boss (that intermission gets a boss's
-        /// gift). Seeded, so it is the same for a replay.
+        /// gift). Seeded.
         public static bool IsEventWave(int seed, int wave) => Breaches.IsBreachWave(wave) && wave >= FromWave && wave % Expansion.Milestone != 1 && new DetRandom(seed * 977 + wave * 131 + 5).Float() < Chance;
     }
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds the designed wave sets into the game: reads Data/Waves/*.waves (the F1 wave editor's files) with the game's
+# Builds the designed wave sets into the game: reads Data/Waves/*.waves (the designed wave sets) with the game's
 # own parser and writes Assets/Scripts/Core/DesignedWaves.Generated.cs. Stops, writing nothing, if a file has a
 # problem (it names the file, the line and what's wrong). Run it after adding or changing a .waves file.
 #   Tools/WaveGen/build.sh
