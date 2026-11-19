@@ -297,12 +297,12 @@ namespace Arena
 
         public const int TierMid = 1500, TierOuter = 3000;  // a node this far (15 / 30 tiles) or more off the hub's wall is middle / outer tier
 
-        /// A point's tier from its distance to the hub's box: 0 inner (gold and vector chests), 1 middle (piece and buildables chests),
+        /// A point's tier from its distance to the hub's box (square zones: the farther axis): 0 inner (gold and vector chests), 1 middle (piece and buildables chests),
         /// 2 outer (upgrade chests and relics). A pure function of the point, so it needs nothing on the wire or in saves.
         public static int NodeTier(int x, int y)
         {
             float dx = Math.Max(0f, Math.Max(-x, x - Game.Width)), dy = Math.Max(0f, Math.Max(-y, y - Game.Height));
-            float d = (float)Math.Sqrt(dx * dx + dy * dy);
+            float d = Math.Max(dx, dy);  // square zones (owner Nov 19): the farther of the two axes
             return d >= TierOuter ? 2 : d >= TierMid ? 1 : 0;
         }
 
