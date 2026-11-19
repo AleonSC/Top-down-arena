@@ -152,15 +152,19 @@ namespace Arena
         }
 
         /// The build map (BuildMapLook.cs): a sealed door is an amber bar across its doorway with a diamond, and its price.
-        void DrawHoloMystery(System.Func<V2, V2> M, float k)
+        /// `hover`: the door under the mouse (a click buys it, ExpansionUi.cs): bigger, lit, with a ring.
+        void DrawHoloMystery(System.Func<V2, V2> M, float k, int hover = -1)
         {
-            foreach (var d in game.MysteryDoors)
+            for (int i = 0; i < game.MysteryDoors.Count; i++)
             {
+                var d = game.MysteryDoors[i];
                 V2 c = M(d.Pos), al = d.Vertical ? new V2(0f, 1f) : new V2(1f, 0f), ac = new V2(al.Y, al.X);
                 float half = Mathf.Max(6f, Rooms.DoorW / 2f * k);
-                var ink = d.Saver != 0 ? MysterySaved : MysteryHolo;
+                var ink = i == hover ? MysteryHot2 : d.Saver != 0 ? MysterySaved : MysteryHolo;
                 Line(c - al * half, c + al * half, 4f, ink.WithAlpha(0.9f));
-                float s = 6f;
+                float s = i == hover ? 9f : 6f;
+                if (i == hover)
+                    Arc(c, 13f + 1.5f * Mathf.Sin(Time.unscaledTime * 6f), 1.5f, MysteryHolo.WithAlpha(0.8f), 24);
                 SetColor(ink);
                 Quad(c - al * s, c - ac * s, c + al * s, c + ac * s);
                 SetColor(MysteryDark);

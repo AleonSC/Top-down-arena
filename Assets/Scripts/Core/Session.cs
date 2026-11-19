@@ -67,6 +67,7 @@ namespace Arena
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
         PieceShape,    // client -> host: place a piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, PieceShapes.cs)
         CollectChest, // client -> host: collect a chest from the wave box's Chests tab (node bool, id int) (Docs/RoundFlow.md step 5, RemoteChests.cs)
+        MysteryBuy,   // client -> host: open the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y) (MysteryDoors.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -657,6 +658,9 @@ namespace Arena
                     break;
                 case Msg.CollectChest:
                     Game.OnCollectChest(peer, r);  // RemoteChests.cs
+                    break;
+                case Msg.MysteryBuy:
+                    Game.OnMysteryBuy(peer, r);  // MysteryDoors.cs
                     break;
                 case Msg.BuilderBuy:
                     Game.OnBuilderBuy(peer, r);  // BuilderShop.cs

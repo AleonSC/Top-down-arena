@@ -884,6 +884,21 @@ static partial class Shot {
       foreach (var pl in eg.Players.Values) pl.Vectors = 30 + 8 * pk++;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
       if (Environment.GetEnvironmentVariable("EXPANDCHIP") != "1") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
+      {  // BUILDAGE=<s>: the build screen <s> seconds after it opened (BuildMotion.cs; settled by default); WALLETSPEND=n,s: n vectors spent s seconds ago
+        var bfm = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance; var cim = System.Globalization.CultureInfo.InvariantCulture;
+        float bage = Environment.GetEnvironmentVariable("BUILDAGE") != null ? float.Parse(Environment.GetEnvironmentVariable("BUILDAGE"), cim) : 99f;
+        typeof(ArenaApp).GetField("buildDrawnT", bfm).SetValue(app, Time.unscaledTime);
+        typeof(ArenaApp).GetField("buildOpenT0", bfm).SetValue(app, Time.unscaledTime - bage);
+        string ws = Environment.GetEnvironmentVariable("WALLETSPEND");
+        if (ws != null && eg.Me != null) {
+          var wq = Array.ConvertAll(ws.Split(','), v => float.Parse(v, cim));
+          int have = eg.Me.Vectors;
+          typeof(ArenaApp).GetField("walletLast", bfm).SetValue(app, have);
+          typeof(ArenaApp).GetField("walletDelta", bfm).SetValue(app, -(int)wq[0]);
+          typeof(ArenaApp).GetField("walletFrom", bfm).SetValue(app, have + wq[0]);
+          typeof(ArenaApp).GetField("walletT0", bfm).SetValue(app, Time.unscaledTime - wq[1]);
+        }
+      }
       string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the build screen with the tool's two points there (a portal pair's ends)
       if (drawAt != null) {
         var dq = drawAt.Split(','); var ci = System.Globalization.CultureInfo.InvariantCulture;
@@ -903,7 +918,9 @@ static partial class Shot {
           var first = Expansion.BestLink(eg.ExpansionWorld, 0);
           if (first.HasValue) { eg.Links.Add(first.Value); typeof(Game).GetField("expWorld", bf).SetValue(eg, null); }
           var next = Expansion.BestLink(eg.ExpansionWorld, eg.Links.Count);
-          if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
+          var lm = Environment.GetEnvironmentVariable("MOUSE");  // MOUSE=x,y: nothing placed yet, the mouse there (the tool's wall-spot ghost)
+          if (lm != null) { var lxy = lm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(lxy[0], ci), float.Parse(lxy[1], ci)); }
+          else if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
         }
       }
     }
