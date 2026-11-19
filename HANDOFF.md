@@ -174,12 +174,12 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 2026).
 
 1. **Ids** (always at the end of each enum, before `None`, so the network and saves keep the old numbers): a `Kit`
-   value (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 Space and 3 ultimate `AbilityId`s
+   value (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 1st-ability and 3 ultimate `AbilityId`s
    (`Upgrades.cs`). New player bullet kinds, if any: a `Defs` byte constant with a row in `Defs.BuildBulletTable` (radius,
    colour, and damage for enemy shots) and its drawing in `WorldShots.DrawSmallShot`. **Bump `Session.ProtocolVersion`.**
 2. **`Core/<Class>.cs`** from the template: its `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks), its 9
    `WeaponDef`s (each with `Kit`, `Role`, `Choice` 0-2; `Sound`; `AreaDesc` if its damage lands in an area), its 12
-   `AbilityDef`s (Space `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
+   `AbilityDef`s (1st ability `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
    weapon), the cast method (one `case` per ability, ultimates included, returning true) and a tick if it needs one.
    Extra-projectile, Barrage and Homing texts: `ExtraDesc`, `BarrageDesc`, `HomingDesc` on the weapon.
    Unusual weapon ranges (charge, beam, boomerang) get a case in `WeaponRange` (`Weapons.cs`).

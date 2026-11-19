@@ -10,7 +10,7 @@ static partial class Program
 {
     static void WildcardTest(float dt)
     {
-        // Picks: weapon = Ninja's second DPS weapon; first ability = Elementalist's first (Meteor); second = Hemomancer's first, on E.
+        // Picks: weapon = Ninja's second DPS weapon; first ability = Elementalist's first (Meteor); Wildcard ability = Hemomancer's first, on the 3rd slot.
         int weapon = (int)Kit.Ninja * Defs.WeaponsPerRole + 1;
         int first = (int)Kit.Elementalist * Defs.WeaponsPerRole;
         int second = (int)Kit.Hemomancer * Defs.WeaponsPerRole;
@@ -31,7 +31,7 @@ static partial class Program
         Check(p.FirstAbility == Upgrades.FirstAbility(Role.Dps, Kit.Elementalist, 0), "the first ability is the Elementalist's Meteor");
         var bonus = Upgrades.FirstAbility(Role.Dps, Kit.Hemomancer, 0);
         Check(p.Slots[2].Id == bonus && p.Slots[1].Id == AbilityId.None && p.Slots[3].Id == AbilityId.None,
-            "the second ability sits on E (slot 2) and Q and Shift are free");
+            "the Wildcard ability sits on the 3rd slot (slot 2) and the 2nd and 4th are free");
         Check(p.Slots[Upgrades.UltSlot].Id == AbilityId.DeathLotus && p.WildKit == Kit.Ninja, "the ultimate is the one picked (the Ninja's Death Lotus), not the first ability's class's");
         Check(p.Slots.Length == Upgrades.SlotCount, "a Wildcard has the same number of ability slots");
 
@@ -46,11 +46,11 @@ static partial class Program
         // A client sees the same slots.
         Run(s, dt, 1, () => false);
         var seen = client.Game.Players[1];
-        Check(seen.Role == Role.Wildcard && seen.Slots[2].Id == bonus, "the client sees the Wildcard ability on E");
+        Check(seen.Role == Role.Wildcard && seen.Slots[2].Id == bonus, "the client sees the Wildcard ability on the 3rd slot");
 
-        // Move the second ability to Shift: charges follow, the key it left is free.
+        // Move the Wildcard ability to the 4th slot: charges follow, the key it left is free.
         g.SetAbilityKey(bonus, 3);
-        Check(p.Slots[3].Id == bonus && p.Slots[2].Id == AbilityId.None, "the second ability moves to Shift");
+        Check(p.Slots[3].Id == bonus && p.Slots[2].Id == AbilityId.None, "the Wildcard ability moves to the 4th slot");
         Run(s, dt, 1, () => false);
         Check(client.Game.Players[1].Slots[3].Id == bonus, "the client sees it move");
 

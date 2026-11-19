@@ -29,7 +29,7 @@ static partial class Program
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.FirstAbility == AbilityId.KineticWall && me.Slots[0].Id == AbilityId.KineticWall, "picking the 4th key brings Kinetic Wall into the run on Space");
+        Check(me.FirstAbility == AbilityId.KineticWall && me.Slots[0].Id == AbilityId.KineticWall, "picking the 4th choice brings Kinetic Wall into the run as the 1st ability");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(300f, 450f), aim = new V2(900f, 450f);
@@ -49,7 +49,7 @@ static partial class Program
         masteredField.SetValue(g, false);
         var keep = pin(new V2(1500f, 900f));  // (somewhere out of the way, so the wave doesn't end)
         press();
-        Check(me.KwT > Game.KwTime - 0.01f && me.KwPos.DistanceTo(mePos) < 1f && !me.KwWide, "Space puts the lens up for 5 s where you stand");
+        Check(me.KwT > Game.KwTime - 0.01f && me.KwPos.DistanceTo(mePos) < 1f && !me.KwWide, "the 1st ability puts the lens up for 5 s where you stand");
         volley(12);
         step(1.6f);
         Check(me.KwDots.Count == 12 && !g.Bullets.Values.Any(b => b.Owner == 0), "every enemy shot that reaches the lens stops there and charges it");

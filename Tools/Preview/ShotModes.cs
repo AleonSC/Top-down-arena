@@ -17,7 +17,7 @@ static partial class Shot {
   static void DrawMode() {
     if (mode == "hud") {
       // TILEFX=moment,seconds: every ability tile that long into a reaction (HudTiles.cs): ready, charge, use or deny
-      // (deny also puts Space on cooldown, so its timer shows). The stub ignores GUI.matrix: no pop or shake, the rest shows.
+      // (deny also puts the 1st ability on cooldown, so its timer shows). The stub ignores GUI.matrix: no pop or shake, the rest shows.
       var tilefx = Environment.GetEnvironmentVariable("TILEFX");
       if (tilefx != null)
       {
@@ -25,7 +25,7 @@ static partial class Shot {
         if (tp[0] == "deny") { var sl = host.Game.Me.Slots[0]; sl.Charges = 0; sl.Timer = 2.4f; }
         typeof(ArenaApp).GetMethod("PreviewTileMoment", f2).Invoke(app, new object[] { tp[0], tp.Length > 1 ? float.Parse(tp[1]) : 0.05f });
       }
-      // MXFX=gain|level,<s>,<xp>[,slot]: the key (default Q) that far into an XP gain or a level-up (HudMastery.cs; the floor cleared)
+      // MXFX=gain|level,<s>,<xp>[,slot]: the slot (default 1, the 2nd ability) that far into an XP gain or a level-up (HudMastery.cs; the floor cleared)
       var mxfx = Environment.GetEnvironmentVariable("MXFX");
       if (mxfx != null) { var mp = mxfx.Split(','); typeof(ArenaApp).GetMethod("PreviewMasteryMoment", f2).Invoke(app, new object[] { mp[0], mp.Length > 1 ? float.Parse(mp[1]) : 0.1f, mp.Length > 2 ? float.Parse(mp[2]) : 30f, mp.Length > 3 ? int.Parse(mp[3]) : 1 }); }
       // EMOTEBAR=1: the emote bar open (rank 60); EMOTE=n[,age]: emote number n showing over player 1, that many seconds in (EmoteBar.cs)
@@ -214,7 +214,7 @@ static partial class Shot {
       // LOBBYULT=0|1: your card is an Elementalist Tank with that ultimate picked (1 Lightning Rod), its detail box open (DETAIL=2 is implied).
       if (Environment.GetEnvironmentVariable("LOBBYULT") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Elementalist; host.Lobby[1].Weapon = 0; host.Lobby[1].Ability = 0; host.Lobby[1].Ult = byte.Parse(Environment.GetEnvironmentVariable("LOBBYULT")); set("detailSel", 2); }
       if (Environment.GetEnvironmentVariable("WILDCARD") != null) { host.Lobby[1].Role = Role.Wildcard; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = (byte)int.Parse(Environment.GetEnvironmentVariable("WILDWEAPON") ?? "9");  // WILDWEAPON=<pick>: 18 the Arc Knuckles
-       host.Lobby[1].Ability = 12; host.Lobby[1].Wild = Defs.MakeWild(14, 1); host.Lobby[1].Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0); }  // WILDCARD=1: Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus
+       host.Lobby[1].Ability = 12; host.Lobby[1].Wild = Defs.MakeWild(14, 1); host.Lobby[1].Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0); }  // WILDCARD=1: Twin Blades, Shadow Step, Blade Fan as the Wildcard ability on the 2nd slot, Death Lotus
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
       // VARIANTS=1: your weapon's variants window open with 25 Cores and tier I bought (VARIANTS=0: none bought, 5 Cores).
       if (Environment.GetEnvironmentVariable("VARIANTS") != null) {

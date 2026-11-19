@@ -31,7 +31,7 @@ static partial class Program
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.FirstAbility == AbilityId.WaterWard && me.Slots[0].Id == AbilityId.WaterWard, "picking the 4th key brings Water Ward into the run on Space");
+        Check(me.FirstAbility == AbilityId.WaterWard && me.Slots[0].Id == AbilityId.WaterWard, "picking the 4th choice brings Water Ward into the run as the 1st ability");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(500f, 450f), aim = new V2(900f, 450f);

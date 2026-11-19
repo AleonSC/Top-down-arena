@@ -542,7 +542,7 @@ namespace Arena
         readonly float[] tileEmptyK = new float[Upgrades.SlotCount];  // each key's ease toward its stub (HudLayout.cs HudTile)
         int tileEmptyFrame = -1;
 
-        /// XP bar plus the ability tiles (Space / 2nd, 3rd or 4th / ultimate) along the bottom.
+        /// XP bar plus the ability tiles (1st, 2nd, 3rd, 4th, Ultimate) along the bottom.
         void DrawAbilityBar(Player me)
         {
             // XP strip (the CRT console look): "LV 3 · 48%" in gold on its own dark plate at the left end, then the segmented gold bar.

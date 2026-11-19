@@ -44,7 +44,7 @@ namespace Arena
         public readonly List<LobbyHit> Hits = new List<LobbyHit>();
         public readonly List<LobbyFx> Fx = new List<LobbyFx>();
 
-        // The abilities (Space or right click, PvP on): the first build's three. A DPS dashes, a Tank puts up a barrier that deletes
+        // The abilities (the 1st ability key or right click, PvP on): the first build's three. A DPS dashes, a Tank puts up a barrier that deletes
         // other players' shots, a Healer bursts everyone nearby back up and revives the knocked out at once.
         public const float DashDist = 240f, DashTime = 0.16f, BarrierRadius = 75f, BarrierTime = 4f, HealRadius = 230f, HealAmount = 60f, FxLife = 0.7f;
 
@@ -184,7 +184,7 @@ namespace Arena
             return (float)Math.Max(0.0, a.AbilityReady - avatarClock.Elapsed.TotalSeconds);
         }
 
-        /// Cast your own ability (Space or right click in the Hangout). `aim` is the way a dash goes. False when it can't: PvP off, knocked out, cooling down.
+        /// Cast your own ability (the 1st ability key or right click in the Hangout). `aim` is the way a dash goes. False when it can't: PvP off, knocked out, cooling down.
         public bool CastMyAbility(float aim)
         {
             Avatar a;

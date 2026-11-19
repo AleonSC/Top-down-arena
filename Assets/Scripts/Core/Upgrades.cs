@@ -16,13 +16,13 @@ namespace Arena
         GolemWall, Earthquake, ForcePact, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
         // Ultimates (F): one per role and class
         Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, ArtilleryAssault, BulletRain, Legion,
-        // Knight (Space), then the Knight ultimates
+        // Knight (1st ability), then the Knight ultimates
         ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaughtSteel,
         LastStand, HallowedBlade, Drawbridge,
-        // Ninja (Space), then the Ninja ultimates
+        // Ninja (1st ability), then the Ninja ultimates
         ShadowClone, SmokeBomb, CeremonialArmor, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
         ThousandClones, BlossomStorm, DeathLotus,
-        // Hemomancer (Space), then the Hemomancer ultimates
+        // Hemomancer (1st ability), then the Hemomancer ultimates
         BloodShell, BloodWall, Exsanguinate, BloodGift, BloodFreeze, Martyr, ArterialSpray, BloodDebt, VeinRush,
         VeinTithe, SanguineRain, CrimsonHarvest,
         StunGun,  // the Warden's legendary: a 2nd, 3rd or 4th ability (Stun.cs)
@@ -54,7 +54,7 @@ namespace Arena
         public Kit Kit;
         public Role Role;
         public int Choice = CardOnly;  // its place in the lobby: 1st ability choice 0-2 for Role and Kit, Fourth, Ult, or CardOnly (very rare cards only)
-        public bool FillsGaps;         // a class still being built (the Engineer): stands in for the class's empty Space (or, an ultimate, Ultimate) places; the lobby shows them locked
+        public bool FillsGaps;         // a class still being built (the Engineer): stands in for the class's empty 1st ability (or Ultimate) places; the lobby shows them locked
         public int UltKey;             // an ultimate's key on the lobby's Ultimate row: 0 the default one, 1-3 the ones picked instead (LobbyEntry.Ult)
         public string Name, Desc;
         public string Capstone;        // what mastering it (level 5) adds
@@ -304,7 +304,7 @@ namespace Arena
 
     public static class Upgrades
     {
-        public const int SlotCount = 5;  // 0 = role ability (Space), 1 = the 2nd ability, 2 = the 3rd, 3 = the 4th, 4 = ultimate (F)
+        public const int SlotCount = 5;  // 0 = the 1st ability, 1 = the 2nd, 2 = the 3rd, 3 = the 4th, 4 = ultimate (F)
         public const int CardAbilitySlots = 3; // the 2nd, 3rd and 4th abilities, filled by very rare upgrade cards
         public const int UltSlot = 4;
 
@@ -439,7 +439,7 @@ namespace Arena
 
         /// The lobby's ultimates (one per role and class) or 1st ability choices (FirstAbilityChoices per role and class),
         /// from where each entry says it goes. Every place must be filled exactly once.
-        /// True when this Space place has no ability of its own yet (a class still being built): the lobby shows it locked.
+        /// True when this 1st ability place has no ability of its own yet (a class still being built): the lobby shows it locked.
         public static bool AbilityGap(Role r, Kit kit, int choice) =>
             (int)r < 3 && (int)kit < Defs.KitCount && choice >= 0 && choice < FirstAbilityChoices && spaceGaps.Contains(((int)r * Defs.KitCount + (int)kit) * FirstAbilityChoices + choice);
 
@@ -779,7 +779,7 @@ namespace Arena
             return i < 0 ? -1 : i / FirstAbilityChoices;
         }
 
-        /// Do you have this ability: as your Space pick, or from a card that put it on 2nd, 3rd or 4th?
+        /// Do you have this ability: as your 1st ability, or from a card that put it on the 2nd, 3rd or 4th?
         public static bool HasAbility(AbilityId id, AbilityId roleAbility, List<int> taken)
         {
             if (id == roleAbility)
@@ -790,7 +790,7 @@ namespace Arena
             return false;
         }
 
-        public const int UseSlots = 4;  // Space, 2nd, 3rd, 4th
+        public const int UseSlots = 4;  // the 1st, 2nd, 3rd and 4th abilities
 
         /// The card behind an Extra Use pick on this ability (0 the 1st ability, 1 the 2nd, 2 the 3rd, 3 the 4th).
         public static int UseCard(int slot)

@@ -414,7 +414,7 @@ namespace Arena
         static string[] slotLabels;
         static int slotVersion = -1;
 
-        /// The ability bar's key labels, in slot order (Space, 2nd, 3rd, 4th, ultimate), upper case, rebuilt when a key changes.
+        /// The ability bar's key labels, in slot order (1st, 2nd, 3rd, 4th ability, Ultimate), upper case, rebuilt when a key changes.
         public static string[] SlotLabels
         {
             get

@@ -311,7 +311,7 @@ namespace Arena
             }
         }
 
-        /// The demo cast (Space, or the ultimate's slot) comes off cooldown straight away.
+        /// The demo cast (the 1st ability, or the Ultimate) comes off cooldown straight away.
         public void ShowcaseRefill(int slot = 0)
         {
             var me = Me;

@@ -6,7 +6,7 @@ namespace Arena
     /// The DPS Knight's Caught Steel (was Battle Fury), the Forge look of
     /// Docs/Mockups/knight-dps-abilities.html. For SteelTime seconds every enemy bullet that skims past you (its closest
     /// pass inside the graze band, without touching you) is caught: it stops dead and hangs round you as a shard of steel,
-    /// up to SteelCap. Press Space again (or let the time run out) and a sweeping cut hurls the whole halo out along your
+    /// up to SteelCap. Press the 1st ability again (or let the time run out) and a sweeping cut hurls the whole halo out along your
     /// aim, fanned across SteelFan, one shard after another as the cut passes: each flies at SteelSpeed, cuts any enemy
     /// bullet it touches and stops in the first enemy for SteelDamage. A hit while you hold shards knocks a third loose.
     /// The cooldown waits while you're catching (Game.TickSlots), like Arterial Spray's.

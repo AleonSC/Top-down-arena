@@ -4,9 +4,9 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// Kinetic Wall (Elementalist DPS, the 4th choice, `AbilityId.KineticWall`; mockup Docs/Mockups/kinetic-wall.html, look B
-    /// "Gravity Lens"). Space puts a curved lens in front of you (KwFront px ahead, KwHalfWidth px each side; it stays where it was
+    /// "Gravity Lens"). The 1st ability puts a curved lens in front of you (KwFront px ahead, KwHalfWidth px each side; it stays where it was
     /// cast). Enemy shots that reach it stop there and hang in it (red aimed shots too); each one is a charge (KwCap, mastered
-    /// KwCapMastered). Space again, or the lens running out (KwTime), unleashes it: a cone from you toward your cursor (KwConeHalf
+    /// KwCapMastered). Pressing it again, or the lens running out (KwTime), unleashes it: a cone from you toward your cursor (KwConeHalf
     /// each side, KwReach long) that hits each enemy in it once for KwDamage(charge) and shoves it back.
     /// Replicated on the Player: KwT (seconds left, 0 = no lens), KwPos/KwAim (where it stands and faces), KwWide (mastered: wider)
     /// and KwDots (each caught shot's place in the lens, two bytes; the count is the charge). FxKind.KwCatch is a shot being caught,
