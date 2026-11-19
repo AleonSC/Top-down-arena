@@ -293,6 +293,13 @@ static partial class Program
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // A sealed room waiting on the lattice (the cycle's mini-boss room, GridCards.cs): no crowd, no spawns, until a piece reaches it.
+        // On the Grid core (a real Grid map; this test's hand-built map leaves no lattice cell free), then this test's map comes back.
+        var keepRooms = g.Expanded.ToList(); var keepNodes = g.Nodes.ToList();
+        g.Expanded.Clear(); g.Expanded.AddRange(Expansion.GridCore()); g.Nodes.Clear();
+        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
+        pickRooms.Invoke(g, null);
+        int coreCount = g.Expanded.Count;
+        float coreScale = g.ExpansionScale;
         {
             var mini = Expansion.GridMiniFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, g.Nodes);
             Check(mini.HasValue, "a sealed mini-boss room fits on the lattice");
@@ -301,7 +308,7 @@ static partial class Program
         }
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
-        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f, "the room stays sealed and adds no crowd");
+        Check(floatWorld.Areas.Skip(coreCount + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - coreScale) < 0.001f, "the room stays sealed and adds no crowd");
         {
             int si = g.Expanded.FindIndex(r => r.Floating);
             var reach = si >= 0 ? Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono).Where(o => { var m = new List<ExpansionRoom>(g.Expanded); m.AddRange(o.Rooms); return !Expansion.Build(m).Areas[si + 1].Sealed; }).ToList() : new List<GridPieceOption>();
@@ -322,6 +329,9 @@ static partial class Program
                 inSealed++;
         }
         Check(inSealed == 0, "no enemy comes in to a floating room");
+        g.Expanded.Clear(); g.Expanded.AddRange(keepRooms); g.Nodes.Clear(); g.Nodes.AddRange(keepNodes);
+        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
+        pickRooms.Invoke(g, null);
         g.Wave = waveHere;
 
         // A chest node inside a built room opens when a player walks up to it: gold and vectors for everyone, once.

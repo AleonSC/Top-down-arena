@@ -208,7 +208,8 @@ static partial class Program
         var chestNode = g.Nodes.Count == nodes0 + 1 ? g.Nodes.Last() : default(MapNode);
         float doorToChest = chestNode.Pos.DistanceTo(lastDoor.Pos);
         Check(g.Nodes.Count == nodes0 + 1 && chestNode.Kind == NodeKind.Chest && Expansion.NodeClaimed(g.Expanded, chestNode) && doorToChest > 600f, "its chest is away from the door (" + doorToChest.ToString("0") + " px from the door)");
-        Check(g.Props.Values.Any(pr => pr.Kind == PropKind.Chest && pr.Pos.DistanceTo(chestNode.Pos) < 2f), "the chest is there at once");
+        var chestSpot = g.NodeSpot(g.Nodes.Count - 1);  // (a chest stands in the middle of the room that claims it: Expansion.CentresInRoom)
+        Check(g.Props.Values.Any(pr => pr.Kind == PropKind.Chest && pr.Pos.DistanceTo(chestSpot) < 2f), "the chest is there at once, in the middle of its room");
 
         var shop = open(GridPiece.Mono, MysteryKind.Shop);
         Check(shop.Count == 1 && shop[0].W == 600 && shop[0].H == 600 && shop[0].Kind == RoomKind.Shop && g.HasShopRoom, "a small room (one cell) can be a shop");
