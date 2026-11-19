@@ -13,22 +13,22 @@ static partial class Program
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var hurtGuard = typeof(Game).GetMethod("HurtGuard", flags);
-        var striderTarget = typeof(Game).GetMethod("StriderTarget", flags);
+        var robotTarget = typeof(Game).GetMethod("RobotTarget", flags);
 
-        Check(Defs.Weapon(Role.Dps, Kit.Engineer, 1).Id == WeaponId.VectorBlade && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 1)
-            && Defs.Weapon(Role.Tank, Kit.Engineer, 1).Id == WeaponId.IronFist && !Defs.WeaponGap(Role.Tank, Kit.Engineer, 1)
-            && Defs.Weapon(Role.Healer, Kit.Engineer, 1).Id == WeaponId.StasisGun && !Defs.WeaponGap(Role.Healer, Kit.Engineer, 1)
-            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 2), "each Engineer role's second weapon is its robot weapon (the third place stays locked)");
+        Check(Defs.Weapon(Role.Dps, Kit.Engineer, 0).Id == WeaponId.VectorBlade && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 0)
+            && Defs.Weapon(Role.Tank, Kit.Engineer, 0).Id == WeaponId.IronFist && !Defs.WeaponGap(Role.Tank, Kit.Engineer, 0)
+            && Defs.Weapon(Role.Healer, Kit.Engineer, 0).Id == WeaponId.StasisGun && !Defs.WeaponGap(Role.Healer, Kit.Engineer, 0)
+            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 1) && Defs.WeaponGap(Role.Dps, Kit.Engineer, 2), "each Engineer role's first weapon is its robot weapon (the other places stay locked)");
 
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Eng", Role.Dps, 1, 0, Kit.Engineer);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Eng", Role.Dps, 0, 0, Kit.Engineer);
         var client = JoinAs(port, false, "Friend", Role.Healer, 0, 0, Kit.Knight);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1]; var friend = g.Players[2];
-        Check(me.Weapon.Id == WeaponId.VectorBlade, "the lobby's second DPS Engineer weapon is the Vector Blade");
+        Check(me.Weapon.Id == WeaponId.VectorBlade, "the lobby's first DPS Engineer weapon is the Vector Blade");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         V2 mePos = new V2(500f, 450f), friendPos = new V2(300f, 700f);
         V2 aim = new V2(800f, 450f);
@@ -72,7 +72,7 @@ static partial class Program
         // It draws enemies near it.
         b = bot();
         var near = make(EnemyType.Grunt, b.Pos + new V2(0f, 100f));
-        Check(((V2)striderTarget.Invoke(g, new object[] { near, new V2(1500f, 900f) })).DistanceTo(b.Pos) < 1f, "an enemy within 150 px of the robot goes for it instead of you");
+        Check(((V2)robotTarget.Invoke(g, new object[] { near, new V2(1500f, 900f) })).DistanceTo(b.Pos) < 1f, "an enemy within 150 px of the robot goes for it instead of you");
         g.Enemies.Remove(near.Id);
 
         // With it out, a click is the Vector Blade's swipe, and a click on an enemy sends the robot there.
@@ -102,7 +102,7 @@ static partial class Program
         Check(bot() != null, "a click summons it again");
 
         // Iron Fist: the Tank Bot, and the fist's long shove.
-        me.Weapon = Defs.Weapon(Role.Tank, Kit.Engineer, 1);
+        me.Weapon = Defs.Weapon(Role.Tank, Kit.Engineer, 0);
         step(0.1f);
         Check(bot() == null, "a new weapon takes the old robot away");
         g.Enemies.Clear();
@@ -121,11 +121,11 @@ static partial class Program
         step(0.3f);
         Check(s0 - shoved.Hp >= 8f && s0 - shoved.Hp < 40f && shoved.Pos.X - mePos.X > 170f,
             "the fist hits for a little (" + (s0 - shoved.Hp).ToString("0") + ") and shoves far (to " + (shoved.Pos.X - mePos.X).ToString("0") + " px)");
-        Check(((V2)striderTarget.Invoke(g, new object[] { shoved, new V2(1500f, 900f) })).DistanceTo(bot().Pos) < 1f || shoved.Pos.DistanceTo(bot().Pos) > Game.TankBotTaunt,
+        Check(((V2)robotTarget.Invoke(g, new object[] { shoved, new V2(1500f, 900f) })).DistanceTo(bot().Pos) < 1f || shoved.Pos.DistanceTo(bot().Pos) > Game.TankBotTaunt,
             "(the Tank Bot draws enemies from 240 px)");
 
         // Stasis Gun: the Medic Bot (it heals allies near it), and the field held at the cursor.
-        me.Weapon = Defs.Weapon(Role.Healer, Kit.Engineer, 1);
+        me.Weapon = Defs.Weapon(Role.Healer, Kit.Engineer, 0);
         g.Enemies.Clear();
         aim = friendPos + new V2(40f, 0f);
         fire = true;

@@ -40,7 +40,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | Term | Means | Code |
 |---|---|---|
 | **minion** | anything that fights on your side; "summon" is only a verb | `Minion`, `MinionKind` |
-| **companion** | the minion your weapon keeps (Golem, wolves, the Strider...) | `Minion.Companion` |
+| **companion** | the minion your weapon keeps (Golem, wolves, the Nimbus...) | `Minion.Companion` |
 | **thrall** | an enemy chained to you by Force Pact | `MinionKind.Thrall` |
 
 ## Upgrades

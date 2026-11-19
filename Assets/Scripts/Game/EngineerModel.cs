@@ -2,16 +2,15 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Engineer's player model and followers, mockup (Docs/Engineer.md): built like every other class in
+    /// The Engineer's player model, mockup (Docs/Engineer.md): built like every other class in
     /// CharacterModels.cs (back piece, shoulders, the role's trim, arms, the held weapon, head; local frame in Tank units,
     /// x along the aim), three looks to choose from:
     ///   0 Hi-vis: navy coveralls, an orange safety vest with silver tape, a yellow hard hat with a headlamp, a tool pack
     ///     with a spool of cyan vector cable;
     ///   1 Drafter: teal-grey jumpsuit with glowing cyan seams, a white hard hat with a cyan visor band, a drafting tube;
     ///   2 Welder: rust leather, a welding mask with a lit slit, twin gas tanks.
-    /// The weapon, the Vector Forge: a chunky rivet gun with a rivet hopper and a cyan emitter at the nose.
-    /// Followers (the Strider): 0 the vector wireframe walker (EngineerLook.cs), 1 a plated walker, 2 a four-legged spider rig.
-    /// In matches: look A and the plated walker (picked Nov 17); Tools/Preview draws all three (the `englook` mode, ShotEngineer.cs).
+    /// The robots' rivet gun (tool 0): a chunky rivet gun with a rivet hopper and a cyan emitter at the nose.
+    /// In matches: look A (picked Nov 17); Tools/Preview draws all three (the `englook` mode, ShotEngineer.cs).
     public partial class ArenaApp
     {
         struct EngPal { public ModelPal K; public Rgba Hat, HatDark, Accent; }
@@ -117,13 +116,13 @@ namespace Arena
                 DrawEngineerTool(K, tool, ry, t, fire);  // EngineerBotLook.cs
             else
             {
-                // arms on the Vector Forge (two hands: grip and foregrip)
+                // arms on the rivet gun (two hands: grip and foregrip)
                 float kick = fire * 3f;
                 float rhx = 12f - kick, rhy = 5f, lhx = 20f - kick, lhy = 2.5f;
                 ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
                 ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
                 MFrame(rhx, rhy, 0f, 1f, false);
-                DrawVectorForge(t, fire);
+                DrawRivetGun(t, fire);
                 MFrame(0f, 0f, 0f, 1f, false);
                 MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove);
             }
@@ -189,8 +188,8 @@ namespace Arena
             return true;
         }
 
-        /// The Vector Forge in its weapon frame: grip at (0,0), +x along the aim.
-        void DrawVectorForge(float t, float fire)
+        /// The rivet gun in its weapon frame: grip at (0,0), +x along the aim.
+        void DrawRivetGun(float t, float fire)
         {
             MRect(-5f, -4.5f, 18f, 9f, Hx(0x1c2129));          // body
             MRect(-4f, -3.5f, 16f, 7f, Hx(0x5d6878));
@@ -209,7 +208,7 @@ namespace Arena
             }
         }
 
-        /// A rivet in flight (the Vector Forge's shot): a steel slug with a short cyan trail.
+        /// A rivet in flight (a rivet gun's shot): a steel slug with a short cyan trail.
         internal void DrawRivet(V2 at, float ang, float scale)
         {
             V2 d = V2.FromAngle(ang), s = new V2(-d.Y, d.X);
@@ -219,85 +218,13 @@ namespace Arena
             Circle(at + d * 3f * scale, 2.6f * scale, Hx(0xcfd8e6), 10);
         }
 
-        /// The follower in one of its looks: 0 the wireframe walker, 1 plated, 2 spider rig. `scale` 1 = the Strider's size.
-        internal void DrawStriderLook(int look, V2 at, float face, float step, float punch, float hp, bool locked, float t, float scale = 1f, bool sentinel = false)
-        {
-            if (look == 0)
-            {
-                DrawStrider(at, face, step, punch, 1f, hp, locked, -1f, t);
-                return;
-            }
-            EngFrame(at, face, 18f * StriderScale * scale * 1.2f, t);
-            float l = Mathf.Sin(step) * 6f, p = punch * 9f;
-            Rgba hull = sentinel ? Hx(0x4a4436) : Hx(0x34445e), hullD = Hx(0x161e2c), hz = Hx(0xffb547);
-            Rgba ink = locked ? EngInkHot : EngInk;
-            if (look == 1)  // plated walker
-            {
-                MEll(1f, 2f, 17f, 22f, new Rgba(0f, 0f, 0f, 0.3f));
-                for (int s = -1; s <= 1; s += 2)  // legs: hip, knee, a foot pad
-                {
-                    float sl = s * l;
-                    MLine(-2f, s * 11f, 2f + sl * 0.4f, s * 18f, 5.4f, hullD); MLine(2f + sl * 0.4f, s * 18f, 6f + sl, s * 21f, 4.6f, hullD);
-                    MLine(-2f, s * 11f, 2f + sl * 0.4f, s * 18f, 3.4f, EngIron); MLine(2f + sl * 0.4f, s * 18f, 6f + sl, s * 21f, 3f, EngIron);
-                    MEll(7f + sl, s * 22f, 4.6f, 3f, hullD); MEll(7f + sl, s * 22f, 3.6f, 2.1f, EngSteel);
-                }
-                for (int s = -1; s <= 1; s += 2)  // piston arms
-                {
-                    float ps = s < 0 ? p : p * 0.4f;
-                    MLine(4f, s * 11f, 13f + ps, s * 15f, 5f, hullD); MLine(4f, s * 11f, 13f + ps, s * 15f, 3.4f, EngSteel);
-                    MRect(13f + ps, s > 0 ? 11.5f : -18.5f, 7f, 7f, hullD); MRect(14f + ps, s > 0 ? 12.5f : -17.5f, 5f, 5f, Hx(0x6e7a8c));
-                    MLine(15f + ps, s * 15f, 19f + ps, s * 15f, 1f, ink.WithAlpha(0.8f));
-                }
-                MPoly(hullD, -12f, -9f, -9f, -12f, 7f, -12f, 11f, -8f, 11f, 8f, 7f, 12f, -9f, 12f, -12f, 9f);  // hull
-                MPoly(hull, -10.8f, -8f, -8.3f, -10.6f, 6.4f, -10.6f, 9.6f, -7.3f, 9.6f, 7.3f, 6.4f, 10.6f, -8.3f, 10.6f, -10.8f, 8f);
-                for (int i = 0; i < 4; i++)  // hazard stripes on the back
-                    MLine(-10.2f, -7f + i * 4.4f, -7.6f, -4.6f + i * 4.4f, 1.6f, hz);
-                MLine(-6f, -7f, -6f, 7f, 1f, ink.WithAlpha(0.7f));  // vector seams
-                MLine(-6f, 0f, 4f, 0f, 1f, ink.WithAlpha(0.7f));
-                MRect(4f, -6f, 6.6f, 12f, Hx(0x0c1118));  // visor
-                MLine(9f, -4.6f, 9f, 4.6f, 2.2f, ink); MLine(9f, -4.6f, 9f, 4.6f, 6f, ink.WithAlpha(0.2f));
-                MLine(-12f, 3f, -17f, 6f, 1.2f, EngIron);  // antenna
-                MCirc(-17f, 6f, 1.4f, Mathf.Sin(t * 6f) > 0f ? hz : EngIron, 6);
-            }
-            else  // spider rig
-            {
-                MEll(0f, 0f, 20f, 20f, new Rgba(0f, 0f, 0f, 0.28f));
-                for (int k = 0; k < 4; k++)
-                {
-                    float a = (k < 2 ? 0.75f : 2.35f) * (k % 2 == 0 ? 1f : -1f);
-                    float sw = Mathf.Sin(step + k * 1.6f) * 0.2f;
-                    V2 d = V2.FromAngle(a + sw);
-                    float kx = d.X * 14f, ky = d.Y * 14f, fx = d.X * 22f + (k < 2 ? 3f : -3f), fy = d.Y * 24f;
-                    MLine(d.X * 6f, d.Y * 6f, kx, ky, 4.4f, hullD); MLine(kx, ky, fx, fy, 3.6f, hullD);
-                    MLine(d.X * 6f, d.Y * 6f, kx, ky, 2.8f, EngSteel); MLine(kx, ky, fx, fy, 2.2f, EngIron);
-                    MCirc(kx, ky, 2.4f, hullD, 8); MCirc(fx, fy, 1.8f, EngSteel, 6);
-                }
-                MLine(6f, 0f, 16f + p, 0f, 4.4f, hullD); MLine(6f, 0f, 16f + p, 0f, 2.8f, EngSteel);  // the claw arm
-                MLine(16f + p, 0f, 21f + p, -3.5f, 2.2f, EngSteel); MLine(16f + p, 0f, 21f + p, 3.5f, 2.2f, EngSteel);
-                MCirc(0f, 0f, 11.5f, hullD, 18); MCirc(0f, 0f, 10f, hull, 18);
-                MArc(0f, 0f, 7.2f, 0f, MathX.Tau, 1.2f, ink.WithAlpha(0.8f));
-                MArc(0f, 0f, 7.2f, t * 2f, t * 2f + 1.2f, 2.4f, ink);
-                MCirc(-4f, 0f, 2.6f, hz, 8); MCirc(-4f, 0f, 1.2f, hullD, 6);
-                MCirc(8f, 0f, 3.6f, Hx(0x0c1118), 10); MCirc(8f, 0f, 2f, ink, 8); MCirc(8f, 0f, 5.5f, ink.WithAlpha(0.15f), 10);
-            }
-            MFrame(0f, 0f, 0f, 1f, false);
-            if (hp >= 0f)
-            {
-                float bw = 46f * scale, y = -34f * StriderScale * scale;
-                FillRect(at.X - bw / 2f, at.Y + y, bw, 4f, new Rgba(0.08f, 0.12f, 0.18f, 0.9f));
-                FillRect(at.X - bw / 2f, at.Y + y, bw * Mathf.Clamp01(hp), 4f, hp < 0.3f ? EngHostile : EngInk);
-            }
-        }
-
         /// One cell of a Tools/Preview sheet, drawn at the origin (UiModelAt places and zooms it). sheet: 0 the Engineer's looks,
-        /// 1 the follower's looks, 2 the kit (weapon fire, rivets, Drag Pylon, Breach hammer).
+        /// else the kit (the rivet gun firing, rivets, Drag Pylon, Breach hammer).
         internal void DrawEngineerSheetCell(int sheet, int i, float t)
         {
             if (sheet == 0)
                 DrawEngineerModel(new V2(-6f, 0f), -0.35f, Defs.Get(Role.Dps).BodyR, i, t, 0f);
-            else if (sheet == 1)
-                DrawStriderLook(i, V2.Zero, -0.35f, 1.1f, 0.6f, 0.8f, false, t);
-            else if (i == 0)  // firing the Vector Forge, rivets in flight
+            else if (i == 0)  // firing the rivet gun, rivets in flight
             {
                 DrawEngineerModel(new V2(-26f, 6f), 0f, Defs.Get(Role.Dps).BodyR, 0, t, 0.8f);
                 DrawRivet(new V2(14f, 6f), 0f, 0.6f); DrawRivet(new V2(34f, 6f), 0f, 0.6f);
