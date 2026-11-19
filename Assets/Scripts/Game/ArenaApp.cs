@@ -485,7 +485,7 @@ namespace Arena
                 else if (Keybinds.Down(KeyAction.DiscardItem))
                     game.ResolveLoot(false);
             }
-            // By a sealed mystery door (the Expanding arena): G pays to open it, X saves it from expiring (MysteryDoors.cs).
+            // By a sealed mystery door (the Expanding arena): G pays to open it, B saves it from expiring (MysteryDoors.cs).
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.MysteryNear(game.Me.Pos) >= 0
                      && (Keybinds.Down(KeyAction.TakeItem) || Keybinds.Down(KeyAction.DiscardItem)))
                 game.UseMysteryDoor(Keybinds.Down(KeyAction.DiscardItem));

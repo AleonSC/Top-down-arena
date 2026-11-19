@@ -25,7 +25,7 @@ exactly as it is**: doors are a second, cheaper way to grow the map.
 - Any player stands at it and presses **G** to pay from their own vectors (no vote). Not enough vectors: the price shows red.
 - On paying, the shutter lifts with the reveal (the gold build-in of surprise rooms) and the room is added like any built room.
 - The room's kind is **never shown**: it's a full gamble.
-- **X** saves (one door per player; X on another moves the save, X on your own lets it go).
+- **B** saves (one door per player; B on another moves the save, B on your own lets it go).
 
 ## What's behind (first-guess weights)
 
