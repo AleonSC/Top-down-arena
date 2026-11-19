@@ -1259,8 +1259,8 @@ namespace Arena
                 bool sprayOut = SprayRelease(me, slot);  // Arterial Spray pressed again: the host closes the vein (ArterialSpray.cs)
                 bool steelOut = SteelRelease(me, slot);  // Caught Steel pressed again: the host throws the shards (CaughtSteel.cs)
                 bool wallOut = WallRelease(me, slot);  // Blood Wall pressed again: the host stops it (BloodWall.cs)
-                bool kwOut = KineticPress(me, slot);  // Kinetic Wall pressed again: the host unleashes it (KineticWall.cs)
-                if (!kwOut && !orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
+                bool galeOut = GalePress(me, slot);  // Gale Wall pressed again: the host unleashes it (GaleWall.cs)
+                if (!galeOut && !orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
@@ -1409,7 +1409,7 @@ namespace Arena
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
-            TickKineticWalls(dt);  // KineticWall.cs: lenses run down and unleash
+            TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches

@@ -598,27 +598,27 @@ namespace Arena
             s.Float(ref p.HarvestClock);  // Crimson Harvest (CrimsonHarvest.cs)
             s.Float(ref p.HarvestBlood);
             s.Float(ref p.HarvestHold);
-            s.Float(ref p.KwT);  // Kinetic Wall (KineticWall.cs)
-            if (p.KwT > 0f)
+            s.Float(ref p.GaleT);  // Gale Wall (GaleWall.cs)
+            if (p.GaleT > 0f)
             {
-                s.Vec(ref p.KwPos);
-                s.Float(ref p.KwAim);
-                s.Bool(ref p.KwWide);
-                int dots = Math.Min(255, p.KwDots.Count);
+                s.Vec(ref p.GalePos);
+                s.Float(ref p.GaleAim);
+                s.Bool(ref p.GaleWide);
+                int dots = Math.Min(255, p.GaleDots.Count);
                 s.Byte(ref dots);
                 if (s.Reading)
-                    p.KwDots.Clear();
+                    p.GaleDots.Clear();
                 for (int k = 0; k < dots; k++)
                 {
-                    int v = s.Reading ? 0 : p.KwDots[k], lat = v & 255, rad = (v >> 8) & 255;
+                    int v = s.Reading ? 0 : p.GaleDots[k], lat = v & 255, rad = (v >> 8) & 255;
                     s.Byte(ref lat);
                     s.Byte(ref rad);
                     if (s.Reading)
-                        p.KwDots.Add(lat | (rad << 8));
+                        p.GaleDots.Add(lat | (rad << 8));
                 }
             }
             else if (s.Reading)
-                p.KwDots.Clear();
+                p.GaleDots.Clear();
             int drops = Math.Min(Game.WwMax, p.WwOff.Count);  // Water Ward (WaterWard.cs)
             s.Byte(ref drops);
             if (drops > 0)
