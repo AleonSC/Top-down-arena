@@ -1024,7 +1024,7 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   kept for breaches) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
   and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
   gates drop away (the inner walls stay).
-- The host can turn layouts off for a run with the **Arena layouts** switch on the lobby's **Difficulty** tab (below the numbers; it keeps the difficulty level).
+- Layouts are always on (the starting room only; the grid rooms have their own pillars and wall stubs).
 - Enemies that walk steer round a wall that's in their way instead of pushing at it. Standing against a wall or in a corner
   doesn't fool them: with nothing in between they still come straight at you.
 - **Touching a wall** (any wall, pillar or cover, in every arena) makes it crackle: jagged arcs of electricity crawl

@@ -76,21 +76,6 @@ namespace Arena
                     hoverDesc = k.Name + ": " + k.Desc + "  (Normal: " + k.Format(k.Normal) + ")";
                 DrawKnob(row, k, diff[k.Knob], canEdit);
             }
-            // Arena layouts: a flavour knob (changing it keeps the level), so an on/off switch in the next free slot.
-            {
-                int i = slotIdx;
-                var row = new Rect(x + (i / rows) * (colW + colGap), y + (i % rows) * rowH + 8f, colW, 26f);
-                var lk = Difficulty.Knobs[(int)DiffKnob.ArenaLayouts];
-                if (row.Contains(Event.current.mousePosition))
-                    hoverDesc = lk.Name + ": " + lk.Desc;
-                bool was = GUI.enabled;
-                GUI.enabled = canEdit;
-                bool on = diff[DiffKnob.ArenaLayouts] >= 0.5f;
-                bool now = DkSwitch(row, on, "ARENA LAYOUTS");
-                GUI.enabled = was;
-                if (canEdit && now != on)
-                    session.SetDifficultyKnob(DiffKnob.ArenaLayouts, now ? 1f : 0f);
-            }
             // (The boss approach picks and the Building row are gone: the approach stays at its default, Blend under the Campaign's
             // factions, and Grid is the only building mode; Room cards, Free draw and Team vote are retired, their code kept. Nov 18.)
             Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? LobbyKit.Soft : CrtUi.Dim);
