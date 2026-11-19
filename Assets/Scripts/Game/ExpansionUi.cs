@@ -509,6 +509,19 @@ namespace Arena
             CrtKit.Frame(map, 1f, CrtStyle.Ink.WithAlpha(0.25f));
             DrawCardFly(M);  // the card on its way to the map, and "+1 ROOM" over a piece just built (BuildMotion.cs)
             DrawPlaceLabel(M, map);
+            foreach (var md in game.MysteryDoors)  // a saved mystery door: a lime SAVED tag under it (MysteryDoorLook.cs's ink), "YOURS" for your own save
+                if (md.Saver != 0 && Event.current.type == EventType.Repaint)
+                {
+                    V2 mc = M(md.Pos);
+                    string tag = md.Saver == game.MyId ? "SAVED · YOURS" : "SAVED";
+                    float tw = Ui.TextWidth(tag, 9, true) + 10f;
+                    var tr = new Rect(mc.X - tw / 2f, mc.Y + 13f, tw, 13f);
+                    if (!map.Contains(new Vector2(tr.x, tr.y)) || !map.Contains(new Vector2(tr.xMax, tr.yMax)))
+                        continue;
+                    Ui.Fill(tr, new Color(0.02f, 0.05f, 0.03f, 0.85f));
+                    CrtKit.Frame(tr, 1f, MysterySaved.ToColor().WithAlpha(0.8f));
+                    Ui.Label(tr, tag, 9, MysterySaved.ToColor(), TextAnchor.MiddleCenter, true);
+                }
             if (mystHover >= 0)
             {
                 V2 mc = M(game.MysteryDoors[mystHover].Pos);

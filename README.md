@@ -1152,7 +1152,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   spot and the hand closes up behind it; after the slam a ring rolls out, the new door spots pop in one by one and **+1 ROOM** rises. The tool
   frame slides between tools and the panel title types in; spending vectors rolls the number down, floats **−8** and drains the bar.
 - **Buying a mystery room from the build map**: hover a mystery door's diamond for its price, click to open it from wherever you stand, or **right click** to save it (right click your
-  own saved door to let it go). Only while the build round is open; the same price, rooms and one-save rule as **G** and **B** by the door.
+  own saved door to let it go); a saved door carries a lime **SAVED** tag on the build map (**SAVED · YOURS** for your own). Only while the build round is open; the same price, rooms and one-save rule as **G** and **B** by the door.
 - **Room kits**: a one-use modifier the team holds (up to 6; the Build step counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
