@@ -153,7 +153,7 @@ namespace Arena
             if (useCard)
             {
                 if (pickKey < 1 || pickKey > Upgrades.UseSlots)
-                    pickKey = 1;  // default: Space
+                    pickKey = 1;  // default: the 1st ability
                 grantCard = true;
             }
             else if (grantCard)
@@ -243,14 +243,14 @@ namespace Arena
             }
         }
 
-        /// Q / E / SHIFT between Reroll and Choose: it fades and scales up as the buttons spring apart.
+        /// The 2nd / 3rd / 4th slot keys between Reroll and Choose: it fades and scales up as the buttons spring apart.
         void DrawKeySwitch(Player me, float by, float mid, float w, float rowAlpha, bool opening)
         {
             if (keySwitch < 0.02f || selectedCard < 0 || selectedCard >= me.Offer.Length)
                 return;
             var card = Upgrades.All[me.Offer[selectedCard]];
             var grant = card.Grants;
-            bool uses = card.PicksSlot;  // the Extra Use card: pick Space, 2nd, 3rd or 4th
+            bool uses = card.PicksSlot;  // the Extra Use card: pick the 1st, 2nd, 3rd or 4th ability
             if (grant == AbilityId.None && !uses)
                 return;  // (still sliding away after the card changed: nothing to name)
             float a = Mathf.Clamp01(keySwitch * 1.5f) * rowAlpha;
@@ -266,7 +266,7 @@ namespace Arena
             float kw = w / n;
             for (int j = 0; j < n; j++)
             {
-                int k = uses ? j : j + 1;  // the slot (0 Space, 1-3 2nd, 3rd, 4th)
+                int k = uses ? j : j + 1;  // the slot (0 the 1st ability, 1-3 the 2nd, 3rd, 4th)
                 var r = new Rect(mid - w / 2f + j * kw, by, kw, 48f);
                 string hint = uses ? (me.Slots[k].Id != AbilityId.None ? Upgrades.Ability(me.Slots[k].Id).Name : "empty") : me.Slots[k].Id != AbilityId.None ? "swap" : "empty";
                 int val = uses ? k + 1 : k;  // what pickKey holds

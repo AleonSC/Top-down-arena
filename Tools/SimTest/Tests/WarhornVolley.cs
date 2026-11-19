@@ -21,7 +21,7 @@ static partial class Program
             "Warhorn Volley is the DPS Knight's ultimate on key 1, 70 s");
         Check(Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge && Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.WarhornVolley
             && Upgrades.AbilityLimit(Role.Dps, Kit.Knight) == 3,
-            "the Drawbridge stays the default; key 1 is Warhorn Volley; the Space keys keep three");
+            "the Drawbridge stays the default; key 1 is Warhorn Volley; the 1st ability keeps three choices");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9, StartWave = 3 }, port, false, "Knight", Role.Dps, 0, 0, Kit.Knight);

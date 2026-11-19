@@ -942,7 +942,7 @@ namespace Arena
             }
             e.Role = (Role)role;
             if (e.Role == Role.Wildcard)
-                e.Wild = Defs.MakeWild(1, 1);  // first and Wildcard ability differ; the second starts on Q
+                e.Wild = Defs.MakeWild(1, 1);  // the 1st and Wildcard abilities differ; the Wildcard ability starts on the 2nd slot
             ClampLoadout(e);
             e.Ready = false;  // changing your loadout takes back your Ready
             BroadcastLobby();

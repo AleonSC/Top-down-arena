@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The DPS Knight's Bladed Dive (was Misericorde, and Whirlwind before it). Press Space:
+    /// The DPS Knight's Bladed Dive (was Misericorde, and Whirlwind before it). Press the 1st ability:
     /// you rush toward your cursor (up to BladedRange, over BladedTime), untouchable, spinning your blade round you: BladedSlashes
     /// cuts land along the way, each hitting every enemy within BladedSlashR of you for BladedDamage. Kill anything with it
     /// and the cooldown resets. The rush is carried out by the player's own game (Msg.Carry).

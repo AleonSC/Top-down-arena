@@ -15,7 +15,7 @@ speed x0.95. Passive **Draftsman**: +25% vectors (Expanding arena). DPS first; T
 | Slot | Name | What it does | Numbers |
 |---|---|---|---|
 | Weapon | **Vector Forge** | Fire: a light rivet gun. The weapon owns one **Strider**, a walker that hunts the enemy nearest you, punches, slams every 4 s and draws aggro. Alt on an enemy locks it on (+50% damage, +40% speed until it dies); Alt on the floor posts it there to guard (200 px). Broken: rebuilds at your side in 8 s. | Strider 450 HP (+8%/wave), punch 34 / 0.55 s, slam 60 in 80 px + 0.4 s stun; rivet 10 / 0.3 s; ≈ 95 sim DPS |
-| Space | **Drag Pylon** | Plant at the cursor (≤ 320 px). A vector grid on the floor slows enemies in it. Stays until the next one is placed, which folds the old one up. | 6 s cooldown, 130 px, 45% slow (bosses 20%), 0.6 s linger, can't be hit |
+| 1st ability | **Drag Pylon** | Plant at the cursor (≤ 320 px). A vector grid on the floor slows enemies in it. Stays until the next one is placed, which folds the old one up. | 6 s cooldown, 130 px, 45% slow (bosses 20%), 0.6 s linger, can't be hit |
 | Ultimate | **Breach** | Aim at a wall ≤ 220 px. A vector hammer smashes a 3-tile hole (80 damage + knockback in 140 px) and a random room draws in behind it, free and with no vote (like a Stash). | 70 s; 6 shapes (Stash, Long hall, Workshop L, Cross, Pillar room, Twin cells); contents: Vector cache 30%, Supply crate 25%, Repair bay 15%, Workbench 15%, Ambush 15% |
 
 Breach reuses the breach-room work ([`BreachRooms.md`](BreachRooms.md), `SurpriseOptions`, `PinBreaches`): the room is
@@ -47,10 +47,10 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
    wireframe draws in, then the plated walker).
 4. **Built** (protocol 397): **Tank and Healer kits** (decided Nov 17; one weapon, 1st ability and ultimate each, like the DPS):
    - Tank: **Bulwark Forge** (a nail shotgun; the follower is a heavy **Sentinel** walker that soaks shots and taunts wider,
-     Alt orders it like the Strider), **Vector Wall** (Space: a 5-tile wall from you toward the cursor that stops enemy shots
+     Alt orders it like the Strider), **Vector Wall** (1st ability: a 5-tile wall from you toward the cursor that stops enemy shots
      for 8 s), **Bastion** (ultimate: a ring of vector walls round you for 10 s, with gaps to shoot out of).
    - Healer: **Medi-Drone Forge** (a light rivet gun; the follower is a flying **med-drone** that heals the most hurt ally),
-     **Med Pylon** (Space: a pylon whose field heals allies; one at a time), **Safe Room** (ultimate: Breach a wall into a
+     **Med Pylon** (1st ability: a pylon whose field heals allies; one at a time), **Safe Room** (ultimate: Breach a wall into a
      room that heals everyone inside for 12 s; elsewhere a healing dome at the cursor).
    Built as: the Sentinel runs the Strider's tick (`IsWalker`), Vector Wall and Bastion tiles are `MinionKind.VectorBlock`
    (static blockers that wear by the damage they stop), the med-drone is a weapon companion (`MinionMove.FollowHurt`,
