@@ -275,7 +275,7 @@ namespace Arena
             if (DkKey(new Rect(map.xMax - 106f, map.yMax - 34f, 40f, 28f), "+", false, calm, size: 18, rawSize: true)) expZoom = Mathf.Min(8f, expZoom * 1.4f);
             if (DkKey(new Rect(map.xMax - 62f, map.yMax - 34f, 56f, 28f), "FIT", false, calm, size: 14, rawSize: true)) expZoom = 1f;
             bool over = map.Contains(ev.mousePosition);
-            // A mystery door under the mouse: a click opens it from here, wherever you stand (MysteryDoors.cs, Msg.MysteryBuy).
+            // A mystery door under the mouse: a click opens it, a right click saves it (or lets your save go), from wherever you stand (MysteryDoors.cs, Msg.MysteryBuy).
             int mystHover = -1;
             for (int mi = 0; over && mi < game.MysteryDoors.Count; mi++)
             {
@@ -290,6 +290,14 @@ namespace Arena
                 if (mystCan)
                     game.BuyMysteryDoor(mystHover);
                 ev.Use();
+            }
+            int mystSaver = mystHover >= 0 ? game.MysteryDoors[mystHover].Saver : 0;
+            bool mystOthers = mystSaver != 0 && mystSaver != game.MyId && game.Players.ContainsKey(mystSaver);  // (someone else's save: theirs to keep)
+            if (mystHover >= 0 && ev.type == EventType.MouseDown && ev.button == 1)
+            {
+                if (!mystOthers)
+                    game.BuyMysteryDoor(mystHover, true);
+                ev.Use();  // (not "put the piece back" or close)
             }
             // Controls: left click sets the first corner, the box follows the mouse, a second left click places it (or press, drag and let go);
             // right click or Escape cancels the box (and, with none started, goes back).
@@ -506,6 +514,13 @@ namespace Arena
                 TipStart(mr, "Mystery room", MysteryHolo.ToColor());
                 TipAdd("A sealed door with a hidden room behind it: enemies, a shop, a chest, or nothing.", 12, Ui.Text);
                 TipAdd("Click to open it for " + mystPrice + " vectors.", 12, mystCan ? CrtStyle.Gold : new Color(1f, 0.45f, 0.5f), true);
+                Player sv;
+                if (mystOthers && game.Players.TryGetValue(mystSaver, out sv))
+                    TipAdd("Saved by " + sv.Name + ": it stays until it is opened.", 12, MysterySaved.ToColor());
+                else if (mystSaver == game.MyId)
+                    TipAdd("Saved by you: it stays until it is opened. Right click to let it go.", 12, MysterySaved.ToColor());
+                else
+                    TipAdd("Right click to save it: it won't expire. One door each.", 12, Ui.Muted);
             }
             foreach (var nd in game.Nodes)  // the nodes: named in a hover tip, not on the map (the legend shows the colours)
                 if (!Expansion.NodeClaimed(game.Expanded, nd))
@@ -538,7 +553,7 @@ namespace Arena
             Color lineInk;
             if (mystHover >= 0)
             {
-                line = mystCan ? "MYSTERY ROOM  ·  " + mystPrice + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  click to open it" : "Can't afford it: " + mystPrice + " vectors, you have " + game.SpendableVectors(game.Me);
+                line = mystCan ? "MYSTERY ROOM  ·  " + mystPrice + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  click to open it" + (mystOthers ? "" : mystSaver == game.MyId ? "  ·  right click to let it go" : "  ·  right click to save it") : "Can't afford it: " + mystPrice + " vectors, you have " + game.SpendableVectors(game.Me);
                 lineInk = mystCan ? CrtStyle.Gold : new Color(1f, 0.45f, 0.5f);
             }
             else if (gridMode)

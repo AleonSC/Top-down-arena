@@ -67,7 +67,7 @@ namespace Arena
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
         PieceShape,    // client -> host: place a piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, PieceShapes.cs)
         CollectChest, // client -> host: collect a chest from the wave box's Chests tab (node bool, id int) (Docs/RoundFlow.md step 5, RemoteChests.cs)
-        MysteryBuy,   // client -> host: open the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y) (MysteryDoors.cs)
+        MysteryBuy,   // client -> host: open or save the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y, save) (MysteryDoors.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -130,7 +130,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 415;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 416;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

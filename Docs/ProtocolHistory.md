@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 416: `Msg.MysteryBuy` adds a save bool (x, y, save): a right click on the build map saves a mystery door
 - 415: `Msg.MysteryBuy` (client -> host: x, y shorts): open a mystery door from the build map in a build round, wherever you stand
 - 414: chest items carry a `LootKind` byte and an item short (a build or a piece card, not only an upgrade); `Msg.CollectChest` (client -> host: node bool, id int; the Chests tab); break status chips: `Msg.WaveReady` from a client can be kind 2 (a byte: what its screen shows in the break), and the host's broadcast adds each player's `BreakStatus` byte; per-player pickups: the coin, orb and gadget snapshots each add an owner int
 - 413: the Engineer's robot weapons: WeaponId IronFist, StasisGun, VectorBlade; MinionKind TankBot, MedicBot, AssaultBot; ZoneKind.Stasis; FxKind.FistShove
