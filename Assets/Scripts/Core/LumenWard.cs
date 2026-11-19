@@ -95,8 +95,7 @@ namespace Arena
                 foreach (var e in Enemies.Values)
                     if (e.SpawnT <= 0f && !e.Def.IsBoss && !InLumen(z, e.Pos, len, half))
                     {
-                        e.FrozenT = Math.Max(e.FrozenT, 0.35f);
-                        e.SlowT = Math.Max(e.SlowT, 0.35f);
+                        Hold(e, 0.35f);
                     }
         }
     }

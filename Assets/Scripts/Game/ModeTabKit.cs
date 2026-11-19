@@ -13,11 +13,11 @@ namespace Arena
         /// a short line under them. Returns where the body starts.
         static float ModeHeader(Rect r, string title, string tag, string sub, Color subCol)
         {
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            LobbyKit.Spaced(new Rect(x, y, w * 0.5f, 20f), title, 14, new Color(ink.r, ink.g, ink.b, 0.9f), TextAnchor.MiddleLeft, 3.6f);
+            LobbyKit.Spaced(new Rect(x, y, w * 0.5f, 20f), title, 14, ink.WithAlpha(0.9f), TextAnchor.MiddleLeft, 3.6f);
             float l0 = x + LobbyKit.SpacedWidth(title, 14, 3.6f) + 20f;
-            Ui.Fill(new Rect(l0, y + 10f, x + w - l0, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
+            Ui.Fill(new Rect(l0, y + 10f, x + w - l0, 1f), ink.WithAlpha(0.25f));
             y += 26f;
             ModeChips(x, y, tag, ink);
             if (string.IsNullOrEmpty(sub)) return y + 30f;
@@ -35,9 +35,9 @@ namespace Arena
                 if (f.Length == 0) continue;
                 float fw = LobbyKit.SpacedWidth(f, 10, 1f) + 12f;
                 var fr = new Rect(x, y, fw, 18f);
-                Ui.Fill(fr, new Color(c.r, c.g, c.b, 0.06f));
-                HuntBox(fr, new Color(c.r, c.g, c.b, 0.4f));
-                LobbyKit.Spaced(fr, f, 10, new Color(c.r, c.g, c.b, 0.85f), TextAnchor.MiddleCenter, 1f);
+                Ui.Fill(fr, c.WithAlpha(0.06f));
+                HuntBox(fr, c.WithAlpha(0.4f));
+                LobbyKit.Spaced(fr, f, 10, c.WithAlpha(0.85f), TextAnchor.MiddleCenter, 1f);
                 x += fw + 6f;
             }
             return x;
@@ -48,19 +48,19 @@ namespace Arena
         void ModeRow(Rect c, string num, string name, bool known, bool lit, bool top, bool hover, Color acc, string chip, Color chipCol)
         {
             if (lit || top)
-                CrtKit.SoftBox(c, top ? acc : CrtUi.Ink, top, hover, false);
+                CrtKit.SoftBox(c, top ? acc : CrtStyle.Ink, top, hover, false);
             else
             {
-                var d = CrtUi.Dim;
-                Ui.Fill(c, new Color(d.r, d.g, d.b, 0.015f));
-                CrtKit.Dashed(c, 1f, new Color(d.r, d.g, d.b, 0.3f));
+                var d = CrtStyle.Dim;
+                Ui.Fill(c, d.WithAlpha(0.015f));
+                CrtKit.Dashed(c, 1f, d.WithAlpha(0.3f));
             }
-            Color tc = lit || top ? CrtKit.SoftText(top ? acc : CrtUi.Ink, hover || top) : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.6f);
-            Ui.Label(new Rect(c.x + 8f, c.y, 24f, c.height), num, 10, new Color(tc.r, tc.g, tc.b, 0.6f), TextAnchor.MiddleLeft);
+            Color tc = lit || top ? CrtKit.SoftText(top ? acc : CrtStyle.Ink, hover || top) : CrtStyle.Dim.WithAlpha(0.6f);
+            Ui.Label(new Rect(c.x + 8f, c.y, 24f, c.height), num, 10, tc.WithAlpha(0.6f), TextAnchor.MiddleLeft);
             float chipW = string.IsNullOrEmpty(chip) ? 0f : LobbyKit.SpacedWidth(chip, 10, 1f) + 18f;
             CrtUi.Text(new Rect(c.x + 70f, c.y, c.width - 70f - Mathf.Max(78f, chipW), c.height), known ? name : "???", 14, tc, TextAnchor.MiddleLeft, true, false);
             if (!known)
-                CrtUi.Text(new Rect(c.x + 30f, c.y, 36f, c.height), "?", 26, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, top ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true, CabCalm);
+                CrtUi.Text(new Rect(c.x + 30f, c.y, 36f, c.height), "?", 26, CrtStyle.Dim.WithAlpha(top ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true, FxCalm);
             if (chipW > 0f)
                 HuntChip(c.xMax - 8f, c.center.y, chip, chipCol);
         }
@@ -80,20 +80,20 @@ namespace Arena
             HuntBox(scope, new Color(0.11f, 0.23f, 0.16f, 1f));
             if (reticle)
             {
-                Ui.Fill(new Rect(scope.x, scope.center.y, scope.width, 1f), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.22f));
-                Ui.Fill(new Rect(scope.center.x, scope.y, 1f, scope.height), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.22f));
+                Ui.Fill(new Rect(scope.x, scope.center.y, scope.width, 1f), PhosGreen.WithAlpha(0.22f));
+                Ui.Fill(new Rect(scope.center.x, scope.y, 1f, scope.height), PhosGreen.WithAlpha(0.22f));
                 foreach (float rad in new[] { 0.62f, 0.42f })
                 {
                     float rr = scope.height * rad * 0.5f;
                     for (int k = 0; k < 48; k++)
                     {
                         float a = k * Mathf.PI * 2f / 48f;
-                        Ui.Fill(new Rect(scope.center.x + Mathf.Cos(a) * rr * 1.6f - 1f, scope.center.y + Mathf.Sin(a) * rr - 1f, 2f, 2f), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.28f));
+                        Ui.Fill(new Rect(scope.center.x + Mathf.Cos(a) * rr * 1.6f - 1f, scope.center.y + Mathf.Sin(a) * rr - 1f, 2f, 2f), PhosGreen.WithAlpha(0.28f));
                     }
                 }
             }
             LobbyKit.Spaced(new Rect(scope.x + 10f, scope.y + 6f, scope.width * 0.5f, 16f), left, 11, PhosGreen, TextAnchor.MiddleLeft, 2f);
-            LobbyKit.Spaced(new Rect(scope.center.x, scope.y + 6f, scope.width * 0.5f - 10f, 16f), right, 11, Ui.Gold, TextAnchor.MiddleRight, 2f);
+            LobbyKit.Spaced(new Rect(scope.center.x, scope.y + 6f, scope.width * 0.5f - 10f, 16f), right, 11, CrtStyle.Gold, TextAnchor.MiddleRight, 2f);
         }
 
         /// The scope's model, centred (inside BeginUiGl).
@@ -123,23 +123,23 @@ namespace Arena
         /// One pip of a wave ladder: a tinted box, outlined, its label centred (white on a `strong` one).
         static void ModePip(Rect pr, string label, Color pc, bool strong)
         {
-            Ui.Fill(pr, new Color(pc.r, pc.g, pc.b, strong ? 0.3f : 0.15f));
-            HuntBox(pr, new Color(pc.r, pc.g, pc.b, 0.7f));
+            Ui.Fill(pr, pc.WithAlpha(strong ? 0.3f : 0.15f));
+            HuntBox(pr, pc.WithAlpha(0.7f));
             Ui.Label(pr, label, 10, strong ? Color.white : Ui.Muted, TextAnchor.MiddleCenter);
         }
 
         /// The rule tags, wrapping to more rows. Returns the y of the last row.
         static float ModeRules(float x, float y, float w, string[] rules)
         {
-            var ink = CrtUi.Ink;
-            var dim = new Color(ink.r, ink.g, ink.b, 0.7f);
+            var ink = CrtStyle.Ink;
+            var dim = ink.WithAlpha(0.7f);
             float rx = x;
             foreach (var rule in rules)
             {
                 float rw = LobbyKit.SpacedWidth(rule, 10, 1f) + 12f;
                 if (rx + rw > x + w) { rx = x; y += 22f; }
                 var rr = new Rect(rx, y, rw, 18f);
-                HuntBox(rr, new Color(ink.r, ink.g, ink.b, 0.3f));
+                HuntBox(rr, ink.WithAlpha(0.3f));
                 LobbyKit.Spaced(rr, rule, 10, dim, TextAnchor.MiddleCenter, 1f);
                 rx += rw + 6f;
             }

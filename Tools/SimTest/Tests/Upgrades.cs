@@ -539,15 +539,15 @@ static partial class Program
         float farHit5 = farHp - far.Hp;
         Console.WriteLine("  shockwave reach: an enemy 270 px out takes {0:0} before mastery, {1:0} mastered", farHit3, farHit5);
         Check(farHit3 < 0.01f && farHit5 > 50f, "the mastered Shockwave runs out 300 px");
-        host.GrantUpgrade(1, U("Nova"));
+        host.GrantUpgrade(1, U("Starburst"));
         Run(s, dt, 0.2f, null, Hold);
-        int nova = Array.FindIndex(hp.Slots, sl => sl.Id == AbilityId.Nova);
+        int nova = Array.FindIndex(hp.Slots, sl => sl.Id == AbilityId.Starburst);
         Func<int> NovaShots = () => host.Bullets.Values.Count(b => b.Kind == Defs.NovaShot);
         foreach (var b in host.Bullets.Values.Where(b => b.Kind == Defs.NovaShot).ToList()) host.Bullets.Remove(b.Id);
         cast.Invoke(host, new object[] { 1, nova, dummy.Pos, true });
         int novaBase = NovaShots();
         foreach (var b in host.Bullets.Values.Where(b => b.Kind == Defs.NovaShot).ToList()) host.Bullets.Remove(b.Id);
-        host.GainMastery(hp, AbilityId.Nova, 1e4f);
+        host.GainMastery(hp, AbilityId.Starburst, 1e4f);
         cast.Invoke(host, new object[] { 1, nova, dummy.Pos, true });
         int novaMax = NovaShots();
         var dp = host.Players[2];

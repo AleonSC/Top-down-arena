@@ -597,7 +597,7 @@ namespace Arena
                     spots.Add(c);
             }
             while (spots.Count < n)  // (a map too crowded to space them out: ring the rest around the Ninja)
-                spots.Add(ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 100f, 10f));
+                spots.Add(ClampToArena(p.Pos + RandDir() * 100f, 10f));
             return spots;
         }
 

@@ -151,7 +151,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave runs out 230 px from you: it erases enemy bullets, hits enemies for 60 and shoves them back 120 px. |
 | Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double fire rate for 5 seconds. |
 | Blink | Tank | card | 7 s | - | Erases enemy bullets where you leave and where you land. | Teleport toward your cursor. |
-| Nova | Tank | card | 9 s | - | Fires 48 shots instead of 24. | Fire a ring of 24 heavy shots. |
+| Starburst | Tank | card | 9 s | - | Fires 48 shots instead of 24. | Fire a ring of 24 heavy shots. |
 | Turret | Tank | card | 20 s | - | Deploys two turrets. | Deploy a turret that shoots for 10 seconds. |
 | Stun Gun | Tank | card | 14 s | - | Nine shots instead of six. | Draw a stun gun: your next 6 shots are stun bolts (15 damage) that stun enemies for 1.5 s (bosses are only slowed). The cooldown starts once all 6 are fired. |
 | Royal Dive | Tank | card | 12 s | - | A wider honey pool (150 px) that lasts 6 s. | Leap (nothing can hit you) and crash down at your cursor, up to 380 px away: 120 damage to everything within 110 px, enemies knocked back and enemy bullets there wiped out. The landing leaves a honey pool for 4 s that slows enemies 40% and heals allies 6 a second. |

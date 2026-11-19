@@ -44,13 +44,13 @@ namespace Arena
             if (trainExtra == null)
                 LoadTrainingFiles();
             LobbyKit.Panel(r);
-            Color am = TrainAmber, dimAm = new Color(am.r, am.g, am.b, 0.65f);
+            Color am = TrainAmber, dimAm = am.WithAlpha(0.65f);
 
             // Header: the section, and the same rules as the Practice waves.
             float x0 = r.x + 16f, gw = 500f;
             LobbyKit.Spaced(new Rect(x0, r.y + 14f, 300f, 28f), "TRAINING", 22, am, TextAnchor.MiddleLeft, 3f);
             Ui.Label(new Rect(x0 + 130f, r.y + 14f, gw - 130f, 28f), "SHORT DRILLS  ·  ONE MECHANIC EACH", 11, dimAm, TextAnchor.MiddleRight, true);
-            Ui.Fill(new Rect(x0, r.y + 46f, gw, 1f), new Color(am.r, am.g, am.b, 0.4f));
+            Ui.Fill(new Rect(x0, r.y + 46f, gw, 1f), am.WithAlpha(0.4f));
 
             var all = TrainingLibrary.All.Concat(trainExtra).ToList();
             if (trainSelId.Length == 0 && all.Count > 0)
@@ -80,7 +80,7 @@ namespace Arena
 
             // The selected drill: name, goal, steps, rules and the key that loads it.
             float dx = x0 + gw + 18f, dw = r.xMax - 16f - dx;
-            Ui.Fill(new Rect(dx - 9f, r.y + 54f, 1f, r.height - 54f - 70f), new Color(am.r, am.g, am.b, 0.25f));
+            Ui.Fill(new Rect(dx - 9f, r.y + 54f, 1f, r.height - 54f - 70f), am.WithAlpha(0.25f));
             if (sel != null)
             {
                 LobbyKit.Spaced(new Rect(dx, r.y + 56f, dw, 16f), "DRILL" + (sel.Example ? "  ·  EXAMPLE" : ""), 10, dimAm, TextAnchor.MiddleLeft, 1.5f);
@@ -112,7 +112,7 @@ namespace Arena
                 dy += 22f;
                 Ui.Label(new Rect(dx + 22f, dy, dw - 22f, 18f), "Your own loadout  ·  solo or with the lobby", 12, CrtStyle.Body, TextAnchor.UpperLeft, false);
                 string label = canEdit ? "LOAD THIS DRILL" : "HOST LOADS THE DRILL";
-                if (LobbyKit.Key(new Rect(dx, r.yMax - 70f - 54f, dw, 48f), label, false, calm, size: 18, minSize: 11, enabled: canEdit, accent: am))
+                if (DkKey(new Rect(dx, r.yMax - 70f - 54f, dw, 48f), label, false, calm, size: 18, minSize: 11, enabled: canEdit, accent: am))
                 {
                     LoadDrill(sel);
                     trainStatus = "Loaded " + sel.Name + ": press Ready, then Start.";
@@ -123,13 +123,13 @@ namespace Arena
 
             // Footer: where the drills live, and what happened last.
             float fy = r.yMax - 48f;
-            Ui.Fill(new Rect(r.x + 14f, fy - 8f, r.width - 28f, 1f), new Color(am.r, am.g, am.b, 0.25f));
-            if (LobbyKit.Key(new Rect(x0, fy, 104f, 32f), "FOLDER", false, calm, size: 14, minSize: 10, accent: am))
+            Ui.Fill(new Rect(r.x + 14f, fy - 8f, r.width - 28f, 1f), am.WithAlpha(0.25f));
+            if (DkKey(new Rect(x0, fy, 104f, 32f), "FOLDER", false, calm, size: 14, minSize: 10, accent: am))
             {
                 Directory.CreateDirectory(TrainingFolder);
                 Application.OpenURL("file:///" + TrainingFolder.Replace('\\', '/'));
             }
-            if (LobbyKit.Key(new Rect(x0 + 110f, fy, 104f, 32f), "RELOAD", false, calm, size: 14, minSize: 10, accent: am))
+            if (DkKey(new Rect(x0 + 110f, fy, 104f, 32f), "RELOAD", false, calm, size: 14, minSize: 10, accent: am))
             {
                 LoadTrainingFiles();
                 trainStatus = trainExtra.Count + " drill" + (trainExtra.Count == 1 ? "" : "s") + " in the training folder.";
@@ -141,8 +141,8 @@ namespace Arena
         void DrawCartridge(Rect c, TrainingDrill d, bool on, Color am, bool calm)
         {
             bool hover = c.Contains(Event.current.mousePosition);
-            Ui.Fill(c, new Color(am.r, am.g, am.b, on ? 0.2f : hover ? 0.12f : 0.06f));
-            CrtKit.Frame(c, on ? 2f : 1f, new Color(am.r, am.g, am.b, on ? 0.95f : 0.55f));
+            Ui.Fill(c, am.WithAlpha(on ? 0.2f : hover ? 0.12f : 0.06f));
+            CrtKit.Frame(c, on ? 2f : 1f, am.WithAlpha(on ? 0.95f : 0.55f));
             // Name on one line, then the goal in the room left above the EXAMPLE tag: wrapped if it fits, else one line with "...".
             float tw = c.width - 14f;
             Ui.Label(new Rect(c.x + 7f, c.y + 5f, tw, 16f), LobbyKit.Truncate(d.Name.ToUpperInvariant(), 12, tw), 12, Color.white, TextAnchor.UpperLeft, true);
@@ -162,8 +162,8 @@ namespace Arena
 
         static void DrawEmptyCartridge(Rect c, Color am)
         {
-            CrtKit.Dashed(c, 1f, new Color(am.r, am.g, am.b, 0.3f));
-            LobbyKit.Spaced(c, "EMPTY SLOT", 10, new Color(am.r, am.g, am.b, 0.38f), TextAnchor.MiddleCenter, 1.5f);
+            CrtKit.Dashed(c, 1f, am.WithAlpha(0.3f));
+            LobbyKit.Spaced(c, "EMPTY SLOT", 10, am.WithAlpha(0.38f), TextAnchor.MiddleCenter, 1.5f);
         }
 
         void LoadDrill(TrainingDrill d)

@@ -54,6 +54,17 @@ namespace Arena
 
         // Distance tests without the square root (they match `DistanceTo(o) < r` and so on for any r, NaN included).
         public bool CloserThan(V2 o, float r) => r > 0f && DistanceSq(o) < r * r;
+
+        /// Distance from this point to the segment a-b (a segment under 1 px long counts as the point a).
+        public float DistanceToSegment(V2 a, V2 b)
+        {
+            V2 ab = b - a;
+            float len2 = ab.LengthSq;
+            if (len2 < 1f)
+                return DistanceTo(a);
+            float t = MathX.Clamp01((this - a).Dot(ab) / len2);
+            return DistanceTo(a + ab * t);
+        }
         public bool WithinReach(V2 o, float r) => r >= 0f && DistanceSq(o) <= r * r;
         public bool FartherThan(V2 o, float r) => r < 0f || DistanceSq(o) > r * r;
         public bool FartherOrAt(V2 o, float r) => r <= 0f || DistanceSq(o) >= r * r;
@@ -87,5 +98,7 @@ namespace Arena
         public static float Clamp01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
         public static float Fmod(float a, float b) => a - b * (float)Math.Floor(a / b);
         public static float MoveTowards(float v, float target, float step) => v < target ? Math.Min(target, v + step) : Math.Max(target, v - step);
+        /// An angle wrapped into [-Pi, Pi): the signed turn from one heading to another is WrapPi(to - from).
+        public static float WrapPi(float a) => Fmod(a + Pi, Tau) - Pi;
     }
 }

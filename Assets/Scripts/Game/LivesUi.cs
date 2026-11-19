@@ -48,7 +48,7 @@ namespace Arena
                 float hx = box.center.x - max * 30f / 2f;
                 for (int i = 0; i < max; i++)
                 {
-                    Color c = i >= left ? new Color(1f, 1f, 1f, 0.15f) : i == left - 1 && !blink ? new Color(LifeRed.r, LifeRed.g, LifeRed.b, 0.35f) : LifeRed;
+                    Color c = i >= left ? new Color(1f, 1f, 1f, 0.15f) : i == left - 1 && !blink ? LifeRed.WithAlpha(0.35f) : LifeRed;
                     Ui.Icon(new Rect(hx + i * 30f + 3f, box.y + 64f, 24f, 24f), heart, c);
                 }
                 string after = left - 1 == 1 ? "1 life" : (left - 1) + " lives";

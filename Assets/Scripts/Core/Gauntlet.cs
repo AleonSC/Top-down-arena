@@ -166,8 +166,7 @@ namespace Arena
                         HurtEnemy(e, GauntletImpactDamage * p.Stats.DmgMult * g.Power * p.Stats.GauntletDamage, p.Id);
                         if (g.Mastered && !e.Def.IsBoss)
                         {
-                            e.FrozenT = Math.Max(e.FrozenT, 1f);  // stunned, as a Lance hook does
-                            e.SlowT = Math.Max(e.SlowT, 1f);
+                            Hold(e, 1f);  // stunned, as a Lance hook does
                         }
                     }
                     BroadcastFx(FxKind.GauntletImpact, g.To + g.Dir * 16f, g.Dir, new Rgba(1f, 0.84f, 0.55f), p.Id, 0.6f, Sfx.Clang);

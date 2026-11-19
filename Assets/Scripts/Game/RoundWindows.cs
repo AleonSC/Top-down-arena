@@ -16,7 +16,7 @@ namespace Arena
         const float PathDim = 0.72f;  // the path choice's (a hair different from the others)
 
         /// The dark layer over the whole screen, `a` strong.
-        static void RoundBackdrop(float a) => Ui.Fill(new Rect(0f, 0f, W, H), new Color(RoundDark.r, RoundDark.g, RoundDark.b, a));
+        static void RoundBackdrop(float a) => Ui.Fill(new Rect(0f, 0f, W, H), RoundDark.WithAlpha(a));
 
         // --- A part fading in ------------------------------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ namespace Arena
             var oldColor = GUI.color;
             float oldAlpha = Ui.Alpha;
             Ui.Alpha = oldAlpha * a;
-            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
+            GUI.color = oldColor.ScaleAlpha(a);
             GUI.BeginGroup(new Rect(offset.x, offset.y, W, H));
             try { draw(); }
             finally  // (an error inside must not leave the fade, colour and group stuck for the rest of the frame)

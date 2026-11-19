@@ -124,7 +124,7 @@ namespace Arena
             float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f);
             var r = new Rect(W / 2f - 150f, H - 200f, 300f, 34f);
             var old = GUI.color;
-            GUI.color = new Color(old.r, old.g, old.b, old.a * a);
+            GUI.color = old.ScaleAlpha(a);
             Ui.Pill(r, new Color(0f, 0f, 0f, 0.6f));
             Ui.Label(r, "SCROLL ▼  TO ZOOM OUT", 15, new Color(0.55f, 0.94f, 1f, pulse), TextAnchor.MiddleCenter, true);
             GUI.color = old;

@@ -230,27 +230,27 @@ namespace Arena
                 V2 at = ToUi(me != null ? me.Disp : callAt);
                 at.Y -= (me != null ? me.Def.BodyR * UiWorldScale : 20f) + 70f + 22f * Mathf.Clamp01(t / CallLife);
                 int size = Mathf.RoundToInt(Mathf.Lerp(34f, 22f, pop));
-                Ui.Shadowed(new Rect(at.X - 160f, at.Y - 16f, 320f, 32f), name, size, new Color(c.r, c.g, c.b, fade));
-                Ui.Shadowed(new Rect(at.X - 160f, at.Y + 12f, 320f, 18f), count, 14, new Color(c.r, c.g, c.b, 0.8f * fade));
+                Ui.Shadowed(new Rect(at.X - 160f, at.Y - 16f, 320f, 32f), name, size, c.WithAlpha(fade));
+                Ui.Shadowed(new Rect(at.X - 160f, at.Y + 12f, 320f, 18f), count, 14, c.WithAlpha(0.8f * fade));
             }
             else
             {
                 // The top middle: a slam from big to its size, a white flash on it, thin rules either side, the count under it.
                 float y = H * 0.2f, size = Mathf.Lerp(76f, 46f, 1f - (1f - pop) * (1f - pop));
                 float wide = Mathf.Lerp(80f, 260f, pop);
-                var rule = new Color(c.r, c.g, c.b, 0.6f * fade);
+                var rule = c.WithAlpha(0.6f * fade);
                 Ui.Fill(new Rect(W / 2f - wide - 150f, y - 1f, 150f * pop, 2f), rule);
                 Ui.Fill(new Rect(W / 2f + wide, y - 1f, 150f * pop, 2f), rule);
-                if (!CabCalm)  // a soft halo, as the scan band's title has
+                if (!FxCalm)  // a soft halo, as the scan band's title has
                 {
-                    var g = new Color(c.r, c.g, c.b, 0.14f * fade);
+                    var g = c.WithAlpha(0.14f * fade);
                     Ui.Label(new Rect(-3f, y - 40f, W, 80f), name, Mathf.RoundToInt(size), g, TextAnchor.MiddleCenter, false);
                     Ui.Label(new Rect(3f, y - 40f, W, 80f), name, Mathf.RoundToInt(size), g, TextAnchor.MiddleCenter, false);
                 }
                 var col = Color.Lerp(Color.white, c, pop);
                 col.a = fade;
                 Ui.Shadowed(new Rect(0f, y - 40f, W, 80f), name, Mathf.RoundToInt(size), col);
-                Ui.Shadowed(new Rect(0f, y + 26f, W, 24f), count, 18, new Color(c.r, c.g, c.b, 0.85f * fade));
+                Ui.Shadowed(new Rect(0f, y + 26f, W, 24f), count, 18, c.WithAlpha(0.85f * fade));
             }
             Ui.CrtFont = was;
         }

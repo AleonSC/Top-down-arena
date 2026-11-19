@@ -25,6 +25,8 @@ namespace Arena
     {
         // --- Settings --------------------------------------------------------------------------------------------------
         bool fxOn = true, fxNumbers = true, fxReduced;
+        /// Effects held back: Reduced effects on or Visual effects off (the CRT cabinet, holo tabs and widgets draw calmer).
+        bool FxCalm => fxReduced || !fxOn;
         float mateShotAlpha = 1f;  // how opaque other players' shots are drawn, 0.25..1 (Settings > Gameplay > Teammate shots)
         int fxShake = 1;  // 0 off, 1 low (the default), 2 full
 
@@ -1325,7 +1327,7 @@ namespace Arena
                 Ui.Fill(new Rect(0f, 0f, W, 64f * k), new Color(0f, 0f, 0f, 1f));
                 Ui.Fill(new Rect(0f, H - 64f * k, W, 64f * k), new Color(0f, 0f, 0f, 1f));
                 var old = GUI.color;
-                GUI.color = new Color(old.r, old.g, old.b, old.a * k);  // fades the title's shadow too
+                GUI.color = old.ScaleAlpha(k);  // fades the title's shadow too
                 Ui.Title(new Rect(0f, H / 2f - 64f, W, 72f), introName, 58, new Color(1f, 0.42f, 0.55f, 1f));
                 Ui.Label(new Rect(0f, H / 2f + 12f, W, 26f), "WAVE " + game.ShownWave, 17, new Color(0.9f, 0.93f, 0.97f, 0.9f), TextAnchor.MiddleCenter, true);
                 GUI.color = old;

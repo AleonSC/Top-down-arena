@@ -167,7 +167,7 @@ namespace Arena
                 basePos = RoomsRandomSpot(80f);  // anywhere on the map, away from you (Rooms.cs)
             else if (LayoutOn && !at.HasValue)
                 basePos = LayoutSquadBase();  // in front of an enemy gate (LayoutRules.cs)
-            V2 fwd = breach.HasValue ? breachIn : (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();  // (through a breach: facing into the map)
+            V2 fwd = breach.HasValue ? breachIn : (ArenaMid - basePos).Normalized(), across = fwd.Orthogonal();  // (through a breach: facing into the map)
             Player target = null;
             var alive = AlivePlayersList();
             if (alive.Count > 0)

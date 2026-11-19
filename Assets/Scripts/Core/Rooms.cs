@@ -133,7 +133,7 @@ namespace Arena
         /// size), clear of walls and at least SpawnClear from every player.
         V2 RoomsRandomSpot(float radius)
         {
-            V2 at = new V2(Width / 2f, Height / 2f), best = at, nearBest = at;
+            V2 at = ArenaMid, best = at, nearBest = at;
             float bestScore = float.MaxValue, nearD = float.MaxValue;
             int found = 0, foundFar = 0;
             int[] crowd = null;
@@ -310,7 +310,7 @@ namespace Arena
                     return new V2(Rand(x0, x1), Rand(y0, y1));
                 }
             }
-            return new V2(Width / 2f, Height / 2f);
+            return ArenaMid;
         }
     }
 }

@@ -331,7 +331,7 @@ namespace Arena
             Color cy = new Color(0.25f, 0.95f, 1f), mg = new Color(1f, 0.3f, 0.85f);
             float ch = 22f * k;
             // soft base glow and a faint body
-            Ui.Pill(new Rect(d.x - 4f, d.y - 2f, d.width + 8f, d.height + 6f), new Color(cy.r, cy.g, cy.b, 0.07f * flick));
+            Ui.Pill(new Rect(d.x - 4f, d.y - 2f, d.width + 8f, d.height + 6f), cy.WithAlpha(0.07f * flick));
             for (float y = 0f; y < d.height; y += 2f)
             {
                 float w = y < ch ? d.width - ch + y : d.width;
@@ -341,13 +341,13 @@ namespace Arena
             for (float y = 1f; y < d.height; y += 4f)   // scanlines
             {
                 float w = y < ch ? d.width - ch + y : d.width;
-                Ui.Fill(new Rect(d.x, d.y + y, w, 1f), new Color(cy.r, cy.g, cy.b, 0.16f * flick));
+                Ui.Fill(new Rect(d.x, d.y + y, w, 1f), cy.WithAlpha(0.16f * flick));
             }
             // the outline, with a magenta ghost one pixel off
             for (int pass = 0; pass < 2; pass++)
             {
                 float o = pass == 0 ? 2f : 0f;
-                Color c = pass == 0 ? new Color(mg.r, mg.g, mg.b, 0.35f * flick) : new Color(cy.r, cy.g, cy.b, 0.95f * flick);
+                Color c = pass == 0 ? mg.WithAlpha(0.35f * flick) : cy.WithAlpha(0.95f * flick);
                 Ui.Fill(new Rect(d.x + o, d.y, d.width - ch - o, 2f), c);
                 Ui.Fill(new Rect(d.x + o, d.yMax - 2f, d.width, 2f), c);
                 Ui.Fill(new Rect(d.x + o, d.y, 2f, d.height), c);
@@ -357,23 +357,23 @@ namespace Arena
             }
             // the shutter and hub holes as wireframes
             var sh = new Rect(d.x + 46f * k, d.y + 4f * k, 106f * k, 52f * k);
-            Color wf = new Color(cy.r, cy.g, cy.b, 0.7f * flick);
+            Color wf = cy.WithAlpha(0.7f * flick);
             Ui.Fill(new Rect(sh.x, sh.y, sh.width, 1.5f), wf); Ui.Fill(new Rect(sh.x, sh.yMax, sh.width, 1.5f), wf);
             Ui.Fill(new Rect(sh.x, sh.y, 1.5f, sh.height), wf); Ui.Fill(new Rect(sh.xMax, sh.y, 1.5f, sh.height + 1.5f), wf);
-            Ui.Fill(new Rect(sh.x + 14f * k, sh.y + 8f * k, 22f * k, 34f * k), new Color(cy.r, cy.g, cy.b, 0.35f * flick));
+            Ui.Fill(new Rect(sh.x + 14f * k, sh.y + 8f * k, 22f * k, 34f * k), cy.WithAlpha(0.35f * flick));
             // the readout panel with the name
             var lb = new Rect(d.x + 16f * k, d.y + 74f * k, 168f * k, 98f * k);
-            Ui.Fill(lb, new Color(cy.r, cy.g, cy.b, 0.1f * flick));
+            Ui.Fill(lb, cy.WithAlpha(0.1f * flick));
             Ui.Fill(new Rect(lb.x, lb.y, lb.width, 1.5f), wf); Ui.Fill(new Rect(lb.x, lb.yMax, lb.width, 1.5f), wf);
             Ui.Fill(new Rect(lb.x, lb.y, 1.5f, lb.height), wf); Ui.Fill(new Rect(lb.xMax, lb.y, 1.5f, lb.height + 1.5f), wf);
             string nm = p.Name.ToUpperInvariant();
             int size = Mathf.RoundToInt(22f * k);
             while (size > 10 && Ui.TextWidth(nm, size, true) + 12f > lb.width)
                 size--;
-            Ui.Label(new Rect(lb.x + 2f, lb.y + 12f * k, lb.width, 34f * k), nm, size, new Color(mg.r, mg.g, mg.b, 0.4f * flick), TextAnchor.MiddleCenter, true);   // ghost
+            Ui.Label(new Rect(lb.x + 2f, lb.y + 12f * k, lb.width, 34f * k), nm, size, mg.WithAlpha(0.4f * flick), TextAnchor.MiddleCenter, true);   // ghost
             Ui.Label(new Rect(lb.x, lb.y + 12f * k, lb.width, 34f * k), nm, size, new Color(0.8f, 1f, 1f, flick), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(lb.x, lb.y + 52f * k, lb.width, 16f * k), "HOLOGRAPHIC PROFILE", Mathf.Max(6, Mathf.RoundToInt(8.5f * k)), new Color(cy.r, cy.g, cy.b, 0.85f * flick), TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(lb.x, lb.y + 70f * k, lb.width, 16f * k), "RANK " + p.Rank, Mathf.Max(6, Mathf.RoundToInt(9f * k)), new Color(cy.r, cy.g, cy.b, 0.6f * flick), TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x, lb.y + 52f * k, lb.width, 16f * k), "HOLOGRAPHIC PROFILE", Mathf.Max(6, Mathf.RoundToInt(8.5f * k)), cy.WithAlpha(0.85f * flick), TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x, lb.y + 70f * k, lb.width, 16f * k), "RANK " + p.Rank, Mathf.Max(6, Mathf.RoundToInt(9f * k)), cy.WithAlpha(0.6f * flick), TextAnchor.MiddleCenter);
             // the glint: a bright band that sweeps down the disk every few seconds
             float sweep = Mathf.Repeat(t * 0.35f, 1.6f) - 0.3f;
             float gy = d.y + sweep * d.height;
@@ -597,7 +597,7 @@ namespace Arena
                 }
                 bool armed = whoArmed == p.Id;
                 GUI.enabled = whoList.Count > 1;
-                if (DkKey(new Rect(bx + 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? Ui.Danger : Ui.Neutral, false, 13))
+                if (DkKey(new Rect(bx + 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? CrtStyle.Danger : Ui.Neutral, false, 13))
                 {
                     if (!armed)
                         whoArmed = p.Id;

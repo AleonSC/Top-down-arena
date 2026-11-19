@@ -50,9 +50,9 @@ namespace Arena
             {
                 // the emitter: a bright line along the button's edge that faces the slab, with a faint halo
                 float ey = holoUp ? anchor.y - 1f : anchor.yMax - 1f;
-                Ui.Fill(new Rect(anchor.x, ey, anchor.width, 2f), new Color(c.r, c.g, c.b, 0.95f * k));
+                Ui.Fill(new Rect(anchor.x, ey, anchor.width, 2f), c.WithAlpha(0.95f * k));
                 for (int i = 1; i <= 4; i++)
-                    Ui.Fill(new Rect(anchor.x, holoUp ? ey - i * 2f : ey + 2f + (i - 1) * 2f, anchor.width, 2f), new Color(c.r, c.g, c.b, 0.22f * k * (1f - i / 5f)));
+                    Ui.Fill(new Rect(anchor.x, holoUp ? ey - i * 2f : ey + 2f + (i - 1) * 2f, anchor.width, 2f), c.WithAlpha(0.22f * k * (1f - i / 5f)));
 
                 // the beam: from the button's edge out to the slab, widening, drawn as 2 px rows
                 float yA = holoUp ? anchor.y : anchor.yMax, yB = holoUp ? pop.yMax : pop.y;
@@ -65,27 +65,27 @@ namespace Arena
                     float w = Mathf.Lerp(anchor.width * 0.9f, pop.width * 0.92f, f);
                     var bar = new Rect(cx - w / 2f, y, w, 2f);
                     float a = 0.34f * (1f - f * 0.65f) * k * (0.8f + 0.2f * Mathf.Sin(y * 0.9f - t * 9f));  // a slow upward ripple
-                    Ui.Fill(bar, new Color(c.r, c.g, c.b, a));
+                    Ui.Fill(bar, c.WithAlpha(a));
                 }
             }
 
             // glow: stacked frames that fade out (Ui.Glow's texture isn't in the previews, and this is the same in Unity)
             for (int i = 1; i <= 6; i++)
-                CrtKit.Frame(new Rect(pop.x - i * 2f, pop.y - i * 2f, pop.width + i * 4f, pop.height + i * 4f), 2f, new Color(c.r, c.g, c.b, 0.30f * k * (1f - i / 7f)));
+                CrtKit.Frame(new Rect(pop.x - i * 2f, pop.y - i * 2f, pop.width + i * 4f, pop.height + i * 4f), 2f, c.WithAlpha(0.30f * k * (1f - i / 7f)));
 
             Ui.Fill(pop, new Color(0.01f, 0.06f, 0.11f, 0.95f));
             // a vertical wash, stronger at the edge facing the button (that's where the light comes in)
             for (int i = 0; i < 10; i++)
             {
                 float f = i / 10f, y = holoUp ? pop.yMax - (i + 1f) * pop.height / 10f : pop.y + i * pop.height / 10f;
-                Ui.Fill(new Rect(pop.x, y, pop.width, pop.height / 10f + 1f), new Color(c.r, c.g, c.b, 0.30f * (1f - f) * k));
+                Ui.Fill(new Rect(pop.x, y, pop.width, pop.height / 10f + 1f), c.WithAlpha(0.30f * (1f - f) * k));
             }
             float crawl = Mathf.Repeat(t * 14f, 3f);
             for (float y = pop.y + crawl; y < pop.yMax; y += 3f)  // scanlines, crawling
                 Ui.Fill(new Rect(pop.x, y, pop.width, 1f), new Color(0f, 0.05f, 0.09f, 0.4f));
             float band = Mathf.Repeat(t * 0.5f, 1f);  // a bright band sweeping down
             float by = pop.y + band * (pop.height - 10f);
-            Ui.Fill(new Rect(pop.x, by, pop.width, 10f), new Color(c.r, c.g, c.b, 0.2f));
+            Ui.Fill(new Rect(pop.x, by, pop.width, 10f), c.WithAlpha(0.2f));
             Ui.Fill(new Rect(pop.x, by + 4f, pop.width, 1f), new Color(1f, 1f, 1f, 0.2f));
             // a strip that slips sideways and back, now and then
             {
@@ -93,18 +93,18 @@ namespace Arena
                 if (ph < 0.25f)
                 {
                     float sy = pop.y + Mathf.Repeat(t * 37f, pop.height - 12f), off = (ph < 0.12f ? 6f : -4f);
-                    Ui.Fill(new Rect(pop.x + off, sy, pop.width, 8f), new Color(c.r, c.g, c.b, 0.22f));
+                    Ui.Fill(new Rect(pop.x + off, sy, pop.width, 8f), c.WithAlpha(0.22f));
                     Ui.Fill(new Rect(pop.x + off, sy, pop.width, 1f), new Color(1f, 1f, 1f, 0.25f));
                 }
             }
-            CrtKit.Frame(pop, 1f, new Color(c.r, c.g, c.b, 0.95f * k));
-            Ui.Fill(new Rect(pop.x, holoUp ? pop.yMax - 2f : pop.y, pop.width, 2f), new Color(c.r, c.g, c.b, 0.95f * k));  // the bright rim on the beam side
+            CrtKit.Frame(pop, 1f, c.WithAlpha(0.95f * k));
+            Ui.Fill(new Rect(pop.x, holoUp ? pop.yMax - 2f : pop.y, pop.width, 2f), c.WithAlpha(0.95f * k));  // the bright rim on the beam side
             HoloCorners(pop, c, k);
         }
 
         static void HoloCorners(Rect r, Color c, float k)
         {
-            var col = new Color(c.r, c.g, c.b, 1f * k);
+            var col = c.WithAlpha(1f * k);
             const float L = 14f, w = 2f;
             Ui.Fill(new Rect(r.x - 3f, r.y - 3f, L, w), col); Ui.Fill(new Rect(r.x - 3f, r.y - 3f, w, L), col);
             Ui.Fill(new Rect(r.xMax - L + 3f, r.y - 3f, L, w), col); Ui.Fill(new Rect(r.xMax + 1f, r.y - 3f, w, L), col);
@@ -133,8 +133,8 @@ namespace Arena
         {
             float w = Ui.TextWidth(text, 14, true) + 28f, h = 30f;
             var pop = HoloPlace(anchor, w, h, 12f);
-            DrawHoloBack(pop, anchor, CrtUi.Ink);
-            DrawHoloText(pop, text.ToUpperInvariant(), 14, TextAnchor.MiddleCenter, CrtUi.Ink);
+            DrawHoloBack(pop, anchor, CrtStyle.Ink);
+            DrawHoloText(pop, text.ToUpperInvariant(), 14, TextAnchor.MiddleCenter, CrtStyle.Ink);
         }
     }
 }

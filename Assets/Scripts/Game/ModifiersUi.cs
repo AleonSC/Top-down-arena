@@ -24,7 +24,7 @@ namespace Arena
             Ui.Label(new Rect(x, y, 16f, 28f), ">", 12, ModLit, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x + 16f, y, w, 28f), status, 12, sc, TextAnchor.MiddleLeft, true);
             if (fxReduced || Mathf.Repeat(t * 1.6f, 1f) < 0.6f)
-                Ui.Fill(new Rect(x + 16f + Ui.TextWidth(status, 12, true) + 5f, y + 8f, 7f, 12f), new Color(ModLit.r, ModLit.g, ModLit.b, 0.8f));
+                Ui.Fill(new Rect(x + 16f + Ui.TextWidth(status, 12, true) + 5f, y + 8f, 7f, 12f), ModLit.WithAlpha(0.8f));
             if (n > 0 && host && DkKey(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off", Ui.Neutral))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
@@ -69,14 +69,14 @@ namespace Arena
                 var hr = new Rect(x, y, w, head - 4f);
                 bool hover = hr.Contains(Event.current.mousePosition);
                 if (hover)
-                    Ui.Pill(hr, new Color(lc.r, lc.g, lc.b, 0.08f));
+                    Ui.Pill(hr, lc.WithAlpha(0.08f));
                 float hh = head - 4f;
                 Ui.Fill(new Rect(x, y, 2f, hh), lc);  // a tier-coloured edge, like a console row
                 Ui.Label(new Rect(x + 6f, y, 28f, hh), folded ? "[+]" : "[−]", 11, lc, TextAnchor.MiddleLeft, true);
                 string tag = LeanTag(lean), blurb = "// " + LeanBlurb(lean);
                 float tx = x + 38f, tw = Ui.TextWidth(tag, 11, true) + 14f, bw = Ui.TextWidth(blurb, 11);
-                Ui.Fill(new Rect(tx, y + 2f, tw, hh - 4f), new Color(lc.r, lc.g, lc.b, 0.16f));  // the tag as a lit chip
-                ModEdge(new Rect(tx, y + 2f, tw, hh - 4f), new Color(lc.r, lc.g, lc.b, 0.55f));
+                Ui.Fill(new Rect(tx, y + 2f, tw, hh - 4f), lc.WithAlpha(0.16f));  // the tag as a lit chip
+                ModEdge(new Rect(tx, y + 2f, tw, hh - 4f), lc.WithAlpha(0.55f));
                 Ui.Label(new Rect(tx, y, tw, hh), tag, 11, lc, TextAnchor.MiddleCenter, true);
                 Ui.Label(new Rect(tx + tw + 8f, y, bw + 4f, hh), blurb, 11, Ui.Muted, TextAnchor.MiddleLeft);
                 int onCount = mods.FindAll(d => (session.Modifiers & d.Mod) != 0).Count;
@@ -88,9 +88,9 @@ namespace Arena
                 // A dashed rule of small segments with an end tick, instead of a solid hairline.
                 float ly = y + hh / 2f;
                 for (float sx = lx; sx + 4f <= lend; sx += 7f)
-                    Ui.Fill(new Rect(sx, ly, 4f, 1f), new Color(lc.r, lc.g, lc.b, 0.3f));
+                    Ui.Fill(new Rect(sx, ly, 4f, 1f), lc.WithAlpha(0.3f));
                 if (lend - lx > 10f)
-                    Ui.Fill(new Rect(lend - 1f, ly - 3f, 1f, 7f), new Color(lc.r, lc.g, lc.b, 0.5f));
+                    Ui.Fill(new Rect(lend - 1f, ly - 3f, 1f, 7f), lc.WithAlpha(0.5f));
                 if (Ui.HitArea(hr))
                     FoldModTier(lean, !folded);
                 y += head;
@@ -181,11 +181,11 @@ namespace Arena
             var lean = LeanColor(d.Lean);
             bool hover = canClick && c.Contains(Event.current.mousePosition);
             Ui.Fill(c, on ? new Color(0.12f, 0.27f, 0.58f, 0.3f + (fxReduced ? 0f : 0.03f * Mathf.Sin(t * 3f))) : new Color(0.03f, 0.07f, 0.17f, hover ? 0.8f : 0.6f));
-            ModEdge(c, on ? new Color(ModLit.r, ModLit.g, ModLit.b, 0.75f) : new Color(0.27f, 0.41f, 0.72f, hover ? 0.75f : 0.4f));
+            ModEdge(c, on ? ModLit.WithAlpha(0.75f) : new Color(0.27f, 0.41f, 0.72f, hover ? 0.75f : 0.4f));
             Ui.Fill(new Rect(c.x, c.y, 28f, 2f), lean);  // its tier
 
             var plate = new Rect(c.x + 12f, c.y + 12f, 44f, 44f);
-            var pc = on ? new Color(ModLit.r, ModLit.g, ModLit.b, 0.9f) : new Color(lean.r, lean.g, lean.b, 0.45f);
+            var pc = on ? ModLit.WithAlpha(0.9f) : lean.WithAlpha(0.45f);
             Ui.Fill(plate, on ? new Color(0.16f, 0.35f, 0.74f, 0.4f) : new Color(0.01f, 0.03f, 0.09f, 0.7f));
             ModEdge(plate, pc);
             var icon = PixelArt.Get(ModIconKey(d.Mod));
@@ -197,7 +197,7 @@ namespace Arena
             Ui.Label(new Rect(tx, c.y + 33f, tw, 44f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
 
             // The key: shown, not clicked (the tile takes the click); a guest sees the host's choice, so it never goes hot.
-            LobbyKit.Key(new Rect(c.x + 12f, c.yMax - 36f, c.width - 24f, 26f), inert ? (on ? "ON · " : "") + "NO EFFECT IN SURVIVAL" : on ? "ON" : "OFF", on, fxReduced,
+            DkKey(new Rect(c.x + 12f, c.yMax - 36f, c.width - 24f, 26f), inert ? (on ? "ON · " : "") + "NO EFFECT IN SURVIVAL" : on ? "ON" : "OFF", on, fxReduced,
                 on && !inert ? PixelArt.Get("ui_check") : null, size: 15, minSize: 11, enabled: false, accent: on ? ModLit : (Color?)null);
             if (inert)
                 Ui.Fill(c, new Color(0.01f, 0.02f, 0.06f, 0.55f));  // dimmed: Survival's room has nothing for it to act on

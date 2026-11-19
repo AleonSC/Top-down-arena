@@ -48,8 +48,8 @@ namespace Arena
                     float age = Wrap(t * 0.3f + j / 18f, 1f), ang = k * Mathf.PI * 2f / 5f + age * 1.5f + t * 0.25f, r = age * w * 0.95f;
                     float x = cx + Mathf.Cos(ang) * r, y = cy + Mathf.Sin(ang) * r * 0.9f;
                     var col = k % 2 == 1 ? new Color(1f, 0.35f, 0.67f) : new Color(0.35f, 0.86f, 1f);
-                    CardDot(x, y, 5f + age * 4f, new Color(col.r, col.g, col.b, 0.12f * (1f - age)));
-                    CardDot(x, y, 1.6f + age * 1.8f, new Color(col.r, col.g, col.b, 0.85f - age * 0.55f));
+                    CardDot(x, y, 5f + age * 4f, col.WithAlpha(0.12f * (1f - age)));
+                    CardDot(x, y, 1.6f + age * 1.8f, col.WithAlpha(0.85f - age * 0.55f));
                 }
         }
 

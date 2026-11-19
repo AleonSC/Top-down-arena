@@ -64,17 +64,13 @@ namespace Arena
 
         /// Roughly how fast this weapon's shots fly (for leading). Where it wants to be fought from is
         /// WeaponDef.BotRange.
+        /// The speed a bot leads its shots by: the weapon's own shot speed (Defs), 700 when it has none (melee, beams).
         static float ShotSpeedFor(WeaponId w)
         {
-            switch (w)
-            {
-                case WeaponId.Flamethrower: return 430f;
-                case WeaponId.MendersBow: return 950f;
-                case WeaponId.Railgun: return 2000f;
-                case WeaponId.Fireball: return 450f;
-                case WeaponId.Implosion: return 1e6f;  // instant: aim right at them
-                default: return 700f;
-            }
+            if (w == WeaponId.Implosion)
+                return 1e6f;  // instant: aim right at them
+            float speed = Defs.WeaponOf(w).Speed;
+            return speed > 0f ? speed : 700f;
         }
 
         /// Is this enemy close enough to shoot: within the weapon's reach (to its edge), or where the bot likes to stand, and a little over.
@@ -90,7 +86,7 @@ namespace Arena
         /// Swings me.Aim toward `want` by at most `maxStep` radians; true once it's within ~0.25 rad (close enough to fire).
         bool TurnAim(Player me, float want, float maxStep)
         {
-            float diff = MathX.Fmod(want - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - me.Aim);
             me.Aim += Math.Max(-maxStep, Math.Min(maxStep, diff));
             botAim = me.Aim;
             return Math.Abs(diff) - maxStep < 0.25f;
@@ -203,7 +199,7 @@ namespace Arena
                 if (AreaLocked(mine) && CurrentWorld.AreaAt(downed.Pos) != mine)
                     downed = null;  // locked in a room (Rooms.cs): clear it first, the door won't let you out to them
             }
-            V2 anchor = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
+            V2 anchor = target != null ? target.Pos : ArenaMid;
             if (downed != null)
             {
                 anchor = downed.Pos;  // go pick them up
@@ -726,7 +722,7 @@ namespace Arena
                         {
                             // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
                             V2 rel = p - e.Pos;
-                            float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                            float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
                             if (rel.Length < e.Radius + hitR + 110f && off < 1.2f)
                                 d += w * 3f;
                         }
@@ -734,7 +730,7 @@ namespace Arena
                         {
                             // An Acolyte about to cut: stay out of its cone (Swordsman.cs).
                             V2 rel = p - e.Pos;
-                            float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                            float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
                             if (rel.Length < SwordReachOf(e.Type) + hitR + 10f && off < SwordHalfOf(e.Type) + 0.25f)
                                 d += w * 3f;
                         }
@@ -743,7 +739,7 @@ namespace Arena
                         if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
                             d += w * 2.5f;
                     foreach (var ck in quarryCracks)
-                        if (SegmentDistance(p, ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHalfW + 4f)
+                        if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHalfW + 4f)
                             d += w * 1.5f;
                     if (col != null)
                     {
@@ -754,12 +750,12 @@ namespace Arena
                             if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.CloserThan(p, dr.Radius + hitR + 8f))
                                 d += w * 3f;
                         foreach (var ck in col.Cracks)
-                            if (SegmentDistance(p, ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + 18f)
+                            if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + 18f)
                                 d += w * 1.5f;
-                        if (col.ChargeWarn > 0f && colossus != null && SegmentDistance(p, colossus.Pos, colossus.Pos + V2.FromAngle(col.ChargeDir) * ColChargeLength) < colossus.Radius + hitR + 10f)
+                        if (col.ChargeWarn > 0f && colossus != null && p.DistanceToSegment(colossus.Pos, colossus.Pos + V2.FromAngle(col.ChargeDir) * ColChargeLength) < colossus.Radius + hitR + 10f)
                             d += w * 3f;
                     }
-                    if (twinB != null && SegmentDistance(p, twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
+                    if (twinB != null && p.DistanceToSegment(twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
                         d += w * 2f;
                     if (sing != null)
                         for (int l = 0; l < lasers; l++)
@@ -787,11 +783,11 @@ namespace Arena
                     if (ds != null)
                     {
                         float pad = hitR + sk.Margin + 8f;
-                        if (ds.Lunging && SegmentDistance(p, ds.LungeFrom, ds.LungeFrom + V2.FromAngle(ds.LungeAng) * (ds.LungeLen + BiteReach * 0.6f)) < dev.Radius + pad)
+                        if (ds.Lunging && p.DistanceToSegment(ds.LungeFrom, ds.LungeFrom + V2.FromAngle(ds.LungeAng) * (ds.LungeLen + BiteReach * 0.6f)) < dev.Radius + pad)
                             d += w * 3f;
                         V2 off = p - dev.Pos;
                         if ((ds.InhaleT > 0f || ds.Turn == DevourTurn.Inhale) && off.Length < InhaleReach + 40f
-                            && Math.Abs(MathX.Fmod(off.Angle - dev.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < InhaleHalf + 0.15f)
+                            && Math.Abs(MathX.WrapPi(off.Angle - dev.Facing)) < InhaleHalf + 0.15f)
                             d += w * 2.5f;
                         if (ds.BurrowT > 0f && off.Length < EruptRadius + pad + (ds.BurrowT < BurrowChase ? 60f : 0f))
                             d += w * 3f;
@@ -810,11 +806,11 @@ namespace Arena
                         float arcReach = RodArcWidth / 2f + hitR + sk.Margin + 6f;
                         foreach (var a in hs.Arcs)
                             if (a.A < hs.Rods.Count && a.B < hs.Rods.Count && a.T + t + 0.25f >= a.Warn && a.T + t <= a.Warn + ArcLive
-                                && SegmentDistance(p, hs.Rods[a.A].Pos, hs.Rods[a.B].Pos) < arcReach)
+                                && p.DistanceToSegment(hs.Rods[a.A].Pos, hs.Rods[a.B].Pos) < arcReach)
                                 d += w * 3f;
                         if (hs.Stage == HeraldStage.LastStand)
                             for (int sp = 0; sp < 4; sp++)
-                                if (SegmentDistance(p, herald.Pos, herald.Pos + V2.FromAngle(hs.Spin + SpokeSpin * t + sp * MathX.Pi / 2f) * SpokeLength) < SpokeWidth / 2f + hitR + sk.Margin + 6f)
+                                if (p.DistanceToSegment(herald.Pos, herald.Pos + V2.FromAngle(hs.Spin + SpokeSpin * t + sp * MathX.Pi / 2f) * SpokeLength) < SpokeWidth / 2f + hitR + sk.Margin + 6f)
                                 {
                                     d += w * 2f;
                                     break;
@@ -836,7 +832,7 @@ namespace Arena
                         float eReach = hitR + sk.Margin + 6f;
                         foreach (var f in es.Flares)
                             if (f.T + t + 0.2f >= FlareWarn && f.T + t <= FlareWarn + FlareLive
-                                && SegmentDistance(p, f.From, f.From + V2.FromAngle(f.Ang) * FlareLen) < FlareWidth / 2f + eReach)
+                                && p.DistanceToSegment(f.From, f.From + V2.FromAngle(f.Ang) * FlareLen) < FlareWidth / 2f + eReach)
                                 d += w * 3f;
                         foreach (var r in es.Rings)
                             if (Math.Abs(p.DistanceTo(r.Center) - (r.R - UmbraRingSpeed * t)) < UmbraRingWidth / 2f + eReach && !InUmbraGap(r, p))
@@ -845,7 +841,7 @@ namespace Arena
                         {
                             float a = es.SweepA + EchoSweepSpin * (es.SweepOn == 2 ? t : Math.Max(0f, t - (EchoSweepWarn - es.SweepT)));
                             for (int k2 = 0; k2 < 2; k2++)
-                                if (SegmentDistance(p, eclipse.Pos, eclipse.Pos + V2.FromAngle(a + k2 * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + eReach)
+                                if (p.DistanceToSegment(eclipse.Pos, eclipse.Pos + V2.FromAngle(a + k2 * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + eReach)
                                     d += w * 2f;
                         }
                         if (es.DiskT >= 0f)
@@ -859,7 +855,7 @@ namespace Arena
                     }
                     for (int i = 0; i < botBalls.Count; i++)
                         for (int j = i + 1; j < botBalls.Count; j++)
-                            if (botBalls[i].Pos.CloserThan(botBalls[j].Pos, BallArcRange) && SegmentDistance(p, botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
+                            if (botBalls[i].Pos.CloserThan(botBalls[j].Pos, BallArcRange) && p.DistanceToSegment(botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
                                 d += w * 2f;
                     foreach (var cg in Cages.Values)
                         if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
@@ -925,14 +921,5 @@ namespace Arena
 
         readonly List<Enemy> botBalls = new List<Enemy>();
 
-        static float SegmentDistance(V2 p, V2 a, V2 b)
-        {
-            V2 ab = b - a;
-            float len2 = ab.LengthSq;
-            if (len2 < 1f)
-                return p.DistanceTo(a);
-            float t = MathX.Clamp01(((p.X - a.X) * ab.X + (p.Y - a.Y) * ab.Y) / len2);
-            return p.DistanceTo(a + ab * t);
-        }
     }
 }

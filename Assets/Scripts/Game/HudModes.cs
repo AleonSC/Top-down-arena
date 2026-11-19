@@ -55,12 +55,11 @@ namespace Arena
         const float MiniLow = 0.25f;  // below this much health the readouts turn red and blink
 
         /// a, dropped to 35% on the off beat of a 1 s blink (steady with reduced effects).
-        float MiniBlink(float a) => !CabCalm && (int)(Time.unscaledTime * 2f) % 2 == 1 ? a * 0.35f : a;
+        float MiniBlink(float a) => !FxCalm && (int)(Time.unscaledTime * 2f) % 2 == 1 ? a * 0.35f : a;
 
-        static Color MiniA(Color c, float a) => new Color(c.r, c.g, c.b, c.a * a);
 
         /// Glowing CRT text, faded by a.
-        void MiniText(Rect r, string s, int size, Color c, float a, TextAnchor align = TextAnchor.MiddleLeft) => HudCrt(r, s, size, MiniA(c, a), align);
+        void MiniText(Rect r, string s, int size, Color c, float a, TextAnchor align = TextAnchor.MiddleLeft) => HudCrt(r, s, size, c.ScaleAlpha(a), align);
 
         /// A segmented bar: n cells with a 2 px gap, the first frac of them lit.
         static void MiniCells(Rect r, float frac, int n, Color c, float a)
@@ -68,13 +67,13 @@ namespace Arena
             float cw = (r.width - 2f * (n - 1)) / n;
             int lit = Mathf.RoundToInt(Mathf.Clamp01(frac) * n);
             for (int i = 0; i < n; i++)
-                Ui.Fill(new Rect(r.x + i * (cw + 2f), r.y, cw, r.height), MiniA(c, (i < lit ? 1f : 0.18f) * a));
+                Ui.Fill(new Rect(r.x + i * (cw + 2f), r.y, cw, r.height), c.ScaleAlpha((i < lit ? 1f : 0.18f) * a));
         }
 
         /// The lobby's bracket corners, small: a 10 px L on each corner, 10 px outside r.
         static void MiniBrackets(Rect r, Color c, float a)
         {
-            var k = MiniA(c, 0.75f * a);
+            var k = c.ScaleAlpha(0.75f * a);
             float x0 = r.x - 10f, y0 = r.y - 10f, x1 = r.xMax + 10f, y1 = r.yMax + 10f;
             Ui.Fill(new Rect(x0, y0, 10f, 2f), k); Ui.Fill(new Rect(x0, y0, 2f, 10f), k);
             Ui.Fill(new Rect(x1 - 10f, y0, 10f, 2f), k); Ui.Fill(new Rect(x1 - 2f, y0, 2f, 10f), k);
@@ -98,12 +97,12 @@ namespace Arena
                 x -= w / 2f;
             var r = new Rect(x, y, w, h);
             if (lit)
-                Ui.Fill(r, MiniA(c, a));
+                Ui.Fill(r, c.ScaleAlpha(a));
             else
-                CrtKit.Frame(r, 1f, MiniA(c, a));
+                CrtKit.Frame(r, 1f, c.ScaleAlpha(a));
             bool was = Ui.CrtFont;
             Ui.CrtFont = true;
-            Ui.Label(new Rect(r.x, r.y + 1f, r.width, r.height), key, size, lit ? MiniA(CrtStyle.Bg, a) : MiniA(c, a), TextAnchor.MiddleCenter, false);
+            Ui.Label(new Rect(r.x, r.y + 1f, r.width, r.height), key, size, lit ? CrtStyle.Bg.ScaleAlpha(a) : c.ScaleAlpha(a), TextAnchor.MiddleCenter, false);
             Ui.CrtFont = was;
             return w;
         }
@@ -112,9 +111,9 @@ namespace Arena
         /// (call MiniScan after the content).
         static void MiniPlate(Rect r, Color ink, float a)
         {
-            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), MiniA(CrtStyle.Bezel, 0.9f * a));
-            Ui.Fill(r, MiniA(CrtStyle.Bg, 0.9f * a));
-            CrtKit.Frame(r, 1f, MiniA(ink, 0.55f * a));
+            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), CrtStyle.Bezel.ScaleAlpha(0.9f * a));
+            Ui.Fill(r, CrtStyle.Bg.ScaleAlpha(0.9f * a));
+            CrtKit.Frame(r, 1f, ink.ScaleAlpha(0.55f * a));
         }
 
         /// Slot i's state: false for an empty slot. ready: a charge is up. frac: how far the recharge has come (1 when ready).
@@ -152,7 +151,7 @@ namespace Arena
 
         void MiniCorners(Player me, float a)
         {
-            Color ink = CrtUi.Ink, dim = CrtUi.Dim, red = CrtStyle.Danger;
+            Color ink = CrtStyle.Ink, dim = CrtStyle.Dim, red = CrtStyle.Danger;
             float frac = Mathf.Clamp01(me.Hp / Mathf.Max(1f, me.MaxHp));
             bool low = !me.Downed && frac < MiniLow;
 
@@ -179,9 +178,9 @@ namespace Arena
                 float xf = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
                 string lv = "LV " + me.Level;  // your level at the line's right end, level with it
                 float lw = CrtUi.TitleWidth(lv, 14), lineW = hr.width - lw - 8f;
-                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW, 2f), MiniA(Ui.Gold, 0.18f * a));
-                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW * xf, 2f), MiniA(Ui.Gold, a));
-                MiniText(new Rect(hr.x + lineW + 4f, hr.y + 71f, lw + 4f, 14f), lv, 14, Ui.Gold, a, TextAnchor.MiddleRight);
+                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW, 2f), CrtStyle.Gold.ScaleAlpha(0.18f * a));
+                Ui.Fill(new Rect(hr.x, hr.y + 77f, lineW * xf, 2f), CrtStyle.Gold.ScaleAlpha(a));
+                MiniText(new Rect(hr.x + lineW + 4f, hr.y + 71f, lw + 4f, 14f), lv, 14, CrtStyle.Gold, a, TextAnchor.MiddleRight);
             }
             MiniScan(new Rect(hr.x - 4f, hr.y - 4f, hr.width + 8f, hr.height + 8f), a);
 
@@ -226,13 +225,13 @@ namespace Arena
                     float nw = CrtUi.TitleWidth(name, nameSize), colW = Mathf.Max(minW, nw), barX = x + (colW - minW) / 2f;
                     bool ult = i == Upgrades.UltSlot;
                     bool full = ult ? me.Slots[i].Charges > 0 : ready;
-                    Color c = ult ? Ui.Gold : ready ? KeyGreen : dim;
+                    Color c = ult ? CrtStyle.Gold : ready ? KeyGreen : dim;
                     float cx = x + colW / 2f;
                     MiniCap(cx, y, 20f, ult ? "ULT·" + SlotKeys[i] : SlotKeys[i], 18, c, full, ult && full ? 0.7f * a + 0.3f * a * Mathf.Sin(Time.unscaledTime * 4f) : a, true);
                     string val = ult ? (full ? "READY" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : MiniSecs(me.Slots[i].Timer);
-                    MiniText(new Rect(x - 10f, y + 24f, colW + 20f, 24f), val, 24, ult ? Ui.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleCenter);
-                    MiniCells(new Rect(barX, y + 52f, minW, 4f), f, 6, ult ? Ui.Gold : ready ? KeyGreen : ink, a);
-                    MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, ult ? Ui.Gold : ready ? ink : dim, a, TextAnchor.MiddleCenter);
+                    MiniText(new Rect(x - 10f, y + 24f, colW + 20f, 24f), val, 24, ult ? CrtStyle.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleCenter);
+                    MiniCells(new Rect(barX, y + 52f, minW, 4f), f, 6, ult ? CrtStyle.Gold : ready ? KeyGreen : ink, a);
+                    MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, ult ? CrtStyle.Gold : ready ? ink : dim, a, TextAnchor.MiddleCenter);
                     MiniMastery(me, i, new Rect(x, y, colW, 80f), y, a);  // cells, level and its moments (HudMastery.cs)
                     x += colW + gap;
                 }
@@ -252,17 +251,17 @@ namespace Arena
             if (game.ExpandingOn)
             {
                 bool vfull = me.Vectors >= me.VectorCap;
-                Color vc = Color.Lerp(vfull ? Ui.Gold : new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * VectorChipFlash);  // (flashes as vectors come in: VectorGainLook.cs)
+                Color vc = Color.Lerp(vfull ? CrtStyle.Gold : new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * VectorChipFlash);  // (flashes as vectors come in: VectorGainLook.cs)
                 if (vfull && vecFullNear)  // a pickup or Stash waiting by you: pulse amber
-                    vc = MiniA(vc, 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f));
+                    vc = vc.ScaleAlpha(0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f));
                 MiniRow(wr, ry, "VECTORS", VectorChipCount(me) + " / " + me.VectorCap, vc, a, -1f);  // (the number only)
                 vecChipRect = new Rect(wr.xMax - 60f, ry, 60f, 16f);  // where the shards land
                 ry -= 22f;
             }
             if (me.Gold > 0 || game.CurrentPath == PathId.Bazaar)
             {
-                MiniRow(wr, ry, "GOLD", me.Gold.ToString(), Ui.Gold, a, -1f);
-                Ui.Icon(new Rect(wr.xMax - CrtUi.TitleWidth(me.Gold.ToString(), 16) - 20f, ry + 1f, 14f, 14f), PixelArt.Get("ui_coin"), MiniA(Color.white, a));
+                MiniRow(wr, ry, "GOLD", me.Gold.ToString(), CrtStyle.Gold, a, -1f);
+                Ui.Icon(new Rect(wr.xMax - CrtUi.TitleWidth(me.Gold.ToString(), 16) - 20f, ry + 1f, 14f, 14f), PixelArt.Get("ui_coin"), Color.white.ScaleAlpha(a));
                 ry -= 22f;
             }
             if (game.LivesMax > 0)
@@ -271,19 +270,19 @@ namespace Arena
                 MiniText(new Rect(wr.x, ry, wr.width, 16f), "LIVES", 16, dim, a);
                 var heart = PixelArt.Get("mod_secondwind");
                 for (int i = 0; i < n; i++)
-                    Ui.Icon(new Rect(wr.xMax - (n - i) * 15f, ry + 2f, 12f, 12f), heart, i < left ? MiniA(LifeRed, a) : new Color(1f, 1f, 1f, 0.18f * a));
+                    Ui.Icon(new Rect(wr.xMax - (n - i) * 15f, ry + 2f, 12f, 12f), heart, i < left ? LifeRed.ScaleAlpha(a) : new Color(1f, 1f, 1f, 0.18f * a));
                 ry -= 22f;
             }
             if (me.Relic != RelicId.None)
             {
-                MiniRow(wr, ry, "RELIC", Relics.Name(me.Relic).ToUpperInvariant(), ToColor(RelicInk), a, -1f);
+                MiniRow(wr, ry, "RELIC", Relics.Name(me.Relic).ToUpperInvariant(), RelicInk.ToColor(), a, -1f);
                 ry -= 22f;
             }
             var path = Paths.Get(game.CurrentPath);
             if (path != null)
             {
                 int pl = game.PathWavesLeft;
-                MiniRow(wr, ry, path.Name.ToUpperInvariant(), game.OnPath ? pl + " LEFT" : "NEXT WAVE", ToColor(path.Accent), a, -1f);
+                MiniRow(wr, ry, path.Name.ToUpperInvariant(), game.OnPath ? pl + " LEFT" : "NEXT WAVE", path.Accent.ToColor(), a, -1f);
                 ry -= 22f;
             }
             if (game.HuntMapOn && game.HuntRoute != null && game.Hunt != null)
@@ -296,7 +295,7 @@ namespace Arena
         /// A slim right-column row: the label left, the value right in c, and (frac >= 0) a cell bar under it.
         void MiniRow(Rect col, float y, string label, string value, Color c, float a, float frac)
         {
-            MiniText(new Rect(col.x, y, 110f, 16f), label, 16, CrtUi.Dim, a);
+            MiniText(new Rect(col.x, y, 110f, 16f), label, 16, CrtStyle.Dim, a);
             MiniText(new Rect(col.x + 60f, y, col.width - 60f, 16f), value, 16, c, a, TextAnchor.MiddleRight);
             if (frac >= 0f)
                 MiniCells(new Rect(col.x, y + 17f, col.width, 4f), frac, 20, c, a);
@@ -317,7 +316,7 @@ namespace Arena
 
         void MiniTag(Player me, float a)
         {
-            Color ink = CrtUi.Ink, dim = CrtUi.Dim, red = CrtStyle.Danger;
+            Color ink = CrtStyle.Ink, dim = CrtStyle.Dim, red = CrtStyle.Danger;
             V2 at = ToUi(me.Disp);
             float frac = Mathf.Clamp01(me.Hp / Mathf.Max(1f, me.MaxHp));
             bool low = frac < MiniLow;
@@ -344,7 +343,7 @@ namespace Arena
             var p0 = new Vector2(at.X + sx * r * 0.75f, at.Y + sy * r * 0.75f);
             float ly = below ? ty + 16f : ty + th - 16f, edge = right ? tx : tx + tw;
             var p1 = new Vector2(edge - sx * 14f, ly);
-            var lc = MiniA(tone, 0.8f * a);
+            var lc = tone.ScaleAlpha(0.8f * a);
             Ui.Fill(new Rect(p0.x - 2f, p0.y - 2f, 5f, 5f), lc);
             int steps = Mathf.Max(2, Mathf.CeilToInt(Vector2.Distance(p0, p1) / 1.5f));
             for (int s = 0; s <= steps; s++)
@@ -375,12 +374,12 @@ namespace Arena
                     continue;
                 bool ult = i == Upgrades.UltSlot;
                 bool full = ult ? me.Slots[i].Charges > 0 : ready;
-                Color c = ult ? Ui.Gold : ready ? KeyGreen : dim;
-                float ca = ult && full && !CabCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
+                Color c = ult ? CrtStyle.Gold : ready ? KeyGreen : dim;
+                float ca = ult && full && !FxCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
                 MiniCap(cx + capW / 2f, y, 16f, MiniShortKey(SlotKeys[i]), 15, c, full, ca, true);
-                MiniText(new Rect(cx + capW + 6f, y, cw - capW - valW - 12f, 17f), MiniName(me, i), (int)nameSize, ult ? Ui.Gold : ready ? ink : dim, a);
+                MiniText(new Rect(cx + capW + 6f, y, cw - capW - valW - 12f, 17f), MiniName(me, i), (int)nameSize, ult ? CrtStyle.Gold : ready ? ink : dim, a);
                 string val = ult ? (full ? "ULT" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : Mathf.CeilToInt(me.Slots[i].Timer).ToString();
-                MiniText(new Rect(cx + cw - valW, y, valW, 17f), val, 15, ult ? Ui.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleRight);
+                MiniText(new Rect(cx + cw - valW, y, valW, 17f), val, 15, ult ? CrtStyle.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleRight);
                 y += rowH;
             }
             MiniScan(tr, a);
@@ -389,7 +388,7 @@ namespace Arena
         /// The wave line, top centre: WAVE 06/50  23 LEFT
         void MiniWaveLine(float a)
         {
-            Color ink = CrtUi.Ink, dim = CrtUi.Dim;
+            Color ink = CrtStyle.Ink, dim = CrtStyle.Dim;
             string wave = MiniWave(), left = game.Remaining.ToString();
             float w1 = CrtUi.TitleWidth(wave, 20), w2 = CrtUi.TitleWidth(left, 30), w3 = CrtUi.TitleWidth("LEFT", 20);
             float total = w1 + 14f + w2 + 6f + w3, x0 = W / 2f - total / 2f, y0 = 30f;

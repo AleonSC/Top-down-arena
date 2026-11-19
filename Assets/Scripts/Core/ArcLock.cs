@@ -55,7 +55,7 @@ namespace Arena
                 return false;
             if (d <= r + p.Def.BodyR)
                 return true;
-            float off = Math.Abs(MathX.Fmod(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float off = Math.Abs(MathX.WrapPi(rel.Angle - aim));
             return off <= ArcHalf(p) + (float)Math.Asin(Math.Min(1f, r / d));
         }
 

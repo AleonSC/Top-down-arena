@@ -47,7 +47,7 @@ namespace Arena
             int rows = session.IsHost ? game.Players.Count : 0;
             int dummies = session.IsHost ? game.DummyCount() : 0;
             var r = new Rect(14f, 124f, 300f, 36f + Mathf.Max(1, rows) * rowH + (dummies > 0 ? 22f : 0f));
-            DkSub(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.9f));
+            DkSub(r, CrtStyle.Bg.WithAlpha(0.9f));
             Ui.Fill(new Rect(r.x, r.y, 3f, r.height), DpsColor);
             Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "DPS METER", 11, DpsColor, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "F2 hide  ·  Shift+F2 reset", 10, CrtStyle.Desc, TextAnchor.MiddleRight);
@@ -64,7 +64,7 @@ namespace Arena
                 bool live = t != null && !t.Idle;
                 float now = t != null ? t.Window(1f) : 0f, avg = t != null ? t.Average : 0f;
                 float sim = p.Weapon != null ? Defs.WeaponDps(p.Weapon.Id) : 0f;
-                Ui.Label(new Rect(r.x + 12f, y, 170f, 18f), p.Name + (p.Weapon != null ? "  ·  " + p.Weapon.Name : ""), 11, ToColor(p.Def.Color), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 12f, y, 170f, 18f), p.Name + (p.Weapon != null ? "  ·  " + p.Weapon.Name : ""), 11, p.Def.Color.ToColor(), TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(r.x + 120f, y - 2f, r.width - 132f, 24f), live ? Whole(now) : "-", 20, live ? Color.white : CrtStyle.Desc, TextAnchor.MiddleRight, true);
                 if (t != null && t.Total > 0f)
                 {

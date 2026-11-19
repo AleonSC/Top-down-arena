@@ -58,7 +58,7 @@ namespace Arena
             int lv = Game.MasteryLevelFor(xp);
             bool max = lv >= Game.MasteryMax;
             float prog = max ? 1f : Game.MasteryProgress(xp);
-            Color on = max ? Ui.Gold : MxGreen;
+            Color on = max ? CrtStyle.Gold : MxGreen;
             float cx = col.center.x;
             float flash = mxLevelAgo[i] < 0.6f ? 1f - mxLevelAgo[i] / 0.6f : 0f;
 
@@ -71,10 +71,10 @@ namespace Arena
             for (int k = 0; k < segs; k++)
             {
                 var c = new Rect(cells.x + k * (sw + 3f), cells.y, sw, cells.height);
-                Ui.Fill(c, MiniA(Color.white, 0.14f * a));
+                Ui.Fill(c, Color.white.ScaleAlpha(0.14f * a));
                 float f = Mathf.Clamp01(pos * segs - k);
                 if (f > 0f)
-                    Ui.Fill(new Rect(c.x, c.y, sw * f, c.height), MiniA(Color.Lerp(on, Color.white, k == lv - 2 ? flash : 0f), a));
+                    Ui.Fill(new Rect(c.x, c.y, sw * f, c.height), Color.Lerp(on, Color.white, k == lv - 2 ? flash : 0f).ScaleAlpha(a));
             }
             MiniText(new Rect(cells.xMax + 4f, cells.y - 6f, 30f, 16f), max ? "M" : lv.ToString(), 14, Color.Lerp(on, Color.white, flash), a);
 
@@ -101,7 +101,7 @@ namespace Arena
                 string head = Upgrades.Ability(id).Name.ToUpperInvariant() + (max ? "  MASTERED" : "  ·  MASTERY " + lv);
                 string body = max ? Game.Capstone(id) : "+8% POWER   -4% COOLDOWN";
                 MiniText(new Rect(W / 2f - 400f, y - 66f, 800f, 20f), head, 20, on, a * la, TextAnchor.MiddleCenter);
-                MiniText(new Rect(W / 2f - 400f, y - 46f, 800f, 16f), body.ToUpperInvariant(), 14, CrtUi.Ink, a * la, TextAnchor.MiddleCenter);
+                MiniText(new Rect(W / 2f - 400f, y - 46f, 800f, 16f), body.ToUpperInvariant(), 14, CrtStyle.Ink, a * la, TextAnchor.MiddleCenter);
             }
         }
     }

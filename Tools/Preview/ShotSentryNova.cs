@@ -32,7 +32,7 @@ static partial class Shot {
       var e = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.Grunt, home + V2.FromAngle(a) * d, 0f, 0, false });
       e.SpawnT = 0f; e.Hp = e.MaxHp = 50000f; e.Pos = e.Disp = home + V2.FromAngle(a) * d; e.FireT = 99f; mobs.Add(e); spots.Add(e.Pos);
     }
-    var id = turret ? AbilityId.Turret : AbilityId.Nova;
+    var id = turret ? AbilityId.Turret : AbilityId.Starburst;
     me.Slots[0].Id = id; me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f;
     if (Environment.GetEnvironmentVariable("ABILCAP") != null) me.MasteryXp[id] = 99999f;
     float secs = float.Parse(turret ? tt : tn, System.Globalization.CultureInfo.InvariantCulture);

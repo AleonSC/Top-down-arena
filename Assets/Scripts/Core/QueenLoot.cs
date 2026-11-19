@@ -34,7 +34,7 @@ namespace Arena
             p.DroneCd -= dt;
             if (p.DroneCd > 0f)
                 return;
-            var d = SpawnMinion(MinionKind.HiveDrone, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 20f, -1f, true);  // a companion: it stays between waves, and is dazed (not broken) when worn out
+            var d = SpawnMinion(MinionKind.HiveDrone, p, p.Pos + RandDir() * 20f, -1f, true);  // a companion: it stays between waves, and is dazed (not broken) when worn out
             d.Ang = MathX.Tau * have / Math.Max(1, want);
             p.DroneCd = 0.4f;
         }
@@ -197,7 +197,7 @@ namespace Arena
             if (e != null)
             {
                 float want = (e.Pos - m.Pos).Angle;
-                float diff = MathX.Fmod(want - m.Aim + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float diff = MathX.WrapPi(want - m.Aim);
                 m.Aim += Math.Max(-BomberTurn * dt, Math.Min(BomberTurn * dt, diff));
             }
             m.Pos += V2.FromAngle(m.Aim) * BomberSpeed * dt;
@@ -261,7 +261,7 @@ namespace Arena
                     HurtEnemy(e, RoyalDiveDamage * p.Stats.DmgMult * dv.Power, p.Id);
                     if (!e.Def.IsBoss && !Heavy(e))
                     {
-                        V2 away = (e.Pos - dv.Pos).IsZero ? V2.FromAngle(Rand(0f, MathX.Tau)) : (e.Pos - dv.Pos).Normalized();
+                        V2 away = (e.Pos - dv.Pos).IsZero ? RandDir() : (e.Pos - dv.Pos).Normalized();
                         e.Pos = ClampToArena(e.Pos + away * RoyalDiveKnock, e.Radius);
                     }
                 }

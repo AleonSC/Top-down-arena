@@ -59,7 +59,7 @@ namespace Arena
         public byte Surprise;   // a surprise room (Docs/SurpriseRooms.md): 1 + its SurpriseShape, on each of its boxes; 0: none
         public bool Claimed;    // a breach Stash's vector cache has been taken (Docs/BreachRooms.md)
         public byte Mini;       // a mini-boss room's foe (an EnemyType, FactionMinis.cs): its boss cycle's faction's; 0: unset (an old save: the current one's)
-        public byte Leg;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
+        public byte Piece;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
         public int X1 => X + W;
         public int Y1 => Y + H;
         public string Shape => Expansion.ShapeName(W, H);
@@ -168,13 +168,13 @@ namespace Arena
         {
             if (a == b || a < 0 || b < 0 || a > rooms.Count || b > rooms.Count)
                 return false;
-            return a > 0 && rooms[a - 1].Leg > 0 && rooms[a - 1].Parent == b || b > 0 && rooms[b - 1].Leg > 0 && rooms[b - 1].Parent == a;
+            return a > 0 && rooms[a - 1].Piece > 0 && rooms[a - 1].Parent == b || b > 0 && rooms[b - 1].Piece > 0 && rooms[b - 1].Parent == a;
         }
 
         /// The first entry (list index) of the multi-box room this entry belongs to (itself for a plain box).
         public static int HeadOf(IList<ExpansionRoom> rooms, int index)
         {
-            for (int guard = 0; guard < 64 && index >= 0 && index < rooms.Count && rooms[index].Leg > 0; guard++)
+            for (int guard = 0; guard < 64 && index >= 0 && index < rooms.Count && rooms[index].Piece > 0; guard++)
                 index = rooms[index].Parent - 1;
             return index;
         }
@@ -218,7 +218,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (!r.Floating && r.Leg == 0 && !IsGridCore(r))  // (a drawn outline is one room, however many boxes; a Grid run's core is free)
+                if (!r.Floating && r.Piece == 0 && !IsGridCore(r))  // (a drawn outline is one room, however many boxes; a Grid run's core is free)
                     n++;
             return n;
         }
@@ -687,7 +687,7 @@ namespace Arena
 
         // --- Drawn outlines -----------------------------------------------------------------------------------------
 
-        public const byte PieceBase = 16;        // ExpansionRoom.Leg from here up: a piece of a drawn outline (old saves may hold Leg 1 or 2: a retired bent hallway's legs, built the same way)
+        public const byte PieceBase = 16;        // ExpansionRoom.Piece from here up: a piece of a drawn outline (old saves may hold Piece 1 or 2: a retired bent hallway's legs, built the same way)
         public const int OutlineMaxSide = 2400;  // an outline's bounding box, each way
         public const int OutlineCoverMin = 500;  // an outline's piece narrower than this gets no cover
 
@@ -816,7 +816,7 @@ namespace Arena
                     X = q[0], Y = q[1], W = q[2], H = q[3],
                     Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor,
                     Price = 0,
-                    Leg = k == 0 ? (byte)0 : (byte)Math.Min(255, PieceBase + k),
+                    Piece = k == 0 ? (byte)0 : (byte)Math.Min(255, PieceBase + k),
                 });
             }
             return made;
@@ -1134,8 +1134,8 @@ namespace Arena
                 BoxOf(rooms, a, out x0, out y0, out x1, out y1);
                 minX = Math.Min(minX, x0); minY = Math.Min(minY, y0); maxX = Math.Max(maxX, x1); maxY = Math.Max(maxY, y1);
                 var kind = a == 0 ? RoomKind.Combat : rooms[a - 1].Kind;
-                group[a] = a > 0 && rooms[a - 1].Leg > 0 && rooms[a - 1].Parent < a ? group[rooms[a - 1].Parent] : a;
-                if (a > 0 && rooms[a - 1].Leg >= PieceBase)
+                group[a] = a > 0 && rooms[a - 1].Piece > 0 && rooms[a - 1].Parent < a ? group[rooms[a - 1].Parent] : a;
+                if (a > 0 && rooms[a - 1].Piece >= PieceBase)
                     outline[group[a]] = true;
                 areas[a] = new RoomArea
                 {
@@ -1148,7 +1148,7 @@ namespace Arena
                 {
                     int bx0, by0, bx1, by1;
                     BoxOf(rooms, b, out bx0, out by0, out bx1, out by1);
-                    bool joined = rooms[a - 1].Leg > 0 && rooms[a - 1].Parent == b;  // an outline's inner seam (or an old save's bent hallway corner): open full width
+                    bool joined = rooms[a - 1].Piece > 0 && rooms[a - 1].Parent == b;  // an outline's inner seam (or an old save's bent hallway corner): open full width
                     int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);
                     if (run < MinDoorRun && !(joined && run > 0))
                         continue;

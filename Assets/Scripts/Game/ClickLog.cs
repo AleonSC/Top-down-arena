@@ -58,7 +58,7 @@ namespace Arena
                 return;
             float h = 16f * (clickLogLines.Count + 1) + 8f;
             Ui.Fill(new Rect(6f, 6f, 560f, h), new Color(0f, 0f, 0f, 0.8f));
-            Ui.Label(new Rect(12f, 8f, 548f, 16f), "CLICK LOG (F9 to close): press / release, swallowed?, hot control, frame time", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(12f, 8f, 548f, 16f), "CLICK LOG (F9 to close): press / release, swallowed?, hot control, frame time", 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             for (int i = 0; i < clickLogLines.Count; i++)
                 Ui.Label(new Rect(12f, 24f + 16f * i, 548f, 16f), clickLogLines[i], 11, Color.white, TextAnchor.MiddleLeft, false);
         }

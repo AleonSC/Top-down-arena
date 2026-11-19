@@ -83,7 +83,7 @@ namespace Arena
 
         Minion AddWolf(Player p, V2? at = null)
         {
-            var m = SpawnMinion(MinionKind.Wolf, p, at ?? p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, -1f, true);
+            var m = SpawnMinion(MinionKind.Wolf, p, at ?? p.Pos + RandDir() * 30f, -1f, true);
             m.MaxHp = m.Hp = WolfMaxHp(p, 1);
             return m;
         }

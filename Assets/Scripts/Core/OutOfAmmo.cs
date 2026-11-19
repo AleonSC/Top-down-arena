@@ -138,7 +138,7 @@ namespace Arena
                 return false;
             if (to.Length < 1f)
                 return true;
-            float a = Math.Abs(MathX.Fmod(to.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float a = Math.Abs(MathX.WrapPi(to.Angle - p.Aim));
             return a <= cone + (e.Radius / Math.Max(20f, to.Length));
         }
 

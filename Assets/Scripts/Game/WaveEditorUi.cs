@@ -169,7 +169,7 @@ namespace Arena
         void DrawWaveEditor()
         {
             float t = Time.unscaledTime;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.96f));
+            Ui.Fill(new Rect(0, 0, W, H), CrtStyle.Bg.WithAlpha(0.96f));
             if (edSet.Waves.Count == 0)
                 edSet.Waves.Add(new DesignWave());
             edWave = Mathf.Clamp(edWave, 0, edSet.Waves.Count - 1);
@@ -224,7 +224,7 @@ namespace Arena
             if (DkKey(new Rect(rx, 14f, 76f, 32f), "UNDO", Ui.Neutral, false, 13))
                 EdUndoStep();
             GUI.enabled = was;
-            Ui.Fill(new Rect(20f, 52f, W - 40f, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.18f));
+            Ui.Fill(new Rect(20f, 52f, W - 40f, 1f), CrtStyle.Ink.WithAlpha(0.18f));
         }
 
         /// Row 2: one numbered key per wave (click to open it), then new / copy / delete / move and the wave's level.
@@ -269,7 +269,7 @@ namespace Arena
             }
             bool was = GUI.enabled;
             GUI.enabled = was && edSet.Waves.Count > 1;
-            if (DkKey(new Rect(bx + 204f, y, 80f, h), "DELETE", Ui.Danger, false, 12))
+            if (DkKey(new Rect(bx + 204f, y, 80f, h), "DELETE", CrtStyle.Danger, false, 12))
             {
                 edSet.Waves.RemoveAt(edWave);
                 EdSelectWave(Mathf.Min(edWave, edSet.Waves.Count - 1));
@@ -343,14 +343,14 @@ namespace Arena
             if (DkChoice(new Rect(p.xMax - 84f, p.y + 6f, 72f, 24f), "PROPS", edPropsMode, CrtStyle.Gold)) edPropsMode = true;
 
             var m = EdMap;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Ui.Fill(m, new Color(0f, 0f, 0f, 0.35f));
             for (int gx = 1; gx < 16; gx++)
-                Ui.Fill(new Rect(m.x + gx * m.width / 16f, m.y, 1f, m.height), new Color(ink.r, ink.g, ink.b, 0.06f));
+                Ui.Fill(new Rect(m.x + gx * m.width / 16f, m.y, 1f, m.height), ink.WithAlpha(0.06f));
             for (int gy = 1; gy < 9; gy++)
-                Ui.Fill(new Rect(m.x, m.y + gy * m.height / 9f, m.width, 1f), new Color(ink.r, ink.g, ink.b, 0.06f));
-            CrtKit.Frame(m, 1f, new Color(ink.r, ink.g, ink.b, 0.3f));
-            var c = EdToMap(new V2(Game.Width / 2f, Game.Height / 2f));
+                Ui.Fill(new Rect(m.x, m.y + gy * m.height / 9f, m.width, 1f), ink.WithAlpha(0.06f));
+            CrtKit.Frame(m, 1f, ink.WithAlpha(0.3f));
+            var c = EdToMap(Game.ArenaMid);
             Ui.Dot(new Rect(c.x - 4f, c.y - 4f, 8f, 8f), new Color(1f, 1f, 1f, 0.2f));
 
             // Props.
@@ -385,9 +385,9 @@ namespace Arena
                 var box = new Rect(q.x - 12f, q.y - 12f, 24f, 24f);
                 if (on)
                     Ui.Glow(box, EdColor, 0.5f + 0.2f * Mathf.Sin(t * 4f));
-                Ui.Fill(box, on ? new Color(EdColor.r, EdColor.g, EdColor.b, 0.35f) : new Color(0f, 0f, 0f, 0.6f));
-                CrtKit.Frame(box, on ? 2f : 1f, on ? EdColor : new Color(ink.r, ink.g, ink.b, 0.7f));
-                Ui.Label(box, letter.ToString(), 12, on ? Color.white : CrtUi.Ink, TextAnchor.MiddleCenter, true);
+                Ui.Fill(box, on ? EdColor.WithAlpha(0.35f) : new Color(0f, 0f, 0f, 0.6f));
+                CrtKit.Frame(box, on ? 2f : 1f, on ? EdColor : ink.WithAlpha(0.7f));
+                Ui.Label(box, letter.ToString(), 12, on ? Color.white : CrtStyle.Ink, TextAnchor.MiddleCenter, true);
             }
 
             string hint = edPropsMode
@@ -411,7 +411,7 @@ namespace Arena
         List<EdDot> EdPreview(DesignWave w, float t)
         {
             var dots = new List<EdDot>();
-            var mid = new V2(Game.Width / 2f, Game.Height / 2f);
+            var mid = Game.ArenaMid;
             foreach (var g in w.Groups)
             {
                 var arr = g.Arrivals;
@@ -432,7 +432,7 @@ namespace Arena
                         start = mid + V2.FromAngle(MathX.Tau * i / Mathf.Max(1, arr.Count)) * 280f;
                     float dist = Mathf.Min(age * 140f, Mathf.Max(0f, mid.DistanceTo(start) - 90f));
                     var def = Defs.Get(arr[i]);
-                    dots.Add(new EdDot { Pos = start + fwd * dist, Color = ToColor(def.Color), Radius = def.Radius });
+                    dots.Add(new EdDot { Pos = start + fwd * dist, Color = def.Color.ToColor(), Radius = def.Radius });
                 }
             }
             return dots;
@@ -490,7 +490,7 @@ namespace Arena
             }
             edPalScroll = Mathf.Clamp(edPalScroll, 0, Mathf.Max(0, total - rowsVisible));
             var cells = new List<KeyValuePair<EnemyType, Rect>>();
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             for (int i = edPalScroll * cols; i < list.Count && i < (edPalScroll + rowsVisible) * cols; i++)
             {
                 int k = i - edPalScroll * cols;
@@ -498,8 +498,8 @@ namespace Arena
                 bool faction = Approaches.Of(list[i]) != null;
                 bool hover = cell.Contains(ev.mousePosition);
                 Color tint = faction ? CrtStyle.Gold : ink;
-                Ui.Fill(cell, new Color(tint.r, tint.g, tint.b, hover ? 0.14f : faction ? 0.07f : 0.04f));
-                CrtKit.Frame(cell, 1f, new Color(tint.r, tint.g, tint.b, hover ? 0.75f : 0.25f));
+                Ui.Fill(cell, tint.WithAlpha(hover ? 0.14f : faction ? 0.07f : 0.04f));
+                CrtKit.Frame(cell, 1f, tint.WithAlpha(hover ? 0.75f : 0.25f));
                 Ui.Label(new Rect(cell.x, cell.yMax - 13f, cell.width, 12f), PracticePlan.NameOf(list[i]), 8, CrtStyle.Desc, TextAnchor.MiddleCenter);
                 cells.Add(new KeyValuePair<EnemyType, Rect>(list[i], cell));
                 if (ev.type == EventType.MouseDown && ev.button == 0 && hover)
@@ -623,7 +623,7 @@ namespace Arena
             Ui.Label(new Rect(x, y, 150f, 14f), "SELECTED GROUP", 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
             if (DkKey(new Rect(r.xMax - 152f, y - 4f, 68f, 22f), "COPY", Ui.Neutral, false, 11))
                 EdCopyGroup();
-            if (DkKey(new Rect(r.xMax - 80f, y - 4f, 66f, 22f), "DELETE", Ui.Danger, false, 11))
+            if (DkKey(new Rect(r.xMax - 80f, y - 4f, 66f, 22f), "DELETE", CrtStyle.Danger, false, 11))
             {
                 EdRemoveGroup();
                 return;
@@ -679,7 +679,7 @@ namespace Arena
                 int n = g.Members.Count(m => m == k);
                 var row = new Rect(x, y, w, 24f);
                 DkSub(row, new Color(1f, 1f, 1f, 0.03f));
-                Ui.Dot(new Rect(row.x + 6f, row.y + 7f, 10f, 10f), ToColor(Defs.Get(k).Color));
+                Ui.Dot(new Rect(row.x + 6f, row.y + 7f, 10f, 10f), (Defs.Get(k).Color).ToColor());
                 Ui.Label(new Rect(row.x + 22f, row.y, 160f, 24f), Defs.Get(k).Name, 12, CrtStyle.Body);
                 if (DkKey(new Rect(row.xMax - 90f, row.y + 2f, 24f, 20f), "−", Ui.Neutral, false, 12))
                     g.Members.RemoveAt(g.Members.LastIndexOf(k));
@@ -711,7 +711,7 @@ namespace Arena
             DkPanel(r);
             var w = EdW;
             float span = EdSpan();
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Ui.Label(new Rect(r.x + 14f, r.y + 8f, 400f, 16f), "WAVE " + (edWave + 1) + "  ·  " + w.Groups.Count + " GROUPS  ·  " + w.EnemyCount + " ENEMIES  ·  " + w.Props.Count + " PROPS",
                 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
             if (DkKey(new Rect(r.xMax - 250f, r.y + 6f, 80f, 24f), edPlaying ? "PAUSE" : "PLAY", EdColor, edPlaying, 12))
@@ -725,7 +725,7 @@ namespace Arena
             for (int s = 0; s <= span; s += 2)
             {
                 float tx = EdTimeToX(s);
-                Ui.Fill(new Rect(tx, trackTop - 4f, 1f, trackBottom - trackTop), new Color(ink.r, ink.g, ink.b, 0.07f));
+                Ui.Fill(new Rect(tx, trackTop - 4f, 1f, trackBottom - trackTop), ink.WithAlpha(0.07f));
                 Ui.Label(new Rect(tx - 20f, trackTop - 20f, 40f, 14f), s + "s", 10, CrtStyle.Desc, TextAnchor.MiddleCenter);
             }
 
@@ -737,13 +737,13 @@ namespace Arena
                 float y = EdRowY(i);
                 bool sel = i == edGroup;
                 var label = new Rect(r.x + 8f, y, EdLabelW - 14f, EdRowH - 4f);
-                DkSub(label, sel ? new Color(EdColor.r, EdColor.g, EdColor.b, 0.2f) : new Color(1f, 1f, 1f, 0.03f));
-                var col = g.Arrivals.Count > 0 ? ToColor(Defs.Get(g.Arrivals[0]).Color) : CrtStyle.Desc;
+                DkSub(label, sel ? EdColor.WithAlpha(0.2f) : new Color(1f, 1f, 1f, 0.03f));
+                var col = g.Arrivals.Count > 0 ? (Defs.Get(g.Arrivals[0]).Color).ToColor() : CrtStyle.Desc;
                 Ui.Dot(new Rect(label.x + 6f, label.y + 8f, 10f, 10f), col);
                 Ui.Label(new Rect(label.x + 22f, label.y, label.width - 26f, label.height), g.Name, 11, sel ? Color.white : CrtStyle.Body, TextAnchor.MiddleLeft, sel);
                 if (Ui.HitArea(label))
                     edGroup = i;
-                Ui.Fill(new Rect(EdTrackX0, y, EdTrackX1 - EdTrackX0, EdRowH - 4f), new Color(ink.r, ink.g, ink.b, 0.03f));
+                Ui.Fill(new Rect(EdTrackX0, y, EdTrackX1 - EdTrackX0, EdRowH - 4f), ink.WithAlpha(0.03f));
                 var clip = EdClip(g, i);
                 bool dropOn = edDrag == EdDrag.Palette && edDragMoved && edDragEnemy.HasValue && g.Squad == null && clip.Contains(mp);
                 Ui.Fill(clip, sel || dropOn ? Color.Lerp(col, Color.white, 0.25f) : EdDark(col, 0.85f));
@@ -803,7 +803,7 @@ namespace Arena
             string name = edDragSquad != null ? edDragSquad.Name : PracticePlan.NameOf(edDragEnemy.Value);
             var mp = Event.current.mousePosition;
             var chip = new Rect(mp.x + 14f, mp.y + 8f, Mathf.Max(90f, Ui.TextWidth(name, 12, true) + 24f), 26f);
-            Ui.Fill(chip, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.95f));
+            Ui.Fill(chip, CrtStyle.Bg.WithAlpha(0.95f));
             CrtKit.Frame(chip, 1f, EdColor);
             Ui.Label(chip, name, 12, Color.white, TextAnchor.MiddleCenter, true);
         }

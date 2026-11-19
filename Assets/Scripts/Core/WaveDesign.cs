@@ -395,7 +395,7 @@ namespace Arena
                         at += V2.FromAngle(MathX.Tau * i / Math.Max(1, g.Members.Count)) * (g.Members.Count > 1 ? 45f : 0f);
                     else if (g.Arrive == ArriveMode.Line)
                     {
-                        V2 fwd = (new V2(Width / 2f, Height / 2f) - at).Normalized();
+                        V2 fwd = (ArenaMid - at).Normalized();
                         at += fwd.Orthogonal() * ((i - (g.Members.Count - 1) / 2f) * 60f);
                     }
                     designQueue.Add(new DesignSpawn { T = t, Type = g.Members[i], Pos = at, Ring = g.Arrive == ArriveMode.Ring });

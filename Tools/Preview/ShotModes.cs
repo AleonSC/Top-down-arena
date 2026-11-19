@@ -497,6 +497,36 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;
     }
+    else if (mode == "keys")
+    {
+      // The one CRT key (DkKey, DevKit.cs) in each of its states, plus a lamp, an icon and a sub-line. WIDE=1: a longer label.
+      Event.current.type = EventType.Repaint;
+      Ui.Fill(new Rect(0f, 0f, UnityEngine.Screen.width, UnityEngine.Screen.height), CrtStyle.Bg);
+      string text = Environment.GetEnvironmentVariable("WIDE") != null ? "Start the run" : "Play";
+      string[] names = { "plain", "on", "danger", "gold", "hover", "locked", "view only", "static", "quiet", "lamp", "sub-line", "tint (old DkKey)" };
+      float kw = 170f, kh = 50f;
+      for (int i = 0; i < names.Length; i++)
+      {
+        var k = new Rect(60f + (i % 4) * 300f, 110f + (i / 4) * 170f, kw, kh);
+        Ui.Label(new Rect(k.x, k.y - 34f, kw, 20f), names[i].ToUpperInvariant(), 13, CrtStyle.Desc, TextAnchor.MiddleCenter, true);
+        Event.current.mousePosition = i == 4 ? k.center : new Vector2 { x = -100, y = -100 };
+        switch (i)
+        {
+          case 0: ArenaApp.DkKey(k, text, false, false); break;
+          case 1: ArenaApp.DkKey(k, text, true, false); break;
+          case 2: ArenaApp.DkKey(k, text, false, false, danger: true); break;
+          case 3: ArenaApp.DkKey(k, text, false, false, accent: CrtStyle.Gold); break;
+          case 4: ArenaApp.DkKey(k, text, false, false); break;
+          case 5: ArenaApp.DkKey(k, text, false, false, locked: true); break;
+          case 6: ArenaApp.DkKey(k, text, true, false, enabled: false); break;
+          case 7: ArenaApp.DkKey(k, text, false, false, isStatic: true); break;
+          case 8: ArenaApp.DkKey(k, text, false, false, quiet: true); break;
+          case 9: ArenaApp.DkKey(k, text, false, false, lamp: true); break;
+          case 10: ArenaApp.DkKey(k, text, false, false, sub: "15 gold"); break;
+          default: typeof(ArenaApp).GetMethod("DkKey", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(Rect), typeof(string), typeof(Color), typeof(bool), typeof(int) }, null).Invoke(app, new object[] { k, text, Ui.GoldButton, false, 13 }); break;
+        }
+      }
+    }
     else if (mode == "kitgrid")
     {
       // Every role and weapon of one class (KIT=0..5, default the Ninja), drawn big: a check on how each one looks.
@@ -610,7 +640,7 @@ static partial class Shot {
     {
       var rng = new System.Random(4);
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
-      foreach (var n in new[] { "Hollow Points", "Hollow Points", "Sharpened Rounds", "Quick Trigger", "Hair Trigger", "Fortitude", "Vitality", "Vitality", "Regeneration", "Focus", "Clarity", "Thick Skin", "Extra Use", "Multishot", "Multishot", "Piercing Rounds", "Extra Use", "Shockwave", "Blink", "Nova", "Warden's Guard", "Stun Gun", "Swarm Rounds", "Twin Fang", "Collapse Rounds", "Homing Rounds", "Homing Rounds", "Incendiary Rounds", "Shock Rounds", "Velocity Rounds", "Light Boots", "Sprinter", "Mending", "Executioner", "Royal Jelly" })
+      foreach (var n in new[] { "Hollow Points", "Hollow Points", "Sharpened Rounds", "Quick Trigger", "Hair Trigger", "Fortitude", "Vitality", "Vitality", "Regeneration", "Focus", "Clarity", "Thick Skin", "Extra Use", "Multishot", "Multishot", "Piercing Rounds", "Extra Use", "Shockwave", "Blink", "Starburst", "Warden's Guard", "Stun Gun", "Swarm Rounds", "Twin Fang", "Collapse Rounds", "Homing Rounds", "Homing Rounds", "Incendiary Rounds", "Shock Rounds", "Velocity Rounds", "Light Boots", "Sprinter", "Mending", "Executioner", "Royal Jelly" })
         host.Game.GrantUpgrade(1, U(n));
       if (Environment.GetEnvironmentVariable("MASTERY") != null) { float[] xs = { 900f, 420f, 130f, 0f, 20f }; for (int k = 0; k < 5; k++) if (me.Slots[k].Id != AbilityId.None) me.MasteryXp[me.Slots[k].Id] = xs[k]; }
       me.Level = 31; me.Slots[2].Charges = 0; me.Slots[2].Timer = 6.3f;
@@ -707,7 +737,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("GOLDINSTEAD") != null) { var gg = host.Game; gg.CurrentPath = PathId.Bazaar; gg.PathFrom = 11; gg.PathTo = 14; gg.Wave = 12; }  // GOLDINSTEAD=1: on the Bazaar, so the picker shows its gold-instead key
       if (mode == "picker" && Environment.GetEnvironmentVariable("PRIZE") != null) { me.Offer = Upgrades.PrizeOffer(new System.Random(3), OfferCtx.Of(me, false)); me.OfferPrize = true; }  // a challenge room's prize
       else if (mode == "picker" && Environment.GetEnvironmentVariable("USES") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Fortitude"), U("Extra Use"), U("Clarity") }; }  // USES=1: the Extra Use key chooser
-      else if (mode == "picker" && Environment.GetEnvironmentVariable("KEYS") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Shockwave"), U("Blink"), U("Nova") }; }
+      else if (mode == "picker" && Environment.GetEnvironmentVariable("KEYS") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Shockwave"), U("Blink"), U("Starburst") }; }
       else if (mode == "picker" && Environment.GetEnvironmentVariable("PICKCARDS") != null) me.Offer = Array.ConvertAll(Environment.GetEnvironmentVariable("PICKCARDS").Split(','), n => U(n));
       else if (mode == "picker" && Environment.GetEnvironmentVariable("MILESTONE") != null) { host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Second Helping")); me.Offer = new[] { U("Scholar"), U("Second Helping"), U("Wide Choice") }; me.OfferMilestone = true; }  // MILESTONE=1: a milestone pick
       else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Barrage") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };

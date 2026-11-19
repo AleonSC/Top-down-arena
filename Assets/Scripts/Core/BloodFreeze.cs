@@ -68,8 +68,7 @@ namespace Arena
                             continue;
                         w.Hit.Add(e.Id);
                         float hold = FreezeHold(e.Def.IsBoss, w.Bonus);
-                        e.FrozenT = Math.Max(e.FrozenT, hold);
-                        e.SlowT = Math.Max(e.SlowT, hold);
+                        Hold(e, hold);
                         e.IceT = hold;
                         e.IceMult = w.Cap ? FreezeVuln : 1f;
                     }

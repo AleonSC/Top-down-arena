@@ -155,7 +155,7 @@ namespace Arena
             {
                 V2 lo = ArenaMin + new V2(180f, 180f), hi = ArenaMax - new V2(180f, 180f);
                 V2 c = new V2(Math.Max(lo.X, Math.Min(hi.X, target.Pos.X)), Math.Max(lo.Y, Math.Min(hi.Y, target.Pos.Y)));
-                accretionRings[squad] = ring = new AccretionRing { Center = c, Spin0 = Rand(0f, MathX.Tau) };
+                accretionRings[squad] = ring = new AccretionRing { Center = c, Spin0 = RandAngle() };
             }
             ring.Size++;
             return ClampToArena(AccretionPoint(ring.Center, ring.Spin0, AccretionSlot(i), AccretionStart), 30f);
@@ -184,7 +184,7 @@ namespace Arena
 
         /// A Lens's face is toward `from`: shots from there bend away, and a hit from there lands on the lens.
         public static bool LensFaces(Enemy e, V2 from) =>
-            e.Type == EnemyType.Lens && Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < LensArc;
+            e.Type == EnemyType.Lens && Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < LensArc;
 
         /// Every game, for each player's shot (MoveBullets): near a Lens's face it turns away from the Lens.
         void BendRoundLenses(Bullet b, float dt)
@@ -195,7 +195,7 @@ namespace Arena
                 if (d > LensRange + e.Radius || !LensFaces(e, b.Pos))
                     continue;
                 float toLens = (e.Pos - b.Pos).Angle, have = b.Vel.Angle;
-                float diff = MathX.Fmod(toLens - have + MathX.Pi, MathX.Tau) - MathX.Pi;  // heading this far off the Lens's middle
+                float diff = MathX.WrapPi(toLens - have);  // heading this far off the Lens's middle
                 if (Math.Abs(diff) > MathX.Pi / 2f)
                     return;  // already going away
                 float rate = LensBend * (1f - Math.Min(1f, d / (LensRange + e.Radius))) * dt + 2f * dt;
@@ -219,7 +219,7 @@ namespace Arena
         /// A Lens turns slowly toward you.
         void LensFace(Enemy e, float want, float dt)
         {
-            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - e.Facing);
             e.Facing += Math.Max(-LensTurn * dt, Math.Min(LensTurn * dt, diff));
         }
 
@@ -333,7 +333,7 @@ namespace Arena
                     continue;
                 float d = p.Pos.DistanceTo(e.Pos);
                 if (d < WhitePushRange + p.Def.BodyR)
-                    KnockPlayer(p, d > 1f ? (p.Pos - e.Pos) / d : V2.FromAngle(Rand(0f, MathX.Tau)), WhiteKnock);  // WardenFaction.cs
+                    KnockPlayer(p, d > 1f ? (p.Pos - e.Pos) / d : RandDir(), WhiteKnock);  // WardenFaction.cs
             }
             scratchIds.Clear();
             foreach (var b in Bullets.Values)
@@ -360,7 +360,7 @@ namespace Arena
         public static float PulsarBeamDistance(Enemy e, V2 p)
         {
             V2 u = V2.FromAngle(e.Facing) * PulsarBeamLen;
-            return SegmentDistance(p, e.Pos - u, e.Pos + u);
+            return p.DistanceToSegment(e.Pos - u, e.Pos + u);
         }
 
 
@@ -374,7 +374,7 @@ namespace Arena
                     scratchIds.Add(o.Id);
             foreach (int id in scratchIds)
                 Enemies.Remove(id);
-            V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, GravitonScatter), 30f);
+            V2 at = ClampToArena(tpos + RandDir() * Rand(0f, GravitonScatter), 30f);
             var w = SpawnEnemyAt(EnemyType.SmallWell, at, GravitonFlight, e.Id);
             w.PhaseT = SmallWellLife;
             BroadcastFx(FxKind.Ring, at, e.Def.Color, 26f, GravitonFlight, Sfx.Throw);

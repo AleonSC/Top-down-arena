@@ -311,7 +311,7 @@ namespace Arena
             {
                 if (!e.Def.IsBoss && !e.Def.Mini)  // (a challenge room's mini-boss gets one too)
                     continue;
-                var col = ToColor(e.Def.Color);
+                var col = e.Def.Color.ToColor();
                 string note = null;
                 Color noteColor = Ui.Warn;
                 if (e.Type == EnemyType.HiveQueen && e.Queen != null)

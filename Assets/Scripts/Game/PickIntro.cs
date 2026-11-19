@@ -60,7 +60,7 @@ namespace Arena
             var oldMatrix = GUI.matrix;
             var oldColor = GUI.color;
             GUI.matrix = Matrix4x4.TRS(new Vector3(offX + scale * (at.X - slot.center.x * sx), offY + scale * (at.Y - slot.center.y * k), 0f), Quaternion.identity, new Vector3(scale * sx, scale * k, 1f));
-            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * alpha);
+            GUI.color = oldColor.ScaleAlpha(alpha);
             Ui.Alpha = alpha;
             draw();
             Ui.Alpha = 1f;

@@ -65,14 +65,14 @@ namespace Arena
         void DrawExpandChip(Player me)
         {
             Ui.Alpha = 1f;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             // Above the Wave cleared box (it starts at y 84 and covers everything below).
             var chip = new Rect(W / 2f - 300f, 34f, 600f, 46f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.75f));
             Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f, 0.6f));
             Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS" + (game.RoomTokens.Count > 0 ? "  ·  " + game.RoomTokens.Count + " KIT" + (game.RoomTokens.Count == 1 ? "" : "S") : "") + "  ·  " + game.Expanded.Count + " ROOMS  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), "Build freely with your own vectors  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
-            if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), "BUILD", null, 15, calm))
+            if (DkKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), "BUILD", false, calm, size: 15, rawSize: true))
                 expOpen = true;
         }
 
@@ -87,16 +87,16 @@ namespace Arena
             if (game.ServiceRooms)
                 return;  // (the room shops hold nothing up: the HUD chip says they're open)
             Ui.Alpha = 1f;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             float dy = 0f;
             if (me.ShopDone)
             {
                 Ui.Label(new Rect(0, 150f + dy, W, 22f), "Done shopping  ·  waiting for the others", 14, Ui.Muted, TextAnchor.MiddleCenter, true);
                 return;
             }
-            Ui.Label(new Rect(0, 130f + dy, W, 26f), "THE SHOP IS OPEN  ·  walk into the gold room on the minimap", 18, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0, 130f + dy, W, 26f), "THE SHOP IS OPEN  ·  walk into the gold room on the minimap", 18, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(0, 156f + dy, W, 20f), "You have " + me.Gold + " gold. Leftover gold becomes XP when the shop closes.", 13, Ui.Muted, TextAnchor.MiddleCenter);
-            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, 180f + dy, 240f, 32f), "SKIP THE SHOP", null, 18, calm))
+            if (DkKey(new Rect(W / 2f - 120f, 180f + dy, 240f, 32f), "SKIP THE SHOP", false, calm, size: 18, rawSize: true))
                 game.Shop(ShopAction.Done, 1);
         }
 
@@ -118,7 +118,7 @@ namespace Arena
                 return;
             }
             Ui.Alpha = 1f;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             // The draw screen is the window (DONE closes it); the room kit screen opens from it.
             if (!game.ExpandOpen)
                 expModify = false;
@@ -155,14 +155,14 @@ namespace Arena
             }
             expKit = Mathf.Clamp(expKit, 0, kits.Count - 1);
             var win = CrtWindowBegin();
-            CrtUi.Title(new Rect(0, 22f, W, 56f), "ROOM KITS", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            CrtUi.Title(new Rect(0, 22f, W, 56f), "ROOM KITS", 46, CrtStyle.Ink, TextAnchor.MiddleCenter, calm);
             Ui.Label(new Rect(0, 80f, W, 20f), "Pick a kit, then click a plain room  ·  one change per room, it can't be undone  ·  bosses give floors, won challenges give shops, the Black Market sells floors", 13, Ui.Muted, TextAnchor.MiddleCenter);
             float kw = 190f, kgap = 10f, kx = W / 2f - (kits.Count * kw + (kits.Count - 1) * kgap) / 2f;
             for (int i = 0; i < kits.Count; i++)
             {
                 var kr = new Rect(kx + i * (kw + kgap), 106f, kw, 34f);
                 bool sel = i == expKit;
-                if (CrtUi.SoftKey(kr, kits[i].Name.ToUpperInvariant() + (sel ? "  ✓" : ""), null, 15, calm, lit: sel))
+                if (DkKey(kr, kits[i].Name.ToUpperInvariant() + (sel ? "  ✓" : ""), sel, calm, size: 15, rawSize: true))
                     expKit = i;
             }
             var kit = kits[expKit];
@@ -208,14 +208,14 @@ namespace Arena
             for (int i = 0; i < game.Expanded.Count; i++)
             {
                 var r = game.Expanded[i];
-                if (r.Kind == RoomKind.Combat || r.Floating || r.Leg > 0)  // (one label for a room of several boxes)
+                if (r.Kind == RoomKind.Combat || r.Floating || r.Piece > 0)  // (one label for a room of several boxes)
                     continue;
                 V2 p0 = M(new V2(r.X, r.Y));
-                Ui.Label(new Rect(p0.X + 3f, p0.Y + 2f, 200f, 14f), KindName(r).ToUpperInvariant(), 10, ToColor(KindInk(r.Kind, r.Floor)), TextAnchor.UpperLeft, true);
+                Ui.Label(new Rect(p0.X + 3f, p0.Y + 2f, 200f, 14f), KindName(r).ToUpperInvariant(), 10, KindInk(r.Kind, r.Floor).ToColor(), TextAnchor.UpperLeft, true);
             }
             string line = kit.Kind == RoomKind.Floor ? FloorBlurb(kit.Floor) : "A shop room: kills drop personal gold and the shop opens in the break after each boss.";
-            Ui.Label(new Rect(0, map.yMax + 10f, W, 22f), hover >= 0 ? "Click to turn this room into: " + kit.Name + ".  " + line : line, 14, hover >= 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
-            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 44f, 240f, 34f), "BACK", null, 20, calm))
+            Ui.Label(new Rect(0, map.yMax + 10f, W, 22f), hover >= 0 ? "Click to turn this room into: " + kit.Name + ".  " + line : line, 14, hover >= 0 ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            if (DkKey(new Rect(W / 2f - 120f, map.yMax + 44f, 240f, 34f), "BACK", false, calm, size: 20, rawSize: true))
                 expModify = false;
             CrtUi.End(win, t, calm);
         }
@@ -268,9 +268,9 @@ namespace Arena
             float ox = map.center.x - (expViewC.X - lo.X) * k, oy = map.center.y - (expViewC.Y - lo.Y) * k;
             System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
             System.Func<Vector2, V2> Snap = m => new V2(Mathf.Round(((m.x - ox) / k + lo.X) / Expansion.Step) * Expansion.Step, Mathf.Round(((m.y - oy) / k + lo.Y) / Expansion.Step) * Expansion.Step);
-            if (CrtUi.SoftKey(new Rect(map.xMax - 150f, map.yMax - 34f, 40f, 28f), "-", null, 18, calm)) expZoom = Mathf.Max(1f, expZoom / 1.4f);
-            if (CrtUi.SoftKey(new Rect(map.xMax - 106f, map.yMax - 34f, 40f, 28f), "+", null, 18, calm)) expZoom = Mathf.Min(8f, expZoom * 1.4f);
-            if (CrtUi.SoftKey(new Rect(map.xMax - 62f, map.yMax - 34f, 56f, 28f), "FIT", null, 14, calm)) expZoom = 1f;
+            if (DkKey(new Rect(map.xMax - 150f, map.yMax - 34f, 40f, 28f), "-", false, calm, size: 18, rawSize: true)) expZoom = Mathf.Max(1f, expZoom / 1.4f);
+            if (DkKey(new Rect(map.xMax - 106f, map.yMax - 34f, 40f, 28f), "+", false, calm, size: 18, rawSize: true)) expZoom = Mathf.Min(8f, expZoom * 1.4f);
+            if (DkKey(new Rect(map.xMax - 62f, map.yMax - 34f, 56f, 28f), "FIT", false, calm, size: 14, rawSize: true)) expZoom = 1f;
             bool over = map.Contains(ev.mousePosition);
             // Controls: left click sets the first corner, the box follows the mouse, a second left click places it (or press, drag and let go);
             // right click or Escape cancels the box (and, with none started, goes back).
@@ -467,7 +467,7 @@ namespace Arena
                 roomClip = null;
                 EndUiGl();
             }
-            CrtKit.Frame(map, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f));
+            CrtKit.Frame(map, 1f, CrtStyle.Ink.WithAlpha(0.25f));
             foreach (var nd in game.Nodes)  // the nodes: named in a hover tip, not on the map (the legend shows the colours)
                 if (!Expansion.NodeClaimed(game.Expanded, nd))
                 {
@@ -480,7 +480,7 @@ namespace Arena
                     }
                     if (map.Contains(Event.current.mousePosition) && TipHover(nr))
                     {
-                        TipStart(nr, NodeName(nd), ToColor(NodeInkOf(nd)));
+                        TipStart(nr, NodeName(nd), NodeInkOf(nd).ToColor());
                         TipAdd(nd.Kind == NodeKind.Rule && !nd.Hidden ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : NodeBlurb(nd), 12, Ui.Text);
                     }
                 }
@@ -491,7 +491,7 @@ namespace Arena
                     var fr = new Rect(f0.X, f0.Y, f1.X - f0.X, f1.Y - f0.Y);
                     if (!map.Contains(Event.current.mousePosition) || !TipHover(fr))
                         continue;
-                    TipStart(fr, fa.Name, ToColor(KindInk(fa.Kind, fa.Floor)));
+                    TipStart(fr, fa.Name, KindInk(fa.Kind, fa.Floor).ToColor());
                     if (fa.Sealed)
                         TipAdd("SEALED  ·  build a room up to it to claim it.", 12, Ui.Text);
                 }
@@ -502,7 +502,7 @@ namespace Arena
             else if (expGateMode && gateDoor >= 0)
             {
                 line = gateWhy ?? "SHUTTER GATE ON THIS DOOR  ·  " + Gates.Price + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  click to fit it";
-                lineInk = gateWhy == null ? Ui.Gold : new Color(1f, 0.45f, 0.5f);
+                lineInk = gateWhy == null ? CrtStyle.Gold : new Color(1f, 0.45f, 0.5f);
             }
             else if (expGateMode)
             {
@@ -512,12 +512,12 @@ namespace Arena
             else if (expTrapMode)
             {
                 line = trapWhy != null ? trapWhy : trapOk ? Market.Names[expTrapKind].ToUpperInvariant() + "  ·  click to place it  ·  " + game.Me.Stash[expTrapKind] + " in your stash" : "Move over a room to place a " + Market.Names[expTrapKind].ToLowerInvariant() + ".";
-                lineInk = trapWhy != null ? new Color(1f, 0.45f, 0.5f) : trapOk ? Ui.Gold : Ui.Muted;
+                lineInk = trapWhy != null ? new Color(1f, 0.45f, 0.5f) : trapOk ? CrtStyle.Gold : Ui.Muted;
             }
             else if (hasLink && linkPrice > 0)
             {
                 line = "TELEPORTER PAIR  ·  from your stash  ·  saves " + Mathf.RoundToInt(Expansion.LinkWalk(wd, link) / 100f) + " tiles of walking  ·  click to build it";
-                lineInk = Ui.Gold;
+                lineInk = CrtStyle.Gold;
             }
             else if (hasLink)
             {
@@ -547,14 +547,14 @@ namespace Arena
             // Readying needs the break (not mid-wave, not before a boss: the gate decides, nor with Auto-ready on).
             var meR = game.Me;
             bool canReady = meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
-            if (canReady && CrtUi.SoftKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", null, 18, calm, lit: true))
+            if (canReady && DkKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", true, calm, size: 18, rawSize: true))
             {
                 expDrawing = expDragging = false;
                 expOpen = false;
                 if (!meR.Ready)
                     game.SetMyReady(true);
             }
-            if (CrtUi.SoftKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), "CLOSE", null, canReady ? 18 : 22, calm))
+            if (DkKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), "CLOSE", false, calm, size: canReady ? 18 : 22, rawSize: true))
             {
                 expDrawing = expDragging = false;
                 expOpen = false;
@@ -618,7 +618,7 @@ namespace Arena
         void DrawBuildRail(bool calm)
         {
             float x = 48f, w = 158f;
-            CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
+            CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtStyle.Ink, TextAnchor.MiddleLeft, calm);
             Ui.Label(new Rect(x + 2f, 64f, w, 16f), "BUILT AS YOU PLACE IT", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             string[] names = { "PIECES", "TELEPORTER", "GATE", "TRAP" };
             // The tools shown: the buildables only while you own one (owner Nov 18).
@@ -644,15 +644,15 @@ namespace Arena
                 int i = shown[si0];
                 var r = new Rect(x, 92f + si0 * 42f, w, 36f);
                 bool on = i == cur;
-                if (CrtUi.SoftKey(r, names[i], null, 15, calm, lit: on))
+                if (DkKey(r, names[i], on, calm, size: 15, rawSize: true))
                     pick = i;
-                Ui.Label(new Rect(r.x + 8f, r.y, 14f, r.height), (si0 + 1).ToString(), 10, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 8f, r.y, 14f, r.height), (si0 + 1).ToString(), 10, on ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
                 if (TipHover(r))
                 {
                     string tt, tp;
                     string[] st;
                     BuildToolHelp(i, out tt, out st, out tp);
-                    TipStart(r, tt, CrtUi.Ink);
+                    TipStart(r, tt, CrtStyle.Ink);
                     for (int si = 0; si < st.Length; si++)
                         TipAdd((si + 1) + "  " + st[si], 12, Ui.Text);
                     TipAdd(tp, 11, Ui.Muted);
@@ -671,7 +671,7 @@ namespace Arena
             {
                 for (int tk = 1; tk < Market.Count; tk++)
                 {
-                    if (CrtUi.SoftKey(new Rect(x, y, w, 28f), Market.Names[tk].ToUpperInvariant() + "  ·  " + game.Me.Stash[tk], null, 12, calm, lit: tk == expTrapKind))
+                    if (DkKey(new Rect(x, y, w, 28f), Market.Names[tk].ToUpperInvariant() + "  ·  " + game.Me.Stash[tk], tk == expTrapKind, calm, size: 12, rawSize: true))
                         expTrapKind = tk;
                     y += 32f;
                 }
@@ -679,7 +679,7 @@ namespace Arena
             }
             if (game.RoomTokens.Count > 0)
             {
-                if (CrtUi.SoftKey(new Rect(x, y, w, 32f), "ROOM KITS  ·  " + game.RoomTokens.Count, null, 14, calm))
+                if (DkKey(new Rect(x, y, w, 32f), "ROOM KITS  ·  " + game.RoomTokens.Count, false, calm, size: 14, rawSize: true))
                 {
                     expModify = true;
                     expKit = 0;
@@ -716,15 +716,15 @@ namespace Arena
             Ui.Label(new Rect(x + 10f, ly + 6f, w - 20f, 16f), "ON THE MAP", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             for (int i = 0; i < items.Count; i++)
             {
-                var c = ToColor(items[i].Value);
+                var c = (items[i].Value).ToColor();
                 float iy = ly + 30f + i * 20f;
-                Ui.Fill(new Rect(x + 11f, iy + 3f, 10f, 10f), new Color(c.r, c.g, c.b, 0.3f));
+                Ui.Fill(new Rect(x + 11f, iy + 3f, 10f, 10f), c.WithAlpha(0.3f));
                 CrtKit.Frame(new Rect(x + 10f, iy + 2f, 12f, 12f), 1.5f, c);
                 Ui.Label(new Rect(x + 30f, iy, w - 36f, 16f), items[i].Key, 11, c, TextAnchor.MiddleLeft, true);
             }
             if ((seen.Count > 0 || sealedRoom) && TipHover(new Rect(x, ly, w, lh)))
             {
-                TipStart(new Rect(x, ly, w, lh), "On the map", CrtUi.Ink);
+                TipStart(new Rect(x, ly, w, lh), "On the map", CrtStyle.Ink);
                 TipAdd("Build a room round a node or up to a sealed room to claim it.", 12, Ui.Text);
             }
         }
@@ -737,7 +737,7 @@ namespace Arena
             float x = p.x + 14f, w = p.width - 28f, y = p.y + 10f;
             int have = game.SpendableVectors(game.Me);
             Ui.Label(new Rect(x, y, w, 30f), "YOUR VECTORS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            CrtUi.Text(new Rect(x, y - 2f, w, 34f), have.ToString(), 30, Ui.Gold, TextAnchor.MiddleRight, true, CabCalm);
+            CrtUi.Text(new Rect(x, y - 2f, w, 34f), have.ToString(), 30, CrtStyle.Gold, TextAnchor.MiddleRight, true, FxCalm);
             y += 36f;
             int cap = Mathf.Max(Mathf.Max(have, game.Me != null ? game.Me.VectorCap : have), 1);
             var bar = new Rect(x, y, w, 8f);
@@ -745,7 +745,7 @@ namespace Arena
             CrtKit.Frame(bar, 1f, new Color(1f, 1f, 1f, 0.12f));
             float fHave = Mathf.Clamp01((float)have / cap), fAfter = Mathf.Clamp01((float)(have - pending) / cap);
             bool over = pending > have;
-            Ui.Fill(new Rect(bar.x, bar.y, bar.width * Mathf.Min(fHave, fAfter), bar.height), Ui.Gold);
+            Ui.Fill(new Rect(bar.x, bar.y, bar.width * Mathf.Min(fHave, fAfter), bar.height), CrtStyle.Gold);
             if (pending > 0)  // the slice the drawing would spend, blinking
                 Ui.Fill(new Rect(bar.x + bar.width * fAfter, bar.y, bar.width * (fHave - fAfter), bar.height), over ? new Color(1f, 0.3f, 0.36f, 0.9f) : new Color(1f, 0.95f, 0.75f, 0.45f + 0.35f * Mathf.Sin(Time.unscaledTime * 5f)));
             else if (pending < 0)
@@ -754,16 +754,16 @@ namespace Arena
             string sub = pending > 0 ? (over ? "Needs " + pending + ": " + (pending - have) + " short" : "This uses " + pending + "  ·  " + (have - pending) + " left") : pending < 0 ? "Gives back " + -pending : "";
             if (TipHover(new Rect(p.x, p.y, p.width, y + 18f - p.y)))
             {
-                TipStart(new Rect(p.x, p.y, p.width, y + 18f - p.y), "Vectors", CrtUi.Ink);
+                TipStart(new Rect(p.x, p.y, p.width, y + 18f - p.y), "Vectors", CrtStyle.Ink);
                 TipAdd("What rooms cost. Touching rooms cost less, and opening walls gives some back.", 12, Ui.Text);
             }
-            Ui.Label(new Rect(x, y, w, 16f), sub, 11, over ? new Color(1f, 0.45f, 0.5f) : pending != 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x, y, w, 16f), sub, 11, over ? new Color(1f, 0.45f, 0.5f) : pending != 0 ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 30f;
             CrtKit.Frame(new Rect(x, y - 8f, w, 1f), 1f, new Color(1f, 1f, 1f, 0.08f));
             string title, tip;
             string[] steps;
             BuildToolHelp(BuildTool, out title, out steps, out tip);
-            CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+            CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtStyle.Ink, TextAnchor.MiddleLeft, true, FxCalm);
             y += 32f;
             return y + 4f;
         }
@@ -816,8 +816,8 @@ namespace Arena
             float w = 30f + text.Length * 6.2f;
             var chip = new Rect(x, y, w, 20f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
-            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), Ui.Gold);
-            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), CrtStyle.Gold);
+            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             return true;
         }
 

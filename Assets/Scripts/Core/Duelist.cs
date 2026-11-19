@@ -98,7 +98,7 @@ namespace Arena
 
         /// Its raised blade stops shots (and swings) from in front of it.
         bool DuelGuardBlocks(Enemy e, V2 from) =>
-            DuelGuarding(e) && Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < GuardHalfArc;
+            DuelGuarding(e) && Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < GuardHalfArc;
 
         static float[] DuelMoves(DuelTurn t)
         {
@@ -118,7 +118,7 @@ namespace Arena
         V2 DuelistMove(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
         {
             var s = DuelOf(e);
-            V2 middle = new V2(Width / 2f, Height / 2f);
+            V2 middle = ArenaMid;
             if (s.TransT > 0f || s.Stage == DuelStage.LastStand)
             {
                 speed = s.TransT > 0f ? 420f : 300f;
@@ -178,7 +178,7 @@ namespace Arena
             s.Ring = ringGoal <= 0f ? 0f : Math.Max(ringGoal, (s.Ring <= 0f ? 1000f : s.Ring) - RingClose * dt);
             if (s.Ring > 0f && s.Ring <= ringGoal + 1f)
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.FartherThan(new V2(Width / 2f, Height / 2f), s.Ring - p.Def.BodyR - 3f))
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.FartherThan(ArenaMid, s.Ring - p.Def.BodyR - 3f))
                         Damage(p, RingDamage, "The Duelist (dueling circle)");
 
             // This turn's moves, on time (missed while it reels from a parry).
@@ -214,7 +214,7 @@ namespace Arena
             if (DuelGuarding(e))
             {
                 float lim = (s.Stage == DuelStage.ToTheDeath ? GuardTurnFast : GuardTurn) * dt;
-                float diff = MathX.Fmod((tpos - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float diff = MathX.WrapPi((tpos - e.Pos).Angle - e.Facing);
                 e.Facing += Math.Max(-lim, Math.Min(lim, diff));
             }
             else if (s.Dash == DuelDash.None && s.SaluteT <= 0f && s.StaggerT <= 0f)
@@ -411,7 +411,7 @@ namespace Arena
 
         static V2 InDuelRing(V2 pos, float r, float ring)
         {
-            V2 middle = new V2(Width / 2f, Height / 2f), d = pos - middle;
+            V2 middle = ArenaMid, d = pos - middle;
             float lim = ring - r;
             return d.LengthSq > lim * lim ? middle + d.Normalized() * lim : pos;
         }
@@ -454,8 +454,7 @@ namespace Arena
             s.SaluteT = s.StaggerT = 0f;
             s.Blades.Clear();
             ClearDuelDecoys(e, false);
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, to == DuelStage.Masquerade ? new Rgba(0.71f, 0.61f, 1f) : new Rgba(1f, 0.42f, 0.5f), 900f, 0.8f, Sfx.BossChime);
             DoLog("the Duelist: changing to " + to);
         }
@@ -477,7 +476,7 @@ namespace Arena
             {
                 // It and three lookalikes take places round its target; only it is real.
                 Player p = NearestPlayer(e.Pos);
-                V2 center = p != null ? p.Pos : new V2(Width / 2f, Height / 2f);
+                V2 center = p != null ? p.Pos : ArenaMid;
                 s.RealSlot = rng.Next(4);
                 s.MaskAng = (e.Pos - center).Angle - MathX.Tau * s.RealSlot / 4f;
                 s.MaskT = MaskEvery;

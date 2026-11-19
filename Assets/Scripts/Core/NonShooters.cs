@@ -136,7 +136,7 @@ namespace Arena
                         if (p.Downed || p.SwallowT > 0f)
                             continue;
                         // Swept: anyone the harpoon passed this tick, not only where it ended.
-                        float d = SegDistance(p.Pos, e.Pos + dir * before, tip);
+                        float d = p.Pos.DistanceToSegment(e.Pos + dir * before, tip);
                         if (d > p.Def.BodyR + 6f)
                             continue;
                         if (p.InvulnT > 0f)
@@ -192,17 +192,9 @@ namespace Arena
         bool HookCut(Enemy e, V2 tip)
         {
             foreach (var b in Bullets.Values)
-                if (b.Owner > 0 && !Defs.IsEnemyShot(b.Kind) && SegDistance(b.Pos, e.Pos, tip) < HookCutReach + b.Radius && b.Pos.FartherThan(e.Pos, e.Radius + 4f))
+                if (b.Owner > 0 && !Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceToSegment(e.Pos, tip) < HookCutReach + b.Radius && b.Pos.FartherThan(e.Pos, e.Radius + 4f))
                     return true;
             return false;
-        }
-
-        static float SegDistance(V2 p, V2 a, V2 b)
-        {
-            V2 ab = b - a;
-            float l = ab.LengthSq;
-            float t = l > 0f ? Math.Max(0f, Math.Min(1f, (p - a).Dot(ab) / l)) : 0f;
-            return p.DistanceTo(a + ab * t);
         }
 
         void Fizzle(Enemy pod)

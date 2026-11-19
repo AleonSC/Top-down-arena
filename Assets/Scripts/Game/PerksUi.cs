@@ -25,7 +25,7 @@ namespace Arena
             var equipped = Perks.Equipped(prof);
             string label = "PERKS  " + equipped.Count + "/" + Perks.Slots(prof);
             var kr = new Rect(title.xMax - 124f, title.y + 18f, 124f, 32f);  // right of the class name, under the preview
-            if (LobbyKit.Key(kr, label, false, calm, equipped.Count > 0 ? PerkIcon(equipped[0]) : null, colorIcon: true, size: 13, minSize: 10))
+            if (DkKey(kr, label, false, calm, equipped.Count > 0 ? PerkIcon(equipped[0]) : null, colorIcon: true, size: 13, minSize: 10))
                 lobbyTab = PerkTab;
         }
 
@@ -45,7 +45,7 @@ namespace Arena
                 slots = Mathf.Max(1, equipped.Count);
             }
             LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
-            if (LobbyKit.Key(new Rect(r.xMax - 128f, r.y + 8f, 110f, 26f), "< LOADOUT", false, fxReduced, size: 13, minSize: 10))
+            if (DkKey(new Rect(r.xMax - 128f, r.y + 8f, 110f, 26f), "< LOADOUT", false, fxReduced, size: 13, minSize: 10))
                 lobbyTab = 0;  // back to the loadout (the Perks view opens from its Perks key)
 
             // --- Left: the slots
@@ -67,9 +67,9 @@ namespace Arena
                 : "You're continuing a saved run, so everyone keeps the perks they had when it was saved.";
             Ui.Label(new Rect(lx, ny, lw, 70f), blurb, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
             if (session.PracticeMode && canEdit)  // you can set them up here, but the Practice Range plays without them
-                Ui.Label(new Rect(lx, ny + 48f, lw, 36f), "Perks are off in the Practice Range: they apply to your next real run.", 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
+                Ui.Label(new Rect(lx, ny + 48f, lw, 36f), "Perks are off in the Practice Range: they apply to your next real run.", 12, CrtStyle.Gold, TextAnchor.UpperLeft, true, true);
             if (Time.unscaledTime < perkNoteUntil)
-                Ui.Label(new Rect(lx, ny + (session.PracticeMode ? 96f : 72f), lw, 36f), perkNote, 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
+                Ui.Label(new Rect(lx, ny + (session.PracticeMode ? 96f : 72f), lw, 36f), perkNote, 12, CrtStyle.Gold, TextAnchor.UpperLeft, true, true);
 
             // --- Right: the perks
             float x = r.x + 274f, w = r.xMax - 18f - x;
@@ -91,7 +91,7 @@ namespace Arena
         void DrawPerkSlot(Rect r, PerkDef d, bool canEdit, Profile prof)
         {
             Ui.Pill(r, new Color(1f, 0.8f, 0.35f, 0.12f));
-            Ui.Rim(r, Ui.Gold, 0.85f);
+            Ui.Rim(r, CrtStyle.Gold, 0.85f);
             Ui.Pill(new Rect(r.x + 9f, r.y + 9f, 60f, 60f), new Color(0.02f, 0.03f, 0.06f, 0.95f));
             Ui.Icon(new Rect(r.x + 15f, r.y + 15f, 48f, 48f), PerkIcon(d.Id), 1f);
             Ui.Label(new Rect(r.x + 78f, r.y + 10f, r.width - 120f, 20f), d.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
@@ -129,7 +129,7 @@ namespace Arena
             if (owned)
             {
                 Ui.Pill(r, on ? new Color(1f, 0.8f, 0.35f, 0.1f) : new Color(0.04f, 0.05f, 0.1f, 0.9f));
-                Ui.Rim(r, Ui.Gold, on ? 1f : hover && canEdit ? 0.8f : 0.5f);
+                Ui.Rim(r, CrtStyle.Gold, on ? 1f : hover && canEdit ? 0.8f : 0.5f);
             }
             else
                 DashedCard(r);
@@ -137,14 +137,14 @@ namespace Arena
             Ui.Pill(new Rect(r.x + 9f, r.y + 9f, r.height - 18f, r.height - 18f), new Color(0.02f, 0.03f, 0.06f, 0.95f));
             Ui.Icon(new Rect(r.x + 17f, r.y + 17f, r.height - 34f, r.height - 34f), PerkIcon(d.Id), a);
             float tx = r.x + r.height;
-            Ui.Label(new Rect(tx, r.y + 8f, r.width - r.height - 8f, 14f), BossName(d.Boss).ToUpperInvariant(), 10, owned ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(tx, r.y + 8f, r.width - r.height - 8f, 14f), BossName(d.Boss).ToUpperInvariant(), 10, owned ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(tx, r.y + 22f, r.width - r.height - 8f, 22f), d.Name, 16, owned ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(tx, r.y + 46f, r.width - r.height - 8f, 28f), d.Line, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
             string status = on ? "Equipped" : owned ? (canEdit ? "Click to equip" : "") : d.Built ? d.UnlockText : "Coming soon";
-            Ui.Label(new Rect(r.x + 8f, r.yMax - 20f, r.width - 16f, 16f), status, 10, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.x + 8f, r.yMax - 20f, r.width - 16f, 16f), status, 10, on ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleRight, true);
             if (hover)
             {
-                TipStart(r, d.Name, owned ? Ui.Gold : Ui.Muted);
+                TipStart(r, d.Name, owned ? CrtStyle.Gold : Ui.Muted);
                 TipAdd(d.Tip, 12, Ui.Text);
                 TipAdd(owned ? "" : "Locked: " + d.UnlockText, 11, Ui.Muted);
             }
@@ -199,7 +199,7 @@ namespace Arena
                 Ui.Icon(ir, PerkIcon(d.Id), 1f);
                 if (ir.Contains(Event.current.mousePosition))
                 {
-                    TipStart(ir, d.Name, Ui.Gold);
+                    TipStart(ir, d.Name, CrtStyle.Gold);
                     TipAdd(BossName(d.Boss) + " perk", 10, Ui.Muted, true);
                     TipAdd(d.Line, 12, Ui.Text);
                 }

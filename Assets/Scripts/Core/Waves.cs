@@ -71,7 +71,7 @@ namespace Arena
                         TickSurvivalPicks();  // Survival: the clock is frozen while someone picks a level-up card (SurvivalGame.cs)
                         break;
                     }
-                    if (Room == RoomPhase.Portal)
+                    if (ChallengePhase == RoomPhase.Portal)
                         TickPortal(dt);  // a challenge room's portal is open (Challenges.cs)
                     // The countdown waits while anyone is still choosing upgrades, for the host to pick a path, and for the shop.
                     if (PathOffer != null && Bot)
@@ -85,7 +85,7 @@ namespace Arena
                     TickMysteryDoors();  // a door whose room no longer fits is re-planned or goes (MysteryDoors.cs)
                     if (RoomsOn)
                         TickStashClaims();  // a breach Stash's cache can be walked into between waves too (BreachEvent.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && !KeepsakeOpen && Room == RoomPhase.None)  // (and while a portal is open)
+                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && !KeepsakeOpen && ChallengePhase == RoomPhase.None)  // (and while a portal is open)
                     {
                         if (!TickBossGate(ref StateTimer, dt))  // before a boss: everyone in the boss gate instead (BossGate.cs)
                             TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
@@ -260,8 +260,7 @@ namespace Arena
             }
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             ClearReady();  // nobody is ready yet (WaveReady.cs)
             DoLog("wave " + Wave + " cleared");
         }

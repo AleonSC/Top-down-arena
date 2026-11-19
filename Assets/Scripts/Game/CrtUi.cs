@@ -16,9 +16,6 @@ namespace Arena
             get => CrtStyle.Theme;
             set => CrtStyle.Theme = value;
         }
-        public static Color Ink => CrtStyle.Ink;
-        public static Color Dim => CrtStyle.Dim;
-        public static Color Bg => CrtStyle.Bg;
         static Color Bezel => CrtStyle.Bezel;
 
         /// A colour drawn for the blue theme, moved to the chosen phosphor (CrtStyle.T).
@@ -36,8 +33,8 @@ namespace Arena
                 Begin(r, alpha);
                 return;
             }
-            var bz = new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha);
-            var bg = new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha);
+            var bz = Bezel.ScaleAlpha(alpha);
+            var bg = CrtStyle.Bg.ScaleAlpha(alpha);
             System.Action<Rect> both = q => { if (q.width > 0f && q.height > 0f) { Ui.Fill(q, bz); Ui.Fill(q, bg); } };
             Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, 3f), bz);  // the bezel ring
             Ui.Fill(new Rect(r.x - 3f, r.yMax, r.width + 6f, 3f), bz);
@@ -52,14 +49,14 @@ namespace Arena
                 x = h.xMax;
             }
             both(new Rect(x, top, r.xMax - x, bot - top));
-            CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
+            CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.35f));
         }
 
         public static void Begin(Rect r, float alpha)
         {
-            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha));
-            Ui.Fill(r, new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha));
-            CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
+            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), Bezel.ScaleAlpha(alpha));
+            Ui.Fill(r, CrtStyle.Bg.ScaleAlpha(alpha));
+            CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.35f));
         }
 
         /// A big screen title (the cabinet's header, a window's heading) in the CRT font, glowing. `size` is in pixels, as in the mockups.
@@ -86,50 +83,13 @@ namespace Arena
         {
             if (!calm && Event.current.type == EventType.Repaint)
             {
-                var g = new Color(c.r, c.g, c.b, c.a * CrtStyle.TextGlow);
+                var g = c.ScaleAlpha(CrtStyle.TextGlow);
                 Ui.Label(new Rect(r.x - 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
                 Ui.Label(new Rect(r.x + 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
                 Ui.Label(new Rect(r.x, r.y - 1f, r.width, r.height), s, size, g, align, bold, wrap);
                 Ui.Label(new Rect(r.x, r.y + 1f, r.width, r.height), s, size, g, align, bold, wrap);
             }
             Ui.Label(r, s, size, c, align, bold, wrap);
-        }
-
-        /// A soft key with an optional icon: the Play picker's Continue and DEL (look B of Docs/Mockups/crt-play-picker-keys.html).
-        /// Drawn like the lobby's keys (CrtKit.SoftBox / SoftText), never a solid block. lit: always shown selected (the latest
-        /// run's Continue, a delete waiting for its second click). danger: red. quiet: dashed and dim until the mouse is on it
-        /// (unless lit). True when pressed.
-        public static bool SoftKey(Rect r, string text, Texture2D icon, int size, bool calm, bool lit = false, bool danger = false, bool quiet = false)
-        {
-            bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
-            Ui.NoteHover(r);
-            Color c = CrtStyle.KeyColor(null, danger), tc;
-            bool hushed = quiet && !hover && !lit;
-            if (hushed)
-            {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietTint));
-                CrtKit.Dashed(r, CrtStyle.KeyQuietDashW, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietDash));
-                tc = new Color(c.r, c.g, c.b, CrtStyle.KeyQuietText);
-            }
-            else
-            {
-                CrtKit.SoftBox(r, c, lit, hover, false);
-                tc = CrtKit.SoftText(c, lit || hover);
-            }
-            float isz = Mathf.Min(size * 1.0f, r.height * 0.5f);
-            float tw = text.Length == 0 ? 0f : Ui.TextWidth(text, size, true) - 6f, gap = icon != null && text.Length > 0 ? (size >= 18 ? 10f : 6f) : 0f, ic = icon != null ? isz : 0f;
-            float x = r.center.x - (ic + gap + tw) / 2f;
-            if (icon != null)
-                Ui.Icon(new Rect(x, r.center.y - isz / 2f, isz, isz), icon, tc);
-            if (text.Length > 0)
-            {
-                var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height);
-                if (hover || lit)
-                    Ui.Label(tr, text, size, tc, TextAnchor.MiddleLeft, true);
-                else
-                    Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, calm);
-            }
-            return Ui.HitArea(r);
         }
 
         /// Scanlines, vignette and (unless calm) the rolling bar and flicker, over everything drawn since Begin.

@@ -187,7 +187,7 @@ namespace Arena
 
         readonly System.Random ssRng = new System.Random(7);
         float SsRnd(float a, float b) => a + (b - a) * (float)ssRng.NextDouble();
-        static float SsAngDiff(float from, float to) => MathX.Fmod(to - from + MathX.Pi, MathX.Tau) - MathX.Pi;
+        static float SsAngDiff(float from, float to) => MathX.WrapPi(to - from);
 
         /// A Stonespear sound (StonespearSoundBank.cs): quieter for someone else's spear and with distance.
         void SsSound(Sfx cue, int owner, V2 at)

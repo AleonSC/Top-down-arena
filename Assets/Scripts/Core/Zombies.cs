@@ -300,7 +300,7 @@ namespace Arena
             int room = Math.Min(Zombies.GravesPerCall, Zombies.MaxCalled - CalledBy(e));
             if (room <= 0 || e.Pos.FartherThan(tpos, Zombies.CallerKeep * 2f))
                 return false;
-            float a0 = Rand(0f, MathX.Tau);
+            float a0 = RandAngle();
             for (int i = 0; i < room; i++)
             {
                 V2 at = ClampToArena(tpos + V2.FromAngle(a0 + MathX.Tau * i / Zombies.GravesPerCall) * Zombies.GraveRing, 30f);
@@ -335,7 +335,7 @@ namespace Arena
             }
             e.FireT = Zombies.SpitEvery;
             e.PhaseT = 0.5f;
-            V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 20f), 50f);
+            V2 at = ClampToArena(tpos + RandDir() * Rand(0f, 20f), 50f);
             SpawnPatchAt(PatchKind.Acid, at, Zombies.SpitFlight, Zombies.SpitFlight + Zombies.AcidLife, Zombies.AcidRadius, Zombies.AcidRadius);
             BroadcastFx(FxKind.Target, at, new Rgba(0.91f, 0.89f, 0.35f), Zombies.AcidRadius, Zombies.SpitFlight, Sfx.ZombieSpit);
         }

@@ -257,7 +257,7 @@ namespace Arena
         {
             var r = new Rect(at.X - 24f, at.Y - 9f, 48f, 18f);
             Ui.Pill(r, new Color(0f, 0f, 0f, 0.6f * alpha));
-            Ui.Label(r, "FULL", 11, new Color(VecFullInk.r, VecFullInk.g, VecFullInk.b, alpha), TextAnchor.MiddleCenter, true);
+            Ui.Label(r, "FULL", 11, VecFullInk.WithAlpha(alpha), TextAnchor.MiddleCenter, true);
         }
 
         /// DrawVectorChip: how lit the chip is (1 as the shards land, easing off), and the count it shows (counting up to your stock).

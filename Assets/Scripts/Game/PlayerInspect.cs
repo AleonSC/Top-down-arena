@@ -60,8 +60,8 @@ namespace Arena
             pop = 1f - (1f - pop) * (1f - pop) * (1f - pop);
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.02f, 0.06f, 0.74f * pop));
             var card = new Rect((W - InspectW) / 2f, 50f + (1f - pop) * 24f, InspectW, InspectH);
-            var tier = ToColor(Rank.TierColor(e.Rank));
-            var roleCol = ToColor(Defs.Get(e.Role).Color);
+            var tier = Rank.TierColor(e.Rank).ToColor();
+            var roleCol = (Defs.Get(e.Role).Color).ToColor();
             if (pop < 1f)
                 GUI.color = new Color(1f, 1f, 1f, pop);
 
@@ -84,7 +84,7 @@ namespace Arena
                 float by = card.y + ((t * 0.19f) % 1f) * (card.height + 90f) - 90f;
                 float y0 = Mathf.Max(by, card.y + 5f), y1 = Mathf.Min(by + 90f, card.yMax - 5f);
                 if (y1 > y0)
-                    Ui.Fill(new Rect(card.x + 5f, y0, card.width - 10f, y1 - y0), new Color(tier.r, tier.g, tier.b, 0.1f));
+                    Ui.Fill(new Rect(card.x + 5f, y0, card.width - 10f, y1 - y0), tier.WithAlpha(0.1f));
             }
 
             float cx = card.center.x, y = card.y;

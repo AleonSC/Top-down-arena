@@ -258,7 +258,7 @@ namespace Arena
                 float cx = FrameHash(i) * w, cy = FrameHash(i + 5) * h, half = 9f + FrameHash(i + 11) * 14f;
                 float turn = t * (0.5f + FrameHash(i + 2) * 0.7f) * (i % 2 == 1 ? 1f : -1f) + i;
                 var col = Color.HSVToRGB(Wrap(i * 0.11f + t * 0.08f, 1f), 0.6f, 1f);
-                CardShard(cx, cy, half, turn, new Color(col.r, col.g, col.b, 0.24f));
+                CardShard(cx, cy, half, turn, col.WithAlpha(0.24f));
             }
         }
     }

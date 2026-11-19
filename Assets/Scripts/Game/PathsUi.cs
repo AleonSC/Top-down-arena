@@ -14,9 +14,9 @@ namespace Arena
             if (offer == null)
                 return;
             Ui.Alpha = 1f;  // the choice is never faded: nothing else's leftover fade may dim it
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
-            CrtUi.Title(new Rect(0, 22f, W, 56f), "CHOOSE YOUR PATH", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            CrtUi.Title(new Rect(0, 22f, W, 56f), "CHOOSE YOUR PATH", 52, CrtStyle.Ink, TextAnchor.MiddleCenter, calm);
             int from = game.ShownStart(game.Wave + 1), to = game.ShownEnd(game.Wave + Paths.Length), boss = to;
             Ui.Label(new Rect(0, 80f, W, 20f), "Waves " + from + "-" + to + "  ·  the boss after wave " + boss + " is the same either way", 13, Ui.Muted, TextAnchor.MiddleCenter);
             if (game.Route.Count > 0)
@@ -35,17 +35,17 @@ namespace Arena
             }
             // Or neither: the plain arena for this stretch, with no bonus and no prize.
             float by = y + ch + 12f;
-            if (session.IsHost && CrtUi.SoftKey(new Rect(W / 2f - 250f, by, 500f, 34f), "NO PATH  ·  STAY ON THE PLAIN ARENA", null, 22, calm))
+            if (session.IsHost && DkKey(new Rect(W / 2f - 250f, by, 500f, 34f), "NO PATH  ·  STAY ON THE PLAIN ARENA", false, calm, size: 22, rawSize: true))
                 game.ChoosePath(2);
             string waitText = session.IsHost ? "You're the host: pick the path for everyone" : "Waiting for " + HostName() + " to pick the path (or no path)";
-            Ui.Label(new Rect(0, by + 40f, W, 22f), waitText, 14, session.IsHost ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0, by + 40f, W, 22f), waitText, 14, session.IsHost ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
         }
 
         /// One path as a blue CRT tube (look A of Docs/Mockups/crt-path-select.html): its live floor, name and skulls, rules, bonus and prize.
         bool DrawPathCard(Rect r, PathDef d, float t, int index, bool calm)
         {
             bool hover = session.IsHost && r.Contains(Event.current.mousePosition);
-            Color ink = CrtUi.Ink, dim = CrtUi.Dim;
+            Color ink = CrtStyle.Ink, dim = CrtStyle.Dim;
             bool taken = false;
             CrtUi.Begin(r);
             if (hover)
@@ -99,7 +99,7 @@ namespace Arena
             Ui.Label(new Rect(x, y, 130f, 24f), "PRIZE", 10, dim, TextAnchor.MiddleLeft, true);
             HudCrt(new Rect(x + 140f, y, w - 140f, 24f), Paths.PrizeText(d) + " before the boss", 22, CrtStyle.Gold);
             if (session.IsHost)
-                taken = CrtUi.SoftKey(new Rect(x, r.yMax - 18f - 46f, w, 46f), "TAKE THIS PATH", PixelArt.Get("ui_play"), 26, calm);
+                taken = DkKey(new Rect(x, r.yMax - 18f - 46f, w, 46f), "TAKE THIS PATH", false, calm, icon: PixelArt.Get("ui_play"), size: 26, rawSize: true);
             CrtUi.End(r, Time.unscaledTime, fxReduced);
             return taken;
         }
@@ -541,7 +541,7 @@ namespace Arena
                         float d = rel.Length;
                         float round = Smooth((d - NightSight) / NightEdge);
                         // The lantern: a cone toward where they aim, fading toward its far end.
-                        float off = Mathf.Abs(MathX.Fmod(rel.Angle - pl.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+                        float off = Mathf.Abs(MathX.WrapPi(rel.Angle - pl.Aim));
                         float beam = d < 1f ? 0f : Mathf.Max(Smooth((off - NightBeamHalf) / 0.18f), Smooth((d - NightBeam) / 160f) * 0.85f + 0.15f * d / NightBeam);
                         if (!pl.Downed)
                             round = Mathf.Min(round, beam);
@@ -644,7 +644,7 @@ namespace Arena
             string text = d.Name.ToUpperInvariant() + "  ·  " + (game.OnPath ? left + " wave" + (left == 1 ? "" : "s") + " left" : "starts next wave");
             float w = 30f + text.Length * 6.4f + 16f * d.Danger;
             var chip = new Rect(x, y, w, 20f);
-            var accent = ToColor(d.Accent);
+            var accent = d.Accent.ToColor();
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), accent);
             Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, accent, TextAnchor.MiddleLeft, true);

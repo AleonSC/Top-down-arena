@@ -9,7 +9,8 @@ no Unity in the cloud container: check changes with the tools below.
 - `Docs/Glossary.md`: the one word for each thing (classes, runs, places, boss phases, upgrade cards) and the rule
   that code ids match in-game names. Use its words in code, docs and replies.
 - `CODEMAP.md`: **start here**. One line per source file grouped by system, plus a "Where to look for..." table.
-  It's the one file map to keep up to date: give every new source file a line there.
+  It's the one file map to keep up to date: give every new source file a line there (`Tools/CodeMap/check.py`, run by CI,
+  fails on a missing, duplicated or deleted file).
 - `HANDOFF.md`: §1 the game in one page · §2 key mechanisms (networking, snapshots, ...) and "Adding a class" ·
   §3 every test and preview tool · §6 open ideas from the code audits.
 - `README.md`: player-facing reference for every weapon, ability, enemy, boss, mode and control. Use `grep -n '^## '
@@ -36,6 +37,7 @@ no Unity in the cloud container: check changes with the tools below.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
 - The Bestiary, Armory and Field guide are gone and retired (the owner will regenerate them later): don't recreate, update or mention them in code, docs, tests or reports.
 - New UI uses `DevKit.cs`'s CRT widgets (`DkKey`, `DkSwitch`, `DkField`, `DkSub`, `DkPanel`, `DkTitle`, ...); `Ui.cs` holds drawing primitives only.
+  Colours: `CrtStyle` is the one palette (`Gold`, `Danger`, `Ink`, ...); `ColorX` has `WithAlpha`/`ScaleAlpha`/`ToColor`.
 - **Keep the session title current** with `set_session_title`: a short task name plus the current phase in
   brackets, updated as the phase changes, e.g. "Implement Lancer class (thinking)" → "(planning)" → "(coding)" →
   "(testing)" → "(merging)" → "(done)".

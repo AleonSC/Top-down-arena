@@ -110,18 +110,6 @@ namespace Arena
             return ok;
         }
 
-        /// An Extra Use card's name in an older save, from before the abilities were called 1st-4th ("Extra Use: Q").
-        static string OldUseCard(string name)
-        {
-            switch (name)
-            {
-                case "Extra Use: Space": return "Extra Use: 1st Ability";
-                case "Extra Use: Q": return "Extra Use: 2nd Ability";
-                case "Extra Use: E": return "Extra Use: 3rd Ability";
-                case "Extra Use: Shift": return "Extra Use: 4th Ability";
-                default: return name;
-            }
-        }
 
         /// An ability's name in an older save, as it is called now (OldNames.cs).
         static string OldAbilityName(string name) => OldNames.Ability(name);
@@ -144,7 +132,7 @@ namespace Arena
                             p.Taken.Add(Upgrades.UseCard(slot));
                         continue;
                     }
-                    string card = name == "Cluster Grenade" ? "Airstrike" : name == "Kinetic Wall" ? "Gale Wall" : name == "Second Charge" ? "Extra Use: 1st Ability" : OldUseCard(name);  // (the Cluster Grenade became Airstrike, Kinetic Wall Gale Wall; Second Charge became Extra Use)
+                    string card = OldNames.Upgrade(name);
                     int u = Array.FindIndex(Upgrades.All, x => x.Name == card);
                     if (u >= 0)
                         p.Taken.Add(u);
@@ -282,7 +270,7 @@ namespace Arena
             endlessRecorded = Endless;
             var logged = Profile.AddQuitLog(RecordWave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
             logged.Class = Arena.Profile.ClassKey(Me.Role, Me.Kit);
-            logged.Mode = Quick ? (Endless ? "Quick Play · Endless" : "Quick Play") : Endless ? "Endless" : "Campaign";  // (a Quick Play quit before its first record, or in its endless stretch: QuickRecord)
+            logged.Mode = RunLabel(Endless);  // (a Quick Play quit before its first record, or in its endless stretch: QuickRecord)
             logged.Seconds = RunTime;
             logged.Dealt = Me.Run.DamageDealt; logged.Taken = Me.Run.DamageTaken; logged.Heal = Me.Run.HealingDone;
             logged.Players = Players.Count;
@@ -425,11 +413,11 @@ namespace Arena
                         PayCores(Variants.HuntCores(won), found);
                         var hunted = Profile.Recent[0];  // (the hunt just added by AwardXp: its curve for the results screen and Recent runs)
                         hunted.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
-                        hunted.Mode = "Hunt";
+                        hunted.Mode = RunLabel();
                         hunted.Seconds = time;
                         hunted.Dealt = me.Run.DamageDealt; hunted.Taken = me.Run.DamageTaken; hunted.Heal = me.Run.HealingDone;
                         hunted.Players = Players.Count;
-                        hunted.File = FinishTimeline(won, HuntWave, false, time, hunted.Class, hunted.Mods, "Hunt");  // RunTimeline.cs
+                        hunted.File = FinishTimeline(won, HuntWave, false, time, hunted.Class, hunted.Mods, RunLabel());  // RunTimeline.cs
                         SaveProfile();
                         return;
                     }
@@ -439,7 +427,7 @@ namespace Arena
                     PayCores(Variants.RunCores(won, Rank.BossesIn(wavesCleared), Endless), found);
                     var logged = Profile.Recent[0];  // (the run just added by AwardXp)
                     logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
-                    logged.Mode = Endless ? "Endless" : deathless ? "Campaign · Deathless" : "Campaign";
+                    logged.Mode = RunLabel(Endless, deathless);
                     logged.Seconds = time;
                     logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
                     logged.Players = Players.Count;
@@ -470,7 +458,7 @@ namespace Arena
             PayCores(Variants.RunCores(false, newBosses, true), Math.Max(0, found - endlessFromCores));
             var logged = Profile.Recent[0];
             logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
-            logged.Mode = "Endless";
+            logged.Mode = RunLabel(true);
             logged.Seconds = time;
             logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
             logged.Players = Players.Count;
@@ -497,7 +485,7 @@ namespace Arena
             PayCores(Variants.RunCores(first && won, Math.Max(0, newBosses), false), first ? found : 0);
             var logged = Profile.Recent[0];
             logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
-            logged.Mode = Endless ? "Quick Play · Endless" : "Quick Play";
+            logged.Mode = RunLabel(Endless);
             logged.Seconds = time;
             logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
             logged.Players = Players.Count;

@@ -73,7 +73,7 @@ static partial class Program
         Run(s, dt, 400f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () =>
         {
             keep();
-            portal |= g.Room != RoomPhase.None;
+            portal |= g.ChallengePhase != RoomPhase.None;
             if (g.Wave < Hunts.Length)
                 foreach (var e in g.Enemies.Values)
             {
@@ -103,7 +103,7 @@ static partial class Program
             "hunt records read back from the profile's text");
         var huntLog = hp.Recent.Count > 0 ? hp.Recent[0] : null;
         var huntTl = huntLog == null ? null : RunTimelineStore.Load(huntLog.File);
-        Check(huntLog != null && huntLog.Result == 3 && huntLog.Mode == "Hunt" && huntLog.Class.Length > 0 && huntTl != null && huntTl.Won && huntTl.Samples.Count >= 3 && huntTl.Mode == "Hunt",
+        Check(huntLog != null && huntLog.Result == 3 && huntLog.Mode == "Boss Hunt" && huntLog.Class.Length > 0 && huntTl != null && huntTl.Won && huntTl.Samples.Count >= 3 && huntTl.Mode == "Boss Hunt",
             "a finished hunt keeps its curve too (the results screen graphs it)");
         host.Leave(""); client.Leave("");
         Profile.Folder = wasFolder;

@@ -76,7 +76,6 @@ namespace Arena
             return DriveAt(profTrT, info != null ? info.Name : Profile.Current.Name, WhoColor(info));
         }
 
-        static Color Al(Color c, float a) => new Color(c.r, c.g, c.b, c.a * a);
 
         void DrawDriveSlot(float alpha, DriveState S)
         {
@@ -92,22 +91,22 @@ namespace Arena
                 Ui.Fill(new Rect(x0 + 12f, y0 + 2f, DriveW - 24f, 1f), new Color(0.6f, 0.7f, 1f, 0.25f));
                 var slit = new Rect(cx - DriveSlitW / 2f, DriveY - 4f, DriveSlitW, 8f);
                 if (S.glow > 0f)
-                    Ui.Pill(new Rect(slit.x - 3f, slit.y - 3f, slit.width + 6f, slit.height + 6f), Al(S.glowCol, 0.3f * S.glow));
+                    Ui.Pill(new Rect(slit.x - 3f, slit.y - 3f, slit.width + 6f, slit.height + 6f), S.glowCol.ScaleAlpha(0.3f * S.glow));
                 Ui.Pill(slit, new Color(0.004f, 0.008f, 0.04f));
                 if (S.glow > 0f)
-                    Ui.Pill(slit, Al(S.glowCol, 0.55f * S.glow));
+                    Ui.Pill(slit, S.glowCol.ScaleAlpha(0.55f * S.glow));
                 DrawDriveLipLine(S);
                 // the status light and the drive's letter
                 var lc = new Vector2(cx - 143f, DriveY);
-                Ui.Dot(new Rect(lc.x - 9.5f, lc.y - 9.5f, 19f, 19f), Al(S.led, 0.25f * S.ledA));
-                Ui.Dot(new Rect(lc.x - 4.5f, lc.y - 4.5f, 9f, 9f), Al(S.led, S.ledA));
+                Ui.Dot(new Rect(lc.x - 9.5f, lc.y - 9.5f, 19f, 19f), S.led.ScaleAlpha(0.25f * S.ledA));
+                Ui.Dot(new Rect(lc.x - 4.5f, lc.y - 4.5f, 9f, 9f), S.led.ScaleAlpha(S.ledA));
                 Ui.Dot(new Rect(lc.x - 3f, lc.y - 3f, 3f, 3f), new Color(1f, 1f, 1f, 0.55f));
                 Ui.Label(new Rect(cx - 130f, DriveY - 9f, 24f, 18f), "A:", 11, new Color(0.63f, 0.75f, 1f, 0.7f), TextAnchor.MiddleLeft, true);
                 // the read cells fill while the disk is read
                 for (int i = 0; i < 4; i++)
                 {
                     bool on = S.done || S.prog > (i + 0.5f) / 4f;
-                    Ui.Pill(new Rect(cx + 112f + i * 12f, DriveY - 4f, 8f, 8f), on ? Al(S.glowCol, 0.95f) : new Color(0.06f, 0.09f, 0.23f));
+                    Ui.Pill(new Rect(cx + 112f + i * 12f, DriveY - 4f, 8f, 8f), on ? S.glowCol.ScaleAlpha(0.95f) : new Color(0.06f, 0.09f, 0.23f));
                 }
                 Ui.Label(new Rect(cx - 150f, DriveY + 22f, 300f, 16f), S.text, 11, new Color(0.63f, 0.75f, 1f, S.done ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true);
             });

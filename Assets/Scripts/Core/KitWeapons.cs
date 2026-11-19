@@ -351,11 +351,11 @@ namespace Arena
                     continue;
                 V2 a = p.Pos, b = m.Pos;
                 foreach (var q in Players.Values)
-                    if (q != p && !q.Downed && DistToSegment(q.Pos, a, b) <= VineWidth + q.Def.BodyR)
+                    if (q != p && !q.Downed && q.Pos.DistanceToSegment(a, b) <= VineWidth + q.Def.BodyR)
                         Heal(q, VineHeal * dt, p);
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || DistToSegment(e.Pos, a, b) > VineWidth + e.Radius)
+                    if (!Targetable(e) || e.Pos.DistanceToSegment(a, b) > VineWidth + e.Radius)
                         continue;
                     if (!e.Def.IsBoss)
                     {
@@ -381,14 +381,6 @@ namespace Arena
             m.SeedCd = SeedInterval;
             V2 dir = (e.Pos - m.Pos).Normalized();
             SpawnBullet(Defs.TreantSeed, m.Pos + dir * (m.Def.Radius * m.Scale), dir * SeedSpeed, 0f, SeedRange * m.Scale / SeedSpeed, SeedDamage * owner.Stats.DmgMult, m.Owner);
-        }
-
-        static float DistToSegment(V2 pt, V2 a, V2 b)
-        {
-            V2 ab = b - a;
-            float len2 = ab.X * ab.X + ab.Y * ab.Y;
-            float k = len2 < 1f ? 0f : Math.Max(0f, Math.Min(1f, ((pt.X - a.X) * ab.X + (pt.Y - a.Y) * ab.Y) / len2));
-            return pt.DistanceTo(a + ab * k);
         }
 
         // --- Wisp Lantern and Imp Caller: companions you send ---------------------------------------

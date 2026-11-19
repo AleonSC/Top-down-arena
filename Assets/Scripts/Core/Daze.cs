@@ -31,6 +31,13 @@ namespace Arena
             e.StunT = Math.Max(e.StunT, t);
         }
 
+        /// Hold `e` in place for `t` s: frozen (no moving or shooting) and slowed as long (a hook, a pin, a freeze).
+        static void Hold(Enemy e, float t)
+        {
+            e.FrozenT = Math.Max(e.FrozenT, t);
+            e.SlowT = Math.Max(e.SlowT, t);
+        }
+
         /// Is `e` held by real ice, not only a Stun (a freeze lasting longer than the stun counts as ice)?
         internal static bool IceFrozen(Enemy e) => e.FrozenT > e.StunT + StunSlack;
 

@@ -52,7 +52,7 @@ namespace Arena
             {
                 var q = players[i];
                 string label = q.Name + (q.Id == game.MyId ? " (you)" : "");
-                if (DkChoice(new Rect(x + i * (tw + 8f), y, tw, 32f), label, q.Id == p.Id, ToColor(q.Def.Color)))
+                if (DkChoice(new Rect(x + i * (tw + 8f), y, tw, 32f), label, q.Id == p.Id, q.Def.Color.ToColor()))
                 {
                     devPlayer = q.Id;
                     devFocus = "";
@@ -75,7 +75,7 @@ namespace Arena
                     game.DevLevelUp(p.Id);
                 if (DkKey(c[3], "MASTERY", Ui.Neutral, false, 12))
                     game.DevMasterAll(p.Id);
-                if (DkKey(c[4], "RESET", Ui.Danger, false, 12))
+                if (DkKey(c[4], "RESET", CrtStyle.Danger, false, 12))
                 {
                     game.DevResetStats(p.Id);
                     devFocus = "";
@@ -134,13 +134,13 @@ namespace Arena
             var f = Game.StatFields[i];
             float value = Game.StatValue(p.Stats, i);
             bool edited = p.StatOverrides.ContainsKey(i);
-            Ui.Label(new Rect(r.x, r.y, r.width * 0.45f, r.height), Spaced(f.Name), 13, edited ? Ui.Gold : CrtStyle.Body);
+            Ui.Label(new Rect(r.x, r.y, r.width * 0.45f, r.height), Spaced(f.Name), 13, edited ? CrtStyle.Gold : CrtStyle.Body);
             bool isInt = f.FieldType == typeof(int), isBool = f.FieldType == typeof(bool);
             string shown = isBool ? (value != 0f ? "on" : "off") : isInt ? value.ToString("0") : value.ToString("0.###");
             float vx = r.x + r.width * 0.45f;
             if (!host)
             {
-                Ui.Label(new Rect(vx, r.y, 120f, r.height), shown, 13, edited ? Ui.Gold : CrtStyle.Desc);
+                Ui.Label(new Rect(vx, r.y, 120f, r.height), shown, 13, edited ? CrtStyle.Gold : CrtStyle.Desc);
                 return;
             }
             if (isBool)
@@ -174,7 +174,7 @@ namespace Arena
                     Commit(p, i, value + step);
             }
             if (edited)
-                Ui.Label(new Rect(r.xMax - 70f, r.y, 70f, r.height), "edited", 11, Ui.Gold, TextAnchor.MiddleRight);
+                Ui.Label(new Rect(r.xMax - 70f, r.y, 70f, r.height), "edited", 11, CrtStyle.Gold, TextAnchor.MiddleRight);
         }
 
         void Commit(Player p, int field, float value)

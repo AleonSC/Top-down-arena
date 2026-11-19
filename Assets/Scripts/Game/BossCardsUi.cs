@@ -10,7 +10,7 @@ namespace Arena
         static readonly Color BossCardsTheme = new Color(0.45f, 0.85f, 1f);  // the cards' blue
 
         /// A code's colour: a card in its card colour (PieceCardsUi.CardColor), a kit in its path's accent.
-        static Color BossCardColor(int code) => BossCards.IsKit(code) ? ToColor(Paths.Get(BossCards.FloorOf(code)).Accent) : ToColor(CardColor(BossCards.CardOf(code)));
+        static Color BossCardColor(int code) => BossCards.IsKit(code) ? Paths.Get(BossCards.FloorOf(code)).Accent.ToColor() : CardColor(BossCards.CardOf(code)).ToColor();
 
         static Rgba BossCardRgba(int code) { var c = BossCardColor(code); return new Rgba(c.r, c.g, c.b); }
 
@@ -53,7 +53,7 @@ namespace Arena
             Color nameLow = selected ? Color.Lerp(rc, Color.white, 0.25f) : new Color(0.78f, 0.83f, 0.94f);
             CrtUi.Title(new Rect(r.x + 8f, r.y + 148f, r.width - 16f, 36f), name, name.Length > 14 ? 25 : 30, Color.Lerp(nameLow, Color.white, 0.6f), TextAnchor.MiddleCenter, fxReduced);
             string desc = BossCards.Blurb(code);
-            Ui.Label(new Rect(r.x + 14f, r.y + 188f, r.width - 28f, 90f), desc, desc.Length > 110 ? 12 : 13, selected ? Color.white : LobbyKit.Soft, TextAnchor.UpperCenter, false, true);
+            Ui.Label(new Rect(r.x + 14f, r.y + 188f, r.width - 28f, 90f), desc, desc.Length > 110 ? 12 : 13, selected ? Color.white : CrtStyle.Body, TextAnchor.UpperCenter, false, true);
 
             // Where it goes, or why it can't be taken.
             if (usable)
@@ -70,7 +70,7 @@ namespace Arena
             string keyText = (index + 1).ToString();
             DrawKeyCap(new Rect(r.center.x - (12f + keyText.Length * 6.5f) / 2f, r.yMax - 40f, 0f, 18f), keyText, selected ? rc : new Color(1f, 1f, 1f, 0.6f));
             for (float dx = 0f; dx < r.width - 20f; dx += 8f)
-                Ui.Fill(new Rect(r.x + 10f + dx, r.yMax - 12f, 5f, 2f), new Color(rc.r, rc.g, rc.b, selected ? 0.95f : hover ? 0.8f : 0.5f));
+                Ui.Fill(new Rect(r.x + 10f + dx, r.yMax - 12f, 5f, 2f), rc.WithAlpha(selected ? 0.95f : hover ? 0.8f : 0.5f));
             if (!usable)
                 Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.55f));
             else if (behind)

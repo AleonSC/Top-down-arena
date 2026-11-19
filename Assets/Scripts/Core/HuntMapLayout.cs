@@ -56,7 +56,7 @@ namespace Arena
             return all;
         }
 
-        static float Half(HuntNode n, float half, float bossHalf) => n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss ? bossHalf : half;
+        static float Half(HuntNode n, float half, float bossHalf) => n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.MiniBoss ? bossHalf : half;
 
         static float[] Spots(int k, float half)
         {

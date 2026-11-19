@@ -30,7 +30,7 @@ namespace Arena
             if (me != null)
             {
                 string build = me.Def.Name + "  ·  " + me.Weapon.Name + "  ·  " + Upgrades.Ability(me.FirstAbility).Name + "  ·  " + Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit, me.UltPick)).Name;
-                Ui.Label(new Rect(x, y - 2f, w, 20f), "Your build: " + build, 12, Ui.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, y - 2f, w, 20f), "Your build: " + build, 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             }
             y += 24f;
             Ui.Label(new Rect(x, y, 120f, 22f), "START WAVE", 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
@@ -73,7 +73,7 @@ namespace Arena
             if (DkKey(new Rect(x, y, 190f, 32f), "Open logs folder"))
                 OpenFolder(BalanceFolderPath);
             var t = game.Test;
-            if (running && DkKey(new Rect(x + 202f, y, 190f, 32f), "End test now", Ui.Danger))
+            if (running && DkKey(new Rect(x + 202f, y, 190f, 32f), "End test now", CrtStyle.Danger))
                 game.DevEndBalanceTest("ended by the player");
             if (t != null && t.Done && DkKey(new Rect(x + 202f, y, 190f, 32f), "Open last report", Ui.GoldButton))
                 btDismissed = null;
@@ -89,13 +89,13 @@ namespace Arena
             if (t == null || t.Done)
                 return;
             var r = new Rect(W / 2f - 250f, 8f, 500f, 30f);
-            DkSub(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.94f));
+            DkSub(r, CrtStyle.Bg.WithAlpha(0.94f));
             bool blink = (int)(Time.unscaledTime * 1.6f) % 2 == 0;
             Ui.Fill(new Rect(r.x + 12f, r.y + 11f, 8f, 8f), blink ? new Color(1f, 0.42f, 0.42f) : new Color(1f, 0.42f, 0.42f, 0.3f));
             int n = Mathf.Clamp(game.Wave - t.FirstWave + 1, 0, t.Waves);
             Ui.Label(new Rect(r.x + 26f, r.y, 70f, r.height), "TEST", 12, new Color(1f, 0.55f, 0.55f), TextAnchor.MiddleLeft, true);
             for (int i = 0; i < t.Waves; i++)
-                Ui.Fill(new Rect(r.x + 74f + i * 26f, r.y + 11f, 22f, 8f), i < n - 1 ? BtColor : i == n - 1 ? Ui.Gold : new Color(1f, 1f, 1f, 0.12f));
+                Ui.Fill(new Rect(r.x + 74f + i * 26f, r.y + 11f, 22f, 8f), i < n - 1 ? BtColor : i == n - 1 ? CrtStyle.Gold : new Color(1f, 1f, 1f, 0.12f));
             Ui.Label(new Rect(r.x + 214f, r.y, r.width - 226f, r.height), "WAVE " + Mathf.Max(game.Wave, t.FirstWave) + "   ·   F1 > Balance to end", 11, CrtStyle.Desc, TextAnchor.MiddleRight);
         }
 
@@ -180,7 +180,7 @@ namespace Arena
             // Findings and buttons.
             var fr = new Rect(panel.x + 24f, list.yMax + 8f, panel.width - 48f, 78f);
             DkSub(fr, new Color(1f, 0.7f, 0.2f, 0.07f));
-            Ui.Label(new Rect(fr.x + 12f, fr.y + 4f, 200f, 14f), "FINDINGS", 9, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(fr.x + 12f, fr.y + 4f, 200f, 14f), "FINDINGS", 9, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             for (int i = 0; i < rep.Findings.Count && i < 4; i++)
                 Ui.Label(new Rect(fr.x + 12f, fr.y + 19f + i * 14f, fr.width - 24f, 14f), "·  " + rep.Findings[i], 11, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleLeft);
             float by = fr.yMax + 10f;

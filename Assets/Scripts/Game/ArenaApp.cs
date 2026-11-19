@@ -852,14 +852,5 @@ namespace Arena
             GUI.Label(r, Ui.Shown(r, text), style);
         }
 
-        static void Box(Rect r, Color c)
-        {
-            var old = GUI.color;
-            GUI.color = Ui.Faded(c);
-            GUI.DrawTexture(r, Texture2D.whiteTexture);
-            GUI.color = old;
-        }
-
-        static Color ToColor(Rgba c) => new Color(c.R, c.G, c.B, c.A);
     }
 }

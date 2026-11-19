@@ -179,7 +179,7 @@ namespace Arena
         /// A "screen" on the loadout box is a darker inset card with a thin rim, there from `delay` seconds on.
         bool CabScreenBegin(Rect r, float delay)
         {
-            if (!CabCalm && CabAge < delay)
+            if (!FxCalm && CabAge < delay)
                 return false;
             Ui.Fill(r, CrtUi.T(new Color(0.02f, 0.04f, 0.1f, 0.9f)));
             CrtKit.Frame(r, 1f, CrtUi.T(new Color(0.14f, 0.24f, 0.4f)));
@@ -188,7 +188,7 @@ namespace Arena
 
         void CabScreenEnd(Rect r, float delay)
         {
-            CrtKit.PowerFlash(r, CabAge - delay, CabCalm);
+            CrtKit.PowerFlash(r, CabAge - delay, FxCalm);
         }
 
         /// A small square soft key with a pixel icon (the profile's pencil). True when pressed.
@@ -196,7 +196,7 @@ namespace Arena
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            var c = CrtUi.Ink;
+            var c = CrtStyle.Ink;
             CrtKit.SoftBox(r, c, sel, hover, false);
             Ui.Icon(new Rect(r.center.x - 10f, r.center.y - 10f, 20f, 20f), PixelArt.Get(icon), CrtKit.SoftText(c, hover || sel));
             return Ui.HitArea(r);
@@ -208,16 +208,16 @@ namespace Arena
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Color tc;
             if (open)
             {
-                Ui.Fill(r, new Color(ink.r, ink.g, ink.b, 0.3f));
-                CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.75f));
+                Ui.Fill(r, ink.WithAlpha(0.3f));
+                CrtKit.Frame(r, 1f, ink.WithAlpha(0.75f));
                 tc = Color.white;
             }
             else
-                tc = hover ? Color.Lerp(ink, Color.white, 0.15f) : new Color(ink.r, ink.g, ink.b, 0.48f);
+                tc = hover ? Color.Lerp(ink, Color.white, 0.15f) : ink.WithAlpha(0.48f);
             Ui.Label(r, text, 12, tc, TextAnchor.MiddleCenter, true);
             return Ui.HitArea(r);
         }
@@ -227,7 +227,7 @@ namespace Arena
         void DrawProfileCabinet(bool inMenu)
         {
             var p = Profile.Current;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             var info = Rank.Of(p.Xp);
             var tc = RankLook.TierColor(info.Rank);
             cabBootLog = "> LINK OK   > PROFILE OK   > RANK " + info.Rank;
@@ -236,7 +236,7 @@ namespace Arena
             ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
             bool oneLine = n > 7;
             float rowH = oneLine ? 29f : 36f, step = rowH + 3f;
-            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f));
+            BeginDrawer("PROFILE", CrtStyle.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f));
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
             var ps = new Rect(26f, 112f, CabInW, 126f);
@@ -244,7 +244,7 @@ namespace Arena
             {
                 var badge = new Rect(ps.x + 12f, ps.y + 8f, 76f, 76f);
                 if (!calm)
-                    Ui.Pill(new Rect(badge.x - 4f, badge.y + 2f, badge.width + 8f, badge.height - 4f), new Color(tc.r, tc.g, tc.b, 0.07f + 0.07f * (0.5f + 0.5f * Mathf.Sin(WinNow * 2f))));
+                    Ui.Pill(new Rect(badge.x - 4f, badge.y + 2f, badge.width + 8f, badge.height - 4f), tc.WithAlpha(0.07f + 0.07f * (0.5f + 0.5f * Mathf.Sin(WinNow * 2f))));
                 RankLook.Draw(badge, info.Rank);
                 int nsize = 28;
                 float nameW = 190f;
@@ -282,9 +282,9 @@ namespace Arena
                 var bar = new Rect(ps.x + 14f, ps.y + 98f, ps.width - 28f, 8f);
                 Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
                 if (!calm)
-                    Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), new Color(tc.r, tc.g, tc.b, 0.18f));
+                    Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), tc.WithAlpha(0.18f));
                 Ui.Fill(new Rect(bar.x, bar.y, bar.width * info.Fraction, bar.height), tc);
-                Ui.Label(new Rect(ps.x + 14f, ps.y + 106f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtUi.Dim, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(ps.x + 14f, ps.y + 106f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtStyle.Dim, TextAnchor.MiddleRight, true);
                 CabScreenEnd(ps, 0.9f);
             }
 

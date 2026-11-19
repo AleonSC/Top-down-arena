@@ -42,7 +42,7 @@ namespace Arena
             // The soul sweep: a flickering warning line, then the beam.
             if (s.SweepOn > 0)
             {
-                float diff = MathX.Fmod(s.SweepA - sweepAngle + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float diff = MathX.WrapPi(s.SweepA - sweepAngle);
                 sweepAngle += Mathf.Abs(diff) > 0.6f ? diff : diff * Mathf.Min(1f, ViewDt * 12f);
                 V2 end = lich.Disp + V2.FromAngle(sweepAngle) * Game.LichSweepLen;
                 if (s.SweepOn == 1)

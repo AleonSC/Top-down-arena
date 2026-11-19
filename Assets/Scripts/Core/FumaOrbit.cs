@@ -187,7 +187,7 @@ namespace Arena
                 V2 from = p.Pos + FumaMiniPose(p, p.FumaClock, i);
                 Enemy e;
                 if (!Enemies.TryGetValue(p.FumaMiniFrom[i], out e) || !Targetable(e))
-                    e = NearestEnemyTo(from);
+                    e = NearestEnemy(from);
                 V2 dir = e != null ? (e.Pos - from).Normalized() : V2.FromAngle(p.Aim);
                 var b = SpawnBullet(Defs.StarShot, from, dir * FumaStealSpeed, 0f, 1.1f, p.Weapon.Damage * p.Stats.DmgMult * FumaStealMult, p.Id);
                 b.Pierce = 0;
@@ -196,24 +196,6 @@ namespace Arena
                 BroadcastSound(Sfx.SwingLight);
             p.FumaMiniFrom.Clear();
             p.FumaMinis = 0;
-        }
-
-        Enemy NearestEnemyTo(V2 at)
-        {
-            Enemy best = null;
-            float bd = float.MaxValue;
-            foreach (var e in Enemies.Values)
-            {
-                if (!Targetable(e))
-                    continue;
-                float d = e.Pos.DistanceSq(at);
-                if (d < bd)
-                {
-                    bd = d;
-                    best = e;
-                }
-            }
-            return best;
         }
 
         void FumaHit(Player p, Enemy e, float dmg)

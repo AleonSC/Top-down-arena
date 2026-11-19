@@ -87,7 +87,7 @@ namespace Arena
                 if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f)
                     continue;
                 V2 d = e.Pos - me.Pos;
-                if (d.Length - e.Radius < r && Math.Abs(MathX.Fmod(d.Angle - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi) < half)
+                if (d.Length - e.Radius < r && Math.Abs(MathX.WrapPi(d.Angle - me.Aim)) < half)
                     n++;
             }
             return n;

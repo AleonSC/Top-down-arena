@@ -52,17 +52,17 @@ namespace Arena
             }
 
             // The tab keys, over the page; Back (from the pause menu) or how to close, on the right.
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             int mates = game.Players.Count - (me != null ? 1 : 0);
             string[] names = { "RUN SO FAR", "YOUR BUILD", "TEAM" + (mates > 0 ? " (" + mates + ")" : ""), "INVENTORY" };
             const float tw = 150f, gap = 8f;
             float tx = 300f;
             for (int i = 0; i < names.Length; i++)
-                if (LobbyKit.Key(new Rect(tx + i * (tw + gap), 12f, tw, 32f), names[i], statsTab == i, calm, size: 15, minSize: 11))
+                if (DkKey(new Rect(tx + i * (tw + gap), 12f, tw, 32f), names[i], statsTab == i, calm, size: 15, minSize: 11))
                     statsTab = i;
             if (fromPause)
             {
-                if (LobbyKit.Key(new Rect(W - 24f - 38f, 9f, 38f, 38f), "X", false, calm, size: 18))
+                if (DkKey(new Rect(W - 24f - 38f, 9f, 38f, 38f), "X", false, calm, size: 18))
                     runStatsOpen = false;
             }
             else
@@ -101,7 +101,7 @@ namespace Arena
                 else if (game.CurrentPath != PathId.None && wave >= game.PathFrom && wave <= game.PathTo)
                 {
                     where = Game.PathName(game.CurrentPath) + " path · wave " + (game.ShownWave - game.ShownStart(game.PathFrom) + 1) + " of " + (game.ShownEnd(game.PathTo) - game.ShownStart(game.PathFrom) + 1);
-                    whereC = Color.Lerp(ToColor(Paths.Get(game.CurrentPath).Accent), Color.white, 0.3f);
+                    whereC = Color.Lerp((Paths.Get(game.CurrentPath).Accent).ToColor(), Color.white, 0.3f);
                 }
                 else if (game.Hunt != null)
                     where = wave == 0 ? "Getting ready" : game.Hunt.Name + " · " + BossName(game.Hunt.Boss) + "'s own enemies";
@@ -209,7 +209,7 @@ namespace Arena
                         Name = game.Quick ? "Quick Play" : k == 0 ? "Standard" : Game.PathName(id),
                         Waves = "waves " + game.ShownStart(from) + "–" + game.ShownEnd(to),
                         Note = st == 0 ? "cleared" : "now · " + (shownCur - game.ShownStart(from) + 1) + " of " + (game.ShownEnd(to) - game.ShownStart(from) + 1),
-                        Color = id == PathId.None ? plain : ToColor(Paths.Get(id).Accent),
+                        Color = id == PathId.None ? plain : (Paths.Get(id).Accent).ToColor(),
                         State = st,
                     });
                 }
@@ -228,7 +228,7 @@ namespace Arena
 
         void DrawRouteCard(Rect card, bool practice)
         {
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             float x = card.x + 16f, w = card.width - 32f;
             if (practice)
             {
@@ -247,18 +247,18 @@ namespace Arena
             int fit = Mathf.Max(1, Mathf.FloorToInt(avail / 24f));
             int first = Mathf.Max(0, rows.Count - fit);
             float rowH = Mathf.Min(28f, avail / Mathf.Max(1, rows.Count - first));
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             for (int i = first; i < rows.Count; i++)
             {
                 var r = rows[i];
                 var row = new Rect(x - 6f, top + (i - first) * rowH, w + 12f, rowH - 2f);
                 if (r.State == 1)
                 {
-                    Ui.Fill(row, new Color(ink.r, ink.g, ink.b, 0.16f));
+                    Ui.Fill(row, ink.WithAlpha(0.16f));
                     CrtKit.Frame(row, 1f, ink);
                 }
                 float cyy = row.center.y;
-                Color c = r.State == 2 ? new Color(r.Color.r, r.Color.g, r.Color.b, 0.4f) : r.Color;
+                Color c = r.State == 2 ? r.Color.WithAlpha(0.4f) : r.Color;
                 Ui.Dot(new Rect(row.x + 10f, cyy - 5f, 10f, 10f), c, r.Boss && r.State == 2);
                 Color name = r.State == 2 ? HoloDim : r.Boss ? new Color(1f, 0.7f, 0.73f) : (r.State == 1 ? Color.white : HoloBody);
                 Ui.Label(new Rect(row.x + 28f, row.y, 170f, row.height), r.Name, 13, name, TextAnchor.MiddleLeft, r.State == 1);
@@ -277,7 +277,7 @@ namespace Arena
         /// Your fight (five numbers), then each player's share of the party's damage.
         void DrawFightCard(Rect card, RunStats s)
         {
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             float x = card.x + 16f, w = card.width - 32f, y = card.y + 8f;
             LobbyKit.Heading(x, y, w, "Your fight", null, calm);
             string[,] rows =
@@ -300,7 +300,7 @@ namespace Arena
             float rowH = Mathf.Min(34f, (card.yMax - 10f - y) / n);
             foreach (var p in game.Players.Values)
             {
-                var rc = ToColor(p.Def.Color);
+                var rc = p.Def.Color.ToColor();
                 var ps = p.Run;
                 float share = total > 0f ? ps.DamageDealt / total : 0f;
                 Ui.Dot(new Rect(x, y + 4f, 10f, 10f), rc);
@@ -342,8 +342,8 @@ namespace Arena
 
         void DrawMateCard(Rect card, Player p, float t)
         {
-            bool calm = HoloCalm;
-            var rc = ToColor(p.Def.Color);
+            bool calm = FxCalm;
+            var rc = p.Def.Color.ToColor();
             // A live model of them on a hatched island in their colour, then who they are.
             var stage = new Rect(card.x + 16f, card.y + 16f, 92f, 92f);
             Ui.Fill(stage, new Color(rc.r * 0.12f + 0.02f, rc.g * 0.12f + 0.02f, rc.b * 0.12f + 0.03f, 0.95f));
@@ -352,7 +352,7 @@ namespace Arena
                 {
                     float hx = stage.x + d + k;
                     if (hx >= stage.x && hx < stage.xMax - 2f)
-                        Ui.Fill(new Rect(hx, stage.yMax - k - 3f, 2f, 3f), new Color(rc.r, rc.g, rc.b, 0.1f));
+                        Ui.Fill(new Rect(hx, stage.yMax - k - 3f, 2f, 3f), rc.WithAlpha(0.1f));
                 }
             CrtKit.Frame(stage, 2f, rc);
             int weapon = 0;
@@ -375,7 +375,7 @@ namespace Arena
             CrtUi.Text(new Rect(ix, card.y + 58f, iw, 16f), p.Downed ? "DOWNED" : Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 16, p.Downed ? CrtStyle.Danger : Color.white, TextAnchor.MiddleRight, false, calm);
             HoloBar(new Rect(ix, card.y + 76f, iw, 8f), p.MaxHp > 0f ? p.Hp / p.MaxHp : 0f, Ui.Good);
             var s = p.Run;
-            CrtUi.Text(new Rect(ix, card.y + 88f, iw, 18f), (Mathf.RoundToInt(s.DamageDealt).ToString("N0") + " damage · " + s.Kills + " kills · down " + s.Downs).ToUpperInvariant(), 17, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
+            CrtUi.Text(new Rect(ix, card.y + 88f, iw, 18f), (Mathf.RoundToInt(s.DamageDealt).ToString("N0") + " damage · " + s.Kills + " kills · down " + s.Downs).ToUpperInvariant(), 17, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
             Ui.CrtFont = was;
 
             // Weapon.
@@ -398,7 +398,7 @@ namespace Arena
                 var id = p.Slots[k].Id;
                 TipAbility(new Rect(x - 6f, y, w + 12f, 22f), p, k);
                 bool ult = k == Upgrades.UltSlot;
-                DrawCrtCap(new Rect(x, y + 3f, 0f, 16f), ult ? "ULT · " + SlotKeys[4] : SlotKeys[k], ult ? CrtStyle.Gold : CrtUi.Ink);
+                DrawCrtCap(new Rect(x, y + 3f, 0f, 16f), ult ? "ULT · " + SlotKeys[4] : SlotKeys[k], ult ? CrtStyle.Gold : CrtStyle.Ink);
                 if (id == AbilityId.None)
                     Ui.Label(new Rect(x + 80f, y, w - 80f, 22f), "—", 13, HoloDim);
                 else
@@ -434,7 +434,7 @@ namespace Arena
                 float ux = x + (i / perCol) * colW, uy = y + (i % perCol) * rowH;
                 TipUpgrade(new Rect(ux - 4f, uy, colW - 4f, rowH), p, u, counts[ids[i]]);
                 Ui.Icon(new Rect(ux, uy + 2f, 16f, 16f), PixelArt.ForUpgrade(u.Name));
-                Ui.Label(new Rect(ux + 22f, uy, colW - 60f, rowH), u.Name, 12, Color.Lerp(ToColor(Upgrades.RarityColor(u.Rarity)), Color.white, 0.45f));
+                Ui.Label(new Rect(ux + 22f, uy, colW - 60f, rowH), u.Name, 12, Color.Lerp(Upgrades.RarityColor(u.Rarity).ToColor(), Color.white, 0.45f));
                 if (counts[ids[i]] > 1)
                     CrtUi.Title(new Rect(ux, uy, colW - 12f, rowH), "×" + counts[ids[i]], 17, CrtStyle.Gold, TextAnchor.MiddleRight, calm);
             }

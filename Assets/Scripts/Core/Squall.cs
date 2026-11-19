@@ -174,7 +174,7 @@ namespace Arena
 
         /// How far a point is from a pair's line (a huge number when there's no line).
         public static float PylonLineDistance(Enemy e, Enemy partner, V2 p) =>
-            partner == null || e.Pos.FartherThan(partner.Pos, PylonMaxLine) ? 1e9f : SegmentDistance(p, e.Pos, partner.Pos);
+            partner == null || e.Pos.FartherThan(partner.Pos, PylonMaxLine) ? 1e9f : p.DistanceToSegment(e.Pos, partner.Pos);
 
 
         /// Where a Pylon walks to: either side of you, along the line the pair already makes (so the spots hold still as they walk).
@@ -190,13 +190,13 @@ namespace Arena
         /// The Grounder's shield turns slowly toward you (EnemyAI's facing), so you can get round it.
         void GrounderFace(Enemy e, float want, float dt)
         {
-            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - e.Facing);
             float step = GrounderTurn * dt;
             e.Facing += Math.Abs(diff) < step ? diff : Math.Sign(diff) * step;
         }
 
         public static bool GrounderFaces(Enemy e, V2 from) =>
-            e.Type == EnemyType.Grounder && Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < GrounderArc;
+            e.Type == EnemyType.Grounder && Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < GrounderArc;
 
         /// A player's shot grounded on a Grounder's face (Combat.cs, after BlocksShot): it charges, and full, it claps.
         void GroundShot(Enemy e)

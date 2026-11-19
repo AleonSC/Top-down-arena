@@ -10,7 +10,8 @@ namespace Arena
     {
         public GameMode Mode;
         public string Key;          // the profile's LastMode
-        public string Name;         // shown in logs and replays
+        public string Name;         // the one name for the mode: the lobby carousel, logs, replays, recent runs (RunLabel)
+        public string Blurb;        // the lobby carousel's line under the name
         public bool Lives;          // lives and checkpoints (Checkpoints.cs LivesMax)
         public bool Saves;          // saved to continue (RunSaves.cs Saveable)
         public bool RunEvents;      // a run's between-wave events: Expanding rooms, breaches, duels, the Balance test (not Practice or a hunt)
@@ -25,12 +26,12 @@ namespace Arena
 
         static readonly ModeDef[] all =
         {
-            new ModeDef { Mode = GameMode.Quick,    Key = "quick",    Name = "Quick Play", RunEvents = true, BossBuildup = true },
-            new ModeDef { Mode = GameMode.Campaign, Key = "campaign", Name = "Campaign",   Lives = true, Saves = true, RunEvents = true, Challenges = true, Legs = true, Paths = true, MapResets = true },
-            new ModeDef { Mode = GameMode.Hunt,     Key = "hunt",     Name = "Boss Hunt",  Saves = true, BossBuildup = true, Waves = WaveRules.Hunt },
-            new ModeDef { Mode = GameMode.Practice, Key = "practice", Name = "Practice",   Extras = false, Records = false },
+            new ModeDef { Mode = GameMode.Quick,    Key = "quick",    Name = "Quick Play", Blurb = "10 waves, then a random boss", RunEvents = true, BossBuildup = true },
+            new ModeDef { Mode = GameMode.Campaign, Key = "campaign", Name = "Campaign", Blurb = "100 waves, build as you go", Lives = true, Saves = true, RunEvents = true, Challenges = true, Legs = true, Paths = true, MapResets = true },
+            new ModeDef { Mode = GameMode.Hunt,     Key = "hunt",     Name = "Boss Hunt", Blurb = "10 waves to one boss", Saves = true, BossBuildup = true, Waves = WaveRules.Hunt },
+            new ModeDef { Mode = GameMode.Practice, Key = "practice", Name = "Practice Range", Blurb = "Build your own waves, or train a mechanic", Extras = false, Records = false },
             // Survival: one clock, never saved (so no lives), no wave clears (so no challenges), its own faction phases (no legs).
-            new ModeDef { Mode = GameMode.Survival, Key = "survival", Name = "Survival",   RunEvents = true },
+            new ModeDef { Mode = GameMode.Survival, Key = "survival", Name = "Survival", Blurb = "One clock, no waves, no end", RunEvents = true },
         };
 
         public static ModeDef For(GameMode m) => (int)m < all.Length ? all[(int)m] : all[(int)GameMode.Campaign];
@@ -53,5 +54,8 @@ namespace Arena
 
         /// What this run's mode allows (ModeDef).
         public ModeDef ModeRules => ModeDef.For(Mode);
+
+        /// This match's name for logs, replays and recent runs: the mode's name, then " · Endless" or " · Deathless".
+        public string RunLabel(bool endless = false, bool deathless = false) => ModeRules.Name + (endless ? " · Endless" : deathless ? " · Deathless" : "");
     }
 }

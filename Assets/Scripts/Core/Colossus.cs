@@ -138,7 +138,7 @@ namespace Arena
         V2 ColossusMove(Enemy e, V2 dir, float dist, ref float speed)
         {
             var c = ColOf(e);
-            V2 middle = new V2(Width / 2f, Height / 2f);
+            V2 middle = ArenaMid;
             if (c.TransT > 0f || c.DazeT > 0f || c.ChargeWarn > 0f)
                 return V2.Zero;
             if (c.ChargeLeft > 0f)
@@ -245,8 +245,7 @@ namespace Arena
             c.Cracks.Clear();
             c.Pillars.Clear();
             c.ChargeWarn = c.ChargeLeft = c.DazeT = 0f;
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(to), 900f, 0.8f, to == ColStage.MoltenCore ? Sfx.BossWarp : Sfx.BossRumble);
             e.Phase = ColShift;
             DoLog("the Colossus: changing to " + to);
@@ -262,7 +261,7 @@ namespace Arena
             c.ActT = 0.3f;
             c.Fired = 0;
             if (c.Turn == ColTurn.Stomps || c.Turn == ColTurn.Last)
-                c.GapA = Rand(0f, MathX.Tau);
+                c.GapA = RandAngle();
             if (c.Turn == ColTurn.Rockslide)
             {
                 c.SlideEdge = (c.SlideEdge + 1) % 2;
@@ -275,7 +274,7 @@ namespace Arena
         V2 ColTargetPos(Enemy e)
         {
             Player p;
-            return Players.TryGetValue(e.TargetId, out p) && !p.Downed ? p.Pos : new V2(Width / 2f, Height / 2f);
+            return Players.TryGetValue(e.TargetId, out p) && !p.Downed ? p.Pos : ArenaMid;
         }
 
         /// The players it goes for, in turn (one each for meteors and boulders, so a team shares them).
@@ -415,7 +414,7 @@ namespace Arena
                     foreach (var p in Players.Values)
                         if (!p.Downed)
                             for (int k = 0; k < 2; k++)
-                                DropPillar(c, ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 45f, 60f));
+                                DropPillar(c, ClampToArena(p.Pos + RandDir() * 45f, 60f));
                     BroadcastSound(Sfx.BossRumble);  // the roof starts coming down
                     break;
                 case ColTurn.Last:  // two gaps: one a step beside its target (alternating sides), one by the other player (or opposite)
@@ -429,7 +428,7 @@ namespace Arena
             }
         }
 
-        static float AngleGap(float a, float b) => Math.Abs(MathX.Fmod(a - b + MathX.Pi, MathX.Tau) - MathX.Pi);
+        static float AngleGap(float a, float b) => Math.Abs(MathX.WrapPi(a - b));
 
         /// Where to put a gap for someone at `at`: StompStep to their left (side -1) or right (+1) round the Colossus,
         /// so a short sidestep reaches it in time wherever they stand (it used to be up to 90 degrees round, too far to run).

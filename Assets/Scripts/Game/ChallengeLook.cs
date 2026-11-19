@@ -20,14 +20,14 @@ namespace Arena
         void TickChallengeLook()
         {
             float now = Time.unscaledTime;
-            if (game.Room != lookPhase)
+            if (game.ChallengePhase != lookPhase)
             {
-                lookPhase = game.Room;
+                lookPhase = game.ChallengePhase;
                 lookPhaseAt = now;
-                if (game.Room == RoomPhase.Won || game.Room == RoomPhase.Lost)
+                if (game.ChallengePhase == RoomPhase.Won || game.ChallengePhase == RoomPhase.Lost)
                 {
-                    lastRoomKind = game.RoomKind;
-                    lastRoomWon = game.Room == RoomPhase.Won;
+                    lastRoomKind = game.ChallengeNow;
+                    lastRoomWon = game.ChallengePhase == RoomPhase.Won;
                     lastRoomWave = game.Wave;
                 }
             }
@@ -38,7 +38,7 @@ namespace Arena
                 ripples.Add(new Ripple { Pos = new V2(AW / 2f, AH / 2f), Power = 2f });  // Juice.cs
                 Shake(0.25f);
             }
-            if (game.RoomKind == ChallengeKind.Defend && game.CrystalHp < lastCrystalHp - 0.01f)
+            if (game.ChallengeNow == ChallengeKind.Defend && game.CrystalHp < lastCrystalHp - 0.01f)
                 crystalFlash = 1f;
             lastCrystalHp = game.CrystalHp;
             crystalFlash = Mathf.Max(0f, crystalFlash - Time.unscaledDeltaTime * 5f);
@@ -53,7 +53,7 @@ namespace Arena
         {
             if (!game.InRoom)
                 return;
-            var acc = Challenges.Accent(game.RoomKind);
+            var acc = Challenges.Accent(game.ChallengeNow);
             float k = Mathf.Clamp01((Time.unscaledTime - warpAt) / 0.6f);
             FillRect(0, 0, AW, AH, new Rgba(acc.R * 0.12f, acc.G * 0.12f, acc.B * 0.16f, 0.75f * k));
             V2 mid = new V2(AW / 2f, AH / 2f);
@@ -102,20 +102,20 @@ namespace Arena
         /// On the floor, with the arena's contents: the portal, the crystal, the zones and the altar.
         void DrawChallengeWorld(float t)
         {
-            if (game.Room == RoomPhase.None)
+            if (game.ChallengePhase == RoomPhase.None)
                 return;
-            if (game.Room == RoomPhase.Portal)
+            if (game.ChallengePhase == RoomPhase.Portal)
             {
                 DrawPortal(game.PortalPos, t);
                 return;
             }
-            var acc = Challenges.Accent(game.RoomKind);
-            if (game.RoomKind == ChallengeKind.HoldZones && (game.Room == RoomPhase.Active || game.Room == RoomPhase.Intro))
+            var acc = Challenges.Accent(game.ChallengeNow);
+            if (game.ChallengeNow == ChallengeKind.HoldZones && (game.ChallengePhase == RoomPhase.Active || game.ChallengePhase == RoomPhase.Intro))
                 for (int i = 0; i < Challenges.ZoneCount; i++)
                     DrawZone(i, game.RoomZones[i], acc, t);
-            if (game.RoomKind == ChallengeKind.Defend && (game.Room == RoomPhase.Active || game.Room == RoomPhase.Intro || game.Room == RoomPhase.Lost && PhaseAge < 0.3f))
+            if (game.ChallengeNow == ChallengeKind.Defend && (game.ChallengePhase == RoomPhase.Active || game.ChallengePhase == RoomPhase.Intro || game.ChallengePhase == RoomPhase.Lost && PhaseAge < 0.3f))
                 DrawCrystal(game.CrystalPos, acc, t);
-            if (game.Room == RoomPhase.Won || game.Room == RoomPhase.Claimed)
+            if (game.ChallengePhase == RoomPhase.Won || game.ChallengePhase == RoomPhase.Claimed)
                 DrawAltar(game.AltarPos, t);
         }
 
@@ -124,7 +124,7 @@ namespace Arena
         /// stands in it. It flickers as its time runs out. Reduced effects stops the scrolling, the streaming and the flicker.
         void DrawPortal(V2 pos, float t)
         {
-            var acc = Challenges.Accent(game.RoomKind);
+            var acc = Challenges.Accent(game.ChallengeNow);
             float open = Mathf.Clamp01(PhaseAge / 0.7f), e = 1f - (1f - open) * (1f - open) * (1f - open);
             float fade = game.RoomT < 3f && !fxReduced ? 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(t * 9f)) : 1f;
             float R = Challenges.PortalR * e, tt = fxReduced ? 0f : t;
@@ -254,7 +254,7 @@ namespace Arena
         {
             float k = Mathf.Clamp01(PhaseAge / 0.5f);
             var gold = new Rgba(1f, 0.84f, 0.42f);
-            bool claimed = game.Room == RoomPhase.Claimed;
+            bool claimed = game.ChallengePhase == RoomPhase.Claimed;
             float a = claimed ? Mathf.Max(0f, 1f - PhaseAge / 0.8f) : k;
             GlowDisc(at, 150f, gold, 0.35f * a);
             VQuad(at + new V2(-26f, 0f), gold.WithAlpha(0f), at + new V2(26f, 0f), gold.WithAlpha(0f), at + new V2(14f, -300f), gold.WithAlpha(0.35f * a), at + new V2(-14f, -300f), gold.WithAlpha(0.35f * a));
@@ -360,7 +360,7 @@ namespace Arena
         {
             TickChallengeLook();
             float now = Time.unscaledTime;
-            var acc = ToColor(Challenges.Accent(game.RoomKind));
+            var acc = Challenges.Accent(game.ChallengeNow).ToColor();
             // The warp: a flash of the room's colour (violet on the way out).
             float wk = (now - warpAt) / 0.6f;
             if (wk >= 0f && wk < 1f)
@@ -368,7 +368,7 @@ namespace Arena
                 var fc = game.InRoom ? acc : new Color(0.7f, 0.6f, 1f);
                 Ui.Fill(new Rect(0, 0, W, H), new Color(Mathf.Lerp(fc.r, 1f, 0.5f), Mathf.Lerp(fc.g, 1f, 0.5f), Mathf.Lerp(fc.b, 1f, 0.5f), 0.7f * (1f - wk) * (1f - wk)));
             }
-            switch (game.Room)
+            switch (game.ChallengePhase)
             {
                 case RoomPhase.Portal:
                     DrawPortalLabel(acc, now);
@@ -381,8 +381,8 @@ namespace Arena
                     break;
                 case RoomPhase.Won:
                 case RoomPhase.Claimed:
-                    DrawRoomResult(game.Room == RoomPhase.Won ? "CHALLENGE COMPLETE!" : "PRIZE CLAIMED",
-                        game.Room == RoomPhase.Won ? "Touch the altar for your prize" : "Your prize is waiting back in the arena", Ui.Gold, now);
+                    DrawRoomResult(game.ChallengePhase == RoomPhase.Won ? "CHALLENGE COMPLETE!" : "PRIZE CLAIMED",
+                        game.ChallengePhase == RoomPhase.Won ? "Touch the altar for your prize" : "Your prize is waiting back in the arena", CrtStyle.Gold, now);
                     break;
                 case RoomPhase.Lost:
                     DrawRoomResult("CHALLENGE FAILED", "Back to the arena: no harm done", new Color(1f, 0.4f, 0.45f), now);
@@ -406,7 +406,7 @@ namespace Arena
             var card = new Rect(at.X - 130f, y, 260f, 58f);
             DkHud(card, acc);
             Ui.Label(new Rect(card.x, card.y + 5f, card.width, 14f), "DATA GATE", 10, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(card.x, card.y + 18f, card.width, 24f), Challenges.Name(game.RoomKind).ToUpperInvariant(), 18, acc, TextAnchor.MiddleCenter);
+            DkTitle(new Rect(card.x, card.y + 18f, card.width, 24f), Challenges.Name(game.ChallengeNow).ToUpperInvariant(), 18, acc, TextAnchor.MiddleCenter);
             string sub = alive > 1 ? inside + " of " + alive + " in  ·  closes in " + Mathf.CeilToInt(Mathf.Max(0f, game.RoomT)) + " s"
                 : "Step in  ·  closes in " + Mathf.CeilToInt(Mathf.Max(0f, game.RoomT)) + " s";
             Ui.Label(new Rect(card.x, card.y + 40f, card.width, 14f), sub, 11, Ui.Muted, TextAnchor.MiddleCenter, true);
@@ -424,8 +424,8 @@ namespace Arena
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
             Ui.Label(new Rect(0f, H / 2f - 108f, W, 20f), "DATA GATE", 14, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(W / 2f - 400f * s, H / 2f - 90f - 6f * s, 800f * s, 70f * s), Challenges.Name(game.RoomKind).ToUpperInvariant(), Mathf.RoundToInt(54f * s), acc, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(0f, H / 2f - 14f, W, 22f), Challenges.Goal(game.RoomKind, game.Players.Count), 17, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleCenter, true);
+            DkTitle(new Rect(W / 2f - 400f * s, H / 2f - 90f - 6f * s, 800f * s, 70f * s), Challenges.Name(game.ChallengeNow).ToUpperInvariant(), Mathf.RoundToInt(54f * s), acc, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(0f, H / 2f - 14f, W, 22f), Challenges.Goal(game.ChallengeNow, game.Players.Count), 17, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleCenter, true);
             int count = Mathf.CeilToInt(Mathf.Max(0f, game.RoomT));
             if (count > 0)
                 Ui.Label(new Rect(0f, H / 2f + 14f, W, 22f), "Starts in " + count, 13, Ui.Muted, TextAnchor.MiddleCenter, true);
@@ -436,11 +436,11 @@ namespace Arena
         /// The objective plate under the top of the screen: the goal's progress and the clock.
         void DrawRoomObjective(Color acc, float now)
         {
-            bool bar = game.RoomKind == ChallengeKind.MiniBoss;  // its boss bar sits at the top
+            bool bar = game.ChallengeNow == ChallengeKind.MiniBoss;  // its boss bar sits at the top
             var plate = new Rect(W / 2f - 210f, bar ? 84f : 14f, 420f, 62f);
             DkHud(plate, acc);
-            Ui.Label(new Rect(plate.x + 14f, plate.y + 6f, 260f, 16f), Challenges.Name(game.RoomKind).ToUpperInvariant(), 12, acc, TextAnchor.MiddleLeft, true);
-            float clock = Challenges.Clock(game.RoomKind);
+            Ui.Label(new Rect(plate.x + 14f, plate.y + 6f, 260f, 16f), Challenges.Name(game.ChallengeNow).ToUpperInvariant(), 12, acc, TextAnchor.MiddleLeft, true);
+            float clock = Challenges.Clock(game.ChallengeNow);
             if (clock > 0f)
             {
                 float left = Mathf.Max(0f, game.RoomClock);
@@ -451,7 +451,7 @@ namespace Arena
             string line;
             float frac;
             Color fill = acc;
-            switch (game.RoomKind)
+            switch (game.ChallengeNow)
             {
                 case ChallengeKind.Defend:
                     frac = game.CrystalMax > 0f ? game.CrystalHp / game.CrystalMax : 0f;
@@ -484,7 +484,7 @@ namespace Arena
             Ui.Label(new Rect(plate.x + 14f, plate.y + 24f, plate.width - 28f, 18f), line, 14, Color.white, TextAnchor.MiddleLeft, true);
             if (frac >= 0f)
                 Ui.Bar(new Rect(plate.x + 14f, plate.y + 46f, plate.width - 28f, 7f), Mathf.Clamp01(frac), fill, new Color(0f, 0f, 0f, 0.5f));
-            if (game.RoomKind == ChallengeKind.HoldZones)  // the zone's number over it
+            if (game.ChallengeNow == ChallengeKind.HoldZones)  // the zone's number over it
             {
                 for (int i = game.ZoneIndex; i < Challenges.ZoneCount; i++)
                 {
@@ -508,11 +508,11 @@ namespace Arena
             Ui.Label(new Rect(0f, 126f, W, 20f), sub, 14, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleCenter, true);
             Ui.Alpha = 1f;
             GUI.color = oldColor;
-            if (game.Room == RoomPhase.Won)  // a pointer over the altar
+            if (game.ChallengePhase == RoomPhase.Won)  // a pointer over the altar
             {
                 V2 at = ToUi(game.AltarPos);
                 float bob = 6f * Mathf.Sin(now * 4f);
-                Ui.Shadowed(new Rect(at.X - 60f, at.Y - 118f + bob, 120f, 20f), "PRIZE", 14, Ui.Gold);
+                Ui.Shadowed(new Rect(at.X - 60f, at.Y - 118f + bob, 120f, 20f), "PRIZE", 14, CrtStyle.Gold);
             }
         }
 

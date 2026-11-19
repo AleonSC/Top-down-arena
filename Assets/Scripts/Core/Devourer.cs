@@ -102,7 +102,7 @@ namespace Arena
         float BiteDamage => 13f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
 
         /// Is `from` inside the Maw, the 90-degree cone its mouth faces?
-        public static bool InMaw(Enemy e, V2 from) => Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < MawHalf;
+        public static bool InMaw(Enemy e, V2 from) => Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < MawHalf;
 
         static Rgba DevourColor(DevourStage stage) => stage == DevourStage.Gorging ? new Rgba(0.78f, 0.88f, 0.35f)
             : stage == DevourStage.Ravenous ? new Rgba(1f, 0.24f, 0.37f) : stage == DevourStage.LastStand ? new Rgba(1f, 0.16f, 0.29f) : new Rgba(1f, 0.35f, 0.48f);
@@ -123,7 +123,7 @@ namespace Arena
                 return V2.Zero;  // planted
             if (s.Stage == DevourStage.LastStand)
             {
-                V2 middle = new V2(Width / 2f, Height / 2f);
+                V2 middle = ArenaMid;
                 speed = 160f;
                 return e.Pos.FartherThan(middle, 6f) ? (middle - e.Pos).Normalized() : V2.Zero;
             }
@@ -226,7 +226,7 @@ namespace Arena
                 if (s.Stage == DevourStage.Ravenous)
                 {
                     // 60 degrees a second; alone, 35 (at 60 it would outrun anyone circling it from range)
-                    float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi, turn = (Players.Count > 1 ? MawTurn : MawTurnSolo) * dt;
+                    float diff = MathX.WrapPi(want - e.Facing), turn = (Players.Count > 1 ? MawTurn : MawTurnSolo) * dt;
                     e.Facing += Math.Max(-turn, Math.Min(turn, diff));
                 }
                 else if (s.Turn == DevourTurn.Hungry)
@@ -365,7 +365,7 @@ namespace Arena
             s.Lunging = false;
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, e.Radius + BiteReach + p.Def.HitR)
-                    && Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - s.LungeAng + MathX.Pi, MathX.Tau) - MathX.Pi) < MathX.Pi / 2f + 0.2f)
+                    && Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - s.LungeAng)) < MathX.Pi / 2f + 0.2f)
                 {
                     Damage(p, BiteDamage, "The Devourer (bite)");
                     RodTouched(p, e);  // LightningRod.cs
@@ -399,7 +399,7 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, EruptRadius + p.Def.HitR))
                     Damage(p, BiteDamage, "The Devourer (eruption)");
-            float off = Rand(0f, MathX.Tau);
+            float off = RandAngle();
             for (int i = 0; i < 16; i++)
                 EnemyShot(e, off + MathX.Tau * i / 16f, 170f, Defs.SmallShot);
             BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.64f, 0.35f), EruptRadius + 20f, 0.45f, Sfx.BossSlam);  // it erupts
@@ -459,7 +459,7 @@ namespace Arena
         {
             for (int k = 0; k < 4; k++)
             {
-                V2 at = ClampToArena(e.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 440f), 60f);
+                V2 at = ClampToArena(e.Pos + RandDir() * Rand(220f, 440f), 60f);
                 var m = SpawnEnemyAt(EnemyType.Morsel, at, 0.3f, e.Id);
                 m.FireT = 99f;
             }
@@ -626,7 +626,7 @@ namespace Arena
                 float d = to.Length;
                 if (d >= InhaleReach || d < 1f)
                     continue;
-                if (Math.Abs(MathX.Fmod((-to).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) >= InhaleHalf)
+                if (Math.Abs(MathX.WrapPi((-to).Angle - e.Facing)) >= InhaleHalf)
                     continue;
                 return to / d * (InhalePullNear - (InhalePullNear - InhalePullFar) * d / InhaleReach);
             }
@@ -676,8 +676,7 @@ namespace Arena
             e.Phase = 0;
             RemoveAll(EnemyType.Morsel);
             ClearBile();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, DevourColor(to), 900f, 0.8f, Sfx.Roar);
             DoLog("the Devourer: changing to " + to);
         }

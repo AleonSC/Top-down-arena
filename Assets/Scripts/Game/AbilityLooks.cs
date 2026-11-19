@@ -45,7 +45,7 @@ namespace Arena
                 }
                 V2 at = ToUi(p.Disp);  // HUD coordinates; it starts just above their name tag (Hud.cs) and rises
                 at.Y -= p.Def.BodyR * UiWorldScale + 42f + 16f * f + 16f * stack + NameLift(p);
-                Color c = ult ? new Color(1f, 0.84f, 0.35f) : Color.Lerp(ToColor(p.Def.Color), Color.white, 0.45f);
+                Color c = ult ? new Color(1f, 0.84f, 0.35f) : Color.Lerp(p.Def.Color.ToColor(), Color.white, 0.45f);
                 c.a = fade;
                 int size = Mathf.RoundToInt((ult ? 15f : 12f) * (0.7f + 0.3f * pop));
                 Ui.Shadowed(new Rect(at.X - 90f, at.Y - 10f, 180f, 20f), ult ? def.Name.ToUpperInvariant() : def.Name, size, c);

@@ -105,7 +105,7 @@ static partial class Program
             Run(s, dt, 500f, () => g.Wave == 10 && g.BossSlot && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () =>
             {
                 keep();
-                portal |= g.Room != RoomPhase.None;
+                portal |= g.ChallengePhase != RoomPhase.None;
                 pathOffered |= g.PathOffer != null;
                 bossEarly |= g.Wave < 10 && g.Enemies.Values.Any(e => e.Def.IsBoss);
                 if (!g.BossSlot && g.State == MatchState.Fighting)

@@ -23,7 +23,7 @@ namespace Arena
         /// The medkit landed: the orbs scatter in a ring around it.
         void LandMedkit(Bullet b)
         {
-            float offset = Rand(0f, MathX.Tau);
+            float offset = RandAngle();
             for (int i = 0; i < b.Burst; i++)
             {
                 V2 at = b.Pos + V2.FromAngle(offset + MathX.Tau * i / b.Burst) * Rand(34f, 68f);

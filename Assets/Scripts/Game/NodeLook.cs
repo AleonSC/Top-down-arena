@@ -455,7 +455,7 @@ namespace Arena
             string text = "RELIC  " + Relics.Name(me.Relic).ToUpperInvariant();
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
-            var ink = ToColor(RelicInk);
+            var ink = RelicInk.ToColor();
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
             Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);

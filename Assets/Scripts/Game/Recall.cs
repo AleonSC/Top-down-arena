@@ -157,8 +157,8 @@ namespace Arena
             {
                 float e = rk * rk, rad = 40f + (1f - e) * 1100f;
                 var c = new Rgba(0.55f, 0.72f, 1f);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 26f, c.WithAlpha(0.12f * rk), 96);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 4f, c.WithAlpha(0.6f * rk), 96);
+                Arc(Game.ArenaMid, rad, 26f, c.WithAlpha(0.12f * rk), 96);
+                Arc(Game.ArenaMid, rad, 4f, c.WithAlpha(0.6f * rk), 96);
             }
         }
 
@@ -171,7 +171,7 @@ namespace Arena
                 return;
             float a = Seg(recallT, RecallFadeAt, RecallFadeEnd);
             if (a > 0f)
-                Ui.Fill(new Rect(0, 0, W, H), new Color(RecallDark.r, RecallDark.g, RecallDark.b, a * a * (3f - 2f * a)));
+                Ui.Fill(new Rect(0, 0, W, H), RecallDark.WithAlpha(a * a * (3f - 2f * a)));
         }
 
         /// Instead of DrawLobby while it comes back: the dark lifting, the two sides sliding in, the ring on your card.
@@ -184,7 +184,7 @@ namespace Arena
             uiGlBlocked = false;
             float dark = 1f - Seg(e, 0f, 0.45f);
             if (dark > 0f)
-                Ui.Fill(new Rect(0, 0, W, H), new Color(RecallDark.r, RecallDark.g, RecallDark.b, dark));
+                Ui.Fill(new Rect(0, 0, W, H), RecallDark.WithAlpha(dark));
             float ring = Seg(e, 0.8f, 1.3f);
             if (ring > 0f && ring < 1f && BeginUiGl())
             {

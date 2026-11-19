@@ -153,7 +153,7 @@ namespace Arena
                 float pct = WallPct(p);
                 V2 at = ToUi(p.Disp + new V2(0f, -p.Def.BodyR - 44f));  // (above the name tag)
                 string text = "-" + pct.ToString(pct < 10f ? "0.0" : "0") + "%/s";
-                Ui.Shadowed(new Rect(at.X - 60f, at.Y - 10f, 120f, 20f), text, 13, ToColor(WallTier[WallStage(pct)]));
+                Ui.Shadowed(new Rect(at.X - 60f, at.Y - 10f, 120f, 20f), text, 13, WallTier[WallStage(pct)].ToColor());
             }
         }
     }

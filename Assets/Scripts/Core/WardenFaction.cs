@@ -49,7 +49,7 @@ namespace Arena
         {
             if (RiotCrack(e) >= RiotCracked || RiotState(e) == RiotLow)
                 return false;
-            float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float diff = Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing));
             return diff < RiotShieldArc;
         }
 
@@ -89,7 +89,7 @@ namespace Arena
                 e.Facing = want;
                 return;
             }
-            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - e.Facing);
             e.Facing += Math.Max(-RiotTurn * dt, Math.Min(RiotTurn * dt, diff));
         }
 
@@ -217,7 +217,7 @@ namespace Arena
                     if (p == null || p.Downed || p.BashGraceT > 0f)
                         break;
                     float reach = e.Radius + p.Def.BodyR + RiotBashReach;
-                    float off = Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                    float off = Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - e.Facing));
                     if (p.Pos.CloserThan(e.Pos, reach) && off < 0.5f)
                     {
                         SetRiotState(e, RiotWinding, RiotWindup);
@@ -380,7 +380,7 @@ namespace Arena
         static readonly Rgba HoneyLobColor = new Rgba(1f, 0.77f, 0.2f);
         /// Where it lobs: where you're heading (a Rock Hurler, a Bile Spitter: QuarryFaction.cs), or somewhere near you.
         V2 LobSpot(LobFire lob, V2 tpos) => lob.Leads ? HurlerLead(tpos)
-            : ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+            : ClampToArena(tpos + RandDir() * Rand(0f, 50f), 60f);
 
         void GrenadierWind(Enemy e, V2 tpos, float rateNow, LobFire lob)
         {

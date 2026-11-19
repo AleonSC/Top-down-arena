@@ -30,7 +30,7 @@ namespace Arena
         /// One of the core's four rooms (they cost nothing and don't count towards the room cap).
         public static bool IsGridCore(ExpansionRoom r)
         {
-            if (r.Price != 0 || r.Owner != 0 || r.Leg != 0)
+            if (r.Price != 0 || r.Owner != 0 || r.Piece != 0)
                 return false;
             foreach (var c in GridCore())
                 if (c.X == r.X && c.Y == r.Y && c.W == r.W && c.H == r.H)
@@ -47,7 +47,7 @@ namespace Arena
             var rng = new DetRandom(seed * 7351 + cycle * 977 + (ring + 1) * 131 + (int)kind * 17 + 3);
             var map = new List<ExpansionRoom>(built);
             int depth = ring >= 0 ? 2 : 2 + rng.Int(2);
-            var start = new V2(Game.Width / 2f, Game.Height / 2f);
+            var start = Game.ArenaMid;
             for (int step = 1; step <= depth; step++)
             {
                 var opts = PlacementsFor(map, PieceShape.Mono);

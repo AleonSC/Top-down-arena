@@ -19,7 +19,7 @@ namespace Arena
             float k = Mathf.Clamp01(age / FoldTime);
             float pull = k * k * (3f - 2f * k);  // (eased: slow off, quick in)
             float fade = 1f - k;
-            var c = new V2(Game.Width / 2f, Game.Height / 2f);
+            var c = Game.ArenaMid;
             foreach (var r in game.FoldRooms)
             {
                 V2 a = Lerp(new V2(r.X, r.Y), c, pull), b = Lerp(new V2(r.X1, r.Y1), c, pull);
@@ -96,12 +96,12 @@ namespace Arena
             var r = new Rect(W / 2f - 220f, 96f, 440f, 58f);
             DkPanel(r);
             int of = game.MapsInRun;
-            var blue = ToColor(FoldInk);
+            var blue = FoldInk.ToColor();
             DkTitle(new Rect(r.x, r.y + 5f, r.width, 28f), "MAP " + game.MapNumber + (of >= game.MapNumber ? " / " + of : ""), 22, blue, TextAnchor.MiddleCenter);
             int back = game.MapRefunds.TryGetValue(game.MyId, out int b) ? b : 0;
             string kept = game.KeptHead >= 0 && game.KeptHead < game.Expanded.Count ? "ROOM KEPT" : "FRESH MAP";
             string line = "+" + back + " VECTORS BACK  ·  " + kept + "  ·  KITS KEPT";
-            CrtUi.Text(new Rect(r.x, r.y + 32f, r.width, 20f), line, 12, new Color(1f, 0.82f, 0.4f, 0.85f), TextAnchor.MiddleCenter, true, CabCalm);
+            CrtUi.Text(new Rect(r.x, r.y + 32f, r.width, 20f), line, 12, new Color(1f, 0.82f, 0.4f, 0.85f), TextAnchor.MiddleCenter, true, FxCalm);
             GUI.color = old;
         }
     }

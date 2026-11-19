@@ -60,7 +60,7 @@ namespace Arena
                 EndStand(p, false);
                 return;
             }
-            float d = MathX.Fmod(p.Aim - p.StandAim + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float d = MathX.WrapPi(p.Aim - p.StandAim);
             p.StandAim += Math.Max(-StandTurn * dt, Math.Min(StandTurn * dt, d));
         }
 
@@ -82,7 +82,7 @@ namespace Arena
         {
             if (!p.StandOn || p.StandT < StandPlant || !Enters(b, p.Pos, StandRadius))
                 return false;
-            float off = MathX.Fmod((b.Pos - p.Pos).Angle - p.StandAim + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float off = MathX.WrapPi((b.Pos - p.Pos).Angle - p.StandAim);
             return Math.Abs(off) < StandHalfArc;
         }
 

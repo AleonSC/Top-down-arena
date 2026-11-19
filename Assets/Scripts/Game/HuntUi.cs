@@ -23,7 +23,6 @@ namespace Arena
         static int HuntMod(int a) => ((a % 10) + 10) % 10;
 
         static readonly Color PhosGreen = new Color(0.30f, 1f, 0.60f);
-        static Color FadedBlue(float a) => new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
 
         static void HuntBox(Rect r, Color c)
         {
@@ -38,8 +37,8 @@ namespace Arena
         {
             float tw = LobbyKit.SpacedWidth(text, 10, 1f) + 10f;
             var r = new Rect(xRight - tw, cy - 8f, tw, 16f);
-            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.12f));
-            HuntBox(r, new Color(c.r, c.g, c.b, 0.55f));
+            Ui.Fill(r, c.WithAlpha(0.12f));
+            HuntBox(r, c.WithAlpha(0.55f));
             LobbyKit.Spaced(r, text, 10, c, TextAnchor.MiddleCenter, 1f);
         }
 
@@ -48,7 +47,7 @@ namespace Arena
             LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
             bool host = session.IsHost;
             var profile = game.Profile;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
             y = ModeHeader(r, "BOSS HUNT", "10 WAVES  ·  ONE BOSS", host ? "Pick a boss. Beat one in a run to open its hunt."
                 : "The host picks the boss (from the hunts they've opened).", Ui.Muted);
@@ -126,7 +125,7 @@ namespace Arena
                 bool hover = host && c.Contains(ev.mousePosition) && ev.mousePosition.y > bodyY && ev.mousePosition.y < bodyY + viewH;
                 Ui.Alpha = oldAlpha * a;
                 string chip = hunt == null ? "SOON" : !open ? "LOCKED" : profile.HuntWon(boss, true) > 0 ? "WON x" + profile.HuntWon(boss, true) : "OPEN";
-                Color cc = hunt == null ? FadedBlue(0.55f) : !open ? HuntColor : profile.HuntWon(boss, true) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
+                Color cc = hunt == null ? CrtStyle.Ink.WithAlpha(0.55f) : !open ? HuntColor : profile.HuntWon(boss, true) > 0 ? CrtStyle.Gold : new Color(0.5f, 0.88f, 0.69f);
                 ModeRow(c, (i + 1).ToString("00"), BossName(boss), known, open, top, hover, HuntColor, chip, cc);
                 if (hover && !top && Ui.HitArea(c))
                     huntTarget += Mathf.RoundToInt(wv);  // roll this one to the top
@@ -135,9 +134,9 @@ namespace Arena
 
             // Under the drum: step buttons and where we are in the loop.
             float by = bodyY + bodyH - 36f;
-            if (LobbyKit.Key(new Rect(x, by, 70f, 34f), "PREV", false, false, size: 13, minSize: 10, enabled: host))
+            if (DkKey(new Rect(x, by, 70f, 34f), "PREV", false, false, size: 13, minSize: 10, enabled: host))
                 huntTarget--;
-            if (LobbyKit.Key(new Rect(x + 78f, by, 70f, 34f), "NEXT", false, false, size: 13, minSize: 10, enabled: host))
+            if (DkKey(new Rect(x + 78f, by, 70f, 34f), "NEXT", false, false, size: 13, minSize: 10, enabled: host))
                 huntTarget++;
             Ui.Label(new Rect(x + 156f, by, listW - 156f, 34f), (ti + 1).ToString("00") + " / 10  LOOPS", 11, Ui.Muted, TextAnchor.MiddleRight);
 
@@ -148,7 +147,7 @@ namespace Arena
             ModeScope(scope, "TARGET LOCK", (ti + 1).ToString("00") + " / 10");
             y2 += scope.height + 12f;
             if (!topKnown)
-                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, CabCalm);
+                CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
             Ui.Glitch(new Rect(x2, y2, w2, 28f), !topKnown ? "???" : (topHunt != null ? topHunt.Name : name).ToUpperInvariant(), 20, Color.white, TextAnchor.MiddleLeft);
             y2 += 32f;
             string copy = topHunt == null ? (topKnown ? name + " has no hunt yet." : "Unknown boss: meet it in a run to learn more.")
@@ -166,7 +165,7 @@ namespace Arena
                     bool bossPip = i == pipLen;
                     bool longPip = pipLen > Hunts.Length;
                     var pr = new Rect(px, y2, bossPip ? 34f : longPip ? 13f : 22f, 20f);
-                    ModePip(pr, bossPip ? "BOSS" : longPip ? (i % 5 == 0 ? i.ToString() : "") : i.ToString(), bossPip || (longPip && i == pipLen / 2) ? HuntColor : new Color(ink.r, ink.g, ink.b, 1f), bossPip);
+                    ModePip(pr, bossPip ? "BOSS" : longPip ? (i % 5 == 0 ? i.ToString() : "") : i.ToString(), bossPip || (longPip && i == pipLen / 2) ? HuntColor : ink.WithAlpha(1f), bossPip);
                     px += pr.width + (longPip ? 3f : 5f);
                 }
                 y2 += 30f;

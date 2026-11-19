@@ -44,7 +44,7 @@ namespace Arena
             int fee = game.ChestCollectFee;
             WcTile(new Rect(x + 646f, y + 16f, 130f, 50f), fee + " G", "FEE TO COLLECT", calm);
             WcTile(new Rect(x + 786f, y + 16f, 132f, 50f), me.Gold.ToString(), "YOUR GOLD", calm);
-            HudCrt(new Rect(x + WcPad + 2f, y + 62f, 600f, 18f), "COLLECT ONE FROM HERE, OR WALK THERE FOR FREE", 16, CrtUi.Dim);
+            HudCrt(new Rect(x + WcPad + 2f, y + 62f, 600f, 18f), "COLLECT ONE FROM HERE, OR WALK THERE FOR FREE", 16, CrtStyle.Dim);
             float rx = x + WcPad, ry = y + 84f;
             wcChestHot = -1;
             Vector2 mouse = Event.current.mousePosition;
@@ -56,18 +56,18 @@ namespace Arena
                 bool hot = row.Contains(mouse);
                 if (hot)
                     wcChestHot = i;
-                CrtKit.SoftBox(row, CrtUi.Ink, hot, false, false);
+                CrtKit.SoftBox(row, CrtStyle.Ink, hot, false, false);
                 DrawChestIcon(new Rect(row.x + 12f, row.y + 12f, 36f, 28f), c.Kind);
                 Ui.Label(new Rect(row.x + 62f, row.y + 7f, 300f, 20f), ChestKindName(c.Kind) + "  ·  " + ChestGives(c.Kind), 14, Color.white, TextAnchor.MiddleLeft, true);
-                HudCrt(new Rect(row.x + 62f, row.y + 28f, 320f, 16f), ChestWay(me, c.Pos), 15, CrtUi.Dim);
+                HudCrt(new Rect(row.x + 62f, row.y + 28f, 320f, 16f), ChestWay(me, c.Pos), 15, CrtStyle.Dim);
                 bool afford = me.Gold >= fee;
-                if (LobbyKit.Key(new Rect(row.xMax - 186f, row.y + 8f, 176f, 36f), afford ? "COLLECT · " + fee + " G" : "NEED " + fee + " G", false, calm, size: 18, minSize: 12,
+                if (DkKey(new Rect(row.xMax - 186f, row.y + 8f, 176f, 36f), afford ? "COLLECT · " + fee + " G" : "NEED " + fee + " G", false, calm, size: 18, minSize: 12,
                         enabled: afford, accent: afford ? g : (Color?)null))
                     game.CollectChest(c);
                 ry += WcRowStep;
             }
             if (shown < wcChests.Count)
-                HudCrt(new Rect(rx + 10f, ry + 4f, WcTallyW, 20f), "+" + (wcChests.Count - shown) + " MORE ON THE MAP  ·  THEY MOVE UP AS YOU COLLECT", 18, CrtUi.Dim);
+                HudCrt(new Rect(rx + 10f, ry + 4f, WcTallyW, 20f), "+" + (wcChests.Count - shown) + " MORE ON THE MAP  ·  THEY MOVE UP AS YOU COLLECT", 18, CrtStyle.Dim);
             DrawChestMap(me, new Rect(x + 640f, y + 84f, 278f, 222f));
         }
 
@@ -88,7 +88,7 @@ namespace Arena
                     continue;
                 bool vec = c.Kind == ChestKind.Vector;
                 int n = vec ? Game.VectorChestPickups * Game.VectorDropSmall : Game.ChestGold + Game.ChestGoldPerWave * Mathf.Max(1, game.Wave);
-                float bob = CabCalm ? 0f : 2.5f * Mathf.Sin(t * 2.4f + c.Id);
+                float bob = FxCalm ? 0f : 2.5f * Mathf.Sin(t * 2.4f + c.Id);
                 V2 at = ToUi(c.Pos + new V2(0f, -(Game.ChestH / 2f + 30f))) + new V2(0f, -16f + bob);  // (over the lid and its glow, at any zoom)
                 if (at.X < -80f || at.X > W + 80f || at.Y < -30f || at.Y > H + 30f)
                     continue;
@@ -97,7 +97,7 @@ namespace Arena
                 float tw = Ui.TextWidth(text, 14, true) + 30f;
                 var r = new Rect(at.X - tw / 2f, at.Y - 12f, tw, 24f);
                 Ui.Pill(r, new Color(0.01f, 0.02f, 0.05f, 0.82f));
-                CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.75f));
+                CrtKit.Frame(r, 1f, ink.WithAlpha(0.75f));
                 // its pickup's mark at the left: a coin, or the vector pickup's diamond
                 var m = new Rect(r.x + 8f, r.center.y - 4f, 8f, 8f);
                 if (vec)
@@ -116,9 +116,9 @@ namespace Arena
         /// A little chest: a body and a lid in the kind's ink.
         void DrawChestIcon(Rect r, ChestKind k)
         {
-            var ink = ToColor(ChestInkOf(k));
+            var ink = ChestInkOf(k).ToColor();
             float lid = r.height * 0.36f;
-            Ui.Fill(new Rect(r.x, r.y + lid, r.width, r.height - lid), new Color(ink.r, ink.g, ink.b, 0.18f));
+            Ui.Fill(new Rect(r.x, r.y + lid, r.width, r.height - lid), ink.WithAlpha(0.18f));
             CrtKit.Frame(new Rect(r.x, r.y + lid, r.width, r.height - lid), 2f, ink);
             CrtKit.Frame(new Rect(r.x + 2f, r.y, r.width - 4f, lid + 1f), 2f, ink);
             Ui.Fill(new Rect(r.center.x - 3f, r.y + lid - 2f, 6f, 8f), ink);  // the lock
@@ -127,9 +127,9 @@ namespace Arena
         /// The map beside the list: every built room as a faint box, the chests as squares in their ink (the hot row's ringed), you as a dot.
         void DrawChestMap(Player me, Rect r)
         {
-            var ink = CrtUi.Ink;
-            CrtKit.Dashed(r, 1f, new Color(ink.r, ink.g, ink.b, 0.45f));
-            HudCrt(new Rect(r.x + 10f, r.y + 6f, r.width - 20f, 16f), "MAP", 15, CrtUi.Dim);
+            var ink = CrtStyle.Ink;
+            CrtKit.Dashed(r, 1f, ink.WithAlpha(0.45f));
+            HudCrt(new Rect(r.x + 10f, r.y + 6f, r.width - 20f, 16f), "MAP", 15, CrtStyle.Dim);
             float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
             foreach (var rm in game.Expanded)
             {
@@ -148,21 +148,21 @@ namespace Arena
             {
                 var a = M(rm.X, rm.Y);
                 var box = new Rect(a.x, a.y, rm.W * k, rm.H * k);
-                Ui.Fill(box, new Color(ink.r, ink.g, ink.b, 0.07f));
-                CrtKit.Frame(box, 1f, new Color(ink.r, ink.g, ink.b, 0.35f));
+                Ui.Fill(box, ink.WithAlpha(0.07f));
+                CrtKit.Frame(box, 1f, ink.WithAlpha(0.35f));
             }
             for (int i = 0; i < wcChests.Count; i++)
             {
                 var c = wcChests[i];
                 var p = M(c.Pos.X, c.Pos.Y);
-                var col = ToColor(ChestInkOf(c.Kind));
+                var col = ChestInkOf(c.Kind).ToColor();
                 if (i == wcChestHot)
                     CrtKit.Frame(new Rect(p.x - 8f, p.y - 8f, 16f, 16f), 2f, CrtStyle.Gold);
                 Ui.Fill(new Rect(p.x - 5f, p.y - 5f, 10f, 10f), new Color(0.02f, 0.03f, 0.06f, 0.9f));
                 Ui.Fill(new Rect(p.x - 4f, p.y - 4f, 8f, 8f), col);
             }
             var mp = M(me.Pos.X, me.Pos.Y);
-            Ui.Dot(new Rect(mp.x - 6f, mp.y - 6f, 12f, 12f), ToColor(me.Def.Color));
+            Ui.Dot(new Rect(mp.x - 6f, mp.y - 6f, 12f, 12f), me.Def.Color.ToColor());
         }
     }
 }

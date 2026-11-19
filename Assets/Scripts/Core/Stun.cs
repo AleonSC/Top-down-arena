@@ -68,8 +68,7 @@ namespace Arena
             }
             else
             {
-                e.FrozenT = Math.Max(e.FrozenT, StunGunStun);
-                e.SlowT = Math.Max(e.SlowT, StunGunStun);
+                Hold(e, StunGunStun);
             }
         }
 
@@ -97,7 +96,7 @@ namespace Arena
             p.GuardCd -= dt;
             if (p.GuardCd > 0f)
                 return;
-            var g = SpawnMinion(MinionKind.WardenGuard, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 40f, -1f, true);
+            var g = SpawnMinion(MinionKind.WardenGuard, p, p.Pos + RandDir() * 40f, -1f, true);
             g.MaxHp = g.Hp = GuardBaseHp + GuardHpPerWave * Wave;
             g.Ang = MathX.Tau * have / Math.Max(1, want);  // where it stands beside you
             p.GuardCd = 0.5f;  // the next one (several stacks) steps in shortly after
@@ -108,11 +107,8 @@ namespace Arena
         Enemy MoveGuard(Minion m, Player owner, float speed, float dt)
         {
             Enemy target = null;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(owner.Pos, GuardLeash + e.Radius)
-                    && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
-                    target = e;
-            V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + m.Ang) * 45f;
+            target = NearestInLeash(m.Pos, owner.Pos, GuardLeash);
+            V2 goal = target != null ? target.Pos : BesideOwner(owner, 45f, m.Ang);
             V2 to = goal - m.Pos;
             float stop = target != null ? target.Radius + m.Def.Radius : 4f;
             if (to.Length > stop)
@@ -243,8 +239,7 @@ namespace Arena
                 }
                 else
                 {
-                    e.FrozenT = Math.Max(e.FrozenT, SearchStun);
-                    e.SlowT = Math.Max(e.SlowT, SearchStun);
+                    Hold(e, SearchStun);
                 }
                 BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.95f, 0.78f), e.Radius + 26f, 0.4f, Sfx.SpellZap);
             }

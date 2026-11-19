@@ -66,7 +66,7 @@ namespace Arena
         public static bool GutwormUnder(Enemy e) => e.Type == EnemyType.Gutworm && e.LarderStage != LarderIdle;
 
         /// Is `from` in front of a Maw Priest, in its maw?
-        public static bool InPriestMaw(Enemy e, V2 from) => Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < PriestMawHalf;
+        public static bool InPriestMaw(Enemy e, V2 from) => Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < PriestMawHalf;
 
         /// Its facing stays put while it's busy, so the chop and the cone land where they showed.
         public static bool LarderFaceLocked(Enemy e) => LarderPlanted(e);
@@ -87,7 +87,7 @@ namespace Arena
                 return false;
             if (d < pad)
                 return true;
-            return Math.Abs(MathX.Fmod(to.Angle - face + MathX.Pi, MathX.Tau) - MathX.Pi) < half;
+            return Math.Abs(MathX.WrapPi(to.Angle - face)) < half;
         }
 
         /// Host, in Special: starts, runs and ends a Butcher's chop or a Gulper's breath.
@@ -263,7 +263,7 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, GutMarkR + p.Def.HitR))
                     Damage(p, GutBite, "Gutworm");
-            float off = Rand(0f, MathX.Tau);
+            float off = RandAngle();
             for (int i = 0; i < GutRing; i++)
                 EnemyShot(e, off + MathX.Tau * i / GutRing, GutRingSpeed, Defs.SmallShot);
             BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.64f, 0.5f), GutMarkR + 14f, 0.4f, Sfx.BossSlam);  // it erupts
@@ -274,7 +274,7 @@ namespace Arena
         /// Host, in Face: a Maw Priest turns slowly, so you can get round its maw.
         void PriestFace(Enemy e, float want, float dt)
         {
-            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - e.Facing);
             e.Facing += Math.Max(-PriestTurn * dt, Math.Min(PriestTurn * dt, diff));
         }
 

@@ -104,7 +104,7 @@ namespace Arena
                     DrawPlayPicker(t, false);
                     servoPicker = false;
                     if (content < 1f)   // the rows come up out of the dark
-                        Ui.Fill(scr, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 1f - content));
+                        Ui.Fill(scr, CrtStyle.Bg.WithAlpha(1f - content));
                 });
             }
 
@@ -197,11 +197,11 @@ namespace Arena
                     Ui.Fill(new Rect(cell.x, cell.center.y - 0.5f, cell.width, 1f), new Color(0f, 0f, 0f, 0.9f));   // the flap's hinge line
                 }
                 if (ch != ' ')
-                    CrtUi.Text(new Rect(cx, hs.y + 4f, cw + 12f, 36f), ch.ToString(), Size, CrtUi.Ink, TextAnchor.MiddleLeft, true, fxReduced);
+                    CrtUi.Text(new Rect(cx, hs.y + 4f, cw + 12f, 36f), ch.ToString(), Size, CrtStyle.Ink, TextAnchor.MiddleLeft, true, fxReduced);
                 GUI.matrix = oldM;
             }
             if (Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)   // the same blinking cursor the plain header has
-                CrtUi.Text(new Rect(curX, hs.y + 4f, 20f, 36f), "_", Size, CrtUi.Ink, TextAnchor.MiddleLeft, true, fxReduced);
+                CrtUi.Text(new Rect(curX, hs.y + 4f, 20f, 36f), "_", Size, CrtStyle.Ink, TextAnchor.MiddleLeft, true, fxReduced);
             CrtUi.End(hs, Time.unscaledTime, fxReduced);
             servoFlapTot = tot;
 

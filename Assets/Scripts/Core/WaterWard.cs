@@ -130,7 +130,7 @@ namespace Arena
             }
             float b = (float)Math.Atan2(sy, sx), k = Math.Min(1f, dt * WwSpread);
             for (int i = 0; i < n; i++)
-                p.WwOff[i] += (MathX.Fmod(b + i * step - p.WwOff[i] + MathX.Pi, MathX.Tau) - MathX.Pi) * k;
+                p.WwOff[i] += (MathX.WrapPi(b + i * step - p.WwOff[i])) * k;
         }
 
         static void WwRemove(Player p, int i)

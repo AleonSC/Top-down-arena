@@ -93,13 +93,13 @@ namespace Arena
             if (e == null)
             {
                 if (!devMenuOpen)
-                    Ui.Shadowed(new Rect(W / 2f - 300f, 74f, 600f, 22f), "DEV ARENA  ·  F1 > SPAWN AN ENEMY to play as one", 13, new Color(CrtStyle.Gold.r, CrtStyle.Gold.g, CrtStyle.Gold.b, 0.75f));
+                    Ui.Shadowed(new Rect(W / 2f - 300f, 74f, 600f, 22f), "DEV ARENA  ·  F1 > SPAWN AN ENEMY to play as one", 13, CrtStyle.Gold.WithAlpha(0.75f));
                 return;
             }
             V2 at = ToUi(e.Disp);
             float r = e.Radius * UiWorldScale + 8f;
             float pulse = 0.65f + 0.35f * Mathf.Sin(Time.unscaledTime * 6f);
-            var c = new Color(CrtStyle.Gold.r, CrtStyle.Gold.g, CrtStyle.Gold.b, pulse);
+            var c = CrtStyle.Gold.WithAlpha(pulse);
             float arm = Mathf.Max(6f, r * 0.45f);
             for (int sx = -1; sx <= 1; sx += 2)
                 for (int sy = -1; sy <= 1; sy += 2)
@@ -140,7 +140,7 @@ namespace Arena
             if (DkKey(cells[2], "LET GO", Ui.Neutral, false, 12))
                 game.DevRelease();
             GUI.enabled = was && session.IsHost;
-            if (DkKey(cells[3], "CLEAR ARENA", Ui.Danger, false, 12))
+            if (DkKey(cells[3], "CLEAR ARENA", CrtStyle.Danger, false, 12))
                 game.DevClearArena();
             if (DkKey(cells[4], "LEAVE DEV ARENA", Ui.Neutral, false, 12))
             {
@@ -166,7 +166,7 @@ namespace Arena
             if (DkKey(cells[0], "ADD HERO DUMMY (" + game.HeroDummies.Count + "/" + Game.MaxHeroDummies + ")", CrtStyle.Gold, false, 11) && me != null)
                 game.DevAddHeroDummy(me.Pos + V2.FromAngle(me.Aim) * 220f);
             GUI.enabled = was && session.IsHost && game.HeroDummies.Count > 0;
-            if (DkKey(cells[1], "CLEAR DUMMIES", Ui.Danger, false, 11))
+            if (DkKey(cells[1], "CLEAR DUMMIES", CrtStyle.Danger, false, 11))
                 game.DevRemoveHeroDummy(V2.Zero, true);
             GUI.enabled = was && session.IsHost;
             game.DummiesDrawAim = DkSwitch(cells[2], game.DummiesDrawAim, "Enemies aim at dummies");

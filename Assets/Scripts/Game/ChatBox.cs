@@ -62,9 +62,9 @@ namespace Arena
                 var entry = new Rect(x, bottom - ChatEntryH + (1f - a) * 6f, ChatW, ChatEntryH);
                 float old = Ui.Alpha;
                 Ui.Alpha = old * a;
-                DkSub(entry, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.95f));
-                Ui.Fill(new Rect(entry.x, entry.y, 3f, entry.height), CrtUi.Ink);
-                Ui.Label(new Rect(entry.x + 12f, entry.y, 24f, entry.height), "ALL", 9, CrtUi.Ink, TextAnchor.MiddleLeft, true);
+                DkSub(entry, CrtStyle.Bg.WithAlpha(0.95f));
+                Ui.Fill(new Rect(entry.x, entry.y, 3f, entry.height), CrtStyle.Ink);
+                Ui.Label(new Rect(entry.x + 12f, entry.y, 24f, entry.height), "ALL", 9, CrtStyle.Ink, TextAnchor.MiddleLeft, true);
                 if (chatOpen)
                 {
                     var f = new Rect(entry.x + 40f, entry.y + 4f, entry.width - 84f, entry.height - 8f);
@@ -120,7 +120,7 @@ namespace Arena
         void DrawChatLine(Session.ChatLine l, float x, ref float bottom, float a)
         {
             Player p;
-            Color edge = game.Players.TryGetValue(l.Id, out p) ? ToColor(p.Def.Color) : Color.white;
+            Color edge = game.Players.TryGetValue(l.Id, out p) ? p.Def.Color.ToColor() : Color.white;
             const int size = 12;
             float nameW = Ui.TextWidth(l.Name, size, true) + 7f;
             float inner = ChatW - 22f;
@@ -131,7 +131,7 @@ namespace Arena
             var r = new Rect(x + ChatW - w, bottom - h, w, h);
             float old = Ui.Alpha;
             Ui.Alpha = old * a;
-            DkSub(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.88f));
+            DkSub(r, CrtStyle.Bg.WithAlpha(0.88f));
             Ui.Fill(new Rect(r.x, r.y, 3f, r.height), edge);
             Ui.Label(new Rect(r.x + 12f, r.y + 2f, nameW, 18f), l.Name, size, edge, TextAnchor.MiddleLeft, true);
             if (two)

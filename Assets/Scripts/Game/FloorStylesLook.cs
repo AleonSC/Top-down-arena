@@ -27,7 +27,7 @@ namespace Arena
             float gap = 4f, w = (r.width - gap * (FloorStyleNames.Length - 1)) / FloorStyleNames.Length;
             int pick = value;
             for (int i = 0; i < FloorStyleNames.Length; i++)
-                if (WinKey(new Rect(r.x + i * (w + gap), r.y, w, r.height), FloorStyleNames[i].ToUpperInvariant(), i == value, 14, dim ? CrtUi.Dim : (Color?)null))
+                if (DkKey(new Rect(r.x + i * (w + gap), r.y, w, r.height), FloorStyleNames[i].ToUpperInvariant(), i == value, FxCalm, size: 14, accent: dim ? CrtStyle.Dim : (Color?)null))
                     pick = i;
             return pick;
         }

@@ -62,7 +62,7 @@ namespace Arena
             if (fade > 0f)
             {
                 var old = GUI.color;
-                GUI.color = new Color(old.r, old.g, old.b, old.a * fade);
+                GUI.color = old.ScaleAlpha(fade);
                 DrawLoadout(me, body, t);
                 GUI.color = old;
             }
@@ -127,16 +127,16 @@ namespace Arena
                 for (float y = world.y + Mathf.Ceil((fy0 - world.y) / step) * step; y < fy1; y += step)
                     Ui.Fill(new Rect(fx0, y, fx1 - fx0, 1f), new Color(1f, 1f, 1f, 0.035f));
             }
-            var rim = new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.9f);
-            var glow = new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.14f);
+            var rim = HangoutColor.WithAlpha(0.9f);
+            var glow = HangoutColor.WithAlpha(0.14f);
             DrawRimLine(view, new Rect(world.x - 2f, world.y - 2f, 4f, world.height + 4f), rim, glow);
             DrawRimLine(view, new Rect(world.xMax - 2f, world.y - 2f, 4f, world.height + 4f), rim, glow);
             DrawRimLine(view, new Rect(world.x - 2f, world.y - 2f, world.width + 4f, 4f), rim, glow);
             DrawRimLine(view, new Rect(world.x - 2f, world.yMax - 2f, world.width + 4f, 4f), rim, glow);
-            Ui.Fill(new Rect(view.x, view.y, view.width, 1f), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
-            Ui.Fill(new Rect(view.x, view.yMax - 1f, view.width, 1f), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
-            Ui.Fill(new Rect(view.x, view.y, 1f, view.height), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
-            Ui.Fill(new Rect(view.xMax - 1f, view.y, 1f, view.height), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
+            Ui.Fill(new Rect(view.x, view.y, view.width, 1f), HangoutColor.WithAlpha(0.35f));
+            Ui.Fill(new Rect(view.x, view.yMax - 1f, view.width, 1f), HangoutColor.WithAlpha(0.35f));
+            Ui.Fill(new Rect(view.x, view.y, 1f, view.height), HangoutColor.WithAlpha(0.35f));
+            Ui.Fill(new Rect(view.xMax - 1f, view.y, 1f, view.height), HangoutColor.WithAlpha(0.35f));
 
             // Everyone, the ones further down the room in front, and the shots between them.
             var order = new List<KeyValuePair<int, Avatar>>(session.Avatars);
@@ -162,7 +162,7 @@ namespace Arena
                 EndUiGl();
             }
             var oldCol = GUI.color;
-            GUI.color = new Color(oldCol.r, oldCol.g, oldCol.b, oldCol.a * roomAlpha);
+            GUI.color = oldCol.ScaleAlpha(roomAlpha);
             if (roomAlpha > 0f)
             {
                 foreach (var kv in order)
@@ -206,7 +206,7 @@ namespace Arena
             foreach (var s in session.Shots)
             {
                 LobbyEntry e;
-                var c = session.Lobby.TryGetValue(s.Owner, out e) ? ToColor(Defs.Get(e.Role).Color) : Color.white;
+                var c = session.Lobby.TryGetValue(s.Owner, out e) ? (Defs.Get(e.Role).Color).ToColor() : Color.white;
                 var dir = s.Vel.Normalized();
                 Line(s.Pos - dir * 16f, s.Pos, 6f, new Rgba(c.r, c.g, c.b, 0.35f));
                 Line(s.Pos - dir * 12f, s.Pos, 3f, new Rgba(Mathf.Lerp(c.r, 1f, 0.6f), Mathf.Lerp(c.g, 1f, 0.6f), Mathf.Lerp(c.b, 1f, 0.6f), 1f));
@@ -281,7 +281,7 @@ namespace Arena
 
             var mini = new Rect(view.x + 10f, view.y + 10f, MiniW, MiniH);
             Ui.Fill(mini, new Color(0.02f, 0.04f, 0.08f, 0.82f));
-            var edge = new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.7f);
+            var edge = HangoutColor.WithAlpha(0.7f);
             Ui.Fill(new Rect(mini.x, mini.y, mini.width, 1f), edge);
             Ui.Fill(new Rect(mini.x, mini.yMax - 1f, mini.width, 1f), edge);
             Ui.Fill(new Rect(mini.x, mini.y, 1f, mini.height), edge);
@@ -298,7 +298,7 @@ namespace Arena
                 LobbyEntry e;
                 if (!session.Lobby.TryGetValue(kv.Key, out e))
                     continue;
-                var c = ToColor(Defs.Get(e.Role).Color);
+                var c = (Defs.Get(e.Role).Color).ToColor();
                 float d = kv.Key == session.MyId ? 6f : 5f;
                 var dot = new Rect(mini.x + kv.Value.Disp.X * mk - d / 2f, mini.y + kv.Value.Disp.Y * mk - d / 2f, d, d);
                 if (kv.Key == session.MyId)
@@ -477,7 +477,7 @@ namespace Arena
             else
             {
                 Color rim = mine ? Ui.Accent : new Color(1f, 1f, 1f, 0.25f);
-                Ui.Pill(new Rect(tag.x - 2f, tag.y - 2f, tag.width + 4f, tag.height + 4f), new Color(rim.r, rim.g, rim.b, 0.7f));
+                Ui.Pill(new Rect(tag.x - 2f, tag.y - 2f, tag.width + 4f, tag.height + 4f), rim.WithAlpha(0.7f));
                 Ui.Pill(tag, new Color(0.04f, 0.06f, 0.12f, 0.94f));
             }
             RankLook.Draw(new Rect(tag.x + 3f, tag.y + 1f, 22f, 22f), e.Rank);

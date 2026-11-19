@@ -30,13 +30,13 @@ static partial class Program
                     sg.Wave = w; sg.BossSlot = (w) % 5 == 0 && (w) > 0;
                     sg.State = MatchState.Intermission;
                     maybe.Invoke(sg, null);
-                    if (sg.Room == RoomPhase.Portal)
+                    if (sg.ChallengePhase == RoomPhase.Portal)
                     {
                         perBlock[(w - 1) / 5]++;
                         seen.Add(w % 5);
                         neverWave1 &= w != 1;
                         regularAfter &= (w + 1) % 5 != 0 && w % 5 != 0;
-                        sg.Room = RoomPhase.None;
+                        sg.ChallengePhase = RoomPhase.None;
                     }
                 }
                 oncePerBlock &= perBlock.All(c => c == 1);
@@ -64,7 +64,7 @@ static partial class Program
         };
         // Get to a break.
         Run(s, dt, 3f, null, () => { noPicks(); hold(); });
-        Run(s, dt, 60f, () => g.State == MatchState.Intermission && g.Room == RoomPhase.None, () => { noPicks(); hold(); quiet(); foreach (var e in g.Enemies.Values) e.Hp = 0f; });
+        Run(s, dt, 60f, () => g.State == MatchState.Intermission && g.ChallengePhase == RoomPhase.None, () => { noPicks(); hold(); quiet(); foreach (var e in g.Enemies.Values) e.Hp = 0f; });
         Run(s, dt, 0.3f, null, () => { noPicks(); hold(); });
         Func<ChallengeKind, bool> enter = kind =>
         {
@@ -75,7 +75,7 @@ static partial class Program
             Run(s, dt, 3f, () => g.InRoom, () => { noPicks(); hold(); });
             hostAt = new V2(700f, 650f); friendAt = new V2(900f, 650f);
             Run(s, dt, 0.3f, null, hold);
-            return g.InRoom && cg.InRoom && cg.RoomKind == kind;
+            return g.InRoom && cg.InRoom && cg.ChallengeNow == kind;
         };
 
         // The portal: one player in it isn't enough; it waits (and so does the break's countdown); both in, through you go.
@@ -83,15 +83,15 @@ static partial class Program
         g.StateTimer = 5f;
         g.DevOpenPortal(ChallengeKind.HoldZones);
         Run(s, dt, 0.3f, null, () => { noPicks(); hold(); });
-        bool clientSeesPortal = cg.Room == RoomPhase.Portal && cg.PortalPos.DistanceTo(g.PortalPos) < 1f;
+        bool clientSeesPortal = cg.ChallengePhase == RoomPhase.Portal && cg.PortalPos.DistanceTo(g.PortalPos) < 1f;
         hostAt = g.PortalPos;
         float timer0 = g.StateTimer;
         Run(s, dt, 3f, null, () => { noPicks(); hold(); });
-        bool halfOnly = g.Room == RoomPhase.Portal && g.PortalFill <= 0.951f && g.PortalFill > 0.5f && g.StateTimer == timer0;
+        bool halfOnly = g.ChallengePhase == RoomPhase.Portal && g.PortalFill <= 0.951f && g.PortalFill > 0.5f && g.StateTimer == timer0;
         friendAt = g.PortalPos;
         // Everyone's in the gate, but a player still has upgrade cards up: the gate can't be entered until they've picked.
         Run(s, dt, 3f, () => g.InRoom, () => { noPicks(); g.Players[2].PendingPicks = 1; hold(); });
-        bool blockedByPicks = !g.InRoom && g.Room == RoomPhase.Portal && g.PortalFill < 1f;
+        bool blockedByPicks = !g.InRoom && g.ChallengePhase == RoomPhase.Portal && g.PortalFill < 1f;
         Check(blockedByPicks, "a Data Gate can't be entered while a player's upgrade picks are unselected");
         Run(s, dt, 3f, () => g.InRoom, () => { noPicks(); hold(); });
         Check(clientSeesPortal && halfOnly && g.InRoom && g.State == MatchState.Fighting,
@@ -100,14 +100,14 @@ static partial class Program
         // Hold the zones: standing in each fills it, three in turn.
         Run(s, dt, 3.5f, () => g.RoomActive, hold);
         int z0 = g.ZoneIndex;
-        Run(s, dt, 40f, () => g.Room != RoomPhase.Active, () =>
+        Run(s, dt, 40f, () => g.ChallengePhase != RoomPhase.Active, () =>
         {
             if (g.ZoneIndex < Challenges.ZoneCount) hostAt = friendAt = g.RoomZones[g.ZoneIndex];
             hold();
             foreach (var e in g.Enemies.Values) e.Hp = 0f;
         });
         Run(s, dt, 0.3f, null, hold);  // the client hears about the win a moment after the host
-        Check(z0 == 0 && g.Room == RoomPhase.Won && g.ZoneIndex == Challenges.ZoneCount && cg.Room == RoomPhase.Won, "Hold the Zones: standing in each zone fills it, and three won is the challenge");
+        Check(z0 == 0 && g.ChallengePhase == RoomPhase.Won && g.ZoneIndex == Challenges.ZoneCount && cg.ChallengePhase == RoomPhase.Won, "Hold the Zones: standing in each zone fills it, and three won is the challenge");
 
         // The altar: touch it for the prize, picked from rare or better.
         hostAt = g.AltarPos;
@@ -165,8 +165,8 @@ static partial class Program
         Check(enter(ChallengeKind.KillRush), "Kill Rush: in the room");
         Run(s, dt, 3.5f, () => g.RoomActive, hold);
         int goal = g.RoomGoal;
-        Run(s, dt, 40f, () => g.Room != RoomPhase.Active, () => { hold(); foreach (var e in g.Enemies.Values) if (e.SpawnT <= 0f) e.Hp = 0f; });
-        Check(goal == Challenges.RushGoal(2) && g.RoomKills >= goal && g.Room == RoomPhase.Won && cg.RoomKills >= goal - 2,
+        Run(s, dt, 40f, () => g.ChallengePhase != RoomPhase.Active, () => { hold(); foreach (var e in g.Enemies.Values) if (e.SpawnT <= 0f) e.Hp = 0f; });
+        Check(goal == Challenges.RushGoal(2) && g.RoomKills >= goal && g.ChallengePhase == RoomPhase.Won && cg.RoomKills >= goal - 2,
             "Kill Rush: " + goal + " kills before the clock runs out wins it (" + g.RoomKills + ")");
         Run(s, dt, 16f, () => !g.InRoom, hold);  // nobody touches the altar: it gives the prize by itself
         Check(!g.InRoom && g.Players.Values.All(p => p.PrizePicks > 0 || p.OfferPrize || p.LegendaryQueue.Count > 0), "an altar nobody touches still gives the prize in the end");
@@ -182,8 +182,8 @@ static partial class Program
         bool tough = gate != null && gate.MaxHp > g.SpawnHp(EnemyType.Brute, g.Wave) * 5f;
         bool clientSees = cg.Enemies.Values.Any(e => e.Type == EnemyType.Gatekeeper);
         if (gate != null) gate.Hp = 0f;
-        Run(s, dt, 2f, () => g.Room == RoomPhase.Won, hold);
-        Check(gate != null && shooting && tough && clientSees && g.Room == RoomPhase.Won, "The Gatekeeper: a tough mini-boss that fights back, and beating it wins the challenge");
+        Run(s, dt, 2f, () => g.ChallengePhase == RoomPhase.Won, hold);
+        Check(gate != null && shooting && tough && clientSees && g.ChallengePhase == RoomPhase.Won, "The Gatekeeper: a tough mini-boss that fights back, and beating it wins the challenge");
         hostAt = g.AltarPos;
         Run(s, dt, 4f, () => !g.InRoom, hold);
         noPicks();
@@ -207,7 +207,7 @@ static partial class Program
         g.DevSetGod(1, false); g.DevSetGod(2, false);
         foreach (var p in g.Players.Values) { p.Hp = 0f; p.Downed = true; }
         Run(s, dt, 0.5f, null, hold);
-        bool lostNotOver = g.Room == RoomPhase.Lost && g.State != MatchState.GameOver;
+        bool lostNotOver = g.ChallengePhase == RoomPhase.Lost && g.State != MatchState.GameOver;
         Run(s, dt, 5f, () => !g.InRoom, hold);
         Check(lostNotOver && !g.InRoom && g.State == MatchState.Intermission && g.Players.Values.All(p => !p.Downed && p.Hp > 0f && p.Hp <= p.MaxHp * 0.31f),
             "everyone going down in a room loses the challenge, not the run: back to the break, the downed up at low health");
@@ -219,8 +219,8 @@ static partial class Program
         int wave = g.Wave;
         g.DevOpenPortal(ChallengeKind.KillRush);
         hostAt = new V2(100f, 100f); friendAt = new V2(1500f, 800f);
-        Run(s, dt, Challenges.PortalLife + 1f, () => g.Room == RoomPhase.None, () => { noPicks(); hold(); });
-        bool closed = g.Room == RoomPhase.None && g.State == MatchState.Intermission;
+        Run(s, dt, Challenges.PortalLife + 1f, () => g.ChallengePhase == RoomPhase.None, () => { noPicks(); hold(); });
+        bool closed = g.ChallengePhase == RoomPhase.None && g.State == MatchState.Intermission;
         Run(s, dt, 6f, () => g.State == MatchState.Fighting, () => { noPicks(); hold(); });
         Check(closed && g.State == MatchState.Fighting && g.Wave == wave + 1, "a portal nobody enters closes after a while, and the next wave comes as usual");
 
@@ -271,25 +271,25 @@ static partial class Program
             }
             foreach (var e in g.Enemies.Values)
                 if (Challenges.Own(e.Type) && e.MaxHp > roomHp) roomHp = e.MaxHp;
-            if (g.Room == last)
+            if (g.ChallengePhase == last)
             {
                 if (g.RoomActive) { clock = g.RoomClock; crystal = g.CrystalHp / Math.Max(1f, g.CrystalMax); kills = g.RoomKills; zone = g.ZoneIndex; }
                 continue;
             }
-            if (g.Room == RoomPhase.Intro) { kind = g.RoomKind; }
-            if (last == RoomPhase.Portal && g.Room == RoomPhase.None)
+            if (g.ChallengePhase == RoomPhase.Intro) { kind = g.ChallengeNow; }
+            if (last == RoomPhase.Portal && g.ChallengePhase == RoomPhase.None)
                 Console.WriteLine("  wave {0,2}: the portal closed unused", g.Wave);
-            if (g.Room == RoomPhase.Won || g.Room == RoomPhase.Lost)
+            if (g.ChallengePhase == RoomPhase.Won || g.ChallengePhase == RoomPhase.Lost)
             {
                 string detail = kind == ChallengeKind.Defend ? "crystal " + (crystal * 100f).ToString("0") + "% left"
                     : kind == ChallengeKind.KillRush ? kills + "/" + g.RoomGoal + " kills, " + clock.ToString("0") + " s left"
                     : kind == ChallengeKind.HoldZones ? zone + "/3 zones, " + clock.ToString("0") + " s left"
                     : clock.ToString("0") + " s, " + roomHp.ToString("0") + " hp each";
                 roomHp = 0f;
-                Console.WriteLine("  wave {0,2}: {1,-18} {2,-4} {3}; downs so far {4}", g.Wave, Challenges.Name(kind), g.Room == RoomPhase.Won ? "WON" : "lost", detail,
+                Console.WriteLine("  wave {0,2}: {1,-18} {2,-4} {3}; downs so far {4}", g.Wave, Challenges.Name(kind), g.ChallengePhase == RoomPhase.Won ? "WON" : "lost", detail,
                     string.Join("/", g.Players.Values.Select(p => p.Run.Downs)));
             }
-            last = g.Room;
+            last = g.ChallengePhase;
         }
         Console.WriteLine("  ended: {0} at wave {1}; rooms won {2} of {3}", g.State, g.Wave, g.RoomsWon, g.RoomsPlayed);
         host.Leave(""); c.Leave("");

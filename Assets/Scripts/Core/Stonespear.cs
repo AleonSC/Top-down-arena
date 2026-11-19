@@ -259,7 +259,7 @@ namespace Arena
             }
             float age = b.Life0 - b.Life;
             float want = (e.Pos - b.Pos).Angle, have = b.Vel.Angle;
-            float diff = MathX.Fmod(want - have + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - have);
             float speed = Math.Min(SsVolleyTop, b.Vel.Length + dt * 1400f);
             b.Vel = V2.FromAngle(have + diff * Math.Min(1f, dt * (5f + age * 14f))) * speed;
         }

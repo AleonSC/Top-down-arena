@@ -114,8 +114,8 @@ namespace Arena
             CrtUi.Begin(scr);
             if (!any)
             {
-                CrtUi.Text(new Rect(scr.x + 20f, scr.y + 44f, scr.width - 40f, 26f), "NO SAVED RUNS YET.", 20, CrtUi.Ink, TextAnchor.MiddleCenter, true, calm);
-                CrtUi.Text(new Rect(scr.x + 40f, scr.y + 76f, scr.width - 80f, 44f), "Start a run: it's saved from its first wave on, until it's won or lost.", 14, CrtUi.Dim, TextAnchor.UpperCenter, false, calm);
+                CrtUi.Text(new Rect(scr.x + 20f, scr.y + 44f, scr.width - 40f, 26f), "NO SAVED RUNS YET.", 20, CrtStyle.Ink, TextAnchor.MiddleCenter, true, calm);
+                CrtUi.Text(new Rect(scr.x + 40f, scr.y + 76f, scr.width - 80f, 44f), "Start a run: it's saved from its first wave on, until it's won or lost.", 14, CrtStyle.Dim, TextAnchor.UpperCenter, false, calm);
             }
             else
             {
@@ -159,13 +159,13 @@ namespace Arena
                 if (maxScroll > 0f)
                 {
                     var track = new Rect(scr.xMax - 9f, scr.y + 4f, 5f, scr.height - 8f);
-                    Ui.Fill(track, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.1f));
-                    Ui.Fill(new Rect(track.x, track.y + trackH * (sc / maxScroll), track.width, thumbH), menuListDrag ? CrtUi.Ink : CrtUi.Dim);
+                    Ui.Fill(track, CrtStyle.Ink.WithAlpha(0.1f));
+                    Ui.Fill(new Rect(track.x, track.y + trackH * (sc / maxScroll), track.width, thumbH), menuListDrag ? CrtStyle.Ink : CrtStyle.Dim);
                     if (below > 0 && sc < maxScroll - 1f)  // "more below": a fade at the foot of the screen with a count
                     {
                         for (int k = 0; k < 8; k++)
-                            Ui.Fill(new Rect(scr.x, scr.yMax - 22f + k * 2.75f, rowW, 2.75f), new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.95f * (k + 1) / 8f));
-                        CrtUi.Text(new Rect(scr.x, scr.yMax - 19f, rowW, 16f), "\u25bc " + below + " MORE", 12, CrtUi.Ink, TextAnchor.MiddleCenter, true, calm);
+                            Ui.Fill(new Rect(scr.x, scr.yMax - 22f + k * 2.75f, rowW, 2.75f), CrtStyle.Bg.WithAlpha(0.95f * (k + 1) / 8f));
+                        CrtUi.Text(new Rect(scr.x, scr.yMax - 19f, rowW, 16f), "\u25bc " + below + " MORE", 12, CrtStyle.Ink, TextAnchor.MiddleCenter, true, calm);
                     }
                 }
             }
@@ -187,69 +187,69 @@ namespace Arena
         void DrawRunRow(Rect r, RunSave s, bool latest, bool calm, ref RunSave toContinue, ref RunSave toDelete)
         {
             bool armed = deleteArmed == s.Id;
-            var rule = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f);
+            var rule = CrtStyle.Ink.WithAlpha(0.25f);
             if (armed)
-                Ui.Fill(r, new Color(CrtStyle.Danger.r, CrtStyle.Danger.g, CrtStyle.Danger.b, 0.08f));
+                Ui.Fill(r, CrtStyle.Danger.WithAlpha(0.08f));
             else if (latest)
-                Ui.Fill(r, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.04f));
+                Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.04f));
             Ui.Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), rule);
             string delLabel = armed ? "REALLY?" : "DEL";
             if (latest)
             {
                 // Run column: label, wave, then Saved / Score / Played as label-value pairs.
                 float x = r.x + 18f;
-                CrtUi.Text(new Rect(x, r.y + 8f, 140f, 14f), "LATEST RUN", 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
-                CrtUi.Text(new Rect(x, r.y + 20f, 160f, 34f), "Wave " + (s.ShownWave + 1) + (s.Endless ? " (endless)" : ""), 26, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Text(new Rect(x, r.y + 8f, 140f, 14f), "LATEST RUN", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
+                CrtUi.Text(new Rect(x, r.y + 20f, 160f, 34f), "Wave " + (s.ShownWave + 1) + (s.Endless ? " (endless)" : ""), 26, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
                 string[] labs = { "SAVED", "SCORE", "PLAYED" };
                 string[] vals = { s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), s.Score.ToString(), (int)(s.RunTime / 60f) + " min" };
                 for (int i = 0; i < 3; i++)
                 {
-                    CrtUi.Text(new Rect(x, r.y + 56f + i * 15f, 50f, 14f), labs[i], 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
-                    CrtUi.Text(new Rect(x + 52f, r.y + 55f + i * 15f, 110f, 15f), vals[i], 12, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
+                    CrtUi.Text(new Rect(x, r.y + 56f + i * 15f, 50f, 14f), labs[i], 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
+                    CrtUi.Text(new Rect(x + 52f, r.y + 55f + i * 15f, 110f, 15f), vals[i], 12, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
                 }
                 Ui.Fill(new Rect(r.x + 184f, r.y + 12f, 1f, 86f), rule);
                 // Squad column: one line per player, colour bar, name, then class.
                 float sx = r.x + 202f;
-                CrtUi.Text(new Rect(sx, r.y + 8f, 100f, 14f), "SQUAD", 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
+                CrtUi.Text(new Rect(sx, r.y + 8f, 100f, 14f), "SQUAD", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
                 for (int i = 0; i < s.Seats.Count && i < 3; i++)
                 {
                     var seat = s.Seats[i];
-                    Ui.Fill(new Rect(sx, r.y + 28f + i * 23f, 4f, 16f), ToColor(Defs.Get(seat.Role).Color));
-                    CrtUi.Text(new Rect(sx + 12f, r.y + 26f + i * 23f, 100f, 20f), ClipName(seat.Name, 12), 13, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
-                    CrtUi.Text(new Rect(sx + 114f, r.y + 26f + i * 23f, 110f, 20f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
+                    Ui.Fill(new Rect(sx, r.y + 28f + i * 23f, 4f, 16f), (Defs.Get(seat.Role).Color).ToColor());
+                    CrtUi.Text(new Rect(sx + 12f, r.y + 26f + i * 23f, 100f, 20f), ClipName(seat.Name, 12), 13, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
+                    CrtUi.Text(new Rect(sx + 114f, r.y + 26f + i * 23f, 110f, 20f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
                 }
                 Ui.Fill(new Rect(r.xMax - 188f, r.y + 12f, 1f, 86f), rule);
                 DrawSaveBadges(s, r.x + 18f, r.y + 100f, 112f, 6f, 4);
                 bool blink = calm || Mathf.FloorToInt(Time.unscaledTime * 1.5f) % 2 == 0;
-                CrtUi.Text(new Rect(r.xMax - 170f, r.y + 6f, 152f, 14f), (blink ? "\u25cf " : "  ") + "READY", 10, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
+                CrtUi.Text(new Rect(r.xMax - 170f, r.y + 6f, 152f, 14f), (blink ? "\u25cf " : "  ") + "READY", 10, CrtStyle.Dim, TextAnchor.MiddleCenter, false, calm);
                 // The latest run's Continue is always lit (it's what most people press); DEL stays quiet until the mouse is on it.
-                if (CrtUi.SoftKey(new Rect(r.xMax - 170f, r.y + 24f, 152f, 50f), "CONTINUE", PixelArt.Get("ui_play"), 20, calm, lit: true))
+                if (DkKey(new Rect(r.xMax - 170f, r.y + 24f, 152f, 50f), "CONTINUE", true, calm, icon: PixelArt.Get("ui_play"), size: 20, rawSize: true))
                     toContinue = s;
-                if (CrtUi.SoftKey(new Rect(r.xMax - 170f, r.y + 82f, 152f, 28f), delLabel, null, armed ? 12 : 15, calm, lit: armed, danger: true, quiet: true))
+                if (DkKey(new Rect(r.xMax - 170f, r.y + 82f, 152f, 28f), delLabel, armed, calm, size: armed ? 12 : 15, danger: true, quiet: true, rawSize: true))
                     toDelete = s;
                 return;
             }
             // A compact row: wave, saved, score, played, players, then Continue and the delete key.
             float[] colX = { 0f, 38f, 126f, 170f, 218f };
             float cx = r.x + 14f;
-            CrtUi.Text(new Rect(cx + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.ShownWave + 1).ToString(), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(cx + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.ShownWave + 1).ToString(), 24, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
             if (s.Endless)
-                CrtUi.Text(new Rect(cx + colX[0], r.y + 32f, 46f, 14f), "endless", 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
-            CrtUi.Text(new Rect(cx + colX[1], r.y + 4f, 86f, r.height - 8f), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
-            CrtUi.Text(new Rect(cx + colX[2], r.y + 4f, 46f, r.height - 8f), s.Score.ToString(), 13, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
-            CrtUi.Text(new Rect(cx + colX[3], r.y + 4f, 56f, r.height - 8f), (int)(s.RunTime / 60f) + " min", 12, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
+                CrtUi.Text(new Rect(cx + colX[0], r.y + 32f, 46f, 14f), "endless", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
+            CrtUi.Text(new Rect(cx + colX[1], r.y + 4f, 86f, r.height - 8f), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
+            CrtUi.Text(new Rect(cx + colX[2], r.y + 4f, 46f, r.height - 8f), s.Score.ToString(), 13, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
+            CrtUi.Text(new Rect(cx + colX[3], r.y + 4f, 56f, r.height - 8f), (int)(s.RunTime / 60f) + " min", 12, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
             int n = Mathf.Min(s.Seats.Count, 3);
             float top = r.y + (r.height - n * 15f) / 2f;
             for (int k = 0; k < n; k++)
             {
                 var seat = s.Seats[k];
-                Ui.Fill(new Rect(cx + colX[4], top + k * 15f + 2f, 3f, 11f), ToColor(Defs.Get(seat.Role).Color));
-                CrtUi.Text(new Rect(cx + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
-                CrtUi.Text(new Rect(cx + colX[4] + 78f, top + k * 15f - 1f, 84f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
+                Ui.Fill(new Rect(cx + colX[4], top + k * 15f + 2f, 3f, 11f), (Defs.Get(seat.Role).Color).ToColor());
+                CrtUi.Text(new Rect(cx + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Text(new Rect(cx + colX[4] + 78f, top + k * 15f - 1f, 84f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
             }
-            if (CrtUi.SoftKey(new Rect(r.xMax - 202f, r.y + 6f, 132f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 13, calm))
+            if (DkKey(new Rect(r.xMax - 202f, r.y + 6f, 132f, 36f), "CONTINUE", false, calm, icon: PixelArt.Get("ui_play"), size: 13, rawSize: true))
                 toContinue = s;
-            if (CrtUi.SoftKey(new Rect(r.xMax - 66f, r.y + 6f, 66f, 36f), delLabel, null, armed ? 12 : 15, calm, lit: armed, danger: true, quiet: true))
+            if (DkKey(new Rect(r.xMax - 66f, r.y + 6f, 66f, 36f), delLabel, armed, calm, size: armed ? 12 : 15, danger: true, quiet: true, rawSize: true))
                 toDelete = s;
         }
 
@@ -278,7 +278,7 @@ namespace Arena
                 }
             }
             bool cursor = typing || calm == false && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
-            CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), menuHdrShown + (cursor ? "_" : " "), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), menuHdrShown + (cursor ? "_" : " "), 24, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
             CrtUi.End(hs, Time.unscaledTime, calm);
             var br = new Rect(c.xMax - 30f - 120f, c.y + 10f, 120f, 44f);
             bool back = MenuVhs.Draw(br, "TRK 02", live, fxReduced, () =>
@@ -329,12 +329,12 @@ namespace Arena
         void DrawResumeBanner(Rect r, float t)
         {
             var s = session.Resume;
-            Ui.Fill(r, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.95f));  // a lit key that does nothing: which run this is
-            CrtKit.Frame(r, 2f, CrtUi.Ink);
-            Ui.Label(new Rect(r.x + 6f, r.y + 4f, r.width - 12f, 26f), "CONTINUING A SAVED RUN", 17, CrtUi.Bg, TextAnchor.MiddleCenter, true);
+            Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.95f));  // a lit key that does nothing: which run this is
+            CrtKit.Frame(r, 2f, CrtStyle.Ink);
+            Ui.Label(new Rect(r.x + 6f, r.y + 4f, r.width - 12f, 26f), "CONTINUING A SAVED RUN", 17, CrtStyle.Bg, TextAnchor.MiddleCenter, true);
             string line = "Starts at wave " + (s.ShownWave + 1) + (s.Endless ? " (endless)" : "") + "  ·  each player takes a seat";
             int ls = LobbyKit.FitSize(line, 12, 9, r.width - 12f, false);
-            Ui.Label(new Rect(r.x + 6f, r.y + 29f, r.width - 12f, 18f), line, ls, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.85f), TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(r.x + 6f, r.y + 29f, r.width - 12f, 18f), line, ls, CrtStyle.Bg.WithAlpha(0.85f), TextAnchor.MiddleCenter);
         }
 
         /// Instead of your loadout: the run's seats, who's in each, and a button to move to a free one.
@@ -348,7 +348,7 @@ namespace Arena
             for (int i = 0; i < s.Seats.Count; i++)
             {
                 var seat = s.Seats[i];
-                var color = ToColor(Defs.Get(seat.Role).Color);
+                var color = (Defs.Get(seat.Role).Color).ToColor();
                 LobbyEntry sitter = null;
                 foreach (var e in session.Lobby.Values)
                     if (e.Seat == i)
@@ -374,7 +374,7 @@ namespace Arena
                 else
                 {
                     DkTag(who, "FREE SEAT", new Color(0.3f, 0.34f, 0.42f));
-                    if (LobbyKit.Key(new Rect(r.xMax - 210f, r.y + 54f, 196f, 36f), "TAKE THIS SEAT", false, fxReduced, size: 18, minSize: 12))
+                    if (DkKey(new Rect(r.xMax - 210f, r.y + 54f, 196f, 36f), "TAKE THIS SEAT", false, fxReduced, size: 18, minSize: 12))
                         session.RequestSeat(i);
                 }
                 y += 112f;
@@ -401,7 +401,7 @@ namespace Arena
                 float a = Mathf.Clamp01(t.T / 0.5f);
                 var r = new Rect(cx - 260f, y + i * 48f, 520f, 42f);
                 Ui.Pill(r, new Color(0.12f, 0.09f, 0.02f, 0.85f * a));
-                Color head = t.Warning ? new Color(1f, 0.35f, 0.3f, a) : new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, a);
+                Color head = t.Warning ? new Color(1f, 0.35f, 0.3f, a) : CrtStyle.Gold.WithAlpha(a);
                 Ui.Shadowed(new Rect(r.x, r.y + 2f, r.width, 22f), (t.Warning ? "" : "UNLOCKED: ") + t.Unlock.Name.ToUpperInvariant(), 16, head);
                 Ui.Label(new Rect(r.x, r.y + 22f, r.width, 16f), t.Unlock.Desc, 11, new Color(1f, 1f, 1f, 0.8f * a), TextAnchor.MiddleCenter);
             }

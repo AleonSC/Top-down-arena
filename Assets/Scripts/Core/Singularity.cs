@@ -142,7 +142,7 @@ namespace Arena
                 EnterSingStage(e, SingStage.EventHorizon);
             byte was = e.Phase;
             float frac = e.MaxHp > 0f ? e.Hp / e.MaxHp : 1f;
-            V2 middle = new V2(Width / 2f, Height / 2f);
+            V2 middle = ArenaMid;
 
             if (s.TransT > 0f)
             {
@@ -217,7 +217,7 @@ namespace Arena
                 case SingTurn.TwinLasers:
                     if (e.Phase == SingLaserWarn && was != SingLaserWarn)
                     {
-                        e.Facing = Rand(0f, MathX.Tau);  // a new starting angle for each sweep
+                        e.Facing = RandAngle();  // a new starting angle for each sweep
                         BroadcastSound(Sfx.BossLaserWarn);
                     }
                     if (e.Phase == SingLasers && was != SingLasers)
@@ -278,8 +278,7 @@ namespace Arena
             ClearCages();
             ClearShards();
             ClearCornerWells();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, to == SingStage.Accretion ? new Rgba(0.75f, 0.45f, 1f) : new Rgba(1f, 0.45f, 0.85f), 900f, 0.8f, Sfx.BossChime);
             DoLog("the Singularity: changing to " + to);
         }
@@ -473,7 +472,7 @@ namespace Arena
             {
                 if (p.Downed)
                     continue;
-                var cage = new Cage { Id = nextCageId++, PlayerId = p.Id, Center = p.Pos, Radius = CageStartRadius, Spin = Rand(0f, MathX.Tau) };
+                var cage = new Cage { Id = nextCageId++, PlayerId = p.Id, Center = p.Pos, Radius = CageStartRadius, Spin = RandAngle() };
                 for (int i = 0; i < CageWellsEach; i++)
                 {
                     var w = SpawnEnemyAt(EnemyType.CageWell, CagePoint(cage, i), 0.5f, boss.Id);

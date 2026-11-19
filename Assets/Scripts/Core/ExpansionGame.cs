@@ -321,7 +321,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (r.Surprise > 0 && r.Surprise != 1 + (int)SurpriseShape.Stash && r.Leg == 0)  // (the breach Stashes aren't gifts: they don't turn the rotation)
+                if (r.Surprise > 0 && r.Surprise != 1 + (int)SurpriseShape.Stash && r.Piece == 0)  // (the breach Stashes aren't gifts: they don't turn the rotation)
                     n++;
             return n;
         }
@@ -882,7 +882,7 @@ namespace Arena
                 w.Write((short)r.Price);
                 w.Write((short)r.Owner);
                 w.Write(r.Floating);
-                w.Write(r.Leg);
+                w.Write(r.Piece);
                 w.Write(r.Surprise);
                 w.Write(r.Claimed);
                 w.Write(r.Mini);
@@ -901,7 +901,7 @@ namespace Arena
                 room.Price = r.ReadInt16();
                 room.Owner = r.ReadInt16();
                 room.Floating = r.ReadBoolean();
-                room.Leg = r.ReadByte();
+                room.Piece = r.ReadByte();
                 room.Surprise = r.ReadByte();
                 room.Claimed = r.ReadBoolean();
                 room.Mini = r.ReadByte();

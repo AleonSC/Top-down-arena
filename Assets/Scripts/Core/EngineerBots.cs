@@ -218,9 +218,7 @@ namespace Arena
             }
             bool sent = target != null;
             if (target == null && Battle)
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.CloserThan(owner.Pos, BotLeash + e.Radius) && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
-                        target = e;
+                target = NearestInLeash(m.Pos, owner.Pos, BotLeash);
             V2 goal;
             float stop;
             if (target != null)

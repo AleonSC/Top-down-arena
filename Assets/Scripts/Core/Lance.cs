@@ -170,8 +170,7 @@ namespace Arena
             ModHit(e, p.Id, dmg, Defs.KnightSlash, dir * -1f);
             if (!e.Def.IsBoss)
             {
-                e.FrozenT = Math.Max(e.FrozenT, HookStun);
-                e.SlowT = Math.Max(e.SlowT, HookStun);
+                Hold(e, HookStun);
             }
             if (!Heavy(e))
             {
@@ -270,8 +269,7 @@ namespace Arena
             float dmg = WallImpactDmg * (owner != null ? owner.Stats.DmgMult * owner.Stats.ImpactMult : 1f);
             e.KnockLeft = V2.Zero;
             e.KnockSpeed = 0f;
-            e.FrozenT = Math.Max(e.FrozenT, WallImpactStun);
-            e.SlowT = Math.Max(e.SlowT, WallImpactStun);
+            Hold(e, WallImpactStun);
             WeaponHurt(e, dmg, e.ImpactBy - 1);
             BroadcastFx(FxKind.LanceImpact, at, new V2(e.Id, -1), LanceImpactCol, dmg, ImpactFxTime, Sfx.LanceWall);
             e.ImpactBy = 0;

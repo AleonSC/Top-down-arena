@@ -73,7 +73,7 @@ namespace Arena
             float cur;
             if (!katanaBladeAng.TryGetValue(p.Id, out cur))
                 cur = rest;
-            cur += (MathX.Fmod(target - cur + MathX.Pi, MathX.Tau) - MathX.Pi) * Mathf.Min(1f, Time.deltaTime * ease);
+            cur += (MathX.WrapPi(target - cur)) * Mathf.Min(1f, Time.deltaTime * ease);
             katanaBladeAng[p.Id] = cur;
             ang = cur;
             return true;

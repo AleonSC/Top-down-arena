@@ -183,7 +183,7 @@ namespace Arena
                 // The vault: to the other arm of the X, a right angle round from the first, on the side with more room.
                 float first = s.DashAng;
                 V2 side = V2.FromAngle(first + MathX.Pi / 2f);
-                V2 mid = new V2(Width / 2f, Height / 2f);
+                V2 mid = ArenaMid;
                 if ((mid - e.CrossAt).Dot(side) < 0f)
                     side = side * -1f;
                 V2 from = ClampToArena(e.CrossAt + side * HarlequinArm, e.Radius + 10f);
@@ -328,7 +328,7 @@ namespace Arena
             {
                 V2 lo = ArenaMin + new V2(170f, 170f), hi = ArenaMax - new V2(170f, 170f);
                 V2 c = new V2(Math.Max(lo.X, Math.Min(hi.X, target.Pos.X)), Math.Max(lo.Y, Math.Min(hi.Y, target.Pos.Y)));
-                honourRings[squad] = ring = new HonourRing { Center = c, Spin0 = Rand(0f, MathX.Tau) };
+                honourRings[squad] = ring = new HonourRing { Center = c, Spin0 = RandAngle() };
             }
             ring.Size++;
             return ClampToArena(HonourPoint(ring.Center, ring.Spin0, i % HonourSlots, HonourStart), 30f);

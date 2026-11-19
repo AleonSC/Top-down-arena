@@ -164,7 +164,7 @@ namespace Arena
             var w = e.Warden;
             if (w == null || w.Turn != WardenTurn.Rioters || w.TransT > 0f || w.RiotShield <= 0f)
                 return false;
-            float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - w.Aux + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float diff = Math.Abs(MathX.WrapPi((from - e.Pos).Angle - w.Aux));
             return diff < ShieldHalfArc;
         }
 
@@ -175,7 +175,7 @@ namespace Arena
         V2 WardenMove(Enemy e, V2 tpos, ref float speed)
         {
             var w = WardenOf(e);
-            V2 middle = new V2(Width / 2f, Height / 2f);
+            V2 middle = ArenaMid;
             if (w.StunT > 0f)
                 return V2.Zero;  // stunned by its own shot
             if (w.TransT > 0f || w.Turn == WardenTurn.LastStand)
@@ -311,7 +311,7 @@ namespace Arena
                         OpenRiotDoors(w, 2);
                     if (target != null)
                     {
-                        float want = (target.Pos - e.Pos).Angle, diff = MathX.Fmod(want - w.Aux + MathX.Pi, MathX.Tau) - MathX.Pi;
+                        float want = (target.Pos - e.Pos).Angle, diff = MathX.WrapPi(want - w.Aux);
                         w.Aux += Math.Max(-ShieldTurn * dt, Math.Min(ShieldTurn * dt, diff));
                     }
                     int left = CountRioters();
@@ -413,8 +413,7 @@ namespace Arena
             w.Shackle.Clear();
             ClearRioters();
             ClearWardenShields(e);  // WardenFaction.cs
-            ClearEnemyBullets();  // (and the gas)
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();  // (and the gas)
             BroadcastFx(FxKind.Ring, e.Pos, to == WardenStage.Riot ? new Rgba(1f, 0.5f, 0.2f) : to == WardenStage.LastStand ? new Rgba(0.6f, 0.75f, 0.95f) : new Rgba(0.35f, 0.65f, 1f), 900f, 0.8f, Sfx.BossChime);
             if (to == WardenStage.Riot)
                 foreach (var d in RiotDoors)
@@ -462,7 +461,7 @@ namespace Arena
                 case WardenTurn.Charge:
                 {
                     var t = target ?? PlayerOrNull(e.TargetId);
-                    w.Aux = t != null ? (t.Pos - e.Pos).Angle : (new V2(Width / 2f, Height / 2f) - e.Pos).Angle;
+                    w.Aux = t != null ? (t.Pos - e.Pos).Angle : (ArenaMid - e.Pos).Angle;
                     w.ChargeLeft = ChargeLength;
                     break;
                 }
@@ -550,7 +549,7 @@ namespace Arena
                 case WardenTurn.LastStand:  // in the middle: long "+" bursts turning 45 degrees each time, a ring per pause, stun rounds
                 {
                     e.FireT = 0.075f;
-                    if (e.Pos.FartherThan(new V2(Width / 2f, Height / 2f), 8f))
+                    if (e.Pos.FartherThan(ArenaMid, 8f))
                         break;
                     int cycle = (int)(w.TurnT / LastStandCycle);
                     float into = w.TurnT - cycle * LastStandCycle, facing = LastStandFacing(w.TurnT);
@@ -731,7 +730,7 @@ namespace Arena
             for (int i = 0; i < ShackleOrbs; i++)
             {
                 float a = away + MathX.Tau * i / ShackleOrbs;
-                float off = Math.Abs(MathX.Fmod(a - away + MathX.Pi, MathX.Tau) - MathX.Pi);
+                float off = Math.Abs(MathX.WrapPi(a - away));
                 if (off < MathX.Tau * (ShackleGap / 2f + 0.1f) / ShackleOrbs)
                     continue;  // the gap
                 V2 d = V2.FromAngle(a);
@@ -926,7 +925,7 @@ namespace Arena
             V2 at = near;
             for (int tries = 0; tries < 16; tries++)
             {
-                at = ClampToArena(near + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 220f), 100f);
+                at = ClampToArena(near + RandDir() * Rand(60f, 220f), 100f);
                 if (at.CloserThan(e.Pos, GasRadius + e.Radius))
                     at = ClampToArena(at + (at - e.Pos).Normalized() * (GasRadius + e.Radius), 100f);  // not on the Warden
                 if (!InDoorLane(e.Warden, at.X))
@@ -1050,7 +1049,7 @@ namespace Arena
                 SpawnEnemyAt(EnemyType.Guard, d + inward * 40f + inward.Orthogonal() * Rand(-30f, 30f), 0.4f, 0);
                 BroadcastFx(FxKind.Ring, d + inward * 30f, Defs.Get(EnemyType.Guard).Color, 70f, 0.5f, Sfx.None);
             }
-            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), Defs.Get(EnemyType.Guard).Color, 900f, 0.7f, Sfx.BossCage);
+            BroadcastFx(FxKind.Ring, ArenaMid, Defs.Get(EnemyType.Guard).Color, 900f, 0.7f, Sfx.BossCage);
             DoLog("the Warden's guards come in: " + n);
         }
 

@@ -24,7 +24,7 @@ namespace Arena
             string tag = game.LayoutOn && game.ActiveLayout != null ? game.ActiveLayout.Name.ToUpperInvariant() : null;
             if (head == null && tag == null)
                 return;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             const int size = 17, tagSize = 11;
             float hw = head != null ? CrtUi.TitleWidth(head, size) : 0f, cg = head != null ? 10f : 0f;
             float cw = count != null ? CrtUi.TitleWidth(count, size) : 0f;
@@ -32,16 +32,16 @@ namespace Arena
             float x = W / 2f - (hw + cg + cw + gap + tw) / 2f, y = BossUp() ? HudObjectiveUnderBossY : HudObjectiveY;  // (HudLayout.cs)
             if (head != null)
             {
-                CrtUi.Title(new Rect(x, y, hw + 4f, 22f), head, size, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
-                CrtUi.Title(new Rect(x + hw + cg, y, cw + 4f, 22f), count, size, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                CrtUi.Title(new Rect(x, y, hw + 4f, 22f), head, size, CrtStyle.Ink, TextAnchor.MiddleLeft, calm);
+                CrtUi.Title(new Rect(x + hw + cg, y, cw + 4f, 22f), count, size, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
                 x += hw + cg + cw + gap;
             }
             if (tag != null)
             {
                 var r = new Rect(x, y + 3f, tw, 16f);
-                Ui.Fill(r, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.12f));
-                Ui.Rim(r, CrtUi.Dim, 0.8f);
-                CrtUi.Title(r, tag, tagSize, CrtUi.Dim, TextAnchor.MiddleCenter, true);
+                Ui.Fill(r, CrtStyle.Dim.WithAlpha(0.12f));
+                Ui.Rim(r, CrtStyle.Dim, 0.8f);
+                CrtUi.Title(r, tag, tagSize, CrtStyle.Dim, TextAnchor.MiddleCenter, true);
             }
         }
 

@@ -124,7 +124,7 @@ namespace Arena
         public static ExpansionRoom? GridMiniFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes)
         {
             var rng = new DetRandom(seed * 6007 + cycle * 811 + 71);
-            var start = new V2(Game.Width / 2f, Game.Height / 2f);
+            var start = Game.ArenaMid;
             var firsts = PlacementsFor(built, PieceShape.Mono);
             firsts.Sort((p, q) => q.Mid.DistanceTo(start).CompareTo(p.Mid.DistanceTo(start)));
             for (int tries = 0; tries < Math.Min(firsts.Count, 24); tries++)

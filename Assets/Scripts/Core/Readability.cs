@@ -108,7 +108,7 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(e.TargetId, out p))
                 return ShotLook.Round;
-            float off = Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - ang + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float off = Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - ang));
             return off < 0.5f ? ShotLook.Dart : ShotLook.Round;
         }
     }

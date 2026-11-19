@@ -209,7 +209,7 @@ namespace Arena
                 if (!Targetable(e) || Heavy(e) || e.Pos.FartherThan(m.Pos, R + 40f))
                     continue;
                 V2 rel = e.Pos - m.Pos;
-                KnockEnemy(e, (rel.Length > 1f ? rel / rel.Length : V2.FromAngle(Rand(0f, MathX.Tau))) * NimbusBurstShove);
+                KnockEnemy(e, (rel.Length > 1f ? rel / rel.Length : RandDir()) * NimbusBurstShove);
             }
         }
     }

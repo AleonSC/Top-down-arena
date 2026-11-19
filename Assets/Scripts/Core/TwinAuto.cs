@@ -38,11 +38,10 @@ namespace Arena
         /// How far from you the guns reach (a round's speed times its life: 0.5 s, against the Twin Rifle's 0.7 s).
         public float AutoRange(Player p) => p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult * 0.92f;
 
-        static float AutoWrap(float a) => MathX.Fmod(a + MathX.Pi, MathX.Tau) - MathX.Pi;
 
         static float AutoApproach(float cur, float target, float step)
         {
-            float d = AutoWrap(target - cur);
+            float d = MathX.WrapPi(target - cur);
             return Math.Abs(d) <= step ? cur + d : cur + (d > 0f ? step : -step);
         }
 
@@ -99,10 +98,10 @@ namespace Arena
             {
                 float want = g == 0 ? -AutoRestOut : AutoRestOut;  // (relative to your facing)
                 if (tgt[g] != null)
-                    want = AutoWrap((tgt[g].Pos - AutoGrip(p, p.Pos, g)).Angle - p.Aim);
+                    want = MathX.WrapPi((tgt[g].Pos - AutoGrip(p, p.Pos, g)).Angle - p.Aim);
                 float cur = g == 0 ? p.TwinAimL : p.TwinAimR, now = AutoApproach(cur, want, AutoTurn * dt);
                 if (g == 0) p.TwinAimL = now; else p.TwinAimR = now;
-                ready[g] = tgt[g] != null && Math.Abs(AutoWrap(want - now)) <= AutoAimTol
+                ready[g] = tgt[g] != null && Math.Abs(MathX.WrapPi(want - now)) <= AutoAimTol
                     && tgt[g].Pos.DistanceTo(AutoGrip(p, p.Pos, g)) - tgt[g].Radius <= range + AutoBarrel;
             }
             if (stunned || p.FireCd > 0f || !(ready[0] || ready[1]))

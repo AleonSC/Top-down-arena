@@ -32,7 +32,7 @@ namespace Arena
             string hint = !mine ? "Looking only: teammates use their own" : canUse ? "Click a card or buildable to use it" : invFromPause ? "Use them from the Tab screen in a build round" : "Usable in the break, while a build round is open";
             HoloPanel(head, holoPageAt, () =>
             {
-                HoloTitle(head.x + 18f, head.y + 14f, "INVENTORY", sub.ToUpperInvariant(), mine ? HoloDim : Color.Lerp(ToColor(p.Def.Color), Color.white, 0.35f));
+                HoloTitle(head.x + 18f, head.y + 14f, "INVENTORY", sub.ToUpperInvariant(), mine ? HoloDim : Color.Lerp(p.Def.Color.ToColor(), Color.white, 0.35f));
                 Ui.Label(new Rect(head.x + 18f, head.yMax - 20f, 600f, 14f), hint.ToUpperInvariant(), 10, canUse ? CrtStyle.Gold : HoloDim, TextAnchor.MiddleLeft, true);
                 DrawInvWho(me, head);
             });
@@ -67,13 +67,13 @@ namespace Arena
                 var q = game.Players[ids[i]];
                 bool on = (invView == 0 ? me.Id : invView) == q.Id;
                 var r = new Rect(kx + i * (kw + gap), head.y + 18f, kw, 30f);
-                if (LobbyKit.Key(r, q.Id == me.Id ? "YOU" : LobbyKit.Truncate(q.Name.ToUpperInvariant(), 13, kw - 16f), on, HoloCalm, size: 13, minSize: 10) && !on)
+                if (DkKey(r, q.Id == me.Id ? "YOU" : LobbyKit.Truncate(q.Name.ToUpperInvariant(), 13, kw - 16f), on, FxCalm, size: 13, minSize: 10) && !on)
                 {
                     invView = q.Id == me.Id ? 0 : q.Id;
                     holoPageAt = Time.unscaledTime;  // (the panels switch on again for the new view)
                 }
                 if (q.Id != me.Id)
-                    Ui.Fill(new Rect(r.x + 6f, r.yMax - 4f, r.width - 12f, 2f), ToColor(q.Def.Color));
+                    Ui.Fill(new Rect(r.x + 6f, r.yMax - 4f, r.width - 12f, 2f), q.Def.Color.ToColor());
             }
         }
 
@@ -133,11 +133,11 @@ namespace Arena
             invScroll[key] = s;
             if (max > 0)
             {
-                var ink = CrtUi.Ink;
+                var ink = CrtStyle.Ink;
                 var track = new Rect(area.xMax - 4f, area.y, 4f, area.height);
-                Ui.Fill(track, new Color(ink.r, ink.g, ink.b, 0.15f));
+                Ui.Fill(track, ink.WithAlpha(0.15f));
                 float th = Mathf.Max(18f, area.height * shown / total), ty = area.y + (area.height - th) * s / max;
-                Ui.Fill(new Rect(track.x, ty, track.width, th), new Color(ink.r, ink.g, ink.b, 0.8f));
+                Ui.Fill(new Rect(track.x, ty, track.width, th), ink.WithAlpha(0.8f));
                 if (s < max)
                     Ui.Label(new Rect(area.x, area.yMax - 2f, area.width - 10f, 14f), "▼ " + (max - s) + " MORE  ·  SCROLL", 9, HoloDim, TextAnchor.MiddleRight, true);
             }
@@ -147,7 +147,7 @@ namespace Arena
         /// Gold and vectors as big tiles, then the revive token and the gadget.
         void DrawInvWallet(Player me, Rect r, bool mine)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Wallet", null, HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Wallet", null, FxCalm);
             float tw = (r.width - 36f) / 2f;
             HoloTile(new Rect(r.x + 12f, r.y + 46f, tw, 64f), me.Gold.ToString(), "Gold");
             bool expanding = game.ExpandingOn;
@@ -164,12 +164,12 @@ namespace Arena
         /// The relic slot: its name and what it does, or an empty slot.
         void DrawInvRelic(Player me, Rect r)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Relic", null, HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Relic", null, FxCalm);
             var slot = new Rect(r.x + 12f, r.y + 48f, 56f, 56f);
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             bool has = me.Relic != RelicId.None;
-            Ui.Fill(slot, new Color(ink.r, ink.g, ink.b, has ? 0.16f : 0.05f));
-            CrtKit.Frame(slot, 1f, has ? CrtStyle.Gold : new Color(ink.r, ink.g, ink.b, 0.35f));
+            Ui.Fill(slot, ink.WithAlpha(has ? 0.16f : 0.05f));
+            CrtKit.Frame(slot, 1f, has ? CrtStyle.Gold : ink.WithAlpha(0.35f));
             if (has)
             {
                 Ui.Dot(new Rect(slot.center.x - 14f, slot.center.y - 14f, 28f, 28f), CrtStyle.Gold, true);
@@ -190,8 +190,8 @@ namespace Arena
         void DrawInvHand(Player me, Rect r, bool canUse)
         {
             canUse &= game.ExpandingOn;
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Piece cards" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
-            var ink = CrtUi.Ink;
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Piece cards" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", FxCalm);
+            var ink = CrtStyle.Ink;
             const int cols = 3;
             const float minH = 96f;
             float gap = 10f, avail = r.height - 58f;
@@ -208,20 +208,20 @@ namespace Arena
                 {
                     for (float dx = 0f; dx < c.width; dx += 10f)  // a dashed outline: an empty slot
                     {
-                        Ui.Fill(new Rect(c.x + dx, c.y, Mathf.Min(5f, c.width - dx), 1f), new Color(ink.r, ink.g, ink.b, 0.3f));
-                        Ui.Fill(new Rect(c.x + dx, c.yMax - 1f, Mathf.Min(5f, c.width - dx), 1f), new Color(ink.r, ink.g, ink.b, 0.3f));
+                        Ui.Fill(new Rect(c.x + dx, c.y, Mathf.Min(5f, c.width - dx), 1f), ink.WithAlpha(0.3f));
+                        Ui.Fill(new Rect(c.x + dx, c.yMax - 1f, Mathf.Min(5f, c.width - dx), 1f), ink.WithAlpha(0.3f));
                     }
                     for (float dy = 0f; dy < c.height; dy += 10f)
                     {
-                        Ui.Fill(new Rect(c.x, c.y + dy, 1f, Mathf.Min(5f, c.height - dy)), new Color(ink.r, ink.g, ink.b, 0.3f));
-                        Ui.Fill(new Rect(c.xMax - 1f, c.y + dy, 1f, Mathf.Min(5f, c.height - dy)), new Color(ink.r, ink.g, ink.b, 0.3f));
+                        Ui.Fill(new Rect(c.x, c.y + dy, 1f, Mathf.Min(5f, c.height - dy)), ink.WithAlpha(0.3f));
+                        Ui.Fill(new Rect(c.xMax - 1f, c.y + dy, 1f, Mathf.Min(5f, c.height - dy)), ink.WithAlpha(0.3f));
                     }
                     continue;
                 }
-                var ci = ToColor(CardColor(card));
+                var ci = CardColor(card).ToColor();
                 bool hot = canUse && c.Contains(Event.current.mousePosition);
-                Ui.Fill(c, new Color(ci.r, ci.g, ci.b, hot ? 0.2f : 0.08f));
-                CrtKit.Frame(c, hot ? 2f : 1f, hot ? Color.Lerp(ci, Color.white, 0.5f) : new Color(ci.r, ci.g, ci.b, 0.6f));
+                Ui.Fill(c, ci.WithAlpha(hot ? 0.2f : 0.08f));
+                CrtKit.Frame(c, hot ? 2f : 1f, hot ? Color.Lerp(ci, Color.white, 0.5f) : ci.WithAlpha(0.6f));
                 DrawCardGlyph(card, new Rect(c.x + 10f, c.y + 8f, c.width - 20f, c.height - 40f), ci);
                 Ui.Label(new Rect(c.x, c.yMax - 28f, c.width, 18f), hot ? "PLAY  ›" : Expansion.CardName(card).ToUpperInvariant(), 13, hot ? CrtStyle.Gold : Color.white, TextAnchor.MiddleCenter, true);
                 if (TipHover(c))
@@ -244,7 +244,7 @@ namespace Arena
         /// opens the build screen in its tool (Teleporter or Trap, UseInvBuild).
         void DrawInvStash(Player me, Rect r, bool canUse)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", me == game.Me ? "your stash" : "their stash", HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", me == game.Me ? "your stash" : "their stash", FxCalm);
             var owned = new List<int>();
             for (int q = 0; q < Market.Count; q++)
                 if (me.Stash[q] > 0) owned.Add(q);
@@ -262,17 +262,17 @@ namespace Arena
             {
                 int k = owned[i], have = me.Stash[k];
                 var row = new Rect(list.x, list.y + (i - first) * rowH, rowW, rowH - 4f);
-                var ink = CrtUi.Ink;
+                var ink = CrtStyle.Ink;
                 bool usable = canUse, hot = usable && row.Contains(Event.current.mousePosition);
                 if (i % 2 == 0 || hot)
-                    Ui.Fill(row, new Color(ink.r, ink.g, ink.b, hot ? 0.2f : 0.07f));
+                    Ui.Fill(row, ink.WithAlpha(hot ? 0.2f : 0.07f));
                 if (hot)
                     CrtKit.Frame(row, 1f, CrtStyle.Gold);
                 if (usable && Ui.HitArea(row))
                     UseInvBuild(k);
                 if (TipHover(row))
                 {
-                    TipStart(row, Market.Names[k], ToColor(BlackMarketInk));
+                    TipStart(row, Market.Names[k], BlackMarketInk.ToColor());
                     TipAdd(Market.Blurbs[k], 12, Ui.Text);
                     TipAdd(usable ? "Click to place it: the build screen opens on its tool." : InvUseWhy(me), 11, usable ? CrtStyle.Gold : Ui.Muted);
                 }
@@ -289,7 +289,7 @@ namespace Arena
         /// The team's room kits (shared: anyone spends one on a built room from the build screen).
         void DrawInvKits(Rect r)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room kits", "team · " + game.RoomTokens.Count + " / " + Expansion.MaxTokens, HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room kits", "team · " + game.RoomTokens.Count + " / " + Expansion.MaxTokens, FxCalm);
             if (game.RoomTokens.Count == 0)
             {
                 Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 40f), "None held. Bosses give a floor kit, won challenges a shop kit, and the Black Market sells them.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);
@@ -304,8 +304,8 @@ namespace Arena
             {
                 var t = game.RoomTokens[i];
                 var row = new Rect(list.x, list.y + (i - first) * (rowH + 4f), list.width - (n > shown ? 10f : 0f), rowH);
-                var ki = ToColor(t.Kind == RoomKind.Shop ? ShopInk : Paths.Get(t.Floor).Accent);
-                Ui.Fill(row, new Color(ki.r, ki.g, ki.b, 0.1f));
+                var ki = (t.Kind == RoomKind.Shop ? ShopInk : Paths.Get(t.Floor).Accent).ToColor();
+                Ui.Fill(row, ki.WithAlpha(0.1f));
                 Ui.Fill(new Rect(row.x, row.y, 4f, row.height), ki);
                 Ui.Label(new Rect(row.x + 14f, row.y, row.width - 20f, row.height), t.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(row.x, row.y, row.width - 10f, row.height), t.Kind == RoomKind.Shop ? "SHOP" : "FLOOR", 10, ki, TextAnchor.MiddleRight, true);

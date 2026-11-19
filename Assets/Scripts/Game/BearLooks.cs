@@ -124,7 +124,7 @@ namespace Arena
                 glow = Math.Max(glow, 1f - f);
                 float half = Math.Abs(fx.Radius), side = fx.Radius >= 0f ? 1f : -1f, from = -side * half, to = -from, guard = -side * BearGuard;
                 V2 span = fx.Pos2 - fx.Pos;
-                float off = MathX.Fmod(span.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi;   // the swipe's aim, against where they point now
+                float off = MathX.WrapPi(span.Angle - p.Aim);   // the swipe's aim, against where they point now
                 var pose = new BearPose { F = f, Reach = span.Length, Half = half, Side = side };
                 if (f < 1f / 3f)
                 {

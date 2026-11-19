@@ -171,7 +171,7 @@ namespace Arena
         V2 EclipseGoal(Enemy e)
         {
             var s = e.Eclipse;
-            var mid = new V2(Width / 2f, Height / 2f);
+            var mid = ArenaMid;
             if (s == null)
                 return mid + V2.FromAngle(e.T * 0.3f) * EclipseOrbit;
             if (s.Stage == EclipseStage.Totality)
@@ -240,7 +240,7 @@ namespace Arena
                         s.ActT = 2f;
                         foreach (var p in alive)
                             AddFlare(e, s, (p.Pos - e.Pos).Angle);
-                        AddFlare(e, s, Rand(0f, MathX.Tau));
+                        AddFlare(e, s, RandAngle());
                         BroadcastSound(Sfx.BossLaserWarn);  // the flares' warning lines
                         break;
                     case EclipseTurn.LunarWake:  // the moon drops a slow shot behind it
@@ -268,7 +268,7 @@ namespace Arena
                         {
                             s.Fired++;
                             s.ActT = 3.4f;
-                            float g = Rand(0f, MathX.Tau);
+                            float g = RandAngle();
                             s.Rings.Add(new EclipseRing { Center = e.Pos, R = UmbraRingStart, Gap1 = g, Gap2 = MathX.Fmod(g + Rand(2f, 4f), MathX.Tau) });
                             BroadcastSound(Sfx.BossWarp);  // the shadow closing in
                         }
@@ -288,7 +288,7 @@ namespace Arena
                         for (int i = 0; i < 30; i++)
                         {
                             float a = off + MathX.Tau * i / 30f;
-                            if (Math.Abs(MathX.Fmod(a - gap + MathX.Pi, MathX.Tau) - MathX.Pi) < 1.5f * MathX.Tau / 30f)
+                            if (Math.Abs(MathX.WrapPi(a - gap)) < 1.5f * MathX.Tau / 30f)
                                 continue;
                             EnemyShot(e, a, 180f, Defs.BigShot);
                         }
@@ -418,7 +418,7 @@ namespace Arena
                     continue;
                 V2 tip = f.From + V2.FromAngle(f.Ang) * FlareLen;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && !f.Hit.Contains(p.Id) && SegmentDistance(p.Pos, f.From, tip) < FlareWidth / 2f + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && !f.Hit.Contains(p.Id) && p.Pos.DistanceToSegment(f.From, tip) < FlareWidth / 2f + p.Def.HitR)
                     {
                         f.Hit.Add(p.Id);
                         Damage(p, FlareDamage, "The Eclipse (solar flare)");
@@ -494,7 +494,7 @@ namespace Arena
                         if (p.Downed || p.InvulnT > 0f)
                             continue;
                         for (int k = 0; k < 2; k++)
-                            if (SegmentDistance(p.Pos, e.Pos, e.Pos + V2.FromAngle(s.SweepA + k * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + p.Def.HitR)
+                            if (p.Pos.DistanceToSegment(e.Pos, e.Pos + V2.FromAngle(s.SweepA + k * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + p.Def.HitR)
                             {
                                 Damage(p, EchoDamage, "The Eclipse (echo of the Lich)");
                                 break;
@@ -592,8 +592,8 @@ namespace Arena
         public static bool InUmbraGap(EclipseRing r, V2 p)
         {
             float a = (p - r.Center).Angle;
-            return Math.Abs(MathX.Fmod(a - r.Gap1 + MathX.Pi, MathX.Tau) - MathX.Pi) < UmbraGapHalf
-                || Math.Abs(MathX.Fmod(a - r.Gap2 + MathX.Pi, MathX.Tau) - MathX.Pi) < UmbraGapHalf;
+            return Math.Abs(MathX.WrapPi(a - r.Gap1)) < UmbraGapHalf
+                || Math.Abs(MathX.WrapPi(a - r.Gap2)) < UmbraGapHalf;
         }
 
         public static bool InUmbraRing(EclipseRing r, V2 p, float pad) =>
@@ -645,7 +645,7 @@ namespace Arena
             {
                 s.MoonD = stage == EclipseStage.LastLight ? MoonDistLast : MoonDist;
                 if (stage == EclipseStage.Penumbra)
-                    s.MoonA = Rand(0f, MathX.Tau);
+                    s.MoonA = RandAngle();
             }
             else
                 s.MoonD = 0f;
@@ -661,7 +661,7 @@ namespace Arena
                     SpawnEnemyAt(EnemyType.CoronaPriest, e.Pos + V2.FromAngle(MathX.Pi * i + MathX.Pi / 2f) * 200f, 0.8f, e.Id);
                 BroadcastSound(Sfx.Summon);
                 for (int i = 0; i < 3; i++)
-                    s.Spots.Add(new Sunspot { Pos = new V2(300f + i * 500f, i == 1 ? 250f : Height - 220f), Dir = Rand(0f, MathX.Tau) });
+                    s.Spots.Add(new Sunspot { Pos = new V2(300f + i * 500f, i == 1 ? 250f : Height - 220f), Dir = RandAngle() });
             }
             if (stage == EclipseStage.Totality)
             {
@@ -687,8 +687,7 @@ namespace Arena
             s.SweepOn = 0;
             s.DiskT = -1f;
             Hazards.Clear();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, EclipseColor(to), 900f, 0.8f, Sfx.BossGong);  // the moon moves on
             DoLog("the Eclipse: changing to " + to);
         }

@@ -34,7 +34,7 @@ namespace Arena
         static float GaleU(Player p, V2 at)
         {
             V2 rel = at - Game.GaleCentre(p);
-            float off = MathX.Fmod(rel.Angle - p.GaleAim + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float off = MathX.WrapPi(rel.Angle - p.GaleAim);
             return Mathf.Clamp(off / Game.GaleSpan(p), -1f, 1f);
         }
 

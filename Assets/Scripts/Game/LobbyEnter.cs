@@ -206,7 +206,7 @@ namespace Arena
             }
             var old = GUI.color;
             Ui.Alpha = k;
-            GUI.color = new Color(old.r, old.g, old.b, old.a * k);
+            GUI.color = old.ScaleAlpha(k);
             GUI.BeginGroup(new Rect(shown.x + dx * (1f - s), shown.y + dy * (1f - s), shown.width, shown.height));
             GUI.BeginGroup(new Rect(-clip.x, -clip.y, W, H));
             if (models)  // this piece's live models slide and fade with it, cut to its rect (the other pieces' models wait)
@@ -230,7 +230,7 @@ namespace Arena
         {
             var old = GUI.color;
             Ui.Alpha = a;
-            GUI.color = new Color(old.r, old.g, old.b, old.a * a);
+            GUI.color = old.ScaleAlpha(a);
             draw();
             Ui.Alpha = 1f;
             GUI.color = old;

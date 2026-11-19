@@ -12,17 +12,15 @@ namespace Arena
         public static readonly Color Text = new Color(0.93f, 0.95f, 1f);
         public static readonly Color Muted = new Color(0.62f, 0.67f, 0.78f);
         public static readonly Color Accent = new Color(0.36f, 0.6f, 1f);
-        public static readonly Color Gold = new Color(1f, 0.8f, 0.35f);
         public static readonly Color Good = new Color(0.45f, 1f, 0.55f);
         public static readonly Color Warn = new Color(1f, 0.72f, 0.4f);
 
         // Button tints (the button texture is near-white, so these set its color).
         public static readonly Color Neutral = new Color(0.26f, 0.29f, 0.4f);
         public static readonly Color Primary = new Color(0.3f, 0.55f, 1f);
-        public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, button, field, bareField, label, track, thumb, hudRim, pill;
+        static GUIStyle panel, button, field, bareField, label, track, hudRim, pill;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
@@ -137,10 +135,7 @@ namespace Arena
 
             label = new GUIStyle(GUI.skin.label) { richText = false };
 
-            track = new GUIStyle();  // the track itself is drawn by Slider()
-            thumb = new GUIStyle();
-            thumb.normal.background = thumb.hover.background = thumb.active.background = Circle(18, Color.white, Accent);
-            thumb.fixedWidth = thumb.fixedHeight = 18f;
+            track = new GUIStyle();  // the track itself is drawn by CrtSlider()
 
         }
 
@@ -203,7 +198,7 @@ namespace Arena
         /// goes through Faded, so it fades too; everything else is tinted by GUI.color, which the HUD sets as well.
         public static float Alpha = 1f;
 
-        public static Color Faded(Color c) => new Color(c.r, c.g, c.b, c.a * Alpha);
+        public static Color Faded(Color c) => c.ScaleAlpha(Alpha);
 
         public static void Fill(Rect r, Color c)
         {
@@ -219,21 +214,6 @@ namespace Arena
 
         static Rect hoverNow, hoverLast;
         static bool hoverFound, hoverHadLast;
-
-        /// A small round close button: a dim ring and an X that lights up blue under the mouse (the drawers' "Esc" button).
-        public static bool CloseChip(Rect r)
-        {
-            bool hot = r.Contains(Event.current.mousePosition);
-            var old = GUI.color;
-            GUI.color = Faded(hot ? new Color(0.55f, 0.72f, 1f, 1f) : new Color(0.17f, 0.22f, 0.35f, 1f));
-            GUI.DrawTexture(r, chip);
-            GUI.color = Faded(hot ? new Color(0.18f, 0.43f, 0.85f, 1f) : new Color(0.07f, 0.085f, 0.14f, 1f));
-            GUI.DrawTexture(new Rect(r.x + 1.5f, r.y + 1.5f, r.width - 3f, r.height - 3f), chip);
-            GUI.color = old;
-            float isz = Mathf.Round(r.width * 0.5f);
-            Icon(new Rect(r.center.x - isz / 2f, r.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_close"), hot ? Color.white : new Color(0.62f, 0.68f, 0.8f, 1f));
-            return HitArea(r);
-        }
 
         /// An invisible click area over something drawn by hand (cards, tabs, swatches). Counts for the hover sound.
         /// Set while a button is drawn a second time for show (MenuVhs.cs ghost copies): it must not take a control id or click.
@@ -324,100 +304,11 @@ namespace Arena
         {
             float f = (t / 1.4f) % 1f, grow = 2f + 6f * f;
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(c.r, c.g, c.b, 0.9f * (1f - f));
+            GUI.backgroundColor = c.WithAlpha(0.9f * (1f - f));
             GUI.Box(new Rect(r.x - grow, r.y - grow, r.width + 2f * grow, r.height + 2f * grow), GUIContent.none, cardRim);
             GUI.backgroundColor = old;
         }
 
-        /// A thin bar whose two ends fade out (the colour line along the bottom of a choice card): a solid middle and a
-        /// smoothstep ramp at each end, 28 px long (or 30% of a short bar). It's ONE quad with a baked gradient. It used to
-        /// be a solid piece plus 28 thin slices, and wherever the GUI snapped two neighbours to different pixels a one-pixel
-        /// gap showed in the bar (on some buttons, always on the right); one quad has nothing to join.
-        public static void FadedBar(Rect r, Color c)
-        {
-            if (r.width < 1f)
-                return;
-            float fade = Mathf.Min(28f, r.width * 0.3f);
-            var old = GUI.color;
-            GUI.color = Faded(c);
-            GUI.DrawTexture(r, FadeTexture(Mathf.Clamp(Mathf.RoundToInt(fade / r.width * 100f), 1, 30)));
-            GUI.color = old;
-        }
-
-        static readonly Texture2D[] fadeTextures = new Texture2D[31];  // by the ramp's share of the bar's width, in hundredths
-
-        /// White with an alpha ramp up over the first `hundredths`% of its width, flat, then down over the last.
-        static Texture2D FadeTexture(int hundredths)
-        {
-            var tex = fadeTextures[hundredths];
-            if (tex != null)
-                return tex;
-            const int w = 128;
-            var px = new Color32[w];
-            for (int x = 0; x < w; x++)
-            {
-                float u = (x + 0.5f) / w;
-                float d = Mathf.Clamp01(Mathf.Min(u, 1f - u) / (hundredths / 100f));
-                float a = d * d * (3f - 2f * d);
-                px[x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(a * 255f));
-            }
-            tex = new Texture2D(w, 1, TextureFormat.RGBA32, false)
-            {
-                filterMode = FilterMode.Bilinear,
-                wrapMode = TextureWrapMode.Clamp,
-                hideFlags = HideFlags.HideAndDontSave,
-            };
-            tex.SetPixels32(px);
-            tex.Apply();
-            return fadeTextures[hundredths] = tex;
-        }
-
-        /// The card behind a Choice (and ActionButton): dark, the selected one washed, rimmed and (with glow) haloed in its
-        /// colour, a colour bar along the bottom. Returns the bar's height.
-        static float ChoiceChrome(Rect r, bool selected, bool hover, Color accent, bool glow)
-        {
-            var old = GUI.backgroundColor;
-            if (glow && selected && r.height >= 30f)  // soft glow behind (left off small rows, where it looks blocky)
-            {
-                GUI.backgroundColor = new Color(accent.r, accent.g, accent.b, 0.22f);
-                GUI.Box(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), GUIContent.none, pill);
-            }
-            GUI.backgroundColor = Color.white;
-            GUI.Box(r, GUIContent.none, card);
-            if (selected)
-            {
-                GUI.backgroundColor = new Color(accent.r, accent.g, accent.b, 0.75f);
-                GUI.Box(r, GUIContent.none, cardTint);
-            }
-            if (selected || hover)
-            {
-                Color hc = Color.Lerp(accent, Color.white, 0.3f);
-                GUI.backgroundColor = selected ? accent : new Color(hc.r, hc.g, hc.b, 0.7f);
-                GUI.Box(r, GUIContent.none, cardRim);
-            }
-            GUI.backgroundColor = old;
-            float barH = r.height >= 34f ? 3f : 2f;
-            FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
-
-            return barH;
-        }
-
-        /// The same card with square corners: a flat fill, a 1 px rim (the accent when lit, a paler one on hover), the bar below.
-        static float SharpChrome(Rect r, bool selected, bool hover, Color accent)
-        {
-            Fill(r, new Color(0.12f, 0.14f, 0.2f, 1f));
-            if (selected)
-                Fill(r, new Color(accent.r, accent.g, accent.b, 0.3f));
-            Color hc = Color.Lerp(accent, Color.white, 0.3f);
-            Color rim = selected ? accent : hover ? new Color(hc.r, hc.g, hc.b, 0.7f) : new Color(0.2f, 0.235f, 0.337f, 1f);
-            Fill(new Rect(r.x, r.y, r.width, 1f), rim);
-            Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), rim);
-            Fill(new Rect(r.x, r.y, 1f, r.height), rim);
-            Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), rim);
-            float barH = r.height >= 34f ? 3f : 2f;
-            FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
-            return barH;
-        }
 
         /// A text field with no box: the text sits on whatever is behind it (a faint box shows while typing).
         public static string BareField(Rect r, string value, int maxLength, int size)
@@ -479,10 +370,10 @@ namespace Arena
                     var old = Alpha;
                     Alpha = 1f;
                     Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, r.height + 2f), new Color(1f, 0.8f, 0.3f, 0.16f));
-                    Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, 1.5f), Gold);
-                    Fill(new Rect(r.x - 2f, r.yMax - 0.5f, r.width + 4f, 1.5f), Gold);
-                    Fill(new Rect(r.x - 2f, r.y - 1f, 1.5f, r.height + 2f), Gold);
-                    Fill(new Rect(r.xMax + 0.5f, r.y - 1f, 1.5f, r.height + 2f), Gold);
+                    Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, 1.5f), CrtStyle.Gold);
+                    Fill(new Rect(r.x - 2f, r.yMax - 0.5f, r.width + 4f, 1.5f), CrtStyle.Gold);
+                    Fill(new Rect(r.x - 2f, r.y - 1f, 1.5f, r.height + 2f), CrtStyle.Gold);
+                    Fill(new Rect(r.xMax + 0.5f, r.y - 1f, 1.5f, r.height + 2f), CrtStyle.Gold);
                     Alpha = old;
                 }
                 float a = r.width * r.height;
@@ -504,15 +395,6 @@ namespace Arena
             return false;
         }
 
-        /// r should be 18 px tall (the thumb's size); the track is drawn through its middle.
-        public static float Slider(Rect r, float value)
-        {
-            var bar = new Rect(r.x + 4f, r.y + r.height / 2f - 3f, r.width - 8f, 6f);
-            Fill(bar, new Color(0.18f, 0.2f, 0.28f));
-            Fill(new Rect(bar.x, bar.y, bar.width * Mathf.Clamp01(value), bar.height), Accent);
-            return GUI.HorizontalSlider(r, value, 0f, 1f, track, thumb);
-        }
-
         static GUIStyle crtThumb;
 
         /// A phosphor slider (the lobby's Difficulty tab): a thin ink track, filled to the value, with a square block for the thumb
@@ -529,15 +411,15 @@ namespace Arena
         /// The same look, read-only (guests).
         public static void CrtSliderDraw(Rect r, float value, bool live)
         {
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             var bar = new Rect(r.x, r.y + r.height / 2f - 2f, r.width, 4f);
-            Fill(bar, new Color(ink.r, ink.g, ink.b, 0.16f));
+            Fill(bar, ink.WithAlpha(0.16f));
             float tx = r.x + (r.width - 10f) * Mathf.Clamp01(value);
-            Fill(new Rect(bar.x, bar.y, tx - bar.x + 5f, bar.height), live ? ink : new Color(ink.r, ink.g, ink.b, 0.55f));
+            Fill(new Rect(bar.x, bar.y, tx - bar.x + 5f, bar.height), live ? ink : ink.WithAlpha(0.55f));
             var th = new Rect(tx, r.y + 1f, 10f, r.height - 2f);
             bool hot = live && th.Contains(Event.current.mousePosition);
             Fill(th, hot ? Color.Lerp(ink, Color.white, 0.5f) : ink);
-            Fill(new Rect(th.x + 3f, th.y + 3f, 4f, th.height - 6f), CrtUi.Bg);
+            Fill(new Rect(th.x + 3f, th.y + 3f, 4f, th.height - 6f), CrtStyle.Bg);
         }
 
         /// A thin horizontal meter, e.g. for comparing two players' numbers.
@@ -608,7 +490,7 @@ namespace Arena
             if (radialTex == null)
                 radialTex = RadialTexture();
             var old = GUI.color;
-            GUI.color = new Color(c.r, c.g, c.b, c.a * Alpha);
+            GUI.color = c.ScaleAlpha(Alpha);
             GUI.DrawTexture(r, radialTex);
             GUI.color = old;
         }
@@ -639,7 +521,7 @@ namespace Arena
             if (strength <= 0.01f)
                 return;
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(c.r, c.g, c.b, Mathf.Clamp01(strength) * Alpha);
+            GUI.backgroundColor = c.WithAlpha(Mathf.Clamp01(strength) * Alpha);
             GUI.Box(new Rect(r.x - GlowSpread, r.y - GlowSpread, r.width + GlowSpread * 2f, r.height + GlowSpread * 2f), GUIContent.none, glowStyle);
             GUI.backgroundColor = old;
         }
@@ -657,7 +539,7 @@ namespace Arena
         public static void Rim(Rect r, Color c, float strength)
         {
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(c.r, c.g, c.b, Mathf.Clamp01(strength));
+            GUI.backgroundColor = c.WithAlpha(Mathf.Clamp01(strength));
             GUI.Box(r, GUIContent.none, cardRim);
             GUI.backgroundColor = old;
         }
@@ -769,7 +651,7 @@ namespace Arena
             if (glow.HasValue)
             {
                 var g = glow.Value;
-                var gc = new Color(g.r, g.g, g.b, 0.22f * g.a * a);
+                var gc = g.WithAlpha(0.22f * g.a * a);
                 for (int i = 0; i < 8; i++)
                 {
                     float an = i * Mathf.PI / 4f;

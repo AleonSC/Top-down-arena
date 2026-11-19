@@ -174,11 +174,11 @@ namespace Arena
                 string under = crtTyped < full.Length && full[crtTyped] != ' ' ? full[crtTyped].ToString() : "M";
                 float cw = Ui.TextWidth(under, (int)MenuTitleSize, true);
                 if ((int)(t * 8f) % 2 == 0)
-                    Ui.Fill(new Rect(cx, MenuTitleY + 14f + crtDy, cw, 8f), new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, 0.9f));
+                    Ui.Fill(new Rect(cx, MenuTitleY + 14f + crtDy, cw, 8f), CrtGreen.WithAlpha(0.9f));
             }
             else if ((int)(t * 1.2f) % 2 == 0)
             {
-                Ui.Fill(new Rect(box.xMax - 58f, box.yMax - 18f, 30f, 7f), new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, 0.85f));
+                Ui.Fill(new Rect(box.xMax - 58f, box.yMax - 18f, 30f, 7f), CrtGreen.WithAlpha(0.85f));
             }
         }
 
@@ -187,7 +187,7 @@ namespace Arena
         {
             float t = Time.unscaledTime;
             float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
-            var c = new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, flick);
+            var c = CrtGreen.WithAlpha(flick);
             r.y += crtDy;
             if (crtTyped < 0)
             {

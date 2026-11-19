@@ -55,7 +55,7 @@ namespace Arena
             if (!launchRippled && launchT >= LaunchRippleAt)
             {
                 launchRippled = true;
-                ripples.Add(new Ripple { Pos = new V2(Game.Width / 2f, Game.Height / 2f), Power = 2.2f });  // Juice.cs
+                ripples.Add(new Ripple { Pos = Game.ArenaMid, Power = 2.2f });  // Juice.cs
             }
             if (launchT >= LaunchLen)
             {
@@ -118,8 +118,8 @@ namespace Arena
             {
                 float e = 1f - (1f - rk) * (1f - rk) * (1f - rk), rad = 40f + e * 1100f;
                 var c = new Rgba(0.55f, 0.72f, 1f);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 26f, c.WithAlpha(0.12f * (1f - rk)), 96);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 4f, c.WithAlpha(0.6f * (1f - rk)), 96);
+                Arc(Game.ArenaMid, rad, 26f, c.WithAlpha(0.12f * (1f - rk)), 96);
+                Arc(Game.ArenaMid, rad, 4f, c.WithAlpha(0.6f * (1f - rk)), 96);
             }
             foreach (var p in game.Players.Values)
             {
@@ -197,7 +197,7 @@ namespace Arena
             GUI.enabled = false;
             uiGlBlocked = true;  // its live models (GL) don't follow the slide: they wait
             Ui.Alpha = a;
-            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
+            GUI.color = oldColor.ScaleAlpha(a);
             Rect left = LobbyLeftSide, right = LobbyRightSide;  // the lobby's two sides (LobbyLayout.cs) sliding apart
             GUI.BeginGroup(new Rect(left.x - e * 520f, left.y, left.width, left.height));
             DrawLobby();
@@ -237,7 +237,7 @@ namespace Arena
                     float dx = side * shake;
                     var tint = side > 0 ? new Color(1f, 0.25f, 0.35f) : new Color(0.3f, 0.55f, 1f);
                     Ui.Alpha = 0.16f;
-                    GUI.color = new Color(tint.r, tint.g, tint.b, 0.16f);
+                    GUI.color = tint.WithAlpha(0.16f);
                     GUI.BeginGroup(new Rect(dx, 0f, W, H));
                     DrawLobby();
                     GUI.EndGroup();
@@ -271,7 +271,7 @@ namespace Arena
                     Ui.Fill(new Rect(0f, H / 2f - hh / 2f, W, hh), new Color(0.85f, 0.92f, 1f, 0.6f * hk));  // washing out to white as it squashes
                 }
                 var line = new Rect(W / 2f - ww / 2f, H / 2f - Mathf.Min(hh, 3f) / 2f, ww, Mathf.Min(hh, 3f));
-                Ui.Glow(line, CrtUi.Ink, 1f - wk);
+                Ui.Glow(line, CrtStyle.Ink, 1f - wk);
                 Ui.Fill(line, new Color(0.95f, 0.98f, 1f, 1f - wk * wk));
             }
             GUI.color = oldColor;
@@ -295,7 +295,7 @@ namespace Arena
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
             DrawScanBand(boss ? "BOSS STARTED" : "WAVE " + w + " STARTED", game.Practice != null ? "PRACTICE" : boss ? "HOLD THE LINE" : "FIGHT",
-                boss ? "SYS> BOSS LOADED" : "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? Ui.Gold : CrtUi.Ink, k, launchT < start + 0.9f);
+                boss ? "SYS> BOSS LOADED" : "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? CrtStyle.Gold : CrtStyle.Ink, k, launchT < start + 0.9f);
             Ui.Alpha = 1f;
             GUI.color = oldColor;
         }

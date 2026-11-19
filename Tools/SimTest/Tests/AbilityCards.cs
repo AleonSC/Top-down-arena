@@ -536,7 +536,7 @@ static partial class Program
         Check(near(kn1[0] - kn0[0], 2f, 0.001f) && near(kn1[1] / kn0[1], 1.4f, 0.001f) && kn1[2] == 1f, "Shadow Mark: marks last 2 s longer and the hit after a blink deals 40% more (once)");
 
         // --- Hemomancer weapon cards (Docs/UpgradePools.md step 9) ---
-        Check(new[] { "Crimson Whip", "Deep Pool", "Hungry Tendrils", "Generous Blood", "Rich Blood", "Lifeline", "Hemophilia", "Event Horizon", "Marrow" }
+        Check(new[] { "Crimson Whip", "Deep Pool", "Hungry Tendrils", "Generous Blood", "Rich Blood", "Red Thread", "Hemophilia", "Event Horizon", "Marrow" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Hemomancer),
             "all nine Hemomancer weapon cards exist, each for one Hemomancer weapon");
         var fireBlood = typeof(Game).GetMethod("FireBloodWeapon", flags);
@@ -573,7 +573,7 @@ static partial class Program
 
         Func<int, float> vein = n =>
         {
-            arm(WeaponId.VeinTether, "Lifeline", n);
+            arm(WeaponId.VeinTether, "Red Thread", n);
             friend.Pos = friend.Disp = me.Pos + new V2(900f, 0f);  // (no ally near: it all heals you)
             me.Hp = me.MaxHp * 0.5f; float hp0 = me.Hp;
             bloodHit.Invoke(g, new object[] { new Bullet { Kind = Defs.VeinShot, Owner = me.Id }, enemyAt(there), 10f });
@@ -750,7 +750,7 @@ static partial class Program
         me.Firing = false;
 
         // --- Elementalist weapon cards (Docs/UpgradePools.md step 12) ---
-        Check(new[] { "Napalm", "Glacier", "Stormcaller", "Sunstone", "Prism", "Cloudburst", "Wildfire", "Static Field", "Frozen Halo" }
+        Check(new[] { "Napalm", "Glacier", "Forked Thunder", "Sunstone", "Prism", "Cloudburst", "Wildfire", "Static Field", "Frozen Halo" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Elementalist),
             "all nine Elementalist weapon cards exist, each for one Elementalist weapon");
         Func<WeaponId, string, int, List<Bullet>> fireE = (wid, card, n) => { arm(wid, card, n); g.Bullets.Clear(); fireS(); var got = g.Bullets.Values.OrderBy(x => x.Id).ToList(); g.Bullets.Clear(); return got; };
@@ -766,7 +766,7 @@ static partial class Program
         var shocksF = typeof(Game).GetField("shocks", flags);
         Func<int, float[]> storm = n =>
         {
-            arm(WeaponId.StormHammer, "Stormcaller", n);
+            arm(WeaponId.StormHammer, "Forked Thunder", n);
             ((IList)shocksF.GetValue(g)).Clear();
             var e = enemyAt(there);
             electrify.Invoke(g, new object[] { e, 40f, 3, me.Id });

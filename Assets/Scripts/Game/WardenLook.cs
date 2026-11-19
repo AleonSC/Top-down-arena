@@ -690,7 +690,7 @@ namespace Arena
 
         void AlarmVertex(V2 p, float a)
         {
-            glCur = new Color(alarmCol.r, alarmCol.g, alarmCol.b, a);
+            glCur = alarmCol.WithAlpha(a);
             GL.Color(glCur);
             Vtx(Px(p));  // through Vtx, so a held frame replays it (Juice.cs)
         }
@@ -708,7 +708,7 @@ namespace Arena
             V2 at = ToUi(e.Disp);
             float r = e.Radius * UiWorldScale;
             var col = w.StunT > 0f ? new Color(0.55f, 0.9f, 1f) : new Color(1f, 0.88f, 0.45f);
-            Ui.Shadowed(new Rect(at.X - 160f, at.Y - r - 52f, 320f, 22f), tag, 16, new Color(col.r, col.g, col.b, 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 8f)));
+            Ui.Shadowed(new Rect(at.X - 160f, at.Y - r - 52f, 320f, 22f), tag, 16, col.WithAlpha(0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 8f)));
         }
     }
 }

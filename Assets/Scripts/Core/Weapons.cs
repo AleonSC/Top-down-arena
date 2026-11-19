@@ -6,59 +6,6 @@ namespace Arena
     /// Player weapons: firing volleys, the Revolver and Mender's Bow, and how far each weapon reaches.
     public partial class Game
     {
-        /// The Soldier: its weapons fire in FireVolley's own cases, its abilities in CastAbility (Abilities.cs). See KitDef (Classes.cs) for what each hook does.
-        internal static readonly KitDef SoldierKit = new KitDef
-        {
-            Id = Kit.Soldier, Name = "Soldier", Icon = "class_soldier",
-            Blurb = "Guns and gear. Full health.",
-        };
-
-        /// The Soldier's weapons (fired in FireVolley below).
-        /// Each entry's Kit, Role and Choice place it in the lobby (Defs.Weapons gathers every class's list).
-        internal static readonly WeaponDef[] SoldierWeapons =
-        {
-            // Tank
-            new WeaponDef { Id = WeaponId.Scattergun, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f,
-                Desc = "A short-range spread of pellets. Up close every pellet hits much harder and shoves the enemy back. Point-blank hits load shells: Alt fires them all at once and the kick throws you back.",
-                Sound = Sfx.ShotShotgun },
-            new WeaponDef { Id = WeaponId.FlakCannon, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets", Name = "Flak Cannon", FireInterval = 0.8f,
-                Desc = "Shells fly to your cursor and burst in the air there, hurting enemies and destroying enemy bullets caught in the burst. Alt lays a proximity shell that bursts when an enemy steps on it.",
-                Sound = Sfx.ShotCannon, AreaDesc = "blasts (and bomblets) 25% wider" },
-            new WeaponDef { Id = WeaponId.RiotRepeater, Kit = Kit.Soldier, Role = Role.Tank, Choice = 2, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f,
-                Desc = "Steady single shots. Every hit suppresses the enemy so it shoots slower, building up the more you hit it and fading when you stop. Alt lobs tear gas that suppresses and slows everything in it.",
-                Sound = Sfx.ShotRifle },
-            new WeaponDef { Id = WeaponId.GrenadeLauncher, Kit = Kit.Soldier, Role = Role.Tank, Choice = 3, Speed = 900f, Life = 0.42f, Damage = 34f, BotRange = 340f, ExtraDesc = "+1 grenade a shot, fanned out", Name = "Grenade Launcher", FireInterval = 0.42f,
-                Desc = "A six-round drum of HE grenades lobbed over enemies to your cursor, bursting where they land. Alt swaps in the smoke drum: canisters that open into a cloud where regular enemies are slowed and can't attack, and bosses are slowed.",
-                Sound = Sfx.TankMineLaunch, AreaDesc = "blasts and clouds 25% wider" },
-            // Healer
-            new WeaponDef { Id = WeaponId.RepulsionCannon, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
-                Desc = "Blasts enemies away in a cone for light damage. Enemies it hits shed tiny health orbs. Hits fill the Undertow: hold Alt to pull enemies in.",
-                HomingDesc = "the blast 15% narrower, and 10% stronger (damage and push) per stack, instead of bending shots", Sound = Sfx.ShotRepulse },
-            new WeaponDef { Id = WeaponId.Revolver, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots, or hold to fan the hammer and empty the cylinder in a quick spray. The last round in the cylinder is heavy. Alt: a pistol whip, a wide swing that destroys bullets and shoves enemies back.",
-                Sound = Sfx.ShotPistol },
-            new WeaponDef { Id = WeaponId.MendersBow, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw hits hard, pierces enemies and heals allies it passes. Let go right at full draw for a perfect shot.",
-                Sound = Sfx.ShotBow },
-            // DPS
-            new WeaponDef { Id = WeaponId.TwinRifle, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, Speed = 820f, Life = 0.7f, Damage = 4f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.125f,
-                Desc = "Two streams from wide-set barrels, angled to cross at your cursor. Hits where they cross are crossfire and do 1.5×.",
-                Sound = Sfx.ShotAssault },
-            new WeaponDef { Id = WeaponId.Railgun, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f,
-                Desc = "Slow, devastating shots that pierce through enemies. The path of each round stays charged for a moment and hurts anything in it.",
-                Sound = Sfx.ShotSniper },
-            new WeaponDef { Id = WeaponId.BurstSmg, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f,
-                Desc = "Sprays very fast shots. Keep firing to spin it up: the spray tightens and damage climbs. It winds down fast when you stop.",
-                Sound = Sfx.ShotSmg },
-            new WeaponDef { Id = WeaponId.DoubleBarrel, Kit = Kit.Soldier, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.5f, Damage = 7f, BotRange = 200f, ExtraDesc = "+4 pellets a barrel", Name = "Double Barrel", FireInterval = 0.32f,
-                Desc = "A side-by-side shotgun: 9 pellets a barrel, strongest up close, each pellet passing through 2 enemies. Two shells, then a break-open reload. Alt fires both barrels at once.",
-                Sound = Sfx.ShotShotgun },
-            new WeaponDef { Id = WeaponId.TwinRifleAuto, Kit = Kit.Soldier, Role = Role.Dps, Choice = 4, Speed = 820f, Life = 0.5f, Damage = 4f, ExtraDesc = "+1 round per gun, fanned a little", Name = "Twin Rifle Auto", Variant = true, FireInterval = 0.125f,
-                Desc = "Two rifles held out to your sides, each aiming and firing on its own at the nearest enemy on its side. You can't shoot. Alt locks both onto the enemy nearest your cursor until it dies: their streams meet on it for crossfire (1.5×).",
-                Sound = Sfx.ShotAssault },
-            new WeaponDef { Id = WeaponId.OutOfAmmo, Kit = Kit.Soldier, Role = Role.Dps, Choice = 5, Damage = 12f, Reach = 80f, Name = "Out of Ammo", Variant = true, FireInterval = 0.5f, ExtraDesc = "+50% damage on every strike and spin tick",
-                Desc = "The rifles are out of rounds, so they swat. Each rifle knocks the nearest enemy bullet out of the air (one each, then a half-second recovery). Enemies close in front of you get a five-move chain: left bash, cross cut, right bash, reverse cut, then a rifle clap with a shockwave. Alt spins you for 1.2 s: it cuts everything round you and swats every bullet.",
-                Sound = Sfx.SwingLight },
-        };
-
         /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
         float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f);  // Arcane Surge
@@ -168,7 +115,7 @@ namespace Arena
                 AddFx(FxKind.Spark, o.Pos, Defs.BulletColor(o.Kind), 8f, 0.25f);
                 KillBullet(id);
             }
-            float offset = Rand(0f, MathX.Tau);
+            float offset = RandAngle();
             for (int i = 0; i < b.Frags; i++)  // extra projectiles: bomblets scattering round the burst, popping where they land
             {
                 V2 d = V2.FromAngle(offset + MathX.Tau * i / b.Frags);

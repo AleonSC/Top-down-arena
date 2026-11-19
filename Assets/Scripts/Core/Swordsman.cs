@@ -36,7 +36,7 @@ namespace Arena
             float d = rel.Length;
             if (d > SwordReachOf(e.Type) + hitR)
                 return false;
-            float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
             float slack = d > hitR ? (float)Math.Asin(Math.Min(1f, hitR / d)) : MathX.Pi;  // its body counts, not just its centre
             return off <= SwordHalfOf(e.Type) + slack;
         }
@@ -55,7 +55,7 @@ namespace Arena
         /// It turns toward its target at SwordTurn rad/s (EnemyAI.cs Face); once it winds up the aim is locked (SwordsmanMovePart, NonShooters.cs).
         void SwordsmanTurn(Enemy e, float want, float dt)
         {
-            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - e.Facing);
             e.Facing += Math.Max(-SwordTurn * dt, Math.Min(SwordTurn * dt, diff));
         }
 
@@ -68,7 +68,7 @@ namespace Arena
                 case 0:
                 {
                     float dist = tpos.DistanceTo(e.Pos);
-                    float off = Math.Abs(MathX.Fmod((tpos - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                    float off = Math.Abs(MathX.WrapPi((tpos - e.Pos).Angle - e.Facing));
                     if (dist <= SwordReachOf(e.Type) * 0.95f && off <= SwordHalfOf(e.Type))
                     {
                         e.Phase = 1;

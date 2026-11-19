@@ -91,7 +91,7 @@ namespace Arena
                     if (Rnd(0f, 1f) < 0.5f)
                         AddPart(new Part { Kind = PDust, Pos = at, Vel = bd * 28f, Life = 0.4f, Max = 0.4f, Size = 2.6f, Col = SmokeCol });
                     // where the streams cross, from how far this round turns in (for drawing other players' guns, TwinSpreadPose)
-                    float turn = Mathf.Abs(MathX.Fmod(bd.Angle - owner.Aim + MathX.Pi, MathX.Tau) - MathX.Pi), lat = Mathf.Abs((b.Pos - owner.Pos).Dot(side));
+                    float turn = Mathf.Abs(MathX.WrapPi(bd.Angle - owner.Aim)), lat = Mathf.Abs((b.Pos - owner.Pos).Dot(side));
                     if (turn > 0.01f && lat > 4f && owner.Weapon.Id == WeaponId.TwinRifle)
                         s.Cross += (Mathf.Clamp(TwinOut(owner) + lat / Mathf.Tan(turn), Game.TwinCrossMin, 600f) - s.Cross) * 0.3f;
                     if (volley)

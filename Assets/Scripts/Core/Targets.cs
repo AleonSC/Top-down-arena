@@ -54,6 +54,41 @@ namespace Arena
             return target == null || target.Downed ? FirstAlive() : target;
         }
 
+        /// Host: the nearest Targetable enemy to `at` within `range` (null: none).
+        Enemy NearestEnemy(V2 at, float range = float.MaxValue)
+        {
+            Enemy best = null;
+            if (range <= 0f)
+                return null;
+            float bestD = range < float.MaxValue ? range * range : float.MaxValue;
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e))
+                    continue;
+                float d = e.Pos.DistanceSq(at);
+                if (d < bestD)
+                {
+                    bestD = d;
+                    best = e;
+                }
+            }
+            return best;
+        }
+
+        /// Host: the nearest Targetable enemy to `to` that reaches within `leash` of `anchor` (its edge counts): a minion
+        /// that goes for enemies near its owner but never strays far (guards, thralls, bots, the Strider).
+        Enemy NearestInLeash(V2 to, V2 anchor, float leash)
+        {
+            Enemy best = null;
+            foreach (var e in Enemies.Values)
+                if (Targetable(e) && e.Pos.CloserThan(anchor, leash + e.Radius) && (best == null || e.Pos.DistanceSq(to) < best.Pos.DistanceSq(to)))
+                    best = e;
+            return best;
+        }
+
+        /// Where a minion waits at its owner's heel: `dist` px behind their aim to the side (`turn` spreads several).
+        static V2 BesideOwner(Player owner, float dist, float turn = 0f) => owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + turn) * dist;
+
         /// Host: an enemy that has finished spawning in and is still alive, so it can be hit or picked as a target.
         /// (A client can't use this: it doesn't get SpawnT; see IsSpawning.)
         static bool Targetable(Enemy e) => e.SpawnT <= 0f && e.Hp > 0f;

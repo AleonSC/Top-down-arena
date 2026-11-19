@@ -188,7 +188,7 @@ namespace Arena
         {
             V2 at = ToUi(world);
             at.Y -= 18f * age;
-            Color c = ToColor(col);
+            Color c = col.ToColor();
             c.a = 1f - Mathf.Clamp01((age - 0.6f) / 0.5f);
             Ui.Shadowed(new Rect(at.X - 60f, at.Y - 10f, 120f, 20f), text, size, c);
         }

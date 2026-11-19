@@ -122,7 +122,7 @@ namespace Arena
             DkHud(r, ready ? steel : (Color?)null);
             var tile = new Rect(r.x + 6f, r.y + 6f, 26f, 26f);
             Ui.Fill(tile, new Color(0.04f, 0.05f, 0.1f, 0.9f));
-            Ui.Fill(new Rect(tile.x, tile.y + tile.height * (1f - fill), tile.width, tile.height * fill), new Color(steel.r, steel.g, steel.b, 0.35f));
+            Ui.Fill(new Rect(tile.x, tile.y + tile.height * (1f - fill), tile.width, tile.height * fill), steel.WithAlpha(0.35f));
             Ui.Rim(tile, steel, ready ? 0.9f : 0.3f);
             Ui.Icon(new Rect(tile.x + 4f, tile.y + 4f, 18f, 18f), PixelArt.Get("perk_riot"), ready ? 1f : 0.55f);
             Ui.Label(new Rect(r.x + 38f, r.y + 4f, r.width - 42f, 15f), "Riot Gear", 11, Color.white, TextAnchor.MiddleLeft, true);

@@ -184,7 +184,7 @@ static partial class Program
             }
             Give(1, "Turret");
             Give(1, "Shockwave");
-            Give(2, "Nova");
+            Give(2, "Starburst");
             Give(2, "Blink");
             Give(1, "Overdrive");
             host.Game.GrantUpgrade(2, U("Extra Use"), 2);  // +1 use on the 2nd ability
@@ -522,7 +522,7 @@ static partial class Program
         s[1].Game.SetAbilityKey(AbilityId.Shockwave, 2);  // onto Blink's key: they swap
         Run(s, dt, 0.3f);
         Check(Keys(host, hp) == "Blink,Shockwave,-", "moving onto a taken key swaps the two abilities");
-        s[1].Game.SetAbilityKey(AbilityId.Nova, 1);  // an ability you don't have: ignored
+        s[1].Game.SetAbilityKey(AbilityId.Starburst, 1);  // an ability you don't have: ignored
         Run(s, dt, 0.3f);
         Check(Keys(host, hp) == "Blink,Shockwave,-", "you can't put an ability you don't have on a key");
         s[0].Leave(""); s[1].Leave("");

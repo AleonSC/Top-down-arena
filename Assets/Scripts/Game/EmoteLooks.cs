@@ -155,7 +155,7 @@ namespace Arena
                     if (q >= 1f)
                         continue;
                     var col = Color.HSVToRGB(FrameHash(i + 9), 0.85f, 1f);
-                    Ui.Fill(new Rect(head.x + (Mathf.Cos(a) * sp * q - 2.5f) * s, head.y + (-8f + Mathf.Sin(a) * sp * q + q * q * 60f) * s, 5f * s, 3f * s), new Color(col.r, col.g, col.b, 1f - q));
+                    Ui.Fill(new Rect(head.x + (Mathf.Cos(a) * sp * q - 2.5f) * s, head.y + (-8f + Mathf.Sin(a) * sp * q + q * q * 60f) * s, 5f * s, 3f * s), col.WithAlpha(1f - q));
                 }
             EmoteBubbleText(head, Mathf.Min(t, 0.4f), s, 44f, 36f, new Color(1f, 0.56f, 0.82f), "!", 24);
         }

@@ -80,7 +80,7 @@ namespace Arena
             if (washBot != null && session.Lobby.TryGetValue(washBot.Id, out washBotEntry))
                 washFor = washBotEntry;
             if (washFor != null)
-                LobbyKit.WashTo(ToColor(Defs.Get(washFor.Role).Color), calm);
+                LobbyKit.WashTo((Defs.Get(washFor.Role).Color).ToColor(), calm);
             var infoButton = LobbyInfoKey;  // the connection key: hidden until the mouse is over it (or its popup is open)
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
@@ -106,11 +106,11 @@ namespace Arena
 
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
             // then the mode keys (a choice for the whole lobby, so they sit with the party).
-            if (LobbyKit.Key(LobbyBackKey, "", false, calm, PixelArt.Get("ui_back"), size: 22, accent: Color.Lerp(CrtUi.Ink, CrtStyle.Danger, 0.55f)))  // a slight red: it leaves the lobby
+            if (DkKey(LobbyBackKey, "", false, calm, PixelArt.Get("ui_back"), size: 22, accent: Color.Lerp(CrtStyle.Ink, CrtStyle.Danger, 0.55f)))  // a slight red: it leaves the lobby
                 StartLobbyLeave();  // LobbyEnter.cs
             DrawLobbyTitle(LobbyTitleRect, 1f, calm, t);
             bool infoShown = connInfoOpen || (GUI.enabled && infoButton.Contains(Event.current.mousePosition));
-            if (infoShown && LobbyKit.Key(infoButton, "!", connInfoOpen, calm, size: 22))
+            if (infoShown && DkKey(infoButton, "!", connInfoOpen, calm, size: 22))
                 connInfoOpen = !connInfoOpen;
             var modeR = LobbyModeRect;
             TipClear();  // the mode keys' hover tips (below) and a rank badge's title (RankUi.cs)
@@ -121,10 +121,10 @@ namespace Arena
 
             // --- Left: the party, under the mode keys.
             const float lx = PartyX, lw = PartyW;
-            LobbyKit.Spaced(LobbyPartyLabel, "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, LobbyKit.HeadCol, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
+            LobbyKit.Spaced(LobbyPartyLabel, "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, CrtStyle.Head, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
             // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
-            if (LobbyKit.Key(LobbyHangoutKey, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
+            if (DkKey(LobbyHangoutKey, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             float y = PartyTop;
             int slot = 0;
@@ -148,7 +148,7 @@ namespace Arena
 
             // --- Right: the tab keys, then your loadout or the practice waves.
             bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
-            if (LobbyKit.Key(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout, calm, size: 16, minSize: 11))
+            if (DkKey(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout, calm, size: 16, minSize: 11))
             {
                 lobbyTab = 0;  // the fixed Loadout key (LobbyLayout.cs); Perks opens from a key on the loadout
                 CloseFavorites();  // (also closes the Saved loadouts drawer)
@@ -223,7 +223,7 @@ namespace Arena
             float x0 = r.x + tw + 16f, x1 = PartyX + PartyW - 50f;  // the rule runs on to the connection key's place, fading out
             const int steps = 14;
             for (int i = 0; i < steps && x1 > x0; i++)
-                Ui.Fill(new Rect(x0 + (x1 - x0) * i / steps, Mathf.Round(r.center.y), (x1 - x0) / steps + 1f, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f * (1f - i / (float)steps) * a));
+                Ui.Fill(new Rect(x0 + (x1 - x0) * i / steps, Mathf.Round(r.center.y), (x1 - x0) / steps + 1f, 1f), CrtStyle.Ink.WithAlpha(0.5f * (1f - i / (float)steps) * a));
         }
 
         string HostName()
@@ -238,8 +238,8 @@ namespace Arena
         float modeTurnPos;
         bool modeTurnSet;
 
-        static string ModeTitle(int i) => i == 0 ? "QUICK PLAY" : i == 1 ? "CAMPAIGN" : i == 2 ? "BOSS HUNT" : i == 3 ? "PRACTICE" : "SURVIVAL";
-        static string ModeSub(int i) => i == 0 ? "10 waves, then a random boss" : i == 1 ? "100 waves, build as you go" : i == 2 ? "10 waves to one boss" : i == 3 ? "Build your own waves, or train a mechanic" : "One clock, no waves, no end";
+        static string ModeTitle(int i) => ModeDef.For((GameMode)i).Name.ToUpperInvariant();
+        static string ModeSub(int i) => ModeDef.For((GameMode)i).Blurb;
         static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.37f, 0.94f, 1f) : i == 4 ? new Color(0.55f, 0.95f, 0.6f) : (Color?)null;
 
         /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other
@@ -302,15 +302,15 @@ namespace Arena
                 bool top = i == mode && ad < 0.5f;
                 Ui.Alpha = oldAlpha * a;
                 if (top && !calm)
-                    Ui.Glow(kr, ModeAccent(i) ?? CrtUi.Ink, 0.35f * (1f - ad * 2f));
-                bool click = LobbyKit.Key(kr, ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
+                    Ui.Glow(kr, ModeAccent(i) ?? CrtStyle.Ink, 0.35f * (1f - ad * 2f));
+                bool click = DkKey(kr, ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
                     accent: ModeAccent(i));
                 Ui.Alpha = oldAlpha;
                 if (click && i != mode)
                     turnTo = modeTurn + (d > 0f ? 1 : -1);
                 if (ad < 0.5f && kr.Contains(ev.mousePosition))  // the description is a hover tip, on the middle mode only
                 {
-                    TipStart(kr, ModeTitle(i), CrtUi.Ink);
+                    TipStart(kr, ModeTitle(i), CrtStyle.Ink);
                     TipAdd(ModeSub(i), 13, Ui.Text);
                     if (!host)
                         TipAdd("Only the host can switch the mode.", 11, Ui.Muted);
@@ -320,8 +320,8 @@ namespace Arena
             for (int side = -1; side <= 1; side += 2)
             {
                 var ab = new Rect(side < 0 ? r.x : r.xMax - arrowW, r.center.y - 14f, arrowW, 28f);
-                bool click = LobbyKit.Key(ab, "", false, calm, enabled: host);
-                Chevron(ab.center, side, host ? CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)) : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.5f));
+                bool click = DkKey(ab, "", false, calm, enabled: host);
+                Chevron(ab.center, side, host ? CrtKit.SoftText(CrtStyle.Ink, GUI.enabled && ab.Contains(ev.mousePosition)) : CrtStyle.Dim.WithAlpha(0.5f));
                 if (click)
                     turnTo = modeTurn + side;
             }
@@ -359,7 +359,7 @@ namespace Arena
                 bool on = lobbyTab == i;
                 var kr = new Rect(x, r.y, LobbyLoadoutKeyW, r.height);
                 LobbyGlowBox(kr);
-                if (LobbyKit.Key(kr, names[i].ToUpperInvariant(), on, fxReduced, size: 16, minSize: 11) && !on)
+                if (DkKey(kr, names[i].ToUpperInvariant(), on, fxReduced, size: 16, minSize: 11) && !on)
                 {
                     lobbyTab = i;
                     CloseFavorites();
@@ -395,7 +395,7 @@ namespace Arena
         void DrawPartyCard(Rect r, LobbyEntry e, float t, int slot)
         {
             var botSeat = session.IsHost ? partyBots.Find(e.Id) : null;
-            var color = ToColor(Defs.Get(e.Role).Color);
+            var color = (Defs.Get(e.Role).Color).ToColor();
             bool mine = e.Id == session.MyId;
             if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
             {
@@ -452,14 +452,14 @@ namespace Arena
             {
                 bool picked = botSeat != null ? editBotId == e.Id : editBotId < 0;
                 if (picked && partyBots.Bots.Count > 0)
-                    Ui.Rim(r, Ui.Gold, 0.9f);
+                    Ui.Rim(r, CrtStyle.Gold, 0.9f);
                 float room = botSeat != null ? 118f : 0f;
                 if (Ui.HitArea(new Rect(tx, r.y, r.width - (tx - r.x) - 9f - room, r.height)))
                     editBotId = botSeat != null ? e.Id : -1;
-                PartyCardClick(new Rect(r.x, r.y, tx - r.x, r.height), e, ToColor(Rank.TierColor(e.Rank)), t);  // the portrait: your profile / their holo card (PlayerInspect.cs)
+                PartyCardClick(new Rect(r.x, r.y, tx - r.x, r.height), e, Rank.TierColor(e.Rank).ToColor(), t);  // the portrait: your profile / their holo card (PlayerInspect.cs)
             }
             else
-                PartyCardClick(r, e, ToColor(Rank.TierColor(e.Rank)), t);  // the whole card (a remote player's, or a non-host's own)
+                PartyCardClick(r, e, Rank.TierColor(e.Rank).ToColor(), t);  // the whole card (a remote player's, or a non-host's own)
             if (botSeat != null)
                 DrawBotButtons(r, botSeat);
             // READY / NOT READY, bottom right.
@@ -488,7 +488,7 @@ namespace Arena
         {
             bool calm = fxReduced;
             float x = r.xMax - 9f - 22f;
-            if (LobbyKit.Key(new Rect(x, r.y + 8f, 22f, 20f), "x", false, calm, size: 13, minSize: 9, danger: true))
+            if (DkKey(new Rect(x, r.y + 8f, 22f, 20f), "x", false, calm, size: 13, minSize: 9, danger: true))
             {
                 if (editBotId == bot.Id)
                     editBotId = -1;
@@ -496,10 +496,10 @@ namespace Arena
                 return;
             }
             x -= 38f;
-            if (LobbyKit.Key(new Rect(x, r.y + 8f, 34f, 20f), "MIX", false, calm, size: 11, minSize: 8))
+            if (DkKey(new Rect(x, r.y + 8f, 34f, 20f), "MIX", false, calm, size: 11, minSize: 8))
                 partyBots.Shuffle(bot);  // a new random loadout
             x -= 62f;
-            if (LobbyKit.Key(new Rect(x, r.y + 8f, 58f, 20f), bot.Skill.ToString().ToUpper(), false, calm, size: 11, minSize: 8))
+            if (DkKey(new Rect(x, r.y + 8f, 58f, 20f), bot.Skill.ToString().ToUpper(), false, calm, size: 11, minSize: 8))
                 partyBots.SetSkill(bot, bot.Skill == BotSkill.Casual ? BotSkill.Good : bot.Skill == BotSkill.Good ? BotSkill.Expert : BotSkill.Casual);
         }
 
@@ -507,11 +507,11 @@ namespace Arena
         void DrawOpenSlot(Rect r, int slot, float t)
         {
             bool calm = fxReduced;
-            Ui.Fill(r, LobbyKit.Ink(0.015f));
-            CrtKit.Dashed(r, 1f, LobbyKit.Ink(0.2f));  // faded: an empty seat should sit back
+            Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.015f));
+            CrtKit.Dashed(r, 1f, CrtStyle.Ink.WithAlpha(0.2f));  // faded: an empty seat should sit back
             bool canAdd = partyBots.CanAdd(session);
-            LobbyKit.Spaced(new Rect(r.x, r.y + (canAdd ? 8f : 0f), r.width, canAdd ? 26f : r.height), "OPEN SLOT", 14, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.5f), TextAnchor.MiddleCenter, 1.7f);
-            if (canAdd && LobbyKit.Key(new Rect(r.center.x - 75f, r.y + 40f, 150f, 30f), "+ ADD A BOT", false, calm, size: 13, minSize: 10))
+            LobbyKit.Spaced(new Rect(r.x, r.y + (canAdd ? 8f : 0f), r.width, canAdd ? 26f : r.height), "OPEN SLOT", 14, CrtStyle.Dim.WithAlpha(0.5f), TextAnchor.MiddleCenter, 1.7f);
+            if (canAdd && DkKey(new Rect(r.center.x - 75f, r.y + 40f, 150f, 30f), "+ ADD A BOT", false, calm, size: 13, minSize: 10))
                 partyBots.Add(session);  // a bot takes the slot and plays with you
         }
 
@@ -548,9 +548,9 @@ namespace Arena
         void DrawConnInfo(Rect r)
         {
             bool calm = fxReduced;
-            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));  // solid backing over the party
+            Ui.Fill(r, CrtStyle.Bg.WithAlpha(0.98f));  // solid backing over the party
             LobbyKit.Panel(r, false, false);
-            CrtKit.Frame(r, 2f, CrtUi.Ink);
+            CrtKit.Frame(r, 2f, CrtStyle.Ink);
             float x = r.x + 14f, w = r.width - 28f, y = r.y + 12f;
             LobbyKit.Heading(x, y, w, session.IsHost ? "Invite friends" : "Connection", null, calm);
             y += 38f;
@@ -558,7 +558,7 @@ namespace Arena
             y += 24f;
             if (session.IsHost)
             {
-                Ui.Label(new Rect(x, y, w, 20f), "They join with port " + session.Port + " and one of:", 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, y, w, 20f), "They join with port " + session.Port + " and one of:", 13, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
                 y += 26f;
                 float bx = x;
                 foreach (var addr in InviteAddresses())
@@ -571,16 +571,16 @@ namespace Arena
                     }
                     var tag = new Rect(bx, y, bw, 26f);
                     bool ts = addr.StartsWith("100.");  // a Tailscale address: lit
-                    Ui.Fill(tag, ts ? new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.95f) : LobbyKit.Ink(0.08f));
-                    CrtKit.Frame(tag, 1f, CrtUi.Ink);
-                    Ui.Label(tag, addr, 13, ts ? CrtUi.Bg : CrtUi.Ink, TextAnchor.MiddleCenter, true);
+                    Ui.Fill(tag, ts ? CrtStyle.Ink.WithAlpha(0.95f) : CrtStyle.Ink.WithAlpha(0.08f));
+                    CrtKit.Frame(tag, 1f, CrtStyle.Ink);
+                    Ui.Label(tag, addr, 13, ts ? CrtStyle.Bg : CrtStyle.Ink, TextAnchor.MiddleCenter, true);
                     bx += bw + 6f;
                 }
                 y += 32f;
-                Ui.Label(new Rect(x, y, w, 16f), "Filled = Tailscale address", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, y, w, 16f), "Filled = Tailscale address", 12, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             }
             else
-                Ui.Label(new Rect(x, y, w, 20f), "Connected. Pick your loadout and press Ready.", 14, CrtUi.Ink, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, y, w, 20f), "Connected. Pick your loadout and press Ready.", 14, CrtStyle.Ink, TextAnchor.MiddleLeft, true);
         }
 
         // --- Loadout --------------------------------------------------------------
@@ -622,7 +622,7 @@ namespace Arena
             bool self = bot == null;
             bool calm = fxReduced;
             LobbyKit.Panel(r);  // (the role wash)
-            var roleColor = ToColor(Defs.Get(me.Role).Color);
+            var roleColor = (Defs.Get(me.Role).Color).ToColor();
 
             // Left column: the live mini-arena (your weapon on target dummies; it casts an ability while you hover one).
             float lx = r.x + 16f;
@@ -635,7 +635,7 @@ namespace Arena
                 // The bot's name: type to rename it (up to 16 letters).
                 var nameBox = new Rect(view.x + 70f, view.y + 24f, view.width - 78f, 22f);
                 Ui.Fill(new Rect(view.x + 4f, view.y + 24f, view.width - 8f, 22f), new Color(0f, 0f, 0f, 0.6f));
-                Ui.Label(new Rect(view.x + 6f, view.y + 24f, 62f, 22f), "BOT NAME", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(view.x + 6f, view.y + 24f, 62f, 22f), "BOT NAME", 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
                 Ui.Fill(nameBox, new Color(1f, 1f, 1f, 0.08f));
                 if (botNameFor != bot.Id)
                 {
@@ -695,10 +695,10 @@ namespace Arena
                 }
                 if (b.Contains(Event.current.mousePosition))  // the description is a hover tip
                 {
-                    TipStart(b, Defs.Roles[i].Name, ToColor(Defs.Roles[i].Color));
+                    TipStart(b, Defs.Roles[i].Name, (Defs.Roles[i].Color).ToColor());
                     TipAdd(Defs.Roles[i].Desc, 13, Ui.Text);
                 }
-                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: ToColor(Defs.Roles[i].Color)))
+                if (DkKey(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: (Defs.Roles[i].Color).ToColor()))
                 {
                     tgt.RequestRole((Role)i);
                     if (self)
@@ -751,7 +751,7 @@ namespace Arena
                         TipStart(b, Defs.KitName((Kit)i), Ui.Text);
                         TipAdd(KitBlurb((Kit)i), 13, Ui.Text);
                     }
-                    if (LobbyKit.Key(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9))
+                    if (DkKey(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9))
                     {
                         tgt.RequestKit((Kit)i);
                         if (self)
@@ -780,7 +780,7 @@ namespace Arena
                         continue;
                     }
                     var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.74f), b.height);
-                    if (LobbyKit.Key(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 9))
+                    if (DkKey(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 9))
                     {
                         tgt.RequestWeapon(i);
                         if (self)
@@ -799,7 +799,7 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9))
+                    if (DkKey(b, Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9))
                     {
                         tgt.RequestAbility(i);
                         if (self)
@@ -828,7 +828,7 @@ namespace Arena
                     continue;
                 }
                 int pick = wildRow ? Upgrades.WildUlt(rowKit, i) : i;
-                if (LobbyKit.Key(b, Upgrades.Ability(id).Name.ToUpperInvariant(), me.Ult == pick, calm, size: 15, minSize: 9))
+                if (DkKey(b, Upgrades.Ability(id).Name.ToUpperInvariant(), me.Ult == pick, calm, size: 15, minSize: 9))
                 {
                     if (me.Ult != pick)
                         tgt.RequestUlt(pick);
@@ -871,13 +871,13 @@ namespace Arena
             float rx = r.x + ew + 12f, rw = Mathf.Max(0f, r.xMax - rx);
             const int steps = 24;
             for (int i = 0; i < steps; i++)  // a rule that fades out to the right
-                Ui.Fill(new Rect(rx + rw * i / steps, r.y + 8f, rw / steps + 1f, 1f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.7f * (1f - i / (float)steps)));
+                Ui.Fill(new Rect(rx + rw * i / steps, r.y + 8f, rw / steps + 1f, 1f), roleColor.WithAlpha(0.7f * (1f - i / (float)steps)));
             LobbyKit.Fit(new Rect(r.x, r.y + 14f, r.width, 36f), name, 22, 14, Color.white, TextAnchor.MiddleLeft, calm);
             float ry = r.y + 52f;
             if (!calm)
-                Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.18f));
+                Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), roleColor.WithAlpha(0.18f));
             for (int i = 0; i < 6; i++)  // a short rule in the role colour, fading out
-                Ui.Fill(new Rect(r.x + i * 12f, ry, 12f, 3f), new Color(roleColor.r, roleColor.g, roleColor.b, 1f - i * 0.16f));
+                Ui.Fill(new Rect(r.x + i * 12f, ry, 12f, 3f), roleColor.WithAlpha(1f - i * 0.16f));
         }
 
         /// The ascension button on the right quarter of a weapon key: a rank mark over "0/3". True on a click (it opens the ascension window).
@@ -892,9 +892,9 @@ namespace Arena
         bool AscensionKey(Rect r, string weapon, bool on, bool calm)
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
-            var c = CrtUi.Ink;
+            var c = CrtStyle.Ink;
             CrtKit.SoftBox(r, c, on, hover, false);
-            Color ic = hover ? CrtKit.SoftText(c, true) : on ? LobbyKit.Gold : new Color(c.r, c.g, c.b, 0.85f);
+            Color ic = hover ? CrtKit.SoftText(c, true) : on ? CrtStyle.Gold : c.WithAlpha(0.85f);
             float cx = Mathf.Round(r.center.x), top = r.y + 5f;
             for (int n = 0; n < 3; n++)  // three stacked chevrons
                 for (int k = 0; k < 3; k++)
@@ -925,20 +925,20 @@ namespace Arena
             if (hasVariant)
                 cost = -1;  // (both tiers are variant weapons, unlocked for now: nothing to buy)
             ascWeapon = weapon;
-            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.86f));
+            Ui.Fill(r, CrtStyle.Bg.WithAlpha(0.86f));
             float ww = r.width * 0.78f, wh = hasVariant ? 312f : 280f;
             var win = new Rect(r.center.x - ww / 2f, r.center.y - wh / 2f, ww, wh);
-            Ui.Fill(win, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 1f));
-            Ui.Fill(win, LobbyKit.Ink(0.05f));
-            CrtKit.Frame(win, 2f, CrtUi.Ink);
+            Ui.Fill(win, CrtStyle.Bg.WithAlpha(1f));
+            Ui.Fill(win, CrtStyle.Ink.WithAlpha(0.05f));
+            CrtKit.Frame(win, 2f, CrtStyle.Ink);
             float px = win.x + 18f;
-            Ui.Label(new Rect(px, win.y + 10f, 300f, 16f), "WEAPON VARIANTS", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(win.xMax - 218f, win.y + 10f, 200f, 16f), "CORES  " + prof.Cores, 11, LobbyKit.Gold, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(px, win.y + 10f, 300f, 16f), "WEAPON VARIANTS", 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(win.xMax - 218f, win.y + 10f, 200f, 16f), "CORES  " + prof.Cores, 11, CrtStyle.Gold, TextAnchor.MiddleRight, true);
             LobbyKit.Fit(new Rect(px, win.y + 26f, win.width - 36f, 40f), weapon.ToUpperInvariant(), 32, 16, Color.white, TextAnchor.MiddleLeft, calm);
-            Ui.Label(new Rect(px, win.y + 68f, 300f, 18f), "VARIANTS " + (hasVariant ? AscensionsPerWeapon : owned) + " / " + AscensionsPerWeapon + " UNLOCKED", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(px, win.y + 68f, 300f, 18f), "VARIANTS " + (hasVariant ? AscensionsPerWeapon : owned) + " / " + AscensionsPerWeapon + " UNLOCKED", 12, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             ascEquipRects[0] = ascEquipRects[1] = default;
             float tw = (win.width - 36f - 10f * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
-            var dim = CrtUi.Dim;
+            var dim = CrtStyle.Dim;
             for (int i = 0; i < AscensionsPerWeapon; i++)
             {
                 var vid = hasVariant ? Variants.VariantOf(baseDef.Id, i) : null;
@@ -946,19 +946,19 @@ namespace Arena
                 WeaponDef variant = isVariant ? Defs.WeaponOf(vid.Value) : null;
                 bool variantOn = isVariant && activeId == vid.Value;
                 bool got = i < owned || isVariant;
-                var col = got ? LobbyKit.Gold : dim;
+                var col = got ? CrtStyle.Gold : dim;
                 var c = new Rect(px + i * (tw + 10f), win.y + 96f, tw, hasVariant ? 144f : 112f);
-                Ui.Fill(c, new Color(col.r, col.g, col.b, 0.03f));
-                if (got) CrtKit.Frame(c, 2f, col); else CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, 0.7f));
+                Ui.Fill(c, col.WithAlpha(0.03f));
+                if (got) CrtKit.Frame(c, 2f, col); else CrtKit.Dashed(c, 2f, dim.WithAlpha(0.7f));
                 Ui.Label(new Rect(c.x + 10f, c.y + 6f, c.width - 20f, 34f), Numerals[i], 28, col, TextAnchor.MiddleLeft, true);
                 if (isVariant)
                 {
                     Ui.Label(new Rect(c.x + 36f, c.y + 6f, c.width - 46f, 34f), variant.Name.ToUpperInvariant(), 13, variantOn ? Color.white : col, TextAnchor.MiddleLeft, true);
                     Ui.Label(new Rect(c.x + 10f, c.y + 44f, c.width - 20f, 16f), variantOn ? "EQUIPPED" : "UNLOCKED", 11, col, TextAnchor.MiddleLeft, true);
-                    Ui.Label(new Rect(c.x + 10f, c.y + 62f, c.width - 20f, 46f), Variants.Blurb(vid.Value), 12, CrtUi.Dim, TextAnchor.UpperLeft, false, true);
+                    Ui.Label(new Rect(c.x + 10f, c.y + 62f, c.width - 20f, 46f), Variants.Blurb(vid.Value), 12, CrtStyle.Dim, TextAnchor.UpperLeft, false, true);
                     var eq = new Rect(c.x + 10f, c.yMax - 28f, c.width - 20f, 22f);
                     bool hv = eq.Contains(Event.current.mousePosition);
-                    var ec = LobbyKit.Gold;
+                    var ec = CrtStyle.Gold;
                     CrtKit.SoftBox(eq, ec, variantOn, hv, false);
                     Ui.Label(eq, variantOn ? "USE " + baseDef.Name.ToUpperInvariant() : "EQUIP", 11, CrtKit.SoftText(ec, hv), TextAnchor.MiddleCenter, true);
                     ascEquipRects[i] = eq;
@@ -980,13 +980,13 @@ namespace Arena
             {
                 bool afford = prof.Cores >= cost;
                 var buy = new Rect(win.center.x - 90f, win.yMax - 58f, 180f, 24f);
-                var bc = afford ? LobbyKit.Gold : dim;
+                var bc = afford ? CrtStyle.Gold : dim;
                 bool hover = buy.Contains(Event.current.mousePosition);
                 CrtKit.SoftBox(buy, bc, afford, hover && afford, false);
                 Ui.Label(buy, "UNLOCK " + Numerals[owned] + "  -  " + cost + " CORES", 11, afford ? CrtKit.SoftText(bc, hover) : dim, TextAnchor.MiddleCenter, true);
                 if (afford) ascBuyRect = buy;
             }
-            Ui.Label(new Rect(win.x, win.yMax - 26f, win.width, 18f), "CLICK ANYWHERE ELSE TO CLOSE", 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(win.x, win.yMax - 26f, win.width, 18f), "CLICK ANYWHERE ELSE TO CLOSE", 10, CrtStyle.Dim, TextAnchor.MiddleCenter, true);
         }
 
         /// One detail box for whichever weapon, ability or ultimate was clicked last: the kind and name on the left, the number tiles on
@@ -996,8 +996,8 @@ namespace Arena
             if (r.height < 90f)
                 return;
             bool calm = fxReduced;
-            Ui.Fill(r, LobbyKit.Ink(0.04f));
-            CrtKit.Frame(r, 1f, LobbyKit.Ink(0.35f));
+            Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.04f));
+            CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.35f));
             var inner = new Rect(r.x + 14f, r.y + 8f, r.width - 28f, r.height - 16f);
             string kind = detailSel == 1 ? "ABILITY" : detailSel == 2 ? "ULTIMATE" : "WEAPON";
             string name = detailSel == 1 ? ability.Name : detailSel == 2 ? ult.Name : wdef.Name;
@@ -1024,7 +1024,7 @@ namespace Arena
             SpecTiles(new Rect(inner.xMax - tw, inner.y, tw, 38f), tiles, calm);
             var head = new Rect(inner.x, inner.y, inner.width - tw - 12f, 40f);
             SpecHeader(head, kind, name, calm);
-            Ui.Fill(new Rect(inner.x, inner.y + 46f, inner.width, 1f), LobbyKit.Ink(0.25f));
+            Ui.Fill(new Rect(inner.x, inner.y + 46f, inner.width, 1f), CrtStyle.Ink.WithAlpha(0.25f));
             var body = new Rect(inner.x, inner.y + 54f, inner.width, inner.height - 54f);
             var text = new Color(0.8f, 0.84f, 0.94f);
             if (detailSel == 0)
@@ -1111,8 +1111,8 @@ namespace Arena
                 }
             }
             int bk = WildBrowseKit;
-            var wild = ToColor(Defs.Get(Role.Wildcard).Color);
-            CrtKit.SoftBox(wr, CrtUi.Ink, false, false, false);
+            var wild = (Defs.Get(Role.Wildcard).Color).ToColor();
+            CrtKit.SoftBox(wr, CrtStyle.Ink, false, false, false);
             float iconY = wr.y + 14f, big = Mathf.Min(64f, wheelH - 70f);
             float oldAlpha = Ui.Alpha;
             for (int k = 0; k < Defs.KitCount; k++)
@@ -1127,19 +1127,19 @@ namespace Arena
                 var ir = new Rect(wr.center.x + d * 46f - sz / 2f, iconY + (big - sz) / 2f, sz, sz);
                 Ui.Alpha = oldAlpha * a;
                 if (ad < 0.5f)
-                    Ui.Glow(ir, CrtUi.Ink, 0.5f * (1f - ad * 2f));
+                    Ui.Glow(ir, CrtStyle.Ink, 0.5f * (1f - ad * 2f));
                 Ui.Icon(ir, PixelArt.Get(Classes.Get((Kit)k).Icon), ad < 0.5f ? Color.white : new Color(0.7f, 0.75f, 0.85f, 1f));
             }
             Ui.Alpha = oldAlpha;
             // The class's name between the two arrows: slim keys the box's full height, flush with its sides.
             const float arrowW = 15f;
             float ny = iconY + big + 6f;
-            LobbyKit.Fit(new Rect(wr.x + arrowW + 6f, ny, wr.width - 2f * arrowW - 12f, 24f), Defs.KitName((Kit)bk).ToUpperInvariant(), 15, 9, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            LobbyKit.Fit(new Rect(wr.x + arrowW + 6f, ny, wr.width - 2f * arrowW - 12f, 24f), Defs.KitName((Kit)bk).ToUpperInvariant(), 15, 9, CrtStyle.Ink, TextAnchor.MiddleCenter, calm);
             for (int side = -1; side <= 1; side += 2)
             {
                 var ab = new Rect(side < 0 ? wr.x : wr.xMax - arrowW, wr.y, arrowW, wr.height);
-                bool click = LobbyKit.Key(ab, "", false, calm);
-                TallChevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
+                bool click = DkKey(ab, "", false, calm);
+                TallChevron(ab.center, side, CrtKit.SoftText(CrtStyle.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
                 if (click)
                     wildBrowse += side;
             }
@@ -1152,9 +1152,9 @@ namespace Arena
                 var dr = new Rect(dx0 + k * (dot + dotGap), dyy, dot, dot);
                 bool used = (int)Defs.WildWeaponKit(me.Weapon) == k || me.Ability / per == k || second / per == k || ultKit == k;
                 bool on = k == bk;
-                Color dc = on ? CrtUi.Ink : used ? wild : CrtUi.Dim;
-                Ui.Fill(dr, new Color(dc.r, dc.g, dc.b, on ? 1f : used ? 0.55f : 0.12f));
-                CrtKit.Frame(dr, 1f, new Color(dc.r, dc.g, dc.b, on ? 1f : 0.8f));
+                Color dc = on ? CrtStyle.Ink : used ? wild : CrtStyle.Dim;
+                Ui.Fill(dr, dc.WithAlpha(on ? 1f : used ? 0.55f : 0.12f));
+                CrtKit.Frame(dr, 1f, dc.WithAlpha(on ? 1f : 0.8f));
                 if (on)
                     Ui.Glow(dr, dc, 0.6f);
                 var hit = new Rect(dr.x - 4f, dr.y - 5f, dr.width + 8f, dr.height + 10f);
@@ -1181,7 +1181,7 @@ namespace Arena
                     LockedSlot(b, KitOpen((Kit)bk) ? null : EngineerLockText, true);  // a class still being built (the Engineer), or one not unlocked yet
                     continue;
                 }
-                if (LobbyKit.Key(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
+                if (DkKey(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
                 {
                     if (me.Weapon != idx)
                         tgt.RequestWildcard(idx, me.Ability, second, key);
@@ -1205,7 +1205,7 @@ namespace Arena
                 }
                 int inSlot = me.Ability == idx ? 1 : second == idx ? 2 : 0;
                 bool on = inSlot == wildTab + 1;
-                if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), on, calm, size: 13, minSize: 8))
+                if (DkKey(b, Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), on, calm, size: 13, minSize: 8))
                 {
                     // Fill the slot being edited; the other slot's ability swaps over (the two must differ).
                     int a1 = me.Ability, a2 = second;
@@ -1244,7 +1244,7 @@ namespace Arena
             };
             float kw = Mathf.Min(60f, (pw - 114f - 8f) / 3f);
             for (int k = 1; k <= 3; k++)
-                if (LobbyKit.Key(new Rect(x + w - 3f * kw - 8f + (k - 1) * (kw + 4f), ky, kw, 24f), keyNames[k - 1], key == k, calm, size: 13, minSize: 9) && key != k)
+                if (DkKey(new Rect(x + w - 3f * kw - 8f + (k - 1) * (kw + 4f), ky, kw, 24f), keyNames[k - 1], key == k, calm, size: 13, minSize: 9) && key != k)
                 {
                     tgt.RequestWildcard(me.Weapon, me.Ability, second, k);
                     if (self)
@@ -1267,14 +1267,14 @@ namespace Arena
                 bool editing = (i == 1 && wildTab == 0) || (i == 2 && wildTab == 1);
                 bool hover = GUI.enabled && b.Contains(ev.mousePosition);
                 // The box from a bare key; the class icon on the left, the name over what it is.
-                bool click = LobbyKit.Key(b, "", editing, calm, accent: editing ? wild : (Color?)null);
+                bool click = DkKey(b, "", editing, calm, accent: editing ? wild : (Color?)null);
                 Color tc = CrtKit.SoftText(editing ? wild : CrtStyle.KeyColor(null, false), editing || hover);
                 Ui.Icon(new Rect(b.x + 5f, b.center.y - isz / 2f, isz, isz), PixelArt.Get(Classes.Get((Kit)from).Icon), Color.white);
                 float tx = b.x + 5f + isz + 5f;
                 string up = name.ToUpperInvariant();
                 int ss = LobbyKit.FitSize(sub, 10, 8, tw, false);
                 CrtUi.Text(new Rect(tx, b.center.y - 16f, tw, 18f), LobbyKit.Truncate(up, ns, tw), ns, tc, TextAnchor.MiddleLeft, true, calm);
-                Ui.Label(new Rect(tx, b.center.y + 1f, tw, 15f), LobbyKit.Truncate(sub, ss, tw, false), ss, new Color(tc.r, tc.g, tc.b, 0.75f), TextAnchor.MiddleLeft, false);
+                Ui.Label(new Rect(tx, b.center.y + 1f, tw, 15f), LobbyKit.Truncate(sub, ss, tw, false), ss, tc.WithAlpha(0.75f), TextAnchor.MiddleLeft, false);
                 if (click)
                 {
                     TurnWheelTo(from);
@@ -1368,10 +1368,10 @@ namespace Arena
             if (tip.y < 4f)
                 tip.y = lockedTip.yMax + 6f;
             tip.x = Mathf.Clamp(tip.x, 4f, W - w - 4f);
-            Ui.Fill(tip, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
-            Ui.Fill(tip, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.09f));
-            CrtKit.Frame(tip, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.75f));
-            CrtUi.Text(tip, text, 14, CrtUi.Ink, TextAnchor.MiddleCenter, true, fxReduced);
+            Ui.Fill(tip, CrtStyle.Bg.WithAlpha(0.98f));
+            Ui.Fill(tip, CrtStyle.Ink.WithAlpha(0.09f));
+            CrtKit.Frame(tip, 1f, CrtStyle.Ink.WithAlpha(0.75f));
+            CrtUi.Text(tip, text, 14, CrtStyle.Ink, TextAnchor.MiddleCenter, true, fxReduced);
         }
 
         /// An ability's description with what mastering it (level 5) adds under it in gold, both always shown in r: when
@@ -1418,7 +1418,7 @@ namespace Arena
                 Ui.Label(new Rect(0f, 0f, r.width, dh), desc, s, descColor, align, false, true);
             float my = desc.Length > 0 ? Mathf.Min(dh + 3f, r.height - mh) : 0f;
             if (!centre)
-                Ui.Icon(new Rect(0f, my + 1f, 10f, 10f), PixelArt.Get("ui_star"), Ui.Gold);
+                Ui.Icon(new Rect(0f, my + 1f, 10f, 10f), PixelArt.Get("ui_star"), CrtStyle.Gold);
             Ui.Label(new Rect(starW, my, r.width - starW, mh), mastery, ms, new Color(0.85f, 0.75f, 0.48f), align, false, true);
             GUI.EndGroup();
         }
@@ -1483,7 +1483,7 @@ namespace Arena
 
         void SpecHeader(Rect col, string eyebrow, string name, bool calm)
         {
-            Ui.Label(new Rect(col.x, col.y - 1f, col.width, 16f), eyebrow, 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(col.x, col.y - 1f, col.width, 16f), eyebrow, 13, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             LobbyKit.Fit(new Rect(col.x, col.y + 12f, col.width, 28f), name, 20, 13, Color.white, TextAnchor.MiddleLeft, calm);
         }
 
@@ -1525,17 +1525,17 @@ namespace Arena
             float oa = Ui.Alpha;
             Ui.Alpha = oa * showcaseZoomA;
             var oc = GUI.color;
-            GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * showcaseZoomA);
+            GUI.color = oc.ScaleAlpha(showcaseZoomA);
             Ui.Fill(bar, new Color(0f, 0f, 0f, 0.6f));
-            Ui.Label(new Rect(bar.x + 6f, bar.y, 62f, bar.height), "ZOOM " + Mathf.RoundToInt(showcaseZoom * 100f) + "%", 10, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(bar.x + 6f, bar.y, 62f, bar.height), "ZOOM " + Mathf.RoundToInt(showcaseZoom * 100f) + "%", 10, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             float lo = (float)System.Math.Log(Min), hi = (float)System.Math.Log(Max);  // log scale: out and in feel even
             float t = Mathf.Clamp01(((float)System.Math.Log(showcaseZoom) - lo) / (hi - lo));
             float nt = Ui.CrtSlider(track, t);
             if (nt != t)
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
-            if (showcaseZoomA > 0.3f && DkKey(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? LobbyKit.Gold : Ui.Neutral, false, 10))
+            if (showcaseZoomA > 0.3f && DkKey(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? CrtStyle.Gold : Ui.Neutral, false, 10))
                 showcaseMute = !showcaseMute;
-            if (showcaseZoomA > 0.3f && DkKey(idleKey, "IDLE", showcaseIdle ? LobbyKit.Gold : Ui.Neutral, false, 10))
+            if (showcaseZoomA > 0.3f && DkKey(idleKey, "IDLE", showcaseIdle ? CrtStyle.Gold : Ui.Neutral, false, 10))
                 showcaseIdle = !showcaseIdle;
             GUI.color = oc;
             Ui.Alpha = oa;
@@ -1679,7 +1679,7 @@ namespace Arena
                 float oldAlpha = Ui.Alpha;
                 if (!on && !(GUI.enabled && r.Contains(Event.current.mousePosition)))
                     Ui.Alpha = oldAlpha * SetupKeyRestAlpha;  // faded at rest (less clutter by Ready): full under the mouse or while open
-                bool click = LobbyKit.Key(r, text[i], on, calm, PixelArt.Get(icon[i]), size: 12, minSize: 9);
+                bool click = DkKey(r, text[i], on, calm, PixelArt.Get(icon[i]), size: 12, minSize: 9);
                 Ui.Alpha = oldAlpha;
                 if (click)
                 {
@@ -1699,7 +1699,7 @@ namespace Arena
             LobbyGlowBox(readyRect);
             if (host)
                 LobbyGlowBox(new Rect(lx, LobbyStartY, lw, LobbyStartH));
-            if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 22, minSize: 14, accent: ready ? Ui.Good : (Color?)null))
+            if (DkKey(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 22, minSize: 14, accent: ready ? Ui.Good : (Color?)null))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -1710,11 +1710,11 @@ namespace Arena
                 : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
                 : !ready ? "" : host ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
             if (note.Length > 0)
-                CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleCenter, true, calm);
+                CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
                 bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (!session.HuntMode || (session.LobbyHunt != null && !huntBrowsingLocked));  // (a locked hunt can't start)
-                if (LobbyKit.Key(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
+                if (DkKey(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
                     session.StartMatch();
             }
         }
