@@ -1,6 +1,6 @@
 # Round flow: a smoother break, per-player loot and remote chests
 
-Status: **step 1 built** (no protocol change, 407); steps 2-5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
+Status: **built, all five steps** (steps 1 and 4 no protocol change; steps 2, 3 and 5 protocol 414). Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
 time ("start on step N").
 
 ## Why
@@ -25,7 +25,8 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
   key, "3 pieces saved for later" makes skipping a choice you can see.
 - **Auto-ready counts from the start of the break**, once your picks are done, except in a building round while you hold
   pieces and haven't opened the build window (or pressed Start) that break, so it never skips building by accident.
-- **Status chips.** Each player row shows Picking / Building / Looting / Ready.
+- **Status chips.** Each player row shows Picking / Building / Shopping / Looting, or the ready mark (tick, A, dashed box)
+  while they're on the box. (Shopping added while building it: the shop screen is a common reason to wait.)
 - **Per-player pickups.** Gold coins, vector pickups, health orbs and Magnets drop as **a full copy for each player**
   (not split). You see and pick up only your own. Shared as before: the Healer's orbs, Medkit orbs, chest loot cards
   (already per-player).
@@ -56,10 +57,14 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
 3. **Per-player pickups (protocol bump).** `Owner` added to `Coin`, `Orb` and the gadget (0 = shared). `DropGold`,
    `DropVectors`, `SpawnOrb` and `DropGadget` make one copy per player. Coins and orbs can only be picked up, or pulled
    by a Magnet, by their owner. Other players' pickups aren't drawn. Off-screen markers count only your own. Test suite
-   `pickups`, plus the balance numbers.
+   `pickups`, plus the balance numbers. (Built: also a Gold chest's burst, a breach's and a sealed portal's gold, crates' orbs;
+   every 8th kill's vector stays the killer's alone; the arena's orbs (health barrels, the Warden's, a Gatekeeper room's, a
+   breach's Strider repair) stay shared; a player who leaves takes their copies.)
 4. **Auto-collect at wave start (no protocol change).** When the break ends, the host gives each player their own coins,
    vector pickups and unclaimed chest loot cards, with a pickup sound and a "+n gold" toast.
 5. **Uncollected chests tab (protocol bump).** `Msg.CollectChest` (a chest id); the host checks the fee, takes it and
    opens the chest remotely (`OpenChest` with a `remote` flag: no ground drops, gold straight to wallets, loot cards
    straight to their owner). The tab is a list of `DkPanel` rows (chest look, kind, room, fee, Collect key) next to a
-   mini-map. Preview of the tab, test suite `chests`, README section.
+   mini-map. Preview of the tab, test suite `chests`, README section. (Built: `Core/RemoteChests.cs`, `Game/ChestsTabUi.cs`;
+   each player's card lands at their own feet so they still choose take or throw away; vector chest nodes are listed too;
+   a row gives the way and seconds' walk instead of a room name; suite `remotechests`.)

@@ -181,6 +181,9 @@ static partial class Shot {
       int item = Environment.GetEnvironmentVariable("PROPS") == "2" ? UL("Warden's Guard") : UL("Extra Use");
       if (item < 0) item = 0;
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
+      string lootKind = Environment.GetEnvironmentVariable("LOOTKIND");  // LOOTKIND=build|card: a Buildables chest's build or a piece chest's card instead of the upgrade
+      if (lootKind == "build") { g.Loots[99].Kind = LootKind.Build; g.Loots[99].Item = (int)BuildKind.Turret; }
+      else if (lootKind == "card") { g.Loots[99].Kind = LootKind.Card; g.Loots[99].Item = (int)Expansion.PieceCard(GridPiece.TriL); }
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
       for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
       if (Environment.GetEnvironmentVariable("PROPSBREAK") != null) { g.Enemies.Clear(); g.State = MatchState.Intermission; g.StateTimer = 20f; me.Offer = null; }  // PROPSBREAK=1: between waves (the card shows then too)
@@ -1828,10 +1831,21 @@ static partial class Shot {
       host.Game.Coins[9100] = new Coin { Id = 9100, Value = 5, Pos = new V2(1000f, 470f), Disp = new V2(1000f, 470f) };
       host.Game.Coins[9101] = new Coin { Id = 9101, Value = 1, Pos = new V2(1030f, 450f), Disp = new V2(1030f, 450f) };
       host.Game.Coins[9102] = new Coin { Id = 9102, Vec = true, Value = 1, Pos = new V2(860f, 560f), Disp = new V2(860f, 560f) };  // a kill's 1-vector pickup
+      if (Environment.GetEnvironmentVariable("PICKOWN") != null)  // PICKOWN=1: per-player pickups (Docs/RoundFlow.md step 3): every other one is a teammate's copy (hidden); use 2 players
+        foreach (var co in host.Game.Coins.Values) co.Owner = co.Id % 2 == 0 ? me.Id + 1 : me.Id;
       if (Environment.GetEnvironmentVariable("VECFULL") != null) {  // VECFULL=1: your stock is full, so they wait ("FULL" over them, the chip pulsing amber)
         me.Vectors = me.VectorCap;
         typeof(ArenaApp).GetField("vecFullNear", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(app, true);
       }
+    }
+    if (Environment.GetEnvironmentVariable("SWEEP") != null) {
+      // SWEEP=<seconds>: the floor-loot sweep as a wave starts (Game/LootSweepLook.cs, Docs/RoundFlow.md step 4): your coins streaming in
+      // from round the arena and "+86 GOLD COLLECTED" over you, that long in (0.3: mid-flight; 0.8: the label). Mode hud.
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(760f, 470f);
+      float sweepT = float.Parse(Environment.GetEnvironmentVariable("SWEEP"), System.Globalization.CultureInfo.InvariantCulture);
+      var sweepFrom = new[] { new V2(1100f, 300f), new V2(1150f, 340f), new V2(1080f, 380f), new V2(420f, 640f), new V2(460f, 600f), new V2(380f, 300f), new V2(1000f, 700f), new V2(1040f, 660f), new V2(560f, 220f), new V2(900f, 200f) };
+      typeof(ArenaApp).GetMethod("PreviewLootSweep", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(app, new object[] { sweepT, 86, sweepFrom });
     }
     if (Environment.GetEnvironmentVariable("GADGET") != null) {
       // GADGET=1: the Magnet (Game/GadgetLook.cs): you holding one switched on with coins and a vector pickup flying in, one on the

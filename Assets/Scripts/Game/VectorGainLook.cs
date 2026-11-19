@@ -85,7 +85,7 @@ namespace Arena
                 vecCoinsSeen.Remove(id); vecCoinValue.Remove(id);
             }
             foreach (var c in game.Coins.Values)
-                if (c.Vec) { vecCoinsSeen[c.Id] = c.Disp; vecCoinValue[c.Id] = c.Value; }
+                if (c.Vec && game.MinePickup(c.Owner)) { vecCoinsSeen[c.Id] = c.Disp; vecCoinValue[c.Id] = c.Value; }
 
             for (int i = vecBursts.Count - 1; i >= 0; i--)
                 if ((vecBursts[i].Age += dt) > VecBurstLife)
@@ -238,7 +238,7 @@ namespace Arena
             float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
             foreach (var c in game.Coins.Values)
             {
-                if (!c.Vec || !me.Disp.CloserThan(c.Disp, VecFullReach))
+                if (!c.Vec || !game.MinePickup(c.Owner) || !me.Disp.CloserThan(c.Disp, VecFullReach))
                     continue;
                 vecFullNear = true;
                 V2 at = ToUi(c.Disp) + new V2(0f, -c.Radius * 1.1f * WorldToUi - 16f);

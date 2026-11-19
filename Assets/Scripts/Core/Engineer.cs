@@ -690,12 +690,9 @@ namespace Arena
                     break;
                 case 1:
                     if (ExpandingOn)
-                        for (int i = 0; i < BreachGold / 5; i++)
-                        {
-                            var c = new Coin { Id = nextCoinId++, Value = 5 };
-                            c.Pos = c.Disp = ClampToArena(at + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * (8f + 18f * (float)rng.NextDouble()), 12f);
-                            Coins[c.Id] = c;
-                        }
+                        foreach (int owner in LootOwners())  // (a full copy each: Coins.cs)
+                            for (int i = 0; i < BreachGold / 5; i++)
+                                AddCoin(owner, 5, false, at, 8f, 18f);
                     else
                         foreach (var q in Players.Values)
                             q.Gold += BreachGold;

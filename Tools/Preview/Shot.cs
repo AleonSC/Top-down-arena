@@ -838,6 +838,17 @@ static partial class Shot {
       set("wcBorn", Time.unscaledTime - wct); set("wcWave", wg.Wave);
       if (Environment.GetEnvironmentVariable("WCSTEP") != null) set("wcStep", int.Parse(Environment.GetEnvironmentVariable("WCSTEP")));  // WCSTEP=0|2: the Results or Next wave tab (Next wave needs EXPANDVOTE=<rooms> EXPANDCHIP=1)
       if (Environment.GetEnvironmentVariable("WCMIN") != null) set("wcMin", true);  // WCMIN=1: minimized to the strip at the top
+      if (Environment.GetEnvironmentVariable("WCCHESTS") != null) {  // WCCHESTS=<n>: n unopened chests round the map for the Chests tab (WCSTEP=3; Docs/RoundFlow.md step 5); WCGOLD=<g> your gold
+        var ckinds = new[] { ChestKind.Upgrade, ChestKind.Gold, ChestKind.Buildable, ChestKind.Piece, ChestKind.Upgrade, ChestKind.Gold };
+        var cspots = new[] { new V2(1750f, 200f), new V2(150f, 1100f), new V2(1700f, 1150f), new V2(-250f, 300f), new V2(900f, -250f), new V2(1850f, 650f) };
+        int cn = int.Parse(Environment.GetEnvironmentVariable("WCCHESTS"));
+        for (int k = 0; k < cn && k < cspots.Length; k++) { var cp = wg.AddProp(PropKind.Chest, cspots[k]); cp.Chest = ckinds[k]; }
+        wg.Me.Gold = Environment.GetEnvironmentVariable("WCGOLD") != null ? int.Parse(Environment.GetEnvironmentVariable("WCGOLD")) : 112;
+      }
+      if (Environment.GetEnvironmentVariable("WCSTATUS") != null) {  // WCSTATUS=pbslr-: each player's status chip in id order (picking, building, shopping, looting, ready, none)
+        var wids = new System.Collections.Generic.List<int>(wg.Players.Keys); wids.Sort(); string ws = Environment.GetEnvironmentVariable("WCSTATUS");
+        for (int k = 0; k < wids.Count && k < ws.Length; k++) { var wp = wg.Players[wids[k]]; int si = "-pbslr".IndexOf(ws[k]); wp.Break = (BreakStatus)Math.Max(0, si); wp.Ready = ws[k] == 'r'; wp.AutoReady = false; }
+      }
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's building round (ExpansionUi.cs)

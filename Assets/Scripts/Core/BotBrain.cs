@@ -645,6 +645,8 @@ namespace Arena
             {
                 foreach (var o in Orbs.Values)
                 {
+                    if (!CanTake(me, o.Owner))
+                        continue;  // (a teammate's copy: Coins.cs)
                     float od = o.Pos.DistanceTo(me.Pos) - 30f;
                     if (od < lureD) { lureD = od; lurePos = o.Pos; lureR = 30f; lure = true; }
                 }

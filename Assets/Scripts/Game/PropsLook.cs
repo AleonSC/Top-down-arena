@@ -517,10 +517,11 @@ namespace Arena
         {
             foreach (var l in game.Loots.Values)
             {
-                if (l.Owner != game.MyId || l.Upgrade < 0 || l.Upgrade >= Upgrades.All.Length)
+                if (l.Owner != game.MyId || l.Kind == LootKind.Upgrade && (l.Upgrade < 0 || l.Upgrade >= Upgrades.All.Length))
                     continue;
-                var u = Upgrades.All[l.Upgrade];
-                var rc = Upgrades.RarityColor(u.Rarity);
+                bool isUp = l.Kind == LootKind.Upgrade;
+                var u = isUp ? Upgrades.All[l.Upgrade] : null;
+                var rc = Game.LootInk(l);  // (an upgrade's rarity; a build's pink or a piece card's orange, like their chests)
                 float grow = Mathf.Clamp01(l.Age / 0.45f), pop = 1f + 0.25f * Mathf.Sin(grow * Mathf.PI);
                 bool near = game.MyLootInReach == l;
                 // The beam and the ring on the ground.
@@ -536,7 +537,7 @@ namespace Arena
                     Arc(l.Pos, 20f + 10f * MathX.Fmod(t * 1.5f, 1f), 2f, rc.WithAlpha(0.6f * (1f - MathX.Fmod(t * 1.5f, 1f))), 28);
                 Circle(l.Pos + new V2(0f, 2f), 10f * grow, new Rgba(0f, 0f, 0f, 0.3f), 16);  // its shadow
                 V2 c = l.Pos + new V2(0f, -58f - 4f * Mathf.Sin(l.Age * 2.5f) - 20f * (1f - grow));
-                if (u.Rarity == Rarity.Legendary)
+                if (isUp && u.Rarity == Rarity.Legendary)
                     for (int k = 0; k < 6; k++)
                     {
                         V2 d = V2.FromAngle(t * 0.8f + k * MathX.Tau / 6f);
@@ -550,8 +551,10 @@ namespace Arena
                 bool face = cos >= 0f;
                 FillRect(c.X - hw - 1.5f, c.Y - hh - 1.5f, hw * 2f + 3f, hh * 2f + 3f, rc);
                 FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, face ? rc.Darkened(0.78f) : rc.Darkened(0.55f));
-                if (face)
+                if (face && isUp)
                     DrawIconGl(PixelArt.RowsFor(u.Name), c, 27f * grow * pop, cos);
+                else if (face)  // a build or a piece card: its chest's emblem
+                    ChestEmblem(l.Kind == LootKind.Build ? ChestKind.Buildable : ChestKind.Piece, c, 1.1f * grow * pop * Mathf.Max(0.15f, Mathf.Abs(cos)), rc, rc.Mix(new Rgba(1f, 1f, 1f), 0.5f), 1f);
                 else
                 {
                     // The back: a diamond and a dot.
@@ -658,10 +661,11 @@ namespace Arena
 
         void DrawLootCard(Player me, Loot l)
         {
-            if (l.Upgrade < 0 || l.Upgrade >= Upgrades.All.Length)
+            bool up = l.Kind == LootKind.Upgrade;
+            if (up && (l.Upgrade < 0 || l.Upgrade >= Upgrades.All.Length))
                 return;
-            var u = Upgrades.All[l.Upgrade];
-            Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
+            var u = up ? Upgrades.All[l.Upgrade] : null;
+            Color rc = ToColor(Game.LootInk(l));
             float now = Time.unscaledTime;
             // Beside the item (right of it, or left if there's no room), so you still see the arena around you.
             V2 at = ToUi(l.Pos);
@@ -673,7 +677,7 @@ namespace Arena
             Ui.Pill(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f), new Color(rc.r, rc.g, rc.b, 0.16f + 0.06f * Mathf.Sin(now * 4f)));
             DkBox(r, rc, 1f);
             Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, 92f), new Color(rc.r, rc.g, rc.b, 0.08f));
-            if (u.Rarity == Rarity.Legendary)
+            if (up && u.Rarity == Rarity.Legendary)
             {
                 float sweep = MathX.Fmod(now * 0.6f, 1.6f) - 0.3f;
                 GUI.BeginGroup(r);
@@ -681,7 +685,7 @@ namespace Arena
                 GUI.EndGroup();
             }
             Ui.Label(new Rect(r.x + 12f, r.y + 10f, 120f, 16f), "FROM A CHEST", 10, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f), TextAnchor.MiddleLeft, true);
-            string rarity = Upgrades.RarityName(u.Rarity);
+            string rarity = up ? Upgrades.RarityName(u.Rarity) : l.Kind == LootKind.Build ? "BUILD" : Expansion.IsServiceCard((RoomCard)l.Item) ? "ROOM CARD" : "PIECE CARD";
             float rw = 24f + rarity.Length * 7.5f;
             var ribbon = new Rect(r.xMax - rw - 12f, r.y + 8f, rw, 20f);
             Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f));
@@ -689,11 +693,35 @@ namespace Arena
             var tile = new Rect(r.x + r.width / 2f - 32f, r.y + 34f, 64f, 64f);
             Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, 0.3f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
-            Ui.Icon(new Rect(tile.x + 8f, tile.y + 8f + 2f * Mathf.Sin(now * 3f), 48f, 48f), PixelArt.ForUpgrade(u.Name));
-            Ui.Label(new Rect(r.x + 10f, r.y + 104f, r.width - 20f, 24f), u.Name, 18, Color.white, TextAnchor.MiddleCenter, true);
-            string desc = Upgrades.DescFor(u, me.Weapon);
-            if (u.Grants != AbilityId.None)
-                desc += "  (on your first free key; move it in the Tab menu)";
+            float bobY = 2f * Mathf.Sin(now * 3f);
+            string name, desc;
+            if (up)
+            {
+                Ui.Icon(new Rect(tile.x + 8f, tile.y + 8f + bobY, 48f, 48f), PixelArt.ForUpgrade(u.Name));
+                name = u.Name;
+                desc = Upgrades.DescFor(u, me.Weapon);
+                if (u.Grants != AbilityId.None)
+                    desc += "  (on your first free key; move it in the Tab menu)";
+            }
+            else if (l.Kind == LootKind.Build)
+            {
+                int k = Mathf.Clamp(l.Item, 0, Market.Count - 1);
+                var m = GUI.matrix;
+                GUIUtility.ScaleAroundPivot(new Vector2(0.7f, 0.7f), tile.center);
+                DrawBuildGlyph((BuildKind)k, new Rect(tile.center.x - 40f, tile.center.y - 40f + bobY, 80f, 80f), 1f);
+                GUI.matrix = m;
+                name = Market.Names[k];
+                desc = Market.Blurbs[k] + "  Goes in your stash (" + me.Stash[k] + " / " + Market.StashMax + "): place it from the build map.";
+            }
+            else
+            {
+                var card = (RoomCard)l.Item;
+                DrawCardGlyph(card, new Rect(tile.x + 10f, tile.y + 10f + bobY, 44f, 44f), rc);
+                name = Expansion.CardName(card);
+                int held = Game.HandCount(me);
+                desc = Expansion.CardBlurb(card) + (held >= Expansion.HandMax ? "  Your hand is full (" + held + " / " + Expansion.HandMax + "): play or drop a card first." : "  Goes in your hand (" + held + " / " + Expansion.HandMax + ").");
+            }
+            Ui.Label(new Rect(r.x + 10f, r.y + 104f, r.width - 20f, 24f), name, 18, Color.white, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(r.x + 16f, r.y + 132f, r.width - 32f, 62f), desc, desc.Length > 120 ? 11 : 12, Ui.Text, TextAnchor.UpperCenter, false, true);
             // The two keys.
             var take = new Rect(r.x + 16f, r.yMax - 36f, r.width / 2f - 22f, 26f);

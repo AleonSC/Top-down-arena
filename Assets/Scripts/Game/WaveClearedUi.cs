@@ -11,7 +11,7 @@ namespace Arena
     public partial class ArenaApp
     {
         const float WcW = 940f, WcH = 454f, WcY = 70f;  // (high enough that the new-enemy chips under it clear the XP strip)
-        int wcStep;                   // the tab: 0 Results, 2 Next wave (Build isn't a tab of the box: it opens the build window); any order
+        int wcStep;                   // the tab: 0 Results, 2 Next wave, 3 Chests (Build isn't a tab of the box: it opens the build window); any order
         bool wcSawWindow;             // the build window was open last frame (closing it folds the box into the strip)
         bool wcSawBuild;              // the build window was opened this break (until then the Build tab pulses and Auto-ready waits)
         int autoReadySent = -1;       // the Auto-ready choice the host was last told (-1: not yet this run)
@@ -37,6 +37,8 @@ namespace Arena
                 return;
             }
             TickWcSteps();
+            if (game.State == MatchState.Intermission)  // the host shows your status chip from this (Core/WaveReady.cs)
+                game.SetMyBreakUi(ExpandWindowUp ? Game.BreakUiBuild : ShopScreenUp(me) ? Game.BreakUiShop : wcMin ? Game.BreakUiOut : Game.BreakUiBox);
             int pref = AutoReadyPref && !WcHoldsAuto(me) ? 1 : 0;  // Auto-ready only counts once you reach the Ready step
             if (autoReadySent != pref)
             {
@@ -58,7 +60,7 @@ namespace Arena
 
         /// The tab shown: without a building round (Practice, hunts, the last wave, a full map, other arenas) Results carries the
         /// next wave's panel, so there is no Next wave tab.
-        int WcStepNow() => wcStep == 2 && WcBuildAvail ? 2 : 0;
+        int WcStepNow() => wcStep == 2 && WcBuildAvail ? 2 : wcStep == 3 && WcChestsAvail ? 3 : 0;
 
         /// Pieces and service cards in your hand (the Build tab's count and the "saved for later" line).
         int WcPieces(Player me) => me == null ? 0 : Game.HandCount(me);
@@ -163,6 +165,7 @@ namespace Arena
         /// The box itself, at `r`: the tabs, the tab's content, and the start key along the bottom (on every tab).
         void DrawWaveClearedBox(Player me, Rect r, WaveSummary rep, string waiting, bool calm)
         {
+            RefreshWcChests();  // (the Chests tab's list, before the tabs count it: ChestsTabUi.cs)
             int step = WcStepNow();
             DrawWcTabs(me, r, step, calm);
             float x = r.x, y = r.y + WcTabH + 4f;
@@ -185,6 +188,8 @@ namespace Arena
                 else
                     DrawNextPanel(new Rect(x + 640f, y + 84f, 278f, 236f));
             }
+            else if (step == 3)
+                DrawWcChests(me, x, y, calm);  // ChestsTabUi.cs
             else
             {
                 DrawWcHead(x, y, "NEXT: " + WcNextName(), ink, calm);
@@ -201,12 +206,13 @@ namespace Arena
                 Ui.Fill(new Rect(x + WcPad + CrtUi.TitleWidth(title, 52) + 6f, y + 27f, 14f, 28f), tc);
         }
 
-        /// RESULTS / BUILD · n / NEXT WAVE along the top of the tube, in any order: the tab you are on is lit. Build opens the build window
+        /// RESULTS / BUILD · n / NEXT WAVE / CHESTS · n along the top of the tube, in any order: the tab you are on is lit. Build opens the build window
         /// and carries your piece count; until you open it this break (with pieces in hand) it pulses gold. Without a building round only
-        /// Results is shown (it carries the next wave's panel then).
+        /// Results is shown (it carries the next wave's panel then). Chests shows while any chest is unopened (ChestsTabUi.cs).
         void DrawWcTabs(Player me, Rect r, int step, bool calm)
         {
-            float tw = 200f, gap = 10f, x = r.x + WcPad, ty = r.y + 10f;
+            float tw = 160f, gap = 10f, x = r.x + WcPad, ty = r.y + 10f;
+            int tabs = 1 + (WcBuildAvail ? 2 : 0);
             if (CrtUi.SoftKey(new Rect(x, ty, tw, 34f), "RESULTS", null, 22, calm, lit: step == 0) && step != 0)
                 wcStep = 0;
             if (WcBuildAvail)
@@ -226,6 +232,8 @@ namespace Arena
                 if (CrtUi.SoftKey(new Rect(x + 2f * (tw + gap), ty, tw, 34f), game.GateUp ? "THE BOSS" : "NEXT WAVE", null, 22, calm, lit: step == 2) && step != 2)
                     wcStep = 2;
             }
+            if (WcChestsAvail && CrtUi.SoftKey(new Rect(x + tabs * (tw + gap), ty, tw, 34f), "CHESTS · " + wcChests.Count, null, 22, calm, lit: step == 3) && step != 3)
+                wcStep = 3;
             // Minimize (top right): the box folds into a strip at the top so you can walk to a shop or a chest.
             if (CrtUi.SoftKey(new Rect(r.xMax - WcPad - 160f, ty, 160f, 34f), "MINIMIZE  _", null, 20, calm))
                 wcMin = true;
@@ -401,11 +409,26 @@ namespace Arena
             Ui.Label(new Rect(x + WcColName, row.y + 27f, nw, 14f), LobbyKit.Truncate(cls, 9, nw), 9, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             DrawNums(row, line.Kills, line.Damage, line.Taken, Color.white, line.Taken <= 0.5f ? Ui.Good : Color.white);
 
+            // The status chip (Docs/RoundFlow.md step 2): what they're doing in the break, at the row's right end; the awards stop short of it.
+            var st = game.State == MatchState.Intermission ? p.Break : BreakStatus.None;
+            string chip = st == BreakStatus.Picking ? "PICKING" : st == BreakStatus.Building ? "BUILDING" : st == BreakStatus.Shopping ? "SHOPPING" : st == BreakStatus.Looting ? "LOOTING" : null;
+            float limit = x + WcColAwardsEnd;
+            if (chip != null)
+            {
+                Color cc = BreakChipColor(st);
+                float cw = CrtUi.TitleWidth(chip, 13) + 8f;
+                var cr = new Rect(row.xMax - 4f - cw, cy - 10f, cw, 20f);
+                Ui.Fill(cr, new Color(cc.r, cc.g, cc.b, 0.16f));
+                CrtKit.Frame(cr, 1f, cc);
+                HudCrt(cr, chip, 13, cc, TextAnchor.MiddleCenter);  // (small enough that two awards still fit beside it)
+                limit = Mathf.Min(limit, cr.x - 3f);
+            }
+
             // Awards: inverse-video tags (gold, or the ink for the healers' ones), left to right, as many as fit.
-            float ax = x + WcColAwards, limit = x + WcColAwardsEnd;
+            float ax = x + WcColAwards;
             foreach (var a in AwardList(line.Awards))
             {
-                float w = CrtUi.TitleWidth(a.Item1, 15) + 10f;
+                float w = CrtUi.TitleWidth(a.Item1, 15) + 8f;
                 if (ax + w > limit)
                     break;
                 var tag = new Rect(ax, cy - 9f, w, 18f);
@@ -414,11 +437,11 @@ namespace Arena
                 Ui.CrtFont = true;
                 Ui.Label(tag, a.Item1, 15, a.Item2 ? CrtUi.Bg : new Color(0.11f, 0.07f, 0f), TextAnchor.MiddleCenter, false);
                 Ui.CrtFont = was;
-                ax += w + 4f;
+                ax += w + 3f;
             }
 
-            // Ready mark (Ready step only): A for auto-ready, a green tick when ready, a dashed empty box while they are not.
-            if (!showReady)
+            // Ready mark (not before a boss): A for auto-ready, a green tick when ready, a dashed empty box while they are not (and have no chip).
+            if (!showReady || chip != null)
                 return;
             var dot = new Rect(x + WcColTick + 8f, cy - 13f, 26f, 26f);
             if (p.AutoReady)
@@ -435,6 +458,10 @@ namespace Arena
             else
                 CrtKit.Dashed(dot, 2f, CrtUi.Dim);
         }
+
+        /// A status chip's colour: picking orange, building violet, shopping gold, out looting the ink.
+        static Color BreakChipColor(BreakStatus st) => st == BreakStatus.Picking ? new Color(1f, 0.54f, 0.24f) : st == BreakStatus.Building ? new Color(0.76f, 0.55f, 1f)
+            : st == BreakStatus.Shopping ? CrtStyle.Gold : CrtUi.Ink;
 
         /// (text, blue?) for each award someone has, in the order they show.
         static List<System.Tuple<string, bool>> AwardList(WaveAward a)
@@ -595,7 +622,7 @@ namespace Arena
                 var names = new List<string>();
                 foreach (var p in game.Players.Values)
                     if (!p.Ready && !p.AutoReady)
-                        names.Add(p.Id == game.MyId ? "you" : p.Name);
+                        names.Add(p.Id == game.MyId ? "you" : p.Name);  // (what they're doing is on their row's chip)
                 status = "Waiting for " + string.Join(" and ", names.ToArray()) + " · no timer yet";
             }
             var sr = new Rect(r.x + 280f, r.y + 10f, r.width - 280f - 350f, 26f);  // between the switch and the Ready key

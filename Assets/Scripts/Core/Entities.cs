@@ -556,6 +556,8 @@ namespace Arena
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
         public bool Ready;           // pressed Ready for the next wave (replicated by Msg.WaveReady; WaveReady.cs)
+        public BreakStatus Break;    // what they're doing in the break (host-worked out, replicated by Msg.WaveReady; WaveReady.cs)
+        public byte BreakUi;         // host: what their screen shows in the break (BreakUiBox, BreakUiBuild, BreakUiShop, BreakUiOut)
         public bool AutoReady = true;  // 'Auto-ready from now on': counts as ready as soon as their picks are done (replicated; the app sets it from the player's saved choice)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
@@ -758,6 +760,7 @@ namespace Arena
     public class Orb
     {
         public int Id;
+        public int Owner;       // the player this copy is for (an enemy's or a crate's orb, Combat.cs SpawnOrbEach); 0: anyone's
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
         public bool Med;        // a Deployable Medkit's orb (Medkit.cs)
         public float MedHeal;   // host: what it heals

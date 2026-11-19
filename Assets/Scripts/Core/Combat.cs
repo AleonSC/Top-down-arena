@@ -1265,31 +1265,41 @@ namespace Arena
                 return;  // decoys and phylacteries
             if (e.Elite)
             {
-                SpawnOrb(e.Pos, rng.NextDouble() < 0.25);  // elites always drop something
+                SpawnOrbEach(e.Pos, rng.NextDouble() < 0.25);  // elites always drop something
                 return;
             }
             if (bossReward)
             {
                 // Bosses always drop a large orb and a few small ones around it.
-                SpawnOrb(e.Pos, true);
+                SpawnOrbEach(e.Pos, true);
                 for (int i = 0; i < 4; i++)
-                    SpawnOrb(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
+                    SpawnOrbEach(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
                 return;
             }
             if (Has(RunMod.Famine) || Has(RunMod.Bloodlust) || OnPathOf(PathId.BloodMoon) || FloorAt(e.Pos) == PathId.BloodMoon)
                 return;  // run modifier / Blood Moon: no health orbs (bosses still drop theirs)
             double roll = rng.NextDouble();
             if (roll < BigOrbChance)
-                SpawnOrb(e.Pos, true);
+                SpawnOrbEach(e.Pos, true);
             else if (roll < BigOrbChance + D(DiffKnob.OrbChance))
-                SpawnOrb(e.Pos, false);
+                SpawnOrbEach(e.Pos, false);
         }
 
-        void SpawnOrb(V2 pos, bool big, bool tiny = false, float boost = 1f)
+        Orb SpawnOrb(V2 pos, bool big, bool tiny = false, float boost = 1f, int owner = 0)
         {
-            var o = new Orb { Id = nextOrbId++, Big = big, Tiny = tiny, Pos = ClampToArena(pos, 12f), Life = OrbLifetime, Boost = boost };
+            var o = new Orb { Id = nextOrbId++, Big = big, Tiny = tiny, Pos = ClampToArena(pos, 12f), Life = OrbLifetime, Boost = boost, Owner = owner };
             o.Disp = o.Pos;
             Orbs[o.Id] = o;
+            return o;
+        }
+
+        /// Host: an enemy's (or a crate's) health orb, a full copy for each player (Docs/RoundFlow.md step 3; Coins.cs LootOwners).
+        /// Each copy sits a few px apart so two players' copies don't look like one. The Healer's own orbs and the arena's stay shared.
+        void SpawnOrbEach(V2 pos, bool big)
+        {
+            var owners = LootOwners();
+            for (int i = 0; i < owners.Count; i++)
+                SpawnOrb(owners.Count > 1 ? pos + V2.FromAngle(MathX.Tau * i / owners.Count) * 6f : pos, big, owner: owners[i]);
         }
 
         /// Orbs drift toward the nearest hurt player in range and heal whoever touches them.
@@ -1301,14 +1311,14 @@ namespace Arena
             foreach (var o in Orbs.Values)
             {
                 o.Life -= dt;
-                if (o.Life <= 0f)
+                if (o.Life <= 0f || o.Owner != 0 && !Players.ContainsKey(o.Owner))
                 {
                     gone.Add(o.Id);
                     continue;
                 }
                 Player nearest = null;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.Hp < p.MaxHp && p.Pos.CloserThan(o.Pos, OrbMagnetRange) &&
+                    if (!p.Downed && CanTake(p, o.Owner) && p.Hp < p.MaxHp && p.Pos.CloserThan(o.Pos, OrbMagnetRange) &&
                         (nearest == null || p.Pos.DistanceSq(o.Pos) < nearest.Pos.DistanceSq(o.Pos)))
                         nearest = p;
                 if (nearest == null && o.Med)

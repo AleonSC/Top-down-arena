@@ -13,6 +13,7 @@ namespace Arena
     public class Gadget
     {
         public int Id, Thrower;
+        public int Owner;  // a fresh drop's player (Docs/RoundFlow.md step 3: each player's own Magnet drops); 0 once it's been carried: anyone's
         public GadgetId Kind;
         public V2 Pos, Disp, From, To;
         public float FlyT = Game.GadgetFlyTime;  // seconds since thrown (>= GadgetFlyTime: on the floor)
@@ -28,7 +29,8 @@ namespace Arena
         public readonly Dictionary<int, Gadget> Gadgets = new Dictionary<int, Gadget>();
         int nextGadgetId = 1;
         public const float MagnetTime = 60f, MagnetPull = 620f, GadgetThrowRange = 340f, GadgetFlyTime = 0.5f, GadgetGrabR = 18f, GadgetNoCatchT = 0.15f;
-        /// The Magnet drops 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) while fewer than one per player exist.
+        /// The Magnet drops 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) for each player, rolled for each, while that
+        /// player has none (held, or their own on the floor).
         public const int MagnetDropChance = 90, MagnetEliteChance = 10;
 
         public static string GadgetName(GadgetId g) => g == GadgetId.Magnet ? "Magnet" : "";
@@ -37,24 +39,29 @@ namespace Arena
         /// This player's Magnet is pulling (coins and vector pickups from anywhere fly to them; Coins.cs).
         public static bool MagnetOn(Player p) => p.Gadget == GadgetId.Magnet && p.GadgetOn && !p.Downed;
 
-        int GadgetsAlive(GadgetId kind)
+        /// This player has a gadget of this kind: held, or their own copy on the floor.
+        bool HasGadget(Player p, GadgetId kind)
         {
-            int n = 0;
+            if (p.Gadget == kind)
+                return true;
             foreach (var g in Gadgets.Values)
-                if (g.Kind == kind) n++;
-            foreach (var p in Players.Values)
-                if (p.Gadget == kind) n++;
-            return n;
+                if (g.Kind == kind && g.Owner == p.Id)
+                    return true;
+            return false;
         }
 
-        /// Host: a kill in the Expanding arena may drop a Magnet (DropCoins).
+        /// Host: a kill in the Expanding arena may drop a Magnet (DropCoins), rolled for each player: their own copy.
         void DropGadget(Enemy e)
         {
-            if (e.Def.IsBoss || GadgetsAlive(GadgetId.Magnet) >= Math.Max(1, Players.Count))
+            if (e.Def.IsBoss)
                 return;
-            if (rng.Next(e.Elite ? MagnetEliteChance : MagnetDropChance) != 0)
-                return;
-            SpawnGadget(GadgetId.Magnet, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), MagnetTime);
+            foreach (var p in Players.Values)
+            {
+                if (HasGadget(p, GadgetId.Magnet) || rng.Next(e.Elite ? MagnetEliteChance : MagnetDropChance) != 0)
+                    continue;
+                var g = SpawnGadget(GadgetId.Magnet, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), MagnetTime);
+                g.Owner = p.Id;
+            }
         }
 
         /// Host: a gadget lying on the floor at pos (also the F1 dock and tests).
@@ -89,6 +96,9 @@ namespace Arena
             }
             if (Gadgets.Count == 0)
                 return;
+            foreach (var g in Gadgets.Values)
+                if (g.Owner != 0 && !Players.ContainsKey(g.Owner))
+                    g.Owner = 0;  // its player left: anyone's now
             int taken = -1;
             foreach (var g in Gadgets.Values)
             {
@@ -101,7 +111,7 @@ namespace Arena
                     continue;
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.Gadget != GadgetId.None)
+                    if (p.Downed || p.Gadget != GadgetId.None || !CanTake(p, g.Owner))
                         continue;
                     if (p.Id == g.Thrower || (g.Flying && g.FlyT < GadgetNoCatchT))
                         continue;  // (not your own throw until you've walked off where it landed; a teammate can catch it once it's left your hand)
@@ -110,7 +120,7 @@ namespace Arena
                         p.Gadget = g.Kind;
                         p.GadgetLeft = g.Left;
                         p.GadgetOn = false;
-                        BroadcastFx(FxKind.Ring, g.Pos, new Rgba(0.95f, 0.3f, 0.3f), 24f, 0.3f, g.Flying ? Sfx.PickupBig : Sfx.Pickup);
+                        BroadcastFx(FxKind.Ring, g.Pos, new Rgba(0.95f, 0.3f, 0.3f), 24f, 0.3f, g.Flying ? Sfx.PickupBig : Sfx.Pickup);  // (dropped or thrown later, it's anyone's: DropHeldGadget)
                         taken = g.Id;
                         break;
                     }
@@ -208,13 +218,14 @@ namespace Arena
 
         int SyncGadget(NetSync s, Gadget g)
         {
-            int id = g != null ? g.Id : 0, thrower = g != null ? g.Thrower : -1;
+            int id = g != null ? g.Id : 0, thrower = g != null ? g.Thrower : -1, owner = g != null ? g.Owner : 0;
             byte kind = g != null ? (byte)g.Kind : (byte)0;
             V2 pos = g != null ? g.Pos : default(V2), from = g != null ? g.From : default(V2), to = g != null ? g.To : default(V2);
             float fly = g != null ? g.FlyT : 0f, left = g != null ? g.Left : 0f;
             s.Int(ref id);
             s.Byte(ref kind);
             s.Int(ref thrower);
+            s.Int(ref owner);
             s.Vec(ref pos);
             s.Vec(ref from);
             s.Vec(ref to);
@@ -229,6 +240,7 @@ namespace Arena
                 }
                 g.Kind = (GadgetId)kind;
                 g.Thrower = thrower;
+                g.Owner = owner;
                 g.Pos = pos;
                 g.From = from;
                 g.To = to;

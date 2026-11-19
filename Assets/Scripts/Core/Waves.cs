@@ -77,6 +77,7 @@ namespace Arena
                     if (PathOffer != null && Bot)
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
+                    TickBreakStatus();  // each player's status chip: picking, building, shopping, out looting, ready (WaveReady.cs)
                     TickHuntCheckpoint();  // the step-10 save, before the vote can pick a node (HuntMapGame.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
                     TickDuelRooms(dt);  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
@@ -97,6 +98,7 @@ namespace Arena
                             CloseShop();  // the room shops close as the wave starts (gold and shelf are kept)
                         CloseBossGate();  // BossGate.cs
                         ResolveBuildRound();  // the building round closes as the wave starts: the winning room is built (ExpansionGame.cs)
+                        SweepFloorLoot();  // each player's own coins, vector pickups and chest cards left lying about go to them (Coins.cs)
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
                         SpringPendingAmbushes();  // ambush rooms opened between waves (MysteryDoors.cs)

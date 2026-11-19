@@ -118,11 +118,11 @@ namespace Arena
         }
 
         /// Host, on a kill: every VectorKillEvery kills a player has made drop a small vector pickup where the enemy fell (Coins.cs;
-        /// whoever walks over it gets it, like any vector pickup).
+        /// the killer's own, like their copy of any vector pickup).
         void GrantVectorKill(Player killer, V2 at)
         {
             if (ExpandingOn && killer != null && killer.Run.Kills > 0 && killer.Run.Kills % VectorKillEvery == 0)
-                DropVectorAt(at, 1);
+                AddCoin(killer.Id, 1, true, at, 10f, 14f);  // (the killer's own reward: theirs alone, not a copy each)
         }
 
         void SyncVectors(NetSync s, Player p)
@@ -429,8 +429,6 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
-                    if (pr.Chest == ChestKind.Piece)
-                        ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     continue;
@@ -474,6 +472,15 @@ namespace Arena
 
         const int RuleGold = 40, RuleGoldPerWave = 4, RuleVectors = 8;  // (a cleared Frozen room's prize; first guesses, tune with vecbal)
 
+        /// Host: the node holding this chest, or -1.
+        int NodeIndexOfChest(Prop c)
+        {
+            foreach (var kv in nodeChests)
+                if (kv.Value == c.Id)
+                    return kv.Key;
+            return -1;
+        }
+
         /// Host: the moment a node's chest opens, the node is spent (the opened chest is removed soon after, maybe between waves when TickNodes doesn't run).
         void SpendNodeOfChest(Prop c)
         {
@@ -486,8 +493,6 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
-                    if (c.Chest == ChestKind.Piece)
-                        ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     return;

@@ -430,7 +430,7 @@ namespace Arena
             DrawMysteryOnMap(M);  // sealed mystery doors (MysteryDoorLook.cs)
             foreach (var co in game.Coins.Values)  // gold coins: a small gold dot (5-gold coins a bit bigger); vector pickups stay off
             {
-                if (co.Vec)
+                if (co.Vec || !game.MinePickup(co.Owner))
                     continue;
                 V2 c = M(co.Disp);
                 if (!InMap(c))
