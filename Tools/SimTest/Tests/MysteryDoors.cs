@@ -158,16 +158,17 @@ static partial class Program
             if (r == MysteryRoom.Small) small[(int)k]++;
             if (r == MysteryRoom.Medium) medium[(int)k]++;
             if (r == MysteryRoom.Hallway) hallsChest &= k == MysteryKind.Chest;
-            quiet &= Mystery.KindFor(sd, 9, 0, r, false) != MysteryKind.Enemies;
+            var kq = Mystery.KindFor(sd, 9, 0, r, false);
+            quiet &= r == MysteryRoom.Small ? kq == k : kq != MysteryKind.Enemies;
         }
         Check(rooms.All(c => c > 1500), "small, medium and hallway rooms all turn up (" + string.Join(" ", rooms) + ")");
-        Check(small[(int)MysteryKind.Enemies] > small[(int)MysteryKind.Empty] && small[(int)MysteryKind.Empty] > 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.BlackMarket] > 0 && small[(int)MysteryKind.Arms] > 0 && small[(int)MysteryKind.Medic] > 0 && small[(int)MysteryKind.Chest] == 0,
-            "a small room is mostly enemies, sometimes empty, sometimes a shop, a Black Market, an Arms Dealer or a Medic (" + string.Join(" ", small) + ")");
+        Check(small[(int)MysteryKind.Enemies] > 15 * small[(int)MysteryKind.Shop] && small[(int)MysteryKind.Empty] == 0 && small[(int)MysteryKind.Shop] > 0 && small[(int)MysteryKind.BlackMarket] > 0 && small[(int)MysteryKind.Arms] > 0 && small[(int)MysteryKind.Medic] > 0 && small[(int)MysteryKind.Chest] == 0,
+            "a small room is mostly enemies, never empty, rarely a shop, a Black Market, an Arms Dealer or a Medic (" + string.Join(" ", small) + ")");
         Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.BlackMarket] + medium[(int)MysteryKind.Medic] + medium[(int)MysteryKind.Chest] == 0,
             "a medium room is mostly enemies, rarely empty, never a shop (" + string.Join(" ", medium) + ")");
         Check(hallsChest, "a hallway always holds a chest");
-        Check(quiet, "round a boss no room holds enemies");
-        Check(Mystery.AmbushCount(5) == 5 && Mystery.AmbushCount(100) == Mystery.AmbushMax && Mystery.AmbushCount(5, MysteryRoom.Small) == 3, "enemies grow with the waves, fewer in a small room");
+        Check(quiet, "round a boss no medium room holds enemies, but a small room keeps its pack");
+        Check(Mystery.AmbushCount(5) == 5 && Mystery.AmbushCount(100) == Mystery.AmbushMax && Mystery.AmbushCount(5, MysteryRoom.Small) == Mystery.SmallPack && Mystery.SmallPack == 25, "enemies grow with the waves; a small room is a pack of 25");
         Check(Mystery.PiecesOf(MysteryRoom.Small).All(pc => pc == PieceShape.Mono) && Mystery.PiecesOf(MysteryRoom.Hallway).All(pc => pc == PieceShape.TriI || pc == PieceShape.TetI), "a small room is one cell, a hallway a straight line of cells");
 
         string why = null;
@@ -259,7 +260,10 @@ static partial class Program
         var pend = (List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g);
         Check(sm.Count == 1 && g.Enemies.Count == e0 && pend.Count == 1, "between waves they wait");
         typeof(Game).GetMethod("SpringPendingAmbushes", flags).Invoke(g, null);
-        Check(g.Enemies.Count - e0 == Mystery.AmbushCount(g.Wave, MysteryRoom.Small) && pend.Count == 0, "and come out as the wave starts, fewer from a small room");
+        var pack = g.Enemies.Values.Where(e => !(e.Pos.X < sm[0].X - 20 || e.Pos.X > sm[0].X1 + 20 || e.Pos.Y < sm[0].Y - 20 || e.Pos.Y > sm[0].Y1 + 20)).ToList();
+        Check(g.Enemies.Count - e0 == Mystery.SmallPack && pend.Count == 0 && pack.Count == Mystery.SmallPack && pack.All(e => e.Type == g.MysteryPackType()),
+            "and come out as the wave starts: a small room's pack of " + Mystery.SmallPack + " " + g.MysteryPackType() + ", grouped in the room (" + pack.Count + ")");
+        Check(Game.FactionFor(EnemyType.Warden).Members[0].Type == EnemyType.Rioter, "a Warden stretch's pack is Rioters");
 
         e0 = g.Enemies.Count;
         var empty = open(PieceShape.Domino, MysteryKind.Empty);
