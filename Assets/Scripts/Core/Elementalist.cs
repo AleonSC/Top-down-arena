@@ -58,7 +58,7 @@ namespace Arena
                 Sound = Sfx.None, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
         };
 
-        /// The Elementalist's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Elementalist's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] ElementalistCards =
         {
@@ -86,7 +86,7 @@ namespace Arena
                 Apply = s => { s.WwDmgMult += 0.4f; s.WwWetBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Tsunami, MaxStacks = 2, Name = "Riptide", Desc = "Tsunami's wave is 40% wider and enemies stay wet 4 s longer",
                 Apply = s => { s.TsunamiWidthMult += 0.4f; s.WetBonusTime += 4f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Elementalist, MaxStacks = 2, Name = "Arcane Surge", Desc = "Casting your Space ability makes your weapon fire 25% faster for 3 s",
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Elementalist, MaxStacks = 2, Name = "Arcane Surge", Desc = "Casting your 1st ability makes your weapon fire 25% faster for 3 s",
                 Apply = s => { s.SurgeRate += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Flamethrower }, MaxStacks = 2, Name = "Napalm", Desc = "The Flamethrower's stream reaches 15% farther, and its burn is 40% hotter",
                 Apply = s => { s.FlameReachMult += 0.15f; s.FlameBurnMult += 0.4f; } },
@@ -112,7 +112,7 @@ namespace Arena
                 Apply = s => { s.WcReachMult += 0.2f; s.WcShoveMult += 0.3f; } },
         };
 
-        /// The Elementalist's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
+        /// The Elementalist's 1st abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] ElementalistAbilities =
         {
             new AbilityDef
@@ -137,7 +137,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Flood, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th ability key (Flood.cs)
+                Id = AbilityId.Flood, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (Flood.cs)
                 Name = "Flood", Cooldown = FloodCooldown, Desc = "Stamp and flood the ground 190 px round you for 6 s: enemies touching you are thrown back 60 px (10 damage), and every enemy wading in the water is slowed 40% (heavies and bosses 20%) and soaked wet, so lightning arcs to it, while it's in and 3 s after.",
                 Capstone = "Deluge: the flood is 30% wider and lasts 9 s.",
                 Bot = b => b.NearEnemies >= 3 || b.Danger && b.HaveTarget && b.TargetD < 260f,
@@ -165,7 +165,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.WaterWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th ability key (WaterWard.cs)
+                Id = AbilityId.WaterWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (WaterWard.cs)
                 Name = "Water Ward", Cooldown = WwCooldown,
                 Desc = "Call 2 drops of water down round you; they circle you, up to 10. A drop that touches an enemy splashes: 12 damage to every enemy within 52 px, and they're soaked wet (slowed 30%, lightning arcs to them) for 4 s. A drop that meets an enemy shot eats it and bursts into a mist that soaks everything within 72 px.",
                 Capstone = "Splashes and bursts reach 40% farther.",

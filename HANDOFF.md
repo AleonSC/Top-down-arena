@@ -19,8 +19,8 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 - **What:** a 1-3 player **co-op top-down bullet hell** made in **Unity 6** (`6000.6.7f1`, Unity 6.6; built-in render
   pipeline). The owner plays it with a friend over **Tailscale** (one hosts, the other joins by IP).
 - **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja, Engineer,
-  Hemomancer; old saves may still say `Mage`/`BloodMage`, loaded by `KitFromSave`), then one of 3 weapons and one of 3 Space abilities. Each role × kit has an ultimate (F). Very rare
-  cards add Q/E/Shift abilities. Abilities level up with use (**mastery** 1-5, capstone at 5). **Perks** (unlocked by
+  Hemomancer; old saves may still say `Mage`/`BloodMage`, loaded by `KitFromSave`), then one of 3 weapons and one of 3 1st abilities. Each role × kit has an ultimate (F). Very rare
+  cards add 2nd, 3rd or 4th abilities. Abilities level up with use (**mastery** 1-5, capstone at 5). **Perks** (unlocked by
   winning a Boss Hunt, e.g. Riot Gear) are equipped in the lobby.
 - **The ten bosses, in Campaign order:** Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist, Lich,
   Storm Herald, Devourer, Eclipse (`Game.BossCycle`, EnemyAI.cs). **Every boss has its own faction** of themed enemies,
@@ -187,9 +187,9 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
    `Defs.Weapons` and `Upgrades.Abilities` are built from it. The game stops at start-up with a message naming anything missing or doubled.
 4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`. Per-class player
    fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
-5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per Space ability
+5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per 1st ability
    (`ByUpgrade` maps the ability's name to it). Ultimates have none.
-   **Upgrade cards** for the class (its Space abilities' Rare cards, weapon or class cards) go in `Game.<Class>Cards`
+   **Upgrade cards** for the class (its 1st abilities' Rare cards, weapon or class cards) go in `Game.<Class>Cards`
    beside its abilities, added to `Upgrades.All`'s `Gather` (Docs/UpgradePools.md).
 6. **Check:** `Tools/SimTest/run.sh 1 1 classes` lists every missing piece (weapon cases, ability casts, icons, blurb,
    look). Then a sim test file for the class (`Tests/<Class>.cs`, see `Tests/Ninja.cs`), `run.sh 1 1 extra` and `aim`
@@ -229,7 +229,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     each in its own process, built once; `k/n` runs one shard. CI runs it as two shards beside `core` and `features`.
     **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`.** `TIMES=1 run.sh ...` prints each test's time.
   - Single systems: `snapshot` (run snapshots, F6 / F7), `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `bloodlash`, `paths`, `bazaar`, `practice`, `bosses`,
-    `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ults`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `turnkey` (the Warden faction's Turnkey: wave-3 debut, running, traps, Cell Doors), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
+    `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ultimates`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `turnkey` (the Warden faction's Turnkey: wave-3 debut, running, traps, Cell Doors), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `perf` (sim ms a frame, host and friend, through a Quick Play breach wave: `run.sh 1 1 perf [secs] [boss] [wave]`), `survperf` (the same for Survival at the 60-enemy cap: `run.sh 1 1 survperf [secs] [start min]`), `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to

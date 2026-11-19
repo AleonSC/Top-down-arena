@@ -24,7 +24,7 @@ namespace Arena
                 case TutorialStep.Shoot: key = KeyLabel(KeyAction.Fire); return "Shoot";
                 case TutorialStep.Dodge: key = KeyLabel(KeyAction.Dodge); return "Dodge through danger";
                 case TutorialStep.PickCard: return "Pick an upgrade card";
-                case TutorialStep.Ability: key = KeyLabel(KeyAction.Ability); return "Use your ability";
+                case TutorialStep.Ability: key = KeyLabel(KeyAction.Ability1); return "Use your ability";
                 case TutorialStep.Parry: key = KeyLabel(KeyAction.Parry); return "Raise your parry shield";
                 case TutorialStep.OpenBuild: return "Click BUILD at the top";
                 case TutorialStep.DrawRoom: return "Draw a room (click its corners)";

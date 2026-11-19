@@ -28,8 +28,8 @@ static partial class Program
         Check(p.Kit == Kit.Soldier, "a Wildcard has no class of its own (no class health, speed or passives)");
         Check(Math.Abs(p.BaseHp - 125f) < 0.01f, "a Wildcard has 125 health, got " + p.BaseHp);
         Check(p.Weapon.Id == Defs.Weapon(Role.Dps, Kit.Ninja, 1).Id, "the weapon is the Ninja's second DPS weapon");
-        Check(p.RoleAbility == Upgrades.RoleAbility(Role.Dps, Kit.Elementalist, 0), "the first ability is the Elementalist's Meteor");
-        var bonus = Upgrades.RoleAbility(Role.Dps, Kit.Hemomancer, 0);
+        Check(p.FirstAbility == Upgrades.FirstAbility(Role.Dps, Kit.Elementalist, 0), "the first ability is the Elementalist's Meteor");
+        var bonus = Upgrades.FirstAbility(Role.Dps, Kit.Hemomancer, 0);
         Check(p.Slots[2].Id == bonus && p.Slots[1].Id == AbilityId.None && p.Slots[3].Id == AbilityId.None,
             "the second ability sits on E (slot 2) and Q and Shift are free");
         Check(p.Slots[Upgrades.UltSlot].Id == AbilityId.DeathLotus && p.WildKit == Kit.Ninja, "the ultimate is the one picked (the Ninja's Death Lotus), not the first ability's class's");
@@ -38,15 +38,15 @@ static partial class Program
         // The price: less damage and slower cooldowns than the same build as a DPS.
         Check(Math.Abs(p.Stats.DmgMult - Game.WildcardDmgMult) < 0.001f, "damage is x" + Game.WildcardDmgMult + ", got " + p.Stats.DmgMult);
         Check(Math.Abs(p.Stats.CdMult - Game.WildcardCdMult) < 0.001f, "cooldowns are x" + Game.WildcardCdMult + ", got " + p.Stats.CdMult);
-        float baseCd = Upgrades.Ability(p.RoleAbility).Cooldown;
-        Check(Math.Abs(g.Cooldown(p, 0) - baseCd * Game.WildcardCdMult) < 0.01f, "the first ability recharges 25% slower");
+        float baseCd = Upgrades.Ability(p.FirstAbility).Cooldown;
+        Check(Math.Abs(g.Cooldown(p, 0) - baseCd * Game.WildcardCdMult) < 0.01f, "the 1st ability recharges 25% slower");
         float ultBase = Upgrades.Ability(p.Slots[Upgrades.UltSlot].Id).Cooldown;
         Check(g.Cooldown(p, Upgrades.UltSlot) >= ultBase * Game.WildcardCdMult - 0.01f, "the ultimate recharges slower too");
 
         // A client sees the same slots.
         Run(s, dt, 1, () => false);
         var seen = client.Game.Players[1];
-        Check(seen.Role == Role.Wildcard && seen.Slots[2].Id == bonus, "the client sees the Wildcard's second ability on E");
+        Check(seen.Role == Role.Wildcard && seen.Slots[2].Id == bonus, "the client sees the Wildcard ability on E");
 
         // Move the second ability to Shift: charges follow, the key it left is free.
         g.SetAbilityKey(bonus, 3);
@@ -64,7 +64,7 @@ static partial class Program
         Check(e.Role == Role.Wildcard && e.Kit == Kit.Soldier, "choosing Wildcard clears the class");
         lobby.RequestWildcard(5, 4, 4, 2);
         e = lobby.Lobby[1];
-        Check(Defs.WildSecond(e.Wild) != e.Ability && Defs.WildKey(e.Wild) == 2, "a second ability equal to the first is moved on, the key kept");
+        Check(Defs.WildSecond(e.Wild) != e.Ability && Defs.WildKey(e.Wild) == 2, "a Wildcard ability equal to the first is moved on, the key kept");
         lobby.RequestWildcard(99, 99, 99, 9);
         e = lobby.Lobby[1];
         Check(e.Weapon < Defs.WildcardChoices && e.Ability < Defs.WildcardChoices && Defs.WildKey(e.Wild) == 3, "out-of-range Wildcard picks are clamped");
@@ -117,7 +117,7 @@ static partial class Program
             var wd = Defs.Weapon(Role.Wildcard, Kit.Soldier, i);
             if (!Defs.WeaponGap(Role.Dps, (Kit)(i / 3), i % 3))  // (a class still being built: its locked places are stand-ins)
                 Check(wd.Role == Role.Dps && (int)wd.Kit * 3 + wd.Choice == i, "Wildcard weapon " + i + " is that class's DPS weapon");
-            var ab = Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, i));
+            var ab = Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, i));
             if (!Upgrades.AbilityGap(Role.Dps, (Kit)(i / 3), i % 3))
                 Check(ab.Role == Role.Dps && (int)ab.Kit * 3 + ab.Choice == i, "Wildcard ability " + i + " is that class's DPS ability");
         }

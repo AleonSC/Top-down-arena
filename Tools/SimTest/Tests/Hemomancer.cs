@@ -179,7 +179,7 @@ static partial class Program
             && Defs.Weapon(Role.Dps, Kit.Hemomancer, 2).Name == "Blood Brawler" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
             && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver" && Defs.Weapon(Role.Tank, Kit.Knight, 1).Name == "Lance",
             "Hemomancer weapons sit in the role/class tables without shifting the others");
-        Check(Upgrades.RoleAbility(Role.Healer, Kit.Hemomancer, 2) == AbilityId.Martyr && Upgrades.RoleAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep
+        Check(Upgrades.FirstAbility(Role.Healer, Kit.Hemomancer, 2) == AbilityId.Martyr && Upgrades.FirstAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep
             && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonHarvest && Upgrades.Ultimate(Role.Healer, Kit.Ninja) == AbilityId.BlossomStorm
             && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe && Defs.KitName(Kit.Hemomancer) == "Hemomancer" && Defs.KitName(Kit.Elementalist) == "Elementalist",
             "Hemomancer abilities and ultimates map to the right role and class");

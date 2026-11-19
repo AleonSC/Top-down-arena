@@ -100,7 +100,7 @@ Today: homing orbs (16 plus a bleed stack) charge a heal reserve; with 25 reserv
 Each step: code, sim tests, previews, `weapondps` re-run, README, then push and a short report.
 
 1. **Framework.** Variants as weapon entries that name their base weapon (they share its lobby place and its
-   Space abilities); the lobby's variant chips with locks and milestones; `LobbyEntry.Variant` (a protocol bump);
+   1st abilities); the lobby's variant chips with locks and milestones; `LobbyEntry.Variant` (a protocol bump);
    per-weapon best wave and unlocks in `Profile` (and the Records page); the unlock toast; an F1 "unlock all
    variants" switch for testing. No variants yet: everything still plays as today.
 2. **Mender's Bow** variants.

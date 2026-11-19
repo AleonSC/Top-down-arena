@@ -274,8 +274,8 @@ namespace Arena
                     p.Taken.Clear();
                     for (int i = 0; i < n; i++)
                         p.Taken.Add(r.ReadInt16());
-                    for (int k = 0; k < p.BonusKeys.Length; k++)
-                        p.BonusKeys[k] = (AbilityId)r.ReadByte();
+                    for (int k = 0; k < p.CardAbilities.Length; k++)
+                        p.CardAbilities[k] = (AbilityId)r.ReadByte();
                     Recalc(p);
                     if (id == MyId)
                         awaitingPick = false;

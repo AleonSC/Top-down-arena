@@ -542,7 +542,7 @@ namespace Arena
         readonly float[] tileEmptyK = new float[Upgrades.SlotCount];  // each key's ease toward its stub (HudLayout.cs HudTile)
         int tileEmptyFrame = -1;
 
-        /// XP bar plus the ability tiles (Space / Q / E / Shift / ultimate) along the bottom.
+        /// XP bar plus the ability tiles (Space / 2nd, 3rd or 4th / ultimate) along the bottom.
         void DrawAbilityBar(Player me)
         {
             // XP strip (the CRT console look): "LV 3 · 48%" in gold on its own dark plate at the left end, then the segmented gold bar.
@@ -617,7 +617,7 @@ namespace Arena
             float cd = game.Cooldown(me, i);
             float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
-            Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ult, green when ready, blue while it recharges
+            Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ultimate, green when ready, blue while it recharges
             CrtKeyBox(r, new Color(keyCol.r, keyCol.g, keyCol.b, ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
             if (look.White > 0f)
                 CrtKit.Frame(r, 2f, new Color(1f, 1f, 1f, 0.9f * look.White));

@@ -287,8 +287,8 @@ static partial class Program
     {
         var host = new Session();
         var g = host.Game;
-        g.Players[1] = new Player { Id = 1, Role = Role.Tank, RoleAbility = Upgrades.RoleAbility(Role.Tank, Kit.Soldier, 0) };
-        g.Players[2] = new Player { Id = 2, Role = Role.Dps, RoleAbility = Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0) };
+        g.Players[1] = new Player { Id = 1, Role = Role.Tank, FirstAbility = Upgrades.FirstAbility(Role.Tank, Kit.Soldier, 0) };
+        g.Players[2] = new Player { Id = 2, Role = Role.Dps, FirstAbility = Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0) };
         Console.WriteLine("  boss          home  HP@home   after 10  after 20  after 30   (x of its home health)");
         foreach (var b in new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
                                   EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })

@@ -317,7 +317,7 @@ static partial class Program
 
         // The loadout preview casts the ultimate you picked.
         var show = new Showcase();
-        show.Show(Role.Tank, Kit.Hemomancer, 0, Upgrades.RoleAbility(Role.Tank, Kit.Hemomancer, 0), true, true, 1);
+        show.Show(Role.Tank, Kit.Hemomancer, 0, Upgrades.FirstAbility(Role.Tank, Kit.Hemomancer, 0), true, true, 1);
         Check(show.Me != null && show.Me.Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath, "the lobby's preview shows the ultimate you picked");
         bool cast = false;
         for (int i = 0; i < 60 * 4 && !cast; i++) { show.Step(dt); cast = show.Game.Zones.Values.Any(z => z.Kind == ZoneKind.Bloodbath); }

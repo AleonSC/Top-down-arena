@@ -30,7 +30,7 @@ static partial class Program
         foreach (var n in picks) me.Taken.Add(Array.FindIndex(Upgrades.All, u => u.Name == n));
         g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, u => u.Name == "Vitality"));
         float strong = bossScale();
-        float expect = Game.BossScaleFor(Game.BuildPower(me.Stats) / Game.TypicalPower(me.Role, me.RoleAbility, g.Wave));
+        float expect = Game.BossScaleFor(Game.BuildPower(me.Stats) / Game.TypicalPower(me.Role, me.FirstAbility, g.Wave));
         g.ScaleBosses = false;
         float off = bossScale();
         Console.WriteLine("  boss health at wave 20: no upgrades x{0:0.00}; the Hemomancer run's build x{1:0.00} (formula x{2:0.00}); scaling off x{3:0.00}", plain, strong, expect, off);

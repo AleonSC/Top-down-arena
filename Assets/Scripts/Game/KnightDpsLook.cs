@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The DPS Knight's Space abilities, ported from Docs/Mockups/knight-dps-abilities.html (its drawing code, shape for
+    /// The DPS Knight's 1st abilities, ported from Docs/Mockups/knight-dps-abilities.html (its drawing code, shape for
     /// shape and in world units, the mockup's stage being drawn at about the arena's own scale):
     ///   Caught Steel, look Forge II (Core/CaughtSteel.cs; Docs/Mockups/caught-steel-forge.html, look B): a heat-shimmer
     ///     graze ring with embers lifting off it, a white-hot burst, hammer ring and falling anvil sparks where a bullet is

@@ -361,7 +361,7 @@ static partial class Shot {
         var sc = new Showcase();
         bool ultDemo = Environment.GetEnvironmentVariable("ULTDEMO") != null;  // ULTDEMO=1: the ultimate is being previewed
         if (ultDemo) set("detailSel", 2);  // (the ultimate's detail box, and the preview casting it)
-        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo, le.Ult);
+        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.FirstAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo, le.Ult);
         float st = float.Parse(Environment.GetEnvironmentVariable("SHOWT") ?? "2.5");
         for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
         set("showcase", sc);

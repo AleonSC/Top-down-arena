@@ -407,7 +407,7 @@ namespace Arena
                     Ui.Label(new Rect(x + 102f, y, w - 160f, 22f), Upgrades.Ability(id).Name, 13, Color.white, TextAnchor.MiddleLeft, true);
                     bool w2 = Ui.CrtFont;
                     Ui.CrtFont = true;
-                    CrtUi.Text(new Rect(x, y, w, 22f), "LV " + Game.MasteryLevel(p, id), 16, HoloDim, TextAnchor.MiddleRight, false, calm);
+                    CrtUi.Text(new Rect(x, y, w, 22f), "MASTERY " + Game.MasteryLevel(p, id), 16, HoloDim, TextAnchor.MiddleRight, false, calm);
                     Ui.CrtFont = w2;
                 }
                 y += 22f;

@@ -377,7 +377,7 @@ namespace Arena
                 dir = dir.Normalized();
             session.MoveMyAvatar(a.Pos + dir * (Session.AvatarSpeed * dt) + session.TakeDashStep(a, dt), aim);
             // Ability: its key or the Parry key (right click by default).
-            bool castPress = hangoutCastLatch || Keybinds.Down(KeyAction.Ability);
+            bool castPress = hangoutCastLatch || Keybinds.Down(KeyAction.Ability1);
             hangoutCastLatch = false;
             if (a.Pvp && (castPress || (Keybinds.Down(KeyAction.Parry) && view.Contains(mouse))))
                 session.CastMyAbility(castAim);

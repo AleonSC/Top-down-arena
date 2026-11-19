@@ -13,7 +13,7 @@ namespace Arena
     /// Mastered: a longer hold and HarvestMasteredBlood times the blood. The ball is replicated as three Player fields (HarvestClock, HarvestBlood,
     /// HarvestHold); the tendrils, droplets and aim ring are drawn from those and the enemies' own positions (Game/CrimsonHarvestLook.cs). The throw
     /// is one FxKind.HarvestThrow (Pos = where you stood, Pos2 = where it lands, Radius = the blood) drawn from its age alone. Mockup:
-    /// Docs/Mockups/hemomancer-ult-rework.html (tendrils of look B, ball of look A).
+    /// Docs/Mockups/hemomancer-ultimate-rework.html (tendrils of look B, ball of look A).
     public partial class Game
     {
         public const float HarvestRip = 2.2f, HarvestHoldTime = 5f, HarvestHoldMastered = 8f, HarvestThrowT = 0.65f, HarvestTail = 4.6f;

@@ -68,7 +68,7 @@ static partial class Program
         Check(me.Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx && g.Players[2].Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx
             && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx, "both players carry Bone Phalanx on F, on every game");
         var showcase = new Showcase();
-        showcase.Show(Role.Tank, Kit.Summoner, 0, Upgrades.RoleAbility(Role.Tank, Kit.Summoner, 0), true, true, 1);
+        showcase.Show(Role.Tank, Kit.Summoner, 0, Upgrades.FirstAbility(Role.Tank, Kit.Summoner, 0), true, true, 1);
         Check(showcase.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx, "the lobby preview shows the picked ultimate");
         showcase.Stop();
 

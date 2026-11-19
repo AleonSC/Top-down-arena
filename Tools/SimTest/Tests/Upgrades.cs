@@ -11,7 +11,7 @@ static partial class Program
     static void CheckStatSheet()
     {
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
-        var p = new Player { Role = Role.Dps, Def = Defs.Get(Role.Dps), BaseHp = 95f, RoleAbility = AbilityId.PoisonDart };
+        var p = new Player { Role = Role.Dps, Def = Defs.Get(Role.Dps), BaseHp = 95f, FirstAbility = AbilityId.PoisonDart };
         var taken = new List<int> { U("Sharpened Rounds"), U("Hollow Points"), U("Fortitude"), U("Multishot"), U("Blink"), U("Executioner") };
         var lines = StatSheet.Describe(p, taken);
         var map = new Dictionary<string, string>();
@@ -25,7 +25,7 @@ static partial class Program
         Check(StatSheet.Describe(p, withCard).Find(l => l.Label == "Fire rate").Value == "110%", "stat preview reflects the selected card");
     }
 
-    // Every ability has one complete entry, and every lobby place (Space choice, ultimate) holds exactly one.
+    // Every ability has one complete entry, and every lobby place (1st ability choice, ultimate) holds exactly one.
     static void CheckAbilityRegistry()
     {
         var ids = Enum.GetValues(typeof(AbilityId)).Cast<AbilityId>().Where(a => a != AbilityId.None).ToList();
@@ -42,7 +42,7 @@ static partial class Program
                         placed.Add(Upgrades.AltUltimate(role, (Kit)k, u));
                 for (int c = 0; c < Upgrades.AbilityLimit(role, (Kit)k); c++)  // (a 4th where the class has one: Flood)
                     if (!Upgrades.AbilityGap(role, (Kit)k, c))
-                        placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
+                        placed.Add(Upgrades.FirstAbility(role, (Kit)k, c));
             }
         bool lobby = placed.Distinct().Count() == placed.Count && placed.All(a => a != AbilityId.None)
             && placed.All(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly)
@@ -62,9 +62,9 @@ static partial class Program
         bool ok = true;
         var rarityCount = new int[4];
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
-        for (int choice = 0; choice < Upgrades.RoleAbilityChoices; choice++)
+        for (int choice = 0; choice < Upgrades.FirstAbilityChoices; choice++)
         {
-            var ab = Upgrades.RoleAbility(role, Kit.Soldier, choice);
+            var ab = Upgrades.FirstAbility(role, Kit.Soldier, choice);
             var taken = new List<int>();
             for (int level = 1; level < 60; level++)
             {
@@ -86,7 +86,7 @@ static partial class Program
             foreach (int t in taken)
                 if (Upgrades.All[t].Grants != AbilityId.None)
                     grants++;
-            ok &= grants <= Upgrades.BonusSlots;
+            ok &= grants <= Upgrades.CardAbilitySlots;
         }
         Console.WriteLine("offer rarities seen: common {0}, uncommon {1}, rare {2}, very rare {3}", rarityCount[0], rarityCount[1], rarityCount[2], rarityCount[3]);
         Check(ok, "offers are 3 distinct, eligible upgrades; at most 3 new abilities");
@@ -221,13 +221,13 @@ static partial class Program
         var s = StartBuffed(dt, 6, 0);
         var p = s[0].Game.Players[2];
         var c2 = s[0].Game.OfferFor(p);
-        Check(c2.Role == p.Role && c2.HasKit(p.Kit) && c2.RoleAbility == p.RoleAbility && c2.Taken == p.Taken && c2.Weapon == p.Weapon.Id
-            && c2.Expanding == s[0].Game.ExpandingOn, "Game.OfferFor carries the player's role, class, Space ability, picks, weapon and arena");
+        Check(c2.Role == p.Role && c2.HasKit(p.Kit) && c2.FirstAbility == p.FirstAbility && c2.Taken == p.Taken && c2.Weapon == p.Weapon.Id
+            && c2.Expanding == s[0].Game.ExpandingOn, "Game.OfferFor carries the player's role, class, 1st ability, picks, weapon and arena");
         s[0].Leave(""); s[1].Leave("");
     }
 
     // Class and weapon-list cards (Docs/UpgradePools.md step 3): a Kit card goes to that class only, for every role
-    // and Space pick; a Wildcard counts as the class of its Space ability, weapon and second ability; a Weapons card
+    // and Space pick; a Wildcard counts as the class of its 1st ability, weapon and Wildcard ability; a Weapons card
     // goes to any weapon on its list and no other.
     static void CardFilterTest()
     {
@@ -241,11 +241,11 @@ static partial class Program
             bool kitOk = true;
             foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
                 for (int k = 0; k < Defs.KitCount; k++)
-                    for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
+                    for (int c = 0; c < Upgrades.FirstAbilityChoices; c++)
                     {
-                        var ab = Upgrades.RoleAbility(role, (Kit)k, c);
+                        var ab = Upgrades.FirstAbility(role, (Kit)k, c);
                         kitOk &= Upgrades.Available(card, new OfferCtx(role, ab, none)) == ((Kit)k == Kit.Knight);
-                        var pl = new Player { Role = role, Kit = (Kit)k, RoleAbility = ab, Weapon = Defs.Weapon(role, (Kit)k, 0) };
+                        var pl = new Player { Role = role, Kit = (Kit)k, FirstAbility = ab, Weapon = Defs.Weapon(role, (Kit)k, 0) };
                         kitOk &= Upgrades.Available(card, OfferCtx.Of(pl, false)) == ((Kit)k == Kit.Knight);
                     }
             Check(kitOk, "a Knight card is offered to every Knight (each role and Space pick) and to no other class");
@@ -254,22 +254,22 @@ static partial class Program
             var rng = new Random(5);
             for (int i = 0; i < 1500; i++)
             {
-                seenKnight += Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, Upgrades.RoleAbility(Role.Tank, Kit.Knight, 0), none), 20).Count(x => x == card);
-                seenSoldier += Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, Upgrades.RoleAbility(Role.Tank, Kit.Soldier, 0), none), 20).Count(x => x == card);
+                seenKnight += Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, Upgrades.FirstAbility(Role.Tank, Kit.Knight, 0), none), 20).Count(x => x == card);
+                seenSoldier += Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, Upgrades.FirstAbility(Role.Tank, Kit.Soldier, 0), none), 20).Count(x => x == card);
             }
             Check(seenKnight > 0 && seenSoldier == 0, "level-up offers show a Knight card to a Knight (" + seenKnight + "x) and never to a Soldier");
 
-            // A Wildcard with a Ninja Space ability, a Knight weapon and a Hemomancer second ability.
+            // A Wildcard with a Ninja 1st ability, a Knight weapon and a Hemomancer Wildcard ability.
             var wild = new Player
             {
                 Role = Role.Wildcard, Kit = Kit.Soldier,
-                RoleAbility = Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, (int)Kit.Ninja * Upgrades.RoleAbilityChoices),
+                FirstAbility = Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, (int)Kit.Ninja * Upgrades.FirstAbilityChoices),
                 Weapon = Defs.Weapon(Role.Wildcard, Kit.Soldier, Defs.WildWeaponPick(Kit.Knight, 0)),
-                StartBonus = Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, (int)Kit.Hemomancer * Upgrades.RoleAbilityChoices),
+                WildcardAbility = Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, (int)Kit.Hemomancer * Upgrades.FirstAbilityChoices),
             };
             var wc = OfferCtx.Of(wild, false);
             Check(wc.HasKit(Kit.Ninja) && wc.HasKit(Kit.Knight) && wc.HasKit(Kit.Hemomancer) && !wc.HasKit(Kit.Soldier) && !wc.HasKit(Kit.Elementalist)
-                && Upgrades.Available(card, wc), "a Wildcard counts as the classes of its Space ability, weapon and second ability, and no others");
+                && Upgrades.Available(card, wc), "a Wildcard counts as the classes of its 1st ability, weapon and Wildcard ability, and no others");
             u0.Kit = null;
 
             u0.Weapons = new[] { WeaponId.Scattergun, WeaponId.Railgun };
@@ -342,7 +342,7 @@ static partial class Program
     static void WeaponModTest(float dt)
     {
         var s = StartBuffed(dt, 6, 0);
-        var offer = Upgrades.ModOffer(new OfferCtx(Role.Dps, Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0), new List<int>()));
+        var offer = Upgrades.ModOffer(new OfferCtx(Role.Dps, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), new List<int>()));
         Check(offer != null && offer.Length == 8, "the weapon mod offer lists all 8 mods");
         foreach (int id in offer)
             for (int k = 0; k < 3; k++)
@@ -401,7 +401,7 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
-    // Class ability cards: very rare cards for your class's two other Space abilities, which go on Q, E or Shift.
+    // Class ability cards: very rare cards for your class's two other 1st abilities, which go on 2nd, 3rd or 4th.
     static void ClassAbilityTest(float dt)
     {
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
@@ -416,21 +416,21 @@ static partial class Program
                         gaps++;
                         continue;  // a class still being built: a stand-in, locked in the lobby
                     }
-                    var ab = Upgrades.RoleAbility(role, (Kit)k, c);
+                    var ab = Upgrades.FirstAbility(role, (Kit)k, c);
                     var offered = cards.Where(i => Upgrades.Available(i, new OfferCtx(role, ab, new List<int>()))).Select(i => Upgrades.All[i].Grants).OrderBy(x => x).ToList();
-                    var expect = Enumerable.Range(0, Upgrades.AbilityLimit(role, (Kit)k)).Where(o => o != c && !Upgrades.AbilityGap(role, (Kit)k, o)).Select(o => Upgrades.RoleAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
+                    var expect = Enumerable.Range(0, Upgrades.AbilityLimit(role, (Kit)k)).Where(o => o != c && !Upgrades.AbilityGap(role, (Kit)k, o)).Select(o => Upgrades.FirstAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
                     combos++;
                     if (offered.SequenceEqual(expect))
                         right++;
                 }
         Console.WriteLine("  class ability cards: {0} cards; the right two offered for {1}/{2} role/class/ability picks", cards.Count, right, combos);
-        int fourths = new[] { Role.Tank, Role.Healer, Role.Dps }.Sum(r => Enumerable.Range(0, Defs.KitCount).Count(k => Upgrades.AbilityLimit(r, (Kit)k) > Upgrades.RoleAbilityChoices));  // (Flood, Kinetic Wall)
-        Check(cards.Count == 3 * Defs.KitCount * Upgrades.RoleAbilityChoices + fourths - gaps && right == combos, "each class is offered exactly its other Space abilities (two, or three with a 4th) as very rare cards");
+        int fourths = new[] { Role.Tank, Role.Healer, Role.Dps }.Sum(r => Enumerable.Range(0, Defs.KitCount).Count(k => Upgrades.AbilityLimit(r, (Kit)k) > Upgrades.FirstAbilityChoices));  // (Flood, Kinetic Wall)
+        Check(cards.Count == 3 * Defs.KitCount * Upgrades.FirstAbilityChoices + fourths - gaps && right == combos, "each class is offered exactly its other 1st abilities (two, or three with a 4th) as very rare cards");
 
         var rng = new Random(7);
         int veryRare = 0, cls = 0;
         for (int n = 0; n < 4000; n++)
-            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(Role.Healer, AbilityId.Adrenaline, new List<int>()), 20))  // (a class with three Space abilities: two cards)
+            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(Role.Healer, AbilityId.Adrenaline, new List<int>()), 20))  // (a class with three 1st abilities: two cards)
                 if (Upgrades.All[id].Rarity == Rarity.VeryRare)
                 {
                     veryRare++;
@@ -456,7 +456,7 @@ static partial class Program
         var cp = s[1].Game.Players[2];
         Console.WriteLine("  DPS Soldier: Space {0}, Q {1} (client sees {2}); airstrike called {3}", hp.Slots[0].Id, hp.Slots[1].Id, cp.Slots[1].Id, thrown);
         Check(hp.Slots[0].Id == AbilityId.PoisonDart && hp.Slots[1].Id == AbilityId.Airstrike && cp.Slots[1].Id == AbilityId.Airstrike && thrown,
-            "a class ability card puts that ability on Q, E or Shift, and it works there");
+            "a class ability card puts that ability on 2nd, 3rd or 4th, and it works there");
         s[0].Leave(""); s[1].Leave("");
     }
 

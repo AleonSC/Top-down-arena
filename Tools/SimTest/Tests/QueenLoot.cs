@@ -93,7 +93,7 @@ static partial class Program
         g.GrantUpgrade(2, U("Royal Dive"));
         drive(0.3f, new PlayerInput { AimAt = home });
         int slot = Array.FindIndex(hp.Slots, k => k.Id == AbilityId.RoyalDive);
-        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.RoyalDive, "Royal Dive goes on a Q / E / Shift key");
+        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.RoyalDive, "Royal Dive goes on a 2nd, 3rd or 4th key");
         foreach (var m in drones(g)) g.Minions.Remove(m.Id);  // keep the numbers clean: no drones meanwhile
         hp.Taken.Remove(U("Hive Drones"));
         g.GrantUpgrade(2, U("Vitality"));

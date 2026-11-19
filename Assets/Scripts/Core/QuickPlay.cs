@@ -104,7 +104,7 @@ namespace Arena
             {
                 ratio = 0f;
                 foreach (var p in Players.Values)
-                    ratio += TypicalPower(p.Role, p.RoleAbility, Math.Max(1, wave)) / Math.Max(0.01f, TypicalPower(p.Role, p.RoleAbility, home));
+                    ratio += TypicalPower(p.Role, p.FirstAbility, Math.Max(1, wave)) / Math.Max(0.01f, TypicalPower(p.Role, p.FirstAbility, home));
                 ratio /= Players.Count;
             }
             return SpawnHp(type, home) * ratio * (QuickPlay.FightSeconds / QuickPlay.HomeFightSeconds);

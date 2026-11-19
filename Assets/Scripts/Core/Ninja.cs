@@ -315,7 +315,7 @@ namespace Arena
                 Desc = "Twin Storm: a nunchaku in each hand. Fire is a four-step combo: Snap, Backhand, Double Figure-8, then the Twin Crush, an overhead slam that stuns. Your weapon-action key switches to the Twin Windmill guard: two spinning discs swat small shots back at enemies, and Fire lashes out with a Twin Counter that hits harder for every shot swatted." },
         };
 
-        /// The Ninja's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Ninja's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] NinjaCards =
         {

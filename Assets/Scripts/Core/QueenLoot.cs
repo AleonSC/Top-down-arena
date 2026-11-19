@@ -5,7 +5,7 @@ namespace Arena
 {
     /// The Hive Queen's legendaries, each one of her own tricks turned yours (like the Warden's in Stun.cs):
     /// Hive Drones (drones circle you, blocking bullets; after your kills they fly out to sting and come home to heal
-    /// you), Royal Dive (a Q / E / Shift ability: her dive, landing in a honey pool that slows enemies and heals
+    /// you), Royal Dive (a 2nd, 3rd or 4th ability: her dive, landing in a honey pool that slows enemies and heals
     /// allies) and Bomber Escort (her bombers fly from you at the toughest enemy near you and burst on it).
     /// Plan and numbers: Docs/QueenLoot.md.
     public partial class Game
@@ -209,7 +209,7 @@ namespace Arena
         public const float RoyalDiveRange = 380f, RoyalDiveTime = 0.6f, RoyalDiveRadius = 110f, RoyalDiveDamage = 120f, RoyalDiveKnock = 100f;
         public const float DivePool = 100f, DivePoolTime = 4f, DivePoolMastered = 150f, DivePoolMasteredTime = 6f;
 
-        /// Royal Dive, from the Hive Queen's legendary card (Q / E / Shift only). (Upgrades.Abilities gathers it.)
+        /// Royal Dive, from the Hive Queen's legendary card (2nd, 3rd or 4th only). (Upgrades.Abilities gathers it.)
         internal static readonly AbilityDef[] QueenAbilities =
         {
             new AbilityDef

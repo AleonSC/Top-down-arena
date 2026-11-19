@@ -1,7 +1,6 @@
 # Glossary
 
 Status: agreed with the owner (Nov 19 2026). One word per thing, in code comments, docs, in-game text and requests.
-Terms not settled yet are listed at the end.
 
 ## Naming rule
 
@@ -20,6 +19,29 @@ Terms not settled yet are listed at the end.
 | **class** | Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer, Engineer (never "Mage" or "Blood Mage") | `Kit`, `KitDef` |
 | **role** | Tank, Healer, DPS | `Role` |
 | **alternative fire** | a weapon's secondary attack; "Alt" for short (the key label and weapon text) | `Alt` |
+| **level** | only your XP level in a run (level-ups bring upgrade cards); your profile's progress is **rank** | `Player.Level`, `Rank` |
+| **difficulty preset** | Normal, Hard, Nightmare... (never "difficulty level") | `DifficultyLevel` |
+
+## Abilities
+
+Abilities are named by slot, not by key (keys are rebindable; the old defaults were Space, Q, E, Shift and F).
+
+| Term | Means | Code |
+|---|---|---|
+| **1st ability** | picked in the lobby: 3 choices per role and class, sometimes a **4th choice** (Flood, Kinetic Wall...) | `Player.FirstAbility`, `Slots[0]`, `KeyAction.Ability1`, `AbilityDef.Choice` (`Fourth`) |
+| **2nd, 3rd, 4th ability** | filled by very rare upgrade cards ("2nd–4th abilities" together) | `Player.CardAbilities`, `Slots[1..3]`, `KeyAction.Ability2..4` |
+| **Wildcard ability** | the Wildcard's extra starting ability, on the 2nd, 3rd or 4th slot | `Player.WildcardAbility` |
+| **Ultimate** | picked in the lobby, one per role and class (never "ult" in text; the key cap keeps "ULT") | `AbilityDef.Ult`, `Slots[4]`, `KeyAction.Ultimate` |
+| **mastery** | an ability's 1-5 rank from use; **mastery 5** unlocks its capstone (never "ability level") | `Mastery.cs`, `MasteryLevel` |
+| **enemy level** | an enemy's strength in a wave file (`level 3`) | `DesignWave.Level` |
+
+## Helpers
+
+| Term | Means | Code |
+|---|---|---|
+| **minion** | anything that fights on your side; "summon" is only a verb | `Minion`, `MinionKind` |
+| **companion** | the minion your weapon keeps (Golem, wolves, the Strider...) | `Minion.Companion` |
+| **thrall** | an enemy chained to you by Force Pact | `MinionKind.Thrall` |
 
 ## Upgrades
 
@@ -27,6 +49,15 @@ Terms not settled yet are listed at the end.
 |---|---|---|
 | **upgrade card** | a card you choose in game | `UpgradeDef`, `Upgrades.All` |
 | **upgrade** | the effect or benefit an upgrade card gives | `Stats`, `Player.Taken` |
+
+## Rewards
+
+| Term | Means | Code |
+|---|---|---|
+| **perk** | picked before a run; unlocked by beating bosses | `Perks.cs`, `PerkId` |
+| **relic** | found on the map mid-run; one slot | `Relics.cs`, `RelicId` |
+| **legendary card** | a boss's rare upgrade card ("legendary" is its rarity, never a noun on its own) | `Rarity.Legendary` |
+| **gadget** | an item you carry and can hand over (the Magnet) | `Gadget` |
 
 ## Runs
 
@@ -51,10 +82,3 @@ Terms not settled yet are listed at the end.
 | Term | Means | Code |
 |---|---|---|
 | **phase** | one part of a boss fight; a **phase change** moves to the next (never "stage") | the boss's `Stage`, `StageShift` (`Enemy.Phase` is per-enemy state, not a boss phase) |
-
-## Not settled yet
-
-- Ability slots: "Space ability", "4th ability", "ultimate"/"ult" (F), and "Q / E / Shift abilities".
-- "level": the player's XP level, and sometimes a wave number.
-- Helpers: "minion", "summon", "companion", "thrall".
-- Rewards: "perk", "relic", "legendary".

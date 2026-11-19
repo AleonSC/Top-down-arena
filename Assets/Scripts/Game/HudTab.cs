@@ -65,7 +65,7 @@ namespace Arena
             {
                 new KeyValuePair<string, string[,]>("Offense", new string[,] { { "Damage", get("Damage") }, { "Fire rate", get("Fire rate") }, { "Extra projectiles", get("Extra projectiles") }, { "Pierce", get("Pierce") } }),
                 new KeyValuePair<string, string[,]>("Defense", new string[,] { { "Health", Mathf.CeilToInt(me.Hp) + " / " + Mathf.CeilToInt(me.MaxHp) }, { "Damage taken", get("Damage taken") }, { "Regeneration", get("Regeneration") }, { "Parry durability", get("Parry durability") } }),
-                new KeyValuePair<string, string[,]>("Utility", new string[,] { { "Move speed", get("Move speed") }, { "Ability cooldowns", get("Ability cooldowns") }, { Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)) + " charges", charges } }),
+                new KeyValuePair<string, string[,]>("Utility", new string[,] { { "Move speed", get("Move speed") }, { "Ability cooldowns", get("Ability cooldowns") }, { Keybinds.KeyName(Keybinds.Get(KeyAction.Ability1)) + " charges", charges } }),
             };
             float y = box.y;
             foreach (var g in groups)
@@ -84,7 +84,7 @@ namespace Arena
                 return;
             // The hovered ability in full: what it does and what Lv 5 adds.
             const float pw = 320f;
-            string cap = "Mastered (Lv 5): " + Game.Capstone(hoverAbility.Id);
+            string cap = "Mastered (mastery 5): " + Game.Capstone(hoverAbility.Id);
             float dh = Ui.TextHeight(KeyText.Fill(hoverAbility.Desc), 12, pw - 28f), ch = Ui.TextHeight(cap, 11, pw - 42f);
             var pop = new Rect(box.xMax + 10f, hoverTile.y, pw, 44f + dh + 6f + ch + 12f);
             pop.y = Mathf.Min(pop.y, H - 12f - pop.height);
@@ -101,7 +101,7 @@ namespace Arena
         AbilityDef hoverAbility;
         Rect hoverTile;
 
-        /// The weapon, then each ability on its own tile: key, mastery, charges or cooldown, name, what it does, and (bonus keys)
+        /// The weapon, then each ability on its own tile: key, mastery, charges or cooldown, name, what it does, and (2nd–4th ability slots)
         /// the keys it can move to.
         void DrawTabAbilities(Player me, Rect box)
         {
@@ -147,13 +147,13 @@ namespace Arena
                 string state = slot.Charges > 0 ? "READY" : Mathf.CeilToInt(slot.Timer) + "S";
                 if (slot.MaxCharges > 1)
                     state = slot.Charges + "/" + slot.MaxCharges + " CHARGES" + (slot.Charges < slot.MaxCharges ? " · " + Mathf.CeilToInt(slot.Timer) + "S" : "");
-                string lvText = level >= Game.MasteryMax ? "MASTERED" : "LV " + level;
+                string lvText = level >= Game.MasteryMax ? "MASTERED" : "MASTERY " + level;
                 float lvX = tile.x + 16f + capW + 68f;
                 if (lvX + Ui.TextWidth(lvText, 15, false) + 8f < tile.xMax - 8f - Ui.TextWidth(state, 17, false))  // (only with room: the pips show the level too)
                     CrtUi.Text(new Rect(lvX, tile.y + 5f, 90f, 20f), lvText, 15, level >= Game.MasteryMax ? CrtStyle.Gold : HoloDim, TextAnchor.MiddleLeft, false, calm);
                 CrtUi.Text(new Rect(tile.x + 8f, tile.y + 5f, tile.width - 16f, 20f), state, 17, slot.Charges > 0 ? Ui.Good : HoloDim, TextAnchor.MiddleRight, false, calm);
                 Ui.CrtFont = was;
-                bool bonus = i >= 1 && i <= Upgrades.BonusSlots;
+                bool bonus = i >= 1 && i <= Upgrades.CardAbilitySlots;
                 Ui.Label(new Rect(tile.x + 8f, tile.y + 26f, tile.width - 16f, 20f), a.Name, 15, Color.white, TextAnchor.MiddleLeft, true);
                 float dw = tile.width - 16f - (bonus ? 126f : 0f);
                 var descR = new Rect(tile.x + 8f, tile.y + 45f, dw, tile.height - 48f);
@@ -173,7 +173,7 @@ namespace Arena
                     CrtUi.Text(new Rect(tile.xMax - 132f, tile.y + 28f, 44f, 16f), "MOVE TO", 13, HoloDim, TextAnchor.MiddleRight, false, calm);
                     Ui.CrtFont = w2;
                     float kx = tile.xMax - 84f;
-                    for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                    for (int k = 1; k <= Upgrades.CardAbilitySlots; k++)
                     {
                         if (k == i)
                             continue;

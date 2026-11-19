@@ -61,7 +61,7 @@ namespace Arena
                 BarrageDesc = "each click hatches one more bee (full damage)" },
         };
 
-        /// The Summoner's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Summoner's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] SummonerCards =
         {
@@ -106,7 +106,7 @@ namespace Arena
                 Apply = s => { s.HarvestBonus += 1; s.PuddleSizeMult += 0.2f; } },
         };
 
-        /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
+        /// The Summoner's 1st abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] SummonerAbilities =
         {
             new AbilityDef

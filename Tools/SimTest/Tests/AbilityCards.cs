@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Arena;
 
-// The Rare ability cards of Docs/UpgradePools.md step 5: each Elementalist and Summoner Space ability (and the Soldier's
+// The Rare ability cards of Docs/UpgradePools.md step 5: each Elementalist and Summoner 1st ability (and the Soldier's
 // Medkit) has one. Every card is checked by casting its ability with no copy, then with copies, and comparing.
 static partial class Program
 {
@@ -228,7 +228,7 @@ static partial class Program
         Check(new[] { "Quartermaster", "Arcane Surge", "Pack Bond", "Plate Armour", "Ghost Step", "Bloodthirst" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Kit.HasValue && Upgrades.All[U(n)].Rarity == Rarity.Rare), "all six class cards exist, each for one class");
 
-        // Quartermaster: orbs heal 30% more; Q/E/Shift recharge 10% faster (Space doesn't).
+        // Quartermaster: orbs heal 30% more; 2nd, 3rd or 4th recharge 10% faster (Space doesn't).
         Func<int, float[]> quarter = n =>
         {
             prep(AbilityId.Meteor, "Quartermaster", n);
@@ -245,7 +245,7 @@ static partial class Program
         };
         var qm0 = quarter(0); var qm1 = quarter(1);
         Check(near(qm1[0] / qm0[0], 0.9f, 0.001f) && near(qm1[1], qm0[1], 0.001f) && near(qm0[2], 10f, 0.6f) && near(qm1[2], 13f, 0.6f),
-            "Quartermaster: Q/E/Shift recharge 10% faster (Space doesn't) and orbs heal 30% more (" + qm0[2] + " -> " + qm1[2] + ")");
+            "Quartermaster: 2nd, 3rd or 4th recharge 10% faster (Space doesn't) and orbs heal 30% more (" + qm0[2] + " -> " + qm1[2] + ")");
 
         // Arcane Surge: a Space cast fires the weapon 25% faster for 3 s, and the client sees it.
         castWith(AbilityId.Meteor, "Arcane Surge", 0, there);

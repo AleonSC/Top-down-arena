@@ -219,7 +219,7 @@ static partial class Program
                     if (Upgrades.All[t].Grants != AbilityId.None)
                         grants.Add(Upgrades.All[t].Grants);
                 var cs = client.Game.Players[hp.Id].Slots;
-                for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                for (int k = 1; k <= Upgrades.CardAbilitySlots; k++)
                     slotsOk &= cs[k].Id == (k - 1 < grants.Count ? grants[k - 1] : AbilityId.None);
                 slotsOk &= new HashSet<AbilityId>(grants).Count == grants.Count;  // no duplicates
                 if (hp.Id == 1)
@@ -233,7 +233,7 @@ static partial class Program
             {
                 var h1 = host.Game.Players[1];
                 host.Game.GrantUpgrade(1, U("Extra Use"), 2);  // +1 use on Q
-                var onQ = h1.BonusKeys[0];
+                var onQ = h1.CardAbilities[0];
                 host.Game.SetAbilityKey(onQ, 2);  // Q <-> E swap
                 int at = Array.FindIndex(h1.Slots, sl => sl.Id == onQ);
                 Check(at == 2 && h1.Slots[at].MaxCharges == 2 && h1.Slots[1].MaxCharges == 1, "an Extra Use follows its ability to the key it moves to");
@@ -480,7 +480,7 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
-    // Bonus abilities go on the key you choose when you pick them, and can be moved in the Tab menu
+    // 2nd–4th abilities go on the key you choose when you pick them, and can be moved in the Tab menu
     // (cooldowns move with them). Tested from the joining player, so it goes through the host.
     static void KeybindTest(float dt)
     {

@@ -170,8 +170,8 @@ namespace Arena
             new ZoneDef { Name = "Flood", Color = new Rgba(0.31f, 0.82f, 0.91f) },  // the Tank Elementalist's Flood (Flood.cs): slows and soaks by its own tick  // the Honeybee Staff's spray (HoneybeeStaff.cs): slows enemies; an enemy dying in it bursts into bees
             new ZoneDef { Name = "Cover", Color = new Rgba(0.44f, 0.69f, 0.94f) },
             new ZoneDef { Name = "Drag Pylon", Color = new Rgba(0.64f, 0.55f, 1f) },
-            new ZoneDef { Name = "Med Pylon", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 10f },  // the Healer Engineer's Space ability: heals allies inside; stays until the next one
-            new ZoneDef { Name = "Safe Room", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 20f },  // the Healer Engineer's ultimate: a room (or dome) that heals and cuts damage (Zone.DamageCut)  // the Engineer's Space ability (Engineer.cs): slows enemies inside by its own tick; stays until the next one  // the Tank Soldier's Deployable Cover (DeployableCover.cs): Pos its middle, Aim the way it faces, GuardFrac its health left; blocks by CoverStops, not as a circle
+            new ZoneDef { Name = "Med Pylon", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 10f },  // the Healer Engineer's 1st ability: heals allies inside; stays until the next one
+            new ZoneDef { Name = "Safe Room", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 20f },  // the Healer Engineer's ultimate: a room (or dome) that heals and cuts damage (Zone.DamageCut)  // the Engineer's 1st ability (Engineer.cs): slows enemies inside by its own tick; stays until the next one  // the Tank Soldier's Deployable Cover (DeployableCover.cs): Pos its middle, Aim the way it faces, GuardFrac its health left; blocks by CoverStops, not as a circle
             new ZoneDef { Name = "Stasis", Color = new Rgba(0.55f, 0.85f, 1f) },  // the Stasis Gun's field (EngineerBots.cs): at your cursor while you hold Fire; holds enemies in place and hurts them by its own tick
         };
 

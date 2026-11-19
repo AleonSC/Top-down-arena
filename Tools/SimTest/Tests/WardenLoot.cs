@@ -47,7 +47,7 @@ static partial class Program
         g.GrantUpgrade(2, U("Stun Gun"));
         drive(0.3f, false, new V2(0f, 0f));
         int slot = Array.FindIndex(hp.Slots, k => k.Id == AbilityId.StunGun);
-        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.StunGun, "the Stun Gun goes on a Q / E / Shift key");
+        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.StunGun, "the Stun Gun goes on a 2nd, 3rd or 4th key");
         cp.Pos = cp.Disp = hp.Pos = new V2(500f, 450f);
         var d = dummy(new V2(800f, 450f));
         // Pressed on the friend's own game, the way a player does (their game tracks its own cooldowns too).

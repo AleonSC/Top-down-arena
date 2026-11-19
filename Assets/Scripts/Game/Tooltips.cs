@@ -71,7 +71,7 @@ namespace Arena
             {
                 var a = Upgrades.Ability(u.Grants);
                 TipAdd(a.Name + ": " + KeyText.Fill(a.Desc), 12, Ui.Muted);
-                TipAdd("Mastered (Lv 5): " + Game.Capstone(u.Grants), 11, new Color(0.85f, 0.75f, 0.48f));
+                TipAdd("Mastered (mastery 5): " + Game.Capstone(u.Grants), 11, new Color(0.85f, 0.75f, 0.48f));
             }
         }
 
@@ -97,10 +97,10 @@ namespace Arena
             bool ult = slot == Upgrades.UltSlot;
             TipStart(r, a.Name, ult ? Ui.Gold : Color.white);
             int level = Game.MasteryLevel(p, id);
-            TipAdd((ult ? "ULTIMATE · " + SlotKeys[4] : "ABILITY · " + SlotKeys[slot]) + "  ·  " + (level >= Game.MasteryMax ? "MASTERED" : "LV " + level) + "  ·  " + Mathf.RoundToInt(a.Cooldown) + " S COOLDOWN",
+            TipAdd((ult ? "ULTIMATE · " + SlotKeys[4] : "ABILITY · " + SlotKeys[slot]) + "  ·  " + (level >= Game.MasteryMax ? "MASTERED" : "MASTERY " + level) + "  ·  " + Mathf.RoundToInt(a.Cooldown) + " S COOLDOWN",
                 10, ult ? Ui.Gold : ToColor(p.Def.Color), true);
             TipAdd(KeyText.Fill(a.Desc), 13, Ui.Text);
-            TipAdd("Mastered (Lv 5): " + Game.Capstone(id), 11, new Color(0.85f, 0.75f, 0.48f));
+            TipAdd("Mastered (mastery 5): " + Game.Capstone(id), 11, new Color(0.85f, 0.75f, 0.48f));
         }
 
         /// The upgrades a card had no room for, by name.

@@ -39,7 +39,7 @@ namespace Arena
         LobbyShot,    // host -> all: (owner id, position, angle) of a shot fired in the Hangout, for everyone to draw (LobbyCombat.cs)
         LobbyAbility, // client -> host: cast your Hangout ability (a dash, barrier or burst heal by role) toward this angle; host -> all: (owner id, kind, position, angle) to show and apply (LobbyCombat.cs)
         Dodge,        // client -> host: this player dodged from this spot; the host gives them a moment of invulnerability (Dodge.cs)
-        WildcardRequest, // client -> host: a Wildcard's whole loadout at once: weapon, first ability, second ability and its key (Session.SetWildcard)
+        WildcardRequest, // client -> host: a Wildcard's whole loadout at once: weapon, 1st ability, Wildcard ability and its key (Session.SetWildcard)
         Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Bladed Dive's rush); only that player's own game moves them
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
         NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
@@ -101,8 +101,8 @@ namespace Arena
         public Role Role;
         public Kit Kit;       // Soldier, Elementalist or Summoner
         public byte Weapon;   // index into Defs.Weapon(Role, Kit, i)
-        public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
-        public byte Wild;     // Wildcard only: its second ability and the key it sits on (Defs.MakeWild)
+        public byte Ability;  // index into Upgrades.FirstAbility(Role, Kit, i)
+        public byte Wild;     // Wildcard only: its Wildcard ability and the key it sits on (Defs.MakeWild)
         public byte Ult;      // the key picked on the Ultimate row: 0 the role and class's default ultimate, 1-3 another (Upgrades.Ultimate(role, kit, Ult)); a Wildcard's is always 0
         public Kit UltKit => Upgrades.UltKitOf(Role, Kit, Ult);  // whose ultimate you get (a Wildcard: the class in its Ult pick)
         public AbilityId UltId => Upgrades.Ultimate(Role, UltKit, Ult);  // the ultimate they will have on F
@@ -942,7 +942,7 @@ namespace Arena
             }
             e.Role = (Role)role;
             if (e.Role == Role.Wildcard)
-                e.Wild = Defs.MakeWild(1, 1);  // first and second ability differ; the second starts on Q
+                e.Wild = Defs.MakeWild(1, 1);  // first and Wildcard ability differ; the second starts on Q
             ClampLoadout(e);
             e.Ready = false;  // changing your loadout takes back your Ready
             BroadcastLobby();
@@ -962,8 +962,8 @@ namespace Arena
                 e.Kit = Kit.Soldier;  // a Wildcard has no class of its own: no class health, speed or passives
                 if (e.Weapon < Defs.WildcardChoices && Defs.WeaponGap(Role.Dps, (Kit)(e.Weapon / Defs.WeaponsPerRole), e.Weapon % Defs.WeaponsPerRole))
                     e.Weapon = (byte)(e.Weapon / Defs.WeaponsPerRole * Defs.WeaponsPerRole);  // a locked place (a class still being built): its first weapon
-                if (Upgrades.AbilityGap(Role.Dps, (Kit)(Defs.WildSecond(e.Ability) / Upgrades.RoleAbilityChoices), Defs.WildSecond(e.Ability) % Upgrades.RoleAbilityChoices))
-                    e.Ability = (byte)(Defs.WildSecond(e.Ability) / Upgrades.RoleAbilityChoices * Upgrades.RoleAbilityChoices);
+                if (Upgrades.AbilityGap(Role.Dps, (Kit)(Defs.WildSecond(e.Ability) / Upgrades.FirstAbilityChoices), Defs.WildSecond(e.Ability) % Upgrades.FirstAbilityChoices))
+                    e.Ability = (byte)(Defs.WildSecond(e.Ability) / Upgrades.FirstAbilityChoices * Upgrades.FirstAbilityChoices);
                 int first = Defs.WildSecond(e.Ability), second = Defs.WildSecond(e.Wild);
                 if (second == first)
                     second = (second + 1) % Defs.WildcardChoices;
@@ -1505,7 +1505,7 @@ namespace Arena
             }
         }
 
-        /// A Wildcard's whole loadout: weapon and first ability (0-17: kit * 3 + choice), second ability (same), and its key (1 Q, 2 E, 3 Shift).
+        /// A Wildcard's whole loadout: weapon and 1st ability (0-17: kit * 3 + choice), Wildcard ability (same), and its key (1 the 2nd ability, 2 the 3rd, 3 the 4th).
         public void RequestWildcard(int weapon, int ability, int second, int key)
         {
             if (IsHost)

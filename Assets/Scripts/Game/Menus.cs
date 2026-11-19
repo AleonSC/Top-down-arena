@@ -440,8 +440,8 @@ namespace Arena
                     howToKeys = new[]
                     {
                         new[] { K(KeyAction.MoveUp), K(KeyAction.MoveLeft), K(KeyAction.MoveDown), K(KeyAction.MoveRight) }, new[] { K(KeyAction.Fire) }, new[] { K(KeyAction.Parry) },
-                        new[] { K(KeyAction.Dodge) }, new[] { K(KeyAction.Ability) }, new[] { K(KeyAction.WeaponAction) }, new[] { K(KeyAction.Ultimate) },
-                        new[] { K(KeyAction.AbilityQ), K(KeyAction.AbilityE), K(KeyAction.AbilityShift) },
+                        new[] { K(KeyAction.Dodge) }, new[] { K(KeyAction.Ability1) }, new[] { K(KeyAction.WeaponAction) }, new[] { K(KeyAction.Ultimate) },
+                        new[] { K(KeyAction.Ability2), K(KeyAction.Ability3), K(KeyAction.Ability4) },
                         new[] { "1", "2", "3" },
                         new[] { K(KeyAction.TakeItem), K(KeyAction.DiscardItem) }, new[] { K(KeyAction.Ping), K(KeyAction.Emote) }, new[] { K(KeyAction.ReadyUp) }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
                         new[] { "Esc" }, Keybinds.Get(KeyAction.Mute) == KeyCode.None ? new[] { K(KeyAction.Map) } : new[] { K(KeyAction.Map), K(KeyAction.Mute) }, new[] { "R", "L", "C" }, new[] { "F1" },
@@ -459,7 +459,7 @@ namespace Arena
             { "Role ability", "" },
             { "Weapon secondary", "blink, lunge, recall, vault or whirl" },
             { "Ultimate", "starts each run half charged" },
-            { "Bonus abilities", "from upgrade cards · swap keys in Tab" },
+            { "2nd–4th abilities", "from upgrade cards · swap keys in Tab" },
             { "Pick an upgrade", "or click a card, then Confirm" },
             { "Chest item", "standing on it: take / throw away" },
             { "Ping, emotes", "tap: ping · hold: wheel · emotes" },

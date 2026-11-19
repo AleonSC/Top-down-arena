@@ -282,7 +282,7 @@ namespace Arena
             var me = Me;
             if (me == null)
                 return;
-            me.RoleAbility = ability;
+            me.FirstAbility = ability;
             Recalc(me);
         }
 

@@ -23,7 +23,7 @@ static partial class Program
         Check(Defs.Weapon(Role.Tank, Kit.Ninja, 0).Name == "Kusarigama" && Defs.Weapon(Role.Healer, Kit.Ninja, 1).Name == "Spirit Fan" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
             && Defs.Weapon(Role.Dps, Kit.Knight, 2).Name == "Rapier" && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver" && Defs.Weapon(Role.Tank, Kit.Knight, 1).Name == "Lance",
             "Ninja weapons sit in the role/class tables without shifting the others");
-        Check(Upgrades.RoleAbility(Role.Healer, Kit.Ninja, 1) == AbilityId.Substitution && Upgrades.RoleAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive
+        Check(Upgrades.FirstAbility(Role.Healer, Kit.Ninja, 1) == AbilityId.Substitution && Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive
             && Upgrades.Ultimate(Role.Dps, Kit.Ninja) == AbilityId.DeathLotus && Upgrades.Ultimate(Role.Healer, Kit.Knight) == AbilityId.HallowedBlade
             && Upgrades.Ultimate(Role.Tank, Kit.Ninja) == AbilityId.ThousandClones, "Ninja abilities and ultimates map to the right role and class");
 

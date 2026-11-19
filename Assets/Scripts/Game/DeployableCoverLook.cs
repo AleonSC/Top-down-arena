@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Deployable Cover (the Tank Soldier's 4th Space ability, Core/DeployableCover.cs), look A "Stake Drop" of
+    /// Deployable Cover (the Tank Soldier's 4th choice, Core/DeployableCover.cs), look A "Stake Drop" of
     /// Docs/Mockups/deployable-cover.html. Drawn from the replicated zone (`ZoneKind.Cover`: Pos, Aim, T, Duration, GuardFrac):
     ///   the throw: a canister arcs out from the caster over its shadow, its blue light blinking (0 - CoverLand s);
     ///   the landing: a thump (a small kick for covers near you), a dust ring and a pale shockwave; the back wall springs up from

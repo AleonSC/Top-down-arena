@@ -594,7 +594,7 @@ static partial class Shot {
       }
     }
     if (Environment.GetEnvironmentVariable("HEMODPS") != null) {
-      // The DPS Hemomancer's Space abilities. HEMODPS=spray: Arterial Spray gushing into a pack (ArterialSprayLook.cs).
+      // The DPS Hemomancer's 1st abilities. HEMODPS=spray: Arterial Spray gushing into a pack (ArterialSprayLook.cs).
       // HEMODPS=debt: Blood Debt's ledger, coins flying in from a kill (BloodDebtLook.cs); DEBTSETTLE=paid or forfeit shows
       // the stamp instead (DEBTSETTLE=borrowed: the cast). HEMODPS=rush: Vein Rush, RUSHT=<seconds since the cast> (the rush is 0.22 s; default 0.15) (VeinRushLook.cs).
       // Use with mode hud.

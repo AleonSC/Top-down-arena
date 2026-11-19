@@ -11,7 +11,7 @@ namespace Arena
     /// groups and their order are Keybinds.Groups, so new actions go at the end here and wherever they fit there.
     public enum KeyAction
     {
-        MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
+        MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability1, Ultimate, Ability2, Ability3, Ability4, Fire, Parry, WeaponAction,
         TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map,
     }
 
@@ -27,15 +27,15 @@ namespace Arena
         };
         static readonly string[] Titles =
         {
-            "Move up", "Move down", "Move left", "Move right", "Dodge", "Role ability", "Ultimate", "Bonus ability 1", "Bonus ability 2",
-            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map",
+            "Move up", "Move down", "Move left", "Move right", "Dodge", "1st ability", "Ultimate", "2nd ability", "3rd ability",
+            "4th ability", "Fire", "Parry", "Alternative fire", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map",
         };
         static readonly string[] Lines =
         {
             "Also the up arrow", "Also the down arrow", "Also the left arrow", "Also the right arrow",
             "A tiny dash with a moment of invulnerability; double tap a movement key does it too",
-            "Your role's ability", "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot",
-            "The third bonus ability slot", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
+            "Picked in the lobby", "Picked in the lobby, one per role and class", "Filled by a very rare upgrade card", "Filled by a very rare upgrade card",
+            "Filled by a very rare upgrade card", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
             "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
             "Cycles the minimap, the full map and no map",
@@ -46,7 +46,7 @@ namespace Arena
         public static readonly KeyAction[][] Groups =
         {
             new[] { KeyAction.MoveUp, KeyAction.MoveDown, KeyAction.MoveLeft, KeyAction.MoveRight, KeyAction.Dodge },
-            new[] { KeyAction.Ability, KeyAction.Ultimate, KeyAction.AbilityQ, KeyAction.AbilityE, KeyAction.AbilityShift },
+            new[] { KeyAction.Ability1, KeyAction.Ultimate, KeyAction.Ability2, KeyAction.Ability3, KeyAction.Ability4 },
             new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
             new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.OpenDoors, KeyAction.Reroll },
             new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
@@ -238,18 +238,35 @@ namespace Arena
         static void SyncKeyText()
         {
             Func<KeyAction, string> n = a => Get(a) == KeyCode.LeftAlt ? "Alt" : KeyName(Get(a));
-            KeyText.Set(n(KeyAction.WeaponAction), n(KeyAction.Ability), n(KeyAction.AbilityQ), n(KeyAction.AbilityE), n(KeyAction.AbilityShift));
+            KeyText.Set(n(KeyAction.WeaponAction), n(KeyAction.Ability1), n(KeyAction.Ability2), n(KeyAction.Ability3), n(KeyAction.Ability4));
+        }
+
+        /// The name an action's key is saved under: the new name once saved, else the one before the abilities were
+        /// renamed 1st-4th (Ability, AbilityQ, AbilityE, AbilityShift), so old keybinds still load.
+        static string SavedName(KeyAction a)
+        {
+            string now = a.ToString();
+            if (PlayerPrefs.HasKey("key_" + now))
+                return now;
+            switch (a)
+            {
+                case KeyAction.Ability1: return "Ability";
+                case KeyAction.Ability2: return "AbilityQ";
+                case KeyAction.Ability3: return "AbilityE";
+                case KeyAction.Ability4: return "AbilityShift";
+                default: return now;
+            }
         }
 
         public static void Load()
         {
             for (int i = 0; i < keys.Length; i++)
             {
-                int v = PlayerPrefs.GetInt("key_" + (KeyAction)i, (int)Defaults[i]);
+                int v = PlayerPrefs.GetInt("key_" + SavedName((KeyAction)i), (int)Defaults[i]);
                 keys[i] = Allowed((KeyCode)v, (KeyAction)i) ? (KeyCode)v : Defaults[i];
                 if (i == (int)KeyAction.Mute && keys[i] == KeyCode.M && !PlayerPrefs.HasKey("key_" + KeyAction.Map))
                     keys[i] = KeyCode.None;  // a save from before the Map key: M was Mute's old default, and goes to the map now
-                int v2 = PlayerPrefs.GetInt("key2_" + (KeyAction)i, 0);
+                int v2 = PlayerPrefs.GetInt("key2_" + SavedName((KeyAction)i), 0);
                 keys2[i] = Allowed((KeyCode)v2, (KeyAction)i) ? (KeyCode)v2 : KeyCode.None;
             }
             if (!PlayerPrefs.HasKey("key_gadget_x"))  // a save from before X became the gadget key: swap the old defaults (gadget B, discard X)
@@ -397,7 +414,7 @@ namespace Arena
         static string[] slotLabels;
         static int slotVersion = -1;
 
-        /// The ability bar's key labels, in slot order (Space, Q, E, Shift, ultimate), upper case, rebuilt when a key changes.
+        /// The ability bar's key labels, in slot order (Space, 2nd, 3rd, 4th, ultimate), upper case, rebuilt when a key changes.
         public static string[] SlotLabels
         {
             get
@@ -407,8 +424,8 @@ namespace Arena
                     slotVersion = Version;
                     slotLabels = new[]
                     {
-                        KeyName(Get(KeyAction.Ability)).ToUpperInvariant(), KeyName(Get(KeyAction.AbilityQ)).ToUpperInvariant(),
-                        KeyName(Get(KeyAction.AbilityE)).ToUpperInvariant(), KeyName(Get(KeyAction.AbilityShift)).ToUpperInvariant(),
+                        KeyName(Get(KeyAction.Ability1)).ToUpperInvariant(), KeyName(Get(KeyAction.Ability2)).ToUpperInvariant(),
+                        KeyName(Get(KeyAction.Ability3)).ToUpperInvariant(), KeyName(Get(KeyAction.Ability4)).ToUpperInvariant(),
                         KeyName(Get(KeyAction.Ultimate)).ToUpperInvariant(),
                     };
                 }

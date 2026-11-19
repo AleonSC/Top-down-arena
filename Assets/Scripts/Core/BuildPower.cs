@@ -31,7 +31,7 @@ namespace Arena
 
         static readonly Dictionary<long, float> typicalPower = new Dictionary<long, float>();
 
-        /// The power of a typical build of this role and Space ability by this wave: builds picked at random from the
+        /// The power of a typical build of this role and 1st ability by this wave: builds picked at random from the
         /// game's own offers (level-ups, and a legendary and a mod per boss beaten), TypicalPercentile of the way up.
         public static float TypicalPower(Role role, AbilityId roleAbility, int wave)
         {
@@ -93,7 +93,7 @@ namespace Arena
                 return 1f;
             float ratio = 0f;
             foreach (var p in Players.Values)
-                ratio += BuildPower(p.Stats) / Math.Max(0.01f, TypicalPower(p.Role, p.RoleAbility, Wave));
+                ratio += BuildPower(p.Stats) / Math.Max(0.01f, TypicalPower(p.Role, p.FirstAbility, Wave));
             ratio /= Players.Count;
             return BossScaleFor(ratio);
         }

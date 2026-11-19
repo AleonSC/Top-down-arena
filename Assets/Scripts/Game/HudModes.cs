@@ -8,7 +8,7 @@ namespace Arena
     /// teammates, the keys with their mastery, the wave and enemies left, and lives, gold, vectors, the path and relic (a boss's
     /// slim bar stays, as when hidden). Both are in the
     /// CRT console's look: Docs/Mockups/crt-hud-modes.html, A (Phosphor Corners) and E (Callout Tag). Every number sits by its
-    /// key with the ability's name, and the ult shows its charge % as on the full HUD. Local to each player: no protocol change.
+    /// key with the ability's name, and the ultimate shows its charge % as on the full HUD. Local to each player: no protocol change.
     public partial class ArenaApp
     {
         public const int HudModeCount = 3;
@@ -202,7 +202,7 @@ namespace Arena
                 ty -= 28f;
             }
 
-            // The keys: each keycap over its seconds left (RDY when ready), a six-cell recharge bar and the ability's name; the ult in
+            // The keys: each keycap over its seconds left (RDY when ready), a six-cell recharge bar and the ability's name; the ultimate in
             // gold with its charge. A column is as wide as its name.
             if (!me.Downed)
             {
@@ -366,7 +366,7 @@ namespace Arena
             MiniText(new Rect(cx + cw - mw, ty + 9f, mw, 16f), max, 15, low ? red : dim, a);
             MiniCells(new Rect(cx, ty + 26f, cw, 5f), frac, 12, tone, low ? MiniBlink(a) : a);
 
-            // The rows: the key (lit green when ready), the ability's name, then its seconds left (RDY when ready); the ult in gold
+            // The rows: the key (lit green when ready), the ability's name, then its seconds left (RDY when ready); the ultimate in gold
             // with its charge.
             float y = ty + 36f;
             for (int i = 0; i < Upgrades.SlotCount; i++)

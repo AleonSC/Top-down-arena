@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Deployable Cover, the Tank Soldier's fourth Space ability (`AbilityId.DeployableCover`, `AbilityDef.Fourth`: the lobby's 4th
+    /// Deployable Cover, the Tank Soldier's 4th choice (`AbilityId.DeployableCover`, `AbilityDef.Fourth`: the lobby's 4th
     /// ability key), from Docs/Mockups/deployable-cover.html (look A, Stake Drop). Two charges; each plants a "[" of steel plate
     /// CoverAhead px in front of you along your aim, its back wall facing out and its two arms reaching back toward you:
     ///   a `ZoneKind.Cover` zone: Pos its middle, Aim the way it faces, BlockHp its health and SoakMax its full health

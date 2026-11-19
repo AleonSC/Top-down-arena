@@ -24,7 +24,7 @@ namespace Arena
         // --- Host hooks (the host runs the run; clients only draw) ---
         /// Fires the class's weapons that have no case of their own in FireVolley (Weapons.cs).
         public KitFireFn Fire;
-        /// Casts what CastAbility's own cases don't: its Space abilities. Return false for an id that isn't the class's.
+        /// Casts what CastAbility's own cases don't: its 1st abilities. Return false for an id that isn't the class's.
         public KitAbilityFn Ability;
         /// Every host tick (HostTick, after the players move), whether or not anyone plays the class: its timers and effects.
         public KitTickFn Tick;
@@ -38,7 +38,7 @@ namespace Arena
 
     public static class Classes
     {
-        /// A class's three lists: its KitDef, its weapons and its Space abilities (and cards).
+        /// A class's three lists: its KitDef, its weapons and its 1st abilities (and cards).
         public struct KitLists
         {
             public KitDef Kit; public WeaponDef[] Weapons; public AbilityDef[] Abilities;

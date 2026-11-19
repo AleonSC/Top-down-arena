@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Flood (Flood.cs), the Tank Elementalist's 4th Space ability on the lobby's 4th ability key: the table (only that class has a 4th), the
+// Flood (Flood.cs), the Tank Elementalist's 4th choice on the lobby's 4th choice: the table (only that class has a 4th), the
 // pick reaching the run and being clamped for a class without one, the stamp (10 damage and a 60 px shove for what's touching you,
 // heavies only hurt), the pool (190 px where cast, spreading over 0.5 s, 6 s, then draining and doing nothing), the 40% / 20% slow,
 // wet while in it and 3 s after, lightning arcing through the wet, mastery (Deluge) and High Tide.
@@ -16,18 +16,18 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var wetArcs = typeof(Game).GetMethod("WetArcs", flags);
 
-        // The table: the Tank Elementalist has four Space abilities, everyone else three.
+        // The table: the Tank Elementalist has four 1st abilities, everyone else three.
         var def = Upgrades.Ability(AbilityId.Flood);
         Check(def.Name == "Flood" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Elementalist && def.Role == Role.Tank && def.Cooldown == 16f,
-            "Flood: a 16 s Tank Elementalist Space ability on the 4th key");
-        Check(Upgrades.AbilityLimit(Role.Tank, Kit.Elementalist) == 4 && Upgrades.RoleAbility(Role.Tank, Kit.Elementalist, 3) == AbilityId.Flood
-            && Upgrades.RoleAbility(Role.Tank, Kit.Elementalist, 2) == AbilityId.FlameWall,
+            "Flood: a 16 s Tank Elementalist 1st ability on the 4th key");
+        Check(Upgrades.AbilityLimit(Role.Tank, Kit.Elementalist) == 4 && Upgrades.FirstAbility(Role.Tank, Kit.Elementalist, 3) == AbilityId.Flood
+            && Upgrades.FirstAbility(Role.Tank, Kit.Elementalist, 2) == AbilityId.FlameWall,
             "the Tank Elementalist's 4th key is Flood; its first three are unchanged");
         bool othersThree = true;
         foreach (Role r in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
                 if ((Kit)k != Kit.Elementalist && !(r == Role.Tank && (Kit)k == Kit.Soldier))  // (every Elementalist role has a 4th: Flood, Water Ward, Kinetic Wall; the Tank Soldier: Deployable Cover)
-                    othersThree &= Upgrades.AbilityLimit(r, (Kit)k) == 3 && Upgrades.RoleAbility(r, (Kit)k, 3) == Upgrades.RoleAbility(r, (Kit)k, 0);
+                    othersThree &= Upgrades.AbilityLimit(r, (Kit)k) == 3 && Upgrades.FirstAbility(r, (Kit)k, 3) == Upgrades.FirstAbility(r, (Kit)k, 0);
         Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every non-Elementalist class has three (a 4th pick falls back to the first)");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.Flood), "Flood is a very rare card for Tank Elementalists who picked another");
 

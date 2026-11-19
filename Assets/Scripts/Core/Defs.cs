@@ -228,7 +228,7 @@ namespace Arena
             },
             new RoleDef
             {
-                // Wildcard (Docs/Wildcard.md): middle health and no role passive; DPS gear from any class, a second starting ability,
+                // Wildcard (Docs/Wildcard.md): middle health and no role passive; DPS gear from any class, a Wildcard ability,
                 // and the price is WildcardDmgMult / WildcardCdMult (Game.cs).
                 Name = "Wildcard", Ability = "Any DPS ability", Color = new Rgba(0.78f, 0.45f, 1f),
                 Hp = 125f, Speed = 225f, HitR = 6.5f, BodyR = 14f, FireInterval = 0.1f, AbilityCd = 3.5f,
@@ -585,10 +585,10 @@ namespace Arena
         /// (Tools/SimTest/run.sh 1 1 weapondps write, which writes WeaponDps.Generated.cs); 0 if not measured.
         public static float WeaponDps(WeaponId id) => MeasuredDps.TryGetValue(id, out float v) ? v : 0f;
 
-        /// How many weapons (or Space abilities) a Wildcard can pick from: every class's three DPS ones, numbered kit * 3 + choice.
+        /// How many weapons (or 1st abilities) a Wildcard can pick from: every class's three DPS ones, numbered kit * 3 + choice.
         public const int WildcardChoices = KitCount * WeaponsPerRole;
 
-        /// A Wildcard's lobby "wild" byte: its second ability (0-17, same numbering as the first) and the key it sits on (1 Q, 2 E, 3 Shift).
+        /// A Wildcard's lobby "wild" byte: its Wildcard ability (0-17, same numbering as the first) and the key it sits on (1 the 2nd ability, 2 the 3rd, 3 the 4th).
         public static int WildSecond(int wild) => wild % WildcardChoices;
         public static int WildKey(int wild) => 1 + Math.Min(2, wild / WildcardChoices);
         public static byte MakeWild(int second, int key) => (byte)(Math.Max(0, Math.Min(WildcardChoices - 1, second)) + WildcardChoices * (Math.Max(1, Math.Min(3, key)) - 1));

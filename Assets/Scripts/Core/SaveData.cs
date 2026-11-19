@@ -15,7 +15,7 @@ namespace Arena
         public int Weapon, Ability, Wild;
         public int Ult;  // the Ultimate row's key (LobbyEntry.Ult; 0 the default ultimate)
         public readonly List<string> Taken = new List<string>();   // upgrade names, in the order picked
-        public readonly string[] BonusKeys = { "", "", "" };        // abilities on Q, E, Shift (by name)
+        public readonly string[] CardAbilities = { "", "", "" };        // the 2nd, 3rd and 4th abilities (by name)
         public readonly List<string> Perks = new List<string>();  // the perks they brought (by name; a continued run can't change them)
         public int Level = 1, Rerolls, Gold;
         public RelicId Relic = RelicId.None;  // the relic slot (Relics.cs)
@@ -146,7 +146,7 @@ namespace Arena
                 if (s.Relic != RelicId.None) Line(sb, "relic", s.Relic);
                 Line(sb, "token", s.ReviveToken ? 1 : 0);
                 Line(sb, "hp", s.HpFrac);
-                Line(sb, "keys", string.Join(",", s.BonusKeys));
+                Line(sb, "keys", string.Join(",", s.CardAbilities));
                 if (s.Perks.Count > 0) Line(sb, "perks", string.Join(",", s.Perks));
                 if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap + " " + s.MapSpent);
                 if (Array.Exists(s.Stash, n => n > 0)) Line(sb, "stash", string.Join(" ", s.Stash));
@@ -323,8 +323,8 @@ namespace Arena
                 case "keys":
                 {
                     var p = val.Split(',');
-                    for (int i = 0; i < s.BonusKeys.Length && i < p.Length; i++)
-                        s.BonusKeys[i] = p[i];
+                    for (int i = 0; i < s.CardAbilities.Length && i < p.Length; i++)
+                        s.CardAbilities[i] = p[i];
                     break;
                 }
                 case "upgrade": s.Taken.Add(val); break;

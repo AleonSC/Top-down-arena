@@ -45,7 +45,7 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 
 ### Step 2: one offer context, weapon-aware offers (built, no wire change)
 
-- `OfferCtx` (`Core/Upgrades.cs`: role, class, Space ability, picks, weapon, Expanding arena) is the one argument every
+- `OfferCtx` (`Core/Upgrades.cs`: role, class, 1st ability, picks, weapon, Expanding arena) is the one argument every
   offer takes: `Available`, `RollOffer`, `PrizeOffer`, `RandomOfRarity`, `ModOffer`, `LegendaryOffer`,
   `MilestoneOffer`. The old loose parameters are gone.
 - In a match, `Game.OfferFor(p)` builds it (`OfferCtx.Of(p, ExpandingOn)`): `Game.cs` (`NextOffer`), `Shop.cs`,
@@ -60,8 +60,8 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 - `UpgradeDef.Kit`: only offered to that class. `UpgradeDef.Weapons`: only offered if your weapon is on the list
   (`RequiresWeapon` is gone; Warding Ink is `Weapons = { SpiritChalk }`). Both are checked in `Upgrades.Available`.
 - `OfferCtx.Kits` is a bit per class (`HasKit`). Anyone but a Wildcard has one: their class (the constructor defaults
-  it to the class of the Space ability). **A Wildcard** has no class of its own, so it counts as the class of its
-  Space ability, its weapon and its second ability (`Player.StartBonus`): any of those classes' cards can turn up.
+  it to the class of the 1st ability). **A Wildcard** has no class of its own, so it counts as the class of its
+  1st ability, its weapon and its second ability (`Player.StartBonus`): any of those classes' cards can turn up.
 - The Dev dock's Spawn-an-upgrade sheet tags a filtered card with whose it is (`Upgrades.FilterNote`: "Knight",
   "Spirit Chalk", "Knight · 2 weapons"), and "... only" when it isn't for the chosen player. Preview:
   `DEVSHEET=4 UPRARITY=2 UPSCROLL=2000 Tools/Preview/shot.sh <name> dev`.
@@ -82,8 +82,8 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 
 ### Step 5: fill the ability gaps (built, protocol 312)
 
-Owner decision: the first batch gives a Rare card to every Space ability that has none, so each class has one per
-Space ability like the Knight, Ninja and Hemomancer do (9 each). Style matches the existing ones (Bastion, Earthshaker):
+Owner decision: the first batch gives a Rare card to every 1st ability that has none, so each class has one per
+1st ability like the Knight, Ninja and Hemomancer do (9 each). Style matches the existing ones (Bastion, Earthshaker):
 Rare, `RequiresAbility`, `MaxStacks = 2`, two numbers per card. Each needs a `Stats` field read by the ability's code
 and a sim check that the number changes. They go in the class's own list (`Game.ElementalistCards`, ...); protocol bump.
 
@@ -121,7 +121,7 @@ and a sim check that the number changes. They go in the class's own list (`Game.
 | Medkit | Field Surgeon | 3 more orbs, and each heals 5 more |
 
 Effect of the batch on the pool: an Elementalist's Rare pool goes from 8 general cards to 9 (8 + its own one); a card
-for your Space ability is then about 1 in 9 of your Rare cards, the same as for the other classes.
+for your 1st ability is then about 1 in 9 of your Rare cards, the same as for the other classes.
 
 Owner change (Nov 2026): Fourth Head, and the extra sprites and bats, repeated what mastering those abilities already
 gives (a fourth head, 8 sprites, 14 bats), so they became Venom Glands, healing sprites and harder-biting bats.
@@ -142,8 +142,8 @@ One `Kit` card per class, offered to every player of that class (a Wildcard: the
 
 | Class | Card | Effect (per stack) | Why |
 |---|---|---|---|
-| Soldier | Quartermaster | Health orbs and medkit orbs you pick up heal 30% more, and your Q/E/Shift abilities recharge 10% faster | Guns and gear: the class that lives off pickups and kit |
-| Elementalist | Arcane Surge | Casting your Space ability makes your weapon fire 25% faster for 3 s | Spells feed the staff |
+| Soldier | Quartermaster | Health orbs and medkit orbs you pick up heal 30% more, and your 2nd, 3rd or 4th abilities recharge 10% faster | Guns and gear: the class that lives off pickups and kit |
+| Elementalist | Arcane Surge | Casting your 1st ability makes your weapon fire 25% faster for 3 s | Spells feed the staff |
 | Summoner | Pack Bond | Every minion of yours (weapon and ability) takes 25% more before it breaks or falls, and hits 15% harder | The class is its minions |
 | Knight | Plate Armour | Take 8% less damage, and your swings cut bullets out of the air 20% farther out | Armoured melee that cuts bullets |
 | Ninja | Ghost Step | +6% move speed, and for 1 s after you dodge you take 30% less damage (a second copy: 2 s) | Fast, slippery |

@@ -18,7 +18,7 @@ static partial class Program
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
 
-        // A solo Healer of this class with this Space ability, in a fight with one frozen dummy far away.
+        // A solo Healer of this class with this 1st ability, in a fight with one frozen dummy far away.
         Func<Kit, int, Tuple<Session, Action<float>>> Solo = (kit, choice) =>
         {
             var host = new Session { AutoStart = 1 };
@@ -73,7 +73,7 @@ static partial class Program
             "a Healer's healing past full health becomes a short shield, up to 20% of max health");
 
         // Adrenaline Shot alone: no one else to pick, so it always goes to you.
-        Check(am.Slots[0].Id == AbilityId.Adrenaline, "the Soldier Healer's second Space ability is the Adrenaline Shot");
+        Check(am.Slots[0].Id == AbilityId.Adrenaline, "the Soldier Healer's 2nd choice is the Adrenaline Shot");
         float baseSpeed = am.Speed;
         cast.Invoke(ag, new object[] { 1, 0, new V2(am.Pos.X + 500f, am.Pos.Y), false });
         Console.WriteLine("  adrenaline alone: {0:0.0} s, speed x{1:0.00}", am.AdrenalineT, am.Speed / baseSpeed);
@@ -83,7 +83,7 @@ static partial class Program
         // Martyr alone: pay 40%, and you're warded: going down puts you straight back up at 50%.
         var m = Solo(Kit.Hemomancer, 2);
         var mg = m.Item1.Game; var mm = mg.Players[1];
-        Check(mm.Slots[0].Id == AbilityId.Martyr, "the Hemomancer Healer's third Space ability is Martyr");
+        Check(mm.Slots[0].Id == AbilityId.Martyr, "the Hemomancer Healer's 3rd choice is Martyr");
         float before = mm.Hp;
         cast.Invoke(mg, new object[] { 1, 0, mm.Pos, false });
         Console.WriteLine("  martyr alone: paid {0:0}, ward {1:0.0} s", before - mm.Hp, mm.WardT);
@@ -105,7 +105,7 @@ static partial class Program
         // Phoenix alone: going down while it's out, it brings you back.
         var f2 = Solo(Kit.Summoner, 1);
         var fg = f2.Item1.Game; var fm = fg.Players[1];
-        Check(fm.Slots[0].Id == AbilityId.Phoenix, "the Summoner Healer's second Space ability is Phoenix");
+        Check(fm.Slots[0].Id == AbilityId.Phoenix, "the Summoner Healer's 2nd choice is Phoenix");
         cast.Invoke(fg, new object[] { 1, 0, fm.Pos, false });
         f2.Item2(0.5f);
         fm.InvulnT = 0f; fm.ShieldHp = 0f;

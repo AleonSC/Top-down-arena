@@ -28,8 +28,8 @@ namespace Arena
         Role? joinRole;
         int weaponChoice, abilityChoice;
         int ultChoice;  // the key picked on the lobby's Ultimate row (LobbyEntry.Ult; 0 the default ultimate)
-        int wildSecond = 1, wildKey = 1;  // a Wildcard's second ability (0-17) and its key (1 Q, 2 E, 3 Shift); see Defs.MakeWild
-        int wildTab;                      // the lobby's Wildcard picker: 0 edits the first ability, 1 the second
+        int wildSecond = 1, wildKey = 1;  // a Wildcard ability (0-17) and its key (1 the 2nd ability, 2 the 3rd, 3 the 4th); see Defs.MakeWild
+        int wildTab;                      // the lobby's Wildcard picker: 0 edits the 1st ability, 1 the second
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, wasPaused;
         bool tabPaused;  // solo: holding Tab paused the run (released, it resumes)
@@ -62,7 +62,7 @@ namespace Arena
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         bool tabSuppress;  // a room card or buildable was used from the Tab screen's Inventory (InventoryUi.cs): the screen stays shut until Tab is let go
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
-        int pickKey;            // for a card that grants an ability: the key to put it on (1 = Q, 2 = E, 3 = Shift)
+        int pickKey;            // for a card that grants an ability: the key to put it on (1 = the 2nd ability, 2 = the 3rd, 3 = the 4th)
         string shownOffer = "";
         float offerShownAt = -99f;     // when the current cards appeared (unscaled time)
         const float RerollLock = 0.6f;  // the reroll stays locked this long after new cards appear, so a spam-click can't burn rerolls
@@ -184,8 +184,8 @@ namespace Arena
             if (opts.TryGetValue("weapon", out v) && int.TryParse(v, out weapon))
                 weaponChoice = Mathf.Clamp(weapon - 1, 0, Defs.MaxWeapons - 1);  // (the host keeps it to what the class has)
             if (opts.TryGetValue("ability", out v) && int.TryParse(v, out weapon))
-                abilityChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.RoleAbilityChoices);  // (the host keeps it to what the class has: a 4th only where there is one)
-            if (opts.TryGetValue("ult", out v) && int.TryParse(v, out weapon))
+                abilityChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.FirstAbilityChoices);  // (the host keeps it to what the class has: a 4th only where there is one)
+            if (opts.TryGetValue("ultimate", out v) && int.TryParse(v, out weapon))
                 ultChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.UltKeys - 1);  // the host clamps it to what the class has
             if (opts.TryGetValue("class", out v))
                 for (int i = 0; i < Defs.KitCount; i++)
@@ -336,7 +336,7 @@ namespace Arena
             bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || ModalScreenOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // The Hangout's ability press is caught here, every frame, and used by its next draw (a key press read only inside OnGUI could be missed).
-            if (session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab && (Keybinds.Down(KeyAction.Ability) || Keybinds.Down(KeyAction.Parry)))
+            if (session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab && (Keybinds.Down(KeyAction.Ability1) || Keybinds.Down(KeyAction.Parry)))
                 hangoutCastLatch = true;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
@@ -405,7 +405,7 @@ namespace Arena
                     }
                 }
                 // Remember ability presses between fixed steps so quick taps aren't lost.
-                if (Keybinds.Down(KeyAction.Ability))
+                if (Keybinds.Down(KeyAction.Ability1))
                 {
                     wantAbility[0] = true;
                     TileKeyPressed(0);  // still recharging: the tile shakes (HudTiles.cs)
@@ -415,17 +415,17 @@ namespace Arena
                     wantAbility[Upgrades.UltSlot] = true;
                     TileKeyPressed(Upgrades.UltSlot);  // still recharging: the tile shakes (HudTiles.cs)
                 }
-                if (Keybinds.Down(KeyAction.AbilityQ))
+                if (Keybinds.Down(KeyAction.Ability2))
                 {
                     wantAbility[1] = true;
                     TileKeyPressed(1);  // still recharging: the tile shakes (HudTiles.cs)
                 }
-                if (Keybinds.Down(KeyAction.AbilityE))
+                if (Keybinds.Down(KeyAction.Ability3))
                 {
                     wantAbility[2] = true;
                     TileKeyPressed(2);  // still recharging: the tile shakes (HudTiles.cs)
                 }
-                if (Keybinds.Down(KeyAction.AbilityShift))
+                if (Keybinds.Down(KeyAction.Ability4))
                 {
                     wantAbility[3] = true;
                     TileKeyPressed(3);  // still recharging: the tile shakes (HudTiles.cs)
@@ -626,10 +626,10 @@ namespace Arena
                 Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
                 AimAt = MouseArena(),
                 Fire = Keybinds.Held(KeyAction.Fire) && !fireBlocked,
-                Ability = wantAbility[0] || Keybinds.Held(KeyAction.Ability),
-                AbilityQ = wantAbility[1] || Keybinds.Held(KeyAction.AbilityQ),
-                AbilityE = wantAbility[2] || Keybinds.Held(KeyAction.AbilityE),
-                AbilityShift = wantAbility[3] || Keybinds.Held(KeyAction.AbilityShift),
+                Ability = wantAbility[0] || Keybinds.Held(KeyAction.Ability1),
+                AbilityQ = wantAbility[1] || Keybinds.Held(KeyAction.Ability2),
+                AbilityE = wantAbility[2] || Keybinds.Held(KeyAction.Ability3),
+                AbilityShift = wantAbility[3] || Keybinds.Held(KeyAction.Ability4),
                 Ultimate = wantAbility[Upgrades.UltSlot] || Keybinds.Held(KeyAction.Ultimate),
                 Parry = Keybinds.Held(KeyAction.Parry) && !parryBlocked,
                 WeaponAction = Keybinds.Held(KeyAction.WeaponAction),

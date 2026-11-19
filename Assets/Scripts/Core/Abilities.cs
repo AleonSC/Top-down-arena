@@ -93,7 +93,7 @@ namespace Arena
 
         public const float CalloutTime = 1.1f;
 
-        /// The Soldier's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Soldier's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] SoldierCards =
         {
@@ -115,7 +115,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Medkit, MaxStacks = 2, Name = "Field Surgeon", Desc = "Medkit bursts into 3 more orbs, and each heals 5 more",
                 Apply = s => { s.MedkitExtraOrbs += 3; s.MedkitHealBonus += 5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Soldier, MaxStacks = 2, Name = "Quartermaster", Desc = "Health and medkit orbs you pick up heal 30% more, and your Q, E and Shift abilities recharge 10% faster",
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Soldier, MaxStacks = 2, Name = "Quartermaster", Desc = "Health and medkit orbs you pick up heal 30% more, and your 2nd, 3rd and 4th abilities recharge 10% faster",
                 Apply = s => { s.OrbHealMult += 0.3f; s.BonusCdMult *= 0.9f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Scattergun }, MaxStacks = 2, Name = "Point Blank", Desc = "The Scattergun's close-range double damage reaches 30% farther, and its shove is 30% harder",
                 Apply = s => { s.PointBlankReachMult += 0.3f; s.ScatterShoveMult += 0.3f; } },
@@ -215,7 +215,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th ability key (DeployableCover.cs)
+                Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th choice (DeployableCover.cs)
                 Name = "Deployable Cover", Cooldown = CoverCooldown, Desc = "Two charges. Plant a bracket of steel plate in front of you that stops enemy bullets and enemies until it has taken 400 damage; your team's shots pass through. Up to 3 stand at once (another folds away the oldest), and they fold away when the wave is cleared.",
                 Capstone = "Covers take 600 damage, and each charge comes back 25% sooner.",
                 Bot = b => b.Danger || b.NearEnemies >= 3,
@@ -251,7 +251,7 @@ namespace Arena
 
         /// The ability's effect. Runs inside BeginCast/EndCast, so damage and healing it does directly
         /// (and the zones, minions and shots it makes) are scaled by its mastery. castMastered = its capstone.
-        public const float SurgeTime = 3f;  // Arcane Surge (the Elementalist's class card): faster firing after a Space cast
+        public const float SurgeTime = 3f;  // Arcane Surge (the Elementalist's class card): faster firing after a 1st ability cast
 
         void CastAbility(Player p, int slot, V2 target)
         {

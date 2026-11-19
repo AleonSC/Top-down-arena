@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Water Ward (WaterWard.cs): the Healer Elementalist's 4th lobby ability (pick 3 reaching the run), 2 drops a cast falling then circling,
+// Water Ward (WaterWard.cs): the Healer Elementalist's 4th choice (pick 3 reaching the run), 2 drops a cast falling then circling,
 // up to 10 (a press at 10 spends nothing), even spacing, a splash on touching an enemy (damage + wet round it), a burst on eating a
 // blockable shot (wet, no damage; red shots pass), the mastered reach, replication, and going down.
 static partial class Program
@@ -17,9 +17,9 @@ static partial class Program
 
         var def = Upgrades.Ability(AbilityId.WaterWard);
         Check(def.Name == "Water Ward" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Elementalist && def.Role == Role.Healer && def.Cooldown == 3f,
-            "Water Ward: a 3 s Healer Elementalist Space ability on the 4th key");
-        Check(Upgrades.AbilityLimit(Role.Healer, Kit.Elementalist) == 4 && Upgrades.RoleAbility(Role.Healer, Kit.Elementalist, 3) == AbilityId.WaterWard
-            && Upgrades.RoleAbility(Role.Healer, Kit.Elementalist, 0) == AbilityId.HealingRain && Upgrades.AbilityLimit(Role.Healer, Kit.Soldier) == 3,
+            "Water Ward: a 3 s Healer Elementalist 1st ability on the 4th key");
+        Check(Upgrades.AbilityLimit(Role.Healer, Kit.Elementalist) == 4 && Upgrades.FirstAbility(Role.Healer, Kit.Elementalist, 3) == AbilityId.WaterWard
+            && Upgrades.FirstAbility(Role.Healer, Kit.Elementalist, 0) == AbilityId.HealingRain && Upgrades.AbilityLimit(Role.Healer, Kit.Soldier) == 3,
             "the Healer Elementalist's 4th key is Water Ward; its first three and other healers are unchanged");
         Check(Upgrades.All.Any(u => u.RequiresAbility == AbilityId.WaterWard && u.Name == "Deep Current"), "Water Ward has its Rare card, Deep Current");
 
@@ -31,7 +31,7 @@ static partial class Program
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.RoleAbility == AbilityId.WaterWard && me.Slots[0].Id == AbilityId.WaterWard, "picking the 4th key brings Water Ward into the run on Space");
+        Check(me.FirstAbility == AbilityId.WaterWard && me.Slots[0].Id == AbilityId.WaterWard, "picking the 4th key brings Water Ward into the run on Space");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(500f, 450f), aim = new V2(900f, 450f);

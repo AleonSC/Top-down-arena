@@ -124,7 +124,7 @@ static partial class Shot {
       if (rodEnv != null && f > 60) foreach (var p in host.Game.Players.Values) { p.InvulnT = 0f; p.Hp = Math.Max(p.Hp, p.MaxHp * 0.6f); }  // ROD=: the hits land, for the grey numbers
       if (rodEnv != null && f == Math.Max(0, (int)((seconds - float.Parse(rodEnv)) * 60)) && host.Game.Players.ContainsKey(1))
       {
-        host.Game.Bot = false;  // (it stands still from here: no Space ability or fire hiding the charge)
+        host.Game.Bot = false;  // (it stands still from here: no 1st ability or fire hiding the charge)
         foreach (var bp in host.Game.Players.Values) { bp.AegisT = 0f; bp.BarrierT = 0f; }
         // A clean stage: the tank in the middle, five grunts in an arc ahead of it (caged: they only shoot when this scene says).
         host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); rodMine.Clear();

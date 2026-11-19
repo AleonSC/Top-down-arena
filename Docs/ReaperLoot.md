@@ -27,7 +27,7 @@ small enemy bullets. Every 1.6 s each reaps out at the nearest enemy within 240 
 it and heals you 3. Your hits on a boss below 40% health deal double. Stacks: reap below 30%, then 35%; bosses x2.5,
 then x3. (Executioner's job and Soul Harvest's healing in one card.)
 
-**Scythe Throw** (new Q / E / Shift ability, 9 s). A giant scythe flies to your cursor (up to 380 px) and back,
+**Scythe Throw** (new 2nd, 3rd or 4th ability, 9 s). A giant scythe flies to your cursor (up to 380 px) and back,
 cutting everything it passes each way (45) and slicing small bullets; catch it to take 40% off the cooldown
 (mastered: 60%, and it cuts 50% harder). The catch reaches the player's own game by `Msg.CooldownCut` (each game
 runs its own cooldowns).

@@ -168,9 +168,9 @@ namespace Arena
         public RoleDef Def;
         public Kit Kit;
         public WeaponDef Weapon;
-        public AbilityId RoleAbility;
-        public AbilityId StartBonus = AbilityId.None;  // a Wildcard's second starting ability: it sits on a bonus key (Q, E or Shift) from the start (Game.Recalc)
-        public Kit WildKit;                            // a Wildcard's ultimate comes from the class of its first ability
+        public AbilityId FirstAbility;
+        public AbilityId WildcardAbility = AbilityId.None;  // a Wildcard ability: it sits on a 2nd–4th ability slot from the start (Game.Recalc)
+        public Kit WildKit;                            // a Wildcard's ultimate comes from the class of its 1st ability
         public Kit UltKit => Role == Role.Wildcard ? WildKit : Kit;
         public byte UltPick;  // the key picked on the lobby's Ultimate row (LobbyEntry.Ult; 0 the default ultimate), sent in Msg.Start
         public float BaseHp;
@@ -562,8 +562,8 @@ namespace Arena
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();
-        // Which bonus ability sits on Q, E and Shift (the player picks; host-authoritative, sent with the upgrades).
-        public AbilityId[] BonusKeys = { AbilityId.None, AbilityId.None, AbilityId.None };
+        // Which ability sits on the 2nd, 3rd and 4th slots (the player picks; host-authoritative, sent with the upgrades).
+        public AbilityId[] CardAbilities = { AbilityId.None, AbilityId.None, AbilityId.None };
         public Dictionary<int, float> StatOverrides = new Dictionary<int, float>();  // dev menu: hand-edited stats (index into Game.StatFields)
         public bool DevGod;  // dev menu: takes no damage
         public PerkId[] Perks = Arena.Perks.Empty;  // the perks brought into the run (host; RiotGear.cs)

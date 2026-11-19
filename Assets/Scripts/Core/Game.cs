@@ -240,7 +240,7 @@ namespace Arena
                 var kit = (Kit)r.ReadByte();
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
-                int wild = r.ReadByte();  // a Wildcard's second ability and its key (Defs.WildSecond / WildKey)
+                int wild = r.ReadByte();  // a Wildcard ability and its key (Defs.WildSecond / WildKey)
                 int ult = r.ReadByte();   // the Ultimate row's key (LobbyEntry.Ult)
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
@@ -249,13 +249,13 @@ namespace Arena
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f, ScatShells = ScatShellMax };
                 p.Kit = kit;
                 p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponLimit(role, kit) ? weapon : 0);
-                p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
+                p.FirstAbility = Upgrades.FirstAbility(role, kit, ability);
                 p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
                 if (role == Role.Wildcard)
                 {
                     p.WildKit = Upgrades.UltKitOf(role, kit, p.UltPick);  // the class its Ultimate pick is from
-                    p.StartBonus = Upgrades.RoleAbility(role, kit, Defs.WildSecond(wild));
-                    p.BonusKeys[Defs.WildKey(wild) - 1] = p.StartBonus;
+                    p.WildcardAbility = Upgrades.FirstAbility(role, kit, Defs.WildSecond(wild));
+                    p.CardAbilities[Defs.WildKey(wild) - 1] = p.WildcardAbility;
                 }
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;
@@ -432,34 +432,34 @@ namespace Arena
                 p.Hp += p.MaxHp - oldMax;
 
             var ids = new AbilityId[Upgrades.SlotCount];
-            ids[0] = p.RoleAbility;
+            ids[0] = p.FirstAbility;
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
             ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit, p.UltPick);  // the lobby's Ultimate row pick (0: the default one)
-            // Bonus abilities go on the keys their owner chose; any others take the first free key.
+            // 2nd–4th abilities go on the keys their owner chose; any others take the first free key.
             var granted = new List<AbilityId>();
-            if (p.StartBonus != AbilityId.None)
-                granted.Add(p.StartBonus);  // a Wildcard's second ability counts as granted from the start
+            if (p.WildcardAbility != AbilityId.None)
+                granted.Add(p.WildcardAbility);  // a Wildcard ability counts as granted from the start
             foreach (int t in p.Taken)
-                if (Upgrades.All[t].Grants != AbilityId.None && granted.Count < Upgrades.BonusSlots && !granted.Contains(Upgrades.All[t].Grants))
+                if (Upgrades.All[t].Grants != AbilityId.None && granted.Count < Upgrades.CardAbilitySlots && !granted.Contains(Upgrades.All[t].Grants))
                     granted.Add(Upgrades.All[t].Grants);
-            for (int k = 0; k < Upgrades.BonusSlots; k++)
-                if (granted.Contains(p.BonusKeys[k]) && Array.IndexOf(ids, p.BonusKeys[k]) < 0)
-                    ids[1 + k] = p.BonusKeys[k];
+            for (int k = 0; k < Upgrades.CardAbilitySlots; k++)
+                if (granted.Contains(p.CardAbilities[k]) && Array.IndexOf(ids, p.CardAbilities[k]) < 0)
+                    ids[1 + k] = p.CardAbilities[k];
             foreach (var g in granted)
                 if (Array.IndexOf(ids, g) < 0)
-                    for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                    for (int k = 1; k <= Upgrades.CardAbilitySlots; k++)
                         if (ids[k] == AbilityId.None)
                         {
                             ids[k] = g;
                             break;
                         }
-            for (int k = 0; k < Upgrades.BonusSlots; k++)
-                p.BonusKeys[k] = ids[1 + k];
+            for (int k = 0; k < Upgrades.CardAbilitySlots; k++)
+                p.CardAbilities[k] = ids[1 + k];
 
             // Charges and cooldowns follow an ability when it moves to another key.
             var moved = new Dictionary<AbilityId, AbilitySlot>();
-            for (int i = 1; i <= Upgrades.BonusSlots; i++)
+            for (int i = 1; i <= Upgrades.CardAbilitySlots; i++)
                 if (p.Slots[i].Id != AbilityId.None)
                     moved[p.Slots[i].Id] = new AbilitySlot { Id = p.Slots[i].Id, Charges = p.Slots[i].Charges, MaxCharges = p.Slots[i].MaxCharges, Timer = p.Slots[i].Timer };
 
@@ -503,7 +503,7 @@ namespace Arena
                 return 1f;
             if (slot == Upgrades.UltSlot)
                 return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
-            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id) * (slot >= 1 && slot <= Upgrades.BonusSlots ? p.Stats.BonusCdMult : 1f);  // Quartermaster: Q, E, Shift
+            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id) * (slot >= 1 && slot <= Upgrades.CardAbilitySlots ? p.Stats.BonusCdMult : 1f);  // Quartermaster: 2nd, 3rd, 4th
             if (id == AbilityId.DeployableCover && Mastered(p, id))
                 cd *= CoverCdMastered;  // its capstone (DeployableCover.cs)
             return cd;
@@ -658,7 +658,7 @@ namespace Arena
             HostPick(peer, index, r.ReadByte());
         }
 
-        /// key: for a card that grants a new ability, the key to put it on (1 = Q, 2 = E, 3 = Shift; 0 = first free).
+        /// key: for a card that grants a new ability, the key to put it on (1 = the 2nd ability, 2 = the 3rd, 3 = the 4th; 0 = first free).
         void HostPick(int id, int index, int key = 0)
         {
             Player p;
@@ -717,8 +717,8 @@ namespace Arena
                 p.PrizePicks = Math.Max(0, p.PrizePicks - 1);
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
-            var keysBefore = (AbilityId[])p.BonusKeys.Clone();
-            PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
+            var keysBefore = (AbilityId[])p.CardAbilities.Clone();
+            PlaceOnKey(p.CardAbilities, Upgrades.All[upgrade].Grants, key);
             FollowExtraUses(p, keysBefore);
             GrantUpgrade(id, upgrade, key);
             p.Rerolls += Upgrades.All[upgrade].RerollsNow;  // Reroll Cache
@@ -728,7 +728,7 @@ namespace Arena
         }
 
         /// Boss rewards come first (legendaries, then weapon mods or the boss card pick), then regular level-up picks.
-        /// Who this player's card offers are for (role, class, Space ability, picks, weapon, the Expanding arena):
+        /// Who this player's card offers are for (role, class, 1st ability, picks, weapon, the Expanding arena):
         /// every offer and Upgrades.Available take one (Docs/UpgradePools.md step 2).
         public OfferCtx OfferFor(Player p) => OfferCtx.Of(p, ExpandingOn);
 
@@ -790,7 +790,7 @@ namespace Arena
         }
 
         /// Host only: give a player an upgrade and tell everyone.
-        /// key: for the Extra Use card, the key it goes on (1 Space, 2 Q, 3 E, 4 Shift; 0 Space).
+        /// key: for the Extra Use card, the key it goes on (1-4 the 1st-4th ability; 0 the 1st).
         public void GrantUpgrade(int id, int upgrade, int key = 0)
         {
             Player p;
@@ -812,7 +812,7 @@ namespace Arena
             w.Write((short)p.Taken.Count);
             foreach (int t in p.Taken)
                 w.Write((short)t);  // card ids are 2 bytes (Docs/UpgradePools.md step 1)
-            foreach (var k in p.BonusKeys)
+            foreach (var k in p.CardAbilities)
                 w.Write((byte)k);
             session.Broadcast(Proto.End(w));
         }
@@ -825,11 +825,11 @@ namespace Arena
                 old[k] = Upgrades.Count(p.Taken, Upgrades.UseCard(k));
             var now = (int[])old.Clone();
             bool changed = false;
-            for (int j = 1; j <= Upgrades.BonusSlots; j++)
+            for (int j = 1; j <= Upgrades.CardAbilitySlots; j++)
             {
-                if (p.BonusKeys[j - 1] == before[j - 1])
+                if (p.CardAbilities[j - 1] == before[j - 1])
                     continue;
-                int from = p.BonusKeys[j - 1] == AbilityId.None ? -1 : Array.IndexOf(before, p.BonusKeys[j - 1]);
+                int from = p.CardAbilities[j - 1] == AbilityId.None ? -1 : Array.IndexOf(before, p.CardAbilities[j - 1]);
                 now[j] = from >= 0 ? old[from + 1] : 0;
                 changed = true;
             }
@@ -844,10 +844,10 @@ namespace Arena
             }
         }
 
-        /// Put a bonus ability on a key (1 = Q, 2 = E, 3 = Shift). Whatever was there swaps to its old key.
+        /// Put a 2nd–4th ability on a key (1 = the 2nd ability, 2 = the 3rd, 3 = the 4th). Whatever was there swaps to its old key.
         public static void PlaceOnKey(AbilityId[] k, AbilityId id, int key)
         {
-            if (key < 1 || key > Upgrades.BonusSlots || id == AbilityId.None)
+            if (key < 1 || key > Upgrades.CardAbilitySlots || id == AbilityId.None)
                 return;
             int from = Array.IndexOf(k, id);
             var displaced = k[key - 1];
@@ -862,7 +862,7 @@ namespace Arena
             }
         }
 
-        /// The local player moves a bonus ability to another key (the Tab menu).
+        /// The local player moves a 2nd–4th ability to another key (the Tab menu).
         public void SetAbilityKey(AbilityId id, int key)
         {
             var me = Me;
@@ -888,10 +888,10 @@ namespace Arena
         void HostSetKey(int playerId, AbilityId id, int key)
         {
             Player p;
-            if (!Players.TryGetValue(playerId, out p) || Array.IndexOf(p.BonusKeys, id) < 0)
+            if (!Players.TryGetValue(playerId, out p) || Array.IndexOf(p.CardAbilities, id) < 0)
                 return;  // you can only move abilities you have
-            var before = (AbilityId[])p.BonusKeys.Clone();
-            PlaceOnKey(p.BonusKeys, id, key);
+            var before = (AbilityId[])p.CardAbilities.Clone();
+            PlaceOnKey(p.CardAbilities, id, key);
             FollowExtraUses(p, before);
             Recalc(p);
             BroadcastUpgrades(p);

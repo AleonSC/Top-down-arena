@@ -39,7 +39,7 @@ namespace Arena
             float score = RarityScore(u.Rarity);
             bool made = u.Weapons != null || u.Kit != null || u.RequiresAbility != AbilityId.None || u.Role != null;  // made for this kit
             if (u.Grants != AbilityId.None || u.ClassAbility)
-                score += FreeBonusKey(me) ? 30f : -10f;
+                score += FreeCardAbilitySlot(me) ? 30f : -10f;
             score += u.RerollsNow * 2f + u.VectorsNow * 0.05f;
             if (u.Apply != null)
             {
@@ -102,10 +102,10 @@ namespace Arena
             }
         }
 
-        /// Is one of Q, E and Shift still without an ability?
-        static bool FreeBonusKey(Player me)
+        /// Is one of 2nd, 3rd and 4th still without an ability?
+        static bool FreeCardAbilitySlot(Player me)
         {
-            for (int k = 1; k <= Upgrades.BonusSlots; k++)
+            for (int k = 1; k <= Upgrades.CardAbilitySlots; k++)
                 if (me.Slots[k].Id == AbilityId.None)
                     return true;
             return false;

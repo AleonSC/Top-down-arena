@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Hemomancer: health is its resource. Every Space ability costs health (never below 1), it hits harder
+    /// The Hemomancer: health is its resource. Every 1st ability costs health (never below 1), it hits harder
     /// the more health it's missing (Blood Price, up to +40%), and all its hits heal it a little. Tanks turn
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
@@ -757,7 +757,7 @@ namespace Arena
                 Sound = Sfx.Throw, AreaDesc = "the burst 25% wider" },
         };
 
-        /// The Hemomancer's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Hemomancer's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] HemomancerCards =
         {
@@ -805,7 +805,7 @@ namespace Arena
                 Apply = s => { s.BsShardBonus += 2; s.SympBonus += 1; } },
         };
 
-        /// The Hemomancer's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)
+        /// The Hemomancer's abilities and ultimates: every 1st ability costs health. (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] HemomancerAbilities =
         {
             new AbilityDef

@@ -23,7 +23,7 @@ static partial class Program
             host.StartMatch();
             var me = g.Players[1];
             g.DevSetGod(1, true);
-            Check(me.Slots[0].Id == AbilityId.ForcePact && Upgrades.Ability(AbilityId.ForcePact).Name == "Force Pact", "the Summoner Tank's third Space ability is Force Pact");
+            Check(me.Slots[0].Id == AbilityId.ForcePact && Upgrades.Ability(AbilityId.ForcePact).Name == "Force Pact", "the Summoner Tank's 3rd choice is Force Pact");
             for (int f = 0; f < 360 && g.State != MatchState.Fighting; f++) Step(host, dt);
             var keep = new List<Enemy>();
             Func<EnemyType, V2, Enemy> make = (type, pos) =>

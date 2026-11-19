@@ -108,7 +108,7 @@ static partial class Program
         g.GrantUpgrade(2, U("Scythe Throw"));
         drive(0.3f);
         int slot = Array.FindIndex(hp.Slots, k => k.Id == AbilityId.ScytheThrow);
-        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.ScytheThrow, "Scythe Throw goes on a Q / E / Shift key");
+        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.ScytheThrow, "Scythe Throw goes on a 2nd, 3rd or 4th key");
         var target = dummy(home + new V2(200f, 0f));
         cp.Pos = cp.Disp = home;
         step(new PlayerInput { AbilityQ = slot == 1, AbilityE = slot == 2, AbilityShift = slot == 3, AimAt = home + new V2(300f, 0f) });

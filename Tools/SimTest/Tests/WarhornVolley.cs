@@ -130,7 +130,7 @@ static partial class Program
         // Bodkin Points: offered only with Warhorn Volley as your ultimate; each stack +25% damage, +20% width.
         int bodkin = Array.FindIndex(Upgrades.All, u => u.Name == "Bodkin Points");
         var none = new List<int>();
-        var dpsKnight = Upgrades.RoleAbility(Role.Dps, Kit.Knight, 0);
+        var dpsKnight = Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0);
         Check(bodkin >= 0 && Upgrades.All[bodkin].Rarity == Rarity.Rare && Upgrades.All[bodkin].MaxStacks == 2
             && Upgrades.Available(bodkin, new OfferCtx(Role.Dps, dpsKnight, none, null, false, Kit.Knight, AbilityId.None, AbilityId.WarhornVolley))
             && !Upgrades.Available(bodkin, new OfferCtx(Role.Dps, dpsKnight, none, null, false, Kit.Knight, AbilityId.None, AbilityId.Drawbridge)),

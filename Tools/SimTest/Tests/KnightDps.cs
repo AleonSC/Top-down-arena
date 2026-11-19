@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The DPS Knight's Space abilities and ultimate: Caught Steel, the Gauntlet, Bladed Dive and the Drawbridge.
+// The DPS Knight's 1st abilities and ultimate: Caught Steel, the Gauntlet, Bladed Dive and the Drawbridge.
 static partial class Program
 {
     static void KnightDpsTest(float dt)
@@ -15,7 +15,7 @@ static partial class Program
         var cast = typeof(Game).GetMethod("HostAbility", flags);
         var damage = typeof(Game).GetMethod("Damage", flags);
 
-        Check(Upgrades.RoleAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive && Upgrades.Ability(AbilityId.BladedDive).Name == "Bladed Dive"
+        Check(Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive && Upgrades.Ability(AbilityId.BladedDive).Name == "Bladed Dive"
             && Upgrades.Ability(AbilityId.Gauntlet).Name == "The Gauntlet" && Upgrades.Ability(AbilityId.CaughtSteel).Name == "Caught Steel"
             && Upgrades.Ability(AbilityId.Drawbridge).Name == "Drawbridge" && Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge,
             "the DPS Knight's abilities keep their slots under their new names");

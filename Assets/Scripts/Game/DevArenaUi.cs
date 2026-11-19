@@ -113,8 +113,8 @@ namespace Arena
             if (devMenuOpen)
                 return;  // (the dock is over the top of the screen)
             string fire = Keybinds.KeyName(Keybinds.Get(KeyAction.Fire)), parry = Keybinds.KeyName(Keybinds.Get(KeyAction.Parry));
-            string ability = Keybinds.KeyName(Keybinds.Get(KeyAction.Ability));
-            string q = Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityQ)), ek = Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityE));
+            string ability = Keybinds.KeyName(Keybinds.Get(KeyAction.Ability1));
+            string q = Keybinds.KeyName(Keybinds.Get(KeyAction.Ability2)), ek = Keybinds.KeyName(Keybinds.Get(KeyAction.Ability3));
             string move = Keybinds.KeyName(Keybinds.Get(KeyAction.MoveUp)) + Keybinds.KeyName(Keybinds.Get(KeyAction.MoveLeft))
                 + Keybinds.KeyName(Keybinds.Get(KeyAction.MoveDown)) + Keybinds.KeyName(Keybinds.Get(KeyAction.MoveRight));
             var strip = new Rect(W / 2f - 470f, 72f, 940f, 34f);

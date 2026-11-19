@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Flood's sounds (the Tank Elementalist's 4th Space ability, Core/Flood.cs). Each game plays them from the pool's own clock
+    /// Flood's sounds (the Tank Elementalist's 4th choice, Core/Flood.cs). Each game plays them from the pool's own clock
     /// (FloodLook.cs `UpdateFloodSound`), so nothing is sent:
     ///   FloodCast   the stamp: a low thud, a splash bursting off it, the wave crashing outward and spray falling back
     ///   FloodLap    water lapping while it floods: a soft low slosh with a couple of drips, repeated
