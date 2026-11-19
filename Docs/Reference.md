@@ -22,7 +22,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Knight | x1.15 | x1 | Melee: swings cut small bullets out of the air. Armoured: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee; tricks and misdirection. Fast (+12% speed), 85% health. |
 | Hemomancer | x1 | x1 | Blood spells that drain and heal. Abilities cost health; hits harder the lower your health. |
-| Engineer | x1 | x0.95 | Builds in vectors: walkers, drones, walls, fields and breaches. Draftsman: +25% vectors, and vectors repair your walker. Full health, a little slower. |
+| Engineer | x1 | x0.95 | Builds in vectors: robots, walls, fields and breaches. Draftsman: +25% vectors. Full health, a little slower. |
 
 ## Weapons
 
@@ -126,14 +126,14 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Bulwark Forge | Tank | 0.55 s | 7 | 650 x 0.35 s | - | 118 | A nail shotgun: six nails in a spread. The weapon keeps a Sentinel at your side, a heavy walker (900 health) that soaks shots, draws enemies from 220 px, punches and slams. Alt orders it like the Strider: lock on, post, call back. A broken Sentinel is rebuilt in 10 s. |
-| Bulwark Forge | Tank | 0.55 s | 7 | 650 x 0.35 s | - | 118 | A nail shotgun: six nails in a spread. The weapon keeps a Sentinel at your side, a heavy walker (900 health) that soaks shots, draws enemies from 220 px, punches and slams. Alt orders it like the Strider: lock on, post, call back. A broken Sentinel is rebuilt in 10 s. |
 | Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, 10 damage and a long push. A broken robot can be summoned again after 8 s. |
-| Medi-Drone Forge | Healer | 0.3 s | 8 | 850 x 0.5 s | - | 27 | A light rivet gun. A med-drone flies with you, goes to the most hurt ally and heals everyone near it for 12 a second. |
-| Medi-Drone Forge | Healer | 0.3 s | 8 | 850 x 0.5 s | - | 27 | A light rivet gun. A med-drone flies with you, goes to the most hurt ally and heals everyone near it for 12 a second. |
+| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, 10 damage and a long push. A broken robot can be summoned again after 8 s. |
+| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, 10 damage and a long push. A broken robot can be summoned again after 8 s. |
 | Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s. |
-| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
-| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s. |
+| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s. |
+| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
+| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
 
 ## Abilities
@@ -268,7 +268,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Med Pylon | Healer | 1st, choice 1 | 6 s | - | Its field is 40% wider. | Plant a pylon at your cursor (up to 320 px away). Its field heals allies inside for 10 a second. It stays until you plant the next one. |
 | Safe Room | Healer | ultimate | 80 s | - | It lasts 18 s. | The Breach hammer opens the wall you aim at: in the Expanding arena a room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. No room: a healing dome (160 px) at your cursor. |
 | Drag Pylon | Dps | 1st, choice 1 | 6 s | - | Its field is 40% wider. | Plant a pylon at your cursor (up to 320 px away). Its field slows enemies inside by 45% (bosses 20%). It stays until you plant the next one. |
-| Breach | Dps | ultimate | 70 s | - | The blast is twice as wide. | Smash the wall you aim at (up to 220 px): 80 damage and a shove by the wall. In the Expanding arena a free random room opens behind it with one thing inside: vectors, gold, a Strider repair, a workbench (+25% Strider damage this wave) or an ambush. No wall in reach: the blast and the loot land at your cursor. |
+| Breach | Dps | ultimate | 70 s | - | The blast is twice as wide. | Smash the wall you aim at (up to 220 px): 80 damage and a shove by the wall. In the Expanding arena a free random room opens behind it with one thing inside: vectors, gold or an ambush. No wall in reach: the blast and the loot land at your cursor. |
 
 ## Enemies
 

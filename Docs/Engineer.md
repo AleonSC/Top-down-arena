@@ -1,8 +1,8 @@
 # Engineer: a vector builder class
 
-Status: **steps 1-5 built** (Nov 18, 2026; protocol 411; step 5 the robot weapons): the DPS Engineer with the Vector Forge and Strider, Drag Pylon and Breach; the Draftsman passive, vector repairs and four class cards. Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
+Status: **steps 1-6 built** (Nov 19, 2026; protocol 417; step 6 removed the three forges): each role's one weapon is its robot weapon (Vector Blade, Iron Fist, Stasis Gun); Drag Pylon and Breach; the Draftsman passive and the Wide Field card. Steps 1-4 below are history (the forges, Strider, Sentinel and med-drone are gone). Next: the Vector Wall build-mode rework (mockup: https://claude.ai/artifact/5mqoqTQJi4WS6rsJggfQME). Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
 (real renders, a playable bench, the kit, a Breach room roller). Numbers are first guesses.
-The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=strider|pylon|breach ENGT=<s> Tools/Preview/shot.sh x hud`
+The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=pylon|breach|real|bots ENGT=<s> Tools/Preview/shot.sh x hud`
 (`Tools/Preview/ShotEngineer.cs`); the renders are in `Mockups/engineer/`.
 
 ## The class
@@ -63,6 +63,9 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
    180 px push), Healer **Stasis Gun** (Medic Bot: rivets + 9/s heal in 110 px; hold Fire: a 60 px field at the cursor that holds
    enemies in place and hurts 14/s), DPS **Vector Blade** (Assault Bot: rapid rivets; a 24-damage swipe). Rebuild 8 s.
 6. Next: a third weapon and more abilities per role (each role has one locked weapon key and two locked ability keys).
+6. **Built** (protocol 417, Nov 19): the **Vector, Bulwark and Medi-Drone Forges removed** with the Strider, Sentinel and
+   med-drone (their cards Reinforced Frame, Hydraulic Fists and Quick Assembly, Draftsman's repairs, and Breach's repair and
+   workbench loot too). Each role's robot weapon is now its first weapon and fills the locked places (`FillsGaps`).
 
 Unlock (Nov 18): a locked class, `Unlocks` "class-engineer" (win a run; `Profile.EngineerUnlocked`), with a padlock card in the lobby and
 the Wildcard wheel until then. Open to everyone for now: `EngineerUnlockedForTesting` in `LobbyUi.cs`.

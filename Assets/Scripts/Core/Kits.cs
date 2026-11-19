@@ -20,9 +20,6 @@ namespace Arena
         Thrall,       // Force Pact (the Tank Summoner's ability): an enemy turned to your side; it fights near you, and comes back after it falls (ForcePact.cs)
         Burrower,     // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
         Bee,          // the Honeybee Staff's bee: hatches at the cursor, stings the nearest enemy once and dies (HoneybeeStaff.cs)
-        Strider,      // the Engineer's Vector Forge walker: hunts, punches, slams, draws aggro; has health and is rebuilt after it falls (Engineer.cs)
-        Sentinel,     // the Tank Engineer's Bulwark Forge walker: a heavier Strider that soaks shots and draws enemies from farther (Engineer.cs)
-        MediDrone,    // the Healer Engineer's Medi-Drone Forge companion: flies to the most hurt ally and heals it (Engineer.cs)
         VectorBlock,  // one tile of a Vector Wall or Bastion: stops enemy shots until its soak is gone or it times out (Engineer.cs)
         TankBot, MedicBot, AssaultBot,  // the Engineer's robots (Iron Fist, Stasis Gun, Vector Blade): summoned by a click, they fight and draw aggro (EngineerBots.cs)
         None = 255,
@@ -117,12 +114,6 @@ namespace Arena
             new MinionDef { Name = "Burrower", Radius = 18f, Sides = 8, Color = new Rgba(0.64f, 0.54f, 0.38f), Move = MinionMove.Static,
                 Speed = 190f, Damage = 30f, Range = 38f },  // tunnels and bites by Burrower.cs (Range: how close it has to pass to an enemy)
             new MinionDef { Name = "Bee", Radius = 5f, Sides = 3, Color = new Rgba(1f, 0.77f, 0.24f), Move = MinionMove.Static },  // flown by HoneybeeStaff.cs (MoveBee)
-            new MinionDef { Name = "Strider", Radius = 22f, Sides = 6, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static, Speed = 170f,
-                Interval = 0.55f, Damage = 34f, Range = 80f },  // walked, punches and slams by Engineer.cs (TickStrider); Range: the slam's radius
-            new MinionDef { Name = "Sentinel", Radius = 30f, Sides = 6, Color = new Rgba(1f, 0.71f, 0.28f), Move = MinionMove.Static, Speed = 120f,
-                Interval = 0.8f, Damage = 26f, Range = 100f },  // the Strider's tick (Engineer.cs), heavier
-            new MinionDef { Name = "Med-Drone", Radius = 9f, Sides = 4, Color = new Rgba(0.44f, 0.94f, 0.66f), Move = MinionMove.FollowHurt, Speed = 240f,
-                Attack = MinionAttack.Heal, HealRate = 12f, Range = 70f },
             new MinionDef { Name = "Vector Block", Radius = 24f, Sides = 4, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static,
                 BlockRadius = 24f, BlockCapacity = 400f },
             // the Engineer's robots (EngineerBots.cs TickBot): Range is how far they shoot, Interval their fire rate
