@@ -225,7 +225,7 @@ static partial class Program
         Profile.Folder = dir;
         var host = new Session();
         var hp = host.Game.ProfileOverride = new Profile();
-        hp.BossBeaten(EnemyType.Boss, 5);
+        hp.BossBeaten(EnemyType.Warden, 5);
         host.Host(port, "Host", Role.Tank);
         var client = new Session();
         client.Game.ProfileOverride = new Profile();
@@ -378,12 +378,12 @@ static partial class Program
         Console.WriteLine("  hunt map route: {0} ({1} votes, {2} by the timer, {3} Elites, {4} Rests, {5} Shops, {6} Gambles, {7} Ambushes, {8} Contrabands)", string.Join(" > ", picked.Select(t => HuntMap.Name(t))), votes, timerPicks, eliteChecks, rests, shops, gambles, ambushes, contras);
         Check(rests >= 1 && shops >= 1 && gambles >= 1, "the route had a Rest, a Shop and a Gamble");
         Check(blocked >= 1 || votes == 0, "the break's countdown waits for the vote");
-        Run(s, dt, 200f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), keep);
+        Run(s, dt, 200f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), keep);
         Check(g.Wave == Hunts.Length && g.HuntNodeAt(Hunts.Length) == HuntNodeType.Boss && g.HuntRoute.Step == HuntMap.Steps - 1, "the last node is the boss, on wave 10");
         Check(g.HuntRoute.Clues == Math.Min(HuntMap.MaxClues, eliteChecks) && c.HuntRoute.Clues == g.HuntRoute.Clues, "the Elites cleared (a Gamble that turned out one too) count as boss clues, on both screens");
-        var hurt = Find(host, EnemyType.Boss);
+        var hurt = Find(host, EnemyType.Warden);
         Check(Math.Abs(hurt.Hp - hurt.MaxHp * g.HuntRoute.ClueHpScale) < 0.01f, "each health clue takes 8% of the boss's health before the fight (" + g.HuntRoute.Clues + " clues)");
-        Find(host, EnemyType.Boss).Hp = 0f;
+        Find(host, EnemyType.Warden).Hp = 0f;
         Run(s, dt, 8f, () => c.State == MatchState.Victory, keep);
         Check(g.State == MatchState.Victory && c.State == MatchState.Victory, "beating the boss wins the hunt");
         host.Leave(""); client.Leave("");

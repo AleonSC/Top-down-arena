@@ -64,7 +64,7 @@ do, so this is mostly data.
 ### Enum and saves
 
 A new `ZoneKind` value goes at the end, as the project rules say. For `AbilityId`, appending a new value would leave
-`TimeRewind` as a dead entry in the middle of the Mage block, so the plan is to **reuse the slot under a new name.**
+`TimeRewind` as a dead entry in the middle of the Elementalist block, so the plan is to **reuse the slot under a new name.**
 No other value shifts. The meaning of that slot changes, so:
 
 - **Bump `Session.ProtocolVersion` (131 to 132).** `ZoneKind` and the ability's effect are both on the wire.

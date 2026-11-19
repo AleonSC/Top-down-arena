@@ -9,7 +9,7 @@ static partial class Program
     /// Scythe Wraith's locked mark and long reap, the Lamplighter's lines then cross, the Mourner's spiral then rest.
     static void ReaperCultTest(float dt)
     {
-        var f = Approaches.For(EnemyType.TwinA);
+        var f = Approaches.For(EnemyType.ReaperOfDusk);
         Check(f != null && f.Members.Length == 8 && f.Squads.Length == 4 && f.Finale != null && f.Lessons.Length == 10, "the Twin Reapers have a faction: 8 members, 4 squads, a finale, 10 lessons");
         Check(Game.IsBrute(EnemyType.Gravedigger) && Game.IsLunger(EnemyType.ScytheWraith) && Game.IsSwordsman(EnemyType.Acolyte), "the Gravedigger, Scythe Wraith and Acolyte share their bases' behaviour");
 

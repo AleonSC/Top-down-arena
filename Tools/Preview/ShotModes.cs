@@ -116,7 +116,7 @@ static partial class Shot {
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
       if (Environment.GetEnvironmentVariable("DEVMENU") != null) host.Screen = AppScreen.Menu;  // the dock as opened from the main menu
-      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1..3 (DPS, replays, balance), DEVMENU=1 (outside a match)
+      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1..3 (DPS, replays, balance), DEVMENU=1 (outside a run)
       if (Environment.GetEnvironmentVariable("DEVSHEET") == "2")
       {
         // Sample replays in the replays folder (the stub's persistent data path is /tmp).
@@ -173,7 +173,7 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("PAUSEHOW") != null) { set("pauseHowTo", true); set("howToTopic", int.Parse(Environment.GetEnvironmentVariable("PAUSEHOW"))); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - pWin); }
       set("pauseAnim", Environment.GetEnvironmentVariable("PAUSECLOSE") != null || pAge < 0.3f ? pAnim : 1f);
-      host.Screen = Environment.GetEnvironmentVariable("PAUSECLOSE") != null ? AppScreen.Menu : AppScreen.Game;  // in a match (PAUSECLOSE: closing, at PAUSEANIM)
+      host.Screen = Environment.GetEnvironmentVariable("PAUSECLOSE") != null ? AppScreen.Menu : AppScreen.Game;  // in a run (PAUSECLOSE: closing, at PAUSEANIM)
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       // PAUSEMORPH=<s>: that long after the list switched from the pause menu's rows to Settings' (the rows rewrite, CrtKit.Morph)
       if (Environment.GetEnvironmentVariable("PAUSEMORPH") != null) {
@@ -241,9 +241,9 @@ static partial class Shot {
       }
       // PERKS=1: the Warden Hunt won with Riot Gear equipped (PERKS=2 also has a first run win, for the second slot), and the seats show their perks; LOBBYTAB=5 for the Perks tab.
       if (Environment.GetEnvironmentVariable("PERKS") != null) {
-        var pp = host.Game.ProfileOverride = new Profile(); pp.BossBeaten(EnemyType.Boss, 5); pp.HuntEnded(EnemyType.Boss, true, 300f);
+        var pp = host.Game.ProfileOverride = new Profile(); pp.BossBeaten(EnemyType.Warden, 5); pp.HuntEnded(EnemyType.Warden, true, 300f);
         if (Environment.GetEnvironmentVariable("PERKS") == "2" || Environment.GetEnvironmentVariable("PERKS") == "3") pp.RunsWon = 1;
-        if (Environment.GetEnvironmentVariable("PERKS") == "3") pp.HuntEnded(EnemyType.Boss, true, 280f, true);  // PERKS=3: also won on Hard, so Contraband is unlocked
+        if (Environment.GetEnvironmentVariable("PERKS") == "3") pp.HuntEnded(EnemyType.Warden, true, 280f, true);  // PERKS=3: also won on Hard, so Contraband is unlocked
         Perks.Equip(pp, PerkId.RiotGear);
         host.Lobby[1].PerkIds = new[] { PerkId.RiotGear }; if (host.Lobby.ContainsKey(2)) host.Lobby[2].PerkIds = new[] { PerkId.RiotGear };
       }
@@ -315,7 +315,7 @@ static partial class Shot {
       // DIFF=Hard (a preset) or DIFF=Custom (Hard with a few numbers changed): the lobby's Difficulty tab (LOBBYTAB=3).
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=<n>: Boss Hunt mode, its tab (the Warden's hunt open, won once), the nth boss on top (n > 1: a never-met "???" boss).
-      if (Environment.GetEnvironmentVariable("HUNT") != null) { host.Mode = GameMode.Hunt; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Boss, 5); hpr.HuntEnded(EnemyType.Boss, true, 312f); hpr.HuntEnded(EnemyType.Boss, false, 200f);
+      if (Environment.GetEnvironmentVariable("HUNT") != null) { host.Mode = GameMode.Hunt; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Warden, 5); hpr.HuntEnded(EnemyType.Warden, true, 312f); hpr.HuntEnded(EnemyType.Warden, false, 200f);
         int hn; if (int.TryParse(Environment.GetEnvironmentVariable("HUNT"), out hn) && hn > 1) host.HuntBoss = BossSchedule.Campaign.BossAt(Math.Min(hn, 10) * 5);
         if (Environment.GetEnvironmentVariable("HUNTMAP") != null) host.HuntMapMode = true; }  // HUNTMAP=1: the Boss Hunt tab with the hunt map switch on
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
@@ -361,7 +361,7 @@ static partial class Shot {
         var sc = new Showcase();
         bool ultDemo = Environment.GetEnvironmentVariable("ULTDEMO") != null;  // ULTDEMO=1: the ultimate is being previewed
         if (ultDemo) set("detailSel", 2);  // (the ultimate's detail box, and the preview casting it)
-        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo, le.Ult);
+        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.FirstAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo, le.Ult);
         float st = float.Parse(Environment.GetEnvironmentVariable("SHOWT") ?? "2.5");
         for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
         set("showcase", sc);

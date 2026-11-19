@@ -51,7 +51,7 @@ namespace Arena
         {
             new FactionDef
             {
-                Boss = EnemyType.Boss,  // the Warden: prisoners, guards and riot gear (Warden.cs, WardenFaction.cs)
+                Boss = EnemyType.Warden,  // the Warden: prisoners, guards and riot gear (Warden.cs, WardenFaction.cs)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Rioter, Weight = 3f },
@@ -143,7 +143,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.TwinA,  // the Twin Reapers: the Dusk and Dawn cult (ReaperFaction.cs, Docs/Mockups/reaper-faction.html)
+                Boss = EnemyType.ReaperOfDusk,  // the Twin Reapers: the Dusk and Dawn cult (ReaperFaction.cs, Docs/Mockups/reaper-faction.html)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Wisp, Weight = 3f },  // (a pick is a pack of three)
@@ -454,7 +454,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md)
+                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its phases (Penumbral.cs, Docs/EclipseFaction.md)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Ember, Weight = 3f },  // sparks hang behind it (Lunar wake)
@@ -472,7 +472,7 @@ namespace Arena
                     new SquadDef { Name = "Mirror pair", From = 2, Members = new[] { EnemyType.Heliograph, EnemyType.Heliograph } },
                     new SquadDef { Name = "Moon court", From = 3, Members = new[] { EnemyType.Moonward, EnemyType.Moonward, EnemyType.Sickle, EnemyType.Sickle } },
                     new SquadDef { Name = "Night watch", From = 3, Members = new[] { EnemyType.DuskLobber, EnemyType.Gnomon, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
-                    // Echoes: one from each earlier boss's faction, as the Eclipse's own Echoes stage borrows their turns
+                    // Echoes: one from each earlier boss's faction, as the Eclipse's own Echoes phase borrows their turns
                     new SquadDef { Name = "Echoes", From = 3, Members = new[] { EnemyType.Rioter, EnemyType.Worker, EnemyType.Wisp, EnemyType.Debris, EnemyType.Rubble,
                         EnemyType.DustDevil, EnemyType.Fencer, EnemyType.Shambler, EnemyType.Gnawling } },
                 },
@@ -486,7 +486,7 @@ namespace Arena
                 Finale = new SquadDef { Name = "Last Light", From = 4, Form = SquadForm.LastLight, Members = new[] {
                     EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember, EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember,
                     EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember, EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember } },
-                // The Campaign's Eclipse cycle: the Warden's ten lessons in the same order, each rehearsing one of its stages.
+                // The Campaign's Eclipse cycle: the Warden's ten lessons in the same order, each rehearsing one of its phases.
                 Lessons = new[]
                 {
                     new WaveLesson { Teaches = "Embers' sparks hang behind them (the Lunar wake)", Members = new[] { M(EnemyType.Ember, 1f) } },

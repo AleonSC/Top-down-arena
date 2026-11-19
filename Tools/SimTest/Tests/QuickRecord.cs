@@ -5,7 +5,7 @@ using Arena;
 static partial class Program
 {
     // Session recording in Quick Play: a solo Quick Play writes its session file; a Boss Lab fight on the same session
-    // doesn't, and the match played after the lab is recorded again.
+    // doesn't, and the run played after the lab is recorded again.
     static void QuickRecordTest(float dt)
     {
         string wasFolder = Profile.Folder, dir = Path.Combine(Path.GetTempPath(), "arena-qrec-" + Guid.NewGuid().ToString("N"));

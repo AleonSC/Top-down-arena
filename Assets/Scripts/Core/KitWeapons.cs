@@ -14,7 +14,7 @@ namespace Arena
 
         // --- Weapons -----------------------------------------------------------
 
-        /// Mage and summoner weapons. `extra` is the number of extra projectiles (see FireVolley).
+        /// Elementalist and summoner weapons. `extra` is the number of extra projectiles (see FireVolley).
         const float BearArc = 110f, BearSwipeGap = 0.12f;  // Bear Totem (its reach and damage are in Defs)
         const float BearBleed = 0.3f;              // a claw hit bleeds for 30% of its damage per second...
         const float BleedTime = 3f, MaxBleed = 5f;  // ...for 3 s, stacking up to five hits' worth
@@ -72,7 +72,7 @@ namespace Arena
             var w = p.Weapon;  // its Speed, Life and Damage (Defs)
             switch (w.Id)
             {
-                // Mage
+                // Elementalist
                 case WeaponId.Flamethrower:
                 {
                     // A steady stream: two flames a burst (+1 and 25% more reach per extra projectile) that pass
@@ -120,7 +120,7 @@ namespace Arena
                     break;
                 case WeaponId.WindClash:
                     break;  // its waves go from TickWindClash, never from FireVolley (WindClash.cs)
-                case WeaponId.ArcaneMissiles:
+                case WeaponId.IceShards:
                 {
                     // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the
                     // orbit full, the cast flies at your aim instead: fanned out, homing.
@@ -530,7 +530,7 @@ namespace Arena
             return false;
         }
 
-        // --- Arcane Missiles: the stockpile -------------------------------------------------------
+        // --- Ice Shards: the stockpile -----------------------------------------------------------
 
         public const float OrbitRadius = 34f, LaunchRange = 300f, LaunchEvery = 0.08f, MissileTurn = 6f;  // launching outpaces casting, so more missiles a cast is more damage
         public static int OrbitCap(int extra, Player p = null) => 6 + 2 * extra + (p != null ? p.Stats.OrbitExtra : 0);  // (Frozen Halo: more)
@@ -546,7 +546,7 @@ namespace Arena
                 p.LaunchCd -= dt;
                 if (p.Orbiters <= 0)
                     continue;
-                if (p.Downed || p.Weapon.Id != WeaponId.ArcaneMissiles)
+                if (p.Downed || p.Weapon.Id != WeaponId.IceShards)
                 {
                     p.Orbiters = 0;
                     continue;

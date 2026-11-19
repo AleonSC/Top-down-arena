@@ -6,7 +6,7 @@ namespace Arena
     /// The lobby's loadout preview: a private, offline copy of the real game (nothing is sent anywhere) where
     /// your character uses the chosen weapon on a few target dummies, and casts an ability on a loop while
     /// the lobby asks for it. Because it runs the real game code, every weapon and ability looks exactly
-    /// as it does in a match.
+    /// as it does in a run.
     public class Showcase
     {
         public const float AbilityEvery = 3.5f;  // seconds between demo casts (cooldowns are skipped)
@@ -136,14 +136,14 @@ namespace Arena
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Idle && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
-            if (me.Weapon.Id == WeaponId.ClotBolt)  // the Gore Mortar: held just long enough to lob the clot onto the dummies
+            if (me.Weapon.Id == WeaponId.GoreMortar)  // the Gore Mortar: held just long enough to lob the clot onto the dummies
             {
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));
                 input.Fire = !Idle && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
             }
             // Weapons with an Alt press it on a loop (ShowcaseAlt.cs).
             input.WeaponAction = !Idle && ShowcaseAlt.Held(Game, me, t, dt);
-            if (demoAbility && !ultimate && ability == AbilityId.Whirlwind && castT <= 0.1f)
+            if (demoAbility && !ultimate && ability == AbilityId.BladedDive && castT <= 0.1f)
                 Game.ShowcaseWoundDummies();  // Bladed Dive's demo kills them so its reset shows (BladedDive.cs); just before the cast, or your swings finish them first
             if (demoAbility)
             {
@@ -282,7 +282,7 @@ namespace Arena
             var me = Me;
             if (me == null)
                 return;
-            me.RoleAbility = ability;
+            me.FirstAbility = ability;
             Recalc(me);
         }
 

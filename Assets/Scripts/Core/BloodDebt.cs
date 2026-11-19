@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The DPS Hemomancer's Blood Debt (`AbilityId.FrenzyPact` kept; was Frenzy Pact). Your health drops to a quarter and
+    /// The DPS Hemomancer's Blood Debt (was Frenzy Pact). Your health drops to a quarter and
     /// what it took becomes a debt; for 8 s kills pay it back (and your hits heal 15% instead of 3%). Pay it all and the
     /// 15% stays 2 s longer; what's still owed when the time runs out is gone.
     /// Player.DebtT, Debt and DebtOwed are replicated so everyone can draw the ledger: Game/BloodDebtLook.cs (look A

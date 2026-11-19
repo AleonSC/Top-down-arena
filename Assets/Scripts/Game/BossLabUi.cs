@@ -36,7 +36,7 @@ namespace Arena
                 labInFight = true;
             else if (session.Screen == AppScreen.Menu || labInFight)  // left through the pause menu, or back to the lobby from the end screen
             {
-                StopLab();  // (else the lab's settings stay on: the next match isn't recorded and plays the lab's boss)
+                StopLab();  // (else the lab's settings stay on: the next run isn't recorded and plays the lab's boss)
                 return;
             }
             lab.UpdateClients(dt);
@@ -171,7 +171,7 @@ namespace Arena
             row("ROLE", RoleNames, (int)s.Role, k => s.Role = (Role)k);
             row("CLASS", Enumerable.Range(0, Defs.KitCount).Select(k => Defs.KitName((Kit)k)).ToArray(), (int)s.Kit, k => s.Kit = (Kit)k);
             row("WEAPON", Enumerable.Range(0, 3).Select(k => Defs.Weapon(s.Role, s.Kit, k).Name).ToArray(), s.Weapon, k => s.Weapon = k);
-            row("ABILITY", Enumerable.Range(0, 3).Select(k => Upgrades.Ability(Upgrades.RoleAbility(s.Role, s.Kit, k)).Name).ToArray(), s.Ability, k => s.Ability = k);
+            row("ABILITY", Enumerable.Range(0, 3).Select(k => Upgrades.Ability(Upgrades.FirstAbility(s.Role, s.Kit, k)).Name).ToArray(), s.Ability, k => s.Ability = k);
             return box.yMax;
         }
 

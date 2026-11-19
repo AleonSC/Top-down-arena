@@ -37,13 +37,13 @@ namespace Arena
             switch (id)
             {
                 case AbilityId.LeapSlam:
-                case AbilityId.Lunge:      // the Gauntlet's charge
-                case AbilityId.Whirlwind:  // Bladed Dive's rush
+                case AbilityId.Gauntlet:      // the Gauntlet's charge
+                case AbilityId.BladedDive:  // Bladed Dive's rush
                 case AbilityId.Bulldoze:
                 case AbilityId.ShadowStep:
                 case AbilityId.Blink:
                 case AbilityId.RoyalDive:
-                case AbilityId.HemoNova:  // Vein Rush
+                case AbilityId.VeinRush:  // Vein Rush
                     return true;
             }
             return false;

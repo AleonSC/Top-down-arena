@@ -1,6 +1,6 @@
 namespace Arena
 {
-    /// Water Ward's sounds (the Healer Elementalist's 4th Space ability, Core/WaterWard.cs), sent by the host with the effect:
+    /// Water Ward's sounds (the Healer Elementalist's 4th choice, Core/WaterWard.cs), sent by the host with the effect:
     ///   WwSplash  a drop splashing on an enemy: a round "bloop" rising, a short wet slap of spray, droplets pattering back down
     ///   WwBurst   a drop eating a shot: the shot hissing out to steam, a soft "pff" of mist billowing, a bubble pop and fine spray
     ///   WwCast    the call: a cool shimmer rising as the drops gather above, a falling whistle, then one plop per drop as it lands

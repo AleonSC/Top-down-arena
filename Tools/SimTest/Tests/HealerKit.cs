@@ -24,7 +24,7 @@ static partial class Program
             host.StartMatch();
             var me = g.Players[1];
             g.DevSetGod(1, true);
-            Check(me.Slots[0].Id == AbilityId.SoulLantern, "the Summoner Healer's third Space ability is Soul Lantern");
+            Check(me.Slots[0].Id == AbilityId.SoulLantern, "the Summoner Healer's 3rd choice is Soul Lantern");
             for (int f = 0; f < 360 && g.State != MatchState.Fighting; f++) Step(host, dt);
             var dummy = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(480f, 450f), 0f, 0, false });
             dummy.Hp = dummy.MaxHp = 1e5f; dummy.SpawnT = 0f;
@@ -88,7 +88,7 @@ static partial class Program
             host.StartMatch();
             var me = g.Players[1];
             g.DevSetGod(1, true);
-            Check(me.Slots[0].Id == AbilityId.Medkit, "the Soldier Healer's third Space ability is the Deployable Medkit");
+            Check(me.Slots[0].Id == AbilityId.Medkit, "the Soldier Healer's 3rd choice is the Deployable Medkit");
             for (int f = 0; f < 360 && g.State != MatchState.Fighting; f++) Step(host, dt);
             Action<float> run = secs =>
             {

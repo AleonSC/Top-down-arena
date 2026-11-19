@@ -58,7 +58,7 @@ static partial class Program
     static int nextPort = Environment.GetEnvironmentVariable("PORTBASE") != null ? int.Parse(Environment.GetEnvironmentVariable("PORTBASE")) : 7810;  // PORTBASE=n: parallel runs (BalanceGrid) each take their own ports
 
     // Shared setup for host + friend tests over localhost.
-    // HostAs: host a match on `port` with `s` (pass `new Session { AutoStart = 2, StartWave = 3 }` etc.).
+    // HostAs: host a run on `port` with `s` (pass `new Session { AutoStart = 2, StartWave = 3 }` etc.).
     static Session HostAs(Session s, int port, bool bot, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)
     {
         if (bot)
@@ -79,7 +79,7 @@ static partial class Program
         return s;
     }
 
-    // Step both games until the client is in the match (at most 300 steps).
+    // Step both games until the client is in the run (at most 300 steps).
     static void WaitForGame(Session host, Session client, float dt)
     {
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
@@ -247,7 +247,7 @@ static partial class Program
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => ColossusTest(Dt), () => LichTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => WeaponSoundsTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
-        () => BloodMageTest(Dt), () => BloodLashTest(Dt), () => BloodBlastTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => EnemyNumbersTest(Dt), () => DifficultyTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => WarhornVolleyTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => WolfPackTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }, () => BotTeamplayTest(Dt), () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotPicksTest(Dt), () => BotShopTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => FloodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
+        () => HemomancerTest(Dt), () => BloodLashTest(Dt), () => BloodBlastTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => EnemyNumbersTest(Dt), () => DifficultyTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => WarhornVolleyTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => WolfPackTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }, () => BotTeamplayTest(Dt), () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotPicksTest(Dt), () => BotShopTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => FloodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
         () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => DevArenaTest(Dt), () => SessionSourcesTest(Dt), () => AuditFixesTest(Dt), () => FavoritesTest(Dt), () => GadgetTest(Dt), () => CauterizeTest(Dt), () => EngineerTest(Dt), () => PickupsTest(Dt), () => RemoteChestsTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
     };
 
@@ -323,7 +323,7 @@ static partial class Program
         Test("bow", "the Mender's Bow", () => BowTest(Dt)),
         Test("bear", "the Bear Totem", () => BearTotemTest(Dt)),
         Test("budget", "the enemy bullet budget and Homing Rounds", () => BudgetHomingTest(Dt)),
-        Test("keys", "bonus abilities on Q/E/Shift", () => KeybindTest(Dt)),
+        Test("keys", "2nd–4th abilities on 2nd, 3rd or 4th", () => KeybindTest(Dt)),
         Test("mastery", "ability mastery", () => MasteryTest(Dt)),
         Test("classcards", "class ability cards", () => ClassAbilityTest(Dt)),
         Test("milestone", "milestone upgrades: the pool, every 10 levels, the Milestone Compass", () => MilestoneTest(Dt)),
@@ -331,9 +331,9 @@ static partial class Program
         Test("offers", "every card offer reads the weapon: weapon-only mods, legendaries and milestone cards", () => OfferWeaponTest(Dt)),
         Test("cardfilters", "class (Kit) and weapon-list cards: who is offered them, the Wildcard's classes", () => CardFilterTest()),
         Test("classcardlists", "each class's own upgrade card list: only its cards, all offered, unique names", () => ClassCardListsTest()),
-        Test("abilitycards", "the Rare cards for the Elementalist and Summoner Space abilities and the Medkit (Docs/UpgradePools.md step 5)", () => AbilityCardsTest(Dt)),
+        Test("abilitycards", "the Rare cards for the Elementalist and Summoner 1st abilities and the Medkit (Docs/UpgradePools.md step 5)", () => AbilityCardsTest(Dt)),
         Test("cardids", "card ids over the network: 2 bytes, ids past 255 and empty offer slots", () => CardIdWireTest(Dt)),
-        Test("ults", "every ultimate over the network", () => UltimateSweep(Dt)),
+        Test("ultimates", "every ultimate over the network", () => UltimateSweep(Dt)),
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
         Test("twinblades", "the Twin Blades: each step's shove", () => TwinBladesTest(Dt)),
@@ -352,11 +352,11 @@ static partial class Program
         Test("bossslot", "the boss between waves: it follows every fifth regular wave and keeps its number; paths, saves and the Lab start", () => BossSlotTest(Dt)),
         Test("phalanx", "Bone Phalanx (the Tank Summoner's second ultimate) and the lobby's Ultimate pick", () => PhalanxTest(Dt)),
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
-        Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
+        Test("blood", "the Hemomancer", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => HemomancerTest(Dt)),
         Test("bloodblast", "the Blood Blast: the six-step chain, its health costs, blood stacks and the kill heal", () => BloodBlastTest(Dt)),
         Test("bloodlash", "the Blood Lash chain combo: Crack, Backhand, Snap, Reap, the chains and Martyr's Leash", () => BloodLashTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
-        Test("snapshot", "run snapshots (F6 / F7): a loaded snapshot puts the match back and plays on tick for tick", () => RunSnapshotTest(Dt)),
+        Test("snapshot", "run snapshots (F6 / F7): a loaded snapshot puts the run back and plays on tick for tick", () => RunSnapshotTest(Dt)),
         Test("devarena", "the F1 Dev Arena: no waves, god mode, playing as an enemy (move, attack, attack now, let go)", () => DevArenaTest(Dt)),
         Test("brute", "Brute enrage", () => BruteEnrageTest()),
         Test("trickle", "Campaign handover: fade and trickle", () => TrickleTest()),
@@ -376,13 +376,13 @@ static partial class Program
         Test("healerkit", "Soul Lantern and the Deployable Medkit", () => HealerKitTest(Dt)),
         Test("queen", "the Hive Queen", () => QueenTest(Dt)),
         Test("reapers", "the Twin Reapers", () => ReapersTest(Dt)),
-        Test("duelist", "the Duelist's three stages and last stand", () => DuelistTest(Dt)),
-        Test("lich", "the Lich's three stages and last stand", () => LichTest(Dt)),
-        Test("singularity", "the Singularity's three stages and last stand", () => SingularityTest(Dt), () => SingularityCageTest(Dt)),
-        Test("herald", "the Storm Herald's three stages and last stand", () => HeraldTest(Dt)),
-        Test("eclipse", "the Eclipse's five stages and Totality", () => EclipseTest(Dt)),
+        Test("duelist", "the Duelist's three phases and last stand", () => DuelistTest(Dt)),
+        Test("lich", "the Lich's three phases and last stand", () => LichTest(Dt)),
+        Test("singularity", "the Singularity's three phases and last stand", () => SingularityTest(Dt), () => SingularityCageTest(Dt)),
+        Test("herald", "the Storm Herald's three phases and last stand", () => HeraldTest(Dt)),
+        Test("eclipse", "the Eclipse's five phases and Totality", () => EclipseTest(Dt)),
         Test("variety", "elite traits and squads", () => VarietyTest(Dt)),
-        Test("devourer", "the Devourer's three stages and last meal", () => DevourerTest(Dt)),
+        Test("devourer", "the Devourer's three phases and last meal", () => DevourerTest(Dt)),
         Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("pacman", "the Pac-Man maze game: maze, steering, tunnel, dots and pellets, the four role ghosts, lives, levels, the ghost house, co-op", () => PacmanTest(Dt)),
         Test("mapreset", "the Campaign map resets after each boss: kits kept, half the spent vectors back, saved", () => MapResetTest(Dt)),
@@ -393,7 +393,7 @@ static partial class Program
         Test("coredrops", "weapon variants: what runs and hunts pay in Cores, the glowing Core Carrier", () => CoreDropsTest(Dt)),
         Test("saves", "saved runs (continuing them, in co-op) and the profile", () => SavesTest(Dt), () => ProfileTest(Dt)),
         Test("favorites", "saved favourite loadouts: slots, names, the profile's fav lines, loading one over the network, perks", () => FavoritesTest(Dt)),
-        Test("colossus", "the Colossus's three stages, stomp rings, plates and last stand", () => ColossusTest(Dt)),
+        Test("colossus", "the Colossus's three phases, stomp rings, plates and last stand", () => ColossusTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),
         Test("bosses", "every late boss's mechanics, victory and endless", () => BossMechanics(Dt)),
         Test("latewaves", "waves 25-50: each late boss beaten, victory and endless", () => LateWaves(Dt)),
@@ -405,18 +405,18 @@ static partial class Program
         Test("holycross", "Consecrate's Holy Cross: it grows as it flies, heals and hastens allies, hurts, slows and knocks back enemies, hits each once, the mastered fan", () => HolyCrossTest(Dt)),
         Test("engineer", "the Engineer: DPS only for now, the Vector Forge's Strider (built, hunts, punches, Alt locks it on, posts and recalls it, draws enemies, rebuilt), Drag Pylon (slows, one at a time, 320 px reach) and Breach (the blast; a room behind the Expanding arena's wall)", () => EngineerTest(Dt)),
         Test("engbots", "the Engineer's robot weapons: a click summons the role's robot (sent at the enemy clicked), it shoots and draws enemies, rebuilt-able after 8 s; the Vector Blade's swipe, the Iron Fist's shove, the Stasis Gun's held field; the Medic Bot heals", () => EngineerBotsTest(Dt)),
-        Test("cover", "Deployable Cover: the Tank Soldier's 4th ability key, two charges, planted 64 px ahead, solid after 0.4 s, stops enemy shots on its plates and wears, keeps enemies off, three at most (a fourth folds the oldest), breaks, replicated, folds at wave end, mastered", () => DeployableCoverTest(Dt)),
-        Test("kineticwall", "Kinetic Wall: the Elementalist DPS's 4th ability key; the lens catches enemy shots as charges (cap 40), a second press or the timer unleashes a cone of 40 + 6 per charge, mastered, replicated, going down", () => KineticWallTest(Dt)),
-        Test("waterward", "Water Ward: the Healer Elementalist's 4th ability key; 2 drops a cast fall then circle (max 10, no cast at 10), even spacing, splash (12 + wet 52 px), burst on a shot (wet 72 px, not red shots), mastered, replicated, going down", () => WaterWardTest(Dt)),
+        Test("cover", "Deployable Cover: the Tank Soldier's 4th choice, two charges, planted 64 px ahead, solid after 0.4 s, stops enemy shots on its plates and wears, keeps enemies off, three at most (a fourth folds the oldest), breaks, replicated, folds at wave end, mastered", () => DeployableCoverTest(Dt)),
+        Test("kineticwall", "Kinetic Wall: the Elementalist DPS's 4th choice; the lens catches enemy shots as charges (cap 40), a second press or the timer unleashes a cone of 40 + 6 per charge, mastered, replicated, going down", () => KineticWallTest(Dt)),
+        Test("waterward", "Water Ward: the Healer Elementalist's 4th choice; 2 drops a cast fall then circle (max 10, no cast at 10), even spacing, splash (12 + wet 52 px), burst on a shot (wet 72 px, not red shots), mastered, replicated, going down", () => WaterWardTest(Dt)),
         Test("harvest", "Crimson Harvest: rips 20 and the blood of every enemy into a ball, a 5 s hold, a second press throws it for a blast that scales with the blood", () => HarvestTest(Dt)),
         Test("bloodfreeze", "Blood Freeze: 25% health, a charge then a 260 px wave that freezes every enemy it reaches for 5 s (bosses 3 s), no damage, allies untouched, Hungry Earth, mastered +25% damage", () => BloodFreezeTest(Dt)),
-        Test("flood", "Flood, the Tank Elementalist's 4th Space ability: the 4th lobby key (only that class, clamped elsewhere), the stamp (10 damage, 60 px shove, heavies stay), a 190 px pool for 6 s, 40/20% slow, wet while in and 3 s after, lightning arcs, draining does nothing, Deluge and High Tide", () => FloodTest(Dt)),
-        Test("rod", "Lightning Rod and the lobby's ultimate choice: the pick reaching the match and saves, 80% cut, taunt, a bolt per hit with 2 arcs, the per-enemy cap, wet arcs, ends on time or on going down", () => RodTest(Dt)),
+        Test("flood", "Flood, the Tank Elementalist's 4th choice: the 4th lobby key (only that class, clamped elsewhere), the stamp (10 damage, 60 px shove, heavies stay), a 190 px pool for 6 s, 40/20% slow, wet while in and 3 s after, lightning arcs, draining does nothing, Deluge and High Tide", () => FloodTest(Dt)),
+        Test("rod", "Lightning Rod and the lobby's ultimate choice: the pick reaching the run and saves, 80% cut, taunt, a bolt per hit with 2 arcs, the per-enemy cap, wet arcs, ends on time or on going down", () => RodTest(Dt)),
         Test("juggernaut", "the Juggernaut Suit and the lobby's Ultimate row: the pick reaching everyone and clamped, armour before health, a flak shard per bullet, the slow and taunt, ending on time, armour 0, going down and between waves, saved runs", () => JuggernautTest(Dt)),
-        Test("helicopter", "the Attack Helicopter: the DPS Soldier's key 1, the pick reaching the match, a fly-in with no fire, then one target at a time nearest you within 560 px at 20 rounds of 8, the next once it dies, twin guns on two targets mastered, the other screen sees it, ends on time, going down and between waves", () => HelicopterTest(Dt)),
-        Test("dogma", "Dragon's Dogma: the Tank Ninja's key 1, the pick reaching the match, regular enemies devoured whole, heavies bitten for 150 once per 1.2 s, shots swallowed, home and ended with its body drained, 7 s and 3% heals mastered, ends on going down and between waves", () => DogmaTest(Dt)),
+        Test("helicopter", "the Attack Helicopter: the DPS Soldier's key 1, the pick reaching the run, a fly-in with no fire, then one target at a time nearest you within 560 px at 20 rounds of 8, the next once it dies, twin guns on two targets mastered, the other screen sees it, ends on time, going down and between waves", () => HelicopterTest(Dt)),
+        Test("dogma", "Dragon's Dogma: the Tank Ninja's key 1, the pick reaching the run, regular enemies devoured whole, heavies bitten for 150 once per 1.2 s, shots swallowed, home and ended with its body drained, 7 s and 3% heals mastered, ends on going down and between waves", () => DogmaTest(Dt)),
         Test("tithe", "Vein Tithe: a tendril to every enemy on screen, held enemies frozen for 15 s, a per-enemy health drain, a slow, 40% less damage, ends on time or on death", () => TitheTest(Dt)),
-        Test("bloodbath", "Bloodbath and the lobby's ultimate pick: 15% cost, a 170 px pool for 10 s, 50/35/20% slow, a bleed only while in it, 25% back with no extra 3%, 20% guard, Blood Price, ends on time or between waves (not on going down), the pick reaching the match", () => BloodbathTest(Dt)),
+        Test("bloodbath", "Bloodbath and the lobby's ultimate pick: 15% cost, a 170 px pool for 10 s, 50/35/20% slow, a bleed only while in it, 25% back with no extra 3%, 20% guard, Blood Price, ends on time or between waves (not on going down), the pick reaching the run", () => BloodbathTest(Dt)),
         Test("rain", "Sanguine Rain: a 1.8 s siphon costing 12%, rings that heal every ally 3% a tick for 10 s, the healer's 3% drain, cancel by pressing again, the 15% floor", () => RainTest(Dt)),
         Test("tankalts", "the Tank Soldier's Alt fires: Double Barrel (shells from point-blank hits, both at once, the kick), Proximity Shell (lies at the cursor, bursts under an enemy), Tear Gas (suppresses to the cap and slows)", () => TankAltTest(Dt)),
         Test("twinnades", "the Twin Rifle's grenade tubes: hits load two, Alt fires left then right, the order holds through a refill", () => TwinGrenadeTest(Dt)),
@@ -426,7 +426,7 @@ static partial class Program
         Test("arclock", "Arc Lightning's lock-on chain: holding tags the enemy in the cone nearest the cursor, up to ten, tags stick outside the cone, letting go chains through them in order for 16 + 4 a tag and a stun, nothing tagged fizzles; Forked Volley hits the three nearest the cursor, then cools down", () => ArcLockTest(Dt)),
         Test("honeybee", "the Honeybee Staff: a bee hatches at the cursor, buzzes, stings the nearest enemy once and dies (or fizzles), the cap, Swarm, held Alt sprays honey puddles that slow and drain the meter, an enemy dying in honey bursts into free bees, the other screen sees it, Bigger Hive", () => HoneybeeTest(Dt)),
         Test("stonespear", "the Stonespear: Fire slams (wind-up, damage round you, six spears up), then throws the risen spear nearest the cursor (pierces one), Alt sends the rest curving in on the enemy nearest the cursor, the next slam waits, the other screen sees the spears and the lock, Tectonic adds a spear a side", () => StonespearTest(Dt)),
-        Test("bonespear", "the Blood Brawler: Fire on an enemy marks it and lands Pulse, Reel, Heart Lift and Marrow Burst (costs, shove, pull, airborne, shards), the string starts over, nothing fires without a target, Alt's Sympathy echoes moves onto bound enemies at half, Marrow", () => BoneSpearTest(Dt)),
+        Test("bloodbrawler", "the Blood Brawler: Fire on an enemy marks it and lands Pulse, Reel, Heart Lift and Marrow Burst (costs, shove, pull, airborne, shards), the string starts over, nothing fires without a target, Alt's Sympathy echoes moves onto bound enemies at half, Marrow", () => BloodBrawlerTest(Dt)),
         Test("embolus", "the Embolus Spears: Fire throws the left then the right spear for 20% health each, they pierce and stick in the wall, a third Fire recalls both (piercing again) and the catch heals it back, Alt bursts them for half back and new ones harden, holding Fire cycles, the other screen sees them, Burst Vessels, putting it away crumbles them", () => EmbolusTest(Dt)),
         Test("nunchaku", "the Nunchaku (Twin Storm): Fire runs Snap, Backhand, Double Figure-8 and the Twin Crush (a stunning shockwave) and starts over; Alt raises the Twin Windmill guard (slower, seen by the other screen), its discs swat shots back and count them, Fire in it is the Twin Counter (20 + 6 a swat), the parry resets the combo, Iron Links", () => NunchakuTest(Dt)),
         Test("frostlance", "the Frost Lance: the five-step chain (crescent ahead not behind, backhand, waltz all round, fan, slam), chill freezes, the slam shatters, the parry breaks a step and keeps the chain, the Rime Counter, Absolute Zero freezes then shatters", () => FrostLanceTest(Dt)),
@@ -497,7 +497,7 @@ static partial class Program
         Test("botpicks", "the bots' level-up picks and shopping", () => BotPicksTest(Dt), () => BotShopTest(Dt)),
         Test("botteam", "the smart bot's team play: Roar, Last Stand, Mark, healing orbs and zones", () => BotTeamplayTest(Dt)),
         Test("partybots", "bots in the lobby's open slots", () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }),
-        Test("wildcard", "Wildcard: DPS gear from any class, a second ability on a chosen key, the damage and cooldown price, the unlock", () => WildcardTest(Dt)),
+        Test("wildcard", "Wildcard: DPS gear from any class, a Wildcard ability on a chosen key, the damage and cooldown price, the unlock", () => WildcardTest(Dt)),
         Test("respawn", "the Practice Range: no game over, Respawn, Restart wave, Training drill text format", () => PracticeRespawnTest(Dt)),
         Test("lag", "the lag chart: LagStats (stalls, p95, 1% low, freeze, summary, CSV) and pings shared over the network", () => LagChartTest(Dt)),
         Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back this wave)", () => StackingTest(Dt)),
@@ -540,7 +540,7 @@ static partial class Program
     {
         "snapshot", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "bonespear", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts",
+        "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };

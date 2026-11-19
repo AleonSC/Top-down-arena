@@ -6,7 +6,7 @@ namespace Arena
     /// The Twin Reapers' legendaries, each one of their own tricks turned yours (like the Warden's in Stun.cs and the
     /// Queen's in QueenLoot.cs): Twin Scythes (their scythes circle you in opposite directions, cutting enemies and
     /// small bullets), Final Reap (a phantom scythe finishes off what you've nearly killed; bosses near the end take
-    /// more) and Scythe Throw (a Q / E / Shift ability: a giant scythe out to your cursor and back; catch it for a
+    /// more) and Scythe Throw (a 2nd, 3rd or 4th ability: a giant scythe out to your cursor and back; catch it for a
     /// shorter cooldown). Plan and numbers: Docs/ReaperLoot.md.
     public partial class Game
     {
@@ -163,7 +163,7 @@ namespace Arena
         public const float ThrowRange = 380f, ThrowOutTime = 0.45f, ThrowBackSpeed = 760f, ThrowLife = 3f, ThrowCatch = 0.4f, ThrowCatchMastered = 0.6f;
         public const float ThrowReach = 30f;  // the spinning blade's reach
 
-        /// Scythe Throw, from the Twin Reapers' legendary card (Q / E / Shift only). (Upgrades.Abilities gathers it.)
+        /// Scythe Throw, from the Twin Reapers' legendary card (2nd, 3rd or 4th only). (Upgrades.Abilities gathers it.)
         internal static readonly AbilityDef[] ReaperAbilities =
         {
             new AbilityDef

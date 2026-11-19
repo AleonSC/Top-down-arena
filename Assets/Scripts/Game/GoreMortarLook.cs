@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The tank Hemomancer's Gore Mortar (WeaponId.ClotBolt, Core/BloodMage.cs), look A "Gore Mortar" of
+    /// The tank Hemomancer's Gore Mortar (WeaponId.GoreMortar, Core/Hemomancer.cs), look A "Gore Mortar" of
     /// Docs/Mockups/clot-cannon.html. While you hold, the clot in your hand swells and your arc grows out to where it
     /// will land: a trail of beads up and over to a dashed outline of the pool and the splash inside it. The clot flies
     /// lifted along its arc over its shadow, raining drops; it lands in a crown of drops and a big pool (DrawBloodZone)
@@ -85,7 +85,7 @@ namespace Arena
             clotDt = dt;
             foreach (var p in game.Players.Values)
             {
-                if (p.Weapon.Id != WeaponId.ClotBolt || p.Downed)
+                if (p.Weapon.Id != WeaponId.GoreMortar || p.Downed)
                 {
                     clotHandAt.Remove(p.Id);
                     continue;

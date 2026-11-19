@@ -65,8 +65,8 @@ static partial class Program
         };
 
         scenario("campaign", g => { }, 1, 60, 1);
-        scenario("quick", g => { g.Quick = true; g.QuickOrder = new[] { EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus }; }, 1, 25, 2);
-        scenario("hunt", g => { g.Hunt = Hunts.Get(EnemyType.Boss); }, 1, 10, 3);
+        scenario("quick", g => { g.Quick = true; g.QuickOrder = new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus }; }, 1, 25, 2);
+        scenario("hunt", g => { g.Hunt = Hunts.Get(EnemyType.Warden); }, 1, 10, 3);
         scenario("campaign100", g => { g.LongRun = true; g.Leg = 0; }, 1, 50, 4);
         scenario("campaign100leg2", g => { g.LongRun = true; g.Leg = 1; }, 1, 30, 5);
         scenario("zombie", g => { g.Mods |= RunMod.ZombieInfection; }, 1, 30, 6);

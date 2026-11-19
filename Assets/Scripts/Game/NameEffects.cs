@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The name effects a rank unlocks (Rank.cs, CosmeticKind.NameEffect): how a player's name is drawn wherever it shows to others
-    /// (the lobby party card and Hangout plate, the tag over a player in a match, your look card). Mockups: Docs/Mockups/name-effects.html and name-effects-more.html (the last eight: Chrome to Petals).
+    /// (the lobby party card and Hangout plate, the tag over a player in a run, your look card). Mockups: Docs/Mockups/name-effects.html and name-effects-more.html (the last eight: Chrome to Petals).
     /// Built from IMGUI labels: colour gradients are the same text drawn in a few clipped bands, glows and outlines are copies at
     /// small offsets, sheens are a clipped strip. With Visual effects off each is its still self; a small name (13 px or less) keeps
     /// only its colour and glow, so it stays readable.

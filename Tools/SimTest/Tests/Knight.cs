@@ -20,8 +20,8 @@ static partial class Program
         // Tables: every role has three Knight weapons, abilities and an ultimate.
         Check(Defs.Weapon(Role.Tank, Kit.Knight, 0).Name == "Warhammer" && Defs.Weapon(Role.Healer, Kit.Knight, 2).Name == "Censer" && Defs.Weapon(Role.Dps, Kit.Knight, 2).Name == "Rapier"
             && Defs.Weapon(Role.Dps, Kit.Summoner, 2).Name == "Imp Caller" && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver", "Knight weapons sit in the role/class tables without shifting the others");
-        Check(Upgrades.RoleAbility(Role.Tank, Kit.Knight, 1) == AbilityId.LeapSlam && Upgrades.RoleAbility(Role.Healer, Kit.Knight, 2) == AbilityId.LayOnHands
-            && Upgrades.RoleAbility(Role.Dps, Kit.Summoner, 2) == AbilityId.AlphaCall && Upgrades.Ultimate(Role.Healer, Kit.Knight) == AbilityId.HallowedBlade
+        Check(Upgrades.FirstAbility(Role.Tank, Kit.Knight, 1) == AbilityId.LeapSlam && Upgrades.FirstAbility(Role.Healer, Kit.Knight, 2) == AbilityId.LayOnHands
+            && Upgrades.FirstAbility(Role.Dps, Kit.Summoner, 2) == AbilityId.AlphaCall && Upgrades.Ultimate(Role.Healer, Kit.Knight) == AbilityId.HallowedBlade
             && Upgrades.Ultimate(Role.Dps, Kit.Elementalist) == AbilityId.BulletRain, "Knight abilities and ultimates map to the right role and class");
         int wall = U("Tower Shield");
         Check(Upgrades.Available(wall, new OfferCtx(Role.Tank, AbilityId.ShieldWall, new List<int>())) && !Upgrades.Available(wall, new OfferCtx(Role.Tank, AbilityId.Barrier, new List<int>())),

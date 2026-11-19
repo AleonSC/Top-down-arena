@@ -147,9 +147,9 @@ static class Lab
                     sb.Append(w > 0 ? "," : "").Append(S(wn));
                 }
                 sb.Append("],\"abilities\":[");
-                for (int a = 0; a < Upgrades.RoleAbilityChoices; a++)
-                    sb.Append(a > 0 ? "," : "").Append(S(Upgrades.Ability(Upgrades.RoleAbility((Role)r, (Kit)k, a)).Name));
-                sb.Append("],\"ults\":[");
+                for (int a = 0; a < Upgrades.FirstAbilityChoices; a++)
+                    sb.Append(a > 0 ? "," : "").Append(S(Upgrades.Ability(Upgrades.FirstAbility((Role)r, (Kit)k, a)).Name));
+                sb.Append("],\"ultimates\":[");
                 bool fu = true;
                 for (int u = 0; u < Upgrades.UltKeys; u++)
                 {
@@ -208,8 +208,8 @@ static class Lab
         var role = (Role)(int)D(m, "role", 2);
         var kit = (Kit)(int)D(m, "kit", 0);
         int weapon = (int)D(m, "weapon", 0);
-        if (!sess.Host(nextGamePort++, "You", role, weapon, (int)D(m, "ability", 0), kit, 0, (int)D(m, "ult", 0)))
-            return "Couldn't start the match: " + sess.Status;
+        if (!sess.Host(nextGamePort++, "You", role, weapon, (int)D(m, "ability", 0), kit, 0, (int)D(m, "ultimate", 0)))
+            return "Couldn't start the run: " + sess.Status;
         old?.Leave("");
         sess.Diff.Set(DiffKnob.Campaign, 0f);
         sess.Plan = set.ToPlan();
@@ -243,7 +243,7 @@ static class Lab
                 if (inp.Move.Length > 1f) inp.Move = inp.Move.Normalized();
                 inp.AimAt = new V2((float)D(m, "ax", 800), (float)D(m, "ay", 450));
                 inp.Fire = B(m, "fire"); inp.Ability = B(m, "ab"); inp.AbilityQ = B(m, "q"); inp.AbilityE = B(m, "e"); inp.AbilityShift = B(m, "sh");
-                inp.Ultimate = B(m, "ult"); inp.Parry = B(m, "parry"); inp.Dodge = B(m, "dodge"); inp.WeaponAction = B(m, "alt");
+                inp.Ultimate = B(m, "ultimate"); inp.Parry = B(m, "parry"); inp.Dodge = B(m, "dodge"); inp.WeaponAction = B(m, "alt");
             }
             else if (t == "start") { string err = StartMatch(m); c.Send("{\"t\":\"started\",\"err\":" + (err == null ? "null" : S(err)) + "}"); }
             else if (t == "bot") botSkill = BotFrom(Str(m, "level", "off"));

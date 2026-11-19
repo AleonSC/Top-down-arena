@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Arena;
 
 // Lightning Rod (LightningRod.cs), the Tank Elementalist's second ultimate, and the lobby's ultimate choice (LobbyEntry.Ult):
-// the choice reaching the host, the other player and the match (and clamped where there's no second), saved runs keeping it;
+// the choice reaching the host, the other player and the run (and clamped where there's no second), saved runs keeping it;
 // then the 80% cut, the taunt, a bolt per hit on the shooter and its 2 arcs, the per-enemy cap, a dead shooter's bolt, wet
 // arcs, grounding in the hit grace, contact hits, the end on time and on going down, the mastered capstone, and replication.
 static partial class Program
@@ -63,7 +63,7 @@ static partial class Program
         var me = g.Players[1]; var ally = g.Players[friend.Id];
         Check(me.Slots[Upgrades.UltSlot].Id == AbilityId.LightningRod && ally.Slots[Upgrades.UltSlot].Id == AbilityId.LightningRod
             && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.LightningRod && client.Game.Players[friend.Id].Slots[Upgrades.UltSlot].Id == AbilityId.LightningRod,
-            "the picks reach the match: both players' F key is Lightning Rod, on both screens");
+            "the picks reach the run: both players' F key is Lightning Rod, on both screens");
 
         // A saved run keeps it.
         var save = new RunSave { Wave = 4 };
@@ -116,7 +116,7 @@ static partial class Program
         var near1 = make(EnemyType.Grunt, new V2(980f, 450f));
         var near2 = make(EnemyType.Grunt, new V2(900f, 560f));
         var far = make(EnemyType.Grunt, new V2(900f, 450f + Game.RodArcReach + 200f));  // out of the arcs' reach
-        var boss = make(EnemyType.Boss, new V2(1400f, 300f));
+        var boss = make(EnemyType.Warden, new V2(1400f, 300f));
         foreach (var e in g.Enemies.Values) e.TargetId = friend.Id;
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         Check(me.RodT == Game.RodTime && me.UltT == Game.RodTime && me.RodArcs == Game.RodArcCount, "casting charges you for 6 s");

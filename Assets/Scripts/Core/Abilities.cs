@@ -82,7 +82,7 @@ namespace Arena
             var id0 = p.Slots[slot].Id;
             Recorder?.AbilityUsed(p, id0);
             bool hadTargets = Battle && AnyTarget();
-            PayAbilityCost(p, id0);  // Blood Mage abilities cost health (BloodMage.cs)
+            PayAbilityCost(p, id0);  // Hemomancer abilities cost health (Hemomancer.cs)
             BeginCast(p, id0);
             CastAbility(p, slot, target);
             Recorder?.CastHits(p, castHits);
@@ -93,7 +93,7 @@ namespace Arena
 
         public const float CalloutTime = 1.1f;
 
-        /// The Soldier's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Soldier's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] SoldierCards =
         {
@@ -115,7 +115,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Medkit, MaxStacks = 2, Name = "Field Surgeon", Desc = "Medkit bursts into 3 more orbs, and each heals 5 more",
                 Apply = s => { s.MedkitExtraOrbs += 3; s.MedkitHealBonus += 5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Soldier, MaxStacks = 2, Name = "Quartermaster", Desc = "Health and medkit orbs you pick up heal 30% more, and your Q, E and Shift abilities recharge 10% faster",
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Soldier, MaxStacks = 2, Name = "Quartermaster", Desc = "Health and medkit orbs you pick up heal 30% more, and your 2nd, 3rd and 4th abilities recharge 10% faster",
                 Apply = s => { s.OrbHealMult += 0.3f; s.BonusCdMult *= 0.9f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Scattergun }, MaxStacks = 2, Name = "Point Blank", Desc = "The Scattergun's close-range double damage reaches 30% farther, and its shove is 30% harder",
                 Apply = s => { s.PointBlankReachMult += 0.3f; s.ScatterShoveMult += 0.3f; } },
@@ -123,9 +123,9 @@ namespace Arena
                 Apply = s => { s.FlakBurstMult += 0.25f; s.MineCdCut += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.RiotRepeater }, MaxStacks = 2, Name = "Crowd Control", Desc = "Riot Repeater suppression builds 50% faster, and the Tear Gas cloud is 25% bigger",
                 Apply = s => { s.SuppressMult += 0.5f; s.TearGasMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LightBolt }, MaxStacks = 2, Name = "Undertow Pump", Desc = "The Undertow meter fills 30% faster, and the health orbs the Repulsion Cannon knocks loose heal 30% more",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.RepulsionCannon }, MaxStacks = 2, Name = "Undertow Pump", Desc = "The Undertow meter fills 30% faster, and the health orbs the Repulsion Cannon knocks loose heal 30% more",
                 Apply = s => { s.UndertowGainMult += 0.3f; s.ShedHealMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Pistol }, MaxStacks = 2, Name = "Hot Lead", Desc = "The Revolver reloads 25% faster, and its heavy rounds deal one more times their damage",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Revolver }, MaxStacks = 2, Name = "Hot Lead", Desc = "The Revolver reloads 25% faster, and its heavy rounds deal one more times their damage",
                 Apply = s => { s.RevolverReloadMult *= 0.75f; s.HeavyRoundBonus += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.MendersBow }, MaxStacks = 2, Name = "Steady Draw", Desc = "The Mender's Bow reaches a full draw 20% sooner, and its arrows pierce 1 more",
                 Apply = s => { s.BowDrawMult *= 0.8f; s.BowPierceBonus += 1; } },
@@ -215,7 +215,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th ability key (DeployableCover.cs)
+                Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th choice (DeployableCover.cs)
                 Name = "Deployable Cover", Cooldown = CoverCooldown, Desc = "Two charges. Plant a bracket of steel plate in front of you that stops enemy bullets and enemies until it has taken 400 damage; your team's shots pass through. Up to 3 stand at once (another folds away the oldest), and they fold away when the wave is cleared.",
                 Capstone = "Covers take 600 damage, and each charge comes back 25% sooner.",
                 Bot = b => b.Danger || b.NearEnemies >= 3,
@@ -251,7 +251,7 @@ namespace Arena
 
         /// The ability's effect. Runs inside BeginCast/EndCast, so damage and healing it does directly
         /// (and the zones, minions and shots it makes) are scaled by its mastery. castMastered = its capstone.
-        public const float SurgeTime = 3f;  // Arcane Surge (the Elementalist's class card): faster firing after a Space cast
+        public const float SurgeTime = 3f;  // Arcane Surge (the Elementalist's class card): faster firing after a 1st ability cast
 
         void CastAbility(Player p, int slot, V2 target)
         {

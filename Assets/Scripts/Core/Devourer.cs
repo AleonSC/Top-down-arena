@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Devourer's stage of the fight, by its health: three stages, then a last stand.
+    /// The Devourer's phase of the fight, by its health: three phases, then a last stand.
     public enum DevourStage : byte { Appetite, Gorging, Ravenous, LastStand }
 
-    /// What it's doing now. Each stage loops its turns, one attack at a time, with breathers (Rest) between.
+    /// What it's doing now. Each phase loops its turns, one attack at a time, with breathers (Rest) between.
     public enum DevourTurn : byte { Rest, Spiral, Snap, Hungry, Inhale, Bile, Burrow, Frenzy, Jaws, Vomit, LastMeal }
 
     /// Everything about the Devourer's fight its body doesn't carry. The host runs it; clients get it in the snapshot
@@ -16,7 +16,7 @@ namespace Arena
     {
         public DevourStage Stage, TransTo;
         public DevourTurn Turn;
-        public float TurnT, TransT;  // seconds into the turn; > 0: changing stage (can't be hurt), counting down
+        public float TurnT, TransT;  // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public bool Lunging;         // a lunge: the warning line shows for LungeWarn, then it dashes LungeLen along LungeAng
         public float LungeWarn, LungeAng, LungeLen;
         public V2 LungeFrom;
@@ -36,7 +36,7 @@ namespace Arena
         public byte MawHit;          // the last shot that reached it (BlocksShot): 1 into the Maw, 2 on its back
     }
 
-    /// The Devourer (wave 45): a fight in three stages by its health, like the Herald's, then a last stand. Each stage
+    /// The Devourer (wave 45): a fight in three phases by its health, like the Herald's, then a last stand. Each phase
     /// turns its hunger into something new.
     ///   Appetite (100-65%): it keeps its distance as it always has. Spiral (its old double spiral), Snap (lunging
     ///     bites along a warning line), Hungry (your shots heal it, as before, while it spits morsels and crawls over to
@@ -49,7 +49,7 @@ namespace Arena
     ///     on you), Vomit (a sweeping spray of bile).
     ///   Last stand (below 10%): the Last meal in the middle: it pulls everyone in, a ring of teeth turns around it,
     ///     its spiral comes back.
-    /// Built from the mockup in Docs/Mockups/devourer-3-stage.html. Drawn in DevourerLook.cs.
+    /// Built from the mockup in Docs/Mockups/devourer-3-phase.html. Drawn in DevourerLook.cs.
     public partial class Game
     {
         const float DevourGorgeAt = 0.65f, DevourRavenAt = 0.3f, DevourLastAt = 0.1f, DevourTransTime = 2f;
@@ -81,7 +81,7 @@ namespace Arena
 
         DevourState DevourOf(Enemy e) => e.Devour ?? (e.Devour = new DevourState());
 
-        /// Changing stage, or underground: it can't be hurt.
+        /// Changing phase, or underground: it can't be hurt.
         public static bool DevourImmune(Enemy e) => e.Type == EnemyType.Devourer && e.Devour != null && (e.Devour.TransT > 0f || e.Devour.BurrowT > 0f);
 
         /// Underground: shots pass over it, and its body doesn't hurt or shove.
@@ -532,7 +532,7 @@ namespace Arena
             DoLog(p.Name + " was spat out by the Devourer");
         }
 
-        /// The Devourer is gone (or the match ended): anyone inside it comes back out where it was.
+        /// The Devourer is gone (or the run ended): anyone inside it comes back out where it was.
         void ReleaseSwallowed(Enemy e)
         {
             if (e.Devour != null && e.Devour.SwallowId != 0)
@@ -604,7 +604,7 @@ namespace Arena
             return true;
         }
 
-        /// BlocksShot: underground or changing stage blocks the hit; otherwise remember which side it came from.
+        /// BlocksShot: underground or changing phase blocks the hit; otherwise remember which side it came from.
         bool DevourBlocks(Enemy e, V2 from)
         {
             if (e.Type != EnemyType.Devourer || e.Devour == null)
@@ -682,7 +682,7 @@ namespace Arena
             DoLog("the Devourer: changing to " + to);
         }
 
-        /// Bile pools go when the stage changes (every game drops its own; nothing is sent).
+        /// Bile pools go when the phase changes (every game drops its own; nothing is sent).
         void ClearBile()
         {
             var gone = new List<int>();
@@ -795,7 +795,7 @@ namespace Arena
             }
         }
 
-        /// Clients, each frame: the clocks run between snapshots, and bile pools go when the stage changes.
+        /// Clients, each frame: the clocks run between snapshots, and bile pools go when the phase changes.
         void UpdateDevourView(float dt)
         {
             if (IsHost)

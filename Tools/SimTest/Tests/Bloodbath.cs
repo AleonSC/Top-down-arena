@@ -7,7 +7,7 @@ using Arena;
 // front, a 4% a second drain, ending on a second press, at 15% health, on going down, at 10 s and between waves; an ended pool dries up
 // and does nothing), the pool growing out, the slow (normal, Heavy, boss), the bleed starting in the pool and stopping outside it, the 25% heal
 // with no extra 3%, the 20% guard inside, Blood Price, mastery, the bot's rules for starting and stopping it,
-// and the pick reaching the match (both screens, saves, a continued run's seat, the Practice Range, a class with one ultimate).
+// and the pick reaching the run (both screens, saves, a continued run's seat, the Practice Range, a class with one ultimate).
 static partial class Program
 {
     static void BloodbathTest(float dt)
@@ -20,10 +20,10 @@ static partial class Program
 
         // The table: key 0 stays Vein Tithe, key 1 is Bloodbath; other classes have one.
         var def = Upgrades.Ability(AbilityId.Bloodbath);
-        Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.BloodRite && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath
+        Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath
             && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.None && Upgrades.AltUltimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.None
             && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit
-            && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.SanguineRain && Upgrades.Ultimate(Role.Wildcard, Kit.Hemomancer, 1) == AbilityId.CrimsonApotheosis,
+            && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.SanguineRain && Upgrades.Ultimate(Role.Wildcard, Kit.Hemomancer, 1) == AbilityId.CrimsonHarvest,
             "the Tank Hemomancer has two ultimates (Vein Tithe the default, Bloodbath second); a pick a class lacks falls back to its default");
         Check(def.Name == "Bloodbath" && def.Cooldown == 75f && def.HealthCost == 0f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Hemomancer && def.Role == Role.Tank,
             "Bloodbath: a 75 s Tank Hemomancer ultimate channelled, with nothing up front");
@@ -38,7 +38,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1]; var ally = g.Players[2];
         Check(me.UltPick == 1 && me.Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath
-            && ally.Slots[Upgrades.UltSlot].Id == Upgrades.Ultimate(Role.Healer, Kit.Knight), "the lobby pick reaches the match, on both screens");
+            && ally.Slots[Upgrades.UltSlot].Id == Upgrades.Ultimate(Role.Healer, Kit.Knight), "the lobby pick reaches the run, on both screens");
         g.DevSetGod(2, true);
 
         V2 mePos = new V2(500f, 450f), allyOut = new V2(1200f, 200f);
@@ -275,7 +275,7 @@ static partial class Program
         Func<int, bool> settle = want => { for (int i = 0; i < 200; i++) { Step(host, dt); Step(client, dt); if (host.Lobby[cid].Ult == want && client.Lobby[cid].Ult == want) return true; System.Threading.Thread.Sleep(1); } return false; };
         Check(host.Lobby.ContainsKey(cid) && settle(1) && host.Lobby[cid].UltId == AbilityId.Bloodbath, "a pick made before joining reaches the host and comes back to everyone");
         client.RequestUlt(0);
-        Check(settle(0) && client.Lobby[cid].UltId == AbilityId.BloodRite, "picking key 0 goes back to Vein Tithe");
+        Check(settle(0) && client.Lobby[cid].UltId == AbilityId.VeinTithe, "picking key 0 goes back to Vein Tithe");
         client.RequestUlt(1);
         Check(settle(1), "and key 1 to Bloodbath again");
         client.RequestUlt(3);
@@ -317,7 +317,7 @@ static partial class Program
 
         // The loadout preview casts the ultimate you picked.
         var show = new Showcase();
-        show.Show(Role.Tank, Kit.Hemomancer, 0, Upgrades.RoleAbility(Role.Tank, Kit.Hemomancer, 0), true, true, 1);
+        show.Show(Role.Tank, Kit.Hemomancer, 0, Upgrades.FirstAbility(Role.Tank, Kit.Hemomancer, 0), true, true, 1);
         Check(show.Me != null && show.Me.Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath, "the lobby's preview shows the ultimate you picked");
         bool cast = false;
         for (int i = 0; i < 60 * 4 && !cast; i++) { show.Step(dt); cast = show.Game.Zones.Values.Any(z => z.Kind == ZoneKind.Bloodbath); }

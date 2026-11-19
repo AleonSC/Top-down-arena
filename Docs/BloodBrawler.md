@@ -1,7 +1,7 @@
 # Blood Brawler (was the Bone Spear)
 
-**Status: built (steps 1-3, protocol 399).** Code `Assets/Scripts/Core/BoneSpear.cs`, look `Assets/Scripts/Game/BoneSpearLook.cs` (preview `BONESPEAR=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`), tests `Tools/SimTest/run.sh 1 30 bonespear`. Mockup `Docs/Mockups/bone-spear-rework.html`. Rework of the DPS Hemomancer's Bone
-Spear, renamed the Blood Brawler (`WeaponId.BoneSpear`, `BoneSpear.cs` and the `bonespear` suite kept): a ranged string the Hemomancer lands by working the target's blood, as phantom
+**Status: built (steps 1-3, protocol 399).** Code `Assets/Scripts/Core/BloodBrawler.cs`, look `Assets/Scripts/Game/BloodBrawlerLook.cs` (preview `BONESPEAR=<s> ZOOM=1.8 Tools/Preview/shot.sh x hud`), tests `Tools/SimTest/run.sh 1 30 bloodbrawler`. Mockup `Docs/Mockups/bone-spear-rework.html`. Rework of the DPS Hemomancer's Bone
+Spear, renamed the Blood Brawler (`WeaponId.BloodBrawler`, `BloodBrawler.cs` and the `bloodbrawler` suite kept): a ranged string the Hemomancer lands by working the target's blood, as phantom
 melee blows from inside its body.
 
 ## Owner's decisions
@@ -48,8 +48,8 @@ Marrow Burst lands while the target is still airborne from Heart Lift, so it get
 
 ## Build steps
 
-1. Core: `BoneSpear.cs` (target, string step on `Player.Combo`, the four moves, Sympathy), replicated target and
-   bound list (`Session.ProtocolVersion` bump), old spear shot and pickup zone removed, test suite `bonespear`.
-2. Look: `Game/BoneSpearLook.cs` (thread, mark, phantom fist, lift column, swell and shards, Sympathy threads),
+1. Core: `BloodBrawler.cs` (target, string step on `Player.Combo`, the four moves, Sympathy), replicated target and
+   bound list (`Session.ProtocolVersion` bump), old spear shot and pickup zone removed, test suite `bloodbrawler`.
+2. Look: `Game/BloodBrawlerLook.cs` (thread, mark, phantom fist, lift column, swell and shards, Sympathy threads),
    preview `BONESPEAR=<s>`.
 3. README, Marrow card text, `CODEMAP.md` line, balance pass from the sim.

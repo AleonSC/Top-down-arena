@@ -330,7 +330,7 @@ namespace Arena
 
     public partial class Game
     {
-        /// The run's difficulty (host: copied from the lobby when the match starts; clients: told by the host).
+        /// The run's difficulty (host: copied from the lobby when the run starts; clients: told by the host).
         public Difficulty Diff = new Difficulty();
 
         public float D(DiffKnob k) => Diff[k];

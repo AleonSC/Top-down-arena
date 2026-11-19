@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The lag chart (F5 cycles off > pill > chart; Shift+F5 freezes the chart, Ctrl+F5 copies a summary; Settings >
-    /// Gameplay also sets it and turns on the CSV log). Top right in a match: a 30 s strip of your ping, the gaps between
+    /// Gameplay also sets it and turns on the CSV log). Top right in a run: a 30 s strip of your ping, the gaps between
     /// snapshots (red past 150 ms: a stall) and your frame time, with wave, boss and bullet-storm ticks; under it the
     /// numbers, bandwidth and every player's ping. The numbers come from Core/LagStats.cs (fed by Core/LagNet.cs).
     public partial class ArenaApp
@@ -285,7 +285,7 @@ namespace Arena
         float DrawLagSettingsRow(float x, float y, float w)
         {
             float half = (w - 36f) / 2f;
-            WinLabel(new Rect(x, y, half, 24f), "Lag chart", "F5 cycles it in a match; Ctrl+F5 copies a summary");
+            WinLabel(new Rect(x, y, half, 24f), "Lag chart", "F5 cycles it in a run; Ctrl+F5 copies a summary");
             int pick = WinChoices(new Rect(x, y + 46f, half, 34f), LagModeNames, lagMode);  // (under the line, as the HUD row's)
             if (pick != lagMode)
                 SetLagMode(pick);

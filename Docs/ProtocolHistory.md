@@ -21,7 +21,7 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 - 401: relics are per player: a `MapNode` on `Msg.ExpandState` adds a `Drop` byte (the relic a player left in a relic node, RelicId + 1; 0 = the rolled one)
 - 401: a prop's snapshot carries its chest kind (`Prop.Chest`, `ChestKind`: Upgrade, Gold, Vector, Relic, Room card, Buildables) after `Open`
 - 400: buyable portal pairs (`PortalLink` in `Msg.ExpandLink`/`ExpandState`) are now wall spots: each end on a room's outer wall, the wall becomes the portal
-- 399: Bone Spear rework (Docs/BoneSpearMarionette.md): the player snapshot adds `BsTarget`, `BsT`, `SympT`, `SympSrc` and the `SympBound` list after `LeashT`; WeaponDash kind 45 (DashSympathy); `FxKind.BsBlow`
+- 399: Bone Spear rework (Docs/BloodBrawler.md): the player snapshot adds `BsTarget`, `BsT`, `SympT`, `SympSrc` and the `SympBound` list after `LeashT`; WeaponDash kind 45 (DashSympathy); `FxKind.BsBlow`
 
 - 399: the Frost Lance's sounds: `Sfx.FrostCrescent`, `FrostBackhand`, `FrostWaltz`, `FrostFan`, `FrostSlamWind`, `FrostSlam`, `FrostFreeze`, `FrostShatter`, `FrostBreak`, `ZeroCharge`, `ZeroWave`, `ZeroShatter` appended (sent with the steps, bursts, break and Absolute Zero).
 - 398: the Frost Lance rework (FrostLance.cs): FxKind FrostStep, FrostBurst, FrostBreak and AbsoluteZero; the player snapshot adds FlZeroT, FlZeroCd (float) and FlRime (bool) after WcTempestCd; the enemy snapshot adds FrostChill (byte) after its variant; Msg.WeaponDash kind 44 (DashZero).
@@ -39,7 +39,7 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 - 386: Node fog, scout towers and gold veins: `NodeKind.Tower`/`Vein`, and `Msg.ExpandState`'s nodes gain `Hidden` after `Cleared`.
 - 385: Mystery doors (Docs/MysteryDoors.md step 1): `Msg.MysteryDoor` (client -> host: x, y, save), `Msg.ExpandState` gains the sealed doors after the breach event's mark (count, then x, y, vertical, price, saver each).
 - 384: Vector chests: `NodeKind.VectorChest` in `Msg.ExpandState`'s node list (room and surprise rooms may drop one).
-- 383: Ceremonial Armor replaces Iron Body (`AbilityId.IronBody` kept): player snapshot drops `IronT`, gains `PlateN` (then `PlateClock`, `PlateNewT`, `PlateMax` and a health byte per plate); `FxKind.CereBlock`/`CereBreak` appended; `Sfx.CereSummon`/`CereBreak` appended.
+- 383: Ceremonial Armor replaces Iron Body (`AbilityId.CeremonialArmor` kept): player snapshot drops `IronT`, gains `PlateN` (then `PlateClock`, `PlateNewT`, `PlateMax` and a health byte per plate); `FxKind.CereBlock`/`CereBreak` appended; `Sfx.CereSummon`/`CereBreak` appended.
 - 382: Dragon's Dogma's sounds: `Sfx.DogmaRoar`, `DogmaDevour`, `DogmaBite`, `DogmaHome` appended (sent with the cast, bites and its return).
 - 381: Dragon's Dogma (Tank Ninja second ultimate): `AbilityId.DragonsDogma`, `FxKind.DragonBite`, player snapshot gains `DogmaOn` (then `DogmaHead`, `DogmaTgt` while it is out).
 - 380: Deployable Cover (Tank Soldier 4th ability): `AbilityId.DeployableCover`, `ZoneKind.Cover` (Aim its facing, GuardFrac its health left), `FxKind.CoverHit`/`CoverBreak`/`CoverFold` (after Water Ward's); the Reinforced Plating card shifts card ids.
@@ -121,7 +121,7 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 - 306: `Msg.ExpandState` sends each map node's `Rule` byte after `Spent` (new `NodeKind.Rule`, a big rule node: Docs/RuleRooms.md); the save's `node` line gains a fifth field
 - 305: `Msg.ExpandState` sends its list counts (rooms, openings, links, builds, gate fits, room tokens, nodes) as ushort and each room's `Parent` as a short (were bytes: a big map could wrap past 255); replays store the protocol in their header (replay format 7)
 - 304: relics: `NodeKind.Relic` (at the end; nodes in `Msg.ExpandState`), Player snapshot gains `Relic` (a byte, `RelicId`) after `StaffStacks`; a wall-bounced shot's course goes out at once in `Msg.Steer` (no format change)
-- 303: spawn portals: `EnemyType.Portal` (at the end); a portal's `Phase` (0 opening, 1 emitting, 2/3 the same for a flank, 4 closing) and `Facing` ride the existing enemy snapshot; no new fields (Docs/Spawns.md)
+- 303: spawn portals: `EnemyType.SpawnPortal` (at the end); a portal's `Phase` (0 opening, 1 emitting, 2/3 the same for a flank, 4 closing) and `Facing` ride the existing enemy snapshot; no new fields (Docs/Spawns.md)
 - 302: Double Barrel (Soldier DPS 4th weapon): `WeaponId.DoubleBarrel`; the Twin Rifle Auto and Out of Ammo move to picks 4 and 5; Player snapshot gains `DbUsed`, `DbBarrel`, `DbShot` (bytes) and `DbReload` (float) after `ReloadT`; `Msg.WeaponDash` kind 28 (`DashBoth`)
 - 301: breach rooms step 3: `ExpansionRoom.Claimed` (a bool after `Surprise` in each room of `Msg.ExpandState`; also in saves as a trailing token): a Stash's vector cache has been taken
 - 300: breach rooms: a breach wave adds a free Stash (`ExpansionRoom.Surprise` 6 = `SurpriseShape.Stash`) behind each remaining breach; no new fields (Docs/BreachRooms.md)

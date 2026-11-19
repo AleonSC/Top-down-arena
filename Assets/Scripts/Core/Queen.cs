@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Hive Queen's stage of the fight, by her health: Swarm, Honeycomb, Frenzy, then a last stand.
+    /// The Hive Queen's phase of the fight, by her health: Swarm, Honeycomb, Frenzy, then a last stand.
     public enum QueenStage : byte { Swarm, Honeycomb, Frenzy, LastStand }
 
-    /// What she's doing right now. Each stage loops through its turns, one mechanic at a time, with a short
+    /// What she's doing right now. Each phase loops through its turns, one mechanic at a time, with a short
     /// breather (Rest) between them.
     public enum QueenTurn : byte { Rest, Drones, Bombers, Fan, Rings, Eggs, Cells, Spray, Cloud, Dive, Barrage, LastStand }
 
@@ -26,7 +26,7 @@ namespace Arena
         public QueenStage Stage;
         public QueenTurn Turn;
         public float TurnT;              // seconds into the current turn
-        public float TransT;             // > 0: changing stage (can't be hurt), counting down
+        public float TransT;             // > 0: changing phase (can't be hurt), counting down
         public QueenStage TransTo;
         public float Aux;                // the nectar spray's sweep, 0..1 across its 140 degrees
         public readonly List<QueenCell> Cells = new List<QueenCell>();
@@ -48,7 +48,7 @@ namespace Arena
 
     public partial class Game
     {
-        // Health at which each stage starts (the same as the Warden's).
+        // Health at which each phase starts (the same as the Warden's).
         const float HoneycombAt = 0.65f, FrenzyAt = 0.3f, QueenLastStandAt = 0.1f;
         const float QueenTransTime = 2f;
         // Swarm: drones (shield), bombers, fan, rings.
@@ -348,7 +348,7 @@ namespace Arena
             DoLog("the Hive Queen: changing to " + to);
         }
 
-        /// Her drones, eggs and bombers go when the stage changes (or she dies).
+        /// Her drones, eggs and bombers go when the phase changes (or she dies).
         void ClearQueenAdds(Enemy queen)
         {
             var ids = new List<int>();

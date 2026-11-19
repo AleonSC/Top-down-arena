@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Colossus's stage of the fight, by its health: three stages, then a last stand.
+    /// The Colossus's phase of the fight, by its health: three phases, then a last stand.
     public enum ColStage : byte { Awakening, Crumbling, MoltenCore, LastStand }
 
-    /// What it's doing now. Each stage loops its turns, one attack at a time, with breathers (Rest) between.
+    /// What it's doing now. Each phase loops its turns, one attack at a time, with breathers (Rest) between.
     public enum ColTurn : byte { Rest, Stomps, Boulders, Fissures, Charge, Rockslide, Aftershocks, LavaStomps, Meteors, CaveIn, Last }
 
     /// A stomp: a ring of push blocks (two rows, like the Warden's gates) spreading out from where it stomped, with
@@ -55,7 +55,7 @@ namespace Arena
     }
 
     /// Everything about the Colossus's fight its body doesn't carry. The host runs it; clients get it in the snapshot
-    /// (SyncColossus) to draw the rings, landings, fissures, plates, pillars, the charge line and the stage change.
+    /// (SyncColossus) to draw the rings, landings, fissures, plates, pillars, the charge line and the phase change.
     public class ColossusState
     {
         public ColStage Stage, TransTo;
@@ -73,7 +73,7 @@ namespace Arena
         public readonly Dictionary<int, V2> LastPos = new Dictionary<int, V2>(), Vel = new Dictionary<int, V2>();
     }
 
-    /// The Colossus (wave 25): a fight in three stages by its health, like the Warden's, then a last stand. It breaks
+    /// The Colossus (wave 25): a fight in three phases by its health, like the Warden's, then a last stand. It breaks
     /// down as it goes: armour, then shell, then a molten core.
     ///   Awakening (100-65%): it walks at you 200 px off, its rock volley between turns; Stomps (rings of push
     ///     blocks with a gap), Boulders (thrown where you're heading), Fissures (a crack that erupts).
@@ -128,7 +128,7 @@ namespace Arena
             return null;
         }
 
-        // Phase (replicated, for cues and drawing): the turn, or ColShift while changing stage.
+        // Phase (replicated, for cues and drawing): the turn, or ColShift while changing phase.
         public const byte ColShift = 50;
 
         // --- Moving ---------------------------------------------------------------------------------
@@ -758,7 +758,7 @@ namespace Arena
                 colCover = e.Colossus;
         }
 
-        /// Its rock volley: 3 aimed piercing shots, between turns in the first two stages and all through the last.
+        /// Its rock volley: 3 aimed piercing shots, between turns in the first two phases and all through the last.
         void ColossusFire(Enemy e, float aim)
         {
             var c = ColOf(e);

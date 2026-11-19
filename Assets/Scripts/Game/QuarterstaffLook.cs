@@ -83,7 +83,7 @@ namespace Arena
         void DrawQuarterstaffIdle(Player p, float t)
         {
             float ang, reach, bend;
-            if (!MeleeRest(p, WeaponId.HolyMace, out ang, out reach, out bend) || MeleeSwingShowing(p))
+            if (!MeleeRest(p, WeaponId.Quarterstaff, out ang, out reach, out bend) || MeleeSwingShowing(p))
                 return;
             DrawQuarterstaffModel(p.Disp, ang, reach, 1f, StaffGold, false, bend, ArmColor(p.Id), p.Id);
         }

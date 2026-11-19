@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// How the Hive Queen's fight looks (Queen.cs): the Honeycomb's wax floor and its sealing cells, the royal
-    /// dive's shadow, the nectar spray's aim, the swarm cloud's bees, eggs, honey globs and the stage looks on her.
+    /// dive's shadow, the nectar spray's aim, the swarm cloud's bees, eggs, honey globs and the phase looks on her.
     public partial class ArenaApp
     {
         static readonly Rgba Wax = new Rgba(1f, 0.75f, 0.3f), FrenzyWax = new Rgba(1f, 0.43f, 0.27f);
@@ -102,7 +102,7 @@ namespace Arena
             }
         }
 
-        /// Under the Queen: her drone shield, the stage-change shell, the frenzy's glow, and a wingbeat blur in a dive.
+        /// Under the Queen: her drone shield, the phase-change shell, the frenzy's glow, and a wingbeat blur in a dive.
         void DrawQueenUnderlay(Enemy e, V2 pos, float r, float t)
         {
             if (e.Phase == 1)  // shielded by her drones: a shell of little hex cells
@@ -114,7 +114,7 @@ namespace Arena
             var q = e.Queen;
             if (q == null)
                 return;
-            if (q.TransT > 0f)  // changing stage (can't be hurt): StageShiftLook.cs
+            if (q.TransT > 0f)  // changing phase (can't be hurt): StageShiftLook.cs
             {
                 DrawStageShiftBoss(e, pos, r, t);
                 return;

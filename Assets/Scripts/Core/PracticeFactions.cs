@@ -19,7 +19,7 @@ namespace Arena
     {
         static readonly Dictionary<EnemyType, string> Names = new Dictionary<EnemyType, string>
         {
-            { EnemyType.Boss, "Prison" }, { EnemyType.HiveQueen, "Hive" }, { EnemyType.TwinA, "Cult" },
+            { EnemyType.Warden, "Prison" }, { EnemyType.HiveQueen, "Hive" }, { EnemyType.ReaperOfDusk, "Cult" },
             { EnemyType.Singularity, "Infall" }, { EnemyType.Colossus, "Quarry" }, { EnemyType.StormHerald, "Squall" },
             { EnemyType.Duelist, "Masked Court" }, { EnemyType.Lich, "Dead" }, { EnemyType.Devourer, "Larder" },
             { EnemyType.Eclipse, "Penumbral" },

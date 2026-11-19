@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The DPS Knight's Bladed Dive (`AbilityId.Whirlwind` kept; was Misericorde, and Whirlwind before it). Press Space:
+    /// The DPS Knight's Bladed Dive (was Misericorde, and Whirlwind before it). Press Space:
     /// you rush toward your cursor (up to BladedRange, over BladedTime), untouchable, spinning your blade round you: BladedSlashes
     /// cuts land along the way, each hitting every enemy within BladedSlashR of you for BladedDamage. Kill anything with it
     /// and the cooldown resets. The rush is carried out by the player's own game (Msg.Carry).
@@ -94,7 +94,7 @@ namespace Arena
                 if (!run.Reset)
                 {
                     run.Reset = true;  // one kill is enough: the cooldown comes back
-                    CutCooldown(p, AbilityId.Whirlwind, 1f);  // ReaperLoot.cs: that player's own game takes it off too
+                    CutCooldown(p, AbilityId.BladedDive, 1f);  // ReaperLoot.cs: that player's own game takes it off too
                     BroadcastFx(FxKind.DiveReset, e.Pos, new V2(p.Id, 0f), new Rgba(1f, 0.84f, 0.55f), e.Radius, BladedResetFx, Sfx.Clang);
                 }
             }

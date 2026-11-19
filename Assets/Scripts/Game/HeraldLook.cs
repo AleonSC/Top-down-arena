@@ -5,7 +5,7 @@ namespace Arena
     /// How the Storm Herald's fight looks (Herald.cs): rain and wind streaks in the Gale, a darker sky in the
     /// Supercell, lightning rods and the arcs between them, ball lightning and its arcs, the Conductor's ring, the
     /// last stand's spokes, and the storm cloud around the Herald itself. Built from the mockup in
-    /// Docs/Mockups/storm-herald-3-stage.html.
+    /// Docs/Mockups/storm-herald-3-phase.html.
     public partial class ArenaApp
     {
         static readonly Rgba StormBlue = new Rgba(0.56f, 0.82f, 1f);
@@ -147,7 +147,7 @@ namespace Arena
                 Line(a + dir * d, a + dir * Mathf.Min(len, d + 10f), width, col);
         }
 
-        /// Under the Herald's body: its storm cloud, darker and wider each stage, a glow, and arcs crawling over it.
+        /// Under the Herald's body: its storm cloud, darker and wider each phase, a glow, and arcs crawling over it.
         void DrawHeraldUnderlay(Enemy e, V2 pos, float r, float t)
         {
             var s = e.Herald;

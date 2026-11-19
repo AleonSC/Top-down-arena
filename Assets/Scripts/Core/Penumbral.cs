@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// The Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, mockup Docs/Mockups/eclipse-faction.html; drawn
-    /// in Game/PenumbralLook.cs). Each enemy previews one thing the Eclipse's stages test. Step 1 has three:
+    /// in Game/PenumbralLook.cs). Each enemy previews one thing the Eclipse's phases test. Step 1 has three:
     ///   Ember (Lunar wake): melee, weaves in at you and drops a spark (Defs.EmberSpark) every EmberSparkEvery s that
     ///     drifts back slowly and hangs for EmberSparkLife s, so crossing its trail hurts. Its age (Enemy.T) times the sparks.
     ///   Corona Priest (Corona rings): keeps PriestRange and strafes; winds up PriestWindUp s (its halo flares), then fires

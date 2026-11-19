@@ -1,6 +1,6 @@
 namespace Arena
 {
-    /// Ceremonial Armor's sounds (the tank Ninja's Space ability, Core/CeremonialArmor.cs), sent by the host:
+    /// Ceremonial Armor's sounds (the tank Ninja's 1st ability, Core/CeremonialArmor.cs), sent by the host:
     ///   CereSummon  a plate summoned: three soft gold temple-bell notes rising (a pentatonic D, E, A) over a shimmer as the sigil opens,
     ///               a falling breath of air as the plate drops, then at Game.CereSummonTime the click into its slot: a dry lacquered
     ///               "tok", a low thump and a small bright ring of gold

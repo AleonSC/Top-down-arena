@@ -116,7 +116,7 @@ namespace Arena
                 if (p.Id == MyId)
                     MasteryToasts.Add(new MasteryToast { Ability = id, Level = after, T = 3f });
                 BroadcastFx(FxKind.Ring, p.Pos, after >= MasteryMax ? new Rgba(1f, 0.82f, 0.3f) : new Rgba(0.6f, 0.85f, 1f), 70f, 0.6f, Sfx.LevelUp);
-                DoLog(p.Name + "'s " + Upgrades.Ability(id).Name + " reached level " + after);
+                DoLog(p.Name + "'s " + Upgrades.Ability(id).Name + " reached mastery " + after);
             }
         }
 
@@ -217,7 +217,7 @@ namespace Arena
         /// What each ability's level-5 capstone does.
         public static string Capstone(AbilityId id) => id == AbilityId.None ? "" : Upgrades.Ability(id).Capstone;
 
-        /// "Barrier reached level 3" popups for your own abilities (the front end draws and ages them).
+        /// "Barrier reached mastery 3" popups for your own abilities (the front end draws and ages them).
         public readonly List<MasteryToast> MasteryToasts = new List<MasteryToast>();
     }
 

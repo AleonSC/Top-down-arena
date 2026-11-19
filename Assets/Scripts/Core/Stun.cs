@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Warden's legendaries: the Stun Gun (a Q / E / Shift ability that swaps your weapon for a six-shot stun
+    /// The Warden's legendaries: the Stun Gun (a 2nd, 3rd or 4th ability that swaps your weapon for a six-shot stun
     /// gun, its cooldown starting once the shots are spent) and Warden's Guard (guards that follow you and fight,
     /// coming back a while after they fall).
     public partial class Game
@@ -16,7 +16,7 @@ namespace Arena
 
         // --- Stun Gun ---------------------------------------------------------------------
 
-        /// The Stun Gun, from the Warden's legendary card (Q / E / Shift only). (Upgrades.Abilities gathers it.)
+        /// The Stun Gun, from the Warden's legendary card (2nd, 3rd or 4th only). (Upgrades.Abilities gathers it.)
         internal static readonly AbilityDef[] WardenAbilities =
         {
             new AbilityDef

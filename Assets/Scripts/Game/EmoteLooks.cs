@@ -8,7 +8,7 @@ namespace Arena
     public partial class ArenaApp
     {
         /// Draw emote number `index` (Rank.EmoteIndex), `t` seconds in. `head` is where the bubble's tail points (just above the
-        /// player's head); `s` scales it (1 in the lobby, a little less in a match).
+        /// player's head); `s` scales it (1 in the lobby, a little less in a run).
         void DrawEmote(int index, Vector2 head, float t, float s)
         {
             string id = Rank.EmoteId(index);

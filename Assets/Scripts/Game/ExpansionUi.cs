@@ -36,7 +36,7 @@ namespace Arena
             }
         }
 
-        /// What a Floor room does: that path's rule inside the room only, and its bonus for kills there.
+        /// What a rule room does: that path's rule inside the room only, and its bonus for kills there.
         static string FloorBlurb(PathId f)
         {
             var d = Paths.Get(f);
@@ -143,7 +143,7 @@ namespace Arena
             return S;
         }
 
-        /// The room kit screen (Docs/RoomModifiers.md): pick a kit, then click a plain room on the map to turn it into a Shop or Floor room.
+        /// The room kit screen (Docs/RoomModifiers.md): pick a kit, then click a plain room on the map to turn it into a Shop or rule room.
         void DrawExpansionModify(float t, bool calm)
         {
             RoundBackdrop(PathDim);

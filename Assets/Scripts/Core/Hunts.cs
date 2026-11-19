@@ -24,7 +24,7 @@ namespace Arena
         /// later bosses will need the party handed a build that fits their strength (levels, legendaries and mods).
         public static readonly HuntDef[] All =
         {
-            new HuntDef { Boss = EnemyType.Boss, HomeWave = 5, Name = "Warden Hunt", UnlockId = "hunt-warden" },
+            new HuntDef { Boss = EnemyType.Warden, HomeWave = 5, Name = "Warden Hunt", UnlockId = "hunt-warden" },
         };
 
         /// How far into its faction a build-up wave reaches, 1 to 4 (as the four approach waves of a run): enemies and
@@ -42,11 +42,11 @@ namespace Arena
 
     public partial class Game
     {
-        /// The Boss Hunt being played (host: from the lobby when the match starts; clients: told by the host), or null.
+        /// The Boss Hunt being played (host: from the lobby when the run starts; clients: told by the host), or null.
         public HuntDef Hunt;
 
         /// The hunt's wave number, 1 to HuntLength (0 before the first).
-        /// This hunt's waves (Hunts.Length, or Hunts.LongLength for a long hunt), the boss's included: set when the match starts (Session).
+        /// This hunt's waves (Hunts.Length, or Hunts.LongLength for a long hunt), the boss's included: set when the run starts (Session).
         public int HuntLength = Hunts.Length;
 
         /// The wave that enemy health and damage scale by: a long hunt's twenty steps are as tough as the short one's ten (each step

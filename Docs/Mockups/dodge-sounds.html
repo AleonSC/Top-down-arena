@@ -60,7 +60,7 @@ var V=[
 {k:'B',name:'Cloth Swish',note:'Soft fabric rush, no tonal part. Quiet and easy to hear 100 times a minute.',b:function(c,d,t,r){N(c,d,t,.22,'bandpass',2000*r,900,.6,.35,.04);N(c,d,t,.2,'lowpass',1200,300,.7,.3,.02)}},
 {k:'C',name:'Phase Slip',note:'Rising two-voice glide, then a small ping when the invulnerability ends (0.22 s). Tells you when you are hittable again.',b:function(c,d,t,r){O(c,d,t,.12,'sine',260*r,1040*r,.3);O(c,d,t,.12,'triangle',520*r,2080*r,.12);O(c,d,t+.22,.12,'sine',1568*r,1568*r,.12,.002)}},
 {k:'D',name:'Air Pop',note:'Punchy drop with a crack on the front. Feels heavy and impactful. Most likely to tire the ear.',b:function(c,d,t,r){O(c,d,t,.14,'sine',220*r,50,.6);N(c,d,t,.05,'bandpass',3000,1500,.8,.4,.001);N(c,d,t,.12,'lowpass',800,200,.7,.3,.005)}},
-{k:'E',name:'Glass Chime',note:'Three quick rising bell notes over a glint of air. Pretty and magical, fits the Mage and Ninja kits best.',b:function(c,d,t,r){[880,1318,1760].forEach(function(f,i){O(c,d,t+i*.045,.25,'sine',f*r,f*r,.2,.002)});N(c,d,t,.05,'highpass',6000,8000,.7,.1,.002)}}
+{k:'E',name:'Glass Chime',note:'Three quick rising bell notes over a glint of air. Pretty and magical, fits the Elementalist and Ninja kits best.',b:function(c,d,t,r){[880,1318,1760].forEach(function(f,i){O(c,d,t+i*.045,.25,'sine',f*r,f*r,.2,.002)});N(c,d,t,.05,'highpass',6000,8000,.7,.1,.002)}}
 ];
 var READY=function(c,d,t){O(c,d,t,.07,'sine',1200,1200,.12,.002)};
 var sel=0,cdUntil=0;

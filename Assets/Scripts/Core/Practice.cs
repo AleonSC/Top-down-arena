@@ -43,7 +43,7 @@ namespace Arena
             return p;
         }
 
-        public static string NameOf(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : Defs.Get(t).Name;
+        public static string NameOf(EnemyType t) => t == EnemyType.ReaperOfDusk ? "Twin Reapers" : Defs.Get(t).Name;
 
         /// One line on what each enemy does (shown when you hover it in the Practice Range).
         public static string BlurbOf(EnemyType t) => Defs.Get(t).Blurb ?? "";

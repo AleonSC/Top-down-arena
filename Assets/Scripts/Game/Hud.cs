@@ -31,12 +31,12 @@ namespace Arena
             HudGroup(1, new Vector2(-150f, 30f), HudWavePlate, DrawWaveCorner);  // (the layout: HudLayout.cs)
             HudGroup(3, new Vector2(0f, -80f), HudTopRow, () =>
             {
-                if (game.Recorder != null)  // this match is being recorded (hosts only)
+                if (game.Recorder != null)  // this run is being recorded (hosts only)
                     Ui.Label(HudRecTag, "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
                 DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs)
                 DrawBossBars();
             });
-            DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
+            DrawStageBanner();  // a boss changing phase (StageShiftLook.cs)
             DrawFreezeBanner();  // Blood Freeze's count and timer (BloodFreezeLook.cs)
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
@@ -542,7 +542,7 @@ namespace Arena
         readonly float[] tileEmptyK = new float[Upgrades.SlotCount];  // each key's ease toward its stub (HudLayout.cs HudTile)
         int tileEmptyFrame = -1;
 
-        /// XP bar plus the ability tiles (Space / Q / E / Shift / ultimate) along the bottom.
+        /// XP bar plus the ability tiles (Space / 2nd, 3rd or 4th / ultimate) along the bottom.
         void DrawAbilityBar(Player me)
         {
             // XP strip (the CRT console look): "LV 3 · 48%" in gold on its own dark plate at the left end, then the segmented gold bar.
@@ -617,7 +617,7 @@ namespace Arena
             float cd = game.Cooldown(me, i);
             float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
-            Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ult, green when ready, blue while it recharges
+            Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ultimate, green when ready, blue while it recharges
             CrtKeyBox(r, new Color(keyCol.r, keyCol.g, keyCol.b, ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
             if (look.White > 0f)
                 CrtKit.Frame(r, 2f, new Color(1f, 1f, 1f, 0.9f * look.White));
@@ -647,7 +647,7 @@ namespace Arena
             }
             else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
-            else if (slot.Id == AbilityId.CrimsonPact && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)
+            else if (slot.Id == AbilityId.BloodWall && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "ON", 19, new Color(1f, 0.33f, 0.41f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 16, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);

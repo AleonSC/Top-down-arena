@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The F1 developer menu: session recording, the aim debug overlay, the bot, jumping to a
-    /// wave, and editing each player's stats by hand. Changes to the match are host only.
+    /// wave, and editing each player's stats by hand. Changes to the run are host only.
     public partial class ArenaApp
     {
         int devWave = 1;          // the wave the "Go" button jumps to
@@ -21,8 +21,8 @@ namespace Arena
         void DevNotInMatch(Rect body, string what)
         {
             DkSub(new Rect(body.x, body.y, body.width, 90f));
-            Ui.Label(new Rect(body.x, body.y + 18f, body.width, 24f), "Not in a match", 16, Color.white, TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(body.x, body.y + 46f, body.width, 20f), "Start or join a match to " + what + ".", 13, CrtStyle.Desc, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(body.x, body.y + 18f, body.width, 24f), "Not in a run", 16, Color.white, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(body.x, body.y + 46f, body.width, 20f), "Start or join a run to " + what + ".", 13, CrtStyle.Desc, TextAnchor.MiddleCenter);
         }
 
         /// A titled card for the content area; returns the y to draw its contents at.

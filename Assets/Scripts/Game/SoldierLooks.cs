@@ -47,7 +47,7 @@ namespace Arena
         /// Your dash's ribbon, under your model (DrawPlayer). Remembers where the dash began and where it is now.
         void DrawDashStreak(Player p, float t)
         {
-            if (t < dashEndT - 0.5f)  // the clock went back (a new match)
+            if (t < dashEndT - 0.5f)  // the clock went back (a new run)
                 ClearSoldierLooks();
             if (game.DashT > 0f)
             {

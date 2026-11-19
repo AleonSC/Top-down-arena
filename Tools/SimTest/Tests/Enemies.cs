@@ -246,9 +246,9 @@ static partial class Program
             byte eclipsePhase = 0;
             int ghosts = 0, frame = 0;
             var ghostKinds = new List<string>();  // bullets the client has and the host doesn't, for the log
-            // The Eclipse's five stages are checked one by one in its own test (eclipse); here the simple bots (they walk
+            // The Eclipse's five phases are checked one by one in its own test (eclipse); here the simple bots (they walk
             // in circles, so they can't hide from its flashes or keep to the light) can't be killed, and it starts at 30%
-            // so the fight fits the time limit, still changing stage through the Umbra, Last Light and Totality.
+            // so the fight fits the time limit, still changing phase through the Umbra, Last Light and Totality.
             var eclipse = Find(s[0], EnemyType.Eclipse);
             if (eclipse != null)
             {
@@ -293,7 +293,7 @@ static partial class Program
                     case EnemyType.Eclipse:
                         if (cb != null)
                             eclipsePhase = Math.Max(eclipsePhase, cb.Phase);
-                        mechanic = eclipsePhase >= 2;  // reached the Umbra (Eclipse.cs: Phase is its stage)
+                        mechanic = eclipsePhase >= 2;  // reached the Umbra (Eclipse.cs: Phase is its phase)
                         break;
                 }
                 if (++frame % 60 == 0)

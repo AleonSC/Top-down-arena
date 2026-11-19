@@ -106,7 +106,7 @@ class JuiceCheck {
     Check((int)get("partN") >= p0 + 30, "a level up bursts with gold sparks");
 
     // A boss: the entrance card, then its death in waves.
-    var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(800f, 300f), 0f, 0, false });
+    var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Warden, new V2(800f, 300f), 0f, 0, false });
     boss.SpawnT = 0f;
     frame();
     Check((float)get("introT") > 0f && (string)get("introName") == "THE WARDEN", "a boss's arrival brings its entrance card");
@@ -183,7 +183,7 @@ class JuiceCheck {
 
     // New shot looks: each weapon's own shot draws its new way with effects on; an enemy's shot of the same kind doesn't.
     var dws = typeof(ArenaApp).GetMethod("DrawWeaponShot", f2);
-    var lookWeapons = new[] { WeaponId.TwinRifle, WeaponId.BurstSmg, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.ArcaneMissiles };
+    var lookWeapons = new[] { WeaponId.TwinRifle, WeaponId.BurstSmg, WeaponId.Railgun, WeaponId.Revolver, WeaponId.Scattergun, WeaponId.IceShards };
     var lookKinds = new[] { Defs.DpsShot, Defs.DpsShot, Defs.RailShot, Defs.HealerShot, Defs.TankShot, Defs.ArcaneShot, Defs.ArcaneShot };
     bool allLooks = true, offPlain = true;
     var keepWeapon = me.Weapon;

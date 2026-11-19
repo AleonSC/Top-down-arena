@@ -21,9 +21,9 @@ namespace Arena
         bool HasJobMarker(Enemy e)
         {
             return !e.Def.IsBoss && !game.IsSpawning(e) && e.Hp > 0f && !Zombies.Is(e.Type)
-                && !Game.IsPlanted(e.Type) && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.HiveBomber && e.Type != EnemyType.Portal
+                && !Game.IsPlanted(e.Type) && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.HiveBomber && e.Type != EnemyType.SpawnPortal
                 && e.Type != EnemyType.Gatekeeper && !FactionMinis.Is(e.Type) && e.Type != EnemyType.Shadow && e.Type != EnemyType.ReaperPillar
-                && e.Type != EnemyType.MiniWell && e.Type != EnemyType.Implosion;  // (the Infall's summons: Infall.cs)
+                && e.Type != EnemyType.SmallWell && e.Type != EnemyType.Implosion;  // (the Infall's summons: Infall.cs)
         }
 
         /// DrawEnemy, after the body: the job bar and shape just below it.

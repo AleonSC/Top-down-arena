@@ -61,7 +61,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Portal && e.Phase != SpawnPortals.Closing)
+                if (e.Type == EnemyType.SpawnPortal && e.Phase != SpawnPortals.Closing)
                     n++;
             return n;
         }
@@ -119,9 +119,9 @@ namespace Arena
         /// Host: a portal with this cargo. Also the preview's and tests' way in.
         public Enemy OpenPortal(List<EnemyType> cargo, bool flank, V2? at = null)
         {
-            float r = Defs.Get(EnemyType.Portal).Radius;
+            float r = Defs.Get(EnemyType.SpawnPortal).Radius;
             V2 pos = at ?? (flank ? FlankSpot(r) : PortalSpot(r));
-            var e = SpawnEnemyAt(EnemyType.Portal, pos, SpawnPortals.Appear, -1);  // (parent -1: no core carrier, no parent)
+            var e = SpawnEnemyAt(EnemyType.SpawnPortal, pos, SpawnPortals.Appear, -1);  // (parent -1: no core carrier, no parent)
             e.Phase = flank ? SpawnPortals.FlankOpening : SpawnPortals.Opening;
             e.PhaseT = flank ? SpawnPortals.FlankOpenTime : SpawnPortals.OpenTime;
             V2 to = PartyMiddle(new V2(Width / 2f, Height / 2f)) - e.Pos;
@@ -224,7 +224,7 @@ namespace Arena
             var list = scratchPortals;
             list.Clear();
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Portal)
+                if (e.Type == EnemyType.SpawnPortal)
                     list.Add(e);
             foreach (var e in list)
             {
@@ -290,7 +290,7 @@ namespace Arena
         /// Combat.cs, a portal shot closed: the rest of its burst is cancelled, and it pays out for each one.
         void PortalSealed(Enemy e)
         {
-            if (e.Type != EnemyType.Portal)
+            if (e.Type != EnemyType.SpawnPortal)
                 return;
             List<EnemyType> cargo;
             int n = portalCargo.TryGetValue(e.Id, out cargo) ? cargo.Count : 0;

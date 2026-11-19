@@ -19,10 +19,10 @@ namespace Arena
         {
             switch (b)
             {
-                case EnemyType.Boss: return new Rgba(1f, 0.55f, 0.12f);         // the Warden: sodium prison lamps
+                case EnemyType.Warden: return new Rgba(1f, 0.55f, 0.12f);         // the Warden: sodium prison lamps
                 case EnemyType.HiveQueen: return new Rgba(1f, 0.88f, 0.15f);    // honey
-                case EnemyType.TwinA:
-                case EnemyType.TwinB:
+                case EnemyType.ReaperOfDusk:
+                case EnemyType.ReaperOfDawn:
                 case EnemyType.DualReaper: return new Rgba(1f, 0.3f, 0.9f); // dusk
                 case EnemyType.Singularity: return new Rgba(0.68f, 0.35f, 1f);   // void violet
                 case EnemyType.Colossus: return new Rgba(1f, 0.72f, 0.38f);  // sandstone

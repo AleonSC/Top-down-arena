@@ -11,7 +11,7 @@ static partial class Program
 {
     static readonly System.Reflection.BindingFlags NP = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
 
-    /// A host and a friend (no bots), the match started at `wave`, with the difficulty given.
+    /// A host and a friend (no bots), the run started at `wave`, with the difficulty given.
     static Session[] StartPlain(float dt, int wave, Action<Session> setup = null)
     {
         int port = nextPort++;
@@ -40,7 +40,7 @@ static partial class Program
         g0.Wave = 0; g0.BossSlot = false;
         Console.WriteLine("  Blend (Normal): waves 1-5 = {0}", string.Join(", ", Enumerable.Range(1, 5).Select(w => share(w).ToString("0.00"))));
         Check(normal, "Blend (the default): the Warden's approach builds up 34%, 51%, 68%, 85%, 85%; nothing on his boss");
-        Check(Math.Abs(share(6) - 0.34f) < 1e-4f && Math.Abs(share(9) - 0.85f) < 1e-4f && Math.Abs(share(11) - 0.34f) < 1e-4f && Math.Abs(share(16) - 0.34f) < 1e-4f && Math.Abs(share(21) - 0.34f) < 1e-4f && Math.Abs(share(26) - 0.34f) < 1e-4f && Math.Abs(share(36) - 0.34f) < 1e-4f && Math.Abs(share(41) - 0.34f) < 1e-4f && Math.Abs(share(46) - 0.34f) < 1e-4f && NoFaction(EnemyType.Eclipse, () => share(46)) == 0f && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(9)) == EnemyType.HiveQueen && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(51)) == EnemyType.Boss,
+        Check(Math.Abs(share(6) - 0.34f) < 1e-4f && Math.Abs(share(9) - 0.85f) < 1e-4f && Math.Abs(share(11) - 0.34f) < 1e-4f && Math.Abs(share(16) - 0.34f) < 1e-4f && Math.Abs(share(21) - 0.34f) < 1e-4f && Math.Abs(share(26) - 0.34f) < 1e-4f && Math.Abs(share(36) - 0.34f) < 1e-4f && Math.Abs(share(41) - 0.34f) < 1e-4f && Math.Abs(share(46) - 0.34f) < 1e-4f && NoFaction(EnemyType.Eclipse, () => share(46)) == 0f && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(9)) == EnemyType.HiveQueen && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(51)) == EnemyType.Warden,
             "the Hive Queen's, the Twin Reapers', the Singularity's, the Colossus's, the Duelist's, the Storm Herald's, the Devourer's and the Eclipse's approaches build up like the Warden's (waves 6-9, 11-14, 16-19, 21-24, 26-29, 36-39, 41-44, 46-49); a boss with no faction (the Eclipse's taken away) has none; the waves after 50 lead to the bosses again");
         g0.Diff.Set(DiffKnob.ApproachShare, 1f);
         g0.Diff.Set(DiffKnob.ApproachRamp, 0f);
@@ -59,7 +59,7 @@ static partial class Program
         Check(hard[DiffKnob.ApproachShare] == 1f && Difficulty.Parse(Difficulty.Of(DifficultyLevel.Normal).ToText()).SameAs(Difficulty.Of(DifficultyLevel.Normal)), "picking another preset keeps the approach setting");
 
         // --- Waves built with it (host only, no fighting) --------------------------------------------------------------
-        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Warden).Members.Select(m => m.Type));
         var build = typeof(Game).GetMethod("BuildWave", NP);
         var queueF = typeof(Game).GetField("spawnQueue", NP);
         var squadsF = typeof(Game).GetField("squadQueue", NP);
@@ -297,7 +297,7 @@ static partial class Program
         Check(tWound && boltAt - firstWind > 0.5f && boltAt - firstWind < 0.9f, "a Taser Guard glows for its 0.7 s charge before it fires");
         Check(seenBolt && clientBolt, "a Taser Guard fires a Fork Bolt, and the friend's game sees it");
         Check(stunMax > 0.9f && hostMe.Hp < hpT, "a Fork Bolt that lands stuns you for a second and hurts a little");
-        Check(Approaches.For(EnemyType.Boss).Members.Any(m => m.Type == EnemyType.TaserGuard && m.From >= 2), "the Warden's faction includes the Taser Guard, from its third wave");
+        Check(Approaches.For(EnemyType.Warden).Members.Any(m => m.Type == EnemyType.TaserGuard && m.From >= 2), "the Warden's faction includes the Taser Guard, from its third wave");
         taser.Hp = 0f;
 
         // --- The Security Guard: a magazine of seven tracer rounds aimed straight at you, then a reload; the friend sees it all -----------
@@ -346,11 +346,11 @@ static partial class Program
         Check(!leads, "its rounds are aimed straight at you, never ahead of where you are heading (no lead)");
         Check(clientSaw && clientPhase, "the friend's game sees the tracer rounds and the reload (its ammo is Enemy.Phase)");
         Check(damaged, "a tracer round that lands hurts");
-        Check(Approaches.For(EnemyType.Boss).Members.Any(m => m.Type == EnemyType.SecurityGuard && m.From <= 2), "the Warden's faction includes the Security Guard, from its second wave");
+        Check(Approaches.For(EnemyType.Warden).Members.Any(m => m.Type == EnemyType.SecurityGuard && m.From <= 2), "the Warden's faction includes the Security Guard, from its second wave");
         sec.Hp = 0f;
 
         // --- The Riot Line (the last wave before the Warden): shields march in a wall, guards behind, then charge --------
-        var finale = Approaches.For(EnemyType.Boss).Finale;
+        var finale = Approaches.For(EnemyType.Warden).Finale;
         Check(finale != null && w5.Count(t => t == EnemyType.RiotShield) >= 4 && w5.Count(t => t == EnemyType.Guard) >= 5,
             "the last wave before the Warden always brings the Riot Line (four Riot Shields, five Guards)");
         foreach (var e in g2.Enemies.Values) e.Hp = 0f;
@@ -383,8 +383,8 @@ static partial class Program
         // --- The Warden's pair in his searchlight turn ---------------------------------------------------------------------
         var s5 = StartPlain(dt, 5);
         var g5 = s5[0].Game;
-        Run(s5, dt, 8f, () => g5.State == MatchState.Fighting && Find(s5[0], EnemyType.Boss) != null && !Find(s5[0], EnemyType.Boss).Spawning);
-        var warden = Find(s5[0], EnemyType.Boss);
+        Run(s5, dt, 8f, () => g5.State == MatchState.Fighting && Find(s5[0], EnemyType.Warden) != null && !Find(s5[0], EnemyType.Warden).Spawning);
+        var warden = Find(s5[0], EnemyType.Warden);
         typeof(Game).GetMethod("SendRiotShields", NP).Invoke(g5, new object[] { warden });
         typeof(Game).GetMethod("SendRiotShields", NP).Invoke(g5, new object[] { warden });
         var pair = g5.Enemies.Values.Where(e => e.Type == EnemyType.RiotShield && e.ParentId == warden.Id).ToList();

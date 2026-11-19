@@ -30,7 +30,7 @@ static partial class Program
         Action Quiet = () => { foreach (var q in queues) q.Clear(); };
         for (int f = 0; f < 60 * 20 && g.State != MatchState.Fighting; f++)
             Step(host, dt);
-        Check(g.State == MatchState.Fighting, "the match started");
+        Check(g.State == MatchState.Fighting, "the run started");
         var me = g.Players[1];
         Func<EnemyType, V2, Enemy> put = (t, at) =>
         {

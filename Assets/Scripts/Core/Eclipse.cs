@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Eclipse's stage of the fight, by its health: five stages, then a last stand.
+    /// The Eclipse's phase of the fight, by its health: five phases, then a last stand.
     public enum EclipseStage : byte { Corona, Penumbra, Umbra, Echoes, LastLight, Totality }
 
-    /// What it's doing now. Each stage loops its turns, one attack at a time, with breathers (Rest) between.
+    /// What it's doing now. Each phase loops its turns, one attack at a time, with breathers (Rest) between.
     public enum EclipseTurn : byte
     {
         Rest, Spiral, CoronaRings, Flares, LunarWake, Flash, Gravity, Crescents, ClosingUmbra, DarkSpiral,
@@ -43,7 +43,7 @@ namespace Arena
     {
         public EclipseStage Stage, TransTo;
         public EclipseTurn Turn;
-        public float TurnT, TransT;     // seconds into the turn; > 0: changing stage (can't be hurt), counting down
+        public float TurnT, TransT;     // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public float MoonA, MoonD;      // the moon's angle round the sun and its distance (0: no moon)
         public float FlashT;            // > 0: the sun is swelling, this long until it flashes
         public int FlashLeft;           // flashes still to come this turn
@@ -63,8 +63,8 @@ namespace Arena
         public float TurnLen, ActT, Orbit, SweepT, DrainT, MoonFireT, BurnT;
     }
 
-    /// The Eclipse (wave 50, the final boss): five stages by its health, then a last stand. A sun and its moon line up
-    /// as the fight goes on, and each stage keeps a mechanic from the one before.
+    /// The Eclipse (wave 50, the final boss): five phases by its health, then a last stand. A sun and its moon line up
+    /// as the fight goes on, and each phase keeps a mechanic from the one before.
     ///   Corona (100-80%): it orbits the middle as before; Spiral and Corona rings (as before), Solar flares.
     ///   Penumbra (80-60%): the moon orbits it, soaking your shots; its shadow is the only shelter from the Eclipse
     ///     flash. Lunar wake (the moon trails shots), Eclipse flash, Gravity (as before). Two Embers (Penumbral.cs).
@@ -77,7 +77,7 @@ namespace Arena
     ///   Totality (below 5%): the moon is gone; a 12 s nova timer while it takes +50% damage. The nova hits everyone
     ///     for 70% of their health and heals it back half of what it lost since the last nova (at most 2% of its
     ///     health), then the timer starts again.
-    /// Built from the mockup in Docs/Mockups/eclipse-5-stage.html. Drawn in EclipseLook.cs.
+    /// Built from the mockup in Docs/Mockups/eclipse-5-phase.html. Drawn in EclipseLook.cs.
     public partial class Game
     {
         const float EclipsePenumbraAt = 0.8f, EclipseUmbraAt = 0.6f, EclipseEchoesAt = 0.4f, EclipseLastLightAt = 0.2f, EclipseTotalityAt = 0.05f;

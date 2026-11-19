@@ -7,7 +7,7 @@ static partial class Program
 {
     static readonly EnemyType[] OldCycle =
     {
-        EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+        EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
         EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
     };
 
@@ -28,12 +28,12 @@ static partial class Program
 
         var g = new Session().Game;
         Check(g.Bosses == BossSchedule.Campaign, "a run without a hunt uses the Campaign's schedule");
-        g.Hunt = Hunts.Get(EnemyType.Boss);
+        g.Hunt = Hunts.Get(EnemyType.Warden);
         var h = g.Bosses;
         bool hunt = !h.Slotted && h.FirstBossWave == Hunts.Length;
         for (int w = 0; w <= Hunts.Length; w++)
         {
-            hunt &= h.IsBossWave(w) == (w >= Hunts.Length) && h.BossAt(w) == EnemyType.Boss && h.NextBossWaveFrom(w) == Hunts.Length;
+            hunt &= h.IsBossWave(w) == (w >= Hunts.Length) && h.BossAt(w) == EnemyType.Warden && h.NextBossWaveFrom(w) == Hunts.Length;
             hunt &= h.ApproachStep(w) == (w >= Hunts.Length ? 0 : Hunts.Step(w)) && h.FinaleWave(w) == Hunts.FinaleWave(w);
         }
         Check(hunt && g.Bosses == h, "a Boss Hunt's schedule: only its boss, on its last wave (and the same object each time)");

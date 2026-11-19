@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Arena
 {
     /// Saved runs and records on screen (RunSaves.cs, SaveData.cs, Profile.cs): the main menu's Continue list and
-    /// Records page, the lobby's seats when continuing a run, and "Unlocked" toasts in a match.
+    /// Records page, the lobby's seats when continuing a run, and "Unlocked" toasts in a run.
     public partial class ArenaApp
     {
         List<RunSave> savedRuns = new List<RunSave>();
@@ -317,11 +317,11 @@ namespace Arena
 
         static readonly EnemyType[] RecordBosses =
         {
-            EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+            EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
             EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
         };
 
-        static string BossName(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : t == EnemyType.Boss ? "The Warden" : Defs.Get(t).Name;
+        static string BossName(EnemyType t) => t == EnemyType.ReaperOfDusk ? "Twin Reapers" : t == EnemyType.Warden ? "The Warden" : Defs.Get(t).Name;
 
         // --- The lobby, continuing a run --------------------------------------------------------------
 
@@ -367,7 +367,7 @@ namespace Arena
                 float tx = face.xMax + 16f;
                 Ui.Label(new Rect(tx, r.y + 10f, 360f, 26f), seat.Name, 20, Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(tx, r.y + 38f, 420f, 20f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name + "  ·  level " + seat.Level, 14, Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(tx, r.y + 62f, 460f, 20f), Defs.Weapon(seat.Role, seat.Kit, seat.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(seat.Role, seat.Kit, seat.Ability)).Name, 12, Ui.Muted);
+                Ui.Label(new Rect(tx, r.y + 62f, 460f, 20f), Defs.Weapon(seat.Role, seat.Kit, seat.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.FirstAbility(seat.Role, seat.Kit, seat.Ability)).Name, 12, Ui.Muted);
                 var who = new Rect(r.xMax - 210f, r.y + 16f, 196f, 24f);
                 if (sitter != null)
                     DkTag(who, mine ? "YOU" : sitter.Name.ToUpperInvariant(), mine ? Ui.Accent : Ui.Neutral);
@@ -383,7 +383,7 @@ namespace Arena
                 Ui.Label(new Rect(body.x, y + 4f, body.width, 36f), "Seats nobody takes are left out of the continued run.", 12, Ui.Warn, TextAnchor.UpperLeft, false, true);
         }
 
-        // --- In a match ------------------------------------------------------------------------------------
+        // --- In a run ------------------------------------------------------------------------------------
 
         /// "Unlocked: ..." when this player's records earn something (RunSaves.cs).
         void DrawUnlockToasts(float cx, float y)

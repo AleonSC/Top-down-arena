@@ -1,6 +1,6 @@
 # Wildcard (4th role): design
 
-Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS ultimate: protocol 246, `Docs/Mockups/wildcard-gear-carousel.html`). Final choices: second ability on a bonus key (Q/E/Shift) chosen in the lobby, same 5 slots; Hemomancer abilities keep their health cost; Wildcard is locked out of the lobby and Practice Range until unlocked; bots only get it by hand. The lobby already has a locked 4th role slot (`RoleSlots = 4`, `LobbyUi.cs`);
+Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS ultimate: protocol 246, `Docs/Mockups/wildcard-gear-carousel.html`). Final choices: Wildcard ability on a 2nd–4th ability slot chosen in the lobby, same 5 slots; Hemomancer abilities keep their health cost; Wildcard is locked out of the lobby and Practice Range until unlocked; bots only get it by hand. The lobby already has a locked 4th role slot (`RoleSlots = 4`, `LobbyUi.cs`);
 `History.md` notes a Wildcard "pick any class's weapon/ability" was discussed for it.
 
 ## Decisions (owner, Nov 2026)
@@ -8,7 +8,7 @@ Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS u
 | Question | Decision |
 |---|---|
 | Pool | **Any DPS weapon and any DPS ability, from any class** (Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer). No Tank or Healer gear. |
-| Identity | Middle health (~130 HP), **no role passive** (no taunt, no healing aura), plus a "+1 bonus slot" (see open question 1). |
+| Identity | Middle health (~130 HP), **no role passive** (no taunt, no healing aura), plus a "+1 2nd–4th ability slot" (see open question 1). |
 | Unlock | **Win a run once with each role** (Tank, Healer, DPS). Until then the slot stays the padlock "Coming soon" card. |
 | Cost | **Lesser stats: less damage and slower cooldowns** than a native role. |
 | Upgrades | Generic cards work as normal. A weapon's own cards (e.g. Warding Ink for Spirit Chalk) still appear, since they key off the weapon. **Class passives do not carry over** (Hemomancer blood price and low-health bonus, Ninja speed, Knight armour). |
@@ -22,7 +22,7 @@ Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS u
 
 ## Answers to the first round (owner, Nov 2026)
 
-1. **Bonus slot:** the Wildcard starts with a **second ability** (two Space abilities, both from the DPS pool).
+1. **Bonus slot:** the Wildcard starts with a **Wildcard ability** (two 1st abilities, both from the DPS pool).
    Open detail: a second key, or Space cycles / both fire? Needs a pick.
 2. **Win:** co-op wins count toward the "win once with each role" unlock.
 3. **Hemomancer abilities:** they deal their damage but get **no low-health bonus**. (Whether the health cost stays

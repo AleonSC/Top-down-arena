@@ -31,10 +31,10 @@ namespace Arena
                 Desc = "A six-round drum of HE grenades lobbed over enemies to your cursor, bursting where they land. Alt swaps in the smoke drum: canisters that open into a cloud where regular enemies are slowed and can't attack, and bosses are slowed.",
                 Sound = Sfx.TankMineLaunch, AreaDesc = "blasts and clouds 25% wider" },
             // Healer
-            new WeaponDef { Id = WeaponId.LightBolt, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
+            new WeaponDef { Id = WeaponId.RepulsionCannon, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
                 Desc = "Blasts enemies away in a cone for light damage. Enemies it hits shed tiny health orbs. Hits fill the Undertow: hold Alt to pull enemies in.",
                 HomingDesc = "the blast 15% narrower, and 10% stronger (damage and push) per stack, instead of bending shots", Sound = Sfx.ShotRepulse },
-            new WeaponDef { Id = WeaponId.Pistol, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots, or hold to fan the hammer and empty the cylinder in a quick spray. The last round in the cylinder is heavy. Alt: a pistol whip, a wide swing that destroys bullets and shoves enemies back.",
+            new WeaponDef { Id = WeaponId.Revolver, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots, or hold to fan the hammer and empty the cylinder in a quick spray. The last round in the cylinder is heavy. Alt: a pistol whip, a wide swing that destroys bullets and shoves enemies back.",
                 Sound = Sfx.ShotPistol },
             new WeaponDef { Id = WeaponId.MendersBow, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw hits hard, pierces enemies and heals allies it passes. Let go right at full draw for a perfect shot.",
                 Sound = Sfx.ShotBow },
@@ -69,7 +69,7 @@ namespace Arena
             // Each extra projectile (Multishot, Artillery Assault) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
             FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
-            if (p.Weapon.Id == WeaponId.Pistol)
+            if (p.Weapon.Id == WeaponId.Revolver)
             {
                 p.AmmoUsed++;  // fanned copies come free with the round
                 p.ReloadIdle = 0f;
@@ -194,9 +194,9 @@ namespace Arena
                 firingWeapon = false;
                 return;
             }
-            if (p.Weapon.Id == WeaponId.LeechBeam || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning)
+            if (p.Weapon.Id == WeaponId.LeechTendrils || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning)
             {
-                FireVolley(p, aim, extra);  // Barrage adds a tendril, cones side by side or parallel strips instead (BloodMage.cs, Minions.cs)
+                FireVolley(p, aim, extra);  // Barrage adds a tendril, cones side by side or parallel strips instead (Hemomancer.cs, Minions.cs)
                 return;
             }
             if (p.Weapon.Id == WeaponId.Implosion || p.Weapon.Id == WeaponId.HoneybeeStaff)
@@ -218,7 +218,7 @@ namespace Arena
         float volleyShare = 1f;  // set while a Barrage copy fires
 
         /// Extra projectiles from upgrades, plus two during Artillery Assault.
-        public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.BulletStorm) ? 4 : 2) : 0)
+        public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.ArtilleryAssault) ? 4 : 2) : 0)
             + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0);
 
         // --- Revolver (the Healer's Pistol) -------------------------------------------
@@ -247,7 +247,7 @@ namespace Arena
             : BowFullDraw / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
 
         /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Gore Mortar.
-        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.ClotBolt;
+        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.GoreMortar;
 
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
@@ -413,10 +413,10 @@ namespace Arena
                 case WeaponId.BearTotem:
                     FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (KitWeapons.cs)
                     break;
-                case WeaponId.LightBolt:
+                case WeaponId.RepulsionCannon:
                     FireRepulsion(p, aim, dmg, extra);  // the Repulsion Cannon (Repulsion.cs)
                     break;
-                case WeaponId.Pistol:
+                case WeaponId.Revolver:
                 {
                     // Revolver: a perfectly accurate round; the last ones in the cylinder are heavy.
                     int left = RevolverCapacity(p) - p.AmmoUsed;  // FirePlayer uses up the round
@@ -526,7 +526,7 @@ namespace Arena
                     return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
                     return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
-                case WeaponId.ClotBolt:  // where the Gore Mortar's clot lands with the current charge (BloodMage.cs)
+                case WeaponId.GoreMortar:  // where the Gore Mortar's clot lands with the current charge (Hemomancer.cs)
                     return ClotDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.Warhammer:  // the middle of its slam's circle, the furthest aftershock's if it has them (Knight.cs)
                     return HammerCentre(MeleeReach(p, w.Reach + w.Grow * x));
@@ -548,21 +548,21 @@ namespace Arena
                     return LightConeLength(p, x);
                 case WeaponId.FumaShuriken:  // the far end of its widest loop (Ninja.cs)
                     return FumaReach * FumaSize(x) * p.Stats.ShotSpeedMult * PierceReach(p);
-                case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
-                case WeaponId.BoneSpear:  // (BoneSpear.cs)
+                case WeaponId.Implosion:  // how far away you can click (Hemomancer.cs)
+                case WeaponId.BloodBrawler:  // (BloodBrawler.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
                 case WeaponId.Flamethrower:  // the lead flame's reach (Minions.cs)
                 case WeaponId.SpiritFan:     // the gust's reach (Ninja.cs)
                     return p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult * PierceReach(p);
-                case WeaponId.LightBolt:  // the Repulsion Cannon's cone
+                case WeaponId.RepulsionCannon:  // the Repulsion Cannon's cone
                     return p.Def.BodyR + w.Reach * AreaMult(p) * PierceReach(p);
                 case WeaponId.StasisGun:  // how far from you the field can sit (EngineerBots.cs)
                     return StasisReach * p.Stats.ShotSpeedMult;
-                case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
+                case WeaponId.LeechTendrils:  // Leech Tendrils reach from your edge (Hemomancer.cs)
                     return p.Def.BodyR + GraspReach(p);
                 case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)
                     return RadiantReach(p);
-                case WeaponId.VeinTether:  // a beam from your edge (BloodMage.cs)
+                case WeaponId.VeinTether:  // a beam from your edge (Hemomancer.cs)
                     return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Lightbringer:  // its sword waves reach past the swing
                     return Math.Max(MeleeReach(p, w.Reach), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);

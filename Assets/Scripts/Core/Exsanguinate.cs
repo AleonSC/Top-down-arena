@@ -10,7 +10,7 @@ namespace Arena
     /// (Deep Veins: more, and farther). Heavy enemies and bosses aren't moved (the tendril strains against them) but still get drained.
     /// Mastered: what it drains is slowed 50% for 2 s, as before.
     ///
-    /// Host: the reel lives on the enemy (`ReelBy`, `ReelT`, `ReelFrom`, ...), ticked by TickReels from TickBloodMages. The pull is
+    /// Host: the reel lives on the enemy (`ReelBy`, `ReelT`, `ReelFrom`, ...), ticked by TickReels from TickHemomancers. The pull is
     /// ordinary replicated movement. Screens draw it from FxKind.Exsanguinate (Game/ExsanguinateLook.cs):
     ///   cast:   Pos = the caster, Pos2 = (-1, caster's id), Radius = the reach, Dur = ExsCastFx;
     ///   tendril, one per enemy hooked: Pos = where it stood, Pos2 = (its id, caster's id), Radius = its size,

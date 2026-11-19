@@ -69,7 +69,7 @@ namespace Arena
         void ModeRowModel(Rect c, EnemyType e, float t, bool top)
         {
             UiClip(new Rect(c.x + 30f, c.y + 2f, 36f, c.height - 4f));
-            DrawEnemyPreview(e == EnemyType.TwinB ? EnemyType.TwinA : e, new V2(c.x + 48f, c.center.y), Mathf.Min(34f, c.height - 6f), t, top);
+            DrawEnemyPreview(e == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : e, new V2(c.x + 48f, c.center.y), Mathf.Min(34f, c.height - 6f), t, top);
         }
 
         /// The phosphor-green scope: the screen, its labels and (with `reticle`) the crosshair and range rings.
@@ -100,7 +100,7 @@ namespace Arena
         void ModeScopeModel(Rect scope, EnemyType e, float t)
         {
             UiClip(new Rect(scope.x + 2f, scope.y + 22f, scope.width - 4f, scope.height - 44f));
-            DrawEnemyPreview(e == EnemyType.TwinB ? EnemyType.TwinA : e, new V2(scope.center.x, scope.center.y), scope.height - 56f, t, true);
+            DrawEnemyPreview(e == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : e, new V2(scope.center.x, scope.center.y), scope.height - 56f, t, true);
         }
 
         /// CRT finish over the scope (and the model): scan lines, then a vignette toward the edges.

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Crimson Harvest (Core/CrimsonHarvest.cs), from Docs/Mockups/hemomancer-ult-rework.html: the tendrils of look B (Whirlpool: faint dotted
+    /// Crimson Harvest (Core/CrimsonHarvest.cs), from Docs/Mockups/hemomancer-ultimate-rework.html: the tendrils of look B (Whirlpool: faint dotted
     /// threads from the ball to every enemy, with big droplets running back along them, each with a short trail) and the ball of look A
     /// (Membrane: a wobbling skin with a heartbeat, veins, a glint and a rim). While the ball is up (Player.HarvestHold > 0) it floats over its
     /// owner and swells with Player.HarvestBlood; in the hold a countdown ring runs round it, and the owner's own screen shows where it

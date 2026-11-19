@@ -53,10 +53,10 @@ static partial class Program
                     need(core.Contains("case WeaponId." + w.Id + ":"), wn + ": its own case in its class's fire method (a case WeaponId." + w.Id + ")");
                 }
 
-            // Abilities: three Space abilities per role and an ultimate, all its own, each with a cast.
+            // Abilities: three 1st abilities per role and an ultimate, all its own, each with a cast.
             foreach (var role in roles)
             {
-                var placed = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Where(c => !Upgrades.AbilityGap(role, k.Id, c)).Select(c => Upgrades.RoleAbility(role, k.Id, c)).ToList();
+                var placed = Enumerable.Range(0, Upgrades.FirstAbilityChoices).Where(c => !Upgrades.AbilityGap(role, k.Id, c)).Select(c => Upgrades.FirstAbility(role, k.Id, c)).ToList();
                 if (!Upgrades.UltGap(role, k.Id))
                     placed.Add(Upgrades.Ultimate(role, k.Id));
                 for (int u = 1; u < Upgrades.UltKeys; u++)  // any other ultimates on the lobby's Ultimate row
@@ -78,7 +78,7 @@ static partial class Program
 
         foreach (var p in problems)
             Console.WriteLine("  missing: " + p);
-        Check(problems.Count == 0, "every class is complete: " + kits + " classes, each with a name, blurb, icon, look, 9 weapons that fire, 9 Space abilities and 3 ultimates that cast");
+        Check(problems.Count == 0, "every class is complete: " + kits + " classes, each with a name, blurb, icon, look, 9 weapons that fire, 9 1st abilities and 3 ultimates that cast");
 
         var thrown = Defs.Weapons.Where(w => w.Sound == Sfx.Throw && !w.Melee).Select(w => w.Name);
         Console.WriteLine("  weapons with the default throw sound (set WeaponDef.Sound if that's wrong): " + string.Join(", ", thrown));

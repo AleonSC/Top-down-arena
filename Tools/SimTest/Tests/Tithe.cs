@@ -23,9 +23,9 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1]; var ally = g.Players[2];
         g.DevSetGod(2, true);
-        me.Slots[Upgrades.UltSlot].Id = AbilityId.BloodRite;
-        var def = Upgrades.Ability(AbilityId.BloodRite);
-        Check(def.Name == "Vein Tithe" && def.Cooldown == 75f && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.BloodRite, "the tank Hemomancer's ultimate is Vein Tithe, 75 s");
+        me.Slots[Upgrades.UltSlot].Id = AbilityId.VeinTithe;
+        var def = Upgrades.Ability(AbilityId.VeinTithe);
+        Check(def.Name == "Vein Tithe" && def.Cooldown == 75f && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe, "the tank Hemomancer's ultimate is Vein Tithe, 75 s");
 
         V2 mePos = new V2(300f, 450f);
         var mine = new HashSet<int>();
@@ -99,10 +99,10 @@ static partial class Program
         Check(Math.Abs(one - Game.TitheCost) < 1e-6f, "one enemy costs 0.4% of max health a second");
         reset();
         make(new V2(800f, 450f));
-        me.MasteryXp[AbilityId.BloodRite] = 1e6f;
+        me.MasteryXp[AbilityId.VeinTithe] = 1e6f;
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         Check(me.UltT == Game.TitheLenMastered && Math.Abs(g.TitheRate(me) - Game.TitheCost * Game.TitheMasteredCost) < 1e-6f, "mastered it lasts 20 s and costs 25% less");
-        me.MasteryXp.Remove(AbilityId.BloodRite);
+        me.MasteryXp.Remove(AbilityId.VeinTithe);
         reset();
         Check(Game.TitheBossMult == 4f && Game.TitheMasteredCost == 0.75f, "a boss costs four times as much and mastered costs 25% less");
         Check(Game.TitheGrown(0f, 0) == 0f && Game.TitheGrown(Game.TitheReach, 5) >= 0.99f, "every tendril has fully grown by 1.2 s");

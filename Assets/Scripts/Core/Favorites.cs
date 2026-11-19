@@ -5,7 +5,7 @@ using System.Linq;
 namespace Arena
 {
     /// One saved loadout (the lobby's Saved loadouts drawer, Game/FavoritesUi.cs): a name you typed, the role, class,
-    /// weapon, ability, a Wildcard's second ability, the Ultimate row's pick and the perks equipped when it was saved.
+    /// weapon, ability, a Wildcard ability, the Ultimate row's pick and the perks equipped when it was saved.
     public class FavLoadout
     {
         public string Name = "";
@@ -93,7 +93,7 @@ namespace Arena
             return string.Join(",", p.PerkNames) != before;
         }
 
-        /// "fav" line: role kit weapon ability wild ult perks|name (perks comma-separated, "-" for none).
+        /// "fav" line: role kit weapon ability wild ultimate perks|name (perks comma-separated, "-" for none).
         public static string ToLine(FavLoadout f) =>
             (int)f.Role + " " + (int)f.Kit + " " + f.Weapon + " " + f.Ability + " " + f.Wild + " " + f.Ult + " " + (f.Perks.Count > 0 ? string.Join(",", f.Perks) : "-") + "|" + f.Name;
 

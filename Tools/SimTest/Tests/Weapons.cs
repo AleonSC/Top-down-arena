@@ -70,7 +70,7 @@ static partial class Program
         Func<V2, EnemyType, Enemy> Dummy = (at, t) => { var e = (Enemy)spawn.Invoke(g, new object[] { t, at, 0f, 0, false }); e.MaxHp = e.Hp = 1e5f; e.Speed = 0f; e.FireT = 99f; return e; };
         var front = Dummy(new V2(680f, 450f), EnemyType.Grunt);   // in the cone
         var side = Dummy(new V2(560f, 300f), EnemyType.Grunt);    // 68 degrees off the aim: outside it
-        var boss = Dummy(new V2(700f, 520f), EnemyType.Boss);     // in the cone, too heavy to shove
+        var boss = Dummy(new V2(700f, 520f), EnemyType.Warden);     // in the cone, too heavy to shove
         V2 f0 = front.Pos, b0 = boss.Pos;
         me.Pos = from;
         foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = true } : new PlayerInput()); }
@@ -126,7 +126,7 @@ static partial class Program
         foreach (var e in pack) g.Enemies.Remove(e.Id);
         var far = Dummy(new V2(500f + 270f, 450f), EnemyType.Grunt);
         var far2 = Dummy(new V2(500f + 240f, 500f), EnemyType.Grunt);
-        var big = Dummy(new V2(500f + 250f, 400f), EnemyType.Boss);
+        var big = Dummy(new V2(500f + 250f, 400f), EnemyType.Warden);
         V2 far0 = far.Pos, big0 = big.Pos;
         float m0 = me.RepelMeterF;
         int blasts0 = g.Sounds.Count(x => x.Sfx == Sfx.ShotRepulse);
@@ -565,7 +565,7 @@ static partial class Program
             {
                 queue.Clear();
                 me.Pos = w.Id == WeaponId.Kusarigama ? center - new V2(70f, 0f)  // within its sickle cut
-                    : w.Id == WeaponId.ClotBolt ? center - new V2(Game.ClotDistance(1f) * me.Stats.ShotSpeedMult, 0f)  // a full charge lobs the clot onto the cluster
+                    : w.Id == WeaponId.GoreMortar ? center - new V2(Game.ClotDistance(1f) * me.Stats.ShotSpeedMult, 0f)  // a full charge lobs the clot onto the cluster
                     : w.Id == WeaponId.OutOfAmmo ? center - new V2(50f, 0f)  // its knife chain works close in front of you
                     : w.Melee ? center - new V2(Game.MeleeRange(w.Id) * 0.5f + 40f, 0f) : from;  // knights stand in reach
                 ally.Pos = new V2(560f, 300f);
@@ -606,7 +606,7 @@ static partial class Program
                 case WeaponId.TwinBlades: ok = b[1] > a[1] && ratio > 1.1f; break;       // crescents off the Pirouette and the Shear: two steps in five have them
                 case WeaponId.BearTotem: ok = ratio > 1.1f; break;                        // claws plus the Bear's cleave (it wanders)
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
-                case WeaponId.HolyMace: ok = me.StaffStacks == Game.StaffBaseStacks + 2; break;  // each extra projectile stores one more Jab stack (the swipes fill it)
+                case WeaponId.Quarterstaff: ok = me.StaffStacks == Game.StaffBaseStacks + 2; break;  // each extra projectile stores one more Jab stack (the swipes fill it)
                 case WeaponId.GolemStaff: ok = a[2] == 1 && b[2] == 3; break;
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
@@ -733,7 +733,7 @@ static partial class Program
                 me.Weapon = w;
                 me.Stats.ExtraShots = extra;
                 me.BowShotDraw = 0f;
-                me.Orbiters = w.Id == WeaponId.ArcaneMissiles ? Game.OrbitCap(extra) : 0;  // a full orbit: the cast flies at your aim
+                me.Orbiters = w.Id == WeaponId.IceShards ? Game.OrbitCap(extra) : 0;  // a full orbit: the cast flies at your aim
                 me.SwingCount = 0;
                 me.KatanaStance = 0; me.KatanaHay = 0;  // (the Katana: Kiri, a 120 px dash)
                 me.Pos = new V2(120f, 450f);
@@ -799,7 +799,7 @@ static partial class Program
                     if (inCone && !pastCone) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside " + inCone + ", outside " + pastCone + ")");
                     continue;
                 }
-                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.BoneSpear || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt || w.Id == WeaponId.ChainLight)
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.BloodBrawler || w.Id == WeaponId.LeechTendrils || w.Id == WeaponId.RepulsionCannon || w.Id == WeaponId.ChainLight)
                 {
                     // A beam, an implosion, the Blood Brawler's string, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
@@ -813,12 +813,12 @@ static partial class Program
                         volley.Invoke(g, new object[] { me, 0f, extra });
                         host.Poll(); dummy.FrozenT = 1f; dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
                         g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
-                        for (int k = 0; w.Id == WeaponId.BoneSpear && k < 6; k++)  // (the Blood Brawler's Pulse lands a moment after the press)
+                        for (int k = 0; w.Id == WeaponId.BloodBrawler && k < 6; k++)  // (the Blood Brawler's Pulse lands a moment after the press)
                         {
                             dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
                             g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                         }
-                        return w.Id == WeaponId.LeechBeam ? me.Grasp.Contains(dummy.Id) : dummy.Hp < dummy.MaxHp;  // (tendrils only hold on; they hurt when they burst)
+                        return w.Id == WeaponId.LeechTendrils ? me.Grasp.Contains(dummy.Id) : dummy.Hp < dummy.MaxHp;  // (tendrils only hold on; they hurt when they burst)
                     };
                     bool inside = Hits(range - 4f), outside = Hits(range + (w.Id == WeaponId.VeinTether ? Game.VeinBeamHalfWidth : 0f) + 4f);
                     if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inside + ", outside hit " + outside + ")");
@@ -897,9 +897,9 @@ static partial class Program
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }
-                // Shots move in 1/60 s steps, so they can stop up to a step short; Arcane Missiles curve.
+                // Shots move in 1/60 s steps, so they can stop up to a step short; Ice Shards curve.
                 float step = w.Melee && range < 200f ? 2f : 1700f / 60f;
-                bool ok = w.Id == WeaponId.ArcaneMissiles ? far <= range + 2f && far > range * 0.6f : Math.Abs(far - range) <= step + 4f;
+                bool ok = w.Id == WeaponId.IceShards ? far <= range + 2f && far > range * 0.6f : Math.Abs(far - range) <= step + 4f;
                 if (ok) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + far.ToString("0") + " vs " + range.ToString("0") + ")");
             }
         }
@@ -1108,7 +1108,7 @@ static partial class Program
         host.StartMatch();
         var me = g.Players[1];
         g.DevSetGod(1, true);
-        Check(me.Weapon.Id == WeaponId.StormHammer, "the Mage Tank's third weapon is the Storm Hammer");
+        Check(me.Weapon.Id == WeaponId.StormHammer, "the Elementalist Tank's third weapon is the Storm Hammer");
         g.Enemies.Clear(); g.Bullets.Clear();
         var spots = new[] { new V2(400f, 450f), new V2(400f, 540f), new V2(400f, 360f), new V2(470f, 530f), new V2(400f, 700f) };  // the target, three round it, one too far
         var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
@@ -1273,7 +1273,7 @@ static partial class Program
         play(Game.BoneCageImmune + 0.1f, false);
         for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, target });
         Check(!rebuiltAtOnce && target.CageT > 0f, "a broken cage can't be rebuilt for a second, then it can");
-        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, at, 0f, 0, false });
+        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Warden, at, 0f, 0, false });
         for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, boss });
         Check(boss.CageT <= 0f, "bosses can't be caged");
         boss.Hp = 0f;

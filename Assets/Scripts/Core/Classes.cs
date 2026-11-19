@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// A class's own hooks into the game loop. Each class keeps its KitDef beside its code (Weapons.cs: Soldier,
-    /// Minions.cs: Mage and Summoner, Knight.cs, Ninja.cs, BloodMage.cs); Classes.All gathers them in Kit order.
+    /// Minions.cs: Elementalist and Summoner, Knight.cs, Ninja.cs, Hemomancer.cs); Classes.All gathers them in Kit order.
     /// Every hook is optional: leave it null when the class has nothing to do there.
     public delegate void KitFireFn(Game g, Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra);
     public delegate bool KitAbilityFn(Game g, Player p, AbilityId id, V2 target);
@@ -21,10 +21,10 @@ namespace Arena
         public float HpMult = 1f;     // share of the role's health
         public float SpeedMult = 1f;  // share of the role's speed
 
-        // --- Host hooks (the host runs the match; clients only draw) ---
+        // --- Host hooks (the host runs the run; clients only draw) ---
         /// Fires the class's weapons that have no case of their own in FireVolley (Weapons.cs).
         public KitFireFn Fire;
-        /// Casts what CastAbility's own cases don't: its Space abilities. Return false for an id that isn't the class's.
+        /// Casts what CastAbility's own cases don't: its 1st abilities. Return false for an id that isn't the class's.
         public KitAbilityFn Ability;
         /// Every host tick (HostTick, after the players move), whether or not anyone plays the class: its timers and effects.
         public KitTickFn Tick;
@@ -38,7 +38,7 @@ namespace Arena
 
     public static class Classes
     {
-        /// A class's three lists: its KitDef, its weapons and its Space abilities (and cards).
+        /// A class's three lists: its KitDef, its weapons and its 1st abilities (and cards).
         public struct KitLists
         {
             public KitDef Kit; public WeaponDef[] Weapons; public AbilityDef[] Abilities;

@@ -73,11 +73,11 @@ static partial class Program
         V2 center = new V2(Game.Width / 2f, Game.Height / 2f);
         var weapons = new[]
         {
-            WeaponId.Scattergun, WeaponId.FlakCannon, WeaponId.RiotRepeater, WeaponId.TwinRifle, WeaponId.Pistol, WeaponId.LightBolt,
+            WeaponId.Scattergun, WeaponId.FlakCannon, WeaponId.RiotRepeater, WeaponId.TwinRifle, WeaponId.Revolver, WeaponId.RepulsionCannon,
             WeaponId.FrostLance, WeaponId.StormHammer, WeaponId.Nimbus, WeaponId.ArcLightning, WeaponId.BoneGuard,
-            WeaponId.Lance, WeaponId.HolyMace, WeaponId.Lightbringer, WeaponId.Censer, WeaponId.TwinBlades, WeaponId.Greatsword, WeaponId.Rapier,
+            WeaponId.Lance, WeaponId.Quarterstaff, WeaponId.Lightbringer, WeaponId.Censer, WeaponId.TwinBlades, WeaponId.Greatsword, WeaponId.Rapier,
             WeaponId.Kusarigama, WeaponId.BoStaff, WeaponId.FumaShuriken, WeaponId.Katana, WeaponId.Kunai,
-            WeaponId.BloodLash, WeaponId.BoneSpear,
+            WeaponId.BloodLash, WeaponId.BloodBrawler,
             WeaponId.ArcKnuckles, WeaponId.TwinRifleAuto, WeaponId.OutOfAmmo, WeaponId.DoubleBarrel, WeaponId.Stonespear, WeaponId.GrenadeLauncher,
             WeaponId.HoneybeeStaff, WeaponId.Nunchaku, WeaponId.WindClash, WeaponId.EmbolusSpears, WeaponId.BulwarkBarrier, WeaponId.VectorForge,
         };

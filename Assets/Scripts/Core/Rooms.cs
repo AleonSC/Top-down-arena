@@ -13,7 +13,7 @@ namespace Arena
         public byte Surprise;   // a surprise room: 1 + its SurpriseShape (Docs/SurpriseRooms.md); 0: none
         public int Owner;       // the player who drew it (the Expanding arena; 0: none)
         public RoomKind Kind;   // what the room does (Expansion.cs)
-        public PathId Floor;    // a Floor room's path (its ground and hazards); None otherwise
+        public PathId Floor;    // a rule room's path (its ground and hazards); None otherwise
         public int Group;       // a multi-box room (an Expanding arena outline or bent hallway): its head's area index + 1, shared by its boxes; 0: a plain box
         public V2 Mid => (Min + Max) * 0.5f;
         public V2 Size => Max - Min;
@@ -117,7 +117,7 @@ namespace Arena
         void GrantVaultPrize(V2 at)
         {
             var bossType = BossAt(Math.Min(MaxWave, Bosses.NextBossWaveFrom(Wave)));  // the boss this cycle leads up to
-            var key = IsReaper(bossType) ? EnemyType.TwinA : bossType;
+            var key = IsReaper(bossType) ? EnemyType.ReaperOfDusk : bossType;
             foreach (var p in Players.Values)
             {
                 p.PrizePicks++;
@@ -280,7 +280,7 @@ namespace Arena
         public int AreaAt(V2 p) => CurrentWorld.AreaAt(p);
 
         /// A random spot in the walled world (m from an area's edges): in one of its areas, chosen by size.
-        /// How likely an area is to be where enemies come in: its size, double for a Floor room of an enemy-mix path (Swarm Fields,
+        /// How likely an area is to be where enemies come in: its size, double for a rule room of an enemy-mix path (Swarm Fields,
         /// Sniper Ridge, Elite Gauntlet: they're where the fight is), none for a shop room (a safe place to shop).
         float SpawnWeight(RoomArea a)
         {

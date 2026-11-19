@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// Dragon's Dogma (DragonsDogma.cs): the Tank Ninja's key 1 on the lobby's Ultimate row, the pick reaching the match; the dragon
+// Dragon's Dogma (DragonsDogma.cs): the Tank Ninja's key 1 on the lobby's Ultimate row, the pick reaching the run; the dragon
 // pours out of the Ninja and devours regular enemies whole, bites heavies and bosses for 150 (times damage) at most once per
 // 1.2 s each, swallows enemy shots round its head, comes home and ends; the other screen sees it and keeps a trail; mastered
 // it lasts 7 s and heals 3% per enemy eaten; it ends on going down and between waves.

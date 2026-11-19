@@ -23,10 +23,10 @@ static partial class Program
             "the Tank and Healer Engineers have the Bulwark Forge and the Medi-Drone Forge (their own stand-ins fill the locked places)");
         Check(!Defs.KitLocked(Role.Tank, Kit.Engineer) && !Defs.KitLocked(Role.Healer, Kit.Engineer) && !Defs.KitLocked(Role.Dps, Kit.Engineer),
             "every role can pick the Engineer");
-        Check(Upgrades.RoleAbility(Role.Tank, Kit.Engineer, 0) == AbilityId.VectorWall && Upgrades.Ultimate(Role.Tank, Kit.Engineer) == AbilityId.Bastion
-            && Upgrades.RoleAbility(Role.Healer, Kit.Engineer, 0) == AbilityId.MedPylon && Upgrades.Ultimate(Role.Healer, Kit.Engineer) == AbilityId.SafeRoom
-            && Upgrades.RoleAbility(Role.Tank, Kit.Engineer, 1) == AbilityId.VectorWall, "Vector Wall and Bastion for the Tank, Med Pylon and Safe Room for the Healer");
-        Check(Upgrades.RoleAbility(Role.Dps, Kit.Engineer, 0) == AbilityId.DragPylon && Upgrades.AbilityGap(Role.Dps, Kit.Engineer, 1)
+        Check(Upgrades.FirstAbility(Role.Tank, Kit.Engineer, 0) == AbilityId.VectorWall && Upgrades.Ultimate(Role.Tank, Kit.Engineer) == AbilityId.Bastion
+            && Upgrades.FirstAbility(Role.Healer, Kit.Engineer, 0) == AbilityId.MedPylon && Upgrades.Ultimate(Role.Healer, Kit.Engineer) == AbilityId.SafeRoom
+            && Upgrades.FirstAbility(Role.Tank, Kit.Engineer, 1) == AbilityId.VectorWall, "Vector Wall and Bastion for the Tank, Med Pylon and Safe Room for the Healer");
+        Check(Upgrades.FirstAbility(Role.Dps, Kit.Engineer, 0) == AbilityId.DragPylon && Upgrades.AbilityGap(Role.Dps, Kit.Engineer, 1)
             && Upgrades.Ultimate(Role.Dps, Kit.Engineer) == AbilityId.Breach && !Upgrades.UltGap(Role.Dps, Kit.Engineer), "Drag Pylon on Space and Breach on the Ultimate row");
         var fresh = new Profile();
         Check(Unlocks.Get("class-engineer") != null && !fresh.EngineerUnlocked, "the Engineer is a locked class on a new profile (the lobby opens it for everyone for now)");

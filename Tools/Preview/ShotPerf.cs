@@ -8,7 +8,7 @@ static partial class Shot {
     if (env == null) return;
     var parts = env.Split(',');
     host.Mode = GameMode.Quick;
-    QuickPlay.OrderOverride = new[] { parts.Length > 1 ? (EnemyType)Enum.Parse(typeof(EnemyType), parts[1]) : EnemyType.TwinA, EnemyType.Boss, EnemyType.HiveQueen };
+    QuickPlay.OrderOverride = new[] { parts.Length > 1 ? (EnemyType)Enum.Parse(typeof(EnemyType), parts[1]) : EnemyType.ReaperOfDusk, EnemyType.Warden, EnemyType.HiveQueen };
   }
   static void PerfRun() {
     string env = Environment.GetEnvironmentVariable("PERFRUN");

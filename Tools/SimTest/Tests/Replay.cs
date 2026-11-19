@@ -34,7 +34,7 @@ static partial class Program
             Step(host, dt);
         int liveWave = g.Wave;
         host.Leave("");
-        Check(g.Replay == null, "replay: stopping the match ends the recording");
+        Check(g.Replay == null, "replay: stopping the run ends the recording");
 
         var list = ReplayFile.List(dir);
         Check(list.Count == 1, "replay: the finished run is saved to the folder (" + list.Count + ")");
@@ -50,7 +50,7 @@ static partial class Program
         // A replay's last frame matches what the live game showed (same wave, same enemies).
         var pl = new ReplayPlayer();
         pl.Load(file);
-        Check(pl.Game.Running && pl.Game.Players.Count == 1 && pl.Game.Me != null, "replay: opens on a running copy of the match with the player in view");
+        Check(pl.Game.Running && pl.Game.Players.Count == 1 && pl.Game.Me != null, "replay: opens on a running copy of the run with the player in view");
         pl.Seek(file.Frames);
         Check(pl.Game.Wave >= Math.Max(1, liveWave - 1), "replay: the end of the recording is where the run got to (wave " + pl.Game.Wave + " vs " + liveWave + ")");
         Check(pl.Game.Sounds.Count >= 0 && pl.Paused == false, "replay: seeking doesn't change the pause");

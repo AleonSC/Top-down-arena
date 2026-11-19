@@ -47,7 +47,7 @@ namespace Arena
 
         /// Alts that are held down rather than tapped (the parry stays down while one is held: it would let go of it).
         static bool HoldAlt(WeaponId w) => w == WeaponId.Kusarigama || w == WeaponId.BulwarkBarrier || w == WeaponId.HoneybeeStaff
-            || w == WeaponId.LightBolt || w == WeaponId.BloodLash || w == WeaponId.HolyMace;
+            || w == WeaponId.RepulsionCannon || w == WeaponId.BloodLash || w == WeaponId.Quarterstaff;
 
         /// A press: down for one tick when `want` and the bot's own cooldown allow, then up (the key reads edges).
         bool Tap(bool want, float cd)
@@ -109,14 +109,14 @@ namespace Arena
                     return !late && e != null && v.InReach && Tap(GasLocalCd <= 0f && (e.Def.IsBoss || EnemiesNear(e.Pos, 100f) >= 3), 2f);
                 case WeaponId.TwinRifle:  // a loaded grenade at a crowd or the boss
                     return !late && e != null && v.InReach && Tap(me.TwinNades > 0 && (e.Def.IsBoss || EnemiesNear(e.Pos, 90f) >= 2), 0.6f);
-                case WeaponId.Pistol:  // Pistol Whip: bullets on top of you, or something in your face
+                case WeaponId.Revolver:  // Pistol Whip: bullets on top of you, or something in your face
                     return !late && Tap(v.Incoming >= 2 || e != null && v.ShootD < 110f, WhipCd);
-                case WeaponId.LightBolt:  // Undertow: pull a spread-out group in, then let go and blast
+                case WeaponId.RepulsionCannon:  // Undertow: pull a spread-out group in, then let go and blast
                     if (botAltWas)
                         return botAltHoldT < 2f && me.RepelMeter > 5 && EnemiesAhead(me, 70f, 1f) == 0 && v.Incoming < 3;
                     return Tap(me.RepelMeter >= 30 && EnemiesAhead(me, 300f, 0.6f) >= 2 && EnemiesAhead(me, 90f, 0.6f) == 0, 3f);
 
-                // --- Mage
+                // --- Elementalist
                 case WeaponId.FrostLance:  // Absolute Zero round you, with nothing about to hit during the charge
                     return Tap(ZeroLocalCd <= 0f && me.FlZeroT <= 0f && EnemiesNear(me.Pos, 250f) >= 3 && IncomingShots(me, 0.8f) == 0, 1f);
                 case WeaponId.StormHammer:  // the slam on a group in front
@@ -136,7 +136,7 @@ namespace Arena
                 // --- Knight
                 case WeaponId.Lance:  // Hook & Haul an enemy just out of reach, then Fire is the Breaching Thrust
                     return e != null && !e.Def.IsBoss && v.ShootD > 110f && v.ShootD < HookRange - 10f && Tap(true, HookCooldown + 0.2f);
-                case WeaponId.HolyMace:  // jab while stacks last, at something close or shots coming in
+                case WeaponId.Quarterstaff:  // jab while stacks last, at something close or shots coming in
                     return me.StaffStacks > 0 && !late && (EnemiesAhead(me, 170f, 0.8f) > 0 || v.Incoming >= 2);
                 case WeaponId.Lightbringer:  // the Sunlance through a downed or hurt ally
                 {
@@ -208,12 +208,12 @@ namespace Arena
                 case WeaponId.Kunai:  // blink to a mark near the target when it's safe there, or away from danger
                     return !late && me.KunaiMarkT > 0f && Tap(e != null && me.KunaiMark.CloserThan(e.Pos, 140f) && BotDanger < 1f || BotDanger > 2.5f && me.KunaiMark.FartherThan(me.Pos, 120f), 0.5f);
 
-                // --- Blood Mage
+                // --- Hemomancer
                 case WeaponId.BloodLash:  // Martyr's Leash on a chained pack while healthy (it bleeds you)
                     if (botAltWas)
                         return botAltHoldT < 2f && me.Hp > me.MaxHp * 0.4f;
                     return !me.LeashOn && Tap(me.Chains.Count >= 2 && me.Hp > me.MaxHp * 0.5f && (BotDanger > 1f || v.Downed != null || v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.5f), 6f);
-                case WeaponId.BoneSpear:  // Sympathy when the mark has company
+                case WeaponId.BloodBrawler:  // Sympathy when the mark has company
                 {
                     if (late || me.BsTarget == 0 || me.SympT > 0f || !Enemies.TryGetValue(me.BsTarget, out var mark))
                         return false;

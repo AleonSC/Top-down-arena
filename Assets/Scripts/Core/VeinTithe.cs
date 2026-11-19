@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// Vein Tithe (Tank Hemomancer ultimate, replaces Blood Rite; `AbilityId.BloodRite` kept), from Docs/Mockups/blood-rite-vein-tithe.html.
+    /// Vein Tithe (Tank Hemomancer ultimate, replaces Blood Rite), from Docs/Mockups/blood-rite-vein-tithe.html.
     /// A blood tendril grows from you to every enemy in the arena (those still spawning or training dummies are skipped, and so is anything
     /// that turns up later) and holds it for TitheLen s (mastered TitheLenMastered): a held enemy can't move or shoot (`Enemy.GraspT`, kept
     /// topped up every tick). You pay TitheCost of your max health a second for each one held (TitheBossMult times that for a boss, mastered
@@ -40,7 +40,7 @@ namespace Arena
                 if (Enemies.TryGetValue(id, out e) && e.Hp > 0f)
                     rate += TitheCost * (e.Def.IsBoss ? TitheBossMult : 1f);
             }
-            return rate * (Mastered(p, AbilityId.BloodRite) ? TitheMasteredCost : 1f);
+            return rate * (Mastered(p, AbilityId.VeinTithe) ? TitheMasteredCost : 1f);
         }
 
         void CastTithe(Player p, bool cap)
@@ -91,7 +91,7 @@ namespace Arena
             {
                 if (p.TitheClock <= 0f)
                     continue;
-                if (p.Downed || p.UltT <= 0f || p.Slots[Upgrades.UltSlot].Id != AbilityId.BloodRite)
+                if (p.Downed || p.UltT <= 0f || p.Slots[Upgrades.UltSlot].Id != AbilityId.VeinTithe)
                 {
                     EndTithe(p, !p.Downed || p.UltT > 0f);
                     continue;

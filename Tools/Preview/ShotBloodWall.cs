@@ -22,7 +22,7 @@ static partial class Shot {
     gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear(); gm.Minions.Clear(); gm.Orbs.Clear();
     me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 0);
     me.MaxHp = me.Def.Hp * Defs.KitHpMult(Kit.Hemomancer); me.Hp = me.MaxHp; me.ShieldHp = 0f;
-    me.Slots[0].Id = AbilityId.CrimsonPact; me.Slots[0].Charges = 1;
+    me.Slots[0].Id = AbilityId.BloodWall; me.Slots[0].Charges = 1;
     Player healer = null;
     foreach (var q in gm.Players.Values) if (q != me) { healer = q; q.Kit = Kit.Hemomancer; q.Role = Role.Healer; q.Def = Defs.Get(Role.Healer); q.Weapon = Defs.Weapon(Role.Healer, Kit.Hemomancer, 0); }
     float secs = float.Parse(val, System.Globalization.CultureInfo.InvariantCulture);

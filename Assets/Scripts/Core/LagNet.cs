@@ -5,7 +5,7 @@ namespace Arena
 {
     /// The lag chart's side of the game (LagStats.cs holds the numbers, Game/LagChartUi.cs draws them): pings four times a
     /// second (the client's ping carries its last round trip so the host knows everyone's), Msg.NetPings once a second
-    /// (host -> all: every player's round trip), the match events marked on the chart, and the bytes counted by NetPeer.
+    /// (host -> all: every player's round trip), the run events marked on the chart, and the bytes counted by NetPeer.
     public partial class Game
     {
         public const float PingEvery = 0.25f;  // seconds between pings (Game.FixedStep)

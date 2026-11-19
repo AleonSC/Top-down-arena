@@ -36,7 +36,7 @@ namespace Arena
             // Companion / CompanionCount for a weapon that brings a minion; BotRange for where bots like to stand.
         };
 
-        /// Three Space abilities per role (Choice 0-2) and one ultimate each (Choice = AbilityDef.Ult).
+        /// Three 1st abilities per role (Choice 0-2) and one ultimate each (Choice = AbilityDef.Ult).
         internal static readonly AbilityDef[] MyClassAbilities =
         {
             new AbilityDef
@@ -50,7 +50,7 @@ namespace Arena
                 Id = AbilityId.MyUltTank, Kit = Kit.MyClass, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "TODO", Cooldown = 75f, Desc = "TODO", Capstone = "TODO",
             },
-            // TODO: the other Space abilities and ultimates (12 in all).
+            // TODO: the other 1st abilities and ultimates (12 in all).
         };
 
         /// Fires every weapon in MyClassWeapons. dmg already includes the player's damage upgrades; extra is the

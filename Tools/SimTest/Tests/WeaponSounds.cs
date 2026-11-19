@@ -17,7 +17,7 @@ static partial class Program
         host.StartMatch();
         var me = g.Players[1];
         g.DevSetGod(1, true);
-        Check(me.Weapon.Id == WeaponId.LightBolt, "the Soldier Healer's first weapon is the Repulsion Cannon");
+        Check(me.Weapon.Id == WeaponId.RepulsionCannon, "the Soldier Healer's first weapon is the Repulsion Cannon");
         g.Enemies.Clear(); g.Bullets.Clear();
         me.Pos = new V2(200f, 450f);
         var e1 = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(320f, 450f), 0f, 0, false });

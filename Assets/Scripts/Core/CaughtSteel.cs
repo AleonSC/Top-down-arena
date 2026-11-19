@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The DPS Knight's Caught Steel (`AbilityId.BattleFury` kept; was Battle Fury), the Forge look of
+    /// The DPS Knight's Caught Steel (was Battle Fury), the Forge look of
     /// Docs/Mockups/knight-dps-abilities.html. For SteelTime seconds every enemy bullet that skims past you (its closest
     /// pass inside the graze band, without touching you) is caught: it stops dead and hangs round you as a shard of steel,
     /// up to SteelCap. Press Space again (or let the time run out) and a sweeping cut hurls the whole halo out along your
@@ -42,7 +42,7 @@ namespace Arena
         public static float SteelReach(Player p, float bulletR) => p.Def.HitR + bulletR + SteelBand + p.Stats.SteelReach;
 
         /// Pressed again while catching: the host throws them.
-        public bool SteelRelease(Player p, int slot) => p.SteelT > 0f && p.Slots[slot].Id == AbilityId.BattleFury;
+        public bool SteelRelease(Player p, int slot) => p.SteelT > 0f && p.Slots[slot].Id == AbilityId.CaughtSteel;
 
         /// Host: Caught Steel was cast.
         void CastCaughtSteel(Player p, float power, bool mastered)

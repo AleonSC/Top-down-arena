@@ -247,7 +247,7 @@ namespace Arena
             if (d == null)
                 return;
             var lastBoss = BossAt(Math.Max(Bosses.FirstBossWave, PathFrom - 1));
-            var key = IsReaper(lastBoss) ? EnemyType.TwinA : lastBoss;
+            var key = IsReaper(lastBoss) ? EnemyType.ReaperOfDusk : lastBoss;
             if (d.Id == PathId.Bazaar)
                 OpenShop();  // the shop is its prize (Shop.cs)
             else foreach (var p in Players.Values)
@@ -326,7 +326,7 @@ namespace Arena
         {
             if (e.Def.IsBoss)
                 return;
-            // A path's rules, or (the Expanding arena) the ground of the Floor room it comes in on.
+            // A path's rules, or (the Expanding arena) the ground of the rule room it comes in on.
             PathId f = OnPath && !BossNow ? CurrentPath : FloorAt(pos);
             if (f == PathId.None)
                 return;
@@ -348,7 +348,7 @@ namespace Arena
         /// until its last wave is cleared.
         bool ArenaRule(PathId id) => CurrentPath == id && (OnPath || Wave + 1 == PathFrom) && ModeRules.Extras;
 
-        /// The local player stands in a dark rule room (a Fogbound Floor room, Docs/RuleRooms.md): the mist is on for them there only.
+        /// The local player stands in a dark rule room (a Fogbound rule room, Docs/RuleRooms.md): the mist is on for them there only.
         bool InDarkRoom => ExpandingOn && Expanded.Count > 0 && Me != null && !BossNow && State != MatchState.Idle && FloorAt(Me.Disp) == PathId.Fogbound;
 
         void TickArenaRules(float dt)
@@ -453,7 +453,7 @@ namespace Arena
                 int count = 0;
                 foreach (var pt in Patches.Values)
                     count++;
-                // In a Floor room the cap shrinks with the room (a room a third of the hub's size gets a third of the patches).
+                // In a rule room the cap shrinks with the room (a room a third of the hub's size gets a third of the patches).
                 float share = OnPath ? 1f : Math.Min(1f, fire ? fireRoom : healRoom);
                 int cap = Math.Max(1, (int)Math.Ceiling((fire ? Paths.FireMax : Paths.PoolMax) * share));
                 if (count < cap)

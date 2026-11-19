@@ -31,7 +31,7 @@ namespace Arena
         public const float EaseIn = 117f;         // the budget starts at about a third and reaches its full line by here
 
         /// The factions that join, in order: the basic eight first, then the boss factions (Approaches).
-        static readonly EnemyType[] JoinOrder = { EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity };
+        static readonly EnemyType[] JoinOrder = { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity };
 
         public readonly int Seed;
         public readonly int Players;

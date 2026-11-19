@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The emote bar (Docs/Mockups/emote-bar.html): hold the Emote key (T) and a see-through bar slides up above the ability bar
-    /// (in a match) or the foot of the Hangout room, with every emote your rank has side by side and its two ends fading away.
+    /// (in a run) or the foot of the Hangout room, with every emote your rank has side by side and its two ends fading away.
     /// The mouse wheel or the arrows at its sides move along it; click one in view (or press 1-9) to play it. While it's open
     /// a click picks instead of firing. Let go of the key and it closes. A short pause follows each (Session.EmotePause).
     public partial class ArenaApp
@@ -26,7 +26,7 @@ namespace Arena
             return l;
         }
 
-        /// Each frame: is the bar open? `allowed` is whether this screen can have it (a match with you up, or the Hangout).
+        /// Each frame: is the bar open? `allowed` is whether this screen can have it (a run with you up, or the Hangout).
         int emoteTickFrame = -1;
 
         void TickEmoteBar(bool allowed)
@@ -159,7 +159,7 @@ namespace Arena
 
         // --- Bubbles over players ---------------------------------------------------------------------------------
 
-        /// In a match: each player's emote over their head (the HUD pass; Hud.cs).
+        /// In a run: each player's emote over their head (the HUD pass; Hud.cs).
         void DrawMatchEmotes()
         {
             foreach (var p in game.Players.Values)

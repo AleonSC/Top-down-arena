@@ -25,7 +25,7 @@ namespace Arena
         bool LocalPistolWhip(Player me, bool pressed, V2 aimAt, float dt)
         {
             whipLocalCd -= dt;
-            if (me.Weapon.Id != WeaponId.Pistol)
+            if (me.Weapon.Id != WeaponId.Revolver)
                 return false;
             if (pressed && whipLocalCd <= 0f)
             {
@@ -46,7 +46,7 @@ namespace Arena
         /// Host: a player swung the Revolver, aiming at `aimAt`.
         void HostPistolWhip(Player p, V2 aimAt)
         {
-            if (p.Weapon.Id != WeaponId.Pistol || p.Downed || p.StunT > 0f || p.WhipCd > 0f || p.SwallowT > 0f || State == MatchState.GameOver)
+            if (p.Weapon.Id != WeaponId.Revolver || p.Downed || p.StunT > 0f || p.WhipCd > 0f || p.SwallowT > 0f || State == MatchState.GameOver)
                 return;
             p.WhipCd = WhipCd;
             p.FireCd = Math.Max(p.FireCd, WhipHold);

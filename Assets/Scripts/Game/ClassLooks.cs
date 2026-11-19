@@ -24,7 +24,7 @@ namespace Arena
             new KitLook { Body = (a, p, r, t, col) => a.DrawKnight(p, r, t) },               // Knight (WorldPlayers.cs)
             new KitLook { Body = (a, p, r, t, col) => a.DrawNinja(p, r, t, col),             // Ninja (WorldPlayers.cs)
                           Shot = (a, b, c, t) => a.DrawNinjaShot(b, c, t) },
-            new KitLook { Body = (a, p, r, t, col) => a.DrawBloodMage(p, r, t, col),         // Hemomancer (BloodMageLook.cs)
+            new KitLook { Body = (a, p, r, t, col) => a.DrawHemomancer(p, r, t, col),         // Hemomancer (HemomancerLook.cs)
                           Auras = (a, p, t) => a.DrawBloodAuras(p, t),
                           Shot = (a, b, c, t) => a.DrawBloodShot(b, c, t) },
             new KitLook { Body = (a, p, r, t, col) => a.DrawEngineerBody(p, r, t),             // Engineer (EngineerModel.cs)

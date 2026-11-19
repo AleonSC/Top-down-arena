@@ -10,37 +10,37 @@ namespace Arena
     {
         Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Nova, Turret,
         Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
-        // Mage
-        ArcaneAegis, FrostNova, FlameWall, HealingRain, EnergyWard, Sanctify, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
+        // Elementalist
+        Aeroaegis, FrostNova, FlameWall, HealingRain, EnergyWard, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
         // Summoner
-        GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
+        GolemWall, Earthquake, ForcePact, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
         // Ultimates (F): one per role and class
-        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, BulletRain, Legion,
+        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, ArtilleryAssault, BulletRain, Legion,
         // Knight (Space), then the Knight ultimates
-        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
-        LastStand, HallowedBlade, BladeTempest,
+        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaughtSteel,
+        LastStand, HallowedBlade, Drawbridge,
         // Ninja (Space), then the Ninja ultimates
-        ShadowClone, SmokeBomb, IronBody, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
+        ShadowClone, SmokeBomb, CeremonialArmor, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
         ThousandClones, BlossomStorm, DeathLotus,
-        // Blood Mage (Space), then the Blood Mage ultimates
-        BloodShell, CrimsonPact, Exsanguinate, BloodGift, SiphonField, Martyr, BloodBoil, FrenzyPact, HemoNova,
-        BloodRite, SanguineRain, CrimsonApotheosis,
-        StunGun,  // the Warden's legendary: a Q / E / Shift ability (Stun.cs)
-        RoyalDive,  // the Hive Queen's legendary: a Q / E / Shift ability (QueenLoot.cs)
-        ScytheThrow,  // the Twin Reapers' legendary: a Q / E / Shift ability (ReaperLoot.cs)
+        // Hemomancer (Space), then the Hemomancer ultimates
+        BloodShell, BloodWall, Exsanguinate, BloodGift, BloodFreeze, Martyr, ArterialSpray, BloodDebt, VeinRush,
+        VeinTithe, SanguineRain, CrimsonHarvest,
+        StunGun,  // the Warden's legendary: a 2nd, 3rd or 4th ability (Stun.cs)
+        RoyalDive,  // the Hive Queen's legendary: a 2nd, 3rd or 4th ability (QueenLoot.cs)
+        ScytheThrow,  // the Twin Reapers' legendary: a 2nd, 3rd or 4th ability (ReaperLoot.cs)
         JuggernautSuit,  // the Tank Soldier's second ultimate (Juggernaut.cs), picked on the lobby's Ultimate row
         Bloodbath,    // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
         LightningRod,    // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
-        Flood,        // the Tank Elementalist's fourth Space ability (Flood.cs), the lobby's 4th ability key
+        Flood,        // the Tank Elementalist's 4th choice (Flood.cs), the lobby's 4th choice
         AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
-        KineticWall,  // the Elementalist DPS's fourth Space ability (KineticWall.cs), the lobby's 4th ability key
-        WaterWard,    // the Healer Elementalist's fourth Space ability (WaterWard.cs), the lobby's 4th ability key
-        DeployableCover,  // the Tank Soldier's fourth Space ability (DeployableCover.cs), the lobby's 4th ability key
+        KineticWall,  // the Elementalist DPS's 4th choice (KineticWall.cs), the lobby's 4th choice
+        WaterWard,    // the Healer Elementalist's 4th choice (WaterWard.cs), the lobby's 4th choice
+        DeployableCover,  // the Tank Soldier's 4th choice (DeployableCover.cs), the lobby's 4th choice
         DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
-        DragPylon,     // the Engineer's Space ability (Engineer.cs)
+        DragPylon,     // the Engineer's 1st ability (Engineer.cs)
         Breach,        // the Engineer's ultimate (Engineer.cs)
-        VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's Space abilities and ultimates (Engineer.cs, step 4)
+        VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's 1st abilities and ultimates (Engineer.cs, step 4)
         WarhornVolley,  // the DPS Knight's second ultimate (WarhornVolley.cs), picked on the lobby's Ultimate row
         None = 255,
     }
@@ -48,12 +48,12 @@ namespace Arena
     /// Everything about one ability except its cast code (which is in its class's file, next to its entry).
     public class AbilityDef
     {
-        public const int CardOnly = -1, Ult = 3, Fourth = 4;  // Fourth: a class's 4th Space ability (the lobby's 4th ability key, choice 3)
+        public const int CardOnly = -1, Ult = 3, Fourth = 4;  // Fourth: a class's 4th choice (the lobby's 4th choice, choice 3)
 
         public AbilityId Id;
         public Kit Kit;
         public Role Role;
-        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Fourth, Ult, or CardOnly (very rare cards only)
+        public int Choice = CardOnly;  // its place in the lobby: 1st ability choice 0-2 for Role and Kit, Fourth, Ult, or CardOnly (very rare cards only)
         public bool FillsGaps;         // a class still being built (the Engineer): stands in for the class's empty Space (or, an ultimate, Ultimate) places; the lobby shows them locked
         public int UltKey;             // an ultimate's key on the lobby's Ultimate row: 0 the default one, 1-3 the ones picked instead (LobbyEntry.Ult)
         public string Name, Desc;
@@ -63,7 +63,7 @@ namespace Arena
         public int ExtraCharges;       // charges beyond the first
         public bool CapstoneCharge;    // mastering it adds a charge
         public Func<BotSense, bool> Bot;  // when the smart bot uses it (BotBrain.cs); null: when a target is within 520 px
-        public float HealthCost;   // the Blood Mage's abilities cost this much of your max health (it can't take you below 1)
+        public float HealthCost;   // the Hemomancer's abilities cost this much of your max health (it can't take you below 1)
         public bool CostsCurrent;  // ...or of your current health (Blood Gift)
     }
 
@@ -75,7 +75,7 @@ namespace Arena
         public int ExtraShots, Pierce;
         public int VectorCap;  // the Expanding arena: vectors you can hold beyond the base (Docs/VectorBuilding.md)
         public int Fan;  // Barrage: extra copies of every shot, fanned out to the sides
-        public int[] UseBonus = new int[4];  // extra uses per key: Space, Q, E, Shift (the Extra Use card)
+        public int[] UseBonus = new int[4];  // extra uses per ability: 1st, 2nd, 3rd, 4th (the Extra Use card)
         public float BarrierRadiusMult = 1f, BarrierBonusTime, BarrierCapacityMult = 1f;
         public float PulseHealMult = 1f, PulseRangeMult = 1f, AuraRangeMult = 1f, AuraHealMult = 1f;
         public float VenomMult = 1f, VenomReachBonus;  // Virulence (Poison Dart, PoisonDart.cs)
@@ -94,7 +94,7 @@ namespace Arena
         public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
         public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
         public int FanExtraKunai;
-        // Blood Mage abilities
+        // Hemomancer abilities
         public float ShellBonus, WallLifeBonus, WallRampBonus, DrainMult = 1f, DrainRadiusMult = 1f;
         public float GiftMult = 1f, FreezeBonusTime, MartyrBonus, MartyrInvuln;
         public float SprayMult = 1f, SprayReach = 1f;          // Arterial Spray: High Pressure
@@ -126,12 +126,12 @@ namespace Arena
         public float ScentBonusTime; public int ScentStartBonus;           // Alpha Call: Pack Leader
         public int MedkitExtraOrbs; public float MedkitHealBonus;          // Medkit: Field Surgeon (Soldier)
         // Class cards (Kit; Docs/UpgradePools.md step 6)
-        public float OrbHealMult = 1f, BonusCdMult = 1f;                   // Soldier: Quartermaster (orbs you pick up; Q/E/Shift cooldowns)
-        public float SurgeRate;                                            // Elementalist: Arcane Surge (fire rate for SurgeTime after a Space cast)
+        public float OrbHealMult = 1f, BonusCdMult = 1f;                   // Soldier: Quartermaster (orbs you pick up; 2nd, 3rd or 4th cooldowns)
+        public float SurgeRate;                                            // Elementalist: Arcane Surge (fire rate for SurgeTime after a 1st ability cast)
         public float MinionDmgMult = 1f, MinionToughMult = 1f;             // Summoner: Pack Bond
         public float CutReachMult = 1f;                                    // Knight: Plate Armour (how far out swings cut bullets)
         public float GhostCut, GhostTime;                                  // Ninja: Ghost Step (less damage for GhostTime after a dodge)
-        public float HealthCostMult = 1f;                                  // Blood Mage: Bloodthirst (health paid for abilities)
+        public float HealthCostMult = 1f;                                  // Hemomancer: Bloodthirst (health paid for abilities)
         // Knight weapon cards (Weapons; Docs/UpgradePools.md step 7)
         public float HammerAreaMult = 1f, HammerStunBonus;                 // Warhammer: Quake Hammer
         public float BbRamMult = 1f, BbBashMult = 1f;                     // Bulwark Barrier: Iron Boss
@@ -155,7 +155,7 @@ namespace Arena
         public float StarStickCut, StarReturnMult = 1f;                    // Shuriken: Barbed Stars
         public float BurstPushMult = 1f, CaltropBonusTime;                 // Katana: Honed Edge
         public float KunaiBlinkMult = 1f, KunaiMarkBonus;                  // Kunai: Shadow Mark
-        // Blood Mage weapon cards (Docs/UpgradePools.md step 9)
+        // Hemomancer weapon cards (Docs/UpgradePools.md step 9)
         public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip (and LashLinkBonus)
         public int LashLinkBonus;
         public float BlastHealBonus; public int BlastCapBonus;            // Blood Blast: Blood Harvest (BloodBlast.cs)
@@ -166,7 +166,7 @@ namespace Arena
         public float VeinStealBonus;                                       // Vein Tether: Lifeline
         public int HemoHitCut; public float HemoRadiusMult = 1f;           // Blood Bolts: Hemophilia
         public float ImplodeReachMult = 1f, ImplodeDmgMult = 1f;           // Implosion: Event Horizon
-        public int BsShardBonus, SympBonus;                                // Blood Brawler: Marrow (BoneSpear.cs)
+        public int BsShardBonus, SympBonus;                                // Blood Brawler: Marrow (BloodBrawler.cs)
         // Summoner weapon cards (Docs/UpgradePools.md step 10)
         public float StaffGolemTough = 1f, BoulderSplashMult = 1f;         // Golem Staff: Granite Golem
         public float CageBonusTime, SkeletonRateMult = 1f;                 // Bone Guard: Ossuary
@@ -239,24 +239,24 @@ namespace Arena
     }
 
     /// Who a card offer is for (Docs/UpgradePools.md step 2): every offer and Available take one, so no filter can be
-    /// left out. In a match build it with Game.OfferFor(p); tests and build simulations use the constructor.
+    /// left out. In a run build it with Game.OfferFor(p); tests and build simulations use the constructor.
     public class OfferCtx
     {
         public readonly Role Role;
         public readonly int Kits;          // the classes whose cards you're offered, one bit per Kit (HasKit)
-        public readonly AbilityId RoleAbility;
+        public readonly AbilityId FirstAbility;
         public readonly List<int> Taken;
         public readonly WeaponId? Weapon;  // null: no weapon (weapon cards are never offered)
         public readonly bool Expanding;    // the Expanding arena (the vector cards)
         public readonly AbilityId Ult;     // your ultimate (F): cards for it (RequiresAbility) are offered too
 
-        /// `kit` defaults to the class of the Space ability. A Wildcard has no class of its own: it counts as the class
-        /// of its Space ability, of its weapon and of its second ability (`second`, on Q/E/Shift), so any of those
+        /// `kit` defaults to the class of the 1st ability. A Wildcard has no class of its own: it counts as the class
+        /// of its 1st ability, of its weapon and of its second ability (`second`, on 2nd, 3rd or 4th), so any of those
         /// classes' cards can turn up (Docs/UpgradePools.md step 3).
         public OfferCtx(Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false, Kit? kit = null,
             AbilityId second = AbilityId.None, AbilityId ult = AbilityId.None)
         {
-            Role = role; RoleAbility = roleAbility; Taken = taken; Weapon = weapon; Expanding = expanding; Ult = ult;
+            Role = role; FirstAbility = roleAbility; Taken = taken; Weapon = weapon; Expanding = expanding; Ult = ult;
             if (role != Role.Wildcard)
                 Kits = Bit(kit ?? KitOf(roleAbility));
             else
@@ -275,9 +275,9 @@ namespace Arena
         /// Are this class's cards offered here?
         public bool HasKit(Kit k) => (Kits & Bit(k)) != 0;
 
-        /// A player's offers: their role, class (a Wildcard: its gear's classes), Space ability, picks and weapon.
+        /// A player's offers: their role, class (a Wildcard: its gear's classes), 1st ability, picks and weapon.
         public static OfferCtx Of(Player p, bool expanding) =>
-            new OfferCtx(p.Role, p.RoleAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.StartBonus, p.Slots[Upgrades.UltSlot].Id);
+            new OfferCtx(p.Role, p.FirstAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.WildcardAbility, p.Slots[Upgrades.UltSlot].Id);
     }
 
     public class UpgradeDef
@@ -289,28 +289,28 @@ namespace Arena
         public Rarity Rarity;
         public int MaxStacks = 99;
         public Role? Role;                          // only offered to this role
-        public AbilityId Grants = AbilityId.None;   // very rare: a new Q/E/Shift ability
-        public bool NeedsExtraAbility;              // only offered once you have a bonus ability
+        public AbilityId Grants = AbilityId.None;   // very rare: a new 2nd, 3rd or 4th ability
+        public bool NeedsExtraAbility;              // only offered once you have a 2nd–4th ability
         public AbilityId RequiresAbility = AbilityId.None;  // only offered if you have this ability (on any key)
         public WeaponId[] Weapons;                  // only offered if your weapon is one of these (Docs/UpgradePools.md step 3)
         public Kit? Kit;                            // only offered to this class (a Wildcard: any class its gear comes from)
-        public bool ClassAbility;                   // very rare: one of your class's other Space abilities, for Q/E/Shift
+        public bool ClassAbility;                   // very rare: one of your class's other 1st abilities, for 2nd, 3rd or 4th
         public int Weight = 1;                      // how many times it counts among the cards of its rarity
-        public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
+        public EnemyType? Boss;                     // legendary: the boss that awards it (ReaperOfDusk = the Twin Reapers)
         public bool Unoffered;                      // kept (old saves, dev tools) but never offered: the Queen's and the Twin Reapers' old cards (Swarm Rounds, Royal Jelly, Brood Mother; Executioner, Twin Fang, Soul Harvest)
-        public bool PicksSlot;                      // the Extra Use card: you choose the key (Space, Q, E, Shift) it goes on when you pick it
+        public bool PicksSlot;                      // the Extra Use card: you choose the ability (1st-4th) it goes on when you pick it
         public Action<Stats> Apply;
     }
 
     public static class Upgrades
     {
-        public const int SlotCount = 5;  // 0 = role ability (Space), 1 = Q, 2 = E, 3 = Shift, 4 = ultimate (F)
-        public const int BonusSlots = 3; // Q, E and Shift, filled by very rare upgrades
+        public const int SlotCount = 5;  // 0 = role ability (Space), 1 = the 2nd ability, 2 = the 3rd, 3 = the 4th, 4 = ultimate (F)
+        public const int CardAbilitySlots = 3; // the 2nd, 3rd and 4th abilities, filled by very rare upgrade cards
         public const int UltSlot = 4;
 
         /// Every ability, indexed by AbilityId. Each class keeps its entries beside its cast code: Abilities.cs (Soldier and
-        /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
-        /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
+        /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
+        /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
             Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates));  // the classes' own, then the shared and boss-loot ones
 
@@ -369,30 +369,30 @@ namespace Arena
             return choice > 0 && choice < UltKeys && AltUltimate(r, kit, choice) != AbilityId.None ? choice : 0;
         }
 
-        /// The three Space abilities for each role and kit, picked in the lobby.
-        static readonly AbilityId[] RoleAbilities = LobbyTable(false);
+        /// The three 1st abilities for each role and kit, picked in the lobby.
+        static readonly AbilityId[] FirstAbilities = LobbyTable(false);
 
-        public static AbilityId RoleAbility(Role r, Kit kit, int choice)
+        public static AbilityId FirstAbility(Role r, Kit kit, int choice)
         {
-            if (r == Role.Wildcard)  // choice = kit * 3 + choice: any class's DPS Space ability
+            if (r == Role.Wildcard)  // choice = kit * 3 + choice: any class's DPS 1st ability
             {
                 choice = choice >= 0 && choice < Defs.WildcardChoices ? choice : 0;
-                return RoleAbilities[((int)Role.Dps * Defs.KitCount + choice / RoleAbilityChoices) * RoleAbilityChoices + choice % RoleAbilityChoices];
+                return FirstAbilities[((int)Role.Dps * Defs.KitCount + choice / FirstAbilityChoices) * FirstAbilityChoices + choice % FirstAbilityChoices];
             }
-            if (choice == RoleAbilityChoices && r != Role.Wildcard && (int)r < 3 && (int)kit < Defs.KitCount && FourthAbilities[(int)r * Defs.KitCount + (int)kit] != AbilityId.None)
+            if (choice == FirstAbilityChoices && r != Role.Wildcard && (int)r < 3 && (int)kit < Defs.KitCount && FourthAbilities[(int)r * Defs.KitCount + (int)kit] != AbilityId.None)
                 return FourthAbilities[(int)r * Defs.KitCount + (int)kit];
-            return RoleAbilities[((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
+            return FirstAbilities[((int)r * Defs.KitCount + (int)kit) * FirstAbilityChoices + (choice >= 0 && choice < FirstAbilityChoices ? choice : 0)];
         }
 
-        public const int RoleAbilityChoices = 3;
+        public const int FirstAbilityChoices = 3;
 
-        /// A class's 4th Space ability (AbilityDef.Fourth; the Tank Elementalist's Flood, the DPS Elementalist's Kinetic Wall), None where it has none.
+        /// A class's 4th choice (AbilityDef.Fourth; the Tank Elementalist's Flood, the DPS Elementalist's Kinetic Wall), None where it has none.
         static readonly AbilityId[] FourthAbilities = FourthTable();
 
-        /// How many Space abilities this role and class can pick in the lobby: three, or four where it has a 4th.
+        /// How many 1st abilities this role and class can pick in the lobby: three, or four where it has a 4th.
         public static int AbilityLimit(Role r, Kit kit) =>
             r != Role.Wildcard && (int)r < 3 && (int)kit < Defs.KitCount && FourthAbilities[(int)r * Defs.KitCount + (int)kit] != AbilityId.None
-                ? RoleAbilityChoices + 1 : RoleAbilityChoices;
+                ? FirstAbilityChoices + 1 : FirstAbilityChoices;
 
         static AbilityId[] FourthTable()
         {
@@ -437,18 +437,18 @@ namespace Arena
             return all;
         }
 
-        /// The lobby's ultimates (one per role and class) or Space choices (RoleAbilityChoices per role and class),
+        /// The lobby's ultimates (one per role and class) or 1st ability choices (FirstAbilityChoices per role and class),
         /// from where each entry says it goes. Every place must be filled exactly once.
         /// True when this Space place has no ability of its own yet (a class still being built): the lobby shows it locked.
         public static bool AbilityGap(Role r, Kit kit, int choice) =>
-            (int)r < 3 && (int)kit < Defs.KitCount && choice >= 0 && choice < RoleAbilityChoices && spaceGaps.Contains(((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + choice);
+            (int)r < 3 && (int)kit < Defs.KitCount && choice >= 0 && choice < FirstAbilityChoices && spaceGaps.Contains(((int)r * Defs.KitCount + (int)kit) * FirstAbilityChoices + choice);
 
         /// True when this role and class has no ultimate of its own yet.
         public static bool UltGap(Role r, Kit kit) => (int)r < 3 && (int)kit < Defs.KitCount && ultGaps.Contains((int)r * Defs.KitCount + (int)kit);
 
         static AbilityId[] LobbyTable(bool ultimates)
         {
-            int per = ultimates ? 1 : RoleAbilityChoices;
+            int per = ultimates ? 1 : FirstAbilityChoices;
             var table = new AbilityId[3 * Defs.KitCount * per];
             for (int i = 0; i < table.Length; i++)
                 table[i] = AbilityId.None;
@@ -474,7 +474,7 @@ namespace Arena
                 }
             int empty = Array.IndexOf(table, AbilityId.None);
             if (empty >= 0)
-                throw new InvalidOperationException("No " + (Role)(empty / per / Defs.KitCount) + " " + (ultimates ? "ultimate" : "Space ability (Choice " + empty % per + ")")
+                throw new InvalidOperationException("No " + (Role)(empty / per / Defs.KitCount) + " " + (ultimates ? "ultimate" : "1st ability (Choice " + empty % per + ")")
                     + " for Kit." + (Kit)(empty / per % Defs.KitCount) + ": add it to that class's AbilityDef list");
             return table;
         }
@@ -507,11 +507,11 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 2, Name = "Wide Guard", Desc = "Your parry shield covers a 30% wider arc", Apply = s => s.ParryArcMult += 0.3f },
 
             // Rare: ability upgrades and weapon mods
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = UseSlots, PicksSlot = true, Name = "Extra Use", Desc = "+1 use for one ability: you choose which key (Space, Q, E or Shift)" },
-            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: Space", Desc = "Your Space ability gets +1 use", Apply = s => s.UseBonus[0]++ },
-            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: Q", Desc = "Your Q ability gets +1 use", Apply = s => s.UseBonus[1]++ },
-            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: E", Desc = "Your E ability gets +1 use", Apply = s => s.UseBonus[2]++ },
-            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: Shift", Desc = "Your Shift ability gets +1 use", Apply = s => s.UseBonus[3]++ },
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = UseSlots, PicksSlot = true, Name = "Extra Use", Desc = "+1 use for one ability: you choose which (1st, 2nd, 3rd or 4th)" },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: 1st Ability", Desc = "Your 1st ability gets +1 use", Apply = s => s.UseBonus[0]++ },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: 2nd Ability", Desc = "Your 2nd ability gets +1 use", Apply = s => s.UseBonus[1]++ },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: 3rd Ability", Desc = "Your 3rd ability gets +1 use", Apply = s => s.UseBonus[2]++ },
+            new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: 4th Ability", Desc = "Your 4th ability gets +1 use", Apply = s => s.UseBonus[3]++ },
             new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Healer, MaxStacks = 2, Name = "Sanctuary", Desc = "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
                 Apply = s => { s.AuraRangeMult += 0.4f; s.AuraHealMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
@@ -524,7 +524,7 @@ namespace Arena
                 Apply = s => s.CounterFireRate += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, Name = "Light Guard", Desc = "You don't slow down while parrying", Apply = s => s.ParryNoSlow = true },
 
-            // Very rare: a new Q / E / Shift ability
+            // Very rare: a new 2nd, 3rd or 4th ability
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Shockwave, Name = "Shockwave", Desc = "New ability: a shockwave runs out from you, erasing enemy bullets and shoving enemies back" },
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Overdrive, Name = "Overdrive", Desc = "New ability: double fire rate for 5 seconds" },
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Blink, Name = "Blink", Desc = "New ability: teleport toward your cursor" },
@@ -532,12 +532,12 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Turret, Name = "Turret", Desc = "New ability: deploy a turret that shoots for 10 seconds" },
 
             // Legendary: unique weapon upgrades, only from killing bosses (three per boss).
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Warden's Guard",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, MaxStacks = 3, Name = "Warden's Guard",
                 Desc = "One of the Warden's riot guards switches sides: it follows you and fights for you with its baton (+1 guard per stack). If it falls, another arrives 15 s later",
                 Apply = s => s.Guards += 1 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, Grants = AbilityId.StunGun, Name = "Stun Gun",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, Grants = AbilityId.StunGun, Name = "Stun Gun",
                 Desc = "New ability: draw a stun gun with 6 shots that stun enemies. The cooldown starts once they're all fired" },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Searchlight",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, MaxStacks = 3, Name = "Searchlight",
                 Desc = "A searchlight follows your cursor: enemies in it take 25% more damage from everyone, and one held in it for 2 s is stunned for 1 s. More stacks: a wider light, then +40%",
                 Apply = s => s.Searchlight += 1 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Hive Drones",
@@ -554,13 +554,13 @@ namespace Arena
                 Apply = s => s.Lifesteal += 1f },
             new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Brood Mother", Desc = "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills",
                 Apply = s => s.BroodChance += 0.4f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Twin Scythes",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.ReaperOfDusk, MaxStacks = 3, Name = "Twin Scythes",
                 Desc = "Two of the Reapers' scythes circle you in opposite directions, cutting enemies they pass (16) and slicing small enemy bullets out of the air. Every 1.6 s each reaps out at the nearest enemy within 240 px and flies back. 2nd stack: faster (every 1.1 s); 3rd: a third scythe",
                 Apply = s => s.TwinScythes += 1 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Final Reap",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.ReaperOfDusk, MaxStacks = 3, Name = "Final Reap",
                 Desc = "When your hit leaves an enemy below 25% health, a phantom scythe reaps it and heals you 3 (not bosses). Your hits on a boss below 40% health deal double damage. More stacks: reap below 30%, then 35%; bosses x2.5, then x3",
                 Apply = s => { s.ReapBelow += s.ReapBelow == 0f ? 0.25f : 0.05f; s.ReapBossBonus += s.ReapBossBonus == 0f ? 1f : 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, Grants = AbilityId.ScytheThrow, Name = "Scythe Throw",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.ReaperOfDusk, Grants = AbilityId.ScytheThrow, Name = "Scythe Throw",
                 Desc = "New ability: throw a giant scythe at your cursor. It cuts everything on the way out and on the way back; catch it to take 40% off its cooldown" },
             new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 50% health",
                 Apply = s => s.ExecuteBonus += 1f },
@@ -696,12 +696,12 @@ namespace Arena
             return n;
         }
 
-        /// The very rare class ability cards: for every role and class, a card for each of its Space abilities. A
+        /// The very rare class ability cards: for every role and class, a card for each of its 1st abilities. A
         /// player is offered the two they didn't pick (see Available).
         static UpgradeDef[] ClassAbilityCards()
         {
             var all = new List<UpgradeDef>();
-            foreach (var id in RoleAbilities.Concat(FourthAbilities.Where(f => f != AbilityId.None)).Distinct())  // (a stand-in fills several places: one card)
+            foreach (var id in FirstAbilities.Concat(FourthAbilities.Where(f => f != AbilityId.None)).Distinct())  // (a stand-in fills several places: one card)
             {
                 var a = Ability(id);
                 all.Add(new UpgradeDef
@@ -767,19 +767,19 @@ namespace Arena
             return offer.ToArray();
         }
 
-        /// Which role and class a Space ability belongs to (each belongs to exactly one), or -1.
+        /// Which role and class a 1st ability belongs to (each belongs to exactly one), or -1.
         static int KitOf(AbilityId id)
         {
             int i = -1;
-            for (int k = 0; k < RoleAbilities.Length && i < 0; k++)
-                if (RoleAbilities[k] == id && !spaceGaps.Contains(k))
+            for (int k = 0; k < FirstAbilities.Length && i < 0; k++)
+                if (FirstAbilities[k] == id && !spaceGaps.Contains(k))
                     i = k;  // (its own place, not one it stands in for)
             if (i < 0 && id != AbilityId.None)
                 return Array.IndexOf(FourthAbilities, id);  // a 4th ability: the same role-and-class index
-            return i < 0 ? -1 : i / RoleAbilityChoices;
+            return i < 0 ? -1 : i / FirstAbilityChoices;
         }
 
-        /// Do you have this ability: as your Space pick, or from a card that put it on Q, E or Shift?
+        /// Do you have this ability: as your Space pick, or from a card that put it on 2nd, 3rd or 4th?
         public static bool HasAbility(AbilityId id, AbilityId roleAbility, List<int> taken)
         {
             if (id == roleAbility)
@@ -790,12 +790,12 @@ namespace Arena
             return false;
         }
 
-        public const int UseSlots = 4;  // Space, Q, E, Shift
+        public const int UseSlots = 4;  // Space, 2nd, 3rd, 4th
 
-        /// The card behind an Extra Use pick on this key (0 Space, 1 Q, 2 E, 3 Shift).
+        /// The card behind an Extra Use pick on this ability (0 the 1st ability, 1 the 2nd, 2 the 3rd, 3 the 4th).
         public static int UseCard(int slot)
         {
-            string n = "Extra Use: " + (slot == 0 ? "Space" : slot == 1 ? "Q" : slot == 2 ? "E" : "Shift");
+            string n = "Extra Use: " + (slot == 0 ? "1st" : slot == 1 ? "2nd" : slot == 2 ? "3rd" : "4th") + " Ability";
             return Array.FindIndex(All, x => x.Name == n);
         }
 
@@ -812,7 +812,7 @@ namespace Arena
         public static bool Available(int id, OfferCtx c)
         {
             Role role = c.Role;
-            AbilityId roleAbility = c.RoleAbility;
+            AbilityId roleAbility = c.FirstAbility;
             List<int> taken = c.Taken;
             var u = All[id];
             if (u.Unoffered)
@@ -828,17 +828,17 @@ namespace Arena
             if (u.RequiresAbility != AbilityId.None && u.RequiresAbility != c.Ult && !HasAbility(u.RequiresAbility, roleAbility, taken))
                 return false;
             if (u.ClassAbility && (u.Grants == roleAbility || KitOf(u.Grants) != KitOf(roleAbility)))
-                return false;  // only your own class's other two Space abilities
+                return false;  // only your own class's other two 1st abilities
             if (u.PicksSlot && UsesTaken(taken) >= UseSlots)
                 return false;  // one per key
             if (Count(taken, id) >= (u.Grants != AbilityId.None ? 1 : u.MaxStacks))
-                return false;  // each bonus ability can only be owned once
+                return false;  // each 2nd–4th ability can only be owned once
             int grants = 0;
             foreach (int t in taken)
                 if (All[t].Grants != AbilityId.None)
                     grants++;
-            int own = role == Role.Wildcard ? 1 : 0;  // a Wildcard's second ability already sits on one of the bonus keys
-            if (u.Grants != AbilityId.None && grants + own >= BonusSlots)
+            int own = role == Role.Wildcard ? 1 : 0;  // a Wildcard ability already sits on one of the 2nd–4th ability slots
+            if (u.Grants != AbilityId.None && grants + own >= CardAbilitySlots)
                 return false;
             if (u.NeedsExtraAbility && grants + own == 0)
                 return false;

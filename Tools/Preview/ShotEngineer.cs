@@ -69,7 +69,7 @@ static partial class Shot {
       return;
     }
     if (mode == "real") {
-      // ENGINEER=real: the built class in a match, drawn by the game's own paths (no mock): you as a DPS Engineer, your Strider
+      // ENGINEER=real: the built class in a run, drawn by the game's own paths (no mock): you as a DPS Engineer, your Strider
       // (a real MinionKind.Strider, locked on a Brute) and a Drag Pylon zone with grunts crossing it.
       me.Kit = Kit.Engineer; me.Weapon = Defs.Weapon(Role.Dps, Kit.Engineer, 0);
       me.Pos = me.Disp = new V2(700f, 560f);

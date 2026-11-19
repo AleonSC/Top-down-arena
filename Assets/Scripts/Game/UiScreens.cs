@@ -15,7 +15,7 @@ namespace Arena
         public readonly Action Draw;
         /// Blocks the game's input and the screens under it (true for every tool window).
         public bool Modal = true;
-        /// Also modal when this says so (the dock is modal outside a match, where the screen under it has buttons).
+        /// Also modal when this says so (the dock is modal outside a run, where the screen under it has buttons).
         public Func<bool> ModalFn;
         /// Esc is ignored while a text field has focus (it just lets go of the field) instead of closing the screen.
         public bool EscNeedsFreeFocus;

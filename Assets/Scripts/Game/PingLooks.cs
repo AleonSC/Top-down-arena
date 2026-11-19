@@ -41,7 +41,7 @@ namespace Arena
             return new Vector2((m.x - offX) / scale, (UnityEngine.Screen.height - m.y - offY) / scale);
         }
 
-        /// Each frame from Update: tap or hold the Ping key. `allowed`: a match with you up and no menu over it.
+        /// Each frame from Update: tap or hold the Ping key. `allowed`: a run with you up and no menu over it.
         void TickPing(bool allowed)
         {
             if (!allowed)
@@ -141,7 +141,7 @@ namespace Arena
             }
         }
 
-        /// The HUD pass: every ping in the match, and the Help rings on players.
+        /// The HUD pass: every ping in the run, and the Help rings on players.
         void DrawMatchPings()
         {
             if (session.Pings.Count == 0)
@@ -208,7 +208,7 @@ namespace Arena
             }
         }
 
-        /// The wheel, centred on pingAnchor (HUD pass, over everything else in the match).
+        /// The wheel, centred on pingAnchor (HUD pass, over everything else in the run).
         void DrawPingWheel()
         {
             if (pingWheelK <= 0.01f)

@@ -13,7 +13,7 @@ namespace Arena
     ///     link drops every LashLinkFade s. A chain snaps past LashBreak px.
     ///   - Reap yanks every chained enemy within LashReapRange in to touching you over LashReapTime: LashReapBase + LashReapPer a
     ///     link when it lands, stunned LashReapStun. The links spent become Clot (1 a link, up to ClotMax: 4% less damage taken
-    ///     each, BloodMage.cs). Heavy enemies and bosses aren't moved, but are still hit.
+    ///     each, Hemomancer.cs). Heavy enemies and bosses aren't moved, but are still hit.
     ///   - Alt (the weapon-action key), Martyr's Leash: hold (up to LeashMax s, LeashDrain of your max health a second). Every
     ///     chained enemy is taunted, held (its chain doesn't fade) and dragged back in if it's farther than LeashLength; LeashShare
     ///     of each hit you take is taken off and runs down the chains into them, LeashReturn times over, split by their links.

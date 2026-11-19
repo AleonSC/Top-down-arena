@@ -377,7 +377,7 @@ namespace Arena
                 dir = dir.Normalized();
             session.MoveMyAvatar(a.Pos + dir * (Session.AvatarSpeed * dt) + session.TakeDashStep(a, dt), aim);
             // Ability: its key or the Parry key (right click by default).
-            bool castPress = hangoutCastLatch || Keybinds.Down(KeyAction.Ability);
+            bool castPress = hangoutCastLatch || Keybinds.Down(KeyAction.Ability1);
             hangoutCastLatch = false;
             if (a.Pvp && (castPress || (Keybinds.Down(KeyAction.Parry) && view.Contains(mouse))))
                 session.CastMyAbility(castAim);
@@ -386,7 +386,7 @@ namespace Arena
                 session.FireMyShot(aim);
         }
 
-        /// Each character's path for its trail, the last second or so (as the match does it: RankTrails.cs).
+        /// Each character's path for its trail, the last second or so (as the run does it: RankTrails.cs).
         void TickRoomTrails(float t, float dt)
         {
             foreach (var kv in session.Avatars)

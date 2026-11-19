@@ -35,7 +35,7 @@ static partial class Program
         var old = RunSave.Parse(System.Text.RegularExpressions.Regex.Replace(save.ToText(), "class Tank Summoner 0 0 0 1", "class Tank Summoner 0 0 0"));
         Check(old.Seats[0].Ult == 0, "a save from before the pick reads as the default");
 
-        // --- The lobby pick reaches the match (host and client) ---
+        // --- The lobby pick reaches the run (host and client) ---
         int port = nextPort++;
         var host = new Session { AutoStart = 0, StartWave = 3 };
         host.Host(port, "Bones", Role.Tank, 0, 0, Kit.Summoner, ult: 1);
@@ -68,7 +68,7 @@ static partial class Program
         Check(me.Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx && g.Players[2].Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx
             && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx, "both players carry Bone Phalanx on F, on every game");
         var showcase = new Showcase();
-        showcase.Show(Role.Tank, Kit.Summoner, 0, Upgrades.RoleAbility(Role.Tank, Kit.Summoner, 0), true, true, 1);
+        showcase.Show(Role.Tank, Kit.Summoner, 0, Upgrades.FirstAbility(Role.Tank, Kit.Summoner, 0), true, true, 1);
         Check(showcase.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.BonePhalanx, "the lobby preview shows the picked ultimate");
         showcase.Stop();
 
@@ -204,7 +204,7 @@ static partial class Program
         Cast();
         Tick(marchAt);
         z = Line();
-        var boss = Mob(EnemyType.Boss, new V2(z.Pos.X + 70f, 450f), 1e6f);
+        var boss = Mob(EnemyType.Warden, new V2(z.Pos.X + 70f, 450f), 1e6f);
         boss.FrozenT = 99f;  // (held in place: the line walks up to it)
         V2 bossAt = boss.Pos;
         Tick(2.5f);

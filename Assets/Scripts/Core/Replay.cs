@@ -24,13 +24,13 @@ namespace Arena
         public int Value;  // the wave number, or the player's id
     }
 
-    /// A recorded run: every message the host sent to its clients (so a replay is a client watching the match), the
+    /// A recorded run: every message the host sent to its clients (so a replay is a client watching the run), the
     /// length of each frame, and a few marks for the timeline. Saved as a gzipped .replay file; the small header comes
     /// first so the list can show a replay without reading all of it. Nothing about it touches the network protocol.
     public class ReplayFile
     {
         public const string Ext = ".replay";
-        public const int FormatVersion = 7;  // 7: the header stores the network protocol, and a replay from another protocol isn't listed (6 still reads, stopping safely if a message misreads); 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: snapshots carry a Bone Phalanx's walk and skeletons; 4: Soul Link's player fields and the Soul Ghost minion kind are gone; 5: ZoneKind.Lantern is gone, so later zone kinds renumbered; 6: ZoneKind.Haven too (old replays no longer read)
+        public const int FormatVersion = 7;  // 7: the header stores the network protocol, and a replay from another protocol isn't listed (6 still reads, stopping safely if a message misreads); 2: the run-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: snapshots carry a Bone Phalanx's walk and skeletons; 4: Soul Link's player fields and the Soul Ghost minion kind are gone; 5: ZoneKind.Lantern is gone, so later zone kinds renumbered; 6: ZoneKind.Haven too (old replays no longer read)
         static readonly byte[] Magic = { (byte)'A', (byte)'R', (byte)'N', (byte)'R' };
 
         // Header (what the list shows).
@@ -42,7 +42,7 @@ namespace Arena
         public float Seconds;
         public int Players;
 
-        // How the match was set up (the replay's session needs it to read the Start message the way the host did).
+        // How the run was set up (the replay's session needs it to read the Start message the way the host did).
         public bool Practice;
         public string Plan = "";
         public bool Hunt;
@@ -271,7 +271,7 @@ namespace Arena
     }
 
     /// Records the host's match as it is played: attached to a Game by HostStart (when a replay folder is set), fed every
-    /// message the host broadcasts (Session.Broadcast) and every frame (FixedStep), and saved when the match stops.
+    /// message the host broadcasts (Session.Broadcast) and every frame (FixedStep), and saved when the run stops.
     public class ReplayRecorder
     {
         public const long MaxBytes = 400L * 1024 * 1024;  // a very long run stops growing here (the rest of it isn't saved)

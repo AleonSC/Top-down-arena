@@ -33,8 +33,8 @@ namespace Arena
                 }
                 if (order.Count == 0 && wardenFirst)
                 {
-                    bag.Remove(EnemyType.Boss);
-                    bag.Insert(0, EnemyType.Boss);
+                    bag.Remove(EnemyType.Warden);
+                    bag.Insert(0, EnemyType.Warden);
                 }
                 if (order.Count > 0 && bag[0] == order[order.Count - 1])
                 {
@@ -48,8 +48,8 @@ namespace Arena
         /// The wave a boss is met at in a Campaign's 50-wave track (its fight is tuned there: Balance.BossHpMult).
         public static int HomeWave(EnemyType boss)
         {
-            if (boss == EnemyType.TwinB || boss == EnemyType.DualReaper)
-                boss = EnemyType.TwinA;
+            if (boss == EnemyType.ReaperOfDawn || boss == EnemyType.DualReaper)
+                boss = EnemyType.ReaperOfDusk;
             int i = Array.IndexOf(Game.BossCycle, boss);
             return i < 0 ? 5 : (i + 1) * 5;
         }
@@ -104,7 +104,7 @@ namespace Arena
             {
                 ratio = 0f;
                 foreach (var p in Players.Values)
-                    ratio += TypicalPower(p.Role, p.RoleAbility, Math.Max(1, wave)) / Math.Max(0.01f, TypicalPower(p.Role, p.RoleAbility, home));
+                    ratio += TypicalPower(p.Role, p.FirstAbility, Math.Max(1, wave)) / Math.Max(0.01f, TypicalPower(p.Role, p.FirstAbility, home));
                 ratio /= Players.Count;
             }
             return SpawnHp(type, home) * ratio * (QuickPlay.FightSeconds / QuickPlay.HomeFightSeconds);
