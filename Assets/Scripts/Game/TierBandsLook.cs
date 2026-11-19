@@ -27,19 +27,15 @@ namespace Arena
 
         // --- the hub's box grown by d: four sides and four corner quarter-circles ---
 
-        static readonly V2[] HubCorner = { new V2(0f, 0f), new V2(Game.Width, 0f), new V2(Game.Width, Game.Height), new V2(0f, Game.Height) };
-        static readonly float[] HubCornerAngle = { Mathf.PI, Mathf.PI * 1.5f, 0f, Pi2 };  // outward, per corner: top-left, top-right, bottom-right, bottom-left
 
         /// The ground between offsets d0 and d1 off the hub's wall, in `col`.
         void TierFill(float d0, float d1, Rgba col)
         {
             float W = Game.Width, H = Game.Height;
-            FillRect(0f, -d1, W, d1 - d0, col);
-            FillRect(0f, H + d0, W, d1 - d0, col);
-            FillRect(-d1, 0f, d1 - d0, H, col);
-            FillRect(W + d0, 0f, d1 - d0, H, col);
-            for (int i = 0; i < 4; i++)
-                Arc(HubCorner[i], (d0 + d1) / 2f, d1 - d0, col, 48, HubCornerAngle[i], Pi2);
+            FillRect(-d1, -d1, W + 2f * d1, d1 - d0, col);  // the box grown by d1, less the box grown by d0
+            FillRect(-d1, H + d0, W + 2f * d1, d1 - d0, col);
+            FillRect(-d1, -d0, d1 - d0, H + 2f * d0, col);
+            FillRect(W + d0, -d0, d1 - d0, H + 2f * d0, col);
         }
 
         /// A fade: `steps` slices of the band, getting stronger toward `outer` (the far edge) or toward the near edge.
@@ -54,21 +50,11 @@ namespace Arena
         void TierRing(float d, float width, Rgba col, float dash, float gap, float phase)
         {
             float W = Game.Width, H = Game.Height;
-            var side = new[] { (new V2(0f, -d), new V2(W, -d)), (new V2(W + d, 0f), new V2(W + d, H)), (new V2(W, H + d), new V2(0f, H + d)), (new V2(-d, H), new V2(-d, 0f)) };
+            var side = new[] { (new V2(-d, -d), new V2(W + d, -d)), (new V2(W + d, -d), new V2(W + d, H + d)), (new V2(W + d, H + d), new V2(-d, H + d)), (new V2(-d, H + d), new V2(-d, -d)) };
             for (int i = 0; i < 4; i++)
             {
                 if (dash <= 0f) Line(side[i].Item1, side[i].Item2, width, col);
                 else PhosDash(side[i].Item1, side[i].Item2, dash, gap, phase, width, col);
-            }
-            for (int i = 0; i < 4; i++)
-            {
-                if (dash <= 0f) { Arc(HubCorner[i], d, width, col, 48, HubCornerAngle[i], Pi2); continue; }
-                float period = (dash + gap) / d;  // radians
-                for (float a = -(phase / d); a < Pi2; a += period)
-                {
-                    float s0 = Mathf.Max(0f, a), s1 = Mathf.Min(Pi2, a + dash / d);
-                    if (s1 > s0) Arc(HubCorner[i], d, width, col, 6, HubCornerAngle[i] + s0, s1 - s0);
-                }
             }
         }
 
@@ -177,9 +163,7 @@ namespace Arena
                 TierRing(d, 4f, ink.WithAlpha(0.9f), 0f, 0f, 0f);
                 TierBadges(d, z, 1.5f, 1f, true);
             }
-            float sweep = t * 0.4f;  // a slow scanning glint round the outer ring
-            for (int i = 0; i < 4; i++)
-                Arc(HubCorner[i], Expansion.TierOuter, 8f, TierInk[2].WithAlpha(0.55f), 12, HubCornerAngle[i] + Mathf.Repeat(sweep, Pi2) - 0.2f, 0.2f);
+            
         }
     }
 }
