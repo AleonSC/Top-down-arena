@@ -75,39 +75,6 @@ namespace Arena
             }
             return null;
         }
-
-        /// A chest for the room just built (its last `count` boxes) in Grid mode: the same roll as RoomChestFor, but the chest sits at the middle of
-        /// a room-sized cell against the new room, so building that cell claims it with the chest in its middle.
-        public static MapNode? GridChestFor(int seed, IList<ExpansionRoom> built, IList<MapNode> nodes, int count, bool roll = true)
-        {
-            if (count <= 0 || count > built.Count || ChestsWaiting(built, nodes) >= RoomChestWaiting)
-                return null;
-            int first = built.Count - count;
-            var boxes = new List<ExpansionRoom>();
-            for (int i = first; i < built.Count; i++)
-                boxes.Add(built[i]);
-            var rng = new DetRandom(seed * 6151 + built.Count * 1291 + 17);
-            if (roll && rng.Float() >= RoomChestChance(boxes))
-                return null;
-            var kind = rng.Float() < RoomChestVectorShare ? NodeKind.VectorChest : NodeKind.Chest;
-            var opts = PlacementsFor(built, PieceShape.Mono).FindAll(o =>
-            {
-                bool touches = false;
-                var c = o.Rooms[0];
-                foreach (var b in boxes)
-                    touches |= SharedRun(c.X, c.Y, c.X1, c.Y1, b.X, b.Y, b.X1, b.Y1) > 0;
-                if (!touches)
-                    return false;
-                foreach (var nd in nodes)
-                    if (nd.Pos.DistanceTo(o.Mid) < NodeApart + NodeHalf(nd))
-                        return false;
-                return true;
-            });
-            if (opts.Count == 0)
-                return null;
-            var pick = opts[rng.Int(opts.Count)];
-            return new MapNode { X = (short)pick.Mid.X, Y = (short)pick.Mid.Y, Kind = kind };
-        }
     }
 
     public partial class Game

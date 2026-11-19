@@ -87,7 +87,6 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **room type** | what a piece card builds: plain, or a rule room's ground (was "modifier") | `RoomTypeOf`, `RoomTypeName` |
 | **placement** | one legal spot and turn for a piece card, at a door spot | `Placement`, `PlacementsFor` |
 | **piece chest** | the orange chest that gives every player a piece card | `ChestKind.Piece` |
-| **room chest** | a chest a built room may drop (any kind) | `RoomChest*` |
 | **Builder Shop** | the only place piece cards are bought, with vectors | `BuilderShop` |
 | **Black Market** | sells buildables; never "vendor" | `RoomKind.BlackMarket` |
 | **card** | never the bare word for a piece card: upgrade cards and milestone cards only | |

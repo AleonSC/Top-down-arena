@@ -54,7 +54,7 @@ Vectors still pay for openings (refund), teleporters (stash), gates, mystery doo
 - Cards mode replaces the Room tool on the build screen with **Cards**: your hand on the right (each card a little drawing of its room), the map on the left.
 - Pick a card: the room follows the mouse as a ghost, snapped to the legal spot nearest the pointer (green), with the loops it closes. **R** tries the other turns and mirrors that fit there. **Click** builds it.
 - Builds go up at once (no team vote in cards mode), during a build round, like free building.
-- Card rooms are ordinary rooms (`Price` 0, `Owner` the player): they roll room chests, take room kits, and can be opened into.
+- Card rooms are ordinary rooms (`Price` 0, `Owner` the player): they take room kits, and can be opened into.
 
 ## Inside the rooms (built, protocol 391)
 

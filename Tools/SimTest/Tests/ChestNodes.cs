@@ -3,54 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// Room chests (owner Nov 17): building a room may drop a chest node 3 to 5 tiles outside its wall (Expansion.RoomChestFor),
-// hallways rarely, big rooms more, at most 2 waiting, on the side facing other rooms so claiming it joins branches.
+// Chest nodes (Docs/Nodes.md): a vector chest opens into vector pickups, and nodes sit at the middle of a cell (the room that claims one holds it in its middle).
 static partial class Program
 {
-    static void ExpandingRoomChestTest()
-    {
-        Func<List<ExpansionRoom>, int, int, int, int, ExpansionRoom> add = (list, x, y, w, h) =>
-        {
-            string why = null;
-            var r = Box(x, y, w, h);
-            Check(r.HasValue, "room " + x + "," + y + " " + w + "x" + h + " fits" + (why != null ? " (" + why + ")" : ""));
-            list.Add(r.Value);
-            return r.Value;
-        };
-        Func<int, int, ExpansionRoom> box = (w, h) => new ExpansionRoom { W = w, H = h };
-        Check(Math.Abs(Expansion.RoomChestChance(new[] { box(300, 1200) }) - 0.10f) < 0.001f
-              && Math.Abs(Expansion.RoomChestChance(new[] { box(600, 600) }) - 0.25f) < 0.001f
-              && Math.Abs(Expansion.RoomChestChance(new[] { box(1200, 1200) }) - 0.40f) < 0.001f,
-            "the chance: a hallway 10%, a 6 x 6 room 25%, a 12 x 12 room 40%");
-
-        // On the grid: a chest for the room just built sits at the middle of a free cell against it, so building that cell claims it.
-        var hall = GridMap(PieceShape.TetI);  // (a line of four cells east of the core)
-        int found = 0, bad = 0, rolled = 0;
-        for (int seed = 1; seed <= 400; seed++)
-        {
-            var nd = Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1, false);
-            if (!nd.HasValue) continue;
-            found++;
-            var n = nd.Value;
-            bool onCell = Expansion.PlacementsFor(hall, PieceShape.Mono).Any(o => o.Mid.Equals(n.Pos));
-            if (!Expansion.IsChest(n.Kind) || Expansion.NodeClaimed(hall, n) || !onCell || !Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1, false).Value.Equals(n))
-                bad++;
-            if (Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1).HasValue)
-                rolled++;
-        }
-        int vecKind = Enumerable.Range(1, 400).Count(sd => { var q = Expansion.GridChestFor(sd, hall, new List<MapNode>(), 1, false); return q.HasValue && q.Value.Kind == NodeKind.VectorChest; });
-        Check(vecKind >= 150 && vecKind <= 250, "about half are vector chests (" + vecKind + " of 400)");
-        Check(found == 400 && bad == 0, "a forced roll always finds a chest at the middle of a free cell against the new room, unclaimed, the same each time (" + found + " found, " + bad + " bad)");
-        float chance = Expansion.RoomChestChance(hall.Skip(4).ToList());
-        Check(rolled >= 400 * chance * 0.6f && rolled <= 400 * chance * 1.4f, "the roll drops one at about the room's chance (" + rolled + " of 400, " + (chance * 100f).ToString("0") + "%)");
-
-        var two = new List<MapNode> { new MapNode { X = 5000, Y = -2000, Kind = NodeKind.Chest }, new MapNode { X = 5000, Y = 3000, Kind = NodeKind.VectorChest } };
-        Check(Enumerable.Range(1, 50).All(sd => !Expansion.GridChestFor(sd, hall, two, 1, false).HasValue), "no chest while two wait unclaimed");
-        var spentOne = new List<MapNode> { two[0], new MapNode { X = 5000, Y = 3000, Kind = NodeKind.Chest, Spent = true } };
-        Check(Enumerable.Range(1, 50).Any(sd => Expansion.GridChestFor(sd, hall, spentOne, 1, false).HasValue), "an opened chest doesn't count");
-    }
-
-    // In a run: a surprise room rolls a chest too, and a claimed vector chest bursts into vector pickups when walked up to.
     static void ExpandingVectorChestTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -64,7 +19,7 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
 
-        // Surprise rooms roll: over a few seeds, some of them drop a chest node outside their walls.
+        // Surprise rooms drop no chest node (owner Nov 19): over a few seeds, none appears outside their walls.
         var give = typeof(Game).GetMethod("GiveSurpriseRoom", flags);
         var seedField = typeof(Game).GetField("expandSeed", flags);
         int gotChest = 0, tries = 0;
@@ -77,7 +32,7 @@ static partial class Program
             tries++;
             if (g.Nodes.Count > 0 && Expansion.IsChest(g.Nodes[0].Kind) && !Expansion.NodeClaimed(g.Expanded, g.Nodes[0])) gotChest++;
         }
-        Check(tries >= 20 && gotChest >= 1 && gotChest < tries, "surprise rooms roll chests too (none within 10 tiles of the start room) (" + gotChest + " of " + tries + ")");
+        Check(tries >= 20 && gotChest == 0, "surprise rooms drop no chest node (" + gotChest + " of " + tries + ")");
 
         // A claimed vector chest: nothing until someone walks up, then vector pickups and the node is spent, on both screens.
         foreach (var gg in new[] { g, cg }) gg.Nodes.Clear();

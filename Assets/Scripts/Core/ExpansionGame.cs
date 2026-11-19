@@ -358,23 +358,9 @@ namespace Arena
             LayoutAge = 0f;
             RaiseRoomsNow();
             NoteSurprise(pick.Value.Rooms[0].Surprise);
-            MaybeRoomChest(pick.Value.Rooms.Count);  // (a surprise room rolls a chest like a drawn one)
             Sounds.Add(Sfx.Pick);
             DoLog("surprise room: " + Expansion.SurpriseName(pick.Value.Shape) + " of " + pick.Value.Rooms.Count + " boxes at " + pick.Value.Rooms[0].X + "," + pick.Value.Rooms[0].Y + ", closes " + pick.Value.Loops + " loops");
             BroadcastExpansion();
-        }
-
-        /// Host, as a drawn or surprise room is built (its `count` boxes are the last in Expanded): it may drop a chest node a few tiles outside its wall
-        /// (Expansion.RoomChestFor; synced with the map in Msg.ExpandState).
-        void MaybeRoomChest(int count)
-        {
-            if (!IsHost || !ModeRules.RunEvents)
-                return;
-            var nd = Expansion.GridChestFor(expandSeed, Expanded, Nodes, count);
-            if (!nd.HasValue)
-                return;
-            Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
-            DoLog("a chest node appears outside the new room at " + nd.Value.X + "," + nd.Value.Y);
         }
 
         public const int VectorChestPickups = 4;  // a vector chest bursts into this many vector pickups (VectorDropSmall each: 24 vectors)
@@ -704,7 +690,6 @@ namespace Arena
                 Expanded.Add(room);
                 Expanded.AddRange(legs);  // (a drawn outline's other pieces, right after the first)
                 DoLog((legs.Count > 0 ? "drawn room of " + (legs.Count + 1) + " boxes" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
-                MaybeRoomChest(legs.Count + 1);
             }
             expWorld = null;
             LayoutAge = 0f;  // the new walls rise
