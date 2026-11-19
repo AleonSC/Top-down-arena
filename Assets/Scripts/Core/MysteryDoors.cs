@@ -353,6 +353,13 @@ namespace Arena
             int i = MysteryDoors.FindIndex(d => d.X == x && d.Y == y);
             if (i < 0 || p.Pos.FartherThan(MysteryDoors[i].Pos, Mystery.UseRange + 40f))
                 return;
+            SaveOrOpenMysteryDoor(p, i, save);
+        }
+
+        /// Host: save door i for p (one per player; saving another moves the save, saving your own again lifts it) or pay to open it.
+        void SaveOrOpenMysteryDoor(Player p, int i, bool save)
+        {
+            int id = p.Id;
             var door = MysteryDoors[i];
             if (save)
             {
@@ -377,32 +384,33 @@ namespace Arena
             OpenMysteryDoor(p, i);
         }
 
-        /// The build map: this game's player buys the sealed door at index i from wherever they stand (a build round only). The host decides.
-        public void BuyMysteryDoor(int i)
+        /// The build map: this game's player opens (a click) or saves (a right click) the sealed door at index i from wherever they stand
+        /// (a build round only). The host decides.
+        public void BuyMysteryDoor(int i, bool save = false)
         {
             if (Me == null || Me.Downed || i < 0 || i >= MysteryDoors.Count)
                 return;
             if (IsHost)
             {
-                HostMysteryBuy(MyId, MysteryDoors[i].X, MysteryDoors[i].Y);
+                HostMysteryBuy(MyId, MysteryDoors[i].X, MysteryDoors[i].Y, save);
                 return;
             }
             var w = Proto.Begin(Msg.MysteryBuy);
-            w.Write(MysteryDoors[i].X); w.Write(MysteryDoors[i].Y);
+            w.Write(MysteryDoors[i].X); w.Write(MysteryDoors[i].Y); w.Write(save);
             session.SendToHost(Proto.End(w));
         }
 
-        public void OnMysteryBuy(int peer, BinaryReader r) => HostMysteryBuy(peer, r.ReadInt16(), r.ReadInt16());
+        public void OnMysteryBuy(int peer, BinaryReader r) => HostMysteryBuy(peer, r.ReadInt16(), r.ReadInt16(), r.ReadBoolean());
 
-        /// Host: a buy from the build map: no walk to the door, but only while the build round is open.
-        void HostMysteryBuy(int id, short x, short y)
+        /// Host: a buy or save from the build map: no walk to the door, but only while the build round is open.
+        void HostMysteryBuy(int id, short x, short y, bool save)
         {
             Player p;
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || p.Downed)
                 return;
             int i = MysteryDoors.FindIndex(d => d.X == x && d.Y == y);
             if (i >= 0)
-                OpenMysteryDoor(p, i);
+                SaveOrOpenMysteryDoor(p, i, save);
         }
 
         /// Host: the door opens if the player can pay. Mid-wave only once the rooms are up (the first room raises them between waves).

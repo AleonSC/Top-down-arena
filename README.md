@@ -1133,8 +1133,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   marching edges and spins a quarter turn on **R**; a click where it fits nowhere shakes a red cross. The card you play flies from your hand to its
   spot and the hand closes up behind it; after the slam a ring rolls out, the new door spots pop in one by one and **+1 ROOM** rises. The tool
   frame slides between tools and the panel title types in; spending vectors rolls the number down, floats **−8** and drains the bar.
-- **Buying a mystery room from the build map**: hover a mystery door's diamond for its price, click to open it from wherever you stand (only while
-  the build round is open; the same price and rooms as **G** by the door).
+- **Buying a mystery room from the build map**: hover a mystery door's diamond for its price, click to open it from wherever you stand, or **right click** to save it (right click your
+  own saved door to let it go); a saved door carries a lime **SAVED** tag on the build map (**SAVED · YOURS** for your own). Only while the build round is open; the same price, rooms and one-save rule as **G** and **B** by the door.
 - **Room kits**: a one-use modifier the team holds (up to 6; the Build step counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
@@ -2303,7 +2303,7 @@ boss plays out and what to change.
 - Lab fights aren't saved as session recordings. Starting the lab leaves any run you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where
-bullets, enemy bodies, lightning strikes and the Reapers' tether will be. They keep a distance that suits
+bullets, enemy bodies, lightning strikes and the Reapers' tether will be. When one of the Warden's **gates** is coming, they head for its nearest door (or the shot-out lock) in time and walk through it. They keep a distance that suits
 their weapon and role, close in until a target is within their weapon's reach before they pull the trigger (using anything already in reach on the way), lead their shots, and go for the adds that protect a boss first (phylacteries,
 gravity wells, the Queen's shield drones). When a Tank's **Last Stand** is planted they stand in its lee, just behind the tank and away from where the plates face (unless someone needs reviving). They revive downed allies, heal when someone is hurt, use
 defensive abilities when things get tight, and use the rest on the boss.
