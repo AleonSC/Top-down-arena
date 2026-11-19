@@ -115,7 +115,7 @@ namespace Arena
         /// The box shows between waves once this wave's numbers have arrived and nothing else (a path, the shop, a portal, your own picks) has the screen.
         bool WaveBoxUp(Player me) =>
             me != null && game.State == MatchState.Intermission && game.Wave > 0 && game.WaveReport != null && game.WaveReport.Wave == game.Wave
-            && me.Offer == null && game.PathOffer == null && !game.HuntMapVoting && !ExpandWindowUp && !game.ShopBlocksWave && game.Room != RoomPhase.Portal && game.Practice == null && !BeamShowing;  // (the Practice Range has no ready-up; the boss beam-in: BossBeamLook.cs)
+            && me.Offer == null && game.PathOffer == null && !game.HuntMapVoting && !ExpandWindowUp && !game.ShopBlocksWave && game.ChallengePhase != RoomPhase.Portal && game.Practice == null && !BeamShowing;  // (the Practice Range has no ready-up; the boss beam-in: BossBeamLook.cs)
 
         /// The full box is on screen (not minimized): it takes the mouse, and the build chip waits behind it.
         bool WaveBoxShown(Player me) => WaveBoxUp(me) && !wcMin;
@@ -144,7 +144,7 @@ namespace Arena
                 wcWave = game.Wave;
             }
             var rep = game.WaveReport;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             if (wcMin)
             {
                 DrawWcStrip(me, waiting, calm);
@@ -489,7 +489,7 @@ namespace Arena
             {
                 var d = Defs.Get(game.BossAt(game.Hunt != null ? next : game.Wave));
                 Ui.Dot(new Rect(x, y + 6f, 12f, 12f), ToColor(d.Color));
-                CrtUi.Title(new Rect(x + 22f, y, w - 22f, 26f), d.Name.ToUpperInvariant(), 26, CrtStyle.Gold, TextAnchor.MiddleLeft, CabCalm);
+                CrtUi.Title(new Rect(x + 22f, y, w - 22f, 26f), d.Name.ToUpperInvariant(), 26, CrtStyle.Gold, TextAnchor.MiddleLeft, FxCalm);
                 y += 28f;
                 HudCrt(new Rect(x, y, w, 20f), "A BOSS WAVE", 20, CrtUi.Dim);
             }

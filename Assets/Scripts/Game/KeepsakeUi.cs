@@ -14,7 +14,7 @@ namespace Arena
             var choices = game.KeepsakeChoices;
             if (choices.Count == 0)
                 return;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
             DkPanel(new Rect(30f, 12f, W - 60f, H - 24f));
             var S = new Rect(42f, 24f, W - 84f, H - 48f);

@@ -70,7 +70,7 @@ namespace Arena
             float y = box.y;
             foreach (var g in groups)
             {
-                LobbyKit.Heading(box.x + 6f, y, box.width - 12f, g.Key, null, HoloCalm);
+                LobbyKit.Heading(box.x + 6f, y, box.width - 12f, g.Key, null, FxCalm);
                 y += 34f;
                 HoloRows(box.x, y, box.width, g.Value);
                 y += g.Value.GetLength(0) * 26f + 12f;
@@ -106,7 +106,7 @@ namespace Arena
         void DrawTabAbilities(Player me, Rect box)
         {
             hoverAbility = null;
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             var ink = CrtUi.Ink;
             float x = box.x + 16f, w = box.width - 32f, y = box.y + 8f;
             LobbyKit.Heading(x, y, w, "Weapon", null, calm);
@@ -191,7 +191,7 @@ namespace Arena
         /// Every upgrade picked, grouped by rarity (rarest first) in two columns.
         void DrawTabUpgrades(Player me, Rect box)
         {
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             var counts = new Dictionary<int, int>();
             foreach (int id in me.Taken)
                 counts[id] = counts.ContainsKey(id) ? counts[id] + 1 : 1;

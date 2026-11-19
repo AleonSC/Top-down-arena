@@ -233,7 +233,7 @@ namespace Arena
                 devDrawer = 0;
             }
             Ui.Label(col.Next(14f), "DATA GATES  (between waves)", 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
-            bool canRoom = host && game.State == MatchState.Intermission && game.Room == RoomPhase.None;
+            bool canRoom = host && game.State == MatchState.Intermission && game.ChallengePhase == RoomPhase.None;
             GUI.enabled = was && canRoom;
             var gates = DkStack.Cells(col.Next(32f), Challenges.All.Length, 4f);
             string[] gateNames = { "Crystal", "Gatekeeper", "Kill Rush", "Zones", "Mirror" };

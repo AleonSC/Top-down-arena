@@ -148,7 +148,7 @@ namespace Arena
             ModeScope(scope, "TARGET LOCK", (ti + 1).ToString("00") + " / 10");
             y2 += scope.height + 12f;
             if (!topKnown)
-                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, CabCalm);
+                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, FxCalm);
             Ui.Glitch(new Rect(x2, y2, w2, 28f), !topKnown ? "???" : (topHunt != null ? topHunt.Name : name).ToUpperInvariant(), 20, Color.white, TextAnchor.MiddleLeft);
             y2 += 32f;
             string copy = topHunt == null ? (topKnown ? name + " has no hunt yet." : "Unknown boss: meet it in a run to learn more.")

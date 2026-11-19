@@ -67,7 +67,7 @@ namespace Arena
                 var q = game.Players[ids[i]];
                 bool on = (invView == 0 ? me.Id : invView) == q.Id;
                 var r = new Rect(kx + i * (kw + gap), head.y + 18f, kw, 30f);
-                if (LobbyKit.Key(r, q.Id == me.Id ? "YOU" : LobbyKit.Truncate(q.Name.ToUpperInvariant(), 13, kw - 16f), on, HoloCalm, size: 13, minSize: 10) && !on)
+                if (LobbyKit.Key(r, q.Id == me.Id ? "YOU" : LobbyKit.Truncate(q.Name.ToUpperInvariant(), 13, kw - 16f), on, FxCalm, size: 13, minSize: 10) && !on)
                 {
                     invView = q.Id == me.Id ? 0 : q.Id;
                     holoPageAt = Time.unscaledTime;  // (the panels switch on again for the new view)
@@ -147,7 +147,7 @@ namespace Arena
         /// Gold and vectors as big tiles, then the revive token and the gadget.
         void DrawInvWallet(Player me, Rect r, bool mine)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Wallet", null, HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Wallet", null, FxCalm);
             float tw = (r.width - 36f) / 2f;
             HoloTile(new Rect(r.x + 12f, r.y + 46f, tw, 64f), me.Gold.ToString(), "Gold");
             bool expanding = game.ExpandingOn;
@@ -164,7 +164,7 @@ namespace Arena
         /// The relic slot: its name and what it does, or an empty slot.
         void DrawInvRelic(Player me, Rect r)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Relic", null, HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Relic", null, FxCalm);
             var slot = new Rect(r.x + 12f, r.y + 48f, 56f, 56f);
             var ink = CrtUi.Ink;
             bool has = me.Relic != RelicId.None;
@@ -190,7 +190,7 @@ namespace Arena
         void DrawInvHand(Player me, Rect r, bool canUse)
         {
             canUse &= game.ExpandingOn;
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Pieces" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Pieces" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", FxCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
             const float minH = 96f;
@@ -244,7 +244,7 @@ namespace Arena
         /// opens the build screen in its tool (Teleporter or Trap, UseInvBuild).
         void DrawInvStash(Player me, Rect r, bool canUse)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", me == game.Me ? "your stash" : "their stash", HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Buildables", me == game.Me ? "your stash" : "their stash", FxCalm);
             var owned = new List<int>();
             for (int q = 0; q < Market.Count; q++)
                 if (me.Stash[q] > 0) owned.Add(q);
@@ -289,7 +289,7 @@ namespace Arena
         /// The team's room kits (shared: anyone spends one on a built room from the build screen).
         void DrawInvKits(Rect r)
         {
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room kits", "team · " + game.RoomTokens.Count + " / " + Expansion.MaxTokens, HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room kits", "team · " + game.RoomTokens.Count + " / " + Expansion.MaxTokens, FxCalm);
             if (game.RoomTokens.Count == 0)
             {
                 Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 40f), "None held. Bosses give a floor kit, won challenges a shop kit, and the vendor sells them.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);

@@ -52,7 +52,7 @@ namespace Arena
             }
 
             // The tab keys, over the page; Back (from the pause menu) or how to close, on the right.
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             int mates = game.Players.Count - (me != null ? 1 : 0);
             string[] names = { "RUN SO FAR", "YOUR BUILD", "TEAM" + (mates > 0 ? " (" + mates + ")" : ""), "INVENTORY" };
             const float tw = 150f, gap = 8f;
@@ -228,7 +228,7 @@ namespace Arena
 
         void DrawRouteCard(Rect card, bool practice)
         {
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             float x = card.x + 16f, w = card.width - 32f;
             if (practice)
             {
@@ -277,7 +277,7 @@ namespace Arena
         /// Your fight (five numbers), then each player's share of the party's damage.
         void DrawFightCard(Rect card, RunStats s)
         {
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             float x = card.x + 16f, w = card.width - 32f, y = card.y + 8f;
             LobbyKit.Heading(x, y, w, "Your fight", null, calm);
             string[,] rows =
@@ -342,7 +342,7 @@ namespace Arena
 
         void DrawMateCard(Rect card, Player p, float t)
         {
-            bool calm = HoloCalm;
+            bool calm = FxCalm;
             var rc = ToColor(p.Def.Color);
             // A live model of them on a hatched island in their colour, then who they are.
             var stage = new Rect(card.x + 16f, card.y + 16f, 92f, 92f);

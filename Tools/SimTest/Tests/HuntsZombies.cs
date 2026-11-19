@@ -73,7 +73,7 @@ static partial class Program
         Run(s, dt, 400f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () =>
         {
             keep();
-            portal |= g.Room != RoomPhase.None;
+            portal |= g.ChallengePhase != RoomPhase.None;
             if (g.Wave < Hunts.Length)
                 foreach (var e in g.Enemies.Values)
             {

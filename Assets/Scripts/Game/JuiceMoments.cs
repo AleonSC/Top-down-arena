@@ -241,7 +241,7 @@ namespace Arena
                 var rule = new Color(c.r, c.g, c.b, 0.6f * fade);
                 Ui.Fill(new Rect(W / 2f - wide - 150f, y - 1f, 150f * pop, 2f), rule);
                 Ui.Fill(new Rect(W / 2f + wide, y - 1f, 150f * pop, 2f), rule);
-                if (!CabCalm)  // a soft halo, as the scan band's title has
+                if (!FxCalm)  // a soft halo, as the scan band's title has
                 {
                     var g = new Color(c.r, c.g, c.b, 0.14f * fade);
                     Ui.Label(new Rect(-3f, y - 40f, W, 80f), name, Mathf.RoundToInt(size), g, TextAnchor.MiddleCenter, false);

@@ -14,7 +14,7 @@ namespace Arena
             if (offer == null)
                 return;
             Ui.Alpha = 1f;  // the choice is never faded: nothing else's leftover fade may dim it
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
             CrtUi.Title(new Rect(0, 22f, W, 56f), "CHOOSE YOUR PATH", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
             int from = game.ShownStart(game.Wave + 1), to = game.ShownEnd(game.Wave + Paths.Length), boss = to;

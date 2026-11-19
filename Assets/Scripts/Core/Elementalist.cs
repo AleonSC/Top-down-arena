@@ -92,7 +92,7 @@ namespace Arena
                 Apply = s => { s.FlameReachMult += 0.15f; s.FlameBurnMult += 0.4f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.FrostLance }, MaxStacks = 2, Name = "Glacier", Desc = "The Frost Lance reaches 20% farther, and its freezes last 0.6 s longer",
                 Apply = s => { s.IceReachMult += 0.2f; s.IceFreezeBonus += 0.6f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.StormHammer }, MaxStacks = 2, Name = "Stormcaller", Desc = "The Storm Hammer's lightning arcs to 1 more enemy, and its arcs hit 40% harder",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.StormHammer }, MaxStacks = 2, Name = "Forked Thunder", Desc = "The Storm Hammer's lightning arcs to 1 more enemy, and its arcs hit 40% harder",
                 Apply = s => { s.ShockJumpBonus += 1; s.ShockArcMult += 0.4f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.RadiantOrb }, MaxStacks = 2, Name = "Sunstone", Desc = "The Radiant Orb is 30% bigger and heals 30% more",
                 Apply = s => { s.OrbSizeMult += 0.3f; s.OrbHealMult2 += 0.3f; } },

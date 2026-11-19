@@ -8,7 +8,7 @@ namespace Arena
 
     public enum AbilityId : byte
     {
-        Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Nova, Turret,
+        Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Starburst, Turret,
         Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
         // Elementalist
         Aeroaegis, FrostNova, FlameWall, HealingRain, EnergyWard, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
@@ -528,7 +528,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Shockwave, Name = "Shockwave", Desc = "New ability: a shockwave runs out from you, erasing enemy bullets and shoving enemies back" },
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Overdrive, Name = "Overdrive", Desc = "New ability: double fire rate for 5 seconds" },
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Blink, Name = "Blink", Desc = "New ability: teleport toward your cursor" },
-            new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Nova, Name = "Nova", Desc = "New ability: fire a ring of 24 heavy shots" },
+            new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Starburst, Name = "Starburst", Desc = "New ability: fire a ring of 24 heavy shots" },
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Turret, Name = "Turret", Desc = "New ability: deploy a turret that shoots for 10 seconds" },
 
             // Legendary: unique weapon upgrades, only from killing bosses (three per boss).
@@ -767,8 +767,8 @@ namespace Arena
             return offer.ToArray();
         }
 
-        /// Which role and class a 1st ability belongs to (each belongs to exactly one), or -1.
-        static int KitOf(AbilityId id)
+        /// Which role-and-class slot (an index, not a Kit) a Space ability belongs to (each belongs to exactly one), or -1.
+        static int SlotOf(AbilityId id)
         {
             int i = -1;
             for (int k = 0; k < FirstAbilities.Length && i < 0; k++)
@@ -827,7 +827,7 @@ namespace Arena
                 return false;
             if (u.RequiresAbility != AbilityId.None && u.RequiresAbility != c.Ult && !HasAbility(u.RequiresAbility, roleAbility, taken))
                 return false;
-            if (u.ClassAbility && (u.Grants == roleAbility || KitOf(u.Grants) != KitOf(roleAbility)))
+            if (u.ClassAbility && (u.Grants == roleAbility || SlotOf(u.Grants) != SlotOf(roleAbility)))
                 return false;  // only your own class's other two 1st abilities
             if (u.PicksSlot && UsesTaken(taken) >= UseSlots)
                 return false;  // one per key

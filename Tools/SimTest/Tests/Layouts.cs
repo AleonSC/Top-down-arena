@@ -72,7 +72,7 @@ static partial class Program
             int bad = 0;
             for (int i = 0; i < 60; i++)
             {
-                g.Room = RoomPhase.None;
+                g.ChallengePhase = RoomPhase.None;
                 g.DevOpenPortal(ChallengeKind.Defend);
                 var at = g.PortalPos;
                 foreach (var sol in Layouts.Get(g.Layout).Solids)
@@ -80,7 +80,7 @@ static partial class Program
                 foreach (var pr in g.Props.Values)
                     if (Game.Solid(pr) && pr.Hp > 0f && Game.PropCovers(pr, at, Challenges.PortalR + 12f)) bad++;
             }
-            g.Room = RoomPhase.None; g.RoomKind = ChallengeKind.None; g.State = state0;
+            g.ChallengePhase = RoomPhase.None; g.ChallengeNow = ChallengeKind.None; g.State = state0;
             Check(bad == 0, "a Data Gate never opens under walls, pillars or crates (" + g.Layout + ", 60 tries, " + bad + " overlaps)");
         }
 

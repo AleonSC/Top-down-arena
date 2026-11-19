@@ -17,7 +17,7 @@ namespace Arena
         {
             switch (t)
             {
-                case HuntNodeType.Elite: case HuntNodeType.Boss: case HuntNodeType.Miniboss: return HmElite;
+                case HuntNodeType.Elite: case HuntNodeType.Boss: case HuntNodeType.MiniBoss: return HmElite;
                 case HuntNodeType.Ambush: return HmAmbush;
                 case HuntNodeType.Contraband: return HmContra;
                 case HuntNodeType.Rest: return HmRest;
@@ -38,7 +38,7 @@ namespace Arena
             if (map == null)
                 return;
             Ui.Alpha = 1f;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             var ink = CrtUi.Ink;
             Ui.Fill(new Rect(0f, 0f, W, H), new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.97f));
 
@@ -106,7 +106,7 @@ namespace Arena
                 for (int i = 0; i < row.Length; i++)
                 {
                     var n = row[i];
-                    float h = n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss ? bossHalf : half;
+                    float h = n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.MiniBoss ? bossHalf : half;
                     var c = new V2(laneX[n.Lane], rowY[s]);
                     var r = new Rect(c.X - h, c.Y - h, 2f * h, 2f * h);
                     bool isCleared = s < path.Length && path[s] == i;
@@ -129,8 +129,8 @@ namespace Arena
                         if (Ui.HitArea(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f)))
                             game.SendHuntVote(ci, false);
                     }
-                    else if (isCleared || n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss)
-                        Ui.Label(new Rect(r.xMax + 10f, r.y, 130f, r.height), HuntMap.Name(n.Type).ToUpperInvariant(), 10, n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss ? HmElite : CrtUi.Ink, TextAnchor.MiddleLeft, true);
+                    else if (isCleared || n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.MiniBoss)
+                        Ui.Label(new Rect(r.xMax + 10f, r.y, 130f, r.height), HuntMap.Name(n.Type).ToUpperInvariant(), 10, n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.MiniBoss ? HmElite : CrtUi.Ink, TextAnchor.MiddleLeft, true);
                     if (n.Type == HuntNodeType.Shop || n.Type == HuntNodeType.Gamble)
                         Ui.Label(r, n.Type == HuntNodeType.Shop ? "$" : "?", 16, isCleared ? ink : edge, TextAnchor.MiddleCenter, true);
                 }
@@ -323,7 +323,7 @@ namespace Arena
                         Line(c + new V2(0f, -q), c + new V2(0f, q), w * 1.4f, col); Line(c + new V2(-q, 0f), c + new V2(q, 0f), w * 1.4f, col);
                         break;
                     case HuntNodeType.Boss:
-                    case HuntNodeType.Miniboss:
+                    case HuntNodeType.MiniBoss:
                         HmPoly(c, col, w, new V2(-h * 0.55f, -h * 0.55f), new V2(h * 0.55f, -h * 0.55f), new V2(h * 0.55f, h * 0.55f), new V2(-h * 0.55f, h * 0.55f));
                         Line(c + new V2(0f, -h * 0.28f), c + new V2(0f, h * 0.28f), w, col); Line(c + new V2(-h * 0.28f, 0f), c + new V2(h * 0.28f, 0f), w, col);
                         break;

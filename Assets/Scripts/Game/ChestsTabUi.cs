@@ -88,7 +88,7 @@ namespace Arena
                     continue;
                 bool vec = c.Kind == ChestKind.Vector;
                 int n = vec ? Game.VectorChestPickups * Game.VectorDropSmall : Game.ChestGold + Game.ChestGoldPerWave * Mathf.Max(1, game.Wave);
-                float bob = CabCalm ? 0f : 2.5f * Mathf.Sin(t * 2.4f + c.Id);
+                float bob = FxCalm ? 0f : 2.5f * Mathf.Sin(t * 2.4f + c.Id);
                 V2 at = ToUi(c.Pos + new V2(0f, -(Game.ChestH / 2f + 30f))) + new V2(0f, -16f + bob);  // (over the lid and its glow, at any zoom)
                 if (at.X < -80f || at.X > W + 80f || at.Y < -30f || at.Y > H + 30f)
                     continue;

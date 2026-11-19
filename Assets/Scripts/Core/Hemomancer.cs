@@ -794,7 +794,7 @@ namespace Arena
                 Apply = s => { s.TransfuseMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SanguineOrb }, MaxStacks = 2, Name = "Rich Blood", Desc = "The Sanguine Orb's heal reserve fills 30% faster, and its healing coat heals 30% more",
                 Apply = s => { s.ReserveGainMult += 0.3f; s.CoatHealMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VeinTether }, MaxStacks = 2, Name = "Lifeline", Desc = "15% more of the Vein Tether's damage heals",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VeinTether }, MaxStacks = 2, Name = "Red Thread", Desc = "15% more of the Vein Tether's damage heals",
                 Apply = s => { s.VeinStealBonus += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBolts }, MaxStacks = 2, Name = "Hemophilia", Desc = "Blood Bolts burst an enemy one bleed stack sooner, 30% wider",
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },

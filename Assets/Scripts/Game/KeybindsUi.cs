@@ -134,7 +134,7 @@ namespace Arena
             {
                 bool listening = listen && Keybinds.ListeningSlot == slot;
                 KeyCode k = Keybinds.Get(a, slot);
-                string text = listening ? "PRESS KEY" + (CabCalm || Mathf.FloorToInt(t * 2f) % 2 == 0 ? "_" : " ")
+                string text = listening ? "PRESS KEY" + (FxCalm || Mathf.FloorToInt(t * 2f) % 2 == 0 ? "_" : " ")
                     : k == KeyCode.None ? "+ ADD" : Keybinds.KeyName(k).ToUpperInvariant();
                 var cap = slot == 0 ? cap1 : cap2;
                 bool diff = slot == 0 ? k != Keybinds.DefaultKey(a) : k != KeyCode.None;

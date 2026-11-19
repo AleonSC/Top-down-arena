@@ -1778,25 +1778,25 @@ static partial class Shot {
       var rps = new System.Collections.Generic.List<Player>(gg.Players.Values);
       for (int i = 0; i < rps.Count; i++) rps[i].Pos = rps[i].Disp = new V2(700f + i * 160f, 640f);
       if (room == "portal") {
-        gg.State = MatchState.Intermission; gg.Room = RoomPhase.Portal; gg.RoomKind = ChallengeKind.HoldZones; gg.RoomT = 11.4f; gg.PortalPos = new V2(1150f, 200f); gg.PortalFill = 0.55f;
+        gg.State = MatchState.Intermission; gg.ChallengePhase = RoomPhase.Portal; gg.ChallengeNow = ChallengeKind.HoldZones; gg.RoomT = 11.4f; gg.PortalPos = new V2(1150f, 200f); gg.PortalFill = 0.55f;
         rps[0].Pos = rps[0].Disp = new V2(1030f, 380f);
       } else {
         gg.State = MatchState.Fighting;
-        gg.RoomKind = kindOf(room == "won" || room == "lost" ? (Environment.GetEnvironmentVariable("KIND") ?? "defend") : room);
-        gg.Room = room == "won" ? RoomPhase.Won : room == "lost" ? RoomPhase.Lost : Environment.GetEnvironmentVariable("ROOMINTRO") != null ? RoomPhase.Intro : RoomPhase.Active;
-        if (gg.Room == RoomPhase.Intro) gg.RoomT = 2.2f;
-        gg.RoomClock = Challenges.Clock(gg.RoomKind) * 0.55f; gg.CrystalPos = gg.AltarPos = new V2(800f, 450f); gg.CrystalMax = 700f; gg.CrystalHp = 420f;
+        gg.ChallengeNow = kindOf(room == "won" || room == "lost" ? (Environment.GetEnvironmentVariable("KIND") ?? "defend") : room);
+        gg.ChallengePhase = room == "won" ? RoomPhase.Won : room == "lost" ? RoomPhase.Lost : Environment.GetEnvironmentVariable("ROOMINTRO") != null ? RoomPhase.Intro : RoomPhase.Active;
+        if (gg.ChallengePhase == RoomPhase.Intro) gg.RoomT = 2.2f;
+        gg.RoomClock = Challenges.Clock(gg.ChallengeNow) * 0.55f; gg.CrystalPos = gg.AltarPos = new V2(800f, 450f); gg.CrystalMax = 700f; gg.CrystalHp = 420f;
         gg.RoomGoal = 44; gg.RoomKills = 27; gg.ZoneIndex = 1; gg.ZoneFill = 0.6f;
         gg.RoomZones[0] = Challenges.ZoneSpots[0]; gg.RoomZones[1] = Challenges.ZoneSpots[1]; gg.RoomZones[2] = Challenges.ZoneSpots[2];
-        if (gg.Room == RoomPhase.Active) {
-          if (gg.RoomKind == ChallengeKind.Defend) { put(EnemyType.Grunt, new V2(560f, 300f)); put(EnemyType.Swarmer, new V2(690f, 380f)); put(EnemyType.Brute, new V2(1000f, 520f)); rps[0].Pos = rps[0].Disp = new V2(760f, 560f); }
-          if (gg.RoomKind == ChallengeKind.KillRush) for (int i = 0; i < 9; i++) put(i % 3 == 0 ? EnemyType.Grunt : EnemyType.Swarmer, new V2(300f + i * 120f, 250f + (i % 3) * 90f));
-          if (gg.RoomKind == ChallengeKind.HoldZones) { rps[0].Pos = rps[0].Disp = gg.RoomZones[1] + new V2(-30f, 20f); put(EnemyType.Grunt, gg.RoomZones[1] + new V2(140f, -90f)); put(EnemyType.Sniper, new V2(800f, 160f)); }
-          if (gg.RoomKind == ChallengeKind.MiniBoss) { var gk = put(EnemyType.Gatekeeper, new V2(800f, 330f)); gk.Hp = gk.MaxHp * 0.42f; gk.Phase = 1; gk.Facing = (rps[0].Pos - gk.Pos).Angle; }
-          if (gg.RoomKind == ChallengeKind.Mirror) foreach (var pl in rps) { var sh = put(EnemyType.Shadow, new V2(1600f - pl.Pos.X, 900f - pl.Pos.Y)); gg.ShadowOf[sh.Id] = pl.Id; sh.Facing = (pl.Pos - sh.Pos).Angle; }
+        if (gg.ChallengePhase == RoomPhase.Active) {
+          if (gg.ChallengeNow == ChallengeKind.Defend) { put(EnemyType.Grunt, new V2(560f, 300f)); put(EnemyType.Swarmer, new V2(690f, 380f)); put(EnemyType.Brute, new V2(1000f, 520f)); rps[0].Pos = rps[0].Disp = new V2(760f, 560f); }
+          if (gg.ChallengeNow == ChallengeKind.KillRush) for (int i = 0; i < 9; i++) put(i % 3 == 0 ? EnemyType.Grunt : EnemyType.Swarmer, new V2(300f + i * 120f, 250f + (i % 3) * 90f));
+          if (gg.ChallengeNow == ChallengeKind.HoldZones) { rps[0].Pos = rps[0].Disp = gg.RoomZones[1] + new V2(-30f, 20f); put(EnemyType.Grunt, gg.RoomZones[1] + new V2(140f, -90f)); put(EnemyType.Sniper, new V2(800f, 160f)); }
+          if (gg.ChallengeNow == ChallengeKind.MiniBoss) { var gk = put(EnemyType.Gatekeeper, new V2(800f, 330f)); gk.Hp = gk.MaxHp * 0.42f; gk.Phase = 1; gk.Facing = (rps[0].Pos - gk.Pos).Angle; }
+          if (gg.ChallengeNow == ChallengeKind.Mirror) foreach (var pl in rps) { var sh = put(EnemyType.Shadow, new V2(1600f - pl.Pos.X, 900f - pl.Pos.Y)); gg.ShadowOf[sh.Id] = pl.Id; sh.Facing = (pl.Pos - sh.Pos).Angle; }
         }
       }
-      set("lookPhase", gg.Room); set("lookPhaseAt", Time.unscaledTime - age); set("wasInRoom", gg.InRoom); set("warpAt", -10f);
+      set("lookPhase", gg.ChallengePhase); set("lookPhaseAt", Time.unscaledTime - age); set("wasInRoom", gg.InRoom); set("warpAt", -10f);
     }
     if (Environment.GetEnvironmentVariable("APPROACH") != null) {
       // The Warden's faction (APPROACH=1): Riot Shields walking, winding up, lunging, held low, cracked and broken,

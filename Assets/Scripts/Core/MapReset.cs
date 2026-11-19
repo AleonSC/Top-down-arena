@@ -326,7 +326,7 @@ namespace Arena
         {
             var group = new List<int> { head };
             for (int j = head + 1; j < rooms.Count; j++)
-                if (rooms[j].Leg > 0 && group.Contains(rooms[j].Parent - 1))  // (Parent is an area: 0 the hub, i + 1 room i)
+                if (rooms[j].Piece > 0 && group.Contains(rooms[j].Parent - 1))  // (Parent is an area: 0 the hub, i + 1 room i)
                     group.Add(j);
             return group;
         }
@@ -336,7 +336,7 @@ namespace Arena
         {
             var list = new List<int>();
             for (int i = 0; i < rooms.Count; i++)
-                if (rooms[i].Leg == 0 && !rooms[i].Floating && !IsGridCore(rooms[i]))  // (the core comes back free with every map)
+                if (rooms[i].Piece == 0 && !rooms[i].Floating && !IsGridCore(rooms[i]))  // (the core comes back free with every map)
                     list.Add(i);
             return list;
         }

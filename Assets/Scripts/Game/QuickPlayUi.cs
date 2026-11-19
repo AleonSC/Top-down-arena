@@ -57,7 +57,7 @@ namespace Arena
             var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
             ModeScope(scope, "BOSS DRAW", shownList.Count.ToString("00") + " / " + n.ToString("00") + " MET");
             if (shown < 0)
-                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, CabCalm);
+                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, FxCalm);
             y2 += scope.height + 12f;
             Ui.Glitch(new Rect(x2, y2, w2, 28f), "TEN WAVES, THEN A BOSS", 20, Color.white, TextAnchor.MiddleLeft);
             y2 += 32f;

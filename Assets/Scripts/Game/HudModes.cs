@@ -55,7 +55,7 @@ namespace Arena
         const float MiniLow = 0.25f;  // below this much health the readouts turn red and blink
 
         /// a, dropped to 35% on the off beat of a 1 s blink (steady with reduced effects).
-        float MiniBlink(float a) => !CabCalm && (int)(Time.unscaledTime * 2f) % 2 == 1 ? a * 0.35f : a;
+        float MiniBlink(float a) => !FxCalm && (int)(Time.unscaledTime * 2f) % 2 == 1 ? a * 0.35f : a;
 
         static Color MiniA(Color c, float a) => new Color(c.r, c.g, c.b, c.a * a);
 
@@ -376,7 +376,7 @@ namespace Arena
                 bool ult = i == Upgrades.UltSlot;
                 bool full = ult ? me.Slots[i].Charges > 0 : ready;
                 Color c = ult ? Ui.Gold : ready ? KeyGreen : dim;
-                float ca = ult && full && !CabCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
+                float ca = ult && full && !FxCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
                 MiniCap(cx + capW / 2f, y, 16f, MiniShortKey(SlotKeys[i]), 15, c, full, ca, true);
                 MiniText(new Rect(cx + capW + 6f, y, cw - capW - valW - 12f, 17f), MiniName(me, i), (int)nameSize, ult ? Ui.Gold : ready ? ink : dim, a);
                 string val = ult ? (full ? "ULT" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : Mathf.CeilToInt(me.Slots[i].Timer).ToString();

@@ -373,7 +373,7 @@ namespace Arena
             if (s == null)
                 return;
             float now = Time.unscaledTime;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             const float top = 118f;
             if (me.Downed)
             {

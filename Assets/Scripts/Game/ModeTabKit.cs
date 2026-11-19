@@ -60,7 +60,7 @@ namespace Arena
             float chipW = string.IsNullOrEmpty(chip) ? 0f : LobbyKit.SpacedWidth(chip, 10, 1f) + 18f;
             CrtUi.Text(new Rect(c.x + 70f, c.y, c.width - 70f - Mathf.Max(78f, chipW), c.height), known ? name : "???", 14, tc, TextAnchor.MiddleLeft, true, false);
             if (!known)
-                CrtUi.Text(new Rect(c.x + 30f, c.y, 36f, c.height), "?", 26, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, top ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true, CabCalm);
+                CrtUi.Text(new Rect(c.x + 30f, c.y, 36f, c.height), "?", 26, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, top ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true, FxCalm);
             if (chipW > 0f)
                 HuntChip(c.xMax - 8f, c.center.y, chip, chipCol);
         }

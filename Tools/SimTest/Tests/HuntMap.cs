@@ -168,12 +168,12 @@ static partial class Program
         for (int sd = 1; sd <= 300; sd++)
         {
             var lm = HuntMap.Generate(sd, Hunts.LongLength);
-            var mr = lm.Rows[HuntMap.MinibossRow(Hunts.LongLength)];
-            if (HuntMap.MinibossRow(Hunts.LongLength) != 9 || mr.Length != 1 || mr[0].Lane != 1 || mr[0].Type != HuntNodeType.Miniboss) minibossBad++;
-            if (lm.Rows.SelectMany(r => r).Count(n => n.Type == HuntNodeType.Miniboss) != 1) minibossBad++;
-            if (HuntMap.Generate(sd).Rows.SelectMany(r => r).Any(n => n.Type == HuntNodeType.Miniboss)) minibossBad++;   // (never in the short hunt)
+            var mr = lm.Rows[HuntMap.MiniBossRow(Hunts.LongLength)];
+            if (HuntMap.MiniBossRow(Hunts.LongLength) != 9 || mr.Length != 1 || mr[0].Lane != 1 || mr[0].Type != HuntNodeType.MiniBoss) minibossBad++;
+            if (lm.Rows.SelectMany(r => r).Count(n => n.Type == HuntNodeType.MiniBoss) != 1) minibossBad++;
+            if (HuntMap.Generate(sd).Rows.SelectMany(r => r).Any(n => n.Type == HuntNodeType.MiniBoss)) minibossBad++;   // (never in the short hunt)
         }
-        Check(minibossBad == 0, "a 20-step map has one Miniboss alone in the middle at step 10, the short map none (" + minibossBad + " bad)");
+        Check(minibossBad == 0, "a 20-step map has one MiniBoss alone in the middle at step 10, the short map none (" + minibossBad + " bad)");
         Check(Hunts.Step(1, 20) == 1 && Hunts.Step(20, 20) == 4 && Hunts.Step(14, 20) == 4 && Hunts.Step(10, 20) == 3 && Hunts.FinaleWave(10, 20) && Hunts.FinaleWave(19, 20) && !Hunts.FinaleWave(5, 20), "a long hunt's strength steps and set pieces stretch over its 20 steps");
         var longSched = new HuntBosses(Hunts.All[0], 20);
         Check(longSched.IsBossWave(20) && !longSched.IsBossWave(10) && longSched.NextBossWaveFrom(3) == 20, "the long hunt's boss is on step 20");

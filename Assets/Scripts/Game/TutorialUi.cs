@@ -58,7 +58,7 @@ namespace Arena
                 tutorialShownLesson = li;
             }
             var lesson = Tutorial.Lessons[li];
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             float t = Time.unscaledTime - tutorialLessonAt;
             float slide = calm ? 1f : Mathf.Clamp01(t / 0.35f);
             slide = 1f - (1f - slide) * (1f - slide);

@@ -171,12 +171,12 @@ namespace Arena
                     }
                     if (LaunchHoldsBanner)
                         break;  // a run launching: GET READY waits until the players have landed (LaunchIntro.cs)
-                    if (game.Room == RoomPhase.Portal)
+                    if (game.ChallengePhase == RoomPhase.Portal)
                         break;  // a portal is open: its own call instead (ChallengeLook.cs)
                     if (DrawWaveCleared(me, sub))  // the squad tally with Ready and Auto-ready (WaveClearedUi.cs)
                     {
                         if (!wcMin)
-                            DrawNewEnemyChips(WcY + WcH + 6f, CabCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
+                            DrawNewEnemyChips(WcY + WcH + 6f, FxCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
                         break;
                     }
                     if (pr != null)
@@ -384,7 +384,7 @@ namespace Arena
 
         void DrawConsoleGlass()
         {
-            CrtUi.End(ConsoleR, Time.unscaledTime, CabCalm);
+            CrtUi.End(ConsoleR, Time.unscaledTime, FxCalm);
         }
 
         /// Glowing text in the CRT font (the HUD's screen text).
@@ -392,7 +392,7 @@ namespace Arena
         {
             bool was = Ui.CrtFont;
             Ui.CrtFont = true;
-            CrtUi.Text(r, text, size, c, align, false, CabCalm);
+            CrtUi.Text(r, text, size, c, align, false, FxCalm);
             Ui.CrtFont = was;
         }
 

@@ -24,7 +24,7 @@ namespace Arena
             float now = Time.unscaledTime;
             if (pdBorn < 0f)
                 pdBorn = now;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             float k = calm ? 1f : Mathf.Clamp01((now - pdBorn) / 0.3f), ease = 1f - (1f - k) * (1f - k);
             RoundBackdrop(0.35f * ease);
             var r = new Rect(W / 2f - PdW / 2f, H / 2f - PdH / 2f - 24f, PdW, PdH);

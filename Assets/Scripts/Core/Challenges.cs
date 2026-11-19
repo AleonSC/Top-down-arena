@@ -91,8 +91,8 @@ namespace Arena
 
     public partial class Game
     {
-        public RoomPhase Room;
-        public ChallengeKind RoomKind;
+        public RoomPhase ChallengePhase;
+        public ChallengeKind ChallengeNow;
         public float RoomT;          // the phase's own clock: the portal's time left, the intro's, the altar's, leaving
         public float RoomClock;      // Active: the challenge's time left (or, for the duels, time spent)
         public V2 PortalPos;
@@ -116,15 +116,15 @@ namespace Arena
         public bool PrizeLegendary(Player p) => p.OfferLegendary && !BossNow;
 
         /// In the room (its intro to leaving).
-        public bool InRoom => Room >= RoomPhase.Intro;
+        public bool InRoom => ChallengePhase >= RoomPhase.Intro;
 
         /// The room's fight is on.
-        public bool RoomActive => Room == RoomPhase.Active;
+        public bool RoomActive => ChallengePhase == RoomPhase.Active;
 
         void ResetRoom()
         {
-            Room = RoomPhase.None;
-            RoomKind = ChallengeKind.None;
+            ChallengePhase = RoomPhase.None;
+            ChallengeNow = ChallengeKind.None;
             portalBlock = -1;
             lastRoom = ChallengeKind.None;
             ShadowOf.Clear();
@@ -137,7 +137,7 @@ namespace Arena
         /// (each equally likely; the first stretch skips wave 1).
         void MaybeOpenPortal()
         {
-            if (!IsHost || !ChallengesOn || !ModeRules.Challenges || ShowcaseMode || Room != RoomPhase.None || Wave >= MaxWave && !Endless)
+            if (!IsHost || !ChallengesOn || !ModeRules.Challenges || ShowcaseMode || ChallengePhase != RoomPhase.None || Wave >= MaxWave && !Endless)
                 return;
             int k = Wave % 5, block = (Wave - 1) / 5;
             if (k < 1 || k > 3 || block == portalBlock)
@@ -167,9 +167,9 @@ namespace Arena
 
         void OpenPortal(ChallengeKind kind)
         {
-            RoomKind = kind;
+            ChallengeNow = kind;
             lastRoom = kind;
-            Room = RoomPhase.Portal;
+            ChallengePhase = RoomPhase.Portal;
             RoomT = Challenges.PortalLife;
             PortalFill = 0f;
             // Somewhere open, away from where everyone is standing, and clear of every wall, pillar and crate.
@@ -216,7 +216,7 @@ namespace Arena
         /// Dev menu: open a portal to this challenge now (in a break), or straight into the room with `enter`.
         public void DevOpenPortal(ChallengeKind kind, bool enter = false)
         {
-            if (!IsHost || kind == ChallengeKind.None || State != MatchState.Intermission || Room != RoomPhase.None)
+            if (!IsHost || kind == ChallengeKind.None || State != MatchState.Intermission || ChallengePhase != RoomPhase.None)
                 return;
             OpenPortal(kind);
             if (enter)
@@ -251,8 +251,8 @@ namespace Arena
                 RoomT -= dt;
             if (RoomT <= 0f)
             {
-                Room = RoomPhase.None;
-                RoomKind = ChallengeKind.None;
+                ChallengePhase = RoomPhase.None;
+                ChallengeNow = ChallengeKind.None;
                 BroadcastFx(FxKind.Implode, PortalPos, new Rgba(0.7f, 0.6f, 1f), 120f, 0.5f, Sfx.None);
                 DoLog("the Data Gate closes");
             }
@@ -262,13 +262,13 @@ namespace Arena
 
         void EnterRoom()
         {
-            Room = RoomPhase.Intro;
+            ChallengePhase = RoomPhase.Intro;
             RoomT = Challenges.IntroTime;
             State = MatchState.Fighting;
             RoomsPlayed++;
             RoomKills = 0;
-            RoomGoal = RoomKind == ChallengeKind.KillRush ? Challenges.RushGoal(Players.Count) : 0;
-            RoomClock = Challenges.Clock(RoomKind);
+            RoomGoal = ChallengeNow == ChallengeKind.KillRush ? Challenges.RushGoal(Players.Count) : 0;
+            RoomClock = Challenges.Clock(ChallengeNow);
             ZoneIndex = 0;
             ZoneFill = 0f;
             ShadowOf.Clear();
@@ -282,7 +282,7 @@ namespace Arena
             HostClearEnemyBullets();
             var mid = ArenaMid;
             CrystalPos = mid;
-            CrystalMax = CrystalHp = RoomKind == ChallengeKind.Defend ? Challenges.CrystalHpBase * (1f + Challenges.CrystalHpPerPlayer * (Players.Count - 1)) : 0f;
+            CrystalMax = CrystalHp = ChallengeNow == ChallengeKind.Defend ? Challenges.CrystalHpBase * (1f + Challenges.CrystalHpPerPlayer * (Players.Count - 1)) : 0f;
             AltarPos = mid;
             // The zones, in a random order.
             var spots = new List<V2>(Challenges.ZoneSpots);
@@ -296,19 +296,19 @@ namespace Arena
             int n = 0, count = Players.Count;
             foreach (var p in Players.Values)
             {
-                V2 at = RoomKind == ChallengeKind.Defend ? mid + V2.FromAngle(MathX.Pi / 2f + (n - (count - 1) / 2f) * 0.7f) * 110f
+                V2 at = ChallengeNow == ChallengeKind.Defend ? mid + V2.FromAngle(MathX.Pi / 2f + (n - (count - 1) / 2f) * 0.7f) * 110f
                     : new V2(Width / 2f + (n - (count - 1) / 2f) * 90f, Height * 0.72f);
                 MovePlayer(p, at);  // Ninja.cs: each player's own game moves them
                 n++;
             }
-            BroadcastFx(FxKind.Ring, mid, Challenges.Accent(RoomKind), 600f, 0.9f, Sfx.BossWarp);
-            DoLog("into the room: " + Challenges.Name(RoomKind));
+            BroadcastFx(FxKind.Ring, mid, Challenges.Accent(ChallengeNow), 600f, 0.9f, Sfx.BossWarp);
+            DoLog("into the room: " + Challenges.Name(ChallengeNow));
         }
 
         /// Host, each tick while in the room (instead of the wave's own flow, TickWaves).
         void TickRoom(float dt)
         {
-            switch (Room)
+            switch (ChallengePhase)
             {
                 case RoomPhase.Intro:
                     RoomT -= dt;
@@ -337,9 +337,9 @@ namespace Arena
 
         void StartChallenge()
         {
-            Room = RoomPhase.Active;
+            ChallengePhase = RoomPhase.Active;
             var top = new V2(Width / 2f, Height * 0.3f);
-            switch (RoomKind)
+            switch (ChallengeNow)
             {
                 case ChallengeKind.MiniBoss:
                     SpawnEnemyAt(EnemyType.Gatekeeper, top, 1.2f, 0).T2 = 2.5f;
@@ -363,19 +363,19 @@ namespace Arena
 
         void TickChallenge(float dt)
         {
-            bool timed = Challenges.Clock(RoomKind) > 0f;
+            bool timed = Challenges.Clock(ChallengeNow) > 0f;
             if (timed)
                 RoomClock -= dt;
             else
                 RoomClock += dt;
-            switch (RoomKind)
+            switch (ChallengeNow)
             {
                 case ChallengeKind.Defend:
                     RoomSpawner(dt, 1.3f, 9 + 2 * Players.Count);
                     TickCrystal(dt);
                     if (CrystalHp <= 0f)
                     {
-                        BroadcastFx(FxKind.Shatter, CrystalPos, CrystalPos + new V2(0f, -1f), Challenges.Accent(RoomKind), 60f, 0.6f, Sfx.BossCrack);
+                        BroadcastFx(FxKind.Shatter, CrystalPos, CrystalPos + new V2(0f, -1f), Challenges.Accent(ChallengeNow), 60f, 0.6f, Sfx.BossCrack);
                         LoseRoom("the crystal broke");
                     }
                     else if (RoomClock <= 0f)
@@ -414,12 +414,12 @@ namespace Arena
                 return;
             roomSpawnT = every;
             EnemyType type;
-            if (RoomKind == ChallengeKind.KillRush)
+            if (ChallengeNow == ChallengeKind.KillRush)
             {
                 var weak = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Grunt, EnemyType.Lunger, EnemyType.Sniper };
                 type = weak[rng.Next(weak.Length)];
             }
-            else if (RoomKind == ChallengeKind.Defend)
+            else if (ChallengeNow == ChallengeKind.Defend)
             {
                 // Bodies rushing the crystal, for the party to cut off: melee enemies, with a gun only now and then
                 // (DefendRanged), so the crystal isn't simply shot down from across the room.
@@ -448,7 +448,7 @@ namespace Arena
                 default: pos = new V2(hi.X, Rand(lo.Y, hi.Y)); break;
             }
             var e = SpawnEnemyAt(type, pos, 0.7f, 0);
-            if (RoomKind == ChallengeKind.KillRush)
+            if (ChallengeNow == ChallengeKind.KillRush)
                 e.MaxHp = e.Hp = e.MaxHp * Challenges.RushHp;
         }
 
@@ -526,9 +526,9 @@ namespace Arena
                     return me.Pos;  // a shadow hunts its own player while they're up
                 return tpos;
             }
-            if (RoomKind == ChallengeKind.Defend && e.Id % 3 != 0)
+            if (ChallengeNow == ChallengeKind.Defend && e.Id % 3 != 0)
                 return CrystalPos;  // two in three go for the crystal
-            if (RoomKind == ChallengeKind.HoldZones && e.Id % 2 == 0 && ZoneIndex < Challenges.ZoneCount)
+            if (ChallengeNow == ChallengeKind.HoldZones && e.Id % 2 == 0 && ZoneIndex < Challenges.ZoneCount)
                 return RoomZones[ZoneIndex];  // half crowd the zone
             return tpos;
         }
@@ -543,24 +543,24 @@ namespace Arena
 
         void WinRoom()
         {
-            Room = RoomPhase.Won;
+            ChallengePhase = RoomPhase.Won;
             RoomT = Challenges.AltarWait;
             RoomsWon++;
             GrantRoomToken(new RoomToken { Kind = Arena.RoomKind.Shop });  // a won challenge room gives a Shop kit in the Expanding arena (ExpansionGame.cs)
-            RoomRecord(RoomKind, true);  // everyone's Records (RunSaves.cs)
+            RoomRecord(ChallengeNow, true);  // everyone's Records (RunSaves.cs)
             ClearRoomEnemies();
             BroadcastFx(FxKind.Ring, AltarPos, new Rgba(1f, 0.85f, 0.4f), 500f, 0.8f, Sfx.WaveClear);
-            DoLog("challenge complete: " + Challenges.Name(RoomKind));
+            DoLog("challenge complete: " + Challenges.Name(ChallengeNow));
         }
 
         void LoseRoom(string why)
         {
-            Room = RoomPhase.Lost;
+            ChallengePhase = RoomPhase.Lost;
             RoomT = Challenges.LostTime;
-            RoomRecord(RoomKind, false);
+            RoomRecord(ChallengeNow, false);
             ClearRoomEnemies();
             Sounds.Add(Sfx.BossGong);
-            DoLog("challenge failed: " + Challenges.Name(RoomKind) + " (" + why + ")");
+            DoLog("challenge failed: " + Challenges.Name(ChallengeNow) + " (" + why + ")");
         }
 
         void ClearRoomEnemies()
@@ -583,7 +583,7 @@ namespace Arena
                 if (rng.NextDouble() < Challenges.PrizeLegendaryChance)
                     p.LegendaryQueue.Add(key);
             }
-            Room = RoomPhase.Claimed;
+            ChallengePhase = RoomPhase.Claimed;
             RoomT = Challenges.ClaimTime;
             BroadcastFx(FxKind.Ring, AltarPos, new Rgba(1f, 0.85f, 0.4f), 220f, 0.6f, Sfx.LevelUp);
         }
@@ -592,8 +592,8 @@ namespace Arena
         void ExitRoom()
         {
             ClearRoomEnemies();
-            Room = RoomPhase.None;
-            RoomKind = ChallengeKind.None;
+            ChallengePhase = RoomPhase.None;
+            ChallengeNow = ChallengeKind.None;
             State = MatchState.Intermission;
             StateTimer = IntermissionTime;
             foreach (var p in Players.Values)
@@ -611,7 +611,7 @@ namespace Arena
         {
             if (!InRoom)
                 return false;
-            if (Room == RoomPhase.Active || Room == RoomPhase.Intro)
+            if (ChallengePhase == RoomPhase.Active || ChallengePhase == RoomPhase.Intro)
                 LoseRoom("everyone went down");
             return true;
         }
@@ -619,23 +619,23 @@ namespace Arena
         /// Bots: into an open portal, onto the zone being held, back near the crystal, and to the altar.
         void BotRoom(Player me, ref V2 move)
         {
-            if (me.Downed || Room == RoomPhase.None)
+            if (me.Downed || ChallengePhase == RoomPhase.None)
                 return;
             V2? goal = null;
             float near = 20f;
-            if (Room == RoomPhase.Portal)
+            if (ChallengePhase == RoomPhase.Portal)
             {
                 goal = PortalPos;
                 near = Challenges.PortalR * 0.4f;
             }
-            else if (Room == RoomPhase.Won)
+            else if (ChallengePhase == RoomPhase.Won)
                 goal = AltarPos;
-            else if (RoomActive && RoomKind == ChallengeKind.HoldZones && ZoneIndex < Challenges.ZoneCount)
+            else if (RoomActive && ChallengeNow == ChallengeKind.HoldZones && ZoneIndex < Challenges.ZoneCount)
             {
                 goal = RoomZones[ZoneIndex];
                 near = Challenges.ZoneR * 0.5f;
             }
-            else if (RoomActive && RoomKind == ChallengeKind.Defend)
+            else if (RoomActive && ChallengeNow == ChallengeKind.Defend)
             {
                 goal = CrystalPos;
                 near = 240f;
@@ -644,9 +644,9 @@ namespace Arena
                 return;
             if (me.Pos.FartherThan(goal.Value, near))
                 move = (goal.Value - me.Pos).LimitLength(1f);
-            else if (Room == RoomPhase.Portal)
+            else if (ChallengePhase == RoomPhase.Portal)
                 move = V2.Zero;  // stay in
-            else if (RoomKind == ChallengeKind.HoldZones)
+            else if (ChallengeNow == ChallengeKind.HoldZones)
                 move *= 0.3f;    // dodge a little, but stay on it
         }
 
@@ -845,12 +845,12 @@ namespace Arena
         /// The snapshot's room block: everyone draws the portal and the room from this.
         void SyncRoom(NetSync s)
         {
-            int room = (int)Room, kind = (int)RoomKind, zone = ZoneIndex;
+            int room = (int)ChallengePhase, kind = (int)ChallengeNow, zone = ZoneIndex;
             s.Byte(ref room);
             s.Byte(ref kind);
-            Room = (RoomPhase)room;
-            RoomKind = (ChallengeKind)kind;
-            if (Room == RoomPhase.None)
+            ChallengePhase = (RoomPhase)room;
+            ChallengeNow = (ChallengeKind)kind;
+            if (ChallengePhase == RoomPhase.None)
                 return;
             s.Float(ref RoomT);
             s.Float(ref RoomClock);

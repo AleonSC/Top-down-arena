@@ -179,7 +179,7 @@ namespace Arena
         /// A "screen" on the loadout box is a darker inset card with a thin rim, there from `delay` seconds on.
         bool CabScreenBegin(Rect r, float delay)
         {
-            if (!CabCalm && CabAge < delay)
+            if (!FxCalm && CabAge < delay)
                 return false;
             Ui.Fill(r, CrtUi.T(new Color(0.02f, 0.04f, 0.1f, 0.9f)));
             CrtKit.Frame(r, 1f, CrtUi.T(new Color(0.14f, 0.24f, 0.4f)));
@@ -188,7 +188,7 @@ namespace Arena
 
         void CabScreenEnd(Rect r, float delay)
         {
-            CrtKit.PowerFlash(r, CabAge - delay, CabCalm);
+            CrtKit.PowerFlash(r, CabAge - delay, FxCalm);
         }
 
         /// A small square soft key with a pixel icon (the profile's pencil). True when pressed.
@@ -227,7 +227,7 @@ namespace Arena
         void DrawProfileCabinet(bool inMenu)
         {
             var p = Profile.Current;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             var info = Rank.Of(p.Xp);
             var tc = RankLook.TierColor(info.Rank);
             cabBootLog = "> LINK OK   > PROFILE OK   > RANK " + info.Rank;

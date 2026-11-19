@@ -218,10 +218,10 @@ namespace Arena
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = RollElite(d);
-            if (huntMinibossDue && type == EnemyType.RiotShield)
+            if (huntMiniBossDue && type == EnemyType.RiotShield)
             {
-                huntMinibossDue = false;  // the long hunt's step 10: the faction's miniboss, a huge elite Riot Shield (HuntMapGame.cs)
-                huntMinibossNow = true;
+                huntMiniBossDue = false;  // the long hunt's step 10: the faction's miniboss, a huge elite Riot Shield (HuntMapGame.cs)
+                huntMiniBossNow = true;
                 elite = true;
             }
             spawnHome = home;
@@ -335,11 +335,11 @@ namespace Arena
                 e.MaxHp *= 2.5f;
                 e.Radius *= EliteSize;
             }
-            if (huntMinibossNow && type == EnemyType.RiotShield)
+            if (huntMiniBossNow && type == EnemyType.RiotShield)
             {
-                huntMinibossNow = false;
-                e.MaxHp *= HuntMinibossHp;
-                e.Radius *= HuntMinibossSize;
+                huntMiniBossNow = false;
+                e.MaxHp *= HuntMiniBossHp;
+                e.Radius *= HuntMiniBossSize;
             }
             RollVariant(e, parent);  // EnemyVariants.cs
             if (type == EnemyType.Rioter && Wave < BottleFromWave)

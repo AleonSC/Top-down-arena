@@ -24,7 +24,7 @@ namespace Arena
             string tag = game.LayoutOn && game.ActiveLayout != null ? game.ActiveLayout.Name.ToUpperInvariant() : null;
             if (head == null && tag == null)
                 return;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             const int size = 17, tagSize = 11;
             float hw = head != null ? CrtUi.TitleWidth(head, size) : 0f, cg = head != null ? 10f : 0f;
             float cw = count != null ? CrtUi.TitleWidth(count, size) : 0f;

@@ -65,7 +65,7 @@ namespace Arena
         void DrawExpandChip(Player me)
         {
             Ui.Alpha = 1f;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             // Above the Wave cleared box (it starts at y 84 and covers everything below).
             var chip = new Rect(W / 2f - 300f, 34f, 600f, 46f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.75f));
@@ -87,7 +87,7 @@ namespace Arena
             if (game.ServiceRooms)
                 return;  // (the room shops hold nothing up: the HUD chip says they're open)
             Ui.Alpha = 1f;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             float dy = 0f;
             if (me.ShopDone)
             {
@@ -118,7 +118,7 @@ namespace Arena
                 return;
             }
             Ui.Alpha = 1f;
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             // The draw screen is the window (DONE closes it); the room kit screen opens from it.
             if (!game.ExpandOpen)
                 expModify = false;
@@ -208,7 +208,7 @@ namespace Arena
             for (int i = 0; i < game.Expanded.Count; i++)
             {
                 var r = game.Expanded[i];
-                if (r.Kind == RoomKind.Combat || r.Floating || r.Leg > 0)  // (one label for a room of several boxes)
+                if (r.Kind == RoomKind.Combat || r.Floating || r.Piece > 0)  // (one label for a room of several boxes)
                     continue;
                 V2 p0 = M(new V2(r.X, r.Y));
                 Ui.Label(new Rect(p0.X + 3f, p0.Y + 2f, 200f, 14f), KindName(r).ToUpperInvariant(), 10, ToColor(KindInk(r.Kind, r.Floor)), TextAnchor.UpperLeft, true);
@@ -737,7 +737,7 @@ namespace Arena
             float x = p.x + 14f, w = p.width - 28f, y = p.y + 10f;
             int have = game.SpendableVectors(game.Me);
             Ui.Label(new Rect(x, y, w, 30f), "YOUR VECTORS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            CrtUi.Text(new Rect(x, y - 2f, w, 34f), have.ToString(), 30, Ui.Gold, TextAnchor.MiddleRight, true, CabCalm);
+            CrtUi.Text(new Rect(x, y - 2f, w, 34f), have.ToString(), 30, Ui.Gold, TextAnchor.MiddleRight, true, FxCalm);
             y += 36f;
             int cap = Mathf.Max(Mathf.Max(have, game.Me != null ? game.Me.VectorCap : have), 1);
             var bar = new Rect(x, y, w, 8f);
@@ -763,7 +763,7 @@ namespace Arena
             string title, tip;
             string[] steps;
             BuildToolHelp(BuildTool, out title, out steps, out tip);
-            CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+            CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, FxCalm);
             y += 32f;
             return y + 4f;
         }

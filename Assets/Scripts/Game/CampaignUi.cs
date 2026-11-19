@@ -53,7 +53,7 @@ namespace Arena
             var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
             ModeScope(scope, shown == next && sBeaten == 0 ? "NEXT TARGET" : "TARGET", "WAVE " + wave);
             if (!known[shown])
-                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, CabCalm);
+                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, FxCalm);
             y2 += scope.height + 12f;
             Ui.Glitch(new Rect(x2, y2, w2, 28f), known[shown] ? BossName(sb).ToUpperInvariant() : "???", 20, Color.white, TextAnchor.MiddleLeft);
             y2 += 32f;

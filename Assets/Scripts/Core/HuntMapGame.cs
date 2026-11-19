@@ -42,11 +42,11 @@ namespace Arena
 
         /// An Elite node's wave brings its enemies as tougher elite variants (a share of them, as late waves do).
         public const double HuntEliteChance = 0.3;
-        bool HuntEliteSquad => HuntMapOn && State == MatchState.Fighting && (HuntNodeNow == HuntNodeType.Elite || HuntNodeNow == HuntNodeType.Miniboss);
+        bool HuntEliteSquad => HuntMapOn && State == MatchState.Fighting && (HuntNodeNow == HuntNodeType.Elite || HuntNodeNow == HuntNodeType.MiniBoss);
 
         /// The long hunt's miniboss (step 10): a Riot Shield (the Warden's wall) as an elite with this many times the health, and bigger.
-        public const float HuntMinibossHp = 4f, HuntMinibossSize = 1.5f;
-        bool huntMinibossDue, huntMinibossNow;   // host: the next Riot Shield out of the queue is the miniboss
+        public const float HuntMiniBossHp = 4f, HuntMiniBossSize = 1.5f;
+        bool huntMiniBossDue, huntMiniBossNow;   // host: the next Riot Shield out of the queue is the miniboss
 
         /// A Boss Hunt's save: written once, when the miniboss at step 10 has been beaten and everyone has picked their rewards, and kept
         /// until the hunt ends (Continue resumes at the vote for step 11). The pause menu says whether it is on disk.
@@ -264,7 +264,7 @@ namespace Arena
                     DoLog("hunt map: Ambush reward");
                     break;
                 case HuntNodeType.Contraband:
-                case HuntNodeType.Miniboss:
+                case HuntNodeType.MiniBoss:
                     foreach (var p in Players.Values)
                         p.PrizePicks++;
                     DoLog("hunt map: " + HuntMap.Name(HuntNodeNow) + " reward");
@@ -279,11 +279,11 @@ namespace Arena
         void HuntNodeWaveStart()
         {
             huntAmbush = false;
-            huntMinibossDue = false;
-            if (IsHost && HuntMapOn && HuntNodeNow == HuntNodeType.Miniboss)
+            huntMiniBossDue = false;
+            if (IsHost && HuntMapOn && HuntNodeNow == HuntNodeType.MiniBoss)
             {
                 spawnQueue.Insert(0, EnemyType.RiotShield);
-                huntMinibossDue = true;
+                huntMiniBossDue = true;
                 DoLog("hunt map: the miniboss");
             }
             if (!IsHost || !HuntMapOn || HuntNodeNow != HuntNodeType.Ambush)
@@ -306,7 +306,7 @@ namespace Arena
                 return;
             HuntNodeReward();
             ClearHuntNode();
-            if (HuntRoute.Step == HuntMap.MinibossRow(HuntLength) + 1)
+            if (HuntRoute.Step == HuntMap.MiniBossRow(HuntLength) + 1)
                 huntCheckpointDue = true;   // the miniboss is down: the hunt is saved here (TickHuntCheckpoint)
         }
 

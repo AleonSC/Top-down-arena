@@ -24,7 +24,6 @@ namespace Arena
         static readonly Color CabDanger = CrtStyle.Danger;
         static readonly Color CabWarm = new Color(1f, 0.82f, 0.45f);         // a changed key
 
-        bool CabCalm => fxReduced || !fxOn;
         float CabAge => WinT;  // seconds since the cabinet opened
 
         /// What the header's sub-line types before it settles on the real line (the pause menu adds the wave).
@@ -40,14 +39,14 @@ namespace Arena
         string CabText(string slot, string text, float delay)
         {
             float now = WinNow;
-            string full = CrtKit.Typed(slot, text, now, CabCalm, -10f);  // (a slot seen for the first time counts as typed)
-            if (CabCalm || CabAge >= CabOpenEnd || !CrtKit.Settled(slot, now) || string.IsNullOrEmpty(text))
+            string full = CrtKit.Typed(slot, text, now, FxCalm, -10f);  // (a slot seen for the first time counts as typed)
+            if (FxCalm || CabAge >= CabOpenEnd || !CrtKit.Settled(slot, now) || string.IsNullOrEmpty(text))
                 return full;
             return CrtKit.Reveal(text, CabAge - delay, 0.3f, false);
         }
 
         /// A label in a window: types in when the window opens and retypes when its text changes (slots are by position).
-        string WinText(string slot, string text) => CrtKit.Typed(slot, text, WinNow, CabCalm, cabInstant ? -10f : 0f);
+        string WinText(string slot, string text) => CrtKit.Typed(slot, text, WinNow, FxCalm, cabInstant ? -10f : 0f);
 
         // --- The cabinet ------------------------------------------------------------------------------------------------
 
@@ -65,7 +64,7 @@ namespace Arena
         void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44, Rect? screen = null, Rect? header = null)
         {
             float dx = DrawerSlide;  // in from the left as the window opens, out as it closes (WindowAnim.cs)
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             float age = CabAge, now = WinNow;
             rowIndex = 0;
             if (age >= CabOpenEnd && !calm)
@@ -156,11 +155,11 @@ namespace Arena
                 return false;
             string slot = "cab.r" + i;
             // The texts are there as soon as the key is (blank keys read as broken while they typed in); they still retype when the list switches.
-            string n = CrtKit.Typed(slot + ".n", name, WinNow, CabCalm, -10f);
-            string s = string.IsNullOrEmpty(line) ? null : CrtKit.Typed(slot + ".s", line, WinNow, CabCalm, -10f);
+            string n = CrtKit.Typed(slot + ".n", name, WinNow, FxCalm, -10f);
+            string s = string.IsNullOrEmpty(line) ? null : CrtKit.Typed(slot + ".s", line, WinNow, FxCalm, -10f);
             if (s != null && s.Length == 0)
                 s = " ";  // (the two-line layout holds while the line is still typing)
-            bool clicked = CrtKit.Key(r, n, s, icon, on, CabCalm, WinNow, null, r.height >= 54f ? 24 : 20, col, danger);
+            bool clicked = CrtKit.Key(r, n, s, icon, on, FxCalm, WinNow, null, r.height >= 54f ? 24 : 20, col, danger);
             bool inv = on || (GUI.enabled && r.Contains(Event.current.mousePosition));
             Color tc = CrtKit.SoftText(danger ? CabDanger : col, inv);
             if (!string.IsNullOrEmpty(key))
@@ -194,7 +193,7 @@ namespace Arena
         bool KeyOpening(Rect r, int i, out float age)
         {
             age = CabAge - KeyBootAt;
-            if (CabCalm || CabAge >= CabOpenEnd)
+            if (FxCalm || CabAge >= CabOpenEnd)
             {
                 age = 99f;
                 return true;
@@ -248,7 +247,7 @@ namespace Arena
                 after?.Invoke();
                 return;
             }
-            if (CabCalm)
+            if (FxCalm)
             {
                 cabWin = false;
                 pauseHowTo = false;
@@ -338,10 +337,10 @@ namespace Arena
             }
             float k = CabWinSlideK();
             float dx = -(DrawerPanel.xMax + 20f) * (1f - k);
-            cabWinPower = cabKind == 0 || !CabCalm ? WinClock - cabWinInAt : WinClock - cabWinInAt - 0.2f;
+            cabWinPower = cabKind == 0 || !FxCalm ? WinClock - cabWinInAt : WinClock - cabWinInAt - 0.2f;
             cabWinRect = new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height);
-            cabWinOn = CabCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
-            cabWinBootE = CabCalm || cabWinOutAt >= 0f ? 99f : cabWinPower;  // (closing mid-boot, it slides out as it was)
+            cabWinOn = FxCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
+            cabWinBootE = FxCalm || cabWinOutAt >= 0f ? 99f : cabWinPower;  // (closing mid-boot, it slides out as it was)
             // The soft sweep (HoloBoot, LobbyFx.cs): the window shows top-down under a feathered edge (EndPanelAnim).
             cabWinBooting = cabWinOn && cabWinBootE < HoloBoot.SoftLen;
             if (cabWinBooting)
@@ -364,7 +363,7 @@ namespace Arena
         /// (CrtKit.EraseAll, held by CrtKit.Hold), then the new one is shown and types in. Not while the window is opening.
         int PanelShown(ref int shown, int want)
         {
-            if (CabCalm || !cabWin || WinClock - cabWinInAt < 0.8f || shown == want)
+            if (FxCalm || !cabWin || WinClock - cabWinInAt < 0.8f || shown == want)
             {
                 shown = want;
                 panelSwitchAt = -1f;
@@ -403,8 +402,8 @@ namespace Arena
         {
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y;
             string t = WinText("win.title", title);
-            CrtUi.Title(new Rect(x, y + 12f, w - 90f, 44f), t, 34, CrtUi.Ink, TextAnchor.MiddleLeft, CabCalm);
-            if (CabCalm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
+            CrtUi.Title(new Rect(x, y + 12f, w - 90f, 44f), t, 34, CrtUi.Ink, TextAnchor.MiddleLeft, FxCalm);
+            if (FxCalm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
             {
                 float tw = t.Length == 0 ? 0f : CrtUi.TitleWidth(t, 34);
                 Ui.Fill(new Rect(x + 4f + tw, y + 24f, 14f, 22f), CrtUi.Ink);
@@ -455,12 +454,12 @@ namespace Arena
             if (lamp)
             {
                 var lr = new Rect(x, r.center.y - 4.5f, 9f, 9f);
-                if (lampLit && !CabCalm)
+                if (lampLit && !FxCalm)
                     Ui.Fill(new Rect(lr.x - 3f, lr.y - 3f, 15f, 15f), new Color(c.r, c.g, c.b, 0.25f));
                 Ui.Fill(lr, new Color(tc.r, tc.g, tc.b, lampLit ? 1f : 0.4f));
             }
             var tr = new Rect(x + lw, r.y, tw + 14f, r.height);
-            CrtUi.Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, CabCalm);
+            CrtUi.Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, FxCalm);
             return !isStatic && Ui.HitArea(r);
         }
 
@@ -470,7 +469,7 @@ namespace Arena
             int i = cabWinRow++;
             bool two = !string.IsNullOrEmpty(desc);
             Color c = dim ? CrtUi.Dim : CrtUi.Ink;
-            CrtUi.Text(new Rect(r.x, r.y, r.width, two ? 24f : r.height), WinText("win.t" + i, title), 17, c, TextAnchor.MiddleLeft, true, CabCalm);
+            CrtUi.Text(new Rect(r.x, r.y, r.width, two ? 24f : r.height), WinText("win.t" + i, title), 17, c, TextAnchor.MiddleLeft, true, FxCalm);
             if (two)
                 Ui.Label(new Rect(r.x, r.y + 23f, r.width, 16f), WinText("win.d" + i, desc), 12, dim ? CrtUi.Dim : CabSoft, TextAnchor.MiddleLeft, false);
         }
@@ -547,7 +546,7 @@ namespace Arena
                 var b = new Rect(bar.x + i * (bw + gap), bar.y, bw, bar.height);
                 if (i < lit)
                 {
-                    if (!CabCalm)
+                    if (!FxCalm)
                         Ui.Fill(new Rect(b.x - 1f, b.y - 1f, b.width + 2f, b.height + 2f), new Color(ink.r, ink.g, ink.b, 0.2f));
                     Ui.Fill(b, ink);
                 }
@@ -557,7 +556,7 @@ namespace Arena
                     CrtKit.Frame(b, 1f, new Color(ink.r, ink.g, ink.b, 0.3f));
                 }
             }
-            CrtUi.Text(val, Mathf.RoundToInt(v * 100f) + "%", 20, ink, TextAnchor.MiddleRight, true, CabCalm);
+            CrtUi.Text(val, Mathf.RoundToInt(v * 100f) + "%", 20, ink, TextAnchor.MiddleRight, true, FxCalm);
             return v;
         }
     }

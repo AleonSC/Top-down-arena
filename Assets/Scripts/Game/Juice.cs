@@ -25,6 +25,8 @@ namespace Arena
     {
         // --- Settings --------------------------------------------------------------------------------------------------
         bool fxOn = true, fxNumbers = true, fxReduced;
+        /// Effects held back: Reduced effects on or Visual effects off (the CRT cabinet, holo tabs and widgets draw calmer).
+        bool FxCalm => fxReduced || !fxOn;
         float mateShotAlpha = 1f;  // how opaque other players' shots are drawn, 0.25..1 (Settings > Gameplay > Teammate shots)
         int fxShake = 1;  // 0 off, 1 low (the default), 2 full
 

@@ -69,7 +69,7 @@ static partial class Program
         Check(g.Players[1].Vectors == vec && g.SurpriseKind == sur[0].Surprise && cg.SurpriseKind == g.SurpriseKind && cg.SurpriseAge < 2f, "nobody pays, and both screens start the build-in and the chip (vec " + g.Players[1].Vectors + "/" + vec + ", kind " + g.SurpriseKind + "/" + cg.SurpriseKind + ", age " + cg.SurpriseAge + ")");
         Check(g.SurpriseFresh && g.ExpansionWorld.Areas.Count(a => a.Surprise > 0) == sur.Count, "the world's areas carry the flag, and it is fresh this wave");
         give.Invoke(g, null);
-        Check(Game.SurpriseCount(g.Expanded) == 2 && g.Expanded.Where(r => r.Leg == 0 && r.Surprise > 0).Select(r => r.Surprise).Distinct().Count() == 2, "the next one is another shape");
+        Check(Game.SurpriseCount(g.Expanded) == 2 && g.Expanded.Where(r => r.Piece == 0 && r.Surprise > 0).Select(r => r.Surprise).Distinct().Count() == 2, "the next one is another shape");
         // Not on a full map.
         while (Expansion.BoughtCount(g.Expanded) <= Expansion.MaxRooms - 2) g.Expanded.Add(new ExpansionRoom { Parent = 0, X = 20000 + g.Expanded.Count * 400, Y = 0, W = 300, H = 300 });
         int before = g.Expanded.Count;

@@ -27,7 +27,6 @@ namespace Arena
         static Color HoloDim => Color.Lerp(CrtUi.Dim, Color.white, 0.22f); // labels on the glass (a little brighter than the screens' dim)
         static Color HoloDesc => new Color(0.73f, 0.8f, 0.94f);           // descriptions
 
-        bool HoloCalm => fxReduced || !fxOn;
 
         // --- The projector ------------------------------------------------------------------------------------------------------
 
@@ -48,7 +47,7 @@ namespace Arena
                 float inset = Mathf.Lerp(0.11f, 0f, f) * W, h = (bottom - top) / strips;
                 Ui.Fill(new Rect(inset, bottom - (i + 1) * h, W - 2f * inset, h + 0.5f), new Color(ink.r, ink.g, ink.b, a));
             }
-            if (!HoloCalm)  // faint vertical lines in the cone
+            if (!FxCalm)  // faint vertical lines in the cone
                 for (float x = 0f; x < W; x += 22f)
                     Ui.Fill(new Rect(x, 0f, 1f, bottom), new Color(ink.r, ink.g, ink.b, 0.035f));
             var strip = new Rect(140f, 704f, 1000f, 5f);
@@ -71,7 +70,7 @@ namespace Arena
         void HoloPanel(Rect r, float bootAt, Action draw)
         {
             float now = Time.unscaledTime, since = now - bootAt;
-            float k = HoloCalm ? 1f : Mathf.Clamp01(since / HoloBootLen);
+            float k = FxCalm ? 1f : Mathf.Clamp01(since / HoloBootLen);
             if (k <= 0f)
                 return;
             float sy = k >= 1f ? 1f : Mathf.Lerp(0.015f, 1f, 1f - (1f - k) * (1f - k) * (1f - k));
@@ -101,7 +100,7 @@ namespace Arena
                 return;
             var ink = CrtUi.Ink;
             float t = MathX.Fmod(now, 5f) / 5f;
-            bool dip = !HoloCalm && ((t >= 0.94f && t < 0.96f) || t >= 0.98f);
+            bool dip = !FxCalm && ((t >= 0.94f && t < 0.96f) || t >= 0.98f);
             float oldAlpha = Ui.Alpha;
             Ui.Alpha = oldAlpha * (dip ? 0.82f : 0.9f);  // see-through: the arena shows a little
             Ui.Picture(r, CardArt.Holo(Color.Lerp(ink, new Color(0.02f, 0.05f, 0.12f), 0.35f)));
@@ -109,7 +108,7 @@ namespace Arena
             var line = new Color(ink.r, ink.g, ink.b, 0.11f);
             for (float y = Mathf.Round(r.yMax) - 1f; y >= r.y; y -= 4f)
                 Ui.Fill(new Rect(r.x, y, r.width, 1f), line);
-            if (!HoloCalm)
+            if (!FxCalm)
             {
                 float h = r.height, p = MathX.Fmod(now, 3.4f) / 3.4f;
                 float by = Mathf.Lerp(-0.288f * h, 1.152f * h, p);
@@ -131,8 +130,8 @@ namespace Arena
         void HoloTitle(float x, float y, string title, string sub, Color subColor, int size = 34)
         {
             var ink = CrtUi.Ink;
-            CrtUi.Title(new Rect(x, y, 700f, size + 4f), title, size, ink, TextAnchor.MiddleLeft, HoloCalm);
-            if (HoloCalm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
+            CrtUi.Title(new Rect(x, y, 700f, size + 4f), title, size, ink, TextAnchor.MiddleLeft, FxCalm);
+            if (FxCalm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
                 Ui.Fill(new Rect(x + CrtUi.TitleWidth(title, size) + 5f, y + size * 0.28f, size * 0.26f, size * 0.55f), ink);
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(new Rect(x, y + size + 4f, 900f, 16f), sub, 12, subColor, TextAnchor.MiddleLeft, true);
@@ -165,7 +164,7 @@ namespace Arena
             Ui.CrtFont = true;
             v = LobbyKit.Truncate(v, size, vr.width, false);
             Ui.CrtFont = was;
-            CrtUi.Title(vr, v, size, valueColor ?? CrtStyle.Gold, align, HoloCalm);
+            CrtUi.Title(vr, v, size, valueColor ?? CrtStyle.Gold, align, FxCalm);
             Ui.Label(new Rect(r.x + pad, r.yMax - 17f, r.width - 2f * pad, 13f), name.ToUpperInvariant(), 10, HoloDim, align == TextAnchor.MiddleLeft ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter, true);
         }
 

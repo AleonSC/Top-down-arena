@@ -110,18 +110,6 @@ namespace Arena
             return ok;
         }
 
-        /// An Extra Use card's name in an older save, from before the abilities were called 1st-4th ("Extra Use: Q").
-        static string OldUseCard(string name)
-        {
-            switch (name)
-            {
-                case "Extra Use: Space": return "Extra Use: 1st Ability";
-                case "Extra Use: Q": return "Extra Use: 2nd Ability";
-                case "Extra Use: E": return "Extra Use: 3rd Ability";
-                case "Extra Use: Shift": return "Extra Use: 4th Ability";
-                default: return name;
-            }
-        }
 
         /// An ability's name in an older save, as it is called now (OldNames.cs).
         static string OldAbilityName(string name) => OldNames.Ability(name);
@@ -144,7 +132,7 @@ namespace Arena
                             p.Taken.Add(Upgrades.UseCard(slot));
                         continue;
                     }
-                    string card = name == "Cluster Grenade" ? "Airstrike" : name == "Kinetic Wall" ? "Gale Wall" : name == "Second Charge" ? "Extra Use: 1st Ability" : OldUseCard(name);  // (the Cluster Grenade became Airstrike, Kinetic Wall Gale Wall; Second Charge became Extra Use)
+                    string card = OldNames.Upgrade(name);
                     int u = Array.FindIndex(Upgrades.All, x => x.Name == card);
                     if (u >= 0)
                         p.Taken.Add(u);

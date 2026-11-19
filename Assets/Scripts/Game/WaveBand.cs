@@ -24,7 +24,7 @@ namespace Arena
             float oldAlpha = Ui.Alpha;
             Ui.Alpha *= oa;
             GUI.color = new Color(oldCol.r, oldCol.g, oldCol.b, oldCol.a * oa);
-            bool calm = CabCalm;
+            bool calm = FxCalm;
             var r = top >= 0f ? new Rect(BandRect.x, top, BandRect.width, BandRect.height) : BandRect;  // (fixed size and place: it only fades in; `top` sits it higher, as the DOWNED band does: DownedLooks.cs)
             var dark = CrtUi.Bg;
 

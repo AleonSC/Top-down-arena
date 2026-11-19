@@ -17,7 +17,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Class | Health | Speed | About |
 |---|---|---|---|
 | Soldier | x1 | x1 | Guns and gear. Full health. |
-| Elementalist | x0.85 | x1 | Spells: fire, frost, lightning and arcane magic. 85% health. |
+| Elementalist | x0.85 | x1 | Spells: fire, frost, lightning, water, wind, earth and light. 85% health. |
 | Summoner | x0.9 | x1 | Fights alongside minions that come with your weapon. 90% health. |
 | Knight | x1.15 | x1 | Melee: swings cut small bullets out of the air. Armoured: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee; tricks and misdirection. Fast (+12% speed), 85% health. |
@@ -87,7 +87,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lightbringer | Healer | 0.5 s | 17 | - | 80 | 58 | A three-step chain. Dawn Cut's crescent heals the allies it passes, Mercy Cut's wards them, and Noon Sunburst plants the sword in a ring that heals everyone near you. Hits fill a light gauge: full, the next Noon is Radiant. The weapon-action key spends the light on a Sunlance that heals the ally nearest your cursor. |
 | Censer | Healer | 0.26 s | 13 | - | 85 | 35 | A censer on a chain, swung in a three-step rite: a sweep, a return sweep and a Benediction that goes all the way round. Every step heals allies near you and leaves incense that heals allies in it and makes enemy shots fired from inside it stray. Each enemy hit lights an Ember; the weapon-action key throws the censer to your cursor, spending them on a burst and a big healing cloud. |
 | Twin Blades | Dps | 0.18 s | 16 | - | 90 | 98 | Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back. |
-| Greatsword | Dps | 0.7 s | 40 | - | 125 | 89 | A three-hit chain: two quick cuts, then a slow overhead rend. The edge of each sweep hangs in the air as a crescent of steel that stops enemy bullets. Hold the weapon-action key to guard: the arc stops bullets and builds Temper, and letting go fires a beam that hits harder for every point of Temper. |
+| Greatsword | Dps | 0.5 s | 40 | - | 125 | 87 | A ten-step chain: Undertow drags enemies in, Pommel Bash stuns, Cross Cut, Backstep Reap hops you back behind a crescent that stops bullets, Comet Leap jumps in and crashes down, then Full Moon spins and Eclipse brings down a golden lance of light. The weapon-action key throws the sword spinning to your cursor and back. |
 | Rapier | Dps | 0.48 s | 18 | - | 130 | 85 | Precise thrusts at the nearest enemy in front, and they skewer enemy bullets along their line. The first thrust is slow, but every enemy you hit adds Tempo, and Tempo makes the thrusts quicker. Stop hitting and it holds a moment, then drains. The weapon-action key spends it on a Flourish: the blade whips back and forth, each swing throwing a crescent wave. |
 | Arc Knuckles | Dps | 0.24 s | 22 | - | 80 | 88 | Coiled blue fists in a five-punch chain: jab, cross, a hook that sweeps a crowd, an uppercut that launches, and the Twin Hammer, a ground slam whose shockwave stuns. Raising the parry cancels a punch and starts the chain over; a perfect parry arms the gold Counter Hammer for your next press. The weapon-action key is a Rocket Dash; land it and press Fire as each move lands to chain a Flurry, a Grab & Throw and a Rocket Punch. |
 
@@ -113,6 +113,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blood Lash | Tank | 0.32 s | 24 | - | 130 | 96 | A whip of blood, a four-step string: Crack, Backhand, Snap, Reap. Every lash that lands hooks a blood chain on the enemy (+1 link, +2 from the cracking tip or the Snap). Reap yanks every chained enemy in and turns the links into Clot (4% less damage taken each, up to 5). Alt: hold for Martyr's Leash. |
 | Gore Mortar | Tank | 0.75 s | 34 | - | - | 133 | Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still. |
 | Leech Tendrils | Tank | 0.1 s | 80 | - | 160 | 31 | Hold to lash out blood tendrils that grasp nearby enemies and hold them stunned. The longer you hold, the more blood builds up in them, and after 5 seconds they burst. Let go early and they burst for the share built up so far. Holding costs 2% of your max health a second, and the tendrils need 1 second to recover after a burst. |
+| Blood Blast | Tank | 0.42 s | 22 | - | 115 | 53 | Your blood shaped into a blade, a six-step chain that never times out: Crimson Slash, Backcut, Thorn Flurry, Vein Whirl, Sanguine Cleave, Crescent Flight. Every attack costs 1.3-3% of your max health and puts a blood stack on each enemy it hits (up to 10). When a stacked enemy dies, its blood flies back and heals you 2 a stack. |
 | Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Darts that transfuse your blood: one that reaches a hurt ally gives them more health than it costs you. Each enemy hit steals a sliver back. |
 | Sanguine Orb | Healer | 0.45 s | 16 | 420 x 1.4 s | - | 57 | Orbs of blood that home in at the last moment, circle an enemy and cover it, making it bleed and charging your heal reserve. With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s). |
 | Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | A draining beam that hurts whatever you hold it on. Part of its damage heals, split between you and the nearest ally. |
@@ -127,13 +128,13 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 |---|---|---|---|---|---|---|---|
 | Bulwark Forge | Tank | 0.55 s | 7 | 650 x 0.35 s | - | 118 | A nail shotgun: six nails in a spread. The weapon keeps a Sentinel at your side, a heavy walker (900 health) that soaks shots, draws enemies from 220 px, punches and slams. Alt orders it like the Strider: lock on, post, call back. A broken Sentinel is rebuilt in 10 s. |
 | Bulwark Forge | Tank | 0.55 s | 7 | 650 x 0.35 s | - | 118 | A nail shotgun: six nails in a spread. The weapon keeps a Sentinel at your side, a heavy walker (900 health) that soaks shots, draws enemies from 220 px, punches and slams. Alt orders it like the Strider: lock on, post, call back. A broken Sentinel is rebuilt in 10 s. |
-| Bulwark Forge | Tank | 0.55 s | 7 | 650 x 0.35 s | - | 118 | A nail shotgun: six nails in a spread. The weapon keeps a Sentinel at your side, a heavy walker (900 health) that soaks shots, draws enemies from 220 px, punches and slams. Alt orders it like the Strider: lock on, post, call back. A broken Sentinel is rebuilt in 10 s. |
+| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, 10 damage and a long push. A broken robot can be summoned again after 8 s. |
 | Medi-Drone Forge | Healer | 0.3 s | 8 | 850 x 0.5 s | - | 27 | A light rivet gun. A med-drone flies with you, goes to the most hurt ally and heals everyone near it for 12 a second. |
 | Medi-Drone Forge | Healer | 0.3 s | 8 | 850 x 0.5 s | - | 27 | A light rivet gun. A med-drone flies with you, goes to the most hurt ally and heals everyone near it for 12 a second. |
-| Medi-Drone Forge | Healer | 0.3 s | 8 | 850 x 0.5 s | - | 27 | A light rivet gun. A med-drone flies with you, goes to the most hurt ally and heals everyone near it for 12 a second. |
+| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s. |
 | Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
 | Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
-| Vector Forge | Dps | 0.3 s | 10 | 900 x 0.5 s | - | 105 | A light rivet gun. Its real job is the Strider: one walker, built at your side, that hunts the enemy nearest you, punches, slams the ground every 4 s and draws enemies near it. Alt on an enemy locks the Strider on (+50% damage until it dies); Alt on the floor posts it there to guard; Alt by you calls it back. A broken Strider is rebuilt in 8 s. |
+| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
 
 ## Abilities
 
@@ -150,7 +151,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave runs out 230 px from you: it erases enemy bullets, hits enemies for 60 and shoves them back 120 px. |
 | Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double fire rate for 5 seconds. |
 | Blink | Tank | card | 7 s | - | Erases enemy bullets where you leave and where you land. | Teleport toward your cursor. |
-| Nova | Tank | card | 9 s | - | Fires 48 shots instead of 24. | Fire a ring of 24 heavy shots. |
+| Starburst | Tank | card | 9 s | - | Fires 48 shots instead of 24. | Fire a ring of 24 heavy shots. |
 | Turret | Tank | card | 20 s | - | Deploys two turrets. | Deploy a turret that shoots for 10 seconds. |
 | Stun Gun | Tank | card | 14 s | - | Nine shots instead of six. | Draw a stun gun: your next 6 shots are stun bolts (15 damage) that stun enemies for 1.5 s (bosses are only slowed). The cooldown starts once all 6 are fired. |
 | Royal Dive | Tank | card | 12 s | - | A wider honey pool (150 px) that lasts 6 s. | Leap (nothing can hit you) and crash down at your cursor, up to 380 px away: 120 damage to everything within 110 px, enemies knocked back and enemy bullets there wiped out. The landing leaves a honey pool for 4 s that slows enemies 40% and heals allies 6 a second. |
@@ -176,15 +177,15 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lightning Rod | Tank | ultimate | 70 s | - | Lasts 8 s and each bolt arcs to 3 enemies. | For 6 s you crackle with charge: you take 80% less damage and every enemy, bosses too, goes for you. Each enemy hit on you calls a bolt from the sky on whoever landed it (30), which arcs on to the 2 enemies nearest it (15 each). Wet enemies take extra arcs. |
 | Flood | Tank | Space 5 | 16 s | - | Deluge: the flood is 30% wider and lasts 9 s. | Stamp and flood the ground 190 px round you for 6 s: enemies touching you are thrown back 60 px (10 damage), and every enemy wading in the water is slowed 40% (heavies and bosses 20%) and soaked wet, so lightning arcs to it, while it's in and 3 s after. |
 | Healing Rain | Healer | Space 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor for 6 s: heals allies inside 8 HP/s and slows enemies by 30%. |
-| Energy Ward | Healer | Space 2 | 14 s | - | The shield soaks 120 damage. | Wrap you and allies within 300 px in a bubble of energy that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing. |
+| Energy Ward | Healer | Space 2 | 14 s | - | The shield soaks 120 damage. | Wrap you and allies within 300 px in a bubble of water that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing. |
 | Lumen Ward | Healer | Space 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A huge cone of light toward your cursor for 6 s that turns as you aim: heals everyone inside 9 HP/s and burns away enemy bullets in it or touching it. |
-| Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A holy dome for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger). |
+| Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger). |
 | Water Ward | Healer | Space 5 | 3 s | - | Splashes and bursts reach 40% farther. | Call 2 drops of water down round you; they circle you, up to 10. A drop that touches an enemy splashes: 12 damage to every enemy within 52 px, and they're soaked wet (slowed 30%, lightning arcs to them) for 4 s. A drop that meets an enemy shot eats it and bursts into a mist that soaks everything within 72 px. |
 | Meteor | Dps | Space 1 | 10 s | - | Leaves burning ground for 3 s. | Call a meteor at your cursor: after a short warning it hits for 150 damage. |
 | Blizzard | Dps | Space 2 | 14 s | - | Lasts 10 s. | A storm at your cursor for 5 s that slows and damages enemies. |
 | Tsunami | Dps | Space 3 | 16 s | - | Wet lasts 14 s, and the wave rolls back to you, wetting what it missed. | A wave rolls out where you aim: 12 damage, and it leaves enemies wet for 8 s, slowed 30%. Lightning (Arc Lightning, Storm Hammer, Chain Light, Nimbus) arcs to every wet enemy on the map. |
 | Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | Call a downpour over a big square (520 px) at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet. |
-| Gale Wall | Dps | Space 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A curved wall in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back. |
+| Gale Wall | Dps | Space 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A curved wall of wind in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back. |
 
 ### Summoner
 
@@ -220,6 +221,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | The Gauntlet | Dps | Space 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Throw down the gauntlet at the enemy nearest your cursor along your aim (up to 380 px; it flies over anything in between): it takes 12 and is Challenged for 5 s. You shoulder-charge to it, untouchable, bowling everything in the way aside (18 and a shove), and hit it for 30. Kill the Challenged enemy before the Challenge runs out and the gauntlet flies back: the cooldown resets. |
 | Caught Steel | Dps | Space 3 | 16 s | - | Holds up to 18 shards. | For 6 s, enemy bullets that skim past you without touching you are caught and hang round you as steel (up to 12). Press again (or let the time run out) and a sweeping cut hurls them out along your aim: each shard cuts the bullets in its way and hits the first enemy for 22. A hit knocks a third of them loose. The cooldown starts when you throw them. |
 | Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A gatehouse rises behind you and its drawbridge falls along your aim: 500 px long and 100 wide, it crushes everything in the lane for 260 and throws enemies at its edges aside (45). Then it lies there for 5 s as a walkway: enemies can't step onto it and the rails grind any pressed against them (80 a second), and their shots stop at its rails, red aimed shots too. |
+| Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | Blow a warhorn and a volley of fire arrows falls behind you and sweeps across the field along your aim (1,400 px ahead, 700 wide). Every enemy it reaches takes 120, burns for 20 a second for 5 s and is pinned (40% slower for 3 s). Enemy shots in its path are knocked out of the air (red aimed shots fly on). |
 
 ### Ninja
 
@@ -273,34 +275,25 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Enemy | Group | Health | Speed | Radius | Contact | Score | XP | Notes | What it does |
 |---|---|---|---|---|---|---|---|---|---|
 | Grunt | Ranged | 60 | 85 | 14 | - | 10 | 10 |  | Fires aimed 3-shot spreads. |
-| Burster | Ranged | 110 | 55 | 17 | - | 20 | 18 |  | Fires rings of bullets; more in each ring on later waves. |
 | Sniper | Ranged | 50 | 95 | 12 | - | 15 | 14 |  | Fast, accurate shots from far away. |
 | Spinner | Ranged | 150 | 35 | 18 | - | 25 | 22 |  | Wanders and sprays spirals in bursts; it spins up while bursting. |
-| The Warden | Boss | 2400 | 45 | 46 | - | 300 | 150 | boss | Boss (wave 5): a prison riot in three stages — searchlight, gates and gas, then rioters. |
-| Charger | Ranged | 90 | 70 | 15 | - | 20 | 18 |  | Flashes a red line, then dashes along it and bursts into a ring. |
-| Splitter | Ranged | 120 | 50 | 19 | - | 20 | 16 |  | Splits into 3 fast Shards when killed. |
-| Shard | Ranged | 25 | 130 | 8 | - | 5 | 4 |  | Tiny and fast. Comes from Splitters, Nests and the Hive Queen. |
+| The Warden | Boss | 2400 | 45 | 46 | - | 300 | 150 | boss | Boss (wave 5): a prison riot in three phases — searchlight, gates and gas, then rioters. |
+| Shard | Ranged | 25 | 130 | 8 | - | 5 | 4 |  | Tiny and fast. Comes from the Hive Queen and Splitting elites. |
 | Mortar | Ranged | 80 | 40 | 16 | - | 20 | 18 |  | Lobs bombs at where you stand; they burst into a ring on landing. |
 | Shielder | Ranged | 140 | 60 | 17 | - | 25 | 22 |  | A front shield blocks shots and swings. It turns slowly: flank it. |
-| Medic | Ranged | 70 | 75 | 13 | - | 25 | 20 |  | Heals nearby enemies every few seconds. Kill it first. |
-| Hive Queen | Boss | 3000 | 40 | 44 | - | 400 | 180 | boss | Boss (wave 10): a hive in three stages — drones and bombers, sealing cells and honey, then a frenzied swarm. |
+| Hive Queen | Boss | 3000 | 40 | 44 | - | 400 | 180 | boss | Boss (wave 10): a hive in three phases — drones and bombers, sealing cells and honey, then a frenzied swarm. |
 | Reaper of Dusk | Boss | 2600 | 95 | 34 | - | 250 | 100 | boss | Boss pair (wave 15): a tether sweep, then they fuse into the Dual Reaper (pillars, holes), then split for a finale. |
 | Reaper of Dawn | Hidden | 2600 | 95 | 34 | - | 250 | 100 | boss |  |
 | The Singularity | Boss | 3600 | 0 | 40 | - | 500 | 220 | boss | Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages. |
-| Phantom | Late | 90 | 90 | 13 | - | 25 | 22 |  | Flickers, blinks next to you and bursts into a ring. |
-| Hexer | Late | 100 | 60 | 14 | - | 25 | 22 |  | Fires curving pincer shots that close in from both sides. |
-| Juggernaut | Late | 420 | 32 | 26 | - | 60 | 50 | heavy | Armored and slow, can't be slowed or knocked back. Rotating stars of orbs. |
-| Nest | Late | 260 | 0 | 22 | - | 40 | 35 | heavy | Stationary spawner that keeps hatching Shards until destroyed. |
 | The Colossus | Boss | 6800 | 35 | 54 | - | 600 | 260 | boss | Boss (wave 25): huge stomp rings with one gap, and thrown rocks. |
 | The Duelist | Boss | 6000 | 80 | 30 | - | 650 | 280 | boss | Boss (wave 30): teleports and leaves decoys that burst unless killed. |
 | The Duelist | Hidden | 70 | 0 | 30 | - | 0 | 0 |  |  |
 | The Lich | Boss | 5000 | 45 | 36 | - | 700 | 300 | boss | Boss (wave 35): immune while its phylactery stands; raises skeletons. |
 | Phylactery | Hidden | 600 | 0 | 18 | - | 50 | 0 | heavy |  |
-| Storm Herald | Boss | 6000 | 55 | 40 | - | 800 | 320 | boss | Boss (wave 40), three stages: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time. |
-| The Devourer | Boss | 6500 | 40 | 50 | - | 900 | 340 | boss | Boss (wave 45), three stages: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front. |
-| The Eclipse | Boss | 9000 | 30 | 52 | - | 2000 | 500 | boss | Final boss (wave 50), five stages and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova. |
+| Storm Herald | Boss | 6000 | 55 | 40 | - | 800 | 320 | boss | Boss (wave 40), three phases: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time. |
+| The Devourer | Boss | 6500 | 40 | 50 | - | 900 | 340 | boss | Boss (wave 45), three phases: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front. |
+| The Eclipse | Boss | 9000 | 30 | 52 | - | 2000 | 500 | boss | Final boss (wave 50), five phases and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova. |
 | Gravity Well | Hidden | 260 | 160 | 15 | - | 40 | 15 |  |  |
-| Spiker | Melee | 22 | 135 | 9 | 10 | 5 | 5 | melee | Small and fast melee rusher with long thin spikes. It zig-zags toward you in pairs. |
 | Brute | Melee | 200 | 62 | 19 | 24 | 15 | 14 | melee | Slow, tough melee bruiser that hits hard (24) when it reaches you. |
 | Lunger | Melee | 45 | 95 | 12 | 18 | 12 | 12 | melee | Circles in close, flashes a pink line, then leaps along it. |
 | Hive Bomber | Hidden | 30 | 330 | 10 | - | 2 | 0 | melee |  |
@@ -313,13 +306,6 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Singularity Shard | Hidden | 1000000 | 0 | 20 | - | 0 | 0 | melee |  |
 | Ball Lightning | Hidden | 70 | 0 | 15 | 20 | 3 | 2 | melee |  |
 | Morsel | Hidden | 60 | 0 | 14 | - | 0 | 0 |  |  |
-| Beam Sentry | Late | 160 | 70 | 17 | - | 30 | 12 |  | Plants itself, aims a line at you, then sweeps a beam across your side. |
-| Scorcher | Late | 130 | 95 | 15 | - | 30 | 12 |  | Circles you leaving a trail of embers. Cut across before it closes. |
-| Reaver | Late | 240 | 150 | 19 | 20 | 40 | 16 | melee, heavy | Armoured melee: a red cone, then a rake. Open for a moment after: +50% damage. |
-| Warder | Late | 180 | 65 | 16 | - | 40 | 16 |  | Puts bubbles on up to three allies. Kill it and they all pop. |
-| Pauser | Late | 100 | 60 | 15 | - | 25 | 12 |  | Fans out shots that stop dead, glow, then all rush at where you are. Keep moving. |
-| Leader | Late | 90 | 80 | 13 | - | 25 | 12 |  | Aims where you're going, not where you are. Change direction when it fires. |
-| Stitcher | Late | 120 | 65 | 15 | - | 30 | 14 |  | Fires slow orbs; nearby orbs are tied by a harmful thread. Slip through the gaps. |
 | Riot Shield | Melee | 60 | 120 | 16 | 8 | 10 | 10 | melee | An officer in steel-blue riot gear behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast. |
 | Gas Grenadier | Ranged | 50 | 75 | 14 | - | 8 | 9 |  | An officer in olive drab and a gas mask, lobbing tear-gas canisters at you. Step out of the cloud. |
 | The Gatekeeper | Hidden | 3000 | 55 | 34 | 25 | 150 | 80 | mini-boss, heavy | Challenge room mini-boss: a ring of shots with a gap, three aimed fans, and a charge along a shown line that ends in a burst. |
@@ -331,15 +317,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bloater | Melee | 90 | 50 | 18 | 20 | 10 | 14 | melee | Zombie: swollen and slow; it bursts into a slowing spore cloud. Pop it at range. |
 | Shrieker | Ranged | 40 | 80 | 11 | - | 10 | 12 |  | Zombie: hangs back and screams, sending the horde round it into a frenzy. Silence it. |
 | Mender | Ranged | 50 | 65 | 12 | - | 10 | 14 |  | Zombie: heals the horde round it and makes the dead rise faster. Kill it first. |
-| Buzzsaw | Melee | 30 | 170 | 12 | 4 | 8 | 8 | melee | A fast ring of spinning spikes that swoops round on curves. Each touch is small, but they come about eight times a second. |
-| Spike Block | Melee | 60 | 120 | 14 | 12 | 14 | 14 | melee | Rocks from side to side as it closes in, then stops, flashes a red line and lunges for a big hit (35). Slow to recover. |
 | Swarmer | Melee | 14 | 115 | 9 | 6 | 3 | 3 | melee | The simplest melee rusher: a white chomper with no eyes that walks straight at you. Weak alone, and it comes in packs. |
-| Fuse Runner | Late | 50 | 200 | 12 | 8 | 12 | 10 | melee | A powder keg on the run: it plants its feet near you and blows up after a 0.8 s fuse, hurting enemies too. Step out, or shoot it early. |
-| Hookman | Late | 150 | 70 | 15 | - | 25 | 14 | melee | Throws a harpoon along a blinking line and yanks you to its squad. Sidestep or parry; a miss leaves it open (+50%). |
-| Sapper | Late | 110 | 85 | 14 | - | 25 | 14 | melee | Plants tripwire pods; armed pods are joined by lasers. Cross a laser or step on a pod and it blows. Shoot a pod to use it on enemies. |
-| Tripwire Pod | Hidden | 1 | 0 | 7 | - | 0 | 0 | melee, heavy | A Sapper's pod: arms in 1 s, then a laser joins it to armed pods near it. Shoot it to blow it up. |
-| Swordsman | Melee | 85 | 95 | 15 | 8 | 22 | 14 | melee | Walks up, raises a long sword and cuts the cone drawn on the floor in front of it. Step out of the cone, then hit it while it recovers. |
-| Shield Swordsman | Melee | 85 | 75 | 15 | 8 | 28 | 16 | melee | A Swordsman behind a shield that stops every shot from the front. The shield drops when it cuts and stays down while it recovers: shoot it then, or from the side. |
 | Taser Guard | Ranged | 70 | 80 | 13 | - | 9 | 11 |  | An officer in slate with a hi-vis band. Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it. |
 | Security Guard | Ranged | 45 | 70 | 15 | - | 9 | 9 |  | An officer in navy with a service pistol. Strafes, locks on and fires one tracer round at a time: seven shots, then a long reload. Sidestep the lane, or rush it while it reloads. |
 | Thug | Melee | 140 | 62 | 19 | 20 | 10 | 10 | melee | A hunched prisoner brute with giant taped fists. Slow and tough, hits hard when it reaches you. |
@@ -360,7 +338,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lamplighter | Ranged | 55 | 70 | 13 | - | 10 | 10 |  | Plants its feet, its lantern flares and gold lines show the volley: three lines at you, then a four-way cross. |
 | Mourner | Ranged | 80 | 60 | 15 | - | 12 | 12 |  | Stands still and weeps a twin spiral, one arm each way, then rests. Push in while it rests. |
 | Gravedigger | Melee | 140 | 62 | 19 | 20 | 10 | 10 | melee | A cultist brute with a shovel. Slow and tough, hits hard when it reaches you. |
-| Shade | Late | 90 | 90 | 13 | - | 25 | 22 |  | A shrouded Phantom: fades to smoke, shows a ring where it will land, appears and fires. |
+| Shade | Late | 90 | 90 | 13 | - | 25 | 22 |  | A shrouded wraith: fades to smoke, shows a ring where it will land, appears and fires. |
 | Debris | Melee | 22 | 125 | 10 | 9 | 3 | 6 | melee | Tumbling rubble that falls at you on a curving inward spiral, so it's hard to line up. |
 | Void Acolyte | Ranged | 45 | 85 | 13 | - | 7 | 10 |  | A void cultist. Fires three slow orbs: the outer two bend in and meet where you stand. Step forward or back, not sideways. |
 | Pulsar | Ranged | 70 | 75 | 13 | - | 9 | 12 |  | A spinning neutron star. Its two beams flicker for a second, then switch on and sweep a quarter turn. Walk with the sweep. |

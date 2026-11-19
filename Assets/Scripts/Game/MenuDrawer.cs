@@ -328,7 +328,7 @@ namespace Arena
         void DrawRunScreen(float t)
         {
             float a = 1f - CabWinSlideK();
-            if (!CabCalm)
+            if (!FxCalm)
                 a *= Mathf.Clamp01((CabAge - RunCardAt) / 0.45f);  // fades in after the cabinet's opening (no pop)
             if (a <= 0.01f)
                 return;
@@ -469,7 +469,7 @@ namespace Arena
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
             var r = at;
             float powerAge = CabAge - RunCardAt;  // the box fades in after the cabinet's opening (DrawRunScreen)
-            if (!CabCalm && powerAge < 0f)
+            if (!FxCalm && powerAge < 0f)
                 return;
             CrtKit.LoadoutBox(r);
             DrawPartyStack(r);  // the players, stacked up from its bottom
@@ -569,9 +569,9 @@ namespace Arena
                 DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, lastRoomWon ? ToColor(Challenges.Accent(rc)) : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), (lastRoomWon ? "Won" : "Lost") + "  ·  " + nextPortal, 12, Ui.Muted);
             }
-            else if (game.Room == RoomPhase.Portal || game.InRoom)
+            else if (game.ChallengePhase == RoomPhase.Portal || game.InRoom)
             {
-                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.RoomKind), 19, ToColor(Challenges.Accent(game.RoomKind)), TextAnchor.MiddleLeft);
+                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.ChallengeNow), 19, ToColor(Challenges.Accent(game.ChallengeNow)), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.InRoom ? "You're in it now" : "Its Data Gate is open", 12, Ui.Muted);
             }
             else
@@ -1052,7 +1052,7 @@ namespace Arena
                     // The name and its note, one line each, centred on the keys; a long note shrinks a size rather than wrap.
                     string note = HowToActions[i, 1];
                     bool hasNote = note.Length > 0;
-                    CrtUi.Text(new Rect(lx, hasNote ? my - 19f : my - 10f, lw, 20f), WinText("win.k" + i, HowToActions[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+                    CrtUi.Text(new Rect(lx, hasNote ? my - 19f : my - 10f, lw, 20f), WinText("win.k" + i, HowToActions[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, FxCalm);
                     if (hasNote)
                     {
                         int ns = Ui.TextWidth(note, 11) <= lw ? 11 : 10;
@@ -1086,7 +1086,7 @@ namespace Arena
                     IconTile(tile, null, topic.Color, 0f);
                     glyphs.Add(new KeyValuePair<int, V2>(int.Parse(g), new V2(tile.center.x, tile.center.y)));
                 }
-                CrtUi.Text(new Rect(r.x + 64f, r.y + 8f, r.width - 74f, 20f), WinText("win.t" + i, topic.Tips[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+                CrtUi.Text(new Rect(r.x + 64f, r.y + 8f, r.width - 74f, 20f), WinText("win.t" + i, topic.Tips[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, FxCalm);
                 Ui.Label(new Rect(r.x + 64f, r.y + 30f, r.width - 74f, r.height - 36f), WinText("win.d" + i, Keybinds.Fill(topic.Tips[i, 1])), 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             if (glyphs.Count > 0 && BeginUiGl())

@@ -196,9 +196,9 @@ namespace Arena
                 name = FitCosmeticName(name, nw, 15, out size, out wrap);
                 string shown = WinText("win.n" + section + "." + id, name);
                 if (wrap)
-                    CrtUi.Text(new Rect(nx, rr.y + 3f, nw, 32f), shown, 14, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.UpperLeft, true, CabCalm, true);
+                    CrtUi.Text(new Rect(nx, rr.y + 3f, nw, 32f), shown, 14, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.UpperLeft, true, FxCalm, true);
                 else
-                    CrtUi.Text(new Rect(nx, rr.y + 5f, nw, 24f), shown, size, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true, CabCalm);
+                    CrtUi.Text(new Rect(nx, rr.y + 5f, nw, 24f), shown, size, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true, FxCalm);
                 string sub = c == null ? (kind == CosmeticKind.Background ? "default: what you chose in Settings" : "default") : ok ? (Rank.IsReactiveBackground(c.Id) ? "reactive · unlocked" : "unlocked") : (Rank.IsReactiveBackground(c.Id) ? "reactive · " : "") + "locked: rank " + c.Rank;
                 Ui.Label(new Rect(nx, rr.y + 31f, nw, 18f), sub, 13, c != null && ok ? Ui.Good : CrtUi.Dim, TextAnchor.MiddleLeft);
                 var kr = new Rect(rr.xMax - 8f - 92f, rr.y + (rowH - 32f) / 2f, 92f, 32f);

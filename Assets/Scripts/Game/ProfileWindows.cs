@@ -56,7 +56,7 @@ namespace Arena
         void InfoRow(Rect r, string title, string desc, string value, Color valueCol)
         {
             WinLabel(new Rect(r.x, r.y, r.width - 260f, r.height), title, desc);
-            CrtUi.Text(new Rect(r.xMax - 280f, r.y, 280f, r.height - 2f), value, 24, valueCol, TextAnchor.MiddleRight, true, CabCalm);
+            CrtUi.Text(new Rect(r.xMax - 280f, r.y, 280f, r.height - 2f), value, 24, valueCol, TextAnchor.MiddleRight, true, FxCalm);
             DashLine(r.x, r.yMax, r.width);
         }
 
@@ -70,7 +70,7 @@ namespace Arena
                 var b = new Rect(r.x + i * (bw + gap), r.y, bw, r.height);
                 if (i < lit)
                 {
-                    if (!CabCalm)
+                    if (!FxCalm)
                         Ui.Fill(new Rect(b.x - 1f, b.y - 1f, b.width + 2f, b.height + 2f), new Color(c.r, c.g, c.b, 0.2f));
                     Ui.Fill(b, c);
                 }
@@ -145,7 +145,7 @@ namespace Arena
                 CrtKit.Frame(r, 1f, you ? tc : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f));
                 RankLook.Draw(new Rect(r.x + 14f, r.y + 10f, 56f, 56f), TierStarts[i], you || rank >= TierStarts[i] ? 1f : 0.6f);
                 string range = i + 1 < TierStarts.Length ? "Ranks " + TierStarts[i] + " to " + (TierStarts[i + 1] - 1) : "Rank " + TierStarts[i] + " and up";
-                CrtUi.Text(new Rect(r.x + 92f, r.y + 10f, 360f, 36f), WinText("win.tier" + i, Rank.TierNames[i]), 28, tc, TextAnchor.MiddleLeft, true, CabCalm);
+                CrtUi.Text(new Rect(r.x + 92f, r.y + 10f, 360f, 36f), WinText("win.tier" + i, Rank.TierNames[i]), 28, tc, TextAnchor.MiddleLeft, true, FxCalm);
                 Ui.Label(new Rect(r.x + 92f, r.y + 48f, 360f, 20f), range + "  ·  " + (i + 1) + (i == 0 ? " chevron" : " chevrons"), 14, CabSoft, TextAnchor.MiddleLeft);
                 if (you)
                     WinKey(new Rect(r.xMax - 20f - 150f, r.y + 24f, 150f, 36f), "< YOU", false, 20, tc, false, true, true);
@@ -216,9 +216,9 @@ namespace Arena
                 string cname = FitCosmeticName(c.Name, nw, 15, out size, out wrap);
                 string shown = WinText("win.u" + sel + "." + c.Id, cname);
                 if (wrap)
-                    CrtUi.Text(new Rect(nx, rr.y + 2f, nw, 32f), shown, 14, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.UpperLeft, true, CabCalm, true);
+                    CrtUi.Text(new Rect(nx, rr.y + 2f, nw, 32f), shown, 14, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.UpperLeft, true, FxCalm, true);
                 else
-                    CrtUi.Text(new Rect(nx, rr.y + 4f, nw, 24f), shown, size, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true, CabCalm);
+                    CrtUi.Text(new Rect(nx, rr.y + 4f, nw, 24f), shown, size, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true, FxCalm);
                 Ui.Label(new Rect(nx, rr.y + 31f, nw, 18f), ok ? "unlocked" : "locked: rank " + c.Rank, 13, ok ? Ui.Good : CrtUi.Dim, TextAnchor.MiddleLeft);
                 Ui.Icon(new Rect(rr.xMax - 32f, rr.center.y - 11f, 22f, 22f), PixelArt.Get(ok ? "ui_check" : "ui_lock"), ok ? Ui.Good : CrtUi.Dim);
             }
@@ -241,7 +241,7 @@ namespace Arena
                 Ui.Fill(rr, new Color(ink.r, ink.g, ink.b, on ? 0.05f : 0.025f));
                 CrtKit.Frame(rr, 1f, new Color(ink.r, ink.g, ink.b, on ? 0.3f : 0.18f));
                 IconTile(new Rect(rr.x + 8f, rr.y + 8f, 46f, 46f), PixelArt.Get(on ? "ui_star" : "ui_lock"), on ? Ui.Gold : CrtUi.Dim, 26f);
-                CrtUi.Text(new Rect(rr.x + 68f, rr.y + 6f, w - 200f, 26f), WinText("win.o" + u.Id, u.Name), 20, on ? Ui.Gold : CrtUi.Dim, TextAnchor.MiddleLeft, true, CabCalm);
+                CrtUi.Text(new Rect(rr.x + 68f, rr.y + 6f, w - 200f, 26f), WinText("win.o" + u.Id, u.Name), 20, on ? Ui.Gold : CrtUi.Dim, TextAnchor.MiddleLeft, true, FxCalm);
                 Ui.Label(new Rect(rr.x + 68f, rr.y + 33f, w - 84f, 22f), KeyText.Fill(u.Desc), 13, CabSoft, TextAnchor.MiddleLeft);
                 if (on)
                     Ui.Label(new Rect(rr.xMax - 130f, rr.y + 6f, 118f, 26f), "UNLOCKED", 14, Ui.Good, TextAnchor.MiddleRight, true);

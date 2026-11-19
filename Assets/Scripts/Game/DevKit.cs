@@ -37,7 +37,7 @@ namespace Arena
 
         /// A heading in glowing phosphor text.
         void DkTitle(Rect r, string s, int size, Color? c = null, TextAnchor a = TextAnchor.MiddleLeft) =>
-            CrtUi.Text(r, s, size, c ?? CrtUi.Ink, a, true, CabCalm);
+            CrtUi.Text(r, s, size, c ?? CrtUi.Ink, a, true, FxCalm);
 
         /// A soft digital key. `sel` outlines it as the chosen one. Returns true when pressed.
         bool DkKey(Rect r, string text, Color tint, bool sel = false, int size = 13)
@@ -53,7 +53,7 @@ namespace Arena
             int sz = Mathf.Max(10, size);
             while (sz > 9 && Ui.TextWidth(text, sz, true) > r.width - 8f)
                 sz--;  // long names shrink to fit
-            CrtUi.Text(new Rect(r.x + 4f, r.y, r.width - 8f, r.height), text, sz, tc, TextAnchor.MiddleCenter, true, CabCalm);
+            CrtUi.Text(new Rect(r.x + 4f, r.y, r.width - 8f, r.height), text, sz, tc, TextAnchor.MiddleCenter, true, FxCalm);
             return !locked && Ui.HitArea(r);
         }
 
@@ -70,7 +70,7 @@ namespace Arena
             Ui.NoteHover(r);
             Color c = locked ? CrtUi.Dim : CrtUi.Ink;
             var lamp = new Rect(r.x + 2f, r.y + r.height / 2f - 6f, 12f, 12f);
-            if (value && !CabCalm)
+            if (value && !FxCalm)
                 Ui.Fill(new Rect(lamp.x - 3f, lamp.y - 3f, 18f, 18f), new Color(c.r, c.g, c.b, 0.22f));
             CrtKit.Frame(lamp, 1f, new Color(c.r, c.g, c.b, value ? 1f : 0.6f));
             if (value)

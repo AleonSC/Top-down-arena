@@ -77,7 +77,7 @@ namespace Arena
 
         /// The drawer's slide (BeginDrawer): in from the left as it opens, out as it closes.
         /// With effects on it holo-boots in place instead of sliding in (CrtWindows.cs, BeginDrawer); it still slides out.
-        float DrawerSlide => (CabCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : 0f) - EaseIn3(winCloseK) * DrawerSlideW;
+        float DrawerSlide => (FxCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : 0f) - EaseIn3(winCloseK) * DrawerSlideW;
 
         /// Move everything drawn (IMGUI and the canvas's GL) by (dx, dy) and fade it, until PopShift.
         void PushShift(float dx, float dy, float alpha)
