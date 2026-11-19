@@ -121,7 +121,7 @@ static partial class Program
             clientDoor |= s[1].Game.Enemies.Values.Any(o => o.Type == EnemyType.CellDoor);
         });
         var doors = g.Enemies.Values.Where(o => o.Type == EnemyType.CellDoor).ToList();
-        int foes = g.Foes(), counted = g.Enemies.Values.Count(o => !o.Dummy && !Game.IsPlanted(o.Type));
+        int foes = g.Foes(), counted = g.Enemies.Values.Count(o => !Game.IsPlanted(o.Type));
         Console.WriteLine("  works for 12 s: planted {0}, built {1}; {2} traps, {3} slicks, {4} doors, {5} Rioters let out; Foes {6} (of {7} enemies)",
             planted, built, traps, slicks, doors.Count, rioters.Count, foes, g.Enemies.Count);
         Check(planted && traps + slicks >= 2, "it stops to plant traps (mines, shackles, slicks) as it goes");

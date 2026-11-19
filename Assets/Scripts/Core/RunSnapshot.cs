@@ -254,7 +254,7 @@ namespace Arena
         static bool Skip(FieldInfo f)
         {
             var t = f.FieldType;
-            if (typeof(Delegate).IsAssignableFrom(t) || t == typeof(Session) || t == typeof(SessionRecorder) || t == typeof(ReplayRecorder)
+            if (typeof(Delegate).IsAssignableFrom(t) || t == typeof(Session) || t == typeof(SessionRecorder)
                 || t == typeof(LagStats) || t == typeof(System.Diagnostics.Stopwatch))
                 return true;
             switch (f.Name)

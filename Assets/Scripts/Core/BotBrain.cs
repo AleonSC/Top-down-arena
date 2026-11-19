@@ -466,7 +466,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && !e.Dummy && e.Pos.CloserThan(pos, reach + e.Radius))
+                if (Targetable(e) && e.Pos.CloserThan(pos, reach + e.Radius))
                     n++;
             return n;
         }

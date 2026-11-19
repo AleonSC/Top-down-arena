@@ -10,11 +10,11 @@ namespace Arena
     {
         public GameMode Mode;
         public string Key;          // the profile's LastMode
-        public string Name;         // the one name for the mode: the lobby carousel, logs, replays, recent runs (RunLabel)
+        public string Name;         // the one name for the mode: the lobby carousel, logs, recent runs (RunLabel)
         public string Blurb;        // the lobby carousel's line under the name
         public bool Lives;          // lives and checkpoints (Checkpoints.cs LivesMax)
         public bool Saves;          // saved to continue (RunSaves.cs Saveable)
-        public bool RunEvents;      // a run's between-wave events: Expanding rooms, breaches, duels, the Balance test (not Practice or a hunt)
+        public bool RunEvents;      // a run's between-wave events: Expanding rooms, breaches, duels (not Practice or a hunt)
         public bool Challenges;     // wave challenges (Challenges.cs)
         public bool Legs;           // the 100-wave Campaign's legs and faction buildup (Hunts.cs LongLegs, Approaches.cs CampaignOn)
         public bool Paths;          // two paths offered after a boss on the classic arena (Paths.cs OfferPaths)
@@ -55,7 +55,7 @@ namespace Arena
         /// What this run's mode allows (ModeDef).
         public ModeDef ModeRules => ModeDef.For(Mode);
 
-        /// This match's name for logs, replays and recent runs: the mode's name, then " · Endless" or " · Deathless".
+        /// This match's name for logs and recent runs: the mode's name, then " · Endless" or " · Deathless".
         public string RunLabel(bool endless = false, bool deathless = false) => ModeRules.Name + (endless ? " · Endless" : deathless ? " · Deathless" : "");
     }
 }

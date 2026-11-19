@@ -982,7 +982,7 @@ namespace Arena
         {
             RefreshCull();  // the screen's size for skipping off-screen triangles (WorldRenderer.cs)
             shakeX = shakeY = 0f;
-            if (!Juicy || trauma <= 0f || devFrozen)
+            if (!Juicy || trauma <= 0f)
                 return;  // (frozen with P: the picture holds still)
             float k = trauma * trauma * (fxShake == 1 ? 0.45f : 1f) * 12f * drawScale, s = Time.unscaledTime;
             shakeX = k * Mathf.Sin(s * 61.3f) * Mathf.Cos(s * 17.1f);

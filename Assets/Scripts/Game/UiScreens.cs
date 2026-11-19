@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// One full-screen tool or window drawn over whatever is underneath (the F1 menu, the wave editor, the Boss Lab setup): its id, how
+    /// One full-screen tool or window drawn over whatever is underneath (the F1 menu, the Boss Lab setup): its id, how
     /// to draw it and what Esc does. Screens live in a stack: the one opened last is on top, draws, and gets Esc first. To add one:
     /// declare it (`static readonly UiScreen ScreenFoo = new UiScreen("foo", ...)` is not needed: make an instance field in
     /// `ArenaApp`), open it with `OpenScreen(ScreenFoo)`, close it with `CloseScreen(ScreenFoo)`; ArenaApp blocks the game's input while
@@ -34,9 +34,9 @@ namespace Arena
 
     public partial class ArenaApp
     {
-        // The tool screens (the old devMenuOpen / labSetupOpen / waveEdOpen bools are properties over these, so existing code
+        // The tool screens (the old devMenuOpen / labSetupOpen bools are properties over these, so existing code
         // reads and sets them as before).
-        UiScreen screenDev, screenLab, screenWaveEd;
+        UiScreen screenDev, screenLab;
         readonly List<UiScreen> screenStack = new List<UiScreen>();
 
         void InitScreens()
@@ -45,12 +45,10 @@ namespace Arena
                 return;
             screenDev = new UiScreen("dev", DrawDevMenu) { Modal = false, ModalFn = () => session.Screen != AppScreen.Game, EscNeedsFreeFocus = true };
             screenLab = new UiScreen("lab", DrawLabSetup);
-            screenWaveEd = new UiScreen("waveeditor", DrawWaveEditor) { EscNeedsFreeFocus = true };
         }
 
         bool devMenuOpen { get { InitScreens(); return screenDev.IsOpen; } set { InitScreens(); SetScreen(screenDev, value); } }
         bool labSetupOpen { get { InitScreens(); return screenLab.IsOpen; } set { InitScreens(); SetScreen(screenLab, value); } }
-        bool waveEdOpen { get { InitScreens(); return screenWaveEd.IsOpen; } set { InitScreens(); SetScreen(screenWaveEd, value); } }
 
         void SetScreen(UiScreen s, bool open)
         {

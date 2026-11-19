@@ -657,9 +657,6 @@ namespace Arena
         public bool Penned;                 // replicated: held in by an ink loop (Chalk.cs), for drawing
         public int PenId;                   // host: the ink loop (Chalk.cs InkPen) holding it in, 0 if none
         public V2 PenPos;                   // host: where it was last inside that loop
-        public bool Dummy;                  // host: a target dummy for balancing (DpsTools.cs): never dies, shoots or hurts
-        public float DummyTaken;            // host: damage a dummy has taken since the meter was reset
-        public V2 DummyHome;                // host: where a dummy stands (or patrols about)
         public bool Marked;
         public bool Risen;
         public float FrenzyT;   // host: a Shrieker's scream: 30% faster and set on you (Zombies.cs)
