@@ -885,6 +885,9 @@ big Dawn).
 
 ## Bosses
 
+**Red aimed shots.** A boss's red aimed shots are barbed spearheads with a black heart and a red streak, pointing where
+they fly. They hit for 30 and most blockers can't stop them (the walls and shields that say "red aimed shots too" can).
+
 **Every boss sounds like itself.** Each mechanic has a sound for its warning and for its strike, from a palette of
 synthesized boss sounds: a rising whine before lasers and aimed attacks and a buzzing beam when they fire, a crack and
 deep thud for slams and landings, a rush for charges and dives, the Warden's prison siren, the Queen's swarm buzz

@@ -812,6 +812,8 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("PACSKIN") != null) Profile.Current.DiskLook = "pac";  // the Pac-Man skin (PacmanLook.cs)
     if (Environment.GetEnvironmentVariable("MXFX") != null) { host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Zones.Clear(); }  // (mastery moments: a clear floor so the keys read)
+    var glMat = typeof(ArenaApp).GetField("glMaterial", f2);
+    if (glMat.GetValue(app) == null) glMat.SetValue(app, new Material(null));  // (as OnPostRender makes it: without it, everything after the glow pass, enemy shots included, stayed additive)
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();
