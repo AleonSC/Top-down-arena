@@ -151,6 +151,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || Expanded.Count > 0)
                 return;
             Expanded.AddRange(Expansion.GridCore());
+            SettleRoomFog();  // (the core starts seen, RoomFog.cs)
             Openings.AddRange(Expansion.GridCoreCuts());
             expWorld = null;
             LayoutAge = 0f;

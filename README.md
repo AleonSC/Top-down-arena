@@ -1160,6 +1160,12 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   and the **Black Market** sells a Floor kit for 200 gold.
 - **Minimap**: top right (the Map key, M, cycles it, the full map and no map), a fixed-size window that follows you (centred on you, held inside the map; the whole map when it fits). Gold coins show as small gold dots on it.
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
+- **Room fog** ([`Docs/FogOfWar.md`](Docs/FogOfWar.md)): every room the map gets after the core (pieces, mystery-door rooms, surprise
+  rooms, breach Stashes, the mini-boss room) starts **unseen**: dark with a **?** on the minimap and the build map, and under a dark,
+  slowly hatched veil in the world (its walls, doors and breaches stay bright). Its enemies, coins and orbs are hidden unless a player
+  stands within 4.5 tiles of them (from the doorway). Enemies still spawn in unseen rooms. The first standing player to walk in reveals
+  the whole room for the whole team (a gold scan line lifts the veil), for the rest of the map. The core, and the room kept through a
+  map reset, start seen. With nothing to fight, bots scout the nearest unseen room.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour.
 - **Chest nodes**: every boss cycle the game places a **chest node**: a point 10 to 16 tiles straight out from the map (at least 8 tiles from other nodes;

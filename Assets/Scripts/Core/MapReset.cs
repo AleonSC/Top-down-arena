@@ -101,6 +101,13 @@ namespace Arena
                 KeptHead = Expanded.Count;
                 Expanded.AddRange(kept);
             }
+            for (int i = 0; i < Expanded.Count; i++)  // the core and the kept room start seen (RoomFog.cs)
+            {
+                var q = Expanded[i];
+                q.Unseen = false;
+                Expanded[i] = q;
+            }
+            SettleRoomFog();
             RaiseRoomsNow();
             MapNumber++;
             MapResetAge = 0f;
