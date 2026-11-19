@@ -363,7 +363,7 @@ namespace Arena
             wallHumVoice = NewSource(owner, 64, true);  // the wall hum (WallHumSoundBank.cs)
             arcHumVoice = NewSource(owner, 64, true);   // Arc Lightning's charge hum (ArcLockSoundBank.cs)
             heliVoice = NewSource(owner, 64, true);     // the Attack Helicopter's rotor (HeliSoundBank.cs)
-            kwHumVoice = NewSource(owner, 64, true);    // Gale Wall's field hum (GaleWallSoundBank.cs)
+            galeHumVoice = NewSource(owner, 64, true);    // Gale Wall's field hum (GaleWallSoundBank.cs)
             var folderFiles = OwnSoundFiles();          // the player's own sounds (decoded on the build thread)
             LoadProjectSounds(folderFiles);
             builder = new System.Threading.Thread(() => BuildAll(folderFiles)) { IsBackground = true, Name = "SoundBank build" };
@@ -970,6 +970,8 @@ namespace Arena
                 take = n;
                 name = name.Substring(0, us);
             }
+            if (name.StartsWith("Kw"))  // (Gale Wall's sounds were Kw*, from its old name Kinetic Wall)
+                name = "Gale" + name.Substring(2);
             return name.Length > 0 && char.IsLetter(name[0]) && Enum.TryParse(name, out s) && s != Sfx.None;
         }
 

@@ -49,21 +49,21 @@ static partial class Program
         masteredField.SetValue(g, false);
         var keep = pin(new V2(1500f, 900f));  // (somewhere out of the way, so the wave doesn't end)
         press();
-        Check(me.KwT > Game.KwTime - 0.01f && me.KwPos.DistanceTo(mePos) < 1f && !me.KwWide, "Space puts the lens up for 5 s where you stand");
+        Check(me.GaleT > Game.GaleTime - 0.01f && me.GalePos.DistanceTo(mePos) < 1f && !me.GaleWide, "Space puts the lens up for 5 s where you stand");
         volley(12);
         step(1.6f);
-        Check(me.KwDots.Count == 12 && !g.Bullets.Values.Any(b => b.Owner == 0), "every enemy shot that reaches the lens stops there and charges it");
-        Check(client.Game.Players[1].KwT > 0f && client.Game.Players[1].KwDots.Count == 12, "other screens see the lens and the shots hung in it");
-        Check(g.Effects.Any(e => e.Kind == FxKind.KwCatch), "each catch is sent as a look");
+        Check(me.GaleDots.Count == 12 && !g.Bullets.Values.Any(b => b.Owner == 0), "every enemy shot that reaches the lens stops there and charges it");
+        Check(client.Game.Players[1].GaleT > 0f && client.Game.Players[1].GaleDots.Count == 12, "other screens see the lens and the shots hung in it");
+        Check(g.Effects.Any(e => e.Kind == FxKind.GaleCatch), "each catch is sent as a look");
 
         // The unleash: a second press. In the cone: hit for 40 + 6 per charge, shoved; outside: nothing.
         var inCone = pin(new V2(560f, 470f));
         var behind = pin(new V2(100f, 450f));
         var wide = pin(new V2(300f, 750f));
         var start = inCone.Pos;
-        float D = Game.KwDamage(12) * me.Stats.DmgMult;
+        float D = Game.GaleDamage(12) * me.Stats.DmgMult;
         press();
-        Check(me.KwT == 0f && me.KwDots.Count == 0 && g.Effects.Any(e => e.Kind == FxKind.KwBlast && e.Radius == 12f), "pressing again unleashes it (no new cast) and sends the blast with its charge");
+        Check(me.GaleT == 0f && me.GaleDots.Count == 0 && g.Effects.Any(e => e.Kind == FxKind.GaleBlast && e.Radius == 12f), "pressing again unleashes it (no new cast) and sends the blast with its charge");
         float hit = inCone.MaxHp - inCone.Hp;
         Console.WriteLine("  gale wall: 12 charges, hit {0:0.0} of {1:0.0}", hit, D);
         Check(Math.Abs(hit - D) < 1f, "an enemy in the cone takes 40 + 6 per charge");
@@ -77,22 +77,22 @@ static partial class Program
         press();
         volley(55);
         step(2.8f);
-        Check(me.KwDots.Count == Game.KwCap, "it holds up to 40 charges (the rest are still stopped)");
+        Check(me.GaleDots.Count == Game.GaleCap, "it holds up to 40 charges (the rest are still stopped)");
         Check(!g.Bullets.Values.Any(b => b.Owner == 0), "shots past the cap still stop in it");
-        step(Game.KwTime - 2.8f + 0.2f);
-        Check(me.KwT == 0f && g.Effects.Any(e => e.Kind == FxKind.KwBlast && e.Radius == Game.KwCap), "when the time runs out it unleashes by itself");
+        step(Game.GaleTime - 2.8f + 0.2f);
+        Check(me.GaleT == 0f && g.Effects.Any(e => e.Kind == FxKind.GaleBlast && e.Radius == Game.GaleCap), "when the time runs out it unleashes by itself");
 
         // Mastered: wider, holds more.
         reset();
         keep = pin(new V2(1500f, 900f));
         masteredField.SetValue(g, true);
         typeof(Game).GetMethod("CastGaleWall", flags).Invoke(g, new object[] { me, true });
-        Check(me.KwWide && Game.KwCapOf(me) == Game.KwCapMastered && Game.KwSpan(me) > (float)Math.Asin(Game.KwHalfWidth / Game.KwRadius) + 0.1f, "mastered: wider, and it holds up to 60");
+        Check(me.GaleWide && Game.GaleCapOf(me) == Game.GaleCapMastered && Game.GaleSpan(me) > (float)Math.Asin(Game.GaleHalfWidth / Game.GaleRadius) + 0.1f, "mastered: wider, and it holds up to 60");
 
         // Going down: the lens is gone.
         me.Downed = true;
         step(dt);
-        Check(me.KwT == 0f && me.KwDots.Count == 0, "going down takes the lens away");
+        Check(me.GaleT == 0f && me.GaleDots.Count == 0, "going down takes the lens away");
         me.Downed = false;
         masteredField.SetValue(g, false);
         s[0].Leave(""); s[1].Leave("");

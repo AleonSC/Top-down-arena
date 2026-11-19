@@ -81,7 +81,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Blizzard, MaxStacks = 2, Name = "Whiteout", Desc = "Blizzard is 40% bigger and lasts 2 s longer",
                 Apply = s => { s.BlizzardRadiusMult += 0.4f; s.BlizzardBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GaleWall, MaxStacks = 2, Name = "Momentum Bank", Desc = "Each shot Gale Wall catches adds 40% more damage to its blast",
-                Apply = s => s.KwChargeMult += 0.4f },
+                Apply = s => s.GaleChargeMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WaterWard, MaxStacks = 2, Name = "Deep Current", Desc = "Water Ward's splashes hit 40% harder, and its drops keep enemies wet 2 s longer",
                 Apply = s => { s.WwDmgMult += 0.4f; s.WwWetBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Tsunami, MaxStacks = 2, Name = "Riptide", Desc = "Tsunami's wave is 40% wider and enemies stay wet 4 s longer",

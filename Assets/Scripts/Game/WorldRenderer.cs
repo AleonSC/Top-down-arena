@@ -492,7 +492,7 @@ namespace Arena
                 DrawTithe(p, t);
             if (p.RainClock > 0f)  // Sanguine Rain: siphon, seeds, rings, tether (SanguineRainLook.cs)
                 DrawRain(p, t);
-            if (p.KwT > 0f)  // Gale Wall's lens and the shots hung in it (GaleWallLook.cs)
+            if (p.GaleT > 0f)  // Gale Wall's lens and the shots hung in it (GaleWallLook.cs)
                 DrawGaleWall(p, t);
             if (p.HarvestHold > 0f)  // Crimson Harvest's ball and tendrils (CrimsonHarvestLook.cs)
                 DrawHarvest(p, t);

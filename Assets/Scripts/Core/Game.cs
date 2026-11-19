@@ -1259,8 +1259,8 @@ namespace Arena
                 bool sprayOut = SprayRelease(me, slot);  // Arterial Spray pressed again: the host closes the vein (ArterialSpray.cs)
                 bool steelOut = SteelRelease(me, slot);  // Caught Steel pressed again: the host throws the shards (CaughtSteel.cs)
                 bool wallOut = WallRelease(me, slot);  // Blood Wall pressed again: the host stops it (BloodWall.cs)
-                bool kwOut = GalePress(me, slot);  // Gale Wall pressed again: the host unleashes it (GaleWall.cs)
-                if (!kwOut && !orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
+                bool galeOut = GalePress(me, slot);  // Gale Wall pressed again: the host unleashes it (GaleWall.cs)
+                if (!galeOut && !orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)

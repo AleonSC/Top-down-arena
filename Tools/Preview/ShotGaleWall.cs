@@ -2,13 +2,13 @@ using System;
 using System.Reflection;
 using Arena;
 
-// KWALL=<seconds into the scene>: the Elementalist DPS's Gale Wall (Core/GaleWall.cs, Game/GaleWallLook.cs) played through
+// GALEWALL=<seconds into the scene>: the Elementalist DPS's Gale Wall (Core/GaleWall.cs, Game/GaleWallLook.cs) played through
 // the real game like the mockup (Docs/Mockups/kinetic-wall.html, look B): you at (620, 620) facing up, five grunts above firing
-// small shots at you from 0.4 s; the wall is cast at 0.5 s. KWBLAST=<s> unleashes it at that time (default: it runs out at 5.5 s).
-// KWCAP=1 casts it mastered. Use with mode hud; crop about (360, 280)-(880, 700).
+// small shots at you from 0.4 s; the wall is cast at 0.5 s. GALEBLAST=<s> unleashes it at that time (default: it runs out at 5.5 s).
+// GALECAP=1 casts it mastered. Use with mode hud; crop about (360, 280)-(880, 700).
 static partial class Shot {
   static void GaleWallScene() {
-    string ts = Environment.GetEnvironmentVariable("KWALL");
+    string ts = Environment.GetEnvironmentVariable("GALEWALL");
     if (ts == null) return;
     var gm = host.Game; gm.Bot = false;
     var flags = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -31,10 +31,10 @@ static partial class Shot {
       e.SpawnT = 0f; e.Hp = e.MaxHp = 5000f; e.Pos = e.Disp = spots[i]; e.FireT = 99f; mobs[i] = e;
     }
     me.Slots[0].Id = AbilityId.GaleWall; me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f;
-    if (Environment.GetEnvironmentVariable("KWCAP") != null) me.MasteryXp[AbilityId.GaleWall] = 99999f;
+    if (Environment.GetEnvironmentVariable("GALECAP") != null) me.MasteryXp[AbilityId.GaleWall] = 99999f;
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     int frames = (int)Math.Round(float.Parse(ts, inv) * 60f);
-    string bs = Environment.GetEnvironmentVariable("KWBLAST");
+    string bs = Environment.GetEnvironmentVariable("GALEBLAST");
     int blastAt = bs != null ? (int)Math.Round(float.Parse(bs, inv) * 60f) : -1;
     var rng = new Random(5);
     for (int f = 0; f < frames; f++) {
@@ -52,6 +52,6 @@ static partial class Shot {
     }
     foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
     foreach (var q in gm.Players.Values) q.Disp = q.Pos;
-    Console.WriteLine("gale wall: lens {0:0.0} s left, charge {1}", me.KwT, me.KwDots.Count);
+    Console.WriteLine("gale wall: lens {0:0.0} s left, charge {1}", me.GaleT, me.GaleDots.Count);
   }
 }

@@ -110,7 +110,7 @@ namespace Arena
         public float LumenBonusTime, LumenHealMult = 1f;                   // Lumen Ward: Dawnlight
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
-        public float KwChargeMult = 1f;                                    // Gale Wall: Momentum Bank
+        public float GaleChargeMult = 1f;                                    // Gale Wall: Momentum Bank
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating

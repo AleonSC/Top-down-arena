@@ -4,59 +4,59 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// Gale Wall (Elementalist DPS, the 4th choice, `AbilityId.GaleWall`; mockup Docs/Mockups/kinetic-wall.html, look B
-    /// "Gravity Lens"). Space puts a curved lens in front of you (KwFront px ahead, KwHalfWidth px each side; it stays where it was
-    /// cast). Enemy shots that reach it stop there and hang in it (red aimed shots too); each one is a charge (KwCap, mastered
-    /// KwCapMastered). Space again, or the lens running out (KwTime), unleashes it: a cone from you toward your cursor (KwConeHalf
-    /// each side, KwReach long) that hits each enemy in it once for KwDamage(charge) and shoves it back.
-    /// Replicated on the Player: KwT (seconds left, 0 = no lens), KwPos/KwAim (where it stands and faces), KwWide (mastered: wider)
-    /// and KwDots (each caught shot's place in the lens, two bytes; the count is the charge). FxKind.KwCatch is a shot being caught,
-    /// FxKind.KwBlast the unleash (Game/GaleWallLook.cs).
+    /// "Gravity Lens"). Space puts a curved lens in front of you (GaleFront px ahead, GaleHalfWidth px each side; it stays where it was
+    /// cast). Enemy shots that reach it stop there and hang in it (red aimed shots too); each one is a charge (GaleCap, mastered
+    /// GaleCapMastered). Space again, or the lens running out (GaleTime), unleashes it: a cone from you toward your cursor (GaleConeHalf
+    /// each side, GaleReach long) that hits each enemy in it once for GaleDamage(charge) and shoves it back.
+    /// Replicated on the Player: GaleT (seconds left, 0 = no lens), GalePos/GaleAim (where it stands and faces), GaleWide (mastered: wider)
+    /// and GaleDots (each caught shot's place in the lens, two bytes; the count is the charge). FxKind.GaleCatch is a shot being caught,
+    /// FxKind.GaleBlast the unleash (Game/GaleWallLook.cs).
     public partial class Game
     {
-        public const float KwTime = 5f, KwFront = 70f, KwRadius = 150f, KwBand = 14f, KwHalfWidth = 80f, KwHalfWidthMastered = 110f;
-        public const float KwBase = 40f, KwPerShot = 6f, KwReach = 420f, KwConeHalf = 35f * MathX.Pi / 180f, KwShove = 80f;
-        public const float KwCatchT = 0.3f, KwBlastT = 0.9f, KwRadialSpread = 12f;
-        public const int KwCap = 40, KwCapMastered = 60;
-        public static readonly Rgba KwColor = new Rgba(0.42f, 0.84f, 0.86f);
+        public const float GaleTime = 5f, GaleFront = 70f, GaleRadius = 150f, GaleBand = 14f, GaleHalfWidth = 80f, GaleHalfWidthMastered = 110f;
+        public const float GaleBase = 40f, GalePerShot = 6f, GaleReach = 420f, GaleConeHalf = 35f * MathX.Pi / 180f, GaleShove = 80f;
+        public const float GaleCatchT = 0.3f, GaleBlastT = 0.9f, GaleRadialSpread = 12f;
+        public const int GaleCap = 40, GaleCapMastered = 60;
+        public static readonly Rgba GaleColor = new Rgba(0.42f, 0.84f, 0.86f);
 
         /// The centre of the lens's arc: behind where it was cast, so the arc bows out in front of the caster.
-        public static V2 KwCentre(Player p) => p.KwPos - V2.FromAngle(p.KwAim) * (KwRadius - KwFront);
+        public static V2 GaleCentre(Player p) => p.GalePos - V2.FromAngle(p.GaleAim) * (GaleRadius - GaleFront);
 
         /// Half the lens's angle round its centre.
-        public static float KwSpan(Player p) => (float)Math.Asin((p.KwWide ? KwHalfWidthMastered : KwHalfWidth) / KwRadius);
+        public static float GaleSpan(Player p) => (float)Math.Asin((p.GaleWide ? GaleHalfWidthMastered : GaleHalfWidth) / GaleRadius);
 
-        public static int KwCapOf(Player p) => p.KwWide ? KwCapMastered : KwCap;
+        public static int GaleCapOf(Player p) => p.GaleWide ? GaleCapMastered : GaleCap;
 
         /// What the unleash hits each enemy for, before the caster's damage bonuses.
-        public static float KwDamage(int charge, float perShot = KwPerShot) => KwBase + perShot * charge;
+        public static float GaleDamage(int charge, float perShot = GalePerShot) => GaleBase + perShot * charge;
 
         /// A caught shot's place in the lens: `lat` -1..1 across it, `rad` -1..1 in and out of its band.
-        public static V2 KwDotPos(Player p, float lat, float rad)
+        public static V2 GaleDotPos(Player p, float lat, float rad)
         {
-            float a = p.KwAim + lat * KwSpan(p);
-            return KwCentre(p) + V2.FromAngle(a) * (KwRadius + rad * KwRadialSpread);
+            float a = p.GaleAim + lat * GaleSpan(p);
+            return GaleCentre(p) + V2.FromAngle(a) * (GaleRadius + rad * GaleRadialSpread);
         }
 
-        /// Unpacks KwDots[i] into (lat, rad).
-        public static void KwDot(Player p, int i, out float lat, out float rad)
+        /// Unpacks GaleDots[i] into (lat, rad).
+        public static void GaleDot(Player p, int i, out float lat, out float rad)
         {
-            int v = p.KwDots[i];
+            int v = p.GaleDots[i];
             lat = ((v & 255) / 255f) * 2f - 1f;
             rad = (((v >> 8) & 255) / 255f) * 2f - 1f;
         }
 
         /// True if this slot is a Gale Wall with its lens up: pressing it unleashes the lens instead of casting again.
-        public bool GalePress(Player p, int slot) => p.Slots[slot].Id == AbilityId.GaleWall && p.KwT > 0f;
+        public bool GalePress(Player p, int slot) => p.Slots[slot].Id == AbilityId.GaleWall && p.GaleT > 0f;
 
         void CastGaleWall(Player p, bool cap)
         {
-            p.KwT = KwTime;
-            p.KwPos = p.Pos;
-            p.KwAim = p.Aim;
-            p.KwWide = cap;
-            p.KwDots.Clear();
-            p.KwPerShot = KwPerShot * p.Stats.KwChargeMult;
-            BroadcastFx(FxKind.Ring, KwDotPos(p, 0f, 0f), KwColor, 60f, 0.35f, Sfx.None);  // (its sounds are played by each screen: GaleWallSoundBank.cs)
+            p.GaleT = GaleTime;
+            p.GalePos = p.Pos;
+            p.GaleAim = p.Aim;
+            p.GaleWide = cap;
+            p.GaleDots.Clear();
+            p.GalePerShot = GalePerShot * p.Stats.GaleChargeMult;
+            BroadcastFx(FxKind.Ring, GaleDotPos(p, 0f, 0f), GaleColor, 60f, 0.35f, Sfx.None);  // (its sounds are played by each screen: GaleWallSoundBank.cs)
         }
 
         /// Host, from the enemy-bullet loop in Combat.cs: does a Gale Wall catch this shot? Every shot stops in it (aimed ones
@@ -65,23 +65,23 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                if (p.KwT <= 0f || p.Downed)
+                if (p.GaleT <= 0f || p.Downed)
                     continue;
-                V2 rel = b.Pos - KwCentre(p);
-                float d = rel.Length, span = KwSpan(p);
-                if (Math.Abs(d - KwRadius) > KwBand + b.Radius)
+                V2 rel = b.Pos - GaleCentre(p);
+                float d = rel.Length, span = GaleSpan(p);
+                if (Math.Abs(d - GaleRadius) > GaleBand + b.Radius)
                     continue;
-                float off = MathX.Fmod(rel.Angle - p.KwAim + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float off = MathX.Fmod(rel.Angle - p.GaleAim + MathX.Pi, MathX.Tau) - MathX.Pi;
                 if (Math.Abs(off) > span)
                     continue;
-                if (p.KwDots.Count < KwCapOf(p))
+                if (p.GaleDots.Count < GaleCapOf(p))
                 {
-                    float lat = off / span, rad = Math.Max(-1f, Math.Min(1f, (d - KwRadius) / KwRadialSpread));
+                    float lat = off / span, rad = Math.Max(-1f, Math.Min(1f, (d - GaleRadius) / GaleRadialSpread));
                     int lb = (int)Math.Round((lat + 1f) * 0.5f * 255f), rb = (int)Math.Round((rad + 1f) * 0.5f * 255f);
-                    p.KwDots.Add(lb | (rb << 8));
+                    p.GaleDots.Add(lb | (rb << 8));
                 }
-                float velA = b.Vel.IsZero ? p.KwAim + MathX.Pi : b.Vel.Angle;
-                BroadcastFx(FxKind.KwCatch, b.Pos, new V2(p.Id, velA), KwColor, b.Radius, KwCatchT, Sfx.None);
+                float velA = b.Vel.IsZero ? p.GaleAim + MathX.Pi : b.Vel.Angle;
+                BroadcastFx(FxKind.GaleCatch, b.Pos, new V2(p.Id, velA), GaleColor, b.Radius, GaleCatchT, Sfx.None);
                 return true;
             }
             return false;
@@ -90,30 +90,30 @@ namespace Arena
         /// Host: the lens lets go, a cone from the caster toward their cursor.
         void UnleashGaleWall(Player p)
         {
-            if (p.KwT <= 0f)
+            if (p.GaleT <= 0f)
                 return;
-            int charge = p.KwDots.Count;
-            float face = p.Aim, D = KwDamage(charge, p.KwPerShot) * p.Stats.DmgMult;
+            int charge = p.GaleDots.Count;
+            float face = p.Aim, D = GaleDamage(charge, p.GalePerShot) * p.Stats.DmgMult;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || !InCone(p.Pos, face, KwConeHalf, KwReach, e.Pos, e.Radius))
+                if (!Targetable(e) || !InCone(p.Pos, face, GaleConeHalf, GaleReach, e.Pos, e.Radius))
                     continue;
                 if (!e.Def.IsBoss)
                 {
                     V2 away = e.Pos - p.Pos;
                     away = away.IsZero ? V2.FromAngle(face) : away.Normalized();
-                    KnockEnemy(e, away * KwShove * (Heavy(e) ? 0.5f : 1f));
+                    KnockEnemy(e, away * GaleShove * (Heavy(e) ? 0.5f : 1f));
                 }
                 HurtEnemy(e, D, p.Id);
             }
-            BroadcastFx(FxKind.KwBlast, p.Pos, p.Pos + V2.FromAngle(face) * KwReach, KwColor, charge, KwBlastT, Sfx.None);
+            BroadcastFx(FxKind.GaleBlast, p.Pos, p.Pos + V2.FromAngle(face) * GaleReach, GaleColor, charge, GaleBlastT, Sfx.None);
             ClearGaleWall(p);
         }
 
         void ClearGaleWall(Player p)
         {
-            p.KwT = 0f;
-            p.KwDots.Clear();
+            p.GaleT = 0f;
+            p.GaleDots.Clear();
         }
 
         /// Host, every tick: the lens runs down and unleashes itself at the end; a downed caster loses it.
@@ -121,17 +121,17 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                if (p.KwT <= 0f)
+                if (p.GaleT <= 0f)
                     continue;
                 if (p.Downed)
                 {
                     ClearGaleWall(p);
                     continue;
                 }
-                p.KwT -= dt;
-                if (p.KwT <= 0f)
+                p.GaleT -= dt;
+                if (p.GaleT <= 0f)
                 {
-                    p.KwT = 0.001f;  // (so the unleash still sees the lens)
+                    p.GaleT = 0.001f;  // (so the unleash still sees the lens)
                     UnleashGaleWall(p);
                 }
             }
