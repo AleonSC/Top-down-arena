@@ -365,6 +365,7 @@ static partial class Program
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
+        Test("botgate", "smart bots walk through the Warden's gates' doors", () => BotWardenGateTest(Dt)),
         Test("wardenloot", "the Warden's legendaries: Stun Gun, Warden's Guard and Searchlight", () => WardenLootTest(Dt)),
         Test("flame", "the Flamethrower", () => FlamethrowerTest(Dt)),
         Test("radiant", "the Radiant Orb", () => RadiantOrbTest(Dt)),
