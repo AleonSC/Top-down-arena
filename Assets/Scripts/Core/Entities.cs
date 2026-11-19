@@ -654,6 +654,7 @@ namespace Arena
         public float StunT;                 // host: stunned (Daze.cs Stun): held like FrozenT, but shown as stars over its head, not ice
         public bool Dazed;                  // replicated, for the stars over its head
         public int LastHitBy;
+        public bool Dormant;                // replicated: asleep in an unseen room until it is seen or hit (DormantGroups.cs): no moving, shooting or counting for the wave
         public bool Penned;                 // replicated: held in by an ink loop (Chalk.cs), for drawing
         public int PenId;                   // host: the ink loop (Chalk.cs InkPen) holding it in, 0 if none
         public V2 PenPos;                   // host: where it was last inside that loop

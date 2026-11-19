@@ -522,6 +522,8 @@ namespace Arena
                     e.SpawnT -= dt;
                     continue;
                 }
+                if (e.Dormant)
+                    continue;  // asleep in an unseen room: still until the room is seen or it is hit (DormantGroups.cs)
                 if (DevFreeze)
                     continue;  // F1 dev tool: frozen in place, no moving or shooting (DevTools.cs)
                 if (ShowcaseMode)

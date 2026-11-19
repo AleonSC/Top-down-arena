@@ -74,6 +74,7 @@ namespace Arena
             FoldRooms.Clear();
             FoldRooms.AddRange(Expanded);
             Expanded.Clear();
+            ClearDormant();  // the old rooms' sleeping groups go with them (DormantGroups.cs)
             Openings.Clear();
             Links.Clear();
             Nodes.Clear();

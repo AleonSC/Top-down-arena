@@ -11,7 +11,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (!IsPlanted(e.Type))
+                if (!IsPlanted(e.Type) && !e.Dormant)  // (a dormant group waits for its room: DormantGroups.cs)
                     n++;
             return n;
         }

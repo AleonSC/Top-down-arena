@@ -272,6 +272,8 @@ namespace Arena
             TakeCard(p, slot);
             DoLog(p.Name + " plays a " + Expansion.CardName(card) + " card at " + x + "," + y);
             BuildNow(id, made[0], made.GetRange(1, made.Count - 1));
+            if (piece && PlantDormantGroups(made) > 0)  // (the room went out unseen in BuildNow's list: RoomFog.cs)
+                DoLog("dormant groups planted in " + p.Name + "'s room");
         }
 
         /// Bot: plays the first card in its hand that fits somewhere, at the spot nearest what it builds toward (Pieces.cs BotCardGoal), else the first spot. False if none fits.

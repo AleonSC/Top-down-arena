@@ -560,6 +560,8 @@ namespace Arena
                 p.PendingMilestones = Math.Min(255, p.PendingMilestones + 1);
             if (p.Stats.ExtraPickChance > 0f && rng.NextDouble() < p.Stats.ExtraPickChance)
                 p.PendingPicks++;
+            if (State == MatchState.Intermission && p.Offer == null)
+                NextOffer(p);  // a level gained in the break (a dormant group woken between waves, DormantGroups.cs): its pick is offered now, or the countdown would wait on it
         }
 
         /// Called by the front end when the local player clicks an upgrade card.

@@ -891,7 +891,7 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
-            bool winding = false, penned = false, wet = false, hit = false, venom = false;
+            bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
             {
@@ -900,6 +900,7 @@ namespace Arena
                 winding = e.Winding;
                 hit = e.Flash > 0f;  // a real hit in the last 0.06 s (snapshots are 0.05 s apart); burning and bleeding don't count
                 penned = e.PenId != 0;
+                dormant = e.Dormant;
                 wet = e.WetT > 0f;
                 e.Wet = wet;
                 wetTenths = wet ? (int)Math.Min(255f, Math.Ceiling(e.WetT * 10f)) : 0;
@@ -952,6 +953,7 @@ namespace Arena
                 s.Int(ref cells);  // the bubble's twelve cells (Variety.cs)
             s.Bool(ref winding);  // about to fire (Readability.cs)
             s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
+            s.Bool(ref dormant);  // asleep in an unseen room (DormantGroups.cs)
             s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
             s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
             s.Byte(ref wetTenths);  // ...and its tenths of a second left, for the effect bar (Game/EffectBar.cs)
@@ -1013,6 +1015,7 @@ namespace Arena
                 e.Cells = bubble > 0 ? cells : 0;
                 e.Winding = winding;
                 e.Penned = penned;
+                e.Dormant = dormant;
                 e.BleedHits = bleedHits;
                 e.Wet = wet;
                 e.WetLeft = wetTenths / 10f;

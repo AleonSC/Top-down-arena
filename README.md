@@ -1151,6 +1151,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   stands within 4.5 tiles of them (from the doorway). Enemies still spawn in unseen rooms. The first standing player to walk in reveals
   the whole room for the whole team (a gold scan line lifts the veil), for the rest of the map. The core, and the room kept through a
   map reset, start seen. With nothing to fight, bots scout the nearest unseen room.
+- **Dormant groups**: when a piece card is built, each of its cells has a **40%** chance of holding a sleeping group of the faction
+  enemies of the wave it was built on (one type per group; 3 enemies, one more every 15 waves, at most 6), clustered in the cell's middle.
+  They stand still with drifting z's over them: no moving, no shooting, and they don't hold the wave open. When the room is seen, or
+  one of them is hit (from the doorway), every group in that room wakes and fights. A map reset takes them away with the old rooms.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour.
 - **Chest nodes**: every boss cycle the game places a **chest node**: a point 10 to 16 tiles straight out from the map (at least 8 tiles from other nodes;

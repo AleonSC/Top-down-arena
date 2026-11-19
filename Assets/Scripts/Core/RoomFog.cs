@@ -80,6 +80,8 @@ namespace Arena
                 return;
             bool changed = FogNewRooms();
             if (RoomsOn)
+                TickDormant();  // a dormant group whose room is seen wakes (DormantGroups.cs)
+            if (RoomsOn)
                 foreach (var p in Players.Values)
                 {
                     if (p.Downed)

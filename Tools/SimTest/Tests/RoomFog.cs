@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
@@ -102,5 +103,76 @@ static partial class Program
         Run(s, dt, 25f, () => !g.Expanded[4].Unseen, calm);
         Check(!g.Expanded[4].Unseen, "with nothing to fight the bot scouts it");
         host.Leave("");
+    }
+
+    // Dormant groups (Core/DormantGroups.cs): each cell of a built piece may hold a sleeping group of the wave's faction enemies.
+    static void DormantGroupsTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        Check(DormantGroups.GroupSize(1) == 3 && DormantGroups.GroupSize(15) == 4 && DormantGroups.GroupSize(99) == 6, "groups grow from 3 to 6 over the run");
+        Check(DormantGroups.CellMids(new[] { new ExpansionRoom { X = 0, Y = 0, W = 1200, H = 600 } }).Count == 2, "a two-cell box has two cells");
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; p.InvulnT = 1f; } };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
+        foreach (var gg in new[] { g, cg })
+        {
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+            gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true;
+        }
+        Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
+        float chance = DormantGroups.CellChance;
+        DormantGroups.CellChance = 1f;
+        try
+        {
+            var friend = g.Players[2];
+            friend.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Domino);
+            var a = Expansion.PlacementsFor(g.Expanded, PieceShape.Domino).First();
+            var before = new HashSet<int>(g.Enemies.Keys);
+            cg.PlayPieceCard(0, a.Orient, a.X, a.Y);
+            Run(s, dt, 1f, () => cg.Expanded.Count > 4, noPicks);
+            var sleepers = g.Enemies.Values.Where(e => !before.Contains(e.Id) && e.Dormant).ToList();
+            int size = DormantGroups.GroupSize(g.Wave);
+            var pool = g.DormantPool(g.Wave);
+            Check(sleepers.Count == 2 * size, "every cell of a two-cell piece holds a group of " + size + " (" + sleepers.Count + ")");
+            Check(sleepers.All(e => pool.Contains(e.Type)) && pool.All(t => !Defs.Get(t).IsBoss), "they are the wave's faction enemies (" + string.Join(",", pool) + ")");
+            Check(sleepers.All(e => g.UnseenAt(e.Pos)), "they sleep in the unseen room");
+            Run(s, dt, 0.4f, null, noPicks);
+            Check(sleepers.All(e => cg.Enemies.ContainsKey(e.Id) && cg.Enemies[e.Id].Dormant), "the friend's game sees them asleep");
+            int foes = g.Foes();
+            Check(foes == g.Enemies.Values.Count(e => !e.Dormant && !Game.IsPlanted(e.Type)), "they don't count for the wave");
+            var at = sleepers.ToDictionary(e => e.Id, e => e.Pos);
+            Run(s, dt, 2f, null, noPicks);
+            Check(sleepers.All(e => e.Dormant && e.Pos.CloserThan(at[e.Id], 1f)), "they don't move while the room is unseen");
+
+            // One hit from the doorway wakes its room's groups.
+            var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+            hurt.Invoke(g, new object[] { sleepers[0], 1f, 1 });
+            Check(sleepers.All(e => !e.Dormant), "a hit wakes the room's groups");
+            Run(s, dt, 0.4f, null, noPicks);
+            Check(sleepers.Where(e => e.Hp > 0f).All(e => cg.Enemies.ContainsKey(e.Id) && !cg.Enemies[e.Id].Dormant), "the friend's game sees them wake");
+
+            // A second piece: walking in (the room seen) wakes it.
+            friend.Hand[1] = (byte)Expansion.MakePieceCard(PieceShape.Mono);
+            int n0 = g.Expanded.Count;
+            var b = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).Last();
+            before = new HashSet<int>(g.Enemies.Keys);
+            int slot = Array.FindIndex(friend.Hand, h => h == (byte)Expansion.MakePieceCard(PieceShape.Mono));
+            cg.PlayPieceCard(slot, b.Orient, b.X, b.Y);
+            Run(s, dt, 1f, () => g.Expanded.Count > n0, noPicks);
+            var second = g.Enemies.Values.Where(e => !before.Contains(e.Id) && e.Dormant).ToList();
+            Check(second.Count == size, "the one-cell piece holds one group");
+            var room = g.Expanded[n0];
+            var mid = new V2((room.X + room.X1) / 2f, (room.Y + room.Y1) / 2f);
+            Run(s, dt, 1f, () => !g.Expanded[n0].Unseen, () => { noPicks(); g.Players[1].Pos = mid + new V2(120f, 120f); });
+            Run(s, dt, 0.1f, null, noPicks);
+            Check(second.All(e => !e.Dormant), "seeing the room wakes its group");
+        }
+        finally { DormantGroups.CellChance = chance; }
+        host.Leave(""); client.Leave("");
     }
 }

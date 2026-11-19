@@ -275,6 +275,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !game.FogHides(e.Pos))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
                     DrawEnemy(e, t);
+            DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)

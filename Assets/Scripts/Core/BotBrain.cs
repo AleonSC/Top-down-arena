@@ -167,8 +167,8 @@ namespace Arena
             float bestScore = float.MaxValue, closeD = 170f;
             foreach (var e in Enemies.Values)
             {
-                if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f)
-                    continue;
+                if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f || e.Dormant)
+                    continue;  // (a dormant group: the bot scouts its room instead, RoomFog.cs)
                 float d = e.Pos.DistanceTo(me.Pos);
                 float score = e.Def.IsBoss ? d * 0.25f + e.Hp / Math.Max(1f, e.MaxHp) * 200f : d;
                 if (e.Marked || e.MarkT > 0f)
@@ -310,7 +310,7 @@ namespace Arena
             {
                 Enemy inReach = null;
                 foreach (var e in Enemies.Values)
-                    if (!IsSpawning(e) && !SoulBound(e) && e.Hp > 0f && InReach(me, e, pref)
+                    if (!IsSpawning(e) && !SoulBound(e) && !e.Dormant && e.Hp > 0f && InReach(me, e, pref)
                         && (inReach == null || e.Pos.DistanceSq(me.Pos) < inReach.Pos.DistanceSq(me.Pos)))
                         inReach = e;
                 if (inReach != null)

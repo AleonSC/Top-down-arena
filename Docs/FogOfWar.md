@@ -39,3 +39,12 @@ inside a room is the surprise.
 2. **Map look:** unseen rooms drawn dark with a `?` on the minimap and the build map; previews `FOG=1` for `hud` and the build map.
 3. **World look:** the dim veil over unseen rooms, the doorway peek, the reveal sweep; preview before/after.
 4. **Hook for hand-made layouts:** a room's own contents (spawns, props) are placed at build time and show only on reveal.
+
+## Dormant groups (owner, Nov 19; built, protocol 419)
+
+When a piece card is built, each of its cells rolls `DormantGroups.CellChance` (40%) for a sleeping group of the faction enemies of
+the wave it was built on (`Game.DormantPool`: the coming boss's faction as far as the wave reaches, no bosses, minis, planted
+things or pairs). One type per group, `GroupSize` enemies (3, +1 every 15 waves, at most 6) in a ring round the cell's middle.
+A dormant enemy (`Enemy.Dormant`, in the snapshot) doesn't move, shoot, recycle or count for the wave; bots ignore it. The room
+seen, or one of them hit, wakes every group in the room. Woken between waves, they fight in the break; a level gained there is offered at once (`LevelUpPlayer`), so the countdown never waits on it. A map reset removes them. Saves don't keep them (enemies aren't saved).
+Code: `Core/DormantGroups.cs`; look `DrawDormantMarks` (RoomFogLook.cs); preview `DORMANT=1`; tests in suite `roomfog`.

@@ -2196,6 +2196,11 @@ static partial class Shot {
         var tp = xg.Players[1].Pos; int ti = 0;
         foreach (var to in new[] { new V2(-170f, -90f), new V2(170f, -90f), new V2(0f, 150f) }) { xg.Placed.Add(new PlacedBuild { Kind = BuildKind.Turret, X = (short)(tp.X + to.X), Y = (short)(tp.Y + to.Y), Owner = 1, Waves = (byte)(5 - 2 * ti) }); ti++; }
       }
+      if (Environment.GetEnvironmentVariable("DORMANT") != null) {  // DORMANT=1: a sleeping group in every cell of every room but the core (DormantGroups.cs)
+        DormantGroups.CellChance = 1f;
+        var plant = typeof(Game).GetMethod("PlantDormantGroups", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (var dr in xg.Expanded.ToArray()) if (RoomFog.StartsUnseen(dr)) plant.Invoke(xg, new object[] { new System.Collections.Generic.List<ExpansionRoom> { dr } });
+      }
       if (Environment.GetEnvironmentVariable("FOG") != null)  // FOG=1: every room but the core unseen (room fog, RoomFogLook.cs)
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
@@ -2230,7 +2235,7 @@ static partial class Shot {
 
       var xrng = new System.Random(7); int xi = 0;
       foreach (var en in xg.Enemies.Values) {
-        if (en.Def.IsBoss) continue;
+        if (en.Def.IsBoss || en.Dormant) continue;  // (a dormant group stays where it was planted)
         var ar = xg.CurrentWorld.Areas[xi++ % xg.CurrentWorld.Areas.Length];
         en.Pos = en.Disp = xg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.X - 120f), ar.Min.Y + 50f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.Y - 100f)), en.Radius);
       }
