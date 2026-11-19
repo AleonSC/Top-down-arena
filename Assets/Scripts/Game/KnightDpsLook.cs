@@ -20,8 +20,8 @@ namespace Arena
     public partial class ArenaApp
     {
         // Forge
-        static readonly Rgba ForgeCore = C255(255, 226, 170), ForgeEdge = C255(255, 150, 60), ForgeGlow = C255(255, 110, 25), ForgeTrail = C255(255, 150, 60),
-            ForgeRing = C255(255, 175, 80), ForgeCool = C255(132, 140, 152), ForgePip = C255(255, 160, 70), ForgeSpark = C255(255, 170, 70);
+        static readonly Rgba ForgeGlow = C255(255, 110, 25), ForgeTrail = C255(255, 150, 60),
+            ForgeRing = C255(255, 175, 80), ForgePip = C255(255, 160, 70), ForgeSpark = C255(255, 170, 70);
         // Heraldic
         static readonly Rgba HeraldGlow = C255(255, 200, 90), HeraldKnuckle = C255(216, 173, 78), HeraldAccent = C255(214, 170, 74), HeraldField = C255(142, 27, 40),
             HeraldRibbon = C255(200, 40, 55), HeraldDust = C255(150, 132, 108), HeraldSpark = C255(255, 214, 140);

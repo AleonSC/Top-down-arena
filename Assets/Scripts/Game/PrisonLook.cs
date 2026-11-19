@@ -6,8 +6,6 @@ namespace Arena
     /// with taped fists); the Shiv moves like a Lunger (its lunge lane too) but is Hooded or Twin Shanks.
     public partial class ArenaApp
     {
-        static readonly Rgba PrisonInk = new Rgba(0.15f, 0.12f, 0.16f, 0.9f), PrisonSteel = new Rgba(0.82f, 0.86f, 0.9f);
-
         static readonly Rgba ThugJumpsuit = new Rgba(1f, 0.55f, 0.2f), ThugTattoo = new Rgba(0.25f, 0.35f, 0.55f, 0.75f),
             ThugTape = new Rgba(0.92f, 0.9f, 0.84f);
 
@@ -15,7 +13,7 @@ namespace Arena
         /// as it enrages) over an orange jumpsuit, bare tattooed arms, giant taped fists swinging as it lumbers, half a cuff.
         void DrawThugBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float p = Mathf.Sin(t * 5f + e.Id * 1.7f);  // a slow, heavy stride
             V2 body = pos - f * r * 0.1f;
             Oval(body, r * 0.75f + 1.6f, r * 1.15f + 1.6f, e.Facing, RioterInk);
@@ -56,7 +54,7 @@ namespace Arena
         /// arm draws back as it winds up (phase 1) and thrusts out on the lunge (phase 2).
         void DrawShivBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float p = Mathf.Sin(t * 11f + e.Id * 1.7f);  // a quick, light step
             float draw = e.Phase == 1 ? 1f : 0f, jab = e.Phase == 2 ? 1f : 0f;
             if (e.Id % 2 == 0)

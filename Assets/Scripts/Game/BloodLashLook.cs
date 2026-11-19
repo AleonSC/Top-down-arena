@@ -118,7 +118,7 @@ namespace Arena
             {
                 hd = aim;
                 float ext = u < 0.62f ? EaseOut3(u / 0.62f) : 1f - 0.08f * Mathf.Clamp01((u - 0.62f) / 0.6f);
-                V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+                V2.Axes(aim, out V2 dir, out V2 side);
                 V2 hand = o + dir * 14f;
                 for (int i = 0; i <= LashSegs; i++)
                 {

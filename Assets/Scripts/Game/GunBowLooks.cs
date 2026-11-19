@@ -158,7 +158,7 @@ namespace Arena
             {
                 case PMuzzle:  // a flash cone and a four-pointed star
                 {
-                    V2 dir = V2.FromAngle(p.Rot), side = dir.Orthogonal();
+                    V2.Axes(p.Rot, out V2 dir, out V2 side);
                     float len = p.Size;
                     SetColor(p.Col.WithAlpha(f));
                     Tri(p.Pos + dir * len, p.Pos + dir * (len * 0.45f) + side * (len * 0.2f), p.Pos + dir * (len * 0.45f) - side * (len * 0.2f));

@@ -159,7 +159,7 @@ namespace Arena
                 {
                     float pulse = 0.5f + 0.5f * Mathf.Sin(t * 4f + z.Id);
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.08f + 0.06f * pulse), 20);
-                    V2 u = V2.FromAngle(0.3f + z.Id), s2 = u.Orthogonal();
+                    V2.Axes(0.3f + z.Id, out V2 u, out V2 s2);
                     SetColor(new Rgba(0.98f, 0.95f, 0.85f));
                     Quad(z.Pos - u * 9f - s2 * 4f, z.Pos + u * 9f - s2 * 4f, z.Pos + u * 9f + s2 * 4f, z.Pos - u * 9f + s2 * 4f);
                     Circle(z.Pos, 2.5f, new Rgba(0.85f, 0.15f, 0.15f), 8);
@@ -684,7 +684,7 @@ namespace Arena
             for (int k = 0; k < spikes; k++)
             {
                 float a = spin + MathX.Tau * k / spikes;
-                V2 d = V2.FromAngle(a), side = d.Orthogonal();
+                V2.Axes(a, out V2 d, out V2 side);
                 SetColor(col.Mix(new Rgba(1f, 0.95f, 0.85f, col.A), 0.35f));
                 Tri(pos + d * (r + 6f), pos + d * (r - 2f) + side * (r * 0.28f), pos + d * (r - 2f) - side * (r * 0.28f));
             }
@@ -1018,7 +1018,7 @@ namespace Arena
         /// The Brute: a heavy brow and fists toward its target.
         void DrawBruteFace(Enemy e, V2 pos, float r, Rgba col)
         {
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             Circle(pos + f * r * 0.95f + side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
             Circle(pos + f * r * 0.95f - side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
             Line(pos + f * r * 0.35f - side * r * 0.4f, pos + f * r * 0.35f + side * r * 0.4f, 3f, new Rgba(0.15f, 0.05f, 0.05f, 0.9f));
@@ -1036,7 +1036,7 @@ namespace Arena
             var c = new Rgba(0.85f, 0.85f, 0.95f);
             for (int k = 0; k < 3; k++)
             {
-                V2 d = V2.FromAngle(t * 1.5f + MathX.Tau * k / 3f), s = d.Orthogonal();
+                V2.Axes(t * 1.5f + MathX.Tau * k / 3f, out V2 d, out V2 s);
                 V2 at = pos + d * (r + 12f);
                 for (int j = -1; j <= 1; j++)
                     Line(at + s * (j * 3f) + d * 4f, at + s * (j * 3f) - d * 3f, 1.6f, c.WithAlpha(0.85f));

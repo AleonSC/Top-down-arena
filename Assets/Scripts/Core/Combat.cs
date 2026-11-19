@@ -466,273 +466,304 @@ namespace Arena
             {
                 if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
                     continue;  // grenades, boulders, Gore Mortar clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
-                if (LayoutOn && SolidStops(b) && !WallBounce(b))
-                {
-                    scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)
-                    continue;
-                }
-                if (Props.Count > 0 && PropStops(b))
-                {
-                    scratchIds.Add(b.Id);  // a crate takes an enemy shot; a barrel any shot (Props.cs)
-                    continue;
-                }
-                if (quarryCover && QuarryCoverStops(b))
-                {
-                    scratchIds.Add(b.Id);  // a rubble pile or a dropped slab stops shots both ways (QuarryFaction.cs)
-                    continue;
-                }
-                if (colCover != null && ColossusCoverStops(b))
-                {
-                    scratchIds.Add(b.Id);  // cover stops shots both ways
-                    continue;
-                }
-                if (moonwards && MoonwardStops(b))
-                {
-                    scratchIds.Add(b.Id);  // a Moonward's moon soaks players' shots (Penumbral.cs)
-                    continue;
-                }
-                if (moonEclipse != null && MoonStops(b))
-                {
-                    scratchIds.Add(b.Id);  // the Eclipse's moon soaks players' shots
-                    continue;
-                }
-                if (!Defs.IsEnemyShot(b.Kind))
-                {
-                    if (GateLockHit(b))
-                    {
-                        scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
-                        continue;
-                    }
-                    if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: Hemomancer.cs
-                    {
-                        scratchIds.Add(b.Id);
-                        continue;
-                    }
-                    foreach (var e in Enemies.Values)
-                    {
-                        if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
-                            continue;  // (the Devourer underground: shots pass over it)
-                        float r = e.Radius + b.Radius;
-                        if (b.Pos.DistanceSq(e.Pos) < r * r)
-                        {
-                            if (BlocksShot(e, b.Pos))
-                            {
-                                var guard = BrainOf(e.Type)?.Guard;
-                                if (guard != null)
-                                    guard.Shot(this, e, b);  // a shield's own: a Comb Shield leaks, a Parrier sends it back, a Grounder charges (its brain)
-                                else
-                                {
-                                    DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
-                                    WearShield(e, b.Dmg);  // the shield takes it, and wears
-                                }
-                                scratchIds.Add(b.Id);
-                                break;
-                            }
-                            if (MirrorBounces(e, b))
-                            {
-                                scratchIds.Add(b.Id);  // a Mirrored elite sends it back (Variety.cs)
-                                break;
-                            }
-                            if (b.FromWeapon && b.LastHit == 0)
-                            {
-                                Player shooter;
-                                if (Players.TryGetValue(b.Owner, out shooter))
-                                {
-                                    shooter.Run.ShotsHit++;
-                                    Recorder?.ShotHit(shooter);
-                                }
-                            }
-                            if (b.Kind == Defs.SanguineShot)
-                            {
-                                StartBloodCoat(b, e);  // it circles in and its hit lands when it has covered the enemy (Hemomancer.cs)
-                                scratchIds.Add(b.Id);
-                                break;
-                            }
-                            if (b.StunBack && e.Type == EnemyType.Warden)
-                                StunWarden(e);  // its own stun shot, parried back (Warden.cs)
-                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e) * RangeMult(b);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
-                            dmgSrc = BulletSrc(b);  // (what the balance test log credits the hit to)
-                            HurtEnemy(e, hit, b.Owner);
-                            dmgSrc = null;
-                            if (b.Crossfire)
-                                TwinRifleHit(b, e);  // Twin Rifle hits load the grenade tubes (TwinGrenades.cs)
-                            foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Hemomancer shots drain, pool and drop orbs)
-                                onHit(this, b, e, hit);
-                            OnBulletHit(b, e);
-                            b.PrevHit = b.LastHit;
-                            b.LastHit = e.Id;
-                            if (b.Frags > 0)
-                                frags.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = b.Owner, LastHit = e.Id, Frags = b.Frags, FragKind = b.FragKind,
-                                    FragDmg = b.FragDmg, FragSpeed = b.FragSpeed, FragLife = b.FragLife, FragSplash = b.FragSplash, FragSideways = b.FragSideways });
-                            if (b.Splash > 0f)
-                                splashes.Add(b);
-                            if (b.Pierce > 0)
-                                b.Pierce--;
-                            else
-                            {
-                                scratchIds.Add(b.Id);
-                                if (b.Bounces > 0 && !b.Bolts)  // a piercing shot flung bounce bolts instead
-                                    ricochets.Add(b);
-                                if (b.Hops > 0)
-                                    hops.Add(b);
-                            }
-                            break;
-                        }
-                    }
-                }
+                if (WorldStops(b))
+                    scratchIds.Add(b.Id);
+                else if (!Defs.IsEnemyShot(b.Kind))
+                    PlayerShotHits(b);
                 else
+                    EnemyShotHits(b);
+            }
+            RemoveStoppedShots();
+            SendReflects();
+            SpawnRicochets();
+            foreach (var hb in hops)
+                FireflyHop(hb);  // KitWeapons.cs
+            SpawnFragsAndBolts();
+            SpendSplitsAndSplashes();
+            KillDeadEnemies();
+        }
+
+        /// Level walls, props, rubble, the Colossus's cover and the moons: true if one stops this shot.
+        bool WorldStops(Bullet b)
+        {
+            if (LayoutOn && SolidStops(b) && !WallBounce(b))
+                return true;  // a wall or pillar stops every shot (LayoutRules.cs)
+            if (Props.Count > 0 && PropStops(b))
+                return true;  // a crate takes an enemy shot; a barrel any shot (Props.cs)
+            if (quarryCover && QuarryCoverStops(b))
+                return true;  // a rubble pile or a dropped slab stops shots both ways (QuarryFaction.cs)
+            if (colCover != null && ColossusCoverStops(b))
+                return true;  // cover stops shots both ways
+            if (moonwards && MoonwardStops(b))
+                return true;  // a Moonward's moon soaks players' shots (Penumbral.cs)
+            if (moonEclipse != null && MoonStops(b))
+                return true;  // the Eclipse's moon soaks players' shots
+            return false;
+        }
+
+        /// A player's shot: Warden gate locks, healing an ally, or the first enemy it touches.
+        void PlayerShotHits(Bullet b)
+        {
+            if (GateLockHit(b))
+            {
+                scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
+                return;
+            }
+            if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: Hemomancer.cs
+            {
+                scratchIds.Add(b.Id);
+                return;
+            }
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
+                    continue;  // (the Devourer underground: shots pass over it)
+                float r = e.Radius + b.Radius;
+                if (b.Pos.DistanceSq(e.Pos) < r * r)
                 {
-                    if (b.Kind == Defs.HollowShot)
-                        continue;  // a Duelist decoy's shot: harmless, it passes through everything (Duelist.cs)
-                    if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b) || GuardStopsBullet(b))  // GuardStopsBullet: Stun.cs
-                    {
-                        scratchIds.Add(b.Id);
-                        continue;
-                    }
-                    if (PhalanxStops(b))
-                    {
-                        scratchIds.Add(b.Id);  // a Bone Phalanx's shields: everything from the front stops, red aimed shots too (BonePhalanx.cs)
-                        continue;
-                    }
-                    if (BridgeStops(b))
-                    {
-                        scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)
-                        continue;
-                    }
-                    if (OssuaryStops(b))
-                    {
-                        scratchIds.Add(b.Id);  // an Ossuary Wall: enemy shots stop on it (BoneGuard.cs)
-                        continue;
-                    }
-                    if (GaleStops(b))
-                    {
-                        scratchIds.Add(b.Id);  // a Gale Wall: everything stops in its lens, red aimed shots too, and charges it (GaleWall.cs)
-                        continue;
-                    }
-                    if (WardStops(b))
-                    {
-                        scratchIds.Add(b.Id);  // a Water Ward drop eats it and bursts into mist (WaterWard.cs)
-                        continue;
-                    }
-                    if (WallStops(b))
-                    {
-                        scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
-                        continue;
-                    }
-                    if (CoverStops(b))
-                    {
-                        scratchIds.Add(b.Id);  // a Deployable Cover: every enemy shot stops on its plates and wears it (DeployableCover.cs)
-                        continue;
-                    }
-                    if (HeroDummyShot(b))
-                    {
-                        scratchIds.Add(b.Id);  // the Dev Arena's hero dummies (DevArena.cs)
-                        continue;
-                    }
-                    foreach (var p in Players.Values)
-                    {
-                        if (p.Downed || p.SwallowT > 0f)
-                            continue;  // (inside the Devourer, out of reach)
-                        bool blockable = !Defs.Unblockable(b.Kind);
-                        if (p.ParryActive && InParryArc(p, b.Pos, b.Radius))
-                        {
-                            // The parry stops anything in front of it, even shots barriers can't.
-                            scratchIds.Add(b.Id);
-                            MagmaParried(b);  // (no lava at your feet: QuarryFaction.cs)
-                            bool perfect = PerfectNow(p);
-                            if (ParryHit(p, b.Dmg, b.Pos) && !(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
-                            break;
-                        }
-                        if (p.WallUp && WallCovers(p, b.Pos, b.Radius, out int plate))
-                        {
-                            scratchIds.Add(b.Id);  // Shield Wall: stops everything from the front, red aimed shots included
-                            if (p.WallReflect)
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
-                            WearWall(p, plate, b.Dmg, b.Pos);  // every shot wears a plate, not only a boss's
-                            break;
-                        }
-                        if (p.StandOn && StandBlocks(p, b))
-                        {
-                            scratchIds.Add(b.Id);  // Last Stand: stops everything from the front, red aimed shots too, and you take a tenth of it (LastStand.cs)
-                            StandHit(p, b);
-                            break;
-                        }
-                        if (BulwarkBlocks(p, b))
-                        {
-                            scratchIds.Add(b.Id);  // the Bulwark Barrier: everything at your front half stops, red aimed shots too (BulwarkBarrier.cs)
-                            BulwarkHit(p, b);
-                            break;
-                        }
-                        if (p.ShellOn && Enters(b, p.Pos, ShellRadius))
-                        {
-                            scratchIds.Add(b.Id);  // Blood Shell: stops everything, red aimed shots too, and bills its owner (BloodShell.cs)
-                            ShellHit(p, b);
-                            break;
-                        }
-                        if (blockable && p.AegisT > 0f && Enters(b, p.Pos, AegisRadius))
-                        {
-                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult, Kind = Defs.ArcaneShot });  // Aeroaegis
-                            scratchIds.Add(b.Id);
-                            p.AegisHp -= BlockerWear(b);
-                            if (p.AegisHp <= 0f)
-                                p.AegisT = 0f;
-                            break;
-                        }
-                        if (blockable && p.BarrierT > 0f && Enters(b, p.Pos, p.BarrierRadius))
-                        {
-                            scratchIds.Add(b.Id);
-                            if (p.BarrierReflect)
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
-                            p.BarrierHp -= BlockerWear(b);
-                            if (p.BarrierHp <= 0f)
-                            {
-                                p.BarrierT = 0f;  // shattered
-                                BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Hit);
-                            }
-                            break;
-                        }
-                        if (SteelGraze(p, b))
-                        {
-                            scratchIds.Add(b.Id);  // Caught Steel: it skimmed past and hangs round them now (CaughtSteel.cs)
-                            break;
-                        }
-                        float r = p.Def.HitR + b.Radius;
-                        if (b.Pos.DistanceSq(p.Pos) < r * r)
-                        {
-                            // Invulnerable players (dash, recent hit) let bullets pass through, unless a Lightning Rod grounds them:
-                            // then it's used up and calls its bolt whether it hurt or not (LightningRod.cs).
-                            bool grounded = p.RodT > 0f;
-                            if (grounded && p.InvulnT > 0f)
-                            {
-                                scratchIds.Add(b.Id);
-                                RodShot(p, b, 0f);
-                            }
-                            else if (p.InvulnT <= 0f)
-                            {
-                                if (JuggOn(p))
-                                    JuggShot(p, b);  // the suit's armour takes it and throws flak back (Juggernaut.cs)
-                                else
-                                    Damage(p, b.Dmg, ShotSource(b));
-                                scratchIds.Add(b.Id);
-                                if (grounded)
-                                    RodShot(p, b, p.DevGod ? b.Dmg * EnemyDamageScale(Math.Max(1, Wave)) * (1f - RodCut) : lastTaken);  // (the preview's god mode takes nothing: show what it would have)
-                                if (b.Kind == Defs.StunShot && !p.Downed)
-                                {
-                                    p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)
-                                    BroadcastFx(FxKind.Spark, p.Pos, Defs.BulletColor(Defs.StunShot), 30f, 0.35f, Sfx.SpellZap);
-                                }
-                                else if ((b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt) && !p.Downed)
-                                {
-                                    p.StunT = StunTime;  // a Taser Guard's Fork Bolt, a Stinger's dart: the same stun (WardenFaction.cs)
-                                    BroadcastFx(FxKind.TaserHit, p.Pos, p.Pos + b.Vel.Normalized(), Defs.BulletColor(b.Kind), 1f, 0.7f, Sfx.SpellZap);
-                                }
-                            }
-                            break;
-                        }
-                    }
+                    ShotHitsEnemy(b, e);
+                    break;
                 }
             }
+        }
+
+        /// A player's shot touching enemy e: a shield or mirror sends it back, else it hurts and its on-hit effects run.
+        void ShotHitsEnemy(Bullet b, Enemy e)
+        {
+            if (BlocksShot(e, b.Pos))
+            {
+                var guard = BrainOf(e.Type)?.Guard;
+                if (guard != null)
+                    guard.Shot(this, e, b);  // a shield's own: a Comb Shield leaks, a Parrier sends it back, a Grounder charges (its brain)
+                else
+                {
+                    DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
+                    WearShield(e, b.Dmg);  // the shield takes it, and wears
+                }
+                scratchIds.Add(b.Id);
+                return;
+            }
+            if (MirrorBounces(e, b))
+            {
+                scratchIds.Add(b.Id);  // a Mirrored elite sends it back (Variety.cs)
+                return;
+            }
+            if (b.FromWeapon && b.LastHit == 0)
+            {
+                Player shooter;
+                if (Players.TryGetValue(b.Owner, out shooter))
+                {
+                    shooter.Run.ShotsHit++;
+                    Recorder?.ShotHit(shooter);
+                }
+            }
+            if (b.Kind == Defs.SanguineShot)
+            {
+                StartBloodCoat(b, e);  // it circles in and its hit lands when it has covered the enemy (Hemomancer.cs)
+                scratchIds.Add(b.Id);
+                return;
+            }
+            if (b.StunBack && e.Type == EnemyType.Warden)
+                StunWarden(e);  // its own stun shot, parried back (Warden.cs)
+            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e) * RangeMult(b);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
+            dmgSrc = BulletSrc(b);  // (what the balance test log credits the hit to)
+            HurtEnemy(e, hit, b.Owner);
+            dmgSrc = null;
+            if (b.Crossfire)
+                TwinRifleHit(b, e);  // Twin Rifle hits load the grenade tubes (TwinGrenades.cs)
+            foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Hemomancer shots drain, pool and drop orbs)
+                onHit(this, b, e, hit);
+            OnBulletHit(b, e);
+            b.PrevHit = b.LastHit;
+            b.LastHit = e.Id;
+            if (b.Frags > 0)
+                frags.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = b.Owner, LastHit = e.Id, Frags = b.Frags, FragKind = b.FragKind,
+                    FragDmg = b.FragDmg, FragSpeed = b.FragSpeed, FragLife = b.FragLife, FragSplash = b.FragSplash, FragSideways = b.FragSideways });
+            if (b.Splash > 0f)
+                splashes.Add(b);
+            if (b.Pierce > 0)
+                b.Pierce--;
+            else
+            {
+                scratchIds.Add(b.Id);
+                if (b.Bounces > 0 && !b.Bolts)  // a piercing shot flung bounce bolts instead
+                    ricochets.Add(b);
+                if (b.Hops > 0)
+                    hops.Add(b);
+            }
+        }
+
+        /// An enemy shot: summons, walls and wards first, then each player's shields, then the player.
+        void EnemyShotHits(Bullet b)
+        {
+            if (b.Kind == Defs.HollowShot)
+                return;  // a Duelist decoy's shot: harmless, it passes through everything (Duelist.cs)
+            if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b) || GuardStopsBullet(b))  // GuardStopsBullet: Stun.cs
+            {
+                scratchIds.Add(b.Id);
+                return;
+            }
+            if (PhalanxStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Bone Phalanx's shields: everything from the front stops, red aimed shots too (BonePhalanx.cs)
+                return;
+            }
+            if (BridgeStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)
+                return;
+            }
+            if (OssuaryStops(b))
+            {
+                scratchIds.Add(b.Id);  // an Ossuary Wall: enemy shots stop on it (BoneGuard.cs)
+                return;
+            }
+            if (GaleStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Gale Wall: everything stops in its lens, red aimed shots too, and charges it (GaleWall.cs)
+                return;
+            }
+            if (WardStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Water Ward drop eats it and bursts into mist (WaterWard.cs)
+                return;
+            }
+            if (WallStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
+                return;
+            }
+            if (CoverStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Deployable Cover: every enemy shot stops on its plates and wears it (DeployableCover.cs)
+                return;
+            }
+            if (HeroDummyShot(b))
+            {
+                scratchIds.Add(b.Id);  // the Dev Arena's hero dummies (DevArena.cs)
+                return;
+            }
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed || p.SwallowT > 0f)
+                    continue;  // (inside the Devourer, out of reach)
+                if (ShieldsStop(p, b))
+                    break;
+                float r = p.Def.HitR + b.Radius;
+                if (b.Pos.DistanceSq(p.Pos) < r * r)
+                {
+                    ShotHitsPlayer(p, b);
+                    break;
+                }
+            }
+        }
+
+        /// Player p's parry, Shield Wall, Last Stand, Bulwark, Blood Shell, Aeroaegis, barrier or Caught Steel: true if one stopped the shot.
+        bool ShieldsStop(Player p, Bullet b)
+        {
+            bool blockable = !Defs.Unblockable(b.Kind);
+            if (p.ParryActive && InParryArc(p, b.Pos, b.Radius))
+            {
+                // The parry stops anything in front of it, even shots barriers can't.
+                scratchIds.Add(b.Id);
+                MagmaParried(b);  // (no lava at your feet: QuarryFaction.cs)
+                bool perfect = PerfectNow(p);
+                if (ParryHit(p, b.Dmg, b.Pos) && !(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
+                    reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
+                return true;
+            }
+            if (p.WallUp && WallCovers(p, b.Pos, b.Radius, out int plate))
+            {
+                scratchIds.Add(b.Id);  // Shield Wall: stops everything from the front, red aimed shots included
+                if (p.WallReflect)
+                    reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
+                WearWall(p, plate, b.Dmg, b.Pos);  // every shot wears a plate, not only a boss's
+                return true;
+            }
+            if (p.StandOn && StandBlocks(p, b))
+            {
+                scratchIds.Add(b.Id);  // Last Stand: stops everything from the front, red aimed shots too, and you take a tenth of it (LastStand.cs)
+                StandHit(p, b);
+                return true;
+            }
+            if (BulwarkBlocks(p, b))
+            {
+                scratchIds.Add(b.Id);  // the Bulwark Barrier: everything at your front half stops, red aimed shots too (BulwarkBarrier.cs)
+                BulwarkHit(p, b);
+                return true;
+            }
+            if (p.ShellOn && Enters(b, p.Pos, ShellRadius))
+            {
+                scratchIds.Add(b.Id);  // Blood Shell: stops everything, red aimed shots too, and bills its owner (BloodShell.cs)
+                ShellHit(p, b);
+                return true;
+            }
+            if (blockable && p.AegisT > 0f && Enters(b, p.Pos, AegisRadius))
+            {
+                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult, Kind = Defs.ArcaneShot });  // Aeroaegis
+                scratchIds.Add(b.Id);
+                p.AegisHp -= BlockerWear(b);
+                if (p.AegisHp <= 0f)
+                    p.AegisT = 0f;
+                return true;
+            }
+            if (blockable && p.BarrierT > 0f && Enters(b, p.Pos, p.BarrierRadius))
+            {
+                scratchIds.Add(b.Id);
+                if (p.BarrierReflect)
+                    reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
+                p.BarrierHp -= BlockerWear(b);
+                if (p.BarrierHp <= 0f)
+                {
+                    p.BarrierT = 0f;  // shattered
+                    BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Hit);
+                }
+                return true;
+            }
+            if (SteelGraze(p, b))
+            {
+                scratchIds.Add(b.Id);  // Caught Steel: it skimmed past and hangs round them now (CaughtSteel.cs)
+                return true;
+            }
+            return false;
+        }
+
+        /// An enemy shot touching player p: it hurts unless they're invulnerable; a Lightning Rod grounds it; stun shots stun.
+        void ShotHitsPlayer(Player p, Bullet b)
+        {
+            // Invulnerable players (dash, recent hit) let bullets pass through, unless a Lightning Rod grounds them:
+            // then it's used up and calls its bolt whether it hurt or not (LightningRod.cs).
+            bool grounded = p.RodT > 0f;
+            if (grounded && p.InvulnT > 0f)
+            {
+                scratchIds.Add(b.Id);
+                RodShot(p, b, 0f);
+            }
+            else if (p.InvulnT <= 0f)
+            {
+                if (JuggOn(p))
+                    JuggShot(p, b);  // the suit's armour takes it and throws flak back (Juggernaut.cs)
+                else
+                    Damage(p, b.Dmg, ShotSource(b));
+                scratchIds.Add(b.Id);
+                if (grounded)
+                    RodShot(p, b, p.DevGod ? b.Dmg * EnemyDamageScale(Math.Max(1, Wave)) * (1f - RodCut) : lastTaken);  // (the preview's god mode takes nothing: show what it would have)
+                if (b.Kind == Defs.StunShot && !p.Downed)
+                {
+                    p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)
+                    BroadcastFx(FxKind.Spark, p.Pos, Defs.BulletColor(Defs.StunShot), 30f, 0.35f, Sfx.SpellZap);
+                }
+                else if ((b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt) && !p.Downed)
+                {
+                    p.StunT = StunTime;  // a Taser Guard's Fork Bolt, a Stinger's dart: the same stun (WardenFaction.cs)
+                    BroadcastFx(FxKind.TaserHit, p.Pos, p.Pos + b.Vel.Normalized(), Defs.BulletColor(b.Kind), 1f, 0.7f, Sfx.SpellZap);
+                }
+            }
+        }
+
+        /// Shots stopped this step go, with their removal effects.
+        void RemoveStoppedShots()
+        {
             foreach (int id in scratchIds)
             {
                 Bullet b;
@@ -741,7 +772,11 @@ namespace Arena
                 RemovedFx(b);
                 KillBullet(id);
             }
+        }
 
+        /// Parried and reflected shots go back as needles or arcane bolts.
+        void SendReflects()
+        {
             foreach (var rb in reflects)
             {
                 Player owner;
@@ -755,8 +790,11 @@ namespace Arena
                     12f * owner.Stats.DmgMult * (rb.Dmg > 0f ? rb.Dmg : 1f), rb.Owner);
                 shot.StunBack = rb.StunBack;
             }
+        }
 
-            // Ricochet: the bullet carries on toward the nearest other enemy.
+        /// Ricochet: the bullet carries on toward the nearest other enemy.
+        void SpawnRicochets()
+        {
             foreach (var rb in ricochets)
             {
                 Enemy next = BounceTarget(rb.Pos, rb.LastHit);
@@ -777,11 +815,11 @@ namespace Arena
                 nb.Shock = rb.Shock;
                 nb.SlowAmt = rb.SlowAmt;
             }
+        }
 
-            foreach (var hb in hops)
-                FireflyHop(hb);  // KitWeapons.cs
-
-            // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
+        /// Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits, and bounce bolts.
+        void SpawnFragsAndBolts()
+        {
             foreach (var f in frags)
             {
                 float baseAng = f.Vel.Angle, offset = RandAngle();
@@ -815,7 +853,11 @@ namespace Arena
                 nb.Bounces = bb.Bounces;  // more stacks: it bounces on as an ordinary ricochet
             }
             bolts.Clear();
+        }
 
+        /// Swarm Rounds splinters, and flak and Collapse Rounds splashes (60% damage near the impact).
+        void SpendSplitsAndSplashes()
+        {
             foreach (var sp in splits)
             {
                 Enemy hit;
@@ -844,58 +886,66 @@ namespace Arena
             }
             splits.Clear();
             splashes.Clear();
+        }
 
+        /// Every enemy at 0 health dies: its kill effects, rewards and drops.
+        void KillDeadEnemies()
+        {
             var dead = scratchDead;
             dead.Clear();
             foreach (var e in Enemies.Values)
                 if (e.Hp <= 0f)
                     dead.Add(e);
             foreach (var e in dead)
+                EnemyDied(e);
+        }
+
+        /// One enemy's death: kill hooks, records, healing, score, XP, gold, vectors, orbs and its death effect.
+        void EnemyDied(Enemy e)
+        {
+            PortalSealed(e);  // a spawn portal shot closed: the rest of its burst is cancelled (SpawnPortals.cs)
+            DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
+            MummerDied(e);    // a Mummer's copies vanish with it; a copy shot down just puffs (CourtFaction.cs)
+            NonShooterDeath(e);  // a Floor Mine (NonShooters.cs, Turnkey.cs)
+            Recorder?.EnemyKilled(e);
+            SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
+            SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
+            HoneyHarvest(e);  // dying in honey bursts into bees (HoneybeeStaff.cs)
+            foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
+                onKill(this, e);
+            bool bossReward = OnEnemyKilled(e);
+            if (bossReward)
+                BossRecord(e);  // everyone's profile (RunSaves.cs)
+            KillEffects(e);
+            var killer = PlayerOrNull(e.LastHitBy);
+            if (killer != null && e.Def.Xp > 0)
             {
-                PortalSealed(e);  // a spawn portal shot closed: the rest of its burst is cancelled (SpawnPortals.cs)
-                DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
-                MummerDied(e);    // a Mummer's copies vanish with it; a copy shot down just puffs (CourtFaction.cs)
-                NonShooterDeath(e);  // a Floor Mine (NonShooters.cs, Turnkey.cs)
-                Recorder?.EnemyKilled(e);
-                SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
-                SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
-                HoneyHarvest(e);  // dying in honey bursts into bees (HoneybeeStaff.cs)
-                foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
-                    onKill(this, e);
-                bool bossReward = OnEnemyKilled(e);
-                if (bossReward)
-                    BossRecord(e);  // everyone's profile (RunSaves.cs)
-                KillEffects(e);
-                var killer = PlayerOrNull(e.LastHitBy);
-                if (killer != null && e.Def.Xp > 0)
-                {
-                    killer.Run.Kills++;
-                    if (e.Elite)
-                        killer.Run.EliteKills++;
-                    if (e.Def.IsBoss)
-                        killer.Run.BossKills++;
-                }
-                if (HasTrait(e, EliteTrait.CoreCarrier))
-                    DropCores(e);  // CoreDrops.cs
-                if (killer != null && e.Def.Xp > 0 && (OnPathOf(PathId.BloodMoon) || FloorAt(killer.Pos) == PathId.BloodMoon))
-                    Heal(killer, Paths.BloodMoonHeal(Wave), null, "Blood Moon");  // Blood Moon: the hunt keeps you alive
-                else if (killer != null && e.Def.Xp > 0 && Has(RunMod.Bloodlust))
-                    Heal(killer, Paths.BloodMoonHeal(Wave), null, "Bloodlust");
-                Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos));
-                GrantXp(KillXp(e) * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos) * ZombieXpScale(e));  // (Zombie Infection splits it over the horde)
-                MaybeRise(e, killer);  // Zombies.cs
-                if (ExpandingOn)
-                    DropCoins(e);  // Coins.cs: gold lies on the ground as coins that never despawn
-                else if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)
-                    GrantGold(e);  // Shop.cs
-                GrantVectorKill(killer, e.Pos);  // and a vector pickup every VectorKillEvery kills (ExpansionGame.cs)
-                MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
-                if (e.Def.Xp > 0)
-                    PackKill(killer);  // the Wolf Whistle's pack grows (WolfPack.cs)
-                DropOrbs(e, bossReward);
-                DeathFx(e, e.Pos);
-                Enemies.Remove(e.Id);
+                killer.Run.Kills++;
+                if (e.Elite)
+                    killer.Run.EliteKills++;
+                if (e.Def.IsBoss)
+                    killer.Run.BossKills++;
             }
+            if (HasTrait(e, EliteTrait.CoreCarrier))
+                DropCores(e);  // CoreDrops.cs
+            if (killer != null && e.Def.Xp > 0 && (OnPathOf(PathId.BloodMoon) || FloorAt(killer.Pos) == PathId.BloodMoon))
+                Heal(killer, Paths.BloodMoonHeal(Wave), null, "Blood Moon");  // Blood Moon: the hunt keeps you alive
+            else if (killer != null && e.Def.Xp > 0 && Has(RunMod.Bloodlust))
+                Heal(killer, Paths.BloodMoonHeal(Wave), null, "Bloodlust");
+            Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos));
+            GrantXp(KillXp(e) * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos) * ZombieXpScale(e));  // (Zombie Infection splits it over the horde)
+            MaybeRise(e, killer);  // Zombies.cs
+            if (ExpandingOn)
+                DropCoins(e);  // Coins.cs: gold lies on the ground as coins that never despawn
+            else if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)
+                GrantGold(e);  // Shop.cs
+            GrantVectorKill(killer, e.Pos);  // and a vector pickup every VectorKillEvery kills (ExpansionGame.cs)
+            MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
+            if (e.Def.Xp > 0)
+                PackKill(killer);  // the Wolf Whistle's pack grows (WolfPack.cs)
+            DropOrbs(e, bossReward);
+            DeathFx(e, e.Pos);
+            Enemies.Remove(e.Id);
         }
 
         /// All damage to enemies goes through here so marks and other modifiers apply.

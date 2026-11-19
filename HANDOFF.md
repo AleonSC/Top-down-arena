@@ -219,6 +219,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + the Unity stubs in `Tools/Preview/Stubs.cs`, shared
   with the previews, RenderCheck and SoundCheck). If the game starts using a Unity member the stubs lack, add it there.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan`, `Mathf.Approximately` (use `System.Math`).
+  `check.sh -W` (run by CI) also fails on any compiler warning: the game compiles with none. A field only
+  `Tools/Preview` sets (by reflection) gets `#pragma warning disable 0649` around it; `check.sh -w` lists them.
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the **`Suites`
   table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`, `Parry`,
   `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,

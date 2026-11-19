@@ -29,7 +29,7 @@ namespace Arena
         /// The staff from your body out along `ang` to its head at `tip`: the shaft slides through your hands for a jab.
         void DrawQuarterstaffModel(V2 o, float ang, float tip, float alpha, Rgba col, bool bright, float bend, Rgba arm, int owner)
         {
-            V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+            V2.Axes(ang, out V2 dir, out V2 side);
             int cap, n = StaffStacksOf(owner, out cap);
             float inten = cap > 0 ? (float)n / cap : 0f, t = Time.unscaledTime;
             Rgba armc = arm.A > 0f ? arm : new Rgba(0.8f, 0.72f, 0.4f);

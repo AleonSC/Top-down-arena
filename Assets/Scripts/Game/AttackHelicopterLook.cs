@@ -220,7 +220,7 @@ namespace Arena
         /// A gun's mount: the nose turret, or a wing pylon each when there are two.
         V2 HeliMount(HeliVis v, int g, int guns)
         {
-            V2 fwd = V2.FromAngle(v.Ang), side = fwd.Orthogonal();
+            V2.Axes(v.Ang, out V2 fwd, out V2 side);
             return guns == 1 ? HeliPt(v.Pos, fwd, side, HeliK(v), 46f, 0f) : HeliPt(v.Pos, fwd, side, HeliK(v), 10f, g == 0 ? -34f : 34f);
         }
 

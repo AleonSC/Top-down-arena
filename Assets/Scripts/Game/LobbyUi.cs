@@ -1038,10 +1038,12 @@ namespace Arena
 
         string lockedTipText = "Coming soon";
         const string WildcardLockText = "Win a run as a Tank, a Healer and a DPS to unlock";
+#pragma warning disable 0429  // (while a ForTesting switch is true, the rest of its || is unreachable)
         const bool WildcardUnlockedForTesting = true;  // TODO: set false on release so the Profile.WildcardUnlocked requirement applies
         bool WildcardOpen => WildcardUnlockedForTesting || game.Profile == null || game.Profile.WildcardUnlocked;
         const bool EngineerUnlockedForTesting = true;  // the owner's call (Nov 18): open by default for now; set false so Profile.EngineerUnlocked (win a run) applies
         bool EngineerOpen => EngineerUnlockedForTesting || game.Profile == null || game.Profile.EngineerUnlocked;
+#pragma warning restore 0429
         /// A class this profile hasn't unlocked yet (the Engineer: win a run).
         bool KitOpen(Kit k) => k != Kit.Engineer || EngineerOpen;
         const string EngineerLockText = "Engineer: win a run to unlock";

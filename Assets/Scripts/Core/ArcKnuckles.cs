@@ -74,7 +74,7 @@ namespace Arena
                 }
                 case 3:
                 {
-                    var s = KnuckleSwing(p, aim, KnuckleHookReach, KnuckleHookArc, hit, land, step);
+                    KnuckleSwing(p, aim, KnuckleHookReach, KnuckleHookArc, hit, land, step);
                     sound = Sfx.KnuckleHook;
                     break;
                 }

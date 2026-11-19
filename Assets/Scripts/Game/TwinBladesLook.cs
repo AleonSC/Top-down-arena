@@ -272,7 +272,7 @@ namespace Arena
         /// toward its edge side, a bright edge line. `shadow`: its shadow only.
         void DrawSabre(V2 hand, float ang, float alpha, bool shadow)
         {
-            V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+            V2.Axes(ang, out V2 dir, out V2 side);
             float L = TwinBladesMotion.BladeLen;
             const int N = 7;
             Rgba shc = new Rgba(0f, 0f, 0f, 0.26f * alpha);

@@ -120,7 +120,7 @@ namespace Arena
             if (m == Game.GreatMove.None)
                 return false;
             var d = Game.GreatMoves[(int)m];
-            float a = Time.unscaledTime - v.At, reach = Game.MeleeReach(p, p.Weapon.Reach), rest = p.Aim - GreatRestOff;
+            float a = Time.unscaledTime - v.At, reach = Game.MeleeReach(p, p.Weapon.Reach);
             V2 o = p.Disp, dir = V2.FromAngle(p.Aim);
             Rgba arm = ArmColor(p.Id);
             switch (m)
@@ -398,7 +398,7 @@ namespace Arena
         /// The Greatsword alone (no arms), its pommel at `o`: the thrown one.
         void DrawGreatBlade(V2 o, float ang, float reach, float alpha, bool bright)
         {
-            V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+            V2.Axes(ang, out V2 dir, out V2 side);
             const float gx = 36f;
             float L = reach, w = 7.6f;
             Line(o - dir * 6f, o + dir * gx, 5f, new Rgba(0.23f, 0.17f, 0.12f, alpha));

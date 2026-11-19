@@ -79,7 +79,7 @@ namespace Arena
             float fade = Mathf.Clamp01(z.T / 0.6f) * Mathf.Clamp01(age / 0.4f);  // in over 0.4 s, out over the last 0.6 s
             float L = R * Game.BlizzardLen, W = R * Game.BlizzardWid;
             const float fu = 0.35f, fv = 0.15f;  // where the fade starts, as a share of the half-extent
-            V2 ex = V2.FromAngle(z.Aim), ey = ex.Orthogonal();
+            V2.Axes(z.Aim, out V2 ex, out V2 ey);
             System.Func<float, float, float> mask = (u, v) => (1f - BlizzSmooth(fu, 1f, Mathf.Abs(u) / L)) * (1f - BlizzSmooth(fv, 1f, Mathf.Abs(v) / W));
             System.Func<float, float, V2> at = (u, v) => z.Pos + ex * u + ey * v;
             const int nu = 30, nv = 10;

@@ -512,8 +512,8 @@ namespace Arena
                 if (File.Exists(path))
                     File.Copy(path, Path.Combine(Folder, "profile." + label + "-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + ".txt"), true);
             }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (IOException ex) { Diag.Warn("profile: couldn't keep a copy of the " + label + " profile.txt", ex); }
+            catch (UnauthorizedAccessException ex) { Diag.Warn("profile: couldn't keep a copy of the " + label + " profile.txt", ex); }
         }
 
         static Profile Load()
@@ -522,7 +522,7 @@ namespace Arena
             if (Folder == null)
                 return new Profile();
             bool mainExists = false;
-            try { mainExists = File.Exists(FilePath); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            try { mainExists = File.Exists(FilePath); } catch (IOException) { } catch (UnauthorizedAccessException) { }  // (treated as missing: the backup is tried next)
             var p = TryRead(FilePath);
             if (p != null)
             {
@@ -567,8 +567,8 @@ namespace Arena
                 SaveStore.SafeWrite(Path.Combine(folder, "profile.txt"), ToText(), Path.Combine(folder, "profile.txt.bak"));
                 return true;
             }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (IOException ex) { Diag.Warn("profile: couldn't save to " + folder, ex); }
+            catch (UnauthorizedAccessException ex) { Diag.Warn("profile: couldn't save to " + folder, ex); }
             return false;
         }
     }

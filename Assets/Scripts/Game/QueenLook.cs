@@ -158,7 +158,7 @@ namespace Arena
         void DrawFlankBomber(Enemy e, V2 pos, float r, bool flash, bool spawning, float t)
         {
             bool diving = e.Phase == 2;
-            V2 dir = V2.FromAngle(e.Facing), side = dir.Orthogonal();
+            V2.Axes(e.Facing, out V2 dir, out V2 side);
             var amber = new Rgba(1f, 0.72f, 0.18f);
             var hot = diving ? new Rgba(1f, 0.28f, 0.12f) : new Rgba(1f, 0.82f, 0.3f);
             float a = spawning ? 0.4f : 1f;

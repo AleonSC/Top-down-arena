@@ -130,7 +130,7 @@ namespace Arena
                     at += new V2(0f, 14f * fall * fall);
                 }
                 // the plate: a trapezoid, wider on the inside, with a lit outer edge and two rivets
-                V2 rad = V2.FromAngle(a + spin * 0.3f), tan = rad.Orthogonal();
+                V2.Axes(a + spin * 0.3f, out V2 rad, out V2 tan);
                 float hitGlow = JuggHitGlow(p, a, t);
                 Rgba lo = JuggPlate.Mix(Rgba.White, 0.5f * hitGlow).WithAlpha(fade), hi = JuggPlateHi.Mix(Rgba.White, 0.6f * hitGlow).WithAlpha(fade);
                 float sc = s / 1.3f;

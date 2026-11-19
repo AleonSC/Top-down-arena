@@ -81,7 +81,7 @@ namespace Arena
         void DrawAcolyteBody(Enemy e, V2 pos, float r, Rgba col, float rel, float t)
         {
             float f = e.Facing;
-            V2 fwd = V2.FromAngle(f), side = fwd.Orthogonal();
+            V2.Axes(f, out V2 fwd, out V2 side);
             Circle(pos, r, col.Darkened(0.45f), 20);
             Circle(pos, r - 1.8f, col, 20);
             // the hood: a dark peak pointing ahead, a pale face slit under it
@@ -102,7 +102,7 @@ namespace Arena
         /// Details over the polygon body.
         void DrawCultDetails(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 fwd = V2.FromAngle(e.Facing), side = fwd.Orthogonal();
+            V2.Axes(e.Facing, out V2 fwd, out V2 side);
             switch (e.Type)
             {
                 case EnemyType.BoundWraith:  // a dashed ring: bound to its partner

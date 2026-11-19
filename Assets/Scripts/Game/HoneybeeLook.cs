@@ -17,7 +17,7 @@ namespace Arena
         /// One bee: wings beating either side, a striped gold body facing `aim`, a dark head and the sting.
         void DrawBeeBody(V2 at, float aim, float scale, float t, float seed, float alpha)
         {
-            V2 f = V2.FromAngle(aim), s = f.Orthogonal();
+            V2.Axes(aim, out V2 f, out V2 s);
             float beat = 0.5f + 0.5f * Mathf.Sin(t * 50f + seed * 7f);
             for (int k = -1; k <= 1; k += 2)
             {
@@ -45,7 +45,7 @@ namespace Arena
         /// A Honeybee Staff bee (MinionKind.Bee). Wind: 0..1 through its hatch and buzz, 1 once it flies (or for a harvest bee).
         void DrawBee(Minion m, float t)
         {
-            float age = m.Duration - m.T, hatch = Game.BeeHatch / Game.BeeWait;
+            float hatch = Game.BeeHatch / Game.BeeWait;
             if (m.Wind < 1f && m.Wind < hatch)  // hatching: the cell holds, the bee pushes up out of it
             {
                 float k = m.Wind / hatch;
@@ -75,7 +75,7 @@ namespace Arena
         void DrawBeeStingFx(Effect fx, float t)
         {
             float age = fx.T, dir = fx.Radius;
-            V2 f = V2.FromAngle(dir), s = f.Orthogonal();
+            V2.Axes(dir, out V2 f, out V2 s);
             Enemy e;
             bool alive = game.Enemies.TryGetValue((int)fx.Pos2.X, out e);
             if (age < 0.25f)  // the burst: three white lines off the point

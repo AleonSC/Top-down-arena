@@ -155,7 +155,7 @@ namespace Arena
         void DrawWarhornSkyFx(Effect fx)
         {
             var f = VolFrameOf(fx);
-            float age = fx.T, t = game.AnimT;
+            float age = fx.T;
 
             // The horn, in the knight's hand from the hip up to the helm.
             float raise = VolRaise(age);

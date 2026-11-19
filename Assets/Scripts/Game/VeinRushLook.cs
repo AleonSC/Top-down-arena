@@ -19,7 +19,7 @@ namespace Arena
         {
             if (alpha <= 0.01f)
                 return;
-            V2 u = V2.FromAngle(ang), v = u.Orthogonal();
+            V2.Axes(ang, out V2 u, out V2 v);
             System.Func<float, float, V2> P = (x, y) => at + u * (x * sx) + v * (y * sy);
             Ellipse(P(2f, 3f), 12f * sx, 10f * sy, ang, new Rgba(0f, 0f, 0f, 0.35f * alpha), 14);
             Ellipse(P(-2.5f, 0f), 10.5f * sx, 11.5f * sy, ang, new Rgba(0.07f, 0.02f, 0.04f, alpha), 16);  // the outline

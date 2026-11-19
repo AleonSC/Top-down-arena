@@ -200,9 +200,6 @@ namespace Arena
                 Ui.Fill(new Rect(x0, y0, 8f, 1f), dim);
                 Ui.Fill(new Rect(gx, y1, 1f, rise + 1f), dim);
                 Ui.Fill(new Rect(x0, y1, 8f, 1f), dim);
-                Vector2 p = at2 < 8f ? new Vector2(x0 + at2, y0)
-                    : at2 < 8f + rise ? new Vector2(gx, y0 - (at2 - 8f))
-                    : new Vector2(gx - (at2 - 8f - rise), y1);
                 // A crisp spark with a short tail behind it.
                 for (int i = 0; i < 6; i++)
                 {

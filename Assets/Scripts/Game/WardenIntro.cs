@@ -16,8 +16,9 @@ namespace Arena
         const string WiTitle = "THE WARDEN";
         static readonly Rgba WiInk = new Rgba(1f, 0.42f, 0.55f);
 
+#pragma warning disable 0649  // set only by Tools/Preview (reflection)
         float wardenIntroT = -1f, wardenIntroFrom;  // (From: where it starts, 0 but in the preview tool)
-        int wardenIntroId;
+#pragma warning restore 0649
         V2 wardenIntroAt;
 
         bool WardenIntroOn => wardenIntroT >= 0f && wardenIntroT < WiEnd;
@@ -26,7 +27,6 @@ namespace Arena
         void StartWardenIntro(Enemy e)
         {
             wardenIntroT = wardenIntroFrom;
-            wardenIntroId = e.Id;
             wardenIntroAt = e.Disp;
             sounds?.Play(Sfx.BossSiren, 0.55f, Time.unscaledTime);
         }

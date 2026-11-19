@@ -45,7 +45,7 @@ namespace Arena
         /// A masked fencer: ink edge, body, rim in `rim`, a half-mask toward `face` with two eye slits.
         void CourtFigure(V2 pos, float r, float face, Rgba rim)
         {
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             Circle(pos, r + 2f, CourtInk, 18);
             Circle(pos, r, rim, 18);
             Circle(pos, r - 2f, CourtBody, 18);
@@ -82,7 +82,7 @@ namespace Arena
         void DrawBladeDancer(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             float face = e.Facing;
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             // The cape: a crimson fan behind, swinging as it moves.
             float sway = Mathf.Sin(t * 5f + e.Id) * 0.12f;
             V2 back = pos - V2.FromAngle(face + sway) * (r * 2f);
@@ -103,7 +103,7 @@ namespace Arena
             byte st = Game.RiotState(e);
             bool broken = crack >= Game.RiotCracked;
             float face = e.Facing + (broken && st == Game.RiotStaggered ? Mathf.Sin(t * 30f) * 0.2f : 0f);
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             if (!broken)
             {
                 // The parrying arc in front: gold, dimmer with each crack, flashing before the bash, low after it.
@@ -153,7 +153,7 @@ namespace Arena
         void DrawMarshal(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             float face = e.Facing;
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             SetColor(CourtGold.WithAlpha(0.35f));
             Tri(pos + s * r * 0.9f - f * r * 0.2f, pos - s * r * 0.9f - f * r * 0.2f, pos - f * (r * 1.9f));
             float raise = e.Winding ? 1.3f : 0.2f;
@@ -170,7 +170,7 @@ namespace Arena
             var d = e.Duel;
             bool salute = d != null && d.SaluteT > 0f, stagger = d != null && d.StaggerT > 0f;
             float face = e.Facing + (stagger ? Mathf.Sin(t * 14f) * 0.35f : 0f);
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             SetColor(CourtSteel.WithAlpha(0.3f));
             Tri(pos + s * r * 0.9f - f * r * 0.2f, pos - s * r * 0.9f - f * r * 0.2f, pos - V2.FromAngle(face + Mathf.Sin(t * 5f + e.Id) * 0.12f) * (r * 2f));
             if (salute)
@@ -202,7 +202,7 @@ namespace Arena
             var d = e.Duel;
             bool aim = d != null && d.Dash != DuelDash.None && d.DashWarn > 0f;
             float face = e.Facing;
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             // Two swords: out to each side, or both forward while it shows its line.
             float spread = aim ? 0.35f : 1.4f;
             CourtBlade(pos, r, face + spread, r * 1.3f, 3f);
@@ -243,7 +243,7 @@ namespace Arena
         void DrawMummer(Enemy e, V2 pos, float r, float t)
         {
             float face = e.Facing;
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             var violet = Game.MummerViolet;
             SetColor(violet.WithAlpha(0.5f));
             Tri(pos + s * r * 0.9f - f * r * 0.2f, pos - s * r * 0.9f - f * r * 0.2f, pos - V2.FromAngle(face + Mathf.Sin(t * 6f + e.Id) * 0.15f) * (r * 2f));
@@ -255,7 +255,7 @@ namespace Arena
         /// A Second's dagger: a steel blade along its flight with a gold hilt, wobbling a little.
         void DrawThrownDagger(Bullet b, float t)
         {
-            V2 d = V2.FromAngle(b.Vel.Angle + Mathf.Sin(t * 22f + b.Id) * 0.15f), s = d.Orthogonal();
+            V2.Axes(b.Vel.Angle + Mathf.Sin(t * 22f + b.Id) * 0.15f, out V2 d, out V2 s);
             Line(b.Pos - d * 12f, b.Pos - d * 2f, 3f, CourtSteel.WithAlpha(0.18f));  // a faint streak
             Line(b.Pos - d * 3f, b.Pos + d * 7f, 2.5f, new Rgba(0.95f, 0.96f, 1f));
             Line(b.Pos - d * 3f - s * 3.5f, b.Pos - d * 3f + s * 3.5f, 2.5f, CourtGold);

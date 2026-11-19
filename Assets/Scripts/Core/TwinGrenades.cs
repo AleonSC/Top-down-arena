@@ -23,7 +23,7 @@ namespace Arena
         /// muzzle (the guns are held out wide, Weapons.cs TwinMuzzleOut). Against a wall, from your edge.
         public V2 TwinTubeMuzzle(Player p, float aim, int tube)
         {
-            V2 v = V2.FromAngle(aim), left = v.Orthogonal();  // (arena y runs down the screen, so Orthogonal is to your left)
+            V2.Axes(aim, out V2 v, out V2 left);  // (arena y runs down the screen, so Orthogonal is to your left)
             V2 lat = left * ((tube == 0 ? 1f : -1f) * (TwinBarrelGap * 0.5f + TwinTubeOut));
             V2 at = p.Pos + v * (p.Def.BodyR + TwinMuzzleOut - 2f) + lat;
             if (ActiveLayout != null && SegBlocked(ActiveLayout, p.Pos, at, 0f))

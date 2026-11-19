@@ -49,8 +49,8 @@ namespace Arena
                 string pick = all.Any(p => p.Id == saved) ? saved : all.Count > 0 ? all[0].Id : "";
                 return pick.Length > 0 && SetActive(pick);
             }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (IOException ex) { Diag.Warn("profiles: couldn't open the profiles folder " + Root, ex); }
+            catch (UnauthorizedAccessException ex) { Diag.Warn("profiles: couldn't open the profiles folder " + Root, ex); }
             ApplyFolders();
             return false;
         }
@@ -91,8 +91,8 @@ namespace Arena
                     var p = Profile.Parse(File.ReadAllText(path));
                     if (p.Valid) return p;
                 }
-                catch (IOException) { }
-                catch (UnauthorizedAccessException) { }
+                catch (IOException ex) { Diag.Warn("profiles: couldn't read " + Path.Combine(dir, f), ex); }
+                catch (UnauthorizedAccessException ex) { Diag.Warn("profiles: couldn't read " + Path.Combine(dir, f), ex); }
             }
             return null;
         }
@@ -128,8 +128,8 @@ namespace Arena
                 return false;
             ActiveId = id;
             try { File.WriteAllText(ActiveFile, id); }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (IOException ex) { Diag.Warn("profiles: couldn't remember the active profile in " + ActiveFile, ex); }
+            catch (UnauthorizedAccessException ex) { Diag.Warn("profiles: couldn't remember the active profile in " + ActiveFile, ex); }
             ApplyFolders();
             return true;
         }

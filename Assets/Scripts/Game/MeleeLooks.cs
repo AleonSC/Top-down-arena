@@ -866,7 +866,7 @@ namespace Arena
                 return;
             float a, h, r;
             HammerArc(aim, d, f, out a, out h, out r);
-            V2 dir = V2.FromAngle(a), side = dir.Orthogonal();
+            V2.Axes(a, out V2 dir, out V2 side);
             V2 ground = o + dir * r, head = ground + new V2(0f, -26f * h);
             float sk = 1f - 0.5f * h;
             Circle(ground + new V2(0f, 4f), 13f * sk, new Rgba(0f, 0f, 0f, (0.22f + 0.25f * (1f - h)) * alpha), 16);
@@ -1152,7 +1152,7 @@ namespace Arena
         {
             if (alpha <= 0f)
                 return;
-            V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+            V2.Axes(ang, out V2 dir, out V2 side);
             var edge = col.WithAlpha(0.9f * alpha);
             switch (id)
             {

@@ -82,7 +82,7 @@ namespace Arena
                 cereViews.Remove(p.Id);
                 return;
             }
-            var v = CereViewOf(p, ViewDt, t);
+            CereViewOf(p, ViewDt, t);  // (keeps the armour's view state ticking)
             V2 c = p.Disp;
             if (Game.CereFull(p))  // full regalia
             {

@@ -16,7 +16,7 @@ namespace Arena
         /// Raise the wall in front of the caster, across their aim. hpMult: mastery, Mirror Image and the capstone.
         void SpawnCloneWall(Player p, float life, float hpMult)
         {
-            V2 fwd = V2.FromAngle(p.Aim), side = fwd.Orthogonal();
+            V2.Axes(p.Aim, out V2 fwd, out V2 side);
             int mid = CloneWallCount / 2;
             for (int i = 0; i < CloneWallCount; i++)
             {

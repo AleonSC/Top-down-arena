@@ -54,7 +54,7 @@ namespace Arena
         /// A barbed harpoon head pointing along `ang`.
         void DrawHarpoon(V2 at, float ang, float s)
         {
-            V2 f = V2.FromAngle(ang), side = f.Orthogonal();
+            V2.Axes(ang, out V2 f, out V2 side);
             var c = new Rgba(0.92f, 0.88f, 1f);
             Tri3(at + f * 8f * s, at - side * 4f * s, at + f * 2f * s, c);
             Tri3(at + f * 8f * s, at + f * 2f * s, at + side * 4f * s, c);

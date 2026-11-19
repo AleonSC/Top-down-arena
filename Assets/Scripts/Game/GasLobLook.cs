@@ -159,7 +159,7 @@ namespace Arena
         {
             if (!GasLobOf(e, out float gAge, out float gThrowAt, out float gFlight))
                 return false;
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             GasHand(gAge, gThrowAt, gFlight, out float u, out float v, out float z, out bool has);
             float swing = Mathf.Min(Game.GrenadierSwing, gThrowAt), tellEnd = gThrowAt - swing;
             float lean = gAge < tellEnd ? -2f * GasEase(gAge / Mathf.Max(0.01f, tellEnd))

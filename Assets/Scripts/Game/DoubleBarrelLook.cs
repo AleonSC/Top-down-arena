@@ -50,7 +50,7 @@ namespace Arena
         void OnDoubleBarrelShot(Player owner, Bullet b)
         {
             var s = DpsOf(owner.Id);
-            V2 dir = V2.FromAngle(owner.Aim), side = dir.Orthogonal();
+            V2.Axes(owner.Aim, out V2 dir, out V2 side);
             int bar = (b.Pos - owner.Pos).Dot(side) < 0f ? 0 : 1;  // (side is your right: the left barrel is 0)
             if (juiceClock - s.Bar[bar] < 0.05f)
                 return;  // a barrel's pellets all appear together
@@ -77,7 +77,7 @@ namespace Arena
                 var s = DpsOf(p.Id);
                 float t = DbReloadAt(p), prev = s.RelT;
                 s.RelT = t;
-                V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+                V2.Axes(p.Aim, out V2 dir, out V2 side);
                 if (t >= DbEject && prev < DbEject)  // the hulls flip out of the chambers, back and to each side
                     for (int i = 0; i < 2; i++)
                     {

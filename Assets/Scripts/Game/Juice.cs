@@ -334,6 +334,27 @@ namespace Arena
             UpdateFloodSound();  // FloodLook.cs: Flood's stamp, lapping and drain
             UpdateCoverSound();  // DeployableCoverLook.cs: Deployable Cover's build and break
 
+            JuiceNewEffects(me);
+            JuiceEnemies(t, dt);
+            JuiceShots(dt);
+
+            KillMoments(dt);  // your kills' kick, multikill calls, the wave's last kill (JuiceMoments.cs)
+            JuiceMe(me);
+
+            UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
+            UpdateTankGunLooks();  // TankGunLooks.cs: a pumped Scattergun's shell dropping out
+            UpdateGrenadeLauncherLooks(dt);  // GrenadeLauncherLook.cs: shots, the drum swap and reload, trails, the smoke
+            UpdateTankAltLooks(dt);  // TankAltFx.cs: the Tank Soldier's Alt fires
+            UpdateDpsGunLooks(dt);  // DpsGunLooks.cs: the SMG's barrels turning, a fired Railgun's steam
+            UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
+            UpdateDust(dt);      // dust at your feet
+            UpdateWeather(dt);   // the path's weather
+            JuiceAge(dt, realDt);
+        }
+
+        /// New effects this frame: blasts shake, spark, scorch and ripple; your own hits hold the picture.
+        void JuiceNewEffects(Player me)
+        {
             // New effects: blasts shake, spark, scorch and ripple.
             if (me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Rapier)
             {
@@ -350,194 +371,219 @@ namespace Arena
                 if (fx.Juiced)
                     continue;
                 fx.Juiced = true;
-                if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
-                    Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
-                if (fx.Kind == FxKind.PerfectParry && (int)fx.Pos2.X == game.MyId)
-                {
-                    Hold(Game.PerfectHold, 0.12f);  // your own perfect parry: the picture holds (the world slowing is Core/Parry.cs)
-                    Shake(0.16f);
-                }
-                if (fx.Kind == FxKind.KatanaHitCue && fx.Color.A > 0.75f && (int)fx.Pos2.X == game.MyId)
-                {
-                    Hold(0.07f, 0.12f);  // your own Momentum Burst hit something: a heavy hold and a kick (KatanaLook.cs)
-                    Shake(0.35f);
-                }
-                else if (fx.Kind == FxKind.KatanaHitCue && (int)fx.Pos2.X == game.MyId)
-                {
-                    Hold(Game.KatanaDashHold + Game.KatanaDashHoldPer * Mathf.Min(3f, fx.Radius - 1f), 0.06f);  // each step that cuts something: a short hit-stop
-                    Shake(0.07f);
-                }
-                if (fx.Kind == FxKind.VeinCut && (int)(fx.Radius / 1000f) == game.MyId)
-                {
-                    Hold(0.05f, 0.1f);  // your own Vein Rush cut something: the Needle's hit-stop (VeinRushLook.cs)
-                    Shake(0.05f);
-                }
-                if (fx.Kind == FxKind.DoubleBarrel)
-                    DoubleBarrelFeel(fx);  // TankAltFx.cs
-                if (fx.Kind == FxKind.CoverBreak && me != null && me.Pos.DistanceTo(fx.Pos) < 450f)
-                    Shake(0.22f);  // a Deployable Cover bursting near you (DeployableCoverLook.cs)
-                if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && me != null && fx.Pos.DistanceTo(me.Pos) < 500f)
-                    Shake(0.3f);  // a Stonespear slam shakes the ground near you
-                if (fx.Kind == FxKind.HoneyHarvest && me != null && (int)fx.Pos2.X == me.Id)
-                    Shake(0.2f);  // your harvest bursting
-                if (fx.Kind == FxKind.EmbolusBlast && me != null && (int)fx.Pos2.X == me.Id)
-                    Shake(0.25f);  // your Embolus Spears bursting (EmbolusLook.cs)
-                KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
-                if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
-                    TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
-                if (fx.Kind == FxKind.KnuckleHit)
-                    KnuckleHitFeel(fx, (int)fx.Pos2.X == game.MyId);  // an Arc Knuckles punch connected: sparks, and for your own a hit-stop and shake (below)
-                if (fx.Kind == FxKind.LanceHit && (int)fx.Pos2.X == game.MyId)
-                    LanceHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Lance hit something (below)
-                if (fx.Kind == FxKind.LanceImpact)
-                    ImpactNumber(fx);  // a Lance shove's Impact: its own orange number (below)
-                if (fx.Kind == FxKind.Jab && me != null && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B && me.Pos.DistanceTo(fx.Pos) < 44f)
-                {
-                    float hp = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own hammer slam: a hit-stop and a kick, harder the more it was charged
-                    Hold(0.04f + 0.03f * hp);
-                    Shake(0.1f + 0.26f * hp);  // Quake: the ground takes it, so it kicks harder
-                }
-                if (fx.Kind == FxKind.HammerSlam && me != null && me.Pos.DistanceTo(fx.Pos2) < 40f)
-                {
-                    Hold(0.06f);  // your own Storm Hammer slam: the picture holds and the ground kicks
-                    Shake(0.3f);
-                }
-                if (fx.Kind == FxKind.Slash && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && fx.Radius > 1f && me.Pos.DistanceTo(fx.Pos) < 44f)
-                {
-                    float gr = fx.Pos2.DistanceTo(fx.Pos), ga = (fx.Pos2 - fx.Pos).Angle;
-                    foreach (var en in game.Enemies.Values)
-                    {
-                        V2 rel = en.Disp - fx.Pos;
-                        float gd = Mathf.Abs(Mathf.Repeat(rel.Angle - ga + MathX.Pi, MathX.Tau) - MathX.Pi);
-                        if (rel.Length - en.Radius * 0.5f > gr || gd > fx.Radius + 0.1f)
-                            continue;
-                        Hold(0.05f);  // your own Greatsword cut caught something: a hit-stop and a kick
-                        Shake(0.14f);
-                        break;
-                    }
-                }
-                if (fx.Kind == FxKind.GreatRend && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && me.Pos.DistanceTo(fx.Pos) < 44f)
-                {
-                    V2 rl = fx.Pos2 - fx.Pos, rd = rl.Length > 1f ? rl / rl.Length : new V2(1f, 0f);
-                    float rt = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own Rend: harder the more Temper it carried
-                    foreach (var en in game.Enemies.Values)
-                    {
-                        V2 rel = en.Disp - fx.Pos;
-                        float along = rel.X * rd.X + rel.Y * rd.Y, across = Mathf.Abs(-rel.X * rd.Y + rel.Y * rd.X);
-                        if (along < 0f || along > rl.Length + en.Radius || across > fx.Radius + en.Radius)
-                            continue;
-                        Hold(0.04f + 0.04f * rt);  // it caught something: a hit-stop and a kick
-                        Shake(0.12f + 0.2f * rt);
-                        break;
-                    }
-                }
-                if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
-                    Shake(fx.Color.A > 0.75f ? 0.08f : 0f);  // a Katana kill nearby (KatanaLook.cs)
-                if (fx.Kind == FxKind.Exsanguinate && fx.Pos2.X < 0f && me != null)  // Exsanguinate's Barbed Lash (ExsanguinateLook.cs)
-                {
-                    bool mine = (int)fx.Pos2.Y == game.MyId;
-                    if (fx.Pos2.X < -1.5f && mine)
-                    {
-                        Hold(0.07f);  // your yank lands: a hit-stop and a hard kick
-                        Shake(0.32f);
-                    }
-                    else if (fx.Pos2.X < -1.5f && me.Pos.DistanceTo(fx.Pos) < 900f)
-                        Shake(0.12f);
-                    else if (mine)
-                        Shake(0.1f);  // the whips crack out
-                }
-                if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
-                    Shake(0.3f);  // the cast: one kick that dies away over the cuts (DeathLotusLook.cs)
-                if (fx.Kind == FxKind.TitanSlam && me != null && fx.Pos2.X < 2f && me.Pos.DistanceTo(fx.Pos) < 1100f)
-                    Shake(fx.Pos2.X > 0f ? 0.3f : 0.2f);  // a slam or the titan standing up (TitanLook.cs)
-                if (fx.Kind != FxKind.Boom)
-                    continue;
-                newBooms.Add(fx.Pos);  // an enemy's death plays one where it died (DeathFx)
-                float near = me != null ? Mathf.Clamp01(1.2f - me.Pos.DistanceTo(fx.Pos) / 900f) : 0.5f;
-                boomShake = Mathf.Max(boomShake, Mathf.Min(0.22f, fx.Radius / 450f) * near);
-                if (IsGrenadeBoom(fx))
-                    FragBurst(fx);  // a grenade's shards and smoke (SoldierLooks.cs)
-                else if (IsFlakBoom(fx))
-                    FlakBurstParts(fx);
-                else if (IsGlBoom(fx))
-                    GlBlastParts(fx);  // the Grenade Launcher's fireballs, smoke, debris and scorch (GrenadeLauncherLook.cs)  // a Flak airburst's shrapnel and smoke (TankGunLooks.cs)
-                else if (!IsLeapBoom(fx))  // (the Leap Slam's landing draws its own: LeapSlamLook.cs)
-                    Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
-                if (fx.Radius >= 80f)
-                {
-                    Scorch(fx.Pos, fx.Radius * 1.6f);
-                    ripples.Add(new Ripple { Pos = fx.Pos, Power = Mathf.Min(2f, fx.Radius / 110f) });
-                }
+                EffectFeel(fx, me);
+                if (fx.Kind == FxKind.Boom)
+                    BoomFeel(fx, me, ref boomShake);
             }
 
             if (boomShake > 0f && trauma < 0.35f)
                 Shake(Mathf.Min(boomShake, 0.35f - trauma));  // explosions alone never shake past a light rumble
+        }
 
-            // Enemies: hits (flash, bulge, numbers, big-hit pause), and the ones that are gone (shatter).
-            foreach (var e in game.Enemies.Values)
+        /// One new effect's feel (hit-stops and shakes) for the weapon or ability that made it.
+        void EffectFeel(Effect fx, Player me)
+        {
+            if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
+                Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
+            if (fx.Kind == FxKind.PerfectParry && (int)fx.Pos2.X == game.MyId)
             {
-                EnemySeen s;
-                bool fresh = !seenEnemies.TryGetValue(e.Id, out s);
-                if (fresh)
+                Hold(Game.PerfectHold, 0.12f);  // your own perfect parry: the picture holds (the world slowing is Core/Parry.cs)
+                Shake(0.16f);
+            }
+            if (fx.Kind == FxKind.KatanaHitCue && fx.Color.A > 0.75f && (int)fx.Pos2.X == game.MyId)
+            {
+                Hold(0.07f, 0.12f);  // your own Momentum Burst hit something: a heavy hold and a kick (KatanaLook.cs)
+                Shake(0.35f);
+            }
+            else if (fx.Kind == FxKind.KatanaHitCue && (int)fx.Pos2.X == game.MyId)
+            {
+                Hold(Game.KatanaDashHold + Game.KatanaDashHoldPer * Mathf.Min(3f, fx.Radius - 1f), 0.06f);  // each step that cuts something: a short hit-stop
+                Shake(0.07f);
+            }
+            if (fx.Kind == FxKind.VeinCut && (int)(fx.Radius / 1000f) == game.MyId)
+            {
+                Hold(0.05f, 0.1f);  // your own Vein Rush cut something: the Needle's hit-stop (VeinRushLook.cs)
+                Shake(0.05f);
+            }
+            if (fx.Kind == FxKind.DoubleBarrel)
+                DoubleBarrelFeel(fx);  // TankAltFx.cs
+            if (fx.Kind == FxKind.CoverBreak && me != null && me.Pos.DistanceTo(fx.Pos) < 450f)
+                Shake(0.22f);  // a Deployable Cover bursting near you (DeployableCoverLook.cs)
+            if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && me != null && fx.Pos.DistanceTo(me.Pos) < 500f)
+                Shake(0.3f);  // a Stonespear slam shakes the ground near you
+            if (fx.Kind == FxKind.HoneyHarvest && me != null && (int)fx.Pos2.X == me.Id)
+                Shake(0.2f);  // your harvest bursting
+            if (fx.Kind == FxKind.EmbolusBlast && me != null && (int)fx.Pos2.X == me.Id)
+                Shake(0.25f);  // your Embolus Spears bursting (EmbolusLook.cs)
+            KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
+            if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
+                TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
+            if (fx.Kind == FxKind.KnuckleHit)
+                KnuckleHitFeel(fx, (int)fx.Pos2.X == game.MyId);  // an Arc Knuckles punch connected: sparks, and for your own a hit-stop and shake (below)
+            if (fx.Kind == FxKind.LanceHit && (int)fx.Pos2.X == game.MyId)
+                LanceHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Lance hit something (below)
+            if (fx.Kind == FxKind.LanceImpact)
+                ImpactNumber(fx);  // a Lance shove's Impact: its own orange number (below)
+            if (fx.Kind == FxKind.Jab && me != null && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B && me.Pos.DistanceTo(fx.Pos) < 44f)
+            {
+                float hp = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own hammer slam: a hit-stop and a kick, harder the more it was charged
+                Hold(0.04f + 0.03f * hp);
+                Shake(0.1f + 0.26f * hp);  // Quake: the ground takes it, so it kicks harder
+            }
+            if (fx.Kind == FxKind.HammerSlam && me != null && me.Pos.DistanceTo(fx.Pos2) < 40f)
+            {
+                Hold(0.06f);  // your own Storm Hammer slam: the picture holds and the ground kicks
+                Shake(0.3f);
+            }
+            if (fx.Kind == FxKind.Slash && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && fx.Radius > 1f && me.Pos.DistanceTo(fx.Pos) < 44f)
+            {
+                float gr = fx.Pos2.DistanceTo(fx.Pos), ga = (fx.Pos2 - fx.Pos).Angle;
+                foreach (var en in game.Enemies.Values)
                 {
-                    s = enemyPool.Count > 0 ? enemyPool.Pop() : new EnemySeen();
-                    s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = s.Owed = 0f;
-                    s.HitFlash = e.Flash;
-                    seenEnemies[e.Id] = s;
-                    if (e.Type == EnemyType.Warden && game.IsSpawning(e) && game.State == MatchState.Fighting && introWave != game.Wave)
-                    {
-                        introWave = game.Wave;
-                        StartWardenIntro(e);  // the Warden's own entrance in place of the card (WardenIntro.cs)
-                    }
-                    else if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.ReaperOfDawn && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting
-                        && !(e.Def.Mini && game.RoomsOn))  // (the Rooms arena's vault mini-boss is optional: no fanfare)
-                    {
-                        introWave = game.Wave;
-                        introT = IntroTime;
-                        introName = e.Def.Name.ToUpperInvariant();
-                        Shake(0.2f);
-                    }
-                }
-                bool spawning = game.IsSpawning(e);
-                float lost = s.Hp - e.Hp;
-                // A real hit raises the enemy's Flash (Combat.cs HurtEnemy, or the snapshot's hit flag); burning, bleeding and
-                // poison only wear its health down, so they add to the damage number without flashing or bulging it.
-                bool struck = e.Flash > s.HitFlash + 1e-4f;
-                s.HitFlash = e.Flash;
-                if (!fresh && lost > 0.01f && !spawning)
-                {
-                    s.Dmg += lost;
-                    if (s.DmgT <= 0f)
-                        s.DmgT = 0.15f;
-                    if (struck && !e.Def.IsBoss && lost >= Mathf.Max(80f, e.MaxHp * 0.35f))
-                    {
-                        Hold(0.035f);
-                        Shake(0.06f);
-                    }
-                }
-                if (!fresh && struck && !spawning)
-                {
-                    // Under steady fire the bulge gets smaller and only starts again once the last one has mostly settled,
-                    // so a boss everyone is shooting pulses gently instead of staying swollen.
-                    if (s.Squash < 0.35f)
-                        s.Squash = 1f - 0.6f * e.FlashHeat;
-                    s.Flash = 0.09f;
-                }
-                s.Pos = e.Disp; s.Hp = e.Hp; s.Max = e.MaxHp; s.Rot = EnemyRotation(e, t);
-                s.R = e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius;
-                s.Sides = e.Def.Sides; s.Col = e.Def.Color; s.Boss = e.Def.IsBoss || e.Def.Mini;
-                s.Big = e.Elite || e.Def.Heavy || e.MaxHp >= 400f;
-                s.Spawning = spawning;
-                s.Frame = juiceFrame;
-                s.Squash = Mathf.Max(0f, s.Squash - dt * 6f);
-                s.Flash = Mathf.Max(0f, s.Flash - dt);
-                if (s.DmgT > 0f)
-                {
-                    s.DmgT -= dt;
-                    if (s.DmgT <= 0f)
-                        FlushNumber(s);
+                    V2 rel = en.Disp - fx.Pos;
+                    float gd = Mathf.Abs(Mathf.Repeat(rel.Angle - ga + MathX.Pi, MathX.Tau) - MathX.Pi);
+                    if (rel.Length - en.Radius * 0.5f > gr || gd > fx.Radius + 0.1f)
+                        continue;
+                    Hold(0.05f);  // your own Greatsword cut caught something: a hit-stop and a kick
+                    Shake(0.14f);
+                    break;
                 }
             }
+            if (fx.Kind == FxKind.GreatRend && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && me.Pos.DistanceTo(fx.Pos) < 44f)
+            {
+                V2 rl = fx.Pos2 - fx.Pos, rd = rl.Length > 1f ? rl / rl.Length : new V2(1f, 0f);
+                float rt = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own Rend: harder the more Temper it carried
+                foreach (var en in game.Enemies.Values)
+                {
+                    V2 rel = en.Disp - fx.Pos;
+                    float along = rel.X * rd.X + rel.Y * rd.Y, across = Mathf.Abs(-rel.X * rd.Y + rel.Y * rd.X);
+                    if (along < 0f || along > rl.Length + en.Radius || across > fx.Radius + en.Radius)
+                        continue;
+                    Hold(0.04f + 0.04f * rt);  // it caught something: a hit-stop and a kick
+                    Shake(0.12f + 0.2f * rt);
+                    break;
+                }
+            }
+            if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
+                Shake(fx.Color.A > 0.75f ? 0.08f : 0f);  // a Katana kill nearby (KatanaLook.cs)
+            if (fx.Kind == FxKind.Exsanguinate && fx.Pos2.X < 0f && me != null)  // Exsanguinate's Barbed Lash (ExsanguinateLook.cs)
+            {
+                bool mine = (int)fx.Pos2.Y == game.MyId;
+                if (fx.Pos2.X < -1.5f && mine)
+                {
+                    Hold(0.07f);  // your yank lands: a hit-stop and a hard kick
+                    Shake(0.32f);
+                }
+                else if (fx.Pos2.X < -1.5f && me.Pos.DistanceTo(fx.Pos) < 900f)
+                    Shake(0.12f);
+                else if (mine)
+                    Shake(0.1f);  // the whips crack out
+            }
+            if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
+                Shake(0.3f);  // the cast: one kick that dies away over the cuts (DeathLotusLook.cs)
+            if (fx.Kind == FxKind.TitanSlam && me != null && fx.Pos2.X < 2f && me.Pos.DistanceTo(fx.Pos) < 1100f)
+                Shake(fx.Pos2.X > 0f ? 0.3f : 0.2f);  // a slam or the titan standing up (TitanLook.cs)
+        }
+
+        /// An explosion: its share of this frame's shake, its sparks or shards, and a scorch and ripple when it's big.
+        void BoomFeel(Effect fx, Player me, ref float boomShake)
+        {
+            newBooms.Add(fx.Pos);  // an enemy's death plays one where it died (DeathFx)
+            float near = me != null ? Mathf.Clamp01(1.2f - me.Pos.DistanceTo(fx.Pos) / 900f) : 0.5f;
+            boomShake = Mathf.Max(boomShake, Mathf.Min(0.22f, fx.Radius / 450f) * near);
+            if (IsGrenadeBoom(fx))
+                FragBurst(fx);  // a grenade's shards and smoke (SoldierLooks.cs)
+            else if (IsFlakBoom(fx))
+                FlakBurstParts(fx);
+            else if (IsGlBoom(fx))
+                GlBlastParts(fx);  // the Grenade Launcher's fireballs, smoke, debris and scorch (GrenadeLauncherLook.cs)  // a Flak airburst's shrapnel and smoke (TankGunLooks.cs)
+            else if (!IsLeapBoom(fx))  // (the Leap Slam's landing draws its own: LeapSlamLook.cs)
+                Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
+            if (fx.Radius >= 80f)
+            {
+                Scorch(fx.Pos, fx.Radius * 1.6f);
+                ripples.Add(new Ripple { Pos = fx.Pos, Power = Mathf.Min(2f, fx.Radius / 110f) });
+            }
+        }
+
+        /// Enemies: hits (flash, bulge, numbers, big-hit pause), and the ones that are gone (shatter).
+        void JuiceEnemies(float t, float dt)
+        {
+            // Enemies: hits (flash, bulge, numbers, big-hit pause), and the ones that are gone (shatter).
+            foreach (var e in game.Enemies.Values)
+                SeeEnemy(e, t, dt);
+            EnemiesGone();
+        }
+
+        /// One enemy this frame: a boss's entrance card when it appears, its damage number, flash and bulge.
+        void SeeEnemy(Enemy e, float t, float dt)
+        {
+            EnemySeen s;
+            bool fresh = !seenEnemies.TryGetValue(e.Id, out s);
+            if (fresh)
+            {
+                s = enemyPool.Count > 0 ? enemyPool.Pop() : new EnemySeen();
+                s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = s.Owed = 0f;
+                s.HitFlash = e.Flash;
+                seenEnemies[e.Id] = s;
+                if (e.Type == EnemyType.Warden && game.IsSpawning(e) && game.State == MatchState.Fighting && introWave != game.Wave)
+                {
+                    introWave = game.Wave;
+                    StartWardenIntro(e);  // the Warden's own entrance in place of the card (WardenIntro.cs)
+                }
+                else if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.ReaperOfDawn && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting
+                    && !(e.Def.Mini && game.RoomsOn))  // (the Rooms arena's vault mini-boss is optional: no fanfare)
+                {
+                    introWave = game.Wave;
+                    introT = IntroTime;
+                    introName = e.Def.Name.ToUpperInvariant();
+                    Shake(0.2f);
+                }
+            }
+            bool spawning = game.IsSpawning(e);
+            float lost = s.Hp - e.Hp;
+            // A real hit raises the enemy's Flash (Combat.cs HurtEnemy, or the snapshot's hit flag); burning, bleeding and
+            // poison only wear its health down, so they add to the damage number without flashing or bulging it.
+            bool struck = e.Flash > s.HitFlash + 1e-4f;
+            s.HitFlash = e.Flash;
+            if (!fresh && lost > 0.01f && !spawning)
+            {
+                s.Dmg += lost;
+                if (s.DmgT <= 0f)
+                    s.DmgT = 0.15f;
+                if (struck && !e.Def.IsBoss && lost >= Mathf.Max(80f, e.MaxHp * 0.35f))
+                {
+                    Hold(0.035f);
+                    Shake(0.06f);
+                }
+            }
+            if (!fresh && struck && !spawning)
+            {
+                // Under steady fire the bulge gets smaller and only starts again once the last one has mostly settled,
+                // so a boss everyone is shooting pulses gently instead of staying swollen.
+                if (s.Squash < 0.35f)
+                    s.Squash = 1f - 0.6f * e.FlashHeat;
+                s.Flash = 0.09f;
+            }
+            s.Pos = e.Disp; s.Hp = e.Hp; s.Max = e.MaxHp; s.Rot = EnemyRotation(e, t);
+            s.R = e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius;
+            s.Sides = e.Def.Sides; s.Col = e.Def.Color; s.Boss = e.Def.IsBoss || e.Def.Mini;
+            s.Big = e.Elite || e.Def.Heavy || e.MaxHp >= 400f;
+            s.Spawning = spawning;
+            s.Frame = juiceFrame;
+            s.Squash = Mathf.Max(0f, s.Squash - dt * 6f);
+            s.Flash = Mathf.Max(0f, s.Flash - dt);
+            if (s.DmgT > 0f)
+            {
+                s.DmgT -= dt;
+                if (s.DmgT <= 0f)
+                    FlushNumber(s);
+            }
+        }
+
+        /// Enemies gone since the last frame: their killing blow's number and their shatter.
+        void EnemiesGone()
+        {
             goneIds.Clear();
             foreach (var kv in seenEnemies)
                 if (kv.Value.Frame != juiceFrame)
@@ -568,48 +614,62 @@ namespace Arena
                 }
                 enemyPool.Push(s);
             }
+        }
 
+        /// Shots: trails, muzzle flashes, sparks where they land.
+        void JuiceShots(float dt)
+        {
             // Shots: trails, muzzle flashes, sparks where they land.
             foreach (var b in game.Bullets.Values)
+                SeeShot(b, dt);
+            ShotsGone();
+        }
+
+        /// One shot this frame: its muzzle flash when it's new, then its trail and emissions.
+        void SeeShot(Bullet b, float dt)
+        {
+            ShotSeen s;
+            if (!seenShots.TryGetValue(b.Id, out s))
             {
-                ShotSeen s;
-                if (!seenShots.TryGetValue(b.Id, out s))
+                s = shotPool.Count > 0 ? shotPool.Pop() : new ShotSeen();
+                s.N = 0;
+                seenShots[b.Id] = s;
+                Player owner = null;
+                float cool;
+                bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f + (Game.IsTwinRifle(owner.Weapon.Id) ? Game.TwinMuzzleOut + 30f : 0f);  // (the Twin Rifle's rounds start out at its wide-held muzzles, 30 px to each side)
+                if (fromGun && owner.Weapon.Id == WeaponId.Revolver && b.Kind == Defs.HealerShot)
+                    OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
+                else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
+                    OnTankGunShot(owner, b);  // the Tank guns' flash, smoke and brass (TankGunLooks.cs)
+                else if (fromGun && (Game.IsTwinRifle(owner.Weapon.Id) && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.BurstSmg && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.Railgun && b.Kind == Defs.RailShot))
+                    OnDpsGunShot(owner, b);
+                else if (fromGun && owner.Weapon.Id == WeaponId.DoubleBarrel && b.Kind == Defs.DpsShot)
+                    OnDoubleBarrelShot(owner, b);  // the Double Barrel's flash and smoke (DoubleBarrelLook.cs)  // the Soldier DPS guns' flash, brass and steam (DpsGunLooks.cs)
+                else if (fromGun && owner.Weapon.Id == WeaponId.TwinRifle && b.Kind == Defs.GrenadeShot)
+                    OnTwinNadeShot(owner, b);  // the grenade tube's Rocket assist launch (TwinNadeLook.cs)
+                if (fromGun && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))
                 {
-                    s = shotPool.Count > 0 ? shotPool.Pop() : new ShotSeen();
-                    s.N = 0;
-                    seenShots[b.Id] = s;
-                    Player owner = null;
-                    float cool;
-                    bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f + (Game.IsTwinRifle(owner.Weapon.Id) ? Game.TwinMuzzleOut + 30f : 0f);  // (the Twin Rifle's rounds start out at its wide-held muzzles, 30 px to each side)
-                    if (fromGun && owner.Weapon.Id == WeaponId.Revolver && b.Kind == Defs.HealerShot)
-                        OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
-                    else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
-                        OnTankGunShot(owner, b);  // the Tank guns' flash, smoke and brass (TankGunLooks.cs)
-                    else if (fromGun && (Game.IsTwinRifle(owner.Weapon.Id) && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.BurstSmg && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.Railgun && b.Kind == Defs.RailShot))
-                        OnDpsGunShot(owner, b);
-                    else if (fromGun && owner.Weapon.Id == WeaponId.DoubleBarrel && b.Kind == Defs.DpsShot)
-                        OnDoubleBarrelShot(owner, b);  // the Double Barrel's flash and smoke (DoubleBarrelLook.cs)  // the Soldier DPS guns' flash, brass and steam (DpsGunLooks.cs)
-                    else if (fromGun && owner.Weapon.Id == WeaponId.TwinRifle && b.Kind == Defs.GrenadeShot)
-                        OnTwinNadeShot(owner, b);  // the grenade tube's Rocket assist launch (TwinNadeLook.cs)
-                    if (fromGun && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))
-                    {
-                        muzzleT[b.Owner] = juiceClock + 0.05f;
-                        AddPart(new Part { Kind = PSpark, Pos = b.Pos, Vel = b.Vel.Normalized() * 120f, Life = 0.08f, Max = 0.08f, Size = 4.5f, Col = new Rgba(0.85f, 0.92f, 1f) });
-                    }
+                    muzzleT[b.Owner] = juiceClock + 0.05f;
+                    AddPart(new Part { Kind = PSpark, Pos = b.Pos, Vel = b.Vel.Normalized() * 120f, Life = 0.08f, Max = 0.08f, Size = 4.5f, Col = new Rgba(0.85f, 0.92f, 1f) });
                 }
-                else if (b.Kind == Defs.Caltrop || b.Kind == Defs.GrenadeShot || b.Vel.Length <= 450f)
-                    s.N = 0;  // slow (or a caltrop, which draws its own streak, KatanaLook.cs): no trail, and none left behind to stretch back to later
-                else
-                {
-                    for (int k = Math.Min(s.N, s.Trail.Length - 1); k > 0; k--)
-                        s.Trail[k] = s.Trail[k - 1];
-                    s.Trail[0] = s.Pos;
-                    s.N = Math.Min(s.N + 1, s.Trail.Length);
-                }
-                s.Pos = b.Pos; s.Vel = b.Vel; s.Life = b.Life; s.Radius = b.Radius; s.Owner = b.Owner; s.Kind = b.Kind;
-                EmitFromShot(b, dt);  // smoke, embers, dust, drips (ShotLooks.cs)
-                s.Frame = juiceFrame;
             }
+            else if (b.Kind == Defs.Caltrop || b.Kind == Defs.GrenadeShot || b.Vel.Length <= 450f)
+                s.N = 0;  // slow (or a caltrop, which draws its own streak, KatanaLook.cs): no trail, and none left behind to stretch back to later
+            else
+            {
+                for (int k = Math.Min(s.N, s.Trail.Length - 1); k > 0; k--)
+                    s.Trail[k] = s.Trail[k - 1];
+                s.Trail[0] = s.Pos;
+                s.N = Math.Min(s.N + 1, s.Trail.Length);
+            }
+            s.Pos = b.Pos; s.Vel = b.Vel; s.Life = b.Life; s.Radius = b.Radius; s.Owner = b.Owner; s.Kind = b.Kind;
+            EmitFromShot(b, dt);  // smoke, embers, dust, drips (ShotLooks.cs)
+            s.Frame = juiceFrame;
+        }
+
+        /// Shots gone since the last frame: how each one ended.
+        void ShotsGone()
+        {
             goneIds.Clear();
             foreach (var kv in seenShots)
                 if (kv.Value.Frame != juiceFrame)
@@ -623,45 +683,41 @@ namespace Arena
                 BulletEnding(s);
                 shotPool.Push(s);
             }
+        }
 
-            KillMoments(dt);  // your kills' kick, multikill calls, the wave's last kill (JuiceMoments.cs)
-
+        /// You: hurt (a faint red in the corners, a kick), levels and legendaries.
+        void JuiceMe(Player me)
+        {
             // You: hurt (a faint red in the corners, a kick), levels and legendaries.
-            if (me != null)
+            if (me == null)
+                return;
+            if (myHp >= 0f && me.Hp < myHp - 0.5f && !me.Downed)
             {
-                if (myHp >= 0f && me.Hp < myHp - 0.5f && !me.Downed)
-                {
-                    hurtTint = 1f;
-                    Shake(0.18f + Mathf.Min(0.3f, (myHp - me.Hp) / Mathf.Max(1f, me.MaxHp)));
-                }
-                myHp = me.Hp;
-                if (myLevel >= 0 && me.Level > myLevel)
-                {
-                    LevelBurst(me, false);
-                    LevelShock(me, false);  // JuiceMoments.cs
-                }
-                myLevel = me.Level;
-                int legendaries = 0;
-                foreach (int u in me.Taken)
-                    if (u >= 0 && u < Upgrades.All.Length && Upgrades.All[u].Rarity == Rarity.Legendary)
-                        legendaries++;
-                if (myLegendaries >= 0 && legendaries > myLegendaries)
-                {
-                    LevelBurst(me, true);
-                    LevelShock(me, true);
-                }
-                myLegendaries = legendaries;
+                hurtTint = 1f;
+                Shake(0.18f + Mathf.Min(0.3f, (myHp - me.Hp) / Mathf.Max(1f, me.MaxHp)));
             }
+            myHp = me.Hp;
+            if (myLevel >= 0 && me.Level > myLevel)
+            {
+                LevelBurst(me, false);
+                LevelShock(me, false);  // JuiceMoments.cs
+            }
+            myLevel = me.Level;
+            int legendaries = 0;
+            foreach (int u in me.Taken)
+                if (u >= 0 && u < Upgrades.All.Length && Upgrades.All[u].Rarity == Rarity.Legendary)
+                    legendaries++;
+            if (myLegendaries >= 0 && legendaries > myLegendaries)
+            {
+                LevelBurst(me, true);
+                LevelShock(me, true);
+            }
+            myLegendaries = legendaries;
+        }
 
-            UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
-            UpdateTankGunLooks();  // TankGunLooks.cs: a pumped Scattergun's shell dropping out
-            UpdateGrenadeLauncherLooks(dt);  // GrenadeLauncherLook.cs: shots, the drum swap and reload, trails, the smoke
-            UpdateTankAltLooks(dt);  // TankAltFx.cs: the Tank Soldier's Alt fires
-            UpdateDpsGunLooks(dt);  // DpsGunLooks.cs: the SMG's barrels turning, a fired Railgun's steam
-            UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
-            UpdateDust(dt);      // dust at your feet
-            UpdateWeather(dt);   // the path's weather
-
+        /// A boss's death bursts, then everything ages: particles, scorches, ripples, numbers, shake and tints.
+        void JuiceAge(float dt, float realDt)
+        {
             // A boss's death plays out in waves.
             for (int i = bursts.Count - 1; i >= 0; i--)
                 if (bursts[i].At <= juiceClock)
@@ -1000,7 +1056,7 @@ namespace Arena
                         break;
                     case PSplash:  // a shot flattened against what it hit: a squashed disc across its path
                     {
-                        V2 along = V2.FromAngle(p.Rot), across = along.Orthogonal();
+                        V2.Axes(p.Rot, out V2 along, out V2 across);
                         float w = p.Size * (1.2f - 0.4f * f), h = p.Size * 0.35f * f;
                         SetColor(p.Col.WithAlpha(f));
                         Quad(p.Pos + across * w, p.Pos + along * h, p.Pos - across * w, p.Pos - along * h);

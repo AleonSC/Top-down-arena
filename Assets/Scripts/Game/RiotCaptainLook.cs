@@ -13,7 +13,7 @@ namespace Arena
         void DrawRiotCaptain(Enemy e, V2 pos, float r, bool flash, bool spawning, float t)
         {
             byte st = e.Phase;
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             bool enraged = e.MaxHp > 0f && e.Hp < e.MaxHp * 0.5f;
             float a = spawning ? 0.4f : 1f;
             if (st == Game.CapWinding)  // the charge's lane, pulsing
@@ -42,7 +42,7 @@ namespace Arena
         void DrawRiotCaptainBody(Enemy e, V2 pos, float r, bool flash, float a, bool enraged, float t)
         {
             byte st = e.Phase;
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             float k = r / 15f, aw = 3.4f * k;
             var navy = flash ? Rgba.White : CaptainNavy.Mix(new Rgba(0.2f, 0.26f, 0.45f), 0.5f);
             bool dazed = st == Game.CapDazed, low = st == Game.CapLow, fans = st == Game.CapFans;

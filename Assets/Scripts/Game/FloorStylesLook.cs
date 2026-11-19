@@ -339,7 +339,7 @@ namespace Arena
         List<Trace> CircuitFor(V2 lo, V2 hi)
         {
             int ax = Mathf.RoundToInt(lo.X), ay = Mathf.RoundToInt(lo.Y), bx = Mathf.RoundToInt(hi.X), by = Mathf.RoundToInt(hi.Y);
-            long key = ((long)(ax & 0xffff) << 48) | ((long)(ay & 0xffff) << 32) | ((long)(bx & 0xffff) << 16) | (long)(by & 0xffff);
+            long key = ((long)(ushort)ax << 48) | ((long)(ushort)ay << 32) | ((long)(ushort)bx << 16) | (ushort)by;
             List<Trace> list;
             if (circuits.TryGetValue(key, out list))
                 return list;

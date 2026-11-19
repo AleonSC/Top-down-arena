@@ -266,6 +266,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Saving, stats and text data (Core)
 - `OldNames.cs`: old code names (renamed to match the game's names, Docs/Glossary.md) mapped to the current ones, so older profiles, run saves and wave files load
+- `Diag.cs`: `Diag.Warn`, where a file, save or sound failure the game recovers from is reported (once per message; ArenaApp sends it to Player.log)
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs (every arena; the Expanding map via `ExpansionGame.cs` `SaveExpansion`/`ResumeExpansion`), profile, records, unlocks
 - `Core/Pacman.cs`: the Pac-Man maze game's simulation (maze, chompers, role ghosts, waves, lives, levels; no Unity; test suite `pacman`; `Docs/Pacman.md`)
 - `PacmanUi.cs`: the Pac-Man game screen for a Pac profile (Play opens it): maze, dots, chomper, role ghosts, HUD, keys (`Docs/Pacman.md`)
