@@ -1,6 +1,6 @@
 # Fog of war: rooms stay dark until someone walks in
 
-Status: **steps 1-3 built** (protocol 415): `Core/RoomFog.cs`, `Game/RoomFogLook.cs`, suite `roomfog`, preview `FOG=1` (with `EXPANDMAP`). Step 4 waits for the hand-made layouts. Decided with the owner on Nov 19, 2026. Expanding arena only.
+Status: **steps 1-3 built** (protocol 416): `Core/RoomFog.cs`, `Game/RoomFogLook.cs`, suite `roomfog`, preview `FOG=1` (with `EXPANDMAP`). Step 4 waits for the hand-made layouts. Decided with the owner on Nov 19, 2026. Expanding arena only.
 
 ## The idea
 
