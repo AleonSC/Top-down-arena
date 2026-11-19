@@ -135,7 +135,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (!e.Dummy && !IsPlanted(e.Type))  // (a Turnkey's traps and doors don't hold a wave open: Turnkey.cs)
+                if (!e.Dummy && !e.Dormant && !IsPlanted(e.Type))  // (a dormant group waits for its room, DormantGroups.cs; (a Turnkey's traps and doors don't hold a wave open: Turnkey.cs)
                     n++;
             return n;
         }

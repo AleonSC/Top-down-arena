@@ -972,6 +972,8 @@ namespace Arena
 
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
+            if (e.Dormant)
+                WakeDormant(e.Pos);  // a sleeping group hit from the doorway wakes (DormantGroups.cs)
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))

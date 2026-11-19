@@ -105,5 +105,26 @@ namespace Arena
                 Ui.Label(new Rect(c.X - 20f, c.Y - size, 40f, 2f * size), "?", size, RoomFogInk, TextAnchor.MiddleCenter, true);
             }
         }
+
+        /// Dormant groups (Core/DormantGroups.cs): small z's drifting up off each sleeping enemy, staggered so a group breathes out of step.
+        void DrawDormantMarks(float t)
+        {
+            var ink = new Rgba(0.62f, 0.75f, 1f);
+            foreach (var e in game.Enemies.Values)
+            {
+                if (!e.Dormant || e.Hp <= 0f || game.FogHides(e.Pos))
+                    continue;
+                for (int k = 0; k < 2; k++)
+                {
+                    float ph = (t * 0.45f + k * 0.5f + (e.Id % 7) * 0.13f) % 1f;  // each z rises and fades over ~2 s
+                    float s = (5f + 4f * ph) * (k == 0 ? 1f : 0.8f);
+                    V2 c = e.Disp + new V2(e.Radius * 0.6f + 10f * ph, -e.Radius - 6f - 26f * ph);
+                    var col = ink.WithAlpha(0.85f * (1f - ph) * Mathf.Clamp01(ph * 5f));
+                    Line(c + new V2(-s, -s), c + new V2(s, -s), 2f, col);
+                    Line(c + new V2(s, -s), c + new V2(-s, s), 2f, col);
+                    Line(c + new V2(-s, s), c + new V2(s, s), 2f, col);
+                }
+            }
+        }
     }
 }
