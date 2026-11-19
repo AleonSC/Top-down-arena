@@ -1241,8 +1241,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   (the shelf is new each boss cycle).
 - **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room with a gun rack and a rifle on its counter, from its service card or a
   mystery door. While the shop is open, stand in it to buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,
-  **400** the third (3 stacks at most, as before). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead),
-  so **every boss cycle gets one**: when a build round opens with no Arms Dealer on the map and no Arms Dealer card in anyone's hand, the player with the most room in their hand is dealt one (once a cycle; with every hand full, the next round).
+  **400** the third (3 stacks at most, as before). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead).
+  Its card comes like the other service cards: wave drops, chests and the boss card pick.
 - **Medic**: a tiny rose room with a cot, an IV stand and a heartbeat line, from its service card (wave drops, chests, the boss pick) or a mystery door. While the shop is open, stand in it for a
   **Full heal** (40) or a **Revive token** (120; one at a time). It is the only room shop that sells them (the Bazaar's and Gold Rush's shops, which have no rooms, still do).
 - **Breaches**: a rare event: on wave 5 and every 8th wave after it (13, 21, 29, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
