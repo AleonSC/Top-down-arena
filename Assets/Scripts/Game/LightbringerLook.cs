@@ -207,7 +207,7 @@ namespace Arena
         /// gold guard with a gem, and a straight white blade whose fuller glows with the gauge (`glow` 0..1; at 1 it burns).
         void DrawLongsword(V2 hand, float ang, float alpha, bool shadow, float glow, float t)
         {
-            V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+            V2.Axes(ang, out V2 dir, out V2 side);
             float L = LightbringerMotion.BladeLen;
             if (shadow)
             {

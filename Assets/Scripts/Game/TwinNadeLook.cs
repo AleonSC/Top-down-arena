@@ -72,7 +72,7 @@ namespace Arena
         void OnTwinNadeShot(Player owner, Bullet b)
         {
             var s = DpsOf(owner.Id);
-            V2 dir = V2.FromAngle(owner.Aim), left = dir.Orthogonal();
+            V2.Axes(owner.Aim, out V2 dir, out V2 left);
             int tube = (b.Pos - owner.Pos).Dot(left) >= 0f ? 0 : 1;  // TwinTubeMuzzle: tube 0 sits to your left
             s.Launch[tube] = juiceClock;
             V2 mouth = s.Mouth[tube], back = s.Back[tube];

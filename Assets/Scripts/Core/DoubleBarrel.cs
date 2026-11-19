@@ -54,7 +54,7 @@ namespace Arena
         void FireDoubleBarrel(Player p, float aim, float dmg, int extra, bool both)
         {
             var w = p.Weapon;
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2.Axes(aim, out V2 dir, out V2 side);
             int n = DbPellets + DbExtraPellets * extra;
             float cone = both ? DbBothCone : DbCone;
             for (int k = 0; k < (both ? 2 : 1); k++)

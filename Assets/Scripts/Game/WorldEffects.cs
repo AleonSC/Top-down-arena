@@ -686,7 +686,7 @@ namespace Arena
             if (half < 0f)  // a jab: the blade shoots forward, with speed lines along the cone
             {
                 float grow = Mathf.Min(1f, f * 4f), len = reach * (0.3f + 0.7f * grow), fade = 1f - f;
-                V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+                V2.Axes(aim, out V2 dir, out V2 side);
                 V2 tipAt = fx.Pos + dir * len;
                 for (int k = -1; k <= 1; k += 2)  // the cone it covers, faintly
                     Line(fx.Pos, fx.Pos + V2.FromAngle(aim + k * -half) * len * 0.9f, 1.5f, fx.Color.WithAlpha(0.25f * fade));

@@ -49,6 +49,13 @@ namespace Arena
         // Perpendicular vector (rotated -90 degrees).
         public V2 Orthogonal() => new V2(Y, -X);
 
+        /// The unit vector at `angle` and its Orthogonal (the -90 degree side): `V2.Axes(e.Facing, out V2 f, out V2 s);`
+        public static void Axes(float angle, out V2 forward, out V2 side)
+        {
+            forward = FromAngle(angle);
+            side = forward.Orthogonal();
+        }
+
         public float DistanceTo(V2 o) => (this - o).Length;
         public float DistanceSq(V2 o) => (this - o).LengthSq;
 

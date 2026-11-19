@@ -36,7 +36,7 @@ namespace Arena
         /// A petal from `at` out along `ang`, `len` long and `wid` across at its widest.
         void LotusPetal(V2 at, float ang, float len, float wid, Rgba c)
         {
-            V2 dir = V2.FromAngle(ang), n = dir.Orthogonal();
+            V2.Axes(ang, out V2 dir, out V2 n);
             SetColor(c);
             const int N = 6;
             V2 l0 = at, r0 = at;

@@ -46,7 +46,7 @@ namespace Arena
             Circle(b + new V2(-2f, -1f), 19f * k, HydraMid, 20);
             for (int i = 0; i < heads; i++)
             {
-                V2 dir = V2.FromAngle(ha[i]), side = dir.Orthogonal();
+                V2.Axes(ha[i], out V2 dir, out V2 side);
                 Circle(hp[i], 12f * k, HydraDark, 14);
                 Circle(hp[i] + dir * 1f, 10f * k, HydraLight, 14);
                 float jaw = 2f + 2f * Mathf.Max(0f, Mathf.Sin(t * 5f + i * 1.7f));  // jaws working

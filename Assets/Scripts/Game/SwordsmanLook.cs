@@ -86,7 +86,7 @@ namespace Arena
                 return;
             }
             float f = e.Facing, s = r / 15f, R = Game.SwordReachOf(e.Type), I = Game.SwordInnerOf(e.Type);
-            V2 fwd = V2.FromAngle(f), side = fwd.Orthogonal();
+            V2.Axes(f, out V2 fwd, out V2 side);
 
             // the cloak trailing behind
             Rgba cloak = col.Darkened(0.5f);

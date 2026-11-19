@@ -662,7 +662,7 @@ namespace Arena
             SetColor(col);
             for (int k = 0; k < 4; k++)
             {
-                V2 d = V2.FromAngle(rot + MathX.Pi / 2f * k), s = d.Orthogonal();
+                V2.Axes(rot + MathX.Pi / 2f * k, out V2 d, out V2 s);
                 Tri(c + d * r, c + s * (r * 0.3f), c - s * (r * 0.3f));
             }
             Circle(c, r * 0.25f, NinjaCloth.WithAlpha(col.A), 6);

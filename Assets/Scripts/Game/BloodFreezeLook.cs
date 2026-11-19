@@ -298,7 +298,7 @@ namespace Arena
         {
             if (alpha <= 0.02f)
                 return;
-            V2 d = V2.FromAngle(heading), o = d.Orthogonal();
+            V2.Axes(heading, out V2 d, out V2 o);
             V2 tip = p + d * size, l = p - d * (size * 0.5f) + o * (size * 0.32f), r = p - d * (size * 0.5f) - o * (size * 0.32f);
             SetColor(new Rgba(0.78f, 0.96f, 1f, 0.95f * alpha));
             Tri(tip, l, r);

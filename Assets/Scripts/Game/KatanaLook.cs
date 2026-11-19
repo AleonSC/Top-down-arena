@@ -118,7 +118,7 @@ namespace Arena
         /// lays the stance's light along the edge.
         void DrawKatanaModel(V2 o, float ang, float len, Rgba col, bool lit, float bend)
         {
-            V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+            V2.Axes(ang, out V2 dir, out V2 side);
             // Grip: 14 px, dark, with diamond ties.
             V2 g0 = o - dir * 6f, g1 = o + dir * 8f;
             Line(g0, g1, 5f, KatanaWrap);

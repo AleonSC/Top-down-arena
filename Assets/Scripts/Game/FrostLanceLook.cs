@@ -264,7 +264,7 @@ namespace Arena
         /// A soft ellipse (shadows), along `ax`.
         void FlEllipse(V2 c, float rx, float ry, float ang, Rgba col)
         {
-            V2 ax = V2.FromAngle(ang), ay = ax.Orthogonal();
+            V2.Axes(ang, out V2 ax, out V2 ay);
             SetColor(col);
             const int N = 14;
             for (int i = 0; i < N; i++)
@@ -357,7 +357,7 @@ namespace Arena
             Arc(c, r * 0.8f, 1.5f, FlIce.WithAlpha(a), 36);
             for (int i = 0; i < 6; i++)
             {
-                V2 d = V2.FromAngle(rot + i * MathX.Tau / 6f), n = d.Orthogonal();
+                V2.Axes(rot + i * MathX.Tau / 6f, out V2 d, out V2 n);
                 Line(c + d * (r * 0.15f), c + d * (r * 0.78f), 1.4f, FlIce.WithAlpha(a));
                 V2 b1 = c + d * (r * 0.42f), b2 = c + d * (r * 0.6f);
                 Line(b1, b1 + d * (r * 0.16f) + n * (r * 0.13f), 1.2f, FlIce.WithAlpha(a)); Line(b1, b1 + d * (r * 0.16f) - n * (r * 0.13f), 1.2f, FlIce.WithAlpha(a));

@@ -129,7 +129,7 @@ namespace Arena
                     break;
                 float vx = (SprayHash(k * 2.1f + fx.Pos.X) - 0.5f) * 90f, vy = -60f - 90f * SprayHash(k * 3.7f + fx.Pos.Y);
                 V2 at = new V2(bar.X + 40f * (from + lost * (k + 0.5f) / n) + vx * age * 0.4f, bar.Y + 2f + vy * age * 0.4f + 130f * age * age * 0.16f);
-                V2 u = V2.FromAngle(k * 1.9f + age * (3f + k)), s = u.Orthogonal();
+                V2.Axes(k * 1.9f + age * (3f + k), out V2 u, out V2 s);
                 SetColor((k % 2 == 0 ? DebtGhost : new Rgba(0.65f, 0.1f, 0.19f)).WithAlpha(Mathf.Clamp01(life)));
                 Quad(at - u * 2f - s * 1.2f, at + u * 2f - s * 1.2f, at + u * 2f + s * 1.2f, at - u * 2f + s * 1.2f);
             }

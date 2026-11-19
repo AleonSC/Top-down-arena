@@ -65,7 +65,7 @@ namespace Arena
             for (int k = 0; k < 7; k++)  // roots reaching out and gripping, swaying a little
             {
                 float a = MathX.Tau * k / 7f + 0.3f, sway = Mathf.Sin(t * 1.4f + k * 1.9f) * (dazed ? 0.02f : 0.09f);
-                V2 dir = V2.FromAngle(a + sway), side = dir.Orthogonal();
+                V2.Axes(a + sway, out V2 dir, out V2 side);
                 V2 mid = c + dir * (r * 1.25f) + side * (r * 0.18f), tip = c + dir * (r * 1.7f);
                 Line(c + dir * (r * 0.7f), mid, 4.5f, bark);
                 Line(mid, tip, 2.8f, bark);

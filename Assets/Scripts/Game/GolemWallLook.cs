@@ -99,7 +99,7 @@ namespace Arena
                 float a = GwRnd(r.Seed + i) * MathX.Tau, far = (0.3f + GwRnd(r.Seed + i + 50f) * 0.7f) * R * 0.95f, sz = R * (0.12f + GwRnd(r.Seed + i + 7f) * 0.14f);
                 V2 at = r.Pos + V2.FromAngle(a) * (far * k);
                 float rot = a * 3f + k * 2f;
-                V2 u = V2.FromAngle(rot), w = u.Orthogonal();
+                V2.Axes(rot, out V2 u, out V2 w);
                 GwTmp[0] = at - u * sz - w * (sz * 0.7f); GwTmp[1] = at + u * (sz * 0.9f) - w * (sz * 0.4f);
                 GwTmp[2] = at + u * (sz * 0.6f) + w * (sz * 0.8f); GwTmp[3] = at - u * (sz * 0.8f) + w * (sz * 0.5f);
                 GwFill(GwTmp, 4, (i % 3 == 0 ? GwDark : GwMid).WithAlpha(fade));
@@ -131,7 +131,7 @@ namespace Arena
 
             float age = t - v.Born, rise = GwEase(age / GwRise);
             float hit = Mathf.Clamp01(1f - (t - v.HitAt) / 0.14f), dmg = 1f - frac;
-            V2 fwd = V2.FromAngle(m.Aim), side = fwd.Orthogonal();
+            V2.Axes(m.Aim, out V2 fwd, out V2 side);
             float s = 0.55f + 0.45f * rise, a = Mathf.Clamp01(rise * 1.6f);
             V2 at = m.Disp;
             float seed = m.Id * 5.3f;

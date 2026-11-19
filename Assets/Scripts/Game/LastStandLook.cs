@@ -63,7 +63,7 @@ namespace Arena
                 for (int k = -1; k <= 1; k++)
                 {
                     float a = aim + MathX.Pi + k * 0.9f;
-                    V2 d = V2.FromAngle(a), side = d.Orthogonal();
+                    V2.Axes(a, out V2 d, out V2 side);
                     float r0 = r + 8f + 14f * (1f - EaseOut3(plant)), r1 = r0 + 18f * EaseOut3(plant);
                     V2 b0 = p.Disp + d * r0;
                     Quad(b0 - side * 4f, b0 + side * 4f, p.Disp + d * r1 + side * 0.5f, p.Disp + d * r1 - side * 0.5f, new Rgba(0.1f, 0.14f, 0.19f, fade));
@@ -109,7 +109,7 @@ namespace Arena
                     jit = (Hash01(i + step) - 0.5f) * (wear - 0.65f) * 14f;
                     jr = (Hash01(i * 3f + step) - 0.5f) * (wear - 0.65f) * 0.5f;
                 }
-                V2 radial = V2.FromAngle(a), tang = radial.Orthogonal();
+                V2.Axes(a, out V2 radial, out V2 tang);
                 V2 c = p.Disp + radial * (R - 5f * heat + slam + jit);
                 float ca = Mathf.Cos(jr), sa = Mathf.Sin(jr);
                 float flash = Mathf.Clamp01(heat);

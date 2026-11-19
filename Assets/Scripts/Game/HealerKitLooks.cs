@@ -64,7 +64,7 @@ namespace Arena
             V2 at = b.Pos + new V2(0f, -lift);
             Circle(b.Pos + new V2(0f, 6f), 12f - 4f * lift / 70f, new Rgba(0f, 0f, 0f, 0.35f), 14);
             float spin = k * 9f;
-            V2 dx = V2.FromAngle(spin), dy = dx.Orthogonal();
+            V2.Axes(spin, out V2 dx, out V2 dy);
             SetColor(KitWhite);
             Quad(at - dx * 13f - dy * 10f, at + dx * 13f - dy * 10f, at + dx * 13f + dy * 10f, at - dx * 13f + dy * 10f);
             Line(at - dx * 13f - dy * 9f, at + dx * 13f - dy * 9f, 2.5f, new Rgba(0.55f, 0.6f, 0.64f));

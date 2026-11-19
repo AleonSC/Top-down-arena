@@ -51,7 +51,7 @@ namespace Arena
         /// A crew body: dusty overalls with two hi-vis straps and a hard hat (the Quarryman's, without its lamp).
         void QuarryCrew(V2 pos, float r, float face, Rgba col, bool lamp)
         {
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             Ellipse(pos, r * 0.95f + 1.8f, r * 1.2f + 1.8f, face, QuarryInk, 16);
             Ellipse(pos, r * 0.95f, r * 1.2f, face, col, 16);
             for (int k = -1; k <= 1; k += 2)
@@ -86,7 +86,7 @@ namespace Arena
             byte st = Game.RiotState(e);
             bool broken = crack >= Game.RiotCracked;
             float face = e.Facing + (broken && st == Game.RiotStaggered ? Mathf.Sin(t * 30f) * 0.18f : 0f);
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             if (!broken)
                 for (int k = -1; k <= 1; k += 2)
                     Line(pos + f * r * 0.35f + s * k * r * 0.6f, pos + f * r * 0.95f + s * k * r * 0.75f, 3f, new Rgba(0.18f, 0.16f, 0.14f));
@@ -101,7 +101,7 @@ namespace Arena
         /// The Rock Hurler (a Gas Grenadier): a rock body with an arm that hauls a boulder back over the wind-up.
         void DrawRockHurler(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float back = 0f;
             bool hold = true;
             if (GasLobOf(e, out float age, out float throwAt, out float flight))
@@ -179,7 +179,7 @@ namespace Arena
 
         void DrawQuarryman(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             // the headlamp's beam, faint, ahead of it
             SetColor(new Rgba(1f, 0.94f, 0.67f, 0.09f));
             Tri(pos + f * r * 0.8f, pos + f * r * 7f - s * r * 2.2f, pos + f * r * 7f + s * r * 2.2f);
@@ -247,7 +247,7 @@ namespace Arena
         /// winds up and drills.
         void DrawDriller(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             bool busy = e.Phase == 1 || e.Phase == 2;
             float jit = busy ? Mathf.Sin(t * 70f) * 1.2f : 0f;
             V2 a = pos + f * (r * 0.7f) + s * jit, b = pos + f * (r * 1.9f) + s * jit;
@@ -265,7 +265,7 @@ namespace Arena
         /// The Geomancer (moves like a Taser Guard): a hooded robe with a crystal staff that glows as it charges.
         void DrawGeomancer(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float glow = e.Winding ? 0.6f + 0.4f * Mathf.Sin(t * 18f) : 0f;
             if (glow > 0f)
                 Arc(pos, r + 9f, 1.4f, new Rgba(1f, 0.75f, 0.35f, 0.6f * glow), 24, t * 2f, MathX.Pi * 1.6f);
@@ -285,7 +285,7 @@ namespace Arena
         /// The Cinder Priest (a Taser Guard): a dark robe with an ember hem, cupped hands holding a molten core that swells as it charges.
         void DrawCinderPriest(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             Ellipse(pos, r * 0.95f + 1.8f, r * 1.15f + 1.8f, e.Facing, QuarryInk, 16);
             Ellipse(pos, r * 0.95f, r * 1.15f, e.Facing, col, 16);
             Arc(pos, r * 1.05f, 1.6f, QuarryVein.WithAlpha(0.8f), 14, e.Facing - 1.2f, 2.4f);  // the ember hem

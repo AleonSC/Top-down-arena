@@ -71,7 +71,7 @@ namespace Arena
             for (int k = 0; k < 28; k++)  // rune marks between the outer rings, turning
             {
                 float a = k * MathX.Tau / 28f + t * 0.25f;
-                V2 d = V2.FromAngle(a), s = d.Orthogonal();
+                V2.Axes(a, out V2 d, out V2 s);
                 V2 m = c + d * R * 1.115f;
                 int kind = (int)(GateHash(k, 7, 2) * 3f);
                 if (kind == 0)

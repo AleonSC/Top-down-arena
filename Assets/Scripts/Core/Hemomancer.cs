@@ -136,7 +136,7 @@ namespace Arena
         /// The host uses real positions; screens pass `drawn` to use where enemies are drawn.
         public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false, float halfWidth = VeinBeamHalfWidth)
         {
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2.Axes(aim, out V2 dir, out V2 side);
             beamOrder.Clear();
             foreach (var e in Enemies.Values)
             {

@@ -62,7 +62,7 @@ namespace Arena
         void DrawBrood(V2 pos, float r, float face, float open, Rgba col, int seed, float cheeks)
         {
             const int n = 12;
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             SetColor(LarderInk);
             for (int i = 0; i < n; i++)
                 Tri(pos, LumpPt(pos, r + 2f, n, i, face, seed), LumpPt(pos, r + 2f, n, i + 1, face, seed));
@@ -93,7 +93,7 @@ namespace Arena
         /// A Larder body facing `face`: a hooded robe, a stained apron on its front, a bone mask.
         void LarderRobe(V2 pos, float r, float face, Rgba col)
         {
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             Ellipse(pos, r * 1.05f + 1.8f, r * 1.15f + 1.8f, face, LarderInk, 16);
             Ellipse(pos, r * 1.05f, r * 1.15f, face, col, 16);
             Quad(pos + f * r * 0.15f - s * r * 0.55f, pos + f * r * 1.0f - s * r * 0.5f, pos + f * r * 1.0f + s * r * 0.5f, pos + f * r * 0.15f + s * r * 0.55f, LarderApron);
@@ -107,7 +107,7 @@ namespace Arena
 
         void DrawButcher(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float wind = Game.LarderWind(e), chop = e.LarderStage == Game.LarderActing ? 1f - Mathf.Clamp01(e.LarderT / Game.ChopFlash) : -1f;
             LarderRobe(pos, r, e.Facing, col);
             // the cleaver in its right hand: held forward, raised back over the wind-up, swept across in the chop
@@ -156,7 +156,7 @@ namespace Arena
             byte st = Game.RiotState(e);
             bool broken = crack >= Game.RiotCracked;
             float face = e.Facing + (broken && st == Game.RiotStaggered ? Mathf.Sin(t * 30f) * 0.18f : 0f);
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             if (!broken)
                 for (int k = -1; k <= 1; k += 2)
                     Line(pos + f * r * 0.35f + s * k * r * 0.6f, pos + f * r * 0.95f + s * k * r * 0.75f, 3f, LarderHood);
@@ -212,7 +212,7 @@ namespace Arena
         /// The Gutworm on the surface: three segments trailing behind, wriggling, then the head.
         void DrawGutworm(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             for (int k = 3; k >= 1; k--)
             {
                 V2 at = pos - f * (r * 0.85f * k) + s * (Mathf.Sin(t * 9f - k * 1.3f + e.Id) * r * 0.25f);
@@ -234,7 +234,7 @@ namespace Arena
             float a = t * (5f + (e.PhaseT < 1f ? 6f : 0f)) + e.Id;
             V2 hand = pos + V2.FromAngle(e.Facing + 1f) * r * 0.9f, hook = hand + V2.FromAngle(a) * r * 1.3f;
             Line(hand, hook, 1.5f, new Rgba(0.6f, 0.58f, 0.56f));
-            V2 hf = V2.FromAngle(a), hs = hf.Orthogonal();
+            V2.Axes(a, out V2 hf, out V2 hs);
             Arc(hook + hs * 3f, 3.5f, 2.2f, LarderSteel, 10, a + MathX.Pi * 0.5f, MathX.Pi * 1.2f);
             Line(hook - hf * 3f, hook + hf * 2f, 2.2f, LarderSteel);
         }

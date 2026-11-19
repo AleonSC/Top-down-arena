@@ -406,7 +406,7 @@ namespace Arena
                     float span = volleyShare < 1f ? TwinCopySpan : TwinBarrelGap;
                     float gap = span / (n - 1);
                     float a = aim + Rand(-TwinRifleSpread, TwinRifleSpread);
-                    V2 v = V2.FromAngle(a), side = v.Orthogonal();
+                    V2.Axes(a, out V2 v, out V2 side);
                     V2 cross = p.Pos + v * TwinCrossDistance(p);
                     float outFrom = p.Def.BodyR + TwinMuzzleOut;
                     for (int i = 0; i < n; i++)

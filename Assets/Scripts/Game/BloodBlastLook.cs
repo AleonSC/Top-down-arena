@@ -101,7 +101,7 @@ namespace Arena
         {
             if (L < 3f || al <= 0f)
                 return;
-            V2 d = V2.FromAngle(a), n = d.Orthogonal();
+            V2.Axes(a, out V2 d, out V2 n);
             Rgba[] cols = { BlbDark.WithAlpha(0.92f * al), BlbCore.WithAlpha(al), BlbEdge.WithAlpha(al) };
             float[] sc = { 1f, 0.55f, 0.18f };
             for (int k = 0; k < 3; k++)

@@ -368,7 +368,7 @@ namespace Arena
             Circle(m.Disp, r + 7f, mark.WithAlpha(0.18f), 20);
             Arc(m.Disp, r + 6f, 2f, mark.WithAlpha(0.8f), 24);
             Polygon(m.Disp, r, m.Def.Sides, m.Aim, c);
-            V2 f = V2.FromAngle(m.Aim), side = f.Orthogonal();
+            V2.Axes(m.Aim, out V2 f, out V2 side);
             Line(m.Disp + f * (r * 0.25f) - side * (r * 0.55f), m.Disp + f * (r * 0.25f) + side * (r * 0.55f), 3.5f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
             V2 grip = m.Disp + side * (r * 0.8f), tip = grip + V2.FromAngle(m.Aim + 0.5f * Mathf.Sin(t * 9f + m.Id)) * (r + 12f);
             Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));  // the baton
@@ -436,7 +436,7 @@ namespace Arena
         /// (`EnemyVariant.BallAndChain`, slower: EnemyVariants.cs), is hunched, dragging an iron ball on an ankle shackle.
         void DrawRioterBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float p = Mathf.Sin(t * 9f + e.Id * 1.7f);  // the run cycle
             if (game.Rallied(e))  // a Guard is rallying it (RiotBrains.cs): an amber ring pulses under it
             {
@@ -498,7 +498,7 @@ namespace Arena
         /// A glass bottle (a Rioter's in hand, and thrown): green body, neck and a pale glint, lying along `ang`.
         void DrawBottle(V2 c, float ang, float len)
         {
-            V2 d = V2.FromAngle(ang), n = d.Orthogonal();
+            V2.Axes(ang, out V2 d, out V2 n);
             var glass = new Rgba(0.45f, 0.8f, 0.4f);
             Cap(c - d * len * 0.5f, c + d * len * 0.15f, len * 0.42f + 1.6f, RioterInk);
             Cap(c + d * len * 0.15f, c + d * len * 0.6f, len * 0.16f + 1.6f, RioterInk);

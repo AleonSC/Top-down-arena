@@ -1056,7 +1056,7 @@ namespace Arena
                         break;
                     case PSplash:  // a shot flattened against what it hit: a squashed disc across its path
                     {
-                        V2 along = V2.FromAngle(p.Rot), across = along.Orthogonal();
+                        V2.Axes(p.Rot, out V2 along, out V2 across);
                         float w = p.Size * (1.2f - 0.4f * f), h = p.Size * 0.35f * f;
                         SetColor(p.Col.WithAlpha(f));
                         Quad(p.Pos + across * w, p.Pos + along * h, p.Pos - across * w, p.Pos - along * h);

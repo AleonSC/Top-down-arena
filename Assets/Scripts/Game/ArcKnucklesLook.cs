@@ -89,7 +89,7 @@ namespace Arena
             Player owner;
             game.Players.TryGetValue(id, out owner);
             float c = fx.T, t = Time.time, aim = (fx.Pos2 - fx.Pos).Angle, ft = Mathf.Max(Game.KnuckleDashMinTime, (fx.Pos2 - fx.Pos).Length / Game.KnuckleDashSpeed), fly = Mathf.Clamp01(c / ft);  // (ft: the flight; a locked dash flies as far as its enemy)
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2.Axes(aim, out V2 dir, out V2 side);
             V2 o = owner != null ? owner.Disp : fx.Pos + (fx.Pos2 - fx.Pos) * fly;
             // afterimages and speed lines along the path while it flies (and a moment after)
             if (c < ft + 0.2f)
@@ -278,7 +278,7 @@ namespace Arena
         /// `grow` (0..1) of the way out, its alpha scaled by `fade` and its strokes by `thick`.
         void DrawKnuckleLane(V2 o, float aim, float reach, float w, float grow, float fade, float thick)
         {
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2.Axes(aim, out V2 dir, out V2 side);
             float near = 10f, far = near + (reach - near) * grow;
             V2 a = o + dir * near, b = o + dir * far;
             Quad(a + side * (w * 0.45f), b + side * w, b - side * w, a - side * (w * 0.45f), KnArc.WithAlpha(0.24f * fade));
@@ -664,7 +664,7 @@ namespace Arena
                 return;
             float pulse = 0.5f + 0.5f * Mathf.Sin(t * 22f);
             Arc(p.Disp, p.Def.BodyR + 10f + 2f * pulse, 2f, KnArcHi.WithAlpha(0.45f + 0.4f * pulse), 30);
-            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+            V2.Axes(p.Aim, out V2 dir, out V2 side);
             for (int i = 0; i < 3; i++)
             {
                 float a = Mathf.Clamp01(pulse * 1.4f - i * 0.25f);
