@@ -3,45 +3,54 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Kinetic Wall's sounds (Core/KineticWall.cs), ported from the synth of Docs/Mockups/kinetic-wall-fx.html. Each screen plays them from
-    /// what it sees (KineticWallLook.cs `TickKineticWallSounds`), so nothing is sent. On the Effects volume; an ally's are quieter.
-    ///   KwCast     the field powering on: a rising sine sweep, a glassy shimmer opening up and a rush of noise
-    ///   KwHum      the field's drone (a loop): two tones throbbing through a low-pass; brighter, higher and faster as it fills
-    ///   KwCatch    a shot dragged to a stop: a falling "thwip" and a soft click (three takes, rate-limited)
-    ///   KwFull     a bright two-note chime when it's full
-    ///   KwUnleash  a short suck-in, then a deep boom with a crackling tail
+    /// Kinetic Wall's sounds (Core/KineticWall.cs): a wall of wind. Each screen plays them from what it sees
+    /// (KineticWallLook.cs `TickKineticWallSounds`), so nothing is sent. On the Effects volume; an ally's are quieter.
+    ///   KwCast     the wall rising: a gust swelling in, with a thin whistle sliding up over it
+    ///   KwHum      the wall's howl (a loop): wind noise gusting once a loop, a faint whistle on top; higher and louder as it fills
+    ///   KwCatch    a shot caught in the wind: a short puff of air and a soft low thud (three takes, rate-limited)
+    ///   KwFull     a breathy two-note whistle when it's full
+    ///   KwUnleash  air sucked in, then a gale bursting out: a deep whoosh, a soft boom and a fluttering tail
     public partial class SoundBank
     {
         AudioSource kwHumVoice;  // (made in the constructor)
 
         void BuildKineticWall()
         {
-            const Osc S = Osc.Sine, W = Osc.Saw, T = Osc.Triangle;
+            const Osc S = Osc.Sine;
             Set(Sfx.KwCast, Finish(Mix(
-                Tone(0.6f, S, 110f, 520f, 0.5f, attack: 0.04f, decay: 1.6f),                                         // the sweep
-                Delay(Tone(0.7f, W, 880f, 2600f, 0.07f, lowpass: 0.35f, attack: 0.12f, decay: 1.8f), 0.1f),         // the shimmer
-                Delay(Tone(0.7f, W, 887f, 2620f, 0.06f, lowpass: 0.35f, attack: 0.12f, decay: 1.8f), 0.1f),
-                Tone(0.5f, S, 400f, 4000f, 0.22f, noise: 1f, lowpass: 0.3f, attack: 0.05f, decay: 1.5f)), 0.55f), 0.1f);  // the rush
+                Rush(0.75f, 300f, 1800f, 0.6f, 0.3f),                                                                   // the gust
+                Tone(0.7f, S, 90f, 140f, 0.18f, noise: 1f, lowpass: 0.03f, attack: 0.25f, decay: 1.6f),                 // its body
+                Delay(Tremolo(Tone(0.55f, S, 620f, 1150f, 0.08f, noise: 0.15f, attack: 0.15f, decay: 1.6f), 6f, 0.4f), 0.1f)), 0.5f), 0.1f);  // the whistle
             Set(Sfx.KwCatch, Takes(3, () => Finish(Mix(
-                Tone(0.16f, T, 1100f, 240f, 0.5f, attack: 0.004f, decay: 2.2f),                                       // the thwip
-                Tone(0.05f, S, 5000f, 4500f, 0.25f, noise: 1f, lowpass: 1f, attack: 0.002f, decay: 3f)), 0.3f)), 0.035f);  // the click
+                Tone(0.14f, S, 1, 1, 0.6f, noise: 1f, lowpass: 0.22f, attack: 0.006f, decay: 2.6f),                    // the puff
+                Tone(0.12f, S, 210f, 110f, 0.35f, attack: 0.004f, decay: 2.4f)), 0.3f)), 0.035f);                       // the thud
             Set(Sfx.KwFull, Finish(Mix(
-                Tone(0.7f, S, 1318f, 1318f, 0.4f, attack: 0.01f, decay: 2.5f),
-                Delay(Tone(0.7f, S, 1976f, 1976f, 0.35f, attack: 0.01f, decay: 2.5f), 0.09f)), 0.4f), 0.2f);
-            var crackle = new float[14][];
-            for (int i = 0; i < crackle.Length; i++)
-                crackle[i] = Delay(Tone(0.03f, S, 2000f + (float)rng.NextDouble() * 4000f, 2500f, 0.3f, noise: 0.9f, lowpass: 0.6f, attack: 0.001f, decay: 2f),
-                    0.15f + (float)rng.NextDouble() * 0.6f);
+                Tone(0.45f, S, 988f, 988f, 0.3f, noise: 0.12f, attack: 0.03f, decay: 2.2f),
+                Delay(Tone(0.5f, S, 1318f, 1318f, 0.3f, noise: 0.12f, attack: 0.03f, decay: 2.2f), 0.12f),
+                Rush(0.6f, 900f, 2400f, 0.15f, 0.05f)), 0.4f), 0.2f);
             Set(Sfx.KwUnleash, Finish(Room(Mix(
-                Tone(0.06f, S, 300f, 5000f, 0.35f, noise: 1f, lowpass: 0.3f, attack: 0.05f, decay: 0.2f),            // suck-in
-                Delay(Tone(0.8f, S, 110f, 32f, 0.9f, attack: 0.006f, decay: 1.6f), 0.06f),                           // boom
-                Delay(Tone(1f, S, 6000f, 200f, 0.5f, noise: 1f, lowpass: 0.15f, attack: 0.004f, decay: 2.2f), 0.06f), // blast noise
-                Mix(crackle)), 0.15f), 0.7f), 0.15f);
-            // The hum: a 55 Hz saw and a 110 Hz sine (whole cycles in the 0.6 s loop: 33 and 66) through a low-pass, throbbing 5 times a second.
-            const float len = 0.6f;
-            var hum = Tremolo(Mix(
-                Tone(len, W, 55f, 55f, 0.5f, lowpass: 0.08f, attack: 0.0005f, decay: 0f),
-                Tone(len, S, 110f, 110f, 0.3f, attack: 0.0005f, decay: 0f)), 5f, 0.35f);
+                Reverse(Rush(0.18f, 2000f, 600f, 0.35f, 0.01f)),                                                       // sucked in
+                Delay(Tone(1.1f, S, 1, 1, 0.9f, noise: 1f, lowpass: 0.09f, attack: 0.01f, decay: 1.4f), 0.16f),        // the gale
+                Delay(Tone(0.6f, S, 90f, 38f, 0.6f, attack: 0.008f, decay: 1.8f), 0.16f),                              // the boom
+                Delay(Tremolo(Rush(0.9f, 2600f, 500f, 0.3f, 0.02f), 13f, 0.7f), 0.22f)), 0.15f), 0.7f), 0.15f);        // flutter
+            // The howl: wind noise and a faint 440 Hz whistle (264 cycles in the 0.6 s loop), gusting once a loop (1/0.6 Hz),
+            // made seamless by fading the take's extra tail back over its start.
+            const float len = 0.6f, over = 0.15f;
+            var take = Mix(
+                Tone(len + over, S, 1, 1, 0.6f, noise: 1f, lowpass: 0.05f, attack: 0.0005f, decay: 0f),
+                Tone(len + over, S, 440f, 440f, 0.05f, attack: 0.0005f, decay: 0f));
+            int n = (int)(len * Rate), m = take.Length - n;
+            var hum = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                hum[i] = take[i];
+                if (i < m)
+                {
+                    float w = (float)i / m;
+                    hum[i] = take[i] * w + take[n + i] * (1f - w);
+                }
+            }
+            hum = Tremolo(hum, 1f / len, 0.35f);
             float max = 0f;
             foreach (float v in hum)
                 max = Math.Max(max, Math.Abs(v));
