@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// Sanctum (Healer Elementalist's ultimate): a holy dome for 7 s that stops enemy bullets and keeps allies inside from going
+    /// Sanctum (Healer Elementalist's ultimate): a dome of light for 7 s that stops enemy bullets and keeps allies inside from going
     /// down, and sends a healing pulse out from the middle seven times instead of a steady trickle. A pulse is a ring that
     /// leaves the caster's spot at the dome's centre and reaches the rim in `SanctumPulseRing` s; each ally inside is healed
     /// as the ring passes them, so those near the middle heal first. The last pulse is bigger. Host logic only (the zone's
