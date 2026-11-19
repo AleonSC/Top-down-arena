@@ -147,16 +147,11 @@ namespace Arena
             get
             {
                 Player p;
-                Players.TryGetValue(Replaying ? ViewId : MyId, out p);
+                Players.TryGetValue(MyId, out p);
                 return p;
             }
         }
 
-        // Replays (Replay.cs): a replay watches the recorded match as a spectator (nobody is "you"), seeing the player ViewId's screen.
-        public bool Replaying;
-        public int ViewId;
-        public ReplayRecorder Replay;  // recording this run (HostStart sets it when ReplayFolder is)
-        public string ReplayFolder;    // dev: where to save replays of the matches this game hosts (null = don't record)
 
         float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
         float RandAngle() => Rand(0f, MathX.Tau);           // a random heading
@@ -202,12 +197,6 @@ namespace Arena
             var r = new BinaryReader(new MemoryStream(msg));
             r.ReadByte();
             ReadStart(r);
-            if (ReplayFolder != null && !ShowcaseMode && !Unrecorded && !Replaying)
-            {
-                Replay = new ReplayRecorder(this, session, ReplayFolder);
-                Replay.Capture(msg);  // (the broadcast went out before there was a recorder)
-                Replay.SetParty();
-            }
             if (ResumeFrom != null)
                 ApplyResume(ResumeFrom);
             ResumeFrom = null;
@@ -317,7 +306,7 @@ namespace Arena
             if (Recorder != null && !Recorder.Ended)
                 Recorder.End(this, "restarted");  // a new run started over one still going: finish its file first
             Recorder = null;
-            if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight, a replay or the lobby's preview)
+            if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight or the lobby's preview)
             {
                 try
                 {
@@ -338,22 +327,14 @@ namespace Arena
         /// Ends the run; `how` is what its recording says happened ("left", or "quit" when the game is closed).
         public void Stop(string how = "left")
         {
-            if (Replay != null)
-            {
-                Replay.Finish();
-                Replay = null;
-            }
             if (Running)
                 LogQuitRun();  // (not while a retry is on offer or starting: the run isn't over)
             SettleRetry(how);  // a retry left untaken ends the run for good (Checkpoints.cs)  // RunSaves.cs (the run you walk away from still shows in Recent runs)
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
-            if (TestRunning)
-                TestRunEnded("left the run");
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
-            Test = null;
             State = MatchState.Idle;
             HuntedId = 0;
             Wave = 0;
@@ -923,15 +904,10 @@ namespace Arena
                     SendSnapshot();
                 return;
             }
-            if (IsHost)
-                Replay?.Tick(dt);
             if (BreachWarnOn)
                 input = new PlayerInput { AimAt = input.AimAt };  // the breach warning: everyone stands still while the cameras tour (Breaches.cs)
-            if (!Replaying)
-            {
-                LocalControl(dt, input);  // (a replay has nobody at the controls)
-                TickTutorial(dt, input);  // the first-run tutorial's prompts (Tutorial.cs)
-            }
+            LocalControl(dt, input);
+            TickTutorial(dt, input);  // the first-run tutorial's prompts (Tutorial.cs)
             if (Bot)
                 botTouched = true;  // the bot played: this run doesn't count for your profile (RunSaves.cs)
             if (!IsHost && (pingT -= dt) <= 0f)
@@ -1486,7 +1462,6 @@ namespace Arena
             TickHelis(dt);    // AttackHelicopter.cs: the gunship's targets and rounds
             TickDogmas(dt);   // DragonsDogma.cs: the dragon's flight and bites
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
-            TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();
 
             if (pendingSpawns.Count > 0)

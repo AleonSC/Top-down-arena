@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The wave editor's designs (Core/WaveDesign.cs): the .waves file, and playing them in the Practice Range.
+// Designed waves (Core/WaveDesign.cs): the .waves file, and playing them in the Practice Range.
 static partial class Program
 {
     static void WaveDesignTest(float dt)

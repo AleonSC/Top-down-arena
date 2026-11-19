@@ -5,7 +5,7 @@ static partial class Shot {
   // A plain box room for a scene (no checks: the scene's own map).
   static ExpansionRoom? Box(int x, int y, int w, int h, PathId floor = PathId.None) => new ExpansionRoom { X = x, Y = y, W = w, H = h, Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor };
 
-  // The preview's "now" for made-up saves and replays: fixed, so their dates (and uishots.sh -r compares) don't change.
+  // The preview's "now" for made-up saves: fixed, so their dates (and uishots.sh -r compares) don't change.
   public static readonly DateTime Now = new DateTime(2026, 11, 7, 18, 0, 0, DateTimeKind.Utc);
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
   static bool heraldOn, eclipseOn;

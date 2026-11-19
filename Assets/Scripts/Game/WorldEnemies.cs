@@ -25,9 +25,9 @@ namespace Arena
                 // Sweep smoothly at the known speed and ease toward the host's angle.
                 int lasers = Game.SingLaserCount(sing);
                 if (sing.Phase == Game.SingLasers)
-                    laserAngle += Game.SingLaserSpin(sing) * ViewDt;
+                    laserAngle += Game.SingLaserSpin(sing) * Time.deltaTime;
                 float diff = MathX.WrapPi(sing.Facing - laserAngle);
-                laserAngle += Mathf.Abs(diff) > 0.5f ? diff : diff * Mathf.Min(1f, ViewDt * 8f);
+                laserAngle += Mathf.Abs(diff) > 0.5f ? diff : diff * Mathf.Min(1f, Time.deltaTime * 8f);
                 for (int k = 0; k < lasers; k++)
                 {
                     V2 dir = V2.FromAngle(laserAngle + MathX.Tau * k / lasers);

@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The designed wave sets built into the game (the F1 wave editor's .waves files in Data/Waves, turned into code by
+    /// The designed wave sets built into the game (the .waves files in Data/Waves, turned into code by
     /// Tools/WaveGen/build.sh; DesignedWaves.Generated.cs holds `Names` and `Build`). A final build needs no loose files.
     public static partial class DesignedWaves
     {
