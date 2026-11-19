@@ -105,6 +105,25 @@ static partial class Program
             cg.BuyMysteryDoor(cg.MysteryDoors.FindIndex(x => x.X == bd.X && x.Y == bd.Y));
             PollBoth(host, client);
             Check(g.MysteryDoors.Count == nd - 1 && g.Expanded.Count > nr && fp.Vectors == 3 && cg.MysteryDoors.Count == nd - 1, "in a build round the friend buys a far door from the map: room built, " + bd.Price + " charged");
+            // Right clicks on the map: let your own save go, save a far door, can't take over someone else's, a second lets it go.
+            var sd = g.MysteryDoors.FindIndex(x => x.Saver == g.MyId);
+            if (sd >= 0)
+            {
+                var sdd = g.MysteryDoors[sd];
+                System.Func<Game, int> at = gg => gg.MysteryDoors.FindIndex(x => x.X == sdd.X && x.Y == sdd.Y);
+                g.BuyMysteryDoor(at(g), true);
+                Check(g.MysteryDoors[at(g)].Saver == 0, "the host's right click on its own saved door lets it go");
+                cg.BuyMysteryDoor(at(cg), true);
+                PollBoth(host, client);
+                Check(g.MysteryDoors[at(g)].Saver == cg.MyId && cg.MysteryDoors[at(cg)].Saver == cg.MyId && g.MysteryDoors.Count(x => x.Saver == cg.MyId) == 1, "the friend's right click saves that far door (the save moves), and they see it");
+                g.BuyMysteryDoor(at(g), true);
+                Check(g.MysteryDoors[at(g)].Saver == cg.MyId, "the host can't take over the friend's save from the map");
+                cg.BuyMysteryDoor(at(cg), true);
+                PollBoth(host, client);
+                Check(g.MysteryDoors[at(g)].Saver == 0, "a second right click lets it go");
+            }
+            else
+                Check(false, "a door the host saved, to work from the map");
             g.ExpandOpen = false;
         }
 
