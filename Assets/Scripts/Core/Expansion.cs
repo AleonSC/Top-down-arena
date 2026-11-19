@@ -307,6 +307,12 @@ namespace Arena
 
         public static int NodeTier(MapNode n) => NodeTier(n.X, n.Y);
 
+        /// The tier the first cycle's ring node `i` is placed at: inner, middle, outer, twice round.
+        public static int RingTier(int i) => i % 3;
+
+        /// The tier a later cycle's node is placed at: a relic outer (it only holds one there), a chest by turns middle, outer, inner; a vein anywhere.
+        public static int CycleTier(NodeKind kind, int cycle) => kind == NodeKind.Relic ? 2 : IsChest(kind) ? (cycle + 1) % 3 : 0;
+
         /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
         /// middle a chest (piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
         public static MapNode Tiered(int seed, MapNode n)

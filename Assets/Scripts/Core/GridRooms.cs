@@ -41,14 +41,15 @@ namespace Arena
         static int GridMod(int v, int origin) => ((v - origin) % GridCell + GridCell) % GridCell;
 
         /// A node for a cycle in Grid mode: the middle of a room-sized cell a few rooms out, so building out along the grid claims it with the
-        /// node at the room's middle. `ring` (0 and up) is the first cycle's ring round the hub: each starts off a different side. Null if no cell fits.
-        public static MapNode? GridNodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind, int ring = -1)
+        /// node at the room's middle. `ring` (0 and up) is the first cycle's ring round the hub: each starts off a different side. `tier` (NodeTier):
+        /// the chain keeps heading out until the cell is at least that tier, so middle and outer prize nodes exist from the start. Null if no cell fits.
+        public static MapNode? GridNodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind, int ring = -1, int tier = 0)
         {
-            var rng = new DetRandom(seed * 7351 + cycle * 977 + (ring + 1) * 131 + (int)kind * 17 + 3);
+            var rng = new DetRandom(seed * 7351 + cycle * 977 + (ring + 1) * 131 + (int)kind * 17 + tier * 7 + 3);
             var map = new List<ExpansionRoom>(built);
             int depth = ring >= 0 ? 2 : 2 + rng.Int(2);
             var start = Game.ArenaMid;
-            for (int step = 1; step <= depth; step++)
+            for (int step = 1; step <= depth + MaxTierSteps; step++)
             {
                 var opts = PlacementsFor(map, PieceShape.Mono);
                 if (ring >= 0 && step == 1)
@@ -57,24 +58,33 @@ namespace Arena
                     if (side.Count > 0)
                         opts = side;
                 }
-                if (step == depth)
-                    opts = opts.FindAll(o =>
+                if (opts.Count == 0)
+                    return null;
+                opts.Sort((p, q) => q.Mid.DistanceTo(start).CompareTo(p.Mid.DistanceTo(start)));  // (the outer half: the chain heads away from the start)
+                if (step >= depth)
+                {
+                    var ends = opts.FindAll(o =>
                     {
+                        if (NodeTier((int)o.Mid.X, (int)o.Mid.Y) < tier)
+                            return false;
                         foreach (var nd in nodes)
                             if (nd.Pos.DistanceTo(o.Mid) < NodeApart + NodeHalf(nd))
                                 return false;
                         return true;
                     });
-                if (opts.Count == 0)
-                    return null;
-                opts.Sort((p, q) => q.Mid.DistanceTo(start).CompareTo(p.Mid.DistanceTo(start)));  // (the outer half: the chain heads away from the start)
-                var pick = opts[rng.Int(Math.Max(1, opts.Count / 2))];
-                if (step == depth)
-                    return new MapNode { X = (short)pick.Mid.X, Y = (short)pick.Mid.Y, Kind = kind };
-                map.AddRange(pick.Rooms);
+                    if (ends.Count > 0)
+                    {
+                        var end = ends[rng.Int(Math.Max(1, ends.Count / 2))];
+                        return new MapNode { X = (short)end.Mid.X, Y = (short)end.Mid.Y, Kind = kind };
+                    }
+                }
+                int spread = step >= depth ? Math.Min(3, opts.Count) : Math.Max(1, opts.Count / 2);  // (short of its tier: straight out, one of the three farthest)
+                map.AddRange(opts[rng.Int(spread)].Rooms);
             }
             return null;
         }
+
+        const int MaxTierSteps = 8;  // how many more rooms out a node may go to reach its tier (outer: about 5 rooms off the core)
     }
 
     public partial class Game
