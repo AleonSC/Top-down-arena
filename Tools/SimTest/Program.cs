@@ -495,7 +495,7 @@ static partial class Program
         Test("newenemies", "the new-enemy chips: which types a wave brings and a note for each", () => NewEnemiesTest()),
         Test("enemynumbers", "every weapon has a damage a second, spawn health at your wave, the fire-rate ramp", () => EnemyNumbersTest(Dt)),
         Test("labtest", "the Boss Lab", () => BossLabTest(Dt)),
-        Test("botweapon", "the smart bot's parry and weapon Alts", () => BotParryTest(Dt), () => BotAltTest(Dt)),
+        Test("botweapon", "the smart bot's parry and weapon Alts", () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotKatanaTest(Dt)),
         Test("botpicks", "the bots' level-up picks and shopping", () => BotPicksTest(Dt), () => BotShopTest(Dt)),
         Test("botteam", "the smart bot's team play: Roar, Last Stand, Mark, healing orbs and zones", () => BotTeamplayTest(Dt)),
         Test("partybots", "bots in the lobby's open slots", () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }),
