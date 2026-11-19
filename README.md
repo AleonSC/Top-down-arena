@@ -2315,7 +2315,7 @@ boss plays out and what to change.
 - Lab fights aren't saved as session recordings. Starting the lab leaves any run you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where
-bullets, enemy bodies, lightning strikes and the Reapers' tether will be. They keep a distance that suits
+bullets, enemy bodies, lightning strikes and the Reapers' tether will be. When one of the Warden's **gates** is coming, they head for its nearest door (or the shot-out lock) in time and walk through it. They keep a distance that suits
 their weapon and role, close in until a target is within their weapon's reach before they pull the trigger (using anything already in reach on the way), lead their shots, and go for the adds that protect a boss first (phylacteries,
 gravity wells, the Queen's shield drones). When a Tank's **Last Stand** is planted they stand in its lee, just behind the tank and away from where the plates face (unless someone needs reviving). They revive downed allies, heal when someone is hurt, use
 defensive abilities when things get tight, and use the rest on the boss.
