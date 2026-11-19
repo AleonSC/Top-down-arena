@@ -58,6 +58,7 @@ namespace Arena
         public bool Floating;   // placed by the game off the map (a shop, Black Market or Gatekeeper), not drawn: sealed until a built room touches it
         public byte Surprise;   // a surprise room (Docs/SurpriseRooms.md): 1 + its SurpriseShape, on each of its boxes; 0: none
         public bool Claimed;    // a breach Stash's vector cache has been taken (Docs/BreachRooms.md)
+        public bool Unseen;     // room fog (RoomFog.cs): nobody has walked in yet, so it is dark on the maps and what's inside is hidden
         public byte Mini;       // a mini-boss room's foe (an EnemyType, FactionMinis.cs): its boss cycle's faction's; 0: unset (an old save: the current one's)
         public byte Piece;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
         public int X1 => X + W;

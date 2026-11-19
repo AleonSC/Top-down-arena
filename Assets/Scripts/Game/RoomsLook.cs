@@ -335,6 +335,8 @@ namespace Arena
                 if (core && !a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); }
                 V2 p0 = M(a.Min), p1 = M(a.Max);
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
+                if (game.AreaUnseen(i))
+                    MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, FogMapFill);  // an unseen room: dark, a "?" below (RoomFogLook.cs)  // an unseen room: dark, a "?" below (RoomFogLook.cs)
                 if (!core)
                     RimFrame(wd, i, M, 1f, line, true);
             }
@@ -412,7 +414,7 @@ namespace Arena
             }
             foreach (var e in game.Enemies.Values)
             {
-                if (e.Hp <= 0f)
+                if (e.Hp <= 0f || game.FogHides(e.Pos))
                     continue;
                 V2 c = M(e.Disp);
                 if (e.Def.Mini || e.Def.IsBoss) { MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
@@ -430,7 +432,7 @@ namespace Arena
             DrawMysteryOnMap(M);  // sealed mystery doors (MysteryDoorLook.cs)
             foreach (var co in game.Coins.Values)  // gold coins: a small gold dot (5-gold coins a bit bigger); vector pickups stay off
             {
-                if (co.Vec || !game.MinePickup(co.Owner))
+                if (co.Vec || !game.MinePickup(co.Owner) || game.FogHides(co.Pos))
                     continue;
                 V2 c = M(co.Disp);
                 if (!InMap(c))
@@ -464,6 +466,7 @@ namespace Arena
                 RoomMapRect(ox, cy - 1f, mw, 2f, new Rgba(0.9f, 0.96f, 1f, 0.95f * geo.Fold));
             }
             EndUiGl();
+            DrawFogMapMarks(M, geo.R);  // the unseen rooms' "?" (RoomFogLook.cs)
             DrawMapLabels(geo);  // the full map's title and legend, the "Map off" note (MapView.cs)
         }
 
