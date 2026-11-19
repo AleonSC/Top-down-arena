@@ -15,7 +15,9 @@ namespace Arena
         int lagMode;      // PlayerPrefs "lag_chart"
         bool lagLog;      // PlayerPrefs "lag_log": write a CSV each run to <profile>/lag/
         float lagCopiedAt = -99f;
+#pragma warning disable 0649  // set only by Tools/Preview (reflection)
         bool lagPreviewGuest;  // Tools/Preview only (ShotLag.cs): draw as a guest though the preview's session hosts
+#pragma warning restore 0649
 
         static readonly Color LagAccent = new Color(0.35f, 0.85f, 1f);
         static readonly Color LagFrameCol = new Color(1f, 0.85f, 0.3f);

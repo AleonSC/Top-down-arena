@@ -23,7 +23,7 @@ namespace Arena
 
         void OfficerTorso(V2 pos, float r, float face, Rgba shirt)
         {
-            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            V2.Axes(face, out V2 f, out V2 s);
             Oval(pos, r * 1.0f + OffInk, r * 1.12f + OffInk, face, GuardInk);
             Oval(pos, r * 1.0f, r * 1.12f, face, shirt);
             Cap(pos - s * r * 0.92f, pos + s * r * 0.92f, 2.6f, new Rgba(0.28f, 0.2f, 0.12f));  // the duty belt
@@ -62,7 +62,7 @@ namespace Arena
 
         void DrawGuardBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float wind, swing, ba = GuardBatonAngle(e, t, out wind, out swing);
             V2 bd = V2.FromAngle(ba);
             V2 hand = e.LarderStage != Game.LarderIdle ? pos + bd * (r * 1.05f) : pos + s * (r * 1.0f) + f * (r * 0.95f);
@@ -85,7 +85,7 @@ namespace Arena
 
         void DrawRiotShieldBody(Enemy e, V2 pos, float r, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             float rr = r * 0.85f;
             OfficerTorso(pos, rr, e.Facing, RiotFatigues);
             V2 back = pos - f * (rr * 0.66f);
@@ -101,7 +101,7 @@ namespace Arena
 
         void DrawRiotShield(Enemy e, V2 pos, float r, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             byte st = Game.RiotState(e), crack = Game.RiotCrack(e);
             float rr = r * 0.85f;
             if (crack >= Game.RiotCracked)
@@ -148,7 +148,7 @@ namespace Arena
 
         void DrawGrenadierBody(Enemy e, V2 pos, float r, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             float rr = r * 0.92f;
             OfficerTorso(pos, rr, e.Facing, GrenOlive);
             V2 b0 = pos - side * (rr * 0.85f) - f * (rr * 0.55f), b1 = pos + side * (rr * 0.85f) + f * (rr * 0.55f);
@@ -169,7 +169,7 @@ namespace Arena
         {
             if (DrawGrenadierLob(e, pos, r, t))
                 return;
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             float rr = r * 0.92f;
             V2 can = pos + side * (r * 1.05f) + f * (r * 0.75f);
             OfficerArm(pos - side * rr * 0.9f, pos - side * rr * 0.75f + f * rr * 0.75f, 4.2f, GrenOlive, OfficerGlove);
@@ -199,7 +199,7 @@ namespace Arena
 
         void DrawTaserGuardBody(Enemy e, V2 pos, float r, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             OfficerTorso(pos, r, e.Facing, TaserShirt);
             V2 back = pos - f * (r * 0.72f);
             Cap(back - side * (r * 0.55f), back + side * (r * 0.55f), 3f, new Rgba(1f, 0.84f, 0.2f, 0.95f));  // the hi-vis band
@@ -208,7 +208,7 @@ namespace Arena
 
         void DrawTaserGuardDetails(Enemy e, V2 pos, float r, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             V2 grip = pos + f * 15f;
             // both hands on the taser, held out front
             OfficerArm(pos + side * r * 0.9f, grip + side * 2.2f, 4.2f, TaserShirt, OfficerGlove);

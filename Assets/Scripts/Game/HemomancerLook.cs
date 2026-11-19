@@ -243,7 +243,7 @@ namespace Arena
                     float spread = free == 1 ? 0f : k / (free - 1f) - 0.5f;
                     float ang = p.Aim + spread * arc + 0.1f * sway;
                     float l = reach * (held > 0 ? 0.35f : 0.6f + 0.25f * Mathf.Sin(t * 3.1f + k * 1.7f));
-                    V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+                    V2.Axes(ang, out V2 dir, out V2 side);
                     V2 root = p.Disp + V2.FromAngle(p.Aim + spread * 0.8f) * p.Def.BodyR;
                     V2 tip = root + dir * l + side * (l * 0.12f * Mathf.Sin(t * 4f + k));
                     DrawTendril(root, root + dir * (l * 0.5f) - side * (l * 0.1f * sway), tip, 5f, 1.2f, t * 11f + k * 3f, held > 0 ? 0.55f : 0.85f);

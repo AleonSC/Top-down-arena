@@ -474,393 +474,572 @@ namespace Arena
             }
         }
 
-        /// The weapon in its own frame: grip at the origin, +x along the aim. Reworked models go here.
+        delegate void HeldDraw(Player p, float t, int hold);
+        HeldDraw[] heldDraws;
+
+        /// The weapon in its own frame: grip at the origin, +x along the aim. Reworked models go here. Each weapon's model is one entry of the table (BuildHeldDraws).
         void DrawHeld(Player p, float t, int hold)
         {
-            switch (p.Weapon.Id)
+            var draws = heldDraws ?? (heldDraws = BuildHeldDraws());
+            draws[(int)p.Weapon.Id]?.Invoke(p, t, hold);
+        }
+
+        /// Every weapon's held model, drawn in the hand's frame (MFrame).
+        HeldDraw[] BuildHeldDraws()
+        {
+            var d = new HeldDraw[256];  // (WeaponId is a byte)
+            // ---- Soldier
+            d[(int)WeaponId.Scattergun] = DrawHeldScattergun;
+            d[(int)WeaponId.FlakCannon] = DrawHeldFlakCannon;
+            d[(int)WeaponId.RiotRepeater] = DrawHeldRiotRepeater;
+            d[(int)WeaponId.RepulsionCannon] = DrawHeldRepulsionCannon;
+            d[(int)WeaponId.Revolver] = DrawHeldRevolver;
+            d[(int)WeaponId.MendersBow] = DrawHeldMendersBow;
+            d[(int)WeaponId.TwinRifle] = DrawHeldTwinRifle;
+            d[(int)WeaponId.TwinRifleAuto] = DrawHeldTwinRifle;
+            d[(int)WeaponId.OutOfAmmo] = DrawHeldTwinRifle;
+            d[(int)WeaponId.GrenadeLauncher] = DrawHeldGrenadeLauncher;
+            d[(int)WeaponId.DoubleBarrel] = DrawHeldDoubleBarrel;
+            d[(int)WeaponId.Railgun] = DrawHeldRailgun;
+            d[(int)WeaponId.BurstSmg] = DrawHeldBurstSmg;
+            // ---- Elementalist
+            d[(int)WeaponId.Flamethrower] = DrawHeldFlamethrower;
+            d[(int)WeaponId.FrostLance] = DrawHeldFrostLance;
+            d[(int)WeaponId.StormHammer] = (p, t, hold) => DrawStormHammerHeld(p, t);  // StormHammerLook.cs: raised, thrown, slammed and re-formed with the throw and the slam
+            d[(int)WeaponId.RadiantOrb] = DrawHeldRadiantOrb;
+            d[(int)WeaponId.ChainLight] = DrawHeldChainLight;
+            d[(int)WeaponId.Nimbus] = DrawHeldNimbus;
+            d[(int)WeaponId.Fireball] = DrawHeldFireball;
+            d[(int)WeaponId.ArcLightning] = DrawHeldArcLightning;
+            d[(int)WeaponId.EmbolusSpears] = (p, t, hold) => DrawEsHeld(p, mHeldTube, t);
+            d[(int)WeaponId.Stonespear] = DrawHeldStonespear;
+            d[(int)WeaponId.WindClash] = DrawHeldWindClash;
+            d[(int)WeaponId.IceShards] = DrawHeldIceShards;
+            // ---- Summoner
+            d[(int)WeaponId.GolemStaff] = DrawHeldGolemStaff;
+            d[(int)WeaponId.BoneGuard] = DrawHeldBoneGuard;
+            d[(int)WeaponId.BearTotem] = DrawHeldBearTotem;
+            d[(int)WeaponId.SpriteStaff] = DrawHeldSpriteStaff;
+            d[(int)WeaponId.TreantRod] = DrawHeldTreantRod;
+            d[(int)WeaponId.SpiritChalk] = DrawHeldSpiritChalk;
+            d[(int)WeaponId.WolfWhistle] = DrawHeldWolfWhistle;
+            d[(int)WeaponId.WispLantern] = DrawHeldWispLantern;
+            d[(int)WeaponId.HoneybeeStaff] = DrawHeldHoneybeeStaff;
+            d[(int)WeaponId.ImpCaller] = DrawHeldImpCaller;
+            // ---- Knight
+            d[(int)WeaponId.Warhammer] = DrawHeldWarhammer;
+            d[(int)WeaponId.BulwarkBarrier] = DrawHeldBulwarkBarrier;
+            d[(int)WeaponId.Lance] = DrawHeldLance;
+            d[(int)WeaponId.Halberd] = DrawHeldHalberd;
+            d[(int)WeaponId.Quarterstaff] = DrawHeldQuarterstaff;
+            d[(int)WeaponId.Lightbringer] = DrawHeldLightbringer;
+            d[(int)WeaponId.Censer] = DrawHeldCenser;
+            d[(int)WeaponId.TwinBlades] = DrawHeldTwinBlades;
+            d[(int)WeaponId.Greatsword] = DrawHeldGreatsword;
+            d[(int)WeaponId.Rapier] = DrawHeldRapier;
+            // ---- Ninja
+            d[(int)WeaponId.Kusarigama] = DrawHeldKusarigama;
+            d[(int)WeaponId.BoStaff] = DrawHeldBoStaff;
+            d[(int)WeaponId.FumaShuriken] = DrawHeldFumaShuriken;
+            d[(int)WeaponId.MedicineDarts] = DrawHeldMedicineDarts;
+            d[(int)WeaponId.SpiritFan] = DrawHeldSpiritFan;
+            d[(int)WeaponId.Ofuda] = DrawHeldOfuda;
+            d[(int)WeaponId.Shuriken] = DrawHeldShuriken;
+            d[(int)WeaponId.Katana] = DrawHeldKatana;
+            d[(int)WeaponId.Kunai] = DrawHeldKunai;
+            // ---- Hemomancer
+            d[(int)WeaponId.BloodLash] = DrawHeldBloodLash;
+            d[(int)WeaponId.GoreMortar] = DrawHeldGoreMortar;
+            d[(int)WeaponId.LeechTendrils] = DrawHeldLeechTendrils;
+            d[(int)WeaponId.TransfusionDarts] = DrawHeldTransfusionDarts;
+            d[(int)WeaponId.SanguineOrb] = DrawHeldSanguineOrb;
+            d[(int)WeaponId.VeinTether] = DrawHeldVeinTether;
+            d[(int)WeaponId.BloodBolts] = DrawHeldBloodBolts;
+            d[(int)WeaponId.Implosion] = DrawHeldImplosion;
+            d[(int)WeaponId.BloodBrawler] = (p, t, hold) => DrawBsHand(t);  // an open, bleeding hand (BloodBrawlerLook.cs)
+            return d;
+        }
+
+        void DrawHeldScattergun(Player p, float t, int hold)
+        {
+            MRect(-12f, -2.6f, 12f, 5.2f, MWood); MRect(0f, -3.2f, 16f, 6.4f, MDark); MLine(2f, -1.7f, 29f, -1.7f, 2.4f, MSteel); MLine(2f, 1.7f, 29f, 1.7f, 2.4f, MSteel); MRect(12f - mPump, -4f, 9f, 8f, Hx(0x6a4b2e));
+        }
+
+        void DrawHeldFlakCannon(Player p, float t, int hold)
+        {
+            MRect(-6f, -4f, 12f, 8f, MDark); MPoly(Hx(0x55606e), 6f, 0f, 6f, -5f, 26f, -6f, 32f, -9f, 32f, 9f, 26f, 6f, 6f, 5f);
+        {
+            var band = Hx(0xff9d3a).Mix(new Rgba(1f, 0.95f, 0.75f), mHeat * 0.7f);  // the bands glow hot after a shot
+            MLine(14f, -6f, 14f, 6f, 2f, band); MLine(22f, -7f, 22f, 7f, 2f, band); MCirc(9f, -7f, 4.5f, Hx(0x3b4350));
+            if (mHeat > 0.1f)
+                MLine(32f, -8f, 32f, 8f, 2f, new Rgba(1f, 0.48f, 0.24f, mHeat * 0.7f));
+        }
+        }
+
+        void DrawHeldRiotRepeater(Player p, float t, int hold)
+        {
+            MRect(-8f, -2.5f, 8f, 5f, MWood); MRect(0f, -3.5f, 26f, 7f, MDark); MRect(6f, -5.5f, 14f, 11f, Hx(0x4c5a68));
+            for (int i = 0; i < 4; i++) MLine(8f + i * 3.2f, -4f, 8f + i * 3.2f, 4f, i == mLit ? 1.4f : 1f, i == mLit ? Hx(0x7bd8ff) : Hx(0x1b2026));  // one rib lights as a round cycles
+            MLine(24f, -1.5f, 31f, -1.5f, 2.2f, MSteel);
+        }
+
+        void DrawHeldRepulsionCannon(Player p, float t, int hold)
+        {
+            MRect(-4f, -3f, 10f, 6f, MDark); MPoly(Hx(0x3d6b5a), 6f, 0f, 6f, -4f, 22f, -11f, 22f, 11f, 6f, 4f);
+            for (int i = 0; i < 3; i++) MArc(10f, 0f, 6f + i * 4f, -0.85f, 0.85f, 1.5f, Hx(0x9dffcf));
+        }
+
+        void DrawHeldRevolver(Player p, float t, int hold)
+        {
+        {
+            float kick, spin;
+            bool fx = GunLook(p, out kick, out spin);  // with Visual effects on: it kicks back and the cylinder clicks round (GunBowLooks.cs)
+            if (fx)
+                MFrame(mOx - 4f * kick, mOy, mAng - 0.12f * kick, mWs, false);
+            MRect(-5f, -2.2f, 7f, 8f, MWood); MRect(0f, -2.6f, 10f, 5.2f, MDark); MLine(8f, 0f, 17f, 0f, 3f, MSteel); MCirc(5f, 0f, 3.6f, Hx(0x6a7685), 10);
+            if (fx)
+                for (int i = 0; i < 6; i++)
+                    MCirc(5f + Mathf.Cos(spin + i * MathX.Tau / 6f) * 2.1f, Mathf.Sin(spin + i * MathX.Tau / 6f) * 2.1f, 0.8f, Hx(0x1b2026), 6);
+            else
+                MCirc(5f, 0f, 1.4f, Hx(0x1b2026), 8);
+        }
+        }
+
+        void DrawHeldMendersBow(Player p, float t, int hold)
+        {
+        {
+            if (Juicy)  // Visual effects on: limbs that flex, a string that snaps (GunBowLooks.cs)
             {
-                // ---- Soldier
-                case WeaponId.Scattergun:
-                    MRect(-12f, -2.6f, 12f, 5.2f, MWood); MRect(0f, -3.2f, 16f, 6.4f, MDark); MLine(2f, -1.7f, 29f, -1.7f, 2.4f, MSteel); MLine(2f, 1.7f, 29f, 1.7f, 2.4f, MSteel); MRect(12f - mPump, -4f, 9f, 8f, Hx(0x6a4b2e));
-                    break;
-                case WeaponId.FlakCannon:
-                    MRect(-6f, -4f, 12f, 8f, MDark); MPoly(Hx(0x55606e), 6f, 0f, 6f, -5f, 26f, -6f, 32f, -9f, 32f, 9f, 26f, 6f, 6f, 5f);
-                {
-                    var band = Hx(0xff9d3a).Mix(new Rgba(1f, 0.95f, 0.75f), mHeat * 0.7f);  // the bands glow hot after a shot
-                    MLine(14f, -6f, 14f, 6f, 2f, band); MLine(22f, -7f, 22f, 7f, 2f, band); MCirc(9f, -7f, 4.5f, Hx(0x3b4350));
-                    if (mHeat > 0.1f)
-                        MLine(32f, -8f, 32f, 8f, 2f, new Rgba(1f, 0.48f, 0.24f, mHeat * 0.7f));
-                    break;
-                }
-                case WeaponId.RiotRepeater:
-                    MRect(-8f, -2.5f, 8f, 5f, MWood); MRect(0f, -3.5f, 26f, 7f, MDark); MRect(6f, -5.5f, 14f, 11f, Hx(0x4c5a68));
-                    for (int i = 0; i < 4; i++) MLine(8f + i * 3.2f, -4f, 8f + i * 3.2f, 4f, i == mLit ? 1.4f : 1f, i == mLit ? Hx(0x7bd8ff) : Hx(0x1b2026));  // one rib lights as a round cycles
-                    MLine(24f, -1.5f, 31f, -1.5f, 2.2f, MSteel);
-                    break;
-                case WeaponId.RepulsionCannon:  // Repulsion Cannon: a bell-mouthed emitter
-                    MRect(-4f, -3f, 10f, 6f, MDark); MPoly(Hx(0x3d6b5a), 6f, 0f, 6f, -4f, 22f, -11f, 22f, 11f, 6f, 4f);
-                    for (int i = 0; i < 3; i++) MArc(10f, 0f, 6f + i * 4f, -0.85f, 0.85f, 1.5f, Hx(0x9dffcf));
-                    break;
-                case WeaponId.Revolver:  // Revolver
-                {
-                    float kick, spin;
-                    bool fx = GunLook(p, out kick, out spin);  // with Visual effects on: it kicks back and the cylinder clicks round (GunBowLooks.cs)
-                    if (fx)
-                        MFrame(mOx - 4f * kick, mOy, mAng - 0.12f * kick, mWs, false);
-                    MRect(-5f, -2.2f, 7f, 8f, MWood); MRect(0f, -2.6f, 10f, 5.2f, MDark); MLine(8f, 0f, 17f, 0f, 3f, MSteel); MCirc(5f, 0f, 3.6f, Hx(0x6a7685), 10);
-                    if (fx)
-                        for (int i = 0; i < 6; i++)
-                            MCirc(5f + Mathf.Cos(spin + i * MathX.Tau / 6f) * 2.1f, Mathf.Sin(spin + i * MathX.Tau / 6f) * 2.1f, 0.8f, Hx(0x1b2026), 6);
-                    else
-                        MCirc(5f, 0f, 1.4f, Hx(0x1b2026), 8);
-                    break;
-                }
-                case WeaponId.MendersBow:
-                {
-                    if (Juicy)  // Visual effects on: limbs that flex, a string that snaps (GunBowLooks.cs)
-                    {
-                        DrawBowFlex(p);
-                        break;
-                    }
-                    float draw = p.DrawT > 0f ? MathX.Clamp01(p.DrawT / 1.2f) : 0.35f;
-                    MArc(2f, 0f, 16f, -1.05f, 1.05f, 2.6f, Hx(0x7a5a3a));
-                    float nock = 4f - 6f * draw;
-                    MLine(10f, -13.9f, nock, 0f, 0.8f, Hx(0xeaeaea)); MLine(nock, 0f, 10f, 13.9f, 0.8f, Hx(0xeaeaea));
-                    MLine(nock, 0f, 26f, 0f, 1.4f, Hx(0xcfe9d6)); MPoly(Hx(0x59ff8c), 26f, 0f, 26f, -2f, 31f, 0f, 26f, 2f); MCirc(18f, 0f, 2f, Hx(0x59ff8c), 8);
-                    break;
-                }
-                case WeaponId.TwinRifle:
-                case WeaponId.TwinRifleAuto:
-                case WeaponId.OutOfAmmo:
-                    if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
-                    MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
-                    DrawTwinTube();
-                    break;
-                case WeaponId.GrenadeLauncher:
-                    if (Juicy) DrawGrenadeLauncherFx(); else DrawGrenadeLauncherPlain();  // GrenadeLauncherLook.cs
-                    break;
-                case WeaponId.DoubleBarrel:
-                    if (mDpsOn) DrawDoubleBarrelFx(); else DrawDoubleBarrelPlain();  // DoubleBarrelLook.cs
-                    break;
-                case WeaponId.Railgun:
-                    if (mDpsOn) { DrawRailgunFx(); break; }  // DpsGunLooks.cs
-                    MRect(-8f, -3f, 10f, 6f, MDark); MLine(2f, -3f, 38f, -3f, 2.2f, MSteel); MLine(2f, 3f, 38f, 3f, 2.2f, MSteel);
-                    for (int i = 0; i < 3; i++) MRect(10f + i * 8f, -4.6f, 3f, 9.2f, Hx(0x52c9ff));
-                    MLine(4f, 0f, 36f, 0f, 1.5f, Hx(0xbff3ff));
-                    break;
-                case WeaponId.BurstSmg:
-                    if (mDpsOn) { DrawBurstSmgFx(); break; }  // DpsGunLooks.cs
-                    MRect(-6f, -2.5f, 8f, 5f, MDark); MRect(0f, -3.4f, 14f, 6.8f, Hx(0x4a5560)); MRect(4f, 2f, 5f, 8f, Hx(0x22272e));
-                    for (int i = 0; i < 3; i++) { float y = Mathf.Sin(t * 9f + i * 2.09f) * 2.2f; MLine(14f, y, 24f, y, 1.8f, MSteel); }
-                    break;
-                // ---- Elementalist
-                case WeaponId.Flamethrower:
-                    MRect(-6f, -3f, 10f, 6f, MDark); MRect(2f, -2.2f, 22f, 4.4f, Hx(0x7a3b22)); MCirc(26f, 0f, 3.2f, Hx(0x2a2a2a), 8);
-                    MPoly(new Rgba(1f, 0.59f, 0.16f, 0.85f), 28f, 0f, 28f, -2f, 36f + Mathf.Sin(t * 20f) * 2f, 0f, 28f, 2f);
-                    MRect(0f, 5f, 14f, 6f, Hx(0xb8442a)); MLine(6f, 5f, 6f, 11f, 1.4f, Hx(0xffd24a));
-                    break;
-                case WeaponId.FrostLance:  // drawn in the world over the arms, swung through its chain (FrostLanceLook.cs)
-                    break;
-                case WeaponId.StormHammer:
-                    DrawStormHammerHeld(p, t);  // StormHammerLook.cs: raised, thrown, slammed and re-formed with the throw and the slam
-                    break;
-                case WeaponId.RadiantOrb:
-                    MCirc(12f, 0f, 10f, Hx(0xffe078, 0.25f), 14); MCirc(12f, 0f, 6.5f, Hx(0xffe9a0), 12); MCirc(12f, 0f, 3.5f, MWhite, 10); MArc(12f, 0f, 9.5f, t * 2f, t * 2f + 2.5f, 1.5f, Hx(0xffd24a));
-                    break;
-                case WeaponId.ChainLight:
-                {
-                    MRect(-6f, -2f, 12f, 4f, MSteel);
-                    MLine(6f, 0f, 18f, -5f, 1.8f, Hx(0x8fd8ff)); MLine(6f, 0f, 20f, 0f, 1.8f, Hx(0x8fd8ff)); MLine(6f, 0f, 18f, 5f, 1.8f, Hx(0x8fd8ff));
-                    float j = Mathf.Sin(t * 30f);
-                    MLine(18f, -5f, 21f, -2f + j, 1.2f, MWhite); MLine(21f, -2f + j, 20f, 0f, 1.2f, MWhite); MLine(20f, 0f, 21f, 2f - j, 1.2f, MWhite); MLine(21f, 2f - j, 18f, 5f, 1.2f, MWhite);
-                    break;
-                }
-                case WeaponId.Nimbus:
-                {
-                    // A short wand under a little storm cloud that flickers with lightning.
-                    MLine(-8f, 0f, 14f, 0f, 2.4f, MWood);
-                    MCirc(18f, -3f, 5.5f, Hx(0x8a98c4), 10); MCirc(24f, -4f, 4.5f, Hx(0xa7b4dc), 10); MCirc(22f, 2f, 5f, Hx(0x7d8cba), 10); MCirc(26f, 1f, 3.5f, Hx(0xb9c5e8), 8);
-                    if (Mathf.Sin(t * 9f) > 0.55f)
-                    {
-                        MLine(22f, 5f, 20f, 9f, 1.4f, Hx(0xfff3a0));
-                        MLine(20f, 9f, 23f, 11f, 1.4f, Hx(0xfff3a0));
-                    }
-                    break;
-                }
-                case WeaponId.Fireball:
-                    MCirc(12f, 0f, 9f, Hx(0xff781e, 0.3f), 14); MCirc(12f, 0f, 6f, Hx(0xff7a1c), 12); MCirc(12f, 0f, 3.2f, Hx(0xffd35a), 10);
-                    for (int i = 0; i < 5; i++) { float a = t * 5f + i * 1.26f; MLine(12f + Mathf.Cos(a) * 5f, Mathf.Sin(a) * 5f, 12f + Mathf.Cos(a) * 10.5f, Mathf.Sin(a) * 10.5f, 2.2f, new Rgba(1f, 0.59f, 0.16f, 0.8f)); }
-                    break;
-                case WeaponId.ArcLightning:
-                {
-                    MLine(0f, -4f, 16f, -4f, 2.2f, MSteel); MLine(0f, 4f, 16f, 4f, 2.2f, MSteel); MCirc(16f, -4f, 1.8f, Hx(0xbfe9ff), 6); MCirc(16f, 4f, 1.8f, Hx(0xbfe9ff), 6);
-                    float j = Mathf.Sin(t * 35f) * 1.5f;
-                    MLine(16f, -4f, 20f, -1f + j, 1.3f, MWhite); MLine(20f, -1f + j, 14f, 1f - j, 1.3f, MWhite); MLine(14f, 1f - j, 16f, 4f, 1.3f, MWhite);
-                    break;
-                }
-                case WeaponId.EmbolusSpears:  // a blood javelin in each hand, arms out (EmbolusLook.cs)
-                    DrawEsHeld(p, mHeldTube, t);
-                    break;
-                case WeaponId.Stonespear:  // a chunk of basalt in the hand, amber in its seams (StonespearLook.cs)
-                    MPoly(Hx(0x3b3632), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 8f, 6f, 14f, 5f);
-                    MPoly(Hx(0x7d746a), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 11f, 0f);
-                    MLine(7f, -2f, 11f, 0.5f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f))); MLine(11f, 0.5f, 15f, -1f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f)));
-                    break;
-                case WeaponId.WindClash:  // a little knot of wind in the palm (WindClashLook.cs)
-                    MCirc(9f, 0f, 6f, Hx(0x8fe3f2, 0.25f), 12); MCirc(9f, 0f, 2.4f, Hx(0xf2fdff), 8);
-                    for (int i = 0; i < 3; i++) { float a0 = t * 7f + i * 2.1f; MArc(9f, 0f, 4.2f + i * 1.4f, a0, a0 + 1.7f, 1.1f, Hx(0xbff3ff, 0.85f)); }
-                    break;
-                case WeaponId.IceShards:
-                    MArc(12f, 0f, 11f, 0f, MathX.Tau, 0.8f, Hx(0x8fe3ff, 0.4f));
-                    for (int i = 0; i < 3; i++)  // three ice shards circling
-                    {
-                        float a = t * 2f + i * 2.09f, x = 12f + Mathf.Cos(a) * 11f, y = Mathf.Sin(a) * 11f, dx = -Mathf.Sin(a), dy = Mathf.Cos(a);
-                        MPoly(Hx(0xe6fbff), x + dx * 5f, y + dy * 5f, x - dy * 2f, y + dx * 2f, x - dx * 2.2f, y - dy * 2.2f);
-                        MPoly(Hx(0x4fa8e0), x + dx * 5f, y + dy * 5f, x + dy * 2f, y - dx * 2f, x - dx * 2.2f, y - dy * 2.2f);
-                    }
-                    break;
-                // ---- Summoner
-                case WeaponId.GolemStaff:
-                    MLine(-12f, 0f, 28f, 0f, 3.2f, MWood); MPoly(Hx(0x8d8a82), 30f, 0f, 26f, -6f, 34f, -4f, 36f, 3f, 30f, 7f, 24f, 3f); MCirc(30f, 0f, 5f, Hx(0xffb03a, 0.3f), 10); MCirc(30f, 0f, 2.5f, Hx(0xffb03a), 8);
-                    break;
-                case WeaponId.BoneGuard:
-                    MLine(-10f, 0f, 26f, 0f, 3f, MBone); MCirc(30f, 0f, 5.5f, MBone, 10); MCirc(31f, -2f, 1.2f, Hx(0x1b2026), 6); MCirc(31f, 2f, 1.2f, Hx(0x1b2026), 6); MRect(28f, 3.5f, 6f, 2.2f, MBone);
-                    for (int i = 0; i < 2; i++) { float a = t * 2.5f + i * MathX.Pi; MCirc(30f + Mathf.Cos(a) * 10f, Mathf.Sin(a) * 10f, 1.8f, MBone, 6); }
-                    break;
-                case WeaponId.BearTotem:
-                    MRect(-4f, -5f, 6f, 10f, Hx(0x8a5a36)); MCirc(2f, 0f, 4.5f, Hx(0x6b4a2e), 10);
-                    for (int i = -1; i <= 1; i++) MLine(5f, i * 0.35f * 8f, 14f, i * 0.35f * 14f, 1.8f, Hx(0xf0e6c8));
-                    break;
-                case WeaponId.SpriteStaff:
-                    MLine(-10f, 0f, 24f, 0f, 2.6f, MWood); MArc(28f, 0f, 5.5f, 0f, MathX.Tau, 2f, Hx(0x59d36a)); MCirc(28f, 0f, 3f, Hx(0xb8ffc4), 8);
-                    for (int i = 0; i < 2; i++) { float a = t * 3f + i * MathX.Pi; MCirc(28f + Mathf.Cos(a) * 9f, Mathf.Sin(a) * 9f, 1.8f, Hx(0x9dffb0), 6); }
-                    break;
-                case WeaponId.TreantRod:
-                {
-                    // A gnarled root staff: dark bark with a light edge, a few thorns, and a green bud curling at the tip.
-                    float px = -8f, py = 0f;
-                    for (int i = 1; i <= 9; i++)
-                    {
-                        float x = -8f + i * 4f, y = Mathf.Sin(i * 0.9f) * 1.8f, w = 3.8f - i * 0.16f;
-                        MLine(px, py, x, y, w, Hx(0x8a5a2b)); MLine(px, py, x, y, w * 0.35f, Hx(0xc58a48));
-                        if (i == 3 || i == 6) MLine(x, y, x + 1.5f, y + (i == 3 ? -5f : 5f), 1.3f, Hx(0xd9c9a0));  // thorns
-                        px = x; py = y;
-                    }
-                    MCirc(-8f, 0f, 3f, Hx(0x4d3217), 8);  // the knotted butt
-                    MPoly(Hx(0x59c46a), 28f, 0f, 24f, -6f, 33f, -3f); MPoly(Hx(0x59c46a), 28f, 0f, 24f, 6f, 33f, 3f);  // two leaves
-                    MCirc(29f, 0f, 2.6f, Hx(0xcfffb0), 8);
-                    break;
-                }
-                case WeaponId.SpiritChalk:
-                {
-                    // A stick of chalk with a glowing spirit tip, shedding a few motes.
-                    MRect(2f, -3.5f, 18f, 7f, Hx(0xdfeaf5));
-                    MRect(2f, -3.5f, 18f, 2.4f, Hx(0xffffff, 0.6f));
-                    MCirc(21f, 0f, 4.6f, Hx(0xbfe6ff, 0.5f), 12); MCirc(21f, 0f, 2.6f, MWhite, 8);
-                    for (int i = 0; i < 3; i++) { float a = t * 3f + i * 2.1f; MCirc(24f + Mathf.Cos(a) * 5f, Mathf.Sin(a) * 6f, 1.1f, Hx(0xdff3ff), 5); }
-                    break;
-                }
-                case WeaponId.WolfWhistle:
-                    MLine(-2f, 0f, 18f, 0f, 2.2f, Hx(0x7a6a55)); MCirc(19f, 0f, 1.6f, Hx(0xe85a5a), 6); MLine(-6f, 6f, -2f, 1f, 0.8f, Hx(0xcfcfcf)); MCirc(-6f, 6f, 3f, MBone, 8); MCirc(-6f, 6f, 1f, Hx(0x3a3a3a), 6);
-                    break;
-                case WeaponId.WispLantern:
-                    MLine(-8f, 0f, 10f, 0f, 2.4f, Hx(0x6b5a45)); MRect(10f, -5f, 10f, 10f, Hx(0x2c3a46)); MRect(12f, -3f, 6f, 6f, Hx(0xaaf0ff));
-                    for (int i = 0; i < 3; i++) { float a = t * 2.5f + i * 2.09f; MCirc(15f + Mathf.Cos(a) * 11f, Mathf.Sin(a) * 11f, 2.2f, Hx(0xcffaff), 6); }
-                    break;
-                case WeaponId.HoneybeeStaff:  // a wooden staff topped with a little hive, a bee circling it and honey dripping (HoneybeeLook.cs)
-                {
-                    float glow = p.HoneyOn ? 0.35f + 0.15f * Mathf.Sin(t * 30f) : 0f;
-                    MLine(-8f, 0f, 15f, 0f, 2.4f, Hx(0x8a5a2b));
-                    if (glow > 0f) MCirc(20f, 0f, 9f, Hx(0xffc53d, glow), 14);
-                    MCirc(20f, 0f, 5.6f, Hx(0xe89a1c), 14);
-                    for (int i = -1; i <= 1; i++) MLine(17f + i * 0.4f, -4.6f + 0.8f * System.Math.Abs(i), 17f + i * 0.4f, 4.6f - 0.8f * System.Math.Abs(i), 0.9f, Hx(0x7a4a0a));
-                    MLine(20.5f, -5.4f, 20.5f, 5.4f, 0.9f, Hx(0x7a4a0a)); MCirc(24f, 0f, 1.3f, Hx(0x3a2205), 6);
-                    float d = (t * 0.9f) % 1f;
-                    MCirc(21f, 6f + d * 6f, 1.4f * (1f - d * 0.6f), Hx(0xffb52e, 1f - d * 0.5f), 6);
-                    float a = t * 6f;
-                    MCirc(20f + Mathf.Cos(a) * 9f, Mathf.Sin(a) * 9f, 1.6f, Hx(0xffc53d), 6); MCirc(20f + Mathf.Cos(a - 0.35f) * 9f, Mathf.Sin(a - 0.35f) * 9f, 1.1f, Hx(0x2a1a05), 5);
-                    break;
-                }
-                case WeaponId.ImpCaller:
-                    MLine(-8f, 0f, 18f, 0f, 2.6f, Hx(0x5a2a2a)); MCirc(20f, 0f, 4f, Hx(0xc0392b), 10); MPoly(Hx(0xff6a3a), 19f, -3f, 16f, -8f, 22f, -4f); MPoly(Hx(0xff6a3a), 19f, 3f, 16f, 8f, 22f, 4f);
-                    MCirc(22f, -1.5f, 0.9f, Hx(0xffe04a), 6); MCirc(22f, 1.5f, 0.9f, Hx(0xffe04a), 6);
-                    for (int i = 0; i < 2; i++) MPoly(Hx(0xff7a3a), 8f, -7f + i * 18f + Mathf.Sin(t * 4f + i) * 1.5f, 13f, -7f + i * 18f, 8f, -5f + i * 18f);
-                    break;
-                // ---- Knight
-                case WeaponId.Warhammer:
-                {
-                    if (fxOn)
-                        break;  // with Visual effects on, MeleeLooks.cs draws it in two hands: held (DrawHammerIdle), raised while charging and swung
-                    float c = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;  // charging with them off: raised up and back over the shoulder, glowing
-                    MFrame(mOx, mOy, -1.9f * c, mWs, false);
-                    MLine(-8f, 0f, 30f, 0f, 3.2f, MWood); MRect(28f, -9f, 10f, 18f, Hx(0xb9c4d4)); MPoly(MSteel, 38f, 0f, 38f, -2f, 45f, 0f, 38f, 2f); MPoly(MSteel, 28f, 0f, 28f, -2f, 23f, 0f, 28f, 2f);
-                    MLine(28f, -5f, 38f, -5f, 1f, MDark); MLine(28f, 5f, 38f, 5f, 1f, MDark);
-                    if (c > 0f) MCirc(33f, 0f, 9f + 5f * c, new Rgba(1f, 0.82f, 0.3f, 0.15f + 0.3f * c), 14);
-                    break;
-                }
-                case WeaponId.BulwarkBarrier:
-                    break;  // BulwarkBarrierLook.cs draws the shield round your front half
-                case WeaponId.Lance:
-                    break;  // LanceLook.cs draws the arms, shield and lance, held and swung (the model leaves its own out)
-                case WeaponId.Halberd:
-                    if (fxOn)
-                        break;  // with Visual effects on, HalberdLook.cs draws it in two hands
-                    MLine(-10f, 0f, 40f, 0f, 3f, MWood); MPoly(MSteel, 28f, 0f, 30f, -11f, 40f, -8f, 36f, -2f); MPoly(MSteel, 40f, -1.5f, 52f, 0f, 40f, 1.5f); MPoly(MSteel, 30f, 2f, 36f, 7f, 34f, 1f);
-                    break;
-                case WeaponId.Quarterstaff:  // Quarterstaff: an iron shaft, steel bands, a lantern head whose crystal and pips follow the Jab stacks
-                {
-                    if (fxOn)
-                        break;  // with Visual effects on, QuarterstaffLook.cs draws it in two hands (DrawQuarterstaffIdle)
-                    int cap = game.StaffCap(p), n = Mathf.Min(cap, (int)p.StaffStacks);
-                    float lit = cap > 0 ? (float)n / cap : 0f;
-                    MLine(-28f, 0f, 46f, 0f, 4.2f, Hx(0x12151c)); MLine(-28f, 0f, 46f, 0f, 3f, Hx(0x4a5262));
-                    MLine(14f, 0f, 15.5f, 0f, 5f, Hx(0x9aa4b8)); MLine(-10f, 0f, -8.5f, 0f, 5f, Hx(0x9aa4b8)); MLine(36f, 0f, 37.5f, 0f, 5f, Hx(0x9aa4b8));
-                    MPoly(Hx(0xb9c2d4), -36f, 0f, -28f, -2f, -28f, 2f);
-                    MPoly(Hx(0x9aa4b8), 55f, 0f, 51f, -5.5f, 44f, -5.5f, 40f, 0f, 44f, 5.5f, 51f, 5.5f);
-                    MPoly(Hx(0x0e1016), 53f, 0f, 50f, -4f, 45f, -4f, 42.5f, 0f, 45f, 4f, 50f, 4f);
-                    if (lit > 0f) MCirc(47.5f, 0f, 6f + 6f * lit, Hx(0xffd36a, 0.12f + 0.25f * lit), 12);
-                    MPoly(lit > 0f ? Hx(0xffd36a, 0.6f + 0.4f * lit) : Hx(0x6b7388), 47.5f, -3.6f, 51f, 0f, 47.5f, 3.6f, 44f, 0f);
-                    for (int i = 0; i < n; i++) { float a = t * 1.4f + i * MathX.Tau / cap; MCirc(47.5f + Mathf.Cos(a) * 9.5f, Mathf.Sin(a) * 9.5f, 1.8f, Hx(0xffd36a), 6); }
-                    break;
-                }
-                case WeaponId.Lightbringer:
-                    MLine(2f, 0f, 34f, 0f, 7f, Hx(0xfff0aa, 0.25f)); MLine(2f, 0f, 34f, 0f, 3.6f, Hx(0xfff3c0)); MPoly(Hx(0xfff3c0), 33f, 0f, 33f, -2f, 40f, 0f, 33f, 2f);
-                    MLine(2f, -6f, 2f, 6f, 3f, MGold); MLine(-6f, 0f, 2f, 0f, 3f, Hx(0x6b4a2e)); MCirc(-7f, 0f, 2.6f, MGold, 8);
-                    break;
-                case WeaponId.Censer:
-                {
-                    float y = Mathf.Sin(t * 2f) * 4f;
-                    MLine(0f, 0f, 12f, y, 1.2f, Hx(0xc9b26b)); MCirc(14f, y, 5f, MGold, 10); MCirc(13f, y - 1.5f, 1f, Hx(0x2a1d08), 6); MCirc(15f, y + 1.5f, 1f, Hx(0x2a1d08), 6);
-                    MArc(14f, y, 8f, t, t + 1.4f, 1.2f, Hx(0xfff0c8, 0.35f));
-                    break;
-                }
-                case WeaponId.TwinBlades:
-                    MLine(-4f, 0f, 0f, 0f, 3f, Hx(0x6b4a2e)); MLine(0f, -4f, 0f, 4f, 2.6f, MGold); MLine(1f, 0f, 22f, 0f, 3f, MSteel); MPoly(MSteel, 21f, 0f, 21f, -1.6f, 26f, 0f, 21f, 1.6f);
-                    break;
-                case WeaponId.Greatsword:
-                    if (fxOn)
-                        break;  // with Visual effects on, GreatswordLook.cs draws it in two hands (DrawGreatswordIdle)
-                    MPoly(Hx(0xd7e0ee), 3f, 0f, 3f, -3.5f, 40f, -3.5f, 46f, 0f, 40f, 3.5f, 3f, 3.5f); MLine(10f, 0f, 40f, 0f, 0.8f, Hx(0x8fa0b8)); MRect(-1f, -9f, 4f, 18f, MGold); MLine(-12f, 0f, -1f, 0f, 3.4f, Hx(0x6b4a2e)); MCirc(-14f, 0f, 3f, MGold, 8);
-                    break;
-                case WeaponId.Rapier:
-                    if (fxOn)
-                        break;  // with Visual effects on, MeleeLooks.cs draws it in hand (DrawRapierIdle)
-                    MLine(2f, 0f, 38f, 0f, 1.6f, Hx(0xeef4ff)); MArc(2f, 0f, 6f, -1.6f, 1.6f, 2f, MGold); MLine(-8f, 0f, 0f, 0f, 2.4f, Hx(0x5a3a2a)); MLine(-1f, -6f, -1f, 6f, 1.4f, MGold);
-                    break;
-                // ---- Ninja
-                case WeaponId.Kusarigama:
-                {
-                    if (fxOn && !p.Downed)
-                        break;  // with Visual effects on, MeleeLooks.cs draws it in hand, with arms (DrawMeleeHeldIdle)
-                    // The Ink Brush models (KusarigamaLook.cs) in miniature: the sickle on its grip, and the weight hanging on a short
-                    // chain, ringed in lilac while the next press throws it.
-                    MLine(-4f, 0f, 11f, 0f, 2.6f, MWood); MPoly(MSteel, 11f, 1f, 17f, -5f, 15f, -12f, 9f, -14f, 13f, -8f, 11f, -2f); MLine(17f, -5f, 9f, -14f, 0.8f, Hx(0xffffff));
-                    if (p.HookT <= 0f && !p.KusariWhirl)  // (a thrown or whirling weight is drawn in the world: KusarigamaLook.cs)
-                    {
-                        float sw = Mathf.Sin(t * 3.1f) * 2f;
-                        for (int i = 0; i < 3; i++) MCirc(-3f + sw * i / 3f, 4f + i * 3.2f, 1.1f, Hx(0xc4c7d6), 6);
-                        if (p.KusariStep == 1) MCirc(-3f + sw, 15f, 6.4f, Hx(0xb3a3ff), 12);
-                        MCirc(-3f + sw, 15f, 4.6f, Hx(0xc7ccde), 10); MCirc(-3f + sw, 15f, 3.6f, Hx(0x3b3c4d), 10);
-                    }
-                    break;
-                }
-                case WeaponId.BoStaff:
-                    if (fxOn)
-                        break;  // with Visual effects on, BoStaffLook.cs draws it in two hands (DrawBoStaffIdle)
-                    MLine(-22f, 0f, 26f, 0f, 3.2f, MWood); MCirc(26f, 0f, 2.2f, Hx(0x1d1d26), 6); MCirc(-22f, 0f, 2.2f, Hx(0x1d1d26), 6); MLine(-2f, -2f, -2f, 2f, 1.4f, Hx(0x1d1d26)); MLine(14f, -2f, 14f, 2f, 1.4f, Hx(0x1d1d26));
-                    break;
-                case WeaponId.FumaShuriken:
-                    if (p.FumaStance == 0 && !FumaReturning(p))  // (circling you or on its way back, it's drawn in the world: FumaLook.cs)
-                    {
-                        MStar(12f, 0f, 11f, 3.5f, 4, t * 2f, MSteel); MCirc(12f, 0f, 2.4f, Hx(0x1b2026), 8);
-                    }
-                    break;
-                case WeaponId.MedicineDarts:
-                    for (int i = -1; i <= 1; i++) { float a = i * 0.3f; MLine(0f, 0f, 12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, MSteel); MCirc(12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, Hx(0x7fffa3), 6); }
-                    break;
-                case WeaponId.SpiritFan:
-                    for (int i = -4; i < 4; i++) MPoly(Hx(0xbefad7, 0.85f), 0f, 0f, 16f * Mathf.Cos(i * 0.25f), 16f * Mathf.Sin(i * 0.25f), 16f * Mathf.Cos((i + 1) * 0.25f), 16f * Mathf.Sin((i + 1) * 0.25f));
-                    for (int i = -2; i <= 2; i++) MLine(0f, 0f, 16f * Mathf.Cos(i * 0.5f), 16f * Mathf.Sin(i * 0.5f), 0.8f, Hx(0x4a8a66));
-                    MArc(0f, 0f, 16f, -1f, 1f, 1.4f, Hx(0x7ad0a0));
-                    break;
-                case WeaponId.Ofuda:
-                    MFrame(mOx, mOy, Mathf.Sin(t * 3f) * 0.1f, mWs, false);
-                    MRect(4f, -4.5f, 13f, 9f, Hx(0xfff0cf)); MRect(8f, -1.5f, 6f, 3f, Hx(0xd93b3b));
-                    MFrame(mOx, mOy, 0f, mWs, false);
-                    MRect(14f, -13f + Mathf.Sin(t * 2f), 8f, 5f, Hx(0xfff0cf, 0.6f)); MRect(18f, 9f + Mathf.Sin(t * 2.4f), 8f, 5f, Hx(0xfff0cf, 0.6f));
-                    break;
-                case WeaponId.Shuriken:
-                    if (GreatStarHeld(p))  // the Great Star stance: the huge star over your shoulder (GreatStarLook.cs)
-                    {
-                        MStar(2f, -15f, 15f, 3.2f, 4, t * 1.6f, MSteel); MCirc(2f, -15f, 2.6f, Hx(0x14111f), 8);
-                    }
-                    else if (!Game.InGreatStar(p))
-                        MStar(6f, 0f, 6.5f, 2f, 4, t * 4f, MSteel);
-                    break;
-                case WeaponId.Katana:
-                    if (fxOn)
-                        break;  // with Visual effects on, the blade is KatanaLook.cs's (DrawKatanaIdle)
-                    MLine(-6f, 0f, 0f, 0f, 3f, Hx(0x1d1d26)); MCirc(1f, 0f, 3.4f, MGold, 8); MCirc(1f, 0f, 1.4f, Hx(0x1d1d26), 6);
-                    MLine(1f, 0f, 36f, 0f, 2.4f, Hx(0xdfe7f2)); MLine(2f, -0.9f, 35f, -0.9f, 0.7f, MWhite); MPoly(Hx(0xdfe7f2), 35f, 0f, 35f, -1.2f, 40f, 0f, 35f, 1.2f);
-                    break;
-                case WeaponId.Kunai:
-                    MLine(-1f, 0f, 5f, 0f, 2.2f, Hx(0x2a2a2a)); MArc(-4f, 0f, 3f, 0f, MathX.Tau, 1.2f, MSteel); MPoly(MSteel, 5f, 0f, 10f, -3f, 18f, 0f, 10f, 3f);
-                    break;
-                // ---- Hemomancer
-                case WeaponId.BloodLash:
-                {
-                    if (fxOn && !p.Downed)
-                        break;  // with Visual effects on, MeleeLooks.cs draws it in hand, with arms (DrawMeleeHeldIdle)
-                    MLine(-4f, 0f, 6f, 0f, 3f, Hx(0x3a0a10));
-                    float px = 6f, py = 0f;
-                    for (int i = 1; i <= 9; i++) { float x = 6f + i * 3.6f, y = Mathf.Sin(t * 8f + i * 0.9f) * 2.8f * i / 9f; MLine(px, py, x, y, 3f - i * 0.25f, Hx(0xe0203a)); px = x; py = y; }
-                    MCirc(px, py, 1.5f, Hx(0xff9aa6), 6);
-                    break;
-                }
-                case WeaponId.GoreMortar:
-                    MCirc(12f, 0f, 7f, Hx(0x3a0710), 12); MCirc(11f, -2f, 3f, Hx(0xa8182b), 8); MCirc(14f, 2f, 2f, Hx(0xe0203a), 8); MCirc(12f, 8f + MathX.Fmod(t * 8f, 4f), 1.4f, Hx(0xc4122e), 6);
-                    break;
-                case WeaponId.LeechTendrils:  // Leech Tendrils
-                    MCirc(2f, 0f, 3.4f, Hx(0x3a0710), 8);
-                    for (int k = -1; k <= 1; k++)
-                    {
-                        float px = 3f, py = 0f;
-                        for (int i = 1; i <= 7; i++) { float x = 3f + i * 2.6f, y = k * i * 1.4f + Mathf.Sin(t * 7f + i * 1.1f + k * 2f) * 1.3f * i / 7f; MLine(px, py, x, y, 2.4f - i * 0.22f, Hx(0xe0203a)); px = x; py = y; }
-                    }
-                    break;
-                case WeaponId.TransfusionDarts:
-                    MLine(-4f, 0f, 0f, 0f, 2f, Hx(0x999999)); MRect(0f, -2.6f, 16f, 5.2f, Hx(0xdddddd)); MRect(2f, -1.6f, 10f, 3.2f, Hx(0xd71f3b)); MLine(16f, 0f, 26f, 0f, 1.2f, MSteel);
-                    MLine(13f, -1.6f, 13f, 1.6f, 1f, Hx(0x59ff8c)); MLine(11.4f, 0f, 14.6f, 0f, 1f, Hx(0x59ff8c));
-                    break;
-                case WeaponId.SanguineOrb:
-                {
-                    MCirc(12f, 0f, 10f, Hx(0xc81428, 0.25f), 14); MCirc(12f, 0f, 7f, Hx(0x8e0f22), 12); MArc(12f, 0f, 4.5f, t * 3f, t * 3f + 3.5f, 1.6f, Hx(0xff6b7e));
-                    for (int i = 0; i < 3; i++) { float a = -t * 2f + i * 2.09f; MCirc(12f + Mathf.Cos(a) * 10f, Mathf.Sin(a) * 10f, 1.6f, Hx(0xe0203a), 6); }
-                    // The heal reserve: an arc round you filling as you coat enemies, glowing once there's enough to coat an ally.
-                    float full = MathX.Clamp01(p.BloodReserve / Game.ReserveMax);
-                    bool ready = p.BloodReserve >= Game.AllyCoatCost;
-                    float r = p.Def.BodyR;
-                    Arc(p.Disp, r + 5f, 2.5f, Mc(BloodDark.WithAlpha(0.6f)), 20, MathX.Pi * 0.2f, MathX.Pi * 0.6f);
-                    if (full > 0f)
-                        Arc(p.Disp, r + 5f, 2.5f, Mc((ready ? new Rgba(1f, 0.35f, 0.45f) : BloodRed).WithAlpha(ready ? 0.8f + 0.2f * Mathf.Sin(t * 8f) : 0.8f)), 20,
-                            MathX.Pi * 0.8f - MathX.Pi * 0.6f * full, MathX.Pi * 0.6f * full);
-                    break;
-                }
-                case WeaponId.VeinTether:
-                    MArc(6f, 0f, 10f, -1.3f, -0.2f, 2.8f, MBone); MArc(6f, 0f, 10f, 0.2f, 1.3f, 2.8f, MBone); MCirc(8f, 0f, 3.8f, Hx(0xc4122e), 10); MCirc(7f, -1f, 1.2f, Hx(0xff9aa6), 6); MLine(-6f, 0f, 5f, 0f, 1.4f, Hx(0xe0203a));
-                    break;
-                case WeaponId.BloodBolts:
-                    MPoly(Hx(0xb3122a), 2f, 0f, 10f, -3f, 22f, 0f, 10f, 3f); MPoly(Hx(0x7a0c1d), 4f, 3f, 10f, 8f, 14f, 4f); MPoly(Hx(0x7a0c1d), 4f, -3f, 10f, -8f, 14f, -4f); MLine(4f, 0f, 20f, 0f, 1f, Hx(0xff8896));
-                    break;
-                case WeaponId.Implosion:
-                    MCirc(2f, 0f, 4.2f, Hx(0x3a0710), 8);
-                    for (int i = 0; i < 3; i++) { float rr = 14f - MathX.Fmod(t * 10f + i * 4.7f, 14f); MArc(14f, 0f, Mathf.Max(rr, 1f), 0f, MathX.Tau, 1.4f, new Rgba(0.88f, 0.12f, 0.23f, 0.2f + 0.6f * (1f - rr / 14f))); }
-                    MCirc(14f, 0f, 2.4f, Hx(0x12020a), 8);
-                    break;
-                case WeaponId.BloodBrawler:
-                    DrawBsHand(t);  // an open, bleeding hand (BloodBrawlerLook.cs)
-                    break;
+                DrawBowFlex(p);
+                return;
             }
+            float draw = p.DrawT > 0f ? MathX.Clamp01(p.DrawT / 1.2f) : 0.35f;
+            MArc(2f, 0f, 16f, -1.05f, 1.05f, 2.6f, Hx(0x7a5a3a));
+            float nock = 4f - 6f * draw;
+            MLine(10f, -13.9f, nock, 0f, 0.8f, Hx(0xeaeaea)); MLine(nock, 0f, 10f, 13.9f, 0.8f, Hx(0xeaeaea));
+            MLine(nock, 0f, 26f, 0f, 1.4f, Hx(0xcfe9d6)); MPoly(Hx(0x59ff8c), 26f, 0f, 26f, -2f, 31f, 0f, 26f, 2f); MCirc(18f, 0f, 2f, Hx(0x59ff8c), 8);
+        }
+        }
+
+        void DrawHeldTwinRifle(Player p, float t, int hold)
+        {
+            if (mDpsOn) { DrawTwinRifleFx(); return; }  // DpsGunLooks.cs
+            MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
+            DrawTwinTube();
+        }
+
+        void DrawHeldGrenadeLauncher(Player p, float t, int hold)
+        {
+            if (Juicy) DrawGrenadeLauncherFx(); else DrawGrenadeLauncherPlain();  // GrenadeLauncherLook.cs
+        }
+
+        void DrawHeldDoubleBarrel(Player p, float t, int hold)
+        {
+            if (mDpsOn) DrawDoubleBarrelFx(); else DrawDoubleBarrelPlain();  // DoubleBarrelLook.cs
+        }
+
+        void DrawHeldRailgun(Player p, float t, int hold)
+        {
+            if (mDpsOn) { DrawRailgunFx(); return; }  // DpsGunLooks.cs
+            MRect(-8f, -3f, 10f, 6f, MDark); MLine(2f, -3f, 38f, -3f, 2.2f, MSteel); MLine(2f, 3f, 38f, 3f, 2.2f, MSteel);
+            for (int i = 0; i < 3; i++) MRect(10f + i * 8f, -4.6f, 3f, 9.2f, Hx(0x52c9ff));
+            MLine(4f, 0f, 36f, 0f, 1.5f, Hx(0xbff3ff));
+        }
+
+        void DrawHeldBurstSmg(Player p, float t, int hold)
+        {
+            if (mDpsOn) { DrawBurstSmgFx(); return; }  // DpsGunLooks.cs
+            MRect(-6f, -2.5f, 8f, 5f, MDark); MRect(0f, -3.4f, 14f, 6.8f, Hx(0x4a5560)); MRect(4f, 2f, 5f, 8f, Hx(0x22272e));
+            for (int i = 0; i < 3; i++) { float y = Mathf.Sin(t * 9f + i * 2.09f) * 2.2f; MLine(14f, y, 24f, y, 1.8f, MSteel); }
+        }
+
+        void DrawHeldFlamethrower(Player p, float t, int hold)
+        {
+            MRect(-6f, -3f, 10f, 6f, MDark); MRect(2f, -2.2f, 22f, 4.4f, Hx(0x7a3b22)); MCirc(26f, 0f, 3.2f, Hx(0x2a2a2a), 8);
+            MPoly(new Rgba(1f, 0.59f, 0.16f, 0.85f), 28f, 0f, 28f, -2f, 36f + Mathf.Sin(t * 20f) * 2f, 0f, 28f, 2f);
+            MRect(0f, 5f, 14f, 6f, Hx(0xb8442a)); MLine(6f, 5f, 6f, 11f, 1.4f, Hx(0xffd24a));
+        }
+
+        void DrawHeldFrostLance(Player p, float t, int hold)
+        {
+        }
+
+        void DrawHeldRadiantOrb(Player p, float t, int hold)
+        {
+            MCirc(12f, 0f, 10f, Hx(0xffe078, 0.25f), 14); MCirc(12f, 0f, 6.5f, Hx(0xffe9a0), 12); MCirc(12f, 0f, 3.5f, MWhite, 10); MArc(12f, 0f, 9.5f, t * 2f, t * 2f + 2.5f, 1.5f, Hx(0xffd24a));
+        }
+
+        void DrawHeldChainLight(Player p, float t, int hold)
+        {
+        {
+            MRect(-6f, -2f, 12f, 4f, MSteel);
+            MLine(6f, 0f, 18f, -5f, 1.8f, Hx(0x8fd8ff)); MLine(6f, 0f, 20f, 0f, 1.8f, Hx(0x8fd8ff)); MLine(6f, 0f, 18f, 5f, 1.8f, Hx(0x8fd8ff));
+            float j = Mathf.Sin(t * 30f);
+            MLine(18f, -5f, 21f, -2f + j, 1.2f, MWhite); MLine(21f, -2f + j, 20f, 0f, 1.2f, MWhite); MLine(20f, 0f, 21f, 2f - j, 1.2f, MWhite); MLine(21f, 2f - j, 18f, 5f, 1.2f, MWhite);
+        }
+        }
+
+        void DrawHeldNimbus(Player p, float t, int hold)
+        {
+        {
+            // A short wand under a little storm cloud that flickers with lightning.
+            MLine(-8f, 0f, 14f, 0f, 2.4f, MWood);
+            MCirc(18f, -3f, 5.5f, Hx(0x8a98c4), 10); MCirc(24f, -4f, 4.5f, Hx(0xa7b4dc), 10); MCirc(22f, 2f, 5f, Hx(0x7d8cba), 10); MCirc(26f, 1f, 3.5f, Hx(0xb9c5e8), 8);
+            if (Mathf.Sin(t * 9f) > 0.55f)
+            {
+                MLine(22f, 5f, 20f, 9f, 1.4f, Hx(0xfff3a0));
+                MLine(20f, 9f, 23f, 11f, 1.4f, Hx(0xfff3a0));
+            }
+        }
+        }
+
+        void DrawHeldFireball(Player p, float t, int hold)
+        {
+            MCirc(12f, 0f, 9f, Hx(0xff781e, 0.3f), 14); MCirc(12f, 0f, 6f, Hx(0xff7a1c), 12); MCirc(12f, 0f, 3.2f, Hx(0xffd35a), 10);
+            for (int i = 0; i < 5; i++) { float a = t * 5f + i * 1.26f; MLine(12f + Mathf.Cos(a) * 5f, Mathf.Sin(a) * 5f, 12f + Mathf.Cos(a) * 10.5f, Mathf.Sin(a) * 10.5f, 2.2f, new Rgba(1f, 0.59f, 0.16f, 0.8f)); }
+        }
+
+        void DrawHeldArcLightning(Player p, float t, int hold)
+        {
+        {
+            MLine(0f, -4f, 16f, -4f, 2.2f, MSteel); MLine(0f, 4f, 16f, 4f, 2.2f, MSteel); MCirc(16f, -4f, 1.8f, Hx(0xbfe9ff), 6); MCirc(16f, 4f, 1.8f, Hx(0xbfe9ff), 6);
+            float j = Mathf.Sin(t * 35f) * 1.5f;
+            MLine(16f, -4f, 20f, -1f + j, 1.3f, MWhite); MLine(20f, -1f + j, 14f, 1f - j, 1.3f, MWhite); MLine(14f, 1f - j, 16f, 4f, 1.3f, MWhite);
+        }
+        }
+
+        void DrawHeldStonespear(Player p, float t, int hold)
+        {
+            MPoly(Hx(0x3b3632), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 8f, 6f, 14f, 5f);
+            MPoly(Hx(0x7d746a), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 11f, 0f);
+            MLine(7f, -2f, 11f, 0.5f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f))); MLine(11f, 0.5f, 15f, -1f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f)));
+        }
+
+        void DrawHeldWindClash(Player p, float t, int hold)
+        {
+            MCirc(9f, 0f, 6f, Hx(0x8fe3f2, 0.25f), 12); MCirc(9f, 0f, 2.4f, Hx(0xf2fdff), 8);
+            for (int i = 0; i < 3; i++) { float a0 = t * 7f + i * 2.1f; MArc(9f, 0f, 4.2f + i * 1.4f, a0, a0 + 1.7f, 1.1f, Hx(0xbff3ff, 0.85f)); }
+        }
+
+        void DrawHeldIceShards(Player p, float t, int hold)
+        {
+            MArc(12f, 0f, 11f, 0f, MathX.Tau, 0.8f, Hx(0x8fe3ff, 0.4f));
+            for (int i = 0; i < 3; i++)  // three ice shards circling
+            {
+                float a = t * 2f + i * 2.09f, x = 12f + Mathf.Cos(a) * 11f, y = Mathf.Sin(a) * 11f, dx = -Mathf.Sin(a), dy = Mathf.Cos(a);
+                MPoly(Hx(0xe6fbff), x + dx * 5f, y + dy * 5f, x - dy * 2f, y + dx * 2f, x - dx * 2.2f, y - dy * 2.2f);
+                MPoly(Hx(0x4fa8e0), x + dx * 5f, y + dy * 5f, x + dy * 2f, y - dx * 2f, x - dx * 2.2f, y - dy * 2.2f);
+            }
+        }
+
+        void DrawHeldGolemStaff(Player p, float t, int hold)
+        {
+            MLine(-12f, 0f, 28f, 0f, 3.2f, MWood); MPoly(Hx(0x8d8a82), 30f, 0f, 26f, -6f, 34f, -4f, 36f, 3f, 30f, 7f, 24f, 3f); MCirc(30f, 0f, 5f, Hx(0xffb03a, 0.3f), 10); MCirc(30f, 0f, 2.5f, Hx(0xffb03a), 8);
+        }
+
+        void DrawHeldBoneGuard(Player p, float t, int hold)
+        {
+            MLine(-10f, 0f, 26f, 0f, 3f, MBone); MCirc(30f, 0f, 5.5f, MBone, 10); MCirc(31f, -2f, 1.2f, Hx(0x1b2026), 6); MCirc(31f, 2f, 1.2f, Hx(0x1b2026), 6); MRect(28f, 3.5f, 6f, 2.2f, MBone);
+            for (int i = 0; i < 2; i++) { float a = t * 2.5f + i * MathX.Pi; MCirc(30f + Mathf.Cos(a) * 10f, Mathf.Sin(a) * 10f, 1.8f, MBone, 6); }
+        }
+
+        void DrawHeldBearTotem(Player p, float t, int hold)
+        {
+            MRect(-4f, -5f, 6f, 10f, Hx(0x8a5a36)); MCirc(2f, 0f, 4.5f, Hx(0x6b4a2e), 10);
+            for (int i = -1; i <= 1; i++) MLine(5f, i * 0.35f * 8f, 14f, i * 0.35f * 14f, 1.8f, Hx(0xf0e6c8));
+        }
+
+        void DrawHeldSpriteStaff(Player p, float t, int hold)
+        {
+            MLine(-10f, 0f, 24f, 0f, 2.6f, MWood); MArc(28f, 0f, 5.5f, 0f, MathX.Tau, 2f, Hx(0x59d36a)); MCirc(28f, 0f, 3f, Hx(0xb8ffc4), 8);
+            for (int i = 0; i < 2; i++) { float a = t * 3f + i * MathX.Pi; MCirc(28f + Mathf.Cos(a) * 9f, Mathf.Sin(a) * 9f, 1.8f, Hx(0x9dffb0), 6); }
+        }
+
+        void DrawHeldTreantRod(Player p, float t, int hold)
+        {
+        {
+            // A gnarled root staff: dark bark with a light edge, a few thorns, and a green bud curling at the tip.
+            float px = -8f, py = 0f;
+            for (int i = 1; i <= 9; i++)
+            {
+                float x = -8f + i * 4f, y = Mathf.Sin(i * 0.9f) * 1.8f, w = 3.8f - i * 0.16f;
+                MLine(px, py, x, y, w, Hx(0x8a5a2b)); MLine(px, py, x, y, w * 0.35f, Hx(0xc58a48));
+                if (i == 3 || i == 6) MLine(x, y, x + 1.5f, y + (i == 3 ? -5f : 5f), 1.3f, Hx(0xd9c9a0));  // thorns
+                px = x; py = y;
+            }
+            MCirc(-8f, 0f, 3f, Hx(0x4d3217), 8);  // the knotted butt
+            MPoly(Hx(0x59c46a), 28f, 0f, 24f, -6f, 33f, -3f); MPoly(Hx(0x59c46a), 28f, 0f, 24f, 6f, 33f, 3f);  // two leaves
+            MCirc(29f, 0f, 2.6f, Hx(0xcfffb0), 8);
+        }
+        }
+
+        void DrawHeldSpiritChalk(Player p, float t, int hold)
+        {
+        {
+            // A stick of chalk with a glowing spirit tip, shedding a few motes.
+            MRect(2f, -3.5f, 18f, 7f, Hx(0xdfeaf5));
+            MRect(2f, -3.5f, 18f, 2.4f, Hx(0xffffff, 0.6f));
+            MCirc(21f, 0f, 4.6f, Hx(0xbfe6ff, 0.5f), 12); MCirc(21f, 0f, 2.6f, MWhite, 8);
+            for (int i = 0; i < 3; i++) { float a = t * 3f + i * 2.1f; MCirc(24f + Mathf.Cos(a) * 5f, Mathf.Sin(a) * 6f, 1.1f, Hx(0xdff3ff), 5); }
+        }
+        }
+
+        void DrawHeldWolfWhistle(Player p, float t, int hold)
+        {
+            MLine(-2f, 0f, 18f, 0f, 2.2f, Hx(0x7a6a55)); MCirc(19f, 0f, 1.6f, Hx(0xe85a5a), 6); MLine(-6f, 6f, -2f, 1f, 0.8f, Hx(0xcfcfcf)); MCirc(-6f, 6f, 3f, MBone, 8); MCirc(-6f, 6f, 1f, Hx(0x3a3a3a), 6);
+        }
+
+        void DrawHeldWispLantern(Player p, float t, int hold)
+        {
+            MLine(-8f, 0f, 10f, 0f, 2.4f, Hx(0x6b5a45)); MRect(10f, -5f, 10f, 10f, Hx(0x2c3a46)); MRect(12f, -3f, 6f, 6f, Hx(0xaaf0ff));
+            for (int i = 0; i < 3; i++) { float a = t * 2.5f + i * 2.09f; MCirc(15f + Mathf.Cos(a) * 11f, Mathf.Sin(a) * 11f, 2.2f, Hx(0xcffaff), 6); }
+        }
+
+        void DrawHeldHoneybeeStaff(Player p, float t, int hold)
+        {
+        {
+            float glow = p.HoneyOn ? 0.35f + 0.15f * Mathf.Sin(t * 30f) : 0f;
+            MLine(-8f, 0f, 15f, 0f, 2.4f, Hx(0x8a5a2b));
+            if (glow > 0f) MCirc(20f, 0f, 9f, Hx(0xffc53d, glow), 14);
+            MCirc(20f, 0f, 5.6f, Hx(0xe89a1c), 14);
+            for (int i = -1; i <= 1; i++) MLine(17f + i * 0.4f, -4.6f + 0.8f * System.Math.Abs(i), 17f + i * 0.4f, 4.6f - 0.8f * System.Math.Abs(i), 0.9f, Hx(0x7a4a0a));
+            MLine(20.5f, -5.4f, 20.5f, 5.4f, 0.9f, Hx(0x7a4a0a)); MCirc(24f, 0f, 1.3f, Hx(0x3a2205), 6);
+            float d = (t * 0.9f) % 1f;
+            MCirc(21f, 6f + d * 6f, 1.4f * (1f - d * 0.6f), Hx(0xffb52e, 1f - d * 0.5f), 6);
+            float a = t * 6f;
+            MCirc(20f + Mathf.Cos(a) * 9f, Mathf.Sin(a) * 9f, 1.6f, Hx(0xffc53d), 6); MCirc(20f + Mathf.Cos(a - 0.35f) * 9f, Mathf.Sin(a - 0.35f) * 9f, 1.1f, Hx(0x2a1a05), 5);
+        }
+        }
+
+        void DrawHeldImpCaller(Player p, float t, int hold)
+        {
+            MLine(-8f, 0f, 18f, 0f, 2.6f, Hx(0x5a2a2a)); MCirc(20f, 0f, 4f, Hx(0xc0392b), 10); MPoly(Hx(0xff6a3a), 19f, -3f, 16f, -8f, 22f, -4f); MPoly(Hx(0xff6a3a), 19f, 3f, 16f, 8f, 22f, 4f);
+            MCirc(22f, -1.5f, 0.9f, Hx(0xffe04a), 6); MCirc(22f, 1.5f, 0.9f, Hx(0xffe04a), 6);
+            for (int i = 0; i < 2; i++) MPoly(Hx(0xff7a3a), 8f, -7f + i * 18f + Mathf.Sin(t * 4f + i) * 1.5f, 13f, -7f + i * 18f, 8f, -5f + i * 18f);
+        }
+
+        void DrawHeldWarhammer(Player p, float t, int hold)
+        {
+        {
+            if (fxOn)
+                return;  // with Visual effects on, MeleeLooks.cs draws it in two hands: held (DrawHammerIdle), raised while charging and swung
+            float c = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;  // charging with them off: raised up and back over the shoulder, glowing
+            MFrame(mOx, mOy, -1.9f * c, mWs, false);
+            MLine(-8f, 0f, 30f, 0f, 3.2f, MWood); MRect(28f, -9f, 10f, 18f, Hx(0xb9c4d4)); MPoly(MSteel, 38f, 0f, 38f, -2f, 45f, 0f, 38f, 2f); MPoly(MSteel, 28f, 0f, 28f, -2f, 23f, 0f, 28f, 2f);
+            MLine(28f, -5f, 38f, -5f, 1f, MDark); MLine(28f, 5f, 38f, 5f, 1f, MDark);
+            if (c > 0f) MCirc(33f, 0f, 9f + 5f * c, new Rgba(1f, 0.82f, 0.3f, 0.15f + 0.3f * c), 14);
+        }
+        }
+
+        void DrawHeldBulwarkBarrier(Player p, float t, int hold)
+        {
+            return;  // BulwarkBarrierLook.cs draws the shield round your front half
+        }
+
+        void DrawHeldLance(Player p, float t, int hold)
+        {
+            return;  // LanceLook.cs draws the arms, shield and lance, held and swung (the model leaves its own out)
+        }
+
+        void DrawHeldHalberd(Player p, float t, int hold)
+        {
+            if (fxOn)
+                return;  // with Visual effects on, HalberdLook.cs draws it in two hands
+            MLine(-10f, 0f, 40f, 0f, 3f, MWood); MPoly(MSteel, 28f, 0f, 30f, -11f, 40f, -8f, 36f, -2f); MPoly(MSteel, 40f, -1.5f, 52f, 0f, 40f, 1.5f); MPoly(MSteel, 30f, 2f, 36f, 7f, 34f, 1f);
+        }
+
+        void DrawHeldQuarterstaff(Player p, float t, int hold)
+        {
+        {
+            if (fxOn)
+                return;  // with Visual effects on, QuarterstaffLook.cs draws it in two hands (DrawQuarterstaffIdle)
+            int cap = game.StaffCap(p), n = Mathf.Min(cap, (int)p.StaffStacks);
+            float lit = cap > 0 ? (float)n / cap : 0f;
+            MLine(-28f, 0f, 46f, 0f, 4.2f, Hx(0x12151c)); MLine(-28f, 0f, 46f, 0f, 3f, Hx(0x4a5262));
+            MLine(14f, 0f, 15.5f, 0f, 5f, Hx(0x9aa4b8)); MLine(-10f, 0f, -8.5f, 0f, 5f, Hx(0x9aa4b8)); MLine(36f, 0f, 37.5f, 0f, 5f, Hx(0x9aa4b8));
+            MPoly(Hx(0xb9c2d4), -36f, 0f, -28f, -2f, -28f, 2f);
+            MPoly(Hx(0x9aa4b8), 55f, 0f, 51f, -5.5f, 44f, -5.5f, 40f, 0f, 44f, 5.5f, 51f, 5.5f);
+            MPoly(Hx(0x0e1016), 53f, 0f, 50f, -4f, 45f, -4f, 42.5f, 0f, 45f, 4f, 50f, 4f);
+            if (lit > 0f) MCirc(47.5f, 0f, 6f + 6f * lit, Hx(0xffd36a, 0.12f + 0.25f * lit), 12);
+            MPoly(lit > 0f ? Hx(0xffd36a, 0.6f + 0.4f * lit) : Hx(0x6b7388), 47.5f, -3.6f, 51f, 0f, 47.5f, 3.6f, 44f, 0f);
+            for (int i = 0; i < n; i++) { float a = t * 1.4f + i * MathX.Tau / cap; MCirc(47.5f + Mathf.Cos(a) * 9.5f, Mathf.Sin(a) * 9.5f, 1.8f, Hx(0xffd36a), 6); }
+        }
+        }
+
+        void DrawHeldLightbringer(Player p, float t, int hold)
+        {
+            MLine(2f, 0f, 34f, 0f, 7f, Hx(0xfff0aa, 0.25f)); MLine(2f, 0f, 34f, 0f, 3.6f, Hx(0xfff3c0)); MPoly(Hx(0xfff3c0), 33f, 0f, 33f, -2f, 40f, 0f, 33f, 2f);
+            MLine(2f, -6f, 2f, 6f, 3f, MGold); MLine(-6f, 0f, 2f, 0f, 3f, Hx(0x6b4a2e)); MCirc(-7f, 0f, 2.6f, MGold, 8);
+        }
+
+        void DrawHeldCenser(Player p, float t, int hold)
+        {
+        {
+            float y = Mathf.Sin(t * 2f) * 4f;
+            MLine(0f, 0f, 12f, y, 1.2f, Hx(0xc9b26b)); MCirc(14f, y, 5f, MGold, 10); MCirc(13f, y - 1.5f, 1f, Hx(0x2a1d08), 6); MCirc(15f, y + 1.5f, 1f, Hx(0x2a1d08), 6);
+            MArc(14f, y, 8f, t, t + 1.4f, 1.2f, Hx(0xfff0c8, 0.35f));
+        }
+        }
+
+        void DrawHeldTwinBlades(Player p, float t, int hold)
+        {
+            MLine(-4f, 0f, 0f, 0f, 3f, Hx(0x6b4a2e)); MLine(0f, -4f, 0f, 4f, 2.6f, MGold); MLine(1f, 0f, 22f, 0f, 3f, MSteel); MPoly(MSteel, 21f, 0f, 21f, -1.6f, 26f, 0f, 21f, 1.6f);
+        }
+
+        void DrawHeldGreatsword(Player p, float t, int hold)
+        {
+            if (fxOn)
+                return;  // with Visual effects on, GreatswordLook.cs draws it in two hands (DrawGreatswordIdle)
+            MPoly(Hx(0xd7e0ee), 3f, 0f, 3f, -3.5f, 40f, -3.5f, 46f, 0f, 40f, 3.5f, 3f, 3.5f); MLine(10f, 0f, 40f, 0f, 0.8f, Hx(0x8fa0b8)); MRect(-1f, -9f, 4f, 18f, MGold); MLine(-12f, 0f, -1f, 0f, 3.4f, Hx(0x6b4a2e)); MCirc(-14f, 0f, 3f, MGold, 8);
+        }
+
+        void DrawHeldRapier(Player p, float t, int hold)
+        {
+            if (fxOn)
+                return;  // with Visual effects on, MeleeLooks.cs draws it in hand (DrawRapierIdle)
+            MLine(2f, 0f, 38f, 0f, 1.6f, Hx(0xeef4ff)); MArc(2f, 0f, 6f, -1.6f, 1.6f, 2f, MGold); MLine(-8f, 0f, 0f, 0f, 2.4f, Hx(0x5a3a2a)); MLine(-1f, -6f, -1f, 6f, 1.4f, MGold);
+        }
+
+        void DrawHeldKusarigama(Player p, float t, int hold)
+        {
+        {
+            if (fxOn && !p.Downed)
+                return;  // with Visual effects on, MeleeLooks.cs draws it in hand, with arms (DrawMeleeHeldIdle)
+            // The Ink Brush models (KusarigamaLook.cs) in miniature: the sickle on its grip, and the weight hanging on a short
+            // chain, ringed in lilac while the next press throws it.
+            MLine(-4f, 0f, 11f, 0f, 2.6f, MWood); MPoly(MSteel, 11f, 1f, 17f, -5f, 15f, -12f, 9f, -14f, 13f, -8f, 11f, -2f); MLine(17f, -5f, 9f, -14f, 0.8f, Hx(0xffffff));
+            if (p.HookT <= 0f && !p.KusariWhirl)  // (a thrown or whirling weight is drawn in the world: KusarigamaLook.cs)
+            {
+                float sw = Mathf.Sin(t * 3.1f) * 2f;
+                for (int i = 0; i < 3; i++) MCirc(-3f + sw * i / 3f, 4f + i * 3.2f, 1.1f, Hx(0xc4c7d6), 6);
+                if (p.KusariStep == 1) MCirc(-3f + sw, 15f, 6.4f, Hx(0xb3a3ff), 12);
+                MCirc(-3f + sw, 15f, 4.6f, Hx(0xc7ccde), 10); MCirc(-3f + sw, 15f, 3.6f, Hx(0x3b3c4d), 10);
+            }
+        }
+        }
+
+        void DrawHeldBoStaff(Player p, float t, int hold)
+        {
+            if (fxOn)
+                return;  // with Visual effects on, BoStaffLook.cs draws it in two hands (DrawBoStaffIdle)
+            MLine(-22f, 0f, 26f, 0f, 3.2f, MWood); MCirc(26f, 0f, 2.2f, Hx(0x1d1d26), 6); MCirc(-22f, 0f, 2.2f, Hx(0x1d1d26), 6); MLine(-2f, -2f, -2f, 2f, 1.4f, Hx(0x1d1d26)); MLine(14f, -2f, 14f, 2f, 1.4f, Hx(0x1d1d26));
+        }
+
+        void DrawHeldFumaShuriken(Player p, float t, int hold)
+        {
+            if (p.FumaStance == 0 && !FumaReturning(p))  // (circling you or on its way back, it's drawn in the world: FumaLook.cs)
+            {
+                MStar(12f, 0f, 11f, 3.5f, 4, t * 2f, MSteel); MCirc(12f, 0f, 2.4f, Hx(0x1b2026), 8);
+            }
+        }
+
+        void DrawHeldMedicineDarts(Player p, float t, int hold)
+        {
+            for (int i = -1; i <= 1; i++) { float a = i * 0.3f; MLine(0f, 0f, 12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, MSteel); MCirc(12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, Hx(0x7fffa3), 6); }
+        }
+
+        void DrawHeldSpiritFan(Player p, float t, int hold)
+        {
+            for (int i = -4; i < 4; i++) MPoly(Hx(0xbefad7, 0.85f), 0f, 0f, 16f * Mathf.Cos(i * 0.25f), 16f * Mathf.Sin(i * 0.25f), 16f * Mathf.Cos((i + 1) * 0.25f), 16f * Mathf.Sin((i + 1) * 0.25f));
+            for (int i = -2; i <= 2; i++) MLine(0f, 0f, 16f * Mathf.Cos(i * 0.5f), 16f * Mathf.Sin(i * 0.5f), 0.8f, Hx(0x4a8a66));
+            MArc(0f, 0f, 16f, -1f, 1f, 1.4f, Hx(0x7ad0a0));
+        }
+
+        void DrawHeldOfuda(Player p, float t, int hold)
+        {
+            MFrame(mOx, mOy, Mathf.Sin(t * 3f) * 0.1f, mWs, false);
+            MRect(4f, -4.5f, 13f, 9f, Hx(0xfff0cf)); MRect(8f, -1.5f, 6f, 3f, Hx(0xd93b3b));
+            MFrame(mOx, mOy, 0f, mWs, false);
+            MRect(14f, -13f + Mathf.Sin(t * 2f), 8f, 5f, Hx(0xfff0cf, 0.6f)); MRect(18f, 9f + Mathf.Sin(t * 2.4f), 8f, 5f, Hx(0xfff0cf, 0.6f));
+        }
+
+        void DrawHeldShuriken(Player p, float t, int hold)
+        {
+            if (GreatStarHeld(p))  // the Great Star stance: the huge star over your shoulder (GreatStarLook.cs)
+            {
+                MStar(2f, -15f, 15f, 3.2f, 4, t * 1.6f, MSteel); MCirc(2f, -15f, 2.6f, Hx(0x14111f), 8);
+            }
+            else if (!Game.InGreatStar(p))
+                MStar(6f, 0f, 6.5f, 2f, 4, t * 4f, MSteel);
+        }
+
+        void DrawHeldKatana(Player p, float t, int hold)
+        {
+            if (fxOn)
+                return;  // with Visual effects on, the blade is KatanaLook.cs's (DrawKatanaIdle)
+            MLine(-6f, 0f, 0f, 0f, 3f, Hx(0x1d1d26)); MCirc(1f, 0f, 3.4f, MGold, 8); MCirc(1f, 0f, 1.4f, Hx(0x1d1d26), 6);
+            MLine(1f, 0f, 36f, 0f, 2.4f, Hx(0xdfe7f2)); MLine(2f, -0.9f, 35f, -0.9f, 0.7f, MWhite); MPoly(Hx(0xdfe7f2), 35f, 0f, 35f, -1.2f, 40f, 0f, 35f, 1.2f);
+        }
+
+        void DrawHeldKunai(Player p, float t, int hold)
+        {
+            MLine(-1f, 0f, 5f, 0f, 2.2f, Hx(0x2a2a2a)); MArc(-4f, 0f, 3f, 0f, MathX.Tau, 1.2f, MSteel); MPoly(MSteel, 5f, 0f, 10f, -3f, 18f, 0f, 10f, 3f);
+        }
+
+        void DrawHeldBloodLash(Player p, float t, int hold)
+        {
+        {
+            if (fxOn && !p.Downed)
+                return;  // with Visual effects on, MeleeLooks.cs draws it in hand, with arms (DrawMeleeHeldIdle)
+            MLine(-4f, 0f, 6f, 0f, 3f, Hx(0x3a0a10));
+            float px = 6f, py = 0f;
+            for (int i = 1; i <= 9; i++) { float x = 6f + i * 3.6f, y = Mathf.Sin(t * 8f + i * 0.9f) * 2.8f * i / 9f; MLine(px, py, x, y, 3f - i * 0.25f, Hx(0xe0203a)); px = x; py = y; }
+            MCirc(px, py, 1.5f, Hx(0xff9aa6), 6);
+        }
+        }
+
+        void DrawHeldGoreMortar(Player p, float t, int hold)
+        {
+            MCirc(12f, 0f, 7f, Hx(0x3a0710), 12); MCirc(11f, -2f, 3f, Hx(0xa8182b), 8); MCirc(14f, 2f, 2f, Hx(0xe0203a), 8); MCirc(12f, 8f + MathX.Fmod(t * 8f, 4f), 1.4f, Hx(0xc4122e), 6);
+        }
+
+        void DrawHeldLeechTendrils(Player p, float t, int hold)
+        {
+            MCirc(2f, 0f, 3.4f, Hx(0x3a0710), 8);
+            for (int k = -1; k <= 1; k++)
+            {
+                float px = 3f, py = 0f;
+                for (int i = 1; i <= 7; i++) { float x = 3f + i * 2.6f, y = k * i * 1.4f + Mathf.Sin(t * 7f + i * 1.1f + k * 2f) * 1.3f * i / 7f; MLine(px, py, x, y, 2.4f - i * 0.22f, Hx(0xe0203a)); px = x; py = y; }
+            }
+        }
+
+        void DrawHeldTransfusionDarts(Player p, float t, int hold)
+        {
+            MLine(-4f, 0f, 0f, 0f, 2f, Hx(0x999999)); MRect(0f, -2.6f, 16f, 5.2f, Hx(0xdddddd)); MRect(2f, -1.6f, 10f, 3.2f, Hx(0xd71f3b)); MLine(16f, 0f, 26f, 0f, 1.2f, MSteel);
+            MLine(13f, -1.6f, 13f, 1.6f, 1f, Hx(0x59ff8c)); MLine(11.4f, 0f, 14.6f, 0f, 1f, Hx(0x59ff8c));
+        }
+
+        void DrawHeldSanguineOrb(Player p, float t, int hold)
+        {
+        {
+            MCirc(12f, 0f, 10f, Hx(0xc81428, 0.25f), 14); MCirc(12f, 0f, 7f, Hx(0x8e0f22), 12); MArc(12f, 0f, 4.5f, t * 3f, t * 3f + 3.5f, 1.6f, Hx(0xff6b7e));
+            for (int i = 0; i < 3; i++) { float a = -t * 2f + i * 2.09f; MCirc(12f + Mathf.Cos(a) * 10f, Mathf.Sin(a) * 10f, 1.6f, Hx(0xe0203a), 6); }
+            // The heal reserve: an arc round you filling as you coat enemies, glowing once there's enough to coat an ally.
+            float full = MathX.Clamp01(p.BloodReserve / Game.ReserveMax);
+            bool ready = p.BloodReserve >= Game.AllyCoatCost;
+            float r = p.Def.BodyR;
+            Arc(p.Disp, r + 5f, 2.5f, Mc(BloodDark.WithAlpha(0.6f)), 20, MathX.Pi * 0.2f, MathX.Pi * 0.6f);
+            if (full > 0f)
+                Arc(p.Disp, r + 5f, 2.5f, Mc((ready ? new Rgba(1f, 0.35f, 0.45f) : BloodRed).WithAlpha(ready ? 0.8f + 0.2f * Mathf.Sin(t * 8f) : 0.8f)), 20,
+                    MathX.Pi * 0.8f - MathX.Pi * 0.6f * full, MathX.Pi * 0.6f * full);
+        }
+        }
+
+        void DrawHeldVeinTether(Player p, float t, int hold)
+        {
+            MArc(6f, 0f, 10f, -1.3f, -0.2f, 2.8f, MBone); MArc(6f, 0f, 10f, 0.2f, 1.3f, 2.8f, MBone); MCirc(8f, 0f, 3.8f, Hx(0xc4122e), 10); MCirc(7f, -1f, 1.2f, Hx(0xff9aa6), 6); MLine(-6f, 0f, 5f, 0f, 1.4f, Hx(0xe0203a));
+        }
+
+        void DrawHeldBloodBolts(Player p, float t, int hold)
+        {
+            MPoly(Hx(0xb3122a), 2f, 0f, 10f, -3f, 22f, 0f, 10f, 3f); MPoly(Hx(0x7a0c1d), 4f, 3f, 10f, 8f, 14f, 4f); MPoly(Hx(0x7a0c1d), 4f, -3f, 10f, -8f, 14f, -4f); MLine(4f, 0f, 20f, 0f, 1f, Hx(0xff8896));
+        }
+
+        void DrawHeldImplosion(Player p, float t, int hold)
+        {
+            MCirc(2f, 0f, 4.2f, Hx(0x3a0710), 8);
+            for (int i = 0; i < 3; i++) { float rr = 14f - MathX.Fmod(t * 10f + i * 4.7f, 14f); MArc(14f, 0f, Mathf.Max(rr, 1f), 0f, MathX.Tau, 1.4f, new Rgba(0.88f, 0.12f, 0.23f, 0.2f + 0.6f * (1f - rr / 14f))); }
+            MCirc(14f, 0f, 2.4f, Hx(0x12020a), 8);
         }
     }
 }

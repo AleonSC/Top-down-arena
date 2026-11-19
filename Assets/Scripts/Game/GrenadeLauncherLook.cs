@@ -282,7 +282,7 @@ namespace Arena
                 if (p.Weapon.Id != WeaponId.GrenadeLauncher)
                     continue;
                 var s = GlOf(p.Id);
-                V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+                V2.Axes(p.Aim, out V2 dir, out V2 side);
                 int mode = GlDrawnMode(p), n = GlChambersOf(p, mode);
                 if (s.Shot < 0)
                     s.Shot = p.GlShot;
@@ -420,7 +420,7 @@ namespace Arena
         /// An HE round from the side (the mockup's drawShell): olive body, red nose, brass base, turning as it flies.
         void GlShell(V2 at, float r, float rot)
         {
-            V2 d = V2.FromAngle(rot), s = d.Orthogonal();
+            V2.Axes(rot, out V2 d, out V2 s);
             SetColor(GlHeBody);
             Quad(at - d * (r * 1.3f) - s * r, at + d * (r * 0.9f) - s * r, at + d * (r * 0.9f) + s * r, at - d * (r * 1.3f) + s * r);
             SetColor(GlHeTip);
@@ -714,7 +714,7 @@ namespace Arena
         {
             if (p.Downed || p.Id != game.MyId)
                 return;
-            V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
+            V2.Axes(p.Aim + MathX.Pi, out V2 back, out V2 side);
             V2 c = p.Disp + back * 34f - side * 14f;
             int mode = p.GlMode, n = GlChambersOf(p, 0), he = Mathf.Max(0, Game.GlDrumOf(p) - p.GlUsed);
             Rgba col = mode == 0 ? GlHeLabel : GlSmLabel;

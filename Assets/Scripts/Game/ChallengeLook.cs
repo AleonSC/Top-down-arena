@@ -339,7 +339,7 @@ namespace Arena
             glShadow = !flash;
             DrawPlayer(q, t, true);
             glShadow = false;
-            V2 dir = V2.FromAngle(e.Facing), side = dir.Orthogonal();
+            V2.Axes(e.Facing, out V2 dir, out V2 side);
             Circle(pos + dir * (r * 0.35f) + side * (r * 0.25f), 2.5f, new Rgba(1f, 0.2f, 0.25f), 6);
             Circle(pos + dir * (r * 0.35f) - side * (r * 0.25f), 2.5f, new Rgba(1f, 0.2f, 0.25f), 6);
             if (e.Hp < e.MaxHp)

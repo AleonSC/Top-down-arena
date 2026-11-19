@@ -21,9 +21,8 @@ namespace Arena
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
         static GUIStyle panel, button, field, bareField, label, track, hudRim, pill;
-        static GUIStyle card, cardTint, cardRim;  // choice cards
+        static GUIStyle cardRim;  // choice cards' rim
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
-        static Texture2D chip;
         static GUIStyle glowStyle;               // a soft glow that falls off over GlowSpread px (Glow)
         static Texture2D dotFill, dotRing;       // true circles (Dot): the 9-sliced capsule collapses when it's small
         public const float GlowSpread = 34f;
@@ -99,10 +98,7 @@ namespace Arena
             button.hover.background = Rounded(10, new Color(1f, 1f, 1f), new Color(0.84f, 0.86f, 0.92f), new Color(1f, 1f, 1f, 0.85f), 2f);
             button.active.background = Rounded(10, new Color(0.66f, 0.68f, 0.74f), new Color(0.78f, 0.8f, 0.86f), new Color(1f, 1f, 1f, 0.5f), 1.5f);
             // Choice cards: a dark card with a slate rim; the selected one is washed with its colour from the top.
-            card = Style(Rounded(10, new Color(0.137f, 0.157f, 0.22f, 1f), new Color(0.106f, 0.122f, 0.172f, 1f), new Color(0.2f, 0.235f, 0.337f, 1f), 1.5f), 10);
-            cardTint = Style(Rounded(10, new Color(1f, 1f, 1f, 0.42f), new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), 0f), 10);
             cardRim = Style(Rounded(10, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 1.5f), 10);
-            chip = Circle(40, Color.white, Color.white);
             capsule = Style(Rounded(15, Color.white, Color.white, new Color(1f, 1f, 1f, 0f), 0f), 15);
             capsuleRim = Style(Rounded(15, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 1.2f), 15);
             glowStyle = new GUIStyle();

@@ -86,7 +86,7 @@ namespace Arena
                 Game.WcLance(age, scale, out head, out tail, out al);
                 if (head - tail < 2f || al <= 0f)
                     return;
-                V2 dir = V2.FromAngle(aim), nrm = dir.Orthogonal();
+                V2.Axes(aim, out V2 dir, out V2 nrm);
                 float w = Game.WcLanceW * scale;
                 WcStrip(c, dir, tail, head, w * 1.5f, 0.5f, WcDeep.WithAlpha(0.22f * al));
                 WcStrip(c, dir, tail, head, w * 0.8f, 0.5f, WcMid.WithAlpha(0.5f * al));

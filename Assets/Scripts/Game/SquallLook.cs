@@ -82,7 +82,7 @@ namespace Arena
                 case EnemyType.SquallGunner:
                 {
                     Circle(pos, r * 2.1f, SqBlue.WithAlpha(0.06f), 18);
-                    V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                    V2.Axes(e.Facing, out V2 f, out V2 s);
                     // The vane on its back, swaying, leaning to its wind's side.
                     float side = e.Strafe >= 0f ? 1f : -1f;
                     V2 hinge = pos - f * (r * 0.95f);
@@ -142,7 +142,7 @@ namespace Arena
                 case EnemyType.Lineman:
                 {
                     Circle(pos, r * 2f, SqBlue.WithAlpha(0.06f), 16);
-                    V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                    V2.Axes(e.Facing, out V2 f, out V2 s);
                     // The coil pack on its back.
                     V2 b0 = pos - f * (r * 1.2f);
                     Quad(b0 + s * (r * 0.6f), b0 + s * (r * 0.6f) - f * (r * 0.55f), b0 - s * (r * 0.6f) - f * (r * 0.55f), b0 - s * (r * 0.6f), new Rgba(0.17f, 0.14f, 0.09f));
@@ -188,7 +188,7 @@ namespace Arena
                 {
                     float raise = e.Winding ? 1f : 0.15f;
                     Circle(pos, r * 2f, SqAmber.WithAlpha(0.05f + 0.12f * raise), 18);
-                    V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                    V2.Axes(e.Facing, out V2 f, out V2 s);
                     V2 nose = pos + f * (r * 1.1f), back = pos - f * (r * 0.9f);
                     V2 l = pos - f * (r * 0.55f) + s * (r * 0.95f), rgt = pos - f * (r * 0.55f) - s * (r * 0.95f);
                     var rim = col.Mix(new Rgba(0.5f, 0.55f, 0.69f), 0.6f);

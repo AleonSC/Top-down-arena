@@ -99,7 +99,7 @@ namespace Arena
             var brk = Finish(Mix(
                 Tone(0.04f, S, 5000f, 1800f, 0.4f, noise: 1f, lowpass: 0.8f, attack: 0.001f, decay: 3f),
                 Glass(0.22f, 8, 0.08f, 2000f, 5500f)), 0.42f);
-            float wave = Game.ZeroWaveAt, sh = Game.ZeroShatterAt - Game.ZeroWaveAt;
+            float wave = Game.ZeroWaveAt;
             var charge = Finish(Mix(
                 Rush(wave, 300f, 1500f, 0.3f, wave * 0.85f),                                                       // a cold breath swelling
                 Pad(wave, FrE * 0.25f, 0.1f, wave * 0.8f), Pad(wave, FrB * 0.25f, 0.07f, wave * 0.9f),             // the choir rising

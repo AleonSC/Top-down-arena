@@ -44,7 +44,7 @@ namespace Arena
             }
             var pts = e.Type == EnemyType.Shambler ? ShamblerPts : e.Type == EnemyType.Runner ? RunnerPts : e.Type == EnemyType.Crawler ? CrawlerPts : e.Type == EnemyType.Shrieker ? ShriekerPts : e.Type == EnemyType.GraveCaller ? CallerPts : MenderPts;
             float s = r * (e.Type == EnemyType.Shrieker && acting ? 1.3f : 1f);
-            V2 fx = V2.FromAngle(a), fy = fx.Orthogonal();
+            V2.Axes(a, out V2 fx, out V2 fy);
             int n = pts.Length / 2;
             for (int i = 0; i < n; i++)
                 zShape[i] = pos + fx * (pts[i * 2] * s) + fy * (pts[i * 2 + 1] * s);
@@ -65,7 +65,7 @@ namespace Arena
                 Tri(pos, pos + (zShape[i] - pos) * 0.48f, pos + (zShape[(i + 1) % n] - pos) * 0.48f);
             if (e.Type == EnemyType.Mender)
                 Circle(pos, r * ((e.Phase & Zombies.PhAct) != 0 ? 0.34f : 0.22f), new Rgba(0.86f, 1f, 0.9f, 0.55f + 0.35f * Mathf.Sin(t * 4f + e.Id)), 12);
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 side);
             bool soul = e.Type == EnemyType.GraveCaller || (e.Phase & Zombies.PhCalled) != 0;
             if (e.Type == EnemyType.GraveCaller)
             {

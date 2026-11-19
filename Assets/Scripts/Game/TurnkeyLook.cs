@@ -38,7 +38,7 @@ namespace Arena
 
         void DrawTurnkey(Enemy e, V2 pos, float r, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             bool planting = e.Phase == 2, building = e.Phase == 3;
             float work = planting ? 1f - Mathf.Clamp01(e.PhaseT / Game.TurnkeyPlant) : building ? 1f - Mathf.Clamp01(e.PhaseT / Game.TurnkeyBuild) : 0f;
             V2 body = pos + (planting ? f * (r * 0.15f) : V2.Zero);  // leaning over its trap
@@ -99,7 +99,7 @@ namespace Arena
         /// works it the cell glows orange and the gate swings open as a Rioter comes out; jammed, a chain crosses it, padlocked.
         void DrawCellDoor(Enemy e, V2 pos, float r, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float w = r * 1.05f, d = r * 0.8f;
             bool jammed = e.Phase == 2;
             V2 fl = pos + f * d - s * w, fr = pos + f * d + s * w, bl = pos - f * d - s * w, br = pos - f * d + s * w;

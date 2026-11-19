@@ -352,7 +352,7 @@ namespace Arena
                 for (int k = 0; k < 12; k++)  // flame tongues licking out of the edge
                 {
                     float a = MathX.Tau * k / 12f + pt.Id, len = 10f + 7f * Mathf.Sin(t * 11f + k * 1.7f + pt.Id);
-                    V2 d = V2.FromAngle(a), s = d.Orthogonal();
+                    V2.Axes(a, out V2 d, out V2 s);
                     SetColor(new Rgba(1f, 0.5f + 0.2f * Mathf.Sin(t * 7f + k), 0.15f, 0.6f * fade));
                     Tri(pt.Pos + d * (r + len), pt.Pos + d * (r - 6f) + s * 6f, pt.Pos + d * (r - 6f) - s * 6f);
                 }

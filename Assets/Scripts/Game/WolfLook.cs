@@ -161,7 +161,7 @@ namespace Arena
                     if (m.Scale > 1.01f)
                         alphaSize = Game.AlphaSize(m);
                 }
-            V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
+            V2.Axes(p.Aim + MathX.Pi, out V2 back, out V2 side);
             for (int i = 0; i < Game.PackMax; i++)
             {
                 V2 c = p.Disp + back * 30f + side * ((i - (Game.PackMax - 1) / 2f) * 11f);

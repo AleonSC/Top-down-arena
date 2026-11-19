@@ -329,7 +329,7 @@ namespace Arena
                 Tri(c, c + (w[i] - c) * 0.66f, c + (w[(i + 1) % n] - c) * 0.66f);
             for (int i = 0; i < n; i++)
                 Line(w[i], w[(i + 1) % n], 1.8f, BbRim);
-            V2 up = V2.FromAngle(spin - Mathf.PI / 2f), side = up.Orthogonal();
+            V2.Axes(spin - Mathf.PI / 2f, out V2 up, out V2 side);
             Line(c - up * 9f * scale, c + up * 10f * scale, 1.1f, BbTrim.WithAlpha(0.85f));  // the gold cross
             Line(c - side * 6f * scale, c + side * 6f * scale, 1.1f, BbTrim.WithAlpha(0.85f));
             Circle(c, 4.2f * scale, BbBossDark, 12);

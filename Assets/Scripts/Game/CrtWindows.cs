@@ -30,7 +30,9 @@ namespace Arena
         string cabBootLog = "> LINK OK   > SAVE OK";
 
         /// For previews (Tools/Preview): typed text in a window counts as already typed.
+#pragma warning disable 0649  // set only by Tools/Preview (reflection)
         bool cabInstant;
+#pragma warning restore 0649
 
         // --- Typed text -------------------------------------------------------------------------------------------------
 

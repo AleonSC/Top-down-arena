@@ -83,7 +83,7 @@ namespace Arena
                     jit = (Hash01(i + step) - 0.5f) * (s - 0.65f) * 14f;
                     jr = (Hash01(i * 3f + step) - 0.5f) * (s - 0.65f) * 0.5f;
                 }
-                V2 radial = V2.FromAngle(a), tang = radial.Orthogonal();
+                V2.Axes(a, out V2 radial, out V2 tang);
                 V2 c = p.Disp + radial * (reach - kick + slam + jit);
                 float ca = Mathf.Cos(jr), sa = Mathf.Sin(jr);
 

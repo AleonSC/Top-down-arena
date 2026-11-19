@@ -47,7 +47,7 @@ namespace Arena
                 since = laneSince[e.Id] = t;
             }
             float p = MathX.Clamp01((t - since) / windUp);
-            V2 dir = V2.FromAngle(e.Facing), side = dir.Orthogonal();
+            V2.Axes(e.Facing, out V2 dir, out V2 side);
             float half = r * 0.9f;
             Rgba red = JobColors[(int)EnemyJob.Hunter];
             V2 a = pos + dir * r, b = pos + dir * (r + reach);

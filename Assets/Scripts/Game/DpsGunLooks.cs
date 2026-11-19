@@ -155,7 +155,7 @@ namespace Arena
                     s.Phase = MathX.Fmod(s.Phase + dt * (6f + 60f * p.SpinUp), MathX.Tau);
                 else if (p.Weapon.Id == WeaponId.Railgun && juiceClock - s.T < RailVent && Rnd(0f, 1f) < dt * 50f)
                 {
-                    V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+                    V2.Axes(p.Aim, out V2 dir, out V2 side);
                     float sg = Rnd(0f, 1f) < 0.5f ? -1f : 1f;
                     AddPart(new Part { Kind = PDust, Pos = p.Disp + dir * Rnd(16f, 38f) + side * (sg * 6f), Vel = side * (sg * Rnd(10f, 30f)) + dir * Rnd(-15f, 15f), Life = Rnd(0.35f, 0.6f), Max = 0.6f, Size = 3.2f, Col = SteamCol });
                 }

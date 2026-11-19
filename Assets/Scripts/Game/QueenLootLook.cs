@@ -13,7 +13,7 @@ namespace Arena
         {
             var c = m.GuardFrac <= 0f ? HoneyGold.Darkened(0.4f) : HoneyGold;
             float r = m.Def.Radius;
-            V2 dir = V2.FromAngle(m.Aim), side = dir.Orthogonal();
+            V2.Axes(m.Aim, out V2 dir, out V2 side);
             float beat = 0.5f + 0.5f * Mathf.Sin(t * 45f + m.Id);
             for (int k = -1; k <= 1; k += 2)  // wings, a blur either side
                 Circle(m.Disp + side * (k * (r * 0.9f)) - dir * 2f, r * (0.55f + 0.2f * beat), new Rgba(0.9f, 0.98f, 1f, 0.35f + 0.25f * beat), 8);

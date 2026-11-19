@@ -70,7 +70,7 @@ namespace Arena
                 Arc(c, R * 0.86f, 1.4f, TreeGlow.WithAlpha(0.35f * a), 2, spin + MathX.Tau * k / 28f, MathX.Tau / 28f * 0.3f);
             for (int k = 0; k < 8; k++)  // leaf runes
             {
-                V2 u = V2.FromAngle(spin + MathX.Tau * k / 8f), s2 = u.Orthogonal();
+                V2.Axes(spin + MathX.Tau * k / 8f, out V2 u, out V2 s2);
                 V2 p0 = c + u * R * 0.66f, p1 = c + u * R * 0.76f + s2 * 6f, p2 = c + u * R * 0.86f, p3 = c + u * R * 0.76f - s2 * 6f;
                 SetColor(TreeGlow.WithAlpha(0.55f * a));
                 Quad(p0, p1, p2, p3);

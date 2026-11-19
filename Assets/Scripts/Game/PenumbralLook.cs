@@ -65,7 +65,7 @@ namespace Arena
 
         void DrawPenumbralBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             switch (e.Type)
             {
                 case EnemyType.Ember:
@@ -167,7 +167,7 @@ namespace Arena
         void DrawGnomon(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             bool planted = e.Phase == 1 || e.Phase == 2;
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float swell = e.Phase == 1 ? Mathf.Clamp01(e.SeenT / Game.GnomonSwell) : 0f;
             // The lantern on its pole, behind the slab.
             V2 lamp = pos - f * (r * 1.15f);
@@ -194,7 +194,7 @@ namespace Arena
         /// A planted Gnomon's shadow on the floor; as the lantern flashes, everything but the shadow whites out.
         void DrawGnomonShadow(Enemy e, V2 pos, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float a0 = e.Radius * 0.4f, a1 = Game.GnomonShadowLen;
             float w0 = Game.GnomonShadowBase + a0 * Game.GnomonShadowFlare, w1 = Game.GnomonShadowBase + a1 * Game.GnomonShadowFlare;
             V2 n0 = pos + f * a0, n1 = pos + f * a1;
@@ -227,7 +227,7 @@ namespace Arena
 
         void DrawDuskLobber(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             Circle(pos, r * 2f, PenDusk.WithAlpha(0.08f + (e.Winding ? 0.12f : 0f)), 16);
             var robeCol = col.Mix(new Rgba(0.35f, 0.28f, 0.55f), 0.5f);
             V2 nose = pos + f * (r * 1.1f), back = pos - f * (r * 0.95f);
@@ -319,7 +319,7 @@ namespace Arena
 
         void DrawSickle(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            V2.Axes(e.Facing, out V2 f, out V2 s);
             float wind = e.Winding ? 0.5f + 0.5f * Mathf.Sin(t * 18f) : 0f;
             Circle(pos, r * 1.9f, PenMoon.WithAlpha(0.06f + 0.14f * wind), 16);
             PenRobe(pos, f, s, r, col.Mix(new Rgba(0.45f, 0.47f, 0.55f), 0.5f));

@@ -128,7 +128,7 @@ namespace Arena
                 case EnemyType.VoidAcolyte:
                 {
                     Circle(pos, r * 2.1f, InfPink.WithAlpha(0.06f), 18);
-                    V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                    V2.Axes(e.Facing, out V2 f, out V2 s);
                     // The robe: a teardrop pointing where it faces.
                     V2 nose = pos + f * (r * 1.15f), back = pos - f * (r * 0.95f);
                     V2 l = pos - f * (r * 0.55f) + s * (r * 0.95f), rgt = pos - f * (r * 0.55f) - s * (r * 0.95f);
@@ -172,7 +172,7 @@ namespace Arena
                 case EnemyType.Graviton:
                 {
                     Circle(pos, r * 2f, InfViolet.WithAlpha(0.06f), 18);
-                    V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                    V2.Axes(e.Facing, out V2 f, out V2 s);
                     Circle(pos, r, new Rgba(0.11f, 0.08f, 0.16f), 18);
                     Arc(pos, r, 2f, col, 18);
                     // A pack on its back.
@@ -238,7 +238,7 @@ namespace Arena
                 }
                 case EnemyType.Lens:
                 {
-                    V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                    V2.Axes(e.Facing, out V2 f, out V2 s);
                     // Where its face bends shots: a faint arc in front.
                     Arc(pos, Game.LensRange + r, 1.2f, InfCyan.WithAlpha(0.16f), 24, e.Facing - Game.LensArc, Game.LensArc * 2f);
                     Circle(pos - f * (r * 0.35f), r * 0.8f, new Rgba(0.09f, 0.1f, 0.15f), 16);

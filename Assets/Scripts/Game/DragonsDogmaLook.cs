@@ -257,7 +257,7 @@ namespace Arena
             for (int k = 0; k < 12; k++)  // runes: tick pairs turning slowly
             {
                 float ang = t * 0.8f + k * MathX.Tau / 12f;
-                V2 d = V2.FromAngle(ang), o = d.Orthogonal();
+                V2.Axes(ang, out V2 d, out V2 o);
                 V2 q = c + d * (r * 0.89f);
                 Line(q - d * 4f - o * 3f, q + d * 4f + o * 3f, 1.6f, DgGold.WithAlpha(0.8f * a));
                 if (k % 2 == 0) Line(q - o * 4f, q + o * 4f, 1.2f, DgCore.WithAlpha(0.6f * a));

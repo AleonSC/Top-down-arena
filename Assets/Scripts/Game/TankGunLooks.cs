@@ -80,7 +80,7 @@ namespace Arena
                 if (s.Ejected || juiceClock - s.T < ScatterEject || !game.Players.TryGetValue(kv.Key, out p))
                     continue;
                 s.Ejected = true;
-                V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+                V2.Axes(p.Aim, out V2 dir, out V2 side);
                 AddPart(new Part { Kind = PCasing, Pos = p.Disp + dir * 14f + side * 8f, Vel = side * Rnd(90f, 110f), Rot = p.Aim, Spin = 11f, Life = 0.9f, Max = 0.9f, Size = 4f, Col = ShellRed });
             }
         }

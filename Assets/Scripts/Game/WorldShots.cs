@@ -412,7 +412,6 @@ namespace Arena
             Arc(p.Disp, r + (fxOn && c > 0.2f ? Mathf.Sin(t * 70f) * 1.2f * c : 0f), full ? 4f : 2.5f, (full ? gold : p.Def.Color).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));  // (Quake: the ring trembles as it fills)
             // Where the slam will land: always the same circle. A faint outline marks the area; the charge grows an
             // inner disc from a small core out to the outline, gold and pulsing when it's full.
-            float mult = Game.MeleeReach(p, p.Weapon.Reach) / p.Weapon.Reach;
             V2 at = p.Disp + V2.FromAngle(p.Aim) * Game.HammerCentre(Game.MeleeReach(p, p.Weapon.Reach));
             float R = Game.HammerR(p);  // (Quake Hammer widens it)
             float a = mine ? 1f : 0.6f;

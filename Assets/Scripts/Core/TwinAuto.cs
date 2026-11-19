@@ -25,7 +25,7 @@ namespace Arena
         /// Gun `gun` (0 left, 1 right): its grip in the world.
         public V2 AutoGrip(Player p, V2 pos, int gun)
         {
-            V2 d = V2.FromAngle(p.Aim), left = d.Orthogonal();  // (arena y runs down the screen, so Orthogonal is to your left)
+            V2.Axes(p.Aim, out V2 d, out V2 left);  // (arena y runs down the screen, so Orthogonal is to your left)
             return pos + d * AutoForward + left * ((gun == 0 ? 1f : -1f) * AutoShoulder);
         }
 

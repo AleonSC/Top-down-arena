@@ -307,7 +307,7 @@ namespace Arena
             if (e.Type == EnemyType.Stinger && e.Winding)
             {
                 V2 tip = HiveLanceTip(o, pos, e.Facing, r);
-                V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                V2.Axes(e.Facing, out V2 f, out V2 s);
                 float W = o.W(r);
                 for (int k = 0; k < 3; k++)
                 {

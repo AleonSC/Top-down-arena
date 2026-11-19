@@ -449,7 +449,7 @@ namespace Arena
             for (int s = 0; s < sets; s++)
             {
                 float ang = -0.45f + s * 0.4f;
-                V2 along = V2.FromAngle(ang), across = along.Orthogonal();
+                V2.Axes(ang, out V2 along, out V2 across);
                 for (int i = -1; i <= 1; i++)
                 {
                     V2 mid = pos + across * (i * 5f * Mathf.Max(0.6f, r / 16f) + (s - 1) * 1.2f);

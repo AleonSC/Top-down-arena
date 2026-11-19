@@ -50,7 +50,7 @@ namespace Arena
         /// A rune: one of five strokes, centred on c, r tall, turned by rot.
         void TitanRune(V2 c, float r, float rot, int v, float w, Rgba col)
         {
-            V2 X = V2.FromAngle(rot), Y = X.Orthogonal();
+            V2.Axes(rot, out V2 X, out V2 Y);
             System.Func<float, float, V2> P = (x, y) => c + X * (x * r) + Y * (y * r);
             switch (((v % 5) + 5) % 5)
             {
@@ -65,7 +65,7 @@ namespace Arena
         /// The titan's body, drawn in its own units (facing +X, the footprint about 74 units) scaled by s.
         void TitanBody(V2 pos, float s, float ang, float step, float slam, float glow, float alpha)
         {
-            V2 fx = V2.FromAngle(ang), fy = fx.Orthogonal();
+            V2.Axes(ang, out V2 fx, out V2 fy);
             System.Func<float, float, V2> L = (x, y) => pos + (fx * x + fy * y) * s;
             float wk = Mathf.Sin(step);
             float reach, lift;

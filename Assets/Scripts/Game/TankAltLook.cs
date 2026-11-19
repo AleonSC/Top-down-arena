@@ -64,7 +64,7 @@ namespace Arena
         /// Where shell pip `i` sits: behind you, side by side.
         V2 ShellPipAt(Player p, int i)
         {
-            V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
+            V2.Axes(p.Aim + MathX.Pi, out V2 back, out V2 side);
             return p.Disp + back * 30f + side * ((i - (Game.ScatShellMax - 1) / 2f) * 10f);
         }
 

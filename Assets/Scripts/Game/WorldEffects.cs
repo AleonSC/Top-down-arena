@@ -9,495 +9,318 @@ namespace Arena
     /// arc fields, light cones, icicles, jabs, bolts).
     public partial class ArenaApp
     {
-        /// A short-lived effect, by kind.
+        delegate void FxDraw(Effect fx, float f, float t);
+        FxDraw[] fxDraws;
+
+        /// A short-lived effect, by kind: each kind's look is one entry of the table (BuildFxDraws); kinds without one draw nothing.
         void DrawEffect(Effect fx, float t)
         {
-            float f = fx.T / fx.Dur;
-            switch (fx.Kind)
+            var draws = fxDraws ?? (fxDraws = BuildFxDraws());
+            int k = (int)fx.Kind;
+            if (k < draws.Length)
+                draws[k]?.Invoke(fx, fx.T / fx.Dur, t);
+        }
+
+        /// Every FxKind's draw (f: how far through the effect it is, 0-1; t: the animation clock).
+        FxDraw[] BuildFxDraws()
+        {
+            var d = new FxDraw[Enum.GetValues(typeof(FxKind)).Length];
+            d[(int)FxKind.Boom] = DrawFxBoom;
+            d[(int)FxKind.BloodFreeze] = (fx, f, t) => DrawBloodFreeze(fx);  // BloodFreezeLook.cs
+            d[(int)FxKind.Shockwave] = (fx, f, t) => DrawShockwave(fx);  // ShockwaveLook.cs
+            d[(int)FxKind.Sentry] = (fx, f, t) => DrawSentryFx(fx);  // SentryNovaLook.cs
+            d[(int)FxKind.Nova] = (fx, f, t) => DrawNovaFx(fx);  // SentryNovaLook.cs
+            d[(int)FxKind.Debris] = (fx, f, t) => DrawDebrisFx(fx, f);  // PropsLook.cs
+            d[(int)FxKind.Spark] = (fx, f, t) => Arc(fx.Pos, Mathf.Max(1f, fx.Radius * f), 2f, fx.Color.WithAlpha(1f - f), 12);
+            d[(int)FxKind.Ring] = DrawFxRing;
+            d[(int)FxKind.Target] = DrawFxTarget;
+            d[(int)FxKind.PortalSeal] = (fx, f, t) => DrawPortalSeal(fx, f);  // SpawnPortalLook.cs
+            d[(int)FxKind.GasLob] = (fx, f, t) => DrawGasLobFx(fx, t);  // GasLobLook.cs
+            d[(int)FxKind.Slash] = DrawFxSlash;
+            d[(int)FxKind.Jab] = (fx, f, t) => DrawJabFx(fx, f);
+            d[(int)FxKind.Claw] = DrawFxClaw;
+            d[(int)FxKind.Bolt] = (fx, f, t) => DrawBoltFx(fx, f);
+            d[(int)FxKind.Shatter] = (fx, f, t) => DrawShatterFx(fx, f);
+            d[(int)FxKind.Implode] = (fx, f, t) => DrawImplodeFx(fx, f);  // HemomancerLook.cs
+            d[(int)FxKind.Bleed] = (fx, f, t) => DrawBleedFx(fx, f);  // HemomancerLook.cs, like the four below
+            d[(int)FxKind.BloodShell] = (fx, f, t) => DrawBloodShellFx(fx, f);
+            d[(int)FxKind.ShellHit] = (fx, f, t) => DrawShellHitFx(fx, f);  // BloodShellLook.cs
+            d[(int)FxKind.StandHit] = (fx, f, t) => DrawStandHitFx(fx, f);  // LastStandLook.cs
+            d[(int)FxKind.HolyCross] = (fx, f, t) => DrawHolyCrossFx(fx);  // HolyCrossLook.cs
+            d[(int)FxKind.HammerSlam] = (fx, f, t) => DrawHammerSlamFx(fx);  // StormHammerLook.cs
+            d[(int)FxKind.HammerThrow] = DrawFxHammerThrow;
+            d[(int)FxKind.KatanaStanceFx] = (fx, f, t) => DrawKatanaStanceFx(fx);  // KatanaLook.cs
+            d[(int)FxKind.KatanaDash] = (fx, f, t) => DrawKatanaDashFx(fx);  // KatanaLook.cs (its light: DrawKatanaGlow)
+            d[(int)FxKind.KatanaHop] = DrawFxKatanaHop;
+            d[(int)FxKind.KatanaSweep] = DrawFxKatanaHop;
+            d[(int)FxKind.KatanaSlash] = DrawFxKatanaHop;
+            d[(int)FxKind.KatanaBurst] = DrawFxKatanaHop;
+            d[(int)FxKind.PerfectParry] = (fx, f, t) => DrawPerfectParryFx(fx);  // ParryLook.cs
+            d[(int)FxKind.KatanaCut] = (fx, f, t) => DrawKatanaCutFx(fx);
+            d[(int)FxKind.StaffShove] = DrawFxStaffShove;
+            d[(int)FxKind.CavalryCall] = (fx, f, t) => DrawCavalryCallFx(fx);  // CavalryCallLook.cs
+            d[(int)FxKind.WarhornVolley] = (fx, f, t) => DrawWarhornGround(fx);  // WarhornVolleyLook.cs
+            d[(int)FxKind.Airstrike] = (fx, f, t) => DrawAirstrikeFx(fx);  // AirstrikeLook.cs
+            d[(int)FxKind.BsBlow] = (fx, f, t) => DrawBsBlowFx(fx);  // BloodBrawlerLook.cs
+            d[(int)FxKind.EmbolusBlast] = (fx, f, t) => DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
+            d[(int)FxKind.PistolWhip] = (fx, f, t) => DrawPistolWhipFx(fx);  // PistolWhipLook.cs
+            d[(int)FxKind.StoneSlam] = (fx, f, t) => DrawStoneSlamFx(fx);  // StonespearLook.cs
+            d[(int)FxKind.BeeSting] = (fx, f, t) => DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
+            d[(int)FxKind.HoneyHarvest] = (fx, f, t) => DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
+            d[(int)FxKind.WindWave] = (fx, f, t) => DrawWindWave(fx);  // WindClashLook.cs
+            d[(int)FxKind.BlastCut] = (fx, f, t) => DrawBlastCut(fx);  // BloodBlastLook.cs
+            d[(int)FxKind.BlastTide] = (fx, f, t) => DrawBlastTide(fx);  // BloodBlastLook.cs
+            d[(int)FxKind.BlastReturn] = (fx, f, t) => DrawBlastReturn(fx);  // BloodBlastLook.cs
+            d[(int)FxKind.FrostStep] = (fx, f, t) => DrawFrostStepFx(fx);  // FrostLanceLook.cs
+            d[(int)FxKind.FrostBurst] = (fx, f, t) => DrawFrostBurstFx(fx);  // FrostLanceLook.cs
+            d[(int)FxKind.FrostBreak] = (fx, f, t) => DrawFrostBreakFx(fx);  // FrostLanceLook.cs
+            d[(int)FxKind.AbsoluteZero] = (fx, f, t) => DrawAbsoluteZeroFx(fx);  // FrostLanceLook.cs
+            d[(int)FxKind.BulwarkStep] = (fx, f, t) => DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
+            d[(int)FxKind.BulwarkBash] = (fx, f, t) => DrawBulwarkBashFx(fx, t);  // BulwarkBarrierLook.cs
+            d[(int)FxKind.BulwarkBlock] = (fx, f, t) => DrawBulwarkBlockFx(fx);  // BulwarkBarrierLook.cs
+            d[(int)FxKind.BulwarkThrow] = (fx, f, t) => DrawBulwarkThrowFx(fx, t);  // BulwarkBarrierLook.cs
+            d[(int)FxKind.GaleCatch] = (fx, f, t) => DrawGaleCatchFx(fx);  // GaleWallLook.cs
+            d[(int)FxKind.GaleBlast] = (fx, f, t) => DrawGaleBlastFx(fx);  // GaleWallLook.cs
+            d[(int)FxKind.WwSplash] = (fx, f, t) => DrawWwSplashFx(fx);  // WaterWardLook.cs
+            d[(int)FxKind.WwBurst] = (fx, f, t) => DrawWwBurstFx(fx);  // WaterWardLook.cs
+            d[(int)FxKind.CoverHit] = DrawFxCoverHit;
+            d[(int)FxKind.CoverBreak] = DrawFxCoverBreak;
+            d[(int)FxKind.CoverFold] = (fx, f, t) => DrawCoverFoldFx(fx);  // DeployableCoverLook.cs
+            d[(int)FxKind.WindCatch] = (fx, f, t) => DrawWindCatch(fx);  // WindClashLook.cs
+            d[(int)FxKind.DoubleBarrel] = (fx, f, t) => DrawDoubleBarrelFx(fx);  // TankAltLook.cs
+            d[(int)FxKind.JuggShard] = (fx, f, t) => DrawJuggShardFx(fx);  // JuggernautLook.cs
+            d[(int)FxKind.BossBeam] = (fx, f, t) => DrawBossBeamFx(fx);  // BossBeamLook.cs
+            d[(int)FxKind.TaserHit] = (fx, f, t) => DrawTaserHitFx(fx);  // TaserLook.cs
+            d[(int)FxKind.VenomDart] = (fx, f, t) => DrawVenomDartFx(fx);  // PoisonDartLook.cs, like the one below
+            d[(int)FxKind.VenomSpread] = (fx, f, t) => DrawVenomSpreadFx(fx);
+            d[(int)FxKind.PactBind] = (fx, f, t) => DrawPactBindFx(fx, f, t);  // ForcePactLook.cs, like the three below
+            d[(int)FxKind.PactSnap] = (fx, f, t) => DrawPactSnapFx(fx, f);
+            d[(int)FxKind.PactDissolve] = (fx, f, t) => DrawPactDissolveFx(fx, f);
+            d[(int)FxKind.PactRise] = (fx, f, t) => DrawPactRiseFx(fx, f);
+            d[(int)FxKind.TitheSnap] = (fx, f, t) => DrawTitheSnapFx(fx, f);  // VeinTitheLook.cs
+            d[(int)FxKind.Exsanguinate] = (fx, f, t) => DrawExsanguinateFx(fx, t);  // ExsanguinateLook.cs
+            d[(int)FxKind.RainRelease] = (fx, f, t) => DrawRainReleaseFx(fx, f);  // SanguineRainLook.cs
+            d[(int)FxKind.HarvestThrow] = (fx, f, t) => DrawHarvestThrowFx(fx);  // CrimsonHarvestLook.cs
+            d[(int)FxKind.TitanSlam] = (fx, f, t) => DrawTitanFx(fx, false);  // TitanLook.cs (its cracks and rubble are the floor pass: DrawTitanFloor)
+            d[(int)FxKind.BurrowSnap] = (fx, f, t) => DrawBurrowSnapFx(fx);  // BurrowerLook.cs
+            d[(int)FxKind.ShellPop] = (fx, f, t) => DrawShellPopFx(fx, f);
+            d[(int)FxKind.MartyrCast] = (fx, f, t) => DrawMartyrFx(fx, f);  // MartyrLook.cs
+            d[(int)FxKind.Drain] = (fx, f, t) => DrawDrainFx(fx, f);
+            d[(int)FxKind.DebtCoin] = (fx, f, t) => DrawDebtCoinFx(fx, f);  // BloodDebtLook.cs
+            d[(int)FxKind.DebtSettle] = (fx, f, t) => DrawDebtSettleFx(fx, f);  // BloodDebtLook.cs (its stamp is on the HUD)
+            d[(int)FxKind.VeinRush] = (fx, f, t) => DrawVeinRushFx(fx, t);  // VeinRushLook.cs
+            d[(int)FxKind.GauntletThrow] = (fx, f, t) => DrawGauntletThrowFx(fx, t);  // KnightDpsLook.cs
+            d[(int)FxKind.GauntletCharge] = (fx, f, t) => DrawGauntletChargeFx(fx, t);
+            d[(int)FxKind.GauntletBowl] = (fx, f, t) => DrawGauntletBowlFx(fx);
+            d[(int)FxKind.GauntletImpact] = (fx, f, t) => DrawGauntletImpactFx(fx);
+            d[(int)FxKind.GauntletBack] = (fx, f, t) => DrawGauntletBackFx(fx, t);
+            d[(int)FxKind.DiveRush] = (fx, f, t) => DrawDiveRushFx(fx, t);  // KnightDpsLook.cs
+            d[(int)FxKind.DiveHit] = (fx, f, t) => DrawDiveHitFx(fx);
+            d[(int)FxKind.DiveReset] = (fx, f, t) => DrawDiveResetFx(fx, t);
+            d[(int)FxKind.BridgeSpark] = (fx, f, t) => DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
+            d[(int)FxKind.BathHeal] = DrawFxBathHeal;
+            d[(int)FxKind.DragonBite] = DrawFxDragonBite;
+            d[(int)FxKind.Cauterize] = (fx, f, t) => DrawCauterizeFx(fx);  // CauterizeLook.cs
+            d[(int)FxKind.BreachSmash] = (fx, f, t) => DrawBreachFx(fx);  // EngineerLook.cs
+            d[(int)FxKind.FistShove] = (fx, f, t) => DrawFistShoveFx(fx, f);  // EngineerBotLook.cs
+            d[(int)FxKind.RodBolt] = (fx, f, t) => DrawRodBoltFx(fx);  // LightningRodLook.cs
+            d[(int)FxKind.RodArc] = (fx, f, t) => DrawRodArcFx(fx);
+            d[(int)FxKind.RodGround] = DrawFxRodGround;
+            d[(int)FxKind.PhalanxSpark] = (fx, f, t) => DrawPhalanxSparkFx(fx);  // BonePhalanxLook.cs
+            d[(int)FxKind.PhalanxBreak] = (fx, f, t) => DrawPhalanxBreakFx(fx);
+            d[(int)FxKind.PhalanxJab] = DrawFxPhalanxJab;
+            d[(int)FxKind.SteelCatch] = DrawFxSteelCatch;
+            d[(int)FxKind.SteelRelease] = DrawFxSteelCatch;
+            d[(int)FxKind.SteelHit] = DrawFxSteelCatch;
+            d[(int)FxKind.SteelDrop] = DrawFxSteelCatch;
+            d[(int)FxKind.VeinCut] = (fx, f, t) => DrawVeinCutFx(fx, t);  // VeinRushLook.cs
+            d[(int)FxKind.WallSplash] = (fx, f, t) => DrawWallSplashFx(fx, f);  // BloodWallLook.cs
+            d[(int)FxKind.Link] = DrawFxLink;
+            d[(int)FxKind.Rewind] = (fx, f, t) => DrawRewindFx(fx, f);
+            d[(int)FxKind.Callout] = (fx, f, t) => DrawTankCastFx(fx);  // Roar and Bulldoze's floor looks (TankLooks.cs); the name over the caster is on the HUD (AbilityLooks.cs)
+            d[(int)FxKind.Repulse] = (fx, f, t) => DrawRepulseFx(fx, f);
+            d[(int)FxKind.Knock] = (fx, f, t) => DrawKnockFx(fx);
+            d[(int)FxKind.RootLash] = (fx, f, t) => DrawRootLashFx(fx, f);  // RootLook.cs
+            d[(int)FxKind.Strike] = (fx, f, t) => DrawStrikeFx(fx, f);  // NimbusLook.cs
+            d[(int)FxKind.NimbusStrike] = (fx, f, t) => DrawNimbusStrikeFx(fx);  // NimbusLook.cs
+            d[(int)FxKind.NimbusStorm] = DrawFxNimbusStorm;
+            d[(int)FxKind.Lifeline] = (fx, f, t) => DrawLifelineFx(fx);  // LifelineLook.cs
+            d[(int)FxKind.Meteor] = (fx, f, t) => DrawMeteorFx(fx);  // ElementalistLooks.cs
+            d[(int)FxKind.Tsunami] = (fx, f, t) => DrawTsunamiFx(fx, t);  // ElementalistLooks.cs
+            d[(int)FxKind.DeathLotus] = (fx, f, t) => DrawDeathLotusFx(fx);  // DeathLotusLook.cs
+            d[(int)FxKind.CereBlock] = (fx, f, t) => DrawCereBlockFx(fx);  // CeremonialArmorLook.cs
+            d[(int)FxKind.CereBreak] = (fx, f, t) => DrawCereBreakFx(fx);
+            d[(int)FxKind.RiotBlock] = (fx, f, t) => DrawRiotBlockFx(fx);  // RiotGearLook.cs
+            d[(int)FxKind.ShadowStep] = (fx, f, t) => DrawShadowStepFx(fx);  // ShadowStepLook.cs
+            d[(int)FxKind.LeapSlam] = (fx, f, t) => DrawLeapSlamFx(fx);  // LeapSlamLook.cs
+            d[(int)FxKind.LightCone] = (fx, f, t) => DrawLightConeFx(fx, f, t);
+            d[(int)FxKind.MarrowLink] = (fx, f, t) => DrawMarrowLinkFx(fx, f, t);  // BoneGuardLook.cs
+            d[(int)FxKind.BloodCoat] = (fx, f, t) => DrawBloodCoatFx(fx, f, t);  // HemomancerLook.cs
+            d[(int)FxKind.ArcTag] = (fx, f, t) => DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
+            d[(int)FxKind.ArcLink] = (fx, f, t) => DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
+            d[(int)FxKind.ArcFork] = (fx, f, t) => DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
+            d[(int)FxKind.ChainThrow] = (fx, f, t) => DrawChainThrowFx(fx, f);
+            d[(int)FxKind.IonTrail] = (fx, f, t) => DrawIonTrailFx(fx);
+            d[(int)FxKind.SteelWall] = (fx, f, t) => DrawSteelWallFx(fx, f);
+            d[(int)FxKind.GreatRend] = (fx, f, t) => DrawGreatRendFx(fx, f);  // GreatswordLook.cs
+            d[(int)FxKind.TwinStep] = (fx, f, t) => DrawTwinStepFx(fx);  // TwinBladesLook.cs
+            d[(int)FxKind.NunStep] = (fx, f, t) => DrawNunStepFx(fx);  // the Twin Crush's shockwave (NunchakuLook.cs)
+            d[(int)FxKind.NunCounter] = (fx, f, t) => DrawNunCounterFx(fx);  // NunchakuLook.cs
+            d[(int)FxKind.KnuckleStep] = (fx, f, t) => DrawKnuckleStepFx(fx);  // ArcKnucklesLook.cs
+            d[(int)FxKind.KnuckleDash] = (fx, f, t) => DrawKnuckleDashFx(fx);  // ArcKnucklesLook.cs
+            d[(int)FxKind.KnuckleChain] = (fx, f, t) => DrawKnuckleChainFx(fx);  // ArcKnucklesLook.cs
+            d[(int)FxKind.LightStep] = (fx, f, t) => DrawLightStepFx(fx);  // LightbringerLook.cs
+            d[(int)FxKind.Sunlance] = (fx, f, t) => DrawSunlanceFx(fx);
+            d[(int)FxKind.LightMark] = DrawFxLightMark;
+            d[(int)FxKind.TwinFang] = (fx, f, t) => DrawTwinFangFx(fx);
+            d[(int)FxKind.LanceStep] = (fx, f, t) => DrawLanceStepFx(fx);  // LanceLook.cs
+            d[(int)FxKind.LanceHook] = (fx, f, t) => DrawLanceHookFx(fx);
+            d[(int)FxKind.LanceSpark] = (fx, f, t) => DrawLanceSparkFx(fx);
+            d[(int)FxKind.LanceImpact] = (fx, f, t) => DrawLanceImpactFx(fx);
+            return d;
+        }
+
+        void DrawFxBoom(Effect fx, float f, float t)
+        {
+            if (HammerBoomDrawnByMelee(fx))
+                return;  // the Warhammer's own slam draws its impact (MeleeLooks.cs)
+            if (IsGrenadeBoom(fx))
             {
-                case FxKind.Boom:
-                    if (HammerBoomDrawnByMelee(fx))
-                        break;  // the Warhammer's own slam draws its impact (MeleeLooks.cs)
-                    if (IsGrenadeBoom(fx))
-                    {
-                        DrawFragBlast(fx, f);  // SoldierLooks.cs
-                        break;
-                    }
-                    if (IsFlakBoom(fx))
-                    {
-                        DrawFlakBlast(fx, f);  // TankGunLooks.cs
-                        break;
-                    }
-                    if (IsGlBoom(fx))
-                    {
-                        DrawGlBlast(fx, f);  // GrenadeLauncherLook.cs
-                        break;
-                    }
-                    Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
-                    Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
-                    break;
-                case FxKind.BloodFreeze:
-                    DrawBloodFreeze(fx);  // BloodFreezeLook.cs
-                    break;
-                case FxKind.Shockwave:
-                    DrawShockwave(fx);  // ShockwaveLook.cs
-                    break;
-                case FxKind.Sentry:
-                    DrawSentryFx(fx);  // SentryNovaLook.cs
-                    break;
-                case FxKind.Nova:
-                    DrawNovaFx(fx);  // SentryNovaLook.cs
-                    break;
-                case FxKind.Debris:
-                    DrawDebrisFx(fx, f);  // PropsLook.cs
-                    break;
-                case FxKind.Spark:
-                    Arc(fx.Pos, Mathf.Max(1f, fx.Radius * f), 2f, fx.Color.WithAlpha(1f - f), 12);
-                    break;
-                case FxKind.Ring:
-                    if (IsMendPulse(fx))
-                    {
-                        DrawMendPulseFx(fx, f);  // MendPulseLook.cs
-                        break;
-                    }
-                    if (IsFrostNova(fx))
-                    {
-                        DrawFrostNova(fx);  // FrostNovaLook.cs
-                        break;
-                    }
-                    if (IsGlacialTomb(fx))
-                    {
-                        DrawGlacialTomb(fx);  // GlacialTombLook.cs
-                        break;
-                    }
-                    if (IsLifelinePlain(fx))
-                        break;  // Lifeline's plain ring: its look draws from FxKind.Lifeline (LifelineLook.cs)
-                    if (IsShadowStepPlain(fx))
-                        break;  // the Shadow Step's plain ring: its look draws from FxKind.ShadowStep (ShadowStepLook.cs)
-                    if (IsTankRing(fx))
-                        break;  // Roar's and Bulldoze's plain rings: their looks draw from the cast's Callout (TankLooks.cs)
-                    if (IsKusariRing(fx))
-                        break;  // the Kusarigama's bite and snap: drawn as ink splashes in the glow pass (KusarigamaLook.cs)
-                    Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
-                    break;
-                case FxKind.Target:  // where a bomber will blow up: a faint zone with a ring closing in on it
-                    Circle(fx.Pos, fx.Radius, fx.Color.WithAlpha(0.08f + 0.12f * f), 32);
-                    Arc(fx.Pos, fx.Radius, 2f, fx.Color.WithAlpha(0.5f), 32);
-                    Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
-                    break;
-                case FxKind.PortalSeal:
-                    DrawPortalSeal(fx, f);  // SpawnPortalLook.cs
-                    break;
-                case FxKind.GasLob:
-                    DrawGasLobFx(fx, t);  // GasLobLook.cs
-                    break;
-                case FxKind.Slash:
-                    if (IsShadowStepPlain(fx))
-                        break;  // the Shadow Step's strike is drawn by its look
-                    DrawSlashFx(fx, f, t);
-                    break;
-                case FxKind.Jab:
-                    DrawJabFx(fx, f);
-                    break;
-                case FxKind.Claw:
-                    if (fxOn && IsBearClaw(fx))
-                        DrawBearClawFx(fx);  // BearLooks.cs
-                    else
-                        DrawClawFx(fx, f);
-                    break;
-                case FxKind.Bolt:
-                    DrawBoltFx(fx, f);
-                    break;
-                case FxKind.Shatter:
-                    DrawShatterFx(fx, f);
-                    break;
-                case FxKind.Implode:
-                    DrawImplodeFx(fx, f);  // HemomancerLook.cs
-                    break;
-                case FxKind.Bleed:
-                    DrawBleedFx(fx, f);  // HemomancerLook.cs, like the four below
-                    break;
-                case FxKind.BloodShell:
-                    DrawBloodShellFx(fx, f);
-                    break;
-                case FxKind.ShellHit:
-                    DrawShellHitFx(fx, f);  // BloodShellLook.cs
-                    break;
-                case FxKind.StandHit:
-                    DrawStandHitFx(fx, f);  // LastStandLook.cs
-                    break;
-                case FxKind.HolyCross:
-                    DrawHolyCrossFx(fx);  // HolyCrossLook.cs
-                    break;
-                case FxKind.HammerSlam:
-                    DrawHammerSlamFx(fx);  // StormHammerLook.cs
-                    break;
-                case FxKind.HammerThrow:
-                    break;  // a pose and a glow, nothing solid (StormHammerLook.cs)
-                case FxKind.KatanaStanceFx:
-                    DrawKatanaStanceFx(fx);  // KatanaLook.cs
-                    break;
-                case FxKind.KatanaDash:
-                    DrawKatanaDashFx(fx);  // KatanaLook.cs (its light: DrawKatanaGlow)
-                    break;
-                case FxKind.KatanaHop: case FxKind.KatanaSweep: case FxKind.KatanaSlash: case FxKind.KatanaBurst:
-                    break;  // all light (KatanaLook.cs DrawKatanaGlow); the Burst's cracks are DrawKatanaMarks
-                case FxKind.PerfectParry:
-                    DrawPerfectParryFx(fx);  // ParryLook.cs
-                    break;
-                case FxKind.KatanaCut:
-                    DrawKatanaCutFx(fx);
-                    break;
-                case FxKind.StaffShove:
-                    if (!fxOn || !DrawStaffShoveLayer(fx, false))
-                        DrawStaffShovePlain(fx, f);  // BoStaffLook.cs
-                    break;
-                case FxKind.CavalryCall:
-                    DrawCavalryCallFx(fx);  // CavalryCallLook.cs
-                    break;
-                case FxKind.WarhornVolley:
-                    DrawWarhornGround(fx);  // WarhornVolleyLook.cs
-                    break;
-                case FxKind.Airstrike:
-                    DrawAirstrikeFx(fx);  // AirstrikeLook.cs
-                    break;
-                case FxKind.BsBlow:
-                    DrawBsBlowFx(fx);  // BloodBrawlerLook.cs
-                    break;
-                case FxKind.EmbolusBlast:
-                    DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
-                    break;
-                case FxKind.PistolWhip:
-                    DrawPistolWhipFx(fx);  // PistolWhipLook.cs
-                    break;
-                case FxKind.StoneSlam:
-                    DrawStoneSlamFx(fx);  // StonespearLook.cs
-                    break;
-                case FxKind.BeeSting:
-                    DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
-                    break;
-                case FxKind.HoneyHarvest:
-                    DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
-                    break;
-                case FxKind.WindWave:
-                    DrawWindWave(fx);  // WindClashLook.cs
-                    break;
-                case FxKind.BlastCut:
-                    DrawBlastCut(fx);  // BloodBlastLook.cs
-                    break;
-                case FxKind.BlastTide:
-                    DrawBlastTide(fx);  // BloodBlastLook.cs
-                    break;
-                case FxKind.BlastReturn:
-                    DrawBlastReturn(fx);  // BloodBlastLook.cs
-                    break;
-                case FxKind.FrostStep:
-                    DrawFrostStepFx(fx);  // FrostLanceLook.cs
-                    break;
-                case FxKind.FrostBurst:
-                    DrawFrostBurstFx(fx);  // FrostLanceLook.cs
-                    break;
-                case FxKind.FrostBreak:
-                    DrawFrostBreakFx(fx);  // FrostLanceLook.cs
-                    break;
-                case FxKind.AbsoluteZero:
-                    DrawAbsoluteZeroFx(fx);  // FrostLanceLook.cs
-                    break;
-                case FxKind.BulwarkStep:
-                    DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
-                    break;
-                case FxKind.BulwarkBash:
-                    DrawBulwarkBashFx(fx, t);  // BulwarkBarrierLook.cs
-                    break;
-                case FxKind.BulwarkBlock:
-                    DrawBulwarkBlockFx(fx);  // BulwarkBarrierLook.cs
-                    break;
-                case FxKind.BulwarkThrow:
-                    DrawBulwarkThrowFx(fx, t);  // BulwarkBarrierLook.cs
-                    break;
-                case FxKind.GaleCatch:
-                    DrawGaleCatchFx(fx);  // GaleWallLook.cs
-                    break;
-                case FxKind.GaleBlast:
-                    DrawGaleBlastFx(fx);  // GaleWallLook.cs
-                    break;
-                case FxKind.WwSplash:
-                    DrawWwSplashFx(fx);  // WaterWardLook.cs
-                    break;
-                case FxKind.WwBurst:
-                    DrawWwBurstFx(fx);  // WaterWardLook.cs
-                    break;
-                case FxKind.CoverHit:
-                    if (fxOn)
-                        DrawCoverHitFx(fx);  // DeployableCoverLook.cs
-                    break;
-                case FxKind.CoverBreak:
-                    if (fxOn)
-                        DrawCoverBreakFx(fx);  // DeployableCoverLook.cs
-                    break;
-                case FxKind.CoverFold:
-                    DrawCoverFoldFx(fx);  // DeployableCoverLook.cs
-                    break;
-                case FxKind.WindCatch:
-                    DrawWindCatch(fx);  // WindClashLook.cs
-                    break;
-                case FxKind.DoubleBarrel:
-                    DrawDoubleBarrelFx(fx);  // TankAltLook.cs
-                    break;
-                case FxKind.JuggShard:
-                    DrawJuggShardFx(fx);  // JuggernautLook.cs
-                    break;
-                case FxKind.BossBeam:
-                    DrawBossBeamFx(fx);  // BossBeamLook.cs
-                    break;
-                case FxKind.TaserHit:
-                    DrawTaserHitFx(fx);  // TaserLook.cs
-                    break;
-                case FxKind.VenomDart:
-                    DrawVenomDartFx(fx);  // PoisonDartLook.cs, like the one below
-                    break;
-                case FxKind.VenomSpread:
-                    DrawVenomSpreadFx(fx);
-                    break;
-                case FxKind.PactBind:
-                    DrawPactBindFx(fx, f, t);  // ForcePactLook.cs, like the three below
-                    break;
-                case FxKind.PactSnap:
-                    DrawPactSnapFx(fx, f);
-                    break;
-                case FxKind.PactDissolve:
-                    DrawPactDissolveFx(fx, f);
-                    break;
-                case FxKind.PactRise:
-                    DrawPactRiseFx(fx, f);
-                    break;
-                case FxKind.TitheSnap:
-                    DrawTitheSnapFx(fx, f);  // VeinTitheLook.cs
-                    break;
-                case FxKind.Exsanguinate:
-                    DrawExsanguinateFx(fx, t);  // ExsanguinateLook.cs
-                    break;
-                case FxKind.RainRelease:
-                    DrawRainReleaseFx(fx, f);  // SanguineRainLook.cs
-                    break;
-                case FxKind.HarvestThrow:
-                    DrawHarvestThrowFx(fx);  // CrimsonHarvestLook.cs
-                    break;
-                case FxKind.TitanSlam:
-                    DrawTitanFx(fx, false);  // TitanLook.cs (its cracks and rubble are the floor pass: DrawTitanFloor)
-                    break;
-                case FxKind.BurrowSnap:
-                    DrawBurrowSnapFx(fx);  // BurrowerLook.cs
-                    break;
-                case FxKind.ShellPop:
-                    DrawShellPopFx(fx, f);
-                    break;
-                case FxKind.MartyrCast:
-                    DrawMartyrFx(fx, f);  // MartyrLook.cs
-                    break;
-                case FxKind.Drain:
-                    DrawDrainFx(fx, f);
-                    break;
-                case FxKind.DebtCoin:
-                    DrawDebtCoinFx(fx, f);  // BloodDebtLook.cs
-                    break;
-                case FxKind.DebtSettle:
-                    DrawDebtSettleFx(fx, f);  // BloodDebtLook.cs (its stamp is on the HUD)
-                    break;
-                case FxKind.VeinRush:
-                    DrawVeinRushFx(fx, t);  // VeinRushLook.cs
-                    break;
-                case FxKind.GauntletThrow:
-                    DrawGauntletThrowFx(fx, t);  // KnightDpsLook.cs
-                    break;
-                case FxKind.GauntletCharge:
-                    DrawGauntletChargeFx(fx, t);
-                    break;
-                case FxKind.GauntletBowl:
-                    DrawGauntletBowlFx(fx);
-                    break;
-                case FxKind.GauntletImpact:
-                    DrawGauntletImpactFx(fx);
-                    break;
-                case FxKind.GauntletBack:
-                    DrawGauntletBackFx(fx, t);
-                    break;
-                case FxKind.DiveRush:
-                    DrawDiveRushFx(fx, t);  // KnightDpsLook.cs
-                    break;
-                case FxKind.DiveHit:
-                    DrawDiveHitFx(fx);
-                    break;
-                case FxKind.DiveReset:
-                    DrawDiveResetFx(fx, t);
-                    break;
-                case FxKind.BridgeSpark:
-                    DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
-                    break;
-                case FxKind.BathHeal:
-                    break;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
-                case FxKind.DragonBite:
-                    break;  // drawn with its dragon (DragonsDogmaLook.cs)
-                case FxKind.Cauterize:
-                    DrawCauterizeFx(fx);  // CauterizeLook.cs
-                    break;
-                case FxKind.BreachSmash:
-                    DrawBreachFx(fx);  // EngineerLook.cs
-                    break;
-                case FxKind.FistShove:
-                    DrawFistShoveFx(fx, f);  // EngineerBotLook.cs
-                    break;
-                case FxKind.RodBolt:
-                    DrawRodBoltFx(fx);  // LightningRodLook.cs
-                    break;
-                case FxKind.RodArc:
-                    DrawRodArcFx(fx);
-                    break;
-                case FxKind.RodGround:
-                    break;  // its grey number is on the HUD (LightningRodLook.cs DrawRodPops)
-                case FxKind.PhalanxSpark:
-                    DrawPhalanxSparkFx(fx);  // BonePhalanxLook.cs
-                    break;
-                case FxKind.PhalanxBreak:
-                    DrawPhalanxBreakFx(fx);
-                    break;
-                case FxKind.PhalanxJab:
-                    break;  // drawn as the skeleton's spear thrust (BonePhalanxLook.cs DrawPhalanx)
-                case FxKind.SteelCatch:
-                case FxKind.SteelRelease:
-                case FxKind.SteelHit:
-                case FxKind.SteelDrop:
-                    break;  // drawn with the knight's shards (KnightDpsLook.cs DrawSteel)
-                case FxKind.VeinCut:
-                    DrawVeinCutFx(fx, t);  // VeinRushLook.cs
-                    break;
-                case FxKind.WallSplash:
-                    DrawWallSplashFx(fx, f);  // BloodWallLook.cs
-                    break;
-                case FxKind.Link:
-                    if (!IsLifelinePlain(fx))  // (Lifeline's own beams: LifelineLook.cs)
-                        DrawLinkFx(fx, f);  // AbilityLooks.cs, like Rewind
-                    break;
-                case FxKind.Rewind:
-                    DrawRewindFx(fx, f);
-                    break;
-                case FxKind.Callout:
-                    DrawTankCastFx(fx);  // Roar and Bulldoze's floor looks (TankLooks.cs); the name over the caster is on the HUD (AbilityLooks.cs)
-                    break;
-                case FxKind.Repulse:
-                    DrawRepulseFx(fx, f);
-                    break;
-                case FxKind.Knock:
-                    DrawKnockFx(fx);
-                    break;
-                case FxKind.RootLash:
-                    DrawRootLashFx(fx, f);  // RootLook.cs
-                    break;
-                case FxKind.Strike:
-                    DrawStrikeFx(fx, f);  // NimbusLook.cs
-                    break;
-                case FxKind.NimbusStrike:
-                    DrawNimbusStrikeFx(fx);  // NimbusLook.cs
-                    break;
-                case FxKind.NimbusStorm:
-                    break;  // drawn with its cloud (NimbusLook.cs DrawNimbus)
-                case FxKind.Lifeline:
-                    DrawLifelineFx(fx);  // LifelineLook.cs
-                    break;
-                case FxKind.Meteor:
-                    DrawMeteorFx(fx);  // ElementalistLooks.cs
-                    break;
-                case FxKind.Tsunami:
-                    DrawTsunamiFx(fx, t);  // ElementalistLooks.cs
-                    break;
-                case FxKind.DeathLotus:
-                    DrawDeathLotusFx(fx);  // DeathLotusLook.cs
-                    break;
-                case FxKind.CereBlock:
-                    DrawCereBlockFx(fx);  // CeremonialArmorLook.cs
-                    break;
-                case FxKind.CereBreak:
-                    DrawCereBreakFx(fx);
-                    break;
-                case FxKind.RiotBlock:
-                    DrawRiotBlockFx(fx);  // RiotGearLook.cs
-                    break;
-                case FxKind.ShadowStep:
-                    DrawShadowStepFx(fx);  // ShadowStepLook.cs
-                    break;
-                case FxKind.LeapSlam:
-                    DrawLeapSlamFx(fx);  // LeapSlamLook.cs
-                    break;
-                case FxKind.LightCone:
-                    DrawLightConeFx(fx, f, t);
-                    break;
-                case FxKind.MarrowLink:
-                    DrawMarrowLinkFx(fx, f, t);  // BoneGuardLook.cs
-                    break;
-                case FxKind.BloodCoat:
-                    DrawBloodCoatFx(fx, f, t);  // HemomancerLook.cs
-                    break;
-                case FxKind.ArcTag:
-                case FxKind.ArcLink:
-                case FxKind.ArcFork:
-                    DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
-                    break;
-                case FxKind.ChainThrow:
-                    DrawChainThrowFx(fx, f);
-                    break;
-                case FxKind.IonTrail:
-                    DrawIonTrailFx(fx);
-                    break;
-                case FxKind.SteelWall:
-                    DrawSteelWallFx(fx, f);
-                    break;
-                case FxKind.GreatRend:
-                    DrawGreatRendFx(fx, f);  // GreatswordLook.cs
-                    break;
-                case FxKind.TwinStep:
-                    DrawTwinStepFx(fx);  // TwinBladesLook.cs
-                    break;
-                case FxKind.NunStep:
-                    DrawNunStepFx(fx);  // the Twin Crush's shockwave (NunchakuLook.cs)
-                    break;
-                case FxKind.NunCounter:
-                    DrawNunCounterFx(fx);  // NunchakuLook.cs
-                    break;
-                case FxKind.KnuckleStep:
-                    DrawKnuckleStepFx(fx);  // ArcKnucklesLook.cs
-                    break;
-                case FxKind.KnuckleDash:
-                    DrawKnuckleDashFx(fx);  // ArcKnucklesLook.cs
-                    break;
-                case FxKind.KnuckleChain:
-                    DrawKnuckleChainFx(fx);  // ArcKnucklesLook.cs
-                    break;
-                case FxKind.LightStep:
-                    DrawLightStepFx(fx);  // LightbringerLook.cs
-                    break;
-                case FxKind.Sunlance:
-                    DrawSunlanceFx(fx);
-                    break;
-                case FxKind.LightMark:
-                    if (!Juicy)
-                        DrawLightMark(fx);  // LightbringerFxLook.cs (in the glow pass when Visual effects are on)
-                    break;
-                case FxKind.TwinFang:
-                    DrawTwinFangFx(fx);
-                    break;
-                case FxKind.LanceStep:
-                    DrawLanceStepFx(fx);  // LanceLook.cs
-                    break;
-                case FxKind.LanceHook:
-                    DrawLanceHookFx(fx);
-                    break;
-                case FxKind.LanceSpark:
-                    DrawLanceSparkFx(fx);
-                    break;
-                case FxKind.LanceImpact:
-                    DrawLanceImpactFx(fx);
-                    break;
+                DrawFragBlast(fx, f);  // SoldierLooks.cs
+                return;
             }
+            if (IsFlakBoom(fx))
+            {
+                DrawFlakBlast(fx, f);  // TankGunLooks.cs
+                return;
+            }
+            if (IsGlBoom(fx))
+            {
+                DrawGlBlast(fx, f);  // GrenadeLauncherLook.cs
+                return;
+            }
+            Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
+            Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
+        }
+
+        void DrawFxRing(Effect fx, float f, float t)
+        {
+            if (IsMendPulse(fx))
+            {
+                DrawMendPulseFx(fx, f);  // MendPulseLook.cs
+                return;
+            }
+            if (IsFrostNova(fx))
+            {
+                DrawFrostNova(fx);  // FrostNovaLook.cs
+                return;
+            }
+            if (IsGlacialTomb(fx))
+            {
+                DrawGlacialTomb(fx);  // GlacialTombLook.cs
+                return;
+            }
+            if (IsLifelinePlain(fx))
+                return;  // Lifeline's plain ring: its look draws from FxKind.Lifeline (LifelineLook.cs)
+            if (IsShadowStepPlain(fx))
+                return;  // the Shadow Step's plain ring: its look draws from FxKind.ShadowStep (ShadowStepLook.cs)
+            if (IsTankRing(fx))
+                return;  // Roar's and Bulldoze's plain rings: their looks draw from the cast's Callout (TankLooks.cs)
+            if (IsKusariRing(fx))
+                return;  // the Kusarigama's bite and snap: drawn as ink splashes in the glow pass (KusarigamaLook.cs)
+            Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
+        }
+
+        void DrawFxTarget(Effect fx, float f, float t)
+        {
+            Circle(fx.Pos, fx.Radius, fx.Color.WithAlpha(0.08f + 0.12f * f), 32);
+            Arc(fx.Pos, fx.Radius, 2f, fx.Color.WithAlpha(0.5f), 32);
+            Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
+        }
+
+        void DrawFxSlash(Effect fx, float f, float t)
+        {
+            if (IsShadowStepPlain(fx))
+                return;  // the Shadow Step's strike is drawn by its look
+            DrawSlashFx(fx, f, t);
+        }
+
+        void DrawFxClaw(Effect fx, float f, float t)
+        {
+            if (fxOn && IsBearClaw(fx))
+                DrawBearClawFx(fx);  // BearLooks.cs
+            else
+                DrawClawFx(fx, f);
+        }
+
+        void DrawFxHammerThrow(Effect fx, float f, float t)
+        {
+            return;  // a pose and a glow, nothing solid (StormHammerLook.cs)
+        }
+
+        void DrawFxKatanaHop(Effect fx, float f, float t)
+        {
+            return;  // all light (KatanaLook.cs DrawKatanaGlow); the Burst's cracks are DrawKatanaMarks
+        }
+
+        void DrawFxStaffShove(Effect fx, float f, float t)
+        {
+            if (!fxOn || !DrawStaffShoveLayer(fx, false))
+                DrawStaffShovePlain(fx, f);  // BoStaffLook.cs
+        }
+
+        void DrawFxCoverHit(Effect fx, float f, float t)
+        {
+            if (fxOn)
+                DrawCoverHitFx(fx);  // DeployableCoverLook.cs
+        }
+
+        void DrawFxCoverBreak(Effect fx, float f, float t)
+        {
+            if (fxOn)
+                DrawCoverBreakFx(fx);  // DeployableCoverLook.cs
+        }
+
+        void DrawFxBathHeal(Effect fx, float f, float t)
+        {
+            return;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
+        }
+
+        void DrawFxDragonBite(Effect fx, float f, float t)
+        {
+            return;  // drawn with its dragon (DragonsDogmaLook.cs)
+        }
+
+        void DrawFxRodGround(Effect fx, float f, float t)
+        {
+            return;  // its grey number is on the HUD (LightningRodLook.cs DrawRodPops)
+        }
+
+        void DrawFxPhalanxJab(Effect fx, float f, float t)
+        {
+            return;  // drawn as the skeleton's spear thrust (BonePhalanxLook.cs DrawPhalanx)
+        }
+
+        void DrawFxSteelCatch(Effect fx, float f, float t)
+        {
+            return;  // drawn with the knight's shards (KnightDpsLook.cs DrawSteel)
+        }
+
+        void DrawFxLink(Effect fx, float f, float t)
+        {
+            if (!IsLifelinePlain(fx))  // (Lifeline's own beams: LifelineLook.cs)
+                DrawLinkFx(fx, f);  // AbilityLooks.cs, like Rewind
+        }
+
+        void DrawFxNimbusStorm(Effect fx, float f, float t)
+        {
+            return;  // drawn with its cloud (NimbusLook.cs DrawNimbus)
+        }
+
+        void DrawFxLightMark(Effect fx, float f, float t)
+        {
+            if (!Juicy)
+                DrawLightMark(fx);  // LightbringerFxLook.cs (in the glow pass when Visual effects are on)
         }
 
         /// A parry shield breaking: cracks flash across it, then it bursts into jagged pieces with sparks.
@@ -686,7 +509,7 @@ namespace Arena
             if (half < 0f)  // a jab: the blade shoots forward, with speed lines along the cone
             {
                 float grow = Mathf.Min(1f, f * 4f), len = reach * (0.3f + 0.7f * grow), fade = 1f - f;
-                V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+                V2.Axes(aim, out V2 dir, out V2 side);
                 V2 tipAt = fx.Pos + dir * len;
                 for (int k = -1; k <= 1; k += 2)  // the cone it covers, faintly
                     Line(fx.Pos, fx.Pos + V2.FromAngle(aim + k * -half) * len * 0.9f, 1.5f, fx.Color.WithAlpha(0.25f * fade));

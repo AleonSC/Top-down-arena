@@ -63,7 +63,7 @@ namespace Arena
         void StartKusariThrow(Player p, float aim, float reach, float dmg)
         {
             reach = MeleeReach(p, reach) * p.Stats.KusariReachMult;  // Heavy Weight: farther
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2.Axes(aim, out V2 dir, out V2 side);
             Enemy first = null;
             float firstAlong = float.MaxValue;
             foreach (var e in Enemies.Values)

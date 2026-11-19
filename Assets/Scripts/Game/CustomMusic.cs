@@ -35,7 +35,7 @@ namespace Arena
                         found.Add(f);
                 found.Sort(StringComparer.OrdinalIgnoreCase);
             }
-            catch (Exception) { }
+            catch (Exception ex) { Diag.Warn("music: couldn't scan the custom music folder " + folder, ex); }
             return found;
         }
 
@@ -82,7 +82,7 @@ namespace Arena
         {
             float[] s = null;
             try { s = DecodeWav(File.ReadAllBytes(path)); }
-            catch (Exception) { }
+            catch (Exception) { }  // (null: marked failed just below, which the music list shows)
             if (s == null)
             {
                 if (id != null)

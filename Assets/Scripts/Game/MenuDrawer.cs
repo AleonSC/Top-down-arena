@@ -112,7 +112,6 @@ namespace Arena
             public readonly Action Do;
             public string Key;        // a key hint shown on the row ("Esc")
             public bool Danger;       // drawn red
-            public Func<bool> Visible;  // null = always shown
 
             public MenuRow(string title, string line, string icon, Color color, Action action)
             {
@@ -127,7 +126,6 @@ namespace Arena
         /// Draw a menu's rows in the cabinet's screen: the mouse moves the highlight (`sel`), a click does the row.
         void DrawMenuRows(List<MenuRow> rows, ref int sel)
         {
-            rows = rows.FindAll(r => r.Visible == null || r.Visible());
             sel = Mathf.Clamp(sel, 0, Mathf.Max(0, rows.Count - 1));
             float y = cabScreen.y + 10f;
             for (int k = 0; k < rows.Count; k++)
@@ -150,7 +148,6 @@ namespace Arena
             var e = Event.current;
             if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
                 return;
-            rows = rows.FindAll(r => r.Visible == null || r.Visible());
             int n = rows.Count;
             if (n == 0)
                 return;

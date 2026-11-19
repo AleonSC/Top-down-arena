@@ -350,7 +350,6 @@ namespace Arena
         /// its emblems rising, and the prize (the relic's gem, or the vector arrow) climbs out, spins and shoots off; then it settles dim with the lid up.
         void DrawNodeOpening(V2 c, float t, float age, ChestKind kind, float fade = 1f)
         {
-            var ink = ChestInkOf(kind);
             if (age >= 3f)
             {
                 DrawChestLook(c, 0.3f * fade, t, kind, true, 99f);  // opened, lid up and dim

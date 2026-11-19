@@ -114,7 +114,7 @@ namespace Arena
                 // Summoner
                 case AbilityId.GolemWall:
                 {
-                    V2 fwd = V2.FromAngle(p.Aim), side = fwd.Orthogonal();
+                    V2.Axes(p.Aim, out V2 fwd, out V2 side);
                     int half = cap ? 2 : 1;
                     var old = new List<int>();  // a new wall replaces the caster's old one
                     foreach (var m in Minions.Values)

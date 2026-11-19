@@ -77,7 +77,6 @@ namespace Arena
             for (int k = 0; k < n; k++) best[k] = slot[k];
             if (n < 2 || n > 7)
                 return best;
-            var perm = new int[n];
             var used = new bool[n];
             int bestCost = int.MaxValue;
             var yb = new float[n];

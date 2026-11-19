@@ -43,7 +43,7 @@ namespace Arena
         /// A horseshoe magnet: the red bend round c, its legs running toward ang, steel tips. s = the bend's radius.
         void DrawMagnetShape(V2 c, float s, float ang, float alpha, bool glow)
         {
-            V2 d = V2.FromAngle(ang), n = d.Orthogonal();
+            V2.Axes(ang, out V2 d, out V2 n);
             float w = s * 0.62f, leg = s * 1.15f, tip = s * 0.5f;
             if (glow)
                 Circle(c + d * leg * 0.5f, s * 2.6f, MagRed.WithAlpha(0.12f * alpha), 16);

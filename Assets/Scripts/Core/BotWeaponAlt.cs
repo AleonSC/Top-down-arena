@@ -95,12 +95,21 @@ namespace Arena
 
         bool AltRule(AltView v, float dt, ref bool firing, ref V2 aimAt)
         {
+            bool late = DashT > 0f;  // the Alts read after a dash's check would lose the press (LocalWeaponDash)
+            // Each class's weapons answer in turn; null: not one of theirs.
+            return SoldierAlt(v, dt, late, ref firing, ref aimAt) ?? ElementalistAlt(v, dt, late, ref firing, ref aimAt)
+                ?? SummonerAlt(v, dt, late, ref firing, ref aimAt) ?? KnightAlt(v, dt, late, ref firing, ref aimAt)
+                ?? NinjaAlt(v, dt, late, ref firing, ref aimAt) ?? HemomancerAlt(v, dt, late, ref firing, ref aimAt)
+                ?? FourthAlt(v, dt, late, ref firing, ref aimAt) ?? FourthMoreAlt(v, dt, late, ref firing, ref aimAt) ?? false;
+        }
+
+        /// The Soldier's weapons. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? SoldierAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
             var me = v.Me;
             var e = v.ShootAt;
-            bool late = DashT > 0f;  // the Alts read after a dash's check would lose the press (LocalWeaponDash)
             switch (me.Weapon.Id)
             {
-                // --- Soldier
                 case WeaponId.Scattergun:  // Double Barrel point-blank (its kick also gets you out)
                     return !late && Tap(me.ScatShells > 0 && (e != null && v.ShootD < 150f || BotDanger > 2f && v.Near > 0), 1f);
                 case WeaponId.FlakCannon:  // a proximity mine where the enemies are coming from
@@ -115,8 +124,17 @@ namespace Arena
                     if (botAltWas)
                         return botAltHoldT < 2f && me.RepelMeter > 5 && EnemiesAhead(me, 70f, 1f) == 0 && v.Incoming < 3;
                     return Tap(me.RepelMeter >= 30 && EnemiesAhead(me, 300f, 0.6f) >= 2 && EnemiesAhead(me, 90f, 0.6f) == 0, 3f);
+            }
+            return null;
+        }
 
-                // --- Elementalist
+        /// The Elementalist's weapons. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? ElementalistAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            switch (me.Weapon.Id)
+            {
                 case WeaponId.FrostLance:  // Absolute Zero round you, with nothing about to hit during the charge
                     return Tap(ZeroLocalCd <= 0f && me.FlZeroT <= 0f && EnemiesNear(me.Pos, 250f) >= 3 && IncomingShots(me, 0.8f) == 0, 1f);
                 case WeaponId.StormHammer:  // the slam on a group in front
@@ -125,15 +143,33 @@ namespace Arena
                     return e != null && v.InReach && Tap(StormLocalCd <= 0f && (EnemiesNear(e.Pos, 160f) >= 2 || e.Def.IsBoss), 2f);
                 case WeaponId.ArcLightning:  // Forked Volley whenever it's up
                     return e != null && v.InReach && Tap(ForkLocalCd <= 0f, 0.5f);
+            }
+            return null;
+        }
 
-                // --- Summoner
+        /// The Summoner's weapons. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? SummonerAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            switch (me.Weapon.Id)
+            {
                 case WeaponId.BoneGuard:  // an Ossuary Wall in the way of a group coming in
                     if (late || e == null || v.ShootD > 360f || !Tap(BoneWallLocalCd <= 0f && (EnemiesNear(me.Pos, 260f) >= 3 || v.Incoming >= 3), 2f))
                         return false;
                     aimAt = me.Pos + (e.Pos - me.Pos) * 0.5f;
                     return true;
+            }
+            return null;
+        }
 
-                // --- Knight
+        /// The Knight's weapons. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? KnightAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            switch (me.Weapon.Id)
+            {
                 case WeaponId.Lance:  // Hook & Haul an enemy just out of reach, then Fire is the Breaching Thrust
                     return e != null && !e.Def.IsBoss && v.ShootD > 110f && v.ShootD < HookRange - 10f && Tap(true, HookCooldown + 0.2f);
                 case WeaponId.Quarterstaff:  // jab while stacks last, at something close or shots coming in
@@ -182,8 +218,17 @@ namespace Arena
                     if (firing)
                         aimAt = e.Pos;
                     return botRapierT > 2.5f && Tap(true, 2f);  // no lunge came of it: drop the stance
+            }
+            return null;
+        }
 
-                // --- Ninja
+        /// The Ninja's weapons. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? NinjaAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            switch (me.Weapon.Id)
+            {
                 case WeaponId.Kusarigama:  // whirl a crowd in, let go for the snap once it's close
                     if (botAltWas)
                         return botAltHoldT < 2.5f && (botAltHoldT < 0.4f || EnemiesNear(me.Pos, 100f) < 3);
@@ -207,8 +252,16 @@ namespace Arena
                 }
                 case WeaponId.Kunai:  // blink to a mark near the target when it's safe there, or away from danger
                     return !late && me.KunaiMarkT > 0f && Tap(e != null && me.KunaiMark.CloserThan(e.Pos, 140f) && BotDanger < 1f || BotDanger > 2.5f && me.KunaiMark.FartherThan(me.Pos, 120f), 0.5f);
+            }
+            return null;
+        }
 
-                // --- Hemomancer
+        /// The Hemomancer's weapons. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? HemomancerAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            switch (me.Weapon.Id)
+            {
                 case WeaponId.BloodLash:  // Martyr's Leash on a chained pack while healthy (it bleeds you)
                     if (botAltWas)
                         return botAltHoldT < 2f && me.Hp > me.MaxHp * 0.4f;
@@ -219,8 +272,17 @@ namespace Arena
                         return false;
                     return Tap(EnemiesNear(mark.Pos, 170f) >= 2, 8.5f);
                 }
+            }
+            return null;
+        }
 
-                // --- Fourth weapons
+        /// The fourth weapons, first half. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? FourthAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            switch (me.Weapon.Id)
+            {
                 case WeaponId.ArcKnuckles:  // Rocket Dash to close the gap
                     return !late && !me.Parrying && e != null && v.ShootD > 80f && v.ShootD < 260f && Tap(KnuckleDashCd <= 0f, 0.5f);
                 case WeaponId.TwinRifleAuto:  // lock on the target (and let go of a lock that's lost)
@@ -255,6 +317,17 @@ namespace Arena
                     bool smoke = EnemiesNear(me.Pos, 220f) >= 3 && me.GlSmokeUsed < GlSmokeMax;
                     return Tap(me.GlMode == 1 ? !smoke : smoke, 2f);
                 }
+            }
+            return null;
+        }
+
+        /// The fourth weapons, second half. Whether the bot presses (or holds) its Alt; null for a weapon that isn't theirs.
+        bool? FourthMoreAlt(AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            switch (me.Weapon.Id)
+            {
                 case WeaponId.HoneybeeStaff:  // spray a group a little way off while the meter lasts
                     if (botAltWas)
                         return me.HoneyFill > 10f && e != null && v.ShootD < 260f;
@@ -295,7 +368,7 @@ namespace Arena
                     aimAt = v.Target.Pos;
                     return true;
             }
-            return false;
+            return null;
         }
 
         /// Is one of the bot's thrown Embolus Spears within `r` of `at`?

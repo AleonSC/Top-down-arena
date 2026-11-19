@@ -159,7 +159,7 @@ namespace Arena
         {
             var R = game.Reapers;
             float facing = R != null && R.Turn == ReaperTurn.Lasers ? R.Laser : R != null && R.Turn == ReaperTurn.Chase ? R.Heading : t * 0.4f;
-            V2 f = V2.FromAngle(facing), side = f.Orthogonal();
+            V2.Axes(facing, out V2 f, out V2 side);
             for (int k = 0; k < 2; k++)
             {
                 var col = k == 0 ? DawnCol : DuskCol;
