@@ -264,11 +264,9 @@ namespace Arena
                 Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 2f, Rgba.White.WithAlpha(0.95f), 12, a - 0.8f, 1.6f);
                 return;
             }
-            if (b.Kind == Defs.PierceShot)  // a boss's unblockable shot: red with a dark core
+            if (b.Kind == Defs.PierceShot)  // a boss's unblockable shot: a barbed red spear (RedShotLook.cs)
             {
-                Circle(b.Pos, b.Radius + 4f, c.WithAlpha(0.35f), 12);
-                Circle(b.Pos, b.Radius, c, 12);
-                Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.1f, 0f, 0f, 1f), 8);
+                DrawRedShot(b);
                 return;
             }
             if (b.FromBoss)  // other boss shots: violet glow, spinning spikes, dark core (they wear blockers down)

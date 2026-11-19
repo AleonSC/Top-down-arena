@@ -1080,6 +1080,7 @@ namespace Arena
             V2 before = me.Pos;
             me.Aim = (aimAt - me.Pos).Angle;
             bool parry = input.Parry || HoldParry, weaponAction = input.WeaponAction;  // (the smart bot sets its own: BotBrain.cs)
+            bool dodgePress = input.Dodge, dodgeHeld = input.DodgeHeld;  // (and its own dodge: BotDodge.cs)
             me.Parrying = parry && !me.Downed;
             bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
             var held = heldScratch;  // (one array, filled each tick)
@@ -1088,7 +1089,7 @@ namespace Arena
             if (Bot && BotLevel != BotSkill.Off)
             {
                 botT += dt;
-                SmartBot(me, dt, ref move, ref aimAt, ref firing, held, ref weaponAction, ref parry);  // BotBrain.cs
+                SmartBot(me, dt, ref move, ref aimAt, ref firing, held, ref weaponAction, ref parry, ref dodgePress, ref dodgeHeld);  // BotBrain.cs
                 me.Parrying = parry && !me.Downed;
                 if (me.ParryActive)
                     firing = false;
@@ -1322,7 +1323,7 @@ namespace Arena
                 }
             }
 
-            LocalDodge(me, move, input.Dodge, input.DodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
+            LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
             LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))

@@ -885,6 +885,9 @@ big Dawn).
 
 ## Bosses
 
+**Red aimed shots.** A boss's red aimed shots are barbed spearheads with a black heart and a red streak, pointing where
+they fly. They hit for 30 and most blockers can't stop them (the walls and shields that say "red aimed shots too" can).
+
 **Every boss sounds like itself.** Each mechanic has a sound for its warning and for its strike, from a palette of
 synthesized boss sounds: a rising whine before lasers and aimed attacks and a buzzing beam when they fire, a crack and
 deep thud for slams and landings, a rush for charges and dives, the Warden's prison siren, the Queen's swarm buzz
@@ -1160,9 +1163,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   longer placed on the map: they come from **service cards** and **mystery doors** only (old saves keep their sealed rooms, which still open when a built room
   shares 2 tiles of wall with one).
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest of one of four **kinds**, rolled from the map (its marker and tip show which):
-  **Node tiers:** chest, vector chest and relic nodes hold better prizes the farther they sit from the hub's wall: **inner** (under 15 tiles: Gold or vector chests),
+  **Node tiers:** chest, vector chest and relic nodes hold better prizes the farther they sit from the hub's wall (measured in square zones, so a corner counts by its farther side): **inner** (under 15 tiles: Gold or vector chests),
   **middle** (15 to 30 tiles: Piece chest or Buildables chests; Buildables with room cards off) and **outer** (30+ tiles: Upgrade chests or relics). A node's tier shows round its
-  marker as corner brackets in bronze, silver or gold and a row of three square cells, one filled per tier; its tip names the tier, and its minimap square gets an edge and halo in the same metal. The first cycle's ring round the hub is two inner, two middle and two outer nodes; each later cycle adds an outer relic and a chest whose tier takes turns (middle, outer, inner), so the better prizes are always out there to build toward.
+  marker as corner brackets in bronze, silver or gold and a row of three square cells, one filled per tier; its tip names the tier, and its minimap square gets an edge and halo in the same metal. The first cycle's ring round the hub is two inner, two middle and two outer nodes; each later cycle adds an outer relic and a chest whose tier takes turns (middle, outer, inner), so the better prizes are always out there to build toward. On the ground outside the hub the tiers show as square zones: a light wash of bronze, silver and gold, dashed contour lines at 15 and 30 tiles and chevrons (one, two, three) pointing out.
   **Gold** (gold trim, a coin: bursts open like a relic node, a big spinning coin climbing out, and spills 14 gold coins worth 40 + 4 per wave for each player, for anyone to pick up), **Piece chest** (orange, a T piece on the lock: every player gets their own piece to **take** into their hand or **discard**, like an upgrade chest's item; the card says whether your hand is full),
   **Buildables** (pink, blueprint grid, a wrench: every player gets their own Black Market build card, a kind with room under the 5 cap, to **take** into their stash or **discard**) or **Upgrade** (green, chevrons: every
   player gets their own item, like a wave chest). It opens once and never holds the wave up. No cover stands on a node. Nothing respawns: new ones
@@ -2227,6 +2230,11 @@ boss plays out and what to change.
   Mender's Bow arrow or Transfusion Dart through a hurt teammate within 420 px. A Roar tank roars when a teammate is
   hurt or down with enemies on top of them (or when it is under half health); a Knight tank plants **Last Stand** over
   a downed ally and keeps it up while they're being stood back up. Tests: `Tools/SimTest/run.sh 1 30 botteam`.
+- **Bot dodge and sprint** (same bots): a bot **dodges** when every step it could walk still gets it hit and a dodge
+  clears it (hits only count once the dodge's invulnerability ends; a shot a ready perfect parry would take is left to the
+  parry), and when it has a long way to go (over 450 px past where it wants to be) with nothing to shoot and nothing
+  coming, it holds the dodge on into a **sprint**. It doesn't spam it: it waits a gap on top of the cooldown, Casual 3 s
+  (and needs more danger), Good 2.2 s, Expert 1.5 s, and 7 / 5 / 3.5 s between sprints. Tests: `run.sh 1 30 botdodge`.
 - **Bot parry and weapon Alts** (same bots): a bot raises the **parry** toward a shot or a sword cut it can't step out of,
   timed for a perfect parry (a Casual bot's timing drifts, a Good one blocks once its best step still looks risky, an
   Expert takes any clean perfect parry), keeps it up while more come from that side, and drops it when the side is clear
