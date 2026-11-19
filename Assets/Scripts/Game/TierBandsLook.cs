@@ -107,6 +107,8 @@ namespace Arena
         void TierBandsContours(float t)
         {
             float W = Game.Width, H = Game.Height;
+            for (int z = 0; z < 3; z++)  // light shading: each zone a soft wash of its metal, a touch stronger toward its far edge
+                TierFade(z == 0 ? 40f : TierEdge(z), TierEdge(z + 1), TierInk[z], 0.05f, 0.12f, 6);
             for (int z = 1; z <= 2; z++)
             {
                 float d = TierEdge(z);
