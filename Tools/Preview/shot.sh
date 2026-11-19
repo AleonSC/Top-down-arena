@@ -49,7 +49,7 @@
 # PRISONERS=1 (Thugs and Shivs, both Shiv kinds walking, winding up and lunging; mode hud, ZOOM=3).
 # TURNKEY=1 (the Turnkey running, planting, building; Cell Doors working and jammed; Floor Mines, Shackle Traps, a Mop Slick; NINJA=0 ZOOM=2.2; TurnkeyLook.cs).
 # WARDENCREW=1 (Guard, Riot Shield, Gas Grenadier, Taser Guard, Security Guard in a row; WARDENCREW=2 mid-move; NINJA=0 ZOOM=3.2; OfficerLook.cs).
-# GUARD=1 (the riot Guard walking, drawing back and swinging forehand, then backhand; mode hud, KNIGHT=1 ZOOM=2.6; GuardSwing.cs).
+# GUARD=1 (the riot Guard walking, drawing back and swinging forehand, then backhand; mode hud, KNIGHT=1 ZOOM=2.6; GuardSwing.cs). GUARD=2: four Guards walking in at 200/150/110/70 px (the ready tell; ZOOM=2.2).
 # GASLOB=<s into the wind-up> (the Gas Grenadier's overhand lob: ring, arm, canister; mode hud; GasLobLook.cs).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
