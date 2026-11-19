@@ -294,9 +294,12 @@ static partial class Program
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // A sealed room waiting on the lattice (the cycle's mini-boss room, GridPieces.cs): no crowd, no spawns, until a piece reaches it.
         {
-            var mini = Expansion.GridMiniFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, g.Nodes);
-            Check(mini.HasValue, "a sealed mini-boss room fits on the lattice");
-            if (mini.HasValue) g.Expanded.Add(mini.Value);
+            // (the game keeps one waiting, so use it; place one only if none does)
+            bool waiting = Expansion.GridMinisWaiting(g.Expanded) > 0;
+            ExpansionRoom? mini = waiting ? (ExpansionRoom?)g.Expanded[g.Expanded.FindIndex(r => r.Floating)]
+                : Expansion.GridMiniFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, g.Nodes);
+            Check(mini.HasValue, "a sealed mini-boss room waits on the lattice");
+            if (mini.HasValue && !waiting) g.Expanded.Add(mini.Value);
             typeof(Game).GetField("expWorld", flags).SetValue(g, null);
         }
         pickRooms.Invoke(g, null);
