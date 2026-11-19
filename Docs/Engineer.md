@@ -45,7 +45,7 @@ B plated / C spider rig; the Vector Forge is a rivet gun with a cyan emitter.
 3. **Built**: Breach rooms keep their loot as a map node (`NodeKind.BreachLoot`, the kind in `Rule`) taken by the first player to
    walk up to it (`TickBreachLoot`; a Stash keeps its own vector cache); the Strider builds in for 1.2 s (`Minion.Wind` 2-3: the
    wireframe draws in, then the plated walker).
-4. **Built** (protocol 397): **Tank and Healer kits** (decided Nov 17; one weapon, Space ability and ultimate each, like the DPS):
+4. **Built** (protocol 397): **Tank and Healer kits** (decided Nov 17; one weapon, 1st ability and ultimate each, like the DPS):
    - Tank: **Bulwark Forge** (a nail shotgun; the follower is a heavy **Sentinel** walker that soaks shots and taunts wider,
      Alt orders it like the Strider), **Vector Wall** (Space: a 5-tile wall from you toward the cursor that stops enemy shots
      for 8 s), **Bastion** (ultimate: a ring of vector walls round you for 10 s, with gaps to shoot out of).

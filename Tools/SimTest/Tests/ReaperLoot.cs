@@ -17,7 +17,7 @@ static partial class Program
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
 
         // Their pool: the three new cards; Executioner, Twin Fang and Soul Harvest stay but are never offered.
-        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.TwinA).Select(i => Upgrades.All[i].Name).ToArray();
+        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.ReaperOfDusk).Select(i => Upgrades.All[i].Name).ToArray();
         bool neverOffered = true;
         var rng = new Random(7);
         for (int k = 0; k < 300; k++)
@@ -108,7 +108,7 @@ static partial class Program
         g.GrantUpgrade(2, U("Scythe Throw"));
         drive(0.3f);
         int slot = Array.FindIndex(hp.Slots, k => k.Id == AbilityId.ScytheThrow);
-        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.ScytheThrow, "Scythe Throw goes on a Q / E / Shift key");
+        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.ScytheThrow, "Scythe Throw goes on a 2nd, 3rd or 4th key");
         var target = dummy(home + new V2(200f, 0f));
         cp.Pos = cp.Disp = home;
         step(new PlayerInput { AbilityQ = slot == 1, AbilityE = slot == 2, AbilityShift = slot == 3, AimAt = home + new V2(300f, 0f) });

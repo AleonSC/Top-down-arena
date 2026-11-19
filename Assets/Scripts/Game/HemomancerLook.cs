@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the Blood Mage looks beyond its model (CharacterModels.cs): the Blood Price glow, Clot plating, ability
+    /// How the Hemomancer looks beyond its model (CharacterModels.cs): the Blood Price glow, Clot plating, ability
     /// feedback, its shots and its zones.
     public partial class ArenaApp
     {
@@ -11,7 +11,7 @@ namespace Arena
         static readonly Rgba Bone = new Rgba(0.95f, 0.9f, 0.82f);
 
         /// A blood mage's Blood Price glow, Clot plating and ability feedback over the model.
-        void DrawBloodMage(Player p, float r, float t, Rgba col)
+        void DrawHemomancer(Player p, float r, float t, Rgba col)
         {
             float a = col.A;
             float missing = p.MaxHp > 0f ? MathX.Clamp01(1f - p.Hp / p.MaxHp) : 0f;
@@ -88,7 +88,7 @@ namespace Arena
         void DrawImplodeMark(float t)
         {
             var me = game.Me;
-            if (me == null || me.Downed || me.Weapon.Id != WeaponId.Implosion && me.Weapon.Id != WeaponId.BoneSpear || me.StunShots > 0)
+            if (me == null || me.Downed || me.Weapon.Id != WeaponId.Implosion && me.Weapon.Id != WeaponId.BloodBrawler || me.StunShots > 0)
                 return;
             var e = game.ImplodeTarget(me, me.AimAt, true);
             if (e == null)
@@ -377,15 +377,15 @@ namespace Arena
             Tri(c - dir * (r * 2.4f), c + side * (r * 0.9f), c - side * (r * 0.9f));
         }
 
-        /// The Blood Mage's shots.
+        /// The Hemomancer's shots.
         bool DrawBloodShot(Bullet b, Rgba c, float t)  // KitLook.Shot: false for any other kind
         {
-            if (b.Kind < Defs.BloodShot || b.Kind > Defs.BoneSpearShot)
+            if (b.Kind < Defs.BloodShot || b.Kind > Defs.BloodBrawlerShot)
                 return false;
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
             switch (b.Kind)
             {
-                case Defs.ClotShot:  // the Gore Mortar's clot, lobbed over its shadow (ClotCannonLook.cs)
+                case Defs.ClotShot:  // the Gore Mortar's clot, lobbed over its shadow (GoreMortarLook.cs)
                     DrawClotLob(b, t);
                     break;
                 case Defs.LeechShot:  // a streak of the beam
@@ -402,7 +402,7 @@ namespace Arena
                     Circle(b.Pos, b.Radius * 0.45f, BloodDark, 8);
                     Circle(b.Pos + V2.FromAngle(t * 9f + b.Id) * (b.Radius + 4f), 1.8f, BloodRed, 6);
                     break;
-                case Defs.BoneSpearShot:  // a long bone shaft, a red streak behind
+                case Defs.BloodBrawlerShot:  // a long bone shaft, a red streak behind
                     Line(b.Pos - dir * 30f, b.Pos - dir * 14f, 4f, BloodRed.WithAlpha(0.35f));
                     Line(b.Pos - dir * 16f, b.Pos + dir * 2f, 3f, c);
                     SetColor(c);

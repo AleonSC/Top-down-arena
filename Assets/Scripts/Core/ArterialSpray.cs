@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The DPS Hemomancer's Arterial Spray (`AbilityId.BloodBoil` kept; was Blood Boil). Press to open a vein: a 60° jet
+    /// The DPS Hemomancer's Arterial Spray (was Blood Boil). Press to open a vein: a 60° jet
     /// of blood follows your aim and hurts everything in it (Blood Price makes it hit harder as your health falls), slowing
     /// and bleeding what it soaks and pushing small enemies back. It drains you while it runs; press again to stop, and it
     /// sputters out at 15% health. The cooldown starts when it stops (like Blood Shell).
@@ -18,7 +18,7 @@ namespace Arena
         const float SprayBleed = 1.5f, SpraySlow = 0.2f, SprayPush = 40f;  // bleed added a tick (stacks up to 5); the slow; px/s small enemies are pushed
 
         /// Pressing Arterial Spray again while it runs closes the vein (no cooldown is spent for the press itself).
-        public bool SprayRelease(Player p, int slot) => p.SprayOn && p.Slots[slot].Id == AbilityId.BloodBoil;
+        public bool SprayRelease(Player p, int slot) => p.SprayOn && p.Slots[slot].Id == AbilityId.ArterialSpray;
 
         /// How far a player's jet reaches (High Pressure makes it longer).
         public static float SprayReachOf(Player p) => SprayReach * p.Stats.SprayReach;
@@ -100,7 +100,7 @@ namespace Arena
         {
             p.SprayOn = false;
             for (int i = 0; i < p.Slots.Length; i++)
-                if (p.Slots[i].Id == AbilityId.BloodBoil && p.Slots[i].Charges <= 0)
+                if (p.Slots[i].Id == AbilityId.ArterialSpray && p.Slots[i].Charges <= 0)
                     p.Slots[i].Timer = Cooldown(p, i);
             if (sputter)
                 BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), 6f, 0.5f, Sfx.None);

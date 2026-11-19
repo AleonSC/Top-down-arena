@@ -30,7 +30,7 @@ Two of her drones switch sides and circle you.
 
 ## Royal Dive (new ability; replaces Royal Jelly)
 
-Her royal dive, yours: a bonus ability on Q/E/Shift, like the Stun Gun. Cooldown 12 s.
+Her royal dive, yours: a 2nd–4th ability on 2nd, 3rd or 4th, like the Stun Gun. Cooldown 12 s.
 
 - **Leap:** you rise for 0.6 s (can't be hit, can't shoot), your shadow racing to your cursor (up to 380 px).
 - **Crash:** you land there: 120 damage (your damage upgrades count) to everything within 110 px, enemies

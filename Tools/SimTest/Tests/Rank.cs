@@ -99,7 +99,7 @@ static partial class Program
         hp.Equip(CosmeticKind.Trail, "trail-ember");
         client.ShareCosmetics(); host.ShareCosmetics();
         PollBoth(host, client);
-        Check(entry(host, cid).Trail == 5 && entry(client, cid).Trail == 5 && entry(client, 1).Trail == 1 && Rank.TrailId(5) == "trail-gold" && Rank.TrailIndex("trail-ember") == 1, "everyone's lobby knows each player's trail, so it can be drawn in the match");
+        Check(entry(host, cid).Trail == 5 && entry(client, cid).Trail == 5 && entry(client, 1).Trail == 1 && Rank.TrailId(5) == "trail-gold" && Rank.TrailIndex("trail-ember") == 1, "everyone's lobby knows each player's trail, so it can be drawn in the run");
         Check(Rank.RewardsAt(15)[0].Id == "trail-frost" && Rank.RewardsAt(19)[0].Id == "trail-storm" && Rank.RewardsAt(23)[0].Id == "trail-void" && Rank.RewardsAt(36)[0].Id == "trail-prism"
               && Rank.OfKind(CosmeticKind.Trail).Count == 7 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(8) == "", "Frost, Storm, Void and Prism unlock at 15, 19, 23 and 36, and every trail has its own lobby number");
         Check(Rank.RewardsAt(46).Count == 1 && Rank.RewardsAt(46)[0].Id == "trail-lightcycle" && Rank.TrailIndex("trail-lightcycle") == 7 && Rank.TrailId(7) == "trail-lightcycle" && !Rank.Owns(45, "trail-lightcycle") && Rank.Owns(46, "trail-lightcycle") && Rank.TrailIndex("trail-gold") == 5, "the Light Cycle trail unlocks at rank 46 as the last trail, and no earlier trail's number moves");
@@ -173,7 +173,7 @@ static partial class Program
         Check(client.SendEmote(5), "you can play an emote you've unlocked");
         PollBoth(host, client);
         Check(host.EmoteOf(cid, out shown, out age) && shown == 5 && client.EmoteOf(cid, out shown, out age) && shown == 5 && age < 1f, "the host and the player's own game both show it");
-        Check(!client.SendEmote(6) && client.EmoteWait > 0f && client.EmoteWait <= Session.EmoteHangoutCooldown && Session.EmoteCooldown == 2f, "there's a pause before the next one (shorter in the lobby, 2 s in a match)");
+        Check(!client.SendEmote(6) && client.EmoteWait > 0f && client.EmoteWait <= Session.EmoteHangoutCooldown && Session.EmoteCooldown == 2f, "there's a pause before the next one (shorter in the lobby, 2 s in a run)");
         Check(host.SendEmote(1), "the host plays one too");
         PollBoth(host, client);
         Check(client.EmoteOf(1, out shown, out age) && shown == 1, "and the client sees the host's");
@@ -206,9 +206,9 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game;
         Check(g.LastGain == null && client.Game.LastGain == null && hp.Xp == 0, "no XP before the run ends");
-        Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
-        Find(host, EnemyType.Boss).Hp = 0f;
-        Run(s, dt, 3f, () => cp.Beaten(EnemyType.Boss) > 0, () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
+        Find(host, EnemyType.Warden).Hp = 0f;
+        Run(s, dt, 3f, () => cp.Beaten(EnemyType.Warden) > 0, () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
         foreach (var pl in g.Players.Values) { pl.Downed = true; pl.ReviveToken = false; }
         typeof(Game).GetMethod("CheckGameOver", flags).Invoke(g, null);
         Run(s, dt, 1f, () => cp.RunsLost > 0);
@@ -226,8 +226,8 @@ static partial class Program
         host.Host(port, "Host", Role.Tank);
         host.StartMatch();
         host.Game.DevSetGod(1, true);
-        for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Boss) != null && !host.Game.IsSpawning(Find(host, EnemyType.Boss))); i++) Step(host, dt);
-        Find(host, EnemyType.Boss).Hp = 0f;
+        for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Warden) != null && !host.Game.IsSpawning(Find(host, EnemyType.Warden))); i++) Step(host, dt);
+        Find(host, EnemyType.Warden).Hp = 0f;
         for (int i = 0; i < 60; i++) Step(host, dt);
         foreach (var pl in host.Game.Players.Values) { pl.Downed = true; pl.ReviveToken = false; }
         typeof(Game).GetMethod("CheckGameOver", flags).Invoke(host.Game, null);

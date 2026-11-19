@@ -114,7 +114,7 @@ Themed on each boss's mechanics. Numbers are starting points.
 | Hive Queen | **Royal Jelly** | Health orbs heal 30% more, and you pick them up from further away. |
 | Hive Queen | Brood | Start each wave with a small drone that orbits you and chips enemies (weak, dies in a few hits). |
 | Twin Reapers | **Death's Door** | Once per run, going down instead leaves you up at 1 HP and invulnerable for 1.5 s. |
-| Twin Reapers | Reaping | Killing an enemy below 15% health refunds 0.5 s of your Space ability's cooldown. |
+| Twin Reapers | Reaping | Killing an enemy below 15% health refunds 0.5 s of your 1st ability's cooldown. |
 | Singularity | **Event Horizon** | Enemy bullets within 60 px of you slow down by 30%. |
 | Colossus | **Bedrock** | Knockback and pushes (gates, stomps, wind) move you 40% less. |
 | Duelist | **Riposte** | Your parry window is 25% wider, and a perfect parry gives +25% damage for 2 s. |

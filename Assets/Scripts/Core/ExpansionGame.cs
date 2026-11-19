@@ -213,14 +213,14 @@ namespace Arena
             return a.Contains(pos) ? a : (RoomArea?)null;
         }
 
-        /// The path whose ground this point is on (a Floor room), else None. Its rules hold in that room only.
+        /// The path whose ground this point is on (a rule room), else None. Its rules hold in that room only.
         public PathId FloorAt(V2 pos)
         {
             var a = ExpandedAreaAt(pos);
             return a.HasValue && a.Value.Kind == Arena.RoomKind.Floor ? a.Value.Floor : PathId.None;
         }
 
-        /// Kills in a Floor room pay that path's bonus (+25% XP and score at danger 2, +50% at 3).
+        /// Kills in a rule room pay that path's bonus (+25% XP and score at danger 2, +50% at 3).
         float FloorBonusAt(V2 pos)
         {
             var f = FloorAt(pos);

@@ -60,13 +60,13 @@ namespace Arena
             if (s.MilestoneChance > 0f)
                 lines.Add(new StatLine { Label = "Milestone chance", Value = Math.Round(s.MilestoneChance * 100f) + "%" });
             lines.Add(new StatLine { Label = "Parry durability", Value = ((int)(Game.ParryCapacity * s.ParryCapacityMult)).ToString() });
-            lines.Add(new StatLine { Label = Upgrades.Ability(p.RoleAbility).Name + " charges", Value = (1 + s.UseBonus[0]).ToString() });
+            lines.Add(new StatLine { Label = Upgrades.Ability(p.FirstAbility).Name + " charges", Value = (1 + s.UseBonus[0]).ToString() });
 
             var bonus = new List<string>();
             var legendary = new Dictionary<string, int>();
             var mods = new Dictionary<string, int>();
-            if (p.StartBonus != AbilityId.None)
-                bonus.Add(Upgrades.Ability(p.StartBonus).Name);  // a Wildcard's second ability is on a bonus key from the start
+            if (p.WildcardAbility != AbilityId.None)
+                bonus.Add(Upgrades.Ability(p.WildcardAbility).Name);  // a Wildcard ability is on a 2nd–4th ability slot from the start
             foreach (int id in taken)
             {
                 var u = Upgrades.All[id];
@@ -79,10 +79,10 @@ namespace Arena
             }
             if (bonus.Count > 0)
             {
-                lines.Add(new StatLine { Label = "Bonus abilities", Header = true });
+                lines.Add(new StatLine { Label = "2nd–4th abilities", Header = true });
                 // Laid out the way the player arranged their keys (and where a previewed new one would go).
                 string[] keys = { KeyText.Q, KeyText.E, KeyText.Shift };  // the player's bound keys (KeyText.cs)
-                var layout = (AbilityId[])p.BonusKeys.Clone();
+                var layout = (AbilityId[])p.CardAbilities.Clone();
                 AbilityId added = AbilityId.None;
                 foreach (int id in taken)
                     if (Upgrades.All[id].Grants != AbilityId.None && Array.IndexOf(layout, Upgrades.All[id].Grants) < 0)

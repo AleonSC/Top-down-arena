@@ -1,5 +1,5 @@
 using System; using System.IO; using System.Threading; using Arena; using UnityEngine;
-// CLIP=<frames>: after the posed frame, the match keeps running and every CLIPSTEP fixed steps (default 3, 20 fps)
+// CLIP=<frames>: after the posed frame, the run keeps running and every CLIPSTEP fixed steps (default 3, 20 fps)
 // another frame is drawn, as <name>.f001.tris/.ui ... (clip.sh turns them into a GIF). Frame 0 is the normal shot.
 static partial class Shot {
   static void ClipFrames() {

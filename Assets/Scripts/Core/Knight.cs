@@ -13,7 +13,7 @@ namespace Arena
         public int MaxTargets;        // 0 = everything in the arc; otherwise the nearest few (Rapier)
         public bool CutAll;           // also cuts big orbs and mines (it was the mastered Whirlwind's; nothing sets it today)
         public float HealPerHit, HealRange;
-        public int HealHits;          // most enemies a swing's healing counts (Holy Mace)
+        public int HealHits;          // most enemies a swing's healing counts (Quarterstaff)
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
         public bool FromWeapon;       // queued by the player's weapon (QueueSwing): the session recording credits its hits to the weapon
@@ -31,7 +31,7 @@ namespace Arena
         public bool Deflect;          // bats enemy bullets in the arc back as your own (the Quarterstaff: it parries as it swings)
         public float Bleed;           // each hit bleeds for this much of its damage per second (Bear Totem)
         public float ClawSide;        // != 0: a bear-claw swipe, drawn as claw marks raking this way (+1 / -1)
-        public float Tip;             // > 0: a whip (the Blood Mage's Blood Lash): hits beyond this distance crack for double
+        public float Tip;             // > 0: a whip (the Hemomancer's Blood Lash): hits beyond this distance crack for double
         public int Links;             // > 0: a Blood Lash step: hooks a chain on what it hits, this many links (BloodLash.cs)
         public float Taunt;           // taunts what it hits for this long (the Blood Lash's Snap)
         public int Sweep;             // > 0: one step of a sweep (Halberd): each enemy is hit once per sweep, however many steps reach it
@@ -171,7 +171,7 @@ namespace Arena
                     }
                     break;
                 }
-                case WeaponId.HolyMace:
+                case WeaponId.Quarterstaff:
                 {
                     // The Quarterstaff: a wide swipe that knocks enemies back and parries bullets as it goes. Every enemy it
                     // hits adds a Jab stack (Quarterstaff.cs); the screen's look alternates a left and a right swipe.
@@ -681,7 +681,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BulwarkBarrier, Kit = Kit.Knight, Role = Role.Tank, Choice = 3, Damage = 12f, Reach = 80f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach and +10% damage on the chain, and +20% Shield Bash damage", Name = "Bulwark Barrier", FireInterval = 0.3f,
                 Desc = "A kite shield that always guards your front half: every enemy shot that hits it stops, red aimed shots too. Fire is a three-hit chain: Rim Cut, Backhand, then a Boss Slam that shoves and stuns. Hold the weapon-action key to brace: you move slower, the guard widens and every shot it stops fills Ram. Fire while braced for a Shield Bash: a dash that hits, shoves and stuns harder with more Ram; at full Ram the soaked shots burst out as steel shards." },
             // Healer
-            new WeaponDef { Id = WeaponId.HolyMace, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 120f, Melee = true, ExtraDesc = "+1 Jab stack limit (3 to start)", Name = "Quarterstaff", FireInterval = 0.5f,
+            new WeaponDef { Id = WeaponId.Quarterstaff, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 120f, Melee = true, ExtraDesc = "+1 Jab stack limit (3 to start)", Name = "Quarterstaff", FireInterval = 0.5f,
                 Desc = "Left and right staff swipes that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies and stores a Jab stack (up to 3); the weapon-action key spends one on a cone jab." },
             new WeaponDef { Id = WeaponId.Lightbringer, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light on Dawn and Mercy, fanned out, and +30 px on the Sunburst", Name = "Lightbringer", FireInterval = 0.5f,
                 Desc = "A three-step chain. Dawn Cut's crescent heals the allies it passes, Mercy Cut's wards them, and Noon Sunburst plants the sword in a ring that heals everyone near you. Hits fill a light gauge: full, the next Noon is Radiant. The weapon-action key spends the light on a Sunlance that heals the ally nearest your cursor." },
@@ -698,7 +698,7 @@ namespace Arena
                 Desc = "Coiled blue fists in a five-punch chain: jab, cross, a hook that sweeps a crowd, an uppercut that launches, and the Twin Hammer, a ground slam whose shockwave stuns. Raising the parry cancels a punch and starts the chain over; a perfect parry arms the gold Counter Hammer for your next press. The weapon-action key is a Rocket Dash; land it and press Fire as each move lands to chain a Flurry, a Grab & Throw and a Rocket Punch." },
         };
 
-        /// The Knight's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Knight's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] KnightCards =
         {
@@ -712,11 +712,11 @@ namespace Arena
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Coup de Grace", Desc = "Bladed Dive's cuts deal 25% more damage and it rushes 40 px further",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladedDive, MaxStacks = 2, Name = "Coup de Grace", Desc = "Bladed Dive's cuts deal 25% more damage and it rushes 40 px further",
                 Apply = s => { s.BladedDamage += 0.25f; s.BladedReach += 40f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Lunge, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Gauntlet, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
                 Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CaughtSteel, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
                 Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WarhornVolley, MaxStacks = 2, Name = "Bodkin Points", Desc = "Warhorn Volley's arrows hit 25% harder and the volley is 20% wider",
                 Apply = s => { s.VolleyDamage += 0.25f; s.VolleyWide += 0.2f; } },
@@ -730,7 +730,7 @@ namespace Arena
                 Apply = s => { s.HalberdReachMult += 0.15f; s.HalberdSweepBonus += 10f * MathX.Pi / 180f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BulwarkBarrier }, MaxStacks = 2, Name = "Iron Boss", Desc = "Bulwark Barrier: Ram fills 30% faster, and the Shield Bash and its shards hit 30% harder",
                 Apply = s => { s.BbRamMult += 0.3f; s.BbBashMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HolyMace }, MaxStacks = 2, Name = "Pilgrim's Staff", Desc = "Each Quarterstaff hit heals 1 more, and you can store 1 more Jab stack",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Quarterstaff }, MaxStacks = 2, Name = "Pilgrim's Staff", Desc = "Each Quarterstaff hit heals 1 more, and you can store 1 more Jab stack",
                 Apply = s => { s.StaffHealBonus += 1f; s.StaffExtraStacks += 1; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Lightbringer }, MaxStacks = 2, Name = "Daybreak", Desc = "The light gauge fills 30% faster and the Sunlance heals 30% more",
                 Apply = s => { s.LightGainMult += 0.3f; s.SunlanceHealMult += 0.3f; } },
@@ -793,21 +793,21 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Whirlwind, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Bladed Dive (BladedDive.cs); the id is Whirlwind's, kept so the numbers stay put
+                Id = AbilityId.BladedDive, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Bladed Dive (BladedDive.cs) so the numbers stay put
                 Name = "Bladed Dive", Cooldown = 10f, Desc = "Rush toward your cursor (up to 240 px), untouchable, your blade spinning round you: four cuts land along the way, each hitting every enemy within 64 px of you for 18. Kill anything with it and the cooldown resets.",
                 Capstone = "Each kill heals you 5% of your health.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
             {
-                Id = AbilityId.Lunge, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true,  // The Gauntlet (Gauntlet.cs); the id is Lunge's
+                Id = AbilityId.Gauntlet, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true,  // The Gauntlet (Gauntlet.cs); the id is Lunge's
                 Name = "The Gauntlet", Cooldown = 9f, Desc = "Throw down the gauntlet at the enemy nearest your cursor along your aim (up to 380 px; it flies over anything in between): it takes 12 and is Challenged for 5 s. You shoulder-charge to it, untouchable, bowling everything in the way aside (18 and a shove), and hit it for 30. Kill the Challenged enemy before the Challenge runs out and the gauntlet flies back: the cooldown resets.",
                 Capstone = "The Challenge lasts 8 s, and the charge's impact stuns for 1 s.",
                 Bot = b => b.HaveTarget && b.TargetD > 90f && b.TargetD < 380f,
             },
             new AbilityDef
             {
-                Id = AbilityId.BattleFury, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caught Steel (CaughtSteel.cs); the id is Battle Fury's
+                Id = AbilityId.CaughtSteel, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caught Steel (CaughtSteel.cs)
                 Name = "Caught Steel", Cooldown = 16f, Desc = "For 6 s, enemy bullets that skim past you without touching you are caught and hang round you as steel (up to 12). Press again (or let the time run out) and a sweeping cut hurls them out along your aim: each shard cuts the bullets in its way and hits the first enemy for 22. A hit knocks a third of them loose. The cooldown starts when you throw them.",
                 Capstone = "Holds up to 18 shards.",
                 Bot = b => b.Danger,
@@ -827,7 +827,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.BladeTempest, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,  // the Drawbridge (Drawbridge.cs); the id is Blade Tempest's
+                Id = AbilityId.Drawbridge, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,  // the Drawbridge (Drawbridge.cs)
                 Name = "Drawbridge", Cooldown = 75f, Desc = "A gatehouse rises behind you and its drawbridge falls along your aim: 500 px long and 100 wide, it crushes everything in the lane for 260 and throws enemies at its edges aside (45). Then it lies there for 5 s as a walkway: enemies can't step onto it and the rails grind any pressed against them (80 a second), and their shots stop at its rails, red aimed shots too.",
                 Capstone = "The bridge stands for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 450f,
@@ -906,13 +906,13 @@ namespace Arena
                     }
                     return true;
                 }
-                case AbilityId.Whirlwind:
+                case AbilityId.BladedDive:
                     CastBladedDive(p, target, pw, cap);  // BladedDive.cs
                     return true;
-                case AbilityId.Lunge:
+                case AbilityId.Gauntlet:
                     CastGauntlet(p, target, pw, cap);  // Gauntlet.cs
                     return true;
-                case AbilityId.BattleFury:
+                case AbilityId.CaughtSteel:
                     CastCaughtSteel(p, pw, cap);  // CaughtSteel.cs
                     return true;
 
@@ -936,7 +936,7 @@ namespace Arena
                     Sounds.Add(Sfx.SpellHoly);
                     return true;
                 }
-                case AbilityId.BladeTempest:
+                case AbilityId.Drawbridge:
                     CastDrawbridge(p, target, cap);  // Drawbridge.cs
                     return true;
                 case AbilityId.WarhornVolley:

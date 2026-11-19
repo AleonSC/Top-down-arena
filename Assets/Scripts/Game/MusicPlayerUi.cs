@@ -34,7 +34,7 @@ namespace Arena
                 ReplaceTrack(MusicLibrary.Battle, pack.WaveBattle);
                 foreach (var bs in pack.Bosses)
                     if (bs != null)
-                        ReplaceTrack(SoundBank.BossTrackId(bs.Boss == EnemyType.TwinB ? EnemyType.TwinA : bs.Boss), bs.Music);
+                        ReplaceTrack(SoundBank.BossTrackId(bs.Boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : bs.Boss), bs.Music);
             }
             foreach (var clip in Resources.LoadAll<AudioClip>("Music"))
                 AddProjectClip(entries, ids, used, null, clip, "Custom", 0.6f);

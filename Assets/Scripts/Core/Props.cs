@@ -90,7 +90,7 @@ namespace Arena
         public readonly Dictionary<int, Loot> Loots = new Dictionary<int, Loot>();
         int nextPropId = 1, nextLootId = 1;
         /// Props come with regular waves. The test runner turns them off by default (PropsByDefault) so tests that
-        /// measure exact hits aren't thrown by a crate in the way; the match and props tests turn them on.
+        /// measure exact hits aren't thrown by a crate in the way; the run and props tests turn them on.
         public bool PropsOn = PropsByDefault;
         public static bool PropsByDefault = true;
 
@@ -760,7 +760,7 @@ namespace Arena
                 int cycles = Math.Max(1, (Wave - 1) / 5 + 1);  // the bosses beaten, and the next
                 var boss = BossSchedule.Campaign.BossAt(5 * (1 + rng.Next(cycles)));  // (the Campaign's order; Quick Play gives it the run's bosses)
                 if (IsReaper(boss))
-                    boss = EnemyType.TwinA;
+                    boss = EnemyType.ReaperOfDusk;
                 var offer = Upgrades.LegendaryOffer(rng, boss, OfferFor(p));
                 int u = offer[rng.Next(offer.Length)];
                 if (Upgrades.Available(u, OfferFor(p)) && Upgrades.All[u].Rarity == Rarity.Legendary)

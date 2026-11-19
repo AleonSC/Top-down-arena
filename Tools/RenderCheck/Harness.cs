@@ -31,7 +31,7 @@ class Harness {
         if (kind.ToString() == "Thrall" && mn != null) { var pf = mn.GetType().GetField("Pact"); if (pf != null) pf.SetValue(mn, Convert.ToByte(Enum.Parse(typeof(EnemyType), "Grunt"))); } }
       var hostAbility = typeof(Game).GetMethod("HostAbility", f2);
       for (int c = 0; c < 3; c++) {
-        g.ShowcaseSetAbility(Upgrades.RoleAbility(me.Role, me.Kit, c));
+        g.ShowcaseSetAbility(Upgrades.FirstAbility(me.Role, me.Kit, c));
         hostAbility.Invoke(g, new object[] { 1, 0, me.Pos + new V2(160f, -120f), true });
         for (int i = 0; i < 8; i++) { g.FixedStep(1f / 60f, new PlayerInput()); g.Update(1f / 60f); }
       }

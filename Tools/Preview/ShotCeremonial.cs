@@ -26,7 +26,7 @@ static partial class Shot {
     me.Kit = Kit.Ninja; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);
     V2 home = new V2(800f, 470f);
     foreach (var q in gm.Players.Values) if (q != me) q.Pos = q.Disp = new V2(150f, 820f);
-    me.Slots[0].Id = AbilityId.IronBody;
+    me.Slots[0].Id = AbilityId.CeremonialArmor;
     me.PlateN = 0;
     var src = new[] { new V2(-330f, -240f), new V2(360f, -200f), new V2(330f, 250f), new V2(-300f, 230f), new V2(0f, -300f) };
     int lastCast = Math.Max(0, (int)Math.Round((3.5f - since) * 60f));

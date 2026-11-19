@@ -4,8 +4,8 @@ namespace Arena
 {
     /// Mastery on the corner HUD's keys: four cells under each name (one per level-up, the current one filling; green,
     /// gold once mastered) with the level digit beside them ("M" at 5). Moments: "+24" rises off the keycap as XP comes
-    /// in; a level-up flashes brackets round the key, pops "LV 3" over it and puts a line above the keys
-    /// ("SHOCKWAVE · LV 3" / "+8% POWER -4% COOLDOWN", or "MASTERED" and the capstone). Preview `MXFX=gain|level,<s>,<xp>[,slot]`.
+    /// in; a level-up flashes brackets round the key, pops "MASTERY 3" over it and puts a line above the keys
+    /// ("SHOCKWAVE · MASTERY 3" / "+8% POWER -4% COOLDOWN", or "MASTERED" and the capstone). Preview `MXFX=gain|level,<s>,<xp>[,slot]`.
     public partial class ArenaApp
     {
         const float MxGainTime = 0.9f, MxLevelTime = 2.8f;
@@ -85,7 +85,7 @@ namespace Arena
                 float rise = 20f * (1f - (1f - k) * (1f - k));
                 MiniText(new Rect(cx - 40f, y - 20f - rise, 80f, 18f), "+" + Mathf.RoundToInt(mxGainAmt[i]), 18, on, a * Mathf.Clamp01((1f - k) * 1.8f), TextAnchor.MiddleCenter);
             }
-            // A level-up: brackets flash round the key, "LV 3" pops over it, and the line above the keys says what it gave.
+            // A level-up: brackets flash round the key, "MASTERY 3" pops over it, and the line above the keys says what it gave.
             if (mxLevelAgo[i] < MxLevelTime)
             {
                 float t = mxLevelAgo[i];
@@ -96,9 +96,9 @@ namespace Arena
                 {
                     float pop = 1f + 0.5f * Mathf.Clamp01(1f - t / 0.25f);
                     float pa = a * Mathf.Clamp01((1.4f - t) / 0.4f);
-                    MiniText(new Rect(cx - 60f, y - 30f, 120f, 26f), max ? "MAX" : "LV " + lv, Mathf.RoundToInt(22f * pop), on, pa, TextAnchor.MiddleCenter);
+                    MiniText(new Rect(cx - 60f, y - 30f, 120f, 26f), max ? "MAX" : "MASTERY " + lv, Mathf.RoundToInt(22f * pop), on, pa, TextAnchor.MiddleCenter);
                 }
-                string head = Upgrades.Ability(id).Name.ToUpperInvariant() + (max ? "  MASTERED" : "  ·  LV " + lv);
+                string head = Upgrades.Ability(id).Name.ToUpperInvariant() + (max ? "  MASTERED" : "  ·  MASTERY " + lv);
                 string body = max ? Game.Capstone(id) : "+8% POWER   -4% COOLDOWN";
                 MiniText(new Rect(W / 2f - 400f, y - 66f, 800f, 20f), head, 20, on, a * la, TextAnchor.MiddleCenter);
                 MiniText(new Rect(W / 2f - 400f, y - 46f, 800f, 16f), body.ToUpperInvariant(), 14, CrtUi.Ink, a * la, TextAnchor.MiddleCenter);

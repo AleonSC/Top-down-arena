@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Deployable Cover (DeployableCover.cs), the Tank Soldier's 4th Space ability: the table (two charges, 12 s), the pick reaching the
+// Deployable Cover (DeployableCover.cs), the Tank Soldier's 4th choice: the table (two charges, 12 s), the pick reaching the
 // match, the bracket planted 64 px ahead along the aim, solid only after 0.4 s, enemy shots stopping on its plates and wearing it,
 // shots from behind its arms too, enemies kept off it, a 4th folding away the oldest, breaking at 0 health, replicated (Aim and
 // health left), folding when the wave ends, and mastery (600 health, 25% quicker charges).
@@ -18,9 +18,9 @@ static partial class Program
 
         var def = Upgrades.Ability(AbilityId.DeployableCover);
         Check(def.Name == "Deployable Cover" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Soldier && def.Role == Role.Tank && def.Cooldown == 12f && def.ExtraCharges == 1,
-            "Deployable Cover: a 12 s, two-charge Tank Soldier Space ability on the 4th key");
-        Check(Upgrades.AbilityLimit(Role.Tank, Kit.Soldier) == 4 && Upgrades.RoleAbility(Role.Tank, Kit.Soldier, 3) == AbilityId.DeployableCover
-            && Upgrades.RoleAbility(Role.Tank, Kit.Soldier, 2) == AbilityId.Bulldoze, "the Tank Soldier's 4th key is Deployable Cover; its first three are unchanged");
+            "Deployable Cover: a 12 s, two-charge Tank Soldier 1st ability on the 4th key");
+        Check(Upgrades.AbilityLimit(Role.Tank, Kit.Soldier) == 4 && Upgrades.FirstAbility(Role.Tank, Kit.Soldier, 3) == AbilityId.DeployableCover
+            && Upgrades.FirstAbility(Role.Tank, Kit.Soldier, 2) == AbilityId.Bulldoze, "the Tank Soldier's 4th key is Deployable Cover; its first three are unchanged");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 0, 3, Kit.Soldier);
@@ -31,7 +31,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
         Check(me.Slots[0].Id == AbilityId.DeployableCover && me.Slots[0].MaxCharges == 2 && client.Game.Players[1].Slots[0].Id == AbilityId.DeployableCover,
-            "the 4th pick reaches the match on Space, with two charges");
+            "the 4th pick reaches the run on Space, with two charges");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(400f, 450f), aimAt = new V2(900f, 450f);

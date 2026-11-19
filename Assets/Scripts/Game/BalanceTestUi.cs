@@ -29,7 +29,7 @@ namespace Arena
             float x = card.x + 16f, w = card.width - 32f;
             if (me != null)
             {
-                string build = me.Def.Name + "  ·  " + me.Weapon.Name + "  ·  " + Upgrades.Ability(me.RoleAbility).Name + "  ·  " + Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit, me.UltPick)).Name;
+                string build = me.Def.Name + "  ·  " + me.Weapon.Name + "  ·  " + Upgrades.Ability(me.FirstAbility).Name + "  ·  " + Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit, me.UltPick)).Name;
                 Ui.Label(new Rect(x, y - 2f, w, 20f), "Your build: " + build, 12, Ui.Gold, TextAnchor.MiddleLeft, true);
             }
             y += 24f;

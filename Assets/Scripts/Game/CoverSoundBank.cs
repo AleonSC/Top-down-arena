@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Deployable Cover's sounds (the Tank Soldier's 4th Space ability, Core/DeployableCover.cs). Each game plays them itself
+    /// Deployable Cover's sounds (the Tank Soldier's 4th choice, Core/DeployableCover.cs). Each game plays them itself
     /// (DeployableCoverLook.cs `UpdateCoverSound`), so nothing is sent, timed to the look's Stake Drop:
     ///   CoverDeploy  the throw and the build: a short whoosh as the canister flies (0 - 0.22 s), a heavy thump as it lands,
     ///                a steel clang as the wall springs up, two clunks as the arms swing back, a quick ratchet of four bolts

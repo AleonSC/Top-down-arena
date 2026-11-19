@@ -153,7 +153,7 @@ button.role[aria-pressed="true"][data-v="DPS"] { border-color: var(--dps); backg
       <h3>Building it</h3>
       <ul>
         <li>Visual only: no network message or snapshot changes, so no <code>ProtocolVersion</code> bump.</li>
-        <li>Each class's <code>KitLook.Body</code> (<code>ClassLooks.cs</code>) already draws over the player circle. The new body would become the shared layers (back, shoulders, role trim, arms, head) plus a per-class costume, with the weapon switch (today inside <code>DrawKnight</code>, <code>DrawNinja</code>, <code>DrawBloodMage</code>) moved into one <code>DrawHeldWeapon</code> keyed by <code>WeaponId</code> so Soldier, Elementalist and Summoner weapons get models too.</li>
+        <li>Each class's <code>KitLook.Body</code> (<code>ClassLooks.cs</code>) already draws over the player circle. The new body would become the shared layers (back, shoulders, role trim, arms, head) plus a per-class costume, with the weapon switch (today inside <code>DrawKnight</code>, <code>DrawNinja</code>, <code>DrawHemomancer</code>) moved into one <code>DrawHeldWeapon</code> keyed by <code>WeaponId</code> so Soldier, Elementalist and Summoner weapons get models too.</li>
         <li>Downed players keep the grey circle; Vanish, i-frame flicker and hit-flash already scale the whole body's alpha, so they carry over unchanged.</li>
         <li>The Armory, field guide and lobby previews all go through <code>DrawPlayer</code>, so they'd pick the models up for free. Bestiary/Armory pages stay as they are until you ask.</li>
       </ul>

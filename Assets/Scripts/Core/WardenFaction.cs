@@ -5,7 +5,7 @@ namespace Arena
 {
     /// The Warden's faction (Docs/Approaches.md), beside the Rioters and Guards of Warden.cs:
     ///   Riot Shield: a guard behind a tall shield. It blocks shots and swings from the front (it wears down in four crack
-    ///     stages, like a Shielder's, but much stronger: RiotShieldShare times its health). It walks up, flashes its
+    ///     phases, like a Shielder's, but much stronger: RiotShieldShare times its health). It walks up, flashes its
     ///     shield (RiotWindup), lunges and bashes: RiotBashDamage and a knockback of RiotKnock px. After a bash it holds
     ///     the shield low for RiotLowTime (hits from the front land). A player can't be bashed again for RiotKnockGrace s,
     ///     so two shields bounce you without pinning you. Broken, it staggers (RiotStagger), then flails with its baton,
@@ -355,7 +355,7 @@ namespace Arena
                 }
         }
 
-        /// Gone with the Warden, or when he changes stage.
+        /// Gone with the Warden, or when he changes phase.
         void ClearWardenShields(Enemy warden)
         {
             ClearTaserGuards(warden);

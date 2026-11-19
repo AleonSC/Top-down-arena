@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Blood Brawler's look, the Marionette (Core/BoneSpear.cs; mockup Docs/Mockups/bone-spear-rework.html).
+    /// The Blood Brawler's look, the Marionette (Core/BloodBrawler.cs; mockup Docs/Mockups/bone-spear-rework.html).
     ///   - The thread (DrawBsThread, from the replicated `Player.BsTarget`/`BsT`): a sagging line of blood from the hand to the
     ///     marked enemy with beads running along it, pulled straight and bright by Reel, a glow running down it at each press;
     ///     the mark is three bone ticks circling the enemy. Sympathy (`SympBound`): dashed threads from the mark to each bound
@@ -11,7 +11,7 @@ namespace Arena
     ///   - Each move (FxKind.BsBlow, drawn from its age; the blow lands at Game.BsHitDelay): Pulse, a phantom fist driving in
     ///     from your side and blood thrown out the far side; Reel, the thread snapping taut with chevrons running back to you;
     ///     Heart Lift, blood spikes erupting under it while it rides up off its shadow (BsLiftOf, read by DrawEnemy); Marrow
-    ///     Burst, veins swelling, then a flash, a burst and bone fragments flying (the cutting shards are Defs.BoneSpearShot
+    ///     Burst, veins swelling, then a flash, a burst and bone fragments flying (the cutting shards are Defs.BloodBrawlerShot
     ///     bullets). Sympathy echoes draw smaller and fainter.
     public partial class ArenaApp
     {
@@ -77,7 +77,7 @@ namespace Arena
         /// Called for each player with a mark or Sympathy up.
         void DrawBsThread(Player p, float t)
         {
-            if (p.Downed || p.Weapon.Id != WeaponId.BoneSpear)
+            if (p.Downed || p.Weapon.Id != WeaponId.BloodBrawler)
                 return;
             if (p.SympT > 0f && game.Enemies.TryGetValue(p.SympSrc, out var src) && src.Hp > 0f)
             {

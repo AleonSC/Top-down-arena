@@ -5,7 +5,7 @@ namespace Arena
     /// How the Eclipse's fight looks (Eclipse.cs): the moon and its shadow, solar flares, closing rings of shadow,
     /// sunspots and the Umbra's dark, the echoes of earlier bosses, Last Light's burning edge, Totality's nova shell,
     /// crescent blades, and the sun itself swelling before a flash. Built from the mockup in
-    /// Docs/Mockups/eclipse-5-stage.html.
+    /// Docs/Mockups/eclipse-5-phase.html.
     public partial class ArenaApp
     {
         static readonly Rgba SunGold = new Rgba(1f, 0.82f, 0.4f);
@@ -158,7 +158,7 @@ namespace Arena
             Arc(m, r, 3f, MoonSilver, 32);
         }
 
-        /// Under the Eclipse's body: its glow (swelling before a flash) and a corona that grows wilder each stage.
+        /// Under the Eclipse's body: its glow (swelling before a flash) and a corona that grows wilder each phase.
         void DrawEclipseCorona(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             var s = e.Eclipse;

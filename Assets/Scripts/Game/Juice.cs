@@ -63,7 +63,7 @@ namespace Arena
                 ClearJuice();
         }
 
-        /// Effects are drawn for the match on screen only (not the lobby's preview, which borrows DrawArenaContents).
+        /// Effects are drawn for the run on screen only (not the lobby's preview, which borrows DrawArenaContents).
         bool Juicy => fxOn && juiceGame == game;
 
         // --- What was on screen last frame ---------------------------------------------------------------------------
@@ -482,12 +482,12 @@ namespace Arena
                     s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = s.Owed = 0f;
                     s.HitFlash = e.Flash;
                     seenEnemies[e.Id] = s;
-                    if (e.Type == EnemyType.Boss && game.IsSpawning(e) && game.State == MatchState.Fighting && introWave != game.Wave)
+                    if (e.Type == EnemyType.Warden && game.IsSpawning(e) && game.State == MatchState.Fighting && introWave != game.Wave)
                     {
                         introWave = game.Wave;
                         StartWardenIntro(e);  // the Warden's own entrance in place of the card (WardenIntro.cs)
                     }
-                    else if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting
+                    else if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.ReaperOfDawn && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting
                         && !(e.Def.Mini && game.RoomsOn))  // (the Rooms arena's vault mini-boss is optional: no fanfare)
                     {
                         introWave = game.Wave;
@@ -579,7 +579,7 @@ namespace Arena
                     Player owner = null;
                     float cool;
                     bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f + (Game.IsTwinRifle(owner.Weapon.Id) ? Game.TwinMuzzleOut + 30f : 0f);  // (the Twin Rifle's rounds start out at its wide-held muzzles, 30 px to each side)
-                    if (fromGun && owner.Weapon.Id == WeaponId.Pistol && b.Kind == Defs.HealerShot)
+                    if (fromGun && owner.Weapon.Id == WeaponId.Revolver && b.Kind == Defs.HealerShot)
                         OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
                     else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
                         OnTankGunShot(owner, b);  // the Tank guns' flash, smoke and brass (TankGunLooks.cs)
@@ -787,7 +787,7 @@ namespace Arena
                         float a = dir.Angle + MathX.Pi + Rnd(-0.75f, 0.75f);
                         AddPart(new Part { Kind = PSpark, Pos = s.Pos, Vel = V2.FromAngle(a) * Rnd(90f, 260f), Life = Rnd(0.15f, 0.28f), Max = 0.28f, Size = 1.8f, Col = c });
                     }
-                    if (s.Kind == Defs.ArcaneShot && ShotWeapon(s.Kind, s.Owner) == WeaponId.ArcaneMissiles)  // an ice shard shatters
+                    if (s.Kind == Defs.ArcaneShot && ShotWeapon(s.Kind, s.Owner) == WeaponId.IceShards)  // an ice shard shatters
                         for (int i = 0; i < 4; i++)
                         {
                             float a = Rnd(0f, MathX.Tau);

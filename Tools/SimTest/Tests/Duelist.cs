@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The Duelist in three stages (Duelist.cs): En Garde, Masquerade, To the Death, and its last stand.
+// The Duelist in three phases (Duelist.cs): En Garde, Masquerade, To the Death, and its last stand.
 static partial class Program
 {
     static void DuelistTest(float dt)
@@ -67,7 +67,7 @@ static partial class Program
         Console.WriteLine("  guard: a shot on its front did {0:0} and {1} came back; one from behind did {2:0}", front, bounced, back);
         Check(front == 0f && bounced >= 1 && back > 20f, "Guard: shots on its front bounce back at you; from behind they hurt");
 
-        // 65%: it changes stage (can't be hurt), then the Masquerade: three decoys round you; only its shots are solid.
+        // 65%: it changes phase (can't be hurt), then the Masquerade: three decoys round you; only its shots are solid.
         duel.Hp = duel.MaxHp * 0.6f;
         Run(s, dt, 1f, () => ds.TransT > 0f, safe);
         float h0 = duel.Hp; hurt.Invoke(g, new object[] { duel, 300f, 1 });

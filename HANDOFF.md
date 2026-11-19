@@ -18,10 +18,9 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 
 - **What:** a 1-3 player **co-op top-down bullet hell** made in **Unity 6** (`6000.6.7f1`, Unity 6.6; built-in render
   pipeline). The owner plays it with a friend over **Tailscale** (one hosts, the other joins by IP).
-- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja,
-  Hemomancer; `Kit.Elementalist`/`Kit.Hemomancer` were `Kit.Mage`/`Kit.BloodMage`, and many files still say so, e.g.
-  `BloodMage.cs`), then one of 3 weapons and one of 3 Space abilities. Each role × kit has an ultimate (F). Very rare
-  cards add Q/E/Shift abilities. Abilities level up with use (**mastery** 1-5, capstone at 5). **Perks** (unlocked by
+- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja, Engineer,
+  Hemomancer; old saves may still say `Mage`/`BloodMage`, loaded by `KitFromSave`), then one of 3 weapons and one of 3 1st abilities. Each role × kit has an ultimate (F). Very rare
+  cards add 2nd, 3rd or 4th abilities. Abilities level up with use (**mastery** 1-5, capstone at 5). **Perks** (unlocked by
   winning a Boss Hunt, e.g. Riot Gear) are equipped in the lobby.
 - **The ten bosses, in Campaign order:** Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist, Lich,
   Storm Herald, Devourer, Eclipse (`Game.BossCycle`, EnemyAI.cs). **Every boss has its own faction** of themed enemies,
@@ -133,16 +132,13 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   `Defs.Weapons` and `Upgrades.Abilities` are built from it), and each entry's `Kit`/`Role`/`Choice` places it in the lobby tables (indexed by
   role × kit, `Defs.KitCount = 6`). FireVolley sends a weapon without its own case to its class's `KitDef.Fire`;
   CastAbility's default goes to `KitAbility`, then each class's `KitDef.Ability`, then `Ultimate`. The look is a
-  `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Blood Mage abilities cost health:
+  `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Hemomancer abilities cost health:
   `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the
   cast, never below 1 HP.
 
-### Grid vocabulary (use these names in code, UI and docs)
+### Grid vocabulary
 
-- **Cell**: one 600 px square of the lattice. **Shape** (`PieceShape`): the 1-4 cell polyomino (Mono ... TetL).
-- **Piece card** (`PieceCard`, hand codes in `GridPieces.cs`): what sits in your **hand**: a shape plus a **room type** (`RoomTypeOf`: plain, or a floor). Service piece cards (Shop, Market, Arms, Builder Shop) are one cell. A **piece** on its own is the shape on the map.
-- **Placement** (`Placement`, `PlacementsFor`): one legal spot and turn for a piece card, at a **door spot**. Placing it builds a **room**.
-- Sources: **Piece chest** (`ChestKind.Piece`), **Builder Shop** (buys piece cards, vectors), wave and boss drops, round start. **Room chests** are the chests a built room may drop (any kind). **Black Market** sells buildables (never "vendor"). **Upgrade card** and **milestone card** are the other cards.
+See "Building on the grid" in `Docs/Glossary.md`: cell, shape (`PieceShape`), piece card (`PieceCard`), room type, placement, piece chest, Black Market.
 
 ### Adding an enemy
 
@@ -195,9 +191,9 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
    `Defs.Weapons` and `Upgrades.Abilities` are built from it. The game stops at start-up with a message naming anything missing or doubled.
 4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`. Per-class player
    fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
-5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per Space ability
+5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per 1st ability
    (`ByUpgrade` maps the ability's name to it). Ultimates have none.
-   **Upgrade cards** for the class (its Space abilities' Rare cards, weapon or class cards) go in `Game.<Class>Cards`
+   **Upgrade cards** for the class (its 1st abilities' Rare cards, weapon or class cards) go in `Game.<Class>Cards`
    beside its abilities, added to `Upgrades.All`'s `Gather` (Docs/UpgradePools.md).
 6. **Check:** `Tools/SimTest/run.sh 1 1 classes` lists every missing piece (weapon cases, ability casts, icons, blurb,
    look). Then a sim test file for the class (`Tests/<Class>.cs`, see `Tests/Ninja.cs`), `run.sh 1 1 extra` and `aim`
@@ -224,7 +220,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan`, `Mathf.Approximately` (use `System.Math`).
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the **`Suites`
   table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`, `Parry`,
-  `Knight`, `Ninja`, `BloodMage`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
+  `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
   `TextEdit`). `run.sh list` prints every suite.
   - **Setup helpers** (`Program.cs`): `HostAs(new Session { ... }, port, bot, name, role, ...)`, `JoinAs(port, bot, name,
     role, ...)`, `WaitForGame(host, client, dt)`, `WaitForLobby(host, client)` and `PollBoth(host, client)`. Use them in
@@ -237,7 +233,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     each in its own process, built once; `k/n` runs one shard. CI runs it as two shards beside `core` and `features`.
     **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`.** `TIMES=1 run.sh ...` prints each test's time.
   - Single systems: `snapshot` (run snapshots, F6 / F7), `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `bloodlash`, `paths`, `bazaar`, `practice`, `bosses`,
-    `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ults`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `turnkey` (the Warden faction's Turnkey: wave-3 debut, running, traps, Cell Doors), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
+    `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ultimates`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `turnkey` (the Warden faction's Turnkey: wave-3 debut, running, traps, Cell Doors), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `perf` (sim ms a frame, host and friend, through a Quick Play breach wave: `run.sh 1 1 perf [secs] [boss] [wave]`), `survperf` (the same for Survival at the 60-enemy cap: `run.sh 1 1 survperf [secs] [start min]`), `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to
@@ -293,7 +289,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   builds, drawing every frame; every 2 s it prints enemies, particles, GL vertices a frame and draw ms, plus the top
   vertex sources of one traced frame (`GL.Trace` in `Stubs.cs`). Unity's GL immediate mode pays per vertex, so the
   vertex count is what to cut (`OffScreen`, `SegsFor` in `WorldRenderer.cs`; `PartCrowd` in `Juice.cs`).
-- **GIF clips:** `Tools/Preview/clip.sh <name> <mode> [wave secs players]` keeps the match running after the shot
+- **GIF clips:** `Tools/Preview/clip.sh <name> <mode> [wave secs players]` keeps the run running after the shot
   (`CLIP=<frames>` in `ShotClip.cs`; `FRAMES=30`, `CLIPSTEP=3` fixed steps a frame = 20 fps, `CLIPHURT=1`), or with
   `VAR=from:to:step` draws one frame per value of a scene's time flag (`CASTT`, `THRUST`, `KDT`, ...). Writes
   `out/<name>.gif` and `out/<name>-strip.png` (six frames). About 3 s a frame on 4 cores; `CROP` keeps GIFs small.

@@ -13,7 +13,7 @@ namespace Arena
         ReplayPlayer replay;                 // non-null while watching a replay
         Session realSession;                 // the app's own session and game, put back when the replay closes
         Game realGame;
-        bool recordReplays;                  // dev: save a replay of each match you host (saved setting)
+        bool recordReplays;                  // dev: save a replay of each run you host (saved setting)
         List<ReplayFile> replayList;
         float replayListAt = -99f;
         float replayScroll;

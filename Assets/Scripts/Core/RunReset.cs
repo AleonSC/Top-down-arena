@@ -15,7 +15,7 @@ namespace Arena
             ionTrails.Clear(); packBiters.Clear(); shocks.Clear(); rodCap.Clear(); splashSeen.Clear();
             // Ninja
             stuckStars.Clear(); fangRuns.Clear(); katanaLater.Clear(); caltrops.Clear();
-            // Blood Mage and Elementalist
+            // Hemomancer and Elementalist
             coatings.Clear(); freezeWaves.Clear(); shockRuns.Clear(); harvestTargets.Clear(); harvests.Clear(); waves.Clear();
             Ink.Clear(); pens.Clear(); hands.Clear();
             // enemies and bosses

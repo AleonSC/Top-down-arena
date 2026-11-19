@@ -21,7 +21,7 @@ namespace Arena
 
         const int TinySide = Expansion.GridCell > Expansion.ShopRoomSide + Expansion.Step ? Expansion.GridCell : Expansion.ShopRoomSide + Expansion.Step;
 
-        /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor), a crosshair (Arms Dealer), a pill (Medic) or a diamond (Gatekeeper).
+        /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (Black Market), a crosshair (Arms Dealer), a pill (Medic) or a diamond (Gatekeeper).
         void DrawFloatingMark(RoomArea a)
         {
             if (!a.Sealed && a.Kind == RoomKind.Arms)  // an Arms Dealer: its stall (ArmsDealerLook.cs)

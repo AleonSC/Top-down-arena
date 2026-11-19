@@ -6,10 +6,10 @@ namespace Arena
 {
     /// Saved runs and the player's profile, on the game's side (SaveData.cs and Profile.cs hold the data).
     ///   Saving: the host writes the run to its save slot as each wave starts (everyone's picks made, the path
-    ///     chosen, the shop closed), and when the match stops between waves. The Expanding arena's map, kits, vectors and shop
+    ///     chosen, the shop closed), and when the run stops between waves. The Expanding arena's map, kits, vectors and shop
     ///     shelves go in too (ExpansionGame.cs SaveExpansion / ResumeExpansion). A run that ends (won or lost) loses
-    ///     its save. Practice Range matches and the lobby preview are never saved.
-    ///   Resuming: the host's lobby loads a save (Session.Resume); each player takes a seat; the match starts at
+    ///     its save. Practice Range runs and the lobby preview are never saved.
+    ///   Resuming: the host's lobby loads a save (Session.Resume); each player takes a seat; the run starts at
     ///     the next wave and ApplyResume gives every seat back its upgrades, levels, mastery and gold.
     ///   Profile: the host tells everyone when a boss falls and when the run ends (Msg.Record); each game adds it
     ///     to its own player's profile, unless dev tools or the bot were used in the run.
@@ -91,8 +91,8 @@ namespace Arena
                     seat.Perks.Add(pk.ToString());
                 foreach (int t in p.Taken)
                     seat.Taken.Add(Upgrades.All[t].Name);
-                for (int k = 0; k < p.BonusKeys.Length; k++)
-                    seat.BonusKeys[k] = p.BonusKeys[k] == AbilityId.None ? "" : p.BonusKeys[k].ToString();
+                for (int k = 0; k < p.CardAbilities.Length; k++)
+                    seat.CardAbilities[k] = p.CardAbilities[k] == AbilityId.None ? "" : p.CardAbilities[k].ToString();
                 foreach (var kv in p.MasteryXp)
                     if (kv.Key != AbilityId.None && kv.Value > 0f)
                         seat.Mastery[kv.Key.ToString()] = kv.Value;
@@ -110,10 +110,23 @@ namespace Arena
             return ok;
         }
 
-        /// An ability's name in an older save, as it is called now (the Cluster Grenade became Airstrike).
-        static string OldAbilityName(string name) => name == "Grenade" ? nameof(AbilityId.Airstrike) : name;
+        /// An Extra Use card's name in an older save, from before the abilities were called 1st-4th ("Extra Use: Q").
+        static string OldUseCard(string name)
+        {
+            switch (name)
+            {
+                case "Extra Use: Space": return "Extra Use: 1st Ability";
+                case "Extra Use: Q": return "Extra Use: 2nd Ability";
+                case "Extra Use: E": return "Extra Use: 3rd Ability";
+                case "Extra Use: Shift": return "Extra Use: 4th Ability";
+                default: return name;
+            }
+        }
 
-        /// Host, just after the match starts from a save: everyone's earnings back, and the run's own state.
+        /// An ability's name in an older save, as it is called now (OldNames.cs).
+        static string OldAbilityName(string name) => OldNames.Ability(name);
+
+        /// Host, just after the run starts from a save: everyone's earnings back, and the run's own state.
         void ApplyResume(RunSave save)
         {
             foreach (var p in Players.Values)
@@ -125,21 +138,21 @@ namespace Arena
                 p.Taken.Clear();
                 foreach (var name in s.Taken)
                 {
-                    if (name == "Overcharge")  // (merged into Extra Use: it gave Q, E and Shift a charge)
+                    if (name == "Overcharge")  // (merged into Extra Use: it gave the 2nd, 3rd and 4th abilities a charge)
                     {
-                        foreach (string key in new[] { "Q", "E", "Shift" })
-                            p.Taken.Add(Array.FindIndex(Upgrades.All, x => x.Name == "Extra Use: " + key));
+                        foreach (int slot in new[] { 1, 2, 3 })
+                            p.Taken.Add(Upgrades.UseCard(slot));
                         continue;
                     }
-                    string card = name == "Cluster Grenade" ? "Airstrike" : name == "Second Charge" ? "Extra Use: Space" : name;  // (the Cluster Grenade became Airstrike; Second Charge became Extra Use)
+                    string card = name == "Cluster Grenade" ? "Airstrike" : name == "Second Charge" ? "Extra Use: 1st Ability" : OldUseCard(name);  // (the Cluster Grenade became Airstrike; Second Charge became Extra Use)
                     int u = Array.FindIndex(Upgrades.All, x => x.Name == card);
                     if (u >= 0)
                         p.Taken.Add(u);
                 }
-                for (int k = 0; k < p.BonusKeys.Length; k++)
+                for (int k = 0; k < p.CardAbilities.Length; k++)
                 {
                     AbilityId id;
-                    p.BonusKeys[k] = Enum.TryParse(OldAbilityName(s.BonusKeys[k]), out id) ? id : AbilityId.None;
+                    p.CardAbilities[k] = Enum.TryParse(OldAbilityName(s.CardAbilities[k]), out id) ? id : AbilityId.None;
                 }
                 p.MasteryXp.Clear();
                 foreach (var kv in s.Mastery)
@@ -200,7 +213,7 @@ namespace Arena
             SendSnapshot();
         }
 
-        /// Every game, as a match starts: a fresh run counts as started (a resumed one already did).
+        /// Every game, as a run starts: a fresh run counts as started (a resumed one already did).
         void BeginRunRecord(bool resumed)
         {
             Resumed = resumed;
@@ -259,7 +272,7 @@ namespace Arena
         }
 
         /// This game is being stopped mid-run (quit or left): the run still goes in Recent runs, as "quit", with no XP.
-        /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
+        /// Only your own profile, and only if a curve was started (so not the lobby or a run that never began).
         void LogQuitRun()
         {
             bool endlessStretch = Endless && runRecorded && !endlessRecorded;  // quitting the endless stretch after a win (Quick Play or Campaign): the win is logged, the stretch since gets its own card
@@ -277,13 +290,13 @@ namespace Arena
             SaveProfile();
         }
 
-        /// Host: a boss was beaten (the Twin Reapers count once, as TwinA).
+        /// Host: a boss was beaten (the Twin Reapers count once, as ReaperOfDusk).
         void BossRecord(Enemy e)
         {
             if (!IsHost || !RecordsRuns)
                 return;
             var w = BeginRecord(RecordKind.Boss);
-            w.Write((byte)(IsReaper(e.Type) ? EnemyType.TwinA : e.Type));
+            w.Write((byte)(IsReaper(e.Type) ? EnemyType.ReaperOfDusk : e.Type));
             w.Write(Wave);
             w.Write(devTouched);
             w.Write(RecordWave);  // the wave as records count it (Hunts.cs: 1-100 in a Campaign)

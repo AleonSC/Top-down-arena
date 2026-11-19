@@ -113,7 +113,7 @@ static partial class Program
         for (int i = 0; i < Defs.Enemies.Length; i++)
         {
             var d = Defs.Enemies[i];
-            if (d == null || d.IsBoss || (EnemyType)i == EnemyType.Portal)
+            if (d == null || d.IsBoss || (EnemyType)i == EnemyType.SpawnPortal)
                 continue;
             yield return (EnemyType)i;
         }

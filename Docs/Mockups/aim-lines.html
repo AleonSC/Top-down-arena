@@ -263,7 +263,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
       } }
   ];
 
-  var COLORS = [['Soldier', '#6ec1ff'], ['Knight', '#ff8a5c'], ['Mage', '#b48cff'], ['Ranger', '#7be37b']];
+  var COLORS = [['Soldier', '#6ec1ff'], ['Knight', '#ff8a5c'], ['Elementalist', '#b48cff'], ['Ranger', '#7be37b']];
   var state = { sel: 0, color: hex(COLORS[0][1]), range: 400, rank: 50, mx: null, my: null, t: 0 };
 
   function setup(cv, w, h, k) { cv.width = w * k; cv.height = h * k; var g = cv.getContext('2d'); g.setTransform(k, 0, 0, k, 0, 0); return g; }

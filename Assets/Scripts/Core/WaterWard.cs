@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// Water Ward, the Healer Elementalist's fourth Space ability (`AbilityId.WaterWard`, `AbilityDef.Fourth`: the lobby's 4th ability key),
+    /// Water Ward, the Healer Elementalist's 4th choice (`AbilityId.WaterWard`, `AbilityDef.Fourth`: the lobby's 4th choice),
     /// from Docs/Mockups/water-ward.html (look C, Bubbles). Each cast calls WwPerCast drops of water down from above (WwFallGap s apart, each
     /// falling WwFall s); they land on a ring WwOrbit px round you and circle you, up to WwMax. The cast is refused while you hold WwMax.
     ///   splash: a landed drop touching an enemy bursts: WwSplashDamage to every enemy within WwSplashR of it, and each is soaked **wet**

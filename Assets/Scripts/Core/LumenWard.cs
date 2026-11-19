@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The Healer Elementalist's Lumen Ward (AbilityId.Sanctify, renamed; Docs/Mockups/sanctify-cone.html, look A "Cathedral").
+    /// The Healer Elementalist's Lumen Ward (AbilityId.LumenWard, renamed; Docs/Mockups/sanctify-cone.html, look A "Cathedral").
     /// A cone of light from you toward your cursor: LumenLength long, 2 * LumenHalf wide, for LumenTime seconds. It moves
     /// with you and turns with your aim the whole time.
     ///   Inside: allies heal LumenHeal HP/s and enemy bullets inside it or touching its edge burn away.

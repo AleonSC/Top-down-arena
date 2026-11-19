@@ -9,7 +9,7 @@ using Arena;
 static partial class Program
 {
     // The Singularity's reworked fight: corner wells, Pull -> Collapse -> Normal (spiral + sweeping lasers) -> Cage.
-    // The Lich in three stages and a last stand (Lich.cs): its phylacteries' guard and window, the turns of each stage,
+    // The Lich in three phases and a last stand (Lich.cs): its phylacteries' guard and window, the turns of each phase,
     // the soul beams, sweep, prisons, spirits, grave hops and dead hands, all seen on the client too.
     static void LichTest(float dt)
     {
@@ -59,7 +59,7 @@ static partial class Program
         Check(order.Contains("Fans > Rest > Rings > Rest > Raise > Rest"), "the Crypt takes turns: soul fans, grave rings, raising the dead, breathers between");
         Check(fans && rings && dead > 0, "it fires fans of piercing shots and rings of orbs, and the dead climb out of graves");
 
-        // 65%: it changes stage (can't be hurt, screen cleared), then Soul Harvest with three phylacteries.
+        // 65%: it changes phase (can't be hurt, screen cleared), then Soul Harvest with three phylacteries.
         foreach (var j in Jars()) j.Hp = 0f;
         Run(s, dt, 0.3f, null, safe);
         lich.Hp = lich.MaxHp * 0.6f;
@@ -68,7 +68,7 @@ static partial class Program
         bool shift = lich.Lich.TransT > 0f && lich.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.Lich);
         Run(s, dt, 3f, () => lich.Lich.Stage == LichStage.Harvest && lich.Lich.TransT <= 0f, safe);
         Run(s, dt, 1.2f, null, safe);
-        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}); phylacteries {3}", shift, lich.Lich.Stage, CL()?.Lich?.Stage, Jars().Count);
+        Console.WriteLine("  phase change: immune {0}; now {1} (client {2}); phylacteries {3}", shift, lich.Lich.Stage, CL()?.Lich?.Stage, Jars().Count);
         Check(shift && lich.Lich.Stage == LichStage.Harvest && CL()?.Lich?.Stage == LichStage.Harvest, "at 65% it changes stage (can't be hurt, screen cleared), then Soul Harvest (seen on the client)");
         Check(Jars().Count == 3 && lich.Phase == Game.LichGuarded, "Soul Harvest raises three phylacteries that guard it");
 
@@ -184,13 +184,13 @@ static partial class Program
         Check(facings.Count > 60 && facings.Last() - facings.First() > 0.3f * Game.LaserSpin * facings.Count * dt && Game.SingLaserCount(sing) == 3, "three lasers sweep slowly around (counter-clockwise)");
         Check(!redShots && purple, "it fires the purple spiral but no red shots");
 
-        // Killed wells stay gone for the rest of the stage.
+        // Killed wells stay gone for the rest of the phase.
         foreach (var w in Wells()) w.Hp = 0f;
         Run(s, dt, 20f, null, safe);
         Console.WriteLine("  wells 20 s after killing them all: {0}", Wells().Count);
         Check(Wells().Count == 0 && sing.Sing.Stage == SingStage.EventHorizon, "killed gravity wells don't come back until the next stage");
 
-        // 65%: it changes stage (can't be hurt, the screen clears), then Accretion with four fresh wells and the disk.
+        // 65%: it changes phase (can't be hurt, the screen clears), then Accretion with four fresh wells and the disk.
         sing.Hp = sing.MaxHp * 0.6f;
         Run(s, dt, 0.3f, null, safe);
         float hp = sing.Hp; hurt.Invoke(g, new object[] { sing, 500f, 1 });
@@ -198,7 +198,7 @@ static partial class Program
         Run(s, dt, 3f, () => sing.Sing.Stage == SingStage.Accretion && sing.Sing.TransT <= 0f, safe);
         Run(s, dt, 1f, null, safe);
         var cs = c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Singularity);
-        Console.WriteLine("  stage change: immune {0}; now {1}, client sees {2} with the disk {3}; wells {4}", immune, sing.Sing.Stage, cs?.Sing?.Stage, cs != null && Game.DiskUp(cs), Wells().Count);
+        Console.WriteLine("  phase change: immune {0}; now {1}, client sees {2} with the disk {3}; wells {4}", immune, sing.Sing.Stage, cs?.Sing?.Stage, cs != null && Game.DiskUp(cs), Wells().Count);
         Check(immune && sing.Sing.Stage == SingStage.Accretion && cs?.Sing?.Stage == SingStage.Accretion, "at 65% it changes stage (can't be hurt, screen cleared), then Accretion (seen on the client)");
         Check(Wells().Count == 4, "the next stage brings four fresh gravity wells");
         Check(cs != null && Game.DiskUp(cs), "the accretion disk is up, on the client too");
@@ -256,13 +256,13 @@ static partial class Program
         bool clientReversed = hid >= 0 && c.Bullets.ContainsKey(hid) && Vdot(c.Bullets[hid].Vel, cv0) < 0f;
         Console.WriteLine("  white hole: push {0:0}, a bullet reversed on the host {1}, on the client {2}", g.PullStrength, reversed, clientReversed);
         Check(pushed && reversed && clientReversed, "the White hole pushes and turns every enemy bullet round (on the client too)");
-        Run(s, dt, 6f, () => sing.Phase == Game.SingSplit && g.Enemies.Values.Count(e => e.Type == EnemyType.SingShard && !g.IsSpawning(e)) == 3, safe);
-        var shard = g.Enemies.Values.First(e => e.Type == EnemyType.SingShard);
+        Run(s, dt, 6f, () => sing.Phase == Game.SingSplit && g.Enemies.Values.Count(e => e.Type == EnemyType.SingularityShard && !g.IsSpawning(e)) == 3, safe);
+        var shard = g.Enemies.Values.First(e => e.Type == EnemyType.SingularityShard);
         float h0 = sing.Hp; hurt.Invoke(g, new object[] { sing, 300f, 1 });
         bool coreImmune = sing.Hp == h0;
         float direct = h0 - sing.Hp;
         hurt.Invoke(g, new object[] { shard, 300f, 1 });
-        Console.WriteLine("  split: {0} shards, core hit directly {1:0}, through a shard {2:0}", g.Enemies.Values.Count(e => e.Type == EnemyType.SingShard), direct, h0 - sing.Hp);
+        Console.WriteLine("  split: {0} shards, core hit directly {1:0}, through a shard {2:0}", g.Enemies.Values.Count(e => e.Type == EnemyType.SingularityShard), direct, h0 - sing.Hp);
         Check(coreImmune && sing.Hp < h0 - 200f, "Split: three shards; the core can't be hurt, the shards pass their damage to it");
 
         // Below 10%: the last stand. The horizon swells, the pull doubles, and rings of big orbs.
@@ -270,12 +270,12 @@ static partial class Program
         Run(s, dt, 10f, () => sing.Sing.Stage == SingStage.LastStand, safe);
         bool rings = false;
         Run(s, dt, 3f, null, () => { safe(); rings |= g.Bullets.Values.Count(b => b.Kind == Defs.BigShot && b.Source == EnemyType.Singularity) >= 16; });
-        Console.WriteLine("  last stand: horizon {0:0}, pull {1:0}, orb rings {2}, shards left {3}", sing.Sing.Horizon, g.PullStrength, rings, g.Enemies.Values.Count(e => e.Type == EnemyType.SingShard));
+        Console.WriteLine("  last stand: horizon {0:0}, pull {1:0}, orb rings {2}, shards left {3}", sing.Sing.Horizon, g.PullStrength, rings, g.Enemies.Values.Count(e => e.Type == EnemyType.SingularityShard));
         Check(sing.Sing.Stage == SingStage.LastStand && sing.Sing.Horizon > 170f && g.PullStrength > 100f && rings, "below 10%: the last stand (a bigger horizon, a stronger pull, orb rings)");
         s[0].Leave(""); s[1].Leave("");
     }
 
-    // The Storm Herald's three stages and last stand (Herald.cs), built from Docs/Mockups/storm-herald-3-stage.html.
+    // The Storm Herald's three phases and last stand (Herald.cs), built from Docs/Mockups/storm-herald-3-phase.html.
     static void HeraldTest(float dt)
     {
         var s = StartBuffed(dt, 40, 0);
@@ -327,7 +327,7 @@ static partial class Program
         Console.WriteLine("  standing between two rods: hurt {0}", me.Run.DamageTaken > taken);
         Check(me.Run.DamageTaken > taken, "a rod arc hurts a player on its line");
 
-        // 65%: it changes stage (can't be hurt, the screen clears), then the Gale with the wind.
+        // 65%: it changes phase (can't be hurt, the screen clears), then the Gale with the wind.
         h.Hp = h.MaxHp * 0.6f;
         Run(s, dt, 0.3f, null, safe);
         float hp = h.Hp; hurt.Invoke(g, new object[] { h, 500f, 1 });
@@ -335,7 +335,7 @@ static partial class Program
         Run(s, dt, 3f, () => h.Herald.Stage == HeraldStage.Gale && h.Herald.TransT <= 0f, safe);
         Run(s, dt, 0.5f, null, safe);
         var chs = c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.StormHerald)?.Herald;
-        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), wind {3} (client {4})", immune, h.Herald.Stage, chs?.Stage, h.Herald.Wind, chs?.Wind);
+        Console.WriteLine("  phase change: immune {0}; now {1} (client {2}), wind {3} (client {4})", immune, h.Herald.Stage, chs?.Stage, h.Herald.Wind, chs?.Wind);
         Check(immune && h.Herald.Stage == HeraldStage.Gale && chs?.Stage == HeraldStage.Gale, "at 65% it changes stage (can't be hurt, screen cleared), then the Gale (seen on the client)");
         Check(h.Herald.Wind != 0 && chs?.Wind == h.Herald.Wind, "the wind blows, and the client knows which way");
 
@@ -488,7 +488,7 @@ static partial class Program
         Console.WriteLine("  hungry: a shot healed it {0}; stepped-on morsel popped {1}; eating one healed {2:0.0}%", healed, popped, ate * 100f);
         Check(healed && popped && ate > Game.MorselEat * 0.9f, "Hungry: shots heal it; morsels pop underfoot, and each it eats heals it a little");
 
-        // 65%: it changes stage (can't be hurt, the screen clears), then the Gorging, bigger.
+        // 65%: it changes phase (can't be hurt, the screen clears), then the Gorging, bigger.
         h.Hp = h.MaxHp * 0.6f;
         Run(s, dt, 0.3f, null, safe);
         hp = h.Hp; hurt.Invoke(g, new object[] { h, 500f, 1 });
@@ -496,7 +496,7 @@ static partial class Program
         Run(s, dt, 3f, () => h.Devour.Stage == DevourStage.Gorging && h.Devour.TransT <= 0f, safe);
         Run(s, dt, 0.5f, null, safe);
         var ch = c.Enemies.Values.First(e => e.Type == EnemyType.Devourer);
-        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), radius {3} (client {4})", immune, h.Devour.Stage, ch.Devour?.Stage, h.Radius, ch.Radius);
+        Console.WriteLine("  phase change: immune {0}; now {1} (client {2}), radius {3} (client {4})", immune, h.Devour.Stage, ch.Devour?.Stage, h.Radius, ch.Radius);
         Check(immune && h.Devour.Stage == DevourStage.Gorging && ch.Devour?.Stage == DevourStage.Gorging, "at 65% it changes stage (can't be hurt, screen cleared), then the Gorging (seen on the client)");
         Check(h.Radius > 57f && ch.Radius > 57f, "it's bigger in the Gorging, on both games");
 
@@ -594,7 +594,7 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
-    // The Eclipse (Eclipse.cs): the final boss in five stages and a last stand.
+    // The Eclipse (Eclipse.cs): the final boss in five phases and a last stand.
     static void EclipseTest(float dt)
     {
         var s = StartBuffed(dt, 50, 0);
@@ -643,7 +643,7 @@ static partial class Program
         Console.WriteLine("  standing in a flare's lane: hurt {0}", me.Run.DamageTaken > taken);
         Check(me.Run.DamageTaken > taken, "a solar flare burns a player in its lane");
 
-        // 80%: it changes stage (can't be hurt, the screen clears), then the Penumbra: the moon and two Embers.
+        // 80%: it changes phase (can't be hurt, the screen clears), then the Penumbra: the moon and two Embers.
         h.Hp = h.MaxHp * 0.78f;
         Run(s, dt, 0.3f, null, safe);
         float hp = h.Hp; hurt.Invoke(g, new object[] { h, 500f, 1 });
@@ -651,7 +651,7 @@ static partial class Program
         Run(s, dt, 3.5f, () => h.Eclipse.Stage == EclipseStage.Penumbra && h.Eclipse.TransT <= 0f, safe);
         Run(s, dt, 0.5f, null, safe);
         int embers = g.Enemies.Values.Count(e => e.Type == EnemyType.Ember);
-        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), moon {3:0} px out (client {4:0}), embers {5}", immune, h.Eclipse.Stage, cs()?.Stage, h.Eclipse.MoonD, cs()?.MoonD, embers);
+        Console.WriteLine("  phase change: immune {0}; now {1} (client {2}), moon {3:0} px out (client {4:0}), embers {5}", immune, h.Eclipse.Stage, cs()?.Stage, h.Eclipse.MoonD, cs()?.MoonD, embers);
         Check(immune && h.Eclipse.Stage == EclipseStage.Penumbra && cs()?.Stage == EclipseStage.Penumbra, "at 80% it changes stage (can't be hurt, screen cleared), then the Penumbra (seen on the client)");
         Check(h.Eclipse.MoonD > 0f && cs()?.MoonD > 0f && embers == 2, "the moon orbits it (the client knows where), and two Embers come");
 
@@ -807,7 +807,7 @@ static partial class Program
     static int CountBits(int v) { int n = 0; while (v != 0) { v &= v - 1; n++; } return n; }
     static float Vdot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
 
-    // The Colossus (Colossus.cs): three stages that break it down, stomp rings of push blocks, then a last stand.
+    // The Colossus (Colossus.cs): three phases that break it down, stomp rings of push blocks, then a last stand.
     static void ColossusTest(float dt)
     {
         var s = StartBuffed(dt, 25, 0);
@@ -902,7 +902,7 @@ static partial class Program
         cst.Rings.Clear();
         g.DevSetGod(1, true);
 
-        // 65%: can't be hurt while it changes stage, the screen clears; Crumbling brings four plates of cover.
+        // 65%: can't be hurt while it changes phase, the screen clears; Crumbling brings four plates of cover.
         col.Hp = col.MaxHp * 0.6f;
         Run(s, dt, 0.3f, null, safe);
         float hp = col.Hp; hurt.Invoke(g, new object[] { col, 500f, 1 });
@@ -910,7 +910,7 @@ static partial class Program
         Run(s, dt, 3f, () => cst.Stage == ColStage.Crumbling && cst.TransT <= 0f, safe);
         Run(s, dt, 0.5f, null, safe);
         var cc2 = Find(s[1], EnemyType.Colossus)?.Colossus;
-        Console.WriteLine("  stage change: immune {0}; now {1} with {2} plates; client sees {3} with {4}", immune, cst.Stage, cst.Slabs.Count, cc2?.Stage, cc2?.Slabs.Count);
+        Console.WriteLine("  phase change: immune {0}; now {1} with {2} plates; client sees {3} with {4}", immune, cst.Stage, cst.Slabs.Count, cc2?.Stage, cc2?.Slabs.Count);
         Check(immune && cst.Stage == ColStage.Crumbling && cc2?.Stage == ColStage.Crumbling, "at 65% it changes stage (can't be hurt, screen cleared), then Crumbling (seen on the client)");
         Check(cst.Slabs.Count == 4 && cc2?.Slabs.Count == 4, "its armour falls as four plates of cover");
 

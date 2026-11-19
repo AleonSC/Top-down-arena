@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The DPS Knight's Gauntlet (`AbilityId.Lunge` kept; was Lunge), the Heraldic look of
+    /// The DPS Knight's Gauntlet (was Lunge), the Heraldic look of
     /// Docs/Mockups/knight-dps-abilities.html. Throw down the gauntlet at the enemy nearest your cursor in a lane along
     /// your aim (up to GauntletRange; it flies over anything in between): it hits it for GauntletHitDamage and Challenges it for ChallengeTime (its crest
     /// burns over it). After a brace of GauntletBrace you shoulder-charge to it at GauntletChargeSpeed, untouchable,
@@ -200,7 +200,7 @@ namespace Arena
             if (!Players.TryGetValue(e.ChallengeBy, out p))
                 return;
             p.GauntletDown = false;
-            CutCooldown(p, AbilityId.Lunge, 1f);  // ReaperLoot.cs: that player's own game takes it off too
+            CutCooldown(p, AbilityId.Gauntlet, 1f);  // ReaperLoot.cs: that player's own game takes it off too
             BroadcastFx(FxKind.GauntletBack, e.Pos, p.GauntletRest, new Rgba(0.84f, 0.67f, 0.29f, 1f), p.Id, GauntletReturnFx, Sfx.Clang);
         }
 

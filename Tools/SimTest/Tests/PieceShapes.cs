@@ -290,7 +290,7 @@ static partial class Program
     }
 
 
-    /// Test helper: a plain box room (no checks: the test's own map), as the drawn rooms of old tests were. A theme makes it a Floor room.
+    /// Test helper: a plain box room (no checks: the test's own map), as the drawn rooms of old tests were. A theme makes it a rule room.
     static ExpansionRoom? Box(int x, int y, int w, int h, PathId floor = PathId.None)
         => new ExpansionRoom { X = x, Y = y, W = w, H = h, Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor };
 

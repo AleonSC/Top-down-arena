@@ -65,7 +65,7 @@ namespace Arena
             return s;
         }
 
-        /// Host, before a new match starts and as the match stops: a retry still on offer ends the run for good, unless it's
+        /// Host, before a new run starts and as the run stops: a retry still on offer ends the run for good, unless it's
         /// being retried or the game is closing (then its save waits at the checkpoint for Continue).
         public void SettleRetry(string how = "left")
         {

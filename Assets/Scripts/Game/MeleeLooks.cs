@@ -63,7 +63,7 @@ namespace Arena
                 case WeaponId.Katana:  // Hayate: low and out to the side; Senbon: forward (KatanaLook.cs)
                     ang -= p.KatanaStance == 0 ? 1.15f : 0.12f; reach *= p.KatanaStance == 0 ? 0.72f : 0.78f; bend = 0.4f; return true;
                 case WeaponId.Greatsword: ang -= 0.45f; bend = 1f; return !p.GreatGuard && p.FangOut == 0;  // (the Moonwheel: thrown)
-                case WeaponId.HolyMace: ang -= 0.3f; reach *= 0.85f; return true;
+                case WeaponId.Quarterstaff: ang -= 0.3f; reach *= 0.85f; return true;
                 case WeaponId.Kusarigama: ang -= 0.35f; reach = 36f; return true;  // the sickle in hand, its chain in
                 case WeaponId.BloodLash: ang -= 0.55f; reach = 52f; return true;   // the whip hanging slack beside you
                 default: return false;
@@ -212,8 +212,8 @@ namespace Arena
             }
             float flip;
             meleeFlip.TryGetValue(best.Id, out flip);
-            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace || best.Weapon.Id == WeaponId.Rapier;
-            if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace || best.Weapon.Id == WeaponId.Rapier)))  // (a Rapier thrust neither: only its Flourish swings go back and forth)  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
+            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.Quarterstaff || best.Weapon.Id == WeaponId.Rapier;
+            if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.Quarterstaff || best.Weapon.Id == WeaponId.Rapier)))  // (a Rapier thrust neither: only its Flourish swings go back and forth)  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
                 meleeFlip[best.Id] = flip = flip > 0f ? -1f : 1f;
             else if (best.Weapon.Id == WeaponId.Halberd)
             {
@@ -259,7 +259,7 @@ namespace Arena
                 case WeaponId.Rapier: return new Rgba(0.8f, 0.72f, 1f);
                 case WeaponId.Warhammer: return new Rgba(1f, 0.64f, 0.42f);
                 case WeaponId.Lance: return new Rgba(0.62f, 0.88f, 1f);
-                case WeaponId.HolyMace: return new Rgba(1f, 0.88f, 0.54f);
+                case WeaponId.Quarterstaff: return new Rgba(1f, 0.88f, 0.54f);
                 case WeaponId.Lightbringer: return new Rgba(1f, 0.94f, 0.62f);
                 case WeaponId.Censer: return new Rgba(1f, 0.8f, 0.5f);
                 case WeaponId.Katana: return new Rgba(0.745f, 0.87f, 1f);  // Moon Steel (Docs/Mockups/katana-reach.html)
@@ -345,7 +345,7 @@ namespace Arena
                     KatanaMarks(o, aim, 0f, 1f, reach, T, MeleeThrustTime, true, col);
                 }
                 }
-                else if (light && seen.Weapon == WeaponId.HolyMace)
+                else if (light && seen.Weapon == WeaponId.Quarterstaff)
                 {
                     StaffJabCone(o, aim, -half, reach, T, MeleeThrustTime, fade, col);  // QuarterstaffLook.cs
                 }
@@ -1193,7 +1193,7 @@ namespace Arena
                     Line(o + dir * (r0 + 4f), o + dir * (tip - 6f), 1.2f, edge);
                     break;
                 }
-                case WeaponId.HolyMace:  // the Quarterstaff: two hands, a lantern head (QuarterstaffLook.cs)
+                case WeaponId.Quarterstaff:  // the Quarterstaff: two hands, a lantern head (QuarterstaffLook.cs)
                     DrawQuarterstaffModel(o, ang, reach, alpha, col, bright, bend, arm, ownerOfModel);
                     break;
                 case WeaponId.BoStaff:

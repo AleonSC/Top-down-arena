@@ -171,7 +171,7 @@ static partial class Program
         g.RoomTokens.Clear();
 
         // The boss falls: a legendary, then the card pick (no weapon mod).
-        var boss = new Enemy { Id = 9901, Type = EnemyType.Boss, Def = Defs.Get(EnemyType.Boss), Hp = 0f };
+        var boss = new Enemy { Id = 9901, Type = EnemyType.Warden, Def = Defs.Get(EnemyType.Warden), Hp = 0f };
         typeof(Game).GetField("bossRewarded", flags).SetValue(g, false);
         typeof(Game).GetMethod("OnEnemyKilled", flags).Invoke(g, new object[] { boss });
         Check(g.BossCardPicks && g.Players.Values.All(p => p.PendingCards == 1 && p.PendingMods == 0 && p.LegendaryQueue.Count == 1), "with room cards a boss gives a card pick, not a weapon mod");

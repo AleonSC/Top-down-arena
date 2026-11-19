@@ -88,7 +88,7 @@ namespace Arena
             t[(int)EnemyType.Gatekeeper] = room;
             t[(int)EnemyType.Shadow] = room;
             var carried = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => V2.Zero) };  // its boss moves it
-            foreach (var type in new[] { EnemyType.CageWell, EnemyType.HiveEgg, EnemyType.ReaperPillar, EnemyType.SingShard, EnemyType.BallLightning, EnemyType.MummerCopy, EnemyType.Portal })
+            foreach (var type in new[] { EnemyType.CageWell, EnemyType.HiveEgg, EnemyType.ReaperPillar, EnemyType.SingularityShard, EnemyType.BallLightning, EnemyType.MummerCopy, EnemyType.SpawnPortal })
                 t[(int)type] = carried;
             var mummer = t[(int)EnemyType.Mummer];  // (a lunger: LungeBrains.cs)
             t[(int)EnemyType.Mummer] = new Brain { Move = mummer.Move, Special = new MaskSpecial(mummer.Special), Roles = mummer.Roles };

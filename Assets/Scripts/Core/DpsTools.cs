@@ -66,7 +66,7 @@ namespace Arena
         public bool Idle => SinceHit >= IdleGap;
     }
 
-    /// Developer tools for balancing: a DPS meter (F2 in a match) and target dummies. Host only; nothing is sent over
+    /// Developer tools for balancing: a DPS meter (F2 in a run) and target dummies. Host only; nothing is sent over
     /// the network, so the meter shows the host's view of every player.
     public partial class Game
     {

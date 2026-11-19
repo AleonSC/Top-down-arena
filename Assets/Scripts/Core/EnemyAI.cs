@@ -9,7 +9,7 @@ namespace Arena
         // A different boss every 5 waves up to the final one at 50; endless mode then cycles through them.
         internal static readonly EnemyType[] BossCycle =  // the Campaign's order (BossSchedule.cs)
         {
-            EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+            EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
             EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
         };
 
@@ -38,7 +38,7 @@ namespace Arena
         float deadTwinMaxHp;
         bool twinPending, bossRewarded;
 
-        public static bool IsTwin(EnemyType t) => t == EnemyType.TwinA || t == EnemyType.TwinB;
+        public static bool IsTwin(EnemyType t) => t == EnemyType.ReaperOfDusk || t == EnemyType.ReaperOfDawn;
 
         /// Soul Bond: this Twin Reaper is immune (it's too far below its twin's health).
         public static bool SoulBound(Enemy e) => IsTwin(e.Type) && e.Phase == 2;
@@ -88,7 +88,7 @@ namespace Arena
             return pool;
         }
 
-        /// A wave is built by stages, each filling the plan and the queues (WavePlan.cs). The order matters: the rolls are drawn in it.
+        /// A wave is built by phases, each filling the plan and the queues (WavePlan.cs). The order matters: the rolls are drawn in it.
         void BuildWave(int n)
         {
             spawnQueue.Clear();
@@ -109,7 +109,7 @@ namespace Arena
 
         WavePlan plan;  // the wave being built (BuildWave)
 
-        /// Stage 1: a boss wave's own queue (true: the wave is done).
+        /// Phase 1: a boss wave's own queue (true: the wave is done).
         bool StageBoss()
         {
             int n = plan.N;
@@ -119,7 +119,7 @@ namespace Arena
             return true;
         }
 
-        /// Stage 2: how many picks the wave has and what it picks from.
+        /// Phase 2: how many picks the wave has and what it picks from.
         void StageSize()
         {
             int n = plan.N;
@@ -136,10 +136,10 @@ namespace Arena
             plan.Count = count;
         }
 
-        /// Stage 3: Zombie Infection builds the whole wave itself (true: done).
+        /// Phase 3: Zombie Infection builds the whole wave itself (true: done).
         bool StageZombies() => BuildZombieWave(plan.N, plan.Count);
 
-        /// Stage 4: the boss's faction takes its share first (Approaches.cs).
+        /// Phase 4: the boss's faction takes its share first (Approaches.cs).
         void StageApproach()
         {
             int n = plan.N;
@@ -157,7 +157,7 @@ namespace Arena
             plan.Count = count;
         }
 
-        /// Stage 5a: a path's own mix (Paths.cs; true: done).
+        /// Phase 5a: a path's own mix (Paths.cs; true: done).
         bool StagePath()
         {
             int count = plan.Count;
@@ -166,7 +166,7 @@ namespace Arena
             return done;
         }
 
-        /// Stage 5b: the late recipe from wave 13 (WaveRecipe.cs): headliners, half the wave as squads, then singles to each job's share.
+        /// Phase 5b: the late recipe from wave 13 (WaveRecipe.cs): headliners, half the wave as squads, then singles to each job's share.
         bool StageRecipe()
         {
             int n = plan.N;
@@ -177,7 +177,7 @@ namespace Arena
             return true;
         }
 
-        /// Stage 5c: waves 1-12: about 70% squads (Variety.cs), the rest singles, melee rushers first and shooters taking over.
+        /// Phase 5c: waves 1-12: about 70% squads (Variety.cs), the rest singles, melee rushers first and shooters taking over.
         void StageLegacy()
         {
             int n = plan.N, count = plan.Count;
@@ -227,8 +227,8 @@ namespace Arena
             spawnHome = home;
             // Bosses take longer to appear, so you can step out of the middle. The Warden's entrance (its Lockdown cell,
             // Game/WardenIntro.cs) holds it, and the escort behind it, until the cell breaks open.
-            SpawnEnemyAt(type, pos, type == EnemyType.Boss ? WardenIntroTime : d.IsBoss ? 1.5f : 0.9f, 0, elite);
-            if (type == EnemyType.Boss)
+            SpawnEnemyAt(type, pos, type == EnemyType.Warden ? WardenIntroTime : d.IsBoss ? 1.5f : 0.9f, 0, elite);
+            if (type == EnemyType.Warden)
                 spawnTimer = Math.Max(spawnTimer, WardenIntroTime);
             spawnHome = -1;
         }
@@ -476,7 +476,7 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Boss: return e.Warden != null && e.Warden.Turn == WardenTurn.Charge && e.Warden.ChargeLeft > 0f && e.Warden.TurnT >= ChargeWarn;
+                case EnemyType.Warden: return e.Warden != null && e.Warden.Turn == WardenTurn.Charge && e.Warden.ChargeLeft > 0f && e.Warden.TurnT >= ChargeWarn;
                 case EnemyType.Colossus: return e.Colossus != null && e.Colossus.ChargeLeft > 0f && e.Colossus.ChargeWarn <= 0f;
                 case EnemyType.Duelist: return e.Duel != null && e.Duel.Dash != DuelDash.None && e.Duel.DashWarn <= 0f;
                 case EnemyType.Devourer: return e.Devour != null && e.Devour.Lunging && e.Devour.LungeWarn <= 0f;
@@ -544,14 +544,14 @@ namespace Arena
                     e.SlowT = Math.Max(e.SlowT, e.FrozenT);
                     continue;
                 }
-                if (e.GraspT > 0f)  // held by Leech Tendrils (BloodMage.cs)
+                if (e.GraspT > 0f)  // held by Leech Tendrils (Hemomancer.cs)
                 {
                     e.GraspT -= dt;
                     continue;
                 }
                 if (e.CageT > 0f)  // caged by Bone Guard darts (Minions.cs): no moving or shooting
                     continue;
-                if (e.Type == EnemyType.Portal)
+                if (e.Type == EnemyType.SpawnPortal)
                     continue;  // a spawn portal stands still and never hurts (TickPortals: SpawnPortals.cs)
                 e.RetargetT -= dt;
                 Player target;
@@ -633,7 +633,7 @@ namespace Arena
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
                     || e.Type == EnemyType.Morsel || IsPlanted(e.Type) || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
-                    || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
+                    || e.Type == EnemyType.SmallWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Heavies hurt to stand in; bosses only hurt guards (below) (the difficulty's per-wave damage growth scales all of these).
                 var cb = BrainOf(e.Type);
@@ -670,7 +670,7 @@ namespace Arena
 
             actingEnemy = null;
             TickHazards(dt);
-            TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
+            TickReapers(dt);  // the Twin Reapers' phases, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
             TickHerald(dt);  // the Storm Herald's ball lightning and spokes (Herald.cs)
             TickStormFronts(dt);  // the Storm front set piece's wall of strikes (Squall.cs)
@@ -772,7 +772,7 @@ namespace Arena
                 brain.Guard.Wear(this, e, amount);  // a shield bearer's (ShieldBrains.cs)
                 return;
             }
-            if (e.Type == EnemyType.Boss && e.Warden != null)
+            if (e.Type == EnemyType.Warden && e.Warden != null)
             {
                 WearWardenShield(e, amount);  // the Warden's riot shield (Warden.cs)
                 return;
@@ -783,29 +783,29 @@ namespace Arena
         bool BlocksShot(Enemy e, V2 from)
         {
             if (ReaperImmune(e))
-                return true;  // the Twin Reapers changing stage (Reapers.cs)
+                return true;  // the Twin Reapers changing phase (Reapers.cs)
             if (SingImmune(e))
-                return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
+                return true;  // the Singularity changing phase, or split into its shards (Singularity.cs)
             if (HeraldImmune(e))
-                return true;  // the Storm Herald changing stage (Herald.cs)
+                return true;  // the Storm Herald changing phase (Herald.cs)
             if (EclipseImmune(e))
-                return true;  // the Eclipse changing stage (Eclipse.cs)
+                return true;  // the Eclipse changing phase (Eclipse.cs)
             if (LarderBlocks(e, from))
                 return true;  // a Gutworm underground; a Maw Priest notes which side the hit came from (LarderFaction.cs)
             if (DevourBlocks(e, from))
-                return true;  // the Devourer changing stage or underground; otherwise it notes which side the hit came from (Devourer.cs)
+                return true;  // the Devourer changing phase or underground; otherwise it notes which side the hit came from (Devourer.cs)
             if (DuelImmune(e) || e.Type == EnemyType.Duelist && DuelGuardBlocks(e, from))
-                return true;  // the Duelist changing stage, or its guard from the front (Duelist.cs)
+                return true;  // the Duelist changing phase, or its guard from the front (Duelist.cs)
             if (ColossusImmune(e))
-                return true;  // the Colossus changing stage (Colossus.cs)
+                return true;  // the Colossus changing phase (Colossus.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
-                return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
-            if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
-                return true;  // changing stage, or behind its riot shield (Warden.cs)
+                return true;  // shielded by her drones, changing phase, or up in a dive (Queen.cs)
+            if (e.Type == EnemyType.Warden && (WardenImmune(e) || WardenShieldBlocks(e, from)))
+                return true;  // changing phase, or behind its riot shield (Warden.cs)
             if (SoulBound(e))
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
-                return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
+                return true;  // its phylacteries stand, it's blinking between graves, or it's changing phase (Lich.cs)
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Guard != null)
                 return brain.Guard.Blocks(this, e, from);  // Brain.cs
@@ -872,14 +872,14 @@ namespace Arena
             {
                 switch (e.Type)
                 {
-                    case EnemyType.Boss:
+                    case EnemyType.Warden:
                         v = WardenMove(e, tpos, ref speed);  // Warden.cs
                         break;
                     case EnemyType.HiveQueen:
                         v = QueenMove(e, tpos, ref speed);  // Queen.cs
                         break;
-                    case EnemyType.TwinA:
-                    case EnemyType.TwinB:
+                    case EnemyType.ReaperOfDusk:
+                    case EnemyType.ReaperOfDawn:
                         v = ReaperMove(e, tpos, ref speed);  // Reapers.cs
                         break;
                     case EnemyType.DualReaper:
@@ -931,11 +931,11 @@ namespace Arena
                 brain.Special.Tick(this, e, tpos, dt);  // Brain.cs
             else switch (e.Type)
             {
-                case EnemyType.Boss:
-                    WardenSpecial(e, tpos, dt);  // Warden.cs: its stages, turns, searchlight, gates and riot
+                case EnemyType.Warden:
+                    WardenSpecial(e, tpos, dt);  // Warden.cs: its phases, turns, searchlight, gates and riot
                     break;
-                case EnemyType.TwinA:
-                case EnemyType.TwinB:
+                case EnemyType.ReaperOfDusk:
+                case EnemyType.ReaperOfDawn:
                 {
                     // Soul Bond: whichever Reaper is clearly more hurt is immune until you even them out (Twilight only).
                     var other = OtherTwin(e);
@@ -949,7 +949,7 @@ namespace Arena
                     break;
                 }
                 case EnemyType.HiveQueen:
-                    QueenSpecial(e, tpos, dt);  // Queen.cs: her stages and turns
+                    QueenSpecial(e, tpos, dt);  // Queen.cs: her phases and turns
                     break;
                 case EnemyType.Singularity:
                     SingularitySpecial(e, dt);  // Singularity.cs
@@ -978,14 +978,14 @@ namespace Arena
             }
             switch (e.Type)
             {
-                case EnemyType.Boss:
+                case EnemyType.Warden:
                     WardenFire(e, tpos);  // Warden.cs
                     break;
                 case EnemyType.HiveQueen:
                     QueenFire(e, tpos);  // Queen.cs
                     break;
-                case EnemyType.TwinA:
-                case EnemyType.TwinB:
+                case EnemyType.ReaperOfDusk:
+                case EnemyType.ReaperOfDawn:
                     ReaperFire(e, tpos);  // Reapers.cs
                     break;
                 case EnemyType.DualReaper:
@@ -1015,7 +1015,7 @@ namespace Arena
                 RoomKilled(e);  // the kill rush's count, a shadow gone (Challenges.cs)
             VarietyKilled(e);  // Volatile, Splitting (Variety.cs)
             ReaperCultKilled(e);  // a Bound Wraith's partner channels it back (ReaperFaction.cs)
-            if (e.Type == EnemyType.Boss)
+            if (e.Type == EnemyType.Warden)
             {
                 ClearRioters();  // the riot's over (Warden.cs)
                 ClearGuards();
@@ -1031,7 +1031,7 @@ namespace Arena
                 ClearPillars();  // her eggs, bombers and drones go with her (Queen.cs)
             if (e.Type == EnemyType.Singularity)
                 foreach (var o in Enemies.Values)
-                    if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell || o.Type == EnemyType.SingShard)
+                    if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell || o.Type == EnemyType.SingularityShard)
                         o.Hp = 0f;  // its wells and shards collapse with it
             if (e.Type == EnemyType.StormHerald)
                 foreach (var o in Enemies.Values)
@@ -1071,7 +1071,7 @@ namespace Arena
             if (bossRewarded)
                 return false;
             bossRewarded = true;
-            var bossKey = IsReaper(e.Type) ? EnemyType.TwinA : e.Type;
+            var bossKey = IsReaper(e.Type) ? EnemyType.ReaperOfDusk : e.Type;
             foreach (var p in Players.Values)
             {
                 p.Rerolls += BossRerolls + p.Stats.BossRerolls;  // (Reroll Cache adds to it)

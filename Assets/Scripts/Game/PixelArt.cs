@@ -120,7 +120,7 @@ namespace Arena
             { "Iron Grip", "gauntlet" },
             { "Forged Edge", "caughtsteel" },
             { "Bodkin Points", "firearrows" },
-            // Class ability cards (a Space ability for Q/E/Shift) reuse the nearest icon. Two cards that share
+            // Class ability cards (a 1st ability for 2nd, 3rd or 4th) reuse the nearest icon. Two cards that share
             // one never meet in an offer: they belong to different classes, or one needs the ability the other grants.
             { "Barrier", "bubble" },
             { "Roar", "roar" },
@@ -140,7 +140,7 @@ namespace Arena
             { "Meteor", "explode" },
             { "Blizzard", "snow" },
             { "Tsunami", "cyclone" },
-            { "Kinetic Wall", "mirror" },
+            { "Kinetic Wall", "galewall" },
             { "Deployable Cover", "guard_wide" },
             { "Golem Wall", "guard_wide" },
             { "Earthquake", "earthshaker" },
@@ -180,7 +180,7 @@ namespace Arena
             { "Shadow Step", "assassin" },
             { "Vanish", "vanish" },
             { "Blade Fan", "bladefan" },
-            // Blood Mage: the same pairing.
+            // Hemomancer: the same pairing.
             { "Hardened Blood", "bloodshell" },
             { "Blood Oath", "pact" },
             { "Deep Veins", "drain" },
@@ -2305,6 +2305,21 @@ namespace Arena
                 "...ww.kbbk..",
                 "....w.kbbk..",
                 ".......kk...",
+                "............",
+                "............",
+            },
+            ["galewall"] = new[]  // Kinetic Wall: gusts of wind curling back on themselves
+            {
+                "............",
+                ".......ccc..",
+                "..wwwwc...c.",
+                "..........c.",
+                ".bcccccccc..",
+                "............",
+                "cccccccwww..",
+                ".........bc.",
+                "..........c.",
+                "...bbbccbc..",
                 "............",
                 "............",
             },

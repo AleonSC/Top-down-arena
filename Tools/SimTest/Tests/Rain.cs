@@ -30,7 +30,7 @@ static partial class Program
         prep();
         float maxHp = me.MaxHp, regen = g.PassiveRegen + me.Stats.Regen + Game.AuraSelfHeal * me.Stats.AuraHealMult;  // (regeneration and the healer's own aura work against the cost)
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, pa, false });
-        Check(Game.RainActive(me) && !Game.RainRaining(me) && me.UltT > Game.RainCast + Game.RainLen - 0.1f, "casting starts the siphon and an ult timer of siphon + 10 s");
+        Check(Game.RainActive(me) && !Game.RainRaining(me) && me.UltT > Game.RainCast + Game.RainLen - 0.1f, "casting starts the siphon and an ultimate timer of siphon + 10 s");
         step(Game.RainCast - 0.05f);
         float paid = maxHp - me.Hp;
         Console.WriteLine("  rain: siphon cost {0:0.0}% of max health; regen {1:0.0}/s, maxHp {2:0}", 100f * paid / maxHp, regen, maxHp);

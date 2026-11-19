@@ -18,7 +18,7 @@ namespace Arena
             p.RiotT = 0f;
         }
 
-        /// Host: the perks this lobby entry takes into the match. None in the Practice Range, the lobby preview or the Boss Lab
+        /// Host: the perks this lobby entry takes into the run. None in the Practice Range, the lobby preview or the Boss Lab
         /// (anywhere runs aren't recorded); a continued run gives each seat back the perks it was saved with.
         PerkId[] PerksFor(LobbyEntry e)
         {

@@ -158,10 +158,10 @@ namespace Arena
             }
             else if (grantCard)
             {
-                if (pickKey < 1 || pickKey > Upgrades.BonusSlots)
+                if (pickKey < 1 || pickKey > Upgrades.CardAbilitySlots)
                 {
                     pickKey = 1;  // default: the first free key
-                    for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                    for (int k = 1; k <= Upgrades.CardAbilitySlots; k++)
                         if (me.Slots[k].Id == AbilityId.None) { pickKey = k; break; }
                 }
             }
@@ -250,7 +250,7 @@ namespace Arena
                 return;
             var card = Upgrades.All[me.Offer[selectedCard]];
             var grant = card.Grants;
-            bool uses = card.PicksSlot;  // the Extra Use card: pick Space, Q, E or Shift
+            bool uses = card.PicksSlot;  // the Extra Use card: pick Space, 2nd, 3rd or 4th
             if (grant == AbilityId.None && !uses)
                 return;  // (still sliding away after the card changed: nothing to name)
             float a = Mathf.Clamp01(keySwitch * 1.5f) * rowAlpha;
@@ -262,11 +262,11 @@ namespace Arena
             float sc = Mathf.Lerp(0.6f, 1f, keySwitch);
             GUIUtility.ScaleAroundPivot(new Vector2(sc, sc), new Vector2(mid, by + 24f));
             Ui.Label(new Rect(mid - w / 2f - 20f, by - 22f, w + 40f, 18f), uses ? "+1 USE ON" : Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
-            int n = uses ? Upgrades.UseSlots : Upgrades.BonusSlots;
+            int n = uses ? Upgrades.UseSlots : Upgrades.CardAbilitySlots;
             float kw = w / n;
             for (int j = 0; j < n; j++)
             {
-                int k = uses ? j : j + 1;  // the slot (0 Space, 1-3 Q, E, Shift)
+                int k = uses ? j : j + 1;  // the slot (0 Space, 1-3 2nd, 3rd, 4th)
                 var r = new Rect(mid - w / 2f + j * kw, by, kw, 48f);
                 string hint = uses ? (me.Slots[k].Id != AbilityId.None ? Upgrades.Ability(me.Slots[k].Id).Name : "empty") : me.Slots[k].Id != AbilityId.None ? "swap" : "empty";
                 int val = uses ? k + 1 : k;  // what pickKey holds
@@ -827,7 +827,7 @@ namespace Arena
             Ui.Fill(new Rect(r.xMax - 1f, 0f, 1f, H), new Color(1f, 1f, 1f, 0.22f));
             Ui.Fill(new Rect(r.xMax - 5f, 0f, 4f, H), new Color(rc.r, rc.g, rc.b, 0.18f));
             Ui.Label(new Rect(20f, 20f, r.width - 40f, 24f), "YOUR STATS", 16, Color.white, TextAnchor.MiddleLeft, true);
-            Label(new Rect(20f, 44f, r.width - 40f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.RoleAbility).Name, 12, rc, TextAnchor.MiddleLeft);
+            Label(new Rect(20f, 44f, r.width - 40f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.FirstAbility).Name, 12, rc, TextAnchor.MiddleLeft);
             Ui.Fill(new Rect(20f, 70f, r.width - 40f, 1f), new Color(1f, 1f, 1f, 0.1f));
             return new Rect(8f, 80f, r.width - 20f, H - 92f);
         }

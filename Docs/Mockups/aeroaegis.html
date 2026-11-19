@@ -83,7 +83,7 @@ button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid v
     <div class="card plain"><h3>What it fixes</h3><ul><li>Today the shield only helps against bullets. Melee enemies still reach the player, which is the main way a tank gets overwhelmed.</li><li>Targeting is readable: a dashed line and marker show who will be covered before the vortex lands.</li><li>The rim drains, so players can see how long the cover has left.</li><li>Enemies visibly bounce and slide off, which explains why they cannot get in.</li></ul></div>
   </div>
 </section>
-<p class="dev"><strong>Build notes.</strong> Rules are a proposal: blocks enemy bodies only (bullets pass), 3 s, 4.5 s mastered. Keeps <code>AbilityId.ArcaneAegis</code> internally, so only the display name, <code>PixelArt</code> icon key and README change. The shield timer would sit on the targeted ally; the existing <code>AegisT</code> snapshot field probably covers it, so no protocol bump is expected. The "Current" view is approximate.</p>
+<p class="dev"><strong>Build notes.</strong> Rules are a proposal: blocks enemy bodies only (bullets pass), 3 s, 4.5 s mastered. Keeps <code>AbilityId.Aeroaegis</code> internally, so only the display name, <code>PixelArt</code> icon key and README change. The shield timer would sit on the targeted ally; the existing <code>AegisT</code> snapshot field probably covers it, so no protocol bump is expected. The "Current" view is approximate.</p>
 </main>
 <script>
 (function(){

@@ -176,8 +176,8 @@ namespace Arena
             }
             if (p.Weapon.Id == WeaponId.WindClash)
                 WcHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // the hands sweep, thrust and fling with each wave (WindClashLook.cs)
-            if (p.Weapon.Id == WeaponId.BoneSpear)
-                BsHandPose(p, ref rhx, ref rhy);  // the bleeding hand pushes, pulls, lifts and clenches with each move (BoneSpearLook.cs)
+            if (p.Weapon.Id == WeaponId.BloodBrawler)
+                BsHandPose(p, ref rhx, ref rhy);  // the bleeding hand pushes, pulls, lifts and clenches with each move (BloodBrawlerLook.cs)
             if (p.Weapon.Id == WeaponId.FrostLance && !p.Downed)
                 FlHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // both hands on the lance's shaft, wherever it swings (FrostLanceLook.cs)
             float whipRot;
@@ -248,7 +248,7 @@ namespace Arena
                     return fxOn;  // HalberdLook.cs
                 case WeaponId.Katana:
                     return fxOn && !p.Downed;  // KatanaLook.cs, MeleeLooks.cs
-                case WeaponId.Censer: case WeaponId.Warhammer: case WeaponId.Greatsword: case WeaponId.Rapier: case WeaponId.HolyMace: case WeaponId.BoStaff:
+                case WeaponId.Censer: case WeaponId.Warhammer: case WeaponId.Greatsword: case WeaponId.Rapier: case WeaponId.Quarterstaff: case WeaponId.BoStaff:
                 case WeaponId.Kusarigama: case WeaponId.BloodLash:
                     return fxOn && !p.Downed;  // CenserLook.cs, MeleeLooks.cs (Warhammer, Rapier, Kusarigama, Blood Lash), GreatswordLook.cs, QuarterstaffLook.cs, BoStaffLook.cs
                 default:
@@ -461,7 +461,7 @@ namespace Arena
             {
                 case WeaponId.Scattergun: case WeaponId.RiotRepeater: hold = 1; offX = 14f; break;
                 case WeaponId.FlakCannon: case WeaponId.Halberd: case WeaponId.BoStaff: hold = 1; offX = 10f; break;
-                case WeaponId.LightBolt: case WeaponId.BurstSmg: case WeaponId.HolyMace: hold = 1; offX = 8f; break;
+                case WeaponId.RepulsionCannon: case WeaponId.BurstSmg: case WeaponId.Quarterstaff: hold = 1; offX = 8f; break;
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
                 case WeaponId.DoubleBarrel: hold = 1; offX = 15f; break;
                 case WeaponId.GrenadeLauncher: hold = 1; offX = 31f; break;  // (the front hand sits on the foregrip: GrenadeLauncherLook.cs GlFrontHand)
@@ -469,7 +469,7 @@ namespace Arena
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BoneSpear:
+                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
@@ -497,11 +497,11 @@ namespace Arena
                     for (int i = 0; i < 4; i++) MLine(8f + i * 3.2f, -4f, 8f + i * 3.2f, 4f, i == mLit ? 1.4f : 1f, i == mLit ? Hx(0x7bd8ff) : Hx(0x1b2026));  // one rib lights as a round cycles
                     MLine(24f, -1.5f, 31f, -1.5f, 2.2f, MSteel);
                     break;
-                case WeaponId.LightBolt:  // Repulsion Cannon: a bell-mouthed emitter
+                case WeaponId.RepulsionCannon:  // Repulsion Cannon: a bell-mouthed emitter
                     MRect(-4f, -3f, 10f, 6f, MDark); MPoly(Hx(0x3d6b5a), 6f, 0f, 6f, -4f, 22f, -11f, 22f, 11f, 6f, 4f);
                     for (int i = 0; i < 3; i++) MArc(10f, 0f, 6f + i * 4f, -0.85f, 0.85f, 1.5f, Hx(0x9dffcf));
                     break;
-                case WeaponId.Pistol:  // Revolver
+                case WeaponId.Revolver:  // Revolver
                 {
                     float kick, spin;
                     bool fx = GunLook(p, out kick, out spin);  // with Visual effects on: it kicks back and the cylinder clicks round (GunBowLooks.cs)
@@ -610,7 +610,7 @@ namespace Arena
                     MCirc(9f, 0f, 6f, Hx(0x8fe3f2, 0.25f), 12); MCirc(9f, 0f, 2.4f, Hx(0xf2fdff), 8);
                     for (int i = 0; i < 3; i++) { float a0 = t * 7f + i * 2.1f; MArc(9f, 0f, 4.2f + i * 1.4f, a0, a0 + 1.7f, 1.1f, Hx(0xbff3ff, 0.85f)); }
                     break;
-                case WeaponId.ArcaneMissiles:
+                case WeaponId.IceShards:
                     MArc(12f, 0f, 11f, 0f, MathX.Tau, 0.8f, Hx(0x8fe3ff, 0.4f));
                     for (int i = 0; i < 3; i++)  // three ice shards circling
                     {
@@ -707,7 +707,7 @@ namespace Arena
                         break;  // with Visual effects on, HalberdLook.cs draws it in two hands
                     MLine(-10f, 0f, 40f, 0f, 3f, MWood); MPoly(MSteel, 28f, 0f, 30f, -11f, 40f, -8f, 36f, -2f); MPoly(MSteel, 40f, -1.5f, 52f, 0f, 40f, 1.5f); MPoly(MSteel, 30f, 2f, 36f, 7f, 34f, 1f);
                     break;
-                case WeaponId.HolyMace:  // Quarterstaff: an iron shaft, steel bands, a lantern head whose crystal and pips follow the Jab stacks
+                case WeaponId.Quarterstaff:  // Quarterstaff: an iron shaft, steel bands, a lantern head whose crystal and pips follow the Jab stacks
                 {
                     if (fxOn)
                         break;  // with Visual effects on, QuarterstaffLook.cs draws it in two hands (DrawQuarterstaffIdle)
@@ -817,10 +817,10 @@ namespace Arena
                     MCirc(px, py, 1.5f, Hx(0xff9aa6), 6);
                     break;
                 }
-                case WeaponId.ClotBolt:
+                case WeaponId.GoreMortar:
                     MCirc(12f, 0f, 7f, Hx(0x3a0710), 12); MCirc(11f, -2f, 3f, Hx(0xa8182b), 8); MCirc(14f, 2f, 2f, Hx(0xe0203a), 8); MCirc(12f, 8f + MathX.Fmod(t * 8f, 4f), 1.4f, Hx(0xc4122e), 6);
                     break;
-                case WeaponId.LeechBeam:  // Leech Tendrils
+                case WeaponId.LeechTendrils:  // Leech Tendrils
                     MCirc(2f, 0f, 3.4f, Hx(0x3a0710), 8);
                     for (int k = -1; k <= 1; k++)
                     {
@@ -857,8 +857,8 @@ namespace Arena
                     for (int i = 0; i < 3; i++) { float rr = 14f - MathX.Fmod(t * 10f + i * 4.7f, 14f); MArc(14f, 0f, Mathf.Max(rr, 1f), 0f, MathX.Tau, 1.4f, new Rgba(0.88f, 0.12f, 0.23f, 0.2f + 0.6f * (1f - rr / 14f))); }
                     MCirc(14f, 0f, 2.4f, Hx(0x12020a), 8);
                     break;
-                case WeaponId.BoneSpear:
-                    DrawBsHand(t);  // an open, bleeding hand (BoneSpearLook.cs)
+                case WeaponId.BloodBrawler:
+                    DrawBsHand(t);  // an open, bleeding hand (BloodBrawlerLook.cs)
                     break;
             }
         }

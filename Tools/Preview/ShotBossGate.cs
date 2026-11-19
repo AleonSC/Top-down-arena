@@ -16,7 +16,7 @@ static partial class Shot {
     gm.Enemies.Clear(); gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear(); gm.Props.Clear(); gm.Orbs.Clear(); gm.Minions.Clear();
     gm.Layout = LayoutId.Open; gm.State = MatchState.Intermission; gm.StateTimer = 20f;
     string gb = Environment.GetEnvironmentVariable("GATEBOSS");
-    if (gb != null) { var bt = (EnemyType)Enum.Parse(typeof(EnemyType), gb); gm.Quick = true; gm.QuickOrder = new[] { bt, EnemyType.Boss, bt, EnemyType.Boss }; gm.Wave = 10; }
+    if (gb != null) { var bt = (EnemyType)Enum.Parse(typeof(EnemyType), gb); gm.Quick = true; gm.QuickOrder = new[] { bt, EnemyType.Warden, bt, EnemyType.Warden }; gm.Wave = 10; }
     V2 at = new V2(Game.Width / 2f, Game.Height / 2f);
     gm.GateUp = true; gm.GatePos = at; gm.GateFill = float.Parse(gs, ci);
     app.gateAgeOverride = float.Parse(Environment.GetEnvironmentVariable("GATEAGE") ?? "5", ci);

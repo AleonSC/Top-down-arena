@@ -2,17 +2,17 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The 2 s stage changes of the Warden and the Hive Queen: on the floor, sirens (Warden) or wax cells
+    /// The 2 s phase changes of the Warden and the Hive Queen: on the floor, sirens (Warden) or wax cells
     /// spiralling in (Queen) and a pulsing tint; on the boss, energy streaming in, rings closing round it and
-    /// shockwaves going out, then a flash as the new stage starts; on the HUD, a banner naming the new stage.
+    /// shockwaves going out, then a flash as the new phase starts; on the HUD, a banner naming the new phase.
     public partial class ArenaApp
     {
         struct StageShift
         {
             public Enemy Boss;
             public float Progress;     // 0 -> 1 over the change
-            public int Number;         // the stage it's changing to (2, 3)
-            public int Of;             // how many stages it has (3, or 5 for the Eclipse)
+            public int Number;         // the phase it's changing to (2, 3)
+            public int Of;             // how many phases it has (3, or 5 for the Eclipse)
             public string Name, Line;
             public Rgba Color, Second;
             public bool Warden, Reapers, Duelist;
@@ -27,7 +27,7 @@ namespace Arena
             {
                 Enemy boss = null;
                 foreach (var e in g.Enemies.Values)
-                    if (e.Type == EnemyType.DualReaper || (boss == null && e.Type == EnemyType.TwinA))
+                    if (e.Type == EnemyType.DualReaper || (boss == null && e.Type == EnemyType.ReaperOfDusk))
                         boss = e;
                 if (boss != null)
                 {
@@ -45,7 +45,7 @@ namespace Arena
             }
             foreach (var e in g.Enemies.Values)
             {
-                if (e.Type == EnemyType.Boss && e.Warden != null && e.Warden.TransT > 0f)
+                if (e.Type == EnemyType.Warden && e.Warden != null && e.Warden.TransT > 0f)
                 {
                     var to = e.Warden.TransTo;
                     if (to == WardenStage.LastStand)
@@ -181,7 +181,7 @@ namespace Arena
 
         static float Ease(float x) => 1f - (1f - x) * (1f - x) * (1f - x);
 
-        /// On the floor, under everything: sirens or wax, and the arena pulsing with the new stage's color.
+        /// On the floor, under everything: sirens or wax, and the arena pulsing with the new phase's color.
         void DrawStageShiftFloor(float t)
         {
             StageShift s;
@@ -279,7 +279,7 @@ namespace Arena
             }
         }
 
-        /// The banner across the screen: the stage's number, its name and a line about it.
+        /// The banner across the screen: the phase's number, its name and a line about it.
         void DrawStageBanner()
         {
             StageShift s;

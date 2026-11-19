@@ -45,7 +45,7 @@ namespace Arena
             if (best == null)
             {
                 foreach (var sl in p.Slots)  // nothing to take: it fizzles and the cooldown is refunded
-                    if (sl.Id == AbilityId.GuardianSpirit)
+                    if (sl.Id == AbilityId.ForcePact)
                     {
                         sl.Charges = Math.Min(sl.MaxCharges, sl.Charges + 1);
                         sl.Timer = 0f;
@@ -97,7 +97,7 @@ namespace Arena
         /// Host, from TickMinions: each slot's thrall binds in, or comes back after it fell.
         void TickPact(Player p, float dt)
         {
-            int slots = Mastered(p, AbilityId.GuardianSpirit) ? 2 : 1;
+            int slots = Mastered(p, AbilityId.ForcePact) ? 2 : 1;
             float rez = -1f;
             for (int s = 0; s < 2; s++)
             {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The tank Hemomancer's Blood Wall (`AbilityId.CrimsonPact` kept; was Crimson Pact), look B "Thornvein" of
+    /// The tank Hemomancer's Blood Wall (was Crimson Pact), look B "Thornvein" of
     /// Docs/Mockups/blood-wall.html. A toggle: press to open your veins and a wall of blood is laid behind you as you walk
     /// (standing still lays nothing), a node every WallSpacing px. The wall stops every enemy bullet (red aimed shots too),
     /// enemies can't walk through it and take WallContactDps while pressed against it; you and your allies walk through,
@@ -34,7 +34,7 @@ namespace Arena
         public static float WallDoubleOf(Player p) => WallDouble + p.Stats.WallRampBonus;
 
         /// Pressing Blood Wall again while it's up stops it (no cooldown is spent for the press itself).
-        public bool WallRelease(Player p, int slot) => p.BloodWallOn && p.Slots[slot].Id == AbilityId.CrimsonPact;
+        public bool WallRelease(Player p, int slot) => p.BloodWallOn && p.Slots[slot].Id == AbilityId.BloodWall;
 
         /// Host: Blood Wall was cast.
         void OpenBloodWall(Player p, float power, bool mastered)
@@ -49,7 +49,7 @@ namespace Arena
             BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), 6f, 0.5f, Sfx.Ability);
         }
 
-        /// Host, every tick (TickBloodMages): the drain ramps and the wall is laid along your path.
+        /// Host, every tick (TickHemomancers): the drain ramps and the wall is laid along your path.
         void TickBloodWall(Player p, float dt)
         {
             if (!p.BloodWallOn)
@@ -104,7 +104,7 @@ namespace Arena
             p.BloodWallOn = false;
             p.WallPrev = -1;
             for (int i = 0; i < p.Slots.Length; i++)
-                if (p.Slots[i].Id == AbilityId.CrimsonPact && p.Slots[i].Charges <= 0)
+                if (p.Slots[i].Id == AbilityId.BloodWall && p.Slots[i].Charges <= 0)
                     p.Slots[i].Timer = Cooldown(p, i);
         }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The lobby's Modifiers tab: switches that change the whole run (Modifiers.cs). The host turns them on and
-    /// off; everyone sees them. Active ones also show under the wave plate during the match.
+    /// off; everyone sees them. Active ones also show under the wave plate during the run.
     public partial class ArenaApp
     {
         static readonly Color ModLit = new Color(0.44f, 0.72f, 1f);  // a modifier that is on: the lobby's lit blue
@@ -204,7 +204,7 @@ namespace Arena
             return canClick && Ui.HitArea(c);
         }
 
-        /// During a match: the active modifiers, in a line under the wave plate. Hunted names who's hunted this
+        /// During a run: the active modifiers, in a line under the wave plate. Hunted names who's hunted this
         /// wave; Second Wind shows whether yours is still there.
         void DrawActiveModifiers(float x, float y)  // x: after the difficulty's chip
         {

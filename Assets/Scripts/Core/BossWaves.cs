@@ -24,9 +24,9 @@ namespace Arena
 
         static readonly Row[] Rows =
         {
-            With(EnemyType.Boss, EnemyType.SecurityGuard, 2),                      // the Warden: his own Security Guards
+            With(EnemyType.Warden, EnemyType.SecurityGuard, 2),                      // the Warden: his own Security Guards
             Alone(EnemyType.HiveQueen),                                            // she brings her own swarm
-            new Row { Boss = EnemyType.TwinA, Partner = EnemyType.TwinB },         // the Reapers come as a pair
+            new Row { Boss = EnemyType.ReaperOfDusk, Partner = EnemyType.ReaperOfDawn },         // the Reapers come as a pair
             With(EnemyType.Singularity, EnemyType.Grunt, 6, EnemyType.Sniper),
             With(EnemyType.Colossus, EnemyType.Grunt, 5),
             With(EnemyType.StormHerald, EnemyType.Sniper, 8),
@@ -65,9 +65,9 @@ namespace Arena
         /// starts). Null for anything that isn't a boss.
         public static V2? SpawnPoint(EnemyType type, float w, float h)
         {
-            if (type == EnemyType.TwinA)
+            if (type == EnemyType.ReaperOfDusk)
                 return new V2(w / 2f - w * 0.26f, h / 2f);
-            if (type == EnemyType.TwinB)
+            if (type == EnemyType.ReaperOfDawn)
                 return new V2(w / 2f + w * 0.26f, h / 2f);
             if (Defs.Get(type).IsBoss)
                 return new V2(w / 2f, h / 2f);

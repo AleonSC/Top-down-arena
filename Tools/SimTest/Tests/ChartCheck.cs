@@ -13,7 +13,7 @@ static partial class Program
         var build = typeof(Game).GetMethod("BuildWave", np);
         var singles = typeof(Game).GetField("spawnQueue", np);
         var squads = typeof(Game).GetField("squadQueue", np);
-        var warden = Approaches.For(EnemyType.Boss);
+        var warden = Approaches.For(EnemyType.Warden);
         var W = new HashSet<EnemyType>(warden.Members.Select(m => m.Type));
         // What the chart says (Docs/Approaches.md): the new enemy trickling in on each wave, and the squads in use.
         string[] star = { "Rioter", "Guard", "Thug", "SecurityGuard", "-", "RiotShield", "GasGrenadier", "TaserGuard", "-", "-" };

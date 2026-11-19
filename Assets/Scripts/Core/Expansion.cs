@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// What a room of the Expanding arena does (Docs/ExpandingArena.md). Floor rooms carry a path's ground and hazards.
+    /// What a room of the Expanding arena does (Docs/ExpandingArena.md). rule rooms carry a path's ground and hazards.
     public enum RoomKind : byte { Combat, Shop, Floor, BlackMarket, Gatekeeper, Opening, Link, Gate, Builder, Arms, Medic }  // (Medic: the Medic, heals and revive tokens, Medic.cs; Builder: a Builder Shop card's room, BuilderShop.cs; Arms: the Arms Dealer, Docs/ArmsDealer.md; Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
 
     /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
@@ -65,7 +65,7 @@ namespace Arena
         public string Shape => Expansion.ShapeName(W, H);
     }
 
-    /// A room modifier the team holds (Docs/RoomModifiers.md): spent once on a Combat room to make it a Shop or a Floor room.
+    /// A room modifier the team holds (Docs/RoomModifiers.md): spent once on a Combat room to make it a Shop or a rule room.
     public struct RoomToken
     {
         public RoomKind Kind;   // Shop or Floor
@@ -104,7 +104,7 @@ namespace Arena
         };
         static readonly string[] shapeNames = { "Closet", "Room", "Chamber", "Plaza", "Gallery", "Annex" };
 
-        /// The floors a Floor room can carry (paths whose ground and hazards read well as a room).
+        /// The floors a rule room can carry (paths whose ground and hazards read well as a room).
         public static readonly PathId[] Floors = { PathId.SwarmFields, PathId.SniperRidge, PathId.EliteGauntlet, PathId.BurningGrounds, PathId.Sanctuary, PathId.FrozenLake, PathId.BloodMoon };
 
         /// A Floor token for this wave: a floor not on the map or in the tokens held yet when one is left (else any), seeded so every machine agrees.
@@ -1235,7 +1235,7 @@ namespace Arena
                                 if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
                                 {
                                     areas[b].Kind = job;
-                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (vendor)";
+                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (Black Market)";
                                 }
                             break;
                         }

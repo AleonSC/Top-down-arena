@@ -36,7 +36,7 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 rows[i] = new Rect(x, bodyY + 8f + i * step, ModeListW, rowH);
-                known[i] = profile.Beaten(bosses[i]) > 0 || (first && bosses[i] == EnemyType.Boss);
+                known[i] = profile.Beaten(bosses[i]) > 0 || (first && bosses[i] == EnemyType.Warden);
                 if (known[i])
                     shownList.Add(i);
                 if (rows[i].Contains(ev.mousePosition) && known[i])
@@ -46,7 +46,7 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 var b = bosses[i];
-                bool firstBoss = first && b == EnemyType.Boss, met = profile.Beaten(b) > 0;
+                bool firstBoss = first && b == EnemyType.Warden, met = profile.Beaten(b) > 0;
                 string chip = firstBoss ? "FIRST" : met ? "BEATEN x" + profile.Beaten(b) : "NOT MET";
                 Color cc = firstBoss ? QuickColor : met ? Ui.Gold : FadedBlue(0.55f);
                 ModeRow(rows[i], (i + 1).ToString("00"), BossName(b), known[i], known[i], i == shown, i == hoverI, QuickColor, chip, cc);

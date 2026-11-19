@@ -21,7 +21,7 @@ static partial class Program
             host.StartMatch();
             var me = g.Players[1];
             g.DevSetGod(1, true);
-            Check(me.Slots[0].Id == AbilityId.Hydra, "the Summoner DPS's second Space ability is Hydra");
+            Check(me.Slots[0].Id == AbilityId.Hydra, "the Summoner DPS's 2nd choice is Hydra");
             for (int f = 0; f < 360 && g.State != MatchState.Fighting; f++) Step(host, dt);
             var dummies = new List<Enemy>();
             V2[] spots = { new V2(560f, 300f), new V2(560f, 450f), new V2(560f, 600f), new V2(640f, 450f) };

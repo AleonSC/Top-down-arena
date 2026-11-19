@@ -23,13 +23,13 @@ static partial class Program
             host.StartMatch();
             var me = g.Players[1];
             g.DevSetGod(1, true);
-            Check(me.Slots[0].Id == AbilityId.GuardianSpirit && Upgrades.Ability(AbilityId.GuardianSpirit).Name == "Force Pact", "the Summoner Tank's third Space ability is Force Pact");
+            Check(me.Slots[0].Id == AbilityId.ForcePact && Upgrades.Ability(AbilityId.ForcePact).Name == "Force Pact", "the Summoner Tank's 3rd choice is Force Pact");
             for (int f = 0; f < 360 && g.State != MatchState.Fighting; f++) Step(host, dt);
             var keep = new List<Enemy>();
             Func<EnemyType, V2, Enemy> make = (type, pos) =>
             {
                 var e = (Enemy)spawn.Invoke(g, new object[] { type, pos, 0f, 0, false });
-                e.Hp = e.MaxHp = type == EnemyType.Boss ? 1e5f : 1e5f; e.SpawnT = 0f; e.FrozenT = 1e3f; keep.Add(e); return e;
+                e.Hp = e.MaxHp = type == EnemyType.Warden ? 1e5f : 1e5f; e.SpawnT = 0f; e.FrozenT = 1e3f; keep.Add(e); return e;
             };
             Action<float> run = secs =>
             {
@@ -44,11 +44,11 @@ static partial class Program
             Func<int, Minion> thrall = slot => g.Minions.Values.FirstOrDefault(m => m.Owner == 1 && m.Kind == MinionKind.Thrall && m.PactSlot == slot);
             Func<int> thralls = () => g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Thrall);
             run(0.2f);
-            if (mastered) me.MasteryXp[AbilityId.GuardianSpirit] = Game.MasteryXpFor[Game.MasteryMax - 1];
+            if (mastered) me.MasteryXp[AbilityId.ForcePact] = Game.MasteryXpFor[Game.MasteryMax - 1];
             string tag = mastered ? " (mastered)" : "";
 
             // A boss on its own can't be taken.
-            var boss = make(EnemyType.Boss, new V2(700f, 300f));
+            var boss = make(EnemyType.Warden, new V2(700f, 300f));
             me.Slots[0].Timer = 0f; cast.Invoke(g, new object[] { 1, 0, boss.Pos, false });
             run(1.5f);
             Check(thralls() == 0 && g.Enemies.ContainsKey(boss.Id), "a boss can't be taken");

@@ -15,7 +15,7 @@ static partial class Program
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
 
-        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.Boss).Select(i => Upgrades.All[i].Name).ToArray();
+        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.Warden).Select(i => Upgrades.All[i].Name).ToArray();
         Check(U("Warden's Halo") < 0 && U("Iron Volley") < 0 && own.Contains("Warden's Guard") && own.Contains("Stun Gun") && own.Contains("Searchlight") && U("Ringburst") < 0
             && Upgrades.All[U("Stun Gun")].Grants == AbilityId.StunGun, "the Warden's legendaries: Warden's Guard, Stun Gun and Searchlight (" + string.Join(", ", own) + ")");
 
@@ -47,7 +47,7 @@ static partial class Program
         g.GrantUpgrade(2, U("Stun Gun"));
         drive(0.3f, false, new V2(0f, 0f));
         int slot = Array.FindIndex(hp.Slots, k => k.Id == AbilityId.StunGun);
-        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.StunGun, "the Stun Gun goes on a Q / E / Shift key");
+        Check(slot >= 1 && slot <= 3 && cp.Slots[slot].Id == AbilityId.StunGun, "the Stun Gun goes on a 2nd, 3rd or 4th key");
         cp.Pos = cp.Disp = hp.Pos = new V2(500f, 450f);
         var d = dummy(new V2(800f, 450f));
         // Pressed on the friend's own game, the way a player does (their game tracks its own cooldowns too).

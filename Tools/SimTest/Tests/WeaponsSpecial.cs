@@ -355,7 +355,7 @@ static partial class Program
             };
             float cl0 = blast(WeaponId.ChainLight, 0f), cl3 = blast(WeaponId.ChainLight, homing);
             float half3 = Game.LightConeHalfFor(hp, 1);
-            float rp0 = blast(WeaponId.LightBolt, 0f), rp3 = blast(WeaponId.LightBolt, homing);
+            float rp0 = blast(WeaponId.RepulsionCannon, 0f), rp3 = blast(WeaponId.RepulsionCannon, homing);
             hp.Stats.Homing = homing; hp.Stats.CritChance = crit0;
             string card = Upgrades.DescFor(Upgrades.All[Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds")], Defs.Weapons.First(w => w.Id == WeaponId.ChainLight));
             Console.WriteLine("  homing x3, condensed cones: chain light {0:0.0} -> {1:0.0} ({2:0} degrees across), repulsion {3:0.0} -> {4:0.0}; card: {5}",
@@ -473,7 +473,7 @@ static partial class Program
 
         // Incendiary Rounds on a fast weapon (Riot Repeater) and a slow one (Revolver, as a Healer would): 6 s on one enemy.
         var gain = new List<float>();
-        foreach (var id in new[] { WeaponId.RiotRepeater, WeaponId.Pistol })
+        foreach (var id in new[] { WeaponId.RiotRepeater, WeaponId.Revolver })
         {
             var dealt = new float[2];
             for (int pass = 0; pass < 2; pass++)
@@ -495,7 +495,7 @@ static partial class Program
         // dropped for them (their splashes were cleared before they were spent), and some never applied mods at all.
         var res = new List<string>();
         bool modsRide = true;
-        foreach (var id in new[] { WeaponId.ChainLight, WeaponId.LightBolt, WeaponId.Ofuda })
+        foreach (var id in new[] { WeaponId.ChainLight, WeaponId.RepulsionCannon, WeaponId.Ofuda })
         {
             var dealt = new float[2];
             bool burned = false;
@@ -546,7 +546,7 @@ static partial class Program
         // Piercing Rounds on weapons without bullets that run out of pierce: each stack reaches 10% farther.
         var longer = new List<string>();
         bool allLonger = true;
-        foreach (var id in new[] { WeaponId.Flamethrower, WeaponId.FumaShuriken, WeaponId.LightBolt, WeaponId.RadiantOrb,
+        foreach (var id in new[] { WeaponId.Flamethrower, WeaponId.FumaShuriken, WeaponId.RepulsionCannon, WeaponId.RadiantOrb,
             WeaponId.ChainLight, WeaponId.SpiritFan, WeaponId.Ofuda, WeaponId.ArcLightning, WeaponId.WispLantern, WeaponId.ImpCaller })
         {
             me.Weapon = Defs.Weapons.First(w => w.Id == id);
@@ -621,7 +621,7 @@ static partial class Program
         // Magnum Rounds: shots 15% bigger a stack, the same size on the client; area weapons' areas 15% wider.
         clear();
         build("Magnum Rounds", 2);
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Pistol);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Revolver);
         me.Pos = from; me.AimAt = from + new V2(300f, 0f);
         volley.Invoke(g, new object[] { me, 0f, 0 });
         var round = g.Bullets.Values.First(x => x.Owner == 1);

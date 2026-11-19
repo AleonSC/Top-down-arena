@@ -11,7 +11,7 @@ static partial class Program
     {
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "arena-sessionsrc-" + Guid.NewGuid().ToString("N").Substring(0, 6));
-        foreach (var id in new[] { WeaponId.LeechBeam, WeaponId.ArcKnuckles, WeaponId.Lance, WeaponId.Katana, WeaponId.WolfWhistle, WeaponId.ClotBolt })
+        foreach (var id in new[] { WeaponId.LeechTendrils, WeaponId.ArcKnuckles, WeaponId.Lance, WeaponId.Katana, WeaponId.WolfWhistle, WeaponId.GoreMortar })
         {
             var weapon = Defs.Weapons.First(w => w.Id == id);
             SessionRecorder rec = null;
@@ -26,7 +26,7 @@ static partial class Program
             float total = src.Values.Sum(), mine;
             src.TryGetValue("Weapon: " + weapon.Name, out mine);
             Check(total > 0f && mine >= 0.9f * total, string.Format("{0}: {1:0}% of its {2:0} damage is credited to the weapon", weapon.Name, 100f * mine / Math.Max(1f, total), total));
-            if (id == WeaponId.ClotBolt)
+            if (id == WeaponId.GoreMortar)
                 Check(rec.HealthSpentBy(1) > 0f && rec.DamageTakenBy(1) == 0f, string.Format("the Gore Mortar's shots cost health ({0:0}), recorded as health spent, not damage taken", rec.HealthSpentBy(1)));
         }
         try { System.IO.Directory.Delete(folder, true); } catch { }

@@ -21,7 +21,7 @@ namespace Arena
             snapListAt = Time.unscaledTime;
         }
 
-        /// F6 / F7, anywhere in a match (not while typing).
+        /// F6 / F7, anywhere in a run (not while typing).
         void SnapshotKeys()
         {
             if (GUIUtility.keyboardControl != 0 || session.Screen != AppScreen.Game)
@@ -115,7 +115,7 @@ namespace Arena
             string cant = inMatch ? RunSnapshot.CantLoad(game, session) : "Start a run to take or load a snapshot.";
 
             var card = new Rect(body.x, body.y, body.width, 112f);
-            float y = DevCard(card, "Take a snapshot", "Everything in the match right now: enemies, shots, timers, random rolls. Load it to play on from exactly there.", CrtStyle.Head);
+            float y = DevCard(card, "Take a snapshot", "Everything in the run right now: enemies, shots, timers, random rolls. Load it to play on from exactly there.", CrtStyle.Head);
             bool was = GUI.enabled;
             GUI.enabled = was && host;
             snapName = DkField(new Rect(card.x + 16f, y, card.width - 32f - 196f, 28f), snapName, 48);

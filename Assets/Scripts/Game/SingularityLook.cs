@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the Singularity's stages look (Singularity.cs): the accretion disk, the event horizon, the white hole's
+    /// How the Singularity's phases look (Singularity.cs): the accretion disk, the event horizon, the white hole's
     /// flash and push, and the shards of its Split.
     public partial class ArenaApp
     {
@@ -37,7 +37,7 @@ namespace Arena
             var s = e.Sing;
             if (s != null && s.TransT > 0f)
             {
-                DrawStageShiftBoss(e, pos, core, t);  // changing stage (StageShiftLook.cs)
+                DrawStageShiftBoss(e, pos, core, t);  // changing phase (StageShiftLook.cs)
                 Circle(pos, core * 1.6f, new Rgba(0.05f, 0f, 0.1f, 0.9f), 40);
                 return;
             }
@@ -77,7 +77,7 @@ namespace Arena
         }
 
         /// A shard of the Split: a small black hole with the core's color, tied to it by a faint line.
-        void DrawSingShardUnderlay(Enemy e, V2 pos, float r, Rgba col, float t)
+        void DrawSingularityShardUnderlay(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             Enemy core;
             if (game.Enemies.TryGetValue(e.ParentId, out core))

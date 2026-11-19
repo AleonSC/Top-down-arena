@@ -22,7 +22,7 @@ Hive's bees, these have their own behaviour: each one previews one thing the Sin
 
 1. **Debris, Void Acolyte, Pulsar** (built): the faction with these three, squads **Infall** (a Void Acolyte and six Debris) and **Binary** (two Pulsars).
    No set piece or lesson cycle yet, so the Campaign builds its waves by reach, as for the Lich.
-2. **Graviton, Orbiter, Collapsar** (built): the Graviton's Small Well (`EnemyType.MiniWell`) uses the boss's corner-well rules, closer and weaker
+2. **Graviton, Orbiter, Collapsar** (built): the Graviton's Small Well (`EnemyType.SmallWell`) uses the boss's corner-well rules, closer and weaker
    (`WellDriftAt`, `PullIntoWells`); the Orbiter slings its orbs; a killed Collapsar leaves an `Implosion` (no XP, so shots pass through it) that
    pulls, then bursts. Squad **Gravity trap** (Graviton, Collapsar, three Debris).
 3. **Lens, White Dwarf** (built): players' shots near a Lens's face turn away from it on every game (`BendRoundLenses` in `MoveBullets`) and a

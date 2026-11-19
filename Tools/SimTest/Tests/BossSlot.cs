@@ -30,8 +30,8 @@ static partial class Program
         Check(g.NextBossWave(g.Wave, false) == 5 && g.PathOffer == null, "the next boss is wave 5's, and no paths are offered yet");
 
         // The boss comes as its own fight and keeps wave 5.
-        Run(s, dt, 30f, () => g.State == MatchState.Fighting && Find(client, EnemyType.Boss) != null, NoPicks);
-        Check(g.Wave == 5 && g.BossSlot && g.BossNow && !g.BossNext && client.Game.BossSlot && Find(client, EnemyType.Boss) != null, "then the Warden: still wave 5, a boss fight on both screens");
+        Run(s, dt, 30f, () => g.State == MatchState.Fighting && Find(client, EnemyType.Warden) != null, NoPicks);
+        Check(g.Wave == 5 && g.BossSlot && g.BossNow && !g.BossNext && client.Game.BossSlot && Find(client, EnemyType.Warden) != null, "then the Warden: still wave 5, a boss fight on both screens");
         Check(g.ApproachShare(5) == 0f && !g.Props.Values.Any(), "the boss fight has no approach and no props");
         Run(s, dt, 60f, () => g.State == MatchState.Intermission, KillAll);
         NoPicks();

@@ -11,7 +11,7 @@ namespace Arena
     ///     dashed rim and a slow pulse; enemies inside trail three violet drag rings; an old pylon folds up as the next lands;
     ///   Breach: an amber vector hammer draws itself, swings into the wall, a white flash and cyan shards burst, then the room
     ///     behind builds in (the game's surprise-room build-in) with its contents' icon.
-    /// Tools/Preview draws it through `EngineerMock` (ShotEngineer.cs); nothing in a match sets it.
+    /// Tools/Preview draws it through `EngineerMock` (ShotEngineer.cs); nothing in a run sets it.
     public class EngineerMock
     {
         public bool Strider; public V2 StriderPos; public float Face, Step, Punch, Build = 1f, Hp = 1f, Slam = -1f; public int LockOn = -1;
@@ -75,7 +75,7 @@ namespace Arena
                 DrawHardHat(game.Me.Disp, game.Me.Def.BodyR, game.Me.Aim);
         }
 
-        // --- in a match: drawn from the replicated zone, minion and effect ---
+        // --- in a run: drawn from the replicated zone, minion and effect ---
 
         /// A Drag Pylon zone (ZoneKind.DragPylon): it unfolds as it lands and folds up in its last moment.
         void DrawDragPylonZone(Zone z, float t)

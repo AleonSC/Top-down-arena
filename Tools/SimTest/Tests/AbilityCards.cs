@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Arena;
 
-// The Rare ability cards of Docs/UpgradePools.md step 5: each Elementalist and Summoner Space ability (and the Soldier's
+// The Rare ability cards of Docs/UpgradePools.md step 5: each Elementalist and Summoner 1st ability (and the Soldier's
 // Medkit) has one. Every card is checked by casting its ability with no copy, then with copies, and comparing.
 static partial class Program
 {
@@ -18,7 +18,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var mastered = typeof(Game).GetField("castMastered", flags);
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Mage", Role.Tank, 0, 0, Kit.Elementalist);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Elementalist", Role.Tank, 0, 0, Kit.Elementalist);
         var client = JoinAs(port, false, "Friend", Role.Dps, 0, 0, Kit.Summoner);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
@@ -64,9 +64,9 @@ static partial class Program
         Func<float, float, float, bool> near = (a, b, tol) => Math.Abs(a - b) <= tol;
 
         // --- Elementalist ---
-        castWith(AbilityId.ArcaneAegis, "Eye of the Storm", 0, new V2(500f, 450f));
+        castWith(AbilityId.Aeroaegis, "Eye of the Storm", 0, new V2(500f, 450f));
         float aT = me.AegisT, aR = me.AegisReflectMult;
-        castWith(AbilityId.ArcaneAegis, "Eye of the Storm", 2, new V2(500f, 450f));
+        castWith(AbilityId.Aeroaegis, "Eye of the Storm", 2, new V2(500f, 450f));
         Check(near(me.AegisT - aT, 3f, 0.01f) && near(me.AegisReflectMult / aR, 2f, 0.01f), "Eye of the Storm: the vortex lasts 1.5 s longer per card and reflects 50% harder (" + aT + " -> " + me.AegisT + ")");
 
         prep(AbilityId.FrostNova, "Permafrost", 0);
@@ -101,9 +101,9 @@ static partial class Program
         var w0 = ward(0); var w1 = ward(1);
         Check(near(w1[0] / w0[0], 1.5f, 0.01f) && near(w0[1], 50f, 0.5f) && near(w1[1], 75f, 0.5f), "Overcharged Ward: Energy Ward soaks 50% more and gives back 75% instead of 50% (" + w0[1] + " -> " + w1[1] + " HP of 100 soaked)");
 
-        castWith(AbilityId.Sanctify, "Dawnlight", 0, there);
+        castWith(AbilityId.LumenWard, "Dawnlight", 0, there);
         float lD = zone(ZoneKind.LumenWard).Duration, lH = zone(ZoneKind.LumenWard).HealMult;
-        castWith(AbilityId.Sanctify, "Dawnlight", 2, there);
+        castWith(AbilityId.LumenWard, "Dawnlight", 2, there);
         Check(near(zone(ZoneKind.LumenWard).Duration - lD, 4f, 0.01f) && near(zone(ZoneKind.LumenWard).HealMult / lH, 1.6f, 0.01f), "Dawnlight: Lumen Ward shines 2 s longer per card and heals 30% more");
 
         castWith(AbilityId.Meteor, "Cataclysm", 0, there);
@@ -145,13 +145,13 @@ static partial class Program
         Check(near(q2.Duration - qD, 3f, 0.01f) && near(q2.Power / qP, 2f, 0.01f), "Deep Tremor: the Burrower tunnels 1.5 s longer and hits 50% harder per card");
 
         var respawn = typeof(Game).GetMethod("PactRespawn", sflags);
-        castWith(AbilityId.GuardianSpirit, "Kindred Bond", 0, new V2(500f, 450f));
+        castWith(AbilityId.ForcePact, "Kindred Bond", 0, new V2(500f, 450f));
         float pr0 = (float)respawn.Invoke(null, new object[] { me });
-        castWith(AbilityId.GuardianSpirit, "Kindred Bond", 2, new V2(500f, 450f));
+        castWith(AbilityId.ForcePact, "Kindred Bond", 2, new V2(500f, 450f));
         float pr2 = (float)respawn.Invoke(null, new object[] { me });
         Check(near(pr0, Game.GuardRespawn, 0.01f) && near(pr2, Game.GuardRespawn - 10f, 0.01f), "Kindred Bond: the pact ally comes back 5 s sooner per card (" + pr0 + " -> " + pr2 + " s)");
         var thrallHp = typeof(Game).GetMethod("ThrallMaxHp", sflags);
-        castWith(AbilityId.GuardianSpirit, "Kindred Bond", 1, new V2(500f, 450f));
+        castWith(AbilityId.ForcePact, "Kindred Bond", 1, new V2(500f, 450f));
         var victim = enemyAt(new V2(620f, 450f));
         cast.Invoke(g, new object[] { me, 0, victim.Pos });
         Minion thrall = null;
@@ -228,7 +228,7 @@ static partial class Program
         Check(new[] { "Quartermaster", "Arcane Surge", "Pack Bond", "Plate Armour", "Ghost Step", "Bloodthirst" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Kit.HasValue && Upgrades.All[U(n)].Rarity == Rarity.Rare), "all six class cards exist, each for one class");
 
-        // Quartermaster: orbs heal 30% more; Q/E/Shift recharge 10% faster (Space doesn't).
+        // Quartermaster: orbs heal 30% more; 2nd, 3rd or 4th recharge 10% faster (Space doesn't).
         Func<int, float[]> quarter = n =>
         {
             prep(AbilityId.Meteor, "Quartermaster", n);
@@ -245,7 +245,7 @@ static partial class Program
         };
         var qm0 = quarter(0); var qm1 = quarter(1);
         Check(near(qm1[0] / qm0[0], 0.9f, 0.001f) && near(qm1[1], qm0[1], 0.001f) && near(qm0[2], 10f, 0.6f) && near(qm1[2], 13f, 0.6f),
-            "Quartermaster: Q/E/Shift recharge 10% faster (Space doesn't) and orbs heal 30% more (" + qm0[2] + " -> " + qm1[2] + ")");
+            "Quartermaster: 2nd, 3rd or 4th recharge 10% faster (Space doesn't) and orbs heal 30% more (" + qm0[2] + " -> " + qm1[2] + ")");
 
         // Arcane Surge: a Space cast fires the weapon 25% faster for 3 s, and the client sees it.
         castWith(AbilityId.Meteor, "Arcane Surge", 0, there);
@@ -348,8 +348,8 @@ static partial class Program
         Check(near(hb2.Max(x => x.Reach) / hb0.Max(x => x.Reach), 1.3f, 0.01f) && near(sw2 - sw0, 20f * MathX.Pi / 180f, 0.001f),
             "Long Haft: the Halberd reaches 15% farther and sweeps 10° more each way per card");
 
-        var qs0 = swing(WeaponId.HolyMace, "Pilgrim's Staff", 0); int cap0 = g.StaffCap(me);
-        var qs1 = swing(WeaponId.HolyMace, "Pilgrim's Staff", 1); int cap1 = g.StaffCap(me);
+        var qs0 = swing(WeaponId.Quarterstaff, "Pilgrim's Staff", 0); int cap0 = g.StaffCap(me);
+        var qs1 = swing(WeaponId.Quarterstaff, "Pilgrim's Staff", 1); int cap1 = g.StaffCap(me);
         Check(near(qs1[0].HealPerHit - qs0[0].HealPerHit, 1f, 0.001f) && cap1 == cap0 + 1, "Pilgrim's Staff: each hit heals 1 more and one more Jab stack fits");
 
         var lightLanded = typeof(Game).GetMethod("LightLanded", flags);
@@ -535,10 +535,10 @@ static partial class Program
         var kn0 = kunai(0); var kn1 = kunai(1);
         Check(near(kn1[0] - kn0[0], 2f, 0.001f) && near(kn1[1] / kn0[1], 1.4f, 0.001f) && kn1[2] == 1f, "Shadow Mark: marks last 2 s longer and the hit after a blink deals 40% more (once)");
 
-        // --- Blood Mage weapon cards (Docs/UpgradePools.md step 9) ---
+        // --- Hemomancer weapon cards (Docs/UpgradePools.md step 9) ---
         Check(new[] { "Crimson Whip", "Deep Pool", "Hungry Tendrils", "Generous Blood", "Rich Blood", "Lifeline", "Hemophilia", "Event Horizon", "Marrow" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Hemomancer),
-            "all nine Blood Mage weapon cards exist, each for one Blood Mage weapon");
+            "all nine Hemomancer weapon cards exist, each for one Hemomancer weapon");
         var fireBlood = typeof(Game).GetMethod("FireBloodWeapon", flags);
         Action fireB = () => fireBlood.Invoke(g, new object[] { me, 0f, new V2(1f, 0f), me.Pos + new V2(20f, 0f), 1f, 0 });
         Func<WeaponId, string, int, Bullet> shot = (wid, card, n) => { arm(wid, card, n); g.Bullets.Clear(); fireB(); var b = g.Bullets.Values.OrderBy(x => x.Id).First(); g.Bullets.Clear(); return b; };
@@ -547,14 +547,14 @@ static partial class Program
         var la0 = lash(0); var la2 = lash(2);
         Check(near(la2[0] / la0[0], 1.4f, 0.001f) && near(la0[1], 0.2f, 0.001f) && near(la2[1], 0.3f, 0.001f), "Crimson Whip: the lash reaches 20% farther and each Clot stack cuts 1% more, per card");
 
-        var pl0 = shot(WeaponId.ClotBolt, "Deep Pool", 0); var pl2 = shot(WeaponId.ClotBolt, "Deep Pool", 2);
+        var pl0 = shot(WeaponId.GoreMortar, "Deep Pool", 0); var pl2 = shot(WeaponId.GoreMortar, "Deep Pool", 2);
         Check(near(pl2.Pool / pl0.Pool, 1.6f, 0.001f) && near(pl2.PoolTime - pl0.PoolTime, 4f, 0.001f), "Deep Pool: the clot's pool is 30% bigger and lasts 2 s longer per card");
 
         var graspsF = typeof(Game).GetField("pendingGrasps", flags);
         var bloodHit = typeof(Game).GetMethod("BloodShotHit", flags);
         Func<int, float[]> leech = n =>
         {
-            arm(WeaponId.LeechBeam, "Hungry Tendrils", n);
+            arm(WeaponId.LeechTendrils, "Hungry Tendrils", n);
             ((IList)graspsF.GetValue(g)).Clear();
             fireB();
             var gr = ((IList)graspsF.GetValue(g))[0];
@@ -614,7 +614,7 @@ static partial class Program
         float cr0 = crush(0), cr1 = crush(1);
         Check(cr0 > 0f && near(cr1 / cr0, 1.4f, 0.01f) && near(me.Stats.ImplodeReachMult, 1.3f, 0.001f), "Event Horizon: the crush hits 40% harder and pulls from 30% farther");
 
-        arm(WeaponId.BoneSpear, "Marrow", 1);
+        arm(WeaponId.BloodBrawler, "Marrow", 1);
         Check(me.Stats.BsShardBonus == 2 && me.Stats.SympBonus == 1, "Marrow: Marrow Burst throws 2 more shards and Sympathy binds 1 more enemy");
 
         // --- Summoner weapon cards (Docs/UpgradePools.md step 10) ---
@@ -689,12 +689,12 @@ static partial class Program
         float su0 = sup(0), su1 = sup(1);
         Check(near(su1 / su0, 1.5f, 0.001f) && near(me.Stats.TearGasMult, 1.25f, 0.001f), "Crowd Control: suppression builds 50% faster and Tear Gas is 25% bigger");
 
-        arm(WeaponId.LightBolt, "Undertow Pump", 1);
+        arm(WeaponId.RepulsionCannon, "Undertow Pump", 1);
         var orb = new Orb { Tiny = true, Boost = me.Stats.ShedHealMult };
         Check(near(me.Stats.UndertowGainMult, 1.3f, 0.001f) && near(orb.Heal / Game.TinyOrbHeal, 1.3f, 0.001f), "Undertow Pump: the Undertow fills 30% faster and its orbs heal 30% more");
 
-        Func<int, float> heavyShot = n => { arm(WeaponId.Pistol, "Hot Lead", n); me.AmmoUsed = g.RevolverCapacity(me); me.ReloadT = 0f; var b = fireV(WeaponId.Pistol, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
-        Func<int, float> plainShot = n => { arm(WeaponId.Pistol, "Hot Lead", n); me.AmmoUsed = 0; var b = fireV(WeaponId.Pistol, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
+        Func<int, float> heavyShot = n => { arm(WeaponId.Revolver, "Hot Lead", n); me.AmmoUsed = g.RevolverCapacity(me); me.ReloadT = 0f; var b = fireV(WeaponId.Revolver, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
+        Func<int, float> plainShot = n => { arm(WeaponId.Revolver, "Hot Lead", n); me.AmmoUsed = 0; var b = fireV(WeaponId.Revolver, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
         float hl0 = heavyShot(0) / plainShot(0), hl1 = heavyShot(1) / plainShot(1);
         Check(near(hl0, 2f, 0.01f) && near(hl1, 3f, 0.01f) && near(me.Stats.RevolverReloadMult, 0.75f, 0.001f), "Hot Lead: the heavy round deals triple (was double), and the reload is 25% faster (" + hl0 + " -> " + hl1 + ")");
 
@@ -796,8 +796,8 @@ static partial class Program
         arm(WeaponId.ArcLightning, "Static Field", 1); float ac1 = g.BowFull(me);
         Check(near(ac1 / ac0, 0.75f, 0.001f) && near(me.Stats.ArcStunBonus, 0.2f, 0.001f), "Static Field: Arc Lightning's full charge comes 25% sooner and stuns 0.2 s longer");
 
-        arm(WeaponId.ArcaneMissiles, "Frozen Halo", 0); int oc0 = Game.OrbitCap(0, me);
-        arm(WeaponId.ArcaneMissiles, "Frozen Halo", 1); int oc1 = Game.OrbitCap(0, me);
+        arm(WeaponId.IceShards, "Frozen Halo", 0); int oc0 = Game.OrbitCap(0, me);
+        arm(WeaponId.IceShards, "Frozen Halo", 1); int oc1 = Game.OrbitCap(0, me);
         Check(oc1 - oc0 == 2 && near(me.Stats.LaunchRangeMult, 1.25f, 0.001f), "Frozen Halo: the orbit holds 2 more shards, and they launch 25% farther out");
 
         // --- Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13) ---

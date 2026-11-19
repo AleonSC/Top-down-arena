@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Flood (the Tank Elementalist's 4th Space ability, Core/Flood.cs), look B "Breaker" of Docs/Mockups/flood.html. Everything is drawn
+    /// Flood (the Tank Elementalist's 4th choice, Core/Flood.cs), look B "Breaker" of Docs/Mockups/flood.html. Everything is drawn
     /// from the replicated zone (`ZoneKind.Flood`: Pos, Radius, T, Duration) and the enemies' positions, so it costs nothing on the network:
     ///   the surge: as the water spreads (Game.FloodGrow s) a white foam crest crashes outward with a cyan band behind it and spray;
     ///   the pool: translucent water, deeper in the middle, with an uneven, churning edge;

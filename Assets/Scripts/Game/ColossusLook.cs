@@ -4,7 +4,7 @@ namespace Arena
 {
     /// How the Colossus's fight looks (Colossus.cs): its stomp rings (push blocks like the Warden's gates, spreading
     /// out), the shadows of boulders, meteors and falling pillars, fissures, the charge line, fallen plates, pillars,
-    /// and its body breaking down stage by stage.
+    /// and its body breaking down phase by phase.
     public partial class ArenaApp
     {
         static readonly Rgba Stone = new Rgba(0.78f, 0.62f, 0.45f), Magma = new Rgba(1f, 0.48f, 0.23f);
@@ -175,21 +175,21 @@ namespace Arena
             }
         }
 
-        /// Under its body: the stage change, a molten glow from stage 3, and the yellow flash while dazed.
+        /// Under its body: the phase change, a molten glow from phase 3, and the yellow flash while dazed.
         void DrawColossusUnderlay(Enemy e, V2 pos, float r, float t)
         {
             var c = e.Colossus;
             if (c == null)
                 return;
             if (c.TransT > 0f)
-                DrawStageShiftBoss(e, pos, r, t);  // changing stage (StageShiftLook.cs)
+                DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
             if (c.Stage >= ColStage.MoltenCore)
                 Circle(pos, r + 26f + 4f * Mathf.Sin(t * 5f), Magma.WithAlpha(0.18f + 0.08f * Mathf.Sin(t * 5f)), 32);
             if (c.DazeT > 0f)
                 Arc(pos, r + 8f, 4f, new Rgba(1f, 0.86f, 0.35f, 0.6f + 0.4f * Mathf.Sin(t * 20f)), 32);
         }
 
-        /// On its body: armour plates (Awakening), then cracks that glow molten from stage 3, a glowing core, the
+        /// On its body: armour plates (Awakening), then cracks that glow molten from phase 3, a glowing core, the
         /// eyes on its target, and dizzy stars while it's dazed.
         void DrawColossusDetails(Enemy e, V2 pos, float r, float t)
         {

@@ -42,7 +42,7 @@ namespace Arena
             var ink = CrtUi.Ink;
             Ui.Fill(new Rect(0f, 0f, W, H), new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.97f));
 
-            // Title bar: the key to leave isn't here (the map is part of the match), the timer is.
+            // Title bar: the key to leave isn't here (the map is part of the run), the timer is.
             LobbyKit.Spaced(new Rect(28f, 16f, 280f, 28f), "HUNT MAP", 16, new Color(ink.r, ink.g, ink.b, 0.95f), TextAnchor.MiddleLeft, 5f);
             Ui.Fill(new Rect(190f, 30f, W - 190f - 220f, 1f), LobbyKit.Ink(0.25f));
             LobbyKit.Spaced(new Rect(W - 230f, 16f, 202f, 28f), "VOTE ENDS  " + Mathf.CeilToInt(game.HuntMapSeconds) + " S", 11, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);

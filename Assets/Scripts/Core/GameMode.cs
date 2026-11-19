@@ -1,7 +1,7 @@
 namespace Arena
 {
     /// The game modes, in the lobby carousel's order (LobbyUi.DrawModeSwitch). The lobby holds the one picked
-    /// (Session.Mode, sent as one byte); a match works its own out from what the start set up (Game.Mode).
+    /// (Session.Mode, sent as one byte); a run works its own out from what the start set up (Game.Mode).
     public enum GameMode : byte { Quick, Campaign, Hunt, Practice, Survival, None }
 
     /// What a mode allows: one row per mode, so a rule that differs between modes is read here instead of being
@@ -51,7 +51,7 @@ namespace Arena
         public GameMode Mode => Practice != null ? GameMode.Practice : Hunt != null ? GameMode.Hunt : SurvivalOn ? GameMode.Survival
             : Quick ? GameMode.Quick : GameMode.Campaign;
 
-        /// What this match's mode allows (ModeDef).
+        /// What this run's mode allows (ModeDef).
         public ModeDef ModeRules => ModeDef.For(Mode);
     }
 }

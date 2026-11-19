@@ -248,7 +248,7 @@ namespace Arena
 
         static string FavGearText(FavLoadout f)
         {
-            string ab = Upgrades.Ability(Upgrades.RoleAbility(f.Role, f.Kit, f.Ability)).Name;
+            string ab = Upgrades.Ability(Upgrades.FirstAbility(f.Role, f.Kit, f.Ability)).Name;
             string ult = Upgrades.Ability(Upgrades.Ultimate(f.Role, Upgrades.UltKitOf(f.Role, f.Kit, f.Ult), f.Ult)).Name;
             return Defs.Weapon(f.Role, f.Kit, f.Weapon).Name + "  ·  " + ab + "  ·  " + ult;
         }

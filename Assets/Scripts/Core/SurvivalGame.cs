@@ -3,8 +3,8 @@ using System.IO;
 
 namespace Arena
 {
-    /// Survival mode played in a match (Docs/Survival.md, Survival.cs): one clock instead of waves. The host's Survival
-    /// spawner tops the field up each tick; a level-up pick freezes the world until everyone has chosen (the match sits in
+    /// Survival mode played in a run (Docs/Survival.md, Survival.cs): one clock instead of waves. The host's Survival
+    /// spawner tops the field up each tick; a level-up pick freezes the world until everyone has chosen (the run sits in
     /// an Intermission meanwhile, so the normal pick, reroll and gold-instead handling all work). Nothing ever clears or
     /// wins: the run ends when everyone is down (CheckGameOver). Not saved to continue.
     public partial class Game
@@ -15,7 +15,7 @@ namespace Arena
         public Survival Surv;
         /// The clock in seconds, from the snapshot on clients.
         public float SurvTime;
-        /// The clock has started: the match goes back and forth between Fighting and a frozen pick Intermission.
+        /// The clock has started: the run goes back and forth between Fighting and a frozen pick Intermission.
         public bool SurvStarted;
         /// The world is held for a pick: enemies and every shot stand still (WorldRate).
         public bool SurvFrozen => SurvivalOn && SurvStarted && State == MatchState.Intermission;

@@ -5,7 +5,7 @@ namespace Arena
     /// How the Devourer's fight looks (Devourer.cs): a reddening gullet as it starves, the lunge lines, the inhale cone
     /// with air rushing in, the burrow ripple and the eruption mark, the Maw's cone, the Jaws' teeth before they fly,
     /// the last stand's ring of teeth, morsels, bile pools and shots, and its toothed mouth (with whoever it swallowed).
-    /// Built from the mockup in Docs/Mockups/devourer-3-stage.html.
+    /// Built from the mockup in Docs/Mockups/devourer-3-phase.html.
     public partial class ArenaApp
     {
         static readonly Rgba MawRed = new Rgba(1f, 0.35f, 0.48f);

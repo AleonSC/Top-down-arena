@@ -11,7 +11,7 @@ static partial class Program
         Check(Approaches.FadeAt(6, 11) == 0.40f && Approaches.FadeAt(6, 12) == 0.20f && Approaches.FadeAt(7, 13) == 0.08f && Approaches.FadeAt(7, 14) == 0f && Approaches.FadeAt(8, 15) == 0f,
             "the fading faction's share: 40%, 20%, 8% on the three waves after the boss, then none");
         Check(Approaches.FadeAt(3, 5) == 0f && Approaches.FadeAt(6, 0) == Approaches.FadeShare[0], "no fade before the first boss; the plain track keeps its own curve");
-        var warden = Approaches.For(EnemyType.Boss);
+        var warden = Approaches.For(EnemyType.Warden);
         Func<EnemyType, int> fade = t => warden.Members.First(m => m.Type == t).Fade;
         Check(fade(EnemyType.RiotShield) == 0 && fade(EnemyType.GasGrenadier) == 0 && fade(EnemyType.TaserGuard) == 0 && fade(EnemyType.SecurityGuard) == 1 && fade(EnemyType.Rioter) == 3 && fade(EnemyType.Guard) == 3,
             "the Warden's tricky enemies leave at the boss, the Security Guard after a wave, the Rioters and Guards last");

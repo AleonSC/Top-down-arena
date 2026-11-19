@@ -21,7 +21,7 @@ static partial class Program
             made.Route.Add(PathId.SwarmFields); made.Route.Add(PathId.Bazaar);
             var seat = new SeatSave { Name = "Anthony", Role = Role.Healer, Kit = Kit.Ninja, Weapon = 2, Ability = 1, Level = 9, Xp = 41.5f, Rerolls = 3, Gold = 120, ReviveToken = true, HpFrac = 0.75f };
             seat.Taken.Add(Upgrades.All[0].Name); seat.Taken.Add(Upgrades.All[5].Name);
-            seat.BonusKeys[1] = AbilityId.PoisonDart.ToString();
+            seat.CardAbilities[1] = AbilityId.PoisonDart.ToString();
             seat.Mastery["PoisonDart"] = 123.5f;
             seat.Run.Kills = 77; seat.Run.DamageDealt = 9876.5f;
             made.Seats.Add(seat);
@@ -30,7 +30,7 @@ static partial class Program
             Console.WriteLine("  save text: {0} lines, read back wave {1}, seat {2} ({3}), {4} upgrades, mastery {5}", made.ToText().Split('\n').Length, back?.Wave, bs?.Name, bs?.Summary, bs?.Taken.Count, bs?.Mastery.Values.FirstOrDefault());
             Check(back != null && back.Wave == 12 && back.Score == 3456 && back.Mods == made.Mods && back.CurrentPath == PathId.Bazaar && back.PathTo == 14 && back.Route.Count == 2
                 && bs.Role == Role.Healer && bs.Kit == Kit.Ninja && bs.Weapon == 2 && bs.Level == 9 && bs.Gold == 120 && bs.ReviveToken && Math.Abs(bs.HpFrac - 0.75f) < 0.01f
-                && bs.Taken.SequenceEqual(seat.Taken) && bs.BonusKeys[1] == "PoisonDart" && Math.Abs(bs.Mastery["PoisonDart"] - 123.5f) < 0.01f && bs.Run.Kills == 77,
+                && bs.Taken.SequenceEqual(seat.Taken) && bs.CardAbilities[1] == "PoisonDart" && Math.Abs(bs.Mastery["PoisonDart"] - 123.5f) < 0.01f && bs.Run.Kills == 77,
                 "a saved run's text reads back the same (upgrades and abilities by name)");
             // Saves from before the classes were renamed in the code (Kit.Mage, Kit.BloodMage) still load.
             seat.Kit = Kit.Elementalist;
@@ -40,6 +40,11 @@ static partial class Program
             seat.Kit = Kit.Ninja;
             Check(made.ToText().Contains("Healer Ninja ") && oldMage?.Seats[0].Kit == Kit.Elementalist && oldBlood?.Seats[0].Kit == Kit.Hemomancer,
                 "saves that call the classes Mage and BloodMage (before the rename) load as the Elementalist and Hemomancer");
+            // Code ids renamed to match the game's names (OldNames.cs, Docs/Glossary.md): old names still load.
+            Check(OldNames.Enemy("Boss") == "Warden" && OldNames.Enemy("TwinA:20") == "ReaperOfDusk:20" && OldNames.Enemy("Grunt") == "Grunt"
+                && OldNames.Ability("BloodBoil") == "ArterialSpray" && OldNames.Ability("Grenade") == "Airstrike" && OldNames.Ability("Nova") == "Nova"
+                && WaveSet.FindEnemy("Boss") == EnemyType.Warden && WaveSet.FindEnemy("SingShard") == EnemyType.SingularityShard,
+                "old code names (Boss, TwinA, BloodBoil, ...) map to the renamed ids, for profiles, run saves and wave files");
             Check(RunSave.Parse("not a save") == null && RunSave.Parse("") == null, "a file that isn't a save isn't read as one");
             {
                 var t = new RunSave { Id = "trashme", Wave = 5 };
@@ -71,7 +76,7 @@ static partial class Program
             // Play on a little, give the friend some mastery and gold, then everyone leaves between waves: saved there.
             Run(s, dt, 40f, () => g.State == MatchState.Intermission && g.Wave == 3 && !g.AnyonePicking());
             var me2 = g.Players[2];
-            me2.MasteryXp[me2.RoleAbility] = 75f;
+            me2.MasteryXp[me2.FirstAbility] = 75f;
             me2.Gold = 55;
             int wantLevel = me2.Level, wantTaken = me2.Taken.Count, wantScore = g.Score;
             host.Leave("");  // the host first, so the save still has both seats
@@ -292,11 +297,11 @@ static partial class Program
             var s = new[] { host, client };
             WaitForGame(host, client, dt);
             var g = host.Game;
-            Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
-            Find(host, EnemyType.Boss).Hp = 0f;
-            Run(s, dt, 3f, () => cp.Beaten(EnemyType.Boss) > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
-            Console.WriteLine("  profiles: runs started host {0} client {1}; the Warden beaten host {2} client {3}; best wave {4}/{5}", hp.RunsStarted, cp.RunsStarted, hp.Beaten(EnemyType.Boss), cp.Beaten(EnemyType.Boss), hp.BestWave, cp.BestWave);
-            Check(hp.RunsStarted == 1 && cp.RunsStarted == 1 && hp.Beaten(EnemyType.Boss) == 1 && cp.Beaten(EnemyType.Boss) == 1 && cp.BestWave == 5, "every player's profile counts the run and the boss");
+            Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+            Find(host, EnemyType.Warden).Hp = 0f;
+            Run(s, dt, 3f, () => cp.Beaten(EnemyType.Warden) > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+            Console.WriteLine("  profiles: runs started host {0} client {1}; the Warden beaten host {2} client {3}; best wave {4}/{5}", hp.RunsStarted, cp.RunsStarted, hp.Beaten(EnemyType.Warden), cp.Beaten(EnemyType.Warden), hp.BestWave, cp.BestWave);
+            Check(hp.RunsStarted == 1 && cp.RunsStarted == 1 && hp.Beaten(EnemyType.Warden) == 1 && cp.Beaten(EnemyType.Warden) == 1 && cp.BestWave == 5, "every player's profile counts the run and the boss");
             g.CoresFound = 4;  // (as if a Core Carrier dropped them)
             foreach (var p in g.Players.Values) { p.Downed = true; p.ReviveToken = false; }
             typeof(Game).GetMethod("CheckGameOver", flags).Invoke(g, null);
@@ -316,10 +321,10 @@ static partial class Program
             host.Host(port, "Host", Role.Tank);
             host.StartMatch();
             host.Game.DevSetGod(1, true);
-            for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Boss) != null && !host.Game.IsSpawning(Find(host, EnemyType.Boss))); i++) Step(host, dt);
-            Find(host, EnemyType.Boss).Hp = 0f;
+            for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Warden) != null && !host.Game.IsSpawning(Find(host, EnemyType.Warden))); i++) Step(host, dt);
+            Find(host, EnemyType.Warden).Hp = 0f;
             for (int i = 0; i < 60; i++) Step(host, dt);
-            Check(dp.RunsStarted == 1 && dp.Beaten(EnemyType.Boss) == 0, "a run where dev tools were used doesn't count towards records");
+            Check(dp.RunsStarted == 1 && dp.Beaten(EnemyType.Warden) == 0, "a run where dev tools were used doesn't count towards records");
             host.Leave("");
         }
         finally

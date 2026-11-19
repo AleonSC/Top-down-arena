@@ -127,7 +127,7 @@ namespace Arena
             }
             else
             {
-                // Outside a match: max rank and unlock everything (PARTY has the rank keys in a match).
+                // Outside a run: max rank and unlock everything (PARTY has the rank keys in a run).
                 var prof = Profile.Current;
                 bool maxed = prof.RankNow >= Rank.MaxRank && prof.DevAllUnlocked;
                 if (DkKey(new Rect(x, y, 196f, h), "MAX RANK + UNLOCK ALL", Ui.GoldButton, maxed, 12))
@@ -223,7 +223,7 @@ namespace Arena
                 game.DevJumpToWave(devWave);
             int bossWave = game.Bosses.NextBossWaveFrom(devWave);
             var boss = game.BossAt(bossWave);
-            Ui.Label(col.Next(18f), "Next boss (after wave " + bossWave + "): " + PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss),
+            Ui.Label(col.Next(18f), "Next boss (after wave " + bossWave + "): " + PracticePlan.NameOf(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss),
                 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             if (DkKey(col.Next(30f), "GO TO THE BOSS AFTER WAVE " + bossWave, Ui.Neutral, false, 12))
                 game.DevJumpToWave(Mathf.Min(bossWave, max), true);
@@ -252,7 +252,7 @@ namespace Arena
             }
             GUI.enabled = was;
             if (!host)
-                DockMessage(new Rect(inner.x, r.yMax - 22f, inner.width, 16f), "Only the host changes the match.");
+                DockMessage(new Rect(inner.x, r.yMax - 22f, inner.width, 16f), "Only the host changes the run.");
         }
 
         // --- PARTY --------------------------------------------------------------------------------------------

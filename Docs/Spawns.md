@@ -19,7 +19,7 @@ surges are **felt only** (no banner or sound); flanks get **a red arrow round yo
 - `TickTimedSpawn` works out how many enemies are due (`TimedWaves.Share`) and how many fit under the alive cap, then
   `TickPortalSpawn` opens a portal once a whole burst is due (or after 4 s with nothing open). Squads, Nests and
   bosses skip portals. Not on breach waves (the breaches are the way in) or any wave that isn't timed.
-- A portal (`EnemyType.Portal`) is an enemy with no AI: it appears (0.3 s), opens (1 s / 1.6 s flank), lets one enemy
+- A portal (`EnemyType.SpawnPortal`) is an enemy with no AI: it appears (0.3 s), opens (1 s / 1.6 s flank), lets one enemy
   out every 0.35 s, then closes (0.45 s) and is removed with no reward. Frozen, caged or held, it pauses.
 - Spots come from `SpawnSpot` (the same rules regular spawns use), at least 160 px from players, and `SpawnPortals.Clearance` (60 px) clear of walls, pillars, props and the edge (`ClearOfWalls`, `PortalFits`: a gap too narrow is skipped). A flank takes the
   most-behind of 8 candidate spots, opposite the party's average aim.

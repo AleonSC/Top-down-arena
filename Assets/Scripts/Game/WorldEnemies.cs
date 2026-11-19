@@ -245,7 +245,7 @@ namespace Arena
                     Line(z.Pos + new V2(0f, -8f), z.Pos + new V2(0f, 8f), 2.5f, new Rgba(0.9f, 0.2f, 0.2f));
                     break;
                 case ZoneKind.BloodPool:
-                    DrawBloodZone(z, c, t);  // ClotCannonLook.cs
+                    DrawBloodZone(z, c, t);  // GoreMortarLook.cs
                     break;
                 case ZoneKind.VeinTrail:
                     DrawVeinTrail(z, t);  // VeinRushLook.cs
@@ -484,11 +484,11 @@ namespace Arena
             Rgba col = Game.IsReaperCult(e.Type) ? CultTint(e) : e.Def.Color;  // the Reapers' cult: its sworn side (ReaperCultLook.cs)
             if (Game.IsBrute(e.Type))
                 col = col.Mix(new Rgba(1f, 0.15f, 0.1f), 0.7f * Game.BruteRage(e));  // enrage: redder as it is shot (BruteEnrage.cs)
-            float lift = BsLiftOf(e);  // thrown up by the Blood Brawler's Heart Lift: drawn above its shadow (BoneSpearLook.cs)
+            float lift = BsLiftOf(e);  // thrown up by the Blood Brawler's Heart Lift: drawn above its shadow (BloodBrawlerLook.cs)
             V2 pos = e.Disp - new V2(0f, lift);
             float r = (e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius) * JuiceScale(e);  // its Radius grows with the event horizon (SingularityLook.cs); JuiceScale: a hit's bulge (Juice.cs)
             bool spawning = game.IsSpawning(e);
-            if (spawning && e.Type == EnemyType.Boss && WardenIntroOn)
+            if (spawning && e.Type == EnemyType.Warden && WardenIntroOn)
                 col = WardenIntroBody(col);  // a silhouette in its cell, lit as the lock shuts (WardenIntro.cs)
             else if (spawning)
             {
@@ -509,7 +509,7 @@ namespace Arena
                 DrawRiotCaptain(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // RiotCaptainLook.cs
                 return;
             }
-            if (e.Type == EnemyType.Portal)
+            if (e.Type == EnemyType.SpawnPortal)
             {
                 DrawSpawnPortal(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // SpawnPortalLook.cs
                 return;
@@ -615,7 +615,7 @@ namespace Arena
             if (e.Caged)
                 DrawBoneCage(pos, r, t);
             if (e.BleedStacks > 0)
-                DrawBleedDrops(e, pos, r, t);  // BloodMageLook.cs
+                DrawBleedDrops(e, pos, r, t);  // HemomancerLook.cs
             if (e.BlastStacks > 0 && !spawning)
                 DrawBlastStacks(e, pos, r, t);  // BloodBlastLook.cs
             for (int k = 0; k < e.StarsStuck && k < 8; k++)  // Shuriken stars stuck in it, waiting to be recalled
@@ -699,7 +699,7 @@ namespace Arena
                     if (e.Phase == 1 && !spawning)  // bursting: a hot glow
                         Circle(pos, r + 8f + 3f * Mathf.Sin(t * 20f), new Rgba(1f, 0.6f, 0.2f, 0.25f), 24);
                     break;
-                case EnemyType.Boss:
+                case EnemyType.Warden:
                     DrawWardenUnderlay(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.Lunger:
@@ -721,16 +721,16 @@ namespace Arena
                 case EnemyType.HiveQueen:
                     DrawQueenUnderlay(e, pos, r, t);  // QueenLook.cs
                     break;
-                case EnemyType.TwinA:
-                case EnemyType.TwinB:
+                case EnemyType.ReaperOfDusk:
+                case EnemyType.ReaperOfDawn:
                     DrawTwinShell(e, pos, r, t);
-                    DrawStageShiftBoss(e, pos, r, t);  // changing stage (StageShiftLook.cs)
+                    DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
                     break;
                 case EnemyType.DualReaper:
                     DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
                     break;
                 case EnemyType.Duelist:
-                    DrawStageShiftBoss(e, pos, r, t);  // changing stage (StageShiftLook.cs)
+                    DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
                     break;
                 case EnemyType.Singularity:
                     DrawSingularityUnderlay(e, pos, r, col, t);  // SingularityLook.cs
@@ -740,8 +740,8 @@ namespace Arena
                     if (e.Colossus != null && e.Colossus.Stage >= ColStage.MoltenCore)
                         col = new Rgba(0.36f, 0.25f, 0.2f);  // its shell burnt dark over the molten core
                     break;
-                case EnemyType.SingShard:
-                    DrawSingShardUnderlay(e, pos, r, col, t);
+                case EnemyType.SingularityShard:
+                    DrawSingularityShardUnderlay(e, pos, r, col, t);
                     break;
                 case EnemyType.Shade:
                     col = col.WithAlpha((menuPreview ? 0.75f : 0.45f) + (menuPreview ? 0.2f : 0.35f) * Mathf.Sin(t * 9f + e.Id));  // flickers in and out
@@ -1008,7 +1008,7 @@ namespace Arena
                     break;
                 case EnemyType.GravityWell:  // a spinning black hole
                 case EnemyType.CageWell:
-                case EnemyType.SingShard:
+                case EnemyType.SingularityShard:
                     Circle(pos, r * 0.6f, new Rgba(0f, 0f, 0f, 1f), 16);
                     Arc(pos, r * 0.6f, 1.5f, Rgba.White.WithAlpha(0.7f), 16, t * 6f, MathX.Pi * 1.2f);
                     break;

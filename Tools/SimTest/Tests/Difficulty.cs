@@ -71,9 +71,9 @@ static partial class Program
         float baseHp = Defs.Get(EnemyType.Grunt).Hp * (1f + 0.15f * (g.Wave - 1));  // two players: 100%
         Check(Math.Abs(grunt.MaxHp - baseHp * 1.5f) < 0.01f, "Enemy health: 1.5x on a grunt");
         g.Diff = new Difficulty();
-        float bossN = g.SpawnHp(EnemyType.Boss, 5);
+        float bossN = g.SpawnHp(EnemyType.Warden, 5);
         g.Diff = Difficulty.Of(DifficultyLevel.Hard);
-        float bossH = g.SpawnHp(EnemyType.Boss, 5);
+        float bossH = g.SpawnHp(EnemyType.Warden, 5);
         Check(Math.Abs(bossH / bossN - 1.25f * 1.2f) < 0.001f, "Hard: bosses have 1.25 x 1.2 = 1.5x health");
 
         g.Diff = new Difficulty();
@@ -102,7 +102,7 @@ static partial class Program
         g.Diff = Difficulty.Of(DifficultyLevel.Nightmare);
         int budgetM = g.ShotBudget;
         g.Diff = new Difficulty();
-        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(800f, 450f), 0f, 0, false });
+        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Warden, new V2(800f, 450f), 0f, 0, false });
         int duringBoss = (int)regular.Invoke(g, null);
         g.Enemies.Remove(boss.Id);
         Console.WriteLine("  bullet budget at wave 10: {0} (Normal), {1} (Nightmare), {2} for the others while a boss is up", budgetN, budgetM, duringBoss);

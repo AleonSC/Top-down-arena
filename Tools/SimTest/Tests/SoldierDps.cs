@@ -101,7 +101,7 @@ static partial class Program
         host.Leave(""); client.Leave("");
         // The lobby's loadout preview presses Alt for it (ShowcaseAlt.cs): grenades fly with no hits needed, and not while idle.
         var show = new Showcase();
-        show.Show(Role.Dps, Kit.Soldier, 0, Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0), false);
+        show.Show(Role.Dps, Kit.Soldier, 0, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), false);
         int nades = 0;
         for (int i = 0; i < 60 * 6; i++) { show.Step(dt); nades = Math.Max(nades, show.Game.Bullets.Values.Count(b => b.Kind == Defs.GrenadeShot)); }
         Check(nades > 0, "the lobby's preview fires the Twin Rifle's grenades");

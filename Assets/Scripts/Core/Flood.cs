@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// Flood, the Tank Elementalist's fourth Space ability (`AbilityId.Flood`, `AbilityDef.Fourth`: the lobby's 4th ability key),
+    /// Flood, the Tank Elementalist's 4th choice (`AbilityId.Flood`, `AbilityDef.Fourth`: the lobby's 4th choice),
     /// from Docs/Mockups/flood.html (look B, Breaker). You stamp and the ground floods round you:
     ///   the stamp: enemies within FloodSurgeReach of you take FloodSurgeDamage and are shoved FloodSurgePush out (not heavies or bosses);
     ///   the pool: a `ZoneKind.Flood` zone that stays where it was cast, spreading from nothing to FloodRadius over FloodGrow s

@@ -23,7 +23,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
         var ally = g.Players[2];
-        Check(me.Slots[0].Id == AbilityId.Adrenaline && Upgrades.Ability(AbilityId.Adrenaline).Name == "Adrenaline Shot", "the Soldier Healer's second Space ability is the Adrenaline Shot");
+        Check(me.Slots[0].Id == AbilityId.Adrenaline && Upgrades.Ability(AbilityId.Adrenaline).Name == "Adrenaline Shot", "the Soldier Healer's 2nd choice is the Adrenaline Shot");
 
         Action calm = () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; g.Bullets.Clear(); };
         Action<float> run = secs => Run(s, dt, secs, null, calm);

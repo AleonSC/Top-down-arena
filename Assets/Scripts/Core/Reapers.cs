@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Twin Reapers' stage of the fight, by their combined health: Twilight (two Reapers and their tether), the
+    /// The Twin Reapers' phase of the fight, by their combined health: Twilight (two Reapers and their tether), the
     /// Dual Reaper (fused into one), then Sundered (apart again, the tether gone).
     public enum ReaperStage : byte { Twilight, Dual, Sundered }
 
-    /// What they're doing right now; each stage loops through its turns, one mechanic at a time.
+    /// What they're doing right now; each phase loops through its turns, one mechanic at a time.
     public enum ReaperTurn : byte { Rest, Sweep, Lines, Cross, Lasers, Chase, Reap, Spiral, Crossfire }
 
     /// One Reaper's reap in Sundered: marked (a line and the scythe's arc), dashing, then swinging.
@@ -25,8 +25,8 @@ namespace Arena
         public ReaperStage Stage;
         public ReaperTurn Turn;
         public float TurnT;
-        public byte Trans;               // 0, or a stage change: 1 the fusion, 2 the split
-        public float TransT;             // seconds into the stage change
+        public byte Trans;               // 0, or a phase change: 1 the fusion, 2 the split
+        public float TransT;             // seconds into the phase change
         public V2 SweepC;                // the tether sweep: the point they spin round (it follows you)
         public float SweepA;
         public float Laser;              // the Dual Reaper's lasers' angle
@@ -85,7 +85,7 @@ namespace Arena
 
         public static bool IsReaper(EnemyType t) => IsTwin(t) || t == EnemyType.DualReaper;
 
-        /// Changing stage: neither can be hurt.
+        /// Changing phase: neither can be hurt.
         bool ReaperImmune(Enemy e) => IsReaper(e.Type) && Reapers != null && Reapers.Trans != 0;
 
         /// The Dual Reaper is armored: it takes a third of the damage, except trapped in a hole with its shield broken,
@@ -126,7 +126,7 @@ namespace Arena
 
         void TickReapers(float dt)
         {
-            Enemy a = FindEnemy(EnemyType.TwinA), b = FindEnemy(EnemyType.TwinB), d = FindEnemy(EnemyType.DualReaper);
+            Enemy a = FindEnemy(EnemyType.ReaperOfDusk), b = FindEnemy(EnemyType.ReaperOfDawn), d = FindEnemy(EnemyType.DualReaper);
             if (a == null && b == null && d == null)
             {
                 if (!twinPending)
@@ -200,7 +200,7 @@ namespace Arena
             R.Turn = turns[R.Step];
             R.TurnLen = ReaperTimes[(int)R.Stage][R.Step];
             R.TurnT = 0f;
-            Enemy a = FindEnemy(EnemyType.TwinA), b = FindEnemy(EnemyType.TwinB), d = FindEnemy(EnemyType.DualReaper);
+            Enemy a = FindEnemy(EnemyType.ReaperOfDusk), b = FindEnemy(EnemyType.ReaperOfDawn), d = FindEnemy(EnemyType.DualReaper);
             foreach (var e in new[] { a, b, d })
                 if (e != null)
                     e.FireT = 0.6f;
@@ -241,7 +241,7 @@ namespace Arena
             }
         }
 
-        // --- Stage changes ----------------------------------------------------------------------------
+        // --- Phase changes ----------------------------------------------------------------------------
 
         void StartReaperChange(ReaperFight R, byte kind)
         {
@@ -280,7 +280,7 @@ namespace Arena
                     float hp = (a != null ? a.Hp : 0f) + (b != null ? b.Hp : 0f);
                     if (a != null) { Recorder?.BossMerged(a); Enemies.Remove(a.Id); }  // fused, not killed (SessionRecorder)
                     if (b != null) { Recorder?.BossMerged(b); Enemies.Remove(b.Id); }
-                    StageOrbs(mid, 40f);  // a stage change: a few small health orbs (Warden.cs)
+                    StageOrbs(mid, 40f);  // a phase change: a few small health orbs (Warden.cs)
                     var dual = SpawnEnemyAt(EnemyType.DualReaper, mid, 0f, 0);
                     dual.MaxHp = R.MaxA + R.MaxB;
                     dual.Hp = Math.Max(1f, hp);
@@ -335,12 +335,12 @@ namespace Arena
                 float hp = d.Hp, share = R.MaxA / Math.Max(1f, R.MaxA + R.MaxB);
                 V2 at = d.Pos;
                 Recorder?.BossMerged(d);  // split, not killed (SessionRecorder)
-                StageOrbs(at, d.Radius);   // a stage change: a few small health orbs (Warden.cs)
+                StageOrbs(at, d.Radius);   // a phase change: a few small health orbs (Warden.cs)
                 Enemies.Remove(d.Id);
                 ClearPillars();
                 R.Holes.Clear();
-                var na = SpawnEnemyAt(EnemyType.TwinA, at + new V2(-20f, 0f), 0f, 0);
-                var nb = SpawnEnemyAt(EnemyType.TwinB, at + new V2(20f, 0f), 0f, 0);
+                var na = SpawnEnemyAt(EnemyType.ReaperOfDusk, at + new V2(-20f, 0f), 0f, 0);
+                var nb = SpawnEnemyAt(EnemyType.ReaperOfDawn, at + new V2(20f, 0f), 0f, 0);
                 na.MaxHp = R.MaxA; na.Hp = Math.Max(1f, hp * share);
                 nb.MaxHp = R.MaxB; nb.Hp = Math.Max(1f, hp * (1f - share));
                 BroadcastFx(FxKind.Boom, at, Rgba.White, 140f, 0.5f, Sfx.BigExplode);
@@ -401,7 +401,7 @@ namespace Arena
         V2 ReaperMove(Enemy e, V2 tpos, ref float speed)
         {
             var R = Reapers;
-            float side = e.Type == EnemyType.TwinA ? -1f : 1f;
+            float side = e.Type == EnemyType.ReaperOfDusk ? -1f : 1f;
             V2 mid = new V2(Width / 2f, Height / 2f);
             if (R == null || R.Step < 0)
                 return (mid + new V2(side * Width * 0.26f, 0f) - e.Pos) / 60f;
@@ -436,7 +436,7 @@ namespace Arena
             if (R.Stage == ReaperStage.Twilight)
             {
                 // Between turns: drift round their circle, as they always have.
-                float ang = e.T * 0.47f + (e.Type == EnemyType.TwinA ? 0f : MathX.Pi);
+                float ang = e.T * 0.47f + (e.Type == EnemyType.ReaperOfDusk ? 0f : MathX.Pi);
                 return (mid + new V2((float)Math.Cos(ang) * Width * 0.26f, (float)Math.Sin(ang) * Height * 0.28f) - e.Pos) / 60f;
             }
             V2 goal = new V2(tpos.X + side * 340f, Math.Max(120f, Math.Min(Height - 120f, tpos.Y)));
@@ -473,10 +473,10 @@ namespace Arena
                 case ReaperTurn.Spiral:  // from its spot: Dusk clockwise, Dawn the other way
                 {
                     e.FireT = 0.1f;
-                    float side = e.Type == EnemyType.TwinA ? -1f : 1f;
+                    float side = e.Type == EnemyType.ReaperOfDusk ? -1f : 1f;
                     if (e.Pos.FartherThan(new V2(Width / 2f + side * 300f, Height / 2f), 8f))
                         break;
-                    e.Ang += e.Type == EnemyType.TwinA ? 0.2f : -0.2f;
+                    e.Ang += e.Type == EnemyType.ReaperOfDusk ? 0.2f : -0.2f;
                     for (int k = 0; k < 3; k++)
                         EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 140f, Defs.SmallShot);
                     break;
@@ -645,7 +645,7 @@ namespace Arena
                                 if (diff < SwingHalfArc)
                                     Damage(p, SwingDamage, "The Dual Reaper (scythe)");
                             }
-                            BroadcastFx(FxKind.Slash, d.Pos, d.Pos + V2.FromAngle(sa) * SwingReach, side < 0 ? Defs.Get(EnemyType.TwinA).Color : Defs.Get(EnemyType.TwinB).Color,
+                            BroadcastFx(FxKind.Slash, d.Pos, d.Pos + V2.FromAngle(sa) * SwingReach, side < 0 ? Defs.Get(EnemyType.ReaperOfDusk).Color : Defs.Get(EnemyType.ReaperOfDawn).Color,
                                 SwingHalfArc, 0.2f, side < 0 ? Sfx.BossScythe : Sfx.None);  // one sound for the pair
                         }
                     }

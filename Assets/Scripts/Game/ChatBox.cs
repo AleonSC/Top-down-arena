@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The chat box (Docs/Mockups/chat-box.html, look C "Bubbles"): in a match, Enter opens a text line at the bottom right, above the
+    /// The chat box (Docs/Mockups/chat-box.html, look C "Bubbles"): in a run, Enter opens a text line at the bottom right, above the
     /// player cards. Enter sends, Esc cancels. Each line is a small pill with an edge in its player's colour; lines fade one by one
     /// and the whole box is gone after a few quiet seconds. A new line from a teammate shows it again for a moment (the box never
     /// takes the keyboard by itself). While you type the keyboard is the chat's (Keybinds.ChatOpen): no moving, casting or pausing.

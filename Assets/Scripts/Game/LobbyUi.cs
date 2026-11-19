@@ -446,7 +446,7 @@ namespace Arena
             }
             DrawOneLine(new Rect(tx, r.y + 30f, r.xMax - tx - 9f - e.PerkIds.Length * 19f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 10, Color.Lerp(color, Color.white, 0.15f), true);
             DrawOneLine(new Rect(tx, r.y + 52f, r.xMax - tx - 84f, 16f),
-                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 9, new Color(0.78f, 0.82f, 0.94f), false);
+                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.FirstAbility(e.Role, e.Kit, e.Ability)).Name, 12, 9, new Color(0.78f, 0.82f, 0.94f), false);
             DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
             if (session.IsHost && (botSeat != null || mine))  // click a card to choose that player's loadout: yours, or a bot's
             {
@@ -790,7 +790,7 @@ namespace Arena
                     if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), Defs.Weapon(me.Role, me.Kit, i).Name, WeaponKeyOn(me, i), calm))
                         ascOpen = i;
                 }
-                int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
+                int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.FirstAbilityChoices);
                 for (int i = 0; i < abilitySlots; i++)
                 {
                     var b = new Rect(ax + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
@@ -799,7 +799,7 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9))
+                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9))
                     {
                         tgt.RequestAbility(i);
                         if (self)
@@ -839,7 +839,7 @@ namespace Arena
             }
 
             float dy = ultY + 82f;
-            var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, ShownAbility(me)));
+            var ability = Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)));
             DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), wdef, ability, ult);
 
             if (ascEquipPick >= 0)
@@ -1064,7 +1064,7 @@ namespace Arena
         // wildBrowse mod KitCount), wildBrowsePos eases toward it. wildBrowseFor: whose loadout it was set up for (-1: set it up again).
         int wildBrowse, wildBrowseFor = -1;
         float wildBrowsePos;
-        bool detailSecond;  // the detail box and the preview show the Wildcard's second ability (the last ability clicked was the 2nd)
+        bool detailSecond;  // the detail box and the preview show the Wildcard ability (the last ability clicked was the 2nd)
         static int KitMod(int a) => ((a % Defs.KitCount) + Defs.KitCount) % Defs.KitCount;
         int WildBrowseKit => KitMod(wildBrowse);
 
@@ -1078,7 +1078,7 @@ namespace Arena
             bool calm = fxReduced;
             var ev = Event.current;
             int second = Defs.WildSecond(me.Wild), key = Defs.WildKey(me.Wild);
-            const int per = 3;  // weapons and abilities a class (Defs.WeaponsPerRole, Upgrades.RoleAbilityChoices)
+            const int per = 3;  // weapons and abilities a class (Defs.WeaponsPerRole, Upgrades.FirstAbilityChoices)
             if (wildBrowseFor != me.Id)
             {
                 wildBrowseFor = me.Id;
@@ -1205,7 +1205,7 @@ namespace Arena
                 }
                 int inSlot = me.Ability == idx ? 1 : second == idx ? 2 : 0;
                 bool on = inSlot == wildTab + 1;
-                if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), on, calm, size: 13, minSize: 8))
+                if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), on, calm, size: 13, minSize: 8))
                 {
                     // Fill the slot being edited; the other slot's ability swaps over (the two must differ).
                     int a1 = me.Ability, a2 = second;
@@ -1238,9 +1238,9 @@ namespace Arena
             LobbyKit.Lab(new Rect(px, ky, 110f, 24f), "2nd ability key", 11, calm);
             string[] keyNames =
             {
-                Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityQ)).ToUpperInvariant(),
-                Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityE)).ToUpperInvariant(),
-                Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityShift)).ToUpperInvariant(),
+                Keybinds.KeyName(Keybinds.Get(KeyAction.Ability2)).ToUpperInvariant(),
+                Keybinds.KeyName(Keybinds.Get(KeyAction.Ability3)).ToUpperInvariant(),
+                Keybinds.KeyName(Keybinds.Get(KeyAction.Ability4)).ToUpperInvariant(),
             };
             float kw = Mathf.Min(60f, (pw - 114f - 8f) / 3f);
             for (int k = 1; k <= 3; k++)
@@ -1263,7 +1263,7 @@ namespace Arena
                 var b = new Rect(x + i * (chipW + 6f), ly, chipW, lh);
                 int from = i == 0 ? (int)Defs.WildWeaponKit(me.Weapon) : i == 1 ? me.Ability / per : i == 2 ? second / per : ultKit;
                 string name = ChipName(me, i, second);
-                string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)).ToUpperInvariant() : i == 2 ? "2ND · " + keyNames[key - 1] : "ULTIMATE · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant();
+                string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability1)).ToUpperInvariant() : i == 2 ? "2ND · " + keyNames[key - 1] : "ULTIMATE · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant();
                 bool editing = (i == 1 && wildTab == 0) || (i == 2 && wildTab == 1);
                 bool hover = GUI.enabled && b.Contains(ev.mousePosition);
                 // The box from a bare key; the class icon on the left, the name over what it is.
@@ -1290,10 +1290,10 @@ namespace Arena
             }
         }
 
-        /// A Wildcard loadout chip's name: 0 the weapon, 1 the first ability, 2 the second, 3 the ultimate.
+        /// A Wildcard loadout chip's name: 0 the weapon, 1 the 1st ability, 2 the second, 3 the ultimate.
         static string ChipName(LobbyEntry me, int i, int second) =>
             i == 0 ? Defs.Weapon(Role.Wildcard, Kit.Soldier, me.Weapon).Name
-            : i == 3 ? Upgrades.Ability(me.UltId).Name : Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, i == 1 ? me.Ability : second)).Name;
+            : i == 3 ? Upgrades.Ability(me.UltId).Name : Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, i == 1 ? me.Ability : second)).Name;
 
         /// A small pixel chevron pointing left (dir -1) or right (1), centred on c.
         static void Chevron(Vector2 c, int dir, Color col)
@@ -1388,7 +1388,7 @@ namespace Arena
                 GUI.EndGroup();
                 return;
             }
-            string mastery = "Mastered (Lv 5): " + cap, descFull = desc;
+            string mastery = "Mastered (mastery 5): " + cap, descFull = desc;
             float starW = centre ? 0f : 14f;
             int s = size, ms = Mathf.Max(9, size - 1);
             float dh = Ui.TextHeight(desc, s, r.width), mh = Ui.TextHeight(mastery, ms, r.width - starW);
@@ -1552,7 +1552,7 @@ namespace Arena
             bool demo = detailSel != 0;
             if (showcase == null)
                 showcase = new Showcase();
-            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.RoleAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);
             showcaseSeen = Time.unscaledTime;
             if (!BeginUiGl())
                 return;
@@ -1618,7 +1618,7 @@ namespace Arena
             EndUiGl();
             if (demo)
             {
-                var ab = Upgrades.Ability(ult ? me.UltId : Upgrades.RoleAbility(me.Role, me.Kit, shown));
+                var ab = Upgrades.Ability(ult ? me.UltId : Upgrades.FirstAbility(me.Role, me.Kit, shown));
                 Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), ab.Name.ToUpperInvariant(), 10,
                     Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);  // just the name (no key or "ultimate" prefix)
             }

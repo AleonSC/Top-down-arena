@@ -77,7 +77,7 @@ static partial class Program
         var heard = clientHeard.Where(x => x.ToString().StartsWith("Boss")).ToList();
         Console.WriteLine("  client heard boss cues: " + string.Join(", ", heard.GroupBy(x => x).Select(gr => gr.Key + " x" + gr.Count())));
         Check(heard.Contains(Sfx.BossCharge) && heard.Contains(Sfx.BossPulse) && heard.Contains(Sfx.BossShift) && heard.Count < 20,
-            "the Singularity's attacks each play a soft cue, heard by the other player too (and not too often)");  // (the Cage's chime is in its second stage)
+            "the Singularity's attacks each play a soft cue, heard by the other player too (and not too often)");  // (the Cage's chime is in its second phase)
         s[0].Leave(""); s[1].Leave("");
     }
 
@@ -87,8 +87,8 @@ static partial class Program
         // right (a static "+" that cuts the arena into quadrants), then moves and does it again, four times.
         {
             var s = StartBuffed(dt, 5, 0);
-            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-            var w = Find(s[0], EnemyType.Boss);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+            var w = Find(s[0], EnemyType.Warden);
             s[0].Game.Bot = s[1].Game.Bot = false;
             // Drop it into the Lockdown, and wait for the cross to start.
             Run(s, dt, 8, () => w.Warden != null && w.Warden.Turn == WardenTurn.Cross && w.Warden.TransT <= 0f, () => w.Hp = Math.Min(w.Hp, w.MaxHp * 0.6f));
@@ -104,7 +104,7 @@ static partial class Program
                 foreach (var p in s[0].Game.Players.Values)
                     p.InvulnT = 1f;
                 w.Hp = Math.Max(w.Hp, w.MaxHp * 0.5f);
-                var cw = Find(s[1], EnemyType.Boss);
+                var cw = Find(s[1], EnemyType.Warden);
                 bool cCross = cw != null && cw.Warden != null && cw.Warden.Turn == WardenTurn.Cross;
                 phaseOnClient |= cCross && !cw.Warden.Dashing;
                 movingOnClient |= cCross && cw.Warden.Dashing;
@@ -202,7 +202,7 @@ static partial class Program
             var lastPos = new Dictionary<int, V2>();
             int launched = 0, onTarget = 0, offTarget = 0, aimedRight = 0, fans = 0;
             bool clientBomber = false, clientMarker = false, resummoned = false;
-            float hpBefore = 1f, hpAfter = 1f, t = 0f;  // minus damage taken so far, when the bomber stage starts / ends
+            float hpBefore = 1f, hpAfter = 1f, t = 0f;  // minus damage taken so far, when the bomber phase starts / ends
             Run(s, dt, 24f, null, () =>
             {
                 t += dt;
@@ -273,40 +273,40 @@ static partial class Program
         // Twin Reapers (wave 15): killing one enrages the other; it revives unless both die in time.
         {
             var s = StartBuffed(dt, 15, 0);
-            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.ReaperOfDusk) != null && Find(s[0], EnemyType.ReaperOfDawn) != null && Find(s[0], EnemyType.ReaperOfDawn).SpawnT <= 0f);
             s[0].Game.Bot = s[1].Game.Bot = false;  // stop shooting so the survivor lives
-            Find(s[0], EnemyType.TwinA).Hp = 0f;
+            Find(s[0], EnemyType.ReaperOfDusk).Hp = 0f;
             bool enraged = false, timerShown = false;
             Run(s, dt, 2, null, () =>
             {
-                var b = Find(s[1], EnemyType.TwinB);
+                var b = Find(s[1], EnemyType.ReaperOfDawn);
                 enraged |= b != null && b.Phase == 1;
                 timerShown |= s[1].Game.TwinReviveT > 0f;
             });
-            Check(Find(s[0], EnemyType.TwinA) == null && enraged && timerShown, "killing one twin enrages the other and starts the revive timer (seen on client)");
-            Run(s, dt, 8, () => Find(s[0], EnemyType.TwinA) != null);
+            Check(Find(s[0], EnemyType.ReaperOfDusk) == null && enraged && timerShown, "killing one twin enrages the other and starts the revive timer (seen on client)");
+            Run(s, dt, 8, () => Find(s[0], EnemyType.ReaperOfDusk) != null);
             Run(s, dt, 0.5f);
-            var revived = Find(s[1], EnemyType.TwinA);
+            var revived = Find(s[1], EnemyType.ReaperOfDusk);
             Check(revived != null && revived.Hp <= revived.MaxHp * 0.61f && revived.Hp > revived.MaxHp * 0.5f, "the fallen twin revives at 60% health");
             int before = s[0].Game.Players[1].Rerolls;
-            Find(s[0], EnemyType.TwinA).Hp = 0f;
-            Find(s[0], EnemyType.TwinB).Hp = 0f;
+            Find(s[0], EnemyType.ReaperOfDusk).Hp = 0f;
+            Find(s[0], EnemyType.ReaperOfDawn).Hp = 0f;
             Run(s, dt, 1);
-            Check(Find(s[0], EnemyType.TwinA) == null && Find(s[0], EnemyType.TwinB) == null && s[0].Game.TwinReviveT == 0f
+            Check(Find(s[0], EnemyType.ReaperOfDusk) == null && Find(s[0], EnemyType.ReaperOfDawn) == null && s[0].Game.TwinReviveT == 0f
                 && s[0].Game.Players[1].Rerolls == before + 2, "killing both together ends the fight with one reward");
             s[0].Leave(""); s[1].Leave("");
         }
         // Twin Reapers: Soul Bond makes the more-hurt one immune.
         {
             var s = StartBuffed(dt, 15, 0);
-            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f
-                && Find(s[0], EnemyType.TwinA).SpawnT <= 0f);
-            var a = Find(s[0], EnemyType.TwinA);
-            var b = Find(s[0], EnemyType.TwinB);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.ReaperOfDusk) != null && Find(s[0], EnemyType.ReaperOfDawn) != null && Find(s[0], EnemyType.ReaperOfDawn).SpawnT <= 0f
+                && Find(s[0], EnemyType.ReaperOfDusk).SpawnT <= 0f);
+            var a = Find(s[0], EnemyType.ReaperOfDusk);
+            var b = Find(s[0], EnemyType.ReaperOfDawn);
             a.Hp = a.MaxHp * 0.5f;
             b.Hp = b.MaxHp;
             bool boundOnClient = false;
-            Run(s, dt, 0.5f, null, () => { var ca = Find(s[1], EnemyType.TwinA); boundOnClient |= ca != null && ca.Phase == 2; });
+            Run(s, dt, 0.5f, null, () => { var ca = Find(s[1], EnemyType.ReaperOfDusk); boundOnClient |= ca != null && ca.Phase == 2; });
             // Shoot only the bound one: the bots skip immune targets, so aim them by hand via a host-side check.
             float hpBound = a.Hp;
             foreach (var e in s[0].Game.Enemies.Values)
@@ -327,8 +327,8 @@ static partial class Program
         // Twin Reapers: their tether hurts during the Sweep (a fresh fight: the one above is about to fuse, and the Dual Reaper has no tether).
         {
             var s = StartBuffed(dt, 15, 0);
-            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f
-                && Find(s[0], EnemyType.TwinA).SpawnT <= 0f);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.ReaperOfDusk) != null && Find(s[0], EnemyType.ReaperOfDawn) != null && Find(s[0], EnemyType.ReaperOfDawn).SpawnT <= 0f
+                && Find(s[0], EnemyType.ReaperOfDusk).SpawnT <= 0f);
             s[0].Game.Bot = s[1].Game.Bot = false;
             var p = s[0].Game.Players[1];
             float hpBefore = 0f;
@@ -337,8 +337,8 @@ static partial class Program
             float takenBefore = p.Run.DamageTaken, tetherTaken = 0f;
             Run(s, dt, 30f, () => hurt, () =>
             {
-                var ta = Find(s[0], EnemyType.TwinA);
-                var tb = Find(s[0], EnemyType.TwinB);
+                var ta = Find(s[0], EnemyType.ReaperOfDusk);
+                var tb = Find(s[0], EnemyType.ReaperOfDawn);
                 if (ta == null || tb == null)
                     return;
                 p.Pos = V2.Lerp(ta.Pos, tb.Pos, 0.5f);
@@ -418,8 +418,8 @@ static partial class Program
                 sing.Hp = 0f;
             Run(s, dt, 2);
             bool collapsed = Find(s[0], EnemyType.GravityWell) == null;
-            Console.WriteLine("  wells killed {0}, came back within the stage {1}, collapsed with the boss {2}", gone, back, collapsed);
-            Check(gone && !back && collapsed, "killed gravity wells stay gone until the next stage, and collapse when the Singularity dies");
+            Console.WriteLine("  wells killed {0}, came back within the phase {1}, collapsed with the boss {2}", gone, back, collapsed);
+            Check(gone && !back && collapsed, "killed gravity wells stay gone until the next phase, and collapse when the Singularity dies");
             s[0].Leave(""); s[1].Leave("");
         }
     }

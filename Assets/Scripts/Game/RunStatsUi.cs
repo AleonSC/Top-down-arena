@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Run stats screen: hold Tab in a match (solo, that pauses it) or press Run stats in the pause menu (so a
+    /// The Run stats screen: hold Tab in a run (solo, that pauses it) or press Run stats in the pause menu (so a
     /// paused party can look together). Three tabs: Run so far (wave, route, the run's numbers, the party's share),
     /// Your build (your loadout, HudTab.cs) and Team (each teammate's build). The numbers come from each
     /// player's RunStats, which the host sends everyone about once a second (Msg.RunStatsLive). Drawn as hologram panels over
@@ -407,7 +407,7 @@ namespace Arena
                     Ui.Label(new Rect(x + 102f, y, w - 160f, 22f), Upgrades.Ability(id).Name, 13, Color.white, TextAnchor.MiddleLeft, true);
                     bool w2 = Ui.CrtFont;
                     Ui.CrtFont = true;
-                    CrtUi.Text(new Rect(x, y, w, 22f), "LV " + Game.MasteryLevel(p, id), 16, HoloDim, TextAnchor.MiddleRight, false, calm);
+                    CrtUi.Text(new Rect(x, y, w, 22f), "MASTERY " + Game.MasteryLevel(p, id), 16, HoloDim, TextAnchor.MiddleRight, false, calm);
                     Ui.CrtFont = w2;
                 }
                 y += 22f;

@@ -38,7 +38,7 @@ static partial class Program
         foreach (var p in g.Players.Values) { p.PendingPicks = 0; p.LegendaryQueue.Clear(); p.PendingLegendary = 0; p.Offer = null; p.OfferLegendary = false; }
 
         // Practiced: mastery comes twice as fast.
-        var ability = me.RoleAbility;
+        var ability = me.FirstAbility;
         float xp0; me.MasteryXp.TryGetValue(ability, out xp0);
         g.GainMastery(me, ability, 10f);
         Check(Math.Abs(me.MasteryXp[ability] - xp0 - 20f) < 0.01f, "Practiced: abilities gain mastery twice as fast");

@@ -3,17 +3,17 @@ using System.Text.RegularExpressions;
 
 namespace Arena
 {
-    /// The rebindable keys that game text names ("Alt fires them all", "your Space ability", "your Q, E and Shift abilities").
-    /// Core has no Unity, so the front end sets these from the player's keybinds (Keybinds.cs); the defaults are the stock
-    /// keys. Fill swaps the stock names in a description for the bound ones.
+    /// The player's bound keys for alternative fire and the abilities. Game text names abilities by slot (1st-4th,
+    /// Docs/Glossary.md), so only "Alt" in a description is swapped for the bound key (Fill); the ability keys are for
+    /// labels that show the key itself (the stat sheet). Core has no Unity, so the front end sets these (Keybinds.cs).
     public static class KeyText
     {
         public static string Alt = "Alt", Space = "Space", Q = "Q", E = "E", Shift = "Shift";
 
         static readonly Dictionary<string, string> cache = new Dictionary<string, string>();
-        static readonly Regex AltWord = new Regex(@"\bAlt\b"), SpaceAbility = new Regex(@"\bSpace (?=abilit)"), QES = new Regex(@"\bQ, E and Shift\b");
+        static readonly Regex AltWord = new Regex(@"\bAlt\b");
 
-        static bool Stock => Alt == "Alt" && Space == "Space" && Q == "Q" && E == "E" && Shift == "Shift";
+        static bool Stock => Alt == "Alt";
 
         public static void Set(string alt, string space, string q, string e, string shift)
         {
@@ -25,7 +25,7 @@ namespace Arena
             cache.Clear();
         }
 
-        /// `s` with the stock key names swapped for the bound ones (unchanged with the stock keys).
+        /// `s` with "Alt" swapped for the bound alternative-fire key (unchanged with the stock key).
         public static string Fill(string s)
         {
             if (string.IsNullOrEmpty(s) || Stock)
@@ -33,9 +33,7 @@ namespace Arena
             string r;
             if (cache.TryGetValue(s, out r))
                 return r;
-            r = QES.Replace(s, Q + ", " + E + " and " + Shift);
-            r = SpaceAbility.Replace(r, Space + " ");
-            r = AltWord.Replace(r, Alt);
+            r = AltWord.Replace(s, Alt);
             if (cache.Count > 512)
                 cache.Clear();
             cache[s] = r;

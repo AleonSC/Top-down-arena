@@ -11,7 +11,7 @@ namespace Arena
         {
             switch (boss)
             {
-                case EnemyType.Boss: return EnemyType.RiotCaptain;  // the Warden
+                case EnemyType.Warden: return EnemyType.RiotCaptain;  // the Warden
                 default: return EnemyType.RiotCaptain;
             }
         }

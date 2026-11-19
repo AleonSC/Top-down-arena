@@ -505,7 +505,7 @@ namespace Arena
             IconTile(tile, null, Ui.Gold, 0f);
             bool fighting = game.BossNow && game.State == MatchState.Fighting;
             Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + (game.Hunt != null ? next : game.ShownEnd(next))), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
+            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
             if (!fighting && game.Practice == null)
             {
                 int to = game.Hunt != null ? next - game.Wave - 1 : game.ShownEnd(next) - game.ShownWave;  // (a run: the regular waves left before the boss)
@@ -519,7 +519,7 @@ namespace Arena
             if (gl && BeginUiGl())
             {
                 UiClip(tile);
-                DrawEnemyPreview(boss == EnemyType.TwinB ? EnemyType.TwinA : boss, bossAt, 52f, t, true);
+                DrawEnemyPreview(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss, bossAt, 52f, t, true);
                 EndUiGl();
             }
         }
@@ -656,7 +656,7 @@ namespace Arena
             {
                 case 0:
                 {
-                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a match.", 1f);
+                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a run.", 1f);
                     string[] audioTabs = { "VOLUME", "MUSIC PLAYER" };
                     float tx = DrawerPanel.xMax - 28f - 46f - 14f - 290f;
                     for (int ti = 0; ti < 2; ti++)
@@ -972,7 +972,7 @@ namespace Arena
             new HowTo { Name = "Fighting", Icon = "guard_reinforced", Color = new Color(0.55f, 0.8f, 1f), Intro = "Read the shots, parry what you can, and let your abilities grow.",
                 Tips = new[,] { { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.", "7" }, { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.", "5" },
                     { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire.", "12" }, { "Status icons", "Snowflake = frozen, arrows = slowed, blue drop = wet, flame = burning, drop = bleeding, crosshair = marked.", "2" },
-                    { "Ability mastery", "Abilities level up from 1 to 5 as you use them in fights. Level 5 unlocks a capstone.", "10" } } },
+                    { "Ability mastery", "Each ability's mastery rises from 1 to 5 as you use it in fights. Mastery 5 unlocks a capstone.", "10" } } },
             new HowTo { Name = "Between waves", Icon = "ui_star", Color = Ui.Gold, Intro = "Each break: pick upgrades, open what the wave left behind, then the next wave.",
                 Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it and everyone gets their own item. Stand on it to take ({TakeItem}) or throw away ({DiscardItem}) yours.", "icon:ui_coin" },
                     { "Rerolls", "Don't like the cards? Reroll them: you start with 2 and get 2 more for every boss.", "icon:ui_arrow" }, { "Downed", "At 0 HP you're downed: stand by a downed ally for a few seconds (4 s on Normal) to revive them. Clearing a wave brings everyone back.", "3" } } },
@@ -987,7 +987,7 @@ namespace Arena
                 Tips = new[,] { { "Co-op", "1 to 3 players: one hosts, the others join (Tailscale makes this easy).", "6" }, { "Reviving", "Stand by a downed ally to bring them back. Healers and some upgrades do it faster.", "3" },
                     { "Pings and emotes", "Tap the ping key to mark your cursor, hold it for the wheel. Hold the emote key to cheer on your team.", "icon:ui_arrow" },
                     { "Hangout", "Walk around the lobby with your party while you wait.", "icon:ui_star" },
-                    { "Pausing", "Anyone can pause: it pauses the match for everyone until someone resumes.", "icon:ui_play" } } },
+                    { "Pausing", "Anyone can pause: it pauses the run for everyone until someone resumes.", "icon:ui_play" } } },
         };
 
         static readonly Color HowToColor = new Color(0.3f, 0.45f, 0.75f);  // the How to play button, as on the main menu

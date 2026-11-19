@@ -65,7 +65,7 @@ static partial class Shot {
           fire.Add(Tuple.Create(ts, o, ((tgt + pp * miss[mi++ % miss.Length]) - o).Normalized()));
         }
       }
-      me.Slots[0].Id = AbilityId.BattleFury; me.Slots[0].Charges = 1;
+      me.Slots[0].Id = AbilityId.CaughtSteel; me.Slots[0].Charges = 1;
       me.Pos = me.Disp = k0;
       cast.Invoke(gm, new object[] { 1, 0, k0 + new V2(200f, 0f), false });
       for (int f = 0; f < frames; f++) {
@@ -84,7 +84,7 @@ static partial class Shot {
       V2 a1 = t1 - d1 * 32f, d2 = (t2 - a1).Normalized(), p2 = new V2(-d2.Y, d2.X);
       Mob(EnemyType.Grunt, a1 + d2 * 122f + p2 * -9f, 60f);
       Mob(EnemyType.Grunt, KM(250f, 352f), 60f); Mob(EnemyType.Brute, KM(372f, 318f), 60f); Mob(EnemyType.Sniper, KM(612f, 78f), 60f); Mob(EnemyType.Grunt, KM(330f, 62f), 60f);
-      me.Slots[0].Id = AbilityId.Lunge; me.Pos = me.Disp = k0; me.Aim = d1.Angle;
+      me.Slots[0].Id = AbilityId.Gauntlet; me.Pos = me.Disp = k0; me.Aim = d1.Angle;
       V2 aimAt = t1;
       for (int f = 0; f < frames; f++) {
         float t = f / 60f;
@@ -102,7 +102,7 @@ static partial class Shot {
       var mobs = new[] { Mob(EnemyType.Grunt, KM(250f, 180f), 60f), Mob(EnemyType.Brute, KM(300f, 250f), 60f), Mob(EnemyType.Grunt, KM(360f, 196f), 60f),
                          Mob(EnemyType.Sniper, KM(560f, 120f), 60f), Mob(EnemyType.Grunt, KM(600f, 300f), 60f), Mob(EnemyType.Grunt, KM(420f, 330f), 60f) };
       mobs[0].Hp = 14f;
-      me.Slots[0].Id = AbilityId.Whirlwind; me.Slots[0].Charges = 1; me.Pos = me.Disp = k0; me.Aim = 0f;
+      me.Slots[0].Id = AbilityId.BladedDive; me.Slots[0].Charges = 1; me.Pos = me.Disp = k0; me.Aim = 0f;
       for (int f = 0; f < frames; f++) {
         float t = f / 60f;
         if (Math.Abs(t - 0.5f) < 0.5f / 60f) cast.Invoke(gm, new object[] { 1, 0, KM(380f, 210f), false });
@@ -117,7 +117,7 @@ static partial class Shot {
       var melee = new[] { Mob(EnemyType.Grunt, KM(360f, 150f), 300f), Mob(EnemyType.Brute, KM(520f, 290f), 300f), Mob(EnemyType.Grunt, KM(250f, 92f), 300f), Mob(EnemyType.Grunt, KM(212f, 342f), 300f), Mob(EnemyType.Grunt, KM(694f, 196f), 300f) };
       var guns = new[] { KM(612f, 92f), KM(600f, 352f), KM(336f, 372f) };
       foreach (var g0 in guns) Mob(EnemyType.Sniper, g0, 300f);
-      me.Slots[Upgrades.UltSlot].Id = AbilityId.BladeTempest; me.Slots[Upgrades.UltSlot].Charges = 1; me.Pos = me.Disp = k0; me.Aim = aim;
+      me.Slots[Upgrades.UltSlot].Id = AbilityId.Drawbridge; me.Slots[Upgrades.UltSlot].Charges = 1; me.Pos = me.Disp = k0; me.Aim = aim;
       cast.Invoke(gm, new object[] { 1, Upgrades.UltSlot, k0 + V2.FromAngle(aim) * 400f, false });
       V2 hinge = k0 + V2.FromAngle(aim) * Game.BridgeHingeOut;
       for (int f = 0; f < frames; f++) {

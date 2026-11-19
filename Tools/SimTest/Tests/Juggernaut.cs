@@ -8,7 +8,7 @@ using Arena;
 // The Juggernaut Suit (Juggernaut.cs) and the lobby's Ultimate row (LobbyEntry.Ult): the pick reaching the host and the other players,
 // clamped to what the role and class has; the armour soaking before health; a flak shard back at the shooter per bullet the armour
 // takes; the slow and the taunt; ending on time, on armour 0, on going down and between waves; the mastered numbers; the bot's rule;
-// and the pick surviving into the match and a saved run.
+// and the pick surviving into the run and a saved run.
 static partial class Program
 {
     static void JuggernautTest(float dt)
@@ -72,7 +72,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         Check(g.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.Fortress && g.Players[cid].Slots[Upgrades.UltSlot].Id == AbilityId.JuggernautSuit
             && client.Game.Players[cid].Slots[Upgrades.UltSlot].Id == AbilityId.JuggernautSuit && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.Fortress,
-            "in the match each player's F is the one they picked, on every game");
+            "in the run each player's F is the one they picked, on every game");
 
         // --- The suit on the host's game ------------------------------------------------------------------------------
         var me = g.Players[1];

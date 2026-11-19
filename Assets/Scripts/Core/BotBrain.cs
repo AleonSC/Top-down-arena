@@ -20,7 +20,7 @@ namespace Arena
         public bool AllyDown;
         public bool HaveTarget;
         public float TargetD;    // distance to its target (9999 without one)
-        public int Players;      // players in the match
+        public int Players;      // players in the run
         public float BotDanger;  // how dangerous its best spot looked (above 2.5: get out)
         public bool AllyThreatened;  // a hurt or downed ally has enemies close on them (Roar draws those enemies off)
         public float DownedD;    // distance to the nearest downed ally (9999 with none)
@@ -165,7 +165,7 @@ namespace Arena
                 bool cageWell = e.Type == EnemyType.CageWell;
                 if (caged && !cageWell)
                     continue;
-                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard || e.Type == EnemyType.SingShard || e.Type == EnemyType.BallLightning || e.Type == EnemyType.Morsel)
+                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard || e.Type == EnemyType.SingularityShard || e.Type == EnemyType.BallLightning || e.Type == EnemyType.Morsel)
                     && (key == null || e.Pos.DistanceSq(me.Pos) < key.Pos.DistanceSq(me.Pos)))
                     key = e;
             }
@@ -307,7 +307,7 @@ namespace Arena
                 firing = false;
             if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
-            else if (me.Weapon.Id == WeaponId.ClotBolt && bowDraw >= BowMinDraw
+            else if (me.Weapon.Id == WeaponId.GoreMortar && bowDraw >= BowMinDraw
                 && ClotDistance(BowCharge(me, bowDraw)) * me.Stats.ShotSpeedMult >= aimAt.DistanceTo(me.Pos))
                 firing = false;  // the Gore Mortar: let go once the clot would land on what it's aimed at
 
@@ -349,7 +349,7 @@ namespace Arena
                         held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
-                if (s.Id == AbilityId.BloodBoil && me.SprayOn)
+                if (s.Id == AbilityId.ArterialSpray && me.SprayOn)
                 {
                     held[slot] = botHeldLast[slot] = false;
                     bool inReach = target != null && targetD < Game.SprayReachOf(me) + target.Radius;
@@ -357,7 +357,7 @@ namespace Arena
                         held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
-                if (s.Id == AbilityId.CrimsonPact && me.BloodWallOn)
+                if (s.Id == AbilityId.BloodWall && me.BloodWallOn)
                 {
                     held[slot] = botHeldLast[slot] = false;
                     if (me.BloodWallClock > 1f && (me.Hp < me.MaxHp * 0.4f || BotDanger < 0.05f && target == null))  // bled enough, or nothing left to wall off: stop
@@ -430,7 +430,7 @@ namespace Arena
                 case AbilityId.HealingRain:
                 case AbilityId.SoulLantern:
                 case AbilityId.Consecrate:
-                case AbilityId.Sanctify:
+                case AbilityId.LumenWard:
                     return true;
             }
             return false;

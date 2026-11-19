@@ -65,7 +65,7 @@ namespace Arena
         public static string CantLoad(Game g, Session s)
         {
             if (s == null || !s.IsHost || !g.Running)
-                return "Load a snapshot while hosting a match (start any solo run first).";
+                return "Load a snapshot while hosting a run (start any solo run first).";
             if (s.Net != null && s.Net.PeerCount > 0)
                 return "Snapshots load only with no guests connected.";
             return null;

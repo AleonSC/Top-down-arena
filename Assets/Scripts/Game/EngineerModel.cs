@@ -163,7 +163,7 @@ namespace Arena
             }
         }
 
-        /// The Engineer's look in a match: the picked look A (Hi-vis), Nov 17. The rivet gun kicks for a moment after each shot.
+        /// The Engineer's look in a run: the picked look A (Hi-vis), Nov 17. The rivet gun kicks for a moment after each shot.
         public const int EngineerLook = 0;
 
         void DrawEngineerPlayer(Player p, float r, float t, Rgba col)

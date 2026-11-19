@@ -15,14 +15,14 @@ static partial class Program
         int port = nextPort++;
         var host = new Session { StartWave = 3 };
         var prof = host.Game.ProfileOverride = new Profile();
-        prof.BossBeaten(EnemyType.Boss, 5);
-        prof.HuntEnded(EnemyType.Boss, true, 300f);
+        prof.BossBeaten(EnemyType.Warden, 5);
+        prof.HuntEnded(EnemyType.Warden, true, 300f);
         Perks.Equip(prof, PerkId.RiotGear);
         host.Host(port, "Host", Role.Tank, 0);
         var client = new Session();
         var cprof = client.Game.ProfileOverride = new Profile();
-        cprof.BossBeaten(EnemyType.Boss, 5);
-        cprof.HuntEnded(EnemyType.Boss, true, 300f);
+        cprof.BossBeaten(EnemyType.Warden, 5);
+        cprof.HuntEnded(EnemyType.Warden, true, 300f);
         Perks.Equip(cprof, PerkId.RiotGear);
         client.Join("127.0.0.1", port, "Friend", Role.Dps, 0);
         var s = new[] { host, client };
@@ -49,7 +49,7 @@ static partial class Program
         Action<Player, float, string, bool> hit = (p, amount, src, dot) => (dot ? typeof(Game).GetMethod("DamageOverTime", flags) : damage).Invoke(g, dot ? new object[] { p, amount, src } : new object[] { p, amount, src });
         calm();
 
-        Check(Game.HasPerk(me, PerkId.RiotGear) && Game.HasPerk(ally, PerkId.RiotGear), "both players' equipped perks reach the host through the lobby and the match start");
+        Check(Game.HasPerk(me, PerkId.RiotGear) && Game.HasPerk(ally, PerkId.RiotGear), "both players' equipped perks reach the host through the lobby and the run start");
         var cg = client.Game;
         Check(Game.HasPerk(cg.Players[1], PerkId.RiotGear) && Game.HasPerk(cg.Players[2], PerkId.RiotGear), "and every player's perks are known on the friend's screen too");
         ally.Perks = Perks.Empty;  // from here the friend plays without it

@@ -61,7 +61,7 @@ static partial class Program
                         seen[e.Id] = f;
                         sb.Append(name).Append(" f").Append(f).Append(' ').Append(e.Type).Append(" (").Append((int)e.Pos.X).Append(',').Append((int)e.Pos.Y).Append(") rem ").Append(g.Remaining).Append('\n');
                     }
-                    else if (f - seen[e.Id] > 200 && e.Type != EnemyType.Portal)
+                    else if (f - seen[e.Id] > 200 && e.Type != EnemyType.SpawnPortal)
                         e.Hp = 0f;
                 }
             }

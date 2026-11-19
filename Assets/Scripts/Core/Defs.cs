@@ -8,9 +8,9 @@ namespace Arena
 
     public enum EnemyType : byte
     {
-        Grunt, Sniper, Spinner, Boss,
+        Grunt, Sniper, Spinner, Warden,
         Shard, Mortar, Shielder,
-        HiveQueen, TwinA, TwinB, Singularity,
+        HiveQueen, ReaperOfDusk, ReaperOfDawn, Singularity,
         // late game
         Colossus, Duelist, Decoy, Lich, Phylactery, StormHerald, Devourer, Eclipse,
         GravityWell,  // the Singularity's adds: they pull players' shots into themselves
@@ -23,7 +23,7 @@ namespace Arena
         Guard,  // the Warden's riot guards: they beat the rioters left after 10 s, then come for you (Warden.cs)
         DualReaper,  // the Twin Reapers fused into one (Reapers.cs)
         ReaperPillar,  // the Dual Reaper's corner pillars: each one killed leaves a hole that can trap it (Reapers.cs)
-        SingShard,  // the Singularity's Split: shards that orbit and fire; their damage goes to the core (Singularity.cs)
+        SingularityShard,  // the Singularity's Split: shards that orbit and fire; their damage goes to the core (Singularity.cs)
         BallLightning,  // the Storm Herald's Gale: slow orbs that drift at you on the wind and arc to each other (Herald.cs)
         Morsel,  // the Devourer's Hungry turn: food it spits out and crawls over to eat; shoot it or step on it (Devourer.cs)
         // boss approaches: the Warden's faction (WardenFaction.cs)
@@ -41,7 +41,7 @@ namespace Arena
         // the Warden's faction, prisoners: a Brute and a Lunger in prison gear (PrisonKin.cs, Game/PrisonLook.cs)
         Thug, Shiv,
         // a spawn portal: a burst of the wave comes through it; shoot it closed to cancel the rest (SpawnPortals.cs, Game/SpawnPortalLook.cs)
-        Portal,
+        SpawnPortal,
         // the Hive Queen's faction (Docs/HiveFaction.md, HiveKin.cs): each plays like one of the Warden's, in the same order
         Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet,
         // the Twin Reapers' faction, the Dusk and Dawn cult (ReaperFaction.cs, Game/ReaperCultLook.cs): Wisp (a Swarmer), Acolyte
@@ -51,7 +51,7 @@ namespace Arena
         // the Singularity's faction, the Infall (Docs/SingularityFaction.md, Infall.cs, Game/InfallLook.cs): step 1
         Debris, VoidAcolyte, Pulsar,
         // ...step 2, with the Graviton's small well and the Collapsar's implosion (both only come from them)
-        Graviton, Orbiter, Collapsar, MiniWell, Implosion,
+        Graviton, Orbiter, Collapsar, SmallWell, Implosion,
         // ...step 3
         Lens, WhiteDwarf,
         // the Colossus's faction, The Quarry (QuarryFaction.cs, Game/QuarryLook.cs): Rubble plays like a Rioter, a Quarryman
@@ -109,7 +109,7 @@ namespace Arena
         public float Hp, Speed, HitR, BodyR, FireInterval, AbilityCd;
     }
 
-    /// Soldier is the original gun-based kit; Mage and Summoner are the alternatives for each role.
+    /// Soldier is the original gun-based kit; Elementalist and Summoner are the alternatives for each role.
     /// The classes, in lobby order (the order is sent over the network and indexes the class tables: add new ones at the end).
     /// Each has a KitDef (Classes.cs). Run saves from before the October 2026 rename say "Mage" and "BloodMage" (KitFromSave).
     public enum Kit : byte { Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer, Engineer }
@@ -117,17 +117,17 @@ namespace Arena
     public enum WeaponId : byte
     {
         // Soldier
-        Scattergun, FlakCannon, RiotRepeater, LightBolt, Pistol, MendersBow, TwinRifle, Railgun, BurstSmg,
-        // Mage
-        Flamethrower, FrostLance, StormHammer, RadiantOrb, ChainLight, Nimbus, Fireball, ArcLightning, ArcaneMissiles,
+        Scattergun, FlakCannon, RiotRepeater, RepulsionCannon, Revolver, MendersBow, TwinRifle, Railgun, BurstSmg,
+        // Elementalist
+        Flamethrower, FrostLance, StormHammer, RadiantOrb, ChainLight, Nimbus, Fireball, ArcLightning, IceShards,
         // Summoner
         GolemStaff, BoneGuard, BearTotem, SpriteStaff, TreantRod, SpiritChalk, WolfWhistle, WispLantern, ImpCaller,
         // Knight (melee)
-        Warhammer, Lance, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
+        Warhammer, Lance, Halberd, Quarterstaff, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
         // Ninja (Ninja.cs): thrown blades and quick melee
         Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
-        // Blood Mage (BloodMage.cs): blood spells that drain and heal
-        BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
+        // Hemomancer (Hemomancer.cs): blood spells that drain and heal
+        BloodLash, GoreMortar, LeechTendrils, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BloodBrawler,
         // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Double Barrel (DoubleBarrel.cs), the Elementalist DPS's Stonespear (Stonespear.cs); the Twin Rifle's variants (Twin Rifle Auto, Out of Ammo) are Choice 4 and 5
         ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel, Stonespear,
         // the Tank Soldier's fourth (GrenadeLauncher.cs)
@@ -228,7 +228,7 @@ namespace Arena
             },
             new RoleDef
             {
-                // Wildcard (Docs/Wildcard.md): middle health and no role passive; DPS gear from any class, a second starting ability,
+                // Wildcard (Docs/Wildcard.md): middle health and no role passive; DPS gear from any class, a Wildcard ability,
                 // and the price is WildcardDmgMult / WildcardCdMult (Game.cs).
                 Name = "Wildcard", Ability = "Any DPS ability", Color = new Rgba(0.78f, 0.45f, 1f),
                 Hp = 125f, Speed = 225f, HitR = 6.5f, BodyR = 14f, FireInterval = 0.1f, AbilityCd = 3.5f,
@@ -246,7 +246,7 @@ namespace Arena
             new EnemyDef { Name = "Spinner", Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f),
                 Picker = PickerGroup.Ranged, Blurb = "Wanders and sprays spirals in bursts; it spins up while bursting." },
             new EnemyDef { Name = "The Warden", IsBoss = true, Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Xp = 150, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f),
-                Picker = PickerGroup.Boss, Blurb = "Boss (wave 5): a prison riot in three stages — searchlight, gates and gas, then rioters." },
+                Picker = PickerGroup.Boss, Blurb = "Boss (wave 5): a prison riot in three phases — searchlight, gates and gas, then rioters." },
             new EnemyDef { Name = "Shard", Hp = 25f, Radius = 8f, Speed = 130f, Score = 5, Xp = 4, Sides = 3, Color = new Rgba(0.8f, 1f, 0.55f),
                 Picker = PickerGroup.Ranged, Blurb = "Tiny and fast. Comes from the Hive Queen and Splitting elites." },
             new EnemyDef { Name = "Mortar", Hp = 80f, Radius = 16f, Speed = 40f, Score = 20, Xp = 18, Sides = 7, Color = new Rgba(0.95f, 0.55f, 0.3f),
@@ -254,7 +254,7 @@ namespace Arena
             new EnemyDef { Name = "Shielder", Hp = 140f, Radius = 17f, Speed = 60f, Score = 25, Xp = 22, Sides = 6, Color = new Rgba(0.6f, 0.7f, 0.9f),
                 Picker = PickerGroup.Ranged, Blurb = "A front shield blocks shots and swings. It turns slowly: flank it." },
             new EnemyDef { Name = "Hive Queen", IsBoss = true, Hp = 3000f, Radius = 44f, Speed = 40f, Score = 400, Xp = 180, Sides = 6, Color = new Rgba(1f, 0.8f, 0.2f),
-                Picker = PickerGroup.Boss, Blurb = "Boss (wave 10): a hive in three stages — drones and bombers, sealing cells and honey, then a frenzied swarm." },
+                Picker = PickerGroup.Boss, Blurb = "Boss (wave 10): a hive in three phases — drones and bombers, sealing cells and honey, then a frenzied swarm." },
             new EnemyDef { Name = "Reaper of Dusk", IsBoss = true, Hp = 2600f, Radius = 34f, Speed = 95f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(1f, 0.35f, 0.6f),
                 Picker = PickerGroup.Boss, Blurb = "Boss pair (wave 15): a tether sweep, then they fuse into the Dual Reaper (pillars, holes), then split for a finale." },
             new EnemyDef { Name = "Reaper of Dawn", IsBoss = true, Hp = 2600f, Radius = 34f, Speed = 95f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(0.45f, 0.55f, 1f) },
@@ -269,11 +269,11 @@ namespace Arena
                 Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 35): immune while its phylactery stands; raises skeletons." },
             new EnemyDef { Name = "Phylactery", Hp = 600f, Radius = 18f, Speed = 0f, Score = 50, Xp = 0, Sides = 4, Color = new Rgba(0.4f, 1f, 0.6f), Late = true, Heavy = true },
             new EnemyDef { Name = "Storm Herald", IsBoss = true, Hp = 6000f, Radius = 40f, Speed = 55f, Score = 800, Xp = 320, Sides = 9, Color = new Rgba(0.55f, 0.75f, 1f),
-                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 40), three stages: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time." },
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 40), three phases: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time." },
             new EnemyDef { Name = "The Devourer", IsBoss = true, Hp = 6500f, Radius = 50f, Speed = 40f, Score = 900, Xp = 340, Sides = 12, Color = new Rgba(0.85f, 0.28f, 0.38f),
-                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 45), three stages: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front." },
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 45), three phases: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front." },
             new EnemyDef { Name = "The Eclipse", IsBoss = true, Hp = 9000f, Radius = 52f, Speed = 30f, Score = 2000, Xp = 500, Sides = 16, Color = new Rgba(1f, 0.85f, 0.4f),
-                Picker = PickerGroup.Boss, Late = true, Blurb = "Final boss (wave 50), five stages and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova." },
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Final boss (wave 50), five phases and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova." },
             new EnemyDef { Name = "Gravity Well", Hp = 260f, Radius = 15f, Speed = 160f, Score = 40, Xp = 15, Sides = 6, Color = new Rgba(0.7f, 0.45f, 1f), Late = true },
             // Melee
             new EnemyDef { Name = "Brute", Hp = 200f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f,
@@ -486,7 +486,7 @@ namespace Arena
         public const int KitCount = 7;
 
         /// Every weapon, in lobby order (Role, then Kit, then Choice), gathered from each class's list: Weapons.cs (Soldier),
-        /// Minions.cs (Mage, Summoner), Knight.cs, Ninja.cs, BloodMage.cs. Every place must be filled exactly once.
+        /// Minions.cs (Elementalist, Summoner), Knight.cs, Ninja.cs, Hemomancer.cs. Every place must be filled exactly once.
         /// The three weapons of every role and class come first (indexed by role, kit and choice); the fourth weapons follow them.
         public static readonly WeaponDef[] Weapons = WeaponRegistry(Classes.WeaponLists());
 
@@ -585,10 +585,10 @@ namespace Arena
         /// (Tools/SimTest/run.sh 1 1 weapondps write, which writes WeaponDps.Generated.cs); 0 if not measured.
         public static float WeaponDps(WeaponId id) => MeasuredDps.TryGetValue(id, out float v) ? v : 0f;
 
-        /// How many weapons (or Space abilities) a Wildcard can pick from: every class's three DPS ones, numbered kit * 3 + choice.
+        /// How many weapons (or 1st abilities) a Wildcard can pick from: every class's three DPS ones, numbered kit * 3 + choice.
         public const int WildcardChoices = KitCount * WeaponsPerRole;
 
-        /// A Wildcard's lobby "wild" byte: its second ability (0-17, same numbering as the first) and the key it sits on (1 Q, 2 E, 3 Shift).
+        /// A Wildcard's lobby "wild" byte: its Wildcard ability (0-17, same numbering as the first) and the key it sits on (1 the 2nd ability, 2 the 3rd, 3 the 4th).
         public static int WildSecond(int wild) => wild % WildcardChoices;
         public static int WildKey(int wild) => 1 + Math.Min(2, wild / WildcardChoices);
         public static byte MakeWild(int second, int key) => (byte)(Math.Max(0, Math.Min(WildcardChoices - 1, second)) + WildcardChoices * (Math.Max(1, Math.Min(3, key)) - 1));
@@ -734,8 +734,8 @@ namespace Arena
             // Ninja
             StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, FumaStar = 37,
             FrostLance = 38,  // retired: the Frost Lance no longer flies (it is an icicle swing, Minions.cs)
-            // Blood Mage
-            BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46,
+            // Hemomancer
+            BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BloodBrawlerShot = 46,
             StunBolt = 47,   // the Stun Gun's bolt (Stun.cs)
             FlameShot = 48,  // a Flamethrower flame
             HammerShot = 49, // the Storm Hammer, spinning as it flies
@@ -823,7 +823,7 @@ namespace Arena
             Row(table, TransfuseShot, radius: 3f, color: new Rgba(1f, 0.5f, 0.55f));
             Row(table, SanguineShot, radius: 6.5f, color: new Rgba(0.85f, 0.1f, 0.25f));
             Row(table, ImplodeShot, radius: 3f, color: new Rgba(0.9f, 0.12f, 0.2f));
-            Row(table, BoneSpearShot, radius: 6f, color: new Rgba(0.95f, 0.9f, 0.82f));
+            Row(table, BloodBrawlerShot, radius: 6f, color: new Rgba(0.95f, 0.9f, 0.82f));
             Row(table, BigShot, radius: 10f, color: new Rgba(0.85f, 0.35f, 1f), damage: 20f);
             Row(table, MineShot, radius: 9f, color: new Rgba(1f, 0.55f, 0.2f), damage: 18f);
             Row(table, PierceShot, radius: 6.5f, color: new Rgba(1f, 0.12f, 0.12f), damage: 16f);

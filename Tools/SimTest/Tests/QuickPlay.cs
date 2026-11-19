@@ -24,15 +24,15 @@ static partial class Program
             for (int i = 1; i < order.Length; i++)
                 bagsOk &= order[i] != order[i - 1];
             if (seed % 2 == 0)
-                wardenFirst &= order[0] == EnemyType.Boss;
+                wardenFirst &= order[0] == EnemyType.Warden;
             else
-                othersFirst |= order[0] != EnemyType.Boss;
+                othersFirst |= order[0] != EnemyType.Warden;
         }
         Check(bagsOk && wardenFirst && othersFirst, "the boss order: every boss once per ten, never twice in a row; the Warden first only on a first Quick Play");
 
         var sched = new QuickBosses(QuickPlay.MakeOrder(new Random(1), true));
         Check(sched.Slotted && !sched.IsBossWave(5) && sched.IsBossWave(10) && sched.IsBossWave(20) && sched.NextBossWaveFrom(1) == 10 && sched.NextBossWaveFrom(11) == 20
-            && sched.BossAt(10) == EnemyType.Boss && sched.BossAt(20) == sched.Order[1] && sched.FinaleWave(5) && sched.FinaleWave(10) && sched.FinaleWave(15) && !sched.FinaleWave(9)
+            && sched.BossAt(10) == EnemyType.Warden && sched.BossAt(20) == sched.Order[1] && sched.FinaleWave(5) && sched.FinaleWave(10) && sched.FinaleWave(15) && !sched.FinaleWave(9)
             && sched.ApproachStep(1) == 1 && sched.ApproachStep(4) == 2 && sched.ApproachStep(10) == 4 && sched.ApproachStep(11) == 1,
             "Quick Play's schedule: a boss after every tenth wave, the faction's set piece on the fifth and tenth");
 
@@ -87,7 +87,7 @@ static partial class Program
             var g = host.Game;
             var c = client.Game;
             g.ChallengesOn = true;  // (on, to show Quick Play opens no portal)
-            Check(g.Quick && c.Quick && c.QuickOrder != null && c.QuickOrder.SequenceEqual(g.QuickOrder) && g.BossAt(10) == EnemyType.Boss && c.BossAt(10) == EnemyType.Boss
+            Check(g.Quick && c.Quick && c.QuickOrder != null && c.QuickOrder.SequenceEqual(g.QuickOrder) && g.BossAt(10) == EnemyType.Warden && c.BossAt(10) == EnemyType.Warden
                 && !g.LongLegs && g.LastWave == 10 && c.ShownLastWave == 10 && hp.RunsStarted == 0 && g.LivesMax == 0,
                 "Quick Play starts on every game with the same boss order (a first Quick Play: the Warden), ten waves, no lives, not a run started");
             var saveable = (bool)typeof(Game).GetProperty("Saveable", flags).GetValue(g, null);
@@ -99,10 +99,10 @@ static partial class Program
                 foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0) e.Hp = 0f;
             };
             bool portal = false, pathOffered = false, bossEarly = false;
-            var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+            var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Warden).Members.Select(m => m.Type));
             var seen = new HashSet<EnemyType>();
             var others = new HashSet<EnemyType>();
-            Run(s, dt, 500f, () => g.Wave == 10 && g.BossSlot && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () =>
+            Run(s, dt, 500f, () => g.Wave == 10 && g.BossSlot && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () =>
             {
                 keep();
                 portal |= g.Room != RoomPhase.None;
@@ -112,22 +112,22 @@ static partial class Program
                     foreach (var e in g.Enemies.Values)
                         (faction.Contains(e.Type) ? seen : others).Add(e.Type);
             });
-            var warden = Find(host, EnemyType.Boss);
+            var warden = Find(host, EnemyType.Warden);
             Console.WriteLine("  waves 1-10: the Warden's own {0}; anything else: {1}", string.Join(", ", seen), others.Count == 0 ? "none" : string.Join(", ", others));
             Check(warden != null && g.Wave == 10 && g.BossSlot && c.BossNow && !bossEarly && !portal && !pathOffered,
                 "ten regular waves (no boss on wave 5), then the Warden as its own fight after wave 10; no path offer or Data Gate on the way");
             Check(others.Count == 0 && seen.Count >= faction.Count - 1, "the waves before it bring only the Warden's own enemies");
-            float expectHp = g.QuickBossHp(EnemyType.Boss, 10) * warden.PowerScale;
-            Console.WriteLine("  the Warden after wave 10: {0:0} HP (its Campaign wave 5: {1:0}), power scale {2:0.00}", warden.MaxHp, g.SpawnHp(EnemyType.Boss, 5), warden.PowerScale);
-            Check(Math.Abs(warden.MaxHp - expectHp) < 1f && warden.MaxHp > g.SpawnHp(EnemyType.Boss, 5), "its health is set for a two-minute fight at this wave (QuickBossHp)");
+            float expectHp = g.QuickBossHp(EnemyType.Warden, 10) * warden.PowerScale;
+            Console.WriteLine("  the Warden after wave 10: {0:0} HP (its Campaign wave 5: {1:0}), power scale {2:0.00}", warden.MaxHp, g.SpawnHp(EnemyType.Warden, 5), warden.PowerScale);
+            Check(Math.Abs(warden.MaxHp - expectHp) < 1f && warden.MaxHp > g.SpawnHp(EnemyType.Warden, 5), "its health is set for a two-minute fight at this wave (QuickBossHp)");
 
             warden.Hp = 0f;
             Run(s, dt, 8f, () => c.State == MatchState.Victory && cp.QuickPlays > 0, keep);
             Console.WriteLine("  won: host quick {0} plays / {1} wins / best wave {2} / {3} bosses; runs won {4}, best run wave {5}; Warden beaten {6}",
-                hp.QuickPlays, hp.QuickWins, hp.QuickBestWave, hp.QuickBosses, hp.RunsWon, hp.BestWave, hp.Beaten(EnemyType.Boss));
+                hp.QuickPlays, hp.QuickWins, hp.QuickBestWave, hp.QuickBosses, hp.RunsWon, hp.BestWave, hp.Beaten(EnemyType.Warden));
             Check(g.State == MatchState.Victory && c.State == MatchState.Victory, "beating the boss after wave 10 wins the Quick Play");
             Check(hp.QuickPlays == 1 && hp.QuickWins == 1 && hp.QuickBestWave == 10 && hp.QuickBosses == 1 && cp.QuickWins == 1 && hp.RunsWon == 0 && hp.BestWave == 0
-                && hp.Beaten(EnemyType.Boss) == 1 && hp.Recent.Count > 0 && hp.Recent[0].Mode == "Quick Play" && hp.Recent[0].Xp > 0,
+                && hp.Beaten(EnemyType.Warden) == 1 && hp.Recent.Count > 0 && hp.Recent[0].Mode == "Quick Play" && hp.Recent[0].Xp > 0,
                 "every profile records it as a Quick Play (XP, the boss beaten), not as a run");
             Check(hp.TutorialDone && cp.TutorialDone && !g.Tutorial.Active, "a first Quick Play recorded ends the tutorial for good");
             var back = Profile.Parse(hp.ToText());
@@ -142,7 +142,7 @@ static partial class Program
                 pathOffered |= g.PathOffer != null;
             });
             Console.WriteLine("  endless: wave {0}, boss {1} (order says {2}), client sees {3}", g.Wave, string.Join(",", g.Enemies.Values.Where(e => e.Def.IsBoss).Select(e => e.Type)), second, c.BossAt(20));
-            Check(g.Endless && g.Wave == 20 && g.Enemies.Values.Any(e => e.Def.IsBoss && (e.Type == second || Game.IsTwin(e.Type) && Game.IsTwin(second))) && second != EnemyType.Boss
+            Check(g.Endless && g.Wave == 20 && g.Enemies.Values.Any(e => e.Def.IsBoss && (e.Type == second || Game.IsTwin(e.Type) && Game.IsTwin(second))) && second != EnemyType.Warden
                 && c.BossAt(20) == second && !pathOffered, "endless goes on: ten more waves, then the order's next boss (not the Warden again)");
 
             // The party falls: the endless stretch is added to the records.
@@ -287,10 +287,10 @@ static partial class Program
     {
         var host = new Session();
         var g = host.Game;
-        g.Players[1] = new Player { Id = 1, Role = Role.Tank, RoleAbility = Upgrades.RoleAbility(Role.Tank, Kit.Soldier, 0) };
-        g.Players[2] = new Player { Id = 2, Role = Role.Dps, RoleAbility = Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0) };
+        g.Players[1] = new Player { Id = 1, Role = Role.Tank, FirstAbility = Upgrades.FirstAbility(Role.Tank, Kit.Soldier, 0) };
+        g.Players[2] = new Player { Id = 2, Role = Role.Dps, FirstAbility = Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0) };
         Console.WriteLine("  boss          home  HP@home   after 10  after 20  after 30   (x of its home health)");
-        foreach (var b in new[] { EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+        foreach (var b in new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
                                   EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })
         {
             int home = QuickPlay.HomeWave(b);
@@ -298,7 +298,7 @@ static partial class Program
             Console.WriteLine("  {0,-13} {1,4} {2,8:0}   {3,6:0.00}x  {4,6:0.00}x  {5,6:0.00}x", Defs.Get(b).Name, home, h0,
                 g.QuickBossHp(b, 10) / h0, g.QuickBossHp(b, 20) / h0, g.QuickBossHp(b, 30) / h0);
         }
-        Check(g.QuickBossHp(EnemyType.Eclipse, 10) < g.SpawnHp(EnemyType.Eclipse, 50) && g.QuickBossHp(EnemyType.Boss, 30) > g.SpawnHp(EnemyType.Boss, 5),
+        Check(g.QuickBossHp(EnemyType.Eclipse, 10) < g.SpawnHp(EnemyType.Eclipse, 50) && g.QuickBossHp(EnemyType.Warden, 30) > g.SpawnHp(EnemyType.Warden, 5),
             "a late boss after wave 10 has less health than at its own wave; an early one in endless has more");
     }
 }

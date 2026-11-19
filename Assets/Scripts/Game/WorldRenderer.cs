@@ -99,7 +99,7 @@ namespace Arena
 
             if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me))
                 DrawAimLine(game.Me, MouseArena(), t);
-            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol && game.Me.StunShots == 0)
+            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Revolver && game.Me.StunShots == 0)
                 DrawCylinder(game.Me, t);
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Rapier)
@@ -108,7 +108,7 @@ namespace Arena
                     DrawRapierStance(p);
                 }
             foreach (var p in game.Players.Values)
-                if (p.Weapon.Id == WeaponId.HolyMace)
+                if (p.Weapon.Id == WeaponId.Quarterstaff)
                     DrawStaffPips(p);  // QuarterstaffLook.cs
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.TwinRifle)
@@ -132,7 +132,7 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.HoneybeeStaff)
                     DrawHoneyMeter(p);  // HoneybeeLook.cs
             foreach (var p in game.Players.Values)
-                if (p.Weapon.Id == WeaponId.LightBolt)
+                if (p.Weapon.Id == WeaponId.RepulsionCannon)
                 {
                     DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter
                     DrawRepelMeter(p);
@@ -159,8 +159,8 @@ namespace Arena
                     DrawBoulderCharge(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
                     DrawArcLockFlatCharge(p, p.Id == game.MyId, t);  // (Visual effects off; on, the glow pass has it: ArcLockLook.cs)
-                else if (p.Weapon.Id == WeaponId.ClotBolt && p.DrawT > 0f && !p.Downed)
-                    DrawClotCharge(p, p.Id == game.MyId, t);  // ClotCannonLook.cs
+                else if (p.Weapon.Id == WeaponId.GoreMortar && p.DrawT > 0f && !p.Downed)
+                    DrawClotCharge(p, p.Id == game.MyId, t);  // GoreMortarLook.cs
 
             if (aimDebug && game.Me != null)
             {
@@ -180,14 +180,14 @@ namespace Arena
             V2 m = MouseArena();
             StepCursor(m, t, Keybinds.Held(KeyAction.Fire) && !fireBlocked);
             if (!cursorWantPointer)  // (over a menu or the end screen the pointer is drawn on top of the UI instead: DrawMenuCursor)
-                DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a match starts
+                DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a run starts
             EndJuiceFrame();
             EndRecording();
         }
 
         /// Everything on the arena floor: players, bullets, enemies, minions, zones and effects. Also draws the
         /// lobby's loadout preview (a Showcase game swapped in as `game`).
-        /// enemyShotsLater: the match leaves enemy bullets out here and draws them over the effects and the glow
+        /// enemyShotsLater: the run leaves enemy bullets out here and draws them over the effects and the glow
         /// (DrawEnemyShots); the lobby preview draws everything here.
         void DrawArenaContents(float t, bool enemyShotsLater = false)
         {
@@ -212,7 +212,7 @@ namespace Arena
             DrawEclipseFloor(t);   // the Eclipse's shadow, sunspots, flares, rings and echoes (EclipseLook.cs)
             DrawVarietyFloor(t);   // the factions' beams and lines, aim lanes (VarietyLook.cs)
             DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
-            DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
+            DrawStageShiftFloor(t);  // a boss changing phase: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             DrawLaunchWorld(t);      // a run launching: the ripple's ring, the players' pillars of light (LaunchIntro.cs)
             DrawRecallWorld(t);      // back to the lobby: everyone beamed out (Recall.cs)
             DrawChallengeWorld(t);   // a challenge room's portal, crystal, zones and altar (ChallengeLook.cs)
@@ -223,7 +223,7 @@ namespace Arena
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawHammerFloor();       // the Warhammer slam's crater and cracks, under the enemies (MeleeLooks.cs)
             DrawSprayStains(t);      // Arterial Spray's spatter (ArterialSprayLook.cs)
-            DrawClotStains(t);       // the Gore Mortar's drops on the floor (ClotCannonLook.cs)
+            DrawClotStains(t);       // the Gore Mortar's drops on the floor (GoreMortarLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
@@ -278,14 +278,14 @@ namespace Arena
             DrawGlSmokeOver(t);  // the Grenade Launcher's clouds over the enemies, jammed ones greyed (GrenadeLauncherLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawWardenIntro(t);  // the Warden's entrance: its Lockdown cell (WardenIntro.cs)
-            DrawVeinBeams(t);  // BloodMageLook.cs
+            DrawVeinBeams(t);  // HemomancerLook.cs
             DrawRadiantOrbs(t);
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
             DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
             DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests (KnightDpsLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
-            DrawClotAir(t);      // the Gore Mortar's drops falling (ClotCannonLook.cs)
+            DrawClotAir(t);      // the Gore Mortar's drops falling (GoreMortarLook.cs)
             DrawBulletRainAir(t);  // Bullet Rain's rounds falling, landing rings and sparks (BulletRainLook.cs)
             DrawGadgetAim(t);  // GadgetLook.cs: the throw's arc while the Gadget key is held
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
@@ -354,7 +354,7 @@ namespace Arena
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             if (p.CoatT > 0f)
-                DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
+                DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (HemomancerLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
                 for (int k = 0; k < 4; k++)
                 {
@@ -377,7 +377,7 @@ namespace Arena
                 Line(m + new V2(-6f, -6f), m + new V2(5f, 5f), 3f, shade);  // the knife, stuck in the ground
                 Line(m + new V2(-8f, -3f), m + new V2(-3f, -8f), 2f, shade.WithAlpha(0.8f));
             }
-            if (p.Weapon.Id == WeaponId.ArcaneMissiles && p.Orbiters > 0)  // Arcane Missiles waiting in orbit
+            if (p.Weapon.Id == WeaponId.IceShards && p.Orbiters > 0)  // Ice Shards waiting in orbit
             {
                 for (int i = 0; i < p.Orbiters; i++)  // ice shards circling you, each tumbling a little round its own centre
                 {
@@ -458,7 +458,7 @@ namespace Arena
                 DrawEnergyWard(p, t);  // the Energy Ward's bubble and its break (EnergyWardLook.cs)
             if (p.ShellOn)  // Blood Shell: the bubble (BloodShellLook.cs)
                 DrawBloodShell(p, t);
-            if (p.ShieldHp > 0f && p.Kit == Kit.Hemomancer)  // Blood Gift alone: plates of blood (BloodMageLook.cs)
+            if (p.ShieldHp > 0f && p.Kit == Kit.Hemomancer)  // Blood Gift alone: plates of blood (HemomancerLook.cs)
                 DrawBloodShellOn(p, t);
             else if (p.ShieldHp > 0f && p.MercyT <= 0f && !(fxOn && p.EnergyMax > 0f))  // Energy Ward, the plain ring (a Lightbringer's ward draws its own plates) (the bubble is EnergyWardLook.cs)
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
@@ -475,7 +475,7 @@ namespace Arena
                 DrawParryGauge(p, t, 0.4f);
             if (p.DomeT > 0f)  // Fortress: the dome (DomeLook.cs)
                 DrawFortressDome(p, t);
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // Artillery Assault (ArtilleryLook.cs)
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.ArtilleryAssault)  // Artillery Assault (ArtilleryLook.cs)
                 DrawArtillery(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
@@ -486,7 +486,7 @@ namespace Arena
                 DrawSprintWake(p, t, p.Id == game.MyId ? game.SprintFade : p.Sprint / 255f);
             if (p.Chains.Count > 0 || p.LeashOn)  // the Blood Lash's chains and Martyr's Leash (BloodLashLook.cs)
                 DrawLashChains(p, t);
-            if (p.BsTarget != 0 || p.SympT > 0f)  // the Blood Brawler's thread, mark and Sympathy (BoneSpearLook.cs)
+            if (p.BsTarget != 0 || p.SympT > 0f)  // the Blood Brawler's thread, mark and Sympathy (BloodBrawlerLook.cs)
                 DrawBsThread(p, t);
             if (p.TitheClock > 0f)  // Vein Tithe: heart, arteries, cuffs (VeinTitheLook.cs)
                 DrawTithe(p, t);

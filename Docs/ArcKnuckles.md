@@ -10,7 +10,7 @@ Magnet Yank) were not picked.
 > and each Fire press as a move lands extends it into a chain: Flurry, then Grab & Throw, then Rocket Punch.
 
 ## Decisions (owner)
-- **Name:** Arc Knuckles (the Knight DPS's Space ability is already "the Gauntlet").
+- **Name:** Arc Knuckles (the Knight DPS's 1st ability is already "the Gauntlet").
 - **Look:** Arc Coil: blue alloy plates, glowing knuckle bands, coils on the cuffs that pulse, small lightning arcs on every hit.
 - **Slot:** Knight DPS, **Choice 3**: the 4th weapon key that is locked today. The other classes keep 3 weapons and a locked 4th key.
 - **Parry:** raising the parry cancels the punch and **resets the combo to the jab** (`ResetAttackChains`, like every other chain).

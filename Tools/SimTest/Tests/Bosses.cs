@@ -9,8 +9,8 @@ using Arena;
 // mechanics sweep in BossMechanics.cs.
 static partial class Program
 {
-    // The Warden (Warden.cs): a prison riot in three stages by health, one mechanic per turn.
-    /// The Twin Reapers' three stages (Reapers.cs): Twilight, the fused Dual Reaper, then Sundered.
+    // The Warden (Warden.cs): a prison riot in three phases by health, one mechanic per turn.
+    /// The Twin Reapers' three phases (Reapers.cs): Twilight, the fused Dual Reaper, then Sundered.
     static void ReapersTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -22,12 +22,12 @@ static partial class Program
         // A session recording, to check the fusion and split close the old bosses' records (SessionRecorder.BossMerged).
         var rec = g.Recorder = new SessionRecorder(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "arena-reapers-" + Guid.NewGuid().ToString("N").Substring(0, 6)));
         rec.Begin(g, 15);
-        Run(s, dt, 15, () => { var a0 = Find(s[0], EnemyType.TwinA); var b0 = Find(s[0], EnemyType.TwinB); return a0 != null && b0 != null && a0.SpawnT <= 0f && b0.SpawnT <= 0f; });
+        Run(s, dt, 15, () => { var a0 = Find(s[0], EnemyType.ReaperOfDusk); var b0 = Find(s[0], EnemyType.ReaperOfDawn); return a0 != null && b0 != null && a0.SpawnT <= 0f && b0.SpawnT <= 0f; });
         var me = g.Players[1]; var friend = g.Players[2];
         Action<V2> PutFriend = pos => { friend.Pos = pos; cg.Players[2].Pos = pos; };
         Action Park = () => { me.Pos = new V2(60f, 840f); };
-        var a = Find(s[0], EnemyType.TwinA); var b = Find(s[0], EnemyType.TwinB);
-        Check(a.MaxHp > 0f && Defs.Get(EnemyType.TwinA).Hp == 2600f, "the Twin Reapers have 2600 health each");
+        var a = Find(s[0], EnemyType.ReaperOfDusk); var b = Find(s[0], EnemyType.ReaperOfDawn);
+        Check(a.MaxHp > 0f && Defs.Get(EnemyType.ReaperOfDusk).Hp == 2600f, "the Twin Reapers have 2600 health each");
 
         // Twilight: one turn at a time; the tether only burns on its sweep, which follows its target.
         var seen = new List<ReaperTurn>();
@@ -70,10 +70,10 @@ static partial class Program
         var d = Find(s[0], EnemyType.DualReaper);
         float blastDmg = friend.Run.DamageTaken - tf;
         Console.WriteLine("  reapers fusion: immune {0}, dual {1}, health {2:0}/{3:0} (twins had {4:0}/{5:0}), power-up hit the friend for {6:0}", immune, d != null, d?.Hp, d?.MaxHp, hpSum, maxSum, blastDmg);
-        Check(immune && d != null && Find(s[0], EnemyType.TwinA) == null && Math.Abs(d.MaxHp - maxSum) < 1f && Math.Abs(d.Hp - hpSum) < 20f, "at 65% they fuse into the Dual Reaper (can't be hurt meanwhile), keeping their health");
+        Check(immune && d != null && Find(s[0], EnemyType.ReaperOfDusk) == null && Math.Abs(d.MaxHp - maxSum) < 1f && Math.Abs(d.Hp - hpSum) < 20f, "at 65% they fuse into the Dual Reaper (can't be hurt meanwhile), keeping their health");
         int fuseOrbs = (int)orbIds.GetValue(g) - orbs0;
         Console.WriteLine("  reapers fusion: {0} small health orbs dropped ({1} players)", fuseOrbs, g.Players.Count);
-        Check(fuseOrbs == Game.StageOrbBase + g.Players.Count, "the fusion (a stage change) drops a few small health orbs: two plus one per player");
+        Check(fuseOrbs == Game.StageOrbBase + g.Players.Count, "the fusion (a phase change) drops a few small health orbs: two plus one per player");
         Check(blastDmg >= 39.5f, "the power-up blasts hurt whoever stays in a marked circle");
         Run(s, dt, 1f, null, Park);
         int pillars = g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar);
@@ -112,7 +112,7 @@ static partial class Program
         // The split at 30%: Dusk and Dawn again, sharing what was left.
         d.Hp = d.MaxHp * 0.29f; float dualHp = d.Hp;
         Run(s, dt, 2.8f, () => g.Reapers.Trans == 0 && g.Reapers.Stage == ReaperStage.Sundered, Park);
-        a = Find(s[0], EnemyType.TwinA); b = Find(s[0], EnemyType.TwinB);
+        a = Find(s[0], EnemyType.ReaperOfDusk); b = Find(s[0], EnemyType.ReaperOfDawn);
         Check(a != null && b != null && Find(s[0], EnemyType.DualReaper) == null && Math.Abs(a.Hp + b.Hp - dualHp) < 20f && g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar) == 0,
             "at 30% it splits back into Dusk and Dawn, sharing its health");
         {
@@ -141,7 +141,7 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
-    /// The Hive Queen's three stages (Queen.cs): Swarm, Honeycomb, Frenzy, then a last stand.
+    /// The Hive Queen's three phases (Queen.cs): Swarm, Honeycomb, Frenzy, then a last stand.
     static void QueenTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -191,7 +191,7 @@ static partial class Program
         Console.WriteLine("  queen swarm turns: " + string.Join(", ", seen));
         Check(seen.Count >= 8 && seen[0] == QueenTurn.Drones && seen[1] == QueenTurn.Rest && seen[2] == QueenTurn.Bombers && seen[4] == QueenTurn.Fan && seen[6] == QueenTurn.Rings,
             "Swarm: drones, bombers, aimed fan, orb rings, with a breather between each");
-        Check(cg.Enemies.ContainsKey(q.Id) && cg.Enemies[q.Id].Queen != null && cg.Enemies[q.Id].Queen.Stage == QueenStage.Swarm, "clients see the Hive Queen's stage");
+        Check(cg.Enemies.ContainsKey(q.Id) && cg.Enemies[q.Id].Queen != null && cg.Enemies[q.Id].Queen.Stage == QueenStage.Swarm, "clients see the Hive Queen's phase");
 
         // Honeycomb at 65%: 2 s where she can't be hurt, the screen cleared.
         q.Hp = q.MaxHp * 0.64f;
@@ -304,8 +304,8 @@ static partial class Program
         var g = s[0].Game; var cg = s[1].Game;
         g.Bot = false; cg.Bot = false;  // the players stand where the test puts them
         g.DevSetGod(1, true);
-        Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-        var w = Find(s[0], EnemyType.Boss);
+        Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+        var w = Find(s[0], EnemyType.Warden);
         var me = g.Players[1]; var friend = g.Players[2];
         Action Clear = () => { foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Grunt) e.Hp = 0f; };
         Check(w != null && Math.Abs(w.Pos.X - Game.Width / 2f) < 5f && Math.Abs(w.Pos.Y - Game.Height / 2f) < 5f, "the Warden appears in the middle of the arena");
@@ -325,7 +325,7 @@ static partial class Program
         Check(seen.Count >= 7 && seen[0] == WardenTurn.Rings && seen[2] == WardenTurn.Spiral && seen[4] == WardenTurn.Fan && seen[6] == WardenTurn.Light && seen[1] == WardenTurn.Rest,
             "Count: orb rings, spiral, aimed fan, searchlight, with a breather between each");
         Check(!spiralMoved, "the Warden holds still while it spirals");
-        Check(cg.Enemies.ContainsKey(w.Id) && cg.Enemies[w.Id].Warden != null && cg.Enemies[w.Id].Warden.Stage == WardenStage.Count, "clients see the Warden's stage");
+        Check(cg.Enemies.ContainsKey(w.Id) && cg.Enemies[w.Id].Warden != null && cg.Enemies[w.Id].Warden.Stage == WardenStage.Count, "clients see the Warden's phase");
 
         // The searchlight: a Taser Guard's Fork Bolt stops you, the light catches you, a shackle ring drops round you.
         while (w.Warden.Turn == WardenTurn.Light) { Clear(); Step(s[0], dt); Step(s[1], dt); }  // (the first light turn may already be under way)
@@ -410,23 +410,23 @@ static partial class Program
             var had = new HashSet<int>(g.Bullets.Keys);
             bool clientExposed = cg.Enemies[w.Id].Warden.ExposedT > 0f;
             Run(s, dt, 2f, null, () => { Clear(); me.Pos = new V2(200f, 800f); });
-            int shots = g.Bullets.Values.Count(b => !had.Contains(b.Id) && Defs.IsEnemyShot(b.Kind) && b.Source == EnemyType.Boss);
+            int shots = g.Bullets.Values.Count(b => !had.Contains(b.Id) && Defs.IsEnemyShot(b.Kind) && b.Source == EnemyType.Warden);
             Console.WriteLine("  warden exposed: {0} (client saw it {1}); a 100 hit took {2:0}; boss shots while blinded {3}", exposed, clientExposed, took, shots);
             Check(exposed && clientExposed && Math.Abs(took - 100f * Game.ExposedMult) < 1f && shots == 0,
                 "led across the Warden, its own searchlight blinds it: it takes 50% more damage and holds its fire (everyone sees it)");
             Run(s, dt, 2f, () => w.Warden.ExposedT <= 0f, Clear);
         }
 
-        // Every boss's stage change (StageStartBurst) knocks a few small health orbs loose round it.
+        // Every boss's phase change (StageStartBurst) knocks a few small health orbs loose round it.
         {
             var burst = typeof(Game).GetMethod("StageStartBurst", flags);
             var hadOrbs = new HashSet<int>(g.Orbs.Keys);
             burst.Invoke(g, new object[] { w, Rgba.White });
             var dropped = g.Orbs.Values.Where(o => !hadOrbs.Contains(o.Id)).ToList();
             float near = dropped.Count > 0 ? dropped.Min(o => o.Pos.DistanceTo(w.Pos)) : 0f, far = dropped.Count > 0 ? dropped.Max(o => o.Pos.DistanceTo(w.Pos)) : 0f;
-            Console.WriteLine("  stage change: {0} small health orbs, {1:0}-{2:0} px from the boss (radius {3:0})", dropped.Count, near, far, w.Radius);
+            Console.WriteLine("  phase change: {0} small health orbs, {1:0}-{2:0} px from the boss (radius {3:0})", dropped.Count, near, far, w.Radius);
             Check(dropped.Count == Game.StageOrbBase + g.Players.Count && dropped.All(o => !o.Big && !o.Tiny) && near >= w.Radius + 60f,
-                "a boss changing stage drops small health orbs (two plus one per player) in a ring just outside it");
+                "a boss changing phase drops small health orbs (two plus one per player) in a ring just outside it");
             foreach (var o in dropped) g.Orbs.Remove(o.Id);
         }
 
@@ -483,7 +483,7 @@ static partial class Program
             Run(s, dt, 6f, null, () =>
             {
                 Clear(); me.Pos = new V2(60f, 60f);
-                foreach (var b in g.Bullets.Values) if (hadShots.Add(b.Id) && b.Source == EnemyType.Boss) bursts++;
+                foreach (var b in g.Bullets.Values) if (hadShots.Add(b.Id) && b.Source == EnemyType.Warden) bursts++;
             });
             var clouds = g.Patches.Values.Where(pt => pt.Kind == PatchKind.Gas && !cloudsBefore.Contains(pt.Id)).ToList();
             int clientClouds = cg.Patches.Values.Count(pt => pt.Kind == PatchKind.Gas);

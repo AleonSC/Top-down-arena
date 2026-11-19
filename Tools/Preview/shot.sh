@@ -58,7 +58,7 @@
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
 # HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).
-# BONESPEAR=<s> (the Hemomancer DPS Blood Brawler that long into its loop: Pulse 0 s, Reel 0.45, Heart Lift 0.95, Marrow Burst 1.5, Alt (Sympathy) 2.4, Pulse 2.7 and Reel 3.1 echoing; BSAIM=<deg> tilts it; BSHAND=1 centres on the bleeding hand; BoneSpearLook.cs).
+# BONESPEAR=<s> (the Hemomancer DPS Blood Brawler that long into its loop: Pulse 0 s, Reel 0.45, Heart Lift 0.95, Marrow Burst 1.5, Alt (Sympathy) 2.4, Pulse 2.7 and Reel 3.1 echoing; BSAIM=<deg> tilts it; BSHAND=1 centres on the bleeding hand; BloodBrawlerLook.cs).
 # EMBOLUS=<s> (the Hemomancer DPS Embolus Spears that long into the mockup's loop: throws at 0 and 0.3 s, recall at 1.7 s, throws at 2.6 and 2.9 s, Alt burst at 4.1 s; ESAIM=<deg> tilts the aim; EmbolusLook.cs).
 # NUNCHAKU=<s> (the Ninja DPS Nunchaku, Twin Storm, that long into the mockup's loop: Fire held 0-1.85 s for the combo, Alt at 2.1 s (the Twin Windmill swats shots from the right), the Twin Counter at 3.7 s; NunchakuLook.cs).
 # BULWARK=<s> BBMODE=chain|guard|brace|bash|melee (the Tank Knight's Bulwark Barrier that long into a scene: Fire held (the chain, then the Shield Throw from about 1 s), shots at the plate, braced soaking them, a full-Ram Shield Bash at 0.3 s, or braced with Brutes walking into the plate; mode hud; BulwarkBarrierLook.cs).
@@ -75,7 +75,7 @@
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
 # CAST="Poison Dart" DARTKILL=<s> (its target dies that long after the cast, so the poison spreads; CASTT after it shows the globs).
-# CLOT=<draw s> (the Clot Cannon charging, clots in flight, a wet pool and a congealed one; mode hud).
+# CLOT=<draw s> (the Gore Mortar charging, clots in flight, a wet pool and a congealed one; mode hud).
 # LAG=pill|chart|guest LAGFROZEN=1 (the lag chart with made-up numbers, ShotLag.cs; mode hud, 3 players).
 # FUMA=orbit|lash|cyclone|steal FUMAT=<clock s> (with NINJA=2: the Fuma Shuriken's Orbit stance; FumaLook.cs).
 # WARDENINTRO=<s> (the Warden's entrance that far in: the cell closing, the padlock, the break, the scan band; WardenIntro.cs; e.g. shot.sh x hud 5 3 2).

@@ -12,7 +12,7 @@ namespace Arena
         /// plain ring and beam it also sends, which that look replaces when Visual effects are on (their durations mark them).
         public const float LifelineInvuln = 3f, LifelineFxTime = 3.7f, LifelinePlainRing = 0.62f, LifelinePlainLink = 0.56f;
 
-        bool Storming(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm;
+        bool Storming(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.ArtilleryAssault;
 
         /// How long the Glacial Tomb's Ring effect lives: its freeze (4 s, 6 s mastered) and a second for the thaw. The look tells it by this.
         public const float TombFxTail = 1f;
@@ -37,7 +37,7 @@ namespace Arena
             return erase.Count;
         }
 
-        /// The Soldier, Mage and Summoner ultimates. Their cooldowns aren't shortened by cooldown upgrades. (Upgrades.Abilities gathers every class's list.)
+        /// The Soldier, Elementalist and Summoner ultimates. Their cooldowns aren't shortened by cooldown upgrades. (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] UltimateAbilities =
         {
             new AbilityDef
@@ -86,7 +86,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Sanctum, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "Sanctum", Cooldown = 80f, Desc = "A holy dome for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger).",
+                Name = "Sanctum", Cooldown = 80f, Desc = "A dome of light for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger).",
                 Capstone = "The dome is half again as wide (300 px).",
                 Bot = b => b.AllyHurt,
             },
@@ -99,7 +99,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.BulletStorm, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Id = AbilityId.ArtilleryAssault, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,
                 Name = "Artillery Assault", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles.",
                 Capstone = "+4 extra projectiles instead of +2.",
             },
@@ -145,7 +145,7 @@ namespace Arena
                     CastJugg(p, cap);
                     break;
 
-                case AbilityId.GlacialTomb:  // Tank: Mage
+                case AbilityId.GlacialTomb:  // Tank: Elementalist
                     EraseEnemyBullets(p.Pos, 99999f);
                     foreach (var e in Enemies.Values)
                     {
@@ -163,7 +163,7 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 900f, TombFxTime(cap), Sfx.Freeze);  // lasts the freeze plus the thaw; Game/GlacialTombLook.cs draws it
                     break;
 
-                case AbilityId.LightningRod:  // Tank: Mage, the second ultimate (LightningRod.cs)
+                case AbilityId.LightningRod:  // Tank: Elementalist, the second ultimate (LightningRod.cs)
                     CastLightningRod(p, cap);
                     break;
 
@@ -196,7 +196,7 @@ namespace Arena
                     Sounds.Add(Sfx.Ability);
                     break;
 
-                case AbilityId.Sanctum:  // Healer: Mage
+                case AbilityId.Sanctum:  // Healer: Elementalist
                 {
                     float r = cap ? 300f : 200f;
                     EraseEnemyBullets(p.Pos, r);
@@ -212,7 +212,7 @@ namespace Arena
                     break;
                 }
 
-                case AbilityId.BulletStorm:  // DPS: Soldier
+                case AbilityId.ArtilleryAssault:  // DPS: Soldier
                     p.UltT = 6f;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.6f, 0.25f), 140f, 0.6f, Sfx.Ability);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.8f), 85f, 0.45f, Sfx.None);
@@ -222,7 +222,7 @@ namespace Arena
                     CastHeli(p, cap);
                     break;
 
-                case AbilityId.BulletRain:  // DPS: Mage
+                case AbilityId.BulletRain:  // DPS: Elementalist
                 {
                     V2 at = ClampToArena(target, BulletRainRadius);
                     AddZone(ZoneKind.BulletRain, p, at, BulletRainRadius, cap ? 9f : 6f);

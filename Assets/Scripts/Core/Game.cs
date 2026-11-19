@@ -109,7 +109,7 @@ namespace Arena
             lastShotTicks = clock.ElapsedTicks;
         }
 
-        /// Dev: when set (on the host), each match is recorded to a new file in this folder.
+        /// Dev: when set (on the host), each run is recorded to a new file in this folder.
         public string RecordFolder;
         public SessionRecorder Recorder;
         public Action<Player, float, string> DamageEvent;  // host: every hit a player takes (Boss Lab)
@@ -154,7 +154,7 @@ namespace Arena
         // Replays (Replay.cs): a replay watches the recorded match as a spectator (nobody is "you"), seeing the player ViewId's screen.
         public bool Replaying;
         public int ViewId;
-        public ReplayRecorder Replay;  // recording this match (HostStart sets it when ReplayFolder is)
+        public ReplayRecorder Replay;  // recording this run (HostStart sets it when ReplayFolder is)
         public string ReplayFolder;    // dev: where to save replays of the matches this game hosts (null = don't record)
 
         float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
@@ -228,7 +228,7 @@ namespace Arena
                 var order = new EnemyType[r.ReadByte()];
                 for (int i = 0; i < order.Length; i++)
                     order[i] = (EnemyType)r.ReadByte();
-                QuickOrder = order.Length > 0 ? order : new[] { EnemyType.Boss };
+                QuickOrder = order.Length > 0 ? order : new[] { EnemyType.Warden };
             }
             int n = r.ReadByte();
             var entries = new List<Player>();
@@ -240,7 +240,7 @@ namespace Arena
                 var kit = (Kit)r.ReadByte();
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
-                int wild = r.ReadByte();  // a Wildcard's second ability and its key (Defs.WildSecond / WildKey)
+                int wild = r.ReadByte();  // a Wildcard ability and its key (Defs.WildSecond / WildKey)
                 int ult = r.ReadByte();   // the Ultimate row's key (LobbyEntry.Ult)
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
@@ -249,13 +249,13 @@ namespace Arena
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f, ScatShells = ScatShellMax };
                 p.Kit = kit;
                 p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponLimit(role, kit) ? weapon : 0);
-                p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
+                p.FirstAbility = Upgrades.FirstAbility(role, kit, ability);
                 p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
                 if (role == Role.Wildcard)
                 {
                     p.WildKit = Upgrades.UltKitOf(role, kit, p.UltPick);  // the class its Ultimate pick is from
-                    p.StartBonus = Upgrades.RoleAbility(role, kit, Defs.WildSecond(wild));
-                    p.BonusKeys[Defs.WildKey(wild) - 1] = p.StartBonus;
+                    p.WildcardAbility = Upgrades.FirstAbility(role, kit, Defs.WildSecond(wild));
+                    p.CardAbilities[Defs.WildKey(wild) - 1] = p.WildcardAbility;
                 }
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;
@@ -276,7 +276,7 @@ namespace Arena
                     {
                         p.PendingPicks += Modifiers.HeadStartLevel - 1;
                         var first = BossAt(Bosses.FirstBossWave);
-                        p.LegendaryQueue.Add(IsReaper(first) ? EnemyType.TwinA : first);
+                        p.LegendaryQueue.Add(IsReaper(first) ? EnemyType.ReaperOfDusk : first);
                         NextOffer(p);
                     }
                 }
@@ -312,7 +312,7 @@ namespace Arena
             lastMyHp = Me != null ? Me.Hp : 0f;
             session.Screen = AppScreen.Game;
             if (Recorder != null && !Recorder.Ended)
-                Recorder.End(this, "restarted");  // a new match started over one still going: finish its file first
+                Recorder.End(this, "restarted");  // a new run started over one still going: finish its file first
             Recorder = null;
             if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight, a replay or the lobby's preview)
             {
@@ -323,7 +323,7 @@ namespace Arena
                 }
                 catch (Exception ex)
                 {
-                    Recorder = null;  // a recording problem never stops the match, but it says why
+                    Recorder = null;  // a recording problem never stops the run, but it says why
                     DoLog("session recording failed to start: " + ex.Message);
                 }
             }
@@ -332,7 +332,7 @@ namespace Arena
             DoLog("game started with " + Players.Count + " player(s)");
         }
 
-        /// Ends the match; `how` is what its recording says happened ("left", or "quit" when the game is closed).
+        /// Ends the run; `how` is what its recording says happened ("left", or "quit" when the game is closed).
         public void Stop(string how = "left")
         {
             if (Replay != null)
@@ -346,7 +346,7 @@ namespace Arena
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             if (TestRunning)
-                TestRunEnded("left the match");
+                TestRunEnded("left the run");
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
@@ -432,34 +432,34 @@ namespace Arena
                 p.Hp += p.MaxHp - oldMax;
 
             var ids = new AbilityId[Upgrades.SlotCount];
-            ids[0] = p.RoleAbility;
+            ids[0] = p.FirstAbility;
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
             ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit, p.UltPick);  // the lobby's Ultimate row pick (0: the default one)
-            // Bonus abilities go on the keys their owner chose; any others take the first free key.
+            // 2nd–4th abilities go on the keys their owner chose; any others take the first free key.
             var granted = new List<AbilityId>();
-            if (p.StartBonus != AbilityId.None)
-                granted.Add(p.StartBonus);  // a Wildcard's second ability counts as granted from the start
+            if (p.WildcardAbility != AbilityId.None)
+                granted.Add(p.WildcardAbility);  // a Wildcard ability counts as granted from the start
             foreach (int t in p.Taken)
-                if (Upgrades.All[t].Grants != AbilityId.None && granted.Count < Upgrades.BonusSlots && !granted.Contains(Upgrades.All[t].Grants))
+                if (Upgrades.All[t].Grants != AbilityId.None && granted.Count < Upgrades.CardAbilitySlots && !granted.Contains(Upgrades.All[t].Grants))
                     granted.Add(Upgrades.All[t].Grants);
-            for (int k = 0; k < Upgrades.BonusSlots; k++)
-                if (granted.Contains(p.BonusKeys[k]) && Array.IndexOf(ids, p.BonusKeys[k]) < 0)
-                    ids[1 + k] = p.BonusKeys[k];
+            for (int k = 0; k < Upgrades.CardAbilitySlots; k++)
+                if (granted.Contains(p.CardAbilities[k]) && Array.IndexOf(ids, p.CardAbilities[k]) < 0)
+                    ids[1 + k] = p.CardAbilities[k];
             foreach (var g in granted)
                 if (Array.IndexOf(ids, g) < 0)
-                    for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                    for (int k = 1; k <= Upgrades.CardAbilitySlots; k++)
                         if (ids[k] == AbilityId.None)
                         {
                             ids[k] = g;
                             break;
                         }
-            for (int k = 0; k < Upgrades.BonusSlots; k++)
-                p.BonusKeys[k] = ids[1 + k];
+            for (int k = 0; k < Upgrades.CardAbilitySlots; k++)
+                p.CardAbilities[k] = ids[1 + k];
 
             // Charges and cooldowns follow an ability when it moves to another key.
             var moved = new Dictionary<AbilityId, AbilitySlot>();
-            for (int i = 1; i <= Upgrades.BonusSlots; i++)
+            for (int i = 1; i <= Upgrades.CardAbilitySlots; i++)
                 if (p.Slots[i].Id != AbilityId.None)
                     moved[p.Slots[i].Id] = new AbilitySlot { Id = p.Slots[i].Id, Charges = p.Slots[i].Charges, MaxCharges = p.Slots[i].MaxCharges, Timer = p.Slots[i].Timer };
 
@@ -503,7 +503,7 @@ namespace Arena
                 return 1f;
             if (slot == Upgrades.UltSlot)
                 return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
-            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id) * (slot >= 1 && slot <= Upgrades.BonusSlots ? p.Stats.BonusCdMult : 1f);  // Quartermaster: Q, E, Shift
+            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id) * (slot >= 1 && slot <= Upgrades.CardAbilitySlots ? p.Stats.BonusCdMult : 1f);  // Quartermaster: 2nd, 3rd, 4th
             if (id == AbilityId.DeployableCover && Mastered(p, id))
                 cd *= CoverCdMastered;  // its capstone (DeployableCover.cs)
             return cd;
@@ -514,7 +514,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.BloodBoil && p.SprayOn || s.Id == AbilityId.CrimsonPact && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.BattleFury && p.SteelT > 0f)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.CaughtSteel && p.SteelT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
@@ -658,7 +658,7 @@ namespace Arena
             HostPick(peer, index, r.ReadByte());
         }
 
-        /// key: for a card that grants a new ability, the key to put it on (1 = Q, 2 = E, 3 = Shift; 0 = first free).
+        /// key: for a card that grants a new ability, the key to put it on (1 = the 2nd ability, 2 = the 3rd, 3 = the 4th; 0 = first free).
         void HostPick(int id, int index, int key = 0)
         {
             Player p;
@@ -717,8 +717,8 @@ namespace Arena
                 p.PrizePicks = Math.Max(0, p.PrizePicks - 1);
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
-            var keysBefore = (AbilityId[])p.BonusKeys.Clone();
-            PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
+            var keysBefore = (AbilityId[])p.CardAbilities.Clone();
+            PlaceOnKey(p.CardAbilities, Upgrades.All[upgrade].Grants, key);
             FollowExtraUses(p, keysBefore);
             GrantUpgrade(id, upgrade, key);
             p.Rerolls += Upgrades.All[upgrade].RerollsNow;  // Reroll Cache
@@ -728,7 +728,7 @@ namespace Arena
         }
 
         /// Boss rewards come first (legendaries, then weapon mods or the boss card pick), then regular level-up picks.
-        /// Who this player's card offers are for (role, class, Space ability, picks, weapon, the Expanding arena):
+        /// Who this player's card offers are for (role, class, 1st ability, picks, weapon, the Expanding arena):
         /// every offer and Upgrades.Available take one (Docs/UpgradePools.md step 2).
         public OfferCtx OfferFor(Player p) => OfferCtx.Of(p, ExpandingOn);
 
@@ -790,7 +790,7 @@ namespace Arena
         }
 
         /// Host only: give a player an upgrade and tell everyone.
-        /// key: for the Extra Use card, the key it goes on (1 Space, 2 Q, 3 E, 4 Shift; 0 Space).
+        /// key: for the Extra Use card, the key it goes on (1-4 the 1st-4th ability; 0 the 1st).
         public void GrantUpgrade(int id, int upgrade, int key = 0)
         {
             Player p;
@@ -812,7 +812,7 @@ namespace Arena
             w.Write((short)p.Taken.Count);
             foreach (int t in p.Taken)
                 w.Write((short)t);  // card ids are 2 bytes (Docs/UpgradePools.md step 1)
-            foreach (var k in p.BonusKeys)
+            foreach (var k in p.CardAbilities)
                 w.Write((byte)k);
             session.Broadcast(Proto.End(w));
         }
@@ -825,11 +825,11 @@ namespace Arena
                 old[k] = Upgrades.Count(p.Taken, Upgrades.UseCard(k));
             var now = (int[])old.Clone();
             bool changed = false;
-            for (int j = 1; j <= Upgrades.BonusSlots; j++)
+            for (int j = 1; j <= Upgrades.CardAbilitySlots; j++)
             {
-                if (p.BonusKeys[j - 1] == before[j - 1])
+                if (p.CardAbilities[j - 1] == before[j - 1])
                     continue;
-                int from = p.BonusKeys[j - 1] == AbilityId.None ? -1 : Array.IndexOf(before, p.BonusKeys[j - 1]);
+                int from = p.CardAbilities[j - 1] == AbilityId.None ? -1 : Array.IndexOf(before, p.CardAbilities[j - 1]);
                 now[j] = from >= 0 ? old[from + 1] : 0;
                 changed = true;
             }
@@ -844,10 +844,10 @@ namespace Arena
             }
         }
 
-        /// Put a bonus ability on a key (1 = Q, 2 = E, 3 = Shift). Whatever was there swaps to its old key.
+        /// Put a 2nd–4th ability on a key (1 = the 2nd ability, 2 = the 3rd, 3 = the 4th). Whatever was there swaps to its old key.
         public static void PlaceOnKey(AbilityId[] k, AbilityId id, int key)
         {
-            if (key < 1 || key > Upgrades.BonusSlots || id == AbilityId.None)
+            if (key < 1 || key > Upgrades.CardAbilitySlots || id == AbilityId.None)
                 return;
             int from = Array.IndexOf(k, id);
             var displaced = k[key - 1];
@@ -862,7 +862,7 @@ namespace Arena
             }
         }
 
-        /// The local player moves a bonus ability to another key (the Tab menu).
+        /// The local player moves a 2nd–4th ability to another key (the Tab menu).
         public void SetAbilityKey(AbilityId id, int key)
         {
             var me = Me;
@@ -888,10 +888,10 @@ namespace Arena
         void HostSetKey(int playerId, AbilityId id, int key)
         {
             Player p;
-            if (!Players.TryGetValue(playerId, out p) || Array.IndexOf(p.BonusKeys, id) < 0)
+            if (!Players.TryGetValue(playerId, out p) || Array.IndexOf(p.CardAbilities, id) < 0)
                 return;  // you can only move abilities you have
-            var before = (AbilityId[])p.BonusKeys.Clone();
-            PlaceOnKey(p.BonusKeys, id, key);
+            var before = (AbilityId[])p.CardAbilities.Clone();
+            PlaceOnKey(p.CardAbilities, id, key);
             FollowExtraUses(p, before);
             Recalc(p);
             BroadcastUpgrades(p);
@@ -1246,7 +1246,7 @@ namespace Arena
                     continue;  // nothing to mark: don't waste the cooldown
                 if (me.Slots[slot].Id == AbilityId.WaterWard && WwFull(me))
                     continue;  // every drop already out: don't waste the cooldown (WaterWard.cs)
-                if (me.Slots[slot].Id == AbilityId.IronBody && me.PlateN >= CerePlateMax)
+                if (me.Slots[slot].Id == AbilityId.CeremonialArmor && me.PlateN >= CerePlateMax)
                     continue;  // Ceremonial Armor with all 10 plates up: don't waste the cooldown
                 if (me.StandOn && MovesYou(me.Slots[slot].Id))
                     continue;  // planted: nothing that would carry you off (LastStand.cs)
@@ -1288,7 +1288,7 @@ namespace Arena
                         dashSpeed = dist / RoyalDiveTime;
                         break;
                     }
-                    case AbilityId.HemoNova:
+                    case AbilityId.VeinRush:
                     {
                         // Vein Rush: carried to the cursor (up to 280 px) as a streak of blood; the host cuts along the way.
                         target = VeinRushLanding(me, aimAt);
@@ -1401,7 +1401,7 @@ namespace Arena
             TickKnights(dt);  // Knight.cs
             TickDives(dt);    // Royal Dive landings (QueenLoot.cs)
             TickScytheClock(dt);  // Twin Scythes' cut timers (ReaperLoot.cs)
-            foreach (var tick in Classes.TickHooks)  // each class's KitDef.Tick: TickNinjas (Ninja.cs), TickBloodMages (BloodMage.cs)
+            foreach (var tick in Classes.TickHooks)  // each class's KitDef.Tick: TickNinjas (Ninja.cs), TickHemomancers (Hemomancer.cs)
                 tick(this, dt);
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
@@ -1418,7 +1418,7 @@ namespace Arena
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
             string tickSrc = CreditTo("weapon");  // (these are the weapons' own systems: the session recording credits them)
-            TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
+            TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.IceShards) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
             TickBulwark(dt);  // BulwarkBarrier.cs: the Brace held or dropped, Ram draining, a full bash's shards
@@ -1596,7 +1596,7 @@ namespace Arena
                     continue;  // (nothing to shoot from inside the Devourer, or mid beam-in)
                 if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
-                else if (p.Weapon.Id == WeaponId.Pistol)
+                else if (p.Weapon.Id == WeaponId.Revolver)
                 {
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);

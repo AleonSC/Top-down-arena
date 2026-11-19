@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Storm Herald's stage of the fight, by its health: three stages, then a last stand.
+    /// The Storm Herald's phase of the fight, by its health: three phases, then a last stand.
     public enum HeraldStage : byte { Gathering, Gale, Supercell, LastStand }
 
-    /// What it's doing now. Each stage loops its turns, one attack at a time, with breathers (Rest) between.
+    /// What it's doing now. Each phase loops its turns, one attack at a time, with breathers (Rest) between.
     public enum HeraldTurn : byte { Rest, Strikes, Rods, Thunderclap, Crosswind, BallLightning, Downburst, StormFront, StrikeRain, RodCage, Eye }
 
     /// A lightning rod: falls for `Fall` seconds (a marked spot), then stands until the turn ends.
@@ -22,7 +22,7 @@ namespace Arena
     {
         public HeraldStage Stage, TransTo;
         public HeraldTurn Turn;
-        public float TurnT, TransT;  // seconds into the turn; > 0: changing stage (can't be hurt), counting down
+        public float TurnT, TransT;  // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public int Wind;             // the Gale's wind: -1 west, +1 east, 0 still
         public float Spin;           // the last stand's spokes
         public int CondId;           // the Supercell's Conductor (a player id, 0 for none) and seconds left on the mark
@@ -35,17 +35,17 @@ namespace Arena
         public float TurnLen, ActT, CondWait, BoomT;  // BoomT: > 0, counting down to the thunder of strikes it marked
     }
 
-    /// The Storm Herald (wave 40): a fight in three stages by its health, like the Warden's, then a last stand.
+    /// The Storm Herald (wave 40): a fight in three phases by its health, like the Warden's, then a last stand.
     ///   Gathering Storm (100-65%): it drifts along the top; Strikes (as before), Lightning rods (arcs between rods
     ///     around you), Thunderclap (rings with two gaps). Its piercing volley in the breathers.
-    ///   Gale (65-30%): the wind blows across the arena all stage, turning round each turn: it pushes players and
+    ///   Gale (65-30%): the wind blows across the arena all phase, turning round each turn: it pushes players and
     ///     bends every bullet. Crosswind (volleys aimed upwind), Ball lightning (slow orbs that arc to each other),
     ///     Downburst (rows of big strikes at your height).
     ///   Supercell (30-10%): the Conductor (one player at a time carries a charge that jumps to allies near them),
     ///     Storm front (a sweeping wall of strikes with a gap), Strike rain, Rod cage (rods ringed round you, one open
     ///     side).
     ///   Last stand (below 10%): in the middle, four lightning spokes turning, strikes on everyone, its volley.
-    /// Built from the mockup in Docs/Mockups/storm-herald-3-stage.html. Drawn in HeraldLook.cs.
+    /// Built from the mockup in Docs/Mockups/storm-herald-3-phase.html. Drawn in HeraldLook.cs.
     public partial class Game
     {
         const float HeraldGaleAt = 0.65f, HeraldSupercellAt = 0.3f, HeraldLastAt = 0.1f, HeraldTransTime = 2f;
