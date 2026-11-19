@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Kinetic Wall (KineticWall.cs): the Elementalist DPS's 4th choice (pick 3 reaching the run), the lens catching enemy shots
+// Gale Wall (GaleWall.cs): the Elementalist DPS's 4th choice (pick 3 reaching the run), the lens catching enemy shots
 // (each a charge, up to the cap), the unleash on a second press (cone damage that grows with the charge, shoves) or when it runs
 // out, the mastered lens, replication, and going down.
 static partial class Program
 {
-    static void KineticWallTest(float dt)
+    static void GaleWallTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var hostAbility = typeof(Game).GetMethod("HostAbility", flags);
@@ -16,10 +16,10 @@ static partial class Program
         var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
         var masteredField = typeof(Game).GetField("castMastered", flags);
 
-        Check(Upgrades.AbilityLimit(Role.Dps, Kit.Elementalist) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Elementalist, 3) == AbilityId.KineticWall
+        Check(Upgrades.AbilityLimit(Role.Dps, Kit.Elementalist) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Elementalist, 3) == AbilityId.GaleWall
             && Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 3 && Upgrades.AbilityLimit(Role.Tank, Kit.Knight) == 3
             && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 3) == Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0),
-            "the Elementalist DPS has a 4th choice, Kinetic Wall; classes without a 4th keep three");
+            "the Elementalist DPS has a 4th choice, Gale Wall; classes without a 4th keep three");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Elementalist", Role.Dps, 0, 3, Kit.Elementalist);
@@ -29,7 +29,7 @@ static partial class Program
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.FirstAbility == AbilityId.KineticWall && me.Slots[0].Id == AbilityId.KineticWall, "picking the 4th key brings Kinetic Wall into the run on Space");
+        Check(me.FirstAbility == AbilityId.GaleWall && me.Slots[0].Id == AbilityId.GaleWall, "picking the 4th key brings Gale Wall into the run on Space");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(300f, 450f), aim = new V2(900f, 450f);
@@ -65,7 +65,7 @@ static partial class Program
         press();
         Check(me.KwT == 0f && me.KwDots.Count == 0 && g.Effects.Any(e => e.Kind == FxKind.KwBlast && e.Radius == 12f), "pressing again unleashes it (no new cast) and sends the blast with its charge");
         float hit = inCone.MaxHp - inCone.Hp;
-        Console.WriteLine("  kinetic wall: 12 charges, hit {0:0.0} of {1:0.0}", hit, D);
+        Console.WriteLine("  gale wall: 12 charges, hit {0:0.0} of {1:0.0}", hit, D);
         Check(Math.Abs(hit - D) < 1f, "an enemy in the cone takes 40 + 6 per charge");
         Check(behind.Hp == behind.MaxHp && wide.Hp == wide.MaxHp, "enemies behind you or off to the side aren't hit");
         Check(inCone.KnockLeft.Length > 1f || inCone.Pos.DistanceTo(start) > 1f, "enemies hit are shoved back");
@@ -86,7 +86,7 @@ static partial class Program
         reset();
         keep = pin(new V2(1500f, 900f));
         masteredField.SetValue(g, true);
-        typeof(Game).GetMethod("CastKineticWall", flags).Invoke(g, new object[] { me, true });
+        typeof(Game).GetMethod("CastGaleWall", flags).Invoke(g, new object[] { me, true });
         Check(me.KwWide && Game.KwCapOf(me) == Game.KwCapMastered && Game.KwSpan(me) > (float)Math.Asin(Game.KwHalfWidth / Game.KwRadius) + 0.1f, "mastered: wider, and it holds up to 60");
 
         // Going down: the lens is gone.

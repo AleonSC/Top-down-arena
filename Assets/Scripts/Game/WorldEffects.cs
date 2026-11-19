@@ -216,10 +216,10 @@ namespace Arena
                     DrawBulwarkThrowFx(fx, t);  // BulwarkBarrierLook.cs
                     break;
                 case FxKind.KwCatch:
-                    DrawKwCatchFx(fx);  // KineticWallLook.cs
+                    DrawKwCatchFx(fx);  // GaleWallLook.cs
                     break;
                 case FxKind.KwBlast:
-                    DrawKwBlastFx(fx);  // KineticWallLook.cs
+                    DrawKwBlastFx(fx);  // GaleWallLook.cs
                     break;
                 case FxKind.WwSplash:
                     DrawWwSplashFx(fx);  // WaterWardLook.cs

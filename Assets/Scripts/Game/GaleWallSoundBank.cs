@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Kinetic Wall's sounds (Core/KineticWall.cs): a wall of wind. Each screen plays them from what it sees
-    /// (KineticWallLook.cs `TickKineticWallSounds`), so nothing is sent. On the Effects volume; an ally's are quieter.
+    /// Gale Wall's sounds (Core/GaleWall.cs): a wall of wind. Each screen plays them from what it sees
+    /// (GaleWallLook.cs `TickGaleWallSounds`), so nothing is sent. On the Effects volume; an ally's are quieter.
     ///   KwCast     the wall rising: a gust swelling in, with a thin whistle sliding up over it
     ///   KwHum      the wall's howl (a loop): wind noise gusting once a loop, a faint whistle on top; higher and louder as it fills
     ///   KwCatch    a shot caught in the wind: a short puff of air and a soft low thud (three takes, rate-limited)
@@ -14,7 +14,7 @@ namespace Arena
     {
         AudioSource kwHumVoice;  // (made in the constructor)
 
-        void BuildKineticWall()
+        void BuildGaleWall()
         {
             const Osc S = Osc.Sine;
             Set(Sfx.KwCast, Finish(Mix(
@@ -61,7 +61,7 @@ namespace Arena
             Jitter(0.2f, Sfx.KwCatch);
         }
 
-        /// A Kinetic Wall sound: yours at full volume, an ally's quieter, both quieter with distance.
+        /// A Gale Wall sound: yours at full volume, an ally's quieter, both quieter with distance.
         public void PlayKw(Sfx s, float now, bool mine, float quiet) => Play(new SoundCue { Sfx = s, Ally = !mine, Quiet = quiet }, now);
 
         public void PlayKwCatch(float now, bool mine, float quiet) => Play(Sfx.KwCatch, (mine ? 0.8f : 0.35f) * (1f - quiet), now);

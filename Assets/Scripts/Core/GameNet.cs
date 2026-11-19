@@ -598,7 +598,7 @@ namespace Arena
             s.Float(ref p.HarvestClock);  // Crimson Harvest (CrimsonHarvest.cs)
             s.Float(ref p.HarvestBlood);
             s.Float(ref p.HarvestHold);
-            s.Float(ref p.KwT);  // Kinetic Wall (KineticWall.cs)
+            s.Float(ref p.KwT);  // Gale Wall (GaleWall.cs)
             if (p.KwT > 0f)
             {
                 s.Vec(ref p.KwPos);

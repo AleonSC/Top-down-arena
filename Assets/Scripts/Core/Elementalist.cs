@@ -80,7 +80,7 @@ namespace Arena
                 Apply = s => { s.MeteorDmgMult += 0.5f; s.MeteorRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Blizzard, MaxStacks = 2, Name = "Whiteout", Desc = "Blizzard is 40% bigger and lasts 2 s longer",
                 Apply = s => { s.BlizzardRadiusMult += 0.4f; s.BlizzardBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.KineticWall, MaxStacks = 2, Name = "Momentum Bank", Desc = "Each shot Kinetic Wall catches adds 40% more damage to its blast",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GaleWall, MaxStacks = 2, Name = "Momentum Bank", Desc = "Each shot Gale Wall catches adds 40% more damage to its blast",
                 Apply = s => s.KwChargeMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WaterWard, MaxStacks = 2, Name = "Deep Current", Desc = "Water Ward's splashes hit 40% harder, and its drops keep enemies wet 2 s longer",
                 Apply = s => { s.WwDmgMult += 0.4f; s.WwWetBonus += 2f; } },
@@ -191,8 +191,8 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.KineticWall, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Fourth,
-                Name = "Kinetic Wall", Cooldown = 18f,
+                Id = AbilityId.GaleWall, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Fourth,
+                Name = "Gale Wall", Cooldown = 18f,
                 Desc = "A curved wall of wind in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back.",
                 Capstone = "The wall is 40% wider and holds up to 60 charges.",
             },

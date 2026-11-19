@@ -131,7 +131,7 @@ namespace Arena
             { "Poison Dart", "poisondart" },
             { "Airstrike", "explode" },
             { "Mark for Death", "crosshair" },
-            { "Aeroaegis", "mirror" },
+            { "Aeroaegis", "aeroaegis" },
             { "Frost Nova", "snow" },
             { "Flame Wall", "flame" },
             { "Healing Rain", "rain" },
@@ -140,7 +140,7 @@ namespace Arena
             { "Meteor", "explode" },
             { "Blizzard", "snow" },
             { "Tsunami", "cyclone" },
-            { "Kinetic Wall", "galewall" },
+            { "Gale Wall", "galewall" },
             { "Deployable Cover", "guard_wide" },
             { "Golem Wall", "guard_wide" },
             { "Earthquake", "earthshaker" },
@@ -2308,7 +2308,7 @@ namespace Arena
                 "............",
                 "............",
             },
-            ["galewall"] = new[]  // Kinetic Wall: gusts of wind curling back on themselves
+            ["galewall"] = new[]  // Gale Wall: gusts of wind curling back on themselves
             {
                 "............",
                 ".......ccc..",
@@ -2322,6 +2322,21 @@ namespace Arena
                 "...bbbccbc..",
                 "............",
                 "............",
+            },
+            ["aeroaegis"] = new[]  // Aeroaegis: a shield of swirling wind
+            {
+                "............",
+                ".kkkkkkkkkk.",
+                ".kccccccbbk.",
+                ".kc.wwww.bk.",
+                ".kcw....wbk.",
+                ".kc..ww.wbk.",
+                ".kc.w..w.bk.",
+                "..kcw.ww.k..",
+                "..kc.w..bk..",
+                "...kc..bk...",
+                "....kcbk....",
+                ".....kk.....",
             },
             ["mirror"] = new[]
             {

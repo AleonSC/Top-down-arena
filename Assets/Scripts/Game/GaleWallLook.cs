@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Kinetic Wall (Core/KineticWall.cs), look B "Plasma membrane" of Docs/Mockups/kinetic-wall-fx.html on the lens of
+    /// Gale Wall (Core/GaleWall.cs), look B "Plasma membrane" of Docs/Mockups/kinetic-wall-fx.html on the lens of
     /// Docs/Mockups/kinetic-wall.html. While the lens is up:
     ///   boot      it draws out from its middle in KwBoot s, a bright head racing to each end;
     ///   membrane  seven wobbling skins of thin arcs (two bright outer rims), light streaks flowing along it and sparks running the rims;
@@ -12,7 +12,7 @@ namespace Arena
     ///   strain    as it fills it brightens and turns from wind teal toward white gale, its sparks speed up, and past 80% it flickers.
     /// A countdown along the outer edge and a charge bar under the caster; the caster's own screen outlines the cone. FxKind.KwBlast is
     /// the unleash: the lens collapsing to a bright core, then a fan with rings rolling out and the held shots flung along it.
-    /// Sounds: KineticWallSoundBank.cs, played from TickKineticWallSounds below.
+    /// Sounds: GaleWallSoundBank.cs, played from TickGaleWallSounds below.
     public partial class ArenaApp
     {
         static readonly Rgba KwRim = new Rgba(0.84f, 1f, 0.97f), KwCore = new Rgba(0.96f, 1f, 1f), KwHot = new Rgba(0.93f, 1f, 1f);
@@ -61,7 +61,7 @@ namespace Arena
         }
 
         /// Called for each player with a lens up.
-        void DrawKineticWall(Player p, float t)
+        void DrawGaleWall(Player p, float t)
         {
             if (p.KwT <= 0f)
                 return;
@@ -240,10 +240,10 @@ namespace Arena
         readonly Dictionary<int, int> kwSeen = new Dictionary<int, int>();  // per caster: -1 no lens, else the charge last heard
         readonly List<int> kwGone = new List<int>();
 
-        /// Kinetic Wall's sounds, from what this screen sees (nothing is sent): the cast when a lens appears, a catch per FxKind.KwCatch,
+        /// Gale Wall's sounds, from what this screen sees (nothing is sent): the cast when a lens appears, a catch per FxKind.KwCatch,
         /// the chime when a lens fills, the unleash per FxKind.KwBlast, and the hum under your own lens (an ally's, quieter). Runs before
         /// TickArcLockSounds, which marks every effect Heard.
-        void TickKineticWallSounds()
+        void TickGaleWallSounds()
         {
             if (sounds == null)
                 return;

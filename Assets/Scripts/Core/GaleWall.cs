@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Kinetic Wall (Elementalist DPS, the 4th choice, `AbilityId.KineticWall`; mockup Docs/Mockups/kinetic-wall.html, look B
+    /// Gale Wall (Elementalist DPS, the 4th choice, `AbilityId.GaleWall`; mockup Docs/Mockups/kinetic-wall.html, look B
     /// "Gravity Lens"). Space puts a curved lens in front of you (KwFront px ahead, KwHalfWidth px each side; it stays where it was
     /// cast). Enemy shots that reach it stop there and hang in it (red aimed shots too); each one is a charge (KwCap, mastered
     /// KwCapMastered). Space again, or the lens running out (KwTime), unleashes it: a cone from you toward your cursor (KwConeHalf
     /// each side, KwReach long) that hits each enemy in it once for KwDamage(charge) and shoves it back.
     /// Replicated on the Player: KwT (seconds left, 0 = no lens), KwPos/KwAim (where it stands and faces), KwWide (mastered: wider)
     /// and KwDots (each caught shot's place in the lens, two bytes; the count is the charge). FxKind.KwCatch is a shot being caught,
-    /// FxKind.KwBlast the unleash (Game/KineticWallLook.cs).
+    /// FxKind.KwBlast the unleash (Game/GaleWallLook.cs).
     public partial class Game
     {
         public const float KwTime = 5f, KwFront = 70f, KwRadius = 150f, KwBand = 14f, KwHalfWidth = 80f, KwHalfWidthMastered = 110f;
@@ -45,10 +45,10 @@ namespace Arena
             rad = (((v >> 8) & 255) / 255f) * 2f - 1f;
         }
 
-        /// True if this slot is a Kinetic Wall with its lens up: pressing it unleashes the lens instead of casting again.
-        public bool KineticPress(Player p, int slot) => p.Slots[slot].Id == AbilityId.KineticWall && p.KwT > 0f;
+        /// True if this slot is a Gale Wall with its lens up: pressing it unleashes the lens instead of casting again.
+        public bool GalePress(Player p, int slot) => p.Slots[slot].Id == AbilityId.GaleWall && p.KwT > 0f;
 
-        void CastKineticWall(Player p, bool cap)
+        void CastGaleWall(Player p, bool cap)
         {
             p.KwT = KwTime;
             p.KwPos = p.Pos;
@@ -56,12 +56,12 @@ namespace Arena
             p.KwWide = cap;
             p.KwDots.Clear();
             p.KwPerShot = KwPerShot * p.Stats.KwChargeMult;
-            BroadcastFx(FxKind.Ring, KwDotPos(p, 0f, 0f), KwColor, 60f, 0.35f, Sfx.None);  // (its sounds are played by each screen: KineticWallSoundBank.cs)
+            BroadcastFx(FxKind.Ring, KwDotPos(p, 0f, 0f), KwColor, 60f, 0.35f, Sfx.None);  // (its sounds are played by each screen: GaleWallSoundBank.cs)
         }
 
-        /// Host, from the enemy-bullet loop in Combat.cs: does a Kinetic Wall catch this shot? Every shot stops in it (aimed ones
+        /// Host, from the enemy-bullet loop in Combat.cs: does a Gale Wall catch this shot? Every shot stops in it (aimed ones
         /// too); each adds a charge up to the cap.
-        bool KineticStops(Bullet b)
+        bool GaleStops(Bullet b)
         {
             foreach (var p in Players.Values)
             {
@@ -88,7 +88,7 @@ namespace Arena
         }
 
         /// Host: the lens lets go, a cone from the caster toward their cursor.
-        void UnleashKineticWall(Player p)
+        void UnleashGaleWall(Player p)
         {
             if (p.KwT <= 0f)
                 return;
@@ -107,17 +107,17 @@ namespace Arena
                 HurtEnemy(e, D, p.Id);
             }
             BroadcastFx(FxKind.KwBlast, p.Pos, p.Pos + V2.FromAngle(face) * KwReach, KwColor, charge, KwBlastT, Sfx.None);
-            ClearKineticWall(p);
+            ClearGaleWall(p);
         }
 
-        void ClearKineticWall(Player p)
+        void ClearGaleWall(Player p)
         {
             p.KwT = 0f;
             p.KwDots.Clear();
         }
 
         /// Host, every tick: the lens runs down and unleashes itself at the end; a downed caster loses it.
-        void TickKineticWalls(float dt)
+        void TickGaleWalls(float dt)
         {
             foreach (var p in Players.Values)
             {
@@ -125,14 +125,14 @@ namespace Arena
                     continue;
                 if (p.Downed)
                 {
-                    ClearKineticWall(p);
+                    ClearGaleWall(p);
                     continue;
                 }
                 p.KwT -= dt;
                 if (p.KwT <= 0f)
                 {
                     p.KwT = 0.001f;  // (so the unleash still sees the lens)
-                    UnleashKineticWall(p);
+                    UnleashGaleWall(p);
                 }
             }
         }
