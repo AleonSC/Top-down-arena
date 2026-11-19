@@ -124,8 +124,43 @@ namespace Arena
                 return;
             }
 
+            BotTargets(me, out Enemy target, out Enemy shootAt);
+            BotAllies(me, out Player downed, out Player lowest);
+            V2 anchor = BotAnchor(me, target, ref downed, out float pref, out V2 routeWay);
+
+            // --- Dodge: score each way we could move over the next fraction of a second.
+            botThinkT -= dt;
+            if (botThinkT <= 0f)
+            {
+                botThinkT = sk.Think;
+                botMove = ChooseMove(me, sk, anchor, pref, me.Role == Role.Healer && downed == null ? lowest : null, out BotDanger);
+            }
+            move = botMove;
+            if (!routeWay.IsZero && BotDanger < 1.2f)
+                move = routeWay;  // on the way round a wall and nothing to dodge: walk the route (the dodge scoring would rub on door jambs)
+            move = AroundProps(me, move);
+
+            bool aimSettled = BotAim(me, sk, dt, ref shootAt, pref, ref aimAt);
+            firing = BotFire(me, sk, dt, shootAt, pref, aimSettled, ref aimAt);
+
+            // --- The weapon's Alt and the parry (BotWeaponAlt.cs, BotParry.cs): a shot it can't step out of is blocked instead.
+            weaponAction = BotWeaponAlt(me, dt, target, shootAt, shootAt != null && InReach(me, shootAt, pref), downed, lowest, ref firing, ref aimAt);
+            parry = BotParry(me, sk, dt, weaponAction || botAltHeld);
+            if (parry)
+            {
+                firing = false;
+                aimAt = me.Pos + V2.FromAngle(me.Aim) * 120f;
+            }
+
+            BotAbilities(me, held, target, downed, lowest, ref aimAt);
+        }
+
+        /// Who to go for (the boss, the team's Mark, the adds that protect it) and who to shoot at (something close, and only what the bot can see).
+        void BotTargets(Player me, out Enemy target, out Enemy shootAt)
+        {
             // --- Target: the boss (or the Reaper that can be hurt), unless something small is right on top of us.
-            Enemy target = null, close = null;
+            target = null;
+            Enemy close = null;
             float bestScore = float.MaxValue, closeD = 170f;
             foreach (var e in Enemies.Values)
             {
@@ -167,7 +202,7 @@ namespace Arena
             }
             if (key != null)
                 target = key;
-            Enemy shootAt = close ?? target;
+            shootAt = close ?? target;
             // No shooting through walls: with a wall in the way, take the nearest enemy it can actually see (or none).
             if (shootAt != null && !BotSees(me.Pos, shootAt.Pos))
             {
@@ -177,10 +212,13 @@ namespace Arena
                         seen = e;
                 shootAt = seen;
             }
-            bool aimSettled = true;  // false while the aim is still swinging round: hold fire until it's on
+        }
 
-            // --- Where we'd like to be.
-            Player downed = null, lowest = null;
+        /// The nearest downed ally and the most hurt one standing.
+        void BotAllies(Player me, out Player downed, out Player lowest)
+        {
+            downed = null;
+            lowest = null;
             foreach (var q in Players.Values)
             {
                 if (q.Id == me.Id)
@@ -190,7 +228,12 @@ namespace Arena
                 if (!q.Downed && MoreHurt(q, lowest))
                     lowest = q;
             }
-            float pref = me.Weapon.BotRange - (me.Role == Role.Tank ? 40f : 0f);
+        }
+
+        /// Where the bot would like to be and how far off (pref): the target at the weapon's range, a downed ally, a Last Stand's lee, or the next corner round a wall (routeWay).
+        V2 BotAnchor(Player me, Enemy target, ref Player downed, out float pref, out V2 routeWay)
+        {
+            pref = me.Weapon.BotRange - (me.Role == Role.Tank ? 40f : 0f);
             if (me.Weapon.Melee)  // in swinging distance of the target's edge
                 pref = MeleeReach(me, MeleeRange(me.Weapon.Id)) * 0.7f + (target != null ? target.Radius : 0f);
             if (downed != null && RoomsOn)
@@ -220,7 +263,7 @@ namespace Arena
 
             // --- The Rooms arena (Rooms.cs): with a wall between us and where we're going, head for the next corner or
             // doorway on the way round instead (the enemies' steering, LayoutRules.cs).
-            V2 routeWay = V2.Zero;
+            routeWay = V2.Zero;
             if (RoomsOn && anchor.FartherThan(me.Pos, pref + 40f))
             {
                 V2 straight = (anchor - me.Pos).Normalized();
@@ -232,19 +275,13 @@ namespace Arena
                     routeWay = way;
                 }
             }
+            return anchor;
+        }
 
-            // --- Dodge: score each way we could move over the next fraction of a second.
-            botThinkT -= dt;
-            if (botThinkT <= 0f)
-            {
-                botThinkT = sk.Think;
-                botMove = ChooseMove(me, sk, anchor, pref, me.Role == Role.Healer && downed == null ? lowest : null, out BotDanger);
-            }
-            move = botMove;
-            if (!routeWay.IsZero && BotDanger < 1.2f)
-                move = routeWay;  // on the way round a wall and nothing to dodge: walk the route (the dodge scoring would rub on door jambs)
-            move = AroundProps(me, move);
-
+        /// Turns the aim onto the shot's lead (with a skill wobble), or onto something already in reach. False while it is still swinging round.
+        bool BotAim(Player me, SkillParams sk, float dt, ref Enemy shootAt, float pref, ref V2 aimAt)
+        {
+            bool aimSettled = true;  // false while the aim is still swinging round: hold fire until it's on
             // --- Aim: lead the target, with a skill-based wobble.
             if (shootAt != null)
             {
@@ -277,9 +314,14 @@ namespace Arena
                     aimAt = me.Pos + V2.FromAngle(me.Aim) * Math.Max(40f, lead.DistanceTo(me.Pos));
                 }
             }
+            return aimSettled;
+        }
 
+        /// Whether to hold the trigger: in reach, not into a hungry Devourer, a healer's shot lined up on a hurt ally, a bow let go at full draw.
+        bool BotFire(Player me, SkillParams sk, float dt, Enemy shootAt, float pref, bool aimSettled, ref V2 aimAt)
+        {
             // --- Fire: hold the trigger; the bow draws to full, then lets go. Not into a hungry Devourer, or its Maw.
-            firing = shootAt != null && InReach(me, shootAt, pref) && !(shootAt.Type == EnemyType.Devourer && (Hungry(shootAt) || DevourImmune(shootAt)
+            bool firing = shootAt != null && InReach(me, shootAt, pref) && !(shootAt.Type == EnemyType.Devourer && (Hungry(shootAt) || DevourImmune(shootAt)
                 || shootAt.Devour != null && shootAt.Devour.Stage == DevourStage.Ravenous && InMaw(shootAt, me.Pos)));
             // --- Healing shots: an arrow heals the ally it passes and a dart heals the one it reaches, so a healer lines
             // the shot up on a hurt teammate close by (and sends it on toward the boss from there).
@@ -306,17 +348,12 @@ namespace Arena
             else if (me.Weapon.Id == WeaponId.GoreMortar && bowDraw >= BowMinDraw
                 && ClotDistance(BowCharge(me, bowDraw)) * me.Stats.ShotSpeedMult >= aimAt.DistanceTo(me.Pos))
                 firing = false;  // the Gore Mortar: let go once the clot would land on what it's aimed at
+            return firing;
+        }
 
-            // --- The weapon's Alt and the parry (BotWeaponAlt.cs, BotParry.cs): a shot it can't step out of is blocked instead.
-            weaponAction = BotWeaponAlt(me, dt, target, shootAt, shootAt != null && InReach(me, shootAt, pref), downed, lowest, ref firing, ref aimAt);
-            parry = BotParry(me, sk, dt, weaponAction || botAltHeld);
-            if (parry)
-            {
-                firing = false;
-                aimAt = me.Pos + V2.FromAngle(me.Aim) * 120f;
-            }
-
-            // --- Abilities.
+        /// Abilities: channels it is in are kept or let go, then at most one new press a frame, aimed where it helps.
+        void BotAbilities(Player me, bool[] held, Enemy target, Player downed, Player lowest, ref V2 aimAt)
+        {
             for (int i = 0; i < held.Length; i++)
                 held[i] = false;
             bool inDanger = BotDanger > 1.5f || me.Hp < me.MaxHp * 0.35f;
@@ -329,44 +366,8 @@ namespace Arena
             for (int slot = 0; slot < Upgrades.SlotCount; slot++)
             {
                 var s = me.Slots[slot];
-                if (s.Id == AbilityId.LastStand && me.StandOn)
-                {
-                    held[slot] = botHeldLast[slot] = false;
-                    bool guarding = downed != null && downed.Pos.CloserThan(me.Pos, StandRadius);  // someone is being stood back up in its lee
-                    if (me.StandT > 3f && BotDanger < 0.2f && !guarding && !botHeldLast[slot])  // nothing coming for a moment: step out of it
-                        held[slot] = botHeldLast[slot] = true;
+                if (BotHoldChannel(me, s, slot, held, downed, target, targetD))
                     continue;
-                }
-                Zone bath;
-                if (s.Id == AbilityId.Bloodbath && (bath = ActiveBath(me)) != null)
-                {
-                    held[slot] = botHeldLast[slot] = false;
-                    if (BathAge(bath) > 1.5f && (BathWading(bath) == 0 || me.Hp < me.MaxHp * 0.25f))  // nothing wading, or bled enough: stop the channel
-                        held[slot] = botHeldLast[slot] = true;
-                    continue;
-                }
-                if (s.Id == AbilityId.ArterialSpray && me.SprayOn)
-                {
-                    held[slot] = botHeldLast[slot] = false;
-                    bool inReach = target != null && targetD < Game.SprayReachOf(me) + target.Radius;
-                    if (me.SprayT > 0.5f && (!inReach || me.Hp < me.MaxHp * 0.3f))  // nothing in the jet, or bled enough: close the vein
-                        held[slot] = botHeldLast[slot] = true;
-                    continue;
-                }
-                if (s.Id == AbilityId.BloodWall && me.BloodWallOn)
-                {
-                    held[slot] = botHeldLast[slot] = false;
-                    if (me.BloodWallClock > 1f && (me.Hp < me.MaxHp * 0.4f || BotDanger < 0.05f && target == null))  // bled enough, or nothing left to wall off: stop
-                        held[slot] = botHeldLast[slot] = true;
-                    continue;
-                }
-                if (s.Id == AbilityId.BloodShell && me.ShellOn)
-                {
-                    held[slot] = botHeldLast[slot] = false;
-                    if (BotDanger < 0.1f && me.ShellT > 1.5f)  // nothing coming: press again to drop it (it bleeds you)
-                        held[slot] = botHeldLast[slot] = true;
-                    continue;
-                }
                 if (s.Id == AbilityId.None || s.Charges <= 0 || botHeldLast[slot])
                 {
                     botHeldLast[slot] = false;  // release so the next press counts
@@ -387,6 +388,50 @@ namespace Arena
                     aimAt = target.Pos;  // (a Mark goes on the target too: the boss, not the add that happens to be nearest)
                 break;  // one ability per frame
             }
+        }
+
+        /// A channel or toggle the bot is in (Last Stand, Bloodbath, Arterial Spray, Blood Wall, Blood Shell): true when this slot is handled (pressed again to stop it, or left on).
+        bool BotHoldChannel(Player me, AbilitySlot s, int slot, bool[] held, Player downed, Enemy target, float targetD)
+        {
+            if (s.Id == AbilityId.LastStand && me.StandOn)
+            {
+                held[slot] = botHeldLast[slot] = false;
+                bool guarding = downed != null && downed.Pos.CloserThan(me.Pos, StandRadius);  // someone is being stood back up in its lee
+                if (me.StandT > 3f && BotDanger < 0.2f && !guarding && !botHeldLast[slot])  // nothing coming for a moment: step out of it
+                    held[slot] = botHeldLast[slot] = true;
+                return true;
+            }
+            Zone bath;
+            if (s.Id == AbilityId.Bloodbath && (bath = ActiveBath(me)) != null)
+            {
+                held[slot] = botHeldLast[slot] = false;
+                if (BathAge(bath) > 1.5f && (BathWading(bath) == 0 || me.Hp < me.MaxHp * 0.25f))  // nothing wading, or bled enough: stop the channel
+                    held[slot] = botHeldLast[slot] = true;
+                return true;
+            }
+            if (s.Id == AbilityId.ArterialSpray && me.SprayOn)
+            {
+                held[slot] = botHeldLast[slot] = false;
+                bool inReach = target != null && targetD < Game.SprayReachOf(me) + target.Radius;
+                if (me.SprayT > 0.5f && (!inReach || me.Hp < me.MaxHp * 0.3f))  // nothing in the jet, or bled enough: close the vein
+                    held[slot] = botHeldLast[slot] = true;
+                return true;
+            }
+            if (s.Id == AbilityId.BloodWall && me.BloodWallOn)
+            {
+                held[slot] = botHeldLast[slot] = false;
+                if (me.BloodWallClock > 1f && (me.Hp < me.MaxHp * 0.4f || BotDanger < 0.05f && target == null))  // bled enough, or nothing left to wall off: stop
+                    held[slot] = botHeldLast[slot] = true;
+                return true;
+            }
+            if (s.Id == AbilityId.BloodShell && me.ShellOn)
+            {
+                held[slot] = botHeldLast[slot] = false;
+                if (BotDanger < 0.1f && me.ShellT > 1.5f)  // nothing coming: press again to drop it (it bleeds you)
+                    held[slot] = botHeldLast[slot] = true;
+                return true;
+            }
+            return false;
         }
 
         bool WantAbility(AbilityId id, Player me, bool danger, bool allyHurt, bool allyDown, float targetD, bool haveTarget,
