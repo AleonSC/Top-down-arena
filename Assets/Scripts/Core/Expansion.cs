@@ -530,6 +530,24 @@ namespace Arena
 
         static readonly V2[] Sides = { new V2(0f, 1f), new V2(0f, -1f), new V2(1f, 0f), new V2(-1f, 0f) };
 
+        /// The outer-wall grid spot nearest p within reach (null: none), so the teleporter tool only ever lands on a wall.
+        public static V2? NearestWallSpot(World w, V2 p, float reach)
+        {
+            V2? best = null;
+            int r = (int)Math.Ceiling(reach / Step);
+            float cx = (float)Math.Round(p.X / Step) * Step, cy = (float)Math.Round(p.Y / Step) * Step;
+            for (int i = -r; i <= r; i++)
+                for (int j = -r; j <= r; j++)
+                {
+                    V2 q = new V2(cx + i * Step, cy + j * Step);
+                    if (q.FartherThan(p, reach) || (best.HasValue && !q.CloserThan(p, best.Value.DistanceTo(p))))
+                        continue;
+                    if (OuterWall(w, q).HasValue)
+                        best = q;
+                }
+            return best;
+        }
+
         /// Whether one end of a portal pair can go on the wall at p; `inn` is the way into its room, `why` what is wrong.
         static bool WallSpot(World w, V2 p, out V2 inn, out string why)
         {
