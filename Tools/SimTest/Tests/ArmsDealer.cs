@@ -5,7 +5,7 @@ using Arena;
 static partial class Program
 {
     // The Arms Dealer (Docs/ArmsDealer.md step 2): its room sells every weapon mod for gold while the room shops are open, priced by the
-    // stacks you hold, only to someone standing in it; a client buys through the host. A boss cycle without one deals an Arms Dealer card.
+    // stacks you hold, only to someone standing in it; a client buys through the host.
     // The Medic (Medic.cs): the only room shop with heals and revive tokens.
     static void ArmsDealerTest(float dt)
     {
@@ -22,32 +22,6 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); gg.ExpandOpen = true; }
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);  // (the Grid core)
-
-        // The guarantee: a boss cycle with no Arms Dealer on the map and no Arms Dealer card in a hand deals one, once a cycle.
-        var guarantee = typeof(Game).GetMethod("GuaranteeArmsCard", flags);
-        Func<int> armsCards = () => g.Players.Values.Sum(p => p.Hand.Count(c => c == (byte)PieceCard.Arms));
-        Action clearHands = () => { foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length); };
-        clearHands();
-        g.Wave = 6;
-        guarantee.Invoke(g, null);
-        Check(armsCards() == 1, "with no Arms Dealer anywhere, someone is dealt an Arms Dealer card");
-        clearHands();
-        guarantee.Invoke(g, null);
-        Check(armsCards() == 0, "only once a boss cycle");
-        g.Wave = 10;
-        g.Players[2].Hand[0] = (byte)PieceCard.Arms;
-        guarantee.Invoke(g, null);
-        Check(armsCards() == 1, "not while someone holds one");
-        clearHands();
-        g.Wave = 15;
-        foreach (var p in g.Players.Values) for (int i = 0; i < p.Hand.Length; i++) p.Hand[i] = (byte)PieceCard.Shop;
-        guarantee.Invoke(g, null);
-        Check(armsCards() == 0, "every hand full: nobody gets it yet");
-        g.Players[2].Hand[3] = (byte)PieceCard.None;
-        guarantee.Invoke(g, null);
-        Check(g.Players[2].Hand.Contains((byte)PieceCard.Arms), "the next round it goes to the hand with room");
-        clearHands();
-        g.Wave = 6;
 
         // An Arms Dealer and a shop, from their cards.
         var me = g.Players[1];
@@ -108,10 +82,9 @@ static partial class Program
         Run(s, dt, 0.5f, null, noPicks);
         Check(Upgrades.Count(friend.Taken, fm) == 1 && friend.Gold == 300 - Game.ModPrices[0] && cg.Players[2].Gold == friend.Gold, "the friend buys a mod too, and sees their gold drop");
 
-        // With an Arms Dealer on the map the guarantee deals nothing.
-        g.Wave = 20;
-        guarantee.Invoke(g, null);
-        Check(armsCards() == 0, "with an Arms Dealer on the map nobody is dealt another");
+        // No guaranteed card: the Arms Dealer card comes only from the drop tables, like the other service cards.
+        Check(typeof(Game).GetMethod("GuaranteeArmsCard", flags) == null && Expansion.ServiceCards.Contains(PieceCard.Arms)
+              && Enumerable.Range(0, 2000).Any(i => Expansion.GridDropCard(new DetRandom(i * 37 + 1), 10) == PieceCard.Arms), "the Arms Dealer card is a normal drop, never dealt each boss cycle");
 
         // The Medic (Medic.cs): heals and revive tokens, only in its room, and nothing else.
         V2 medicAt = play(PieceCard.Medic);

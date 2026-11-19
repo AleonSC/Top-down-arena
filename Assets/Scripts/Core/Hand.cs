@@ -122,7 +122,6 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
-            GuaranteeArmsCard();  // ArmsDealer.cs
         }
 
         /// Host: a wave card pick's two cards: the round's basic piece (Expansion.GridRoundCard) and a dropped card (Expansion.GridDropCard), seeded per player and wave.
