@@ -594,15 +594,9 @@ namespace Arena
             {
                 V2 we = k == 0 ? wa : wb, e = k == 0 ? a : b;
                 var side = Expansion.OuterWall(wd, we);
-                if (side.HasValue)  // a wall end: the stretch of wall it turns into the portal, and a chevron pointing into the room
+                if (side.HasValue)  // a wall end: the arena's Beam look in small (DrawWallPortal, RoomsLook.cs)
                 {
-                    V2 inn = side.Value, along = inn.Orthogonal();
-                    V2 e0 = M(we - along * Expansion.LinkHalf), e1 = M(we + along * Expansion.LinkHalf);
-                    Line(e0, e1, 7f, ink.WithAlpha(0.25f * alpha * pulse));
-                    Line(e0, e1, 3f, ink.WithAlpha(alpha));
-                    V2 tip = e + inn * 9f;
-                    Line(e + inn * 4f + along * 4f, tip, 1.5f, ink.WithAlpha(alpha * pulse));
-                    Line(e + inn * 4f - along * 4f, tip, 1.5f, ink.WithAlpha(alpha * pulse));
+                    DrawLinkBeam(M, we, side.Value, ink, alpha, k * 0.5f);
                     continue;
                 }
                 Arc(e, 7f, 2f, ink.WithAlpha(alpha * pulse), 18);  // a ring and a turning inner arc (the portal in the arena)
@@ -610,6 +604,42 @@ namespace Arena
                 spin += 3f;
             }
         }
+        /// A wall end of a portal pair on the build map, like the Beam in the arena: the stretch of wall dark inside corner brackets,
+        /// and scanlines rolling out of it into the room as a short widening beam (the way you come out).
+        void DrawLinkBeam(System.Func<V2, V2> M, V2 we, V2 inWorld, Rgba ink, float alpha, float seed)
+        {
+            V2 along = inWorld.Orthogonal();
+            float h = Expansion.LinkHalf, wt = Rooms.WallT / 2f + 2f, reach = 90f;
+            V2 a0 = M(we - along * h), a1 = M(we + along * h);
+            V2 inn = (M(we + inWorld * 100f) - M(we)).Normalized(), al = (a1 - a0).Normalized();
+            float hs = (a1 - a0).Length * 0.5f, ws = Mathf.Max(2.5f, (M(we + inWorld * wt) - M(we)).Length), rs = Mathf.Max(10f, (M(we + inWorld * reach) - M(we)).Length);
+            V2 c = M(we);
+            Quad2(c - al * hs - inn * ws, c + al * hs - inn * ws, c + al * hs + inn * ws, c - al * hs + inn * ws, new Rgba(0.02f, 0.01f, 0.05f, 0.95f * alpha));
+            Quad2(c - al * hs - inn * ws, c + al * hs - inn * ws, c + al * hs + inn * ws, c - al * hs + inn * ws, ink.WithAlpha(0.18f * alpha));
+            for (int k = 0; k < 3; k++)  // the beam on the floor, in fading slices
+            {
+                float d0 = k * rs / 3f, d1 = (k + 1) * rs / 3f;
+                float h0 = hs * (1f + 0.25f * d0 / rs), h1 = hs * (1f + 0.25f * d1 / rs);
+                V2 c0 = c + inn * (ws + d0), c1 = c + inn * (ws + d1);
+                Quad2(c0 - al * h0, c0 + al * h0, c1 + al * h1, c1 - al * h1, ink.WithAlpha(0.12f * (1f - k / 3f) * alpha));
+            }
+            for (int k = 0; k < 3; k++)  // scanlines rolling out
+            {
+                float u = Mathf.Repeat(k / 3f + Time.unscaledTime * 0.45f + seed, 1f), d = ws + u * rs;
+                float hh = hs * (1f + 0.25f * u) - 1.5f;
+                Line(c + inn * d - al * hh, c + inn * d + al * hh, 1.2f, ink.WithAlpha(0.8f * (1f - u) * alpha));
+            }
+            Line(c - al * hs + inn * ws, c + al * hs + inn * ws, 1.5f, ink.WithAlpha(alpha));
+            float bl = Mathf.Min(6f, hs * 0.4f), bw = ws + 1.5f;
+            foreach (var sa in new[] { -1f, 1f })  // the corner brackets
+                foreach (var si in new[] { -1f, 1f })
+                {
+                    V2 corner = c + al * (sa * (hs + 1f)) + inn * (si * bw);
+                    Line(corner, corner - al * (sa * bl), 1.5f, ink.WithAlpha(alpha));
+                    Line(corner, corner - inn * (si * Mathf.Min(4f, bw)), 1.5f, ink.WithAlpha(alpha));
+                }
+        }
+
         /// The draw screen's map area: between the tool rail on the left and the guide panel on the right.
         Rect DrawMapRect => new Rect(222f, 34f, W - 222f - 290f, H - 34f - 74f);
 
