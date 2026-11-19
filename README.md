@@ -2276,6 +2276,11 @@ boss plays out and what to change.
   Mender's Bow arrow or Transfusion Dart through a hurt teammate within 420 px. A Roar tank roars when a teammate is
   hurt or down with enemies on top of them (or when it is under half health); a Knight tank plants **Last Stand** over
   a downed ally and keeps it up while they're being stood back up. Tests: `Tools/SimTest/run.sh 1 30 botteam`.
+- **Bot dodge and sprint** (same bots): a bot **dodges** when every step it could walk still gets it hit and a dodge
+  clears it (hits only count once the dodge's invulnerability ends; a shot a ready perfect parry would take is left to the
+  parry), and when it has a long way to go (over 450 px past where it wants to be) with nothing to shoot and nothing
+  coming, it holds the dodge on into a **sprint**. It doesn't spam it: it waits a gap on top of the cooldown, Casual 3 s
+  (and needs more danger), Good 2.2 s, Expert 1.5 s, and 7 / 5 / 3.5 s between sprints. Tests: `run.sh 1 30 botdodge`.
 - **Bot parry and weapon Alts** (same bots): a bot raises the **parry** toward a shot or a sword cut it can't step out of,
   timed for a perfect parry (a Casual bot's timing drifts, a Good one blocks once its best step still looks risky, an
   Expert takes any clean perfect parry), keeps it up while more come from that side, and drops it when the side is clear

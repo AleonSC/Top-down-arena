@@ -102,7 +102,7 @@ namespace Arena
             return true;
         }
 
-        void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held, ref bool weaponAction, ref bool parry)
+        void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held, ref bool weaponAction, ref bool parry, ref bool dodge, ref bool dodgeHeld)
         {
             var sk = Skill(BotLevel);
             botClock += dt;
@@ -117,8 +117,9 @@ namespace Arena
             {
                 move = V2.Zero;
                 firing = false;
-                weaponAction = parry = false;
+                weaponAction = parry = dodge = dodgeHeld = false;
                 BotParry(me, sk, dt, true);
+                botDodgeHoldT = 0f;
                 for (int i = 0; i < held.Length; i++)
                     held[i] = botHeldLast[i] = false;
                 return;
@@ -151,6 +152,8 @@ namespace Arena
                 firing = false;
                 aimAt = me.Pos + V2.FromAngle(me.Aim) * 120f;
             }
+
+            BotDodge(me, sk, dt, anchor, pref, firing, parry, ref move, ref dodge, ref dodgeHeld);  // BotDodge.cs
 
             BotAbilities(me, held, target, downed, lowest, ref aimAt);
         }
@@ -570,7 +573,7 @@ namespace Arena
 
         V2 ChooseMove(Player me, SkillParams sk, V2 anchor, float pref, Player stayNear, out float danger)
         {
-            float speed = me.Speed * (bowDraw >= 0f ? BowDrawSlow : 1f);
+            float speed = me.Speed * SprintMult * (bowDraw >= 0f ? BowDrawSlow : 1f);
             float T = sk.Lookahead, step = T / sk.Steps;
             float hitR = me.Def.HitR;
             var ms = moveScene;
@@ -610,6 +613,7 @@ namespace Arena
                 }
             }
             danger = bestDanger;
+            ScoreDodges(me, sk, ms, speed, anchor, pref, stayNear, hitR, lockedArea, bestDanger);  // BotDodge.cs
             return best;
         }
 
