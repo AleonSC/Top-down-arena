@@ -11,7 +11,7 @@ exactly as it is**: doors are a second, cheaper way to grow the map.
 |---|---|
 | Replace drawing? | **No, alongside it.** |
 | How many | **1-2 new doors each cleared wave**, **cap 3** on the map. |
-| Behind a door | ~~Combat room, loot, shop / Black Market, risk~~ **Changed Nov 17 (owner):** only **small or medium squares / rectangles** and **long hallways**. Square rooms usually hold enemies, sometimes nothing (rarer); a small room can be a **shop** or a **Black Market**; a hallway has a **chest at the very end**. |
+| Behind a door | ~~Combat room, loot, shop / Black Market, risk~~ **Changed Nov 17 (owner):** only **small or medium squares / rectangles** and **long hallways**. Square rooms usually hold enemies, sometimes nothing (rarer); a small room can be a **shop** or a **Black Market**; a hallway has a **chest at the very end**.  **Changed Nov 19 (owner):** a small room is never empty: a grouped pack of 25 of the current faction's basic enemy (even round a boss), services 4% each. |
 | Price | **~60% of drawing** a room of the same size (you don't pick shape or spot). |
 | When | **Any time**, mid-wave too; the room joins the fight at once. |
 | Show the room? | **No**: nothing tells you what is behind a door. |
@@ -94,7 +94,7 @@ Replaces step 2's contents (no Stash, no mini-boss room, no surprise shapes behi
 
 | Room | Shapes | Weight | What's in it |
 |---|---|---|---|
-| Small | 4 x 4 (`Tiny`), 5 x 4 (`SmallRect`) | 35 | enemies 50, empty 17, shop 11, Black Market 11, Arms Dealer 11 (Docs/ArmsDealer.md) |
+| Small | 4 x 4 (`Tiny`), 5 x 4 (`SmallRect`) | 35 | **changed Nov 19 (owner): never empty**: enemies 84 (a grouped pack of 25 of the current faction's basic enemy, `Mystery.SmallPack`, round a boss too), shop 4, Black Market 4, Arms Dealer 4, Medic 4 |
 | Medium | 6 x 6 (`Medium`), 7 x 6 (`Box`) | 35 | enemies 78, empty 22 |
 | Hallway | 12 x 3 (`LongHall`) | 30 | a chest node at the far end, 70 px in (`Mystery.FarEnd`) |
 
