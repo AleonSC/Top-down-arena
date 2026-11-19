@@ -9,18 +9,18 @@ namespace Arena
     ///   membrane  seven wobbling skins of thin arcs (two bright outer rims), light streaks flowing along it and sparks running the rims;
     ///   ripples   each catch (FxKind.KwCatch, from its age) sends a bulge both ways along the field and a ring at the hit point;
     ///   held      caught shots jitter in place, each with a flickering arc to the nearest rim;
-    ///   strain    as it fills it brightens and turns from violet toward hot pink, its sparks speed up, and past 80% it flickers.
+    ///   strain    as it fills it brightens and turns from wind teal toward white gale, its sparks speed up, and past 80% it flickers.
     /// A countdown along the outer edge and a charge bar under the caster; the caster's own screen outlines the cone. FxKind.KwBlast is
     /// the unleash: the lens collapsing to a bright core, then a fan with rings rolling out and the held shots flung along it.
     /// Sounds: KineticWallSoundBank.cs, played from TickKineticWallSounds below.
     public partial class ArenaApp
     {
-        static readonly Rgba KwRim = new Rgba(0.86f, 0.82f, 1f), KwCore = new Rgba(0.98f, 0.96f, 1f), KwHot = new Rgba(1f, 0.61f, 0.9f);
+        static readonly Rgba KwRim = new Rgba(0.84f, 1f, 0.97f), KwCore = new Rgba(0.96f, 1f, 1f), KwHot = new Rgba(0.93f, 1f, 1f);
         const float KwBoot = 0.3f, KwRipple = 0.7f, KwRippleSpeed = 2.6f;  // ripple: its life, and how far it runs along the field a second (in lens widths / 2)
 
         static float KwHash(int i) => Mathf.Repeat(Mathf.Sin(i * 12.9898f + 4.1f) * 43758.5453f, 1f);
 
-        /// The field's colour at charge fraction k: violet, heating toward pink.
+        /// The field's colour at charge fraction k: wind teal, whitening toward a gale.
         static Rgba KwTint(float k) => Game.KwColor.Mix(KwHot, k * 0.85f);
 
         /// A point on the lens: `u` -1..1 across it, `d` px out from its middle line.
@@ -181,7 +181,7 @@ namespace Arena
             }
         }
 
-        /// FxKind.KwCatch: a shot dragged to a stop as it enters, warm while it moves and violet once it's held, with a fading streak.
+        /// FxKind.KwCatch: a shot dragged to a stop as it enters, warm while it moves and teal once it's held, with a fading streak.
         void DrawKwCatchFx(Effect fx)
         {
             float f = Mathf.Clamp01(fx.T / Mathf.Max(0.01f, fx.Dur)), ease = 1f - (1f - f) * (1f - f);
