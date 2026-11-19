@@ -610,7 +610,9 @@ namespace Arena
 
         // --- The chest and its items ----------------------------------------------------------------
 
-        void OpenChest(Prop c)
+        /// remote: collected from the wave box's Chests tab (RemoteChests.cs): nothing lands at the chest; gold goes straight into each
+        /// wallet and each player's card lands at their own feet.
+        void OpenChest(Prop c, bool remote = false)
         {
             c.Open = true;
             c.OpenT = 0f;
@@ -619,7 +621,11 @@ namespace Arena
             switch (c.Chest)
             {
                 case ChestKind.Gold:
-                    DropGoldBurst(c.Pos, ChestGold + ChestGoldPerWave * Math.Max(1, Wave));  // (each player's own burst, the same gold each as before)
+                    if (remote)
+                        foreach (var pl in Players.Values)
+                            pl.Gold += ChestGold + ChestGoldPerWave * Math.Max(1, Wave);
+                    else
+                        DropGoldBurst(c.Pos, ChestGold + ChestGoldPerWave * Math.Max(1, Wave));  // (each player's own burst, the same gold each as before)
                     break;
                 case ChestKind.Buildable:
                     foreach (var pl in Players.Values)
@@ -634,7 +640,8 @@ namespace Arena
                         int u = RollChestLoot(pl);
                         if (u >= 0)
                         {
-                            V2 at = ClampToArena(c.Pos + new V2((i - (n - 1) / 2f) * 46f, ChestH / 2f + 34f), 20f);
+                            V2 at = remote ? ClampToArena(pl.Pos + new V2(0f, 50f), 20f)  // (at their own feet)
+                                : ClampToArena(c.Pos + new V2((i - (n - 1) / 2f) * 46f, ChestH / 2f + 34f), 20f);
                             var l = new Loot { Id = nextLootId++, Owner = pl.Id, Upgrade = u, Pos = at };
                             Loots[l.Id] = l;
                         }

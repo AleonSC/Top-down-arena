@@ -57,7 +57,7 @@ static partial class Program
             Check(cg.Props.ContainsKey(c.Id) && cg.Props[c.Id].Chest == kind, kind + " chest: the client sees its kind");
             int stash0 = g.Players.Values.Sum(p => p.Stash.Sum(b => b));
             int gold = g.Players.Count * (Game.ChestGold + Game.ChestGoldPerWave * g.Wave);  // (each player's own burst: Docs/RoundFlow.md step 3)
-            open.Invoke(g, new object[] { c });
+            open.Invoke(g, new object[] { c, false });  // (not remote: RemoteChests.cs)
             int coins = g.Coins.Values.Count(q => !q.Vec), coinGold = g.Coins.Values.Where(q => !q.Vec).Sum(q => q.Value);
             int stash = g.Players.Values.Sum(p => p.Stash.Sum(b => b)) - stash0;
             switch (kind)
@@ -103,7 +103,7 @@ static partial class Program
         Check(chest != null && chest.Chest == ChestKind.Piece && g.NodeChestKind(node) == ChestKind.Piece, "the node's chest comes out as its rolled kind (Grid piece)");
         if (chest != null)
         {
-            open.Invoke(g, new object[] { chest });
+            open.Invoke(g, new object[] { chest, false });
             Check(g.Nodes[0].Spent && g.Players.Values.All(p => Game.HandCount(p) == 1 && Expansion.IsGridCard((RoomCard)p.Hand[0])) && g.Loots.Count == 0, "Grid piece: every player gets a grid piece card, no upgrade card");
         }
     }

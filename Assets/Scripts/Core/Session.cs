@@ -66,6 +66,7 @@ namespace Arena
         KeepsakeVote, // client -> host: the room this player wants kept through the map reset (short: its first box) (Docs/MapReset.md, MapReset.cs)
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
         GridPiece,    // client -> host: place a grid piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, GridPieces.cs)
+        CollectChest, // client -> host: collect a chest from the wave box's Chests tab (node bool, id int) (Docs/RoundFlow.md step 5, RemoteChests.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -653,6 +654,9 @@ namespace Arena
                     break;
                 case Msg.GridPiece:
                     Game.OnGridPiece(peer, r);  // GridPieces.cs
+                    break;
+                case Msg.CollectChest:
+                    Game.OnCollectChest(peer, r);  // RemoteChests.cs
                     break;
                 case Msg.BuilderBuy:
                     Game.OnBuilderBuy(peer, r);  // BuilderShop.cs

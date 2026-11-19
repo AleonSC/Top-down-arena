@@ -11,7 +11,7 @@ namespace Arena
     public partial class ArenaApp
     {
         const float WcW = 940f, WcH = 454f, WcY = 70f;  // (high enough that the new-enemy chips under it clear the XP strip)
-        int wcStep;                   // the tab: 0 Results, 2 Next wave (Build isn't a tab of the box: it opens the build window); any order
+        int wcStep;                   // the tab: 0 Results, 2 Next wave, 3 Chests (Build isn't a tab of the box: it opens the build window); any order
         bool wcSawWindow;             // the build window was open last frame (closing it folds the box into the strip)
         bool wcSawBuild;              // the build window was opened this break (until then the Build tab pulses and Auto-ready waits)
         int autoReadySent = -1;       // the Auto-ready choice the host was last told (-1: not yet this run)
@@ -60,7 +60,7 @@ namespace Arena
 
         /// The tab shown: without a building round (Practice, hunts, the last wave, a full map, other arenas) Results carries the
         /// next wave's panel, so there is no Next wave tab.
-        int WcStepNow() => wcStep == 2 && WcBuildAvail ? 2 : 0;
+        int WcStepNow() => wcStep == 2 && WcBuildAvail ? 2 : wcStep == 3 && WcChestsAvail ? 3 : 0;
 
         /// Pieces and service cards in your hand (the Build tab's count and the "saved for later" line).
         int WcPieces(Player me) => me == null ? 0 : Game.HandCount(me);
@@ -165,6 +165,7 @@ namespace Arena
         /// The box itself, at `r`: the tabs, the tab's content, and the start key along the bottom (on every tab).
         void DrawWaveClearedBox(Player me, Rect r, WaveSummary rep, string waiting, bool calm)
         {
+            RefreshWcChests();  // (the Chests tab's list, before the tabs count it: ChestsTabUi.cs)
             int step = WcStepNow();
             DrawWcTabs(me, r, step, calm);
             float x = r.x, y = r.y + WcTabH + 4f;
@@ -187,6 +188,8 @@ namespace Arena
                 else
                     DrawNextPanel(new Rect(x + 640f, y + 84f, 278f, 236f));
             }
+            else if (step == 3)
+                DrawWcChests(me, x, y, calm);  // ChestsTabUi.cs
             else
             {
                 DrawWcHead(x, y, "NEXT: " + WcNextName(), ink, calm);
@@ -203,12 +206,13 @@ namespace Arena
                 Ui.Fill(new Rect(x + WcPad + CrtUi.TitleWidth(title, 52) + 6f, y + 27f, 14f, 28f), tc);
         }
 
-        /// RESULTS / BUILD · n / NEXT WAVE along the top of the tube, in any order: the tab you are on is lit. Build opens the build window
+        /// RESULTS / BUILD · n / NEXT WAVE / CHESTS · n along the top of the tube, in any order: the tab you are on is lit. Build opens the build window
         /// and carries your piece count; until you open it this break (with pieces in hand) it pulses gold. Without a building round only
-        /// Results is shown (it carries the next wave's panel then).
+        /// Results is shown (it carries the next wave's panel then). Chests shows while any chest is unopened (ChestsTabUi.cs).
         void DrawWcTabs(Player me, Rect r, int step, bool calm)
         {
-            float tw = 200f, gap = 10f, x = r.x + WcPad, ty = r.y + 10f;
+            float tw = 160f, gap = 10f, x = r.x + WcPad, ty = r.y + 10f;
+            int tabs = 1 + (WcBuildAvail ? 2 : 0);
             if (CrtUi.SoftKey(new Rect(x, ty, tw, 34f), "RESULTS", null, 22, calm, lit: step == 0) && step != 0)
                 wcStep = 0;
             if (WcBuildAvail)
@@ -228,6 +232,8 @@ namespace Arena
                 if (CrtUi.SoftKey(new Rect(x + 2f * (tw + gap), ty, tw, 34f), game.GateUp ? "THE BOSS" : "NEXT WAVE", null, 22, calm, lit: step == 2) && step != 2)
                     wcStep = 2;
             }
+            if (WcChestsAvail && CrtUi.SoftKey(new Rect(x + tabs * (tw + gap), ty, tw, 34f), "CHESTS · " + wcChests.Count, null, 22, calm, lit: step == 3) && step != 3)
+                wcStep = 3;
             // Minimize (top right): the box folds into a strip at the top so you can walk to a shop or a chest.
             if (CrtUi.SoftKey(new Rect(r.xMax - WcPad - 160f, ty, 160f, 34f), "MINIMIZE  _", null, 20, calm))
                 wcMin = true;

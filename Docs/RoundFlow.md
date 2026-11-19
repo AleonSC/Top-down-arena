@@ -1,6 +1,6 @@
 # Round flow: a smoother break, per-player loot and remote chests
 
-Status: **steps 1-4 built** (steps 1 and 4 no protocol change; steps 2 and 3 protocol 414); step 5 planned. Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
+Status: **built, all five steps** (steps 1 and 4 no protocol change; steps 2, 3 and 5 protocol 414). Decided with the owner on Nov 18, 2026. Mockup (approximate HTML): https://claude.ai/artifact/3TnYbQxWmeuuRYe5tduhUn Build one step at a
 time ("start on step N").
 
 ## Why
@@ -65,4 +65,6 @@ The break between waves (`Game/WaveClearedUi.cs`, `Core/WaveReady.cs`) is slow:
 5. **Uncollected chests tab (protocol bump).** `Msg.CollectChest` (a chest id); the host checks the fee, takes it and
    opens the chest remotely (`OpenChest` with a `remote` flag: no ground drops, gold straight to wallets, loot cards
    straight to their owner). The tab is a list of `DkPanel` rows (chest look, kind, room, fee, Collect key) next to a
-   mini-map. Preview of the tab, test suite `chests`, README section.
+   mini-map. Preview of the tab, test suite `chests`, README section. (Built: `Core/RemoteChests.cs`, `Game/ChestsTabUi.cs`;
+   each player's card lands at their own feet so they still choose take or throw away; vector chest nodes are listed too;
+   a row gives the way and seconds' walk instead of a room name; suite `remotechests`.)
