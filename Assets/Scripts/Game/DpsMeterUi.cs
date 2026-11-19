@@ -36,7 +36,7 @@ namespace Arena
                     dir = Application.persistentDataPath;  // no log path (editor, some platforms): the save folder is next to it
                 Application.OpenURL("file:///" + dir.Replace('\\', '/'));
             }
-            catch (System.Exception) { }
+            catch (System.Exception ex) { Diag.Warn("couldn't open the log folder", ex); }
         }
 
         static string Whole(float v) => Mathf.RoundToInt(v).ToString("N0");

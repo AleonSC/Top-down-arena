@@ -135,7 +135,7 @@ namespace Arena
             if (TextOverrides.Has(textEditOriginal) && DkKey(new Rect(x + 150f, y, 170f, 36f), "Back to original", CrtStyle.Danger))
             {
                 TextOverrides.Remove(textEditOriginal);
-                try { TextOverrides.Save(TextOverridePath); } catch (Exception) { }
+                try { TextOverrides.Save(TextOverridePath); } catch (Exception ex) { Diag.Warn("text edits: couldn't save " + TextOverridePath, ex); }
                 textEditOpen = false;
             }
             if (DkKey(new Rect(p.xMax - 24f - 120f, y, 120f, 36f), "Cancel", Ui.Neutral))

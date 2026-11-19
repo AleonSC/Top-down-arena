@@ -127,6 +127,7 @@ namespace Arena
             game = session.Game;
             game.Log = msg => Debug.Log(msg);
             SessionRecorder.Log = msg => Debug.LogWarning("Arena: " + msg);
+            Diag.Sink = msg => Debug.LogWarning("Arena: " + msg);  // (recovered file, save and sound failures, Diag.cs)
             sounds = new SoundBank(gameObject);
             MenuVhs.OnHover = calm => sounds.Play(Sfx.MenuHover, calm ? 0.35f : 0.7f, Time.unscaledTime);
             LoadMusicPack();  // clips you assigned in Unity replace / join the generated music (MusicPack.cs)

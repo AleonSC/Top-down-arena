@@ -118,7 +118,7 @@ namespace Arena
             decodeJobs.Remove(done);
             AudioClip clip = null;
             try { clip = req.result == UnityWebRequest.Result.Success ? DownloadHandlerAudioClip.GetContent(req) : null; }
-            catch (System.Exception) { }
+            catch (System.Exception) { }  // (no clip: the track is marked failed just below)
             if (clip != null && clip.samples > 0)
             {
                 var data = new float[clip.samples * clip.channels];

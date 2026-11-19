@@ -449,8 +449,8 @@ namespace Arena
                     if (s != null)
                         all.Add(s);
                 }
-                catch (IOException) { }
-                catch (UnauthorizedAccessException) { }
+                catch (IOException ex) { Diag.Warn("saves: couldn't read " + path, ex); }
+                catch (UnauthorizedAccessException ex) { Diag.Warn("saves: couldn't read " + path, ex); }
             }
             all.Sort((a, b) => b.SavedAt.CompareTo(a.SavedAt));
             return all;
@@ -520,8 +520,8 @@ namespace Arena
                 if (File.Exists(CheckpointOf(id)))
                     File.Delete(CheckpointOf(id));  // (its checkpoint goes with it)
             }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (IOException ex) { Diag.Warn("saves: couldn't delete run " + id, ex); }
+            catch (UnauthorizedAccessException ex) { Diag.Warn("saves: couldn't delete run " + id, ex); }
         }
     }
 }

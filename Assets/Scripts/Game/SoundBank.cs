@@ -991,7 +991,7 @@ namespace Arena
                             takes[take] = f;
                         }
             }
-            catch (Exception) { }
+            catch (Exception ex) { Diag.Warn("sounds: couldn't scan the sounds folder " + SoundsFolder, ex); }
             var list = new List<KeyValuePair<Sfx, string[]>>();
             foreach (var kv in found)
                 list.Add(new KeyValuePair<Sfx, string[]>(kv.Key, new List<string>(kv.Value.Values).ToArray()));
@@ -1030,7 +1030,7 @@ namespace Arena
                 {
                     float[] data = null;
                     try { data = CustomMusic.DecodeWav(File.ReadAllBytes(f)); }
-                    catch (Exception) { }
+                    catch (Exception ex) { Diag.Warn("sounds: couldn't read " + f + " (its generated sound plays instead)", ex); }
                     if (data != null && data.Length > 0)
                         takes.Add(data);
                 }

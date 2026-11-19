@@ -171,7 +171,7 @@ namespace Arena
             File.WriteAllBytes(path, bytes);
             var all = List();
             for (int i = Kept; i < all.Count; i++)
-                try { File.Delete(all[i].Path); } catch (Exception) { }
+                try { File.Delete(all[i].Path); } catch (Exception ex) { Diag.Warn("snapshot: couldn't delete the old snapshot " + all[i].Path, ex); }
             return path;
         }
 
@@ -897,7 +897,7 @@ namespace Arena
                         Delegate d = null;
                         if (method != null)
                             try { d = method.IsStatic ? Delegate.CreateDelegate(t, method) : Delegate.CreateDelegate(t, target, method); }
-                            catch (Exception) { }
+                            catch (Exception) { }  // (counted in Dropped just below)
                         if (d == null)
                             Dropped++;
                         all = Delegate.Combine(all, d);
@@ -922,7 +922,7 @@ namespace Arena
             var ctor = t.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
             if (ctor != null)
                 try { return ctor.Invoke(null); }
-                catch (Exception) { }
+                catch (Exception) { }  // (a constructor that throws: the blank object below instead)
             return FormatterServices.GetUninitializedObject(t);
         }
 
