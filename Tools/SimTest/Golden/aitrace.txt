@@ -15,7 +15,7 @@ Rioter b11e05b031fdc00f at (679,459) phase 2 hp 1057 shots 1
 HiveEgg c94466239c0fcb4d at (480,450) phase 0 hp 0 shots 0
 Guard dff4767ae27807f1 at (690,450) phase 0 hp 1281 shots 0
 ReaperPillar 0eaa0bb0e2ada805 at (480,450) phase 0 hp 0 shots 0
-SingShard 7098fd836825f44d at (480,450) phase 0 hp 0 shots 0
+SingularityShard 7098fd836825f44d at (480,450) phase 0 hp 0 shots 0
 BallLightning eaa36c11a36e4995 at (663,450) phase 0 hp 1000000 shots 8
 Morsel 07c5ed6677e20c1d at (480,450) phase 0 hp 0 shots 0
 RiotShield bf5d4f4d5976465a at (924,412) phase 44 hp 872 shots 0
@@ -56,7 +56,7 @@ Pulsar dd9656b2f4690794 at (492,537) phase 2 hp 0 shots 0
 Graviton d634dd01c5b89b2e at (505,575) phase 0 hp 0 shots 0
 Orbiter 5565c492e9d97930 at (983,212) phase 0 hp 0 shots 6
 Collapsar aba750c14ff07962 at (642,450) phase 0 hp 798 shots 0
-MiniWell a7e00941ea3eaeed at (480,450) phase 0 hp 1000000 shots 0
+SmallWell a7e00941ea3eaeed at (480,450) phase 0 hp 1000000 shots 0
 Implosion 44476c154128e9d7 at (480,450) phase 0 hp 1000000 shots 12
 Lens 66215879da35d5d2 at (800,450) phase 0 hp 0 shots 0
 WhiteDwarf 3f1b5da8810a91f8 at (869,330) phase 1 hp 196 shots 17
