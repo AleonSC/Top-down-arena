@@ -81,6 +81,7 @@ Tools/SimTest/         headless test suite (mono) that drives real Sessions over
 Tools/SessionReport/   report.py: summarises recorded session JSON
 Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)         [added in the audit]
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
+Tools/CodeMap/         check.py: CODEMAP.md names every source file once, and no deleted one (CI) [added Nov 2026]
 Tools/RenderCheck/     proves a refactor left the arena's drawing byte-identical      [added Oct 2026]
 Tools/SoundCheck/      renders the synthesized sounds to WAV to listen without Unity  [added Nov 2026]
 Tools/SoundForge/      browser synth that exports WAVs named after game sounds (replace any Sfx)

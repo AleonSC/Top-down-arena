@@ -14,6 +14,8 @@ jobs:
       - uses: ./.github/actions/install-mono
       - name: Compile check
         run: Tools/CompileCheck/check.sh
+      - name: CODEMAP.md lists every source file once
+        run: python3 Tools/CodeMap/check.py
       - name: Core suite
         run: Tools/SimTest/run.sh
   features:
