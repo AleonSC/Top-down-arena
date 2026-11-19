@@ -70,12 +70,12 @@ namespace Arena
             RoundBackdrop(ShopDark);  // (RoundWindows.cs)
             const float x0 = 36f, areaW = W - 72f;
 
-            // The room shops: upgrades in the shop room, buildables at the vendor, mods at the Arms Dealer, heals and revives at the Medic (SvcAllowed).
-            bool atShop = !game.ServiceRooms || game.InShopRoom(me), atVendor = !game.ServiceRooms || game.InVendorRoom(me);
+            // The room shops: upgrades in the shop room, buildables at the Black Market, mods at the Arms Dealer, heals and revives at the Medic (SvcAllowed).
+            bool atShop = !game.ServiceRooms || game.InShopRoom(me), atBlackMarket = !game.ServiceRooms || game.InBlackMarketRoom(me);
             bool arms = shopAtArms = game.ServiceRooms && game.InArmsRoom(me);  // the Arms Dealer: every weapon mod for gold (Docs/ArmsDealer.md)
             bool medic = shopAtMedic = game.ServiceRooms && game.InMedicRoom(me);  // the Medic: heals and revive tokens (Medic.cs)
-            bool market = game.ServiceRooms && !atShop && !arms && !medic;  // the vendor's room is the Black Market (Docs/BlackMarket.md)
-            var mk = ToColor(arms ? ArmsInk : medic ? MedicInk : VendorInk);
+            bool market = game.ServiceRooms && !atShop && !arms && !medic;  // the Black Market is the Black Market (Docs/BlackMarket.md)
+            var mk = ToColor(arms ? ArmsInk : medic ? MedicInk : BlackMarketInk);
 
             // Heading and wallet.
             string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND SERVICES" : arms ? "ARMS DEALER  ·  WEAPON MODS" : medic ? "MEDIC  ·  HEALS AND REVIVES" : "BLACK MARKET  ·  BUILDABLES AND SERVICES") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
@@ -186,7 +186,7 @@ namespace Arena
                             DrawShopCard(me, i, Upgrades.All[u], r, Game.Sold(me, i), mid, t, shopping && atShop);
                     }
                     else
-                        DrawShopService(me, svc[i - count], r, mid, t, shopping, SvcAllowed(svc[i - count], atShop, atVendor));
+                        DrawShopService(me, svc[i - count], r, mid, t, shopping, SvcAllowed(svc[i - count], atShop, atBlackMarket));
                     GUI.matrix = oldM;
                     Ui.Alpha = oldAlpha;
                     var hit = new Rect(r.center.x - r.width * s / 2f, r.center.y - r.height * s / 2f, r.width * s, r.height * s);
@@ -198,7 +198,7 @@ namespace Arena
                     if (click != shopSel)
                         shopSel = click;
                     else if (shopping)
-                        ShopUse(me, click, count, svc, atShop, atVendor);
+                        ShopUse(me, click, count, svc, atShop, atBlackMarket);
                 }
 
                 // Arrows, the mouse wheel and the arrow keys turn it.
@@ -278,7 +278,7 @@ namespace Arena
         }
 
         /// The middle item was clicked: buy the card, or use the service.
-        void ShopUse(Player me, int item, int count, int[] svc, bool atShop, bool atVendor)
+        void ShopUse(Player me, int item, int count, int[] svc, bool atShop, bool atBlackMarket)
         {
             if (item < count)
             {
@@ -290,12 +290,12 @@ namespace Arena
             if (k >= 40)
             {
                 int id = Game.ModIds[k - 40];
-                if (shopAtArms && Upgrades.Available(id, game.OfferFor(me)) && me.Gold >= Game.ModPrice(me, id))
+                if (shopAtArms && Upgrades.Available(id, game.OfferFor(me)) && me.Gold >= Game.RoomTypePrice(me, id))
                     game.Shop(ShopAction.BuyMod, id);
                 return;
             }
             int price = ServicePrice(me, k, out bool used);
-            if (used || me.Gold < price || !SvcAllowed(k, atShop, atVendor))
+            if (used || me.Gold < price || !SvcAllowed(k, atShop, atBlackMarket))
                 return;
             if (k >= 6)
                 game.Shop(ShopAction.BuyBuild, k - 6);
@@ -305,9 +305,9 @@ namespace Arena
                 game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : k == 5 ? ShopAction.Vectors : ShopAction.Revive);
         }
 
-        /// Where a service is sold in the room shops (Game.ServiceAllowed): Add stock in the shop room, buildables at the vendor, mods at the
+        /// Where a service is sold in the room shops (Game.ServiceAllowed): Add stock in the shop room, buildables at the Black Market, mods at the
         /// Arms Dealer, heals and revives at the Medic (anywhere in the Bazaar's shop), the rest at the shop or vendor.
-        bool SvcAllowed(int k, bool atShop, bool atVendor) => k >= 40 ? shopAtArms : k == 0 ? atShop : k >= 6 ? atVendor : k == 2 || k == 3 ? !game.ServiceRooms || shopAtMedic : atShop || atVendor;
+        bool SvcAllowed(int k, bool atShop, bool atBlackMarket) => k >= 40 ? shopAtArms : k == 0 ? atShop : k >= 6 ? atBlackMarket : k == 2 || k == 3 ? !game.ServiceRooms || shopAtMedic : atShop || atBlackMarket;
 
         /// The two category panels the shop opens on: the upgrades (the Black Market's buildables) and the services, each with a peek
         /// at what's inside. Clicking one (or Enter on the one the arrow keys point at) opens its carousel.
@@ -336,7 +336,7 @@ namespace Arena
                 if (hover)
                     shopCatHover = c;
                 bool on = !empty && shopCatHover == c;
-                Color ac = c == 1 ? Ui.Gold : shopAtArms ? ToColor(ArmsInk) : market ? ToColor(VendorInk) : new Color(0.45f, 0.75f, 1f);
+                Color ac = c == 1 ? Ui.Gold : shopAtArms ? ToColor(ArmsInk) : market ? ToColor(BlackMarketInk) : new Color(0.45f, 0.75f, 1f);
                 float lift = on && !fxReduced ? 3f * Mathf.Sin(t * 3f) : 0f;
                 Ui.Glow(r, ac, on ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.16f);
                 DrawHolo(r, ac, t);
@@ -388,7 +388,7 @@ namespace Arena
                     else if (k >= 40)
                         tc = ToColor(Upgrades.RarityColor(Rarity.Mod));
                     else if (k >= 6)
-                        tc = ToColor(VendorInk);
+                        tc = ToColor(BlackMarketInk);
                     float da = i < count && Game.Sold(me, i) ? 0.4f : 1f;
                     Ui.Pill(new Rect(tile.x - 2f, tile.y - 2f, tile.width + 4f, tile.height + 4f), new Color(tc.r, tc.g, tc.b, 0.3f * da));
                     Ui.Pill(tile, new Color(tc.r * 0.22f, tc.g * 0.22f, tc.b * 0.22f, 1f));
@@ -445,7 +445,7 @@ namespace Arena
             {
                 int id = Game.ModIds[k - 40];
                 used = !Upgrades.Available(id, game.OfferFor(me));
-                return used ? int.MaxValue : Game.ModPrice(me, id);
+                return used ? int.MaxValue : Game.RoomTypePrice(me, id);
             }
             if (k >= 6)
             {
@@ -463,12 +463,12 @@ namespace Arena
             }
         }
 
-        /// A Black Market buildable in the same frame as the cards, in the vendor's teal: its glyph, what it does, how many you carry.
+        /// A Black Market buildable in the same frame as the cards, in the Black Market's teal: its glyph, what it does, how many you carry.
         void DrawBuildCard(Player me, int kind, Rect r, bool selected, float t, bool allowed)
         {
             int price = Market.Prices[kind], have = me.Stash[kind];
             bool full = have >= Market.StashMax, afford = me.Gold >= price && allowed && !full;
-            Color rc = ToColor(VendorInk);
+            Color rc = ToColor(BlackMarketInk);
             float dim = afford || full ? 1f : 0.5f;
             Ui.Glow(r, rc, selected ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.14f * dim);
             DkBox(r, rc, selected ? 0.9f : 0.4f);
@@ -495,7 +495,7 @@ namespace Arena
         /// A buildable's mark, drawn with rings and bars in the middle of `tile` (the shop card, the draw screen's stash).
         static void DrawBuildGlyph(BuildKind kind, Rect tile, float alpha)
         {
-            var ink = ToColor(VendorInk);
+            var ink = ToColor(BlackMarketInk);
             ink.a = alpha;
             float cx = tile.center.x, cy = tile.center.y;
             switch (kind)
@@ -581,7 +581,7 @@ namespace Arena
         {
             var u = Upgrades.All[id];
             Color rc = ToColor(Upgrades.RarityColor(Rarity.Mod)), ak = ToColor(ArmsInk);
-            int held = Upgrades.Count(me.Taken, id), price = Game.ModPrice(me, id);
+            int held = Upgrades.Count(me.Taken, id), price = Game.RoomTypePrice(me, id);
             bool maxed = !Upgrades.Available(id, game.OfferFor(me)), afford = me.Gold >= price;
             float dim = maxed || !afford ? 0.5f : 1f;
             Ui.Glow(r, rc, selected ? 0.55f + 0.1f * Mathf.Sin(t * 4f) : 0.2f * dim);

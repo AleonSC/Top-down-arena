@@ -626,7 +626,7 @@ namespace Arena
         public void RerollOffer()
         {
             var me = Me;
-            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.OfferMilestone || me.OfferPrize || me.Rerolls <= 0 || RerollPending)  // (a boss card pick can be rerolled)
+            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.OfferMilestone || me.OfferPrize || me.OfferWave || me.Rerolls <= 0 || RerollPending)  // (a boss card pick can be rerolled, a wave card pick can't: the host ignores it, so a client waiting on the reply would be stuck)
                 return;
             Sounds.Add(Sfx.Pick);
             if (IsHost)

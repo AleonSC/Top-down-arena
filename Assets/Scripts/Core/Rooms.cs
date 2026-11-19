@@ -287,8 +287,8 @@ namespace Arena
             float w = a.Size.X * a.Size.Y;
             if (!ExpandingOn)
                 return w;
-            if (a.Sealed || a.Kind == Arena.RoomKind.Shop || a.Kind == Arena.RoomKind.Vendor || a.Kind == Arena.RoomKind.Arms || a.Kind == Arena.RoomKind.Medic || a.Kind == Arena.RoomKind.Builder || a.Kind == Arena.RoomKind.Gatekeeper)
-                return 0f;  // (the shop, vendor, Arms Dealer, Medic and builder shop are safe rooms, the Gatekeeper has its own fight, and a sealed room can't be reached)
+            if (a.Sealed || a.Kind == Arena.RoomKind.Shop || a.Kind == Arena.RoomKind.BlackMarket || a.Kind == Arena.RoomKind.Arms || a.Kind == Arena.RoomKind.Medic || a.Kind == Arena.RoomKind.Builder || a.Kind == Arena.RoomKind.Gatekeeper)
+                return 0f;  // (the shop, Black Market, Arms Dealer, Medic and builder shop are safe rooms, the Gatekeeper has its own fight, and a sealed room can't be reached)
             if (a.Kind == Arena.RoomKind.Floor && (a.Floor == PathId.SwarmFields || a.Floor == PathId.SniperRidge || a.Floor == PathId.EliteGauntlet))
                 return w * 2f;
             return w;

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Black Market's turrets on the arena floor (Turret.cs), in the vendor's teal: a heavy plate on four feet, its owner's colour
+    /// The Black Market's turrets on the arena floor (Turret.cs), in the Black Market's teal: a heavy plate on four feet, its owner's colour
     /// ringing the mount, a twin-barrelled head that tracks the nearest enemy in range (slowly sweeping with none), and a pip for each
     /// wave it has left. Preview: EXPANDMAP=0 GRIDCORE=1 TURRETS=1.
     public partial class ArenaApp
@@ -16,7 +16,7 @@ namespace Arena
 
         void DrawTurret(PlacedBuild b)
         {
-            var ink = VendorInk;
+            var ink = BlackMarketInk;
             V2 c = b.Pos;
             float t = game.AnimT;
             Player owner;

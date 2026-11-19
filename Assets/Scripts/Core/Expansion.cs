@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). rule rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link, Gate, Builder, Arms, Medic }  // (Medic: the Medic, heals and revive tokens, Medic.cs; Builder: a Builder Shop card's room, BuilderShop.cs; Arms: the Arms Dealer, Docs/ArmsDealer.md; Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
+    public enum RoomKind : byte { Combat, Shop, Floor, BlackMarket, Gatekeeper, Opening, Link, Gate, Builder, Arms, Medic }  // (Medic: the Medic, heals and revive tokens, Medic.cs; Builder: a Builder Shop card's room, BuilderShop.cs; Arms: the Arms Dealer, Docs/ArmsDealer.md; Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
 
     /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
     public struct WallCut : IEquatable<WallCut>
@@ -26,7 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Shop, BlackMarket, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -55,7 +55,7 @@ namespace Arena
         public PathId Floor;
         public int Price;       // what it costs in vectors (Expansion.Cost; the drawer pays if it wins the vote)
         public int Owner;       // the player who drew it (0: none)
-        public bool Floating;   // placed by the game off the map (a shop, vendor or Gatekeeper), not drawn: sealed until a built room touches it
+        public bool Floating;   // placed by the game off the map (a shop, Black Market or Gatekeeper), not drawn: sealed until a built room touches it
         public byte Surprise;   // a surprise room (Docs/SurpriseRooms.md): 1 + its SurpriseShape, on each of its boxes; 0: none
         public bool Claimed;    // a breach Stash's vector cache has been taken (Docs/BreachRooms.md)
         public byte Mini;       // a mini-boss room's foe (an EnemyType, FactionMinis.cs): its boss cycle's faction's; 0: unset (an old save: the current one's)
@@ -253,7 +253,7 @@ namespace Arena
             return seen;
         }
 
-        // --- Map nodes (Docs/Nodes.md): shop and vendor points out in empty space, claimed by building a room around them ---
+        // --- Map nodes (Docs/Nodes.md): shop and Black Market points out in empty space, claimed by building a room around them ---
 
         public const int NodeClear = 90;                  // cover keeps this far off a node
         public const int NodeApart = 800;                 // and at least this far from every other node
@@ -282,7 +282,7 @@ namespace Arena
         public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
 
         /// A treasure chest or a vector chest.
-        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Grid piece or Buildables (Buildables with room cards off), outer Upgrade.
+        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Piece chest or Buildables (Buildables with room cards off), outer Upgrade.
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
         {
             int tier = NodeTier(x, y);
@@ -296,7 +296,7 @@ namespace Arena
 
         public const int TierMid = 1500, TierOuter = 3000;  // a node this far (15 / 30 tiles) or more off the hub's wall is middle / outer tier
 
-        /// A point's tier from its distance to the hub's box: 0 inner (gold and vector chests), 1 middle (grid piece and buildables chests),
+        /// A point's tier from its distance to the hub's box: 0 inner (gold and vector chests), 1 middle (piece and buildables chests),
         /// 2 outer (upgrade chests and relics). A pure function of the point, so it needs nothing on the wire or in saves.
         public static int NodeTier(int x, int y)
         {
@@ -308,7 +308,7 @@ namespace Arena
         public static int NodeTier(MapNode n) => NodeTier(n.X, n.Y);
 
         /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
-        /// middle a chest (grid piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
+        /// middle a chest (piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
         public static MapNode Tiered(int seed, MapNode n)
         {
             if (!IsChest(n.Kind) && n.Kind != NodeKind.Relic)
@@ -450,7 +450,7 @@ namespace Arena
             return n;
         }
 
-        public const int ShopRoomSide = 400;  // a floating shop or vendor room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
+        public const int ShopRoomSide = 400;  // a floating shop or Black Market room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 
         // --- Opened walls: a stretch of wall between two rooms the team opens for vectors (1 per tile) ---
 
@@ -1078,7 +1078,7 @@ namespace Arena
             foreach (var f in made)
             {
                 int edge = f[0], u = f[1], depth = f[2];
-                bool onNode = false;  // (a shop or vendor node is its room's fixture: no wall through it)
+                bool onNode = false;  // (a shop or Black Market node is its room's fixture: no wall through it)
                 if (nodes != null)
                     foreach (var nd in nodes)
                     {
@@ -1139,7 +1139,7 @@ namespace Arena
                     outline[group[a]] = true;
                 areas[a] = new RoomArea
                 {
-                    Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.Vendor ? "Black Market" : FactionMinis.Name((EnemyType)rooms[a - 1].Mini)) : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Vendor ? " (Black Market)" : kind == RoomKind.Arms ? " (Arms Dealer)" : kind == RoomKind.Medic ? " (Medic)" : kind == RoomKind.Builder ? " (builder shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
+                    Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.BlackMarket ? "Black Market" : FactionMinis.Name((EnemyType)rooms[a - 1].Mini)) : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.BlackMarket ? " (Black Market)" : kind == RoomKind.Arms ? " (Arms Dealer)" : kind == RoomKind.Medic ? " (Medic)" : kind == RoomKind.Builder ? " (builder shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0,
                     Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating, Surprise = a == 0 ? (byte)0 : rooms[a - 1].Surprise,
                 };
@@ -1222,10 +1222,10 @@ namespace Arena
                         open |= d.Joins(a);
                     areas[a].Sealed = !open;
                 }
-            if (nodes != null)  // a built room that encloses a shop or vendor node takes on its job (Docs/Nodes.md); a multi-box room all of it
+            if (nodes != null)  // a built room that encloses a shop or Black Market node takes on its job (Docs/Nodes.md); a multi-box room all of it
                 foreach (var nd in nodes)
                 {
-                    var job = nd.Kind == NodeKind.Shop ? RoomKind.Shop : nd.Kind == NodeKind.Vendor ? RoomKind.Vendor : RoomKind.Combat;
+                    var job = nd.Kind == NodeKind.Shop ? RoomKind.Shop : nd.Kind == NodeKind.BlackMarket ? RoomKind.BlackMarket : RoomKind.Combat;
                     if (job == RoomKind.Combat)
                         continue;
                     for (int a = 1; a < n; a++)
@@ -1235,7 +1235,7 @@ namespace Arena
                                 if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
                                 {
                                     areas[b].Kind = job;
-                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (vendor)";
+                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (Black Market)";
                                 }
                             break;
                         }

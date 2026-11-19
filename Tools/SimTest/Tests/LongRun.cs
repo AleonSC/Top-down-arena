@@ -170,6 +170,7 @@ static partial class Program
                 var s = new[] { host, client };
                 WaitForGame(host, client, dt);
                 var g = host.Game;
+                g.Diff.Set(DiffKnob.ArenaExpanding, 1f);  // (a Campaign is always the Expanding arena, so the 50-wave track is too: only the XP pace differs)
                 g.DevSetGod(1, true); g.DevSetGod(2, true);
                 Run(s, dt, 900f, () => g.BossSlot && g.State == MatchState.Fighting, () =>
                 {

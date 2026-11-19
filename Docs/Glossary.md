@@ -77,6 +77,21 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **floor** | only the ground surface (patches, coins on the floor) | |
 | **map** | only the Paths and relic node map | `MapNode`, `NodeKind` |
 
+## Building on the grid
+
+| Term | Means | Code |
+|---|---|---|
+| **cell** | one 600 px square of the lattice | |
+| **shape** | the 1-4 cell polyomino: Mono, Domino, ... TetL | `PieceShape` |
+| **piece card** | what sits in your hand: a shape plus a room type; the service ones (Shop, Black Market, Arms Dealer, Builder Shop) are one cell. "Piece" on its own is the shape on the map. | `PieceCard`, `GridPieces.cs` |
+| **room type** | what a piece card builds: plain, or a rule room's ground (was "modifier") | `RoomTypeOf`, `RoomTypeName` |
+| **placement** | one legal spot and turn for a piece card, at a door spot | `Placement`, `PlacementsFor` |
+| **piece chest** | the orange chest that gives every player a piece card | `ChestKind.Piece` |
+| **room chest** | a chest a built room may drop (any kind) | `RoomChest*` |
+| **Builder Shop** | the only place piece cards are bought, with vectors | `BuilderShop` |
+| **Black Market** | sells buildables; never "vendor" | `RoomKind.BlackMarket` |
+| **card** | never the bare word for a piece card: upgrade cards and milestone cards only | |
+
 ## Bosses
 
 | Term | Means | Code |

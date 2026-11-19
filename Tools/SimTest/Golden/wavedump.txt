@@ -3,7 +3,7 @@ campaign w2: Thug*2 Guard | Guard Rioter*6
 campaign w3: Shiv RiotShield Rioter Thug Rioter Turnkey | RiotShield*2 Rioter*4
 campaign w4: Thug Guard SecurityGuard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
 campaign w5: SecurityGuard | SecurityGuard*3 Rioter*2 | RiotShield*4 Guard*5
-campaign w5 boss: Boss SecurityGuard*2
+campaign w5 boss: Warden SecurityGuard*2
 campaign w6: Worker*3 | Soldier Worker*6 | RiotShield*2 Rioter*4
 campaign w7: RiotShield Thug CombShield Rioter*2 Soldier | Needler*3 Worker*2 | Soldier Worker*6
 campaign w8: Stinger TaserGuard GasGrenadier Shiv | Needler*3 Worker*2 | Needler*3 Worker*2 | CombShield*2 Worker*4
@@ -15,7 +15,7 @@ campaign w12: Rioter BoundWraith Wisp*3 TaserGuard Rioter | Acolyte Wisp*6 | Aco
 campaign w13: Wisp Acolyte Shielder*5 Swarmer Wisp Swarmer Acolyte Swarmer Wisp Swarmer | Acolyte Wisp*6 | Gravedigger BoundWraith*2 | Acolyte Wisp*6 # Shielder Swarmer
 campaign w14: Acolyte*17 | Guard Rioter*6 Guard Rioter*6 Thug # Grunt Lunger
 campaign w15: Wisp Sniper Wisp Mortar Wisp Mortar Acolyte*2 | Acolyte Wisp*6 | Mourner*2 BoundWraith*2 Acolyte*6 | Acolyte Wisp*6 # Mortar Sniper
-campaign w15 boss: TwinA TwinB
+campaign w15 boss: ReaperOfDusk ReaperOfDawn
 campaign w16: Wisp*6 VoidAcolyte Lamplighter Spinner VoidAcolyte*3 Spinner*2 Lamplighter Wisp*3 | VoidAcolyte Debris*6 | VoidAcolyte Debris*6 # Spinner Sniper
 campaign w17: Shielder*3 Collapsar VoidAcolyte Shielder*4 Collapsar Lunger*4 | Pulsar*2 | VoidAcolyte Debris*6 | Pulsar*2 | VoidAcolyte Debris*6 # Shielder Lunger
 campaign w18: Collapsar*21 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # Shielder Swarmer
@@ -63,7 +63,7 @@ campaign w52: Rioter Mortar*3 Grunt Mortar Thug Mortar Rioter*2 RiotShield Morta
 campaign w53: Rioter Sniper Rioter RiotShield Grunt Rioter Grunt Turnkey RiotShield Sniper Rioter Sniper Shiv Turnkey | Swarmer*5 | RiotShield*2 Rioter*4 | RiotShield*2 Rioter*4 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv # Sniper Grunt Swarmer
 campaign w54: Rioter Guard Rioter RiotShield Rioter*3 RiotShield Rioter RiotShield Guard Rioter*2 | RiotShield*2 Rioter*4 | Guard Rioter*6 | Guard Rioter*6 | BileSpitter*6 Gulper # Shielder Grunt Lunger
 campaign w55: RiotShield Rioter Mortar Rioter Mortar Guard GasGrenadier Mortar Lunger | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2 | RiotShield*2 Rioter*4 | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2 # Lunger Swarmer Mortar
-campaign w55 boss: Boss SecurityGuard*27
+campaign w55 boss: Warden SecurityGuard*27
 campaign w56: Grunt Shielder Worker*2 Grunt Swarmer*2 Soldier Swarmer RiotShield Soldier Swarmer Worker*3 Soldier | Soldier Worker*6 | Guard Rioter*6 | Soldier Worker*6 | RiotShield*2 Rioter*4 # Shielder Swarmer Grunt
 campaign w57: Sniper TaserGuard Worker Sniper TaserGuard Sniper CombShield TaserGuard Brute TaserGuard*7 | Needler*3 Worker*2 | Soldier Worker*6 | Needler*3 Worker*2 | Soldier Worker*6 # Brute Swarmer Sniper
 campaign w58: Soldier Worker Soldier*2 Worker Soldier Worker*3 Soldier*2 Worker*4 | Soldier Worker*6 | Soldier Worker*6 | Second*3 Fencer*2 Second*3 Fencer*2 Harlequin # Shielder Sniper Brute
@@ -80,7 +80,7 @@ quick w7: Rioter*4 | Guard Rioter*6 | Guard Rioter*6
 quick w8: Thug Rioter TaserGuard Guard RiotShield SecurityGuard Guard RiotShield Rioter RiotShield | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2
 quick w9: Rioter*2 GasGrenadier Thug*2 Turnkey | Thug Rioter*3 Shiv | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
 quick w10: Guard RiotShield Shiv RiotShield Thug Rioter RiotShield Rioter GasGrenadier | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
-quick w10 boss: Boss SecurityGuard*5
+quick w10 boss: Warden SecurityGuard*5
 quick w11: Worker*2 Soldier*2 Worker Soldier Worker Soldier*2 Worker*3 | Soldier Worker*6 | Soldier Worker*6
 quick w12: Soldier Worker*5 Soldier Worker*3 Soldier Worker*3 | Soldier Worker*6 | Soldier Worker*6
 quick w13: CombShield Soldier*2 Worker Soldier*2 | Soldier Worker*6 | Soldier Worker*6 | Needler*3 Worker*2 | Needler*3 Worker*2 # Swarmer Shielder
@@ -106,13 +106,13 @@ hunt w6: Guard | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv | SecurityGuard*3
 hunt w7: Shiv SecurityGuard TaserGuard | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv
 hunt w8: Guard Rioter Turnkey Rioter*2 TaserGuard Rioter | Guard Rioter*6 | RiotShield*2 Rioter*4
 hunt w9: Guard GasGrenadier RiotShield | Thug Rioter*3 Shiv | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2
-hunt w10 boss: Boss SecurityGuard*5
+hunt w10 boss: Warden SecurityGuard*5
 campaign100 w1: Rioter*12
 campaign100 w2: Rioter*4 Turnkey Thug*2 | Guard*2 | Guard*2
 campaign100 w3: SecurityGuard*2 Rioter*4 Guard | Thug Rioter*3 Shiv
 campaign100 w4: RiotShield GasGrenadier*2 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
 campaign100 w5: TaserGuard Guard Turnkey TaserGuard | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
-campaign100 w5 boss: Boss SecurityGuard*2
+campaign100 w5 boss: Warden SecurityGuard*2
 campaign100 w6: Worker Shiv Worker*2 Shiv Thug Worker*4 Guard Worker*2 Shiv SecurityGuard Worker
 campaign100 w7: Worker*2 Soldier Guard Bumble*2 | Worker*5 | Soldier*2 | Worker*5
 campaign100 w8: Worker Bumble Needler Bumble Worker | Needler*3 Worker*2 | Bumble Worker*3 Hornet | Bumble Worker*3 Hornet
@@ -124,7 +124,7 @@ campaign100 w12: Soldier Acolyte Wisp Lamplighter Soldier Turnkey Wisp Thug Acol
 campaign100 w13: Gravedigger Mortar Wisp*2 Gravedigger Lamplighter Wisp*2 Lamplighter Wisp Sniper Wisp Mortar Wisp*3 Gravedigger*2 | Acolyte Wisp*6 | Acolyte Wisp*6 # Mortar Sniper
 campaign100 w14: ScytheWraith*17 | Guard Rioter*6 Guard Rioter*6 Thug # Spinner Brute
 campaign100 w15: Acolyte Gravedigger Acolyte Gravedigger Sniper*2 Gravedigger Lamplighter BoundWraith Lamplighter*2 Acolyte Lunger Acolyte | Gravedigger BoundWraith*2 | Acolyte*4 Lamplighter*2 | Gravedigger BoundWraith*2 | Acolyte*4 Lamplighter*2 # Sniper Lunger
-campaign100 w15 boss: TwinA TwinB
+campaign100 w15 boss: ReaperOfDusk ReaperOfDawn
 campaign100 w16: Wisp Shielder Wisp*2 Gravedigger Wisp Debris*5 Sniper*2 Debris*2 Gravedigger Wisp*2 Debris Wisp*3 Lamplighter Debris Wisp Debris*2 Wisp Debris*3 Wisp Debris*2 # Sniper Shielder
 campaign100 w17: VoidAcolyte*2 Grunt Debris*2 Wisp VoidAcolyte Debris*2 Grunt Swarmer Debris Swarmer VoidAcolyte Wisp VoidAcolyte Swarmer VoidAcolyte Swarmer Debris*3 Wisp Lens*2 | Lens*2 VoidAcolyte*3 | Lens*2 VoidAcolyte*3 # Swarmer Grunt
 campaign100 w18: Spinner Shielder*3 Spinner*2 Shielder Spinner*2 Shielder*2 Spinner*2 Shielder Spinner Shielder*2 Pulsar*2 | Pulsar*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # Shielder Spinner
@@ -172,7 +172,7 @@ campaign100leg2 w2: Rioter*4 SecurityGuard*2 | Thug Rioter*3 Shiv
 campaign100leg2 w3: Rioter*2 SecurityGuard Thug Guard RiotShield*2 | SecurityGuard*3 Rioter*2
 campaign100leg2 w4: Rioter Guard Rioter GasGrenadier Rioter*2 TaserGuard*2 | Thug Rioter*3 Shiv
 campaign100leg2 w5: RiotShield GasGrenadier SecurityGuard Shiv Thug Guard | RiotShield*4 Guard*5 | Guard Rioter*6 Guard Rioter*6 Thug
-campaign100leg2 w5 boss: Boss SecurityGuard*2
+campaign100leg2 w5 boss: Warden SecurityGuard*2
 campaign100leg2 w6: Shiv Worker*6 Rioter Thug Worker*5 Rioter Soldier*2
 campaign100leg2 w7: Bumble Soldier Bumble Worker*3 Bumble Needler*2 | Soldier*2 | Bumble Worker*3 Hornet | Soldier*2
 campaign100leg2 w8: Soldier*2 Bumble CombShield*2 | Bumble Worker*3 Hornet | Needler*3 Worker*2 | Bumble Worker*3 Hornet
@@ -184,7 +184,7 @@ campaign100leg2 w12: GasGrenadier Wisp BoundWraith*2 Wisp BoundWraith Wisp RiotS
 campaign100leg2 w13: Acolyte*2 Wisp Acolyte GasGrenadier Wisp Acolyte GasGrenadier Mourner*2 Acolyte GasGrenadier Wisp Mourner Wisp Acolyte*2 Wisp Mourner Wisp*2 Acolyte Mourner*2 Wisp*2 Mourner Acolyte Mourner*4 # Brute Mortar
 campaign100leg2 w14: Wisp*18 | Guard Rioter*6 Guard Rioter*6 Thug # Shielder Brute
 campaign100leg2 w15: Wisp*2 Brute Wisp*2 Acolyte Brute Wisp*3 Mourner Acolyte Wisp*2 Lunger | Mourner*2 BoundWraith*2 Acolyte*6 | Acolyte Wisp*6 # Lunger Brute
-campaign100leg2 w15 boss: TwinA TwinB
+campaign100leg2 w15 boss: ReaperOfDusk ReaperOfDawn
 campaign100leg2 w16: Acolyte Debris Mortar Debris*2 Mortar Acolyte Mortar Acolyte*2 Brute Gravedigger Debris Gravedigger Debris*2 VoidAcolyte*2 | VoidAcolyte Debris*6 | VoidAcolyte Debris*6 # Mortar Brute
 campaign100leg2 w17: VoidAcolyte*2 Debris Lens Debris*2 Lens*2 VoidAcolyte Lens Debris Shielder Mortar Debris VoidAcolyte*2 Debris VoidAcolyte Lens Debris*2 Lens*2 Debris Shielder VoidAcolyte*2 Lens Debris*2 Graviton*2 # Shielder Mortar
 campaign100leg2 w18: Lunger*3 Brute Lunger Brute*4 Lunger*4 Collapsar*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Brute*2 Lunger | Brute*2 Lunger # Lunger Brute
@@ -208,7 +208,7 @@ zombie w2: Shambler*16
 zombie w3: Runner*3 Shambler Runner*3 Shambler*5 Runner*6 Shambler*2
 zombie w4: Shambler*2 Runner*3 Shambler Runner*6 Shambler*11
 zombie w5: Shambler*2 Runner*6 Shambler*7 Runner*3 Shambler*9
-zombie w5 boss: Boss SecurityGuard*2
+zombie w5 boss: Warden SecurityGuard*2
 zombie w6: Shambler*2 Spitter Shambler Spitter Shambler Spitter Shambler Spitter Shambler*6 Runner*3 Shambler*6 Runner*3 Shambler*3
 zombie w7: Shambler*2 Spitter Shambler*2 Runner*3 Spitter*2 Shambler*3 Spitter Shambler*2 Runner*3 Shambler*6 Runner*11
 zombie w8: Shambler*2 Spitter Bloater Spitter Shambler Runner*3 Shambler*2 Bloater Shambler*3 Runner*3 Bloater Spitter Bloater Spitter Shambler*2 Bloater Shambler Bloater Runner*3 Shambler*10 Runner
@@ -220,7 +220,7 @@ zombie w12: Runner*3 Crawler*2 Runner*6 Shambler*4 Runner*3 Spitter Shambler*3 S
 zombie w13: Shambler Bloater Crawler*2 Shrieker Shambler Shrieker Runner*3 Shambler Crawler Runner*3 Bloater Shambler Runner*3 Shambler*2 Bloater Shambler*2 Runner*3 Shambler*2 Bloater Spitter Shambler Spitter*2 Shambler Spitter Shambler*9 Runner*6 Shambler Runner*3 Shambler Runner*3 Shambler Runner*6 Shambler*4 Runner*2
 zombie w14: Shambler Spitter Crawler Shambler*2 Spitter Bloater Crawler Spitter Shambler*4 Spitter Runner*3 Crawler Runner*3 Shambler Runner*3 Bloater Shambler*4 Bloater Shambler*3 Bloater Shrieker Shambler*5 Runner*3 Shambler Shrieker Shambler*5 Runner*6 Shambler Runner*3 Shambler*2 Bloater Shambler*5 Bloater Shambler*4 Bloater Shambler Runner*3 Shambler*2
 zombie w15: Shambler Spitter Crawler Spitter Crawler Mender Spitter Shambler*2 Bloater Shambler Spitter Shambler Runner*3 Shambler Crawler Shambler Bloater Shambler*6 Shrieker Shambler*7 Mender Shrieker Runner*6 Shambler Bloater Shambler*5 Runner*3 Shambler*4 Bloater Shambler*6 Runner*3 Shambler*6 Bloater Shambler*3 Runner*7
-zombie w15 boss: TwinA TwinB
+zombie w15 boss: ReaperOfDusk ReaperOfDawn
 zombie w16: Shambler Spitter Crawler Shambler*3 Runner*3 Bloater Crawler Shambler*6 Shrieker Shambler Spitter*2 Bloater Shambler Spitter Shambler*10 Mender Shambler Bloater Shambler*3 Crawler Shambler Shrieker Shambler*6 Bloater Shambler*6 Runner*3 Shambler*5 Mender Shambler*5 Bloater Runner*3 Shambler Bloater Shambler*3 Bloater Shambler*2 Runner*3 Shambler
 zombie w17: Crawler Runner*3 Crawler Shambler Bloater Runner*3 Shambler*3 Runner*3 Shambler Spitter Shambler*3 Mender Bloater Shambler Bloater Spitter Shambler Bloater Runner*3 Bloater Shambler*2 Crawler Shambler*6 Mender Shambler*2 Runner*3 Shrieker Shambler Spitter Shambler Spitter Bloater*2 Shrieker Bloater Runner*3 Shambler*8 Runner*3 Shambler*5 Bloater Shambler*2 Bloater Shambler*6 Bloater Shambler*2
 zombie w18: Bloater Shambler Crawler Bloater Shambler Crawler Shambler Spitter Shambler Shrieker Shambler*5 Mender Shambler Crawler Spitter*2 Runner*3 Shambler*8 Runner*3 Shambler Shrieker Runner*3 Shambler*4 Spitter Runner*3 Shambler Mender Shambler*4 Runner*3 Shambler*4 Bloater Shambler Bloater Shambler Runner*3 Bloater Shambler*2 Bloater*2 Shambler Runner*3 Shambler*8 Runner*3 Bloater*3 Shambler
@@ -244,7 +244,7 @@ hard w2: Thug Guard Rioter Thug Rioter | SecurityGuard*3 Rioter*2
 hard w3: Thug TaserGuard RiotShield Turnkey SecurityGuard Thug Turnkey | Thug Rioter*3 Shiv
 hard w4: Rioter*2 Shiv SecurityGuard GasGrenadier Thug | Guard Rioter*6
 hard w5:  | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
-hard w5 boss: Boss SecurityGuard*2
+hard w5 boss: Warden SecurityGuard*2
 hard w6: SecurityGuard Soldier*3 | Soldier Worker*6 | Thug Rioter*3 Shiv
 hard w7: RiotShield Rioter Worker Rioter Guard Worker | Needler*3 Worker*2 | Soldier Worker*6
 hard w8: TaserGuard Rioter*2 Stinger HoneyLobber Stinger Needler Stinger | Needler*3 Worker*2 | Soldier Worker*6
@@ -256,7 +256,7 @@ hard w12: Wisp Rioter Worker Wisp Hornet Thug Wisp Rioter | Gravedigger BoundWra
 hard w13: Wisp*2 BoundWraith*2 Spinner*2 Acolyte Mortar Spinner Lamplighter Wisp Lamplighter Mortar*2 Spinner BoundWraith Spinner BoundWraith | Acolyte*4 Lamplighter*2 | Acolyte*4 Lamplighter*2 # Spinner Mortar
 hard w14: Wisp*18 | Guard Rioter*6 Guard Rioter*6 Thug # Grunt Sniper
 hard w15: Wisp*2 Mourner Wisp BoundWraith Wisp BoundWraith Grunt Acolyte Grunt Wisp*3 Acolyte Wisp*2 Mortar | Mourner*2 BoundWraith*2 Acolyte*6 | Acolyte Wisp*6 # Grunt Mortar
-hard w15 boss: TwinA TwinB
+hard w15 boss: ReaperOfDusk ReaperOfDawn
 hard w16: VoidAcolyte*2 Acolyte VoidAcolyte*2 Debris Sniper Wisp Sniper Swarmer Debris*3 Wisp Swarmer*2 VoidAcolyte Wisp VoidAcolyte*2 Swarmer | Acolyte Wisp*6 | VoidAcolyte Debris*6 # Swarmer Sniper
 hard w17: Wisp Debris*2 Spinner Debris Mourner Wisp Shielder Mourner Debris Spinner Debris Wisp*4 VoidAcolyte*2 | VoidAcolyte Debris*6 | VoidAcolyte Debris*6 # Shielder Spinner
 hard w18: WhiteDwarf*21 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # Swarmer Lunger

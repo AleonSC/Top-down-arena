@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// The well-shaped rooms the game gives the Expanding arena for free (Docs/SurpriseRooms.md, step 1).
-    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash, Tiny, Duel, Box, Hall, SmallRect, Medium, LongHall }  // (Tiny, SmallRect, Medium, Box, LongHall: mystery door rooms, MysteryDoors.cs; Duel, Box and Hall: room cards, RoomCards.cs)
+    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash, Tiny, Duel, Box, Hall, SmallRect, Medium, LongHall }  // (Tiny, SmallRect, Medium, Box, LongHall: mystery door rooms, MysteryDoors.cs; Duel, Box and Hall: room cards, Pieces.cs)
 
     /// A spot for a surprise room: its boxes (Price 0), how many loops it closes and its score.
     public struct SurpriseOption
@@ -15,7 +15,7 @@ namespace Arena
         public bool DeadEnd;   // it touches a room with a single door
         public int Score;
         public int Price;      // what drawing it would cost (Expansion.Cost of its outline; a mystery door charges a share, MysteryDoors.cs)
-        public int X, Y;       // the mask's top-left corner in world px, and its turn and mirror (SurpriseMask): enough to build it again (a room card, RoomCards.cs)
+        public int X, Y;       // the mask's top-left corner in world px, and its turn and mirror (SurpriseMask): enough to build it again (a room card, Pieces.cs)
         public byte Turn;
         public bool Mirror;
     }

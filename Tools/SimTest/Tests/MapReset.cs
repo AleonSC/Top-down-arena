@@ -28,13 +28,13 @@ static partial class Program
             var core = Expansion.GridCore();
             var map = new List<ExpansionRoom>(core);
             string why = null;
-            var spot = Expansion.GridPieceOptions(map, GridPiece.TetL).First(o => o.Side == 3);
-            var ell = Expansion.GridPieceRooms(map, GridPiece.TetL, spot.Orient, spot.X, spot.Y, out why);
+            var spot = Expansion.PlacementsFor(map, PieceShape.TetL).First(o => o.Side == 3);
+            var ell = Expansion.PieceShapeRooms(map, PieceShape.TetL, spot.Orient, spot.X, spot.Y, out why);
             Check(ell != null, "an L of four cells east of the core (" + why + ")");
             for (int i = 0; i < ell.Count; i++) { var q = ell[i]; q.Kind = RoomKind.Shop; q.Owner = 2; q.Surprise = 3; ell[i] = q; }
             int ellAt = map.Count;
             map.AddRange(ell);
-            var mono = Expansion.GridPieceOptions(map, GridPiece.Mono).First(o => o.Side == 1);
+            var mono = Expansion.PlacementsFor(map, PieceShape.Mono).First(o => o.Side == 1);
             int monoAt = map.Count;
             map.AddRange(mono.Rooms);
             Check(Expansion.KeepsakeChoices(map).SequenceEqual(new[] { ellAt, monoAt }) && Expansion.RoomGroup(map, ellAt).Count == ell.Count && Expansion.RoomGroup(map, monoAt).Count == 1,
@@ -44,7 +44,7 @@ static partial class Program
             int tiles = kept.Sum(q => q.W / 100 * (q.H / 100));
             bool clear = kept.All(q => core.All(c => !(q.X < c.X1 && c.X < q.X1 && q.Y < c.Y1 && c.Y < q.Y1)));
             bool lattice = kept.All(q => (q.X - Expansion.GridX0) % Expansion.GridCell == 0 && (q.Y - Expansion.GridY0) % Expansion.GridCell == 0);
-            bool touches = Expansion.GridPieceOptions(core, GridPiece.Mono).Any(o => kept.Any(q => q.X <= o.X && o.X < q.X1 && q.Y <= o.Y && o.Y < q.Y1));
+            bool touches = Expansion.PlacementsFor(core, PieceShape.Mono).Any(o => kept.Any(q => q.X <= o.X && o.X < q.X1 && q.Y <= o.Y && o.Y < q.Y1));
             Check(kept.Count == ell.Count && tiles == 144 && clear && lattice && touches && kept.All(q => q.Kind == RoomKind.Shop && q.Owner == 2 && q.Surprise == 3 && q.Price == 0 && !q.Floating),
                 "kept, the L is rebuilt whole on the lattice against a fresh core: " + tiles + " tiles, the same kind, owner and look, free");
             var floater = map[monoAt]; floater.Floating = true; map[monoAt] = floater;
@@ -80,11 +80,11 @@ static partial class Program
             g.Expanded.Clear(); g.Nodes.Clear();
             g.Expanded.AddRange(Expansion.GridCore());
             string why = null;
-            var dom = Expansion.GridPieceOptions(g.Expanded, GridPiece.Domino).First(o => o.Side == 3);
-            var room = Expansion.GridPieceRooms(g.Expanded, GridPiece.Domino, dom.Orient, dom.X, dom.Y, out why);
+            var dom = Expansion.PlacementsFor(g.Expanded, PieceShape.Domino).First(o => o.Side == 3);
+            var room = Expansion.PieceShapeRooms(g.Expanded, PieceShape.Domino, dom.Orient, dom.X, dom.Y, out why);
             Check(room != null, "a domino east of the core (" + why + ")");
             g.Expanded.AddRange(room);
-            var southOpt = Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono).First(o => o.Side == 1);
+            var southOpt = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).First(o => o.Side == 1);
             g.Expanded.AddRange(southOpt.Rooms);
             var roomBoxes = new List<ExpansionRoom>(g.Expanded);
             int domAt = 4, monoAt = 4 + room.Count;  // (the two rooms' first boxes: what the keepsake vote names)

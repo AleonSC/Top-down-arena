@@ -68,7 +68,7 @@ Clearing it pays a reward.
 ## Step 4 (built, no protocol change)
 
 - **Drawn rooms**: a drawn outline of any shape claims a rule node it encloses as a whole (`Expansion.NodeEnclosedBy`); before, each of its boxes was checked alone, so an L round a node never claimed it.
-- **Bots** (`ExpansionGame.cs`): they build toward a sealed shop, then vendor, then a **rule node's room**, then chest and relic nodes, then the Gatekeeper (`BotFloaterPick`), and **vote** for a
-  proposal that builds toward that pick when one is up (`BotVote`); before, a duo voted at random, split its votes about half the time and left the vendor sealed all run, so no node was ever tried.
+- **Bots** (`ExpansionGame.cs`): they build toward a sealed shop, then Black Market, then a **rule node's room**, then chest and relic nodes, then the Gatekeeper (`BotFloaterPick`), and **vote** for a
+  proposal that builds toward that pick when one is up (`BotVote`); before, a duo voted at random, split its votes about half the time and left the Black Market sealed all run, so no node was ever tried.
 - **vecbal** prints chest, relic and rule nodes claimed/placed and spent, and each rule node's rule with `+claimed` / `+cleared`.
 - Prizes are unchanged (Frozen: 40 + 4 a wave gold and 8 vectors); bots still don't walk to a chest or relic, so a bot run never collects them.

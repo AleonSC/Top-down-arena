@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The Builder Shop on screen (Core/BuilderShop.cs): while you stand in a Builder room in a build round, its shelf sits at the bottom of the
     /// screen (the arena stays live round it): five room cards, each a drawing of its room, its name and a Buy key with the price in vectors
-    /// (the vendor's price struck through). The counter itself stands in the room (`DrawBuilderCounter`). Preview:
+    /// (the full price struck through). The counter itself stands in the room (`DrawBuilderCounter`). Preview:
     /// `EXPANDMAP=0 CARDROOM=buildershop BUILDEROPEN=1 [BUILDERVEC=n] Tools/Preview/shot.sh x hud`.
     public partial class ArenaApp
     {
@@ -61,7 +61,7 @@ namespace Arena
                 float wasW = Ui.TextWidth(was, 10, true), cx = tile.center.x;
                 var wasR = new Rect(cx - wasW / 2f, tile.y + 60f, wasW, 12f);
                 Ui.Label(wasR, was, 10, Ui.Muted, TextAnchor.MiddleCenter, true);
-                Ui.Fill(new Rect(wasR.x - 2f, wasR.center.y, wasR.width + 4f, 1f), Ui.Muted);  // (struck through: the vendor's price)
+                Ui.Fill(new Rect(wasR.x - 2f, wasR.center.y, wasR.width + 4f, 1f), Ui.Muted);  // (struck through: the full price)
                 bool old = GUI.enabled;
                 GUI.enabled = why == null;
                 if (DkKey(new Rect(tile.x + 10f, tile.yMax - 34f, tile.width - 20f, 26f), why == null ? "BUY  " + price + " V" : why == "Hand full" ? "HAND FULL" : price + " V  ·  NEED " + (price - have), ink, false, 12))
