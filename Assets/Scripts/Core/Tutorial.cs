@@ -82,7 +82,7 @@ namespace Arena
             return Current;
         }
 
-        /// Every game, as a match starts: on for a profile's first Quick Play (not for a bot, a replay or the lobby preview).
+        /// Every game, as a run starts: on for a profile's first Quick Play (not for a bot, a replay or the lobby preview).
         public void Begin(Game g)
         {
             done.Clear();

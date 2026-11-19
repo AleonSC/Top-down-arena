@@ -112,10 +112,10 @@ namespace Arena
                     DrawShatterFx(fx, f);
                     break;
                 case FxKind.Implode:
-                    DrawImplodeFx(fx, f);  // BloodMageLook.cs
+                    DrawImplodeFx(fx, f);  // HemomancerLook.cs
                     break;
                 case FxKind.Bleed:
-                    DrawBleedFx(fx, f);  // BloodMageLook.cs, like the four below
+                    DrawBleedFx(fx, f);  // HemomancerLook.cs, like the four below
                     break;
                 case FxKind.BloodShell:
                     DrawBloodShellFx(fx, f);
@@ -162,7 +162,7 @@ namespace Arena
                     DrawAirstrikeFx(fx);  // AirstrikeLook.cs
                     break;
                 case FxKind.BsBlow:
-                    DrawBsBlowFx(fx);  // BoneSpearLook.cs
+                    DrawBsBlowFx(fx);  // BloodBrawlerLook.cs
                     break;
                 case FxKind.EmbolusBlast:
                     DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
@@ -435,7 +435,7 @@ namespace Arena
                     DrawMarrowLinkFx(fx, f, t);  // BoneGuardLook.cs
                     break;
                 case FxKind.BloodCoat:
-                    DrawBloodCoatFx(fx, f, t);  // BloodMageLook.cs
+                    DrawBloodCoatFx(fx, f, t);  // HemomancerLook.cs
                     break;
                 case FxKind.ArcTag:
                 case FxKind.ArcLink:

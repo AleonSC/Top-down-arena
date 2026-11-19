@@ -95,7 +95,7 @@ static partial class Program
         // Coins: a boss kill's coins add up to all its gold (at most 6 coins, the last one carries the rest).
         var drop = typeof(Game).GetMethod("DropCoins", flags);
         g.Coins.Clear();
-        var boss = new Enemy { Def = Defs.Get(EnemyType.Boss), Pos = at };
+        var boss = new Enemy { Def = Defs.Get(EnemyType.Warden), Pos = at };
         drop.Invoke(g, new object[] { boss });
         int gold = g.Coins.Values.Where(k => !k.Vec).Sum(k => k.Value), coins = g.Coins.Values.Count(k => !k.Vec);
         int want = (int)Math.Round(boss.Def.Xp * Game.GoldPerXp);

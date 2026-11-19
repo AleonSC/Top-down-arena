@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The tank Ninja's Ceremonial Armor (`AbilityId.IronBody` kept; was Iron Body). Each cast summons one lacquered armour
+    /// The tank Ninja's Ceremonial Armor (was Iron Body). Each cast summons one lacquered armour
     /// plate (2.5 s cooldown), up to CerePlateMax. Plates stay until they break, in the "Mandala" layout of
     /// Docs/Mockups/ceremonial-armor.html: the first 4 spin fast on an inner ring, the next 6 turn the other way further out.
     /// A plate stops the enemy bullets it touches (losing their damage in health) and pushes enemies off it. With all 10 up
@@ -121,7 +121,7 @@ namespace Arena
         static bool CereSlotted(Player p)
         {
             foreach (var s in p.Slots)
-                if (s.Id == AbilityId.IronBody)
+                if (s.Id == AbilityId.CeremonialArmor)
                     return true;
             return false;
         }

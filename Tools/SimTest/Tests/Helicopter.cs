@@ -5,7 +5,7 @@ using System.Threading;
 using Arena;
 
 // The Attack Helicopter (AttackHelicopter.cs): the DPS Soldier's key 1 on the lobby's Ultimate row (and a Wildcard's pick), the pick
-// reaching the match; no fire while it flies in; then each gun locks the enemy nearest its caller within the leash and fires
+// reaching the run; no fire while it flies in; then each gun locks the enemy nearest its caller within the leash and fires
 // 20 rounds a second of 8 (times the damage multiplier) until it dies, then the next; nothing beyond the leash; two guns on two
 // targets mastered; the other screen sees the guns and targets; it ends on time, on going down and between waves.
 static partial class Program
@@ -23,7 +23,7 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.AttackHelicopter);
         Check(def.Name == "Attack Helicopter" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Role == Role.Dps && def.Kit == Kit.Soldier && def.Capstone != null,
             "the Attack Helicopter is the DPS Soldier's ultimate on key 1, 70 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.BulletStorm && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.ArtilleryAssault && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
             && Upgrades.AltUltimate(Role.Dps, Kit.Soldier, 2) == AbilityId.None && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit,
             "Artillery Assault stays the default; key 1 is the Attack Helicopter; the Tank Soldier keeps the Juggernaut Suit");
         int wild = Upgrades.WildUlt(Kit.Soldier, 1);

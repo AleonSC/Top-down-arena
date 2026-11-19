@@ -29,7 +29,7 @@ static partial class Program
     static BossLab LabFight(int wave, BotSkill skill, string[] seats, int seed, EnemyType? quickBoss = null)
     {
         float dt = 1f / 60f;
-        var lab = new BossLab { Wave = wave, Skill = skill, PlayerCount = seats.Length, Seed = seed, Quick = quickBoss.HasValue, QuickBoss = quickBoss ?? EnemyType.Boss };
+        var lab = new BossLab { Wave = wave, Skill = skill, PlayerCount = seats.Length, Seed = seed, Quick = quickBoss.HasValue, QuickBoss = quickBoss ?? EnemyType.Warden };
         for (int i = 0; i < seats.Length; i++)
         {
             var parts = seats[i].Split('/');
@@ -124,7 +124,7 @@ static partial class Program
     static void BossLabTest(float dt)
     {
         var good = LabRun(5, BotSkill.Good, 1, new[] { "T/S/0", "H/M/1" }, true);
-        Check(good[0] == LabOutcome.Won, "Boss Lab: Good bots (Mage Healer + Soldier Tank) beat the Warden");
+        Check(good[0] == LabOutcome.Won, "Boss Lab: Good bots (Elementalist Healer + Soldier Tank) beat the Warden");
         var lab = new BossLab { Wave = 15, Skill = BotSkill.Casual, PlayerCount = 3, Seed = 7 };
         lab.Seats[2].Kit = Kit.Summoner;
         var host = new Session();
@@ -180,7 +180,7 @@ static partial class Program
         var seats = args.Length > 6 ? args.Skip(6).ToArray() : new[] { "T/S/0", "D/S/0" };
         Console.WriteLine("  Quick Play boss fights: {0} [{1}], {2} run(s) each; target ~{3:0} s", skill, string.Join(" ", seats), runs, QuickPlay.FightSeconds);
         Console.WriteLine("  {0,-16} {1,5} {2,9} {3,9} {4,8} {5,8} {6,7}", "boss", "after", "won/runs", "avg fight", "HP left", "downs", "HP");
-        foreach (var boss in new[] { EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+        foreach (var boss in new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
                                      EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })
             foreach (int wave in waves)
             {

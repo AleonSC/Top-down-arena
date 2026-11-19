@@ -30,7 +30,7 @@ static partial class Program
         {
             int open = 0;
             foreach (var e in g.Enemies.Values)
-                if (e.Type == EnemyType.Portal)
+                if (e.Type == EnemyType.SpawnPortal)
                 {
                     open++;
                     if (seen.Add(e.Id))
@@ -41,7 +41,7 @@ static partial class Program
                     }
                 }
             maxOpen = Math.Max(maxOpen, open);
-            clientSaw |= s[1].Game.Enemies.Values.Any(e => e.Type == EnemyType.Portal);
+            clientSaw |= s[1].Game.Enemies.Values.Any(e => e.Type == EnemyType.SpawnPortal);
         });
         Console.WriteLine("  {0} portals in 45 s ({1} flanks), at most {2} open at once", portalsSeen, flanks, maxOpen);
         Check(portalsSeen >= 3, "a timed wave's enemies come in through several portals");

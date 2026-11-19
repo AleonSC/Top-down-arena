@@ -127,14 +127,14 @@ static partial class Program
                 bool abilityOk = true;
                 switch (p.Slots[0].Id)
                 {
-                    case AbilityId.ArcaneAegis: abilityOk = aegis; break;
+                    case AbilityId.Aeroaegis: abilityOk = aegis; break;
                     case AbilityId.FlameWall: abilityOk = zones.Contains(ZoneKind.FlameWall); break;
                     case AbilityId.EnergyWard: abilityOk = shield; break;
                     case AbilityId.Meteor: abilityOk = zones.Contains(ZoneKind.Meteor); break;
                     case AbilityId.Blizzard: abilityOk = zones.Contains(ZoneKind.Blizzard); break;
                     case AbilityId.Tsunami: abilityOk = wave; break;
                     case AbilityId.GolemWall: abilityOk = minions.Contains(MinionKind.Wall); break;
-                    case AbilityId.GuardianSpirit: abilityOk = minions.Contains(MinionKind.Thrall); break;
+                    case AbilityId.ForcePact: abilityOk = minions.Contains(MinionKind.Thrall); break;
                     case AbilityId.SpiritSwarm: abilityOk = minions.Contains(MinionKind.Sprite); break;
                     case AbilityId.Phoenix: abilityOk = minions.Contains(MinionKind.Phoenix); break;
                     case AbilityId.SoulLantern: abilityOk = minions.Contains(MinionKind.SoulLantern); break;
@@ -219,7 +219,7 @@ static partial class Program
                 bool effect = false;
                 switch (ult)
                 {
-                    case AbilityId.Fortress: case AbilityId.BulletStorm: effect = ultT.Contains(id); break;
+                    case AbilityId.Fortress: case AbilityId.ArtilleryAssault: effect = ultT.Contains(id); break;
                     case AbilityId.GlacialTomb: effect = frozen; break;
                     case AbilityId.Titan: effect = M(MinionKind.Titan) > 0; break;
                     case AbilityId.Lifeline: effect = fullHp.Count == 2; break;

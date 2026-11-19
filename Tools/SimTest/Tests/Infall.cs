@@ -29,7 +29,7 @@ static partial class Program
         Action Quiet = () => { foreach (var q in queues) q.Clear(); };
         for (int f = 0; f < 60 * 20 && g.State != MatchState.Fighting; f++)
             Step(host, dt);
-        Check(g.State == MatchState.Fighting, "the match started");
+        Check(g.State == MatchState.Fighting, "the run started");
         var me = g.Players[1];
         Func<EnemyType, V2, Enemy> put = (t, at) =>
         {
@@ -98,21 +98,21 @@ static partial class Program
         Check(hurt, "the sweep passes through you and hurts");
         Check(Game.PulsarBeamDistance(pu, pu.Pos + V2.FromAngle(pu.Facing) * 300f) < 1f && Game.PulsarBeamDistance(pu, pu.Pos - V2.FromAngle(pu.Facing) * 300f) < 1f,
             "it has two beams, one each way");
-        // Graviton: lobs a Small Well near you; once landed it drags you and bends shots; it's gone after MiniWellLife.
+        // Graviton: lobs a Small Well near you; once landed it drags you and bends shots; it's gone after SmallWellLife.
         g.DevSetGod(1, true);
         var gv = put(EnemyType.Graviton, new V2(560f, 400f));
         Enemy well = null;
-        run(9f, () => { if (well == null) well = g.Enemies.Values.FirstOrDefault(o => o.Type == EnemyType.MiniWell); });
+        run(9f, () => { if (well == null) well = g.Enemies.Values.FirstOrDefault(o => o.Type == EnemyType.SmallWell); });
         Check(well != null && well.ParentId == gv.Id && well.Pos.DistanceTo(new V2(900f, 400f)) <= Game.GravitonScatter + 1f, "a Graviton lobs a Small Well near you");
         if (well != null)
         {
             var drift = (V2)typeof(Game).GetMethod("WellDriftAt", np).Invoke(g, new object[] { well.Pos + new V2(120f, 0f) });
             Check(drift.X < -10f, "a landed well drags a player toward it");
-            Check(Game.JobOf(EnemyType.Graviton) == EnemyJob.Zoner && Defs.Get(EnemyType.MiniWell).Picker == PickerGroup.Hidden, "the Graviton is a Zoner; its well only comes from it");
+            Check(Game.JobOf(EnemyType.Graviton) == EnemyJob.Zoner && Defs.Get(EnemyType.SmallWell).Picker == PickerGroup.Hidden, "the Graviton is a Zoner; its well only comes from it");
             int id = well.Id;
             bool gone = false;
-            run(Game.MiniWellLife + 0.5f, () => gone |= !g.Enemies.ContainsKey(id));
-            Check(gone, "the well closes after " + Game.MiniWellLife + " s");
+            run(Game.SmallWellLife + 0.5f, () => gone |= !g.Enemies.ContainsKey(id));
+            Check(gone, "the well closes after " + Game.SmallWellLife + " s");
         }
 
         // Orbiter: slings fast orbs at you, counting its throws in Phase.
@@ -181,12 +181,12 @@ static partial class Program
         float calm = g.InfallBotDanger(wdB, new V2(860f, 400f), 8f);
         wdB.Phase = 1;
         float flash = g.InfallBotDanger(wdB, new V2(860f, 400f), 8f), far = g.InfallBotDanger(wdB, new V2(800f + Game.WhitePushRange + 80f, 400f), 8f);
-        var mw = put(EnemyType.MiniWell, new V2(600f, 400f));
+        var mw = put(EnemyType.SmallWell, new V2(600f, 400f));
         var imB = put(EnemyType.Implosion, new V2(600f, 400f));
         Check(calm == 0f && flash > 0f && far == 0f && g.InfallBotDanger(mw, new V2(640f, 400f), 8f) > 0f && g.InfallBotDanger(imB, new V2(650f, 400f), 8f) > 0f,
             "bots see a White Dwarf's flash, a Small Well and an Implosion as danger");
         // A bot next to a landed Small Well walks away from it.
-        var mw2 = put(EnemyType.MiniWell, new V2(900f, 400f));
+        var mw2 = put(EnemyType.SmallWell, new V2(900f, 400f));
         mw2.PhaseT = 10f;
         me.Pos = me.Disp = new V2(940f, 400f);
         g.Bot = true;

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// How the Warden's fight looks (Warden.cs): the watchtower and its searchlight, the Lockdown's gates of push
-    /// bullets, the riot's doors, and on the Warden itself the cross guides, the stage-change shell, the riot
+    /// bullets, the riot's doors, and on the Warden itself the cross guides, the phase-change shell, the riot
     /// shield, the baton charge's line and the last stand. Also stunned players, stun shots and rioters (Brawlers and Balls and Chains).
     public partial class ArenaApp
     {
@@ -222,7 +222,7 @@ namespace Arena
             var w = e.Warden;
             if (w == null)
                 return;
-            if (w.TransT > 0f)  // changing stage (can't be hurt): StageShiftLook.cs
+            if (w.TransT > 0f)  // changing phase (can't be hurt): StageShiftLook.cs
             {
                 DrawStageShiftBoss(e, pos, r, t);
                 return;
@@ -602,7 +602,7 @@ namespace Arena
         static readonly Rgba ArmorSteel = new Rgba(0.55f, 0.68f, 0.88f), ArmorDark = new Rgba(0.18f, 0.22f, 0.32f);
 
         /// The Warden's last-stand armor: five steel plates round it with a bright rim, falling away one by one as the
-        /// armor wears down. While it armors up (the 2 s stage change), each plate flies in from outside and locks on at
+        /// armor wears down. While it armors up (the 2 s phase change), each plate flies in from outside and locks on at
         /// Game.ArmorPlateAt, with a small white flash (and a clang, from the host).
         void DrawWardenArmor(WardenState w, V2 pos, float r, float t)
         {

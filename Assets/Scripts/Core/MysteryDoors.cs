@@ -463,7 +463,7 @@ namespace Arena
                     set.Add(e.Type);
             var pool = new List<EnemyType>();
             foreach (var t in set)
-                if (!Defs.Get(t).IsBoss && !IsPlanted(t) && t != EnemyType.Portal)
+                if (!Defs.Get(t).IsBoss && !IsPlanted(t) && t != EnemyType.SpawnPortal)
                     pool.Add(t);
             pool.Sort();  // (a set's order isn't fixed: keep the host's rolls the same run to run)
             return pool.Count > 0 ? pool : WavePool(Math.Max(1, Wave));

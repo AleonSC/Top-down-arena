@@ -11,7 +11,7 @@ namespace Arena
     /// spawner (Waves.cs); drawn by Game/DevArenaUi.cs.
     public partial class Game
     {
-        /// Host: the sandbox is on (set after the match starts; HostStart's reset turns it off).
+        /// Host: the sandbox is on (set after the run starts; HostStart's reset turns it off).
         public bool DevArena;
 
         /// Host: the enemy being played (its id), or -1.

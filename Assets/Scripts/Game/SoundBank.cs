@@ -580,7 +580,7 @@ namespace Arena
                 Tone(0.22f, Osc.Square, 660f, 660f, 0.3f, lowpass: 0.25f, attack: 0.02f, decay: 0.3f), Tone(0.3f, Osc.Square, 880f, 880f, 0.3f, lowpass: 0.25f, attack: 0.02f, decay: 1.5f)), 0.14f), 0.8f);  // the prison alarm
             Set(Sfx.BossBuzz, Finish(Tremolo(Tone(0.75f, Osc.Saw, 150f, 175f, 0.6f, noise: 0.2f, lowpass: 0.3f, attack: 0.12f, decay: 0.8f), 27f, 0.7f), 0.22f), 0.3f);  // a swarm
             Set(Sfx.BossSplat, Tone(0.28f, Osc.Sine, 190f, 55f, 0.38f, noise: 0.65f, lowpass: 0.3f, attack: 0.002f, decay: 3f), 0.1f);  // something wet landing
-            Set(Sfx.BossGong, Finish(Reverb(Bell(1.8f, 98f, 0.6f)), 0.42f), 0.6f);  // a deep bell: stage shifts, rites, tolls
+            Set(Sfx.BossGong, Finish(Reverb(Bell(1.8f, 98f, 0.6f)), 0.42f), 0.6f);  // a deep bell: phase shifts, rites, tolls
             Set(Sfx.BossScythe, Finish(Mix(Tone(0.22f, Osc.Sine, 1200f, 350f, 0.4f, noise: 0.85f, lowpass: 0.5f, attack: 0.03f, decay: 1.6f),
                 Tone(0.35f, Osc.Sine, 2300f, 2050f, 0.12f, attack: 0.04f, decay: 2.5f)), 0.36f), 0.1f);  // a blade's swish with a ring
             Set(Sfx.BossThunder, Finish(Mix(Tone(0.1f, Osc.Sine, 2000f, 600f, 0.9f, noise: 1f, lowpass: 0.8f, decay: 4f),

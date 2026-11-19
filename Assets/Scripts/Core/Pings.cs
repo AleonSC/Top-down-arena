@@ -45,7 +45,7 @@ namespace Arena
             return true;
         }
 
-        /// Ping `kind` at an arena position as this player. False: not in a match, or still pausing.
+        /// Ping `kind` at an arena position as this player. False: not in a run, or still pausing.
         public bool SendPing(PingKind kind, V2 at)
         {
             if (Net == null || Screen != AppScreen.Game || !Game.Running || (int)kind > (int)PingKind.Go || PingWait > 0f || !Finite(at))

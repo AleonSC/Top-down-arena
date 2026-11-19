@@ -151,7 +151,7 @@ namespace Arena
             new ZoneDef { Name = "Bone Spear", Color = new Rgba(0.95f, 0.9f, 0.82f) },
             new ZoneDef { Name = "Incense", Color = new Rgba(0.85f, 0.8f, 0.6f), HealRate = 4f },  // the Censer's puffs and clouds (Censer.cs); enemy shots fired inside it stray
             new ZoneDef { Name = "Ofuda Ward", Color = new Rgba(1f, 0.85f, 0.6f) },
-            new ZoneDef { Name = "Honey Pool", Color = new Rgba(1f, 0.75f, 0.2f), HealRate = 6f, Slow = 0.4f },  // Royal Dive's landing (QueenLoot.cs)  // an Ofuda charm stuck to the ground: bursts when an enemy steps on it (Ninja.cs)  // a thrown Bone Spear stuck in the ground: walk over it for its health back (BloodMage.cs)
+            new ZoneDef { Name = "Honey Pool", Color = new Rgba(1f, 0.75f, 0.2f), HealRate = 6f, Slow = 0.4f },  // Royal Dive's landing (QueenLoot.cs)  // an Ofuda charm stuck to the ground: bursts when an enemy steps on it (Ninja.cs)  // a thrown Bone Spear stuck in the ground: walk over it for its health back (Hemomancer.cs)
             new ZoneDef { Name = "Healing Rain", Color = new Rgba(0.4f, 0.85f, 0.5f), HealRate = 8f, Slow = 0.3f },  // the Healer Elementalist's rain (Docs/HealingRain.md)
             new ZoneDef { Name = "Bullet Rain", Color = new Rgba(0.47f, 0.69f, 0.94f), Dps = 45f },  // the Elementalist DPS ultimate (BulletRainLook.cs)
             new ZoneDef { Name = "Lumen Ward", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 9f },  // a cone of light that follows the caster's aim (LumenWard.cs): heals and burns enemy bullets inside

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Kinetic Wall (KineticWall.cs): the Elementalist DPS's 4th lobby ability (pick 3 reaching the match), the lens catching enemy shots
+// Kinetic Wall (KineticWall.cs): the Elementalist DPS's 4th lobby ability (pick 3 reaching the run), the lens catching enemy shots
 // (each a charge, up to the cap), the unleash on a second press (cone damage that grows with the charge, shoves) or when it runs
 // out, the mastered lens, replication, and going down.
 static partial class Program
@@ -22,14 +22,14 @@ static partial class Program
             "the Elementalist DPS has a 4th ability key, Kinetic Wall; classes without a 4th keep three");
 
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Mage", Role.Dps, 0, 3, Kit.Elementalist);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Elementalist", Role.Dps, 0, 3, Kit.Elementalist);
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Knight);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.RoleAbility == AbilityId.KineticWall && me.Slots[0].Id == AbilityId.KineticWall, "picking the 4th key brings Kinetic Wall into the match on Space");
+        Check(me.RoleAbility == AbilityId.KineticWall && me.Slots[0].Id == AbilityId.KineticWall, "picking the 4th key brings Kinetic Wall into the run on Space");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(300f, 450f), aim = new V2(900f, 450f);

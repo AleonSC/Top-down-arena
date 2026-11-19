@@ -24,8 +24,8 @@ static partial class Program
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         var me = g.Players[1];
         var friend = g.Players[2];
-        me.Weapon = friend.Weapon = Defs.WeaponOf(WeaponId.Pistol);
-        client.Game.Players[1].Weapon = client.Game.Players[2].Weapon = Defs.WeaponOf(WeaponId.Pistol);
+        me.Weapon = friend.Weapon = Defs.WeaponOf(WeaponId.Revolver);
+        client.Game.Players[1].Weapon = client.Game.Players[2].Weapon = Defs.WeaponOf(WeaponId.Revolver);
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         V2 from = new V2(400f, 450f), farAway = new V2(900f, 200f);
         Func<V2, Enemy> Dummy = at =>
@@ -56,7 +56,7 @@ static partial class Program
         V2 frontWas = front.Pos;
         Step(0.25f, true, false);
         Check(front.Hp < front.MaxHp && side.Hp < side.MaxHp, "the whip hurts what's in front and beside you (front " + (front.MaxHp - front.Hp).ToString("0") + ", side " + (side.MaxHp - side.Hp).ToString("0") + ")");
-        Check(front.MaxHp - front.Hp >= Defs.WeaponOf(WeaponId.Pistol).Damage * 1.5f, "it hits harder than a round");
+        Check(front.MaxHp - front.Hp >= Defs.WeaponOf(WeaponId.Revolver).Damage * 1.5f, "it hits harder than a round");
         Check(behind.Hp == behind.MaxHp, "it misses what's behind you");
         Check(front.Pos.X > frontWas.X + 25f, "it shoves what it hits back (" + (front.Pos.X - frontWas.X).ToString("0") + " px)");
         Check(!g.Bullets.ContainsKey(small.Id) && !g.Bullets.ContainsKey(big.Id), "it destroys enemy shots in the arc, big ones too");

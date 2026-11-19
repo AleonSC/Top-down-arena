@@ -107,7 +107,7 @@ static partial class Program
         Check(g.State == MatchState.Fighting && g.DevSpawnEnemy(1, EnemyType.Brute, 3, false) == 3 && g.Enemies.Count == foes0 + 3 && g.Enemies.Values.Count(e => e.Type == EnemyType.Brute) >= 3,
             "the dev spawn puts three brutes on the field");
         Check(cg.DevSpawnEnemy(2, EnemyType.Brute, 1, false) == 0, "only the host can spawn enemies");
-        Check(g.DevSpawnEnemy(1, EnemyType.TwinA, 1, false) == 2 && g.Enemies.Values.Any(e => e.Type == EnemyType.TwinA) && g.Enemies.Values.Any(e => e.Type == EnemyType.TwinB), "a Twin Reapers spawn brings both twins");
+        Check(g.DevSpawnEnemy(1, EnemyType.ReaperOfDusk, 1, false) == 2 && g.Enemies.Values.Any(e => e.Type == EnemyType.ReaperOfDusk) && g.Enemies.Values.Any(e => e.Type == EnemyType.ReaperOfDawn), "a Twin Reapers spawn brings both twins");
         Check(g.DevSpawnEnemy(1, EnemyType.Grunt, 1, true) == 1 && g.Enemies.Values.Any(e => e.Type == EnemyType.Grunt && e.Elite), "Elite spawns a tougher one");
         var chest = g.AddProp(PropKind.Chest, new V2(800f, 450f));
         Quiet();

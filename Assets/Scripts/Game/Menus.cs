@@ -458,7 +458,7 @@ namespace Arena
             { "Dodge", "or double tap a movement key" },
             { "Role ability", "" },
             { "Weapon secondary", "blink, lunge, recall, vault or whirl" },
-            { "Ultimate", "starts each match half charged" },
+            { "Ultimate", "starts each run half charged" },
             { "Bonus abilities", "from upgrade cards · swap keys in Tab" },
             { "Pick an upgrade", "or click a card, then Confirm" },
             { "Chest item", "standing on it: take / throw away" },
@@ -590,7 +590,7 @@ namespace Arena
             pauseSel = 0;
             pauseSettings = pauseHowTo = pauseRecords = pauseConfirmLobby = false;
             if (game.State != MatchState.GameOver)
-                game.RequestPause(true);  // pauses the match for both players
+                game.RequestPause(true);  // pauses the run for both players
         }
 
         void ResumeGame()

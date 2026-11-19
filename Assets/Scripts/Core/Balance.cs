@@ -7,8 +7,8 @@ namespace Arena
     /// uses them:
     ///   Stats       Defs.cs (roles, weapons, enemies) · Kits.cs (minions, zones) · each ability's AbilityDef entry
     ///               (cooldown, health cost) in its class's file
-    ///   Classes     Knight.cs · Ninja.cs · BloodMage.cs · Minions.cs (minions, Bear Totem, bleeding, chain lightning;
-    ///               Mage and Summoner ability numbers are written in KitAbility) · Ultimates.cs (written in the code)
+    ///   Classes     Knight.cs · Ninja.cs · Hemomancer.cs · Minions.cs (minions, Bear Totem, bleeding, chain lightning;
+    ///               Elementalist and Summoner ability numbers are written in KitAbility) · Ultimates.cs (written in the code)
     ///   Weapons     Weapons.cs (revolver, bow, fanning, Twin Rifle) · Combat.cs (Homing Rounds) · Parry.cs ·
     ///               Stun.cs (Stun Gun, guard companion)
     ///   Enemies     EnemyAI.cs (Shielder, Spinner, Twin Reapers, the Warden's cross, gravity wells) · Warden.cs ·
@@ -32,23 +32,23 @@ namespace Arena
         const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)
         public const float BossHpBonus = 1.1f;  // every boss: 10% more health (owner, Nov 2026), on top of BossHpMult
         /// Each boss's health on top of the normal scaling, so its fight lasts about 60-120 s (measured in the Boss Lab with
-        /// Good bots, solo to trio). They differ because fixed-length stages and adds stretch some fights more than others.
+        /// Good bots, solo to trio). They differ because fixed-length phases and adds stretch some fights more than others.
         static float BossHpMult(EnemyType t)
         {
             switch (t)
             {
-                case EnemyType.Boss: return 2.5f;         // the Warden (was 4: 273 s for a duo in a recorded run)
+                case EnemyType.Warden: return 2.5f;         // the Warden (was 4: 273 s for a duo in a recorded run)
                 case EnemyType.HiveQueen: return 2.5f;    // (was 3.5: also 273 s)
-                case EnemyType.TwinA:
-                case EnemyType.TwinB:
-                case EnemyType.DualReaper: return 1.2f;   // their stages already stretch the fight
+                case EnemyType.ReaperOfDusk:
+                case EnemyType.ReaperOfDawn:
+                case EnemyType.DualReaper: return 1.2f;   // their phases already stretch the fight
                 case EnemyType.Singularity: return 3f;
-                case EnemyType.Colossus: return 2.3f;     // its breathers and stage changes stretch the fight (Colossus.cs)
+                case EnemyType.Colossus: return 2.3f;     // its breathers and phase changes stretch the fight (Colossus.cs)
                 case EnemyType.Duelist: return 2.8f;
                 case EnemyType.Lich: return 3.2f;
                 case EnemyType.StormHerald: return 3.5f;
                 case EnemyType.Devourer: return 2f;
-                case EnemyType.Eclipse: return 5.5f;      // the final boss: five stages, about twice as long as the others (Eclipse.cs)
+                case EnemyType.Eclipse: return 5.5f;      // the final boss: five phases, about twice as long as the others (Eclipse.cs)
                 default: return 2.5f;
             }
         }
@@ -68,7 +68,7 @@ namespace Arena
         public const float TinyOrbHeal = 6f;   // the Repulsion Cannon knocks these loose (Repulsion.cs)
         public const float BigOrbHeal = 60f;
         public const float OrbLifetime = 12f;
-        public const int StageOrbBase = 2;  // a boss changing stage drops this many small health orbs, plus one per player (Warden.cs: StageOrbs)
+        public const int StageOrbBase = 2;  // a boss changing phase drops this many small health orbs, plus one per player (Warden.cs: StageOrbs)
         const float OrbMagnetRange = 110f;
         const float ReviveRange = 70f;
 
@@ -119,7 +119,7 @@ namespace Arena
         const float OverdriveTime = 5f;
         const float TurretTime = 10f;
 
-        // --- Mage abilities (the rest of their numbers are written in their cast code, Minions.cs) -------------------
+        // --- Elementalist abilities (the rest of their numbers are written in their cast code, Minions.cs) -------------------
 
         const float AegisCapacity = 300f;
         const float SpellRange = 420f;

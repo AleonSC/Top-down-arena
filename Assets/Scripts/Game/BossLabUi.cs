@@ -36,7 +36,7 @@ namespace Arena
                 labInFight = true;
             else if (session.Screen == AppScreen.Menu || labInFight)  // left through the pause menu, or back to the lobby from the end screen
             {
-                StopLab();  // (else the lab's settings stay on: the next match isn't recorded and plays the lab's boss)
+                StopLab();  // (else the lab's settings stay on: the next run isn't recorded and plays the lab's boss)
                 return;
             }
             lab.UpdateClients(dt);

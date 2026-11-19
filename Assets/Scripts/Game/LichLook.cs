@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the Lich's stages look (Lich.cs): its six graves, the soul beams between stage 2's phylacteries, the soul
+    /// How the Lich's phases look (Lich.cs): its six graves, the soul beams between phase 2's phylacteries, the soul
     /// sweep, bone prisons, wailing spirits, dead hands, and the spectre fading between graves.
     public partial class ArenaApp
     {
@@ -22,7 +22,7 @@ namespace Arena
             var s = lich.Lich;
             for (int i = 0; i < Game.GraveCount; i++)
                 DrawGrave(game.GravePos(i), t);
-            // Stage 2: soul beams between the phylacteries, in the order they were raised.
+            // Phase 2: soul beams between the phylacteries, in the order they were raised.
             if (s.Stage == LichStage.Harvest && s.TransT <= 0f)
             {
                 var ph = new System.Collections.Generic.List<Enemy>();
@@ -99,7 +99,7 @@ namespace Arena
             Line(g + new V2(-7f, -9f), g + new V2(7f, -9f), 2.5f, cross);
         }
 
-        /// Under the Lich: the stage change, its guard (a tether to each phylactery and a shell), the open window, and
+        /// Under the Lich: the phase change, its guard (a tether to each phylactery and a shell), the open window, and
         /// the spectre's ghostly colour (fading out while it blinks). Returns the colour to draw its body in.
         Rgba DrawLichUnderlay(Enemy e, V2 pos, float r, Rgba col, float t)
         {
@@ -108,7 +108,7 @@ namespace Arena
                 return col;
             if (s.TransT > 0f)
             {
-                DrawStageShiftBoss(e, pos, r, t);  // changing stage (StageShiftLook.cs)
+                DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
                 return col;
             }
             var aura = s.Stage == LichStage.Harvest ? SpiritCol : s.Stage == LichStage.Undeath ? SpectreCol : s.Stage == LichStage.LastStand ? new Rgba(1f, 0.42f, 0.6f) : SoulCol;

@@ -71,7 +71,7 @@ static partial class Program
         string notes;
         string err = RunSnapshot.Restore(g, bytes, out notes);
         Check(err == null, "the snapshot loads" + (err != null ? ": " + err : notes.Length > 0 ? " (" + notes + ")" : ""));
-        Check(SnapPrint(g) == before && g.Enemies.Count == enemies && g.Wave == wave && g.Score == score, "loading puts the match back exactly as it was");
+        Check(SnapPrint(g) == before && g.Enemies.Count == enemies && g.Wave == wave && g.Score == score, "loading puts the run back exactly as it was");
         var second = SnapTrace(s, dt, ticks);
         int diverge = -1;
         for (int i = 0; i < ticks; i++)
@@ -102,7 +102,7 @@ static partial class Program
             File.WriteAllBytes(Path.Combine(RunSnapshot.Folder, "junk" + RunSnapshot.Ext), Encoding.UTF8.GetBytes("nope"));
             Check(RunSnapshot.List().Count == 1, "a file that isn't a snapshot isn't listed");
             err = RunSnapshot.LoadFile(g, Path.Combine(RunSnapshot.Folder, "junk" + RunSnapshot.Ext), out notes);
-            Check(err != null && SnapPrint(g) == before, "a bad file fails cleanly and leaves the match alone");
+            Check(err != null && SnapPrint(g) == before, "a bad file fails cleanly and leaves the run alone");
         }
         finally
         {

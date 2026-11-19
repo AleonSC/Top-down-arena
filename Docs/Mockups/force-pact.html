@@ -148,7 +148,7 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
     <ul>
       <li><b>Not allowed:</b> bosses, boss adds (drones, rioters, shards and the like), eggs, wells, pillars and the Phylactery. Nothing happens and the cooldown is refunded.</li>
       <li>The target is removed from the wave the moment it is bound. Whether it still counts toward wave clear is a choice for you: I would say it does not, so you cannot stall a wave by pacting the last enemy.</li>
-      <li>Code: the display name changes, <code>AbilityId.GuardianSpirit</code> stays in place so saves keep working, and a new <code>MinionKind.Thrall</code> goes at the end of the enum (carrying an <code>EnemyType</code>), reusing the Warden's Guard respawn logic in <code>Stun.cs</code>. <code>Session.ProtocolVersion</code> goes up because the snapshot gains the thrall's type.</li>
+      <li>Code: the display name changes, <code>AbilityId.ForcePact</code> stays in place so saves keep working, and a new <code>MinionKind.Thrall</code> goes at the end of the enum (carrying an <code>EnemyType</code>), reusing the Warden's Guard respawn logic in <code>Stun.cs</code>. <code>Session.ProtocolVersion</code> goes up because the snapshot gains the thrall's type.</li>
       <li>The mastery text in the README ("the guardian also heals you") and the Armory and Bestiary pages are not touched until you say.</li>
       <li>In these previews the respawn is 4 s so the loop stays short. In the game it is 15 s. <b>Reduced effects</b> turns off the glow layers and the screen shake.</li>
     </ul>

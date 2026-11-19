@@ -24,7 +24,7 @@ namespace Arena
         /// Host: a player pressed the weapon-action key with the Quarterstaff, aiming at `aimAt`.
         void HostStaffJab(Player p, V2 aimAt)
         {
-            if (p.Weapon.Id != WeaponId.HolyMace || p.Downed || p.StunT > 0f || p.StaffJabCd > 0f || p.SwallowT > 0f || p.StaffStacks == 0 || State == MatchState.GameOver)
+            if (p.Weapon.Id != WeaponId.Quarterstaff || p.Downed || p.StunT > 0f || p.StaffJabCd > 0f || p.SwallowT > 0f || p.StaffStacks == 0 || State == MatchState.GameOver)
                 return;
             p.StaffStacks--;
             p.StaffJabCd = StaffJabCd;
@@ -51,7 +51,7 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 p.StaffJabCd = Math.Max(0f, p.StaffJabCd - dt);
-                if (p.Weapon.Id != WeaponId.HolyMace)
+                if (p.Weapon.Id != WeaponId.Quarterstaff)
                     p.StaffStacks = 0;
                 else if (p.StaffStacks > StaffCap(p))
                     p.StaffStacks = (byte)StaffCap(p);

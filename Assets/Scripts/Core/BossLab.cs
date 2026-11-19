@@ -41,7 +41,7 @@ namespace Arena
         public bool Legendaries = true; // a legendary and a weapon mod for every boss already beaten
         public int Seed;
         public bool Quick;              // a Quick Play fight (QuickPlay.cs): QuickBoss after wave Wave, with Quick Play's boss health
-        public EnemyType QuickBoss = EnemyType.Boss;
+        public EnemyType QuickBoss = EnemyType.Warden;
 
         // Live
         public Session Host;

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Warhorn Volley (WarhornVolley.cs): the DPS Knight's key 1 on the lobby's Ultimate row (the pick reaching the match on F), the
+// Warhorn Volley (WarhornVolley.cs): the DPS Knight's key 1 on the lobby's Ultimate row (the pick reaching the run on F), the
 // arrows' front crossing the lane, damage, burning and the pin once per enemy, what it misses, shots knocked down (red aimed
 // ones fly on), bosses not pinned, the mastered wider lane and longer fire.
 static partial class Program
@@ -19,7 +19,7 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.WarhornVolley);
         Check(def.Name == "Warhorn Volley" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Knight && def.Role == Role.Dps && def.Capstone != null,
             "Warhorn Volley is the DPS Knight's ultimate on key 1, 70 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.BladeTempest && Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.WarhornVolley
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge && Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.WarhornVolley
             && Upgrades.AbilityLimit(Role.Dps, Kit.Knight) == 3,
             "the Drawbridge stays the default; key 1 is Warhorn Volley; the Space keys keep three");
 
@@ -133,9 +133,9 @@ static partial class Program
         var dpsKnight = Upgrades.RoleAbility(Role.Dps, Kit.Knight, 0);
         Check(bodkin >= 0 && Upgrades.All[bodkin].Rarity == Rarity.Rare && Upgrades.All[bodkin].MaxStacks == 2
             && Upgrades.Available(bodkin, new OfferCtx(Role.Dps, dpsKnight, none, null, false, Kit.Knight, AbilityId.None, AbilityId.WarhornVolley))
-            && !Upgrades.Available(bodkin, new OfferCtx(Role.Dps, dpsKnight, none, null, false, Kit.Knight, AbilityId.None, AbilityId.BladeTempest)),
+            && !Upgrades.Available(bodkin, new OfferCtx(Role.Dps, dpsKnight, none, null, false, Kit.Knight, AbilityId.None, AbilityId.Drawbridge)),
             "Bodkin Points (rare, 2 stacks) is offered with Warhorn Volley as your ultimate, not with the Drawbridge");
-        Check(Upgrades.Available(bodkin, OfferCtx.Of(me, false)), "...and the match's offers see the ultimate on F");
+        Check(Upgrades.Available(bodkin, OfferCtx.Of(me, false)), "...and the run's offers see the ultimate on F");
         g.Enemies.Clear(); spots.Clear(); g.Effects.Clear();
         var bodkinNear = pin(new V2(500f, 450f), EnemyType.Brute);
         var bodkinEdge = pin(new V2(700f, 450f + 400f), EnemyType.Brute);  // past 350, inside 350 x 1.2 = 420

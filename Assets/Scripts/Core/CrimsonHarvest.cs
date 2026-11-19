@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Crimson Harvest (DPS Hemomancer ultimate, replaces Crimson Apotheosis; `AbilityId.CrimsonApotheosis` kept). Three steps:
+    /// Crimson Harvest (DPS Hemomancer ultimate, replaces Crimson Apotheosis). Three steps:
     ///   Rip   (HarvestRip s): blood is torn out of every enemy in the arena. Each takes HarvestRipDmg over four ticks, and its blood
     ///         (HarvestWeight: Grunt 1, Heavy 3, boss 8) is added to a ball floating over you, one quarter per tick.
     ///   Hold  (HarvestHoldTime s, mastered HarvestHoldMastered): the ball floats; you move at HarvestSlow of your speed. Pressing the
@@ -55,7 +55,7 @@ namespace Arena
         public V2 HarvestAimPoint(Player p, V2 aim) => ClampToArena(p.Pos + (aim - p.Pos).LimitLength(HarvestRange), 20f);
 
         /// True if this slot is a Crimson Harvest with a ball up: pressing it throws (or does nothing yet) instead of casting again.
-        public bool HarvestPress(Player p, int slot) => p.Slots[slot].Id == AbilityId.CrimsonApotheosis && p.HarvestHold > 0f;
+        public bool HarvestPress(Player p, int slot) => p.Slots[slot].Id == AbilityId.CrimsonHarvest && p.HarvestHold > 0f;
 
         void CastHarvest(Player p, bool cap)
         {

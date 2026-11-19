@@ -18,9 +18,8 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 
 - **What:** a 1-3 player **co-op top-down bullet hell** made in **Unity 6** (`6000.6.7f1`, Unity 6.6; built-in render
   pipeline). The owner plays it with a friend over **Tailscale** (one hosts, the other joins by IP).
-- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja,
-  Hemomancer; `Kit.Elementalist`/`Kit.Hemomancer` were `Kit.Mage`/`Kit.BloodMage`, and many files still say so, e.g.
-  `BloodMage.cs`), then one of 3 weapons and one of 3 Space abilities. Each role × kit has an ultimate (F). Very rare
+- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja, Engineer,
+  Hemomancer; old saves may still say `Mage`/`BloodMage`, loaded by `KitFromSave`), then one of 3 weapons and one of 3 Space abilities. Each role × kit has an ultimate (F). Very rare
   cards add Q/E/Shift abilities. Abilities level up with use (**mastery** 1-5, capstone at 5). **Perks** (unlocked by
   winning a Boss Hunt, e.g. Riot Gear) are equipped in the lobby.
 - **The ten bosses, in Campaign order:** Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist, Lich,
@@ -133,7 +132,7 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   `Defs.Weapons` and `Upgrades.Abilities` are built from it), and each entry's `Kit`/`Role`/`Choice` places it in the lobby tables (indexed by
   role × kit, `Defs.KitCount = 6`). FireVolley sends a weapon without its own case to its class's `KitDef.Fire`;
   CastAbility's default goes to `KitAbility`, then each class's `KitDef.Ability`, then `Ultimate`. The look is a
-  `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Blood Mage abilities cost health:
+  `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Hemomancer abilities cost health:
   `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the
   cast, never below 1 HP.
 
@@ -217,7 +216,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan`, `Mathf.Approximately` (use `System.Math`).
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the **`Suites`
   table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`, `Parry`,
-  `Knight`, `Ninja`, `BloodMage`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
+  `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
   `TextEdit`). `run.sh list` prints every suite.
   - **Setup helpers** (`Program.cs`): `HostAs(new Session { ... }, port, bot, name, role, ...)`, `JoinAs(port, bot, name,
     role, ...)`, `WaitForGame(host, client, dt)`, `WaitForLobby(host, client)` and `PollBoth(host, client)`. Use them in
@@ -286,7 +285,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   builds, drawing every frame; every 2 s it prints enemies, particles, GL vertices a frame and draw ms, plus the top
   vertex sources of one traced frame (`GL.Trace` in `Stubs.cs`). Unity's GL immediate mode pays per vertex, so the
   vertex count is what to cut (`OffScreen`, `SegsFor` in `WorldRenderer.cs`; `PartCrowd` in `Juice.cs`).
-- **GIF clips:** `Tools/Preview/clip.sh <name> <mode> [wave secs players]` keeps the match running after the shot
+- **GIF clips:** `Tools/Preview/clip.sh <name> <mode> [wave secs players]` keeps the run running after the shot
   (`CLIP=<frames>` in `ShotClip.cs`; `FRAMES=30`, `CLIPSTEP=3` fixed steps a frame = 20 fps, `CLIPHURT=1`), or with
   `VAR=from:to:step` draws one frame per value of a scene's time flag (`CASTT`, `THRUST`, `KDT`, ...). Writes
   `out/<name>.gif` and `out/<name>-strip.png` (six frames). About 3 s a frame on 4 cores; `CROP` keeps GIFs small.

@@ -1099,7 +1099,7 @@ namespace Arena
             }
         }
 
-        /// Test: play these waves in the Practice Range, hosted by you (from the main menu, the lobby or a match you host).
+        /// Test: play these waves in the Practice Range, hosted by you (from the main menu, the lobby or a run you host).
         void EdTest()
         {
             if (edSet.Waves.Sum(wv => wv.EnemyCount) == 0)

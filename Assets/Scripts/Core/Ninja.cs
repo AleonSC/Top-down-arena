@@ -323,7 +323,7 @@ namespace Arena
                 Apply = s => { s.CloneBonusTime += 2f; s.CloneHpMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",
                 Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Ceremonial Armor's plates have 50% more health",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CeremonialArmor, MaxStacks = 2, Name = "Tempered Steel", Desc = "Ceremonial Armor's plates have 50% more health",
                 Apply = s => s.PlateHpMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingDash, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Dash's footprints heal 50% more and are 25% bigger",
                 Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
@@ -380,7 +380,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.IronBody, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2,
+                Id = AbilityId.CeremonialArmor, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2,
                 Name = "Ceremonial Armor", Cooldown = 2.5f, Desc = "Summon a lacquered armour plate that circles you until it breaks: up to 10, 4 on an inner ring and 6 further out. Each has 45 health, stops the enemy bullets it touches and pushes enemies away. With all 10 up you take 20% less damage.",
                 Capstone = "A plate that breaks bursts for 30 damage to enemies within 60 px.",
                 Bot = b => b.Me.PlateN < Game.CerePlateMax,
@@ -472,7 +472,7 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.4f, Sfx.Throw);
                     return true;
                 }
-                case AbilityId.IronBody:  // Ceremonial Armor (CeremonialArmor.cs)
+                case AbilityId.CeremonialArmor:  // Ceremonial Armor (CeremonialArmor.cs)
                     SummonCerePlate(p, pw, cap);
                     return true;
                 case AbilityId.HealingDash:
@@ -720,7 +720,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 42: DashWhip in PistolWhip.cs; 43: DashStrider; 44: DashZero in FrostLance; 45: DashSympathy in BoneSpear.cs; 46: DashTide in BloodBlast.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 42: DashWhip in PistolWhip.cs; 43: DashStrider; 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -1010,7 +1010,7 @@ namespace Arena
                 }
                 return;
             }
-            if ((me.Weapon.Id == WeaponId.LightBolt || me.Weapon.Id == WeaponId.BloodLash) && (pressed || released))  // the Repulsion Cannon's Undertow and the Blood Lash's Martyr's Leash: held, so both edges go to the host (Repulsion.cs, BloodLash.cs)
+            if ((me.Weapon.Id == WeaponId.RepulsionCannon || me.Weapon.Id == WeaponId.BloodLash) && (pressed || released))  // the Repulsion Cannon's Undertow and the Blood Lash's Martyr's Leash: held, so both edges go to the host (Repulsion.cs, BloodLash.cs)
             {
                 byte pullKind = pressed ? DashPullOn : DashPullOff;
                 if (IsHost)
@@ -1133,7 +1133,7 @@ namespace Arena
             if (LocalEmbolusBlast(me, pressed, aimAt))
                 return;  // the Embolus Spears burst (EmbolusSpears.cs)
             if (LocalSympathy(me, pressed, aimAt))
-                return;  // the Blood Brawler's Sympathy (BoneSpear.cs)
+                return;  // the Blood Brawler's Sympathy (BloodBrawler.cs)
             if (LocalStriderOrder(me, pressed, aimAt, dt))
                 return;  // the Vector Forge's Strider orders (Engineer.cs)
             if (LocalPistolWhip(me, pressed, aimAt, dt))
@@ -1219,7 +1219,7 @@ namespace Arena
                 }
                 return;
             }
-            if (me.Weapon.Id == WeaponId.HolyMace && weaponAction && staffJabLocalCd <= 0f && me.StaffStacks > 0)
+            if (me.Weapon.Id == WeaponId.Quarterstaff && weaponAction && staffJabLocalCd <= 0f && me.StaffStacks > 0)
             {
                 staffJabLocalCd = StaffJabCd;  // (held, the key jabs again as soon as the host would let it)
                 if (IsHost)
@@ -1352,7 +1352,7 @@ namespace Arena
             }
             if (kind == DashSympathy)
             {
-                HostSympathy(p);  // the Blood Brawler's Alt (BoneSpear.cs)
+                HostSympathy(p);  // the Blood Brawler's Alt (BloodBrawler.cs)
                 return;
             }
             if (kind == DashEmbolus)

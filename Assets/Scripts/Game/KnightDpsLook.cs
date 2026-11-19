@@ -184,7 +184,7 @@ namespace Arena
             var me = game.Me;
             if (me != null && !me.Downed && (me.SteelT > 0f || me.Steel > 0))
             {
-                int cap = Game.SteelCapOf(me, Game.Mastered(me, AbilityId.BattleFury)), n = me.Steel;
+                int cap = Game.SteelCapOf(me, Game.Mastered(me, AbilityId.CaughtSteel)), n = me.Steel;
                 V2 at = ToUi(me.Disp);
                 float y = at.Y - me.Def.BodyR * UiWorldScale - 30f, x0 = at.X - (cap - 1) * 6.5f;
                 for (int i = 0; i < cap; i++)
@@ -433,7 +433,7 @@ namespace Arena
                     float rf = a / 0.5f;
                     Arc(release.Pos, 20f + 95f * KEo(rf), 2f, ForgeRing.WithAlpha(0.45f * (1f - rf)), 40);
                 }
-                int n = Mathf.RoundToInt(release.Pos2.Y), cap = Game.SteelCapOf(p, Game.Mastered(p, AbilityId.BattleFury));
+                int n = Mathf.RoundToInt(release.Pos2.Y), cap = Game.SteelCapOf(p, Game.Mastered(p, AbilityId.CaughtSteel));
                 steelScratch.Clear();
                 steelScratch.AddRange(bits);
                 steelScratch.Sort((x, y) => Mathf.Sin(SteelOrbitAng(x, now - a) - aim).CompareTo(Mathf.Sin(SteelOrbitAng(y, now - a) - aim)));

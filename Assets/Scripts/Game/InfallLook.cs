@@ -183,14 +183,14 @@ namespace Arena
                     DrawSwirl(pos + f * (r * 0.9f) - new V2(0f, lift * 8f), r * 0.38f, t, 0.9f);
                     break;
                 }
-                case EnemyType.MiniWell:
+                case EnemyType.SmallWell:
                 {
                     for (int k = 0; k < 3; k++)
                     {
                         float ring = (t * 0.9f + k / 3f) % 1f;
-                        Arc(pos, Game.MiniWellDriftRange * 0.45f * (1f - ring) + r, 1.2f, InfViolet.WithAlpha(0.3f * ring), 32);
+                        Arc(pos, Game.SmallWellDriftRange * 0.45f * (1f - ring) + r, 1.2f, InfViolet.WithAlpha(0.3f * ring), 32);
                     }
-                    Circle(pos, Game.MiniWellBendRange, InfViolet.WithAlpha(0.035f), 32);
+                    Circle(pos, Game.SmallWellBendRange, InfViolet.WithAlpha(0.035f), 32);
                     DrawSwirl(pos, r, t, 1f);
                     break;
                 }

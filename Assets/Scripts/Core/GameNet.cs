@@ -325,7 +325,7 @@ namespace Arena
         readonly float[] snapTimers = new float[Upgrades.SlotCount];
         readonly Player snapSkip = new Player { Id = -1 };  // soaks up a player this game doesn't know
 
-        /// The snapshot, 20 times a second: the host writes the match's state and clients read it, both through
+        /// The snapshot, 20 times a second: the host writes the run's state and clients read it, both through
         /// this one method (NetSync), so a field can't be written in one order and read in another. To replicate
         /// something new, add one line in the right Sync method and bump Session.ProtocolVersion.
         void SyncSnapshot(NetSync s)
@@ -516,7 +516,7 @@ namespace Arena
             s.Float(ref p.StunT);
             s.Float(ref p.SwallowT);
             s.Float(ref p.WarpT);  // (BossBeam.cs)
-            int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
+            int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (Hemomancer.cs)
             s.Byte(ref grasped);
             if (s.Reading)
             {
@@ -749,7 +749,7 @@ namespace Arena
             }
             s.Bool(ref p.LeashOn);  // Martyr's Leash
             s.Float(ref p.LeashT);
-            s.Int(ref p.BsTarget);  // the Blood Brawler's mark, thread and Sympathy (BoneSpear.cs)
+            s.Int(ref p.BsTarget);  // the Blood Brawler's mark, thread and Sympathy (BloodBrawler.cs)
             s.Float(ref p.BsT);
             s.Float(ref p.SympT);
             s.Int(ref p.SympSrc);
@@ -1021,7 +1021,7 @@ namespace Arena
                 e.ChallengeBy = challengeBy;
                 e.ChallengeT = challengeT;
             }
-            if (kind == EnemyType.Boss)
+            if (kind == EnemyType.Warden)
                 SyncWarden(s, e);  // Warden.cs
             else if (kind == EnemyType.HiveQueen)
                 SyncQueen(s, e);   // Queen.cs

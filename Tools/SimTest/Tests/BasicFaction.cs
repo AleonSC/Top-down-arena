@@ -35,16 +35,16 @@ static partial class Program
         {
             var gq = new Session().Game;
             gq.Quick = true;
-            gq.QuickOrder = new[] { EnemyType.Eclipse, EnemyType.Boss };
+            gq.QuickOrder = new[] { EnemyType.Eclipse, EnemyType.Warden };
             var duel = new HashSet<EnemyType>();
             var ward = new HashSet<EnemyType>();
             for (int n = 1; n <= 9; n++) foreach (var t in wave(gq, n)) duel.Add(t);
             for (int n = 11; n <= 19; n++) foreach (var t in wave(gq, n)) ward.Add(t);
-            var wardens = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+            var wardens = new HashSet<EnemyType>(Approaches.For(EnemyType.Warden).Members.Select(m => m.Type));
             Console.WriteLine("  Quick Play before the Eclipse: {0}", string.Join(", ", duel));
             Check(gq.BossAt(10) == EnemyType.Eclipse && gq.ApproachShare(5) == 1f
                 && duel.Count >= 6 && duel.All(basic.Contains), "Quick Play: the waves before a boss with no faction (the Eclipse) are all the basic faction");
-            Check(gq.BossAt(20) == EnemyType.Boss && ward.All(wardens.Contains), "Quick Play: the waves before the Warden are still all his own");
+            Check(gq.BossAt(20) == EnemyType.Warden && ward.All(wardens.Contains), "Quick Play: the waves before the Warden are still all his own");
             return 0;
         });
 

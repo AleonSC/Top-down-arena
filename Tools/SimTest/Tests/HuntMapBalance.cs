@@ -35,7 +35,7 @@ static partial class Program
         var prng = new Random(seed * 31 + 7);
         var host = new Session { AutoStart = 2, StartWave = 1 };
         var hp = host.Game.ProfileOverride = new Profile();
-        hp.BossBeaten(EnemyType.Boss, 5);
+        hp.BossBeaten(EnemyType.Warden, 5);
         host.Game.Bot = true; host.Game.BotLevel = skill; host.Game.BotRerolls = false;
         int port = nextPort++;
         host.Host(port, "A", Role.Tank, 0);

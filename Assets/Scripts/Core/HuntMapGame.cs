@@ -66,7 +66,7 @@ namespace Arena
             }
         }
 
-        /// Host, as the match starts from a hunt's checkpoint: the map with the path and clues it was saved with, and its vote for the next step.
+        /// Host, as the run starts from a hunt's checkpoint: the map with the path and clues it was saved with, and its vote for the next step.
         void ResumeHuntMap(RunSave save)
         {
             var map = HuntMap.Restore(save.HuntSeed, save.HuntPath.ToArray(), save.HuntLength);

@@ -72,11 +72,11 @@ namespace Arena
                     return V2.Zero;  // it moves itself: drifting, blinking between graves (Lich.cs)
                 case EnemyType.StormHerald:
                     if (HeraldImmune(e))
-                        return V2.Zero;  // holds still while it changes stage
+                        return V2.Zero;  // holds still while it changes phase
                     return (HeraldGoal(e) - e.Pos) / 60f;  // along the top, or the middle for the last stand (Herald.cs)
                 case EnemyType.Eclipse:
                     if (EclipseImmune(e))
-                        return V2.Zero;  // holds still while it changes stage
+                        return V2.Zero;  // holds still while it changes phase
                     return (EclipseGoal(e) - e.Pos) / 60f;  // orbiting the middle, or in it for Totality (Eclipse.cs)
                 default:  // Decoy, Phylactery stay put
                     return V2.Zero;
@@ -93,22 +93,22 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Colossus:
-                    ColossusSpecial(e, tpos, dt);  // Colossus.cs: its stages, turns, stomp rings, plates and lava
+                    ColossusSpecial(e, tpos, dt);  // Colossus.cs: its phases, turns, stomp rings, plates and lava
                     break;
                 case EnemyType.Duelist:
-                    DuelistSpecial(e, tpos, dt);  // Duelist.cs: its stages, turns, dashes and salutes
+                    DuelistSpecial(e, tpos, dt);  // Duelist.cs: its phases, turns, dashes and salutes
                     break;
                 case EnemyType.Lich:
                     LichSpecial(e, dt);  // Lich.cs
                     break;
                 case EnemyType.StormHerald:
-                    HeraldSpecial(e, tpos, dt);  // its stages and turns (Herald.cs)
+                    HeraldSpecial(e, tpos, dt);  // its phases and turns (Herald.cs)
                     break;
                 case EnemyType.Devourer:
-                    DevourSpecial(e, tpos, dt);  // its stages and turns (Devourer.cs)
+                    DevourSpecial(e, tpos, dt);  // its phases and turns (Devourer.cs)
                     break;
                 case EnemyType.Eclipse:
-                    EclipseSpecial(e, tpos, dt);  // its five stages and turns (Eclipse.cs)
+                    EclipseSpecial(e, tpos, dt);  // its five phases and turns (Eclipse.cs)
                     break;
             }
         }

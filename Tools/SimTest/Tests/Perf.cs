@@ -12,7 +12,7 @@ static partial class Program
     /// run.sh 1 1 perf [seconds] [boss enum name] [wave]
     static void PerfReport(float dt, int seconds, string boss, int wave)
     {
-        QuickPlay.OrderOverride = new[] { (EnemyType)Enum.Parse(typeof(EnemyType), boss), EnemyType.Boss, EnemyType.HiveQueen };
+        QuickPlay.OrderOverride = new[] { (EnemyType)Enum.Parse(typeof(EnemyType), boss), EnemyType.Warden, EnemyType.HiveQueen };
         int port = nextPort++;
         var host = new Session { StartWave = wave };
         host.Game.ProfileOverride = new Profile();

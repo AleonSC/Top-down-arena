@@ -506,7 +506,7 @@ static partial class Program
 
 static partial class Program
 {
-    // Room features (ExpansionGame.cs, Paths.cs, Shop.cs): Floor rooms run a path's rule inside the room only, pay its bonus,
+    // Room features (ExpansionGame.cs, Paths.cs, Shop.cs): rule rooms run a path's rule inside the room only, pay its bonus,
     // shop rooms are safe, drop gold and open the shop after the wave that follows a boss.
     static void ExpandingFeaturesTest(float dt)
     {

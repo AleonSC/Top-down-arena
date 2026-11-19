@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Water Ward (WaterWard.cs): the Healer Elementalist's 4th lobby ability (pick 3 reaching the match), 2 drops a cast falling then circling,
+// Water Ward (WaterWard.cs): the Healer Elementalist's 4th lobby ability (pick 3 reaching the run), 2 drops a cast falling then circling,
 // up to 10 (a press at 10 spends nothing), even spacing, a splash on touching an enemy (damage + wet round it), a burst on eating a
 // blockable shot (wet, no damage; red shots pass), the mastered reach, replication, and going down.
 static partial class Program
@@ -24,14 +24,14 @@ static partial class Program
         Check(Upgrades.All.Any(u => u.RequiresAbility == AbilityId.WaterWard && u.Name == "Deep Current"), "Water Ward has its Rare card, Deep Current");
 
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Mage", Role.Healer, 0, 3, Kit.Elementalist);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Elementalist", Role.Healer, 0, 3, Kit.Elementalist);
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Knight);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.RoleAbility == AbilityId.WaterWard && me.Slots[0].Id == AbilityId.WaterWard, "picking the 4th key brings Water Ward into the match on Space");
+        Check(me.RoleAbility == AbilityId.WaterWard && me.Slots[0].Id == AbilityId.WaterWard, "picking the 4th key brings Water Ward into the run on Space");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(500f, 450f), aim = new V2(900f, 450f);

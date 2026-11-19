@@ -82,7 +82,7 @@ namespace Arena
             var id0 = p.Slots[slot].Id;
             Recorder?.AbilityUsed(p, id0);
             bool hadTargets = Battle && AnyTarget();
-            PayAbilityCost(p, id0);  // Blood Mage abilities cost health (BloodMage.cs)
+            PayAbilityCost(p, id0);  // Hemomancer abilities cost health (Hemomancer.cs)
             BeginCast(p, id0);
             CastAbility(p, slot, target);
             Recorder?.CastHits(p, castHits);
@@ -123,9 +123,9 @@ namespace Arena
                 Apply = s => { s.FlakBurstMult += 0.25f; s.MineCdCut += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.RiotRepeater }, MaxStacks = 2, Name = "Crowd Control", Desc = "Riot Repeater suppression builds 50% faster, and the Tear Gas cloud is 25% bigger",
                 Apply = s => { s.SuppressMult += 0.5f; s.TearGasMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LightBolt }, MaxStacks = 2, Name = "Undertow Pump", Desc = "The Undertow meter fills 30% faster, and the health orbs the Repulsion Cannon knocks loose heal 30% more",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.RepulsionCannon }, MaxStacks = 2, Name = "Undertow Pump", Desc = "The Undertow meter fills 30% faster, and the health orbs the Repulsion Cannon knocks loose heal 30% more",
                 Apply = s => { s.UndertowGainMult += 0.3f; s.ShedHealMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Pistol }, MaxStacks = 2, Name = "Hot Lead", Desc = "The Revolver reloads 25% faster, and its heavy rounds deal one more times their damage",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Revolver }, MaxStacks = 2, Name = "Hot Lead", Desc = "The Revolver reloads 25% faster, and its heavy rounds deal one more times their damage",
                 Apply = s => { s.RevolverReloadMult *= 0.75f; s.HeavyRoundBonus += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.MendersBow }, MaxStacks = 2, Name = "Steady Draw", Desc = "The Mender's Bow reaches a full draw 20% sooner, and its arrows pierce 1 more",
                 Apply = s => { s.BowDrawMult *= 0.8f; s.BowPierceBonus += 1; } },

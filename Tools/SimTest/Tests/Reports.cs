@@ -421,7 +421,7 @@ static partial class Program
         for (int k = 0; k < cutAt.Length; k++)
         {
             var taken = picks.Take(cutAt[k]).Select(n => Array.FindIndex(Upgrades.All, u => u.Name == n)).Where(i => i >= 0).ToList();
-            float power = Game.BuildPower(Upgrades.Compute(taken)), typical = Game.TypicalPower(Role.Dps, AbilityId.FrenzyPact, waves[k]);
+            float power = Game.BuildPower(Upgrades.Compute(taken)), typical = Game.TypicalPower(Role.Dps, AbilityId.BloodDebt, waves[k]);
             Console.WriteLine("  the Hemomancer run before wave {0,2}: power x{1,5:0.0}, typical x{2,4:0.0} -> boss health x{3:0.00}",
                 waves[k], power, typical, Game.BossScaleFor(power / typical));
         }
@@ -535,7 +535,7 @@ static partial class Program
                         for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
                         Player me;
                         if (!g.Players.TryGetValue(1, out me))
-                            throw new Exception(string.Format("weapondps: {0} {1} {2}: the match never started ({3})", (Role)r, (Kit)k, weapon.Name, host.Status));
+                            throw new Exception(string.Format("weapondps: {0} {1} {2}: the run never started ({3})", (Role)r, (Kit)k, weapon.Name, host.Status));
                         g.DevSetGod(1, true);
                         foreach (var e in g.Enemies.Values) e.Hp = 0f;
                         for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }

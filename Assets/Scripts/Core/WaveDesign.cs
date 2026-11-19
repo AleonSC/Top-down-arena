@@ -159,7 +159,7 @@ namespace Arena
         /// An enemy by its name as the game shows it (or its code name), ignoring case and "The".
         public static EnemyType? FindEnemy(string name)
         {
-            string n = name.Trim().Replace("The ", "").Replace("the ", "");
+            string n = OldNames.Enemy(name.Trim().Replace("The ", "").Replace("the ", ""));  // (older wave files use old code names)
             foreach (EnemyType t in Enum.GetValues(typeof(EnemyType)))
                 if (string.Equals(t.ToString(), n, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(Defs.Get(t).Name.Replace("The ", ""), n, StringComparison.OrdinalIgnoreCase))
@@ -430,8 +430,8 @@ namespace Arena
                     at = ringTarget.Pos + V2.FromAngle(MathX.Tau * (ringI++) / 8f + designClock) * 280f;
                 var def = Defs.Get(d.Type);
                 SpawnEnemyAt(d.Type, ClampToArena(at, def.Radius + 10f), def.IsBoss ? 1.5f : 0.9f, 0, RollElite(def));
-                if (d.Type == EnemyType.TwinA)  // the Reapers come as a pair
-                    SpawnEnemyAt(EnemyType.TwinB, ClampToArena(new V2(Width - at.X, at.Y), def.Radius + 10f), 1.5f, 0);
+                if (d.Type == EnemyType.ReaperOfDusk)  // the Reapers come as a pair
+                    SpawnEnemyAt(EnemyType.ReaperOfDawn, ClampToArena(new V2(Width - at.X, at.Y), def.Radius + 10f), 1.5f, 0);
             }
         }
     }

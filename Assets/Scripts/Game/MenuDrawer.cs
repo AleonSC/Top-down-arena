@@ -505,7 +505,7 @@ namespace Arena
             IconTile(tile, null, Ui.Gold, 0f);
             bool fighting = game.BossNow && game.State == MatchState.Fighting;
             Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + (game.Hunt != null ? next : game.ShownEnd(next))), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
+            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
             if (!fighting && game.Practice == null)
             {
                 int to = game.Hunt != null ? next - game.Wave - 1 : game.ShownEnd(next) - game.ShownWave;  // (a run: the regular waves left before the boss)
@@ -519,7 +519,7 @@ namespace Arena
             if (gl && BeginUiGl())
             {
                 UiClip(tile);
-                DrawEnemyPreview(boss == EnemyType.TwinB ? EnemyType.TwinA : boss, bossAt, 52f, t, true);
+                DrawEnemyPreview(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss, bossAt, 52f, t, true);
                 EndUiGl();
             }
         }
@@ -656,7 +656,7 @@ namespace Arena
             {
                 case 0:
                 {
-                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a match.", 1f);
+                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a run.", 1f);
                     string[] audioTabs = { "VOLUME", "MUSIC PLAYER" };
                     float tx = DrawerPanel.xMax - 28f - 46f - 14f - 290f;
                     for (int ti = 0; ti < 2; ti++)
@@ -987,7 +987,7 @@ namespace Arena
                 Tips = new[,] { { "Co-op", "1 to 3 players: one hosts, the others join (Tailscale makes this easy).", "6" }, { "Reviving", "Stand by a downed ally to bring them back. Healers and some upgrades do it faster.", "3" },
                     { "Pings and emotes", "Tap the ping key to mark your cursor, hold it for the wheel. Hold the emote key to cheer on your team.", "icon:ui_arrow" },
                     { "Hangout", "Walk around the lobby with your party while you wait.", "icon:ui_star" },
-                    { "Pausing", "Anyone can pause: it pauses the match for everyone until someone resumes.", "icon:ui_play" } } },
+                    { "Pausing", "Anyone can pause: it pauses the run for everyone until someone resumes.", "icon:ui_play" } } },
         };
 
         static readonly Color HowToColor = new Color(0.3f, 0.45f, 0.75f);  // the How to play button, as on the main menu

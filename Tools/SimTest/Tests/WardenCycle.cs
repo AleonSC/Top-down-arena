@@ -95,7 +95,7 @@ static partial class Program
             // A Boss Hunt and a 50-wave run don't use the lessons.
             var hunt = new Game(new Session()) { LongRun = true, Hunt = Hunts.All[0] };
             var old = new Game(new Session()) { LongRun = false };
-            var f = Approaches.For(EnemyType.Boss);
+            var f = Approaches.For(EnemyType.Warden);
             Check(hunt.LessonNow(f) == null && old.LessonNow(f) == null && f.Lessons.Length == 10, "the lessons are the Campaign's only (not a Boss Hunt's or an old 50-wave run's)");
         }
         finally

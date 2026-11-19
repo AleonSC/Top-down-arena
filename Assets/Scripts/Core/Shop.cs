@@ -142,7 +142,7 @@ namespace Arena
             if (legendary)
             {
                 var boss = BossAt(Math.Max(Bosses.FirstBossWave, ExpandingOn ? Bosses.LastBossWave(Wave) : PathFrom - 1));  // (the Expanding arena: the last boss beaten)
-                special = PickNew(p, Upgrades.LegendaryOffer(rng, IsReaper(boss) ? EnemyType.TwinA : boss, OfferFor(p)));
+                special = PickNew(p, Upgrades.LegendaryOffer(rng, IsReaper(boss) ? EnemyType.ReaperOfDusk : boss, OfferFor(p)));
             }
             if (special < 0)
                 special = PickNew(p, Upgrades.ModOffer(OfferFor(p)));

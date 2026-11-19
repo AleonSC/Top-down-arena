@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Blood Freeze (Healer Hemomancer ability, replaces Siphon Field; `AbilityId.SiphonField` kept), from Docs/Mockups/blood-freeze.html.
+    /// Blood Freeze (Healer Hemomancer ability, replaces Siphon Field), from Docs/Mockups/blood-freeze.html.
     /// You pay 25% of your max health, a rune circle spins up at your feet for FreezeCharge s, then a shockwave bursts out to
     /// FreezeMaxR around you (FreezeSweep s, slowing as it goes, `FreezeWaveR`): a close-range panic button, not a map-wide pause. Every enemy it reaches is frozen (`Enemy.FrozenT`: no moving, no shooting)
     /// for FreezeTime s, a boss for FreezeBossTime s. Enemies still spawning, training dummies and anything that turns up after the wave

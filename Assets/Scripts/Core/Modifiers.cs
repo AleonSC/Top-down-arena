@@ -102,7 +102,7 @@ namespace Arena
 
     public partial class Game
     {
-        /// The run's modifiers (host: copied from the lobby when the match starts; clients: told by the host).
+        /// The run's modifiers (host: copied from the lobby when the run starts; clients: told by the host).
         public RunMod Mods;
 
         public bool Has(RunMod m) => (Modifiers.Active(Mods, SurvivalOn) & m) != 0;  // (one that does nothing in this mode reads as off)

@@ -99,18 +99,18 @@ namespace Arena
         public int Id;
         public string Name;
         public Role Role;
-        public Kit Kit;       // Soldier, Mage or Summoner
+        public Kit Kit;       // Soldier, Elementalist or Summoner
         public byte Weapon;   // index into Defs.Weapon(Role, Kit, i)
         public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
         public byte Wild;     // Wildcard only: its second ability and the key it sits on (Defs.MakeWild)
         public byte Ult;      // the key picked on the Ultimate row: 0 the role and class's default ultimate, 1-3 another (Upgrades.Ultimate(role, kit, Ult)); a Wildcard's is always 0
         public Kit UltKit => Upgrades.UltKitOf(Role, Kit, Ult);  // whose ultimate you get (a Wildcard: the class in its Ult pick)
         public AbilityId UltId => Upgrades.Ultimate(Role, UltKit, Ult);  // the ultimate they will have on F
-        public bool Ready;    // clicked Ready in the lobby; the match only starts once everyone has
+        public bool Ready;    // clicked Ready in the lobby; the run only starts once everyone has
         public int Seat = -1; // continuing a saved run: which of its seats this player takes (Session.Resume)
         public int Rank = 1;  // the player's account rank (Rank.cs), cosmetic and client-reported (the host clamps it)
         public byte Frame;    // their equipped frame: 0 none, else Rank.FrameIndex
-        public byte Trail;    // their equipped trail: 0 none, else Rank.TrailIndex (drawn behind them in the match)
+        public byte Trail;    // their equipped trail: 0 none, else Rank.TrailIndex (drawn behind them in the run)
         public byte XpPct;    // their XP towards the next rank, 0-100 (the inspect card, Game/PlayerInspect.cs)
         public short BestWave;
         public int Kills, BossKills;  // public records shown on the inspect card (client-reported, cosmetic)
@@ -145,14 +145,14 @@ namespace Arena
         public readonly SortedDictionary<int, LobbyEntry> Lobby = new SortedDictionary<int, LobbyEntry>();
         public readonly Game Game;
 
-        // Lobby mode (host decides; everyone sees it). In Practice Range mode the match plays Plan's waves
+        // Lobby mode (host decides; everyone sees it). In Practice Range mode the run plays Plan's waves
         // instead of a normal run. The host can let the others edit the plan too.
         public GameMode Mode = GameMode.Campaign;   // the mode picked (GameMode.cs); a resumed run plays the Campaign whatever it says (PlayMode)
         public PracticePlan Plan = PracticePlan.Default();
         public bool OthersCanEdit;
         public bool HuntLong = true;                       // the Boss Hunt is the long one (Hunts.LongLength steps, Docs/LongHunt.md), not the ten
         public bool HuntMapMode = true;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
-        /// The mode the next match plays: the one picked, except that continuing a saved run is the Campaign (the Practice Range stays).
+        /// The mode the next run plays: the one picked, except that continuing a saved run is the Campaign (the Practice Range stays).
         public GameMode PlayMode => Resume == null || Mode == GameMode.Practice ? Mode : Resume.IsHunt ? GameMode.Hunt : GameMode.Campaign;
         public bool PracticeMode => Mode == GameMode.Practice;
         public bool HuntMode => PlayMode == GameMode.Hunt;            // a Boss Hunt (Hunts.cs): HuntBoss's
@@ -160,7 +160,7 @@ namespace Arena
         public bool SurvivalMode => PlayMode == GameMode.Survival;    // Survival (Survival.cs, Docs/Survival.md): one clock, no waves
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
         public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
-        public EnemyType HuntBoss = EnemyType.Boss;
+        public EnemyType HuntBoss = EnemyType.Warden;
         public string PlanEditor = "";  // who made the last change
         public int PlanEditorSel;       // the wave they were working on
         public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)
@@ -332,7 +332,7 @@ namespace Arena
 
         // --- Emotes ------------------------------------------------------------
         // A short bubble over a player (Rank.cs lists them; Game/EmoteLooks.cs draws them). Anyone can play one their rank has,
-        // in the lobby's Hangout and in a match, with a short pause between (the host keeps the pause for everyone).
+        // in the lobby's Hangout and in a run, with a short pause between (the host keeps the pause for everyone).
 
         public const float EmoteCooldown = 2f, EmoteHangoutCooldown = 0.75f, EmoteLife = 2.4f;
         public struct EmoteShow { public byte Index; public double At; }
@@ -399,7 +399,7 @@ namespace Arena
         }
 
         // --- Chat --------------------------------------------------------------
-        // A text chat in a match (Game/ChatBox.cs). A line goes to the host, which trims it, keeps about one a second per player
+        // A text chat in a run (Game/ChatBox.cs). A line goes to the host, which trims it, keeps about one a second per player
         // and passes it to everyone (itself included); the last few lines are kept in Chat.
 
         public const int ChatMaxLength = 120, ChatKeep = 24;
@@ -850,7 +850,7 @@ namespace Arena
         }
 
         /// Host, on the game over screen: retry the run from its checkpoint (Checkpoints.cs), each player back in their seat
-        /// (by name, else the first free one), straight into the match like Play again.
+        /// (by name, else the first free one), straight into the run like Play again.
         public void RetryRun()
         {
             if (!IsHost)
@@ -1377,7 +1377,7 @@ namespace Arena
             Broadcast(Proto.End(w));
         }
 
-        /// From the lobby the match only starts once everyone is ready ("Play again" after
+        /// From the lobby the run only starts once everyone is ready ("Play again" after
         /// a run starts straight away; AutoStart is for tests).
         public void StartMatch()
         {

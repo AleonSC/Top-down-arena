@@ -243,7 +243,7 @@ namespace Arena
             landed.Clear();
             wells.Clear();
             foreach (var e in Enemies.Values)
-                if ((e.Type == EnemyType.GravityWell || e.Type == EnemyType.MiniWell) && !IsSpawning(e))
+                if ((e.Type == EnemyType.GravityWell || e.Type == EnemyType.SmallWell) && !IsSpawning(e))
                     wells.Add(e);  // the Singularity's corner wells and a Graviton's Small Wells (Infall.cs)
             bool wellsUp = wells.Count > 0;
             bool lensUp = PrepareLenses();  // the Singularity's Lenses (Infall.cs)
@@ -311,7 +311,7 @@ namespace Arena
                 if (b.Kind == Defs.ClotShot)
                 {
                     string landSrc = CreditTo(BulletSrc(b));
-                    LandClot(b);  // BloodMage.cs
+                    LandClot(b);  // Hemomancer.cs
                     dmgSrc = landSrc;
                     continue;
                 }
@@ -363,7 +363,7 @@ namespace Arena
         /// Cone weapons (Chain Light, Leech Tendrils, the Repulsion Cannon): Homing Rounds condense the cone instead,
         /// 15% narrower and 10% stronger a stack, so a wide cone for crowds or a focused one is a choice.
         public const float HomingConeNarrow = 0.15f, HomingConeFocus = 0.1f;
-        public static bool ConeWeapon(WeaponId w) => w == WeaponId.ChainLight || w == WeaponId.LeechBeam || w == WeaponId.LightBolt;
+        public static bool ConeWeapon(WeaponId w) => w == WeaponId.ChainLight || w == WeaponId.LeechTendrils || w == WeaponId.RepulsionCannon;
         public static float ConeNarrow(Player p) => 1f - HomingConeNarrow * p.Stats.Homing / 2f;  // how wide the cone is, against its usual width
         public static float ConeFocus(Player p) => 1f + HomingConeFocus * p.Stats.Homing / 2f;    // how hard it hits, against usual
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
@@ -406,7 +406,7 @@ namespace Arena
         {
             foreach (var w in wells)
             {
-                float d = b.Pos.DistanceTo(w.Pos), range = w.Type == EnemyType.MiniWell ? MiniWellBendRange : WellPullRange;
+                float d = b.Pos.DistanceTo(w.Pos), range = w.Type == EnemyType.SmallWell ? SmallWellBendRange : WellPullRange;
                 if (d > range)
                     continue;
                 float want = (w.Pos - b.Pos).Angle, have = b.Vel.Angle;
@@ -437,7 +437,7 @@ namespace Arena
                     LightMark(p, 1, 0f, false);  // a Lightbringer crescent (the only healing sword wave)
                     BroadcastSound(Sfx.LightHeal);
                 }
-                TransfusionCost(b);  // Transfusion Darts cost their healer (BloodMage.cs)
+                TransfusionCost(b);  // Transfusion Darts cost their healer (Hemomancer.cs)
                 return true;
             }
             return false;
@@ -454,7 +454,7 @@ namespace Arena
             hops.Clear();
             ResolveSwings();  // Knight melee hits land first, through the same on-hit effects as bullets
             string was = CreditTo("weapon");  // (the Hemomancer weapons below)
-            ResolveBeams();   // then Vein Tether's beam ticks (BloodMage.cs)
+            ResolveBeams();   // then Vein Tether's beam ticks (Hemomancer.cs)
             ResolveGrasps();  // Leech Tendrils' holds
             ResolveImplosions();  // and Implosions
             dmgSrc = was;
@@ -503,7 +503,7 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
                         continue;
                     }
-                    if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
+                    if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: Hemomancer.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -544,11 +544,11 @@ namespace Arena
                             }
                             if (b.Kind == Defs.SanguineShot)
                             {
-                                StartBloodCoat(b, e);  // it circles in and its hit lands when it has covered the enemy (BloodMage.cs)
+                                StartBloodCoat(b, e);  // it circles in and its hit lands when it has covered the enemy (Hemomancer.cs)
                                 scratchIds.Add(b.Id);
                                 break;
                             }
-                            if (b.StunBack && e.Type == EnemyType.Boss)
+                            if (b.StunBack && e.Type == EnemyType.Warden)
                                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e) * RangeMult(b);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             dmgSrc = BulletSrc(b);  // (what the balance test log credits the hit to)
@@ -556,7 +556,7 @@ namespace Arena
                             dmgSrc = null;
                             if (b.Crossfire)
                                 TwinRifleHit(b, e);  // Twin Rifle hits load the grenade tubes (TwinGrenades.cs)
-                            foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Blood Mage shots drain, pool and drop orbs)
+                            foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Hemomancer shots drain, pool and drop orbs)
                                 onHit(this, b, e, hit);
                             OnBulletHit(b, e);
                             b.PrevHit = b.LastHit;
@@ -915,7 +915,7 @@ namespace Arena
             return before.DistanceSq(center) >= r * r;
         }
 
-        /// A boss that takes no damage right now (changing stage, the Queen up in a dive, the Lich guarded...);
+        /// A boss that takes no damage right now (changing phase, the Queen up in a dive, the Lich guarded...);
         /// the Singularity's split is checked on its own (SingImmune), since its shards pass hits to the core.
         bool BossImmune(Enemy e) =>
             WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e) || DevourImmune(e) || EclipseImmune(e);
@@ -927,7 +927,7 @@ namespace Arena
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
             if (BossImmune(e) || (SingImmune(e) && !shardPass) || GutwormUnder(e))
-                return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
+                return;  // a boss changing phase, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
             if (!DualReaperHit(e, ref dmg))
@@ -1222,7 +1222,7 @@ namespace Arena
         /// Damage over time (burning, bleeding), credited to whoever caused it.
         void DotDamage(Enemy e, float dmg, int by)
         {
-            // The same immunities as a hit: a boss changing stage or guarded takes none, and bubbles soak it first.
+            // The same immunities as a hit: a boss changing phase or guarded takes none, and bubbles soak it first.
             if (SoulBound(e) || Hungry(e) || BossImmune(e) || SingImmune(e))
                 return;
             dmg = SoakBubble(e, dmg, -1);

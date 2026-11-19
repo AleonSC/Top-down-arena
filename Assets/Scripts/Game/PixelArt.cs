@@ -180,7 +180,7 @@ namespace Arena
             { "Shadow Step", "assassin" },
             { "Vanish", "vanish" },
             { "Blade Fan", "bladefan" },
-            // Blood Mage: the same pairing.
+            // Hemomancer: the same pairing.
             { "Hardened Blood", "bloodshell" },
             { "Blood Oath", "pact" },
             { "Deep Veins", "drain" },

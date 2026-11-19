@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The Repulsion Cannon (the Soldier Healer's first weapon, WeaponId.LightBolt): a cone blast that shoves enemies
+    /// The Repulsion Cannon (the Soldier Healer's first weapon, WeaponId.RepulsionCannon): a cone blast that shoves enemies
     /// away, does a little damage, and knocks tiny health orbs loose from what it hits.
     /// Alt (the weapon-action key), the Undertow (Docs/Mockups/repulsion-pull.html, option B): every blast fills the Undertow
     /// meter by RepelGain(enemies hit), more per enemy the more it hits at once. Hold Alt (at least RepelPullMin in the meter)
@@ -91,7 +91,7 @@ namespace Arena
         /// Host: a player pressed (on = true) or let go of the weapon-action key with the Repulsion Cannon.
         void HostRepelPull(Player p, bool on)
         {
-            if (p.Weapon.Id != WeaponId.LightBolt || State == MatchState.GameOver)
+            if (p.Weapon.Id != WeaponId.RepulsionCannon || State == MatchState.GameOver)
                 return;
             if (!on)
             {
@@ -121,7 +121,7 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                if (p.Weapon.Id != WeaponId.LightBolt)
+                if (p.Weapon.Id != WeaponId.RepulsionCannon)
                 {
                     p.RepelPull = false;
                     SetRepelMeter(p, 0f);

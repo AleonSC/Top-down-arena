@@ -72,7 +72,7 @@ namespace Arena
         void WhipHandPose(Player p, ref float rhx, ref float rhy, out float rot)
         {
             rot = 0f;
-            if (p.Weapon.Id != WeaponId.Pistol)
+            if (p.Weapon.Id != WeaponId.Revolver)
                 return;
             var last = WhipOf(p.Id);
             if (last == null || last.T > Game.WhipSweep + WhipRecover)

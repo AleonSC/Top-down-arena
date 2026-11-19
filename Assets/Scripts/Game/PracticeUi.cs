@@ -460,7 +460,7 @@ namespace Arena
                     : "Hover an enemy to see what it does.", 11, CrtStyle.Desc, TextAnchor.MiddleCenter, false, true);
         }
 
-        /// One enemy, drawn as in a match and fitted into a box `size` across (call between BeginUiGl and EndUiGl).
+        /// One enemy, drawn as in a run and fitted into a box `size` across (call between BeginUiGl and EndUiGl).
         void DrawEnemyPreview(EnemyType type, V2 center, float size, float t, bool lively)
         {
             Enemy e;
@@ -477,14 +477,14 @@ namespace Arena
             e.Facing = t * 0.9f * speed + e.Id;
             e.Phase = (byte)(type == EnemyType.Spinner && lively && t % 3.3f < 1.3f ? 1 : 0);
             V2 bob = new V2(0f, (lively ? 2.5f : 1f) * Mathf.Sin(t * 2.2f + e.Id));
-            if (type == EnemyType.TwinA)  // the pair, side by side
+            if (type == EnemyType.ReaperOfDusk)  // the pair, side by side
             {
                 Enemy b;
-                if (!previewEnemies.TryGetValue(EnemyType.TwinB, out b))
+                if (!previewEnemies.TryGetValue(EnemyType.ReaperOfDawn, out b))
                 {
-                    var def = Defs.Get(EnemyType.TwinB);
-                    b = new Enemy { Id = 950, Type = EnemyType.TwinB, Def = def, Radius = def.Radius, Hp = 1f, MaxHp = 1f };
-                    previewEnemies[EnemyType.TwinB] = b;
+                    var def = Defs.Get(EnemyType.ReaperOfDawn);
+                    b = new Enemy { Id = 950, Type = EnemyType.ReaperOfDawn, Def = def, Radius = def.Radius, Hp = 1f, MaxHp = 1f };
+                    previewEnemies[EnemyType.ReaperOfDawn] = b;
                 }
                 zoom *= 0.62f;
                 b.Facing = -e.Facing;

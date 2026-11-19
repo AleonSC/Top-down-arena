@@ -6,11 +6,11 @@ namespace Arena
     /// match), routing your controls to the enemy you play as, the camera on it, and the marker and controls strip over it.
     public partial class ArenaApp
     {
-        bool devArenaPending;   // asked for from outside a match: switched on once the match is running
+        bool devArenaPending;   // asked for from outside a run: switched on once the run is running
         bool devPlayAs = true;  // the Spawn-an-enemy sheet in the Dev Arena: a click plays as the enemy (else just spawns it)
         bool possessAbilityWas, possessParryWas, possessQWas, possessEWas;
 
-        /// LABS > DEV ARENA: on or off in a match; from the menu or the lobby, host a Practice Range match and turn it on there.
+        /// LABS > DEV ARENA: on or off in a run; from the menu or the lobby, host a Practice Range match and turn it on there.
         void ToggleDevArena()
         {
             if (session.Screen == AppScreen.Game)

@@ -92,7 +92,7 @@ static partial class Program
             "its class on the wheel is the Knight, and the Wildcard has " + Defs.WeaponCount(Role.Wildcard, Kit.Soldier) + " weapons to pick from (24)");
         lobby.RequestUlt(Upgrades.WildUlt(Kit.Hemomancer, 0));
         e = lobby.Lobby[1];
-        Check(e.Ult == Upgrades.WildUlt(Kit.Hemomancer, 0) && e.UltKit == Kit.Hemomancer && e.UltId == AbilityId.CrimsonApotheosis, "a Wildcard picks any class's DPS ultimate");
+        Check(e.Ult == Upgrades.WildUlt(Kit.Hemomancer, 0) && e.UltKit == Kit.Hemomancer && e.UltId == AbilityId.CrimsonHarvest, "a Wildcard picks any class's DPS ultimate");
         lobby.RequestUlt(Upgrades.WildUlt(Kit.Knight, 3));
         e = lobby.Lobby[1];
         Check(e.Ult == Upgrades.WildUlt(Kit.Knight, 0), "a key that class has no ultimate on falls back to its default, the class kept");

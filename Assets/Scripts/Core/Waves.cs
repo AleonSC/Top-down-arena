@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Wave flow: the match states between waves, clearing a wave and game over.
+    /// Wave flow: the run states between waves, clearing a wave and game over.
     public partial class Game
     {
         void CheckGameOver()

@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The lobby's Difficulty tab (Difficulty.cs): five cards (Easy, Normal, Hard, Nightmare, Custom), then every
     /// number as a slider with a text box. The host picks a card or changes a number (which makes it Custom);
-    /// everyone else sees the same, read-only. The difficulty also shows under the wave plate during the match.
+    /// everyone else sees the same, read-only. The difficulty also shows under the wave plate during the run.
     public partial class ArenaApp
     {
         static readonly Color[] DiffColors =
@@ -181,7 +181,7 @@ namespace Arena
             }
         }
 
-        /// During a match: the difficulty, as the first chip under the wave plate (not shown on Normal).
+        /// During a run: the difficulty, as the first chip under the wave plate (not shown on Normal).
         float DrawActiveDifficulty(float x, float y)
         {
             var d = game.Diff;

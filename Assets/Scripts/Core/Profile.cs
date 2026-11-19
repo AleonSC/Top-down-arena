@@ -33,14 +33,14 @@ namespace Arena
         public static readonly List<UnlockDef> All = new List<UnlockDef>
         {
             new UnlockDef { Id = "class-engineer", Name = "Engineer", Desc = "Win a run: the Engineer class (open to everyone for now)", Earned = p => p.RunsWon > 0 },
-            new UnlockDef { Id = "hunt-warden", Name = "Warden Hunt", Desc = "Beat the Warden in a run: hunt it any time from the lobby's Boss Hunt", Earned = p => p.Beaten(EnemyType.Boss) > 0 },
+            new UnlockDef { Id = "hunt-warden", Name = "Warden Hunt", Desc = "Beat the Warden in a run: hunt it any time from the lobby's Boss Hunt", Earned = p => p.Beaten(EnemyType.Warden) > 0 },
         };
 
         public static UnlockDef Get(string id) => All.Find(u => u.Id == id);
     }
 
     /// This computer's player's records across every run (the local player only: in co-op each player's own game
-    /// keeps their own). Practice Range matches don't count, and neither does a run where dev tools or the bot
+    /// keeps their own). Practice Range runs don't count, and neither does a run where dev tools or the bot
     /// were used. Saved as "key value" lines in Folder/profile.txt.
     public class Profile
     {
@@ -419,12 +419,13 @@ namespace Arena
                             p.Kills = RunSave.I(f[0]); p.BossKills = RunSave.I(f[1]); p.Downs = RunSave.I(f[2]); p.Revives = RunSave.I(f[3]);
                             p.DamageDealt = RunSave.Fl(f[4]); p.HealingDone = RunSave.Fl(f[5]);
                             break;
-                        case "boss": p.BossesBeaten[f[0]] = RunSave.I(f[1]); break;
+                        case "boss": p.BossesBeaten[OldNames.Enemy(f[0])] = RunSave.I(f[1]); break;
                         case "played": p.RunsAs[val.Substring(val.IndexOf(' ') + 1)] = RunSave.I(f[0]); break;
                         case "won": p.WinsAs[val.Substring(val.IndexOf(' ') + 1)] = RunSave.I(f[0]); break;
                         case "modwin": p.ModWins[f[0]] = RunSave.I(f[1]); break;
                         case "room": p.RoomsPlayed[f[0]] = RunSave.I(f[1]); p.RoomsWon[f[0]] = RunSave.I(f[2]); break;
                         case "hunt":
+                            f[0] = OldNames.Enemy(f[0]);
                             p.HuntsPlayed[f[0]] = RunSave.I(f[1]); p.HuntsWon[f[0]] = RunSave.I(f[2]);
                             if (RunSave.Fl(f[3]) > 0f) p.HuntBest[f[0]] = RunSave.Fl(f[3]);
                             if (f.Length > 4) p.HuntsWonHard[f[0]] = RunSave.I(f[4]);  // (older files have four fields)
@@ -438,7 +439,7 @@ namespace Arena
                         case "fav": if (p.Favorites.Count < Arena.Favorites.Slots) p.Favorites.Add(Arena.Favorites.FromLine(val)); break;
                         case "perks": foreach (var n in val.Split(',')) if (n.Length > 0) p.PerkNames.Add(n.Trim()); break;
                         case "hint": p.HintLaunches = Math.Max(0, RunSave.I(f[0])); p.ProfileOpened = f.Length > 1 && RunSave.I(f[1]) != 0; break;
-                        case "tag": p.TagSeen[f[0]] = Math.Max(0, RunSave.I(f[1])); break;
+                        case "tag": p.TagSeen[OldNames.Enemy(f[0])] = Math.Max(0, RunSave.I(f[1])); break;
                         case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
                         case "devall": p.DevAllUnlocked = RunSave.I(f[0]) != 0; break;
                         case "cores": p.Cores = Math.Max(0, RunSave.I(f[0])); break;

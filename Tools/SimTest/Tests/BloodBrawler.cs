@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// The DPS Hemomancer's Blood Brawler, the Marionette (BoneSpear.cs; Docs/BoneSpearMarionette.md).
+// The DPS Hemomancer's Blood Brawler, the Marionette (BloodBrawler.cs; Docs/BloodBrawlerMarionette.md).
 static partial class Program
 {
     /// Fire with the cursor on an enemy marks it and lands Pulse (shove away), Reel (pull in), Heart Lift (airborne, stunned)
@@ -11,7 +11,7 @@ static partial class Program
     /// the string starts over after the Burst, on another enemy, or after the window; nothing under the cursor or out of reach
     /// fires nothing; the other screen sees the mark; Alt (Sympathy) binds enemies near the mark, not far ones, and a move on
     /// the mark lands on them at half; Marrow adds shards and a bound enemy.
-    static void BoneSpearTest(float dt)
+    static void BloodBrawlerTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -25,7 +25,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
         g.DevSetGod(2, true);
-        Check(me.Weapon.Id == WeaponId.BoneSpear, "the Hemomancer DPS's third key is the Blood Brawler (" + me.Weapon.Id + ")");
+        Check(me.Weapon.Id == WeaponId.BloodBrawler, "the Hemomancer DPS's third key is the Blood Brawler (" + me.Weapon.Id + ")");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         V2 from = new V2(400f, 450f);
         Func<V2, Enemy> Dummy = at =>
@@ -84,7 +84,7 @@ static partial class Program
         bool airborne = a.BsLiftT > 0f;
         Step(0.25f, On(a), false, false);
         float burst = aBefore - a.Hp;
-        int shardsSeen = g.Bullets.Values.Count(b => b.Kind == Defs.BoneSpearShot);
+        int shardsSeen = g.Bullets.Values.Count(b => b.Kind == Defs.BloodBrawlerShot);
         Settle(a);
         Check(airborne && burst > me.Weapon.Damage * (Game.BsBurstBase + 3f * Game.BsBurstPer) * 1.2f, "step 4, Marrow Burst, lands on it still airborne for 36 + 12 a hit, +25% (" + burst.ToString("0") + ")");
         Check(by.Hp < byBefore, "its bone shards cut the bystander (" + (byBefore - by.Hp).ToString("0") + "; " + shardsSeen + " shards seen)");
@@ -146,7 +146,7 @@ static partial class Program
 
         // Marrow: 2 more shards, 1 more bound enemy
         var card = Upgrades.All.First(u => u.Name == "Marrow");
-        Check(card.Weapons != null && card.Weapons.Contains(WeaponId.BoneSpear), "Marrow is a Blood Brawler card");
+        Check(card.Weapons != null && card.Weapons.Contains(WeaponId.BloodBrawler), "Marrow is a Blood Brawler card");
         card.Apply(me.Stats);
         Check(me.Stats.BsShardBonus == 2 && me.Stats.SympBonus == 1, "Marrow adds 2 shards and 1 bound enemy");
 

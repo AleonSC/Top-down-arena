@@ -147,7 +147,7 @@ static partial class Program
         int legendaries = 0;
         foreach (var p in client.Game.Players.Values)
             foreach (int t in p.Taken)
-                if (Upgrades.All[t].Rarity == Rarity.Legendary && Upgrades.All[t].Boss == EnemyType.Boss)
+                if (Upgrades.All[t].Rarity == Rarity.Legendary && Upgrades.All[t].Boss == EnemyType.Warden)
                 {
                     legendaries++;
                     Console.WriteLine("  {0} took legendary: {1}", p.Role, Upgrades.All[t].Name);
@@ -199,14 +199,14 @@ static partial class Program
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         var none = new List<int>();
         var chalk = new OfferCtx(Role.Healer, AbilityId.MendPulse, none, WeaponId.SpiritChalk);
-        var other = new OfferCtx(Role.Healer, AbilityId.MendPulse, none, WeaponId.Pistol);
+        var other = new OfferCtx(Role.Healer, AbilityId.MendPulse, none, WeaponId.Revolver);
         var bare = new OfferCtx(Role.Healer, AbilityId.MendPulse, none);
         int mod = U("Ricochet"), leg = U("Searchlight"), mile = U("Scholar");
         foreach (int id in new[] { mod, leg, mile })
             Upgrades.All[id].Weapons = new[] { WeaponId.SpiritChalk };  // (test only: put back below)
         try
         {
-            Func<OfferCtx, int[]> legs = c => { var all = new List<int>(); var rng = new Random(2); for (int i = 0; i < 40; i++) all.AddRange(Upgrades.LegendaryOffer(rng, EnemyType.Boss, c)); return all.ToArray(); };
+            Func<OfferCtx, int[]> legs = c => { var all = new List<int>(); var rng = new Random(2); for (int i = 0; i < 40; i++) all.AddRange(Upgrades.LegendaryOffer(rng, EnemyType.Warden, c)); return all.ToArray(); };
             Func<OfferCtx, int[]> miles = c => { var all = new List<int>(); var rng = new Random(2); for (int i = 0; i < 40; i++) all.AddRange(Upgrades.MilestoneOffer(rng, c)); return all.ToArray(); };
             Check(Upgrades.ModOffer(chalk).Contains(mod) && !Upgrades.ModOffer(other).Contains(mod) && !Upgrades.ModOffer(bare).Contains(mod),
                 "a weapon-only weapon mod is offered to that weapon only");
@@ -259,7 +259,7 @@ static partial class Program
             }
             Check(seenKnight > 0 && seenSoldier == 0, "level-up offers show a Knight card to a Knight (" + seenKnight + "x) and never to a Soldier");
 
-            // A Wildcard with a Ninja Space ability, a Knight weapon and a Blood Mage second ability.
+            // A Wildcard with a Ninja Space ability, a Knight weapon and a Hemomancer second ability.
             var wild = new Player
             {
                 Role = Role.Wildcard, Kit = Kit.Soldier,
@@ -275,7 +275,7 @@ static partial class Program
             u0.Weapons = new[] { WeaponId.Scattergun, WeaponId.Railgun };
             Check(Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none, WeaponId.Scattergun))
                 && Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none, WeaponId.Railgun))
-                && !Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none, WeaponId.Pistol))
+                && !Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none, WeaponId.Revolver))
                 && !Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none)),
                 "a weapon-list card is offered to every weapon on its list and to no other (nor to no weapon)");
             u0.Kit = Kit.Soldier;
@@ -446,7 +446,7 @@ static partial class Program
             && !Upgrades.Available(U("Bastion"), new OfferCtx(Role.Tank, AbilityId.Roar, new List<int>())),
             "a class ability card isn't offered twice, and that ability's own upgrades open up");
 
-        // In a match: the DPS Soldier (Space: Poison Dart) gets Airstrike on Q, and the bot calls it in.
+        // In a run: the DPS Soldier (Space: Poison Dart) gets Airstrike on Q, and the bot calls it in.
         var s = StartBuffed(dt, 1, 0);
         Run(s, dt, 1);
         s[0].Game.GrantUpgrade(2, U("Airstrike"));

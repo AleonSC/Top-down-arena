@@ -31,12 +31,12 @@ namespace Arena
             HudGroup(1, new Vector2(-150f, 30f), HudWavePlate, DrawWaveCorner);  // (the layout: HudLayout.cs)
             HudGroup(3, new Vector2(0f, -80f), HudTopRow, () =>
             {
-                if (game.Recorder != null)  // this match is being recorded (hosts only)
+                if (game.Recorder != null)  // this run is being recorded (hosts only)
                     Ui.Label(HudRecTag, "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
                 DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs)
                 DrawBossBars();
             });
-            DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
+            DrawStageBanner();  // a boss changing phase (StageShiftLook.cs)
             DrawFreezeBanner();  // Blood Freeze's count and timer (BloodFreezeLook.cs)
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
@@ -647,7 +647,7 @@ namespace Arena
             }
             else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
-            else if (slot.Id == AbilityId.CrimsonPact && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)
+            else if (slot.Id == AbilityId.BloodWall && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "ON", 19, new Color(1f, 0.33f, 0.41f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 16, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);

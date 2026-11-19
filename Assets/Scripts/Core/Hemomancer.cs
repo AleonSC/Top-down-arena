@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Blood Mage: health is its resource. Every Space ability costs health (never below 1), it hits harder
+    /// The Hemomancer: health is its resource. Every Space ability costs health (never below 1), it hits harder
     /// the more health it's missing (Blood Price, up to +40%), and all its hits heal it a little. Tanks turn
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
     {
-        // The Gore Mortar (WeaponId.ClotBolt kept): hold to charge, let go to lob a clot over enemies. The charge sets only
+        // The Gore Mortar : hold to charge, let go to lob a clot over enemies. The charge sets only
         // how far it lands (ClotMin on a tap to ClotMax at full); the splash hits the same at any range, then a big pool
         // slows enemies and congeals after PoolCongeal, sticking the enemies in it for PoolStuck (not bosses).
         // Every shot costs ClotCost of your max health (never below 1); the pools heal everyone standing in them (the
@@ -38,7 +38,7 @@ namespace Arena
 
         // --- Weapons ------------------------------------------------------------------
 
-        /// A Blood Mage weapon's attack. `extra` is the number of extra projectiles; each weapon uses them its own way.
+        /// A Hemomancer weapon's attack. `extra` is the number of extra projectiles; each weapon uses them its own way.
         void FireBloodWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra)
         {
             var w = p.Weapon;  // its Speed, Life, Damage, Reach and Grow (Defs)
@@ -50,7 +50,7 @@ namespace Arena
                 case WeaponId.BloodBlast:
                     FireBloodBlast(p, aim, dmg, extra);  // the six-step chain of blood cuts (BloodBlast.cs)
                     break;
-                case WeaponId.ClotBolt:
+                case WeaponId.GoreMortar:
                 {
                     // The Gore Mortar: lobbed over enemies like the Golem Staff's boulder, as far as the charge sends it;
                     // the damage doesn't change with the charge. Extra projectiles fan more clots out to the same distance.
@@ -73,7 +73,7 @@ namespace Arena
                     }
                     break;
                 }
-                case WeaponId.LeechBeam:
+                case WeaponId.LeechTendrils:
                     // Leech Tendrils: no projectile; each tick the tendrils hold on and reach for more (Collide); TickGrasp charges them.
                     pendingGrasps.Add(new Grasp { Owner = p.Id, Aim = aim, Extra = extra, Dmg = w.Damage * dmg * (1f + p.Stats.LeechBlastBonus) });  // (Hungry Tendrils: bigger blast)
                     break;
@@ -118,8 +118,8 @@ namespace Arena
                         pendingImplosions.Add(new Implode { Owner = p.Id, Target = e.Id, Extra = extra, Dmg = dmg * (casting && !firingWeapon ? castPower : 1f) });
                     break;
                 }
-                case WeaponId.BoneSpear:
-                    FireBoneSpear(p, dmg, extra);  // the Marionette string on the enemy under the cursor (BoneSpear.cs)
+                case WeaponId.BloodBrawler:
+                    FireBloodBrawler(p, dmg, extra);  // the Marionette string on the enemy under the cursor (BloodBrawler.cs)
                     break;
             }
         }
@@ -250,7 +250,7 @@ namespace Arena
                 p.GraspCharge.Add(0f);
             if (p.Grasp.Count == 0)
                 return;
-            bool mine = !p.Downed && !p.ParryActive && p.Weapon.Id == WeaponId.LeechBeam;
+            bool mine = !p.Downed && !p.ParryActive && p.Weapon.Id == WeaponId.LeechTendrils;
             if (!mine || !p.Firing)
             {
                 ReleaseGrasp(p, mine);  // let go of fire: they burst for what's built up (not if you're downed, parrying or swapped)
@@ -310,7 +310,7 @@ namespace Arena
 
         /// Are this player's Leech Tendrils out? (Each screen draws them itself, from the held enemies in the snapshot.)
         public bool GraspOn(Player p) =>
-            p.Weapon.Id == WeaponId.LeechBeam && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
+            p.Weapon.Id == WeaponId.LeechTendrils && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
             && State != MatchState.GameOver && State != MatchState.Victory;
 
         // --- Implosion: click an enemy and its blood collapses inward ---------------------
@@ -343,7 +343,7 @@ namespace Arena
         }
 
         /// Implosion and the Blood Brawler only fire with an enemy under the cursor; otherwise holding fire waits (and keeps the cooldown).
-        bool ImplodeReady(Player p) => p.Weapon.Id != WeaponId.Implosion && p.Weapon.Id != WeaponId.BoneSpear || ImplodeTarget(p, p.AimAt) != null;  // (and the Blood Brawler's string: BoneSpear.cs)
+        bool ImplodeReady(Player p) => p.Weapon.Id != WeaponId.Implosion && p.Weapon.Id != WeaponId.BloodBrawler || ImplodeTarget(p, p.AimAt) != null;  // (and the Blood Brawler's string: BloodBrawler.cs)
 
         /// Called from Collide after the beams: each implosion hurts its target, then the enemies pressed against
         /// it (pulled in a little), then one more enemy near the target per extra projectile (one not hit yet; with
@@ -452,10 +452,10 @@ namespace Arena
         /// Shot i of n, fanned out `step` radians apart around the aim (a lone shot flies straight). Use this for any spread.
         static float Fanned(float aim, int i, int n, float step) => aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * step * (n - 1));
 
-        /// What a Blood Mage's shot does when it hits, after the damage (dmg) is dealt.
+        /// What a Hemomancer's shot does when it hits, after the damage (dmg) is dealt.
         void BloodShotHit(Bullet b, Enemy e, float dmg)
         {
-            if (b.Kind < Defs.BloodShot || b.Kind > Defs.BoneSpearShot)
+            if (b.Kind < Defs.BloodShot || b.Kind > Defs.BloodBrawlerShot)
                 return;
             Player p;
             if (!Players.TryGetValue(b.Owner, out p) || p.Downed)
@@ -633,7 +633,7 @@ namespace Arena
         /// recording counts it as health spent on `what`, not damage taken.
         float PayHealth(Player p, float cost, string what)
         {
-            cost *= p.Stats.HealthCostMult;  // Bloodthirst (the Blood Mage's class card)
+            cost *= p.Stats.HealthCostMult;  // Bloodthirst (the Hemomancer's class card)
             if (p.Downed || cost <= 0f)
                 return 0f;
             float paid = Math.Max(0f, Math.Min(cost, p.Hp - 1f));
@@ -642,7 +642,7 @@ namespace Arena
             return paid;
         }
 
-        float castPaid;  // health paid for the ability being cast (Blood Mage abilities scale with it)
+        float castPaid;  // health paid for the ability being cast (Hemomancer abilities scale with it)
 
         /// Host, as an ability is cast: pay its health cost, if it has one.
         void PayAbilityCost(Player p, AbilityId id)
@@ -657,7 +657,7 @@ namespace Arena
                 BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), castPaid, 0.55f, Sfx.None);
         }
 
-        /// Blood Price: a Blood Mage deals up to 40% more damage the more health it's missing (full bonus at 10%
+        /// Blood Price: a Hemomancer deals up to 40% more damage the more health it's missing (full bonus at 10%
         /// health). Applied in HurtEnemy.
         float BloodDamageMult(Player p)
         {
@@ -667,7 +667,7 @@ namespace Arena
             return 1f + BloodPriceMax * missing;
         }
 
-        /// Healing from damage dealt (HurtEnemy): a Blood Mage's 3%, Blood Debt's 15% while it runs, and a boss's blood
+        /// Healing from damage dealt (HurtEnemy): a Hemomancer's 3%, Blood Debt's 15% while it runs, and a boss's blood
         /// paying the debt back (BloodDebt.cs).
         void BloodLifesteal(Player p, Enemy e, float dealt)
         {
@@ -702,15 +702,15 @@ namespace Arena
 
         // --- Abilities ------------------------------------------------------------------
 
-        /// The Hemomancer (Kit.Hemomancer): FireBloodWeapon, BloodAbility, TickBloodMages, BloodShotHit. See KitDef (Classes.cs) for what each hook does.
+        /// The Hemomancer (Kit.Hemomancer): FireBloodWeapon, BloodAbility, TickHemomancers, BloodShotHit. See KitDef (Classes.cs) for what each hook does.
         internal static readonly KitDef HemomancerKit = new KitDef
         {
             Id = Kit.Hemomancer, Name = "Hemomancer", Icon = "class_hemomancer",
             Blurb = "Blood spells that drain and heal. Abilities cost health; hits harder the lower your health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireBloodWeapon(p, aim, dir, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
-            Tick = (g, dt) => g.TickBloodMages(dt),
-            OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Blood Mage shots drain, pool and drop orbs
+            Tick = (g, dt) => g.TickHemomancers(dt),
+            OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Hemomancer shots drain, pool and drop orbs
             OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs) and sends Blood Blast stacks home (BloodBlast.cs)
         };
 
@@ -722,10 +722,10 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
                 Desc = "A whip of blood, a four-step string: Crack, Backhand, Snap, Reap. Every lash that lands hooks a blood chain on the enemy (+1 link, +2 from the cracking tip or the Snap). "
                     + "Reap yanks every chained enemy in and turns the links into Clot (4% less damage taken each, up to 5). Alt: hold for Martyr's Leash." },
-            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
+            new WeaponDef { Id = WeaponId.GoreMortar, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
                 Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
-            new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
+            new WeaponDef { Id = WeaponId.LeechTendrils, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils that grasp nearby enemies and hold them stunned. The longer you hold, the more blood builds up in them, and after 5 seconds they burst. Let go early and they burst for the share built up so far. Holding costs 2% of your max health a second, and the tendrils need 1 second to recover after a burst.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
             new WeaponDef { Id = WeaponId.BloodBlast, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 3, Damage = 22f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "+15% damage and reach", Name = "Blood Blast", FireInterval = 0.42f,
@@ -748,7 +748,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
-            new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
+            new WeaponDef { Id = WeaponId.BloodBrawler, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
                 Desc = "Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.EmbolusSpears, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
@@ -757,7 +757,7 @@ namespace Arena
                 Sound = Sfx.Throw, AreaDesc = "the burst 25% wider" },
         };
 
-        /// The Blood Mage's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// The Hemomancer's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] HemomancerCards =
         {
@@ -767,29 +767,29 @@ namespace Arena
                 Apply = s => s.EsBlastMult += 0.3f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",
                 Apply = s => s.ShellBonus += 1f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Blood Wall stands 2 s longer and its drain doubles 1 s slower",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodWall, MaxStacks = 2, Name = "Blood Oath", Desc = "Blood Wall stands 2 s longer and its drain doubles 1 s slower",
                 Apply = s => { s.WallLifeBonus += Game.WallLifeUp; s.WallRampBonus += Game.WallDoubleUp; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Exsanguinate, MaxStacks = 2, Name = "Deep Veins", Desc = "Exsanguinate reaches 30% farther and drains 50% more",
                 Apply = s => { s.DrainRadiusMult += 0.3f; s.DrainMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodGift, MaxStacks = 2, Name = "Lifeblood", Desc = "Blood Gift gives 50% more",
                 Apply = s => s.GiftMult += 0.5f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiphonField, MaxStacks = 2, Name = "Hungry Earth", Desc = "Blood Freeze holds everything 1.5 s longer",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodFreeze, MaxStacks = 2, Name = "Hungry Earth", Desc = "Blood Freeze holds everything 1.5 s longer",
                 Apply = s => { s.FreezeBonusTime += 1.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Martyr, MaxStacks = 2, Name = "Saint's Blood", Desc = "Martyr revives with 25% more health and leaves them invulnerable 1 s longer",
                 Apply = s => { s.MartyrBonus += 0.25f; s.MartyrInvuln += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodBoil, MaxStacks = 2, Name = "High Pressure", Desc = "Arterial Spray reaches 25% farther and hits 25% harder",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ArterialSpray, MaxStacks = 2, Name = "High Pressure", Desc = "Arterial Spray reaches 25% farther and hits 25% harder",
                 Apply = s => { s.SprayReach += 0.25f; s.SprayMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrenzyPact, MaxStacks = 2, Name = "Usury", Desc = "Blood Debt's kills repay 25% more, and it gives you 1 s longer to pay",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodDebt, MaxStacks = 2, Name = "Usury", Desc = "Blood Debt's kills repay 25% more, and it gives you 1 s longer to pay",
                 Apply = s => { s.DebtRepay += 0.25f; s.DebtBonusTime += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Vein Rush goes 25% farther, and each enemy it cuts gives back 1% more health",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.VeinRush, MaxStacks = 2, Name = "Crimson Tide", Desc = "Vein Rush goes 25% farther, and each enemy it cuts gives back 1% more health",
                 Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Hemomancer, MaxStacks = 2, Name = "Bloodthirst", Desc = "Your abilities cost 20% less health, and each kill heals you 2",
                 Apply = s => { s.HealthCostMult *= 0.8f; s.KillHeal += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodLash }, MaxStacks = 2, Name = "Crimson Whip", Desc = "The Blood Lash reaches 20% farther, each enemy holds one more link, and each Clot stack cuts 1% more damage",
                 Apply = s => { s.LashReachMult += 0.2f; s.LashLinkBonus++; s.ClotCutBonus += 0.01f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ClotBolt }, MaxStacks = 2, Name = "Deep Pool", Desc = "The Gore Mortar's pool is 30% bigger and lasts 2 s longer",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.GoreMortar }, MaxStacks = 2, Name = "Deep Pool", Desc = "The Gore Mortar's pool is 30% bigger and lasts 2 s longer",
                 Apply = s => { s.PoolSizeMult += 0.3f; s.PoolBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LeechBeam }, MaxStacks = 2, Name = "Hungry Tendrils", Desc = "Leech Tendrils charge 30% faster, and their bursts hit 15% harder",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LeechTendrils }, MaxStacks = 2, Name = "Hungry Tendrils", Desc = "Leech Tendrils charge 30% faster, and their bursts hit 15% harder",
                 Apply = s => { s.LeechDrainMult += 0.3f; s.LeechBlastBonus += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.TransfusionDarts }, MaxStacks = 2, Name = "Generous Blood", Desc = "Each Transfusion Dart gives an ally 30% more health for the same cost",
                 Apply = s => { s.TransfuseMult += 0.3f; } },
@@ -801,11 +801,11 @@ namespace Arena
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
                 Apply = s => { s.ImplodeReachMult += 0.3f; s.ImplodeDmgMult += 0.4f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoneSpear }, MaxStacks = 2, Name = "Marrow", Desc = "The Blood Brawler's Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBrawler }, MaxStacks = 2, Name = "Marrow", Desc = "The Blood Brawler's Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy",
                 Apply = s => { s.BsShardBonus += 2; s.SympBonus += 1; } },
         };
 
-        /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)
+        /// The Hemomancer's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] HemomancerAbilities =
         {
             new AbilityDef
@@ -817,7 +817,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.CrimsonPact, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1,
+                Id = AbilityId.BloodWall, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1,
                 Name = "Blood Wall", Cooldown = 8f, Desc = "Toggle: a wall of blood is laid behind you as you walk. It stops enemy bullets and enemies can't cross it (they bleed 12 a second against it); allies walk through. It stands 6 s. It drains 1% of your max health a second, doubling every 4 s, until you press again or go down.",
                 Capstone = "Enemies against the wall take double and are slowed 40%.",
                 Bot = b => b.HaveTarget && b.TargetD < 320f && b.Me.Hp > b.Me.MaxHp * 0.7f,
@@ -838,7 +838,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.SiphonField, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
+                Id = AbilityId.BloodFreeze, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
                 Name = "Blood Freeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Pay 25% of your max health: a shockwave bursts out 260 px around you and freezes every enemy it reaches for 5 s (bosses for 3 s). Frozen enemies can't move or shoot.",
                 Capstone = "Frozen enemies take 25% more damage.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.5f,
@@ -852,28 +852,28 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.BloodBoil, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0,
+                Id = AbilityId.ArterialSpray, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0,
                 Name = "Arterial Spray", Cooldown = 8f, Desc = "Press to open a vein: a 60° jet of blood, 200 px long, follows your aim, 30 damage a second to everything in it (more the lower your health), slowing them 20% and making them bleed. It drains 4% of your max health a second. Press again to stop; it sputters out at 15% health. The cooldown starts when it stops.",
                 Capstone = "The spray also washes away enemy bullets it touches.",
                 Bot = b => b.HaveTarget && b.TargetD < 190f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
-                Id = AbilityId.FrenzyPact, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1,
+                Id = AbilityId.BloodDebt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1,
                 Name = "Blood Debt", Cooldown = 16f, Desc = "Borrow against your blood: your health drops to 25% (or 5% of your max, if you're already that low) and the rest becomes a debt. For 8 s, kills pay it back (a Grunt 4% of your max health, a Heavy or an elite 10%, hurting a boss 10% of the damage) and your hits heal 15% instead of 3%. Pay it all and you keep the 15% for 2 s more; what's unpaid after 8 s is lost.",
                 Capstone = "Kills repay 50% more.",
                 Bot = b => b.HaveTarget && b.TargetD < 350f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
-                Id = AbilityId.HemoNova, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Instant = true,
+                Id = AbilityId.VeinRush, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Instant = true,
                 Name = "Vein Rush", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health and rush 280 px toward your cursor as a streak of blood, untouchable. Every enemy you pass through takes 25 and bleeds, and gives back 2% of your max health. You leave a trail of blood that slows enemies 30% for 2 s.",
                 Capstone = "The trail bursts after 1 s for 20 to everything on it.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.3f,
             },
             new AbilityDef
             {
-                Id = AbilityId.BloodRite, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult,
+                Id = AbilityId.VeinTithe, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "Vein Tithe", Cooldown = 75f, Desc = "Blood tendrils bind every enemy on screen for 30 s: they can't move or shoot. You pay 0.25% of your max health a second for each one held (a boss costs four times that), and deal 40% less damage. It ends when the time runs out or you go down.",
                 Capstone = "Lasts 40 s and costs 25% less.",
                 Bot = b => b.Danger && b.HaveTarget && b.Me.Hp > b.Me.MaxHp * 0.6f,
@@ -894,14 +894,14 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.CrimsonApotheosis, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Id = AbilityId.CrimsonHarvest, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Ult,
                 Name = "Crimson Harvest", Cooldown = 65f, Desc = "Rip blood from every enemy in the arena (20 damage each) into a floating ball, bigger the more enemies fed it. Press again to throw it at your cursor for a huge blast; it throws itself after 5 s.",
                 Capstone = "Hold 8 s, and 25% more blood.",
                 Bot = b => b.HaveTarget && b.TargetD < 500f,
             },
         };
 
-        /// Blood Mage abilities and ultimates. Returns false if `id` isn't one. castPaid is what this cast cost.
+        /// Hemomancer abilities and ultimates. Returns false if `id` isn't one. castPaid is what this cast cost.
         bool BloodAbility(Player p, AbilityId id, V2 target)
         {
             var s = p.Stats;
@@ -914,7 +914,7 @@ namespace Arena
                     RaiseShell(p, pw, cap);  // BloodShell.cs: held, not timed
                     BroadcastFx(FxKind.ShellPop, p.Pos, new V2(p.Id, 2f), blood, ShellRadius, 0.5f, Sfx.Ability);  // forming
                     return true;
-                case AbilityId.CrimsonPact:
+                case AbilityId.BloodWall:
                     OpenBloodWall(p, pw, cap);  // BloodWall.cs: a toggle, laid as you walk
                     return true;
                 case AbilityId.Exsanguinate:
@@ -944,7 +944,7 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, ally.Pos, blood, 50f, 0.4f, Sfx.SpellHoly);
                     return true;
                 }
-                case AbilityId.SiphonField:
+                case AbilityId.BloodFreeze:
                 {
                     CastBloodFreeze(p, cap, s.FreezeBonusTime);  // BloodFreeze.cs
                     return true;
@@ -982,18 +982,18 @@ namespace Arena
                         p.InvulnT = Math.Max(p.InvulnT, 2f);
                     return true;
                 }
-                case AbilityId.BloodBoil:
+                case AbilityId.ArterialSpray:
                     OpenSpray(p, pw, cap);  // ArterialSpray.cs: a toggle, not timed
                     return true;
-                case AbilityId.FrenzyPact:
+                case AbilityId.BloodDebt:
                     BorrowDebt(p, pw, cap);  // BloodDebt.cs
                     return true;
-                case AbilityId.HemoNova:
+                case AbilityId.VeinRush:
                     CastVeinRush(p, target, pw, cap);  // VeinRush.cs
                     return true;
 
                 // Ultimates
-                case AbilityId.BloodRite:
+                case AbilityId.VeinTithe:
                 {
                     CastTithe(p, cap);  // VeinTithe.cs
                     return true;
@@ -1004,7 +1004,7 @@ namespace Arena
                 case AbilityId.SanguineRain:
                     CastRain(p, cap);  // SanguineRain.cs
                     return true;
-                case AbilityId.CrimsonApotheosis:
+                case AbilityId.CrimsonHarvest:
                     CastHarvest(p, cap);  // CrimsonHarvest.cs
                     return true;
             }
@@ -1014,7 +1014,7 @@ namespace Arena
         // --- Timed effects ---------------------------------------------------------------
 
         /// Host, every tick: Blood Wall drains and is laid, Blood Debt's window runs out, Arterial Spray gushes.
-        void TickBloodMages(float dt)
+        void TickHemomancers(float dt)
         {
             TickCoatings(dt);
             TickRain(dt);  // SanguineRain.cs
@@ -1024,7 +1024,7 @@ namespace Arena
                     p.UltT = 0f;
             TickReels(dt);  // Exsanguinate.cs
             TickBloodLash(dt);  // BloodLash.cs: chains, Reap, Martyr's Leash
-            TickBoneSpear(dt);  // BoneSpear.cs: the string, the mark, Sympathy
+            TickBloodBrawler(dt);  // BloodBrawler.cs: the string, the mark, Sympathy
             foreach (var p in Players.Values)
             {
                 TickGrasp(p, dt);  // Leech Tendrils: cooldown, charge, cost, bursts

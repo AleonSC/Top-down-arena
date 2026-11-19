@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The DPS meter (F2 in a match; Shift+F2 starts it over): damage a second for each player, as the host sees it,
+    /// The DPS meter (F2 in a run; Shift+F2 starts it over): damage a second for each player, as the host sees it,
     /// next to what the sim measured for that weapon (Defs.WeaponDps). Host only; see DpsTools.cs.
     public partial class ArenaApp
     {

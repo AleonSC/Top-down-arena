@@ -578,7 +578,7 @@ namespace Arena
         void ClaimPrize()
         {
             var boss = BossAt(Math.Min(MaxWave, Bosses.NextBossWaveFrom(Wave)));  // the boss this cycle leads up to
-            var key = IsReaper(boss) ? EnemyType.TwinA : boss;
+            var key = IsReaper(boss) ? EnemyType.ReaperOfDusk : boss;
             foreach (var p in Players.Values)
             {
                 p.PrizePicks++;
@@ -661,7 +661,7 @@ namespace Arena
         public float BossEquivalentHp(int wave)
         {
             float late = LateBossBoost(wave);
-            return SpawnHp(EnemyType.Boss, wave) * Math.Max(late, BossPowerScale()) / late;
+            return SpawnHp(EnemyType.Warden, wave) * Math.Max(late, BossPowerScale()) / late;
         }
 
         /// A shadow's health: its share of the Warden, as if its player were alone (each player fights their own).

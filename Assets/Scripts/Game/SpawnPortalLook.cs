@@ -155,7 +155,7 @@ namespace Arena
                 return;
             foreach (var e in game.Enemies.Values)
             {
-                if (e.Type != EnemyType.Portal || !SpawnPortals.IsFlank(e.Phase) || e.Hp <= 0f)
+                if (e.Type != EnemyType.SpawnPortal || !SpawnPortals.IsFlank(e.Phase) || e.Hp <= 0f)
                     continue;
                 V2 to = e.Disp - me.Disp;
                 float dist = to.Length;

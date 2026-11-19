@@ -17,7 +17,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 if (Game.IsTwin(e.Type) && !game.IsSpawning(e))
                 {
-                    if (e.Type == EnemyType.TwinA) a = e; else b = e;
+                    if (e.Type == EnemyType.ReaperOfDusk) a = e; else b = e;
                 }
             if (a == null || b == null || (R != null && R.Stage != ReaperStage.Twilight))
                 return;
@@ -103,7 +103,7 @@ namespace Arena
             {
                 if (!Game.IsTwin(e.Type))
                     continue;
-                var rp = e.Type == EnemyType.TwinA ? R.ReapA : R.ReapB;
+                var rp = e.Type == EnemyType.ReaperOfDusk ? R.ReapA : R.ReapB;
                 if (rp.Phase != 1)
                     continue;
                 // The reap's mark: the dash line, and the scythe's arc where it ends.
@@ -129,7 +129,7 @@ namespace Arena
             }
         }
 
-        /// Under the Dual Reaper: its power, the stage change, the swing it's about to make, its shield in a hole.
+        /// Under the Dual Reaper: its power, the phase change, the swing it's about to make, its shield in a hole.
         void DrawDualUnderlay(Enemy e, V2 pos, float r, float t)
         {
             var R = game.Reapers;

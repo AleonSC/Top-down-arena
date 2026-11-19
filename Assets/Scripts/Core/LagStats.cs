@@ -9,7 +9,7 @@ namespace Arena
     /// How the connection feels right now, for the lag chart's coloured pill.
     public enum LagQuality { Good, Ok, Poor }
 
-    /// A thing that happened in the match, ticked on the lag chart so a spike can be lined up with it.
+    /// A thing that happened in the run, ticked on the lag chart so a spike can be lined up with it.
     public enum LagMarkKind : byte { Wave, Boss, Storm }
 
     public struct LagMark

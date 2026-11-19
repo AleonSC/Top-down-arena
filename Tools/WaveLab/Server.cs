@@ -209,7 +209,7 @@ static class Lab
         var kit = (Kit)(int)D(m, "kit", 0);
         int weapon = (int)D(m, "weapon", 0);
         if (!sess.Host(nextGamePort++, "You", role, weapon, (int)D(m, "ability", 0), kit, 0, (int)D(m, "ult", 0)))
-            return "Couldn't start the match: " + sess.Status;
+            return "Couldn't start the run: " + sess.Status;
         old?.Leave("");
         sess.Diff.Set(DiffKnob.Campaign, 0f);
         sess.Plan = set.ToPlan();

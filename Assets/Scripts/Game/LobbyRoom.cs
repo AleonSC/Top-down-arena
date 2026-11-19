@@ -386,7 +386,7 @@ namespace Arena
                 session.FireMyShot(aim);
         }
 
-        /// Each character's path for its trail, the last second or so (as the match does it: RankTrails.cs).
+        /// Each character's path for its trail, the last second or so (as the run does it: RankTrails.cs).
         void TickRoomTrails(float t, float dt)
         {
             foreach (var kv in session.Avatars)

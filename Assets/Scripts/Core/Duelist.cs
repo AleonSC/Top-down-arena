@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Duelist's stage of the fight, by its health: three stages, then a last stand.
+    /// The Duelist's phase of the fight, by its health: three phases, then a last stand.
     public enum DuelStage : byte { EnGarde, Masquerade, ToTheDeath, LastStand }
 
-    /// What it's doing now. Each stage loops its turns, one technique at a time, with breathers (Rest) between.
+    /// What it's doing now. Each phase loops its turns, one technique at a time, with breathers (Rest) between.
     public enum DuelTurn : byte { Rest, Volleys, Lunge, Guard, Blink, Masquerade, Crossing, LungeChain, Salute, Flurry, Flourish }
 
     /// A dash in progress: a lunge, a corner-to-corner crossing, or the strike after a salute.
@@ -25,7 +25,7 @@ namespace Arena
     {
         public DuelStage Stage, TransTo;
         public DuelTurn Turn;
-        public float TurnT, TransT;      // seconds into the turn; > 0: changing stage (can't be hurt), counting down
+        public float TurnT, TransT;      // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public DuelDash Dash;
         public float DashWarn;           // > 0: the warning line is showing, the dash hasn't started
         public V2 DashFrom;
@@ -41,7 +41,7 @@ namespace Arena
         public bool Connected;           // the salute's strike reached someone (so no rake at the end)
     }
 
-    /// The Duelist (wave 30): a duel in three stages by its health, like the Warden's, then a last stand.
+    /// The Duelist (wave 30): a duel in three phases by its health, like the Warden's, then a last stand.
     ///   En Garde (100-65%): it strafes as before. Volleys (fan / three red aimed shots), Lunge (a warning line, then
     ///     a fast dash that leaves blades firing sideways), Guard (your shots hitting its front bounce back at you;
     ///     it turns slowly, so get behind it), Blink (a decoy left behind).
@@ -141,7 +141,7 @@ namespace Arena
             return center + new V2((float)Math.Cos(a), (float)Math.Sin(a) * MaskSquash) * MaskRadius;
         }
 
-        /// Host, every tick: stages, turns, dashes, salutes, the guard, the masquerade, blades and the circle.
+        /// Host, every tick: phases, turns, dashes, salutes, the guard, the masquerade, blades and the circle.
         void DuelistSpecial(Enemy e, V2 tpos, float dt)
         {
             var s = DuelOf(e);
@@ -497,7 +497,7 @@ namespace Arena
             e.Phase = (byte)s.Turn;
         }
 
-        /// The masquerade's decoys: at the end of the turn each pops into a ring (or, changing stage, just winks out).
+        /// The masquerade's decoys: at the end of the turn each pops into a ring (or, changing phase, just winks out).
         void ClearDuelDecoys(Enemy e, bool pop)
         {
             scratchIds.Clear();

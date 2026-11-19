@@ -2,7 +2,7 @@ using System.Linq;
 using System;
 using Arena;
 
-// Lumen Ward (the Healer Elementalist's cone of light; AbilityId.Sanctify, Core/LumenWard.cs): heals allies inside it 9 HP/s, burns enemy
+// Lumen Ward (the Healer Elementalist's cone of light; AbilityId.LumenWard, Core/LumenWard.cs): heals allies inside it 9 HP/s, burns enemy
 // bullets inside it or touching its edge, leaves bullets outside alone, moves with you and turns with your aim; the capstone freezes
 // enemies outside.
 static partial class Program
@@ -37,13 +37,13 @@ static partial class Program
             }
         };
         Func<V2, V2, Bullet> shot = (pos, vel) => (Bullet)make.Invoke(g, new object[] { 9000 + g.Bullets.Count, Defs.BigShot, 0, pos, vel, 0f, 60f, false, 0f });
-        Action use = () => { g.ShowcaseSetAbility(AbilityId.Sanctify); me.Slots[2 - 2].Charges = 1; cast.Invoke(g, new object[] { 1, 0, new V2(800f, 450f), true }); };
+        Action use = () => { g.ShowcaseSetAbility(AbilityId.LumenWard); me.Slots[2 - 2].Charges = 1; cast.Invoke(g, new object[] { 1, 0, new V2(800f, 450f), true }); };
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         play(0.3f);
         g.Zones.Clear(); g.Bullets.Clear();
         g.DevSetGod(2, false);
 
-        Check(Upgrades.Ability(AbilityId.Sanctify).Name == "Lumen Ward", "Sanctify is now called Lumen Ward");
+        Check(Upgrades.Ability(AbilityId.LumenWard).Name == "Lumen Ward", "Sanctify is now called Lumen Ward");
 
         // The cast makes one cone zone along the aim, which the client sees with its direction.
         ally.Hp = ally.MaxHp * 0.3f;
@@ -93,7 +93,7 @@ static partial class Program
 
         // The capstone freezes enemies outside the light, not the ones inside.
         g.Zones.Clear(); g.Bullets.Clear();
-        me.MasteryXp[AbilityId.Sanctify] = Game.MasteryXpFor[Game.MasteryMax - 1];
+        me.MasteryXp[AbilityId.LumenWard] = Game.MasteryXpFor[Game.MasteryMax - 1];
         var far = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, outside, 0f, -7, false });
         far.SpawnT = 0f; far.Hp = far.MaxHp = 1e6f;
         var near = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, inside, 0f, -8, false });
@@ -103,7 +103,7 @@ static partial class Program
         g.FixedStep(dt, east);
         for (int i = 0; i < 40; i++) { far.Pos = outside; near.Pos = inside; far.Hp = near.Hp = 1e6f; g.FixedStep(dt, east); }
         Check(far.FrozenT > 0f && near.FrozenT <= 0f, "a mastered Lumen Ward freezes enemies outside the light but not inside it");
-        me.MasteryXp.Remove(AbilityId.Sanctify);
+        me.MasteryXp.Remove(AbilityId.LumenWard);
         far.Hp = near.Hp = 0f;
         g.Zones.Clear(); g.Bullets.Clear();
     }

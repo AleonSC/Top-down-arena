@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The DPS Hemomancer's Vein Rush (`AbilityId.HemoNova` kept; was Hemo Nova). Pay 10% of your max health and rush
+    /// The DPS Hemomancer's Vein Rush (was Hemo Nova). Pay 10% of your max health and rush
     /// toward your cursor as a streak of blood, untouchable: every enemy you pass through is cut (25, more with Blood Price),
     /// bleeds, and gives back 2% of your max health, so cutting through five pays for itself. Behind you lies a trail of
     /// blood (`ZoneKind.VeinTrail`, a row of small pools) that slows enemies 30% for 2 s; mastered, it bursts after 1 s.

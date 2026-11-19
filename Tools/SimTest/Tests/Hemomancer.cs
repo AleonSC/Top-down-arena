@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The Blood Mage class.
+// The Hemomancer class.
 static partial class Program
 {
     // Vein Tether is a beam: it hurts what's on your aim line each tick, so you have to keep it on the enemy.
@@ -23,7 +23,7 @@ static partial class Program
         g.Bot = client.Game.Bot = false;
         Run(s, dt, 8, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.Weapon.Id == WeaponId.VeinTether, "the Blood Mage healer's third weapon is Vein Tether");
+        Check(me.Weapon.Id == WeaponId.VeinTether, "the Hemomancer healer's third weapon is Vein Tether");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
@@ -81,7 +81,7 @@ static partial class Program
         g.Bot = client.Game.Bot = false;
         Run(s, dt, 8, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.Weapon.Id == WeaponId.LeechBeam && me.Weapon.Name == "Leech Tendrils", "the Hemomancer tank's third weapon is Leech Tendrils");
+        Check(me.Weapon.Id == WeaponId.LeechTendrils && me.Weapon.Name == "Leech Tendrils", "the Hemomancer tank's third weapon is Leech Tendrils");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
@@ -167,7 +167,7 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
-    static void BloodMageTest(float dt)
+    static void HemomancerTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -178,11 +178,11 @@ static partial class Program
         Check(Defs.Weapon(Role.Tank, Kit.Hemomancer, 0).Name == "Blood Lash" && Defs.Weapon(Role.Healer, Kit.Hemomancer, 0).Name == "Transfusion Darts"
             && Defs.Weapon(Role.Dps, Kit.Hemomancer, 2).Name == "Blood Brawler" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
             && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver" && Defs.Weapon(Role.Tank, Kit.Knight, 1).Name == "Lance",
-            "Blood Mage weapons sit in the role/class tables without shifting the others");
+            "Hemomancer weapons sit in the role/class tables without shifting the others");
         Check(Upgrades.RoleAbility(Role.Healer, Kit.Hemomancer, 2) == AbilityId.Martyr && Upgrades.RoleAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep
-            && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonApotheosis && Upgrades.Ultimate(Role.Healer, Kit.Ninja) == AbilityId.BlossomStorm
-            && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.BloodRite && Defs.KitName(Kit.Hemomancer) == "Hemomancer" && Defs.KitName(Kit.Elementalist) == "Elementalist",
-            "Blood Mage abilities and ultimates map to the right role and class");
+            && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonHarvest && Upgrades.Ultimate(Role.Healer, Kit.Ninja) == AbilityId.BlossomStorm
+            && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe && Defs.KitName(Kit.Hemomancer) == "Hemomancer" && Defs.KitName(Kit.Elementalist) == "Elementalist",
+            "Hemomancer abilities and ultimates map to the right role and class");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Hemomancer);
@@ -195,7 +195,7 @@ static partial class Program
         var cp = g.Players[2];
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Check(hp.Kit == Kit.Hemomancer && Math.Abs(hp.MaxHp - Defs.Get(Role.Tank).Hp) < 0.5f && Math.Abs(hp.Speed - Defs.Get(Role.Tank).Speed) < 0.5f,
-            "Blood Mages have full health and normal speed");
+            "Hemomancers have full health and normal speed");
 
         var keep = new HashSet<Enemy>();
         Action clear = () => { foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f; };
@@ -211,7 +211,7 @@ static partial class Program
         use(AbilityId.Exsanguinate, hp.Pos);
         float paid = h0 - hp.Hp;
         Console.WriteLine("  exsanguinate: paid {0:0.0} of {1:0} max", paid, hp.MaxHp);
-        Check(Math.Abs(paid - hp.MaxHp * 0.1f) < 0.5f, "a Blood Mage ability costs its share of max health");
+        Check(Math.Abs(paid - hp.MaxHp * 0.1f) < 0.5f, "a Hemomancer ability costs its share of max health");
         hp.Hp = 1f;
         use(AbilityId.Exsanguinate, hp.Pos);
         Check(hp.Hp == 1f && !hp.Downed, "a health cost stops at 1 HP (the ability still casts, for nothing)");
@@ -275,7 +275,7 @@ static partial class Program
         hurt.Invoke(g, new object[] { d1, 100f, 1 });
         float dealt = eBefore - d1.Hp, healed = hp.Hp - hBefore;
         Console.WriteLine("  lifesteal: dealt {0:0.0} (Blood Price at half health), healed {1:0.00}", dealt, healed);
-        Check(dealt > 120f && Math.Abs(healed - dealt * 0.03f) < 0.05f, "Blood Mage hits heal it for 3% of the damage dealt");
+        Check(dealt > 120f && Math.Abs(healed - dealt * 0.03f) < 0.05f, "Hemomancer hits heal it for 3% of the damage dealt");
 
         // Blood Wall: a toggle that lays a wall behind you as you walk. It stops enemy shots and enemies (who bleed against
         // it), drains 1% of max health a second doubling every 4 s, and can take you down; the cooldown starts when it ends.
@@ -285,7 +285,7 @@ static partial class Program
             hp.Hp = hp.MaxHp;
             place(1, 400f); place(2, 1400f); run(0.2f);  // (the healer well away: a healer's aura is what stretches the wall)
             float w0 = hp.Hp;
-            use(AbilityId.CrimsonPact, hp.Pos);
+            use(AbilityId.BloodWall, hp.Pos);
             Check(hp.BloodWallOn && hp.Hp == w0, "Blood Wall opens on a press and costs nothing up front");
             run(0.5f);  // standing still lays nothing
             int still = g.Zones.Values.Count(z => z.Kind == ZoneKind.BloodWall);
@@ -342,7 +342,7 @@ static partial class Program
 
             // Ride the ramp too long and it takes you down; the wall ends with you.
             hp.Hp = hp.MaxHp;
-            use(AbilityId.CrimsonPact, hp.Pos);
+            use(AbilityId.BloodWall, hp.Pos);
             hp.Slots[0].Charges = 0;  // (the charge the cast spent)
             hp.DevGod = false;
             hp.BloodWallClock = 28f;  // 128%/s
@@ -411,7 +411,7 @@ static partial class Program
         var back = dummy(new V2(380f, 450f));
         hp.Hp = hp.MaxHp; hp.Aim = 0f;
         float sp0 = d1.Hp, b0s = back.Hp;
-        use(AbilityId.BloodBoil, new V2(700f, 450f));
+        use(AbilityId.ArterialSpray, new V2(700f, 450f));
         bool sprayed = hp.SprayOn;
         Run(s, dt, 1f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; hp.Aim = 0f; });
         float sprayDealt = sp0 - d1.Hp, drained = hp.MaxHp - hp.Hp;
@@ -423,14 +423,14 @@ static partial class Program
         cast.Invoke(g, new object[] { 1, 0, new V2(700f, 450f), false });
         Check(!hp.SprayOn && hp.Slots[0].Timer > 7f, "pressing Arterial Spray again closes the vein, and the cooldown starts then");
         hp.Hp = hp.MaxHp * (Game.SprayFloor + 0.01f);
-        use(AbilityId.BloodBoil, new V2(700f, 450f));
+        use(AbilityId.ArterialSpray, new V2(700f, 450f));
         run(0.6f);
         Check(!hp.SprayOn && hp.Hp >= hp.MaxHp * Game.SprayFloor - 0.5f, "Arterial Spray sputters out at 15% health");
         keep.Remove(back); back.Hp = 0f;
 
         // Blood Debt: health drops to 25%, kills pay it back, and what's unpaid when the time runs out is lost.
         hp.Hp = hp.MaxHp;
-        use(AbilityId.FrenzyPact, hp.Pos);
+        use(AbilityId.BloodDebt, hp.Pos);
         Console.WriteLine("  blood debt: health {0:0} of {1:0}, owed {2:0}, {3:0.0} s", hp.Hp, hp.MaxHp, hp.Debt, hp.DebtT);
         Check(Math.Abs(hp.Hp - hp.MaxHp * Game.DebtFloor) < 0.5f && Math.Abs(hp.Debt - hp.MaxHp * 0.75f) < 0.5f && Math.Abs(hp.DebtT - Game.DebtTime) < 0.05f,
             "Blood Debt drops you to 25% health and owes you the rest for 8 s");
@@ -447,7 +447,7 @@ static partial class Program
         Check(hp.Debt == 0f && hp.DebtT == 0f && (g.Effects.Exists(e => e.Kind == FxKind.DebtSettle && e.Pos2.Y < 0.5f) || client.Game.Effects.Exists(e => e.Kind == FxKind.DebtSettle)),
             "when the window runs out, what's still owed is lost (a forfeit)");
         hp.Hp = hp.MaxHp;
-        use(AbilityId.FrenzyPact, hp.Pos);
+        use(AbilityId.BloodDebt, hp.Pos);
         hp.Debt = 2f;
         var grunt2 = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f, 300f), 0f, 0, false });
         grunt2.SpawnT = 0f;
@@ -468,7 +468,7 @@ static partial class Program
         hp.Hp = hp.MaxHp * 0.5f;
         float r1 = d1.Hp, r2 = d2.Hp, r3 = off.Hp, rh = hp.Hp;
         g.Zones.Clear();
-        use(AbilityId.HemoNova, new V2(780f, 450f));
+        use(AbilityId.VeinRush, new V2(780f, 450f));
         float net = hp.Hp - rh;
         int trails = g.Zones.Values.Count(z => z.Kind == ZoneKind.VeinTrail);
         float expect = -hp.MaxHp * 0.1f + 2f * hp.MaxHp * 0.02f;
@@ -479,13 +479,13 @@ static partial class Program
         keep.Remove(d2); keep.Remove(off); d2.Hp = off.Hp = 0f;
         d1.BleedT = 0f; d1.BleedDps = 0f;  // (the cut's bleed would add to the next test's numbers)
 
-        // Blood Brawler: with no enemy under the cursor a press does nothing and costs nothing (the string itself: suite bonespear).
+        // Blood Brawler: with no enemy under the cursor a press does nothing and costs nothing (the string itself: suite bloodbrawler).
         g.Bullets.Clear();
         hp.Hp = 50f;
         hp.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 2);
         hp.AimAt = hp.Pos + new V2(0f, -2000f);
         typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 0 });
-        Check(Math.Abs(hp.Hp - 50f) < 0.01f && !g.Bullets.Values.Any(b => b.Kind == Defs.BoneSpearShot), "a Blood Brawler press with no enemy under the cursor does nothing");
+        Check(Math.Abs(hp.Hp - 50f) < 0.01f && !g.Bullets.Values.Any(b => b.Kind == Defs.BloodBrawlerShot), "a Blood Brawler press with no enemy under the cursor does nothing");
 
         // Implosion: the enemy you click collapses (34), enemies against it take 15 and are pulled in;
         // an extra projectile collapses one more enemy nearby (60%). Nothing under the cursor, nothing fires.

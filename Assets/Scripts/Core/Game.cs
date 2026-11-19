@@ -109,7 +109,7 @@ namespace Arena
             lastShotTicks = clock.ElapsedTicks;
         }
 
-        /// Dev: when set (on the host), each match is recorded to a new file in this folder.
+        /// Dev: when set (on the host), each run is recorded to a new file in this folder.
         public string RecordFolder;
         public SessionRecorder Recorder;
         public Action<Player, float, string> DamageEvent;  // host: every hit a player takes (Boss Lab)
@@ -154,7 +154,7 @@ namespace Arena
         // Replays (Replay.cs): a replay watches the recorded match as a spectator (nobody is "you"), seeing the player ViewId's screen.
         public bool Replaying;
         public int ViewId;
-        public ReplayRecorder Replay;  // recording this match (HostStart sets it when ReplayFolder is)
+        public ReplayRecorder Replay;  // recording this run (HostStart sets it when ReplayFolder is)
         public string ReplayFolder;    // dev: where to save replays of the matches this game hosts (null = don't record)
 
         float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
@@ -228,7 +228,7 @@ namespace Arena
                 var order = new EnemyType[r.ReadByte()];
                 for (int i = 0; i < order.Length; i++)
                     order[i] = (EnemyType)r.ReadByte();
-                QuickOrder = order.Length > 0 ? order : new[] { EnemyType.Boss };
+                QuickOrder = order.Length > 0 ? order : new[] { EnemyType.Warden };
             }
             int n = r.ReadByte();
             var entries = new List<Player>();
@@ -276,7 +276,7 @@ namespace Arena
                     {
                         p.PendingPicks += Modifiers.HeadStartLevel - 1;
                         var first = BossAt(Bosses.FirstBossWave);
-                        p.LegendaryQueue.Add(IsReaper(first) ? EnemyType.TwinA : first);
+                        p.LegendaryQueue.Add(IsReaper(first) ? EnemyType.ReaperOfDusk : first);
                         NextOffer(p);
                     }
                 }
@@ -312,7 +312,7 @@ namespace Arena
             lastMyHp = Me != null ? Me.Hp : 0f;
             session.Screen = AppScreen.Game;
             if (Recorder != null && !Recorder.Ended)
-                Recorder.End(this, "restarted");  // a new match started over one still going: finish its file first
+                Recorder.End(this, "restarted");  // a new run started over one still going: finish its file first
             Recorder = null;
             if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight, a replay or the lobby's preview)
             {
@@ -323,7 +323,7 @@ namespace Arena
                 }
                 catch (Exception ex)
                 {
-                    Recorder = null;  // a recording problem never stops the match, but it says why
+                    Recorder = null;  // a recording problem never stops the run, but it says why
                     DoLog("session recording failed to start: " + ex.Message);
                 }
             }
@@ -332,7 +332,7 @@ namespace Arena
             DoLog("game started with " + Players.Count + " player(s)");
         }
 
-        /// Ends the match; `how` is what its recording says happened ("left", or "quit" when the game is closed).
+        /// Ends the run; `how` is what its recording says happened ("left", or "quit" when the game is closed).
         public void Stop(string how = "left")
         {
             if (Replay != null)
@@ -346,7 +346,7 @@ namespace Arena
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             if (TestRunning)
-                TestRunEnded("left the match");
+                TestRunEnded("left the run");
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
@@ -514,7 +514,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.BloodBoil && p.SprayOn || s.Id == AbilityId.CrimsonPact && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.BattleFury && p.SteelT > 0f)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.CaughtSteel && p.SteelT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
@@ -1246,7 +1246,7 @@ namespace Arena
                     continue;  // nothing to mark: don't waste the cooldown
                 if (me.Slots[slot].Id == AbilityId.WaterWard && WwFull(me))
                     continue;  // every drop already out: don't waste the cooldown (WaterWard.cs)
-                if (me.Slots[slot].Id == AbilityId.IronBody && me.PlateN >= CerePlateMax)
+                if (me.Slots[slot].Id == AbilityId.CeremonialArmor && me.PlateN >= CerePlateMax)
                     continue;  // Ceremonial Armor with all 10 plates up: don't waste the cooldown
                 if (me.StandOn && MovesYou(me.Slots[slot].Id))
                     continue;  // planted: nothing that would carry you off (LastStand.cs)
@@ -1288,7 +1288,7 @@ namespace Arena
                         dashSpeed = dist / RoyalDiveTime;
                         break;
                     }
-                    case AbilityId.HemoNova:
+                    case AbilityId.VeinRush:
                     {
                         // Vein Rush: carried to the cursor (up to 280 px) as a streak of blood; the host cuts along the way.
                         target = VeinRushLanding(me, aimAt);
@@ -1401,7 +1401,7 @@ namespace Arena
             TickKnights(dt);  // Knight.cs
             TickDives(dt);    // Royal Dive landings (QueenLoot.cs)
             TickScytheClock(dt);  // Twin Scythes' cut timers (ReaperLoot.cs)
-            foreach (var tick in Classes.TickHooks)  // each class's KitDef.Tick: TickNinjas (Ninja.cs), TickBloodMages (BloodMage.cs)
+            foreach (var tick in Classes.TickHooks)  // each class's KitDef.Tick: TickNinjas (Ninja.cs), TickHemomancers (Hemomancer.cs)
                 tick(this, dt);
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
@@ -1418,7 +1418,7 @@ namespace Arena
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
             string tickSrc = CreditTo("weapon");  // (these are the weapons' own systems: the session recording credits them)
-            TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
+            TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.IceShards) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
             TickBulwark(dt);  // BulwarkBarrier.cs: the Brace held or dropped, Ram draining, a full bash's shards
@@ -1596,7 +1596,7 @@ namespace Arena
                     continue;  // (nothing to shoot from inside the Devourer, or mid beam-in)
                 if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
-                else if (p.Weapon.Id == WeaponId.Pistol)
+                else if (p.Weapon.Id == WeaponId.Revolver)
                 {
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);

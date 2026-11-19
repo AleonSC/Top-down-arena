@@ -65,7 +65,7 @@ namespace Arena
         {
             switch (boss)
             {
-                case EnemyType.Boss:  // The Warden: driving and martial
+                case EnemyType.Warden:  // The Warden: driving and martial
                     return new Recipe
                     {
                         Bpm = 124f, Chords = new[] { "Em", "C", "D", "B" }, Passes = 4,
@@ -83,8 +83,8 @@ namespace Arena
                         Kick = "x.....x...x.....", Snare = "....x.......x...", Hat = "oooooooooooooooo",
                         Lead = true, LeadTone = Tone.Pluck, LeadSeed = 9,
                     };
-                case EnemyType.TwinA:  // the Twin Reapers: two voices trading phrases
-                case EnemyType.TwinB:
+                case EnemyType.ReaperOfDusk:  // the Twin Reapers: two voices trading phrases
+                case EnemyType.ReaperOfDawn:
                     return new Recipe
                     {
                         Bpm = 112f, Chords = new[] { "Cm", "Ab", "Eb", "Bb" }, Passes = 4,

@@ -14,19 +14,19 @@ namespace Arena
         public readonly List<int> Wells = new List<int>();  // host: the Cage Well enemies holding it up
     }
 
-    /// The Singularity's stage of the fight, by its health: three stages, then a last stand.
+    /// The Singularity's phase of the fight, by its health: three phases, then a last stand.
     public enum SingStage : byte { EventHorizon, Accretion, Spaghettify, LastStand }
 
-    /// What it's doing now. Each stage loops its turns, one mechanic at a time, with breathers (Rest) between.
+    /// What it's doing now. Each phase loops its turns, one mechanic at a time, with breathers (Rest) between.
     public enum SingTurn : byte { Rest, Pull, Collapse, Lasers, Cage, Slingshot, TwinLasers, Hawking, WhiteHole, Split, Last }
 
     /// Everything about the Singularity's fight its body doesn't carry. The host runs it; clients get it in the snapshot
-    /// (SyncSing) to draw the accretion disk, the event horizon and the stage change.
+    /// (SyncSing) to draw the accretion disk, the event horizon and the phase change.
     public class SingState
     {
         public SingStage Stage, TransTo;
         public SingTurn Turn;
-        public float TurnT, TransT;      // seconds into the turn; > 0: changing stage (can't be hurt), counting down
+        public float TurnT, TransT;      // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public float Horizon;            // the event horizon's radius (Spaghettify and the last stand), else 0
         public float DiskT;              // the accretion disk's clock: where its orbs are
         public int DiskGone;             // outer-ring slots flung off by the Slingshot (bit per slot)
@@ -37,7 +37,7 @@ namespace Arena
         public bool Reversed;
     }
 
-    /// The Singularity (wave 20): a fight in three stages by its health, like the Warden's, then a last stand.
+    /// The Singularity (wave 20): a fight in three phases by its health, like the Warden's, then a last stand.
     ///   Event Horizon (100-65%): in the middle; Pull (drags everyone in under a spiral), Collapse (rings), Lasers.
     ///   Accretion (65-30%): it orbits the middle inside a disk of debris (two rings of orbs with gaps); Cage,
     ///     Slingshot (orbs flung off the disk at you), Twin lasers.
@@ -45,8 +45,8 @@ namespace Arena
     ///     bursts, White hole (it pushes, and every enemy bullet turns round), Split (three shards fire; the core
     ///     can't be hurt, the shards pass their damage to it).
     ///   Last stand (below 10%): the horizon swells, the pull doubles, a spiral and orb rings.
-    /// Four Gravity Wells spawn in the corners at the start of each of the three stages: they bend your shots into
-    /// themselves and drift you toward them. Killed, they stay gone until the next stage.
+    /// Four Gravity Wells spawn in the corners at the start of each of the three phases: they bend your shots into
+    /// themselves and drift you toward them. Killed, they stay gone until the next phase.
     public partial class Game
     {
         // Phase (replicated) tells clients what to draw.
@@ -236,7 +236,7 @@ namespace Arena
                 case SingTurn.Split:
                     for (int k = 0; k < 3; k++)
                         foreach (var o in Enemies.Values)
-                            if (o.Type == EnemyType.SingShard && o.ParentId == e.Id && (int)o.Ang == k)
+                            if (o.Type == EnemyType.SingularityShard && o.ParentId == e.Id && (int)o.Ang == k)
                                 o.Pos = e.Pos + V2.FromAngle(s.TurnT * ShardSpin + MathX.Tau * k / 3f) * ShardOrbit;
                     break;
             }
@@ -263,7 +263,7 @@ namespace Arena
             s.DiskGone = 0;
             s.Orbit = 0f;
             if (stage != SingStage.LastStand)
-                SpawnCornerWells(e);  // four fresh ones each stage; killed, they stay gone until the next
+                SpawnCornerWells(e);  // four fresh ones each phase; killed, they stay gone until the next
             if (stage == SingStage.LastStand)
                 ClearShards();
             NextSingTurn(e, s);
@@ -309,14 +309,14 @@ namespace Arena
             if (s.Turn == SingTurn.Split)
                 for (int k = 0; k < 3; k++)
                 {
-                    var sh = SpawnEnemyAt(EnemyType.SingShard, e.Pos + V2.FromAngle(MathX.Tau * k / 3f) * ShardOrbit, 0.3f, e.Id);
+                    var sh = SpawnEnemyAt(EnemyType.SingularityShard, e.Pos + V2.FromAngle(MathX.Tau * k / 3f) * ShardOrbit, 0.3f, e.Id);
                     sh.Ang = k;
                     BroadcastFx(FxKind.Ring, sh.Pos, sh.Def.Color, 50f, 0.4f, k == 0 ? Sfx.BossCrack : Sfx.None);  // it breaks into shards
                 }
             e.Phase = SingPhaseOf(s);
         }
 
-        /// The four corner wells, fresh: any left from the last stage go first.
+        /// The four corner wells, fresh: any left from the last phase go first.
         void SpawnCornerWells(Enemy e)
         {
             ClearCornerWells();
@@ -331,7 +331,7 @@ namespace Arena
         }
 
         void ClearCornerWells() => RemoveAll(EnemyType.GravityWell);
-        void ClearShards() => RemoveAll(EnemyType.SingShard);
+        void ClearShards() => RemoveAll(EnemyType.SingularityShard);
 
         void RemoveAll(EnemyType type)
         {
@@ -389,7 +389,7 @@ namespace Arena
         /// A shard hit: the damage goes to the core (which can't be hurt directly while they're out).
         bool ShardPassesHit(Enemy shard, float dmg, int attacker)
         {
-            if (shard.Type != EnemyType.SingShard)
+            if (shard.Type != EnemyType.SingularityShard)
                 return false;
             Enemy core;
             if (Enemies.TryGetValue(shard.ParentId, out core) && core.Hp > 0f && core.Sing != null && core.Sing.TransT <= 0f)
@@ -440,7 +440,7 @@ namespace Arena
                     e.FireT = 0.22f;
                     e.Ang += 0.35f;
                     foreach (var o in Enemies.Values)
-                        if (o.Type == EnemyType.SingShard && o.ParentId == e.Id && !IsSpawning(o))
+                        if (o.Type == EnemyType.SingularityShard && o.ParentId == e.Id && !IsSpawning(o))
                             for (int k = 0; k < 2; k++)
                             {
                                 V2 dir = V2.FromAngle(e.Ang + o.Ang * 2.1f + MathX.Pi * k);

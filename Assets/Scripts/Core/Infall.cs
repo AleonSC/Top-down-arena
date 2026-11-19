@@ -14,8 +14,8 @@ namespace Arena
     ///     Facing are in the snapshot, so clients draw the beams with no extra fields (the flicker times from Enemy.SeenT).
     /// Step 2:
     ///   Graviton (Pull and Gravity Wells): keeps GravitonRange; every GravitonEvery s it winds up and lobs a Small Well
-    ///     (EnemyType.MiniWell) by you: a ring marks the spot, the well lands GravitonFlight s later (its spawn-in: it can't
-    ///     be hurt yet) and lasts MiniWellLife s (Enemy.PhaseT). Like the boss's corner wells, a landed well drags players
+    ///     (EnemyType.SmallWell) by you: a ring marks the spot, the well lands GravitonFlight s later (its spawn-in: it can't
+    ///     be hurt yet) and lasts SmallWellLife s (Enemy.PhaseT). Like the boss's corner wells, a landed well drags players
     ///     toward it (WellDriftAt, on each player's own game) and bends their shots into it (PullIntoWells), only closer and
     ///     weaker. One well a Graviton: a new lob takes the old one away.
     ///   Orbiter (the disk and Slingshot): keeps OrbiterRange and circles you; three orbs turn round it (drawn only). It
@@ -45,7 +45,7 @@ namespace Arena
         float PulsarDamage => 16f;  // a touch; the difficulty's per-wave damage growth scales it
 
         public const float GravitonRange = 320f, GravitonEvery = 6f, GravitonWindUp = 0.6f, GravitonFlight = 0.8f, GravitonScatter = 50f,
-            MiniWellLife = 4f, MiniWellDriftRange = 240f, MiniWellDrift = 80f, MiniWellBendRange = 150f;
+            SmallWellLife = 4f, SmallWellDriftRange = 240f, SmallWellDrift = 80f, SmallWellBendRange = 150f;
         public const float OrbiterRange = 260f, OrbiterEvery = 1.8f, OrbiterWindUp = 0.55f, OrbiterOrbSpeed = 330f, OrbiterOrbit = 34f;
         public const float ImplosionTime = 0.8f, ImplosionDriftRange = 260f, ImplosionDrift = 100f, ImplosionShotSpeed = 150f;
         public const int ImplosionShots = 12;
@@ -109,8 +109,8 @@ namespace Arena
             {
                 case EnemyType.WhiteDwarf:
                     return e.Phase == 1 && d < WhitePushRange + hitR + 20f ? 2.5f : 0f;
-                case EnemyType.MiniWell:
-                    return d < MiniWellDriftRange * 0.55f ? 1.2f * (1f - d / (MiniWellDriftRange * 0.55f)) + 0.3f : 0f;
+                case EnemyType.SmallWell:
+                    return d < SmallWellDriftRange * 0.55f ? 1.2f * (1f - d / (SmallWellDriftRange * 0.55f)) + 0.3f : 0f;
                 case EnemyType.Implosion:
                     return d < ImplosionDriftRange * 0.7f ? 2.5f : 0f;
             }
@@ -224,7 +224,7 @@ namespace Arena
         }
 
         /// Pulls players toward it (WellDriftAt): the boss's corner wells, a Graviton's Small Well, a Collapsar's Implosion.
-        static bool Pulls(EnemyType t) => t == EnemyType.GravityWell || t == EnemyType.MiniWell || t == EnemyType.Implosion;
+        static bool Pulls(EnemyType t) => t == EnemyType.GravityWell || t == EnemyType.SmallWell || t == EnemyType.Implosion;
 
         /// The Pulsar keeps its beams' line while they flicker and sweep.
         public static bool PulsarLocked(Enemy e) => e.Type == EnemyType.Pulsar && (e.Phase == 1 || e.Phase == 2);
@@ -370,13 +370,13 @@ namespace Arena
         {
             scratchIds.Clear();
             foreach (var o in Enemies.Values)
-                if (o.Type == EnemyType.MiniWell && o.ParentId == e.Id)
+                if (o.Type == EnemyType.SmallWell && o.ParentId == e.Id)
                     scratchIds.Add(o.Id);
             foreach (int id in scratchIds)
                 Enemies.Remove(id);
             V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, GravitonScatter), 30f);
-            var w = SpawnEnemyAt(EnemyType.MiniWell, at, GravitonFlight, e.Id);
-            w.PhaseT = MiniWellLife;
+            var w = SpawnEnemyAt(EnemyType.SmallWell, at, GravitonFlight, e.Id);
+            w.PhaseT = SmallWellLife;
             BroadcastFx(FxKind.Ring, at, e.Def.Color, 26f, GravitonFlight, Sfx.Throw);
         }
 
@@ -393,7 +393,7 @@ namespace Arena
         {
             switch (t)
             {
-                case EnemyType.MiniWell: range = MiniWellDriftRange; drift = MiniWellDrift; return;
+                case EnemyType.SmallWell: range = SmallWellDriftRange; drift = SmallWellDrift; return;
                 case EnemyType.Implosion: range = ImplosionDriftRange; drift = ImplosionDrift; return;
                 default: range = WellDriftRange; drift = WellDrift; return;
             }
@@ -458,7 +458,7 @@ namespace Arena
         }
 
         /// (moved from InfallMove, MiniWell, Implosion)
-        V2 InfallMove_MiniWell(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        V2 InfallMove_SmallWell(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
         {
             return V2.Zero;
         }
@@ -542,8 +542,8 @@ namespace Arena
             t[(int)EnemyType.Orbiter] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_Orbiter(e, p, d, di, dt, ref sp)),
                 Fire = new CodeFire((g, e, p, a) => g.InfallFire_Orbiter(e, p, a)) };
             t[(int)EnemyType.Collapsar] = new Brain { Move = new ChaseMove() };
-            var still = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_MiniWell(e, p, d, di, dt, ref sp));
-            t[(int)EnemyType.MiniWell] = new Brain { Move = still, Special = new CodeSpecial((g, e, p, dt) => g.WellClose(e, dt, false)) };
+            var still = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_SmallWell(e, p, d, di, dt, ref sp));
+            t[(int)EnemyType.SmallWell] = new Brain { Move = still, Special = new CodeSpecial((g, e, p, dt) => g.WellClose(e, dt, false)) };
             t[(int)EnemyType.Implosion] = new Brain { Move = still, Special = new CodeSpecial((g, e, p, dt) => g.WellClose(e, dt, true)) };
             t[(int)EnemyType.Lens] = new Brain { Move = new LensMove(), Guard = new LensGuard() };
             t[(int)EnemyType.WhiteDwarf] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_WhiteDwarf(e, p, d, di, dt, ref sp)),

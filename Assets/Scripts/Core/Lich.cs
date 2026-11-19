@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Lich's stage of the fight, by its health: three stages, then a last stand.
+    /// The Lich's phase of the fight, by its health: three phases, then a last stand.
     public enum LichStage : byte { Crypt, Harvest, Undeath, LastStand }
 
-    /// What it's doing now. Each stage loops its turns, one mechanic at a time, with breathers (Rest) between.
+    /// What it's doing now. Each phase loops its turns, one mechanic at a time, with breathers (Rest) between.
     public enum LichTurn : byte { Rest, Fans, Rings, Raise, Sweep, Prison, Spirits, Hop, Hands, Storm, Rite }
 
     /// A bone prison: spikes rising in a ring round where a player stood, with one gap; they fire inward when up.
@@ -27,12 +27,12 @@ namespace Arena
     }
 
     /// Everything about the Lich's fight its body doesn't carry. The host runs it; clients get it in the snapshot
-    /// (SyncLich) to draw the graves, the soul sweep, the prisons, the spirits and the stage change.
+    /// (SyncLich) to draw the graves, the soul sweep, the prisons, the spirits and the phase change.
     public class LichState
     {
         public LichStage Stage, TransTo;
         public LichTurn Turn;
-        public float TurnT, TransT;      // seconds into the turn; > 0: changing stage (can't be hurt), counting down
+        public float TurnT, TransT;      // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public float Window;             // > 0: its phylacteries are broken and it can be hurt, for this long
         public byte SweepOn;             // the soul sweep: 0 off, 1 warning, 2 live
         public float SweepA;             // its angle
@@ -46,7 +46,7 @@ namespace Arena
         public float TurnLen, Rebuild, SweepFrom, SweepDir, SweepT, FanT, RingT, RiseT, HandT, HopT;
     }
 
-    /// The Lich (wave 35): a fight in three stages by its health, like the Warden's, then a last stand.
+    /// The Lich (wave 35): a fight in three phases by its health, like the Warden's, then a last stand.
     ///   The Crypt (100-65%): one phylactery at the grave farthest from the players keeps it safe; break it for a 12 s
     ///     window, then another rises. Soul fans, grave rings, and the dead rising from graves.
     ///   Soul Harvest (65-30%): three phylacteries in a triangle round the middle, joined by soul beams that hurt to cross;
@@ -61,7 +61,7 @@ namespace Arena
         public const byte LichNormal = 0, LichGuarded = 1, LichFaded = 2, LichShift = 3;
         const float LichHarvestAt = 0.65f, LichUndeathAt = 0.3f, LichLastAt = 0.1f, LichTransTime = 2f;
         public const float LichWindow = 12f;                       // how long it can be hurt once its phylacteries break
-        const float TriangleR = 380f, TriangleSquash = 0.8f, TrianglePhylHp = 0.75f;  // stage 2's phylacteries: where, and 450 of 600 health
+        const float TriangleR = 380f, TriangleSquash = 0.8f, TrianglePhylHp = 0.75f;  // phase 2's phylacteries: where, and 450 of 600 health
         public const float SoulBeamWidth = 12f;                    // the beams between them
         public const float LichSweepLen = 900f, LichSweepWarn = 0.8f, LichSweepArc = 2.1f, LichSweepSpin = 1.22f, LichSweepWidth = 16f;  // 120 degrees at 70 a second
         public const float PrisonR = 110f, PrisonRise = 1.2f, PrisonLast = 1.6f;
@@ -139,7 +139,7 @@ namespace Arena
 
             s.TurnT += dt;
 
-            // Its phylacteries keep it safe (stages 1-2); breaking them all opens a window, then they rise again.
+            // Its phylacteries keep it safe (phases 1-2); breaking them all opens a window, then they rise again.
             bool guarded = false;
             if (s.Stage <= LichStage.Harvest)
             {
@@ -167,7 +167,7 @@ namespace Arena
                     s.Window = 0f;
             }
 
-            // Where it is: drifting along the top (stages 1-2), at a grave (Undeath), in the middle (the rite).
+            // Where it is: drifting along the top (phases 1-2), at a grave (Undeath), in the middle (the rite).
             if (s.Stage <= LichStage.Harvest)
             {
                 var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.45f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.7f) * 50f);
@@ -256,7 +256,7 @@ namespace Arena
                 Hazards.Remove(id);
         }
 
-        /// Stage 1: one phylactery at the grave farthest from the players. Stage 2: three in a triangle round the middle.
+        /// Phase 1: one phylactery at the grave farthest from the players. Phase 2: three in a triangle round the middle.
         void RaisePhylacteries(Enemy e, LichState s)
         {
             RemoveChildren(e, EnemyType.Phylactery);

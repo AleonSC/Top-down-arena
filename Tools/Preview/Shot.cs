@@ -1,5 +1,5 @@
 using System; using System.IO; using System.Reflection; using System.Threading; using Arena; using UnityEngine;
-// Renders one screen to GL triangles and an IMGUI log (shot.sh turns them into a PNG). Main sets up a match and
+// Renders one screen to GL triangles and an IMGUI log (shot.sh turns them into a PNG). Main sets up a run and
 // runs it; ShotScenes.cs poses it (the environment flags), ShotModes.cs draws the chosen screen.
 static partial class Shot {
   // A plain box room for a scene (no checks: the scene's own map).
@@ -22,7 +22,7 @@ static partial class Shot {
     b.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Healer, Kit = Kit.Ninja, Weapon = 2, Ability = 0, Level = 6 });
     SaveStore.Write(a); SaveStore.Write(b);
     var pr = new Profile { RunsStarted = 14, RunsWon = 1, RunsLost = 9, BestWave = 50, BestScore = 41200, BestEndlessWave = 0, PlayTime = 41000f, Kills = 6812, BossKills = 52, Downs = 37, Revives = 21, DamageDealt = 2.3e6f, HealingDone = 81000f };
-    foreach (var t in new[] { EnemyType.Boss, EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse }) pr.BossBeaten(t, 10);
+    foreach (var t in new[] { EnemyType.Warden, EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse }) pr.BossBeaten(t, 10);
     pr.RunsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 6; pr.RunsAs[Profile.ClassKey(Role.Dps, Kit.Elementalist)] = 3; pr.RunsAs[Profile.ClassKey(Role.Healer, Kit.Ninja)] = 1; pr.WinsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 1; pr.RoomsPlayed["Defend"] = 5; pr.RoomsWon["Defend"] = 4; pr.RoomsPlayed["MiniBoss"] = 3; pr.RoomsWon["MiniBoss"] = 2; pr.RoomsPlayed["KillRush"] = 3; pr.RoomsWon["KillRush"] = 3; pr.RoomsPlayed["HoldZones"] = 4; pr.RoomsWon["HoldZones"] = 2; pr.RoomsPlayed["Mirror"] = 2; pr.RoomsWon["Mirror"] = 1;
     // Rank (Rank.cs): rank 8 with a few runs logged, as after the run in the "gameover" preview (RANKUP=1: just ranked up).
     pr.Xp = Rank.XpAt(Environment.GetEnvironmentVariable("RANK") != null ? int.Parse(Environment.GetEnvironmentVariable("RANK")) : 9) + 115; pr.Trail = Environment.GetEnvironmentVariable("TRAIL") ?? "trail-ember";  // RANK=40 TRAIL=trail-prism for the cosmetics window
@@ -159,8 +159,8 @@ static partial class Shot {
         }
       }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f == (int)(seconds * 60) - 50) { host.Game.HoldParry = true; host.Game.Bot = false; }
-      if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
-      // SING=<health fraction>: hold the Singularity there (so the shot lands in that stage); SINGTURN=<turn> skips its
+      if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
+      // SING=<health fraction>: hold the Singularity there (so the shot lands in that phase); SINGTURN=<turn> skips its
       // turns until that one (Pull, Collapse, Lasers, Cage, Slingshot, TwinLasers, Hawking, WhiteHole, Split, Last).
       if (Environment.GetEnvironmentVariable("SING") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Singularity)
       {
@@ -203,7 +203,7 @@ static partial class Shot {
         var want = Environment.GetEnvironmentVariable("DUELTURN");
         if (want != null && e.Duel != null && e.Duel.TransT <= 0f && e.Duel.Turn.ToString() != want && e.Duel.Dash == DuelDash.None && e.Duel.SaluteT <= 0f && f < (int)(seconds * 60) - 90) e.Duel.TurnT = 999f;
       }
-      // COL=<health fraction>: hold the Colossus there (so the shot lands in that stage); COLTURN=<turn> skips its turns
+      // COL=<health fraction>: hold the Colossus there (so the shot lands in that phase); COLTURN=<turn> skips its turns
       // until that one (Stomps, Boulders, Fissures, Charge, Rockslide, Aftershocks, LavaStomps, Meteors, CaveIn, Last).
       if (Environment.GetEnvironmentVariable("COL") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Colossus)
       {
@@ -224,13 +224,13 @@ static partial class Shot {
           else { e.Devour.Lunging = false; e.Devour.BurrowT = 0f; e.Devour.InhaleT = 0f; e.Devour.TurnT = 999f; }  // skip it, busy or not
         }
       }
-      // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that stage.
-      if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));
+      // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that phase.
+      if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));
       // REAPERS=<health fraction>: the same for the Twin Reapers (or the Dual Reaper).
       if (Environment.GetEnvironmentVariable("REAPERS") != null) foreach (var e in host.Game.Enemies.Values) if (Game.IsReaper(e.Type) && !host.Game.IsSpawning(e)) e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("REAPERS"));
       // QUEEN=<health fraction>: the same for the Hive Queen.
       if (Environment.GetEnvironmentVariable("QUEEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.HiveQueen) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("QUEEN")));
-      // LICH=<health fraction> (and LICHTURN=<turn name>): hold the Lich in a stage, skipping to that turn.
+      // LICH=<health fraction> (and LICHTURN=<turn name>): hold the Lich in a phase, skipping to that turn.
       if (Environment.GetEnvironmentVariable("LICH") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich && !host.Game.IsSpawning(e))
       {
         e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("LICH"));
@@ -243,7 +243,7 @@ static partial class Shot {
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.HiveQueen) Console.WriteLine("queen stage {0} turn {1} turnT {2:0.0} trans {3:0.0} cells {4} cloud {5}", e.Queen?.Stage, e.Queen?.Turn, e.Queen?.TurnT, e.Queen?.TransT, e.Queen?.Cells.Count, e.Queen?.CloudOn);
     // WARDENSET=exposed|stun|fan: the Warden blinded by its own light (the light on it), stunned, or warning of a fan volley.
     var wset = Environment.GetEnvironmentVariable("WARDENSET");
-    if (wset != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss && e.Warden != null)
+    if (wset != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden && e.Warden != null)
     {
       var ww = e.Warden;
       if (wset == "exposed") { ww.Turn = WardenTurn.Light; ww.LightMode = WardenLight.Follow; ww.Light = ww.LightDisp = e.Pos + new V2(20f, 10f); ww.ExposedT = 2.2f; }
@@ -251,9 +251,9 @@ static partial class Shot {
       if (wset == "fan") { ww.Turn = WardenTurn.Fan; ww.FanWarn = 0.08f; ww.FanAim = (host.Game.Players[1].Pos - e.Pos).Angle; }
     }
     // GATEHOLD=1: every Warden gate on screen is caught in its stop just inside the arena (doors flashing).
-    if (Environment.GetEnvironmentVariable("GATEHOLD") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss && e.Warden != null)
+    if (Environment.GetEnvironmentVariable("GATEHOLD") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden && e.Warden != null)
       foreach (var gt in e.Warden.Gates) { gt.Warn = -(Game.GateHoldIn / Game.GateSpeed + 0.1f); gt.Front = (gt.Dir > 0f ? 6f : Game.Height - 6f) + gt.Dir * Game.GateHoldIn; }
-    foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) Console.WriteLine("warden stage {0} turn {1} turnT {2:0.0} trans {3:0.0} light {4} gates {5} pos {6:0},{7:0}", e.Warden?.Stage, e.Warden?.Turn, e.Warden?.TurnT, e.Warden?.TransT, e.Warden?.LightMode, e.Warden?.Gates.Count, e.Pos.X, e.Pos.Y);
+    foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden) Console.WriteLine("warden stage {0} turn {1} turnT {2:0.0} trans {3:0.0} light {4} gates {5} pos {6:0},{7:0}", e.Warden?.Stage, e.Warden?.Turn, e.Warden?.TurnT, e.Warden?.TransT, e.Warden?.LightMode, e.Warden?.Gates.Count, e.Pos.X, e.Pos.Y);
     me = host.Game.Players[1]; if (Environment.GetEnvironmentVariable("PARRY") == null) me.Hp = me.MaxHp * 0.62f; me.ShieldHp = 40f; me.Xp = Defs.XpToNext(me.Level) * 0.4f;
     me.Slots[1].Charges = 0; me.Slots[1].Timer = 4.2f;
     PlayerScenes();
@@ -275,7 +275,7 @@ static partial class Shot {
       float wi = float.Parse(Environment.GetEnvironmentVariable("WARDENINTRO"), System.Globalization.CultureInfo.InvariantCulture);
       host.Game.Enemies.Clear(); host.Game.Bullets.Clear();
       var wsp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
-      var wd = (Enemy)wsp.Invoke(host.Game, new object[] { EnemyType.Boss, new V2(Game.Width / 2f, Game.Height / 2f), Math.Max(0.05f, Game.WardenIntroTime - wi), 0, false });
+      var wd = (Enemy)wsp.Invoke(host.Game, new object[] { EnemyType.Warden, new V2(Game.Width / 2f, Game.Height / 2f), Math.Max(0.05f, Game.WardenIntroTime - wi), 0, false });
       wd.Spawning = wd.SpawnT > 0f;
       int pk = 0; foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = new V2(Game.Width / 2f + (pk++ == 0 ? -140f : 140f), Game.Height / 2f + 260f); wp.Aim = -MathX.Pi / 2f; }
       set("wardenIntroFrom", wi);
@@ -341,10 +341,10 @@ static partial class Shot {
       foreach (var o in pg.Players.Values) if (o != me) { o.Pos = o.Disp = me.Pos + new V2(-40f, 90f); o.Aim = 0.3f; }
       Func<EnemyType, V2, Enemy> pput = (t, at) => { var e = (Enemy)psp.Invoke(pg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = (me.Pos - at).Angle; return e; };
       Action<Enemy, byte, float> phase = (e, ph, age) => { e.Phase = ph; Time.time = 100f - age; page.Invoke(app, new object[] { e }); };
-      var a = pput(EnemyType.Portal, new V2(1300f, 140f)); phase(a, SpawnPortals.Opening, 0.5f);
-      var b = pput(EnemyType.Portal, new V2(1420f, 640f)); phase(b, SpawnPortals.Emitting, 1f); b.Hp = b.MaxHp * 0.55f;
-      var c = pput(EnemyType.Portal, new V2(170f, 520f)); phase(c, SpawnPortals.FlankOpening, 0.9f);
-      var d = pput(EnemyType.Portal, new V2(560f, 820f)); phase(d, SpawnPortals.Closing, 0.2f);
+      var a = pput(EnemyType.SpawnPortal, new V2(1300f, 140f)); phase(a, SpawnPortals.Opening, 0.5f);
+      var b = pput(EnemyType.SpawnPortal, new V2(1420f, 640f)); phase(b, SpawnPortals.Emitting, 1f); b.Hp = b.MaxHp * 0.55f;
+      var c = pput(EnemyType.SpawnPortal, new V2(170f, 520f)); phase(c, SpawnPortals.FlankOpening, 0.9f);
+      var d = pput(EnemyType.SpawnPortal, new V2(560f, 820f)); phase(d, SpawnPortals.Closing, 0.2f);
       V2 fwd = V2.FromAngle(b.Facing);
       pput(EnemyType.Grunt, b.Pos + fwd * 55f + fwd.Orthogonal() * 18f).Facing = b.Facing;
       pput(EnemyType.Swarmer, b.Pos + fwd * 110f - fwd.Orthogonal() * 20f).Facing = b.Facing;
@@ -494,7 +494,7 @@ static partial class Shot {
       Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
       me.Pos = me.Disp = new V2(1000f, 560f);
       var gv = iput(EnemyType.Graviton, new V2(700f, 380f)); gv.Facing = 0.6f; gv.Winding = true;
-      iput(EnemyType.MiniWell, new V2(880f, 470f));
+      iput(EnemyType.SmallWell, new V2(880f, 470f));
       var ob = iput(EnemyType.Orbiter, new V2(1280f, 380f)); ob.Facing = (me.Pos - ob.Pos).Angle; ob.Winding = true; ob.Phase = 1; ob.SeenT = 0.4f;
       ig.Bullets[9101] = new Bullet { Id = 9101, Kind = Defs.FastShot, Pos = new V2(1140f, 470f), Vel = (me.Pos - new V2(1140f, 470f)).Normalized() * 330f, Radius = 5f, Dmg = 17f, Look = ShotLook.Round };
       var co = iput(EnemyType.Collapsar, new V2(760f, 720f)); co.Hp = co.MaxHp * 0.4f;

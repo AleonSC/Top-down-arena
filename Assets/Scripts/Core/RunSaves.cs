@@ -6,10 +6,10 @@ namespace Arena
 {
     /// Saved runs and the player's profile, on the game's side (SaveData.cs and Profile.cs hold the data).
     ///   Saving: the host writes the run to its save slot as each wave starts (everyone's picks made, the path
-    ///     chosen, the shop closed), and when the match stops between waves. The Expanding arena's map, kits, vectors and shop
+    ///     chosen, the shop closed), and when the run stops between waves. The Expanding arena's map, kits, vectors and shop
     ///     shelves go in too (ExpansionGame.cs SaveExpansion / ResumeExpansion). A run that ends (won or lost) loses
-    ///     its save. Practice Range matches and the lobby preview are never saved.
-    ///   Resuming: the host's lobby loads a save (Session.Resume); each player takes a seat; the match starts at
+    ///     its save. Practice Range runs and the lobby preview are never saved.
+    ///   Resuming: the host's lobby loads a save (Session.Resume); each player takes a seat; the run starts at
     ///     the next wave and ApplyResume gives every seat back its upgrades, levels, mastery and gold.
     ///   Profile: the host tells everyone when a boss falls and when the run ends (Msg.Record); each game adds it
     ///     to its own player's profile, unless dev tools or the bot were used in the run.
@@ -110,10 +110,10 @@ namespace Arena
             return ok;
         }
 
-        /// An ability's name in an older save, as it is called now (the Cluster Grenade became Airstrike).
-        static string OldAbilityName(string name) => name == "Grenade" ? nameof(AbilityId.Airstrike) : name;
+        /// An ability's name in an older save, as it is called now (OldNames.cs).
+        static string OldAbilityName(string name) => OldNames.Ability(name);
 
-        /// Host, just after the match starts from a save: everyone's earnings back, and the run's own state.
+        /// Host, just after the run starts from a save: everyone's earnings back, and the run's own state.
         void ApplyResume(RunSave save)
         {
             foreach (var p in Players.Values)
@@ -200,7 +200,7 @@ namespace Arena
             SendSnapshot();
         }
 
-        /// Every game, as a match starts: a fresh run counts as started (a resumed one already did).
+        /// Every game, as a run starts: a fresh run counts as started (a resumed one already did).
         void BeginRunRecord(bool resumed)
         {
             Resumed = resumed;
@@ -259,7 +259,7 @@ namespace Arena
         }
 
         /// This game is being stopped mid-run (quit or left): the run still goes in Recent runs, as "quit", with no XP.
-        /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
+        /// Only your own profile, and only if a curve was started (so not the lobby or a run that never began).
         void LogQuitRun()
         {
             bool endlessStretch = Endless && runRecorded && !endlessRecorded;  // quitting the endless stretch after a win (Quick Play or Campaign): the win is logged, the stretch since gets its own card
@@ -277,13 +277,13 @@ namespace Arena
             SaveProfile();
         }
 
-        /// Host: a boss was beaten (the Twin Reapers count once, as TwinA).
+        /// Host: a boss was beaten (the Twin Reapers count once, as ReaperOfDusk).
         void BossRecord(Enemy e)
         {
             if (!IsHost || !RecordsRuns)
                 return;
             var w = BeginRecord(RecordKind.Boss);
-            w.Write((byte)(IsReaper(e.Type) ? EnemyType.TwinA : e.Type));
+            w.Write((byte)(IsReaper(e.Type) ? EnemyType.ReaperOfDusk : e.Type));
             w.Write(Wave);
             w.Write(devTouched);
             w.Write(RecordWave);  // the wave as records count it (Hunts.cs: 1-100 in a Campaign)

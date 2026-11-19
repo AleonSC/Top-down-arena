@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Arena;
 
-// Pings (Core/Pings.cs): a player marks a spot in a match, the host keeps the pause and the cap, a Focus ping snaps to an enemy
+// Pings (Core/Pings.cs): a player marks a spot in a run, the host keeps the pause and the cap, a Focus ping snaps to an enemy
 // and follows it, and they lapse.
 static partial class Program
 {
@@ -23,7 +23,7 @@ static partial class Program
         for (int i = 0; i < 40; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
         int cid = client.MyId;
 
-        Check(client.SendPing(PingKind.Danger, new V2(400f, 300f)), "a client can ping in a match");
+        Check(client.SendPing(PingKind.Danger, new V2(400f, 300f)), "a client can ping in a run");
         for (int i = 0; i < 40; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
         V2 at; float age;
         Check(host.Pings.Count == 1 && client.Pings.Count == 1 && host.PingNow(0, out at, out age) && client.PingNow(0, out at, out age) && (at - new V2(400f, 300f)).Length < 0.01f && client.Pings[0].Owner == cid && client.Pings[0].Kind == PingKind.Danger,

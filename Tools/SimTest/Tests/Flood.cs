@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Arena;
 
 // Flood (Flood.cs), the Tank Elementalist's 4th Space ability on the lobby's 4th ability key: the table (only that class has a 4th), the
-// pick reaching the match and being clamped for a class without one, the stamp (10 damage and a 60 px shove for what's touching you,
+// pick reaching the run and being clamped for a class without one, the stamp (10 damage and a 60 px shove for what's touching you,
 // heavies only hurt), the pool (190 px where cast, spreading over 0.5 s, 6 s, then draining and doing nothing), the 40% / 20% slow,
 // wet while in it and 3 s after, lightning arcing through the wet, mastery (Deluge) and High Tide.
 static partial class Program
@@ -59,7 +59,7 @@ static partial class Program
         var g = hostS.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.Slots[0].Id == AbilityId.Flood && client.Game.Players[1].Slots[0].Id == AbilityId.Flood, "the 4th pick reaches the match, on both screens");
+        Check(me.Slots[0].Id == AbilityId.Flood && client.Game.Players[1].Slots[0].Id == AbilityId.Flood, "the 4th pick reaches the run, on both screens");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(500f, 450f);

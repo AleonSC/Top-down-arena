@@ -4,10 +4,10 @@ using System.IO;
 
 namespace Arena
 {
-    /// The Warden's stage of the fight, by its health: a prison riot in three phases, then a last stand.
+    /// The Warden's phase of the fight, by its health: a prison riot in three phases, then a last stand.
     public enum WardenStage : byte { Count, Lockdown, Riot, LastStand }
 
-    /// What the Warden is doing right now. Each stage loops through its turns, one mechanic at a time,
+    /// What the Warden is doing right now. Each phase loops through its turns, one mechanic at a time,
     /// with a short breather (Rest) between them.
     public enum WardenTurn : byte { Rest, Rings, Spiral, Fan, Light, Cross, Rioters, Charge, LastStand, Gas }  // Gas: the Lockdown's tear gas barrage
 
@@ -33,7 +33,7 @@ namespace Arena
         public WardenStage Stage;
         public WardenTurn Turn;
         public float TurnT;              // seconds into the current turn
-        public float TransT;             // > 0: changing stage (can't be hurt), counting down
+        public float TransT;             // > 0: changing phase (can't be hurt), counting down
         public WardenStage TransTo;
         public V2 Light, LightDisp;      // the searchlight's pool (LightDisp is smoothed for drawing)
         public WardenLight LightMode;
@@ -59,13 +59,13 @@ namespace Arena
 
     public partial class Game
     {
-        // Health at which each stage starts.
+        // Health at which each phase starts.
         const float LockdownAt = 0.65f, RiotAt = 0.3f, LastStandAt = 0.1f;
 
         // The last stand, in the middle: a pause (red lanes show where the next burst goes, and an orb ring goes out as it
         // starts), then a long "+" burst of straight streams; each burst turns 45 degrees from the last (+, x, +, ...).
         // Every LastStandStunEvery seconds, a stun round at you (much slower than the searchlight turn's StunEvery).
-        // Going into the last stand it puts on armor (a 2 s stage change, plates locking on at these seconds in), worth
+        // Going into the last stand it puts on armor (a 2 s phase change, plates locking on at these seconds in), worth
         // WardenArmorFrac of its max health; hits wear the armor before its health. It makes the last stand last without
         // touching the rest of the fight.
         public const float WardenArmorFrac = 0.47f;  // Boss Lab (Good bots, Knight Tank + Elementalist DPS, LABLOG=1): the last stand runs about 30 s in all (armor 0.3: ~19 s, 0.42: ~24 s, 0.55: ~39 s; runs vary by +-8 s)
@@ -123,7 +123,7 @@ namespace Arena
         const float ShieldHalfArc = 1.05f, ShieldTurn = 1.05f;
         const float ChargeWarn = 0.9f, ChargeSpeed = 700f, ChargeLength = 620f;
 
-        // Each stage's loop of turns (seconds). A Rest is a breather between mechanics.
+        // Each phase's loop of turns (seconds). A Rest is a breather between mechanics.
         static readonly WardenTurn[][] StageTurns =
         {
             new[] { WardenTurn.Rings, WardenTurn.Rest, WardenTurn.Spiral, WardenTurn.Rest, WardenTurn.Fan, WardenTurn.Rest, WardenTurn.Light, WardenTurn.Rest },
@@ -151,12 +151,12 @@ namespace Arena
         public Enemy TheWarden()
         {
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Boss)
+                if (e.Type == EnemyType.Warden)
                     return e;
             return null;
         }
 
-        bool WardenImmune(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.TransT > 0f;
+        bool WardenImmune(Enemy e) => e.Type == EnemyType.Warden && e.Warden != null && e.Warden.TransT > 0f;
 
         /// The riot shield stops shots from the front (120 degrees).
         bool WardenShieldBlocks(Enemy e, V2 from)
@@ -358,7 +358,7 @@ namespace Arena
                 NextWardenTurn(e, w, target);
         }
 
-        /// A new stage starts with a bang: a flash and a wide ring from the boss, and a few small health orbs.
+        /// A new phase starts with a bang: a flash and a wide ring from the boss, and a few small health orbs.
         void StageStartBurst(Enemy e, Rgba color)
         {
             BroadcastFx(FxKind.Boom, e.Pos, Rgba.White, e.Radius + 70f, 0.4f, Sfx.BigExplode);
@@ -366,7 +366,7 @@ namespace Arena
             StageOrbs(e.Pos, e.Radius);
         }
 
-        /// A boss changing stage knocks a few small health orbs loose: StageOrbBase plus one per player, scattered in a
+        /// A boss changing phase knocks a few small health orbs loose: StageOrbBase plus one per player, scattered in a
         /// ring just outside it (every boss's StageStartBurst, and the Twin Reapers fusing and splitting).
         void StageOrbs(V2 at, float radius)
         {
@@ -484,7 +484,7 @@ namespace Arena
             float aim = (tpos - e.Pos).Angle;
             if (w.TransT > 0f || w.StunT > 0f || w.ExposedT > 0f)
             {
-                e.FireT = 0.2f;  // changing stage, stunned, or blinded by its own light
+                e.FireT = 0.2f;  // changing phase, stunned, or blinded by its own light
                 w.FanWarn = 0f;
                 return;
             }
@@ -623,7 +623,7 @@ namespace Arena
         }
 
         /// Its riot shield broken this riot turn: it takes RiotBrokenMult (HurtEnemy).
-        public static bool WardenShieldBroken(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Turn == WardenTurn.Rioters
+        public static bool WardenShieldBroken(Enemy e) => e.Type == EnemyType.Warden && e.Warden != null && e.Warden.Turn == WardenTurn.Rioters
             && e.Warden.RiotShieldMax > 0f && e.Warden.RiotShield <= 0f && e.Warden.TransT <= 0f;
 
         /// Host, from HurtEnemy: the last stand's armor takes the hit first. True if it took all of it.
@@ -644,7 +644,7 @@ namespace Arena
             return dmg <= 0f;
         }
 
-        public static bool WardenExposed(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.ExposedT > 0f && e.Warden.TransT <= 0f;
+        public static bool WardenExposed(Enemy e) => e.Type == EnemyType.Warden && e.Warden != null && e.Warden.ExposedT > 0f && e.Warden.TransT <= 0f;
 
         /// A stun shot parried back at the Warden (Combat.cs): frozen for WardenStunTime.
         void StunWarden(Enemy e)
@@ -1113,7 +1113,7 @@ namespace Arena
                 Enemies.Remove(id);
         }
 
-        /// A rioter that reaches the Warden lands a blow on it (unless it's changing stage) and is gone.
+        /// A rioter that reaches the Warden lands a blow on it (unless it's changing phase) and is gone.
         void RiotersReachWarden(Enemy warden)
         {
             var ids = new List<int>();

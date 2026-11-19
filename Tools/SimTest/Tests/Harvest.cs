@@ -23,9 +23,9 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        me.Slots[Upgrades.UltSlot].Id = AbilityId.CrimsonApotheosis;
-        var def = Upgrades.Ability(AbilityId.CrimsonApotheosis);
-        Check(def.Name == "Crimson Harvest" && def.Cooldown == 65f && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonApotheosis, "the DPS Hemomancer's ultimate is Crimson Harvest, 65 s");
+        me.Slots[Upgrades.UltSlot].Id = AbilityId.CrimsonHarvest;
+        var def = Upgrades.Ability(AbilityId.CrimsonHarvest);
+        Check(def.Name == "Crimson Harvest" && def.Cooldown == 65f && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonHarvest, "the DPS Hemomancer's ultimate is Crimson Harvest, 65 s");
 
         V2 mePos = new V2(300f, 450f), aim = new V2(900f, 450f);
         var spots = new Dictionary<Enemy, V2>();

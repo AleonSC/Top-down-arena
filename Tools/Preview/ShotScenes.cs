@@ -126,7 +126,7 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("LEECH") != null) {
       // Leech Tendrils: LEECH=<n> enemies held in the arc (0 = free tendrils feeling about).
-      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.LeechBeam); me.Kit = Kit.Hemomancer; host.Game.Bot = false;
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.LeechTendrils); me.Kit = Kit.Hemomancer; host.Game.Bot = false;
       me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.35f; me.FiringSeen = true; me.Firing = true; me.Grasp.Clear();
       int held = int.Parse(Environment.GetEnvironmentVariable("LEECH")), k = 0;
       foreach (var e in host.Game.Enemies.Values) {
@@ -404,7 +404,7 @@ static partial class Shot {
       gm.Bullets.Clear();
       me.Pos = me.Disp = new V2(800f, 450f);
       for (int f = 0; f < 3; f++) { gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(100f, 0f) }); gm.Update(1f / 60f); }
-      typeof(Game).GetMethod("SpawnSquad", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { Approaches.For(EnemyType.Boss).Finale });
+      typeof(Game).GetMethod("SpawnSquad", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { Approaches.For(EnemyType.Warden).Finale });
       float rt = float.Parse(Environment.GetEnvironmentVariable("RIOTLINE"));
       for (int f = 0; f < 60 * rt; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(100f, 0f) }); gm.Update(1f / 60f); }
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
@@ -677,7 +677,7 @@ static partial class Shot {
       var gm = host.Game; gm.Bot = false;
       foreach (var e in gm.Enemies.Values) e.Hp = 0f;
       gm.Bullets.Clear(); gm.Effects.Clear();
-      me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.BloodRite;
+      me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.VeinTithe;
       V2 from = new V2(700f, 480f);
       me.Pos = me.Disp = from; me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.8f;
       float tt = float.Parse(Environment.GetEnvironmentVariable("TITHE"));
@@ -892,7 +892,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("WHIP") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
-      me.Role = Role.Healer; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.WeaponOf(WeaponId.Pistol); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Role = Role.Healer; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.WeaponOf(WeaponId.Revolver); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
       V2 home = new V2(420f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
       var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -1061,7 +1061,7 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
-    // BONESPEAR=<s>: the Hemomancer DPS's Blood Brawler, the Marionette (Core/BoneSpear.cs, Game/BoneSpearLook.cs) that long into a loop on
+    // BONESPEAR=<s>: the Hemomancer DPS's Blood Brawler, the Marionette (Core/BloodBrawler.cs, Game/BloodBrawlerLook.cs) that long into a loop on
     // one marked Grunt with five around it: Pulse at 0 s, Reel at 0.45 s, Heart Lift at 0.95 s, Marrow Burst at 1.5 s, Alt (Sympathy)
     // at 2.4 s, then Pulse at 2.7 s and Reel at 3.1 s echoing onto the bound ones. BSAIM=<deg> tilts the line; BSHAND=1 centres on the
     // Hemomancer's bleeding hand (zoom in with ZOOM=4).
@@ -1517,7 +1517,7 @@ static partial class Shot {
           int bid = 9001; gm.Minions[bid] = new Minion { Id = bid, Owner = me.Id, Kind = MinionKind.Bear, Pos = bearAt, Disp = bearAt, Aim = me.Aim, T = -1f, Companion = true };
           break;
         }
-        case WeaponId.HolyMace:  // STAFFJAB=1 the jab's cone (else the swipe), STACKS=<n> Jab stacks held
+        case WeaponId.Quarterstaff:  // STAFFJAB=1 the jab's cone (else the swipe), STACKS=<n> Jab stacks held
           me.StaffStacks = (byte)int.Parse(Environment.GetEnvironmentVariable("STACKS") ?? "2");
           if (Environment.GetEnvironmentVariable("STAFFJAB") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.StaffJabReach), -Game.StaffJabArc * MathX.Pi / 360f, 0f, 0.24f);
           else fx(FxKind.Slash, to, Game.StaffSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
@@ -1754,7 +1754,7 @@ static partial class Shot {
       // Each weapon's new shot look (ShotLooks.cs), one row per weapon, the player's weapon switched for each.
       var sbs = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
-      var rows = new[] { WeaponId.TwinRifle, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.ArcaneMissiles };
+      var rows = new[] { WeaponId.TwinRifle, WeaponId.Railgun, WeaponId.Revolver, WeaponId.Scattergun, WeaponId.IceShards };
       var kinds = new[] { Defs.DpsShot, Defs.RailShot, Defs.HealerShot, Defs.TankShot, Defs.ArcaneShot, Defs.ArcaneShot };
       int pid = 100;
       for (int i = 0; i < rows.Length; i++) {
@@ -1990,7 +1990,7 @@ static partial class Shot {
       var sbc2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       var addZone = typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance);
       var gm = host.Game; gm.Bot = false;
-      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.ClotBolt); me.Kit = Kit.Hemomancer;
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.GoreMortar); me.Kit = Kit.Hemomancer;
       me.Pos = me.Disp = new V2(380f, 520f); me.Aim = -0.2f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("CLOT"), System.Globalization.CultureInfo.InvariantCulture);
       for (int k = 0; k < 2; k++)
       {

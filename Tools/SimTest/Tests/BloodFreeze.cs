@@ -14,7 +14,7 @@ static partial class Program
         var hostAbility = typeof(Game).GetMethod("HostAbility", flags);
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
 
-        var def = Upgrades.Ability(AbilityId.SiphonField);
+        var def = Upgrades.Ability(AbilityId.BloodFreeze);
         Check(def.Name == "Blood Freeze" && def.Cooldown == 14f && def.HealthCost == 0.25f && def.Kit == Kit.Hemomancer && def.Role == Role.Healer,
             "the Healer Hemomancer's second ability is Blood Freeze: 14 s, 25% of max health");
         Check(Game.FreezeWaveR(0.3f) == 0f && Game.FreezeWaveR(Game.FreezeCharge + 0.2f) > 200f && Math.Abs(Game.FreezeWaveR(Game.FreezeCharge + Game.FreezeSweep) - Game.FreezeMaxR) < 0.5f
@@ -41,14 +41,14 @@ static partial class Program
             e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; spots[e] = at; return e;
         };
         Action<float> step = secs => { for (int f = 0; f < secs / dt; f++) { foreach (var kv in spots) kv.Key.Pos = kv.Value; me.Pos = mePos; if (keepFull) me.Hp = me.MaxHp; host.Poll(); client.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) }); } };
-        Action<bool> castIt = mastered => { g.ShowcaseSetAbility(AbilityId.SiphonField); me.Slots[0].Charges = 1; hostAbility.Invoke(g, new object[] { 1, 0, mePos, true }); };
+        Action<bool> castIt = mastered => { g.ShowcaseSetAbility(AbilityId.BloodFreeze); me.Slots[0].Charges = 1; hostAbility.Invoke(g, new object[] { 1, 0, mePos, true }); };
         Action reset = () => { g.Enemies.Clear(); spots.Clear(); g.Bullets.Clear(); g.Effects.Clear(); me.Pos = mePos; me.Hp = me.MaxHp; };
 
         reset();
         var near = pin(new V2(360f, 450f), EnemyType.Grunt);
         var far = pin(new V2(300f, 680f), EnemyType.Grunt);
         var outside = pin(new V2(900f, 450f), EnemyType.Grunt);
-        var boss = pin(new V2(480f, 300f), EnemyType.Boss);
+        var boss = pin(new V2(480f, 300f), EnemyType.Warden);
         var spawning = pin(new V2(700f, 600f), EnemyType.Grunt); spawning.SpawnT = 5f;
         friend.Pos = new V2(600f, 450f);
         float hp0 = me.Hp, nearHp = near.Hp, friendHp = friend.Hp;
@@ -99,8 +99,8 @@ static partial class Program
         // Mastered: +25% while frozen, and not after.
         reset();
         var m = pin(new V2(500f, 450f), EnemyType.Grunt);
-        g.ShowcaseSetAbility(AbilityId.SiphonField); me.Slots[0].Charges = 1;
-        me.MasteryXp[AbilityId.SiphonField] = 1e9f;
+        g.ShowcaseSetAbility(AbilityId.BloodFreeze); me.Slots[0].Charges = 1;
+        me.MasteryXp[AbilityId.BloodFreeze] = 1e9f;
         hostAbility.Invoke(g, new object[] { 1, 0, mePos, true });
         step(Game.FreezeCharge + 0.5f);
         m.Hp = m.MaxHp; float h2 = m.Hp;

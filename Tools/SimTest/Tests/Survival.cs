@@ -65,7 +65,7 @@ static partial class Program
         Check(Survival.Pressure(0f) < 0.5f * Survival.Pressure(120f) && Survival.Pressure(120f) < Survival.Pressure(300f), "the budget starts slow: under half of its two-minute level at the start");
         var early = run.Where(r => r.t < 240f && r.s.Squad == null).Select(r => r.s.Type).Distinct().ToList();
         Check(early.All(t => BasicFaction.Types.Contains(t)), "before four minutes only the basic faction's enemies come as singles");
-        var wardenOnly = Approaches.For(EnemyType.Boss).Members.Select(m => m.Type).Where(t => !BasicFaction.Types.Contains(t)).ToList();
+        var wardenOnly = Approaches.For(EnemyType.Warden).Members.Select(m => m.Type).Where(t => !BasicFaction.Types.Contains(t)).ToList();
         Check(run.Any(r => r.t >= 240f && wardenOnly.Contains(r.s.Type)) && !run.Any(r => r.t < 240f && wardenOnly.Contains(r.s.Type)), "the Warden's enemies join at four minutes, not before");
         var squads = run.Where(r => r.s.Squad != null).Select(r => r.t).ToList();
         Check(squads.Count > 0 && run.Where(r => r.s.Squad != null).Select(r => r.s.Squad).Distinct().Count() >= 3, "squads arrive on the timer, in a few kinds");
@@ -181,7 +181,7 @@ static partial class Program
         var me = g.Me;
         me.PendingPicks = 1;
         Run(s, dt, 2f, () => g.State == MatchState.Intermission && me.Offer != null);
-        Check(g.State == MatchState.Intermission && me.Offer != null, "a pending pick holds the match and offers cards");
+        Check(g.State == MatchState.Intermission && me.Offer != null, "a pending pick holds the run and offers cards");
         float t0 = g.SurvTime;
         var pos = g.Enemies.Values.Select(e => e.Pos).ToList();
         Run(s, dt, 1.5f);

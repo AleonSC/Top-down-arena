@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Arena
 {
     /// Saved runs and records on screen (RunSaves.cs, SaveData.cs, Profile.cs): the main menu's Continue list and
-    /// Records page, the lobby's seats when continuing a run, and "Unlocked" toasts in a match.
+    /// Records page, the lobby's seats when continuing a run, and "Unlocked" toasts in a run.
     public partial class ArenaApp
     {
         List<RunSave> savedRuns = new List<RunSave>();
@@ -317,11 +317,11 @@ namespace Arena
 
         static readonly EnemyType[] RecordBosses =
         {
-            EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+            EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
             EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
         };
 
-        static string BossName(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : t == EnemyType.Boss ? "The Warden" : Defs.Get(t).Name;
+        static string BossName(EnemyType t) => t == EnemyType.ReaperOfDusk ? "Twin Reapers" : t == EnemyType.Warden ? "The Warden" : Defs.Get(t).Name;
 
         // --- The lobby, continuing a run --------------------------------------------------------------
 
@@ -383,7 +383,7 @@ namespace Arena
                 Ui.Label(new Rect(body.x, y + 4f, body.width, 36f), "Seats nobody takes are left out of the continued run.", 12, Ui.Warn, TextAnchor.UpperLeft, false, true);
         }
 
-        // --- In a match ------------------------------------------------------------------------------------
+        // --- In a run ------------------------------------------------------------------------------------
 
         /// "Unlocked: ..." when this player's records earn something (RunSaves.cs).
         void DrawUnlockToasts(float cx, float y)

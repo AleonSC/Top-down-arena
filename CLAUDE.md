@@ -6,6 +6,8 @@ no Unity in the cloud container: check changes with the tools below.
 
 ## Where to look (read only what the task needs)
 
+- `Docs/Glossary.md`: the one word for each thing (classes, runs, places, boss phases, upgrade cards) and the rule
+  that code ids match in-game names. Use its words in code, docs and replies.
 - `CODEMAP.md`: **start here**. One line per source file grouped by system, plus a "Where to look for..." table.
   It's the one file map to keep up to date: give every new source file a line there.
 - `HANDOFF.md`: §1 the game in one page · §2 key mechanisms (networking, snapshots, ...) and "Adding a class" ·

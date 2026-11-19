@@ -301,7 +301,7 @@ static partial class Program
 
     static void MissilesRiotBladesTest(float dt)
     {
-        // Arcane Missiles bank in orbit and launch at enemies that come near. Riot Repeater rounds suppress (slow the
+        // Ice Shards bank in orbit and launch at enemies that come near. Riot Repeater rounds suppress (slow the
         // enemy's shooting). Twin Blades: 10 slashes in a row prime a dash-strike.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
@@ -317,8 +317,8 @@ static partial class Program
         Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; };
         Action<int, PlayerInput> step = (frames, input) => { for (int f = 0; f < frames; f++) { me.Pos = from; host.Poll(); g.FixedStep(dt, input); } };
 
-        // Arcane Missiles.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ArcaneMissiles);
+        // Ice Shards.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.IceShards);
         g.Enemies.Clear(); g.Bullets.Clear(); me.Orbiters = 0;
         volley.Invoke(g, new object[] { me, 0f, 0 });
         volley.Invoke(g, new object[] { me, 0f, 0 });
@@ -674,7 +674,7 @@ static partial class Program
         play(0.1f, new PlayerInput());  // (back to the start spot)
         // The fan is tight enough that a boss-sized target 400 px away takes all three stars.
         var far = dummy(from + new V2(400f, 0f));
-        far.Radius = Defs.Get(EnemyType.Boss).Radius;
+        far.Radius = Defs.Get(EnemyType.Warden).Radius;
         volley.Invoke(g, new object[] { me, 0f, 0 });
         play(0.8f, new PlayerInput());
         int farStuck = far.StarsStuck;
@@ -951,8 +951,8 @@ static partial class Program
         // Gore Mortar: hold to charge, let go to lob a clot over enemies; the charge sets how far it lands, never how hard.
         // It splashes everything where it lands and leaves a big pool that congeals after a second, sticking the enemies
         // in it; standing in your own pool no longer guards you.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ClotBolt);
-        Check(Game.ChargeWeapon(WeaponId.ClotBolt) && me.Weapon.Name == "Gore Mortar", "the tank Hemomancer's Gore Mortar charges like a bow");
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.GoreMortar);
+        Check(Game.ChargeWeapon(WeaponId.GoreMortar) && me.Weapon.Name == "Gore Mortar", "the tank Hemomancer's Gore Mortar charges like a bow");
         var tapNear = dummy(from + new V2(Game.ClotMin, 0f), 1e5f);
         var tapFar = dummy(from + new V2(Game.ClotMax, 0f), 1e5f);
         me.BowShotDraw = Game.BowMinDraw;

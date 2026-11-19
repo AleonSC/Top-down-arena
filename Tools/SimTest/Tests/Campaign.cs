@@ -13,24 +13,24 @@ static partial class Program
         // --- The slices, wave by wave ------------------------------------------------------------------------------------
         Func<int, Dictionary<EnemyType, float>> slices = n => Approaches.Campaign(n).ToDictionary(s => s.Faction.Boss, s => s.Share);
         var w1 = slices(1);
-        Check(w1.Count == 1 && Math.Abs(w1[EnemyType.Boss] - 1f) < 1e-4f, "waves 1-5: all Warden's faction (nothing before it to fade)");
+        Check(w1.Count == 1 && Math.Abs(w1[EnemyType.Warden] - 1f) < 1e-4f, "waves 1-5: all Warden's faction (nothing before it to fade)");
         var all50 = Enumerable.Range(1, 60).Select(n => Approaches.Campaign(n).Sum(s => s.Share)).ToList();
         Check(all50.All(t => t <= 1.0001f), "no wave's slices add up to more than 100%");
         // The Hive Queen (6-10): her faction builds the rest while the Warden's fades.
         var w6 = slices(6);
-        Check(w6.ContainsKey(EnemyType.Boss) && Math.Abs(w6[EnemyType.Boss] - 0.35f) < 1e-4f && w6.ContainsKey(EnemyType.HiveQueen) && Math.Abs(w6[EnemyType.HiveQueen] - 0.65f) < 1e-4f && w6.Count == 2, "wave 6: the Warden's faction fades (35%) and the Hive Queen's builds the rest (65%)");
-        var fade = Enumerable.Range(6, 5).Select(n => slices(n).ContainsKey(EnemyType.Boss) ? slices(n)[EnemyType.Boss] : 0f).ToArray();
+        Check(w6.ContainsKey(EnemyType.Warden) && Math.Abs(w6[EnemyType.Warden] - 0.35f) < 1e-4f && w6.ContainsKey(EnemyType.HiveQueen) && Math.Abs(w6[EnemyType.HiveQueen] - 0.65f) < 1e-4f && w6.Count == 2, "wave 6: the Warden's faction fades (35%) and the Hive Queen's builds the rest (65%)");
+        var fade = Enumerable.Range(6, 5).Select(n => slices(n).ContainsKey(EnemyType.Warden) ? slices(n)[EnemyType.Warden] : 0f).ToArray();
         Check(fade.SequenceEqual(new[] { 0.35f, 0.25f, 0.15f, 0.05f, 0f }), "the fading slice goes 35, 25, 15, 5, 0% over the next five waves");
         // The Lich (31-35): current builds, the Duelist's fades (35%), pool of built earlier factions (the Warden's, the Hive Queen's, the Twin Reapers', the Singularity's, the Colossus's).
         var w31 = slices(31);
-        float pool31 = w31[EnemyType.Boss] + w31[EnemyType.HiveQueen] + w31[EnemyType.TwinA] + w31[EnemyType.Singularity] + w31[EnemyType.Colossus];
-        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(pool31 - 0.10f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.TwinA]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.HiveQueen]) < 1e-4f
-            && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.Singularity]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.Colossus]) < 1e-4f && Math.Abs(w31[EnemyType.Duelist] - 0.35f) < 1e-4f && w31.Count == 7,
+        float pool31 = w31[EnemyType.Warden] + w31[EnemyType.HiveQueen] + w31[EnemyType.ReaperOfDusk] + w31[EnemyType.Singularity] + w31[EnemyType.Colossus];
+        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(pool31 - 0.10f) < 1e-4f && Math.Abs(w31[EnemyType.Warden] - w31[EnemyType.ReaperOfDusk]) < 1e-4f && Math.Abs(w31[EnemyType.Warden] - w31[EnemyType.HiveQueen]) < 1e-4f
+            && Math.Abs(w31[EnemyType.Warden] - w31[EnemyType.Singularity]) < 1e-4f && Math.Abs(w31[EnemyType.Warden] - w31[EnemyType.Colossus]) < 1e-4f && Math.Abs(w31[EnemyType.Duelist] - 0.35f) < 1e-4f && w31.Count == 7,
             "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Duelist's fading at 35%; the Warden's, the Hive Queen's, the Reapers', the Singularity's and the Colossus's sharing the 10% older pool");
         var w35 = slices(35);
         Check(Math.Abs(w35[EnemyType.Lich] - 0.90f) < 1e-4f, "wave 35: the Lich's faction is 90%");
         var w36 = slices(36);
-        Check(Math.Abs(w36[EnemyType.Lich] - 0.35f) < 1e-4f && w36.ContainsKey(EnemyType.Boss), "wave 36: the Lich's fades at 35% while the Warden's stays in the pool");
+        Check(Math.Abs(w36[EnemyType.Lich] - 0.35f) < 1e-4f && w36.ContainsKey(EnemyType.Warden), "wave 36: the Lich's fades at 35% while the Warden's stays in the pool");
         Check(Enumerable.Range(1, 120).All(n => Approaches.Campaign(n).SequenceEqual(Approaches.Campaign(n), new SliceCmp())), "the slices depend on the wave alone");
 
         // --- Waves built from them ---------------------------------------------------------------------------------------
@@ -49,9 +49,9 @@ static partial class Program
                 l.AddRange(s.Members);
             return l;
         };
-        var warden = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+        var warden = new HashSet<EnemyType>(Approaches.For(EnemyType.Warden).Members.Select(m => m.Type));
         var zombie = new HashSet<EnemyType>(Approaches.For(EnemyType.Lich).Members.Select(m => m.Type));
-        var older = new HashSet<EnemyType>(warden.Concat(Approaches.For(EnemyType.HiveQueen).Members.Select(m => m.Type)).Concat(Approaches.For(EnemyType.TwinA).Members.Select(m => m.Type))
+        var older = new HashSet<EnemyType>(warden.Concat(Approaches.For(EnemyType.HiveQueen).Members.Select(m => m.Type)).Concat(Approaches.For(EnemyType.ReaperOfDusk).Members.Select(m => m.Type))
             .Concat(Approaches.For(EnemyType.Singularity).Members.Select(m => m.Type)).Concat(Approaches.For(EnemyType.Colossus).Members.Select(m => m.Type)));  // the pool before the Lich's (the Duelist's is fading, not pool)
         var a1 = wave(1, true);
         Check(a1.Count > 0 && a1.All(warden.Contains), "campaign wave 1 is all Warden's faction (" + a1.Count + " enemies)");

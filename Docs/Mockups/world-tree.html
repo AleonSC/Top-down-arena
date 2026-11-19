@@ -54,7 +54,7 @@ const rgb=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
 const P = C.pal;
 const heal = {x:W/2, y:H/2+10};
 let allies, enemies, flies, texts, motes, t, running=true, cast=false, idle=0, showOld=false, speed=1, last=performance.now();
-const names=['Ranger','Knight','Mage'], cols=[[255,190,110],[150,190,255],[210,150,255]];
+const names=['Ranger','Knight','Elementalist'], cols=[[255,190,110],[150,190,255],[210,150,255]];
 
 function reset(){
   t=0; cast=true; idle=0; flies=[]; texts=[]; motes=[]; spawnT=0; tick=0;

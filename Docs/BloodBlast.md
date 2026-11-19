@@ -33,7 +33,7 @@
 - Stacks belong to the last Blood Blast user to hit the enemy (two Blood Blasts on one enemy share its stacks); whoever
   lands the kill, that Hemomancer is healed when the returning blood reaches them (`BlastReturnTime`, 0.97 s). Stacks never fade
   while the enemy lives. A boss holds at most 10 like anything else (20 health on its death).
-- Health costs follow the Hemomancer rules (`BloodMage.cs`): they can't take you below 1 and count as `healthSpent` in
+- Health costs follow the Hemomancer rules (`Hemomancer.cs`): they can't take you below 1 and count as `healthSpent` in
   the session report. The kill heal is ordinary healing.
 
 ## Look (from the mockup)

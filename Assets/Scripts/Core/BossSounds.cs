@@ -7,17 +7,17 @@ namespace Arena
     /// summons and phase changes. The host notices each new attack and sends the cue to everyone.
     public partial class Game
     {
-        /// Which attack (or stage) a boss is on; a change means it's starting something new.
+        /// Which attack (or phase) a boss is on; a change means it's starting something new.
         int BossAttackSig(Enemy e)
         {
             switch (e.Type)
             {
-                case EnemyType.Boss: return e.Warden == null ? 0 : (int)e.Warden.Stage * 100 + (e.Warden.TransT > 0f ? 50 : (int)e.Warden.Turn);
+                case EnemyType.Warden: return e.Warden == null ? 0 : (int)e.Warden.Stage * 100 + (e.Warden.TransT > 0f ? 50 : (int)e.Warden.Turn);
                 case EnemyType.HiveQueen: return e.Queen == null ? 0 : (int)e.Queen.Stage * 100 + (e.Queen.TransT > 0f ? 50 : (int)e.Queen.Turn);
-                case EnemyType.TwinA:  // one Reaper speaks for both (and the Dual Reaper for itself)
+                case EnemyType.ReaperOfDusk:  // one Reaper speaks for both (and the Dual Reaper for itself)
                 case EnemyType.DualReaper:
                     return Reapers == null ? e.Phase * 10 : (int)Reapers.Stage * 100 + (Reapers.Trans != 0 ? 50 : (int)Reapers.Turn) + e.Phase * 1000;
-                case EnemyType.TwinB: return e.Phase * 1000;
+                case EnemyType.ReaperOfDawn: return e.Phase * 1000;
                 case EnemyType.Singularity: return (e.Sing == null ? 0 : (int)e.Sing.Stage * 100) + e.Phase;
                 case EnemyType.StormHerald: return e.Herald == null ? 0 : (int)e.Herald.Stage * 100 + (e.Herald.TransT > 0f ? 50 : (int)e.Herald.Turn);
                 case EnemyType.Lich: return e.Lich == null ? 0 : (int)e.Lich.Stage * 100 + (e.Lich.TransT > 0f ? 50 : (int)e.Lich.Turn);
@@ -31,7 +31,7 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Boss:  // a stage change chimes (StartWardenTransition); the light and the charge rise; a breather is quiet
+                case EnemyType.Warden:  // a phase change chimes (StartWardenTransition); the light and the charge rise; a breather is quiet
                 {
                     var turn = (WardenTurn)(sig % 100);
                     return sig % 100 == 50 || turn == WardenTurn.Rest ? Sfx.None : turn == WardenTurn.Light || turn == WardenTurn.Charge ? Sfx.BossCharge : Sfx.BossShift;
@@ -45,7 +45,7 @@ namespace Arena
                         return Sfx.BossChime;
                     return turn == QueenTurn.Bombers || turn == QueenTurn.Barrage || turn == QueenTurn.Cloud || turn == QueenTurn.Dive ? Sfx.BossCharge : Sfx.BossShift;
                 }
-                case EnemyType.TwinA: case EnemyType.TwinB: case EnemyType.DualReaper:  // enraged or soul-bound chimes; a breather is quiet (Reapers.cs)
+                case EnemyType.ReaperOfDusk: case EnemyType.ReaperOfDawn: case EnemyType.DualReaper:  // enraged or soul-bound chimes; a breather is quiet (Reapers.cs)
                 {
                     int turn = sig % 100;
                     if (sig >= 1000)
@@ -54,21 +54,21 @@ namespace Arena
                         return Sfx.None;
                     return turn == (int)ReaperTurn.Sweep || turn == (int)ReaperTurn.Lasers || turn == (int)ReaperTurn.Chase || turn == (int)ReaperTurn.Reap ? Sfx.BossCharge : Sfx.BossShift;
                 }
-                case EnemyType.Singularity:  // a stage change chimes (StartSingTransition); a breather is quiet (Singularity.cs)
+                case EnemyType.Singularity:  // a phase change chimes (StartSingTransition); a breather is quiet (Singularity.cs)
                     switch ((byte)(sig % 100))
                     {
                         case SingPull: case SingLaserWarn: case SingWhiteHole: case SingLast: return Sfx.BossCharge;
                         case SingCollapse: case SingSlingshot: case SingHawking: return Sfx.BossPulse;
                         case SingCage: return Sfx.BossChime;
                         case SingNormal: case SingSplit: return Sfx.BossShift;
-                        default: return Sfx.None;  // the lasers firing after their warning, breathers, the stage change
+                        default: return Sfx.None;  // the lasers firing after their warning, breathers, the phase change
                     }
-                case EnemyType.StormHerald:  // a stage change chimes (StartHeraldTransition); a breather is quiet (Herald.cs)
+                case EnemyType.StormHerald:  // a phase change chimes (StartHeraldTransition); a breather is quiet (Herald.cs)
                     switch ((HeraldTurn)(sig % 100))
                     {
                         case HeraldTurn.Rods: case HeraldTurn.RodCage: case HeraldTurn.Downburst: case HeraldTurn.StormFront: case HeraldTurn.Eye: return Sfx.BossCharge;
                         case HeraldTurn.Thunderclap: case HeraldTurn.Crosswind: case HeraldTurn.BallLightning: case HeraldTurn.StrikeRain: return Sfx.BossPulse;
-                        default: return Sfx.None;  // breathers, strikes (they cue themselves), the stage change
+                        default: return Sfx.None;  // breathers, strikes (they cue themselves), the phase change
                     }
                 case EnemyType.Lich:  // raising the dead chimes, the sweep and the hands rise, a breather is quiet (Lich.cs)
                 {
@@ -79,21 +79,21 @@ namespace Arena
                         return Sfx.BossChime;
                     return turn == LichTurn.Sweep || turn == LichTurn.Hands || turn == LichTurn.Spirits ? Sfx.BossCharge : Sfx.BossShift;
                 }
-                case EnemyType.Devourer:  // a stage change chimes (StartDevourTransition); a breather is quiet (Devourer.cs)
+                case EnemyType.Devourer:  // a phase change chimes (StartDevourTransition); a breather is quiet (Devourer.cs)
                     switch ((DevourTurn)(sig % 100))
                     {
                         case DevourTurn.Hungry: case DevourTurn.Inhale: case DevourTurn.Burrow: case DevourTurn.Frenzy: case DevourTurn.LastMeal: return Sfx.BossCharge;
                         case DevourTurn.Spiral: case DevourTurn.Snap: case DevourTurn.Bile: case DevourTurn.Jaws: case DevourTurn.Vomit: return Sfx.BossPulse;
-                        default: return Sfx.None;  // breathers, the stage change
+                        default: return Sfx.None;  // breathers, the phase change
                     }
-                case EnemyType.Eclipse:  // a stage change chimes (StartEclipseTransition); a breather is quiet (Eclipse.cs)
+                case EnemyType.Eclipse:  // a phase change chimes (StartEclipseTransition); a breather is quiet (Eclipse.cs)
                     switch ((EclipseTurn)(sig % 100))
                     {
                         case EclipseTurn.Flash: case EclipseTurn.ShadowNova: case EclipseTurn.ClosingUmbra: case EclipseTurn.EchoLich: case EclipseTurn.EchoSingularity: case EclipseTurn.Totality: return Sfx.BossCharge;
                         case EclipseTurn.Spiral: case EclipseTurn.CoronaRings: case EclipseTurn.LunarWake: case EclipseTurn.Gravity: case EclipseTurn.DarkSpiral:
                         case EclipseTurn.EchoColossus: case EclipseTurn.EchoHerald: case EclipseTurn.FranticSpiral: return Sfx.BossPulse;
                         case EclipseTurn.Flares: case EclipseTurn.Crescents: case EclipseTurn.SolarStorm: return Sfx.BossShift;
-                        default: return Sfx.None;  // breathers, the stage change
+                        default: return Sfx.None;  // breathers, the phase change
                     }
                 default: return Sfx.None;
             }

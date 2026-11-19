@@ -17,7 +17,7 @@ static partial class Program
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
 
         // Their pool: the three new cards; Executioner, Twin Fang and Soul Harvest stay but are never offered.
-        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.TwinA).Select(i => Upgrades.All[i].Name).ToArray();
+        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.ReaperOfDusk).Select(i => Upgrades.All[i].Name).ToArray();
         bool neverOffered = true;
         var rng = new Random(7);
         for (int k = 0; k < 300; k++)

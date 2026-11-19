@@ -19,7 +19,7 @@ static partial class Program
         var squadsF = typeof(Game).GetField("squadQueue", NPf);
 
         // --- The roster and its debut ---------------------------------------------------------------------------------
-        var tm = Approaches.For(EnemyType.Boss).Members.FirstOrDefault(m => m.Type == EnemyType.Turnkey);
+        var tm = Approaches.For(EnemyType.Warden).Members.FirstOrDefault(m => m.Type == EnemyType.Turnkey);
         Check(tm != null && tm.Debut == 3 && tm.From == 3, "the Warden's faction has the Turnkey, from its third step, debuting on the approach's third wave");
         Check(Approaches.All.All(f => f.Members.All(m => m.Debut == 0 || m.Type == EnemyType.Turnkey)), "only the Turnkey has a debut wave");
         Func<Action<Game>, int, int, int> turnkeys = (setup, n, seed) =>
@@ -33,8 +33,8 @@ static partial class Program
                 all.AddRange(q.Members);
             return all.Count(t => t == EnemyType.Turnkey);
         };
-        Action<Game> quick = g0 => { g0.Quick = true; g0.QuickOrder = new[] { EnemyType.Boss, EnemyType.HiveQueen }; };
-        Action<Game> quickLater = g0 => { g0.Quick = true; g0.QuickOrder = new[] { EnemyType.HiveQueen, EnemyType.Boss }; };
+        Action<Game> quick = g0 => { g0.Quick = true; g0.QuickOrder = new[] { EnemyType.Warden, EnemyType.HiveQueen }; };
+        Action<Game> quickLater = g0 => { g0.Quick = true; g0.QuickOrder = new[] { EnemyType.HiveQueen, EnemyType.Warden }; };
         Action<Game> plain = g0 => { g0.Diff.Set(DiffKnob.Campaign, 0f); g0.Diff.Set(DiffKnob.ApproachShare, 0.6f); };
         int q3 = 0, q12 = 0, l13 = 0, p3 = 0, hive3 = 0;
         for (int r = 0; r < 12; r++)

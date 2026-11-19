@@ -30,12 +30,12 @@ namespace Arena
         static readonly string[] LookSubs =
         {
             "A rim on your lobby party card and your menu chip.",
-            "Drawn behind you in the match, for everyone to see.",
+            "Drawn behind you in the run, for everyone to see.",
             "Your menu background. The ones here are rank rewards, and the reactive ones follow your pointer. The others are in Settings > Visual effects.",
             "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
-            "How your name looks to everyone: the lobby, the Hangout, and over your head in a match.",
-            "The line from your weapon to the crosshair in a match. Only you see it. Classic is the default.",
-            "Your crosshair in a match. Only you see it. Classic is the default.",
+            "How your name looks to everyone: the lobby, the Hangout, and over your head in a run.",
+            "The line from your weapon to the crosshair in a run. Only you see it. Classic is the default.",
+            "Your crosshair in a run. Only you see it. Classic is the default.",
         };
 
         int lookScroll;          // the list's first visible row

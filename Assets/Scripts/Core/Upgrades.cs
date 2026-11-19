@@ -10,21 +10,21 @@ namespace Arena
     {
         Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Nova, Turret,
         Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
-        // Mage
-        ArcaneAegis, FrostNova, FlameWall, HealingRain, EnergyWard, Sanctify, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
+        // Elementalist
+        Aeroaegis, FrostNova, FlameWall, HealingRain, EnergyWard, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
         // Summoner
-        GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
+        GolemWall, Earthquake, ForcePact, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
         // Ultimates (F): one per role and class
-        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, BulletRain, Legion,
+        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, ArtilleryAssault, BulletRain, Legion,
         // Knight (Space), then the Knight ultimates
-        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
-        LastStand, HallowedBlade, BladeTempest,
+        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaughtSteel,
+        LastStand, HallowedBlade, Drawbridge,
         // Ninja (Space), then the Ninja ultimates
-        ShadowClone, SmokeBomb, IronBody, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
+        ShadowClone, SmokeBomb, CeremonialArmor, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
         ThousandClones, BlossomStorm, DeathLotus,
-        // Blood Mage (Space), then the Blood Mage ultimates
-        BloodShell, CrimsonPact, Exsanguinate, BloodGift, SiphonField, Martyr, BloodBoil, FrenzyPact, HemoNova,
-        BloodRite, SanguineRain, CrimsonApotheosis,
+        // Hemomancer (Space), then the Hemomancer ultimates
+        BloodShell, BloodWall, Exsanguinate, BloodGift, BloodFreeze, Martyr, ArterialSpray, BloodDebt, VeinRush,
+        VeinTithe, SanguineRain, CrimsonHarvest,
         StunGun,  // the Warden's legendary: a Q / E / Shift ability (Stun.cs)
         RoyalDive,  // the Hive Queen's legendary: a Q / E / Shift ability (QueenLoot.cs)
         ScytheThrow,  // the Twin Reapers' legendary: a Q / E / Shift ability (ReaperLoot.cs)
@@ -63,7 +63,7 @@ namespace Arena
         public int ExtraCharges;       // charges beyond the first
         public bool CapstoneCharge;    // mastering it adds a charge
         public Func<BotSense, bool> Bot;  // when the smart bot uses it (BotBrain.cs); null: when a target is within 520 px
-        public float HealthCost;   // the Blood Mage's abilities cost this much of your max health (it can't take you below 1)
+        public float HealthCost;   // the Hemomancer's abilities cost this much of your max health (it can't take you below 1)
         public bool CostsCurrent;  // ...or of your current health (Blood Gift)
     }
 
@@ -94,7 +94,7 @@ namespace Arena
         public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
         public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
         public int FanExtraKunai;
-        // Blood Mage abilities
+        // Hemomancer abilities
         public float ShellBonus, WallLifeBonus, WallRampBonus, DrainMult = 1f, DrainRadiusMult = 1f;
         public float GiftMult = 1f, FreezeBonusTime, MartyrBonus, MartyrInvuln;
         public float SprayMult = 1f, SprayReach = 1f;          // Arterial Spray: High Pressure
@@ -131,7 +131,7 @@ namespace Arena
         public float MinionDmgMult = 1f, MinionToughMult = 1f;             // Summoner: Pack Bond
         public float CutReachMult = 1f;                                    // Knight: Plate Armour (how far out swings cut bullets)
         public float GhostCut, GhostTime;                                  // Ninja: Ghost Step (less damage for GhostTime after a dodge)
-        public float HealthCostMult = 1f;                                  // Blood Mage: Bloodthirst (health paid for abilities)
+        public float HealthCostMult = 1f;                                  // Hemomancer: Bloodthirst (health paid for abilities)
         // Knight weapon cards (Weapons; Docs/UpgradePools.md step 7)
         public float HammerAreaMult = 1f, HammerStunBonus;                 // Warhammer: Quake Hammer
         public float BbRamMult = 1f, BbBashMult = 1f;                     // Bulwark Barrier: Iron Boss
@@ -155,7 +155,7 @@ namespace Arena
         public float StarStickCut, StarReturnMult = 1f;                    // Shuriken: Barbed Stars
         public float BurstPushMult = 1f, CaltropBonusTime;                 // Katana: Honed Edge
         public float KunaiBlinkMult = 1f, KunaiMarkBonus;                  // Kunai: Shadow Mark
-        // Blood Mage weapon cards (Docs/UpgradePools.md step 9)
+        // Hemomancer weapon cards (Docs/UpgradePools.md step 9)
         public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip (and LashLinkBonus)
         public int LashLinkBonus;
         public float BlastHealBonus; public int BlastCapBonus;            // Blood Blast: Blood Harvest (BloodBlast.cs)
@@ -166,7 +166,7 @@ namespace Arena
         public float VeinStealBonus;                                       // Vein Tether: Lifeline
         public int HemoHitCut; public float HemoRadiusMult = 1f;           // Blood Bolts: Hemophilia
         public float ImplodeReachMult = 1f, ImplodeDmgMult = 1f;           // Implosion: Event Horizon
-        public int BsShardBonus, SympBonus;                                // Blood Brawler: Marrow (BoneSpear.cs)
+        public int BsShardBonus, SympBonus;                                // Blood Brawler: Marrow (BloodBrawler.cs)
         // Summoner weapon cards (Docs/UpgradePools.md step 10)
         public float StaffGolemTough = 1f, BoulderSplashMult = 1f;         // Golem Staff: Granite Golem
         public float CageBonusTime, SkeletonRateMult = 1f;                 // Bone Guard: Ossuary
@@ -239,7 +239,7 @@ namespace Arena
     }
 
     /// Who a card offer is for (Docs/UpgradePools.md step 2): every offer and Available take one, so no filter can be
-    /// left out. In a match build it with Game.OfferFor(p); tests and build simulations use the constructor.
+    /// left out. In a run build it with Game.OfferFor(p); tests and build simulations use the constructor.
     public class OfferCtx
     {
         public readonly Role Role;
@@ -296,7 +296,7 @@ namespace Arena
         public Kit? Kit;                            // only offered to this class (a Wildcard: any class its gear comes from)
         public bool ClassAbility;                   // very rare: one of your class's other Space abilities, for Q/E/Shift
         public int Weight = 1;                      // how many times it counts among the cards of its rarity
-        public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
+        public EnemyType? Boss;                     // legendary: the boss that awards it (ReaperOfDusk = the Twin Reapers)
         public bool Unoffered;                      // kept (old saves, dev tools) but never offered: the Queen's and the Twin Reapers' old cards (Swarm Rounds, Royal Jelly, Brood Mother; Executioner, Twin Fang, Soul Harvest)
         public bool PicksSlot;                      // the Extra Use card: you choose the key (Space, Q, E, Shift) it goes on when you pick it
         public Action<Stats> Apply;
@@ -309,8 +309,8 @@ namespace Arena
         public const int UltSlot = 4;
 
         /// Every ability, indexed by AbilityId. Each class keeps its entries beside its cast code: Abilities.cs (Soldier and
-        /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
-        /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
+        /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
+        /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
             Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates));  // the classes' own, then the shared and boss-loot ones
 
@@ -532,12 +532,12 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Turret, Name = "Turret", Desc = "New ability: deploy a turret that shoots for 10 seconds" },
 
             // Legendary: unique weapon upgrades, only from killing bosses (three per boss).
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Warden's Guard",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, MaxStacks = 3, Name = "Warden's Guard",
                 Desc = "One of the Warden's riot guards switches sides: it follows you and fights for you with its baton (+1 guard per stack). If it falls, another arrives 15 s later",
                 Apply = s => s.Guards += 1 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, Grants = AbilityId.StunGun, Name = "Stun Gun",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, Grants = AbilityId.StunGun, Name = "Stun Gun",
                 Desc = "New ability: draw a stun gun with 6 shots that stun enemies. The cooldown starts once they're all fired" },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Searchlight",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, MaxStacks = 3, Name = "Searchlight",
                 Desc = "A searchlight follows your cursor: enemies in it take 25% more damage from everyone, and one held in it for 2 s is stunned for 1 s. More stacks: a wider light, then +40%",
                 Apply = s => s.Searchlight += 1 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Hive Drones",
@@ -554,13 +554,13 @@ namespace Arena
                 Apply = s => s.Lifesteal += 1f },
             new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Brood Mother", Desc = "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills",
                 Apply = s => s.BroodChance += 0.4f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Twin Scythes",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.ReaperOfDusk, MaxStacks = 3, Name = "Twin Scythes",
                 Desc = "Two of the Reapers' scythes circle you in opposite directions, cutting enemies they pass (16) and slicing small enemy bullets out of the air. Every 1.6 s each reaps out at the nearest enemy within 240 px and flies back. 2nd stack: faster (every 1.1 s); 3rd: a third scythe",
                 Apply = s => s.TwinScythes += 1 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Final Reap",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.ReaperOfDusk, MaxStacks = 3, Name = "Final Reap",
                 Desc = "When your hit leaves an enemy below 25% health, a phantom scythe reaps it and heals you 3 (not bosses). Your hits on a boss below 40% health deal double damage. More stacks: reap below 30%, then 35%; bosses x2.5, then x3",
                 Apply = s => { s.ReapBelow += s.ReapBelow == 0f ? 0.25f : 0.05f; s.ReapBossBonus += s.ReapBossBonus == 0f ? 1f : 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, Grants = AbilityId.ScytheThrow, Name = "Scythe Throw",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.ReaperOfDusk, Grants = AbilityId.ScytheThrow, Name = "Scythe Throw",
                 Desc = "New ability: throw a giant scythe at your cursor. It cuts everything on the way out and on the way back; catch it to take 40% off its cooldown" },
             new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 50% health",
                 Apply = s => s.ExecuteBonus += 1f },

@@ -31,7 +31,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
         Check(me.Slots[0].Id == AbilityId.DeployableCover && me.Slots[0].MaxCharges == 2 && client.Game.Players[1].Slots[0].Id == AbilityId.DeployableCover,
-            "the 4th pick reaches the match on Space, with two charges");
+            "the 4th pick reaches the run on Space, with two charges");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
 
         V2 mePos = new V2(400f, 450f), aimAt = new V2(900f, 450f);

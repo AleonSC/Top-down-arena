@@ -11,7 +11,7 @@ static partial class Program
     /// fights back (shots, gas), and a mini-boss room keeps its foe over the network.
     static void RiotCaptainTest(float dt)
     {
-        Check(FactionMinis.For(EnemyType.Boss) == EnemyType.RiotCaptain && FactionMinis.Is(EnemyType.RiotCaptain) && !FactionMinis.Is(EnemyType.Gatekeeper),
+        Check(FactionMinis.For(EnemyType.Warden) == EnemyType.RiotCaptain && FactionMinis.Is(EnemyType.RiotCaptain) && !FactionMinis.Is(EnemyType.Gatekeeper),
             "the Warden's faction mini-boss is the Riot Captain; the Gatekeeper isn't a faction mini-boss");
 
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", NP);

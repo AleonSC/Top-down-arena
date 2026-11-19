@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace Arena
 {
-    /// The boss bars at the top of the HUD, with each boss's stage names and notes.
+    /// The boss bars at the top of the HUD, with each boss's phase names and notes.
     public partial class ArenaApp
     {
         /// Name and health bar for each boss on the field, plus warnings for their mechanics: wide across the
@@ -16,7 +16,7 @@ namespace Arena
         public static string EclipseStageName(EclipseStage s) => s == EclipseStage.Corona ? "CORONA" : s == EclipseStage.Penumbra ? "PENUMBRA"
             : s == EclipseStage.Umbra ? "UMBRA" : s == EclipseStage.Echoes ? "ECHOES" : s == EclipseStage.LastLight ? "LAST LIGHT" : "TOTALITY";
 
-        /// The Eclipse's stage under its health bar, and what to watch for.
+        /// The Eclipse's phase under its health bar, and what to watch for.
         string EclipseNote(EclipseState s, ref Color c)
         {
             if (s.TransT > 0f)
@@ -53,7 +53,7 @@ namespace Arena
             return stage;
         }
 
-        /// The Storm Herald's stage under its health bar, and what to watch for.
+        /// The Storm Herald's phase under its health bar, and what to watch for.
         string HeraldNote(HeraldState s, ref Color c)
         {
             if (s.TransT > 0f)
@@ -127,7 +127,7 @@ namespace Arena
         static string ColStageName(ColStage s) => s == ColStage.Awakening ? "AWAKENING" : s == ColStage.Crumbling ? "CRUMBLING"
             : s == ColStage.MoltenCore ? "MOLTEN CORE" : "LAST STAND";
 
-        /// The Colossus's stage under its health bar, and what to watch for.
+        /// The Colossus's phase under its health bar, and what to watch for.
         static string ColossusNote(ColossusState c, ref Color col)
         {
             if (c.TransT > 0f)
@@ -156,7 +156,7 @@ namespace Arena
         static string DevourStageName(DevourStage s) => s == DevourStage.Appetite ? "APPETITE" : s == DevourStage.Gorging ? "GORGING"
             : s == DevourStage.Ravenous ? "RAVENOUS" : "LAST MEAL";
 
-        /// The Devourer's stage under its health bar, and what to watch for.
+        /// The Devourer's phase under its health bar, and what to watch for.
         string DevourNote(DevourState s, ref Color c)
         {
             var hungry = new Color(1f, 0.45f, 0.7f);
@@ -200,7 +200,7 @@ namespace Arena
             return DevourStageName(s.Stage);
         }
 
-        /// The Warden's stage under its health bar, and what to watch for.
+        /// The Warden's phase under its health bar, and what to watch for.
         string WardenNote(WardenState w, ref Color c)
         {
             if (w.TransT > 0f && w.TransTo == WardenStage.LastStand)
@@ -249,7 +249,7 @@ namespace Arena
             return WardenStageName(w.Stage);
         }
 
-        /// The Hive Queen's stage under her health bar, and what to watch for.
+        /// The Hive Queen's phase under her health bar, and what to watch for.
         string QueenNote(Enemy e, ref Color c)
         {
             var q = e.Queen;
@@ -271,7 +271,7 @@ namespace Arena
         static string QueenStageName(QueenStage s) =>
             s == QueenStage.Swarm ? "SWARM" : s == QueenStage.Honeycomb ? "HONEYCOMB" : s == QueenStage.Frenzy ? "FRENZY" : "LAST STAND";
 
-        /// The Reapers' stage under their health bars, and what to do about the Dual Reaper.
+        /// The Reapers' phase under their health bars, and what to do about the Dual Reaper.
         string ReaperNote(Enemy e, ReaperFight R, ref Color c)
         {
             if (R.Trans != 0)
@@ -279,7 +279,7 @@ namespace Arena
                 c = new Color(0.9f, 0.92f, 1f);
                 return R.Trans == 1 ? "CAN'T BE HURT — THEY'RE FUSING" : "CAN'T BE HURT — IT'S SPLITTING";
             }
-            if (e.Type == EnemyType.TwinB)
+            if (e.Type == EnemyType.ReaperOfDawn)
                 return null;  // Dusk's bar speaks for both
             if (R.Stage == ReaperStage.Twilight)
             {
@@ -381,7 +381,7 @@ namespace Arena
                 }
                 else if (e.Type == EnemyType.Eclipse && e.Eclipse != null)
                     note = EclipseNote(e.Eclipse, ref noteColor);
-                else if (e.Type == EnemyType.Boss && e.Warden != null)
+                else if (e.Type == EnemyType.Warden && e.Warden != null)
                     note = WardenNote(e.Warden, ref noteColor);
                 else if (Game.IsReaper(e.Type) && game.Reapers != null)
                     note = ReaperNote(e, game.Reapers, ref noteColor);
@@ -390,7 +390,7 @@ namespace Arena
                 else if (e.Type == EnemyType.RiotCaptain)
                     note = CaptainNote(e, ref noteColor);  // RiotCaptainLook.cs
                 // The Warden's last-stand armor: a blue bar above its health, as long as it, that wears down first.
-                bool armored = e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
+                bool armored = e.Type == EnemyType.Warden && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
                 float armorH = armored ? 9f : 0f;
                 float h = (note != null ? 62f : 46f) + armorH;
                 var panel = new Rect(x0, y, panelW, h);

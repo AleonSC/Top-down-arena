@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The balance test (F1 > Balance): from the match you are in, jump to a wave and play five of them with your own
+    /// The balance test (F1 > Balance): from the run you are in, jump to a wave and play five of them with your own
     /// build while a fresh recording (format 4, Docs/BalanceTest.md) keeps every number. When the last wave clears,
     /// the report is built and the recording closes. Host only, nothing is sent over the network.
     public class BalanceRun
@@ -48,7 +48,7 @@ namespace Arena
             return true;
         }
 
-        /// The player ended it (or the match did): close the recording with what was gathered.
+        /// The player ended it (or the run did): close the recording with what was gathered.
         public void DevEndBalanceTest(string how)
         {
             if (!TestRunning)

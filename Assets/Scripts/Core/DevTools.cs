@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Arena
 {
     /// Developer tools (the F1 menu): jump to a wave, edit players' stats by hand, god mode.
-    /// Everything that changes the match runs on the host; stat edits are sent to everyone so each
+    /// Everything that changes the run runs on the host; stat edits are sent to everyone so each
     /// peer's stats (recomputed from upgrades plus these overrides) still agree.
     public partial class Game
     {
@@ -89,14 +89,14 @@ namespace Arena
             count = Math.Max(1, Math.Min(count, 20));
             if (d.IsBoss)
             {
-                for (int i = 0; i < (type == EnemyType.TwinA ? 1 : count); i++)
+                for (int i = 0; i < (type == EnemyType.ReaperOfDusk ? 1 : count); i++)
                 {
                     SpawnEnemy(type);
-                    if (type == EnemyType.TwinA)
-                        SpawnEnemy(EnemyType.TwinB);
+                    if (type == EnemyType.ReaperOfDusk)
+                        SpawnEnemy(EnemyType.ReaperOfDawn);
                 }
                 DevUsed(p.Name + ": spawned " + d.Name);
-                return type == EnemyType.TwinA ? 2 : count;
+                return type == EnemyType.ReaperOfDusk ? 2 : count;
             }
             V2 fwd = V2.FromAngle(p.Aim);
             V2 side = new V2(-fwd.Y, fwd.X);

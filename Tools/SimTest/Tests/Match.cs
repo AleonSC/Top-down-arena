@@ -397,7 +397,7 @@ static partial class Program
         Console.WriteLine("  none ready blocked {0}, one ready blocked {1}, loadout change unreadies {2}, both ready {3}, started {4}, reset in lobby {5}",
             blockedNoneReady, blockedOneReady, unreadied, allReady, started, resetInLobby);
         Check(blockedNoneReady && blockedOneReady, "the host can't start until both players are ready");
-        Check(unreadied && allReady && started, "once both are ready the match starts (changing loadout un-readies you)");
+        Check(unreadied && allReady && started, "once both are ready the run starts (changing loadout un-readies you)");
         Check(resetInLobby, "back in the lobby, everyone has to ready up again");
         host.Leave(""); client.Leave("");
     }
@@ -435,10 +435,10 @@ static partial class Program
                 missing++;
         }
         Check(paused && frozen && worst < 0.01f && missing == 0 && s[1].Game.Bullets.Count == s[0].Game.Bullets.Count,
-            "pausing freezes the match on both sides with bullets in identical positions");
+            "pausing freezes the run on both sides with bullets in identical positions");
         s[0].Game.RequestPause(false);  // the host resumes it
         Run(s, dt, 3);
-        Check(!s[0].Game.Paused && !s[1].Game.Paused && s[0].Game.Bullets.Count > 0 && Ghosts(s) == 0, "resuming continues the match in sync");
+        Check(!s[0].Game.Paused && !s[1].Game.Paused && s[0].Game.Bullets.Count > 0 && Ghosts(s) == 0, "resuming continues the run in sync");
         s[0].Leave(""); s[1].Leave("");
     }
 
@@ -669,15 +669,15 @@ static partial class Program
         foreach (string mode in new[] { "barrier", "flame wall" })
         {
             var s = StartBuffed(dt, 5, 0);
-            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-            var boss = Find(s[0], EnemyType.Boss);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+            var boss = Find(s[0], EnemyType.Warden);
             var tank = s[0].Game.Players[1];
             if (mode == "flame wall")
                 s[0].Game.AddZone(ZoneKind.FlameWall, tank, boss.Pos, 90f, 30f);
             int escaped = 0, frame = 0, bossShots = 0, plain = 0;
             Run(s, dt, 8, null, () =>
             {
-                var b = Find(s[0], EnemyType.Boss);
+                var b = Find(s[0], EnemyType.Warden);
                 if (b == null)
                     return;
                 if (mode == "barrier")
@@ -716,14 +716,14 @@ static partial class Program
         // ...but a Barrier still tanks incoming fire until it has soaked its limit, then shatters.
         {
             var s = StartBuffed(dt, 5, 0);
-            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
             var tank = s[0].Game.Players[1];
             float blockedAt = -1f, brokeAt = -1f, t = 0f;
             tank.BarrierT = 30f;
             tank.BarrierMax = tank.BarrierHp = 360f;
             Run(s, dt, 30, () => brokeAt >= 0f, () =>
             {
-                var b = Find(s[0], EnemyType.Boss);
+                var b = Find(s[0], EnemyType.Warden);
                 if (b != null)
                     tank.Pos = b.Pos + new V2(0f, 250f);  // in the line of fire, not on top of it
                 t += dt;

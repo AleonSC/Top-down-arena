@@ -444,7 +444,7 @@ namespace Arena
                     b.PlayerDmgTaken += amount;
         }
 
-        /// Health a player paid on purpose (Hemomancer and Blood Mage costs: Vein Tithe, Blood Wall, Gore Mortar, ...).
+        /// Health a player paid on purpose (Hemomancer and Hemomancer costs: Vein Tithe, Blood Wall, Gore Mortar, ...).
         /// Kept apart from damage taken, so the difficulty numbers only count what enemies did.
         public void HealthSpent(Player p, float amount, string what)
         {
