@@ -98,6 +98,7 @@ namespace Arena
                             CloseShop();  // the room shops close as the wave starts (gold and shelf are kept)
                         CloseBossGate();  // BossGate.cs
                         ResolveBuildRound();  // the building round closes as the wave starts: the winning room is built (ExpansionGame.cs)
+                        SweepFloorLoot();  // each player's own coins, vector pickups and chest cards left lying about go to them (Coins.cs)
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
                         SpringPendingAmbushes();  // ambush rooms opened between waves (MysteryDoors.cs)

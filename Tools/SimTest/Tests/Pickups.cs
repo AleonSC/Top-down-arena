@@ -77,6 +77,35 @@ static partial class Program
         cg.ThrowGadget(a);
         Run(s, dt, 2f, () => g.Players[1].Gadget == GadgetId.Magnet, () => { Quiet(); Put(); });
         Check(g.Players[1].Gadget == GadgetId.Magnet, "thrown to the teammate, they catch it: a carried Magnet is anyone's");
+
+        // The sweep as the next wave starts (Docs/RoundFlow.md step 4): each player's own coins and vector pickups go to them; a vector
+        // pickup waits while its player's stock is full; orbs, Magnets and anyone's coins stay.
+        g.Players[1].Gadget = g.Players[2].Gadget = GadgetId.None;
+        g.Gadgets.Clear();
+        Run(s, dt, 60, () => g.State == MatchState.Intermission, () => { Quiet(); Put(); });
+        Check(g.State == MatchState.Intermission, "(a break to sweep at)");
+        g.Coins.Clear(); g.Orbs.Clear();
+        foreach (var p in g.Players.Values) { p.Gold = 100; p.AutoReady = true; }
+        g.Players[2].Vectors = 10;
+        g.Players[1].Vectors = g.Players[1].VectorCap;
+        g.Coins[7201] = new Coin { Id = 7201, Value = 5, Owner = 1, Pos = new V2(1300f, 150f), Disp = new V2(1300f, 150f) };
+        g.Coins[7202] = new Coin { Id = 7202, Value = 20, Owner = 2, Pos = new V2(1300f, 200f), Disp = new V2(1300f, 200f) };
+        g.Coins[7203] = new Coin { Id = 7203, Vec = true, Value = 6, Owner = 2, Pos = new V2(1300f, 250f), Disp = new V2(1300f, 250f) };
+        g.Coins[7204] = new Coin { Id = 7204, Vec = true, Value = 6, Owner = 1, Pos = new V2(1300f, 300f), Disp = new V2(1300f, 300f) };
+        g.Coins[7205] = new Coin { Id = 7205, Value = 5, Owner = 0, Pos = new V2(1300f, 350f), Disp = new V2(1300f, 350f) };
+        g.Orbs[7206] = new Orb { Id = 7206, Owner = 1, Pos = new V2(1300f, 400f), Disp = new V2(1300f, 400f), Life = 60f };
+        g.Loots[7301] = new Loot { Id = 7301, Owner = 2, Upgrade = 0, Pos = new V2(1300f, 450f) };  // an unclaimed chest card
+        int vec2 = g.Players[2].Vectors;
+        Run(s, dt, 30, () => g.State == MatchState.Fighting, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.Offer = null; } Put(); });
+        Check(g.State == MatchState.Fighting, "(the next wave started)");
+        Check(g.Players[1].Gold == 105 && g.Players[2].Gold == 120 && !g.Coins.ContainsKey(7201) && !g.Coins.ContainsKey(7202),
+            "as the wave starts each player's own coins go to them (" + g.Players[1].Gold + "/" + g.Players[2].Gold + ")");
+        Check(!g.Coins.ContainsKey(7203) && g.Players[2].Vectors > vec2, "...and their own vector pickups (" + vec2 + " -> " + g.Players[2].Vectors + ")");
+        Check(g.Coins.ContainsKey(7204), "a vector pickup waits while its player's stock is full");
+        Check(g.Coins.ContainsKey(7205) && g.Orbs.ContainsKey(7206), "anyone's coins and health orbs stay where they are");
+        Check(!g.Loots.ContainsKey(7301), "an unclaimed chest card is dealt with as the wave starts (taken if it still fits)");
+        Run(s, dt, 0.3f);
+        Check(!cg.Coins.ContainsKey(7202) && cg.Players[2].Gold == 120, "the client's screen agrees (its coins gone, its gold up)");
         s[0].Leave(""); s[1].Leave("");
     }
 }

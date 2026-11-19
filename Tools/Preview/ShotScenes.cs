@@ -1835,6 +1835,15 @@ static partial class Shot {
         typeof(ArenaApp).GetField("vecFullNear", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(app, true);
       }
     }
+    if (Environment.GetEnvironmentVariable("SWEEP") != null) {
+      // SWEEP=<seconds>: the floor-loot sweep as a wave starts (Game/LootSweepLook.cs, Docs/RoundFlow.md step 4): your coins streaming in
+      // from round the arena and "+86 GOLD COLLECTED" over you, that long in (0.3: mid-flight; 0.8: the label). Mode hud.
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(760f, 470f);
+      float sweepT = float.Parse(Environment.GetEnvironmentVariable("SWEEP"), System.Globalization.CultureInfo.InvariantCulture);
+      var sweepFrom = new[] { new V2(1100f, 300f), new V2(1150f, 340f), new V2(1080f, 380f), new V2(420f, 640f), new V2(460f, 600f), new V2(380f, 300f), new V2(1000f, 700f), new V2(1040f, 660f), new V2(560f, 220f), new V2(900f, 200f) };
+      typeof(ArenaApp).GetMethod("PreviewLootSweep", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(app, new object[] { sweepT, 86, sweepFrom });
+    }
     if (Environment.GetEnvironmentVariable("GADGET") != null) {
       // GADGET=1: the Magnet (Game/GadgetLook.cs): you holding one switched on with coins and a vector pickup flying in, one on the
       // floor (part used), one thrown mid-air. Mode hud.

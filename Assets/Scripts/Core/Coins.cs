@@ -46,6 +46,48 @@ namespace Arena
         /// Host: this player may take a pickup with this owner.
         static bool CanTake(Player p, int owner) => owner == 0 || owner == p.Id;
 
+        /// Host, as the next wave starts (Docs/RoundFlow.md step 4): every player's own coins, vector pickups and unclaimed chest cards
+        /// still lying about go straight to them, so readying early loses nothing. A vector pickup waits while its player's stock is
+        /// full (as on the floor); a card that no longer fits their build is thrown away. Health orbs and Magnets stay where they are,
+        /// and so does anything anyone's (Owner 0). The app shows "+n GOLD" from the coins it saw go (LootSweepLook.cs).
+        void SweepFloorLoot()
+        {
+            var gone = scratchCoinsGone;
+            gone.Clear();
+            foreach (var c in Coins.Values)
+            {
+                Player p;
+                if (c.Owner == 0 || !Players.TryGetValue(c.Owner, out p))
+                    continue;
+                if (c.Vec)
+                {
+                    if (p.Vectors >= p.VectorCap)
+                        continue;
+                    AddVectors(p, c.Value);
+                }
+                else
+                    p.Gold += c.Value;
+                gone.Add(c.Id);
+            }
+            foreach (int id in gone)
+                Coins.Remove(id);
+            if (Loots.Count == 0)
+                return;
+            var cards = new List<Loot>(Loots.Values);
+            foreach (var l in cards)
+            {
+                Player p;
+                if (!Players.TryGetValue(l.Owner, out p))
+                    continue;
+                Loots.Remove(l.Id);
+                if (!Upgrades.Available(l.Upgrade, OfferFor(p)))
+                    continue;
+                Recorder?.Picked(this, p, new[] { l.Upgrade }, l.Upgrade, "chest");
+                GrantUpgrade(p.Id, l.Upgrade);
+                DoLog(p.Role + " took " + Upgrades.All[l.Upgrade].Name + " from a chest (collected as the wave started)");
+            }
+        }
+
         /// Host: a coin (or vector pickup) for owner, scattered round pos between `near` and `near + spread` px out.
         Coin AddCoin(int owner, int value, bool vec, V2 pos, float near, float spread)
         {
