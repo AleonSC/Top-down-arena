@@ -67,6 +67,24 @@ static partial class Program
             }
             nodes.Add(n.Value);
         }
+
+        // Node tiers: the ring is two inner, two middle and two outer nodes, and a later cycle's relic is outer (they used to all land inner).
+        int[] got = new int[3]; int wrong = 0, none = 0;
+        for (int seed = 1; seed <= 20; seed++)
+        {
+            var tn = new List<MapNode>();
+            for (int i = 0; i < 6; i++)
+            {
+                var n = Expansion.GridNodeFor(seed, 0, empty, tn, kinds[i], i, Expansion.RingTier(i));
+                if (!n.HasValue) { none++; continue; }
+                if (Expansion.NodeTier(n.Value) != Expansion.RingTier(i)) wrong++;
+                got[Expansion.NodeTier(n.Value)]++;
+                tn.Add(n.Value);
+            }
+            var rel = Expansion.GridNodeFor(seed, 2, empty, tn, NodeKind.Relic, -1, Expansion.CycleTier(NodeKind.Relic, 2));
+            if (!rel.HasValue || Expansion.NodeTier(rel.Value) != 2) wrong++;
+        }
+        Check(wrong == 0 && none <= 2 && got[1] >= 38 && got[2] >= 38, "nodes are placed at their tier: inner/middle/outer " + got[0] + "/" + got[1] + "/" + got[2] + " of 40 each (" + none + " found no cell)");
     }
 
     // The shortest chain of one-cell rooms (at most `depth`) built along door spots whose last room is the cell the node is the middle of; null if none.

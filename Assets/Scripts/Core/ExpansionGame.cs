@@ -277,10 +277,10 @@ namespace Arena
             // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
             if (cycle == 0)
             {
-                var ringKinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
+                var ringKinds = new[] { NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic };
                 for (int i = 0; i < ringKinds.Length; i++)
                 {
-                    var rn = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i);
+                    var rn = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i, Expansion.RingTier(i));  // (two of each tier: inner, middle, outer)
                     if (!rn.HasValue)
                         continue;
                     Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
@@ -292,7 +292,7 @@ namespace Arena
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind);
+                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind, -1, Expansion.CycleTier(kind, cycle));
                 if (!nd.HasValue)
                     continue;
                 Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
