@@ -50,7 +50,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   set piece (e.g. the Warden's Riot line) at 10. The old **boss approach** (faction only in the 4 track waves before a
   boss) is what you get with Campaign buildup turned off.
 - **Arena:** Campaign and Quick Play are played on the **Expanding arena**: it starts as a box and grows as the party
-  builds rooms between waves with **vectors** (draw a room, vote it in; shops/vendors, a free surprise room after each
+  builds rooms between waves with **vectors** (draw a room, vote it in; shops/Black Markets, a free surprise room after each
   boss). The **Simple Arena** modifier keeps the open arena. Boss Hunts and Practice use the open arena; Survival has its
   own 3200 x 1800 room.
 - **Between waves (Campaign):** level-up cards (3 picks, rerolls, or gold instead), room building and gold shops,
@@ -136,6 +136,13 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Blood Mage abilities cost health:
   `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the
   cast, never below 1 HP.
+
+### Grid vocabulary (use these names in code, UI and docs)
+
+- **Cell**: one 600 px square of the lattice. **Shape** (`PieceShape`): the 1-4 cell polyomino (Mono ... TetL).
+- **Piece** (`Piece`, hand codes in `GridPieces.cs`): what sits in your **hand**: a shape plus a **room type** (`RoomTypeOf`: plain, or a floor). Service pieces (Shop, Market, Arms, Builder Shop) are one cell.
+- **Placement** (`Placement`, `PlacementsFor`): one legal spot and turn for a piece, at a **door spot**. Placing it builds a **room**.
+- Sources: **Piece chest** (`ChestKind.Piece`), **Builder Shop** (buys pieces, vectors), wave and boss drops, round start. **Room chests** are the chests a built room may drop (any kind). **Black Market** sells buildables (never "vendor"). **Card** means upgrade and milestone cards only.
 
 ### Adding an enemy
 

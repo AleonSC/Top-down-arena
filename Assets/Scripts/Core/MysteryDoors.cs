@@ -20,7 +20,7 @@ namespace Arena
 
     /// What is in it (host only, never sent): enemies (most square rooms), nothing (rarer), a shop, a Black Market, an Arms Dealer or a Medic (small
     /// rooms only), or a chest at the far end (hallways).
-    public enum MysteryKind : byte { Enemies, Empty, Shop, Vendor, Chest, Arms, Medic }
+    public enum MysteryKind : byte { Enemies, Empty, Shop, BlackMarket, Chest, Arms, Medic }
 
     /// The rules of mystery doors.
     public static class Mystery
@@ -32,7 +32,7 @@ namespace Arena
         static readonly int[] RoomWeights = { 35, 35, 30 };
         /// What a small room holds: enemies 50, empty 17, shop 11, Black Market 11, Arms Dealer 11, Medic 11. A medium room: enemies 78, empty 22. A hallway: a chest.
         static readonly int[] SmallWeights = { 50, 17, 11, 11, 11, 11 }, MediumWeights = { 78, 22 };
-        static readonly MysteryKind[] SmallKinds = { MysteryKind.Enemies, MysteryKind.Empty, MysteryKind.Shop, MysteryKind.Vendor, MysteryKind.Arms, MysteryKind.Medic };
+        static readonly MysteryKind[] SmallKinds = { MysteryKind.Enemies, MysteryKind.Empty, MysteryKind.Shop, MysteryKind.BlackMarket, MysteryKind.Arms, MysteryKind.Medic };
 
         static int Pick(DetRandom rg, int[] w)
         {
@@ -59,10 +59,10 @@ namespace Arena
 
         /// The grid pieces a room comes as: small one cell (a shop, Black Market, Arms Dealer or Medic always one cell), medium a domino, a corner or a
         /// square, T, S or L tetromino, the hallway a line of 3 or 4. Every piece shape can come from a door (owner Nov 18).
-        public static GridPiece[] PiecesOf(MysteryRoom r) =>
-            r == MysteryRoom.Small ? new[] { GridPiece.Mono }
-            : r == MysteryRoom.Medium ? new[] { GridPiece.Domino, GridPiece.TriL, GridPiece.TetO, GridPiece.TetT, GridPiece.TetS, GridPiece.TetL }
-            : new[] { GridPiece.TriI, GridPiece.TetI };
+        public static PieceShape[] PiecesOf(MysteryRoom r) =>
+            r == MysteryRoom.Small ? new[] { PieceShape.Mono }
+            : r == MysteryRoom.Medium ? new[] { PieceShape.Domino, PieceShape.TriL, PieceShape.TetO, PieceShape.TetT, PieceShape.TetS, PieceShape.TetL }
+            : new[] { PieceShape.TriI, PieceShape.TetI };
 
         /// The size a planned room counts as: one cell is small, a single straight line of cells a hallway, the rest medium.
         public static MysteryRoom RoomOf(List<ExpansionRoom> rooms)
@@ -232,7 +232,7 @@ namespace Arena
             {
                 var room = Mystery.RoomFor(expandSeed, Wave, n + Expanded.Count * 7);
                 var kind = Mystery.KindFor(expandSeed, Wave, n + Expanded.Count * 7, room, enemies);
-                var pieces = Mystery.PiecesOf(room);  // (the room behind is a piece on the lattice, a shop or vendor one cell; owner Nov 18)
+                var pieces = Mystery.PiecesOf(room);  // (the room behind is a piece on the lattice, a shop or Black Market one cell; owner Nov 18)
                 int nShapes = pieces.Length;
                 int first = rg.Int(nShapes);
                 bool placed = false;
@@ -407,7 +407,7 @@ namespace Arena
                 q.Price = k == 0 ? price : 0;
                 q.Owner = p.Id;
                 if (kind == MysteryKind.Shop) q.Kind = Arena.RoomKind.Shop;
-                else if (kind == MysteryKind.Vendor) q.Kind = Arena.RoomKind.Vendor;
+                else if (kind == MysteryKind.BlackMarket) q.Kind = Arena.RoomKind.BlackMarket;
                 else if (kind == MysteryKind.Arms) q.Kind = Arena.RoomKind.Arms;
                 else if (kind == MysteryKind.Medic) q.Kind = Arena.RoomKind.Medic;
                 rooms.Add(q);

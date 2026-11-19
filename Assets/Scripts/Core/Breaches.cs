@@ -43,7 +43,7 @@ namespace Arena
         /// How many open each wave: 2, one more per 3 rooms built, at most 6.
         public static int CountFor(int rooms) => Math.Max(2, Math.Min(6, 2 + rooms / 3));
 
-        /// The connected map's room at p (a sealed floating room, the shop, vendor or Gatekeeper room: none, -1).
+        /// The connected map's room at p (a sealed floating room, the shop, Black Market or Gatekeeper room: none, -1).
         static int OpenAreaAt(World w, V2 p)
         {
             for (int i = 0; i < w.Areas.Length; i++)

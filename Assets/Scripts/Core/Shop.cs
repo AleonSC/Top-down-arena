@@ -27,7 +27,7 @@ namespace Arena
         public const float GoldToXp = 1f;               // XP per leftover gold when the shop closes
         public const float ShopHostCloseAfter = 60f;    // the host can close the shop for everyone after this long
         public const int HealPrice = 40, RevivePrice = 120, RoomKitPrice = 200;
-        public const int VectorPackPrice = 50, VectorPack = 20;  // the vendor's vector pack (Expanding arena; may go past the cap)
+        public const int VectorPackPrice = 50, VectorPack = 20;  // the Black Market's vector pack (Expanding arena; may go past the cap)
         const float TokenReviveTime = 2f;               // a revive token gets you up this long after you go down
 
         public bool ShopOpen;      // the Bazaar's shop is open (replicated)
@@ -245,13 +245,13 @@ namespace Arena
                     p.Gold -= RevivePrice;
                     p.ReviveToken = true;
                     break;
-                case ShopAction.RoomKit:  // the vendor sells a Floor kit to the team (Docs/RoomModifiers.md)
+                case ShopAction.RoomKit:  // the Black Market sells a Floor kit to the team (Docs/RoomModifiers.md)
                     if (!shopping || p.Gold < RoomKitPrice || !ExpandingOn || RoomTokens.Count >= Expansion.MaxTokens)
                         return;
                     p.Gold -= RoomKitPrice;
                     GrantRoomToken(Expansion.FloorToken(expandSeed, Wave * 7 + id, Expanded, RoomTokens));
                     break;
-                case ShopAction.Vectors:  // the vendor sells vectors (Expanding arena); a bought pack may go past the cap
+                case ShopAction.Vectors:  // the Black Market sells vectors (Expanding arena); a bought pack may go past the cap
                     if (!shopping || p.Gold < VectorPackPrice || !ExpandingOn)
                         return;
                     p.Gold -= VectorPackPrice;

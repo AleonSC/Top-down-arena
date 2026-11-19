@@ -8,17 +8,17 @@ namespace Arena
     public partial class ArenaApp
     {
         /// A card's colour: a floor piece in its floor's colour, a plain piece in grid teal, the Builder Shop and the service cards in their rooms' colours.
-        static Rgba CardColor(RoomCard c) => Expansion.IsPieceCard(c) ? (Expansion.CardFloor(c) != PathId.None ? KindInk(Arena.RoomKind.Floor, Expansion.CardFloor(c)) : GridInk) : c == RoomCard.BuilderShop ? BuilderInk : KindInk(Expansion.CardRoomKind(c), PathId.None);
+        static Rgba CardColor(Piece c) => Expansion.IsShapePiece(c) ? (Expansion.PieceFloor(c) != PathId.None ? KindInk(Arena.RoomKind.Floor, Expansion.PieceFloor(c)) : GridInk) : c == Piece.BuilderShop ? BuilderInk : KindInk(Expansion.CardRoomKind(c), PathId.None);
 
         /// A card's room as tiles, fitted and centred in `r`.
-        static void DrawCardGlyph(RoomCard card, Rect r, Color ink)
+        static void DrawCardGlyph(Piece card, Rect r, Color ink)
         {
-            if (card == RoomCard.None)
+            if (card == Piece.None)
                 return;
-            if (Expansion.IsPieceCard(card))  // a grid piece: its cells (Docs/GridPieces.md)
+            if (Expansion.IsShapePiece(card))  // a piece: its cells (Docs/GridPieces.md)
             {
-                var cells = Expansion.GridPieceOrients(Expansion.CardPiece(card))[0];
-                var size = Expansion.GridPieceSize(cells);
+                var cells = Expansion.PieceShapeOrients(Expansion.ShapeOfPiece(card))[0];
+                var size = Expansion.PieceShapeSize(cells);
                 float u = Mathf.Min(r.width / Mathf.Max(2, size[0]), r.height / Mathf.Max(2, size[1]));
                 float gx = r.center.x - size[0] * u / 2f, gy = r.center.y - size[1] * u / 2f;
                 foreach (var c in cells)
@@ -33,7 +33,7 @@ namespace Arena
         }
 
         /// A service card's job over its cell: a coin (shop), a plus (Black Market), a crosshair (Arms Dealer) or a pill (Medic), as on the map.
-        static void DrawServiceIcon(RoomCard card, Rect room, Color ink)
+        static void DrawServiceIcon(Piece card, Rect room, Color ink)
         {
             float u = Mathf.Max(1f, Mathf.Round(room.width / 14f));  // stroke
             var c = room.center;
@@ -42,18 +42,18 @@ namespace Arena
             var col = new Color(Mathf.Lerp(ink.r, 1f, 0.55f), Mathf.Lerp(ink.g, 1f, 0.55f), Mathf.Lerp(ink.b, 1f, 0.55f), ink.a);
             switch (card)
             {
-                case RoomCard.Shop:
+                case Piece.Shop:
                     Ui.Dot(new Rect(c.x - h, c.y - h, 2f * h, 2f * h), dark);
                     Ui.Dot(new Rect(c.x - h + u, c.y - h + u, 2f * (h - u), 2f * (h - u)), col, true);
                     Ui.Fill(new Rect(c.x - u / 2f, c.y - h * 0.5f, u, h), col);
                     break;
-                case RoomCard.Market:
+                case Piece.Market:
                     Ui.Fill(new Rect(c.x - h - u, c.y - u * 1.5f, 2f * (h + u), 3f * u), dark);
                     Ui.Fill(new Rect(c.x - u * 1.5f, c.y - h - u, 3f * u, 2f * (h + u)), dark);
                     Ui.Fill(new Rect(c.x - h, c.y - u / 2f, 2f * h, u), col);
                     Ui.Fill(new Rect(c.x - u / 2f, c.y - h, u, 2f * h), col);
                     break;
-                case RoomCard.Medic:  // a capsule pill, its left half filled
+                case Piece.Medic:  // a capsule pill, its left half filled
                 {
                     float pw = h * 2f, ph = h * 0.9f;
                     var pill = new Rect(c.x - pw / 2f, c.y - ph / 2f, pw, ph);

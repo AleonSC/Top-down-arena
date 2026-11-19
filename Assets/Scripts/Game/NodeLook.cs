@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// How map nodes look (Docs/Nodes.md): a breathing ring and mark in empty space until a room is built round one, then a fixture of that
-    /// room: a shop's stall, a vendor's pedestal, a chest. Preview: EXPANDFLOAT=1, or EXPANDNODE=shop|vendor|chest[,spent].
+    /// room: a shop's stall, a Black Market's pedestal, a chest. Preview: EXPANDFLOAT=1, or EXPANDNODE=shop|Black Market|chest[,spent].
     public partial class ArenaApp
     {
         static readonly Rgba ChestInk = new Rgba(0.82f, 0.5f, 1f);
@@ -22,10 +22,10 @@ namespace Arena
         /// A node's colour: a fogged one is grey, a rule node wears its rule's path colour.
         static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
 
-        /// A chest node's colour once seen: its chest kind's ink (Gold, Grid piece, Buildables or Upgrade).
+        /// A chest node's colour once seen: its chest kind's ink (Gold, Piece chest, Buildables or Upgrade).
         Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
 
-        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Grid piece chest", "Buildables chest" };
+        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Piece chest", "Buildables chest" };
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
         string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
@@ -46,7 +46,7 @@ namespace Arena
                 switch (game.NodeChestKind(n))
                 {
                     case ChestKind.Gold: return "Build a room round it and touch the chest: it bursts into gold coins for everyone to pick up.";
-                    case ChestKind.Piece: return "Build a room round it and touch the chest: every player gets a grid piece card.";
+                    case ChestKind.Piece: return "Build a room round it and touch the chest: every player gets a piece.";
                     case ChestKind.Buildable: return "Build a room round it and touch the chest: every player gets a Black Market build in their stash.";
                     default: return "Build a room round it and touch the chest: every player gets their own upgrade card.";
                 }
@@ -59,7 +59,7 @@ namespace Arena
 
         static string RuleName(byte rule) => (NodeRule)rule == NodeRule.BloodMoon ? "Blood Moon" : ((NodeRule)rule).ToString();
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.BlackMarket ? BlackMarketInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk
             : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : k == NodeKind.VectorChest ? VecCyan : ChestInk;
 
         /// A node kind's name for tips and legends.
@@ -119,7 +119,7 @@ namespace Arena
                 case NodeKind.Tower: TowerGlyph(c, 1.2f, col); break;
                 case NodeKind.Vein: VeinGlyph(c, 1.2f, col); break;
                 case NodeKind.Shop: Arc(c, 22f, 5f, col, 20); break;
-                case NodeKind.Vendor:
+                case NodeKind.BlackMarket:
                     Line(c - new V2(24f, 0f), c + new V2(24f, 0f), 6f, col);
                     Line(c - new V2(0f, 24f), c + new V2(0f, 24f), 6f, col);
                     break;
@@ -217,7 +217,7 @@ namespace Arena
             }
         }
 
-        /// The shop's stall, the vendor's pedestal or the chest, centred on the node (or on an opened floating shop or vendor room).
+        /// The shop's stall, the Black Market's pedestal or the chest, centred on the node (or on an opened floating shop or Black Market room).
         void DrawNodeFixture(V2 c, NodeKind kind, bool spent, ChestKind chest = ChestKind.Upgrade)
         {
             var ink = kind == NodeKind.Chest ? ChestInkOf(chest) : NodeInk(kind);
@@ -235,7 +235,7 @@ namespace Arena
                     Arc(new V2(c.X, c.Y + Mathf.Sin(t * 3f) * 2f), 7f, 3f, ink.WithAlpha(0.95f), 14);  // a coin on the counter
                     break;
                 }
-                case NodeKind.Vendor:
+                case NodeKind.BlackMarket:
                 {
                     Circle(c, 70f, ink.WithAlpha(0.06f + 0.03f * pulse), 28);
                     Circle(c, 30f, ink.WithAlpha(0.2f), 24);
@@ -405,7 +405,7 @@ namespace Arena
                     VectorMark(p, 0.75f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), ink.Mix(new Rgba(1f, 1f, 1f), 0.4f).WithAlpha(al));
                 else if (kind == ChestKind.Relic)
                     RelicGemSpin(p, scale, spin, ink.WithAlpha(al));
-                else  // Upgrade, Grid piece, Buildables: their emblem, turning (ChestLooks.cs)
+                else  // Upgrade, Piece chest, Buildables: their emblem, turning (ChestLooks.cs)
                 {
                     var em = ink.WithAlpha(al);
                     ChestEmblem(kind, p, 1.6f * scale * Mathf.Max(0.3f, Mathf.Abs(spin)), em, ink.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(al), al);

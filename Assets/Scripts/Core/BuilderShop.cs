@@ -3,21 +3,21 @@ using System.IO;
 
 namespace Arena
 {
-    /// The Builder Shop (Docs/RoomCards.md, "Utility cards"): a utility card whose one-cell room (`RoomKind.Builder`) is a shop for piece cards.
+    /// The Builder Shop (Docs/RoomCards.md, "Utility cards"): a utility card whose one-cell room (`RoomKind.Builder`) is a shop for pieces.
     /// Standing in it during a build round shows its shelf (BuilderShopUi.cs): BuilderOfferCount cards, a new seeded shelf each wave (the same on
-    /// every machine), paid in vectors at a quarter off the vendor's price. Bought cards go to your hand. It never sells itself.
+    /// every machine), paid in vectors at a quarter off the full price. Bought cards go to your hand. It never sells itself.
     public static partial class Expansion
     {
         public const int BuilderOfferCount = 5;
 
-        /// What the Builder Shop charges for a card: three quarters of the vendor's price.
-        public static int BuilderPrice(RoomCard c) => (CardPrice(c) * 3 + 3) / 4;
+        /// What the Builder Shop charges for a card: three quarters of the full price.
+        public static int BuilderPrice(Piece c) => (CardPrice(c) * 3 + 3) / 4;
     }
 
     public partial class Game
     {
         /// The Builder Shop's shelf this wave.
-        public RoomCard[] BuilderCards => Expansion.GridBuilderOffers(expandSeed, Wave);
+        public Piece[] BuilderCards => Expansion.GridBuilderOffers(expandSeed, Wave);
 
         /// A Builder Shop room is on the connected map.
         public bool HasBuilderRoom

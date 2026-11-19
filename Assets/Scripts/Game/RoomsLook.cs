@@ -17,7 +17,7 @@ namespace Arena
 
         /// A tiny service room built from a card or a mystery door (not floating): it gets the same mark as a floating one.
         static bool TinyService(RoomArea a)
-            => (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic) && a.Size.X <= TinySide && a.Size.Y <= TinySide;  // (4 x 4, a mystery door's 5 x 4, or a Grid run's one cell)
+            => (a.Kind == RoomKind.Shop || a.Kind == RoomKind.BlackMarket || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic) && a.Size.X <= TinySide && a.Size.Y <= TinySide;  // (4 x 4, a mystery door's 5 x 4, or a Grid run's one cell)
 
         const int TinySide = Expansion.GridCell > Expansion.ShopRoomSide + Expansion.Step ? Expansion.GridCell : Expansion.ShopRoomSide + Expansion.Step;
 
@@ -34,9 +34,9 @@ namespace Arena
                 DrawMedicBay(a.Mid);
                 return;
             }
-            if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor))  // an opened shop or vendor room: its stall or pedestal
+            if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.BlackMarket))  // an opened shop or Black Market room: its stall or pedestal
             {
-                DrawNodeFixture(a.Mid, a.Kind == RoomKind.Shop ? NodeKind.Shop : NodeKind.Vendor, false);
+                DrawNodeFixture(a.Mid, a.Kind == RoomKind.Shop ? NodeKind.Shop : NodeKind.BlackMarket, false);
                 return;
             }
             var ink = KindInk(a.Kind, a.Floor);
@@ -47,7 +47,7 @@ namespace Arena
             switch (a.Kind)
             {
                 case RoomKind.Shop: Arc(c, 22f, 4f, col, 20); break;
-                case RoomKind.Vendor:
+                case RoomKind.BlackMarket:
                     Line(c - new V2(24f, 0f), c + new V2(24f, 0f), 5f, col);
                     Line(c - new V2(0f, 24f), c + new V2(0f, 24f), 5f, col);
                     break;
@@ -326,7 +326,7 @@ namespace Arena
                 else if (a.Surprise > 0 && game.SurpriseFresh) { fill = SurpriseInk(a.Surprise).WithAlpha(0.22f); line = SurpriseInk(a.Surprise); }
                 else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
                 else if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
-                else if (a.Kind == RoomKind.Vendor || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic) { fill = KindInk(a.Kind, a.Floor).WithAlpha(0.2f); line = KindInk(a.Kind, a.Floor); }  // (a Black Market, Arms Dealer or Medic from a card or a door)
+                else if (a.Kind == RoomKind.BlackMarket || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic) { fill = KindInk(a.Kind, a.Floor).WithAlpha(0.2f); line = KindInk(a.Kind, a.Floor); }  // (a Black Market, Arms Dealer or Medic from a card or a door)
                 else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }
                 else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
                 else if (a.Hall) { fill = new Rgba(0.4f, 0.64f, 1f, 0.06f); line = new Rgba(0.4f, 0.64f, 1f, 0.35f); }

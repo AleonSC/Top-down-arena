@@ -331,7 +331,7 @@ namespace Arena
             return group;
         }
 
-        /// The rooms a team can keep through a map reset: every room's first box except the game's floating ones (shop, vendor, Gatekeeper).
+        /// The rooms a team can keep through a map reset: every room's first box except the game's floating ones (shop, Black Market, Gatekeeper).
         public static List<int> KeepsakeChoices(IList<ExpansionRoom> rooms)
         {
             var list = new List<int>();
@@ -380,7 +380,7 @@ namespace Arena
             }
             List<ExpansionRoom> best = null;
             long bestD = long.MaxValue;
-            foreach (var o in GridPieceOptions(core, GridPiece.Mono))
+            foreach (var o in PlacementsFor(core, PieceShape.Mono))
                 foreach (var c in cells)
                 {
                     int dx = o.X - c[0], dy = o.Y - c[1];

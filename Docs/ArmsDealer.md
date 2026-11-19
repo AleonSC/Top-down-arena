@@ -1,7 +1,7 @@
 # Arms Dealer and the boss card pick
 
-Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer room, the boss card pick. Step 4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md),
-[`RoomModifiers.md`](RoomModifiers.md) (floor kits), [`MysteryDoors.md`](MysteryDoors.md) and [`Nodes.md`](Nodes.md) (the tiny shop / vendor rooms).
+Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer room, the boss card pick. Step 4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`Pieces.md`](Pieces.md),
+[`RoomModifiers.md`](RoomModifiers.md) (floor kits), [`MysteryDoors.md`](MysteryDoors.md) and [`Nodes.md`](Nodes.md) (the tiny shop / Black Market rooms).
 
 ## Decisions (owner)
 
@@ -17,21 +17,21 @@ Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer 
 
 ## Plan
 
-1. (built) **Service cards.** `RoomCard.Shop`, `Market`, `Arms` (added at the end of the enum); each plays a tiny 4 x 4 room (`SurpriseShape.Tiny`)
-   of `RoomKind.Shop` / `Vendor` / `Arms` (new, at the end), already open. Card art in `RoomCardsUi.cs`. Sources as shape cards: the
+1. (built) **Service cards.** `Piece.Shop`, `Market`, `Arms` (added at the end of the enum); each plays a tiny 4 x 4 room (`SurpriseShape.Tiny`)
+   of `RoomKind.Shop` / `Vendor` / `Arms` (new, at the end), already open. Card art in `PiecesUi.cs`. Sources as shape cards: the
    1 in 4 wave drop and chest nodes can roll them, and the boss pick. Tests in suite `roomcards`.
    Built: `Expansion.ServiceCards`, `IsServiceCard`, `CardRoomKind`, `DropCard` (1 in `ServiceCardChance` 5); the tiny room gets the floating rooms' mark
-   (`RoomsLook.TinyService`, also mystery-door shops), the card a coin / plus / crosshair (`RoomCardsUi.DrawServiceIcon`). Preview `CARDROOM=arms`.
-2. (built) **Arms Dealer room.** `RoomKind.Arms`, `MysteryKind.Arms` (in the shop / vendor slot of the door table), a stall look (`NodeLook.cs`),
+   (`RoomsLook.TinyService`, also mystery-door shops), the card a coin / plus / crosshair (`PiecesUi.DrawServiceIcon`). Preview `CARDROOM=arms`.
+2. (built) **Arms Dealer room.** `RoomKind.Arms`, `MysteryKind.Arms` (in the shop / Black Market slot of the door table), a stall look (`NodeLook.cs`),
    its screen: every weapon mod as a CRT card with its stacks and price, `ShopAction.BuyMod` (host checks gold, room, stack cap). Saves.
-   Built: `ArmsDealer.cs` (`ModIds`, `ModPrices` 150/250/400, `ModPrice`, `HasArmsRoom`, `InArmsRoom`, `BuyMod`), the shop screen's Arms Dealer
+   Built: `ArmsDealer.cs` (`ModIds`, `ModPrices` 150/250/400, `RoomTypePrice`, `HasArmsRoom`, `InArmsRoom`, `BuyMod`), the shop screen's Arms Dealer
    (`ShopUi.DrawModItem`, items 40+), `Game/ArmsDealerLook.cs` (the stall), small mystery rooms: Arms Dealer 11 of 100. Bought mods are upgrades,
    so saves already keep them. Previews `EXPANDSHOP=4 [SHOPCAT=0] [MODSHELD=a,b]`, `EXPANDMAP=0 CARDROOM=arms CARDDY=260`. Suite `armsdealer`.
 3. (built) **Boss card pick.** In the Expanding arena with room cards on, the boss's `PendingMods` becomes `PendingBossCards`: 5 cards rolled per
    player from Box, Hall, the five shapes, Mini-boss, the service cards and Floor kits (seeded). A card goes to your hand, a kit to the
    team's kits; a full hand or full kit list greys those cards. Remove the free boss drops. Picker look: the room card art in the upgrade
    picker (`HudPicker.cs`). Elsewhere the mod grid stays.
-   Built: `BossCards.cs` (`Offer`: codes, a RoomCard or `KitBase` + a PathId; `Game.BossCardPicks`, `BossCardUsable`, `GrantBossCard`, `BotBossCard`),
+   Built: `BossCards.cs` (`Offer`: codes, a Piece or `KitBase` + a PathId; `Game.BossCardPicks`, `BossCardUsable`, `GrantBossCard`, `BotBossCard`),
    `Player.PendingCards` / `OfferCards` (snapshot), the picker's BOSS SPOILS! cards (`Game/BossCardsUi.cs`), rerolls, the free boss card, Mini-boss
    card and Floor kit gone with cards on; a pick nobody can take is skipped. Preview mode `bosscards` (`BOSSFULL=1`). Suite `armsdealer`.
 4. **Bots and balance.** Bots pick cards (prefer a service card the map lacks, else a shape), buy mods at the Arms Dealer, play service

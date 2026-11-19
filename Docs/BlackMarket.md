@@ -2,7 +2,7 @@
 
 Status: **built (protocol 291)**: buying, stash, placing and the UI. The teleporter and the **Turret** (protocol 412, `Turret.cs`: shoots the nearest enemy for 5 waves, 120 gold, 3 each) work; the Landmine and Slow field are placeholders. The Spike trap was replaced by the Turret (Nov 18).
 
-The vendor room is now the **Black Market** (`RoomKind.Vendor` keeps its name in code). Decided with the owner on Nov 11, 2026.
+The Black Market room is now the **Black Market** (`RoomKind.BlackMarket` keeps its name in code). Decided with the owner on Nov 11, 2026.
 
 - **Screen**: the shop carousel with two tabs, **Buildables** (Teleporter pair 150, Turret 120, Landmine 80, Slow field 90 gold) and **Services**
   (remove upgrade, vector pack, Floor kit; heals and revives moved to the Medic, Nov 18, protocol 410). Add stock stays in the shop room. `ShopUi.DrawBuildCard`.

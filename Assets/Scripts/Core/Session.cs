@@ -65,7 +65,7 @@ namespace Arena
         PlayCard,     // retired (Nov 18, Room cards removed): no longer sent or read
         KeepsakeVote, // client -> host: the room this player wants kept through the map reset (short: its first box) (Docs/MapReset.md, MapReset.cs)
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
-        GridPiece,    // client -> host: place a grid piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, GridPieces.cs)
+        PieceShape,    // client -> host: place a piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, PieceShapes.cs)
         CollectChest, // client -> host: collect a chest from the wave box's Chests tab (node bool, id int) (Docs/RoundFlow.md step 5, RemoteChests.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
@@ -652,8 +652,8 @@ namespace Arena
                 case Msg.MysteryDoor:
                     Game.OnMysteryDoor(peer, r);
                     break;
-                case Msg.GridPiece:
-                    Game.OnGridPiece(peer, r);  // GridPieces.cs
+                case Msg.PieceShape:
+                    Game.OnPieceShape(peer, r);  // PieceShapes.cs
                     break;
                 case Msg.CollectChest:
                     Game.OnCollectChest(peer, r);  // RemoteChests.cs

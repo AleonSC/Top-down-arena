@@ -38,7 +38,7 @@ namespace Arena
         BuildVote,      // retired (Nov 18): was Team vote building; ignored, kept so the knob order stays the same
         BuildPurse,     // retired (Nov 18): was the Team purse; ignored, kept so the knob order stays the same
         Lives,          // count: retries from the last boss's checkpoint when everyone goes down (Checkpoints.cs)
-        RoomCards,      // retired (Nov 18): was Room cards; ignored, kept so the knob order stays the same
+        RoomCards,   // retired (Nov 18): was Room cards; ignored, kept so the knob order stays the same
         GridRooms,      // retired (Nov 18): was Grid rooms (now always on); ignored, kept so the knob order stays the same
     }
 

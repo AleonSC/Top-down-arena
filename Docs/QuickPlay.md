@@ -37,7 +37,7 @@ lights as you do it, with your own key beside it, and **SKIP**. Steps tick in an
 The prompt shows the first unfinished lesson that can be done **now** (`Tutorial.CurrentFor`): building only while a build round
 is open, the kit only in a fight; otherwise the first unfinished one. (Fix, Nov 12: the build round opened after the first card
 while the prompt still asked for the kit.)
-5. **Gold and the shop**: collect gold; walk into a shop or vendor room. Moved last (the plan had gold and the vendor between
+5. **Gold and the shop**: collect gold; walk into a shop or Black Market room. Moved last (the plan had gold and the Black Market between
    waves 1-3): in the Expanding arena gold only drops and the shop only opens once a built room connects one.
 
 Changed from the plan: it **never holds the wave timer** (between waves the ready-up already waits for you, and a per-seat hold

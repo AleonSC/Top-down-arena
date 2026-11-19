@@ -1,12 +1,12 @@
 # Expanding arena: design plan
 
-**Nov 18 (protocol 407): the arena is built only from grid pieces ([`GridPieces.md`](GridPieces.md)); drawing, room cards, open walls, wall push and the team vote are removed. The drawing sections below are history.**
+**Nov 18 (protocol 407): the arena is built only from grid pieces ([`PieceShapes.md`](PieceShapes.md)); drawing, room cards, open walls, wall push and the team vote are removed. The drawing sections below are history.**
 
-**Next (Nov 17): rooms as cards in each player's hand, drawing kept as a lobby switch: see [`RoomCards.md`](RoomCards.md).**
+**Next (Nov 17): rooms as cards in each player's hand, drawing kept as a lobby switch: see [`Pieces.md`](Pieces.md).**
 
 **Next after that: breaches, buyable portals and room fittings: see [`RoomBuilding2.md`](RoomBuilding2.md).**
 
-**Next (Nov 10): paths as themed rooms, and floating shop, vendor and Gatekeeper rooms: see [`FloatingRooms.md`](FloatingRooms.md).**
+**Next (Nov 10): paths as themed rooms, and floating shop, Black Market and Gatekeeper rooms: see [`FloatingRooms.md`](FloatingRooms.md).**
 
 **Update (Nov 10): the purse, the room vote and the optional offers are to be replaced by per-player vectors: see [`VectorBuilding.md`](VectorBuilding.md).**
 

@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The Builder Shop on screen (Core/BuilderShop.cs): while you stand in a Builder room in a build round, its shelf sits at the bottom of the
     /// screen (the arena stays live round it): five room cards, each a drawing of its room, its name and a Buy key with the price in vectors
-    /// (the vendor's price struck through). The counter itself stands in the room (`DrawBuilderCounter`). Preview:
+    /// (the full price struck through). The counter itself stands in the room (`DrawBuilderCounter`). Preview:
     /// `EXPANDMAP=0 CARDROOM=buildershop BUILDEROPEN=1 [BUILDERVEC=n] Tools/Preview/shot.sh x hud`.
     public partial class ArenaApp
     {
@@ -34,7 +34,7 @@ namespace Arena
             DkPanel(r);
             Ui.Fill(new Rect(r.x, r.y, r.width, 2f), new Color(ink.r, ink.g, ink.b, 0.8f));  // an amber top edge
             DkTitle(new Rect(r.x + 18f, r.y + 10f, 260f, 26f), "BUILDER SHOP", 20, ink);
-            Ui.Label(new Rect(r.x + 18f, r.y + 34f, 380f, 16f), "Piece cards for vectors  ·  a new shelf each wave  ·  a quarter off", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 18f, r.y + 34f, 380f, 16f), "Pieces for vectors  ·  a new shelf each wave  ·  a quarter off", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             int held = Game.HandCount(me), have = game.SpendableVectors(me);
             Ui.Label(new Rect(r.xMax - 260f, r.y + 12f, 242f, 20f), have + " VECTORS", 15, new Color(0.55f, 0.9f, 1f), TextAnchor.MiddleRight, true);
             Ui.Label(new Rect(r.xMax - 260f, r.y + 34f, 242f, 16f), "HAND  " + held + " / " + Expansion.HandMax, 11, held >= Expansion.HandMax ? new Color(1f, 0.45f, 0.5f) : Ui.Muted, TextAnchor.MiddleRight, true);
@@ -61,7 +61,7 @@ namespace Arena
                 float wasW = Ui.TextWidth(was, 10, true), cx = tile.center.x;
                 var wasR = new Rect(cx - wasW / 2f, tile.y + 60f, wasW, 12f);
                 Ui.Label(wasR, was, 10, Ui.Muted, TextAnchor.MiddleCenter, true);
-                Ui.Fill(new Rect(wasR.x - 2f, wasR.center.y, wasR.width + 4f, 1f), Ui.Muted);  // (struck through: the vendor's price)
+                Ui.Fill(new Rect(wasR.x - 2f, wasR.center.y, wasR.width + 4f, 1f), Ui.Muted);  // (struck through: the full price)
                 bool old = GUI.enabled;
                 GUI.enabled = why == null;
                 if (DkKey(new Rect(tile.x + 10f, tile.yMax - 34f, tile.width - 20f, 26f), why == null ? "BUY  " + price + " V" : why == "Hand full" ? "HAND FULL" : price + " V  ·  NEED " + (price - have), ink, false, 12))

@@ -30,7 +30,7 @@ namespace Arena
                 case TutorialStep.DrawRoom: return "Draw a room (click its corners)";
                 case TutorialStep.Vote: return "Vote it in";
                 case TutorialStep.Gold: return "Collect gold";
-                case TutorialStep.Shop: return "Walk into the shop or vendor";
+                case TutorialStep.Shop: return "Walk into the shop or Black Market";
             }
             return s.ToString();
         }

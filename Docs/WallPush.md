@@ -25,7 +25,7 @@ and [`RoomBuilding2.md`](RoomBuilding2.md).
 Picked by Claude (change any of these):
 
 - Free building only (Team vote building is gone, Nov 18).
-- Floating rooms (shop, vendor, Gatekeeper) can't be pushed, connected or not; a room not yet connected to the map can't either. The map's size cap holds.
+- Floating rooms (shop, Black Market, Gatekeeper) can't be pushed, connected or not; a room not yet connected to the map can't either. The map's size cap holds.
 - A section stops **1 tile off** other rooms, but boxes of the same room (the room it was pushed from and its other sections) may touch it.
 - A room kit can't change a section on its own: change the room it was pushed from and its sections change with it.
 - Joining another room to make a loop could come later.

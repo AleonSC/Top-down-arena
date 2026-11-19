@@ -24,7 +24,7 @@ static partial class Program
             "the chance: a hallway 10%, a 6 x 6 room 25%, a 12 x 12 room 40%");
 
         // On the grid: a chest for the room just built sits at the middle of a free cell against it, so building that cell claims it.
-        var hall = GridMap(GridPiece.TetI);  // (a line of four cells east of the core)
+        var hall = GridMap(PieceShape.TetI);  // (a line of four cells east of the core)
         int found = 0, bad = 0, rolled = 0;
         for (int seed = 1; seed <= 400; seed++)
         {
@@ -32,7 +32,7 @@ static partial class Program
             if (!nd.HasValue) continue;
             found++;
             var n = nd.Value;
-            bool onCell = Expansion.GridPieceOptions(hall, GridPiece.Mono).Any(o => o.Mid.Equals(n.Pos));
+            bool onCell = Expansion.PlacementsFor(hall, PieceShape.Mono).Any(o => o.Mid.Equals(n.Pos));
             if (!Expansion.IsChest(n.Kind) || Expansion.NodeClaimed(hall, n) || !onCell || !Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1, false).Value.Equals(n))
                 bad++;
             if (Expansion.GridChestFor(seed, hall, new List<MapNode>(), 1).HasValue)
@@ -81,7 +81,7 @@ static partial class Program
 
         // A claimed vector chest: nothing until someone walks up, then vector pickups and the node is spent, on both screens.
         foreach (var gg in new[] { g, cg }) gg.Nodes.Clear();
-        UseMap(new[] { g, cg }, GridMap(GridPiece.Mono));
+        UseMap(new[] { g, cg }, GridMap(PieceShape.Mono));
         var cell = g.Expanded[4];  // (a single cell east of the core)
         var mid = new V2((cell.X + cell.X1) / 2f, (cell.Y + cell.Y1) / 2f);
         g.Nodes.Add(new MapNode { X = (short)mid.X, Y = (short)mid.Y, Kind = NodeKind.VectorChest });

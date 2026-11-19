@@ -4,264 +4,272 @@ using System.IO;
 
 namespace Arena
 {
-    /// A grid piece (Docs/GridPieces.md): a polyomino of 1 to 4 cells (a cell is a 6 x 6 tile room, Expansion.GridCell). New values go at the end.
-    public enum GridPiece : byte { Mono, Domino, TriI, TriL, TetI, TetO, TetT, TetS, TetL }
+    /// A piece's modifier kind (GridPieces.cs): Unknown is a number kept for a modifier not defined yet.
+    public enum RoomTypeKind : byte { None, Floor, Unknown }
 
-    /// One legal placement of a piece: the open room it builds (its boxes, Price 0), which of the piece's turns and mirrors it is, where its cell box starts,
-    /// and the door spot it hangs off.
-    public struct GridPieceOption
+    public static partial class Expansion
     {
-        public GridPiece Piece;
-        public int Orient;     // index into Expansion.GridPieceOrients(piece)
-        public int X, Y;       // the top-left of the piece's cell box, world px, on the lattice
-        public List<ExpansionRoom> Rooms;
-        public byte Side;      // the parent's side it hangs off: 0 top, 1 bottom, 2 left, 3 right
-        public int SX, SY;     // the door spot's middle (world px)
-        public V2 Mid;         // the middle of the piece's cell box
-    }
+        /// Pieces (Docs/GridPieces.md step 2): the hand holds Piece codes (Hand.cs). Codes from here up are pieces: PieceCodeBase + mod * 16 + the
+        /// PieceShape, so any piece can carry one modifier (mod 0: a plain combat room). Below it the old room cards and the service cards
+        /// (Shop, Market, Arms, Builder Shop), which in a Grid run build one cell.
+        public const int PieceCodeBase = 32;
 
-    /// A cell just outside a built room's wall on a lattice line: where a piece's cell can sit against that wall.
-    public struct GridSpot
-    {
-        public byte Side;
-        public int X, Y;       // the cell's top-left, world px
-        public int SX, SY;     // the middle of the cell's edge on the wall
+        /// A piece's modifier slot (owner Nov 18: "each piece has a chance of a modifier, floor or enemy; specifics later"). A mod is a number 0..RoomTypeMax
+        /// in the card code: 1 to 10 are the floors (the PathId, so older hands read the same), 11 up are kept for the modifiers still to come (enemy and the like).
+        /// To add one: give it a number from FirstFreeRoomType, a kind in RoomTypeOf, a name and blurb, add it to RollRoomTypes if it drops, and apply it in ApplyRoomType.
+        public const int RoomTypeMax = (255 - PieceCodeBase) / 16;  // 13: the most a byte card code holds
+        public const int FirstFreeRoomType = (int)PathId.Bazaar + 1;     // 11: the first number not taken by a floor
+
+        public static bool IsShapePiece(Piece c) => (int)c >= PieceCodeBase;
+        public static Piece MakePiece(PieceShape p, PathId floor = PathId.None) => MakePieceRoomType(p, (int)floor);
+        public static Piece MakePieceRoomType(PieceShape p, int mod) => (Piece)(PieceCodeBase + mod * 16 + (int)p);
+        public static PieceShape ShapeOfPiece(Piece c) => (PieceShape)(((int)c - PieceCodeBase) % 16);
+        public static int PieceRoomType(Piece c) => IsShapePiece(c) ? ((int)c - PieceCodeBase) / 16 : 0;
+        public static PathId PieceFloor(Piece c) => RoomTypeOf(PieceRoomType(c)) == RoomTypeKind.Floor ? (PathId)PieceRoomType(c) : PathId.None;
+
+        /// What a modifier number is: none, a floor, or not yet defined (11 up, so not playable).
+        public static RoomTypeKind RoomTypeOf(int mod) => mod == 0 ? RoomTypeKind.None : mod <= (int)PathId.Bazaar ? RoomTypeKind.Floor : RoomTypeKind.Unknown;
+
+        public static string RoomTypeName(int mod) => RoomTypeOf(mod) == RoomTypeKind.Floor ? Paths.Get((PathId)mod).Name : "";
+
+        public static string RoomTypeBlurb(int mod) => RoomTypeOf(mod) == RoomTypeKind.Floor ? "with " + Paths.Get((PathId)mod).Name + " ground: " + Paths.Get((PathId)mod).Blurb : "a plain combat room";
+
+        /// What a modifier adds to a piece's price.
+        public static int RoomTypePrice(int mod) => RoomTypeOf(mod) == RoomTypeKind.None ? 0 : 8;
+
+        /// The modifiers a piece can roll at this wave: every unlocked floor (enemy modifiers join here once they exist).
+        static List<int> RollRoomTypes(int wave)
+        {
+            var open = new List<int>();
+            foreach (var f in Floors)
+                if (ThemeUnlocked(f, wave))
+                    open.Add((int)f);
+            return open;
+        }
+
+        /// Puts a piece's modifier on one of the rooms it builds.
+        public static ExpansionRoom ApplyRoomType(ExpansionRoom q, int mod)
+        {
+            if (RoomTypeOf(mod) == RoomTypeKind.Floor)
+            {
+                q.Kind = RoomKind.Floor;
+                q.Floor = (PathId)mod;
+            }
+            return q;
+        }
+
+        /// A card a Grid run can play: a piece (with a known modifier), or a service card (one cell).
+        public static bool IsGridPiece(Piece c) => IsShapePiece(c) ? (int)ShapeOfPiece(c) < pieceShapeBase.Length && RoomTypeOf(PieceRoomType(c)) != RoomTypeKind.Unknown : IsServiceCard(c) || c == Piece.BuilderShop;
+
+        /// The shape a Grid card builds: its piece, or a single cell for a service card.
+        public static PieceShape PieceShapeOf(Piece c) => IsShapePiece(c) ? ShapeOfPiece(c) : PieceShape.Mono;
+
+        /// What the Builder Shop charges for a piece: 6 vectors a cell, plus its modifier (8 for a floor).
+        public static int PiecePrice(Piece c) => PieceShapeCells(ShapeOfPiece(c)) * 6 + RoomTypePrice(PieceRoomType(c));
+
+        public static string PieceName(Piece c) => (PieceRoomType(c) != 0 ? RoomTypeName(PieceRoomType(c)) + " " : "") + PieceShapeName(ShapeOfPiece(c));
+
+        public static string PieceBlurb(Piece c)
+        {
+            int n = PieceShapeCells(ShapeOfPiece(c));
+            return (n == 1 ? "One cell" : n + " cells joined into one open room") + ", " + RoomTypeBlurb(PieceRoomType(c)) + ". Place it on a door spot; R turns it.";
+        }
+
+        static readonly PieceShape[] gridSmall = { PieceShape.Mono, PieceShape.Domino };
+        static readonly PieceShape[] gridTri = { PieceShape.TriI, PieceShape.TriL };
+        static readonly PieceShape[] gridTet = { PieceShape.TetI, PieceShape.TetO, PieceShape.TetT, PieceShape.TetS, PieceShape.TetL };
+
+        /// A modifier a piece carries at this wave (an unlocked one, seeded): 1 in plainIn pieces gets one, else 0 (plain).
+        static int GridModRoll(DetRandom rng, int wave, int plainIn)
+        {
+            if (rng.Int(plainIn) != 0)
+                return 0;
+            var open = RollRoomTypes(wave);
+            return open.Count == 0 ? 0 : open[rng.Int(open.Count)];
+        }
+
+        /// The starting hand: a single, a domino and a seeded tromino, all plain combat rooms.
+        public static Piece[] GridStartHand(int seed) => new[] { MakePiece(PieceShape.Mono), MakePiece(PieceShape.Domino), MakePiece(gridTri[new DetRandom(seed).Int(gridTri.Length)]) };
+
+        /// The basic card each build round gives: a domino after odd waves, a single after even ones.
+        public static Piece GridRoundCard(int wave) => MakePiece(wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono);
+
+        /// A dropped card (a wave drop, a chest): a service card 1 in ServiceCardChance times, else a piece (a single or domino 35%, a tromino 30%, a tetromino 35%),
+        /// 1 in 4 of them with a modifier.
+        public static Piece GridDropCard(DetRandom rng, int wave)
+        {
+            if (rng.Int(ServiceCardChance) == 0)
+                return ServiceCards[rng.Int(ServiceCards.Length)];
+            int roll = rng.Int(100);
+            var set = roll < 35 ? gridSmall : roll < 65 ? gridTri : gridTet;
+            return MakePieceRoomType(set[rng.Int(set.Length)], GridModRoll(rng, wave, 4));
+        }
+
+        /// The Builder Shop's shelf in a Grid run: a single, a domino, a tromino, a tetromino and a floor piece (seeded by wave).
+        public static Piece[] GridBuilderOffers(int seed, int wave)
+        {
+            var rng = new DetRandom(seed * 7919 + wave * 389 + 43);
+            return new[]
+            {
+                MakePiece(PieceShape.Mono), MakePiece(PieceShape.Domino), MakePiece(gridTri[rng.Int(gridTri.Length)]), MakePiece(gridTet[rng.Int(gridTet.Length)]),
+                MakePieceRoomType(gridTet[rng.Int(gridTet.Length)], GridModRoll(rng, wave, 1)),
+            };
+        }
     }
 
     public static partial class Expansion
     {
-        static readonly int[][][] gridPieceBase =
+        /// A Grid run's mini-boss room (Docs/GridPieces.md step 4): two cells (a domino, 1200 x 600 either way) waiting sealed on the lattice one cell out from the map,
+        /// so building a piece into the cell between joins it. Seeded; null if no spot fits. Kind Gatekeeper, Floating (GatekeeperRoom.cs runs the duel once it opens).
+        public static ExpansionRoom? GridMiniFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes)
         {
-            new[] { new[] { 0, 0 } },
-            new[] { new[] { 0, 0 }, new[] { 1, 0 } },
-            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 2, 0 } },
-            new[] { new[] { 0, 0 }, new[] { 0, 1 }, new[] { 1, 1 } },
-            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 2, 0 }, new[] { 3, 0 } },
-            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 0, 1 }, new[] { 1, 1 } },
-            new[] { new[] { 0, 0 }, new[] { 1, 0 }, new[] { 2, 0 }, new[] { 1, 1 } },
-            new[] { new[] { 1, 0 }, new[] { 2, 0 }, new[] { 0, 1 }, new[] { 1, 1 } },
-            new[] { new[] { 0, 0 }, new[] { 0, 1 }, new[] { 0, 2 }, new[] { 1, 2 } },
-        };
-
-        static List<int[][]>[] gridPieceOrients;
-
-        public static string GridPieceName(GridPiece p)
-        {
-            switch (p)
+            var rng = new DetRandom(seed * 6007 + cycle * 811 + 71);
+            var start = new V2(Game.Width / 2f, Game.Height / 2f);
+            var firsts = PlacementsFor(built, PieceShape.Mono);
+            firsts.Sort((p, q) => q.Mid.DistanceTo(start).CompareTo(p.Mid.DistanceTo(start)));
+            for (int tries = 0; tries < Math.Min(firsts.Count, 24); tries++)
             {
-                case GridPiece.Mono: return "Single";
-                case GridPiece.Domino: return "Domino";
-                case GridPiece.TriI: return "Line of 3";
-                case GridPiece.TriL: return "Corner";
-                case GridPiece.TetI: return "Line of 4";
-                case GridPiece.TetO: return "Square";
-                case GridPiece.TetT: return "T";
-                case GridPiece.TetS: return "S";
-                default: return "L";
-            }
-        }
-
-        public static int GridPieceCells(GridPiece p) => gridPieceBase[(int)p].Length;
-
-        /// Every distinct turn and mirror of a piece (a Square has 1, a Line 2, a T 4, an L 8): each a list of {col, row} cells with the box's corner at {0, 0}.
-        /// The same order everywhere, so an orientation is a small index.
-        public static List<int[][]> GridPieceOrients(GridPiece p)
-        {
-            if (gridPieceOrients == null)
-            {
-                var all = new List<int[][]>[gridPieceBase.Length];
-                for (int i = 0; i < all.Length; i++)
+                var step = firsts[(rng.Int(Math.Max(1, firsts.Count / 2)) + tries) % firsts.Count];
+                var map = new List<ExpansionRoom>(built);
+                map.AddRange(step.Rooms);
+                var outs = PlacementsFor(map, PieceShape.Domino);
+                var ok = new List<ExpansionRoom>();
+                foreach (var o in outs)
                 {
-                    all[i] = new List<int[][]>();
-                    var keys = new HashSet<string>();
-                    for (int mirror = 0; mirror < 2; mirror++)
-                        for (int turn = 0; turn < 4; turn++)
-                        {
-                            var cells = new List<int[]>();
-                            foreach (var c in gridPieceBase[i])
-                            {
-                                int x = mirror == 1 ? -c[0] : c[0], y = c[1];
-                                for (int t = 0; t < turn; t++) { int nx = -y; y = x; x = nx; }
-                                cells.Add(new[] { x, y });
-                            }
-                            int mx = int.MaxValue, my = int.MaxValue;
-                            foreach (var c in cells) { mx = Math.Min(mx, c[0]); my = Math.Min(my, c[1]); }
-                            foreach (var c in cells) { c[0] -= mx; c[1] -= my; }
-                            cells.Sort((a, b) => a[1] != b[1] ? a[1].CompareTo(b[1]) : a[0].CompareTo(b[0]));
-                            var key = string.Join(";", cells.ConvertAll(c => c[0] + "," + c[1]));
-                            if (keys.Add(key))
-                                all[i].Add(cells.ToArray());
-                        }
-                }
-                gridPieceOrients = all;
-            }
-            return gridPieceOrients[(int)p];
-        }
-
-        /// A piece orientation's size in cells {cols, rows}.
-        public static int[] GridPieceSize(int[][] cells)
-        {
-            int w = 0, h = 0;
-            foreach (var c in cells) { w = Math.Max(w, c[0] + 1); h = Math.Max(h, c[1] + 1); }
-            return new[] { w, h };
-        }
-
-        static bool[,] GridPieceMask(int[][] cells)
-        {
-            int n = GridCell / Step, w = GridPieceSize(cells)[0], h = GridPieceSize(cells)[1];
-            var m = new bool[w * n, h * n];
-            foreach (var c in cells)
-                for (int i = 0; i < n; i++)
-                    for (int j = 0; j < n; j++)
-                        m[c[0] * n + i, c[1] * n + j] = true;
-            return m;
-        }
-
-        /// The open room this piece builds with its cell box's corner at (x, y) (on the lattice): its boxes, the first holding the room, Price 0, if it is legal
-        /// there (no overlap, a door's worth of shared wall with the connected map, the size caps), else null with `why`.
-        public static List<ExpansionRoom> GridPieceRooms(IList<ExpansionRoom> built, GridPiece piece, int orient, int x, int y, out string why)
-        {
-            why = null;
-            var orients = GridPieceOrients(piece);
-            if (orient < 0 || orient >= orients.Count) { why = "No such turn"; return null; }
-            if (GridMod(x, GridX0) != 0 || GridMod(y, GridY0) != 0) { why = "Off the grid"; return null; }
-            if (BoughtCount(built) >= MaxRooms) { why = "The map is full"; return null; }
-            var made = FromTiles(built, GridPieceMask(orients[orient]), x, y, PathId.None, out why);
-            if (made == null)
-                return null;
-            for (int i = 0; i < made.Count; i++)
-            {
-                var q = made[i];
-                q.Price = 0;
-                q.Surprise = 0;
-                made[i] = q;
-            }
-            return made;
-        }
-
-        /// The cells just outside each built room's lattice walls where a piece's cell can sit: a door spot per cell along a wall.
-        public static List<GridSpot> GridSpots(IList<ExpansionRoom> built)
-        {
-            var res = new List<GridSpot>();
-            var seen = new HashSet<long>();
-            var linked = ConnectedAreas(built);
-            for (int a = 1; a <= built.Count; a++)
-            {
-                if (built[a - 1].Floating && !linked[a])
-                    continue;  // (a sealed floating room, like a waiting mini-boss room, has no door spots until a piece reaches it)
-                BoxOf(built, a, out int x0, out int y0, out int x1, out int y1);
-                for (int side = 0; side < 4; side++)
-                {
-                    bool across = side < 2;
-                    int line = side == 0 ? y0 : side == 1 ? y1 : side == 2 ? x0 : x1;
-                    if (GridMod(line, across ? GridY0 : GridX0) != 0)
+                    var r = o.Rooms[0];
+                    if (o.Rooms.Count != 1)
                         continue;
-                    int lo = across ? x0 : y0, hi = across ? x1 : y1, along = across ? GridX0 : GridY0;
-                    for (int c = lo - GridMod(lo, along); c < hi; c += GridCell)
+                    bool clear = true;
+                    for (int i = 0; i <= built.Count && clear; i++)  // touches only the cell between, never the built map
                     {
-                        int cx = across ? c : side == 2 ? x0 - GridCell : x1, cy = across ? (side == 0 ? y0 - GridCell : y1) : c;
-                        if (seen.Add(((long)cx << 32) ^ (uint)cy))
-                            res.Add(new GridSpot { Side = (byte)side, X = cx, Y = cy, SX = across ? c + GridCell / 2 : line, SY = across ? line : c + GridCell / 2 });
+                        BoxOf(built, i, out int bx0, out int by0, out int bx1, out int by1);
+                        clear = !Overlaps(r.X - 1, r.Y - 1, r.X1 + 1, r.Y1 + 1, bx0, by0, bx1, by1);
                     }
+                    foreach (var nd in nodes)
+                        clear &= nd.Spent || !(nd.X > r.X - NodeApart / 2 && nd.X < r.X1 + NodeApart / 2 && nd.Y > r.Y - NodeApart / 2 && nd.Y < r.Y1 + NodeApart / 2);
+                    if (clear)
+                        ok.Add(r);
                 }
+                if (ok.Count == 0)
+                    continue;
+                var pick = ok[rng.Int(ok.Count)];
+                pick.Floating = true;
+                pick.Kind = RoomKind.Gatekeeper;
+                pick.Price = 0;
+                pick.Parent = -1;
+                return pick;
             }
-            return res;
-        }
-
-        /// The grid piece a surprise shape becomes in a Grid run (owner Nov 18: boss surprise rooms and breach rooms on the lattice): a Stash one cell, the
-        /// boss gifts tetrominoes (the L hall an L, the T hall and the Cross a T, the Ring and the Chamfer a square), the rest a domino.
-        public static GridPiece GridPieceOfShape(SurpriseShape s)
-        {
-            switch (s)
-            {
-                case SurpriseShape.Stash: case SurpriseShape.Tiny: return GridPiece.Mono;
-                case SurpriseShape.LHall: return GridPiece.TetL;
-                case SurpriseShape.THall: case SurpriseShape.Cross: return GridPiece.TetT;
-                case SurpriseShape.Ring: case SurpriseShape.Chamfer: return GridPiece.TetO;
-                case SurpriseShape.LongHall: return GridPiece.TetI;
-                default: return GridPiece.Domino;
-            }
-        }
-
-        /// SurpriseOptions on the lattice: every place the shape's piece can go (one of whose rooms covers `through`, if given), marked as that surprise shape,
-        /// free. Same order on every machine.
-        public static List<SurpriseOption> GridSurpriseOptions(IList<ExpansionRoom> built, SurpriseShape shape, V2? through = null)
-        {
-            var res = new List<SurpriseOption>();
-            foreach (var o in GridPieceOptions(built, GridPieceOfShape(shape)))
-            {
-                if (through.HasValue)
-                {
-                    bool hit = false;
-                    foreach (var q in o.Rooms)
-                        hit |= through.Value.X > q.X && through.Value.X < q.X1 && through.Value.Y > q.Y && through.Value.Y < q.Y1;
-                    if (!hit)
-                        continue;
-                }
-                var rooms = new List<ExpansionRoom>(o.Rooms.Count);
-                foreach (var q in o.Rooms)
-                    rooms.Add(Free(q, shape));
-                res.Add(new SurpriseOption { Rooms = rooms, Shape = shape, Price = 0, X = o.X, Y = o.Y });
-            }
-            return res;
-        }
-
-        /// A surprise room's pick among the lattice's places (the wanted shape's piece, else the other gifts' pieces): seeded among the best few.
-        public static SurpriseOption? SurpriseFor(int seed, int wave, IList<ExpansionRoom> built, SurpriseShape wanted, out string why, V2? through = null)
-        {
-            why = null;
-            var tries = new List<SurpriseShape> { wanted };
-            foreach (var s in new[] { SurpriseShape.Chamfer, SurpriseShape.THall, SurpriseShape.LHall, SurpriseShape.Cross, SurpriseShape.Ring, SurpriseShape.Box })
-                if (!tries.Contains(s))
-                    tries.Add(s);
-            var rng = new DetRandom(seed * 7919 + wave * 104729 + built.Count + 13);
-            foreach (var shape in tries)
-            {
-                var options = GridSurpriseOptions(built, shape, through);
-                if (options.Count > 0)
-                    return options[rng.Int(Math.Min(SurpriseTop, options.Count))];
-            }
-            why = BoughtCount(built) >= MaxRooms ? "The map is full" : "No spot fits a surprise room";
             return null;
         }
 
-        /// Mystery door rooms (MysteryDoors.cs): every place a piece can go, as surprise options priced by its cells (Mystery.PriceForCells).
-        public static List<SurpriseOption> GridMysteryOptions(IList<ExpansionRoom> built, GridPiece piece)
+        /// Sealed mini-boss rooms still waiting for a piece.
+        public static int GridMinisWaiting(IList<ExpansionRoom> built)
         {
-            var res = new List<SurpriseOption>();
-            foreach (var o in GridPieceOptions(built, piece))
-            {
-                res.Add(new SurpriseOption { Rooms = o.Rooms, Shape = SurpriseShape.Box, Price = Mystery.PriceForCells(GridPieceCells(piece)), X = o.X, Y = o.Y });
-            }
-            return res;
+            var linked = ConnectedAreas(built);
+            int n = 0;
+            for (int i = 0; i < built.Count; i++)
+                if (built[i].Floating && built[i].Kind == RoomKind.Gatekeeper && !linked[i + 1])
+                    n++;
+            return n;
+        }
+    }
+
+    public partial class Game
+    {
+        /// Host, as a boss cycle's nodes are placed: a Grid run gets a mini-boss room waiting on the lattice when none waits (its foe the coming boss's faction's).
+        bool PlaceGridMini(int cycle)
+        {
+            if (!IsHost || !ExpandingOn || Expansion.GridMinisWaiting(Expanded) > 0)
+                return false;
+            var r = Expansion.GridMiniFor(expandSeed, cycle, Expanded, Nodes);
+            if (!r.HasValue)
+                return false;
+            var q = r.Value;
+            q.Mini = (byte)MiniBossNow();
+            Expanded.Add(q);
+            DoLog("a mini-boss room waits at " + q.X + "," + q.Y);
+            return true;
         }
 
-        /// Every place this piece can go: each turn and mirror with one of its cells on a door spot, only what GridPieceRooms accepts, each once.
-        public static List<GridPieceOption> GridPieceOptions(IList<ExpansionRoom> built, GridPiece piece)
+        /// This game's player plays the card in this hand slot as a piece: its orientation, with its cell box's corner at (x, y). Only in a Grid run's build round.
+        public void PlayPiece(int slot, int orient, int x, int y)
         {
-            var res = new List<GridPieceOption>();
-            if (BoughtCount(built) >= MaxRooms)
-                return res;
-            var orients = GridPieceOrients(piece);
-            var seen = new HashSet<string>();
-            foreach (var spot in GridSpots(built))
-                for (int o = 0; o < orients.Count; o++)
-                    foreach (var cell in orients[o])
+            if (!ExpandOpen || Me == null || !ExpandingOn)
+                return;
+            if (IsHost)
+            {
+                HostPlayPiece(MyId, slot, orient, x, y);
+                return;
+            }
+            var w = Proto.Begin(Msg.PieceShape);
+            w.Write((byte)slot); w.Write((byte)orient); w.Write((short)x); w.Write((short)y);
+            session.SendToHost(Proto.End(w));
+        }
+
+        public void OnPieceShape(int peer, BinaryReader r) => HostPlayPiece(peer, r.ReadByte(), r.ReadByte(), r.ReadInt16(), r.ReadInt16());
+
+        /// Host: the card in this slot is built at once as its piece if it fits there, and leaves the hand. Playing costs nothing; a floor piece is a floor room, a service
+        /// card's one cell a shop, Black Market, Arms Dealer or Builder Shop.
+        void HostPlayPiece(int id, int slot, int orient, int x, int y)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !ExpandingOn || !Players.TryGetValue(id, out p) || slot < 0 || slot >= p.Hand.Length)
+                return;
+            var card = (Piece)p.Hand[slot];
+            if (!Expansion.IsGridPiece(card))
+                return;
+            string why;
+            var made = Expansion.PieceShapeRooms(Expanded, Expansion.PieceShapeOf(card), orient, x, y, out why);
+            if (made == null)
+            {
+                DoLog("piece refused (" + why + ")");
+                return;
+            }
+            bool piece = Expansion.IsShapePiece(card);
+            for (int i = 0; i < made.Count; i++)
+            {
+                var q = made[i];
+                q.Owner = id;
+                if (piece)
+                    q = Expansion.ApplyRoomType(q, Expansion.PieceRoomType(card));
+                else
+                    q.Kind = Expansion.CardRoomKind(card);
+                made[i] = q;
+            }
+            TakeCard(p, slot);
+            DoLog(p.Name + " plays a " + Expansion.CardName(card) + " card at " + x + "," + y);
+            BuildNow(id, made[0], made.GetRange(1, made.Count - 1));
+        }
+
+        /// Bot: plays the first card in its hand that fits somewhere, at the spot nearest what it builds toward (Pieces.cs BotCardGoal), else the first spot. False if none fits.
+        bool BotPlayPiece()
+        {
+            var me = Me;
+            if (me == null)
+                return false;
+            V2? goal = BotCardGoal();
+            for (int slot = 0; slot < me.Hand.Length; slot++)
+            {
+                var card = (Piece)me.Hand[slot];
+                if (!Expansion.IsGridPiece(card))
+                    continue;
+                var options = Expansion.PlacementsFor(Expanded, Expansion.PieceShapeOf(card));
+                if (options.Count == 0)
+                    continue;
+                var pick = options[0];
+                if (goal.HasValue)
+                {
+                    float best = float.MaxValue;
+                    foreach (var o in options)
                     {
-                        int x = spot.X - cell[0] * GridCell, y = spot.Y - cell[1] * GridCell;
-                        if (!seen.Add(o + ":" + x + "," + y))
-                            continue;
-                        var rooms = GridPieceRooms(built, piece, o, x, y, out _);
-                        if (rooms == null)
-                            continue;
-                        var size = GridPieceSize(orients[o]);
-                        res.Add(new GridPieceOption
-                        {
-                            Piece = piece, Orient = o, X = x, Y = y, Rooms = rooms, Side = spot.Side, SX = spot.SX, SY = spot.SY,
-                            Mid = new V2(x + size[0] * GridCell / 2f, y + size[1] * GridCell / 2f),
-                        });
+                        float d = o.Mid.DistanceTo(goal.Value);
+                        if (d < best) { best = d; pick = o; }
                     }
-            return res;
+                }
+                PlayPiece(slot, pick.Orient, pick.X, pick.Y);
+                return true;
+            }
+            return false;
         }
     }
 }

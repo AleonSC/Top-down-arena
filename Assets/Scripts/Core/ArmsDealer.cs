@@ -31,7 +31,7 @@ namespace Arena
         }
 
         /// What this player's next stack of the mod costs (the last price again past the table).
-        public static int ModPrice(Player p, int upgrade) => ModPrices[Math.Min(ModPrices.Length - 1, Upgrades.Count(p.Taken, upgrade))];
+        public static int RoomTypePrice(Player p, int upgrade) => ModPrices[Math.Min(ModPrices.Length - 1, Upgrades.Count(p.Taken, upgrade))];
 
         /// The map has an open Arms Dealer room.
         public bool HasArmsRoom
@@ -73,7 +73,7 @@ namespace Arena
             {
                 var p = Players[id];
                 foreach (byte c in p.Hand)
-                    if (c == (byte)RoomCard.Arms)
+                    if (c == (byte)Piece.Arms)
                         held = true;
                 int free = Expansion.HandMax - HandCount(p);
                 if (free > room)
@@ -91,7 +91,7 @@ namespace Arena
             if (to == null)
                 return;
             armsCardCycle = cycle;
-            GiveCard(to, RoomCard.Arms, "this boss cycle's Arms Dealer");
+            GiveCard(to, Piece.Arms, "this boss cycle's Arms Dealer");
         }
 
         /// Host: the Arms Dealer sells this mod (an upgrade id) to the player, if it's a mod they can still take and they have the gold.
@@ -99,7 +99,7 @@ namespace Arena
         {
             if (upgrade < 0 || upgrade >= Upgrades.All.Length || Upgrades.All[upgrade].Rarity != Rarity.Mod || !Upgrades.Available(upgrade, OfferFor(p)))
                 return false;
-            int price = ModPrice(p, upgrade);
+            int price = RoomTypePrice(p, upgrade);
             if (p.Gold < price)
                 return false;
             p.Gold -= price;

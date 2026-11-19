@@ -9,9 +9,9 @@ namespace Arena
     {
         static readonly Rgba CombatInk = new Rgba(1f, 0.3f, 0.36f), ShopInk = new Rgba(1f, 0.82f, 0.4f);
 
-        static readonly Rgba VendorInk = new Rgba(0.3f, 0.9f, 0.8f), GateInk = new Rgba(1f, 0.5f, 0.2f), ArmsInk = new Rgba(0.66f, 0.9f, 0.36f), MedicInk = new Rgba(1f, 0.52f, 0.68f);
+        static readonly Rgba BlackMarketInk = new Rgba(0.3f, 0.9f, 0.8f), GateInk = new Rgba(1f, 0.5f, 0.2f), ArmsInk = new Rgba(0.66f, 0.9f, 0.36f), MedicInk = new Rgba(1f, 0.52f, 0.68f);
 
-        static Rgba KindInk(RoomKind k, PathId floor) => k == RoomKind.Shop ? ShopInk : k == RoomKind.Vendor ? VendorInk : k == RoomKind.Arms ? ArmsInk : k == RoomKind.Medic ? MedicInk : k == RoomKind.Builder ? BuilderInk : k == RoomKind.Gatekeeper ? GateInk : k == RoomKind.Floor ? Paths.Get(floor).Accent : CombatInk;
+        static Rgba KindInk(RoomKind k, PathId floor) => k == RoomKind.Shop ? ShopInk : k == RoomKind.BlackMarket ? BlackMarketInk : k == RoomKind.Arms ? ArmsInk : k == RoomKind.Medic ? MedicInk : k == RoomKind.Builder ? BuilderInk : k == RoomKind.Gatekeeper ? GateInk : k == RoomKind.Floor ? Paths.Get(floor).Accent : CombatInk;
 
         /// A room's drawer's colour (their class colour), or a neutral blue when they've gone or it was nobody's.
         Rgba OwnerInk(int owner)
@@ -20,7 +20,7 @@ namespace Arena
             return owner != 0 && game.Players.TryGetValue(owner, out p) ? p.Def.Color : new Rgba(0.4f, 0.64f, 1f);
         }
 
-        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Black Market" : r.Kind == RoomKind.Arms ? "Arms Dealer" : r.Kind == RoomKind.Medic ? "Medic" : r.Kind == RoomKind.Builder ? "Builder Shop" : r.Kind == RoomKind.Gatekeeper ? FactionMinis.Name((EnemyType)r.Mini) : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
+        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.BlackMarket ? "Black Market" : r.Kind == RoomKind.Arms ? "Arms Dealer" : r.Kind == RoomKind.Medic ? "Medic" : r.Kind == RoomKind.Builder ? "Builder Shop" : r.Kind == RoomKind.Gatekeeper ? FactionMinis.Name((EnemyType)r.Mini) : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
         /// What a rule node's room will do, and what it pays once a wave is cleared there.
         static string RuleBlurb(byte rule)
@@ -156,7 +156,7 @@ namespace Arena
             expKit = Mathf.Clamp(expKit, 0, kits.Count - 1);
             var win = CrtWindowBegin();
             CrtUi.Title(new Rect(0, 22f, W, 56f), "ROOM KITS", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
-            Ui.Label(new Rect(0, 80f, W, 20f), "Pick a kit, then click a plain room  ·  one change per room, it can't be undone  ·  bosses give floors, won challenges give shops, the vendor sells floors", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(0, 80f, W, 20f), "Pick a kit, then click a plain room  ·  one change per room, it can't be undone  ·  bosses give floors, won challenges give shops, the Black Market sells floors", 13, Ui.Muted, TextAnchor.MiddleCenter);
             float kw = 190f, kgap = 10f, kx = W / 2f - (kits.Count * kw + (kits.Count - 1) * kgap) / 2f;
             for (int i = 0; i < kits.Count; i++)
             {
@@ -306,7 +306,7 @@ namespace Arena
                 trapOk = false;
                 trapWhy = "You have " + Market.TurretsEach + " turrets up already";
             }
-            GridPieceOption? gridPick = null;
+            Placement? gridPick = null;
             int gridFits = 0;
             if (gridMode)
                 gridPick = GridModeInput(ev, over, new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y), true, out gridFits);
@@ -420,7 +420,7 @@ namespace Arena
                 foreach (var pb in game.Placed)  // the Black Market traps standing on the map
                 {
                     V2 bp = M(pb.Pos);
-                    var bi = VendorInk;
+                    var bi = BlackMarketInk;
                     RoomMapFrame(bp.X - 7f, bp.Y - 7f, 14f, 14f, 1.5f, bi);
                     RoomMapRect(bp.X - 3f, bp.Y - 3f, 6f, 6f, bi.WithAlpha(0.8f));
                     if (pb.Kind == BuildKind.Turret)  // a turret: a pip for each wave it has left
@@ -708,7 +708,7 @@ namespace Arena
                 if (fa.Sealed && sealedKinds.Add(fa.Kind))
                 {
                     sealedRoom = true;
-                    items.Add(new KeyValuePair<string, Rgba>(fa.Kind == RoomKind.Shop ? "SHOP ROOM" : fa.Kind == RoomKind.Vendor ? "BLACK MARKET" : fa.Kind == RoomKind.Arms ? "ARMS DEALER" : fa.Kind == RoomKind.Medic ? "MEDIC" : "SEALED ROOM", KindInk(fa.Kind, PathId.None)));
+                    items.Add(new KeyValuePair<string, Rgba>(fa.Kind == RoomKind.Shop ? "SHOP ROOM" : fa.Kind == RoomKind.BlackMarket ? "BLACK MARKET" : fa.Kind == RoomKind.Arms ? "ARMS DEALER" : fa.Kind == RoomKind.Medic ? "MEDIC" : "SEALED ROOM", KindInk(fa.Kind, PathId.None)));
                 }
             float lh = 34f + items.Count * 20f;
             float ly = Mathf.Max(y + 8f, H - 30f - lh);
@@ -796,7 +796,7 @@ namespace Arena
             {
                 title = "PLACE A PIECE";
                 steps = new[] { "Pick a piece from your hand", "Point at a glowing door spot on a wall", "Click to build it  ·  R turns it" };
-                tip = "Every room is a piece card. Pieces snap to door spots on the walls of rooms you have built, and playing one is free.";
+                tip = "Every room is a piece. Pieces snap to door spots on the walls of rooms you have built, and playing one is free.";
             }
         }
 
@@ -809,7 +809,7 @@ namespace Arena
                 return false;
             var where = new List<string>();
             if (game.HasShopRoom) where.Add("shop room");
-            if (game.HasVendorRoom) where.Add("Black Market");
+            if (game.HasBlackMarketRoom) where.Add("Black Market");
             if (game.HasArmsRoom) where.Add("Arms Dealer");
             if (game.HasMedicRoom) where.Add("Medic");
             string text = "SHOP OPEN  ·  " + me.Gold + " GOLD  ·  walk into the " + (where.Count > 1 ? string.Join(", ", where.GetRange(0, where.Count - 1).ToArray()) + " or " + where[where.Count - 1] : where.Count == 1 ? where[0] : "shop");

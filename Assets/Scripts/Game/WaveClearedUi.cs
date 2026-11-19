@@ -344,7 +344,7 @@ namespace Arena
             int shown = 0;
             foreach (var c in me.Hand)  // the cards by name, three at most
             {
-                if (c == (byte)RoomCard.None)
+                if (c == (byte)Piece.None)
                     continue;
                 if (shown == 3)
                 {
@@ -352,7 +352,7 @@ namespace Arena
                     y += 20f;
                     break;
                 }
-                HudCrt(new Rect(x, y, w, 18f), "· " + Expansion.CardName((RoomCard)c).ToUpperInvariant(), 17, Color.white);
+                HudCrt(new Rect(x, y, w, 18f), "· " + Expansion.CardName((Piece)c).ToUpperInvariant(), 17, Color.white);
                 y += 20f;
                 shown++;
             }

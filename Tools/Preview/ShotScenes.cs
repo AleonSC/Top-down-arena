@@ -183,7 +183,7 @@ static partial class Shot {
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
       string lootKind = Environment.GetEnvironmentVariable("LOOTKIND");  // LOOTKIND=build|card: a Buildables chest's build or a piece chest's card instead of the upgrade
       if (lootKind == "build") { g.Loots[99].Kind = LootKind.Build; g.Loots[99].Item = (int)BuildKind.Turret; }
-      else if (lootKind == "card") { g.Loots[99].Kind = LootKind.Card; g.Loots[99].Item = (int)Expansion.PieceCard(GridPiece.TriL); }
+      else if (lootKind == "card") { g.Loots[99].Kind = LootKind.Card; g.Loots[99].Item = (int)Expansion.MakePiece(PieceShape.TriL); }
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
       for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
       if (Environment.GetEnvironmentVariable("PROPSBREAK") != null) { g.Enemies.Clear(); g.State = MatchState.Intermission; g.StateTimer = 20f; me.Offer = null; }  // PROPSBREAK=1: between waves (the card shows then too)
@@ -2161,7 +2161,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("FINSTYLE") != null) Expansion.FinStyle = int.Parse(Environment.GetEnvironmentVariable("FINSTYLE"));  // FINSTYLE=<n>: a drawn room's side walls (Expansion.AddFins)
       int nb = int.Parse(Environment.GetEnvironmentVariable("EXPANDMAP"));
       if (nb > 0) { xg.Expanded.AddRange(Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); }  // EXPANDMAP=<n>: the core and n pieces round it (0: the bare hub)
-      for (int k = 0; k < nb; k++) { var mo = Expansion.GridPieceOptions(xg.Expanded, k % 3 == 0 ? GridPiece.TetL : k % 3 == 1 ? GridPiece.Domino : GridPiece.Mono); if (mo.Count == 0) break; foreach (var mr in mo[(k * 7) % mo.Count].Rooms) { var m2 = mr; m2.Owner = 1 + k % 2; xg.Expanded.Add(m2); } }
+      for (int k = 0; k < nb; k++) { var mo = Expansion.PlacementsFor(xg.Expanded, k % 3 == 0 ? PieceShape.TetL : k % 3 == 1 ? PieceShape.Domino : PieceShape.Mono); if (mo.Count == 0) break; foreach (var mr in mo[(k * 7) % mo.Count].Rooms) { var m2 = mr; m2.Owner = 1 + k % 2; xg.Expanded.Add(m2); } }
       string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: plain boxes added in order (no checks)
       if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why = null; var cr = Box(q[0], q[1], q[2], q[3]); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
       if (Environment.GetEnvironmentVariable("GRIDCORE") != null) { xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }  // GRIDCORE=1 (with EXPANDMAP=0): a Grid run's core (GridRooms.cs); EXPANDAT=x,y ZOOM=z to look at it
@@ -2175,14 +2175,14 @@ static partial class Shot {
       }
       string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=buildershop|shop|market|arms|medic: that card's one-cell room built on the lattice, everyone in it; CARDSPOT=<n> picks its nth door spot
       if (xcard != null) {
-        var xc = (RoomCard)Enum.Parse(typeof(RoomCard), xcard, true);
-        var xco = Expansion.GridPieceOptions(xg.Expanded, GridPiece.Mono);
+        var xc = (Piece)Enum.Parse(typeof(Piece), xcard, true);
+        var xco = Expansion.PlacementsFor(xg.Expanded, PieceShape.Mono);
         int xci = Math.Min(xco.Count - 1, int.Parse(Environment.GetEnvironmentVariable("CARDSPOT") ?? "0"));
         if (xci >= 0) { var r2 = xco[xci].Rooms[0]; r2.Owner = 1; r2.Kind = Expansion.CardRoomKind(xc); xg.Expanded.Add(r2); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = xco[xci].Mid + new V2(0f, float.Parse(Environment.GetEnvironmentVariable("CARDDY") ?? "0")); }  // (CARDDY=<px>: stand that far below the room's middle)
         else Console.Error.WriteLine("CARDROOM: no spot fits");
         if (Environment.GetEnvironmentVariable("BUILDEROPEN") != null) {  // BUILDEROPEN=1 (with CARDROOM=buildershop): a build round, so the Builder Shop's shelf shows (BuilderShopUi.cs)
           xg.ExpandOpen = true; xg.State = MatchState.Intermission;
-          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.PieceCard(GridPiece.Mono); pl.Hand[1] = (byte)Expansion.PieceCard(GridPiece.TetL); }
+          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.MakePiece(PieceShape.Mono); pl.Hand[1] = (byte)Expansion.MakePiece(PieceShape.TetL); }
         }
       }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
@@ -2258,7 +2258,7 @@ static partial class Shot {
         Console.Error.WriteLine("mystery doors: " + xg.MysteryDoors.Count);
         if (Environment.GetEnvironmentVariable("MYSTERYHALL") != null) {  // MYSTERYHALL=1: a hallway door opened, its chest at the far end, you at the door
           typeof(Game).GetMethod("ResetMysteryDoors", mfl).Invoke(xg, null);
-          foreach (var o in Expansion.GridMysteryOptions(xg.Expanded, GridPiece.TetI)) {
+          foreach (var o in Expansion.GridMysteryOptions(xg.Expanded, PieceShape.TetI)) {
             var args = new object[] { o, null, null };
             if (!(bool)typeof(Game).GetMethod("MysteryDoorOf", mfl).Invoke(xg, args)) continue;
             var hd = (MysteryDoor)args[1];
