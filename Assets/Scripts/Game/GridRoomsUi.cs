@@ -90,7 +90,14 @@ namespace Arena
             var hits = GridFitsAt(wm);
             fits = hits.Count;
             if (hits.Count == 0)
+            {
+                if (ev.type == EventType.MouseDown && ev.button == 0)  // fits nowhere here: a red cross shakes (BuildMotion.cs)
+                {
+                    gridDenyT0 = Time.unscaledTime;
+                    gridDenyAt = wm;
+                }
                 return null;
+            }
             if (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.R)
             {
                 expGridTurn++;
@@ -99,6 +106,7 @@ namespace Arena
             var pick = hits[((expGridTurn % hits.Count) + hits.Count) % hits.Count];
             if (ev.type == EventType.MouseDown && ev.button == 0)
             {
+                StartCardFly(expGridSlot, pick.Mid);  // the card flies to the spot (BuildMotion.cs)
                 game.PlayPieceCard(expGridSlot, pick.Orient, pick.X, pick.Y);
                 expGridSlot = -1;
                 expGridTurn = 0;
@@ -124,22 +132,47 @@ namespace Arena
                 RoomMapFrame(c.X - 6f, c.Y - 6f, 12f, 12f, 1f, GridInk.WithAlpha(0.5f));
             }
             if (!pick.HasValue)
+            {
+                ghostLast = null;
                 return;
+            }
+            V2 off = GhostOffset(pick.Value);  // gliding from the last spot (BuildMotion.cs)
+            System.Func<V2, V2> G = w => M(w + off);
             var cells = Expansion.PieceShapeOrients(Expansion.PieceShapeOf(PickedPieceCard))[pick.Value.Orient];
             float fill = 0.2f + 0.08f * Mathf.Sin(Time.unscaledTime * 4f);
+            float spin = GhostSpin;
+            if (spin != 0f)  // R: the new turn spins the last quarter into place, cells as turned quads
+            {
+                V2 mid = G(pick.Value.Mid);
+                float cs = Mathf.Cos(spin), sn = Mathf.Sin(spin);
+                System.Func<V2, V2> rot = p => { V2 q = p - mid; return mid + new V2(q.X * cs - q.Y * sn, q.X * sn + q.Y * cs); };
+                foreach (var cell in cells)
+                {
+                    V2 a = G(new V2(pick.Value.X + cell[0] * Expansion.GridCell, pick.Value.Y + cell[1] * Expansion.GridCell));
+                    V2 b = G(new V2(pick.Value.X + (cell[0] + 1) * Expansion.GridCell, pick.Value.Y + (cell[1] + 1) * Expansion.GridCell));
+                    V2 c0 = rot(a), c1 = rot(new V2(b.X, a.Y)), c2 = rot(b), c3 = rot(new V2(a.X, b.Y));
+                    SetColor(GridOk.WithAlpha(fill + 0.1f));
+                    Quad(c0, c1, c2, c3);
+                    Line(c0, c1, 1.5f, GridOk); Line(c1, c2, 1.5f, GridOk); Line(c2, c3, 1.5f, GridOk); Line(c3, c0, 1.5f, GridOk);
+                }
+                return;
+            }
             foreach (var cell in cells)  // each cell, so the piece reads as cells joined into one room
             {
-                V2 p0 = M(new V2(pick.Value.X + cell[0] * Expansion.GridCell, pick.Value.Y + cell[1] * Expansion.GridCell));
-                V2 p1 = M(new V2(pick.Value.X + (cell[0] + 1) * Expansion.GridCell, pick.Value.Y + (cell[1] + 1) * Expansion.GridCell));
+                V2 p0 = G(new V2(pick.Value.X + cell[0] * Expansion.GridCell, pick.Value.Y + cell[1] * Expansion.GridCell));
+                V2 p1 = G(new V2(pick.Value.X + (cell[0] + 1) * Expansion.GridCell, pick.Value.Y + (cell[1] + 1) * Expansion.GridCell));
                 RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, GridOk.WithAlpha(fill));
                 RoomMapFrame(p0.X + 2f, p0.Y + 2f, p1.X - p0.X - 4f, p1.Y - p0.Y - 4f, 1f, GridOk.WithAlpha(0.35f));
             }
-            foreach (var q in pick.Value.Rooms)
+            foreach (var q in pick.Value.Rooms)  // the room's edge: marching dashes (still under Reduced effects)
             {
-                V2 p0 = M(new V2(q.X, q.Y)), p1 = M(new V2(q.X1, q.Y1));
-                RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1.5f, GridOk.WithAlpha(0.9f));
+                V2 p0 = G(new V2(q.X, q.Y)), p1 = G(new V2(q.X1, q.Y1));
+                if (FxCalm)
+                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1.5f, GridOk.WithAlpha(0.9f));
+                else
+                    DashFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 2f, GridOk.WithAlpha(0.95f));
             }
-            V2 d = M(new V2(pick.Value.SX, pick.Value.SY));
+            V2 d = G(new V2(pick.Value.SX, pick.Value.SY));
             RoomMapRect(d.X - 5f, d.Y - 5f, 10f, 10f, GridOk);
         }
 
@@ -171,12 +204,21 @@ namespace Arena
             int n = me != null ? Game.HandCount(me) : 0;
             Ui.Label(new Rect(area.x, area.y, area.width, 16f), "YOUR PIECES  ·  " + n + " / " + Expansion.HandMax, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             float gap = 6f, cw = (area.width - gap) / 2f, ch = 74f, y0 = area.y + 20f;
+            if (me != null)
+                NoteHand(me.Hand, n, s => new Vector2((s % 2) * (cw + gap), (s / 2) * (ch + gap)));  // the hand closing up after a card leaves (BuildMotion.cs)
+            float a0 = Ui.Alpha;
             for (int i = 0; i < n; i++)
             {
                 var card = (PieceCard)me.Hand[i];
                 bool playable = Expansion.IsGridPieceCard(card);
                 var r = new Rect(area.x + (i % 2) * (cw + gap), y0 + (i / 2) * (ch + gap), cw, ch);
+                if (i < gridSlotRects.Length) gridSlotRects[i] = r;
                 bool on = i == expGridSlot;
+                float ca;
+                r = HandCardRect(i, r, out ca);
+                if (on && !FxCalm)
+                    r.y -= 3f + 1.5f * Mathf.Sin(Time.unscaledTime * 3f);  // the picked card lifts
+                Ui.Alpha = a0 * ca;
                 if (DkKey(r, "", on, calm, size: 11, rawSize: true) && playable)
                 {
                     expGridSlot = on ? -1 : i;
@@ -198,7 +240,10 @@ namespace Arena
                     if (playable)
                         TipAdd("Click it, point at a door spot, click to build. R turns it.", 11, Ui.Muted);
                 }
+                if (on)
+                    DrawPickedCardLook(r);
             }
+            Ui.Alpha = a0;
             float y = y0 + ((n + 1) / 2) * (ch + gap);
             Ui.Label(new Rect(area.x, y, area.width, 30f), "+1 piece each round. More from bosses, chests, the Black Market and the Builder Shop.", 10, Ui.Muted, TextAnchor.UpperLeft, true, true);
         }
@@ -221,7 +266,10 @@ namespace Arena
                 {
                     float mx = x + c / 2f, my = y + c / 2f;
                     float dx = Mathf.Max(0f, Mathf.Max(bx0 - mx, mx - bx1)), dy = Mathf.Max(0f, Mathf.Max(by0 - my, my - by1));
-                    float a = 0.16f * (1f - Mathf.Sqrt(dx * dx + dy * dy) / 1500f);
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                    float a = 0.16f * (1f - dist / 1500f);
+                    if (!FxCalm)  // a slow shimmer rolling out from the map (BuildMotion.cs H)
+                        a *= 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 1.4f - dist / 300f);
                     if (a <= 0.005f)
                         continue;
                     var ink = GridInk.WithAlpha(a);
@@ -269,6 +317,7 @@ namespace Arena
             float after = t - 0.35f;
             if (after < 0f)
                 return;
+            DrawPlaceRing(M, after);  // the shockwave (BuildMotion.cs)
             float flash = Mathf.Max(0f, 1f - after * 2.5f);
             if (flash > 0f)
                 foreach (var r in placeFxRooms)

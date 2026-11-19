@@ -226,8 +226,9 @@ namespace Arena
         {
             RoundBackdrop(PathDim);
             var win = CrtWindowBegin();
+            NoteBuildDrawn();  // the open's motion starts when the screen comes up (BuildMotion.cs)
             TipClear();
-            DrawBuildRail(calm);
+            BuildSlide(0.08f, -200f, () => DrawBuildRail(calm));
             bool gridMode = !expLinkMode && !expGateMode && !expTrapMode;  // the Pieces tool: a piece snaps to a door spot (GridRoomsUi.cs)
             var map = DrawMapRect;
             var wd = game.ExpansionWorld;
@@ -272,6 +273,22 @@ namespace Arena
             if (DkKey(new Rect(map.xMax - 106f, map.yMax - 34f, 40f, 28f), "+", false, calm, size: 18, rawSize: true)) expZoom = Mathf.Min(8f, expZoom * 1.4f);
             if (DkKey(new Rect(map.xMax - 62f, map.yMax - 34f, 56f, 28f), "FIT", false, calm, size: 14, rawSize: true)) expZoom = 1f;
             bool over = map.Contains(ev.mousePosition);
+            // A mystery door under the mouse: a click opens it from here, wherever you stand (MysteryDoors.cs, Msg.MysteryBuy).
+            int mystHover = -1;
+            for (int mi = 0; over && mi < game.MysteryDoors.Count; mi++)
+            {
+                V2 mc = M(game.MysteryDoors[mi].Pos);
+                if (new Rect(mc.X - 12f, mc.Y - 12f, 24f, 24f).Contains(ev.mousePosition))
+                    mystHover = mi;
+            }
+            int mystPrice = mystHover >= 0 ? game.MysteryDoors[mystHover].Price : 0;
+            bool mystCan = mystHover >= 0 && mystPrice <= game.SpendableVectors(game.Me);
+            if (mystHover >= 0 && ev.type == EventType.MouseDown && ev.button == 0)
+            {
+                if (mystCan)
+                    game.BuyMysteryDoor(mystHover);
+                ev.Use();
+            }
             // Controls: left click sets the first corner, the box follows the mouse, a second left click places it (or press, drag and let go);
             // right click or Escape cancels the box (and, with none started, goes back).
             bool confirm = false, dragRelease = false;
@@ -412,7 +429,7 @@ namespace Arena
                         RoomMapRect(Mathf.Min(e0.X, e1.X) - 2f, Mathf.Min(e0.Y, e1.Y) - 2f, Mathf.Abs(e1.X - e0.X) + 4f, Mathf.Abs(e1.Y - e0.Y) + 4f, new Rgba(0.37f, 0.94f, 1f, 0.8f));
                     }
                     else
-                        RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(0.37f, 0.94f, 1f, 0.8f));
+                        DrawDoorSpot(c, d.Pos, new Rgba(0.37f, 0.94f, 1f, 0.8f));  // (popping in after a build, BuildMotion.cs)
                 }
                 for (int li = 0; li < game.Links.Count; li++)  // the portal pairs built, in their pair's colour
                     DrawLinkMark(wd, M, game.Links[li].A, game.Links[li].B, PortalColours[(wd.Portals.Length - game.Links.Count + li) % PortalColours.Length], 1f);
@@ -434,7 +451,7 @@ namespace Arena
                     RoomMapFrame(bp.X - 8f, bp.Y - 8f, 16f, 16f, 2f, bi);
                 }
                 DrawHoloGates(wd, M, k);  // the gates fitted (BuildMapLook.cs)
-                DrawHoloMystery(M, k);  // sealed mystery doors (MysteryDoorLook.cs)
+                DrawHoloMystery(M, k, mystHover);  // sealed mystery doors (MysteryDoorLook.cs)
                 DrawHoloBreaches(M, k, map);  // this wave's breaches
                 if (expGateMode)  // the doors a gate can go on, and the one under the mouse
                     for (int di = 0; di < wd.Doors.Length; di++)
@@ -463,10 +480,23 @@ namespace Arena
                 if (gridMode)
                     DrawGridGhost(M, gridPick);
                 DrawPlaceFx(M, k);  // a piece just built slams in (GridRoomsUi.cs)
+                DrawGridDeny(M);  // a click where the piece fits nowhere (BuildMotion.cs)
+                DrawBuildPrint(map);  // the open: the map prints top-down
                 roomClip = null;
                 EndUiGl();
             }
             CrtKit.Frame(map, 1f, CrtStyle.Ink.WithAlpha(0.25f));
+            DrawCardFly(M);  // the card on its way to the map, and "+1 ROOM" over a piece just built (BuildMotion.cs)
+            DrawPlaceLabel(M, map);
+            if (mystHover >= 0)
+            {
+                V2 mc = M(game.MysteryDoors[mystHover].Pos);
+                var mr = new Rect(mc.X - 12f, mc.Y - 12f, 24f, 24f);
+                TipHover(mr);
+                TipStart(mr, "Mystery room", MysteryHolo.ToColor());
+                TipAdd("A sealed door with a hidden room behind it: enemies, a shop, a chest, or nothing.", 12, Ui.Text);
+                TipAdd("Click to open it for " + mystPrice + " vectors.", 12, mystCan ? CrtStyle.Gold : new Color(1f, 0.45f, 0.5f), true);
+            }
             foreach (var nd in game.Nodes)  // the nodes: named in a hover tip, not on the map (the legend shows the colours)
                 if (!Expansion.NodeClaimed(game.Expanded, nd))
                 {
@@ -496,7 +526,12 @@ namespace Arena
                 }
             string line;
             Color lineInk;
-            if (gridMode)
+            if (mystHover >= 0)
+            {
+                line = mystCan ? "MYSTERY ROOM  ·  " + mystPrice + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  click to open it" : "Can't afford it: " + mystPrice + " vectors, you have " + game.SpendableVectors(game.Me);
+                lineInk = mystCan ? CrtStyle.Gold : new Color(1f, 0.45f, 0.5f);
+            }
+            else if (gridMode)
                 line = GridRoomLine(gridPick, gridFits, over, out lineInk);
             else if (expGateMode && gateDoor >= 0)
             {
@@ -530,37 +565,43 @@ namespace Arena
             }
             int pending = 0;  // what the thing being drawn costs (a refund is negative), for the wallet bar
             if (expGateMode && gateDoor >= 0 && gateWhy == null) pending = Gates.Price;
+            if (mystHover >= 0) pending = mystPrice;
             var panel = new Rect(map.xMax + 16f, map.y, win.xMax - map.xMax - 32f, H - 30f - map.y);
-            float py = DrawBuildPanelTop(panel, pending, gateDoor);
-            if (!lineInk.Equals(Ui.Muted) && !string.IsNullOrEmpty(line))  // (the standing hints are hover tips now: only live feedback shows here)
+            BuildSlide(0.12f, 260f, () =>
             {
-                DkSub(new Rect(panel.x + 10f, py, panel.width - 20f, 74f), new Color(0f, 0f, 0f, 0.35f));
-                Ui.Label(new Rect(panel.x + 18f, py + 4f, panel.width - 36f, 66f), line, 13, lineInk, TextAnchor.MiddleLeft, true, true);
-                py += 84f;
-            }
-            float bx = panel.x + 10f, bw = panel.width - 20f;
-            float actY = panel.yMax - 140f;  // the action keys sit just above Close and Done · ready up
-            if (gridMode)
-                DrawGridPalette(new Rect(bx, py, bw, actY - 46f - py), calm);
-            // Close (back to the arena, the wave box folds into its strip) and Done · ready up (closes and readies you).
-            // Readying needs the break (not mid-wave, not before a boss: the gate decides, nor with Auto-ready on).
-            var meR = game.Me;
-            bool canReady = meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
-            if (canReady && DkKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", true, calm, size: 18, rawSize: true))
-            {
-                expDrawing = expDragging = false;
-                expOpen = false;
-                if (!meR.Ready)
-                    game.SetMyReady(true);
-            }
-            if (DkKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), "CLOSE", false, calm, size: canReady ? 18 : 22, rawSize: true))
-            {
-                expDrawing = expDragging = false;
-                expOpen = false;
-            }
+                float py = DrawBuildPanelTop(panel, pending, gateDoor);
+                if (!lineInk.Equals(Ui.Muted) && !string.IsNullOrEmpty(line))  // (the standing hints are hover tips now: only live feedback shows here)
+                {
+                    DkSub(new Rect(panel.x + 10f, py, panel.width - 20f, 74f), new Color(0f, 0f, 0f, 0.35f));
+                    Ui.Label(new Rect(panel.x + 18f, py + 4f, panel.width - 36f, 66f), line, 13, lineInk, TextAnchor.MiddleLeft, true, true);
+                    py += 84f;
+                }
+                float bx = panel.x + 10f, bw = panel.width - 20f;
+                float actY = panel.yMax - 140f;  // the action keys sit just above Close and Done · ready up
+                if (gridMode)
+                    DrawGridPalette(new Rect(bx, py, bw, actY - 46f - py), calm);
+                // Close (back to the arena, the wave box folds into its strip) and Done · ready up (closes and readies you).
+                // Readying needs the break (not mid-wave, not before a boss: the gate decides, nor with Auto-ready on).
+                var meR = game.Me;
+                bool canReady = meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
+                if (canReady && DkKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", true, calm, size: 18, rawSize: true))
+                {
+                    expDrawing = expDragging = false;
+                    expOpen = false;
+                    if (!meR.Ready)
+                        game.SetMyReady(true);
+                }
+                if (DkKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), "CLOSE", false, calm, size: canReady ? 18 : 22, rawSize: true))
+                {
+                    expDrawing = expDragging = false;
+                    expOpen = false;
+                }
+            });
             Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), gridMode ? "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   R  turn   ·   RIGHT CLICK  put the piece back   ·   ESC  close" : "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
             DrawTip(true);
             CrtUi.End(win, t, calm);
+            DrawBuildCorners();  // the breathing corners, and the tube switching on (BuildMotion.cs)
+            DrawBuildPowerOn();
         }
 
         float expZoom = 1f;  // the drawing map's zoom (1 = the whole map)
@@ -668,11 +709,12 @@ namespace Arena
                 pick = shown[ev.keyCode - KeyCode.Alpha1];
                 ev.Use();
             }
+            bool sliding = RailSlide(cur, 92f + Mathf.Max(0, shown.IndexOf(cur)) * 42f);  // the selection frame slides to a new tool (BuildMotion.cs)
             for (int si0 = 0; si0 < shown.Count; si0++)
             {
                 int i = shown[si0];
                 var r = new Rect(x, 92f + si0 * 42f, w, 36f);
-                bool on = i == cur;
+                bool on = i == cur && !sliding;
                 if (DkKey(r, names[i], on, calm, size: 15, rawSize: true))
                     pick = i;
                 Ui.Label(new Rect(r.x + 8f, r.y, 14f, r.height), (si0 + 1).ToString(), 10, on ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -695,6 +737,8 @@ namespace Arena
                 expDragging = false;
                 expA = expB = V2.Zero;
             }
+            if (sliding)
+                DrawRailFrame(x, w);
             float y = 92f + shown.Count * 42f + 6f;
             if (expTrapMode && game.Me != null)  // the traps in your stash: pick which one a click places
             {
@@ -766,7 +810,8 @@ namespace Arena
             float x = p.x + 14f, w = p.width - 28f, y = p.y + 10f;
             int have = game.SpendableVectors(game.Me);
             Ui.Label(new Rect(x, y, w, 30f), "YOUR VECTORS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            CrtUi.Text(new Rect(x, y - 2f, w, 34f), have.ToString(), 30, CrtStyle.Gold, TextAnchor.MiddleRight, true, FxCalm);
+            var numR = new Rect(x, y - 2f, w, 34f);
+            CrtUi.Text(new Rect(numR.x, numR.y + WalletTickDrop, numR.width, numR.height), WalletShown(have).ToString(), 30, CrtStyle.Gold, TextAnchor.MiddleRight, true, FxCalm);  // counting and rolling (BuildMotion.cs)
             y += 36f;
             int cap = Mathf.Max(Mathf.Max(have, game.Me != null ? game.Me.VectorCap : have), 1);
             var bar = new Rect(x, y, w, 8f);
@@ -779,6 +824,7 @@ namespace Arena
                 Ui.Fill(new Rect(bar.x + bar.width * fAfter, bar.y, bar.width * (fHave - fAfter), bar.height), over ? new Color(1f, 0.3f, 0.36f, 0.9f) : new Color(1f, 0.95f, 0.75f, 0.45f + 0.35f * Mathf.Sin(Time.unscaledTime * 5f)));
             else if (pending < 0)
                 Ui.Fill(new Rect(bar.x + bar.width * fHave, bar.y, bar.width * (fAfter - fHave), bar.height), new Color(0.35f, 1f, 0.55f, 0.8f));
+            DrawWalletAfter(bar, numR, cap);  // the spent slice draining, "-8" floating up
             y += 12f;
             string sub = pending > 0 ? (over ? "Needs " + pending + ": " + (pending - have) + " short" : "This uses " + pending + "  ·  " + (have - pending) + " left") : pending < 0 ? "Gives back " + -pending : "";
             if (TipHover(new Rect(p.x, p.y, p.width, y + 18f - p.y)))
@@ -792,7 +838,7 @@ namespace Arena
             string title, tip;
             string[] steps;
             BuildToolHelp(BuildTool, out title, out steps, out tip);
-            CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtStyle.Ink, TextAnchor.MiddleLeft, true, FxCalm);
+            CrtUi.Text(new Rect(x, y, w, 26f), TypedTitle(title), 20, CrtStyle.Ink, TextAnchor.MiddleLeft, true, FxCalm);  // typing in (BuildMotion.cs)
             y += 32f;
             return y + 4f;
         }

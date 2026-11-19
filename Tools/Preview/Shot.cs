@@ -884,6 +884,21 @@ static partial class Shot {
       foreach (var pl in eg.Players.Values) pl.Vectors = 30 + 8 * pk++;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
       if (Environment.GetEnvironmentVariable("EXPANDCHIP") != "1") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
+      {  // BUILDAGE=<s>: the build screen <s> seconds after it opened (BuildMotion.cs; settled by default); WALLETSPEND=n,s: n vectors spent s seconds ago
+        var bfm = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance; var cim = System.Globalization.CultureInfo.InvariantCulture;
+        float bage = Environment.GetEnvironmentVariable("BUILDAGE") != null ? float.Parse(Environment.GetEnvironmentVariable("BUILDAGE"), cim) : 99f;
+        typeof(ArenaApp).GetField("buildDrawnT", bfm).SetValue(app, Time.unscaledTime);
+        typeof(ArenaApp).GetField("buildOpenT0", bfm).SetValue(app, Time.unscaledTime - bage);
+        string ws = Environment.GetEnvironmentVariable("WALLETSPEND");
+        if (ws != null && eg.Me != null) {
+          var wq = Array.ConvertAll(ws.Split(','), v => float.Parse(v, cim));
+          int have = eg.Me.Vectors;
+          typeof(ArenaApp).GetField("walletLast", bfm).SetValue(app, have);
+          typeof(ArenaApp).GetField("walletDelta", bfm).SetValue(app, -(int)wq[0]);
+          typeof(ArenaApp).GetField("walletFrom", bfm).SetValue(app, have + wq[0]);
+          typeof(ArenaApp).GetField("walletT0", bfm).SetValue(app, Time.unscaledTime - wq[1]);
+        }
+      }
       string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the build screen with the tool's two points there (a portal pair's ends)
       if (drawAt != null) {
         var dq = drawAt.Split(','); var ci = System.Globalization.CultureInfo.InvariantCulture;

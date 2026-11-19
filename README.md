@@ -1146,6 +1146,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan) drawn as the real floor: each room's
   tile grid, the walls and side walls with their door gaps, and the cover, the lattice's door spots, this wave's breaches, gates and portals, each named in the map key;
   on the right your vectors, the tool's name and live feedback, your hand of pieces, and **Close** and **Done · ready up**.
+- **The build screen's motion** (still with Reduced effects): it switches on like a tube (a bright line opens up and down), the tool rail and the
+  panel slide in, the map prints top-down under a scan bar and your vectors count up. The piece under the mouse glides between door spots with
+  marching edges and spins a quarter turn on **R**; a click where it fits nowhere shakes a red cross. The card you play flies from your hand to its
+  spot and the hand closes up behind it; after the slam a ring rolls out, the new door spots pop in one by one and **+1 ROOM** rises. The tool
+  frame slides between tools and the panel title types in; spending vectors rolls the number down, floats **−8** and drains the bar.
+- **Buying a mystery room from the build map**: hover a mystery door's diamond for its price, click to open it from wherever you stand (only while
+  the build round is open; the same price and rooms as **G** by the door).
 - **Room kits**: a one-use modifier the team holds (up to 6; the Build step counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
