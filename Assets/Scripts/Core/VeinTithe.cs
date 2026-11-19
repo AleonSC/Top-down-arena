@@ -50,7 +50,7 @@ namespace Arena
             p.Tithed.Clear();
             var near = new System.Collections.Generic.List<Enemy>();
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && !e.Dummy)
+                if (Targetable(e))
                     near.Add(e);
             near.Sort((a, b) =>
             {

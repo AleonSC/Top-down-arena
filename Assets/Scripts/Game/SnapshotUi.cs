@@ -175,7 +175,7 @@ namespace Arena
                 else
                     Ui.Label(new Rect(rr.x + 14f, rr.y + 5f, rr.width - 330f, 24f), s.Name + (i == 0 ? "   ·  F7" : ""), 14, Color.white, TextAnchor.MiddleLeft, true);
                 string meta = s.Created.ToLocalTime().ToString("MMM d, HH:mm:ss") + "  ·  " + s.Mode + "  ·  wave " + s.Wave + " " + StateWord(s.State) + "  ·  "
-                    + s.Enemies + " enemies  ·  " + ReplayClock(s.RunTime) + "  ·  " + (s.Bytes / 1024) + " KB  ·  " + s.Party;
+                    + s.Enemies + " enemies  ·  " + RunClock(s.RunTime) + "  ·  " + (s.Bytes / 1024) + " KB  ·  " + s.Party;
                 Ui.Label(new Rect(rr.x + 14f, rr.y + 30f, rr.width - 28f, 20f), meta, 11, CrtStyle.Desc);
                 float bx = rr.xMax - 12f;
                 if (renaming)

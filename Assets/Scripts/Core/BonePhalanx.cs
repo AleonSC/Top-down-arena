@@ -255,7 +255,7 @@ namespace Arena
                     continue;
                 float front = PhalanxFace + e.Radius, back = -PhalanxBack - e.Radius;
                 bool ahead = l.X >= -4f;
-                if (e.Def.IsBoss || e.Dummy)
+                if (e.Def.IsBoss)
                 {
                     pace = 0f;  // a boss (or a balance dummy) is never shoved: the line stops while it is on the shields
                     continue;

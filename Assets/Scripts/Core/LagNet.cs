@@ -29,7 +29,7 @@ namespace Arena
             double now = LagNow;
             if (Running && !lagWasRunning)
             {
-                Lag.LogPath = LagLogFolder != null && !Replaying
+                Lag.LogPath = LagLogFolder != null
                     ? Path.Combine(LagLogFolder, "lag-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".csv") : null;
                 Lag.Reset(now);
                 lagWave = -1;
@@ -50,7 +50,7 @@ namespace Arena
             Lag.Advance(now);
             if (++lagCheck % 6 == 0)
                 MarkLagEvents(now);
-            if (IsHost && !Replaying && (netPingsT -= dt) <= 0f)
+            if (IsHost && (netPingsT -= dt) <= 0f)
             {
                 netPingsT = NetPingsEvery;
                 SendNetPings();
@@ -124,7 +124,7 @@ namespace Arena
             }
             if (worst >= 0f)
                 Lag.AddPing(LagNow, worst);  // the host's ping line is the worst guest's (it has no round trip of its own)
-            session.Net?.Broadcast(Proto.End(w));  // (straight to the network: live numbers, not kept in a replay)
+            session.Net?.Broadcast(Proto.End(w));  // (straight to the network: live numbers)
         }
 
         void ReadNetPings(BinaryReader r)

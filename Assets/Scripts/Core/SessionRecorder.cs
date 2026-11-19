@@ -403,19 +403,6 @@ namespace Arena
                 pw.InstantHits += hits;
         }
 
-        /// Marks this recording as a balance test run (Core/BalanceTest.cs): one-second samples on request.
-        public void MarkTest(int firstWave, int waveCount, bool bot, bool fineSamples)
-        {
-            IsTest = true;
-            testFirst = firstWave;
-            testWaves = waveCount;
-            testBot = bot;
-            SampleEvery = fineSamples ? 1f : 5f;
-        }
-
-        public bool IsTest { get; private set; }
-        int testFirst, testWaves;
-        bool testBot;
         public float SampleEvery = 5f;
 
         public void HazardDamage(float amount)
@@ -625,13 +612,6 @@ namespace Arena
             j.Field("modifiers", modifiers);
             j.Field("difficulty", difficulty);
             j.Field("arena", arena);
-            if (IsTest)
-            {
-                j.Key("test"); j.Open();
-                j.Field("kind", "balance-test"); j.Field("firstWave", testFirst); j.Field("waves", testWaves); j.Field("bot", testBot);
-                j.Field("sampleEverySeconds", SampleEvery);
-                j.Close();
-            }
             j.Key("end"); j.Open();
             j.Field("outcome", outcome); j.Field("wave", endWave); j.Field("time", endTime); j.Field("score", endScore);
             j.Close();
