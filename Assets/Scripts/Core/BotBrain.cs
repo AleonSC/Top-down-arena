@@ -243,6 +243,12 @@ namespace Arena
                     downed = null;  // locked in a room (Rooms.cs): clear it first, the door won't let you out to them
             }
             V2 anchor = target != null ? target.Pos : ArenaMid;
+            V2? scout = target == null ? NearestUnseen(me.Pos) : null;
+            if (scout.HasValue)  // nothing to fight: scout the nearest unseen room (room fog, RoomFog.cs)
+            {
+                anchor = scout.Value;
+                pref = 0f;
+            }
             if (downed != null)
             {
                 anchor = downed.Pos;  // go pick them up

@@ -712,6 +712,7 @@ namespace Arena
         {
             TickNodeFog(dt);  // NodeScouting.cs
             TickGridCore();  // GridRooms.cs
+            TickRoomFog();  // RoomFog.cs
             if (!ExpandOpen)
             {
                 botBuildT = 0f;
@@ -798,6 +799,7 @@ namespace Arena
             KeepsakeVotes.Clear();
             KeptHead = -1;
             duelBoss.Clear();
+            SettleRoomFog();  // (the saved rooms keep their own fog)
             Expanded.Clear();
             foreach (var r in save.Rooms)
             {
@@ -871,6 +873,7 @@ namespace Arena
                 w.Write(r.Surprise);
                 w.Write(r.Claimed);
                 w.Write(r.Mini);
+                w.Write(r.Unseen);
             }
         }
 
@@ -890,6 +893,7 @@ namespace Arena
                 room.Surprise = r.ReadByte();
                 room.Claimed = r.ReadBoolean();
                 room.Mini = r.ReadByte();
+                room.Unseen = r.ReadBoolean();
                 list.Add(room);
             }
             return list;
@@ -898,6 +902,7 @@ namespace Arena
         /// Host -> all: the rooms built, whether a round is open, its proposals and the votes so far.
         void BroadcastExpansion()
         {
+            FogNewRooms();  // rooms added since the last list go out unseen (RoomFog.cs)
             var w = Proto.Begin(Msg.ExpandState);
             WriteRooms(w, Expanded);
             w.Write((ushort)Openings.Count);  // (ushort: a big map can pass 255)
@@ -946,12 +951,12 @@ namespace Arena
             bool changed = rooms.Count != Expanded.Count, claimsOnly = false;
             for (int i = 0; !changed && i < rooms.Count; i++)
             {
-                var same = rooms[i]; same.Claimed = Expanded[i].Claimed;
+                var same = rooms[i]; same.Claimed = Expanded[i].Claimed; same.Unseen = Expanded[i].Unseen;
                 changed |= !same.Equals(Expanded[i]);
             }
-            if (!changed)  // (only a Stash's cache taken: no rebuild, no build-in)
+            if (!changed)  // (only a Stash's cache taken or a room seen: no rebuild, no build-in)
                 for (int i = 0; i < rooms.Count; i++)
-                    if (rooms[i].Claimed != Expanded[i].Claimed)
+                    if (rooms[i].Claimed != Expanded[i].Claimed || rooms[i].Unseen != Expanded[i].Unseen)
                     {
                         Expanded[i] = rooms[i];
                         claimsOnly = true;

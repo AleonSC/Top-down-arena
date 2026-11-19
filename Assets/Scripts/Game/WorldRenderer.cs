@@ -229,6 +229,7 @@ namespace Arena
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
+            DrawRoomFogVeil(t);  // unseen rooms under a dark veil, under their walls (RoomFogLook.cs)
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)
             DrawWallPortals(t);  // the Expanding arena's wall portals, over their walls (RoomsLook.cs)
@@ -250,11 +251,11 @@ namespace Arena
             SweepGolemWalls(t);  // GolemWallLook.cs
             DrawFrenzyMinions(t);  // Alpha Call's frenzied minions (AbilityLooks.cs)
             foreach (var o in game.Orbs.Values)
-                if (game.MinePickup(o.Owner))  // (teammates' copies of a drop aren't shown: Core/Coins.cs)
+                if (game.MinePickup(o.Owner) && !game.FogHides(o.Pos))  // (teammates' copies of a drop aren't shown: Core/Coins.cs)
                     DrawOrb(o, t);
             foreach (var c in game.Coins.Values)
             {
-                if (!game.MinePickup(c.Owner))
+                if (!game.MinePickup(c.Owner) || game.FogHides(c.Pos))  // (in an unseen room: hidden, RoomFog.cs)
                     continue;
                 if (c.Vec)
                     DrawVectorPickup(c, t);  // VectorPickupLook.cs
@@ -270,7 +271,7 @@ namespace Arena
             DrawLichScene(t);  // LichLook.cs
             PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
             foreach (var e in game.Enemies.Values)
-                if (!Game.DevourUnder(e) && !Game.GutwormUnder(e))  // the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
+                if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !game.FogHides(e.Pos))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
                     DrawEnemy(e, t);
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)

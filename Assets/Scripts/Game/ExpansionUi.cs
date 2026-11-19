@@ -415,6 +415,8 @@ namespace Arena
                     float ghost = a.Sealed ? 0.55f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f;  // a sealed floating room breathes
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
                     DrawHoloGrid(a, M, k, ink.WithAlpha(ghost));
+                    if (game.AreaUnseen(ai))
+                        DrawFogMapBox(p0, p1);  // an unseen room: dark, a "?" below (RoomFogLook.cs)
                     if (a.Floating || a.Sealed)  // (a built room's outline is its walls, drawn below: a rim would run across the door gaps)
                         RimFrame(wd, ai, M, 1.5f, ink.WithAlpha(0.8f * ghost));
                 }
@@ -503,6 +505,7 @@ namespace Arena
                 roomClip = null;
                 EndUiGl();
             }
+            DrawFogMapMarks(M, map);  // the unseen rooms' "?" (RoomFogLook.cs)
             CrtKit.Frame(map, 1f, CrtStyle.Ink.WithAlpha(0.25f));
             DrawCardFly(M);  // the card on its way to the map, and "+1 ROOM" over a piece just built (BuildMotion.cs)
             DrawPlaceLabel(M, map);
