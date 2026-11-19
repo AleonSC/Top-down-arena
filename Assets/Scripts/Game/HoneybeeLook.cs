@@ -45,7 +45,7 @@ namespace Arena
         /// A Honeybee Staff bee (MinionKind.Bee). Wind: 0..1 through its hatch and buzz, 1 once it flies (or for a harvest bee).
         void DrawBee(Minion m, float t)
         {
-            float age = m.Duration - m.T, hatch = Game.BeeHatch / Game.BeeWait;
+            float hatch = Game.BeeHatch / Game.BeeWait;
             if (m.Wind < 1f && m.Wind < hatch)  // hatching: the cell holds, the bee pushes up out of it
             {
                 float k = m.Wind / hatch;

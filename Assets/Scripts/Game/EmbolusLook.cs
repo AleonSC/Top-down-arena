@@ -13,7 +13,7 @@ namespace Arena
     ///   The burst (FxKind.EmbolusBlast): a flash, one heavy ring and a spray of clots.
     public partial class ArenaApp
     {
-        static readonly Rgba EsShaft = Hx(0x7a1020), EsShine = Hx(0xe0303f), EsHead = Hx(0xb0142a), EsEdge = Hx(0xff6b7d), EsDrip = Hx(0xa3101f), EsPale = Hx(0xffb3bd);
+        static readonly Rgba EsShaft = Hx(0x7a1020), EsShine = Hx(0xe0303f), EsHead = Hx(0xb0142a), EsEdge = Hx(0xff6b7d), EsDrip = Hx(0xa3101f);
         const float EsWobble = 0.35f;
 
         class EsSpearDraw { public V2 Pos, Last; public int St = -1; public float Since; public readonly List<V2> Trail = new List<V2>(); public V2 Crack; public float Seed; }

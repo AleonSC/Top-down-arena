@@ -127,8 +127,6 @@ namespace Arena
                 DrawStriderLook(StriderLookPick, m.Disp, m.Aim, step, m.Wind, m.GuardFrac, target != null, t);
         }
 
-        static readonly string[] BreachLootNames = { "VECTORS", "SUPPLY CRATE", "REPAIR BAY", "WORKBENCH", "?" };
-
         /// A Breach room's loot (NodeKind.BreachLoot, its kind in Rule): the icon bobbing in a ring to walk into, a label under it
         /// (an ambush shows only "?"); gone once taken.
         void DrawBreachLootNode(MapNode n)

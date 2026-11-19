@@ -120,7 +120,7 @@ namespace Arena
             if (m == Game.GreatMove.None)
                 return false;
             var d = Game.GreatMoves[(int)m];
-            float a = Time.unscaledTime - v.At, reach = Game.MeleeReach(p, p.Weapon.Reach), rest = p.Aim - GreatRestOff;
+            float a = Time.unscaledTime - v.At, reach = Game.MeleeReach(p, p.Weapon.Reach);
             V2 o = p.Disp, dir = V2.FromAngle(p.Aim);
             Rgba arm = ArmColor(p.Id);
             switch (m)

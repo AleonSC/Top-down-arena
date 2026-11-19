@@ -23,7 +23,7 @@ namespace Arena
     public partial class ArenaApp
     {
         static readonly Rgba LarderInk = new Rgba(0.12f, 0.04f, 0.06f, 0.95f), LarderMaw = new Rgba(0.16f, 0.03f, 0.06f),
-            LarderBone = new Rgba(0.95f, 0.9f, 0.81f), LarderFlesh = new Rgba(0.91f, 0.53f, 0.6f), LarderBlood = new Rgba(0.67f, 0.12f, 0.18f),
+            LarderBone = new Rgba(0.95f, 0.9f, 0.81f), LarderBlood = new Rgba(0.67f, 0.12f, 0.18f),
             LarderApron = new Rgba(0.85f, 0.8f, 0.71f), LarderHood = new Rgba(0.23f, 0.14f, 0.13f), LarderSteel = new Rgba(0.81f, 0.84f, 0.85f);
 
         void DrawLarderBody(Enemy e, V2 pos, float r, Rgba col, float t)

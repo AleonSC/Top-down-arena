@@ -6,8 +6,6 @@ namespace Arena
     /// with taped fists); the Shiv moves like a Lunger (its lunge lane too) but is Hooded or Twin Shanks.
     public partial class ArenaApp
     {
-        static readonly Rgba PrisonInk = new Rgba(0.15f, 0.12f, 0.16f, 0.9f), PrisonSteel = new Rgba(0.82f, 0.86f, 0.9f);
-
         static readonly Rgba ThugJumpsuit = new Rgba(1f, 0.55f, 0.2f), ThugTattoo = new Rgba(0.25f, 0.35f, 0.55f, 0.75f),
             ThugTape = new Rgba(0.92f, 0.9f, 0.84f);
 

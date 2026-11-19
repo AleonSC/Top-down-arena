@@ -38,7 +38,9 @@ namespace Arena
             : n == 3 ? new Color(1f, 0.84f, 0.35f) : new Color(0.92f, 0.95f, 1f);
 
         /// 0: the call slams in at the top middle; 1: it rises off you like an ability's name (the preview picks).
+#pragma warning disable 0649  // set only by Tools/Preview (reflection)
         int multiStyle;
+#pragma warning restore 0649
 
         // --- The wave's last kill, the boss's slow motion, the level shock --------------------------------------------------
         MatchState juiceState = MatchState.Idle;

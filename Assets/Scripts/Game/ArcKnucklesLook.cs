@@ -258,7 +258,6 @@ namespace Arena
         void DrawKnuckleSwath(V2 o, float aim, int step, float u)
         {
             float grow = 1f - (1f - Mathf.Clamp01(u * 3f)) * (1f - Mathf.Clamp01(u * 3f)), fade = 1f - u * u;
-            V2 dir = V2.FromAngle(aim);
             if (step == 3)
             {
                 float r = Game.KnuckleHookReach, half = Game.KnuckleHookArc * Mathf.Deg2Rad / 2f;

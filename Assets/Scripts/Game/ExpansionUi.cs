@@ -346,8 +346,7 @@ namespace Arena
                     confirm = dragRelease = true;  // press, drag, let go
                 ev.Use();
             }
-            int rx = (int)Mathf.Min(expA.X, expB.X), ry = (int)Mathf.Min(expA.Y, expB.Y), rw = (int)Mathf.Abs(expA.X - expB.X), rh = (int)Mathf.Abs(expA.Y - expB.Y);
-            int myVectors = game.SpendableVectors(game.Me);
+            int rw = (int)Mathf.Abs(expA.X - expB.X), rh = (int)Mathf.Abs(expA.Y - expB.Y);
             string why = null;
             bool hasLink = expLinkMode && (rw > 0 || rh > 0);
             var link = new PortalLink { AX = (short)expA.X, AY = (short)expA.Y, BX = (short)expB.X, BY = (short)expB.Y };

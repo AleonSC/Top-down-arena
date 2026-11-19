@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/install-mono
-      - name: Compile check
-        run: Tools/CompileCheck/check.sh
+      - name: Compile check (no warnings)
+        run: Tools/CompileCheck/check.sh -W
       - name: CODEMAP.md lists every source file once
         run: python3 Tools/CodeMap/check.py
       - name: Core suite
