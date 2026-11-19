@@ -2,26 +2,15 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// MOCKUP (owner Nov 19): how the node tiers (Docs/Nodes.md "Node tiers") could show on the ground outside the hub:
-    /// the bronze / silver / gold zones 0-15, 15-30 and 30+ tiles off the hub's wall (`Expansion.TierMid`, `TierOuter`).
-    /// `TierBandStyle` 0 is off (the game); 1 Metal bands, 2 Contours, 3 Range rings are the options to pick from.
-    /// Drawn under the rooms by `DrawRoomsFloor`; preview `TIERBANDS=1|2|3 EXPANDMAP=0 ZOOM=0.2 shot.sh x hud`.
+    /// The node tiers on the ground outside the hub (owner Nov 19, Docs/Nodes.md "Node tiers"): square zones 0-15 (bronze), 15-30 (silver)
+    /// and 30+ (gold) tiles off the hub's wall (`Expansion.TierMid`, `TierOuter`), each a light wash of its metal, with dashed contour lines
+    /// where a tier starts and chevrons (one, two, three) pointing out. Drawn under the rooms by `DrawRoomsFloor`; preview `EXPANDMAP=0 ZOOM=0.12`.
     public partial class ArenaApp
     {
-        public static int TierBandStyle;
-
         const float TierReach = 4800f;  // how far out the outer zone is drawn
         const float Pi2 = Mathf.PI / 2f;
 
-        void DrawTierBands(float t)
-        {
-            switch (TierBandStyle)
-            {
-                case 1: TierBandsMetal(t); break;
-                case 2: TierBandsContours(t); break;
-                case 3: TierBandsRings(t); break;
-            }
-        }
+        void DrawTierBands(float t) => TierBandsContours(t);
 
         static float TierEdge(int tier) => tier == 0 ? 0f : tier == 1 ? Expansion.TierMid : tier == 2 ? Expansion.TierOuter : TierReach;
 
@@ -83,25 +72,6 @@ namespace Arena
             }
         }
 
-        // --- 1 Metal bands: each zone a wash of its metal, strongest at its far edge, with a solid line where the next begins ---
-
-        void TierBandsMetal(float t)
-        {
-            for (int z = 0; z < 3; z++)
-            {
-                float d0 = TierEdge(z), d1 = TierEdge(z + 1);
-                var ink = TierInk[z];
-                if (z == 0) d0 = 40f;  // (the hub's own walls start the first one)
-                TierFade(d0, d1, ink, 0.015f, 0.09f, 8);
-                if (z < 2)
-                {
-                    TierRing(d1, 10f, ink.WithAlpha(0.12f), 0f, 0f, 0f);
-                    TierRing(d1, 3f, ink.WithAlpha(0.75f), 0f, 0f, 0f);
-                    TierBadges(d1, z + 1, 1.2f, 0.9f, true);
-                }
-            }
-        }
-
         // --- 2 Contours: thin dashed lines like a map's, drifting slowly outward, with chevrons (one, two, three) pointing the way up a tier ---
 
         void TierBandsContours(float t)
@@ -144,28 +114,6 @@ namespace Arena
             V2 side = dir.Orthogonal();
             Line(at - side * 30f - dir * 18f, at + dir * 18f, 9f, col);
             Line(at + side * 30f - dir * 18f, at + dir * 18f, 9f, col);
-        }
-
-        // --- 3 Range rings: a radar's rings, ticked every 100 px, a dark plate with the tier cells at each side, the far zone cross-hatched ---
-
-        void TierBandsRings(float t)
-        {
-            for (float d = 100f; d < TierReach; d += 100f)  // fine ticks
-            {
-                int z = d >= Expansion.TierOuter ? 2 : d >= Expansion.TierMid ? 1 : 0;
-                bool major = d % 500f == 0f;
-                var ink = TierInk[z].WithAlpha(major ? 0.28f : 0.12f);
-                TierRing(d, major ? 2f : 1f, ink, 0f, 0f, 0f);
-            }
-            for (int z = 1; z <= 2; z++)
-            {
-                float d = TierEdge(z);
-                var ink = TierInk[z];
-                TierFill(d - 6f, d + 6f, ink.WithAlpha(0.18f));
-                TierRing(d, 4f, ink.WithAlpha(0.9f), 0f, 0f, 0f);
-                TierBadges(d, z, 1.5f, 1f, true);
-            }
-            
         }
     }
 }

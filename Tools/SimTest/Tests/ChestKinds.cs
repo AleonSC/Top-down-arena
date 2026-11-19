@@ -24,6 +24,8 @@ static partial class Program
             "a chest node's kind follows its tier: Gold inner, Piece chest or Buildables middle, Upgrade outer, the same each time (" + string.Join(",", seen) + ")");
         Check(Expansion.NodeTier((int)Game.Width + Expansion.TierMid - 10, 450) == 0 && Expansion.NodeTier((int)Game.Width + Expansion.TierMid, 450) == 1
             && Expansion.NodeTier(800, -Expansion.TierOuter) == 2 && Expansion.NodeTier(800, 450) == 0, "tiers by distance from the hub's wall (15 and 30 tiles)");
+        Check(Expansion.NodeTier((int)Game.Width + Expansion.TierMid, -Expansion.TierMid) == 1 && Expansion.NodeTier(-Expansion.TierOuter, -Expansion.TierMid) == 2
+            && Expansion.NodeTier((int)Game.Width + Expansion.TierMid - 1, -Expansion.TierMid + 1) == 0, "tier zones are square: a corner counts by its farther axis");
         Check(cardsOff == 0, "no Piece chest with cards off");
         int tieredOk = 0;
         for (int i = 0; i < 300; i++)
