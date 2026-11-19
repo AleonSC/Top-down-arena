@@ -62,6 +62,8 @@ namespace Arena
             if (!infected)  // the floor washed in it, brightest in the middle
                 DrawBossFloor();
             var grid = infected ? ZombieGrid : new Rgba(1f, 1f, 1f).Mix(Ink, 0.75f).WithAlpha(0.035f + FloorTintAmt * 0.5f);
+            if (game.RoomsOn && game.ExpandingOn && TierBandStyle > 0)
+                DrawTierBands(t);  // MOCKUP: the node tiers as ground zones outside the hub (TierBandsLook.cs)
             if (game.RoomsOn)
                 DrawRoomsFloor(grid);  // the side rooms and hallways: the grid across the whole world (RoomsLook.cs)
             else  // the Pressure grid: bends round the players, ripples from blasts (FloorGridLook.cs)

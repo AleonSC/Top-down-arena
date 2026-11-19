@@ -2158,6 +2158,7 @@ static partial class Shot {
       float wf = float.Parse(Environment.GetEnvironmentVariable("WOUND"), System.Globalization.CultureInfo.InvariantCulture);
       foreach (var wp in host.Game.Players.Values) { wp.Wound = wp.MaxHp * wf; wp.Hp = wp.MaxHp * 0.55f; }
     }
+    if (Environment.GetEnvironmentVariable("TIERBANDS") != null) ArenaApp.TierBandStyle = int.Parse(Environment.GetEnvironmentVariable("TIERBANDS"));  // TIERBANDS=1|2|3: the node tiers as ground zones (TierBandsLook.cs; use with EXPANDMAP=0 ZOOM=0.2)
     if (Environment.GetEnvironmentVariable("EXPANDMAP") != null) {  // EXPANDMAP=<rooms bought>: the Expanding arena with that many rooms up, you in the hub, enemies spread over the rooms
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
       if (Environment.GetEnvironmentVariable("FINSTYLE") != null) Expansion.FinStyle = int.Parse(Environment.GetEnvironmentVariable("FINSTYLE"));  // FINSTYLE=<n>: a drawn room's side walls (Expansion.AddFins)
