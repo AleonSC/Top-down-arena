@@ -210,6 +210,8 @@ namespace Arena
             if (!tabHeld && game.Running)
                 DrawStashLabels();  // the +10 over a Stash's cache (SurpriseLook.cs)
             if (!tabHeld && game.Running)
+                DrawChestRewardTags();  // "+56 GOLD" / "+24 VECTORS" over Gold and Vector chests (ChestsTabUi.cs)
+            if (!tabHeld && game.Running)
                 DrawVectorGainHud();  // "+10 VECTORS" over you and the shards into the chip (VectorGainLook.cs)
             if (!tabHeld && game.Running)
                 DrawLootSweepHud();  // "+86 GOLD" and your coins streaming in as the wave starts (LootSweepLook.cs)

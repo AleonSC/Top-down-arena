@@ -71,6 +71,48 @@ namespace Arena
             DrawChestMap(me, new Rect(x + 640f, y + 84f, 278f, 222f));
         }
 
+        readonly List<ChestSpot> rewardChests = new List<ChestSpot>();
+
+        /// In the arena: over every unopened Gold and Vector chest, a small pill with what you get from it ("+56 GOLD", "+24 VECTORS"; each
+        /// player gets the same), bobbing gently; "FULL" over a vector chest while your stock is full. Other kinds have no number to show.
+        void DrawChestRewardTags()
+        {
+            var me = game.Me;
+            if (me == null)
+                return;
+            game.UncollectedChests(rewardChests);
+            float t = Time.unscaledTime;
+            foreach (var c in rewardChests)
+            {
+                if (c.Kind != ChestKind.Gold && c.Kind != ChestKind.Vector)
+                    continue;
+                bool vec = c.Kind == ChestKind.Vector;
+                int n = vec ? Game.VectorChestPickups * Game.VectorDropSmall : Game.ChestGold + Game.ChestGoldPerWave * Mathf.Max(1, game.Wave);
+                float bob = CabCalm ? 0f : 2.5f * Mathf.Sin(t * 2.4f + c.Id);
+                V2 at = ToUi(c.Pos + new V2(0f, -(Game.ChestH / 2f + 30f))) + new V2(0f, -16f + bob);  // (over the lid and its glow, at any zoom)
+                if (at.X < -80f || at.X > W + 80f || at.Y < -30f || at.Y > H + 30f)
+                    continue;
+                var ink = vec ? new Color(0.3f, 0.88f, 1f) : new Color(1f, 0.82f, 0.3f);
+                string text = "+" + n + (vec ? " VECTORS" : " GOLD");
+                float tw = Ui.TextWidth(text, 14, true) + 30f;
+                var r = new Rect(at.X - tw / 2f, at.Y - 12f, tw, 24f);
+                Ui.Pill(r, new Color(0.01f, 0.02f, 0.05f, 0.82f));
+                CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.75f));
+                // its pickup's mark at the left: a coin, or the vector pickup's diamond
+                var m = new Rect(r.x + 8f, r.center.y - 4f, 8f, 8f);
+                if (vec)
+                {
+                    Ui.Fill(new Rect(m.x + 2f, m.y, 4f, 8f), ink);
+                    Ui.Fill(new Rect(m.x, m.y + 2f, 8f, 4f), ink);
+                }
+                else
+                    Ui.Dot(m, ink);
+                Ui.Label(new Rect(r.x + 18f, r.y, r.width - 22f, r.height), text, 14, ink, TextAnchor.MiddleCenter, true);
+                if (vec && me.Vectors >= me.VectorCap)
+                    FullTag(new V2(at.X, r.y - 12f), 1f);  // (it waits: VectorGainLook.cs)
+            }
+        }
+
         /// A little chest: a body and a lid in the kind's ink.
         void DrawChestIcon(Rect r, ChestKind k)
         {

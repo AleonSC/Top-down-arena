@@ -1611,7 +1611,8 @@ gold. **Collect** opens one where it stands for **15 gold + 2 per wave**, paid b
 afford it); everyone gets their share as if you'd walked there: a Gold chest's gold straight into each wallet, a vector
 chest's vectors straight to each stock, each player's card at their own feet (take it or throw it away; it's swept to you as
 the wave starts), a piece chest's cards and a Buildables chest's builds as usual. Walking there stays free, and it only
-works between waves. Build and Next wave are left out when there is no building round (Practice, hunts, the last
+works between waves. In the arena, a small tag floats over every unopened **Gold** and **Vector** chest with what you get from it
+(**+56 GOLD**, **+24 VECTORS**; everyone gets the same), and **FULL** over a vector chest while your stock is full. Build and Next wave are left out when there is no building round (Practice, hunts, the last
 wave, a full map, other arenas): Results shows the next wave's panel then. Along the bottom of every tab: the **Start wave n**
 key (Y, bottom right), the **Auto-ready** switch, the status and the countdown bar. Skipping the build is fine (pieces keep
 for a later break): while you hold pieces, **n pieces saved for later** shows over the key. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
