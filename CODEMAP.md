@@ -508,4 +508,4 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Which class or weapon is too strong or weak vs a boss | `Tools/BalanceGrid/grid.sh [waves] [runs] [roles]` (heatmap in `Tools/BalanceGrid/out/grid.png`) |
 | See every UI screen, or what a UI change changed | `Tools/Preview/uishots.sh [-r git-ref]` (list in `Tools/Preview/ui-screens.txt`; `HANDOFF.md` §3) |
 | A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/Preview/Stubs.cs` (one copy for every tool) |
-- `Tools/MapSketch/`: standalone iPad + Apple Pencil map sketcher (`index.html`, PWA manifest, README): neon wall/hatch look of `LayoutLook.cs`, shapes as vectors, PNG/JSON export; not part of the game build
+- `Tools/MapSketch/`: standalone iPad + Apple Pencil map sketcher (`index.html`, PWA manifest, README): neon wall/hatch look of `LayoutLook.cs`, shapes as vectors, grid piece presets (Piece tool, the 600 px lattice of `GridPieces.cs`), PNG/JSON export; not part of the game build
