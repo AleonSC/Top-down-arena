@@ -26,13 +26,13 @@ namespace Arena
     public static class Mystery
     {
         public const int AmbushBase = 4, AmbushMax = 10;  // a medium room's enemies: this many, +1 every 5 waves, at most AmbushMax
-        public const int SmallFewer = 2;                   // a small room holds this many fewer (at least 3)
+        public const int SmallPack = 25;                   // a small room: a pack of this many of the faction's basic enemy, grouped (owner Nov 19)
 
         /// Room weights: small 35, medium 35, hallway 30.
         static readonly int[] RoomWeights = { 35, 35, 30 };
-        /// What a small room holds: enemies 50, empty 17, shop 11, Black Market 11, Arms Dealer 11, Medic 11. A medium room: enemies 78, empty 22. A hallway: a chest.
-        static readonly int[] SmallWeights = { 50, 17, 11, 11, 11, 11 }, MediumWeights = { 78, 22 };
-        static readonly MysteryKind[] SmallKinds = { MysteryKind.Enemies, MysteryKind.Empty, MysteryKind.Shop, MysteryKind.BlackMarket, MysteryKind.Arms, MysteryKind.Medic };
+        /// What a small room holds: enemies 84 (never empty), shop 4, Black Market 4, Arms Dealer 4, Medic 4. A medium room: enemies 78, empty 22. A hallway: a chest.
+        static readonly int[] SmallWeights = { 84, 4, 4, 4, 4 }, MediumWeights = { 78, 22 };
+        static readonly MysteryKind[] SmallKinds = { MysteryKind.Enemies, MysteryKind.Shop, MysteryKind.BlackMarket, MysteryKind.Arms, MysteryKind.Medic };
 
         static int Pick(DetRandom rg, int[] w)
         {
@@ -47,14 +47,15 @@ namespace Arena
             return 0;
         }
 
-        /// The room and what is in it, seeded (the same on every machine). Without enemies (round a boss) a room that rolled them is empty.
+        /// The room and what is in it, seeded (the same on every machine). Without enemies (round a boss) a medium room that rolled them is
+        /// empty; a small room keeps its pack (never empty, owner Nov 19).
         public static MysteryRoom RoomFor(int seed, int wave, int n) => (MysteryRoom)Pick(new DetRandom(seed * 7121 + wave * 389 + n * 53 + 3), RoomWeights);
 
         public static MysteryKind KindFor(int seed, int wave, int n, MysteryRoom room, bool enemies)
         {
             var rg = new DetRandom(seed * 5167 + wave * 211 + n * 89 + 7);
             MysteryKind k = room == MysteryRoom.Hallway ? MysteryKind.Chest : room == MysteryRoom.Small ? SmallKinds[Pick(rg, SmallWeights)] : (MysteryKind)Pick(rg, MediumWeights);
-            return k == MysteryKind.Enemies && !enemies ? MysteryKind.Empty : k;
+            return k == MysteryKind.Enemies && !enemies && room != MysteryRoom.Small ? MysteryKind.Empty : k;
         }
 
         /// The grid pieces a room comes as: small one cell (a shop, Black Market, Arms Dealer or Medic always one cell), medium a domino, a corner or a
@@ -83,7 +84,7 @@ namespace Arena
         public static int AmbushCount(int wave, MysteryRoom r = MysteryRoom.Medium)
         {
             int n = Math.Min(AmbushMax, AmbushBase + wave / 5);
-            return r == MysteryRoom.Small ? Math.Max(3, n - SmallFewer) : n;
+            return r == MysteryRoom.Small ? SmallPack : n;
         }
 
         /// Where a hallway's chest goes: the middle of its far end, 70 px in.
@@ -469,11 +470,28 @@ namespace Arena
             return pool.Count > 0 ? pool : WavePool(Math.Max(1, Wave));
         }
 
-        /// Host: an ambush room's enemies appear in it (the wave's own types) and swarm out at the players.
+        /// The current faction's basic enemy (its first member: a Rioter in a Warden stretch, a Swarmer where the boss has no faction yet).
+        public EnemyType MysteryPackType() => FactionFor(ApproachBossAt(Math.Max(1, Wave))).Members[0].Type;
+
+        /// Host: an ambush room's enemies appear in it (the wave's own types) and swarm out at the players. A small room is one tight
+        /// pack of the current faction's basic enemy instead (Mystery.SmallPack).
         void SpringAmbush(V2 at, MysteryRoom size)
         {
-            var pool = AmbushPool();
             int n = Mystery.AmbushCount(Wave, size);
+            if (size == MysteryRoom.Small)
+            {
+                var basic = MysteryPackType();
+                int side = (int)Math.Ceiling(Math.Sqrt(n));
+                for (int k = 0; k < n; k++)
+                {
+                    V2 pos = at + new V2((k % side - (side - 1) * 0.5f) * 44f, (k / side - (side - 1) * 0.5f) * 44f);
+                    SpawnEnemyAt(basic, pos, 0.7f, 0);
+                }
+                BroadcastFx(FxKind.Ring, at, new Rgba(1f, 0.3f, 0.25f), 260f, 0.6f, Sfx.Pick);
+                DoLog("ambush: a pack of " + n + " " + basic + " bursts out of a mystery room");
+                return;
+            }
+            var pool = AmbushPool();
             float ring = size == MysteryRoom.Small ? 40f : 60f;
             for (int k = 0; k < n; k++)
             {
