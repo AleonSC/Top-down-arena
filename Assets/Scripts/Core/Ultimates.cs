@@ -86,7 +86,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Sanctum, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "Sanctum", Cooldown = 80f, Desc = "A holy dome for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger).",
+                Name = "Sanctum", Cooldown = 80f, Desc = "A dome of light for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger).",
                 Capstone = "The dome is half again as wide (300 px).",
                 Bot = b => b.AllyHurt,
             },

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Healer Elementalist's Energy Ward as a bubble of energy, Heal core (4) with Jelly hits (1) of
+    /// The Healer Elementalist's Energy Ward as a bubble of water, Heal core (4) with Jelly hits (1) of
     /// Docs/Mockups/energy-ward-shrink.html, ported from the mockup's numbers.
     ///
     /// The bubble's radius is a spring chasing the shield: it shrinks to 55% as the shield drains, or as the last 2.5 s
