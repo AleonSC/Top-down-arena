@@ -88,8 +88,10 @@ namespace Arena
             return open.Count == 0 ? 0 : open[rng.Int(open.Count)];
         }
 
-        /// The starting hand: a single, a domino and a seeded tromino, all plain combat rooms.
-        public static PieceCard[] GridStartHand(int seed) => new[] { MakePieceCard(PieceShape.Mono), MakePieceCard(PieceShape.Domino), MakePieceCard(gridTri[new DetRandom(seed).Int(gridTri.Length)]) };
+        static readonly PieceShape[] gridStart = { PieceShape.Mono, PieceShape.Domino, PieceShape.TriI, PieceShape.TriL, PieceShape.TetI, PieceShape.TetO, PieceShape.TetT, PieceShape.TetS, PieceShape.TetL };
+
+        /// The starting hand: one seeded piece card (any 1 to 4 cell shape), a plain combat room.
+        public static PieceCard[] GridStartHand(int seed) => new[] { MakePieceCard(gridStart[new DetRandom(seed).Int(gridStart.Length)]) };
 
         /// The basic card each build round gives: a domino after odd waves, a single after even ones.
         public static PieceCard GridRoundCard(int wave) => MakePieceCard(wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono);
