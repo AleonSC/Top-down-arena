@@ -64,6 +64,32 @@ namespace Arena
         /// The shape a Grid card builds: its piece, or a single cell for a service card.
         public static PieceShape PieceShapeOf(PieceCard c) => IsShapePieceCard(c) ? ShapeOfPieceCard(c) : PieceShape.Mono;
 
+        /// A service card or the Builder Shop: a one-cell stall room that can't be built on a prize node (owner Nov 19).
+        public static bool IsStallCard(PieceCard c) => IsServiceCard(c) || c == PieceCard.BuilderShop;
+
+        /// One of these new rooms would enclose a chest, vector chest or relic node (opened or not: its fixture stays).
+        public static bool CoversPrizeNode(IList<ExpansionRoom> made, IList<MapNode> nodes)
+        {
+            foreach (var n in nodes)
+            {
+                if (n.Kind != NodeKind.Chest && n.Kind != NodeKind.VectorChest && n.Kind != NodeKind.Relic)
+                    continue;
+                foreach (var r in made)
+                    if (NodeEncloses(r, n))
+                        return true;
+            }
+            return false;
+        }
+
+        /// Every place this card can go: PlacementsFor its shape, less the prize nodes for a stall card.
+        public static List<Placement> PlacementsForCard(IList<ExpansionRoom> built, IList<MapNode> nodes, PieceCard card)
+        {
+            var res = PlacementsFor(built, PieceShapeOf(card));
+            if (IsStallCard(card))
+                res.RemoveAll(o => CoversPrizeNode(o.Rooms, nodes));
+            return res;
+        }
+
         /// What the Builder Shop charges for a piece: 6 vectors a cell, plus its modifier (8 for a floor).
         public static int PieceCardPrice(PieceCard c) => PieceShapeCells(ShapeOfPieceCard(c)) * 6 + RoomTypePrice(PieceCardRoomType(c));
 
@@ -227,6 +253,11 @@ namespace Arena
                 DoLog("piece refused (" + why + ")");
                 return;
             }
+            if (Expansion.IsStallCard(card) && Expansion.CoversPrizeNode(made, Nodes))
+            {
+                DoLog("piece refused (a stall can't stand on a chest or relic node)");
+                return;
+            }
             bool piece = Expansion.IsShapePieceCard(card);
             for (int i = 0; i < made.Count; i++)
             {
@@ -255,7 +286,7 @@ namespace Arena
                 var card = (PieceCard)me.Hand[slot];
                 if (!Expansion.IsGridPieceCard(card))
                     continue;
-                var options = Expansion.PlacementsFor(Expanded, Expansion.PieceShapeOf(card));
+                var options = Expansion.PlacementsForCard(Expanded, Nodes, card);
                 if (options.Count == 0)
                     continue;
                 var pick = options[0];
