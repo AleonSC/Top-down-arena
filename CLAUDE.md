@@ -65,12 +65,15 @@ no Unity in the cloud container: check changes with the tools below.
 
 ## Checking changes
 
+**Run only the relevant suites** before committing: the single-system suites for what you changed (`run.sh list`),
+plus core/features only when shared `Core/` code changed. The merge queue runs every suite, so leave the full run to it.
+
 Mono may be missing: `apt-get update && apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil`.
 
 ```bash
 Tools/CompileCheck/check.sh            # fast compile with Unity stubs
 Tools/SimTest/run.sh                   # core suite (defaults; `run.sh 1 1 core` is too short)
-Tools/SimTest/run.sh 1 30 features     # feature suite; run core + features before committing
+Tools/SimTest/run.sh 1 30 features     # feature suite
 Tools/SimTest/run.sh list              # every suite (single systems: parry, knight, bosses, warden, ...)
 Tools/RenderCheck/check.sh [git-ref]   # IDENTICAL = drawing unchanged (use for render refactors)
 Tools/Preview/shot.sh <name> <mode>    # PNG screenshot without Unity, to Tools/Preview/out/
