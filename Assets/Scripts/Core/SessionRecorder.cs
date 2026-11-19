@@ -139,7 +139,7 @@ namespace Arena
         public void Begin(Game g, int startWaveNumber)
         {
             startWave = startWaveNumber;
-            mode = g.Hunt != null ? "hunt: " + g.Hunt.Name : g.Mode == GameMode.Campaign ? "run" : g.ModeRules.Name.ToLowerInvariant();
+            mode = g.Hunt != null ? "hunt: " + g.Hunt.Name : g.Mode == GameMode.Campaign ? "run" : g.ModeRules.Key;  // (quick, practice, survival: Tools/SessionReport reads "practice")
             lastBot = g.Bot;
             if (g.Bot)
                 Dev(g, "bot plays for the host: on");

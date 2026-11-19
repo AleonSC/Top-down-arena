@@ -64,17 +64,13 @@ namespace Arena
 
         /// Roughly how fast this weapon's shots fly (for leading). Where it wants to be fought from is
         /// WeaponDef.BotRange.
+        /// The speed a bot leads its shots by: the weapon's own shot speed (Defs), 700 when it has none (melee, beams).
         static float ShotSpeedFor(WeaponId w)
         {
-            switch (w)
-            {
-                case WeaponId.Flamethrower: return 430f;
-                case WeaponId.MendersBow: return 950f;
-                case WeaponId.Railgun: return 2000f;
-                case WeaponId.Fireball: return 450f;
-                case WeaponId.Implosion: return 1e6f;  // instant: aim right at them
-                default: return 700f;
-            }
+            if (w == WeaponId.Implosion)
+                return 1e6f;  // instant: aim right at them
+            float speed = Defs.WeaponOf(w).Speed;
+            return speed > 0f ? speed : 700f;
         }
 
         /// Is this enemy close enough to shoot: within the weapon's reach (to its edge), or where the bot likes to stand, and a little over.

@@ -153,7 +153,7 @@ static partial class Program
                     Run(ns, dt, 2f, () => ncp.Recent.Count > n0 && nhp.Recent.Count > 0);
                     var fl = ncp.Recent.Count > n0 ? ncp.Recent[0] : null;
                     Console.WriteLine("  endless fall: card '{0}', wave {1}, XP +{2}, best endless wave {3}", fl?.Mode, fl?.Wave, ncp.Xp - xp0, ncp.BestEndlessWave);
-                    Check(fl != null && fl.Mode == "Endless" && fl.Result == 0 && RunTimelineStore.Load(fl.File) != null && ncp.BestEndlessWave >= 1 && ncp.RunsLost == 0 && fl.Xp == ncp.Xp - xp0,
+                    Check(fl != null && fl.Mode == "Campaign · Endless" && fl.Result == 0 && RunTimelineStore.Load(fl.File) != null && ncp.BestEndlessWave >= 1 && ncp.RunsLost == 0 && fl.Xp == ncp.Xp - xp0,
                         "falling in the Campaign's endless stretch is recorded: an Endless card with its curve, best endless wave and XP for the waves since the win (not a second run lost)");
                     nc.Leave(""); nh.Leave("");
                     Check(ncp.Recent.Count == n0 + 1, "leaving after the fall doesn't log a quit as well");
@@ -162,7 +162,7 @@ static partial class Program
                 {
                     nc.Leave(""); nh.Leave("");
                     var ql2 = ncp.Recent.Count > n0 ? ncp.Recent[0] : null;
-                    Check(ql2 != null && ql2.Result == 4 && ql2.Mode == "Endless" && ql2.Xp == 0 && RunTimelineStore.Load(ql2.File) != null && ncp.Recent.Count == n0 + 1,
+                    Check(ql2 != null && ql2.Result == 4 && ql2.Mode == "Campaign · Endless" && ql2.Xp == 0 && RunTimelineStore.Load(ql2.File) != null && ncp.Recent.Count == n0 + 1,
                         "quitting the Campaign's endless stretch logs one quit Endless card with its curve, no XP");
                 }
             }

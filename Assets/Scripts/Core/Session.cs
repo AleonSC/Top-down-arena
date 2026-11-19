@@ -1272,6 +1272,18 @@ namespace Arena
             BroadcastLobby();
         }
 
+        /// The lobby's settings into the match about to start, the same on the host (StartMatch) and on a client (Msg.Start).
+        void ApplyMatchSetup()
+        {
+            Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress (a client's: for the HUD)
+            Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
+            Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
+            Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
+            Game.Design = PracticeMode && IsHost ? DesignTest : null;  // the F1 wave editor's waves being tested (WaveDesign.cs; the host plays them)
+            Game.Mods = Modifiers;
+            Game.Diff = Diff.Copy();
+        }
+
         /// The hunt the lobby is set up for, if the host can play it (null: not a hunt, or not unlocked).
         public HuntDef LobbyHunt
         {
@@ -1393,13 +1405,7 @@ namespace Arena
             Game.SettleRetry();  // a retry left untaken ends the old run now, before the new one's start goes out (Checkpoints.cs)
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // ready up again next time you're back in the lobby
-            Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
-            Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
-            Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
-            Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
-            Game.Design = PracticeMode ? DesignTest : null;  // the F1 wave editor's waves being tested (WaveDesign.cs)
-            Game.Mods = Modifiers;
-            Game.Diff = Diff.Copy();
+            ApplyMatchSetup();
             int startWave = StartWave;
             if (Game.Hunt != null)
                 StartWave = 1;  // a hunt's own ten waves (put back below)
@@ -1700,12 +1706,7 @@ namespace Arena
                     break;
                 }
                 case Msg.Start:
-                    Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
-                    Game.Hunt = HuntMode ? Hunts.Get(HuntBoss) : null;
-                    Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
-                    Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
-                    Game.Mods = Modifiers;
-                    Game.Diff = Diff.Copy();
+                    ApplyMatchSetup();
                     Game.OnHostMessage(type, r);
                     Resume = null;
                     break;

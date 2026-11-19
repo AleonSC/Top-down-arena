@@ -238,8 +238,8 @@ namespace Arena
         float modeTurnPos;
         bool modeTurnSet;
 
-        static string ModeTitle(int i) => i == 0 ? "QUICK PLAY" : i == 1 ? "CAMPAIGN" : i == 2 ? "BOSS HUNT" : i == 3 ? "PRACTICE" : "SURVIVAL";
-        static string ModeSub(int i) => i == 0 ? "10 waves, then a random boss" : i == 1 ? "100 waves, build as you go" : i == 2 ? "10 waves to one boss" : i == 3 ? "Build your own waves, or train a mechanic" : "One clock, no waves, no end";
+        static string ModeTitle(int i) => ModeDef.For((GameMode)i).Name.ToUpperInvariant();
+        static string ModeSub(int i) => ModeDef.For((GameMode)i).Blurb;
         static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.37f, 0.94f, 1f) : i == 4 ? new Color(0.55f, 0.95f, 0.6f) : (Color?)null;
 
         /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other

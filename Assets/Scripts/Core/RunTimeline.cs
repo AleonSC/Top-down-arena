@@ -342,7 +342,7 @@ namespace Arena
             timeline.Won = won;
             timeline.Wave = wave;
             timeline.Seconds = Math.Max(time, timelineT);
-            timeline.Mode = mode ?? (endless ? "Endless" : "Campaign");
+            timeline.Mode = mode ?? RunLabel(endless);
             timeline.Class = cls;
             timeline.Diff = Diff.Level.ToString();
             timeline.Mods = mods ?? "";

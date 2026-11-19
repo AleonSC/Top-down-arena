@@ -62,7 +62,7 @@ namespace Arena
             PayCores(Variants.RunCores(false, 0, false), found);
             var logged = Profile.Recent[0];
             logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
-            logged.Mode = "Survival";
+            logged.Mode = RunLabel();
             logged.Seconds = time;
             logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
             logged.Players = Players.Count;

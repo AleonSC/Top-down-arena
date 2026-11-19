@@ -36,7 +36,7 @@ namespace Arena
         // Header (what the list shows).
         public string Path;                // where it lives (not stored in the file)
         public DateTime Created;           // UTC
-        public string Mode = "Standard";   // Standard, Endless, Practice, Boss Hunt
+        public string Mode = "Campaign";   // the match's Game.RunLabel (Campaign, Quick Play, Boss Hunt, Practice Range, Survival, "· Endless")
         public string Party = "";          // "Mia (Knight), Bo (Healer)"
         public int MaxWave;
         public float Seconds;
@@ -305,7 +305,7 @@ namespace Arena
             file.HuntBoss = session.HuntBoss;
             file.Mods = session.Modifiers;
             file.Diff = session.Diff.Copy();
-            file.Mode = session.PracticeMode ? "Practice" : file.Hunt ? "Boss Hunt" : "Standard";
+            file.Mode = ModeDef.For(session.Mode).Name;
         }
 
         public int Frame => frame;
@@ -358,7 +358,7 @@ namespace Arena
                 parts.Add(p.Name + " (" + (p.Kit != Kit.Soldier ? p.Kit.ToString() + " " : "") + p.Role + ")");
             file.Players = parts.Count;
             file.Party = string.Join(", ", parts.ToArray());
-            file.Mode = game.Practice != null ? "Practice" : game.Hunt != null ? "Boss Hunt" : game.Quick ? "Quick Play" : "Standard";
+            file.Mode = game.RunLabel();
         }
 
         /// Writes the file; returns its path, or null if there was nothing worth keeping (under a second) or it failed.
@@ -368,7 +368,7 @@ namespace Arena
                 return null;
             file.Seconds = file.TimeAt(frame);
             if (game.Endless)
-                file.Mode = "Endless";
+                file.Mode = game.RunLabel(true);
             try
             {
                 string name = "Run " + DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
