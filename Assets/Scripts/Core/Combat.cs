@@ -1365,7 +1365,8 @@ namespace Arena
         /// Host: clears every enemy shot here and on every client.
         void HostClearEnemyBullets()
         {
-            HostClearEnemyBullets();
+            ClearEnemyBullets();
+            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
         }
 
         void ClearEnemyBullets()
