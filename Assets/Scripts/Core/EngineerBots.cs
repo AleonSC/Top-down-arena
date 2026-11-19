@@ -5,8 +5,8 @@ namespace Arena
     /// The Engineer's second weapons (choice 2 of each role): each summons a robot Engineer of its role, which does the fighting.
     ///   Fire with no robot out (and its rebuild done) summons it at the cursor (up to BotReach away); a click on an enemy also
     ///   sends it at that enemy. With the robot out, Fire is a basic attack, and a fresh click on an enemy re-targets the robot.
-    ///   Enemies within the robot's taunt radius go for it instead of you (StriderTarget). A broken robot can be summoned
-    ///   again after BotRebuild seconds. The robot is healed between waves and grows 8% a wave, like the Strider.
+    ///   Enemies within the robot's taunt radius go for it instead of you (RobotTarget). A broken robot can be summoned
+    ///   again after BotRebuild seconds. The robot is healed between waves and grows 8% a wave.
     ///   Tank: Iron Fist: a robotic fist shoves an arc in front of you (a little damage, a long push); its Tank Bot is a heavy
     ///     robot with a nail shotgun that draws enemies from 240 px.
     ///   Healer: Stasis Gun: a small field at the cursor while you hold Fire: enemies in it are held in place (bosses slowed) and

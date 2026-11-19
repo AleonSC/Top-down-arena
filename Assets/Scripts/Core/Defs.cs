@@ -142,10 +142,6 @@ namespace Arena
         EmbolusSpears,
         // the Tank Knight's fourth (BulwarkBarrier.cs): a kite shield
         BulwarkBarrier,
-        // the Engineer DPS's weapon (Engineer.cs): a rivet gun that builds and commands the Strider
-        VectorForge,
-        // the Engineer Tank's and Healer's weapons (Engineer.cs, step 4): a nail shotgun with the Sentinel; a rivet gun with a med-drone
-        BulwarkForge, MediDroneForge,
         // the Tank Hemomancer's fourth (BloodBlast.cs): a six-step chain of blood cuts
         BloodBlast,
         // the Engineer's second weapons (EngineerBots.cs): Fire summons a robot Engineer of the role, then is a basic attack

@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using Arena;
 
-// The Engineer (Engineer.cs, Docs/Engineer.md step 1): a DPS-only class (its other lobby places are locked stand-ins), the Vector
-// Forge's Strider (built at your side, hunts and punches, Alt locks it on, rebuilt after it falls, replicated), the Drag Pylon
-// (slows inside, the next one folds the old) and Breach (the blast, and a room behind the wall in the Expanding arena).
+// The Engineer (Engineer.cs, Docs/Engineer.md): one robot weapon a role (it stands in for the locked lobby places), the Drag Pylon
+// (slows inside, the next one folds the old), Breach (the blast, and a room behind the wall in the Expanding arena), Draftsman,
+// and the Tank and Healer abilities (Vector Wall, Bastion, Med Pylon, Safe Room).
 static partial class Program
 {
     static void EngineerTest(float dt)
@@ -12,15 +12,14 @@ static partial class Program
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var hostAbility = typeof(Game).GetMethod("HostAbility", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
-        var dash = typeof(Game).GetMethod("HostWeaponDash", flags);
-        var hurtGuard = typeof(Game).GetMethod("HurtGuard", flags);
 
-        // The table: a DPS-only class, its other places locked stand-ins.
-        Check(Defs.Weapon(Role.Dps, Kit.Engineer, 0).Id == WeaponId.VectorForge && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 0)
-            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 2), "the Vector Forge is the DPS Engineer's first weapon; its third place is locked");
-        Check(Defs.Weapon(Role.Tank, Kit.Engineer, 0).Id == WeaponId.BulwarkForge && Defs.Weapon(Role.Healer, Kit.Engineer, 0).Id == WeaponId.MediDroneForge
-            && Defs.Weapon(Role.Tank, Kit.Engineer, 2).Id == WeaponId.BulwarkForge && Defs.WeaponGap(Role.Tank, Kit.Engineer, 2),
-            "the Tank and Healer Engineers have the Bulwark Forge and the Medi-Drone Forge (their own stand-ins fill the locked places)");
+        // The table: one robot weapon a role, standing in for the class's other (locked) places; the forges are gone.
+        Check(Defs.Weapon(Role.Dps, Kit.Engineer, 0).Id == WeaponId.VectorBlade && Defs.Weapon(Role.Tank, Kit.Engineer, 0).Id == WeaponId.IronFist
+            && Defs.Weapon(Role.Healer, Kit.Engineer, 0).Id == WeaponId.StasisGun && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 0)
+            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 1) && Defs.WeaponGap(Role.Tank, Kit.Engineer, 2) && Defs.Weapon(Role.Tank, Kit.Engineer, 2).Id == WeaponId.IronFist,
+            "each Engineer role's first weapon is its robot weapon, which fills the locked places");
+        Check(!Enum.GetNames(typeof(WeaponId)).Any(n => n.EndsWith("Forge")) && !Enum.GetNames(typeof(MinionKind)).Any(n => n == "Strider" || n == "Sentinel" || n == "MediDrone"),
+            "the Vector, Bulwark and Medi-Drone Forges and their Strider, Sentinel and med-drone are gone");
         Check(!Defs.KitLocked(Role.Tank, Kit.Engineer) && !Defs.KitLocked(Role.Healer, Kit.Engineer) && !Defs.KitLocked(Role.Dps, Kit.Engineer),
             "every role can pick the Engineer");
         Check(Upgrades.FirstAbility(Role.Tank, Kit.Engineer, 0) == AbilityId.VectorWall && Upgrades.Ultimate(Role.Tank, Kit.Engineer) == AbilityId.Bastion
@@ -48,8 +47,8 @@ static partial class Program
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.Kit == Kit.Engineer && me.Weapon.Id == WeaponId.VectorForge && me.Slots[0].Id == AbilityId.DragPylon && me.Slots[Upgrades.UltSlot].Id == AbilityId.Breach,
-            "a DPS Engineer starts with the Vector Forge, Drag Pylon and Breach");
+        Check(me.Kit == Kit.Engineer && me.Weapon.Id == WeaponId.VectorBlade && me.Slots[0].Id == AbilityId.DragPylon && me.Slots[Upgrades.UltSlot].Id == AbilityId.Breach,
+            "a DPS Engineer starts with the Vector Blade, Drag Pylon and Breach");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         V2 mePos = new V2(500f, 450f);
         Action<float> step = secs =>
@@ -62,60 +61,12 @@ static partial class Program
                 g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) });
             }
         };
-        Func<Minion> strider = () => g.Minions.Values.FirstOrDefault(m => m.Kind == MinionKind.Strider && m.Owner == 1);
         Func<EnemyType, V2, Enemy> make = (type, at) =>
         {
             var e = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
             e.Hp = e.MaxHp = 5000f; e.SpawnT = 0f; e.FireT = 99f;
             return e;
         };
-
-        // The Strider: built at your side, with health that grows with the wave, and seen by the client.
-        g.Enemies.Clear();
-        make(EnemyType.Grunt, new V2(1500f, 880f));  // (keeps the wave going)
-        step(1.5f);
-        var st = strider();
-        Check(st != null && Math.Abs(st.MaxHp - Game.StriderMaxHp(g.Wave)) < 1f && st.Hp > 0f, "the Strider is built with " + Game.StriderMaxHp(g.Wave) + " health on wave " + g.Wave);
-        Check(client.Game.Minions.Values.Any(m => m.Kind == MinionKind.Strider), "the client sees the Strider");
-
-        // It hunts the enemy nearest you and punches it.
-        var near = make(EnemyType.Grunt, new V2(640f, 450f));
-        float before = near.Hp;
-        step(3f);
-        Check(near.Hp < before - 30f, "the Strider walks to the enemy near you and punches it (" + (before - near.Hp).ToString("0") + " damage)");
-
-        // Alt on an enemy locks it on: it goes there, through the nearer one.
-        var far = make(EnemyType.Grunt, new V2(800f, 250f));
-        dash.Invoke(g, new object[] { 1, 43, far.Pos });
-        step(0.1f);
-        st = strider();
-        Check(st.GoalEnemy == far.Id && st.Stacks == 1 && st.LinkTo == far.Id, "Alt on an enemy locks the Strider on (replicated: its mode and target)");
-        float farBefore = far.Hp;
-        step(3f);
-        Check(far.Hp < farBefore, "locked on, it goes for that enemy");
-        // Alt on the floor away from you posts it there; by you calls it back.
-        dash.Invoke(g, new object[] { 1, 43, new V2(300f, 800f) });
-        step(0.1f);
-        Check(strider().Sent && strider().GoalEnemy == 0 && strider().Stacks == 2, "Alt on the floor posts it there");
-        dash.Invoke(g, new object[] { 1, 43, mePos });
-        step(0.1f);
-        Check(!strider().Sent, "Alt by you calls it back");
-
-        // Enemies near it go for it.
-        var striderTarget = typeof(Game).GetMethod("StriderTarget", flags);
-        var drawn = make(EnemyType.Grunt, strider().Pos + new V2(80f, 0f));
-        Check(((V2)striderTarget.Invoke(g, new object[] { drawn, new V2(1500f, 450f) })).DistanceTo(strider().Pos) < 1f
-            && ((V2)striderTarget.Invoke(g, new object[] { near, new V2(1500f, 450f) })).DistanceTo(new V2(1500f, 450f)) < 1f || near.Pos.DistanceTo(strider().Pos) < Game.StriderTaunt,
-            "an enemy within 150 px of the Strider goes for it instead of you");
-        g.Enemies.Remove(drawn.Id);
-
-        // It falls and is rebuilt after 8 s.
-        hurtGuard.Invoke(g, new object[] { strider(), 1e6f });
-        Check(strider() == null && Math.Abs(me.StriderCd - Game.StriderRebuild) < 0.01f, "a broken Strider is gone, its rebuild 8 s away");
-        step(Game.StriderRebuild + 0.4f);
-        Check(strider() != null && strider().Wind >= 2f && strider().Wind < 3f, "and rebuilt after 8 s, building in first (Wind 2-3 for the look)");
-        step(Game.StriderBuild);
-        Check(strider().Wind < 2f, "then it's up");
 
         // Drag Pylon: slows enemies inside; the next one folds the old one up.
         g.Enemies.Clear();
@@ -189,25 +140,12 @@ static partial class Program
             addVectors.Invoke(g, new object[] { friend, 8 });
             Check(friend.Vectors == 8, "only the Engineer gets Draftsman's bonus");
 
-            // Repairs: standing by your hurt Strider spends a vector every 0.25 s for 30 health.
-            var rs = strider();
-            mePos = rs.Pos + new V2(40f, 0f);
-            rs.Sent = true; rs.Goal = rs.Pos; g.Enemies.Clear(); make(EnemyType.Grunt, new V2(1500f, 880f));
-            rs.Hp = rs.MaxHp - 100f;
-            int vBefore = me.Vectors;
-            step(1.2f);
-            Check(rs.Hp >= rs.MaxHp - 1f && me.Vectors < vBefore && me.Vectors >= vBefore - 5, "standing by the hurt Strider repairs it with vectors (" + (vBefore - me.Vectors) + " spent for 100 health)");
-            int vFull = me.Vectors;
-            step(0.6f);
-            Check(me.Vectors == vFull, "a whole Strider costs nothing");
-
-            // The class cards.
-            Func<string, UpgradeDef> card = n => Upgrades.All.First(u => u.Name == n);
-            Check(new[] { "Reinforced Frame", "Hydraulic Fists", "Quick Assembly", "Wide Field" }.All(n => Upgrades.All.Count(u => u.Name == n) == 1), "the Engineer's four class cards");
+            // The class card.
+            Check(Upgrades.All.Count(u => u.Name == "Wide Field") == 1 && !Upgrades.All.Any(u => u.Name == "Reinforced Frame" || u.Name == "Hydraulic Fists" || u.Name == "Quick Assembly"),
+                "the Engineer's one class card (the Strider's three are gone)");
             var stats = new Stats();
-            card("Reinforced Frame").Apply(stats); card("Quick Assembly").Apply(stats); card("Wide Field").Apply(stats);
-            Check(Math.Abs(stats.StriderHpMult - 1.3f) < 0.001f && Math.Abs(stats.StriderRebuildCut - 2.5f) < 0.001f && Math.Abs(stats.PylonSizeMult - 1.25f) < 0.001f,
-                "Reinforced Frame +30% Strider health, Quick Assembly 2.5 s sooner, Wide Field 25% wider");
+            Upgrades.All.First(u => u.Name == "Wide Field").Apply(stats);
+            Check(Math.Abs(stats.PylonSizeMult - 1.25f) < 0.001f, "Wide Field: the pylon's field 25% wider");
         }
         else
             Check(false, "the Expanding arena switches on for the Breach room check");
@@ -215,8 +153,7 @@ static partial class Program
         EngineerTankHealerTest(dt);
     }
 
-    // Step 4: the Tank Engineer (Bulwark Forge and its Sentinel, Vector Wall, Bastion) and the Healer Engineer (the med-drone,
-    // Med Pylon, Safe Room).
+    // The Tank Engineer (Vector Wall, Bastion) and the Healer Engineer (Med Pylon, Safe Room).
     static void EngineerTankHealerTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -231,8 +168,8 @@ static partial class Program
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var tank = g.Players[1]; var medic = g.Players[2];
-        Check(tank.Weapon.Id == WeaponId.BulwarkForge && tank.Slots[0].Id == AbilityId.VectorWall && tank.Slots[Upgrades.UltSlot].Id == AbilityId.Bastion
-            && medic.Weapon.Id == WeaponId.MediDroneForge && medic.Slots[0].Id == AbilityId.MedPylon && medic.Slots[Upgrades.UltSlot].Id == AbilityId.SafeRoom,
+        Check(tank.Weapon.Id == WeaponId.IronFist && tank.Slots[0].Id == AbilityId.VectorWall && tank.Slots[Upgrades.UltSlot].Id == AbilityId.Bastion
+            && medic.Weapon.Id == WeaponId.StasisGun && medic.Slots[0].Id == AbilityId.MedPylon && medic.Slots[Upgrades.UltSlot].Id == AbilityId.SafeRoom,
             "a Tank and a Healer Engineer start with their own kits");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         V2 tPos = new V2(500f, 450f), mPos = new V2(400f, 600f);
@@ -254,31 +191,7 @@ static partial class Program
         };
         g.Enemies.Clear();
         make(EnemyType.Grunt, new V2(1500f, 880f));
-        step(2f);
-        var sentinel = g.Minions.Values.FirstOrDefault(m => m.Kind == MinionKind.Sentinel && m.Owner == 1);
-        Check(sentinel != null && Math.Abs(sentinel.MaxHp - Game.StriderMaxHp(g.Wave, MinionKind.Sentinel)) < 1f, "the Bulwark Forge builds a Sentinel with " + Game.StriderMaxHp(g.Wave, MinionKind.Sentinel) + " health");
-        Check(!g.Minions.Values.Any(m => m.Kind == MinionKind.Strider), "(no Strider: that is the DPS's)");
-        var drone = g.Minions.Values.FirstOrDefault(m => m.Kind == MinionKind.MediDrone && m.Owner == 2);
-        Check(drone != null, "the Medi-Drone Forge brings a med-drone");
-        Check(client.Game.Minions.Values.Any(m => m.Kind == MinionKind.Sentinel) && client.Game.Minions.Values.Any(m => m.Kind == MinionKind.MediDrone), "the client sees both");
-
-        // The Sentinel taunts from 220 px.
-        var striderTarget = typeof(Game).GetMethod("StriderTarget", flags);
-        var far = make(EnemyType.Grunt, sentinel.Pos + new V2(200f, 0f));
-        Check(((V2)striderTarget.Invoke(g, new object[] { far, new V2(1500f, 900f) })).DistanceTo(sentinel.Pos) < 1f, "an enemy 200 px from the Sentinel goes for it");
-        g.Enemies.Remove(far.Id);
-
-        // The nail shotgun: six nails a shot.
-        var fire = typeof(Game).GetMethod("FireEngineerWeapon", flags);
-        int before = g.Bullets.Count;
-        fire.Invoke(g, new object[] { tank, 0f, new V2(1f, 0f), tank.Pos + new V2(20f, 0f), 1f, 0 });
-        Check(g.Bullets.Count - before == 6, "the Bulwark Forge fires six nails");
-
-        // The med-drone heals the hurt Tank.
-        tank.Hp = tank.MaxHp * 0.5f;
-        float hurt = tank.Hp;
-        step(3f);
-        Check(tank.Hp > hurt + 10f, "the med-drone flies to the hurt ally and heals it (" + (tank.Hp - hurt).ToString("0") + ")");
+        step(0.5f);
 
         // Vector Wall: five tiles across the aim that stop enemy shots.
         g.Bullets.Clear();
@@ -303,7 +216,6 @@ static partial class Program
         float h0 = tank.Hp;
         medic.Slots[0].Timer = 0f; medic.Slots[0].Charges = 1;
         hostAbility.Invoke(g, new object[] { 2, 0, tPos, false });
-        g.Minions.Remove(drone.Id);  // (only the pylon heals here)
         step(1f);
         Check(g.Zones.Values.Count(z => z.Kind == ZoneKind.MedPylon) == 1 && tank.Hp > h0 + 5f, "Med Pylon's field heals allies inside");
 

@@ -11,7 +11,6 @@ namespace Arena
     {
         bool botAltHeld, botAltWas;
         float botAltCd, botAltHoldT, botRapierT;
-        int botAltLock;  // the enemy the Vector Forge's walker was last sent at
         public int BotAltPresses;  // presses (tests)
 
         /// What the rules see this tick.
@@ -352,13 +351,6 @@ namespace Arena
                         return botAltHoldT < 4f && (v.Incoming >= 1 || BotDanger > 0.8f);
                     }
                     return Tap(v.Incoming >= 3 || EnemiesAhead(me, 70f, 1.2f) >= 2, 0.8f);
-                case WeaponId.VectorForge:  // send the walker at a new target
-                case WeaponId.BulwarkForge:
-                    if (late || v.Target == null || v.Target.Id == botAltLock || v.Target.Pos.FartherThan(me.Pos, 500f) || !Tap(true, 1f))
-                        return false;
-                    botAltLock = v.Target.Id;
-                    aimAt = v.Target.Pos;
-                    return true;
             }
             return null;
         }

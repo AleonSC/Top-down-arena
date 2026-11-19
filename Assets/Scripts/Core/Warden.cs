@@ -775,6 +775,13 @@ namespace Arena
             return since < stopAt ? since : since < stopAt + GateHold ? stopAt : since - GateHold;
         }
 
+        /// Where a gate's front row will be in `t` s (a bot reads ahead with it).
+        public static float GateFrontIn(WardenGate g, float t)
+        {
+            float since = t - g.Warn;
+            return since <= 0f ? GateStart(g.Dir) : GateStart(g.Dir) + g.Dir * GateSpeed * GateMoved(since);
+        }
+
         /// The gate has stopped just inside the arena, about to carry on.
         public static bool GateHolding(WardenGate g)
         {

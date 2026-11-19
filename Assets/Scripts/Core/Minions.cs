@@ -359,11 +359,6 @@ namespace Arena
                     TickThrall(m, owner, dt);  // ForcePact.cs
                     continue;
                 }
-                if (IsWalker(m.Kind))
-                {
-                    TickStrider(m, owner, dt, speed, dmg);  // Engineer.cs
-                    continue;
-                }
                 if (IsBot(m.Kind))
                 {
                     TickBot(m, owner, dt, speed, dmg);  // EngineerBots.cs
