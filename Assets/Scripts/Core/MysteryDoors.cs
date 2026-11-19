@@ -376,6 +376,34 @@ namespace Arena
             OpenMysteryDoor(p, i);
         }
 
+        /// The build map: this game's player buys the sealed door at index i from wherever they stand (a build round only). The host decides.
+        public void BuyMysteryDoor(int i)
+        {
+            if (Me == null || Me.Downed || i < 0 || i >= MysteryDoors.Count)
+                return;
+            if (IsHost)
+            {
+                HostMysteryBuy(MyId, MysteryDoors[i].X, MysteryDoors[i].Y);
+                return;
+            }
+            var w = Proto.Begin(Msg.MysteryBuy);
+            w.Write(MysteryDoors[i].X); w.Write(MysteryDoors[i].Y);
+            session.SendToHost(Proto.End(w));
+        }
+
+        public void OnMysteryBuy(int peer, BinaryReader r) => HostMysteryBuy(peer, r.ReadInt16(), r.ReadInt16());
+
+        /// Host: a buy from the build map: no walk to the door, but only while the build round is open.
+        void HostMysteryBuy(int id, short x, short y)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p) || p.Downed)
+                return;
+            int i = MysteryDoors.FindIndex(d => d.X == x && d.Y == y);
+            if (i >= 0)
+                OpenMysteryDoor(p, i);
+        }
+
         /// Host: the door opens if the player can pay. Mid-wave only once the rooms are up (the first room raises them between waves).
         bool OpenMysteryDoor(Player p, int i)
         {

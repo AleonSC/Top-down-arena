@@ -91,6 +91,23 @@ static partial class Program
         Check(kept.All(k => g.MysteryDoors.Any(x => x.Pos.CloserThan(k, 1f) && x.Saver != 0)) && g.MysteryDoors.Count <= Mystery.Cap, "the saved doors outlive the roll, the rest expire (" + g.MysteryDoors.Count + " now)");
         Check(g.MysteryDoors.Count(x => x.Saver == 0) == Mystery.Cap - 2, "new doors only fill up to the cap");
 
+        // The build map: a click buys a door from anywhere, but only while the build round is open.
+        {
+            var bd = g.MysteryDoors[g.MysteryDoors.Count - 1];
+            place(fp, cme, new V2(Game.Width / 2f, Game.Height / 2f));
+            fp.Vectors = cme.Vectors = bd.Price + 3; fp.VectorCap = cme.VectorCap = 500;
+            int nd = g.MysteryDoors.Count, nr = g.Expanded.Count;
+            g.ExpandOpen = false;
+            cg.BuyMysteryDoor(cg.MysteryDoors.FindIndex(x => x.X == bd.X && x.Y == bd.Y));
+            PollBoth(host, client);
+            Check(g.MysteryDoors.Count == nd && g.Expanded.Count == nr && fp.Vectors == bd.Price + 3, "no build round open: a buy from the map does nothing");
+            g.ExpandOpen = true;
+            cg.BuyMysteryDoor(cg.MysteryDoors.FindIndex(x => x.X == bd.X && x.Y == bd.Y));
+            PollBoth(host, client);
+            Check(g.MysteryDoors.Count == nd - 1 && g.Expanded.Count > nr && fp.Vectors == 3 && cg.MysteryDoors.Count == nd - 1, "in a build round the friend buys a far door from the map: room built, " + bd.Price + " charged");
+            g.ExpandOpen = false;
+        }
+
         // A drawn room taking a door's space: the door is re-planned behind the same spot, or goes; never left over a room.
         for (int t = 0; t < 6; t++)
         {
