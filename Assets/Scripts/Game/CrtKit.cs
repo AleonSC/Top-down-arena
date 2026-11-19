@@ -37,13 +37,13 @@ namespace Arena
         {
             if (locked)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyLockedTint * FillFade));
-                Dashed(r, CrtStyle.KeyLockedDashW, new Color(c.r, c.g, c.b, CrtStyle.KeyLockedDash));
+                Ui.Fill(r, c.WithAlpha(CrtStyle.KeyLockedTint * FillFade));
+                Dashed(r, CrtStyle.KeyLockedDashW, c.WithAlpha(CrtStyle.KeyLockedDash));
                 return;
             }
             // (the strengths and widths: CrtStyle.cs)
-            Ui.Fill(r, new Color(c.r, c.g, c.b, (on ? CrtStyle.KeyTintOn : hover ? CrtStyle.KeyTintHover : CrtStyle.KeyTint) * FillFade));
-            Frame(r, on ? CrtStyle.KeyRimOnW : CrtStyle.KeyRimW, new Color(c.r, c.g, c.b, on ? CrtStyle.KeyRimOn : hover ? CrtStyle.KeyRimHover : CrtStyle.KeyRim));
+            Ui.Fill(r, c.WithAlpha((on ? CrtStyle.KeyTintOn : hover ? CrtStyle.KeyTintHover : CrtStyle.KeyTint) * FillFade));
+            Frame(r, on ? CrtStyle.KeyRimOnW : CrtStyle.KeyRimW, c.WithAlpha(on ? CrtStyle.KeyRimOn : hover ? CrtStyle.KeyRimHover : CrtStyle.KeyRim));
             if (on)
                 Ui.Glow(r, c, CrtStyle.KeyGlowOn);  // the selected key glows a little (no underline)
         }
@@ -254,7 +254,7 @@ namespace Arena
             {
                 float y0 = Mathf.Max(y + 46f * i / 10f, r.y), y1 = Mathf.Min(y + 46f * (i + 1) / 10f + 1f, r.yMax);
                 if (y1 > y0)
-                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f * (i + 1f) / 10f));
+                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), CrtUi.Ink.WithAlpha(0.5f * (i + 1f) / 10f));
             }
         }
 
@@ -321,7 +321,7 @@ namespace Arena
             if (two)
             {
                 string sb = slot != null ? Typed(slot + ".s", sub, now, calm) : sub;
-                Ui.Label(new Rect(x, ny + size + 5f, tw, 14f), sb, 11, new Color(tc.r, tc.g, tc.b, 0.75f), align, false);
+                Ui.Label(new Rect(x, ny + size + 5f, tw, 14f), sb, 11, tc.WithAlpha(0.75f), align, false);
             }
             return Ui.HitArea(r) && !locked;
         }
@@ -355,7 +355,7 @@ namespace Arena
                 Ui.Fill(new Rect(screen.xMax - d - step, screen.y + d + step, step, screen.height - 2f * (d + step)), c);
             }
             Frame(screen, rim, CrtUi.T(new Color(0.07f, 0.125f, 0.247f, vis)));
-            Frame(new Rect(screen.x + rim, screen.y + rim, screen.width - 2f * rim, screen.height - 2f * rim), line, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, vis));
+            Frame(new Rect(screen.x + rim, screen.y + rim, screen.width - 2f * rim, screen.height - 2f * rim), line, CrtUi.Dim.WithAlpha(vis));
         }
 
         /// A physical key on the chassis (Back): the tactile blue key with a lamp. Returns true on a click.

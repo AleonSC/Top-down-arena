@@ -29,10 +29,10 @@ namespace Arena
             if (!BuilderPanelUp(me))
                 return;
             var r = BuilderPanelRect;
-            var ink = ToColor(BuilderInk);
+            var ink = BuilderInk.ToColor();
             Ui.Fill(r, new Color(0.01f, 0.015f, 0.04f, 0.88f));
             DkPanel(r);
-            Ui.Fill(new Rect(r.x, r.y, r.width, 2f), new Color(ink.r, ink.g, ink.b, 0.8f));  // an amber top edge
+            Ui.Fill(new Rect(r.x, r.y, r.width, 2f), ink.WithAlpha(0.8f));  // an amber top edge
             DkTitle(new Rect(r.x + 18f, r.y + 10f, 260f, 26f), "BUILDER SHOP", 20, ink);
             Ui.Label(new Rect(r.x + 18f, r.y + 34f, 380f, 16f), "Piece cards for vectors  ·  a new shelf each wave  ·  a quarter off", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             int held = Game.HandCount(me), have = game.SpendableVectors(me);
@@ -48,13 +48,13 @@ namespace Arena
                 var tile = new Rect(x0 + i * (tw + gap), y0, tw, th);
                 string why = game.BuilderRefusal(me, i);
                 bool hover = tile.Contains(Event.current.mousePosition);
-                var ci = ToColor(CardColor(card));
+                var ci = CardColor(card).ToColor();
                 if (hover && why == null)
                     Ui.Glow(tile, ink, 0.35f + 0.08f * Mathf.Sin(t * 4f));
                 DkSub(tile, new Color(ci.r * 0.12f, ci.g * 0.12f, ci.b * 0.12f, 0.75f));
                 float dim = why == null ? 1f : 0.55f;
                 float bob = hover && !fxReduced ? 2f * Mathf.Sin(t * 3f) : 0f;
-                DrawCardGlyph(card, new Rect(tile.x + 22f, tile.y + 8f + bob, tile.width - 44f, 34f), new Color(ci.r, ci.g, ci.b, dim));
+                DrawCardGlyph(card, new Rect(tile.x + 22f, tile.y + 8f + bob, tile.width - 44f, 34f), ci.WithAlpha(dim));
                 Ui.Label(new Rect(tile.x, tile.y + 44f, tile.width, 16f), Expansion.CardName(card).ToUpperInvariant(), 12, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
                 int price = Expansion.BuilderPrice(card), full = Expansion.CardPrice(card);
                 string was = full.ToString();

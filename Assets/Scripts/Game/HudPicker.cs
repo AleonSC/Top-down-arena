@@ -33,9 +33,9 @@ namespace Arena
             float mid = W / 2f;
 
             // Heading: a big outlined title in the offer's colour, and a line under it.
-            Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
-                : me.OfferMilestone ? ToColor(Upgrades.RarityColor(Rarity.Milestone))
-                : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : me.OfferCards ? BossCardsTheme : me.OfferPrize ? ToColor(Upgrades.RarityColor(Rarity.VeryRare)) : Ui.Gold;
+            Color theme = me.OfferLegendary ? Upgrades.RarityColor(Rarity.Legendary).ToColor()
+                : me.OfferMilestone ? Upgrades.RarityColor(Rarity.Milestone).ToColor()
+                : me.OfferMod ? Upgrades.RarityColor(Rarity.Mod).ToColor() : me.OfferCards ? BossCardsTheme : me.OfferPrize ? Upgrades.RarityColor(Rarity.VeryRare).ToColor() : Ui.Gold;
             string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferWave ? "WAVE SPOILS" : me.OfferCards ? "BOSS SPOILS!" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
             float titleY, band;
             int titleSize;
@@ -137,7 +137,7 @@ namespace Arena
             float rowAlpha, rise = PickButtonsRise(me, out rowAlpha);
             var oldRowColor = GUI.color;
             Ui.Alpha = rowAlpha;
-            GUI.color = new Color(oldRowColor.r, oldRowColor.g, oldRowColor.b, oldRowColor.a * rowAlpha);
+            GUI.color = oldRowColor.ScaleAlpha(rowAlpha);
             by += rise;
             if (rowAlpha <= 0.01f)
             {
@@ -258,7 +258,7 @@ namespace Arena
             var oldMatrix = GUI.matrix;
             float oldAlpha = Ui.Alpha;
             Ui.Alpha = a;
-            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, a);
+            GUI.color = oldColor.WithAlpha(a);
             float sc = Mathf.Lerp(0.6f, 1f, keySwitch);
             GUIUtility.ScaleAroundPivot(new Vector2(sc, sc), new Vector2(mid, by + 24f));
             Ui.Label(new Rect(mid - w / 2f - 20f, by - 22f, w + 40f, 18f), uses ? "+1 USE ON" : Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
@@ -270,7 +270,7 @@ namespace Arena
                 var r = new Rect(mid - w / 2f + j * kw, by, kw, 48f);
                 string hint = uses ? (me.Slots[k].Id != AbilityId.None ? Upgrades.Ability(me.Slots[k].Id).Name : "empty") : me.Slots[k].Id != AbilityId.None ? "swap" : "empty";
                 int val = uses ? k + 1 : k;  // what pickKey holds
-                if (DkChoice(new Rect(r.x, r.y, r.width, r.height - 14f), SlotKeys[k], pickKey == val, ToColor(me.Def.Color)) && !opening && (!uses || me.Slots[k].Id != AbilityId.None))
+                if (DkChoice(new Rect(r.x, r.y, r.width, r.height - 14f), SlotKeys[k], pickKey == val, me.Def.Color.ToColor()) && !opening && (!uses || me.Slots[k].Id != AbilityId.None))
                     pickKey = val;
                 Ui.Label(new Rect(r.x, r.yMax - 14f, r.width, 14f), hint, 10, CrtStyle.Desc, TextAnchor.MiddleCenter);
             }
@@ -369,7 +369,7 @@ namespace Arena
         }
 
         /// The colour a card is drawn in: its rarity colour (Common is gray and never takes the CRT colour setting).
-        static Color CrtCol(UpgradeDef u) => ToColor(Upgrades.RarityColor(u.Rarity));
+        static Color CrtCol(UpgradeDef u) => Upgrades.RarityColor(u.Rarity).ToColor();
 
         /// An upgrade card in the lobby's digital CRT look (Docs/Mockups/crt-level-up-blue.html): a holographic screen in the
         /// card's rarity colour (DrawHolo), a thin outline (brighter picked or hovered), blue corner brackets and a soft glow that grows on
@@ -381,10 +381,10 @@ namespace Arena
             if (selected)
                 Ui.Glow(r, c, 0.3f);
             DrawHolo(r, c, now);
-            var edge = selected ? Color.Lerp(c, Color.white, 0.55f) : new Color(c.r, c.g, c.b, hover ? 0.9f : 0.5f);
+            var edge = selected ? Color.Lerp(c, Color.white, 0.55f) : c.WithAlpha(hover ? 0.9f : 0.5f);
             CrtKit.Frame(r, selected ? 2f : 1f, edge);
             const float arm = 18f, th = 3f;
-            var b = new Color(c.r, c.g, c.b, behind ? 0.35f : 1f);
+            var b = c.WithAlpha(behind ? 0.35f : 1f);
             Ui.Fill(new Rect(r.x, r.y, arm, th), b); Ui.Fill(new Rect(r.x, r.y, th, arm), b);
             Ui.Fill(new Rect(r.xMax - arm, r.yMax - th, arm, th), b); Ui.Fill(new Rect(r.xMax - th, r.yMax - arm, th, arm), b);
         }
@@ -398,7 +398,7 @@ namespace Arena
             Ui.Picture(r, CardArt.Holo(c));
             float t = MathX.Fmod(now, 5f) / 5f;
             bool dip = !fxReduced && ((t >= 0.94f && t < 0.96f) || t >= 0.98f);  // the mockup's flicker: two short dips every 5 s
-            var line = new Color(c.r, c.g, c.b, (dip ? 0.32f : 0.5f) * 0.4f);
+            var line = c.WithAlpha((dip ? 0.32f : 0.5f) * 0.4f);
             for (float y = Mathf.Round(r.yMax) - 1f; y >= r.y; y -= 4f)  // counted up from the bottom edge, like the mockup
                 Ui.Fill(new Rect(r.x, y, r.width, 1f), line);
             if (!fxReduced)
@@ -408,7 +408,7 @@ namespace Arena
                 var bc = Color.Lerp(c, Color.white, 0.3f);
                 var old = GUI.color;
                 GUI.BeginGroup(r);
-                GUI.color = Ui.Faded(new Color(bc.r, bc.g, bc.b, 0.5f));
+                GUI.color = Ui.Faded(bc.WithAlpha(0.5f));
                 GUI.DrawTexture(new Rect(0f, by, r.width, 0.28f * h), CardArt.Band());
                 GUI.EndGroup();
                 GUI.color = old;
@@ -420,7 +420,7 @@ namespace Arena
         /// A small key-like label (the rarity): outlined and faintly lit, inverse video on the picked card.
         void DrawCrtChip(Rect r, string text, Color c, bool inverse)
         {
-            Ui.Fill(r, inverse ? c : new Color(c.r, c.g, c.b, 0.08f));
+            Ui.Fill(r, inverse ? c : c.WithAlpha(0.08f));
             CrtKit.Frame(r, 1f, c);
             if (inverse)
                 Ui.Label(r, text, 10, CrtUi.Bg, TextAnchor.MiddleCenter, true);
@@ -434,8 +434,8 @@ namespace Arena
             if (selected)
                 Ui.Glow(r, c, 0.4f);
             Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
-            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.07f));
-            CrtKit.Frame(r, 2f, new Color(c.r, c.g, c.b, selected ? 1f : 0.6f));
+            Ui.Fill(r, c.WithAlpha(0.07f));
+            CrtKit.Frame(r, 2f, c.WithAlpha(selected ? 1f : 0.6f));
         }
 
         /// Gold corner brackets round a card (the picked milestone).
@@ -486,8 +486,8 @@ namespace Arena
             var go = PickGo;
             Ui.Fill(r, new Color(2f / 255f, 10f / 255f, 8f / 255f, 0.82f));
             for (int k = 0; k < 4; k++)  // the faint inner glow
-                CrtKit.Frame(new Rect(r.x + k * 3f, r.y + k * 3f, r.width - k * 6f, r.height - k * 6f), 3f, new Color(go.r, go.g, go.b, 0.045f - k * 0.011f));
-            CrtKit.Frame(r, 1f, new Color(go.r, go.g, go.b, 0.55f));
+                CrtKit.Frame(new Rect(r.x + k * 3f, r.y + k * 3f, r.width - k * 6f, r.height - k * 6f), 3f, go.WithAlpha(0.045f - k * 0.011f));
+            CrtKit.Frame(r, 1f, go.WithAlpha(0.55f));
             const float arm = 6.4f;  // brackets: top left and bottom right
             Ui.Fill(new Rect(r.x, r.y, arm, 2f), go); Ui.Fill(new Rect(r.x, r.y, 2f, arm), go);
             Ui.Fill(new Rect(r.xMax - arm, r.yMax - 2f, arm, 2f), go); Ui.Fill(new Rect(r.xMax - 2f, r.yMax - arm, 2f, arm), go);
@@ -497,7 +497,7 @@ namespace Arena
                 PickArrow(r.x + pad, y + 5.5f, new Color(0.31f, 0.65f, 0.416f));
                 Ui.Label(new Rect(r.x + pad + 14f, y, 90f, 11f), "THIS PICK", 9, new Color(0.31f, 0.65f, 0.416f), TextAnchor.MiddleLeft, false);
                 float bl = fxReduced ? 1f : PickBlink(now, 1.1f);
-                Ui.Fill(new Rect(r.xMax - pad - 6f, y + 2.5f, 6f, 6f), new Color(go.r, go.g, go.b, bl));
+                Ui.Fill(new Rect(r.xMax - pad - 6f, y + 2.5f, 6f, 6f), go.WithAlpha(bl));
                 y += 11f;
             }
             y += 3.2f;
@@ -528,7 +528,7 @@ namespace Arena
                     CrtUi.Text(new Rect(x, y, nw + 2f, rowH), newV, fs, go, TextAnchor.MiddleLeft, false, fxReduced);
                     if (oldV != null)
                     {
-                        var arr = new Color(go.r, go.g, go.b, 1f);
+                        var arr = go.WithAlpha(1f);
                         PickArrow(x - 7f, y + rowH / 2f, arr);
                         PickArrow(x - 14f, y + rowH / 2f, arr);
                         float ow = Ui.TextWidth(oldV, fs);
@@ -550,11 +550,11 @@ namespace Arena
                 int n = first + k;
                 if (stacks >= 0 && n < have)
                 {
-                    Ui.Fill(new Rect(seg.x - 2f, seg.y - 2f, seg.width + 4f, seg.height + 4f), new Color(go.r, go.g, go.b, 0.18f));
+                    Ui.Fill(new Rect(seg.x - 2f, seg.y - 2f, seg.width + 4f, seg.height + 4f), go.WithAlpha(0.18f));
                     Ui.Fill(seg, go);
                 }
                 else if (stacks >= 0 && n == have)
-                    Ui.Fill(seg, new Color(go.r, go.g, go.b, fxReduced ? 1f : PickBlink(now, 0.8f)));
+                    Ui.Fill(seg, go.WithAlpha(fxReduced ? 1f : PickBlink(now, 0.8f)));
                 else
                     Ui.Fill(seg, new Color(16f / 255f, 48f / 255f, 28f / 255f));
             }
@@ -649,13 +649,13 @@ namespace Arena
                     }
                     else if ((selected || ms) && k == have)
                     {
-                        Ui.Fill(c, new Color(rc.r, rc.g, rc.b, 0.22f + 0.14f * Mathf.Sin(now * 5f)));
+                        Ui.Fill(c, rc.WithAlpha(0.22f + 0.14f * Mathf.Sin(now * 5f)));
                         CrtKit.Frame(c, 2f, rc);
                     }
                     else
                     {
                         Ui.Fill(c, new Color(0.01f, 0.02f, 0.05f, 1f));
-                        CrtKit.Frame(c, 1f, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.9f));
+                        CrtKit.Frame(c, 1f, CrtUi.Dim.WithAlpha(0.9f));
                     }
                 }
                 if (showParts && !grants)
@@ -675,7 +675,7 @@ namespace Arena
             string keyText = (index + 1).ToString();
             DrawKeyCap(new Rect(r.center.x - (12f + keyText.Length * 6.5f) / 2f, r.yMax - 40f, 0f, 18f), keyText, selected ? rc : new Color(1f, 1f, 1f, 0.6f));
             for (float dx = 0f; dx < r.width - 20f; dx += 8f)  // the dashed line along the bottom
-                Ui.Fill(new Rect(r.x + 10f + dx, r.yMax - 12f, 5f, 2f), new Color(rc.r, rc.g, rc.b, selected ? 0.95f : hover ? 0.8f : 0.5f));
+                Ui.Fill(new Rect(r.x + 10f + dx, r.yMax - 12f, 5f, 2f), rc.WithAlpha(selected ? 0.95f : hover ? 0.8f : 0.5f));
             if (selected && ms)
                 DrawBrackets(r, rc);
             if (behind)  // another card is picked: this one steps back
@@ -721,15 +721,15 @@ namespace Arena
             string rarity = Upgrades.RarityName(u.Rarity);
             float rw = 24f + rarity.Length * 7.5f;
             var ribbon = new Rect(r.x + r.width / 2f - rw / 2f, r.y + 12f, rw, 20f);
-            Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f));
+            Ui.Pill(ribbon, rc.WithAlpha(0.85f));
             Ui.Label(ribbon, rarity, 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
             // Icon in a framed, glowing tile.
             var tile = new Rect(r.x + r.width / 2f - 46f, r.y + 42f, 92f, 92f);
-            Ui.Pill(new Rect(tile.x - 4f, tile.y - 4f, tile.width + 8f, tile.height + 8f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
+            Ui.Pill(new Rect(tile.x - 4f, tile.y - 4f, tile.width + 8f, tile.height + 8f), rc.WithAlpha(selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
             Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + bob, 72f, 72f), icon);
             Ui.Glitch(new Rect(r.x + 10f, r.y + 144f, r.width - 20f, 28f), u.Name, 21, Color.white, TextAnchor.MiddleCenter);
-            Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), new Color(rc.r, rc.g, rc.b, 0.35f));
+            Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), rc.WithAlpha(0.35f));
             string desc = Upgrades.DescFor(u, me.Weapon);
             int ds = desc.Length > 110 ? 12 : 14;
             if (u.Grants != AbilityId.None)
@@ -744,7 +744,7 @@ namespace Arena
             if (note.Length > 0)
                 Ui.Label(new Rect(r.x, r.yMax - 50f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
             var key = new Rect(r.x + r.width / 2f - 50f, r.yMax - 30f, 100f, 20f);
-            Ui.Pill(key, selected ? new Color(rc.r, rc.g, rc.b, 0.85f) : new Color(1f, 1f, 1f, 0.08f));
+            Ui.Pill(key, selected ? rc.WithAlpha(0.85f) : new Color(1f, 1f, 1f, 0.08f));
             Ui.Label(key, selected ? "SELECTED" : "PRESS " + (index + 1), 10, selected ? new Color(0.06f, 0.06f, 0.1f) : new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
         }
 
@@ -807,7 +807,7 @@ namespace Arena
                     Label(new Rect(right - nw - 2f, y, nw + 4f, 18f), line.Value, 13, green, TextAnchor.MiddleRight, true);
                     var arrow = new Rect(right - nw - 18f, y + 3f, 12f, 12f);
                     Ui.Icon(arrow, PixelArt.Get("ui_arrow"), green);
-                    Label(new Rect(r.x + 12f, y, arrow.x - 4f - (r.x + 12f), 18f), old, 13, new Color(green.r, green.g, green.b, 0.6f), TextAnchor.MiddleRight);
+                    Label(new Rect(r.x + 12f, y, arrow.x - 4f - (r.x + 12f), 18f), old, 13, green.WithAlpha(0.6f), TextAnchor.MiddleRight);
                 }
                 else
                     Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), changed ? "NEW " + line.Value : line.Value, 13, changed ? green : Color.white, TextAnchor.MiddleRight, changed);
@@ -822,10 +822,10 @@ namespace Arena
         Rect StatsSidebar(Player me)
         {
             var r = new Rect(0f, 0f, StatsSidebarW, H);
-            var rc = ToColor(me.Def.Color);
+            var rc = me.Def.Color.ToColor();
             Ui.Fill(r, new Color(0.05f, 0.07f, 0.13f, 0.6f));
             Ui.Fill(new Rect(r.xMax - 1f, 0f, 1f, H), new Color(1f, 1f, 1f, 0.22f));
-            Ui.Fill(new Rect(r.xMax - 5f, 0f, 4f, H), new Color(rc.r, rc.g, rc.b, 0.18f));
+            Ui.Fill(new Rect(r.xMax - 5f, 0f, 4f, H), rc.WithAlpha(0.18f));
             Ui.Label(new Rect(20f, 20f, r.width - 40f, 24f), "YOUR STATS", 16, Color.white, TextAnchor.MiddleLeft, true);
             Label(new Rect(20f, 44f, r.width - 40f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.FirstAbility).Name, 12, rc, TextAnchor.MiddleLeft);
             Ui.Fill(new Rect(20f, 70f, r.width - 40f, 1f), new Color(1f, 1f, 1f, 0.1f));

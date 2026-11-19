@@ -43,12 +43,12 @@ namespace Arena
             if (glitch)
             {
                 float j = (DHash(Mathf.Floor(now * 30f)) - 0.5f) * 16f;
-                CrtUi.Title(new Rect(tr.x - 6f + j, tr.y, tr.width, tr.height), "DOWNED", 78, new Color(red.r, red.g, red.b, 0.45f), TextAnchor.MiddleCenter, true);
-                CrtUi.Title(new Rect(tr.x + 6f + j, tr.y, tr.width, tr.height), "DOWNED", 78, new Color(DownCyanUi.r, DownCyanUi.g, DownCyanUi.b, 0.4f), TextAnchor.MiddleCenter, true);
+                CrtUi.Title(new Rect(tr.x - 6f + j, tr.y, tr.width, tr.height), "DOWNED", 78, red.WithAlpha(0.45f), TextAnchor.MiddleCenter, true);
+                CrtUi.Title(new Rect(tr.x + 6f + j, tr.y, tr.width, tr.height), "DOWNED", 78, DownCyanUi.WithAlpha(0.4f), TextAnchor.MiddleCenter, true);
             }
             CrtUi.Title(tr, "DOWNED", 78, red, TextAnchor.MiddleCenter, calm);
-            LobbyKit.Spaced(new Rect(r.x, r.y + 100f, r.width, 20f), "NO PENALTY IN PRACTICE  ·  THE WAVE KEEPS RUNNING", 11, new Color(red.r, red.g, red.b, 0.7f), TextAnchor.MiddleCenter, 1.5f);
-            Ui.Fill(new Rect(r.x + 30f, r.y + 128f, r.width - 60f, 1f), new Color(red.r, red.g, red.b, 0.4f));
+            LobbyKit.Spaced(new Rect(r.x, r.y + 100f, r.width, 20f), "NO PENALTY IN PRACTICE  ·  THE WAVE KEEPS RUNNING", 11, red.WithAlpha(0.7f), TextAnchor.MiddleCenter, 1.5f);
+            Ui.Fill(new Rect(r.x + 30f, r.y + 128f, r.width - 60f, 1f), red.WithAlpha(0.4f));
 
             // The keys.
             float x = r.x + 30f, w = r.width - 60f;

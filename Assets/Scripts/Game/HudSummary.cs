@@ -77,7 +77,7 @@ namespace Arena
                     var shake = EndTitleShake();
                     var tr = new Rect(shake.x + tx0 - tw0 * (ts - 1f) / 2f, ty + shake.y - 33f * (ts - 1f), tw0 * ts, 66f * ts);
                     RoundPart(titleIn, Vector2.zero, () =>
-                        Ui.Glitch(tr, title, Mathf.RoundToInt(baseSize * ts), Color.white, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f)));
+                        Ui.Glitch(tr, title, Mathf.RoundToInt(baseSize * ts), Color.white, TextAnchor.MiddleCenter, theme.WithAlpha(0.55f)));
                 }
                 RoundPart(EndSubIn, Vector2.zero, () =>
                     LobbyKit.Spaced(new Rect(titleBox.x, titleBox.y + 88f, titleBox.width, 30f), sub, 14, CrtUi.Ink, TextAnchor.MiddleCenter, 3f));
@@ -243,7 +243,7 @@ namespace Arena
         /// the island runs along the top and the numbers are smaller and bar-less.
         void DrawPlayerSummary(Player p, List<Player> all, Rect r, float now)
         {
-            var color = ToColor(p.Def.Color);
+            var color = p.Def.Color.ToColor();
             bool mine = p.Id == game.MyId, compact = r.width < 600f;
             var art = compact ? new Rect(r.x + 10f, r.y + 10f, r.width - 20f, 88f) : new Rect(r.x + 14f, r.y + 14f, 200f, r.height - 28f);
             DkBox(art, color, mine ? 0.85f : 0.45f);
@@ -253,9 +253,9 @@ namespace Arena
                 for (int k = 0; k < 4; k++)
                 {
                     float s = 1f - k * 0.2f;
-                    Ui.Pill(new Rect(inner.center.x - inner.width * s / 2f, inner.y + 20f + 70f * (1f - s), inner.width * s, 150f * s), new Color(color.r, color.g, color.b, 0.06f + 0.02f * k));
+                    Ui.Pill(new Rect(inner.center.x - inner.width * s / 2f, inner.y + 20f + 70f * (1f - s), inner.width * s, 150f * s), color.WithAlpha(0.06f + 0.02f * k));
                 }
-            Ui.Icon(inner, Hatch(), new Color(color.r, color.g, color.b, 0.06f));
+            Ui.Icon(inner, Hatch(), color.WithAlpha(0.06f));
             RankLook.Draw(new Rect(inner.xMax - (compact ? 30f : 40f), inner.y + 6f, compact ? 24f : 32f, compact ? 24f : 32f), RankOfPlayer(p));  // their account rank (RankUi.cs)
             float isz = compact ? 64f : 108f;
             var iconRect = compact ? new Rect(inner.x + 12f, inner.center.y - isz / 2f + 2f * Mathf.Sin(now * 2.2f + p.Id), isz, isz)
@@ -264,12 +264,12 @@ namespace Arena
             float chipX = compact ? iconRect.xMax + 10f : inner.x + 12f, chipW = compact ? inner.xMax - chipX - 34f : inner.width - 24f;
             float ay = compact ? inner.y + 18f : iconRect.yMax + 14f;
             var roleChip = new Rect(chipX, ay, chipW, 24f);
-            Ui.Pill(roleChip, new Color(color.r, color.g, color.b, 0.22f));
+            Ui.Pill(roleChip, color.WithAlpha(0.22f));
             Ui.Icon(new Rect(roleChip.x + 8f, roleChip.y + 4f, 16f, 16f), PixelArt.Get(RoleIcons[(int)p.Role]), color);
             Ui.Label(new Rect(roleChip.x + 28f, roleChip.y, roleChip.width - 32f, 24f), p.Def.Name.ToUpperInvariant(), 11, Color.Lerp(color, Color.white, 0.4f), TextAnchor.MiddleLeft, true);
             ay += 32f;
             var lvl = new Rect(chipX, ay, chipW, 24f);
-            Ui.Pill(lvl, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f));
+            Ui.Pill(lvl, Ui.Gold.WithAlpha(0.9f));
             Ui.Label(lvl, "LEVEL " + p.Level, 12, new Color(0.08f, 0.06f, 0.02f), TextAnchor.MiddleCenter, true);
             ay += 36f;
             // Awards: rows where this player has the best number (and it isn't zero).
@@ -285,7 +285,7 @@ namespace Arena
                     if (!best)
                         continue;
                     var award = new Rect(inner.x + 12f, ay, inner.width - 24f, 22f);
-                    Ui.Pill(award, new Color(Ui.GoldButton.r, Ui.GoldButton.g, Ui.GoldButton.b, 0.28f));
+                    Ui.Pill(award, Ui.GoldButton.WithAlpha(0.28f));
                     Ui.Icon(new Rect(award.x + 7f, award.y + 4f, 14f, 14f), PixelArt.Get("ui_trophy"), Ui.Gold);
                     Ui.Label(new Rect(award.x + 25f, award.y, award.width - 28f, 22f), row.Award.ToUpperInvariant(), 10, Ui.Gold, TextAnchor.MiddleLeft, true);
                     ay += 27f;
@@ -298,7 +298,7 @@ namespace Arena
             string cls = Defs.KitName(p.Kit) + " " + p.Def.Name + (compact ? "" : "  ·  " + p.Weapon.Name);
             Ui.Label(new Rect(x, ny + (compact ? 26f : 38f), w, 18f), cls, compact ? 11 : 13, color, TextAnchor.MiddleLeft, true);
             float y = ny + (compact ? 50f : 66f);
-            Ui.Fill(new Rect(x, y - 4f, w, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
+            Ui.Fill(new Rect(x, y - 4f, w, 1f), CrtUi.Ink.WithAlpha(0.3f));
             float pitch = compact ? 19f : 26f;
             int vsize = compact ? 17 : 22;
             foreach (var row in SummaryRows)
@@ -311,13 +311,13 @@ namespace Arena
                 float lw = CrtUi.TitleWidth(row.Label, vsize), vw = CrtUi.TitleWidth(text, vsize);
                 CrtUi.Title(new Rect(x, y, lw + 10f, 22f), row.Label, vsize, Color.Lerp(CrtUi.Dim, Color.white, 0.2f), TextAnchor.MiddleLeft, true);
                 CrtUi.Title(new Rect(x + w - vw - 10f, y, vw + 10f, 22f), text, vsize, leading ? Ui.Gold : Color.white, TextAnchor.MiddleRight, fxReduced);
-                var dotCol = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.4f);
+                var dotCol = CrtUi.Ink.WithAlpha(0.4f);
                 for (float dx = x + lw + 12f; dx < x + w - vw - 12f; dx += 5f)  // the dot leader
                     Ui.Fill(new Rect(dx, y + 15f, 2f, 2f), dotCol);
                 if (!compact && top > 0f && row.Award != null && all.Count > 1)  // (a bar against the team's best: alone, every one would just be full)
                 {
                     Ui.Fill(new Rect(x, y + 22f, w, 3f), new Color(1f, 1f, 1f, 0.05f));
-                    Ui.Fill(new Rect(x, y + 22f, w * Mathf.Clamp01(val / top), 3f), leading ? Ui.Gold : new Color(color.r, color.g, color.b, 0.75f));
+                    Ui.Fill(new Rect(x, y + 22f, w * Mathf.Clamp01(val / top), 3f), leading ? Ui.Gold : color.WithAlpha(0.75f));
                 }
                 y += pitch;
             }
@@ -338,14 +338,14 @@ namespace Arena
             {
                 if (counts[i] == 0)
                     continue;
-                var rc = ToColor(Upgrades.RarityColor((Rarity)i));
+                var rc = (Upgrades.RarityColor((Rarity)i)).ToColor();
                 var pill = new Rect(px, y + 1f, compact ? 30f : 40f, 20f);
-                Ui.Pill(pill, new Color(rc.r, rc.g, rc.b, 0.9f));
+                Ui.Pill(pill, rc.WithAlpha(0.9f));
                 Ui.Label(pill, counts[i].ToString(), 11, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
                 px += compact ? 34f : 46f;
             }
             if (legendaries.Count > 0 && !compact)
-                Ui.Label(new Rect(px + 6f, y, x + w - px - 6f, 22f), string.Join(", ", legendaries.ToArray()), 12, ToColor(Upgrades.RarityColor(Rarity.Legendary)), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(px + 6f, y, x + w - px - 6f, 22f), string.Join(", ", legendaries.ToArray()), 12, Upgrades.RarityColor(Rarity.Legendary).ToColor(), TextAnchor.MiddleLeft, true);
         }
     }
 }

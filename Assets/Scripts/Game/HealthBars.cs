@@ -102,10 +102,10 @@ namespace Arena
             {
                 if (!e.Def.IsBoss && !e.Def.Mini)
                     continue;
-                var col = ToColor(e.Def.Color);
+                var col = e.Def.Color.ToColor();
                 float frac = Mathf.Clamp01(e.Hp / Mathf.Max(1f, e.MaxHp));
                 var old = GUI.color;
-                GUI.color = new Color(old.r, old.g, old.b, old.a * a);
+                GUI.color = old.ScaleAlpha(a);
                 Ui.Alpha = a;
                 Ui.Shadowed(new Rect(x, y, w * 0.7f, 14f), e.Def.Name.ToUpperInvariant(), 10, new Color(1f, 1f, 1f, 0.9f), TextAnchor.MiddleLeft);
                 Ui.Shadowed(new Rect(x + w * 0.7f, y, w * 0.3f, 14f), Mathf.CeilToInt(frac * 100f) + "%", 10, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleRight);

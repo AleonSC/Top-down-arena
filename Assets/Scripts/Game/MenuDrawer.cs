@@ -67,7 +67,7 @@ namespace Arena
         /// A one-line player card: class icon, name, class and weapon, level, and a thin health bar along the bottom.
         void PartyCompact(Rect r, Player p)
         {
-            var col = ToColor(p.Def.Color);
+            var col = p.Def.Color.ToColor();
             DkBox(r, col, p.Id == game.MyId ? 0.4f : 0.15f);
             var art = new Rect(r.x + 2f, r.y + 2f, r.height - 4f, r.height - 4f);
             Ui.Pill(art, new Color(col.r * 0.15f, col.g * 0.15f, col.b * 0.15f, 0.95f));
@@ -79,7 +79,7 @@ namespace Arena
             string cls = Defs.KitName(p.Kit) + " " + p.Def.Name, full = cls + "  ·  " + p.Weapon.Name;
             Ui.Label(new Rect(cx, r.y + 4f, room, 22f), Ui.TextWidth(full, 12, true) <= room ? full : cls, 12, col, TextAnchor.MiddleLeft, true);  // the weapon only when it fits
             var lvl = new Rect(r.xMax - 54f, r.y + 7f, 44f, 17f);
-            Ui.Pill(lvl, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f));
+            Ui.Pill(lvl, Ui.Gold.WithAlpha(0.9f));
             Ui.Label(lvl, "LV " + p.Level, 10, new Color(0.08f, 0.06f, 0.02f), TextAnchor.MiddleCenter, true);
             Ui.Bar(new Rect(x, r.yMax - 12f, r.xMax - 10f - x, 5f), p.Downed ? 0f : p.Hp / Mathf.Max(1f, p.MaxHp), p.Downed ? Ui.Danger : new Color(0.31f, 0.82f, 0.4f), new Color(0f, 0f, 0f, 0.5f));
         }
@@ -88,7 +88,7 @@ namespace Arena
         float Chip(float x, float y, string text, Color col)
         {
             float w = Ui.TextWidth(text, 11, true) + 18f;
-            Ui.Pill(new Rect(x, y, w, 22f), new Color(col.r, col.g, col.b, 0.16f));
+            Ui.Pill(new Rect(x, y, w, 22f), col.WithAlpha(0.16f));
             Ui.Label(new Rect(x, y, w, 22f), text, 11, col, TextAnchor.MiddleCenter, true);
             return w;
         }
@@ -97,7 +97,7 @@ namespace Arena
         void IconTile(Rect r, Texture2D icon, Color col, float iconSize)
         {
             Ui.Fill(r, new Color(col.r * 0.18f, col.g * 0.18f, col.b * 0.18f, 0.95f));
-            CrtKit.Frame(r, 2f, new Color(col.r, col.g, col.b, 0.75f));
+            CrtKit.Frame(r, 2f, col.WithAlpha(0.75f));
             if (icon != null)
                 Ui.Icon(new Rect(r.center.x - iconSize / 2f, r.center.y - iconSize / 2f, iconSize, iconSize), icon);
         }
@@ -400,7 +400,7 @@ namespace Arena
             if (cabScreenOn)
             {
                 float nw = cabScreen.width - 52f, nh = Ui.TextHeight(note, 12, nw);
-                Ui.Fill(new Rect(34f, y, 2f, nh + 4f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.7f));
+                Ui.Fill(new Rect(34f, y, 2f, nh + 4f), CrtUi.Ink.WithAlpha(0.7f));
                 Ui.Label(new Rect(46f, y, nw, nh + 4f), note, 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             EndDrawerScreen();
@@ -461,7 +461,7 @@ namespace Arena
             {
                 var pd = Paths.Get(game.CurrentPath);
                 int left = game.PathWavesLeft;
-                chips.Add(new KeyValuePair<string, Color>(pd.Name.ToUpperInvariant() + (left > 0 ? "  ·  " + left + (left == 1 ? " WAVE LEFT" : " WAVES LEFT") : ""), ToColor(pd.Accent)));
+                chips.Add(new KeyValuePair<string, Color>(pd.Name.ToUpperInvariant() + (left > 0 ? "  ·  " + left + (left == 1 ? " WAVE LEFT" : " WAVES LEFT") : ""), pd.Accent.ToColor()));
             }
             foreach (var m in Modifiers.All)
                 if (game.Has(m.Mod))
@@ -559,19 +559,19 @@ namespace Arena
             // This stretch's challenge room.
             var room = new Rect(x, y, 64f, 64f);
             var rc = lastRoomKind != ChallengeKind.None && (lastRoomWave - 1) / 5 == (Mathf.Max(1, game.Wave) - 1) / 5 ? lastRoomKind : ChallengeKind.None;
-            IconTile(room, PixelArt.Get(RoomIcon(rc)), rc != ChallengeKind.None ? ToColor(Challenges.Accent(rc)) : new Color(0.7f, 0.6f, 1f), 36f);
+            IconTile(room, PixelArt.Get(RoomIcon(rc)), rc != ChallengeKind.None ? Challenges.Accent(rc).ToColor() : new Color(0.7f, 0.6f, 1f), 36f);
             Ui.Label(new Rect(x + 78f, y + 4f, 320f, 14f), "DATA GATE · THIS STRETCH", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             int block = (Mathf.Max(1, game.Wave) - 1) / 5;
             string nextPortal = game.LongLegs ? "Next Data Gate after one of waves " + game.ShownStart(block * 5 + 6) + "-" + game.ShownEnd(block * 5 + 8)
                 : "Next Data Gate after wave " + (block * 5 + 6) + ", " + (block * 5 + 7) + " or " + (block * 5 + 8);
             if (rc != ChallengeKind.None)
             {
-                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, lastRoomWon ? ToColor(Challenges.Accent(rc)) : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
+                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, lastRoomWon ? Challenges.Accent(rc).ToColor() : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), (lastRoomWon ? "Won" : "Lost") + "  ·  " + nextPortal, 12, Ui.Muted);
             }
             else if (game.ChallengePhase == RoomPhase.Portal || game.InRoom)
             {
-                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.ChallengeNow), 19, ToColor(Challenges.Accent(game.ChallengeNow)), TextAnchor.MiddleLeft);
+                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.ChallengeNow), 19, Challenges.Accent(game.ChallengeNow).ToColor(), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.InRoom ? "You're in it now" : "Its Data Gate is open", 12, Ui.Muted);
             }
             else
@@ -729,7 +729,7 @@ namespace Arena
                     // The network port (it used to sit on the main menu): hosting and joining both use it.
                     WinLabel(new Rect(x, y, w - 150f, 54f), "Network port", "Hosting and joining use it (" + Session.DefaultPort + " unless changed). Everyone in a game needs the same one.");
                     var pr = new Rect(x + w - 120f, y + 9f, 120f, 36f);
-                    Ui.Fill(pr, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.08f));
+                    Ui.Fill(pr, CrtUi.Ink.WithAlpha(0.08f));
                     CrtKit.Frame(pr, 2f, CrtUi.Ink);
                     string port = Ui.BareField(new Rect(pr.x + 8f, pr.y, pr.width - 16f, pr.height), portText, 5, 22);
                     if (port != portText)
@@ -787,7 +787,7 @@ namespace Arena
         void DrawFxPreview(Rect r, float t)
         {
             Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
-            CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
+            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.35f));
             float cyc = MathX.Fmod(t, 3f), boom = Mathf.Max(0f, 1f - Mathf.Abs(cyc - 2.2f) * 4f);
             bool shake = fxOn && !fxReduced && fxShake > 0;
             float amp = shake ? (fxShake == 2 ? 6f : 3f) * boom : 0f;
@@ -931,7 +931,7 @@ namespace Arena
                     {
                         var c = Challenges.All[i];
                         int won = p.RoomWon(c), pl = p.RoomPlayed(c);
-                        var cc = ToColor(Challenges.Accent(c));
+                        var cc = Challenges.Accent(c).ToColor();
                         var rr = new Rect(x, DrawerPanel.y + 104f + i * 86f, w, 76f);
                         CabCard(rr, 0.035f);
                         IconTile(new Rect(rr.x + 12f, rr.y + 12f, 52f, 52f), PixelArt.Get(RoomIcon(c)), cc, 34f);
@@ -1102,7 +1102,7 @@ namespace Arena
         void DrawPortalDiagram(Rect r, float t)
         {
             Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
-            CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
+            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.35f));
             float k = MathX.Fmod(t, 5f) / 5f, walk = Mathf.Clamp01(k / 0.35f), fill = Mathf.Clamp01((k - 0.35f) / 0.45f);
             V2 portal = new V2(r.x + r.width * 0.62f, r.center.y);
             var green = new Rgba(0.55f, 1f, 0.55f);

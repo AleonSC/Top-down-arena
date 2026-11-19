@@ -93,13 +93,13 @@ namespace Arena
             if (e == null)
             {
                 if (!devMenuOpen)
-                    Ui.Shadowed(new Rect(W / 2f - 300f, 74f, 600f, 22f), "DEV ARENA  ·  F1 > SPAWN AN ENEMY to play as one", 13, new Color(CrtStyle.Gold.r, CrtStyle.Gold.g, CrtStyle.Gold.b, 0.75f));
+                    Ui.Shadowed(new Rect(W / 2f - 300f, 74f, 600f, 22f), "DEV ARENA  ·  F1 > SPAWN AN ENEMY to play as one", 13, CrtStyle.Gold.WithAlpha(0.75f));
                 return;
             }
             V2 at = ToUi(e.Disp);
             float r = e.Radius * UiWorldScale + 8f;
             float pulse = 0.65f + 0.35f * Mathf.Sin(Time.unscaledTime * 6f);
-            var c = new Color(CrtStyle.Gold.r, CrtStyle.Gold.g, CrtStyle.Gold.b, pulse);
+            var c = CrtStyle.Gold.WithAlpha(pulse);
             float arm = Mathf.Max(6f, r * 0.45f);
             for (int sx = -1; sx <= 1; sx += 2)
                 for (int sy = -1; sy <= 1; sy += 2)

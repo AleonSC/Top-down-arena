@@ -22,7 +22,7 @@ namespace Arena
             CrtUi.Begin(r);  // a CRT tube like the rest of the results (HudSummary.cs); gold rim on a rank up
             if (up)
             {
-                var rim = new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f);
+                var rim = Ui.Gold.WithAlpha(0.9f);
                 Ui.Fill(new Rect(r.x, r.y, r.width, 2f), rim); Ui.Fill(new Rect(r.x, r.yMax - 2f, r.width, 2f), rim);
                 Ui.Fill(new Rect(r.x, r.y, 2f, r.height), rim); Ui.Fill(new Rect(r.xMax - 2f, r.y, 2f, r.height), rim);
             }
@@ -46,7 +46,7 @@ namespace Arena
             Ui.Fill(new Rect(fill.x, fill.y, fill.width, fill.height * 0.6f), Color.Lerp(col, Color.white, 0.12f));
             Ui.Fill(new Rect(fill.xMax - 2f, fill.y - 2f, 2f, fill.height + 4f), Color.white);
 
-            Ui.Fill(new Rect(r.xMax - rightW, r.y + 12f, 1f, r.height - 24f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
+            Ui.Fill(new Rect(r.xMax - rightW, r.y + 12f, 1f, r.height - 24f), CrtUi.Ink.WithAlpha(0.35f));
             CrtUi.Title(new Rect(r.xMax - rightW, r.y + 6f, rightW, 38f), "+" + g.Award.Total.ToString("N0"), 36, LobbyKit.Gold, TextAnchor.MiddleCenter, fxReduced);
             Ui.Label(new Rect(r.xMax - rightW, r.y + 46f, rightW, 16f), "XP EARNED", 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
 
@@ -203,7 +203,7 @@ namespace Arena
                 if (py + 46f > party.yMax)
                     break;
                 int pr = pl.Id == game.MyId ? info.Rank : RankOfPlayer(pl);
-                var pc = ToColor(pl.Def.Color);
+                var pc = pl.Def.Color.ToColor();
                 RankLook.Draw(new Rect(party.x + 22f, py, 40f, 40f), pr);
                 Ui.Label(new Rect(party.x + 74f, py - 2f, party.width - 100f, 24f), pl.Name + (pl.Id == game.MyId ? "  (you)" : ""), 16, Color.Lerp(pc, Color.white, 0.25f), TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(party.x + 74f, py + 20f, party.width - 100f, 18f), Rank.Title(pr) + "  ·  Rank " + pr, 12, RankLook.TierColor(pr), TextAnchor.MiddleLeft, true);
@@ -280,7 +280,7 @@ namespace Arena
             else
             {
                 if (row.Cosmetic.Kind == CosmeticKind.Frame)
-                    FrameOutline(new Rect(b.x + b.width * 0.3f, b.y + 14f, b.width * 0.4f, b.height - 28f), RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(row.Cosmetic.Id))));
+                    FrameOutline(new Rect(b.x + b.width * 0.3f, b.y + 14f, b.width * 0.4f, b.height - 28f), (Rank.FrameColor(Rank.FrameIndex(row.Cosmetic.Id))).ToColor());
                 if (BeginUiGl())
                 {
                     UiModelAt(new V2(b.center.x + (row.Cosmetic.Kind == CosmeticKind.Trail ? 40f : row.Cosmetic.Kind == CosmeticKind.AimLine ? -b.width * 0.3f : 0f), b.center.y), 1.3f);

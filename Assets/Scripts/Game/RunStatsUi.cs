@@ -101,7 +101,7 @@ namespace Arena
                 else if (game.CurrentPath != PathId.None && wave >= game.PathFrom && wave <= game.PathTo)
                 {
                     where = Game.PathName(game.CurrentPath) + " path · wave " + (game.ShownWave - game.ShownStart(game.PathFrom) + 1) + " of " + (game.ShownEnd(game.PathTo) - game.ShownStart(game.PathFrom) + 1);
-                    whereC = Color.Lerp(ToColor(Paths.Get(game.CurrentPath).Accent), Color.white, 0.3f);
+                    whereC = Color.Lerp((Paths.Get(game.CurrentPath).Accent).ToColor(), Color.white, 0.3f);
                 }
                 else if (game.Hunt != null)
                     where = wave == 0 ? "Getting ready" : game.Hunt.Name + " · " + BossName(game.Hunt.Boss) + "'s own enemies";
@@ -209,7 +209,7 @@ namespace Arena
                         Name = game.Quick ? "Quick Play" : k == 0 ? "Standard" : Game.PathName(id),
                         Waves = "waves " + game.ShownStart(from) + "–" + game.ShownEnd(to),
                         Note = st == 0 ? "cleared" : "now · " + (shownCur - game.ShownStart(from) + 1) + " of " + (game.ShownEnd(to) - game.ShownStart(from) + 1),
-                        Color = id == PathId.None ? plain : ToColor(Paths.Get(id).Accent),
+                        Color = id == PathId.None ? plain : (Paths.Get(id).Accent).ToColor(),
                         State = st,
                     });
                 }
@@ -254,11 +254,11 @@ namespace Arena
                 var row = new Rect(x - 6f, top + (i - first) * rowH, w + 12f, rowH - 2f);
                 if (r.State == 1)
                 {
-                    Ui.Fill(row, new Color(ink.r, ink.g, ink.b, 0.16f));
+                    Ui.Fill(row, ink.WithAlpha(0.16f));
                     CrtKit.Frame(row, 1f, ink);
                 }
                 float cyy = row.center.y;
-                Color c = r.State == 2 ? new Color(r.Color.r, r.Color.g, r.Color.b, 0.4f) : r.Color;
+                Color c = r.State == 2 ? r.Color.WithAlpha(0.4f) : r.Color;
                 Ui.Dot(new Rect(row.x + 10f, cyy - 5f, 10f, 10f), c, r.Boss && r.State == 2);
                 Color name = r.State == 2 ? HoloDim : r.Boss ? new Color(1f, 0.7f, 0.73f) : (r.State == 1 ? Color.white : HoloBody);
                 Ui.Label(new Rect(row.x + 28f, row.y, 170f, row.height), r.Name, 13, name, TextAnchor.MiddleLeft, r.State == 1);
@@ -300,7 +300,7 @@ namespace Arena
             float rowH = Mathf.Min(34f, (card.yMax - 10f - y) / n);
             foreach (var p in game.Players.Values)
             {
-                var rc = ToColor(p.Def.Color);
+                var rc = p.Def.Color.ToColor();
                 var ps = p.Run;
                 float share = total > 0f ? ps.DamageDealt / total : 0f;
                 Ui.Dot(new Rect(x, y + 4f, 10f, 10f), rc);
@@ -343,7 +343,7 @@ namespace Arena
         void DrawMateCard(Rect card, Player p, float t)
         {
             bool calm = FxCalm;
-            var rc = ToColor(p.Def.Color);
+            var rc = p.Def.Color.ToColor();
             // A live model of them on a hatched island in their colour, then who they are.
             var stage = new Rect(card.x + 16f, card.y + 16f, 92f, 92f);
             Ui.Fill(stage, new Color(rc.r * 0.12f + 0.02f, rc.g * 0.12f + 0.02f, rc.b * 0.12f + 0.03f, 0.95f));
@@ -352,7 +352,7 @@ namespace Arena
                 {
                     float hx = stage.x + d + k;
                     if (hx >= stage.x && hx < stage.xMax - 2f)
-                        Ui.Fill(new Rect(hx, stage.yMax - k - 3f, 2f, 3f), new Color(rc.r, rc.g, rc.b, 0.1f));
+                        Ui.Fill(new Rect(hx, stage.yMax - k - 3f, 2f, 3f), rc.WithAlpha(0.1f));
                 }
             CrtKit.Frame(stage, 2f, rc);
             int weapon = 0;
@@ -434,7 +434,7 @@ namespace Arena
                 float ux = x + (i / perCol) * colW, uy = y + (i % perCol) * rowH;
                 TipUpgrade(new Rect(ux - 4f, uy, colW - 4f, rowH), p, u, counts[ids[i]]);
                 Ui.Icon(new Rect(ux, uy + 2f, 16f, 16f), PixelArt.ForUpgrade(u.Name));
-                Ui.Label(new Rect(ux + 22f, uy, colW - 60f, rowH), u.Name, 12, Color.Lerp(ToColor(Upgrades.RarityColor(u.Rarity)), Color.white, 0.45f));
+                Ui.Label(new Rect(ux + 22f, uy, colW - 60f, rowH), u.Name, 12, Color.Lerp(Upgrades.RarityColor(u.Rarity).ToColor(), Color.white, 0.45f));
                 if (counts[ids[i]] > 1)
                     CrtUi.Title(new Rect(ux, uy, colW - 12f, rowH), "×" + counts[ids[i]], 17, CrtStyle.Gold, TextAnchor.MiddleRight, calm);
             }

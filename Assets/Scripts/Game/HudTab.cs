@@ -24,7 +24,7 @@ namespace Arena
             DrawHoloStats(me);
             float x = HoloPageX, w = HoloPageR - HoloPageX;
             var head = new Rect(x, HoloTop, w, HoloHeadH);
-            var rc = ToColor(me.Def.Color);
+            var rc = me.Def.Color.ToColor();
             HoloPanel(head, holoPageAt, () => HoloTitle(head.x + 18f, head.y + 14f, "YOUR LOADOUT",
                 (Defs.KitName(me.Kit) + " " + me.Def.Name + " · Level " + me.Level).ToUpperInvariant(),
                 Color.Lerp(rc, Color.white, 0.35f)));
@@ -43,7 +43,7 @@ namespace Arena
             var r = new Rect(HoloStatsX, HoloTop, HoloStatsW, HoloBottom - HoloTop);
             HoloPanel(r, holoOpenAt, () =>
             {
-                var rc = ToColor(me.Def.Color);
+                var rc = me.Def.Color.ToColor();
                 HoloTitle(r.x + 16f, r.y + 12f, "YOUR STATS", null, rc, 30);
                 DrawTabStats(me, new Rect(r.x + 10f, r.y + 54f, r.width - 20f, r.height - 64f));
             });
@@ -133,8 +133,8 @@ namespace Arena
                 var a = Upgrades.Ability(slot.Id);
                 bool ult = i == Upgrades.UltSlot;
                 var tile = new Rect(x, y, w, tileH);
-                Ui.Fill(tile, new Color(ink.r, ink.g, ink.b, 0.05f));
-                CrtKit.Frame(tile, 1f, new Color(ink.r, ink.g, ink.b, 0.4f));
+                Ui.Fill(tile, ink.WithAlpha(0.05f));
+                CrtKit.Frame(tile, 1f, ink.WithAlpha(0.4f));
                 string keyName = ult ? "ULT · " + SlotKeys[4] : SlotKeys[i];
                 DrawCrtCap(new Rect(tile.x + 8f, tile.y + 7f, 0f, 16f), keyName, ult ? CrtStyle.Gold : ink);
                 float capW = 12f + keyName.Length * 7f;  // as DrawCrtCap sizes it
@@ -240,13 +240,13 @@ namespace Arena
                 if (item < 0)
                 {
                     var rarity = (Rarity)(-item - 1);
-                    Color rc = ToColor(Upgrades.RarityColor(rarity));
+                    Color rc = Upgrades.RarityColor(rarity).ToColor();
                     Ui.Fill(new Rect(cx, cy + 7f, 3f, 11f), rc);
                     bool was = Ui.CrtFont;
                     Ui.CrtFont = true;
                     CrtUi.Text(new Rect(cx + 9f, cy + 2f, colW - 9f, 20f), Upgrades.RarityName(rarity).ToUpperInvariant(), 16, rc, TextAnchor.MiddleLeft, false, calm);
                     Ui.CrtFont = was;
-                    Ui.Fill(new Rect(cx, cy + rowH - 1f, colW, 1f), new Color(rc.r, rc.g, rc.b, 0.3f));
+                    Ui.Fill(new Rect(cx, cy + rowH - 1f, colW, 1f), rc.WithAlpha(0.3f));
                     continue;
                 }
                 var u = Upgrades.All[item];

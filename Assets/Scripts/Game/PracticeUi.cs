@@ -140,7 +140,7 @@ namespace Arena
 
             // --- Enemies (right): or the saved setups.
             float gx = x0 + w0 + 18f;
-            Ui.Fill(new Rect(gx - 9f, r.y + PracticeTop, 1f, r.height - PracticeTop - 70f), LobbyKit.Ink(0.22f));
+            Ui.Fill(new Rect(gx - 9f, r.y + PracticeTop, 1f, r.height - PracticeTop - 70f), CrtUi.Ink.WithAlpha(0.22f));
             var grid = new Rect(gx, r.y + PracticeTop, r.xMax - 16f - gx, r.height - PracticeTop - 70f);
             if (practiceLoadOpen)
                 DrawPracticeFiles(grid, calm);
@@ -155,8 +155,8 @@ namespace Arena
         {
             var boss = BossIn(w);
             Color c = boss != null ? CrtStyle.Gold : PracticeCyan;
-            Ui.Fill(row, new Color(c.r, c.g, c.b, on ? 0.16f : row.Contains(Event.current.mousePosition) ? 0.09f : 0.04f));
-            CrtKit.Frame(row, on ? 2f : 1f, new Color(c.r, c.g, c.b, on ? 0.95f : 0.35f));
+            Ui.Fill(row, c.WithAlpha(on ? 0.16f : row.Contains(Event.current.mousePosition) ? 0.09f : 0.04f));
+            CrtKit.Frame(row, on ? 2f : 1f, c.WithAlpha(on ? 0.95f : 0.35f));
             if (other.Length > 0 && session.PlanEditorSel == i && t - practiceFlashT < 3f)
                 Ui.Fill(row, new Color(1f, 1f, 1f, 0.12f * (1f - (t - practiceFlashT) / 3f)));
             LobbyKit.Spaced(new Rect(row.x + 10f, row.y + 2f, 100f, 22f), "WAVE " + (i + 1), 15, on ? Color.white : CrtStyle.Body, TextAnchor.MiddleLeft, 1.4f);
@@ -206,21 +206,21 @@ namespace Arena
             var ink = CrtUi.Ink;
             float keyW = session.IsHost ? 144f : canEdit ? 100f : 0f;
             float right = r.xMax - 16f - (keyW > 0f ? keyW + 14f : 0f);
-            LobbyKit.Spaced(new Rect(x + 2f, r.y + 6f, 200f, 20f), "PRACTICE", 14, new Color(ink.r, ink.g, ink.b, 0.9f), TextAnchor.MiddleLeft, 3.6f);
+            LobbyKit.Spaced(new Rect(x + 2f, r.y + 6f, 200f, 20f), "PRACTICE", 14, ink.WithAlpha(0.9f), TextAnchor.MiddleLeft, 3.6f);
             float l0 = x + 2f + LobbyKit.SpacedWidth("PRACTICE", 14, 3.6f) + 20f;
             if (right - 10f > l0 + 20f)
-                Ui.Fill(new Rect(l0, r.y + 16f, right - 10f - l0, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
+                Ui.Fill(new Rect(l0, r.y + 16f, right - 10f - l0, 1f), ink.WithAlpha(0.25f));
             // no profile XP here, and a downed player can respawn (PracticeRespawn.cs)
             ModeChips(x + 2f, r.y + 27f, "NO XP  ·  RESPAWN ON", ReviveMintUi);
             float sx = x + 2f, sy = r.y + 47f;
             float pulse = calm ? 0.8f : 0.5f + 0.5f * Mathf.Sin(t * 3f);
-            Ui.Fill(new Rect(sx, sy + 6f, 6f, 6f), new Color(sc.r, sc.g, sc.b, 0.35f + 0.6f * pulse));
+            Ui.Fill(new Rect(sx, sy + 6f, 6f, 6f), sc.WithAlpha(0.35f + 0.6f * pulse));
             bool flash = session.PlanEditor.Length > 0 && session.PlanEditor != MyLobbyName() && t - practiceFlashT < 4f;
             if (flash)  // someone else just changed a wave: their note replaces the status for a moment
                 Ui.Label(new Rect(sx + 12f, sy, right - sx - 12f, 18f), session.PlanEditor + " changed wave " + (session.PlanEditorSel + 1), 12,
-                    new Color(Ui.Accent.r, Ui.Accent.g, Ui.Accent.b, 1f - (t - practiceFlashT) / 4f));
+                    Ui.Accent.WithAlpha(1f - (t - practiceFlashT) / 4f));
             else
-                Ui.Label(new Rect(sx + 12f, sy, right - sx - 12f, 18f), status, 12, new Color(sc.r, sc.g, sc.b, 0.85f));
+                Ui.Label(new Rect(sx + 12f, sy, right - sx - 12f, 18f), status, 12, sc.WithAlpha(0.85f));
             if (session.IsHost)
             {
                 if (LobbyKit.Key(new Rect(r.xMax - 160f, r.y + 8f, 144f, 30f), "LET OTHERS EDIT", session.OthersCanEdit, calm, size: 12, minSize: 9, accent: PracticeCyan))
@@ -228,7 +228,7 @@ namespace Arena
             }
             else if (canEdit)
                 DkTag(new Rect(r.xMax - 116f, r.y + 13f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
-            Ui.Fill(new Rect(r.x + 14f, r.y + PracticeTop - 8f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
+            Ui.Fill(new Rect(r.x + 14f, r.y + PracticeTop - 8f, r.width - 28f, 1f), CrtUi.Ink.WithAlpha(0.25f));
         }
 
         /// The enemies to pick from, each drawn live, in one scrolling list of sections by the sort (faction, job or A-Z;
@@ -315,7 +315,7 @@ namespace Arena
                     {
                         Ui.Label(new Rect(hr.x, hr.y, hr.width, headH), picked > 0 ? "×" + picked + " in wave" : sec.Types.Length.ToString(), 10,
                             picked > 0 ? PracticeCyan : CrtUi.Dim, TextAnchor.MiddleRight, picked > 0);
-                        Ui.Fill(new Rect(hr.x + tx + Ui.TextWidth(sec.Head, 10, true) * 1.15f + 16f, hr.center.y, hr.width * 0.5f, 1f), new Color(sec.Ink.r, sec.Ink.g, sec.Ink.b, 0.18f));
+                        Ui.Fill(new Rect(hr.x + tx + Ui.TextWidth(sec.Head, 10, true) * 1.15f + 16f, hr.center.y, hr.width * 0.5f, 1f), sec.Ink.WithAlpha(0.18f));
                     }
                 }
                 else
@@ -349,18 +349,18 @@ namespace Arena
                             var sec = sections[-1 - lines[li].Value];
                             float len = h + (th + gap) * Mathf.Ceil(sec.Types.Length / (float)cols);
                             Ui.Fill(new Rect(bar.x + 3f, bar.y + 2f + (bar.height - 4f) * acc / all, bar.width - 6f, Mathf.Max(2f, (bar.height - 4f) * len / all - 2f)),
-                                new Color(sec.Ink.r, sec.Ink.g, sec.Ink.b, 0.55f));
+                                sec.Ink.WithAlpha(0.55f));
                         }
                         acc += h;
                     }
                 }
-                CrtKit.Frame(bar, 1f, LobbyKit.Ink(overBar ? 0.5f : 0.25f));
+                CrtKit.Frame(bar, 1f, CrtUi.Ink.WithAlpha(overBar ? 0.5f : 0.25f));
                 var thumb = new Rect(bar.x + 2f, bar.y + 2f + (bar.height - 4f) * before / all, bar.width - 4f, Mathf.Max(20f, (bar.height - 4f) * viewH / all));
                 thumb.y = Mathf.Min(thumb.y, bar.yMax - 2f - thumb.height);
                 if (practiceSort == 0)
                     CrtKit.Frame(thumb, 2f, new Color(1f, 1f, 1f, overBar ? 0.9f : 0.7f));
                 else
-                    Ui.Fill(thumb, new Color(PracticeCyan.r, PracticeCyan.g, PracticeCyan.b, overBar ? 0.75f : 0.5f));
+                    Ui.Fill(thumb, PracticeCyan.WithAlpha(overBar ? 0.75f : 0.5f));
                 if ((ev.type == EventType.MouseDown || ev.type == EventType.MouseDrag) && ev.button == 0 && overBar)
                 {
                     practiceGridScroll = Mathf.Clamp(Mathf.RoundToInt((ev.mousePosition.y - bar.y) / bar.height * (maxScroll + 1) - 0.5f), 0, maxScroll);
@@ -382,8 +382,8 @@ namespace Arena
                 if (hover)
                     hovered = type;
                 Color accent = n > 0 ? PracticeCyan : boss ? CrtStyle.Gold : CrtUi.Ink;
-                Ui.Fill(tr, new Color(accent.r, accent.g, accent.b, n > 0 ? 0.14f : hover ? 0.1f : 0.05f));
-                CrtKit.Frame(tr, n > 0 ? 2f : 1f, new Color(accent.r, accent.g, accent.b, n > 0 ? 0.95f : hover ? 0.7f : 0.28f));
+                Ui.Fill(tr, accent.WithAlpha(n > 0 ? 0.14f : hover ? 0.1f : 0.05f));
+                CrtKit.Frame(tr, n > 0 ? 2f : 1f, accent.WithAlpha(n > 0 ? 0.95f : hover ? 0.7f : 0.28f));
                 if (canEdit && ev.type == EventType.MouseDown && hover)
                 {
                     var minus = new Rect(tr.x + 2f, tr.y + 2f, 18f, 18f);
@@ -447,7 +447,7 @@ namespace Arena
             // What the hovered one does, in a bar under the tiles (its enemy is drawn at the left, above).
             var info = new Rect(g.x, g.yMax - infoH, g.width, infoH);
             Ui.Fill(info, new Color(0f, 0f, 0f, 0.3f));
-            CrtKit.Frame(info, 1f, LobbyKit.Ink(0.25f));
+            CrtKit.Frame(info, 1f, CrtUi.Ink.WithAlpha(0.25f));
             if (hovered != null)
             {
                 bool boss = Defs.Get(hovered.Value).IsBoss;
@@ -506,7 +506,7 @@ namespace Arena
         void DrawPracticeFooter(Rect r, bool canEdit, bool calm)
         {
             float x = r.x + 16f, y = r.yMax - 48f;
-            Ui.Fill(new Rect(r.x + 14f, y - 8f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
+            Ui.Fill(new Rect(r.x + 14f, y - 8f, r.width - 28f, 1f), CrtUi.Ink.WithAlpha(0.25f));
             LobbyKit.Lab(new Rect(x, y, 54f, 32f), "Setup", 12, calm);
             practiceName = DkField(new Rect(x + 56f, y, 190f, 32f), practiceName, 40);
             float bx = x + 256f;

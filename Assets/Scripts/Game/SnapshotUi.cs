@@ -100,10 +100,10 @@ namespace Arena
             float a = Mathf.Clamp01(snapToastT / 0.4f);
             var r = new Rect(W / 2f - 300f, 76f, 600f, 34f);
             var bg = CrtUi.Bg;
-            Ui.Fill(r, new Color(bg.r, bg.g, bg.b, 0.9f * a));
+            Ui.Fill(r, bg.WithAlpha(0.9f * a));
             var ink = snapToastBad ? Ui.Warn : CrtStyle.Head;
-            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.7f * a));
-            Ui.Label(r, snapToast, 13, new Color(ink.r, ink.g, ink.b, a), TextAnchor.MiddleCenter, true);
+            CrtKit.Frame(r, 1f, ink.WithAlpha(0.7f * a));
+            Ui.Label(r, snapToast, 13, ink.WithAlpha(a), TextAnchor.MiddleCenter, true);
         }
 
         /// The dock's Snapshots sheet.

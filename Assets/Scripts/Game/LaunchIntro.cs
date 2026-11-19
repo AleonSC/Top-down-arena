@@ -197,7 +197,7 @@ namespace Arena
             GUI.enabled = false;
             uiGlBlocked = true;  // its live models (GL) don't follow the slide: they wait
             Ui.Alpha = a;
-            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
+            GUI.color = oldColor.ScaleAlpha(a);
             Rect left = LobbyLeftSide, right = LobbyRightSide;  // the lobby's two sides (LobbyLayout.cs) sliding apart
             GUI.BeginGroup(new Rect(left.x - e * 520f, left.y, left.width, left.height));
             DrawLobby();
@@ -237,7 +237,7 @@ namespace Arena
                     float dx = side * shake;
                     var tint = side > 0 ? new Color(1f, 0.25f, 0.35f) : new Color(0.3f, 0.55f, 1f);
                     Ui.Alpha = 0.16f;
-                    GUI.color = new Color(tint.r, tint.g, tint.b, 0.16f);
+                    GUI.color = tint.WithAlpha(0.16f);
                     GUI.BeginGroup(new Rect(dx, 0f, W, H));
                     DrawLobby();
                     GUI.EndGroup();

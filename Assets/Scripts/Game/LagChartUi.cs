@@ -165,7 +165,7 @@ namespace Arena
                     float tw = Mathf.Min(w - (px - x), 7f * text.Length);
                     if (tw <= 20f)
                         break;
-                    Ui.Label(new Rect(px, y, tw, 16f), text, 10, known && ms >= 150f ? LagPoorCol : ToColor(p.Def.Color), TextAnchor.MiddleLeft, p.Id == game.MyId);
+                    Ui.Label(new Rect(px, y, tw, 16f), text, 10, known && ms >= 150f ? LagPoorCol : p.Def.Color.ToColor(), TextAnchor.MiddleLeft, p.Id == game.MyId);
                     px += tw + 6f;
                 }
             }
@@ -227,7 +227,7 @@ namespace Arena
                         continue;
                     bool stall = g > LagStats.StallMs;
                     float y0 = Y(g);
-                    Ui.Fill(new Rect(X(i), y0, Mathf.Max(1f, colW - 0.5f), plot.yMax - y0), stall ? new Color(1f, 0.38f, 0.38f, 0.8f) : new Color(LagGapCol.r, LagGapCol.g, LagGapCol.b, 0.16f));
+                    Ui.Fill(new Rect(X(i), y0, Mathf.Max(1f, colW - 0.5f), plot.yMax - y0), stall ? new Color(1f, 0.38f, 0.38f, 0.8f) : LagGapCol.WithAlpha(0.16f));
                     if (g > ymax)
                         Ui.Label(new Rect(X(i) - 30f, plot.y + 13f, 28f, 12f), Mathf.RoundToInt(g).ToString(), 8, LagStallCol, TextAnchor.MiddleRight, true);
                 }
@@ -241,7 +241,7 @@ namespace Arena
                     continue;
                 float mx = Mathf.Round(plot.xMax - (float)(age / span) * plot.width);
                 Color mc = m.Kind == LagMarkKind.Boss ? new Color(0.85f, 0.5f, 1f) : m.Kind == LagMarkKind.Storm ? new Color(1f, 0.6f, 0.25f) : Color.white;
-                Ui.Fill(new Rect(mx, plot.y, 1f, plot.height), new Color(mc.r, mc.g, mc.b, 0.45f));
+                Ui.Fill(new Rect(mx, plot.y, 1f, plot.height), mc.WithAlpha(0.45f));
                 Ui.Label(new Rect(mx + 2f, plot.y + 1f, 70f, 12f), m.Label, 8, mc, TextAnchor.MiddleLeft, true);
             }
 

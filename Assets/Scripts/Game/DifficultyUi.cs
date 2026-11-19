@@ -98,7 +98,7 @@ namespace Arena
                 CrtUi.Text(nr, Difficulty.Names[(int)level].ToUpperInvariant(), 16, tc, TextAnchor.MiddleCenter, true, fxReduced);
             // Danger: one skull for Easy up to four for Nightmare; a gear for Custom. The icons keep the level's own colour.
             float iy = c.y + 36f;
-            var ic = new Color(col.r, col.g, col.b, fill ? 1f : 0.9f);
+            var ic = col.WithAlpha(fill ? 1f : 0.9f);
             if (level == DifficultyLevel.Custom)
                 Ui.Icon(new Rect(c.center.x - 8f, iy, 16f, 16f), PixelArt.Get("ui_gear"), ic);
             else
@@ -151,8 +151,8 @@ namespace Arena
             string shown = k.Edit(value);
             if (!canEdit)
             {
-                Ui.Fill(box, LobbyKit.Ink(0.05f));
-                CrtKit.Frame(box, 1f, LobbyKit.Ink(0.35f));
+                Ui.Fill(box, CrtUi.Ink.WithAlpha(0.05f));
+                CrtKit.Frame(box, 1f, CrtUi.Ink.WithAlpha(0.35f));
                 Ui.Label(box, shown, 12, CrtUi.Dim, TextAnchor.MiddleCenter, true);
                 return;
             }
@@ -168,8 +168,8 @@ namespace Arena
             }
             string text = focused && diffFocus == name ? diffBuffer : shown;
             GUI.SetNextControlName(name);
-            Ui.Fill(box, LobbyKit.Ink(focused ? 0.16f : 0.08f));
-            CrtKit.Frame(box, 1f, focused ? CrtUi.Ink : LobbyKit.Ink(0.6f));
+            Ui.Fill(box, CrtUi.Ink.WithAlpha(focused ? 0.16f : 0.08f));
+            CrtKit.Frame(box, 1f, focused ? CrtUi.Ink : CrtUi.Ink.WithAlpha(0.6f));
             string typed = Ui.BareField(box, text, 8, 12);
             if (focused)
             {

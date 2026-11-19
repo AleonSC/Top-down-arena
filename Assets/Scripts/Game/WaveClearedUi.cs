@@ -224,8 +224,8 @@ namespace Arena
                 {
                     float a = calm ? 0.9f : 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f);
                     var g = CrtStyle.Gold;
-                    Ui.Fill(br, new Color(g.r, g.g, g.b, 0.12f * a));
-                    CrtKit.Frame(new Rect(br.x - 2f, br.y - 2f, br.width + 4f, br.height + 4f), 2f, new Color(g.r, g.g, g.b, a));
+                    Ui.Fill(br, g.WithAlpha(0.12f * a));
+                    CrtKit.Frame(new Rect(br.x - 2f, br.y - 2f, br.width + 4f, br.height + 4f), 2f, g.WithAlpha(a));
                 }
                 if (CrtUi.SoftKey(br, n > 0 ? "BUILD · " + n : "BUILD", null, 22, calm))
                     WcOpenBuild();
@@ -237,7 +237,7 @@ namespace Arena
             // Minimize (top right): the box folds into a strip at the top so you can walk to a shop or a chest.
             if (CrtUi.SoftKey(new Rect(r.xMax - WcPad - 160f, ty, 160f, 34f), "MINIMIZE  _", null, 20, calm))
                 wcMin = true;
-            Ui.Fill(new Rect(r.x + WcPad, r.y + WcTabH + 6f, r.width - 2f * WcPad, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
+            Ui.Fill(new Rect(r.x + WcPad, r.y + WcTabH + 6f, r.width - 2f * WcPad, 1f), CrtUi.Ink.WithAlpha(0.3f));
         }
 
         /// The minimized box: a slim, see-through tube at the top (under the door chip when one is up) with the next wave, the status, Ready,
@@ -323,7 +323,7 @@ namespace Arena
             if (ids.Count > 1)
             {
                 var sq = new Rect(rx, ry, WcTallyW, WcSquadH);
-                CrtKit.Dashed(sq, 1f, new Color(ink.r, ink.g, ink.b, 0.4f));
+                CrtKit.Dashed(sq, 1f, ink.WithAlpha(0.4f));
                 HudCrt(new Rect(sq.x + 10f + WcColName, sq.y, 100f, sq.height), "SQUAD", 26, dim);
                 DrawNums(sq, kills, dmg, taken, ink, ink);
             }
@@ -334,7 +334,7 @@ namespace Arena
         {
             var g = CrtStyle.Gold;
             int n = WcPieces(me);
-            CrtKit.Dashed(r, 2f, n > 0 ? new Color(g.r, g.g, g.b, 0.85f) : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.45f));
+            CrtKit.Dashed(r, 2f, n > 0 ? g.WithAlpha(0.85f) : CrtUi.Ink.WithAlpha(0.45f));
             float x = r.x + 14f, y = r.y + 12f, w = r.width - 28f;
             HudCrt(new Rect(x, y, w, 18f), "BUILD THE ARENA", 18, CrtUi.Dim);
             y += 24f;
@@ -367,8 +367,8 @@ namespace Arena
         void WcTile(Rect r, string value, string name, bool calm)
         {
             var ink = CrtUi.Ink;
-            Ui.Fill(r, new Color(ink.r, ink.g, ink.b, 0.09f));
-            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.45f));
+            Ui.Fill(r, ink.WithAlpha(0.09f));
+            CrtKit.Frame(r, 1f, ink.WithAlpha(0.45f));
             CrtUi.Title(new Rect(r.x, r.y + 2f, r.width, 30f), value, 28, CrtStyle.Gold, TextAnchor.MiddleCenter, calm);
             Ui.Label(new Rect(r.x, r.yMax - 17f, r.width, 13f), name, 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
         }
@@ -400,7 +400,7 @@ namespace Arena
             bool mine = p.Id == game.MyId;
             CrtKit.SoftBox(row, CrtUi.Ink, mine, false, false);  // yours lit, like a selected key
             float x = row.x + 10f, cy = row.center.y;
-            Ui.Dot(new Rect(x + 4f, cy - 9f, 18f, 18f), ToColor(p.Def.Color));  // the only colour on the row besides the awards
+            Ui.Dot(new Rect(x + 4f, cy - 9f, 18f, 18f), p.Def.Color.ToColor());  // the only colour on the row besides the awards
             float nw = WcColKills - WcColName - 8f;
             Ui.Label(new Rect(x + WcColName, row.y + 8f, nw, 18f), LobbyKit.Truncate(p.Name, 14, nw), 14, Color.white, TextAnchor.MiddleLeft, true);
             string cls = (Defs.KitName(p.Kit) + " " + p.Def.Name).ToUpperInvariant();
@@ -418,7 +418,7 @@ namespace Arena
                 Color cc = BreakChipColor(st);
                 float cw = CrtUi.TitleWidth(chip, 13) + 8f;
                 var cr = new Rect(row.xMax - 4f - cw, cy - 10f, cw, 20f);
-                Ui.Fill(cr, new Color(cc.r, cc.g, cc.b, 0.16f));
+                Ui.Fill(cr, cc.WithAlpha(0.16f));
                 CrtKit.Frame(cr, 1f, cc);
                 HudCrt(cr, chip, 13, cc, TextAnchor.MiddleCenter);  // (small enough that two awards still fit beside it)
                 limit = Mathf.Min(limit, cr.x - 3f);
@@ -451,7 +451,7 @@ namespace Arena
             }
             else if (p.Ready)
             {
-                Ui.Fill(dot, new Color(Ui.Good.r, Ui.Good.g, Ui.Good.b, 0.12f));
+                Ui.Fill(dot, Ui.Good.WithAlpha(0.12f));
                 CrtKit.Frame(dot, 2f, Ui.Good);
                 Ui.Label(dot, "✓", 15, Ui.Good, TextAnchor.MiddleCenter, true);
             }
@@ -479,7 +479,7 @@ namespace Arena
         void DrawNextPanel(Rect r)
         {
             var ink = CrtUi.Ink;
-            CrtKit.Dashed(r, 1f, new Color(ink.r, ink.g, ink.b, 0.45f));
+            CrtKit.Dashed(r, 1f, ink.WithAlpha(0.45f));
             float x = r.x + 14f, y = r.y + 12f, w = r.width - 28f;
             int next = game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1;  // (shown: a Campaign counts to 100)
             bool bossNext = game.BossNext;  // the boss after wave Wave comes before wave Wave + 1
@@ -488,7 +488,7 @@ namespace Arena
             if (bossNext)
             {
                 var d = Defs.Get(game.BossAt(game.Hunt != null ? next : game.Wave));
-                Ui.Dot(new Rect(x, y + 6f, 12f, 12f), ToColor(d.Color));
+                Ui.Dot(new Rect(x, y + 6f, 12f, 12f), d.Color.ToColor());
                 CrtUi.Title(new Rect(x + 22f, y, w - 22f, 26f), d.Name.ToUpperInvariant(), 26, CrtStyle.Gold, TextAnchor.MiddleLeft, FxCalm);
                 y += 28f;
                 HudCrt(new Rect(x, y, w, 20f), "A BOSS WAVE", 20, CrtUi.Dim);
@@ -504,12 +504,12 @@ namespace Arena
                 {
                     var d = Defs.Get(now[i]);
                     int job = (int)Game.JobOf(now[i]);
-                    Ui.Dot(new Rect(x, y + 5f, 11f, 11f), ToColor(d.Color));
+                    Ui.Dot(new Rect(x, y + 5f, 11f, 11f), d.Color.ToColor());
                     Ui.Label(new Rect(x + 20f, y, w - 70f, 21f), d.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
                     if (rows <= 3)
-                        HudCrt(new Rect(x + 20f, y + 18f, w - 70f, 13f), JobNames[job], 13, ToColor(JobColors[job]));
+                        HudCrt(new Rect(x + 20f, y + 18f, w - 70f, 13f), JobNames[job], 13, JobColors[job].ToColor());
                     else
-                        HudCrt(new Rect(x + 20f, y, w - 76f, 21f), JobNames[job], 13, ToColor(JobColors[job]), TextAnchor.MiddleRight);
+                        HudCrt(new Rect(x + 20f, y, w - 76f, 21f), JobNames[job], 13, JobColors[job].ToColor(), TextAnchor.MiddleRight);
                     if (!before.Contains(now[i]))
                     {
                         var chip = new Rect(r.xMax - 14f - 38f, y + 2f, 38f, 17f);
@@ -640,7 +640,7 @@ namespace Arena
             if (frac <= 0f && !all && !calm)  // waiting: a slow light moving along the empty bar
             {
                 float sweep = MathX.Fmod(Time.unscaledTime * 0.35f, 1f);
-                Ui.Fill(new Rect(bar.x + sweep * (bar.width - 70f), bar.y, 70f, bar.height), new Color(ink.r, ink.g, ink.b, 0.35f));
+                Ui.Fill(new Rect(bar.x + sweep * (bar.width - 70f), bar.y, 70f, bar.height), ink.WithAlpha(0.35f));
             }
         }
     }

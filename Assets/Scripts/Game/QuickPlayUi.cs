@@ -48,7 +48,7 @@ namespace Arena
                 var b = bosses[i];
                 bool firstBoss = first && b == EnemyType.Warden, met = profile.Beaten(b) > 0;
                 string chip = firstBoss ? "FIRST" : met ? "BEATEN x" + profile.Beaten(b) : "NOT MET";
-                Color cc = firstBoss ? QuickColor : met ? Ui.Gold : FadedBlue(0.55f);
+                Color cc = firstBoss ? QuickColor : met ? Ui.Gold : CrtUi.Ink.WithAlpha(0.55f);
                 ModeRow(rows[i], (i + 1).ToString("00"), BossName(b), known[i], known[i], i == shown, i == hoverI, QuickColor, chip, cc);
             }
 
@@ -57,7 +57,7 @@ namespace Arena
             var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
             ModeScope(scope, "BOSS DRAW", shownList.Count.ToString("00") + " / " + n.ToString("00") + " MET");
             if (shown < 0)
-                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, FxCalm);
+                CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
             y2 += scope.height + 12f;
             Ui.Glitch(new Rect(x2, y2, w2, 28f), "TEN WAVES, THEN A BOSS", 20, Color.white, TextAnchor.MiddleLeft);
             y2 += 32f;
@@ -68,7 +68,7 @@ namespace Arena
             {
                 bool boss = i == QuickPlay.Length + 1, endless = i == QuickPlay.Length + 2;
                 var pr = new Rect(px, y2, boss ? 34f : endless ? 62f : 22f, 20f);
-                ModePip(pr, boss ? "BOSS" : endless ? "ENDLESS" : i.ToString(), boss ? QuickColor : endless ? Ui.Gold : new Color(ink.r, ink.g, ink.b, 1f), boss || endless);
+                ModePip(pr, boss ? "BOSS" : endless ? "ENDLESS" : i.ToString(), boss ? QuickColor : endless ? Ui.Gold : ink.WithAlpha(1f), boss || endless);
                 px += pr.width + 5f;
             }
             y2 += 30f;

@@ -65,7 +65,7 @@ namespace Arena
                 DrawLaunchIcon(p, at, r);
                 if (p.Id != game.MyId)  // (no text over your own player; the name rises over a Juggernaut Suit's armour bar)
                     DrawName(new Rect(at.X - 100f, at.Y - r - 30f - (Game.JuggOn(p) ? 8f * UiWorldScale : 0f) - NameLift(p), 200f, 18f), p.Name, 12, NameFxOf(p.Id), Time.unscaledTime,
-                    ToColor(p.Def.Color.WithAlpha(0.95f)), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
+                    p.Def.Color.WithAlpha(0.95f).ToColor(), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
                 if (p.LevelFlash > 0f)
                 {
                     float rise = (1.5f - p.LevelFlash) * 22f;
@@ -276,7 +276,7 @@ namespace Arena
             var oldMatrix = GUI.matrix;
             var oldColor = GUI.color;
             GUI.matrix = Matrix4x4.TRS(new Vector3(offX + ox * scale, offY + oy * scale, 0f), Quaternion.identity, new Vector3(scale * k, scale * k, 1f));
-            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
+            GUI.color = oldColor.ScaleAlpha(a);
             Ui.Alpha = a;
             draw();
             Ui.Alpha = 1f;
@@ -345,7 +345,7 @@ namespace Arena
         /// A teammate as one slim row: name and class, level, and health (or how far their revive has got).
         void DrawTeammateRow(Player p, Rect r)
         {
-            var role = ToColor(p.Def.Color);
+            var role = p.Def.Color.ToColor();
             DkHud(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
             Ui.Pill(new Rect(r.x + 5f, r.y + 6f, 3f, r.height - 12f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             Ui.Label(new Rect(r.x + 14f, r.y + 2f, 82f, 14f), p.Name, 11, Color.white, TextAnchor.MiddleLeft, true);
@@ -401,11 +401,11 @@ namespace Arena
         {
             if (dashed)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.HudKeyEmptyTint));
-                CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, CrtStyle.HudKeyEmptyDash));
+                Ui.Fill(r, c.WithAlpha(CrtStyle.HudKeyEmptyTint));
+                CrtKit.Dashed(r, 1f, c.WithAlpha(CrtStyle.HudKeyEmptyDash));
                 return;
             }
-            Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.HudKeyTint));  // (CrtStyle.cs)
+            Ui.Fill(r, c.WithAlpha(CrtStyle.HudKeyTint));  // (CrtStyle.cs)
             CrtKit.Frame(r, CrtStyle.HudKeyRimW, c);
         }
 
@@ -456,12 +456,12 @@ namespace Arena
         /// One player's card: role-colored accent, name and class, health (with shield) and XP.
         void DrawPlayerHudCard(Player p, Rect r, bool mine)
         {
-            var role = ToColor(p.Def.Color);
+            var role = p.Def.Color.ToColor();
             if (mine)  // on the console: a full-colour island, like the lobby's party cards
             {
                 Color edge = p.Downed ? new Color(1f, 0.3f, 0.3f) : role;
                 Ui.Fill(r, new Color(0.03f + edge.r * 0.1f, 0.05f + edge.g * 0.1f, 0.07f + edge.b * 0.1f, 1f));
-                CrtKit.Frame(r, 1f, new Color(edge.r, edge.g, edge.b, 0.85f));
+                CrtKit.Frame(r, 1f, edge.WithAlpha(0.85f));
                 Ui.Fill(new Rect(r.x, r.y, 6f, r.height), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             }
             else
@@ -549,13 +549,13 @@ namespace Arena
             var xp = HudXpStrip;  // (the strip and the keys: HudLayout.cs)
             float xpFrac = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
             Color gold = new Color(1f, 0.82f, 0.3f, 0.95f);
-            Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
+            Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), CrtUi.Ink.WithAlpha(0.3f));
             Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
             string lvText = "LV " + me.Level + "  ·  " + Mathf.RoundToInt(xpFrac * 100f) + "%";
             float plateW = Ui.TextWidth(lvText, 10, true) + 12f;
             var plate = new Rect(xp.x, xp.y, plateW, xp.height);
             Ui.Fill(plate, new Color(0.02f, 0.03f, 0.07f, 1f));
-            Ui.Fill(new Rect(plate.xMax, xp.y, 1f, xp.height), new Color(gold.r, gold.g, gold.b, 0.45f));
+            Ui.Fill(new Rect(plate.xMax, xp.y, 1f, xp.height), gold.WithAlpha(0.45f));
             Ui.Label(plate, lvText, 10, gold, TextAnchor.MiddleCenter, true);
             float barX = plate.xMax + 3f, barW = xp.xMax - barX;
             for (float sx = 0f; sx < barW * xpFrac; sx += 8f)
@@ -610,7 +610,7 @@ namespace Arena
                 CrtKeyBox(r, CrtUi.Dim, true);
                 float cw = 12f + SlotKeys[i].Length * 7f;
                 DrawCrtCap(new Rect(r.center.x - cw / 2f, r.y + 10f, 0f, 16f), SlotKeys[i], CrtUi.Dim);
-                Ui.Label(new Rect(r.x, r.y + 28f, r.width, 22f), "+", 22, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.7f), TextAnchor.MiddleCenter, false);
+                Ui.Label(new Rect(r.x, r.y + 28f, r.width, 22f), "+", 22, CrtUi.Dim.WithAlpha(0.7f), TextAnchor.MiddleCenter, false);
                 return;
             }
             bool ready = slot.Charges > 0;
@@ -618,7 +618,7 @@ namespace Arena
             float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
             Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ultimate, green when ready, blue while it recharges
-            CrtKeyBox(r, new Color(keyCol.r, keyCol.g, keyCol.b, ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
+            CrtKeyBox(r, keyCol.WithAlpha(ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
             if (look.White > 0f)
                 CrtKit.Frame(r, 2f, new Color(1f, 1f, 1f, 0.9f * look.White));
 
@@ -643,7 +643,7 @@ namespace Arena
                 Color lo = ultimate ? Ui.Gold : Ui.Good;
                 float rin = look.ReadyIn;  // sliding in from the right as the tile pops
                 if (rin > 0f)
-                    DkTitle(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, Fade(lo, rin), TextAnchor.MiddleRight);
+                    DkTitle(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, lo.ScaleAlpha(rin), TextAnchor.MiddleRight);
             }
             else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
@@ -684,7 +684,6 @@ namespace Arena
                 Ui.HudRim(r, new Color(1f, 0.35f, 0.35f, 0.85f * look.Red));
         }
 
-        static Color Fade(Color c, float a) => new Color(c.r, c.g, c.b, c.a * a);
 
         /// Five small bars for an ability's mastery level; the next one fills as it earns XP.
         void DrawMasteryPips(Rect r, int level, float progress)
@@ -698,7 +697,7 @@ namespace Arena
                 if (k < level)
                     Ui.Fill(pip, on);
                 else if (k == level && progress > 0f)
-                    Ui.Fill(new Rect(pip.x, pip.y, pip.width * progress, pip.height), new Color(on.r, on.g, on.b, 0.55f));
+                    Ui.Fill(new Rect(pip.x, pip.y, pip.width * progress, pip.height), on.WithAlpha(0.55f));
             }
         }
 
@@ -720,7 +719,7 @@ namespace Arena
                 float a = Mathf.Clamp01(t.T / 0.5f);
                 string text = Upgrades.Ability(t.Ability).Name + (max ? "  MASTERED: " + Game.Capstone(t.Ability) : "  ·  Mastery " + t.Level);
                 var c = max ? Ui.Gold : new Color(0.6f, 0.85f, 1f);
-                Ui.Shadowed(new Rect(cx - 400f, y - i * 22f, 800f, 20f), text, max ? 15 : 14, new Color(c.r, c.g, c.b, a), TextAnchor.MiddleCenter);
+                Ui.Shadowed(new Rect(cx - 400f, y - i * 22f, 800f, 20f), text, max ? 15 : 14, c.WithAlpha(a), TextAnchor.MiddleCenter);
             }
         }
 
@@ -729,7 +728,7 @@ namespace Arena
         {
             float w = 12f + key.Length * 6.5f;
             var cap = new Rect(r.x, r.y, w, r.height);
-            Ui.Pill(cap, new Color(color.r, color.g, color.b, 0.2f * color.a + 0.05f));
+            Ui.Pill(cap, color.WithAlpha(0.2f * color.a + 0.05f));
             DkTitle(cap, key, 9, new Color((color.r + 1f) / 2f, (color.g + 1f) / 2f, (color.b + 1f) / 2f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter);
         }
     }

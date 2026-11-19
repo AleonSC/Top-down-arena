@@ -96,7 +96,7 @@ namespace Arena
             var r = new Rect(W / 2f - 220f, 96f, 440f, 58f);
             DkPanel(r);
             int of = game.MapsInRun;
-            var blue = ToColor(FoldInk);
+            var blue = FoldInk.ToColor();
             DkTitle(new Rect(r.x, r.y + 5f, r.width, 28f), "MAP " + game.MapNumber + (of >= game.MapNumber ? " / " + of : ""), 22, blue, TextAnchor.MiddleCenter);
             int back = game.MapRefunds.TryGetValue(game.MyId, out int b) ? b : 0;
             string kept = game.KeptHead >= 0 && game.KeptHead < game.Expanded.Count ? "ROOM KEPT" : "FRESH MAP";

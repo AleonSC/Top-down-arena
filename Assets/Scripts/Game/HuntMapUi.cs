@@ -40,11 +40,11 @@ namespace Arena
             Ui.Alpha = 1f;
             bool calm = FxCalm;
             var ink = CrtUi.Ink;
-            Ui.Fill(new Rect(0f, 0f, W, H), new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.97f));
+            Ui.Fill(new Rect(0f, 0f, W, H), CrtUi.Bg.WithAlpha(0.97f));
 
             // Title bar: the key to leave isn't here (the map is part of the run), the timer is.
-            LobbyKit.Spaced(new Rect(28f, 16f, 280f, 28f), "HUNT MAP", 16, new Color(ink.r, ink.g, ink.b, 0.95f), TextAnchor.MiddleLeft, 5f);
-            Ui.Fill(new Rect(190f, 30f, W - 190f - 220f, 1f), LobbyKit.Ink(0.25f));
+            LobbyKit.Spaced(new Rect(28f, 16f, 280f, 28f), "HUNT MAP", 16, ink.WithAlpha(0.95f), TextAnchor.MiddleLeft, 5f);
+            Ui.Fill(new Rect(190f, 30f, W - 190f - 220f, 1f), CrtUi.Ink.WithAlpha(0.25f));
             LobbyKit.Spaced(new Rect(W - 230f, 16f, 202f, 28f), "VOTE ENDS  " + Mathf.CeilToInt(game.HuntMapSeconds) + " S", 11, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);
 
             int step = map.Step;
@@ -83,7 +83,7 @@ namespace Arena
                         bool live = !cleared && step > 0 && l.Step == step - 1 && path[l.Step] == l.From;
                         if ((cleared ? 2 : live ? 1 : 0) != pass)
                             continue;
-                        Color c = cleared ? ink : live ? CrtStyle.Gold : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.6f);
+                        Color c = cleared ? ink : live ? CrtStyle.Gold : CrtUi.Dim.WithAlpha(0.6f);
                         float lw = cleared ? 3f : live ? 2.5f : 1.5f;
                         for (int k = 0; k < 6; k += 2)
                         {
@@ -114,14 +114,14 @@ namespace Arena
                     bool pick = ci >= 0;
                     bool hover = pick && r.Contains(Event.current.mousePosition);
                     Color tc = HuntNodeColor(n.Type);
-                    Color edge = isCleared ? ink : pick ? tc : new Color(tc.r, tc.g, tc.b, s <= step ? 0.6f : 0.4f);
-                    Ui.Fill(r, isCleared ? new Color(ink.r, ink.g, ink.b, 0.28f) : hover ? new Color(ink.r, ink.g, ink.b, 0.18f) : new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 1f));
+                    Color edge = isCleared ? ink : pick ? tc : tc.WithAlpha(s <= step ? 0.6f : 0.4f);
+                    Ui.Fill(r, isCleared ? ink.WithAlpha(0.28f) : hover ? ink.WithAlpha(0.18f) : CrtUi.Bg.WithAlpha(1f));
                     CrtKit.Frame(r, 2f, edge);
                     hmGlyphs.Add(new HmGlyph { Type = n.Type, At = c, Half = h, Col = isCleared ? ink : edge, Tick = isCleared });
                     if (pick)
                     {
                         var ring = new Rect(r.x - 7f, r.y - 7f, r.width + 14f, r.height + 14f);
-                        CrtKit.Dashed(ring, ci == myVote ? 2f : 1f, ci == myVote ? CrtStyle.Gold : new Color(CrtStyle.Gold.r, CrtStyle.Gold.g, CrtStyle.Gold.b, 0.7f));
+                        CrtKit.Dashed(ring, ci == myVote ? 2f : 1f, ci == myVote ? CrtStyle.Gold : CrtStyle.Gold.WithAlpha(0.7f));
                         LobbyKit.Spaced(new Rect(r.x - 40f, r.y, 28f, r.height), "[" + (ci + 1) + "]", 12, CrtStyle.Gold, TextAnchor.MiddleRight, 0f);
                         string who = HuntVoters(ci, map);
                         if (who.Length > 0)
@@ -171,7 +171,7 @@ namespace Arena
                 int v;
                 bool voted = game.MapVotes.TryGetValue(p.Id, out v) && v >= 0 && v < choices.Length;
                 DkSub(sr);
-                CrtKit.Frame(sr, 1f, p.Id == me ? ink : LobbyKit.Ink(0.35f));
+                CrtKit.Frame(sr, 1f, p.Id == me ? ink : CrtUi.Ink.WithAlpha(0.35f));
                 Ui.Label(new Rect(sr.x + 10f, sr.y + 4f, sr.width - 80f, 20f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
                 if (game.MapLocked.Contains(p.Id))
                     DkTag(new Rect(sr.xMax - 68f, sr.y + 6f, 60f, 16f), "LOCKED", PhosGreen);

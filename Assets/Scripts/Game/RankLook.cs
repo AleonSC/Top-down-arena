@@ -14,8 +14,7 @@ namespace Arena
         const float ShieldTop = 8f, ShieldH = 104f;                                 // the shield itself: y 8..112
         static readonly Dictionary<int, Texture2D> cache = new Dictionary<int, Texture2D>();
 
-        public static Color Tint(Rgba c) => new Color(c.R, c.G, c.B, c.A);
-        public static Color TierColor(int rank) => Tint(Rank.TierColor(rank));
+        public static Color TierColor(int rank) => Rank.TierColor(rank).ToColor();
 
         // --- Colours, as the mockup derives them from the tier colour -------------------------------
 
@@ -83,7 +82,7 @@ namespace Arena
 
         static List<Layer> Layers(int tier, bool detail)
         {
-            var c = Tint(Rank.TierColors[tier]);
+            var c = Rank.TierColors[tier].ToColor();
             var layers = new List<Layer>();
             Color edge = Deep(c);
             if (tier >= 3 && detail)  // wings
@@ -105,7 +104,7 @@ namespace Arena
             Color lit = Lit(c), mid = c, low = Dim(c);
             layers.Add(Make(ShieldPath(false), (x, y) => { float t = Mathf.Clamp01((y - ShieldTop) / ShieldH); return t < 0.5f ? Mix(lit, mid, t * 2f) : Mix(mid, low, (t - 0.5f) * 2f); }, 2.5f, edge));
             Color fTop = Mix(c, Ink, 0.55f), fBot = Deep(c);
-            var rim = new Color(lit.r, lit.g, lit.b, 0.55f);
+            var rim = lit.WithAlpha(0.55f);
             layers.Add(Make(ShieldPath(true), (x, y) => Mix(fTop, fBot, Mathf.Clamp01((y - 17f) / 83f)), 1.5f, rim));
             var band = new List<float>();
             Line(band, 50, 17); Line(band, 79, 26); Line(band, 79, 40);

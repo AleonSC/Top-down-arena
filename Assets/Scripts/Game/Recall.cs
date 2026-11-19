@@ -171,7 +171,7 @@ namespace Arena
                 return;
             float a = Seg(recallT, RecallFadeAt, RecallFadeEnd);
             if (a > 0f)
-                Ui.Fill(new Rect(0, 0, W, H), new Color(RecallDark.r, RecallDark.g, RecallDark.b, a * a * (3f - 2f * a)));
+                Ui.Fill(new Rect(0, 0, W, H), RecallDark.WithAlpha(a * a * (3f - 2f * a)));
         }
 
         /// Instead of DrawLobby while it comes back: the dark lifting, the two sides sliding in, the ring on your card.
@@ -184,7 +184,7 @@ namespace Arena
             uiGlBlocked = false;
             float dark = 1f - Seg(e, 0f, 0.45f);
             if (dark > 0f)
-                Ui.Fill(new Rect(0, 0, W, H), new Color(RecallDark.r, RecallDark.g, RecallDark.b, dark));
+                Ui.Fill(new Rect(0, 0, W, H), RecallDark.WithAlpha(dark));
             float ring = Seg(e, 0.8f, 1.3f);
             if (ring > 0f && ring < 1f && BeginUiGl())
             {

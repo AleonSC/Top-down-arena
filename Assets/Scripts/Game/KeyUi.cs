@@ -111,7 +111,7 @@ namespace Arena
             var lamp = new Rect(cap.xMax - 10f - ls, cap.y + 8f, ls, ls);
             if (lampOn || hover)
             {
-                Ui.Fill(new Rect(lamp.x - 3f, lamp.y - 3f, ls + 6f, ls + 6f), new Color(LampOn.r, LampOn.g, LampOn.b, 0.22f));
+                Ui.Fill(new Rect(lamp.x - 3f, lamp.y - 3f, ls + 6f, ls + 6f), LampOn.WithAlpha(0.22f));
                 Ui.Pill(lamp, LampOn);
             }
             else

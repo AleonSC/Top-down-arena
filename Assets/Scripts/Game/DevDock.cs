@@ -35,8 +35,8 @@ namespace Arena
         {
             dockHit.Add(r);
             var ink = CrtUi.Ink;
-            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.97f));
-            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.55f));
+            Ui.Fill(r, CrtUi.Bg.WithAlpha(0.97f));
+            CrtKit.Frame(r, 1f, ink.WithAlpha(0.55f));
             Ui.Fill(new Rect(r.x, r.y + 10f, 3f, 20f), CrtStyle.Head);
             Ui.Label(new Rect(r.x + 14f, r.y + 8f, r.width - 28f, 22f), title.ToUpperInvariant(), 12, CrtStyle.Head, TextAnchor.MiddleLeft, true);
             return new Rect(r.x + 14f, r.y + 38f, r.width - 28f, r.height - 52f);
@@ -49,7 +49,7 @@ namespace Arena
                 return DkSwitch(r, value, label);
             bool now = DkSwitch(new Rect(r.x, r.y, r.width - 46f, r.height), value, label);
             var kc = new Rect(r.xMax - 40f, r.y + r.height / 2f - 10f, 40f, 20f);
-            CrtKit.Frame(kc, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+            CrtKit.Frame(kc, 1f, CrtUi.Ink.WithAlpha(0.5f));
             Ui.Label(kc, hot, 11, CrtStyle.Desc, TextAnchor.MiddleCenter, true);
             return now;
         }
@@ -77,8 +77,8 @@ namespace Arena
                 devDrawer = 0;
             dockHit.Add(DockBar);
             var ink = CrtUi.Ink;
-            Ui.Fill(DockBar, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.96f));
-            CrtKit.Frame(DockBar, 1f, new Color(ink.r, ink.g, ink.b, 0.6f));
+            Ui.Fill(DockBar, CrtUi.Bg.WithAlpha(0.96f));
+            CrtKit.Frame(DockBar, 1f, ink.WithAlpha(0.6f));
             const float y = 18f, h = 36f;
             float x = DockBar.x + 12f;
 
@@ -122,7 +122,7 @@ namespace Arena
                     devDrawer = 0;
                 }
                 x += 76f;
-                Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), new Color(ink.r, ink.g, ink.b, 0.35f));
+                Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), ink.WithAlpha(0.35f));
                 x += 14f;
             }
             else
@@ -133,7 +133,7 @@ namespace Arena
                 if (DkKey(new Rect(x, y, 196f, h), "MAX RANK + UNLOCK ALL", Ui.GoldButton, maxed, 12))
                     DevSetRank(Rank.MaxRank);  // RankUi.cs
                 x += 202f;
-                Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), new Color(ink.r, ink.g, ink.b, 0.35f));
+                Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), ink.WithAlpha(0.35f));
                 x += 14f;
             }
             string[] names = { "WAVE", "PARTY", "VIEW", "LABS" };
@@ -238,7 +238,7 @@ namespace Arena
             var gates = DkStack.Cells(col.Next(32f), Challenges.All.Length, 4f);
             string[] gateNames = { "Crystal", "Gatekeeper", "Kill Rush", "Zones", "Mirror" };
             for (int i = 0; i < Challenges.All.Length; i++)
-                if (DkKey(gates[i], gateNames[i], ToColor(Challenges.Accent(Challenges.All[i])), false, 10))
+                if (DkKey(gates[i], gateNames[i], Challenges.Accent(Challenges.All[i]).ToColor(), false, 10))
                     game.DevOpenPortal(Challenges.All[i], true);
             GUI.enabled = was && host;
             bool freeze = DkSwitch(col.Next(26f), game.DevFreeze, "Freeze enemies (still killable)");
@@ -442,7 +442,7 @@ namespace Arena
                 {
                     var q = players[i];
                     float pw = Mathf.Min(150f, (top.xMax - px - 6f * (players.Count - 1)) / players.Count);
-                    if (DkKey(new Rect(px, top.y, pw, 30f), q.Name + (q.Id == game.MyId ? " (you)" : ""), ToColor(q.Def.Color), q.Id == who.Id, 12))
+                    if (DkKey(new Rect(px, top.y, pw, 30f), q.Name + (q.Id == game.MyId ? " (you)" : ""), q.Def.Color.ToColor(), q.Id == who.Id, 12))
                         devUpPlayer = q.Id;
                     px += pw + 6f;
                 }
@@ -453,7 +453,7 @@ namespace Arena
             string[] names = { "ALL", "COMMON", "UNCOMMON", "RARE", "VERY RARE", "LEGENDARY", "MOD", "MILESTONE" };
             Rarity[] rars = { Rarity.Common, Rarity.Common, Rarity.Uncommon, Rarity.Rare, Rarity.VeryRare, Rarity.Legendary, Rarity.Mod, Rarity.Milestone };
             for (int i = 0; i < 8; i++)
-                if (DkKey(chips[i], names[i], i == 0 ? Ui.Neutral : ToColor(Upgrades.RarityColor(rars[i])), devUpRarity == i - 1, 10))
+                if (DkKey(chips[i], names[i], i == 0 ? Ui.Neutral : Upgrades.RarityColor(rars[i]).ToColor(), devUpRarity == i - 1, 10))
                 {
                     devUpRarity = i - 1;
                     devUpScroll = 0f;
@@ -497,18 +497,18 @@ namespace Arena
                 int id = ids[k];
                 var u = Upgrades.All[id];
                 bool ok = host && Upgrades.Available(id, game.OfferFor(who));
-                Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
+                Color rc = Upgrades.RarityColor(u.Rarity).ToColor();
                 var rr = new Rect(4f, ry, list.width - 12f, row - 2f);
                 bool hover = ok && rr.Contains(Event.current.mousePosition);
                 if (hover)
-                    Ui.Fill(rr, new Color(rc.r, rc.g, rc.b, 0.16f));
-                Ui.Fill(new Rect(rr.x, rr.y + 4f, 3f, rr.height - 8f), new Color(rc.r, rc.g, rc.b, ok ? 1f : 0.35f));
+                    Ui.Fill(rr, rc.WithAlpha(0.16f));
+                Ui.Fill(new Rect(rr.x, rr.y + 4f, 3f, rr.height - 8f), rc.WithAlpha(ok ? 1f : 0.35f));
                 float a = ok ? 1f : 0.45f;
-                Ui.Label(new Rect(rr.x + 12f, rr.y, 190f, rr.height), u.Name, 14, new Color(rc.r, rc.g, rc.b, a), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(rr.x + 206f, rr.y, rr.width - 310f, rr.height), u.Desc, 11, new Color(CrtStyle.Desc.r, CrtStyle.Desc.g, CrtStyle.Desc.b, a), TextAnchor.MiddleLeft);
+                Ui.Label(new Rect(rr.x + 12f, rr.y, 190f, rr.height), u.Name, 14, rc.WithAlpha(a), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(rr.x + 206f, rr.y, rr.width - 310f, rr.height), u.Desc, 11, CrtStyle.Desc.WithAlpha(a), TextAnchor.MiddleLeft);
                 string only = Upgrades.FilterNote(u);  // a class or weapon card says whose it is
                 string tag = !ok ? (!host ? "host only" : only.Length > 0 ? only + " only" : "not for this build") : only.Length > 0 ? only : Upgrades.RarityName(u.Rarity);
-                Ui.Label(new Rect(rr.xMax - 96f, rr.y, 92f, rr.height), tag, 10, new Color(rc.r, rc.g, rc.b, a), TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(rr.xMax - 96f, rr.y, 92f, rr.height), tag, 10, rc.WithAlpha(a), TextAnchor.MiddleRight, true);
                 if (ok && Ui.HitArea(rr) && game.DevSpawnLoot(who.Id, id))
                     devUpNote = "Dropped " + u.Name + " in front of " + (who.Id == game.MyId ? "you" : who.Name) + ": walk onto it, G takes it, X throws it away.";
             }
@@ -589,8 +589,8 @@ namespace Arena
                 bool hover = canSpawn && cell.Contains(ev.mousePosition);
                 bool boss = Defs.Get(list[i]).IsBoss;
                 Color tint = boss ? CrtStyle.Danger : Approaches.Of(list[i]) != null ? CrtStyle.Gold : CrtUi.Ink;
-                Ui.Fill(cell, new Color(tint.r, tint.g, tint.b, hover ? 0.16f : 0.05f));
-                CrtKit.Frame(cell, 1f, new Color(tint.r, tint.g, tint.b, hover ? 0.8f : 0.25f));
+                Ui.Fill(cell, tint.WithAlpha(hover ? 0.16f : 0.05f));
+                CrtKit.Frame(cell, 1f, tint.WithAlpha(hover ? 0.8f : 0.25f));
                 Ui.Label(new Rect(cell.x, cell.yMax - 15f, cell.width, 13f), PracticePlan.NameOf(list[i]), 9, canSpawn ? CrtStyle.Body : CrtStyle.Desc, TextAnchor.MiddleCenter);
                 cells.Add(new KeyValuePair<EnemyType, Rect>(list[i], cell));
                 bool hitCell = canSpawn && Ui.HitArea(cell);

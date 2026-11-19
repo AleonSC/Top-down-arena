@@ -360,7 +360,7 @@ namespace Arena
         {
             TickChallengeLook();
             float now = Time.unscaledTime;
-            var acc = ToColor(Challenges.Accent(game.ChallengeNow));
+            var acc = Challenges.Accent(game.ChallengeNow).ToColor();
             // The warp: a flash of the room's colour (violet on the way out).
             float wk = (now - warpAt) / 0.6f;
             if (wk >= 0f && wk < 1f)

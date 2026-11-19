@@ -78,7 +78,7 @@ namespace Arena
         {
             var rooms = game.Expanded;
             var room = rooms[head];
-            var ink = ToColor(KindInk(room.Kind, room.Floor));
+            var ink = KindInk(room.Kind, room.Floor).ToColor();
             DkBox(r, ink, mine ? 1f : lead ? 0.6f : 0.25f);
             var group = Expansion.RoomGroup(rooms, head);
             RoomBounds(head, out int x0, out int y0, out int x1, out int y1);
@@ -89,12 +89,12 @@ namespace Arena
             {
                 var b = rooms[i];
                 var br = new Rect(ox + (b.X - x0) * s, oy + (b.Y - y0) * s, b.W * s, b.H * s);
-                Ui.Fill(br, new Color(ink.r, ink.g, ink.b, mine ? 0.42f : 0.24f));
+                Ui.Fill(br, ink.WithAlpha(mine ? 0.42f : 0.24f));
             }
             foreach (int i in group)  // (rims after the fills, so inner seams stay faint)
             {
                 var b = rooms[i];
-                CrtKit.Frame(new Rect(ox + (b.X - x0) * s, oy + (b.Y - y0) * s, b.W * s, b.H * s), 1f, new Color(ink.r, ink.g, ink.b, 0.8f));
+                CrtKit.Frame(new Rect(ox + (b.X - x0) * s, oy + (b.Y - y0) * s, b.W * s, b.H * s), 1f, ink.WithAlpha(0.8f));
             }
             int tiles = Expansion.RoomTiles(rooms, head);
             string kind = room.Kind == RoomKind.Floor ? Paths.Get(room.Floor).Name : room.Surprise > 0 ? "Surprise" : room.Kind.ToString();
@@ -109,7 +109,7 @@ namespace Arena
             int pip = 0;
             foreach (var kv in game.KeepsakeVotes)
                 if (kv.Value == head && game.Players.TryGetValue(kv.Key, out var p))
-                    Ui.Fill(new Rect(r.center.x - (votes * 14f - 4f) / 2f + pip++ * 14f, ty + 40f, 10f, 6f), ToColor(p.Def.Color));
+                    Ui.Fill(new Rect(r.center.x - (votes * 14f - 4f) / 2f + pip++ * 14f, ty + 40f, 10f, 6f), p.Def.Color.ToColor());
             if (lead)
                 DkTag(new Rect(r.xMax - 74f, r.y + 8f, 64f, 18f), "LEADING", Ui.Gold);
             return DkKey(new Rect(r.x + 12f, r.yMax - 34f, r.width - 24f, 26f), mine ? "KEEPING  ✓" : "KEEP", ink, mine, 13);

@@ -98,7 +98,7 @@ namespace Arena
                 bool reached = i < best;
                 string name = i == 0 ? "The basics" : BossName(all[i].Boss);
                 ModeRow(rows[i], (i + 1).ToString("00"), name, true, true, i == shown, i == hoverI, SurvivalColor,
-                    Game.SurvClock(i * Survival.PhaseLength), reached ? SurvivalColor : FadedBlue(0.55f));
+                    Game.SurvClock(i * Survival.PhaseLength), reached ? SurvivalColor : CrtUi.Ink.WithAlpha(0.55f));
             }
 
             // Right: the pressure over the clock.
@@ -143,16 +143,16 @@ namespace Arena
         {
             float end = phases * Survival.PhaseLength, top = Survival.Pressure(end) * 1.08f;
             var ph = PhosGreen;
-            Ui.Fill(new Rect(g.x, g.yMax, g.width, 1f), new Color(ph.r, ph.g, ph.b, 0.35f));
+            Ui.Fill(new Rect(g.x, g.yMax, g.width, 1f), ph.WithAlpha(0.35f));
             float sx0 = g.x + g.width * shown / phases;
-            Ui.Fill(new Rect(sx0, g.y, g.width / phases, g.height), new Color(ph.r, ph.g, ph.b, 0.07f));
+            Ui.Fill(new Rect(sx0, g.y, g.width / phases, g.height), ph.WithAlpha(0.07f));
             for (int i = 0; i <= phases; i++)
             {
                 float px = g.x + g.width * i / phases;
                 for (float dy = g.y; dy < g.yMax; dy += 6f)
-                    Ui.Fill(new Rect(px, dy, 1f, 3f), new Color(ph.r, ph.g, ph.b, 0.18f));
+                    Ui.Fill(new Rect(px, dy, 1f, 3f), ph.WithAlpha(0.18f));
                 if (i < phases)
-                    Ui.Label(new Rect(px + 3f, g.y - 2f, 40f, 12f), Game.SurvClock(i * Survival.PhaseLength), 9, new Color(ph.r, ph.g, ph.b, i == shown ? 0.95f : 0.5f), TextAnchor.MiddleLeft);
+                    Ui.Label(new Rect(px + 3f, g.y - 2f, 40f, 12f), Game.SurvClock(i * Survival.PhaseLength), 9, ph.WithAlpha(i == shown ? 0.95f : 0.5f), TextAnchor.MiddleLeft);
             }
             float prevY = 0f;
             for (int k = 0; k <= 160; k++)
@@ -160,7 +160,7 @@ namespace Arena
                 float s = end * k / 160f;
                 float gx = g.x + g.width * k / 160f, gy = g.yMax - g.height * Survival.Pressure(s) / top;
                 bool lit = s >= shown * Survival.PhaseLength && s <= (shown + 1) * Survival.PhaseLength;
-                var c = new Color(ph.r, ph.g, ph.b, lit ? 1f : 0.55f);
+                var c = ph.WithAlpha(lit ? 1f : 0.55f);
                 if (k > 0)
                 {
                     float y0 = Mathf.Min(prevY, gy), h = Mathf.Max(2f, Mathf.Abs(prevY - gy) + 1f);
@@ -171,7 +171,7 @@ namespace Arena
             if (bestTime > 0f)
             {
                 float bx = g.x + g.width * Mathf.Min(1f, bestTime / end);
-                Ui.Fill(new Rect(bx, g.y - 4f, 1f, g.height + 4f), new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.85f));
+                Ui.Fill(new Rect(bx, g.y - 4f, 1f, g.height + 4f), Ui.Gold.WithAlpha(0.85f));
             }
         }
     }

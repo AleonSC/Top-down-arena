@@ -127,7 +127,7 @@ namespace Arena
                 {
                     var old = GUI.matrix;
                     GUIUtility.RotateAroundPivot(45f, c);
-                    Ui.Fill(new Rect(c.x - k * 0.7f, c.y - k * 0.7f, k * 1.4f, k * 1.4f), new Color(col.r, col.g, col.b, col.a * 0.4f));
+                    Ui.Fill(new Rect(c.x - k * 0.7f, c.y - k * 0.7f, k * 1.4f, k * 1.4f), col.ScaleAlpha(0.4f));
                     Ui.Fill(new Rect(c.x - k * 0.7f, c.y - k * 0.7f, k * 1.4f, t), col);
                     Ui.Fill(new Rect(c.x - k * 0.7f, c.y + k * 0.7f - t, k * 1.4f, t), col);
                     Ui.Fill(new Rect(c.x - k * 0.7f, c.y - k * 0.7f, t, k * 1.4f), col);
@@ -224,7 +224,7 @@ namespace Arena
                 bool hot = pingHover == i;
                 Color tone = PingColors[i];
                 var tile = new Rect(c.x - 31f, c.y - 27f, 62f, 54f);
-                Ui.Fill(tile, hot ? new Color(tone.r, tone.g, tone.b, 0.35f) : new Color(0.07f, 0.09f, 0.11f, 0.92f));
+                Ui.Fill(tile, hot ? tone.WithAlpha(0.35f) : new Color(0.07f, 0.09f, 0.11f, 0.92f));
                 Ui.Fill(new Rect(tile.x, tile.y, tile.width, 2f), hot ? tone : new Color(1f, 1f, 1f, 0.15f));
                 DrawPingGlyph((PingKind)i, new Vector2(c.x, c.y - 6f), 24f, hot ? Color.white : tone);
                 Ui.Label(new Rect(tile.x, tile.yMax - 17f, tile.width, 14f), PingNames[i], 9, hot ? Color.white : new Color(0.57f, 0.63f, 0.68f), TextAnchor.MiddleCenter, true);

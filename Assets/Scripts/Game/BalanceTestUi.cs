@@ -89,7 +89,7 @@ namespace Arena
             if (t == null || t.Done)
                 return;
             var r = new Rect(W / 2f - 250f, 8f, 500f, 30f);
-            DkSub(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.94f));
+            DkSub(r, CrtUi.Bg.WithAlpha(0.94f));
             bool blink = (int)(Time.unscaledTime * 1.6f) % 2 == 0;
             Ui.Fill(new Rect(r.x + 12f, r.y + 11f, 8f, 8f), blink ? new Color(1f, 0.42f, 0.42f) : new Color(1f, 0.42f, 0.42f, 0.3f));
             int n = Mathf.Clamp(game.Wave - t.FirstWave + 1, 0, t.Waves);

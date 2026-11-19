@@ -74,7 +74,7 @@ namespace Arena
             bool stash = game.SurpriseKind == 1 + (int)SurpriseShape.Stash;
             var gold = stash ? new Color(0.25f, 0.9f, 0.7f) : new Color(1f, 0.82f, 0.4f);
             DkTitle(new Rect(r.x, r.y + 5f, r.width, 28f), stash ? "STASH" : "SURPRISE ROOM", 22, gold, TextAnchor.MiddleCenter);
-            CrtUi.Text(new Rect(r.x, r.y + 32f, r.width, 20f), (stash ? "WALK IN FOR +" + Game.StashVectors + " VECTORS" : Expansion.SurpriseName((SurpriseShape)(game.SurpriseKind - 1)).ToUpperInvariant() + "  ·  FREE  ·  OPEN TO ALL"), 12, new Color(gold.r, gold.g, gold.b, 0.8f), TextAnchor.MiddleCenter, true, FxCalm);
+            CrtUi.Text(new Rect(r.x, r.y + 32f, r.width, 20f), (stash ? "WALK IN FOR +" + Game.StashVectors + " VECTORS" : Expansion.SurpriseName((SurpriseShape)(game.SurpriseKind - 1)).ToUpperInvariant() + "  ·  FREE  ·  OPEN TO ALL"), 12, gold.WithAlpha(0.8f), TextAnchor.MiddleCenter, true, FxCalm);
             GUI.color = old;
         }
     }

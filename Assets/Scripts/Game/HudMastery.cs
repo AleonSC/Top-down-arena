@@ -71,10 +71,10 @@ namespace Arena
             for (int k = 0; k < segs; k++)
             {
                 var c = new Rect(cells.x + k * (sw + 3f), cells.y, sw, cells.height);
-                Ui.Fill(c, MiniA(Color.white, 0.14f * a));
+                Ui.Fill(c, Color.white.ScaleAlpha(0.14f * a));
                 float f = Mathf.Clamp01(pos * segs - k);
                 if (f > 0f)
-                    Ui.Fill(new Rect(c.x, c.y, sw * f, c.height), MiniA(Color.Lerp(on, Color.white, k == lv - 2 ? flash : 0f), a));
+                    Ui.Fill(new Rect(c.x, c.y, sw * f, c.height), Color.Lerp(on, Color.white, k == lv - 2 ? flash : 0f).ScaleAlpha(a));
             }
             MiniText(new Rect(cells.xMax + 4f, cells.y - 6f, 30f, 16f), max ? "M" : lv.ToString(), 14, Color.Lerp(on, Color.white, flash), a);
 

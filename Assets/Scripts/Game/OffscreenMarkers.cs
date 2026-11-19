@@ -166,7 +166,7 @@ namespace Arena
                 V2 dir = (at - mid).Normalized();
                 V2 e = EdgePoint(mid, at);
                 string name = p.Downed ? p.Name + " · DOWNED" : p.Name;
-                var col = p.Downed ? new Color(1f, 0.55f, 0.55f, fade) : ToColor(p.Def.Color.WithAlpha(fade));
+                var col = p.Downed ? new Color(1f, 0.55f, 0.55f, fade) : p.Def.Color.WithAlpha(fade).ToColor();
                 bool side = Mathf.Abs(e.X - MarkArea.x) < 1f || Mathf.Abs(e.X - MarkArea.xMax) < 1f;  // on the left or right edge
                 if (side)  // beside the arrow, toward the middle
                 {

@@ -45,11 +45,11 @@ namespace Arena
                 if (a <= 0f)
                     continue;
                 float inset = Mathf.Lerp(0.11f, 0f, f) * W, h = (bottom - top) / strips;
-                Ui.Fill(new Rect(inset, bottom - (i + 1) * h, W - 2f * inset, h + 0.5f), new Color(ink.r, ink.g, ink.b, a));
+                Ui.Fill(new Rect(inset, bottom - (i + 1) * h, W - 2f * inset, h + 0.5f), ink.WithAlpha(a));
             }
             if (!FxCalm)  // faint vertical lines in the cone
                 for (float x = 0f; x < W; x += 22f)
-                    Ui.Fill(new Rect(x, 0f, 1f, bottom), new Color(ink.r, ink.g, ink.b, 0.035f));
+                    Ui.Fill(new Rect(x, 0f, 1f, bottom), ink.WithAlpha(0.035f));
             var strip = new Rect(140f, 704f, 1000f, 5f);
             Ui.Glow(strip, ink, 0.45f);
             var hot = CrtUi.T(new Color(0.81f, 0.89f, 1f));
@@ -59,7 +59,7 @@ namespace Arena
                 float u = (i + 0.5f) / n, d = Mathf.Abs(u - 0.5f) * 2f;  // 0 in the middle, 1 at the ends
                 var c = d < 0.76f ? Color.Lerp(hot, ink, d / 0.76f) : ink;
                 float a = d < 0.76f ? 1f : 1f - (d - 0.76f) / 0.24f;
-                Ui.Fill(new Rect(strip.x + i * strip.width / n, strip.y, strip.width / n + 0.5f, strip.height), new Color(c.r, c.g, c.b, a));
+                Ui.Fill(new Rect(strip.x + i * strip.width / n, strip.y, strip.width / n + 0.5f, strip.height), c.WithAlpha(a));
             }
         }
 
@@ -105,7 +105,7 @@ namespace Arena
             Ui.Alpha = oldAlpha * (dip ? 0.82f : 0.9f);  // see-through: the arena shows a little
             Ui.Picture(r, CardArt.Holo(Color.Lerp(ink, new Color(0.02f, 0.05f, 0.12f), 0.35f)));
             Ui.Alpha = oldAlpha;
-            var line = new Color(ink.r, ink.g, ink.b, 0.11f);
+            var line = ink.WithAlpha(0.11f);
             for (float y = Mathf.Round(r.yMax) - 1f; y >= r.y; y -= 4f)
                 Ui.Fill(new Rect(r.x, y, r.width, 1f), line);
             if (!FxCalm)
@@ -115,7 +115,7 @@ namespace Arena
                 var bc = Color.Lerp(ink, Color.white, 0.5f);
                 var old = GUI.color;
                 GUI.BeginGroup(r);
-                GUI.color = Ui.Faded(new Color(bc.r, bc.g, bc.b, 0.14f));
+                GUI.color = Ui.Faded(bc.WithAlpha(0.14f));
                 GUI.DrawTexture(new Rect(0f, by, r.width, 0.28f * h), CardArt.Band());
                 GUI.EndGroup();
                 GUI.color = old;
@@ -145,7 +145,7 @@ namespace Arena
             {
                 var r = new Rect(x, y + i * rowH, w, rowH);
                 if (i % 2 == 0)
-                    Ui.Fill(r, new Color(ink.r, ink.g, ink.b, 0.09f));
+                    Ui.Fill(r, ink.WithAlpha(0.09f));
                 Ui.Label(new Rect(r.x + 8f, r.y, r.width - 16f, r.height), rows[i, 0], 13, HoloBody, TextAnchor.MiddleLeft, false);
                 CrtUi.Title(new Rect(r.x + 8f, r.y, r.width - 16f, r.height), rows[i, 1], 22, Color.white, TextAnchor.MiddleRight, true);
             }
@@ -155,8 +155,8 @@ namespace Arena
         void HoloTile(Rect r, string value, string name, Color? valueColor = null, int size = 32, TextAnchor align = TextAnchor.MiddleLeft)
         {
             var ink = CrtUi.Ink;
-            Ui.Fill(r, new Color(ink.r, ink.g, ink.b, 0.07f));
-            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.4f));
+            Ui.Fill(r, ink.WithAlpha(0.07f));
+            CrtKit.Frame(r, 1f, ink.WithAlpha(0.4f));
             float pad = align == TextAnchor.MiddleLeft ? 10f : 4f;
             var vr = new Rect(r.x + pad, r.y + 4f, r.width - 2f * pad, size + 2f);
             string v = value;

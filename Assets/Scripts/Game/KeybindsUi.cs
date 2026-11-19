@@ -75,7 +75,7 @@ namespace Arena
             if (maxScroll > 0f)
             {
                 float th = view.height * view.height / contentH, ty = view.y + (view.height - th) * (keybindScroll / maxScroll);
-                Ui.Fill(new Rect(view.xMax - 6f, ty, 4f, th), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+                Ui.Fill(new Rect(view.xMax - 6f, ty, 4f, th), CrtUi.Ink.WithAlpha(0.5f));
             }
 
             // Fire and Parry can also take a click, which can't be pressed while the page is the one being clicked: two keys.

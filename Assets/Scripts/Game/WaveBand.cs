@@ -23,7 +23,7 @@ namespace Arena
             float oa = Mathf.Clamp01(open);
             float oldAlpha = Ui.Alpha;
             Ui.Alpha *= oa;
-            GUI.color = new Color(oldCol.r, oldCol.g, oldCol.b, oldCol.a * oa);
+            GUI.color = oldCol.ScaleAlpha(oa);
             bool calm = FxCalm;
             var r = top >= 0f ? new Rect(BandRect.x, top, BandRect.width, BandRect.height) : BandRect;  // (fixed size and place: it only fades in; `top` sits it higher, as the DOWNED band does: DownedLooks.cs)
             var dark = CrtUi.Bg;
@@ -31,15 +31,15 @@ namespace Arena
             // the strip: solid in the middle, fading out toward both screen edges
             const int fade = 10;
             float edge = W * 0.12f, sw = edge / fade;
-            Color body = inverse ? ink : new Color(dark.r, dark.g, dark.b, 0.94f);
+            Color body = inverse ? ink : dark.WithAlpha(0.94f);
             Ui.Fill(new Rect(edge, r.y, W - 2f * edge, r.height), body);
             for (int i = 0; i < fade; i++)
             {
-                var c = new Color(body.r, body.g, body.b, body.a * (i + 1f) / (fade + 1f));
+                var c = body.ScaleAlpha((i + 1f) / (fade + 1f));
                 Ui.Fill(new Rect(i * sw, r.y, sw + 1f, r.height), c);
                 Ui.Fill(new Rect(W - (i + 1) * sw - 1f, r.y, sw + 1f, r.height), c);
             }
-            var rim = new Color(ink.r, ink.g, ink.b, 0.55f);
+            var rim = ink.WithAlpha(0.55f);
             Ui.Fill(new Rect(edge * 0.4f, r.y, W - edge * 0.8f, 1f), rim);
             Ui.Fill(new Rect(edge * 0.4f, r.yMax - 1f, W - edge * 0.8f, 1f), rim);
 
@@ -66,7 +66,7 @@ namespace Arena
             {
                 if (!calm)  // a soft halo: the title twice more, a few pixels out, faint
                 {
-                    var g = new Color(ink.r, ink.g, ink.b, 0.12f);
+                    var g = ink.WithAlpha(0.12f);
                     Ui.Label(new Rect(tr.x - 3f, tr.y, tr.width, tr.height), title, 88, g, TextAnchor.MiddleCenter, false);
                     Ui.Label(new Rect(tr.x + 3f, tr.y, tr.width, tr.height), title, 88, g, TextAnchor.MiddleCenter, false);
                 }
@@ -78,7 +78,7 @@ namespace Arena
             if (bar >= 0f)
             {
                 var tk = new Rect(side, r.yMax - 16f, W - 2f * side, 8f);
-                Ui.Fill(tk, new Color(dim.r, dim.g, dim.b, 0.9f));
+                Ui.Fill(tk, dim.WithAlpha(0.9f));
                 Ui.Fill(new Rect(tk.x + 1f, tk.y + 1f, tk.width - 2f, tk.height - 2f), dark);
                 Ui.Fill(new Rect(tk.x + 1f, tk.y + 1f, (tk.width - 2f) * Mathf.Clamp01(bar), tk.height - 2f), barInk ?? ink);
             }

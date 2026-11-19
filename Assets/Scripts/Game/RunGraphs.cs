@@ -295,9 +295,9 @@ namespace Arena
             {
                 float hx = plot.x + plot.width * tl.Samples[h].T / tmax;
                 Ui.Fill(new Rect(Mathf.Round(hx), plot.y, 1f, plot.height), new Color(1f, 1f, 1f, 0.4f));
-                var rows = new List<KeyValuePair<string, Color>> { Row("You  " + ShortNumber(mine[h]) + " dmg/s", ToColor(GGold)) };
+                var rows = new List<KeyValuePair<string, Color>> { Row("You  " + ShortNumber(mine[h]) + " dmg/s", GGold.ToColor()) };
                 if (team != null)
-                    rows.Add(Row("Team  " + ShortNumber(team[h]) + " dmg/s", ToColor(GCyan)));
+                    rows.Add(Row("Team  " + ShortNumber(team[h]) + " dmg/s", GCyan.ToColor()));
                 rows.Add(Row("Health  " + Mathf.RoundToInt(tl.Samples[h].Get(me, TL.Hp)) + "%", Ui.Muted));
                 if (tl.Samples[h].Boss)
                     rows.Add(Row("Boss wave", new Color(1f, 0.42f, 0.46f)));
@@ -328,7 +328,7 @@ namespace Arena
             {
                 string nm = tl.Players[pl].Name.Length > 8 ? tl.Players[pl].Name.Substring(0, 8) : tl.Players[pl].Name;
                 float lw = nm.Length * 5.6f + 18f;
-                Ui.Fill(new Rect(lx, box.y + 12f, 8f, 3f), ToColor(GPlayers[pl % GPlayers.Length]));
+                Ui.Fill(new Rect(lx, box.y + 12f, 8f, 3f), GPlayers[pl % GPlayers.Length].ToColor());
                 Ui.Label(new Rect(lx + 11f, box.y + 4f, lw, 18f), nm, 9, Ui.Muted, TextAnchor.MiddleLeft);
                 lx += lw;
             }
@@ -338,7 +338,7 @@ namespace Arena
                 Ui.Fill(new Rect(Mathf.Round(plot.x + plot.width * tl.Samples[h].T / tmax), plot.y, 1f, plot.height), new Color(1f, 1f, 1f, 0.4f));
                 var rows = new List<KeyValuePair<string, Color>>();
                 for (int pl = 0; pl < tl.Players.Count; pl++)
-                    rows.Add(Row(tl.Players[pl].Name + "  " + Mathf.RoundToInt(tl.Samples[h].Get(pl, TL.Hp)) + "%", ToColor(GPlayers[pl % GPlayers.Length])));
+                    rows.Add(Row(tl.Players[pl].Name + "  " + Mathf.RoundToInt(tl.Samples[h].Get(pl, TL.Hp)) + "%", GPlayers[pl % GPlayers.Length].ToColor()));
                 ChartTip(RunClock(tl.Samples[h].T) + "  ·  wave " + tl.Samples[h].Wave, rows);
             }
         }
@@ -364,7 +364,7 @@ namespace Arena
                 if (acc[i] >= 0f)
                 {
                     float bh = plot.height * acc[i] / 100f;
-                    var c = ToColor(GGreen);
+                    var c = GGreen.ToColor();
                     c.a = i == hover ? 1f : acc[i] < 45f ? 0.45f : 0.85f;
                     Ui.Fill(new Rect(plot.x + i * bw + 1.5f, plot.yMax - bh, Mathf.Max(1f, bw - 3f), bh), c);
                 }
@@ -372,7 +372,7 @@ namespace Arena
                     Ui.Label(new Rect(plot.x + i * bw - 6f, plot.yMax + 3f, bw + 12f, 14f), (i + 1).ToString(), 9, Ui.Muted, TextAnchor.MiddleCenter);
             }
             if (hover >= 0)
-                ChartTip("Wave " + (hover + 1), new List<KeyValuePair<string, Color>> { Row(acc[hover] >= 0f ? Mathf.RoundToInt(acc[hover]) + "% of shots hit" : "no shots", ToColor(GGreen)) });
+                ChartTip("Wave " + (hover + 1), new List<KeyValuePair<string, Color>> { Row(acc[hover] >= 0f ? Mathf.RoundToInt(acc[hover]) + "% of shots hit" : "no shots", GGreen.ToColor()) });
         }
 
         /// The last runs side by side, oldest to newest: wave reached (line) or damage dealt (bars). Click one to open it.
@@ -397,7 +397,7 @@ namespace Arena
                 if (damage)
                 {
                     float bh = plot.height * Mathf.Clamp01(v / ymax);
-                    var bc = ToColor(c);
+                    var bc = c.ToColor();
                     bc.a = sel || s == hover ? 1f : 0.6f;
                     Ui.Fill(new Rect(cx - slot * 0.32f, plot.yMax - bh, slot * 0.64f, bh), bc);
                 }

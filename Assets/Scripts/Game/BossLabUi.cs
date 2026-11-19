@@ -150,7 +150,7 @@ namespace Arena
         {
             var s = lab.Seats[i];
             var box = new Rect(x, y, w, 150f);
-            DkHud(box, ToColor(Defs.Get(s.Role).Color));
+            DkHud(box, (Defs.Get(s.Role).Color).ToColor());
             float ix = x + 12f, iw = w - 24f, iy = y + 8f;
             Ui.Label(new Rect(ix, iy, 200f, 20f), "Player " + (i + 1), 14, Color.white, TextAnchor.MiddleLeft, true);
             if (i == 0)
@@ -164,7 +164,7 @@ namespace Arena
                 float cw = (iw - lw) / names.Length;
                 Ui.Label(new Rect(ix, iy, lw, 26f), label, 11, Ui.Muted, TextAnchor.MiddleLeft, true);
                 for (int k = 0; k < names.Length; k++)
-                    if (DkChoice(new Rect(ix + lw + k * cw, iy, cw - 3f, 26f), names[k], sel == k, ToColor(Defs.Get(s.Role).Color)))
+                    if (DkChoice(new Rect(ix + lw + k * cw, iy, cw - 3f, 26f), names[k], sel == k, (Defs.Get(s.Role).Color).ToColor()))
                         set(k);
                 iy += 28f;
             };
@@ -216,7 +216,7 @@ namespace Arena
                 Player p;
                 game.Players.TryGetValue(kv.Key, out p);
                 var st = kv.Value;
-                Color c = p != null ? ToColor(p.Def.Color) : Color.white;
+                Color c = p != null ? p.Def.Color.ToColor() : Color.white;
                 Ui.Label(new Rect(x, y, w, 16f), (p != null ? p.Name + " · " + Defs.KitName(p.Kit) + " " + p.Def.Name : st.Name), 11, c, TextAnchor.MiddleLeft, true);
                 y += 15f;
                 Ui.Label(new Rect(x, y, w, 15f), string.Format("boss dmg {0:0} · taken {1:0} · downs {2} · casts {3}", st.BossDamage, st.DamageTaken, st.Downs, st.Abilities), 10, Ui.Muted, TextAnchor.MiddleLeft);

@@ -58,7 +58,7 @@ namespace Arena
         {
             if (!TipHover(r))
                 return;
-            var rc = ToColor(Upgrades.RarityColor(u.Rarity));
+            var rc = Upgrades.RarityColor(u.Rarity).ToColor();
             TipStart(r, u.Name, Color.Lerp(rc, Color.white, 0.35f));
             string sub = Upgrades.RarityName(u.Rarity).ToUpperInvariant();
             if (count > 1)
@@ -81,7 +81,7 @@ namespace Arena
             if (!TipHover(r))
                 return;
             TipStart(r, p.Weapon.Name, Color.white);
-            TipAdd("WEAPON  ·  " + Defs.KitName(p.Kit).ToUpperInvariant() + " " + p.Def.Name.ToUpperInvariant(), 10, ToColor(p.Def.Color), true);
+            TipAdd("WEAPON  ·  " + Defs.KitName(p.Kit).ToUpperInvariant() + " " + p.Def.Name.ToUpperInvariant(), 10, p.Def.Color.ToColor(), true);
             TipAdd(KeyText.Fill(p.Weapon.Desc), 13, Ui.Text);
             if (!string.IsNullOrEmpty(p.Weapon.ExtraDesc))
                 TipAdd("Each extra projectile: " + p.Weapon.ExtraDesc, 11, Ui.Muted);
@@ -98,7 +98,7 @@ namespace Arena
             TipStart(r, a.Name, ult ? Ui.Gold : Color.white);
             int level = Game.MasteryLevel(p, id);
             TipAdd((ult ? "ULTIMATE · " + SlotKeys[4] : "ABILITY · " + SlotKeys[slot]) + "  ·  " + (level >= Game.MasteryMax ? "MASTERED" : "MASTERY " + level) + "  ·  " + Mathf.RoundToInt(a.Cooldown) + " S COOLDOWN",
-                10, ult ? Ui.Gold : ToColor(p.Def.Color), true);
+                10, ult ? Ui.Gold : p.Def.Color.ToColor(), true);
             TipAdd(KeyText.Fill(a.Desc), 13, Ui.Text);
             TipAdd("Mastered (mastery 5): " + Game.Capstone(id), 11, new Color(0.85f, 0.75f, 0.48f));
         }
@@ -142,15 +142,15 @@ namespace Arena
             }
             else if (crt)
             {
-                Ui.Fill(pop, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
-                Ui.Fill(pop, new Color(tipColor.r, tipColor.g, tipColor.b, 0.09f));
-                CrtKit.Frame(pop, 1f, new Color(tipColor.r, tipColor.g, tipColor.b, 0.75f));
+                Ui.Fill(pop, CrtUi.Bg.WithAlpha(0.98f));
+                Ui.Fill(pop, tipColor.WithAlpha(0.09f));
+                CrtKit.Frame(pop, 1f, tipColor.WithAlpha(0.75f));
                 Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle.ToUpperInvariant(), 16, tipColor, TextAnchor.MiddleLeft, true);
-                Ui.Fill(new Rect(pop.x + pad, y + 21f, pw - pad * 2f, 1f), new Color(tipColor.r, tipColor.g, tipColor.b, 0.45f));
+                Ui.Fill(new Rect(pop.x + pad, y + 21f, pw - pad * 2f, 1f), tipColor.WithAlpha(0.45f));
                 y += 3f;
             }
             else
-                DkSub(pop, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
+                DkSub(pop, CrtUi.Bg.WithAlpha(0.98f));
             if (!crt)  // (the crt and hologram looks drew their title above)
                 Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, 16, tipColor, TextAnchor.MiddleLeft, true);
             y += 24f;

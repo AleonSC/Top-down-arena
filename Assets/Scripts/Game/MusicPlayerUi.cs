@@ -304,7 +304,7 @@ namespace Arena
                 bool chosen = e == null ? juke.Selected == null : juke.Selected == e.Id;
                 bool hover = r.Contains(Event.current.mousePosition);
                 Color c = e == null ? CrtUi.Ink : MoodColor(e.Mood);
-                DkSub(r, chosen ? new Color(c.r, c.g, c.b, 0.22f) : new Color(1f, 1f, 1f, hover ? 0.07f : 0.025f));
+                DkSub(r, chosen ? c.WithAlpha(0.22f) : new Color(1f, 1f, 1f, hover ? 0.07f : 0.025f));
                 if (chosen)
                     CrtKit.Frame(r, 2f, c);
                 if (chosen)

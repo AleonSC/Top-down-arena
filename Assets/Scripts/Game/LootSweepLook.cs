@@ -99,7 +99,7 @@ namespace Arena
                 V2 ctrl = new V2((from.X + to.X) / 2f, Mathf.Min(from.Y, to.Y) - 60f);  // (a little arc)
                 V2 a = V2.Lerp(from, ctrl, e), b = V2.Lerp(ctrl, to, e), at = V2.Lerp(a, b, e);
                 float s = 9f - 3f * k;
-                Ui.Fill(new Rect(at.X - s / 2f, at.Y - s / 2f, s, s), new Color(gold.r, gold.g, gold.b, 1f - 0.3f * k));
+                Ui.Fill(new Rect(at.X - s / 2f, at.Y - s / 2f, s, s), gold.WithAlpha(1f - 0.3f * k));
             }
             float t = sweepAge - SweepFly;  // the label as the first coins land
             if (t <= 0f)
@@ -111,8 +111,8 @@ namespace Arena
             int size = Mathf.RoundToInt(20f * pop);
             var r = new Rect(at2.X - 150f, at2.Y - 16f, 300f, 32f);
             Ui.Label(new Rect(r.x + 1.5f, r.y + 2f, r.width, r.height), text, size, new Color(0.1f, 0.05f, 0f, 0.85f * al), TextAnchor.MiddleCenter, true);
-            Ui.Label(r, text, size, new Color(gold.r, gold.g, gold.b, al), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(r.x, r.y + 30f, r.width, 16f), "COLLECTED", 11, new Color(gold.r, gold.g, gold.b, 0.8f * al), TextAnchor.MiddleCenter, true);
+            Ui.Label(r, text, size, gold.WithAlpha(al), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(r.x, r.y + 30f, r.width, 16f), "COLLECTED", 11, gold.WithAlpha(0.8f * al), TextAnchor.MiddleCenter, true);
         }
     }
 }

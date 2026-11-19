@@ -644,7 +644,7 @@ namespace Arena
             string text = d.Name.ToUpperInvariant() + "  ·  " + (game.OnPath ? left + " wave" + (left == 1 ? "" : "s") + " left" : "starts next wave");
             float w = 30f + text.Length * 6.4f + 16f * d.Danger;
             var chip = new Rect(x, y, w, 20f);
-            var accent = ToColor(d.Accent);
+            var accent = d.Accent.ToColor();
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), accent);
             Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, accent, TextAnchor.MiddleLeft, true);

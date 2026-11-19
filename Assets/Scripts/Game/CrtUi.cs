@@ -36,8 +36,8 @@ namespace Arena
                 Begin(r, alpha);
                 return;
             }
-            var bz = new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha);
-            var bg = new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha);
+            var bz = Bezel.ScaleAlpha(alpha);
+            var bg = Bg.ScaleAlpha(alpha);
             System.Action<Rect> both = q => { if (q.width > 0f && q.height > 0f) { Ui.Fill(q, bz); Ui.Fill(q, bg); } };
             Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, 3f), bz);  // the bezel ring
             Ui.Fill(new Rect(r.x - 3f, r.yMax, r.width + 6f, 3f), bz);
@@ -52,14 +52,14 @@ namespace Arena
                 x = h.xMax;
             }
             both(new Rect(x, top, r.xMax - x, bot - top));
-            CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
+            CrtKit.Frame(r, 1f, Ink.WithAlpha(0.35f));
         }
 
         public static void Begin(Rect r, float alpha)
         {
-            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha));
-            Ui.Fill(r, new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha));
-            CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
+            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), Bezel.ScaleAlpha(alpha));
+            Ui.Fill(r, Bg.ScaleAlpha(alpha));
+            CrtKit.Frame(r, 1f, Ink.WithAlpha(0.35f));
         }
 
         /// A big screen title (the cabinet's header, a window's heading) in the CRT font, glowing. `size` is in pixels, as in the mockups.
@@ -86,7 +86,7 @@ namespace Arena
         {
             if (!calm && Event.current.type == EventType.Repaint)
             {
-                var g = new Color(c.r, c.g, c.b, c.a * CrtStyle.TextGlow);
+                var g = c.ScaleAlpha(CrtStyle.TextGlow);
                 Ui.Label(new Rect(r.x - 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
                 Ui.Label(new Rect(r.x + 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
                 Ui.Label(new Rect(r.x, r.y - 1f, r.width, r.height), s, size, g, align, bold, wrap);
@@ -107,9 +107,9 @@ namespace Arena
             bool hushed = quiet && !hover && !lit;
             if (hushed)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietTint));
-                CrtKit.Dashed(r, CrtStyle.KeyQuietDashW, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietDash));
-                tc = new Color(c.r, c.g, c.b, CrtStyle.KeyQuietText);
+                Ui.Fill(r, c.WithAlpha(CrtStyle.KeyQuietTint));
+                CrtKit.Dashed(r, CrtStyle.KeyQuietDashW, c.WithAlpha(CrtStyle.KeyQuietDash));
+                tc = c.WithAlpha(CrtStyle.KeyQuietText);
             }
             else
             {

@@ -167,10 +167,10 @@ namespace Arena
                 if (fi > 0)
                     FrameOutline(pv, FrameTint(fi, t));
                 else
-                    CrtKit.Frame(pv, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+                    CrtKit.Frame(pv, 1f, CrtUi.Ink.WithAlpha(0.5f));
             }
             else
-                CrtKit.Frame(pv, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+                CrtKit.Frame(pv, 1f, CrtUi.Ink.WithAlpha(0.5f));
             Ui.Label(new Rect(px, pv.yMax + 10f, 340f, 18f), "HOW OTHERS SEE YOU", 12, CabSoft, TextAnchor.MiddleLeft, true);
             DrawLookCard(new Rect(px, pv.yMax + 32f, 340f, 88f), p, t, tryKind, tryId);
             Ui.Label(new Rect(px, pv.yMax + 132f, 340f, 36f), "Hover a row to try it on. Press Equip to keep it.", 13, CabSoft, TextAnchor.UpperLeft, false, true);
@@ -184,11 +184,11 @@ namespace Arena
                 string id = c == null ? "" : c.Id;
                 bool ok = c == null || rank >= c.Rank, on = equipped == id;
                 var rr = new Rect(lx, view.y + (i - lookScroll) * step, rw, rowH);
-                Ui.Fill(rr, on ? new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.08f) : new Color(ink.r, ink.g, ink.b, i == tryIdx ? 0.12f : 0.04f));
-                CrtKit.Frame(rr, 1f, on ? Ui.Gold : new Color(ink.r, ink.g, ink.b, 0.25f));
+                Ui.Fill(rr, on ? Ui.Gold.WithAlpha(0.08f) : ink.WithAlpha(i == tryIdx ? 0.12f : 0.04f));
+                CrtKit.Frame(rr, 1f, on ? Ui.Gold : ink.WithAlpha(0.25f));
                 var th = new Rect(rr.x + 8f, rr.y + (rowH - 40f) / 2f, 64f, 40f);
                 RowThumb(th, kind, c, p, t, ok);
-                CrtKit.Frame(th, 1f, new Color(ink.r, ink.g, ink.b, ok ? 0.5f : 0.25f));
+                CrtKit.Frame(th, 1f, ink.WithAlpha(ok ? 0.5f : 0.25f));
                 string name = c != null ? c.Name : NoneName(kind);
                 float nx = rr.x + 82f, nw = rr.width - 82f - 106f;
                 int size;
@@ -204,7 +204,7 @@ namespace Arena
                 var kr = new Rect(rr.xMax - 8f - 92f, rr.y + (rowH - 32f) / 2f, 92f, 32f);
                 if (!ok)
                 {
-                    CrtKit.Dashed(kr, 2f, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.8f));
+                    CrtKit.Dashed(kr, 2f, CrtUi.Dim.WithAlpha(0.8f));
                     Ui.Icon(new Rect(kr.x + 7f, kr.center.y - 8f, 16f, 16f), PixelArt.Get("ui_lock"), CrtUi.Dim);
                     Ui.Label(new Rect(kr.x + 26f, kr.y, kr.width - 28f, kr.height), "RANK " + c.Rank, 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
                 }
@@ -218,9 +218,9 @@ namespace Arena
             }
             if (maxScroll > 0)
             {
-                Ui.Fill(track, new Color(ink.r, ink.g, ink.b, 0.1f));
+                Ui.Fill(track, ink.WithAlpha(0.1f));
                 float ty = track.y + (track.height - thumbH) * lookScroll / maxScroll;
-                Ui.Fill(new Rect(track.x, ty, track.width, thumbH), new Color(ink.r, ink.g, ink.b, lookBarDrag ? 0.95f : 0.6f));
+                Ui.Fill(new Rect(track.x, ty, track.width, thumbH), ink.WithAlpha(lookBarDrag ? 0.95f : 0.6f));
                 Ui.Label(new Rect(view.x, view.yMax + 3f, view.width, 14f), "WHEEL OR DRAG TO SCROLL  ·  " + (lookScroll + 1) + " TO " + Mathf.Min(items.Count, lookScroll + fit) + " OF " + items.Count, 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
             }
         }
@@ -241,8 +241,8 @@ namespace Arena
         /// A rim in four thin lines (soft glow under it), for a frame preview.
         static void FrameOutline(Rect r, Color c)
         {
-            Ui.Fill(new Rect(r.x - 2f, r.y - 2f, r.width + 4f, 7f), new Color(c.r, c.g, c.b, 0.1f));
-            Ui.Fill(new Rect(r.x - 2f, r.yMax - 5f, r.width + 4f, 7f), new Color(c.r, c.g, c.b, 0.1f));
+            Ui.Fill(new Rect(r.x - 2f, r.y - 2f, r.width + 4f, 7f), c.WithAlpha(0.1f));
+            Ui.Fill(new Rect(r.x - 2f, r.yMax - 5f, r.width + 4f, 7f), c.WithAlpha(0.1f));
             Ui.Fill(new Rect(r.x, r.y, r.width, 3f), c);
             Ui.Fill(new Rect(r.x, r.yMax - 3f, r.width, 3f), c);
             Ui.Fill(new Rect(r.x, r.y, 3f, r.height), c);
@@ -329,7 +329,7 @@ namespace Arena
             {
                 Ui.Pill(r, new Color(0.05f, 0.07f, 0.12f, 0.95f));
                 if (kind == CosmeticKind.Frame)
-                    FrameOutline(new Rect(r.x + 12f, r.y + 7f, r.width - 24f, r.height - 14f), c != null ? RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(c.Id))) : new Color(0.42f, 0.6f, 1f, 0.8f));
+                    FrameOutline(new Rect(r.x + 12f, r.y + 7f, r.width - 24f, r.height - 14f), c != null ? (Rank.FrameColor(Rank.FrameIndex(c.Id))).ToColor() : new Color(0.42f, 0.6f, 1f, 0.8f));
                 if (BeginUiGl())
                 {
                     UiModelAt(new V2(r.center.x + (kind == CosmeticKind.Trail ? 10f : 0f), r.center.y), kind == CosmeticKind.Trail ? 0.45f : 0.5f);
@@ -411,8 +411,8 @@ namespace Arena
 
             // Left: the next reward.
             var box = new Rect(DrawerPanel.x + 26f, top, 280f, Mathf.Min(viewH, 360f));
-            Ui.Fill(box, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.05f));
-            CrtKit.Frame(box, 1f, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.45f));
+            Ui.Fill(box, Ui.Gold.WithAlpha(0.05f));
+            CrtKit.Frame(box, 1f, Ui.Gold.WithAlpha(0.45f));
             if (next == null)
             {
                 Ui.Label(new Rect(box.x + 16f, box.y + 16f, box.width - 32f, 18f), "ALL DONE", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
@@ -495,7 +495,7 @@ namespace Arena
                     Ui.Label(new Rect(cx + 40f, iy + 8f, rw - cx - 40f, 22f), head, 12, tc, TextAnchor.MiddleLeft, true);
                     float lx = cx + 40f + Ui.TextWidth(head, 12, true) + 12f;
                     for (int s = 0; s < 20 && lx + s * 14f < rw - 8f; s++)
-                        Ui.Fill(new Rect(lx + s * 14f, iy + 19f, 14f, 1f), new Color(tc.r, tc.g, tc.b, 0.5f * (1f - s / 20f)));
+                        Ui.Fill(new Rect(lx + s * 14f, iy + 19f, 14f, 1f), tc.WithAlpha(0.5f * (1f - s / 20f)));
                 }
                 else if (it.Kind == 2)
                 {
@@ -514,7 +514,7 @@ namespace Arena
                 {
                     bool got = it.Rank <= rank;
                     var tc = RankLook.TierColor(it.Rank);
-                    Ui.Fill(new Rect(cx - 1.5f, iy, 3f, it.H), got ? new Color(tc.r, tc.g, tc.b, 0.8f) : new Color(0.14f, 0.17f, 0.28f));
+                    Ui.Fill(new Rect(cx - 1.5f, iy, 3f, it.H), got ? tc.WithAlpha(0.8f) : new Color(0.14f, 0.17f, 0.28f));
                     RankLook.Draw(new Rect(cx - 20f, iy + 8f, 40f, 40f), it.Rank, got ? 1f : 0.45f);
                     for (int n = 0; n < it.Count; n++)
                     {
@@ -522,14 +522,14 @@ namespace Arena
                         var rr = new Rect(cx + 40f, iy + 8f + n * (LadderRowH + LadderRowGap), rw - cx - 48f, LadderRowH);
                         bool isNext = row == next;
                         var kc = LadderKindColor(row.Kind);
-                        Ui.Fill(rr, isNext ? new Color(1f, 0.82f, 0.31f, 0.09f) : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, got ? 0.05f : 0.025f));
+                        Ui.Fill(rr, isNext ? new Color(1f, 0.82f, 0.31f, 0.09f) : CrtUi.Ink.WithAlpha(got ? 0.05f : 0.025f));
                         if (isNext)
-                            CrtKit.Frame(rr, 1f, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.7f));
-                        Ui.Icon(new Rect(rr.x + 12f, rr.center.y - 11f, 22f, 22f), PixelArt.Get(LadderKindIcon(row.Kind)), got ? kc : new Color(kc.r, kc.g, kc.b, 0.4f));
+                            CrtKit.Frame(rr, 1f, Ui.Gold.WithAlpha(0.7f));
+                        Ui.Icon(new Rect(rr.x + 12f, rr.center.y - 11f, 22f, 22f), PixelArt.Get(LadderKindIcon(row.Kind)), got ? kc : kc.WithAlpha(0.4f));
                         // Two lines (Docs/Mockups/reward-ladder-text.html, A): the name gets the width, the kind sits under it.
                         float nameW = rr.width - 46f - 100f;
                         Ui.Label(new Rect(rr.x + 46f, rr.y + 5f, nameW, 24f), row.Name, 16, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                        Ui.Label(new Rect(rr.x + 46f, rr.y + 28f, nameW, 16f), row.Kind.ToUpper(), 10, got ? kc : new Color(kc.r, kc.g, kc.b, 0.6f), TextAnchor.MiddleLeft, true);
+                        Ui.Label(new Rect(rr.x + 46f, rr.y + 28f, nameW, 16f), row.Kind.ToUpper(), 10, got ? kc : kc.WithAlpha(0.6f), TextAnchor.MiddleLeft, true);
                         Ui.Label(new Rect(rr.xMax - 100f, rr.y, 88f, rr.height), got ? "Unlocked" : isNext ? "Next" : "Locked", 12, got ? Ui.Good : isNext ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight, true);
                     }
                 }

@@ -167,7 +167,7 @@ namespace Arena
                 string hk = key.ToUpperInvariant();
                 float kw = Ui.TextWidth(hk, 12, true) + 4f;
                 var kr = new Rect(r.xMax - 12f - kw, r.y + 9f, kw, 20f);
-                CrtKit.Frame(kr, 1f, new Color(tc.r, tc.g, tc.b, 0.8f));
+                CrtKit.Frame(kr, 1f, tc.WithAlpha(0.8f));
                 Ui.Label(kr, hk, 12, tc, TextAnchor.MiddleCenter, true);
             }
             else if (!string.IsNullOrEmpty(tag))
@@ -417,7 +417,7 @@ namespace Arena
 
         static void DashLine(float x, float y, float w)
         {
-            var c = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f);
+            var c = CrtUi.Ink.WithAlpha(0.25f);
             for (float d = 0f; d < w; d += 6f)
                 Ui.Fill(new Rect(x + d, y, Mathf.Min(3f, w - d), 1f), c);
         }
@@ -425,8 +425,8 @@ namespace Arena
         /// A faint lit tile on a screen (what the old translucent white pills are now).
         static void CabCard(Rect r, float a)
         {
-            Ui.Fill(r, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a * 1.6f));
-            CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.22f));
+            Ui.Fill(r, CrtUi.Ink.WithAlpha(a * 1.6f));
+            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.22f));
         }
 
         // --- Digital controls -------------------------------------------------------------------------------------------
@@ -443,8 +443,8 @@ namespace Arena
             bool lit = (hover || sel) && !isStatic;
             if (isStatic)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyStaticTint));
-                CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, CrtStyle.KeyStaticRim));
+                Ui.Fill(r, c.WithAlpha(CrtStyle.KeyStaticTint));
+                CrtKit.Frame(r, 1f, c.WithAlpha(CrtStyle.KeyStaticRim));
             }
             else
                 CrtKit.SoftBox(r, c, sel, hover, false);
@@ -455,8 +455,8 @@ namespace Arena
             {
                 var lr = new Rect(x, r.center.y - 4.5f, 9f, 9f);
                 if (lampLit && !FxCalm)
-                    Ui.Fill(new Rect(lr.x - 3f, lr.y - 3f, 15f, 15f), new Color(c.r, c.g, c.b, 0.25f));
-                Ui.Fill(lr, new Color(tc.r, tc.g, tc.b, lampLit ? 1f : 0.4f));
+                    Ui.Fill(new Rect(lr.x - 3f, lr.y - 3f, 15f, 15f), c.WithAlpha(0.25f));
+                Ui.Fill(lr, tc.WithAlpha(lampLit ? 1f : 0.4f));
             }
             var tr = new Rect(x + lw, r.y, tw + 14f, r.height);
             CrtUi.Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, FxCalm);
@@ -484,7 +484,7 @@ namespace Arena
                 string hk = key.ToUpperInvariant();
                 float tw = Ui.TextWidth(title, 17, true) - 6f, w = Ui.TextWidth(hk, 11, true) + 4f;
                 var kr = new Rect(r.x + tw + 12f, r.y + (!string.IsNullOrEmpty(desc) ? 4f : r.height / 2f - 9f), w, 18f);
-                CrtKit.Frame(kr, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+                CrtKit.Frame(kr, 1f, CrtUi.Ink.WithAlpha(0.5f));
                 Ui.Label(kr, hk, 11, CabSoft, TextAnchor.MiddleCenter, true);
             }
             bool click = WinKey(new Rect(r.xMax - kw, r.center.y - 17f, kw, 34f), value ? "ON" : "OFF", false, 18, value ? CrtUi.Ink : CrtUi.Dim, true, value);
@@ -547,13 +547,13 @@ namespace Arena
                 if (i < lit)
                 {
                     if (!FxCalm)
-                        Ui.Fill(new Rect(b.x - 1f, b.y - 1f, b.width + 2f, b.height + 2f), new Color(ink.r, ink.g, ink.b, 0.2f));
+                        Ui.Fill(new Rect(b.x - 1f, b.y - 1f, b.width + 2f, b.height + 2f), ink.WithAlpha(0.2f));
                     Ui.Fill(b, ink);
                 }
                 else
                 {
-                    Ui.Fill(b, new Color(ink.r, ink.g, ink.b, 0.14f));
-                    CrtKit.Frame(b, 1f, new Color(ink.r, ink.g, ink.b, 0.3f));
+                    Ui.Fill(b, ink.WithAlpha(0.14f));
+                    CrtKit.Frame(b, 1f, ink.WithAlpha(0.3f));
                 }
             }
             CrtUi.Text(val, Mathf.RoundToInt(v * 100f) + "%", 20, ink, TextAnchor.MiddleRight, true, FxCalm);

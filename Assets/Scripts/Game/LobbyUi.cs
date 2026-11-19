@@ -80,7 +80,7 @@ namespace Arena
             if (washBot != null && session.Lobby.TryGetValue(washBot.Id, out washBotEntry))
                 washFor = washBotEntry;
             if (washFor != null)
-                LobbyKit.WashTo(ToColor(Defs.Get(washFor.Role).Color), calm);
+                LobbyKit.WashTo((Defs.Get(washFor.Role).Color).ToColor(), calm);
             var infoButton = LobbyInfoKey;  // the connection key: hidden until the mouse is over it (or its popup is open)
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
@@ -223,7 +223,7 @@ namespace Arena
             float x0 = r.x + tw + 16f, x1 = PartyX + PartyW - 50f;  // the rule runs on to the connection key's place, fading out
             const int steps = 14;
             for (int i = 0; i < steps && x1 > x0; i++)
-                Ui.Fill(new Rect(x0 + (x1 - x0) * i / steps, Mathf.Round(r.center.y), (x1 - x0) / steps + 1f, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f * (1f - i / (float)steps) * a));
+                Ui.Fill(new Rect(x0 + (x1 - x0) * i / steps, Mathf.Round(r.center.y), (x1 - x0) / steps + 1f, 1f), CrtUi.Ink.WithAlpha(0.5f * (1f - i / (float)steps) * a));
         }
 
         string HostName()
@@ -321,7 +321,7 @@ namespace Arena
             {
                 var ab = new Rect(side < 0 ? r.x : r.xMax - arrowW, r.center.y - 14f, arrowW, 28f);
                 bool click = LobbyKit.Key(ab, "", false, calm, enabled: host);
-                Chevron(ab.center, side, host ? CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)) : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.5f));
+                Chevron(ab.center, side, host ? CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)) : CrtUi.Dim.WithAlpha(0.5f));
                 if (click)
                     turnTo = modeTurn + side;
             }
@@ -395,7 +395,7 @@ namespace Arena
         void DrawPartyCard(Rect r, LobbyEntry e, float t, int slot)
         {
             var botSeat = session.IsHost ? partyBots.Find(e.Id) : null;
-            var color = ToColor(Defs.Get(e.Role).Color);
+            var color = (Defs.Get(e.Role).Color).ToColor();
             bool mine = e.Id == session.MyId;
             if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
             {
@@ -456,10 +456,10 @@ namespace Arena
                 float room = botSeat != null ? 118f : 0f;
                 if (Ui.HitArea(new Rect(tx, r.y, r.width - (tx - r.x) - 9f - room, r.height)))
                     editBotId = botSeat != null ? e.Id : -1;
-                PartyCardClick(new Rect(r.x, r.y, tx - r.x, r.height), e, ToColor(Rank.TierColor(e.Rank)), t);  // the portrait: your profile / their holo card (PlayerInspect.cs)
+                PartyCardClick(new Rect(r.x, r.y, tx - r.x, r.height), e, Rank.TierColor(e.Rank).ToColor(), t);  // the portrait: your profile / their holo card (PlayerInspect.cs)
             }
             else
-                PartyCardClick(r, e, ToColor(Rank.TierColor(e.Rank)), t);  // the whole card (a remote player's, or a non-host's own)
+                PartyCardClick(r, e, Rank.TierColor(e.Rank).ToColor(), t);  // the whole card (a remote player's, or a non-host's own)
             if (botSeat != null)
                 DrawBotButtons(r, botSeat);
             // READY / NOT READY, bottom right.
@@ -507,10 +507,10 @@ namespace Arena
         void DrawOpenSlot(Rect r, int slot, float t)
         {
             bool calm = fxReduced;
-            Ui.Fill(r, LobbyKit.Ink(0.015f));
-            CrtKit.Dashed(r, 1f, LobbyKit.Ink(0.2f));  // faded: an empty seat should sit back
+            Ui.Fill(r, CrtUi.Ink.WithAlpha(0.015f));
+            CrtKit.Dashed(r, 1f, CrtUi.Ink.WithAlpha(0.2f));  // faded: an empty seat should sit back
             bool canAdd = partyBots.CanAdd(session);
-            LobbyKit.Spaced(new Rect(r.x, r.y + (canAdd ? 8f : 0f), r.width, canAdd ? 26f : r.height), "OPEN SLOT", 14, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.5f), TextAnchor.MiddleCenter, 1.7f);
+            LobbyKit.Spaced(new Rect(r.x, r.y + (canAdd ? 8f : 0f), r.width, canAdd ? 26f : r.height), "OPEN SLOT", 14, CrtUi.Dim.WithAlpha(0.5f), TextAnchor.MiddleCenter, 1.7f);
             if (canAdd && LobbyKit.Key(new Rect(r.center.x - 75f, r.y + 40f, 150f, 30f), "+ ADD A BOT", false, calm, size: 13, minSize: 10))
                 partyBots.Add(session);  // a bot takes the slot and plays with you
         }
@@ -548,7 +548,7 @@ namespace Arena
         void DrawConnInfo(Rect r)
         {
             bool calm = fxReduced;
-            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));  // solid backing over the party
+            Ui.Fill(r, CrtUi.Bg.WithAlpha(0.98f));  // solid backing over the party
             LobbyKit.Panel(r, false, false);
             CrtKit.Frame(r, 2f, CrtUi.Ink);
             float x = r.x + 14f, w = r.width - 28f, y = r.y + 12f;
@@ -571,7 +571,7 @@ namespace Arena
                     }
                     var tag = new Rect(bx, y, bw, 26f);
                     bool ts = addr.StartsWith("100.");  // a Tailscale address: lit
-                    Ui.Fill(tag, ts ? new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.95f) : LobbyKit.Ink(0.08f));
+                    Ui.Fill(tag, ts ? CrtUi.Ink.WithAlpha(0.95f) : CrtUi.Ink.WithAlpha(0.08f));
                     CrtKit.Frame(tag, 1f, CrtUi.Ink);
                     Ui.Label(tag, addr, 13, ts ? CrtUi.Bg : CrtUi.Ink, TextAnchor.MiddleCenter, true);
                     bx += bw + 6f;
@@ -622,7 +622,7 @@ namespace Arena
             bool self = bot == null;
             bool calm = fxReduced;
             LobbyKit.Panel(r);  // (the role wash)
-            var roleColor = ToColor(Defs.Get(me.Role).Color);
+            var roleColor = (Defs.Get(me.Role).Color).ToColor();
 
             // Left column: the live mini-arena (your weapon on target dummies; it casts an ability while you hover one).
             float lx = r.x + 16f;
@@ -695,10 +695,10 @@ namespace Arena
                 }
                 if (b.Contains(Event.current.mousePosition))  // the description is a hover tip
                 {
-                    TipStart(b, Defs.Roles[i].Name, ToColor(Defs.Roles[i].Color));
+                    TipStart(b, Defs.Roles[i].Name, (Defs.Roles[i].Color).ToColor());
                     TipAdd(Defs.Roles[i].Desc, 13, Ui.Text);
                 }
-                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: ToColor(Defs.Roles[i].Color)))
+                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: (Defs.Roles[i].Color).ToColor()))
                 {
                     tgt.RequestRole((Role)i);
                     if (self)
@@ -871,13 +871,13 @@ namespace Arena
             float rx = r.x + ew + 12f, rw = Mathf.Max(0f, r.xMax - rx);
             const int steps = 24;
             for (int i = 0; i < steps; i++)  // a rule that fades out to the right
-                Ui.Fill(new Rect(rx + rw * i / steps, r.y + 8f, rw / steps + 1f, 1f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.7f * (1f - i / (float)steps)));
+                Ui.Fill(new Rect(rx + rw * i / steps, r.y + 8f, rw / steps + 1f, 1f), roleColor.WithAlpha(0.7f * (1f - i / (float)steps)));
             LobbyKit.Fit(new Rect(r.x, r.y + 14f, r.width, 36f), name, 22, 14, Color.white, TextAnchor.MiddleLeft, calm);
             float ry = r.y + 52f;
             if (!calm)
-                Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.18f));
+                Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), roleColor.WithAlpha(0.18f));
             for (int i = 0; i < 6; i++)  // a short rule in the role colour, fading out
-                Ui.Fill(new Rect(r.x + i * 12f, ry, 12f, 3f), new Color(roleColor.r, roleColor.g, roleColor.b, 1f - i * 0.16f));
+                Ui.Fill(new Rect(r.x + i * 12f, ry, 12f, 3f), roleColor.WithAlpha(1f - i * 0.16f));
         }
 
         /// The ascension button on the right quarter of a weapon key: a rank mark over "0/3". True on a click (it opens the ascension window).
@@ -894,7 +894,7 @@ namespace Arena
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             var c = CrtUi.Ink;
             CrtKit.SoftBox(r, c, on, hover, false);
-            Color ic = hover ? CrtKit.SoftText(c, true) : on ? LobbyKit.Gold : new Color(c.r, c.g, c.b, 0.85f);
+            Color ic = hover ? CrtKit.SoftText(c, true) : on ? LobbyKit.Gold : c.WithAlpha(0.85f);
             float cx = Mathf.Round(r.center.x), top = r.y + 5f;
             for (int n = 0; n < 3; n++)  // three stacked chevrons
                 for (int k = 0; k < 3; k++)
@@ -925,11 +925,11 @@ namespace Arena
             if (hasVariant)
                 cost = -1;  // (both tiers are variant weapons, unlocked for now: nothing to buy)
             ascWeapon = weapon;
-            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.86f));
+            Ui.Fill(r, CrtUi.Bg.WithAlpha(0.86f));
             float ww = r.width * 0.78f, wh = hasVariant ? 312f : 280f;
             var win = new Rect(r.center.x - ww / 2f, r.center.y - wh / 2f, ww, wh);
-            Ui.Fill(win, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 1f));
-            Ui.Fill(win, LobbyKit.Ink(0.05f));
+            Ui.Fill(win, CrtUi.Bg.WithAlpha(1f));
+            Ui.Fill(win, CrtUi.Ink.WithAlpha(0.05f));
             CrtKit.Frame(win, 2f, CrtUi.Ink);
             float px = win.x + 18f;
             Ui.Label(new Rect(px, win.y + 10f, 300f, 16f), "WEAPON VARIANTS", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
@@ -948,8 +948,8 @@ namespace Arena
                 bool got = i < owned || isVariant;
                 var col = got ? LobbyKit.Gold : dim;
                 var c = new Rect(px + i * (tw + 10f), win.y + 96f, tw, hasVariant ? 144f : 112f);
-                Ui.Fill(c, new Color(col.r, col.g, col.b, 0.03f));
-                if (got) CrtKit.Frame(c, 2f, col); else CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, 0.7f));
+                Ui.Fill(c, col.WithAlpha(0.03f));
+                if (got) CrtKit.Frame(c, 2f, col); else CrtKit.Dashed(c, 2f, dim.WithAlpha(0.7f));
                 Ui.Label(new Rect(c.x + 10f, c.y + 6f, c.width - 20f, 34f), Numerals[i], 28, col, TextAnchor.MiddleLeft, true);
                 if (isVariant)
                 {
@@ -996,8 +996,8 @@ namespace Arena
             if (r.height < 90f)
                 return;
             bool calm = fxReduced;
-            Ui.Fill(r, LobbyKit.Ink(0.04f));
-            CrtKit.Frame(r, 1f, LobbyKit.Ink(0.35f));
+            Ui.Fill(r, CrtUi.Ink.WithAlpha(0.04f));
+            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.35f));
             var inner = new Rect(r.x + 14f, r.y + 8f, r.width - 28f, r.height - 16f);
             string kind = detailSel == 1 ? "ABILITY" : detailSel == 2 ? "ULTIMATE" : "WEAPON";
             string name = detailSel == 1 ? ability.Name : detailSel == 2 ? ult.Name : wdef.Name;
@@ -1024,7 +1024,7 @@ namespace Arena
             SpecTiles(new Rect(inner.xMax - tw, inner.y, tw, 38f), tiles, calm);
             var head = new Rect(inner.x, inner.y, inner.width - tw - 12f, 40f);
             SpecHeader(head, kind, name, calm);
-            Ui.Fill(new Rect(inner.x, inner.y + 46f, inner.width, 1f), LobbyKit.Ink(0.25f));
+            Ui.Fill(new Rect(inner.x, inner.y + 46f, inner.width, 1f), CrtUi.Ink.WithAlpha(0.25f));
             var body = new Rect(inner.x, inner.y + 54f, inner.width, inner.height - 54f);
             var text = new Color(0.8f, 0.84f, 0.94f);
             if (detailSel == 0)
@@ -1111,7 +1111,7 @@ namespace Arena
                 }
             }
             int bk = WildBrowseKit;
-            var wild = ToColor(Defs.Get(Role.Wildcard).Color);
+            var wild = (Defs.Get(Role.Wildcard).Color).ToColor();
             CrtKit.SoftBox(wr, CrtUi.Ink, false, false, false);
             float iconY = wr.y + 14f, big = Mathf.Min(64f, wheelH - 70f);
             float oldAlpha = Ui.Alpha;
@@ -1153,8 +1153,8 @@ namespace Arena
                 bool used = (int)Defs.WildWeaponKit(me.Weapon) == k || me.Ability / per == k || second / per == k || ultKit == k;
                 bool on = k == bk;
                 Color dc = on ? CrtUi.Ink : used ? wild : CrtUi.Dim;
-                Ui.Fill(dr, new Color(dc.r, dc.g, dc.b, on ? 1f : used ? 0.55f : 0.12f));
-                CrtKit.Frame(dr, 1f, new Color(dc.r, dc.g, dc.b, on ? 1f : 0.8f));
+                Ui.Fill(dr, dc.WithAlpha(on ? 1f : used ? 0.55f : 0.12f));
+                CrtKit.Frame(dr, 1f, dc.WithAlpha(on ? 1f : 0.8f));
                 if (on)
                     Ui.Glow(dr, dc, 0.6f);
                 var hit = new Rect(dr.x - 4f, dr.y - 5f, dr.width + 8f, dr.height + 10f);
@@ -1274,7 +1274,7 @@ namespace Arena
                 string up = name.ToUpperInvariant();
                 int ss = LobbyKit.FitSize(sub, 10, 8, tw, false);
                 CrtUi.Text(new Rect(tx, b.center.y - 16f, tw, 18f), LobbyKit.Truncate(up, ns, tw), ns, tc, TextAnchor.MiddleLeft, true, calm);
-                Ui.Label(new Rect(tx, b.center.y + 1f, tw, 15f), LobbyKit.Truncate(sub, ss, tw, false), ss, new Color(tc.r, tc.g, tc.b, 0.75f), TextAnchor.MiddleLeft, false);
+                Ui.Label(new Rect(tx, b.center.y + 1f, tw, 15f), LobbyKit.Truncate(sub, ss, tw, false), ss, tc.WithAlpha(0.75f), TextAnchor.MiddleLeft, false);
                 if (click)
                 {
                     TurnWheelTo(from);
@@ -1368,9 +1368,9 @@ namespace Arena
             if (tip.y < 4f)
                 tip.y = lockedTip.yMax + 6f;
             tip.x = Mathf.Clamp(tip.x, 4f, W - w - 4f);
-            Ui.Fill(tip, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
-            Ui.Fill(tip, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.09f));
-            CrtKit.Frame(tip, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.75f));
+            Ui.Fill(tip, CrtUi.Bg.WithAlpha(0.98f));
+            Ui.Fill(tip, CrtUi.Ink.WithAlpha(0.09f));
+            CrtKit.Frame(tip, 1f, CrtUi.Ink.WithAlpha(0.75f));
             CrtUi.Text(tip, text, 14, CrtUi.Ink, TextAnchor.MiddleCenter, true, fxReduced);
         }
 
@@ -1525,7 +1525,7 @@ namespace Arena
             float oa = Ui.Alpha;
             Ui.Alpha = oa * showcaseZoomA;
             var oc = GUI.color;
-            GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * showcaseZoomA);
+            GUI.color = oc.ScaleAlpha(showcaseZoomA);
             Ui.Fill(bar, new Color(0f, 0f, 0f, 0.6f));
             Ui.Label(new Rect(bar.x + 6f, bar.y, 62f, bar.height), "ZOOM " + Mathf.RoundToInt(showcaseZoom * 100f) + "%", 10, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
             float lo = (float)System.Math.Log(Min), hi = (float)System.Math.Log(Max);  // log scale: out and in feel even

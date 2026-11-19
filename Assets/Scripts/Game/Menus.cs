@@ -336,7 +336,7 @@ namespace Arena
         void DrawNameCard(Rect r, float k, bool editable, float t)
         {
             bool plain = k < 0.01f;  // the menu's chip: no role or class shown
-            var color = plain ? Ui.Accent : ToColor(Defs.Get(hostRole).Color);
+            var color = plain ? Ui.Accent : (Defs.Get(hostRole).Color).ToColor();
             var prof = Profile.Current;
             int myRank = prof.RankNow;
             var mouse = Event.current.mousePosition;

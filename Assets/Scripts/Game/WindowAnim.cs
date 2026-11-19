@@ -88,7 +88,7 @@ namespace Arena
             uiShift = new V2(dx, dy);
             Ui.Alpha = alpha;
             var c = GUI.color;
-            GUI.color = new Color(c.r, c.g, c.b, alpha);
+            GUI.color = c.WithAlpha(alpha);
         }
 
         void PopShift()
@@ -100,7 +100,7 @@ namespace Arena
             uiShift = V2.Zero;
             Ui.Alpha = 1f;
             var c = GUI.color;
-            GUI.color = new Color(c.r, c.g, c.b, 1f);
+            GUI.color = c.WithAlpha(1f);
         }
 
         // --- The pause menu -------------------------------------------------------------------------------------------

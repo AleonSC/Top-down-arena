@@ -211,7 +211,7 @@ namespace Arena
                 if (r.Kind == RoomKind.Combat || r.Floating || r.Piece > 0)  // (one label for a room of several boxes)
                     continue;
                 V2 p0 = M(new V2(r.X, r.Y));
-                Ui.Label(new Rect(p0.X + 3f, p0.Y + 2f, 200f, 14f), KindName(r).ToUpperInvariant(), 10, ToColor(KindInk(r.Kind, r.Floor)), TextAnchor.UpperLeft, true);
+                Ui.Label(new Rect(p0.X + 3f, p0.Y + 2f, 200f, 14f), KindName(r).ToUpperInvariant(), 10, KindInk(r.Kind, r.Floor).ToColor(), TextAnchor.UpperLeft, true);
             }
             string line = kit.Kind == RoomKind.Floor ? FloorBlurb(kit.Floor) : "A shop room: kills drop personal gold and the shop opens in the break after each boss.";
             Ui.Label(new Rect(0, map.yMax + 10f, W, 22f), hover >= 0 ? "Click to turn this room into: " + kit.Name + ".  " + line : line, 14, hover >= 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
@@ -467,7 +467,7 @@ namespace Arena
                 roomClip = null;
                 EndUiGl();
             }
-            CrtKit.Frame(map, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f));
+            CrtKit.Frame(map, 1f, CrtUi.Ink.WithAlpha(0.25f));
             foreach (var nd in game.Nodes)  // the nodes: named in a hover tip, not on the map (the legend shows the colours)
                 if (!Expansion.NodeClaimed(game.Expanded, nd))
                 {
@@ -480,7 +480,7 @@ namespace Arena
                     }
                     if (map.Contains(Event.current.mousePosition) && TipHover(nr))
                     {
-                        TipStart(nr, NodeName(nd), ToColor(NodeInkOf(nd)));
+                        TipStart(nr, NodeName(nd), NodeInkOf(nd).ToColor());
                         TipAdd(nd.Kind == NodeKind.Rule && !nd.Hidden ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : NodeBlurb(nd), 12, Ui.Text);
                     }
                 }
@@ -491,7 +491,7 @@ namespace Arena
                     var fr = new Rect(f0.X, f0.Y, f1.X - f0.X, f1.Y - f0.Y);
                     if (!map.Contains(Event.current.mousePosition) || !TipHover(fr))
                         continue;
-                    TipStart(fr, fa.Name, ToColor(KindInk(fa.Kind, fa.Floor)));
+                    TipStart(fr, fa.Name, KindInk(fa.Kind, fa.Floor).ToColor());
                     if (fa.Sealed)
                         TipAdd("SEALED  ·  build a room up to it to claim it.", 12, Ui.Text);
                 }
@@ -716,9 +716,9 @@ namespace Arena
             Ui.Label(new Rect(x + 10f, ly + 6f, w - 20f, 16f), "ON THE MAP", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             for (int i = 0; i < items.Count; i++)
             {
-                var c = ToColor(items[i].Value);
+                var c = (items[i].Value).ToColor();
                 float iy = ly + 30f + i * 20f;
-                Ui.Fill(new Rect(x + 11f, iy + 3f, 10f, 10f), new Color(c.r, c.g, c.b, 0.3f));
+                Ui.Fill(new Rect(x + 11f, iy + 3f, 10f, 10f), c.WithAlpha(0.3f));
                 CrtKit.Frame(new Rect(x + 10f, iy + 2f, 12f, 12f), 1.5f, c);
                 Ui.Label(new Rect(x + 30f, iy, w - 36f, 16f), items[i].Key, 11, c, TextAnchor.MiddleLeft, true);
             }

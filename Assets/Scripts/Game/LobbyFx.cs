@@ -38,9 +38,9 @@ namespace Arena
             }
             float f = (e - wipe) / Flicker;
             if (Mathf.FloorToInt((e - wipe) * 40f) % 2 == 1)
-                Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.2f));
+                Ui.Fill(r, CrtUi.Bg.WithAlpha(0.2f));
             Ui.Glow(r, ink, 0.25f * (1f - f));
-            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.4f * (1f - f)));
+            CrtKit.Frame(r, 1f, ink.WithAlpha(0.4f * (1f - f)));
         }
 
         // --- The soft sweep (the CRT cabinet windows: pause menu, lobby menu, Settings, How to play, profile) -------------
@@ -79,7 +79,7 @@ namespace Arena
             }
             float ly = edge + Feather * 0.15f;
             if (ly > r.y && ly < r.yMax)
-                Ui.Fill(new Rect(r.x, ly - 8f, r.width, 16f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.08f));
+                Ui.Fill(new Rect(r.x, ly - 8f, r.width, 16f), CrtUi.Ink.WithAlpha(0.08f));
         }
     }
 
@@ -196,7 +196,7 @@ namespace Arena
                 float x0 = card.xMax, gx = x0 + 8f, y0 = session.IsHost ? LobbyReadyY + LobbyReadyH / 2f : LobbyStartY + LobbyStartH / 2f,  // (a guest's Ready is in the Start slot)
                       y1 = card.center.y;
                 float rise = y0 - y1, total = 8f + rise + 8f, at2 = el / ReadyPulse * total;
-                var dim = new Color(good.r, good.g, good.b, 0.25f * (1f - el / ReadyPulse * 0.5f));
+                var dim = good.WithAlpha(0.25f * (1f - el / ReadyPulse * 0.5f));
                 Ui.Fill(new Rect(x0, y0, 8f, 1f), dim);
                 Ui.Fill(new Rect(gx, y1, 1f, rise + 1f), dim);
                 Ui.Fill(new Rect(x0, y1, 8f, 1f), dim);
@@ -219,14 +219,14 @@ namespace Arena
             {
                 // The ring bursts off the card (no further than 10 px, clear of the screen's edge), with a green wash and a scan across it.
                 float k = (el - burstAt) / ReadyBurst, ease = 1f - (1f - k) * (1f - k) * (1f - k), g = ease * 10f;
-                CrtKit.Frame(new Rect(card.x - g, card.y - g, card.width + g * 2f, card.height + g * 2f), 1f, new Color(good.r, good.g, good.b, 0.7f * (1f - k)));
-                Ui.Fill(card, new Color(good.r, good.g, good.b, 0.12f * (1f - k)));
+                CrtKit.Frame(new Rect(card.x - g, card.y - g, card.width + g * 2f, card.height + g * 2f), 1f, good.WithAlpha(0.7f * (1f - k)));
+                Ui.Fill(card, good.WithAlpha(0.12f * (1f - k)));
                 Ui.Fill(new Rect(card.x + card.width * ease, card.y, 2f, card.height), new Color(0.92f, 1f, 0.95f, 0.45f * (1f - k)));
             }
             // While ready: a thin green line round the card, breathing slowly (no blur).
             if (e.Ready && el >= burstAt)
                 CrtKit.Frame(new Rect(card.x - 2f, card.y - 2f, card.width + 4f, card.height + 4f), 1f,
-                    new Color(good.r, good.g, good.b, 0.18f + 0.1f * Mathf.Sin(Time.unscaledTime * 2f + e.Id)));
+                    good.WithAlpha(0.18f + 0.1f * Mathf.Sin(Time.unscaledTime * 2f + e.Id)));
         }
 
         // --- Radar sweep --------------------------------------------------------------------------------------------------

@@ -183,9 +183,9 @@ namespace Arena
                     expGridSlot = on ? -1 : i;
                     expGridTurn = 0;
                 }
-                var ink = ToColor(CardColor(card));
+                var ink = CardColor(card).ToColor();
                 if (!playable)
-                    ink = new Color(ink.r, ink.g, ink.b, 0.35f);
+                    ink = ink.WithAlpha(0.35f);
                 DrawCardGlyph(card, new Rect(r.x + 8f, r.y + 6f, r.width - 16f, 38f), on ? Color.white : ink);
                 bool floor = Expansion.CardMod(card) != 0;  // a piece with a modifier (a floor today)
                 string name = Expansion.IsPieceCard(card) ? Expansion.GridPieceName(Expansion.CardPiece(card)) : Expansion.CardName(card);

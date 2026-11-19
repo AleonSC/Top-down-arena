@@ -15,7 +15,6 @@ namespace Arena
         public static readonly Color Soft = CrtStyle.Body;     // body text on the screen
         public static readonly Color HeadCol = CrtStyle.Head;  // section headings (the mockup's teal)
 
-        public static Color Ink(float a) => new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
 
         /// The text cut short with "…" so it fits `width` at this size.
         public static string Truncate(string text, int size, float width, bool bold = true)
@@ -90,9 +89,9 @@ namespace Arena
             {
                 // A key that can't be used yet (Start before everyone is ready): dim and dashed, with its text.
                 var d = CrtUi.Dim;
-                Ui.Fill(r, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitTint * CrtKit.FillFade));
-                CrtKit.Dashed(r, 1f, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitDash));  // faded: nothing to press yet
-                Draw(r, text, icon, stack, colorIcon, size, minSize, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitText), false, calm, sub, true);
+                Ui.Fill(r, d.WithAlpha(CrtStyle.KeyWaitTint * CrtKit.FillFade));
+                CrtKit.Dashed(r, 1f, d.WithAlpha(CrtStyle.KeyWaitDash));  // faded: nothing to press yet
+                Draw(r, text, icon, stack, colorIcon, size, minSize, d.WithAlpha(CrtStyle.KeyWaitText), false, calm, sub, true);
                 return false;
             }
             bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
@@ -115,7 +114,7 @@ namespace Arena
                 int s2 = FitSize(text, size, minSize, nr.width);
                 Line(nr, Truncate(text, s2, nr.width), s2, tc, TextAnchor.MiddleCenter, fill, calm);
                 int ss = FitSize(sub, 12, 9, nr.width, false);
-                Ui.Label(new Rect(nr.x, y0 + nh - 1f, nr.width, 15f), Truncate(sub, ss, nr.width, false), ss, new Color(tc.r, tc.g, tc.b, fill ? 0.85f : 0.8f), TextAnchor.MiddleCenter, false);
+                Ui.Label(new Rect(nr.x, y0 + nh - 1f, nr.width, 15f), Truncate(sub, ss, nr.width, false), ss, tc.WithAlpha(fill ? 0.85f : 0.8f), TextAnchor.MiddleCenter, false);
                 return;
             }
             if (icon != null && stack)
@@ -172,8 +171,8 @@ namespace Arena
             bool hover = r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
             var c = CrtUi.Dim;
-            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.02f));
-            CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, hover ? 0.6f : 0.32f));  // faint, like the mockup's locked keys
+            Ui.Fill(r, c.WithAlpha(0.02f));
+            CrtKit.Dashed(r, 1f, c.WithAlpha(hover ? 0.6f : 0.32f));  // faint, like the mockup's locked keys
             var ic = PixelArt.Get("ui_lock");
             var tint = new Color(1f, 1f, 1f, hover ? 0.55f : 0.35f);
             string label = "LOCKED";
@@ -182,14 +181,14 @@ namespace Arena
             {
                 float isz = Mathf.Min(r.height * 0.42f, 18f);
                 Ui.Icon(new Rect(r.center.x - isz / 2f, r.y + 4f, isz, isz), ic, tint);
-                Ui.Label(new Rect(r.x, r.y + 4f + isz, r.width, r.yMax - (r.y + 4f + isz) - 1f), label, size, new Color(c.r, c.g, c.b, 0.75f), TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x, r.y + 4f + isz, r.width, r.yMax - (r.y + 4f + isz) - 1f), label, size, c.WithAlpha(0.75f), TextAnchor.MiddleCenter, true);
             }
             else
             {
                 float isz = Mathf.Min(r.height - 12f, 14f), tw = Ui.TextWidth(label, size, true) - 6f;
                 float x = r.center.x - (isz + 8f + tw) / 2f;
                 Ui.Icon(new Rect(x, r.center.y - isz / 2f, isz, isz), ic, tint);
-                Ui.Label(new Rect(x + isz + 8f - 2f, r.y, tw + 12f, r.height), label, size, new Color(c.r, c.g, c.b, 0.75f), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x + isz + 8f - 2f, r.y, tw + 12f, r.height), label, size, c.WithAlpha(0.75f), TextAnchor.MiddleLeft, true);
             }
             return hover;
         }
@@ -223,7 +222,7 @@ namespace Arena
                     Ui.Label(cr, Truncate(cap, s, cr.width), s, dimCap, TextAnchor.MiddleRight, true);
                 }
             }
-            Ui.Fill(new Rect(x, y + 27f, w, 1f), new Color(HeadCol.r, HeadCol.g, HeadCol.b, 0.4f));
+            Ui.Fill(new Rect(x, y + 27f, w, 1f), HeadCol.WithAlpha(0.4f));
         }
 
         /// A small label in the dim ink (the mockup's .lab).
@@ -304,7 +303,7 @@ namespace Arena
                 float yc = (y0 + y1) / 2f - r.center.y;
                 float t = Mathf.Clamp01(((-r.width / 2f) * sin + yc * cos) / len + 0.5f);
                 Color c = t < 0.58f ? Color.Lerp(c0, c1, t / 0.58f) : Color.Lerp(c1, c2, (t - 0.58f) / 0.42f);
-                Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(c.r, c.g, c.b, 1f));
+                Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), c.WithAlpha(1f));
             }
             const int cols = 6;
             for (int i = 1; i < cols; i++)
@@ -316,7 +315,7 @@ namespace Arena
             // One soft radial texture, clipped to the box.
             float rx = r.width * 1.2f * 0.64f, ry = r.height * 0.8f * 0.64f;
             GUI.BeginGroup(r);
-            Ui.RadialGlow(new Rect(-rx, -ry, rx * 2f, ry * 2f), new Color(rc.r, rc.g, rc.b, 0.3f));
+            Ui.RadialGlow(new Rect(-rx, -ry, rx * 2f, ry * 2f), rc.WithAlpha(0.3f));
             GUI.EndGroup();
         }
 
@@ -330,12 +329,12 @@ namespace Arena
             if (wash)
             {
                 Wash(r);
-                CrtKit.Frame(r, 1f, new Color(washCol.r, washCol.g, washCol.b, 0.55f));
+                CrtKit.Frame(r, 1f, washCol.WithAlpha(0.55f));
             }
             else
             {
-                Ui.Fill(r, Ink(0.04f));
-                CrtKit.Frame(r, 1f, Ink(0.5f));
+                Ui.Fill(r, CrtUi.Ink.WithAlpha(0.04f));
+                CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.5f));
             }
             if (!brackets)
                 return;
@@ -396,17 +395,17 @@ namespace Arena
             var ink = CrtUi.Ink;
             if (on)
             {
-                var fill = new Color(ink.r, ink.g, ink.b, 0.3f);
+                var fill = ink.WithAlpha(0.3f);
                 Ui.Fill(new Rect(r.x + 1f, r.y, r.width - 2f, r.height), fill);  // (corners cut by a pixel: the 3 px radius)
                 Ui.Fill(new Rect(r.x, r.y + 1f, 1f, r.height - 2f), fill);
                 Ui.Fill(new Rect(r.xMax - 1f, r.y + 1f, 1f, r.height - 2f), fill);
-                var line = new Color(ink.r, ink.g, ink.b, 0.75f);
+                var line = ink.WithAlpha(0.75f);
                 Ui.Fill(new Rect(r.x + 1f, r.y, r.width - 2f, 1f), line);
                 Ui.Fill(new Rect(r.x + 1f, r.yMax - 1f, r.width - 2f, 1f), line);
                 Ui.Fill(new Rect(r.x, r.y + 1f, 1f, r.height - 2f), line);
                 Ui.Fill(new Rect(r.xMax - 1f, r.y + 1f, 1f, r.height - 2f), line);
             }
-            Color tc = on ? Color.white : hover ? Color.Lerp(ink, Color.white, 0.15f) : new Color(ink.r, ink.g, ink.b, 0.48f);
+            Color tc = on ? Color.white : hover ? Color.Lerp(ink, Color.white, 0.15f) : ink.WithAlpha(0.48f);
             const float sp = 1.44f;  // .12em at 12 px
             int s = 12;
             while (s > 9 && SpacedWidth(text, s, sp) > r.width - 8f)
@@ -421,8 +420,8 @@ namespace Arena
         /// A number tile: a gold value over a small dim caption, the value shrinking to fit the tile.
         public static void Tile(Rect r, string value, string caption, bool calm)
         {
-            Ui.Fill(r, Ink(0.10f));
-            CrtKit.Frame(r, 1f, Ink(0.4f));
+            Ui.Fill(r, CrtUi.Ink.WithAlpha(0.10f));
+            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.4f));
             var vr = new Rect(r.x + 8f, r.y + 2f, r.width - 12f, r.height * 0.58f);
             Fit(vr, value, 20, 11, Gold, TextAnchor.MiddleLeft, calm, false);
             var cr = new Rect(r.x + 8f, r.y + r.height * 0.58f, r.width - 10f, r.height * 0.4f);

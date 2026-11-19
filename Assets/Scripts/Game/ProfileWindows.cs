@@ -71,13 +71,13 @@ namespace Arena
                 if (i < lit)
                 {
                     if (!FxCalm)
-                        Ui.Fill(new Rect(b.x - 1f, b.y - 1f, b.width + 2f, b.height + 2f), new Color(c.r, c.g, c.b, 0.2f));
+                        Ui.Fill(new Rect(b.x - 1f, b.y - 1f, b.width + 2f, b.height + 2f), c.WithAlpha(0.2f));
                     Ui.Fill(b, c);
                 }
                 else
                 {
-                    Ui.Fill(b, new Color(c.r, c.g, c.b, 0.14f));
-                    CrtKit.Frame(b, 1f, new Color(c.r, c.g, c.b, 0.3f));
+                    Ui.Fill(b, c.WithAlpha(0.14f));
+                    CrtKit.Frame(b, 1f, c.WithAlpha(0.3f));
                 }
             }
         }
@@ -141,8 +141,8 @@ namespace Arena
                 var tc = RankLook.TierColor(TierStarts[i]);
                 bool you = i == mine;
                 var r = new Rect(x, y, w, 84f);
-                Ui.Fill(r, you ? new Color(tc.r, tc.g, tc.b, 0.1f) : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.04f));
-                CrtKit.Frame(r, 1f, you ? tc : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f));
+                Ui.Fill(r, you ? tc.WithAlpha(0.1f) : CrtUi.Ink.WithAlpha(0.04f));
+                CrtKit.Frame(r, 1f, you ? tc : CrtUi.Ink.WithAlpha(0.25f));
                 RankLook.Draw(new Rect(r.x + 14f, r.y + 10f, 56f, 56f), TierStarts[i], you || rank >= TierStarts[i] ? 1f : 0.6f);
                 string range = i + 1 < TierStarts.Length ? "Ranks " + TierStarts[i] + " to " + (TierStarts[i + 1] - 1) : "Rank " + TierStarts[i] + " and up";
                 CrtUi.Text(new Rect(r.x + 92f, r.y + 10f, 360f, 36f), WinText("win.tier" + i, Rank.TierNames[i]), 28, tc, TextAnchor.MiddleLeft, true, FxCalm);
@@ -199,8 +199,8 @@ namespace Arena
                 var c = items[i];
                 bool ok = rank >= c.Rank;
                 var rr = new Rect(x + (i % 2) * (cw + 14f), top + (i / 2) * 58f, cw, 54f);
-                Ui.Fill(rr, new Color(ink.r, ink.g, ink.b, ok ? 0.05f : 0.025f));
-                CrtKit.Frame(rr, 1f, new Color(ink.r, ink.g, ink.b, ok ? 0.3f : 0.18f));
+                Ui.Fill(rr, ink.WithAlpha(ok ? 0.05f : 0.025f));
+                CrtKit.Frame(rr, 1f, ink.WithAlpha(ok ? 0.3f : 0.18f));
                 var th = new Rect(rr.x + 8f, rr.y + 7f, 64f, 40f);
                 if (kind == CosmeticKind.Emote)
                 {
@@ -209,7 +209,7 @@ namespace Arena
                 }
                 else
                     RowThumb(th, kind, c, p, t, ok);
-                CrtKit.Frame(th, 1f, new Color(ink.r, ink.g, ink.b, ok ? 0.5f : 0.25f));
+                CrtKit.Frame(th, 1f, ink.WithAlpha(ok ? 0.5f : 0.25f));
                 float nx = rr.x + 82f, nw = rr.width - 82f - 44f;
                 int size;
                 bool wrap;
@@ -238,8 +238,8 @@ namespace Arena
             {
                 bool on = p.IsUnlocked(u.Id);
                 var rr = new Rect(x, uy, w, 62f);
-                Ui.Fill(rr, new Color(ink.r, ink.g, ink.b, on ? 0.05f : 0.025f));
-                CrtKit.Frame(rr, 1f, new Color(ink.r, ink.g, ink.b, on ? 0.3f : 0.18f));
+                Ui.Fill(rr, ink.WithAlpha(on ? 0.05f : 0.025f));
+                CrtKit.Frame(rr, 1f, ink.WithAlpha(on ? 0.3f : 0.18f));
                 IconTile(new Rect(rr.x + 8f, rr.y + 8f, 46f, 46f), PixelArt.Get(on ? "ui_star" : "ui_lock"), on ? Ui.Gold : CrtUi.Dim, 26f);
                 CrtUi.Text(new Rect(rr.x + 68f, rr.y + 6f, w - 200f, 26f), WinText("win.o" + u.Id, u.Name), 20, on ? Ui.Gold : CrtUi.Dim, TextAnchor.MiddleLeft, true, FxCalm);
                 Ui.Label(new Rect(rr.x + 68f, rr.y + 33f, w - 84f, 22f), KeyText.Fill(u.Desc), 13, CabSoft, TextAnchor.MiddleLeft);

@@ -4,6 +4,8 @@ class Harness {
   static void Main(string[] args) {
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
     var f2 = BindingFlags.NonPublic | BindingFlags.Instance;
+    // Every game's other random sources (side rolls, bots) repeatable, as the sim tests do (by reflection: older refs may lack it).
+    var seed = typeof(Game).GetMethod("SeedForTests", BindingFlags.Public | BindingFlags.Static); if (seed != null) seed.Invoke(null, new object[] { 1 });
     var all = new List<float>();
     // (Kit)1 is the Elementalist: it was Kit.Mage before Oct 2026, and this harness also builds against older refs.
     var scenes = new[] { new object[] { 1, Role.Tank, (Kit)1, 0 }, new object[] { 6, Role.Dps, Kit.Knight, 1 }, new object[] { 14, Role.Healer, Kit.Summoner, 2 },
@@ -42,6 +44,7 @@ class Harness {
       set("session", s); set("game", g); set("scale", 1f); set("drawScale", 1280f / Game.Width);
       // Visual effects off (Juice.cs, from Nov 2026; older refs have no such setting): the check compares the plain drawing.
       var fxOn = typeof(ArenaApp).GetField("fxOn", f2); if (fxOn != null) fxOn.SetValue(app, false);
+      var juiceRng = typeof(ArenaApp).GetField("juiceRng", f2); if (juiceRng != null) juiceRng.SetValue(app, new System.Random(1));  // (its own rolls, unseeded in the game)
       GL.Tris.Clear();
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       Console.WriteLine("wave {0}: {1} enemies, {2} bullets, {3} minions, {4} zones, {5} effects, {6} triangles", sc[0], g.Enemies.Count, g.Bullets.Count, g.Minions.Count, g.Zones.Count, g.Effects.Count, GL.Tris.Count / 18);

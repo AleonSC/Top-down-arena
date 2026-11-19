@@ -656,7 +656,7 @@ namespace Arena
             float pulse = holding ? 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 3f) : 0.7f;
             var r = HudChestHint;  // over the XP strip (HudLayout.cs)
             Ui.Pill(r, new Color(0.12f, 0.09f, 0.03f, 0.7f));
-            Ui.Label(r, hint, 13, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, pulse), TextAnchor.MiddleCenter, true);
+            Ui.Label(r, hint, 13, Ui.Gold.WithAlpha(pulse), TextAnchor.MiddleCenter, true);
         }
 
         void DrawLootCard(Player me, Loot l)
@@ -665,7 +665,7 @@ namespace Arena
             if (up && (l.Upgrade < 0 || l.Upgrade >= Upgrades.All.Length))
                 return;
             var u = up ? Upgrades.All[l.Upgrade] : null;
-            Color rc = ToColor(Game.LootInk(l));
+            Color rc = Game.LootInk(l).ToColor();
             float now = Time.unscaledTime;
             // Beside the item (right of it, or left if there's no room), so you still see the arena around you.
             V2 at = ToUi(l.Pos);
@@ -674,9 +674,9 @@ namespace Arena
             if (x + w > W - 10f)
                 x = at.X - 46f - w;
             var r = new Rect(Mathf.Clamp(x, 10f, W - w - 10f), Mathf.Clamp(at.Y - h / 2f - 20f, 40f, H - h - 100f), w, h);
-            Ui.Pill(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f), new Color(rc.r, rc.g, rc.b, 0.16f + 0.06f * Mathf.Sin(now * 4f)));
+            Ui.Pill(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f), rc.WithAlpha(0.16f + 0.06f * Mathf.Sin(now * 4f)));
             DkBox(r, rc, 1f);
-            Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, 92f), new Color(rc.r, rc.g, rc.b, 0.08f));
+            Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, 92f), rc.WithAlpha(0.08f));
             if (up && u.Rarity == Rarity.Legendary)
             {
                 float sweep = MathX.Fmod(now * 0.6f, 1.6f) - 0.3f;
@@ -684,14 +684,14 @@ namespace Arena
                 Ui.Fill(new Rect(sweep * r.width, 0f, 18f, r.height), new Color(1f, 0.9f, 0.6f, 0.07f));
                 GUI.EndGroup();
             }
-            Ui.Label(new Rect(r.x + 12f, r.y + 10f, 120f, 16f), "FROM A CHEST", 10, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 12f, r.y + 10f, 120f, 16f), "FROM A CHEST", 10, Ui.Gold.WithAlpha(0.9f), TextAnchor.MiddleLeft, true);
             string rarity = up ? Upgrades.RarityName(u.Rarity) : l.Kind == LootKind.Build ? "BUILD" : Expansion.IsServiceCard((RoomCard)l.Item) ? "ROOM CARD" : "PIECE CARD";
             float rw = 24f + rarity.Length * 7.5f;
             var ribbon = new Rect(r.xMax - rw - 12f, r.y + 8f, rw, 20f);
-            Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f));
+            Ui.Pill(ribbon, rc.WithAlpha(0.85f));
             Ui.Label(ribbon, rarity, 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
             var tile = new Rect(r.x + r.width / 2f - 32f, r.y + 34f, 64f, 64f);
-            Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, 0.3f));
+            Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), rc.WithAlpha(0.3f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
             float bobY = 2f * Mathf.Sin(now * 3f);
             string name, desc;
@@ -726,7 +726,7 @@ namespace Arena
             // The two keys.
             var take = new Rect(r.x + 16f, r.yMax - 36f, r.width / 2f - 22f, 26f);
             var drop = new Rect(r.x + r.width / 2f + 6f, r.yMax - 36f, r.width / 2f - 22f, 26f);
-            Ui.Pill(take, new Color(rc.r, rc.g, rc.b, 0.85f));
+            Ui.Pill(take, rc.WithAlpha(0.85f));
             Ui.Label(take, Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + "   TAKE", 12, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
             Ui.Pill(drop, new Color(1f, 1f, 1f, 0.1f));
             Ui.Label(drop, Keybinds.KeyName(Keybinds.Get(KeyAction.DiscardItem)).ToUpperInvariant() + "   DISCARD", 12, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleCenter, true);

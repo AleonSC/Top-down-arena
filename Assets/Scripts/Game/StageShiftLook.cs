@@ -287,14 +287,14 @@ namespace Arena
                 return;
             float p = s.Progress, tIn = Mathf.Clamp01(p / 0.15f), tOut = Mathf.Clamp01((1f - p) / 0.12f), a = Ease(tIn) * tOut;
             float y = H * 0.27f, h = 110f * Ease(tIn);
-            var band = ToColor(s.Color);
+            var band = s.Color.ToColor();
             Ui.Fill(new Rect(0f, y + 55f - h / 2f, W, h), new Color(0.03f, 0.03f, 0.06f, 0.72f * a));
-            Ui.Fill(new Rect(0f, y + 55f - h / 2f, W * Ease(tIn), 3f), new Color(band.r, band.g, band.b, 0.9f * a));
-            Ui.Fill(new Rect(W * (1f - Ease(tIn)), y + 55f + h / 2f - 3f, W * Ease(tIn), 3f), new Color(band.r, band.g, band.b, 0.9f * a));
+            Ui.Fill(new Rect(0f, y + 55f - h / 2f, W * Ease(tIn), 3f), band.WithAlpha(0.9f * a));
+            Ui.Fill(new Rect(W * (1f - Ease(tIn)), y + 55f + h / 2f - 3f, W * Ease(tIn), 3f), band.WithAlpha(0.9f * a));
             // The name slides in from the right and settles, the small lines slide in from the left.
             float slide = (1f - Ease(tIn)) * 260f;
             Ui.Label(new Rect(-slide, y + 8f, W, 20f), s.Number == 0 ? "LAST STAND" : "STAGE " + s.Number + " / " + (s.Of > 0 ? s.Of : 3), 13, new Color(1f, 1f, 1f, 0.75f * a), TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(slide, y + 26f, W, 56f), s.Name, 46, new Color(band.r, band.g, band.b, a), TextAnchor.MiddleCenter);
+            DkTitle(new Rect(slide, y + 26f, W, 56f), s.Name, 46, band.WithAlpha(a), TextAnchor.MiddleCenter);
             Ui.Label(new Rect(-slide, y + 82f, W, 20f), s.Line, 14, new Color(0.9f, 0.92f, 1f, 0.85f * a), TextAnchor.MiddleCenter);
         }
     }

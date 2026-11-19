@@ -10,7 +10,7 @@ namespace Arena
         static readonly Color BossCardsTheme = new Color(0.45f, 0.85f, 1f);  // the cards' blue
 
         /// A code's colour: a card in its card colour (RoomCardsUi.CardColor), a kit in its path's accent.
-        static Color BossCardColor(int code) => BossCards.IsKit(code) ? ToColor(Paths.Get(BossCards.FloorOf(code)).Accent) : ToColor(CardColor(BossCards.CardOf(code)));
+        static Color BossCardColor(int code) => BossCards.IsKit(code) ? (Paths.Get(BossCards.FloorOf(code)).Accent).ToColor() : (CardColor(BossCards.CardOf(code))).ToColor();
 
         static Rgba BossCardRgba(int code) { var c = BossCardColor(code); return new Rgba(c.r, c.g, c.b); }
 
@@ -70,7 +70,7 @@ namespace Arena
             string keyText = (index + 1).ToString();
             DrawKeyCap(new Rect(r.center.x - (12f + keyText.Length * 6.5f) / 2f, r.yMax - 40f, 0f, 18f), keyText, selected ? rc : new Color(1f, 1f, 1f, 0.6f));
             for (float dx = 0f; dx < r.width - 20f; dx += 8f)
-                Ui.Fill(new Rect(r.x + 10f + dx, r.yMax - 12f, 5f, 2f), new Color(rc.r, rc.g, rc.b, selected ? 0.95f : hover ? 0.8f : 0.5f));
+                Ui.Fill(new Rect(r.x + 10f + dx, r.yMax - 12f, 5f, 2f), rc.WithAlpha(selected ? 0.95f : hover ? 0.8f : 0.5f));
             if (!usable)
                 Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.55f));
             else if (behind)

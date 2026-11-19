@@ -39,7 +39,7 @@ namespace Arena
             if (tag != null)
             {
                 var r = new Rect(x, y + 3f, tw, 16f);
-                Ui.Fill(r, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.12f));
+                Ui.Fill(r, CrtUi.Dim.WithAlpha(0.12f));
                 Ui.Rim(r, CrtUi.Dim, 0.8f);
                 CrtUi.Title(r, tag, tagSize, CrtUi.Dim, TextAnchor.MiddleCenter, true);
             }

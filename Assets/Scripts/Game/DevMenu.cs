@@ -52,7 +52,7 @@ namespace Arena
             {
                 var q = players[i];
                 string label = q.Name + (q.Id == game.MyId ? " (you)" : "");
-                if (DkChoice(new Rect(x + i * (tw + 8f), y, tw, 32f), label, q.Id == p.Id, ToColor(q.Def.Color)))
+                if (DkChoice(new Rect(x + i * (tw + 8f), y, tw, 32f), label, q.Id == p.Id, q.Def.Color.ToColor()))
                 {
                     devPlayer = q.Id;
                     devFocus = "";

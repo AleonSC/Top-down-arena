@@ -358,7 +358,7 @@ namespace Arena
             {
                 float u = x / W, v = amp * Beat(u * 3f - t * speed) + noise * (DHash(x * 0.37f + Mathf.Floor(t * 18f) * 7f) - 0.5f);
                 float y = cy - v * half, lo = Mathf.Min(prev, y), h = Mathf.Max(3f, Mathf.Abs(y - prev) + 2f);
-                Ui.Fill(new Rect(x, lo - 1f, step, h), new Color(ink.r, ink.g, ink.b, alpha * Mathf.Lerp(0.15f, 1f, u)));
+                Ui.Fill(new Rect(x, lo - 1f, step, h), ink.WithAlpha(alpha * Mathf.Lerp(0.15f, 1f, u)));
                 prev = y;
             }
         }
@@ -397,8 +397,8 @@ namespace Arena
                         bool was = Ui.CrtFont;
                         Ui.CrtFont = true;
                         var tr = new Rect(0f, rc.y + 22f, W, 100f);
-                        Ui.Label(new Rect(tr.x - 8f + j, tr.y, tr.width, tr.height), "DOWNED", 88, new Color(DownRedUi.r, DownRedUi.g, DownRedUi.b, 0.45f), TextAnchor.MiddleCenter, false);
-                        Ui.Label(new Rect(tr.x + 8f + j, tr.y, tr.width, tr.height), "DOWNED", 88, new Color(DownCyanUi.r, DownCyanUi.g, DownCyanUi.b, 0.35f), TextAnchor.MiddleCenter, false);
+                        Ui.Label(new Rect(tr.x - 8f + j, tr.y, tr.width, tr.height), "DOWNED", 88, DownRedUi.WithAlpha(0.45f), TextAnchor.MiddleCenter, false);
+                        Ui.Label(new Rect(tr.x + 8f + j, tr.y, tr.width, tr.height), "DOWNED", 88, DownCyanUi.WithAlpha(0.35f), TextAnchor.MiddleCenter, false);
                         Ui.CrtFont = was;
                     }
                 }, new Color(DownRedHi.R, DownRedHi.G, DownRedHi.B), ReviveMintUi);

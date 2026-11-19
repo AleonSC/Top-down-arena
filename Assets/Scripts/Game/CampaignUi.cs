@@ -42,7 +42,7 @@ namespace Arena
             {
                 int beaten = profile.Beaten(bosses[i]);
                 string chip = beaten > 0 ? "BEATEN x" + beaten : known[i] ? "REACHED" : "LOCKED";
-                Color cc = beaten > 0 ? Ui.Gold : known[i] ? new Color(0.5f, 0.88f, 0.69f) : FadedBlue(0.55f);
+                Color cc = beaten > 0 ? Ui.Gold : known[i] ? new Color(0.5f, 0.88f, 0.69f) : CrtUi.Ink.WithAlpha(0.55f);
                 ModeRow(rows[i], ((i + 1) * 10).ToString(), BossName(bosses[i]), known[i], known[i], i == shown, i == hoverI, CampaignColor, chip, cc);
             }
 
@@ -53,7 +53,7 @@ namespace Arena
             var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
             ModeScope(scope, shown == next && sBeaten == 0 ? "NEXT TARGET" : "TARGET", "WAVE " + wave);
             if (!known[shown])
-                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, FxCalm);
+                CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
             y2 += scope.height + 12f;
             Ui.Glitch(new Rect(x2, y2, w2, 28f), known[shown] ? BossName(sb).ToUpperInvariant() : "???", 20, Color.white, TextAnchor.MiddleLeft);
             y2 += 32f;
@@ -66,7 +66,7 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 bool beaten = profile.Beaten(bosses[i]) > 0;
-                ModePip(new Rect(x2 + i * (pw + 5f), y2, pw, 20f), ((i + 1) * 10).ToString(), beaten || i == shown ? CampaignColor : new Color(ink.r, ink.g, ink.b, 1f), i == shown);
+                ModePip(new Rect(x2 + i * (pw + 5f), y2, pw, 20f), ((i + 1) * 10).ToString(), beaten || i == shown ? CampaignColor : ink.WithAlpha(1f), i == shown);
             }
             y2 += 30f;
             ModeTiles(x2, y2, w2, 46f, new[] { profile.RunsStarted.ToString(), profile.RunsWon.ToString(), profile.RunsLost.ToString(),

@@ -22,12 +22,12 @@ namespace Arena
                 float u = Mathf.Min(r.width / Mathf.Max(2, size[0]), r.height / Mathf.Max(2, size[1]));
                 float gx = r.center.x - size[0] * u / 2f, gy = r.center.y - size[1] * u / 2f;
                 foreach (var c in cells)
-                    Ui.Fill(new Rect(gx + c[0] * u + 1f, gy + c[1] * u + 1f, u - 2f, u - 2f), new Color(ink.r, ink.g, ink.b, 0.6f));
+                    Ui.Fill(new Rect(gx + c[0] * u + 1f, gy + c[1] * u + 1f, u - 2f, u - 2f), ink.WithAlpha(0.6f));
                 return;
             }
             float side = Mathf.Min(r.width, r.height) * 0.6f;  // a service or utility card: one cell with its job's mark
             var cell = new Rect(r.center.x - side / 2f, r.center.y - side / 2f, side, side);
-            Ui.Fill(new Rect(cell.x + 1f, cell.y + 1f, cell.width - 2f, cell.height - 2f), new Color(ink.r, ink.g, ink.b, 0.55f));
+            Ui.Fill(new Rect(cell.x + 1f, cell.y + 1f, cell.width - 2f, cell.height - 2f), ink.WithAlpha(0.55f));
             if (Expansion.IsServiceCard(card))
                 DrawServiceIcon(card, cell, ink);
         }

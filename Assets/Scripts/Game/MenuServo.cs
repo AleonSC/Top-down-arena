@@ -104,7 +104,7 @@ namespace Arena
                     DrawPlayPicker(t, false);
                     servoPicker = false;
                     if (content < 1f)   // the rows come up out of the dark
-                        Ui.Fill(scr, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 1f - content));
+                        Ui.Fill(scr, CrtUi.Bg.WithAlpha(1f - content));
                 });
             }
 

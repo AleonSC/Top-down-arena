@@ -87,11 +87,11 @@ namespace Arena
         /// One saved loadout. True when it was deleted.
         bool FavCard(Rect c, FavLoadout f, int index, LobbyEntry me, bool calm)
         {
-            var col = ToColor(Defs.Get(f.Role).Color);
+            var col = (Defs.Get(f.Role).Color).ToColor();
             bool on = f.Matches(me);
             bool locked = f.Role == Role.Wildcard && !WildcardOpen;
             LobbyKit.Key(c, "", on, calm, accent: col, enabled: false);
-            Ui.Fill(new Rect(c.x, c.y, 3f, c.height), new Color(col.r, col.g, col.b, 0.85f));
+            Ui.Fill(new Rect(c.x, c.y, 3f, c.height), col.WithAlpha(0.85f));
             float isz = Mathf.Min(40f, c.height - 20f);
             Ui.Icon(new Rect(c.x + 14f, c.center.y - isz / 2f, isz, isz), PixelArt.Get(f.Role == Role.Wildcard ? "role_dps" : Classes.Get(f.Kit).Icon), Color.white);
             float tx = c.x + 66f, tw = c.width - 66f - 116f;
@@ -171,7 +171,7 @@ namespace Arena
         static bool FavIconKey(Rect k, string icon, Color tint, bool calm)
         {
             bool hit = LobbyKit.Key(k, "", false, calm, size: 11);
-            Ui.Icon(new Rect(k.center.x - 7f, k.center.y - 7f, 14f, 14f), PixelArt.Get(icon), new Color(tint.r, tint.g, tint.b, k.Contains(Event.current.mousePosition) ? 1f : 0.75f));
+            Ui.Icon(new Rect(k.center.x - 7f, k.center.y - 7f, 14f, 14f), PixelArt.Get(icon), tint.WithAlpha(k.Contains(Event.current.mousePosition) ? 1f : 0.75f));
             return hit;
         }
 

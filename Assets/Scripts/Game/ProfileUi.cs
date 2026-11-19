@@ -212,12 +212,12 @@ namespace Arena
             Color tc;
             if (open)
             {
-                Ui.Fill(r, new Color(ink.r, ink.g, ink.b, 0.3f));
-                CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.75f));
+                Ui.Fill(r, ink.WithAlpha(0.3f));
+                CrtKit.Frame(r, 1f, ink.WithAlpha(0.75f));
                 tc = Color.white;
             }
             else
-                tc = hover ? Color.Lerp(ink, Color.white, 0.15f) : new Color(ink.r, ink.g, ink.b, 0.48f);
+                tc = hover ? Color.Lerp(ink, Color.white, 0.15f) : ink.WithAlpha(0.48f);
             Ui.Label(r, text, 12, tc, TextAnchor.MiddleCenter, true);
             return Ui.HitArea(r);
         }
@@ -244,7 +244,7 @@ namespace Arena
             {
                 var badge = new Rect(ps.x + 12f, ps.y + 8f, 76f, 76f);
                 if (!calm)
-                    Ui.Pill(new Rect(badge.x - 4f, badge.y + 2f, badge.width + 8f, badge.height - 4f), new Color(tc.r, tc.g, tc.b, 0.07f + 0.07f * (0.5f + 0.5f * Mathf.Sin(WinNow * 2f))));
+                    Ui.Pill(new Rect(badge.x - 4f, badge.y + 2f, badge.width + 8f, badge.height - 4f), tc.WithAlpha(0.07f + 0.07f * (0.5f + 0.5f * Mathf.Sin(WinNow * 2f))));
                 RankLook.Draw(badge, info.Rank);
                 int nsize = 28;
                 float nameW = 190f;
@@ -282,7 +282,7 @@ namespace Arena
                 var bar = new Rect(ps.x + 14f, ps.y + 98f, ps.width - 28f, 8f);
                 Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
                 if (!calm)
-                    Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), new Color(tc.r, tc.g, tc.b, 0.18f));
+                    Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), tc.WithAlpha(0.18f));
                 Ui.Fill(new Rect(bar.x, bar.y, bar.width * info.Fraction, bar.height), tc);
                 Ui.Label(new Rect(ps.x + 14f, ps.y + 106f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtUi.Dim, TextAnchor.MiddleRight, true);
                 CabScreenEnd(ps, 0.9f);

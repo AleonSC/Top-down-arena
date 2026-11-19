@@ -161,13 +161,13 @@ namespace Arena
             var f = replay.File;
             int frames = Math.Max(1, replay.Frames);
             var bar = new Rect(16f, H - 158f, W - 32f, 146f);
-            DkSub(bar, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.94f));
+            DkSub(bar, CrtUi.Bg.WithAlpha(0.94f));
             float lx = bar.x + 78f, lw = bar.width - 78f - 18f;
             var ev = Event.current;
 
             // Badge.
             var name = f.Name;
-            DkSub(new Rect(18f, 14f, 270f, 28f), new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.9f));
+            DkSub(new Rect(18f, 14f, 270f, 28f), CrtUi.Bg.WithAlpha(0.9f));
             Ui.Label(new Rect(30f, 14f, 160f, 28f), "REPLAY" + (replay.Error != null ? "  ENDS HERE" : replay.Paused ? "  PAUSED" : ""), 13, replay.Paused ? Ui.Gold : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(110f, 14f, 170f, 28f), name, 11, CrtStyle.Desc, TextAnchor.MiddleRight);
 
@@ -185,7 +185,7 @@ namespace Arena
                 var seg = new Rect(lane.x + lane.width * from / frames, lane.y, Mathf.Max(2f, lane.width * (to - from) / frames - 1f), lane.height);
                 bool boss = starts[i].Kind == ReplayMark.Boss, hover = seg.Contains(ev.mousePosition);
                 var col = boss ? ReplayBossCol : ReplayWaveCol;
-                Ui.Fill(seg, new Color(col.r, col.g, col.b, hover ? 0.55f : boss ? 0.38f : (i % 2 == 0 ? 0.28f : 0.2f)));
+                Ui.Fill(seg, col.WithAlpha(hover ? 0.55f : boss ? 0.38f : (i % 2 == 0 ? 0.28f : 0.2f)));
                 if (seg.width > 34f)
                     Ui.Label(seg, (boss ? "BOSS " : "W") + starts[i].Value, 10, boss ? new Color(1f, 0.7f, 0.7f) : CrtStyle.Body, TextAnchor.MiddleCenter, true);
                 if (Ui.HitArea(seg))

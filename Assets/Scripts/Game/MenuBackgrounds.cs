@@ -120,7 +120,6 @@ namespace Arena
         float bgChangedAt = -100f;   // when the background last changed (the name slides in)
         int bgChangeDir = 1;         // which way it slides: +1 from the right (next), -1 from the left (previous)
 
-        static Rgba ToRgba(Color c, float a) => new Rgba(c.r, c.g, c.b, a);
 
         /// A chevron (two strokes meeting at a point) centred on c, pointing along dir.
         void Chevron(V2 c, V2 dir, float size, float width, Rgba col)
@@ -148,7 +147,7 @@ namespace Arena
             bgViewRect = new Rect(0f, 0f, W, H);
             UiNoClip();
             UiModelAt(V2.Zero, 1f);
-            var edge = ToRgba(accent, rimAlpha);
+            var edge = accent.ToRgba(rimAlpha);
             Line(new V2(thumb.x, thumb.y), new V2(thumb.xMax, thumb.y), 1.5f, edge);
             Line(new V2(thumb.x, thumb.yMax), new V2(thumb.xMax, thumb.yMax), 1.5f, edge);
             Line(new V2(thumb.x, thumb.y), new V2(thumb.x, thumb.yMax), 1.5f, edge);
@@ -193,7 +192,7 @@ namespace Arena
                 BackgroundThumb(thumb, accent, thumbHover ? 0.95f : 0.55f);
                 EndUiGl();
             }
-            CrtKit.Frame(thumb, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+            CrtKit.Frame(thumb, 1f, CrtUi.Ink.WithAlpha(0.5f));
             if (thumbHover)
                 Ui.Fill(thumb, new Color(0f, 0f, 0f, 0.35f));
 
@@ -214,11 +213,11 @@ namespace Arena
                     c = new Color(0.5f, 0.52f, 0.6f);
                 if (i == menuBg)
                 {
-                    Ui.Fill(new Rect(x + i * (sw + gap) - 2f, sy - 5f, sw + 4f, 14f), new Color(c.r, c.g, c.b, 0.22f + 0.1f * Mathf.Sin(now * 3f)));
+                    Ui.Fill(new Rect(x + i * (sw + gap) - 2f, sy - 5f, sw + 4f, 14f), c.WithAlpha(0.22f + 0.1f * Mathf.Sin(now * 3f)));
                     Ui.Fill(new Rect(x + i * (sw + gap), sy - 2f, sw, 8f), c);
                 }
                 else
-                    Ui.Fill(new Rect(x + i * (sw + gap), sy, sw, 4f), new Color(c.r, c.g, c.b, swatchHover == i ? 0.85f : 0.3f));
+                    Ui.Fill(new Rect(x + i * (sw + gap), sy, sw, 4f), c.WithAlpha(swatchHover == i ? 0.85f : 0.3f));
             }
             if (swatchHover >= 0 && swatchHover != menuBg)
                 Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 22f), BackgroundNames[swatchHover].ToUpperInvariant() + (BackgroundLocked(swatchHover) ? "  ·  LOCKED: RANK " + BackgroundRank(swatchHover) : BackgroundReactive(swatchHover) ? "  ·  REACTIVE" : ""), 11, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);

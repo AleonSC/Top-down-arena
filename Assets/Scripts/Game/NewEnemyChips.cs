@@ -55,8 +55,8 @@ namespace Arena
         {
             var d = Defs.Get(t);
             int job = (int)Game.JobOf(t);
-            Color jc = ToColor(JobColors[job]);
-            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.95f));  // opaque enough to read over the arena
+            Color jc = JobColors[job].ToColor();
+            Ui.Fill(r, CrtUi.Bg.WithAlpha(0.95f));  // opaque enough to read over the arena
             CrtKit.SoftBox(r, CrtUi.Ink, false, false, false);
             Ui.Fill(new Rect(r.x, r.y, 3f, r.height), jc);  // the job's colour down the left edge
             DrawJobGlyph(new Rect(r.x + 14f, r.y + 8f, 20f, 20f), (EnemyJob)job, jc);

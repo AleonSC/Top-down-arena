@@ -18,11 +18,11 @@ namespace Arena
         Color FrameTint(int index, float t)
         {
             string id = Rank.FrameId(index);
-            var c = RankLook.Tint(Rank.FrameColor(index));
+            var c = Rank.FrameColor(index).ToColor();
             if (!fxOn)
                 return c;
             if (id == "frame-prism")
-                return RankLook.Tint(Spectrum(t * 0.11f));
+                return Spectrum(t * 0.11f).ToColor();
             if (id == "frame-ember")
                 c.a = 0.8f + 0.2f * Mathf.Sin(t * 17f);
             if (id == "frame-neon" && Mathf.Sin(t * 41f) * Mathf.Sin(t * 7.3f) > 0.93f)
@@ -38,7 +38,7 @@ namespace Arena
             float pulse = fxOn && id == "frame-void" ? 0.55f + 0.45f * (0.5f + 0.5f * Mathf.Sin(t * 2.4f)) : fxOn && id == "frame-ember" ? 0.7f + 0.3f * Mathf.Sin(t * 11f) : 1f;
             if (glow)
                 for (int k = 3; k >= 1; k--)
-                    Ui.Pill(new Rect(r.x - 3f * k, r.y - 3f * k, r.width + 6f * k, r.height + 6f * k), new Color(fc.r, fc.g, fc.b, 0.05f * (4 - k) / 3f * pulse));
+                    Ui.Pill(new Rect(r.x - 3f * k, r.y - 3f * k, r.width + 6f * k, r.height + 6f * k), fc.WithAlpha(0.05f * (4 - k) / 3f * pulse));
             DkBox(r, fc, 1f);
             DrawCardBackground(r, cardBg, t);  // CardBackgrounds.cs: under the frame's own effect
             DrawFrameFx(r, index, t);
@@ -72,7 +72,7 @@ namespace Arena
             {
                 case "frame-circuit":
                 {
-                    var teal = RankLook.Tint(Rank.FrameColor(index));
+                    var teal = Rank.FrameColor(index).ToColor();
                     const float L = 18f, th = 3f;
                     foreach (var corner in new[] { new Vector2(r.x, r.y), new Vector2(r.xMax, r.y), new Vector2(r.xMax, r.yMax), new Vector2(r.x, r.yMax) })
                     {
@@ -98,9 +98,9 @@ namespace Arena
                     break;
                 case "frame-void":
                 {
-                    var v = RankLook.Tint(Rank.FrameColor(index));
+                    var v = Rank.FrameColor(index).ToColor();
                     float b = 0.5f + 0.5f * Mathf.Sin(t * 2.4f), a = 0.2f + 0.35f * b;
-                    var inner = new Color(v.r, v.g, v.b, a);
+                    var inner = v.WithAlpha(a);
                     Ui.Fill(new Rect(r.x + 8f, r.y + 5f, r.width - 16f, 1f), inner);
                     Ui.Fill(new Rect(r.x + 8f, r.yMax - 6f, r.width - 16f, 1f), inner);
                     Ui.Fill(new Rect(r.x + 5f, r.y + 8f, 1f, r.height - 16f), inner);
@@ -108,7 +108,7 @@ namespace Arena
                     for (int k = 0; k < 2; k++)
                     {
                         var p = PerimeterAt(r, t * 0.06f + k * 0.5f);
-                        FrameDot(p.x, p.y, 4.6f, new Color(v.r, v.g, v.b, 0.9f));
+                        FrameDot(p.x, p.y, 4.6f, v.WithAlpha(0.9f));
                         FrameDot(p.x, p.y, 3.2f, new Color(0.05f, 0.02f, 0.12f, 0.97f));
                     }
                     break;
@@ -138,7 +138,7 @@ namespace Arena
                     for (float s = 0f; s < 1f; s += 0.0046f)  // short bits of rim, each its own colour, turning round the card
                     {
                         var p = PerimeterAt(r, s);
-                        var c = RankLook.Tint(Spectrum(s * 2f - t * 0.15f));
+                        var c = Spectrum(s * 2f - t * 0.15f).ToColor();
                         bool horizontal = Mathf.Abs(p.y - r.y) < 0.5f || Mathf.Abs(p.y - r.yMax) < 0.5f;
                         Ui.Fill(horizontal ? new Rect(p.x, p.y < r.center.y ? r.y : r.yMax - 2.6f, 4f, 2.6f) : new Rect(p.x < r.center.x ? r.x : r.xMax - 2.6f, p.y, 2.6f, 4f), c);
                     }
