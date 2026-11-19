@@ -960,6 +960,10 @@ static partial class Program
         }
         Check(outer, "every breach spot is on the outer wall, facing into the map (" + cand.Count + " spots)");
         Check(cand.All(c => !(c.Key.Vertical && Math.Abs(c.Key.Pos.X - 1600f) < 1f && c.Key.Pos.Y > 100f && c.Key.Pos.Y < 700f)), "never on the wall the hub and the room share");
+        var gridCand = Breaches.Candidates(Expansion.Build(Expansion.GridCore(), Expansion.GridCoreCuts()));
+        Func<float, int, bool> mid = (v, o) => Math.Abs((((v - o) % Expansion.GridCell) + Expansion.GridCell) % Expansion.GridCell - Expansion.GridCell / 2f) < 0.5f;
+        Check(gridCand.Count >= 10 && gridCand.All(c => c.Key.Vertical ? mid(c.Key.Pos.Y, Expansion.GridY0) : mid(c.Key.Pos.X, Expansion.GridX0)),
+            "the core's breach spots sit at the middle of each cell's outer wall (" + gridCand.Count + " spots)");
         float hubW = cand.Where(c => c.Key.Area == 0).Max(c => c.Value), endW = cand.Where(c => c.Key.Area == 1).Max(c => c.Value);
         Check(endW > hubW, "a dead end's outer wall breaks more often than the hub's (" + endW.ToString("0.00") + " vs " + hubW.ToString("0.00") + ")");
         var b1 = Breaches.For(w, 6); var b2 = Breaches.For(Expansion.Build(list), 6);
