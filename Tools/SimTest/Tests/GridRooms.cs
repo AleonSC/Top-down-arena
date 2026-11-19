@@ -46,11 +46,6 @@ static partial class Program
             }
             nodes.Add(n.Value);
         }
-        var one = new List<ExpansionRoom>(empty);
-        one.AddRange(right.Rooms);
-        var cn = Expansion.GridChestFor(5, one, new List<MapNode>(), 1, false);
-        Check(cn.HasValue && Expansion.IsChest(cn.Value.Kind) && !Expansion.NodeClaimed(one, cn.Value)
-              && Expansion.PlacementsFor(one, PieceShape.Mono).Any(o => o.Mid.Equals(cn.Value.Pos)), "a room chest in Grid mode sits at the middle of a free cell against the new room");
     }
 
     // The shortest chain of one-cell rooms (at most `depth`) built along door spots whose last room is the cell the node is the middle of; null if none.

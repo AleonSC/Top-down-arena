@@ -417,39 +417,6 @@ namespace Arena
             return n;
         }
 
-        // --- Room chests (owner Nov 17): building a room may drop a chest node a few tiles outside its wall ---
-
-        public const float RoomChestThin = 0.10f;    // the chance for a hallway (a room 3 tiles wide or less)
-        public const float RoomChestBase = 0.20f;    // a wider room: this plus its area / RoomChestArea tiles...
-        public const int RoomChestArea = 720;
-        public const float RoomChestMax = 0.40f;     // ...up to this (a 6 x 6 room 25%, 10 x 10 34%, 12 x 12 40%)
-        public const int RoomChestWaiting = 2;       // no roll while this many chests wait unclaimed
-        public const float RoomChestVectorShare = 0.5f;  // half of them are vector chests (owner Nov 17)        // a spot near other rooms (within 9 tiles) scores higher: the claiming room tends to join branches
-
-        /// The chance a newly built room (its boxes) drops a chest: thin hallways rarely, big rooms more.
-        public static float RoomChestChance(IList<ExpansionRoom> boxes)
-        {
-            int tiles = 0, widest = 0;
-            foreach (var b in boxes)
-            {
-                tiles += b.W / Step * (b.H / Step);
-                widest = Math.Max(widest, Math.Min(b.W, b.H));
-            }
-            if (widest <= 3 * Step)
-                return RoomChestThin;
-            return Math.Min(RoomChestMax, RoomChestBase + tiles / (float)RoomChestArea);
-        }
-
-        /// Unclaimed, unopened chest nodes on the map.
-        public static int ChestsWaiting(IList<ExpansionRoom> built, IList<MapNode> nodes)
-        {
-            int n = 0;
-            foreach (var nd in nodes)
-                if (IsChest(nd.Kind) && !nd.Spent && !NodeClaimed(built, nd))
-                    n++;
-            return n;
-        }
-
         public const int ShopRoomSide = 400;  // a floating shop or Black Market room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 
         // --- Opened walls: a stretch of wall between two rooms the team opens for vectors (1 per tile) ---

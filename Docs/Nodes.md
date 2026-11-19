@@ -18,7 +18,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 | New nodes | May appear **around the current build** as it grows (each boss cycle, placed relative to the built map, never inside it). They are new nodes, not respawns. |
 | Mini-bosses | Unchanged: sealed rooms, touch to open, duel, prize pick. |
 
-**Nov 17 (owner): room chests.** Every drawn room that is built may drop a chest node 3-5 tiles outside its wall (`Expansion.RoomChestFor`, from `ApplyBuilt`): hallways (3 tiles wide or less) 10%, wider rooms 20% + area/720 tiles, up to 40%; none while 2 chests wait; the spot facing the most other rooms within 9 tiles wins, so the claiming room tends to join branches (the hub-and-spokes maps were the problem). No protocol change: nodes were already synced and saved. Same day: surprise rooms (`GiveSurpriseRoom`, `RevealBreachEvent`; not breach Stashes) roll too, and half of room chests are **vector chests** (`NodeKind.VectorChest`, protocol 386): walk up to a claimed one (`TickVectorChests`) and it bursts into `VectorChestPickups` (4) vector pickups of 6; preview `EXPANDNODE=vectorchest:x,y`.
+**Nov 19 (owner): room chests are gone.** Building a room, a surprise room or a breach event's room no longer drops a chest node; chests come only from the map's nodes. (What this note said before: every built room could drop a chest node 3-5 tiles outside its wall.)
 
 ## Build rules
 

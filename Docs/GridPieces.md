@@ -19,7 +19,7 @@ Status: **plan agreed with the owner; steps 1-4 built, step 5 in part (Grid is t
 
 ## What stays from Grid rooms
 
-- The lattice from the core's corner, the free 4 x 3 cell core, 14 door spots, host-side legality (`Expansion.GridLegal` becomes a piece check), bots, nodes and room chests at a cell's middle, a claimed chest or relic at the middle of its room.
+- The lattice from the core's corner, the free 4 x 3 cell core, 14 door spots, host-side legality (`Expansion.GridLegal` becomes a piece check), bots, nodes at a cell's middle, a claimed chest or relic at the middle of its room.
 - The palette of four sizes (Room, Gauntlet, Hall, Arena) is replaced by the hand.
 
 ## Still open (small, settle while building)
