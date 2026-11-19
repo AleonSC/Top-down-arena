@@ -149,7 +149,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `MeleeHit.cs`: one feel for every melee hit: the standard shove `MeleeKnock` (a `Swing.Knock` of 0 uses it, `MeleeKnockOf`) and `MeleeImpact` (daze + shove) for hits outside the swing system; finishers, Alts and the Lance keep their own push
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs` (the Repulsion Cannon's blast and its Alt Undertow: `RepelGain`, `HostRepelPull` over `Msg.WeaponDash` `DashPullOn`/`DashPullOff`, `TickRepulsion`, replicated `Player.RepelMeter`/`RepelPull`): parry shield (a perfect parry's needle, flash and the world slowing: `WorldSlowT`, `Game/ParryLook.cs`, `Game/ParrySoundBank.cs`), stun, knockback slides, repulsion cannon
 - `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards (every offer takes an `OfferCtx`; `Game.OfferFor(p)` in a run) (`All` = `Gather` of the general cards, class ability cards, milestones, vector cards and each class's `Game.<Class>Cards`, kept beside its abilities; filters `Kit`, `Weapons`, `RequiresAbility`) and ability registry, stat panel numbers, boss health scaling
-- `KeyText.cs`: the bound key names Core text uses (`Alt`, `Space`, `Q`, `E`, `Shift`; set by `Keybinds.SyncKeyText`); `Fill` swaps the stock names in weapon, ability and upgrade descriptions
+- `KeyText.cs`: the bound keys (`Alt`, and the ability keys for labels that show a key; set by `Keybinds.SyncKeyText`); `Fill` swaps "Alt" in weapon, ability and upgrade descriptions for the bound key
 
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs

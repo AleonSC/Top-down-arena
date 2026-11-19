@@ -9,16 +9,16 @@ namespace Arena
     ///     nearest you, punches, slams every few seconds and draws enemies near it. Alt (the weapon-action key) on an enemy locks it on
     ///     (+50% damage and faster until that enemy dies); on the floor it posts it there to guard; near you it calls it back.
     ///     A broken Strider is rebuilt after StriderRebuild seconds.
-    ///   Drag Pylon (Space): a pylon at the cursor whose field slows enemies inside; it stays until the next one, which folds it up.
+    ///   Drag Pylon (1st ability): a pylon at the cursor whose field slows enemies inside; it stays until the next one, which folds it up.
     ///   Draftsman (passive, step 2): +25% vectors from every gain; standing by a hurt Strider repairs it with vectors.
     ///   Breach (ultimate): a hammer smashes the wall you aim at: a blast by the wall, and in the Expanding arena a free random room
     ///     behind it with one thing in it (vectors, gold, a repair, a workbench or an ambush). No wall in reach: the blast and the loot
     ///     land where you aim.
     /// Step 4, the Tank and Healer kits:
     ///   Tank: Bulwark Forge (a nail shotgun; its walker is the Sentinel, a heavier Strider that taunts from farther), Vector Wall
-    ///     (Space: a 5-tile wall across your aim at the cursor that stops enemy shots for 8 s), Bastion (ultimate: a ring of walls
+    ///     (1st ability: a 5-tile wall across your aim at the cursor that stops enemy shots for 8 s), Bastion (ultimate: a ring of walls
     ///     round you for 10 s with four gaps).
-    ///   Healer: Medi-Drone Forge (a light rivet gun; a med-drone companion heals the most hurt ally), Med Pylon (Space: the Drag
+    ///   Healer: Medi-Drone Forge (a light rivet gun; a med-drone companion heals the most hurt ally), Med Pylon (1st ability: the Drag
     ///     Pylon's twin, its field heals allies), Safe Room (ultimate: the Breach hammer opens a room that heals everyone inside and
     ///     cuts their damage taken for 12 s; with no room, a healing dome at the cursor).
     public partial class Game

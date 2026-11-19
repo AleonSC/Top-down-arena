@@ -34,7 +34,7 @@ static partial class Program
             "Basalt Hide", "Deep Tremor", "Kindred Bond", "Sprite Choir", "Rebirth Flame", "Blood Bats", "Venom Glands", "Pack Leader", "Field Surgeon" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Rarity == Rarity.Rare && Upgrades.All[U(n)].MaxStacks == 2), "all 18 ability cards exist, Rare, 2 stacks each");
 
-        // Clear the field, put the ability on Space with `stacks` copies of its card, and cast it at `at`.
+        // Clear the field, put the ability on the 1st slot with `stacks` copies of its card, and cast it at `at`.
         Action<AbilityId, string, int> prep = (ab, card, stacks) =>
         {
             foreach (int id in g.Minions.Values.Where(m => m.Owner == 1 && !m.Companion).Select(m => m.Id).ToList()) g.Minions.Remove(id);
@@ -228,7 +228,7 @@ static partial class Program
         Check(new[] { "Quartermaster", "Arcane Surge", "Pack Bond", "Plate Armour", "Ghost Step", "Bloodthirst" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Kit.HasValue && Upgrades.All[U(n)].Rarity == Rarity.Rare), "all six class cards exist, each for one class");
 
-        // Quartermaster: orbs heal 30% more; 2nd, 3rd or 4th recharge 10% faster (Space doesn't).
+        // Quartermaster: orbs heal 30% more; 2nd, 3rd and 4th abilities recharge 10% faster (the 1st doesn't).
         Func<int, float[]> quarter = n =>
         {
             prep(AbilityId.Meteor, "Quartermaster", n);
@@ -245,9 +245,9 @@ static partial class Program
         };
         var qm0 = quarter(0); var qm1 = quarter(1);
         Check(near(qm1[0] / qm0[0], 0.9f, 0.001f) && near(qm1[1], qm0[1], 0.001f) && near(qm0[2], 10f, 0.6f) && near(qm1[2], 13f, 0.6f),
-            "Quartermaster: 2nd, 3rd or 4th recharge 10% faster (Space doesn't) and orbs heal 30% more (" + qm0[2] + " -> " + qm1[2] + ")");
+            "Quartermaster: 2nd, 3rd and 4th abilities recharge 10% faster (the 1st doesn't) and orbs heal 30% more (" + qm0[2] + " -> " + qm1[2] + ")");
 
-        // Arcane Surge: a Space cast fires the weapon 25% faster for 3 s, and the client sees it.
+        // Arcane Surge: a 1st ability cast fires the weapon 25% faster for 3 s, and the client sees it.
         castWith(AbilityId.Meteor, "Arcane Surge", 0, there);
         float rate0 = (float)fireRate.Invoke(g, new object[] { me });
         bool none = me.SurgeT == 0f;
@@ -255,7 +255,7 @@ static partial class Program
         float rate1 = (float)fireRate.Invoke(g, new object[] { me });
         Run(s, dt, 0.3f);
         Check(none && near(rate1 / rate0, 1.25f, 0.001f) && me.SurgeT > 2f && client.Game.Players[1].SurgeT > 2f,
-            "Arcane Surge: a Space cast fires the weapon 25% faster for 3 s, on both screens");
+            "Arcane Surge: a 1st ability cast fires the weapon 25% faster for 3 s, on both screens");
 
         // Pack Bond: minions take 25% more before breaking and hit 15% harder.
         castWith(AbilityId.GolemWall, "Pack Bond", 0, there);

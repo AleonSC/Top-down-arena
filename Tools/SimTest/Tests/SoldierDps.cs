@@ -133,7 +133,7 @@ static partial class Program
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         var def = Upgrades.Ability(AbilityId.Airstrike);
         Check(def.Name == "Airstrike" && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Choice == 1 && def.Cooldown == 16f, "the Soldier DPS's second ability is Airstrike, 16 s");
-        Check(me.Slots[0].Id == AbilityId.Airstrike, "a Soldier DPS who picks it has it on Space");
+        Check(me.Slots[0].Id == AbilityId.Airstrike, "a Soldier DPS who picks it has it as the 1st ability");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         var spots = new Dictionary<Enemy, V2>();
         Func<V2, Enemy> pin = at =>
@@ -239,7 +239,7 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.PoisonDart);
         Check(def.Name == "Poison Dart" && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Choice == 0 && (int)AbilityId.PoisonDart == 2,
             "Poison Dart is the Soldier DPS's first ability, in Dash's place");
-        Check(me.Slots[0].Id == AbilityId.PoisonDart, "a Soldier DPS who picks it has it on Space");
+        Check(me.Slots[0].Id == AbilityId.PoisonDart, "a Soldier DPS who picks it has it as the 1st ability");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         var spots = new Dictionary<Enemy, V2>();
         Func<V2, Enemy> pin = at =>

@@ -49,7 +49,7 @@ static partial class Program
             sb.AppendFormat("\n### {0}\n\n| Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |\n|---|---|---|---|---|---|---|\n", Cell(k.Name));
             foreach (var a in abs)
             {
-                string slot = a.Choice == AbilityDef.CardOnly ? "card" : a.Choice == AbilityDef.Ult ? "ultimate" : "Space " + (a.Choice + 1);
+                string slot = a.Choice == AbilityDef.CardOnly ? "card" : a.Choice == AbilityDef.Ult ? "ultimate" : "1st, choice " + (a.Choice + 1);
                 string cost = a.HealthCost > 0 ? N(a.HealthCost * 100f) + "% of " + (a.CostsCurrent ? "current" : "max") + " health" : "-";
                 sb.AppendFormat("| {0} | {1} | {2} | {3} s{4} | {5} | {6} | {7} |\n", Cell(a.Name), a.Role, slot, N(a.Cooldown),
                     a.ExtraCharges > 0 ? " (+" + a.ExtraCharges + " charges)" : "", cost, Cell(a.Capstone), Cell(a.Desc));

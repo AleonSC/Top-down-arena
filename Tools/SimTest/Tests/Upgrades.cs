@@ -227,7 +227,7 @@ static partial class Program
     }
 
     // Class and weapon-list cards (Docs/UpgradePools.md step 3): a Kit card goes to that class only, for every role
-    // and Space pick; a Wildcard counts as the class of its 1st ability, weapon and Wildcard ability; a Weapons card
+    // and 1st ability; a Wildcard counts as the class of its 1st ability, weapon and Wildcard ability; a Weapons card
     // goes to any weapon on its list and no other.
     static void CardFilterTest()
     {
@@ -248,7 +248,7 @@ static partial class Program
                         var pl = new Player { Role = role, Kit = (Kit)k, FirstAbility = ab, Weapon = Defs.Weapon(role, (Kit)k, 0) };
                         kitOk &= Upgrades.Available(card, OfferCtx.Of(pl, false)) == ((Kit)k == Kit.Knight);
                     }
-            Check(kitOk, "a Knight card is offered to every Knight (each role and Space pick) and to no other class");
+            Check(kitOk, "a Knight card is offered to every Knight (each role and 1st ability) and to no other class");
 
             int seenKnight = 0, seenSoldier = 0;
             var rng = new Random(5);
@@ -446,7 +446,7 @@ static partial class Program
             && !Upgrades.Available(U("Bastion"), new OfferCtx(Role.Tank, AbilityId.Roar, new List<int>())),
             "a class ability card isn't offered twice, and that ability's own upgrades open up");
 
-        // In a run: the DPS Soldier (Space: Poison Dart) gets Airstrike on Q, and the bot calls it in.
+        // In a run: the DPS Soldier (1st ability: Poison Dart) gets Airstrike as the 2nd, and the bot calls it in.
         var s = StartBuffed(dt, 1, 0);
         Run(s, dt, 1);
         s[0].Game.GrantUpgrade(2, U("Airstrike"));
@@ -454,7 +454,7 @@ static partial class Program
         Run(s, dt, 9, null, () => thrown |= s[0].Game.Effects.Any(e => e.Kind == FxKind.Airstrike && (int)(e.Radius / 10000f) == 2));
         var hp = s[0].Game.Players[2];
         var cp = s[1].Game.Players[2];
-        Console.WriteLine("  DPS Soldier: Space {0}, Q {1} (client sees {2}); airstrike called {3}", hp.Slots[0].Id, hp.Slots[1].Id, cp.Slots[1].Id, thrown);
+        Console.WriteLine("  DPS Soldier: 1st {0}, 2nd {1} (client sees {2}); airstrike called {3}", hp.Slots[0].Id, hp.Slots[1].Id, cp.Slots[1].Id, thrown);
         Check(hp.Slots[0].Id == AbilityId.PoisonDart && hp.Slots[1].Id == AbilityId.Airstrike && cp.Slots[1].Id == AbilityId.Airstrike && thrown,
             "a class ability card puts that ability on 2nd, 3rd or 4th, and it works there");
         s[0].Leave(""); s[1].Leave("");
