@@ -215,6 +215,20 @@ static partial class Program
         var shop = g.Expanded.Last();
         Check(g.Expanded.Count == n2 + 1 && shop.Kind == Arena.RoomKind.Shop && shop.W == 600 && shop.H == 600, "a Shop card builds one cell as a shop");
 
+        // A stall card (service card or Builder Shop) can't go on a chest, vector chest or relic node; a plain piece can.
+        var spot = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).First();
+        var relic = new MapNode { X = (short)spot.Mid.X, Y = (short)spot.Mid.Y, Kind = NodeKind.Relic };
+        g.Nodes.Add(relic);
+        bool listed = Expansion.PlacementsForCard(g.Expanded, g.Nodes, PieceCard.Market).Any(o => o.X == spot.X && o.Y == spot.Y);
+        bool plainListed = Expansion.PlacementsForCard(g.Expanded, g.Nodes, Expansion.MakePieceCard(PieceShape.Mono)).Any(o => o.X == spot.X && o.Y == spot.Y);
+        friend.Hand[0] = (byte)PieceCard.BuilderShop;
+        int n5 = g.Expanded.Count;
+        cg.PlayPieceCard(0, spot.Orient, spot.X, spot.Y);
+        Run(s, dt, 0.6f, null, noPicks);
+        Check(!listed && plainListed && g.Expanded.Count == n5 && friend.Hand[0] == (byte)PieceCard.BuilderShop, "a stall card can't be placed on a relic node (not offered, the host refuses, the card stays); a plain piece can");
+        g.Nodes.Remove(relic);
+        friend.Hand[0] = 0;
+
         // Sources: a chest gives everyone a grid card; the Builder Shop has five (the Black Market sells no cards).
         var chest = typeof(Game).GetMethod("ChestCardFor", flags);  // (a piece chest offers each player one: Props.cs LootKind.Card)
         Check(g.Players.Values.All(p => Expansion.IsGridPieceCard((PieceCard)chest.Invoke(g, new object[] { p, 3 }))), "a chest offers everyone a grid card");
