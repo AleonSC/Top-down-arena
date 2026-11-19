@@ -65,7 +65,9 @@ namespace Arena
             V2.Axes(e.Facing, out V2 f, out V2 s);
             float wind, swing, ba = GuardBatonAngle(e, t, out wind, out swing);
             V2 bd = V2.FromAngle(ba);
-            V2 hand = e.LarderStage != Game.LarderIdle ? pos + bd * (r * 1.05f) : pos + s * (r * 1.0f) + f * (r * 0.95f);
+            V2 hand = pos + bd * (r * 1.05f);
+            if (e.LarderStage == Game.LarderIdle)  // at its side while walking, out in front as it readies a swing (WardenLook.cs)
+                hand = V2.Lerp(pos + s * (r * 1.0f) + f * (r * 0.95f), hand, GuardReady(e));
             V2 tip = hand + bd * (r * 1.6f);
             var shirt = GuardShirt.Mix(col, 0.12f);
             OfficerTorso(pos, r, e.Facing, shirt);

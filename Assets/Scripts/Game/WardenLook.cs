@@ -383,7 +383,7 @@ namespace Arena
 
         /// Where the Guard's nightstick points: at its side while it walks (a light bob), drawn back over the wind-up and
         /// swept across in the swing, forehand from its left then backhand from its right (GuardSwing.cs).
-        static float GuardBatonAngle(Enemy e, float t, out float wind, out float swing)
+        float GuardBatonAngle(Enemy e, float t, out float wind, out float swing)
         {
             wind = Game.BatonWindT(e);
             swing = Game.BatonSwingT(e);
@@ -392,8 +392,29 @@ namespace Arena
                 return e.Facing + side * (far - swing * far * 2f);
             if (e.LarderStage != Game.LarderIdle)
                 return e.Facing + side * (0.9f + wind * (far - 0.55f));
-            return e.Facing + 0.9f + 0.25f * Mathf.Sin(t * 9f + e.Id);
+            // walking: at its side with a bob, cocked toward the side its next swing comes from as you come in range
+            float k = GuardReady(e), next = GuardNextSide(e);
+            float walk = 0.9f + 0.25f * Mathf.Sin(t * 9f + e.Id), ready = next * (0.9f + 0.25f * k);
+            return e.Facing + walk + (ready - walk) * k;
         }
+
+        /// How far a Guard is past its warning range toward swinging: 0 while every player is more than GuardWarn beyond
+        /// its reach, rising to 1 as the nearest one reaches the edge of its arc (drawing; nothing extra is replicated).
+        float GuardReady(Enemy e)
+        {
+            if (e.LarderStage != Game.LarderIdle || game.IsSpawning(e))
+                return 0f;
+            float best = float.MaxValue;
+            foreach (var p in game.Players.Values)
+                if (!p.Downed)
+                    best = Mathf.Min(best, e.Disp.DistanceTo(p.Disp) - p.Def.HitR);
+            return Mathf.Clamp01((Game.BatonReach + GuardWarn - best) / GuardWarn);
+        }
+
+        const float GuardWarn = 110f;  // how far beyond its reach the Guard's ready tell starts fading in
+
+        /// Which side a Guard's next swing comes from: +1 a forehand from its left, -1 a backhand (GuardSwing.cs alternates).
+        static float GuardNextSide(Enemy e) => e.MawSide == 1 ? -1f : 1f;
 
         /// Under everyone: a Guard's swing arc, flashing amber as it draws back (filling from the side it swings from),
         /// then a white crescent following the stick across.
@@ -402,8 +423,13 @@ namespace Arena
             var tell = new Rgba(1f, 0.78f, 0.35f);
             foreach (var e in game.Enemies.Values)
             {
-                if (e.Type != EnemyType.Guard || e.LarderStage == Game.LarderIdle || game.IsSpawning(e))
+                if (e.Type != EnemyType.Guard || game.IsSpawning(e))
                     continue;
+                if (e.LarderStage == Game.LarderIdle)
+                {
+                    DrawGuardReady(e, GuardReady(e), t, tell);
+                    continue;
+                }
                 V2 pos = e.Disp;
                 float half = Game.BatonHalf, R = Game.BatonReach, side = Game.BatonSide(e);
                 float swing = Game.BatonSwingT(e);
@@ -424,6 +450,39 @@ namespace Arena
                         Arc(pos, R * (0.9f - 0.22f * k), 5f - k * 1.4f, Rgba.White.WithAlpha(0.9f - 0.2f * k), 12, from, sweep);
                 }
             }
+        }
+
+        /// A walking Guard's ready tell, fading in by `k` as you close in: its whole swing arc outlined on the floor (a dashed
+        /// amber rim at its reach, the two edges), and a curved arrow inside the rim sweeping the way the next swing goes.
+        /// Inside the reach it pulses brighter: one more step and it swings.
+        void DrawGuardReady(Enemy e, float k, float t, Rgba tell)
+        {
+            if (k <= 0.01f)
+                return;
+            V2 pos = e.Disp;
+            float half = Game.BatonHalf, R = Game.BatonReach, side = GuardNextSide(e);
+            float inside = k >= 1f ? 1f : 0f;  // someone is at the rim
+            float a = k * k * (0.7f + 0.3f * inside * (0.5f + 0.5f * Mathf.Sin(t * 14f + e.Id)));
+            Wedge(pos, R, e.Facing, half, tell.WithAlpha(0.07f * a), 20);
+            const int dashes = 9;  // the rim, dashed
+            float step = half * 2f / dashes;
+            for (int i = 0; i < dashes; i++)
+                Arc(pos, R, 2.2f, tell.WithAlpha(0.85f * a), 4, e.Facing - half + step * (i + 0.18f), step * 0.64f);
+            for (int s = -1; s <= 1; s += 2)  // the two edges, from just outside its body to the rim
+            {
+                V2 d = V2.FromAngle(e.Facing + s * half);
+                Line(pos + d * (e.Radius + 6f), pos + d * R, 1.6f, tell.WithAlpha(0.45f * a));
+            }
+            // the sweep arrow: from the side the next swing starts on, across the front, with a head at its end
+            float r = R * 0.72f, from = e.Facing + side * half * 0.8f, len = half * 1.6f * Mathf.Min(1f, 0.35f + k * 0.65f);
+            float start = side > 0f ? from - len : from;
+            Arc(pos, r, 2.4f, tell.WithAlpha(0.7f * a), 16, start, len);
+            float endA = from - side * len;
+            V2 tip = pos + V2.FromAngle(endA) * r, along = V2.FromAngle(endA - side * MathX.Pi / 2f);
+            V2 outw = V2.FromAngle(endA);
+            V2 b = tip - along * 8f;
+            Line(tip, b + outw * 5f, 2.4f, tell.WithAlpha(0.85f * a));
+            Line(tip, b - outw * 5f, 2.4f, tell.WithAlpha(0.85f * a));
         }
 
         static readonly Rgba RiotSteel = new Rgba(0.62f, 0.74f, 0.98f);
