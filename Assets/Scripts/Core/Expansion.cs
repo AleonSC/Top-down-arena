@@ -1121,10 +1121,12 @@ namespace Arena
                         continue;
                     int ox0 = Math.Max(x0, bx0), ox1 = Math.Min(x1, bx1), oy0 = Math.Max(y0, by0), oy1 = Math.Min(y1, by1);
                     float open = joined ? Math.Max(ox1 - ox0, oy1 - oy0) : 0f;
-                    if (x0 == bx1) doors.Add(new RoomDoor { Pos = new V2(x0, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
-                    else if (x1 == bx0) doors.Add(new RoomDoor { Pos = new V2(x1, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
-                    else if (y0 == by1) doors.Add(new RoomDoor { Pos = new V2((ox0 + ox1) / 2f, y0), Width = open, A = b, B = a });
-                    else doors.Add(new RoomDoor { Pos = new V2((ox0 + ox1) / 2f, y1), Width = open, A = b, B = a });
+                    float dy = joined ? (oy0 + oy1) / 2f : GridDoorAlong(oy0, oy1, x0 == bx1 ? x0 : x1, GridX0, GridY0, (y0 + y1) / 2f);
+                    float dx = joined ? (ox0 + ox1) / 2f : GridDoorAlong(ox0, ox1, y0 == by1 ? y0 : y1, GridY0, GridX0, (x0 + x1) / 2f);
+                    if (x0 == bx1) doors.Add(new RoomDoor { Pos = new V2(x0, dy), Vertical = true, Width = open, A = b, B = a });
+                    else if (x1 == bx0) doors.Add(new RoomDoor { Pos = new V2(x1, dy), Vertical = true, Width = open, A = b, B = a });
+                    else if (y0 == by1) doors.Add(new RoomDoor { Pos = new V2(dx, y0), Width = open, A = b, B = a });
+                    else doors.Add(new RoomDoor { Pos = new V2(dx, y1), Width = open, A = b, B = a });
                 }
                 // The four walls. Where an earlier room already has the wall (they share it), this room leaves that stretch out.
                 for (int edge = 0; edge < 4; edge++)  // 0 west, 1 east, 2 north, 3 south
@@ -1181,6 +1183,7 @@ namespace Arena
                             doors.RemoveAll(d => d.A == a && d.B == b && d.Vertical == c.Vertical && (c.Vertical ? d.Pos.Y : d.Pos.X) > c.From && (c.Vertical ? d.Pos.Y : d.Pos.X) < c.Till);
                             doors.Add(new RoomDoor { Pos = c.Vertical ? new V2(c.At, (c.From + c.Till) / 2f) : new V2((c.From + c.Till) / 2f, c.At), Vertical = c.Vertical, Width = c.Till - c.From, A = a, B = b });
                         }
+            DropSecondGridDoors(doors);
             for (int a = 1; a < n; a++)  // a floating room with no door is sealed
                 if (areas[a].Floating)
                 {
