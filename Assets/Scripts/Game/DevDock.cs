@@ -6,13 +6,13 @@ namespace Arena
 {
     /// The F1 developer tools as a dock (Docs/Mockups option C): a slim bar over the live game with the things you reach for most pinned
     /// (God, Full heal, Skip wave, Kill all), four keys (WAVE, PARTY, VIEW, LABS) that each open a small drawer under them, the stat editor
-    /// as a side drawer and the bigger tools (DPS and dummies, Replays, Balance test) as one sheet. In a match the game keeps running and
+    /// as a side drawer and the bigger tools (Spawn an upgrade or enemy, Snapshots) as one sheet. In a match the game keeps running and
     /// only the mouse is blocked over the dock; in the lobby and menus it is modal. Esc and F1 close it (UiScreens.cs).
     public partial class ArenaApp
     {
         int devDrawer;            // 0 none, 1 wave, 2 party, 3 view, 4 labs
         bool devSide;             // the stat editor, as a side drawer
-        int devSheet;             // 0 none, 1 DPS meter and dummies, 2 Replays, 3 Balance test, 4 Spawn an upgrade, 5 Spawn an enemy, 6 Snapshots
+        int devSheet;             // 0 none, 4 Spawn an upgrade, 5 Spawn an enemy, 6 Snapshots
         readonly List<Rect> dockHit = new List<Rect>();  // the dock's rects as last drawn (the mouse over one doesn't shoot)
 
         static readonly Rect DockBar = new Rect(16f, 10f, W - 32f, 52f);
@@ -67,11 +67,11 @@ namespace Arena
                 dockHit.Clear();
             bool inMatch = session.Screen == AppScreen.Game;
             bool host = session.IsHost;
-            if (!inMatch && (devDrawer == 1 || devDrawer == 2 || devSide || devSheet == 1 || devSheet == 3 || devSheet == 4 || devSheet == 5))
+            if (!inMatch && (devDrawer == 1 || devDrawer == 2 || devSide || devSheet == 4 || devSheet == 5))
             {
                 devDrawer = devDrawer == 1 || devDrawer == 2 ? 0 : devDrawer;
                 devSide = false;
-                devSheet = devSheet == 2 ? 2 : 0;
+                devSheet = 0;
             }
             if (devSheet != 0)
                 devDrawer = 0;
@@ -183,8 +183,8 @@ namespace Arena
                 {
                     case 1: DrawDockWave(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 340f), host); break;
                     case 2: DrawDockParty(new Rect(Mathf.Min(kr.x, edge - 380f), 70f, 380f, 282f), host); break;
-                    case 3: DrawDockView(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 270f), inMatch); break;
-                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 342f), inMatch); break;
+                    case 3: DrawDockView(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 160f), inMatch); break;
+                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 216f), inMatch); break;
                 }
             }
             if (devSide && inMatch)
@@ -297,18 +297,11 @@ namespace Arena
             var inner = DockBox(r, "View and helpers");
             var col = DkStack.Column(inner, 6f);
             aimDebug = DockSwitch(col.Next(28f), aimDebug, "Aim debug overlay", "F3");
-            dpsMeter = DockSwitch(col.Next(28f), dpsMeter, "DPS meter on screen", "F2");
             bool editText = DockSwitch(col.Next(28f), textEditMode, "Edit any text on screen", "F4");
             if (editText != textEditMode)
             {
                 SetTextEditMode(editText);
                 devMenuOpen = !editText;  // out of the way, so you can click the text you want
-            }
-            bool pauseKey = DockSwitch(col.Next(28f), devPauseKey, "Freeze-time key (no menu)", "P");
-            if (pauseKey != devPauseKey)
-            {
-                devPauseKey = pauseKey;
-                PlayerPrefs.SetInt("dev_pausekey", pauseKey ? 1 : 0);
             }
             bool was = GUI.enabled;
             GUI.enabled = was && inMatch;
@@ -317,12 +310,6 @@ namespace Arena
             {
                 game.Bot = bot;
                 game.BotLevel = bot ? BotSkill.Good : BotSkill.Off;  // the Boss Lab's smart bot; the sim tests keep the simple one
-            }
-            col.Space(2f);
-            if (DkKey(col.Next(34f), "DPS DETAILS AND TARGET DUMMIES…", CrtStyle.Head, false, 12))
-            {
-                devSheet = 1;
-                devDrawer = 0;
             }
             GUI.enabled = was;
         }
@@ -338,26 +325,11 @@ namespace Arena
                 devMenuOpen = false;
                 labSetupOpen = true;
             }
-            if (DkKey(col.Next(36f), "WAVE EDITOR", EdColor, false, 14))
-                OpenWaveEditor();
             bool wasArena = GUI.enabled;
             GUI.enabled = wasArena && (session.IsHost || session.Screen == AppScreen.Menu);
             if (DkKey(col.Next(36f), game.DevArena ? "LEAVE DEV ARENA" : "DEV ARENA (PLAY AS ENEMIES)", CrtStyle.Gold, game.DevArena, 13))
                 ToggleDevArena();  // DevArenaUi.cs
             GUI.enabled = wasArena;
-            bool was = GUI.enabled;
-            GUI.enabled = was && inMatch;
-            if (DkKey(col.Next(36f), "BALANCE TEST…", CrtStyle.Head, false, 14))
-            {
-                devSheet = 3;
-                devDrawer = 0;
-            }
-            GUI.enabled = was;
-            if (DkKey(col.Next(36f), "REPLAYS…", CrtStyle.Head, false, 14))
-            {
-                devSheet = 2;
-                devDrawer = 0;
-            }
             col.Space(4f);
             bool on = DkSwitch(col.Next(26f), recordSessions, "Record sessions (when hosting)");
             if (on != recordSessions)
@@ -386,30 +358,41 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 1 ? "DPS meter and target dummies" : devSheet == 2 ? "Replays" : devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 5 ? (game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy") : "Balance test";
+            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;
-            if (devSheet == 1)
-            {
-                if (inMatch) DrawDevDps(inner); else DevNotInMatch(inner, "use the DPS meter and dummies");
-            }
-            else if (devSheet == 2)
-                DrawDevReplays(inner);  // ReplayUi.cs
-            else if (devSheet == 6)
+            if (devSheet == 6)
                 DrawDevSnapshots(inner, inMatch);  // SnapshotUi.cs
             else if (devSheet == 4)
             {
                 if (inMatch) DrawDockUpgrades(inner); else DevNotInMatch(inner, "spawn an upgrade");
             }
-            else if (devSheet == 5)
-            {
-                if (inMatch) DrawDockEnemies(inner); else DevNotInMatch(inner, "spawn an enemy");
-            }
             else if (inMatch)
-                DrawDevBalance(inner);  // BalanceTestUi.cs
+                DrawDockEnemies(inner);
             else
-                DevNotInMatch(inner, "run a balance test");
+                DevNotInMatch(inner, "spawn an enemy");
+        }
+
+        /// The Spawn-an-enemy sheet's enemies: boss factions' first (they're the point of hunts and approaches), then the rest; or the bosses.
+        static List<EnemyType> EnemyPalette(bool bosses)
+        {
+            var list = new List<EnemyType>();
+            if (bosses)
+            {
+                foreach (var t in PracticePlan.Choices)
+                    if (Defs.Get(t).IsBoss)
+                        list.Add(t);
+                return list;
+            }
+            foreach (var f in Approaches.All)
+                foreach (var m in f.Members)
+                    if (!list.Contains(m.Type))
+                        list.Add(m.Type);
+            foreach (var t in PracticePlan.Choices)
+                if (!Defs.Get(t).IsBoss && !list.Contains(t))
+                    list.Add(t);
+            return list;
         }
 
         // --- Spawn an upgrade ---------------------------------------------------------------------------------
@@ -554,7 +537,7 @@ namespace Arena
                     devEnemyCount = counts[i];
             devEnemyElite = DkSwitch(new Rect(cx + 212f, top.y, top.xMax - cx - 212f, 30f), devEnemyElite, "Elite");
 
-            var all = EdPaletteEnemies(devEnemyTab == 1);
+            var all = EnemyPalette(devEnemyTab == 1);
             var list = new List<EnemyType>();
             string f = devEnemyFilter.Trim();
             foreach (var t in all)

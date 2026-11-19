@@ -1714,15 +1714,6 @@ static partial class Shot {
       me.Aim = -0.6f;
       host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
     }
-    if (Environment.GetEnvironmentVariable("DPSMETER") != null)
-    {
-      // The DPS meter (DpsMeterUi.cs) with a dummy and a few seconds of fake damage; add DEVTAB=3 mode=dev for the F1 tab.
-      typeof(ArenaApp).GetField("dpsMeter", f2).SetValue(app, true);
-      host.Game.DevSpawnDummy(1);
-      var track = new DpsTrack();
-      for (int i = 0; i < 70; i++) { track.Add(i % 3 == 0 ? 9f : 22f, i % 4 == 0 ? 3f : 0f); track.Advance(0.1f); }
-      host.Game.Dps[1] = track;
-    }
     if (Environment.GetEnvironmentVariable("REPULSE") != null) {
       // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
       float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));

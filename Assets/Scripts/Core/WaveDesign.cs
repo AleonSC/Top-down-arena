@@ -70,7 +70,7 @@ namespace Arena
         }
     }
 
-    /// A set of designed waves (the F1 wave editor's file, Game/WaveEditorUi.cs): spawn points A-E (moveable), then the
+    /// A set of designed waves (a .waves file, edited in Wave Lab or by hand): spawn points A-E (moveable), then the
     /// waves. Saved as a short text file (.waves) that reads like this:
     ///   # Top-Down Arena waves: warden drills
     ///   point A 800,60
@@ -357,7 +357,7 @@ namespace Arena
 
     public partial class Game
     {
-        /// Host: a designed wave set played in the Practice Range (the F1 wave editor's Test), or null. With it, each
+        /// Host: a designed wave set played in the Practice Range (Wave Lab's test), or null. With it, each
         /// practice wave is that design's wave: its groups arrive on their timers from their points, its props are laid out.
         public WaveSet Design;
 

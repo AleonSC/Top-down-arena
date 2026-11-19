@@ -15,7 +15,7 @@ namespace Arena
         /// Daze `e` (a close-in hit just landed on it).
         void Daze(Enemy e)
         {
-            if (e.DazeImmuneT > 0f || e.Hp <= 0f || e.SpawnT > 0f || e.Dummy)
+            if (e.DazeImmuneT > 0f || e.Hp <= 0f || e.SpawnT > 0f)
                 return;
             float t = e.Def.IsBoss ? DazeBossTime : DazeTime;
             e.DazeT = t;

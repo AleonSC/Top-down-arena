@@ -41,6 +41,12 @@ A dash that kills brings the next step at once.
 ## +1 (extra projectiles)
 Each dash strikes once more at 60%, two more caltrops, and a 25% wider Momentum Burst.
 
+## The bot
+`Core/BotKatana.cs`: the smart bot stores a stance one step from its finisher and builds the other, then plays both
+finishers back to back at a good moment (a crowd, a boss in reach, a volley) or after a rolled wait under the 1.5 s reset;
+sometimes it plays one alone, and sometimes it leaves a combo halfway for Hayate's dash-cuts (a far target, a volley) or
+Senbon's sweeps (a crowd hugging it).
+
 ## Code
 - `Core/Katana.cs`: `FireKatana` (each step), `KatanaLine`/`KatanaArc`/`KatanaSlash` (the cuts, as swings that draw nothing
   themselves), `KatanaLanded` (each cut's look, a killing dash), `MomentumBurst`, `ThrowCaltrops`, `TickKatanaLater` (timed

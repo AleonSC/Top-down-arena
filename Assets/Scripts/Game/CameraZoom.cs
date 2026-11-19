@@ -61,7 +61,7 @@ namespace Arena
             }
             if (game.Paused)
                 return;  // (the picture holds still behind a pause menu, and the wheel is the menu's)
-            if (scrollZoom && !EndingOn && !devMenuOpen && !devFrozen && !ShopScreenUp(me) && !InventoryUp)  // (the Tab screen's Inventory page: the wheel scrolls its lists, InventoryUi.cs)  // (the shop and Black Market cover the screen: no zoom behind them)
+            if (scrollZoom && !EndingOn && !devMenuOpen && !ShopScreenUp(me) && !InventoryUp)  // (the Tab screen's Inventory page: the wheel scrolls its lists, InventoryUi.cs)  // (the shop and Black Market cover the screen: no zoom behind them)
             {
                 float wheel = Input.mouseScrollDelta.y;
                 if (wheel > 0.01f || wheel < -0.01f)

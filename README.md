@@ -1547,9 +1547,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Aim debug overlay | F3 |
 | Save / load a run snapshot (host, dev) | F6 saves the run as it is now; F7 loads the newest (see *Run snapshots*, under *Testing tricks*) |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
-| DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
-| Open the folder with `Player.log` (menus, lobby, results; in a run F2 is the DPS meter) | F2 |
-| Freeze time with no menu (dev) | P, once the F1 VIEW drawer's freeze-time key is on; everything holds, attacks and effects mid-swing included; P again resumes. Pausing is shared, so it stops everyone |
+| Open the folder with `Player.log` (menus, lobby, results; not in a run) | F2 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory; not in a Boss Hunt); with a life left, Y = respawn, N = give up |
 | Click debug readout (temporary) | F9 |
 
@@ -2123,7 +2121,7 @@ TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 ```
 
 Also: `--name=X`, `--port=N`, `--class=soldier|elementalist|summoner|knight|ninja|hemomancer|engineer`, `--weapon=1-4`, `--ability=1-4`, `--ultimate=N`, `--start-wave=N`
-(jump ahead), `--bot` (your player moves and shoots by itself), `--record` and `--record-replays`.
+(jump ahead), `--bot` (your player moves and shoots by itself), and `--record`.
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs Mono). The default suite is
@@ -2136,7 +2134,7 @@ Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). I
 match the game keeps running behind it (the mouse only stops shooting while it's over the dock); in the lobby and menus it covers the
 screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE**, **KILL ALL** and **SNAP** (run snapshots, below) pinned for one click, four keys that
 open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
-as a drawer on the right, and the bigger tools (DPS meter and dummies, Replays, Balance test) open as one sheet. While you type in one of
+as a drawer on the right, and the bigger tools (Spawn an enemy, Spawn an upgrade, Run snapshots) open as one sheet. While you type in one of
 its fields the game's keys are off. Outside a run only VIEW and LABS show.
 
 - **WAVE drawer (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
@@ -2173,28 +2171,11 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to mastery 5). Joining players can see everyone's stats but not change them.
-- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
-  (a saved switch: P freezes the whole picture, effects and animations included, without opening the pause menu; press it again to resume;
-  hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
   **Account rank** (PARTY drawer) sets this computer's rank without playing for it: **+1**, **+10**,
   **30**, **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
   unlocks everything (every Boss Hunt, every perk, all perk slots, the Wildcard; saved on the profile) and **RESET** locks it
   again. Outside a run (main menu or lobby) the dock bar has a **MAX RANK + UNLOCK ALL** key instead.
-- **VIEW > DPS DETAILS AND TARGET DUMMIES… (host, in a run):** the DPS meter and target dummies, below.
-- **LABS > REPLAYS…:** record the runs you host and watch them back, below.
-- **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
-  F1 > LABS > Balance test…, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
-  runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
-  that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
-  wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
-  damage taken, downs, accuracy), tabs for **Waves**, **Weapons and abilities** (damage by source: your weapon, each ability's
-  own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
-  to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
-  that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
-  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 5, summarised by
-  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Every weapon hit (swings, beams, companions included) counts
-  as the weapon; damage from ability zones, minions and other lasting effects can't be traced to the cast that made it and
-  shows as "Other". Health paid for blood costs is listed as health spent, not damage taken. Design and fields: `Docs/BalanceTest.md`.
 
 ### Run snapshots (F6 / F7)
 
@@ -2208,40 +2189,6 @@ bot does the same thing again too). Files are kept in the profile's `snapshots` 
 - Loading marks the run as dev-touched (no records), like god mode. Your BOT and REC switches stay as they are.
 - Snapshots still load after code changes: a field that's gone is skipped and a new one keeps its current value (the
   sheet's note says how many). A renamed class can't load; the note says which.
-
-### Replays (F1)
-
-**F1 → LABS → Replays…** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
-default) and saves it as a `.replay` file in the `replays` folder when the run ends (or press **Stop and save**). The tab has
-**Open folder**, **Refresh** and a list of your replays, newest first: name, date, mode, wave reached, length, size and who played. Each has **Open**,
-**Rename** (type, then Enter or Save) and **Delete** (asks "Delete for good?" first). Runs under a second, the Practice Range's lobby preview and
-Boss Lab fights aren't saved.
-
-**Open** (from the main menu, not in a lobby) plays the run back in the game window as a spectator, with a **timeline** along the bottom:
-a **wave lane** (a block per wave, red for a boss; click one to jump to where it starts), a **time bar** to click or drag (blue ticks are waves,
-red a boss, amber a player going down), and buttons for **Pause / Play**, **-1 f / +1 f** (one frame), **|< Wave / Wave >|**, and speeds
-**0.1x, 0.5x, 1x, 2x, 4x, 10x forward and 10x, 4x, 1x, 0.5x, 0.1x backward**. Keys: **Space** pause, **, .** step a frame, **[ ]** next slower / faster
-speed (through backward too), **Left / Right** 5 s, **Home / End**, **V** (or the Following button) switch which player's screen you watch, **Esc** or
-**Close replay** back to the menu. It plays to the end and holds there.
-A replay is what a second player on the host's game would have seen, so it shows the run, not your inputs: you can watch, pause, rewind and scrub, but not
-take over and play from a point. Seeking anywhere takes a few milliseconds; shots that were already in the air for more than 6 s before the spot you jumped to
-aren't drawn. Nothing about a replay changes the network protocol.
-
-### DPS meter and target dummy (F2)
-
-For balancing. **F2** (or F1 → VIEW → *DPS details and target dummies…*) shows a **DPS meter** at the top left: for every player, the damage a second over
-the last second (big number), the last 5 seconds, the average, the best second, the total, and how much of it was
-burning, bleeding or poison. Every source counts (shots, minions, burning). The average only counts the time you
-were hitting something, so walking about doesn't drag it down. Next to it is **sim**, the no-upgrades figure the
-lobby shows for that weapon (`Defs.WeaponDps`), and how close you are to it. **Shift+F2** (or the **Reset** button)
-starts the meter over. Only the host sees it; nothing is sent over the network.
-
-**F1 → VIEW → DPS details and target dummies… → Spawn one in front of you** puts a **target dummy** down: a Thug that never dies, never shoots,
-never hurts to touch and can't be pushed, frozen or caged. It heals to full every tick and counts what it took (the
-meter shows "took N"). It doesn't count as an enemy, so the wave ends with it standing. Up to four; **Patrol side to
-side** makes them strafe to test moving targets, and **Remove all** clears them. Kill all (B) leaves them alone. Using
-the dummy marks the run as a dev run, like god mode. In the Practice Range, a wave with no enemies and **Loop** off is
-the quietest place to test.
 
 ### Editing text in the game (F4)
 
@@ -2317,34 +2264,12 @@ From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
-### Wave editor (F1)
+### Designed waves (.waves files)
 
-**F1 → LABS → Wave editor** designs waves on a timeline. A design is a set of waves; each wave has a **level** (how
-strong its enemies are, as that wave of a run), **groups** and **props**.
-
-- **Waves strip** (under the title): one numbered key per wave (click to open it), **+ NEW WAVE**, **DUPLICATE**,
-  **DELETE**, `<` `>` to move the wave earlier or later, its **LEVEL**, and **Loop the waves**. **UNDO** / **REDO**
-  (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z) cover every change, including deletes.
-- **Arena map** (top left): the five **spawn points A-E** (drag a letter to move it, for every wave) and the wave's
-  props. With a group selected, click a letter to send the group from it too (click it again to stop), or click empty
-  ground to send it from the nearest point. **Props** mode: click to place the picked prop (crate, big crate,
-  barrel, chest), drag to move, right-click to remove. The map also shows the wave at the playhead: who has arrived
-  and where they're heading.
-- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else; scroll for more),
-  **Squads** (the regular squads and the bosses' own, like the Riot line) and **Bosses**. **Drag** one onto the
-  timeline (a new group that starts where you let go), onto the map (a new group from the nearest spawn point, at the
-  playhead) or onto an existing group's bar (adds that enemy to it). A plain click adds a group at the playhead;
-  Shift-click an enemy to add one more to the selected group.
-- **Selected group** (top right): its name, which spawn points it comes from (several take turns), when it starts,
-  how it arrives (**one by one** with a **gap** between enemies, **together**, side by side in a **line**, or in a
-  **ring** round a player) and how many of each enemy. A squad keeps its own members and formation. **COPY** and
-  **DELETE** (or Ctrl+D and Delete).
-- **Timeline** (bottom): one track per group. Drag a bar to change when it starts, drag its right edge to spread
-  its enemies out; click or drag on the tracks to move the playhead; **PLAY** (or Space) runs the wave on the map.
-  The line under it says what you can do next. A wave ends once every group has arrived and everyone is down.
-- **SAVE** writes `<name>.waves` to the `waves` folder next to the practice folder; **OPEN** opens one (or starts a
-  new set). **TEST IN PRACTICE** plays the waves in the Practice Range, hosted by you, starting on the wave you're
-  editing (from the main menu, the lobby, or a run you host; it replaces that run).
+A designed wave set is a plain-text `.waves` file: spawn points A-E, then each wave's **level** (how strong its enemies
+are, as that wave of a run), its **groups** (who arrives, from which points, when and how: one by one with a gap,
+together, in a line or in a ring round a player; or a squad) and its **props**. Edit one by hand or in **Wave Lab**
+(`Tools/WaveLab/run.sh`), which also plays it.
 
 The `.waves` file is plain text, e.g.
 
@@ -2356,8 +2281,7 @@ wave 6 level 6
   prop crate 610,330
 ```
 
-**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder (in the Unity
-editor, the Load panel's **Save to project** writes it there), then run
+**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder, then run
 
 ```bash
 Tools/WaveGen/build.sh
@@ -2365,8 +2289,7 @@ Tools/WaveGen/build.sh
 
 It reads every file with the game's own parser and writes `Assets/Scripts/Core/DesignedWaves.Generated.cs`, code that
 builds each set, so a final build carries them with no loose files (`DesignedWaves.Get("<name>")`). A file with a
-problem stops it with the file, the line and what's wrong, and nothing is written. The Load panel lists the built-in
-sets under **Built into the game** (open one to look at or change a copy). The `wavegen` sim test fails if a file
+problem stops it with the file, the line and what's wrong, and nothing is written. The `wavegen` sim test fails if a file
 was added or changed without running the script.
 
 ### Session recording (for balancing)

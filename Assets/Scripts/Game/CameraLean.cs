@@ -37,7 +37,7 @@ namespace Arena
         {
             UpdateCameraZoom(dt);  // the scroll-wheel zoom (CameraZoom.cs)
             var me = game.Me;
-            bool live = camLean && session.Screen == AppScreen.Game && game.Running && me != null && !me.Downed && !EndingOn && !devFrozen;
+            bool live = camLean && session.Screen == AppScreen.Game && game.Running && me != null && !me.Downed && !EndingOn;
             if (!(session.Screen == AppScreen.Game && game.Running) || me == null)
             {
                 lean = V2.Zero;

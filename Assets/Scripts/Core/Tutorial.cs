@@ -82,7 +82,7 @@ namespace Arena
             return Current;
         }
 
-        /// Every game, as a run starts: on for a profile's first Quick Play (not for a bot, a replay or the lobby preview).
+        /// Every game, as a run starts: on for a profile's first Quick Play (not for a bot or the lobby preview).
         public void Begin(Game g)
         {
             done.Clear();
@@ -90,7 +90,7 @@ namespace Arena
             aimSet = false;
             var me = g.Me;
             var prof = g.Profile;
-            Active = g.Quick && me != null && prof != null && !prof.TutorialDone && !g.Bot && !g.Replaying && !g.ShowcaseMode && !g.Unrecorded;
+            Active = g.Quick && me != null && prof != null && !prof.TutorialDone && !g.Bot && !g.ShowcaseMode && !g.Unrecorded;
             takenAtStart = me != null ? me.Taken.Count : 0;
             boughtAtStart = Expansion.BoughtCount(g.Expanded);
             goldBefore = me != null ? me.Gold : 0;
