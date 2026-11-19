@@ -522,7 +522,65 @@ namespace Arena
             float speed = me.Speed * (bowDraw >= 0f ? BowDrawSlow : 1f);
             float T = sk.Lookahead, step = T / sk.Steps;
             float hitR = me.Def.HitR;
+            var ms = moveScene;
+            ms.misjudge = NoticeThreats(me, sk, speed, T);
+            ReadMoveScene(me, ms);
 
+            V2 best = V2.Zero;
+            float bestCost = float.MaxValue, bestDanger = 0f;
+            int lockedArea = RoomsOn && AreaLocked(CurrentWorld.AreaAt(me.Pos)) ? CurrentWorld.AreaAt(me.Pos) : -1;
+            for (int c = 0; c < 9; c++)
+            {
+                V2 dir = c == 8 ? V2.Zero : V2.FromAngle(MathX.Tau * c / 8f);  // WASD: 8 directions or standing still
+                float d = 0f;
+                V2 p = me.Pos;
+                for (int k = 1; k <= sk.Steps; k++)
+                {
+                    float t = k * step;
+                    p = me.Pos + dir * speed * t;
+                    if (PullStrength != 0f)
+                        p += (PullCenter - me.Pos).Normalized() * PullStrength * t;
+                    p += ms.windDrift * t;
+                    float w = 1.6f - t / T;  // sooner hits matter more
+                    AddShotDanger(ref d, me, sk, ms, p, t, w, hitR);
+                    AddEnemyDanger(ref d, me, sk, ms, p, t, w, hitR);
+                    AddArenaBossDanger(ref d, me, sk, ms, p, t, w, hitR);
+                    AddLateBossDanger(ref d, me, sk, ms, p, t, w, hitR);
+                }
+                AddEdgeDanger(ref d, p, hitR, ms, lockedArea);
+                float position = PlaceCost(me, ms, p, anchor, pref, stayNear, hitR);
+                float steady = (dir - botMove).Length * 0.04f;  // don't jitter between equal options
+                float cost = d + position + steady;
+                if (cost < bestCost)
+                {
+                    bestCost = cost;
+                    best = dir;
+                    bestDanger = d;
+                }
+            }
+            danger = bestDanger;
+            return best;
+        }
+
+        /// What ChooseMove reads once a tick: the bosses' lines and rings, where to hide or heal (one, reused).
+        sealed class MoveScene
+        {
+            public float misjudge, laserSpin, lureR;
+            public int lasers;
+            public V2 windDrift, shadowSpot, sunspot, lurePos;
+            public bool hide, seekLight, lure;
+            public Enemy sing, disk, colossus, twinA, twinB, herald, dev, eclipse;
+            public ColossusState col;
+            public HeraldState hs;
+            public DevourState ds;
+            public EclipseState es;
+            public Player conductor;
+        }
+        readonly MoveScene moveScene = new MoveScene();
+
+        /// The enemy shots the bot has noticed (on screen for its reaction time, as many as its attention holds), into botThreats; returns this tick's misjudging.
+        float NoticeThreats(Player me, SkillParams sk, float speed, float T)
+        {
             // Bullets we've noticed (a bullet has to be on screen for the reaction time first).
             botThreats.Clear();
             float reach = speed * T + 60f;
@@ -555,23 +613,29 @@ namespace Arena
                 foreach (var id in gone)
                     botSeen.Remove(id);
             }
+            return misjudge;
+        }
 
-            // The Singularity's lasers (once they're warned), its accretion disk and cage walls.
-            Enemy sing = null, disk = null;
+        /// Reads the bosses' state once a tick, and where to hide, find light or heal.
+        void ReadMoveScene(Player me, MoveScene ms)
+        {
+            // The Singularity's ms.lasers (once they're warned), its accretion ms.disk and cage walls.
+            ms.sing = null;
+            ms.disk = null;
             foreach (var e in Enemies.Values)
                 if (e.Type == EnemyType.Singularity && !IsSpawning(e))
                 {
                     if (e.Phase == SingLaserWarn || e.Phase == SingLasers)
-                        sing = e;
+                        ms.sing = e;
                     if (DiskUp(e))
-                        disk = e;
+                        ms.disk = e;
                 }
-            int lasers = sing != null ? SingLaserCount(sing) : 0;
-            float laserSpin = sing != null ? SingLaserSpin(sing) : 0f;
+            ms.lasers = ms.sing != null ? SingLaserCount(ms.sing) : 0;
+            ms.laserSpin = ms.sing != null ? SingLaserSpin(ms.sing) : 0f;
 
             // The Colossus's stomp rings, landings, fissures and charge (Colossus.cs).
-            var col = TheColossus()?.Colossus;
-            Enemy colossus = col != null ? TheColossus() : null;
+            ms.col = TheColossus()?.Colossus;
+            ms.colossus = ms.col != null ? TheColossus() : null;
             stompRings.Clear();
             quarryCracks.Clear();
             foreach (var se in Enemies.Values)
@@ -583,60 +647,64 @@ namespace Arena
             }
 
             // The Reapers' tether.
-            Enemy twinA = null, twinB = null;
+            ms.twinA = null;
+            ms.twinB = null;
             foreach (var e in Enemies.Values)
                 if (IsTwin(e.Type) && !IsSpawning(e) && e.Hp > 0f)
                 {
-                    if (twinA == null) twinA = e;
-                    else twinB = e;
+                    if (ms.twinA == null) ms.twinA = e;
+                    else ms.twinB = e;
                 }
 
             // The Storm Herald: its rods' arcs, ball lightning, the spokes, the Conductor and the wind (Herald.cs).
-            Enemy herald = null;
+            ms.herald = null;
             foreach (var e in Enemies.Values)
                 if (e.Type == EnemyType.StormHerald && e.Herald != null && !IsSpawning(e) && e.Herald.TransT <= 0f)
-                    herald = e;
-            var hs = herald?.Herald;
+                    ms.herald = e;
+            ms.hs = ms.herald?.Herald;
             botBalls.Clear();
             foreach (var e in Enemies.Values)
                 if (e.Type == EnemyType.BallLightning && !IsSpawning(e))
                     botBalls.Add(e);
-            V2 windDrift = HeraldWind(WindPush) + DevourPull(me.Pos);
+            ms.windDrift = HeraldWind(WindPush) + DevourPull(me.Pos);
             // The Devourer: its lunge lines, the inhale cone, the eruption, its Maw and the last stand's teeth (Devourer.cs).
-            Enemy dev = null;
+            ms.dev = null;
             foreach (var e in Enemies.Values)
                 if (e.Type == EnemyType.Devourer && e.Devour != null && !IsSpawning(e) && e.Devour.TransT <= 0f)
-                    dev = e;
-            var ds = dev?.Devour;
-            Player conductor = null;
-            if (hs != null && hs.CondId != 0)
-                Players.TryGetValue(hs.CondId, out conductor);
+                    ms.dev = e;
+            ms.ds = ms.dev?.Devour;
+            ms.conductor = null;
+            if (ms.hs != null && ms.hs.CondId != 0)
+                Players.TryGetValue(ms.hs.CondId, out ms.conductor);
 
-            // The Eclipse: flares, closing rings, the echoes' beams and disk, the flash (hide in the moon's shadow),
+            // The Eclipse: flares, closing rings, the echoes' beams and ms.disk, the flash (ms.hide in the moon's shadow),
             // the Umbra's sunspots and Last Light's burning edge (Eclipse.cs).
-            Enemy eclipse = TheEclipse();
-            var es = eclipse != null && eclipse.Eclipse.TransT <= 0f ? eclipse.Eclipse : null;
-            V2 shadowSpot = V2.Zero, sunspot = V2.Zero;
-            bool hide = es != null && es.FlashT > 0f && es.MoonD > 0f, seekLight = es != null && es.Stage == EclipseStage.Umbra && es.Spots.Count > 0;
-            if (hide)
+            ms.eclipse = TheEclipse();
+            ms.es = ms.eclipse != null && ms.eclipse.Eclipse.TransT <= 0f ? ms.eclipse.Eclipse : null;
+            ms.shadowSpot = V2.Zero;
+            ms.sunspot = V2.Zero;
+            ms.hide = ms.es != null && ms.es.FlashT > 0f && ms.es.MoonD > 0f;
+            ms.seekLight = ms.es != null && ms.es.Stage == EclipseStage.Umbra && ms.es.Spots.Count > 0;
+            if (ms.hide)
             {
                 // Deeper in the shadow than the moon, a little apart from the others; where it'll be when the flash goes.
-                V2 sp = eclipse.Pos + V2.FromAngle(es.MoonA) * (es.MoonD + 110f + (me.Id % 3) * 50f);
-                float m = Math.Max(40f, es.Inset + 30f);
-                shadowSpot = new V2(Math.Max(m, Math.Min(Width - m, sp.X)), Math.Max(m, Math.Min(Height - m, sp.Y)));
+                V2 sp = ms.eclipse.Pos + V2.FromAngle(ms.es.MoonA) * (ms.es.MoonD + 110f + (me.Id % 3) * 50f);
+                float m = Math.Max(40f, ms.es.Inset + 30f);
+                ms.shadowSpot = new V2(Math.Max(m, Math.Min(Width - m, sp.X)), Math.Max(m, Math.Min(Height - m, sp.Y)));
             }
-            if (seekLight)
+            if (ms.seekLight)
             {
-                sunspot = es.Spots[0].Pos;
-                foreach (var spot in es.Spots)
-                    if (spot.Pos.DistanceSq(me.Pos) < sunspot.DistanceSq(me.Pos))
-                        sunspot = spot.Pos;
+                ms.sunspot = ms.es.Spots[0].Pos;
+                foreach (var spot in ms.es.Spots)
+                    if (spot.Pos.DistanceSq(me.Pos) < ms.sunspot.DistanceSq(me.Pos))
+                        ms.sunspot = spot.Pos;
             }
 
             // Hurt: healing orbs and the team's healing zones (rain, tree, pools, wards, ...) are worth walking to.
-            bool lure = false;
-            V2 lurePos = V2.Zero;
-            float lureR = 0f, lureD = 450f;
+            ms.lure = false;
+            ms.lurePos = V2.Zero;
+            ms.lureR = 0f;
+            float lureD = 450f;
             if (me.Hp < me.MaxHp * 0.7f)
             {
                 foreach (var o in Orbs.Values)
@@ -644,223 +712,230 @@ namespace Arena
                     if (!CanTake(me, o.Owner))
                         continue;  // (a teammate's copy: Coins.cs)
                     float od = o.Pos.DistanceTo(me.Pos) - 30f;
-                    if (od < lureD) { lureD = od; lurePos = o.Pos; lureR = 30f; lure = true; }
+                    if (od < lureD) { lureD = od; ms.lurePos = o.Pos; ms.lureR = 30f; ms.lure = true; }
                 }
                 foreach (var z in Zones.Values)
                 {
                     if (z.Kind == ZoneKind.LumenWard || z.Def.HealRate <= 0f && z.Kind != ZoneKind.Sanctum)
                         continue;
                     float zd = z.Pos.DistanceTo(me.Pos) - (z.Radius - 10f);
-                    if (zd < lureD) { lureD = zd; lurePos = z.Pos; lureR = z.Radius - 10f; lure = true; }
+                    if (zd < lureD) { lureD = zd; ms.lurePos = z.Pos; ms.lureR = z.Radius - 10f; ms.lure = true; }
                 }
             }
+        }
 
-            V2 best = V2.Zero;
-            float bestCost = float.MaxValue, bestDanger = 0f;
-            int lockedArea = RoomsOn && AreaLocked(CurrentWorld.AreaAt(me.Pos)) ? CurrentWorld.AreaAt(me.Pos) : -1;
-            for (int c = 0; c < 9; c++)
+        /// Noticed shots where they'll be at t.
+        void AddShotDanger(ref float d, Player me, SkillParams sk, MoveScene ms, V2 p, float t, float w, float hitR)
+        {
+            foreach (var b in botThreats)
             {
-                V2 dir = c == 8 ? V2.Zero : V2.FromAngle(MathX.Tau * c / 8f);  // WASD: 8 directions or standing still
-                float d = 0f;
-                V2 p = me.Pos;
-                for (int k = 1; k <= sk.Steps; k++)
+                V2 bp = b.AngVel == 0f ? b.Pos + b.Vel * t : b.Pos + b.Vel.Rotated(b.AngVel * t * 0.5f) * t;
+                float r = hitR + b.Radius + sk.Margin + ms.misjudge;
+                float dd = bp.DistanceSq(p);
+                if (dd < r * r)
+                    d += w * (1f + (r - (float)Math.Sqrt(dd)) / r);
+            }
+        }
+
+        /// Enemies' bodies, hazards, burning patches, Accretion rings, and the factions' lines, beams and traps.
+        void AddEnemyDanger(ref float d, Player me, SkillParams sk, MoveScene ms, V2 p, float t, float w, float hitR)
+        {
+            foreach (var e in Enemies.Values)
+            {
+                if (IsSpawning(e))
+                    continue;
+                V2 ev;
+                botEnemyVel.TryGetValue(e.Id, out ev);
+                float r = e.Radius + hitR + 10f + (e.Type == EnemyType.HiveBomber ? BomberBlast : 0f);
+                if ((e.Pos + ev * t).DistanceSq(p) < r * r)
+                    d += w * 2f;
+            }
+            foreach (var h in Hazards.Values)
+                if (h.T < t + 0.2f && h.Pos.CloserThan(p, h.Radius + hitR + 8f))
+                    d += w * 3f;
+            foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile or tear gas: burning now or about to (Paths.cs)
+                if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Dusk || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.CloserThan(p, pt.Radius + hitR + 8f))
+                    d += w * 3f;
+            if (AccretionBands.Count > 0)
+                d += w * AccretionBotDanger(p, hitR);  // a closing Accretion ring: out through a gap (Infall.cs)
+            foreach (var e in Enemies.Values)  // the factions' lines, beams and traps
+            {
+                if ((e.Type == EnemyType.FloorMine || e.Type == EnemyType.ShackleTrap) && e.Phase >= 1 && e.Phase < 3
+                    && e.Pos.DistanceTo(p) < (e.Phase == 2 && e.Type == EnemyType.FloorMine ? FloorMineBlast : FloorMineTrigger) + hitR + 8f)
+                    d += w * 3f;  // a Turnkey's traps (Turnkey.cs)
+                if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
+                    d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
+                else if (e.Type == EnemyType.Pylon && e.Phase >= PylonFlicker && PylonLineDistance(e, PylonPartner(e), p) < hitR + 30f)
+                    d += w * 2.5f;  // a Pylon pair's arc about to fire (Squall.cs)
+                else if (IsInfall(e.Type))
+                    d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
+                else if (HelioLocked(e) || GnomonLocked(e) || NovaLit(e))
+                    d += w * PenumbralBotDanger(e, p, hitR);  // a Heliograph's line (Penumbral.cs)
+                else if (e.Type == EnemyType.RiotCaptain && (e.Phase == CapWinding || e.Phase == CapCharging))
                 {
-                    float t = k * step;
-                    p = me.Pos + dir * speed * t;
-                    if (PullStrength != 0f)
-                        p += (PullCenter - me.Pos).Normalized() * PullStrength * t;
-                    p += windDrift * t;
-                    float w = 1.6f - t / T;  // sooner hits matter more
-                    foreach (var b in botThreats)
+                    // The Riot Captain's shield charge: get off its line (RiotCaptain.cs).
+                    V2 rel = p - e.Pos, fwd = V2.FromAngle(e.Facing);
+                    float along = rel.Dot(fwd), across = Math.Abs(rel.Dot(fwd.Orthogonal()));
+                    if (along > -e.Radius && along < CaptainDash * CaptainDashTime + e.Radius && across < e.Radius + hitR + 30f)
+                        d += w * 3f;
+                }
+                else if (IsWallKin(e.Type) && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
+                {
+                    // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
+                    V2 rel = p - e.Pos;
+                    float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
+                    if (rel.Length < e.Radius + hitR + 110f && off < 1.2f)
+                        d += w * 3f;
+                }
+                else if (IsSwordsman(e.Type) && e.Phase == 1 && e.PhaseT < t + 0.35f)
+                {
+                    // An Acolyte about to cut: stay out of its cone (Swordsman.cs).
+                    V2 rel = p - e.Pos;
+                    float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
+                    if (rel.Length < SwordReachOf(e.Type) + hitR + 10f && off < SwordHalfOf(e.Type) + 0.25f)
+                        d += w * 3f;
+                }
+            }
+        }
+
+        /// Stomp rings, cracks, the Colossus, the Reapers' tether, the Singularity's lasers and disk.
+        void AddArenaBossDanger(ref float d, Player me, SkillParams sk, MoveScene ms, V2 p, float t, float w, float hitR)
+        {
+            foreach (var r in stompRings)
+                if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
+                    d += w * 2.5f;
+            foreach (var ck in quarryCracks)
+                if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHalfW + 4f)
+                    d += w * 1.5f;
+            if (ms.col != null)
+            {
+                foreach (var r in ms.col.Rings)  // where each ring's band will be by then, unless you're in a gap
+                    if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
+                        d += w * 2.5f;
+                foreach (var dr in ms.col.Drops)
+                    if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.CloserThan(p, dr.Radius + hitR + 8f))
+                        d += w * 3f;
+                foreach (var ck in ms.col.Cracks)
+                    if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + 18f)
+                        d += w * 1.5f;
+                if (ms.col.ChargeWarn > 0f && ms.colossus != null && p.DistanceToSegment(ms.colossus.Pos, ms.colossus.Pos + V2.FromAngle(ms.col.ChargeDir) * ColChargeLength) < ms.colossus.Radius + hitR + 10f)
+                    d += w * 3f;
+            }
+            if (ms.twinB != null && p.DistanceToSegment(ms.twinA.Pos, ms.twinB.Pos) < TetherWidth / 2f + hitR + 10f)
+                d += w * 2f;
+            if (ms.sing != null)
+                for (int l = 0; l < ms.lasers; l++)
+                    if (OnLaser(ms.sing.Pos, ms.sing.Facing + (ms.sing.Phase == SingLasers ? ms.laserSpin * t : 0f) + MathX.Tau * l / ms.lasers, p, LaserWidth / 2f + hitR + sk.Margin + 4f))
                     {
-                        V2 bp = b.AngVel == 0f ? b.Pos + b.Vel * t : b.Pos + b.Vel.Rotated(b.AngVel * t * 0.5f) * t;
-                        float r = hitR + b.Radius + sk.Margin + misjudge;
-                        float dd = bp.DistanceSq(p);
-                        if (dd < r * r)
-                            d += w * (1f + (r - (float)Math.Sqrt(dd)) / r);
-                    }
-                    foreach (var e in Enemies.Values)
-                    {
-                        if (IsSpawning(e))
-                            continue;
-                        V2 ev;
-                        botEnemyVel.TryGetValue(e.Id, out ev);
-                        float r = e.Radius + hitR + 10f + (e.Type == EnemyType.HiveBomber ? BomberBlast : 0f);
-                        if ((e.Pos + ev * t).DistanceSq(p) < r * r)
-                            d += w * 2f;
-                    }
-                    foreach (var h in Hazards.Values)
-                        if (h.T < t + 0.2f && h.Pos.CloserThan(p, h.Radius + hitR + 8f))
-                            d += w * 3f;
-                    foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile or tear gas: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Dusk || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.CloserThan(p, pt.Radius + hitR + 8f))
-                            d += w * 3f;
-                    if (AccretionBands.Count > 0)
-                        d += w * AccretionBotDanger(p, hitR);  // a closing Accretion ring: out through a gap (Infall.cs)
-                    foreach (var e in Enemies.Values)  // the factions' lines, beams and traps
-                    {
-                        if ((e.Type == EnemyType.FloorMine || e.Type == EnemyType.ShackleTrap) && e.Phase >= 1 && e.Phase < 3
-                            && e.Pos.DistanceTo(p) < (e.Phase == 2 && e.Type == EnemyType.FloorMine ? FloorMineBlast : FloorMineTrigger) + hitR + 8f)
-                            d += w * 3f;  // a Turnkey's traps (Turnkey.cs)
-                        if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
-                            d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
-                        else if (e.Type == EnemyType.Pylon && e.Phase >= PylonFlicker && PylonLineDistance(e, PylonPartner(e), p) < hitR + 30f)
-                            d += w * 2.5f;  // a Pylon pair's arc about to fire (Squall.cs)
-                        else if (IsInfall(e.Type))
-                            d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
-                        else if (HelioLocked(e) || GnomonLocked(e) || NovaLit(e))
-                            d += w * PenumbralBotDanger(e, p, hitR);  // a Heliograph's line (Penumbral.cs)
-                        else if (e.Type == EnemyType.RiotCaptain && (e.Phase == CapWinding || e.Phase == CapCharging))
-                        {
-                            // The Riot Captain's shield charge: get off its line (RiotCaptain.cs).
-                            V2 rel = p - e.Pos, fwd = V2.FromAngle(e.Facing);
-                            float along = rel.Dot(fwd), across = Math.Abs(rel.Dot(fwd.Orthogonal()));
-                            if (along > -e.Radius && along < CaptainDash * CaptainDashTime + e.Radius && across < e.Radius + hitR + 30f)
-                                d += w * 3f;
-                        }
-                        else if (IsWallKin(e.Type) && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
-                        {
-                            // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
-                            V2 rel = p - e.Pos;
-                            float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
-                            if (rel.Length < e.Radius + hitR + 110f && off < 1.2f)
-                                d += w * 3f;
-                        }
-                        else if (IsSwordsman(e.Type) && e.Phase == 1 && e.PhaseT < t + 0.35f)
-                        {
-                            // An Acolyte about to cut: stay out of its cone (Swordsman.cs).
-                            V2 rel = p - e.Pos;
-                            float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
-                            if (rel.Length < SwordReachOf(e.Type) + hitR + 10f && off < SwordHalfOf(e.Type) + 0.25f)
-                                d += w * 3f;
-                        }
-                    }
-                    foreach (var r in stompRings)
-                        if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
-                            d += w * 2.5f;
-                    foreach (var ck in quarryCracks)
-                        if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHalfW + 4f)
-                            d += w * 1.5f;
-                    if (col != null)
-                    {
-                        foreach (var r in col.Rings)  // where each ring's band will be by then, unless you're in a gap
-                            if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
-                                d += w * 2.5f;
-                        foreach (var dr in col.Drops)
-                            if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.CloserThan(p, dr.Radius + hitR + 8f))
-                                d += w * 3f;
-                        foreach (var ck in col.Cracks)
-                            if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + 18f)
-                                d += w * 1.5f;
-                        if (col.ChargeWarn > 0f && colossus != null && p.DistanceToSegment(colossus.Pos, colossus.Pos + V2.FromAngle(col.ChargeDir) * ColChargeLength) < colossus.Radius + hitR + 10f)
-                            d += w * 3f;
-                    }
-                    if (twinB != null && p.DistanceToSegment(twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
                         d += w * 2f;
-                    if (sing != null)
-                        for (int l = 0; l < lasers; l++)
-                            if (OnLaser(sing.Pos, sing.Facing + (sing.Phase == SingLasers ? laserSpin * t : 0f) + MathX.Tau * l / lasers, p, LaserWidth / 2f + hitR + sk.Margin + 4f))
-                            {
-                                d += w * 2f;
-                                break;
-                            }
-                    if (disk != null)  // where the disk's orbs will be by then
-                    {
-                        float orbReach = DiskOrbR + hitR + sk.Margin + 4f, dc = p.DistanceTo(disk.Pos);
-                        if (Math.Abs(dc - DiskInnerR) < orbReach || Math.Abs(dc - DiskOuterR) < orbReach)
-                        {
-                            disk.Sing.DiskT += t;
-                            for (int ring = 0; ring < 2; ring++)
-                                for (int i = 0; i < (ring == 0 ? DiskInnerN : DiskOuterN); i++)
-                                {
-                                    V2 at;
-                                    if (DiskOrb(disk.Sing, disk.Pos, ring, i, out at) && at.CloserThan(p, orbReach))
-                                        d += w * 2f;
-                                }
-                            disk.Sing.DiskT -= t;
-                        }
+                        break;
                     }
-                    if (ds != null)
-                    {
-                        float pad = hitR + sk.Margin + 8f;
-                        if (ds.Lunging && p.DistanceToSegment(ds.LungeFrom, ds.LungeFrom + V2.FromAngle(ds.LungeAng) * (ds.LungeLen + BiteReach * 0.6f)) < dev.Radius + pad)
-                            d += w * 3f;
-                        V2 off = p - dev.Pos;
-                        if ((ds.InhaleT > 0f || ds.Turn == DevourTurn.Inhale) && off.Length < InhaleReach + 40f
-                            && Math.Abs(MathX.WrapPi(off.Angle - dev.Facing)) < InhaleHalf + 0.15f)
+            if (ms.disk != null)  // where the ms.disk's orbs will be by then
+            {
+                float orbReach = DiskOrbR + hitR + sk.Margin + 4f, dc = p.DistanceTo(ms.disk.Pos);
+                if (Math.Abs(dc - DiskInnerR) < orbReach || Math.Abs(dc - DiskOuterR) < orbReach)
+                {
+                    ms.disk.Sing.DiskT += t;
+                    for (int ring = 0; ring < 2; ring++)
+                        for (int i = 0; i < (ring == 0 ? DiskInnerN : DiskOuterN); i++)
+                        {
+                            V2 at;
+                            if (DiskOrb(ms.disk.Sing, ms.disk.Pos, ring, i, out at) && at.CloserThan(p, orbReach))
+                                d += w * 2f;
+                        }
+                    ms.disk.Sing.DiskT -= t;
+                }
+            }
+        }
+
+        /// The Devourer, the Storm Herald, the Eclipse, ball lightning and cages.
+        void AddLateBossDanger(ref float d, Player me, SkillParams sk, MoveScene ms, V2 p, float t, float w, float hitR)
+        {
+            if (ms.ds != null)
+            {
+                float pad = hitR + sk.Margin + 8f;
+                if (ms.ds.Lunging && p.DistanceToSegment(ms.ds.LungeFrom, ms.ds.LungeFrom + V2.FromAngle(ms.ds.LungeAng) * (ms.ds.LungeLen + BiteReach * 0.6f)) < ms.dev.Radius + pad)
+                    d += w * 3f;
+                V2 off = p - ms.dev.Pos;
+                if ((ms.ds.InhaleT > 0f || ms.ds.Turn == DevourTurn.Inhale) && off.Length < InhaleReach + 40f
+                    && Math.Abs(MathX.WrapPi(off.Angle - ms.dev.Facing)) < InhaleHalf + 0.15f)
+                    d += w * 2.5f;
+                if (ms.ds.BurrowT > 0f && off.Length < EruptRadius + pad + (ms.ds.BurrowT < BurrowChase ? 60f : 0f))
+                    d += w * 3f;
+                if (ms.ds.Stage == DevourStage.Ravenous && InMaw(ms.dev, p))
+                    d += w * 0.5f;  // rather be on its back
+                if (ms.ds.Stage == DevourStage.LastStand)
+                    for (int tk = 0; tk < 12; tk++)
+                        if (tk != 0 && tk != 6 && p.CloserThan(ToothPos(ms.dev.Pos, ms.ds.Spin + TeethSpin * t, tk), ToothHit + pad))
+                        {
                             d += w * 2.5f;
-                        if (ds.BurrowT > 0f && off.Length < EruptRadius + pad + (ds.BurrowT < BurrowChase ? 60f : 0f))
-                            d += w * 3f;
-                        if (ds.Stage == DevourStage.Ravenous && InMaw(dev, p))
-                            d += w * 0.5f;  // rather be on its back
-                        if (ds.Stage == DevourStage.LastStand)
-                            for (int tk = 0; tk < 12; tk++)
-                                if (tk != 0 && tk != 6 && p.CloserThan(ToothPos(dev.Pos, ds.Spin + TeethSpin * t, tk), ToothHit + pad))
-                                {
-                                    d += w * 2.5f;
-                                    break;
-                                }
-                    }
-                    if (hs != null)
-                    {
-                        float arcReach = RodArcWidth / 2f + hitR + sk.Margin + 6f;
-                        foreach (var a in hs.Arcs)
-                            if (a.A < hs.Rods.Count && a.B < hs.Rods.Count && a.T + t + 0.25f >= a.Warn && a.T + t <= a.Warn + ArcLive
-                                && p.DistanceToSegment(hs.Rods[a.A].Pos, hs.Rods[a.B].Pos) < arcReach)
-                                d += w * 3f;
-                        if (hs.Stage == HeraldStage.LastStand)
-                            for (int sp = 0; sp < 4; sp++)
-                                if (p.DistanceToSegment(herald.Pos, herald.Pos + V2.FromAngle(hs.Spin + SpokeSpin * t + sp * MathX.Pi / 2f) * SpokeLength) < SpokeWidth / 2f + hitR + sk.Margin + 6f)
-                                {
-                                    d += w * 2f;
-                                    break;
-                                }
-                        if (conductor != null && hs.CondT < t + 1.5f)  // the charge is about to jump: keep apart
-                        {
-                            if (conductor == me)
-                            {
-                                foreach (var q in Players.Values)
-                                    if (q != me && !q.Downed && q.Pos.CloserThan(p, ConductorRadius + 30f))
-                                        d += w * 2f;
-                            }
-                            else if (conductor.Pos.CloserThan(p, ConductorRadius + 30f))
-                                d += w * 2f;
+                            break;
                         }
-                    }
-                    if (es != null)
-                    {
-                        float eReach = hitR + sk.Margin + 6f;
-                        foreach (var f in es.Flares)
-                            if (f.T + t + 0.2f >= FlareWarn && f.T + t <= FlareWarn + FlareLive
-                                && p.DistanceToSegment(f.From, f.From + V2.FromAngle(f.Ang) * FlareLen) < FlareWidth / 2f + eReach)
-                                d += w * 3f;
-                        foreach (var r in es.Rings)
-                            if (Math.Abs(p.DistanceTo(r.Center) - (r.R - UmbraRingSpeed * t)) < UmbraRingWidth / 2f + eReach && !InUmbraGap(r, p))
-                                d += w * 3f;
-                        if (es.SweepOn > 0)
+            }
+            if (ms.hs != null)
+            {
+                float arcReach = RodArcWidth / 2f + hitR + sk.Margin + 6f;
+                foreach (var a in ms.hs.Arcs)
+                    if (a.A < ms.hs.Rods.Count && a.B < ms.hs.Rods.Count && a.T + t + 0.25f >= a.Warn && a.T + t <= a.Warn + ArcLive
+                        && p.DistanceToSegment(ms.hs.Rods[a.A].Pos, ms.hs.Rods[a.B].Pos) < arcReach)
+                        d += w * 3f;
+                if (ms.hs.Stage == HeraldStage.LastStand)
+                    for (int sp = 0; sp < 4; sp++)
+                        if (p.DistanceToSegment(ms.herald.Pos, ms.herald.Pos + V2.FromAngle(ms.hs.Spin + SpokeSpin * t + sp * MathX.Pi / 2f) * SpokeLength) < SpokeWidth / 2f + hitR + sk.Margin + 6f)
                         {
-                            float a = es.SweepA + EchoSweepSpin * (es.SweepOn == 2 ? t : Math.Max(0f, t - (EchoSweepWarn - es.SweepT)));
-                            for (int k2 = 0; k2 < 2; k2++)
-                                if (p.DistanceToSegment(eclipse.Pos, eclipse.Pos + V2.FromAngle(a + k2 * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + eReach)
-                                    d += w * 2f;
+                            d += w * 2f;
+                            break;
                         }
-                        if (es.DiskT >= 0f)
-                            for (int k2 = 0; k2 < DiskOrbs; k2++)
-                                if (DiskOrbAt(eclipse.Pos, es.DiskT + t, k2).DistanceTo(p) < EchoDiskOrbR + eReach)
-                                    d += w * 2f;
-                        if (es.FlashT > 0f && es.FlashT < t + 0.3f && !InMoonShadow(es, eclipse.Pos, p, hitR))
-                            d += w * 4f;
-                        if (seekLight && !InSunlight(es, p, hitR))
-                            d += w * 0.3f;
-                    }
-                    for (int i = 0; i < botBalls.Count; i++)
-                        for (int j = i + 1; j < botBalls.Count; j++)
-                            if (botBalls[i].Pos.CloserThan(botBalls[j].Pos, BallArcRange) && p.DistanceToSegment(botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
+                if (ms.conductor != null && ms.hs.CondT < t + 1.5f)  // the charge is about to jump: keep apart
+                {
+                    if (ms.conductor == me)
+                    {
+                        foreach (var q in Players.Values)
+                            if (q != me && !q.Downed && q.Pos.CloserThan(p, ConductorRadius + 30f))
                                 d += w * 2f;
-                    foreach (var cg in Cages.Values)
-                        if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
+                    }
+                    else if (ms.conductor.Pos.CloserThan(p, ConductorRadius + 30f))
+                        d += w * 2f;
+                }
+            }
+            if (ms.es != null)
+            {
+                float eReach = hitR + sk.Margin + 6f;
+                foreach (var f in ms.es.Flares)
+                    if (f.T + t + 0.2f >= FlareWarn && f.T + t <= FlareWarn + FlareLive
+                        && p.DistanceToSegment(f.From, f.From + V2.FromAngle(f.Ang) * FlareLen) < FlareWidth / 2f + eReach)
+                        d += w * 3f;
+                foreach (var r in ms.es.Rings)
+                    if (Math.Abs(p.DistanceTo(r.Center) - (r.R - UmbraRingSpeed * t)) < UmbraRingWidth / 2f + eReach && !InUmbraGap(r, p))
+                        d += w * 3f;
+                if (ms.es.SweepOn > 0)
+                {
+                    float a = ms.es.SweepA + EchoSweepSpin * (ms.es.SweepOn == 2 ? t : Math.Max(0f, t - (EchoSweepWarn - ms.es.SweepT)));
+                    for (int k2 = 0; k2 < 2; k2++)
+                        if (p.DistanceToSegment(ms.eclipse.Pos, ms.eclipse.Pos + V2.FromAngle(a + k2 * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + eReach)
                             d += w * 2f;
                 }
+                if (ms.es.DiskT >= 0f)
+                    for (int k2 = 0; k2 < DiskOrbs; k2++)
+                        if (DiskOrbAt(ms.eclipse.Pos, ms.es.DiskT + t, k2).DistanceTo(p) < EchoDiskOrbR + eReach)
+                            d += w * 2f;
+                if (ms.es.FlashT > 0f && ms.es.FlashT < t + 0.3f && !InMoonShadow(ms.es, ms.eclipse.Pos, p, hitR))
+                    d += w * 4f;
+                if (ms.seekLight && !InSunlight(ms.es, p, hitR))
+                    d += w * 0.3f;
+            }
+            for (int i = 0; i < botBalls.Count; i++)
+                for (int j = i + 1; j < botBalls.Count; j++)
+                    if (botBalls[i].Pos.CloserThan(botBalls[j].Pos, BallArcRange) && p.DistanceToSegment(botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
+                        d += w * 2f;
+            foreach (var cg in Cages.Values)
+                if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
+                    d += w * 2f;
+        }
+
+        /// Where the step ends: walls, Last Light's edge, the Rooms arena's walls and corners, the screen edge.
+        void AddEdgeDanger(ref float d, V2 p, float hitR, MoveScene ms, int lockedArea)
+        {
                 // Moving off the arena wraps you around: fine to escape that way, but don't plan on it. Narrow Pass's
                 // walls can't be crossed, and hugging them leaves no room to dodge.
                 if (Walled)
@@ -870,10 +945,10 @@ namespace Arena
                     if (room < 50f)
                         d += 0.6f * (50f - room) / 50f;
                 }
-                else if (es != null && es.Inset > 0f)
+                else if (ms.es != null && ms.es.Inset > 0f)
                 {
                     // Last Light's burning edge can't be crossed either.
-                    float room = Math.Min(Math.Min(p.X, Width - p.X), Math.Min(p.Y, Height - p.Y)) - es.Inset;
+                    float room = Math.Min(Math.Min(p.X, Width - p.X), Math.Min(p.Y, Height - p.Y)) - ms.es.Inset;
                     if (room < 60f)
                         d += 0.8f * (60f - room) / 60f;
                 }
@@ -892,31 +967,26 @@ namespace Arena
                 }
                 else if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
                     d += 0.2f;
+        }
+
+        /// How well placed the step's end is: range to the anchor, near the ally to stay by, shadow or light, healing.
+        float PlaceCost(Player me, MoveScene ms, V2 p, V2 anchor, float pref, Player stayNear, float hitR)
+        {
                 float dist = p.DistanceTo(anchor);
                 float position = 0.35f * Math.Min(4f, Math.Abs(dist - pref) / 200f) * (pref == 0f ? 3f : 1f);
                 if (stayNear != null)
                     position += 0.25f * Math.Max(0f, p.DistanceTo(stayNear.Pos) - 220f) / 200f;
-                if (hide)
-                    position += 1.2f * Math.Min(4f, p.DistanceTo(shadowSpot) / 150f);  // get into the moon's shadow
-                else if (seekLight && !InSunlight(es, p, hitR + 15f))
-                    position += 0.6f * Math.Min(3f, p.DistanceTo(sunspot) / 150f);  // back into the light
-                if (lure)
-                    position += 0.3f * Math.Min(3f, Math.Max(0f, p.DistanceTo(lurePos) - lureR) / 150f);
-                float steady = (dir - botMove).Length * 0.04f;  // don't jitter between equal options
+                if (ms.hide)
+                    position += 1.2f * Math.Min(4f, p.DistanceTo(ms.shadowSpot) / 150f);  // get into the moon's shadow
+                else if (ms.seekLight && !InSunlight(ms.es, p, hitR + 15f))
+                    position += 0.6f * Math.Min(3f, p.DistanceTo(ms.sunspot) / 150f);  // back into the light
+                if (ms.lure)
+                    position += 0.3f * Math.Min(3f, Math.Max(0f, p.DistanceTo(ms.lurePos) - ms.lureR) / 150f);
                 if (me.Hp < me.MaxHp * 0.7f)  // hurt: Sanctuary's healing pools are worth standing in (Paths.cs)
                     foreach (var pt in Patches.Values)
                         if (pt.Kind == PatchKind.Heal && pt.Pos.CloserThan(p, pt.Radius - 10f))
                             position -= 0.3f;
-                float cost = d + position + steady;
-                if (cost < bestCost)
-                {
-                    bestCost = cost;
-                    best = dir;
-                    bestDanger = d;
-                }
-            }
-            danger = bestDanger;
-            return best;
+            return position;
         }
 
         readonly List<Enemy> botBalls = new List<Enemy>();

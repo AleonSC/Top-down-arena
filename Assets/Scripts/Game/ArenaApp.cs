@@ -244,6 +244,23 @@ namespace Arena
                 ReplayUpdate();  // watching a replay: nobody is at the controls (ReplayUi.cs)
                 return;
             }
+            TickFrameSystems();
+            var me = game.Me;
+            bool tabKey = UpdatePauseStates(me);
+            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || ModalScreenOpen;
+            bool choosing = me != null && me.Offer != null && !menuUp;
+            UpdatePointerAndBlocking(me, tabKey, menuUp, choosing);
+            if (!menuUp)
+                ReadPlayKeys();
+            UpdateToggleKeys();
+            UpdateCardPicker(me, choosing);
+            UpdateWorldKeys(me, menuUp);
+            HandleEscAndEndKeys(me, menuUp);
+        }
+
+        /// The game, the network, bots, sounds and every per-frame animation tick.
+        void TickFrameSystems()
+        {
             Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
             session.Poll();
             PacmanUpdate();  // the Pac-Man game, when a Pac profile's Play opened it (PacmanUi.cs)
@@ -268,7 +285,11 @@ namespace Arena
             UpdateCameraLean(Time.unscaledDeltaTime);  // the picture eases toward your aim (CameraLean.cs)
             StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (WindowAnim.cs)
             LagChartUpdate();  // F5: the lag chart, and its frame times (LagChartUi.cs)
-            var me = game.Me;
+        }
+
+        /// Menus that close with their screen, F1, Tab's solo pause and the F1 pause key (P). Returns whether Tab is held for the Run stats.
+        bool UpdatePauseStates(Player me)
+        {
             // If someone else resumes while our menu is open, close it.
             if (wasPaused && !game.Paused)
                 pauseMenuOpen = false;
@@ -334,8 +355,12 @@ namespace Arena
                     game.RequestPause(true);
                 }
             }
-            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || ModalScreenOpen;
-            bool choosing = me != null && me.Offer != null && !menuUp;
+            return tabKey;
+        }
+
+        /// What the mouse and the Fire / Parry keys are for this frame: a menu, the emote bar, the ping wheel, the chat, or the run; and the pointer.
+        void UpdatePointerAndBlocking(Player me, bool tabKey, bool menuUp, bool choosing)
+        {
             // The Hangout's ability press is caught here, every frame, and used by its next draw (a key press read only inside OnGUI could be missed).
             if (session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab && (Keybinds.Down(KeyAction.Ability1) || Keybinds.Down(KeyAction.Parry)))
                 hangoutCastLatch = true;
@@ -379,59 +404,65 @@ namespace Arena
             cursorWantPointer = inMenus || overlayPointer;
             Cursor.visible = false;
             StepCursorMorph(cursorWantPointer);
+        }
 
-            if (!menuUp)
+        /// Dodge (its key or a double tap) and the ability keys, remembered until the next fixed step.
+        void ReadPlayKeys()
+        {
+            // Dodge: its key, or a double tap of a movement key (also remembered between fixed steps).
+            if (Keybinds.Down(KeyAction.Dodge))
             {
-                // Dodge: its key, or a double tap of a movement key (also remembered between fixed steps).
-                if (Keybinds.Down(KeyAction.Dodge))
+                wantDodge = true;
+                dodgeKey = -1;
+            }
+            for (int mi = 0; mi < 4; mi++)
+            {
+                var ma = (KeyAction)mi;  // MoveUp..MoveRight
+                if (!MoveDown(ma))
+                    continue;
+                if (lastTapAction == mi && Time.unscaledTime - lastTapTime <= DoubleTapWindow)
                 {
                     wantDodge = true;
-                    dodgeKey = -1;
+                    dodgeKey = mi;  // double tap and hold the key to sprint
+                    lastTapAction = -1;
                 }
-                for (int mi = 0; mi < 4; mi++)
+                else
                 {
-                    var ma = (KeyAction)mi;  // MoveUp..MoveRight
-                    if (!MoveDown(ma))
-                        continue;
-                    if (lastTapAction == mi && Time.unscaledTime - lastTapTime <= DoubleTapWindow)
-                    {
-                        wantDodge = true;
-                        dodgeKey = mi;  // double tap and hold the key to sprint
-                        lastTapAction = -1;
-                    }
-                    else
-                    {
-                        lastTapAction = mi;
-                        lastTapTime = Time.unscaledTime;
-                    }
-                }
-                // Remember ability presses between fixed steps so quick taps aren't lost.
-                if (Keybinds.Down(KeyAction.Ability1))
-                {
-                    wantAbility[0] = true;
-                    TileKeyPressed(0);  // still recharging: the tile shakes (HudTiles.cs)
-                }
-                if (Keybinds.Down(KeyAction.Ultimate))
-                {
-                    wantAbility[Upgrades.UltSlot] = true;
-                    TileKeyPressed(Upgrades.UltSlot);  // still recharging: the tile shakes (HudTiles.cs)
-                }
-                if (Keybinds.Down(KeyAction.Ability2))
-                {
-                    wantAbility[1] = true;
-                    TileKeyPressed(1);  // still recharging: the tile shakes (HudTiles.cs)
-                }
-                if (Keybinds.Down(KeyAction.Ability3))
-                {
-                    wantAbility[2] = true;
-                    TileKeyPressed(2);  // still recharging: the tile shakes (HudTiles.cs)
-                }
-                if (Keybinds.Down(KeyAction.Ability4))
-                {
-                    wantAbility[3] = true;
-                    TileKeyPressed(3);  // still recharging: the tile shakes (HudTiles.cs)
+                    lastTapAction = mi;
+                    lastTapTime = Time.unscaledTime;
                 }
             }
+            // Remember ability presses between fixed steps so quick taps aren't lost.
+            if (Keybinds.Down(KeyAction.Ability1))
+            {
+                wantAbility[0] = true;
+                TileKeyPressed(0);  // still recharging: the tile shakes (HudTiles.cs)
+            }
+            if (Keybinds.Down(KeyAction.Ultimate))
+            {
+                wantAbility[Upgrades.UltSlot] = true;
+                TileKeyPressed(Upgrades.UltSlot);  // still recharging: the tile shakes (HudTiles.cs)
+            }
+            if (Keybinds.Down(KeyAction.Ability2))
+            {
+                wantAbility[1] = true;
+                TileKeyPressed(1);  // still recharging: the tile shakes (HudTiles.cs)
+            }
+            if (Keybinds.Down(KeyAction.Ability3))
+            {
+                wantAbility[2] = true;
+                TileKeyPressed(2);  // still recharging: the tile shakes (HudTiles.cs)
+            }
+            if (Keybinds.Down(KeyAction.Ability4))
+            {
+                wantAbility[3] = true;
+                TileKeyPressed(3);  // still recharging: the tile shakes (HudTiles.cs)
+            }
+        }
+
+        /// Toggle keys (aim line, F2-F7, HUD, mute) and the screen transitions that tick every frame.
+        void UpdateToggleKeys()
+        {
             // Ignore the toggle keys while typing in a text box (e.g. a name with an "m" in it).
             if (Keybinds.Down(KeyAction.AimLine) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 SetAimLine(!aimLine);
@@ -460,7 +491,11 @@ namespace Arena
                 sounds.Muted = !sounds.Muted;
                 SaveAudioSettings();
             }
+        }
 
+        /// The upgrade picker: number keys, Enter and Reroll.
+        void UpdateCardPicker(Player me, bool choosing)
+        {
             if (choosing && !tabHeld && !PickOutroPlaying)
             {
                 SyncSelection(me);
@@ -478,6 +513,11 @@ namespace Arena
                 if (!chatOpen && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))) ConfirmPick();
                 else if (Keybinds.Down(KeyAction.Reroll)) RerollPress();  // (a second press within a moment rerolls)
             }
+        }
+
+        /// Keys used on things in the arena: a chest item, a mystery door, a gate, the kill-all key and the gadget.
+        void UpdateWorldKeys(Player me, bool menuUp)
+        {
             // Standing on your chest item: G takes it, B throws it away (Props.cs).
             if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.MyLootInReach != null)
             {
@@ -501,7 +541,11 @@ namespace Arena
                 game.DevKillAll(game.MyId);
 
             TickGadgetKey(me, session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0);  // GadgetLook.cs
+        }
 
+        /// Esc on every screen, and the end-of-run keys (retry, restart, lobby, continue).
+        void HandleEscAndEndKeys(Player me, bool menuUp)
+        {
             bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
