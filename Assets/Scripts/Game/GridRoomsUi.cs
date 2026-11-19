@@ -31,13 +31,12 @@ namespace Arena
             var card = PickedPieceCard;
             if (card == PieceCard.None)
                 return gridOpts = new List<Placement>();
-            var shape = Expansion.PieceShapeOf(card);
-            int key = (int)shape * 7919 + game.Expanded.Count * 131;
+            int key = (int)card * 7919 + game.Expanded.Count * 131 + game.Nodes.Count * 17;
             foreach (var r in game.Expanded)
                 key = key * 31 + r.X * 7 + r.Y * 13 + r.W + r.H * 3;
             if (gridOpts == null || key != gridOptsKey)
             {
-                gridOpts = Expansion.PlacementsFor(game.Expanded, shape);
+                gridOpts = Expansion.PlacementsForCard(game.Expanded, game.Nodes, card);
                 gridOptsKey = key;
             }
             return gridOpts;
