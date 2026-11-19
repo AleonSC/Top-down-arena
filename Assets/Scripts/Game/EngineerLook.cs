@@ -4,9 +4,6 @@ namespace Arena
 {
     /// The Engineer's look (Docs/Engineer.md, mockup only: no class or game logic yet). Everything he builds is drawn in
     /// the Expanding arena's vector ink (cyan neon with a white core over a dark plate):
-    ///   the Strider: a two-legged walker, hull and visor, piston arms that jab out on a punch, a ground ring on its slam, a
-    ///     health bar; while it builds, its lines draw in one by one with a white spark at the pen; locked on, its ink runs
-    ///     paler and a turning four-tick reticle and a dashed tether mark the target;
     ///   the Drag Pylon: a tripod with a blinking tip that projects a violet grid on the floor (clipped to its circle) with a
     ///     dashed rim and a slow pulse; enemies inside trail three violet drag rings; an old pylon folds up as the next lands;
     ///   Breach: an amber vector hammer draws itself, swings into the wall, a white flash and cyan shards burst, then the room
@@ -14,10 +11,9 @@ namespace Arena
     /// Tools/Preview draws it through `EngineerMock` (ShotEngineer.cs); nothing in a run sets it.
     public class EngineerMock
     {
-        public bool Strider; public V2 StriderPos; public float Face, Step, Punch, Build = 1f, Hp = 1f, Slam = -1f; public int LockOn = -1;
         public bool Pylon; public V2 PylonPos; public float PylonAge; public V2 OldPylonPos; public float OldFold = -1f;
         public bool Breach; public V2 WallPt, Out; public float BreachT; public int Loot = -1; public V2 LootPos; public float LootAge;
-        public bool Hat; public int Model = -1, FollowLook;  // Model: the Engineer look drawn in place of your own model (EngineerModel.cs)
+        public bool Hat; public int Model = -1;  // Model: the Engineer look drawn in place of your own model (EngineerModel.cs)
     }
 
     public partial class ArenaApp
@@ -27,7 +23,7 @@ namespace Arena
         static readonly Rgba EngInk = new Rgba(0.36f, 0.88f, 1f), EngInkHot = new Rgba(0.72f, 0.96f, 1f), EngPlate = new Rgba(0.05f, 0.1f, 0.16f);
         static readonly Rgba EngSlow = new Rgba(0.64f, 0.55f, 1f), EngAmber = new Rgba(1f, 0.71f, 0.28f), EngHostile = new Rgba(1f, 0.37f, 0.45f);
         static readonly Rgba EngGood = new Rgba(0.44f, 0.94f, 0.66f), EngWhite = new Rgba(1f, 1f, 1f);
-        public const float PylonRadius = 130f, StriderScale = 1.6f;
+        public const float PylonRadius = 130f;
 
         /// A neon stroke: a soft wide halo, the ink, a thin white core.
         void EngStroke(V2 a, V2 b, float w, Rgba c, float alpha = 1f)
@@ -50,23 +46,6 @@ namespace Arena
                 foreach (var e in game.Enemies.Values)
                     if (e.Hp > 0f && (e.Disp - m.PylonPos).Length < PylonRadius)
                         DrawDragTrail(e, t);
-            if (m.Strider)
-            {
-                Enemy target = null;
-                if (m.LockOn >= 0)
-                    game.Enemies.TryGetValue(m.LockOn, out target);
-                if (target != null && m.Build >= 1f)
-                {
-                    DrawDashed(m.StriderPos, target.Disp, EngInk.WithAlpha(0.5f), 2f, 12f, 8f, t * 60f);
-                    DrawLockReticle(target.Disp, target.Radius + 10f, t);
-                }
-                if (m.Build >= 1f && game.Me != null)
-                    DrawDashed(game.Me.Disp, m.StriderPos, EngInk.WithAlpha(0.25f), 1.5f, 3f, 7f, 0f);
-                if (m.FollowLook > 0 && m.Build >= 1f)
-                    DrawStriderLook(m.FollowLook, m.StriderPos, m.Face, m.Step, m.Punch, m.Hp, target != null, t);
-                else
-                    DrawStrider(m.StriderPos, m.Face, m.Step, m.Punch, m.Build, m.Hp, target != null, m.Slam, t);
-            }
             if (m.Breach)
                 DrawBreach(m, t);
             if (m.Loot >= 0)
@@ -101,32 +80,6 @@ namespace Arena
                     DrawDragTrail(e, t);
         }
 
-        /// The Strider (MinionKind.Strider): the picked look B (plated walker), Nov 17. Aim its facing, Wind its punch, GuardFrac
-        /// its health, Stacks 1 locked on (LinkTo the enemy: reticle and tether) or 2 posted.
-        public const int StriderLookPick = 1;
-
-        void DrawStriderMinion(Minion m, float t)
-        {
-            Enemy target = null;
-            if (m.Stacks == 1 && m.LinkTo != 0)
-                game.Enemies.TryGetValue(m.LinkTo, out target);
-            if (target != null)
-            {
-                DrawDashed(m.Disp, target.Disp, EngInk.WithAlpha(0.5f), 2f, 12f, 8f, t * 60f);
-                DrawLockReticle(target.Disp, target.Radius + 10f, t);
-            }
-            float step = (m.Disp.X + m.Disp.Y) * 0.09f;
-            if (m.Wind >= 2f)  // building (Wind 2-3): the wireframe draws itself in, line by line, then the plates go on
-            {
-                DrawStrider(m.Disp, m.Aim, step, 0f, m.Wind - 2f, -1f, false, -1f, t);
-                return;
-            }
-            if (m.Kind == MinionKind.Sentinel)  // the Tank's walker: the plated look, bigger, amber trim
-                DrawStriderLook(1, m.Disp, m.Aim, step, m.Wind, m.GuardFrac, target != null, t, 1.4f, true);
-            else
-                DrawStriderLook(StriderLookPick, m.Disp, m.Aim, step, m.Wind, m.GuardFrac, target != null, t);
-        }
-
         /// A Breach room's loot (NodeKind.BreachLoot, its kind in Rule): the icon bobbing in a ring to walk into, a label under it
         /// (an ambush shows only "?"); gone once taken.
         void DrawBreachLootNode(MapNode n)
@@ -146,28 +99,6 @@ namespace Arena
             }
             else
                 DrawBreachLoot(n.Pos + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), kind, 1f, t);
-        }
-
-        /// The Healer Engineer's med-drone: a small rotor drone with a green cross, a soft ring while it heals someone near it.
-        void DrawMediDrone(Minion m, float t)
-        {
-            V2 c = m.Disp;
-            bool healing = false;
-            foreach (var q in game.Players.Values)
-                healing |= !q.Downed && q.Hp < q.MaxHp && q.Disp.CloserThan(c, m.Def.Range);
-            if (healing)
-                Arc(c, m.Def.Range, 1.6f, EngGood.WithAlpha(0.35f + 0.2f * Mathf.Sin(t * 5f)), 32);
-            Circle(c + new V2(2f, 3f), 11f, new Rgba(0f, 0f, 0f, 0.25f), 14);
-            for (int k = 0; k < 4; k++)  // rotor arms and spinning rotors
-            {
-                V2 d = V2.FromAngle(MathX.Pi * 0.25f + k * MathX.Pi * 0.5f);
-                Line(c, c + d * 10f, 2f, EngIron);
-                Arc(c + d * 10f, 4.5f, 1.2f, EngInk.WithAlpha(0.7f), 10, t * 20f + k, 2.2f);
-            }
-            Circle(c, 6.5f, Hx(0x161e2c), 14);
-            Circle(c, 5.2f, Hx(0xe9eef2), 14);
-            Line(c - new V2(3f, 0f), c + new V2(3f, 0f), 1.8f, EngGood);
-            Line(c - new V2(0f, 3f), c + new V2(0f, 3f), 1.8f, EngGood);
         }
 
         /// One Vector Wall or Bastion tile: a glowing cyan block turned to its Aim, fading in its last second; GuardFrac its soak left.
@@ -236,69 +167,6 @@ namespace Arena
                 EngStroke(at + d * r - n * 6f, at + d * r + n * 6f, 2.2f, EngInk);
                 EngStroke(at + d * (r - 4f), at + d * (r + 4f), 2.2f, EngInk);
             }
-        }
-
-        /// The walker's strokes in local space (x forward), as pairs; legs swing with `step`, arms jab out with `punch`.
-        static int StriderSegs(float step, float punch, V2[] o)
-        {
-            float l = Mathf.Sin(step) * 7f, r = -l, p = punch * 14f;
-            int n = 0;
-            System.Action<float, float, float, float> S = (ax, ay, bx, by) => { o[n++] = new V2(ax, ay); o[n++] = new V2(bx, by); };
-            S(-2f, -14f, -2f + l * .3f, -24f); S(-2f + l * .3f, -24f, 6f + l, -26f); S(6f + l, -26f, 2f + l, -30f);  // legs first: they build from the ground up
-            S(-2f, 14f, -2f + r * .3f, 24f); S(-2f + r * .3f, 24f, 6f + r, 26f); S(6f + r, 26f, 2f + r, 30f);
-            S(-12f, -14f, 12f, -14f); S(12f, -14f, 14f, 14f); S(14f, 14f, -12f, 14f); S(-12f, 14f, -12f, -14f);  // hull
-            S(4f, -8f, 12f, -6f); S(12f, -6f, 12f, 6f); S(12f, 6f, 4f, 8f);  // visor
-            S(6f, -14f, 16f + p, -18f); S(16f + p, -18f, 24f + p, -18f); S(24f + p, -22f, 24f + p, -14f);  // piston arms
-            S(6f, 14f, 16f + p * .4f, 18f); S(16f + p * .4f, 18f, 24f + p * .4f, 18f); S(24f + p * .4f, 14f, 24f + p * .4f, 22f);
-            S(-6f, -6f, -6f, 6f); S(-12f, 0f, -18f, 0f);  // spine, antenna
-            return n / 2;
-        }
-
-        readonly V2[] striderBuf = new V2[64];
-
-        void DrawStrider(V2 at, float face, float step, float punch, float build, float hp, bool locked, float slam, float t)
-        {
-            V2 f = V2.FromAngle(face), s = new V2(-f.Y, f.X);
-            float k = StriderScale;
-            System.Func<V2, V2> W = l => at + f * (l.X * k) + s * (l.Y * k);
-            if (build >= 1f)
-            {
-                Circle(at, 26f * k, new Rgba(0f, 0f, 0f, 0.28f), 24);  // ground shadow
-                SetColor(EngPlate.WithAlpha(0.92f));
-                Quad(W(new V2(-12f, -14f)), W(new V2(12f, -14f)), W(new V2(14f, 14f)), W(new V2(-12f, 14f)));
-            }
-            if (slam >= 0f && slam < 0.5f)
-            {
-                float u = slam / 0.5f;
-                Arc(at, 20f + 70f * u, 6f * (1f - u) + 1f, EngInk.WithAlpha(1f - u), 40);
-                Arc(at, 14f + 50f * u, 2f, EngWhite.WithAlpha(0.6f * (1f - u)), 40);
-            }
-            int n = StriderSegs(step, punch, striderBuf);
-            float drawn = Mathf.Clamp01(build) * n;
-            Rgba ink = locked ? EngInkHot : EngInk;
-            for (int i = 0; i < n; i++)
-            {
-                float u = Mathf.Clamp01(drawn - i);
-                if (u <= 0f)
-                    break;
-                V2 a = W(striderBuf[i * 2]), b = W(striderBuf[i * 2 + 1]);
-                V2 e = a + (b - a) * u;
-                EngStroke(a, e, 2.6f, ink);
-                if (u < 1f)
-                {
-                    Circle(e, 7f, EngWhite.WithAlpha(0.25f), 12);
-                    Circle(e, 3f, EngWhite, 10);
-                }
-            }
-            if (build >= 1f)
-            {
-                Circle(W(new V2(9f, 0f)), 2.6f, EngWhite, 8);  // the visor's eye
-                float bw = 46f, y = -40f * k * 0.85f;
-                FillRect(at.X - bw / 2f, at.Y + y, bw, 4f, new Rgba(0.08f, 0.12f, 0.18f, 0.9f));
-                FillRect(at.X - bw / 2f, at.Y + y, bw * Mathf.Clamp01(hp), 4f, hp < 0.3f ? EngHostile : EngInk);
-            }
-            else if (build > 0f)
-                Arc(at, 30f * k, 2f, EngInk.WithAlpha(0.35f), 32, -MathX.Pi * 0.5f, MathX.Tau * build);
         }
 
         void DrawDragPylon(V2 at, float age, float fold, float t, float radius = PylonRadius, bool med = false)
@@ -410,7 +278,7 @@ namespace Arena
 
         static readonly Rgba[] LootInk = { EngInk, EngAmber, EngGood, EngSlow, EngHostile };
 
-        /// 0 vector cache, 1 supply crate, 2 repair bay, 3 workbench, 4 ambush.
+        /// 0 vector cache, 1 supply crate, 4 ambush (2 and 3 were the Strider's, retired).
         void DrawBreachLoot(V2 at, int kind, float age, float t)
         {
             float pop = Mathf.Clamp01(age / 0.3f);
@@ -435,18 +303,6 @@ namespace Arena
                     EngStroke(at + new V2(s * .7f, s * .45f), at + new V2(-s * .7f, s * .45f), 2.4f, c);
                     EngStroke(at + new V2(-s * .7f, s * .45f), at + new V2(-s * .7f, -s * .45f), 2.4f, c);
                     EngStroke(at + new V2(-s * .7f, -s * .1f), at + new V2(s * .7f, -s * .1f), 2f, c);
-                    break;
-                case 2:
-                    Arc(at, s * 0.8f, 2.4f, c, 24);
-                    EngStroke(at + new V2(-s * .45f, 0f), at + new V2(s * .45f, 0f), 3f, c);
-                    EngStroke(at + new V2(0f, -s * .45f), at + new V2(0f, s * .45f), 3f, c);
-                    break;
-                case 3:
-                    EngStroke(at + new V2(-s * .7f, s * .2f), at + new V2(s * .7f, s * .2f), 2.4f, c);
-                    EngStroke(at + new V2(-s * .5f, s * .2f), at + new V2(-s * .5f, s * .7f), 2.4f, c);
-                    EngStroke(at + new V2(s * .5f, s * .2f), at + new V2(s * .5f, s * .7f), 2.4f, c);
-                    EngStroke(at + new V2(-s * .3f, s * .2f), at + new V2(s * .15f, -s * .55f), 2.4f, c);
-                    EngStroke(at + new V2(s * .15f, -s * .55f), at + new V2(s * .45f, -s * .3f), 2.4f, c);
                     break;
                 default:
                     EngStroke(at + new V2(0f, -s * .7f), at + new V2(s * .65f, s * .5f), 2.4f, c);

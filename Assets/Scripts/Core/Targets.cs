@@ -76,7 +76,7 @@ namespace Arena
         }
 
         /// Host: the nearest Targetable enemy to `to` that reaches within `leash` of `anchor` (its edge counts): a minion
-        /// that goes for enemies near its owner but never strays far (guards, thralls, bots, the Strider).
+        /// that goes for enemies near its owner but never strays far (guards, thralls, bots).
         Enemy NearestInLeash(V2 to, V2 anchor, float leash)
         {
             Enemy best = null;

@@ -326,19 +326,9 @@ namespace Arena
                 DrawSentry(m, t);  // SentryNovaLook.cs
                 return;
             }
-            if (m.Kind == MinionKind.MediDrone)
-            {
-                DrawMediDrone(m, t);  // EngineerLook.cs
-                return;
-            }
             if (m.Kind == MinionKind.VectorBlock)
             {
                 DrawVectorBlock(m, t);  // EngineerLook.cs
-                return;
-            }
-            if (Game.IsWalker(m.Kind))
-            {
-                DrawStriderMinion(m, t);  // EngineerLook.cs
                 return;
             }
             if (Game.IsBot(m.Kind))

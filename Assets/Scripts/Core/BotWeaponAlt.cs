@@ -11,7 +11,6 @@ namespace Arena
     {
         bool botAltHeld, botAltWas;
         float botAltCd, botAltHoldT, botRapierT;
-        int botAltLock, botKatanaIdx, botKatanaStance;  // the enemy the Vector Forge's walker was last sent at
         public int BotAltPresses;  // presses (tests)
 
         /// What the rules see this tick.
@@ -240,16 +239,8 @@ namespace Arena
                     bool orbit = v.ShootD < 190f || v.Incoming >= 3;
                     return Tap((me.FumaStance == 1) != orbit && (orbit || v.Incoming == 0), 1.5f);
                 }
-                case WeaponId.Katana:  // switch when the other stance's finisher is next and a few are close
-                {
-                    // Switch when this stance's finisher has just played (its step wraps to the start), to build the other one,
-                    // or when the other stance's finisher is next.
-                    int idx = me.KatanaStance == 0 ? me.KatanaHay : me.KatanaSen;
-                    bool wrapped = idx == 0 && botKatanaIdx > 0 && botKatanaStance == me.KatanaStance;
-                    botKatanaIdx = idx;
-                    botKatanaStance = me.KatanaStance;
-                    return !late && v.Near >= 1 && Tap(wrapped || (me.KatanaStance == 0 ? me.KatanaSen == 4 : me.KatanaHay == 3), 1.5f);
-                }
+                case WeaponId.Katana:  // store a finisher, pair both finishers, cancel for opening moves (BotKatana.cs)
+                    return BotKatana(v, dt, late, ref firing);
                 case WeaponId.Kunai:  // blink to a mark near the target when it's safe there, or away from danger
                     return !late && me.KunaiMarkT > 0f && Tap(e != null && me.KunaiMark.CloserThan(e.Pos, 140f) && BotDanger < 1f || BotDanger > 2.5f && me.KunaiMark.FartherThan(me.Pos, 120f), 0.5f);
             }
@@ -360,13 +351,6 @@ namespace Arena
                         return botAltHoldT < 4f && (v.Incoming >= 1 || BotDanger > 0.8f);
                     }
                     return Tap(v.Incoming >= 3 || EnemiesAhead(me, 70f, 1.2f) >= 2, 0.8f);
-                case WeaponId.VectorForge:  // send the walker at a new target
-                case WeaponId.BulwarkForge:
-                    if (late || v.Target == null || v.Target.Id == botAltLock || v.Target.Pos.FartherThan(me.Pos, 500f) || !Tap(true, 1f))
-                        return false;
-                    botAltLock = v.Target.Id;
-                    aimAt = v.Target.Pos;
-                    return true;
             }
             return null;
         }

@@ -202,7 +202,6 @@ namespace Arena
         public int SsSideBonus; public float SsSlamMult = 1f;              // Stonespear: Tectonic
         public int HarvestBonus; public float PuddleSizeMult = 1f;         // Honeybee Staff: Bigger Hive
         public float EsBlastMult = 1f;                                     // Embolus Spears: Burst Vessels
-        public float StriderHpMult = 1f, StriderRateMult = 1f, StriderRebuildCut;  // the Engineer's Strider: Reinforced Frame, Hydraulic Fists, Quick Assembly (Engineer.cs)
         public float PylonSizeMult = 1f, PylonSlowBonus;                   // Drag Pylon: Wide Field
         public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
         public float WcReachMult = 1f, WcShoveMult = 1f;                 // Wind Clash: Gale Force

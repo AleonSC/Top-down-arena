@@ -3,12 +3,10 @@ using System.Linq;
 using System.Reflection;
 using Arena;
 
-// ENGINEER=strider|pylon|breach [ENGT=<s>]: the Engineer mockup (Docs/Engineer.md, Game/EngineerLook.cs) drawn in the real arena.
-//   strider: you (a DPS with the hard hat) at (560, 560), the Strider punching a locked-on Brute with grunts round it; ENGT is
-//     its build time (ENGT=0.6: half drawn; default 9 = built, mid-slam).
+// ENGINEER=pylon|breach|real|bots [ENGT=<s>]: the Engineer mockup (Docs/Engineer.md, Game/EngineerLook.cs) drawn in the real arena.
 //   pylon: a Drag Pylon at (900, 450) with five grunts crossing it (their drag rings), and the old pylon folding at (520, 300).
 //   breach: with EXPANDMAP=0 (the hub only): you under the top wall, ENGT seconds into Breach (0.4 hammer drawing, 0.8 the hit,
-//     1.6 the room building in, 3 done); BREACHSHAPE=ring|cross|l|t|chamfer|stash, BREACHLOOT=0-4 (vectors, crate, repair, bench, ambush).
+//     1.6 the room building in, 3 done); BREACHSHAPE=ring|cross|l|t|chamfer|stash, BREACHLOOT=0-4 (0 vectors, 1 crate, 4 ambush).
 // Use with mode hud.
 static partial class Shot {
   static void EngineerScene() {
@@ -69,59 +67,41 @@ static partial class Shot {
       return;
     }
     if (mode == "real") {
-      // ENGINEER=real: the built class in a run, drawn by the game's own paths (no mock): you as a DPS Engineer, your Strider
-      // (a real MinionKind.Strider, locked on a Brute) and a Drag Pylon zone with grunts crossing it.
+      // ENGINEER=real: the built class in a run, drawn by the game's own paths (no mock): you as a DPS Engineer and a Drag Pylon
+      // zone with grunts crossing it.
       me.Kit = Kit.Engineer; me.Weapon = Defs.Weapon(Role.Dps, Kit.Engineer, 0);
       me.Pos = me.Disp = new V2(700f, 560f);
       var bf = BindingFlags.NonPublic | BindingFlags.Instance;
       var target = put(EnemyType.Brute, new V2(985f, 440f), MathX.Pi);
       target.Hp = target.MaxHp * 0.55f;
-      var s = (Minion)typeof(Game).GetMethod("SpawnMinion", bf).Invoke(gm, new object[] { MinionKind.Strider, me, new V2(935f, 450f), -1f, true });
-      s.MaxHp = 500f; s.Hp = 380f; s.Aim = (target.Pos - s.Pos).Angle; s.Wind = 0.8f; s.Stacks = 1; s.LinkTo = target.Id; s.GuardFrac = s.Hp / s.MaxHp;
       var z = (Zone)typeof(Game).GetMethod("AddZone", bf).Invoke(gm, new object[] { ZoneKind.DragPylon, me, new V2(560f, 330f), Game.PylonRadius, 100000f });
       z.T = 99990f;
       put(EnemyType.Grunt, new V2(600f, 300f), MathX.Pi * 0.2f); put(EnemyType.Grunt, new V2(520f, 380f), MathX.Pi * 0.1f);
       put(EnemyType.Grunt, new V2(1080f, 520f), MathX.Pi * 1.1f);
       me.Aim = (new V2(600f, 300f) - me.Pos).Angle;
-      string er = Environment.GetEnvironmentVariable("ENGROLE");  // ENGROLE=tank|healer: that role's kit instead (Sentinel and a Vector Wall; med-drone, Med Pylon and Safe Room)
+      string er = Environment.GetEnvironmentVariable("ENGROLE");  // ENGROLE=tank|healer: that role's kit instead (a Vector Wall; Med Pylon and Safe Room)
       if (er != null) {
         var spawnM = typeof(Game).GetMethod("SpawnMinion", bf); var addZ = typeof(Game).GetMethod("AddZone", bf);
-        gm.Minions.Remove(s.Id); gm.Zones.Clear();
+        gm.Zones.Clear();
         me.Role = er == "tank" ? Role.Tank : Role.Healer; me.Def = Defs.Get(me.Role); me.Weapon = Defs.Weapon(me.Role, Kit.Engineer, 0);
         if (er == "tank") {
-          var sn = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.Sentinel, me, new V2(920f, 455f), -1f, true });
-          sn.MaxHp = 1000f; sn.Hp = 820f; sn.GuardFrac = 0.82f; sn.Aim = (target.Pos - sn.Pos).Angle; sn.Wind = 0.6f; sn.Stacks = 1; sn.LinkTo = target.Id;
           for (int i = 0; i < 5; i++) { var b = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.VectorBlock, me, new V2(560f + i * 2f, 300f + (i - 2) * 36f), 8f, false }); b.Aim = 0f; b.GuardFrac = 1f; b.T = 6f; }
         } else {
-          var dr = (Minion)spawnM.Invoke(gm, new object[] { MinionKind.MediDrone, me, me.Pos + new V2(40f, -30f), -1f, true });
           var mp = (Zone)addZ.Invoke(gm, new object[] { ZoneKind.MedPylon, me, new V2(560f, 330f), Game.PylonRadius, 100000f }); mp.T = 99990f;
           var sr = (Zone)addZ.Invoke(gm, new object[] { ZoneKind.SafeRoom, me, new V2(1000f, 520f), Game.SafeDomeRadius, 12f }); sr.T = 8f;
           me.Hp = me.MaxHp * 0.6f;
         }
       }
-      string eb = Environment.GetEnvironmentVariable("ENGBUILD");  // ENGBUILD=<0-1>: the Strider that far through building in
-      if (eb != null) { s.Wind = 2f + float.Parse(eb, inv); s.Stacks = 0; s.LinkTo = 0; }
-      string el = Environment.GetEnvironmentVariable("ENGLOOT");  // ENGLOOT=<0-4>: a Breach room's loot node beside you (vectors, crate, repair, bench, ambush)
+      string el = Environment.GetEnvironmentVariable("ENGLOOT");  // ENGLOOT=<0-4>: a Breach room's loot node beside you (0 vectors, 1 crate, 4 ambush)
       if (el != null) gm.Nodes.Add(new MapNode { X = 860, Y = 640, Kind = NodeKind.BreachLoot, Rule = byte.Parse(el) });
       Console.Error.WriteLine("engineer: real");
       return;
     }
-    if (mode == "strider") {
-      me.Pos = me.Disp = new V2(770f, 540f);
-      var target = put(EnemyType.Brute, new V2(985f, 440f), MathX.Pi);
-      target.Hp = target.MaxHp * 0.45f;
-      put(EnemyType.Grunt, new V2(1060f, 360f), MathX.Pi * 0.9f);
-      put(EnemyType.Grunt, new V2(1080f, 520f), MathX.Pi * 1.1f);
-      put(EnemyType.Grunt, new V2(800f, 300f), MathX.Pi * 0.7f).Hp *= 0.6f;
-      me.Aim = (new V2(800f, 300f) - me.Pos).Angle;
-      m.Strider = true; m.StriderPos = new V2(935f, 445f); m.Face = (target.Pos - m.StriderPos).Angle;
-      m.Build = Math.Min(1f, et / 1.2f); m.Step = 1.1f; m.Punch = 0.85f; m.Hp = 0.72f; m.LockOn = target.Id;
-    } else if (mode == "pylon") {
+    if (mode == "pylon") {    } else if (mode == "pylon") {
       me.Pos = me.Disp = new V2(700f, 580f); me.Aim = (new V2(900f, 450f) - me.Pos).Angle;
       m.Pylon = true; m.PylonPos = new V2(900f, 450f); m.PylonAge = 2f; m.OldPylonPos = new V2(520f, 300f); m.OldFold = 0.45f;
       var spots = new[] { new V2(1120f, 400f), new V2(990f, 420f), new V2(900f, 520f), new V2(820f, 380f), new V2(1150f, 520f) };
       foreach (var s in spots) put(EnemyType.Grunt, s, MathX.Pi);
-      m.Strider = true; m.StriderPos = new V2(690f, 470f); m.Face = 0f; m.Step = 0.4f;
     } else if (mode == "breach") {
       string[] names = { "ring", "cross", "l", "t", "chamfer", "stash" };
       var shape = (SurpriseShape)Math.Max(0, Array.IndexOf(names, Environment.GetEnvironmentVariable("BREACHSHAPE") ?? "cross"));
@@ -142,7 +122,6 @@ static partial class Shot {
       foreach (var e in gm.Enemies.Values) if (et >= 0.75f) { V2 d = (e.Pos - wall); e.Pos = e.Disp = e.Pos + d.Normalized() * 70f; }
     }
     m.Model = int.Parse(Environment.GetEnvironmentVariable("ENGMODEL") ?? "0");  // ENGMODEL=0-2 the Engineer look, -1 the stand-in Soldier
-    m.FollowLook = int.Parse(Environment.GetEnvironmentVariable("ENGFOLLOW") ?? "1");  // ENGFOLLOW=0-2 the Strider look (default 1, the picked plated walker)
     ArenaApp.engineerMock = m;
     Console.Error.WriteLine("engineer: " + mode + " t=" + et + " enemies=" + gm.Enemies.Count);
   }

@@ -348,11 +348,10 @@ namespace Arena
         public float TwinNadeCd;     // host: the tubes can't fire again for this long
         public float TwinAimL, TwinAimR;  // Twin Rifle Auto: each gun's heading relative to your facing, radians, + toward your right (replicated; TwinAuto.cs)
         public int TwinLock;         // Twin Rifle Auto: the enemy id both guns are locked on, 0 none (replicated)
-        public float StriderCd;      // host: Engineer: seconds until a broken Strider is rebuilt (Engineer.cs)
         public float BotCd;          // host: Engineer: seconds until a broken robot can be summoned again (EngineerBots.cs)
         public bool BotFireWas;      // host: Engineer robot weapons: Fire was held last tick (a fresh click on an enemy sends the robot at it)
         public float BotSummonT;     // host: a robot was just summoned: no attack for this long (or until Fire is let go)
-        public float DraftCarry, RepairT;  // host: Engineer: Draftsman's part-vectors not yet paid; the next vector repair
+        public float DraftCarry;     // host: Engineer: Draftsman's part-vectors not yet paid
         public float TwinAutoCd;     // host: Alt can't lock or let go again for this long
         public byte AmmoMove, AmmoSeq;   // Out of Ammo: the rifle arms' move running (1-4: left bash, right bash, left bash, rifle clap; 0 none) and a count that rises with every move started (replicated; OutOfAmmo.cs)
         public byte KnifeMove, KnifeSeq; // Out of Ammo: the knife's move running (1-3: cross cut, reverse cut, lunge stab; 0 none) and its count (replicated)

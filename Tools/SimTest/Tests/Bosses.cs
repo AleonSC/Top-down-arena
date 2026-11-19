@@ -599,3 +599,34 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 }
+
+static partial class Program
+{
+    /// Smart bots walk through the Warden's gates' doors (BotBrain.cs ReadWardenGates) instead of being shoved along.
+    static void BotWardenGateTest(float dt)
+    {
+        foreach (var level in new[] { BotSkill.Casual, BotSkill.Good, BotSkill.Expert })
+        {
+            var s = StartBuffed(dt, 5, 0);
+            var g = s[0].Game; var cg = s[1].Game;
+            g.Bot = true; g.BotLevel = level; cg.Bot = false;
+            g.DevSetGod(1, true); g.DevSetGod(2, true);
+            Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+            var w = Find(s[0], EnemyType.Warden);
+            var bot = g.Players[1];
+            Action Clear = () => { foreach (var e in g.Enemies.Values) if (e != w) e.Hp = 0f; };
+            w.Hp = w.MaxHp * 0.64f;
+            Run(s, dt, 2.5f, null, () => { Clear(); cg.Players[2].Pos = new V2(60f, 450f); });
+            var seen = new HashSet<WardenGate>(); var hitBy = new HashSet<WardenGate>();
+            Run(s, dt, 13f, null, () =>
+            {
+                Clear();
+                w.Hp = Math.Max(w.Hp, w.MaxHp * 0.5f);
+                foreach (var gt in w.Warden.Gates) { seen.Add(gt); if (gt.Hit.Contains(bot.Id)) hitBy.Add(gt); }
+            });
+            Console.WriteLine("  {0} bot: {1} gates, caught by {2}", level, seen.Count, hitBy.Count);
+            Check(seen.Count >= 3 && hitBy.Count <= (level == BotSkill.Casual ? 1 : 0),
+                level + " bot walks through the Warden's gates' doors (caught by at most " + (level == BotSkill.Casual ? 1 : 0) + " of 3)");
+        }
+    }
+}
