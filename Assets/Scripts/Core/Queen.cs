@@ -200,7 +200,7 @@ namespace Arena
             var q = QueenOf(e);
             if (q.TransT > 0f || q.Turn == QueenTurn.LastStand)
             {
-                V2 to = q.TransT > 0f ? new V2(Width / 2f, q.TransTo >= QueenStage.Frenzy ? 400f : 150f) : new V2(Width / 2f, Height / 2f);
+                V2 to = q.TransT > 0f ? new V2(Width / 2f, q.TransTo >= QueenStage.Frenzy ? 400f : 150f) : ArenaMid;
                 speed = q.TransT > 0f ? 380f : 300f;
                 return e.Pos.FartherThan(to, 6f) ? (to - e.Pos).Normalized() : V2.Zero;
             }
@@ -342,8 +342,7 @@ namespace Arena
             q.Royal.Clear();
             q.Homing.Clear();
             ClearQueenAdds(e);
-            ClearEnemyBullets();  // (and the honey)
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();  // (and the honey)
             BroadcastFx(FxKind.Ring, e.Pos, to == QueenStage.Frenzy ? new Rgba(1f, 0.4f, 0.25f) : new Rgba(1f, 0.7f, 0.2f), 900f, 0.8f, Sfx.BossChime);
             DoLog("the Hive Queen: changing to " + to);
         }
@@ -488,7 +487,7 @@ namespace Arena
                     break;
                 case QueenTurn.LastStand:  // in the middle: a three-armed spiral, and a bomber at everyone every 2 s
                     e.FireT = 0.09f;
-                    if (e.Pos.FartherThan(new V2(Width / 2f, Height / 2f), 8f))
+                    if (e.Pos.FartherThan(ArenaMid, 8f))
                         break;
                     e.Ang += 0.21f;
                     for (int k = 0; k < 3; k++)
@@ -637,7 +636,7 @@ namespace Arena
         {
             V2 to = b.Waypoint - b.Pos;
             float want = to.Angle, turn = (b.Phase == 1 ? FlankTurn : FlankDiveTurn) * dt;
-            float diff = MathX.Fmod(want - b.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - b.Facing);
             b.Facing = to.Length < 40f ? want : b.Facing + Math.Max(-turn, Math.Min(turn, diff));
             return V2.FromAngle(b.Facing);
         }

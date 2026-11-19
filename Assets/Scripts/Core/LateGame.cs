@@ -36,8 +36,7 @@ namespace Arena
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastRunStats();
             RunOver(true);  // RunSaves.cs
             if (TestRunning)
@@ -155,7 +154,7 @@ namespace Arena
         /// A spot at least 250 px from every living player (best of a few tries).
         V2 FarFromPlayers(float radius)
         {
-            V2 best = new V2(Width / 2f, Height / 2f);
+            V2 best = ArenaMid;
             float bestDist = -1f;
             for (int t = 0; t < 12; t++)
             {
@@ -269,9 +268,9 @@ namespace Arena
             // same "it lands here" ring as the bombs and blasts); Phase 1 is that warning.
             if (e.Phase == 0 && e.PhaseT <= 0f)
             {
-                e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
+                e.Waypoint = ClampToArena(tpos + RandDir() * Rand(220f, 300f), e.Radius);
                 for (int i = 0; i < 8 && NearSolid(e.Waypoint, e.Radius + 8f); i++)  // not into a wall or pillar (LayoutRules.cs)
-                    e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
+                    e.Waypoint = ClampToArena(tpos + RandDir() * Rand(220f, 300f), e.Radius);
                 e.Phase = 1;
                 e.PhaseT = ShadeWarn;
                 BroadcastFx(FxKind.Target, e.Waypoint, e.Def.Color, ShadeBurstRadius, ShadeWarn, Sfx.None);

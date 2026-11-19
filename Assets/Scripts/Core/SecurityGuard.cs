@@ -45,7 +45,7 @@ namespace Arena
             if (e.Winding)
                 return;
             float want = (tpos - e.Pos).Angle;
-            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - e.Facing);
             e.Facing += Math.Max(-SecurityTurn * dt, Math.Min(SecurityTurn * dt, diff));
         }
 

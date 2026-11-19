@@ -92,7 +92,7 @@ namespace Arena
         V2 HeraldGoal(Enemy e)
         {
             if (e.Herald != null && e.Herald.Stage == HeraldStage.LastStand)
-                return new V2(Width / 2f, Height / 2f);
+                return ArenaMid;
             return new V2(Width / 2f + (float)Math.Sin(e.T * 0.45f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.7f) * 50f);
         }
 
@@ -296,7 +296,7 @@ namespace Arena
                     V2 pa = s.Rods[a.A].Pos, pb = s.Rods[a.B].Pos;
                     BroadcastFx(FxKind.Bolt, pa, pb, new Rgba(0.8f, 0.92f, 1f), 0f, ArcLive, Sfx.SpellZap);
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.InvulnT <= 0f && SegmentDistance(p.Pos, pa, pb) < RodArcWidth / 2f + p.Def.HitR)
+                        if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceToSegment(pa, pb) < RodArcWidth / 2f + p.Def.HitR)
                             Damage(p, ArcDamage, "Storm Herald (lightning rods)");
                 }
             }
@@ -400,7 +400,7 @@ namespace Arena
                     if (a.FartherOrAt(c, BallArcRange))
                         continue;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.InvulnT <= 0f && SegmentDistance(p.Pos, a, c) < BallArcWidth / 2f + p.Def.HitR)
+                        if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceToSegment(a, c) < BallArcWidth / 2f + p.Def.HitR)
                             Damage(p, 20f, HeraldBall(balls[i]) ? "Storm Herald (ball lightning)" : "Ball Lightning (arc)");
                 }
             enemyLists.Return(balls);
@@ -416,7 +416,7 @@ namespace Arena
                     for (int k = 0; k < 4; k++)
                     {
                         V2 tip = herald.Pos + V2.FromAngle(s.Spin + k * MathX.Pi / 2f) * SpokeLength;
-                        if (SegmentDistance(p.Pos, herald.Pos, tip) < SpokeWidth / 2f + p.Def.HitR)
+                        if (p.Pos.DistanceToSegment(herald.Pos, tip) < SpokeWidth / 2f + p.Def.HitR)
                         {
                             Damage(p, ArcDamage, "Storm Herald (eye of the storm)");
                             break;
@@ -457,8 +457,7 @@ namespace Arena
             s.Arcs.Clear();
             ClearBallLightning();
             Hazards.Clear();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, HeraldColor(to), 900f, 0.8f, Sfx.BossChime);
             DoLog("the Storm Herald: changing to " + to);
         }

@@ -333,7 +333,7 @@ namespace Arena
             }
         }
 
-        static float AngleTo(V2 from, V2 to, float aim) => Math.Abs(MathX.Fmod((to - from).Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+        static float AngleTo(V2 from, V2 to, float aim) => Math.Abs(MathX.WrapPi((to - from).Angle - aim));
 
         // Reused by every swing (swings land one at a time, from ResolveSwings).
         readonly List<Enemy> swingHits = new List<Enemy>();
@@ -496,8 +496,7 @@ namespace Arena
                     Stun(e, s.Stun);
                 else if (s.Stun > 0f && !e.Def.IsBoss)
                 {
-                    e.FrozenT = Math.Max(e.FrozenT, s.Stun);
-                    e.SlowT = Math.Max(e.SlowT, s.Stun);
+                    Hold(e, s.Stun);
                 }
                 if (s.LanceKind > 0)  // a Lance step: drives straight ahead (the sweep bats along its swing), sparks, and arms Impact (Lance.cs)
                 {
@@ -994,8 +993,7 @@ namespace Arena
                     HurtEnemy(e, SlamDamage * p.Stats.DmgMult * sl.Power, p.Id);
                     if (!e.Def.IsBoss)
                     {
-                        e.FrozenT = Math.Max(e.FrozenT, sl.Stun);
-                        e.SlowT = Math.Max(e.SlowT, sl.Stun);
+                        Hold(e, sl.Stun);
                     }
                 }
                 if (sl.Mastered)
@@ -1014,7 +1012,7 @@ namespace Arena
             if (d.LengthSq > reach * reach)
                 return false;
             float half = WallHalfArc * p.Stats.WallArcMult;
-            float off = MathX.Fmod(d.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi;  // -pi..pi, signed
+            float off = MathX.WrapPi(d.Angle - p.Aim);  // -pi..pi, signed
             if (Math.Abs(off) >= half)
                 return false;
             plate = Math.Min(Player.WallPlates - 1, (int)((off + half) / (2f * half) * Player.WallPlates));

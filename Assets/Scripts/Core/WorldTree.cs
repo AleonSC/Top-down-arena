@@ -45,13 +45,13 @@ namespace Arena
                 allies.Sort((a, b) => (a.Hp / Math.Max(1f, a.MaxHp)).CompareTo(b.Hp / Math.Max(1f, b.MaxHp)));
                 for (int i = 0; i < allies.Count; i++)
                 {
-                    var m = SpawnMinion(MinionKind.Butterfly, owner, z.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(4f, 18f), ButterflyLife + i * WorldTreeStagger);
+                    var m = SpawnMinion(MinionKind.Butterfly, owner, z.Pos + RandDir() * Rand(4f, 18f), ButterflyLife + i * WorldTreeStagger);
                     m.LinkTo = allies[i].Id;
                     m.Launch = i * WorldTreeStagger;
                     m.HealRate = (cap ? WorldTreeHealMastered : WorldTreeHeal) * z.HealMult;
-                    m.Vel = V2.FromAngle(Rand(0f, MathX.Tau)) * 60f;
+                    m.Vel = RandDir() * 60f;
                     m.Aim = m.Vel.Angle;
-                    m.Ang = Rand(0f, MathX.Tau);  // its own phase for the flutter
+                    m.Ang = RandAngle();  // its own phase for the flutter
                 }
             }
         }

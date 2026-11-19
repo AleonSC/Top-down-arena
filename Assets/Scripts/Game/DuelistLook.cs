@@ -16,7 +16,7 @@ namespace Arena
                 if (e.Type != EnemyType.Duelist && e.Type != EnemyType.BladeDancer && e.Type != EnemyType.Gallant && e.Type != EnemyType.Harlequin || e.Duel == null || game.IsSpawning(e))  // (a Blade Dancer's lunge: CourtFaction.cs)
                     continue;
                 var s = e.Duel;
-                V2 middle = new V2(Game.Width / 2f, Game.Height / 2f);
+                V2 middle = Game.ArenaMid;
                 // The dueling circle: a glowing ring with blades round it, slowly turning.
                 if (s.Ring > 0f && s.TransT <= 0f)
                 {

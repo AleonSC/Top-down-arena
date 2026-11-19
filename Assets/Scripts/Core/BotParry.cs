@@ -113,7 +113,7 @@ namespace Arena
                 else
                     continue;
                 V2 rel = me.Pos - e.Pos;
-                float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                float off = Math.Abs(MathX.WrapPi(rel.Angle - e.Facing));
                 if (rel.Length > reach + hitR + 10f || off > half + 0.2f || e.PhaseT > look + 0.05f)
                     continue;
                 if (e.PhaseT < when)
@@ -134,7 +134,7 @@ namespace Arena
                 float vv = rv.LengthSq;
                 float t = vv < 1f ? -1f : -rel.Dot(rv) / vv;
                 if (t >= 0f && t <= BotParryLook && (rel + rv * t).Length <= hitR + b.Radius + 3f
-                    && Math.Abs(MathX.Fmod(rel.Angle - from + MathX.Pi, MathX.Tau) - MathX.Pi) < arc)
+                    && Math.Abs(MathX.WrapPi(rel.Angle - from)) < arc)
                     hits++;
             }
             hits = Math.Max(hits, 1);

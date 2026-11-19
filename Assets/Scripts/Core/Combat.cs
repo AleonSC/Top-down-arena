@@ -170,7 +170,7 @@ namespace Arena
         /// enemy that fired it (source) and the enemy it mustn't hit first (lastHit).
         void SpawnRing(byte kind, V2 at, int n, float speed, float life, float dmg, int owner, float spawnOff = 0f, EnemyType? source = null, int lastHit = 0)
         {
-            float offset = Rand(0f, MathX.Tau);
+            float offset = RandAngle();
             for (int i = 0; i < n; i++)
             {
                 V2 d = V2.FromAngle(offset + MathX.Tau * i / n);
@@ -393,7 +393,7 @@ namespace Arena
             if (best == null)
                 return;
             float want = (best.Pos - b.Pos).Angle, have = b.Vel.Angle;
-            float diff = MathX.Fmod(want - have + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - have);
             float turn = Math.Max(-b.Homing * dt, Math.Min(b.Homing * dt, diff));
             b.Vel = b.Vel.Rotated(turn);
         }
@@ -410,7 +410,7 @@ namespace Arena
                 if (d > range)
                     continue;
                 float want = (w.Pos - b.Pos).Angle, have = b.Vel.Angle;
-                float diff = MathX.Fmod(want - have + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float diff = MathX.WrapPi(want - have);
                 float rate = (2.5f + 12f * (1f - d / range)) * dt;  // hard: a shot near a corner is lost
                 b.Vel = b.Vel.Rotated(Math.Max(-rate, Math.Min(rate, diff)));
                 b.Pulled = true;
@@ -784,7 +784,7 @@ namespace Arena
             // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
             foreach (var f in frags)
             {
-                float baseAng = f.Vel.Angle, offset = Rand(0f, MathX.Tau);
+                float baseAng = f.Vel.Angle, offset = RandAngle();
                 for (int i = 0; i < f.Frags; i++)
                 {
                     float a = f.FragSideways
@@ -1360,6 +1360,12 @@ namespace Arena
         {
             AddFx(FxKind.Boom, pos, e.Def.Color, e.Radius * 2.2f, 0.4f);
             Sounds.Add(e.Def.IsBoss ? Sfx.BigExplode : Sfx.Explode);
+        }
+
+        /// Host: clears every enemy shot here and on every client.
+        void HostClearEnemyBullets()
+        {
+            HostClearEnemyBullets();
         }
 
         void ClearEnemyBullets()

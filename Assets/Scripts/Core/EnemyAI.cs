@@ -399,7 +399,7 @@ namespace Arena
             if (IsSecurity(e.Type))
                 e.Phase = SecurityMag;  // a full magazine (SecurityGuard.cs)
             e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
-            e.Ang = Rand(0f, MathX.Tau);
+            e.Ang = RandAngle();
         }
 
         readonly List<int> pickAlive = new List<int>(), pickTanks = new List<int>();  // (PickTarget runs per enemy, every tick when everyone is down)
@@ -562,7 +562,7 @@ namespace Arena
                     e.RetargetT = 3f;
                     Players.TryGetValue(e.TargetId, out target);
                 }
-                V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
+                V2 tpos = target != null ? target.Pos : ArenaMid;
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = StriderTarget(e, tpos);  // an Engineer's Strider draws in enemies near it (Engineer.cs)
                 tpos = RoomTarget(e, tpos);

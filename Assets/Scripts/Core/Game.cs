@@ -16,6 +16,7 @@ namespace Arena
     public partial class Game
     {
         public const float Width = 1600f, Height = 900f;
+        public static readonly V2 ArenaMid = new V2(Width / 2f, Height / 2f);  // the arena's centre
 
         const int SnapshotEvery = 3;  // ticks
         float shoveT;
@@ -96,8 +97,8 @@ namespace Arena
             var me = Me;
             if (me == null)
                 return;
-            float off = Math.Abs(MathX.Fmod(b.Vel.Angle - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
-            float prevOff = Math.Abs(MathX.Fmod(LastShotAngle - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float off = Math.Abs(MathX.WrapPi(b.Vel.Angle - me.Aim));
+            float prevOff = Math.Abs(MathX.WrapPi(LastShotAngle - me.Aim));
             bool newVolley = clock.ElapsedTicks - lastShotTicks > System.Diagnostics.Stopwatch.Frequency / 25;
             if (newVolley || off < prevOff)
             {
@@ -158,6 +159,8 @@ namespace Arena
         public string ReplayFolder;    // dev: where to save replays of the matches this game hosts (null = don't record)
 
         float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+        float RandAngle() => Rand(0f, MathX.Tau);           // a random heading
+        V2 RandDir() => V2.FromAngle(Rand(0f, MathX.Tau));  // a random unit direction
 
         // --- Lifecycle ---------------------------------------------------------
 

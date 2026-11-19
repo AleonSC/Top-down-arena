@@ -136,7 +136,7 @@ namespace Arena
                 if (st < 0f || st > AmmoSwatTime)
                     continue;
                 float ph = st / AmmoSwatTime, sw = Mathf.Sin(ph * Mathf.PI), world = g == 0 ? p.SwatAngL : p.SwatAngR;
-                float a = MathX.Fmod(world - (p.Aim + o.Face) + MathX.Pi, MathX.Tau) - MathX.Pi + sw * .9f * (g == 0 ? -1f : 1f);
+                float a = MathX.WrapPi(world - (p.Aim + o.Face)) + sw * .9f * (g == 0 ? -1f : 1f);
                 if (g == 0) { o.GH0 = Mathf.Lerp(o.GH0, a, sw); o.GX0 += 14f * sw; o.Hot0 = ph > .3f && ph < .7f; }
                 else { o.GH1 = Mathf.Lerp(o.GH1, a, sw); o.GX1 += 14f * sw; o.Hot1 = ph > .3f && ph < .7f; }
             }

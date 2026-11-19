@@ -271,7 +271,7 @@ namespace Arena
                 p.StriderCd -= dt;
                 if (p.StriderCd > 0f)
                     continue;
-                s = SpawnMinion(kind, p, p.Pos + V2.FromAngle(p.Aim + MathX.Pi * 0.75f) * 50f, -1f, true);
+                s = SpawnMinion(kind, p, BesideOwner(p, 50f), -1f, true);
                 s.MaxHp = s.Hp = StriderMaxHp(Wave, kind) * p.Stats.StriderHpMult;
                 s.SlamT = 1f;
                 BroadcastFx(FxKind.Ring, s.Pos, s.Def.Color, 40f, StriderBuild, Sfx.Summon);
@@ -331,12 +331,10 @@ namespace Arena
             {
                 V2 anchor = m.Sent ? m.Goal : owner.Pos;
                 float leash = m.Sent ? StriderGuardRadius : StriderHuntLeash;
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.CloserThan(anchor, leash + e.Radius) && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
-                        target = e;
+                target = NearestInLeash(m.Pos, anchor, leash);
             }
             float mult = (isLocked ? StriderLockMult : 1f) * (m.Hold > 0f ? StriderBenchMult : 1f);
-            V2 goal = target != null ? target.Pos : m.Sent ? m.Goal : owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f) * 50f;
+            V2 goal = target != null ? target.Pos : m.Sent ? m.Goal : BesideOwner(owner, 50f);
             V2 to = goal - m.Pos;
             float stop = target != null ? target.Radius + d.Radius : 6f;
             float sp = speed * (isLocked ? StriderLockSpeed : 1f);

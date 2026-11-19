@@ -52,7 +52,7 @@ namespace Arena
                 if (d - e.Radius > reach + p.Def.BodyR)
                     continue;
                 float slack = BodySlack(d, e.Radius);
-                float off = Math.Abs(MathX.Fmod(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+                float off = Math.Abs(MathX.WrapPi(rel.Angle - aim));
                 if (off > half + slack)
                     continue;
                 if (BlocksShot(e, origin))

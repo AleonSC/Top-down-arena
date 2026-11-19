@@ -168,7 +168,7 @@ namespace Arena
                 AddFx(FxKind.Spark, o.Pos, Defs.BulletColor(o.Kind), 8f, 0.25f);
                 KillBullet(id);
             }
-            float offset = Rand(0f, MathX.Tau);
+            float offset = RandAngle();
             for (int i = 0; i < b.Frags; i++)  // extra projectiles: bomblets scattering round the burst, popping where they land
             {
                 V2 d = V2.FromAngle(offset + MathX.Tau * i / b.Frags);

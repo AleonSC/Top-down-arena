@@ -116,7 +116,7 @@ namespace Arena
                     rez = Math.Max(rez, 1f - Math.Max(0f, p.PactCd[s]) / PactRespawn(p));
                 if (p.PactCd[s] > 0f)
                     continue;
-                V2 home = p.Pos + V2.FromAngle(p.Aim + MathX.Pi * 0.75f + s * 1.6f) * 45f;
+                V2 home = BesideOwner(p, 45f, s * 1.6f);
                 V2 spot = p.PactBinding[s] ? p.PactAt[s] : home;
                 var t = SpawnMinion(MinionKind.Thrall, p, spot, -1f, true);
                 t.Pact = (byte)p.PactType[s];
@@ -171,11 +171,8 @@ namespace Arena
             float dmg = atk.Dmg * ThrallDmgMult * owner.Stats.DmgMult * m.Power;
             float leash = atk.Melee ? ThrallLeash : ThrallRangedLeash;
             Enemy target = null;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(owner.Pos, leash + e.Radius)
-                    && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
-                    target = e;
-            V2 home = owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + m.Ang) * 45f;
+            target = NearestInLeash(m.Pos, owner.Pos, leash);
+            V2 home = BesideOwner(owner, 45f, m.Ang);
             V2 goal = home;
             float stop = 4f;
             if (target != null)

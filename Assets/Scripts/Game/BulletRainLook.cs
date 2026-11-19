@@ -240,7 +240,7 @@ namespace Arena
                     continue;
                 // The rim vignette (alpha 0.16 at the edges) and the cast's flash.
                 float vig = 0.16f * Mathf.Clamp01(age / 0.3f) * Mathf.Clamp01(z.T / 0.5f);
-                V2 c = new V2(Game.Width * 0.5f, Game.Height * 0.5f);
+                V2 c = Game.ArenaMid;
                 float r0 = Game.Height * 0.45f, r1 = Mathf.Max(Game.Width * 0.62f, c.Length + 2f);
                 if (vig > 0f)
                     for (int i = 0; i < 48; i++)

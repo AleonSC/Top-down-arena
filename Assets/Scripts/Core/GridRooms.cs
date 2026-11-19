@@ -47,7 +47,7 @@ namespace Arena
             var rng = new DetRandom(seed * 7351 + cycle * 977 + (ring + 1) * 131 + (int)kind * 17 + 3);
             var map = new List<ExpansionRoom>(built);
             int depth = ring >= 0 ? 2 : 2 + rng.Int(2);
-            var start = new V2(Game.Width / 2f, Game.Height / 2f);
+            var start = Game.ArenaMid;
             for (int step = 1; step <= depth; step++)
             {
                 var opts = GridPieceOptions(map, GridPiece.Mono);

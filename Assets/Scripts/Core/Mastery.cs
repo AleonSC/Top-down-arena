@@ -130,7 +130,7 @@ namespace Arena
                 if (e.SpawnT > 0f || Heavy(e) || e.Pos.FartherThan(center, range + e.Radius))
                     continue;
                 V2 away = (e.Pos - center).Normalized();
-                KnockEnemy(e, (away.IsZero ? V2.FromAngle(Rand(0f, MathX.Tau)) : away) * push);  // slides (Knock.cs)
+                KnockEnemy(e, (away.IsZero ? RandDir() : away) * push);  // slides (Knock.cs)
                 if (slowTime > 0f)
                 {
                     Slow(e, slowTime, 0.5f);
@@ -144,8 +144,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (e.SpawnT <= 0f && !e.Def.IsBoss && e.Pos.CloserThan(center, range + e.Radius))
                 {
-                    e.FrozenT = Math.Max(e.FrozenT, time);
-                    e.SlowT = Math.Max(e.SlowT, time);
+                    Hold(e, time);
                 }
         }
 

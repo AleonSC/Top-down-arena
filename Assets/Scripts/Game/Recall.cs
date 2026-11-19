@@ -157,8 +157,8 @@ namespace Arena
             {
                 float e = rk * rk, rad = 40f + (1f - e) * 1100f;
                 var c = new Rgba(0.55f, 0.72f, 1f);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 26f, c.WithAlpha(0.12f * rk), 96);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 4f, c.WithAlpha(0.6f * rk), 96);
+                Arc(Game.ArenaMid, rad, 26f, c.WithAlpha(0.12f * rk), 96);
+                Arc(Game.ArenaMid, rad, 4f, c.WithAlpha(0.6f * rk), 96);
             }
         }
 

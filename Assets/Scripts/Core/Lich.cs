@@ -117,7 +117,7 @@ namespace Arena
             if (s.Step < 0)
                 EnterLichStage(e, LichStage.Crypt);
             float frac = e.MaxHp > 0f ? e.Hp / e.MaxHp : 1f;
-            V2 middle = new V2(Width / 2f, Height / 2f);
+            V2 middle = ArenaMid;
 
             if (s.TransT > 0f)
             {
@@ -182,7 +182,7 @@ namespace Arena
                 {
                     s.FadeT = 0f;
                     e.Pos = s.BlinkTo;
-                    float off = Rand(0f, MathX.Tau);
+                    float off = RandAngle();
                     for (int i = 0; i < 20; i++)
                         EnemyShot(e, off + MathX.Tau * i / 20f, 110f, Defs.BigShot);
                     BroadcastFx(FxKind.Ring, e.Pos, LichColor(LichStage.Undeath), 90f, 0.45f, Sfx.SpellArcane);
@@ -230,8 +230,7 @@ namespace Arena
             s.FadeT = 0f;
             RemoveChildren(e, EnemyType.Phylactery);
             ClearHands();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, LichColor(to), 900f, 0.8f, Sfx.BossChime);
             DoLog("the Lich: changing to " + to);
         }
@@ -279,7 +278,7 @@ namespace Arena
                 BroadcastFx(FxKind.Ring, at, color, 60f, 0.6f, Sfx.BossGong);
                 return;
             }
-            V2 middle = new V2(Width / 2f, Height / 2f);
+            V2 middle = ArenaMid;
             for (int k = 0; k < 3; k++)
             {
                 V2 at = middle + new V2((float)Math.Cos(-MathX.Pi / 2f + MathX.Tau * k / 3f), (float)Math.Sin(-MathX.Pi / 2f + MathX.Tau * k / 3f) * TriangleSquash) * TriangleR;
@@ -294,7 +293,7 @@ namespace Arena
         /// Where the Lich stands at a grave: a little way from it toward the middle.
         V2 GraveSpot(int i)
         {
-            V2 g = GravePos(i), middle = new V2(Width / 2f, Height / 2f);
+            V2 g = GravePos(i), middle = ArenaMid;
             return g + (middle - g).Normalized() * GraveStand;
         }
 
@@ -529,7 +528,7 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(h.Pos, h.Radius))
                     Damage(p, dmg, "The Lich (dead hand)");
-            float off = Rand(0f, MathX.Tau);
+            float off = RandAngle();
             for (int k = 0; k < 8; k++)
             {
                 V2 dir = V2.FromAngle(off + MathX.Tau * k / 8f);

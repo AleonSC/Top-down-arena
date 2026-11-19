@@ -211,7 +211,7 @@ namespace Arena
         /// An angle turned toward another by at most `step`, the short way round.
         static float HeliTurn(float a, float to, float step)
         {
-            float d = MathX.Fmod(to - a + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float d = MathX.WrapPi(to - a);
             return a + Mathf.Clamp(d, -step, step);
         }
 

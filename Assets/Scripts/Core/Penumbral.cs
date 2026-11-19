@@ -89,7 +89,7 @@ namespace Arena
             {
                 V2 lo = ArenaMin + new V2(150f, 150f), hi = ArenaMax - new V2(150f, 150f);
                 V2 c = new V2(Math.Max(lo.X, Math.Min(hi.X, target.Pos.X)), Math.Max(lo.Y, Math.Min(hi.Y, target.Pos.Y)));
-                lastLights[squad] = sq = new LastLightSquare { Center = c, Spin0 = Rand(0f, MathX.Tau) };
+                lastLights[squad] = sq = new LastLightSquare { Center = c, Spin0 = RandAngle() };
             }
             sq.Size++;
             return ClampToArena(LastLightPoint(sq.Center, sq.Spin0, LastLightU(i), LastLightStart), 30f);
@@ -301,7 +301,7 @@ namespace Arena
         }
 
         /// How far a point is from a Heliograph's lane (from it, along its Facing).
-        public static float HelioLaneDistance(Enemy e, V2 p) => SegmentDistance(p, e.Pos, e.Pos + V2.FromAngle(e.Facing) * HelioLen);
+        public static float HelioLaneDistance(Enemy e, V2 p) => p.DistanceToSegment(e.Pos, e.Pos + V2.FromAngle(e.Facing) * HelioLen);
 
 
         /// A crescent blade on a loop that leaves `side` of your line, passes through `at` and comes back round to it

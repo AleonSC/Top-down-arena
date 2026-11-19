@@ -124,7 +124,7 @@ namespace Arena
             var e = SpawnEnemyAt(EnemyType.SpawnPortal, pos, SpawnPortals.Appear, -1);  // (parent -1: no core carrier, no parent)
             e.Phase = flank ? SpawnPortals.FlankOpening : SpawnPortals.Opening;
             e.PhaseT = flank ? SpawnPortals.FlankOpenTime : SpawnPortals.OpenTime;
-            V2 to = PartyMiddle(new V2(Width / 2f, Height / 2f)) - e.Pos;
+            V2 to = PartyMiddle(ArenaMid) - e.Pos;
             e.Facing = to.Length > 1f ? to.Angle : 0f;
             portalCargo[e.Id] = cargo;
             portalsThisWave++;
@@ -193,7 +193,7 @@ namespace Arena
         /// A spot behind the party: of a few candidate spawn spots, the one most opposite the way the players are aiming.
         V2 FlankSpot(float r)
         {
-            V2 mid = PartyMiddle(new V2(Width / 2f, Height / 2f)), aim = V2.Zero;
+            V2 mid = PartyMiddle(ArenaMid), aim = V2.Zero;
             foreach (var p in Players.Values)
                 if (!p.Downed)
                     aim += V2.FromAngle(p.Aim);

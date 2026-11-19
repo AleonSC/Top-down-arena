@@ -260,8 +260,7 @@ namespace Arena
             }
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             ClearReady();  // nobody is ready yet (WaveReady.cs)
             DoLog("wave " + Wave + " cleared");
         }

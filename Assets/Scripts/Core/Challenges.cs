@@ -173,7 +173,7 @@ namespace Arena
             RoomT = Challenges.PortalLife;
             PortalFill = 0f;
             // Somewhere open, away from where everyone is standing, and clear of every wall, pillar and crate.
-            PortalPos = new V2(Width / 2f, Height / 2f);
+            PortalPos = ArenaMid;
             bool found = false;
             for (int tries = 0; tries < 80 && !found; tries++)
             {
@@ -279,9 +279,8 @@ namespace Arena
             Patches.Clear();
             Zones.Clear();
             Hazards.Clear();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
-            var mid = new V2(Width / 2f, Height / 2f);
+            HostClearEnemyBullets();
+            var mid = ArenaMid;
             CrystalPos = mid;
             CrystalMax = CrystalHp = RoomKind == ChallengeKind.Defend ? Challenges.CrystalHpBase * (1f + Challenges.CrystalHpPerPlayer * (Players.Count - 1)) : 0f;
             AltarPos = mid;
@@ -570,8 +569,7 @@ namespace Arena
                 AddFx(FxKind.Implode, e.Pos, Defs.Get(e.Type).Color, e.Radius + 20f, 0.4f);
             Enemies.Clear();
             ShadowOf.Clear();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
         }
 
         /// Someone touched the altar (or it waited long enough): everyone gets a prize pick, and some a legendary.
@@ -605,7 +603,7 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
-            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), new Rgba(0.7f, 0.6f, 1f), 600f, 0.7f, Sfx.BossWarp);
+            BroadcastFx(FxKind.Ring, ArenaMid, new Rgba(0.7f, 0.6f, 1f), 600f, 0.7f, Sfx.BossWarp);
         }
 
         /// Everyone's down in the room: no game over, the challenge is just lost (CheckGameOver).

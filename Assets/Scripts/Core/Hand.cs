@@ -167,7 +167,7 @@ namespace Arena
                 if (Expanded[i].Floating && i + 1 < ExpansionWorld.Areas.Length && ExpansionWorld.Areas[i + 1].Sealed && Expanded[i].Kind != Arena.RoomKind.Gatekeeper)
                 {
                     var m = new V2((Expanded[i].X + Expanded[i].X1) / 2f, (Expanded[i].Y + Expanded[i].Y1) / 2f);
-                    float d = m.DistanceTo(new V2(Width / 2f, Height / 2f));
+                    float d = m.DistanceTo(ArenaMid);
                     if (d < best) { best = d; goal = m; }
                 }
             if (goal.HasValue)
@@ -175,7 +175,7 @@ namespace Arena
             foreach (var nd in Nodes)
                 if (!nd.Spent && !Expansion.NodeClaimed(Expanded, nd))
                 {
-                    float d = nd.Pos.DistanceTo(new V2(Width / 2f, Height / 2f));
+                    float d = nd.Pos.DistanceTo(ArenaMid);
                     if (d < best) { best = d; goal = nd.Pos; }
                 }
             return goal;

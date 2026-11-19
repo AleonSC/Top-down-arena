@@ -512,7 +512,7 @@ namespace Arena
                 if (list.Count > 0)
                 {
                     var p = list[rng.Next(list.Count)];
-                    var near = ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 240f), 60f);
+                    var near = ClampToArena(p.Pos + RandDir() * Rand(60f, 240f), 60f);
                     if (!inRoom || FloorAt(near) == floor)
                         pos = near;
                 }

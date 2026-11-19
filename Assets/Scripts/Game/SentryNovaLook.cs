@@ -53,7 +53,7 @@ namespace Arena
                 float age = SentryAge(m), aim = m.Aim;
                 if (age > Game.SentryDeploy && t - s.LastShot > 1f)
                     aim += 0.55f * Mathf.Sin(t * 1.4f + m.Id);  // idle: sweeping for something to shoot
-                float turn = MathX.Fmod(aim - s.Ang + MathX.Pi, MathX.Tau) - MathX.Pi;  // the short way round
+                float turn = MathX.WrapPi(aim - s.Ang);  // the short way round
                 s.Ang += turn * (1f - Mathf.Exp(-14f * dt));
             }
             sentryGone.Clear();

@@ -350,7 +350,7 @@ namespace Arena
             for (int gy = 1; gy < 9; gy++)
                 Ui.Fill(new Rect(m.x, m.y + gy * m.height / 9f, m.width, 1f), new Color(ink.r, ink.g, ink.b, 0.06f));
             CrtKit.Frame(m, 1f, new Color(ink.r, ink.g, ink.b, 0.3f));
-            var c = EdToMap(new V2(Game.Width / 2f, Game.Height / 2f));
+            var c = EdToMap(Game.ArenaMid);
             Ui.Dot(new Rect(c.x - 4f, c.y - 4f, 8f, 8f), new Color(1f, 1f, 1f, 0.2f));
 
             // Props.
@@ -411,7 +411,7 @@ namespace Arena
         List<EdDot> EdPreview(DesignWave w, float t)
         {
             var dots = new List<EdDot>();
-            var mid = new V2(Game.Width / 2f, Game.Height / 2f);
+            var mid = Game.ArenaMid;
             foreach (var g in w.Groups)
             {
                 var arr = g.Arrivals;

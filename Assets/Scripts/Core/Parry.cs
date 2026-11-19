@@ -76,7 +76,7 @@ namespace Arena
         }
 
         /// Does the shield face this way (any distance)?
-        static bool Facing(Player p, V2 d) => Math.Abs(MathX.Fmod(d.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi) < HalfArc(p);
+        static bool Facing(Player p, V2 d) => Math.Abs(MathX.WrapPi(d.Angle - p.Aim)) < HalfArc(p);
 
         /// The shield takes a hit: free during a perfect parry, otherwise it wears and may break.
         /// Returns whether the blocked bullet should be sent back (perfect parry or Mirror Guard).

@@ -39,7 +39,7 @@ namespace Arena
         {
             if (e.Phase == CapDazed || e.Phase == CapLow)
                 return false;
-            float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float diff = Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing));
             return diff < CaptainShieldArc;
         }
 
@@ -53,7 +53,7 @@ namespace Arena
             if (e.Phase == CapWinding || e.Phase == CapCharging || e.Phase == CapDazed)
                 return;
             float turn = CaptainTurn * (e.Phase == CapLow ? 0.5f : 1f);
-            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            float diff = MathX.WrapPi(want - e.Facing);
             e.Facing += Math.Max(-turn * dt, Math.Min(turn * dt, diff));
         }
 

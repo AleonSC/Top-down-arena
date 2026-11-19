@@ -217,7 +217,7 @@ namespace Arena
                     }
                     break;
                 case ReaperTurn.Lasers:
-                    R.Laser = Rand(0f, MathX.Tau);
+                    R.Laser = RandAngle();
                     R.Suck = 0f;
                     if (d != null)
                     {
@@ -253,9 +253,8 @@ namespace Arena
             R.Trapped = false;
             twinPending = false;
             TwinReviveT = 0f;
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
-            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), kind == 1 ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(1f, 0.35f, 0.35f), 900f, 0.8f, Sfx.BossGong);
+            HostClearEnemyBullets();
+            BroadcastFx(FxKind.Ring, ArenaMid, kind == 1 ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(1f, 0.35f, 0.35f), 900f, 0.8f, Sfx.BossGong);
             BroadcastSound(kind == 1 ? Sfx.BossWarp : Sfx.BossRumble);  // they spiral in; or it shakes before it cracks
             DoLog(kind == 1 ? "the Twin Reapers fuse" : "the Dual Reaper splits");
         }
@@ -264,7 +263,7 @@ namespace Arena
         {
             R.TransT += dt;
             float t = R.TransT;
-            V2 mid = new V2(Width / 2f, Height / 2f);
+            V2 mid = ArenaMid;
             if (R.Trans == 1)
             {
                 // They spiral in toward each other, tighter and faster, and merge in a flash.
@@ -402,7 +401,7 @@ namespace Arena
         {
             var R = Reapers;
             float side = e.Type == EnemyType.ReaperOfDusk ? -1f : 1f;
-            V2 mid = new V2(Width / 2f, Height / 2f);
+            V2 mid = ArenaMid;
             if (R == null || R.Step < 0)
                 return (mid + new V2(side * Width * 0.26f, 0f) - e.Pos) / 60f;
             if (R.Trans == 2)
@@ -541,7 +540,7 @@ namespace Arena
         /// The Dual Reaper's turns; returns true when the turn is over.
         bool TickDual(ReaperFight R, Enemy d, float dt)
         {
-            V2 mid = new V2(Width / 2f, Height / 2f);
+            V2 mid = ArenaMid;
             if (R.Trapped)
             {
                 if (R.Shield <= 0f)
@@ -591,7 +590,7 @@ namespace Arena
                                     Damage(p, SuckDamage, "The Dual Reaper (blast)");
                             BroadcastFx(FxKind.Boom, d.Pos, new Rgba(1f, 0.6f, 0.3f), SuckRadius, 0.6f, Sfx.BigExplode);
                             R.TurnT = 0f;  // and again, with the pillars that are left
-                            R.Laser = Rand(0f, MathX.Tau);
+                            R.Laser = RandAngle();
                         }
                         return false;
                     }
@@ -641,7 +640,7 @@ namespace Arena
                             {
                                 if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(d.Pos, SwingReach + p.Def.HitR))
                                     continue;
-                                float diff = Math.Abs(MathX.Fmod((p.Pos - d.Pos).Angle - sa + MathX.Pi, MathX.Tau) - MathX.Pi);
+                                float diff = Math.Abs(MathX.WrapPi((p.Pos - d.Pos).Angle - sa));
                                 if (diff < SwingHalfArc)
                                     Damage(p, SwingDamage, "The Dual Reaper (scythe)");
                             }
@@ -680,7 +679,7 @@ namespace Arena
             var R = Reapers;
             if (R == null || R.Trans != 0 || R.Trapped || R.Leap > 0f || R.Suck > 0f)
                 return V2.Zero;
-            V2 mid = new V2(Width / 2f, Height / 2f);
+            V2 mid = ArenaMid;
             if (R.Turn == ReaperTurn.Chase)
             {
                 speed = ChaseSpeed;
@@ -702,7 +701,7 @@ namespace Arena
                 return;
             }
             var target = PlayerOrNull(e.TargetId);
-            V2 tp = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
+            V2 tp = target != null ? target.Pos : ArenaMid;
             rp.T += dt;
             switch (rp.Phase)
             {
@@ -738,7 +737,7 @@ namespace Arena
                         {
                             if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, ReapReach + p.Def.HitR))
                                 continue;
-                            float diff = Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - rp.A + MathX.Pi, MathX.Tau) - MathX.Pi);
+                            float diff = Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - rp.A));
                             if (diff < ReapHalfArc)
                             {
                                 Damage(p, ReapDamage, e.Def.Name + " (reap)");

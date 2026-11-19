@@ -26,7 +26,7 @@ namespace Arena
                 int lasers = Game.SingLaserCount(sing);
                 if (sing.Phase == Game.SingLasers)
                     laserAngle += Game.SingLaserSpin(sing) * ViewDt;
-                float diff = MathX.Fmod(sing.Facing - laserAngle + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float diff = MathX.WrapPi(sing.Facing - laserAngle);
                 laserAngle += Mathf.Abs(diff) > 0.5f ? diff : diff * Mathf.Min(1f, ViewDt * 8f);
                 for (int k = 0; k < lasers; k++)
                 {

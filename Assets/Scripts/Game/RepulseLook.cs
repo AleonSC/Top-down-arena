@@ -96,7 +96,7 @@ namespace Arena
                 float d = rel.Length;
                 if (d < 1f || d - e.Radius > reach)
                     continue;
-                float off = Mathf.Abs(MathX.Fmod(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+                float off = Mathf.Abs(MathX.WrapPi(rel.Angle - aim));
                 if (off > half + (float)Math.Asin(Math.Min(1f, e.Radius / d)))
                     continue;
                 Arc(e.Disp, e.Radius + 4f, 2f, PullViolet.WithAlpha(0.8f), 18);

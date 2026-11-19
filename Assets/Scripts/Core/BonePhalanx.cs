@@ -355,7 +355,7 @@ namespace Arena
                     float d = off.Length;
                     if (d > 480f || d < 1f)
                         continue;
-                    float da = Math.Abs(MathX.Fmod(off.Angle - a + MathX.Pi, MathX.Tau) - MathX.Pi);
+                    float da = Math.Abs(MathX.WrapPi(off.Angle - a));
                     if (da < 0.52f)
                         score += (1f + (480f - d) / 960f) * (1f - 0.5f * da / 0.52f);  // (nearer the cone's middle counts more, so it centres on the group)
                 }

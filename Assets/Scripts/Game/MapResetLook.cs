@@ -19,7 +19,7 @@ namespace Arena
             float k = Mathf.Clamp01(age / FoldTime);
             float pull = k * k * (3f - 2f * k);  // (eased: slow off, quick in)
             float fade = 1f - k;
-            var c = new V2(Game.Width / 2f, Game.Height / 2f);
+            var c = Game.ArenaMid;
             foreach (var r in game.FoldRooms)
             {
                 V2 a = Lerp(new V2(r.X, r.Y), c, pull), b = Lerp(new V2(r.X1, r.Y1), c, pull);

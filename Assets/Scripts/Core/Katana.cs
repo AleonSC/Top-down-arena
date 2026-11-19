@@ -322,15 +322,6 @@ namespace Arena
                 BroadcastSound(Sfx.KatanaFling);
         }
 
-        Enemy NearestEnemy(V2 at)
-        {
-            Enemy best = null;
-            foreach (var e in Enemies.Values)
-                if (!IsSpawning(e) && e.Hp > 0f && (best == null || e.Pos.DistanceSq(at) < best.Pos.DistanceSq(at)))
-                    best = e;
-            return best;
-        }
-
         /// Host, every tick: the steps' timed cuts, the marks fading, and the caltrops landing and flying.
         void TickKatanaLater(float dt)
         {

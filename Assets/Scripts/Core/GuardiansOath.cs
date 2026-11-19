@@ -94,7 +94,7 @@ namespace Arena
                 sum += d / len * (1f - len / 500f);
             }
             if (sum.Length < 0.05f)
-                sum = new V2(Width / 2f, Height / 2f) - grab;
+                sum = ArenaMid - grab;
             return sum.IsZero ? V2.FromAngle(0f) : sum.Normalized();
         }
 

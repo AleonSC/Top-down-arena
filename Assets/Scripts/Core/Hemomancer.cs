@@ -613,8 +613,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (Targetable(e) && !e.Def.IsBoss && e.Pos.WithinReach(z.Pos, z.Radius + e.Radius))
                 {
-                    e.FrozenT = Math.Max(e.FrozenT, PoolStuck);
-                    e.SlowT = Math.Max(e.SlowT, PoolStuck);
+                    Hold(e, PoolStuck);
                 }
             BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.3f, Sfx.None);
         }

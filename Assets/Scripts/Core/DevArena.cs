@@ -68,8 +68,7 @@ namespace Arena
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();
-            ClearEnemyBullets();
-            session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            HostClearEnemyBullets();
             foreach (var p in Players.Values)
                 if (p.Downed)
                     RevivePlayer(p, 1f);

@@ -55,7 +55,7 @@ namespace Arena
             if (!launchRippled && launchT >= LaunchRippleAt)
             {
                 launchRippled = true;
-                ripples.Add(new Ripple { Pos = new V2(Game.Width / 2f, Game.Height / 2f), Power = 2.2f });  // Juice.cs
+                ripples.Add(new Ripple { Pos = Game.ArenaMid, Power = 2.2f });  // Juice.cs
             }
             if (launchT >= LaunchLen)
             {
@@ -118,8 +118,8 @@ namespace Arena
             {
                 float e = 1f - (1f - rk) * (1f - rk) * (1f - rk), rad = 40f + e * 1100f;
                 var c = new Rgba(0.55f, 0.72f, 1f);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 26f, c.WithAlpha(0.12f * (1f - rk)), 96);
-                Arc(new V2(Game.Width / 2f, Game.Height / 2f), rad, 4f, c.WithAlpha(0.6f * (1f - rk)), 96);
+                Arc(Game.ArenaMid, rad, 26f, c.WithAlpha(0.12f * (1f - rk)), 96);
+                Arc(Game.ArenaMid, rad, 4f, c.WithAlpha(0.6f * (1f - rk)), 96);
             }
             foreach (var p in game.Players.Values)
             {

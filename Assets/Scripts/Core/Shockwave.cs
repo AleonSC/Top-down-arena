@@ -82,7 +82,7 @@ namespace Arena
                     continue;
                 V2 away = (e.Pos - w.Pos).Normalized();
                 if (away.IsZero)
-                    away = V2.FromAngle(Rand(0f, MathX.Tau));
+                    away = RandDir();
                 KnockEnemy(e, away * (Heavy(e) ? ShockwaveHeavyKnock : ShockwaveKnock));  // slides (Knock.cs)
             }
             Free(snap7);

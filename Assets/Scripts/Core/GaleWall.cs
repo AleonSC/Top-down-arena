@@ -71,7 +71,7 @@ namespace Arena
                 float d = rel.Length, span = GaleSpan(p);
                 if (Math.Abs(d - GaleRadius) > GaleBand + b.Radius)
                     continue;
-                float off = MathX.Fmod(rel.Angle - p.GaleAim + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float off = MathX.WrapPi(rel.Angle - p.GaleAim);
                 if (Math.Abs(off) > span)
                     continue;
                 if (p.GaleDots.Count < GaleCapOf(p))

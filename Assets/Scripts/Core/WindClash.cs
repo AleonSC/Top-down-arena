@@ -160,7 +160,7 @@ namespace Arena
                 if (alpha < 0.35f || Math.Abs(d - r) > WcHitBand + e.Radius)
                     return false;
                 WcArcSpan(w.Aim, w.Step, sweep, out start, out span);
-                float off = MathX.Fmod(rel.Angle - start + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float off = MathX.WrapPi(rel.Angle - start);
                 float along = span < 0f ? -off : off, slack = d > 1f ? e.Radius / d : 0f;
                 return along >= -slack && along <= Math.Abs(span) + slack;
             }
@@ -243,7 +243,7 @@ namespace Arena
                     WeaponHurt(e, dmg, p.Id);
                     V2 rel = e.Pos - p.Pos;
                     if (e.Hp > 0f && !Heavy(e))
-                        KnockEnemy(e, (rel.Length > 1f ? rel / rel.Length : V2.FromAngle(Rand(0f, MathX.Tau))) * TempestShove);
+                        KnockEnemy(e, (rel.Length > 1f ? rel / rel.Length : RandDir()) * TempestShove);
                 }
                 p.Run.ShotsFired++;
                 if (any)

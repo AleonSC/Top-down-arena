@@ -541,7 +541,7 @@ namespace Arena
                         float d = rel.Length;
                         float round = Smooth((d - NightSight) / NightEdge);
                         // The lantern: a cone toward where they aim, fading toward its far end.
-                        float off = Mathf.Abs(MathX.Fmod(rel.Angle - pl.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+                        float off = Mathf.Abs(MathX.WrapPi(rel.Angle - pl.Aim));
                         float beam = d < 1f ? 0f : Mathf.Max(Smooth((off - NightBeamHalf) / 0.18f), Smooth((d - NightBeam) / 160f) * 0.85f + 0.15f * d / NightBeam);
                         if (!pl.Downed)
                             round = Mathf.Min(round, beam);

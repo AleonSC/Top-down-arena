@@ -363,7 +363,7 @@ namespace Arena
             var m = new Minion
             {
                 Id = nextMinionId++, Kind = kind, Owner = owner.Id, Pos = ClampToArena(pos, 10f), T = life, Duration = life,
-                Companion = companion, Ang = Rand(0f, MathX.Tau), Aim = owner.Aim,
+                Companion = companion, Ang = RandAngle(), Aim = owner.Aim,
             };
             m.Disp = m.Pos;
             m.HealRate = m.Def.HealRate * (kind == MinionKind.Sprite && !casting && owner.Weapon.Id == WeaponId.SpriteStaff ? owner.Stats.StaffSpriteHealMult : 1f);  // (Wildfire Seeds: the staff's sprites heal more)
@@ -415,15 +415,6 @@ namespace Arena
             Minions.Remove(m.Id);
         }
 
-        Enemy NearestEnemy(V2 pos, float range)
-        {
-            Enemy best = null;
-            foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.CloserThan(pos, range) && (best == null || e.Pos.DistanceSq(pos) < best.Pos.DistanceSq(pos)))
-                    best = e;
-            return best;
-        }
-
         void TickMinions(float dt)
         {
             // Summoner weapons keep their companions topped up; the totem staff plants totems.
@@ -463,7 +454,7 @@ namespace Arena
                     p.CompanionCd -= dt;
                     if (have < want && p.CompanionCd <= 0f)
                     {
-                        var m = SpawnMinion(kind, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, kind == MinionKind.Golem ? GolemLife : -1f, true);
+                        var m = SpawnMinion(kind, p, p.Pos + RandDir() * 30f, kind == MinionKind.Golem ? GolemLife : -1f, true);
                         if (kind == MinionKind.LightOrb)
                             m.Ang = MathX.Tau * have / Math.Max(1, want);
                         p.CompanionCd = kind == MinionKind.Imp ? w.CompanionRespawn / (1f + 0.5f * extra) / p.Stats.ImpRateMult : 0.3f;  // (Imp Horde: faster)

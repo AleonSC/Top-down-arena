@@ -215,8 +215,7 @@ namespace Arena
             if (e.Hp > 0f && !e.Def.IsBoss)
             {
                 float stun = KusariThrowStun + p.Stats.KusariStunBonus;  // (Heavy Weight: longer)
-                e.FrozenT = Math.Max(e.FrozenT, stun);
-                e.SlowT = Math.Max(e.SlowT, stun);
+                Hold(e, stun);
             }
             p.MeleeGraceT = MeleeContactGrace;
             BroadcastFx(FxKind.Ring, e.Pos, KusariColor, e.Radius + 34f, 0.3f, Sfx.SwingHeavy);

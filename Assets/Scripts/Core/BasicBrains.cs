@@ -123,7 +123,7 @@ namespace Arena
             {
                 if (!slowTurn)
                     return false;
-                float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float diff = MathX.WrapPi(want - e.Facing);
                 e.Facing += Math.Max(-1.6f * dt, Math.Min(1.6f * dt, diff));
                 return true;
             }
@@ -176,7 +176,7 @@ namespace Arena
             {
                 if (e.Phase >= ShieldBroken)
                     return false;
-                float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                float diff = Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing));
                 return diff < ShieldHalfAngle;
             }
 
