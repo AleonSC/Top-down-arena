@@ -182,7 +182,7 @@ static partial class Program
 
         // Building: the friend plays a single cell; it goes up at once, theirs, free, and the round stays open.
         int clientBefore = g.Players[2].Vectors;
-        var first = PlayPiece(s, dt, g, cg, PieceShape.Mono);
+        var first = PlayPieceCard(s, dt, g, cg, PieceShape.Mono);
         Check(first.HasValue && g.Expanded.Count == 5 && g.Expanded[4].Owner == 2 && g.Players[2].Vectors == clientBefore && cg.Expanded.Count == 5 && cg.Expanded[4].Equals(g.Expanded[4]) && g.ExpandOpen,
             "a piece is built at once: the friend's, free, both screens agree, and the round stays open");
         resolveRound.Invoke(g, null);  // (what the next wave's start does)
@@ -261,8 +261,8 @@ static partial class Program
         int builtNow = g.Expanded.Count;
         openRound.Invoke(g, null);
         Run(s, dt, 3f, () => g.ExpandOpen && cg.ExpandOpen);
-        PlayPiece(s, dt, g, cg, PieceShape.Mono);
-        PlayPiece(s, dt, g, g, PieceShape.Domino);
+        PlayPieceCard(s, dt, g, cg, PieceShape.Mono);
+        PlayPieceCard(s, dt, g, g, PieceShape.Domino);
         Check(g.Expanded.Count > builtNow + 1 && cg.Expanded.Count == g.Expanded.Count && g.ExpandOpen && g.Expanded.Skip(builtNow).Any(r => r.Owner == 2) && g.Expanded.Skip(builtNow).Any(r => r.Owner == 1),
             "both players build in one round, a single and a domino");
         resolveRound.Invoke(g, null);

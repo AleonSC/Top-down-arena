@@ -73,7 +73,7 @@ namespace Arena
             {
                 var p = Players[id];
                 foreach (byte c in p.Hand)
-                    if (c == (byte)Piece.Arms)
+                    if (c == (byte)PieceCard.Arms)
                         held = true;
                 int free = Expansion.HandMax - HandCount(p);
                 if (free > room)
@@ -91,7 +91,7 @@ namespace Arena
             if (to == null)
                 return;
             armsCardCycle = cycle;
-            GiveCard(to, Piece.Arms, "this boss cycle's Arms Dealer");
+            GiveCard(to, PieceCard.Arms, "this boss cycle's Arms Dealer");
         }
 
         /// Host: the Arms Dealer sells this mod (an upgrade id) to the player, if it's a mod they can still take and they have the gold.

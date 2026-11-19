@@ -140,9 +140,9 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 ### Grid vocabulary (use these names in code, UI and docs)
 
 - **Cell**: one 600 px square of the lattice. **Shape** (`PieceShape`): the 1-4 cell polyomino (Mono ... TetL).
-- **Piece** (`Piece`, hand codes in `GridPieces.cs`): what sits in your **hand**: a shape plus a **room type** (`RoomTypeOf`: plain, or a floor). Service pieces (Shop, Market, Arms, Builder Shop) are one cell.
-- **Placement** (`Placement`, `PlacementsFor`): one legal spot and turn for a piece, at a **door spot**. Placing it builds a **room**.
-- Sources: **Piece chest** (`ChestKind.Piece`), **Builder Shop** (buys pieces, vectors), wave and boss drops, round start. **Room chests** are the chests a built room may drop (any kind). **Black Market** sells buildables (never "vendor"). **Card** means upgrade and milestone cards only.
+- **Piece card** (`PieceCard`, hand codes in `GridPieces.cs`): what sits in your **hand**: a shape plus a **room type** (`RoomTypeOf`: plain, or a floor). Service piece cards (Shop, Market, Arms, Builder Shop) are one cell. A **piece** on its own is the shape on the map.
+- **Placement** (`Placement`, `PlacementsFor`): one legal spot and turn for a piece card, at a **door spot**. Placing it builds a **room**.
+- Sources: **Piece chest** (`ChestKind.Piece`), **Builder Shop** (buys piece cards, vectors), wave and boss drops, round start. **Room chests** are the chests a built room may drop (any kind). **Black Market** sells buildables (never "vendor"). **Upgrade card** and **milestone card** are the other cards.
 
 ### Adding an enemy
 

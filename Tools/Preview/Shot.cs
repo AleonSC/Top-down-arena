@@ -861,9 +861,9 @@ static partial class Shot {
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {
           if (gc.Length == 0 || gi >= eg.Me.Hand.Length) continue;
-          var gp = gc.Split(':'); PieceShape piece; Piece rc; PathId pf = PathId.None;
+          var gp = gc.Split(':'); PieceShape piece; PieceCard rc; PathId pf = PathId.None;
           if (gp.Length > 1 && !Enum.TryParse(gp[1], true, out pf)) Console.Error.WriteLine("GRIDCARDS: no floor " + gp[1]);
-          if (Enum.TryParse(gp[0], true, out piece) && Enum.IsDefined(typeof(PieceShape), piece)) eg.Me.Hand[gi++] = (byte)Expansion.MakePiece(piece, pf);
+          if (Enum.TryParse(gp[0], true, out piece) && Enum.IsDefined(typeof(PieceShape), piece)) eg.Me.Hand[gi++] = (byte)Expansion.MakePieceCard(piece, pf);
           else if (Enum.TryParse(gp[0], true, out rc)) eg.Me.Hand[gi++] = (byte)rc;
           else Console.Error.WriteLine("GRIDCARDS: no piece " + gc);
         }
@@ -912,7 +912,7 @@ static partial class Shot {
       bool atBlackMarket = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  bool atArms = Environment.GetEnvironmentVariable("EXPANDSHOP") == "4";  // EXPANDSHOP=4: the Arms Dealer (ArmsDealer.cs; MODSHELD=a,b gives you those mods first)  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (Pieces.cs); SHOPCAT=0|1 opens a category
       string xw; var xr = Box(1600, 300, 600, 300).Value; xr.Kind = atArms ? RoomKind.Arms : atBlackMarket ? RoomKind.BlackMarket : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
       var xa = Array.Find(xg.CurrentWorld.Areas, a => a.Kind == xr.Kind);  // (the scene may have rooms of its own: find the shop's)
-      foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)Piece.Box; pl.Hand[1] = (byte)Piece.Hall; } }
+      foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)PieceCard.Box; pl.Hand[1] = (byte)PieceCard.Hall; } }
       if (Environment.GetEnvironmentVariable("MODSHELD") != null) foreach (var mn in Environment.GetEnvironmentVariable("MODSHELD").Split(',')) { int mi = Array.FindIndex(Upgrades.All, u => u.Name == mn); if (mi >= 0) xg.GrantUpgrade(xg.MyId, mi); else Console.Error.WriteLine("MODSHELD: no upgrade " + mn); }
       if (Environment.GetEnvironmentVariable("SHOPCAT") != null) typeof(ArenaApp).GetField("shopCat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("SHOPCAT")));
       typeof(Game).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(xg, null);

@@ -34,7 +34,7 @@ namespace Arena
             DkPanel(r);
             Ui.Fill(new Rect(r.x, r.y, r.width, 2f), new Color(ink.r, ink.g, ink.b, 0.8f));  // an amber top edge
             DkTitle(new Rect(r.x + 18f, r.y + 10f, 260f, 26f), "BUILDER SHOP", 20, ink);
-            Ui.Label(new Rect(r.x + 18f, r.y + 34f, 380f, 16f), "Pieces for vectors  ·  a new shelf each wave  ·  a quarter off", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 18f, r.y + 34f, 380f, 16f), "Piece cards for vectors  ·  a new shelf each wave  ·  a quarter off", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             int held = Game.HandCount(me), have = game.SpendableVectors(me);
             Ui.Label(new Rect(r.xMax - 260f, r.y + 12f, 242f, 20f), have + " VECTORS", 15, new Color(0.55f, 0.9f, 1f), TextAnchor.MiddleRight, true);
             Ui.Label(new Rect(r.xMax - 260f, r.y + 34f, 242f, 16f), "HAND  " + held + " / " + Expansion.HandMax, 11, held >= Expansion.HandMax ? new Color(1f, 0.45f, 0.5f) : Ui.Muted, TextAnchor.MiddleRight, true);

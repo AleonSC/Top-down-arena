@@ -17,7 +17,7 @@ Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer 
 
 ## Plan
 
-1. (built) **Service cards.** `Piece.Shop`, `Market`, `Arms` (added at the end of the enum); each plays a tiny 4 x 4 room (`SurpriseShape.Tiny`)
+1. (built) **Service cards.** `PieceCard.Shop`, `Market`, `Arms` (added at the end of the enum); each plays a tiny 4 x 4 room (`SurpriseShape.Tiny`)
    of `RoomKind.Shop` / `Vendor` / `Arms` (new, at the end), already open. Card art in `PiecesUi.cs`. Sources as shape cards: the
    1 in 4 wave drop and chest nodes can roll them, and the boss pick. Tests in suite `roomcards`.
    Built: `Expansion.ServiceCards`, `IsServiceCard`, `CardRoomKind`, `DropCard` (1 in `ServiceCardChance` 5); the tiny room gets the floating rooms' mark

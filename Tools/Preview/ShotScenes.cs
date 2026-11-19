@@ -183,7 +183,7 @@ static partial class Shot {
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
       string lootKind = Environment.GetEnvironmentVariable("LOOTKIND");  // LOOTKIND=build|card: a Buildables chest's build or a piece chest's card instead of the upgrade
       if (lootKind == "build") { g.Loots[99].Kind = LootKind.Build; g.Loots[99].Item = (int)BuildKind.Turret; }
-      else if (lootKind == "card") { g.Loots[99].Kind = LootKind.Card; g.Loots[99].Item = (int)Expansion.MakePiece(PieceShape.TriL); }
+      else if (lootKind == "card") { g.Loots[99].Kind = LootKind.Card; g.Loots[99].Item = (int)Expansion.MakePieceCard(PieceShape.TriL); }
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
       for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
       if (Environment.GetEnvironmentVariable("PROPSBREAK") != null) { g.Enemies.Clear(); g.State = MatchState.Intermission; g.StateTimer = 20f; me.Offer = null; }  // PROPSBREAK=1: between waves (the card shows then too)
@@ -2175,14 +2175,14 @@ static partial class Shot {
       }
       string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=buildershop|shop|market|arms|medic: that card's one-cell room built on the lattice, everyone in it; CARDSPOT=<n> picks its nth door spot
       if (xcard != null) {
-        var xc = (Piece)Enum.Parse(typeof(Piece), xcard, true);
+        var xc = (PieceCard)Enum.Parse(typeof(PieceCard), xcard, true);
         var xco = Expansion.PlacementsFor(xg.Expanded, PieceShape.Mono);
         int xci = Math.Min(xco.Count - 1, int.Parse(Environment.GetEnvironmentVariable("CARDSPOT") ?? "0"));
         if (xci >= 0) { var r2 = xco[xci].Rooms[0]; r2.Owner = 1; r2.Kind = Expansion.CardRoomKind(xc); xg.Expanded.Add(r2); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = xco[xci].Mid + new V2(0f, float.Parse(Environment.GetEnvironmentVariable("CARDDY") ?? "0")); }  // (CARDDY=<px>: stand that far below the room's middle)
         else Console.Error.WriteLine("CARDROOM: no spot fits");
         if (Environment.GetEnvironmentVariable("BUILDEROPEN") != null) {  // BUILDEROPEN=1 (with CARDROOM=buildershop): a build round, so the Builder Shop's shelf shows (BuilderShopUi.cs)
           xg.ExpandOpen = true; xg.State = MatchState.Intermission;
-          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.MakePiece(PieceShape.Mono); pl.Hand[1] = (byte)Expansion.MakePiece(PieceShape.TetL); }
+          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (byte)Expansion.MakePieceCard(PieceShape.TetL); }
         }
       }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room

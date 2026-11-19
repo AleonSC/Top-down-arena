@@ -117,7 +117,7 @@ static partial class Program
         if (chest != null)
         {
             open.Invoke(g, new object[] { chest, false });
-            Check(g.Nodes[0].Spent && g.Players.Values.All(p => Game.HandCount(p) == 0 && g.Loots.Values.Count(l => l.Owner == p.Id && l.Kind == LootKind.Card && Expansion.IsGridPiece((Piece)l.Item)) == 1),
+            Check(g.Nodes[0].Spent && g.Players.Values.All(p => Game.HandCount(p) == 0 && g.Loots.Values.Count(l => l.Owner == p.Id && l.Kind == LootKind.Card && Expansion.IsGridPieceCard((PieceCard)l.Item)) == 1),
                 "Piece chest: every player gets a piece to take or discard (not in the hand yet), no upgrade card");
             var cl = g.Loots.Values.First(l => l.Owner == 1);
             g.Players[1].Pos = cl.Pos;

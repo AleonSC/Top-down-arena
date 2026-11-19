@@ -14,10 +14,10 @@ namespace Arena
 
         /// The pool's groups and their weights: pieces 65, service cards 20, floor kits 15 (the mini-boss waits on the lattice instead, Docs/GridPieces.md).
         static readonly int[] Weights = { 65, 20, 15 };
-        static readonly Piece[] Services = { Piece.Shop, Piece.Market, Piece.Arms, Piece.Medic, Piece.BuilderShop };  // (the service cards and the Builder Shop)
+        static readonly PieceCard[] Services = { PieceCard.Shop, PieceCard.Market, PieceCard.Arms, PieceCard.Medic, PieceCard.BuilderShop };  // (the service cards and the Builder Shop)
 
         public static bool IsKit(int code) => code >= KitBase;
-        public static Piece CardOf(int code) => IsKit(code) ? Piece.None : (Piece)code;
+        public static PieceCard CardOf(int code) => IsKit(code) ? PieceCard.None : (PieceCard)code;
         public static PathId FloorOf(int code) => IsKit(code) ? (PathId)(code - KitBase) : PathId.None;
         public static int KitCode(PathId floor) => KitBase + (int)floor;
 
@@ -111,7 +111,7 @@ namespace Arena
                 if (!BossCardUsable(me, c))
                     continue;
                 var card = BossCards.CardOf(c);
-                int score = BossCards.IsKit(c) ? 1 : Expansion.IsShapePiece(card) ? 3 : 2;
+                int score = BossCards.IsKit(c) ? 1 : Expansion.IsShapePieceCard(card) ? 3 : 2;
                 if (Expansion.IsServiceCard(card))
                 {
                     var job = Expansion.CardRoomKind(card);

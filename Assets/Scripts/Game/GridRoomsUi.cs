@@ -14,22 +14,22 @@ namespace Arena
 
         static readonly Rgba GridInk = new Rgba(0.35f, 0.85f, 0.78f), GridOk = new Rgba(0.35f, 1f, 0.55f);
 
-        Piece PickedPiece
+        PieceCard PickedPieceCard
         {
             get
             {
                 var me = game.Me;
                 if (me == null || expGridSlot < 0 || expGridSlot >= me.Hand.Length)
-                    return Piece.None;
-                var c = (Piece)me.Hand[expGridSlot];
-                return Expansion.IsGridPiece(c) ? c : Piece.None;
+                    return PieceCard.None;
+                var c = (PieceCard)me.Hand[expGridSlot];
+                return Expansion.IsGridPieceCard(c) ? c : PieceCard.None;
             }
         }
 
         List<Placement> PlacementsNow()
         {
-            var card = PickedPiece;
-            if (card == Piece.None)
+            var card = PickedPieceCard;
+            if (card == PieceCard.None)
                 return gridOpts = new List<Placement>();
             var shape = Expansion.PieceShapeOf(card);
             int key = (int)shape * 7919 + game.Expanded.Count * 131;
@@ -86,7 +86,7 @@ namespace Arena
                 ev.Use();
                 return null;
             }
-            if (PickedPiece == Piece.None || !over)
+            if (PickedPieceCard == PieceCard.None || !over)
                 return null;
             var hits = GridFitsAt(wm);
             fits = hits.Count;
@@ -100,7 +100,7 @@ namespace Arena
             var pick = hits[((expGridTurn % hits.Count) + hits.Count) % hits.Count];
             if (ev.type == EventType.MouseDown && ev.button == 0)
             {
-                game.PlayPiece(expGridSlot, pick.Orient, pick.X, pick.Y);
+                game.PlayPieceCard(expGridSlot, pick.Orient, pick.X, pick.Y);
                 expGridSlot = -1;
                 expGridTurn = 0;
                 ev.Use();
@@ -112,7 +112,7 @@ namespace Arena
         /// The map (inside the GL pass): a pulsing mark on every door spot the picked piece fits, the piece under the mouse lit cell by cell.
         void DrawGridGhost(System.Func<V2, V2> M, Placement? pick)
         {
-            if (PickedPiece == Piece.None)
+            if (PickedPieceCard == PieceCard.None)
                 return;
             float pulse = 0.55f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f);
             var seen = new HashSet<long>();
@@ -126,7 +126,7 @@ namespace Arena
             }
             if (!pick.HasValue)
                 return;
-            var cells = Expansion.PieceShapeOrients(Expansion.PieceShapeOf(PickedPiece))[pick.Value.Orient];
+            var cells = Expansion.PieceShapeOrients(Expansion.PieceShapeOf(PickedPieceCard))[pick.Value.Orient];
             float fill = 0.2f + 0.08f * Mathf.Sin(Time.unscaledTime * 4f);
             foreach (var cell in cells)  // each cell, so the piece reads as cells joined into one room
             {
@@ -151,8 +151,8 @@ namespace Arena
             var me = game.Me;
             if (me == null || Game.HandCount(me) == 0)
                 return "No pieces in your hand: one comes each round, and the Black Market and the Builder Shop sell them.";
-            var card = PickedPiece;
-            if (card == Piece.None)
+            var card = PickedPieceCard;
+            if (card == PieceCard.None)
                 return "Pick a piece from your hand.";
             if (PlacementsNow().Count == 0)
             {
@@ -174,8 +174,8 @@ namespace Arena
             float gap = 6f, cw = (area.width - gap) / 2f, ch = 74f, y0 = area.y + 20f;
             for (int i = 0; i < n; i++)
             {
-                var card = (Piece)me.Hand[i];
-                bool playable = Expansion.IsGridPiece(card);
+                var card = (PieceCard)me.Hand[i];
+                bool playable = Expansion.IsGridPieceCard(card);
                 var r = new Rect(area.x + (i % 2) * (cw + gap), y0 + (i / 2) * (ch + gap), cw, ch);
                 bool on = i == expGridSlot;
                 if (CrtUi.SoftKey(r, "", null, 11, calm, lit: on) && playable)
@@ -187,11 +187,11 @@ namespace Arena
                 if (!playable)
                     ink = new Color(ink.r, ink.g, ink.b, 0.35f);
                 DrawCardGlyph(card, new Rect(r.x + 8f, r.y + 6f, r.width - 16f, 38f), on ? Color.white : ink);
-                bool floor = Expansion.PieceRoomType(card) != 0;  // a piece with a modifier (a floor today)
-                string name = Expansion.IsShapePiece(card) ? Expansion.PieceShapeName(Expansion.ShapeOfPiece(card)) : Expansion.CardName(card);
+                bool floor = Expansion.PieceCardRoomType(card) != 0;  // a piece with a modifier (a floor today)
+                string name = Expansion.IsShapePieceCard(card) ? Expansion.PieceShapeName(Expansion.ShapeOfPieceCard(card)) : Expansion.CardName(card);
                 Ui.Label(new Rect(r.x, r.y + (floor ? 46f : 52f), r.width, 16f), name.ToUpperInvariant(), 11, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
                 if (floor)  // a modded piece: its modifier under the name, in the card's colour
-                    Ui.Label(new Rect(r.x + 4f, r.y + 59f, r.width - 8f, 13f), Expansion.RoomTypeName(Expansion.PieceRoomType(card)).ToUpperInvariant(), 9, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
+                    Ui.Label(new Rect(r.x + 4f, r.y + 59f, r.width - 8f, 13f), Expansion.RoomTypeName(Expansion.PieceCardRoomType(card)).ToUpperInvariant(), 9, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
                 if (TipHover(r))
                 {
                     TipStart(r, Expansion.CardName(card), ink);

@@ -11,13 +11,13 @@ namespace Arena
         public const int BuilderOfferCount = 5;
 
         /// What the Builder Shop charges for a card: three quarters of the full price.
-        public static int BuilderPrice(Piece c) => (CardPrice(c) * 3 + 3) / 4;
+        public static int BuilderPrice(PieceCard c) => (CardPrice(c) * 3 + 3) / 4;
     }
 
     public partial class Game
     {
         /// The Builder Shop's shelf this wave.
-        public Piece[] BuilderCards => Expansion.GridBuilderOffers(expandSeed, Wave);
+        public PieceCard[] BuilderCards => Expansion.GridBuilderOffers(expandSeed, Wave);
 
         /// A Builder Shop room is on the connected map.
         public bool HasBuilderRoom

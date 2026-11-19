@@ -46,7 +46,7 @@ namespace Arena
                 switch (game.NodeChestKind(n))
                 {
                     case ChestKind.Gold: return "Build a room round it and touch the chest: it bursts into gold coins for everyone to pick up.";
-                    case ChestKind.Piece: return "Build a room round it and touch the chest: every player gets a piece.";
+                    case ChestKind.Piece: return "Build a room round it and touch the chest: every player gets a piece card.";
                     case ChestKind.Buildable: return "Build a room round it and touch the chest: every player gets a Black Market build in their stash.";
                     default: return "Build a room round it and touch the chest: every player gets their own upgrade card.";
                 }

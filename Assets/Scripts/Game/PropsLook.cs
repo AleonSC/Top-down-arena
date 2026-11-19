@@ -685,7 +685,7 @@ namespace Arena
                 GUI.EndGroup();
             }
             Ui.Label(new Rect(r.x + 12f, r.y + 10f, 120f, 16f), "FROM A CHEST", 10, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f), TextAnchor.MiddleLeft, true);
-            string rarity = up ? Upgrades.RarityName(u.Rarity) : l.Kind == LootKind.Build ? "BUILD" : Expansion.IsServiceCard((Piece)l.Item) ? "ROOM CARD" : "PIECE CARD";
+            string rarity = up ? Upgrades.RarityName(u.Rarity) : l.Kind == LootKind.Build ? "BUILD" : Expansion.IsServiceCard((PieceCard)l.Item) ? "ROOM CARD" : "PIECE CARD";
             float rw = 24f + rarity.Length * 7.5f;
             var ribbon = new Rect(r.xMax - rw - 12f, r.y + 8f, rw, 20f);
             Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f));
@@ -715,7 +715,7 @@ namespace Arena
             }
             else
             {
-                var card = (Piece)l.Item;
+                var card = (PieceCard)l.Item;
                 DrawCardGlyph(card, new Rect(tile.x + 10f, tile.y + 10f + bobY, 44f, 44f), rc);
                 name = Expansion.CardName(card);
                 int held = Game.HandCount(me);

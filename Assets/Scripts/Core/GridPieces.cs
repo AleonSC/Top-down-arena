@@ -20,12 +20,12 @@ namespace Arena
         public const int RoomTypeMax = (255 - PieceCodeBase) / 16;  // 13: the most a byte card code holds
         public const int FirstFreeRoomType = (int)PathId.Bazaar + 1;     // 11: the first number not taken by a floor
 
-        public static bool IsShapePiece(Piece c) => (int)c >= PieceCodeBase;
-        public static Piece MakePiece(PieceShape p, PathId floor = PathId.None) => MakePieceRoomType(p, (int)floor);
-        public static Piece MakePieceRoomType(PieceShape p, int mod) => (Piece)(PieceCodeBase + mod * 16 + (int)p);
-        public static PieceShape ShapeOfPiece(Piece c) => (PieceShape)(((int)c - PieceCodeBase) % 16);
-        public static int PieceRoomType(Piece c) => IsShapePiece(c) ? ((int)c - PieceCodeBase) / 16 : 0;
-        public static PathId PieceFloor(Piece c) => RoomTypeOf(PieceRoomType(c)) == RoomTypeKind.Floor ? (PathId)PieceRoomType(c) : PathId.None;
+        public static bool IsShapePieceCard(PieceCard c) => (int)c >= PieceCodeBase;
+        public static PieceCard MakePieceCard(PieceShape p, PathId floor = PathId.None) => MakePieceCardRoomType(p, (int)floor);
+        public static PieceCard MakePieceCardRoomType(PieceShape p, int mod) => (PieceCard)(PieceCodeBase + mod * 16 + (int)p);
+        public static PieceShape ShapeOfPieceCard(PieceCard c) => (PieceShape)(((int)c - PieceCodeBase) % 16);
+        public static int PieceCardRoomType(PieceCard c) => IsShapePieceCard(c) ? ((int)c - PieceCodeBase) / 16 : 0;
+        public static PathId PieceCardFloor(PieceCard c) => RoomTypeOf(PieceCardRoomType(c)) == RoomTypeKind.Floor ? (PathId)PieceCardRoomType(c) : PathId.None;
 
         /// What a modifier number is: none, a floor, or not yet defined (11 up, so not playable).
         public static RoomTypeKind RoomTypeOf(int mod) => mod == 0 ? RoomTypeKind.None : mod <= (int)PathId.Bazaar ? RoomTypeKind.Floor : RoomTypeKind.Unknown;
@@ -59,20 +59,20 @@ namespace Arena
         }
 
         /// A card a Grid run can play: a piece (with a known modifier), or a service card (one cell).
-        public static bool IsGridPiece(Piece c) => IsShapePiece(c) ? (int)ShapeOfPiece(c) < pieceShapeBase.Length && RoomTypeOf(PieceRoomType(c)) != RoomTypeKind.Unknown : IsServiceCard(c) || c == Piece.BuilderShop;
+        public static bool IsGridPieceCard(PieceCard c) => IsShapePieceCard(c) ? (int)ShapeOfPieceCard(c) < pieceShapeBase.Length && RoomTypeOf(PieceCardRoomType(c)) != RoomTypeKind.Unknown : IsServiceCard(c) || c == PieceCard.BuilderShop;
 
         /// The shape a Grid card builds: its piece, or a single cell for a service card.
-        public static PieceShape PieceShapeOf(Piece c) => IsShapePiece(c) ? ShapeOfPiece(c) : PieceShape.Mono;
+        public static PieceShape PieceShapeOf(PieceCard c) => IsShapePieceCard(c) ? ShapeOfPieceCard(c) : PieceShape.Mono;
 
         /// What the Builder Shop charges for a piece: 6 vectors a cell, plus its modifier (8 for a floor).
-        public static int PiecePrice(Piece c) => PieceShapeCells(ShapeOfPiece(c)) * 6 + RoomTypePrice(PieceRoomType(c));
+        public static int PieceCardPrice(PieceCard c) => PieceShapeCells(ShapeOfPieceCard(c)) * 6 + RoomTypePrice(PieceCardRoomType(c));
 
-        public static string PieceName(Piece c) => (PieceRoomType(c) != 0 ? RoomTypeName(PieceRoomType(c)) + " " : "") + PieceShapeName(ShapeOfPiece(c));
+        public static string PieceCardName(PieceCard c) => (PieceCardRoomType(c) != 0 ? RoomTypeName(PieceCardRoomType(c)) + " " : "") + PieceShapeName(ShapeOfPieceCard(c));
 
-        public static string PieceBlurb(Piece c)
+        public static string PieceCardBlurb(PieceCard c)
         {
-            int n = PieceShapeCells(ShapeOfPiece(c));
-            return (n == 1 ? "One cell" : n + " cells joined into one open room") + ", " + RoomTypeBlurb(PieceRoomType(c)) + ". Place it on a door spot; R turns it.";
+            int n = PieceShapeCells(ShapeOfPieceCard(c));
+            return (n == 1 ? "One cell" : n + " cells joined into one open room") + ", " + RoomTypeBlurb(PieceCardRoomType(c)) + ". Place it on a door spot; R turns it.";
         }
 
         static readonly PieceShape[] gridSmall = { PieceShape.Mono, PieceShape.Domino };
@@ -89,30 +89,30 @@ namespace Arena
         }
 
         /// The starting hand: a single, a domino and a seeded tromino, all plain combat rooms.
-        public static Piece[] GridStartHand(int seed) => new[] { MakePiece(PieceShape.Mono), MakePiece(PieceShape.Domino), MakePiece(gridTri[new DetRandom(seed).Int(gridTri.Length)]) };
+        public static PieceCard[] GridStartHand(int seed) => new[] { MakePieceCard(PieceShape.Mono), MakePieceCard(PieceShape.Domino), MakePieceCard(gridTri[new DetRandom(seed).Int(gridTri.Length)]) };
 
         /// The basic card each build round gives: a domino after odd waves, a single after even ones.
-        public static Piece GridRoundCard(int wave) => MakePiece(wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono);
+        public static PieceCard GridRoundCard(int wave) => MakePieceCard(wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono);
 
         /// A dropped card (a wave drop, a chest): a service card 1 in ServiceCardChance times, else a piece (a single or domino 35%, a tromino 30%, a tetromino 35%),
         /// 1 in 4 of them with a modifier.
-        public static Piece GridDropCard(DetRandom rng, int wave)
+        public static PieceCard GridDropCard(DetRandom rng, int wave)
         {
             if (rng.Int(ServiceCardChance) == 0)
                 return ServiceCards[rng.Int(ServiceCards.Length)];
             int roll = rng.Int(100);
             var set = roll < 35 ? gridSmall : roll < 65 ? gridTri : gridTet;
-            return MakePieceRoomType(set[rng.Int(set.Length)], GridModRoll(rng, wave, 4));
+            return MakePieceCardRoomType(set[rng.Int(set.Length)], GridModRoll(rng, wave, 4));
         }
 
         /// The Builder Shop's shelf in a Grid run: a single, a domino, a tromino, a tetromino and a floor piece (seeded by wave).
-        public static Piece[] GridBuilderOffers(int seed, int wave)
+        public static PieceCard[] GridBuilderOffers(int seed, int wave)
         {
             var rng = new DetRandom(seed * 7919 + wave * 389 + 43);
             return new[]
             {
-                MakePiece(PieceShape.Mono), MakePiece(PieceShape.Domino), MakePiece(gridTri[rng.Int(gridTri.Length)]), MakePiece(gridTet[rng.Int(gridTet.Length)]),
-                MakePieceRoomType(gridTet[rng.Int(gridTet.Length)], GridModRoll(rng, wave, 1)),
+                MakePieceCard(PieceShape.Mono), MakePieceCard(PieceShape.Domino), MakePieceCard(gridTri[rng.Int(gridTri.Length)]), MakePieceCard(gridTet[rng.Int(gridTet.Length)]),
+                MakePieceCardRoomType(gridTet[rng.Int(gridTet.Length)], GridModRoll(rng, wave, 1)),
             };
         }
     }
@@ -192,13 +192,13 @@ namespace Arena
         }
 
         /// This game's player plays the card in this hand slot as a piece: its orientation, with its cell box's corner at (x, y). Only in a Grid run's build round.
-        public void PlayPiece(int slot, int orient, int x, int y)
+        public void PlayPieceCard(int slot, int orient, int x, int y)
         {
             if (!ExpandOpen || Me == null || !ExpandingOn)
                 return;
             if (IsHost)
             {
-                HostPlayPiece(MyId, slot, orient, x, y);
+                HostPlayPieceCard(MyId, slot, orient, x, y);
                 return;
             }
             var w = Proto.Begin(Msg.PieceShape);
@@ -206,17 +206,17 @@ namespace Arena
             session.SendToHost(Proto.End(w));
         }
 
-        public void OnPieceShape(int peer, BinaryReader r) => HostPlayPiece(peer, r.ReadByte(), r.ReadByte(), r.ReadInt16(), r.ReadInt16());
+        public void OnPieceShape(int peer, BinaryReader r) => HostPlayPieceCard(peer, r.ReadByte(), r.ReadByte(), r.ReadInt16(), r.ReadInt16());
 
         /// Host: the card in this slot is built at once as its piece if it fits there, and leaves the hand. Playing costs nothing; a floor piece is a floor room, a service
         /// card's one cell a shop, Black Market, Arms Dealer or Builder Shop.
-        void HostPlayPiece(int id, int slot, int orient, int x, int y)
+        void HostPlayPieceCard(int id, int slot, int orient, int x, int y)
         {
             Player p;
             if (!IsHost || !ExpandOpen || !ExpandingOn || !Players.TryGetValue(id, out p) || slot < 0 || slot >= p.Hand.Length)
                 return;
-            var card = (Piece)p.Hand[slot];
-            if (!Expansion.IsGridPiece(card))
+            var card = (PieceCard)p.Hand[slot];
+            if (!Expansion.IsGridPieceCard(card))
                 return;
             string why;
             var made = Expansion.PieceShapeRooms(Expanded, Expansion.PieceShapeOf(card), orient, x, y, out why);
@@ -225,13 +225,13 @@ namespace Arena
                 DoLog("piece refused (" + why + ")");
                 return;
             }
-            bool piece = Expansion.IsShapePiece(card);
+            bool piece = Expansion.IsShapePieceCard(card);
             for (int i = 0; i < made.Count; i++)
             {
                 var q = made[i];
                 q.Owner = id;
                 if (piece)
-                    q = Expansion.ApplyRoomType(q, Expansion.PieceRoomType(card));
+                    q = Expansion.ApplyRoomType(q, Expansion.PieceCardRoomType(card));
                 else
                     q.Kind = Expansion.CardRoomKind(card);
                 made[i] = q;
@@ -242,7 +242,7 @@ namespace Arena
         }
 
         /// Bot: plays the first card in its hand that fits somewhere, at the spot nearest what it builds toward (Pieces.cs BotCardGoal), else the first spot. False if none fits.
-        bool BotPlayPiece()
+        bool BotPlayPieceCard()
         {
             var me = Me;
             if (me == null)
@@ -250,8 +250,8 @@ namespace Arena
             V2? goal = BotCardGoal();
             for (int slot = 0; slot < me.Hand.Length; slot++)
             {
-                var card = (Piece)me.Hand[slot];
-                if (!Expansion.IsGridPiece(card))
+                var card = (PieceCard)me.Hand[slot];
+                if (!Expansion.IsGridPieceCard(card))
                     continue;
                 var options = Expansion.PlacementsFor(Expanded, Expansion.PieceShapeOf(card));
                 if (options.Count == 0)
@@ -266,7 +266,7 @@ namespace Arena
                         if (d < best) { best = d; pick = o; }
                     }
                 }
-                PlayPiece(slot, pick.Orient, pick.X, pick.Y);
+                PlayPieceCard(slot, pick.Orient, pick.X, pick.Y);
                 return true;
             }
             return false;

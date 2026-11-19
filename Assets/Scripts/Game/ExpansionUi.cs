@@ -796,7 +796,7 @@ namespace Arena
             {
                 title = "PLACE A PIECE";
                 steps = new[] { "Pick a piece from your hand", "Point at a glowing door spot on a wall", "Click to build it  ·  R turns it" };
-                tip = "Every room is a piece. Pieces snap to door spots on the walls of rooms you have built, and playing one is free.";
+                tip = "Every room is a piece card. Pieces snap to door spots on the walls of rooms you have built, and playing one is free.";
             }
         }
 

@@ -751,7 +751,7 @@ namespace Arena
                 botProposed = true;
                 if (roundBuilt > 0)
                     return;  // (a bot adds a room only if nobody has this round, so the map doesn't fill at once)
-                BotPlayPiece();  // GridPieces.cs
+                BotPlayPieceCard();  // GridPieces.cs
             }
         }
 

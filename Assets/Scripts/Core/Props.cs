@@ -725,7 +725,7 @@ namespace Arena
 
         /// A chest item's name ("Turret", "L piece", an upgrade's name).
         public static string LootName(Loot l) => l.Kind == LootKind.Build ? (l.Item >= 0 && l.Item < Market.Count ? Market.Names[l.Item] : "build")
-            : l.Kind == LootKind.Card ? Expansion.CardName((Piece)l.Item) + " card"
+            : l.Kind == LootKind.Card ? Expansion.CardName((PieceCard)l.Item) + " card"
             : l.Upgrade >= 0 && l.Upgrade < Upgrades.All.Length ? Upgrades.All[l.Upgrade].Name : "item";
 
         /// Host: player p takes chest item l; false when it no longer fits (an upgrade they can't have, a full stash or hand).
@@ -740,7 +740,7 @@ namespace Arena
                     DoLog(p.Role + " took a " + Market.Names[l.Item] + " from a chest");
                     return true;
                 case LootKind.Card:
-                    return GiveCard(p, (Piece)l.Item, "chest");
+                    return GiveCard(p, (PieceCard)l.Item, "chest");
                 default:
                     if (!Upgrades.Available(l.Upgrade, OfferFor(p)))
                         return false;

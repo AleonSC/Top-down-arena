@@ -190,7 +190,7 @@ namespace Arena
         void DrawInvHand(Player me, Rect r, bool canUse)
         {
             canUse &= game.ExpandingOn;
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Pieces" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Piece cards" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
             const float minH = 96f;
@@ -203,8 +203,8 @@ namespace Arena
             {
                 int row = i / cols - first;
                 var c = new Rect(list.x + (i % cols) * (cw + gap), list.y + row * (ch + gap), cw, ch);
-                var card = (Piece)me.Hand[i];
-                if (card == Piece.None)
+                var card = (PieceCard)me.Hand[i];
+                if (card == PieceCard.None)
                 {
                     for (float dx = 0f; dx < c.width; dx += 10f)  // a dashed outline: an empty slot
                     {
@@ -236,7 +236,7 @@ namespace Arena
             if (!game.ExpandingOn)
             {
                 Ui.Fill(new Rect(r.x + 12f, r.y + 46f, r.width - 24f, r.height - 58f), new Color(0f, 0f, 0f, 0.45f));
-                Ui.Label(new Rect(r.x, r.center.y - 10f, r.width, 20f), "Pieces are for the Expanding arena", 13, HoloDim, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x, r.center.y - 10f, r.width, 20f), "Piece cards are for the Expanding arena", 13, HoloDim, TextAnchor.MiddleCenter, true);
             }
         }
 
