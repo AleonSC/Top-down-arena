@@ -364,7 +364,7 @@ namespace Arena
         /// The nodes whose fixture stands in the middle of the room that claims them (owner Nov 18): chests, vector chests and relics.
         public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest || k == NodeKind.Relic;
 
-        /// Where a chest or relic node stands: the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
+        /// Where a chest or relic node stands: in a grid room, the middle of the cell holding it; else the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
         /// is floor, else of the box holding the node; the random cover round it is cleared). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
         public const int HallMaxWidth = 300;  // a room this narrow or less is a hallway
 
@@ -379,6 +379,12 @@ namespace Arena
             var group = GroupOf(rooms, at);
             if (group.Count == 1 && Math.Min(rooms[at].W, rooms[at].H) <= HallMaxWidth)
                 return nd.Pos;  // a hallway keeps its chest where it was put (a mystery door's chest sits at the far end)
+            if (OnLattice(rooms, group))  // a grid room (owner Nov 19): the node stands in the middle of the cell it was built in, not the room's
+            {
+                double cx = GridX0 + (Math.Floor((nd.Pos.X - GridX0) / (double)GridCell) + 0.5) * GridCell;
+                double cy = GridY0 + (Math.Floor((nd.Pos.Y - GridY0) / (double)GridCell) + 0.5) * GridCell;
+                return new V2((float)cx, (float)cy);
+            }
             int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue, held = at;
             foreach (int i in group)
             {
@@ -397,6 +403,18 @@ namespace Arena
                 tx = (h.X + h.X1) / 2.0; ty = (h.Y + h.Y1) / 2.0;
             }
             return new V2((float)tx, (float)ty);  // (Build clears the random cover round it; walls keep clear of a room's middle)
+        }
+
+        /// Every box of this room sits on the grid lattice (GridX0/GridY0, GridCell apart).
+        static bool OnLattice(IList<ExpansionRoom> rooms, List<int> group)
+        {
+            foreach (int i in group)
+            {
+                var b = rooms[i];
+                if (GridMod(b.X, GridX0) != 0 || GridMod(b.Y, GridY0) != 0 || b.W % GridCell != 0 || b.H % GridCell != 0)
+                    return false;
+            }
+            return true;
         }
 
         /// A built room (a drawn outline as a whole) encloses this node.
