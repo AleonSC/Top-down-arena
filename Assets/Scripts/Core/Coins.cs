@@ -80,11 +80,7 @@ namespace Arena
                 if (!Players.TryGetValue(l.Owner, out p))
                     continue;
                 Loots.Remove(l.Id);
-                if (!Upgrades.Available(l.Upgrade, OfferFor(p)))
-                    continue;
-                Recorder?.Picked(this, p, new[] { l.Upgrade }, l.Upgrade, "chest");
-                GrantUpgrade(p.Id, l.Upgrade);
-                DoLog(p.Role + " took " + Upgrades.All[l.Upgrade].Name + " from a chest (collected as the wave started)");
+                TakeLoot(p, l);  // (one that no longer fits is thrown away: Props.cs)
             }
         }
 

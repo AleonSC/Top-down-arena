@@ -181,6 +181,9 @@ static partial class Shot {
       int item = Environment.GetEnvironmentVariable("PROPS") == "2" ? UL("Warden's Guard") : UL("Extra Use");
       if (item < 0) item = 0;
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
+      string lootKind = Environment.GetEnvironmentVariable("LOOTKIND");  // LOOTKIND=build|card: a Buildables chest's build or a piece chest's card instead of the upgrade
+      if (lootKind == "build") { g.Loots[99].Kind = LootKind.Build; g.Loots[99].Item = (int)BuildKind.Turret; }
+      else if (lootKind == "card") { g.Loots[99].Kind = LootKind.Card; g.Loots[99].Item = (int)Expansion.PieceCard(GridPiece.TriL); }
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
       for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
       if (Environment.GetEnvironmentVariable("PROPSBREAK") != null) { g.Enemies.Clear(); g.State = MatchState.Intermission; g.StateTimer = 20f; me.Offer = null; }  // PROPSBREAK=1: between waves (the card shows then too)

@@ -215,11 +215,8 @@ static partial class Program
         Check(g.Expanded.Count == n2 + 1 && shop.Kind == Arena.RoomKind.Shop && shop.W == 600 && shop.H == 600, "a Shop card builds one cell as a shop");
 
         // Sources: a chest gives everyone a grid card; the Builder Shop has five (the Black Market sells no cards).
-        var chest = typeof(Game).GetMethod("ChestCards", flags);
-        var before = g.Players.Values.ToDictionary(p => p.Id, p => Game.HandCount(p));
-        for (int i = 0; i < Expansion.HandMax; i++) { foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length); }
-        chest.Invoke(g, new object[] { 3 });
-        Check(g.Players.Values.All(p => Game.HandCount(p) == 1 && Expansion.IsGridCard((RoomCard)p.Hand[0])), "a chest gives everyone a grid card");
+        var chest = typeof(Game).GetMethod("ChestCardFor", flags);  // (a piece chest offers each player one: Props.cs LootKind.Card)
+        Check(g.Players.Values.All(p => Expansion.IsGridCard((RoomCard)chest.Invoke(g, new object[] { p, 3 }))), "a chest offers everyone a grid card");
         Check(g.BuilderCards.Length == 5 && g.BuilderCards.All(Expansion.IsGridCard), "the Builder Shop sells five grid cards");
 
         // A bot plays a piece from its hand.

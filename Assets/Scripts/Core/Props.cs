@@ -61,10 +61,16 @@ namespace Arena
         public float Age;
     }
 
-    /// A chest's item for one player. Everyone's game has every item, but only its owner's draws it.
+    /// What a chest item is: an upgrade card (Upgrade), a Black Market build for your stash (Build: Item is the Market kind), or a
+    /// piece or service card for your hand (Card: Item is its RoomCard). New values go at the end.
+    public enum LootKind : byte { Upgrade, Build, Card }
+
+    /// A chest's item for one player. Everyone's game has every item, but only its owner's draws it. Its owner takes it or throws it away.
     public class Loot
     {
         public int Id, Owner, Upgrade;
+        public LootKind Kind;
+        public int Item;  // a Build's Market kind, a Card's RoomCard (Upgrade uses Upgrade)
         public V2 Pos;
         public float Age;  // every game, for the look
     }
@@ -616,6 +622,7 @@ namespace Arena
         {
             c.Open = true;
             c.OpenT = 0f;
+            int seedIdx = NodeIndexOfChest(c);  // (a piece chest's cards are seeded from its node, before the node lets go of it)
             SpendNodeOfChest(c);
             BroadcastFx(FxKind.Ring, c.Pos, ChestFxInk(c.Chest), 70f, 0.6f, Sfx.LevelUp);
             switch (c.Chest)
@@ -627,33 +634,49 @@ namespace Arena
                     else
                         DropGoldBurst(c.Pos, ChestGold + ChestGoldPerWave * Math.Max(1, Wave));  // (each player's own burst, the same gold each as before)
                     break;
-                case ChestKind.Buildable:
+                case ChestKind.Buildable:  // a build card each (a kind they still have room for), to take or throw away
+                {
+                    int n = Players.Count, i = 0;
                     foreach (var pl in Players.Values)
-                        GiveChestBuild(pl);
+                    {
+                        int kind = RollChestBuild(pl);
+                        if (kind >= 0)
+                            AddChestLoot(c, pl, i, n, remote, LootKind.Build, kind);
+                        i++;
+                    }
                     break;
-                case ChestKind.Piece:
-                    break;  // (the piece cards: SpendNodeOfChest -> ChestCards)
+                }
+                case ChestKind.Piece:  // a piece card each (Grid runs), to take or throw away
+                {
+                    if (!ExpandingOn)
+                        break;
+                    int n = Players.Count, i = 0;
+                    foreach (var pl in Players.Values)
+                        AddChestLoot(c, pl, i++, n, remote, LootKind.Card, (int)ChestCardFor(pl, seedIdx >= 0 ? seedIdx : c.Id));
+                    break;
+                }
                 default:
+                {
                     int n = Players.Count, i = 0;
                     foreach (var pl in Players.Values)
                     {
                         int u = RollChestLoot(pl);
                         if (u >= 0)
-                        {
-                            V2 at = remote ? ClampToArena(pl.Pos + new V2(0f, 50f), 20f)  // (at their own feet)
-                                : ClampToArena(c.Pos + new V2((i - (n - 1) / 2f) * 46f, ChestH / 2f + 34f), 20f);
-                            var l = new Loot { Id = nextLootId++, Owner = pl.Id, Upgrade = u, Pos = at };
-                            Loots[l.Id] = l;
-                        }
+                            AddChestLoot(c, pl, i, n, remote, LootKind.Upgrade, u);
                         i++;
                     }
                     break;
+                }
             }
             DoLog(c.Chest + " chest opened");
         }
 
         /// A Gold chest's payout per player (spilled as coins anyone can pick up), and how many coins it spills.
         public const int ChestGold = 40, ChestGoldPerWave = 4, ChestGoldCoins = 14;
+
+        /// A chest item's colour: an upgrade's rarity, the Buildables pink, the piece orange.
+        public static Rgba LootInk(Loot l) => l.Kind == LootKind.Build ? new Rgba(1f, 0.4f, 0.72f) : l.Kind == LootKind.Card ? new Rgba(1f, 0.55f, 0.3f)
+            : l.Upgrade >= 0 && l.Upgrade < Upgrades.All.Length ? Upgrades.RarityColor(Upgrades.All[l.Upgrade].Rarity) : new Rgba(0.4f, 1f, 0.5f);
 
         static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.Piece ? new Rgba(1f, 0.55f, 0.3f)
             : k == ChestKind.Buildable ? new Rgba(1f, 0.4f, 0.72f) : new Rgba(0.4f, 1f, 0.5f);
@@ -678,18 +701,53 @@ namespace Arena
             }
         }
 
-        /// Host: a Buildables chest puts one random Black Market build in this player's stash (a kind they still have room for).
-        void GiveChestBuild(Player p)
+        /// Host: player pl's item from chest c (the i-th of n), lined up under the chest, or at their own feet when it was collected remotely.
+        void AddChestLoot(Prop c, Player pl, int i, int n, bool remote, LootKind kind, int item)
+        {
+            V2 at = remote ? ClampToArena(pl.Pos + new V2(0f, 50f), 20f)  // (at their own feet)
+                : ClampToArena(c.Pos + new V2((i - (n - 1) / 2f) * 46f, ChestH / 2f + 34f), 20f);
+            var l = new Loot { Id = nextLootId++, Owner = pl.Id, Kind = kind, Upgrade = kind == LootKind.Upgrade ? item : 0, Item = item, Pos = at };
+            Loots[l.Id] = l;
+        }
+
+        /// Host: the Black Market build a Buildables chest offers this player: a random kind they still have room for (-1: their stash is full).
+        int RollChestBuild(Player p)
         {
             int start = rng.Next(Market.Count);
             for (int k = 0; k < Market.Count; k++)
             {
                 int kind = (start + k) % Market.Count;
-                if (p.Stash[kind] >= Market.StashMax)
-                    continue;
-                p.Stash[kind]++;
-                DoLog(p.Role + " got a " + Market.Names[kind] + " from a chest");
-                return;
+                if (p.Stash[kind] < Market.StashMax)
+                    return kind;
+            }
+            return -1;
+        }
+
+        /// A chest item's name ("Turret", "L piece card", an upgrade's name).
+        public static string LootName(Loot l) => l.Kind == LootKind.Build ? (l.Item >= 0 && l.Item < Market.Count ? Market.Names[l.Item] : "build")
+            : l.Kind == LootKind.Card ? Expansion.CardName((RoomCard)l.Item) + " card"
+            : l.Upgrade >= 0 && l.Upgrade < Upgrades.All.Length ? Upgrades.All[l.Upgrade].Name : "item";
+
+        /// Host: player p takes chest item l; false when it no longer fits (an upgrade they can't have, a full stash or hand).
+        bool TakeLoot(Player p, Loot l)
+        {
+            switch (l.Kind)
+            {
+                case LootKind.Build:
+                    if (l.Item < 0 || l.Item >= Market.Count || p.Stash[l.Item] >= Market.StashMax)
+                        return false;
+                    p.Stash[l.Item]++;
+                    DoLog(p.Role + " took a " + Market.Names[l.Item] + " from a chest");
+                    return true;
+                case LootKind.Card:
+                    return GiveCard(p, (RoomCard)l.Item, "chest");
+                default:
+                    if (!Upgrades.Available(l.Upgrade, OfferFor(p)))
+                        return false;
+                    Recorder?.Picked(this, p, new[] { l.Upgrade }, l.Upgrade, "chest");
+                    GrantUpgrade(p.Id, l.Upgrade);
+                    DoLog(p.Role + " took " + Upgrades.All[l.Upgrade].Name + " from a chest");
+                    return true;
             }
         }
 
@@ -799,18 +857,12 @@ namespace Arena
             if (l.Pos.FartherThan(p.Pos, LootReach + p.Def.BodyR + 80f))
                 return;  // (a little slack for the client's position arriving late)
             Loots.Remove(lootId);
-            var u = Upgrades.All[l.Upgrade];
-            if (take && Upgrades.Available(l.Upgrade, OfferFor(p)))
-            {
-                Recorder?.Picked(this, p, new[] { l.Upgrade }, l.Upgrade, "chest");
-                GrantUpgrade(playerId, l.Upgrade);
-                BroadcastFx(FxKind.Ring, p.Pos, Upgrades.RarityColor(u.Rarity), 60f, 0.5f, Sfx.None);
-                DoLog(p.Role + " took " + u.Name + " from a chest");
-            }
+            if (take && TakeLoot(p, l))
+                BroadcastFx(FxKind.Ring, p.Pos, LootInk(l), 60f, 0.5f, Sfx.None);
             else
             {
                 BroadcastFx(FxKind.Ring, l.Pos, new Rgba(0.6f, 0.6f, 0.65f, 0.6f), 26f, 0.3f, Sfx.None);
-                DoLog(p.Role + " discarded " + u.Name + " from a chest");
+                DoLog(p.Role + " discarded " + LootName(l) + " from a chest");
             }
             SendSnapshot();
         }
@@ -949,10 +1001,13 @@ namespace Arena
         int SyncLoot(NetSync s, Loot l)
         {
             int id = l != null ? l.Id : 0, owner = l != null ? l.Owner : 0, u = l != null ? l.Upgrade : 0;
+            int kind = l != null ? (int)l.Kind : 0, item = l != null ? l.Item : 0;
             V2 pos = l != null ? l.Pos : default(V2);
             s.Int(ref id);
             s.Int(ref owner);
             s.Short(ref u);
+            s.Byte(ref kind);
+            s.Short(ref item);
             s.Vec(ref pos);
             if (s.Reading && lootSent.Contains(id))
                 return id;
@@ -962,6 +1017,8 @@ namespace Arena
                     Loots[id] = l = new Loot { Id = id };
                 l.Owner = owner;
                 l.Upgrade = u;
+                l.Kind = (LootKind)kind;
+                l.Item = item;
                 l.Pos = pos;
             }
             return id;

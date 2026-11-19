@@ -429,8 +429,6 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[i] = nd;
                     nodeChests.Remove(i);
-                    if (pr.Chest == ChestKind.Piece)
-                        ChestCards(i);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     continue;
@@ -474,6 +472,15 @@ namespace Arena
 
         const int RuleGold = 40, RuleGoldPerWave = 4, RuleVectors = 8;  // (a cleared Frozen room's prize; first guesses, tune with vecbal)
 
+        /// Host: the node holding this chest, or -1.
+        int NodeIndexOfChest(Prop c)
+        {
+            foreach (var kv in nodeChests)
+                if (kv.Value == c.Id)
+                    return kv.Key;
+            return -1;
+        }
+
         /// Host: the moment a node's chest opens, the node is spent (the opened chest is removed soon after, maybe between waves when TickNodes doesn't run).
         void SpendNodeOfChest(Prop c)
         {
@@ -486,8 +493,6 @@ namespace Arena
                     nd.Spent = true;
                     Nodes[kv.Key] = nd;
                     nodeChests.Remove(kv.Key);
-                    if (c.Chest == ChestKind.Piece)
-                        ChestCards(kv.Key);  // RoomCards.cs
                     DoLog("a chest node's chest was opened");
                     BroadcastExpansion();
                     return;

@@ -154,13 +154,9 @@ namespace Arena
         }
 
         /// Host: a chest node was opened: everyone gets a card (Expansion.GridDropCard).
-        void ChestCards(int nodeIndex)
-        {
-            if (!IsHost || !ExpandingOn)
-                return;
-            foreach (var p in Players.Values)
-                GiveCard(p, Expansion.GridDropCard(new DetRandom(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), Wave), "chest");
-        }
+        /// The piece card a piece chest offers this player (seeded from its node, so a reload offers the same): they take it or throw it away
+        /// (Props.cs LootKind.Card).
+        RoomCard ChestCardFor(Player p, int nodeIndex) => Expansion.GridDropCard(new DetRandom(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), Wave);
 
         /// What a bot builds toward: the nearest sealed room waiting off the map (not a mini-boss's), else the nearest unclaimed node (null if none).
         V2? BotCardGoal()

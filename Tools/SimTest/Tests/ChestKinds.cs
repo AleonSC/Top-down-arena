@@ -46,6 +46,7 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, noPicks);
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Nodes.Clear(); }
         var open = typeof(Game).GetMethod("OpenChest", flags);
+        var hostLoot = typeof(Game).GetMethod("HostLoot", flags);
         V2 at = new V2(800f, 300f);
 
         // Each kind reaches the client, and opening it pays its own reward only.
@@ -63,27 +64,39 @@ static partial class Program
             switch (kind)
             {
                 case ChestKind.Upgrade:
-                    Check(g.Players.Values.All(p => g.Loots.Values.Any(l => l.Owner == p.Id)) && coins == 0 && stash == 0, "Upgrade: every player gets their own card, nothing else");
+                    Check(g.Players.Values.All(p => g.Loots.Values.Any(l => l.Owner == p.Id && l.Kind == LootKind.Upgrade)) && coins == 0 && stash == 0, "Upgrade: every player gets their own card, nothing else");
                     break;
                 case ChestKind.Gold:
                     Check(coins == Game.ChestGoldCoins * g.Players.Count && coinGold == gold && g.Loots.Count == 0 && g.Players.Values.All(p => g.Coins.Values.Count(q => q.Owner == p.Id) == Game.ChestGoldCoins),
                         "Gold: " + Game.ChestGoldCoins + " coins for each player, worth " + gold + " in all, burst out (" + coins + " worth " + coinGold + "), no cards");
                     break;
-                case ChestKind.Buildable:
-                    Check(stash == g.Players.Count && g.Loots.Count == 0 && coins == 0, "Buildables: one Black Market build in each player's stash (" + stash + ")");
+                case ChestKind.Buildable:  // a build card each, to take or throw away (nothing in the stash yet)
+                    Check(stash == 0 && coins == 0 && g.Players.Values.All(p => g.Loots.Values.Count(l => l.Owner == p.Id && l.Kind == LootKind.Build && l.Item >= 0 && l.Item < Market.Count) == 1),
+                        "Buildables: every player gets their own build card to take or discard, nothing in the stash yet (" + g.Loots.Count + " cards)");
+                    Run(s, dt, 0.4f, null, noPicks);
+                    Check(cg.Loots.Values.Any(l => l.Owner == 2 && l.Kind == LootKind.Build), "the client gets its build card with its kind");
+                    var bl = g.Loots.Values.First(l => l.Owner == 1);
+                    int k0 = g.Players[1].Stash[bl.Item];
+                    g.Players[1].Pos = bl.Pos;  // (taking needs you standing on it)
+                    hostLoot.Invoke(g, new object[] { 1, bl.Id, true });
+                    Check(g.Players[1].Stash[bl.Item] == k0 + 1 && !g.Loots.ContainsKey(bl.Id), "taking it puts the build in the stash");
+                    var bl2 = g.Loots.Values.First(l => l.Owner == 2);
+                    int s2 = g.Players[2].Stash.Sum(b => b);
+                    g.Players[2].Pos = bl2.Pos;
+                    hostLoot.Invoke(g, new object[] { 2, bl2.Id, false });
+                    Check(g.Players[2].Stash.Sum(b => b) == s2 && !g.Loots.ContainsKey(bl2.Id), "discarding it leaves the stash alone");
                     break;
             }
         }
         g.Coins.Clear();
 
-        // A full stash: Buildables picks a kind there's room for, and gives nothing when all are full.
+        // A full stash: Buildables offers a kind there's room for, and nothing when all are full.
         var full = g.Players.Values.First();
         for (int k = 0; k < Market.Count; k++) full.Stash[k] = (byte)(k == 2 ? Market.StashMax - 1 : Market.StashMax);
-        var give = typeof(Game).GetMethod("GiveChestBuild", flags);
-        give.Invoke(g, new object[] { full });
-        Check(full.Stash.All(b => b == Market.StashMax), "Buildables fills the one kind with room");
-        give.Invoke(g, new object[] { full });
-        Check(full.Stash.All(b => b == Market.StashMax), "and gives nothing past the cap");
+        var roll = typeof(Game).GetMethod("RollChestBuild", flags);
+        Check((int)roll.Invoke(g, new object[] { full }) == 2, "Buildables offers the one kind with room");
+        full.Stash[2] = Market.StashMax;
+        Check((int)roll.Invoke(g, new object[] { full }) == -1, "and nothing past the cap");
         for (int k = 0; k < Market.Count; k++) full.Stash[k] = 0;
 
         // A Grid piece chest node: a room round it, the chest comes out as Grid piece, opening it deals a card each and no upgrade card.
@@ -104,7 +117,12 @@ static partial class Program
         if (chest != null)
         {
             open.Invoke(g, new object[] { chest, false });
-            Check(g.Nodes[0].Spent && g.Players.Values.All(p => Game.HandCount(p) == 1 && Expansion.IsGridCard((RoomCard)p.Hand[0])) && g.Loots.Count == 0, "Grid piece: every player gets a grid piece card, no upgrade card");
+            Check(g.Nodes[0].Spent && g.Players.Values.All(p => Game.HandCount(p) == 0 && g.Loots.Values.Count(l => l.Owner == p.Id && l.Kind == LootKind.Card && Expansion.IsGridCard((RoomCard)l.Item)) == 1),
+                "Grid piece: every player gets a grid piece card to take or discard (not in the hand yet), no upgrade card");
+            var cl = g.Loots.Values.First(l => l.Owner == 1);
+            g.Players[1].Pos = cl.Pos;
+            hostLoot.Invoke(g, new object[] { 1, cl.Id, true });
+            Check(Game.HandCount(g.Players[1]) == 1 && g.Players[1].Hand[0] == (byte)cl.Item, "taking it puts the card in the hand");
         }
     }
 }
