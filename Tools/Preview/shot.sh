@@ -28,7 +28,7 @@
 # TAGS=1 (a row of enemies on first sight, each with its name and job tag; uses a fresh profile).
 # WAVECLEARED=1 WCWAVE=17 (the between-waves box after wave 17: the new-enemy chips for wave 18).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
-# KWALL=<s into the scene> (Kinetic Wall like the mockup: cast at 0.5 s, shots from 0.4 s; KWBLAST=<s> unleashes it then; KWCAP=1 mastered; ShotKineticWall.cs).
+# GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
 # WWARD=<s into the scene> (Water Ward: a cast every 3 s from 0.2 s; grunts walk in from WWENEMY s (default 6.5, -1 none); WWSHOOT=1 shots from above from 7 s; ShotWaterWard.cs).
 # ENGINEER=strider|pylon|breach ENGT=<s> (the Engineer mockup in the real arena; breach needs EXPANDMAP=0, BREACHSHAPE=stash|cross|..., BREACHLOOT=0-4; ENGMODEL=0-2 the Engineer look, ENGFOLLOW=0-2 the Strider look; ShotEngineer.cs). Mode englook: ENGSHEET=0 looks, 1 followers, 2 kit (EngineerModel.cs).
 # COVER=<s into the scene> (Deployable Cover like the mockup: covers thrown at 0.5, 1.5 and 2.5 s; COVERWEAR=1 wears two; COVERBREAK=<s> breaks the first then; ShotCover.cs).

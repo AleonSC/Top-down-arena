@@ -26,10 +26,10 @@ namespace Arena
                 }
                 return;
             }
-            if (KineticPress(p, slot))  // Kinetic Wall pressed again: the lens unleashes its cone (no cooldown spent)
+            if (GalePress(p, slot))  // Gale Wall pressed again: the lens unleashes its cone (no cooldown spent)
             {
                 p.Run.AbilitiesUsed++;
-                UnleashKineticWall(p);
+                UnleashGaleWall(p);
                 return;
             }
             if (RainPress(p, slot))  // Sanguine Rain pressed again: the healer cancels it (no cooldown spent)
