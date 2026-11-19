@@ -74,7 +74,8 @@ static partial class Program
         var allPieces = new[] { MysteryRoom.Small, MysteryRoom.Medium, MysteryRoom.Hallway }.SelectMany(Mystery.PiecesOf).Distinct().Count();
         Check(allPieces == Enum.GetValues(typeof(PieceShape)).Length, "every piece shape can come from a mystery door (" + allPieces + " shapes)");
         var hand = Expansion.GridStartHand(5);
-        Check(hand.Length == 3 && hand[0] == Expansion.MakePieceCard(PieceShape.Mono) && hand[1] == Expansion.MakePieceCard(PieceShape.Domino) && Expansion.PieceShapeCells(Expansion.ShapeOfPieceCard(hand[2])) == 3 && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: a single, a domino and a tromino, the same each time");
+        Check(hand.Length == 1 && Expansion.IsShapePieceCard(hand[0]) && Expansion.PieceCardRoomType(hand[0]) == 0 && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: one plain piece card, the same each time");
+        Check(Enumerable.Range(0, 40).Select(s => Expansion.GridStartHand(s)[0]).Distinct().Count() > 3, "the starting piece varies with the seed");
         Check(Expansion.GridRoundCard(1) == Expansion.MakePieceCard(PieceShape.Domino) && Expansion.GridRoundCard(2) == Expansion.MakePieceCard(PieceShape.Mono), "the round card: a domino after odd waves, a single after even");
         int service = 0, themed = 0, tet = 0, pieces = 0, bad = 0;
         for (int i = 0; i < 600; i++)
@@ -160,11 +161,11 @@ static partial class Program
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
         Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "the core is up first");
 
-        // The first build round deals the hand: the starting pieces, then a wave card pick (the round's basic piece or a dropped card), and the friend's game has them.
+        // The first build round deals the hand: the starting piece, then a wave card pick (the round's basic piece or a dropped card), and the friend's game has them.
         foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.WavePicks = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
         typeof(Game).GetMethod("OpenBuildRound", flags).Invoke(g, null);
         var friend = g.Players[2];
-        Check(Game.HandCount(friend) == 3 && friend.Hand.Take(3).All(h => Expansion.IsShapePieceCard((PieceCard)h)), "the first round deals three pieces (" + string.Join(",", friend.Hand.Take(3)) + ")");
+        Check(Game.HandCount(friend) == 1 && Expansion.IsShapePieceCard((PieceCard)friend.Hand[0]), "the first round deals one piece (" + friend.Hand[0] + ")");
         Check(friend.OfferCards && friend.OfferWave && friend.PendingCards == 1 && friend.WavePicks == 1 && friend.Offer.Length == 2
             && friend.Offer[0] == (int)Expansion.GridRoundCard(g.Wave) && friend.Offer[1] != friend.Offer[0], "and a wave pick of two: the round's basic piece and a dropped card (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
         var fought = g.State;
@@ -174,20 +175,20 @@ static partial class Program
         Check(friend.Rerolls == 3 && friend.OfferWave, "a wave pick can't be rerolled");
         int wantWave = friend.Offer[1];
         typeof(Game).GetMethod("HostPick", flags).Invoke(g, new object[] { 2, 1, 0 });
-        Check(friend.PendingCards == 0 && friend.WavePicks == 0 && !friend.OfferWave && Game.HandCount(friend) == 4 && friend.Hand[3] == (byte)wantWave, "the picked card goes to the hand (" + BossCards.Name(wantWave) + ")");
+        Check(friend.PendingCards == 0 && friend.WavePicks == 0 && !friend.OfferWave && Game.HandCount(friend) == 2 && friend.Hand[1] == (byte)wantWave, "the picked card goes to the hand (" + BossCards.Name(wantWave) + ")");
         g.State = fought;
-        Run(s, dt, 1f, () => cg.ExpandOpen && Game.HandCount(cg.Players[2]) == 4, noPicks);
+        Run(s, dt, 1f, () => cg.ExpandOpen && Game.HandCount(cg.Players[2]) == 2, noPicks);
         Check(cg.Players[2].Hand.SequenceEqual(friend.Hand), "the friend's game sees the same hand");
 
         // Playing a card: built at once as its piece, free, the card leaves the hand.
         int vec = friend.Vectors;
-        var card = (PieceCard)friend.Hand[2];
+        var card = (PieceCard)friend.Hand[0];
         var opt = Expansion.PlacementsFor(g.Expanded, Expansion.ShapeOfPieceCard(card)).First();
-        cg.PlayPieceCard(2, opt.Orient, opt.X, opt.Y);
+        cg.PlayPieceCard(0, opt.Orient, opt.X, opt.Y);
         Run(s, dt, 1f, () => cg.Expanded.Count == 4 + opt.Rooms.Count, noPicks);
         Check(g.Expanded.Count == 4 + opt.Rooms.Count && cg.Expanded.Count == g.Expanded.Count && g.Expanded.Skip(4).All(r => r.Owner == 2 && r.Kind == Arena.RoomKind.Combat), "the friend's piece is built at once on both screens, all its boxes theirs");
-        Run(s, dt, 0.5f, () => Game.HandCount(cg.Players[2]) == 3, noPicks);
-        Check(Game.HandCount(friend) == 3 && Game.HandCount(cg.Players[2]) == 3 && friend.Vectors == vec && Expansion.BoughtCount(g.Expanded) == 1, "the card leaves the hand, it cost nothing, and the open room counts as one room");
+        Run(s, dt, 0.5f, () => Game.HandCount(cg.Players[2]) == 1, noPicks);
+        Check(Game.HandCount(friend) == 1 && Game.HandCount(cg.Players[2]) == 1 && friend.Vectors == vec && Expansion.BoughtCount(g.Expanded) == 1, "the card leaves the hand, it cost nothing, and the open room counts as one room");
 
         // Refusals keep the card: a spot off the lattice, an empty slot, a card that isn't a grid card.
         int n = g.Expanded.Count;
