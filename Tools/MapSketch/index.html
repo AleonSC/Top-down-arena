@@ -28,6 +28,8 @@ button small{display:block;font-size:10px;opacity:.7;font-weight:400}
 .sw.on{box-shadow:0 0 12px currentColor}
 .sep{width:1px;background:var(--dim);margin:0 2px;align-self:stretch;opacity:.5}
 #hint{position:fixed;bottom:calc(8px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);color:var(--dim);font-size:12px;pointer-events:none;z-index:4;text-align:center}
+#pcs{bottom:calc(36px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);align-items:center;display:none;max-width:calc(100% - 16px);overflow:auto}
+#pcs .pc{padding:4px 6px;min-width:58px}#pcs .pc canvas{position:static;display:block;width:44px;height:30px;margin:0 auto 2px;pointer-events:none}#pcs .pc small{font-size:9px;white-space:nowrap}
 #toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--ink);padding:8px 14px;border-radius:4px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
 </style></head><body>
 <canvas id="c"></canvas>
@@ -35,6 +37,7 @@ button small{display:block;font-size:10px;opacity:.7;font-weight:400}
 <div class="bar" id="tools"></div>
 <div class="bar" id="inks"></div>
 <div class="bar" id="dim"><span id="dimName">Tap a box</span><label>W<input id="dw" type="number" inputmode="decimal" step="1" min="0.5" value="8"></label><label id="dhl">H<input id="dh" type="number" inputmode="decimal" step="1" min="0.5" value="6"></label><span id="dimUnit" style="color:var(--dim)">tiles (1 = 100)</span><button id="dapply">Apply</button><button class="nd" data-d="-1,0">◀</button><button class="nd" data-d="0,-1">▲</button><button class="nd" data-d="0,1">▼</button><button class="nd" data-d="1,0">▶</button><button id="dadd">Add box</button></div>
+<div class="bar" id="pcs"></div>
 <div id="hint">Pencil draws · two fingers pan / pinch zoom</div>
 <div id="toast"></div>
 <input type="file" id="file" accept=".json,application/json" hidden>
@@ -44,6 +47,23 @@ const $=id=>document.getElementById(id);
 const cv=$("c");let ctx=cv.getContext("2d",{alpha:false,desynchronized:true});const mainCtx=ctx;
 const INKS=[["#5ff0ff","Cyan"],["#ff8c1f","Warden"],["#ffe026","Hive"],["#ff4de6","Dusk"],["#ad59ff","Void"],["#40ff80","Lich"],["#ff3359","Devourer"],["#e6ebff","Silver"]];
 const GATE="#3fd6c4",GRID=100,TILE=100; // the game sizes rooms in tiles of 100 px (Expansion.Step): sides 2-24 tiles, at most 144 tiles of floor
+const CELL=600,GX0=-400,GY0=-400; // the game's grid lattice (Expansion.GridCell, GridX0/GridY0): a cell is a 6 x 6 tile room
+const PIECES=[["Single",[[0,0]]],["Domino",[[0,0],[1,0]]],["Line of 3",[[0,0],[1,0],[2,0]]],["Corner",[[0,0],[0,1],[1,1]]],["Line of 4",[[0,0],[1,0],[2,0],[3,0]]],
+ ["Square",[[0,0],[1,0],[0,1],[1,1]]],["T",[[0,0],[1,0],[2,0],[1,1]]],["S",[[1,0],[2,0],[0,1],[1,1]]],["L",[[0,0],[0,1],[0,2],[1,2]]],
+ ["Core",[[0,0],[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1],[0,2],[1,2],[2,2],[3,2]]]]; // GridPieces.cs gridPieceBase order, then the 4 x 3 start core
+const snapCell=(v,o)=>Math.round((v-o)/CELL)*CELL+o;
+function normCells(C){const mx=Math.min(...C.map(c=>c[0])),my=Math.min(...C.map(c=>c[1]));return C.map(c=>[c[0]-mx,c[1]-my]).sort((a,b)=>a[1]-b[1]||a[0]-b[0])}
+function cellsSize(C){return[Math.max(...C.map(c=>c[0]))+1,Math.max(...C.map(c=>c[1]))+1]}
+function pieceOutline(sh){ // the outer rim of the piece's cells as one closed loop (cells open to each other, one rim round the whole piece)
+ const k=(x,y)=>x+","+y,E=new Map(),cs=new Set(sh.cells.map(c=>k(c[0],c[1])));
+ for(const[cx,cy]of sh.cells){const sides=[[cx,cy,cx+1,cy,cx,cy-1],[cx+1,cy,cx+1,cy+1,cx+1,cy],[cx+1,cy+1,cx,cy+1,cx,cy+1],[cx,cy+1,cx,cy,cx-1,cy]];
+  for(const[x0,y0,x1,y1,nx,ny]of sides)if(!cs.has(k(nx,ny)))E.set(k(x0,y0),[x1,y1])}
+ const st=E.keys().next().value;let cur=st,P=[],prev=null;
+ for(let n=0;n<=E.size;n++){const[x,y]=cur.split(",").map(Number),nx=E.get(cur);
+  if(!prev||!((prev[0]===x&&x===nx[0])||(prev[1]===y&&y===nx[1])))P.push([x,y]);prev=[x,y];cur=k(nx[0],nx[1]);if(cur===st)break}
+ const o=P.map(([x,y])=>({x:sh.x+x*CELL,y:sh.y+y*CELL}));o.push(o[0]);return o;
+}
+let pieceSel=0,pieceCells=PIECES[0][1];
 const tiles=v=>+(v/TILE).toFixed(1);
 function limitNote(sh){if(!sh||sh.t!=="rect")return"";const d=dimsOf(sh),w=d.w/TILE,h=d.h/TILE;if(w<2||h<2)return"under 2 tiles";if(w>24||h>24)return"over 24 tiles a side";if(w*h>144)return"over 144 tiles";return""}
 let S={sel:null,cam:{x:0,y:0,z:.5},shapes:[],tool:"pen",ink:0,snap:true,fill:true,finger:false,size:1,grid:true};
@@ -53,11 +73,24 @@ let saveT=0;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localS
 function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,1600)}
 
 /* ---------- UI ---------- */
-const TOOLS=[["pen","Pen","free"],["line","Line","wall"],["rect","Room","box"],["ell","Circle","arena"],["pillar","Pillar","solid"],["gate","Gate","door"],["spawn","Spawn","pt"],["label","Text","abc"],["edit","Edit","move·size"],["erase","Erase","x"],["hand","Move","pan"]];
+const TOOLS=[["pen","Pen","free"],["line","Line","wall"],["rect","Room","box"],["ell","Circle","arena"],["pillar","Pillar","solid"],["gate","Gate","door"],["spawn","Spawn","pt"],["label","Text","abc"],["piece","Piece","grid"],["edit","Edit","move·size"],["erase","Erase","x"],["hand","Move","pan"]];
 const tools=$("tools");
 TOOLS.forEach(([id,n,s])=>{const b=document.createElement("button");b.dataset.t=id;b.innerHTML=n+"<small>"+s+"</small>";b.onclick=()=>{S.tool=id;ui()};tools.appendChild(b)});
 const inks=$("inks");
 INKS.forEach(([c,n],i)=>{const b=document.createElement("button");b.className="sw";b.style.color=b.style.background=c;b.style.background=c+"33";b.style.borderColor=c;b.title=n;b.onclick=()=>{S.ink=i;ui();save()};inks.appendChild(b)});
+const pcs=$("pcs");
+function glyph(cv,C,col){const g=cv.getContext("2d"),[w,h]=cellsSize(C),s=Math.min(40/w,26/h),ox=(44-w*s)/2,oy=(30-h*s)/2;cv.width=88;cv.height=60;g.scale(2,2);
+ g.fillStyle=col+"55";g.strokeStyle=col;g.lineWidth=1;for(const[x,y]of C){g.fillRect(ox+x*s+.5,oy+y*s+.5,s-1,s-1);g.strokeRect(ox+x*s+.5,oy+y*s+.5,s-1,s-1)}}
+PIECES.forEach(([n,C],i)=>{const b=document.createElement("button");b.className="pc";b.innerHTML="<canvas></canvas><small>"+n+"</small>";b.onclick=()=>{pieceSel=i;pieceCells=normCells(C);ui()};pcs.appendChild(b)});
+pcs.appendChild(Object.assign(document.createElement("div"),{className:"sep"}));
+const pb=(t,f)=>{const b=document.createElement("button");b.innerHTML=t;b.onclick=f;pcs.appendChild(b)};
+pb("Rotate<small>R</small>",()=>turnPiece(false));pb("Mirror<small>M</small>",()=>turnPiece(true));
+function turnPiece(mirror){
+ if(S.tool==="edit"&&S.sel&&S.sel.t==="piece"){const sh=S.sel,[w,h]=cellsSize(sh.cells),C=normCells(sh.cells.map(([x,y])=>mirror?[-x,y]:[-y,x])),[w2,h2]=cellsSize(C);
+  const n={...sh,cells:C,x:snapCell(sh.x+(w-w2)*CELL/2,GX0),y:snapCell(sh.y+(h-h2)*CELL/2,GY0)};push();S.shapes=S.shapes.map(q=>q===sh?n:q);S.sel=n;draw();save();return}
+ pieceCells=normCells(pieceCells.map(([x,y])=>mirror?[-x,y]:[-y,x]));if(live&&live.t==="piece"){live.cells=pieceCells}ui();
+}
+addEventListener("keydown",e=>{if(e.target.tagName==="INPUT")return;if(e.key==="r"||e.key==="R")turnPiece(false);if(e.key==="m"||e.key==="M")turnPiece(true)});
 const topBar=$("top");
 function tb(label,fn,id){const b=document.createElement("button");b.innerHTML=label;b.onclick=fn;if(id)b.id=id;topBar.appendChild(b);return b}
 tb("Undo",()=>doUndo());tb("Redo",()=>doRedo());
@@ -71,7 +104,8 @@ function ui(){
  [...tools.children].forEach(b=>b.classList.toggle("on",b.dataset.t===S.tool));
  [...inks.children].forEach((b,i)=>b.classList.toggle("on",i===S.ink));
  $("bSnap").classList.toggle("on",S.snap);$("bFill").classList.toggle("on",S.fill);$("bGrid").classList.toggle("on",S.grid);
- $("bFinger").classList.toggle("on",S.finger);const showDim=["edit","rect","ell","pillar"].includes(S.tool);$("dim").style.display=showDim?"flex":"none";if(!showDim)S.sel=null;syncDim();draw();$("bSize").innerHTML="Size<small>"+["thin","normal","thick"][S.size-1]+"</small>";
+ $("bFinger").classList.toggle("on",S.finger);const showPc=S.tool==="piece"||S.tool==="edit"&&S.sel&&S.sel.t==="piece";$("pcs").style.display=showPc?"flex":"none";
+ [...pcs.querySelectorAll(".pc")].forEach((b,i)=>{b.classList.toggle("on",i===pieceSel);glyph(b.firstChild,i===pieceSel?pieceCells:PIECES[i][1],INKS[S.ink][0])});const showDim=["rect","ell","pillar"].includes(S.tool)||S.tool==="edit"&&!showPc;$("dim").style.display=showDim?"flex":"none";if(!showDim&&!showPc)S.sel=null;syncDim();draw();$("bSize").innerHTML="Size<small>"+["thin","normal","thick"][S.size-1]+"</small>";
  $("hint").textContent=S.finger?"Finger and Pencil both draw · two fingers pan / zoom":"Pencil draws · one finger pans · two fingers zoom";
 }
 
@@ -92,6 +126,7 @@ const lw=()=>[1.6,2.6,4.2][S.size-1];
 function bounds(sh){
  let xs=[],ys=[];
  if(sh.t==="pillar"||sh.t==="spawn"||sh.t==="label"){return{x0:sh.x-(sh.r||40),y0:sh.y-(sh.r||40),x1:sh.x+(sh.r||40),y1:sh.y+(sh.r||40)}}
+ if(sh.t==="piece"){const[w,h]=cellsSize(sh.cells);return{x0:sh.x,y0:sh.y,x1:sh.x+w*CELL,y1:sh.y+h*CELL}}
  const P=sh.pts;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
  for(const p of P){x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y)}
  return{x0,y0,x1,y1};
@@ -100,6 +135,7 @@ function segDist(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let t=l?((p.x-
 function polyOf(sh){
  if(sh.t==="rect"){const[a,b]=sh.pts;return[a,{x:b.x,y:a.y},b,{x:a.x,y:b.y},a]}
  if(sh.t==="ell"){const[a,b]=sh.pts,cx=(a.x+b.x)/2,cy=(a.y+b.y)/2,rx=Math.abs(b.x-a.x)/2,ry=Math.abs(b.y-a.y)/2,o=[];for(let i=0;i<=40;i++){const q=i/40*Math.PI*2;o.push({x:cx+Math.cos(q)*rx,y:cy+Math.sin(q)*ry})}return o}
+ if(sh.t==="piece")return pieceOutline(sh);
  return sh.pts;
 }
 function hit(sh,p,tol){
@@ -142,6 +178,10 @@ function drawShape(sh,a=1){
   case"line":neon(sh.pts,c,w,false,a);break;
   case"rect":case"ell":{const P=polyOf(sh);if(sh.fill)hatch(P,c,a);neon(P,c,w,true,a);
    if(sh.main){const[p,q]=sh.pts;ctx.font="600 40px 'Courier New',monospace";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle=hex(c,.55*a);ctx.fillText("MAIN ROOM",(p.x+q.x)/2,(p.y+q.y)/2)}break}
+  case"piece":{const P=pieceOutline(sh);if(sh.fill)hatch(P,c,a);neon(P,c,w,true,a);
+   ctx.save();ctx.setLineDash([14/S.cam.z,12/S.cam.z]);ctx.strokeStyle=hex(c,.22*a);ctx.lineWidth=1/S.cam.z;ctx.beginPath(); // cell seams (open, inside one room)
+   const cs=new Set(sh.cells.map(q=>q+""));for(const[x,y]of sh.cells){if(cs.has([x+1,y]+"")){ctx.moveTo(sh.x+(x+1)*CELL,sh.y+y*CELL);ctx.lineTo(sh.x+(x+1)*CELL,sh.y+(y+1)*CELL)}if(cs.has([x,y+1]+"")){ctx.moveTo(sh.x+x*CELL,sh.y+(y+1)*CELL);ctx.lineTo(sh.x+(x+1)*CELL,sh.y+(y+1)*CELL)}}
+   ctx.stroke();ctx.restore();break}
   case"pillar":{const P=[];for(let i=0;i<=24;i++){const q=i/24*Math.PI*2;P.push({x:sh.x+Math.cos(q)*sh.r,y:sh.y+Math.sin(q)*sh.r})}hatch(P,c,a);neon(P,c,w,true,a);break}
   case"gate":{const[p,q]=sh.pts;neon([p,q],GATE,w,false,a,[10/S.cam.z,7/S.cam.z]);for(const e of[p,q]){ctx.beginPath();ctx.arc(e.x,e.y,5/S.cam.z,0,7);ctx.fillStyle=hex(GATE,.9*a);ctx.fill()}break}
   case"spawn":{const P=[];for(let i=0;i<=24;i++){const q=i/24*Math.PI*2;P.push({x:sh.x+Math.cos(q)*sh.r,y:sh.y+Math.sin(q)*sh.r})}
@@ -194,18 +234,27 @@ function render(){
  overlay=()=>{
   let sh=S.sel,d=sh&&dimsOf(sh);const any=!!sh;
   if(!d&&live&&(live.t==="rect"||live.t==="ell"||live.t==="pillar")){sh=live;d=dimsOf(live)}
+  if(!d&&live&&live.t==="piece"){sh=live;d={w:0,h:0}}
   if(!d&&!any)return;
   const b=bounds(sh),sx=v=>(v-S.cam.x)*z+W/2,sy=v=>(v-S.cam.y)*z+H/2;
   if(sh===S.sel){ctx.save();ctx.setLineDash([6,5]);ctx.strokeStyle="#ffffffcc";ctx.lineWidth=1.2;ctx.strokeRect(sx(b.x0)-4,sy(b.y0)-4,(b.x1-b.x0)*z+8,(b.y1-b.y0)*z+8);ctx.restore()}
   if(!d)return;
-  const ln=limitNote(sh),txt=(sh.t==="pillar"?"Ø "+tiles(d.w):tiles(d.w)+" × "+tiles(d.h))+" tiles"+(ln?"  ⚠ "+ln:"");
+  const ln=limitNote(sh),txt=sh.t==="piece"?sh.name+" · "+sh.cells.length+(sh.cells.length>1?" cells":" cell")+" (6×6 tiles each)":(sh.t==="pillar"?"Ø "+tiles(d.w):tiles(d.w)+" × "+tiles(d.h))+" tiles"+(ln?"  ⚠ "+ln:"");
   ctx.font="600 14px 'Courier New',monospace";const tw=ctx.measureText(txt).width+14,cx=sx((b.x0+b.x1)/2),cy=sy(b.y1)+22;
   ctx.fillStyle="rgba(3,8,20,.85)";ctx.fillRect(cx-tw/2,cy-12,tw,24);ctx.strokeStyle=ln?"#ffb347":"#66a3ff";ctx.lineWidth=1;ctx.strokeRect(cx-tw/2,cy-12,tw,24);
   ctx.fillStyle=ln?"#ffb347":"#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(txt,cx,cy);
  };
+ if(S.tool==="piece"||S.sel&&S.sel.t==="piece"){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawLattice();ctx.restore()}
  if(drawing&&drawing.t==="pen"&&liveCv)ctx.drawImage(liveCv,0,0,W,H);
  else if(live){ctx.save();ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-S.cam.x,-S.cam.y);drawShape(live,.9);ctx.restore()}
  ctx.setTransform(dpr,0,0,dpr,0,0);overlay();
+}
+function drawLattice(){ // the 600 px cell lattice grid pieces snap to
+ const z=S.cam.z,x0=S.cam.x-W/2/z,x1=S.cam.x+W/2/z,y0=S.cam.y-H/2/z,y1=S.cam.y+H/2/z;
+ ctx.strokeStyle="rgba(255,224,38,.2)";ctx.lineWidth=1/z;ctx.setLineDash([6/z,6/z]);ctx.beginPath();
+ for(let x=snapCell(x0,GX0)-CELL;x<x1;x+=CELL){ctx.moveTo(x,y0);ctx.lineTo(x,y1)}
+ for(let y=snapCell(y0,GY0)-CELL;y<y1;y+=CELL){ctx.moveTo(x0,y);ctx.lineTo(x1,y)}
+ ctx.stroke();ctx.setLineDash([]);
 }
 function drawGrid(){
  const z=S.cam.z,x0=S.cam.x-W/2/z,x1=S.cam.x+W/2/z,y0=S.cam.y-H/2/z,y1=S.cam.y+H/2/z;
@@ -259,6 +308,7 @@ function dimsOf(sh){
 }
 function bodyHit(sh,p,tol){
  if(sh.t==="pillar"||sh.t==="spawn")return Math.hypot(p.x-sh.x,p.y-sh.y)<=sh.r+tol;
+ if(sh.t==="piece")return sh.cells.some(([x,y])=>p.x>=sh.x+x*CELL-tol&&p.x<=sh.x+(x+1)*CELL+tol&&p.y>=sh.y+y*CELL-tol&&p.y<=sh.y+(y+1)*CELL+tol);
  if(sh.t==="rect"||sh.t==="ell"){const[a,b]=sh.pts;return p.x>=Math.min(a.x,b.x)-tol&&p.x<=Math.max(a.x,b.x)+tol&&p.y>=Math.min(a.y,b.y)-tol&&p.y<=Math.max(a.y,b.y)+tol}
  return hit(sh,p,tol);
 }
@@ -266,11 +316,11 @@ function shifted(sh,dx,dy){return sh.pts?{...sh,pts:sh.pts.map(q=>({x:q.x+dx,y:q
 function selectAt(p){
  const tol=12/S.cam.z;S.sel=null;
  for(let i=S.shapes.length-1;i>=0;i--)if(bodyHit(S.shapes[i],p,tol)){S.sel=S.shapes[i];break}
- syncDim();draw();
+ syncDim();ui();
 }
 function nudge(dx,dy){
  const sh=S.sel;if(!sh){toast("Select something first");return}
- const n=shifted(sh,dx*TILE,dy*TILE);push();S.shapes=S.shapes.map(q=>q===sh?n:q);S.sel=n;draw();save();
+ const st=sh.t==="piece"?CELL:TILE,n=shifted(sh,dx*st,dy*st);push();S.shapes=S.shapes.map(q=>q===sh?n:q);S.sel=n;draw();save();
 }
 function syncDim(){
  const d=S.sel&&dimsOf(S.sel);
@@ -301,6 +351,7 @@ function begin(e){
   return;
  }
  if(t==="erase"){push();erased=false;drawing={t};eraseAt(p);return}
+ if(t==="piece"){S.sel=null;drawing={t};live=pieceAt(p);draw();return}
  if(t==="spawn"){addShape({t:"spawn",x:p.x,y:p.y,r:24,ink:S.ink,w:lw()});return}
  if(t==="pillar"){S.sel=null;syncDim();drawing={t,p0:p};live={t:"pillar",x:p.x,y:p.y,r:GRID/2,ink:S.ink,w:lw()};draw();return}
  if(t==="label"){const s=prompt("Label text");if(s)addShape({t:"label",x:p.x,y:p.y,txt:s.slice(0,40),s:28,ink:S.ink});return}
@@ -308,11 +359,12 @@ function begin(e){
  drawing={t,p0:p,raw:[p]};if(t==="pen")liveReset();
  live={t:t==="pen"?"path":t,pts:[p,p],ink:S.ink,w:lw(),fill:S.fill};draw();
 }
+function pieceAt(p){const[w,h]=cellsSize(pieceCells);return{t:"piece",name:PIECES[pieceSel][0],cells:pieceCells,x:snapCell(p.x-w*CELL/2+CELL/2,GX0),y:snapCell(p.y-h*CELL/2+CELL/2,GY0),ink:S.ink,w:lw(),fill:S.fill}}
 function move(e){
  if(drawing.t==="move"){
   const q=pt(e,false),o=drawing.cur;let dx=q.x-drawing.p0.x,dy=q.y-drawing.p0.y;
   const bb=bounds(drawing.orig||(drawing.orig=o));
-  if(S.snap){dx=snapv(bb.x0+dx)-bb.x0;dy=snapv(bb.y0+dy)-bb.y0}
+  if(o.t==="piece"){dx=snapCell(bb.x0+dx,GX0)-bb.x0;dy=snapCell(bb.y0+dy,GY0)-bb.y0}else if(S.snap){dx=snapv(bb.x0+dx)-bb.x0;dy=snapv(bb.y0+dy)-bb.y0}
   const base=drawing.orig,n=shifted(base,dx,dy);
   if(n.pts?(n.pts[0].x===o.pts[0].x&&n.pts[0].y===o.pts[0].y):(n.x===o.x&&n.y===o.y))return;
   if(!drawing.pushed){push();drawing.pushed=true}
@@ -320,6 +372,7 @@ function move(e){
  }
  const t=drawing.t,p=pt(e,t!=="pen"&&t!=="erase");
  if(t==="erase"){eraseAt(p);return}
+ if(t==="piece"){const n=pieceAt(pt(e,false));if(n.x!==live.x||n.y!==live.y){live=n;draw()}return}
  if(t==="pillar"){live.r=Math.max(GRID/4,S.snap?snapv(Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y)):Math.hypot(p.x-drawing.p0.x,p.y-drawing.p0.y));draw();return}
  if(t==="pen"){const l=drawing.raw[drawing.raw.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)*S.cam.z>4){drawing.raw.push(p);live.pts=drawing.raw;liveSeg(l,p)}}
  else if(t==="line"||t==="gate"){let q=p;if(e.shiftKey)q=p;live.pts=[drawing.p0,q]}
@@ -333,6 +386,7 @@ function finish(e){
  if(!live){return}
  const sh=live;live=null;
  if(d.t==="pillar"){addShape(sh);return}
+ if(d.t==="piece"){if(S.shapes.some(q=>q.t==="piece"&&q.cells.some(([x,y])=>sh.cells.some(([u,v])=>q.x+x*CELL===sh.x+u*CELL&&q.y+y*CELL===sh.y+v*CELL)))){toast("Overlaps a piece");draw();return}addShape(sh);return}
  if(d.t==="pen"){
   const P=simplify(d.raw,1.2/S.cam.z);
   if(P.length<2){draw();return}
