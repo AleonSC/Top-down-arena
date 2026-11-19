@@ -918,7 +918,9 @@ static partial class Shot {
           var first = Expansion.BestLink(eg.ExpansionWorld, 0);
           if (first.HasValue) { eg.Links.Add(first.Value); typeof(Game).GetField("expWorld", bf).SetValue(eg, null); }
           var next = Expansion.BestLink(eg.ExpansionWorld, eg.Links.Count);
-          if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
+          var lm = Environment.GetEnvironmentVariable("MOUSE");  // MOUSE=x,y: nothing placed yet, the mouse there (the tool's wall-spot ghost)
+          if (lm != null) { var lxy = lm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(lxy[0], ci), float.Parse(lxy[1], ci)); }
+          else if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
         }
       }
     }

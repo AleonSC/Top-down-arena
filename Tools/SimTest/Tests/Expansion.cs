@@ -1142,6 +1142,9 @@ static partial class Program
         V2 mid = new V2((float)Math.Round(w.Areas[2].Mid.X / 100f) * 100f, (float)Math.Round(w.Areas[2].Mid.Y / 100f) * 100f);
         Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = (short)mid.X, BY = (short)mid.Y }, out why) == 0 && why != null && why.Contains("outer wall"), "an end in the middle of a room (off the walls) is refused (" + why + ")");
         Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = 1600, AY = 200, BX = link.BX, BY = link.BY }, out why) == 0 && why != null, "an end on a wall two rooms share is refused (" + why + ")");
+        var snapMid = Expansion.NearestWallSpot(w, w.Areas[2].Mid, 150f);
+        var snapNear = Expansion.NearestWallSpot(w, link.B + new V2(37f, 0f) + Expansion.OuterWall(w, link.B).Value * 60f, 150f);
+        Check(!snapMid.HasValue && snapNear.HasValue && Expansion.OuterWall(w, snapNear.Value).HasValue, "the teleporter tool snaps only to outer walls: nothing from mid-floor, a wall spot from beside one (" + snapNear + ")");
         Check(Expansion.LinkPrice(w, Expansion.MaxLinks, link, out why) == 0 && why != null, "at most " + Expansion.MaxLinks + " pairs");
         var wl = Expansion.Build(list, null, new List<PortalLink> { link });
         var pt = wl.Portals[0];

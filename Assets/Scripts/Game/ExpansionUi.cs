@@ -269,6 +269,8 @@ namespace Arena
             float ox = map.center.x - (expViewC.X - lo.X) * k, oy = map.center.y - (expViewC.Y - lo.Y) * k;
             System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
             System.Func<Vector2, V2> Snap = m => new V2(Mathf.Round(((m.x - ox) / k + lo.X) / Expansion.Step) * Expansion.Step, Mathf.Round(((m.y - oy) / k + lo.Y) / Expansion.Step) * Expansion.Step);
+            // The teleporter tool snaps to the nearest room's outer wall (never the floor); null: no wall near the mouse.
+            System.Func<Vector2, V2?> WallSnap = m => Expansion.NearestWallSpot(wd, new V2((m.x - ox) / k + lo.X, (m.y - oy) / k + lo.Y), 1.5f * Expansion.Step);
             if (DkKey(new Rect(map.xMax - 150f, map.yMax - 34f, 40f, 28f), "-", false, calm, size: 18, rawSize: true)) expZoom = Mathf.Max(1f, expZoom / 1.4f);
             if (DkKey(new Rect(map.xMax - 106f, map.yMax - 34f, 40f, 28f), "+", false, calm, size: 18, rawSize: true)) expZoom = Mathf.Min(8f, expZoom * 1.4f);
             if (DkKey(new Rect(map.xMax - 62f, map.yMax - 34f, 56f, 28f), "FIT", false, calm, size: 14, rawSize: true)) expZoom = 1f;
@@ -310,8 +312,14 @@ namespace Arena
             }
             if (expGateMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
                 ev.Use();  // (gate mode never draws a box)
+            V2? wallAt = expLinkMode && over ? WallSnap(ev.mousePosition) : null;
             if (expDragging && ev.type != EventType.Layout && ev.type != EventType.Used)
-                expB = Snap(ev.mousePosition);
+            {
+                if (!expLinkMode)
+                    expB = Snap(ev.mousePosition);
+                else if (wallAt.HasValue)
+                    expB = wallAt.Value;
+            }
             V2 cursor = Snap(ev.mousePosition);
             V2 trapSpot = cursor;  // trap mode: where a click would put the trap, and whether it fits
             string trapWhy = null;
@@ -344,12 +352,12 @@ namespace Arena
                     game.PlaceBuild((BuildKind)expTrapKind, (int)trapSpot.X, (int)trapSpot.Y);
                 ev.Use();
             }
-            else if (ev.type == EventType.MouseDown && ev.button == 0 && over)
+            else if (ev.type == EventType.MouseDown && ev.button == 0 && over && (!expLinkMode || wallAt.HasValue))  // (the teleporter tool: only on a wall)
             {
                 if (!expDragging)
                 {
                     expDragging = expHeld = true;
-                    expA = expB = Snap(ev.mousePosition);
+                    expA = expB = expLinkMode ? wallAt.Value : Snap(ev.mousePosition);
                     expPressAt = ev.mousePosition;
                 }
                 else
@@ -464,7 +472,9 @@ namespace Arena
                         float s2 = hot ? 9f : 6f;
                         RoomMapFrame(dc.X - s2, dc.Y - s2, 2f * s2, 2f * s2, hot ? 2f : 1.5f, (hot ? (gateWhy == null ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f)) : new Rgba(1f, 0.85f, 0.4f)).WithAlpha(hot ? 1f : 0.5f + 0.3f * Mathf.Sin(Time.unscaledTime * 3f)));
                     }
-                if ((over || expDragging) && !expGateMode && !gridMode)  // the snapped cursor (a cross) and the corner already placed (a square)
+                if (expLinkMode && wallAt.HasValue && !expDragging)  // the teleporter tool: the wall spot under the mouse, a ghost Beam
+                    DrawLinkBeam(M, wallAt.Value, Expansion.OuterWall(wd, wallAt.Value).Value, Rgba.White, 0.55f, 0f);
+                else if ((over || expDragging) && !expGateMode && !gridMode && !expLinkMode)  // the snapped cursor (a cross) and the corner already placed (a square)
                 {
                     V2 cur = M(Snap(ev.mousePosition));
                     RoomMapRect(cur.X - 7f, cur.Y - 0.5f, 14f, 1f, Rgba.White.WithAlpha(0.8f));
