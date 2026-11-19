@@ -14,7 +14,7 @@ namespace Arena
         internal static readonly KitDef ElementalistKit = new KitDef
         {
             Id = Kit.Elementalist, Name = "Elementalist", Icon = "class_elementalist", HpMult = 0.85f,
-            Blurb = "Spells: fire, frost, lightning and arcane magic. 85% health.",
+            Blurb = "Spells: fire, frost, lightning, water, wind, earth and light. 85% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKitWeapon(p, aim, dir, muzzle, dmg, extra),
         };
 
@@ -155,7 +155,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.EnergyWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Instant = true,
-                Name = "Energy Ward", Cooldown = 14f, Desc = "Wrap you and allies within 300 px in a bubble of energy that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing.",
+                Name = "Energy Ward", Cooldown = 14f, Desc = "Wrap you and allies within 300 px in a bubble of water that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing.",
                 Capstone = "The shield soaks 120 damage.",
                 Bot = b => b.Danger,
             },
@@ -196,7 +196,7 @@ namespace Arena
             {
                 Id = AbilityId.KineticWall, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Fourth,
                 Name = "Kinetic Wall", Cooldown = 18f,
-                Desc = "A curved wall in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back.",
+                Desc = "A curved wall of wind in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back.",
                 Capstone = "The wall is 40% wider and holds up to 60 charges.",
             },
         };
