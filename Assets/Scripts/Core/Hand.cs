@@ -3,65 +3,65 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// A card code in a player's hand (Docs/GridPieces.md): codes from Expansion.PieceCardBase up are grid pieces (GridCards.cs); below it the
+    /// A card code in a player's hand (Docs/GridPieces.md): codes from Expansion.PieceCodeBase up are grid pieces (GridPieces.cs); below it the
     /// service and utility cards, which build one cell. New values go at the end. Box to Chamfer and MiniBoss were the old room cards (retired
     /// with them, Nov 18): kept so the codes stay the same.
-    public enum RoomCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms, Medic }
+    public enum PieceCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms, Medic }
 
     public static partial class Expansion
     {
         public const int HandMax = 6;  // cards a player holds; more are dropped
 
         /// The service cards: each builds one cell with a job (Docs/ArmsDealer.md).
-        public static readonly RoomCard[] ServiceCards = { RoomCard.Shop, RoomCard.Market, RoomCard.Arms, RoomCard.Medic };
+        public static readonly PieceCard[] ServiceCards = { PieceCard.Shop, PieceCard.Market, PieceCard.Arms, PieceCard.Medic };
 
         public const int ServiceCardChance = 5;  // a dropped card (a wave drop, a chest) is a service card 1 in this many times
 
-        public static bool IsServiceCard(RoomCard c) => c == RoomCard.Shop || c == RoomCard.Market || c == RoomCard.Arms || c == RoomCard.Medic;
+        public static bool IsServiceCard(PieceCard c) => c == PieceCard.Shop || c == PieceCard.Market || c == PieceCard.Arms || c == PieceCard.Medic;
 
         /// The job of the room a card builds: a service card's shop, Black Market, Arms Dealer or Medic, a Builder Shop card's card shop, else combat.
-        public static RoomKind CardRoomKind(RoomCard c)
-            => c == RoomCard.Shop ? RoomKind.Shop : c == RoomCard.Market ? RoomKind.Vendor : c == RoomCard.Arms ? RoomKind.Arms : c == RoomCard.Medic ? RoomKind.Medic : c == RoomCard.BuilderShop ? RoomKind.Builder : RoomKind.Combat;
+        public static RoomKind CardRoomKind(PieceCard c)
+            => c == PieceCard.Shop ? RoomKind.Shop : c == PieceCard.Market ? RoomKind.BlackMarket : c == PieceCard.Arms ? RoomKind.Arms : c == PieceCard.Medic ? RoomKind.Medic : c == PieceCard.BuilderShop ? RoomKind.Builder : RoomKind.Combat;
 
-        public static string CardName(RoomCard c)
+        public static string CardName(PieceCard c)
         {
-            if (IsPieceCard(c))
+            if (IsShapePieceCard(c))
                 return PieceCardName(c);
             switch (c)
             {
-                case RoomCard.Shop: return "Shop";
-                case RoomCard.Market: return "Black Market";
-                case RoomCard.Arms: return "Arms Dealer";
-                case RoomCard.Medic: return "Medic";
-                case RoomCard.BuilderShop: return "Builder Shop";
+                case PieceCard.Shop: return "Shop";
+                case PieceCard.Market: return "Black Market";
+                case PieceCard.Arms: return "Arms Dealer";
+                case PieceCard.Medic: return "Medic";
+                case PieceCard.BuilderShop: return "Builder Shop";
                 default: return "";
             }
         }
 
         /// What the card's room is for, one line (the build screen's tip).
-        public static string CardBlurb(RoomCard c)
+        public static string CardBlurb(PieceCard c)
         {
-            if (IsPieceCard(c))
+            if (IsShapePieceCard(c))
                 return PieceCardBlurb(c);
             switch (c)
             {
-                case RoomCard.Shop: return "A one-cell shop: upgrade cards for gold, selling, floor kits and vector packs. Safe, no enemies spawn in it.";
-                case RoomCard.Market: return "A one-cell Black Market: teleporters and traps for gold, and services. Safe, no enemies spawn in it.";
-                case RoomCard.Arms: return "A one-cell Arms Dealer: weapon mods for gold. Safe, no enemies spawn in it.";
-                case RoomCard.Medic: return "A one-cell Medic: full heals and revive tokens for gold. Safe, no enemies spawn in it.";
-                case RoomCard.BuilderShop: return "A utility room: a shop that sells piece cards for vectors, a new shelf each wave, a quarter off.";
+                case PieceCard.Shop: return "A one-cell shop: upgrade cards for gold, selling, floor kits and vector packs. Safe, no enemies spawn in it.";
+                case PieceCard.Market: return "A one-cell Black Market: teleporters and traps for gold, and services. Safe, no enemies spawn in it.";
+                case PieceCard.Arms: return "A one-cell Arms Dealer: weapon mods for gold. Safe, no enemies spawn in it.";
+                case PieceCard.Medic: return "A one-cell Medic: full heals and revive tokens for gold. Safe, no enemies spawn in it.";
+                case PieceCard.BuilderShop: return "A utility room: a shop that sells piece cards for vectors, a new shelf each wave, a quarter off.";
                 default: return "";
             }
         }
 
         /// A card's base price in vectors (the Builder Shop charges three quarters of it, BuilderShop.cs).
-        public static int CardPrice(RoomCard c)
+        public static int CardPrice(PieceCard c)
         {
-            if (IsPieceCard(c))
-                return PiecePrice(c);
+            if (IsShapePieceCard(c))
+                return PieceCardPrice(c);
             switch (c)
             {
-                case RoomCard.BuilderShop: return 36;
+                case PieceCard.BuilderShop: return 36;
                 default: return 30;  // (a service card: no shop sells one; a price for completeness)
             }
         }
@@ -75,17 +75,17 @@ namespace Arena
         {
             int n = 0;
             foreach (var c in p.Hand)
-                if (c != (byte)RoomCard.None) n++;
+                if (c != (byte)PieceCard.None) n++;
             return n;
         }
 
         /// Host: a card goes into this player's hand (dropped, with a log line, when it is full).
-        bool GiveCard(Player p, RoomCard c, string why)
+        bool GiveCard(Player p, PieceCard c, string why)
         {
-            if (!IsHost || c == RoomCard.None)
+            if (!IsHost || c == PieceCard.None)
                 return false;
             for (int i = 0; i < p.Hand.Length; i++)
-                if (p.Hand[i] == (byte)RoomCard.None)
+                if (p.Hand[i] == (byte)PieceCard.None)
                 {
                     p.Hand[i] = (byte)c;
                     DoLog(p.Name + " gets a " + Expansion.CardName(c) + " card (" + why + ")");
@@ -99,7 +99,7 @@ namespace Arena
         {
             for (int i = slot; i < p.Hand.Length - 1; i++)
                 p.Hand[i] = p.Hand[i + 1];
-            p.Hand[p.Hand.Length - 1] = (byte)RoomCard.None;
+            p.Hand[p.Hand.Length - 1] = (byte)PieceCard.None;
         }
 
         /// Host, as a build round opens: anyone not dealt yet gets the starting hand (Expansion.GridStartHand), then everyone a wave card pick
@@ -154,9 +154,9 @@ namespace Arena
         }
 
         /// Host: a chest node was opened: everyone gets a card (Expansion.GridDropCard).
-        /// The piece card a piece chest offers this player (seeded from its node, so a reload offers the same): they take it or throw it away
+        /// The piece a piece chest offers this player (seeded from its node, so a reload offers the same): they take it or throw it away
         /// (Props.cs LootKind.Card).
-        RoomCard ChestCardFor(Player p, int nodeIndex) => Expansion.GridDropCard(new DetRandom(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), Wave);
+        PieceCard ChestCardFor(Player p, int nodeIndex) => Expansion.GridDropCard(new DetRandom(expandSeed * 7 + nodeIndex * 131 + p.Id * 17 + Wave), Wave);
 
         /// What a bot builds toward: the nearest sealed room waiting off the map (not a mini-boss's), else the nearest unclaimed node (null if none).
         V2? BotCardGoal()

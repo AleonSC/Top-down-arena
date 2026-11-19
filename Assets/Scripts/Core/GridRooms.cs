@@ -50,7 +50,7 @@ namespace Arena
             var start = new V2(Game.Width / 2f, Game.Height / 2f);
             for (int step = 1; step <= depth; step++)
             {
-                var opts = GridPieceOptions(map, GridPiece.Mono);
+                var opts = PlacementsFor(map, PieceShape.Mono);
                 if (ring >= 0 && step == 1)
                 {
                     var side = opts.FindAll(o => o.Side == ring % 4);
@@ -90,7 +90,7 @@ namespace Arena
             if (roll && rng.Float() >= RoomChestChance(boxes))
                 return null;
             var kind = rng.Float() < RoomChestVectorShare ? NodeKind.VectorChest : NodeKind.Chest;
-            var opts = GridPieceOptions(built, GridPiece.Mono).FindAll(o =>
+            var opts = PlacementsFor(built, PieceShape.Mono).FindAll(o =>
             {
                 bool touches = false;
                 var c = o.Rooms[0];

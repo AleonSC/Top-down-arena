@@ -16,7 +16,7 @@ namespace Arena
     public enum PropKind : byte { Crate, HeavyCrate, Pot, Barrel, Chest, HealthBarrel }
 
     /// What a chest holds, and so how it looks (Game/ChestLooks.cs). A wave's chest is Upgrade (everyone's own card);
-    /// an Expanding chest node rolls Gold (a burst of coins), Grid piece (a piece card each), Buildables (one Black Market build each) or Upgrade.
+    /// an Expanding chest node rolls Gold (a burst of coins), Piece chest (a piece each), Buildables (one Black Market build each) or Upgrade.
     /// Vector and Relic are the vector chest and relic nodes' looks (they are nodes, not props). New kinds go at the end.
     public enum ChestKind : byte { Upgrade, Gold, Vector, Relic, Piece, Buildable }
 
@@ -62,7 +62,7 @@ namespace Arena
     }
 
     /// What a chest item is: an upgrade card (Upgrade), a Black Market build for your stash (Build: Item is the Market kind), or a
-    /// piece or service card for your hand (Card: Item is its RoomCard). New values go at the end.
+    /// piece or service card for your hand (Card: Item is its Piece). New values go at the end.
     public enum LootKind : byte { Upgrade, Build, Card }
 
     /// A chest's item for one player. Everyone's game has every item, but only its owner's draws it. Its owner takes it or throws it away.
@@ -70,7 +70,7 @@ namespace Arena
     {
         public int Id, Owner, Upgrade;
         public LootKind Kind;
-        public int Item;  // a Build's Market kind, a Card's RoomCard (Upgrade uses Upgrade)
+        public int Item;  // a Build's Market kind, a Card's Piece (Upgrade uses Upgrade)
         public V2 Pos;
         public float Age;  // every game, for the look
     }
@@ -646,7 +646,7 @@ namespace Arena
                     }
                     break;
                 }
-                case ChestKind.Piece:  // a piece card each (Grid runs), to take or throw away
+                case ChestKind.Piece:  // a piece each (Grid runs), to take or throw away
                 {
                     if (!ExpandingOn)
                         break;
@@ -723,9 +723,9 @@ namespace Arena
             return -1;
         }
 
-        /// A chest item's name ("Turret", "L piece card", an upgrade's name).
+        /// A chest item's name ("Turret", "L piece", an upgrade's name).
         public static string LootName(Loot l) => l.Kind == LootKind.Build ? (l.Item >= 0 && l.Item < Market.Count ? Market.Names[l.Item] : "build")
-            : l.Kind == LootKind.Card ? Expansion.CardName((RoomCard)l.Item) + " card"
+            : l.Kind == LootKind.Card ? Expansion.CardName((PieceCard)l.Item) + " card"
             : l.Upgrade >= 0 && l.Upgrade < Upgrades.All.Length ? Upgrades.All[l.Upgrade].Name : "item";
 
         /// Host: player p takes chest item l; false when it no longer fits (an upgrade they can't have, a full stash or hand).
@@ -740,7 +740,7 @@ namespace Arena
                     DoLog(p.Role + " took a " + Market.Names[l.Item] + " from a chest");
                     return true;
                 case LootKind.Card:
-                    return GiveCard(p, (RoomCard)l.Item, "chest");
+                    return GiveCard(p, (PieceCard)l.Item, "chest");
                 default:
                     if (!Upgrades.Available(l.Upgrade, OfferFor(p)))
                         return false;

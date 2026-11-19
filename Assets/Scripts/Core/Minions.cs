@@ -265,8 +265,8 @@ namespace Arena
                 case AbilityId.Tsunami:
                     CastTsunami(p, cap, pw);
                     break;
-                case AbilityId.KineticWall:
-                    CastKineticWall(p, cap);  // KineticWall.cs
+                case AbilityId.GaleWall:
+                    CastGaleWall(p, cap);  // GaleWall.cs
                     break;
                 case AbilityId.Flood:
                     CastFlood(p, cap, pw);  // Flood.cs

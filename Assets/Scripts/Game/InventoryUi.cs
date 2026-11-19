@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Tab screen's Inventory page (RunStatsUi.cs, statsTab 3): everything you carry, as hologram panels (TabHolo.cs). Your wallet
-    /// (gold, vectors, a revive token, the gadget in your hand), your relic, your hand of room cards (RoomCards.cs), the Black Market buys in
+    /// (gold, vectors, a revive token, the gadget in your hand), your relic, your hand of room cards (Pieces.cs), the Black Market buys in
     /// your stash (Market.cs) and the team's room kits (Expansion.RoomToken). Only drawn on your own screen; it changes nothing.
     /// Preview: `STATSTAB=3 Tools/Preview/shot.sh x tab 23 12.2 3`.
     public partial class ArenaApp
@@ -190,7 +190,7 @@ namespace Arena
         void DrawInvHand(Player me, Rect r, bool canUse)
         {
             canUse &= game.ExpandingOn;
-            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Pieces" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
+            LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Piece cards" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", HoloCalm);
             var ink = CrtUi.Ink;
             const int cols = 3;
             const float minH = 96f;
@@ -203,8 +203,8 @@ namespace Arena
             {
                 int row = i / cols - first;
                 var c = new Rect(list.x + (i % cols) * (cw + gap), list.y + row * (ch + gap), cw, ch);
-                var card = (RoomCard)me.Hand[i];
-                if (card == RoomCard.None)
+                var card = (PieceCard)me.Hand[i];
+                if (card == PieceCard.None)
                 {
                     for (float dx = 0f; dx < c.width; dx += 10f)  // a dashed outline: an empty slot
                     {
@@ -236,7 +236,7 @@ namespace Arena
             if (!game.ExpandingOn)
             {
                 Ui.Fill(new Rect(r.x + 12f, r.y + 46f, r.width - 24f, r.height - 58f), new Color(0f, 0f, 0f, 0.45f));
-                Ui.Label(new Rect(r.x, r.center.y - 10f, r.width, 20f), "Pieces are for the Expanding arena", 13, HoloDim, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x, r.center.y - 10f, r.width, 20f), "Piece cards are for the Expanding arena", 13, HoloDim, TextAnchor.MiddleCenter, true);
             }
         }
 
@@ -272,7 +272,7 @@ namespace Arena
                     UseInvBuild(k);
                 if (TipHover(row))
                 {
-                    TipStart(row, Market.Names[k], ToColor(VendorInk));
+                    TipStart(row, Market.Names[k], ToColor(BlackMarketInk));
                     TipAdd(Market.Blurbs[k], 12, Ui.Text);
                     TipAdd(usable ? "Click to place it: the build screen opens on its tool." : InvUseWhy(me), 11, usable ? CrtStyle.Gold : Ui.Muted);
                 }
@@ -292,7 +292,7 @@ namespace Arena
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Room kits", "team · " + game.RoomTokens.Count + " / " + Expansion.MaxTokens, HoloCalm);
             if (game.RoomTokens.Count == 0)
             {
-                Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 40f), "None held. Bosses give a floor kit, won challenges a shop kit, and the vendor sells them.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);
+                Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 40f), "None held. Bosses give a floor kit, won challenges a shop kit, and the Black Market sells them.", 12, HoloDesc, TextAnchor.UpperLeft, false, true);
                 return;
             }
             const float rowH = 34f;

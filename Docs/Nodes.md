@@ -1,11 +1,11 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-3 built (protocol 282)**, node tiers built (no protocol change), step 4 open; fog, scout towers and gold veins built (protocol 386). **Nov 18 (owner): fog off, no scout towers, no floating shop / vendor / Gatekeeper rooms (room cards and mystery doors only), bigger node marks** (see the end). **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **steps 1-3 built (protocol 282)**, node tiers built (no protocol change), step 4 open; fog, scout towers and gold veins built (protocol 386). **Nov 18 (owner): fog off, no scout towers, no floating shop / Black Market / Gatekeeper rooms (room cards and mystery doors only), bigger node marks** (see the end). **Changed Nov 11 (owner): shop and Black Market are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and Black Market rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
 
-A **node** is a point in empty space (no walls, no size): chest, shop, vendor, ... It is locked until a built room **fully encloses** it.
+A **node** is a point in empty space (no walls, no size): chest, shop, Black Market, ... It is locked until a built room **fully encloses** it.
 Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay sealed rooms as today.
 
 ## Decisions
@@ -13,7 +13,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 | Question | Decision |
 |---|---|
 | Placement | Far from the start room and from each other. Start: 10-16 tiles from the nearest connected room, at least 8 tiles between nodes (first guesses, tune with `vecbal`). Never next to the start. |
-| Enemies | **Shop and vendor nodes: no spawns** in the room (`SpawnWeight` 0, as now). **Chests and other nodes: the room spawns enemies as normal.** |
+| Enemies | **Shop and Black Market nodes: no spawns** in the room (`SpawnWeight` 0, as now). **Chests and other nodes: the room spawns enemies as normal.** |
 | Respawn | **None**, for nodes and for the existing sealed rooms. Each is placed once and stays until claimed. |
 | New nodes | May appear **around the current build** as it grows (each boss cycle, placed relative to the built map, never inside it). They are new nodes, not respawns. |
 | Mini-bosses | Unchanged: sealed rooms, touch to open, duel, prize pick. |
@@ -25,11 +25,11 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 - A node counts as enclosed when its point is inside a built room's box (not on a wall). The draw tool allows boxes that cover a node.
 - Cost is the usual room price; there is no node fee.
 - **Rooms only** (owner, Nov 11): a hallway never claims a node; it takes a room (wider than 3 tiles, or a drawn outline) round it.
-- Claiming: shop/vendor open their screen while you stand in the room; a chest opens when walked to, then is spent (the room stays).
+- Claiming: shop/Black Market open their screen while you stand in the room; a chest opens when walked to, then is spent (the room stays).
 
 ## Plan (one step at a time)
 
-1. `MapNode` data + placement (`Expansion`), seeded like `FloatingFor`, no respawn; remove shop/vendor floating rooms. **Protocol bump** (`Msg.ExpandState`).
+1. `MapNode` data + placement (`Expansion`), seeded like `FloatingFor`, no respawn; remove shop/Black Market floating rooms. **Protocol bump** (`Msg.ExpandState`).
 2. Enclose check, fixture inside the room, spawn rules per kind.
 3. Look: ghost marker in the arena, minimap and draw screen (`Tools/Preview` shots first).
 4. Bots build around nodes; `vecbal` balance pass; README.
@@ -38,14 +38,14 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 
 - `MapNode` / `NodeKind` (Shop, Vendor, Chest; chests aren't placed yet) in `Expansion.cs`; `Game.Nodes` synced after the kits in `Msg.ExpandState`, saved as `node` lines.
 - `Expansion.NodeFor(seed, cycle, built, nodes, kind)`: 10-16 tiles straight out from a connected room (so a straight 3-tile hallway reaches it: `NodeHall`), 2 tiles clear of every room (chest and relic nodes 6 tiles, `PrizeClear`; `FloatingFor` keeps floating rooms as far from them),
-  8+ tiles from other nodes; one shop and one vendor node per boss cycle (`PlaceFloatingRooms`), at most 4 unclaimed. The Gatekeeper stays a floating room.
-- Claiming: `Expansion.Build(..., nodes)` makes a Combat room that encloses a shop or vendor node a Shop or Vendor room (all boxes of a multi-box room), so spawns, gold and the shop screens work unchanged.
+  8+ tiles from other nodes; one shop and one Black Market node per boss cycle (`PlaceFloatingRooms`), at most 4 unclaimed. The Gatekeeper stays a floating room.
+- Claiming: `Expansion.Build(..., nodes)` makes a Combat room that encloses a shop or Black Market node a Shop or Vendor room (all boxes of a multi-box room), so spawns, gold and the shop screens work unchanged.
 - Bots build the cheapest straight hallway to the nearest unclaimed node (`BotBuildsToFloater`).
 - Look: breathing ring and mark on the arena floor, a square on the minimap and the draw screen with its name (`RoomsLook.cs`, `ExpansionUi.cs`). Preview: `EXPANDFLOAT=1` with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200`.
-- Nov 12 (owner): nodes and shop/vendor rooms placed off the start room sit `Expansion.StartExtra` (6 tiles) farther out (`ConnectorFor` reaches that much farther).
+- Nov 12 (owner): nodes and shop/Black Market rooms placed off the start room sit `Expansion.StartExtra` (6 tiles) farther out (`ConnectorFor` reaches that much farther).
 - Nov 13 (owner): `StartExtra` 10 tiles, the Gatekeeper too; nothing (node or floating room) is placed within `Expansion.StartClear` (10 tiles) of the start room, whichever room it was placed off; the map cap went from 6400 x 4000 to 8000 x 5000 so they still fit.
 - Not yet: a fixture drawn inside the claimed room (step 3).
-- Old saves with floating shop or vendor rooms still load and work as before.
+- Old saves with floating shop or Black Market rooms still load and work as before.
 
 ## Step 2 (built, protocol 282)
 
@@ -58,7 +58,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 
 ## Step 3 (built, no protocol change)
 
-- `Game/NodeLook.cs`: an unclaimed node is a breathing ring and mark; a claimed one is a fixture of its room: a shop's stall (awning, counter, coin), a vendor's pedestal (plus, turning dashes),
+- `Game/NodeLook.cs`: an unclaimed node is a breathing ring and mark; a claimed one is a fixture of its room: a shop's stall (awning, counter, coin), a Black Market's pedestal (plus, turning dashes),
   a chest (glow and a walk-up ring; opened: lid up, dim). Chest ink is violet on the map, minimap and draw screen too.
 - Previews: `EXPANDMAP=0 EXPANDROOMS="1600,200,700,500" EXPANDNODE="shop:1950,450;chest:1750,450:spent" EXPANDAT=1850,500` (mode hud).
 
@@ -66,13 +66,13 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 
 - Whether chest gold and vectors should scale harder (balance pass with `vecbal`).
 
-## Shop and vendor as tiny rooms (built, no protocol change)
+## Shop and Black Market as tiny rooms (built, no protocol change)
 
-- Owner, Nov 11: "the shop nodes should be tiny square rooms that you walk into instead of nodes you build around". Shop **and** vendor (chests stay nodes), **4 x 4 tiles** (`Expansion.ShopRoomSide`).
-- They are floating rooms again (`FloatingFor`, as the Gatekeeper's, sealed until a built box shares 2 tiles of wall): `PlaceFloatingRooms` places Gatekeeper, shop and vendor rooms (at most `MaxSealed` waiting) and only chest nodes.
-- An opened shop or vendor room draws the node's stall or pedestal in its middle (`DrawFloatingMark` -> `DrawNodeFixture`); the draw screen's legend lists Shop room / Vendor room.
-- Bots: `BotBuildsToFloater` ranks shop, vendor, chest, Gatekeeper across nodes and sealed rooms (`ConnectorFor` for rooms).
-- Old saves with shop or vendor nodes still load and claim as before. Preview: `EXPANDMAP=0 EXPANDFLOAT=3` (hud, you stand in the opened shop) or with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200` (draw screen).
+- Owner, Nov 11: "the shop nodes should be tiny square rooms that you walk into instead of nodes you build around". Shop **and** Black Market (chests stay nodes), **4 x 4 tiles** (`Expansion.ShopRoomSide`).
+- They are floating rooms again (`FloatingFor`, as the Gatekeeper's, sealed until a built box shares 2 tiles of wall): `PlaceFloatingRooms` places Gatekeeper, shop and Black Market rooms (at most `MaxSealed` waiting) and only chest nodes.
+- An opened shop or Black Market room draws the node's stall or pedestal in its middle (`DrawFloatingMark` -> `DrawNodeFixture`); the draw screen's legend lists Shop room / Vendor room.
+- Bots: `BotBuildsToFloater` ranks shop, Black Market, chest, Gatekeeper across nodes and sealed rooms (`ConnectorFor` for rooms).
+- Old saves with shop or Black Market nodes still load and claim as before. Preview: `EXPANDMAP=0 EXPANDFLOAT=3` (hud, you stand in the opened shop) or with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200` (draw screen).
 
 ## Relic nodes (prototype, protocol 304)
 
@@ -99,7 +99,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 
 ## Nov 18 (owner): no room nodes, no fog, bolder nodes (no protocol change)
 
-- "Room nodes ... delegated to only room card placement or mystery rooms": `PlaceFloatingRooms` no longer places shop, vendor or Gatekeeper rooms; old saves keep theirs.
+- "Room nodes ... delegated to only room card placement or mystery rooms": `PlaceFloatingRooms` no longer places shop, Black Market or Gatekeeper rooms; old saves keep theirs.
 - Fog removed: `NodeFor` places nodes unfogged; `TickNodeFog` clears an old save's fogged node at once. Scout towers are no longer placed (odd cycles: chest, rule, vein). `MapNode.Hidden` stays on the wire for old saves.
 - Look (`NodeLook.cs`): an unclaimed node is a lit disc, a bold double ring, turning dashes and two beacon rings rippling out, its mark at full size; the minimap square is 10 px with a dark edge and halo (`RoomsLook.cs`).
 

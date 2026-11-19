@@ -34,7 +34,7 @@ namespace Arena
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
         Flood,        // the Tank Elementalist's 4th choice (Flood.cs), the lobby's 4th choice
         AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
-        KineticWall,  // the Elementalist DPS's 4th choice (KineticWall.cs), the lobby's 4th choice
+        GaleWall,  // the Elementalist DPS's 4th choice (GaleWall.cs), the lobby's 4th choice
         WaterWard,    // the Healer Elementalist's 4th choice (WaterWard.cs), the lobby's 4th choice
         DeployableCover,  // the Tank Soldier's 4th choice (DeployableCover.cs), the lobby's 4th choice
         DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
@@ -110,7 +110,7 @@ namespace Arena
         public float LumenBonusTime, LumenHealMult = 1f;                   // Lumen Ward: Dawnlight
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
-        public float KwChargeMult = 1f;                                    // Kinetic Wall: Momentum Bank
+        public float GaleChargeMult = 1f;                                    // Gale Wall: Momentum Bank
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating
@@ -386,7 +386,7 @@ namespace Arena
 
         public const int FirstAbilityChoices = 3;
 
-        /// A class's 4th choice (AbilityDef.Fourth; the Tank Elementalist's Flood, the DPS Elementalist's Kinetic Wall), None where it has none.
+        /// A class's 4th choice (AbilityDef.Fourth; the Tank Elementalist's Flood, the DPS Elementalist's Gale Wall), None where it has none.
         static readonly AbilityId[] FourthAbilities = FourthTable();
 
         /// How many 1st abilities this role and class can pick in the lobby: three, or four where it has a 4th.

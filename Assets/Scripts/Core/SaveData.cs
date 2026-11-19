@@ -28,7 +28,7 @@ namespace Arena
         public readonly List<string> Shelf = new List<string>();   // upgrade names by slot, "" for an empty slot
         public int ShelfSold, Restocks;
         public readonly int[] Stash = new int[Market.Count];       // Black Market buys not yet placed, by BuildKind
-        public readonly List<int> Hand = new List<int>();          // room cards held (RoomCard values, RoomCards.cs)
+        public readonly List<int> Hand = new List<int>();          // room cards held (Piece values, Pieces.cs)
 
         /// "Tank Knight, level 12" for lists.
         public string Summary => Role + " " + Defs.KitName(Kit) + ", level " + Level;

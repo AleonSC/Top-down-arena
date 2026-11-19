@@ -17,14 +17,14 @@ static partial class Program
             "with nothing built the world is the hub alone, walled in");
 
         int coverSeen = 0, hallCover = 0, badCover = 0, loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, piecesSeen = 0;
-        var pieceKinds = (GridPiece[])Enum.GetValues(typeof(GridPiece));
+        var pieceKinds = (PieceShape[])Enum.GetValues(typeof(PieceShape));
         for (int seed = 1; seed <= 60; seed++)
         {
             var built = Expansion.GridCore();  // (random Grid maps: pieces placed at random door spots until the cap)
             var rng = new Random(seed);
             for (int guard = 0; guard < 200; guard++)
             {
-                var opts = Expansion.GridPieceOptions(built, pieceKinds[rng.Next(pieceKinds.Length)]);
+                var opts = Expansion.PlacementsFor(built, pieceKinds[rng.Next(pieceKinds.Length)]);
                 if (opts.Count == 0)
                 {
                     if (Expansion.BoughtCount(built) >= Expansion.MaxRooms) break;
@@ -102,7 +102,7 @@ static partial class Program
         Check(badWall == 0, "every room's middle is open ground in its own area (" + badWall + " bad)");
         Check(badCap == 0, "the map stops at " + Expansion.MaxRooms + " rooms and its size cap (" + badCap + " over)");
 
-        var east = Expansion.GridPieceOptions(Expansion.GridCore(), GridPiece.Mono).First(o => o.Side == 3).Rooms[0];
+        var east = Expansion.PlacementsFor(Expansion.GridCore(), PieceShape.Mono).First(o => o.Side == 3).Rooms[0];
         var owned = east; owned.Owner = 2;
         var ownedWorld = Expansion.Build(new List<ExpansionRoom>(Expansion.GridCore()) { owned });
         Check(ownedWorld.Areas[5].Owner == 2 && ownedWorld.Areas[0].Owner == 0, "a built room remembers who placed it (the hub nobody)");
@@ -182,7 +182,7 @@ static partial class Program
 
         // Building: the friend plays a single cell; it goes up at once, theirs, free, and the round stays open.
         int clientBefore = g.Players[2].Vectors;
-        var first = PlayPiece(s, dt, g, cg, GridPiece.Mono);
+        var first = PlayPieceCard(s, dt, g, cg, PieceShape.Mono);
         Check(first.HasValue && g.Expanded.Count == 5 && g.Expanded[4].Owner == 2 && g.Players[2].Vectors == clientBefore && cg.Expanded.Count == 5 && cg.Expanded[4].Equals(g.Expanded[4]) && g.ExpandOpen,
             "a piece is built at once: the friend's, free, both screens agree, and the round stays open");
         resolveRound.Invoke(g, null);  // (what the next wave's start does)
@@ -261,8 +261,8 @@ static partial class Program
         int builtNow = g.Expanded.Count;
         openRound.Invoke(g, null);
         Run(s, dt, 3f, () => g.ExpandOpen && cg.ExpandOpen);
-        PlayPiece(s, dt, g, cg, GridPiece.Mono);
-        PlayPiece(s, dt, g, g, GridPiece.Domino);
+        PlayPieceCard(s, dt, g, cg, PieceShape.Mono);
+        PlayPieceCard(s, dt, g, g, PieceShape.Domino);
         Check(g.Expanded.Count > builtNow + 1 && cg.Expanded.Count == g.Expanded.Count && g.ExpandOpen && g.Expanded.Skip(builtNow).Any(r => r.Owner == 2) && g.Expanded.Skip(builtNow).Any(r => r.Owner == 1),
             "both players build in one round, a single and a domino");
         resolveRound.Invoke(g, null);
@@ -274,7 +274,7 @@ static partial class Program
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen);
         Check(g.Expanded.Count == builtNow && !cg.ExpandOpen, "a round with nothing placed closes with nothing built");
 
-        // A new boss cycle places nodes only (owner, Nov 18: no floating shop, vendor or Gatekeeper rooms; those come from room cards and mystery doors),
+        // A new boss cycle places nodes only (owner, Nov 18: no floating shop, Black Market or Gatekeeper rooms; those come from room cards and mystery doors),
         // never fogged, the same on the client, adding no crowd and no spawns.
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
         int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count, nodesNow = g.Nodes.Count;
@@ -283,7 +283,7 @@ static partial class Program
         float scale0 = g.ExpansionScale;
         placeFloating.Invoke(g, null);
         Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count && cg.Nodes.Count == g.Nodes.Count);
-        Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, vendor or Gatekeeper)");
+        Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, Black Market or Gatekeeper)");
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
         Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest || n.Kind == NodeKind.VectorChest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : n.Kind == NodeKind.Vein ? 3 : 9;
@@ -292,26 +292,22 @@ static partial class Program
             "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests, relics and veins as fit, none fogged, the same on the client");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
-        // A sealed room waiting on the lattice (the cycle's mini-boss room, GridCards.cs): no crowd, no spawns, until a piece reaches it.
-        // On the Grid core (a real Grid map; this test's hand-built map leaves no lattice cell free), then this test's map comes back.
-        var keepRooms = g.Expanded.ToList(); var keepNodes = g.Nodes.ToList();
-        g.Expanded.Clear(); g.Expanded.AddRange(Expansion.GridCore()); g.Nodes.Clear();
-        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-        pickRooms.Invoke(g, null);
-        int coreCount = g.Expanded.Count;
-        float coreScale = g.ExpansionScale;
+        // A sealed room waiting on the lattice (the cycle's mini-boss room, GridPieces.cs): no crowd, no spawns, until a piece reaches it.
         {
-            var mini = Expansion.GridMiniFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, g.Nodes);
-            Check(mini.HasValue, "a sealed mini-boss room fits on the lattice");
-            if (mini.HasValue) g.Expanded.Add(mini.Value);
+            // (the game keeps one waiting, so use it; place one only if none does)
+            bool waiting = Expansion.GridMinisWaiting(g.Expanded) > 0;
+            ExpansionRoom? mini = waiting ? (ExpansionRoom?)g.Expanded[g.Expanded.FindIndex(r => r.Floating)]
+                : Expansion.GridMiniFor((int)typeof(Game).GetField("expandSeed", flags).GetValue(g), 1, g.Expanded, g.Nodes);
+            Check(mini.HasValue, "a sealed mini-boss room waits on the lattice");
+            if (mini.HasValue && !waiting) g.Expanded.Add(mini.Value);
             typeof(Game).GetField("expWorld", flags).SetValue(g, null);
         }
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
-        Check(floatWorld.Areas.Skip(coreCount + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - coreScale) < 0.001f, "the room stays sealed and adds no crowd");
+        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f, "the room stays sealed and adds no crowd");
         {
             int si = g.Expanded.FindIndex(r => r.Floating);
-            var reach = si >= 0 ? Expansion.GridPieceOptions(g.Expanded, GridPiece.Mono).Where(o => { var m = new List<ExpansionRoom>(g.Expanded); m.AddRange(o.Rooms); return !Expansion.Build(m).Areas[si + 1].Sealed; }).ToList() : new List<GridPieceOption>();
+            var reach = si >= 0 ? Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).Where(o => { var m = new List<ExpansionRoom>(g.Expanded); m.AddRange(o.Rooms); return !Expansion.Build(m).Areas[si + 1].Sealed; }).ToList() : new List<Placement>();
             Check(reach.Count > 0, "a single cell can be built into the cell between, reaching it");
             if (reach.Count > 0)
             {
@@ -329,9 +325,6 @@ static partial class Program
                 inSealed++;
         }
         Check(inSealed == 0, "no enemy comes in to a floating room");
-        g.Expanded.Clear(); g.Expanded.AddRange(keepRooms); g.Nodes.Clear(); g.Nodes.AddRange(keepNodes);
-        typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-        pickRooms.Invoke(g, null);
         g.Wave = waveHere;
 
         // A chest node inside a built room opens when a player walks up to it: gold and vectors for everyone, once.
@@ -474,7 +467,7 @@ static partial class Program
         // Nodes survive a saved run (where they are placed: GridNodeFor, the gridrooms suite).
         {
             var saved = new RunSave { Wave = 6, HasExpansion = true };
-            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Vendor });
+            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.BlackMarket });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
             saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Tower, Hidden = true });
             saved.Seats.Add(new SeatSave());
@@ -486,11 +479,11 @@ static partial class Program
         var full = Expansion.GridCore();
         while (Expansion.BoughtCount(full) < Expansion.MaxRooms)
         {
-            var o = Expansion.GridPieceOptions(full, GridPiece.Mono);
+            var o = Expansion.PlacementsFor(full, PieceShape.Mono);
             if (o.Count == 0) break;
             full.AddRange(o[0].Rooms);
         }
-        Check(Expansion.BoughtCount(full) == Expansion.MaxRooms && Expansion.GridPieceOptions(full, GridPiece.Mono).Count == 0, "a full map takes no more pieces");
+        Check(Expansion.BoughtCount(full) == Expansion.MaxRooms && Expansion.PlacementsFor(full, PieceShape.Mono).Count == 0, "a full map takes no more pieces");
     }
 }
 
@@ -561,7 +554,7 @@ static partial class Program
         add(500, 900, 600, 600, RoomKind.Floor, PathId.FrozenLake);          // 3: south
         add(-600, 300, 600, 300, RoomKind.Floor, PathId.BloodMoon);          // 4: west
         add(1600, 600, 600, 300, RoomKind.Floor, PathId.EliteGauntlet);      // 5: south-east (touches the shop and the hub: a loop)
-        add(500, -1200, 600, 600, RoomKind.Vendor, PathId.None);             // 6: north of the north room
+        add(500, -1200, 600, 600, RoomKind.BlackMarket, PathId.None);             // 6: north of the north room
         foreach (var gg in new[] { g, cg })
         {
             gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
@@ -569,7 +562,7 @@ static partial class Program
         }
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f);
-        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 7 && g.HasShopRoom && g.HasVendorRoom, "the map with a shop room and four floors is up");
+        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 7 && g.HasShopRoom && g.HasBlackMarketRoom, "the map with a shop room and four floors is up");
         V2 shopAt = g.CurrentWorld.Areas[1].Mid, fireAt = g.CurrentWorld.Areas[2].Mid, iceAt = g.CurrentWorld.Areas[3].Mid, bloodAt = g.CurrentWorld.Areas[4].Mid, eliteAt = g.CurrentWorld.Areas[5].Mid, hubAt = new V2(800f, 450f);
         Check(g.FloorAt(fireAt) == PathId.BurningGrounds && g.FloorAt(iceAt) == PathId.FrozenLake && g.FloorAt(bloodAt) == PathId.BloodMoon && g.FloorAt(eliteAt) == PathId.EliteGauntlet && g.FloorAt(hubAt) == PathId.None && g.FloorAt(shopAt) == PathId.None,
             "each Floor room knows its path's ground; the hub and the shop room have none");
@@ -661,7 +654,7 @@ static partial class Program
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
         // The room shops: upgrades and restocks only in the shop room, sales in either room, heals and revives in neither (the Medic sells them), nothing in the hub.
-        Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a vendor room the shop never holds the countdown");
+        Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a Black Market room the shop never holds the countdown");
         V2 vendorAt = g.CurrentWorld.Areas[6].Mid;
         var pm = g.Players[1];
         pm.Gold = 1000; pm.Hp = pm.MaxHp * 0.5f; pm.Pos = pm.Disp = hubAt;
@@ -671,9 +664,9 @@ static partial class Program
         Check(pm.Gold == 1000 && pm.Hp < pm.MaxHp * 0.6f, "in the hub you can neither buy nor heal");
         pm.Pos = pm.Disp = vendorAt;
         g.Shop(ShopAction.Buy, slot);
-        Check(pm.Gold == 1000, "the vendor sells no upgrades");
+        Check(pm.Gold == 1000, "the Black Market sells no upgrades");
         g.Shop(ShopAction.Heal);
-        Check(pm.Gold == 1000 && pm.Hp < pm.MaxHp * 0.6f, "the vendor doesn't heal (only the Medic does)");
+        Check(pm.Gold == 1000 && pm.Hp < pm.MaxHp * 0.6f, "the Black Market doesn't heal (only the Medic does)");
         pm.Pos = pm.Disp = shopAt;
         int gold1 = pm.Gold;
         g.Shop(ShopAction.Buy, slot);
@@ -683,7 +676,7 @@ static partial class Program
         g.Shop(ShopAction.Heal);
         Check(pm.Gold == gold2 && pm.Hp < pm.MaxHp * 0.6f, "nor does the shop room");
         g.Shop(ShopAction.BuyBuild, 0);
-        Check(pm.Gold == gold2 && pm.Stash[0] == 0, "buildables are only sold at the vendor");
+        Check(pm.Gold == gold2 && pm.Stash[0] == 0, "buildables are only sold at the Black Market");
         g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
@@ -997,7 +990,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
-        UseMap(new[] { g, cg }, GridMap(GridPiece.TriI));  // (a dead end east of the core)
+        UseMap(new[] { g, cg }, GridMap(PieceShape.TriI));  // (a dead end east of the core)
         var first = new Dictionary<int, V2>();
         float earliest = float.MaxValue;
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -1351,7 +1344,7 @@ static partial class Program
     /// Test helper: the Grid core with a 2 x 2 cell piece east of it, and a rule node at that piece's middle (claimed by it).
     static MapNode RuleNodeMap(out List<ExpansionRoom> plan)
     {
-        plan = GridMap(GridPiece.TetO);
+        plan = GridMap(PieceShape.TetO);
         var r = plan[plan.Count - 1];
         int x0 = plan.Skip(4).Min(q => q.X), y0 = plan.Skip(4).Min(q => q.Y), x1 = plan.Skip(4).Max(q => q.X1), y1 = plan.Skip(4).Max(q => q.Y1);
         return new MapNode { X = (short)((x0 + x1) / 2), Y = (short)((y0 + y1) / 2), Kind = NodeKind.Rule };

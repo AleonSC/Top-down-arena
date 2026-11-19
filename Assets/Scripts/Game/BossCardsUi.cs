@@ -9,7 +9,7 @@ namespace Arena
     {
         static readonly Color BossCardsTheme = new Color(0.45f, 0.85f, 1f);  // the cards' blue
 
-        /// A code's colour: a card in its card colour (RoomCardsUi.CardColor), a kit in its path's accent.
+        /// A code's colour: a card in its card colour (PieceCardsUi.CardColor), a kit in its path's accent.
         static Color BossCardColor(int code) => BossCards.IsKit(code) ? ToColor(Paths.Get(BossCards.FloorOf(code)).Accent) : ToColor(CardColor(BossCards.CardOf(code)));
 
         static Rgba BossCardRgba(int code) { var c = BossCardColor(code); return new Rgba(c.r, c.g, c.b); }
@@ -18,7 +18,7 @@ namespace Arena
         {
             if (BossCards.IsKit(code)) return "FLOOR KIT";
             var c = BossCards.CardOf(code);
-            return Expansion.IsServiceCard(c) ? "SERVICE ROOM" : c == RoomCard.BuilderShop ? "UTILITY ROOM" : "PIECE CARD";
+            return Expansion.IsServiceCard(c) ? "SERVICE ROOM" : c == PieceCard.BuilderShop ? "UTILITY ROOM" : "PIECE CARD";
         }
 
         /// What taking it changes: your hand, or the team's kits.

@@ -40,7 +40,7 @@ much to follow. Building stays on all the way through; the map resets instead.
 | Room kits | kept |
 | Player vectors | kept, plus 50% of `Player.MapSpent` (reset to 0 per map), on top of the boss refill and above the cap |
 | Coins on the floor | collected by the nearest living player |
-| Shop / vendor / Gatekeeper rooms | gone; the next regular wave places the new boss cycle's floating ones as usual |
+| Shop / Black Market / Gatekeeper rooms | gone; the next regular wave places the new boss cycle's floating ones as usual |
 | `expandSeed` | new (from `sideRng`, as in `ResetExpansion`) |
 
 ## Steps

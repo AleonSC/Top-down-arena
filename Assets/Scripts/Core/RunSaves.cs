@@ -144,7 +144,7 @@ namespace Arena
                             p.Taken.Add(Upgrades.UseCard(slot));
                         continue;
                     }
-                    string card = name == "Cluster Grenade" ? "Airstrike" : name == "Second Charge" ? "Extra Use: 1st Ability" : OldUseCard(name);  // (the Cluster Grenade became Airstrike; Second Charge became Extra Use)
+                    string card = name == "Cluster Grenade" ? "Airstrike" : name == "Kinetic Wall" ? "Gale Wall" : name == "Second Charge" ? "Extra Use: 1st Ability" : OldUseCard(name);  // (the Cluster Grenade became Airstrike, Kinetic Wall Gale Wall; Second Charge became Extra Use)
                     int u = Array.FindIndex(Upgrades.All, x => x.Name == card);
                     if (u >= 0)
                         p.Taken.Add(u);

@@ -424,7 +424,7 @@ static partial class Program
                         right++;
                 }
         Console.WriteLine("  class ability cards: {0} cards; the right two offered for {1}/{2} role/class/ability picks", cards.Count, right, combos);
-        int fourths = new[] { Role.Tank, Role.Healer, Role.Dps }.Sum(r => Enumerable.Range(0, Defs.KitCount).Count(k => Upgrades.AbilityLimit(r, (Kit)k) > Upgrades.FirstAbilityChoices));  // (Flood, Kinetic Wall)
+        int fourths = new[] { Role.Tank, Role.Healer, Role.Dps }.Sum(r => Enumerable.Range(0, Defs.KitCount).Count(k => Upgrades.AbilityLimit(r, (Kit)k) > Upgrades.FirstAbilityChoices));  // (Flood, Gale Wall)
         Check(cards.Count == 3 * Defs.KitCount * Upgrades.FirstAbilityChoices + fourths - gaps && right == combos, "each class is offered exactly its other 1st abilities (two, or three with a 4th) as very rare cards");
 
         var rng = new Random(7);

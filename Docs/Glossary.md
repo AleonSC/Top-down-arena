@@ -28,7 +28,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 
 | Term | Means | Code |
 |---|---|---|
-| **1st ability** | picked in the lobby: 3 choices per role and class, sometimes a **4th choice** (Flood, Kinetic Wall...) | `Player.FirstAbility`, `Slots[0]`, `KeyAction.Ability1`, `AbilityDef.Choice` (`Fourth`) |
+| **1st ability** | picked in the lobby: 3 choices per role and class, sometimes a **4th choice** (Flood, Gale Wall...) | `Player.FirstAbility`, `Slots[0]`, `KeyAction.Ability1`, `AbilityDef.Choice` (`Fourth`) |
 | **2nd, 3rd, 4th ability** | filled by very rare upgrade cards ("2nd–4th abilities" together) | `Player.CardAbilities`, `Slots[1..3]`, `KeyAction.Ability2..4` |
 | **Wildcard ability** | the Wildcard's extra starting ability, on the 2nd, 3rd or 4th slot | `Player.WildcardAbility` |
 | **Ultimate** | picked in the lobby, one per role and class (never "ult" in text; the key cap keeps "ULT") | `AbilityDef.Ult`, `Slots[4]`, `KeyAction.Ultimate` |
@@ -76,6 +76,21 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **rule room** | a room whose ground has a path's rule (was "Floor room") | `RoomToken.Floor` |
 | **floor** | only the ground surface (patches, coins on the floor) | |
 | **map** | only the Paths and relic node map | `MapNode`, `NodeKind` |
+
+## Building on the grid
+
+| Term | Means | Code |
+|---|---|---|
+| **cell** | one 600 px square of the lattice | |
+| **shape** | the 1-4 cell polyomino: Mono, Domino, ... TetL | `PieceShape` |
+| **piece card** | what sits in your hand: a shape plus a room type; the service ones (Shop, Black Market, Arms Dealer, Builder Shop) are one cell. "Piece" on its own is the shape on the map. | `PieceCard`, `GridPieces.cs` |
+| **room type** | what a piece card builds: plain, or a rule room's ground (was "modifier") | `RoomTypeOf`, `RoomTypeName` |
+| **placement** | one legal spot and turn for a piece card, at a door spot | `Placement`, `PlacementsFor` |
+| **piece chest** | the orange chest that gives every player a piece card | `ChestKind.Piece` |
+| **room chest** | a chest a built room may drop (any kind) | `RoomChest*` |
+| **Builder Shop** | the only place piece cards are bought, with vectors | `BuilderShop` |
+| **Black Market** | sells buildables; never "vendor" | `RoomKind.BlackMarket` |
+| **card** | never the bare word for a piece card: upgrade cards and milestone cards only | |
 
 ## Bosses
 

@@ -15,7 +15,7 @@ static partial class Program
         Check(cw.Doors.Count(d => d.Width >= 400) == 8 && cw.Doors.Any(d => d.Width == 1600), "the core's inner walls are opened: eight wide gaps, the hub's walls full width (" + string.Join(",", cw.Doors.Select(d => d.Width)) + ")");
         Func<float, float, bool> walled = (px, py) => cw.Walls().Any(c => Math.Abs(c.Pos.X - px) <= c.HW && Math.Abs(c.Pos.Y - py) <= c.HH);
         Check(!walled(800f, 0f) && !walled(800f, 900f) && !walled(0f, 450f) && !walled(1600f, 450f) && walled(800f, -400f), "no wall stands across the middle of the hub's four sides, but the core's outer wall does: one open room");
-        var rooms = Expansion.GridPieceOptions(empty, GridPiece.Mono);
+        var rooms = Expansion.PlacementsFor(empty, PieceShape.Mono);
         Check(rooms.Count == 14, "fourteen door spots round the core: four top, four bottom, three each side (" + rooms.Count + ")");
         Check(rooms.All(o => (o.Rooms[0].X - Expansion.GridX0) % 600 == 0 && (o.Rooms[0].Y - Expansion.GridY0) % 600 == 0 && o.Rooms[0].W == 600 && o.Rooms[0].H == 600), "every one is a 6 x 6 cell on the one lattice");
         var right = rooms.First(o => o.Side == 3);
@@ -24,7 +24,7 @@ static partial class Program
         // A chain: a room on the right wall brings its own spots (top, bottom, right), and none overlaps what is built.
         var map = new List<ExpansionRoom>(empty);
         map.AddRange(right.Rooms);
-        var next = Expansion.GridPieceOptions(map, GridPiece.Mono);
+        var next = Expansion.PlacementsFor(map, PieceShape.Mono);
         Check(next.Count > rooms.Count - 1 && next.Any(o => o.Rooms[0].X == right.Rooms[0].X1 && o.Rooms[0].Y == right.Rooms[0].Y), "the new room has spots of its own: another room goes straight out from it");
         Check(next.All(o => !map.Any(b => o.Rooms[0].X < b.X1 && b.X < o.Rooms[0].X1 && o.Rooms[0].Y < b.Y1 && b.Y < o.Rooms[0].Y1)), "no spot on the grown map overlaps a room");
 
@@ -50,7 +50,7 @@ static partial class Program
         one.AddRange(right.Rooms);
         var cn = Expansion.GridChestFor(5, one, new List<MapNode>(), 1, false);
         Check(cn.HasValue && Expansion.IsChest(cn.Value.Kind) && !Expansion.NodeClaimed(one, cn.Value)
-              && Expansion.GridPieceOptions(one, GridPiece.Mono).Any(o => o.Mid.Equals(cn.Value.Pos)), "a room chest in Grid mode sits at the middle of a free cell against the new room");
+              && Expansion.PlacementsFor(one, PieceShape.Mono).Any(o => o.Mid.Equals(cn.Value.Pos)), "a room chest in Grid mode sits at the middle of a free cell against the new room");
     }
 
     // The shortest chain of one-cell rooms (at most `depth`) built along door spots whose last room is the cell the node is the middle of; null if none.
@@ -66,7 +66,7 @@ static partial class Program
 
     static List<ExpansionRoom> GridChainExact(List<ExpansionRoom> built, MapNode n, int depth)
     {
-        foreach (var o in Expansion.GridPieceOptions(built, GridPiece.Mono))
+        foreach (var o in Expansion.PlacementsFor(built, PieceShape.Mono))
         {
             var m = new List<ExpansionRoom>(built);
             m.AddRange(o.Rooms);

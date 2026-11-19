@@ -18,7 +18,7 @@ namespace Arena
             { "BattleFury", "CaughtSteel" }, { "BladeTempest", "Drawbridge" }, { "Lunge", "Gauntlet" }, { "Whirlwind", "BladedDive" },
             { "IronBody", "CeremonialArmor" }, { "ArcaneAegis", "Aeroaegis" }, { "Sanctify", "LumenWard" }, { "GuardianSpirit", "ForcePact" },
             { "BulletStorm", "ArtilleryAssault" }, { "BloodBoil", "ArterialSpray" }, { "BloodRite", "VeinTithe" }, { "CrimsonPact", "BloodWall" },
-            { "FrenzyPact", "BloodDebt" }, { "HemoNova", "VeinRush" }, { "SiphonField", "BloodFreeze" }, { "CrimsonApotheosis", "CrimsonHarvest" },
+            { "KineticWall", "GaleWall" }, { "FrenzyPact", "BloodDebt" }, { "HemoNova", "VeinRush" }, { "SiphonField", "BloodFreeze" }, { "CrimsonApotheosis", "CrimsonHarvest" },
         };
 
         /// An EnemyType name as it is called now; a suffix after ':' (a long hunt's key) is kept.

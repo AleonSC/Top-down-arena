@@ -18,7 +18,7 @@ namespace Arena
         /// The rooms built so far, in order (area 1, 2, ...).
         public readonly List<ExpansionRoom> Expanded = new List<ExpansionRoom>();
 
-        /// The map's nodes (Docs/Nodes.md): shop and vendor points out in empty space, placed once and never respawned; a built room that
+        /// The map's nodes (Docs/Nodes.md): shop and Black Market points out in empty space, placed once and never respawned; a built room that
         /// encloses one takes on its job (synced after the tokens in Msg.ExpandState).
         public readonly List<MapNode> Nodes = new List<MapNode>();
 
@@ -27,7 +27,7 @@ namespace Arena
         public bool ExpandOpen;
 
         /// The room kits the team holds (spent with ApplyRoomToken; synced in Msg.ExpandState). Bosses give a Floor kit, a won challenge room a
-        /// Shop kit, the vendor sells a Floor kit.
+        /// Shop kit, the Black Market sells a Floor kit.
         public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
 
         /// What this player can put towards a build: their own vectors (the old Team purse is gone, Nov 18).
@@ -106,7 +106,7 @@ namespace Arena
             bool boss = BossNow;
             if (boss && IsHost && ModeRules.RunEvents && !BossCardPicks)  // (with room cards the boss's card pick offers kits instead)
                 GrantRoomToken(Expansion.FloorToken(expandSeed, Wave, Expanded, RoomTokens));
-            DropWaveCards(boss);  // RoomCards.cs
+            DropWaveCards(boss);  // Pieces.cs
             foreach (var p in Players.Values)
             {
                 p.VectorCap = VectorCapBase + p.Stats.VectorCap;
@@ -130,7 +130,7 @@ namespace Arena
             s.Short(ref p.Vectors);
             s.Short(ref p.VectorCap);
             for (int i = 0; i < p.Hand.Length; i++)
-                s.Byte(ref p.Hand[i]);  // room cards (RoomCards.cs)
+                s.Byte(ref p.Hand[i]);  // room cards (Pieces.cs)
         }
 
         // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
@@ -147,34 +147,34 @@ namespace Arena
             }
         }
 
-        /// A vendor room is on the connected map.
-        public bool HasVendorRoom
+        /// A Black Market room is on the connected map.
+        public bool HasBlackMarketRoom
         {
             get
             {
                 foreach (var a in ExpansionWorld.Areas)
-                    if (a.Kind == Arena.RoomKind.Vendor && !a.Sealed)
+                    if (a.Kind == Arena.RoomKind.BlackMarket && !a.Sealed)
                         return true;
                 return false;
             }
         }
 
-        /// The Expanding arena has a shop or vendor you can walk into: kills drop gold, the shop opens in each intermission without holding the
+        /// The Expanding arena has a shop or Black Market you can walk into: kills drop gold, the shop opens in each intermission without holding the
         /// countdown, your gold and shelf are kept between waves, and what you can do depends on the room you stand in.
-        public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasVendorRoom || HasArmsRoom || HasMedicRoom);
+        public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasBlackMarketRoom || HasArmsRoom || HasMedicRoom);
 
         /// The shop is open and the wave has to wait for it (the Bazaar and Gold Rush shops; the room shops never hold the countdown).
         public bool ShopBlocksWave => ShopOpen && !ServiceRooms;
 
-        public bool InVendorRoom(Player p)
+        public bool InBlackMarketRoom(Player p)
         {
             var a = ExpandedAreaAt(p.Disp);
-            return a.HasValue && a.Value.Kind == Arena.RoomKind.Vendor;
+            return a.HasValue && a.Value.Kind == Arena.RoomKind.BlackMarket;
         }
 
-        public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p) || InArmsRoom(p) || InMedicRoom(p);
+        public bool InServiceRoom(Player p) => InShopRoom(p) || InBlackMarketRoom(p) || InArmsRoom(p) || InMedicRoom(p);
 
-        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the vendor (the Black Market), mods at the
+        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the Black Market (the Black Market), mods at the
         /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) at the shop or vendor.
         bool ServiceAllowed(Player p, ShopAction action)
         {
@@ -191,9 +191,9 @@ namespace Arena
                 case ShopAction.Sell:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
-                    return InShopRoom(p) || InVendorRoom(p);
+                    return InShopRoom(p) || InBlackMarketRoom(p);
                 case ShopAction.BuyBuild:
-                    return InVendorRoom(p);
+                    return InBlackMarketRoom(p);
                 case ShopAction.BuyCard:
                     return false;  // (retired: the Black Market no longer sells cards)
                 case ShopAction.BuyMod:
@@ -263,7 +263,7 @@ namespace Arena
         int floatCycle = -1;
 
         /// Host, as a regular wave starts: a new boss cycle gets its nodes off the connected map (chest, relic, rule, vein; Docs/Nodes.md). Nothing placed is ever
-        /// placed again: at most MaxNodesWaiting nodes wait. Shop, vendor and Gatekeeper rooms are no longer placed here (room cards and mystery doors only).
+        /// placed again: at most MaxNodesWaiting nodes wait. Shop, Black Market and Gatekeeper rooms are no longer placed here (room cards and mystery doors only).
         void PlaceFloatingRooms()
         {
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents)
@@ -273,7 +273,7 @@ namespace Arena
                 return;
             floatCycle = cycle;
             bool added = false;
-            // (no floating rooms any more, owner Nov 18: shop, vendor and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
+            // (no floating rooms any more, owner Nov 18: shop, Black Market and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
             // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
             if (cycle == 0)
             {
@@ -299,7 +299,7 @@ namespace Arena
                 added = true;
                 DoLog("a " + kind + " node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
-            added |= PlaceGridMini(cycle);  // GridCards.cs: a Grid run's mini-boss waits on the lattice
+            added |= PlaceGridMini(cycle);  // GridPieces.cs: a Grid run's mini-boss waits on the lattice
             if (added)
             {
                 expWorld = null;
@@ -347,7 +347,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return;
             string why;
-            var pick = Expansion.SurpriseFor(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, GridPieces.cs)
+            var pick = Expansion.SurpriseFor(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);  // (a Grid run: on the lattice, PieceShapes.cs)
             if (!pick.HasValue)
             {
                 DoLog("no surprise room: " + why);
@@ -592,7 +592,7 @@ namespace Arena
                 return;
             ExpandOpen = true;
             roundBuilt = 0;
-            DealRoundCards();  // RoomCards.cs
+            DealRoundCards();  // Pieces.cs
             botBuildT = 0f;
             botProposed = false;
             BroadcastExpansion();
@@ -751,7 +751,7 @@ namespace Arena
                 botProposed = true;
                 if (roundBuilt > 0)
                     return;  // (a bot adds a room only if nobody has this round, so the map doesn't fill at once)
-                BotPlayGridCard();  // GridCards.cs
+                BotPlayPieceCard();  // GridPieces.cs
             }
         }
 

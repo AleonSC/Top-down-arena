@@ -254,7 +254,7 @@ namespace Arena
                 sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
             TickHeliSound();  // the Attack Helicopter's rotor (AttackHelicopterLook.cs, HeliSoundBank.cs)
-            TickKineticWallSounds();  // Kinetic Wall's cast, catches, chime, unleash and hum (KineticWallLook.cs; before TickArcLockSounds, which marks effects heard)
+            TickGaleWallSounds();  // Gale Wall's cast, catches, chime, unleash and hum (GaleWallLook.cs; before TickArcLockSounds, which marks effects heard)
             TickArcLockSounds();  // Arc Lightning's tags, hops, forks and charge hum (ArcLockSoundBank.cs)
             TickVectorGain(Time.unscaledDeltaTime);  // vectors coming in: the bursts, the "+10 VECTORS" and the chip (VectorGainLook.cs)
             TickLootSweep(Time.unscaledDeltaTime);  // your coins swept to you as the wave starts (LootSweepLook.cs)
