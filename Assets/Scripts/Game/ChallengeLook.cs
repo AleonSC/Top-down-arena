@@ -382,7 +382,7 @@ namespace Arena
                 case RoomPhase.Won:
                 case RoomPhase.Claimed:
                     DrawRoomResult(game.ChallengePhase == RoomPhase.Won ? "CHALLENGE COMPLETE!" : "PRIZE CLAIMED",
-                        game.ChallengePhase == RoomPhase.Won ? "Touch the altar for your prize" : "Your prize is waiting back in the arena", Ui.Gold, now);
+                        game.ChallengePhase == RoomPhase.Won ? "Touch the altar for your prize" : "Your prize is waiting back in the arena", CrtStyle.Gold, now);
                     break;
                 case RoomPhase.Lost:
                     DrawRoomResult("CHALLENGE FAILED", "Back to the arena: no harm done", new Color(1f, 0.4f, 0.45f), now);
@@ -512,7 +512,7 @@ namespace Arena
             {
                 V2 at = ToUi(game.AltarPos);
                 float bob = 6f * Mathf.Sin(now * 4f);
-                Ui.Shadowed(new Rect(at.X - 60f, at.Y - 118f + bob, 120f, 20f), "PRIZE", 14, Ui.Gold);
+                Ui.Shadowed(new Rect(at.X - 60f, at.Y - 118f + bob, 120f, 20f), "PRIZE", 14, CrtStyle.Gold);
             }
         }
 

@@ -12,14 +12,12 @@ namespace Arena
         public static readonly Color Text = new Color(0.93f, 0.95f, 1f);
         public static readonly Color Muted = new Color(0.62f, 0.67f, 0.78f);
         public static readonly Color Accent = new Color(0.36f, 0.6f, 1f);
-        public static readonly Color Gold = new Color(1f, 0.8f, 0.35f);
         public static readonly Color Good = new Color(0.45f, 1f, 0.55f);
         public static readonly Color Warn = new Color(1f, 0.72f, 0.4f);
 
         // Button tints (the button texture is near-white, so these set its color).
         public static readonly Color Neutral = new Color(0.26f, 0.29f, 0.4f);
         public static readonly Color Primary = new Color(0.3f, 0.55f, 1f);
-        public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
         static GUIStyle panel, button, field, bareField, label, track, hudRim, pill;
@@ -372,10 +370,10 @@ namespace Arena
                     var old = Alpha;
                     Alpha = 1f;
                     Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, r.height + 2f), new Color(1f, 0.8f, 0.3f, 0.16f));
-                    Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, 1.5f), Gold);
-                    Fill(new Rect(r.x - 2f, r.yMax - 0.5f, r.width + 4f, 1.5f), Gold);
-                    Fill(new Rect(r.x - 2f, r.y - 1f, 1.5f, r.height + 2f), Gold);
-                    Fill(new Rect(r.xMax + 0.5f, r.y - 1f, 1.5f, r.height + 2f), Gold);
+                    Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, 1.5f), CrtStyle.Gold);
+                    Fill(new Rect(r.x - 2f, r.yMax - 0.5f, r.width + 4f, 1.5f), CrtStyle.Gold);
+                    Fill(new Rect(r.x - 2f, r.y - 1f, 1.5f, r.height + 2f), CrtStyle.Gold);
+                    Fill(new Rect(r.xMax + 0.5f, r.y - 1f, 1.5f, r.height + 2f), CrtStyle.Gold);
                     Alpha = old;
                 }
                 float a = r.width * r.height;
@@ -413,7 +411,7 @@ namespace Arena
         /// The same look, read-only (guests).
         public static void CrtSliderDraw(Rect r, float value, bool live)
         {
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             var bar = new Rect(r.x, r.y + r.height / 2f - 2f, r.width, 4f);
             Fill(bar, ink.WithAlpha(0.16f));
             float tx = r.x + (r.width - 10f) * Mathf.Clamp01(value);
@@ -421,7 +419,7 @@ namespace Arena
             var th = new Rect(tx, r.y + 1f, 10f, r.height - 2f);
             bool hot = live && th.Contains(Event.current.mousePosition);
             Fill(th, hot ? Color.Lerp(ink, Color.white, 0.5f) : ink);
-            Fill(new Rect(th.x + 3f, th.y + 3f, 4f, th.height - 6f), CrtUi.Bg);
+            Fill(new Rect(th.x + 3f, th.y + 3f, 4f, th.height - 6f), CrtStyle.Bg);
         }
 
         /// A thin horizontal meter, e.g. for comparing two players' numbers.

@@ -161,14 +161,14 @@ namespace Arena
             var f = replay.File;
             int frames = Math.Max(1, replay.Frames);
             var bar = new Rect(16f, H - 158f, W - 32f, 146f);
-            DkSub(bar, CrtUi.Bg.WithAlpha(0.94f));
+            DkSub(bar, CrtStyle.Bg.WithAlpha(0.94f));
             float lx = bar.x + 78f, lw = bar.width - 78f - 18f;
             var ev = Event.current;
 
             // Badge.
             var name = f.Name;
-            DkSub(new Rect(18f, 14f, 270f, 28f), CrtUi.Bg.WithAlpha(0.9f));
-            Ui.Label(new Rect(30f, 14f, 160f, 28f), "REPLAY" + (replay.Error != null ? "  ENDS HERE" : replay.Paused ? "  PAUSED" : ""), 13, replay.Paused ? Ui.Gold : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleLeft, true);
+            DkSub(new Rect(18f, 14f, 270f, 28f), CrtStyle.Bg.WithAlpha(0.9f));
+            Ui.Label(new Rect(30f, 14f, 160f, 28f), "REPLAY" + (replay.Error != null ? "  ENDS HERE" : replay.Paused ? "  PAUSED" : ""), 13, replay.Paused ? CrtStyle.Gold : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(110f, 14f, 170f, 28f), name, 11, CrtStyle.Desc, TextAnchor.MiddleRight);
 
             // Wave lane: one block per wave (red for a boss); click one to jump to where it starts.
@@ -255,7 +255,7 @@ namespace Arena
             if (game.Players.Count > 1 && DkKey(new Rect(bar.x + 350f, ly - 2f, 160f, 26f), "Following: " + seeing, Ui.Neutral))
                 replay.CycleView();
             Ui.Label(new Rect(bar.x + 520f, ly, bar.width - 520f - 140f, 22f), "Space pause   , .  step   [ ]  speed   arrows  ±5 s   V  next player   Esc  close", 11, CrtStyle.Desc, TextAnchor.MiddleLeft);
-            if (DkKey(new Rect(bar.xMax - 128f, ly - 2f, 112f, 26f), "Close replay", Ui.Danger))
+            if (DkKey(new Rect(bar.xMax - 128f, ly - 2f, 112f, 26f), "Close replay", CrtStyle.Danger))
                 CloseReplay();
         }
 
@@ -281,7 +281,7 @@ namespace Arena
             string status = rec != null ? "Recording now: " + ReplayClock(rec.Seconds) + (rec.Full ? " (size limit reached, the rest isn't kept)" : "")
                 : recordReplays ? "On: the next run you host is saved when it ends." : "Off.";
             Ui.Label(new Rect(card.x + 360f, y, card.width - 360f - 150f, 26f), status, 12, rec != null ? new Color(1f, 0.55f, 0.55f) : CrtStyle.Desc, TextAnchor.MiddleLeft, true);
-            if (rec != null && DkKey(new Rect(card.xMax - 146f, y - 2f, 130f, 28f), "Stop and save", Ui.Danger))
+            if (rec != null && DkKey(new Rect(card.xMax - 146f, y - 2f, 130f, 28f), "Stop and save", CrtStyle.Danger))
             {
                 game.Replay.Finish();
                 game.Replay = null;
@@ -353,13 +353,13 @@ namespace Arena
                     bx -= 80f;
                     if (DkKey(new Rect(bx, rr.y + 8f, 80f, 28f), "Keep", Ui.Neutral)) replayDeletePath = "";
                     bx -= 86f;
-                    if (DkKey(new Rect(bx, rr.y + 8f, 80f, 28f), "Delete", Ui.Danger)) delete = r;
+                    if (DkKey(new Rect(bx, rr.y + 8f, 80f, 28f), "Delete", CrtStyle.Danger)) delete = r;
                     Ui.Label(new Rect(bx - 150f, rr.y + 8f, 144f, 28f), "Delete for good?", 12, Ui.Warn, TextAnchor.MiddleRight);
                 }
                 else
                 {
                     bx -= 76f;
-                    if (DkKey(new Rect(bx, rr.y + 8f, 76f, 28f), "Delete", Ui.Danger)) { replayDeletePath = r.Path; replayRenamePath = ""; }
+                    if (DkKey(new Rect(bx, rr.y + 8f, 76f, 28f), "Delete", CrtStyle.Danger)) { replayDeletePath = r.Path; replayRenamePath = ""; }
                     bx -= 84f;
                     if (DkKey(new Rect(bx, rr.y + 8f, 78f, 28f), "Rename", Ui.Neutral)) { replayRenamePath = r.Path; replayRenameText = r.Name; replayDeletePath = ""; }
                     bx -= 80f;

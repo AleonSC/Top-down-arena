@@ -82,13 +82,13 @@ namespace Arena
             float tagW = 30f + tag.Length * 7.5f;
             var tagRect = new Rect(W / 2f - tagW / 2f, 24f, tagW, 22f);
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
-            Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : arms ? "THE ARMS DEALER" : medic ? "THE MEDIC" : "THE BLACK MARKET") : "THE BAZAAR", 34, market || arms || medic ? mk : Ui.Gold, TextAnchor.MiddleCenter);
+            Ui.Label(tagRect, tag, 11, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
+            DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : arms ? "THE ARMS DEALER" : medic ? "THE MEDIC" : "THE BLACK MARKET") : "THE BAZAAR", 34, market || arms || medic ? mk : CrtStyle.Gold, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(0f, 92f, W, 18f), arms ? "Every weapon mod, up to 3 stacks each. Each stack you hold makes the next one dearer." : medic ? "The only place that patches you up. A revive token gets you back up once." : market ? "Teleporters and traps wait in your stash until you place them." : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
             var wallet = new Rect(W - 210f, 22f, 190f, 54f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
             Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 13f, 28f, 28f), PixelArt.Get("ui_coin"));
-            Ui.Label(new Rect(wallet.x + 48f, wallet.y + 5f, 80f, 44f), me.Gold.ToString(), 26, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(wallet.x + 48f, wallet.y + 5f, 80f, 44f), me.Gold.ToString(), 26, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(wallet.x + 112f, wallet.y + 7f, 74f, 40f), game.ServiceRooms ? "your gold" : "your gold\nleftover → XP", 10, new Color(1f, 0.85f, 0.6f, 0.75f), TextAnchor.MiddleLeft);
 
             // The list: the shelf's cards, then the services.
@@ -208,9 +208,9 @@ namespace Arena
                     {
                         var ab = new Rect(side < 0 ? 18f : W - 58f, railY, 40f, cardH);
                         bool dis = shopSel + side < lo || shopSel + side >= hi;
-                        if (LobbyKit.Key(ab, "", false, fxReduced) && !dis)
+                        if (DkKey(ab, "", false, fxReduced) && !dis)
                             shopSel += side;
-                        Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, !dis && ab.Contains(ev.mousePosition)));
+                        Chevron(ab.center, side, CrtKit.SoftText(CrtStyle.Ink, !dis && ab.Contains(ev.mousePosition)));
                     }
                     if (ev.type == EventType.ScrollWheel && ev.mousePosition.y > railY - 20f && ev.mousePosition.y < railY + cardH + 20f)
                     {
@@ -230,7 +230,7 @@ namespace Arena
                 {
                     var pr = new Rect(px + (i - lo) * 24f, railY + cardH + 14f, 18f, 4f);
                     bool second = i >= split;
-                    Ui.Fill(pr, i == shopSel ? (second ? Ui.Gold : Color.white) : (second ? new Color(1f, 0.8f, 0.35f, 0.3f) : CrtUi.Ink.WithAlpha(0.3f)));
+                    Ui.Fill(pr, i == shopSel ? (second ? CrtStyle.Gold : Color.white) : (second ? new Color(1f, 0.8f, 0.35f, 0.3f) : CrtStyle.Ink.WithAlpha(0.3f)));
                     if (!popup && Ui.HitArea(new Rect(pr.x - 3f, pr.y - 6f, pr.width + 6f, pr.height + 12f)))
                         shopSel = i;
                 }
@@ -251,7 +251,7 @@ namespace Arena
             Ui.Label(new Rect(x0, by, areaW, 18f), status, 13, Ui.Muted, TextAnchor.MiddleLeft, true);
             if (session.IsHost && game.ShopT >= Game.ShopHostCloseAfter && waiting.Count > 0)
             {
-                if (!popup && DkKey(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", Ui.Danger, false, 13))
+                if (!popup && DkKey(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", CrtStyle.Danger, false, 13))
                     game.Shop(ShopAction.Close);
             }
             else if (!game.ServiceRooms)  // (the room shops keep your gold: nothing becomes XP)
@@ -270,7 +270,7 @@ namespace Arena
                 var r = new Rect(W - 20f - w, 82f + i * 30f, w, 26f);  // under the wallet
                 Ui.Pill(r, new Color(0.16f, 0.12f, 0.03f, 0.95f * Mathf.Clamp01(nt.Life * 2f)));
                 Ui.Icon(new Rect(r.x + 10f, r.y + 5f, 16f, 16f), PixelArt.Get("ui_coin"), Mathf.Clamp01(nt.Life * 2f));
-                Ui.Label(new Rect(r.x + 32f, r.y, w - 36f, r.height), nt.Text, 14, Ui.Gold.WithAlpha(Mathf.Clamp01(nt.Life * 2f)), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 32f, r.y, w - 36f, r.height), nt.Text, 14, CrtStyle.Gold.WithAlpha(Mathf.Clamp01(nt.Life * 2f)), TextAnchor.MiddleLeft, true);
             }
 
             if (shopSellOpen)
@@ -336,7 +336,7 @@ namespace Arena
                 if (hover)
                     shopCatHover = c;
                 bool on = !empty && shopCatHover == c;
-                Color ac = c == 1 ? Ui.Gold : shopAtArms ? ArmsInk.ToColor() : market ? VendorInk.ToColor() : new Color(0.45f, 0.75f, 1f);
+                Color ac = c == 1 ? CrtStyle.Gold : shopAtArms ? ArmsInk.ToColor() : market ? VendorInk.ToColor() : new Color(0.45f, 0.75f, 1f);
                 float lift = on && !fxReduced ? 3f * Mathf.Sin(t * 3f) : 0f;
                 Ui.Glow(r, ac, on ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.16f);
                 DrawHolo(r, ac, t);
@@ -639,7 +639,7 @@ namespace Arena
             }
             int price = ServicePrice(me, k, out bool used);
             bool afford = me.Gold >= price && shopping && !used && allowed;
-            Color rc = shopAtMedic ? MedicInk.ToColor() : Ui.Gold;  // (the Medic's heals in its rose)
+            Color rc = shopAtMedic ? MedicInk.ToColor() : CrtStyle.Gold;  // (the Medic's heals in its rose)
             float dim = afford || used ? 1f : 0.5f;
             string desc;
             List<string> parts;
@@ -689,7 +689,7 @@ namespace Arena
             if (used && k >= 2)
                 Ui.Icon(new Rect(r.center.x - 10f, r.yMax - 38f, 20f, 20f), PixelArt.Get("ui_check"), Ui.Good);
             else if (k == 1)
-                Ui.Label(new Rect(r.x + 8f, r.yMax - 38f, r.width - 16f, 26f), "Sells for 50%", 14, Ui.Gold, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x + 8f, r.yMax - 38f, r.width - 16f, 26f), "Sells for 50%", 14, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
             else if (selected)
                 DrawPriceTag(new Rect(r.center.x - 55f, r.yMax - 38f, 110f, 28f), price, me.Gold >= price, afford ? "Buy · " : "");
             else
@@ -705,9 +705,9 @@ namespace Arena
             string text = me.Gold + " gold";
             var chip = new Rect(x, y, 34f + Ui.TextWidth(text, 11, true) + 10f, 20f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
-            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), Ui.Gold);
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), CrtStyle.Gold);
             Ui.Icon(new Rect(chip.x + 12f, chip.y + 3f, 14f, 14f), PixelArt.Get("ui_coin"));
-            Ui.Label(new Rect(chip.x + 30f, chip.y, chip.width - 30f, chip.height), text, 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(chip.x + 30f, chip.y, chip.width - 30f, chip.height), text, 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             return true;
         }
 
@@ -716,7 +716,7 @@ namespace Arena
         {
             Ui.Pill(r, afford ? new Color(1f, 0.8f, 0.35f, prefix.Length > 0 ? 0.32f : 0.16f) : new Color(1f, 0.35f, 0.3f, 0.14f));
             Ui.Icon(new Rect(r.x + 8f, r.y + r.height / 2f - 7f, 14f, 14f), PixelArt.Get("ui_coin"), afford ? 1f : 0.6f);
-            Ui.Label(new Rect(r.x + 26f, r.y, r.width - 30f, r.height), prefix + price, 13, afford ? Ui.Gold : new Color(1f, 0.55f, 0.5f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 26f, r.y, r.width - 30f, r.height), prefix + price, 13, afford ? CrtStyle.Gold : new Color(1f, 0.55f, 0.5f), TextAnchor.MiddleLeft, true);
         }
 
         /// Your teammates' gold and whether they're done, each with a Give button (and its popup).
@@ -742,7 +742,7 @@ namespace Arena
                 Ui.Label(new Rect(cx, chip.y, sw2 + 4f, chip.height), state, 11, p.ShopDone ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft);
                 cx += sw2 + 12f;
                 Ui.Icon(new Rect(cx, chip.y + 11f, 14f, 14f), PixelArt.Get("ui_coin"));
-                Ui.Label(new Rect(cx + 18f, chip.y, gw + 4f, chip.height), gold, 12, Ui.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(cx + 18f, chip.y, gw + 4f, chip.height), gold, 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
                 if ((!popup || shopGiveTo == p.Id) && DkKey(new Rect(chip.xMax - 48f, chip.y + 7f, 40f, 22f), "Give", Ui.GoldButton, false, 11))
                     shopGiveTo = shopGiveTo == p.Id ? 0 : p.Id;
                 if (shopGiveTo == p.Id)
@@ -759,7 +759,7 @@ namespace Arena
             }
             // The Give popup above the teammate's chip.
             var pop = new Rect(Mathf.Min(givingChip.x, W - 290f), givingChip.y - 104f, 270f, 96f);
-            DkBox(pop, Ui.Gold, 0.9f);
+            DkBox(pop, CrtStyle.Gold, 0.9f);
             Ui.Label(new Rect(pop.x + 12f, pop.y + 8f, pop.width - 24f, 18f), "Give " + giving.Name + " gold", 13, Color.white, TextAnchor.MiddleLeft, true);
             int[] amounts = { 10, 50, 100, me.Gold };
             for (int k = 0; k < amounts.Length; k++)
@@ -777,7 +777,7 @@ namespace Arena
                 GUI.enabled = was;
             }
             Ui.Label(new Rect(pop.x + 12f, pop.y + 66f, pop.width - 24f, 24f), giving.ShopDone ? giving.Name + " is done: this reopens their shop." : "It goes straight into their wallet.", 11,
-                giving.ShopDone ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, false, true);
+                giving.ShopDone ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleLeft, false, true);
             if (Event.current.type == EventType.MouseDown && !pop.Contains(Event.current.mousePosition) && !givingChip.Contains(Event.current.mousePosition))
                 shopGiveTo = 0;  // a click elsewhere closes it
         }
@@ -795,7 +795,7 @@ namespace Arena
             float pw = perRow * bw + (perRow - 1) * gap + 40f, ph = 110f + rows * (bh + gap);
             var r = new Rect(W / 2f - pw / 2f, Mathf.Max(30f, H / 2f - ph / 2f), pw, ph);
             Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0f, 0.5f));
-            DkBox(r, Ui.Gold, 0.9f);
+            DkBox(r, CrtStyle.Gold, 0.9f);
             Ui.Label(new Rect(r.x + 20f, r.y + 14f, r.width - 40f, 24f), "Sell an upgrade  ·  50% of its shelf price", 17, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 20f, r.y + 38f, r.width - 40f, 18f), "Sells one stack. Abilities it gave you go too.", 12, Ui.Muted);
             for (int i = 0; i < seen.Count; i++)
@@ -808,7 +808,7 @@ namespace Arena
                 DkHud(b, over ? rc : (Color?)null);
                 Ui.Icon(new Rect(b.x + 6f, b.y + 5f, 24f, 24f), PixelArt.ForUpgrade(u.Name));
                 Ui.Label(new Rect(b.x + 36f, b.y, b.width - 76f, b.height), u.Name + (have > 1 ? "  ×" + have : ""), 12, over ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(b.xMax - 44f, b.y, 38f, b.height), "+" + Game.SellPrice(seen[i]), 12, Ui.Gold, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(b.xMax - 44f, b.y, 38f, b.height), "+" + Game.SellPrice(seen[i]), 12, CrtStyle.Gold, TextAnchor.MiddleRight, true);
                 if (Ui.HitArea(b))
                 {
                     game.Shop(ShopAction.Sell, seen[i]);

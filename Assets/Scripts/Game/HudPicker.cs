@@ -35,7 +35,7 @@ namespace Arena
             // Heading: a big outlined title in the offer's colour, and a line under it.
             Color theme = me.OfferLegendary ? Upgrades.RarityColor(Rarity.Legendary).ToColor()
                 : me.OfferMilestone ? Upgrades.RarityColor(Rarity.Milestone).ToColor()
-                : me.OfferMod ? Upgrades.RarityColor(Rarity.Mod).ToColor() : me.OfferCards ? BossCardsTheme : me.OfferPrize ? Upgrades.RarityColor(Rarity.VeryRare).ToColor() : Ui.Gold;
+                : me.OfferMod ? Upgrades.RarityColor(Rarity.Mod).ToColor() : me.OfferCards ? BossCardsTheme : me.OfferPrize ? Upgrades.RarityColor(Rarity.VeryRare).ToColor() : CrtStyle.Gold;
             string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferWave ? "WAVE SPOILS" : me.OfferCards ? "BOSS SPOILS!" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
             float titleY, band;
             int titleSize;
@@ -44,7 +44,7 @@ namespace Arena
                 for (int k = 0; k < 7; k++)  // a dark band behind it, soft at the edges
                     Ui.Fill(new Rect(0f, titleY - 70f + k * 20f, W, 20f), new Color(0f, 0f, 0f, 0.55f * band * Mathf.Sin((k + 0.5f) / 7f * Mathf.PI)));
             // The CRT title: VT323, glowing in the offer's colour (the lobby's blue for a plain level-up).
-            var titleCol = me.OfferLegendary || me.OfferMod || me.OfferCards || me.OfferMilestone || me.OfferPrize ? theme : CrtUi.Ink;
+            var titleCol = me.OfferLegendary || me.OfferMod || me.OfferCards || me.OfferMilestone || me.OfferPrize ? theme : CrtStyle.Ink;
             var titleR = new Rect(0f, titleY - 32f - (titleSize - 54) * 0.6f, W, 64f + (titleSize - 54) * 1.2f);
             if (Event.current.type == EventType.Repaint && !fxReduced)
                 Ui.Glow(new Rect(W / 2f - CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)) / 2f, titleR.center.y - titleSize * 0.35f, CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)), titleSize * 0.7f), titleCol, 0.16f);
@@ -54,7 +54,7 @@ namespace Arena
             if (more > 0)
                 sub += "  ·  " + more + " MORE AFTER THIS";
             if (titleY <= 73f)
-                LobbyKit.Spaced(new Rect(0f, 102f, W, 20f), sub, 14, LobbyKit.HeadCol, TextAnchor.MiddleCenter, 3f);
+                LobbyKit.Spaced(new Rect(0f, 102f, W, 20f), sub, 14, CrtStyle.Head, TextAnchor.MiddleCenter, 3f);
 
             bool grid = me.OfferMod;  // weapon mods: a grid of small cards (Wide Choice's 4th and 5th level-up cards are tall ones, narrower)
             float tw = me.Offer.Length <= 4 ? cardW : 224f, tg = me.Offer.Length <= 4 ? 40f : 30f;  // (the mod grid keeps `gap`)
@@ -188,7 +188,7 @@ namespace Arena
             {
                 // The lobby's digital keys: Reroll is a plain key (orange and lit once armed), Choose is the dashed locked key
                 // until a card is picked, then lit with a lamp.
-                if (LobbyKit.Key(rerollR, armed ? "CLICK AGAIN TO REROLL" : "REROLL", armed, fxReduced, PixelArt.Get("ui_arrow"), size: 22, minSize: 14, accent: armed ? RerollArmedTint : (Color?)null,
+                if (DkKey(rerollR, armed ? "CLICK AGAIN TO REROLL" : "REROLL", armed, fxReduced, PixelArt.Get("ui_arrow"), size: 22, minSize: 14, accent: armed ? RerollArmedTint : (Color?)null,
                     locked: me.Rerolls <= 0 && !armed) && !opening)
                     RerollPress();
                 if (armed)
@@ -198,7 +198,7 @@ namespace Arena
             }
             GUI.enabled = picked && !game.RerollPending;
             var chooseR = new Rect(chooseX, by, takeW, 48f);
-            if (LobbyKit.Key(chooseR, me.OfferCards ? "TAKE CARD" : "CHOOSE UPGRADE", false, fxReduced, PixelArt.Get("ui_check"), size: 22, minSize: 14, locked: !picked) && !opening)
+            if (DkKey(chooseR, me.OfferCards ? "TAKE CARD" : "CHOOSE UPGRADE", false, fxReduced, PixelArt.Get("ui_check"), size: 22, minSize: 14, locked: !picked) && !opening)
                 ConfirmPick();
             if (picked)  // the lamp: lit once there is something to choose
             {
@@ -211,7 +211,7 @@ namespace Arena
                 GUI.enabled = !game.RerollPending;
                 var goldR = new Rect(mid - takeW / 2f, by + 48f + 10f, takeW, 38f);
                 int amount = Game.GoldInsteadAmount(game.Wave);
-                if (LobbyKit.Key(goldR, "GOLD INSTEAD  +" + amount, false, fxReduced, PixelArt.Get("ui_coin"), size: 17, minSize: 12, accent: Ui.Gold) && !opening)
+                if (DkKey(goldR, "GOLD INSTEAD  +" + amount, false, fxReduced, PixelArt.Get("ui_coin"), size: 17, minSize: 12, accent: CrtStyle.Gold) && !opening)
                     game.TakeGoldInstead();
             }
             DrawKeySwitch(me, by, canReroll ? mid : chooseX - bgap - keysW / 2f, keysW, rowAlpha, opening);
@@ -261,7 +261,7 @@ namespace Arena
             GUI.color = oldColor.WithAlpha(a);
             float sc = Mathf.Lerp(0.6f, 1f, keySwitch);
             GUIUtility.ScaleAroundPivot(new Vector2(sc, sc), new Vector2(mid, by + 24f));
-            Ui.Label(new Rect(mid - w / 2f - 20f, by - 22f, w + 40f, 18f), uses ? "+1 USE ON" : Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(mid - w / 2f - 20f, by - 22f, w + 40f, 18f), uses ? "+1 USE ON" : Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 11, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
             int n = uses ? Upgrades.UseSlots : Upgrades.CardAbilitySlots;
             float kw = w / n;
             for (int j = 0; j < n; j++)
@@ -423,7 +423,7 @@ namespace Arena
             Ui.Fill(r, inverse ? c : c.WithAlpha(0.08f));
             CrtKit.Frame(r, 1f, c);
             if (inverse)
-                Ui.Label(r, text, 10, CrtUi.Bg, TextAnchor.MiddleCenter, true);
+                Ui.Label(r, text, 10, CrtStyle.Bg, TextAnchor.MiddleCenter, true);
             else
                 CrtUi.Text(r, text, 10, c, TextAnchor.MiddleCenter, true, fxReduced);
         }
@@ -626,7 +626,7 @@ namespace Arena
                 note = "";
             }
             else
-                Ui.Label(new Rect(r.x + 16f, r.y + 188f, r.width - 32f, 76f), desc, ds, selected ? Color.white : LobbyKit.Soft, TextAnchor.UpperCenter, false, true);
+                Ui.Label(new Rect(r.x + 16f, r.y + 188f, r.width - 32f, 76f), desc, ds, selected ? Color.white : CrtStyle.Body, TextAnchor.UpperCenter, false, true);
             if (note.Length > 0)
                 Ui.Label(new Rect(r.x, r.y + 266f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
 
@@ -655,7 +655,7 @@ namespace Arena
                     else
                     {
                         Ui.Fill(c, new Color(0.01f, 0.02f, 0.05f, 1f));
-                        CrtKit.Frame(c, 1f, CrtUi.Dim.WithAlpha(0.9f));
+                        CrtKit.Frame(c, 1f, CrtStyle.Dim.WithAlpha(0.9f));
                     }
                 }
                 if (showParts && !grants)

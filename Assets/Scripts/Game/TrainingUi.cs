@@ -112,7 +112,7 @@ namespace Arena
                 dy += 22f;
                 Ui.Label(new Rect(dx + 22f, dy, dw - 22f, 18f), "Your own loadout  ·  solo or with the lobby", 12, CrtStyle.Body, TextAnchor.UpperLeft, false);
                 string label = canEdit ? "LOAD THIS DRILL" : "HOST LOADS THE DRILL";
-                if (LobbyKit.Key(new Rect(dx, r.yMax - 70f - 54f, dw, 48f), label, false, calm, size: 18, minSize: 11, enabled: canEdit, accent: am))
+                if (DkKey(new Rect(dx, r.yMax - 70f - 54f, dw, 48f), label, false, calm, size: 18, minSize: 11, enabled: canEdit, accent: am))
                 {
                     LoadDrill(sel);
                     trainStatus = "Loaded " + sel.Name + ": press Ready, then Start.";
@@ -124,12 +124,12 @@ namespace Arena
             // Footer: where the drills live, and what happened last.
             float fy = r.yMax - 48f;
             Ui.Fill(new Rect(r.x + 14f, fy - 8f, r.width - 28f, 1f), am.WithAlpha(0.25f));
-            if (LobbyKit.Key(new Rect(x0, fy, 104f, 32f), "FOLDER", false, calm, size: 14, minSize: 10, accent: am))
+            if (DkKey(new Rect(x0, fy, 104f, 32f), "FOLDER", false, calm, size: 14, minSize: 10, accent: am))
             {
                 Directory.CreateDirectory(TrainingFolder);
                 Application.OpenURL("file:///" + TrainingFolder.Replace('\\', '/'));
             }
-            if (LobbyKit.Key(new Rect(x0 + 110f, fy, 104f, 32f), "RELOAD", false, calm, size: 14, minSize: 10, accent: am))
+            if (DkKey(new Rect(x0 + 110f, fy, 104f, 32f), "RELOAD", false, calm, size: 14, minSize: 10, accent: am))
             {
                 LoadTrainingFiles();
                 trainStatus = trainExtra.Count + " drill" + (trainExtra.Count == 1 ? "" : "s") + " in the training folder.";

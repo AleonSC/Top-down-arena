@@ -32,16 +32,16 @@ namespace Arena
             float x = W / 2f - (hw + cg + cw + gap + tw) / 2f, y = BossUp() ? HudObjectiveUnderBossY : HudObjectiveY;  // (HudLayout.cs)
             if (head != null)
             {
-                CrtUi.Title(new Rect(x, y, hw + 4f, 22f), head, size, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
-                CrtUi.Title(new Rect(x + hw + cg, y, cw + 4f, 22f), count, size, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                CrtUi.Title(new Rect(x, y, hw + 4f, 22f), head, size, CrtStyle.Ink, TextAnchor.MiddleLeft, calm);
+                CrtUi.Title(new Rect(x + hw + cg, y, cw + 4f, 22f), count, size, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
                 x += hw + cg + cw + gap;
             }
             if (tag != null)
             {
                 var r = new Rect(x, y + 3f, tw, 16f);
-                Ui.Fill(r, CrtUi.Dim.WithAlpha(0.12f));
-                Ui.Rim(r, CrtUi.Dim, 0.8f);
-                CrtUi.Title(r, tag, tagSize, CrtUi.Dim, TextAnchor.MiddleCenter, true);
+                Ui.Fill(r, CrtStyle.Dim.WithAlpha(0.12f));
+                Ui.Rim(r, CrtStyle.Dim, 0.8f);
+                CrtUi.Title(r, tag, tagSize, CrtStyle.Dim, TextAnchor.MiddleCenter, true);
             }
         }
 

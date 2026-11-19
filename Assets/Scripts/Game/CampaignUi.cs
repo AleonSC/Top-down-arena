@@ -14,7 +14,7 @@ namespace Arena
         {
             LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             float bodyY = ModeHeader(r, "CAMPAIGN", "100 WAVES  ·  A BOSS EVERY 10TH  ·  THEN ENDLESS",
                 "One long run on a growing arena. Build as you go.", Ui.Muted);
             float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
@@ -42,7 +42,7 @@ namespace Arena
             {
                 int beaten = profile.Beaten(bosses[i]);
                 string chip = beaten > 0 ? "BEATEN x" + beaten : known[i] ? "REACHED" : "LOCKED";
-                Color cc = beaten > 0 ? Ui.Gold : known[i] ? new Color(0.5f, 0.88f, 0.69f) : CrtUi.Ink.WithAlpha(0.55f);
+                Color cc = beaten > 0 ? CrtStyle.Gold : known[i] ? new Color(0.5f, 0.88f, 0.69f) : CrtStyle.Ink.WithAlpha(0.55f);
                 ModeRow(rows[i], ((i + 1) * 10).ToString(), BossName(bosses[i]), known[i], known[i], i == shown, i == hoverI, CampaignColor, chip, cc);
             }
 

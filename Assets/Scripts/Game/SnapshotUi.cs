@@ -99,7 +99,7 @@ namespace Arena
             snapToastT -= Time.unscaledDeltaTime;
             float a = Mathf.Clamp01(snapToastT / 0.4f);
             var r = new Rect(W / 2f - 300f, 76f, 600f, 34f);
-            var bg = CrtUi.Bg;
+            var bg = CrtStyle.Bg;
             Ui.Fill(r, bg.WithAlpha(0.9f * a));
             var ink = snapToastBad ? Ui.Warn : CrtStyle.Head;
             CrtKit.Frame(r, 1f, ink.WithAlpha(0.7f * a));
@@ -190,12 +190,12 @@ namespace Arena
                     bx -= 70f;
                     if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Keep", Ui.Neutral, false, 11)) snapDeletePath = "";
                     bx -= 76f;
-                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "SURE?", Ui.Danger, false, 11)) delete = s;
+                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "SURE?", CrtStyle.Danger, false, 11)) delete = s;
                 }
                 else
                 {
                     bx -= 70f;
-                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Delete", Ui.Danger, false, 11)) { snapDeletePath = s.Path; snapRenamePath = ""; }
+                    if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Delete", CrtStyle.Danger, false, 11)) { snapDeletePath = s.Path; snapRenamePath = ""; }
                     bx -= 76f;
                     if (DkKey(new Rect(bx, rr.y + 6f, 70f, 26f), "Rename", Ui.Neutral, false, 11))
                     {

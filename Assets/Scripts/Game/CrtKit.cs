@@ -254,7 +254,7 @@ namespace Arena
             {
                 float y0 = Mathf.Max(y + 46f * i / 10f, r.y), y1 = Mathf.Min(y + 46f * (i + 1) / 10f + 1f, r.yMax);
                 if (y1 > y0)
-                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), CrtUi.Ink.WithAlpha(0.5f * (i + 1f) / 10f));
+                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), CrtStyle.Ink.WithAlpha(0.5f * (i + 1f) / 10f));
             }
         }
 
@@ -355,7 +355,7 @@ namespace Arena
                 Ui.Fill(new Rect(screen.xMax - d - step, screen.y + d + step, step, screen.height - 2f * (d + step)), c);
             }
             Frame(screen, rim, CrtUi.T(new Color(0.07f, 0.125f, 0.247f, vis)));
-            Frame(new Rect(screen.x + rim, screen.y + rim, screen.width - 2f * rim, screen.height - 2f * rim), line, CrtUi.Dim.WithAlpha(vis));
+            Frame(new Rect(screen.x + rim, screen.y + rim, screen.width - 2f * rim, screen.height - 2f * rim), line, CrtStyle.Dim.WithAlpha(vis));
         }
 
         /// A physical key on the chassis (Back): the tactile blue key with a lamp. Returns true on a click.

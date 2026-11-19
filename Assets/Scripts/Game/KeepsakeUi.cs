@@ -20,14 +20,14 @@ namespace Arena
             var S = new Rect(42f, 24f, W - 84f, H - 48f);
             CrtUi.Begin(S);
             int secs = Mathf.CeilToInt(game.KeepsakeLeft);
-            var dim = CrtUi.Dim;
+            var dim = CrtStyle.Dim;
             float sy = S.y + 8f;
             bool lampOn = calm || Mathf.Repeat(t, 1.2f) < 0.6f;
-            CrtUi.Text(new Rect(S.x + 20f, sy, 240f, 20f), (lampOn ? "● " : "  ") + "MAP RESET", 15, lampOn ? Ui.Gold : dim, TextAnchor.MiddleLeft, false, calm);
+            CrtUi.Text(new Rect(S.x + 20f, sy, 240f, 20f), (lampOn ? "● " : "  ") + "MAP RESET", 15, lampOn ? CrtStyle.Gold : dim, TextAnchor.MiddleLeft, false, calm);
             CrtUi.Text(new Rect(S.x, sy, S.width, 20f), "MAP " + game.MapNumber + " DONE  ·  ROOM KITS KEPT  ·  HALF YOUR SPENT VECTORS BACK", 15, dim, TextAnchor.MiddleCenter, false, calm);
-            CrtUi.Text(new Rect(S.xMax - 220f, sy, 200f, 20f), "VOTE ENDS " + secs, 15, secs <= 5 ? Ui.Gold : dim, TextAnchor.MiddleRight, false, calm);
-            DkBar(new Rect(S.x + 20f, sy + 24f, S.width - 40f, 2f), game.KeepsakeLeft / Game.KeepsakeTime, Ui.Gold);
-            DkTitle(new Rect(S.x, S.y + 38f, S.width, 54f), "KEEP ONE ROOM", 46, CrtUi.Ink, TextAnchor.MiddleCenter);
+            CrtUi.Text(new Rect(S.xMax - 220f, sy, 200f, 20f), "VOTE ENDS " + secs, 15, secs <= 5 ? CrtStyle.Gold : dim, TextAnchor.MiddleRight, false, calm);
+            DkBar(new Rect(S.x + 20f, sy + 24f, S.width - 40f, 2f), game.KeepsakeLeft / Game.KeepsakeTime, CrtStyle.Gold);
+            DkTitle(new Rect(S.x, S.y + 38f, S.width, 54f), "KEEP ONE ROOM", 46, CrtStyle.Ink, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(S.x, S.y + 92f, S.width, 20f), "It's rebuilt next to the hub on the new map. Most votes wins; a tie goes to the host, no votes to the biggest", 13, Ui.Muted, TextAnchor.MiddleCenter);
 
             int n = choices.Count, cols = Mathf.Min(n, n <= 4 ? 4 : n <= 12 ? 6 : 8), rows = (n + cols - 1) / cols;
@@ -59,7 +59,7 @@ namespace Arena
                 if (!game.KeepsakeVotes.ContainsKey(id))
                     waiting++;
             string msg = mine < 0 ? "Pick the room to keep" : waiting > 0 ? "Voted. Waiting for " + waiting + " more player" + (waiting == 1 ? "" : "s") : "Counting the votes";
-            Ui.Label(new Rect(0, S.yMax - 40f, W, 22f), msg, 14, mine < 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0, S.yMax - 40f, W, 22f), msg, 14, mine < 0 ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
             CrtUi.End(S, t, calm);
         }
 
@@ -111,7 +111,7 @@ namespace Arena
                 if (kv.Value == head && game.Players.TryGetValue(kv.Key, out var p))
                     Ui.Fill(new Rect(r.center.x - (votes * 14f - 4f) / 2f + pip++ * 14f, ty + 40f, 10f, 6f), p.Def.Color.ToColor());
             if (lead)
-                DkTag(new Rect(r.xMax - 74f, r.y + 8f, 64f, 18f), "LEADING", Ui.Gold);
+                DkTag(new Rect(r.xMax - 74f, r.y + 8f, 64f, 18f), "LEADING", CrtStyle.Gold);
             return DkKey(new Rect(r.x + 12f, r.yMax - 34f, r.width - 24f, 26f), mine ? "KEEPING  ✓" : "KEEP", ink, mine, 13);
         }
     }

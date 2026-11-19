@@ -192,14 +192,14 @@ namespace Arena
                 BackgroundThumb(thumb, accent, thumbHover ? 0.95f : 0.55f);
                 EndUiGl();
             }
-            CrtKit.Frame(thumb, 1f, CrtUi.Ink.WithAlpha(0.5f));
+            CrtKit.Frame(thumb, 1f, CrtStyle.Ink.WithAlpha(0.5f));
             if (thumbHover)
                 Ui.Fill(thumb, new Color(0f, 0f, 0f, 0.35f));
 
-            bool clickBig = WinKey(big, "BIGGER", false, 14);
-            bool clickLive = WinKey(live, menuBgAnimate ? "LIVE" : "STILL", false, 14, menuBgAnimate ? CrtUi.Ink : CrtUi.Dim, true, menuBgAnimate);
-            bool clickPrev = WinKey(prev, "<", false, 18);
-            bool clickNext = WinKey(next, ">", false, 18);
+            bool clickBig = DkKey(big, "BIGGER", false, FxCalm, size: 14);
+            bool clickLive = DkKey(live, menuBgAnimate ? "LIVE" : "STILL", false, FxCalm, size: 14, accent: menuBgAnimate ? CrtStyle.Ink : CrtStyle.Dim, lamp: true, lampLit: menuBgAnimate);
+            bool clickPrev = DkKey(prev, "<", false, FxCalm, size: 18);
+            bool clickNext = DkKey(next, ">", false, FxCalm, size: 18);
             BackgroundName(new Rect(prev.xMax + 4f, prev.y, next.x - prev.xMax - 8f, prev.height), 16, 1f);
 
             int swatchHover = -1;

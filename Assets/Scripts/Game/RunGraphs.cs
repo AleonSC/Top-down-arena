@@ -83,9 +83,9 @@ namespace Arena
             float sy = top + 96f, arrow = 24f, cw = (w - arrow * 2f - 8f * (RecentCards + 1)) / RecentCards;
             if (runs.Count > RecentCards)
             {
-                if (recentFirst > 0 && WinKey(new Rect(x, sy, arrow, 66f), "<", false, 22))
+                if (recentFirst > 0 && DkKey(new Rect(x, sy, arrow, 66f), "<", false, FxCalm, size: 22))
                     recentFirst--;
-                if (recentFirst + RecentCards < runs.Count && WinKey(new Rect(x + w - arrow, sy, arrow, 66f), ">", false, 22))
+                if (recentFirst + RecentCards < runs.Count && DkKey(new Rect(x + w - arrow, sy, arrow, 66f), ">", false, FxCalm, size: 22))
                     recentFirst++;
             }
             for (int i = 0; i < RecentCards && recentFirst + i < runs.Count; i++)
@@ -96,8 +96,8 @@ namespace Arena
                 var r = new Rect(x + arrow + 8f + i * (cw + 8f), sy, cw, 66f);
                 Ui.Pill(r, on ? new Color(1f, 0.8f, 0.35f, 0.16f) : new Color(1f, 1f, 1f, r.Contains(Event.current.mousePosition) ? 0.07f : 0.04f));
                 if (on)
-                    Ui.Fill(new Rect(r.x, r.yMax - 3f, r.width, 3f), Ui.Gold);
-                Ui.Label(new Rect(r.x + 10f, r.y + 4f, r.width - 20f, 20f), RunTitle(l), 14, on ? Ui.Gold : Color.white, TextAnchor.MiddleLeft, true);
+                    Ui.Fill(new Rect(r.x, r.yMax - 3f, r.width, 3f), CrtStyle.Gold);
+                Ui.Label(new Rect(r.x + 10f, r.y + 4f, r.width - 20f, 20f), RunTitle(l), 14, on ? CrtStyle.Gold : Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(r.x + 10f, r.y + 24f, r.width - 20f, 16f), l.Class.Length > 0 ? l.Class : (ri == 0 ? "latest" : ""), 11, Ui.Muted);
                 Ui.Label(new Rect(r.x + 10f, r.y + 42f, r.width * 0.55f, 16f), "Wave " + l.Wave, 11, Ui.Muted);
                 Ui.Label(new Rect(r.x + r.width * 0.5f, r.y + 42f, r.width * 0.5f - 10f, 16f), won ? "WON" : l.Result == 4 ? "QUIT" : (l.Result >= 2 ? "LOST" : "DIED"), 11, won ? Ui.Good : new Color(1f, 0.42f, 0.46f), TextAnchor.MiddleRight, true);
@@ -115,7 +115,7 @@ namespace Arena
             {
                 var tr = new Rect(x + i * (tw + 8f), ty, tw, 48f);
                 Ui.Pill(tr, new Color(1f, 1f, 1f, 0.04f));
-                Color vc = i == 0 ? (RunWon(cur) ? Ui.Good : new Color(1f, 0.42f, 0.46f)) : i == 5 ? Ui.Gold : Color.white;
+                Color vc = i == 0 ? (RunWon(cur) ? Ui.Good : new Color(1f, 0.42f, 0.46f)) : i == 5 ? CrtStyle.Gold : Color.white;
                 Ui.Label(new Rect(tr.x + 10f, tr.y + 4f, tr.width - 14f, 26f), tiles[i, 1], 18, vc, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(tr.x + 10f, tr.y + 30f, tr.width - 14f, 14f), tiles[i, 0], 9, Ui.Muted, TextAnchor.MiddleLeft, true);
             }
@@ -124,7 +124,7 @@ namespace Arena
             float tby = ty + 58f;
             string[] tabs = { "Overview", "Trends" };
             for (int i = 0; i < tabs.Length; i++)
-                if (WinKey(new Rect(x + i * 108f, tby, 100f, 30f), tabs[i].ToUpperInvariant(), i == recentTab, 15))
+                if (DkKey(new Rect(x + i * 108f, tby, 100f, 30f), tabs[i].ToUpperInvariant(), i == recentTab, FxCalm, size: 15))
                     recentTab = i;
             string line = RunTitle(cur) + (cur.Class.Length > 0 ? "  ·  " + cur.Class : "") + (cur.Players > 1 ? "  ·  " + cur.Players + " players" : "") + (cur.Mods.Length > 0 ? "  ·  " + cur.Mods.Replace("|", ", ") : "");
             Ui.Label(new Rect(x + 200f, tby, w - 200f, 28f), line, 11, Ui.Muted, TextAnchor.MiddleRight);
@@ -226,7 +226,7 @@ namespace Arena
                 y = m.y + 18f;
             var box = new Rect(x, y, w, h);
             Ui.Pill(box, new Color(0.03f, 0.04f, 0.08f, 0.96f));
-            Ui.Label(new Rect(box.x + 10f, box.y + 3f, w - 14f, 16f), head, 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(box.x + 10f, box.y + 3f, w - 14f, 16f), head, 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             for (int i = 0; i < rows.Count; i++)
                 Ui.Label(new Rect(box.x + 10f, box.y + 20f + i * 16f, w - 14f, 16f), rows[i].Key, 11, rows[i].Value, TextAnchor.MiddleLeft);
         }
@@ -402,7 +402,7 @@ namespace Arena
                     Ui.Fill(new Rect(cx - slot * 0.32f, plot.yMax - bh, slot * 0.64f, bh), bc);
                 }
                 if (s % Mathf.Max(1, n / 6) == 0 || sel)
-                    Ui.Label(new Rect(cx - 24f, plot.yMax + 3f, 48f, 14f), runAt(s) == 0 ? "latest" : "-" + runAt(s), 9, sel ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter);
+                    Ui.Label(new Rect(cx - 24f, plot.yMax + 3f, 48f, 14f), runAt(s) == 0 ? "latest" : "-" + runAt(s), 9, sel ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleCenter);
             }
             if (!damage && BeginUiGl())
             {
@@ -422,7 +422,7 @@ namespace Arena
             {
                 var l = runs[runAt(hover)];
                 ChartTip(RunTitle(l) + (l.Class.Length > 0 ? "  ·  " + l.Class : ""), new List<KeyValuePair<string, Color>> {
-                    Row("Wave " + l.Wave + (RunWon(l) ? "  ·  won" : ""), RunWon(l) ? Ui.Good : Ui.Text), Row(l.Dealt > 0f ? ShortNumber(l.Dealt) + " damage" : "damage not kept", Ui.Muted), Row("+" + l.Xp + " XP", Ui.Gold) });
+                    Row("Wave " + l.Wave + (RunWon(l) ? "  ·  won" : ""), RunWon(l) ? Ui.Good : Ui.Text), Row(l.Dealt > 0f ? ShortNumber(l.Dealt) + " damage" : "damage not kept", Ui.Muted), Row("+" + l.Xp + " XP", CrtStyle.Gold) });
                 if (Ui.HitArea(plot))
                     recentSel = runAt(hover);
             }

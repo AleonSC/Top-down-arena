@@ -58,11 +58,11 @@ namespace Arena
             const float tw = 150f, gap = 8f;
             float tx = 300f;
             for (int i = 0; i < names.Length; i++)
-                if (LobbyKit.Key(new Rect(tx + i * (tw + gap), 12f, tw, 32f), names[i], statsTab == i, calm, size: 15, minSize: 11))
+                if (DkKey(new Rect(tx + i * (tw + gap), 12f, tw, 32f), names[i], statsTab == i, calm, size: 15, minSize: 11))
                     statsTab = i;
             if (fromPause)
             {
-                if (LobbyKit.Key(new Rect(W - 24f - 38f, 9f, 38f, 38f), "X", false, calm, size: 18))
+                if (DkKey(new Rect(W - 24f - 38f, 9f, 38f, 38f), "X", false, calm, size: 18))
                     runStatsOpen = false;
             }
             else
@@ -247,7 +247,7 @@ namespace Arena
             int fit = Mathf.Max(1, Mathf.FloorToInt(avail / 24f));
             int first = Mathf.Max(0, rows.Count - fit);
             float rowH = Mathf.Min(28f, avail / Mathf.Max(1, rows.Count - first));
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             for (int i = first; i < rows.Count; i++)
             {
                 var r = rows[i];
@@ -375,7 +375,7 @@ namespace Arena
             CrtUi.Text(new Rect(ix, card.y + 58f, iw, 16f), p.Downed ? "DOWNED" : Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 16, p.Downed ? CrtStyle.Danger : Color.white, TextAnchor.MiddleRight, false, calm);
             HoloBar(new Rect(ix, card.y + 76f, iw, 8f), p.MaxHp > 0f ? p.Hp / p.MaxHp : 0f, Ui.Good);
             var s = p.Run;
-            CrtUi.Text(new Rect(ix, card.y + 88f, iw, 18f), (Mathf.RoundToInt(s.DamageDealt).ToString("N0") + " damage · " + s.Kills + " kills · down " + s.Downs).ToUpperInvariant(), 17, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
+            CrtUi.Text(new Rect(ix, card.y + 88f, iw, 18f), (Mathf.RoundToInt(s.DamageDealt).ToString("N0") + " damage · " + s.Kills + " kills · down " + s.Downs).ToUpperInvariant(), 17, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
             Ui.CrtFont = was;
 
             // Weapon.
@@ -398,7 +398,7 @@ namespace Arena
                 var id = p.Slots[k].Id;
                 TipAbility(new Rect(x - 6f, y, w + 12f, 22f), p, k);
                 bool ult = k == Upgrades.UltSlot;
-                DrawCrtCap(new Rect(x, y + 3f, 0f, 16f), ult ? "ULT · " + SlotKeys[4] : SlotKeys[k], ult ? CrtStyle.Gold : CrtUi.Ink);
+                DrawCrtCap(new Rect(x, y + 3f, 0f, 16f), ult ? "ULT · " + SlotKeys[4] : SlotKeys[k], ult ? CrtStyle.Gold : CrtStyle.Ink);
                 if (id == AbilityId.None)
                     Ui.Label(new Rect(x + 80f, y, w - 80f, 22f), "—", 13, HoloDim);
                 else

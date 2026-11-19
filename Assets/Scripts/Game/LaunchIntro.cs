@@ -271,7 +271,7 @@ namespace Arena
                     Ui.Fill(new Rect(0f, H / 2f - hh / 2f, W, hh), new Color(0.85f, 0.92f, 1f, 0.6f * hk));  // washing out to white as it squashes
                 }
                 var line = new Rect(W / 2f - ww / 2f, H / 2f - Mathf.Min(hh, 3f) / 2f, ww, Mathf.Min(hh, 3f));
-                Ui.Glow(line, CrtUi.Ink, 1f - wk);
+                Ui.Glow(line, CrtStyle.Ink, 1f - wk);
                 Ui.Fill(line, new Color(0.95f, 0.98f, 1f, 1f - wk * wk));
             }
             GUI.color = oldColor;
@@ -295,7 +295,7 @@ namespace Arena
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
             DrawScanBand(boss ? "BOSS STARTED" : "WAVE " + w + " STARTED", game.Practice != null ? "PRACTICE" : boss ? "HOLD THE LINE" : "FIGHT",
-                boss ? "SYS> BOSS LOADED" : "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? Ui.Gold : CrtUi.Ink, k, launchT < start + 0.9f);
+                boss ? "SYS> BOSS LOADED" : "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? CrtStyle.Gold : CrtStyle.Ink, k, launchT < start + 0.9f);
             Ui.Alpha = 1f;
             GUI.color = oldColor;
         }

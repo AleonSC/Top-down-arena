@@ -656,7 +656,7 @@ namespace Arena
             float pulse = holding ? 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 3f) : 0.7f;
             var r = HudChestHint;  // over the XP strip (HudLayout.cs)
             Ui.Pill(r, new Color(0.12f, 0.09f, 0.03f, 0.7f));
-            Ui.Label(r, hint, 13, Ui.Gold.WithAlpha(pulse), TextAnchor.MiddleCenter, true);
+            Ui.Label(r, hint, 13, CrtStyle.Gold.WithAlpha(pulse), TextAnchor.MiddleCenter, true);
         }
 
         void DrawLootCard(Player me, Loot l)
@@ -684,7 +684,7 @@ namespace Arena
                 Ui.Fill(new Rect(sweep * r.width, 0f, 18f, r.height), new Color(1f, 0.9f, 0.6f, 0.07f));
                 GUI.EndGroup();
             }
-            Ui.Label(new Rect(r.x + 12f, r.y + 10f, 120f, 16f), "FROM A CHEST", 10, Ui.Gold.WithAlpha(0.9f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 12f, r.y + 10f, 120f, 16f), "FROM A CHEST", 10, CrtStyle.Gold.WithAlpha(0.9f), TextAnchor.MiddleLeft, true);
             string rarity = up ? Upgrades.RarityName(u.Rarity) : l.Kind == LootKind.Build ? "BUILD" : Expansion.IsServiceCard((RoomCard)l.Item) ? "ROOM CARD" : "PIECE CARD";
             float rw = 24f + rarity.Length * 7.5f;
             var ribbon = new Rect(r.xMax - rw - 12f, r.y + 8f, rw, 20f);

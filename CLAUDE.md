@@ -37,6 +37,7 @@ no Unity in the cloud container: check changes with the tools below.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
 - The Bestiary, Armory and Field guide are gone and retired (the owner will regenerate them later): don't recreate, update or mention them in code, docs, tests or reports.
 - New UI uses `DevKit.cs`'s CRT widgets (`DkKey`, `DkSwitch`, `DkField`, `DkSub`, `DkPanel`, `DkTitle`, ...); `Ui.cs` holds drawing primitives only.
+  Colours: `CrtStyle` is the one palette (`Gold`, `Danger`, `Ink`, ...); `ColorX` has `WithAlpha`/`ScaleAlpha`/`ToColor`.
 - **Keep the session title current** with `set_session_title`: a short task name plus the current phase in
   brackets, updated as the phase changes, e.g. "Implement Lancer class (thinking)" → "(planning)" → "(coding)" →
   "(testing)" → "(merging)" → "(done)".

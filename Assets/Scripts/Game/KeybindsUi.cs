@@ -55,7 +55,7 @@ namespace Arena
 
             // The right column's last: put everything back.
             var reset = new Rect(x + colW + 32f, yR + 4f - keybindScroll, colW, 38f);
-            if (WinKey(reset, "RESET ALL KEYS", false, 15))
+            if (DkKey(reset, "RESET ALL KEYS", false, FxCalm, size: 15))
             {
                 Keybinds.Listening = -1;
                 Keybinds.ResetAll();
@@ -75,7 +75,7 @@ namespace Arena
             if (maxScroll > 0f)
             {
                 float th = view.height * view.height / contentH, ty = view.y + (view.height - th) * (keybindScroll / maxScroll);
-                Ui.Fill(new Rect(view.xMax - 6f, ty, 4f, th), CrtUi.Ink.WithAlpha(0.5f));
+                Ui.Fill(new Rect(view.xMax - 6f, ty, 4f, th), CrtStyle.Ink.WithAlpha(0.5f));
             }
 
             // Fire and Parry can also take a click, which can't be pressed while the page is the one being clicked: two keys.
@@ -83,9 +83,9 @@ namespace Arena
             if (Keybinds.Listening >= 0 && (la == KeyAction.Fire || la == KeyAction.Parry))
             {
                 Ui.Label(new Rect(px + pw - 350f, DrawerPanel.yMax - 58f, 60f, 34f), "OR USE", 12, CabSoft, TextAnchor.MiddleLeft, true);
-                if (WinKey(new Rect(px + pw - 286f, DrawerPanel.yMax - 58f, 134f, 34f), "LEFT CLICK", false, 15))
+                if (DkKey(new Rect(px + pw - 286f, DrawerPanel.yMax - 58f, 134f, 34f), "LEFT CLICK", false, FxCalm, size: 15))
                     FinishMouseBind(la, KeyCode.Mouse0);
-                if (WinKey(new Rect(px + pw - 146f, DrawerPanel.yMax - 58f, 146f, 34f), "RIGHT CLICK", false, 15))
+                if (DkKey(new Rect(px + pw - 146f, DrawerPanel.yMax - 58f, 146f, 34f), "RIGHT CLICK", false, FxCalm, size: 15))
                     FinishMouseBind(la, KeyCode.Mouse1);
             }
 
@@ -120,13 +120,13 @@ namespace Arena
         {
             bool listen = Keybinds.Listening == (int)a;
             bool changed = !Keybinds.IsDefault(a);
-            Ui.Label(new Rect(r.x + 4f, r.y, r.width - 200f, r.height), Keybinds.Title(a), 14, listen ? CrtUi.Ink : CabSoft, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 4f, r.y, r.width - 200f, r.height), Keybinds.Title(a), 14, listen ? CrtStyle.Ink : CabSoft, TextAnchor.MiddleLeft, true);
             var cap2 = new Rect(r.xMax - 88f, r.y + 2f, 84f, r.height - 4f);
             var cap1 = new Rect(cap2.x - 90f, cap2.y, 86f, cap2.height);
             if (changed && !listen)
             {
                 var undo = new Rect(cap1.x - 30f, cap1.y, 26f, cap1.height);
-                if (WinKey(undo, "↺", false, 15, CrtUi.Dim))
+                if (DkKey(undo, "↺", false, FxCalm, size: 15, accent: CrtStyle.Dim))
                     Keybinds.Reset(a);
             }
             int clicked = -1;
@@ -138,7 +138,7 @@ namespace Arena
                     : k == KeyCode.None ? "+ ADD" : Keybinds.KeyName(k).ToUpperInvariant();
                 var cap = slot == 0 ? cap1 : cap2;
                 bool diff = slot == 0 ? k != Keybinds.DefaultKey(a) : k != KeyCode.None;
-                Color? accent = k == KeyCode.None && !listening ? CrtUi.Dim : diff && !listening ? CabWarm : (Color?)null;
+                Color? accent = k == KeyCode.None && !listening ? CrtStyle.Dim : diff && !listening ? CabWarm : (Color?)null;
                 var ev = Event.current;
                 if ((slot == 1 || Keybinds.Unbindable(a)) && k != KeyCode.None && ev.type == EventType.MouseDown && ev.button == 1 && cap.Contains(ev.mousePosition))
                 {
@@ -146,7 +146,7 @@ namespace Arena
                     else Keybinds.Clear(a);  // (Mute may have no key at all)
                     ev.Use();
                 }
-                if (WinKey(cap, text, listening, 13, accent))
+                if (DkKey(cap, text, listening, FxCalm, size: 13, accent: accent))
                     clicked = slot;
             }
             return clicked;

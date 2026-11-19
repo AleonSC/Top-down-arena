@@ -58,7 +58,7 @@ namespace Arena
             int lv = Game.MasteryLevelFor(xp);
             bool max = lv >= Game.MasteryMax;
             float prog = max ? 1f : Game.MasteryProgress(xp);
-            Color on = max ? Ui.Gold : MxGreen;
+            Color on = max ? CrtStyle.Gold : MxGreen;
             float cx = col.center.x;
             float flash = mxLevelAgo[i] < 0.6f ? 1f - mxLevelAgo[i] / 0.6f : 0f;
 
@@ -101,7 +101,7 @@ namespace Arena
                 string head = Upgrades.Ability(id).Name.ToUpperInvariant() + (max ? "  MASTERED" : "  ·  MASTERY " + lv);
                 string body = max ? Game.Capstone(id) : "+8% POWER   -4% COOLDOWN";
                 MiniText(new Rect(W / 2f - 400f, y - 66f, 800f, 20f), head, 20, on, a * la, TextAnchor.MiddleCenter);
-                MiniText(new Rect(W / 2f - 400f, y - 46f, 800f, 16f), body.ToUpperInvariant(), 14, CrtUi.Ink, a * la, TextAnchor.MiddleCenter);
+                MiniText(new Rect(W / 2f - 400f, y - 46f, 800f, 16f), body.ToUpperInvariant(), 14, CrtStyle.Ink, a * la, TextAnchor.MiddleCenter);
             }
         }
     }

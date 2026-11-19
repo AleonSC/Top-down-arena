@@ -78,7 +78,7 @@ namespace Arena
             }
             // (The boss approach picks and the Building row are gone: the approach stays at its default, Blend under the Campaign's
             // factions, and Grid is the only building mode; Room cards, Free draw and Team vote are retired, their code kept. Nov 18.)
-            Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? LobbyKit.Soft : CrtUi.Dim);
+            Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? CrtStyle.Body : CrtStyle.Dim);
         }
 
         bool DrawDiffCard(Rect c, DifficultyLevel level, bool on, bool canClick, float t)
@@ -86,7 +86,7 @@ namespace Arena
             var col = DiffColor(level);
             bool hover = canClick && c.Contains(Event.current.mousePosition);
             bool fill = on || hover;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             // A soft key like the lobby's others: a faint tint and a thin outline, a little brighter when picked or under the mouse
             // (a 2 px outline and an underline glow for the picked one), never a solid block.
             CrtKit.SoftBox(c, ink, on, hover, false);
@@ -118,9 +118,9 @@ namespace Arena
             float normal = k.Normal;
             bool harder = !k.Flavour && (k.HarderUp ? value > normal + 1e-5f : value < normal - 1e-5f);
             bool easier = !k.Flavour && (k.HarderUp ? value < normal - 1e-5f : value > normal + 1e-5f);
-            var vc = harder ? HarderColor : easier ? EasierColor : LobbyKit.Soft;
+            var vc = harder ? HarderColor : easier ? EasierColor : CrtStyle.Body;
             const float boxW = 64f;
-            Ui.Label(new Rect(r.x, r.y, r.width - boxW - 8f, 16f), k.Name.ToUpperInvariant(), 11, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x, r.y, r.width - boxW - 8f, 16f), k.Name.ToUpperInvariant(), 11, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x, r.y, r.width - boxW - 8f, 16f), k.Format(value), 12, vc, TextAnchor.MiddleRight, true);
 
             var sr = new Rect(r.x, r.y + 18f, r.width - boxW - 8f, 18f);
@@ -130,8 +130,8 @@ namespace Arena
             if (canEdit)
             {
                 float s = Ui.CrtSlider(sr, frac);
-                Ui.Fill(new Rect(nx - 1f, sr.y + 1f, 2f, 3f), LobbyKit.Gold);
-                Ui.Fill(new Rect(nx - 1f, sr.yMax - 4f, 2f, 3f), LobbyKit.Gold);
+                Ui.Fill(new Rect(nx - 1f, sr.y + 1f, 2f, 3f), CrtStyle.Gold);
+                Ui.Fill(new Rect(nx - 1f, sr.yMax - 4f, 2f, 3f), CrtStyle.Gold);
                 if (Mathf.Abs(s - frac) > 1e-4f)
                 {
                     float v = k.FromSlider(s);
@@ -142,8 +142,8 @@ namespace Arena
             else
             {
                 Ui.CrtSliderDraw(sr, frac, false);
-                Ui.Fill(new Rect(nx - 1f, sr.y + 1f, 2f, 3f), LobbyKit.Gold);
-                Ui.Fill(new Rect(nx - 1f, sr.yMax - 4f, 2f, 3f), LobbyKit.Gold);
+                Ui.Fill(new Rect(nx - 1f, sr.y + 1f, 2f, 3f), CrtStyle.Gold);
+                Ui.Fill(new Rect(nx - 1f, sr.yMax - 4f, 2f, 3f), CrtStyle.Gold);
             }
 
             // The text box: keeps what you type while it has focus, and applies it whenever it's a number.
@@ -151,9 +151,9 @@ namespace Arena
             string shown = k.Edit(value);
             if (!canEdit)
             {
-                Ui.Fill(box, CrtUi.Ink.WithAlpha(0.05f));
-                CrtKit.Frame(box, 1f, CrtUi.Ink.WithAlpha(0.35f));
-                Ui.Label(box, shown, 12, CrtUi.Dim, TextAnchor.MiddleCenter, true);
+                Ui.Fill(box, CrtStyle.Ink.WithAlpha(0.05f));
+                CrtKit.Frame(box, 1f, CrtStyle.Ink.WithAlpha(0.35f));
+                Ui.Label(box, shown, 12, CrtStyle.Dim, TextAnchor.MiddleCenter, true);
                 return;
             }
             string name = "diffknob" + (int)k.Knob;
@@ -168,8 +168,8 @@ namespace Arena
             }
             string text = focused && diffFocus == name ? diffBuffer : shown;
             GUI.SetNextControlName(name);
-            Ui.Fill(box, CrtUi.Ink.WithAlpha(focused ? 0.16f : 0.08f));
-            CrtKit.Frame(box, 1f, focused ? CrtUi.Ink : CrtUi.Ink.WithAlpha(0.6f));
+            Ui.Fill(box, CrtStyle.Ink.WithAlpha(focused ? 0.16f : 0.08f));
+            CrtKit.Frame(box, 1f, focused ? CrtStyle.Ink : CrtStyle.Ink.WithAlpha(0.6f));
             string typed = Ui.BareField(box, text, 8, 12);
             if (focused)
             {

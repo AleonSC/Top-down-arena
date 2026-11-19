@@ -91,11 +91,11 @@ namespace Arena
                 while (size > 16 && CrtUi.TitleWidth(title, size) > hr.width - 60f)
                     size--;
                 string t = CabText("cab.title", title, 0.8f);
-                CrtUi.Title(new Rect(hr.x + 18f, hr.y + ty, hr.width - 36f, th), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
+                CrtUi.Title(new Rect(hr.x + 18f, hr.y + ty, hr.width - 36f, th), t, size, CrtStyle.Ink, TextAnchor.MiddleLeft, calm);
                 if (calm || Mathf.FloorToInt(now * 2f) % 2 == 0)  // the blinking block after the text
                 {
                     float tw = t.Length == 0 ? 0f : CrtUi.TitleWidth(t, size);
-                    Ui.Fill(new Rect(hr.x + 22f + tw, hr.y + ty + th / 2f - size * 0.36f, Mathf.Max(8f, size * 0.36f), size * 0.72f), CrtUi.Ink);
+                    Ui.Fill(new Rect(hr.x + 22f + tw, hr.y + ty + th / 2f - size * 0.36f, Mathf.Max(8f, size * 0.36f), size * 0.72f), CrtStyle.Ink);
                 }
                 string subFull = string.IsNullOrEmpty(sub) ? "" : sub.ToUpperInvariant();
                 string subShown = CrtKit.Typed("cab.sub", subFull, now, calm, -10f);
@@ -402,22 +402,22 @@ namespace Arena
         {
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y;
             string t = WinText("win.title", title);
-            CrtUi.Title(new Rect(x, y + 12f, w - 90f, 44f), t, 34, CrtUi.Ink, TextAnchor.MiddleLeft, FxCalm);
+            CrtUi.Title(new Rect(x, y + 12f, w - 90f, 44f), t, 34, CrtStyle.Ink, TextAnchor.MiddleLeft, FxCalm);
             if (FxCalm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
             {
                 float tw = t.Length == 0 ? 0f : CrtUi.TitleWidth(t, 34);
-                Ui.Fill(new Rect(x + 4f + tw, y + 24f, 14f, 22f), CrtUi.Ink);
+                Ui.Fill(new Rect(x + 4f + tw, y + 24f, 14f, 22f), CrtStyle.Ink);
             }
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(new Rect(x + 2f, y + 54f, w - 4f, 34f), WinText("win.sub", sub), 13, CabSoft, TextAnchor.UpperLeft, false, true);
             DashLine(x, y + 90f, w);
-            if (cabKind != 0 && WinKey(new Rect(DrawerPanel.xMax - 28f - 46f, y + 16f, 46f, 36f), "X", false, 18))
+            if (cabKind != 0 && DkKey(new Rect(DrawerPanel.xMax - 28f - 46f, y + 16f, 46f, 36f), "X", false, FxCalm, size: 18))
                 CloseCabWindow();
         }
 
         static void DashLine(float x, float y, float w)
         {
-            var c = CrtUi.Ink.WithAlpha(0.25f);
+            var c = CrtStyle.Ink.WithAlpha(0.25f);
             for (float d = 0f; d < w; d += 6f)
                 Ui.Fill(new Rect(x + d, y, Mathf.Min(3f, w - d), 1f), c);
         }
@@ -425,53 +425,21 @@ namespace Arena
         /// A faint lit tile on a screen (what the old translucent white pills are now).
         static void CabCard(Rect r, float a)
         {
-            Ui.Fill(r, CrtUi.Ink.WithAlpha(a * 1.6f));
-            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.22f));
+            Ui.Fill(r, CrtStyle.Ink.WithAlpha(a * 1.6f));
+            CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.22f));
         }
 
         // --- Digital controls -------------------------------------------------------------------------------------------
-
-        /// A soft digital key in a window (CrtKit.SoftBox): a faint tint, brighter under the mouse, outlined 2 px when `sel`. A lamp
-        /// before the text (lit, or dim when `lampLit` is false) makes it a switch. isStatic: a label that looks like a key.
-        bool WinKey(Rect r, string text, bool sel, int size = 18, Color? accent = null, bool lamp = false, bool lampLit = true, bool isStatic = false)
-        {
-            bool hover = !isStatic && GUI.enabled && r.Contains(Event.current.mousePosition);
-            if (!isStatic)
-                Ui.NoteHover(r);
-            size = CrtKit.Sz(size);
-            Color c = CrtStyle.KeyColor(accent);
-            bool lit = (hover || sel) && !isStatic;
-            if (isStatic)
-            {
-                Ui.Fill(r, c.WithAlpha(CrtStyle.KeyStaticTint));
-                CrtKit.Frame(r, 1f, c.WithAlpha(CrtStyle.KeyStaticRim));
-            }
-            else
-                CrtKit.SoftBox(r, c, sel, hover, false);
-            Color tc = CrtKit.SoftText(c, lit);
-            float tw = Ui.TextWidth(text, size, true) - 6f, lw = lamp ? 19f : 0f;
-            float x = r.center.x - (lw + tw) / 2f;
-            if (lamp)
-            {
-                var lr = new Rect(x, r.center.y - 4.5f, 9f, 9f);
-                if (lampLit && !FxCalm)
-                    Ui.Fill(new Rect(lr.x - 3f, lr.y - 3f, 15f, 15f), c.WithAlpha(0.25f));
-                Ui.Fill(lr, tc.WithAlpha(lampLit ? 1f : 0.4f));
-            }
-            var tr = new Rect(x + lw, r.y, tw + 14f, r.height);
-            CrtUi.Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, FxCalm);
-            return !isStatic && Ui.HitArea(r);
-        }
 
         /// The left side of a row: its title (lit) and a small line under it. Types in with the window and retypes when changed.
         void WinLabel(Rect r, string title, string desc, bool dim = false)
         {
             int i = cabWinRow++;
             bool two = !string.IsNullOrEmpty(desc);
-            Color c = dim ? CrtUi.Dim : CrtUi.Ink;
+            Color c = dim ? CrtStyle.Dim : CrtStyle.Ink;
             CrtUi.Text(new Rect(r.x, r.y, r.width, two ? 24f : r.height), WinText("win.t" + i, title), 17, c, TextAnchor.MiddleLeft, true, FxCalm);
             if (two)
-                Ui.Label(new Rect(r.x, r.y + 23f, r.width, 16f), WinText("win.d" + i, desc), 12, dim ? CrtUi.Dim : CabSoft, TextAnchor.MiddleLeft, false);
+                Ui.Label(new Rect(r.x, r.y + 23f, r.width, 16f), WinText("win.d" + i, desc), 12, dim ? CrtStyle.Dim : CabSoft, TextAnchor.MiddleLeft, false);
         }
 
         /// A setting with an ON / OFF digital key on the right (lamp and text), a dashed line under it. Returns the new value.
@@ -484,10 +452,10 @@ namespace Arena
                 string hk = key.ToUpperInvariant();
                 float tw = Ui.TextWidth(title, 17, true) - 6f, w = Ui.TextWidth(hk, 11, true) + 4f;
                 var kr = new Rect(r.x + tw + 12f, r.y + (!string.IsNullOrEmpty(desc) ? 4f : r.height / 2f - 9f), w, 18f);
-                CrtKit.Frame(kr, 1f, CrtUi.Ink.WithAlpha(0.5f));
+                CrtKit.Frame(kr, 1f, CrtStyle.Ink.WithAlpha(0.5f));
                 Ui.Label(kr, hk, 11, CabSoft, TextAnchor.MiddleCenter, true);
             }
-            bool click = WinKey(new Rect(r.xMax - kw, r.center.y - 17f, kw, 34f), value ? "ON" : "OFF", false, 18, value ? CrtUi.Ink : CrtUi.Dim, true, value);
+            bool click = DkKey(new Rect(r.xMax - kw, r.center.y - 17f, kw, 34f), value ? "ON" : "OFF", false, FxCalm, size: 18, accent: value ? CrtStyle.Ink : CrtStyle.Dim, lamp: true, lampLit: value);
             DashLine(r.x, r.yMax, r.width);
             return click ? !value : value;
         }
@@ -498,7 +466,7 @@ namespace Arena
             float gap = 4f, w = (r.width - gap * (labels.Length - 1)) / labels.Length;
             int pick = value;
             for (int i = 0; i < labels.Length; i++)
-                if (WinKey(new Rect(r.x + i * (w + gap), r.y, w, r.height), labels[i].ToUpperInvariant(), i == value, 18, dim ? CrtUi.Dim : (Color?)null))
+                if (DkKey(new Rect(r.x + i * (w + gap), r.y, w, r.height), labels[i].ToUpperInvariant(), i == value, FxCalm, size: 18, accent: dim ? CrtStyle.Dim : (Color?)null))
                     pick = i;
             return pick;
         }
@@ -514,9 +482,9 @@ namespace Arena
             var val = new Rect(plus.x - 58f, r.y, 54f, r.height);
             var bar = new Rect(minus.xMax + 10f, r.center.y - 13f, val.x - 4f - (minus.xMax + 10f), 26f);
             float v = value;
-            if (WinKey(minus, "-", false, 22, null))
+            if (DkKey(minus, "-", false, FxCalm, size: 22, accent: null))
                 v = Mathf.Clamp01(Mathf.Round(value * 20f) / 20f - 0.05f);
-            if (WinKey(plus, "+", false, 22, null))
+            if (DkKey(plus, "+", false, FxCalm, size: 22, accent: null))
                 v = Mathf.Clamp01(Mathf.Round(value * 20f) / 20f + 0.05f);
             int id = Mathf.RoundToInt(r.y * 7f + r.x) + 1;
             var hit = new Rect(bar.x - 4f, bar.y - 8f, bar.width + 8f, bar.height + 16f);
@@ -540,7 +508,7 @@ namespace Arena
             const int blocks = 16;
             float gap = 3f, bw = (bar.width - gap * (blocks - 1)) / blocks;
             int lit = Mathf.RoundToInt(v * blocks);
-            Color ink = CrtUi.Ink;
+            Color ink = CrtStyle.Ink;
             for (int i = 0; i < blocks; i++)
             {
                 var b = new Rect(bar.x + i * (bw + gap), bar.y, bw, bar.height);

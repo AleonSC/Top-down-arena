@@ -44,7 +44,7 @@ namespace Arena
             int fee = game.ChestCollectFee;
             WcTile(new Rect(x + 646f, y + 16f, 130f, 50f), fee + " G", "FEE TO COLLECT", calm);
             WcTile(new Rect(x + 786f, y + 16f, 132f, 50f), me.Gold.ToString(), "YOUR GOLD", calm);
-            HudCrt(new Rect(x + WcPad + 2f, y + 62f, 600f, 18f), "COLLECT ONE FROM HERE, OR WALK THERE FOR FREE", 16, CrtUi.Dim);
+            HudCrt(new Rect(x + WcPad + 2f, y + 62f, 600f, 18f), "COLLECT ONE FROM HERE, OR WALK THERE FOR FREE", 16, CrtStyle.Dim);
             float rx = x + WcPad, ry = y + 84f;
             wcChestHot = -1;
             Vector2 mouse = Event.current.mousePosition;
@@ -56,18 +56,18 @@ namespace Arena
                 bool hot = row.Contains(mouse);
                 if (hot)
                     wcChestHot = i;
-                CrtKit.SoftBox(row, CrtUi.Ink, hot, false, false);
+                CrtKit.SoftBox(row, CrtStyle.Ink, hot, false, false);
                 DrawChestIcon(new Rect(row.x + 12f, row.y + 12f, 36f, 28f), c.Kind);
                 Ui.Label(new Rect(row.x + 62f, row.y + 7f, 300f, 20f), ChestKindName(c.Kind) + "  ·  " + ChestGives(c.Kind), 14, Color.white, TextAnchor.MiddleLeft, true);
-                HudCrt(new Rect(row.x + 62f, row.y + 28f, 320f, 16f), ChestWay(me, c.Pos), 15, CrtUi.Dim);
+                HudCrt(new Rect(row.x + 62f, row.y + 28f, 320f, 16f), ChestWay(me, c.Pos), 15, CrtStyle.Dim);
                 bool afford = me.Gold >= fee;
-                if (LobbyKit.Key(new Rect(row.xMax - 186f, row.y + 8f, 176f, 36f), afford ? "COLLECT · " + fee + " G" : "NEED " + fee + " G", false, calm, size: 18, minSize: 12,
+                if (DkKey(new Rect(row.xMax - 186f, row.y + 8f, 176f, 36f), afford ? "COLLECT · " + fee + " G" : "NEED " + fee + " G", false, calm, size: 18, minSize: 12,
                         enabled: afford, accent: afford ? g : (Color?)null))
                     game.CollectChest(c);
                 ry += WcRowStep;
             }
             if (shown < wcChests.Count)
-                HudCrt(new Rect(rx + 10f, ry + 4f, WcTallyW, 20f), "+" + (wcChests.Count - shown) + " MORE ON THE MAP  ·  THEY MOVE UP AS YOU COLLECT", 18, CrtUi.Dim);
+                HudCrt(new Rect(rx + 10f, ry + 4f, WcTallyW, 20f), "+" + (wcChests.Count - shown) + " MORE ON THE MAP  ·  THEY MOVE UP AS YOU COLLECT", 18, CrtStyle.Dim);
             DrawChestMap(me, new Rect(x + 640f, y + 84f, 278f, 222f));
         }
 
@@ -127,9 +127,9 @@ namespace Arena
         /// The map beside the list: every built room as a faint box, the chests as squares in their ink (the hot row's ringed), you as a dot.
         void DrawChestMap(Player me, Rect r)
         {
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             CrtKit.Dashed(r, 1f, ink.WithAlpha(0.45f));
-            HudCrt(new Rect(r.x + 10f, r.y + 6f, r.width - 20f, 16f), "MAP", 15, CrtUi.Dim);
+            HudCrt(new Rect(r.x + 10f, r.y + 6f, r.width - 20f, 16f), "MAP", 15, CrtStyle.Dim);
             float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
             foreach (var rm in game.Expanded)
             {

@@ -17,7 +17,7 @@ namespace Arena
         }
 
         static Color FactionInk(PickerFaction f) =>
-            f.Boss != null ? Color.Lerp((Defs.Get(f.Boss.Value).Color).ToColor(), Color.white, 0.25f) : f.Name == "Basic" ? CrtUi.Ink : CrtUi.Dim;
+            f.Boss != null ? Color.Lerp((Defs.Get(f.Boss.Value).Color).ToColor(), Color.white, 0.25f) : f.Name == "Basic" ? CrtStyle.Ink : CrtStyle.Dim;
 
         static string FactionHead(PickerFaction f) =>
             f.Boss == null ? (f.Name == "Basic" ? "BASIC  ·  ONE OF EACH ROLE" : "OTHER") : f.Name.ToUpperInvariant() + "  ·  " + PracticePlan.NameOf(f.Boss.Value).ToUpperInvariant();
@@ -48,9 +48,9 @@ namespace Arena
             {
                 if (sort == 1)
                     for (int j = 0; j < JobHeads.Length; j++)
-                        add(JobHeads[j], CrtUi.Ink, plain.Where(x => (int)Game.JobOf(x) == j));
+                        add(JobHeads[j], CrtStyle.Ink, plain.Where(x => (int)Game.JobOf(x) == j));
                 else
-                    add("A – Z", CrtUi.Dim, plain.OrderBy(x => PracticePlan.NameOf(x)));
+                    add("A – Z", CrtStyle.Dim, plain.OrderBy(x => PracticePlan.NameOf(x)));
                 add("BOSSES  ·  THEY BRING THEIR USUAL ADDS", CrtStyle.Gold, bosses.OrderBy(x => sort == 2 ? PracticePlan.NameOf(x) : ""));
             }
             return list;

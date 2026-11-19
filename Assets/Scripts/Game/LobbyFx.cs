@@ -26,7 +26,7 @@ namespace Arena
         {
             if (e <= 0f || e >= wipe + Flicker)
                 return;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             if (e < wipe)
             {
                 if (!line)
@@ -38,7 +38,7 @@ namespace Arena
             }
             float f = (e - wipe) / Flicker;
             if (Mathf.FloorToInt((e - wipe) * 40f) % 2 == 1)
-                Ui.Fill(r, CrtUi.Bg.WithAlpha(0.2f));
+                Ui.Fill(r, CrtStyle.Bg.WithAlpha(0.2f));
             Ui.Glow(r, ink, 0.25f * (1f - f));
             CrtKit.Frame(r, 1f, ink.WithAlpha(0.4f * (1f - f)));
         }
@@ -79,7 +79,7 @@ namespace Arena
             }
             float ly = edge + Feather * 0.15f;
             if (ly > r.y && ly < r.yMax)
-                Ui.Fill(new Rect(r.x, ly - 8f, r.width, 16f), CrtUi.Ink.WithAlpha(0.08f));
+                Ui.Fill(new Rect(r.x, ly - 8f, r.width, 16f), CrtStyle.Ink.WithAlpha(0.08f));
         }
     }
 
@@ -144,7 +144,7 @@ namespace Arena
         static void ProxRun(float x, float y, float len, float u, bool horiz, float span, float w, float a, float off)
         {
             const float step = 4f;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             for (float s = -span; s < span; s += step)
             {
                 float p0 = Mathf.Max(0f, u + s), p1 = Mathf.Min(len, u + s + step);
@@ -243,11 +243,11 @@ namespace Arena
             for (int k = 0; k < trail; k++)
             {
                 float a = 0.07f * (1f - k / (float)trail);
-                Wedge(c, r, ang - k * 0.03f - 0.015f, 0.015f, new Rgba(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a), 2);
+                Wedge(c, r, ang - k * 0.03f - 0.015f, 0.015f, new Rgba(CrtStyle.Ink.r, CrtStyle.Ink.g, CrtStyle.Ink.b, a), 2);
             }
             Line(c, c + V2.FromAngle(ang) * r, 1.5f, new Rgba(0.9f, 0.95f, 1f, 0.45f));
             for (int i = 1; i <= 4; i++)
-                Arc(c, 70f * i, 1f, new Rgba(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.07f), 48);
+                Arc(c, 70f * i, 1f, new Rgba(CrtStyle.Ink.r, CrtStyle.Ink.g, CrtStyle.Ink.b, 0.07f), 48);
         }
     }
 }

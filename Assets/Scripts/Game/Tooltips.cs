@@ -95,10 +95,10 @@ namespace Arena
                 return;
             var a = Upgrades.Ability(id);
             bool ult = slot == Upgrades.UltSlot;
-            TipStart(r, a.Name, ult ? Ui.Gold : Color.white);
+            TipStart(r, a.Name, ult ? CrtStyle.Gold : Color.white);
             int level = Game.MasteryLevel(p, id);
             TipAdd((ult ? "ULTIMATE · " + SlotKeys[4] : "ABILITY · " + SlotKeys[slot]) + "  ·  " + (level >= Game.MasteryMax ? "MASTERED" : "MASTERY " + level) + "  ·  " + Mathf.RoundToInt(a.Cooldown) + " S COOLDOWN",
-                10, ult ? Ui.Gold : p.Def.Color.ToColor(), true);
+                10, ult ? CrtStyle.Gold : p.Def.Color.ToColor(), true);
             TipAdd(KeyText.Fill(a.Desc), 13, Ui.Text);
             TipAdd("Mastered (mastery 5): " + Game.Capstone(id), 11, new Color(0.85f, 0.75f, 0.48f));
         }
@@ -142,7 +142,7 @@ namespace Arena
             }
             else if (crt)
             {
-                Ui.Fill(pop, CrtUi.Bg.WithAlpha(0.98f));
+                Ui.Fill(pop, CrtStyle.Bg.WithAlpha(0.98f));
                 Ui.Fill(pop, tipColor.WithAlpha(0.09f));
                 CrtKit.Frame(pop, 1f, tipColor.WithAlpha(0.75f));
                 Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle.ToUpperInvariant(), 16, tipColor, TextAnchor.MiddleLeft, true);
@@ -150,7 +150,7 @@ namespace Arena
                 y += 3f;
             }
             else
-                DkSub(pop, CrtUi.Bg.WithAlpha(0.98f));
+                DkSub(pop, CrtStyle.Bg.WithAlpha(0.98f));
             if (!crt)  // (the crt and hologram looks drew their title above)
                 Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, 16, tipColor, TextAnchor.MiddleLeft, true);
             y += 24f;

@@ -88,7 +88,7 @@ namespace Arena
             float dh = Ui.TextHeight(KeyText.Fill(hoverAbility.Desc), 12, pw - 28f), ch = Ui.TextHeight(cap, 11, pw - 42f);
             var pop = new Rect(box.xMax + 10f, hoverTile.y, pw, 44f + dh + 6f + ch + 12f);
             pop.y = Mathf.Min(pop.y, H - 12f - pop.height);
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Ui.Fill(pop, new Color(0.02f, 0.05f, 0.12f, 0.97f));
             CrtKit.Frame(pop, 1f, ink);
             Ui.Glow(pop, ink, 0.12f);
@@ -107,7 +107,7 @@ namespace Arena
         {
             hoverAbility = null;
             bool calm = FxCalm;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             float x = box.x + 16f, w = box.width - 32f, y = box.y + 8f;
             LobbyKit.Heading(x, y, w, "Weapon", null, calm);
             y += 34f;
@@ -179,7 +179,7 @@ namespace Arena
                             continue;
                         float kw = k == 3 ? 44f : 32f;
                         var kr = new Rect(kx, tile.y + 26f, kw, 22f);
-                        if (LobbyKit.Key(kr, SlotKeys[k], false, calm, size: 13, minSize: 9))
+                        if (DkKey(kr, SlotKeys[k], false, calm, size: 13, minSize: 9))
                             game.SetAbilityKey(slot.Id, k);
                         kx += kw + 4f;
                     }

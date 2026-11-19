@@ -22,9 +22,9 @@ namespace Arena
         {
             var prof = session.Game.Profile;
             int n = prof != null ? prof.Favorites.Count : 0;
-            bool hit = LobbyKit.Key(key, "", favOpen && lobbyTab == 0, calm);
+            bool hit = DkKey(key, "", favOpen && lobbyTab == 0, calm);
             const float isz = 16f;
-            Ui.Icon(new Rect(key.center.x - isz / 2f, key.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_star"), n > 0 ? Ui.Gold : Color.white);  // gold once anything is saved
+            Ui.Icon(new Rect(key.center.x - isz / 2f, key.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_star"), n > 0 ? CrtStyle.Gold : Color.white);  // gold once anything is saved
             if (key.Contains(Event.current.mousePosition))
             {
                 lockedTip = key;  // (LobbyUi.cs's hover tip, drawn last)
@@ -77,11 +77,11 @@ namespace Arena
                 else if (i == count)
                     FavSaveSlot(c, me, prof, calm);
                 else
-                    LobbyKit.Key(c, "EMPTY SLOT", false, calm, size: 13, locked: true);
+                    DkKey(c, "EMPTY SLOT", false, calm, size: 13, locked: true);
                 y += cardH + 8f;
             }
             if (Time.unscaledTime < favNoteUntil)
-                Ui.Label(new Rect(r.x + 16f, r.yMax - 26f, r.width - 32f, 20f), favNote, 12, Ui.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 16f, r.yMax - 26f, r.width - 32f, 20f), favNote, 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
         }
 
         /// One saved loadout. True when it was deleted.
@@ -90,7 +90,7 @@ namespace Arena
             var col = (Defs.Get(f.Role).Color).ToColor();
             bool on = f.Matches(me);
             bool locked = f.Role == Role.Wildcard && !WildcardOpen;
-            LobbyKit.Key(c, "", on, calm, accent: col, enabled: false);
+            DkKey(c, "", on, calm, accent: col, enabled: false);
             Ui.Fill(new Rect(c.x, c.y, 3f, c.height), col.WithAlpha(0.85f));
             float isz = Mathf.Min(40f, c.height - 20f);
             Ui.Icon(new Rect(c.x + 14f, c.center.y - isz / 2f, isz, isz), PixelArt.Get(f.Role == Role.Wildcard ? "role_dps" : Classes.Get(f.Kit).Icon), Color.white);
@@ -102,12 +102,12 @@ namespace Arena
             var kr = new Rect(c.xMax - 104f, c.center.y - 17f, 92f, 34f);
             if (on)
             {
-                LobbyKit.Key(kr, "EQUIPPED", true, calm, PixelArt.Get("ui_check"), size: 12, minSize: 9, accent: Ui.Good, enabled: false);
+                DkKey(kr, "EQUIPPED", true, calm, PixelArt.Get("ui_check"), size: 12, minSize: 9, accent: Ui.Good, enabled: false);
                 return false;
             }
             if (favSure == index)
             {
-                if (LobbyKit.Key(kr, "SURE?", true, calm, size: 13, minSize: 9, danger: true))
+                if (DkKey(kr, "SURE?", true, calm, size: 13, minSize: 9, danger: true))
                 {
                     favSure = -1;
                     var prof = session.Game.Profile;
@@ -118,9 +118,9 @@ namespace Arena
                 }
                 return false;
             }
-            if (LobbyKit.Key(new Rect(kr.x, kr.y, 62f, kr.height), "LOAD", false, calm, size: 14, minSize: 10, locked: locked))
+            if (DkKey(new Rect(kr.x, kr.y, 62f, kr.height), "LOAD", false, calm, size: 14, minSize: 10, locked: locked))
                 LoadFavorite(f);
-            if (LobbyKit.Key(new Rect(kr.xMax - 26f, kr.y, 26f, kr.height), "X", false, calm, size: 12, minSize: 9, danger: true))
+            if (DkKey(new Rect(kr.xMax - 26f, kr.y, 26f, kr.height), "X", false, calm, size: 12, minSize: 9, danger: true))
                 favSure = index;
             return false;
         }
@@ -170,7 +170,7 @@ namespace Arena
         /// A small square key with just an icon, centred.
         static bool FavIconKey(Rect k, string icon, Color tint, bool calm)
         {
-            bool hit = LobbyKit.Key(k, "", false, calm, size: 11);
+            bool hit = DkKey(k, "", false, calm, size: 11);
             Ui.Icon(new Rect(k.center.x - 7f, k.center.y - 7f, 14f, 14f), PixelArt.Get(icon), tint.WithAlpha(k.Contains(Event.current.mousePosition) ? 1f : 0.75f));
             return hit;
         }
@@ -179,7 +179,7 @@ namespace Arena
         {
             if (!favNaming)
             {
-                if (LobbyKit.Key(c, "SAVE CURRENT LOADOUT", false, calm, PixelArt.Get("ui_star"), colorIcon: true, size: 15, minSize: 10, sub: FavKitText(me) + "  ·  " + Defs.Weapon(me.Role, me.Kit, me.Weapon).Name))
+                if (DkKey(c, "SAVE CURRENT LOADOUT", false, calm, PixelArt.Get("ui_star"), colorIcon: true, size: 15, minSize: 10, sub: FavKitText(me) + "  ·  " + Defs.Weapon(me.Role, me.Kit, me.Weapon).Name))
                 {
                     favNaming = true;
                     favNameText = Favorites.DefaultName(me);
@@ -189,8 +189,8 @@ namespace Arena
                 return;
             }
             // Naming it: a text box with the default name ready, SAVE and cancel.
-            LobbyKit.Key(c, "", true, calm, enabled: false);
-            Ui.Label(new Rect(c.x + 14f, c.y + 6f, 200f, 16f), "NAME THIS LOADOUT", 10, LobbyKit.HeadCol, TextAnchor.MiddleLeft, true);
+            DkKey(c, "", true, calm, enabled: false);
+            Ui.Label(new Rect(c.x + 14f, c.y + 6f, 200f, 16f), "NAME THIS LOADOUT", 10, CrtStyle.Head, TextAnchor.MiddleLeft, true);
             var box = new Rect(c.x + 14f, c.y + 24f, c.width - 150f, c.height - 32f);
             Ui.Fill(box, new Color(1f, 1f, 1f, 0.08f));
             GUI.SetNextControlName("fav_name");
@@ -200,7 +200,7 @@ namespace Arena
             bool enter = Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter);
             bool esc = Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape;
             var kr = new Rect(c.xMax - 126f, c.center.y - 17f, 80f, 34f);
-            if (LobbyKit.Key(kr, "SAVE", false, calm, PixelArt.Get("ui_check"), size: 13, minSize: 10, accent: Ui.Good) || enter)
+            if (DkKey(kr, "SAVE", false, calm, PixelArt.Get("ui_check"), size: 13, minSize: 10, accent: Ui.Good) || enter)
             {
                 if (Favorites.Save(prof, favNameText, me))
                 {
@@ -212,7 +212,7 @@ namespace Arena
                 GUI.FocusControl(null);
                 if (enter) Event.current.Use();
             }
-            else if (LobbyKit.Key(new Rect(kr.xMax + 6f, kr.y, 34f, 34f), "X", false, calm, size: 12, minSize: 9, danger: true) || esc)
+            else if (DkKey(new Rect(kr.xMax + 6f, kr.y, 34f, 34f), "X", false, calm, size: 12, minSize: 9, danger: true) || esc)
             {
                 favNaming = false;
                 GUI.FocusControl(null);

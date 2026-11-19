@@ -24,7 +24,7 @@ namespace Arena
         bool holoBusy;                               // a panel is mid switch-on (scaled): live models (GL) wait
 
         static Color HoloBody => new Color(0.9f, 0.93f, 1f);              // body text on the glass
-        static Color HoloDim => Color.Lerp(CrtUi.Dim, Color.white, 0.22f); // labels on the glass (a little brighter than the screens' dim)
+        static Color HoloDim => Color.Lerp(CrtStyle.Dim, Color.white, 0.22f); // labels on the glass (a little brighter than the screens' dim)
         static Color HoloDesc => new Color(0.73f, 0.8f, 0.94f);           // descriptions
 
 
@@ -35,7 +35,7 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             const int strips = 36;
             const float top = 0f, bottom = 706f;
             for (int i = 0; i < strips; i++)
@@ -98,7 +98,7 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             float t = MathX.Fmod(now, 5f) / 5f;
             bool dip = !FxCalm && ((t >= 0.94f && t < 0.96f) || t >= 0.98f);
             float oldAlpha = Ui.Alpha;
@@ -129,7 +129,7 @@ namespace Arena
         /// A panel's title in the CRT font with the blinking cursor, and a line under it.
         void HoloTitle(float x, float y, string title, string sub, Color subColor, int size = 34)
         {
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             CrtUi.Title(new Rect(x, y, 700f, size + 4f), title, size, ink, TextAnchor.MiddleLeft, FxCalm);
             if (FxCalm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
                 Ui.Fill(new Rect(x + CrtUi.TitleWidth(title, size) + 5f, y + size * 0.28f, size * 0.26f, size * 0.55f), ink);
@@ -140,7 +140,7 @@ namespace Arena
         /// Label / value rows with every other one faintly lit (the stats, your fight).
         void HoloRows(float x, float y, float w, string[,] rows, float rowH = 26f)
         {
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             for (int i = 0; i < rows.GetLength(0); i++)
             {
                 var r = new Rect(x, y + i * rowH, w, rowH);
@@ -154,7 +154,7 @@ namespace Arena
         /// A number tile: the value big in gold, its name small under it, in a faint lit box.
         void HoloTile(Rect r, string value, string name, Color? valueColor = null, int size = 32, TextAnchor align = TextAnchor.MiddleLeft)
         {
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Ui.Fill(r, ink.WithAlpha(0.07f));
             CrtKit.Frame(r, 1f, ink.WithAlpha(0.4f));
             float pad = align == TextAnchor.MiddleLeft ? 10f : 4f;

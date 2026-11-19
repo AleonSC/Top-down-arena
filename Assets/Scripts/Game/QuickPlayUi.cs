@@ -18,7 +18,7 @@ namespace Arena
         {
             LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             bool first = profile.QuickPlays == 0;
             float bodyY = ModeHeader(r, "QUICK PLAY", "10 WAVES  ·  A RANDOM BOSS  ·  ENDLESS", first ? "Your first Quick Play is the tutorial, and it ends on the Warden."
                 : "Every boss comes up once before any repeats.", first ? QuickColor : Ui.Muted);
@@ -48,7 +48,7 @@ namespace Arena
                 var b = bosses[i];
                 bool firstBoss = first && b == EnemyType.Warden, met = profile.Beaten(b) > 0;
                 string chip = firstBoss ? "FIRST" : met ? "BEATEN x" + profile.Beaten(b) : "NOT MET";
-                Color cc = firstBoss ? QuickColor : met ? Ui.Gold : CrtUi.Ink.WithAlpha(0.55f);
+                Color cc = firstBoss ? QuickColor : met ? CrtStyle.Gold : CrtStyle.Ink.WithAlpha(0.55f);
                 ModeRow(rows[i], (i + 1).ToString("00"), BossName(b), known[i], known[i], i == shown, i == hoverI, QuickColor, chip, cc);
             }
 
@@ -68,7 +68,7 @@ namespace Arena
             {
                 bool boss = i == QuickPlay.Length + 1, endless = i == QuickPlay.Length + 2;
                 var pr = new Rect(px, y2, boss ? 34f : endless ? 62f : 22f, 20f);
-                ModePip(pr, boss ? "BOSS" : endless ? "ENDLESS" : i.ToString(), boss ? QuickColor : endless ? Ui.Gold : ink.WithAlpha(1f), boss || endless);
+                ModePip(pr, boss ? "BOSS" : endless ? "ENDLESS" : i.ToString(), boss ? QuickColor : endless ? CrtStyle.Gold : ink.WithAlpha(1f), boss || endless);
                 px += pr.width + 5f;
             }
             y2 += 30f;

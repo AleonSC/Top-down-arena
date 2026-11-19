@@ -169,7 +169,7 @@ namespace Arena
         void DrawWaveEditor()
         {
             float t = Time.unscaledTime;
-            Ui.Fill(new Rect(0, 0, W, H), CrtUi.Bg.WithAlpha(0.96f));
+            Ui.Fill(new Rect(0, 0, W, H), CrtStyle.Bg.WithAlpha(0.96f));
             if (edSet.Waves.Count == 0)
                 edSet.Waves.Add(new DesignWave());
             edWave = Mathf.Clamp(edWave, 0, edSet.Waves.Count - 1);
@@ -224,7 +224,7 @@ namespace Arena
             if (DkKey(new Rect(rx, 14f, 76f, 32f), "UNDO", Ui.Neutral, false, 13))
                 EdUndoStep();
             GUI.enabled = was;
-            Ui.Fill(new Rect(20f, 52f, W - 40f, 1f), CrtUi.Ink.WithAlpha(0.18f));
+            Ui.Fill(new Rect(20f, 52f, W - 40f, 1f), CrtStyle.Ink.WithAlpha(0.18f));
         }
 
         /// Row 2: one numbered key per wave (click to open it), then new / copy / delete / move and the wave's level.
@@ -269,7 +269,7 @@ namespace Arena
             }
             bool was = GUI.enabled;
             GUI.enabled = was && edSet.Waves.Count > 1;
-            if (DkKey(new Rect(bx + 204f, y, 80f, h), "DELETE", Ui.Danger, false, 12))
+            if (DkKey(new Rect(bx + 204f, y, 80f, h), "DELETE", CrtStyle.Danger, false, 12))
             {
                 edSet.Waves.RemoveAt(edWave);
                 EdSelectWave(Mathf.Min(edWave, edSet.Waves.Count - 1));
@@ -343,7 +343,7 @@ namespace Arena
             if (DkChoice(new Rect(p.xMax - 84f, p.y + 6f, 72f, 24f), "PROPS", edPropsMode, CrtStyle.Gold)) edPropsMode = true;
 
             var m = EdMap;
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Ui.Fill(m, new Color(0f, 0f, 0f, 0.35f));
             for (int gx = 1; gx < 16; gx++)
                 Ui.Fill(new Rect(m.x + gx * m.width / 16f, m.y, 1f, m.height), ink.WithAlpha(0.06f));
@@ -387,7 +387,7 @@ namespace Arena
                     Ui.Glow(box, EdColor, 0.5f + 0.2f * Mathf.Sin(t * 4f));
                 Ui.Fill(box, on ? EdColor.WithAlpha(0.35f) : new Color(0f, 0f, 0f, 0.6f));
                 CrtKit.Frame(box, on ? 2f : 1f, on ? EdColor : ink.WithAlpha(0.7f));
-                Ui.Label(box, letter.ToString(), 12, on ? Color.white : CrtUi.Ink, TextAnchor.MiddleCenter, true);
+                Ui.Label(box, letter.ToString(), 12, on ? Color.white : CrtStyle.Ink, TextAnchor.MiddleCenter, true);
             }
 
             string hint = edPropsMode
@@ -490,7 +490,7 @@ namespace Arena
             }
             edPalScroll = Mathf.Clamp(edPalScroll, 0, Mathf.Max(0, total - rowsVisible));
             var cells = new List<KeyValuePair<EnemyType, Rect>>();
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             for (int i = edPalScroll * cols; i < list.Count && i < (edPalScroll + rowsVisible) * cols; i++)
             {
                 int k = i - edPalScroll * cols;
@@ -623,7 +623,7 @@ namespace Arena
             Ui.Label(new Rect(x, y, 150f, 14f), "SELECTED GROUP", 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
             if (DkKey(new Rect(r.xMax - 152f, y - 4f, 68f, 22f), "COPY", Ui.Neutral, false, 11))
                 EdCopyGroup();
-            if (DkKey(new Rect(r.xMax - 80f, y - 4f, 66f, 22f), "DELETE", Ui.Danger, false, 11))
+            if (DkKey(new Rect(r.xMax - 80f, y - 4f, 66f, 22f), "DELETE", CrtStyle.Danger, false, 11))
             {
                 EdRemoveGroup();
                 return;
@@ -711,7 +711,7 @@ namespace Arena
             DkPanel(r);
             var w = EdW;
             float span = EdSpan();
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Ui.Label(new Rect(r.x + 14f, r.y + 8f, 400f, 16f), "WAVE " + (edWave + 1) + "  ·  " + w.Groups.Count + " GROUPS  ·  " + w.EnemyCount + " ENEMIES  ·  " + w.Props.Count + " PROPS",
                 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
             if (DkKey(new Rect(r.xMax - 250f, r.y + 6f, 80f, 24f), edPlaying ? "PAUSE" : "PLAY", EdColor, edPlaying, 12))
@@ -803,7 +803,7 @@ namespace Arena
             string name = edDragSquad != null ? edDragSquad.Name : PracticePlan.NameOf(edDragEnemy.Value);
             var mp = Event.current.mousePosition;
             var chip = new Rect(mp.x + 14f, mp.y + 8f, Mathf.Max(90f, Ui.TextWidth(name, 12, true) + 24f), 26f);
-            Ui.Fill(chip, CrtUi.Bg.WithAlpha(0.95f));
+            Ui.Fill(chip, CrtStyle.Bg.WithAlpha(0.95f));
             CrtKit.Frame(chip, 1f, EdColor);
             Ui.Label(chip, name, 12, Color.white, TextAnchor.MiddleCenter, true);
         }

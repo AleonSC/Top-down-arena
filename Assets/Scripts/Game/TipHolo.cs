@@ -133,8 +133,8 @@ namespace Arena
         {
             float w = Ui.TextWidth(text, 14, true) + 28f, h = 30f;
             var pop = HoloPlace(anchor, w, h, 12f);
-            DrawHoloBack(pop, anchor, CrtUi.Ink);
-            DrawHoloText(pop, text.ToUpperInvariant(), 14, TextAnchor.MiddleCenter, CrtUi.Ink);
+            DrawHoloBack(pop, anchor, CrtStyle.Ink);
+            DrawHoloText(pop, text.ToUpperInvariant(), 14, TextAnchor.MiddleCenter, CrtStyle.Ink);
         }
     }
 }

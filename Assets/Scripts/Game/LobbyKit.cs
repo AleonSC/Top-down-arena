@@ -11,9 +11,6 @@ namespace Arena
     public static class LobbyKit
     {
         // (the colours: CrtStyle.cs)
-        public static readonly Color Gold = CrtStyle.Gold;
-        public static readonly Color Soft = CrtStyle.Body;     // body text on the screen
-        public static readonly Color HeadCol = CrtStyle.Head;  // section headings (the mockup's teal)
 
 
         /// The text cut short with "…" so it fits `width` at this size.
@@ -76,35 +73,9 @@ namespace Arena
                 Ui.Label(r, text, s, c, align, true);
         }
 
-        /// A digital key that fits its text: inverse video under the mouse or when `on`. An icon sits beside the name
-        /// (centred as a group) or, with `stack`, above it. Long names shrink to `minSize`, then wrap onto a second line when
-        /// the key is tall enough, then are cut. enabled = false: shown (lit when `on`) but never hot and never clicked
-        /// (guests looking at the host's choices). Returns true on a click.
-        public static bool Key(Rect r, string text, bool on, bool calm, Texture2D icon = null, bool stack = false, bool colorIcon = false,
-            int size = 18, int minSize = 11, bool danger = false, bool enabled = true, Color? accent = null, string sub = null, bool locked = false)
-        {
-            size = CrtKit.Sz(size);
-            minSize = Mathf.Min(size, CrtKit.Sz(minSize));
-            if (locked)
-            {
-                // A key that can't be used yet (Start before everyone is ready): dim and dashed, with its text.
-                var d = CrtUi.Dim;
-                Ui.Fill(r, d.WithAlpha(CrtStyle.KeyWaitTint * CrtKit.FillFade));
-                CrtKit.Dashed(r, 1f, d.WithAlpha(CrtStyle.KeyWaitDash));  // faded: nothing to press yet
-                Draw(r, text, icon, stack, colorIcon, size, minSize, d.WithAlpha(CrtStyle.KeyWaitText), false, calm, sub, true);
-                return false;
-            }
-            bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
-            Color c = CrtStyle.KeyColor(accent, danger);
-            CrtKit.SoftBox(r, c, on, hover, false);  // a faint tint and a thin outline; the open key gets an underline glow, not a solid fill
-            Color tc = CrtKit.SoftText(c, hover || on);
-            Draw(r, text, icon, stack, colorIcon, size, minSize, tc, false, calm, sub, false);
-            if (!enabled)
-                return false;
-            return Ui.HitArea(r);
-        }
-
-        static void Draw(Rect r, string text, Texture2D icon, bool stack, bool colorIcon, int size, int minSize, Color tc, bool fill, bool calm, string sub, bool dim)
+        /// A key's face (DkKey, DevKit.cs): its text fitted to the key (shrunk, then wrapped, then cut), an icon beside it or
+        /// stacked over it, a sub-line, or a lamp (1 lit, 2 unlit) before the text.
+        internal static void KeyFace(Rect r, string text, Texture2D icon, bool stack, bool colorIcon, int size, int minSize, Color tc, bool fill, bool calm, string sub, bool dim, int lamp = 0)
         {
             const float pad = 8f;
             if (!string.IsNullOrEmpty(sub))  // two lines, centred: the name, then a small line under it
@@ -130,6 +101,11 @@ namespace Arena
             float ic = 0f, gap = text.Length > 0 ? 6f : 0f;
             if (icon != null)
                 ic = Mathf.Min(r.height - 12f, size + 4f);
+            if (lamp > 0)
+            {
+                ic = 9f;
+                gap = 10f;
+            }
             float avail = r.width - 2f * pad - (ic > 0f ? ic + gap : 0f);
             // Shrink a little first; if it still isn't one line, wrap onto a second line (a key tall enough) before shrinking further.
             int fs = FitSize(text, size, Mathf.Max(minSize, size - 4), avail);
@@ -148,7 +124,15 @@ namespace Arena
             text = Truncate(text, fs, avail);
             float tw = text.Length == 0 ? 0f : Mathf.Min(avail, Ui.TextWidth(text, fs, true) - 6f);
             float x = r.center.x - (ic + (ic > 0f ? gap : 0f) + tw) / 2f;
-            if (icon != null)
+            if (lamp > 0)
+            {
+                var lr = new Rect(x, r.center.y - 4.5f, 9f, 9f);
+                if (lamp == 1 && !calm)
+                    Ui.Fill(new Rect(lr.x - 3f, lr.y - 3f, 15f, 15f), tc.WithAlpha(0.25f));
+                Ui.Fill(lr, tc.WithAlpha(lamp == 1 ? 1f : 0.4f));
+                x += ic + gap;
+            }
+            else if (icon != null)
             {
                 Ui.Icon(new Rect(x, r.center.y - ic / 2f, ic, ic), icon, colorIcon ? new Color(1f, 1f, 1f, dim ? 0.5f : 1f) : tc);
                 x += ic + gap;
@@ -170,7 +154,7 @@ namespace Arena
         {
             bool hover = r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            var c = CrtUi.Dim;
+            var c = CrtStyle.Dim;
             Ui.Fill(r, c.WithAlpha(0.02f));
             CrtKit.Dashed(r, 1f, c.WithAlpha(hover ? 0.6f : 0.32f));  // faint, like the mockup's locked keys
             var ic = PixelArt.Get("ui_lock");
@@ -200,14 +184,14 @@ namespace Arena
             size = CrtKit.Sz(size);  // small caps, like the mockup's 12 px headings
             float sp = size * 0.14f;  // .14em, as in the mockup
             float tw = SpacedWidth(t, size, sp);
-            Spaced(new Rect(x, y + 8f, tw + 12f, 24f), t, size, HeadCol, TextAnchor.MiddleLeft, sp);  // sits just above the rule, flush with its left end
+            Spaced(new Rect(x, y + 8f, tw + 12f, 24f), t, size, CrtStyle.Head, TextAnchor.MiddleLeft, sp);  // sits just above the rule, flush with its left end
             if (!string.IsNullOrEmpty(caption))
             {
                 float left = tw + 16f;
                 var cr = new Rect(x + left, y + 9f, w - left, 24f);
                 string cap = caption.ToUpperInvariant();
                 int s = FitSize(cap, 10, 9, cr.width);
-                var dimCap = new Color(HeadCol.r * 0.55f, HeadCol.g * 0.55f, HeadCol.b * 0.6f, 0.65f);  // very dim, like the mockup's captions
+                var dimCap = new Color(CrtStyle.Head.r * 0.55f, CrtStyle.Head.g * 0.55f, CrtStyle.Head.b * 0.6f, 0.65f);  // very dim, like the mockup's captions
                 if (Ui.TextWidth(cap, s, true) > cr.width)
                 {
                     // Too long for one line: two small lines, cut at a word with "…" if even that is too much.
@@ -222,14 +206,14 @@ namespace Arena
                     Ui.Label(cr, Truncate(cap, s, cr.width), s, dimCap, TextAnchor.MiddleRight, true);
                 }
             }
-            Ui.Fill(new Rect(x, y + 27f, w, 1f), HeadCol.WithAlpha(0.4f));
+            Ui.Fill(new Rect(x, y + 27f, w, 1f), CrtStyle.Head.WithAlpha(0.4f));
         }
 
         /// A small label in the dim ink (the mockup's .lab).
         public static void Lab(Rect r, string text, int size, bool calm, bool bright = false)
         {
             string t = text.ToUpperInvariant();
-            Ui.Label(r, Truncate(t, size, r.width), size, bright ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(r, Truncate(t, size, r.width), size, bright ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleLeft, true);
         }
 
         /// The blue corner brackets of the lobby's boxes (as on the original's ability box): an L on every corner, 3 px thick,
@@ -333,8 +317,8 @@ namespace Arena
             }
             else
             {
-                Ui.Fill(r, CrtUi.Ink.WithAlpha(0.04f));
-                CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.5f));
+                Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.04f));
+                CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.5f));
             }
             if (!brackets)
                 return;
@@ -392,7 +376,7 @@ namespace Arena
         public static bool QuietTab(Rect r, string text, bool on, bool enabled = true)
         {
             bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             if (on)
             {
                 var fill = ink.WithAlpha(0.3f);
@@ -420,13 +404,13 @@ namespace Arena
         /// A number tile: a gold value over a small dim caption, the value shrinking to fit the tile.
         public static void Tile(Rect r, string value, string caption, bool calm)
         {
-            Ui.Fill(r, CrtUi.Ink.WithAlpha(0.10f));
-            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.4f));
+            Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.10f));
+            CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.4f));
             var vr = new Rect(r.x + 8f, r.y + 2f, r.width - 12f, r.height * 0.58f);
-            Fit(vr, value, 20, 11, Gold, TextAnchor.MiddleLeft, calm, false);
+            Fit(vr, value, 20, 11, CrtStyle.Gold, TextAnchor.MiddleLeft, calm, false);
             var cr = new Rect(r.x + 8f, r.y + r.height * 0.58f, r.width - 10f, r.height * 0.4f);
             int s = FitSize(caption, 10, 8, cr.width);
-            Ui.Label(cr, Truncate(caption, s, cr.width), s, CrtUi.Dim, TextAnchor.UpperLeft, true);
+            Ui.Label(cr, Truncate(caption, s, cr.width), s, CrtStyle.Dim, TextAnchor.UpperLeft, true);
         }
 
         /// A stat row: dim name, a lit bar in the stat's own colour (a bright top, a deeper bottom, a soft halo, a bright end cap and a slow
@@ -462,7 +446,7 @@ namespace Arena
         public static void StatBar(Rect r, string name, string value, float frac, Color c, bool calm)
         {
             const float nameW = 70f, valW = 64f;
-            Ui.Label(new Rect(r.x, r.y, nameW, r.height), name.ToUpperInvariant(), 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x, r.y, nameW, r.height), name.ToUpperInvariant(), 12, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             var tr = new Rect(r.x + nameW + 8f, r.center.y - 4f, r.width - nameW - valW - 16f, 9f);
             Ui.Fill(new Rect(tr.x - 1f, tr.y - 1f, tr.width + 2f, tr.height + 2f), new Color(1f, 1f, 1f, 0.06f));
             Ui.Fill(tr, new Color(0.02f, 0.04f, 0.08f, 0.9f));

@@ -94,7 +94,7 @@ namespace Arena
             {
                 int wave = BossLab.BossWaves[i];
                 var r = new Rect(x + (i % 2) * (w / 2f + 2f), y + (i / 2) * 34f, w / 2f - 2f, 30f);
-                if (DkChoice(r, wave + "  " + LabBossName(wave), lab.Wave == wave, Ui.Gold))
+                if (DkChoice(r, wave + "  " + LabBossName(wave), lab.Wave == wave, CrtStyle.Gold))
                     lab.Wave = wave;
             }
             y += 5 * 34f + 12f;
@@ -186,15 +186,15 @@ namespace Arena
         void DrawLabPanel()
         {
             var r = LabPanel;
-            DkHud(r, Ui.Gold);
+            DkHud(r, CrtStyle.Gold);
             float x = r.x + 10f, w = r.width - 20f, y = r.y + 8f;
-            Ui.Label(new Rect(x, y, w, 18f), "BOSS LAB", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x, y, w, 18f), "BOSS LAB", 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x, y, w, 18f), lab.BossName.Length > 0 ? lab.BossName : LabBossName(lab.Wave), 12, Color.white, TextAnchor.MiddleRight, true);
             y += 22f;
 
             // Speed
             float bw = (w - 4f * 3f) / 5f;
-            if (DkChoice(new Rect(x, y, bw, 24f), labPaused ? "Play" : "Pause", labPaused, Ui.Gold))
+            if (DkChoice(new Rect(x, y, bw, 24f), labPaused ? "Play" : "Pause", labPaused, CrtStyle.Gold))
                 labPaused = !labPaused;
             for (int i = 0; i < LabSpeeds.Length; i++)
                 if (DkChoice(new Rect(x + (i + 1) * (bw + 3f), y, bw, 24f), LabSpeeds[i] + "x", !labPaused && labSpeed == LabSpeeds[i], Ui.Primary))
@@ -225,7 +225,7 @@ namespace Arena
             var top = TopSources(3);
             if (top.Count > 0)
             {
-                Ui.Label(new Rect(x, y, w, 15f), "HIT MOST BY", 9, Ui.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, y, w, 15f), "HIT MOST BY", 9, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
                 y += 15f;
                 foreach (var kv in top)
                 {
@@ -241,7 +241,7 @@ namespace Arena
                 StopLab();
                 labSetupOpen = true;
             }
-            if (DkKey(new Rect(x + 2f * (third + 3f), by, third, 26f), "Exit", Ui.Danger))
+            if (DkKey(new Rect(x + 2f * (third + 3f), by, third, 26f), "Exit", CrtStyle.Danger))
                 StopLab();
 
             if (lab.Outcome != LabOutcome.Running)
@@ -271,7 +271,7 @@ namespace Arena
         void DrawLabResult()
         {
             var r = new Rect(W / 2f - 230f, H / 2f - 110f, 460f, 200f);
-            Color accent = lab.Outcome == LabOutcome.Won ? Ui.Good : lab.Outcome == LabOutcome.Lost ? Ui.Danger : Ui.Warn;
+            Color accent = lab.Outcome == LabOutcome.Won ? Ui.Good : lab.Outcome == LabOutcome.Lost ? CrtStyle.Danger : Ui.Warn;
             DkBox(r, accent, 0.85f);
             string title = lab.Outcome == LabOutcome.Won ? "BOSS DOWN" : lab.Outcome == LabOutcome.Lost ? "PARTY WIPED" : "TIME'S UP";
             Ui.Title(new Rect(r.x, r.y + 16f, r.width, 36f), title, 28, Color.white);

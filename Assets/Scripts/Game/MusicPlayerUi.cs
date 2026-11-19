@@ -211,7 +211,7 @@ namespace Arena
             var entry = juke.Selected == null ? null : MusicLibrary.Find(juke.Selected);
             string shown = sounds.PlayingId;
             var playing = shown == null ? null : MusicLibrary.Find(shown);
-            Color accent = entry != null ? MoodColor(entry.Mood) : CrtUi.Ink;
+            Color accent = entry != null ? MoodColor(entry.Mood) : CrtStyle.Ink;
 
             // Now playing.
             var card = new Rect(x, y, w, 134f);
@@ -303,7 +303,7 @@ namespace Arena
                 var e = i == 0 ? null : MusicLibrary.All[i - 1];
                 bool chosen = e == null ? juke.Selected == null : juke.Selected == e.Id;
                 bool hover = r.Contains(Event.current.mousePosition);
-                Color c = e == null ? CrtUi.Ink : MoodColor(e.Mood);
+                Color c = e == null ? CrtStyle.Ink : MoodColor(e.Mood);
                 DkSub(r, chosen ? c.WithAlpha(0.22f) : new Color(1f, 1f, 1f, hover ? 0.07f : 0.025f));
                 if (chosen)
                     CrtKit.Frame(r, 2f, c);

@@ -497,6 +497,36 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;
     }
+    else if (mode == "keys")
+    {
+      // The one CRT key (DkKey, DevKit.cs) in each of its states, plus a lamp, an icon and a sub-line. WIDE=1: a longer label.
+      Event.current.type = EventType.Repaint;
+      Ui.Fill(new Rect(0f, 0f, UnityEngine.Screen.width, UnityEngine.Screen.height), CrtStyle.Bg);
+      string text = Environment.GetEnvironmentVariable("WIDE") != null ? "Start the run" : "Play";
+      string[] names = { "plain", "on", "danger", "gold", "hover", "locked", "view only", "static", "quiet", "lamp", "sub-line", "tint (old DkKey)" };
+      float kw = 170f, kh = 50f;
+      for (int i = 0; i < names.Length; i++)
+      {
+        var k = new Rect(60f + (i % 4) * 300f, 110f + (i / 4) * 170f, kw, kh);
+        Ui.Label(new Rect(k.x, k.y - 34f, kw, 20f), names[i].ToUpperInvariant(), 13, CrtStyle.Desc, TextAnchor.MiddleCenter, true);
+        Event.current.mousePosition = i == 4 ? k.center : new Vector2 { x = -100, y = -100 };
+        switch (i)
+        {
+          case 0: ArenaApp.DkKey(k, text, false, false); break;
+          case 1: ArenaApp.DkKey(k, text, true, false); break;
+          case 2: ArenaApp.DkKey(k, text, false, false, danger: true); break;
+          case 3: ArenaApp.DkKey(k, text, false, false, accent: CrtStyle.Gold); break;
+          case 4: ArenaApp.DkKey(k, text, false, false); break;
+          case 5: ArenaApp.DkKey(k, text, false, false, locked: true); break;
+          case 6: ArenaApp.DkKey(k, text, true, false, enabled: false); break;
+          case 7: ArenaApp.DkKey(k, text, false, false, isStatic: true); break;
+          case 8: ArenaApp.DkKey(k, text, false, false, quiet: true); break;
+          case 9: ArenaApp.DkKey(k, text, false, false, lamp: true); break;
+          case 10: ArenaApp.DkKey(k, text, false, false, sub: "15 gold"); break;
+          default: typeof(ArenaApp).GetMethod("DkKey", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(Rect), typeof(string), typeof(Color), typeof(bool), typeof(int) }, null).Invoke(app, new object[] { k, text, Ui.GoldButton, false, 13 }); break;
+        }
+      }
+    }
     else if (mode == "kitgrid")
     {
       // Every role and weapon of one class (KIT=0..5, default the Ninja), drawn big: a check on how each one looks.

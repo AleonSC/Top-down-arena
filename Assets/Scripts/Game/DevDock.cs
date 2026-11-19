@@ -34,8 +34,8 @@ namespace Arena
         Rect DockBox(Rect r, string title)
         {
             dockHit.Add(r);
-            var ink = CrtUi.Ink;
-            Ui.Fill(r, CrtUi.Bg.WithAlpha(0.97f));
+            var ink = CrtStyle.Ink;
+            Ui.Fill(r, CrtStyle.Bg.WithAlpha(0.97f));
             CrtKit.Frame(r, 1f, ink.WithAlpha(0.55f));
             Ui.Fill(new Rect(r.x, r.y + 10f, 3f, 20f), CrtStyle.Head);
             Ui.Label(new Rect(r.x + 14f, r.y + 8f, r.width - 28f, 22f), title.ToUpperInvariant(), 12, CrtStyle.Head, TextAnchor.MiddleLeft, true);
@@ -49,7 +49,7 @@ namespace Arena
                 return DkSwitch(r, value, label);
             bool now = DkSwitch(new Rect(r.x, r.y, r.width - 46f, r.height), value, label);
             var kc = new Rect(r.xMax - 40f, r.y + r.height / 2f - 10f, 40f, 20f);
-            CrtKit.Frame(kc, 1f, CrtUi.Ink.WithAlpha(0.5f));
+            CrtKit.Frame(kc, 1f, CrtStyle.Ink.WithAlpha(0.5f));
             Ui.Label(kc, hot, 11, CrtStyle.Desc, TextAnchor.MiddleCenter, true);
             return now;
         }
@@ -76,8 +76,8 @@ namespace Arena
             if (devSheet != 0)
                 devDrawer = 0;
             dockHit.Add(DockBar);
-            var ink = CrtUi.Ink;
-            Ui.Fill(DockBar, CrtUi.Bg.WithAlpha(0.96f));
+            var ink = CrtStyle.Ink;
+            Ui.Fill(DockBar, CrtStyle.Bg.WithAlpha(0.96f));
             CrtKit.Frame(DockBar, 1f, ink.WithAlpha(0.6f));
             const float y = 18f, h = 36f;
             float x = DockBar.x + 12f;
@@ -112,7 +112,7 @@ namespace Arena
                         game.DevJumpToWave(Mathf.Max(1, game.Wave) + 1);
                 }
                 x += 110f;
-                if (DkKey(new Rect(x, y, 90f, h), "KILL ALL", Ui.Danger, false, 13))
+                if (DkKey(new Rect(x, y, 90f, h), "KILL ALL", CrtStyle.Danger, false, 13))
                     game.DevKillAll(game.MyId);
                 x += 96f;
                 GUI.enabled = was;
@@ -154,11 +154,11 @@ namespace Arena
 
             float rx = DockBar.xMax - 12f;
             rx -= 44f;
-            if (DkKey(new Rect(rx, y, 44f, h), "X", Ui.Danger, false, 14))
+            if (DkKey(new Rect(rx, y, 44f, h), "X", CrtStyle.Danger, false, 14))
                 devMenuOpen = false;
             rx -= 76f;
             bool rec = recordSessions;
-            if (DkKey(new Rect(rx, y, 70f, h), "REC", Ui.Danger, rec, 13))
+            if (DkKey(new Rect(rx, y, 70f, h), "REC", CrtStyle.Danger, rec, 13))
             {
                 recordSessions = !recordSessions;
                 PlayerPrefs.SetInt("record_sessions", recordSessions ? 1 : 0);
@@ -271,7 +271,7 @@ namespace Arena
                 foreach (var p in game.Players.Values) game.DevMasterAll(p.Id);
             if (DkKey(b[0], "FULL HEAL", Ui.Neutral, false, 13))
                 foreach (var p in game.Players.Values) game.DevHeal(p.Id);
-            if (DkKey(b[1], "RESET STATS", Ui.Danger, false, 13))
+            if (DkKey(b[1], "RESET STATS", CrtStyle.Danger, false, 13))
                 foreach (var p in game.Players.Values) game.DevResetStats(p.Id);
             GUI.enabled = was;
             if (DkKey(col.Next(36f), "EDIT STATS…", CrtStyle.Head, devSide, 14))
@@ -286,7 +286,7 @@ namespace Arena
             var rk = DkStack.Cells(col.Next(30f), 5, 4f);
             string[] rn = { "+1", "+10", "30", "MAX", "RESET" };
             for (int i = 0; i < 5; i++)
-                if (DkKey(rk[i], rn[i], i == 4 ? Ui.Danger : i == 3 ? Ui.GoldButton : Ui.Neutral, false, 11))
+                if (DkKey(rk[i], rn[i], i == 4 ? CrtStyle.Danger : i == 3 ? Ui.GoldButton : Ui.Neutral, false, 11))
                     DevSetRank(i == 0 ? prof.RankNow + 1 : i == 1 ? prof.RankNow + 10 : i == 2 ? 30 : i == 3 ? Rank.MaxRank : 1);
         }
 
@@ -588,7 +588,7 @@ namespace Arena
                 var cell = new Rect(area.x + 6f + (k % cols) * (cw + gap), area.y + 4f + (k / cols) * (chh + gap), cw, chh);
                 bool hover = canSpawn && cell.Contains(ev.mousePosition);
                 bool boss = Defs.Get(list[i]).IsBoss;
-                Color tint = boss ? CrtStyle.Danger : Approaches.Of(list[i]) != null ? CrtStyle.Gold : CrtUi.Ink;
+                Color tint = boss ? CrtStyle.Danger : Approaches.Of(list[i]) != null ? CrtStyle.Gold : CrtStyle.Ink;
                 Ui.Fill(cell, tint.WithAlpha(hover ? 0.16f : 0.05f));
                 CrtKit.Frame(cell, 1f, tint.WithAlpha(hover ? 0.8f : 0.25f));
                 Ui.Label(new Rect(cell.x, cell.yMax - 15f, cell.width, 13f), PracticePlan.NameOf(list[i]), 9, canSpawn ? CrtStyle.Body : CrtStyle.Desc, TextAnchor.MiddleCenter);

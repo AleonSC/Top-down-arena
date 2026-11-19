@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The lobby as a blue CRT screen (the lobby's ink is CrtUi.Ink), and New run opening into it (Docs/Mockups/crt-new-run-lobby.html: opening D "Terminal boot",
+    /// The lobby as a blue CRT screen (the lobby's ink is CrtStyle.Ink), and New run opening into it (Docs/Mockups/crt-new-run-lobby.html: opening D "Terminal boot",
     /// blue phosphor, curved glass, scanlines behind panels).
     ///   Behind the panels (DrawLobbyCrtBack): a dark blue screen (a little see-through, so the chosen menu background still shows
     ///   faintly) and a glow in the middle.
@@ -20,8 +20,8 @@ namespace Arena
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
     public partial class ArenaApp
     {
-        public static Color LobbyInk => CrtUi.Ink;
-        static Color LobbyBg => CrtUi.Bg;
+        public static Color LobbyInk => CrtStyle.Ink;
+        static Color LobbyBg => CrtStyle.Bg;
         const float EnterCrtLen = 7.1f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 5.5f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, CrtLogPause = 1.0f, CrtLogFadeAt = 5.6f, LobbyCrtBgAlpha = 1f;
         const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
         const float LobbyRimBand = 5f, LobbyRimLine = 1f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
@@ -53,7 +53,7 @@ namespace Arena
             lobbyPhosTex = new Texture2D(1, 720, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var phos = new Color[720];
             for (int y = 0; y < phos.Length; y++)
-                phos[y] = y % 4 == 0 ? CrtUi.Ink : CrtUi.Ink.WithAlpha(0f);
+                phos[y] = y % 4 == 0 ? CrtStyle.Ink : CrtStyle.Ink.WithAlpha(0f);
             lobbyPhosTex.SetPixels(phos);
             lobbyPhosTex.Apply();
             // The glass frame, meant to be 9-sliced: a rounded rectangle filling the whole texture; outside its curve the dark screen surround, then a
@@ -530,7 +530,7 @@ namespace Arena
         void DrawCrtGrowScreen(Rect r, float grow, float e)
         {
             float k = EaseInOut(Seg(e, 0.3f, CrtGrowTo));  // the colour change, a little ahead of the size
-            var bg = Color.Lerp(CrtUi.Bg, LobbyBg, k);
+            var bg = Color.Lerp(CrtStyle.Bg, LobbyBg, k);
             Ui.Fill(r, bg);
             Ui.RadialGlow(new Rect(r.x - r.width * 0.1f, r.y - r.height * 0.1f, r.width * 1.2f, r.height * 1.2f), Color.Lerp(CrtUi.T(new Color(0.08f, 0.16f, 0.36f, 0.34f)), CrtUi.T(new Color(0.05f, 0.13f, 0.32f, 0.38f)), k));  // the glow in the middle, as in DrawLobbyCrtBack
             GUI.BeginGroup(r);

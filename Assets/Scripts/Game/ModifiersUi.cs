@@ -197,7 +197,7 @@ namespace Arena
             Ui.Label(new Rect(tx, c.y + 33f, tw, 44f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
 
             // The key: shown, not clicked (the tile takes the click); a guest sees the host's choice, so it never goes hot.
-            LobbyKit.Key(new Rect(c.x + 12f, c.yMax - 36f, c.width - 24f, 26f), inert ? (on ? "ON · " : "") + "NO EFFECT IN SURVIVAL" : on ? "ON" : "OFF", on, fxReduced,
+            DkKey(new Rect(c.x + 12f, c.yMax - 36f, c.width - 24f, 26f), inert ? (on ? "ON · " : "") + "NO EFFECT IN SURVIVAL" : on ? "ON" : "OFF", on, fxReduced,
                 on && !inert ? PixelArt.Get("ui_check") : null, size: 15, minSize: 11, enabled: false, accent: on ? ModLit : (Color?)null);
             if (inert)
                 Ui.Fill(c, new Color(0.01f, 0.02f, 0.06f, 0.55f));  // dimmed: Survival's room has nothing for it to act on

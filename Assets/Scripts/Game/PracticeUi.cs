@@ -82,28 +82,28 @@ namespace Arena
             float by = r.y + PracticeTop + 38f + rows * rowStep;
             if (plan.Waves.Count > rows)
             {
-                LobbyKit.Spaced(new Rect(x0 + 34f, by - 2f, w0 - 68f, 18f), (practiceScroll + 1) + "-" + Math.Min(plan.Waves.Count, practiceScroll + rows) + " OF " + plan.Waves.Count, 10, CrtUi.Dim, TextAnchor.MiddleCenter, 1.2f);
-                if (LobbyKit.Key(new Rect(x0, by - 2f, 28f, 20f), "▲", false, calm, size: 10, minSize: 9) && practiceScroll > 0)
+                LobbyKit.Spaced(new Rect(x0 + 34f, by - 2f, w0 - 68f, 18f), (practiceScroll + 1) + "-" + Math.Min(plan.Waves.Count, practiceScroll + rows) + " OF " + plan.Waves.Count, 10, CrtStyle.Dim, TextAnchor.MiddleCenter, 1.2f);
+                if (DkKey(new Rect(x0, by - 2f, 28f, 20f), "▲", false, calm, size: 10, minSize: 9) && practiceScroll > 0)
                     practiceScroll--;
-                if (LobbyKit.Key(new Rect(x0 + w0 - 28f, by - 2f, 28f, 20f), "▼", false, calm, size: 10, minSize: 9))
+                if (DkKey(new Rect(x0 + w0 - 28f, by - 2f, 28f, 20f), "▼", false, calm, size: 10, minSize: 9))
                     practiceScroll++;
             }
             by += 22f;
 
             float bw = (w0 - 12f) / 3f;
-            if (LobbyKit.Key(new Rect(x0, by, bw, 30f), "+ ADD", false, calm, size: 13, minSize: 10, enabled: canEdit, accent: ReviveMintUi))
+            if (DkKey(new Rect(x0, by, bw, 30f), "+ ADD", false, calm, size: 13, minSize: 10, enabled: canEdit, accent: ReviveMintUi))
             {
                 plan.Waves.Insert(practiceSel + 1, new PracticeWave { Level = sel.Level });
                 practiceSel++;
                 PracticeChanged();
             }
-            if (LobbyKit.Key(new Rect(x0 + bw + 6f, by, bw, 30f), "COPY", false, calm, size: 13, minSize: 10, enabled: canEdit))
+            if (DkKey(new Rect(x0 + bw + 6f, by, bw, 30f), "COPY", false, calm, size: 13, minSize: 10, enabled: canEdit))
             {
                 plan.Waves.Insert(practiceSel + 1, sel.Copy());
                 practiceSel++;
                 PracticeChanged();
             }
-            if (LobbyKit.Key(new Rect(x0 + 2f * (bw + 6f), by, bw, 30f), "REMOVE", false, calm, size: 13, minSize: 9, danger: true, enabled: canEdit) && plan.Waves.Count > 1)
+            if (DkKey(new Rect(x0 + 2f * (bw + 6f), by, bw, 30f), "REMOVE", false, calm, size: 13, minSize: 9, danger: true, enabled: canEdit) && plan.Waves.Count > 1)
             {
                 plan.Waves.RemoveAt(practiceSel);
                 practiceSel = Mathf.Min(practiceSel, plan.Waves.Count - 1);
@@ -123,7 +123,7 @@ namespace Arena
                     lx += 44f;
                     continue;
                 }
-                if (LobbyKit.Key(new Rect(lx, by, 32f, 30f), step > 0 ? "+" + step : "−" + (-step), false, calm, size: 12, minSize: 10, enabled: canEdit))
+                if (DkKey(new Rect(lx, by, 32f, 30f), step > 0 ? "+" + step : "−" + (-step), false, calm, size: 12, minSize: 10, enabled: canEdit))
                 {
                     sel.Level = Mathf.Clamp(sel.Level + step, 1, Game.MaxWave);
                     PracticeChanged();
@@ -131,7 +131,7 @@ namespace Arena
                 lx += 36f;
             }
             by += 40f;
-            if (LobbyKit.Key(new Rect(x0, by, w0, 32f), "LOOP THE WAVES", plan.Loop, calm, size: 14, minSize: 10, enabled: canEdit, accent: PracticeCyan))
+            if (DkKey(new Rect(x0, by, w0, 32f), "LOOP THE WAVES", plan.Loop, calm, size: 14, minSize: 10, enabled: canEdit, accent: PracticeCyan))
             {
                 plan.Loop = !plan.Loop;
                 PracticeChanged();
@@ -140,7 +140,7 @@ namespace Arena
 
             // --- Enemies (right): or the saved setups.
             float gx = x0 + w0 + 18f;
-            Ui.Fill(new Rect(gx - 9f, r.y + PracticeTop, 1f, r.height - PracticeTop - 70f), CrtUi.Ink.WithAlpha(0.22f));
+            Ui.Fill(new Rect(gx - 9f, r.y + PracticeTop, 1f, r.height - PracticeTop - 70f), CrtStyle.Ink.WithAlpha(0.22f));
             var grid = new Rect(gx, r.y + PracticeTop, r.xMax - 16f - gx, r.height - PracticeTop - 70f);
             if (practiceLoadOpen)
                 DrawPracticeFiles(grid, calm);
@@ -203,7 +203,7 @@ namespace Arena
                 sc = Ui.Muted;
             }
             // The mode tabs' header (ModeTabKit.cs): the spaced name and a rule; the fact chips and the status under it.
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             float keyW = session.IsHost ? 144f : canEdit ? 100f : 0f;
             float right = r.xMax - 16f - (keyW > 0f ? keyW + 14f : 0f);
             LobbyKit.Spaced(new Rect(x + 2f, r.y + 6f, 200f, 20f), "PRACTICE", 14, ink.WithAlpha(0.9f), TextAnchor.MiddleLeft, 3.6f);
@@ -223,12 +223,12 @@ namespace Arena
                 Ui.Label(new Rect(sx + 12f, sy, right - sx - 12f, 18f), status, 12, sc.WithAlpha(0.85f));
             if (session.IsHost)
             {
-                if (LobbyKit.Key(new Rect(r.xMax - 160f, r.y + 8f, 144f, 30f), "LET OTHERS EDIT", session.OthersCanEdit, calm, size: 12, minSize: 9, accent: PracticeCyan))
+                if (DkKey(new Rect(r.xMax - 160f, r.y + 8f, 144f, 30f), "LET OTHERS EDIT", session.OthersCanEdit, calm, size: 12, minSize: 9, accent: PracticeCyan))
                     session.SetOthersCanEdit(!session.OthersCanEdit);
             }
             else if (canEdit)
                 DkTag(new Rect(r.xMax - 116f, r.y + 13f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
-            Ui.Fill(new Rect(r.x + 14f, r.y + PracticeTop - 8f, r.width - 28f, 1f), CrtUi.Ink.WithAlpha(0.25f));
+            Ui.Fill(new Rect(r.x + 14f, r.y + PracticeTop - 8f, r.width - 28f, 1f), CrtStyle.Ink.WithAlpha(0.25f));
         }
 
         /// The enemies to pick from, each drawn live, in one scrolling list of sections by the sort (faction, job or A-Z;
@@ -243,7 +243,7 @@ namespace Arena
             if (canEdit && sel.Total > 0)
             {
                 keysX -= 62f;
-                if (LobbyKit.Key(new Rect(keysX, g.y - 2f, 62f, 22f), "CLEAR", false, calm, size: 11, minSize: 9, danger: true))
+                if (DkKey(new Rect(keysX, g.y - 2f, 62f, 22f), "CLEAR", false, calm, size: 11, minSize: 9, danger: true))
                 {
                     sel.Counts.Clear();
                     PracticeChanged();
@@ -262,7 +262,7 @@ namespace Arena
                         practiceGridScroll = 0;
                     }
                 }
-                Ui.Label(new Rect(keysX - 46f, g.y - 2f, 42f, 22f), "SORT", 10, CrtUi.Dim, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(keysX - 46f, g.y - 2f, 42f, 22f), "SORT", 10, CrtStyle.Dim, TextAnchor.MiddleRight, true);
             }
 
             float top = g.y + titleH - 6f, viewH = g.yMax - infoH - 8f - top;
@@ -314,7 +314,7 @@ namespace Arena
                     LobbyKit.Spaced(new Rect(hr.x + tx, hr.y, hr.width - tx, headH), sec.Head, 10, sec.Ink, TextAnchor.MiddleLeft, 1.3f);
                     {
                         Ui.Label(new Rect(hr.x, hr.y, hr.width, headH), picked > 0 ? "×" + picked + " in wave" : sec.Types.Length.ToString(), 10,
-                            picked > 0 ? PracticeCyan : CrtUi.Dim, TextAnchor.MiddleRight, picked > 0);
+                            picked > 0 ? PracticeCyan : CrtStyle.Dim, TextAnchor.MiddleRight, picked > 0);
                         Ui.Fill(new Rect(hr.x + tx + Ui.TextWidth(sec.Head, 10, true) * 1.15f + 16f, hr.center.y, hr.width * 0.5f, 1f), sec.Ink.WithAlpha(0.18f));
                     }
                 }
@@ -354,7 +354,7 @@ namespace Arena
                         acc += h;
                     }
                 }
-                CrtKit.Frame(bar, 1f, CrtUi.Ink.WithAlpha(overBar ? 0.5f : 0.25f));
+                CrtKit.Frame(bar, 1f, CrtStyle.Ink.WithAlpha(overBar ? 0.5f : 0.25f));
                 var thumb = new Rect(bar.x + 2f, bar.y + 2f + (bar.height - 4f) * before / all, bar.width - 4f, Mathf.Max(20f, (bar.height - 4f) * viewH / all));
                 thumb.y = Mathf.Min(thumb.y, bar.yMax - 2f - thumb.height);
                 if (practiceSort == 0)
@@ -381,7 +381,7 @@ namespace Arena
                 bool boss = Defs.Get(type).IsBoss, hover = tr.Contains(ev.mousePosition);
                 if (hover)
                     hovered = type;
-                Color accent = n > 0 ? PracticeCyan : boss ? CrtStyle.Gold : CrtUi.Ink;
+                Color accent = n > 0 ? PracticeCyan : boss ? CrtStyle.Gold : CrtStyle.Ink;
                 Ui.Fill(tr, accent.WithAlpha(n > 0 ? 0.14f : hover ? 0.1f : 0.05f));
                 CrtKit.Frame(tr, n > 0 ? 2f : 1f, accent.WithAlpha(n > 0 ? 0.95f : hover ? 0.7f : 0.28f));
                 if (canEdit && ev.type == EventType.MouseDown && hover)
@@ -447,7 +447,7 @@ namespace Arena
             // What the hovered one does, in a bar under the tiles (its enemy is drawn at the left, above).
             var info = new Rect(g.x, g.yMax - infoH, g.width, infoH);
             Ui.Fill(info, new Color(0f, 0f, 0f, 0.3f));
-            CrtKit.Frame(info, 1f, CrtUi.Ink.WithAlpha(0.25f));
+            CrtKit.Frame(info, 1f, CrtStyle.Ink.WithAlpha(0.25f));
             if (hovered != null)
             {
                 bool boss = Defs.Get(hovered.Value).IsBoss;
@@ -506,15 +506,15 @@ namespace Arena
         void DrawPracticeFooter(Rect r, bool canEdit, bool calm)
         {
             float x = r.x + 16f, y = r.yMax - 48f;
-            Ui.Fill(new Rect(r.x + 14f, y - 8f, r.width - 28f, 1f), CrtUi.Ink.WithAlpha(0.25f));
+            Ui.Fill(new Rect(r.x + 14f, y - 8f, r.width - 28f, 1f), CrtStyle.Ink.WithAlpha(0.25f));
             LobbyKit.Lab(new Rect(x, y, 54f, 32f), "Setup", 12, calm);
             practiceName = DkField(new Rect(x + 56f, y, 190f, 32f), practiceName, 40);
             float bx = x + 256f;
-            if (LobbyKit.Key(new Rect(bx, y, 70f, 32f), "SAVE", false, calm, size: 14, minSize: 10, accent: ReviveMintUi))
+            if (DkKey(new Rect(bx, y, 70f, 32f), "SAVE", false, calm, size: 14, minSize: 10, accent: ReviveMintUi))
                 SavePractice();
-            if (LobbyKit.Key(new Rect(bx + 76f, y, 70f, 32f), practiceLoadOpen ? "BACK" : "LOAD", practiceLoadOpen, calm, size: 14, minSize: 10, enabled: canEdit))
+            if (DkKey(new Rect(bx + 76f, y, 70f, 32f), practiceLoadOpen ? "BACK" : "LOAD", practiceLoadOpen, calm, size: 14, minSize: 10, enabled: canEdit))
                 practiceLoadOpen = !practiceLoadOpen;
-            if (LobbyKit.Key(new Rect(bx + 152f, y, 104f, 32f), "FOLDER", false, calm, size: 14, minSize: 10))
+            if (DkKey(new Rect(bx + 152f, y, 104f, 32f), "FOLDER", false, calm, size: 14, minSize: 10))
             {
                 Directory.CreateDirectory(PracticeFolder);
                 Application.OpenURL("file:///" + PracticeFolder.Replace('\\', '/'));
@@ -537,7 +537,7 @@ namespace Arena
             for (int i = 0; i < files.Length; i++)
             {
                 var b = new Rect(g.x + (i % 2) * (bw + 6f), g.y + 40f + (i / 2) * 38f, bw, 32f);
-                if (LobbyKit.Key(b, Path.GetFileNameWithoutExtension(files[i]).ToUpperInvariant(), false, calm, size: 14, minSize: 10))
+                if (DkKey(b, Path.GetFileNameWithoutExtension(files[i]).ToUpperInvariant(), false, calm, size: 14, minSize: 10))
                     LoadPractice(files[i]);
             }
         }

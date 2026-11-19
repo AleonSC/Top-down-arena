@@ -196,7 +196,7 @@ namespace Arena
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            var c = CrtUi.Ink;
+            var c = CrtStyle.Ink;
             CrtKit.SoftBox(r, c, sel, hover, false);
             Ui.Icon(new Rect(r.center.x - 10f, r.center.y - 10f, 20f, 20f), PixelArt.Get(icon), CrtKit.SoftText(c, hover || sel));
             return Ui.HitArea(r);
@@ -208,7 +208,7 @@ namespace Arena
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             Color tc;
             if (open)
             {
@@ -236,7 +236,7 @@ namespace Arena
             ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
             bool oneLine = n > 7;
             float rowH = oneLine ? 29f : 36f, step = rowH + 3f;
-            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f));
+            BeginDrawer("PROFILE", CrtStyle.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f));
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
             var ps = new Rect(26f, 112f, CabInW, 126f);
@@ -284,7 +284,7 @@ namespace Arena
                 if (!calm)
                     Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), tc.WithAlpha(0.18f));
                 Ui.Fill(new Rect(bar.x, bar.y, bar.width * info.Fraction, bar.height), tc);
-                Ui.Label(new Rect(ps.x + 14f, ps.y + 106f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtUi.Dim, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(ps.x + 14f, ps.y + 106f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtStyle.Dim, TextAnchor.MiddleRight, true);
                 CabScreenEnd(ps, 0.9f);
             }
 

@@ -15,13 +15,13 @@ namespace Arena
         /// The wave plate's place in Survival: SURVIVE, the clock, enemies left, the score, and a bar to the next faction.
         void DrawSurvivalPlate(Rect r)
         {
-            Color ink = CrtUi.Ink, dim = CrtUi.Dim;
+            Color ink = CrtStyle.Ink, dim = CrtStyle.Dim;
             HudCrt(new Rect(r.x + 14f, r.y + 5f, 150f, 16f), "SURVIVE", 17, dim);
             string clock = Game.SurvClock(game.SurvTime);
             HudCrt(new Rect(r.x + 12f, r.y + 14f, 150f, 46f), clock, 46, ink);
             HudCrt(new Rect(r.xMax - 110f, r.y + 5f, 100f, 16f), "LEFT", 17, dim, TextAnchor.MiddleRight);
             HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), game.Remaining.ToString(), 32, ink, TextAnchor.MiddleRight);
-            HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), "SCORE " + game.Score.ToString("N0"), 17, Ui.Gold, TextAnchor.MiddleRight);
+            HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), "SCORE " + game.Score.ToString("N0"), 17, CrtStyle.Gold, TextAnchor.MiddleRight);
             // The bar fills towards the next faction (full once all have joined).
             float progress = game.SurvPhase >= Survival.FactionsAt(99999f).Count - 1 ? 1f : (game.SurvTime % Survival.PhaseLength) / Survival.PhaseLength;
             var bar = new Rect(r.x + 14f, r.yMax - 9f, r.width - 28f, 5f);
@@ -36,7 +36,7 @@ namespace Arena
             string sub = choosing.Count > 0 ? "WAITING FOR " + string.Join(" AND ", choosing.ToArray()).ToUpperInvariant() + " TO CHOOSE" : "CHOOSE AN UPGRADE";
             var box = new Rect(W / 2f - 190f, 96f, 380f, 54f);
             Ui.Pill(box, new Color(0f, 0f, 0f, 0.55f));
-            Ui.Label(new Rect(box.x, box.y + 6f, box.width, 18f), "LEVEL UP  ·  CLOCK HELD", 12, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(box.x, box.y + 6f, box.width, 18f), "LEVEL UP  ·  CLOCK HELD", 12, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(box.x, box.y + 24f, box.width, 24f), sub, 15, Color.white, TextAnchor.MiddleCenter, true);
         }
 
@@ -98,7 +98,7 @@ namespace Arena
                 bool reached = i < best;
                 string name = i == 0 ? "The basics" : BossName(all[i].Boss);
                 ModeRow(rows[i], (i + 1).ToString("00"), name, true, true, i == shown, i == hoverI, SurvivalColor,
-                    Game.SurvClock(i * Survival.PhaseLength), reached ? SurvivalColor : CrtUi.Ink.WithAlpha(0.55f));
+                    Game.SurvClock(i * Survival.PhaseLength), reached ? SurvivalColor : CrtStyle.Ink.WithAlpha(0.55f));
             }
 
             // Right: the pressure over the clock.
@@ -171,7 +171,7 @@ namespace Arena
             if (bestTime > 0f)
             {
                 float bx = g.x + g.width * Mathf.Min(1f, bestTime / end);
-                Ui.Fill(new Rect(bx, g.y - 4f, 1f, g.height + 4f), Ui.Gold.WithAlpha(0.85f));
+                Ui.Fill(new Rect(bx, g.y - 4f, 1f, g.height + 4f), CrtStyle.Gold.WithAlpha(0.85f));
             }
         }
     }

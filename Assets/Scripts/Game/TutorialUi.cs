@@ -72,11 +72,11 @@ namespace Arena
             if (!calm)
                 Ui.Fill(new Rect(r.x, r.y, 3f, r.height), gold.WithAlpha(0.85f));
             // Header: TUTORIAL · lesson n / m, and SKIP.
-            HudCrt(new Rect(r.x + 14f, r.y + 6f, 200f, 16f), "TUTORIAL  ·  " + (li + 1) + " / " + Tutorial.Lessons.Length, 15, CrtUi.Dim);
+            HudCrt(new Rect(r.x + 14f, r.y + 6f, 200f, 16f), "TUTORIAL  ·  " + (li + 1) + " / " + Tutorial.Lessons.Length, 15, CrtStyle.Dim);
             if (DkKey(new Rect(r.xMax - 62f, r.y + 6f, 52f, 20f), "SKIP", Ui.Neutral, false, 11))
                 tut.Skip(game);
             DkTitle(new Rect(r.x + 14f, r.y + 24f, r.width - 28f, 24f), lesson.Title, 20, gold);
-            Ui.Label(new Rect(r.x + 14f, r.y + 48f, r.width - 28f, 16f), lesson.When.ToUpperInvariant(), 10, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 14f, r.y + 48f, r.width - 28f, 16f), lesson.When.ToUpperInvariant(), 10, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             float y = r.y + 70f;
             foreach (var s in lesson.Steps)
             {
@@ -84,16 +84,16 @@ namespace Arena
                 string line = TutorialLine(s, out key);
                 bool ok = tut.Done(s);
                 var lamp = new Rect(r.x + 16f, y + 6f, 12f, 12f);
-                Color lc = ok ? Ui.Good : CrtUi.Ink;
+                Color lc = ok ? Ui.Good : CrtStyle.Ink;
                 CrtKit.Frame(lamp, 1f, lc.WithAlpha(ok ? 1f : 0.55f));
                 if (ok)
                     Ui.Fill(new Rect(lamp.x + 3f, lamp.y + 3f, 6f, 6f), lc);
-                Ui.Label(new Rect(r.x + 38f, y, r.width - 120f, rowH), line, 13, ok ? CrtUi.Dim : Color.white, TextAnchor.MiddleLeft, false);
+                Ui.Label(new Rect(r.x + 38f, y, r.width - 120f, rowH), line, 13, ok ? CrtStyle.Dim : Color.white, TextAnchor.MiddleLeft, false);
                 if (key.Length > 0)
                 {
                     float kw = Mathf.Max(30f, Ui.TextWidth(key, 11, true) + 14f);
                     var kr = new Rect(r.xMax - 14f - kw, y + 3f, kw, rowH - 6f);
-                    DkTag(kr, key, ok ? CrtUi.Dim : CrtUi.Ink);
+                    DkTag(kr, key, ok ? CrtStyle.Dim : CrtStyle.Ink);
                 }
                 y += rowH;
             }

@@ -47,7 +47,7 @@ namespace Arena
             int rows = session.IsHost ? game.Players.Count : 0;
             int dummies = session.IsHost ? game.DummyCount() : 0;
             var r = new Rect(14f, 124f, 300f, 36f + Mathf.Max(1, rows) * rowH + (dummies > 0 ? 22f : 0f));
-            DkSub(r, CrtUi.Bg.WithAlpha(0.9f));
+            DkSub(r, CrtStyle.Bg.WithAlpha(0.9f));
             Ui.Fill(new Rect(r.x, r.y, 3f, r.height), DpsColor);
             Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "DPS METER", 11, DpsColor, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "F2 hide  ·  Shift+F2 reset", 10, CrtStyle.Desc, TextAnchor.MiddleRight);

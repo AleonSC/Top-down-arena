@@ -88,7 +88,7 @@ namespace Arena
             var r = TextBanner;
             Ui.Pill(r, new Color(0.35f, 0.25f, 0.05f, 0.92f));
             Ui.Label(new Rect(r.x + 14f, r.y, r.width - 110f, r.height), "TEXT EDIT  ·  click any text to change it  ·  F4 or Esc to stop"
-                + (TextOverrides.Count > 0 ? "  ·  " + TextOverrides.Count + " edited" : ""), 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+                + (TextOverrides.Count > 0 ? "  ·  " + TextOverrides.Count + " edited" : ""), 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             if (DkKey(new Rect(r.xMax - 78f, r.y + 4f, 70f, r.height - 8f), "Done", Ui.GoldButton, false, 11))
                 SetTextEditMode(false);
         }
@@ -132,7 +132,7 @@ namespace Arena
                     textEditNote = "Couldn't save: " + e.Message;
                 }
             }
-            if (TextOverrides.Has(textEditOriginal) && DkKey(new Rect(x + 150f, y, 170f, 36f), "Back to original", Ui.Danger))
+            if (TextOverrides.Has(textEditOriginal) && DkKey(new Rect(x + 150f, y, 170f, 36f), "Back to original", CrtStyle.Danger))
             {
                 TextOverrides.Remove(textEditOriginal);
                 try { TextOverrides.Save(TextOverridePath); } catch (Exception) { }

@@ -67,7 +67,7 @@ namespace Arena
                 var q = game.Players[ids[i]];
                 bool on = (invView == 0 ? me.Id : invView) == q.Id;
                 var r = new Rect(kx + i * (kw + gap), head.y + 18f, kw, 30f);
-                if (LobbyKit.Key(r, q.Id == me.Id ? "YOU" : LobbyKit.Truncate(q.Name.ToUpperInvariant(), 13, kw - 16f), on, FxCalm, size: 13, minSize: 10) && !on)
+                if (DkKey(r, q.Id == me.Id ? "YOU" : LobbyKit.Truncate(q.Name.ToUpperInvariant(), 13, kw - 16f), on, FxCalm, size: 13, minSize: 10) && !on)
                 {
                     invView = q.Id == me.Id ? 0 : q.Id;
                     holoPageAt = Time.unscaledTime;  // (the panels switch on again for the new view)
@@ -133,7 +133,7 @@ namespace Arena
             invScroll[key] = s;
             if (max > 0)
             {
-                var ink = CrtUi.Ink;
+                var ink = CrtStyle.Ink;
                 var track = new Rect(area.xMax - 4f, area.y, 4f, area.height);
                 Ui.Fill(track, ink.WithAlpha(0.15f));
                 float th = Mathf.Max(18f, area.height * shown / total), ty = area.y + (area.height - th) * s / max;
@@ -166,7 +166,7 @@ namespace Arena
         {
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, "Relic", null, FxCalm);
             var slot = new Rect(r.x + 12f, r.y + 48f, 56f, 56f);
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             bool has = me.Relic != RelicId.None;
             Ui.Fill(slot, ink.WithAlpha(has ? 0.16f : 0.05f));
             CrtKit.Frame(slot, 1f, has ? CrtStyle.Gold : ink.WithAlpha(0.35f));
@@ -191,7 +191,7 @@ namespace Arena
         {
             canUse &= game.ExpandingOn;
             LobbyKit.Heading(r.x + 12f, r.y + 10f, r.width - 24f, game.ExpandingOn ? "Pieces" : "Room cards", game.ExpandingOn ? Game.HandCount(me) + " / " + Expansion.HandMax : "off", FxCalm);
-            var ink = CrtUi.Ink;
+            var ink = CrtStyle.Ink;
             const int cols = 3;
             const float minH = 96f;
             float gap = 10f, avail = r.height - 58f;
@@ -262,7 +262,7 @@ namespace Arena
             {
                 int k = owned[i], have = me.Stash[k];
                 var row = new Rect(list.x, list.y + (i - first) * rowH, rowW, rowH - 4f);
-                var ink = CrtUi.Ink;
+                var ink = CrtStyle.Ink;
                 bool usable = canUse, hot = usable && row.Contains(Event.current.mousePosition);
                 if (i % 2 == 0 || hot)
                     Ui.Fill(row, ink.WithAlpha(hot ? 0.2f : 0.07f));

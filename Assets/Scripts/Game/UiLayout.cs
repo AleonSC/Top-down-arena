@@ -82,7 +82,7 @@ namespace Arena
             DkTitle(new Rect(panel.x + 24f, panel.y + 14f, panel.width - 120f, 36f), title, 26, accent);
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(new Rect(panel.x + 26f, panel.y + 48f, panel.width - 120f, 16f), sub, 11, CrtStyle.Desc);
-            if (DkKey(new Rect(panel.xMax - 52f, panel.y + 16f, 32f, 30f), "X", Ui.Danger) && onClose != null)
+            if (DkKey(new Rect(panel.xMax - 52f, panel.y + 16f, 32f, 30f), "X", CrtStyle.Danger) && onClose != null)
                 onClose();
             Ui.Fill(new Rect(panel.x + 20f, panel.y + 74f, panel.width - 40f, 1f), new Color(1f, 1f, 1f, 0.07f));
             return new Rect(panel.x + 20f, panel.y + 90f, panel.width - 40f, panel.height - 110f);

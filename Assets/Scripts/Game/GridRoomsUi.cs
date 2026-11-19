@@ -161,7 +161,7 @@ namespace Arena
             }
             if (!pick.HasValue)
                 return over ? "Move along a wall: the glowing marks are the door spots." : "Point at the map: the glowing marks are the door spots.";
-            ink = Ui.Gold;
+            ink = CrtStyle.Gold;
             return Expansion.CardName(card).ToUpperInvariant() + (fits > 1 ? "  ·  R  " + (((expGridTurn % fits) + fits) % fits + 1) + " OF " + fits + " FITS HERE" : "") + "  ·  click to build it";
         }
 
@@ -178,7 +178,7 @@ namespace Arena
                 bool playable = Expansion.IsGridCard(card);
                 var r = new Rect(area.x + (i % 2) * (cw + gap), y0 + (i / 2) * (ch + gap), cw, ch);
                 bool on = i == expGridSlot;
-                if (CrtUi.SoftKey(r, "", null, 11, calm, lit: on) && playable)
+                if (DkKey(r, "", on, calm, size: 11, rawSize: true) && playable)
                 {
                     expGridSlot = on ? -1 : i;
                     expGridTurn = 0;

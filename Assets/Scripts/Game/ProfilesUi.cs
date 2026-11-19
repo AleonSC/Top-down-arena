@@ -597,7 +597,7 @@ namespace Arena
                 }
                 bool armed = whoArmed == p.Id;
                 GUI.enabled = whoList.Count > 1;
-                if (DkKey(new Rect(bx + 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? Ui.Danger : Ui.Neutral, false, 13))
+                if (DkKey(new Rect(bx + 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? CrtStyle.Danger : Ui.Neutral, false, 13))
                 {
                     if (!armed)
                         whoArmed = p.Id;

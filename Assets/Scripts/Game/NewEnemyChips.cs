@@ -56,8 +56,8 @@ namespace Arena
             var d = Defs.Get(t);
             int job = (int)Game.JobOf(t);
             Color jc = JobColors[job].ToColor();
-            Ui.Fill(r, CrtUi.Bg.WithAlpha(0.95f));  // opaque enough to read over the arena
-            CrtKit.SoftBox(r, CrtUi.Ink, false, false, false);
+            Ui.Fill(r, CrtStyle.Bg.WithAlpha(0.95f));  // opaque enough to read over the arena
+            CrtKit.SoftBox(r, CrtStyle.Ink, false, false, false);
             Ui.Fill(new Rect(r.x, r.y, 3f, r.height), jc);  // the job's colour down the left edge
             DrawJobGlyph(new Rect(r.x + 14f, r.y + 8f, 20f, 20f), (EnemyJob)job, jc);
             HudCrt(new Rect(r.x + 44f, r.y + 5f, 170f, 22f), d.Name.ToUpperInvariant(), 22, Color.white);
@@ -68,7 +68,7 @@ namespace Arena
             Ui.CrtFont = true;
             Ui.Label(tag, "NEW", 15, new Color(0.11f, 0.07f, 0f), TextAnchor.MiddleCenter, false);
             Ui.CrtFont = was;
-            Ui.Label(new Rect(r.x + 14f, r.y + 42f, r.width - 26f, 34f), Game.EnemyNote(t), 12, CrtUi.Dim, TextAnchor.UpperLeft, true, true);
+            Ui.Label(new Rect(r.x + 14f, r.y + 42f, r.width - 26f, 34f), Game.EnemyNote(t), 12, CrtStyle.Dim, TextAnchor.UpperLeft, true, true);
         }
 
         /// The job marker's shape in HUD space (the same five shapes as the one under the enemy, JobMarkerLook.cs).

@@ -182,7 +182,7 @@ namespace Arena
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
-                        DrawBanner(game.Wave == 0 ? "GET READY" : game.BossNow ? "BOSS CLEARED" : "WAVE " + game.ShownWave + " CLEARED", sub, game.BossNow ? Ui.Gold : Ui.Accent);
+                        DrawBanner(game.Wave == 0 ? "GET READY" : game.BossNow ? "BOSS CLEARED" : "WAVE " + game.ShownWave + " CLEARED", sub, game.BossNow ? CrtStyle.Gold : Ui.Accent);
                     if (pr == null)
                         DrawNewEnemyChips(BandRect.yMax + 14f, Mathf.Clamp01((Time.unscaledTime - bandShownAt) / 0.4f));
                     break;
@@ -350,7 +350,7 @@ namespace Arena
             Ui.Pill(new Rect(r.x + 5f, r.y + 6f, 3f, r.height - 12f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             Ui.Label(new Rect(r.x + 14f, r.y + 2f, 82f, 14f), p.Name, 11, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 14f, r.y + 15f, 82f, 12f), Defs.KitName(p.Kit) + " " + p.Def.Name, 8, role, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.xMax - 40f, r.y + 2f, 34f, 14f), "LV " + p.Level, 9, Ui.Gold, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.xMax - 40f, r.y + 2f, 34f, 14f), "LV " + p.Level, 9, CrtStyle.Gold, TextAnchor.MiddleRight, true);
             var hp = new Rect(r.x + 98f, r.y + 17f, r.width - 106f, 7f);
             float frac = Mathf.Clamp01(p.Hp / Mathf.Max(1f, p.MaxHp));
             if (p.Downed)
@@ -427,17 +427,17 @@ namespace Arena
             }
             var practice = game.Practice;
             bool bossWave = practice != null ? BossUp() : game.BossNow;
-            Color ink = bossWave ? Ui.Gold : CrtUi.Ink, dim = bossWave ? new Color(Ui.Gold.r * 0.7f, Ui.Gold.g * 0.7f, Ui.Gold.b * 0.5f) : CrtUi.Dim;
+            Color ink = bossWave ? CrtStyle.Gold : CrtStyle.Ink, dim = bossWave ? new Color(CrtStyle.Gold.r * 0.7f, CrtStyle.Gold.g * 0.7f, CrtStyle.Gold.b * 0.5f) : CrtStyle.Dim;
             string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS FIGHT" : "WAVE";
             HudCrt(new Rect(r.x + 14f, r.y + 5f, 150f, 16f), head, 17, dim);
             string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.ShownWave.ToString();
             HudCrt(new Rect(r.x + 12f, r.y + 14f, 120f, 46f), num, 54, ink);
             float nw = CrtUi.TitleWidth(num, 54);
             string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + game.HuntLength : "/ " + game.ShownLastWave;
-            HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless || practice != null && practice.Loop ? Ui.Gold : dim);
+            HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless || practice != null && practice.Loop ? CrtStyle.Gold : dim);
             HudCrt(new Rect(r.xMax - 110f, r.y + 5f, 100f, 16f), "LEFT", 17, dim, TextAnchor.MiddleRight);
             HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), game.Remaining.ToString(), 32, ink, TextAnchor.MiddleRight);
-            HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), "SCORE " + game.Score.ToString("N0"), 17, Ui.Gold, TextAnchor.MiddleRight);
+            HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), "SCORE " + game.Score.ToString("N0"), 17, CrtStyle.Gold, TextAnchor.MiddleRight);
             float progress = game.State == MatchState.Fighting ? 1f - (float)game.Remaining / Math.Max(1, plateMax) : 1f;
             var bar = new Rect(r.x + 14f, r.yMax - 9f, r.width - 28f, 5f);
             Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
@@ -473,7 +473,7 @@ namespace Arena
             Ui.Label(new Rect(r.x + 18f, r.y + 22f, r.width - 70f, 14f), Defs.KitName(p.Kit) + " " + p.Def.Name, 10, role, TextAnchor.MiddleLeft, true);
             var lv = new Rect(r.xMax - 52f, r.y + 8f, 42f, 18f);
             Ui.Pill(lv, new Color(1f, 0.8f, 0.35f, 0.22f));
-            Ui.Label(lv, "LV " + p.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Label(lv, "LV " + p.Level, 10, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
 
             var hpBar = new Rect(r.x + 18f, r.y + 39f, r.width - 28f, 12f);
             float frac = Mathf.Clamp01(p.Hp / Mathf.Max(1f, p.MaxHp));
@@ -530,7 +530,7 @@ namespace Arena
             int n = Mathf.Max(0, Mathf.CeilToInt(tm));
             string left = "SYS> ARENA LINK OK\nSYS> SQUAD ALIVE";
             string right = (game.Wave == 0 && game.Practice == null ? "T-MINUS " + n.ToString("00") + "\n" : "") + "WAVE " + (game.Wave + 1).ToString("00") + (boss ? " / BOSS" : "");
-            DrawScanBand(title, sub, left, right, game.Practice != null ? -1f : 1f - tm / bandMax, boss ? Ui.Gold : CrtUi.Ink, (now - bandShownAt) / 0.25f, false);
+            DrawScanBand(title, sub, left, right, game.Practice != null ? -1f : 1f - tm / bandMax, boss ? CrtStyle.Gold : CrtStyle.Ink, (now - bandShownAt) / 0.25f, false);
         }
 
         /// The corner's TAB / H hint shows through this many waves, and until the Tab screen has been opened this many times.
@@ -549,7 +549,7 @@ namespace Arena
             var xp = HudXpStrip;  // (the strip and the keys: HudLayout.cs)
             float xpFrac = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
             Color gold = new Color(1f, 0.82f, 0.3f, 0.95f);
-            Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), CrtUi.Ink.WithAlpha(0.3f));
+            Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), CrtStyle.Ink.WithAlpha(0.3f));
             Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
             string lvText = "LV " + me.Level + "  ·  " + Mathf.RoundToInt(xpFrac * 100f) + "%";
             float plateW = Ui.TextWidth(lvText, 10, true) + 12f;
@@ -607,17 +607,17 @@ namespace Arena
             if (slot.Id == AbilityId.None)
             {
                 // A stub: the key's cap centred in a dashed box, a dim + under it (very rare upgrades fill these keys).
-                CrtKeyBox(r, CrtUi.Dim, true);
+                CrtKeyBox(r, CrtStyle.Dim, true);
                 float cw = 12f + SlotKeys[i].Length * 7f;
-                DrawCrtCap(new Rect(r.center.x - cw / 2f, r.y + 10f, 0f, 16f), SlotKeys[i], CrtUi.Dim);
-                Ui.Label(new Rect(r.x, r.y + 28f, r.width, 22f), "+", 22, CrtUi.Dim.WithAlpha(0.7f), TextAnchor.MiddleCenter, false);
+                DrawCrtCap(new Rect(r.center.x - cw / 2f, r.y + 10f, 0f, 16f), SlotKeys[i], CrtStyle.Dim);
+                Ui.Label(new Rect(r.x, r.y + 28f, r.width, 22f), "+", 22, CrtStyle.Dim.WithAlpha(0.7f), TextAnchor.MiddleCenter, false);
                 return;
             }
             bool ready = slot.Charges > 0;
             float cd = game.Cooldown(me, i);
             float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
-            Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ultimate, green when ready, blue while it recharges
+            Color keyCol = ultimate ? CrtStyle.Gold : ready ? KeyGreen : CrtStyle.Ink;  // gold ultimate, green when ready, blue while it recharges
             CrtKeyBox(r, keyCol.WithAlpha(ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
             if (look.White > 0f)
                 CrtKit.Frame(r, 2f, new Color(1f, 1f, 1f, 0.9f * look.White));
@@ -640,7 +640,7 @@ namespace Arena
             }
             if (ready)
             {
-                Color lo = ultimate ? Ui.Gold : Ui.Good;
+                Color lo = ultimate ? CrtStyle.Gold : Ui.Good;
                 float rin = look.ReadyIn;  // sliding in from the right as the tile pops
                 if (rin > 0f)
                     DkTitle(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, lo.ScaleAlpha(rin), TextAnchor.MiddleRight);
@@ -689,7 +689,7 @@ namespace Arena
         void DrawMasteryPips(Rect r, int level, float progress)
         {
             bool max = level >= Game.MasteryMax;
-            Color on = max ? Ui.Gold : new Color(0.6f, 0.85f, 1f);
+            Color on = max ? CrtStyle.Gold : new Color(0.6f, 0.85f, 1f);
             for (int k = 0; k < Game.MasteryMax; k++)
             {
                 var pip = new Rect(r.x + k * 13f, r.y, 10f, r.height);
@@ -718,7 +718,7 @@ namespace Arena
                 bool max = t.Level >= Game.MasteryMax;
                 float a = Mathf.Clamp01(t.T / 0.5f);
                 string text = Upgrades.Ability(t.Ability).Name + (max ? "  MASTERED: " + Game.Capstone(t.Ability) : "  ·  Mastery " + t.Level);
-                var c = max ? Ui.Gold : new Color(0.6f, 0.85f, 1f);
+                var c = max ? CrtStyle.Gold : new Color(0.6f, 0.85f, 1f);
                 Ui.Shadowed(new Rect(cx - 400f, y - i * 22f, 800f, 20f), text, max ? 15 : 14, c.WithAlpha(a), TextAnchor.MiddleCenter);
             }
         }

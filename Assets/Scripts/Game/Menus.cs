@@ -208,7 +208,7 @@ namespace Arena
                 DkSub(row);
                 var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
                 CrtUi.Begin(ss);
-                CrtUi.Text(new Rect(ss.x + 14f, ss.y, ss.width - 28f, ss.height), session.Status, 14, CrtUi.Ink, TextAnchor.MiddleLeft, false, fxReduced);
+                CrtUi.Text(new Rect(ss.x + 14f, ss.y, ss.width - 28f, ss.height), session.Status, 14, CrtStyle.Ink, TextAnchor.MiddleLeft, false, fxReduced);
                 CrtUi.End(ss, Time.unscaledTime, fxReduced);
                 var cr = new Rect(row.xMax - 160f, row.y + 9f, 146f, 46f);   // a keycap, the same as Connect's
                 if (MenuVhs.Draw(cr, "TRK 02", live, fxReduced, () => KeyUi.Key(cr, "Cancel", PixelArt.Get("ui_back"), 16)) && live)
@@ -220,9 +220,9 @@ namespace Arena
                 DkSub(row);
                 var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
                 CrtUi.Begin(ss);
-                CrtUi.Text(new Rect(ss.x + 14f, ss.y + 3f, 200f, 12f), "HOST ADDRESS", 9, CrtUi.Dim, TextAnchor.MiddleLeft, false, true);
+                CrtUi.Text(new Rect(ss.x + 14f, ss.y + 3f, 200f, 12f), "HOST ADDRESS", 9, CrtStyle.Dim, TextAnchor.MiddleLeft, false, true);
                 var oldTint = GUI.contentColor;
-                GUI.contentColor = CrtUi.Ink;
+                GUI.contentColor = CrtStyle.Ink;
                 addressText = Ui.BareField(new Rect(ss.x + 10f, ss.y + 15f, ss.width - 20f, 28f), addressText, 64, 19);
                 GUI.contentColor = oldTint;
                 CrtUi.End(ss, Time.unscaledTime, fxReduced);
@@ -260,7 +260,7 @@ namespace Arena
                     var hs = MenuHeaderRect;
                     CrtUi.Begin(hs);
                     bool cursor = !fxReduced && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
-                    CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), "MAIN MENU" + (cursor ? "_" : " "), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, fxReduced);
+                    CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), "MAIN MENU" + (cursor ? "_" : " "), 24, CrtStyle.Ink, TextAnchor.MiddleLeft, true, fxReduced);
                     CrtUi.End(hs, Time.unscaledTime, fxReduced);
                     var qr = MenuQuitKey;  // the same keycap as the picker's Back (MenuServo.cs swaps the legend between them)
                     bool quit = MenuVhs.Draw(qr, "TRK 05", live, fxReduced, () => KeyUi.Key(qr, "Quit", PixelArt.Get("ui_power"), 15));

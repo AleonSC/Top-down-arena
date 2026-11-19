@@ -23,7 +23,7 @@ namespace Arena
                 case HuntNodeType.Rest: return HmRest;
                 case HuntNodeType.Shop: return CrtStyle.Gold;
                 case HuntNodeType.Gamble: return HmGamble;
-                default: return CrtUi.Ink;
+                default: return CrtStyle.Ink;
             }
         }
 
@@ -39,13 +39,13 @@ namespace Arena
                 return;
             Ui.Alpha = 1f;
             bool calm = FxCalm;
-            var ink = CrtUi.Ink;
-            Ui.Fill(new Rect(0f, 0f, W, H), CrtUi.Bg.WithAlpha(0.97f));
+            var ink = CrtStyle.Ink;
+            Ui.Fill(new Rect(0f, 0f, W, H), CrtStyle.Bg.WithAlpha(0.97f));
 
             // Title bar: the key to leave isn't here (the map is part of the run), the timer is.
             LobbyKit.Spaced(new Rect(28f, 16f, 280f, 28f), "HUNT MAP", 16, ink.WithAlpha(0.95f), TextAnchor.MiddleLeft, 5f);
-            Ui.Fill(new Rect(190f, 30f, W - 190f - 220f, 1f), CrtUi.Ink.WithAlpha(0.25f));
-            LobbyKit.Spaced(new Rect(W - 230f, 16f, 202f, 28f), "VOTE ENDS  " + Mathf.CeilToInt(game.HuntMapSeconds) + " S", 11, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);
+            Ui.Fill(new Rect(190f, 30f, W - 190f - 220f, 1f), CrtStyle.Ink.WithAlpha(0.25f));
+            LobbyKit.Spaced(new Rect(W - 230f, 16f, 202f, 28f), "VOTE ENDS  " + Mathf.CeilToInt(game.HuntMapSeconds) + " S", 11, CrtStyle.Dim, TextAnchor.MiddleRight, 2.4f);
 
             int step = map.Step;
             var path = map.Path;
@@ -59,8 +59,8 @@ namespace Arena
             // ---- The map (left) ----
             var mapR = new Rect(24f, 58f, 484f, 644f);
             LobbyKit.Panel(mapR);
-            LobbyKit.Spaced(new Rect(mapR.x + 16f, mapR.y + 8f, 200f, 16f), "SECTOR MAP", 10, CrtUi.Dim, TextAnchor.MiddleLeft, 2.4f);
-            LobbyKit.Spaced(new Rect(mapR.xMax - 216f, mapR.y + 8f, 200f, 16f), "START AT TOP", 10, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);
+            LobbyKit.Spaced(new Rect(mapR.x + 16f, mapR.y + 8f, 200f, 16f), "SECTOR MAP", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, 2.4f);
+            LobbyKit.Spaced(new Rect(mapR.xMax - 216f, mapR.y + 8f, 200f, 16f), "START AT TOP", 10, CrtStyle.Dim, TextAnchor.MiddleRight, 2.4f);
             float[] laneX = { mapR.center.x - 120f, mapR.center.x, mapR.center.x + 120f };
             var rowY = new float[map.Length];
             float content = 58f + (map.Length - 1) * 58f + 40f;   // a long hunt's map is taller than the panel: it scrolls to keep the next rows in view
@@ -83,7 +83,7 @@ namespace Arena
                         bool live = !cleared && step > 0 && l.Step == step - 1 && path[l.Step] == l.From;
                         if ((cleared ? 2 : live ? 1 : 0) != pass)
                             continue;
-                        Color c = cleared ? ink : live ? CrtStyle.Gold : CrtUi.Dim.WithAlpha(0.6f);
+                        Color c = cleared ? ink : live ? CrtStyle.Gold : CrtStyle.Dim.WithAlpha(0.6f);
                         float lw = cleared ? 3f : live ? 2.5f : 1.5f;
                         for (int k = 0; k < 6; k += 2)
                         {
@@ -115,7 +115,7 @@ namespace Arena
                     bool hover = pick && r.Contains(Event.current.mousePosition);
                     Color tc = HuntNodeColor(n.Type);
                     Color edge = isCleared ? ink : pick ? tc : tc.WithAlpha(s <= step ? 0.6f : 0.4f);
-                    Ui.Fill(r, isCleared ? ink.WithAlpha(0.28f) : hover ? ink.WithAlpha(0.18f) : CrtUi.Bg.WithAlpha(1f));
+                    Ui.Fill(r, isCleared ? ink.WithAlpha(0.28f) : hover ? ink.WithAlpha(0.18f) : CrtStyle.Bg.WithAlpha(1f));
                     CrtKit.Frame(r, 2f, edge);
                     hmGlyphs.Add(new HmGlyph { Type = n.Type, At = c, Half = h, Col = isCleared ? ink : edge, Tick = isCleared });
                     if (pick)
@@ -130,13 +130,13 @@ namespace Arena
                             game.SendHuntVote(ci, false);
                     }
                     else if (isCleared || n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.MiniBoss)
-                        Ui.Label(new Rect(r.xMax + 10f, r.y, 130f, r.height), HuntMap.Name(n.Type).ToUpperInvariant(), 10, n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.MiniBoss ? HmElite : CrtUi.Ink, TextAnchor.MiddleLeft, true);
+                        Ui.Label(new Rect(r.xMax + 10f, r.y, 130f, r.height), HuntMap.Name(n.Type).ToUpperInvariant(), 10, n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.MiniBoss ? HmElite : CrtStyle.Ink, TextAnchor.MiddleLeft, true);
                     if (n.Type == HuntNodeType.Shop || n.Type == HuntNodeType.Gamble)
                         Ui.Label(r, n.Type == HuntNodeType.Shop ? "$" : "?", 16, isCleared ? ink : edge, TextAnchor.MiddleCenter, true);
                 }
             }
             if (rowY[0] - 42f > mapR.y + 24f)
-                LobbyKit.Spaced(new Rect(laneX[1] - 60f, rowY[0] - 42f, 120f, 14f), "START", 10, CrtUi.Dim, TextAnchor.MiddleCenter, 3f);
+                LobbyKit.Spaced(new Rect(laneX[1] - 60f, rowY[0] - 42f, 120f, 14f), "START", 10, CrtStyle.Dim, TextAnchor.MiddleCenter, 3f);
             if (step < map.Length && rowY[step] >= visTop && rowY[step] <= visBot)
                 LobbyKit.Spaced(new Rect(mapR.x + 14f, rowY[step] - 8f, 54f, 16f), "NEXT", 10, CrtStyle.Gold, TextAnchor.MiddleLeft, 2f);
 
@@ -171,7 +171,7 @@ namespace Arena
                 int v;
                 bool voted = game.MapVotes.TryGetValue(p.Id, out v) && v >= 0 && v < choices.Length;
                 DkSub(sr);
-                CrtKit.Frame(sr, 1f, p.Id == me ? ink : CrtUi.Ink.WithAlpha(0.35f));
+                CrtKit.Frame(sr, 1f, p.Id == me ? ink : CrtStyle.Ink.WithAlpha(0.35f));
                 Ui.Label(new Rect(sr.x + 10f, sr.y + 4f, sr.width - 80f, 20f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
                 if (game.MapLocked.Contains(p.Id))
                     DkTag(new Rect(sr.xMax - 68f, sr.y + 6f, 60f, 16f), "LOCKED", PhosGreen);
@@ -201,7 +201,7 @@ namespace Arena
                 string who = HuntVoters(k, map);
                 if (who.Length > 0)
                     Ui.Label(new Rect(kr.xMax - 130f, kr.y + 5f, 70f, 22f), who, 12, CrtStyle.Gold, TextAnchor.MiddleRight, true);
-                DkTag(new Rect(kr.xMax - 40f, kr.y + 17f, 26f, 16f), (k + 1).ToString(), CrtUi.Dim);
+                DkTag(new Rect(kr.xMax - 40f, kr.y + 17f, 26f, 16f), (k + 1).ToString(), CrtStyle.Dim);
                 if (Ui.HitArea(kr))
                     game.SendHuntVote(k, false);
             }
@@ -225,7 +225,7 @@ namespace Arena
             bool locked = game.MapLocked.Contains(me);
             var lr = new Rect(x, H - 24f - 46f - 22f, w, 40f);
             GUI.enabled = myVote >= 0;
-            if (LobbyKit.Key(lr, locked ? "LOCKED  ·  TAP TO CHANGE" : "LOCK IN VOTE", locked, calm, accent: PhosGreen, size: 15))
+            if (DkKey(lr, locked ? "LOCKED  ·  TAP TO CHANGE" : "LOCK IN VOTE", locked, calm, accent: PhosGreen, size: 15))
             {
                 game.SendHuntVote(myVote, !locked);
             }
@@ -294,7 +294,7 @@ namespace Arena
                 V2 c = g.At;
                 if (g.Tick)
                 {
-                    var dark = HmRgba(CrtUi.Ink);
+                    var dark = HmRgba(CrtStyle.Ink);
                     Line(c + new V2(-q * 0.7f, 0f), c + new V2(-q * 0.1f, q * 0.6f), 2.6f, dark);
                     Line(c + new V2(-q * 0.1f, q * 0.6f), c + new V2(q * 0.8f, -q * 0.6f), 2.6f, dark);
                     continue;

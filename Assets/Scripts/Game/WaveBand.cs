@@ -26,7 +26,7 @@ namespace Arena
             GUI.color = oldCol.ScaleAlpha(oa);
             bool calm = FxCalm;
             var r = top >= 0f ? new Rect(BandRect.x, top, BandRect.width, BandRect.height) : BandRect;  // (fixed size and place: it only fades in; `top` sits it higher, as the DOWNED band does: DownedLooks.cs)
-            var dark = CrtUi.Bg;
+            var dark = CrtStyle.Bg;
 
             // the strip: solid in the middle, fading out toward both screen edges
             const int fade = 10;
@@ -46,7 +46,7 @@ namespace Arena
             behind?.Invoke(r);  // drawn under the text (the DOWNED band's vitals trace)
             bool was = Ui.CrtFont;
             Ui.CrtFont = true;
-            Color tc = inverse ? dark : CrtUi.T(new Color(0.84f, 0.9f, 1f)), dim = inverse ? dark : CrtUi.Dim;
+            Color tc = inverse ? dark : CrtUi.T(new Color(0.84f, 0.9f, 1f)), dim = inverse ? dark : CrtStyle.Dim;
             if (ink.r > ink.b)  // a gold (boss) strip keeps a warm white rather than the blue one
                 tc = inverse ? dark : new Color(1f, 0.94f, 0.78f);
             if (tint.HasValue && !inverse)  // (the DOWNED and REVIVED bands: DownedLooks.cs)

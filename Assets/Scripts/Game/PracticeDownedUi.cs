@@ -33,7 +33,7 @@ namespace Arena
 
         void DrawPracticeDownedBox(Player me, Rect r, float now, bool calm)
         {
-            Color red = DownRedUi, ink = CrtUi.Ink;
+            Color red = DownRedUi, ink = CrtStyle.Ink;
             var ev = Event.current;
             bool host = session.IsHost;
 
@@ -52,7 +52,7 @@ namespace Arena
 
             // The keys.
             float x = r.x + 30f, w = r.width - 60f;
-            bool respawn = LobbyKit.Key(new Rect(x, r.y + 144f, w, 60f), "[R]  RESPAWN HERE", false, calm, size: 28, minSize: 18, accent: ReviveMintUi);
+            bool respawn = DkKey(new Rect(x, r.y + 144f, w, 60f), "[R]  RESPAWN HERE", false, calm, size: 28, minSize: 18, accent: ReviveMintUi);
             if (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.R && GUIUtility.keyboardControl == 0)
             {
                 respawn = true;
@@ -64,7 +64,7 @@ namespace Arena
             var restartR = new Rect(x, r.y + 214f, hw, 46f);
             if (host)
             {
-                bool restart = LobbyKit.Key(restartR, "RESTART WAVE", false, calm, size: 20, minSize: 13, accent: CrtStyle.Head);
+                bool restart = DkKey(restartR, "RESTART WAVE", false, calm, size: 20, minSize: 13, accent: CrtStyle.Head);
                 if (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter) && GUIUtility.keyboardControl == 0)
                 {
                     restart = true;
@@ -74,15 +74,15 @@ namespace Arena
                     game.RequestRespawn(Game.RespawnRestart);
             }
             else
-                LobbyKit.Key(restartR, "HOST RESTARTS THE WAVE", false, calm, size: 15, minSize: 11, locked: true);
+                DkKey(restartR, "HOST RESTARTS THE WAVE", false, calm, size: 15, minSize: 11, locked: true);
             var lobbyR = new Rect(x + hw + 10f, r.y + 214f, hw, 46f);
             if (CanQuitToLobby)
             {
-                if (LobbyKit.Key(lobbyR, "BACK TO LOBBY", false, calm, size: 20, minSize: 13))
+                if (DkKey(lobbyR, "BACK TO LOBBY", false, calm, size: 20, minSize: 13))
                     RecallToLobby();
             }
             else
-                LobbyKit.Key(lobbyR, "HOST LEADS BACK", false, calm, size: 15, minSize: 11, locked: true);
+                DkKey(lobbyR, "HOST LEADS BACK", false, calm, size: 15, minSize: 11, locked: true);
 
             Ui.Label(new Rect(r.x + 30f, r.y + 270f, w, 40f), "Respawn: full health, 1.5 s of shield, enemies stay where they are." + (game.Players.Count > 1 ? " Each player respawns on their own." : ""), 12,
                 CrtStyle.Desc, TextAnchor.UpperCenter, false, true);

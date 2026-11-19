@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The CRT look in one place: its colours (and the CRT colour setting) and how its keys are drawn. The lobby, the drawer menus (pause, Settings,
     /// How to play, the profile), the HUD's console and the Play picker all read these, so changing a value here restyles every CRT
-    /// screen at once. The older names (CrtUi.Ink / Dim / Bg, LobbyKit.Soft / HeadCol / Gold) are kept as aliases.
+    /// screen at once. The older names (CrtStyle.Ink / Dim / Bg, CrtStyle.Body / HeadCol / Gold) are kept as aliases.
     /// Check a change with `Tools/Preview/uishots.sh` (the contact sheet shows every screen).
     public static class CrtStyle
     {
@@ -47,11 +47,11 @@ namespace Arena
             return new Color(darkness * 0.3f + i.r * tint * 0.25f, darkness * 0.3f + i.g * tint * 0.25f, darkness * 0.3f + i.b * tint * 0.25f);
         }
 
-        public static readonly Color Danger = new Color(1f, 0.42f, 0.48f);   // Quit, delete, leave
+        public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);  // Quit, delete, leave (the one danger red; was also CrtStyle.Danger)
         public static readonly Color Body = new Color(0.76f, 0.80f, 0.91f);  // body text on a screen (the lobby)
         public static readonly Color Desc = new Color(0.55f, 0.7f, 0.97f);   // small descriptions on a screen (the drawer menus)
         public static readonly Color Head = new Color(0.35f, 0.85f, 0.91f);  // section headings (the mockup's teal)
-        public static readonly Color Gold = new Color(1f, 0.83f, 0.42f);     // number tiles, highlights
+        public static readonly Color Gold = new Color(1f, 0.8f, 0.35f);       // number tiles, highlights, coins (the one gold; was also CrtStyle.Gold)
         public const float TextGlow = 0.16f;  // CrtUi.Text: the four faint copies round glowing text
 
         // The big boxes and the screen round them (the lobby, and the drawer menus that sit on its loadout box)

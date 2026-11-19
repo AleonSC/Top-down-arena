@@ -79,9 +79,9 @@ namespace Arena
             string cls = Defs.KitName(p.Kit) + " " + p.Def.Name, full = cls + "  ·  " + p.Weapon.Name;
             Ui.Label(new Rect(cx, r.y + 4f, room, 22f), Ui.TextWidth(full, 12, true) <= room ? full : cls, 12, col, TextAnchor.MiddleLeft, true);  // the weapon only when it fits
             var lvl = new Rect(r.xMax - 54f, r.y + 7f, 44f, 17f);
-            Ui.Pill(lvl, Ui.Gold.WithAlpha(0.9f));
+            Ui.Pill(lvl, CrtStyle.Gold.WithAlpha(0.9f));
             Ui.Label(lvl, "LV " + p.Level, 10, new Color(0.08f, 0.06f, 0.02f), TextAnchor.MiddleCenter, true);
-            Ui.Bar(new Rect(x, r.yMax - 12f, r.xMax - 10f - x, 5f), p.Downed ? 0f : p.Hp / Mathf.Max(1f, p.MaxHp), p.Downed ? Ui.Danger : new Color(0.31f, 0.82f, 0.4f), new Color(0f, 0f, 0f, 0.5f));
+            Ui.Bar(new Rect(x, r.yMax - 12f, r.xMax - 10f - x, 5f), p.Downed ? 0f : p.Hp / Mathf.Max(1f, p.MaxHp), p.Downed ? CrtStyle.Danger : new Color(0.31f, 0.82f, 0.4f), new Color(0f, 0f, 0f, 0.5f));
         }
 
         /// A coloured chip with a label (path, modifiers, difficulty).
@@ -319,7 +319,7 @@ namespace Arena
                 Ui.Fill(new Rect(r.x + 8f + i * 8f, r.yMax - 8f - bh, 6f, bh), tc);
             }
             if (hover)
-                TipStart(new Rect(CabX + 1f + DrawerSlide + r.x, CabY + 1f + r.y, r.width, r.height), "Current run stats", Ui.Gold);
+                TipStart(new Rect(CabX + 1f + DrawerSlide + r.x, CabY + 1f + r.y, r.width, r.height), "Current run stats", CrtStyle.Gold);
             if (Ui.HitArea(r))
                 runStatsOpen = true;
         }
@@ -400,7 +400,7 @@ namespace Arena
             if (cabScreenOn)
             {
                 float nw = cabScreen.width - 52f, nh = Ui.TextHeight(note, 12, nw);
-                Ui.Fill(new Rect(34f, y, 2f, nh + 4f), CrtUi.Ink.WithAlpha(0.7f));
+                Ui.Fill(new Rect(34f, y, 2f, nh + 4f), CrtStyle.Ink.WithAlpha(0.7f));
                 Ui.Label(new Rect(46f, y, nw, nh + 4f), note, 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             EndDrawerScreen();
@@ -477,7 +477,7 @@ namespace Arena
             Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
             string wave = game.Practice != null ? "WAVE " + Mathf.Max(1, game.PracticeIndex + 1) : "WAVE " + Mathf.Max(1, game.ShownWave);
-            DkTitle(new Rect(x, y, 260f, 48f), wave, 38, Ui.Gold, TextAnchor.MiddleLeft);
+            DkTitle(new Rect(x, y, 260f, 48f), wave, 38, CrtStyle.Gold, TextAnchor.MiddleLeft);
             float ww = Ui.TextWidth(wave, 38, true) + 16f;
             int secs = Mathf.RoundToInt(game.RunTime);
             Ui.Label(new Rect(x + ww, y + 6f, 140f, 18f), secs / 60 + ":" + (secs % 60).ToString("00"), 13, Ui.Text);
@@ -502,7 +502,7 @@ namespace Arena
             int next = game.NextBossWave(game.Wave, game.State == MatchState.Fighting);
             var boss = game.BossAt(Mathf.Min(Game.MaxWave, Mathf.Max(5, next)));
             var tile = new Rect(x, y, 64f, 64f);
-            IconTile(tile, null, Ui.Gold, 0f);
+            IconTile(tile, null, CrtStyle.Gold, 0f);
             bool fighting = game.BossNow && game.State == MatchState.Fighting;
             Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + (game.Hunt != null ? next : game.ShownEnd(next))), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
@@ -548,7 +548,7 @@ namespace Arena
                 var b = new Rect(x + i * (w + gap), y, w, tileH);
                 Ui.Fill(b, new Color(1f, 1f, 1f, 0.03f));
                 CrtKit.Frame(b, 1f, new Color(1f, 1f, 1f, 0.1f));
-                DkTitle(new Rect(b.x, b.y + 6f, b.width, 28f), vals[i], 22, i == 3 && s.Downs > 0 ? new Color(1f, 0.6f, 0.6f) : Ui.Gold, TextAnchor.MiddleCenter);
+                DkTitle(new Rect(b.x, b.y + 6f, b.width, 28f), vals[i], 22, i == 3 && s.Downs > 0 ? new Color(1f, 0.6f, 0.6f) : CrtStyle.Gold, TextAnchor.MiddleCenter);
                 Ui.Label(new Rect(b.x, b.yMax - 20f, b.width, 14f), names[i], 10, Ui.Muted, TextAnchor.MiddleCenter, true);
             }
         }
@@ -615,7 +615,7 @@ namespace Arena
             BeginDrawer("SETTINGS", Ui.Accent, 1f, "Pick one to open it");
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change your controls" };
             string[] gicons = { "pulse", "nova", "crosshair", "ui_pencil" };
-            Color[] gcols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
+            Color[] gcols = { new Color(0.5f, 0.69f, 1f), CrtStyle.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
             float y = cabScreen.y + 10f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
@@ -649,7 +649,7 @@ namespace Arena
             int group = PanelShown(ref settingsShown, settingsGroup);  // (the old section erases first, CrtWindows.cs)
             if (group != 3)
                 Keybinds.Listening = -1;  // (leaving the page ends a rebind)
-            var col = CrtUi.Ink;
+            var col = CrtStyle.Ink;
             BeginPanelAnim("settings" + group);
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y + 102f;
             switch (group)
@@ -660,7 +660,7 @@ namespace Arena
                     string[] audioTabs = { "VOLUME", "MUSIC PLAYER" };
                     float tx = DrawerPanel.xMax - 28f - 46f - 14f - 290f;
                     for (int ti = 0; ti < 2; ti++)
-                        if (WinKey(new Rect(tx + ti * 136f, DrawerPanel.y + 18f, ti == 0 ? 130f : 154f, 34f), audioTabs[ti], audioTab == ti, 16))
+                        if (DkKey(new Rect(tx + ti * 136f, DrawerPanel.y + 18f, ti == 0 ? 130f : 154f, 34f), audioTabs[ti], audioTab == ti, FxCalm, size: 16))
                         {
                             audioTab = ti;
                             jukeScroll = 0f;
@@ -729,8 +729,8 @@ namespace Arena
                     // The network port (it used to sit on the main menu): hosting and joining both use it.
                     WinLabel(new Rect(x, y, w - 150f, 54f), "Network port", "Hosting and joining use it (" + Session.DefaultPort + " unless changed). Everyone in a game needs the same one.");
                     var pr = new Rect(x + w - 120f, y + 9f, 120f, 36f);
-                    Ui.Fill(pr, CrtUi.Ink.WithAlpha(0.08f));
-                    CrtKit.Frame(pr, 2f, CrtUi.Ink);
+                    Ui.Fill(pr, CrtStyle.Ink.WithAlpha(0.08f));
+                    CrtKit.Frame(pr, 2f, CrtStyle.Ink);
                     string port = Ui.BareField(new Rect(pr.x + 8f, pr.y, pr.width - 16f, pr.height), portText, 5, 22);
                     if (port != portText)
                     {
@@ -764,7 +764,7 @@ namespace Arena
             // Arena floor: the pattern (FloorStylesLook.cs), and Bending / Static as a small lamp key by the title (FloorGridLook.cs)
             float fx0 = x + half + 36f;
             WinLabel(new Rect(fx0, y, half - 110f, 24f), "Arena floor", null, !fxOn);
-            if (WinKey(new Rect(fx0 + half - 104f, y - 2f, 104f, 26f), floorBend ? "BENDING" : "STATIC", false, 13, !fxOn ? CrtUi.Dim : floorBend ? CrtUi.Ink : CrtUi.Dim, true, floorBend))
+            if (DkKey(new Rect(fx0 + half - 104f, y - 2f, 104f, 26f), floorBend ? "BENDING" : "STATIC", false, FxCalm, size: 13, accent: !fxOn ? CrtStyle.Dim : floorBend ? CrtStyle.Ink : CrtStyle.Dim, lamp: true, lampLit: floorBend))
             { floorBend = !floorBend; changed = true; }
             int style = FloorStyleChoices(new Rect(fx0, y + 28f, half, 34f), floorStyle, !fxOn);
             if (style != floorStyle) { floorStyle = style; changed = true; }
@@ -787,7 +787,7 @@ namespace Arena
         void DrawFxPreview(Rect r, float t)
         {
             Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
-            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.35f));
+            CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.35f));
             float cyc = MathX.Fmod(t, 3f), boom = Mathf.Max(0f, 1f - Mathf.Abs(cyc - 2.2f) * 4f);
             bool shake = fxOn && !fxReduced && fxShake > 0;
             float amp = shake ? (fxShake == 2 ? 6f : 3f) * boom : 0f;
@@ -916,8 +916,8 @@ namespace Arena
                         string kit = classes[i].Key.Split(' ')[0].ToLowerInvariant();
                         IconTile(new Rect(rr.x + 6f, rr.y + 6f, 42f, 42f), PixelArt.Get("class_" + kit), col, 30f);
                         Ui.Label(new Rect(rr.x + 62f, rr.y + 6f, 300f, 22f), classes[i].Key, 15, Ui.Text, TextAnchor.MiddleLeft, true);
-                        Ui.Bar(new Rect(rr.x + 62f, rr.y + 34f, rr.width - 170f, 7f), classes[i].Value > 0 ? (float)wins / classes[i].Value : 0f, wins > 0 ? Ui.Gold : col, new Color(0f, 0f, 0f, 0.5f));
-                        Ui.Label(new Rect(rr.xMax - 100f, rr.y, 86f, rr.height), wins + " of " + classes[i].Value, 15, wins > 0 ? Ui.Gold : Ui.Text, TextAnchor.MiddleRight, true);
+                        Ui.Bar(new Rect(rr.x + 62f, rr.y + 34f, rr.width - 170f, 7f), classes[i].Value > 0 ? (float)wins / classes[i].Value : 0f, wins > 0 ? CrtStyle.Gold : col, new Color(0f, 0f, 0f, 0.5f));
+                        Ui.Label(new Rect(rr.xMax - 100f, rr.y, 86f, rr.height), wins + " of " + classes[i].Value, 15, wins > 0 ? CrtStyle.Gold : Ui.Text, TextAnchor.MiddleRight, true);
                     }
                     break;
                 }
@@ -973,7 +973,7 @@ namespace Arena
                 Tips = new[,] { { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.", "7" }, { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.", "5" },
                     { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire.", "12" }, { "Status icons", "Snowflake = frozen, arrows = slowed, blue drop = wet, flame = burning, drop = bleeding, crosshair = marked.", "2" },
                     { "Ability mastery", "Each ability's mastery rises from 1 to 5 as you use it in fights. Mastery 5 unlocks a capstone.", "10" } } },
-            new HowTo { Name = "Between waves", Icon = "ui_star", Color = Ui.Gold, Intro = "Each break: pick upgrades, open what the wave left behind, then the next wave.",
+            new HowTo { Name = "Between waves", Icon = "ui_star", Color = CrtStyle.Gold, Intro = "Each break: pick upgrades, open what the wave left behind, then the next wave.",
                 Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it and everyone gets their own item. Stand on it to take ({TakeItem}) or throw away ({DiscardItem}) yours.", "icon:ui_coin" },
                     { "Rerolls", "Don't like the cards? Reroll them: you start with 2 and get 2 more for every boss.", "icon:ui_arrow" }, { "Downed", "At 0 HP you're downed: stand by a downed ally for a few seconds (4 s on Normal) to revive them. Clearing a wave brings everyone back.", "3" } } },
             new HowTo { Name = "Data Gates", Icon = "blink", Color = new Color(0.45f, 0.9f, 1f), Portal = true, Intro = "Once every five waves a Data Gate opens in the break. Everyone alive stands in it to go through. Win the challenge for a prize pick; lose it and you're simply sent back.",
@@ -1012,7 +1012,7 @@ namespace Arena
                     cx = x;
                     ty += 38f;
                 }
-                if (WinKey(new Rect(cx, ty, bw, 32f), n, i == howToTopic, 15))
+                if (DkKey(new Rect(cx, ty, bw, 32f), n, i == howToTopic, FxCalm, size: 15))
                     howToTopic = i;
                 cx += bw + 6f;
             }
@@ -1046,13 +1046,13 @@ namespace Arena
                     foreach (var key in HowToKeys[i])
                     {
                         float kw = HowToKeyW(key);
-                        WinKey(new Rect(cx, my - 15f, kw, 30f), key.ToUpperInvariant(), false, 14, null, false, true, true);
+                        DkKey(new Rect(cx, my - 15f, kw, 30f), key.ToUpperInvariant(), false, FxCalm, size: 14, accent: null, lamp: false, lampLit: true, isStatic: true);
                         cx += kw + 4f;
                     }
                     // The name and its note, one line each, centred on the keys; a long note shrinks a size rather than wrap.
                     string note = HowToActions[i, 1];
                     bool hasNote = note.Length > 0;
-                    CrtUi.Text(new Rect(lx, hasNote ? my - 19f : my - 10f, lw, 20f), WinText("win.k" + i, HowToActions[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, FxCalm);
+                    CrtUi.Text(new Rect(lx, hasNote ? my - 19f : my - 10f, lw, 20f), WinText("win.k" + i, HowToActions[i, 0]), 15, CrtStyle.Ink, TextAnchor.MiddleLeft, true, FxCalm);
                     if (hasNote)
                     {
                         int ns = Ui.TextWidth(note, 11) <= lw ? 11 : 10;
@@ -1086,7 +1086,7 @@ namespace Arena
                     IconTile(tile, null, topic.Color, 0f);
                     glyphs.Add(new KeyValuePair<int, V2>(int.Parse(g), new V2(tile.center.x, tile.center.y)));
                 }
-                CrtUi.Text(new Rect(r.x + 64f, r.y + 8f, r.width - 74f, 20f), WinText("win.t" + i, topic.Tips[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, FxCalm);
+                CrtUi.Text(new Rect(r.x + 64f, r.y + 8f, r.width - 74f, 20f), WinText("win.t" + i, topic.Tips[i, 0]), 15, CrtStyle.Ink, TextAnchor.MiddleLeft, true, FxCalm);
                 Ui.Label(new Rect(r.x + 64f, r.y + 30f, r.width - 74f, r.height - 36f), WinText("win.d" + i, Keybinds.Fill(topic.Tips[i, 1])), 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             if (glyphs.Count > 0 && BeginUiGl())
@@ -1102,7 +1102,7 @@ namespace Arena
         void DrawPortalDiagram(Rect r, float t)
         {
             Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
-            CrtKit.Frame(r, 1f, CrtUi.Ink.WithAlpha(0.35f));
+            CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.35f));
             float k = MathX.Fmod(t, 5f) / 5f, walk = Mathf.Clamp01(k / 0.35f), fill = Mathf.Clamp01((k - 0.35f) / 0.45f);
             V2 portal = new V2(r.x + r.width * 0.62f, r.center.y);
             var green = new Rgba(0.55f, 1f, 0.55f);
