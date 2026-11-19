@@ -1458,7 +1458,10 @@ namespace Arena
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             if (!SurvFrozen)  // (Survival holds the whole world while someone picks a card: no moves, no contact hits: SurvivalGame.cs)
+            {
                 TickEnemies(dt * WorldRate);  // (slowed for a moment by a perfect parry: Parry.cs)
+                TickRecycling(dt * WorldRate);  // stragglers far from everyone come back in near the party (Recycling.cs)
+            }
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)

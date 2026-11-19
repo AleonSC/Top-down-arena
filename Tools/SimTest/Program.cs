@@ -466,6 +466,7 @@ static partial class Program
         Test("bossschedule", "boss schedules (BossSchedule.cs): the Campaign's and a hunt's match the old formulas", () => BossScheduleTest()),
         Test("huntmap", "the hunt map (HuntMap.cs): rows and lanes, links that never cross, node types, walking and restoring it; played over the network: the lobby switch, the vote, Elite waves", () => HuntMapTest(), () => HuntMapNetTest(Dt)),
         Test("huntsave", "a Boss Hunt saves once, at its step-10 checkpoint; Continue picks it up there (HuntMapGame.cs, SaveData.cs): the text, the lobby, the resumed map and build, the save going when the hunt ends", () => { }, () => HuntSaveTest(Dt)),
+        Test("recycle", "enemy recycling (Recycling.cs): a straggler far from every player comes back in near the party", () => RecyclingTest(Dt)),
         Test("survival", "Survival (Survival.cs): the pressure curve, faction phases, the cap, squads, Elites, the same seed gives the same run", () => SurvivalTest(), () => SurvivalNetTest(Dt), () => SurvivalModsTest(Dt)),
         Test("hunts", "Boss Hunts: locked until the boss is beaten, the hunt's waves, winning it, its records", () => HuntTest(Dt)),
         Test("perks", "perks: unlock rules, slots, equipping (one per boss), the profile line; Riot Gear: block, grace, 30 s recharge, burns go through; Contraband: the cycle chest and rare-or-better items", () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt)),
@@ -541,7 +542,7 @@ static partial class Program
         "snapshot", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "pistolwhip", "stonespear", "honeybee", "nunchaku", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts",
-        "expand", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
