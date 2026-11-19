@@ -185,9 +185,9 @@ namespace Arena
             }
         }
 
-        /// The wall portals (the Expanding arena's bought pairs), over their walls: like the classic arena's edge gates, the stretch of
-        /// wall opens into a dark gap, bracketed at both ends, with chevrons pointing into the room (the way you come out), in its
-        /// pair's colour; a shimmer runs along it and a glow spills onto the floor.
+        /// The wall portals (the Expanding arena's bought pairs), over their walls, in their pair's colour: the stretch of wall opens
+        /// into a dark gap framed by corner brackets, scanlines roll out of it across the floor as a widening, fading beam (the way
+        /// you come out), and pips on the frame blink in turn.
         void DrawWallPortals(float t)
         {
             if (!game.RoomsOn)
@@ -208,53 +208,50 @@ namespace Arena
         void DrawWallPortal(V2 at, V2 inward, float half, Rgba col, float a, float t, float seed)
         {
             V2 along = inward.Orthogonal();
-            float wt = Rooms.WallT / 2f + 3f;
+            float wt = Rooms.WallT / 2f + 2f;
             V2 e0 = at - along * half, e1 = at + along * half;
-            // The gap: the wall's stretch dark, the floor's glow spilling in from the room side.
-            Quad2(e0 - inward * wt, e1 - inward * wt, e1 + inward * wt, e0 + inward * wt, new Rgba(0.02f, 0.01f, 0.05f, 0.94f * a));
-            for (int k = 0; k < 4; k++)
+            Quad2(e0 - inward * wt, e1 - inward * wt, e1 + inward * wt, e0 + inward * wt, new Rgba(0.02f, 0.01f, 0.05f, 0.96f * a));
+            Quad2(e0 - inward * wt, e1 - inward * wt, e1 + inward * wt, e0 + inward * wt, col.WithAlpha(0.12f * a));
+            // The beam on the floor: a trapezoid widening into the room, in fading slices.
+            const float reach = 90f;
+            for (int k = 0; k < 6; k++)
             {
-                float d0 = -wt + k * 2f * wt / 4f;
-                Quad2(e0 + inward * d0, e1 + inward * d0, e1 + inward * (d0 + 2f * wt / 4f), e0 + inward * (d0 + 2f * wt / 4f), col.WithAlpha((0.05f + 0.07f * k) * a));
+                float d0 = k * reach / 6f, d1 = (k + 1) * reach / 6f;
+                float h0 = half * (1f + 0.25f * d0 / reach), h1 = half * (1f + 0.25f * d1 / reach);
+                V2 c0 = at + inward * (wt + d0), c1 = at + inward * (wt + d1);
+                Quad2(c0 - along * h0, c0 + along * h0, c1 + along * h1, c1 - along * h1, col.WithAlpha(0.09f * (1f - k / 6f) * a));
             }
-            for (int k = 0; k < 3; k++)  // the floor in front lit
+            // Scanlines rolling from the back of the wall out across the floor.
+            for (int k = 0; k < 9; k++)
             {
-                float d0 = wt + k * 14f;
-                Quad2(e0 + inward * d0, e1 + inward * d0, e1 + inward * (d0 + 14f), e0 + inward * (d0 + 14f), col.WithAlpha((0.10f - 0.03f * k) * a));
+                float u = Mathf.Repeat(k / 9f + t * 0.45f + seed * 0.13f, 1f);
+                float d = -wt + u * (2f * wt + reach), f = d < wt ? 1f : 1f - (d - wt) / reach;
+                float h = half * (d < wt ? 1f : 1f + 0.25f * (d - wt) / reach) - 6f;
+                V2 c = at + inward * d;
+                Line(c - along * h, c + along * h, d < wt ? 2f : 1.5f, col.WithAlpha(0.75f * f * a));
             }
-            // The membrane: two lines along the gap, dashes flowing along them.
-            float flow = Mathf.Repeat(t * 40f + seed * 37f, 18f);
-            for (int k = -1; k <= 1; k += 2)
-            {
-                V2 o = inward * (k * wt * 0.45f);
-                Line(e0 + o, e1 + o, 5f, col.WithAlpha(0.12f * a));
-                PhosDash(e0 + o, e1 + o, 10f, 8f, k > 0 ? flow : 18f - flow, 1.5f, col.WithAlpha(0.75f * a));
-            }
-            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f + seed * 2.1f);
-            Line(e0, e1, 3f + 3f * pulse, col.WithAlpha((0.10f + 0.10f * pulse) * a));
-            // The brackets: a bar across the wall at each end, as on the classic gates.
-            foreach (var e in new[] { e0, e1 })
-            {
-                Line(e - inward * (wt + 2f), e + inward * (wt + 2f), 8f, col.WithAlpha(0.22f * a));
-                Line(e - inward * (wt + 2f), e + inward * (wt + 2f), 3f, col.WithAlpha(a));
-            }
-            // Chevrons pointing into the room, a light running through them outward.
-            int n = Mathf.Max(1, Mathf.FloorToInt(2f * half / 44f));
-            for (int k = 0; k < n; k++)
-            {
-                V2 cp = at + along * ((k - (n - 1) * 0.5f) * 44f) + inward * (wt + 10f);
-                for (int row = 0; row < 2; row++)
+            GlowLine(e0 + inward * wt, e1 + inward * wt, 2f, col.WithAlpha(0.9f * a));
+            // The frame: corner brackets standing just off the wall's faces.
+            float fw = wt + 5f;
+            foreach (var sa in new[] { -1f, 1f })
+                foreach (var si in new[] { -1f, 1f })
                 {
-                    V2 c = cp + inward * (row * 11f), tip = c + inward * 5f;
-                    float lit = 0.45f + 0.55f * Mathf.Clamp01(1f - Mathf.Abs(Mathf.Repeat(t * 1.2f + seed, 1f) * 2f - row) );
-                    float fade = (1f - 0.35f * row) * lit;
-                    Line(c - along * 9f - inward * 5f, tip, 8f, col.WithAlpha(0.2f * fade * a));
-                    Line(c + along * 9f - inward * 5f, tip, 8f, col.WithAlpha(0.2f * fade * a));
-                    Line(c - along * 9f - inward * 5f, tip, 3f, col.WithAlpha(fade * a));
-                    Line(c + along * 9f - inward * 5f, tip, 3f, col.WithAlpha(fade * a));
+                    V2 corner = at + along * (sa * (half + 4f)) + inward * (si * fw);
+                    Line(corner, corner - along * (sa * 22f), 6f, col.WithAlpha(0.2f * a));
+                    Line(corner, corner - inward * (si * 12f), 6f, col.WithAlpha(0.2f * a));
+                    Line(corner, corner - along * (sa * 22f), 2.5f, col.WithAlpha(a));
+                    Line(corner, corner - inward * (si * 12f), 2.5f, col.WithAlpha(a));
                 }
-            }
+            // Pair pips on the jambs, blinking in turn.
+            foreach (var sa in new[] { -1f, 1f })
+                for (int k = 0; k < 3; k++)
+                {
+                    float on = Mathf.Repeat(t * 1.5f + seed - k / 3f, 1f) < 0.34f ? 1f : 0.3f;
+                    V2 p = at + along * (sa * (half + 4f)) + inward * (-wt * 0.6f + k * wt * 0.6f);
+                    Quad2(p - along * 2.5f - inward * 2.5f, p + along * 2.5f - inward * 2.5f, p + along * 2.5f + inward * 2.5f, p - along * 2.5f + inward * 2.5f, col.WithAlpha(on * a));
+                }
         }
+
 
         void Quad2(V2 p, V2 q, V2 r, V2 s, Rgba c)
         {
