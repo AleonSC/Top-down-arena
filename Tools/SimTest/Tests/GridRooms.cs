@@ -21,6 +21,27 @@ static partial class Program
         var right = rooms.First(o => o.Side == 3);
         Check(right.Rooms[0].X == 2000 && right.SX == 2000, "the right wall's spots hang off x = 2000, the core's edge");
 
+        // Every piece, wherever it goes round the core: its doors (not the open seams) sit in the middle of one cell, never on a cell line (owner Nov 19:
+        // a 4-long mystery room sharing two cells had its door between them).
+        int offCentre = 0, doorsSeen = 0;
+        foreach (PieceShape ps in Enum.GetValues(typeof(PieceShape)))
+            foreach (var pl in Expansion.PlacementsFor(empty, ps))
+            {
+                var all = new List<ExpansionRoom>(empty);
+                all.AddRange(pl.Rooms);
+                foreach (var d in Expansion.Build(all, Expansion.GridCoreCuts()).Doors)
+                {
+                    if (d.Width > 0f || d.B <= empty.Count)
+                        continue;
+                    doorsSeen++;
+                    float along = d.Vertical ? d.Pos.Y - Expansion.GridY0 : d.Pos.X - Expansion.GridX0;
+                    float lineAt = d.Vertical ? d.Pos.X - Expansion.GridX0 : d.Pos.Y - Expansion.GridY0;
+                    if (lineAt % 600 == 0 && ((along % 600) + 600) % 600 != 300)
+                        offCentre++;
+                }
+            }
+        Check(doorsSeen > 0 && offCentre == 0, "every piece's door round the core is in the middle of a cell (" + offCentre + " of " + doorsSeen + " off centre)");
+
         // A chain: a room on the right wall brings its own spots (top, bottom, right), and none overlaps what is built.
         var map = new List<ExpansionRoom>(empty);
         map.AddRange(right.Rooms);
