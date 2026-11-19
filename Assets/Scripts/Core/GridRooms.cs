@@ -40,6 +40,62 @@ namespace Arena
 
         static int GridMod(int v, int origin) => ((v - origin) % GridCell + GridCell) % GridCell;
 
+        /// Where along a shared wall run [lo, hi] its door goes: on a lattice wall, the middle of the cell nearest the run's middle (a run of an even
+        /// number of cells has its middle on a cell line; the tie goes to the cell on the new room's side, `toward`), else the run's middle.
+        static float GridDoorAlong(int lo, int hi, int line, int lineOrigin, int alongOrigin, float toward)
+        {
+            float mid = (lo + hi) / 2f;
+            if (GridMod(line, lineOrigin) != 0)
+                return mid;
+            float half = Rooms.DoorW / 2f, best = mid, bestD = float.MaxValue;
+            int k = (int)Math.Floor((mid - alongOrigin) / GridCell);
+            for (int j = k - 1; j <= k + 1; j++)
+            {
+                float c = alongOrigin + j * GridCell + GridCell / 2f;
+                if (c - half < lo || c + half > hi)
+                    continue;
+                float d = Math.Abs(c - mid) * 2f + (Math.Abs(c - toward) < Math.Abs(mid - toward) ? 0f : 1f);
+                if (d < bestD) { bestD = d; best = c; }
+            }
+            return best;
+        }
+
+        /// A plain door on a lattice wall that isn't in a cell's middle (a short run, like a cell beside the core's corner touching two of its boxes) goes when
+        /// the same room has a door in that cell's middle into a room opened up to the first (a wide gap between them): one door a cell into one open room.
+        static void DropSecondGridDoors(List<RoomDoor> doors)
+        {
+            for (int i = doors.Count - 1; i >= 0; i--)
+            {
+                var d = doors[i];
+                if (d.Width > 0f || !OnGridLine(d) || CellMiddle(d))
+                    continue;
+                float along = d.Vertical ? d.Pos.Y : d.Pos.X;
+                int origin = d.Vertical ? GridY0 : GridX0;
+                float cell = origin + (float)Math.Floor((along - origin) / GridCell) * GridCell + GridCell / 2f;
+                foreach (var o in doors)
+                {
+                    if (o.Width > 0f || o.Vertical != d.Vertical || o.B != d.B || o.A == d.A || !(d.Vertical ? o.Pos.X == d.Pos.X && o.Pos.Y == cell : o.Pos.Y == d.Pos.Y && o.Pos.X == cell))
+                        continue;
+                    bool open = false;
+                    foreach (var g in doors)
+                        open |= g.Width > 0f && g.Joins(o.A) && g.Joins(d.A);
+                    if (open)
+                    {
+                        doors.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        static bool OnGridLine(RoomDoor d) => d.Vertical ? GridMod((int)d.Pos.X, GridX0) == 0 && d.Pos.X == (int)d.Pos.X : GridMod((int)d.Pos.Y, GridY0) == 0 && d.Pos.Y == (int)d.Pos.Y;
+
+        static bool CellMiddle(RoomDoor d)
+        {
+            float along = d.Vertical ? d.Pos.Y : d.Pos.X;
+            return along == (int)along && GridMod((int)along, d.Vertical ? GridY0 : GridX0) == GridCell / 2;
+        }
+
         /// A node for a cycle in Grid mode: the middle of a room-sized cell a few rooms out, so building out along the grid claims it with the
         /// node at the room's middle. `ring` (0 and up) is the first cycle's ring round the hub: each starts off a different side. `tier` (NodeTier):
         /// the chain keeps heading out until the cell is at least that tier, so middle and outer prize nodes exist from the start. Null if no cell fits.
