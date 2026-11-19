@@ -17,7 +17,7 @@ namespace Arena
         public const float KwBase = 40f, KwPerShot = 6f, KwReach = 420f, KwConeHalf = 35f * MathX.Pi / 180f, KwShove = 80f;
         public const float KwCatchT = 0.3f, KwBlastT = 0.9f, KwRadialSpread = 12f;
         public const int KwCap = 40, KwCapMastered = 60;
-        public static readonly Rgba KwColor = new Rgba(0.72f, 0.64f, 1f);
+        public static readonly Rgba KwColor = new Rgba(0.42f, 0.84f, 0.86f);
 
         /// The centre of the lens's arc: behind where it was cast, so the arc bows out in front of the caster.
         public static V2 KwCentre(Player p) => p.KwPos - V2.FromAngle(p.KwAim) * (KwRadius - KwFront);
