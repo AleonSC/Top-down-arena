@@ -822,7 +822,7 @@ namespace Arena
             Row(table, BloodBrawlerShot, radius: 6f, color: new Rgba(0.95f, 0.9f, 0.82f));
             Row(table, BigShot, radius: 10f, color: new Rgba(0.85f, 0.35f, 1f), damage: 20f);
             Row(table, MineShot, radius: 9f, color: new Rgba(1f, 0.55f, 0.2f), damage: 18f);
-            Row(table, PierceShot, radius: 6.5f, color: new Rgba(1f, 0.12f, 0.12f), damage: 16f);
+            Row(table, PierceShot, radius: 6.5f, color: new Rgba(1f, 0.12f, 0.12f), damage: 30f);  // a boss's red aimed shot: unblockable, and it hurts
             Row(table, FastShot, radius: 4.5f, color: new Rgba(1f, 0.95f, 0.4f), damage: 15f);
             Row(table, StunShot, radius: 7f, color: new Rgba(0.43f, 0.88f, 1f), damage: 8f);  // the Warden's searchlight turn: it stuns you for 1 s
             Row(table, StunBolt, radius: 5f, color: new Rgba(0.43f, 0.88f, 1f));

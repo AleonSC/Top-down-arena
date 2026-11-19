@@ -90,6 +90,12 @@ namespace Arena
                 GlowDisc(b.Pos + new V2(0f, -ClotLift(b)), 34f, Defs.BulletColor(b.Kind), 0.3f);  // up on its arc with it (GoreMortarLook.cs)
                 return;
             }
+            if (b.Kind == Defs.PierceShot)
+            {
+                for (int k = 0; k < 6; k++)  // a ring of glow round the rim, so the black heart shows (RedShotLook.cs)
+                    GlowDisc(b.Pos + V2.FromAngle(MathX.Tau * k / 6f) * (b.Radius * 1.5f), b.Radius * 1.6f, new Rgba(1f, 0.1f, 0.05f), 0.22f);
+                return;
+            }
             if (IsLightCrescent(b))
             {
                 DrawSunriseCrescent(b);  // all light (LightbringerFxLook.cs)
