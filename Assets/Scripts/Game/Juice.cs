@@ -333,6 +333,7 @@ namespace Arena
             UpdateBulletRainSound(t);  // BulletRainLook.cs: the rain's cast, patter and end sounds
             UpdateFloodSound();  // FloodLook.cs: Flood's stamp, lapping and drain
             UpdateCoverSound();  // DeployableCoverLook.cs: Deployable Cover's build and break
+            UpdateDecoySound();  // DecoyDummyLook.cs: Decoy Dummy's throw, squeaks, pop and deflate
 
             JuiceNewEffects(me);
             JuiceEnemies(t, dt);

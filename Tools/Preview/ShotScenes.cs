@@ -54,6 +54,7 @@ static partial class Shot {
   static void PlayerScenes() {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
     CoverScene();  // COVER=<s into the scene> [COVERWEAR=1] [COVERBREAK=<s>] (ShotCover.cs)
+    DecoyScene();  // DECOY=<s into the scene> [DECOYWEAR=1] [DECOYPOP=<s>] (ShotDecoy.cs)
     GaleWallScene();  // GALEWALL=<s into the scene> [GALEBLAST=<s>] [GALECAP=1] (ShotGaleWall.cs)
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
     CauterizeScene();  // CAUTER=1 (ShotCauterize.cs)

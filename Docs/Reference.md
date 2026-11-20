@@ -60,6 +60,8 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Arc Lightning | Dps | 0.25 s | 16 | - | - | 116 | Hold to tag enemies in a wide cone in front of you, up to 10; they stay tagged if they walk out of it. Let go: lightning chains through every tagged enemy, harder the more you tagged, and stuns them. Alt fires three forked bolts at the enemies nearest your cursor. |
 | Ice Shards | Dps | 0.3 s | 7 | 520 x 1 s | - | 70 | Each cast conjures shards of ice that orbit you. They launch at nearby enemies, homing, one after another. With the orbit full, a cast flies at your aim. |
 | Stonespear | Dps | 0.18 s | 24 | 900 x 0.6 s | - | 60 | Slam the ground: it hurts everything round you and six earth spears tear out of it to hover at your sides. Each click throws one at your cursor, passing through an enemy. Alt hurls every spear left at the enemy nearest your cursor. Throw the last and the next click slams again. |
+| Waterball (variant) | Dps | 0.5 s | 28 | 430 x 1.4 s | - | 56 | A big, slow ball of water that rolls on through every enemy in its path, hurting each and soaking it (wet for 4 s): wet enemies are slowed, and lightning arcs to them. |
+| Earthball (variant) | Dps | 0.6 s | 48 | 360 x 1.4 s | - | 82 | A heavy ball of rock that stops on the first enemy it hits, stunning it (0.8 s; shorter on heavies and bosses), and breaks into rubble that hurts everything round it. |
 
 ### Summoner
 
@@ -163,6 +165,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Adrenaline Shot | Healer | 1st, choice 2 | 14 s | - | Also gives the nearest other ally within 250 px a half-length (4 s) dose. | Inject the player closest to your cursor (you, if alone): 8 s of +30% move speed, +40% fire rate and 30% less damage taken. |
 | Deployable Medkit | Healer | 1st, choice 3 | 14 s | - | Bursts into 9 orbs worth 20 health each. | Throw a medkit at your cursor: it bursts into 6 healing orbs (15 health each) that anyone can pick up for 6 s. |
 | Lifeline | Healer | ultimate | 90 s | - | Everyone also gets 4 s of Overdrive. | Instantly revive and fully heal the whole party, with 3 s of invulnerability. |
+| Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Three charges. Throw an inflatable soldier at your cursor: regular enemies within 240 px go for it and shoot at it instead of you (bosses only glance at it for a second). It has 40 health (+4 a wave) and lasts 12 s; up to 3 stand at once. When it's popped, a confetti blast shoves enemies within 90 px back and stuns them for 0.4 s. |
 | Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Dart the enemy nearest your cursor: 20 damage, then poison for 18 a second over 5 s. If it dies poisoned, the poison spreads to the 3 nearest enemies (80% as strong), and on from them. |
 | Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Throw a flare at your cursor: a jet carpets a line across the arena through it, across your aim (55 a bomb), and the line burns for 3 s. |
 | Mark for Death | Dps | 1st, choice 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark the enemy nearest your cursor: it takes 50% more damage for 6 s. |

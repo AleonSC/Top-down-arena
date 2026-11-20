@@ -259,6 +259,9 @@ namespace Arena
                 case ZoneKind.Cover:
                     DrawCover(z, t);  // DeployableCoverLook.cs
                     return;
+                case ZoneKind.DecoyDummy:
+                    DrawDecoy(z, t);  // DecoyDummyLook.cs
+                    return;
                 case ZoneKind.DragPylon:
                 case ZoneKind.MedPylon:
                     DrawDragPylonZone(z, t);  // EngineerLook.cs

@@ -650,6 +650,11 @@ namespace Arena
                 scratchIds.Add(b.Id);  // a Deployable Cover: every enemy shot stops on its plates and wears it (DeployableCover.cs)
                 return;
             }
+            if (DecoyStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Decoy Dummy: every enemy shot that touches it stops there and wears it (DecoyDummy.cs)
+                return;
+            }
             if (HeroDummyShot(b))
             {
                 scratchIds.Add(b.Id);  // the Dev Arena's hero dummies (DevArena.cs)
