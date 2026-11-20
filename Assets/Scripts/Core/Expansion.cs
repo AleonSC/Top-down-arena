@@ -26,7 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, BlackMarket, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (VectorChest is legacy, kept so the numbers stay: `Current` turns it into a Chest, whose ChestKind.Vector it holds at the inner tier; a chest node holds a treasure chest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Chest, Relic, Rule, Tower, Vein, BreachLoot }  // (a chest node holds a treasure chest, Props.cs SpawnChest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -281,9 +281,6 @@ namespace Arena
         public static bool RuleHoldsRelic(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule == NodeRule.BloodMoon;
 
         public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
-
-        /// A node kind as the game now knows it: the legacy vector chest node is a chest node (it holds a Vector chest, `NodeChestKind`).
-        public static NodeKind Current(NodeKind k) => k == NodeKind.VectorChest ? NodeKind.Chest : k;
 
         /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold or Vector (a coin seeded from the spot), middle Piece chest or Buildables
         /// (Buildables with room cards off), outer Upgrade.
@@ -1240,24 +1237,6 @@ namespace Arena
                     foreach (var d in doors)
                         open |= d.Joins(a);
                     areas[a].Sealed = !open;
-                }
-            if (nodes != null)  // a built room that encloses a shop or Black Market node takes on its job (Docs/Nodes.md); a multi-box room all of it
-                foreach (var nd in nodes)
-                {
-                    var job = nd.Kind == NodeKind.Shop ? RoomKind.Shop : nd.Kind == NodeKind.BlackMarket ? RoomKind.BlackMarket : RoomKind.Combat;
-                    if (job == RoomKind.Combat)
-                        continue;
-                    for (int a = 1; a < n; a++)
-                        if (areas[a].Kind == RoomKind.Combat && NodeEnclosedBy(rooms, a - 1, nd))
-                        {
-                            for (int b = 1; b < n; b++)
-                                if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
-                                {
-                                    areas[b].Kind = job;
-                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (Black Market)";
-                                }
-                            break;
-                        }
                 }
             if (nodes != null)  // a built room that encloses a rule node takes that rule's ground (Docs/RuleRooms.md); a multi-box room all of it
                 foreach (var nd in nodes)

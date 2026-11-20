@@ -467,7 +467,7 @@ static partial class Program
         // Nodes survive a saved run (where they are placed: GridNodeFor, the gridrooms suite).
         {
             var saved = new RunSave { Wave = 6, HasExpansion = true };
-            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.BlackMarket });
+            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Vein });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
             saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Tower, Hidden = true });
             saved.Seats.Add(new SeatSave());

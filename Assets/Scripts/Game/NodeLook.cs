@@ -59,7 +59,7 @@ namespace Arena
 
         static string RuleName(byte rule) => (NodeRule)rule == NodeRule.BloodMoon ? "Blood Moon" : ((NodeRule)rule).ToString();
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.BlackMarket ? BlackMarketInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk
             : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : ChestInk;
 
         /// A node kind's name for tips and legends.
@@ -118,11 +118,6 @@ namespace Arena
             {
                 case NodeKind.Tower: TowerGlyph(c, 1.2f, col); break;
                 case NodeKind.Vein: VeinGlyph(c, 1.2f, col); break;
-                case NodeKind.Shop: Arc(c, 22f, 5f, col, 20); break;
-                case NodeKind.BlackMarket:
-                    Line(c - new V2(24f, 0f), c + new V2(24f, 0f), 6f, col);
-                    Line(c - new V2(0f, 24f), c + new V2(0f, 24f), 6f, col);
-                    break;
                 case NodeKind.Relic: RelicGem(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.25f, col); break;
                 default:
                     ChestBox(c + new V2(0f, 6f), 1.2f, col, false);
@@ -213,35 +208,41 @@ namespace Arena
             }
         }
 
-        /// The shop's stall, the Black Market's pedestal or the chest, centred on the node (or on an opened floating shop or Black Market room).
+        /// An opened shop room's stall (RoomsLook.cs).
+        public void DrawShopStall(V2 c)
+        {
+            var ink = ShopInk;
+            float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
+            Circle(c, 74f, ink.WithAlpha(0.06f + 0.03f * pulse), 28);
+            FillRect(c.X - 52f, c.Y - 14f, 104f, 28f, ink.WithAlpha(0.2f));
+            NodeFrame(c.X - 52f, c.Y - 14f, 104f, 28f, 3f, ink.WithAlpha(0.9f));
+            for (int i = 0; i < 5; i++)  // the awning
+                FillRect(c.X - 50f + i * 20f, c.Y - 36f, 20f, 18f, ink.WithAlpha(i % 2 == 0 ? 0.55f : 0.18f));
+            NodeFrame(c.X - 50f, c.Y - 36f, 100f, 18f, 2f, ink.WithAlpha(0.8f));
+            Arc(new V2(c.X, c.Y + Mathf.Sin(t * 3f) * 2f), 7f, 3f, ink.WithAlpha(0.95f), 14);  // a coin on the counter
+        }
+
+        /// An opened Black Market room's pedestal (RoomsLook.cs).
+        public void DrawMarketPedestal(V2 c)
+        {
+            var ink = BlackMarketInk;
+            float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
+            Circle(c, 70f, ink.WithAlpha(0.06f + 0.03f * pulse), 28);
+            Circle(c, 30f, ink.WithAlpha(0.2f), 24);
+            Arc(c, 30f, 4f, ink.WithAlpha(0.9f), 24);
+            Line(c - new V2(16f, 0f), c + new V2(16f, 0f), 6f, ink.WithAlpha(0.95f));
+            Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 6f, ink.WithAlpha(0.95f));
+            for (int k = 0; k < 4; k++)  // dashes turning slowly round it
+                Arc(c, 46f, 3f, ink.WithAlpha(0.55f), 8, t * 0.8f + k * MathX.Tau / 4f, 0.9f);
+        }
+
+        /// A node's fixture (the relic, vector arrow or chest), centred on the node.
         void DrawNodeFixture(V2 c, NodeKind kind, bool spent, ChestKind chest = ChestKind.Upgrade)
         {
             var ink = kind == NodeKind.Chest ? ChestInkOf(chest) : NodeInk(kind);
             float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
             switch (kind)
             {
-                case NodeKind.Shop:
-                {
-                    Circle(c, 74f, ink.WithAlpha(0.06f + 0.03f * pulse), 28);
-                    FillRect(c.X - 52f, c.Y - 14f, 104f, 28f, ink.WithAlpha(0.2f));
-                    NodeFrame(c.X - 52f, c.Y - 14f, 104f, 28f, 3f, ink.WithAlpha(0.9f));
-                    for (int i = 0; i < 5; i++)  // the awning
-                        FillRect(c.X - 50f + i * 20f, c.Y - 36f, 20f, 18f, ink.WithAlpha(i % 2 == 0 ? 0.55f : 0.18f));
-                    NodeFrame(c.X - 50f, c.Y - 36f, 100f, 18f, 2f, ink.WithAlpha(0.8f));
-                    Arc(new V2(c.X, c.Y + Mathf.Sin(t * 3f) * 2f), 7f, 3f, ink.WithAlpha(0.95f), 14);  // a coin on the counter
-                    break;
-                }
-                case NodeKind.BlackMarket:
-                {
-                    Circle(c, 70f, ink.WithAlpha(0.06f + 0.03f * pulse), 28);
-                    Circle(c, 30f, ink.WithAlpha(0.2f), 24);
-                    Arc(c, 30f, 4f, ink.WithAlpha(0.9f), 24);
-                    Line(c - new V2(16f, 0f), c + new V2(16f, 0f), 6f, ink.WithAlpha(0.95f));
-                    Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 6f, ink.WithAlpha(0.95f));
-                    for (int k = 0; k < 4; k++)  // dashes turning slowly round it
-                        Arc(c, 46f, 3f, ink.WithAlpha(0.55f), 8, t * 0.8f + k * MathX.Tau / 4f, 0.9f);
-                    break;
-                }
                 case NodeKind.Relic:
                 {
                     long key = OpenKey(c, ChestKind.Relic);

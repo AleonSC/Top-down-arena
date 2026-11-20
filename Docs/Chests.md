@@ -44,6 +44,6 @@ Run per step: `Tools/CompileCheck/check.sh` and the suites named above (`run.sh 
 
 - `Game.SpawnChest(pos, kind, onOpened, holdsWave, seed)`, `TrySpawnChest(kind)` (a free spot: wave drops, Contraband, an Ambush's reward) and `ChestAt(pos)` are in `Props.cs`; hooks live in the host-only `chestSources` (cleared with the props).
 - `TickNodes` spawns a node's chest once (`ChestAt(NodeSpot)` says if it is already there), with a hook that spends the node (`SpendNode`). A mystery-door hallway and a rule room's prize are chest nodes, so they go the same way.
-- `Expansion.NodeChestKind` at the inner tier is Gold or Vector (the coin the vector chest node used to be placed by). `Expansion.Current` turns a legacy `NodeKind.VectorChest` into a chest on load (network and saves); the enum value stays so numbers don't shift.
-- `Msg.CollectChest` keeps its `node` bool (always false now) so the wire format is the same; the host ignores `node = true`.
+- `Expansion.NodeChestKind` at the inner tier is Gold or Vector (the coin the vector chest node used to be placed by). `NodeKind.VectorChest`, `Shop` and `BlackMarket` are gone from the enum (protocol 421). An older save's `VectorChest` node loads as a chest node; its shop and Black Market nodes are skipped.
+- `Msg.CollectChest` is just the chest's prop id (the `node` bool went in 421).
 - `NodeLook` no longer draws a vector chest node; a claimed chest is the prop, drawn by `PropsLook` / `ChestLooks` for every `ChestKind`.

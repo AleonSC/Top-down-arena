@@ -36,7 +36,7 @@ namespace Arena
             }
             if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.BlackMarket))  // an opened shop or Black Market room: its stall or pedestal
             {
-                DrawNodeFixture(a.Mid, a.Kind == RoomKind.Shop ? NodeKind.Shop : NodeKind.BlackMarket, false);
+                if (a.Kind == RoomKind.Shop) DrawShopStall(a.Mid); else DrawMarketPedestal(a.Mid);
                 return;
             }
             var ink = KindInk(a.Kind, a.Floor);

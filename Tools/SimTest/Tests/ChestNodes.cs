@@ -83,7 +83,10 @@ static partial class Program
         Run(s, dt, 0.5f, () => hc.Open, noPicks);
         Run(s, dt, 0.3f, null, noPicks);
         Check(hc.Open && hooked == 1, "its hook runs once, as it opens (" + hooked + ")");
-        Check(Expansion.Current(NodeKind.VectorChest) == NodeKind.Chest && Expansion.Current(NodeKind.Relic) == NodeKind.Relic, "a legacy vector chest node loads as a chest node");
+        {  // an older save's vector chest node loads as a chest node, and its shop and Black Market nodes are dropped
+            var old = RunSave.Parse(new RunSave { Wave = 6, HasExpansion = true, Seats = { new SeatSave() } }.ToText() + "\nnode VectorChest 850 2150 0\nnode Shop 100 100 0\nnode BlackMarket 200 200 0\nnode Relic 300 300 0\n");
+            Check(old != null && old.Nodes.Count == 2 && old.Nodes[0].Kind == NodeKind.Chest && old.Nodes[1].Kind == NodeKind.Relic, "an older save's vector chest node loads as a chest node; its shop and Black Market nodes are dropped");
+        }
     }
 
     // Owner Nov 18: a claimed chest or relic stands in the middle of its room (World.NodeSpots), clear of a card room's obstacles.
@@ -100,7 +103,7 @@ static partial class Program
             new MapNode { X = (short)(W + 150), Y = 350, Kind = NodeKind.Chest },
             new MapNode { X = (short)(W + 850), Y = 550, Kind = NodeKind.Relic },
             new MapNode { X = (short)(W + 150), Y = 550, Kind = NodeKind.Chest },
-            new MapNode { X = (short)(W + 850), Y = 350, Kind = NodeKind.Shop },
+            new MapNode { X = (short)(W + 850), Y = 350, Kind = NodeKind.Tower },
             new MapNode { X = (short)(W + 5000), Y = 450, Kind = NodeKind.Chest },  // (nobody has built round it)
         };
         var mid = new V2(W + 500f, 450f);
