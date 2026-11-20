@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Arena
 {
@@ -12,6 +13,8 @@ namespace Arena
     ///     wave (a piercing KnightWave) down your aim. No thrusts until it's done.
     public partial class Game
     {
+        readonly List<int> guardStopped = new List<int>();  // (shots the Rapier's stance stopped this tick)
+
         public const int RapierTempoMax = 20, RapierFlourishMin = 3;
         public const float RapierSlow = 0.48f, RapierFast = 0.16f, RapierMinInterval = 0.08f;
         public const float RapierGrace = 1.2f, RapierDrain = 2f;

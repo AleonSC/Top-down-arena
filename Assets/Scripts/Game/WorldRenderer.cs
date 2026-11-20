@@ -142,10 +142,8 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
-                    DrawGreatGuard(p);  // GreatswordLook.cs
                     DrawGreatWindup(p);     // each step's own pose
                     DrawGreatWheel(p);      // the Moonwheel
-                    DrawGreatGuardPose(p);
                     DrawGreatPips(p);
                 }
             foreach (var p in game.Players.Values)

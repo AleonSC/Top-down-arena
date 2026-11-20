@@ -13,7 +13,7 @@ namespace Arena
     ///   - Moonwheel (the weapon-action key; HostMoonwheel): the sword is thrown spinning to the cursor (WheelMin to WheelMax px out),
     ///     cutting every enemy it passes once on the way out and once on the way back, and small shots; a wall turns it back. You
     ///     can't swing until you catch it; the cooldown counts from the catch. It flies as a Twin Fang run (TwinBlades.cs FlyFang,
-    ///     FangRun.Great) and replicates through Player.FangOut and FangAt. The old guard and Rend (Greatsword.cs) are kept, unused.
+    ///     FangRun.Great) and replicates through Player.FangOut and FangAt.
     /// The look is Game/GreatswordLook.cs.
     public partial class Game
     {
@@ -149,7 +149,7 @@ namespace Arena
                 {
                     var s = GreatSwing(p, aim, EclipseReach, 0f, hit, d.Wind, m);
                     s.HalfWidth = EclipseHalfWidth;
-                    s.Rend = true;  // drawn as the old Rend's lance at full Temper: gold (FxKind.GreatRend)
+                    s.Rend = true;  // drawn as a Rend lance at full Temper: gold (FxKind.GreatRend)
                     s.Power = 1f;
                     s.Heavy = true;
                     s.Knock = EclipseKnock;
