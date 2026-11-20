@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// A room's traps on the floor (RoomTraps.cs): a turret in hostile red (a plate, a twin-barrelled head that tracks the nearest player),
-    /// a spike plate (a ring of steel points) and a slow field (a violet pool with rings drifting in). Hidden while their room is dark.
+    /// a spike plate (a square with a field of steel points) and a slow field (a violet square with squares drifting in); a shot-up turret is gone. Hidden while their room is dark.
     public partial class ArenaApp
     {
         static readonly Rgba RoomTrapRed = new Rgba(1f, 0.3f, 0.34f), RoomTrapSteel = new Rgba(0.82f, 0.85f, 0.92f), RoomTrapViolet = new Rgba(0.62f, 0.42f, 1f);
@@ -24,27 +24,26 @@ namespace Arena
 
         void DrawSpikePlate(V2 c, float t)
         {
-            float r = RoomTraps.SpikeR;
-            Circle(c, r, new Rgba(0.08f, 0.04f, 0.05f, 0.85f), 24);
-            Arc(c, r, 2.5f, RoomTrapRed.WithAlpha(0.85f), 24);
-            for (int k = 0; k < 8; k++)
-            {
-                float a = MathX.Tau * k / 8f + 0.2f;
-                V2 d = V2.FromAngle(a), s = new V2(-d.Y, d.X);
-                Tri3(c + d * (r * 0.78f), c + d * (r * 0.3f) + s * 4.5f, c + d * (r * 0.3f) - s * 4.5f, RoomTrapSteel.WithAlpha(0.9f));
-            }
-            Tri3(c + new V2(0f, -9f), c + new V2(-5f, 4f), c + new V2(5f, 4f), RoomTrapSteel.WithAlpha(0.95f));
+            float h = RoomTraps.SpikeHalf;
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, new Rgba(0.08f, 0.04f, 0.05f, 0.88f));
+            NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 2.5f, RoomTrapRed.WithAlpha(0.85f));
+            for (int i = -1; i <= 1; i++)  // a 3 x 3 field of steel points
+                for (int j = -1; j <= 1; j++)
+                {
+                    V2 p = c + new V2(i, j) * (h * 0.58f);
+                    Tri3(p + new V2(0f, -9f), p + new V2(-6f, 6f), p + new V2(6f, 6f), RoomTrapSteel.WithAlpha(0.9f));
+                }
         }
 
         void DrawSlowField(V2 c, float t)
         {
-            float r = RoomTraps.SlowR;
-            Circle(c, r, RoomTrapViolet.WithAlpha(0.18f), 28);
-            Arc(c, r, 2f, RoomTrapViolet.WithAlpha(0.7f), 28);
-            for (int k = 0; k < 3; k++)
+            float h = RoomTraps.SlowHalf;
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, RoomTrapViolet.WithAlpha(0.18f));
+            NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 2f, RoomTrapViolet.WithAlpha(0.7f));
+            for (int k = 0; k < 3; k++)  // squares drifting inward
             {
-                float ph = (t * 0.5f + k / 3f) % 1f;
-                Arc(c, r * (1f - ph), 1.5f, RoomTrapViolet.WithAlpha(0.5f * (1f - ph)), 24);
+                float ph = (t * 0.5f + k / 3f) % 1f, q = h * (1f - ph);
+                NodeFrame(c.X - q, c.Y - q, q * 2f, q * 2f, 1.5f, RoomTrapViolet.WithAlpha(0.5f * (1f - ph)));
             }
         }
 

@@ -75,6 +75,7 @@ namespace Arena
             FoldRooms.AddRange(Expanded);
             Expanded.Clear();
             ClearDormant();  // the old rooms' sleeping groups go with them (DormantGroups.cs)
+            ClearTrapWrecks();  // and the shot-up turrets (RoomTraps.cs)
             Openings.Clear();
             Links.Clear();
             Nodes.Clear();
