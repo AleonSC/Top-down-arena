@@ -318,6 +318,31 @@ static partial class Program
         pen2[5].T = 0.01f;  // one dot gone (as if worn through)
         play(0.3f, idle);
         Check(held.PenId == 0, "a gap in the ring frees what it held");
+
+        // Alt sets the loops alight: what they hold burns, the ring holds a while longer, and the other player sees it.
+        play(0.3f, idle);
+        var pen3 = new List<InkDot>();
+        for (int i = 0; i < 24; i++)
+        {
+            var d = new InkDot { Pos = ctr + V2.FromAngle(MathX.Tau * i / 24f) * 60f, T = 0.8f, Owner = 1, Stroke = 902, Pen = 78 };
+            g.Ink.Add(d); pen3.Add(d);
+        }
+        var cooked = make(ctr, EnemyType.Brute, false);
+        cooked.Hp = cooked.MaxHp = 1000f;
+        var inkPen3 = new InkPen { Id = 78, Owner = 1, T = 0.8f, Dots = 24 };
+        foreach (var d in pen3) inkPen3.Poly.Add(d.Pos);
+        pens[78] = inkPen3;
+        cooked.PenId = 78; cooked.PenPos = cooked.Pos;
+        play(0.1f, f => new PlayerInput { WeaponAction = true, AimAt = ctr });
+        float cookHp0 = cooked.Hp;
+        Check(inkPen3.Lit && pen3.All(d => d.Lit) && me.ChalkIgniteCd > Game.ChalkIgniteCd - 0.5f, "Alt sets a sealed loop alight and starts its 6 s cooldown");
+        Check(cooked.BurnT > 0f && inkPen3.T > Game.ChalkIgniteTime - 0.5f, "what it holds burns, and the ring holds for the burn");
+        play(1.5f, idle);
+        Check(cookHp0 - cooked.Hp > Game.ChalkIgniteDps * me.Stats.DmgMult * 1.2f && cooked.PenId == 78, "it burns about 40 a second while the ring holds");
+        Check(client.Game.Ink.Any(d => d.Pen == 78 && d.Lit) && client.Game.Enemies.ContainsKey(cooked.Id) && client.Game.Enemies[cooked.Id].Burning, "the other player sees the ring and the enemy alight");
+        play(0.1f, f => new PlayerInput { WeaponAction = true, AimAt = ctr });
+        Check(me.ChalkIgniteCd > 3f, "no second ignite while it cools down");
+        cooked.Hp = 0f;
         reset();
         host.Leave(""); client.Leave("");
     }

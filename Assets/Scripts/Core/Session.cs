@@ -118,6 +118,7 @@ namespace Arena
         public short BestWave;
         public int Kills, BossKills;  // public records shown on the inspect card (client-reported, cosmetic)
         public byte NameFx;   // their equipped name effect: 0 none, else Rank.NameFxIndex (how their name is drawn, Game/NameEffects.cs)
+        public byte[] Skins = Expertise.NoSkins;  // their weapon skins: pairs of (weapon, skin index), Expertise.Pack (everyone draws and hears them)
         public byte CardBg;   // their equipped card background: 0 none, else Rank.CardBgIndex (the fill of their party card)
         public PerkId[] PerkIds = Perks.Empty;      // the perks they will bring (Perks.cs): what they picked, or on a continued run what their seat was saved with
         public PerkId[] ChosenPerks = Perks.Empty;  // host: what they picked (sanitised); PerkIds follows it unless a saved run overrides
@@ -132,7 +133,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 427;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 430;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -745,6 +746,7 @@ namespace Arena
                     var perkBytes = new List<byte>();
                     for (int pn = r.ReadByte(); pn > 0; pn--)
                         perkBytes.Add(r.ReadByte());
+                    var skins = ReadSkins(r);
                     LobbyEntry who;
                     if (Lobby.TryGetValue(peer, out who))
                     {
@@ -755,6 +757,7 @@ namespace Arena
                         who.CardBg = Arena.Rank.Owns(rank, Arena.Rank.CardBgId(card)) ? (byte)card : (byte)0;
                         who.NameFx = Arena.Rank.Owns(rank, Arena.Rank.NameFxId(namefx)) ? (byte)namefx : (byte)0;
                         who.ChosenPerks = Perks.Sanitize(perkBytes);
+                        who.Skins = skins;
                         BroadcastLobby();
                     }
                     break;
@@ -1104,6 +1107,7 @@ namespace Arena
             me.CardBg = Arena.Rank.Owns(me.Rank, p.CardBg) ? Arena.Rank.CardBgIndex(p.CardBg) : (byte)0;
             me.NameFx = Arena.Rank.Owns(me.Rank, p.NameFx) ? Arena.Rank.NameFxIndex(p.NameFx) : (byte)0;
             me.ChosenPerks = Perks.Brought(p);
+            me.Skins = Expertise.Pack(p);
             me.XpPct = (byte)Math.Round(Arena.Rank.Of(p.Xp).Fraction * 100f);
             me.BestWave = (short)Math.Min(9999, p.BestWave);
             me.Kills = p.Kills;
@@ -1136,6 +1140,7 @@ namespace Arena
             w.Write((byte)mine.Length);
             foreach (var id in mine)
                 w.Write((byte)id);
+            WriteSkins(w, Expertise.Pack(p));
             SendToHost(Proto.End(w));
         }
 
@@ -1155,6 +1160,24 @@ namespace Arena
                 return;
             e.Name = CleanName(name);
             BroadcastLobby();
+        }
+
+        /// Weapon skins on the wire: a count of pairs, then (weapon, skin index) each (Expertise.Pack).
+        static void WriteSkins(BinaryWriter w, byte[] pairs)
+        {
+            int n = Math.Min(Expertise.MaxSent, (pairs?.Length ?? 0) / 2);
+            w.Write((byte)n);
+            for (int i = 0; i < n * 2; i++)
+                w.Write(pairs[i]);
+        }
+
+        static byte[] ReadSkins(BinaryReader r)
+        {
+            int n = r.ReadByte();
+            var raw = new List<byte>();
+            for (int i = 0; i < n * 2; i++)
+                raw.Add(r.ReadByte());
+            return Expertise.Clean(raw);
         }
 
         void BroadcastLobby()
@@ -1189,6 +1212,7 @@ namespace Arena
                 w.Write((byte)e.PerkIds.Length);
                 foreach (var id in e.PerkIds)
                     w.Write((byte)id);
+                WriteSkins(w, e.Skins);
             }
             w.Write((int)Modifiers);
             Diff.Write(w);
@@ -1638,6 +1662,7 @@ namespace Arena
                         for (int pn = r.ReadByte(); pn > 0; pn--)
                             perkBytes.Add(r.ReadByte());
                         e.PerkIds = Perks.Sanitize(perkBytes);
+                        e.Skins = ReadSkins(r);
                         Lobby[e.Id] = e;
                     }
                     SyncAvatars();

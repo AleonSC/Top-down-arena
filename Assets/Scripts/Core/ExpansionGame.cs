@@ -59,7 +59,7 @@ namespace Arena
         /// Where node i stands now: a claimed chest or relic stands in the middle of its room (World.NodeSpots, Expansion.NodeSpotIn), else at its own point.
         public V2 NodeSpot(int i)
         {
-            var w = Nodes[i].Kind != NodeKind.Rule && Expansion.CentresInRoom(Nodes[i].Kind) ? ExpansionWorld : null;
+            var w = Expansion.CentresInRoom(Nodes[i].Kind) ? ExpansionWorld : null;
             return w != null && w.NodeSpots != null && i < w.NodeSpots.Length ? w.NodeSpots[i] : Nodes[i].Pos;
         }
 
@@ -364,7 +364,7 @@ namespace Arena
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
-                if (nd.Kind != NodeKind.Chest && !(Expansion.RuleHoldsChest(nd) && nd.Cleared) || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
+                if (nd.Kind != NodeKind.Chest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
                     continue;
                 if (ChestAt(NodeSpot(i)) != null)
                     continue;
@@ -384,39 +384,6 @@ namespace Arena
             DoLog("a chest node's chest was opened");
             BroadcastExpansion();
         }
-
-        /// Host, as a wave is cleared: every claimed rule room has been through that wave, so its prize comes out (Docs/RuleRooms.md): a chest at the
-        /// node, a relic to walk up to, or for Frozen gold and vectors for everyone at once (which spends the node).
-        void ClearRuleRooms()
-        {
-            if (!IsHost || !ExpandingOn || BossNow || !ModeRules.Extras)
-                return;
-            bool changed = false;
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                var nd = Nodes[i];
-                if (nd.Kind != NodeKind.Rule || nd.Cleared || !Expansion.NodeClaimed(Expanded, nd))
-                    continue;
-                nd.Cleared = true;
-                if (!Expansion.RuleHoldsChest(nd) && !Expansion.RuleHoldsRelic(nd))
-                {
-                    nd.Spent = true;
-                    foreach (var p in Players.Values)
-                    {
-                        p.Gold += RuleGold + RuleGoldPerWave * Wave;
-                        AddVectors(p, RuleVectors);
-                    }
-                }
-                Nodes[i] = nd;
-                changed = true;
-                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(1f, 0.6f, 0.3f), 140f, 0.6f, Sfx.Pick);
-                DoLog("a rule room is cleared: " + (NodeRule)nd.Rule);
-            }
-            if (changed)
-                BroadcastExpansion();
-        }
-
-        const int RuleGold = 40, RuleGoldPerWave = 4, RuleVectors = 8;  // (a cleared Frozen room's prize; first guesses, tune with vecbal)
 
         /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
         /// (the node's look). Room card only with room cards on.
@@ -903,7 +870,7 @@ namespace Arena
             w.Write((ushort)Nodes.Count);  // (ushort: a big map can pass 255)
             foreach (var nd in Nodes)
             {
-                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule); w.Write(nd.Cleared); w.Write(nd.Hidden); w.Write(nd.Drop);
+                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule); w.Write(nd.Hidden); w.Write(nd.Drop);
             }
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
@@ -993,7 +960,7 @@ namespace Arena
             int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean(), Hidden = r.ReadBoolean(), Drop = r.ReadByte() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Hidden = r.ReadBoolean(), Drop = r.ReadByte() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);

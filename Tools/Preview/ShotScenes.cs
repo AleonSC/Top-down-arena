@@ -823,6 +823,7 @@ static partial class Shot {
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)
+    ChalkFireScene();  // CHALKFIRE=A|B|C (ShotChalkFire.cs)
     FlameWallScene();  // FLAMEWALL=<s since the cast> [FXOFF=1] (ShotFlameWall.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
@@ -1457,6 +1458,9 @@ static partial class Shot {
       // SWINGW=<WeaponId>: any melee weapon in your hand (e.g. Greatsword, Rapier, Halberd, Warhammer, Katana, BoStaff).
       var wn = Environment.GetEnvironmentVariable("SWINGW");
       if (wn != null) { var wd = System.Array.Find(Defs.Weapons, x => x.Id.ToString() == wn); if (wd != null) { me.Weapon = wd; me.Kit = wd.Kit; } }
+      // SKIN=<skin id>: your weapon skin, as your lobby entry carries it (Expertise.cs), e.g. SKIN=twin-chicken with SWINGW=TwinBlades.
+      var skinId = Environment.GetEnvironmentVariable("SKIN");
+      if (skinId != null && Expertise.Skin(skinId) != null) { LobbyEntry le; if (!host.Lobby.TryGetValue(me.Id, out le)) host.Lobby[me.Id] = le = new LobbyEntry { Id = me.Id, Name = me.Name }; le.Skins = new byte[] { (byte)Expertise.Skin(skinId).Weapon, Expertise.IndexOf(skinId) }; }
       me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.15f; me.DrawT = 0f; me.Flash = 0f;  // (no hit flash: the model shows its own colours)
       int k = 0;
       foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; float a = me.Aim + (k - 1) * 0.55f; en.Pos = en.Disp = me.Pos + V2.FromAngle(a) * (70f + 25f * (k % 2)); if (++k >= 3) break; }
@@ -2188,8 +2192,8 @@ static partial class Shot {
           foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (int)Expansion.MakePieceCard(PieceShape.TetL); }
         }
       }
-      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind chest|relic|shrine|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
-      if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" && np[2] != "hidden", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
+      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind chest|relic|shrine; a third part "spent" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
+      if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       if (Environment.GetEnvironmentVariable("TURRETS") != null) {  // TURRETS=1: three Black Market turrets round player 1 (5, 3 and 1 waves left; TurretLook.cs)

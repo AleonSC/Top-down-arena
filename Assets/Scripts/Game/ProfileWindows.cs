@@ -18,7 +18,7 @@ namespace Arena
             switch (profileTab)
             {
                 case 0:
-                    DrawLookWindow(p, t, Mathf.Clamp(sel, 0, 6));  // CosmeticsUi.cs
+                    DrawLookWindow(p, t, Mathf.Clamp(sel, 0, SkinSection));  // CosmeticsUi.cs
                     break;
                 case 1:
                     if (sel == 0)

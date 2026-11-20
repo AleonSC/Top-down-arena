@@ -410,7 +410,7 @@ namespace Arena
                     {
                         AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time, Diff.Level == DifficultyLevel.Hard || Diff.Level == DifficultyLevel.Nightmare, HuntLength > Hunts.Length));  // Hunts.cs
                         int cleared = won ? HuntLength : Math.Max(0, HuntWave - 1);
-                        LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2);
+                        LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2, me.Kit);
                         PayCores(Variants.HuntCores(won), found);
                         var hunted = Profile.Recent[0];  // (the hunt just added by AwardXp: its curve for the results screen and Recent runs)
                         hunted.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
@@ -424,7 +424,7 @@ namespace Arena
                     }
                     AddUnlockToasts(Profile.RunEnded(won, recorded, score, endless, Mods, me.Role, me.Kit, me.Run, time));
                     int wavesCleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
-                    LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), recorded, won ? 1 : 0);
+                    LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), recorded, won ? 1 : 0, me.Kit);
                     PayCores(Variants.RunCores(won, Rank.BossesIn(wavesCleared), Endless), found);
                     var logged = Profile.Recent[0];  // (the run just added by AwardXp)
                     logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
@@ -455,7 +455,7 @@ namespace Arena
             int cleared = runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
             int newWaves = Math.Max(0, cleared - endlessFromWave);
             int newBosses = Math.Max(0, Rank.BossesIn(cleared) - Rank.BossesIn(endlessFromWave));
-            LastGain = Profile.AwardXp(Rank.Award(false, newWaves, newBosses, 0, Mods, Diff.Level), recorded, 0);
+            LastGain = Profile.AwardXp(Rank.Award(false, newWaves, newBosses, 0, Mods, Diff.Level), recorded, 0, me.Kit);
             PayCores(Variants.RunCores(false, newBosses, true), Math.Max(0, found - endlessFromCores));
             var logged = Profile.Recent[0];
             logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
@@ -482,7 +482,7 @@ namespace Arena
             runRecorded = true;
             bool beatFirst = QuickBossesBeaten > 0;
             AddUnlockToasts(Profile.QuickEnded(first, beatFirst, wave, newBosses, time - quickCreditedTime));
-            LastGain = Profile.AwardXp(Rank.Award(first && won, Math.Max(0, newWaves), Math.Max(0, newBosses), first ? me.Run.Revives : 0, Mods, Diff.Level), wave, beatFirst ? 1 : 0);
+            LastGain = Profile.AwardXp(Rank.Award(first && won, Math.Max(0, newWaves), Math.Max(0, newBosses), first ? me.Run.Revives : 0, Mods, Diff.Level), wave, beatFirst ? 1 : 0, me.Kit);
             PayCores(Variants.RunCores(first && won, Math.Max(0, newBosses), false), first ? found : 0);
             var logged = Profile.Recent[0];
             logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);

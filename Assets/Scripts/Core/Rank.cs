@@ -38,6 +38,8 @@ namespace Arena
         public long Before, After;
         public int RankBefore, RankAfter;
         public readonly List<CosmeticDef> Unlocked = new List<CosmeticDef>();
+        public Kit? ExpertiseKit;                // the class whose expertise the run raised (Expertise.cs), and its level before and after
+        public int ExpertiseBefore, ExpertiseAfter;
         public int Cores, CoresFound;  // Cores the run paid, and the part of them found as drops (Variants.cs, CoreDrops.cs)
         public bool RankedUp => RankAfter > RankBefore;
     }

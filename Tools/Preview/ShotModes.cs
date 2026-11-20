@@ -436,6 +436,19 @@ static partial class Shot {
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       if (Environment.GetEnvironmentVariable("KBSCROLL") != null) set("keybindScroll", float.Parse(Environment.GetEnvironmentVariable("KBSCROLL")));  // KBSCROLL=<px>: Settings → Keybinds scrolled down (e.g. 400: the Toggles)
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
+      // SKINKIT=<Kit>,<Role>,<weapon key> (the lobby pick the Weapon skin section shows), SKINXP=<n> (that class's expertise XP),
+      // SKINEQ=<skin id> (equipped on its weapon): Profile > Look > Weapon skin, SECTION=7 (WeaponSkinUi.cs).
+      var skinKit = Environment.GetEnvironmentVariable("SKINKIT");
+      if (skinKit != null)
+      {
+        var sk = skinKit.Split(',');
+        var kit = (Kit)Enum.Parse(typeof(Kit), sk[0]);
+        set("kitChoice", kit); set("hostRole", (Role)Enum.Parse(typeof(Role), sk[1])); set("weaponChoice", int.Parse(sk[2]));
+        var pf = Profile.Current;
+        if (Environment.GetEnvironmentVariable("SKINXP") != null) pf.ClassXp[Expertise.Key(kit)] = long.Parse(Environment.GetEnvironmentVariable("SKINXP"));
+        var eq = Environment.GetEnvironmentVariable("SKINEQ");
+        if (eq != null && Expertise.Skin(eq) != null) pf.EquipSkin(Expertise.Skin(eq).Weapon, eq);
+      }
       var secEnv = Environment.GetEnvironmentVariable("SECTION");
       if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("settingsShown", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("rankSection", sec); set("unlocksSection", sec); set("howToTopic", sec); }
       if (Environment.GetEnvironmentVariable("REDUCED") != null) set("fxReduced", true);  // Reduced effects (calm CRT)
