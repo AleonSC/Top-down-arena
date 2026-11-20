@@ -562,6 +562,7 @@ namespace Arena
                 V2 tpos = target != null ? target.Pos : ArenaMid;
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RobotTarget(e, tpos);  // an Engineer's robot draws in enemies near it (Engineer.cs)
+                tpos = DecoyTarget(e, tpos);  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // a Gatekeeper room's mini-boss keeps to its room (Rooms.cs)
@@ -632,6 +633,8 @@ namespace Arena
                     : brainContact >= 0f ? brainContact  // a lunger's leap (their brains)
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
+                if (!e.Def.IsBoss && !e.Def.Mini)
+                    DecoyContact(e, contact);  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
                 if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))
                     continue;  // bosses' and mini-bosses' bodies don't hurt heroes, so melee can stand close; only their telegraphed charges do (a boss still shoves you out: Game.cs)
                 if (!mine || PossessAttacking)

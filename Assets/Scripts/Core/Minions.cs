@@ -651,7 +651,7 @@ namespace Arena
             }
             foreach (var z in Zones.Values)
             {
-                if (z.BlockHp <= 0f || z.Kind == ZoneKind.Cover || !Enters(b, z.Pos, z.Radius))  // (a cover blocks by its plates: CoverStops)
+                if (z.BlockHp <= 0f || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || !Enters(b, z.Pos, z.Radius))  // (a cover blocks by its plates: CoverStops)
                     continue;
                 z.BlockHp -= BlockerWear(b);
                 if (z.BlockHp <= 0f)
@@ -763,6 +763,11 @@ namespace Arena
                 {
                     TickCover(z);  // DeployableCover.cs
                     continue;  // (not a circle: nothing below applies)
+                }
+                if (z.Kind == ZoneKind.DecoyDummy)
+                {
+                    TickDecoy(z, dt);  // DecoyDummy.cs
+                    continue;  // (nothing below applies)
                 }
                 if (z.Kind == ZoneKind.Stampede)
                 {

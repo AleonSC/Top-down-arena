@@ -222,6 +222,7 @@ namespace Arena
             ClearPods();  // a Turnkey's traps and doors left over go (NonShooters.cs)
             ClearRisers();
             FoldAllCovers();  // Deployable Covers fold away with a look rather than vanishing (DeployableCover.cs)
+            FoldAllDecoys();  // and Decoy Dummies deflate (DecoyDummy.cs)
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();

@@ -26,6 +26,7 @@ namespace Arena
         float rodShotT;  // a Lightning Rod demo: until a dummy next fires at you
         int rodShots;
         int ultPick;  // the Ultimate row's key (LobbyEntry.Ult)
+        int oathClick;  // ticks into Guardian's Oath's pick (it clicks on the second)
         float t, castT;
         bool castHeld;
         float ultEvery = UltimateEvery;    // the Titan stays 17 s, so its demo waits for it to crumble
@@ -91,7 +92,7 @@ namespace Arena
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
-                allies = TargetsAlly(shown);
+                allies = TargetsAlly(shown) || ShowcaseAlt.NeedsAlly(Defs.Weapon(role, kit, weapon).Id);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
                 castCount = 0;
@@ -141,8 +142,12 @@ namespace Arena
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));
                 input.Fire = !Idle && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
             }
+            if (ShowcaseAlt.HoldsFire(me.Weapon.Id, t))
+                input.Fire = false;
             // Weapons with an Alt press it on a loop (ShowcaseAlt.cs).
             input.WeaponAction = !Idle && ShowcaseAlt.Held(Game, me, t, dt);
+            if (input.WeaponAction && ShowcaseAlt.NeedsAlly(me.Weapon.Id))
+                input.AimAt = Game.ShowcaseAllyPos(0);  // the Sunlance goes through a teammate
             if (demoAbility && !ultimate && ability == AbilityId.BladedDive && castT <= 0.1f)
                 Game.ShowcaseWoundDummies();  // Bladed Dive's demo kills them so its reset shows (BladedDive.cs); just before the cast, or your swings finish them first
             if (demoAbility)
@@ -189,6 +194,14 @@ namespace Arena
                 if (draw || aimTicks == 0)  // (the cursor goes to a teammate for a cast only between strokes)
                     input.AimAt = aim;
             }
+            if (Game.OathPickSlot >= 0)
+            {
+                // Guardian's Oath waits for a click on a teammate (GuardiansOath.cs): the cursor on one, Fire let go a tick, then pressed.
+                input.AimAt = Game.ShowcaseAllyPos(castCount % 2);
+                input.Fire = oathClick++ % 2 == 1;
+            }
+            else
+                oathClick = 0;
             Game.FixedStep(dt, input);
             Game.Update(dt);
             float far = Distance;
@@ -233,6 +246,15 @@ namespace Arena
                     p.Pos = p.Disp = AllySpot(k++);
                     DevSetGod(p.Id, true);
                 }
+        }
+
+        /// The Wolf Whistle's preview: wolves join until the pack has `count` (kills would take 10 each).
+        public void ShowcaseWolves(Player me, int count)
+        {
+            if (me.Weapon.Id != WeaponId.WolfWhistle)
+                return;
+            while (PackOf(me).Count < count)
+                AddWolf(me);
         }
 
         static V2 AllySpot(int k) => Showcase.Home + new V2(k == 0 ? -130f : 130f, 35f);

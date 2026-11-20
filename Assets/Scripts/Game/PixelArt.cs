@@ -142,6 +142,7 @@ namespace Arena
             { "Tsunami", "cyclone" },
             { "Gale Wall", "galewall" },
             { "Deployable Cover", "guard_wide" },
+            { "Decoy Dummy", "clone" },
             { "Golem Wall", "guard_wide" },
             { "Earthquake", "earthshaker" },
             { "Force Pact", "guard_reinforced" },
