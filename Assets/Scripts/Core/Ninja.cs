@@ -972,6 +972,8 @@ namespace Arena
                 return;  // the Spirit Chalk's ignite (Chalk.cs)
             if (LocalTempest(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // Wind Clash's Tempest (WindClash.cs)
+            if (LocalWyvernSlam(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
+                return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Blood Blast's Crimson Tide (BloodBlast.cs)
             if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -1369,6 +1371,11 @@ namespace Arena
             if (kind == DashTempest)
             {
                 HostTempest(p);  // Wind Clash's Alt (WindClash.cs)
+                return;
+            }
+            if (kind == DashWyvernSlam)
+            {
+                HostWyvernSlam(p, target);  // the Wyvern Staff's Alt (WyvernStaff.cs)
                 return;
             }
             if (kind == DashDrum)
