@@ -384,14 +384,16 @@ namespace Arena
 
         const float GraphR = 22f, PortalHop = 40f;
         readonly Dictionary<LayoutDef, WayGraph> wayGraphs = new Dictionary<LayoutDef, WayGraph>();
+        readonly Dictionary<LayoutDef, WayGraph> plainGraphs = new Dictionary<LayoutDef, WayGraph>();  // the same without the portals: enemies don't use them
         readonly Dictionary<long, GoalInfo> goalCost = new Dictionary<long, GoalInfo>();
         int goalStamp = -1;
         LayoutDef goalDef;
 
-        WayGraph GraphFor(LayoutDef d)
+        WayGraph GraphFor(LayoutDef d, bool portals)
         {
             WayGraph g;
-            if (wayGraphs.TryGetValue(d, out g))
+            var cache = portals ? wayGraphs : plainGraphs;
+            if (cache.TryGetValue(d, out g))
                 return g;
             var w = d.Waypoints;
             int n = w.Length;
@@ -399,7 +401,7 @@ namespace Arena
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < n; j++)
                     dist[i, j] = i == j ? 0f : (SegBlocked(d, w[i], w[j], GraphR) ? float.MaxValue : w[i].DistanceTo(w[j]));
-            if (d.Links != null)  // portals: their two spots count as next to each other (Rooms.cs)
+            if (portals && d.Links != null)  // portals: their two spots count as next to each other (Rooms.cs)
                 for (int l = 0; l + 1 < d.Links.Length; l += 2)
                     dist[d.Links[l], d.Links[l + 1]] = dist[d.Links[l + 1], d.Links[l]] = PortalHop;
             var direct = (float[,])dist.Clone();
@@ -416,12 +418,12 @@ namespace Arena
                             dist[i, j] = ik + kj;
                     }
                 }
-            wayGraphs[d] = g = new WayGraph { Dist = dist, Direct = direct };
+            cache[d] = g = new WayGraph { Dist = dist, Direct = direct };
             return g;
         }
 
         /// For each corner, the length of the best walk from it to tpos (through other corners if need be).
-        GoalInfo GoalCosts(LayoutDef d, V2 tpos, float r)
+        GoalInfo GoalCosts(LayoutDef d, V2 tpos, float r, bool portals)
         {
             int stamp = (int)(LayoutAge * 5f);
             if (stamp != goalStamp || d != goalDef || goalCost.Count > 64)
@@ -430,12 +432,12 @@ namespace Arena
                 goalStamp = stamp;
                 goalDef = d;
             }
-            long key = ((long)(int)(tpos.X / 8f) << 32) ^ ((long)(int)(tpos.Y / 8f) << 8) ^ (long)(int)r;
+            long key = ((long)(int)(tpos.X / 8f) << 32) ^ ((long)(int)(tpos.Y / 8f) << 8) ^ (long)(int)r ^ (portals ? 0L : 1L << 62);
             GoalInfo info;
             if (goalCost.TryGetValue(key, out info))
                 return info;
             var w = d.Waypoints;
-            var graph = GraphFor(d);
+            var graph = GraphFor(d, portals);
             var dist = graph.Dist;
             int n = w.Length;
             var last = new float[n];  // corners that see the target: the walk's last leg
@@ -515,12 +517,13 @@ namespace Arena
             tpos = ClearOfWalls(d, tpos, r);
             if (!SegBlocked(d, pos, tpos, r))
                 return dir;
-            if (d.Mouths != null && d.Mouths.Length > 0)  // at a wall portal its route goes through: walk into the wall (World.cs)
+            bool portals = key < 0;  // (bots, keyed by minus their id, may use portals; enemies, keyed by their id, never do)
+            if (portals && d.Mouths != null && d.Mouths.Length > 0)  // at a wall portal its route goes through: walk into the wall (World.cs)
                 foreach (var mo in d.Mouths)
                 {
                     V2 o = raw - mo.At;
                     float off = o.Dot(mo.In), along = Math.Abs(o.Dot(mo.In.Orthogonal()));
-                    if (off < WorldPortal.MouthIn + 16f && off > 0f && along < mo.Half - 8f && GoalCosts(d, tpos, r).Next[mo.Wp] == mo.Partner)
+                    if (off < WorldPortal.MouthIn + 16f && off > 0f && along < mo.Half - 8f && GoalCosts(d, tpos, r, true).Next[mo.Wp] == mo.Partner)
                         return -mo.In;
                 }
             SteerMem m;
@@ -539,7 +542,7 @@ namespace Arena
             m.Goal = tpos;
             if (m.Wp >= 0 && now < m.Until && pos.FartherThan(wps[m.Wp], 14f) && !SegBlocked(d, pos, wps[m.Wp], r))
                 return (wps[m.Wp] - pos).Normalized();
-            var goal = GoalCosts(d, tpos, r);
+            var goal = GoalCosts(d, tpos, r, portals);
             var cost = goal.Cost;
             int at = -1;  // standing on a corner: carry on to the next one on the route
             for (int i = 0; i < wps.Length; i++)

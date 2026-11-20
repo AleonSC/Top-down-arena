@@ -130,7 +130,7 @@ namespace Arena
             s.Short(ref p.Vectors);
             s.Short(ref p.VectorCap);
             for (int i = 0; i < p.Hand.Length; i++)
-                s.Byte(ref p.Hand[i]);  // room cards (Pieces.cs)
+                s.Short(ref p.Hand[i]);  // room cards (Pieces.cs): 2 bytes, a shape card carries its modifiers in its code
         }
 
         // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
@@ -174,8 +174,8 @@ namespace Arena
 
         public bool InServiceRoom(Player p) => InShopRoom(p) || InBlackMarketRoom(p) || InArmsRoom(p) || InMedicRoom(p);
 
-        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the Black Market (the Black Market), mods at the
-        /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) at the shop or vendor.
+        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables only at the Black Market (Docs/BlackMarket.md), mods at the
+        /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) in the shop room: each vendor sells its own wares only.
         bool ServiceAllowed(Player p, ShopAction action)
         {
             if (!ServiceRooms)
@@ -191,7 +191,7 @@ namespace Arena
                 case ShopAction.Sell:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
-                    return InShopRoom(p) || InBlackMarketRoom(p);
+                    return InShopRoom(p);
                 case ShopAction.BuyBuild:
                     return InBlackMarketRoom(p);
                 case ShopAction.BuyCard:
@@ -274,30 +274,19 @@ namespace Arena
             floatCycle = cycle;
             bool added = false;
             // (no floating rooms any more, owner Nov 18: shop, Black Market and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
-            // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, and a relic every other cycle)
-            if (cycle == 0)
-            {
-                var ringKinds = new[] { NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest, NodeKind.Chest, NodeKind.Relic };
-                for (int i = 0; i < ringKinds.Length; i++)
-                {
-                    var rn = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i, Expansion.RingTier(i));  // (two of each tier: inner, middle, outer)
-                    if (!rn.HasValue)
-                        continue;
-                    Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
-                    added = true;
-                    DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
-                }
-            }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic } : new[] { NodeKind.Chest })
+            // (owner Nov 20: the health shrine is the only node; chests roll in the rooms players build instead, RoomChests.cs. The first cycle rings the hub with
+            // ShrineRing shrines, one per side in turn; each later cycle adds one)
+            int count = cycle == 0 ? Shrines.Ring : 1;
+            for (int i = 0; i < count; i++)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind, -1, Expansion.CycleTier(kind, cycle));
+                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, NodeKind.Shrine, cycle == 0 ? i : -1, cycle == 0 ? Expansion.RingTier(i) : Expansion.CycleTier(NodeKind.Chest, cycle));
                 if (!nd.HasValue)
                     continue;
-                Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
+                Nodes.Add(nd.Value);
                 added = true;
-                DoLog("a " + kind + " node appears at " + nd.Value.X + "," + nd.Value.Y);
+                DoLog("a health shrine node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
             added |= PlaceGridMini(cycle);  // GridPieces.cs: a Grid run's mini-boss waits on the lattice
             if (added)
@@ -398,7 +387,7 @@ namespace Arena
 
         /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
         /// (the node's look). Room card only with room cards on.
-        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, ExpandingOn);
+        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd, ExpandingOn);
 
         /// Host: the team gains a room kit (at most Expansion.MaxTokens held).
         void GrantRoomToken(RoomToken t)
@@ -545,21 +534,63 @@ namespace Arena
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
                 return;
             string why;
-            int price = Expansion.LinkPrice(ExpansionWorld, Links.Count, l, out why);
             if (p.Stash[(int)BuildKind.Teleporter] == 0)
             {
                 DoLog("portal refused (no teleporter in your stash: buy one at the Black Market)");
                 return;
             }
-            if (price <= 0)
+            if (!Expansion.LinkFits(ExpansionWorld, Links.Count, l, out why))
             {
                 DoLog("portal refused (" + why + ")");
                 return;
             }
             p.Stash[(int)BuildKind.Teleporter]--;  // (a teleporter pair from the stash: no vectors)
-            var linkRoom = Expansion.LinkProposal(l, 0);
+            var linkRoom = Expansion.LinkProposal(l);
             linkRoom.Owner = id;
             BuildNow(id, linkRoom, null);
+            SendSnapshot();
+        }
+
+        /// This game's player dismantles the portal pair with an end at this wall spot (the pair goes back to their stash).
+        public void ProposeUnlink(V2 end)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostUnlink(MyId, end);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandUnlink);
+            pw.Write((short)end.X); pw.Write((short)end.Y);
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandUnlink(int peer, BinaryReader r) => HostUnlink(peer, new V2(r.ReadInt16(), r.ReadInt16()));
+
+        /// Host, in a build round: the pair with an end at `end` is taken down and its teleporter goes to the dismantler's stash.
+        void HostUnlink(int id, V2 end)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            int at = -1;
+            for (int i = 0; i < Links.Count && at < 0; i++)
+                if (Links[i].A.CloserThan(end, 1f) || Links[i].B.CloserThan(end, 1f))
+                    at = i;
+            if (at < 0)
+            {
+                DoLog("dismantle refused (no portal pair there)");
+                return;
+            }
+            Links.RemoveAt(at);
+            p.Stash[(int)BuildKind.Teleporter]++;
+            expWorld = null;
+            LayoutAge = 0f;
+            RaiseRoomsNow();
+            DoLog("portal pair dismantled by " + p.Name + " (back to their stash)");
+            Sounds.Add(Sfx.Pick);
+            BroadcastExpansion();
             SendSnapshot();
         }
 
@@ -583,7 +614,6 @@ namespace Arena
             else if (room.Kind == Arena.RoomKind.Link)
             {
                 Links.Add(Expansion.LinkOf(room));
-                PayVectors(Players[pick], room.Price);
                 DoLog("portal pair built by " + Players[pick].Name);
             }
             else
@@ -613,6 +643,7 @@ namespace Arena
         void TickExpansion(float dt)
         {
             TickNodeFog(dt);  // NodeScouting.cs
+            TickShrines();    // Shrines.cs (host: in waves and between them)
             TickGridCore();  // GridRooms.cs
             TickRoomFog(dt);  // RoomFog.cs
             if (!ExpandOpen)
@@ -747,7 +778,7 @@ namespace Arena
                     p.Stash[i] = (byte)Math.Min(Market.StashMax, s.Stash[i]);
                 Array.Clear(p.Hand, 0, p.Hand.Length);
                 for (int i = 0; i < s.Hand.Count && i < p.Hand.Length; i++)
-                    p.Hand[i] = (byte)s.Hand[i];
+                    p.Hand[i] = s.Hand[i];
                 p.CardsDealt = s.Hand.Count > 0 || s.Vectors >= 0;  // (a saved seat had its starting hand)
                 p.ShelfSold = s.ShelfSold;
                 p.Restocks = Math.Min(255, s.Restocks);

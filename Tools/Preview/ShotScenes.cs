@@ -58,6 +58,7 @@ static partial class Shot {
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
     CauterizeScene();  // CAUTER=1 (ShotCauterize.cs)
     ChestLooksScene();  // CHESTLOOKS=1 (ShotChests.cs)
+    GadgetsScene();  // GADGETS=wheel|floor|recall (ShotGadgets.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     WolfPackScene();  // WOLFPACK=pack|alpha|merge [WOLFT=<s>] (ShotWolfPack.cs)
@@ -2184,10 +2185,10 @@ static partial class Shot {
         else Console.Error.WriteLine("CARDROOM: no spot fits");
         if (Environment.GetEnvironmentVariable("BUILDEROPEN") != null) {  // BUILDEROPEN=1 (with CARDROOM=buildershop): a build round, so the Builder Shop's shelf shows (BuilderShopUi.cs)
           xg.ExpandOpen = true; xg.State = MatchState.Intermission;
-          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (byte)Expansion.MakePieceCard(PieceShape.TetL); }
+          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (int)Expansion.MakePieceCard(PieceShape.TetL); }
         }
       }
-      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
+      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind chest|relic|shrine; a third part "spent" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
@@ -2211,6 +2212,9 @@ static partial class Shot {
         if (fa.Length > 1 && fa[1] == "trail") for (float d = fdeg - 170f; d < fdeg; d += 8f) { foreach (var pl in xg.Players.Values) pl.Aim = d * (float)Math.PI / 180f; scan.Invoke(xg, null); }
         foreach (var pl in xg.Players.Values) pl.Aim = fdeg * (float)Math.PI / 180f;
       }
+      if (Environment.GetEnvironmentVariable("SHRINEUSED") != null) foreach (var pl in xg.Players.Values) pl.ShrinesUsed = ulong.MaxValue;  // SHRINEUSED=1: everyone has used every health shrine (ShrineLook.cs)
+      string overHp = Environment.GetEnvironmentVariable("OVERHP");  // OVERHP=<n>: everyone carries n health past max from a shrine (the HUD's gold, the gold ring)
+      if (overHp != null) foreach (var pl in xg.Players.Values) pl.OverHp = float.Parse(overHp, System.Globalization.CultureInfo.InvariantCulture);
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
       if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;

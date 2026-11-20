@@ -6,7 +6,7 @@ namespace Arena
     /// A card code in a player's hand (Docs/GridPieces.md): codes from Expansion.PieceCodeBase up are grid pieces (GridPieces.cs); below it the
     /// service and utility cards, which build one cell. New values go at the end. Box to Chamfer and MiniBoss were the old room cards (retired
     /// with them, Nov 18): kept so the codes stay the same.
-    public enum PieceCard : byte { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms, Medic }
+    public enum PieceCard : ushort { None, Box, Hall, Ring, Cross, LHall, THall, Chamfer, MiniBoss, BuilderShop, Shop, Market, Arms, Medic }
 
     public static partial class Expansion
     {
@@ -75,7 +75,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var c in p.Hand)
-                if (c != (byte)PieceCard.None) n++;
+                if (c != (int)PieceCard.None) n++;
             return n;
         }
 
@@ -85,9 +85,9 @@ namespace Arena
             if (!IsHost || c == PieceCard.None)
                 return false;
             for (int i = 0; i < p.Hand.Length; i++)
-                if (p.Hand[i] == (byte)PieceCard.None)
+                if (p.Hand[i] == (int)PieceCard.None)
                 {
-                    p.Hand[i] = (byte)c;
+                    p.Hand[i] = (int)c;
                     DoLog(p.Name + " gets a " + Expansion.CardName(c) + " card (" + why + ")");
                     return true;
                 }
@@ -99,7 +99,7 @@ namespace Arena
         {
             for (int i = slot; i < p.Hand.Length - 1; i++)
                 p.Hand[i] = p.Hand[i + 1];
-            p.Hand[p.Hand.Length - 1] = (byte)PieceCard.None;
+            p.Hand[p.Hand.Length - 1] = (int)PieceCard.None;
         }
 
         /// Host, as a build round opens: anyone not dealt yet gets the starting hand (Expansion.GridStartHand), then everyone a wave card pick
@@ -127,8 +127,8 @@ namespace Arena
         /// Host: a wave card pick's two cards: the round's basic piece (Expansion.GridRoundCard) and a dropped card (Expansion.GridDropCard), seeded per player and wave.
         int[] WaveCardOffer(Player p)
         {
-            int basic = (int)Expansion.GridRoundCard(Wave);
             var rng = new DetRandom(expandSeed * 31 + Wave * 1009 + p.Id * 67);
+            int basic = (int)Expansion.GridRoundCard(rng, Wave);
             int drop = basic;
             for (int tries = 0; drop == basic && tries < 20; tries++)
                 drop = (int)Expansion.GridDropCard(rng, Math.Max(1, Wave));

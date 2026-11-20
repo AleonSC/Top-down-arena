@@ -61,16 +61,18 @@ namespace Arena
         }
 
         /// Host, as a piece card is built: each cell rolls for a sleeping group of this wave's faction enemies. Returns how many groups.
-        int PlantDormantGroups(IList<ExpansionRoom> boxes)
+        internal int PlantDormantGroups(IList<ExpansionRoom> boxes, bool atLeastOne = false)
         {
             if (!IsHost || !ExpandingOn || boxes.Count == 0)
                 return 0;
             var pool = DormantPool(Wave);
             var roll = new DetRandom(expandSeed * 31 + boxes[0].X * 7 + boxes[0].Y * 13 + Wave);
             int groups = 0, size = DormantGroups.GroupSize(Wave);
-            foreach (var mid in DormantGroups.CellMids(boxes))
+            var mids = DormantGroups.CellMids(boxes);
+            for (int c = 0; c < mids.Count; c++)
             {
-                if (roll.Float() >= DormantGroups.CellChance)
+                var mid = mids[c];
+                if (roll.Float() >= DormantGroups.CellChance && !(atLeastOne && groups == 0 && c == mids.Count - 1))  // (a Combat piece always holds at least one group)
                     continue;
                 var type = pool[roll.Int(pool.Count)];
                 for (int k = 0; k < size; k++)

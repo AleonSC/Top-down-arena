@@ -32,19 +32,19 @@ Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals,
 ## 2. Buyable portals
 
 - A new draw-screen mode, **Link**: click two rooms to propose a portal pair. Voted like a room; cost ~ 8 vectors + 1 per 2 tiles of walking distance saved.
-- Reuses the Wings portals (`Rooms.Portals`, `PortalHop` corner-graph links, cooldown, look); enemies use them too.
+- Reuses the Wings portals (`Rooms.Portals`, `PortalHop` corner-graph links, cooldown, look); players and bots use them, enemies don't (steering for enemies uses a graph without the portal links).
 - Fixes "too linear" on big maps and gives a late-game vector sink. Cap: 3 pairs.
 
 ### Built (step 2, protocol 261)
 
 - `PortalLink` (two grid spots) in `Game.Links`, synced after the openings in `Msg.ExpandState`; proposed with `Msg.ExpandLink` as a
-  `RoomKind.Link` proposal (X, Y = one end; W, H = to the other), voted like a room; the winner's proposer pays.
-- `Expansion.LinkPrice`: 8 + 1 per 2 tiles of `WalkDistance` (doors and portals already built, Dijkstra), at most 30; refused unless it saves
+  `RoomKind.Link` proposal (X, Y = one end; W, H = to the other), built at once from the proposer's stash (no vectors); `Msg.ExpandUnlink` dismantles a pair in a build round and returns the teleporter to the dismantler's stash.
+- `Expansion.LinkFits` (the old vector price is gone): refused unless the pair saves
   6+ tiles, each end is in a connected room 90 px off its walls, clear of cover, 150 px from doors and 250 px from other portals; 3 pairs max.
 - `Expansion.Build(rooms, cuts, links)` turns links into `World.Portals` (each end faces its room's middle), so the Rooms arena's portal
-  code does the rest: you and enemies step through (`RoomsPortal`), steering routes through them, `DrawPortal` and the minimap draw them.
+  code does the rest: you and bots step through (`RoomsPortal`), steering routes through them, `DrawPortal` and the minimap draw them.
 - Draw screen: a **PORTAL** key (`expLinkMode`), built pairs and proposals as rings with a dashed line; proposal cards say "PORTAL PAIR"
-  and the tiles saved. Bots propose `BestLink` (one clear spot per room, the pair saving the most) 20% of the time when it costs 15+.
+  and the tiles saved. `BestLink` (one clear spot per room, the pair saving the most walking) is used by previews and tests.
 - Previews: `EXPANDVOTE=6 EXPANDDRAW=0,0,0,0 EXPANDLINK=1` (draw screen), `EXPANDLINKCARD=1` (card), `EXPANDMAP=6 EXPANDPORTAL=1` (in the arena).
 - **Wall portals (Nov 18, protocol 400)**: like the classic arena's edge gates, each end now goes on a room's **outer wall** (grid spot,
   `Expansion.OuterWall`/`WallSpot`) and turns `LinkHalf` (100 px) either side of it into the portal: `WorldPortal.Half`/`Wall`, touching it

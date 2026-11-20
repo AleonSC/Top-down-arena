@@ -51,14 +51,14 @@ static partial class Program
 
         // Two pieces: both go up unseen on both screens.
         var friend = g.Players[2];
-        friend.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Domino);
-        friend.Hand[1] = (byte)Expansion.MakePieceCard(PieceShape.Mono);
+        friend.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Domino);
+        friend.Hand[1] = (int)Expansion.MakePieceCard(PieceShape.Mono);
         var a = Expansion.PlacementsFor(g.Expanded, PieceShape.Domino).First();
         cg.PlayPieceCard(0, a.Orient, a.X, a.Y);
         Run(s, dt, 1f, () => cg.Expanded.Count == 4 + a.Rooms.Count, noPicks);
         int aHead = 4, bHead = g.Expanded.Count;
         var b = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).First(o => !o.Rooms.Any(r => r.X < g.Expanded[aHead].X1 + 100 && r.X1 > g.Expanded[aHead].X - 100 && r.Y < g.Expanded[aHead].Y1 + 100 && r.Y1 > g.Expanded[aHead].Y - 100));
-        int slot = Array.FindIndex(friend.Hand, h => h == (byte)Expansion.MakePieceCard(PieceShape.Mono));
+        int slot = Array.FindIndex(friend.Hand, h => h == (int)Expansion.MakePieceCard(PieceShape.Mono));
         cg.PlayPieceCard(slot, b.Orient, b.X, b.Y);
         Run(s, dt, 1f, () => cg.Expanded.Count == bHead + b.Rooms.Count, noPicks);
         Check(g.Expanded.Count == bHead + b.Rooms.Count && g.Expanded.Skip(4).All(r => r.Unseen) && cg.Expanded.Skip(4).All(r => r.Unseen), "new pieces go up unseen, every box, on both screens");
@@ -121,7 +121,7 @@ static partial class Program
         g.Expanded.Clear(); g.Nodes.Clear(); g.ExpandOpen = true;
         Run(s, dt, 0.6f, () => g.Expanded.Count == 4, noPicks);
         var me = g.Players.Values.First();
-        me.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Mono);
+        me.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Mono);
         var opt = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).First();
         g.PlayPieceCard(0, opt.Orient, opt.X, opt.Y);
         Run(s, dt, 1f, () => g.Expanded.Count == 5, noPicks);
@@ -157,7 +157,7 @@ static partial class Program
         try
         {
             var friend = g.Players[2];
-            friend.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Domino);
+            friend.Hand[0] = (int)Expansion.MakePieceCardMods(PieceShape.Domino, PieceMods.Combat.Set(0, 1));
             var a = Expansion.PlacementsFor(g.Expanded, PieceShape.Domino).First();
             var before = new HashSet<int>(g.Enemies.Keys);
             cg.PlayPieceCard(0, a.Orient, a.X, a.Y);
@@ -165,7 +165,7 @@ static partial class Program
             var sleepers = g.Enemies.Values.Where(e => !before.Contains(e.Id) && e.Dormant).ToList();
             int size = DormantGroups.GroupSize(g.Wave);
             var pool = g.DormantPool(g.Wave);
-            Check(sleepers.Count == 2 * size, "every cell of a two-cell piece holds a group of " + size + " (" + sleepers.Count + ")");
+            Check(sleepers.Count == 2 * size, "a Combat piece: every cell of a two-cell piece holds a group of " + size + " (" + sleepers.Count + ")");
             Check(sleepers.All(e => pool.Contains(e.Type)) && pool.All(t => !Defs.Get(t).IsBoss), "they are the wave's faction enemies (" + string.Join(",", pool) + ")");
             Check(sleepers.All(e => g.UnseenAt(e.Pos)), "they sleep in the unseen room");
             Run(s, dt, 0.4f, null, noPicks);
@@ -184,11 +184,12 @@ static partial class Program
             Check(sleepers.Where(e => e.Hp > 0f).All(e => cg.Enemies.ContainsKey(e.Id) && !cg.Enemies[e.Id].Dormant), "the friend's game sees them wake");
 
             // A second piece: a player looking at its group from close wakes it.
-            friend.Hand[1] = (byte)Expansion.MakePieceCard(PieceShape.Mono);
+            var combatMono = Expansion.MakePieceCardMods(PieceShape.Mono, PieceMods.Combat.Set(0, 1));
+            friend.Hand[1] = (int)combatMono;
             int n0 = g.Expanded.Count;
             var b = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).Last();
             before = new HashSet<int>(g.Enemies.Keys);
-            int slot = Array.FindIndex(friend.Hand, h => h == (byte)Expansion.MakePieceCard(PieceShape.Mono));
+            int slot = Array.FindIndex(friend.Hand, h => h == (int)combatMono);
             cg.PlayPieceCard(slot, b.Orient, b.X, b.Y);
             Run(s, dt, 1f, () => g.Expanded.Count > n0, noPicks);
             var second = g.Enemies.Values.Where(e => !before.Contains(e.Id) && e.Dormant).ToList();
@@ -201,6 +202,20 @@ static partial class Program
             aimOverride = second[0].Pos;
             Run(s, dt, 1f, () => second.All(e => !e.Dormant), () => { noPicks(); g.Players[1].Pos = look; });
             Check(second.All(e => !e.Dormant), "looking at a group from close wakes it");
+
+            // A plain piece holds nobody; a Combat piece holds at least one group even when no cell rolls one.
+            DormantGroups.CellChance = 0f;
+            foreach (bool combat in new[] { false, true })
+            {
+                friend.Hand[0] = (int)Expansion.MakePieceCardMods(PieceShape.Mono, combat ? PieceMods.Combat.Set(0, 1) : 0);
+                int n1 = g.Expanded.Count;
+                var pl = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).Last();
+                var before2 = new HashSet<int>(g.Enemies.Keys);
+                cg.PlayPieceCard(0, pl.Orient, pl.X, pl.Y);
+                Run(s, dt, 1f, () => g.Expanded.Count > n1, noPicks);
+                int slept = g.Enemies.Values.Count(e => !before2.Contains(e.Id) && e.Dormant);
+                Check(combat ? slept == size : slept == 0, combat ? "a Combat piece always holds a group (" + slept + " of " + size + ")" : "a plain piece holds no enemies (" + slept + ")");
+            }
         }
         finally { DormantGroups.CellChance = chance; aimOverride = null; }
         host.Leave(""); client.Leave("");

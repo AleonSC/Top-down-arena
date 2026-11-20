@@ -19,10 +19,10 @@ namespace Arena
         /// A chest node's colour once seen: its chest kind's ink (Gold, Piece chest, Buildables or Upgrade).
         Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
 
-        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Piece chest", "Buildables chest" };
+        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Piece chest", "Buildables chest", "Gadget chest" };
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
-        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : NodeName(n.Kind);
+        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Shrine ? "Health shrine" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : NodeName(n.Kind);
 
         /// What a node does, for its tip.
         string NodeBlurb(MapNode n) => (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic ? TierNames[Expansion.NodeTier(n)] + " tier. " : "") + NodeBlurbOf(n);
@@ -34,6 +34,8 @@ namespace Arena
             if (n.Hidden)
                 return "Build a room round it to claim it. "
                     + "Walk within 8 tiles of it to see what it is.";
+            if (n.Kind == NodeKind.Shrine)
+                return "Build a room round it, then walk up to it: once per player, it fills your health and adds " + Mathf.RoundToInt(Shrines.OverFrac * 100f) + "% of your max health past max (kept until you take damage or go down).";
             if (n.Kind == NodeKind.Relic)
                 return "Build a room round it and walk up to it to take this relic. Your old one is left in its place for anyone to take. " + Relics.Desc(Relics.Held(n));
             if (n.Kind == NodeKind.Chest)
@@ -47,14 +49,19 @@ namespace Arena
             return "Build a room round it to claim it.";
         }
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Relic ? RelicInk : ChestInk;
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shrine ? ShrineInk : k == NodeKind.Relic ? RelicInk : ChestInk;
 
         /// A node kind's name for tips and legends.
-        static string NodeName(NodeKind k) => k == NodeKind.BreachLoot ? "Breach loot" : k.ToString();
+        static string NodeName(NodeKind k) => k == NodeKind.BreachLoot ? "Breach loot" : k == NodeKind.Shrine ? "Health shrine" : k.ToString();
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
-        void DrawNodeMark(MapNode n, bool claimed, V2 at)
+        void DrawNodeMark(MapNode n, bool claimed, V2 at, int index = -1)
         {
+            if (claimed && n.Kind == NodeKind.Shrine)
+            {
+                DrawShrine(at, index >= 0 && game.ShrineUsed(game.Me, index), game.AnimT);  // ShrineLook.cs
+                return;
+            }
             if (n.Kind == NodeKind.BreachLoot)
             {
                 DrawBreachLootNode(n);  // EngineerLook.cs
@@ -91,6 +98,7 @@ namespace Arena
             switch (n.Kind)
             {
                 case NodeKind.Relic: RelicGem(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.25f, col); break;
+                case NodeKind.Shrine: ShrineCross(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.5f, col); break;
                 default:
                     ChestBox(c + new V2(0f, 6f), 1.2f, col, false);
                     ChestEmblem(game.NodeChestKind(n), c + new V2(0f, -34f + Mathf.Sin(t * 2.6f) * 3f), 1.8f, col, col, col.A);  // what it holds

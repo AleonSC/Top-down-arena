@@ -460,6 +460,8 @@ namespace Arena
                 Nodes.Add(new MapNode { X = (short)end.X, Y = (short)end.Y, Kind = NodeKind.Chest });  // (TickNodes puts the chest there)
             }
             Expanded.AddRange(rooms);
+            if (kind == MysteryKind.Enemies || kind == MysteryKind.Empty)
+                RollRoomChest(rooms, "mystery room");  // (owner Nov 20: a mystery room may hold a chest too, but never a vendor's)
             if (State == MatchState.Fighting)
                 PinBreaches(rooms);  // (the wave's other breaches stay put)
             expWorld = null;

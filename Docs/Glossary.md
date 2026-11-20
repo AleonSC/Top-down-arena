@@ -56,8 +56,12 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 |---|---|---|
 | **perk** | picked before a run; unlocked by beating bosses | `Perks.cs`, `PerkId` |
 | **relic** | found on the map mid-run; one slot | `Relics.cs`, `RelicId` |
+| **health shrine** | the map node a room claims; one use per player: full health plus health past max | `Shrines.cs`, `NodeKind.Shrine`, `Player.OverHp` |
+| **room chest** | a treasure chest a placed piece or mystery room may hold (never a vendor's room) | `RoomChests.cs` |
 | **legendary card** | a boss's rare upgrade card ("legendary" is its rarity, never a noun on its own) | `Rarity.Legendary` |
-| **gadget** | an item you carry and can hand over (the Magnet) | `Gadget` |
+| **gadget** | an item you carry (one in hand, up to 4 in the bag) and can hand over (the Magnet, Recall) | `Gadget` |
+| **gadget chest** | the red chest that gives every player a gadget | `ChestKind.Gadget` |
+| **gadget wheel** | the wheel you hold the Gadget key to open, to swap the gadget in hand | `OpenGadgetWheel` |
 
 ## Runs
 
@@ -83,8 +87,8 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 |---|---|---|
 | **cell** | one 600 px square of the lattice | |
 | **shape** | the 1-4 cell polyomino: Mono, Domino, ... TetL | `PieceShape` |
-| **piece card** | what sits in your hand: a shape plus a room type; the service ones (Shop, Black Market, Arms Dealer, Builder Shop) are one cell. "Piece" on its own is the shape on the map. | `PieceCard`, `GridPieces.cs` |
-| **room type** | what a piece card builds: plain, or a rule room's ground (was "modifier") | `RoomTypeOf`, `RoomTypeName` |
+| **piece card** | what sits in your hand: a shape plus its modifiers; the service ones (Shop, Black Market, Arms Dealer, Builder Shop) are one cell. "Piece" on its own is the shape on the map. | `PieceCard`, `GridPieces.cs` |
+| **modifier** | something a shape piece card carries, rolled when it is offered: a floor (the room's ground), combat (enemies inside) or loot (a guaranteed chest kind); a card can carry several | `PieceMod`, `PieceMods.cs` |
 | **placement** | one legal spot and turn for a piece card, at a door spot | `Placement`, `PlacementsFor` |
 | **piece chest** | the orange chest that gives every player a piece card | `ChestKind.Piece` |
 | **Builder Shop** | the only place piece cards are bought, with vectors | `BuilderShop` |

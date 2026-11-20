@@ -20,9 +20,10 @@ namespace Arena
     {
         // --- Waves ---------------------------------------------------------------------------------------------------
 
-        /// Wounds (Docs/PowerStacking.md, owner Nov 2026): this share of every hit you take can't be healed back until the
-        /// wave is cleared, so healing can't erase everything that gets through. Both arenas.
+        /// Wounds (Docs/PowerStacking.md, owner Nov 2026): this share of every hit you take can't be healed back until a boss falls or a
+        /// shrine, the Medic or a Rest clears it (owner Nov 20: it carries across waves, capped at WoundCap), so healing can't erase everything that gets through. Both arenas.
         public const float WoundShare = 0.1f;
+        public const float WoundCap = 0.3f;  // wounds carry across waves (owner Nov 20) but never take more than this share of max health
 
         public const float LayoutEnemyMult = 1.3f;  // regular waves with an arena layout (Layouts.cs) have 30% more enemies: walls and gates make them predictable, so there is room for more
         public static float StartDelay = 3f;  // the opening GET READY; the Unity game raises it to LaunchFightAt (ArenaApp.Awake), which times its beam-in to it; the sim tests keep 3 s

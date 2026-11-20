@@ -135,8 +135,8 @@ them for half · Blood Freeze: frozen enemies take 25% more damage · Martyr: yo
 washes away enemy bullets it touches · Blood Debt: kills repay 50% more · Vein Rush's trail bursts after 1 s for 20 · Vein Tithe lasts 20 s and costs 25% less · Bloodbath spreads to 220 px and gives back 35% ·
 Sanguine Rain lasts 14 s and heals 4% a tick · Crimson Harvest holds the ball 8 s and tears out 25% more blood.
 
-Players can pick the same role if you want. Everyone also slowly regenerates health (0.25 HP/s on Normal; see
-[Difficulty](#difficulty)).
+Players can pick the same role if you want. There is **no passive regeneration** by default (owner Nov 20; every preset is 0 HP/s, a Custom difficulty can add it, see
+[Difficulty](#difficulty)): only upgrades such as Regeneration give it.
 
 Enemies sometimes drop **health orbs** (in co-op each player gets their own copy, and you only see and drink yours; the Healer's
 orbs, Medkits' and the arena's are shared): small green ones heal 15 HP (12% chance on Normal; 18% on Easy), and rare large ones
@@ -466,7 +466,7 @@ brackets, and the lobby's digital keys for **Reroll** and **Choose Upgrade** (Ch
 card, then it lights up with a green lamp). Each card has its rarity in a small key-like label on top, the icon (in its own
 colours) in an outlined tile, and a soft glow (blue common, green uncommon, blue rare, purple very rare, orange legendary)
 while it bobs slowly (rare and better ones also shine); the one you pick lifts, glows stronger and outlines in white-blue.
-Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
+Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0 → 3 HP/s", or a new
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendary cards)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
@@ -480,8 +480,7 @@ you already have says what this copy is worth ("You have 4 · this copy 50% stre
 real change. Cards with a stack limit (the squares) keep full strength.
 
 **Wounds.** 10% of every hit you take is a **wound**: it can't be healed back (heals, regeneration, orbs, lifesteal,
-revives) until the wave is cleared. Your health bar shows it as a dark red end with a bright line where healing stops;
-it clears with the wave. A Healer's overheal shield only takes what goes past full health. Both arenas.
+revives). Wounds **carry across waves** but never take more than **30% of your max health**. They clear when a **boss falls**, at a **health shrine**, with the **Medic's heal** (now buyable when only wounded) or at a Boss Hunt **Rest**. Saves keep them. Your health bar shows it as a dark red end with a bright line where healing stops. A Healer's overheal shield only takes what goes past full health. Both arenas.
 
 | Rarity | Color | What you get |
 |---|---|---|
@@ -1101,7 +1100,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Your own drops:** in co-op every player gets a **full copy** of each drop: coins, vector pickups, health orbs and Magnets (a Gold chest's coins and a breach's gold too). You only see your own and only you can pick them up (your Magnet pulls only yours); a teammate's copy stays where it fell. Every 8th kill's 1-vector pickup is the killer's alone. A player who leaves takes their copies with them. **As the next wave starts, your own coins, vector pickups and unclaimed chest cards still lying about come to you** (your coins stream in and **+n GOLD COLLECTED** pops over you), so readying early loses nothing; a vector pickup waits while your stock is full, a chest card that no longer fits your build is thrown away, and health orbs and Magnets stay where they are.
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to you within 90 px.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. While you're full, pickups near you show **FULL** (a Stash's **+10** too) and the **VECTORS** chip turns amber and pulses. The vectors go to whoever collects it, never past their cap. Whenever your vectors go up, **+n VECTORS** pops over you, shards fly into the **VECTORS** chip, and the chip lights up and counts up; the show scales with the amount (a +1 is a small blip, +12 the whole thing).
-- **Gadgets (the Magnet):** a rare drop you carry in your free hand and can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), rolled for each player while they have none. Walk over it with empty hands to pick it up. **Tap X** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **60 s of pull** in all, then it's gone. **Hold X and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet.
+- **Gadgets (the Magnet and Recall):** you carry one gadget in your free hand and up to **4 more in a bag**. **Hold X** (with the bag not empty) to open the **gadget wheel** at your cursor: a slice for the gadget in hand and one for each in the bag. Move to a slice and let go to swap it into your hand; let go in the middle to throw what's in hand (to where the cursor was). A chip over the keys shows what's in hand and a pip for each gadget in the bag; a used-up gadget is replaced from the bag. **Gadget chests** (red, a magnet on the lock; 1 in 4 middle-tier chest nodes, 15 to 30 tiles out) give every player one gadget, a Recall twice as often as a Magnet; it goes in the hand or bag, else it spills at your feet as your own copy. **Recall** (cyan, a house in a ring): tap X to channel for **3 s**, then you're set down by the hub's middle and it's used up; a hit, a swap or tapping X again breaks the channel (the 3 s start over); it won't switch on in the hub. The **Magnet**: a rare drop you can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), rolled for each player while they have none. Walk over it with empty hands to pick it up. **Tap X** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **60 s of pull** in all, then it's gone. **Hold X and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet.
 - **Vectors**: every player holds a building budget (chip under the wave plate, "Vectors 40 / 70"): pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards.
   You start with 40 and can hold 70; each cleared wave gives 4 (8 in Quick Play), every 8th kill drops a small 1-vector pickup where the enemy fell, and a cleared boss wave refills
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
@@ -1112,7 +1111,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - Built at once. Teleporters, gates and traps work on any room.
   - **Nodes and chests** sit at the middle of a room-sized cell, so building out along the grid claims them; a chest or relic stands in the middle of the cell it was built in (in a 2 x 2 room, one of its four cells, not the room's centre).
   - Bots build on door spots too.
-  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or with a **modifier**: today a floor, such as Burning Grounds; about 1 in 4 dropped pieces has one, and the Builder Shop's last card always does; more modifier kinds to come) and one-cell service cards. They come as the room cards do: a starting hand of one random plain piece (1 to 4 cells), a **wave pick** after each wave (take one of two: the round's basic piece or a dropped card; no reroll, after any boss pick), wave drops, chests, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run. Service cards and the Builder Shop can't be built on a chest, vector chest or relic node.
+  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or with **modifiers**, rolled whenever a card is offered, each on its own chance (30% floor and combat, 20% loot) so a piece can carry none, one or both: a **floor** (the room gets that ground, such as Burning Grounds) **combat** (enemies wait inside) and **loot** (a chest of one kind is guaranteed in the piece, instead of the usual 30% room chest); the Builder Shop's last card always carries one and each modifier adds 8 vectors to a card's price; more kinds slot in through `PieceMods`, [`Docs/PieceMods.md`](Docs/PieceMods.md)) and one-cell service cards. They come as the room cards do: a starting hand of one random piece (1 to 4 cells), a **wave pick** after each wave (take one of two: the round's basic piece or a dropped card; no reroll, after any boss pick), wave drops, chests, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run. Service cards and the Builder Shop can't be built on a chest, vector chest or relic node.
   - **Build map** (Grid): the core is drawn as one room; a faint lattice of cells fades out from the map; a piece you place slides in from a cell out and slams into the wall (a flash, the wall pulsing gold, sparks at the door). The tool rail shows **Teleporter** and **Trap** only while you own one; there is **no Open wall** in a Grid run.
   - **Mystery doors** (Grid): the room behind is a piece on the lattice, any of the nine shapes (small: a single; medium: a domino, corner, square, T, S or L; hallway: a line of 3 or 4); a shop, Black Market, Arms Dealer or Medic behind one is exactly one cell.
   - **Surprise and breach rooms** (Grid): a boss's surprise room is a 4-cell piece on the lattice (an L, a T or a square), a breach's Stash is the one cell behind it, and the gold breach's room and the Engineer's Breach land on the lattice too.
@@ -1154,12 +1153,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   whole room is seen (a gold scan line lifts the rest of the veil). A sleeping group wakes when a player sees it from within 6 tiles.
   Enemies still spawn in unseen rooms. The core, and the room kept through a map reset, start seen. With nothing to fight, bots walk
   to the nearest unexplored spot, looking that way.
-- **Dormant groups**: when a piece card is built, each of its cells has a **40%** chance of holding a sleeping group of the faction
+- **Dormant groups**: when a piece card with the **combat** modifier is built (a plain or floor-only piece holds no enemies), each of its cells has a **40%** chance (at least one group in all) of holding a sleeping group of the faction
   enemies of the wave it was built on (one type per group; 3 enemies, one more every 15 waves, at most 6), clustered in the cell's middle.
   They stand still with drifting z's over them: no moving, no shooting, and they don't hold the wave open. When the room is seen, or
   one of them is hit (from the doorway), every group in that room wakes and fights. A map reset takes them away with the old rooms.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour.
+- **Health shrines and room chests** (owner Nov 20): the **health shrine** is the only node the map places now: three ring the hub in the first boss cycle (one per side in turn) and each later cycle adds one. Build a room over its cell and the cell becomes the shrine: a stone plinth with corner posts and a floating green cross. **Walk up to it once per player**: it fills your health and adds **50% of your max health past max** (gold: a **+n** after your max on the HUD, a gold strip over the health cells, a gold ring round you). That extra health never fades; damage takes it after any shield, and going down loses it. A shrine you've used turns grey and still for you. **Chests come from rooms instead:** every basic piece a player places (modifiers or not) and every mystery room that opens to enemies or empty has a **30% chance to hold a treasure chest** in the middle of one of its cells. The kind sets how rare it is: Gold 30, Vector 25, Piece 16, Buildables 10, Upgrade 8, Gadget 8, Relic 3 (out of 100). Vendor rooms (shop, Black Market, Arms Dealer, Medic, Builder Shop) never hold one. The old chest and relic nodes below are no longer placed; an old save's still work.
 - **Chest nodes**: every boss cycle the game places a **chest node**: a point 10 to 16 tiles straight out from the map (at least 8 tiles from other nodes;
   chest and relic nodes keep 6 tiles clear of every room), never within 10 tiles of the start room. Nodes are always in plain view: a big lit ring in the
   node's colour with its mark at full size and a beacon rippling out, and a bold square on the minimap. Shop, Black Market (Black Market) and mini-boss rooms are no
@@ -1167,7 +1167,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   shares 2 tiles of wall with one).
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest of one of four **kinds**, rolled from the map (its marker and tip show which):
   **Node tiers:** chest, vector chest and relic nodes hold better prizes the farther they sit from the hub's wall (measured in square zones, so a corner counts by its farther side): **inner** (under 15 tiles: Gold or vector chests),
-  **middle** (15 to 30 tiles: Piece chest or Buildables chests; Buildables with room cards off) and **outer** (30+ tiles: Upgrade chests or relics). A node's tier shows round its
+  **middle** (15 to 30 tiles: Gadget chests (1 in 4), Piece chests or Buildables chests; Buildables with room cards off) and **outer** (30+ tiles: Upgrade chests or relics). A node's tier shows round its
   marker as corner brackets in bronze, silver or gold and a row of three square cells, one filled per tier; its tip names the tier, and its minimap square gets an edge and halo in the same metal. The first cycle's ring round the hub is two inner, two middle and two outer nodes; each later cycle adds an outer relic and a chest whose tier takes turns (middle, outer, inner), so the better prizes are always out there to build toward. On the ground outside the hub the tiers show as square zones: a light wash of bronze, silver and gold, dashed contour lines at 15 and 30 tiles and chevrons (one, two, three) pointing out.
   **Gold** (gold trim, a coin: bursts open like a relic node, a big spinning coin climbing out, and spills 14 gold coins worth 40 + 4 per wave for each player, for anyone to pick up), **Piece chest** (orange, a T piece on the lock: every player gets their own piece to **take** into their hand or **discard**, like an upgrade chest's item; the card says whether your hand is full),
   **Buildables** (pink, blueprint grid, a wrench: every player gets their own Black Market build card, a kind with room under the 5 cap, to **take** into their stash or **discard**) or **Upgrade** (green, chevrons: every
@@ -1208,9 +1208,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   wall, shown as a ghost portal, and a click on the floor does nothing): the pair is **built at once** from your stash (no
   vectors). Like the classic arena's edge gates, each end turns **2 tiles of that wall into a portal**: a dark gap in its pair's colour inside
   corner brackets, with scanlines rolling out of it across the floor into the room (the build map shows the same, in small). Walk into it and you come out of the other wall, keeping your place along it
-  (enemies use them too, and steer through them when it's shorter). It must save at least 6 tiles of walking. Each end needs a connected room on
+  (**enemies never use them**; bot players do). It must save at least 6 tiles of walking. Each end needs a connected room on
   one side and nothing on the other, 2 tiles of plain wall (no corner or door in it), nothing standing just in front, 150 px from a door and
-  250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. Bots don't build them. (Pairs
+  250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. **Dismantle** a pair in a build round: with the Teleporter tool, click either built end (it turns red) and the pair comes down, the teleporter going back to your stash. Bots don't build them. (Pairs
   from older saves, standing in the middle of a room, still work as floor portals.)
 - **Black Market turret and traps**: the Black Market also sells a **Turret** (120), a **Landmine** (80) and a **Slow field** (90). Switch the
   draw screen to **Trap**, pick one from your stash and click a spot in a room (90 px off walls, 150 px from doors, 120 px from portals and other
@@ -1235,7 +1235,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
   the room's far corners, at most 2 up). Below half health: a quarter faster, it charges twice, 4 fans, 4 canisters.
 - **Shop and Black Market rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and add stock in the **shop room**, buildables at the **Black Market** (the Black Market room: Buildables and Services categories; it sells no cards); selling, the Floor kit and the Vector pack work in either room. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**, buildables at the **Black Market** (one Buildables category, like the Arms Dealer and the Medic; it sells nothing else); selling, the Floor kit and the Vector pack are the shop room's only. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room with a gun rack and a rifle on its counter, from its service card or a
   mystery door. While the shop is open, stand in it to buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,
@@ -1352,7 +1352,7 @@ and green when it's easier. Hover a number for what it does.
 | Elites (chance, from wave 23) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
 | Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
 | Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |
-| Regeneration | 0.5 HP/s | **0.25 HP/s** | 0.15 HP/s | 0 | 0-3 HP/s |
+| Regeneration | 0 | **0** | 0 | 0 | 0-3 HP/s |
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
@@ -1523,7 +1523,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Alternative fire (Kunai blink, Twin Fang, Sunlance, Hook & Haul, Shuriken's Great Star stance, Bo Staff shove, Kusarigama whirl) | Left Alt |
 | Ultimate | F |
 | Take / discard your chest item (standing on it) | G / B |
-| Gadget: tap to switch on / off, hold and let go to throw it where you aim | X |
+| Gadget: tap to switch on / off, hold to open the gadget wheel (with an empty bag: hold and let go to throw it where you aim) | X |
 | 2nd, 3rd and 4th abilities | Q, E and Left Shift (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |

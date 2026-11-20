@@ -100,6 +100,57 @@ static partial class Program
             max = Math.Max(max, g.Gadgets.Count);
         }
         Check(max >= 1 && max <= g.Players.Count, "kills drop a Magnet now and then, at most one per player (" + max + ")");
+
+        // The bag: a second gadget goes in the bag, the wheel's pick swaps it into the hand (over the network too), a used-up one is replaced from the bag.
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        g.Gadgets.Clear();
+        var p2 = g.Players[2];
+        p2.Downed = false; p2.Hp = p2.MaxHp;
+        p2.Gadget = GadgetId.None; p2.GadgetOn = false;
+        for (int i = 0; i < p2.BagKind.Length; i++) p2.BagKind[i] = GadgetId.None;
+        var give = typeof(Game).GetMethod("GiveGadget", bf);
+        Check((bool)give.Invoke(g, new object[] { p2, GadgetId.Magnet, 20f }) && p2.Gadget == GadgetId.Magnet && p2.GadgetLeft == 20f, "the first gadget goes in the hand");
+        Check((bool)give.Invoke(g, new object[] { p2, GadgetId.Recall, Game.RecallChannel }) && p2.BagKind[0] == GadgetId.Recall, "the second goes in the bag");
+        for (int i = 0; i < 2; i++) give.Invoke(g, new object[] { p2, GadgetId.Recall, Game.RecallChannel });
+        give.Invoke(g, new object[] { p2, GadgetId.Magnet, 7f });
+        Check(!(bool)give.Invoke(g, new object[] { p2, GadgetId.Magnet, 1f }) && !Game.CanHoldGadget(p2), "a full hand and bag takes no more");
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(cg.Players[2].BagKind[0] == GadgetId.Recall && cg.Players[2].BagKind[3] == GadgetId.Magnet && Math.Abs(cg.Players[2].BagLeft[3] - 7f) < 0.01f, "the bag reaches the client's screen");
+        cg.EquipGadget(3);
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(p2.Gadget == GadgetId.Magnet && Math.Abs(p2.GadgetLeft - 7f) < 0.01f && p2.BagKind[3] == GadgetId.Magnet && Math.Abs(p2.BagLeft[3] - 20f) < 0.01f, "a client swaps a bag slot into the hand (Msg.Gadget 2), the old one takes its slot with its time");
+        p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(p2.Gadget == GadgetId.Recall && p2.BagKind[0] == GadgetId.None && !p2.GadgetOn, "a used-up gadget is replaced from the bag");
+
+        // Recall: refused at home; a hit breaks the channel; finishing it sets you down in the hub and uses it up.
+        p2.GadgetLeft = Game.RecallChannel;
+        cg.UseGadget();
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(!p2.GadgetOn, "Recall won't switch on in the hub");
+        p2.GadgetOn = true; p2.GadgetLeft = 2f;
+        typeof(Game).GetMethod("Damage", bf).Invoke(g, new object[] { p2, 1f, "Test" });
+        Check(!p2.GadgetOn && p2.GadgetLeft == Game.RecallChannel, "a hit breaks the Recall channel and restarts the 3 s");
+        p2.Hp = p2.MaxHp;
+        p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
+        g.DevSetGod(2, true);
+        int bagBefore = p2.BagKind.Count(k => k != GadgetId.None);
+        Run(s, dt, 0.3f, null, () => { Quiet(); });
+        Check(p2.Gadget != GadgetId.Recall || p2.BagKind.Count(k => k != GadgetId.None) < bagBefore, "a finished Recall is used up");
+        Check(p2.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 160f, "and sets you down by the hub's middle");
+
+        // Gadget chests: one each, into the hand or the bag; a full one spills at your feet (your own copy).
+        foreach (var q in g.Players.Values)
+        {
+            q.Gadget = GadgetId.None;
+            for (int i = 0; i < q.BagKind.Length; i++) q.BagKind[i] = GadgetId.None;
+        }
+        g.Gadgets.Clear();
+        var chestGive = typeof(Game).GetMethod("GiveChestGadget", bf);
+        chestGive.Invoke(g, new object[] { g.Players[1], a });
+        Check(g.Players[1].Gadget != GadgetId.None && g.Gadgets.Count == 0, "a Gadget chest's gadget goes in your hand");
+        for (int i = 0; i < 12; i++) chestGive.Invoke(g, new object[] { g.Players[1], a });
+        Check(g.Players[1].BagKind.All(k => k != GadgetId.None) && g.Gadgets.Count > 0 && g.Gadgets.Values.All(x => x.Owner == 1), "with the hand and bag full the rest spills as your own copies");
         client.Leave(""); host.Leave("");
     }
 }

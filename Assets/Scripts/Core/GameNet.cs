@@ -473,7 +473,7 @@ namespace Arena
             s.Vec(ref pos);
             s.Float(ref aim);
             s.Float(ref hp);
-            s.Float(ref p.Wound);  // (Combat.cs: the part of your health no heal can bring back this wave)
+            s.Float(ref p.Wound);  // (Combat.cs: the part of your health no heal can bring back (carried across waves))
             s.Bool(ref p.Downed);
             s.Float(ref p.Revive);
             s.Float(ref p.BarrierT);
@@ -507,6 +507,13 @@ namespace Arena
             p.Gadget = (GadgetId)gadget;
             s.Float(ref p.GadgetLeft);
             s.Bool(ref p.GadgetOn);
+            for (int i = 0; i < p.BagKind.Length; i++)  // the gadget bag (Gadgets.cs)
+            {
+                byte bk = (byte)p.BagKind[i];
+                s.Byte(ref bk);
+                p.BagKind[i] = (GadgetId)bk;
+                s.Float(ref p.BagLeft[i]);
+            }
             bool sprayOn = p.SprayOn;
             s.Bool(ref sprayOn);  // Arterial Spray (ArterialSpray.cs)
             bool standOn = p.StandOn;
@@ -514,6 +521,8 @@ namespace Arena
             s.Float(ref p.StandAim);
             s.Float(ref p.ShieldHp);
             s.Float(ref p.ShieldT);
+            s.Float(ref p.OverHp);       // a health shrine's health past max (Shrines.cs)
+            s.ULong(ref p.ShrinesUsed);
             s.Float(ref p.EnergyMax);
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);

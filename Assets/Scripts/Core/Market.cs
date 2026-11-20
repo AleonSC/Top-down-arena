@@ -42,7 +42,7 @@ namespace Arena
 
         public static bool Valid(int kind) => kind >= 0 && kind < Count;
 
-        /// A trap's kind is placed with one click (the teleporter takes two: Expansion.LinkPrice).
+        /// A trap's kind is placed with one click (the teleporter takes two: Expansion.LinkFits).
         public static bool IsTrap(BuildKind k) => k != BuildKind.Teleporter;
     }
 

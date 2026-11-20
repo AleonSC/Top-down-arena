@@ -22,6 +22,7 @@ namespace Arena
                 return;  // mid-rush in Bladed Dive: nothing touches you, whatever checks InvulnT (BladedDive.cs)
             if (!tickDamage && RiotBlocks(p, source))
                 return;  // Riot Gear took the hit (RiotGear.cs)
+            CancelRecall(p);  // a hit breaks the Recall channel (Gadgets.cs)
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             amount *= RoomsDamageMult;  // a grown Expanding arena's waves hit harder (Rooms.cs)
             if (p.TauntT > 0f)
@@ -65,13 +66,19 @@ namespace Arena
                         EnergyPayback(p);
                 }
             }
+            if (p.OverHp > 0f)  // then a health shrine's health past max (Shrines.cs)
+            {
+                float soak = Math.Min(p.OverHp, amount);
+                p.OverHp -= soak;
+                amount -= soak;
+            }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             if (amount > 0f && !tickDamage)
                 SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
             lastTaken = Math.Max(0f, amount);
-            p.Wound = Math.Min(p.MaxHp - 1f, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share that can't be healed back this wave
+            p.Wound = Math.Min(p.MaxHp * WoundCap, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share no heal brings back until a boss falls or a shrine, Medic or Rest clears it (capped)
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
@@ -96,6 +103,7 @@ namespace Arena
             if (UseBackup(p))  // the Backup relic (Relics.cs)
                 return;
             p.Hp = 0f;
+            p.OverHp = 0f;
             p.Downed = true;
             p.Run.Downs++;
             Recorder?.Downed(this, p, source);
