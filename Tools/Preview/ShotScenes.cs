@@ -2219,6 +2219,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("SHRINEUSED") != null) foreach (var pl in xg.Players.Values) pl.ShrinesUsed = ulong.MaxValue;  // SHRINEUSED=1: everyone has used every health shrine (ShrineLook.cs)
       string overHp = Environment.GetEnvironmentVariable("OVERHP");  // OVERHP=<n>: everyone carries n health past max from a shrine (the HUD's gold, the gold ring)
       if (overHp != null) foreach (var pl in xg.Players.Values) pl.OverHp = float.Parse(overHp, System.Globalization.CultureInfo.InvariantCulture);
+      if (Environment.GetEnvironmentVariable("RELICSHEET") != null) { ArenaApp.PreviewRelicSheet = true; ArenaApp.PreviewRelicPage = int.Parse(Environment.GetEnvironmentVariable("RELICSHEET")); }  // RELICSHEET=0|1 (page): the relic artefact sheet beside the map (RelicLook.cs; mode hud ZOOM=1 CAMAT=640,470)
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
       if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
