@@ -74,11 +74,23 @@ namespace Arena
             bool slots = mids.Count > 0;
             if (!slots)
                 mids = DormantGroups.CellMids(boxes);
+            var cellOf = new List<long>(mids.Count);  // each slot's lattice cell: a Combat piece guarantees a group in every cell (owner Nov 20)
+            foreach (var m in mids)
+            {
+                CellLayouts.CellOf(m.X, m.Y, out int mcx, out int mcy);
+                cellOf.Add(slots ? ((long)mcx << 32) ^ (uint)mcy : (long)cellOf.Count);
+            }
+            bool cellHas = false;
             for (int c = 0; c < mids.Count; c++)
             {
                 var mid = mids[c];
-                if (!all && roll.Float() >= (chance ?? DormantGroups.CellChance) && !(atLeastOne && groups == 0 && c == mids.Count - 1))  // (a Combat piece always holds at least one group)
+                if (c == 0 || cellOf[c] != cellOf[c - 1])
+                    cellHas = false;
+                bool lastInCell = c == mids.Count - 1 || cellOf[c + 1] != cellOf[c];
+                bool guarantee = atLeastOne && (slots ? lastInCell && !cellHas : groups == 0 && c == mids.Count - 1);  // (a Combat piece: a group in every cell, or at least one in a room off the lattice)
+                if (!all && roll.Float() >= (chance ?? DormantGroups.CellChance) && !guarantee)
                     continue;
+                cellHas = true;
                 var type = pool[roll.Int(pool.Count)];
                 for (int k = 0; k < size; k++)
                 {

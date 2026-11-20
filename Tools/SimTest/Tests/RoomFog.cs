@@ -219,6 +219,15 @@ static partial class Program
                 int slept = g.Enemies.Values.Count(e => !before2.Contains(e.Id) && e.Dormant);
                 Check(combat ? slept == size : slept == 0, combat ? "a Combat piece always holds a group (" + slept + " of " + size + ")" : "a plain piece holds none when no slot rolls one (" + slept + ")");
             }
+            // Guaranteed: even with no slot rolling, every cell of a Combat piece holds a group.
+            friend.Hand[0] = (int)Expansion.MakePieceCardMods(PieceShape.Domino, PieceMods.Combat.Set(0, 1));
+            int nd = g.Expanded.Count;
+            var pd = Expansion.PlacementsFor(g.Expanded, PieceShape.Domino).Last();
+            var beforeD = new HashSet<int>(g.Enemies.Keys);
+            cg.PlayPieceCard(0, pd.Orient, pd.X, pd.Y);
+            Run(s, dt, 1f, () => g.Expanded.Count > nd, noPicks);
+            int domSlept = g.Enemies.Values.Count(e => !beforeD.Contains(e.Id) && e.Dormant);
+            Check(domSlept >= 2 * size, "a Combat domino holds a group in each cell even when none rolls one (" + domSlept + " asleep, " + 2 * size + " the least)");
             DormantGroups.PlainChance = 1f;  // (owner Nov 20: a plain piece's slots roll too, at PlainChance)
             friend.Hand[0] = (int)Expansion.MakePieceCardMods(PieceShape.Mono, 0);
             int n2 = g.Expanded.Count;

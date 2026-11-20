@@ -1153,7 +1153,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   whole room is seen (a gold scan line lifts the rest of the veil). A sleeping group wakes when a player sees it from within 6 tiles.
   Enemies still spawn in unseen rooms. The core, and the room kept through a map reset, start seen. With nothing to fight, bots walk
   to the nearest unexplored spot, looking that way.
-- **Dormant groups**: when a piece card with the **combat** modifier is built (a plain or floor-only piece holds far fewer: each of its slots has a **20%** chance, and may hold none), each of its cells' **sleeper slots** (2-4 a cell, fixed by the cell's layout) has a **65%** chance (at least one group in all) of holding a sleeping group of the faction
+- **Dormant groups**: when a piece card with the **combat** modifier is built (a plain or floor-only piece holds far fewer: each of its slots has a **20%** chance, and may hold none), each of its cells' **sleeper slots** (2-4 a cell, fixed by the cell's layout) has a **65%** chance, and **every cell is guaranteed at least one group** of holding a sleeping group of the faction
   enemies of the wave it was built on (one type per group; 3 enemies, one more every 15 waves, at most 6), clustered in the cell's middle.
   They stand still with drifting z's over them: no moving, no shooting, and they don't hold the wave open. When the room is seen, or
   one of them is hit (from the doorway), every group in that room wakes and fights. A map reset takes them away with the old rooms.
