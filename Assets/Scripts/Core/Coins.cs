@@ -175,6 +175,103 @@ namespace Arena
                 Coins.Remove(id);
         }
 
+        /// Host: the coins as the clients last heard of them (id: position), so a snapshot sends only what changed. Coins mostly lie
+        /// still and pile up all wave (every player's copy), so sending them all 20 times a second swamped the link (Nov 2026:
+        /// 1000 coins were 22 KB a snapshot, 440 KB/s per client).
+        readonly Dictionary<int, V2> coinsSent = new Dictionary<int, V2>();
+        readonly List<Coin> scratchCoinsChanged = new List<Coin>();
+        int coinSnaps, coinPlayersSent = -1;
+        /// Snapshots between full coin lists: a client that missed a change (joined late, or wasn't running) is right again within ~3 s.
+        public const int CoinFullEvery = 60;
+
+        /// Host: send the full coin list in the next snapshot.
+        void ForgetSentCoins()
+        {
+            coinsSent.Clear();
+            coinPlayersSent = -1;
+        }
+
+        /// The coins in a snapshot: a full list every CoinFullEvery snapshots (and when the party changes), otherwise only the coins
+        /// dropped or moved since the last one and the ids of those gone. The connection is ordered and reliable, so changes add up.
+        void SyncCoins(NetSync s)
+        {
+            bool full = false;
+            if (!s.Reading)
+            {
+                full = ++coinSnaps >= CoinFullEvery || coinPlayersSent != Players.Count;
+                if (full)
+                {
+                    coinSnaps = 0;
+                    coinPlayersSent = Players.Count;
+                }
+            }
+            s.Bool(ref full);
+            int count = 0;
+            if (full)
+            {
+                count = Coins.Count;
+                s.Short(ref count);
+                if (s.Reading)
+                {
+                    snapSeen.Clear();
+                    for (int i = 0; i < count; i++)
+                        snapSeen.Add(SyncCoin(s, null));
+                    RemoveUnseen(Coins);
+                    return;
+                }
+                coinsSent.Clear();
+                foreach (var c in Coins.Values)
+                {
+                    SyncCoin(s, c);
+                    coinsSent[c.Id] = c.Pos;
+                }
+                return;
+            }
+            if (s.Reading)
+            {
+                count = 0;
+                s.Short(ref count);
+                for (int i = 0; i < count; i++)
+                    SyncCoin(s, null);
+                s.Short(ref count);
+                for (int i = 0; i < count; i++)
+                {
+                    int id = 0;
+                    s.Int(ref id);
+                    Coins.Remove(id);
+                }
+                return;
+            }
+            var changed = scratchCoinsChanged;
+            changed.Clear();
+            foreach (var c in Coins.Values)
+            {
+                V2 was;
+                if (!coinsSent.TryGetValue(c.Id, out was) || was.X != c.Pos.X || was.Y != c.Pos.Y)
+                    changed.Add(c);
+            }
+            count = changed.Count;
+            s.Short(ref count);
+            foreach (var c in changed)
+            {
+                SyncCoin(s, c);
+                coinsSent[c.Id] = c.Pos;
+            }
+            var gone = scratchCoinsGone;
+            gone.Clear();
+            foreach (int id in coinsSent.Keys)
+                if (!Coins.ContainsKey(id))
+                    gone.Add(id);
+            count = gone.Count;
+            s.Short(ref count);
+            foreach (int id in gone)
+            {
+                int k = id;
+                s.Int(ref k);
+                coinsSent.Remove(id);
+            }
+        }
+
         int SyncCoin(NetSync s, Coin c)
         {
             int id = c != null ? c.Id : 0, value = c != null ? c.Value : 0, owner = c != null ? c.Owner : 0;
