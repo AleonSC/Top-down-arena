@@ -26,7 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, BlackMarket, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Shop, BlackMarket, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (VectorChest is legacy, kept so the numbers stay: `Current` turns it into a Chest, whose ChestKind.Vector it holds at the inner tier; a chest node holds a treasure chest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -282,13 +282,16 @@ namespace Arena
 
         public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
 
-        /// A treasure chest or a vector chest.
-        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Piece chest or Buildables (Buildables with room cards off), outer Upgrade.
+        /// A node kind as the game now knows it: the legacy vector chest node is a chest node (it holds a Vector chest, `NodeChestKind`).
+        public static NodeKind Current(NodeKind k) => k == NodeKind.VectorChest ? NodeKind.Chest : k;
+
+        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold or Vector (a coin seeded from the spot), middle Piece chest or Buildables
+        /// (Buildables with room cards off), outer Upgrade.
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
         {
             int tier = NodeTier(x, y);
             if (tier != 1)
-                return tier == 0 ? ChestKind.Gold : ChestKind.Upgrade;
+                return tier == 0 ? (InnerCoin(seed, x, y) ? ChestKind.Gold : ChestKind.Vector) : ChestKind.Upgrade;
             var r = new DetRandom(seed * 31 + x * 7919 + y * 104729 + 5);
             return cards && r.Int(2) == 0 ? ChestKind.Piece : ChestKind.Buildable;
         }
@@ -314,19 +317,22 @@ namespace Arena
         /// The tier a later cycle's node is placed at: a relic outer (it only holds one there), a chest by turns middle, outer, inner; a vein anywhere.
         public static int CycleTier(NodeKind kind, int cycle) => kind == NodeKind.Relic ? 2 : IsChest(kind) ? (cycle + 1) % 3 : 0;
 
-        /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
+        /// A tiered prize node (a chest or relic) takes the kind its tier holds: inner a chest (Gold or Vector),
         /// middle a chest (piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
         public static MapNode Tiered(int seed, MapNode n)
         {
             if (!IsChest(n.Kind) && n.Kind != NodeKind.Relic)
                 return n;
             int tier = NodeTier(n);
-            bool coin = new DetRandom(seed * 53 + n.X * 6007 + n.Y * 7151 + 11).Int(2) == 0;
-            n.Kind = tier == 1 ? NodeKind.Chest : tier == 0 ? (coin ? NodeKind.Chest : NodeKind.VectorChest) : (coin ? NodeKind.Chest : NodeKind.Relic);
+            bool coin = InnerCoin(seed, n.X, n.Y);
+            n.Kind = tier != 2 ? NodeKind.Chest : (coin ? NodeKind.Chest : NodeKind.Relic);
             return n;
         }
 
-        public static bool IsChest(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest;
+        /// The coin a spot is seeded with: inner tier Gold (heads) or Vector chest, outer tier chest or relic.
+        static bool InnerCoin(int seed, int x, int y) => new DetRandom(seed * 53 + x * 6007 + y * 7151 + 11).Int(2) == 0;
+
+        public static bool IsChest(NodeKind k) => k == NodeKind.Chest;
 
         public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1)
         {
@@ -369,7 +375,7 @@ namespace Arena
         }
 
         /// The nodes whose fixture stands in the middle of the room that claims them (owner Nov 18): chests, vector chests and relics.
-        public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest || k == NodeKind.Relic;
+        public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.Relic;
 
         /// Where a chest or relic node stands: in a grid room, the middle of the cell holding it; else the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
         /// is floor, else of the box holding the node; the random cover round it is cleared). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.

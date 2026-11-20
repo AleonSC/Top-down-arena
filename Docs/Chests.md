@@ -1,6 +1,6 @@
 # Universal chests
 
-Status: **planned, nothing built yet.** Decided with the owner on Nov 20, 2026.
+Status: **built (steps 1-4, no protocol change).** Decided with the owner on Nov 20, 2026. `SpawnChest` is in `Props.cs`; the vector chest node is a chest node holding a Vector chest.
 
 ## The idea
 
@@ -39,3 +39,11 @@ Whatever needs a chest (a wave drop, Contraband, a node, a rule room, a mystery-
 4. One draw path (`NodeLook` / `ChestLooks`), previews (`Tools/Preview`), README, `CODEMAP.md`, `Docs/Nodes.md` note.
 
 Run per step: `Tools/CompileCheck/check.sh` and the suites named above (`run.sh list`).
+
+## As built
+
+- `Game.SpawnChest(pos, kind, onOpened, holdsWave, seed)`, `TrySpawnChest(kind)` (a free spot: wave drops, Contraband, an Ambush's reward) and `ChestAt(pos)` are in `Props.cs`; hooks live in the host-only `chestSources` (cleared with the props).
+- `TickNodes` spawns a node's chest once (`ChestAt(NodeSpot)` says if it is already there), with a hook that spends the node (`SpendNode`). A mystery-door hallway and a rule room's prize are chest nodes, so they go the same way.
+- `Expansion.NodeChestKind` at the inner tier is Gold or Vector (the coin the vector chest node used to be placed by). `Expansion.Current` turns a legacy `NodeKind.VectorChest` into a chest on load (network and saves); the enum value stays so numbers don't shift.
+- `Msg.CollectChest` keeps its `node` bool (always false now) so the wire format is the same; the host ignores `node = true`.
+- `NodeLook` no longer draws a vector chest node; a claimed chest is the prop, drawn by `PropsLook` / `ChestLooks` for every `ChestKind`.

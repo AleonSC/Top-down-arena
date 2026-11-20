@@ -277,7 +277,7 @@ namespace Arena
             // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
             if (cycle == 0)
             {
-                var ringKinds = new[] { NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic };
+                var ringKinds = new[] { NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest, NodeKind.Chest, NodeKind.Relic };
                 for (int i = 0; i < ringKinds.Length; i++)
                 {
                     var rn = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i, Expansion.RingTier(i));  // (two of each tier: inner, middle, outer)
@@ -364,65 +364,36 @@ namespace Arena
         }
 
         public const int VectorChestPickups = 4;  // a vector chest bursts into this many vector pickups (VectorDropSmall each: 24 vectors)
-        public const float VectorChestReach = 46f;  // walk this close (plus your body) to open one
 
-        /// Host, every tick of a wave (from TickNodes): a claimed vector chest opens when a player walks up to it and bursts into vector
-        /// pickups (Coins.cs: they fly to the nearest player); the node is spent.
-        void TickVectorChests()
-        {
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                var nd = Nodes[i];
-                if (nd.Kind != NodeKind.VectorChest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
-                    continue;
-                bool touched = false;
-                foreach (var p in Players.Values)
-                    touched |= !p.Downed && p.Pos.CloserThan(NodeSpot(i), VectorChestReach + p.Def.BodyR);
-                if (!touched)
-                    continue;
-                for (int k = 0; k < VectorChestPickups; k++)
-                    DropVectorAt(NodeSpot(i), VectorDropSmall);
-                nd.Spent = true;
-                Nodes[i] = nd;
-                BroadcastFx(FxKind.Ring, NodeSpot(i), new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
-                DoLog("a vector chest was opened");
-                BroadcastExpansion();
-            }
-        }
-
-        /// Host: a claimed chest node holds a real treasure chest (Props.cs: everyone gets their own item). Not synced: node index -> prop id.
-        readonly Dictionary<int, int> nodeChests = new Dictionary<int, int>();
-
-        /// Host, every tick of a wave: a chest node whose room is built holds a treasure chest (put back each wave if it was cleared away).
-        /// Once it is opened the node is spent. The wave never waits on it (`IsNodeChest`).
+        /// Host, every tick of a wave: a chest node whose room is built holds a treasure chest (SpawnChest; put back each wave if it was cleared
+        /// away). Once it is opened the node is spent (its `onOpened` hook). The wave never waits on it. A rule room's chest comes out once the room is cleared.
         void TickNodes()
         {
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
                 return;
             TickRelicNodes();  // Relics.cs
-            TickVectorChests();
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
                 if (nd.Kind != NodeKind.Chest && !(Expansion.RuleHoldsChest(nd) && nd.Cleared) || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
-                    continue;  // (a rule room's chest comes out once the room is cleared)
-                int id;
-                Prop pr;
-                if (nodeChests.TryGetValue(i, out id) && Props.TryGetValue(id, out pr))
-                {
-                    if (!pr.Open)
-                        continue;
-                    nd.Spent = true;
-                    Nodes[i] = nd;
-                    nodeChests.Remove(i);
-                    DoLog("a chest node's chest was opened");
-                    BroadcastExpansion();
                     continue;
-                }
-                var chest = AddProp(PropKind.Chest, NodeSpot(i));
-                chest.Chest = NodeChestKind(nd);
-                nodeChests[i] = chest.Id;
+                if (ChestAt(NodeSpot(i)) != null)
+                    continue;
+                int node = i;
+                SpawnChest(NodeSpot(i), NodeChestKind(nd), c => SpendNode(node), false, i);
             }
+        }
+
+        /// Host: a node's chest has opened, so the node is spent.
+        void SpendNode(int i)
+        {
+            if (!IsHost || i < 0 || i >= Nodes.Count)
+                return;
+            var nd = Nodes[i];
+            nd.Spent = true;
+            Nodes[i] = nd;
+            DoLog("a chest node's chest was opened");
+            BroadcastExpansion();
         }
 
         /// Host, as a wave is cleared: every claimed rule room has been through that wave, so its prize comes out (Docs/RuleRooms.md): a chest at the
@@ -458,45 +429,9 @@ namespace Arena
 
         const int RuleGold = 40, RuleGoldPerWave = 4, RuleVectors = 8;  // (a cleared Frozen room's prize; first guesses, tune with vecbal)
 
-        /// Host: the node holding this chest, or -1.
-        int NodeIndexOfChest(Prop c)
-        {
-            foreach (var kv in nodeChests)
-                if (kv.Value == c.Id)
-                    return kv.Key;
-            return -1;
-        }
-
-        /// Host: the moment a node's chest opens, the node is spent (the opened chest is removed soon after, maybe between waves when TickNodes doesn't run).
-        void SpendNodeOfChest(Prop c)
-        {
-            if (!IsHost)
-                return;
-            foreach (var kv in nodeChests)
-                if (kv.Value == c.Id)
-                {
-                    var nd = Nodes[kv.Key];
-                    nd.Spent = true;
-                    Nodes[kv.Key] = nd;
-                    nodeChests.Remove(kv.Key);
-                    DoLog("a chest node's chest was opened");
-                    BroadcastExpansion();
-                    return;
-                }
-        }
-
         /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
         /// (the node's look). Room card only with room cards on.
         public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, ExpandingOn);
-
-        /// Host: is this prop the chest of a chest node (it never holds the wave)?
-        bool IsNodeChest(Prop p)
-        {
-            foreach (var kv in nodeChests)
-                if (kv.Value == p.Id)
-                    return true;
-            return false;
-        }
 
         /// Host: the team gains a room kit (at most Expansion.MaxTokens held).
         void GrantRoomToken(RoomToken t)
@@ -1022,7 +957,7 @@ namespace Arena
             int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean(), Hidden = r.ReadBoolean(), Drop = r.ReadByte() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = Expansion.Current((NodeKind)r.ReadByte()), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean(), Hidden = r.ReadBoolean(), Drop = r.ReadByte() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);

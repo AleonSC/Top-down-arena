@@ -51,7 +51,7 @@ static partial class Program
 
         // Nodes: the ring round the hub and a later cycle each sit at the middle of a room-sized cell that building out along the grid reaches.
         var nodes = new List<MapNode>();
-        var kinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
+        var kinds = new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest };
         for (int i = 0; i < kinds.Length; i++)
         {
             var n = Expansion.GridNodeFor(7, 0, empty, nodes, kinds[i], i);
