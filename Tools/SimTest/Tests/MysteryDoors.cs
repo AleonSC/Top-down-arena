@@ -281,6 +281,16 @@ static partial class Program
         e0 = g.Enemies.Count;
         var empty = open(PieceShape.Domino, MysteryKind.Empty);
         Check(empty.Count == 1 && empty[0].W * empty[0].H == 2 * 600 * 600 && empty[0].Kind == RoomKind.Combat && g.Enemies.Count == e0, "an empty room (7 x 6 here) is just floor");
+
+        // Bonus loot (BonusLoot.cs): a stash at each loot slot of a plain room.
+        float lootChance = BonusLoot.Chance;
+        BonusLoot.Chance = 1f;
+        int coins0 = g.Coins.Count;
+        int stashes = g.PlantBonusLoot(empty);
+        int lootSlots = CellLayouts.LootSlots(empty).Count;
+        BonusLoot.Chance = lootChance;
+        Check(lootSlots >= 2 && stashes == lootSlots && g.Coins.Count - coins0 >= lootSlots * 3 && g.Coins.Values.Skip(coins0).All(c => empty.Any(r => c.Pos.X > r.X && c.Pos.X < r.X1 && c.Pos.Y > r.Y && c.Pos.Y < r.Y1)),
+            "bonus loot: every loot slot of a plain room holds a stash of coins in the room (" + stashes + " stashes, " + (g.Coins.Count - coins0) + " coins)");
     }
 }
 
