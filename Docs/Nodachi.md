@@ -1,6 +1,6 @@
 # Nodachi (Tank Ninja, 4th weapon)
 
-Status: built (protocol 435). Mockup: https://claude.ai/artifact/7jmWYi6U9oafkebSdAuSnc (the owner picked the two chains below from it).
+Status: built (protocol 436). Mockup: https://claude.ai/artifact/7jmWYi6U9oafkebSdAuSnc (the owner picked the two chains below from it).
 
 ## The owner's decisions
 

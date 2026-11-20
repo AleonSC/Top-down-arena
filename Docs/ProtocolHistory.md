@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 435: the Nodachi (Tank Ninja's fourth): `WeaponId.Nodachi` and `FxKind.NodStep` at the end; each player sends `NodStance`, `NodStorm`, `NodGuard`, `NodCode`, `NodCount` (bytes) after `NunSwats`; Alt kind 48 (`DashNodStance`)
+- 436: the Nodachi (Tank Ninja's fourth): `WeaponId.Nodachi` and `FxKind.NodStep` at the end; each player sends `NodStance`, `NodStorm`, `NodGuard`, `NodCode`, `NodCount` (bytes) after `NunSwats`; Alt kind 48 (`DashNodStance`)
 - 435: room turret health: `Msg.TrapHit` (x, y shorts, health byte) so a damaged turret draws a health bar (RoomTraps.cs)
 - 434: room traps: `Msg.ExpandState` ends with a count and (x, y) shorts of the room turrets shot to bits (`WriteTrapWrecks`, RoomTraps.cs)
 - 433: the Tank Summoner's Wyvern Staff: `WeaponId.WyvernStaff`, `MinionKind.Wyvern` (its `Minion.Wind` is the mode: 0 hover, 1 breath, 2 dive), `FxKind.WyvernSlam`, `Player.Cinder` (the Cinder meter, a float after `HoneyOn` in the player snapshot), `DashWyvernSlam` 48 over `Msg.WeaponDash`
