@@ -19,7 +19,7 @@ the Eclipse took 1.8 million damage in 149 s, and nothing threatened you. Three 
 
 1. **Diminishing returns**, not hard per-card limits.
 2. **Both arenas** (Classic and Rooms). The Rooms arena's 1.3x enemy damage stays Rooms-only.
-3. **Wounds**: 10% of each hit can't be healed back. Owner Nov 20: they carry across waves, capped at 30% of max (`WoundCap`), and clear when a boss falls, at a health shrine, with the Medic's heal or at a Rest.
+3. **Wounds**: 20% of each hit can't be healed back. Owner Nov 20: they carry across waves, capped at 30% of max (`WoundCap`), and clear when a boss falls, at a health shrine, with the Medic's heal or at a Rest.
 4. **Parry stays as it is** (a timing skill; its cards are already capped).
 
 ## How it works
@@ -30,7 +30,7 @@ the Eclipse took 1.8 million damage in 149 s, and nothing threatened you. Three 
   Rounds each start at full strength). Capped cards are unchanged. Examples: Hair Trigger x14 fire rate x2.28 (was
   x3.8), Hollow Points x8 damage x1.95 (was x2.6), Clarity x6 cooldowns 53% (was 38%). The pick card's note says what the
   next copy is worth (`HudPicker.cs` `UpgradeNote`); the stat preview already shows the real change.
-- **Wounds** (`Player.Wound`, `HealCap`, `Game.WoundShare` 0.1): each hit adds 10% of the health it took to the wound;
+- **Wounds** (`Player.Wound`, `HealCap`, `Game.WoundShare` 0.2): each hit adds 20% of the health it took to the wound;
   every heal (`Heal`, regeneration, orbs, lifesteal, heal on kill, revives) stops at max health less the wound; the
   wound clears when a boss wave is cleared (`WaveCleared`, before its 30% heal, which stops at `HealCap`), at a shrine (`UseShrine`), with the Medic's heal (`ShopAction.Heal`) or at a Rest; capped at `WoundCap`; saved with the seat. A Healer's overheal shield only counts
   healing past full health. Synced in the snapshot (protocol 237). Drawn as a dark red end on the HUD card's health bar

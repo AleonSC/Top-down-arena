@@ -310,6 +310,16 @@ static partial class Shot {
       else foreach (var pl in host.Game.Players.Values) pl.Downed = true;
       set("endT", endingAt); set("endWin", win); set("endFocus", focus); set("endWasOver", true); set("endStamped", endingAt > 1.3f);
     }
+    // WOUNDFLASH=<s>: everyone's wound grew that many seconds ago, so the wound tick is flashing (HealthBars.cs WoundFlash). Use with WOUND=<share>.
+    string wfl = Environment.GetEnvironmentVariable("WOUNDFLASH");
+    if (wfl != null) {
+      var wf = typeof(ArenaApp).GetMethod("WoundFlash", f2);
+      foreach (var pl in host.Game.Players.Values) {
+        float w = pl.Wound; pl.Wound = w * 0.8f; Time.unscaledTime = 99f; wf.Invoke(app, new object[] { pl });
+        pl.Wound = w; Time.unscaledTime = 100f; wf.Invoke(app, new object[] { pl });
+      }
+      Time.unscaledTime = 100f + float.Parse(wfl, System.Globalization.CultureInfo.InvariantCulture);
+    }
     // DOWNED=<phase>:<value>: you going down or getting back up (DownedLooks.cs). down:<seconds since the hit>, revive:<0-1 revive progress with an ally standing by>, up:<seconds since you stood back up>. Use with mode hud and 2 players.
     string dwn = Environment.GetEnvironmentVariable("DOWNED");
     if (dwn != null) {
