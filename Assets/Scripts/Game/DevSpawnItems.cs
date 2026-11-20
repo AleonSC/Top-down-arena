@@ -51,7 +51,7 @@ namespace Arena
             Ui.Label(gh, "GADGETS", 10, CrtStyle.Head, TextAnchor.MiddleLeft, true);
             Ui.Label(gh, "in hand: " + (who.Gadget == GadgetId.None ? "nothing" : Game.GadgetName(who.Gadget)) + "  ·  bag " + bagUsed + "/" + who.BagKind.Length,
                 10, CrtStyle.Desc, TextAnchor.MiddleRight);
-            var gc = DkStack.Cells(col.Next(54f), (int)GadgetId.None, 8f);
+            var gc = DkStack.Cells(col.Next(48f), (int)GadgetId.None, 8f);
             for (int i = 0; i < gc.Length; i++)
             {
                 var g = (GadgetId)i;
@@ -61,9 +61,9 @@ namespace Arena
                 Ui.Fill(cell, ink.WithAlpha(hover ? 0.16f : 0.05f));
                 CrtKit.Frame(cell, 1f, ink.WithAlpha(hover ? 0.85f : 0.3f));
                 DrawGadgetGlyph(g, new Vector2(cell.x + 30f, cell.center.y), 19f, host ? ink : ink.WithAlpha(0.45f));
-                Ui.Label(new Rect(cell.x + 64f, cell.y + 5f, cell.width - 70f, 24f), Game.GadgetName(g).ToUpperInvariant(), 14, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(cell.x + 64f, cell.y + 3f, cell.width - 70f, 24f), Game.GadgetName(g).ToUpperInvariant(), 14, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
                 float secs = Game.GadgetTime(g);
-                Ui.Label(new Rect(cell.x + 64f, cell.y + 28f, cell.width - 70f, 20f), (Game.GadgetTimed(g) ? secs.ToString("0") + " s of use" : secs.ToString("0") + " s channel to the hub"),
+                Ui.Label(new Rect(cell.x + 64f, cell.y + 24f, cell.width - 70f, 20f), (Game.GadgetTimed(g) ? secs.ToString("0") + " s of use" : secs.ToString("0") + " s channel to the hub"),
                     11, CrtStyle.Desc, TextAnchor.MiddleLeft);
                 if (hover)
                     hoverNote = "Drop a full " + Game.GadgetName(g) + " in front of " + whoName + " (only " + (who.Id == game.MyId ? "you see" : "they see") + " it; walk onto it).";
@@ -71,9 +71,35 @@ namespace Arena
                     devItemNote = game.DevSpawnGadget(who.Id, g) ? "Dropped a " + Game.GadgetName(g) + " in front of " + whoName + ": walk onto it to pick it up." : "Couldn't drop it.";
             }
 
+            // Gold and vectors: amounts scattered in front of the player as their own pickups (Game.DevSpawnCoins).
+            var lr = col.Next(28f);
+            Color goldInk = new Color(1f, 0.82f, 0.3f), vecInk = new Color(0.3f, 0.88f, 1f);
+            Ui.Label(new Rect(lr.x, lr.y, 46f, lr.height), "GOLD", 10, goldInk, TextAnchor.MiddleLeft, true);
+            int[] golds = { 10, 50, 250, 1000 }, vecs = { 1, 5, 20, 100 };
+            float lx = lr.x + 46f;
+            for (int i = 0; i < golds.Length; i++, lx += 70f)
+            {
+                var kr = new Rect(lx, lr.y, 64f, lr.height);
+                if (DkKey(kr, "+" + golds[i], goldInk, false, 11) && host)
+                    devItemNote = game.DevSpawnCoins(who.Id, golds[i], false) ? "Dropped " + golds[i] + " gold in front of " + whoName + ": walk over the coins." : "Couldn't drop it.";
+                if (host && kr.Contains(ev.mousePosition))
+                    hoverNote = "Scatter " + golds[i] + " gold as coins in front of " + whoName + " (" + (who.Id == game.MyId ? "your" : "their") + " own; walk over them). Has " + who.Gold + ".";
+            }
+            lx += 24f;
+            Ui.Label(new Rect(lx, lr.y, 66f, lr.height), "VECTORS", 10, vecInk, TextAnchor.MiddleLeft, true);
+            lx += 66f;
+            for (int i = 0; i < vecs.Length; i++, lx += 70f)
+            {
+                var kr = new Rect(lx, lr.y, 64f, lr.height);
+                if (DkKey(kr, "+" + vecs[i], vecInk, false, 11) && host)
+                    devItemNote = game.DevSpawnCoins(who.Id, vecs[i], true) ? "Dropped " + vecs[i] + " vector" + (vecs[i] > 1 ? "s" : "") + " in front of " + whoName + ": walk over them." : "Couldn't drop it.";
+                if (host && kr.Contains(ev.mousePosition))
+                    hoverNote = "Scatter " + vecs[i] + " vector" + (vecs[i] > 1 ? "s" : "") + " as pickups in front of " + whoName + ". Has " + who.Vectors + "/" + who.VectorCap + " (a full wallet leaves them lying).";
+            }
+
             // Chests: every kind, drawn as it stands in the arena; a click puts one in front of the player.
             Ui.Label(col.Next(16f), "CHESTS", 10, CrtStyle.Head, TextAnchor.MiddleLeft, true);
-            var cc = DkStack.Cells(col.Next(72f), (int)ChestKind.Gadget + 1, 6f);
+            var cc = DkStack.Cells(col.Next(62f), (int)ChestKind.Gadget + 1, 6f);
             for (int i = 0; i < cc.Length; i++)
             {
                 var k = (ChestKind)i;
@@ -133,7 +159,7 @@ namespace Arena
                 for (int i = 0; i < cc.Length; i++)
                 {
                     UiClip(cc[i]);
-                    UiModelAt(new V2(cc[i].center.x, cc[i].y + 30f), 0.62f);
+                    UiModelAt(new V2(cc[i].center.x, cc[i].y + 25f), 0.55f);
                     DrawChestLook(V2.Zero, host ? 1f : 0.45f, t, (ChestKind)i, false, 0f);
                 }
                 glZoom = 1f;
@@ -152,7 +178,7 @@ namespace Arena
                 EndUiGl();
             }
 
-            string idle = !host ? "Only the host can spawn gadgets, chests and relics." : "Click a gadget or chest to put it in front of them, or a relic to hold it (marks the run as a dev run).";
+            string idle = !host ? "Only the host can spawn items." : "Click gold, vectors, a gadget or a chest to put it in front of them, or a relic to hold it (marks the run as a dev run).";
             string line = hoverNote.Length > 0 ? hoverNote : devItemNote.Length > 0 && host ? devItemNote : idle;
             Ui.Label(new Rect(r.x, r.yMax - 20f, r.width, 18f), line, 11, hoverNote.Length == 0 && devItemNote.Length > 0 && host ? CrtStyle.Gold : CrtStyle.Desc);
         }

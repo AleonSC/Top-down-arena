@@ -148,6 +148,11 @@ namespace Arena
                 if (wd.Seam(i) || CoreSeam(wd, i))
                     continue;
                 var d = wd.Doors[i];
+                if (d.Pass != 0)
+                {
+                    DrawOneWayDoor(wd, d, a2);  // a One-way piece's door: chevrons the way it opens (OneWayDoorLook.cs)
+                    continue;
+                }
                 var col = DoorInk;
                 V2 j0 = d.Pos - d.Along * (d.W / 2f), j1 = d.Pos + d.Along * (d.W / 2f), t = d.Across * (Rooms.WallT * 0.9f);
                 PhosDash(j0, j1, 10f, 8f, 0f, 1.5f, col.WithAlpha(0.4f * a2));

@@ -404,7 +404,7 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 7 ? "Spawn a gadget, chest or relic" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
+            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 7 ? "Spawn items: gold, vectors, gadgets, chests, relics" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;

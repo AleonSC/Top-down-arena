@@ -149,6 +149,8 @@ namespace Arena
         DecoyThrow, DecoySqueak, DecoyPop, DecoyFold,
         // Deployable Turret (DeployTurretSoundBank.cs): the drop, a heavy round, the barrels spinning up, the overheat, the blast, the early dismount. Played by each screen from the zone, never sent.
         DtDrop, DtShot, DtSpool, DtHeat, DtBlast, DtLatch,
+        // A One-way piece's door bumped from the wrong side (OneWayDoorSoundBank.cs): played by your own screen when it holds you back, never sent.
+        OneWayBump,
     }
 
     public struct SoundCue

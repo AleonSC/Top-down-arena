@@ -176,6 +176,28 @@ namespace Arena
             return true;
         }
 
+        /// Dev: scatter `amount` gold as coins (or vectors as vector pickups) in front of this player, their own copies, picked up by walking over
+        /// them like a kill's drop (coins of 5, at most 40 pickups, the bigger ones worth more). Host only, in a match; true when dropped. Marks a dev run.
+        public bool DevSpawnCoins(int id, int amount, bool vectors)
+        {
+            Player p;
+            if (!IsHost || State == MatchState.Idle || amount <= 0 || !Players.TryGetValue(id, out p))
+                return false;
+            amount = Math.Min(amount, 100000);
+            int each = vectors ? Math.Max(1, (amount + 39) / 40) : Math.Max(5, (amount + 39) / 40);
+            V2 at = ClampToArena(p.Pos + V2.FromAngle(p.Aim) * 110f, 40f);
+            for (int left = amount; left > 0; )
+            {
+                int v = Math.Min(each, left);
+                left -= v;
+                AddCoin(id, v, vectors, at, 0f, 38f);
+            }
+            BroadcastFx(FxKind.Ring, at, vectors ? new Rgba(0.3f, 0.88f, 1f) : new Rgba(1f, 0.82f, 0.3f), 46f, 0.4f, Sfx.None);
+            DevUsed(p.Name + ": spawned " + amount + (vectors ? " vectors" : " gold"));
+            SendSnapshot();
+            return true;
+        }
+
         bool ChestNear(V2 at)
         {
             foreach (var q in Props.Values)
