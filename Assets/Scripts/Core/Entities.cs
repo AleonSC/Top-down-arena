@@ -429,6 +429,8 @@ namespace Arena
         public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long since you last fired
         public int DbUsed, DbBarrel, DbShot;   // Double Barrel: shells spent, the barrel that fires next, volleys fired (replicated; DoubleBarrel.cs)
         public float DbReload;                 // Double Barrel: reload time left (replicated)
+        public byte TpSide;                    // Twin Pistols: the gun that fires next, 0 left, 1 right (replicated; TwinPistols.cs)
+        public float TpLaserT, TpCd;           // Twin Pistols: Laser Sights time left, and until the key works again (replicated)
         public int GlMode, GlUsed, GlSmokeUsed, GlShot;  // Grenade Launcher: drum (0 HE, 1 smoke), HE rounds spent, smoke canisters spent, rounds fired (replicated; GrenadeLauncher.cs)
         public float GlReload, GlSwap, GlCharge;  // Grenade Launcher: reload and drum swap time left, progress to the next canister 0-1 (replicated)
         public int SsMask, SsSide = Game.SsPerSide;  // Stonespear: the spears up (a bit a slot) and how many a side (replicated; Stonespear.cs)
@@ -578,7 +580,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
@@ -724,6 +726,7 @@ namespace Arena
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public ShotLook Look;     // its shape: a dart (aimed), a crescent (curving) or round (sent with its spawn; Readability.cs)
         public Bullet Sent;       // host only: its entry in the spawn message still to go out (so its Look can be set after)
+        public float Sheds;       // host only: a Twin Pistols round's chance to knock a tiny health orb out of what it hits (TwinPistols.cs)
         public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
         public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
         public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to

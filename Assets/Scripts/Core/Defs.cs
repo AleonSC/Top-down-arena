@@ -150,6 +150,8 @@ namespace Arena
         WyvernStaff,
         // the Tank Ninja's fourth (Nodachi.cs): a katana as tall as you, two stances
         Nodachi,
+        // the Healer Soldier's fourth (TwinPistols.cs): a pistol in each hand, Laser Sights on Alt
+        TwinPistols,
     }
 
     public class WeaponDef

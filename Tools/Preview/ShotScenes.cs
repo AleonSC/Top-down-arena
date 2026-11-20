@@ -976,6 +976,30 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // TWINPISTOLS=<s>: the Healer Soldier's Twin Pistols (Core/TwinPistols.cs, Game/TwinPistolsLook.cs) that long into a fight: fire held at a
+    // pack of grunts 260 px ahead (TPLASER=1: Alt pressed 0.1 s in, Laser Sights on; TPIDLE=1: not firing).
+    if (Environment.GetEnvironmentVariable("TWINPISTOLS") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Orbs.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 330f); me.Pos = me.Disp = home; me.Aim = 0f; me.TpLaserT = me.TpCd = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at in new[] { new V2(250f, -45f), new V2(275f, 10f), new V2(240f, 55f), new V2(330f, -5f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool laser = Environment.GetEnvironmentVariable("TPLASER") != null, idle = Environment.GetEnvironmentVariable("TPIDLE") != null;
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("TWINPISTOLS"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; for (int i = 0; i < foes.Count; i++) foes[i].Pos = foes[i].Disp = keep[i]; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(265f, 0f), Fire = !idle, WeaponAction = laser && f >= 6 && f < 9 });
+        me.Disp = me.Pos = home; me.Aim = 0f; me.Hp = me.MaxHp; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i]; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // GRENADE=<s>: the Tank Soldier's Grenade Launcher (Core/GrenadeLauncher.cs, Game/GrenadeLauncherLook.cs) that long into a fight: a pack of
     // grunts and a brute GLAT px ahead (default 250), fire held (HE; the drum empties at 2.5 s and reloads). GLSMOKE=1: Alt at 0.1 s (the smoke drum),
     // then fire held from 0.75 s (three canisters); GLSWAP=1: Alt at 0.1 s and nothing else; GLIDLE=1: not firing; GLONE=1: one shot only.

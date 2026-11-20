@@ -1147,6 +1147,7 @@ namespace Arena
             BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (KitWeapons.cs)
             WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (KitWeapons.cs)
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
+            TwinShedHit(b, e);  // Twin Pistols rounds knock health orbs loose (TwinPistols.cs)
             PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
