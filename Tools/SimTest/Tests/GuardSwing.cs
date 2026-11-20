@@ -80,6 +80,38 @@ static partial class Program
         Console.WriteLine("  guard rally: rioter 1 s alone {0:0} px, with a guard {1:0} px", alone, rallied);
         Check(alone > 20f && rallied > alone * 1.1f, "a Rioter beside a Guard runs faster than one alone");
     }
+    /// The Rioter crowd (RiotBrains.cs): Rioters touching you slow your walk, compounding, barely with one, a lot with a pile.
+    static void RioterCrowdTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        var s = StartPlain(dt, 29);
+        var g = s[0].Game;
+        Run(s, dt, 8f, () => g.State == MatchState.Fighting);
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
+        foreach (var e0 in g.Enemies.Values) e0.Hp = 0f;
+        Run(s, dt, 0.3f);
+        var me = g.Players[1];
+        me.Pos = new V2(800f, 450f);
+        Check(Math.Abs(g.CrowdSlow(me) - 1f) < 1e-4f, "no Rioters: no slow");
+        var far = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Rioter, me.Pos + new V2(80f, 0f), 0f, 0, false });
+        far.SpawnT = 0f; far.Pos = me.Pos + new V2(80f, 0f);
+        Check(Math.Abs(g.CrowdSlow(me) - 1f) < 1e-4f, "a Rioter 80 px off doesn't slow you");
+        var ring = new List<Enemy>();
+        float[] at = new float[11];
+        for (int i = 0; i < 10; i++)
+        {
+            var r = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Rioter, me.Pos, 0f, 0, false });
+            r.SpawnT = 0f; r.Pos = me.Pos + V2.FromAngle(i * 0.628f) * (me.Def.BodyR + r.Radius + 2f);
+            ring.Add(r);
+            at[i + 1] = g.CrowdSlow(me);
+        }
+        Console.WriteLine("  rioter crowd: speed x{0:0.00} with 1, x{1:0.00} with 3, x{2:0.00} with 6, x{3:0.00} with 10", at[1], at[3], at[6], at[10]);
+        Check(at[1] > 0.93f && at[1] < 1f, "one Rioter on you is barely felt");
+        Check(at[6] < at[3] && at[3] < at[1], "each Rioter on you slows you more");
+        Check(at[10] < 0.72f && at[10] >= Game.CrowdSlowMin, "a pile of Rioters slows you a lot, down to the floor");
+    }
     /// Rioter bottles (RiotBrains.cs): only some Rioters carry one; they throw at a player 110-300 px away, a plain Rioter never does.
     static void RioterBottleTest(float dt)
     {
