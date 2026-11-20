@@ -136,6 +136,70 @@ namespace Arena
             return true;
         }
 
+        /// Dev: put a gadget on the floor a few steps in front of this player, full, as their own copy (only they see it and can pick it up;
+        /// walk onto it). Host only, in a match; true when it was dropped. Marks the run as a dev run.
+        public bool DevSpawnGadget(int id, GadgetId kind)
+        {
+            Player p;
+            if (!IsHost || State == MatchState.Idle || kind >= GadgetId.None || !Players.TryGetValue(id, out p))
+                return false;
+            int n = 0;
+            foreach (var g in Gadgets.Values)
+                if (g.Owner == id)
+                    n++;
+            V2 fwd = V2.FromAngle(p.Aim);
+            V2 side = new V2(-fwd.Y, fwd.X);
+            float shift = ((n + 1) / 2) * 40f * (n % 2 == 1 ? 1f : -1f);
+            var gad = SpawnGadget(kind, ClampToArena(p.Pos + fwd * 80f + side * shift, 14f), GadgetTime(kind));
+            gad.Owner = id;
+            BroadcastFx(FxKind.Ring, gad.Pos, new Rgba(1f, 0.82f, 0.3f), 36f, 0.4f, Sfx.None);
+            DevUsed(p.Name + ": spawned a " + GadgetName(kind));
+            SendSnapshot();
+            return true;
+        }
+
+        /// Dev: a treasure chest of this kind a few steps in front of this player, opened like any chest (walk up to it; everyone gets their
+        /// own item). It doesn't hold the wave. Host only, in a match; true when it was placed. Marks the run as a dev run.
+        public bool DevSpawnChest(int id, ChestKind kind)
+        {
+            Player p;
+            if (!IsHost || State == MatchState.Idle || kind > ChestKind.Gadget || !Players.TryGetValue(id, out p))
+                return false;
+            V2 fwd = V2.FromAngle(p.Aim);
+            V2 at = ClampToArena(p.Pos + fwd * 110f, ChestW);
+            for (int i = 0; i < 8 && ChestNear(at); i++)  // (several in a row: side by side, not stacked)
+                at = ClampToArena(at + new V2(-fwd.Y, fwd.X) * (ChestW + 16f), ChestW);
+            var c = SpawnChest(at, kind, null, false);
+            BroadcastFx(FxKind.Ring, c.Pos, new Rgba(1f, 0.82f, 0.3f), 50f, 0.4f, Sfx.None);
+            DevUsed(p.Name + ": spawned a " + kind + " chest");
+            SendSnapshot();
+            return true;
+        }
+
+        bool ChestNear(V2 at)
+        {
+            foreach (var q in Props.Values)
+                if (q.Kind == PropKind.Chest && q.Pos.CloserThan(at, ChestW + 8f))
+                    return true;
+            return false;
+        }
+
+        /// Dev: set this player's relic slot straight away (RelicId.None empties it); the old relic is gone. Host only, in a match; true when
+        /// it changed. Marks the run as a dev run.
+        public bool DevSetRelic(int id, RelicId relic)
+        {
+            Player p;
+            if (!IsHost || State == MatchState.Idle || relic > RelicId.None || !Players.TryGetValue(id, out p) || p.Relic == relic)
+                return false;
+            p.Relic = relic;
+            Recalc(p);  // (a faction relic changes stats)
+            if (relic != RelicId.None)
+                BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.82f, 0.3f), 90f, 0.5f, Sfx.Pick);
+            DevUsed(p.Name + ": relic " + (relic == RelicId.None ? "removed" : "set to " + Relics.Name(relic)));
+            SendSnapshot();
+            return true;
+        }
+
         public void DevHeal(int id)
         {
             Player p;

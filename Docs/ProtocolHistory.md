@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 445: `ExpansionRoom.OneWay` (a One-way piece card's rooms, `PieceMods.OneWay`) added at the end of each room in `Msg.ExpandState`; doors get `RoomDoor.Pass` (built locally, not sent).
+- 445: dev spawners (F1 dock): the snapshot gains a byte count of `DevSpawner`s after the gadgets (id, type, elite, pos, every, timer, cap, alive)
 - 444: Deployable Turret sounds `Sfx.DtDrop`, `DtShot`, `DtSpool`, `DtHeat`, `DtBlast`, `DtLatch` added at the end (played locally, never sent); pressing its key again to step out sets the zone's Radius to 0 and T to its overheat (existing fields)
 - 443: Deployable Turret (DPS Soldier 4th choice): `AbilityId.DeployableTurret`, `ZoneKind.DeployTurret` (no new fields: the zone's Pos, Aim, T and Duration are enough; the guns' fire is drawn on each screen from its owner's aim and trigger)
 - 442: the Energy Drink gadget: `GadgetId.EnergyDrink` (2), so `GadgetId.None` moves from 2 to 3 in the Player and gadget snapshots and the bag.

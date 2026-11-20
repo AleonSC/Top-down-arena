@@ -348,6 +348,7 @@ namespace Arena
             Coins.Clear();
             ForgetSentCoins();  // (Coins.cs: the next snapshot sends the full list)
             Gadgets.Clear();
+            DevSpawners.Clear();
             Zones.Clear();
             Effects.Clear();
             Sounds.Clear();
@@ -1481,6 +1482,7 @@ namespace Arena
             TickOrbs(dt);
             TickCoins(dt);  // Coins.cs
             TickGadgets(dt);  // Gadgets.cs
+            TickDevSpawners(dt);  // DevSpawners.cs: the F1 dock's enemy spawners
             TickBossBarrels(dt);  // Props.cs: health barrels dropping into boss fights
             TickProps(dt);    // Props.cs: fuses, smashed health barrels, opened chests, breaks
             MoveBullets(dt * WorldRate);

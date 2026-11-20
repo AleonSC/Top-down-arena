@@ -602,6 +602,7 @@ namespace Arena
         public EnemyType Type;
         public EnemyDef Def;
         public V2 Pos, Disp, Waypoint;
+        public int DevSpawner;  // host only: the dev spawner that brought it in (Core/DevSpawners.cs), 0 none
         public int Home = -1;   // host only: the walled world's area it belongs to (Rooms.cs): a Gatekeeper room's mini-boss
         public float FarT;         // host only: how long it has been far from every player (Recycling.cs)
         public float PortalT;      // host only: just came out of a portal (it can't take one again until this runs out)
