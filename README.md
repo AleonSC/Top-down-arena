@@ -135,8 +135,8 @@ them for half · Blood Freeze: frozen enemies take 25% more damage · Martyr: yo
 washes away enemy bullets it touches · Blood Debt: kills repay 50% more · Vein Rush's trail bursts after 1 s for 20 · Vein Tithe lasts 20 s and costs 25% less · Bloodbath spreads to 220 px and gives back 35% ·
 Sanguine Rain lasts 14 s and heals 4% a tick · Crimson Harvest holds the ball 8 s and tears out 25% more blood.
 
-Players can pick the same role if you want. Everyone also slowly regenerates health (0.25 HP/s on Normal; see
-[Difficulty](#difficulty)).
+Players can pick the same role if you want. There is **no passive regeneration** by default (owner Nov 20; every preset is 0 HP/s, a Custom difficulty can add it, see
+[Difficulty](#difficulty)): only upgrades such as Regeneration give it.
 
 Enemies sometimes drop **health orbs** (in co-op each player gets their own copy, and you only see and drink yours; the Healer's
 orbs, Medkits' and the arena's are shared): small green ones heal 15 HP (12% chance on Normal; 18% on Easy), and rare large ones
@@ -466,7 +466,7 @@ brackets, and the lobby's digital keys for **Reroll** and **Choose Upgrade** (Ch
 card, then it lights up with a green lamp). Each card has its rarity in a small key-like label on top, the icon (in its own
 colours) in an outlined tile, and a soft glow (blue common, green uncommon, blue rare, purple very rare, orange legendary)
 while it bobs slowly (rare and better ones also shine); the one you pick lifts, glows stronger and outlines in white-blue.
-Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
+Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0 → 3 HP/s", or a new
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendary cards)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
@@ -480,8 +480,7 @@ you already have says what this copy is worth ("You have 4 · this copy 50% stre
 real change. Cards with a stack limit (the squares) keep full strength.
 
 **Wounds.** 10% of every hit you take is a **wound**: it can't be healed back (heals, regeneration, orbs, lifesteal,
-revives) until the wave is cleared. Your health bar shows it as a dark red end with a bright line where healing stops;
-it clears with the wave. A Healer's overheal shield only takes what goes past full health. Both arenas.
+revives). Wounds **carry across waves** but never take more than **30% of your max health**. They clear when a **boss falls**, at a **health shrine**, with the **Medic's heal** (now buyable when only wounded) or at a Boss Hunt **Rest**. Saves keep them. Your health bar shows it as a dark red end with a bright line where healing stops. A Healer's overheal shield only takes what goes past full health. Both arenas.
 
 | Rarity | Color | What you get |
 |---|---|---|
@@ -1359,7 +1358,7 @@ and green when it's easier. Hover a number for what it does.
 | Elites (chance, from wave 23) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
 | Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
 | Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |
-| Regeneration | 0.5 HP/s | **0.25 HP/s** | 0.15 HP/s | 0 | 0-3 HP/s |
+| Regeneration | 0 | **0** | 0 | 0 | 0-3 HP/s |
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |

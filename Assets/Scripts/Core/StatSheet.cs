@@ -30,7 +30,7 @@ namespace Arena
 
         /// newKey: for a preview that adds a new ability, the key it would go on (1-3; 0 = first free).
         /// baseRegen: the run's passive regeneration (its difficulty's; Game.PassiveRegen).
-        public static List<StatLine> Describe(Player p, List<int> taken, int newKey = 0, float baseRegen = 0.25f)
+        public static List<StatLine> Describe(Player p, List<int> taken, int newKey = 0, float baseRegen = 0f)
         {
             var s = Upgrades.Compute(taken);
             var lines = new List<StatLine>();

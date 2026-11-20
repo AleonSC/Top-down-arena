@@ -14,9 +14,9 @@ static partial class Program
 
         // The numbers on their own: presets, typing, saving.
         var normal = new Difficulty();
-        Check(normal.Level == DifficultyLevel.Normal && normal[DiffKnob.Regen] == 0.25f && normal[DiffKnob.OrbChance] == 0.12f && normal[DiffKnob.ReviveTime] == 4f
+        Check(normal.Level == DifficultyLevel.Normal && normal[DiffKnob.Regen] == 0f && Difficulty.Of(DifficultyLevel.Easy)[DiffKnob.Regen] == 0f && normal[DiffKnob.OrbChance] == 0.12f && normal[DiffKnob.ReviveTime] == 4f
               && normal[DiffKnob.HitGrace] == 0.25f && normal[DiffKnob.BossBullets] == 0.6f && normal[DiffKnob.SoloHp] == 0.85f && normal[DiffKnob.DamagePerWave] == 0.03f,
-            "Normal: 0.25 HP/s regen, 12% orbs, 4 s revives, 0.25 s hit grace, adds get 60% in boss fights, solo enemies 85%, +3% damage a wave");
+            "Normal (and Easy): no passive regen (owner Nov 20), 12% orbs, 4 s revives, 0.25 s hit grace, adds get 60% in boss fights, solo enemies 85%, +3% damage a wave");
         var orb = Difficulty.Knobs[(int)DiffKnob.OrbChance];
         float typed;
         Check(orb.TryParse("15", out typed) && Math.Abs(typed - 0.15f) < 1e-5f && orb.TryParse("9%", out typed) && Math.Abs(typed - 0.09f) < 1e-5f
@@ -26,7 +26,7 @@ static partial class Program
         Check(Math.Abs(hp.FromSlider(hp.ToSlider(1.5f)) - 1.5f) < 1e-4f, "a slider maps to its number and back");
         var custom = Difficulty.Of(DifficultyLevel.Hard);
         custom.Set(DiffKnob.EnemyDamage, 2.35f);
-        custom.Set(DiffKnob.Regen, 0f);
+        custom.Set(DiffKnob.Regen, 0.5f);
         var back = Difficulty.Parse(custom.ToText());
         Check(custom.Level == DifficultyLevel.Custom && back.SameAs(custom) && Difficulty.Parse(Difficulty.Of(DifficultyLevel.Nightmare).ToText()).SameAs(Difficulty.Of(DifficultyLevel.Nightmare))  // (a preset's text names its building mode since Grid became the default: a bare "Nightmare" is an old save, read as room cards)
               && Difficulty.Parse("nonsense").Level == DifficultyLevel.Normal,

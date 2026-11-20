@@ -89,14 +89,14 @@ static partial class Program
         int si = g.Nodes.Count - 1;
         V2 spot = g.NodeSpot(si);
         var p1 = g.Players[1]; var p2 = g.Players[2];
-        foreach (var p in new[] { p1, p2 }) { p.Pos = p.Disp = spot + new V2(600f, 0f); p.Hp = p.MaxHp * 0.4f; p.OverHp = 0f; p.ShrinesUsed = 0; p.InvulnT = 0f; }
+        foreach (var p in new[] { p1, p2 }) { p.Pos = p.Disp = spot + new V2(600f, 0f); p.Hp = p.MaxHp * 0.4f; p.OverHp = 0f; p.ShrinesUsed = 0; p.InvulnT = 0f; p.Wound = p.MaxHp * 0.2f; }
         var tick = typeof(Game).GetMethod("TickShrines", flags);
         tick.Invoke(g, null);
         Check(p1.OverHp == 0f && p1.ShrinesUsed == 0, "nobody near: the shrine waits");
         p1.Pos = p1.Disp = spot;
         tick.Invoke(g, null);
-        Check(Math.Abs(p1.Hp - p1.HealCap) < 0.01f && Math.Abs(p1.OverHp - p1.MaxHp * Shrines.OverFrac) < 0.01f && g.ShrineUsed(p1, si) && !g.ShrineUsed(p2, si),
-            "walking up fills your health and adds half your max past it (" + p1.Hp + "+" + p1.OverHp + ")");
+        Check(p1.Wound == 0f && Math.Abs(p1.Hp - p1.MaxHp) < 0.01f && Math.Abs(p1.OverHp - p1.MaxHp * Shrines.OverFrac) < 0.01f && g.ShrineUsed(p1, si) && !g.ShrineUsed(p2, si),
+            "walking up clears your wound, fills your health and adds half your max past it (" + p1.Hp + "+" + p1.OverHp + ")");
         p1.Hp = p1.MaxHp * 0.5f;
         p1.OverHp = 10f;
         tick.Invoke(g, null);
@@ -119,9 +119,9 @@ static partial class Program
 
         // Saved and loaded with the seat.
         var saved = new RunSave { Wave = 6 };
-        saved.Seats.Add(new SeatSave { Name = "Pilgrim", Role = Role.Tank, Kit = Kit.Soldier, ShrinesUsed = 5, OverHp = 12f });
+        saved.Seats.Add(new SeatSave { Name = "Pilgrim", Role = Role.Tank, Kit = Kit.Soldier, ShrinesUsed = 5, OverHp = 12f, Wound = 7f });
         var back = RunSave.Parse(saved.ToText());
         var seat = back != null ? back.Seats.FirstOrDefault(x => x.Name == "Pilgrim") : null;
-        Check(seat != null && seat.ShrinesUsed == 5 && Math.Abs(seat.OverHp - 12f) < 0.01f, "a save keeps the shrines used and the health past max");
+        Check(seat != null && seat.ShrinesUsed == 5 && Math.Abs(seat.OverHp - 12f) < 0.01f && Math.Abs(seat.Wound - 7f) < 0.01f, "a save keeps the shrines used, the health past max and the wound");
     }
 }

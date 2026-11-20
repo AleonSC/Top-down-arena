@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// Health shrines (owner Nov 20, Docs/Nodes.md): the only map node placed. A room built round one turns its cell into the shrine;
-    /// each player can use it once by walking up to it, which fills their health and adds health past max (Player.OverHp).
+    /// each player can use it once by walking up to it, which clears their wounds, fills their health and adds health past max (Player.OverHp).
     public static class Shrines
     {
         public const int Ring = 3;            // shrines round the hub in the first boss cycle (one per side in turn); each later cycle adds one
@@ -50,6 +50,7 @@ namespace Arena
         void UseShrine(Player p, int i)
         {
             p.ShrinesUsed |= Shrines.Bit(Nodes, i);
+            p.Wound = 0f;  // a shrine clears wounds (owner Nov 20)
             p.Hp = Math.Max(p.Hp, p.HealCap);
             p.OverHp = Math.Max(p.OverHp, p.MaxHp * Shrines.OverFrac);
             BroadcastFx(FxKind.Ring, NodeSpot(i), new Rgba(0.4f, 1f, 0.55f), 110f, 0.6f, Sfx.Revive);
