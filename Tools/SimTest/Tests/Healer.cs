@@ -5,7 +5,7 @@ using System.Threading;
 using Arena;
 
 // Healers alone: the aura heals you (1 HP/s, +1 per Sanctuary), a Healer's overhealing becomes a short shield,
-// Martyr wards you when nobody's down, a Phoenix brings you back, and the Adrenaline Shot goes to you.
+// Martyr wards you when nobody's down, a Phoenix brings you back and pulses heals, and the Adrenaline Shot goes to you.
 static partial class Program
 {
     static void HealerSoloTest(float dt)
@@ -114,5 +114,27 @@ static partial class Program
         Console.WriteLine("  phoenix alone: downed {0}, state {1}, health {2:0}", fm.Downed, fg.State, fm.Hp);
         Check(!fm.Downed && fg.State != MatchState.GameOver && fm.Hp > 0f, "alone, a Phoenix brings you back when you go down");
         f2.Item1.Leave("");
+
+        // Phoenix's pulse: it glides to your cursor (400, 450) and heals 8% max health every 2 s within 220 px.
+        var f3 = Solo(Kit.Summoner, 1);
+        var pg = f3.Item1.Game; var pm = pg.Players[1];
+        cast.Invoke(pg, new object[] { 1, 0, pm.Pos, false });
+        f3.Item2(0.1f);
+        Minion bird = null;
+        foreach (var mn in pg.Minions.Values) if (mn.Kind == MinionKind.Phoenix) bird = mn;
+        Check(bird != null, "the Phoenix is out");
+        pm.Hp = pm.MaxHp * 0.4f;
+        f3.Item2(1.75f);
+        float hpBefore = pm.Hp;
+        float near = bird.Pos.DistanceTo(new V2(400f, 450f));
+        f3.Item2(0.25f);  // across the 2 s pulse
+        Console.WriteLine("  phoenix pulse: {0:0} -> {1:0} of {2:0}, {3:0} px from the cursor", hpBefore, pm.Hp, pm.MaxHp, near);
+        Check(near < 80f, "the Phoenix glides to your cursor");
+        Check(pm.Hp - hpBefore >= pm.MaxHp * Game.PhoenixPulseHeal * 0.95f, "the Phoenix's pulse heals 8% of max health");
+        f3.Item2(1.5f);
+        float mid = pm.Hp;
+        f3.Item2(0.2f);
+        Check(pm.Hp - mid < pm.MaxHp * 0.05f, "no pulse between beats");
+        f3.Item1.Leave("");
     }
 }
