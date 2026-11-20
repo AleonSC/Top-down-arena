@@ -872,7 +872,7 @@ namespace Arena
             }
         }
 
-        static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors, bool gridRun = false)
+        static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors, Dictionary<long, CellLayouts.CellPlan> plans = null)
         {
             if (r.Floating)
                 return;  // (the floating rooms stay clear)
@@ -881,9 +881,9 @@ namespace Arena
                 AddStashCover(to, r, doors);
                 return;
             }
-            if (gridRun && CellLayouts.OnLattice(r))
+            if (plans != null && CellLayouts.OnLattice(r))
             {
-                CellLayouts.AddWalls(to, r);  // (a grid room: its cells' hand-made layouts, not random obstacles; owner Nov 20)
+                CellLayouts.AddWalls(to, r, plans);  // (a grid room: its cells' hand-made layouts, not random obstacles; owner Nov 20)
                 return;
             }
             if (Math.Min(r.W, r.H) <= StripMax)
@@ -1203,6 +1203,7 @@ namespace Arena
             bool gridRun = false;  // (a Grid run has its core: only there do cells get layouts)
             foreach (var q in rooms)
                 gridRun |= IsGridCore(q);
+            var plans = gridRun ? CellLayouts.Plans(rooms) : null;
             for (int a = 1; a < n; a++)
             {
                 var doorSpots = new List<V2>();
@@ -1212,7 +1213,7 @@ namespace Arena
                 var cr = rooms[a - 1];
                 if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
-                AddCover(cover, cr, doorSpots, gridRun);
+                AddCover(cover, cr, doorSpots, gridRun ? plans : null);
             }
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
                 if (FinStyle >= 0 && !rooms[a - 1].Floating && !(gridRun && CellLayouts.OnLattice(rooms[a - 1])) && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
