@@ -708,7 +708,7 @@ Step out of the ring, then dig through to it. In the Campaign the Lich's ten wav
 Runners, Spitters, Crawlers, Bloaters, a recap with Shriekers, Menders, Grave Callers, every squad, then the exam with
 the Dead march. Zombies don't get back up outside the modifier, only out of a Caller's graves. His fight itself is unchanged.
 
-Guards **rally** the Rioters: a Rioter within 150 px of a Guard runs 25% faster (it doesn't stack), so kill the Guards first to slow the crowd; an amber ring marks the rallied. From wave 2, about 3 in 10 Rioters carry a **bottle**: from 110-300 px away they slow and cock an arm for 0.6 s while a dashed green line marks the throw, then throw it at you (7 damage, flies about 330 px). Each has only the one bottle.
+Guards **rally** the Rioters: a Rioter within 150 px of a Guard runs 25% faster (it doesn't stack), so kill the Guards first to slow the crowd; an amber ring marks the rallied. From wave 2, about 3 in 10 Rioters carry a **bottle**: from 110-300 px away they slow and cock an arm for 0.6 s while a dashed green line marks the throw, then throw it at you (10 damage, flies about 330 px). Each has only the one bottle.
 
 The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9, Taser Guard 11, Security Guard 9, Turnkey 16),
 so its tougher approach waves don't leave you levels behind at his wave (about level 4 at Blend). The Rioters and Guards of
@@ -716,7 +716,7 @@ his own riot, on the boss wave, still give 2 and 4.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
-| 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit: a Brawler (broad shoulders, cuffed fists throwing punches) that weaves at you, in pairs (contact 10). **Variant, Ball and Chain** (30% of Rioters, from wave 3): hunched, dragging an iron ball on its ankle, the same moves but **25% slower**. Squad: Breakout (six Rioters and a Guard) |
+| 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit: a Brawler (broad shoulders, cuffed fists throwing punches) that weaves at you, in pairs (contact 15). **Variant, Ball and Chain** (30% of Rioters, from wave 3): hunched, dragging an iron ball on its ankle, the same moves but **25% slower**. Squad: Breakout (six Rioters and a Guard) |
 | 1 | **Guard** | A corrections officer (khaki shirt, peaked cap, gold badge) with a side-handle nightstick, straight at you (contact 14). As it closes in (from about 190 px) its whole swing arc fades in on the floor ahead of it: a dashed amber rim at its 80 px reach, the arc's edges and a curved arrow showing which way the next swing sweeps, while it brings the stick up on that side; with you inside the reach it pulses. Within about 60 px it swings the stick without stopping, forehand then backhand: a 0.16 s draw-back flashes its 120° arc amber on the floor, then the swing hits everyone in it out to 80 px for 7; one every 0.6 s |
 | 3 | **Thug** | A hunched prisoner brute in a tank top, bare tattooed arms and giant taped fists: moves and hits like a Brute (140 health, contact 20). Squad: Yard (a Thug, three Rioters and a Shiv) |
 | 5 | **Shiv** | A prisoner with a taped shank, one of two kinds: Hooded (hood up, the shank held low) or Twin Shanks (shirtless, a shank in each hand); it draws the shank back as it winds up. Circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |

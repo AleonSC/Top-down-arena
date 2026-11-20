@@ -286,7 +286,7 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a pink line, then leaps along it." },
             new EnemyDef { Name = "Hive Bomber", Hp = 30f, Radius = 10f, Speed = 330f, Score = 2, Xp = 0, Sides = 3, Color = new Rgba(1f, 0.45f, 0.15f), Melee = true },
             new EnemyDef { Name = "Cage Well", Hp = 40f, Radius = 11f, Speed = 0f, Score = 5, Xp = 2, Sides = 6, Color = new Rgba(0.85f, 0.4f, 1f), Melee = true },
-            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f,
+            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 15f,
                 Blurb = "A prisoner in an orange jumpsuit throwing cuffed punches. Some drag a ball and chain and run slower." },
             new EnemyDef { Name = "Hive Egg", Hp = 60f, Radius = 15f, Speed = 0f, Score = 4, Xp = 3, Sides = 10, Color = new Rgba(0.96f, 0.92f, 0.78f), Melee = true },
             new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f ,
@@ -851,7 +851,7 @@ namespace Arena
             Row(table, MagmaBolt, radius: 8f, color: new Rgba(1f, 0.48f, 0.23f), damage: 9f);  // the Cinder Priest's magma; a Cinder Priest's bolt (and its lava)
             Row(table, ThrownDagger, radius: 5f, color: new Rgba(0.81f, 0.84f, 1f), damage: 10f);  // a Second's dagger (steel); a Second's dagger
             Row(table, EmberSpark, radius: 5f, color: new Rgba(1f, 0.6f, 0.26f), damage: 5.2f);  // an Ember's spark; an Ember's spark: 6 once the enemy bullet multiplier is on
-            Row(table, BottleShot, radius: 6f, color: new Rgba(0.45f, 0.8f, 0.4f), damage: 7f);  // a Rioter's bottle (glass green)
+            Row(table, BottleShot, radius: 6f, color: new Rgba(0.45f, 0.8f, 0.4f), damage: 10f);  // a Rioter's bottle (glass green)
             Row(table, TracerRound, radius: 5f, color: new Rgba(0.94f, 0.97f, 1f), damage: 6.1f);  // the Security Guard's hot-white tracer; a Security Guard's round: 7 once the enemy bullet multiplier is on
             Row(table, BileShot, radius: 6f, color: new Rgba(0.75f, 0.9f, 0.31f));  // the Devourer's vomit
             Row(table, ToothShot, radius: 10f, color: new Rgba(0.96f, 0.9f, 0.82f), damage: 20f);  // the Devourer's Jaws
