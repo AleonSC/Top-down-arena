@@ -12,7 +12,7 @@ namespace Arena
         static readonly Rgba DefibWhite = new Rgba(0.95f, 0.95f, 0.97f), DefibRed = new Rgba(0.92f, 0.22f, 0.3f), DefibDark = new Rgba(0.25f, 0.27f, 0.32f);
         static readonly Rgba NadeKhaki = new Rgba(0.6f, 0.64f, 0.36f), NadeDark = new Rgba(0.2f, 0.23f, 0.1f);
         static readonly Rgba SmokeTeal = new Rgba(0.37f, 0.83f, 0.74f), SmokeGrey = new Rgba(0.62f, 0.66f, 0.7f), CanDark = new Rgba(0.12f, 0.14f, 0.17f);
-        static readonly Rgba GasPurple = new Rgba(0.72f, 0.42f, 1f), GasDeep = new Rgba(0.22f, 0.08f, 0.32f);
+        static readonly Rgba GasPurple = new Rgba(0.72f, 0.42f, 1f);
         static readonly Rgba BurnOrange = new Rgba(1f, 0.5f, 0.15f), BurnYellow = new Rgba(1f, 0.85f, 0.35f), BottleBrown = new Rgba(0.55f, 0.3f, 0.14f);
 
         /// A gadget's colour: its floor ring, held glow, wheel tile and chip.
