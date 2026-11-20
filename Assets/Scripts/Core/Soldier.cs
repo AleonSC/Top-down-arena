@@ -231,7 +231,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.DeployableTurret, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (DeployableTurret.cs)
-                Name = "Deployable Turret", Cooldown = DtCooldown, Desc = "Drop a heavy twin-barrel turret on your spot and climb in for 10 s: you can't move, and it fires instead of your weapon. Hold Fire and it turns onto your cursor, spooling up from 7 to 30 rounds a second of 22 damage that pierce 2 enemies. The seat takes 30% off the damage you take. It overheats and blows after, for 80 damage within 160 px.",
+                Name = "Deployable Turret", Cooldown = DtCooldown, Desc = "Drop a heavy twin-barrel turret on your spot and climb in for 10 s: you can't move, and it fires instead of your weapon. Hold Fire and it turns onto your cursor, spooling up from 7 to 30 rounds a second of 22 damage that pierce 2 enemies. The turret takes the damage meant for you (350 health); if it is wrecked you are thrown clear and it blows early. It overheats and blows after, for 80 damage within 160 px.",
                 Capstone = "Fires 14 s, rounds pierce 4, and the blast does double.",
                 Bot = b => b.HaveTarget && b.NearEnemies >= 3 && b.TargetD < 480f,
             },

@@ -5,13 +5,14 @@ using System.Reflection;
 using Arena;
 
 // DEPLOYTURRET=<seconds since the cast>: the DPS Soldier's Deployable Turret mockup (Core/DeployableTurret.cs, Game/DeployTurretLook.cs) played through the real
-// game (DEPLOYCAP=1 mastered): you at (800, 470), grunts, runners and a Heavy walking in from every side and a fresh one every few frames, the turret
+// game (DEPLOYCAP=1 mastered, DEPLOYHIT=<s after the cast> a 150 hit on it): you at (800, 470), grunts, runners and a Heavy walking in from every side and a fresh one every few frames, the turret
 // cast 0.3 s into the scene. It drops (0-0.55 s), unfolds (to 1.1), fires for 10 s (spool full about 1.2 s in), overheats and blows
 // at 11.9 s. Try 0.3, 0.8, 3, 6, 10, 11.5, 12. FXOFF=1 the plain look. Use with `shot.sh x hud 1 6 1` (6 s in, so the wave is fighting).
 static partial class Shot {
   static void DeployTurretScene() {
     string ts = Environment.GetEnvironmentVariable("DEPLOYTURRET");
     if (ts == null) return;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
     var gm = host.Game; gm.Bot = false;
     var flags = BindingFlags.NonPublic | BindingFlags.Instance;
     var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -40,15 +41,16 @@ static partial class Shot {
     me.Slots[0].Id = AbilityId.DeployableTurret; me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f;
     if (Environment.GetEnvironmentVariable("DEPLOYCAP") != null) me.MasteryXp[AbilityId.DeployableTurret] = 99999f;
     V2 aimAt = home + new V2(100f, 0f);
-    int frames = (int)Math.Round((float.Parse(ts, System.Globalization.CultureInfo.InvariantCulture) + 0.3f) * 60f), n = 100;
+    int frames = (int)Math.Round((float.Parse(ts, inv) + 0.3f) * 60f), n = 100;
     for (int f = 0; f < frames; f++) {
       if (f == 18) { cast.Invoke(gm, new object[] { me.Id, 0, aimAt, false }); }
       mobs.RemoveAll(e => e.Hp <= 0f);
       if (f % 5 == 0 && mobs.Count < 40) add(n++);
       foreach (var e in mobs) { e.FireT = 99f; if (!e.Pos.CloserThan(home, 70f)) e.Pos += (home - e.Pos).Normalized() * (e.Def.Heavy ? 30f : 55f) / 60f; e.Disp = e.Pos; }
-      me.Pos = me.Disp = home; me.InvulnT = 1f; me.Firing = me.FiringSeen = f > 18;  // holding Fire once it's cast
+      me.Pos = me.Disp = home; me.Firing = me.FiringSeen = f > 18;  // holding Fire once it's cast
       var nearest = mobs.Count > 0 ? mobs.OrderBy(e => e.Pos.DistanceSq(home)).First() : null;
       if (nearest != null) { aimAt = nearest.Pos; me.Aim = (aimAt - home).Angle; }
+      if (f == 18 + (int)(float.Parse(Environment.GetEnvironmentVariable("DEPLOYHIT") ?? "-1", inv) * 60f) && Environment.GetEnvironmentVariable("DEPLOYHIT") != null) { me.DevGod = false; typeof(Game).GetMethod("Damage", flags).Invoke(gm, new object[] { me, 150f, "Test" }); me.DevGod = true; }  // DEPLOYHIT=<s after the cast>: a 150 hit on it
       host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = f > 18 }); gm.Update(1f / 60f);
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
