@@ -43,6 +43,7 @@ namespace Arena
         VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's 1st abilities and ultimates (Engineer.cs, step 4)
         WarhornVolley,  // the DPS Knight's second ultimate (WarhornVolley.cs), picked on the lobby's Ultimate row
         Stampede,      // the Tank Summoner's 4th choice (Stampede.cs), the lobby's 4th choice
+        DecoyDummy,    // the Healer Soldier's 4th choice (DecoyDummy.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -115,6 +116,7 @@ namespace Arena
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating
+        public float DecoyHpMult = 1f;                                      // Decoy Dummy: Double-Ply
         public float WwDmgMult = 1f, WwWetBonus;                           // Water Ward: Deep Current
         // Summoner abilities
         public float StampedeDmgMult = 1f;                                 // Stampede: Thundering Herd

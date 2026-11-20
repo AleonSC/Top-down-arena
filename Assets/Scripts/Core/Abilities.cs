@@ -160,6 +160,9 @@ namespace Arena
                 case AbilityId.Medkit:
                     ThrowMedkit(p, target, cap, pw);  // Medkit.cs
                     break;
+                case AbilityId.DecoyDummy:
+                    CastDecoy(p, target, cap);  // DecoyDummy.cs
+                    break;
                 case AbilityId.Airstrike:
                     CastAirstrike(p, target, cap, pw);  // Airstrike.cs
                     break;

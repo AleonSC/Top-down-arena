@@ -74,6 +74,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.DeployableCover, MaxStacks = 2, Name = "Reinforced Plating", Desc = "Deployable Cover takes 40% more damage, and one more can stand at once",
                 Apply = s => { s.CoverHpMult += 0.4f; s.CoverExtra += 1; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.DecoyDummy, MaxStacks = 2, Name = "Double-Ply", Desc = "Decoy Dummy has 50% more health",
+                Apply = s => s.DecoyHpMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MendPulse, MaxStacks = 2, Name = "Greater Mending", Desc = "Mend Pulse heals 60% more and reaches 25% farther",
                 Apply = s => { s.PulseHealMult += 0.6f; s.PulseRangeMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Adrenaline, MaxStacks = 2, Name = "Long Dose", Desc = "Adrenaline Shot lasts 3 s longer",
@@ -203,6 +205,13 @@ namespace Arena
                 Name = "Deployable Medkit", Cooldown = MedkitCooldown, Desc = "Throw a medkit at your cursor: it bursts into 6 healing orbs (15 health each) that anyone can pick up for 6 s.",
                 Capstone = "Bursts into 9 orbs worth 20 health each.",
                 Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.DecoyDummy, Kit = Kit.Soldier, Role = Role.Healer, Choice = AbilityDef.Fourth, ExtraCharges = DecoyCharges - 1,  // the lobby's 4th choice (DecoyDummy.cs)
+                Name = "Decoy Dummy", Cooldown = DecoyCooldown, Desc = "Three charges. Throw an inflatable soldier at your cursor: regular enemies within 240 px go for it and shoot at it instead of you (bosses only glance at it for a second). It has 40 health (+4 a wave) and lasts 12 s; up to 3 stand at once. When it's popped, a confetti blast shoves enemies within 90 px back and stuns them for 0.4 s.",
+                Capstone = "Dummies have 50% more health, and the confetti blast reaches 130 px.",
+                Bot = b => b.Danger || b.NearEnemies >= 3,
             },
             new AbilityDef
             {

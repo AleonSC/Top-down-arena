@@ -408,6 +408,7 @@ namespace Arena
                 BuildWaterWard();  // WaterWardSoundBank.cs
                 BuildGaleWall();  // GaleWallSoundBank.cs
                 BuildCover();  // CoverSoundBank.cs
+                BuildDecoy();  // DecoyDummySoundBank.cs
                 BuildDogma();  // DogmaSoundBank.cs
                 BuildCeremonialArmor();  // CeremonialArmorSoundBank.cs
                 BuildFrost();  // FrostSoundBank.cs
