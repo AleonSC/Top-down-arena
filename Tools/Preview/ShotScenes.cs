@@ -317,6 +317,22 @@ static partial class Shot {
       }
       }
     }
+    if (Environment.GetEnvironmentVariable("THUG") != null) {
+      // THUG=1: the Thug's charged punch (ThugPunch.cs, PrisonLook.cs DrawThugFloor): walking, early in the wind-up, late in
+      // the wind-up, mid-jab, left to right, each facing you above; mode hud with KNIGHT=1 ZOOM=2.6.
+      var tgm = host.Game; tgm.Bot = false; tgm.Enemies.Clear(); tgm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(800f, 300f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      foreach (var pl in tgm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var tspawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var tstages = new[] { Game.LarderIdle, Game.LarderWinding, Game.LarderWinding, Game.LarderActing };
+      var tleft = new[] { 0f, Game.PunchWind * 0.8f, Game.PunchWind * 0.15f, Game.PunchFlash * 0.6f };
+      for (int i = 0; i < 4; i++) {
+        var at = new V2(800f + (i - 1.5f) * 110f, 420f);
+        var en = (Enemy)tspawn.Invoke(tgm, new object[] { EnemyType.Thug, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = -MathX.Pi / 2f;
+        en.LarderStage = tstages[i]; en.LarderT = tleft[i]; en.Traits = 0;
+      }
+    }
     if (Environment.GetEnvironmentVariable("RALLY") != null) {
       // RALLY=1: a Guard with Rioters round it (amber rally ring), a lone Rioter at each end; bottle Rioters carry a bottle,
       // one rcocked to throw, one bottle in flight. KNIGHT=1 ZOOM=2.2.
