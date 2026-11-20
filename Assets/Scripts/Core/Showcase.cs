@@ -181,6 +181,14 @@ namespace Arena
                 input.AimAt = Game.ShowcaseAllyPos(castCount % 2);  // the cursor on a teammate (Adrenaline Shot, Medkit, Healing Rain...), alternating
                 aimTicks--;
             }
+            if (me.Weapon.Id == WeaponId.SpiritChalk && !Idle)
+            {
+                bool draw;
+                V2 aim = ShowcaseAlt.ChalkAim(t, Home + new V2(0f, -Distance), Home, out draw);
+                input.Fire = draw;
+                if (draw || aimTicks == 0)  // (the cursor goes to a teammate for a cast only between strokes)
+                    input.AimAt = aim;
+            }
             Game.FixedStep(dt, input);
             Game.Update(dt);
             float far = Distance;

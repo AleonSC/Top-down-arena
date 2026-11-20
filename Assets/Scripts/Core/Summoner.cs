@@ -42,7 +42,7 @@ namespace Arena
                 Sound = Sfx.SwingRoot, AreaDesc = "the lash is 25% wider",
                 Companion = MinionKind.Treant, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.SpiritChalk, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Damage = 26f, Reach = 450f, BotRange = 300f, ExtraDesc = "+20% ink, so a longer line before the start rubs out", Name = "Spirit Chalk", FireInterval = 0.1f,
-                Desc = "Hold and drag to draw a line of spirit ink. It burns and slows enemies touching it, heals allies standing on it and destroys enemy bullets that cross it. Draw a circle round enemies to trap them inside (not bosses).",
+                Desc = "Hold and drag to draw a line of spirit ink. It burns and slows enemies touching it and heals allies standing on it. Draw a circle round enemies to trap them inside (not bosses). Alt: Ignite, sets your loops alight to burn what they hold.",
                 Sound = Sfx.None, AreaDesc = "the line is 25% wider" },
             // DPS
             new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 starting wolf", Name = "Wolf Whistle", FireInterval = 0.3f,

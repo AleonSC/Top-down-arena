@@ -47,7 +47,36 @@ namespace Arena
             { WeaponId.Nimbus, (g, me, t, dt) => Tap(t, dt, 14f, 1f) },
             // Arc Lightning: Forked Volley between draws (the preview holds fire 1.05 s of every 1.3 s).
             { WeaponId.ArcLightning, (g, me, t, dt) => Tap(t, dt, 2.6f, 1.15f) },
+            // Spirit Chalk: Ignite, just after the loop round the middle dummy seals (ChalkAim).
+            { WeaponId.SpiritChalk, (g, me, t, dt) => Tap(t, dt, ChalkEvery, ChalkIgniteAt) },
         };
+
+        // Spirit Chalk draws where the cursor goes, so its preview moves the cursor (Chalk.cs): a loop round the middle dummy (it's penned in),
+        // Ignite, then once that ring has gone a line swept across all three. Each fits the 600 px of ink (ChalkLoopR: about 470 px of ring).
+        public const float ChalkEvery = 6.5f, ChalkLoopEnd = 1.1f, ChalkIgniteAt = 1.4f, ChalkLineAt = 4.7f, ChalkLineEnd = 5.5f;
+        public const float ChalkLoopR = 75f, ChalkLoopTurns = 1.15f, ChalkLineHalf = 150f;
+
+        /// Where the Spirit Chalk's preview puts the cursor at `t`, and whether the button is held (drawing). `target`: the middle dummy's spot.
+        public static V2 ChalkAim(float t, V2 target, V2 home, out bool draw)
+        {
+            float p = MathX.Fmod(t, ChalkEvery);
+            if (p < ChalkLoopEnd)
+            {
+                draw = true;
+                float a = MathX.Pi / 2f + MathX.Tau * ChalkLoopTurns * p / ChalkLoopEnd;  // from the side nearest you, round
+                return target + V2.FromAngle(a) * ChalkLoopR;
+            }
+            if (p >= ChalkLineAt && p < ChalkLineEnd)
+            {
+                draw = true;
+                float u = (p - ChalkLineAt) / (ChalkLineEnd - ChalkLineAt) * 2f - 1f;  // -1..1, left to right
+                float dist = home.DistanceTo(target);
+                // Along the dummies' arc (they stand on a circle round you), so the line runs through each.
+                return home + V2.FromAngle(-MathX.Pi / 2f + u * ChalkLineHalf / dist) * dist;
+            }
+            draw = false;
+            return target;
+        }
 
         public static bool Has(WeaponId id) => Table.ContainsKey(id);
 
