@@ -437,6 +437,7 @@ static partial class Program
         Test("windclash", "Wind Clash: the crescent hits ahead not behind, the back crescent, the gale lance reaches far down the aim, the clash ring hits all round, each wave shoves, the combo starts over; Tempest hurts, catches shots, slows you, stops attacks, ends at 3 s and cools down; the other screen sees it; Gale Force", () => WindClashTest(Dt)),
         Test("wyvernstaff", "Wyvern Staff: the Wyvern hovers over you; its gale slows, shoves and slows enemy shots; Fire held breathes fire for as long as the Cinder lasts (15 to start) and the Wyvern drifts back slowly; Alt dives and slams (damage, stun, cleared shots, Cinder back, cooldown); the other screen sees it; Stormwing", () => WyvernStaffTest(Dt)),
         Test("twinauto", "the Twin Rifle Auto: each gun picks the nearest enemy on its side and fires untouched, Alt locks both on the enemy by the cursor (crossfire) until it dies or Alt is pressed again", () => TwinAutoTest(Dt)),
+        Test("elementballs", "the Fireball's variants: the Waterball rolls through and soaks (no burn), the Earthball stops on the first enemy, stuns it (less on heavies) and its rubble hurts the one beside it", () => ElementBallsTest(Dt)),
         Test("outofammo", "Out of Ammo: no shots, the five-move knife chain on a close enemy, one swat per rifle, Alt's spin cuts and swats everything then cools down", () => OutOfAmmoTest(Dt)),
         Test("cauterize", "Cauterize: fire on a bleeding enemy lands the bleed left at once, times 1.25, split bleeder/burner credit, ends the bleed, the look, a 1 s gap", () => CauterizeTest(Dt)),
         Test("poisondart", "Poison Dart: the dart at the enemy nearest the cursor, the poison, the spread on death and the chain, mastered, Virulence", () => PoisonDartTest(Dt)),
@@ -550,7 +551,7 @@ static partial class Program
     {
         "snapshot", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts",
+        "exploit", "doublebarrel", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "guardrally", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };

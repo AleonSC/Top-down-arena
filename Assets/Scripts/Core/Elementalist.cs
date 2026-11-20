@@ -56,6 +56,13 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Stonespear, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
                 Desc = "Slam the ground: it hurts everything round you and six earth spears tear out of it to hover at your sides. Each click throws one at your cursor, passing through an enemy. Alt hurls every spear left at the enemy nearest your cursor. Throw the last and the next click slams again.",
                 Sound = Sfx.None, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
+            // The Fireball's variants (Variants.cs; ElementBalls.cs)
+            new WeaponDef { Id = WeaponId.Waterball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 4, Speed = 430f, Life = 1.4f, Damage = 28f, BotRange = 390f, ExtraDesc = "+1 waterball, fanned out", Name = "Waterball", Variant = true, FireInterval = 0.5f,
+                Desc = "A big, slow ball of water that rolls on through every enemy in its path, hurting each and soaking it (wet for 4 s): wet enemies are slowed, and lightning arcs to them.",
+                Sound = Sfx.WwSplash },
+            new WeaponDef { Id = WeaponId.Earthball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 5, Speed = 360f, Life = 1.4f, Damage = 48f, BotRange = 380f, ExtraDesc = "+1 earthball, fanned out", Name = "Earthball", Variant = true, FireInterval = 0.6f,
+                Desc = "A heavy ball of rock that stops on the first enemy it hits, stunning it (0.8 s; shorter on heavies and bosses), and breaks into rubble that hurts everything round it.",
+                Sound = Sfx.StoneThrow, AreaDesc = "the rubble 25% wider" },
         };
 
         /// The Elementalist's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
