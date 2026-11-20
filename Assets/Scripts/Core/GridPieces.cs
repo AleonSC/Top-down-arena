@@ -21,6 +21,7 @@ namespace Arena
         public static int PieceCardMods(PieceCard c) => IsShapePieceCard(c) ? PieceMods.Clean(((int)c - PieceCodeBase) >> 4) : 0;
         public static PathId PieceCardFloor(PieceCard c) => (PathId)PieceMods.Floor.Get(PieceCardMods(c));
         public static bool PieceCardCombat(PieceCard c) => PieceMods.Combat.Get(PieceCardMods(c)) != 0;
+        public static bool PieceCardLoot(PieceCard c) => PieceMods.Loot.Get(PieceCardMods(c)) != 0;
 
         /// A card a Grid run can play: a piece, or a service card (one cell).
         public static bool IsGridPieceCard(PieceCard c) => IsShapePieceCard(c) ? (int)ShapeOfPieceCard(c) < pieceShapeBase.Length : IsServiceCard(c) || c == PieceCard.BuilderShop;
@@ -246,7 +247,8 @@ namespace Arena
             if (piece)
             {
                 PieceMods.OnPlaced(this, made, mods);
-                RollRoomChest(made, "piece");  // (owner Nov 20: a shape piece may hold a chest, modifiers or not; RoomChests.cs)
+                if (PieceMods.Loot.Get(mods) == 0)  // (a Loot piece's chest is guaranteed, not rolled)
+                    RollRoomChest(made, "piece");  // (owner Nov 20: a shape piece may hold a chest, modifiers or not; RoomChests.cs)
             }  // (the room went out unseen in BuildNow's list: RoomFog.cs)
         }
 

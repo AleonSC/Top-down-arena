@@ -83,6 +83,26 @@ namespace Arena
         public override void OnPlaced(Game g, IList<ExpansionRoom> rooms, int value) => g.PlantDormantGroups(rooms, true);
     }
 
+    /// Loot modifier: a chest of one kind is guaranteed in the piece (value = ChestKind + 1: Upgrade, Gold, Vector, Relic, Piece, Buildable, Gadget). It replaces the
+    /// 30% room chest roll a piece otherwise gets (RoomChests.cs), and the kind is rolled by rarity like a room chest's.
+    public sealed class LootMod : PieceMod
+    {
+        public LootMod() : base("loot", 5, 3, 0.2f) { }
+
+        public override bool Valid(int value) => value >= 1 && value <= 7;
+
+        public override int RollValue(DetRandom rng, int wave) => (int)Expansion.RollChestKind(rng) + 1;
+
+        static string Kind(int value) => ((ChestKind)(value - 1)).ToString();
+
+        public override string Name(int value) => Kind(value) + " Loot";
+
+        public override string Blurb(int value) => "a guaranteed " + Kind(value) + " chest";
+
+        public override void OnPlaced(Game g, IList<ExpansionRoom> rooms, int value)
+            => g.PlaceRoomChest(rooms, "loot piece", (ChestKind)(value - 1), new DetRandom(rooms[0].X * 7919 + rooms[0].Y * 31 + value));
+    }
+
     /// The modifier list and the card-code helpers. Modifier bits sit above the shape in a shape card: code = PieceCodeBase + shape + 16 * mods.
     public static class PieceMods
     {
@@ -90,9 +110,10 @@ namespace Arena
 
         public static readonly FloorMod Floor = new FloorMod();
         public static readonly CombatMod Combat = new CombatMod();
+        public static readonly LootMod Loot = new LootMod();
 
         /// Every modifier, in roll order. Add yours here with a Shift that no other uses (PieceMods.Check).
-        public static readonly PieceMod[] All = { Floor, Combat };
+        public static readonly PieceMod[] All = { Floor, Combat, Loot };
 
         /// The mods number with anything undefined (a removed modifier, a bad value) cleared.
         public static int Clean(int mods)
