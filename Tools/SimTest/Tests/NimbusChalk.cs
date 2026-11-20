@@ -345,5 +345,31 @@ static partial class Program
         cooked.Hp = 0f;
         reset();
         host.Leave(""); client.Leave("");
+
+        // The lobby's loadout preview draws with it (ShowcaseAlt.ChalkAim): a loop pens the middle dummy, Alt sets it alight,
+        // then a line is scSwept across all three; and nothing is drawn while idle.
+        var show = new Showcase();
+        show.Show(Role.Healer, Kit.Summoner, 2, Upgrades.FirstAbility(Role.Healer, Kit.Summoner, 0), false);
+        var sg = show.Game;
+        Check(sg.Me.Weapon.Id == WeaponId.SpiritChalk, "the preview holds the Spirit Chalk");
+        bool scPenned = false, scLit = false, scBurnt = false, scSwept = false;
+        for (int i = 0; i < (int)(ShowcaseAlt.ChalkEvery * 1.6f / dt); i++)
+        {
+            show.Step(dt);
+            scPenned |= sg.Enemies.Values.Any(e => e.Penned);
+            scLit |= sg.Ink.Any(d => d.Lit);
+            scBurnt |= sg.Enemies.Values.Any(e => e.Penned && e.BurnT > 0f);
+            // the line: fresh ink touching all three dummies at once
+            scSwept |= sg.Enemies.Count == 3 && sg.Enemies.Values.All(e => sg.Ink.Any(d => d.T > Game.ChalkLife - 1f && d.Pen == 0 && d.Pos.DistanceTo(e.Pos) < e.Radius + Game.ChalkDotR));
+        }
+        Console.WriteLine("  preview: penned {0}, lit {1}, burnt {2}, swept {3}", scPenned, scLit, scBurnt, scSwept);
+        Check(scPenned && scLit && scBurnt, "the preview draws a loop round a dummy, pens it in and sets it alight with Alt");
+        Check(scSwept, "and sweeps a line of ink across all three dummies");
+        show.Idle = true;
+        for (int i = 0; i < (int)(1f / dt); i++) show.Step(dt);
+        int inkIdle = sg.Ink.Count(d => d.T > Game.ChalkLife - 0.5f);
+        for (int i = 0; i < (int)(ShowcaseAlt.ChalkEvery / dt); i++) show.Step(dt);
+        Check(inkIdle == 0 && !sg.Ink.Any(d => d.T > Game.ChalkLife - 1f), "and draws nothing while idle");
+        show.Stop();
     }
 }
