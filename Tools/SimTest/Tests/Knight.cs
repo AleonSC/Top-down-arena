@@ -240,21 +240,28 @@ static partial class Program
         float hp0 = dp.Hp;
         Run(s, dt, 1f, null, () => { Clear(); dp.Pos = me.Pos + new V2(40f, 0f); });
         Check(g.Effects.Any(e => e.Kind == FxKind.HolyCross) && dp.Hp > hp0 + 5f && dp.SwiftT > 0f, "Consecrate throws a Holy Cross that heals and hastens the ally it crosses");
-        // Guardian's Oath: the charge is the Knight's own game (here we start at the grab point), then both are pulled clear and a ward is planted.
+        // Guardian's Oath: the pick and the charge are the Knight's own game (here we start at the grab point, having cast
+        // from `home`), then both are hauled back to `home` and a ward is planted there.
+        var stepFrom = typeof(Game).GetField("StepFrom", flags);
         foreach (bool downedAlly in new[] { false, true })
         {
             g.Zones.Clear(); Clear();
-            foreach (var e in g.Enemies.Values) { e.Pos = new V2(60f, 860f); e.FrozenT = 5f; }  // the pull runs away from nearby enemies: keep them well out of it so where it ends is the same every time
+            foreach (var e in g.Enemies.Values) { e.Pos = new V2(60f, 860f); e.FrozenT = 5f; }
             dp.Downed = downedAlly; dp.Hp = downedAlly ? 0f : dp.MaxHp;
-            dp.Pos = cp.Pos = new V2(900f, 300f); me.Pos = client.Game.Players[1].Pos = new V2(860f, 320f);
-            V2 grab = dp.Pos;
+            V2 home = new V2(560f, 420f);
+            me.Pos = home; dp.Pos = cp.Pos = new V2(900f, 300f);
+            Check(g.OathPickTarget(me, new V2(905f, 305f)) == dp, "Guardian's Oath picks the ally under the cursor");
+            Check(g.OathPickTarget(me, new V2(700f, 600f)) == null, "Guardian's Oath picks nobody when the cursor isn't on an ally");
+            me.Pos = client.Game.Players[1].Pos = new V2(860f, 320f);
+            stepFrom.SetValue(g, (V2?)home);
             Cast(1, AbilityId.GuardiansOath, me.Pos);
+            stepFrom.SetValue(g, null);
             Run(s, dt, 2f, null, () => Clear());
             var ward = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.OathWard);
-            Console.WriteLine("  oath ({0}): ally pulled {1:0} px, ward at ({2:0},{3:0})", downedAlly ? "downed" : "alive", dp.Pos.DistanceTo(grab), ward?.Pos.X ?? -1f, ward?.Pos.Y ?? -1f);
-            Check(dp.Pos.DistanceTo(grab) > 200f, "Guardian's Oath drags " + (downedAlly ? "a downed" : "a living") + " ally out of the fire");
-            Check(ward != null && ward.DamageCut >= 0.49f && ward.ExtraRevive > 0f && ward.Pos.DistanceTo(dp.Pos) < ward.Radius && ward.Pos.DistanceTo(me.Pos) < ward.Radius,
-                "Guardian's Oath plants a damage-cutting Ward of Light around both of them");
+            Console.WriteLine("  oath ({0}): ally {1:0} px from home, knight {2:0} px, ward at ({3:0},{4:0})", downedAlly ? "downed" : "alive", dp.Pos.DistanceTo(home), me.Pos.DistanceTo(home), ward?.Pos.X ?? -1f, ward?.Pos.Y ?? -1f);
+            Check(dp.Pos.DistanceTo(home) < 70f && me.Pos.DistanceTo(home) < 30f, "Guardian's Oath hauls " + (downedAlly ? "a downed" : "a living") + " ally back to where the Knight cast from");
+            Check(ward != null && ward.DamageCut >= 0.49f && ward.ExtraRevive > 0f && ward.Pos.DistanceTo(dp.Pos) < ward.Radius && ward.Pos.DistanceTo(home) < 30f,
+                "Guardian's Oath plants a damage-cutting Ward of Light at the cast spot, around both of them");
         }
         g.Zones.Clear();
         dp.Downed = true; dp.Hp = 0f; dp.Pos = cp.Pos = me.Pos + new V2(40f, 0f);
