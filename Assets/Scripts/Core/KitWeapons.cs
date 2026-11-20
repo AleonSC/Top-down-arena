@@ -120,6 +120,8 @@ namespace Arena
                     break;
                 case WeaponId.WindClash:
                     break;  // its waves go from TickWindClash, never from FireVolley (WindClash.cs)
+                case WeaponId.WyvernStaff:
+                    break;  // its breath goes from TickWyvernStaff, never from FireVolley (WyvernStaff.cs)
                 case WeaponId.IceShards:
                 {
                     // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the
@@ -196,6 +198,7 @@ namespace Arena
                 case WeaponId.TreantRod: return w.CompanionCount;
                 case WeaponId.Nimbus: return w.CompanionCount;  // extra projectiles are extra strikes
                 case WeaponId.BearTotem: return w.CompanionCount;  // the bear cleaves instead
+                case WeaponId.WyvernStaff: return w.CompanionCount;  // one Wyvern; extra projectiles make its breath, gale and slam stronger (WyvernStaff.cs)
                 case WeaponId.GolemStaff: return Math.Min(3, w.CompanionCount + extra);
                 default: return w.Companion == MinionKind.None ? 0 : w.CompanionCount + extra
                     + (w.Id == WeaponId.WispLantern ? p.Stats.WispExtra : w.Id == WeaponId.ImpCaller ? p.Stats.ImpExtra : 0);  // (Will-o'-Wisp, Imp Horde)

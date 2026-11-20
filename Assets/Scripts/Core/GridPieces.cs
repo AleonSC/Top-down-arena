@@ -247,6 +247,8 @@ namespace Arena
             if (piece)
             {
                 PieceMods.OnPlaced(this, made, mods);
+                if (PieceMods.Combat.Get(mods) == 0)
+                    PlantDormantGroups(made, false, null, 0, false, DormantGroups.PlainChance);  // (a plain piece holds a few sleepers too; owner Nov 20)
                 if (PieceMods.Loot.Get(mods) == 0)  // (a Loot piece's chest is guaranteed, not rolled)
                     RollRoomChest(made, "piece");  // (owner Nov 20: a shape piece may hold a chest, modifiers or not; RoomChests.cs)
                 PlantBonusLoot(made);  // (BonusLoot.cs: and a stash or two at its layout's loot slots)

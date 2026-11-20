@@ -66,6 +66,7 @@ namespace Arena
             d[(int)FxKind.PistolWhip] = (fx, f, t) => DrawPistolWhipFx(fx);  // PistolWhipLook.cs
             d[(int)FxKind.StoneSlam] = (fx, f, t) => DrawStoneSlamFx(fx);  // StonespearLook.cs
             d[(int)FxKind.BeeSting] = (fx, f, t) => DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
+            d[(int)FxKind.WyvernSlam] = (fx, f, t) => DrawWyvernSlamFx(fx);  // WyvernStaffLook.cs
             d[(int)FxKind.HoneyHarvest] = (fx, f, t) => DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
             d[(int)FxKind.WindWave] = (fx, f, t) => DrawWindWave(fx);  // WindClashLook.cs
             d[(int)FxKind.BlastCut] = (fx, f, t) => DrawBlastCut(fx);  // BloodBlastLook.cs

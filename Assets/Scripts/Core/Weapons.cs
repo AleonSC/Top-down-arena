@@ -485,6 +485,8 @@ namespace Arena
                     return ImpReach * PierceReach(p);
                 case WeaponId.HoneybeeStaff:  // how far from you a bee can hatch (HoneybeeStaff.cs)
                     return HatchReach;
+                case WeaponId.WyvernStaff:  // how far from you the breath can be aimed (WyvernStaff.cs)
+                    return BreathReach;
                 case WeaponId.BloodBlast:  // the next step's reach (BloodBlast.cs)
                     return BlastNextReach(p);
                 case WeaponId.EmbolusSpears:  // a spear flies until a wall stops it (EmbolusSpears.cs)

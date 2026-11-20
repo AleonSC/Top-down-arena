@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 
 namespace Arena
@@ -18,11 +19,17 @@ namespace Arena
     public static class RoomTraps
     {
         public const float EmptyChance = 0.35f;
-        public const float SpikeR = 34f, SpikeTick = 0.6f, SlowR = 52f, SlowMult = 0.55f;
+        public const float SpikeHalf = 32f, SpikeTick = 0.6f, SlowHalf = 48f, SlowMult = 0.55f;  // (the plates are squares: half a side)
         public const float TurretRange = 520f, TurretInterval = 1.5f, TurretShotSpeed = 330f, TurretLife = 1.8f;
 
         public static float SpikeDamage(int wave) => 6f + 0.4f * Math.Max(0, wave);
         public static float TurretDamage(int wave) => 8f + 0.5f * Math.Max(0, wave);
+        public const float TurretHitR = 26f;
+
+        /// A turret's health: your shots wear it down, and at zero it is wrecked for the rest of the map.
+        public static float TurretHp(int wave) => 40f + 4f * Math.Max(0, wave);
+
+        public static bool InSquare(V2 centre, V2 p, float half) => Math.Abs(p.X - centre.X) <= half && Math.Abs(p.Y - centre.Y) <= half;
 
         /// What a slot holds: nothing, or a kind (a slot on a wall favours a turret, one on the floor a spike or a slow field).
         public static TrapKind? Roll(DetRandom rng, bool onWall)
@@ -76,6 +83,10 @@ namespace Arena
         List<RoomTrap> roomTrapList = new List<RoomTrap>();
         int roomTrapKey = int.MinValue;
         readonly Dictionary<int, float> trapCd = new Dictionary<int, float>();
+        readonly HashSet<long> trapWrecks = new HashSet<long>();      // turrets shot to bits this map (synced in Msg.ExpandState)
+        readonly Dictionary<long, float> trapHp = new Dictionary<long, float>();  // host: a turret's health left
+
+        static long TrapKey(V2 p) => ((long)(int)Math.Round(p.X) << 32) ^ (uint)(int)Math.Round(p.Y);
 
         /// Every room trap on the map (rebuilt when the rooms change; the same on every machine).
         public List<RoomTrap> RoomTrapList
@@ -89,6 +100,7 @@ namespace Arena
                 {
                     roomTrapKey = key;
                     roomTrapList = RoomTraps.For(Expanded);
+                    roomTrapList.RemoveAll(t => t.Kind == TrapKind.Turret && trapWrecks.Contains(TrapKey(t.Pos)));  // (a wrecked turret stays gone)
                     trapCd.Clear();
                 }
                 return roomTrapList;
@@ -101,9 +113,77 @@ namespace Arena
             if (!ExpandingOn)
                 return 1f;
             foreach (var t in RoomTrapList)
-                if (t.Kind == TrapKind.Slow && !t.Pos.FartherOrAt(pos, RoomTraps.SlowR))
+                if (t.Kind == TrapKind.Slow && RoomTraps.InSquare(t.Pos, pos, RoomTraps.SlowHalf))
                     return RoomTraps.SlowMult;
             return 1f;
+        }
+
+        /// In WorldStops, for each bullet: your shot hits a turret (it wears down and finally wrecks); true if it stopped there.
+        bool RoomTrapStops(Bullet b)
+        {
+            if (!IsHost || !ExpandingOn || Defs.IsEnemyShot(b.Kind) || b.Owner == 0)
+                return false;
+            var traps = RoomTrapList;
+            for (int i = 0; i < traps.Count; i++)
+            {
+                var t = traps[i];
+                if (t.Kind != TrapKind.Turret || t.Pos.FartherOrAt(b.Pos, RoomTraps.TurretHitR + b.Radius) || UnseenAt(t.Pos))
+                    continue;
+                long key = TrapKey(t.Pos);
+                if (!trapHp.TryGetValue(key, out float hp))
+                    hp = RoomTraps.TurretHp(Wave);
+                hp -= Math.Max(1f, b.Dmg);
+                if (hp > 0f)
+                {
+                    trapHp[key] = hp;
+                    BroadcastFx(FxKind.Ring, t.Pos, new Rgba(1f, 0.45f, 0.4f), 34f, 0.2f, Sfx.None);
+                    return true;
+                }
+                trapHp.Remove(key);
+                trapWrecks.Add(key);
+                roomTrapKey = int.MinValue;  // (rebuilt without it)
+                BroadcastFx(FxKind.Boom, t.Pos, new Rgba(1f, 0.5f, 0.3f), 70f, 0.4f, Sfx.Explode);
+                foreach (int owner in LootOwners())  // (a few coins, a full copy each)
+                    AddCoin(owner, 5, false, t.Pos, 8f, 14f);
+                DoLog("a room turret is destroyed");
+                BroadcastExpansion();
+                return true;
+            }
+            return false;
+        }
+
+        void WriteTrapWrecks(BinaryWriter w)
+        {
+            w.Write((ushort)trapWrecks.Count);
+            foreach (long k in trapWrecks)
+            {
+                w.Write((short)(k >> 32)); w.Write((short)(int)(k & 0xFFFFFFFF));
+            }
+        }
+
+        void ReadTrapWrecks(BinaryReader r)
+        {
+            int n = r.ReadUInt16();
+            var set = new HashSet<long>();
+            for (int i = 0; i < n; i++)
+            {
+                int x = r.ReadInt16(), y = r.ReadInt16();
+                set.Add(((long)x << 32) ^ (uint)y);
+            }
+            if (!set.SetEquals(trapWrecks))
+            {
+                trapWrecks.Clear();
+                trapWrecks.UnionWith(set);
+                roomTrapKey = int.MinValue;
+            }
+        }
+
+        /// Host, on a map reset: the turrets come back with the new map.
+        internal void ClearTrapWrecks()
+        {
+            trapWrecks.Clear();
+            trapHp.Clear();
+            roomTrapKey = int.MinValue;
         }
 
         /// Host, every tick: spike plates hurt whoever stands on them, turrets shoot the nearest player in a wave.
@@ -123,14 +203,14 @@ namespace Arena
                 {
                     if (cd <= 0f)
                         foreach (var p in Players.Values)
-                            if (!p.Downed && !p.Pos.FartherOrAt(t.Pos, RoomTraps.SpikeR + p.Def.HitR))
+                            if (!p.Downed && RoomTraps.InSquare(t.Pos, p.Pos, RoomTraps.SpikeHalf + p.Def.HitR * 0.5f))
                             {
                                 Damage(p, RoomTraps.SpikeDamage(Wave), "Spike trap");
                                 cd = RoomTraps.SpikeTick;
                                 break;
                             }
                 }
-                else if (cd <= 0f && Battle)
+                else if (cd <= 0f)
                 {
                     Player best = null;
                     float bd = RoomTraps.TurretRange * RoomTraps.TurretRange;
