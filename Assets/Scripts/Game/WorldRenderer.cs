@@ -239,6 +239,7 @@ namespace Arena
             DrawTourFlash();  // the breach warning's flash on the breach the camera is on (BreachTour.cs)
             DrawProps(t);  // crates, barrels and the chest (PropsLook.cs)
             DrawTurrets();  // the Black Market's turrets (TurretLook.cs)
+            DrawRoomTraps(t);  // a room's spike plates, slow fields and turrets (RoomTrapLook.cs)
             DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, the Drawbridge's slam (KnightDpsLook.cs)
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)

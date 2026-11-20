@@ -2199,7 +2199,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("DORMANT") != null) {  // DORMANT=1: a sleeping group in every cell of every room but the core (DormantGroups.cs)
         DormantGroups.CellChance = 1f;
         var plant = typeof(Game).GetMethod("PlantDormantGroups", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        foreach (var dr in xg.Expanded.ToArray()) if (RoomFog.StartsUnseen(dr)) plant.Invoke(xg, new object[] { new System.Collections.Generic.List<ExpansionRoom> { dr } });
+        foreach (var dr in xg.Expanded.ToArray()) if (RoomFog.StartsUnseen(dr)) plant.Invoke(xg, new object[] { new System.Collections.Generic.List<ExpansionRoom> { dr }, false, null, 0, false });
       }
       if (Environment.GetEnvironmentVariable("FOG") != null)  // FOG=1: every room but the core unseen (room fog, RoomFogLook.cs)
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }

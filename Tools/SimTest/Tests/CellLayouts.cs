@@ -45,5 +45,16 @@ static partial class Program
             for (int k = 0; k < 6; k++)
                 clear &= !CellLayouts.Blocked(CellLayouts.Clear(DormantGroups.Spot(p, k, 6), p), 20f);
         Check(clear, "a group of six at any slot stands clear of the walls");
+
+        // Room traps: derived from the rooms, the same on every build; only Combat grid rooms get them.
+        var t1 = RoomTraps.For(rooms); var t2 = RoomTraps.For(rooms);
+        Check(t1.Count > 0 && t1.Count == t2.Count && t1.Select((t, i) => t.Pos.DistanceTo(t2[i].Pos) < 0.01f && t.Kind == t2[i].Kind).All(b => b), "a Combat piece rolls traps, the same every time (" + t1.Count + ")");
+        Check(t1.All(t => spot.Rooms.Any(r => t.Pos.X > r.X && t.Pos.X < r.X1 && t.Pos.Y > r.Y && t.Pos.Y < r.Y1)), "they stand inside the piece, none in the core");
+        var shop = new List<ExpansionRoom>(Expansion.GridCore());
+        var sp = Expansion.PlacementsFor(shop, PieceShape.Mono).First().Rooms[0]; sp.Kind = RoomKind.Shop; shop.Add(sp);
+        Check(RoomTraps.For(shop).Count == 0, "a shop gets none");
+        var kinds = new HashSet<TrapKind>(); int empty = 0, total = 0;
+        for (int i = 0; i < 400; i++) { var k = RoomTraps.Roll(new DetRandom(i), i % 2 == 0); total++; if (k.HasValue) kinds.Add(k.Value); else empty++; }
+        Check(kinds.Count == 3 && empty > 100 && empty < 180, "a slot rolls a turret, a spike plate, a slow field or nothing (" + empty + " of " + total + " empty)");
     }
 }

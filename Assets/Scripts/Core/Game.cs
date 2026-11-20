@@ -1449,6 +1449,7 @@ namespace Arena
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
             TickTurrets(dt);  // Turret.cs: the Black Market's turrets shoot
+            TickRoomTraps(dt);  // RoomTraps.cs: a room's spike plates and turrets
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
             TickCoins(dt);  // Coins.cs
