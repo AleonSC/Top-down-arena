@@ -249,6 +249,7 @@ namespace Arena
                 PieceMods.OnPlaced(this, made, mods);
                 if (PieceMods.Loot.Get(mods) == 0)  // (a Loot piece's chest is guaranteed, not rolled)
                     RollRoomChest(made, "piece");  // (owner Nov 20: a shape piece may hold a chest, modifiers or not; RoomChests.cs)
+                PlantBonusLoot(made);  // (BonusLoot.cs: and a stash or two at its layout's loot slots)
             }  // (the room went out unseen in BuildNow's list: RoomFog.cs)
         }
 

@@ -460,7 +460,10 @@ namespace Arena
             }
             Expanded.AddRange(rooms);
             if (kind == MysteryKind.Enemies || kind == MysteryKind.Empty)
+            {
                 RollRoomChest(rooms, "mystery room");  // (owner Nov 20: a mystery room may hold a chest too, but never a vendor's)
+                PlantBonusLoot(rooms);  // (BonusLoot.cs)
+            }
             if (State == MatchState.Fighting)
                 PinBreaches(rooms);  // (the wave's other breaches stay put)
             expWorld = null;
