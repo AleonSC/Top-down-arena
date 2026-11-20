@@ -36,7 +36,7 @@ namespace Arena
         {
             foreach (var n in nodes)
             {
-                if (n.Kind != NodeKind.Chest && n.Kind != NodeKind.Relic)
+                if (!CentresInRoom(n.Kind))
                     continue;
                 foreach (var r in made)
                     if (NodeEncloses(r, n))
@@ -244,7 +244,10 @@ namespace Arena
             DoLog(p.Name + " plays a " + Expansion.CardName(card) + " card at " + x + "," + y);
             BuildNow(id, made[0], made.GetRange(1, made.Count - 1));
             if (piece)
-                PieceMods.OnPlaced(this, made, mods);  // (the room went out unseen in BuildNow's list: RoomFog.cs)
+            {
+                PieceMods.OnPlaced(this, made, mods);
+                RollRoomChest(made, "piece");  // (owner Nov 20: a shape piece may hold a chest, modifiers or not; RoomChests.cs)
+            }  // (the room went out unseen in BuildNow's list: RoomFog.cs)
         }
 
         /// Bot: plays the first card in its hand that fits somewhere, at the spot nearest what it builds toward (Pieces.cs BotCardGoal), else the first spot. False if none fits.

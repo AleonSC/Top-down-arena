@@ -26,7 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Chest, Relic, Rule, BreachLoot }  // (a chest node holds a treasure chest, Props.cs SpawnChest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Chest, Relic, Rule, BreachLoot, Shrine }  // (a shrine node: a health shrine, one use per player, Shrines.cs; the only node placed since Nov 20; a chest node holds a treasure chest, Props.cs SpawnChest, Docs/Chests.md; a chest a room rolled keeps its kind in Rule (ChestKind + 1); a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -284,6 +284,9 @@ namespace Arena
 
         /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold or Vector (a coin seeded from the spot), middle Piece chest or Buildables
         /// (Buildables with room cards off), outer Upgrade.
+        public static ChestKind NodeChestKind(int seed, MapNode n, bool cards)
+            => n.Kind == NodeKind.Chest && n.Rule > 0 && n.Rule <= RoomChestWeights.Length ? (ChestKind)(n.Rule - 1) : NodeChestKind(seed, n.X, n.Y, cards);
+
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
         {
             int tier = NodeTier(x, y);
@@ -374,7 +377,7 @@ namespace Arena
         }
 
         /// The nodes whose fixture stands in the middle of the room that claims them (owner Nov 18): chests, vector chests and relics.
-        public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.Relic;
+        public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.Relic || k == NodeKind.Shrine;
 
         /// Where a chest or relic node stands: in a grid room, the middle of the cell holding it; else the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
         /// is floor, else of the box holding the node; the random cover round it is cleared). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.

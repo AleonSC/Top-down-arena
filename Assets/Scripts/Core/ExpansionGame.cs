@@ -274,30 +274,19 @@ namespace Arena
             floatCycle = cycle;
             bool added = false;
             // (no floating rooms any more, owner Nov 18: shop, Black Market and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
-            // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, and a relic every other cycle)
-            if (cycle == 0)
-            {
-                var ringKinds = new[] { NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest, NodeKind.Chest, NodeKind.Relic };
-                for (int i = 0; i < ringKinds.Length; i++)
-                {
-                    var rn = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i, Expansion.RingTier(i));  // (two of each tier: inner, middle, outer)
-                    if (!rn.HasValue)
-                        continue;
-                    Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
-                    added = true;
-                    DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
-                }
-            }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic } : new[] { NodeKind.Chest })
+            // (owner Nov 20: the health shrine is the only node; chests roll in the rooms players build instead, RoomChests.cs. The first cycle rings the hub with
+            // ShrineRing shrines, one per side in turn; each later cycle adds one)
+            int count = cycle == 0 ? Shrines.Ring : 1;
+            for (int i = 0; i < count; i++)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind, -1, Expansion.CycleTier(kind, cycle));
+                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, NodeKind.Shrine, cycle == 0 ? i : -1, cycle == 0 ? Expansion.RingTier(i) : Expansion.CycleTier(NodeKind.Chest, cycle));
                 if (!nd.HasValue)
                     continue;
-                Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
+                Nodes.Add(nd.Value);
                 added = true;
-                DoLog("a " + kind + " node appears at " + nd.Value.X + "," + nd.Value.Y);
+                DoLog("a health shrine node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
             added |= PlaceGridMini(cycle);  // GridPieces.cs: a Grid run's mini-boss waits on the lattice
             if (added)
@@ -431,7 +420,7 @@ namespace Arena
 
         /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
         /// (the node's look). Room card only with room cards on.
-        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, ExpandingOn);
+        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd, ExpandingOn);
 
         /// Host: the team gains a room kit (at most Expansion.MaxTokens held).
         void GrantRoomToken(RoomToken t)
@@ -646,6 +635,7 @@ namespace Arena
         void TickExpansion(float dt)
         {
             TickNodeFog(dt);  // NodeScouting.cs
+            TickShrines();    // Shrines.cs (host: in waves and between them)
             TickGridCore();  // GridRooms.cs
             TickRoomFog(dt);  // RoomFog.cs
             if (!ExpandOpen)

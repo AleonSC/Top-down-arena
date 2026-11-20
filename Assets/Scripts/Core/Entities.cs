@@ -506,6 +506,8 @@ namespace Arena
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
         public RelicId Relic = RelicId.None;   // the relic slot (Relics.cs, replicated)
+        public float OverHp;                     // health past max from a health shrine: soaked by damage after shields, never decays, lost when downed (Shrines.cs, replicated)
+        public ulong ShrinesUsed;                // the health shrines this player has used, a bit per shrine (Shrines.Bit; replicated and saved)
         public readonly byte[] Stash = new byte[Market.Count];  // Black Market buys not yet placed, by BuildKind (Market.cs, replicated)
         public readonly int[] Hand = new int[Expansion.HandMax];  // room cards held, Piece values, empty slots 0 at the end (Pieces.cs, replicated)
         public bool CardsDealt;  // host: this player has had the starting hand (Pieces.cs, not replicated)
