@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -43,22 +44,79 @@ namespace Arena
         {
             var ow = wd.OneWays;
             for (int i = 0; i < ow.Length; i++)
+                DrawHoloOneWay(wd, ow[i], M, k, i * 0.37f);
+        }
+
+        void DrawHoloOneWay(World wd, int door, System.Func<V2, V2> M, float k, float seed)
+        {
+            var d = wd.Doors[door];
+            int into = d.Pass > 0 ? d.B : d.A;
+            V2 dir = (wd.Areas[into].Mid - d.Pos).Dot(d.Across) >= 0f ? d.Across : -d.Across;
+            V2 c = M(d.Pos);
+            float half = Mathf.Max(6f, d.W / 2f * k), sz = Mathf.Clamp(half * 1.4f, 9f, 16f);
+            Line(c - d.Along * half, c + d.Along * half, 2.5f, OneWayInk.WithAlpha(0.9f));
+            float nudge = Mathf.Repeat(game.AnimT * 0.8f + seed, 1f) * sz * 0.35f;
+            HoloArrow(c - dir * sz * 0.8f, c + dir * (sz + nudge), d.Along, sz, OneWayInk, false);
+        }
+
+        /// An arrow from tail to tip (wings `sz` wide along `across`), over a dark outline so it reads on walls and floor; both: a head at each end.
+        void HoloArrow(V2 tail, V2 tip, V2 across, float sz, Rgba ink, bool both)
+        {
+            V2 dir = (tip - tail).Normalized(), wing = across * sz * 0.65f, back = dir * sz * 0.75f;
+            foreach (var pass in new[] { 0, 1 })
             {
-                var d = wd.Doors[ow[i]];
-                int into = d.Pass > 0 ? d.B : d.A;
-                V2 dir = (wd.Areas[into].Mid - d.Pos).Dot(d.Across) >= 0f ? d.Across : -d.Across;
-                V2 c = M(d.Pos);
-                float half = Mathf.Max(6f, d.W / 2f * k), sz = Mathf.Clamp(half * 1.4f, 9f, 16f);
-                Line(c - d.Along * half, c + d.Along * half, 2.5f, OneWayInk.WithAlpha(0.9f));
-                float nudge = Mathf.Repeat(game.AnimT * 0.8f + i * 0.37f, 1f) * sz * 0.35f;
-                V2 tail = c - dir * sz * 0.8f, tip = c + dir * (sz + nudge), wing = d.Along * sz * 0.65f, back = dir * sz * 0.75f;
-                foreach (var pass in new[] { 0, 1 })  // a dark outline under the amber, so it reads over walls and floor
+                float w = pass == 0 ? 5f : 2.5f;
+                var col = pass == 0 ? new Rgba(0f, 0f, 0f, 0.7f) : ink;
+                Line(tail, tip, w, col);
+                Line(tip - back + wing, tip, w, col);
+                Line(tip - back - wing, tip, w, col);
+                if (both)
                 {
-                    float w = pass == 0 ? 5f : 2.5f;
-                    var col = pass == 0 ? new Rgba(0f, 0f, 0f, 0.7f) : OneWayInk;
-                    Line(tail, tip, w, col);
-                    Line(tip - back + wing, tip, w, col);
-                    Line(tip - back - wing, tip, w, col);
+                    Line(tail + back + wing, tail, w, col);
+                    Line(tail + back - wing, tail, w, col);
+                }
+            }
+        }
+
+        World ghostWays;      // the map as it would be with the ghost built (for a One-way card's arrows), and what it was built for
+        string ghostWaysKey;
+
+        /// The build screen's ghost of a One-way card (GridRoomsUi.cs): the arrow each of its doors would get, and a two-headed one on the door that stays
+        /// both ways, worked out on the map as it would be with the piece built (so they match what building it gives).
+        void DrawGhostOneWays(System.Func<V2, V2> G, Placement pick, PieceCard card)
+        {
+            if (!Expansion.IsShapePieceCard(card) || PieceMods.OneWay.Get(Expansion.PieceCardMods(card)) == 0)
+                return;
+            string key = (int)card + ":" + pick.Orient + ":" + pick.X + "," + pick.Y + ":" + game.Expanded.Count + ":" + game.Openings.Count;
+            if (key != ghostWaysKey)
+            {
+                var l = new List<ExpansionRoom>(game.Expanded);
+                foreach (var q in pick.Rooms)
+                {
+                    var q2 = q;
+                    q2.OneWay = true;
+                    l.Add(q2);
+                }
+                ghostWays = Expansion.Build(l, game.Openings);
+                ghostWaysKey = key;
+            }
+            var wd = ghostWays;
+            int first = game.Expanded.Count + 1;  // (the ghost's areas)
+            float k = (G(new V2(1f, 0f)) - G(V2.Zero)).X;
+            bool freeShown = false;
+            for (int i = 0; i < wd.Doors.Length; i++)
+            {
+                var d = wd.Doors[i];
+                if ((d.A >= first) == (d.B >= first))
+                    continue;  // (not one of the ghost's doors)
+                if (d.Pass != 0)
+                    DrawHoloOneWay(wd, i, G, k, i * 0.37f);
+                else if (!freeShown)
+                {
+                    freeShown = true;
+                    V2 c = G(d.Pos);
+                    float sz = Mathf.Clamp(d.W / 2f * k * 1.4f, 9f, 16f);
+                    HoloArrow(c - d.Across * sz, c + d.Across * sz, d.Along, sz, GridOk, true);
                 }
             }
         }

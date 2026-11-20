@@ -174,6 +174,7 @@ namespace Arena
             }
             V2 d = G(new V2(pick.Value.SX, pick.Value.SY));
             RoomMapRect(d.X - 5f, d.Y - 5f, 10f, 10f, GridOk);
+            DrawGhostOneWays(G, pick.Value, PickedPieceCard);  // a One-way card: the arrows its doors would get (OneWayDoorLook.cs)
         }
 
         /// The status line for grid mode.
