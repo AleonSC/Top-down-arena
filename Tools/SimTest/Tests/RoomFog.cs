@@ -237,6 +237,19 @@ static partial class Program
             Run(s, dt, 1f, () => g.Expanded.Count > n2, noPicks);
             int plainSlept = g.Enemies.Values.Count(e => !before3.Contains(e.Id) && e.Dormant);
             Check(plainSlept == size * CellLayouts.SleeperSlots(g.Expanded.Skip(n2).ToList(), g.Expanded).Count && plainSlept > 0, "a plain piece's slots hold sleepers too (" + plainSlept + ")");
+
+            // Ground you have explored stays shown (owner Nov 20): a static thing there isn't hidden again when you look away.
+            int ri = g.Expanded.Count - 1;
+            var rr = g.Expanded[ri]; rr.Unseen = true; g.Expanded[ri] = rr;
+            var fogArea = g.CurrentWorld.Areas[ri + 1];
+            RoomFog.Grid(fogArea, out int fcols, out int frows);
+            var fogBits = new byte[(fcols * frows + 7) / 8];
+            int fbit = 3 * fcols + 2; fogBits[fbit >> 3] |= (byte)(1 << (fbit & 7));
+            var fogArr = new byte[g.Expanded.Count][]; fogArr[ri] = fogBits;
+            typeof(Game).GetField("fogCells", flags).SetValue(g, fogArr);
+            var seenSpot = fogArea.Min + new V2(2.5f * RoomFog.Cell, 3.5f * RoomFog.Cell);
+            var darkSpot = fogArea.Max - new V2(30f, 30f);
+            Check(g.UnseenAt(seenSpot) && g.FogRevealedAt(seenSpot) && !g.FogRevealedAt(darkSpot), "ground that has been explored counts as revealed, the rest of the unseen room doesn't");
             DormantGroups.PlainChance = plainWas;
         }
         finally { DormantGroups.CellChance = chance; DormantGroups.PlainChance = 0.2f; aimOverride = null; }

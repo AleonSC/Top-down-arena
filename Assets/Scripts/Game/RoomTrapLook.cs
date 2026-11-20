@@ -14,7 +14,7 @@ namespace Arena
                 return;
             foreach (var tr in game.RoomTrapList)
             {
-                if (game.FogHides(tr.Pos))
+                if (game.FogHidesStill(tr.Pos))  // (a trap you've seen stays shown)
                     continue;
                 if (tr.Kind == TrapKind.Spike) DrawSpikePlate(tr.Pos, t);
                 else if (tr.Kind == TrapKind.Slow) DrawSlowField(tr.Pos, t);

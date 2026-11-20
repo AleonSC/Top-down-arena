@@ -348,7 +348,7 @@ static partial class Program
         Check(cg2.Expanded.Count == g2.Expanded.Count, "both games have the same map");
 
         // Room turrets (RoomTraps.cs): your shots wear one down and wreck it, and the friend's game loses it too.
-        for (int ri = 0; ri < g.Expanded.Count; ri++) { var rr = g.Expanded[ri]; rr.Unseen = false; g.Expanded[ri] = rr; }
+        for (int ri = 0; ri < g.Expanded.Count; ri++) { var rr = g.Expanded[ri]; rr.Unseen = true; g.Expanded[ri] = rr; }  // (turrets work in fog too)
         var turret = g.RoomTrapList.FirstOrDefault(tr => tr.Kind == TrapKind.Turret);
         var stops = typeof(Game).GetMethod("RoomTrapStops", flags);
         var spawnB = typeof(Game).GetMethod("SpawnBullet", flags);

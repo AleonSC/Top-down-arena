@@ -118,6 +118,26 @@ namespace Arena
         /// Whether something at `p` is hidden by room fog: inside an unseen room and nobody is looking at it.
         public bool FogHides(V2 p) => UnseenAt(p) && !FogSees(p);
 
+        /// Whether something that never moves (a trap, a coin, a sleeper) is hidden by room fog: in an unseen room, on ground nobody has
+        /// explored yet, and nobody looking at it now. Once its ground is explored it stays shown, even if the room isn't fully clear (owner Nov 20).
+        public bool FogHidesStill(V2 p) => UnseenAt(p) && !FogRevealedAt(p) && !FogSees(p);
+
+        /// Whether the ground at `p` has been explored (a room not unseen counts).
+        public bool FogRevealedAt(V2 p)
+        {
+            if (!UnseenAt(p))
+                return true;
+            var wd = CurrentWorld;
+            int ai = wd.AreaAt(p);
+            if (ai < 1)
+                return true;
+            var a = wd.Areas[ai];
+            RoomFog.Grid(a, out int cols, out int rows);
+            int c = Math.Max(0, Math.Min(cols - 1, (int)Math.Floor((p.X - a.Min.X) / RoomFog.Cell)));
+            int r = Math.Max(0, Math.Min(rows - 1, (int)Math.Floor((p.Y - a.Min.Y) / RoomFog.Cell)));
+            return FogExplored(ai - 1, c, r);
+        }
+
         /// Whether the cell (c, r) of Expanded[room] is explored.
         public bool FogExplored(int room, int c, int r)
         {
