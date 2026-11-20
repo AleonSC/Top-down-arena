@@ -21,6 +21,8 @@ namespace Arena
                 p.AmmoUsed++;  // fanned copies come free with the round
                 p.ReloadIdle = 0f;
             }
+            if (p.Weapon.Id == WeaponId.TwinPistols)
+                TwinPistolsFired(p);  // the other gun's turn, or Laser Sights' clock (TwinPistols.cs)
             if (p.Weapon.Id == WeaponId.RiotRepeater && extra > 0)
             {
                 // A burst of 1 + extra rounds, then a longer pause.
@@ -430,6 +432,9 @@ namespace Arena
                     break;
                 case WeaponId.DoubleBarrel:
                     FireDoubleBarrel(p, aim, dmg, extra, false);  // DoubleBarrel.cs
+                    break;
+                case WeaponId.TwinPistols:
+                    FireTwinPistols(p, aim, dmg, extra);  // TwinPistols.cs
                     break;
                 case WeaponId.Railgun:
                 {

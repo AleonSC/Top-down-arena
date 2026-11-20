@@ -30,7 +30,7 @@ namespace Arena
             {
                 case Defs.DpsShot: return w == WeaponId.TwinRifleAuto ? WeaponId.TwinRifle : w == WeaponId.TwinRifle || w == WeaponId.BurstSmg || w == WeaponId.DoubleBarrel ? w : (WeaponId?)null;  // (the Twin Rifle Auto's rounds look like the Twin Rifle's)
                 case Defs.RailShot: return w == WeaponId.Railgun ? w : (WeaponId?)null;
-                case Defs.HealerShot: return w == WeaponId.Revolver ? w : (WeaponId?)null;
+                case Defs.HealerShot: return w == WeaponId.Revolver || w == WeaponId.TwinPistols ? w : (WeaponId?)null;
                 case Defs.TankShot: return w == WeaponId.Scattergun || w == WeaponId.RiotRepeater ? w : (WeaponId?)null;
                 case Defs.FlakShell: return w == WeaponId.FlakCannon ? w : (WeaponId?)null;
                 case Defs.GrenadeShot: return w == WeaponId.GrenadeLauncher ? w : (WeaponId?)null;
@@ -119,6 +119,9 @@ namespace Arena
                 case WeaponId.DoubleBarrel:
                     GlowDisc(b.Pos, 9f, c, 0.55f * DbPelletFade(b));  // (dims as the pellet's damage falls off)
                     return;
+                case WeaponId.TwinPistols:
+                    GlowDisc(b.Pos, 11f, b.Radius >= 4.5f ? Game.TpLaserColor : TpGold, 0.6f);  // (TwinPistolsLook.cs)
+                    return;
                 case WeaponId.Scattergun:
                     GlowDisc(b.Pos, 7f, c, 0.6f);  // flechettes: a pin of light each, not a blob
                     return;
@@ -161,6 +164,9 @@ namespace Arena
                     Circle(b.Pos, 3f, Rgba.White, 10);
                     return true;
                 }
+                case WeaponId.TwinPistols:
+                    DrawTpShot(b, c);  // TwinPistolsLook.cs
+                    return true;
                 case WeaponId.GrenadeLauncher:
                     DrawGlGrenade(b, t);  // on its arc over its shadow (GrenadeLauncherLook.cs)
                     return true;

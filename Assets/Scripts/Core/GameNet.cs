@@ -821,6 +821,9 @@ namespace Arena
             s.Byte(ref p.NodGuard);
             s.Byte(ref p.NodCode);
             s.Byte(ref p.NodCount);
+            s.Byte(ref p.TpSide);  // the Twin Pistols (TwinPistols.cs)
+            s.Float(ref p.TpLaserT);
+            s.Float(ref p.TpCd);
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
             {
                 s.Byte(ref p.EsSt[k]);

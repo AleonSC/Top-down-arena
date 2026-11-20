@@ -100,6 +100,11 @@ namespace Arena
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Revolver && game.Me.StunShots == 0)
                 DrawCylinder(game.Me, t);
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.TwinPistols)
+                    DrawTwinLasers(p, t);  // Laser Sights' beams (TwinPistolsLook.cs)
+            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.TwinPistols)
+                DrawTwinLaserReady(game.Me);  // its key over your head
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Rapier)
                 {
                     DrawRapierPips(p);  // MeleeLooks.cs

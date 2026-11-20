@@ -15,6 +15,7 @@ namespace Arena
             { WeaponId.RepulsionCannon, 9f },
             { WeaponId.Revolver, 82f },
             { WeaponId.MendersBow, 40f },
+            { WeaponId.TwinPistols, 60f },
             { WeaponId.TwinRifle, 90f },
             { WeaponId.Railgun, 101f },
             { WeaponId.BurstSmg, 120f },
