@@ -2358,6 +2358,14 @@ static partial class Shot {
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
       string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
       if (fogRoom != null) { var fro = xg.Expanded[int.Parse(fogRoom)]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(fro.X + 120, fro.Y + fro.H / 2); }
+      string trapStand = Environment.GetEnvironmentVariable("TRAPSTAND");  // TRAPSTAND=slow|spike[,dx,dy]: you stand on the trap of that kind nearest you, offset by dx,dy (RoomTrapLook.cs)
+      if (trapStand != null) {
+        var ts = trapStand.Split(','); var kind = ts[0] == "spike" ? TrapKind.Spike : TrapKind.Slow; Player me0 = null; foreach (var pl in xg.Players.Values) { me0 = pl; break; }
+        V2 near = me0.Pos; float tsBest = float.MaxValue;
+        foreach (var r in xg.RoomTrapList) if (r.Kind == kind && (r.Pos - me0.Pos).LengthSq < tsBest) { tsBest = (r.Pos - me0.Pos).LengthSq; near = r.Pos; }
+        var off = ts.Length > 2 ? new V2(float.Parse(ts[1], System.Globalization.CultureInfo.InvariantCulture), float.Parse(ts[2], System.Globalization.CultureInfo.InvariantCulture)) : new V2(0f, 0f);
+        me0.Pos = me0.Disp = near + off;
+      }
       string fogAim = Environment.GetEnvironmentVariable("FOGAIM");  // FOGAIM=<degrees>[,trail]: every player faces that way (0 east, 90 south); "trail" first sweeps the cone round to there, exploring what it passes over (the explored memory)
       if (fogAim != null) {
         var fa = fogAim.Split(','); float fdeg = float.Parse(fa[0], System.Globalization.CultureInfo.InvariantCulture);
@@ -2481,8 +2489,6 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("FLOORTINT") != null) ArenaApp.FloorTintAmt = float.Parse(Environment.GetEnvironmentVariable("FLOORTINT"), System.Globalization.CultureInfo.InvariantCulture);  // FLOORTINT=<0-1>: the boss floor wash (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("FLOORBEND") == "0") ArenaApp.PreviewFloorStatic = true;
     if (Environment.GetEnvironmentVariable("FLOORSTYLE") != null) ArenaApp.PreviewFloorStyle = int.Parse(Environment.GetEnvironmentVariable("FLOORSTYLE"));  // FLOORSTYLE=<n>: the arena floor pattern, 1 Flux 2 Seismo 3 Plates 4 Circuit (FloorStylesLook.cs)
-    if (Environment.GetEnvironmentVariable("TRAPLOOK") != null) ArenaApp.PreviewTrapLook = int.Parse(Environment.GetEnvironmentVariable("TRAPLOOK"));  // TRAPLOOK=<n>: the spike plate / slow field rework mockups (RoomTrapLook.cs)
-    if (Environment.GetEnvironmentVariable("TRAPPH") != null) ArenaApp.PreviewTrapPhase = float.Parse(Environment.GetEnvironmentVariable("TRAPPH"), System.Globalization.CultureInfo.InvariantCulture);
     if (Environment.GetEnvironmentVariable("DASHBURST") != null) ArenaApp.PreviewDashBurst = float.Parse(Environment.GetEnvironmentVariable("DASHBURST"), System.Globalization.CultureInfo.InvariantCulture);  // DASHBURST=<s>: a dash's floor burst that old, by the topmost player (FloorGridLook.cs)  // FLOORBEND=0: the static arena floor (FloorGridLook.cs)
     if (Environment.GetEnvironmentVariable("WALLBOSS") != null) ArenaApp.WallBossOverride = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("WALLBOSS"));  // WALLBOSS=<EnemyType>: walls themed for that boss
     if (Environment.GetEnvironmentVariable("LAYOUT") != null) {  // LAYOUT=<LayoutId number, 1-6>: that floor plan with its cover, everyone out of its walls

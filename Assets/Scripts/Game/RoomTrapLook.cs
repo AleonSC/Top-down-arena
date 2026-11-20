@@ -3,13 +3,10 @@ using UnityEngine;
 namespace Arena
 {
     /// A room's traps on the floor (RoomTraps.cs): a turret in hostile red (a plate, a twin-barrelled head that tracks the nearest player),
-    /// a spike plate (a square with a field of steel points) and a slow field (a violet square with squares drifting in); a shot-up turret is gone. Hidden while their room is dark.
+    /// a spike plate (a hatched grate whose slots jab steel points on the tick) and a slow field (a violet grid that sags under players on it); a shot-up turret is gone. Hidden while their room is dark.
     public partial class ArenaApp
     {
         static readonly Rgba RoomTrapRed = new Rgba(1f, 0.3f, 0.34f), RoomTrapSteel = new Rgba(0.82f, 0.85f, 0.92f), RoomTrapViolet = new Rgba(0.62f, 0.42f, 1f);
-
-        public static int PreviewTrapLook;  // the preview's TRAPLOOK=<n>: 0 the current look, 1-3 the rework mockups
-        public static float PreviewTrapPhase;  // TRAPPH=<s>: added to the mockups' clock
 
         void DrawRoomTraps(float t)
         {
@@ -19,35 +16,96 @@ namespace Arena
             {
                 if (game.FogHidesStill(tr.Pos))  // (a trap you've seen stays shown)
                     continue;
-                if (tr.Kind == TrapKind.Spike) { if (PreviewTrapLook > 0) DrawSpikeMock(tr.Pos, t, PreviewTrapLook); else DrawSpikePlate(tr.Pos, t); }
-                else if (tr.Kind == TrapKind.Slow) { if (PreviewTrapLook > 0) DrawSlowMock(tr.Pos, t, PreviewTrapLook); else DrawSlowField(tr.Pos, t); }
+                if (tr.Kind == TrapKind.Spike) DrawSpikePlate(tr.Pos, t);
+                else if (tr.Kind == TrapKind.Slow) DrawSlowField(tr.Pos, t);
                 else DrawTrapTurret(tr.Pos, t);
             }
         }
 
+        /// A recessed grate, hatched red, with corner brackets; its slots jab steel points on the damage tick.
         void DrawSpikePlate(V2 c, float t)
         {
             float h = RoomTraps.SpikeHalf;
-            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, new Rgba(0.08f, 0.04f, 0.05f, 0.88f));
-            NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 2.5f, RoomTrapRed.WithAlpha(0.85f));
-            for (int i = -1; i <= 1; i++)  // a 3 x 3 field of steel points
+            var hot = new Rgba(1f, 0.36f, 0.3f);
+            float cyc = (t / RoomTraps.SpikeTick) % 1f, up = cyc < 0.35f ? Mathf.Sin(cyc / 0.35f * MathX.Pi) : 0f;
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, new Rgba(0.05f, 0.03f, 0.05f, 0.9f));
+            HatchRect(c.X - h, c.Y - h, h * 2f, h * 2f, hot.WithAlpha(0.13f));
+            NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1f, hot.WithAlpha(0.35f));
+            TrapBrackets(c, h, 13f, 2f, hot.WithAlpha(0.95f));
+            for (int i = -1; i <= 1; i++)  // a 3 x 3 field of slots
                 for (int j = -1; j <= 1; j++)
                 {
-                    V2 p = c + new V2(i, j) * (h * 0.58f);
-                    Tri3(p + new V2(0f, -9f), p + new V2(-6f, 6f), p + new V2(6f, 6f), RoomTrapSteel.WithAlpha(0.9f));
+                    V2 p = c + new V2(i, j) * (h * 0.56f);
+                    FillRect(p.X - 7f, p.Y - 2.5f, 14f, 5f, new Rgba(0f, 0f, 0f, 0.9f));
+                    FillRect(p.X - 7f, p.Y + 1.5f, 14f, 1f, hot.WithAlpha(0.4f + 0.6f * up));
+                    float l = 2f + 9f * up;
+                    if (l > 2.5f)
+                        Tri3(p + new V2(0f, -l), p + new V2(-4f, 2f), p + new V2(4f, 2f), RoomTrapSteel.Mix(hot, 0.25f).WithAlpha(0.95f));
                 }
         }
 
+        /// A violet gravity well: a flat grid in corner brackets that sags under every player standing on it.
         void DrawSlowField(V2 c, float t)
         {
             float h = RoomTraps.SlowHalf;
-            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, RoomTrapViolet.WithAlpha(0.18f));
-            NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 2f, RoomTrapViolet.WithAlpha(0.7f));
-            for (int k = 0; k < 3; k++)  // squares drifting inward
+            var vi = RoomTrapViolet;
+            int nw = 0;
+            foreach (var p in game.Players.Values)
+                if (nw < wellAt.Length && RoomTraps.InSquare(c, p.Pos, h + SlowSagR))
+                    wellAt[nw++] = p.Pos;
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, vi.WithAlpha(0.08f));
+            const int cells = 6, sub = 4;  // grid lines, each cut in short pieces so it can bend
+            for (int a = 1; a < cells; a++)
+                for (int axis = 0; axis < 2; axis++)
+                {
+                    float u = -1f + 2f * a / cells;
+                    V2 prev = default; float prevSag = 0f;
+                    for (int s = 0; s <= cells * sub; s++)
+                    {
+                        float w = -1f + 2f * s / (cells * sub);
+                        V2 q = c + (axis == 0 ? new V2(u, w) : new V2(w, u)) * h;
+                        V2 at = SagPoint(c, h, q, nw, out float sag);
+                        if (s > 0)
+                            Line(prev, at, 1.2f, vi.WithAlpha(0.3f + 0.45f * Mathf.Max(sag, prevSag)));
+                        prev = at; prevSag = sag;
+                    }
+                }
+            for (int i = 0; i < nw; i++)  // a soft shadow in the dip
+                if (RoomTraps.InSquare(c, wellAt[i], h))
+                    Circle(wellAt[i], SlowSagR * 0.6f, vi.WithAlpha(0.1f), 16);
+            NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1f, vi.WithAlpha(0.4f));
+            TrapBrackets(c, h, 16f, 2f, vi.WithAlpha(0.95f));
+        }
+
+        const float SlowSagR = 54f;  // how far round a player the grid sags
+        readonly V2[] wellAt = new V2[4];
+
+        /// A grid point pulled toward the players on the well (fading to nothing at its rim, which stays square); sag 0-1 is how deep.
+        V2 SagPoint(V2 c, float h, V2 q, int nw, out float sag)
+        {
+            float rim = Mathf.Clamp01((h - Mathf.Abs(q.X - c.X)) / 14f) * Mathf.Clamp01((h - Mathf.Abs(q.Y - c.Y)) / 14f);
+            V2 off = new V2(0f, 0f);
+            sag = 0f;
+            for (int i = 0; i < nw; i++)
             {
-                float ph = (t * 0.5f + k / 3f) % 1f, q = h * (1f - ph);
-                NodeFrame(c.X - q, c.Y - q, q * 2f, q * 2f, 1.5f, RoomTrapViolet.WithAlpha(0.5f * (1f - ph)));
+                V2 d = wellAt[i] - q;
+                float k = Mathf.Exp(-d.LengthSq / (SlowSagR * SlowSagR)) * rim;
+                off = off + d * (0.5f * k);
+                sag = Mathf.Max(sag, k);
             }
+            return q + off;
+        }
+
+        /// Corner brackets round a square: four glowing L's.
+        void TrapBrackets(V2 c, float h, float len, float w, Rgba col)
+        {
+            for (int sx = -1; sx <= 1; sx += 2)
+                for (int sy = -1; sy <= 1; sy += 2)
+                {
+                    var k = c + new V2(sx * h, sy * h);
+                    GlowLine(k, k + new V2(-sx * len, 0f), w, col);
+                    GlowLine(k, k + new V2(0f, -sy * len), w, col);
+                }
         }
 
         void DrawTrapTurret(V2 home, float t)
@@ -119,149 +177,5 @@ namespace Arena
                 Circle(c + dir * 34f, 4f + 2f * flash, new Rgba(1f, 0.8f, 0.7f, 0.35f + 0.4f * flash), 10);
             }
         }
-
-        // --- Rework mockups (TRAPLOOK=1-3) ---------------------------------------------------------------------------
-
-        /// Corner brackets round a square: four glowing L's.
-        void TrapBrackets(V2 c, float h, float len, float w, Rgba col)
-        {
-            for (int sx = -1; sx <= 1; sx += 2)
-                for (int sy = -1; sy <= 1; sy += 2)
-                {
-                    var k = c + new V2(sx * h, sy * h);
-                    GlowLine(k, k + new V2(-sx * len, 0f), w, col);
-                    GlowLine(k, k + new V2(0f, -sy * len), w, col);
-                }
-        }
-
-        void DrawSpikeMock(V2 c, float t, int v)
-        {
-            t += PreviewTrapPhase;
-            float h = RoomTraps.SpikeHalf;
-            var hot = new Rgba(1f, 0.36f, 0.3f);
-            float cyc = (t / RoomTraps.SpikeTick) % 1f, up = cyc < 0.35f ? Mathf.Sin(cyc / 0.35f * MathX.Pi) : 0f;  // the spikes jab on the tick
-            if (v == 1)  // Vent: a recessed red-hatched grate, slots that jab steel points on the tick
-            {
-                FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, new Rgba(0.05f, 0.03f, 0.05f, 0.9f));
-                HatchRect(c.X - h, c.Y - h, h * 2f, h * 2f, hot.WithAlpha(0.13f));
-                NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1f, hot.WithAlpha(0.35f));
-                TrapBrackets(c, h, 13f, 2f, hot.WithAlpha(0.95f));
-                for (int i = -1; i <= 1; i++)
-                    for (int j = -1; j <= 1; j++)
-                    {
-                        V2 p = c + new V2(i, j) * (h * 0.56f);
-                        FillRect(p.X - 7f, p.Y - 2.5f, 14f, 5f, new Rgba(0f, 0f, 0f, 0.9f));
-                        FillRect(p.X - 7f, p.Y + 1.5f, 14f, 1f, hot.WithAlpha(0.4f + 0.6f * up));
-                        float l = 2f + 9f * up;
-                        if (l > 2.5f)
-                            Tri3(p + new V2(0f, -l), p + new V2(-4f, 2f), p + new V2(4f, 2f), RoomTrapSteel.Mix(hot, 0.25f).WithAlpha(0.95f));
-                    }
-            }
-            else if (v == 2)  // Wire: neon outlined spikes on a dark plate, glowing hotter on the tick
-            {
-                FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, hot.WithAlpha(0.07f + 0.06f * up));
-                NeonLine(new V2(c.X - h, c.Y - h), new V2(c.X + h, c.Y - h), 1.5f, hot.WithAlpha(0.8f));
-                NeonLine(new V2(c.X + h, c.Y - h), new V2(c.X + h, c.Y + h), 1.5f, hot.WithAlpha(0.8f));
-                NeonLine(new V2(c.X + h, c.Y + h), new V2(c.X - h, c.Y + h), 1.5f, hot.WithAlpha(0.8f));
-                NeonLine(new V2(c.X - h, c.Y + h), new V2(c.X - h, c.Y - h), 1.5f, hot.WithAlpha(0.8f));
-                var ink = hot.Mix(new Rgba(1f, 0.85f, 0.75f), 0.3f * up).WithAlpha(0.6f + 0.4f * up);
-                for (int i = 0; i < 4; i++)
-                    for (int j = 0; j < 4; j++)
-                    {
-                        V2 p = c + new V2(-h + 8f + i * (h * 2f - 16f) / 3f, -h + 9f + j * (h * 2f - 18f) / 3f);
-                        float l = 6f + 3f * up;
-                        V2 a = p + new V2(0f, -l), b = p + new V2(-4.5f, 4f), d = p + new V2(4.5f, 4f);
-                        GlowLine(a, b, 1.3f, ink); GlowLine(a, d, 1.3f, ink); GlowLine(b, d, 1.3f, ink);
-                    }
-            }
-            else  // Warning plate: a hazard-striped rim, a core of studs that light in a wave toward the tick
-            {
-                float band = 9f;
-                FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, new Rgba(0.05f, 0.03f, 0.05f, 0.9f));
-                HatchRect(c.X - h, c.Y - h, h * 2f, band, hot.WithAlpha(0.55f));
-                HatchRect(c.X - h, c.Y + h - band, h * 2f, band, hot.WithAlpha(0.55f));
-                HatchRect(c.X - h, c.Y - h + band, band, h * 2f - band * 2f, hot.WithAlpha(0.55f));
-                HatchRect(c.X + h - band, c.Y - h + band, band, h * 2f - band * 2f, hot.WithAlpha(0.55f));
-                NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1.5f, hot.WithAlpha(0.9f));
-                NodeFrame(c.X - h + band, c.Y - h + band, h * 2f - band * 2f, h * 2f - band * 2f, 1f, hot.WithAlpha(0.45f));
-                for (int i = 0; i < 3; i++)
-                    for (int j = 0; j < 3; j++)
-                    {
-                        V2 p = c + new V2(i - 1, j - 1) * 13f;
-                        float lit = Mathf.Clamp01(1f - Mathf.Abs(cyc * 3f - (i + j) * 0.5f));
-                        float r = 3.5f + 1.5f * lit;
-                        var col = RoomTrapSteel.Mix(hot, 0.6f * lit).WithAlpha(0.55f + 0.45f * lit);
-                        Tri3(p + new V2(0f, -r), p + new V2(r, 0f), p + new V2(0f, r), col);
-                        Tri3(p + new V2(0f, -r), p + new V2(-r, 0f), p + new V2(0f, r), col);
-                    }
-            }
-        }
-
-        void DrawSlowMock(V2 c, float t, int v)
-        {
-            t += PreviewTrapPhase;
-            float h = RoomTraps.SlowHalf;
-            var vi = RoomTrapViolet;
-            if (v == 1)  // Gravity well: a grid sagging into the centre, squares sinking in
-            {
-                FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, vi.WithAlpha(0.08f));
-                const int n = 6;
-                for (int a = 1; a < n; a++)
-                    for (int s = 0; s < n; s++)
-                        for (int axis = 0; axis < 2; axis++)
-                        {
-                            float u = -1f + 2f * a / n, w0 = -1f + 2f * s / n, w1 = -1f + 2f * (s + 1) / n;
-                            V2 p0 = Sag(axis == 0 ? new V2(u, w0) : new V2(w0, u)), p1 = Sag(axis == 0 ? new V2(u, w1) : new V2(w1, u));
-                            Line(c + p0 * h, c + p1 * h, 1.2f, vi.WithAlpha(0.35f));
-                        }
-                for (int k = 0; k < 3; k++)
-                {
-                    float ph = (t * 0.35f + k / 3f) % 1f, q = h * (1f - ph) * 0.9f;
-                    var ca = vi.WithAlpha(0.7f * Mathf.Sin(ph * MathX.Pi));
-                    NodeFrame(c.X - q, c.Y - q, q * 2f, q * 2f, 1.5f, ca);
-                }
-                NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1f, vi.WithAlpha(0.4f));
-                TrapBrackets(c, h, 16f, 2f, vi.WithAlpha(0.95f));
-                Circle(c, 4f, vi.Mix(new Rgba(1f, 1f, 1f), 0.5f).WithAlpha(0.8f), 10);
-            }
-            else if (v == 2)  // Static field: scanlines crawling down, chevrons on each side pointing in
-            {
-                FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, vi.WithAlpha(0.12f));
-                float off = (t * 6f) % 4f;
-                for (float y = -h + off; y < h; y += 4f)
-                    FillRect(c.X - h, c.Y + y, h * 2f, 1f, vi.WithAlpha(0.16f));
-                NeonLine(new V2(c.X - h, c.Y - h), new V2(c.X + h, c.Y - h), 1.2f, vi.WithAlpha(0.7f));
-                NeonLine(new V2(c.X + h, c.Y - h), new V2(c.X + h, c.Y + h), 1.2f, vi.WithAlpha(0.7f));
-                NeonLine(new V2(c.X + h, c.Y + h), new V2(c.X - h, c.Y + h), 1.2f, vi.WithAlpha(0.7f));
-                NeonLine(new V2(c.X - h, c.Y + h), new V2(c.X - h, c.Y - h), 1.2f, vi.WithAlpha(0.7f));
-                for (int sd = 0; sd < 4; sd++)
-                {
-                    V2 dir = V2.FromAngle(sd * MathX.Tau / 4f), side = new V2(-dir.Y, dir.X);
-                    for (int k = 0; k < 2; k++)
-                    {
-                        float ph = (t * 0.8f + k * 0.5f) % 1f;
-                        V2 tip = c - dir * (h - 8f - ph * 18f);
-                        var col = vi.WithAlpha(0.9f * Mathf.Sin(ph * MathX.Pi));
-                        GlowLine(tip - dir * 6f + side * 7f, tip, 1.8f, col);
-                        GlowLine(tip - dir * 6f - side * 7f, tip, 1.8f, col);
-                    }
-                }
-            }
-            else  // Ripple: slow rings spreading out like tar, a bright core, corner brackets
-            {
-                FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, vi.WithAlpha(0.1f));
-                for (int k = 0; k < 3; k++)
-                {
-                    float ph = (t * 0.3f + k / 3f) % 1f, r = 6f + ph * (h - 8f);
-                    GlowArc(c, r, 1.5f, vi.WithAlpha(0.75f * (1f - ph)), 32);
-                }
-                GlowArc(c, 5f, 1.5f, vi.Mix(new Rgba(1f, 1f, 1f), 0.4f), 14);
-                NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1f, vi.WithAlpha(0.3f));
-                TrapBrackets(c, h, 14f, 2f, vi.WithAlpha(0.95f));
-            }
-        }
-
-        /// A unit grid point pulled toward the centre (the well's sag).
-        static V2 Sag(V2 p) { float d = Mathf.Sqrt(p.X * p.X + p.Y * p.Y); return p * (0.55f + 0.45f * Mathf.Min(1f, d)); }
     }
 }
