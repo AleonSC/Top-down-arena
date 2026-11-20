@@ -43,13 +43,20 @@ static partial class Program
                 }
                 if (why != null) { bad++; Console.WriteLine("  " + l.Name + ": a piece at " + p[1] + "," + p[2] + " " + why); }
             }
+            var solid = pieces.Where(p => p[0] < 2).ToList();  // two walls or pillars either touch or leave room to walk between (a narrow slot snags bots and enemies)
+            for (int i = 0; i < solid.Count; i++)
+                for (int j = i + 1; j < solid.Count; j++)
+                {
+                    float gap = Gap(solid[i], solid[j], boxOf);
+                    if (gap > 0.5f && gap < 50f) { bad++; Console.WriteLine("  " + l.Name + ": a " + (int)gap + " px slot between pieces at " + solid[i][1] + "," + solid[i][2] + " and " + solid[j][1] + "," + solid[j][2]); }
+                }
             int open, reached;
             Flood(pieces, boxOf, out open, out reached);
             if (reached < open) { bad++; Console.WriteLine("  " + l.Name + ": " + (open - reached) + " of " + open + " open spots are walled off"); }
             if (pieces.Count < 40) { bad++; Console.WriteLine("  " + l.Name + ": only " + pieces.Count + " pieces"); }
         }
         Check(CoreLayouts.All.Length == 10 && names.Count == 10 && CoreLayouts.All.Select((l, i) => (int)l.Id == i).All(x => x) && bad == 0,
-            "ten core layouts of 40+ pieces each: inside the core, the 14 door lanes and the gate's floor clear, no walled-off pocket (" + bad + " bad)");
+            "ten core layouts of 40+ pieces each: inside the core, the 14 door lanes and the gate's floor clear, no slot too narrow to walk, no walled-off pocket (" + bad + " bad)");
 
         // The world: a layout's walls and pillars stand in the core in place of its rooms' random cover, the same on every build.
         var core = Expansion.GridCore();
@@ -110,6 +117,22 @@ static partial class Program
         typeof(Game).GetField("expWorld", flags).SetValue(g, null);
         Check(g.CoreLayout != first && cg.CoreLayout == g.CoreLayout && g.ExpansionWorld.Core == g.CoreLayout,
             "a new pick (" + CoreLayouts.Name(g.CoreLayout) + ") is never the last one, reaches the client and builds into the core");
+    }
+
+    static float Gap(int[] a, int[] b, Func<int[], int[]> boxOf)
+    {
+        if (a[0] == 1 && b[0] == 1)
+            return (float)Math.Sqrt((a[1] - b[1]) * (a[1] - b[1]) + (a[2] - b[2]) * (a[2] - b[2])) - a[3] - b[3];
+        if (b[0] == 1) { var t = a; a = b; b = t; }
+        var B = boxOf(b);
+        if (a[0] == 1)
+        {
+            float nx = Math.Max(B[0], Math.Min(a[1], B[2])), ny = Math.Max(B[1], Math.Min(a[2], B[3]));
+            return (float)Math.Sqrt((nx - a[1]) * (nx - a[1]) + (ny - a[2]) * (ny - a[2])) - a[3];
+        }
+        var A = boxOf(a);
+        float dx = Math.Max(0, Math.Max(A[0] - B[2], B[0] - A[2])), dy = Math.Max(0, Math.Max(A[1] - B[3], B[1] - A[3]));
+        return dx == 0 && dy == 0 ? -1f : (float)Math.Sqrt(dx * dx + dy * dy);
     }
 
     static int Rad(int[] p) => p[0] == 1 ? p[3] : p[0] == 3 ? 23 : 18;
