@@ -333,7 +333,7 @@ namespace Arena
                 V2 p0 = M(a.Min), p1 = M(a.Max);
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 if (game.AreaUnseen(i))
-                    MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, FogMapFill);  // an unseen room: dark, a "?" below (RoomFogLook.cs)  // an unseen room: dark, a "?" below (RoomFogLook.cs)
+                    MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, FogMapFill.WithAlpha(FogMapFill.A * (1f - 0.65f * game.FogRoomShare(i - 1))));  // an unseen room: dark, a "?" below (RoomFogLook.cs)  // an unseen room: dark, a "?" below (RoomFogLook.cs)
                 if (!core)
                     RimFrame(wd, i, M, 1f, line, true);
             }

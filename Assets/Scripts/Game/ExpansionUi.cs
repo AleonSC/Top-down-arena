@@ -416,7 +416,7 @@ namespace Arena
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
                     DrawHoloGrid(a, M, k, ink.WithAlpha(ghost));
                     if (game.AreaUnseen(ai))
-                        DrawFogMapBox(p0, p1);  // an unseen room: dark, a "?" below (RoomFogLook.cs)
+                        DrawFogMapBox(p0, p1, game.FogRoomShare(ai - 1));  // an unseen room: dark, a "?" below (RoomFogLook.cs)
                     if (a.Floating || a.Sealed)  // (a built room's outline is its walls, drawn below: a rim would run across the door gaps)
                         RimFrame(wd, ai, M, 1.5f, ink.WithAlpha(0.8f * ghost));
                 }

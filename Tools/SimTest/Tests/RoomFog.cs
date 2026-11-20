@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// Room fog (Docs/FogOfWar.md, Core/RoomFog.cs): a room the map gets after the core starts unseen for everyone; a standing
-// player walking in reveals the whole piece for the whole team; it's on the wire and in saves; bots scout unseen rooms.
+// Room fog (Docs/FogOfWar.md, Core/RoomFog.cs): a room the map gets after the core starts unseen for everyone; a player's
+// line-of-sight cone (aim, stopped by walls) explores its cells for the whole team and shows what's in it; a mostly explored
+// piece is seen for everyone; it's on the wire and in saves; bots scout unseen rooms.
 static partial class Program
 {
     static void RoomFogTest()
@@ -23,6 +24,9 @@ static partial class Program
         var back = RunSave.Parse(save.ToText());
         Check(back != null && back.Rooms.Count == list.Count && back.Rooms.Last().Unseen && back.Rooms.Take(4).All(r => !r.Unseen), "a save keeps which rooms are unseen");
         var line = save.ToText().Split('\n').Last(l => l.StartsWith("room "));
+        save.Fog[4] = "FF0F";
+        back = RunSave.Parse(save.ToText());
+        Check(back != null && back.Fog.Count == 1 && back.Fog[4] == "FF0F", "a save keeps the explored cells");
         var old = RunSave.Parse(save.ToText().Replace(line, line.Substring(0, line.LastIndexOf(' '))));
         Check(old != null && !old.Rooms.Last().Unseen, "an old save's rooms are seen");
     }
@@ -64,17 +68,38 @@ static partial class Program
         // Fog hides what's inside unless a player is close; bots head for the nearest one.
         var head = g.Expanded[aHead];
         var mid = new V2((head.X + head.X1) / 2f, (head.Y + head.Y1) / 2f);
-        bool far = g.Players.Values.All(p => p.Pos.FartherThan(mid, RoomFog.PeekReach));
+        bool far = g.Players.Values.All(p => p.Pos.FartherThan(mid, RoomFog.ConeReach));
         Check(cg.UnseenAt(mid) && (!far || cg.FogHides(mid)), "inside an unseen room is hidden from afar");
         Check(cg.NearestUnseen(g.Players[1].Pos).HasValue, "a bot has an unseen room to scout");
 
-        // The host's player walks into the first piece: all of it is seen, on both screens; the second stays unseen.
-        Run(s, dt, 1.5f, () => cg.Expanded.Count > aHead && !cg.Expanded[aHead].Unseen, () => { noPicks(); g.Players[1].Pos = mid; });
+        // The cone: a player in the middle facing +x sees ahead (and the circle round them), not behind; walls stop it.
+        var wd = g.CurrentWorld;
+        var area = wd.Areas[aHead + 1];
+        Check(RoomFog.Sees(wd, mid, 0f, mid + new V2(250f, 0f)) && !RoomFog.Sees(wd, mid, 0f, mid + new V2(-250f, 0f)), "the cone sees ahead, not behind");
+        Check(RoomFog.Sees(wd, mid, 0f, mid + new V2(-100f, 0f)), "the close circle sees all round");
+        Check(!RoomFog.Sees(wd, mid, 0f, mid + new V2(RoomFog.ConeReach + 50f, 0f)), "the cone has a reach");
+        var wall = wd.Walls()[0];
+        Check(RoomFog.Blocked(wd, wall.Pos - new V2(wall.HW + 40f, 0f), wall.Pos + new V2(wall.HW + 40f, 0f)) && !RoomFog.Blocked(wd, mid, mid + new V2(20f, 0f)), "a wall in the way blocks the line");
+        aimOverride = mid + new V2(1000f, 0f);  // (the player faces +x)
+        Action face = () => { noPicks(); g.Players[1].Pos = mid; };
+        Run(s, dt, 0.6f, null, face);
+        int fc = (int)((mid.X + 200f - area.Min.X) / RoomFog.Cell), fr = (int)((mid.Y - area.Min.Y) / RoomFog.Cell);
+        int bc = (int)((mid.X - 260f - area.Min.X) / RoomFog.Cell);
+        Check(g.Expanded[aHead].Unseen && cg.Expanded[aHead].Unseen, "a look from the middle doesn't see the whole room");
+        Check(g.FogExplored(aHead, fc, fr) && !g.FogExplored(aHead, bc, fr), "the cone explores ahead and not behind");
+        Check(cg.FogExplored(aHead, fc, fr) && !cg.FogExplored(aHead, bc, fr), "the friend's game has the same cells");
+        Check(!g.FogHides(mid + new V2(200f, 0f)) && g.FogHides(mid + new V2(-260f, 0f)), "what the cone is on shows, what it isn't on stays hidden");
+
+        float spin = 0f; int tick = 0;
+        var stops = new[] { V2.Zero, new V2(180f, 150f), new V2(-180f, -150f), new V2(-180f, 150f), new V2(180f, -150f) };
+        // The host's player turns on the spot at a few points (fins inside cast shadows): the cone sweeps the whole piece, and it's seen on both screens; the second stays unseen.
+        Run(s, dt, 14f, () => cg.Expanded.Count > aHead && !cg.Expanded[aHead].Unseen, () => { noPicks(); g.Players[1].Pos = mid + stops[(tick++ / 150) % stops.Length]; spin += 0.05f; aimOverride = mid + V2.FromAngle(spin) * 1000f; });
         var group = Expansion.GroupOf(g.Expanded, aHead);
-        Check(group.All(i => !g.Expanded[i].Unseen) && group.All(i => !cg.Expanded[i].Unseen), "walking in reveals the whole piece for everyone (" + group.Count + " boxes)");
+        Check(group.All(i => !g.Expanded[i].Unseen) && group.All(i => !cg.Expanded[i].Unseen), "exploring most of it reveals the whole piece for everyone (" + group.Count + " boxes)");
         Check(g.Expanded[bHead].Unseen && cg.Expanded[bHead].Unseen, "the other room stays unseen");
         Check(!cg.UnseenAt(mid) && !cg.FogHides(mid), "inside a seen room shows");
         Check(g.Expanded.Count == bHead + b.Rooms.Count && cg.Expanded.Count == g.Expanded.Count, "a reveal doesn't rebuild the map");
+        aimOverride = null;
         host.Leave(""); client.Leave("");
     }
 
@@ -156,7 +181,7 @@ static partial class Program
             Run(s, dt, 0.4f, null, noPicks);
             Check(sleepers.Where(e => e.Hp > 0f).All(e => cg.Enemies.ContainsKey(e.Id) && !cg.Enemies[e.Id].Dormant), "the friend's game sees them wake");
 
-            // A second piece: walking in (the room seen) wakes it.
+            // A second piece: a player looking at its group from close wakes it.
             friend.Hand[1] = (byte)Expansion.MakePieceCard(PieceShape.Mono);
             int n0 = g.Expanded.Count;
             var b = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).Last();
@@ -168,11 +193,14 @@ static partial class Program
             Check(second.Count == size, "the one-cell piece holds one group");
             var room = g.Expanded[n0];
             var mid = new V2((room.X + room.X1) / 2f, (room.Y + room.Y1) / 2f);
-            Run(s, dt, 1f, () => !g.Expanded[n0].Unseen, () => { noPicks(); g.Players[1].Pos = mid + new V2(120f, 120f); });
-            Run(s, dt, 0.1f, null, noPicks);
-            Check(second.All(e => !e.Dormant), "seeing the room wakes its group");
+            // (a fin inside the room can stand in the way: take a spot with a clear line to the first sleeper)
+            var look = new V2[] { new V2(100f, 0f), new V2(-100f, 0f), new V2(0f, 100f), new V2(0f, -100f), new V2(70f, 70f), new V2(-70f, -70f) }
+                .Select(o => second[0].Pos + o).First(q => !RoomFog.Blocked(g.CurrentWorld, q, second[0].Pos));
+            aimOverride = second[0].Pos;
+            Run(s, dt, 1f, () => second.All(e => !e.Dormant), () => { noPicks(); g.Players[1].Pos = look; });
+            Check(second.All(e => !e.Dormant), "looking at a group from close wakes it");
         }
-        finally { DormantGroups.CellChance = chance; }
+        finally { DormantGroups.CellChance = chance; aimOverride = null; }
         host.Leave(""); client.Leave("");
     }
 }

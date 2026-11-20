@@ -39,7 +39,7 @@ static partial class Program
                     ult.Timer = 99f;
                 }
             }
-        s.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(640, 360) });
+        s.Game.FixedStep(dt, new PlayerInput { AimAt = aimOverride ?? new V2(640, 360) });
         s.Game.Update(dt);
         if (s.IsHost)
             foreach (var cue in s.Game.Sounds)
@@ -53,6 +53,8 @@ static partial class Program
     }
 
     static int pickups;
+
+    static V2? aimOverride;  // where every player's input aims, when a test needs a facing (null: the usual point)
     static bool clientSawOrbs;
 
     static int nextPort = Environment.GetEnvironmentVariable("PORTBASE") != null ? int.Parse(Environment.GetEnvironmentVariable("PORTBASE")) : 7810;  // PORTBASE=n: parallel runs (BalanceGrid) each take their own ports
@@ -454,7 +456,7 @@ static partial class Program
         Test("layouts", "arena layouts: the six floor plans, walls and pillars, edge gates, enemy gates, steering round walls", () => LayoutsTest(Dt)),
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingNodeCentreTest(), () => ExpandingVectorChestTest(Dt), () => ChestKindsTest(Dt)),
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
-        Test("roomfog", "room fog (Docs/FogOfWar.md): new rooms start unseen, walking in reveals them for everyone, saves, bots scout; dormant groups", () => RoomFogTest(), () => RoomFogGameTest(Dt), () => RoomFogBotTest(Dt), () => DormantGroupsTest(Dt)),
+        Test("roomfog", "room fog (Docs/FogOfWar.md): new rooms start unseen, the line-of-sight cone explores and shows them for everyone, saves, bots scout; dormant groups", () => RoomFogTest(), () => RoomFogGameTest(Dt), () => RoomFogBotTest(Dt), () => DormantGroupsTest(Dt)),
         Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => PieceShapesTest(), () => PieceCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => PieceShapesGameTest(Dt)),
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
         Test("armsdealer", "the Arms Dealer and the Medic (Docs/ArmsDealer.md): service rooms selling every weapon mod for gold, priced by your stacks, and heals and revives; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),

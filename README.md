@@ -1147,10 +1147,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Room fog** ([`Docs/FogOfWar.md`](Docs/FogOfWar.md)): every room the map gets after the core (pieces, mystery-door rooms, surprise
   rooms, breach Stashes, the mini-boss room) starts **unseen**: dark with a **?** on the minimap and the build map, and under a dark,
-  slowly hatched veil in the world (its walls, doors and breaches stay bright). Its enemies, coins and orbs are hidden unless a player
-  stands within 4.5 tiles of them (from the doorway). Enemies still spawn in unseen rooms. The first standing player to walk in reveals
-  the whole room for the whole team (a gold scan line lifts the veil), for the rest of the map. The core, and the room kept through a
-  map reset, start seen. With nothing to fight, bots scout the nearest unseen room.
+  slowly hatched veil in the world (its walls, doors and breaches stay bright). You see through a **line-of-sight cone**: 90 degrees the
+  way you aim, 9 tiles long, plus a 1.7 tile circle round you; walls and fins stop it, so you can look in through a doorway. Everything
+  the cone sweeps over is **explored for good** for the whole team (it stays dimly lit and lightens the room on the maps), but enemies,
+  coins and orbs in an unseen room show only while somebody's cone or circle is on them. Once about 90% of a room is explored the
+  whole room is seen (a gold scan line lifts the rest of the veil). A sleeping group wakes when a player sees it from within 6 tiles.
+  Enemies still spawn in unseen rooms. The core, and the room kept through a map reset, start seen. With nothing to fight, bots walk
+  to the nearest unexplored spot, looking that way.
 - **Dormant groups**: when a piece card is built, each of its cells has a **40%** chance of holding a sleeping group of the faction
   enemies of the wave it was built on (one type per group; 3 enemies, one more every 15 waves, at most 6), clustered in the cell's middle.
   They stand still with drifting z's over them: no moving, no shooting, and they don't hold the wave open. When the room is seen, or
