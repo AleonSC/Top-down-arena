@@ -42,6 +42,7 @@ namespace Arena
         Breach,        // the Engineer's ultimate (Engineer.cs)
         VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's 1st abilities and ultimates (Engineer.cs, step 4)
         WarhornVolley,  // the DPS Knight's second ultimate (WarhornVolley.cs), picked on the lobby's Ultimate row
+        Stampede,      // the Tank Summoner's 4th choice (Stampede.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -116,6 +117,7 @@ namespace Arena
         public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating
         public float WwDmgMult = 1f, WwWetBonus;                           // Water Ward: Deep Current
         // Summoner abilities
+        public float StampedeDmgMult = 1f;                                 // Stampede: Thundering Herd
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
         public float PactHpMult = 1f, PactReturnCut;                       // Force Pact: Kindred Bond

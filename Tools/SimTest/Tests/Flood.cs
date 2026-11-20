@@ -26,7 +26,7 @@ static partial class Program
         bool othersThree = true;
         foreach (Role r in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
-                if ((Kit)k != Kit.Elementalist && !(r == Role.Tank && (Kit)k == Kit.Soldier))  // (every Elementalist role has a 4th: Flood, Water Ward, Gale Wall; the Tank Soldier: Deployable Cover)
+                if ((Kit)k != Kit.Elementalist && !(r == Role.Tank && ((Kit)k == Kit.Soldier || (Kit)k == Kit.Summoner)))  // (every Elementalist role has a 4th: Flood, Water Ward, Gale Wall; the Tank Soldier: Deployable Cover)
                     othersThree &= Upgrades.AbilityLimit(r, (Kit)k) == 3 && Upgrades.FirstAbility(r, (Kit)k, 3) == Upgrades.FirstAbility(r, (Kit)k, 0);
         Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every non-Elementalist class has three (a 4th pick falls back to the first)");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.Flood), "Flood is a very rare card for Tank Elementalists who picked another");
