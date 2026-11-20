@@ -147,6 +147,10 @@ namespace Arena
         NodNuki, NodKesa, NodMoon, NodTenchi, NodNagi, NodKasumi, NodNidan, NodSenbon, NodTsuka, NodHiki, NodHit, NodBlock, NodToStorm, NodToGuard,
         // Decoy Dummy (DecoyDummySoundBank.cs): the throw and puff-up, a hit's rubber squeak, the pop and zip, the deflate. Played by each screen from the zone and FxKind.DecoyHit/DecoyPop/DecoyFold, never sent.
         DecoyThrow, DecoySqueak, DecoyPop, DecoyFold,
+        // Deployable Turret (DeployTurretSoundBank.cs): the drop, a heavy round, the barrels spinning up, the overheat, the blast, the early dismount. Played by each screen from the zone, never sent.
+        DtDrop, DtShot, DtSpool, DtHeat, DtBlast, DtLatch,
+        // A One-way piece's door bumped from the wrong side (OneWayDoorSoundBank.cs): played by your own screen when it holds you back, never sent.
+        OneWayBump,
     }
 
     public struct SoundCue
@@ -603,6 +607,7 @@ namespace Arena
         public EnemyType Type;
         public EnemyDef Def;
         public V2 Pos, Disp, Waypoint;
+        public int DevSpawner;  // host only: the dev spawner that brought it in (Core/DevSpawners.cs), 0 none
         public int Home = -1;   // host only: the walled world's area it belongs to (Rooms.cs): a Gatekeeper room's mini-boss
         public float FarT;         // host only: how long it has been far from every player (Recycling.cs)
         public float PortalT;      // host only: just came out of a portal (it can't take one again until this runs out)
@@ -821,6 +826,7 @@ namespace Arena
         public int Leg = -1;        // host, a Stampede: which charge it is on (0 out, 1 back)
         public float Blast;         // host, a Decoy Dummy: how far its confetti blast reaches when it pops (DecoyDummy.cs)
         public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
+        public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret: Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
         public ZoneDef Def => Kits.Get(Kind);
     }
 

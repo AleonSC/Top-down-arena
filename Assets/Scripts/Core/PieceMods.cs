@@ -103,6 +103,27 @@ namespace Arena
             => g.PlaceRoomChest(rooms, "loot piece", (ChestKind)(value - 1), new DetRandom(rooms[0].X * 7919 + rooms[0].Y * 31 + value));
     }
 
+    /// One-way modifier: all the piece's doors but one let you through one way only, in or out (OneWayDoors.cs); the door it was built through
+    /// always works both ways, and a piece with a single door is both ways. Players, bots and enemies all obey them.
+    public sealed class OneWayMod : PieceMod
+    {
+        public OneWayMod() : base("oneway", 8, 1, 0.2f) { }
+
+        public override bool Valid(int value) => value == 1;
+
+        public override int RollValue(DetRandom rng, int wave) => 1;
+
+        public override string Name(int value) => "One-way";
+
+        public override string Blurb(int value) => "one-way doors (all but one, in or out)";
+
+        public override ExpansionRoom ApplyRoom(ExpansionRoom q, int value)
+        {
+            q.OneWay = true;
+            return q;
+        }
+    }
+
     /// The modifier list and the card-code helpers. Modifier bits sit above the shape in a shape card: code = PieceCodeBase + shape + 16 * mods.
     public static class PieceMods
     {
@@ -111,9 +132,10 @@ namespace Arena
         public static readonly FloorMod Floor = new FloorMod();
         public static readonly CombatMod Combat = new CombatMod();
         public static readonly LootMod Loot = new LootMod();
+        public static readonly OneWayMod OneWay = new OneWayMod();
 
         /// Every modifier, in roll order. Add yours here with a Shift that no other uses (PieceMods.Check).
-        public static readonly PieceMod[] All = { Floor, Combat, Loot };
+        public static readonly PieceMod[] All = { Floor, Combat, Loot, OneWay };
 
         /// The mods number with anything undefined (a removed modifier, a bad value) cleared.
         public static int Clean(int mods)

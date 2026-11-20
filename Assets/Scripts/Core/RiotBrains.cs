@@ -1,3 +1,5 @@
+using System;
+
 namespace Arena
 {
     /// Step 4 of the enemy behaviour classes (Docs/EnemyBehaviours.md): the Rioters and Guards. A Rioter rushes in a loose
@@ -71,6 +73,20 @@ namespace Arena
                 if (o.Type == EnemyType.Guard && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, GuardRallyRadius))
                     return GuardRallySpeedUp;
             return 1f;
+        }
+
+        /// The Rioter crowd: each Rioter within CrowdGap px of your body (edge to edge) slows you to CrowdSlowEach of your
+        /// speed, compounding (1: 0.96, 3: 0.88, 6: 0.78, 10: 0.66), never below CrowdSlowMin. Barely felt until they pile on.
+        /// Any game: it reads replicated Rioter positions, so your own game slows your walk (Game.cs) with nothing sent.
+        public const float CrowdGap = 6f, CrowdSlowEach = 0.96f, CrowdSlowMin = 0.5f;
+
+        public float CrowdSlow(Player p)
+        {
+            float slow = 1f;
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.Rioter && e.Hp > 0f && e.SpawnT <= 0f && e.Pos.CloserThan(p.Pos, e.Radius + p.Def.BodyR + CrowdGap))
+                    slow *= CrowdSlowEach;
+            return Math.Max(CrowdSlowMin, slow);
         }
 
         sealed class GuardMovePart : MovePart

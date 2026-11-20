@@ -28,7 +28,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 
 | Term | Means | Code |
 |---|---|---|
-| **1st ability** | picked in the lobby: 3 choices per role and class, sometimes a **4th choice** (Flood, Gale Wall, Stampede...) | `Player.FirstAbility`, `Slots[0]`, `KeyAction.Ability1`, `AbilityDef.Choice` (`Fourth`) |
+| **1st ability** | picked in the lobby: 3 choices per role and class, sometimes a **4th choice** (Flood, Gale Wall, Stampede, Deployable Turret...) | `Player.FirstAbility`, `Slots[0]`, `KeyAction.Ability1`, `AbilityDef.Choice` (`Fourth`) |
 | **2nd, 3rd, 4th ability** | filled by very rare upgrade cards ("2nd–4th abilities" together) | `Player.CardAbilities`, `Slots[1..3]`, `KeyAction.Ability2..4` |
 | **Wildcard ability** | the Wildcard's extra starting ability, on the 2nd, 3rd or 4th slot | `Player.WildcardAbility` |
 | **Ultimate** | picked in the lobby, one per role and class (never "ult" in text; the key cap keeps "ULT") | `AbilityDef.Ult`, `Slots[4]`, `KeyAction.Ultimate` |
@@ -95,7 +95,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **cell** | one 600 px square of the lattice | |
 | **shape** | the 1-4 cell polyomino: Mono, Domino, ... TetL | `PieceShape` |
 | **piece card** | what sits in your hand: a shape plus its modifiers; the service ones (Shop, Black Market, Arms Dealer, Builder Shop) are one cell. "Piece" on its own is the shape on the map. | `PieceCard`, `GridPieces.cs` |
-| **modifier** | something a shape piece card carries, rolled when it is offered: a floor (the room's ground), combat (enemies inside) or loot (a guaranteed chest kind); a card can carry several | `PieceMod`, `PieceMods.cs` |
+| **modifier** | something a shape piece card carries, rolled when it is offered: a floor (the room's ground), combat (enemies inside) or loot (a guaranteed chest kind) or one-way (all its doors but one one way); a card can carry several | `PieceMod`, `PieceMods.cs` |
 | **placement** | one legal spot and turn for a piece card, at a door spot | `Placement`, `PlacementsFor` |
 | **piece chest** | the orange chest that gives every player a piece card | `ChestKind.Piece` |
 | **Builder Shop** | the only place piece cards are bought, with vectors | `BuilderShop` |

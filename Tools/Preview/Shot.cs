@@ -260,6 +260,14 @@ static partial class Shot {
     app = new ArenaApp();
     f2 = BindingFlags.NonPublic | BindingFlags.Instance;
     if (Environment.GetEnvironmentVariable("LIVESUSED") != null) { host.Game.Quick = false; host.Game.LivesUsed = int.Parse(Environment.GetEnvironmentVariable("LIVESUSED")); }  // the lives on the HUD (a Campaign run)
+    if (Environment.GetEnvironmentVariable("DEVSPAWNER") != null)  // dev spawners (DevSpawnerLook.cs): a Grunt one 2 of 5 alive and filling, an elite one full; DEVSPAWNERAT=x,y moves the first
+    {
+      var sp = host.Game.DevSpawners;
+      int a1 = host.Game.DevPlaceSpawner(1, EnemyType.Grunt, 2f, 5, false), a2 = host.Game.DevPlaceSpawner(1, EnemyType.Sniper, 4f, 3, true);
+      var at = (Environment.GetEnvironmentVariable("DEVSPAWNERAT") ?? (me.Pos.X + 220f) + "," + (me.Pos.Y - 120f)).Split(',');
+      sp[a1].Pos = new V2(float.Parse(at[0]), float.Parse(at[1])); sp[a1].T = 0.7f; sp[a1].Alive = 2;
+      sp[a2].Pos = sp[a1].Pos + new V2(170f, 40f); sp[a2].Alive = 3;
+    }
     if (Environment.GetEnvironmentVariable("GOLD") != null) me.Gold = int.Parse(Environment.GetEnvironmentVariable("GOLD"));  // the Bazaar's gold on the HUD
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
@@ -301,6 +309,16 @@ static partial class Shot {
       if (win) { foreach (var en in host.Game.Enemies.Values) if (en.Def.IsBoss) focus = en.Disp; var shots = (System.Collections.Generic.List<V2>)typeof(ArenaApp).GetField("endShots", f2).GetValue(app); foreach (var b in host.Game.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) shots.Add(b.Pos); }
       else foreach (var pl in host.Game.Players.Values) pl.Downed = true;
       set("endT", endingAt); set("endWin", win); set("endFocus", focus); set("endWasOver", true); set("endStamped", endingAt > 1.3f);
+    }
+    // WOUNDFLASH=<s>: everyone's wound grew that many seconds ago, so the wound tick is flashing (HealthBars.cs WoundFlash). Use with WOUND=<share>.
+    string wfl = Environment.GetEnvironmentVariable("WOUNDFLASH");
+    if (wfl != null) {
+      var wf = typeof(ArenaApp).GetMethod("WoundFlash", f2);
+      foreach (var pl in host.Game.Players.Values) {
+        float w = pl.Wound; pl.Wound = w * 0.8f; Time.unscaledTime = 99f; wf.Invoke(app, new object[] { pl });
+        pl.Wound = w; Time.unscaledTime = 100f; wf.Invoke(app, new object[] { pl });
+      }
+      Time.unscaledTime = 100f + float.Parse(wfl, System.Globalization.CultureInfo.InvariantCulture);
     }
     // DOWNED=<phase>:<value>: you going down or getting back up (DownedLooks.cs). down:<seconds since the hit>, revive:<0-1 revive progress with an ally standing by>, up:<seconds since you stood back up>. Use with mode hud and 2 players.
     string dwn = Environment.GetEnvironmentVariable("DOWNED");
@@ -856,10 +874,16 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's building round (ExpansionUi.cs)
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;  // (free building: the team vote is gone)
-      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, PieceShapes.cs); GRIDCARDS=tril,tetl:burninggrounds+combat+loot_piece,mono:combat,shop,... the hand (piece[:floor][+combat] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
+      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, PieceShapes.cs); GRIDCARDS=tril,tetl:burninggrounds+combat+loot_piece+oneway,mono:combat,shop,... the hand (piece[:floor][+combat] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
         eg.RoomsUp = true; eg.LayoutAge = 5f; if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (the core a Grid run starts with, once)
         if (Environment.GetEnvironmentVariable("GRIDMINI") != null && Expansion.GridMinisWaiting(eg.Expanded) == 0) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridPieces.cs)
+        string gow = Environment.GetEnvironmentVariable("ONEWAY");  // ONEWAY=<shape>: a One-way piece built first, at the spot with the most one-way doors (OneWayDoors.cs)
+        if (gow != null) {
+          var owShape = (PieceShape)Enum.Parse(typeof(PieceShape), gow, true); System.Collections.Generic.List<ExpansionRoom> owBest = null; int owMost = 0;
+          foreach (var oo in Expansion.PlacementsFor(eg.Expanded, owShape)) { var ol = new System.Collections.Generic.List<ExpansionRoom>(eg.Expanded); foreach (var orr in oo.Rooms) { var o2 = orr; o2.OneWay = true; o2.Owner = 1; ol.Add(o2); } int on = System.Linq.Enumerable.Count(Expansion.Build(ol, eg.Openings).Doors, dd => dd.Pass != 0); if (on > owMost) { owMost = on; owBest = ol; } }
+          if (owBest != null) { eg.Expanded.Clear(); eg.Expanded.AddRange(owBest); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); }
+        }
         var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {
@@ -868,6 +892,7 @@ static partial class Shot {
           if (gp.Length > 1) foreach (var gmod in gp[1].Split('+')) {  // modifiers: a floor name and/or combat, e.g. tetl:burninggrounds+combat
             PathId pf;
             if (gmod.Equals("combat", StringComparison.OrdinalIgnoreCase)) gmods = PieceMods.Combat.Set(gmods, 1);
+            else if (gmod.Equals("oneway", StringComparison.OrdinalIgnoreCase)) gmods = PieceMods.OneWay.Set(gmods, 1);
             else if (gmod.StartsWith("loot", StringComparison.OrdinalIgnoreCase)) { ChestKind lk = ChestKind.Gold; if (gmod.Length > 5) Enum.TryParse(gmod.Substring(5), true, out lk); gmods = PieceMods.Loot.Set(gmods, (int)lk + 1); }  // loot or loot_<chestkind>
             else if (Enum.TryParse(gmod, true, out pf)) gmods = PieceMods.Floor.Set(gmods, (int)pf);
             else Console.Error.WriteLine("GRIDCARDS: no modifier " + gmod);

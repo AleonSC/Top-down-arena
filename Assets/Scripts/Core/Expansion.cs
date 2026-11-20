@@ -56,6 +56,7 @@ namespace Arena
         public bool Claimed;    // a breach Stash's vector cache has been taken (Docs/BreachRooms.md)
         public bool Unseen;     // room fog (RoomFog.cs): nobody has walked in yet, so it is dark on the maps and what's inside is hidden
         public byte Mini;       // a mini-boss room's foe (an EnemyType, FactionMinis.cs): its boss cycle's faction's; 0: unset (an old save: the current one's)
+        public bool OneWay;     // built from a One-way piece card (PieceMods.cs): all its doors but one let you through one way only (OneWayDoors.cs)
         public byte Piece;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
         public int X1 => X + W;
         public int Y1 => Y + H;
@@ -614,23 +615,14 @@ namespace Arena
             return true;
         }
 
-        /// A built link as a World portal. An end on a room's wall makes that wall the portal, facing into the room (the first-built
-        /// room if one was built against it since, so every machine agrees); an end inside a room (an older save) is a floor portal
-        /// facing the room's middle.
-        static WorldPortal PortalOf(RoomArea[] areas, PortalLink l)
+        /// A built link as a World portal. An end on a room's outer wall (the teleporter tool's rule, OuterWall: so a wall across the
+        /// seam of a room of several boxes counts too) makes that wall the portal, facing into the room; an end inside a room (an
+        /// older save) is a floor portal facing the room's middle.
+        static WorldPortal PortalOf(World w, PortalLink l)
         {
-            Func<V2, V2?> wall = p =>
-            {
-                for (int i = 0; i < areas.Length; i++)
-                    if (!areas[i].Floating)
-                        foreach (var inn in Sides)
-                            if (areas[i].Contains(p + inn * 30f) && !areas[i].Contains(p - inn * 30f) && areas[i].Contains(p + inn * 30f + inn.Orthogonal() * (LinkHalf - 10f)) && areas[i].Contains(p + inn * 30f - inn.Orthogonal() * (LinkHalf - 10f)))
-                                return inn;
-                return null;
-            };
             Func<V2, V2> inward = p =>
             {
-                foreach (var a in areas)
+                foreach (var a in w.Areas)
                     if (a.Contains(p))
                     {
                         V2 d = a.Mid - p;
@@ -638,7 +630,7 @@ namespace Arena
                     }
                 return new V2(0f, 1f);
             };
-            V2? wa = wall(l.A), wb = wall(l.B);
+            V2? wa = OuterWall(w, l.A), wb = OuterWall(w, l.B);
             if (wa.HasValue && wb.HasValue)
                 return new WorldPortal { A = l.A, B = l.B, InA = wa.Value, InB = wb.Value, Half = LinkHalf };
             return new WorldPortal { A = l.A, B = l.B, InA = inward(l.A), InB = inward(l.B) };
@@ -1191,6 +1183,7 @@ namespace Arena
                             doors.Add(new RoomDoor { Pos = c.Vertical ? new V2(c.At, (c.From + c.Till) / 2f) : new V2((c.From + c.Till) / 2f, c.At), Vertical = c.Vertical, Width = c.Till - c.From, A = a, B = b });
                         }
             DropSecondGridDoors(doors);
+            MarkOneWayDoors(rooms, group, doors);  // a One-way piece's doors (OneWayDoors.cs)
             for (int a = 1; a < n; a++)  // a floating room with no door is sealed
                 if (areas[a].Floating)
                 {
@@ -1232,16 +1225,18 @@ namespace Arena
                     return false;
                 });
             }
-            var portals = new WorldPortal[links == null ? 0 : links.Count];  // bought portal pairs (Docs/RoomBuilding2.md step 2)
-            for (int i = 0; i < portals.Length; i++)
-                portals[i] = PortalOf(areas, links[i]);
-            return new World
+            var built = new World
             {
                 Name = "Expanding",
-                Areas = areas, Doors = doors.ToArray(), Portals = portals, Spans = spans.ToArray(), Cover = cover.ToArray(), NodeSpots = spots,
+                Areas = areas, Doors = doors.ToArray(), Portals = new WorldPortal[0], Spans = spans.ToArray(), Cover = cover.ToArray(), NodeSpots = spots,
                 Min = new V2(minX, minY), Max = new V2(maxX, maxY),
                 Hub = 0,
             };
+            var portals = new WorldPortal[links == null ? 0 : links.Count];  // bought portal pairs (Docs/RoomBuilding2.md step 2)
+            for (int i = 0; i < portals.Length; i++)
+                portals[i] = PortalOf(built, links[i]);
+            built.Portals = portals;
+            return built;
         }
     }
 }
