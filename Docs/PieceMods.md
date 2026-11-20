@@ -1,6 +1,6 @@
 # Piece card modifiers
 
-Status: **built (protocol 424; Loot added Nov 20, no wire change; One-way protocol 445)**. Decided with the owner on Nov 20, 2026.
+Status: **built (protocol 424; Loot added Nov 20, no wire change; One-way protocol 446)**. Decided with the owner on Nov 20, 2026.
 
 - **What**: a shape piece card carries a *set* of modifiers (floor, combat, ...). Service cards and the Builder Shop carry none.
 - **Rolls**: every time a shape card is offered (start hand, the round's card, wave pick drops, chests, boss picks, Builder Shop shelf) each modifier rolls on its own
