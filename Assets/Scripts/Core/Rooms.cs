@@ -28,6 +28,7 @@ namespace Arena
         public float Width;  // the gap's length (0: Rooms.DoorW); the Expanding arena's opened walls are wider
         public float W => Width > 0f ? Width : Rooms.DoorW;
         public int A, B;  // the areas it joins (indexes into its World's Areas)
+        public sbyte Pass;  // a One-way piece's door (OneWayDoors.cs): 0 both ways, +1 only from A into B, -1 only from B into A
         public V2 Across => Vertical ? new V2(1f, 0f) : new V2(0f, 1f);  // through the door
         public V2 Along => Vertical ? new V2(0f, 1f) : new V2(1f, 0f);   // along the wall
         public bool Joins(int area) => A == area || B == area;

@@ -6,7 +6,7 @@ namespace Arena
 {
     /// A gadget: a pickup a player carries in one free hand and can use, switch off, or throw to a teammate. New kinds go at the
     /// end, before None.
-    public enum GadgetId : byte { Magnet, Recall, None }
+    public enum GadgetId : byte { Magnet, Recall, EnergyDrink, None }
 
     /// A gadget on the floor or in the air (thrown). It never despawns; a living player with empty hands who walks over it
     /// (or catches it mid-flight) picks it up, keeping the time it has left.
@@ -22,23 +22,31 @@ namespace Arena
     }
 
     /// Gadgets (README "Gadgets"): rare drops and Gadget chests in the Expanding arena. A player holds one gadget in hand and up to
-    /// GadgetBagSize more in a bag; holding the key opens a wheel to swap (Game/GadgetWheel.cs). Recall: switched on, a 3 s channel
+    /// GadgetBagSize more in a bag; holding the key (or the Gadget wheel key) opens a wheel to swap (Game/GadgetWheel.cs). Recall: switched on, a 3 s channel
     /// (a hit or a swap breaks it) carries you to the hub, and the gadget is used up. The Magnet: switched on, every coin and vector pickup on
-    /// the map flies to you; 10 s of pull in all, which you can spend in bits (the key switches it on and off). Hold the key
+    /// the map flies to you; 60 s of pull in all, which you can spend in bits (the key switches it on and off). The Energy Drink: the
+    /// same, 60 s of a big speed boost (EnergySpeed). Hold the key
     /// to throw it where you aim: a teammate catches it or picks it up with the time it has left. Going down drops it.
     public partial class Game
     {
         public readonly Dictionary<int, Gadget> Gadgets = new Dictionary<int, Gadget>();
         int nextGadgetId = 1;
         public const float MagnetTime = 60f, MagnetPull = 620f, GadgetThrowRange = 340f, GadgetFlyTime = 0.5f, GadgetGrabR = 18f, GadgetNoCatchT = 0.15f;
-        /// The Magnet drops 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) for each player, rolled for each, while that
-        /// player has none (held, or their own on the floor).
+        /// The Magnet and the Energy Drink each drop 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) for each player, rolled for
+        /// each, while that player has none of that kind (held, bagged, or their own on the floor).
         public const int MagnetDropChance = 90, MagnetEliteChance = 10;
         public const int GadgetBagSize = 4;
         public const float RecallChannel = 3f;
+        /// The Energy Drink: 60 s of a big speed boost in all, spent in bits like the Magnet (the key switches it on and off).
+        public const float EnergyTime = 60f, EnergySpeed = 1.6f;
 
-        public static string GadgetName(GadgetId g) => g == GadgetId.Magnet ? "Magnet" : g == GadgetId.Recall ? "Recall" : "";
-        public static float GadgetTime(GadgetId g) => g == GadgetId.Magnet ? MagnetTime : g == GadgetId.Recall ? RecallChannel : 0f;
+        public static string GadgetName(GadgetId g) => g == GadgetId.Magnet ? "Magnet" : g == GadgetId.Recall ? "Recall" : g == GadgetId.EnergyDrink ? "Energy Drink" : "";
+        public static float GadgetTime(GadgetId g) => g == GadgetId.Magnet ? MagnetTime : g == GadgetId.Recall ? RecallChannel : g == GadgetId.EnergyDrink ? EnergyTime : 0f;
+        /// A gadget that runs down while on and shows its seconds left (the Magnet, the Energy Drink; not the Recall's channel).
+        public static bool GadgetTimed(GadgetId g) => g == GadgetId.Magnet || g == GadgetId.EnergyDrink;
+
+        /// This player's Energy Drink is on: they move EnergySpeed times as fast (Player.Speed).
+        public static bool EnergyDrinkOn(Player p) => p.Gadget == GadgetId.EnergyDrink && p.GadgetOn && !p.Downed;
 
         /// This player's Magnet is pulling (coins and vector pickups from anywhere fly to them; Coins.cs).
         public static bool MagnetOn(Player p) => p.Gadget == GadgetId.Magnet && p.GadgetOn && !p.Downed;
@@ -136,29 +144,33 @@ namespace Arena
             BroadcastFx(FxKind.Ring, at, tint, 60f, 0.5f, Sfx.Blink);
         }
 
-        /// Host: what a Gadget chest holds for this player: a Recall twice as often as a Magnet. Into the hand or bag, else on the floor at
-        /// `at` (their own copy).
+        /// Host: what a Gadget chest holds for this player: a Recall half the time, else a Magnet or an Energy Drink. Into the hand or bag,
+        /// else on the floor at `at` (their own copy).
         void GiveChestGadget(Player pl, V2 at)
         {
-            GadgetId kind = rng.Next(3) == 0 ? GadgetId.Magnet : GadgetId.Recall;
+            int roll = rng.Next(4);
+            GadgetId kind = roll == 0 ? GadgetId.Magnet : roll == 1 ? GadgetId.EnergyDrink : GadgetId.Recall;
             if (GiveGadget(pl, kind, GadgetTime(kind)))
                 return;
             var g = SpawnGadget(kind, ClampToArena(at + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 24f, 14f), GadgetTime(kind));
             g.Owner = pl.Id;
         }
 
-        /// Host: a kill in the Expanding arena may drop a Magnet (DropCoins), rolled for each player: their own copy.
+        /// Host: a kill in the Expanding arena may drop a Magnet or an Energy Drink (DropCoins), each rolled for each player while they have
+        /// none of that kind: their own copy.
         void DropGadget(Enemy e)
         {
             if (e.Def.IsBoss)
                 return;
             foreach (var p in Players.Values)
-            {
-                if (HasGadget(p, GadgetId.Magnet) || rng.Next(e.Elite ? MagnetEliteChance : MagnetDropChance) != 0)
-                    continue;
-                var g = SpawnGadget(GadgetId.Magnet, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), MagnetTime);
-                g.Owner = p.Id;
-            }
+                for (int k = 0; k < 2; k++)
+                {
+                    GadgetId kind = k == 0 ? GadgetId.Magnet : GadgetId.EnergyDrink;
+                    if (HasGadget(p, kind) || rng.Next(e.Elite ? MagnetEliteChance : MagnetDropChance) != 0)
+                        continue;
+                    var g = SpawnGadget(kind, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), GadgetTime(kind));
+                    g.Owner = p.Id;
+                }
         }
 
         /// Host: a gadget lying on the floor at pos (also the F1 dock and tests).

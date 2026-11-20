@@ -53,6 +53,7 @@ namespace Arena
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
+            amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
@@ -1388,7 +1389,7 @@ namespace Arena
                 }
                 Player nearest = null;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && CanTake(p, o.Owner) && p.Hp < p.MaxHp && p.Pos.CloserThan(o.Pos, OrbMagnetRange) &&
+                    if (!p.Downed && CanTake(p, o.Owner) && p.Hp < p.HealCap && p.Pos.CloserThan(o.Pos, OrbMagnetRange) &&
                         (nearest == null || p.Pos.DistanceSq(o.Pos) < nearest.Pos.DistanceSq(o.Pos)))
                         nearest = p;
                 if (nearest == null && o.Med)

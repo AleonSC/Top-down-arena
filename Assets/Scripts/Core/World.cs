@@ -37,7 +37,7 @@ namespace Arena
     /// cover. Everything that asks "how big is the playable space, where are the walls, which room is this point in"
     /// reads a World, so a new map is a new World and nothing else changes. Expansion.cs and SurvivalWorld.cs build theirs; Single is
     /// <see cref="Single"/>. The walls and the steering floor plan are built on first use and kept.
-    public sealed class World
+    public sealed partial class World
     {
         public string Name;
         public RoomArea[] Areas;

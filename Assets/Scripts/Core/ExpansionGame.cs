@@ -823,6 +823,7 @@ namespace Arena
                 w.Write(r.Claimed);
                 w.Write(r.Mini);
                 w.Write(r.Unseen);
+                w.Write(r.OneWay);
             }
         }
 
@@ -843,6 +844,7 @@ namespace Arena
                 room.Claimed = r.ReadBoolean();
                 room.Mini = r.ReadByte();
                 room.Unseen = r.ReadBoolean();
+                room.OneWay = r.ReadBoolean();
                 list.Add(room);
             }
             return list;

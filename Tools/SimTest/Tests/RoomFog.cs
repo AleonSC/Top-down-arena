@@ -27,7 +27,7 @@ static partial class Program
         save.Fog[4] = "FF0F";
         back = RunSave.Parse(save.ToText());
         Check(back != null && back.Fog.Count == 1 && back.Fog[4] == "FF0F", "a save keeps the explored cells");
-        var old = RunSave.Parse(save.ToText().Replace(line, line.Substring(0, line.LastIndexOf(' '))));
+        var old = RunSave.Parse(save.ToText().Replace(line, line.Substring(0, line.LastIndexOf(' ', line.LastIndexOf(' ') - 1))));  // (before the Unseen and One-way fields)
         Check(old != null && !old.Rooms.Last().Unseen, "an old save's rooms are seen");
     }
 

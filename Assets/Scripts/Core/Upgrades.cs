@@ -44,6 +44,7 @@ namespace Arena
         WarhornVolley,  // the DPS Knight's second ultimate (WarhornVolley.cs), picked on the lobby's Ultimate row
         Stampede,      // the Tank Summoner's 4th choice (Stampede.cs), the lobby's 4th choice
         DecoyDummy,    // the Healer Soldier's 4th choice (DecoyDummy.cs), the lobby's 4th choice
+        DeployableTurret,  // the DPS Soldier's 4th choice (DeployableTurret.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -116,6 +117,7 @@ namespace Arena
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating
+        public float DtDmgMult = 1f, DtBonusTime;                          // Deployable Turret: Overclocked Barrels
         public float DecoyHpMult = 1f;                                      // Decoy Dummy: Double-Ply
         public float WwDmgMult = 1f, WwWetBonus;                           // Water Ward: Deep Current
         // Summoner abilities

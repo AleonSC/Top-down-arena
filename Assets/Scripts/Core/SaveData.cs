@@ -128,7 +128,7 @@ namespace Arena
             {
                 Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber + " " + (KeepsakePending ? 1 : 0) + " " + (int)CoreLayout + " " + CoreLayoutsUsed);
                 foreach (var r in Rooms)
-                    Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Piece, r.Surprise, r.Claimed ? 1 : 0, r.Mini, r.Unseen ? 1 : 0 }));
+                    Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Piece, r.Surprise, r.Claimed ? 1 : 0, r.Mini, r.Unseen ? 1 : 0, r.OneWay ? 1 : 0 }));
                 foreach (var kv in Fog)
                     Line(sb, "fog", kv.Key + " " + kv.Value);
                 foreach (var c in Cuts)
@@ -254,7 +254,7 @@ namespace Arena
                         {
                             var p = val.Split(' ');
                             save.Rooms.Add(new ExpansionRoom { Parent = I(p[0]), X = I(p[1]), Y = I(p[2]), W = I(p[3]), H = I(p[4]), Kind = Enum<RoomKind>(p[5]), Floor = Enum<PathId>(p[6]),
-                                Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Piece = (byte)I(p[10]), Surprise = p.Length > 11 ? (byte)I(p[11]) : (byte)0, Claimed = p.Length > 12 && I(p[12]) != 0, Mini = p.Length > 13 ? (byte)I(p[13]) : (byte)0, Unseen = p.Length > 14 && I(p[14]) != 0 });
+                                Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Piece = (byte)I(p[10]), Surprise = p.Length > 11 ? (byte)I(p[11]) : (byte)0, Claimed = p.Length > 12 && I(p[12]) != 0, Mini = p.Length > 13 ? (byte)I(p[13]) : (byte)0, Unseen = p.Length > 14 && I(p[14]) != 0, OneWay = p.Length > 15 && I(p[15]) != 0 });
                             break;
                         }
                         case "fog":

@@ -850,6 +850,7 @@ static partial class Shot {
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
     CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
+    DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)
     ChalkFireScene();  // CHALKFIRE=A|B|C (ShotChalkFire.cs)
@@ -2344,6 +2345,14 @@ static partial class Shot {
           foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (int)Expansion.MakePieceCard(PieceShape.TetL); }
         }
       }
+      string xow = Environment.GetEnvironmentVariable("ONEWAY");  // ONEWAY=domino|tetl|...: a One-way piece on the lattice (the spot with the most one-way doors; OneWayDoors.cs), everyone by its first one-way door
+      if (xow != null) {
+        var owShape = (PieceShape)Enum.Parse(typeof(PieceShape), xow, true); System.Collections.Generic.List<ExpansionRoom> owBest = null; int owMost = 0;
+        foreach (var oo in Expansion.PlacementsFor(xg.Expanded, owShape)) { var ol = new System.Collections.Generic.List<ExpansionRoom>(xg.Expanded); foreach (var orr in oo.Rooms) { var o2 = orr; o2.OneWay = true; o2.Owner = 1; ol.Add(o2); } int on = System.Linq.Enumerable.Count(Expansion.Build(ol, xg.Openings).Doors, dd => dd.Pass != 0); if (on > owMost) { owMost = on; owBest = ol; } }
+        if (owBest != null) { xg.Expanded.Clear(); xg.Expanded.AddRange(owBest); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+          var ow = xg.ExpansionWorld; var od = ow.Doors[ow.OneWays[0]]; int pi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = od.Pos + od.Along * (-60f + 120f * pi) - od.Across * 260f; pi++; } }
+        else Console.Error.WriteLine("ONEWAY: no spot gives one-way doors");
+      }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind chest|relic|shrine; a third part "spent" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
@@ -2363,6 +2372,14 @@ static partial class Shot {
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
       string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
       if (fogRoom != null) { var fro = xg.Expanded[int.Parse(fogRoom)]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(fro.X + 120, fro.Y + fro.H / 2); }
+      string trapStand = Environment.GetEnvironmentVariable("TRAPSTAND");  // TRAPSTAND=slow|spike[,dx,dy]: you stand on the trap of that kind nearest you, offset by dx,dy (RoomTrapLook.cs)
+      if (trapStand != null) {
+        var ts = trapStand.Split(','); var kind = ts[0] == "spike" ? TrapKind.Spike : TrapKind.Slow; Player me0 = null; foreach (var pl in xg.Players.Values) { me0 = pl; break; }
+        V2 near = me0.Pos; float tsBest = float.MaxValue;
+        foreach (var r in xg.RoomTrapList) if (r.Kind == kind && (r.Pos - me0.Pos).LengthSq < tsBest) { tsBest = (r.Pos - me0.Pos).LengthSq; near = r.Pos; }
+        var off = ts.Length > 2 ? new V2(float.Parse(ts[1], System.Globalization.CultureInfo.InvariantCulture), float.Parse(ts[2], System.Globalization.CultureInfo.InvariantCulture)) : new V2(0f, 0f);
+        me0.Pos = me0.Disp = near + off;
+      }
       string fogAim = Environment.GetEnvironmentVariable("FOGAIM");  // FOGAIM=<degrees>[,trail]: every player faces that way (0 east, 90 south); "trail" first sweeps the cone round to there, exploring what it passes over (the explored memory)
       if (fogAim != null) {
         var fa = fogAim.Split(','); float fdeg = float.Parse(fa[0], System.Globalization.CultureInfo.InvariantCulture);
@@ -2409,6 +2426,14 @@ static partial class Shot {
         if (en.Def.IsBoss || en.Dormant) continue;  // (a dormant group stays where it was planted)
         var ar = xg.CurrentWorld.Areas[xi++ % xg.CurrentWorld.Areas.Length];
         en.Pos = en.Disp = xg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.X - 120f), ar.Min.Y + 50f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.Y - 100f)), en.Radius);
+      }
+      string xlink = Environment.GetEnvironmentVariable("EXPANDLINK");  // EXPANDLINK=ax,ay,bx,by: that portal pair built (no checks), you standing by its first end
+      if (xlink != null) {
+        var lq = Array.ConvertAll(xlink.Split(','), int.Parse);
+        var ln = new PortalLink { AX = (short)lq[0], AY = (short)lq[1], BX = (short)lq[2], BY = (short)lq[3] };
+        xg.Links.Add(ln); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+        V2 lin = xg.ExpansionWorld.Portals[xg.ExpansionWorld.Portals.Length - 1].InA;
+        int pi3 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = ln.A + lin * (160f + 40f * pi3) + lin.Orthogonal() * (60f * pi3); pi3++; }
       }
       if (Environment.GetEnvironmentVariable("EXPANDPORTAL") != null) {  // EXPANDPORTAL=1: the best portal pair built, you standing by one end
         var bl = Expansion.BestLink(xg.ExpansionWorld, 0);

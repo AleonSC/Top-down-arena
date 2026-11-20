@@ -155,7 +155,29 @@ namespace Arena
                 float m = Math.Min(Math.Min(l, rr), Math.Min(t, b));
                 pos = m == l ? new V2(pos.X - l, pos.Y) : m == rr ? new V2(pos.X + rr, pos.Y) : m == t ? new V2(pos.X, pos.Y - t) : new V2(pos.X, pos.Y + b);
             }
-            return GateFits.Count > 0 ? PushOutOfGates(pos, r) : pos;  // a shut shutter gate (Gates.cs)
+            if (GateFits.Count > 0)
+                pos = PushOutOfGates(pos, r);  // a shut shutter gate (Gates.cs)
+            var ow = OneWayWorld;
+            return ow != null ? ow.OneWayHold(pos, r) : pos;  // a One-way piece's doors (OneWayDoors.cs)
+        }
+
+        /// The world whose one-way doors count now (a One-way piece's, OneWayDoors.cs), or null when there are none.
+        World OneWayWorld
+        {
+            get
+            {
+                if (!ExpandingOn || !RoomsOn)
+                    return null;
+                var w = CurrentWorld;
+                return w.OneWays.Length > 0 ? w : null;
+            }
+        }
+
+        /// A walker's step from `from` to `to` (a player's move or dash, an enemy's step): not through a one-way door the way it doesn't open.
+        V2 OneWayStep(V2 from, V2 to, float r)
+        {
+            var ow = OneWayWorld;
+            return ow != null ? ow.OneWayStop(from, to, r) : to;
         }
 
         /// Walls and pillars stop every shot, yours and theirs (Combat.cs, in Collide).
@@ -398,10 +420,11 @@ namespace Arena
                 return g;
             var w = d.Waypoints;
             int n = w.Length;
+            var oneWay = OneWayWorld;
             var dist = new float[n, n];
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < n; j++)
-                    dist[i, j] = i == j ? 0f : (SegBlocked(d, w[i], w[j], GraphR) ? float.MaxValue : w[i].DistanceTo(w[j]));
+                    dist[i, j] = i == j ? 0f : (SegBlocked(d, w[i], w[j], GraphR) || oneWay != null && oneWay.OneWayBlocks(w[i], w[j]) ? float.MaxValue : w[i].DistanceTo(w[j]));  // (one way through a One-way piece's door)
             if (portals && d.Links != null)  // portals: their two spots count as next to each other (Rooms.cs)
                 for (int l = 0; l + 1 < d.Links.Length; l += 2)
                     dist[d.Links[l], d.Links[l + 1]] = dist[d.Links[l + 1], d.Links[l]] = PortalHop;
@@ -438,12 +461,13 @@ namespace Arena
             if (goalCost.TryGetValue(key, out info))
                 return info;
             var w = d.Waypoints;
+            var oneWay = OneWayWorld;
             var graph = GraphFor(d, portals);
             var dist = graph.Dist;
             int n = w.Length;
             var last = new float[n];  // corners that see the target: the walk's last leg
             for (int j = 0; j < n; j++)
-                last[j] = SegBlocked(d, w[j], tpos, r) ? float.MaxValue : w[j].DistanceTo(tpos);
+                last[j] = SegBlocked(d, w[j], tpos, r) || oneWay != null && oneWay.OneWayBlocks(w[j], tpos) ? float.MaxValue : w[j].DistanceTo(tpos);
             var cost = new float[n];
             var next = new int[n];
             for (int i = 0; i < n; i++)
@@ -516,7 +540,8 @@ namespace Arena
             V2 raw = pos;
             pos = ClearOfWalls(d, pos, r);
             tpos = ClearOfWalls(d, tpos, r);
-            if (!SegBlocked(d, pos, tpos, r))
+            var oneWay = OneWayWorld;  // (a One-way piece's doors: routes cross them only the way they open, OneWayDoors.cs)
+            if (!SegBlocked(d, pos, tpos, r) && (oneWay == null || !oneWay.OneWayBlocks(pos, tpos)))
                 return dir;
             bool portals = key < 0;  // (bots, keyed by minus their id, may use portals; enemies, keyed by their id, never do)
             if (portals && d.Mouths != null && d.Mouths.Length > 0)  // at a wall portal its route goes through: walk into the wall (World.cs)
@@ -541,7 +566,7 @@ namespace Arena
                 m.Wp = -1;
             }
             m.Goal = tpos;
-            if (m.Wp >= 0 && now < m.Until && pos.FartherThan(wps[m.Wp], 14f) && !SegBlocked(d, pos, wps[m.Wp], r))
+            if (m.Wp >= 0 && now < m.Until && pos.FartherThan(wps[m.Wp], 14f) && !SegBlocked(d, pos, wps[m.Wp], r) && (oneWay == null || !oneWay.OneWayBlocks(pos, wps[m.Wp])))
                 return (wps[m.Wp] - pos).Normalized();
             var goal = GoalCosts(d, tpos, r, portals);
             var cost = goal.Cost;
@@ -567,7 +592,7 @@ namespace Arena
             for (int i = 0; i < wps.Length; i++)
             {
                 float toW = pos.DistanceTo(wps[i]);
-                if (toW < 14f || SegBlocked(d, pos, wps[i], r))
+                if (toW < 14f || SegBlocked(d, pos, wps[i], r) || oneWay != null && oneWay.OneWayBlocks(pos, wps[i]))
                     continue;
                 float score = toW + cost[i];
                 if (score < bestScore)

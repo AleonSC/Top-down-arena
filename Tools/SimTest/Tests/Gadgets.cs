@@ -99,7 +99,8 @@ static partial class Program
             drop.Invoke(g, new object[] { e0 });
             max = Math.Max(max, g.Gadgets.Count);
         }
-        Check(max >= 1 && max <= g.Players.Count, "kills drop a Magnet now and then, at most one per player (" + max + ")");
+        Check(max >= 1 && max <= g.Players.Count * 2, "kills drop gadgets now and then, at most one of each kind per player (" + max + ")");
+        Check(g.Gadgets.Values.Any(x => x.Kind == GadgetId.Magnet) && g.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "both the Magnet and the Energy Drink drop from kills");
 
         // The bag: a second gadget goes in the bag, the wheel's pick swaps it into the hand (over the network too), a used-up one is replaced from the bag.
         var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -139,6 +140,20 @@ static partial class Program
         Check(p2.Gadget != GadgetId.Recall || p2.BagKind.Count(k => k != GadgetId.None) < bagBefore, "a finished Recall is used up");
         Check(p2.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 160f, "and sets you down by the hub's middle");
 
+        // The Energy Drink: switched on, a big speed boost (on the client's screen too) that runs down like the Magnet; off, normal speed.
+        p2.Gadget = GadgetId.EnergyDrink; p2.GadgetLeft = Game.EnergyTime; p2.GadgetOn = false;
+        float baseSpeed = p2.Speed;
+        cg.UseGadget();
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(p2.GadgetOn && Math.Abs(p2.Speed - baseSpeed * Game.EnergySpeed) < 0.01f && p2.GadgetLeft < Game.EnergyTime, "the Energy Drink switched on: " + Game.EnergySpeed + "x move speed, its minute running down");
+        Check(cg.Players[2].GadgetOn && Math.Abs(cg.Players[2].Speed - p2.Speed) < 0.01f, "...and the client moves at the same speed");
+        cg.UseGadget();
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(!p2.GadgetOn && Math.Abs(p2.Speed - baseSpeed) < 0.01f, "switched off: normal speed, the rest saved");
+        p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(p2.Gadget != GadgetId.EnergyDrink && Math.Abs(p2.Speed - baseSpeed) < 0.01f, "a finished Energy Drink is used up");
+
         // Gadget chests: one each, into the hand or the bag; a full one spills at your feet (your own copy).
         foreach (var q in g.Players.Values)
         {
@@ -151,6 +166,36 @@ static partial class Program
         Check(g.Players[1].Gadget != GadgetId.None && g.Gadgets.Count == 0, "a Gadget chest's gadget goes in your hand");
         for (int i = 0; i < 12; i++) chestGive.Invoke(g, new object[] { g.Players[1], a });
         Check(g.Players[1].BagKind.All(k => k != GadgetId.None) && g.Gadgets.Count > 0 && g.Gadgets.Values.All(x => x.Owner == 1), "with the hand and bag full the rest spills as your own copies");
+
+        // The F1 dock's Spawn-a-gadget-or-relic sheet (Core/DevTools.cs): a full gadget at the player's feet as their own copy; a relic straight into the slot.
+        g.Gadgets.Clear();
+        Check(!cg.DevSpawnGadget(2, GadgetId.Recall) && !cg.DevSetRelic(2, RelicId.StoneHeart), "only the host can spawn a gadget or set a relic");
+        Check(g.DevSpawnGadget(2, GadgetId.EnergyDrink) && g.Gadgets.Count == 1 && g.Gadgets.Values.First().Owner == 2
+            && g.Gadgets.Values.First().Kind == GadgetId.EnergyDrink && Math.Abs(g.Gadgets.Values.First().Left - Game.EnergyTime) < 0.01f, "the dev spawn drops a full gadget, the player's own copy");
+        Check(!g.DevSpawnGadget(2, GadgetId.None), "no gadget for None");
+        float hpBefore = g.Players[2].MaxHp;
+        Check(g.DevSetRelic(2, RelicId.StoneHeart) && g.Players[2].Relic == RelicId.StoneHeart && g.Players[2].MaxHp > hpBefore, "the dev relic goes in the slot and its stats apply");
+        Check(!g.DevSetRelic(2, RelicId.StoneHeart), "setting the relic held again does nothing");
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(cg.Players[2].Relic == RelicId.StoneHeart && cg.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "the client sees the dev relic and gadget");
+        g.Coins.Clear();
+        Check(!cg.DevSpawnCoins(2, 50, false), "only the host can spawn gold");
+        Check(g.DevSpawnCoins(2, 250, false) && g.Coins.Values.Where(c => !c.Vec).Sum(c => c.Value) == 250 && g.Coins.Values.All(c => c.Owner == 2) && g.Coins.Count <= 40,
+            "the dev spawn scatters the gold as the player's own coins");
+        Check(g.DevSpawnCoins(2, 20, true) && g.Coins.Values.Where(c => c.Vec).Sum(c => c.Value) == 20, "and vectors as vector pickups");
+        int gold0 = g.Players[2].Gold;
+        foreach (var c in g.Coins.Values) c.Pos = c.Disp = g.Players[2].Pos;
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(g.Players[2].Gold == gold0 + 250 && cg.Players[2].Gold == gold0 + 250, "walking over them gives the gold (both screens)");
+        int chestsBefore = g.Props.Values.Count(q => q.Kind == PropKind.Chest);
+        Check(!cg.DevSpawnChest(2, ChestKind.Gold), "only the host can spawn a chest");
+        Check(g.DevSpawnChest(1, ChestKind.Gold) && g.DevSpawnChest(1, ChestKind.Gold), "the dev spawn puts chests in front of the player");
+        var devChests = g.Props.Values.Where(q => q.Kind == PropKind.Chest).Skip(chestsBefore).ToList();
+        Check(devChests.Count == 2 && devChests.All(q => q.Chest == ChestKind.Gold && !q.Open) && !devChests[0].Pos.CloserThan(devChests[1].Pos, Game.ChestW) && !g.PropsHoldWave(),
+            "of the kind chosen, side by side, and they don't hold the wave");
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(cg.Props.Values.Count(q => q.Kind == PropKind.Chest && q.Chest == ChestKind.Gold) >= 2, "the client sees the dev chests");
+        Check(g.DevSetRelic(2, RelicId.None) && g.Players[2].Relic == RelicId.None && Math.Abs(g.Players[2].MaxHp - hpBefore) < 0.01f, "removing the relic takes its stats away");
         client.Leave(""); host.Leave("");
     }
 }

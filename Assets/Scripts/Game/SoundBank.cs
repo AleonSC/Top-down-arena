@@ -329,7 +329,7 @@ namespace Arena
                 Sfx.FrostSlam, Sfx.FrostBreak, Sfx.BlastSlash, Sfx.BlastFlurry, Sfx.BlastWhirl, Sfx.BlastCleave, Sfx.BlastFlight, Sfx.BlastTideGather, Sfx.BlastTideWave,
                 Sfx.ChickCut1, Sfx.ChickCut2, Sfx.ChickJab, Sfx.ChickSpin, Sfx.ChickShear, Sfx.ChickHit, Sfx.ChickHitHeavy, Sfx.ChickThrow, Sfx.ChickCross,
                 Sfx.NodNuki, Sfx.NodKesa, Sfx.NodMoon, Sfx.NodTenchi, Sfx.NodNagi, Sfx.NodKasumi, Sfx.NodNidan, Sfx.NodSenbon, Sfx.NodTsuka, Sfx.NodHiki,
-                Sfx.NodToStorm, Sfx.NodToGuard })
+                Sfx.NodToStorm, Sfx.NodToGuard, Sfx.DtShot, Sfx.DtSpool })
                 c[(int)s] = Category.Weapons;
             foreach (var s in new[] {
             Sfx.EnemyShot, Sfx.BossShift, Sfx.BossCharge, Sfx.BossPulse, Sfx.BossChime, Sfx.BossLaserWarn, Sfx.BossLaser, Sfx.BossSlam,
@@ -409,6 +409,8 @@ namespace Arena
                 BuildGaleWall();  // GaleWallSoundBank.cs
                 BuildCover();  // CoverSoundBank.cs
                 BuildDecoy();  // DecoyDummySoundBank.cs
+                BuildDeployTurret();  // DeployTurretSoundBank.cs
+                BuildOneWayDoor();  // OneWayDoorSoundBank.cs
                 BuildDogma();  // DogmaSoundBank.cs
                 BuildCeremonialArmor();  // CeremonialArmorSoundBank.cs
                 BuildFrost();  // FrostSoundBank.cs

@@ -4,7 +4,13 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 445: `Msg.ExpandState` adds a byte after the map number: the core's floor plan (`Game.CoreLayout`, `CoreLayoutId`, CoreLayouts.cs).
+- 448: `Msg.ExpandState` adds a byte after the map number: the core's floor plan (`Game.CoreLayout`, `CoreLayoutId`, CoreLayouts.cs).
+- 447: `ExpansionRoom.OneWay` (a One-way piece card's rooms, `PieceMods.OneWay`) added at the end of each room in `Msg.ExpandState`; doors get `RoomDoor.Pass` (built locally, not sent). `Sfx.OneWayBump` added at the end (played locally, never sent).
+- 446: Deployable Turret health: a `ZoneKind.DeployTurret` zone's replicated `GuardFrac` now carries its health fraction (no new fields)
+- 445: dev spawners (F1 dock): the snapshot gains a byte count of `DevSpawner`s after the gadgets (id, type, elite, pos, every, timer, cap, alive)
+- 444: Deployable Turret sounds `Sfx.DtDrop`, `DtShot`, `DtSpool`, `DtHeat`, `DtBlast`, `DtLatch` added at the end (played locally, never sent); pressing its key again to step out sets the zone's Radius to 0 and T to its overheat (existing fields)
+- 443: Deployable Turret (DPS Soldier 4th choice): `AbilityId.DeployableTurret`, `ZoneKind.DeployTurret` (no new fields: the zone's Pos, Aim, T and Duration are enough; the guns' fire is drawn on each screen from its owner's aim and trigger)
+- 442: the Energy Drink gadget: `GadgetId.EnergyDrink` (2), so `GadgetId.None` moves from 2 to 3 in the Player and gadget snapshots and the bag.
 - 441: coins in the snapshot are sent as changes: a `full` flag, then either the whole list (every 60 snapshots, or when the party changes) or the coins dropped/moved since the last snapshot plus the ids of those gone (`Game.SyncCoins`).
 - 440: Decoy Dummy (Healer Soldier 4th choice): `AbilityId.DecoyDummy`, `ZoneKind.DecoyDummy` (its snapshot adds `Marched`, its GuardFrac is its health), `FxKind.DecoyHit`/`DecoyPop`/`DecoyFold`, `Sfx.DecoyThrow`/`DecoySqueak`/`DecoyPop`/`DecoyFold`.
 - 439: the Fireball's variants: `WeaponId.Waterball`, `Earthball` (Elementalist DPS picks 4 and 5); bullet kinds `WaterballShot` 71, `EarthballShot` 72.
