@@ -47,6 +47,13 @@ namespace Arena
         public static bool OneWayInward(V2 at) => new DetRandom((int)Math.Round(at.X) * 7919 + (int)Math.Round(at.Y) * 31 + 17).Int(2) == 0;
     }
 
+    public partial class Game
+    {
+        /// Frames a one-way door has held your own player back, and where you were (your screen's bump sound and spark: OneWayDoorLook.cs).
+        public int OneWayPushes;
+        public V2 OneWayPushAt;
+    }
+
     public sealed partial class World
     {
         int[] oneWays;

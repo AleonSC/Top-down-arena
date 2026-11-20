@@ -1201,7 +1201,15 @@ namespace Arena
             if (IsHost && Props.Count > 0 && !me.Downed)
                 ShoveProps(me.Pos, me.Def.HitR + PropPad, PushSpeed(me), dt, 0f, V2.Zero);  // leaning on a crate or barrel slides it (Props.cs)
             if (LayoutOn && !me.Downed)
+            {
+                V2 free = me.Pos;
                 me.Pos = OneWayStep(before, me.Pos, me.Def.HitR + PropPad);  // a One-way piece's doors: no dashing through the wrong way (OneWayDoors.cs)
+                if (me.Pos.FartherThan(free, 0.25f))
+                {
+                    OneWayPushes++;  // (your screen plays the bump: OneWayDoorLook.cs)
+                    OneWayPushAt = me.Pos;
+                }
+            }
             if ((Props.Count > 0 || LayoutOn) && !me.Downed)
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
             // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).

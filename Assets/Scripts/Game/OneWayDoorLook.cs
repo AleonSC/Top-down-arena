@@ -9,6 +9,27 @@ namespace Arena
     {
         static readonly Rgba OneWayInk = new Rgba(1f, 0.72f, 0.28f);
 
+        int oneWaySeen;           // the push count last frame
+        float oneWayLastPush = -10f;  // when a one-way door last held you (unscaled time)
+
+        /// Each frame (ArenaApp.Update): a one-way door holding you back after a moment free plays the bump and throws a small amber spark;
+        /// leaning on it keeps quiet (it bumps again once you've stepped off for a moment).
+        void TickOneWayBump()
+        {
+            if (game.OneWayPushes == oneWaySeen)
+                return;
+            oneWaySeen = game.OneWayPushes;
+            float now = Time.unscaledTime;
+            if (now - oneWayLastPush > OneWayBumpGap)
+            {
+                sounds?.Play(new SoundCue { Sfx = Sfx.OneWayBump }, now);
+                Ring(game.OneWayPushAt, 34f, 0.3f, OneWayInk);
+            }
+            oneWayLastPush = now;
+        }
+
+        const float OneWayBumpGap = 0.35f;
+
         void DrawOneWayDoor(World wd, RoomDoor d, float a)
         {
             int into = d.Pass > 0 ? d.B : d.A;
