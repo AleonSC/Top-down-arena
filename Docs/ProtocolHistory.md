@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 448: the Rioter's sounds `Sfx.RiotYell`, `RiotAttack`, `RiotHup`, `RiotWhoosh`, `RiotShatter`, `RiotDie`, `RiotStep` added at the end (the bottle's throw now sends `RiotWhoosh` instead of `Throw`; the rest played locally, never sent)
+- 449: the Rioter's sounds `Sfx.RiotYell`, `RiotAttack`, `RiotHup`, `RiotWhoosh`, `RiotShatter`, `RiotDie`, `RiotStep` added at the end (the bottle's throw now sends `RiotWhoosh` instead of `Throw`; the rest played locally, never sent)
 - 448: `Msg.ExpandState` adds a byte after the map number: the core's floor plan (`Game.CoreLayout`, `CoreLayoutId`, CoreLayouts.cs).
 - 447: `ExpansionRoom.OneWay` (a One-way piece card's rooms, `PieceMods.OneWay`) added at the end of each room in `Msg.ExpandState`; doors get `RoomDoor.Pass` (built locally, not sent). `Sfx.OneWayBump` added at the end (played locally, never sent).
 - 446: Deployable Turret health: a `ZoneKind.DeployTurret` zone's replicated `GuardFrac` now carries its health fraction (no new fields)
