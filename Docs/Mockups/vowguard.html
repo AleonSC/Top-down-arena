@@ -50,13 +50,21 @@ kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2
 .st-head{display:flex;gap:6px 18px;align-items:baseline;flex-wrap:wrap}
 .st-head h3{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;color:var(--c)}
 .st-head p{margin:0;color:var(--muted);font-size:15px;flex:1 1 320px;min-width:0}
-.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-@media (max-width:640px){.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.slot{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;min-width:0}
+.slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:760px){.slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:480px){.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slot{display:flex;flex-direction:column;gap:6px;padding:8px 10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;min-width:0}
+.slot .pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:none;border:0;padding:0;width:100%;min-width:0}
+.slot .ops{display:flex;gap:4px}
+.slot .ops button{padding:2px 0;flex:1;font:600 13px var(--mono);border-radius:4px}
+.slot .ops .x:hover{border-color:#c9483f;color:#c9483f}
+.slot.add{align-items:center;justify-content:center;border-style:dashed;color:var(--muted);font:500 12px var(--mono);text-align:center;min-height:86px}
+.slot.drag{opacity:.4} .slot.over{border-color:var(--c);border-style:dashed}
+.st-tools{display:flex;gap:6px} .st-tools button{padding:4px 10px;font-size:13px}
 .slot .k{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .slot .n{font:700 19px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02em}
 .slot.fin .k{color:var(--c)}
-.slot[aria-pressed="true"]{border-color:var(--c);box-shadow:inset 0 0 0 2px var(--c)}
+.slot.sel{border-color:var(--c);box-shadow:inset 0 0 0 2px var(--c)}
 .slot.playing .n{color:var(--c)}
 .stats{display:flex;gap:6px 20px;flex-wrap:wrap;font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
 .stats b{color:var(--fg);font-weight:500}
@@ -84,7 +92,7 @@ kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2
 <header>
   <p class="eyebrow">Healer · Knight · 4th weapon key · mockup (approximate: a browser sketch, not the game's draw code)</p>
   <h1>Vow<span>guard</span> <em>·</em> sword &amp; shield</h1>
-  <p>An arming sword and a heater shield with two stances. <b>Valor</b> fights with both: cuts, thrusts and shield bashes. <b>Sanctuary</b> holds the shield up front, blocks shots and turns blocks into healing. Each stance plays a four-step combo you build yourself from a pool of nine moves: three links, then a finisher.</p>
+  <p>An arming sword and a heater shield with two stances. <b>Valor</b> fights with both: cuts, thrusts and shield bashes. <b>Sanctuary</b> holds the shield up front, blocks shots and turns blocks into healing. Each stance plays a chain of up to 10 steps you build yourself from its nine moves, in any order, repeats allowed.</p>
 </header>
 
 <section aria-labelledby="h-stage">
@@ -97,34 +105,37 @@ kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2
       <button class="chip" id="sp3" data-sp="0.25" aria-pressed="false">0.25×</button>
     </div>
     <label class="tg"><input type="checkbox" id="auto" checked> Hold Fire (auto)</label>
-    <label class="tg"><input type="checkbox" id="autosw" checked> Switch stance after each finisher</label>
+    <label class="tg"><input type="checkbox" id="autosw" checked> Switch stance at the end of each chain</label>
     <span class="sub" id="readout"></span>
   </div>
   <div class="frame"><canvas id="stage" tabindex="0" aria-label="Live stage: the knight plays your combo"></canvas></div>
   <div class="touch"><button id="bFire">Fire (next step)</button><button id="bShift">Shift stance</button></div>
-  <p class="help"><kbd>Space</kbd> or click the stage: next step · <kbd>Q</kbd> / <kbd>Alt</kbd>: shift stance · the diamonds over the knight are the combo (top row: this stance, dim row: the other), the dots under it are Faith.</p>
+  <p class="help"><kbd>Space</kbd> or click the stage: next step · <kbd>Q</kbd> / <kbd>Alt</kbd>: shift stance · the diamonds over the knight are the chain (gold-edged: finishers) (top row: this stance, dim row: the other), the dots under it are Faith.</p>
 </section>
 
 <section aria-labelledby="h-build">
   <h2 id="h-build">Build your combos</h2>
-  <p class="lede">Pick a slot, then a move. Slots 1-3 take links, slot 4 takes a finisher; picking a move already in the combo swaps the two. The stage plays your edit straight away.</p>
+  <p class="lede">Click a move to add it to the end of the chain (up to 10 steps). <b>×</b> removes a step, the arrows or dragging reorder it, and clicking a step first makes the next move you pick replace it. The stage plays your edit straight away.</p>
   <div class="bar"><span class="sub">Presets</span>
     <div class="chips" id="presets">
       <button class="chip" data-p="crusader">Crusader (damage)</button>
       <button class="chip" data-p="shepherd">Shepherd (healing)</button>
       <button class="chip" data-p="bastion">Bastion (control)</button>
+      <button class="chip" data-p="marathon">Marathon (10 + 10)</button>
     </div>
   </div>
   <div class="stances">
     <div class="stance" data-st="V">
       <div class="st-head"><h3>Valor</h3><p>Sword forward, shield on the arm. Full speed; the shield only blocks during shield moves. Hits light Faith.</p></div>
       <div class="slots" id="slotsV"></div>
+      <div class="st-tools"><button data-clear="V">Clear to one step</button><button data-fill="V">Remove last</button></div>
       <div class="stats" id="statsV"></div>
       <div class="pool" id="poolV"></div>
     </div>
     <div class="stance" data-st="S">
       <div class="st-head"><h3>Sanctuary</h3><p>Shield up front, sword tucked. 80% speed; small shots in a 100° front arc are always blocked, and each block lights Faith.</p></div>
       <div class="slots" id="slotsS"></div>
+      <div class="st-tools"><button data-clear="S">Clear to one step</button><button data-fill="S">Remove last</button></div>
       <div class="stats" id="statsS"></div>
       <div class="pool" id="poolS"></div>
     </div>
@@ -134,12 +145,12 @@ kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2
 <section aria-labelledby="h-rules">
   <h2 id="h-rules">How it plays</h2>
   <div class="rules">
-    <div class="rule"><h3>Fire</h3><p>Plays the next step of this stance's combo. Hold to keep going; a press counts once a step is 70% through. The combo starts over 0.8 s after a step ends without one.</p></div>
+    <div class="rule"><h3>Fire</h3><p>Plays the next step of this stance's chain (1 to 10 steps). Hold to keep going; a press counts once a step is 70% through. The chain starts over 0.8 s after a step ends without one, and after its last step.</p></div>
     <div class="rule"><h3>Shift (weapon-action key)</h3><p>0.25 s to change stance. Each stance keeps its own place, like the Nodachi. Going into Sanctuary blocks at once; going into Valor shoves with the rim (6, 40 px).</p></div>
-    <div class="rule"><h3>Faith</h3><p>Up to 6. Valor lights one per enemy hit, Sanctuary one per shot blocked. A finisher spends it all: +2 healing and +3 damage per Faith. A perfect parry fills it.</p></div>
+    <div class="rule"><h3>Faith</h3><p>Up to 6. Valor links light one per enemy hit, Sanctuary one per shot blocked. A finisher (anywhere in the chain) spends it all: +2 healing and +3 damage per Faith. A perfect parry fills it.</p></div>
     <div class="rule"><h3>Parry</h3><p>Raising the parry starts both combos over (as on the Arc Knuckles), so you can reset into your opener.</p></div>
-    <div class="rule"><h3>Building a combo</h3><p>In the lobby, the weapon's detail box gets a Combo row per stance: four <code>DkKey</code> slots and the move list. Saved with the loadout; bots use the Crusader preset.</p></div>
-    <div class="rule"><h3>Mastery card</h3><p>Proposed: +1 combo slot in each stance (four links, then the finisher).</p></div>
+    <div class="rule"><h3>Building a combo</h3><p>In the lobby, the weapon's detail box gets a Combo row per stance: up to ten <code>DkKey</code> steps (× to remove, drag to reorder) and the move list. Saved with the loadout (10 bytes a stance); bots use the Crusader preset.</p></div>
+    <div class="rule"><h3>Mastery card</h3><p>Proposed: the last step of each chain hits 25% harder and heals 25% more.</p></div>
   </div>
   <p class="note">Numbers are first guesses sized against the Lightbringer and Censer (about 45-55 damage a second, 8-15 healing a second in a full rotation). Moves, names and numbers are all open to change.</p>
 </section>
@@ -249,12 +260,14 @@ mv({id:'ward',st:'S',name:'Sanctified Ward',fin:1,dur:.52,dmg:0,heal:38,num:'15 
   fx:(c,P,t)=>{healRing(c,0,0,180,t,.45,1,COL.ward);const q=win(t,.55,1);if(q<0)return;for(const a of AL)hex(c,a[0],a[1],22,rgba(COL.ward,1-q*.6),2.5)}});
 
 const POOL={V:Object.values(M).filter(m=>m.st==='V'),S:Object.values(M).filter(m=>m.st==='S')};
-const PRESETS={crusader:{V:['edge','thrust','spin','cleave'],S:['jab','sweep','step','ward']},
-  shepherd:{V:['bash','edge','twin','slam'],S:['tap','guard','cover','dome']},
-  bastion:{V:['hook','bash','edge','charge'],S:['guard','sweep','jab','absorb']}};
+const MAX=10;
+const PRESETS={crusader:{V:['edge','thrust','edge','spin','thrust','cleave'],S:['jab','sweep','jab','step','ward']},
+  shepherd:{V:['bash','edge','twin','slam','edge','spin','cleave'],S:['tap','guard','cover','tap','dome']},
+  bastion:{V:['hook','bash','edge','twin','charge'],S:['guard','sweep','jab','guard','sweep','absorb']},
+  marathon:{V:['edge','bash','thrust','edge','hook','twin','spin','thrust','edge','slam'],S:['jab','guard','jab','sweep','tap','step','jab','sweep','guard','absorb']}};
 let combo=JSON.parse(JSON.stringify(PRESETS.crusader));
-try{const s=JSON.parse(localStorage.getItem('vowguard-combo')||'null');if(s&&s.V&&s.S&&s.V.every(i=>M[i])&&s.S.every(i=>M[i]))combo=s}catch(e){}
-function save(){try{localStorage.setItem('vowguard-combo',JSON.stringify(combo))}catch(e){}}
+try{const s=JSON.parse(localStorage.getItem('vowguard-chain')||'null');if(s&&s.V&&s.S&&[s.V,s.S].every(a=>a.length>=1&&a.length<=MAX&&a.every(i=>M[i])))combo=s}catch(e){}
+function save(){try{localStorage.setItem('vowguard-chain',JSON.stringify(combo))}catch(e){}}
 
 function poseAt(m,t,st){const R=REST[m?m.st:st];if(!m)return R.slice();
   const last=m.keys[m.keys.length-1];let end=R.slice();
@@ -314,22 +327,37 @@ function drawMini(o,now){const c=o.c,m=o.m,per=m.dur*2+.5;let t=reduce?.58:(((no
     const tg=h[1]==='self'?[[P[4],P[5]]]:h[1]==='line'?[AL[1]]:typeof h[1]==='number'&&h[1]<10?[AL[h[1]]]:AL;for(const a of tg)c.fillText('+'+h[2],a[0]+14,a[1]-14-p*16)}}
 
 // --- builder ---
-let sel={st:'V',i:0};
-function slotOk(st,i,m){return m.st===st&&(i===3?!!m.fin:!m.fin)}
-function pick(st,id){const m=M[id],arr=combo[st];let i=sel.st===st?sel.i:(m.fin?3:0);
-  if(!slotOk(st,i,m))i=m.fin?3:(arr.indexOf(id)>=0?arr.indexOf(id):0);
-  const j=arr.indexOf(id);if(j>=0&&j!==i)arr[j]=arr[i];arr[i]=id;
-  sel={st,i:i<2?i+1:i};save();renderBuilder();resetStage()}
-function renderBuilder(){for(const st of ['V','S']){const el=document.getElementById('slots'+st);el.innerHTML='';
-  combo[st].forEach((id,i)=>{const b=document.createElement('button');b.className='slot'+(i===3?' fin':'');b.id=`slot-${st}${i}`;
-    b.setAttribute('aria-pressed',String(sel.st===st&&sel.i===i));b.innerHTML=`<span class="k">${i===3?'Finisher':'Step '+(i+1)}</span><span class="n">${M[id].name}</span>`;
-    b.addEventListener('click',()=>{sel={st,i};renderBuilder()});el.appendChild(b)});
-  const ms=combo[st].map(i=>M[i]),time=ms.reduce((s,m)=>s+m.dur,0)+.2,dmg=ms.reduce((s,m)=>s+m.dmg,0),heal=ms.reduce((s,m)=>s+m.heal,0);
+let sel={st:'V',i:-1},dragI=null;
+function changed(){save();renderBuilder();resetStage()}
+function pick(st,id){const arr=combo[st];
+  if(sel.st===st&&sel.i>=0&&sel.i<arr.length){arr[sel.i]=id;sel.i=-1}
+  else if(arr.length<MAX)arr.push(id);else return;changed()}
+function edit(st,i,op){const a=combo[st];
+  if(op==='x'){if(a.length>1)a.splice(i,1);sel.i=-1}
+  else if(op==='l'&&i>0)[a[i-1],a[i]]=[a[i],a[i-1]];
+  else if(op==='r'&&i<a.length-1)[a[i+1],a[i]]=[a[i],a[i+1]];
+  changed()}
+function renderBuilder(){for(const st of ['V','S']){const el=document.getElementById('slots'+st),arr=combo[st];el.innerHTML='';
+  arr.forEach((id,i)=>{const m=M[id],d=document.createElement('div');d.className='slot'+(m.fin?' fin':'')+(sel.st===st&&sel.i===i?' sel':'');d.draggable=true;
+    d.innerHTML=`<button class="pick" id="slot-${st}${i}" aria-pressed="${sel.st===st&&sel.i===i}" title="Select to replace"><span class="k">${i+1}${m.fin?' · finisher':''}</span><span class="n">${m.name}</span></button>
+      <div class="ops"><button data-op="l" aria-label="Move earlier" ${i?'':'disabled'}>◀</button><button data-op="r" aria-label="Move later" ${i<arr.length-1?'':'disabled'}>▶</button><button class="x" data-op="x" aria-label="Remove step ${i+1}" ${arr.length>1?'':'disabled'}>×</button></div>`;
+    d.querySelector('.pick').addEventListener('click',()=>{sel=(sel.st===st&&sel.i===i)?{st,i:-1}:{st,i};renderBuilder()});
+    d.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click',()=>edit(st,i,b.dataset.op)));
+    d.addEventListener('dragstart',e=>{dragI={st,i};d.classList.add('drag');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','')});
+    d.addEventListener('dragend',()=>{dragI=null;d.classList.remove('drag')});
+    d.addEventListener('dragover',e=>{if(dragI&&dragI.st===st){e.preventDefault();d.classList.add('over')}});
+    d.addEventListener('dragleave',()=>d.classList.remove('over'));
+    d.addEventListener('drop',e=>{e.preventDefault();if(!dragI||dragI.st!==st)return;const[x]=arr.splice(dragI.i,1);arr.splice(i,0,x);dragI=null;sel.i=-1;changed()});
+    el.appendChild(d)});
+  if(arr.length<MAX){const d=document.createElement('div');d.className='slot add';d.textContent=`+ pick a move below (${MAX-arr.length} left)`;el.appendChild(d)}
+  const ms=arr.map(i=>M[i]),time=ms.reduce((s,m)=>s+m.dur,0)+.05*ms.length,dmg=ms.reduce((s,m)=>s+m.dmg,0),heal=ms.reduce((s,m)=>s+m.heal,0);
   const g=ms.reduce((s,m)=>s+(m.guard?(m.guard.t1-m.guard.t0)*m.dur:0),0);
-  document.getElementById('stats'+st).innerHTML=`<span>combo <b>${time.toFixed(2)} s</b></span><span>damage <b>${dmg}</b> (${Math.round(dmg/time)}/s)</span><span>healing <b>${heal}</b> (${Math.round(heal/time)}/s)</span><span>${st==='S'?'guard <b>always up</b>':'shield blocks <b>'+Math.round(g/time*100)+'%</b> of the combo'}</span><span>+ Faith on the finisher</span>`;
-  for(const m of POOL[st]){const card=document.getElementById('card-'+m.id),k=combo[st].indexOf(m.id);
-    card.classList.toggle('used',k>=0);card.querySelector('.in').textContent=k>=0?(k===3?'In the finisher slot':'In step '+(k+1)):'';
-    card.classList.toggle('dim',sel.st===st&&!slotOk(st,sel.i,m))}}}
+  document.getElementById('stats'+st).innerHTML=`<span>steps <b>${arr.length}/${MAX}</b>${arr.length>=MAX?' (full: × a step to add another)':''}</span><span>chain <b>${time.toFixed(2)} s</b></span><span>damage <b>${dmg}</b> (${Math.round(dmg/time)}/s)</span><span>healing <b>${heal}</b> (${Math.round(heal/time)}/s)</span><span>${st==='S'?'guard <b>always up</b>':'shield blocks <b>'+Math.round(g/time*100)+'%</b> of the chain'}</span><span>+ Faith on finishers</span>`;
+  for(const m of POOL[st]){const card=document.getElementById('card-'+m.id),ks=arr.map((x,k)=>x===m.id?k+1:0).filter(Boolean);
+    card.classList.toggle('used',ks.length>0);card.querySelector('.in').textContent=ks.length?('In step'+(ks.length>1?'s ':' ')+ks.join(', ')):'';
+    card.classList.toggle('dim',sel.st!==st&&sel.i>=0||(sel.i<0&&arr.length>=MAX))}}}
+document.querySelectorAll('[data-clear]').forEach(b=>b.addEventListener('click',()=>{const st=b.dataset.clear;combo[st]=combo[st].slice(0,1);sel.i=-1;changed()}));
+document.querySelectorAll('[data-fill]').forEach(b=>b.addEventListener('click',()=>{const st=b.dataset.fill;if(combo[st].length>1)combo[st].pop();sel.i=-1;changed()}));
 document.getElementById('presets').addEventListener('click',e=>{const p=e.target.closest('[data-p]');if(!p)return;combo=JSON.parse(JSON.stringify(PRESETS[p.dataset.p]));save();renderBuilder();resetStage()});
 
 // --- stage ---
@@ -341,7 +369,7 @@ function sizeStage(){const r=devicePixelRatio||1;cv.width=Math.round(1000*r);cv.
 const kpos=P=>[S.base[0]+P[4],S.base[1]+P[5]];
 function curPose(){if(S.sw>0){const u=ease(1-S.sw/.25);return REST[S.swFrom].map((v,j)=>lerp(v,REST[S.st][j],u))}return poseAt(S.cur,S.t,S.st)}
 function float(x,y,txt,col){S.floats.push({x,y,txt,col,life:1})}
-function start(){S.cur=M[combo[S.st][S.step[S.st]]];S.t=0;S.hitI=0;S.healI=0;S.idle=0;S.queued=false;S.domeDone=false}
+function start(){const a=combo[S.st];S.step[S.st]%=a.length;S.cur=M[a[S.step[S.st]]];S.t=0;S.hitI=0;S.healI=0;S.idle=0;S.queued=false;S.domeDone=false}
 function press(){if(S.sw>0){S.queued=true;return}if(!S.cur)start();else if(S.t>.7)S.queued=true}
 function shift(){S.swFrom=S.st;S.st=S.st==='V'?'S':'V';S.cur=null;S.sw=.25;S.queued=false;
   if(S.st==='V'){const kp=kpos(REST.S);EN.forEach((e,i)=>{if(Math.hypot(e[0]-kp[0],e[1]-kp[1])<90){S.ef[i]=.15;float(e[0],e[1]-16,'6',COL.gold)}})}}
@@ -361,8 +389,8 @@ function step(dt){
     if(m.wardAt&&S.t>=m.wardAt&&!S.domeDone){S.domeDone=true;for(const a of AL)float(a[0]+16,a[1]+8,'ward 15',COL.ward)}
     if(S.t>=1){if(m.keep){S.base[0]+=P[4];S.base[1]+=P[5]}
       if(m.fin&&S.faith){float(kp[0],kp[1]-48,'Faith ×'+S.faith,COL.gold);S.faith=0}
-      S.cur=null;S.idle=0;S.step[S.st]=(S.step[S.st]+1)%4;
-      if(auto.checked&&m.fin&&autosw.checked)shift();else if(S.queued||auto.checked)start()}}
+      const n=combo[S.st].length,wasLast=S.step[S.st]>=n-1;S.cur=null;S.idle=0;S.step[S.st]=(S.step[S.st]+1)%n;
+      if(auto.checked&&wasLast&&autosw.checked)shift();else if(S.queued||auto.checked)start()}}
   else{S.idle+=dt;if(S.idle>.8)S.step[S.st]=0;if(auto.checked&&S.idle>.12)start()}
   if(!S.cur||!S.cur.keep){for(let k=0;k<2;k++){const v=S.base[k],d=Math.min(Math.abs(v),110*dt);S.base[k]-=Math.sign(v)*d}}
   // bullets
@@ -393,10 +421,10 @@ function drawStage(){const r=devicePixelRatio||1;ctx.setTransform(r,0,0,r,0,0);c
   for(const b of S.bullets){ctx.beginPath();ctx.arc(b.x,b.y,4.5,0,TAU);ctx.fillStyle=b.ref?COL.jade:COL.shot;ctx.fill();ctx.beginPath();ctx.arc(b.x,b.y,2,0,TAU);ctx.fillStyle='#fff3e0';ctx.fill()}
   for(const s of S.sparks){ctx.strokeStyle=rgba(s.col,s.life);ctx.lineWidth=2;for(let i=0;i<5;i++){const a=i*1.26,r0=4+(1-s.life)*10;ctx.beginPath();ctx.moveTo(s.x+Math.cos(a)*r0,s.y+Math.sin(a)*r0);ctx.lineTo(s.x+Math.cos(a)*(r0+5),s.y+Math.sin(a)*(r0+5));ctx.stroke()}}
   // hud over the knight
-  const kp=kpos(P);for(const [row,st] of [[0,S.st],[1,S.st==='V'?'S':'V']]){const y=kp[1]-40+row*11,sz=row?3.2:5,col=st==='V'?COL.gold:COL.jade;
-    for(let i=0;i<4;i++){const x=kp[0]-24+i*16,done=i<S.step[st],playing=st===S.st&&S.cur&&i===S.step[st];ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);
-      ctx.fillStyle=rgba(i===3?COL.gold:col,(done||playing?1:.22)*(row?.45:1));if(i===3&&st==='S')ctx.fillStyle=rgba(COL.jade,(done||playing?1:.22)*(row?.45:1));
-      ctx.fillRect(-sz,-sz,sz*2,sz*2);if(i===3&&!row){ctx.strokeStyle=rgba('#ffffff',.6);ctx.lineWidth=1;ctx.strokeRect(-sz-1.5,-sz-1.5,sz*2+3,sz*2+3)}ctx.restore()}}
+  const kp=kpos(P);for(const [row,st] of [[0,S.st],[1,S.st==='V'?'S':'V']]){const y=kp[1]-40+row*10,sz=row?2.6:4,col=st==='V'?COL.gold:COL.jade,arr=combo[st],n=arr.length,gap=row?8:11;
+    for(let i=0;i<n;i++){const x=kp[0]-(n-1)*gap/2+i*gap,done=i<S.step[st],playing=st===S.st&&S.cur&&i===S.step[st];ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);
+      ctx.fillStyle=rgba(col,(done||playing?1:.22)*(row?.45:1));
+      ctx.fillRect(-sz,-sz,sz*2,sz*2);if(M[arr[i]].fin&&!row){ctx.strokeStyle=rgba('#ffffff',.6);ctx.lineWidth=1;ctx.strokeRect(-sz-1.5,-sz-1.5,sz*2+3,sz*2+3)}ctx.restore()}}
   for(let i=0;i<6;i++){ctx.beginPath();ctx.arc(kp[0]-20+i*8,kp[1]+26,2.6,0,TAU);ctx.fillStyle=i<S.faith?'#fff1b8':'rgba(255,241,184,.18)';ctx.fill()}
   for(const f of S.floats){ctx.font='700 15px Barlow, sans-serif';ctx.textAlign='center';ctx.fillStyle=rgba(f.col,f.life);ctx.fillText(f.txt,f.x,f.y-(1-f.life)*22)}
   ctx.textAlign='left';
@@ -405,7 +433,7 @@ function drawStage(){const r=devicePixelRatio||1;ctx.setTransform(r,0,0,r,0,0);c
   ctx.fillText(S.st==='V'?'VALOR':'SANCTUARY',20,42);ctx.font='600 15px Barlow, sans-serif';ctx.fillStyle='#d8dde6';
   ctx.fillText(S.sw>0?'Shifting stance…':S.cur?S.cur.name:'Ready',20,64);
   ctx.font='500 12px "IBM Plex Mono", monospace';ctx.fillStyle='#8b96a8';ctx.fillText(`damage ${S.tot.dmg}   healing ${S.tot.heal}   shots blocked ${S.tot.blk}`,20,452);
-  for(const st of ['V','S'])document.querySelectorAll(`#slots${st} .slot`).forEach((el,i)=>el.classList.toggle('playing',st===S.st&&!!S.cur&&i===S.step[st]))}
+  for(const st of ['V','S'])document.querySelectorAll(`#slots${st} .slot:not(.add)`).forEach((el,i)=>el.classList.toggle('playing',st===S.st&&!!S.cur&&i===S.step[st]))}
 const auto=document.getElementById('auto'),autosw=document.getElementById('autosw');
 let last=performance.now();
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!reduce||true)step(dt*speed);drawStage();for(const o of minis)drawMini(o,now);requestAnimationFrame(frame)}
