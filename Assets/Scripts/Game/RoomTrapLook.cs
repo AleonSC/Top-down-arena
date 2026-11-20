@@ -47,9 +47,12 @@ namespace Arena
             }
         }
 
-        void DrawTrapTurret(V2 c, float t)
+        void DrawTrapTurret(V2 home, float t)
         {
-            float aim = t * 0.5f + c.X * 0.01f, best = RoomTraps.TurretRange * RoomTraps.TurretRange;
+            float hp = game.TurretHpFrac(home), ago = game.TurretHitAgo(home);
+            float hit = Mathf.Clamp01(1f - ago / 0.2f);  // 1 at the moment of a hit, gone in 0.2 s
+            V2 c = home + new V2(Mathf.Sin(ago * 95f + home.X), Mathf.Cos(ago * 83f + home.Y)) * (3.5f * hit);  // it shudders
+            float aim = t * 0.5f + home.X * 0.01f, best = RoomTraps.TurretRange * RoomTraps.TurretRange;
             bool locked = false;
             foreach (var p in game.Players.Values)
             {
@@ -63,17 +66,45 @@ namespace Arena
                 NodeFrame(f.X - 6f, f.Y - 6f, 12f, 12f, 2f, RoomTrapRed.WithAlpha(0.8f));
             }
             Circle(c, 25f, new Rgba(0.1f, 0.03f, 0.04f, 0.95f), 24);
-            Arc(c, 25f, 3f, RoomTrapRed.WithAlpha(0.95f), 24);
+            Arc(c, 25f, 3f, RoomTrapRed.Mix(new Rgba(1f, 1f, 1f), hit).WithAlpha(0.95f), 24);
             var dir = V2.FromAngle(aim);
             var side = new V2(-dir.Y, dir.X);
             for (int s = -1; s <= 1; s += 2)
                 Line(c + side * (4.5f * s) + dir * 6f, c + side * (4.5f * s) + dir * 32f, 4f, RoomTrapRed.WithAlpha(0.95f));
             Circle(c, 12f, RoomTrapRed.WithAlpha(0.3f), 16);
             Arc(c, 12f, 2.5f, RoomTrapRed, 16);
-            float hp = game.TurretHpFrac(c);  // a damaged turret wears a health bar over it, red on a dark slot, flashing white when just hit
+            if (hit > 0f)  // a white flash over the plate
+                Circle(c, 25f, new Rgba(1f, 1f, 1f, 0.55f * hit), 24);
+
+            // Damage shows on the plate: cracks, then smoke, then sparks and a glow of heat.
+            if (hp < 0.66f)
+            {
+                Line(c + new V2(-14f, -9f), c + new V2(-3f, 1f), 1.5f, new Rgba(1f, 0.7f, 0.5f, 0.85f));
+                Line(c + new V2(-3f, 1f), c + new V2(2f, 12f), 1.5f, new Rgba(1f, 0.7f, 0.5f, 0.85f));
+            }
+            if (hp < 0.33f)
+            {
+                Line(c + new V2(13f, -10f), c + new V2(5f, -1f), 1.5f, new Rgba(1f, 0.7f, 0.5f, 0.85f));
+                Line(c + new V2(5f, -1f), c + new V2(9f, 11f), 1.5f, new Rgba(1f, 0.7f, 0.5f, 0.85f));
+                Circle(c, 25f, new Rgba(1f, 0.35f, 0.1f, 0.12f + 0.1f * Mathf.Sin(t * 12f)), 24);
+            }
+            if (hp < 0.5f)
+                for (int k = 0; k < 3; k++)  // smoke drifting up
+                {
+                    float ph = (t * 0.7f + k / 3f) % 1f;
+                    Circle(c + new V2(Mathf.Sin(ph * 6f + k * 2f) * 5f, -20f - ph * 34f), 4f + ph * 8f, new Rgba(0.55f, 0.55f, 0.6f, 0.38f * (1f - ph)), 10);
+                }
+            if (ago < 0.35f)  // sparks fly off the hit
+                for (int k = 0; k < 7; k++)
+                {
+                    float a = (home.X * 0.37f + k * 0.9f + (k % 2) * 2.1f) * 1.7f;
+                    float run = 18f + ago * 190f * (0.6f + 0.15f * (k % 3));
+                    Line(c + V2.FromAngle(a) * run, c + V2.FromAngle(a) * (run + 8f), 2f, new Rgba(1f, 0.8f, 0.4f, 1f - ago / 0.35f));
+                }
+
             if (hp < 1f)
             {
-                float ago = game.TurretHitAgo(c), flashT = Mathf.Clamp01(1f - ago / 0.15f);
+                float flashT = hit;
                 float bw = 46f, bh = 6f, bx = c.X - bw / 2f, by = c.Y - 46f;
                 FillRect(bx - 1f, by - 1f, bw + 2f, bh + 2f, new Rgba(0.02f, 0.01f, 0.02f, 0.9f));
                 FillRect(bx, by, bw * hp, bh, RoomTrapRed.Mix(new Rgba(1f, 1f, 1f), flashT).WithAlpha(0.95f));
