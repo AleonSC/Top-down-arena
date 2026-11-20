@@ -10,6 +10,7 @@ namespace Arena
         public float T;          // seconds of life left (shots that cross it wear it down)
         public int Owner, Stroke;
         public int Pen;          // > 0: this dot is part of a closed loop (an InkPen)
+        public bool Lit;         // the loop it belongs to has been set alight (Alt)
     }
 
     /// A closed loop of ink: the enemies inside it when it closed can't get out until it fades or breaks.
@@ -17,6 +18,7 @@ namespace Arena
     {
         public int Id, Owner;
         public float T;
+        public bool Lit;         // set alight by its owner's Alt: what it holds burns
         public List<V2> Poly = new List<V2>();
         public int Dots;         // how many dots make up its ring
     }
@@ -24,12 +26,16 @@ namespace Arena
     /// Spirit Chalk (Healer Summoner): hold and drag to draw a line of spirit ink. It burns and slows enemies touching it, heals
     /// allies standing on it and (with the Warding Ink card) destroys enemy bullets that cross it, each wearing it down fast. Draw a loop round enemies and they
     /// are penned in until it fades (bosses aren't held). Clients see it through the snapshot (SyncInk). Looks: Game/ChalkLook.cs.
+    ///   Alt (Msg.WeaponDash DashIgnite): sets every sealed loop of yours alight. The enemies penned in burn ChalkIgniteDps for
+    ///   ChalkIgniteTime and the ring holds that long (or its own remaining time, if more). Needs a loop with enemies in it; cooldown ChalkIgniteCd.
     public partial class Game
     {
         public const float ChalkSpeed = 700f, ChalkStep = 10f, ChalkLife = 10f, ChalkInk = 600f, ChalkDotR = 11f;
         public const float ChalkBurn = 26f, ChalkSlow = 0.3f, ChalkHeal = 10f, ChalkWear = 1.5f;  // ink fades out over ChalkLife s; with Warding Ink each bullet it stops takes ChalkWear s off the dot it hit
         public const float ChalkErase = 0.3f;  // a dot with less life than this is fading out (erased, or about to expire) and no longer counts as ink down
         public const float ChalkSeal = 3.5f, ChalkCloseDist = 20f, ChalkMinLoopArea = 3600f;  // a loop closes within this of where it began; it holds this long; it must enclose at least about 60 x 60 px
+        public const float ChalkIgniteCd = 6f, ChalkIgniteTime = 3f, ChalkIgniteDps = 40f;
+        const byte DashIgnite = 47;
         public const int ChalkMinLoopDots = 12;  // a loop is at least 120 px of line (so a scribble in place doesn't count)
 
         /// How far from you you can draw (Piercing Rounds stretch it); the aim line ends here too.
@@ -40,6 +46,9 @@ namespace Arena
         readonly Dictionary<int, InkPen> pens = new Dictionary<int, InkPen>();  // host
         readonly Dictionary<int, ChalkHand> hands = new Dictionary<int, ChalkHand>();  // host: each drawer's pen tip
         int nextStroke = 1, nextPen = 1;
+        float igniteLocalCd;  // your own game: until the Alt can ignite again (drawn as a ring under your feet)
+        public float IgniteLocalCd => igniteLocalCd;
+        public readonly Dictionary<int, float> InkLitAt = new Dictionary<int, float>();  // everyone's game: pen id -> AnimT when it was first seen alight (for its flare-up)
 
         /// Where each drawer's chalk is right now (while they hold the button), sent with the ink so the head of a line moves
         /// smoothly instead of in dab-sized steps. InkTipDisp is what's drawn: it eases toward the tip every frame (UpdateInkView).
@@ -60,7 +69,10 @@ namespace Arena
         void TickChalk(float dt)
         {
             foreach (var p in Players.Values)
+            {
+                p.ChalkIgniteCd = Math.Max(0f, p.ChalkIgniteCd - dt);
                 DrawChalk(p, dt);
+            }
             if (Ink.Count == 0 && pens.Count == 0)
                 return;
             // Wear: dots fade, a broken ring frees its pen.
@@ -87,7 +99,10 @@ namespace Arena
                 pens.Remove(id);
                 foreach (var d in Ink)
                     if (d.Pen == id)
+                    {
                         d.Pen = 0;
+                        d.Lit = false;
+                    }
             }
             if (Ink.Count == 0)
                 return;
@@ -226,6 +241,66 @@ namespace Arena
             }
         }
 
+        /// Your own game: the Spirit Chalk's Alt. True when it sent something (LocalWeaponDash stops there).
+        bool LocalChalkIgnite(Player me, V2 aimAt, bool pressed, float dt)
+        {
+            igniteLocalCd = Math.Max(0f, igniteLocalCd - dt);
+            if (!pressed || me.Weapon.Id != WeaponId.SpiritChalk || igniteLocalCd > 0f || !Ink.Exists(d => d.Owner == me.Id && d.Pen != 0 && !d.Lit))
+                return false;
+            igniteLocalCd = ChalkIgniteCd;
+            if (IsHost)
+                HostWeaponDash(MyId, DashIgnite, aimAt);
+            else
+            {
+                var w = Proto.Begin(Msg.WeaponDash);
+                w.Write(DashIgnite);
+                w.Write(aimAt);
+                session.SendToHost(Proto.End(w));
+            }
+            return true;
+        }
+
+        /// Host: Alt pressed. Every sealed loop of yours that holds enemies is set alight and they burn. Nothing to burn, nothing spent.
+        void HostChalkIgnite(Player p)
+        {
+            if (p.Weapon.Id != WeaponId.SpiritChalk || p.Downed || p.StunT > 0f || p.ChalkIgniteCd > 0f || State == MatchState.GameOver)
+                return;
+            int caught = 0;
+            foreach (var pen in pens.Values)
+            {
+                if (pen.Owner != p.Id || pen.Lit || pen.T <= 0f)
+                    continue;
+                int inside = 0;
+                foreach (var e in Enemies.Values)
+                {
+                    if (e.PenId != pen.Id || e.Hp <= 0f)
+                        continue;
+                    inside++;
+                    e.BurnT = Math.Max(e.BurnT, ChalkIgniteTime + 0.5f);
+                    e.BurnDps = Math.Max(e.BurnDps, ChalkIgniteDps * p.Stats.DmgMult);
+                    e.BurnBy = p.Id;
+                }
+                if (inside == 0)
+                    continue;
+                caught += inside;
+                pen.Lit = true;
+                pen.T = Math.Max(pen.T, ChalkIgniteTime);
+                V2 c = V2.Zero;
+                foreach (var q in pen.Poly)
+                    c += q;
+                c = c / pen.Poly.Count;
+                foreach (var d in Ink)
+                    if (d.Pen == pen.Id)
+                    {
+                        d.Lit = true;
+                        d.T = Math.Max(d.T, ChalkIgniteTime);
+                    }
+                BroadcastFx(FxKind.Ring, c, new Rgba(1f, 0.55f, 0.15f), (float)Math.Sqrt(PolyArea(pen.Poly) / Math.PI) + 20f, 0.45f, Sfx.SpellFire);
+            }
+            if (caught > 0)
+                p.ChalkIgniteCd = ChalkIgniteCd;
+        }
+
         public static float PolyArea(List<V2> poly)
         {
             float a = 0f;
@@ -358,6 +433,16 @@ namespace Arena
         /// between snapshots (the host sends each dot's life only 20 times a second).
         void UpdateInkView(float dt)
         {
+            if (InkLitAt.Count > 0 || Ink.Exists(d => d.Lit))
+            {
+                foreach (var d in Ink)
+                    if (d.Lit && d.Pen != 0 && !InkLitAt.ContainsKey(d.Pen))
+                        InkLitAt[d.Pen] = AnimT;
+                if (InkLitAt.Count > 0)
+                    foreach (int id in new List<int>(InkLitAt.Keys))
+                        if (!Ink.Exists(d => d.Pen == id && d.Lit))
+                            InkLitAt.Remove(id);
+            }
             float k = 1f - (float)Math.Exp(-dt * 30f);
             foreach (var kv in InkTip)
             {
@@ -387,13 +472,13 @@ namespace Arena
                     V2 pos = default(V2);
                     float t = 0f;
                     s.Byte(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
-                    Ink.Add(new InkDot { Owner = owner, Stroke = stroke, Pen = pen, Pos = pos, T = t });
+                    Ink.Add(new InkDot { Owner = owner, Stroke = stroke, Pen = pen & 0x3fff, Lit = (pen & 0x4000) != 0, Pos = pos, T = t });
                 }
             }
             else
                 foreach (var d in Ink)
                 {
-                    int owner = d.Owner & 0xff, stroke = d.Stroke & 0x7fff, pen = d.Pen & 0x7fff;
+                    int owner = d.Owner & 0xff, stroke = d.Stroke & 0x7fff, pen = (d.Pen & 0x3fff) | (d.Lit ? 0x4000 : 0);
                     V2 pos = d.Pos;
                     float t = d.T;
                     s.Byte(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
