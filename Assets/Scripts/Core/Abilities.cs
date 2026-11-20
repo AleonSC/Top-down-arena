@@ -26,6 +26,12 @@ namespace Arena
                 }
                 return;
             }
+            if (TurretPress(p, slot))  // Deployable Turret pressed again: you step out and it starts to overheat (no cooldown spent)
+            {
+                p.Run.AbilitiesUsed++;
+                DismountTurret(p);
+                return;
+            }
             if (GalePress(p, slot))  // Gale Wall pressed again: the lens unleashes its cone (no cooldown spent)
             {
                 p.Run.AbilitiesUsed++;

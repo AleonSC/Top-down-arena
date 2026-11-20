@@ -147,6 +147,8 @@ namespace Arena
         NodNuki, NodKesa, NodMoon, NodTenchi, NodNagi, NodKasumi, NodNidan, NodSenbon, NodTsuka, NodHiki, NodHit, NodBlock, NodToStorm, NodToGuard,
         // Decoy Dummy (DecoyDummySoundBank.cs): the throw and puff-up, a hit's rubber squeak, the pop and zip, the deflate. Played by each screen from the zone and FxKind.DecoyHit/DecoyPop/DecoyFold, never sent.
         DecoyThrow, DecoySqueak, DecoyPop, DecoyFold,
+        // Deployable Turret (DeployTurretSoundBank.cs): the drop, a heavy round, the barrels spinning up, the overheat, the blast, the early dismount. Played by each screen from the zone, never sent.
+        DtDrop, DtShot, DtSpool, DtHeat, DtBlast, DtLatch,
     }
 
     public struct SoundCue
