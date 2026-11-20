@@ -276,6 +276,8 @@ namespace Arena
                 if (Rnd(0f, 1f) < dt * 12f)
                     AddPart(new Part { Kind = PDust, Pos = b.Pos, Vel = new V2(Rnd(-10f, 10f), Rnd(-25f, -5f)), Life = 0.7f, Max = 0.7f, Size = 3.5f, Col = new Rgba(0.45f, 0.42f, 0.46f) });
             }
+            else if (b.Kind == Defs.WaterballShot || b.Kind == Defs.EarthballShot)
+                EmitElementBall(b, back, dt);  // ElementBallLook.cs
             else if (b.Kind == Defs.FireflyShot)
             {
                 if (Rnd(0f, 1f) < dt * 45f)  // pollen glitter shed behind it

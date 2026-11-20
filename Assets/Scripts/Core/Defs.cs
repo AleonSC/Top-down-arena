@@ -152,6 +152,8 @@ namespace Arena
         Nodachi,
         // the Healer Soldier's fourth (TwinPistols.cs): a pistol in each hand, Laser Sights on Alt
         TwinPistols,
+        // the Fireball's variants (ElementBalls.cs): the Waterball soaks (wet), the Earthball stops on the first enemy and stuns it
+        Waterball, Earthball,
     }
 
     public class WeaponDef
@@ -760,7 +762,9 @@ namespace Arena
             GreatStar = 67,    // the Shuriken's Great Star, flying a drawn route and back (GreatStar.cs, Game/GreatStarLook.cs)
             StoneSpear = 68,   // a Stonespear's earth spear, thrown or sent in a volley (Stonespear.cs, Game/StonespearLook.cs)
             HoneyGlob = 69,    // a Honeybee Staff honey glob: flies over enemies and lands as a honey puddle (HoneybeeStaff.cs, Game/HoneybeeLook.cs)
-            BottleShot = 70;   // a Rioter's thrown bottle: spins as it flies, then shatters (RiotBrains.cs, Game/WardenLook.cs)
+            BottleShot = 70,   // a Rioter's thrown bottle: spins as it flies, then shatters (RiotBrains.cs, Game/WardenLook.cs)
+            WaterballShot = 71, // the Waterball: rolls on through enemies and soaks them (ElementBalls.cs, Game/ElementBallLook.cs)
+            EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
 
@@ -837,6 +841,8 @@ namespace Arena
             Row(table, BoulderShot, radius: 16f, color: new Rgba(0.62f, 0.54f, 0.45f));
             Row(table, MedkitShot, radius: 11f, color: new Rgba(0.95f, 0.97f, 1f));
             Row(table, FireballShot, radius: 15f, color: new Rgba(1f, 0.5f, 0.15f));
+            Row(table, WaterballShot, radius: 15f, color: new Rgba(0.3f, 0.65f, 1f));
+            Row(table, EarthballShot, radius: 16f, color: new Rgba(0.82f, 0.6f, 0.36f));  // (R over 0.8: its rubble isn't read as a crate's, PropsLook.IsCrateDebris)
             Row(table, HoneyShot, radius: 9f, color: new Rgba(1f, 0.67f, 0.16f), damage: 14f);  // the Hive Queen's nectar spray
             Row(table, HollowShot, radius: 7f, color: new Rgba(0.9f, 0.91f, 1f), damage: 0f);  // a Duelist decoy's shot: a harmless ring; the Duelist's decoys fire these: they pass through you
             Row(table, CrescentShot, radius: 14f, color: new Rgba(0.89f, 0.83f, 1f), damage: 18f);  // the Eclipse's crescent blade; the Eclipse's crescent blades

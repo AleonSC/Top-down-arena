@@ -30,6 +30,8 @@ namespace Arena
             { WeaponId.ChainLight, 80f },
             { WeaponId.Nimbus, 26f },
             { WeaponId.Fireball, 71f },
+            { WeaponId.Waterball, 56f },
+            { WeaponId.Earthball, 82f },
             { WeaponId.ArcLightning, 116f },
             { WeaponId.IceShards, 70f },
             { WeaponId.Stonespear, 60f },

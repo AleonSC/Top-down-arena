@@ -148,6 +148,16 @@ namespace Arena
                 DrawFireball(b, c, t);
                 return;
             }
+            if (b.Kind == Defs.WaterballShot)
+            {
+                DrawWaterball(b, c, t);  // ElementBallLook.cs
+                return;
+            }
+            if (b.Kind == Defs.EarthballShot)
+            {
+                DrawEarthball(b, c, t);
+                return;
+            }
             if (b.Kind == Defs.FlameShot)
             {
                 // A Flamethrower flame: small and white-hot at the nozzle, swelling and reddening as it goes, then gone.

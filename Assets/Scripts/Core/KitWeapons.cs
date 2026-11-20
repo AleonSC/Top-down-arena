@@ -112,6 +112,10 @@ namespace Arena
                     }
                     break;
                 }
+                case WeaponId.Waterball:
+                case WeaponId.Earthball:
+                    FireElementBall(p, p.Weapon, aim, muzzle, dmg, extra);  // the Fireball's variants (ElementBalls.cs)
+                    break;
                 case WeaponId.ArcLightning:
                     ArcChain(p, aim, (1f + ArcGrow * extra) * HomingCost(p) * dmg);  // the lock-on chain through every tag (ArcLock.cs)
                     break;
