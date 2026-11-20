@@ -178,6 +178,15 @@ static partial class Program
         Check(!g.DevSetRelic(2, RelicId.StoneHeart), "setting the relic held again does nothing");
         Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
         Check(cg.Players[2].Relic == RelicId.StoneHeart && cg.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "the client sees the dev relic and gadget");
+        g.Coins.Clear();
+        Check(!cg.DevSpawnCoins(2, 50, false), "only the host can spawn gold");
+        Check(g.DevSpawnCoins(2, 250, false) && g.Coins.Values.Where(c => !c.Vec).Sum(c => c.Value) == 250 && g.Coins.Values.All(c => c.Owner == 2) && g.Coins.Count <= 40,
+            "the dev spawn scatters the gold as the player's own coins");
+        Check(g.DevSpawnCoins(2, 20, true) && g.Coins.Values.Where(c => c.Vec).Sum(c => c.Value) == 20, "and vectors as vector pickups");
+        int gold0 = g.Players[2].Gold;
+        foreach (var c in g.Coins.Values) c.Pos = c.Disp = g.Players[2].Pos;
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(g.Players[2].Gold == gold0 + 250 && cg.Players[2].Gold == gold0 + 250, "walking over them gives the gold (both screens)");
         int chestsBefore = g.Props.Values.Count(q => q.Kind == PropKind.Chest);
         Check(!cg.DevSpawnChest(2, ChestKind.Gold), "only the host can spawn a chest");
         Check(g.DevSpawnChest(1, ChestKind.Gold) && g.DevSpawnChest(1, ChestKind.Gold), "the dev spawn puts chests in front of the player");
