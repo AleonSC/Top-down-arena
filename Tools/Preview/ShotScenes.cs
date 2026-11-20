@@ -854,6 +854,7 @@ static partial class Shot {
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)
     ChalkFireScene();  // CHALKFIRE=A|B|C (ShotChalkFire.cs)
     FlameWallScene();  // FLAMEWALL=<s since the cast> [FXOFF=1] (ShotFlameWall.cs)
+    PhoenixScene();  // PHOENIX=<s since the cast> (ShotPhoenix.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
     LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
@@ -2358,6 +2359,14 @@ static partial class Shot {
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
       string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
       if (fogRoom != null) { var fro = xg.Expanded[int.Parse(fogRoom)]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(fro.X + 120, fro.Y + fro.H / 2); }
+      string trapStand = Environment.GetEnvironmentVariable("TRAPSTAND");  // TRAPSTAND=slow|spike[,dx,dy]: you stand on the trap of that kind nearest you, offset by dx,dy (RoomTrapLook.cs)
+      if (trapStand != null) {
+        var ts = trapStand.Split(','); var kind = ts[0] == "spike" ? TrapKind.Spike : TrapKind.Slow; Player me0 = null; foreach (var pl in xg.Players.Values) { me0 = pl; break; }
+        V2 near = me0.Pos; float tsBest = float.MaxValue;
+        foreach (var r in xg.RoomTrapList) if (r.Kind == kind && (r.Pos - me0.Pos).LengthSq < tsBest) { tsBest = (r.Pos - me0.Pos).LengthSq; near = r.Pos; }
+        var off = ts.Length > 2 ? new V2(float.Parse(ts[1], System.Globalization.CultureInfo.InvariantCulture), float.Parse(ts[2], System.Globalization.CultureInfo.InvariantCulture)) : new V2(0f, 0f);
+        me0.Pos = me0.Disp = near + off;
+      }
       string fogAim = Environment.GetEnvironmentVariable("FOGAIM");  // FOGAIM=<degrees>[,trail]: every player faces that way (0 east, 90 south); "trail" first sweeps the cone round to there, exploring what it passes over (the explored memory)
       if (fogAim != null) {
         var fa = fogAim.Split(','); float fdeg = float.Parse(fa[0], System.Globalization.CultureInfo.InvariantCulture);

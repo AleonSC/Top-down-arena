@@ -152,7 +152,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Phoenix, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1,
-                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If anyone goes down (you too), it revives them instantly.",
+                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix follows your cursor for 10 s, shooting and pulsing 8% max health to everyone near it every 2 s. If anyone goes down (you too), it revives them instantly.",
                 Capstone = "Revives at full health, and the phoenix keeps fighting.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
