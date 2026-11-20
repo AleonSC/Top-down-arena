@@ -968,6 +968,8 @@ namespace Arena
                 return;  // Arc Lightning's Forked Volley (ArcLock.cs)
             if (LocalNimbusStorm(me, aimAt, pressed, dt))
                 return;  // the Nimbus's Eye of the Storm (Nimbus.cs)
+            if (LocalChalkIgnite(me, aimAt, pressed, dt))
+                return;  // the Spirit Chalk's ignite (Chalk.cs)
             if (LocalTempest(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // Wind Clash's Tempest (WindClash.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -1342,6 +1344,11 @@ namespace Arena
             if (kind == DashPack)
             {
                 HostPackMerge(p);  // the Wolf Whistle's Alt (WolfPack.cs)
+                return;
+            }
+            if (kind == DashIgnite)
+            {
+                HostChalkIgnite(p);  // the Spirit Chalk's Alt (Chalk.cs)
                 return;
             }
             if (kind == DashStorm)

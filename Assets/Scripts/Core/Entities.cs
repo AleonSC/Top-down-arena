@@ -369,6 +369,7 @@ namespace Arena
         public byte ScatShells;      // Scattergun: Double Barrel shells loaded, 0 to 8, refilling over time (replicated; TankAlts.cs)
         public byte ScatCharge;      // Scattergun: percent toward the next shell (replicated)
         public float ScatCd, MineCd, GasCd;  // host: the Tank Soldier's Alt fires cool down (TankAlts.cs)
+        public float ChalkIgniteCd;  // host: the Spirit Chalk's Alt (ignite your loops) cooling down (Chalk.cs)
         public float NimbusStormCd, NimbusStormT, NimbusZapT;  // host: the Nimbus's Eye of the Storm cooling down, blowing, until its next bolt (Nimbus.cs)
         public float BoneWallCd, BoneLinkT;  // host: the Bone Guard's Ossuary Wall cooling down; time left to link your next dart to the last (BoneGuard.cs)
         public int BoneLastHit = -1;         // host: the enemy your last Bone Guard dart hit
