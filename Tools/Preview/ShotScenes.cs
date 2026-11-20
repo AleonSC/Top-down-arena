@@ -2321,6 +2321,10 @@ static partial class Shot {
       string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: plain boxes added in order (no checks)
       if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why = null; var cr = Box(q[0], q[1], q[2], q[3]); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
       if (Environment.GetEnvironmentVariable("GRIDCORE") != null) { xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }  // GRIDCORE=1 (with EXPANDMAP=0): a Grid run's core (GridRooms.cs); EXPANDAT=x,y ZOOM=z to look at it
+      if (Environment.GetEnvironmentVariable("CORELAYOUT") != null) {  // CORELAYOUT=<0-9> (with GRIDCORE=1 or EXPANDMAP=n): that core floor plan (CoreLayouts.cs), its walls and crates
+        xg.CoreLayout = (CoreLayoutId)int.Parse(Environment.GetEnvironmentVariable("CORELAYOUT")); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+        xg.Props.Clear(); foreach (var cc in CoreLayouts.Crates(xg.CoreLayout)) xg.AddProp(cc.Heavy ? PropKind.HeavyCrate : PropKind.Crate, cc.Pos).Age = 5f;
+      }
       string xsur = Environment.GetEnvironmentVariable("EXPANDSURPRISE");  // EXPANDSURPRISE=ring|cross|l|t|chamfer: that surprise room built, SURPRISEAGE=<s since it appeared> (default 0.6)
       if (xsur != null) {
         var xsh = (SurpriseShape)Array.IndexOf(new[] { "ring", "cross", "l", "t", "chamfer" }, xsur); string xwhy;

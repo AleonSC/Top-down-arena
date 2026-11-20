@@ -330,6 +330,11 @@ namespace Arena
                 if (!AreaUnseen(ai) || wd.Areas[ai].Sealed)
                     continue;  // (a sealed room can't be walked into)
                 var a = wd.Areas[ai];
+                var ways = new List<V2>();  // its doors: a cell is as far as the walk through the nearest one (a cell just behind a wall is not near)
+                if (wd.AreaAt(from) != ai)
+                    foreach (var dr in wd.Doors)
+                        if (dr.Joins(ai))
+                            ways.Add(dr.Pos);
                 int cols, rows;
                 RoomFog.Grid(a, out cols, out rows);
                 for (int r = 0; r < rows; r++)
@@ -338,7 +343,10 @@ namespace Arena
                         if (FogExplored(ai - 1, c, r))
                             continue;
                         V2 m = RoomFog.CellMid(a, c, r);
-                        float d = m.DistanceSq(from);
+                        float d = float.MaxValue;
+                        foreach (var w in ways)
+                            d = Math.Min(d, from.DistanceTo(w) + w.DistanceTo(m));
+                        d = ways.Count == 0 ? m.DistanceTo(from) : d;
                         if (d < bd)
                         {
                             bd = d;
