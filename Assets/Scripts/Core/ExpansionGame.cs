@@ -880,6 +880,7 @@ namespace Arena
             WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
             WriteFogCells(w);  // the explored cells of the unseen rooms (RoomFog.cs)
+            WriteTrapWrecks(w);  // the room turrets shot to bits (RoomTraps.cs)
             session.Broadcast(Proto.End(w));
         }
 
@@ -980,6 +981,7 @@ namespace Arena
             ReadKeepsake(r);
             ExpandOpen = r.ReadBoolean();
             ReadFogCells(r);  // (RoomFog.cs)
+            ReadTrapWrecks(r);  // (RoomTraps.cs)
         }
     }
 }

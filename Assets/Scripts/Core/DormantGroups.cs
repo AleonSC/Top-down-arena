@@ -8,7 +8,8 @@ namespace Arena
     /// wave) in the unseen room until it is seen (RoomFog.cs) or one of them is hit; then the room's groups wake and fight.
     public static class DormantGroups
     {
-        public static float CellChance = 0.4f;  // each cell of a built piece: the chance it holds a group (static: tests set it)
+        public static float CellChance = 0.65f;  // each sleeper slot of a Combat piece: the chance it holds a group (static: tests set it; owner Nov 20: combat rooms hold the majority)
+        public static float PlainChance = 0.2f;  // each sleeper slot of a plain piece (no combat modifier): a few hold one
         public const float Spread = 46f;        // the group's spacing, a tight cluster round the cell's middle
 
         /// How many enemies a group holds on this wave: 3, then one more every 15 waves, at most 6.
@@ -61,7 +62,7 @@ namespace Arena
         }
 
         /// Host, as a piece card is built: each cell rolls for a sleeping group of this wave's faction enemies. Returns how many groups.
-        internal int PlantDormantGroups(IList<ExpansionRoom> boxes, bool atLeastOne = false, EnemyType? only = null, int groupSize = 0, bool all = false)
+        internal int PlantDormantGroups(IList<ExpansionRoom> boxes, bool atLeastOne = false, EnemyType? only = null, int groupSize = 0, bool all = false, float? chance = null)
         {
             if (!IsHost || !ExpandingOn || boxes.Count == 0)
                 return 0;
@@ -73,11 +74,23 @@ namespace Arena
             bool slots = mids.Count > 0;
             if (!slots)
                 mids = DormantGroups.CellMids(boxes);
+            var cellOf = new List<long>(mids.Count);  // each slot's lattice cell: a Combat piece guarantees a group in every cell (owner Nov 20)
+            foreach (var m in mids)
+            {
+                CellLayouts.CellOf(m.X, m.Y, out int mcx, out int mcy);
+                cellOf.Add(slots ? ((long)mcx << 32) ^ (uint)mcy : (long)cellOf.Count);
+            }
+            bool cellHas = false;
             for (int c = 0; c < mids.Count; c++)
             {
                 var mid = mids[c];
-                if (!all && roll.Float() >= DormantGroups.CellChance && !(atLeastOne && groups == 0 && c == mids.Count - 1))  // (a Combat piece always holds at least one group)
+                if (c == 0 || cellOf[c] != cellOf[c - 1])
+                    cellHas = false;
+                bool lastInCell = c == mids.Count - 1 || cellOf[c + 1] != cellOf[c];
+                bool guarantee = atLeastOne && (slots ? lastInCell && !cellHas : groups == 0 && c == mids.Count - 1);  // (a Combat piece: a group in every cell, or at least one in a room off the lattice)
+                if (!all && roll.Float() >= (chance ?? DormantGroups.CellChance) && !guarantee)
                     continue;
+                cellHas = true;
                 var type = pool[roll.Int(pool.Count)];
                 for (int k = 0; k < size; k++)
                 {

@@ -497,6 +497,8 @@ namespace Arena
         {
             if (LayoutOn && SolidStops(b) && !WallBounce(b))
                 return true;  // a wall or pillar stops every shot (LayoutRules.cs)
+            if (RoomTrapStops(b))
+                return true;  // your shot hits a room's turret (RoomTraps.cs)
             if (Props.Count > 0 && PropStops(b))
                 return true;  // a crate takes an enemy shot; a barrel any shot (Props.cs)
             if (quarryCover && QuarryCoverStops(b))

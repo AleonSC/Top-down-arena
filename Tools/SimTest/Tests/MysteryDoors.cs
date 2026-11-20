@@ -346,5 +346,21 @@ static partial class Program
         Console.WriteLine("  by wave " + g2.Wave + ": " + g2.MysteryDoorsOpened + " doors opened for " + g2.MysteryVectorsSpent + " vectors, " + g2.Expanded.Count + " rooms in all, " + g2.MysteryDoors.Count + " doors waiting, vectors " + string.Join("/", g2.Players.Values.Select(p => p.Vectors.ToString()).ToArray()));
         Check(g2.Wave >= 10 && g2.MysteryDoorsOpened >= 1, "bots open mystery doors in a run (" + g2.MysteryDoorsOpened + " by wave " + g2.Wave + ")");
         Check(cg2.Expanded.Count == g2.Expanded.Count, "both games have the same map");
+
+        // Room turrets (RoomTraps.cs): your shots wear one down and wreck it, and the friend's game loses it too.
+        for (int ri = 0; ri < g.Expanded.Count; ri++) { var rr = g.Expanded[ri]; rr.Unseen = false; g.Expanded[ri] = rr; }
+        var turret = g.RoomTrapList.FirstOrDefault(tr => tr.Kind == TrapKind.Turret);
+        var stops = typeof(Game).GetMethod("RoomTrapStops", flags);
+        var spawnB = typeof(Game).GetMethod("SpawnBullet", flags);
+        Func<float, bool> shoot = dmg =>
+        {
+            var bl = spawnB.Invoke(g, new object[] { Defs.DpsShot, turret.Pos, V2.Zero, 0f, 1f, dmg, 1, false, 0f });
+            return (bool)stops.Invoke(g, new[] { bl });
+        };
+        int turretsBefore = g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret);
+        bool hurt = turretsBefore > 0 && shoot(1f) && g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore;
+        bool wrecked = turretsBefore > 0 && shoot(9999f) && g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore - 1;
+        PollBoth(host, client);
+        Check(hurt && wrecked && cg.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore - 1, "a room turret takes your shots, is wrecked at zero health, and the friend's game loses it too (" + turretsBefore + " turrets)");
     }
 }
