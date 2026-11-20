@@ -346,6 +346,7 @@ namespace Arena
             Minions.Clear();
             Orbs.Clear();
             Coins.Clear();
+            ForgetSentCoins();  // (Coins.cs: the next snapshot sends the full list)
             Gadgets.Clear();
             Zones.Clear();
             Effects.Clear();
