@@ -26,6 +26,12 @@ namespace Arena
                 }
                 return;
             }
+            if (TurretPress(p, slot))  // Deployable Turret pressed again: you step out and it starts to overheat (no cooldown spent)
+            {
+                p.Run.AbilitiesUsed++;
+                DismountTurret(p);
+                return;
+            }
             if (GalePress(p, slot))  // Gale Wall pressed again: the lens unleashes its cone (no cooldown spent)
             {
                 p.Run.AbilitiesUsed++;
@@ -72,7 +78,7 @@ namespace Arena
                 ReleaseSteel(p);
                 return;
             }
-            if (p.StandOn && MovesYou(p.Slots[slot].Id))
+            if ((p.StandOn || Seated(p)) && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
             if (!consumed && p.Slots[slot].Id == AbilityId.WaterWard && WwFull(p))
                 return;  // every drop already out (WaterWard.cs)
@@ -122,6 +128,9 @@ namespace Arena
                     if (cap)
                         Knockback(p.Pos, 250f, 120f, 2f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.45f, 0.3f), 320f, 0.5f, Sfx.Roar);
+                    break;
+                case AbilityId.DeployableTurret:
+                    CastDeployTurret(p, target, cap);  // DeployableTurret.cs
                     break;
                 case AbilityId.DeployableCover:
                     CastCover(p, target, cap);  // DeployableCover.cs

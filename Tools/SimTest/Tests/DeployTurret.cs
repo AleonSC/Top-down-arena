@@ -1,0 +1,168 @@
+using System.Linq;
+using System;
+using System.Collections.Generic;
+using Arena;
+
+// Deployable Turret (DeployableTurret.cs), the DPS Soldier's 4th choice on the lobby's 4th key: the table, the pick reaching the
+// run, the zone on both screens, the root (no walking), nothing fired before it unfolds or without Fire, the lane (first two
+// enemies hurt, off-lane and a third untouched), the spool-up (a later second hits harder than the first), the overheat blast
+// (inside 160 px only), quiet folding when you go down, and mastery (14 s, pierce 4, double blast) and Overclocked Barrels.
+static partial class Program
+{
+    static void DeployTurretTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var hostAbility = typeof(Game).GetMethod("HostAbility", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+
+        var def = Upgrades.Ability(AbilityId.DeployableTurret);
+        Check(def.Name == "Deployable Turret" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Cooldown == 45f,
+            "Deployable Turret: a 45 s DPS Soldier 1st ability on the 4th key");
+        Check(Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 3) == AbilityId.DeployableTurret
+            && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0) == AbilityId.PoisonDart && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 2) == AbilityId.Mark,
+            "the DPS Soldier's 4th key is the turret; its first three are unchanged");
+        Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.DeployableTurret) && Upgrades.All.Any(u => u.Name == "Overclocked Barrels" && u.RequiresAbility == AbilityId.DeployableTurret && u.Rarity == Rarity.Rare),
+            "the turret is a very rare card for DPS Soldiers who picked another, and Overclocked Barrels a Rare card for it");
+
+        int port = nextPort++;
+        var hostS = new Session { AutoStart = 2, StartWave = 3 };
+        hostS.Host(port, "Gunner", Role.Dps, 0, 3, Kit.Soldier);
+        var client = JoinAs(port, false, "Friend", Role.Healer, 0, 0, Kit.Knight);
+        var s = new[] { hostS, client };
+        WaitForGame(hostS, client, dt);
+        var g = hostS.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        Check(me.Slots[0].Id == AbilityId.DeployableTurret && client.Game.Players[1].Slots[0].Id == AbilityId.DeployableTurret, "the 4th pick reaches the run, on both screens");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+
+        V2 home = new V2(500f, 450f);
+        var mine = new HashSet<int>();
+        Func<EnemyType, V2, Enemy> make = (type, at) =>
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
+            e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FireT = 99f; mine.Add(e.Id); return e;
+        };
+        bool pin = true;
+        Action<float, bool> step = (secs, fire) =>
+        {
+            for (int f = 0; f < secs / dt; f++)
+            {
+                foreach (var id in g.Enemies.Keys.Where(k => !mine.Contains(k)).ToList()) g.Enemies.Remove(id);
+                g.Bullets.Clear();
+                foreach (var e in g.Enemies.Values) { e.FireT = 99f; e.FrozenT = 99f; }
+                if (pin) me.Pos = home;
+                hostS.Poll(); client.Poll();
+                g.FixedStep(dt, new PlayerInput { AimAt = home + new V2(300f, 0f), Fire = fire });
+            }
+        };
+        Func<Enemy, float> lost = e => e.MaxHp - e.Hp;
+        Func<Zone> turret = () => g.Zones.Values.FirstOrDefault(zz => zz.Kind == ZoneKind.DeployTurret);
+        Action reset = () =>
+        {
+            mine.Clear(); g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear(); g.Zones.Clear();
+            me.Slots[0].Charges = 1; me.Pos = home; pin = true; me.Downed = false; me.Hp = me.MaxHp;
+            me.MasteryXp.Remove(AbilityId.DeployableTurret);
+            make(EnemyType.Grunt, new V2(1500f, 120f));  // far off: the wave goes on
+        };
+
+        // The cast: a zone on both screens lasting drop + 10 s + overheat, a 30% seat, you rooted.
+        reset();
+        var e1 = make(EnemyType.Grunt, home + new V2(150f, 0f));
+        var e2 = make(EnemyType.Grunt, home + new V2(250f, 0f));
+        var e3 = make(EnemyType.Grunt, home + new V2(350f, 0f));
+        var off = make(EnemyType.Grunt, home + new V2(250f, 120f));
+        hostAbility.Invoke(g, new object[] { 1, 0, home + new V2(300f, 0f), false });
+        var z = turret();
+        Check(z != null && Math.Abs(z.Duration - (Game.DtDeploy + Game.DtLife + Game.DtDying)) < 0.01f && z.DamageCut == Game.DtCut && z.Pos.DistanceTo(home) < 1f, "the cast drops a turret on your spot for 1.1 + 10 + 0.8 s with a 30% seat");
+        step(0.1f, false);
+        Check(client.Game.Zones.Values.Any(q => q.Kind == ZoneKind.DeployTurret && q.Owner == 1), "the other screen sees it");
+        pin = false;
+        Vector2Move(g, me, dt, hostS, client);
+        pin = true;
+        step(0.3f, true);
+        Check(lost(e1) == 0f && lost(e2) == 0f, "nothing fires while it is still unfolding, even holding Fire");
+
+        // Fire: the first second spools up, the lane takes the first two, the rest nothing.
+        step(0.8f, true);
+        float first = lost(e1);
+        Check(first > 0f, "holding Fire once it is up shoots down the lane");
+        Check(lost(e2) > 0f && lost(e3) == 0f && lost(off) == 0f, "the round pierces 2: the near two are hurt, the third and an off-lane enemy are not");
+        float before = lost(e1);
+        step(1f, true);
+        float second = lost(e1) - before;
+        step(1f, true);
+        float third = lost(e1) - before - second;
+        Check(second > first * 1.05f && third >= second * 0.9f, "the rate spools up: a later second hits harder than the first (" + first.ToString("0") + " then " + second.ToString("0") + " then " + third.ToString("0") + ")");
+        Check(Math.Abs(g.Zones.Values.First(q => q.Kind == ZoneKind.DeployTurret).Aim) < 0.2f, "it turned onto your aim");
+        float idle = lost(e1);
+        step(1f, false);
+        Check(lost(e1) == idle, "no Fire, no rounds");
+
+        // The end: it stops for the overheat, then blows for 80 within 160 px only.
+        mine.Remove(off.Id); g.Enemies.Remove(off.Id);
+        var near = make(EnemyType.Grunt, home + new V2(0f, 100f)); var far = make(EnemyType.Grunt, home + new V2(0f, 260f));
+        step(Math.Max(0f, z.T - 0.7f), true);
+        float pre = lost(e1);
+        step(0.5f, true);
+        Check(lost(e1) == pre, "it holds fire while it overheats");
+        step(0.6f, false);
+        Check(turret() == null, "it is gone when its time is up");
+        Check(lost(near) >= Game.DtBlastDamage * 0.95f && lost(far) == 0f, "the blast hurts the enemy within 160 px (80) and not the one 260 px out");
+
+        // Going down folds it away quietly.
+        reset();
+        var q1 = make(EnemyType.Grunt, home + new V2(100f, 100f));
+        hostAbility.Invoke(g, new object[] { 1, 0, home + new V2(300f, 0f), false });
+        step(0.2f, false);
+        me.Downed = true;
+        step(0.2f, false);
+        Check(turret() == null && lost(q1) == 0f, "going down folds it away with no blast");
+
+        // Pressing the key again steps you out early: the guns stop, you are free, no cooldown is spent, and it still blows after 0.8 s.
+        reset();
+        var d1 = make(EnemyType.Grunt, home + new V2(0f, 90f));
+        hostAbility.Invoke(g, new object[] { 1, 0, home + new V2(300f, 0f), false });
+        step(1.6f, true);
+        float dealt = lost(d1);
+        int chargesBefore = me.Slots[0].Charges;
+        float cdBefore = me.Slots[0].Timer;
+        hostS.Poll(); client.Poll();
+        g.FixedStep(dt, new PlayerInput { Ability = true, AimAt = home + new V2(300f, 0f) });
+        var zo = turret();
+        Check(zo != null && zo.Radius == 0f && zo.T <= Game.DtDying + 0.05f && !g.Seated(me), "pressing the key again lets you out and starts the overheat now");
+        Check(me.Slots[0].Charges == chargesBefore && me.Slots[0].Timer >= cdBefore - 0.5f, "stepping out spends no extra cooldown");
+        pin = false;
+        Vector2Move(g, me, dt, hostS, client, true);
+        pin = true;
+        step(0.3f, true);
+        Check(turret() != null && lost(d1) == dealt, "once you are out it fires no more");
+        step(0.8f, false);
+        Check(turret() == null && lost(d1) >= dealt + Game.DtBlastDamage * 0.95f, "it still blows after its fuse");
+
+        // Mastery and the card.
+        reset();
+        me.MasteryXp[AbilityId.DeployableTurret] = 99999f;
+        hostAbility.Invoke(g, new object[] { 1, 0, home + new V2(300f, 0f), false });
+        var zm = turret();
+        Check(zm != null && zm.Cap && Math.Abs(zm.Duration - (Game.DtDeploy + Game.DtLifeMastered + Game.DtDying)) < 0.01f, "mastered: it fires 14 s");
+        var m1 = make(EnemyType.Grunt, home + new V2(150f, 0f)); var m2 = make(EnemyType.Grunt, home + new V2(200f, 0f)); var m3 = make(EnemyType.Grunt, home + new V2(250f, 0f));
+        var m4 = make(EnemyType.Grunt, home + new V2(300f, 0f)); var m5 = make(EnemyType.Grunt, home + new V2(350f, 0f));
+        step(2.5f, true);
+        Check(lost(m4) > 0f && lost(m5) == 0f, "mastered: rounds pierce 4");
+    }
+
+    static void Vector2Move(Game g, Player me, float dt, Session hostS, Session client, bool free = false)
+    {
+        V2 at = me.Pos;
+        for (int f = 0; f < 0.4f / dt; f++)
+        {
+            hostS.Poll(); client.Poll();
+            g.FixedStep(dt, new PlayerInput { Move = new V2(1f, 0f), AimAt = at + new V2(300f, 0f) });
+        }
+        if (free)
+            Check(me.Pos.DistanceTo(at) > 20f, "out of the seat you can walk again");
+        else
+            Check(me.Pos.DistanceTo(at) < 1f, "sitting in it you are rooted: holding a direction goes nowhere");
+    }
+}
