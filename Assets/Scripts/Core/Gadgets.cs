@@ -32,8 +32,8 @@ namespace Arena
         public readonly Dictionary<int, Gadget> Gadgets = new Dictionary<int, Gadget>();
         int nextGadgetId = 1;
         public const float MagnetTime = 60f, MagnetPull = 620f, GadgetThrowRange = 340f, GadgetFlyTime = 0.5f, GadgetGrabR = 18f, GadgetNoCatchT = 0.15f;
-        /// The Magnet drops 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) for each player, rolled for each, while that
-        /// player has none (held, or their own on the floor).
+        /// The Magnet and the Energy Drink each drop 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) for each player, rolled for
+        /// each, while that player has none of that kind (held, bagged, or their own on the floor).
         public const int MagnetDropChance = 90, MagnetEliteChance = 10;
         public const int GadgetBagSize = 4;
         public const float RecallChannel = 3f;
@@ -156,18 +156,21 @@ namespace Arena
             g.Owner = pl.Id;
         }
 
-        /// Host: a kill in the Expanding arena may drop a Magnet (DropCoins), rolled for each player: their own copy.
+        /// Host: a kill in the Expanding arena may drop a Magnet or an Energy Drink (DropCoins), each rolled for each player while they have
+        /// none of that kind: their own copy.
         void DropGadget(Enemy e)
         {
             if (e.Def.IsBoss)
                 return;
             foreach (var p in Players.Values)
-            {
-                if (HasGadget(p, GadgetId.Magnet) || rng.Next(e.Elite ? MagnetEliteChance : MagnetDropChance) != 0)
-                    continue;
-                var g = SpawnGadget(GadgetId.Magnet, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), MagnetTime);
-                g.Owner = p.Id;
-            }
+                for (int k = 0; k < 2; k++)
+                {
+                    GadgetId kind = k == 0 ? GadgetId.Magnet : GadgetId.EnergyDrink;
+                    if (HasGadget(p, kind) || rng.Next(e.Elite ? MagnetEliteChance : MagnetDropChance) != 0)
+                        continue;
+                    var g = SpawnGadget(kind, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), GadgetTime(kind));
+                    g.Owner = p.Id;
+                }
         }
 
         /// Host: a gadget lying on the floor at pos (also the F1 dock and tests).
