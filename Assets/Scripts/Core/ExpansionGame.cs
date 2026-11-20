@@ -274,7 +274,7 @@ namespace Arena
             floatCycle = cycle;
             bool added = false;
             // (no floating rooms any more, owner Nov 18: shop, Black Market and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
-            // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
+            // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, and a relic every other cycle)
             if (cycle == 0)
             {
                 var ringKinds = new[] { NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.Chest, NodeKind.Chest, NodeKind.Relic };
@@ -288,7 +288,7 @@ namespace Arena
                     DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
                 }
             }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Vein })
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic } : new[] { NodeKind.Chest })
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;

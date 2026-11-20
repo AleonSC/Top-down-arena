@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-3 built (protocol 282)**, node tiers built (no protocol change), step 4 open; fog, scout towers and gold veins built (protocol 386). **Nov 18 (owner): fog off, no scout towers, no floating shop / Black Market / Gatekeeper rooms (room cards and mystery doors only), bigger node marks** (see the end). **Changed Nov 11 (owner): shop and Black Market are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and Black Market rooms of
+Status: **steps 1-3 built (protocol 282)**, node tiers built (no protocol change), step 4 open; fog, scout towers and gold veins built (protocol 386), **scout towers and gold veins retired Nov 20 (owner): not placed, not drawn, no code; an old save's tower or vein loads as a chest**. **Nov 18 (owner): fog off, no scout towers, no floating shop / Black Market / Gatekeeper rooms (room cards and mystery doors only), bigger node marks** (see the end). **Changed Nov 11 (owner): shop and Black Market are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and Black Market rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -85,7 +85,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
   **Hallway Runner** (+25% move speed in a box 3 tiles wide or less; `RelicSpeedAt`, `Relics.InHall`).
 - Open: more relics (Home Turf, Gatecrasher, Portal Ward, Spiked Walls were offered), a pick-up banner, bots walking to relic nodes.
 
-## Fog, scout towers and gold veins (built, protocol 386)
+## Fog, scout towers and gold veins (built, protocol 386; towers and veins retired Nov 20, node fog off since Nov 18)
 
 - Owner (Nov 17): picked fog (7), scout tower (4) and gold vein (1) from the node ideas. Decisions: fog hides the **kind only** (a grey "?" where the node is); a node is
   revealed for everyone by a player within **8 tiles** or a claimed scout tower; the tower is a **permanent radar** (30 tiles, nodes placed later too); the vein is **plain passive** gold.
@@ -120,3 +120,5 @@ Hallways (3 tiles wide or less) are the exception: their chest stays where it wa
 - Bots (owner Nov 18): they build toward the prize node they need most (`Expansion.BotNodeWant`/`BotNodeScore`, `Game.BotNodeWant`; used by `BotFloaterPick` and the Grid bots' `BotCardGoal`): gold chests and veins the less gold they hold (`BotGoldEnough` 300), vector chests the emptier their bar, grid piece chests the fewer cards in hand, upgrade chests at a steady 0.7; relics and buildables chests are ignored. Distance from the hub trims the score a little. Tests in suite `chests`.
 
 **Nov 20 (owner): one universal chest** ([`Chests.md`](Chests.md)). A chest node holds a real treasure chest made by `SpawnChest`; the vector chest node is gone (a chest node at the inner tier holds Gold or Vector, `NodeKind.VectorChest` loads as a chest node).
+
+**Nov 20 (owner): no scout towers, no gold veins.** `NodeKind.Tower`/`Vein` stay in the enum so the numbers don't shift, but `Expansion.Current` turns them into a Chest on load (network and saves). A cycle now places a chest, and a relic every other cycle. `PayVeins`, `NodeScouting`'s tower and vein code and their looks are gone. No protocol change.
