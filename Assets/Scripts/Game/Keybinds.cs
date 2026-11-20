@@ -12,7 +12,7 @@ namespace Arena
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability1, Ultimate, Ability2, Ability3, Ability4, Fire, Parry, WeaponAction,
-        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map,
+        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map, GadgetWheel,
     }
 
     public static class Keybinds
@@ -23,12 +23,12 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.G, KeyCode.B, KeyCode.X, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M,
+            KeyCode.G, KeyCode.B, KeyCode.X, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.None,
         };
         static readonly string[] Titles =
         {
             "Move up", "Move down", "Move left", "Move right", "Dodge", "1st ability", "Ultimate", "2nd ability", "3rd ability",
-            "4th ability", "Fire", "Parry", "Alternative fire", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map",
+            "4th ability", "Fire", "Parry", "Alternative fire", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map", "Gadget wheel",
         };
         static readonly string[] Lines =
         {
@@ -37,8 +37,9 @@ namespace Arena
             "Picked in the lobby", "Picked in the lobby, one per role and class", "Filled by a very rare upgrade card", "Filled by a very rare upgrade card",
             "Filled by a very rare upgrade card", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
-            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
+            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim (or open the gadget wheel, with no Gadget wheel key)", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
             "Cycles the minimap, the full map and no map",
+            "Hold to open the gadget wheel: let go on a gadget to swap it into your hand (no key: hold Use gadget instead)",
         };
         /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one, except PushWall
         /// (retired with wall push, Nov 18) and OpenDoors (door picker removed): both kept so saved keys keep their slots).
@@ -48,7 +49,7 @@ namespace Arena
             new[] { KeyAction.MoveUp, KeyAction.MoveDown, KeyAction.MoveLeft, KeyAction.MoveRight, KeyAction.Dodge },
             new[] { KeyAction.Ability1, KeyAction.Ultimate, KeyAction.Ability2, KeyAction.Ability3, KeyAction.Ability4 },
             new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
-            new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.Reroll },
+            new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.GadgetWheel, KeyAction.Reroll },
             new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
         };
 

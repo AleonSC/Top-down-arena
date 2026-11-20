@@ -139,6 +139,20 @@ static partial class Program
         Check(p2.Gadget != GadgetId.Recall || p2.BagKind.Count(k => k != GadgetId.None) < bagBefore, "a finished Recall is used up");
         Check(p2.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 160f, "and sets you down by the hub's middle");
 
+        // The Energy Drink: switched on, a big speed boost (on the client's screen too) that runs down like the Magnet; off, normal speed.
+        p2.Gadget = GadgetId.EnergyDrink; p2.GadgetLeft = Game.EnergyTime; p2.GadgetOn = false;
+        float baseSpeed = p2.Speed;
+        cg.UseGadget();
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(p2.GadgetOn && Math.Abs(p2.Speed - baseSpeed * Game.EnergySpeed) < 0.01f && p2.GadgetLeft < Game.EnergyTime, "the Energy Drink switched on: " + Game.EnergySpeed + "x move speed, its minute running down");
+        Check(cg.Players[2].GadgetOn && Math.Abs(cg.Players[2].Speed - p2.Speed) < 0.01f, "...and the client moves at the same speed");
+        cg.UseGadget();
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(!p2.GadgetOn && Math.Abs(p2.Speed - baseSpeed) < 0.01f, "switched off: normal speed, the rest saved");
+        p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(p2.Gadget != GadgetId.EnergyDrink && Math.Abs(p2.Speed - baseSpeed) < 0.01f, "a finished Energy Drink is used up");
+
         // Gadget chests: one each, into the hand or the bag; a full one spills at your feet (your own copy).
         foreach (var q in g.Players.Values)
         {
