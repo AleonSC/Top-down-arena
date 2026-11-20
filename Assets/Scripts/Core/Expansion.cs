@@ -26,7 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, BlackMarket, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (VectorChest is legacy, kept so the numbers stay: `Current` turns it into a Chest, whose ChestKind.Vector it holds at the inner tier; a chest node holds a treasure chest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Shop, BlackMarket, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (VectorChest is legacy, kept so the numbers stay: `Current` turns it into a Chest, whose ChestKind.Vector it holds at the inner tier; a chest node holds a treasure chest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; Tower and Vein are legacy too, retired Nov 20, `Current` turns them into a Chest)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -39,7 +39,7 @@ namespace Arena
         public bool Spent;   // a chest that has been opened
         public byte Rule;    // a rule node: its NodeRule
         public bool Cleared; // a rule node whose claimed room has been through a wave: its prize is out (Docs/RuleRooms.md)
-        public bool Hidden;  // fogged: its kind shows as "?" until a player walks near or a scout tower sees it (NodeScouting.cs)
+        public bool Hidden;  // fogged: its kind shows as "?" (off since Nov 18; NodeScouting.cs clears an old save's)
         public byte Drop;    // a relic node: the relic a player left in it, as RelicId + 1 (0: it still holds the relic rolled from its spot; Relics.cs)
         public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared && Hidden == o.Hidden && Drop == o.Drop;
         public V2 Pos => new V2(X, Y);
@@ -283,7 +283,7 @@ namespace Arena
         public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
 
         /// A node kind as the game now knows it: the legacy vector chest node is a chest node (it holds a Vector chest, `NodeChestKind`).
-        public static NodeKind Current(NodeKind k) => k == NodeKind.VectorChest ? NodeKind.Chest : k;
+        public static NodeKind Current(NodeKind k) => k == NodeKind.VectorChest || k == NodeKind.Tower || k == NodeKind.Vein ? NodeKind.Chest : k;
 
         /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold or Vector (a coin seeded from the spot), middle Piece chest or Buildables
         /// (Buildables with room cards off), outer Upgrade.
