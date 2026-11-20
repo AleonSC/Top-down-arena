@@ -46,6 +46,27 @@ namespace Arena
         static readonly Color WoundUi = new Color(0.55f, 0.08f, 0.12f, 0.95f), WoundStripe = new Color(0.9f, 0.22f, 0.28f, 0.95f), WoundLine = new Color(1f, 0.55f, 0.58f, 1f);
         static readonly Rgba WoundWorld = new Rgba(0.5f, 0.07f, 0.11f, 0.95f), WoundWorldStripe = new Rgba(0.92f, 0.24f, 0.3f, 0.95f), WoundWorldLine = new Rgba(1f, 0.6f, 0.62f, 1f);
 
+        public const float WoundFlashTime = 0.7f;  // seconds the wound tick flashes after the wound grows
+        struct WoundSeen { public float Wound, At; }
+        readonly Dictionary<int, WoundSeen> woundSeen = new Dictionary<int, WoundSeen>();
+
+        /// 1 the moment a player's wound grows, fading to 0 over WoundFlashTime: the tick flashes white and stands out further.
+        float WoundFlash(Player p)
+        {
+            float now = Time.unscaledTime;
+            WoundSeen w;
+            if (!woundSeen.TryGetValue(p.Id, out w))
+                w = new WoundSeen { Wound = p.Wound, At = -99f };  // first sight: no flash for a wound brought in (a save, joining)
+            if (p.Wound > w.Wound + 0.05f)
+                w.At = now;
+            w.Wound = p.Wound;
+            woundSeen[p.Id] = w;
+            float k = 1f - Mathf.Clamp01((now - w.At) / WoundFlashTime);
+            return k * k;
+        }
+
+        static Color WoundTick(Color line, float flash) => Color.Lerp(line, Color.white, flash);
+
         /// A wound (Combat.cs, Docs/PowerStacking.md): the end of a player's health bar no heal can reach, striped dark and bright red,
         /// with a light tick standing out past the bar where healing stops.
         void DrawWound(Rect hp, Player p)
@@ -56,7 +77,11 @@ namespace Arena
             Ui.Fill(new Rect(x0, hp.y, w, hp.height), WoundUi);
             for (float x = x0 + 2f; x < hp.xMax; x += 5f)  // stripes: a locked section, not empty health
                 Ui.Fill(new Rect(x, hp.y, Mathf.Min(2f, hp.xMax - x), hp.height), WoundStripe);
-            Ui.Fill(new Rect(x0 - 1f, hp.y - 2f, 2f, hp.height + 4f), WoundLine);
+            float fl = WoundFlash(p);
+            if (fl > 0f)  // just wounded: a red glow round the tick
+                Ui.Fill(new Rect(x0 - 4f, hp.y - 5f, 8f, hp.height + 10f), CrtStyle.Danger.WithAlpha(0.7f * fl));
+            float tw = 2f + 2f * fl, th = 2f + 4f * fl;
+            Ui.Fill(new Rect(x0 - tw / 2f, hp.y - th, tw, hp.height + 2f * th), WoundTick(WoundLine, fl));
         }
 
         /// The same over a player's bar in the world (WorldPlayers.cs): x, y, width, height of the whole bar.
@@ -68,7 +93,12 @@ namespace Arena
             FillRect(x0, by, w, bh, WoundWorld);
             for (float x = x0 + 1.5f; x < bx + bw; x += 4f)
                 FillRect(x, by, Mathf.Min(1.5f, bx + bw - x), bh, WoundWorldStripe);
-            FillRect(x0 - 0.75f, by - 2f, 1.5f, bh + 4f, WoundWorldLine);
+            float fl = WoundFlash(p);
+            if (fl > 0f)  // just wounded: a red glow round the tick
+                FillRect(x0 - 3f, by - 4f, 6f, bh + 8f, new Rgba(1f, 0.25f, 0.3f, 0.75f * fl));
+            float tw = 1.5f + 1.5f * fl, th = 2f + 3f * fl;
+            var tc = WoundTick(new Color(WoundWorldLine.R, WoundWorldLine.G, WoundWorldLine.B, 1f), fl);
+            FillRect(x0 - tw / 2f, by - th, tw, bh + 2f * th, new Rgba(tc.r, tc.g, tc.b, 1f));
         }
 
         void GhostBar(Rect r, float frac, Color fill, long key)

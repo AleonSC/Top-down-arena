@@ -72,7 +72,7 @@ namespace Arena
 
         /// A wound (Combat.cs, Docs/PowerStacking.md) over MiniCells: the cells at the right end that no heal reaches, in red with a bright
         /// rim, and a tall red tick where healing stops.
-        static void MiniWoundCells(Rect r, Player p, int n, float a)
+        void MiniWoundCells(Rect r, Player p, int n, float a)
         {
             if (p.Downed || p.Wound <= 0.5f || p.MaxHp <= 0f)
                 return;
@@ -87,7 +87,11 @@ namespace Arena
                 Ui.Fill(new Rect(c.x, c.yMax - 1f, c.width, 1f), red.ScaleAlpha(a));
             }
             float edge = r.x + (n - hurt) * (cw + 2f) - 2f;
-            Ui.Fill(new Rect(edge, r.y - 3f, 2f, r.height + 6f), red.ScaleAlpha(a));
+            float fl = WoundFlash(p);  // just wounded: the tick flashes white and stands out further (HealthBars.cs)
+            if (fl > 0f)
+                Ui.Fill(new Rect(edge - 3f, r.y - 6f, 8f, r.height + 12f), red.ScaleAlpha(0.7f * fl * a));
+            float tw = 2f + 2f * fl, th = 3f + 4f * fl;
+            Ui.Fill(new Rect(edge + 1f - tw / 2f, r.y - th, tw, r.height + 2f * th), Color.Lerp(red, Color.white, fl).ScaleAlpha(a));
         }
 
         /// The lobby's bracket corners, small: a 10 px L on each corner, 10 px outside r.
