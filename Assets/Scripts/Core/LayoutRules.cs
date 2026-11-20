@@ -127,6 +127,7 @@ namespace Arena
             var d = ActiveLayout;
             if (d == null)
                 return pos;
+            pos = PushOutOfTurrets(pos, r);  // a room's turrets are solid posts (RoomTraps.cs)
             foreach (var s in d.Solids)
             {
                 if (!Counts(s))
