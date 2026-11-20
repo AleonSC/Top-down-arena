@@ -183,7 +183,7 @@ namespace Arena
         public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)
         public float Hp, MaxHp;
         public float PortalT;   // your own game: just came out of a Rooms portal (Rooms.cs)
-        public float Wound;     // health a hit took that can't be healed back until the wave is cleared (WoundShare of each hit; synced)
+        public float Wound;     // health hits took that no heal brings back: WoundShare of each hit, up to WoundCap of max; carried across waves, cleared by a boss falling, a health shrine, the Medic's heal or a Rest (synced, saved)
         /// The most healing can bring you to: max health less the wound.
         public float HealCap => Math.Max(1f, MaxHp - Wound);
         public bool Downed;
@@ -291,6 +291,8 @@ namespace Arena
         public GadgetId Gadget = GadgetId.None;       // the gadget in your free hand (replicated; Gadgets.cs)
         public float GadgetLeft;                      // its seconds of use left (replicated)
         public bool GadgetOn;                         // switched on: using up GadgetLeft (replicated)
+        public readonly GadgetId[] BagKind = { GadgetId.None, GadgetId.None, GadgetId.None, GadgetId.None };  // gadgets carried besides the one in hand (replicated; Gadgets.cs)
+        public readonly float[] BagLeft = new float[4];  // each one's seconds of use left
         public bool SprayOn;                          // Arterial Spray is gushing (replicated; ArterialSpray.cs)
         public float SprayT, SprayTick, SprayPower = 1f;  // host: how long it has run, until the next damage tick, mastery power
         public bool SprayMastered;                    // host: a mastered spray washes away enemy bullets
@@ -504,8 +506,10 @@ namespace Arena
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
         public RelicId Relic = RelicId.None;   // the relic slot (Relics.cs, replicated)
+        public float OverHp;                     // health past max from a health shrine: soaked by damage after shields, never decays, lost when downed (Shrines.cs, replicated)
+        public ulong ShrinesUsed;                // the health shrines this player has used, a bit per shrine (Shrines.Bit; replicated and saved)
         public readonly byte[] Stash = new byte[Market.Count];  // Black Market buys not yet placed, by BuildKind (Market.cs, replicated)
-        public readonly byte[] Hand = new byte[Expansion.HandMax];  // room cards held, Piece values, empty slots 0 at the end (Pieces.cs, replicated)
+        public readonly int[] Hand = new int[Expansion.HandMax];  // room cards held, Piece values, empty slots 0 at the end (Pieces.cs, replicated)
         public bool CardsDealt;  // host: this player has had the starting hand (Pieces.cs, not replicated)
         public int Vectors = Game.VectorStart, VectorCap = Game.VectorCapBase;  // the Expanding arena's drawing budget and the most you hold (ExpansionGame.cs, replicated)
         public int MapSpent;  // host: vectors this player spent on the map in play; half come back when it resets (MapReset.cs, saved, not on the wire)

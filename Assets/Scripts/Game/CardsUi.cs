@@ -7,8 +7,8 @@ namespace Arena
     /// its little drawing (a piece's cells, or a service card's one cell and mark).
     public partial class ArenaApp
     {
-        /// A card's colour: a floor piece in its floor's colour, a plain piece in grid teal, the Builder Shop and the service cards in their rooms' colours.
-        static Rgba CardColor(PieceCard c) => Expansion.IsShapePieceCard(c) ? (Expansion.PieceCardFloor(c) != PathId.None ? KindInk(Arena.RoomKind.Floor, Expansion.PieceCardFloor(c)) : GridInk) : c == PieceCard.BuilderShop ? BuilderInk : KindInk(Expansion.CardRoomKind(c), PathId.None);
+        /// A card's colour: a floor piece in its floor's colour, a combat-only piece in red, a plain piece in grid teal, the Builder Shop and the service cards in their rooms' colours.
+        static Rgba CardColor(PieceCard c) => Expansion.IsShapePieceCard(c) ? (Expansion.PieceCardFloor(c) != PathId.None ? KindInk(Arena.RoomKind.Floor, Expansion.PieceCardFloor(c)) : Expansion.PieceCardCombat(c) ? PieceCombatInk : GridInk) : c == PieceCard.BuilderShop ? BuilderInk : KindInk(Expansion.CardRoomKind(c), PathId.None);
 
         /// A card's room as tiles, fitted and centred in `r`.
         static void DrawCardGlyph(PieceCard card, Rect r, Color ink)

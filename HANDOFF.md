@@ -139,7 +139,7 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 
 ### Grid vocabulary
 
-See "Building on the grid" in `Docs/Glossary.md`: cell, shape (`PieceShape`), piece card (`PieceCard`), room type, placement, piece chest, Black Market.
+See "Building on the grid" in `Docs/Glossary.md`: cell, shape (`PieceShape`), piece card (`PieceCard`), modifier (`PieceMod`), placement, piece chest, Black Market.
 
 ### Adding an enemy
 

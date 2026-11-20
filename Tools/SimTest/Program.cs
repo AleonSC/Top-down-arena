@@ -461,6 +461,7 @@ static partial class Program
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
         Test("armsdealer", "the Arms Dealer and the Medic (Docs/ArmsDealer.md): service rooms selling every weapon mod for gold, priced by your stacks, and heals and revives; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),
         Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt), () => MysteryBotsTest(Dt)),
+        Test("shrines", "health shrines (the only node: one use each, health past max) and room chests (pieces and mystery rooms roll one by rarity, vendors never)", () => ShrinesTest(Dt)),
         Test("chests", "chest kinds (Props.cs ChestKind): the node roll, each kind's reward, the kind in the snapshot", () => ChestKindsTest(Dt)),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("bossgate", "the boss gate (BossGate.cs): opens before the boss, holds the wave until everyone stands in it, bots walk in", () => BossGateTest(Dt)),
@@ -503,7 +504,7 @@ static partial class Program
         Test("wildcard", "Wildcard: DPS gear from any class, a Wildcard ability on a chosen key, the damage and cooldown price, the unlock", () => WildcardTest(Dt)),
         Test("respawn", "the Practice Range: no game over, Respawn, Restart wave, Training drill text format", () => PracticeRespawnTest(Dt)),
         Test("lag", "the lag chart: LagStats (stalls, p95, 1% low, freeze, summary, CSV) and pings shared over the network", () => LagChartTest(Dt)),
-        Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back this wave)", () => StackingTest(Dt)),
+        Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back, carried across waves up to a cap)", () => StackingTest(Dt)),
         Test("dodge", "Dodge: the tiny dash with invulnerability (host and client), its cooldown, the step back, the hold-to-sprint", () => DodgeTest(Dt)),
         Test("f1bot", "F1 \"Bot plays for you\" (the smart bot) through waves and the Bazaar", () => F1BotTest(Dt)),
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>

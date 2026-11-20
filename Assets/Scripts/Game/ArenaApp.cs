@@ -347,7 +347,7 @@ namespace Arena
             else if (!chatOpen)
                 Keybinds.ChatOpen = false;
             // Fire and Parry (a key or a mouse button, Keybinds) pressed while a menu was up stay off until let go.
-            if ((overlay || emoteBarOpen || pingWheelOpen) && Keybinds.Down(KeyAction.Fire))
+            if ((overlay || emoteBarOpen || pingWheelOpen || gadgetWheelOpen) && Keybinds.Down(KeyAction.Fire))
                 fireOnMenu = true;
             if (overlay && Keybinds.Down(KeyAction.Parry))
                 parryOnMenu = true;
@@ -355,7 +355,7 @@ namespace Arena
                 fireOnMenu = false;
             if (!Keybinds.Held(KeyAction.Parry))
                 parryOnMenu = false;
-            fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
+            fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen || gadgetWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             bool inMenus = session.Screen != AppScreen.Game;
             bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me) || PracticeDownedUp(me)

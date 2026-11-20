@@ -275,7 +275,7 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.BossBullets, Name = "Adds' fire in boss fights", Desc = "The share of the bullet budget other enemies get while a boss is up.",
                 Unit = KnobUnit.Percent, Min = 0f, Max = 1f, Step = 0.05f, Presets = new[] { 0.4f, 0.6f, 0.75f, 0.9f } },
             new KnobDef { Knob = DiffKnob.Regen, Name = "Regeneration", Desc = "Everyone's passive healing (upgrades add to it).", HarderUp = false,
-                Unit = KnobUnit.HpPerSecond, Min = 0f, Max = 3f, Step = 0.05f, Presets = new[] { 0.5f, 0.25f, 0.15f, 0f } },
+                Unit = KnobUnit.HpPerSecond, Min = 0f, Max = 3f, Step = 0.05f, Presets = new[] { 0f, 0f, 0f, 0f } },  // (owner Nov 20: no passive regen by default; upgrades give it)
             new KnobDef { Knob = DiffKnob.OrbChance, Name = "Health orb drops", Desc = "The chance a kill drops a small health orb.", HarderUp = false,
                 Unit = KnobUnit.Percent, Min = 0f, Max = 0.5f, Step = 0.01f, Presets = new[] { 0.18f, 0.12f, 0.09f, 0.06f } },
             new KnobDef { Knob = DiffKnob.ReviveTime, Name = "Revive time", Desc = "How long it takes to get a downed ally up.",

@@ -61,11 +61,14 @@ static partial class Program
         p.ShieldHp = 0f;
         heal.Invoke(g, new object[] { p, gap - 1f, healer, "test" });
         Check(p.ShieldHp <= 0.01f, "healing blocked by the wound doesn't turn into overheal shield");
-        // Cleared: the wound goes.
+        // Cleared (owner Nov 20): a plain wave keeps the wound; it never passes WoundCap of max health.
+        float w0 = p.Wound;
         waveCleared.Invoke(g, null);
-        Check(p.Wound == 0f && p.HealCap == p.MaxHp, "the wound heals once the wave is cleared");
+        Check(p.Wound == w0 && p.Wound > 0f && p.Hp <= p.HealCap + 0.01f, "a cleared wave keeps the wound, and its heal stops at the wound too");
+        for (int i = 0; i < 400; i++) { p.InvulnT = 0f; p.Hp = p.MaxHp; damage.Invoke(g, new object[] { p, p.MaxHp * 0.5f, "test" }); }
+        Check(Math.Abs(p.Wound - p.MaxHp * Game.WoundCap) < 0.01f && !p.Downed, "wounds pile up to " + (Game.WoundCap * 100f) + "% of max health and no more (" + p.Wound.ToString("0") + " of " + p.MaxHp.ToString("0") + ")");
         Run(s, dt, 0.4f);
-        Check(cp.Wound == 0f, "...on every screen");
+        Check(Math.Abs(cp.Wound - p.Wound) < 0.01f, "...on every screen");
         s[0].Leave(""); s[1].Leave("");
     }
 }
