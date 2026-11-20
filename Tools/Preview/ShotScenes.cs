@@ -2187,6 +2187,24 @@ static partial class Shot {
       gm.Effects.Add(new Effect { Kind = FxKind.ArcLink, Pos = arcFrom, Pos2 = arcFrom + new V2(260f, -90f), Color = Defs.BulletColor(Defs.BoltShot), Radius = 0f, Dur = 0.75f, T = 0.05f });  // Arc Lightning's chain (ArcLockLook.cs)
       gm.Effects.Add(new Effect { Kind = FxKind.ArcLink, Pos = arcFrom + new V2(260f, -90f), Pos2 = arcFrom + new V2(480f, -30f), Color = Defs.BulletColor(Defs.BoltShot), Radius = 1f, Dur = 0.75f, T = 0.02f });
     }
+    if (Environment.GetEnvironmentVariable("ELEMBALLS") != null) {
+      // The Fireball and its variants side by side (ElementBallLook.cs): a fireball, a waterball and an earthball in flight,
+      // two wet enemies the waterball rolled through, one stunned by an earthball. You hold ELEMBALLS=water|earth|fire.
+      var sbE = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var gm = host.Game; gm.Bot = false;
+      string held = Environment.GetEnvironmentVariable("ELEMBALLS");
+      me.Kit = Kit.Elementalist; me.Weapon = Defs.WeaponOf(held == "earth" ? WeaponId.Earthball : held == "fire" ? WeaponId.Fireball : WeaponId.Waterball);
+      me.Pos = me.Disp = new V2(360f, 470f); me.Aim = 0f;
+      byte[] kinds = { Defs.FireballShot, Defs.WaterballShot, Defs.EarthballShot };
+      for (int k = 0; k < 3; k++) sbE.Invoke(gm, new object[] { kinds[k], new V2(k == 2 ? 640f : 580f, 300f + 160f * k), new V2(k == 2 ? 360f : 430f, 0f), 0f, 1.4f, 22f, 1, false, 0f });
+      var spE = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      for (int k = gm.Enemies.Count; k < 3; k++) spE.Invoke(gm, new object[] { EnemyType.Grunt, new V2(1400f, 200f + 100f * k), 0f, 0, false });
+      var ee = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values);
+      V2[] eAt = { new V2(500f, 470f), new V2(430f, 430f), new V2(700f, 640f), new V2(800f, 300f) };
+      for (int k = 0; k < ee.Count; k++) { ee[k].Pos = ee[k].Disp = k < eAt.Length ? eAt[k] : new V2(1400f, 120f + 60f * k); ee[k].SpawnT = 0f; ee[k].Spawning = false; }
+      for (int k = 0; k < 2 && k < ee.Count; k++) { ee[k].WetT = 4f; ee[k].Wet = true; ee[k].WetPeak = 4f; ee[k].WetLeft = 3f - k; }
+      if (ee.Count > 2) { ee[2].StunT = ee[2].FrozenT = 0.6f; ee[2].Dazed = true; gm.Effects.Add(new Effect { Kind = FxKind.Debris, Pos = ee[2].Pos, Pos2 = ee[2].Pos, Color = Defs.BulletColor(Defs.EarthballShot), Radius = Game.EarthRubble, Dur = 0.45f, T = 0.08f }); }
+    }
     if (Environment.GetEnvironmentVariable("HEMO") != null) {
       // Blood Bolts: enemies with 1 to 4 bolts stuck in them (4 is one short of the burst).
       var hm = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);

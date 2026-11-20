@@ -471,7 +471,7 @@ namespace Arena
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
+                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.Waterball: case WeaponId.Earthball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
                 case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
@@ -513,6 +513,8 @@ namespace Arena
             d[(int)WeaponId.ChainLight] = DrawHeldChainLight;
             d[(int)WeaponId.Nimbus] = DrawHeldNimbus;
             d[(int)WeaponId.Fireball] = DrawHeldFireball;
+            d[(int)WeaponId.Waterball] = DrawHeldWaterball;  // ElementBallLook.cs
+            d[(int)WeaponId.Earthball] = DrawHeldEarthball;
             d[(int)WeaponId.ArcLightning] = DrawHeldArcLightning;
             d[(int)WeaponId.EmbolusSpears] = (p, t, hold) => DrawEsHeld(p, mHeldTube, t);
             d[(int)WeaponId.Stonespear] = DrawHeldStonespear;

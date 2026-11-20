@@ -4,6 +4,8 @@
 
 **Weapon variants (first one):** the Twin Rifle's tier I is the **Twin Rifle Auto**, a whole other weapon (`WeaponDef.Variant`, `Variants.VariantOf`): the window shows it with an Equip button (unlocked for now, `Variants.WeaponVariantsUnlocked`; no Cores needed until the unlock rules are set). It rides on the class's fourth weapon pick (`Defs.WeaponLimit`) but has no lobby key.
 
+**The Fireball's tiers are the Waterball (I) and the Earthball (II)** (`WeaponId.Waterball`/`Earthball`, Elementalist DPS picks 4 and 5, `ElementBalls.cs`): the Waterball rolls through and soaks (wet 4 s: slowed, lightning arcs to it); the Earthball stops on the first enemy, stuns it (0.8 s, heavies 0.4, bosses 0.2) and breaks into rubble (70 px, 60%).
+
 **Tier II of the Twin Rifle is Out of Ammo** (`WeaponId.OutOfAmmo`, the class's fifth weapon pick, `Defs.WeaponLimit`): the rifle arms swat bullets and bash by themselves, your own arms work a knife by hand (three-hit chain on fire), Alt's spin. Both Twin Rifle variants have an Equip button in the window.
 
 ## Decisions (owner)

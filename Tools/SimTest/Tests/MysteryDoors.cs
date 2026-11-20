@@ -357,6 +357,8 @@ static partial class Program
             var bl = spawnB.Invoke(g, new object[] { Defs.DpsShot, turret.Pos, V2.Zero, 0f, 1f, dmg, 1, false, 0f });
             return (bool)stops.Invoke(g, new[] { bl });
         };
+        var pushedOut = g.PushOutOfSolids(turret.Pos + new V2(4f, 0f), 9f);
+        Check(g.RoomTrapList.Any(tr => tr.Kind == TrapKind.Turret) && pushedOut.DistanceTo(turret.Pos) >= RoomTraps.TurretSolidR + 9f - 0.5f, "a room turret is a solid post: something on it is pushed clear (" + pushedOut.DistanceTo(turret.Pos).ToString("0") + " px)");
         int turretsBefore = g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret);
         bool hurt = turretsBefore > 0 && shoot(1f) && g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore;
         PollBoth(host, client);

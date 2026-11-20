@@ -24,7 +24,7 @@ namespace Arena
 
         public static float SpikeDamage(int wave) => 6f + 0.4f * Math.Max(0, wave);
         public static float TurretDamage(int wave) => 8f + 0.5f * Math.Max(0, wave);
-        public const float TurretHitR = 26f;
+        public const float TurretHitR = 26f, TurretSolidR = 24f;  // (a turret is a solid post: nothing walks through it)
 
         /// A turret's health: your shots wear it down, and at zero it is wrecked for the rest of the map.
         public static float TurretHp(int wave) => 40f + 4f * Math.Max(0, wave);
@@ -81,6 +81,7 @@ namespace Arena
     public partial class Game
     {
         List<RoomTrap> roomTrapList = new List<RoomTrap>();
+        V2[] roomTurretPosts = new V2[0];  // the standing turrets, as the last RoomTrapList build left them (every frame builds it: the host's tick, everyone's draw)
         int roomTrapKey = int.MinValue;
         readonly Dictionary<int, float> trapCd = new Dictionary<int, float>();
         readonly HashSet<long> trapWrecks = new HashSet<long>();      // turrets shot to bits this map (synced in Msg.ExpandState)
@@ -108,10 +109,28 @@ namespace Arena
                     roomTrapKey = key;
                     roomTrapList = RoomTraps.For(Expanded);
                     roomTrapList.RemoveAll(t => t.Kind == TrapKind.Turret && trapWrecks.Contains(TrapKey(t.Pos)));  // (a wrecked turret stays gone)
+                    var posts = new List<V2>();
+                    foreach (var t in roomTrapList)
+                        if (t.Kind == TrapKind.Turret)
+                            posts.Add(t.Pos);
+                    roomTurretPosts = posts.ToArray();
                     trapCd.Clear();
                 }
                 return roomTrapList;
             }
+        }
+
+        /// Moves something of radius r out of every standing room turret (a solid post), from PushOutOfSolids.
+        V2 PushOutOfTurrets(V2 pos, float r)
+        {
+            var posts = roomTurretPosts;
+            for (int i = 0; i < posts.Length; i++)
+            {
+                float dist = pos.DistanceTo(posts[i]), want = RoomTraps.TurretSolidR + r;
+                if (dist < want)
+                    pos = posts[i] + (dist > 0.5f ? (pos - posts[i]) / dist : new V2(1f, 0f)) * want;
+            }
+            return pos;
         }
 
         /// A slow field's pull on a mover: 1, or RoomTraps.SlowMult while standing in one.
@@ -143,7 +162,7 @@ namespace Arena
                 if (hp > 0f)
                 {
                     trapHp[key] = hp;
-                    BroadcastFx(FxKind.Ring, t.Pos, new Rgba(1f, 0.45f, 0.4f), 34f, 0.2f, Sfx.None);
+                    BroadcastFx(FxKind.Ring, t.Pos, new Rgba(1f, 0.45f, 0.4f), 38f, 0.25f, Sfx.Hit);
                     var tw = Proto.Begin(Msg.TrapHit);  // everyone's game draws the bar (RoomTrapLook.cs)
                     tw.Write((short)Math.Round(t.Pos.X)); tw.Write((short)Math.Round(t.Pos.Y)); tw.Write((byte)Math.Max(1, Math.Min(255, (int)(255f * hp / RoomTraps.TurretHp(Wave)))));
                     session.Broadcast(Proto.End(tw));
