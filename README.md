@@ -1240,7 +1240,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Riot Captain** (the Warden's mini-boss, 65% of the Warden's health): a tower shield blocks the front and never breaks; it turns slowly, so get
   round it. In turn: a **shield charge** along a red lane (18 damage, knocked 220 px; **into a wall it's dazed 2.2 s**: no shield, +50% damage;
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
-  the room's far corners, at most 2 up). Below half health: a quarter faster, it charges twice, 4 fans, 4 canisters.
+  the room's far corners, at most 2 up). Below half health: a quarter faster, it charges twice, 4 fans, 4 canisters. Its theme is *Riot Line* (a marching snare over
+  gritty fifths).
 - **Shop and Black Market rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and add stock in the **shop room**, buildables at the **Black Market** (one Buildables category, like the Arms Dealer and the Medic; it sells nothing else); selling, the Floor kit and the Vector pack are the shop room's only. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
@@ -2029,9 +2030,9 @@ has its own track** that crossfades in while it's on the field (`Assets/Scripts/
 track is a short recipe: tempo, key, chords and which instruments play). Tracks render in the background, and
 the next boss's track is prepared ahead of time. The **Music** slider controls all of it.
 
-**Music player** (Settings > Audio > *Music player*): 22 tracks to pick from, which play everywhere (menus and matches)
+**Music player** (Settings > Audio > *Music player*): 23 tracks to pick from, which play everywhere (menus and matches)
 instead of the automatic music until you pick **Automatic** again. Besides the menu theme, the wave battle track and the
-ten boss themes there are ten extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lounge*, *Crystal Caves* and *Deep Freeze*
+ten boss themes (plus the Riot Captain's *Riot Line*) there are ten extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lounge*, *Crystal Caves* and *Deep Freeze*
 (Chill); *Neon Highway*, *Sunrise Run*, *Arcade Heist* and *Dust Road* (Action); *Haunted Hollow* and *Iron Rain* (Dark);
 *Last Stand* (Epic). Controls: Prev / Play-Pause / Next, Shuffle, Repeat (all, or this one), a progress bar, and
 "Boss themes still play" (on by default: a boss fight swaps in its own theme, then your track returns). Wheel scrolls the

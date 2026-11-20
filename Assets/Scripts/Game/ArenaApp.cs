@@ -602,14 +602,24 @@ namespace Arena
             if (session.Screen == AppScreen.Game && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
                 wanted = "battle";
+                bool bossOn = false;
                 foreach (var e in game.Enemies.Values)
                     if (e.Def.IsBoss)
                     {
                         var key = Game.IsReaper(e.Type) ? EnemyType.ReaperOfDusk : e.Type;
                         sounds.RequestBossTrack(key);
                         wanted = SoundBank.BossTrackId(key);
+                        bossOn = true;
                         break;
                     }
+                if (!bossOn)  // a faction mini-boss (the Riot Captain) has its own theme too
+                    foreach (var e in game.Enemies.Values)
+                        if (FactionMinis.Is(e.Type) && e.Hp > 0f)
+                        {
+                            sounds.RequestBossTrack(e.Type);
+                            wanted = SoundBank.BossTrackId(e.Type);
+                            break;
+                        }
                 int next = game.NextBossWave(game.Wave, game.State == MatchState.Fighting);
                 var upcoming = game.BossAt(next);
                 sounds.RequestBossTrack(upcoming);
