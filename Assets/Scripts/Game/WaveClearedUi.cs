@@ -344,7 +344,7 @@ namespace Arena
             int shown = 0;
             foreach (var c in me.Hand)  // the cards by name, three at most
             {
-                if (c == (byte)PieceCard.None)
+                if (c == (int)PieceCard.None)
                     continue;
                 if (shown == 3)
                 {

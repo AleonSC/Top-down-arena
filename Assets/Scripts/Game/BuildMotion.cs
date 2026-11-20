@@ -294,7 +294,7 @@ namespace Arena
         }
 
         /// The hand closing up: each card slides from where it was last frame (by card, not slot); a new card rises in.
-        void NoteHand(byte[] hand, int n, System.Func<int, Vector2> slotPos)
+        void NoteHand(int[] hand, int n, System.Func<int, Vector2> slotPos)
         {
             if (palLast != null && !FxCalm)
             {

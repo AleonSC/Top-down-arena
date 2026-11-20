@@ -4,8 +4,8 @@ Status: **built (protocol 291)**: buying, stash, placing and the UI. The telepor
 
 The Black Market room is now the **Black Market** (`RoomKind.BlackMarket` keeps its name in code). Decided with the owner on Nov 11, 2026.
 
-- **Screen**: the shop carousel with two tabs, **Buildables** (Teleporter pair 150, Turret 120, Landmine 80, Slow field 90 gold) and **Services**
-  (remove upgrade, vector pack, Floor kit; heals and revives moved to the Medic, Nov 18, protocol 410). Add stock stays in the shop room. `ShopUi.DrawBuildCard`.
+- **Screen**: the shop carousel with one category like the Arms Dealer and the Medic, **Buildables** (Teleporter pair 150, Turret 120, Landmine 80, Slow field 90 gold). Selling,
+  the vector pack and the Floor kit are the shop room's only (Nov 20); heals and revives are the Medic's (Nov 18, protocol 410). Add stock stays in the shop room. `ShopUi.DrawBuildCard`.
 - **Stash**: `Player.Stash[BuildKind]`, at most 5 of a kind, bought with `ShopAction.BuyBuild`, synced with the shop fields, saved as a `stash` line per seat.
 - **Teleporters**: the draw screen's Portal tool is now **Teleporter**: it spends a stash item and builds at once (no vote, no vectors). Bots don't build them.
 - **Traps**: the draw screen's **Trap** tool places one from the stash with a click (`Msg.PlaceBuild`, `Expansion.PlaceSpot`); the list is `Game.Placed`,

@@ -12,7 +12,7 @@ namespace Arena
         List<Placement> gridOpts;       // the picked piece's legal places (rebuilt when the map or the card changes)
         int gridOptsKey = int.MinValue;
 
-        static readonly Rgba GridInk = new Rgba(0.35f, 0.85f, 0.78f), GridOk = new Rgba(0.35f, 1f, 0.55f);
+        static readonly Rgba PieceCombatInk = new Rgba(0.9f, 0.38f, 0.36f), GridInk = new Rgba(0.35f, 0.85f, 0.78f), GridOk = new Rgba(0.35f, 1f, 0.55f);
 
         PieceCard PickedPieceCard
         {
@@ -228,11 +228,13 @@ namespace Arena
                 if (!playable)
                     ink = ink.WithAlpha(0.35f);
                 DrawCardGlyph(card, new Rect(r.x + 8f, r.y + 6f, r.width - 16f, 38f), on ? Color.white : ink);
-                bool floor = Expansion.PieceCardRoomType(card) != 0;  // a piece with a modifier (a floor today)
+                var modNames = Expansion.IsShapePieceCard(card) ? PieceMods.Names(Expansion.PieceCardMods(card)) : new List<string>();
+                bool floor = modNames.Count > 0;  // a piece with modifiers (floor, combat, ...)
                 string name = Expansion.IsShapePieceCard(card) ? Expansion.PieceShapeName(Expansion.ShapeOfPieceCard(card)) : Expansion.CardName(card);
-                Ui.Label(new Rect(r.x, r.y + (floor ? 46f : 52f), r.width, 16f), name.ToUpperInvariant(), 11, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
-                if (floor)  // a modded piece: its modifier under the name, in the card's colour
-                    Ui.Label(new Rect(r.x + 4f, r.y + 59f, r.width - 8f, 13f), Expansion.RoomTypeName(Expansion.PieceCardRoomType(card)).ToUpperInvariant(), 9, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
+                bool stacked = modNames.Count > 1;  // several modifiers: one line each, a size smaller
+                Ui.Label(new Rect(r.x, r.y + (stacked ? 42f : floor ? 46f : 52f), r.width, 16f), name.ToUpperInvariant(), 11, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
+                for (int mi = 0; mi < modNames.Count; mi++)  // a modded piece: its modifiers under the name, in the card's colour
+                    Ui.Label(new Rect(r.x + 4f, r.y + (stacked ? 55f + mi * 9f : 59f), r.width - 8f, stacked ? 10f : 13f), modNames[mi].ToUpperInvariant(), stacked ? 8 : 9, on ? Color.white : ink, TextAnchor.MiddleCenter, true);
                 if (TipHover(r))
                 {
                     TipStart(r, Expansion.CardName(card), ink);
