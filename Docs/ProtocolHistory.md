@@ -4,7 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 448: Thugs now send `SyncLarder` (`LarderStage`, `LarderT`) for their charged punch (ThugPunch.cs)
+- 449: Thugs now send `SyncLarder` (`LarderStage`, `LarderT`) for their charged punch (ThugPunch.cs)
+- 448: `Msg.ExpandState` adds a byte after the map number: the core's floor plan (`Game.CoreLayout`, `CoreLayoutId`, CoreLayouts.cs).
 - 447: `ExpansionRoom.OneWay` (a One-way piece card's rooms, `PieceMods.OneWay`) added at the end of each room in `Msg.ExpandState`; doors get `RoomDoor.Pass` (built locally, not sent). `Sfx.OneWayBump` added at the end (played locally, never sent).
 - 446: Deployable Turret health: a `ZoneKind.DeployTurret` zone's replicated `GuardFrac` now carries its health fraction (no new fields)
 - 445: dev spawners (F1 dock): the snapshot gains a byte count of `DevSpawner`s after the gadgets (id, type, elite, pos, every, timer, cap, alive)
