@@ -8,11 +8,11 @@ static partial class Program
 {
     static void ArcKnucklesTest(float dt)
     {
-        // The lobby: the Knight DPS has a fourth weapon; everyone else keeps three.
+        // The lobby: the Knight DPS has a fourth weapon; roles without one keep three.
         Check(Defs.WeaponCount(Role.Dps, Kit.Knight) == 4 && Defs.Weapon(Role.Dps, Kit.Knight, 3).Id == WeaponId.ArcKnuckles,
             "the Knight DPS's fourth weapon key is the Arc Knuckles");
-        Check(Defs.WeaponCount(Role.Healer, Kit.Knight) == 3 && Defs.WeaponCount(Role.Healer, Kit.Soldier) == 3 && Defs.Weapon(Role.Healer, Kit.Soldier, 3) == Defs.Weapon(Role.Healer, Kit.Soldier, 0),
-            "other roles and classes keep three (a fourth pick they don't have is their first weapon)");
+        Check(Defs.WeaponCount(Role.Healer, Kit.Knight) == 3 && Defs.WeaponCount(Role.Healer, Kit.Elementalist) == 3 && Defs.Weapon(Role.Healer, Kit.Elementalist, 3) == Defs.Weapon(Role.Healer, Kit.Elementalist, 0),
+            "roles without a 4th weapon keep three (a fourth pick they don't have is their first weapon)");
         Check(Defs.WeaponOf(WeaponId.ArcKnuckles).Name == "Arc Knuckles", "the Arc Knuckles have their definition");
 
         var s = StartBuffed(dt, 1, 0);
