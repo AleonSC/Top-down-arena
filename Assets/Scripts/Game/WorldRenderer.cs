@@ -130,6 +130,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.HoneybeeStaff)
                     DrawHoneyMeter(p);  // HoneybeeLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.WyvernStaff)
+                    DrawCinderMeter(p);  // WyvernStaffLook.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.RepulsionCannon)
                 {
                     DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter

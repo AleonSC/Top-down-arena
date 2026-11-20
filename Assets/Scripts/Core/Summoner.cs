@@ -29,6 +29,10 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BearTotem, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2, Damage = 11f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, 25% more bleed, and your Bear's bites hit enemies around its target", Name = "Bear Totem", FireInterval = 0.45f,
                 Desc = "Two quick claw swipes in front of you that make enemies bleed. A Bear companion mauls nearby enemies.",
                 Companion = MinionKind.Bear, CompanionCount = 1 },
+            new WeaponDef { Id = WeaponId.WyvernStaff, Kit = Kit.Summoner, Role = Role.Tank, Choice = 3, Damage = 22f, BotRange = 300f, ExtraDesc = "+25% breath damage, and a 10% bigger gale and slam", Name = "Wyvern Staff", FireInterval = 0.1f,
+                Desc = "A wind Wyvern hovers over you: its gale slows and shoves back the enemies under it, and slows their shots. Hold Fire and it flies out to breathe fire at your cursor for as long as the Cinder meter lasts; the gale refills it. Alt: Wyrm Slam, a dive that stuns and hurts.",
+                Companion = MinionKind.Wyvern, CompanionCount = 1,
+                Sound = Sfx.SpellFire, AreaDesc = "the gale and the slam are 15% wider" },
             // Healer
             new WeaponDef { Id = WeaponId.SpriteStaff, Kit = Kit.Summoner, Role = Role.Healer, Choice = 0, Speed = 540f, Life = 1f, Damage = 7f, ExtraDesc = "+1 Sprite", Name = "Sprite Staff", FireInterval = 0.5f,
                 Desc = "A firefly that seeds the enemy it hits, then hops to nearby enemies that aren't seeded yet. Sprites fly to whoever is hurt and heal them, and every seeded enemy you kill frees another sprite for a while.",
@@ -101,6 +105,8 @@ namespace Arena
                 Apply = s => { s.ImpExtra += 1; s.ImpRateMult += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HoneybeeStaff }, MaxStacks = 2, Name = "Bigger Hive", Desc = "An enemy dying in the Honeybee Staff's honey bursts into one more bee, and its puddles spread 20% wider",
                 Apply = s => { s.HarvestBonus += 1; s.PuddleSizeMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.WyvernStaff }, MaxStacks = 2, Name = "Stormwing", Desc = "The Wyvern's gale shoves and slows 25% harder, and the Wyrm Slam is 25 px wider",
+                Apply = s => { s.WyvernPower += 0.25f; } },
         };
 
         /// The Summoner's 1st abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)

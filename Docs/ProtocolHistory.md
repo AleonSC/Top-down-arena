@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 431: the Tank Summoner's Wyvern Staff: `WeaponId.WyvernStaff`, `MinionKind.Wyvern` (its `Minion.Wind` is the mode: 0 hover, 1 breath, 2 dive), `FxKind.WyvernSlam`, `Player.Cinder` (the Cinder meter, a float after `HoneyOn` in the player snapshot), `DashWyvernSlam` 48 over `Msg.WeaponDash`
 - 430: weapon skins: `Msg.Cosmetics` and each `Msg.Lobby` entry end with a count and (weapon, skin index) byte pairs (`Expertise.Pack`); `Sfx.ChickCut1` … `ChickCatch` (the Rubber Chicken sound pack) added at the end.
 - 429: Spirit Chalk ignite: `Msg.WeaponDash` kind 47 (`DashIgnite`); a snapshot ink dot's pen short carries a lit flag (bit 14, pen id now 14 bits)
 - 428: `NodeKind` drops Rule (now Chest, Relic, BreachLoot, Shrine: Shrine and BreachLoot renumber) and `MapNode` drops `Cleared`: the node kind byte renumbers and `Msg.ExpandState`'s per-node bytes lose the `Cleared` bool (saves keep a 0 in that field)

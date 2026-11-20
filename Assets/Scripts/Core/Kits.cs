@@ -22,6 +22,7 @@ namespace Arena
         Bee,          // the Honeybee Staff's bee: hatches at the cursor, stings the nearest enemy once and dies (HoneybeeStaff.cs)
         VectorBlock,  // one tile of a Vector Wall or Bastion: stops enemy shots until its soak is gone or it times out (Engineer.cs)
         TankBot, MedicBot, AssaultBot,  // the Engineer's robots (Iron Fist, Stasis Gun, Vector Blade): summoned by a click, they fight and draw aggro (EngineerBots.cs)
+        Wyvern,       // the Wyvern Staff's wind Wyvern: hovers over you, its gale slows and shoves, it breathes fire at your cursor and slams (WyvernStaff.cs)
         None = 255,
     }
 
@@ -123,6 +124,7 @@ namespace Arena
                 Interval = 0.4f, Damage = 9f, Range = 330f, HealRate = 9f },
             new MinionDef { Name = "Assault Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static, Speed = 175f,
                 Interval = 0.22f, Damage = 11f, Range = 340f },
+            new MinionDef { Name = "Wyvern", Radius = 22f, Sides = 6, Color = new Rgba(0.44f, 0.88f, 0.81f), Move = MinionMove.FollowOwner, Speed = 240f },  // flown by WyvernStaff.cs (MoveWyvern)
         };
 
         // Indexed by ZoneKind.

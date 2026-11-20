@@ -120,6 +120,8 @@ namespace Arena
                     break;
                 case WeaponId.WindClash:
                     break;  // its waves go from TickWindClash, never from FireVolley (WindClash.cs)
+                case WeaponId.WyvernStaff:
+                    break;  // its breath goes from TickWyvernStaff, never from FireVolley (WyvernStaff.cs)
                 case WeaponId.IceShards:
                 {
                     // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the

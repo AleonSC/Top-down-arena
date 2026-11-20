@@ -200,6 +200,7 @@ namespace Arena
         public int OrbitExtra; public float LaunchRangeMult = 1f;          // Ice Shards: Frozen Halo
         public int SsSideBonus; public float SsSlamMult = 1f;              // Stonespear: Tectonic
         public int HarvestBonus; public float PuddleSizeMult = 1f;         // Honeybee Staff: Bigger Hive
+        public float WyvernPower;                                          // Wyvern Staff: Stormwing
         public float EsBlastMult = 1f;                                     // Embolus Spears: Burst Vessels
         public float PylonSizeMult = 1f, PylonSlowBonus;                   // Drag Pylon: Wide Field
         public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links

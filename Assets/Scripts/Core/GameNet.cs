@@ -810,6 +810,7 @@ namespace Arena
             s.Int(ref p.SsLock);
             s.Float(ref p.HoneyFill);  // the Honeybee Staff (HoneybeeStaff.cs)
             s.Bool(ref p.HoneyOn);
+            s.Float(ref p.Cinder);  // the Wyvern Staff (WyvernStaff.cs)
             s.Bool(ref p.NunGuard);  // the Nunchaku (Nunchaku.cs)
             s.Byte(ref p.NunSwats);
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)

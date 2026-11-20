@@ -293,6 +293,11 @@ namespace Arena
 
         void DrawMinion(Minion m, float t)
         {
+            if (m.Kind == MinionKind.Wyvern)
+            {
+                DrawWyvernMinion(m, t);  // WyvernStaffLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.Bee)
             {
                 DrawBee(m, t);  // HoneybeeLook.cs

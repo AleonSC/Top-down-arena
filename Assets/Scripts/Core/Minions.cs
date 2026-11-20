@@ -485,6 +485,11 @@ namespace Arena
                         break;
                     case MinionMove.FollowOwner:
                     {
+                        if (m.Kind == MinionKind.Wyvern)
+                        {
+                            MoveWyvern(m, owner, dt);  // (WyvernStaff.cs)
+                            break;
+                        }
                         // The treant stands in front of you; the guardian spirit hovers on you.
                         V2 goal = m.Kind == MinionKind.Treant ? TreantGoal(m, owner)
                             : m.Kind == MinionKind.Nimbus ? NimbusGoal(owner)  // the cloud drifts after your cursor (Nimbus.cs)
