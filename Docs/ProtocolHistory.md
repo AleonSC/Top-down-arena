@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 444: dev spawners (F1 dock): the snapshot gains a byte count of `DevSpawner`s after the gadgets (id, type, elite, pos, every, timer, cap, alive)
 - 443: Deployable Turret (DPS Soldier 4th choice): `AbilityId.DeployableTurret`, `ZoneKind.DeployTurret` (no new fields: the zone's Pos, Aim, T and Duration are enough; the guns' fire is drawn on each screen from its owner's aim and trigger)
 - 442: the Energy Drink gadget: `GadgetId.EnergyDrink` (2), so `GadgetId.None` moves from 2 to 3 in the Player and gadget snapshots and the bag.
 - 441: coins in the snapshot are sent as changes: a `full` flag, then either the whole list (every 60 snapshots, or when the party changes) or the coins dropped/moved since the last snapshot plus the ids of those gone (`Game.SyncCoins`).

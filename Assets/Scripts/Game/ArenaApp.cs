@@ -780,7 +780,9 @@ namespace Arena
             TextEditBeginGui();
             Ui.BeginHoverFrame();
             bool modal = ModalScreenOpen || textEditOpen;
-            if (!modal || Event.current.type == EventType.Repaint)
+            bool dockOwns = DockOwnsEvent();  // the F1 dock is drawn last but its clicks come first: the screen under it doesn't see them (DevDock.cs)
+            Ui.NoHit = Event.current.type == EventType.Repaint && MouseOverDockRects(Event.current.mousePosition);  // (and nothing under it lights up on hover)
+            if ((!modal && !dockOwns) || Event.current.type == EventType.Repaint)
             switch (session.Screen)
             {
                 case AppScreen.Menu:
@@ -852,6 +854,7 @@ namespace Arena
                     DrawRecallFade();  // back to the lobby: the screen going dark (Recall.cs)
                     break;
             }
+            Ui.NoHit = false;
             if (!textEditOpen || Event.current.type == EventType.Repaint)
             {
                 DrawScreens();  // the top tool screen: F1 menu or Boss Lab setup (UiScreens.cs)

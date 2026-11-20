@@ -2149,7 +2149,7 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs 
 ### Developer tools (F1)
 
 Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). It's a slim bar across the top of the screen. In a
-match the game keeps running behind it (the mouse only stops shooting while it's over the dock); in the lobby and menus it covers the
+match the game keeps running behind it (a click or scroll over the dock is the dock's alone: nothing under it is clicked and you don't shoot); in the lobby and menus it covers the
 screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE**, **KILL ALL** and **SNAP** (run snapshots, below) pinned for one click, four keys that
 open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
 as a drawer on the right, and the bigger tools (Spawn an enemy, Spawn an upgrade, Spawn a gadget or relic, Run snapshots) open as one sheet. While you type in one of
@@ -2164,6 +2164,11 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
 - **WAVE > SPAWN AN ENEMY… (host, while a wave is under way):** a sheet with every enemy (and a **BOSSES** tab) shown as its live model; filter by
   name, pick a **count** (1, 3, 5, 10) and **Elite**, then click one to put them in a row in front of you. A boss comes in the middle of the
   arena as on its wave (the Twin Reapers bring both twins). They count toward the wave like any enemy. Marks the run as a dev run.
+  **Spawner** (a switch under the filter): a click places a spawner pad of that enemy in front of you instead (not bosses; any time in a
+  run). While a wave is on it brings one in every **1 / 2 / 4 / 8 s**, never more than **MAX 1 / 3 / 5 / 10** of its own alive (Elite
+  makes them elite). The pad shows a ghost of its enemy, a ring filling to the next one and a pip per enemy alive; its tag says what and
+  how often. Up to 12 at once; **UNDO** takes the newest away, **CLEAR** all of them (their enemies stay). The wave won't clear while one
+  keeps refilling.
 - **LABS > DEV ARENA (PLAY AS ENEMIES) (host):** a sandbox for trying enemies' attacks. From the menu or the lobby it starts a Practice
   Range match and turns it on; in a run it turns on there. The field is cleared, everyone goes into god mode, no enemies arrive and the
   wave never clears. The Spawn-an-enemy sheet opens with a row on top: **CLICK: SPAWN** puts enemies in front of you as usual, **CLICK:

@@ -30,6 +30,46 @@ namespace Arena
             return false;
         }
 
+        bool dockPress;  // the mouse went down on the dock: its drags and release are the dock's too
+
+        bool MouseOverDockRects(Vector2 p)
+        {
+            if (!devMenuOpen)
+                return false;
+            foreach (var r in dockHit)
+                if (r.Contains(p))
+                    return true;
+            return false;
+        }
+
+        /// OnGUI: is this mouse event the dock's alone? A press or a wheel turn over the dock or a drawer, or the drags and release of a
+        /// press that began there. IMGUI hands a click to the first control drawn under it and the dock is drawn last, so without this a
+        /// button, card or list under the dock (the HUD, the Wave cleared box, the build screen, the shop) took clicks meant for the dock.
+        bool DockOwnsEvent()
+        {
+            var e = Event.current;
+            if (!devMenuOpen)
+            {
+                dockPress = false;
+                return false;
+            }
+            switch (e.type)
+            {
+                case EventType.MouseDown:
+                    dockPress = MouseOverDockRects(e.mousePosition);
+                    return dockPress;
+                case EventType.ScrollWheel:
+                    return MouseOverDockRects(e.mousePosition);
+                case EventType.MouseDrag:
+                    return dockPress;
+                case EventType.MouseUp:
+                    bool mine = dockPress;
+                    dockPress = false;
+                    return mine;
+            }
+            return false;
+        }
+
         /// A drawer's box: the screen colour, a thin rim, a small title. Returns the area inside.
         Rect DockBox(Rect r, string title)
         {
@@ -521,6 +561,9 @@ namespace Arena
         float devEnemyScroll;
         string devEnemyFilter = "";
         string devEnemyNote = "";
+        bool devSpawnerMode;      // a click places a spawner of that enemy instead (Core/DevSpawners.cs)
+        int devSpawnerEvery = 1;  // index into Game.DevSpawnerEvery
+        int devSpawnerCap = 2;    // index into Game.DevSpawnerCaps
 
         /// Every enemy (or boss) with its live model: click one to put it in front of you (several with the count keys, tougher with
         /// Elite). Needs a wave under way, and the host.
@@ -546,6 +589,8 @@ namespace Arena
                 if (DkChoice(new Rect(cx + 50f + i * 38f, top.y, 34f, 30f), counts[i].ToString(), devEnemyCount == counts[i], CrtStyle.Gold))
                     devEnemyCount = counts[i];
             devEnemyElite = DkSwitch(new Rect(cx + 212f, top.y, top.xMax - cx - 212f, 30f), devEnemyElite, "Elite");
+
+            DrawSpawnerRow(col.Next(30f), host);  // DevSpawnerLook.cs
 
             var all = EnemyPalette(devEnemyTab == 1);
             var list = new List<EnemyType>();
@@ -574,13 +619,16 @@ namespace Arena
             devEnemyScroll = Mathf.Clamp(devEnemyScroll, 0, Mathf.Max(0, rowsAll - rowsVisible));
             int first = (int)devEnemyScroll * cols;
             var cells = new List<KeyValuePair<EnemyType, Rect>>();
-            bool canSpawn = host && fighting;
+            bool spawnerMode = devSpawnerMode && !(game.DevArena && devPlayAs);
+            bool canSpawn = host && (fighting || spawnerMode && game.State != MatchState.Idle);
             for (int i = first; i < list.Count && i < first + rowsVisible * cols; i++)
             {
                 int k = i - first;
                 var cell = new Rect(area.x + 6f + (k % cols) * (cw + gap), area.y + 4f + (k / cols) * (chh + gap), cw, chh);
                 bool hover = canSpawn && cell.Contains(ev.mousePosition);
                 bool boss = Defs.Get(list[i]).IsBoss;
+                if (spawnerMode && boss)
+                    hover = false;
                 Color tint = boss ? CrtStyle.Danger : Approaches.Of(list[i]) != null ? CrtStyle.Gold : CrtStyle.Ink;
                 Ui.Fill(cell, tint.WithAlpha(hover ? 0.16f : 0.05f));
                 CrtKit.Frame(cell, 1f, tint.WithAlpha(hover ? 0.8f : 0.25f));
@@ -593,6 +641,15 @@ namespace Arena
                         devMenuOpen = false;  // out of the way: you're it now (DevArenaUi.cs)
                     else
                         devEnemyNote = "Couldn't play as it.";
+                }
+                else if (hitCell && spawnerMode)
+                {
+                    if (boss)
+                        devEnemyNote = "Bosses can't have a spawner.";
+                    else
+                        devEnemyNote = game.DevPlaceSpawner(game.MyId, list[i], Game.DevSpawnerEvery[devSpawnerEvery], Game.DevSpawnerCaps[devSpawnerCap], devEnemyElite) > 0
+                            ? "Placed a spawner of " + PracticeEnemyName(list[i]) + " in front of you: one every " + Game.DevSpawnerEvery[devSpawnerEvery] + " s while a wave is on, up to " + Game.DevSpawnerCaps[devSpawnerCap] + " alive."
+                            : game.DevSpawners.Count >= Game.DevSpawnerMax ? "That's the most spawners at once (" + Game.DevSpawnerMax + "): clear some first." : "Couldn't place it.";
                 }
                 else if (hitCell)
                 {
@@ -611,7 +668,7 @@ namespace Arena
             }
             if (rowsAll > rowsVisible)
                 Ui.Label(new Rect(area.xMax - 110f, area.yMax + 6f, 104f, 16f), "scroll " + ((int)devEnemyScroll + 1) + "/" + (rowsAll - rowsVisible + 1), 10, CrtStyle.Desc, TextAnchor.MiddleRight);
-            string idle = !host ? "Only the host can spawn enemies." : !fighting ? "Start a wave first: enemies can only be spawned while one is under way." : list.Count + " " + (devEnemyTab == 1 ? "bosses" : "enemies") + (game.DevArena && devPlayAs ? "  ·  click one to play as it" : "  ·  click one to put it in front of you (marks the run as a dev run)");
+            string idle = !host ? "Only the host can spawn enemies." : spawnerMode && game.State != MatchState.Idle ? list.Count + " " + (devEnemyTab == 1 ? "bosses (no spawners)" : "enemies") + "  ·  click one to place a spawner of it in front of you" : !fighting ? "Start a wave first: enemies can only be spawned while one is under way." : list.Count + " " + (devEnemyTab == 1 ? "bosses" : "enemies") + (game.DevArena && devPlayAs ? "  ·  click one to play as it" : "  ·  click one to put it in front of you (marks the run as a dev run)");
             Ui.Label(new Rect(r.x, r.yMax - 20f, r.width - 120f, 18f), devEnemyNote.Length > 0 && canSpawn ? devEnemyNote : idle, 11, devEnemyNote.Length > 0 && canSpawn ? CrtStyle.Gold : CrtStyle.Desc);
         }
 

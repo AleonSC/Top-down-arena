@@ -106,6 +106,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("DEVDRAWER") != null) set("devDrawer", int.Parse(Environment.GetEnvironmentVariable("DEVDRAWER")));
       if (Environment.GetEnvironmentVariable("DEVSIDE") != null) set("devSide", true);
       if (Environment.GetEnvironmentVariable("DEVSHEET") != null) set("devSheet", int.Parse(Environment.GetEnvironmentVariable("DEVSHEET")));
+      if (Environment.GetEnvironmentVariable("SPAWNERMODE") != null) set("devSpawnerMode", true);  // the Spawn-an-enemy sheet's Spawner row on (DEVSHEET=5)
       if (Environment.GetEnvironmentVariable("FILTER") != null) set("devFilter", Environment.GetEnvironmentVariable("FILTER"));
       if (Environment.GetEnvironmentVariable("UPRARITY") != null) set("devUpRarity", int.Parse(Environment.GetEnvironmentVariable("UPRARITY")));  // the Spawn-an-upgrade sheet (DEVSHEET=4): 0 common ... 6 milestone, UPSCROLL=px
       if (Environment.GetEnvironmentVariable("UPSCROLL") != null) set("devUpScroll", float.Parse(Environment.GetEnvironmentVariable("UPSCROLL")));
