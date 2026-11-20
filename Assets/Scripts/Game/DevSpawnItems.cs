@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The F1 dock's Spawn-a-gadget-or-relic sheet (devSheet 7, opened from the PARTY drawer): for the chosen player, click a gadget
-    /// to drop a full one in front of them (their own copy: walk onto it), or a relic to put it in their relic slot at once. Host only,
+    /// The F1 dock's Spawn-a-gadget-chest-or-relic sheet (devSheet 7, opened from the PARTY drawer): for the chosen player, click a gadget
+    /// to drop a full one in front of them (their own copy: walk onto it), a chest kind to put one in front of them (Game.DevSpawnChest), or a relic to put it in their relic slot at once. Host only,
     /// in a match; both mark the run as a dev run (Game.DevSpawnGadget / Game.DevSetRelic in Core/DevTools.cs).
     public partial class ArenaApp
     {
@@ -51,7 +51,7 @@ namespace Arena
             Ui.Label(gh, "GADGETS", 10, CrtStyle.Head, TextAnchor.MiddleLeft, true);
             Ui.Label(gh, "in hand: " + (who.Gadget == GadgetId.None ? "nothing" : Game.GadgetName(who.Gadget)) + "  ·  bag " + bagUsed + "/" + who.BagKind.Length,
                 10, CrtStyle.Desc, TextAnchor.MiddleRight);
-            var gc = DkStack.Cells(col.Next(66f), (int)GadgetId.None, 8f);
+            var gc = DkStack.Cells(col.Next(54f), (int)GadgetId.None, 8f);
             for (int i = 0; i < gc.Length; i++)
             {
                 var g = (GadgetId)i;
@@ -60,15 +60,34 @@ namespace Arena
                 bool hover = host && cell.Contains(ev.mousePosition);
                 Ui.Fill(cell, ink.WithAlpha(hover ? 0.16f : 0.05f));
                 CrtKit.Frame(cell, 1f, ink.WithAlpha(hover ? 0.85f : 0.3f));
-                DrawGadgetGlyph(g, new Vector2(cell.x + 34f, cell.center.y), 22f, host ? ink : ink.WithAlpha(0.45f));
-                Ui.Label(new Rect(cell.x + 64f, cell.y + 10f, cell.width - 70f, 24f), Game.GadgetName(g).ToUpperInvariant(), 14, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
+                DrawGadgetGlyph(g, new Vector2(cell.x + 30f, cell.center.y), 19f, host ? ink : ink.WithAlpha(0.45f));
+                Ui.Label(new Rect(cell.x + 64f, cell.y + 5f, cell.width - 70f, 24f), Game.GadgetName(g).ToUpperInvariant(), 14, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
                 float secs = Game.GadgetTime(g);
-                Ui.Label(new Rect(cell.x + 64f, cell.y + 34f, cell.width - 70f, 20f), (Game.GadgetTimed(g) ? secs.ToString("0") + " s of use" : secs.ToString("0") + " s channel to the hub"),
+                Ui.Label(new Rect(cell.x + 64f, cell.y + 28f, cell.width - 70f, 20f), (Game.GadgetTimed(g) ? secs.ToString("0") + " s of use" : secs.ToString("0") + " s channel to the hub"),
                     11, CrtStyle.Desc, TextAnchor.MiddleLeft);
                 if (hover)
                     hoverNote = "Drop a full " + Game.GadgetName(g) + " in front of " + whoName + " (only " + (who.Id == game.MyId ? "you see" : "they see") + " it; walk onto it).";
                 if (host && Ui.HitArea(cell))
                     devItemNote = game.DevSpawnGadget(who.Id, g) ? "Dropped a " + Game.GadgetName(g) + " in front of " + whoName + ": walk onto it to pick it up." : "Couldn't drop it.";
+            }
+
+            // Chests: every kind, drawn as it stands in the arena; a click puts one in front of the player.
+            Ui.Label(col.Next(16f), "CHESTS", 10, CrtStyle.Head, TextAnchor.MiddleLeft, true);
+            var cc = DkStack.Cells(col.Next(72f), (int)ChestKind.Gadget + 1, 6f);
+            for (int i = 0; i < cc.Length; i++)
+            {
+                var k = (ChestKind)i;
+                var cell = cc[i];
+                Color ink = ChestInkOf(k).ToColor();
+                bool hover = host && cell.Contains(ev.mousePosition);
+                Ui.Fill(cell, ink.WithAlpha(hover ? 0.16f : 0.05f));
+                CrtKit.Frame(cell, 1f, ink.WithAlpha(hover ? 0.85f : 0.25f));
+                string nm = ChestKindName(k).Replace(" CHEST", "");
+                Ui.Label(new Rect(cell.x + 2f, cell.yMax - 17f, cell.width - 4f, 14f), nm, 10, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleCenter, true);
+                if (hover)
+                    hoverNote = ChestKindName(k) + ": " + ChestGives(k).ToLowerInvariant() + ". Put one in front of " + whoName + " (it doesn't hold the wave).";
+                if (host && Ui.HitArea(cell))
+                    devItemNote = game.DevSpawnChest(who.Id, k) ? "Put a " + ChestKindName(k).ToLowerInvariant() + " in front of " + whoName + ": walk up to it to open it." : "Couldn't place it.";
             }
 
             // Relics: every relic in boss order (the three classic ones first), the one held lit; click sets the slot.
@@ -111,6 +130,14 @@ namespace Arena
             if (BeginUiGl())
             {
                 float t = Time.unscaledTime;
+                for (int i = 0; i < cc.Length; i++)
+                {
+                    UiClip(cc[i]);
+                    UiModelAt(new V2(cc[i].center.x, cc[i].y + 30f), 0.62f);
+                    DrawChestLook(V2.Zero, host ? 1f : 0.45f, t, (ChestKind)i, false, 0f);
+                }
+                glZoom = 1f;
+                glShift = V2.Zero;
                 foreach (var kv in glyphs)
                 {
                     UiClip(kv.Value);
@@ -125,7 +152,7 @@ namespace Arena
                 EndUiGl();
             }
 
-            string idle = !host ? "Only the host can spawn gadgets and relics." : "Click a gadget to drop it, or a relic to hold it (marks the run as a dev run).";
+            string idle = !host ? "Only the host can spawn gadgets, chests and relics." : "Click a gadget or chest to put it in front of them, or a relic to hold it (marks the run as a dev run).";
             string line = hoverNote.Length > 0 ? hoverNote : devItemNote.Length > 0 && host ? devItemNote : idle;
             Ui.Label(new Rect(r.x, r.yMax - 20f, r.width, 18f), line, 11, hoverNote.Length == 0 && devItemNote.Length > 0 && host ? CrtStyle.Gold : CrtStyle.Desc);
         }

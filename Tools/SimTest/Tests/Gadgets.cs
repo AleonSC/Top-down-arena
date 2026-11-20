@@ -178,6 +178,14 @@ static partial class Program
         Check(!g.DevSetRelic(2, RelicId.StoneHeart), "setting the relic held again does nothing");
         Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
         Check(cg.Players[2].Relic == RelicId.StoneHeart && cg.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "the client sees the dev relic and gadget");
+        int chestsBefore = g.Props.Values.Count(q => q.Kind == PropKind.Chest);
+        Check(!cg.DevSpawnChest(2, ChestKind.Gold), "only the host can spawn a chest");
+        Check(g.DevSpawnChest(1, ChestKind.Gold) && g.DevSpawnChest(1, ChestKind.Gold), "the dev spawn puts chests in front of the player");
+        var devChests = g.Props.Values.Where(q => q.Kind == PropKind.Chest).Skip(chestsBefore).ToList();
+        Check(devChests.Count == 2 && devChests.All(q => q.Chest == ChestKind.Gold && !q.Open) && !devChests[0].Pos.CloserThan(devChests[1].Pos, Game.ChestW) && !g.PropsHoldWave(),
+            "of the kind chosen, side by side, and they don't hold the wave");
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(cg.Props.Values.Count(q => q.Kind == PropKind.Chest && q.Chest == ChestKind.Gold) >= 2, "the client sees the dev chests");
         Check(g.DevSetRelic(2, RelicId.None) && g.Players[2].Relic == RelicId.None && Math.Abs(g.Players[2].MaxHp - hpBefore) < 0.01f, "removing the relic takes its stats away");
         client.Leave(""); host.Leave("");
     }

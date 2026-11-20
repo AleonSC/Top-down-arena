@@ -2152,7 +2152,7 @@ Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). I
 match the game keeps running behind it (a click or scroll over the dock is the dock's alone: nothing under it is clicked and you don't shoot); in the lobby and menus it covers the
 screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE**, **KILL ALL** and **SNAP** (run snapshots, below) pinned for one click, four keys that
 open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
-as a drawer on the right, and the bigger tools (Spawn an enemy, Spawn an upgrade, Spawn a gadget or relic, Run snapshots) open as one sheet. While you type in one of
+as a drawer on the right, and the bigger tools (Spawn an enemy, Spawn an upgrade, Spawn a gadget, chest or relic, Run snapshots) open as one sheet. While you type in one of
 its fields the game's keys are off. Outside a run only VIEW and LABS show.
 
 - **WAVE drawer (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
@@ -2189,8 +2189,9 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **G** takes it and **B** throws it away (the wave waits for it, like a chest's). Only
   upgrades their build could be offered are clickable (greyed: another class, a missing ability or weapon). Marks the run as a dev run.
-- **PARTY > GADGET / RELIC… (host, in a run):** pick whose it is with several players. Click a gadget (Magnet, Recall, Energy Drink) and a full
-  one drops in front of that player as their own copy: walk onto it to pick it up. Click a relic (every one, by boss faction) and it goes
+- **PARTY > ITEMS & CHESTS… (host, in a run):** pick whose it is with several players. Click a gadget (Magnet, Recall, Energy Drink) and a full
+  one drops in front of that player as their own copy: walk onto it to pick it up. Click a chest (Upgrade, Gold, Vector, Relic, Piece,
+  Buildables, Gadget) and one stands in front of them, opened like any chest (everyone gets their own item); it doesn't hold the wave. Click a relic (every one, by boss faction) and it goes
   straight into their relic slot, replacing the old one (hover for what it does); **REMOVE RELIC** empties the slot. Marks the run as a dev run.
 - **PARTY > EDIT STATS… (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's

@@ -322,7 +322,7 @@ namespace Arena
                 devSheet = 4;
                 devDrawer = 0;
             }
-            if (DkKey(sp[1], "GADGET / RELIC…", CrtStyle.Head, false, 13))
+            if (DkKey(sp[1], "ITEMS & CHESTS…", CrtStyle.Head, false, 13))
             {
                 devSheet = 7;
                 devDrawer = 0;
@@ -404,7 +404,7 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 7 ? "Spawn a gadget or relic" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
+            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 7 ? "Spawn a gadget, chest or relic" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;
@@ -416,7 +416,7 @@ namespace Arena
             }
             else if (devSheet == 7)
             {
-                if (inMatch) DrawDockGadgetsRelics(inner); else DevNotInMatch(inner, "spawn a gadget or relic");  // DevSpawnItems.cs
+                if (inMatch) DrawDockGadgetsRelics(inner); else DevNotInMatch(inner, "spawn a gadget, chest or relic");  // DevSpawnItems.cs
             }
             else if (inMatch)
                 DrawDockEnemies(inner);
