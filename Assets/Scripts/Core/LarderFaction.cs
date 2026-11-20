@@ -57,7 +57,7 @@ namespace Arena
         public const float PriestTurn = 0.52f, PriestMawHalf = MathX.Pi / 4f, PriestBackMult = 1.25f, PriestFan = 0.3f, MawShotSpeed = 200f;
         public static readonly Rgba BileColor = new Rgba(0.72f, 0.88f, 0.29f);
 
-        static bool LarderAttacks(EnemyType t) => t == EnemyType.Butcher || t == EnemyType.Gulper;
+        static bool LarderAttacks(EnemyType t) => t == EnemyType.Butcher || t == EnemyType.Gulper || t == EnemyType.Thug;  // (a Thug's punch: ThugPunch.cs)
 
         /// Standing still: winding up, chopping or breathing in.
         public static bool LarderPlanted(Enemy e) => LarderAttacks(e.Type) && e.LarderStage != LarderIdle || e.Type == EnemyType.Gutworm && e.LarderStage == LarderActing;

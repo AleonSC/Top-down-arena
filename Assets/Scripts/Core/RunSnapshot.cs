@@ -450,6 +450,23 @@ namespace Arena
     {
         readonly BinaryWriter w;
         readonly Game root;
+        /// Re-adds a Dictionary's entries in the same order, so the live one has no free slots left by removals: a restored
+        /// copy (built fresh) then places later additions exactly where the live one does, and both iterate the same way
+        /// (e.g. which of two bullets hits an enemy first). Sorted kinds keep their own order and are left alone.
+        static void Compact(IDictionary d)
+        {
+            var t = d.GetType();
+            if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(Dictionary<,>) || d.Count == 0)
+                return;
+            var keys = new object[d.Count];
+            var vals = new object[d.Count];
+            int n = 0;
+            foreach (DictionaryEntry e in d) { keys[n] = e.Key; vals[n] = e.Value; n++; }
+            d.Clear();
+            for (int k = 0; k < n; k++)
+                d.Add(keys[k], vals[k]);
+        }
+
         readonly Dictionary<object, int> ids = new Dictionary<object, int>(RunSnapshot.RefEq.Instance);
         readonly Dictionary<Type, int> types = new Dictionary<Type, int>();
         readonly Dictionary<object, string> shared = RunSnapshot.SharedPaths();
@@ -601,6 +618,7 @@ namespace Arena
                 {
                     Value(RunSnapshot.ComparerOf(v));
                     var d = (IDictionary)v;
+                    Compact(d);
                     w.Write(d.Count);
                     foreach (DictionaryEntry e in d)
                     {

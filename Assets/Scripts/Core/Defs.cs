@@ -286,7 +286,7 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a pink line, then leaps along it." },
             new EnemyDef { Name = "Hive Bomber", Hp = 30f, Radius = 10f, Speed = 330f, Score = 2, Xp = 0, Sides = 3, Color = new Rgba(1f, 0.45f, 0.15f), Melee = true },
             new EnemyDef { Name = "Cage Well", Hp = 40f, Radius = 11f, Speed = 0f, Score = 5, Xp = 2, Sides = 6, Color = new Rgba(0.85f, 0.4f, 1f), Melee = true },
-            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f,
+            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 15f,
                 Blurb = "A prisoner in an orange jumpsuit throwing cuffed punches. Some drag a ball and chain and run slower." },
             new EnemyDef { Name = "Hive Egg", Hp = 60f, Radius = 15f, Speed = 0f, Score = 4, Xp = 3, Sides = 10, Color = new Rgba(0.96f, 0.92f, 0.78f), Melee = true },
             new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f ,
@@ -326,14 +326,14 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "An officer in slate with a hi-vis band. Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it." },
             new EnemyDef { Name = "Security Guard", Hp = 45f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(0.42f, 0.61f, 0.7f),
                 Picker = PickerGroup.Ranged, Blurb = "An officer in navy with a service pistol. Strafes, locks on and fires one tracer round at a time: seven shots, then a long reload. Sidestep the lane, or rush it while it reloads." },
-            new EnemyDef { Name = "Thug", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.6f, 0.62f, 0.66f), Melee = true, Contact = 20f,
+            new EnemyDef { Name = "Thug", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.6f, 0.62f, 0.66f), Melee = true, Contact = 25f,
                 Picker = PickerGroup.Melee, Blurb = "A hunched prisoner brute with giant taped fists. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Shiv", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(0.85f, 0.85f, 0.8f), Melee = true, Contact = 18f,
                 Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank: hooded, or shirtless with one in each hand. Circles in close, flashes a line, then lunges along it." },
             new EnemyDef { Name = "Spawn Portal", Hp = 200f, Radius = 30f, Speed = 0f, Score = 30, Xp = 20, Sides = 24, Color = new Rgba(0.78f, 0.35f, 1f), Melee = true, Heavy = true,
                 Picker = PickerGroup.Hidden, Blurb = "A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held." },
             // the Hive Queen's faction (HiveKin.cs): the numbers are their Warden counterpart's, bar the Stinger's and Needler's health (half as much again)
-            new EnemyDef { Name = "Worker", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.773f, 0.2f), Melee = true, Contact = 10f,
+            new EnemyDef { Name = "Worker", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.773f, 0.2f), Melee = true, Contact = 15f,
                 Picker = PickerGroup.Melee, Blurb = "A small, quick worker bee that weaves at you, in loose pairs." },
             new EnemyDef { Name = "Soldier", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(1f, 0.478f, 0.122f), Melee = true, Contact = 14f,
                 Picker = PickerGroup.Melee, Blurb = "An armoured bee that rushes straight at you, jaws snapping." },
@@ -345,7 +345,7 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, charges a venom lance and fires one barbed dart that stuns you. Strafe across the line, or parry it." },
             new EnemyDef { Name = "Needler", Hp = 70f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(1f, 0.925f, 0.604f),
                 Picker = PickerGroup.Ranged, Blurb = "Hovers and strafes, locks on, then fires one white needle at a time: seven shots, then a long reload." },
-            new EnemyDef { Name = "Bumble", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.91f, 0.573f, 0.047f), Melee = true, Contact = 20f,
+            new EnemyDef { Name = "Bumble", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.91f, 0.573f, 0.047f), Melee = true, Contact = 25f,
                 Picker = PickerGroup.Melee, Blurb = "A huge, furry bumblebee. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Hornet", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(1f, 0.29f, 0.157f), Melee = true, Contact = 18f,
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a red lane, then darts along it." },
@@ -387,11 +387,11 @@ namespace Arena
             new EnemyDef { Name = "White Dwarf", Hp = 40f, Radius = 9f, Speed = 230f, Score = 8, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.96f, 0.9f), Melee = true, Contact = 10f,
                 Picker = PickerGroup.Melee, Blurb = "A small hot star that darts in, flashes white, then shoves you back and turns your shots near it round at you. Stop shooting when it flashes." },
             // the Colossus's faction (QuarryFaction.cs): Rubble and the Quarryman have their Warden counterpart's numbers
-            new EnemyDef { Name = "Rubble", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 7, Color = new Rgba(0.78f, 0.62f, 0.45f), Melee = true, Contact = 10f,
+            new EnemyDef { Name = "Rubble", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 7, Color = new Rgba(0.78f, 0.62f, 0.45f), Melee = true, Contact = 15f,
                 Picker = PickerGroup.Melee, Blurb = "A fist-sized chunk of the Colossus that rolls at you, weaving, in pairs." },
             new EnemyDef { Name = "Quarryman", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.62f, 0.53f, 0.4f), Melee = true, Contact = 14f,
                 Picker = PickerGroup.Melee, Blurb = "A quarry worker with a hard hat, a headlamp and a pickaxe. Walks straight at you." },
-            new EnemyDef { Name = "Stomper", Hp = 180f, Radius = 21f, Speed = 58f, Score = 12, Xp = 20, Sides = 7, Color = new Rgba(0.69f, 0.6f, 0.5f), Melee = true, Contact = 20f,
+            new EnemyDef { Name = "Stomper", Hp = 180f, Radius = 21f, Speed = 58f, Score = 12, Xp = 20, Sides = 7, Color = new Rgba(0.69f, 0.6f, 0.5f), Melee = true, Contact = 25f,
                 Picker = PickerGroup.Melee, Blurb = "A slab-shouldered stone brute. Every few seconds it lifts a foot and stomps out a small ring of push blocks with one green gap: step into the gap." },
             new EnemyDef { Name = "Slab Bearer", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.62f, 0.53f, 0.4f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "Carries a quarried slab that stops shots and bashes you back. Break the slab and it drops it as cover for a few seconds; then the bearer falls fast." },
@@ -418,7 +418,7 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "The duel's referee: raises its baton and draws a gold circle round you. For 4 s you can't leave it, and leaning on the edge hurts: fight in the middle." },
             new EnemyDef { Name = "Gallant", Hp = 80f, Radius = 14f, Speed = 90f, Score = 10, Xp = 12, Sides = 6, Color = new Rgba(0.81f, 0.84f, 1f), Contact = 20f,
                 Picker = PickerGroup.Ranged, Blurb = "Salutes with its sword raised, then lunges at you. Parry it perfectly as it arrives and it reels, open to 50% more damage; dodge it and it rakes the spot." },
-            new EnemyDef { Name = "Harlequin", Hp = 240f, Radius = 20f, Speed = 60f, Score = 14, Xp = 22, Sides = 8, Color = new Rgba(1f, 0.3f, 0.42f), Melee = true, Contact = 20f,
+            new EnemyDef { Name = "Harlequin", Hp = 240f, Radius = 20f, Speed = 60f, Score = 14, Xp = 22, Sides = 8, Color = new Rgba(1f, 0.3f, 0.42f), Melee = true, Contact = 25f,
                 Picker = PickerGroup.Melee, Blurb = "A heavy two-sworded jester. It marks a line through you and dashes it, vaults to the other arm and dashes across: an X of blades that fire out sideways. Stand in a gap of the X." },
             new EnemyDef { Name = "Mummer", Hp = 40f, Radius = 11f, Speed = 150f, Score = 9, Xp = 10, Sides = 4, Color = new Rgba(0.71f, 0.61f, 1f), Melee = true, Contact = 14f,
                 Picker = PickerGroup.Melee, Blurb = "A masked player that blinks and becomes three. They circle you and all fire, but only the real one's shots are solid; the copies' are hollow rings. Find the real one." },
@@ -427,11 +427,11 @@ namespace Arena
             new EnemyDef { Name = "Grave Caller", Hp = 60f, Radius = 14f, Speed = 60f, Score = 12, Xp = 16, Sides = 4, Color = new Rgba(0.37f, 0.85f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "Zombie: hangs back and cracks three graves open round you; a Shambler claws out of each. Step out of the ring, then kill it: its risen crumble." },
             // the Devourer's faction (LarderFaction.cs): the Gnawling and the Butcher have their Warden counterpart's numbers
-            new EnemyDef { Name = "Gnawling", Hp = 40f, Radius = 11f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(0.91f, 0.53f, 0.6f), Melee = true, Contact = 10f,
+            new EnemyDef { Name = "Gnawling", Hp = 40f, Radius = 11f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(0.91f, 0.53f, 0.6f), Melee = true, Contact = 15f,
                 Picker = PickerGroup.Melee, Blurb = "A mouth on legs, the Devourer in miniature. Weaves at you in pairs." },
             new EnemyDef { Name = "Butcher", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.43f, 0.29f, 0.24f), Melee = true, Contact = 14f,
                 Picker = PickerGroup.Melee, Blurb = "A hooded butcher with a bone mask. Close in, it raises its cleaver and chops a half-circle in front: step out of it." },
-            new EnemyDef { Name = "Gulper", Hp = 180f, Radius = 22f, Speed = 58f, Score = 12, Xp = 25, Sides = 9, Color = new Rgba(0.86f, 0.5f, 0.56f), Melee = true, Contact = 20f,
+            new EnemyDef { Name = "Gulper", Hp = 180f, Radius = 22f, Speed = 58f, Score = 12, Xp = 25, Sides = 9, Color = new Rgba(0.86f, 0.5f, 0.56f), Melee = true, Contact = 25f,
                 Picker = PickerGroup.Melee, Blurb = "A swollen gut. Its cheeks swell, then it breathes in and pulls you toward its mouth: step out of the cone sideways." },
             new EnemyDef { Name = "Carcass Bearer", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.37f, 0.29f, 0.25f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "Carries a side of meat that stops shots and bashes you back. Break it and it drops as a morsel: shoot it or walk over it before a Gnawling eats it." },
@@ -851,7 +851,7 @@ namespace Arena
             Row(table, MagmaBolt, radius: 8f, color: new Rgba(1f, 0.48f, 0.23f), damage: 9f);  // the Cinder Priest's magma; a Cinder Priest's bolt (and its lava)
             Row(table, ThrownDagger, radius: 5f, color: new Rgba(0.81f, 0.84f, 1f), damage: 10f);  // a Second's dagger (steel); a Second's dagger
             Row(table, EmberSpark, radius: 5f, color: new Rgba(1f, 0.6f, 0.26f), damage: 5.2f);  // an Ember's spark; an Ember's spark: 6 once the enemy bullet multiplier is on
-            Row(table, BottleShot, radius: 6f, color: new Rgba(0.45f, 0.8f, 0.4f), damage: 7f);  // a Rioter's bottle (glass green)
+            Row(table, BottleShot, radius: 6f, color: new Rgba(0.45f, 0.8f, 0.4f), damage: 10f);  // a Rioter's bottle (glass green)
             Row(table, TracerRound, radius: 5f, color: new Rgba(0.94f, 0.97f, 1f), damage: 6.1f);  // the Security Guard's hot-white tracer; a Security Guard's round: 7 once the enemy bullet multiplier is on
             Row(table, BileShot, radius: 6f, color: new Rgba(0.75f, 0.9f, 0.31f));  // the Devourer's vomit
             Row(table, ToothShot, radius: 10f, color: new Rgba(0.96f, 0.9f, 0.82f), damage: 20f);  // the Devourer's Jaws

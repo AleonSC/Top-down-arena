@@ -214,6 +214,7 @@ namespace Arena
             DrawQuarryFloor(t);    // Stompers' rings (QuarryLook.cs)
             DrawLarderFloor(t);    // the Butcher's chop, the Gulper's cone (LarderLook.cs)
             DrawGuardFloor(t);     // the Guard's swing arc (WardenLook.cs)
+            DrawThugFloor(t);      // the Thug's punch wedge (PrisonLook.cs)
             DrawEclipseFloor(t);   // the Eclipse's shadow, sunspots, flares, rings and echoes (EclipseLook.cs)
             DrawVarietyFloor(t);   // the factions' beams and lines, aim lanes (VarietyLook.cs)
             DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
