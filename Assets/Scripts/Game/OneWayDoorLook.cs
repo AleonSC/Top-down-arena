@@ -114,8 +114,10 @@ namespace Arena
                 else if (!freeShown)
                 {
                     freeShown = true;
-                    V2 c = G(d.Pos);
                     float sz = Mathf.Clamp(d.W / 2f * k * 1.4f, 9f, 16f);
+                    int inside = d.A >= first ? d.A : d.B;
+                    V2 inward = (wd.Areas[inside].Mid - d.Pos).Dot(d.Across) >= 0f ? d.Across : -d.Across;
+                    V2 c = G(d.Pos) + inward * (sz * 1.9f);  // (just inside the ghost, clear of the door spot's mark on the wall)
                     HoloArrow(c - d.Across * sz, c + d.Across * sz, d.Along, sz, GridOk, true);
                 }
             }
