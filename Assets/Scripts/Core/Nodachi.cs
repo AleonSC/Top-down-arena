@@ -24,6 +24,8 @@ namespace Arena
         public const float NodHopGrace = 0.06f;  // Hiki-zuki's hop is untouchable, and this long after
         public static readonly Rgba NodSteel = new Rgba(0.86f, 0.92f, 1f), NodJade = new Rgba(0.5f, 0.88f, 0.77f), NodVermilion = new Rgba(1f, 0.42f, 0.27f);
         public static readonly string[] NodStanceNames = { "Arashi", "Mamori" };
+        /// Each step's own sound, sent at the press and timed to its strikes (Game/NodachiSoundBank.cs): Arashi's five, then Mamori's.
+        static readonly Sfx[] NodStepSounds = { Sfx.NodNuki, Sfx.NodKesa, Sfx.NodMoon, Sfx.NodTenchi, Sfx.NodNagi, Sfx.NodKasumi, Sfx.NodNidan, Sfx.NodSenbon, Sfx.NodTsuka, Sfx.NodHiki };
 
         float nodSwitchLocalCd;  // your own game: until the key switches again (the host checks its own)
         byte nodCountSeen;       // your own game: the last step you moved along
@@ -78,9 +80,7 @@ namespace Arena
                             float deg = g.A0 + (g.A1 - g.A0) * (i + 0.5f) / n;
                             var h = NodSwing(p, aim + deg * MathX.Pi / 180f, g.Reach * p.Stats.NodReachMult, span / n + 12f, w * g.Mult, NodachiMotion.ArcTimeAt(g, deg));
                             h.Sweep = group;
-                            h.Silent = i > 0;
                             h.Heavy = stance == 0;
-                            h.Sound = i == 0 ? (g.A1 > g.A0 ? Sfx.KatanaSwipe1 : Sfx.KatanaSwipe2) : Sfx.None;
                             if (g.Knock > 0f)
                                 h.Knock = g.Knock;
                         }
@@ -91,8 +91,6 @@ namespace Arena
                         var h = NodSwing(p, aim + g.A0 * MathX.Pi / 180f, g.Reach, 0f, w * g.Mult, NodachiMotion.HitAt(g));
                         h.HalfWidth = g.Half;
                         h.Thrust = true;
-                        h.Sound = Sfx.KatanaLunge;
-                        h.Silent = idx == 2 && g.T0 > s.Segs[0].T0;  // Senbon-zuki: one whoosh for the flurry
                         break;
                     }
                     case NodachiMotion.Kind.Pommel:
@@ -119,7 +117,6 @@ namespace Arena
                             h.Knock = g.Knock;
                             h.Power = 1f;
                             h.Heavy = true;
-                            h.Sound = k == 0 ? Sfx.KatanaBurstSfx : Sfx.None;
                         }
                         break;
                     }
@@ -129,7 +126,7 @@ namespace Arena
                 }
             }
             BroadcastFx(FxKind.NodStep, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, p.Weapon.Reach), stance == 0 ? NodSteel : NodJade, p.Id * 100 + code,
-                s.Dur + (idx == 3 && stance == 0 ? 0.6f + NodAftershockDelay * extra : 0.25f), Sfx.None);
+                s.Dur + (idx == 3 && stance == 0 ? 0.6f + NodAftershockDelay * extra : 0.25f), NodStepSounds[stance * NodachiMotion.Steps + idx]);
         }
 
         /// One hit of a step, landing `delay` after the press.
@@ -166,7 +163,7 @@ namespace Arena
             p.TapQueued = false;
             p.NodT = 99f;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Nod && s.Delay > 0f);
-            BroadcastFx(FxKind.Ring, p.Pos, p.NodStance == 0 ? NodSteel : NodJade, 40f, 0.3f, Sfx.KatanaStanceSwap);
+            BroadcastFx(FxKind.Ring, p.Pos, p.NodStance == 0 ? NodSteel : NodJade, 40f, 0.3f, p.NodStance == 0 ? Sfx.NodToStorm : Sfx.NodToGuard);
         }
 
         readonly List<int> nodBlocked = new List<int>();
@@ -205,7 +202,7 @@ namespace Arena
                 AddFx(FxKind.Spark, b.Pos, NodJade, 10f, 0.22f);
             }
             if (nodBlocked.Count > 0)
-                BroadcastSound(Sfx.GreatBlock);
+                BroadcastSound(Sfx.NodBlock);
         }
 
         /// Your own game, every tick: Nagi's walk and Hiki-zuki's hop (when NodCount changes), and the stance switch on the

@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 437: the Nodachi's own sounds: `Sfx.NodNuki` … `NodToGuard` (14) added at the end
 - 436: the Nodachi (Tank Ninja's fourth): `WeaponId.Nodachi` and `FxKind.NodStep` at the end; each player sends `NodStance`, `NodStorm`, `NodGuard`, `NodCode`, `NodCount` (bytes) after `NunSwats`; Alt kind 48 (`DashNodStance`)
 - 435: room turret health: `Msg.TrapHit` (x, y shorts, health byte) so a damaged turret draws a health bar (RoomTraps.cs)
 - 434: room traps: `Msg.ExpandState` ends with a count and (x, y) shorts of the room turrets shot to bits (`WriteTrapWrecks`, RoomTraps.cs)

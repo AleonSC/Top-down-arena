@@ -33,12 +33,14 @@ static partial class Program
             d.MaxHp = d.Hp = 1e6f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
             return d;
         };
+        var heard = new HashSet<Sfx>();  // what the other screen played
         Action<float, bool, bool> Step = (secs, fire, alt) =>
         {
             for (int f = 0; f < secs / dt; f++)
             {
                 me.Pos = from; queue.Clear();
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = far, Fire = fire && f < 2, WeaponAction = alt && f < 3 } : new PlayerInput()); }
+                foreach (var c in client.Game.Sounds) heard.Add(c.Sfx);
             }
         };
         float mult = me.Stats.DmgMult;
@@ -114,6 +116,14 @@ static partial class Program
         Step(0.1f, false, false);
         Check(g.Bullets.ContainsKey(b2.Id) || b2.Pos.DistanceTo(from) < 40f, "with no jab out the cone is down");
         g.Bullets.Clear();
+
+        // every Mamori step, then the sounds: each step its own, a cut landing, a block, both switches, none of the Katana's
+        g.Enemies.Clear(); Dummy(from + new V2(60f, 0f), EnemyType.Brute);
+        for (int k = 0; k < 5; k++) { me.FireCd = 0f; Step(dt * 2f, true, false); Step(NodachiMotion.Guard[me.NodCode & 7].Dur + 0.1f, false, false); }
+        foreach (var cue in new[] { Sfx.NodNuki, Sfx.NodKesa, Sfx.NodMoon, Sfx.NodTenchi, Sfx.NodNagi, Sfx.NodKasumi, Sfx.NodNidan, Sfx.NodSenbon, Sfx.NodTsuka, Sfx.NodHiki,
+            Sfx.NodHit, Sfx.NodBlock, Sfx.NodToStorm, Sfx.NodToGuard })
+            Check(heard.Contains(cue), "the other screen hears " + cue);
+        Check(!heard.Contains(Sfx.KatanaSwipe1) && !heard.Contains(Sfx.KatanaLunge) && !heard.Contains(Sfx.SwingHeavy) && !heard.Contains(Sfx.KatanaStanceSwap), "and none of the Katana's or the plain swing sounds");
 
         // the parry starts both combos over
         me.NodStorm = 3; me.NodGuard = 2;
