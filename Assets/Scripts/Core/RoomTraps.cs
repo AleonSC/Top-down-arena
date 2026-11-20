@@ -86,6 +86,13 @@ namespace Arena
         readonly HashSet<long> trapWrecks = new HashSet<long>();      // turrets shot to bits this map (synced in Msg.ExpandState)
         readonly Dictionary<long, float> trapHp = new Dictionary<long, float>();  // host: a turret's health left
 
+        /// Every game, for the look: a damaged turret's health left (0-1) and when it was last hit, by its place.
+        readonly Dictionary<long, float> trapHpFrac = new Dictionary<long, float>();
+        readonly Dictionary<long, float> trapHitAt = new Dictionary<long, float>();
+
+        public float TurretHpFrac(V2 pos) => trapHpFrac.TryGetValue(TrapKey(pos), out float f) ? f : 1f;
+        public float TurretHitAgo(V2 pos) => trapHitAt.TryGetValue(TrapKey(pos), out float t) ? AnimT - t : 99f;
+
         static long TrapKey(V2 p) => ((long)(int)Math.Round(p.X) << 32) ^ (uint)(int)Math.Round(p.Y);
 
         /// Every room trap on the map (rebuilt when the rooms change; the same on every machine).
@@ -137,6 +144,10 @@ namespace Arena
                 {
                     trapHp[key] = hp;
                     BroadcastFx(FxKind.Ring, t.Pos, new Rgba(1f, 0.45f, 0.4f), 34f, 0.2f, Sfx.None);
+                    var tw = Proto.Begin(Msg.TrapHit);  // everyone's game draws the bar (RoomTrapLook.cs)
+                    tw.Write((short)Math.Round(t.Pos.X)); tw.Write((short)Math.Round(t.Pos.Y)); tw.Write((byte)Math.Max(1, Math.Min(255, (int)(255f * hp / RoomTraps.TurretHp(Wave)))));
+                    session.Broadcast(Proto.End(tw));
+                    NoteTrapHit(t.Pos, hp / RoomTraps.TurretHp(Wave));
                     return true;
                 }
                 trapHp.Remove(key);
@@ -150,6 +161,21 @@ namespace Arena
                 return true;
             }
             return false;
+        }
+
+        void NoteTrapHit(V2 pos, float frac)
+        {
+            long key = TrapKey(pos);
+            trapHpFrac[key] = Math.Max(0.01f, Math.Min(1f, frac));
+            trapHitAt[key] = AnimT;
+        }
+
+        void ReadTrapHit(BinaryReader r)
+        {
+            int x = r.ReadInt16(), y = r.ReadInt16();
+            float frac = r.ReadByte() / 255f;
+            if (!IsHost)
+                NoteTrapHit(new V2(x, y), frac);
         }
 
         void WriteTrapWrecks(BinaryWriter w)
@@ -183,6 +209,8 @@ namespace Arena
         {
             trapWrecks.Clear();
             trapHp.Clear();
+            trapHpFrac.Clear();
+            trapHitAt.Clear();
             roomTrapKey = int.MinValue;
         }
 
