@@ -27,6 +27,18 @@ namespace Arena
         public const float BoStaffEvery = 5.2f, BoStaffShove = 3.3f;  // two full chains and a third cut short by the shove (BoStaff.cs)
         public const float TwinNadeEvery = 1.6f, TwinNadeAt = 0.8f;   // a grenade every 1.6 s, the tubes taking turns (TwinGrenades.cs)
 
+        // The Double Barrel's Alt needs both shells loaded, so the trigger is let go for a moment before it (HoldsFire): the reload finishes.
+        public const float DoubleEvery = 4f, DoubleAt = 2.2f, DoubleQuietFrom = 1.0f;
+
+        /// Does the preview let go of Fire right now, so the Alt has what it needs (the Double Barrel's reload)?
+        public static bool HoldsFire(WeaponId id, float t)
+        {
+            if (Off || id != WeaponId.DoubleBarrel)
+                return false;
+            float p = MathX.Fmod(t, DoubleEvery);
+            return p >= DoubleQuietFrom && p < DoubleAt + 0.15f;
+        }
+
         static readonly Dictionary<WeaponId, Demo> Table = new Dictionary<WeaponId, Demo>
         {
             // The Bo Staff: the shove, partway into a chain so the reset shows.
@@ -49,6 +61,58 @@ namespace Arena
             { WeaponId.ArcLightning, (g, me, t, dt) => Tap(t, dt, 2.6f, 1.15f) },
             // Spirit Chalk: Ignite, just after the loop round the middle dummy seals (ChalkAim).
             { WeaponId.SpiritChalk, (g, me, t, dt) => Tap(t, dt, ChalkEvery, ChalkIgniteAt) },
+
+            // --- Soldier ---
+            // The Scattergun: Double Barrel, shells topped up first (they refill slowly); the kick sends you back, and you walk home.
+            { WeaponId.Scattergun, (g, me, t, dt) => Fill(Tap(t, dt, 3f, 1.5f), () => { if (me.ScatShells < 4) me.ScatShells = 8; }) },
+            { WeaponId.FlakCannon, (g, me, t, dt) => Tap(t, dt, 5.5f, 1.5f) },      // a proximity mine (5 s cooldown)
+            { WeaponId.RiotRepeater, (g, me, t, dt) => Tap(t, dt, 9.5f, 1.5f) },    // tear gas (9 s cooldown)
+            { WeaponId.TwinPistols, (g, me, t, dt) => Tap(t, dt, 12.5f, 1.5f) },    // Laser Sights (12 s cooldown)
+            { WeaponId.Revolver, (g, me, t, dt) => Tap(t, dt, 4.5f, 1.5f) },        // Pistol Whip (4 s cooldown)
+            // The Repulsion Cannon: Undertow pulls them in while held, with the meter full.
+            { WeaponId.RepulsionCannon, (g, me, t, dt) => Fill(Hold(t, 6f, 1.5f, 1.8f), () => me.RepelMeter = 100) },
+            // The Double Barrel: both barrels, reloaded in between.
+            { WeaponId.DoubleBarrel, (g, me, t, dt) => Tap(t, dt, DoubleEvery, DoubleAt) },
+            // --- Elementalist ---
+            { WeaponId.FrostLance, (g, me, t, dt) => Tap(t, dt, 14.5f, 1.5f) },     // Absolute Zero (14 s cooldown)
+            { WeaponId.StormHammer, (g, me, t, dt) => Tap(t, dt, 6.5f, 1.5f) },     // the slam (6 s cooldown)
+            // --- Summoner ---
+            { WeaponId.BoneGuard, (g, me, t, dt) => Tap(t, dt, 8.5f, 1.5f) },       // an Ossuary Wall (8 s cooldown)
+            // The Wolf Whistle: Alt merges the pack into the alpha; kills would grow the pack (10 each), too slow for a preview, so it is topped up first.
+            { WeaponId.WolfWhistle, (g, me, t, dt) => Fill(Tap(t, dt, 6f, 2f), () => g.ShowcaseWolves(me, 4)) },
+            { WeaponId.WyvernStaff, (g, me, t, dt) => Tap(t, dt, 7.5f, 1.5f) },     // the Wyrm Slam (7 s cooldown)
+            // The Honeybee Staff: the honey spray, held while the meter lasts.
+            { WeaponId.HoneybeeStaff, (g, me, t, dt) => Hold(t, 6f, 1.5f, 2f) },
+            // --- Knight ---
+            { WeaponId.Lance, (g, me, t, dt) => Tap(t, dt, 4.5f, 1.5f) },           // Hook & Haul (4 s cooldown)
+            // The Lightbringer: the Sunlance through a teammate (stand-ins are there for it), with the light gauge filled.
+            { WeaponId.Lightbringer, (g, me, t, dt) => Fill(Tap(t, dt, 3f, 1.5f), () => { if (me.Light < Game.LanceNeed) me.Light = Game.LanceNeed; }) },
+            { WeaponId.Censer, (g, me, t, dt) => Fill(Tap(t, dt, 6.5f, 1.5f), () => { if (me.Embers < 3) me.Embers = 3; }) },  // Censer Cast with Embers lit
+            { WeaponId.TwinBlades, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },        // Twin Fang (3.5 s cooldown)
+            { WeaponId.Greatsword, (g, me, t, dt) => Tap(t, dt, 4.5f, 1.5f) },      // the Moonwheel (4 s cooldown)
+            // The Rapier: Riposte up, then dropped again.
+            { WeaponId.Rapier, (g, me, t, dt) => Tap(t, dt, 6f, 1f) || Tap(t, dt, 6f, 4f) },
+            { WeaponId.BulwarkBarrier, (g, me, t, dt) => Hold(t, 7f, 1f, 3f) },      // Brace, held
+            // The Quarterstaff: Jab spends its stacks while the key is down.
+            { WeaponId.Quarterstaff, (g, me, t, dt) => Hold(t, 5f, 2.5f, 1f) },
+            // --- Ninja ---
+            { WeaponId.Kusarigama, (g, me, t, dt) => Hold(t, 6f, 1f, 2.5f) },        // the whirl, held; let go for the snap
+            { WeaponId.FumaShuriken, (g, me, t, dt) => Tap(t, dt, 6f, 1.5f) || Tap(t, dt, 6f, 4.5f) },  // Orbit, then Throw again
+            { WeaponId.Katana, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },            // the stance switch
+            { WeaponId.Nodachi, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },           // the stance switch
+            { WeaponId.Kunai, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },             // blink to the mark
+            { WeaponId.Shuriken, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the fan to the Great Star and back
+            { WeaponId.Nunchaku, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the guard up, then down
+            // --- Hemomancer ---
+            { WeaponId.BloodLash, (g, me, t, dt) => Hold(t, 8f, 2f, 2.5f) },        // Martyr's Leash, held
+            { WeaponId.BloodBrawler, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },      // Sympathy on the marked enemy
+            { WeaponId.EmbolusSpears, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },     // burst the spears
+            { WeaponId.BloodBlast, (g, me, t, dt) => Tap(t, dt, 8.5f, 1.5f) },      // the Crimson Tide (8 s cooldown)
+            // --- Fourth weapons ---
+            { WeaponId.ArcKnuckles, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },       // Rocket Dash
+            { WeaponId.Stonespear, (g, me, t, dt) => Tap(t, dt, 4f, 2f) },          // the spear volley
+            { WeaponId.GrenadeLauncher, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the drum: smoke, then back to HE
+            { WeaponId.WindClash, (g, me, t, dt) => Tap(t, dt, 9.5f, 1.5f) },       // the Tempest (9 s cooldown)
         };
 
         // Spirit Chalk draws where the cursor goes, so its preview moves the cursor (Chalk.cs): a loop round the middle dummy (it's penned in),
@@ -78,10 +142,23 @@ namespace Arena
             return target;
         }
 
+        /// Runs `stage` (it sets up what the Alt needs) when the key is about to go down; passes `down` through.
+        static bool Fill(bool down, Action stage)
+        {
+            if (down)
+                stage();
+            return down;
+        }
+
+        /// Alts that go through a teammate (the Lightbringer's Sunlance): the preview brings stand-in teammates and aims the press at one.
+        public static bool NeedsAlly(WeaponId id) => id == WeaponId.Lightbringer;
+
+        public static bool Off;  // tests: the preview never presses Alt (to compare a run with and without it)
+
         public static bool Has(WeaponId id) => Table.ContainsKey(id);
 
         /// Is Alt held this tick for this weapon?
         public static bool Held(Game game, Player me, float t, float dt) =>
-            Table.TryGetValue(me.Weapon.Id, out var demo) && demo(game, me, t, dt);
+            !Off && Table.TryGetValue(me.Weapon.Id, out var demo) && demo(game, me, t, dt);
     }
 }
