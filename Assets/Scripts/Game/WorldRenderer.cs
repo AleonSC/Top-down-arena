@@ -255,7 +255,7 @@ namespace Arena
                     DrawOrb(o, t);
             foreach (var c in game.Coins.Values)
             {
-                if (!game.MinePickup(c.Owner) || game.FogHides(c.Pos))  // (in an unseen room: hidden, RoomFog.cs)
+                if (!game.MinePickup(c.Owner) || game.FogHidesStill(c.Pos))  // (in an unseen room: hidden, RoomFog.cs)
                     continue;
                 if (c.Vec)
                     DrawVectorPickup(c, t);  // VectorPickupLook.cs
@@ -271,7 +271,7 @@ namespace Arena
             DrawLichScene(t);  // LichLook.cs
             PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
             foreach (var e in game.Enemies.Values)
-                if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !game.FogHides(e.Pos))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
+                if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !(e.Dormant ? game.FogHidesStill(e.Pos) : game.FogHides(e.Pos)))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
                     DrawEnemy(e, t);
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)

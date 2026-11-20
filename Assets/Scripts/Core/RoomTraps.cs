@@ -127,7 +127,7 @@ namespace Arena
             for (int i = 0; i < traps.Count; i++)
             {
                 var t = traps[i];
-                if (t.Kind != TrapKind.Turret || t.Pos.FartherOrAt(b.Pos, RoomTraps.TurretHitR + b.Radius) || UnseenAt(t.Pos))
+                if (t.Kind != TrapKind.Turret || t.Pos.FartherOrAt(b.Pos, RoomTraps.TurretHitR + b.Radius))
                     continue;
                 long key = TrapKey(t.Pos);
                 if (!trapHp.TryGetValue(key, out float hp))
@@ -195,7 +195,7 @@ namespace Arena
             for (int i = 0; i < traps.Count; i++)
             {
                 var t = traps[i];
-                if (t.Kind == TrapKind.Slow || UnseenAt(t.Pos))
+                if (t.Kind == TrapKind.Slow)  // (turrets and spikes work in fog too)
                     continue;
                 trapCd.TryGetValue(i, out float cd);
                 cd -= dt;

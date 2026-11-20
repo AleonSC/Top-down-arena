@@ -166,7 +166,7 @@ namespace Arena
             var ink = new Rgba(0.62f, 0.75f, 1f);
             foreach (var e in game.Enemies.Values)
             {
-                if (!e.Dormant || e.Hp <= 0f || game.FogHides(e.Pos))
+                if (!e.Dormant || e.Hp <= 0f || game.FogHidesStill(e.Pos))
                     continue;
                 for (int k = 0; k < 2; k++)
                 {
