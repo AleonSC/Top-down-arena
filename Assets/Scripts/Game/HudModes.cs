@@ -70,6 +70,26 @@ namespace Arena
                 Ui.Fill(new Rect(r.x + i * (cw + 2f), r.y, cw, r.height), c.ScaleAlpha((i < lit ? 1f : 0.18f) * a));
         }
 
+        /// A wound (Combat.cs, Docs/PowerStacking.md) over MiniCells: the cells at the right end that no heal reaches, in red with a bright
+        /// rim, and a tall red tick where healing stops.
+        static void MiniWoundCells(Rect r, Player p, int n, float a)
+        {
+            if (p.Downed || p.Wound <= 0.5f || p.MaxHp <= 0f)
+                return;
+            float cw = (r.width - 2f * (n - 1)) / n;
+            int hurt = Mathf.Clamp(Mathf.RoundToInt(p.Wound / p.MaxHp * n), 1, n);
+            Color red = CrtStyle.Danger;
+            for (int i = n - hurt; i < n; i++)
+            {
+                var c = new Rect(r.x + i * (cw + 2f), r.y, cw, r.height);
+                Ui.Fill(c, red.ScaleAlpha(0.45f * a));
+                Ui.Fill(new Rect(c.x, c.y, c.width, 1f), red.ScaleAlpha(a));
+                Ui.Fill(new Rect(c.x, c.yMax - 1f, c.width, 1f), red.ScaleAlpha(a));
+            }
+            float edge = r.x + (n - hurt) * (cw + 2f) - 2f;
+            Ui.Fill(new Rect(edge, r.y - 3f, 2f, r.height + 6f), red.ScaleAlpha(a));
+        }
+
         /// The lobby's bracket corners, small: a 10 px L on each corner, 10 px outside r.
         static void MiniBrackets(Rect r, Color c, float a)
         {
@@ -174,6 +194,9 @@ namespace Arena
                 float mx = hr.x + CrtUi.TitleWidth(hp, 52) + 8f;
                 MiniText(new Rect(mx, hr.y + 30f, 120f, 26f), max, 24, low ? red : dim, a);
                 MiniCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), frac, 20, hc, low ? MiniBlink(a) : a);
+                MiniWoundCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), me, 20, a);
+                if (me.Wound > 0.5f)  // how much of your health no heal brings back, on the title row
+                    MiniText(new Rect(hr.x, hr.y, hr.width, 16f), "WOUND -" + Mathf.CeilToInt(me.Wound), 16, red, a, TextAnchor.MiddleRight);
                 if (me.OverHp > 0f)  // a health shrine's health past max (Shrines.cs): gold, after the max and as a gold strip over the cells
                 {
                     MiniText(new Rect(mx + CrtUi.TitleWidth(max, 24) + 8f, hr.y + 30f, 90f, 26f), "+" + Mathf.CeilToInt(me.OverHp), 24, CrtStyle.Gold, a);
@@ -205,6 +228,7 @@ namespace Arena
                 MiniText(new Rect(row.x + 110f, row.y, row.width - 110f, 16f),
                     p.Downed ? "DOWNED " + Mathf.RoundToInt(p.Revive * 100f) + "%" : Mathf.CeilToInt(p.Hp) + (p.OverHp > 0f ? "+" + Mathf.CeilToInt(p.OverHp) : "") + " / " + Mathf.CeilToInt(p.MaxHp), 16, pc, a, TextAnchor.MiddleRight);
                 MiniCells(new Rect(row.x, row.y + 17f, row.width, 4f), p.Downed ? p.Revive : pf, 20, pc, plow ? MiniBlink(a) : a);
+                MiniWoundCells(new Rect(row.x, row.y + 17f, row.width, 4f), p, 20, a);
                 ty -= 28f;
             }
 

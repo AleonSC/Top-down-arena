@@ -43,18 +43,32 @@ namespace Arena
         static Color GhostColor(Color fill) => new Color(Pale(fill.r), Pale(fill.g), Pale(fill.b), 0.75f);
 
         /// A HUD bar with its damage ghost (just Ui.Bar with Visual effects off).
-        static readonly Color WoundUi = new Color(0.42f, 0.05f, 0.09f, 0.95f), WoundLine = new Color(1f, 0.32f, 0.36f, 0.9f);
-        static readonly Rgba WoundWorld = new Rgba(0.45f, 0.06f, 0.1f, 0.95f);
+        static readonly Color WoundUi = new Color(0.55f, 0.08f, 0.12f, 0.95f), WoundStripe = new Color(0.9f, 0.22f, 0.28f, 0.95f), WoundLine = new Color(1f, 0.55f, 0.58f, 1f);
+        static readonly Rgba WoundWorld = new Rgba(0.5f, 0.07f, 0.11f, 0.95f), WoundWorldStripe = new Rgba(0.92f, 0.24f, 0.3f, 0.95f), WoundWorldLine = new Rgba(1f, 0.6f, 0.62f, 1f);
 
-        /// A wound (Combat.cs, Docs/PowerStacking.md): the end of a player's health bar no heal can reach until the wave is
-        /// cleared, in dark red with a bright edge where healing stops.
+        /// A wound (Combat.cs, Docs/PowerStacking.md): the end of a player's health bar no heal can reach, striped dark and bright red,
+        /// with a light tick standing out past the bar where healing stops.
         void DrawWound(Rect hp, Player p)
         {
             if (p.Wound <= 0.5f || p.MaxHp <= 0f)
                 return;
-            float w = hp.width * Mathf.Clamp01(p.Wound / p.MaxHp);
-            Ui.Fill(new Rect(hp.xMax - w, hp.y, w, hp.height), WoundUi);
-            Ui.Fill(new Rect(hp.xMax - w - 1f, hp.y, 2f, hp.height), WoundLine);
+            float w = hp.width * Mathf.Clamp01(p.Wound / p.MaxHp), x0 = hp.xMax - w;
+            Ui.Fill(new Rect(x0, hp.y, w, hp.height), WoundUi);
+            for (float x = x0 + 2f; x < hp.xMax; x += 5f)  // stripes: a locked section, not empty health
+                Ui.Fill(new Rect(x, hp.y, Mathf.Min(2f, hp.xMax - x), hp.height), WoundStripe);
+            Ui.Fill(new Rect(x0 - 1f, hp.y - 2f, 2f, hp.height + 4f), WoundLine);
+        }
+
+        /// The same over a player's bar in the world (WorldPlayers.cs): x, y, width, height of the whole bar.
+        void DrawWorldWound(float bx, float by, float bw, float bh, Player p)
+        {
+            if (p.Wound <= 0.5f || p.MaxHp <= 0f)
+                return;
+            float w = bw * Mathf.Clamp01(p.Wound / p.MaxHp), x0 = bx + bw - w;
+            FillRect(x0, by, w, bh, WoundWorld);
+            for (float x = x0 + 1.5f; x < bx + bw; x += 4f)
+                FillRect(x, by, Mathf.Min(1.5f, bx + bw - x), bh, WoundWorldStripe);
+            FillRect(x0 - 0.75f, by - 2f, 1.5f, bh + 4f, WoundWorldLine);
         }
 
         void GhostBar(Rect r, float frac, Color fill, long key)
