@@ -354,7 +354,7 @@ namespace Arena
             }
             if (s.NoFx)
             {
-                if (!s.Silent && !((s.Twin || s.LanceKind > 0 || s.Knuckle > 0) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
+                if (!s.Silent && !((s.Twin || s.LanceKind > 0 || s.Knuckle > 0 || s.Nod) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
                     BroadcastSound(s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);  // a Halberd sweep's or Twin Blades step's whoosh (its effect was sent at the click)
             }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -471,6 +471,8 @@ namespace Arena
                 TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
             if (hits.Count > 0 && s.LanceKind > 0)
                 LanceHitCue(p, s.LanceKind, hits.Count);  // a Lance step hit something: its sound, your hit-pause and shake (Lance.cs)
+            if (s.Nod && hits.Count > 0)
+                BroadcastSound(Sfx.NodHit);  // the Nodachi bit something (the step's own sound was sent at the press)
             if (s.Nun && hits.Count > 0)
                 BroadcastSound(Sfx.NunHit);  // a Nunchaku stick landed (the step's own sound was sent at the press)
             if (s.Rapier && hits.Count > 0)

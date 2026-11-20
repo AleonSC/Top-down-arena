@@ -143,6 +143,8 @@ namespace Arena
         // The Rubber Chicken skin's sound pack for the Twin Blades (ChickenSoundBank.cs), one for each Twin cue: picked by the host from
         // the swinger's skin (Game.TwinSfx). Sent.
         ChickCut1, ChickCut2, ChickJab, ChickSpin, ChickShear, ChickHit, ChickHitHeavy, ChickThrow, ChickCross, ChickCatch,
+        // The Nodachi (NodachiSoundBank.cs): each step (sent at the press, timed to its strikes), a cut landing, a shot blocked, the stance switch. Sent.
+        NodNuki, NodKesa, NodMoon, NodTenchi, NodNagi, NodKasumi, NodNidan, NodSenbon, NodTsuka, NodHiki, NodHit, NodBlock, NodToStorm, NodToGuard,
     }
 
     public struct SoundCue

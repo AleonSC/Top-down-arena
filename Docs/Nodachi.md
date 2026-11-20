@@ -26,7 +26,11 @@ stance's ready pose (Arashi low and trailing behind, Mamori's point at their eye
 near where the last ended: Nukitsuke ends on the right where Kesagiri winds up, Kesagiri ends left where Engetsu winds back,
 Tenchi's spin carries Engetsu's turn on round and its slam comes round to the front, Nagi pulls back from the slam.
 
+## Sounds
+
+`Game/NodachiSoundBank.cs`: one sound per step, sent at the press and timed from the motion; a cut landing, a block, and a
+shing for each stance switch (low and heavy into Arashi, crisp into Mamori).
+
 ## Ideas not built
 
 - Bots don't switch stance (they play Arashi).
-- Its own sound set (it borrows the Katana's sweeps, lunge, stance swap and burst).
