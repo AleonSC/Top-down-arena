@@ -15,7 +15,7 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
   weapons, two cards each would pass the cap.
 - **Append-only list.** Inserting a card renumbers every card after it, so new groups are chained onto the end
   (`WithClassAbilities`, `WithMilestones`, `WithBuilders`), and `Tests/Expansion.cs:1359` fails as soon as any card
-  comes after the vector cards. Saves store card names (`RunSaves.cs`), so only the network and replays care about ids.
+  comes after the vector cards. Saves store card names (`RunSaves.cs`), so only the network cares about ids.
 - **No class filter, no weapon list.** A "Knight only" or "any Knight melee weapon" card can't be written today.
 - **Mods, legendaries and milestones ignore your weapon.** `ModOffer`, `LegendaryOffer` and `MilestoneOffer` don't
   take a weapon, so a weapon-specific card of those rarities would never be offered (`RequiresWeapon` reads "no weapon
@@ -40,7 +40,6 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
   (`Shop.SyncShop`) and chest loot (`Props.SyncLoot`) already used `Short`. `Msg.Pick` sends an offer index, the shop
   and dev spawn send `Int32`: unchanged. Limit: 32,767 cards.
 - An empty offer slot (`-1`) now arrives as `-1` (one byte wrapped it to 255).
-- Replays need no format bump: since `Replay.FormatVersion` 7 a replay from another protocol isn't listed.
 - Test: suite `cardids` (`CardIdWireTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
 ### Step 2: one offer context, weapon-aware offers (built, no wire change)
@@ -178,7 +177,7 @@ Built (owner approved all ten): in `Game.KnightCards`, each with `Weapons = { it
 (the slam and its charge outline, `WorldShots.cs`), the Breaching Thrust's `Knock` and `LanceBump` / `LanceWallImpact`,
 the Halberd's reach and `sweep`, the Quarterstaff's `HealPerHit` and `StaffCap`, `LightLanded` (`Player.LightCarry`
 keeps the fraction) and `LandSunlance`, `AddZone` for every `ZoneKind.Incense` cloud, `HostTwinFang` and `FangHurt`,
-the guard's Rend and `GreatGuardBlock` (`Player.TemperCarry`), `TickRapier`'s grace and the Rapier's skewer cap,
+`TickRapier`'s grace and the Rapier's skewer cap,
 `KnuckleLockTarget` / `HostRocketDash` (and the reticle in `ArcKnucklesLook.cs`) and the Twin Hammer's stun.
 Test: suite `abilitycards`, its Knight weapon checks.
 

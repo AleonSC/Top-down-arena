@@ -34,7 +34,7 @@ namespace Arena
         public Profile ProfileOverride;   // tests: a profile per game instead of the computer's
         public bool Unrecorded;           // a Boss Lab fight: never saved, and not in anyone's records (BossLab.cs)
         public bool BotParty;             // lobby bots in the run (PartyBots.cs): Unrecorded too, but played like any run (Campaign arena, lives)
-        /// A Boss Lab fight or a replay: unrecorded and played as a bare fight. A run with lobby bots is only unrecorded.
+        /// A Boss Lab fight: unrecorded and played as a bare fight. A run with lobby bots is only unrecorded.
         public bool LabRun => Unrecorded && !BotParty;
         public Profile Profile => ProfileOverride ?? Profile.Current;
         public readonly List<UnlockToast> UnlockToasts = new List<UnlockToast>();  // the front end draws and ages them
@@ -84,7 +84,7 @@ namespace Arena
                 var seat = new SeatSave
                 {
                     Name = p.Name, Role = p.Role, Kit = p.Kit, Weapon = e != null ? e.Weapon : 0, Ability = e != null ? e.Ability : 0, Wild = e != null ? e.Wild : 0, Ult = p.UltPick,
-                    Level = p.Level, Xp = p.Xp, Rerolls = p.Rerolls, Gold = p.Gold, Relic = p.Relic, ReviveToken = p.ReviveToken,
+                    Level = p.Level, Xp = p.Xp, Rerolls = p.Rerolls, Gold = p.Gold, Relic = p.Relic, ShrinesUsed = p.ShrinesUsed, OverHp = p.Downed ? 0f : p.OverHp, Wound = p.Wound, ReviveToken = p.ReviveToken,
                     HpFrac = p.Downed || p.MaxHp <= 0f ? 0.4f : p.Hp / p.MaxHp, Run = p.Run,
                 };
                 foreach (var pk in p.Perks)
@@ -154,6 +154,9 @@ namespace Arena
                 p.Rerolls = s.Rerolls;
                 p.Gold = s.Gold;
                 p.Relic = s.Relic;
+                p.ShrinesUsed = s.ShrinesUsed;
+                p.OverHp = s.OverHp;
+                p.Wound = s.Wound;
                 p.ReviveToken = s.ReviveToken;
                 p.Run = s.Run;
                 p.PendingPicks = 0;
@@ -166,8 +169,6 @@ namespace Arena
                 NextOffer(p);
                 Recalc(p);
                 p.Hp = p.MaxHp * s.HpFrac;
-                for (int k = 0; k < p.HpHistory.Length; k++)
-                    p.HpHistory[k] = p.Hp;
                 lastLevel[p.Id] = p.Level;
                 BroadcastUpgrades(p);
             }

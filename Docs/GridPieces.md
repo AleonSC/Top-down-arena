@@ -10,7 +10,7 @@ Status: **plan agreed with the owner; steps 1-4 built, step 5 in part (Grid is t
 | Piece source | **A hand of pieces**, with the card sources that exist today (starting hand, +1 a round, wave and boss drops, chests, the Builder Shop). |
 | Shapes | **Polyominoes of 1 to 4 cells** (a cell is a 6 x 6 tile room, 600 px): single, domino, the two trominoes (I, L), the five tetrominoes (I, O, T, S, L). Rotate (R) and mirror. |
 | Placement | **Only at door spots**: one cell of the piece must sit on a door spot of a built room, the piece overlaps nothing and every cell is on the lattice. |
-| Cards become pieces | The room cards **are** the grid pieces. A card is a **shape** plus a **room type**: a basic room, a floor-modifier (themed) room, a combat room, and so on. An L piece can be any of them. |
+| Cards become pieces | The room cards **are** the grid pieces. A card is a **shape** plus any **modifiers** ([`PieceMods.md`](PieceMods.md)): a floor, combat, or both. An L piece can carry any of them. |
 | Shops and the Black Market | **Always one cell** (the smallest piece), so they are easy to place. |
 | Mini-bosses | They **spawn as preset rooms that fit the cell sizes** (cell-aligned, whole cells), so building up to one keeps the grid uniform. They **wait on the lattice** like a node: a locked cell-sized ghost ahead of the map; build pieces up to it and it joins, walk in to wake the mini-boss. |
 | Price | **Playing a piece costs nothing.** Pieces can cost vectors to **buy** (the Builder Shop and the like) and still come as **drops and rewards**. Vectors keep paying for openings, portals, gates and mystery doors. |
@@ -24,7 +24,7 @@ Status: **plan agreed with the owner; steps 1-4 built, step 5 in part (Grid is t
 
 ## Still open (small, settle while building)
 
-- Which modifiers a piece can roll beyond plain and floor (enemy modifiers: owner will give specifics). **The slot is built (Nov 18)**: a piece carries one modifier number (`Expansion.PieceRoomType`, 0 plain, 1-10 the floors, 11-13 free for new kinds; `RoomTypeOf`, `RoomTypeName`, `RoomTypeBlurb`, `RoomTypePrice`, `RollRoomTypes`, `ApplyRoomType` in `GridPieces.cs`), shown under the piece's name on the card.
+- Modifiers: **built (Nov 20)**, see [`PieceMods.md`](PieceMods.md): a card carries floor and/or combat, rolled whenever it is offered; more kinds slot in through `PieceMods.All`.
 - Mystery doors open any of the nine pieces (medium: domino, corner, square, T, S, L; Nov 18).
 - Mini-boss rooms are two cells and one waits at a time (first guess; tune after play).
 

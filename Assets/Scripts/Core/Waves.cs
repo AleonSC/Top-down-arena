@@ -6,6 +6,16 @@ namespace Arena
     /// Wave flow: the run states between waves, clearing a wave and game over.
     public partial class Game
     {
+        /// Live enemies that count for the wave (a Turnkey's traps and doors don't hold a wave open: Turnkey.cs).
+        public int Foes()
+        {
+            int n = 0;
+            foreach (var e in Enemies.Values)
+                if (!IsPlanted(e.Type) && !e.Dormant)  // (a dormant group waits for its room: DormantGroups.cs)
+                    n++;
+            return n;
+        }
+
         void CheckGameOver()
         {
             if (State == MatchState.GameOver || State == MatchState.Idle || State == MatchState.Victory || Players.Count == 0)
@@ -27,7 +37,6 @@ namespace Arena
                 if (m.Kind == MinionKind.Phoenix)
                     return;  // a phoenix brings someone back on its next beat (Minions.cs)
             State = MatchState.GameOver;
-            TestRunEnded("everyone went down");  // BalanceTest.cs
             spawnQueue.Clear();
             squadQueue.Clear();
             foreach (var p in Players.Values)
@@ -116,7 +125,7 @@ namespace Arena
                             var pw = Practice.Waves[PracticeIndex];
                             Wave = Math.Max(1, pw.Level);
                             if (Design != null && PracticeIndex < Design.Waves.Count)
-                                BuildDesignWave(Design.Waves[PracticeIndex]);  // the F1 wave editor's design (WaveDesign.cs)
+                                BuildDesignWave(Design.Waves[PracticeIndex]);  // the design being tested (WaveDesign.cs)
                             else
                                 BuildPracticeWave(pw);
                             var pm = Proto.Begin(Msg.PracticeWave);  // so everyone's HUD shows which practice wave this is
@@ -205,11 +214,9 @@ namespace Arena
 
         void WaveCleared()
         {
-            PayVeins();  // every claimed gold vein pays out (NodeScouting.cs)
             ClearRuleRooms();  // a claimed rule room has been through the wave: its prize (ExpansionGame.cs)
             EndRoomsWave();  // an unbeaten Gatekeeper duel ends with the wave (Rooms.cs)
             Recorder?.WaveEnd(this);
-            TestWaveCleared();  // BalanceTest.cs
             SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
             ResetBossState();
             ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)
@@ -228,11 +235,12 @@ namespace Arena
                 OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
-                p.Wound = 0f;  // wounds heal between waves (Combat.cs)
+                if (BossSlot)
+                    p.Wound = 0f;  // wounds carry across waves (owner Nov 20) and clear when a boss falls (Combat.cs)
                 if (p.Downed)
                     RevivePlayer(p, 0.4f);
                 else
-                    p.Hp = Math.Min(p.MaxHp, p.Hp + p.MaxHp * 0.3f);
+                    p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + p.MaxHp * 0.3f));
                 if (p.Offer == null)
                     NextOffer(p);
             }

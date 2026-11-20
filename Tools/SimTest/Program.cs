@@ -39,7 +39,7 @@ static partial class Program
                     ult.Timer = 99f;
                 }
             }
-        s.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(640, 360) });
+        s.Game.FixedStep(dt, new PlayerInput { AimAt = aimOverride ?? new V2(640, 360) });
         s.Game.Update(dt);
         if (s.IsHost)
             foreach (var cue in s.Game.Sounds)
@@ -53,6 +53,8 @@ static partial class Program
     }
 
     static int pickups;
+
+    static V2? aimOverride;  // where every player's input aims, when a test needs a facing (null: the usual point)
     static bool clientSawOrbs;
 
     static int nextPort = Environment.GetEnvironmentVariable("PORTBASE") != null ? int.Parse(Environment.GetEnvironmentVariable("PORTBASE")) : 7810;  // PORTBASE=n: parallel runs (BalanceGrid) each take their own ports
@@ -247,7 +249,7 @@ static partial class Program
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => ColossusTest(Dt), () => LichTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => WeaponSoundsTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
-        () => HemomancerTest(Dt), () => BloodLashTest(Dt), () => BloodBlastTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), DiagTest, () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => EnemyNumbersTest(Dt), () => DifficultyTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => WarhornVolleyTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => WolfPackTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }, () => BotTeamplayTest(Dt), () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotPicksTest(Dt), () => BotShopTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => FloodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
+        () => HemomancerTest(Dt), () => BloodLashTest(Dt), () => BloodBlastTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), DiagTest, () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => EnemyNumbersTest(Dt), () => DifficultyTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => WarhornVolleyTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => WolfPackTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }, () => BotTeamplayTest(Dt), () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotPicksTest(Dt), () => BotShopTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => FloodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
         () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => DevArenaTest(Dt), () => SessionSourcesTest(Dt), () => AuditFixesTest(Dt), () => FavoritesTest(Dt), () => GadgetTest(Dt), () => CauterizeTest(Dt), () => EngineerTest(Dt), () => PickupsTest(Dt), () => RemoteChestsTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
     };
 
@@ -270,7 +272,6 @@ static partial class Program
         Test("approaches", "boss approaches: the themed share, waves built with it, the Riot Shield (bash, knockback, shield), the Gas Grenadier, the Warden's pair", () => ApproachesTest(Dt)),
         Test("campaign", "the campaign buildup: every wave themed, the last boss fading out, an older pool, the next boss building up", CampaignTest),
         Test("parry", "the parry and its upgrades", () => ParryTest(Dt), () => ParryUpgradeTest(Dt)),
-        Test("replay", "run replays: recording, the file, rename and delete, pause, step, any speed either way, seeking", () => ReplayTest(Dt)),
         Test("golemwall", "Golem Wall: three big golems, no timer, worn by every shot, broken at zero, replaced by a recast", () => GolemWallTest(Dt)),
         Test("aegis", "Aeroaegis: the vortex goes to the player nearest the cursor, enemies stay out", () => AegisTest(Dt)),
         Test("sanctum", "Sanctum: seven healing pulses, the last bigger, each ally healed as the ring reaches them", () => SanctumTest(Dt)),
@@ -365,6 +366,7 @@ static partial class Program
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
+        Test("botdodge", "smart bots dodge walls of shots and sprint to cross the arena, without overusing either", () => BotDodgeTest(Dt)),
         Test("botgate", "smart bots walk through the Warden's gates' doors", () => BotWardenGateTest(Dt)),
         Test("wardenloot", "the Warden's legendaries: Stun Gun, Warden's Guard and Searchlight", () => WardenLootTest(Dt)),
         Test("flame", "the Flamethrower", () => FlamethrowerTest(Dt)),
@@ -399,8 +401,6 @@ static partial class Program
         Test("bosses", "every late boss's mechanics, victory and endless", () => BossMechanics(Dt)),
         Test("latewaves", "waves 25-50: each late boss beaten, victory and endless", () => LateWaves(Dt)),
         Test("exploit", "parking a blocker on a boss", () => ExploitTest(Dt)),
-        Test("dpstools", "the DPS meter and target dummies", () => DpsToolsTest(Dt)),
-        Test("balancetest", "the F1 Balance tab: five test waves, the log and the report", () => BalanceTestRun(Dt)),
         Test("nimbuschalk", "the Nimbus (cloud, rain, strikes) and Spirit Chalk (ink, loops that pen enemies in)", () => NimbusChalkTest(Dt)),
         Test("tsunami", "Tsunami: the wave, wet, the slow, lightning arcing to every wet enemy, wearing off, the mastered return", () => TsunamiTest(Dt)),
         Test("holycross", "Consecrate's Holy Cross: it grows as it flies, heals and hastens allies, hurts, slows and knocks back enemies, hits each once, the mastered fan", () => HolyCrossTest(Dt)),
@@ -456,11 +456,12 @@ static partial class Program
         Test("layouts", "arena layouts: the six floor plans, walls and pillars, edge gates, enemy gates, steering round walls", () => LayoutsTest(Dt)),
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt), () => ExpandingStayInRoomsTest(Dt), () => ExpandingNodeCentreTest(), () => ExpandingVectorChestTest(Dt), () => ChestKindsTest(Dt)),
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
-        Test("roomfog", "room fog (Docs/FogOfWar.md): new rooms start unseen, walking in reveals them for everyone, saves, bots scout", () => RoomFogTest(), () => RoomFogGameTest(Dt), () => RoomFogBotTest(Dt)),
+        Test("roomfog", "room fog (Docs/FogOfWar.md): new rooms start unseen, the line-of-sight cone explores and shows them for everyone, saves, bots scout; dormant groups", () => RoomFogTest(), () => RoomFogGameTest(Dt), () => RoomFogBotTest(Dt), () => DormantGroupsTest(Dt)),
         Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => PieceShapesTest(), () => PieceCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => PieceShapesGameTest(Dt)),
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
         Test("armsdealer", "the Arms Dealer and the Medic (Docs/ArmsDealer.md): service rooms selling every weapon mod for gold, priced by your stacks, and heals and revives; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),
         Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt), () => MysteryBotsTest(Dt)),
+        Test("shrines", "health shrines (the only node: one use each, health past max) and room chests (pieces and mystery rooms roll one by rarity, vendors never)", () => ShrinesTest(Dt)),
         Test("chests", "chest kinds (Props.cs ChestKind): the node roll, each kind's reward, the kind in the snapshot", () => ChestKindsTest(Dt)),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("bossgate", "the boss gate (BossGate.cs): opens before the boss, holds the wave until everyone stands in it, bots walk in", () => BossGateTest(Dt)),
@@ -482,7 +483,7 @@ static partial class Program
         Test("scratch", "V2 distance tests without the square root, the bullet table, and the reusable lists", ScratchTest),
         Test("refdoc", "Docs/Reference.md (weapon, ability and enemy tables) matches the definitions (run.sh 1 1 refdocwrite)", RefDocTest),
         Test("wavegen", "the built-in designed waves match their files in Data/Waves (Tools/WaveGen/build.sh)", WaveGenTest),
-        Test("wavedesign", "the wave editor's designs: the .waves file, and playing them in the Practice Range", () => WaveDesignTest(Dt)),
+        Test("wavedesign", "designed waves: the .waves file, and playing them in the Practice Range", () => WaveDesignTest(Dt)),
         Test("clearghosts", "a shot fired in the tick enemy bullets are cleared doesn't linger on the client", () => ClearGhostsTest(Dt)),
         Test("three", "three players", () => ThreePlayerTest(Dt)),
         Test("wrap", "wrapping round the arena's edges", () => WrapTest(Dt)),
@@ -503,7 +504,7 @@ static partial class Program
         Test("wildcard", "Wildcard: DPS gear from any class, a Wildcard ability on a chosen key, the damage and cooldown price, the unlock", () => WildcardTest(Dt)),
         Test("respawn", "the Practice Range: no game over, Respawn, Restart wave, Training drill text format", () => PracticeRespawnTest(Dt)),
         Test("lag", "the lag chart: LagStats (stalls, p95, 1% low, freeze, summary, CSV) and pings shared over the network", () => LagChartTest(Dt)),
-        Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back this wave)", () => StackingTest(Dt)),
+        Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back, carried across waves up to a cap)", () => StackingTest(Dt)),
         Test("dodge", "Dodge: the tiny dash with invulnerability (host and client), its cooldown, the step back, the hold-to-sprint", () => DodgeTest(Dt)),
         Test("f1bot", "F1 \"Bot plays for you\" (the smart bot) through waves and the Bazaar", () => F1BotTest(Dt)),
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>

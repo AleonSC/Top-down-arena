@@ -286,10 +286,9 @@ static partial class Program
         Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, Black Market or Gatekeeper)");
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
-        Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest || n.Kind == NodeKind.VectorChest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : n.Kind == NodeKind.Vein ? 3 : 9;
-        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic || n.Kind == NodeKind.Vein) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
-              && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
-            "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests, relics and veins as fit, none fogged, the same on the client");
+        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => n.Kind == NodeKind.Shrine) >= 1 && newNodes.All(n => n.Kind == NodeKind.Shrine)
+              && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
+            "a new cycle places only health shrines (owner Nov 20; no chest, relic or rule nodes), none fogged, the same on the client");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // A sealed room waiting on the lattice (the cycle's mini-boss room, GridPieces.cs): no crowd, no spawns, until a piece reaches it.
@@ -467,12 +466,12 @@ static partial class Program
         // Nodes survive a saved run (where they are placed: GridNodeFor, the gridrooms suite).
         {
             var saved = new RunSave { Wave = 6, HasExpansion = true };
-            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.BlackMarket });
+            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Rule });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
-            saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Tower, Hidden = true });
+            saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Relic, Hidden = true });
             saved.Seats.Add(new SeatSave());
             var back = RunSave.Parse(saved.ToText());
-            Check(back != null && back.Nodes.Count == 3 && back.Nodes[0].Equals(saved.Nodes[0]) && back.Nodes[1].Equals(saved.Nodes[1]) && back.Nodes[2].Equals(saved.Nodes[2]), "nodes survive a saved run (a fogged scout tower too)");
+            Check(back != null && back.Nodes.Count == 3 && back.Nodes[0].Equals(saved.Nodes[0]) && back.Nodes[1].Equals(saved.Nodes[1]) && back.Nodes[2].Equals(saved.Nodes[2]), "nodes survive a saved run (a fogged one too)");
         }
 
         // The map stops growing at the cap: no piece has a place once the rooms reach it.
@@ -874,11 +873,10 @@ static partial class Program
             }
         }
 
-        // No fog (owner, Nov 18): nodes are placed in plain view, and an old save's fogged node clears at once; gold veins (NodeScouting.cs).
+        // No fog (owner, Nov 18): nodes are placed in plain view, and an old save's fogged node clears at once; a retired tower or vein in an old save is a chest.
         {
             var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
             var tickFog = typeof(Game).GetMethod("TickNodeFog", flags);
-            var payVeins = typeof(Game).GetMethod("PayVeins", flags);
             var tw = Expansion.GridNodeFor(5, 1, Expansion.GridCore(), new List<MapNode>(), NodeKind.Chest);
             Check(tw.HasValue && !tw.Value.Hidden, "a node is placed unfogged");
             if (tw.HasValue)
@@ -887,7 +885,7 @@ static partial class Program
                 var homes = g.Players.Values.Select(p => p.Pos).ToList();
                 V2 hub = new V2(Game.Width / 2f, Game.Height / 2f), dir = (tw.Value.Pos - hub) * (1f / (tw.Value.Pos - hub).Length);
                 V2 farP = tw.Value.Pos + dir * 3600f;
-                var old = new MapNode { X = (short)farP.X, Y = (short)farP.Y, Kind = NodeKind.Vein, Hidden = true };
+                var old = new MapNode { X = (short)farP.X, Y = (short)farP.Y, Kind = NodeKind.Chest, Hidden = true };
                 foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
                 g.Nodes.Add(old);
                 tickFog.Invoke(g, new object[] { 1f });
@@ -895,23 +893,6 @@ static partial class Program
                 Run(s, dt, 3f, () => cg.Nodes.Count == g.Nodes.Count && cg.Nodes.All(n => !n.Hidden));
                 Check(cg.Nodes.Count == 1 && cg.Nodes.All(n => !n.Hidden), "the client sees it revealed too");
                 pl.Pos = homes[0];
-                // A gold vein pays every player each cleared wave while its room stands.
-                var vn = Expansion.GridNodeFor(5, 0, Expansion.GridCore(), new List<MapNode>(), NodeKind.Vein);
-                Check(vn.HasValue, "a gold vein node is placed");
-                if (vn.HasValue)
-                {
-                    var vein = vn.Value; vein.Hidden = false;
-                    var vp = GridChainTo(Expansion.GridCore(), vein, 3) ?? Expansion.GridCore();
-                    var golds = g.Players.Values.ToDictionary(p => p.Id, p => p.Gold);
-                    g.Expanded.Clear(); g.Expanded.AddRange(vp.Take(vp.Count - 1)); typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-                    g.Nodes.Clear(); g.Nodes.Add(vein);
-                    payVeins.Invoke(g, null);
-                    Check(g.Players.Values.All(p => p.Gold == golds[p.Id]), "an unclaimed gold vein pays nothing");
-                    g.Expanded.Add(vp[vp.Count - 1]); typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-                    payVeins.Invoke(g, null);
-                    Check(Expansion.NodeClaimed(vp, vein) && g.Players.Values.All(p => p.Gold == golds[p.Id] + NodeScouting.VeinPay(g.Wave)), "a claimed gold vein pays every player " + NodeScouting.VeinPay(g.Wave) + " gold as a wave is cleared");
-                    foreach (var p in g.Players.Values) p.Gold = golds[p.Id];
-                }
             }
             foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(saveRooms); gg.Nodes.Clear(); gg.Nodes.AddRange(saveNodes); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
         }
@@ -1126,26 +1107,25 @@ static partial class Program
             return l.Where(p => { var side = Expansion.OuterWall(w, p); return side.HasValue && a.Contains(p + side.Value * 30f); }).ToList();
         };
         PortalLink link = default(PortalLink);
-        int price = 0;
+        bool found = false;
         foreach (var ea in wallSpots(w.Areas[1]))
             foreach (var sb in wallSpots(w.Areas[2]))
             {
                 var l = new PortalLink { AX = (short)ea.X, AY = (short)ea.Y, BX = (short)sb.X, BY = (short)sb.Y };
-                int pr = Expansion.LinkPrice(w, 0, l, out why);
-                if (price == 0 && pr > 0) { link = l; price = pr; }
+                if (!found && Expansion.LinkFits(w, 0, l, out why)) { link = l; found = true; }
             }
         float walk = Expansion.LinkWalk(w, link);
-        Check(price > 0 && walk > 1800f && price == Math.Min(Expansion.LinkMax, Expansion.LinkBase + (int)Math.Round(walk / 200f)), "a link goes on two rooms' outer walls and costs 8 + 1 per 2 tiles of walking it saves (" + (int)walk + " px, " + price + " vectors)");
+        Check(found && walk > 1800f, "a link goes on two rooms' outer walls and saves at least 6 tiles of walking (" + (int)walk + " px)");
         var same = wallSpots(w.Areas[1]).OrderByDescending(p => p.DistanceTo(link.A)).First();
-        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = (short)same.X, BY = (short)same.Y }, out why) == 0 && why != null, "both ends in one room is refused (" + why + ")");
-        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = 3000, BY = 400 }, out why) == 0 && why != null, "an end outside the map is refused (" + why + ")");
+        Check(!Expansion.LinkFits(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = (short)same.X, BY = (short)same.Y }, out why) && why != null, "both ends in one room is refused (" + why + ")");
+        Check(!Expansion.LinkFits(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = 3000, BY = 400 }, out why) && why != null, "an end outside the map is refused (" + why + ")");
         V2 mid = new V2((float)Math.Round(w.Areas[2].Mid.X / 100f) * 100f, (float)Math.Round(w.Areas[2].Mid.Y / 100f) * 100f);
-        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = (short)mid.X, BY = (short)mid.Y }, out why) == 0 && why != null && why.Contains("outer wall"), "an end in the middle of a room (off the walls) is refused (" + why + ")");
-        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = 1600, AY = 200, BX = link.BX, BY = link.BY }, out why) == 0 && why != null, "an end on a wall two rooms share is refused (" + why + ")");
+        Check(!Expansion.LinkFits(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = (short)mid.X, BY = (short)mid.Y }, out why) && why != null && why.Contains("outer wall"), "an end in the middle of a room (off the walls) is refused (" + why + ")");
+        Check(!Expansion.LinkFits(w, 0, new PortalLink { AX = 1600, AY = 200, BX = link.BX, BY = link.BY }, out why) && why != null, "an end on a wall two rooms share is refused (" + why + ")");
         var snapMid = Expansion.NearestWallSpot(w, w.Areas[2].Mid, 150f);
         var snapNear = Expansion.NearestWallSpot(w, link.B + new V2(37f, 0f) + Expansion.OuterWall(w, link.B).Value * 60f, 150f);
         Check(!snapMid.HasValue && snapNear.HasValue && Expansion.OuterWall(w, snapNear.Value).HasValue, "the teleporter tool snaps only to outer walls: nothing from mid-floor, a wall spot from beside one (" + snapNear + ")");
-        Check(Expansion.LinkPrice(w, Expansion.MaxLinks, link, out why) == 0 && why != null, "at most " + Expansion.MaxLinks + " pairs");
+        Check(!Expansion.LinkFits(w, Expansion.MaxLinks, link, out why) && why != null, "at most " + Expansion.MaxLinks + " pairs");
         var wl = Expansion.Build(list, null, new List<PortalLink> { link });
         var pt = wl.Portals[0];
         V2 along = pt.InA.Orthogonal();
@@ -1155,9 +1135,9 @@ static partial class Program
         Check(exit.HasValue && exit2.HasValue && Math.Abs(exit.Value.DistanceTo(exit2.Value) - 80f) < 1f, "and you keep your place along the wall");
         Check(!wl.PortalExitFor(link.A + pt.InA * 120f, 16f).HasValue && !wl.PortalExitFor(link.A + pt.InA * 30f + along * (Expansion.LinkHalf + 40f), 16f).HasValue, "not from across the room, or off the end of the portal's stretch");
         Check(Expansion.WalkDistance(wl, pt.MouthA, pt.MouthB) < 1f, "and walking between its ends now takes no time");
-        Check(Expansion.LinkPrice(wl, 1, link, out why) == 0 && why != null && why.Contains("portal"), "a second pair on the first one's wall is refused (" + why + ")");
+        Check(!Expansion.LinkFits(wl, 1, link, out why) && why != null && why.Contains("portal"), "a second pair on the first one's wall is refused (" + why + ")");
         var plan = wl.With(LayoutId.Open);
-        Check(plan.Mouths != null && plan.Mouths.Length == 2, "enemies steer to each wall portal's mouth, then into the wall");
+        Check(plan.Mouths != null && plan.Mouths.Length == 2, "bots steer to each wall portal's mouth, then into the wall");
         Check(Breaches.Candidates(wl).All(c => c.Key.Pos.FartherThan(link.A, Expansion.LinkHalf + Breaches.Len / 2f) && c.Key.Pos.FartherThan(link.B, Expansion.LinkHalf + Breaches.Len / 2f)), "breaches never open on a portal's wall");
         var best = Expansion.BestLink(w, 0);
         Check(best.HasValue && Expansion.OuterWall(w, best.Value.A).HasValue && Expansion.OuterWall(w, best.Value.B).HasValue, "the bots' pick is on outer walls too");
@@ -1212,9 +1192,23 @@ static partial class Program
         V2 startAt = wp.MouthA + wp.InA * 150f;
         walker.Pos = walker.Disp = startAt;
         foreach (var pl in g.Players.Values) { pl.Pos = pl.Disp = wp.MouthB + wp.InB * 200f; pl.Hp = pl.MaxHp = 99999f; }
-        bool through = false;
-        Run(s, dt, 8f, () => through = gw.AreaAt(walker.Pos) == southArea && walker.Pos.CloserThan(wp.B, 400f), () => { walker.Pos = walker.Pos; foreach (var pl in g.Players.Values) pl.Pos = pl.Disp = wp.MouthB + wp.InB * 200f; });
-        Check(through, "an enemy chasing you through a wall portal walks into the wall and comes out of the other (" + gw.AreaAt(startAt) + " -> " + gw.AreaAt(walker.Pos) + ", at " + (int)walker.Pos.X + "," + (int)walker.Pos.Y + ")");
+        bool jumped = false;
+        V2 lastAt = walker.Pos;
+        Run(s, dt, 8f, () => false, () => { if (walker.Pos.FartherThan(lastAt, 300f)) jumped = true; lastAt = walker.Pos; foreach (var pl in g.Players.Values) pl.Pos = pl.Disp = wp.MouthB + wp.InB * 200f; });
+        Check(!jumped, "an enemy chasing you never takes a wall portal (it walks the long way round)");
+        // Dismantling: a click on a built end takes the pair down, on both screens, and its teleporter goes to the dismantler's stash.
+        g.Players[2].Stash[0] = 0;
+        cg.ProposeUnlink(new V2(5, 5));
+        Run(s, dt, 0.3f, () => false);
+        Check(g.Links.Count == 1 && g.Players[2].Stash[0] == 0, "dismantling where there is no portal does nothing");
+        cg.ProposeUnlink(link.B);
+        Run(s, dt, 1f, () => cg.Links.Count == 0 && cg.Players[2].Stash[0] == 1);
+        Check(g.Links.Count == 0 && cg.Links.Count == 0 && g.Players[2].Stash[0] == 1 && g.ExpansionWorld.Portals.Length == 0, "dismantling a pair takes it down on both screens and returns the teleporter to the stash");
+        g.ExpandOpen = false;
+        cg.ExpandOpen = false;
+        g.Links.Add(link);
+        g.ProposeUnlink(link.A);
+        Check(g.Links.Count == 1, "no dismantling outside a build round");
     }
 
     static bool Strip(RoomArea a) => Math.Min(a.Size.X, a.Size.Y) <= Expansion.StripMax;

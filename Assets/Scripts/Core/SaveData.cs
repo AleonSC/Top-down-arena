@@ -19,6 +19,9 @@ namespace Arena
         public readonly List<string> Perks = new List<string>();  // the perks they brought (by name; a continued run can't change them)
         public int Level = 1, Rerolls, Gold;
         public RelicId Relic = RelicId.None;  // the relic slot (Relics.cs)
+        public ulong ShrinesUsed;  // the health shrines they've used (Shrines.cs)
+        public float OverHp;       // and the health past max one gave them
+        public float Wound;        // their wound (Combat.cs: carried across waves)
         public float Xp, HpFrac = 1f;
         public bool ReviveToken;
         public readonly Dictionary<string, float> Mastery = new Dictionary<string, float>();  // ability name -> XP
@@ -69,6 +72,7 @@ namespace Arena
         public bool KeepsakePending;  // left during the keepsake vote (MapReset.cs): it opens again on Continue
         public int ExpandSeed, FloatCycle = -1, MapNumber = 1;  // MapNumber: which map of the run (MapReset.cs)
         public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
+        public readonly Dictionary<int, string> Fog = new Dictionary<int, string>();  // room fog: a box's explored cells as hex (RoomFog.cs)
         public readonly List<WallCut> Cuts = new List<WallCut>();
         public readonly List<MapNode> Nodes = new List<MapNode>();
         public readonly List<PortalLink> Portals = new List<PortalLink>();
@@ -123,6 +127,8 @@ namespace Arena
                 Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber + " " + (KeepsakePending ? 1 : 0));
                 foreach (var r in Rooms)
                     Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Piece, r.Surprise, r.Claimed ? 1 : 0, r.Mini, r.Unseen ? 1 : 0 }));
+                foreach (var kv in Fog)
+                    Line(sb, "fog", kv.Key + " " + kv.Value);
                 foreach (var c in Cuts)
                     Line(sb, "cut", (c.Vertical ? 1 : 0) + " " + c.At + " " + c.From + " " + c.Till);
                 foreach (var l in Portals)
@@ -144,6 +150,8 @@ namespace Arena
                 Line(sb, "rerolls", s.Rerolls);
                 Line(sb, "gold", s.Gold);
                 if (s.Relic != RelicId.None) Line(sb, "relic", s.Relic);
+                if (s.Wound > 0f) Line(sb, "wound", F(s.Wound));
+                if (s.ShrinesUsed != 0 || s.OverHp > 0f) Line(sb, "shrine", s.ShrinesUsed.ToString(CultureInfo.InvariantCulture) + " " + F(s.OverHp));
                 Line(sb, "token", s.ReviveToken ? 1 : 0);
                 Line(sb, "hp", s.HpFrac);
                 Line(sb, "keys", string.Join(",", s.CardAbilities));
@@ -245,10 +253,19 @@ namespace Arena
                                 Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Piece = (byte)I(p[10]), Surprise = p.Length > 11 ? (byte)I(p[11]) : (byte)0, Claimed = p.Length > 12 && I(p[12]) != 0, Mini = p.Length > 13 ? (byte)I(p[13]) : (byte)0, Unseen = p.Length > 14 && I(p[14]) != 0 });
                             break;
                         }
+                        case "fog":
+                        {
+                            var p = val.Split(' ');
+                            if (p.Length > 1)
+                                save.Fog[I(p[0])] = p[1];
+                            break;
+                        }
                         case "node":
                         {
                             var p = val.Split(' ');
-                            save.Nodes.Add(new MapNode { Kind = Enum<NodeKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Cleared = p.Length > 5 && I(p[5]) != 0, Hidden = p.Length > 6 && I(p[6]) != 0, Drop = (byte)(p.Length > 7 ? I(p[7]) : 0) });
+                            NodeKind nk;  // (an older save's vector chest, scout tower and gold vein nodes are chest nodes now; its shop and Black Market nodes are gone, and so are skipped)
+                            if (System.Enum.TryParse(p[0] == "VectorChest" || p[0] == "Tower" || p[0] == "Vein" ? "Chest" : p[0], out nk))
+                                save.Nodes.Add(new MapNode { Kind = nk, X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Cleared = p.Length > 5 && I(p[5]) != 0, Hidden = p.Length > 6 && I(p[6]) != 0, Drop = (byte)(p.Length > 7 ? I(p[7]) : 0) });
                             break;
                         }
                         case "cut":
@@ -317,6 +334,15 @@ namespace Arena
                 case "rerolls": s.Rerolls = Math.Max(0, I(val)); break;
                 case "gold": s.Gold = Math.Max(0, I(val)); break;
                 case "relic": s.Relic = Enum<RelicId>(val); break;
+                case "wound": s.Wound = Math.Max(0f, Fl(val)); break;
+                case "shrine":
+                {
+                    var f = val.Split(' ');
+                    ulong used;
+                    if (ulong.TryParse(f[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out used)) s.ShrinesUsed = used;
+                    if (f.Length > 1) s.OverHp = Math.Max(0f, Fl(f[1]));
+                    break;
+                }
                 case "token": s.ReviveToken = I(val) != 0; break;
                 case "perks": foreach (var n in val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) s.Perks.Add(n.Trim()); break;
                 case "hp": s.HpFrac = Math.Max(0.05f, Math.Min(1f, Fl(val))); break;

@@ -522,11 +522,8 @@ namespace Arena
                     e.SpawnT -= dt;
                     continue;
                 }
-                if (e.Dummy)
-                {
-                    TickDummy(e, dt);  // a balancing dummy (DpsTools.cs)
-                    continue;
-                }
+                if (e.Dormant)
+                    continue;  // asleep in an unseen room: still until the room is seen or it is hit (DormantGroups.cs)
                 if (DevFreeze)
                     continue;  // F1 dev tool: frozen in place, no moving or shooting (DevTools.cs)
                 if (ShowcaseMode)
@@ -583,13 +580,6 @@ namespace Arena
                 else
                     MoveEnemy(e, tpos, dt);
                 RoomsKeepHome(e);  // a mini-boss can't charge out of its locked room (Rooms.cs)
-                if (RoomsOn && !e.Def.IsBoss)
-                {
-                    V2 was = e.Pos;
-                    e.Pos = RoomsPortal(e.Pos, ref e.PortalT, dt, e.Radius);  // wraparound portals (Rooms.cs)
-                    if (e.Pos.FartherThan(was, 600f))
-                        steerMem.Remove(e.Id);  // a fresh route from the far side
-                }
                 if (Battle && (e.DazeT > 0f || e.SmokeT > 0f))
                 {
                     // Dazed (Daze.cs) or jammed in smoke (GrenadeLauncher.cs): no attacking, and a wind-up starts over once it wears off.
@@ -632,7 +622,7 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || IsPlanted(e.Type) || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
+                    || e.Type == EnemyType.Morsel || IsPlanted(e.Type) || DevourUnder(e) || GutwormUnder(e) || e.DazeT > 0f
                     || e.Type == EnemyType.SmallWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Heavies hurt to stand in; bosses only hurt guards (below) (the difficulty's per-wave damage growth scales all of these).

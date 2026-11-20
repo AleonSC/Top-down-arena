@@ -56,7 +56,7 @@ namespace Arena
         GateState,    // host -> all: a gate's clocks: index, seconds shut, seconds of cooldown (Gates.cs)
         ExpandOutline, // retired (Nov 18, Free draw removed): no longer sent or read
         PlaceBuild,   // client -> host: put a trap from this player's stash on the map (kind, x, y) (Market.cs)
-        Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to) (Gadgets.cs)
+        Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to / 2 take the gadget in bag slot at.X into your hand) (Gadgets.cs)
         HuntMapState, // host -> all: the hunt map: its seed, the nodes cleared, the one being fought, and the vote on the next so far (HuntMapGame.cs)
         HuntMapVote,  // client -> host: this player's vote on the next node (its index in the row, -1 for none) and whether they have locked it in (HuntMapGame.cs)
         StarThrow,    // client -> host: the Shuriken's Great Star thrown along a drawn route (a byte count, then the points); host -> all: (bullet id, owner, count, points) to fly it along (GreatStar.cs)
@@ -68,6 +68,8 @@ namespace Arena
         PieceShape,    // client -> host: place a piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, PieceShapes.cs)
         CollectChest, // client -> host: collect a chest from the wave box's Chests tab (node bool, id int) (Docs/RoundFlow.md step 5, RemoteChests.cs)
         MysteryBuy,   // client -> host: open or save the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y, save) (MysteryDoors.cs)
+        FogCells,     // host -> all: the explored cells of every unseen room, a few times a second while someone explores (RoomFog.cs)
+        ExpandUnlink, // client -> host: dismantle the portal pair with an end at this wall spot (x, y shorts) in a build round; its teleporter goes back to their stash (ExpansionGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -130,7 +132,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 418;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 427;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -160,7 +162,7 @@ namespace Arena
         public bool QuickMode => PlayMode == GameMode.Quick;          // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
         public bool SurvivalMode => PlayMode == GameMode.Survival;    // Survival (Survival.cs, Docs/Survival.md): one clock, no waves
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
-        public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
+        public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (Wave Lab's test)
         public EnemyType HuntBoss = EnemyType.Warden;
         public string PlanEditor = "";  // who made the last change
         public int PlanEditorSel;       // the wave they were working on
@@ -489,12 +491,8 @@ namespace Arena
             if (Net != null && IsHost)
             {
                 Net.Broadcast(msg);
-                Game.Replay?.Capture(msg);  // (Replay.cs)
             }
         }
-
-        /// A replay (ReplayPlayer): read this message the way a client reads one from the host.
-        public void ReplayApply(byte[] data) => HandleClientMessage(data);
 
         // --- Host side ---------------------------------------------------------
 
@@ -643,6 +641,9 @@ namespace Arena
                     break;
                 case Msg.ExpandLink:
                     Game.OnExpandLink(peer, r);
+                    break;
+                case Msg.ExpandUnlink:
+                    Game.OnExpandUnlink(peer, r);
                     break;
                 case Msg.ExpandGate:
                     Game.OnExpandGate(peer, r);
@@ -1283,7 +1284,7 @@ namespace Arena
             Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
             Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
             Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
-            Game.Design = PracticeMode && IsHost ? DesignTest : null;  // the F1 wave editor's waves being tested (WaveDesign.cs; the host plays them)
+            Game.Design = PracticeMode && IsHost ? DesignTest : null;  // the designed waves being tested (WaveDesign.cs; the host plays them)
             Game.Mods = Modifiers;
             Game.Diff = Diff.Copy();
         }
@@ -1375,7 +1376,7 @@ namespace Arena
         {
             if (!IsHost)
                 return;
-            DesignTest = null;  // the practice waves were edited: they're what plays now, not a wave editor design
+            DesignTest = null;  // the practice waves were edited: they're what plays now, not a designed set
             Plan = plan;
             PlanEditor = editor;
             PlanEditorSel = sel;

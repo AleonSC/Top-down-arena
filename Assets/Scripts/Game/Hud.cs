@@ -45,10 +45,6 @@ namespace Arena
             DrawUnlockToasts(W / 2f, HudUnlockToastY);  // SavesUi.cs
             if (aimDebug && me != null)
                 DrawAimDebug(me);
-            if (dpsMeter)
-                DrawDpsMeter();  // F2 (DpsMeterUi.cs)
-            DrawBalanceStrip();   // the balance test's recording light (BalanceTestUi.cs)
-            DrawBalanceReport();  // and its report when it ends
 
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).
@@ -103,6 +99,8 @@ namespace Arena
             if (me != null && !me.Downed)
                 DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
+            DrawGadgetWheel();  // hold the Gadget key with gadgets in the bag: the wheel at the cursor (GadgetWheel.cs)
+            DrawGadgetChip(me);  // the gadget in hand and the bag beside the keys (GadgetWheel.cs)
             DrawChat();  // the chat box, bottom right above the player cards (ChatBox.cs)
             DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
 
@@ -360,9 +358,11 @@ namespace Arena
                 return;
             }
             GhostBar(hp, frac, HealthColor(frac), PlayerKey(p.Id, true));
-            DrawWound(hp, p);  // the part no heal can bring back this wave (HealthBars.cs)
+            DrawWound(hp, p);  // the part no heal can bring back (carried across waves) (HealthBars.cs)
             if (p.ShieldHp > 0f)
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+            if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
+                Ui.Bar(new Rect(hp.x + 1f, hp.y, (hp.width - 2f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
             Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 9, Ui.Muted, TextAnchor.MiddleLeft, true);
         }
 
@@ -486,9 +486,11 @@ namespace Arena
             else
             {
                 GhostBar(hpBar, frac, hpCol, PlayerKey(p.Id, true));
-                DrawWound(hpBar, p);  // the part no heal can bring back this wave (HealthBars.cs)
+                DrawWound(hpBar, p);  // the part no heal can bring back (carried across waves) (HealthBars.cs)
                 if (p.ShieldHp > 0f)  // Energy Ward: a blue stripe along the bottom of the health bar
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+                if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
+                    Ui.Bar(new Rect(hpBar.x + 2f, hpBar.y + 1f, (hpBar.width - 4f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
             }
             Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));

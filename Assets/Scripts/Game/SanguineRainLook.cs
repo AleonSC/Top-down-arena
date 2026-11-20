@@ -62,7 +62,7 @@ namespace Arena
                 V2 c;
                 if (!rainRings.TryGetValue(q.Id, out c))
                     c = q.Disp;
-                c = V2.Lerp(c, q.Disp, 1f - Mathf.Exp(-5f * ViewDt));
+                c = V2.Lerp(c, q.Disp, 1f - Mathf.Exp(-5f * Time.deltaTime));
                 rainRings[q.Id] = c;
                 float grow = HvSmooth((clk - land) / 0.4f);
                 DrawRainTether(p, c, q.Id, grow, t);

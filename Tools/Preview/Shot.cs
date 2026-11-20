@@ -5,7 +5,7 @@ static partial class Shot {
   // A plain box room for a scene (no checks: the scene's own map).
   static ExpansionRoom? Box(int x, int y, int w, int h, PathId floor = PathId.None) => new ExpansionRoom { X = x, Y = y, W = w, H = h, Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor };
 
-  // The preview's "now" for made-up saves and replays: fixed, so their dates (and uishots.sh -r compares) don't change.
+  // The preview's "now" for made-up saves: fixed, so their dates (and uishots.sh -r compares) don't change.
   public static readonly DateTime Now = new DateTime(2026, 11, 7, 18, 0, 0, DateTimeKind.Utc);
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
   static bool heraldOn, eclipseOn;
@@ -267,6 +267,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);  // FXOFF=1: Visual effects off (the plain looks)
     ArenaScenes();
     WolfPoses();  // WOLFPACK=lineup: each wolf's stride and bite (ShotWolfPack.cs)
+    GadgetsWheelScene();  // GADGETS=wheel (ShotGadgets.cs)
     VectorGainScene();  // VECGAIN=<s since> [VECGAINN=10] (ShotScenes.cs)
     EngineerScene();  // ENGINEER=strider|pylon|breach [ENGT=<s>] (ShotEngineer.cs)
     // WARDENINTRO=<s>: the Warden's entrance that far in (WardenIntro.cs): a clean arena, the Warden held in the middle (still "spawning", so it gets the entrance, not the card).
@@ -812,6 +813,8 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("PACSKIN") != null) Profile.Current.DiskLook = "pac";  // the Pac-Man skin (PacmanLook.cs)
     if (Environment.GetEnvironmentVariable("MXFX") != null) { host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Zones.Clear(); }  // (mastery moments: a clear floor so the keys read)
+    var glMat = typeof(ArenaApp).GetField("glMaterial", f2);
+    if (glMat.GetValue(app) == null) glMat.SetValue(app, new Material(null));  // (as OnPostRender makes it: without it, everything after the glow pass, enemy shots included, stayed additive)
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();
@@ -853,7 +856,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's building round (ExpansionUi.cs)
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;  // (free building: the team vote is gone)
-      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, PieceShapes.cs); GRIDCARDS=tril,tetl:burninggrounds,shop,... the hand (piece[:floor] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
+      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, PieceShapes.cs); GRIDCARDS=tril,tetl:burninggrounds+combat,mono:combat,shop,... the hand (piece[:floor][+combat] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
         eg.RoomsUp = true; eg.LayoutAge = 5f; if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (the core a Grid run starts with, once)
         if (Environment.GetEnvironmentVariable("GRIDMINI") != null && Expansion.GridMinisWaiting(eg.Expanded) == 0) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridPieces.cs)
@@ -861,10 +864,15 @@ static partial class Shot {
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {
           if (gc.Length == 0 || gi >= eg.Me.Hand.Length) continue;
-          var gp = gc.Split(':'); PieceShape piece; PieceCard rc; PathId pf = PathId.None;
-          if (gp.Length > 1 && !Enum.TryParse(gp[1], true, out pf)) Console.Error.WriteLine("GRIDCARDS: no floor " + gp[1]);
-          if (Enum.TryParse(gp[0], true, out piece) && Enum.IsDefined(typeof(PieceShape), piece)) eg.Me.Hand[gi++] = (byte)Expansion.MakePieceCard(piece, pf);
-          else if (Enum.TryParse(gp[0], true, out rc)) eg.Me.Hand[gi++] = (byte)rc;
+          var gp = gc.Split(':'); PieceShape piece; PieceCard rc; int gmods = 0;
+          if (gp.Length > 1) foreach (var gmod in gp[1].Split('+')) {  // modifiers: a floor name and/or combat, e.g. tetl:burninggrounds+combat
+            PathId pf;
+            if (gmod.Equals("combat", StringComparison.OrdinalIgnoreCase)) gmods = PieceMods.Combat.Set(gmods, 1);
+            else if (Enum.TryParse(gmod, true, out pf)) gmods = PieceMods.Floor.Set(gmods, (int)pf);
+            else Console.Error.WriteLine("GRIDCARDS: no modifier " + gmod);
+          }
+          if (Enum.TryParse(gp[0], true, out piece) && Enum.IsDefined(typeof(PieceShape), piece)) eg.Me.Hand[gi++] = (int)Expansion.MakePieceCardMods(piece, gmods);
+          else if (Enum.TryParse(gp[0], true, out rc)) eg.Me.Hand[gi++] = (int)rc;
           else Console.Error.WriteLine("GRIDCARDS: no piece " + gc);
         }
         if (Environment.GetEnvironmentVariable("GRIDSEL") != null) typeof(ArenaApp).GetField("expGridSlot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("GRIDSEL")));
@@ -929,7 +937,7 @@ static partial class Shot {
       bool atBlackMarket = Environment.GetEnvironmentVariable("EXPANDSHOP") == "3";  bool atArms = Environment.GetEnvironmentVariable("EXPANDSHOP") == "4";  // EXPANDSHOP=4: the Arms Dealer (ArmsDealer.cs; MODSHELD=a,b gives you those mods first)  // EXPANDSHOP=3: you're in the vendor's room (the Black Market); with CARDS=1 its room cards too (Pieces.cs); SHOPCAT=0|1 opens a category
       string xw; var xr = Box(1600, 300, 600, 300).Value; xr.Kind = atArms ? RoomKind.Arms : atBlackMarket ? RoomKind.BlackMarket : RoomKind.Shop; xg.Expanded.Add(xr); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
       var xa = Array.Find(xg.CurrentWorld.Areas, a => a.Kind == xr.Kind);  // (the scene may have rooms of its own: find the shop's)
-      foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (byte)PieceCard.Box; pl.Hand[1] = (byte)PieceCard.Hall; } }
+      foreach (var pl in xg.Players.Values) { pl.Gold = 180; pl.Vectors = 40; pl.Pos = pl.Disp = Environment.GetEnvironmentVariable("EXPANDSHOP") != "1" ? xa.Mid : new V2(800f, 450f); if (Environment.GetEnvironmentVariable("CARDS") != null) { pl.Hand[0] = (int)PieceCard.Box; pl.Hand[1] = (int)PieceCard.Hall; } }
       if (Environment.GetEnvironmentVariable("MODSHELD") != null) foreach (var mn in Environment.GetEnvironmentVariable("MODSHELD").Split(',')) { int mi = Array.FindIndex(Upgrades.All, u => u.Name == mn); if (mi >= 0) xg.GrantUpgrade(xg.MyId, mi); else Console.Error.WriteLine("MODSHELD: no upgrade " + mn); }
       if (Environment.GetEnvironmentVariable("SHOPCAT") != null) typeof(ArenaApp).GetField("shopCat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("SHOPCAT")));
       typeof(Game).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(xg, null);

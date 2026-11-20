@@ -321,6 +321,20 @@ namespace Arena
             if (expGateMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
                 ev.Use();  // (gate mode never draws a box)
             V2? wallAt = expLinkMode && over ? WallSnap(ev.mousePosition) : null;
+            int unlinkAt = -1;  // the teleporter tool, over a built pair's end: a click dismantles it
+            if (expLinkMode && over && !expDragging && game.Me != null)
+            {
+                V2 mouseWorld = Snap(ev.mousePosition);
+                for (int li = 0; li < game.Links.Count && unlinkAt < 0; li++)
+                    if (game.Links[li].A.CloserThan(mouseWorld, Expansion.LinkHalf + 50f) || game.Links[li].B.CloserThan(mouseWorld, Expansion.LinkHalf + 50f))
+                        unlinkAt = li;
+            }
+            if (unlinkAt >= 0 && ev.type == EventType.MouseDown && ev.button == 0)
+            {
+                var gone = game.Links[unlinkAt];
+                game.ProposeUnlink(game.Links[unlinkAt].A.CloserThan(Snap(ev.mousePosition), Expansion.LinkHalf + 50f) ? gone.A : gone.B);
+                ev.Use();
+            }
             if (expDragging && ev.type != EventType.Layout && ev.type != EventType.Used)
             {
                 if (!expLinkMode)
@@ -383,15 +397,15 @@ namespace Arena
             string why = null;
             bool hasLink = expLinkMode && (rw > 0 || rh > 0);
             var link = new PortalLink { AX = (short)expA.X, AY = (short)expA.Y, BX = (short)expB.X, BY = (short)expB.Y };
-            int linkPrice = 0;
+            bool linkOk = false;
             if (hasLink)
             {
-                linkPrice = Expansion.LinkPrice(wd, game.Links.Count, link, out why);
-                if (linkPrice > 0 && (game.Me == null || game.Me.Stash[(int)BuildKind.Teleporter] == 0)) { why = "No teleporter in your stash: buy one at the Black Market"; linkPrice = 0; }
+                linkOk = Expansion.LinkFits(wd, game.Links.Count, link, out why);
+                if (linkOk && (game.Me == null || game.Me.Stash[(int)BuildKind.Teleporter] == 0)) { why = "No teleporter in your stash: buy one at the Black Market"; linkOk = false; }
             }
             if (confirm)
             {
-                if (linkPrice > 0)
+                if (linkOk)
                 {
                     game.ProposeExpandLink(link);
                     expDrawing = expDragging = false;
@@ -416,7 +430,7 @@ namespace Arena
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
                     DrawHoloGrid(a, M, k, ink.WithAlpha(ghost));
                     if (game.AreaUnseen(ai))
-                        DrawFogMapBox(p0, p1);  // an unseen room: dark, a "?" below (RoomFogLook.cs)
+                        DrawFogMapBox(p0, p1, game.FogRoomShare(ai - 1));  // an unseen room: dark, a "?" below (RoomFogLook.cs)
                     if (a.Floating || a.Sealed)  // (a built room's outline is its walls, drawn below: a rim would run across the door gaps)
                         RimFrame(wd, ai, M, 1.5f, ink.WithAlpha(0.8f * ghost));
                 }
@@ -495,8 +509,10 @@ namespace Arena
                     V2 anchor = M(expA);
                     RoomMapRect(anchor.X - 4f, anchor.Y - 4f, 8f, 8f, new Rgba(1f, 0.85f, 0.4f, 0.95f));
                 }
+                if (unlinkAt >= 0)
+                    DrawLinkMark(wd, M, game.Links[unlinkAt].A, game.Links[unlinkAt].B, new Rgba(1f, 0.3f, 0.36f), 1f);
                 if (hasLink)
-                    DrawLinkMark(wd, M, expA, expB, linkPrice > 0 ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f), 1f);
+                    DrawLinkMark(wd, M, expA, expB, linkOk ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f), 1f);
                 if (gridMode)
                     DrawGridGhost(M, gridPick);
                 DrawPlaceFx(M, k);  // a piece just built slams in (GridRoomsUi.cs)
@@ -589,7 +605,12 @@ namespace Arena
                 line = trapWhy != null ? trapWhy : trapOk ? Market.Names[expTrapKind].ToUpperInvariant() + "  ·  click to place it  ·  " + game.Me.Stash[expTrapKind] + " in your stash" : "Move over a room to place a " + Market.Names[expTrapKind].ToLowerInvariant() + ".";
                 lineInk = trapWhy != null ? new Color(1f, 0.45f, 0.5f) : trapOk ? CrtStyle.Gold : Ui.Muted;
             }
-            else if (hasLink && linkPrice > 0)
+            else if (unlinkAt >= 0)
+            {
+                line = "TELEPORTER PAIR  ·  click to dismantle it  ·  the teleporter goes back to your stash";
+                lineInk = new Color(1f, 0.45f, 0.5f);
+            }
+            else if (hasLink && linkOk)
             {
                 line = "TELEPORTER PAIR  ·  from your stash  ·  saves " + Mathf.RoundToInt(Expansion.LinkWalk(wd, link) / 100f) + " tiles of walking  ·  click to build it";
                 lineInk = CrtStyle.Gold;
@@ -739,7 +760,7 @@ namespace Arena
                 for (int tk = 1; tk < Market.Count; tk++)
                     trapsHeld |= me0.Stash[tk] > 0;
             var shown = new List<int> { 0 };
-            if (me0 != null && me0.Stash[(int)BuildKind.Teleporter] > 0 || expLinkMode) shown.Add(1);
+            if (me0 != null && me0.Stash[(int)BuildKind.Teleporter] > 0 || game.Links.Count > 0 || expLinkMode) shown.Add(1);
             shown.Add(2);
             if (trapsHeld || expTrapMode) shown.Add(3);
             int cur = BuildTool;
@@ -805,7 +826,7 @@ namespace Arena
             var seen = new HashSet<int>();
             foreach (var nd in game.Nodes)
                 if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Hidden ? -1 : (int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
-                    items.Add(new KeyValuePair<string, Rgba>((nd.Hidden ? "UNKNOWN NODE" : nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind == NodeKind.Tower || nd.Kind == NodeKind.Vein ? NodeName(nd.Kind) : NodeName(nd.Kind) + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
+                    items.Add(new KeyValuePair<string, Rgba>((nd.Hidden ? "UNKNOWN NODE" : nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : NodeName(nd.Kind) + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
             items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
             items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
             if (game.ActiveBreaches.Length > 0)
@@ -899,8 +920,8 @@ namespace Arena
             else if (tool == 1)
             {
                 title = "TELEPORTER PAIR";
-                steps = new[] { "Click a room's outer wall", "Click another room's outer wall", "Walk into one, out of the other" };
-                tip = "Uses one from your stash (" + (game.Me != null ? game.Me.Stash[(int)BuildKind.Teleporter] : 0) + "). Enemies use them too.  " + game.Links.Count + " of " + Expansion.MaxLinks + " built.";
+                steps = new[] { "Click a room's outer wall", "Click another room's outer wall", "Walk into one, out of the other", "Click a built end to dismantle it" };
+                tip = "Uses one from your stash; dismantling gives it back (" + (game.Me != null ? game.Me.Stash[(int)BuildKind.Teleporter] : 0) + "). " + game.Links.Count + " of " + Expansion.MaxLinks + " built.";
             }
             else if (tool == 3)
             {

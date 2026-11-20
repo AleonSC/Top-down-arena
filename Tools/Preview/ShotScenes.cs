@@ -58,6 +58,7 @@ static partial class Shot {
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
     CauterizeScene();  // CAUTER=1 (ShotCauterize.cs)
     ChestLooksScene();  // CHESTLOOKS=1 (ShotChests.cs)
+    GadgetsScene();  // GADGETS=wheel|floor|recall (ShotGadgets.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     WolfPackScene();  // WOLFPACK=pack|alpha|merge [WOLFT=<s>] (ShotWolfPack.cs)
@@ -821,6 +822,7 @@ static partial class Shot {
     CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
+    RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)
     FlameWallScene();  // FLAMEWALL=<s since the cast> [FXOFF=1] (ShotFlameWall.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
@@ -1533,10 +1535,9 @@ static partial class Shot {
           if (Environment.GetEnvironmentVariable("STAFFJAB") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.StaffJabReach), -Game.StaffJabArc * MathX.Pi / 360f, 0f, 0.24f);
           else fx(FxKind.Slash, to, Game.StaffSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
           break;
-        case WeaponId.Greatsword:  // GREATSTEP=1..10 a step of the chain (SWING = seconds after the press: its own pose, then its Slash, ring or lance once it lands), GREATSTEP=wheel the Moonwheel 180 px out; GREAT=guard (TEMPER=<n>) the old guard
+        case WeaponId.Greatsword:  // GREATSTEP=1..10 a step of the chain (SWING = seconds after the press: its own pose, then its Slash, ring or lance once it lands), GREATSTEP=wheel the Moonwheel 180 px out
         {
           string gsn = Environment.GetEnvironmentVariable("GREATSTEP") ?? "1";
-          if (Environment.GetEnvironmentVariable("GREAT") == "guard") { me.GreatGuard = true; me.GreatTemper = (byte)int.Parse(Environment.GetEnvironmentVariable("TEMPER") ?? "3"); break; }
           if (gsn == "wheel") { me.FangOut = 2; me.FangAt = me.Pos + V2.FromAngle(me.Aim) * 180f; break; }
           int gi = int.Parse(gsn);
           var gm2 = Game.GreatMoveOf(gi);
@@ -1712,15 +1713,6 @@ static partial class Shot {
       typeof(ArenaApp).GetField("aimDebug", f2).SetValue(app, true);
       me.Aim = -0.6f;
       host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
-    }
-    if (Environment.GetEnvironmentVariable("DPSMETER") != null)
-    {
-      // The DPS meter (DpsMeterUi.cs) with a dummy and a few seconds of fake damage; add DEVTAB=3 mode=dev for the F1 tab.
-      typeof(ArenaApp).GetField("dpsMeter", f2).SetValue(app, true);
-      host.Game.DevSpawnDummy(1);
-      var track = new DpsTrack();
-      for (int i = 0; i < 70; i++) { track.Add(i % 3 == 0 ? 9f : 22f, i % 4 == 0 ? 3f : 0f); track.Advance(0.1f); }
-      host.Game.Dps[1] = track;
     }
     if (Environment.GetEnvironmentVariable("REPULSE") != null) {
       // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
@@ -2193,10 +2185,10 @@ static partial class Shot {
         else Console.Error.WriteLine("CARDROOM: no spot fits");
         if (Environment.GetEnvironmentVariable("BUILDEROPEN") != null) {  // BUILDEROPEN=1 (with CARDROOM=buildershop): a build round, so the Builder Shop's shelf shows (BuilderShopUi.cs)
           xg.ExpandOpen = true; xg.State = MatchState.Intermission;
-          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (byte)Expansion.MakePieceCard(PieceShape.TetL); }
+          foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (int)Expansion.MakePieceCard(PieceShape.TetL); }
         }
       }
-      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest|relic|tower|vein|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
+      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind chest|relic|shrine|rule.dark|rule.frozen|rule.bloodmoon|rule.burning|rule.swarm|rule.elite; a third part "spent", "cleared" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), Rule = nk.Length > 1 ? (byte)Enum.Parse(typeof(NodeRule), nk[1], true) : (byte)0, X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Cleared = np.Length > 2 && np[2] != "spent" && np[2] != "hidden", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
@@ -2204,8 +2196,25 @@ static partial class Shot {
         var tp = xg.Players[1].Pos; int ti = 0;
         foreach (var to in new[] { new V2(-170f, -90f), new V2(170f, -90f), new V2(0f, 150f) }) { xg.Placed.Add(new PlacedBuild { Kind = BuildKind.Turret, X = (short)(tp.X + to.X), Y = (short)(tp.Y + to.Y), Owner = 1, Waves = (byte)(5 - 2 * ti) }); ti++; }
       }
+      if (Environment.GetEnvironmentVariable("DORMANT") != null) {  // DORMANT=1: a sleeping group in every cell of every room but the core (DormantGroups.cs)
+        DormantGroups.CellChance = 1f;
+        var plant = typeof(Game).GetMethod("PlantDormantGroups", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (var dr in xg.Expanded.ToArray()) if (RoomFog.StartsUnseen(dr)) plant.Invoke(xg, new object[] { new System.Collections.Generic.List<ExpansionRoom> { dr } });
+      }
       if (Environment.GetEnvironmentVariable("FOG") != null)  // FOG=1: every room but the core unseen (room fog, RoomFogLook.cs)
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
+      string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
+      if (fogRoom != null) { var fro = xg.Expanded[int.Parse(fogRoom)]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(fro.X + 120, fro.Y + fro.H / 2); }
+      string fogAim = Environment.GetEnvironmentVariable("FOGAIM");  // FOGAIM=<degrees>[,trail]: every player faces that way (0 east, 90 south); "trail" first sweeps the cone round to there, exploring what it passes over (the explored memory)
+      if (fogAim != null) {
+        var fa = fogAim.Split(','); float fdeg = float.Parse(fa[0], System.Globalization.CultureInfo.InvariantCulture);
+        var scan = typeof(Game).GetMethod("ScanFog", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (fa.Length > 1 && fa[1] == "trail") for (float d = fdeg - 170f; d < fdeg; d += 8f) { foreach (var pl in xg.Players.Values) pl.Aim = d * (float)Math.PI / 180f; scan.Invoke(xg, null); }
+        foreach (var pl in xg.Players.Values) pl.Aim = fdeg * (float)Math.PI / 180f;
+      }
+      if (Environment.GetEnvironmentVariable("SHRINEUSED") != null) foreach (var pl in xg.Players.Values) pl.ShrinesUsed = ulong.MaxValue;  // SHRINEUSED=1: everyone has used every health shrine (ShrineLook.cs)
+      string overHp = Environment.GetEnvironmentVariable("OVERHP");  // OVERHP=<n>: everyone carries n health past max from a shrine (the HUD's gold, the gold ring)
+      if (overHp != null) foreach (var pl in xg.Players.Values) pl.OverHp = float.Parse(overHp, System.Globalization.CultureInfo.InvariantCulture);
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
       if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
@@ -2214,7 +2223,7 @@ static partial class Shot {
         for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Box(rx, ry, 600, 600); if (cand.HasValue) rr = cand; }
         if (rr.HasValue) {
           xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          var rn = new MapNode { Kind = vecOpen ? NodeKind.VectorChest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
           foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
         }
       }
@@ -2238,7 +2247,7 @@ static partial class Shot {
 
       var xrng = new System.Random(7); int xi = 0;
       foreach (var en in xg.Enemies.Values) {
-        if (en.Def.IsBoss) continue;
+        if (en.Def.IsBoss || en.Dormant) continue;  // (a dormant group stays where it was planted)
         var ar = xg.CurrentWorld.Areas[xi++ % xg.CurrentWorld.Areas.Length];
         en.Pos = en.Disp = xg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.X - 120f), ar.Min.Y + 50f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.Y - 100f)), en.Radius);
       }

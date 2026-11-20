@@ -87,7 +87,7 @@ namespace Arena
 
         void DrawFumaWorld(float t)
         {
-            float dt = ViewDt;
+            float dt = Time.deltaTime;
             foreach (var p in game.Players.Values)
             {
                 if (p.Weapon == null || p.Weapon.Id != WeaponId.FumaShuriken)

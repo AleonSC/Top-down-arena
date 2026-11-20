@@ -196,7 +196,10 @@ namespace Arena
                 if (gatePlanBase != d)
                 {
                     foreach (var old in gatePlans.Values)
-                        wayGraphs.Remove(old);  // (their corner graphs go with them)
+                    {
+                        wayGraphs.Remove(old);
+                        plainGraphs.Remove(old);  // (their corner graphs go with them)
+                    }
                     gatePlans.Clear();
                     gatePlanBase = d;
                 }

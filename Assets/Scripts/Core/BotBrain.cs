@@ -102,7 +102,7 @@ namespace Arena
             return true;
         }
 
-        void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held, ref bool weaponAction, ref bool parry)
+        void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held, ref bool weaponAction, ref bool parry, ref bool dodge, ref bool dodgeHeld)
         {
             var sk = Skill(BotLevel);
             botClock += dt;
@@ -117,8 +117,9 @@ namespace Arena
             {
                 move = V2.Zero;
                 firing = false;
-                weaponAction = parry = false;
+                weaponAction = parry = dodge = dodgeHeld = false;
                 BotParry(me, sk, dt, true);
+                botDodgeHoldT = 0f;
                 for (int i = 0; i < held.Length; i++)
                     held[i] = botHeldLast[i] = false;
                 return;
@@ -152,6 +153,8 @@ namespace Arena
                 aimAt = me.Pos + V2.FromAngle(me.Aim) * 120f;
             }
 
+            BotDodge(me, sk, dt, anchor, pref, firing, parry, ref move, ref dodge, ref dodgeHeld);  // BotDodge.cs
+
             BotAbilities(me, held, target, downed, lowest, ref aimAt);
         }
 
@@ -164,8 +167,8 @@ namespace Arena
             float bestScore = float.MaxValue, closeD = 170f;
             foreach (var e in Enemies.Values)
             {
-                if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f)
-                    continue;
+                if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f || e.Dormant)
+                    continue;  // (a dormant group: the bot scouts its room instead, RoomFog.cs)
                 float d = e.Pos.DistanceTo(me.Pos);
                 float score = e.Def.IsBoss ? d * 0.25f + e.Hp / Math.Max(1f, e.MaxHp) * 200f : d;
                 if (e.Marked || e.MarkT > 0f)
@@ -244,6 +247,7 @@ namespace Arena
             }
             V2 anchor = target != null ? target.Pos : ArenaMid;
             V2? scout = target == null ? NearestUnseen(me.Pos) : null;
+            botScoutAt = scout;  // (BotAim turns the cone onto it)
             if (scout.HasValue)  // nothing to fight: scout the nearest unseen room (room fog, RoomFog.cs)
             {
                 anchor = scout.Value;
@@ -284,6 +288,8 @@ namespace Arena
             return anchor;
         }
 
+        V2? botScoutAt;  // the unexplored cell a scouting bot walks to: it looks that way (room fog)
+
         /// Turns the aim onto the shot's lead (with a skill wobble), or onto something already in reach. False while it is still swinging round.
         bool BotAim(Player me, SkillParams sk, float dt, ref Enemy shootAt, float pref, ref V2 aimAt)
         {
@@ -300,6 +306,8 @@ namespace Arena
                 aimSettled = TurnAim(me, (lead - me.Pos).Angle + wobble, sk.Turn * dt);
                 aimAt = me.Pos + V2.FromAngle(me.Aim) * dist;
             }
+            else if (botScoutAt.HasValue)
+                TurnAim(me, (botScoutAt.Value - me.Pos).Angle, sk.Turn * dt);
 
             // --- Reach: don't shoot from across the arena. Only fire once the target is within the weapon's reach
             // (or where the bot likes to stand with it); until then keep closing in, and use anything already in reach.
@@ -307,7 +315,7 @@ namespace Arena
             {
                 Enemy inReach = null;
                 foreach (var e in Enemies.Values)
-                    if (!IsSpawning(e) && !SoulBound(e) && e.Hp > 0f && InReach(me, e, pref)
+                    if (!IsSpawning(e) && !SoulBound(e) && !e.Dormant && e.Hp > 0f && InReach(me, e, pref)
                         && (inReach == null || e.Pos.DistanceSq(me.Pos) < inReach.Pos.DistanceSq(me.Pos)))
                         inReach = e;
                 if (inReach != null)
@@ -463,7 +471,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && !e.Dummy && e.Pos.CloserThan(pos, reach + e.Radius))
+                if (Targetable(e) && e.Pos.CloserThan(pos, reach + e.Radius))
                     n++;
             return n;
         }
@@ -570,7 +578,7 @@ namespace Arena
 
         V2 ChooseMove(Player me, SkillParams sk, V2 anchor, float pref, Player stayNear, out float danger)
         {
-            float speed = me.Speed * (bowDraw >= 0f ? BowDrawSlow : 1f);
+            float speed = me.Speed * SprintMult * (bowDraw >= 0f ? BowDrawSlow : 1f);
             float T = sk.Lookahead, step = T / sk.Steps;
             float hitR = me.Def.HitR;
             var ms = moveScene;
@@ -610,6 +618,7 @@ namespace Arena
                 }
             }
             danger = bestDanger;
+            ScoreDodges(me, sk, ms, speed, anchor, pref, stayNear, hitR, lockedArea, bestDanger);  // BotDodge.cs
             return best;
         }
 

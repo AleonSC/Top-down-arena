@@ -62,6 +62,8 @@ namespace Arena
             if (!infected)  // the floor washed in it, brightest in the middle
                 DrawBossFloor();
             var grid = infected ? ZombieGrid : new Rgba(1f, 1f, 1f).Mix(Ink, 0.75f).WithAlpha(0.035f + FloorTintAmt * 0.5f);
+            if (game.RoomsOn && game.ExpandingOn)
+                DrawTierBands(t);  // the node tiers as ground zones outside the hub (TierBandsLook.cs)
             if (game.RoomsOn)
                 DrawRoomsFloor(grid);  // the side rooms and hallways: the grid across the whole world (RoomsLook.cs)
             else  // the Pressure grid: bends round the players, ripples from blasts (FloorGridLook.cs)
@@ -140,10 +142,8 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
-                    DrawGreatGuard(p);  // GreatswordLook.cs
                     DrawGreatWindup(p);     // each step's own pose
                     DrawGreatWheel(p);      // the Moonwheel
-                    DrawGreatGuardPose(p);
                     DrawGreatPips(p);
                 }
             foreach (var p in game.Players.Values)
@@ -273,6 +273,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !game.FogHides(e.Pos))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
                     DrawEnemy(e, t);
+            DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
@@ -463,6 +464,8 @@ namespace Arena
                 DrawBloodShellOn(p, t);
             else if (p.ShieldHp > 0f && p.MercyT <= 0f && !(fxOn && p.EnergyMax > 0f))  // Energy Ward, the plain ring (a Lightbringer's ward draws its own plates) (the bubble is EnergyWardLook.cs)
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
+            if (p.OverHp > 0f && !p.Downed)  // a health shrine's health past max: a gold ring with turning ticks (ShrineLook.cs)
+                DrawOverHealth(p, t);
             if (p.LegionT > 0f)  // Legion: the blood moon (LegionLook.cs)
                 DrawBloodMoon(p, t);
             if (p.FrenzyT > 0f)  // Alpha Call

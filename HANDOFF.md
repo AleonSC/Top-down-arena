@@ -67,7 +67,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   (Glass Cannon, Tough Crowd, Frenzy, Swift Foes, Famine, Lucky, Simple Arena, ...).
 - **Profile:** rank XP and Cores, records per mode, **Recent runs** with graphs, saved loadouts.
 - **Dev tools (F1):** a dock over the live game (`DevDock.cs`: God / Full heal / Skip wave / Kill all, WAVE / PARTY /
-  VIEW / LABS drawers, stat editor, DPS meter (F2) and dummies, Replays, Balance, **Boss Lab**: bots fight any boss).
+  VIEW / LABS drawers, stat editor, run snapshots, **Boss Lab**: bots fight any boss).
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs). The owner
   uploads them for balance analysis; `Tools/SessionReport/report.py` summarises them.
 
@@ -139,7 +139,7 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 
 ### Grid vocabulary
 
-See "Building on the grid" in `Docs/Glossary.md`: cell, shape (`PieceShape`), piece card (`PieceCard`), room type, placement, piece chest, Black Market.
+See "Building on the grid" in `Docs/Glossary.md`: cell, shape (`PieceShape`), piece card (`PieceCard`), modifier (`PieceMod`), placement, piece chest, Black Market.
 
 ### Adding an enemy
 
@@ -210,7 +210,7 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Setup:** the cloud container may not have mono. Install it with
   `apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil` (Pillow for previews is already there).
   Without mono, `check.sh` now fails with a clear message (exit 2); it used to print "OK" anyway.
-- **Designed waves:** `Tools/WaveGen/build.sh` turns `Data/Waves/*.waves` (the F1 wave editor's files) into
+- **Designed waves:** `Tools/WaveGen/build.sh` turns `Data/Waves/*.waves` (designed wave sets, edited by hand or in Wave Lab) into
   `Assets/Scripts/Core/DesignedWaves.Generated.cs` with the game's own parser (`Gen.cs`; `Stub.cs` stands in for the
   generated file while it builds, so a stale one can't block it). It stops, writing nothing, on any problem. The
   `wavegen` suite fails if the generated file is out of date.
@@ -316,7 +316,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample
   fire/pools). Others: `TEXTEDIT=1` (lobby in text-edit mode, outline under `MOUSE`) or `TEXTEDIT=<text>` (its edit
   box; `TEXTBUF` = typed), `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BOTS=1|edit` (a bot in Aleon's seat; `edit` also opens its loadout), 
-  `DEVDRAWER=1..4` / `DEVSIDE=1` / `DEVSHEET=1..3` (F1 dock: drawer, stat editor, sheet), `SHOCK=<s>` (the Shockwave ability that long after the cast, played through the game; `SHOCKCAP=1` mastered), `HAMMER=1` (Storm
+  `DEVDRAWER=1..4` / `DEVSIDE=1` / `DEVSHEET=4..6` (F1 dock: drawer, stat editor, sheet: upgrades, enemies, snapshots), `SHOCK=<s>` (the Shockwave ability that long after the cast, played through the game; `SHOCKCAP=1` mastered), `HAMMER=1` (Storm
   Hammers in flight and an electrified enemy arcing), `BOULDER=<draw secs>` (the Golem Staff charging, with its
   landing marker, and boulders in flight), `CAGE=1` (a Bone Guard cage, with guard shots), `WEAPONS5=1` (Fuma
   Shuriken, Chain Light, Sanguine Orb coating, Fireballs and Arc Lightning in one scene), `HEMO=1` (enemies with 1-4

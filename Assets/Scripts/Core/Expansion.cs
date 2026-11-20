@@ -26,7 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, BlackMarket, Chest, Relic, Rule, VectorChest, Tower, Vein, BreachLoot }  // (a vector chest bursts into vector pickups when walked up to; a chest gives gold and vectors once; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
+    public enum NodeKind : byte { Chest, Relic, Rule, BreachLoot, Shrine }  // (a shrine node: a health shrine, one use per player, Shrines.cs; the only node placed since Nov 20; a chest node holds a treasure chest, Props.cs SpawnChest, Docs/Chests.md; a chest a room rolled keeps its kind in Rule (ChestKind + 1); a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
 
     /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
     public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
@@ -39,7 +39,7 @@ namespace Arena
         public bool Spent;   // a chest that has been opened
         public byte Rule;    // a rule node: its NodeRule
         public bool Cleared; // a rule node whose claimed room has been through a wave: its prize is out (Docs/RuleRooms.md)
-        public bool Hidden;  // fogged: its kind shows as "?" until a player walks near or a scout tower sees it (NodeScouting.cs)
+        public bool Hidden;  // fogged: its kind shows as "?" (off since Nov 18; NodeScouting.cs clears an old save's)
         public byte Drop;    // a relic node: the relic a player left in it, as RelicId + 1 (0: it still holds the relic rolled from its spot; Relics.cs)
         public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared && Hidden == o.Hidden && Drop == o.Drop;
         public V2 Pos => new V2(X, Y);
@@ -282,13 +282,18 @@ namespace Arena
 
         public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
 
-        /// A treasure chest or a vector chest.
-        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold, middle Piece chest or Buildables (Buildables with room cards off), outer Upgrade.
+        /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold or Vector (a coin seeded from the spot), middle Piece chest or Buildables
+        /// (Buildables with room cards off), outer Upgrade.
+        public static ChestKind NodeChestKind(int seed, MapNode n, bool cards)
+            => n.Kind == NodeKind.Chest && n.Rule > 0 && n.Rule <= RoomChestWeights.Length ? (ChestKind)(n.Rule - 1) : NodeChestKind(seed, n.X, n.Y, cards);
+
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
         {
             int tier = NodeTier(x, y);
             if (tier != 1)
-                return tier == 0 ? ChestKind.Gold : ChestKind.Upgrade;
+                return tier == 0 ? (InnerCoin(seed, x, y) ? ChestKind.Gold : ChestKind.Vector) : ChestKind.Upgrade;
+            if (new DetRandom(seed * 31 + x * 7919 + y * 104729 + 9).Int(4) == 0)
+                return ChestKind.Gadget;  // (1 in 4 middle-tier chests; its own roll, so the rest of the map stays as it was)
             var r = new DetRandom(seed * 31 + x * 7919 + y * 104729 + 5);
             return cards && r.Int(2) == 0 ? ChestKind.Piece : ChestKind.Buildable;
         }
@@ -297,12 +302,12 @@ namespace Arena
 
         public const int TierMid = 1500, TierOuter = 3000;  // a node this far (15 / 30 tiles) or more off the hub's wall is middle / outer tier
 
-        /// A point's tier from its distance to the hub's box: 0 inner (gold and vector chests), 1 middle (piece and buildables chests),
+        /// A point's tier from its distance to the hub's box (square zones: the farther axis): 0 inner (gold and vector chests), 1 middle (gadget, piece and buildables chests),
         /// 2 outer (upgrade chests and relics). A pure function of the point, so it needs nothing on the wire or in saves.
         public static int NodeTier(int x, int y)
         {
             float dx = Math.Max(0f, Math.Max(-x, x - Game.Width)), dy = Math.Max(0f, Math.Max(-y, y - Game.Height));
-            float d = (float)Math.Sqrt(dx * dx + dy * dy);
+            float d = Math.Max(dx, dy);  // square zones (owner Nov 19): the farther of the two axes
             return d >= TierOuter ? 2 : d >= TierMid ? 1 : 0;
         }
 
@@ -314,19 +319,22 @@ namespace Arena
         /// The tier a later cycle's node is placed at: a relic outer (it only holds one there), a chest by turns middle, outer, inner; a vein anywhere.
         public static int CycleTier(NodeKind kind, int cycle) => kind == NodeKind.Relic ? 2 : IsChest(kind) ? (cycle + 1) % 3 : 0;
 
-        /// A tiered prize node (a chest, vector chest or relic) takes the kind its tier holds: inner a gold chest or a vector chest,
+        /// A tiered prize node (a chest or relic) takes the kind its tier holds: inner a chest (Gold or Vector),
         /// middle a chest (piece or buildables), outer an upgrade chest or a relic; seeded from the spot. Other nodes are unchanged.
         public static MapNode Tiered(int seed, MapNode n)
         {
             if (!IsChest(n.Kind) && n.Kind != NodeKind.Relic)
                 return n;
             int tier = NodeTier(n);
-            bool coin = new DetRandom(seed * 53 + n.X * 6007 + n.Y * 7151 + 11).Int(2) == 0;
-            n.Kind = tier == 1 ? NodeKind.Chest : tier == 0 ? (coin ? NodeKind.Chest : NodeKind.VectorChest) : (coin ? NodeKind.Chest : NodeKind.Relic);
+            bool coin = InnerCoin(seed, n.X, n.Y);
+            n.Kind = tier != 2 ? NodeKind.Chest : (coin ? NodeKind.Chest : NodeKind.Relic);
             return n;
         }
 
-        public static bool IsChest(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest;
+        /// The coin a spot is seeded with: inner tier Gold (heads) or Vector chest, outer tier chest or relic.
+        static bool InnerCoin(int seed, int x, int y) => new DetRandom(seed * 53 + x * 6007 + y * 7151 + 11).Int(2) == 0;
+
+        public static bool IsChest(NodeKind k) => k == NodeKind.Chest;
 
         public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1)
         {
@@ -369,7 +377,7 @@ namespace Arena
         }
 
         /// The nodes whose fixture stands in the middle of the room that claims them (owner Nov 18): chests, vector chests and relics.
-        public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.VectorChest || k == NodeKind.Relic;
+        public static bool CentresInRoom(NodeKind k) => k == NodeKind.Chest || k == NodeKind.Relic || k == NodeKind.Shrine;
 
         /// Where a chest or relic node stands: in a grid room, the middle of the cell holding it; else the middle of the room that encloses it (a multi-box room: the middle of its whole outline if that
         /// is floor, else of the box holding the node; the random cover round it is cleared). A node nobody has claimed yet, or a room with no clear spot, keeps the node's own point.
@@ -449,14 +457,13 @@ namespace Arena
         // --- Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, bought with vectors ---
 
         public const int MaxLinks = 3;            // portal pairs a map can hold (not counted as rooms)
-        public const int LinkBase = 8, LinkMax = 30;  // a link costs 8, +1 per 2 tiles of walking it saves, at most 30
         public const float LinkMinSave = 600f;    // it must save at least 6 tiles of walking
         public const float LinkEdge = 90f, LinkClear = 250f, LinkDoor = 150f;  // kept off walls, other portals and doors
         public const float LinkHalf = 100f;       // a wall portal turns 200 px of wall into the portal (100 either side of its spot)
 
-        public static ExpansionRoom LinkProposal(PortalLink l, int price) => new ExpansionRoom
+        public static ExpansionRoom LinkProposal(PortalLink l) => new ExpansionRoom
         {
-            Kind = RoomKind.Link, X = l.AX, Y = l.AY, W = l.BX - l.AX, H = l.BY - l.AY, Price = price,
+            Kind = RoomKind.Link, X = l.AX, Y = l.AY, W = l.BX - l.AX, H = l.BY - l.AY,
         };
 
         public static PortalLink LinkOf(ExpansionRoom r) => new PortalLink { AX = (short)r.X, AY = (short)r.Y, BX = (short)(r.X + r.W), BY = (short)(r.Y + r.H) };
@@ -579,24 +586,24 @@ namespace Arena
         /// How far a link's two ends are apart on foot today.
         public static float LinkWalk(World w, PortalLink l) => WalkDistance(w, LinkEnd(w, l.A), LinkEnd(w, l.B));
 
-        /// What a link costs on this map; 0 with `why` set if it can't go there (off the grid, not on a room's outer wall, a sealed
+        /// Whether a link can go on this map; if not, `why` says what is wrong (off the grid, not on a room's outer wall, a sealed
         /// room, cover or a side wall in front of it, too near a door or another portal, the same room, or saving too little walking).
-        public static int LinkPrice(World w, int links, PortalLink l, out string why)
+        public static bool LinkFits(World w, int links, PortalLink l, out string why)
         {
             why = null;
-            if (links >= MaxLinks) { why = "The map holds " + MaxLinks + " portal pairs at most"; return 0; }
+            if (links >= MaxLinks) { why = "The map holds " + MaxLinks + " portal pairs at most"; return false; }
             V2 a = l.A, b = l.B, ia, ib;
             if (!WallSpot(w, a, out ia, out why) || !WallSpot(w, b, out ib, out why))
-                return 0;
+                return false;
             V2 ma = a + ia * WorldPortal.MouthIn, mb = b + ib * WorldPortal.MouthIn;
-            if (OpenArea(w, ma, 0f) == OpenArea(w, mb, 0f)) { why = "The two ends must be in different rooms"; return 0; }
+            if (OpenArea(w, ma, 0f) == OpenArea(w, mb, 0f)) { why = "The two ends must be in different rooms"; return false; }
             foreach (var pt in w.Portals)
                 foreach (var e in new[] { pt.A, pt.B })
-                    if (e.CloserThan(a, LinkClear) || e.CloserThan(b, LinkClear)) { why = "Too near another portal"; return 0; }
+                    if (e.CloserThan(a, LinkClear) || e.CloserThan(b, LinkClear)) { why = "Too near another portal"; return false; }
             float walk = WalkDistance(w, ma, mb);
-            if (walk == float.MaxValue) { why = "No way between them"; return 0; }
-            if (walk < LinkMinSave) { why = "Saves too little walking (at least " + (int)(LinkMinSave / Step) + " tiles)"; return 0; }
-            return Math.Min(LinkMax, LinkBase + (int)Math.Round(walk / (2f * Step)));
+            if (walk == float.MaxValue) { why = "No way between them"; return false; }
+            if (walk < LinkMinSave) { why = "Saves too little walking (at least " + (int)(LinkMinSave / Step) + " tiles)"; return false; }
+            return true;
         }
 
         /// The link that saves the most walking on this map (one clear outer-wall spot per room, nearest its middle), or null. Bots propose it.
@@ -622,14 +629,14 @@ namespace Arena
                     spots.Add(best.Value);
             }
             PortalLink? top = null;
-            int topPrice = 0;
+            float topWalk = 0f;
             for (int i = 0; i < spots.Count; i++)
                 for (int j = i + 1; j < spots.Count; j++)
                 {
                     string why;
                     var l = new PortalLink { AX = (short)spots[i].X, AY = (short)spots[i].Y, BX = (short)spots[j].X, BY = (short)spots[j].Y };
-                    int price = LinkPrice(w, links, l, out why);
-                    if (price > topPrice) { topPrice = price; top = l; }
+                    float walk = LinkFits(w, links, l, out why) ? LinkWalk(w, l) : 0f;
+                    if (walk > topWalk) { topWalk = walk; top = l; }
                 }
             return top;
         }
@@ -1234,24 +1241,6 @@ namespace Arena
                     foreach (var d in doors)
                         open |= d.Joins(a);
                     areas[a].Sealed = !open;
-                }
-            if (nodes != null)  // a built room that encloses a shop or Black Market node takes on its job (Docs/Nodes.md); a multi-box room all of it
-                foreach (var nd in nodes)
-                {
-                    var job = nd.Kind == NodeKind.Shop ? RoomKind.Shop : nd.Kind == NodeKind.BlackMarket ? RoomKind.BlackMarket : RoomKind.Combat;
-                    if (job == RoomKind.Combat)
-                        continue;
-                    for (int a = 1; a < n; a++)
-                        if (areas[a].Kind == RoomKind.Combat && NodeEnclosedBy(rooms, a - 1, nd))
-                        {
-                            for (int b = 1; b < n; b++)
-                                if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
-                                {
-                                    areas[b].Kind = job;
-                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (Black Market)";
-                                }
-                            break;
-                        }
                 }
             if (nodes != null)  // a built room that encloses a rule node takes that rule's ground (Docs/RuleRooms.md); a multi-box room all of it
                 foreach (var nd in nodes)

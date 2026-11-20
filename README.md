@@ -135,8 +135,8 @@ them for half · Blood Freeze: frozen enemies take 25% more damage · Martyr: yo
 washes away enemy bullets it touches · Blood Debt: kills repay 50% more · Vein Rush's trail bursts after 1 s for 20 · Vein Tithe lasts 20 s and costs 25% less · Bloodbath spreads to 220 px and gives back 35% ·
 Sanguine Rain lasts 14 s and heals 4% a tick · Crimson Harvest holds the ball 8 s and tears out 25% more blood.
 
-Players can pick the same role if you want. Everyone also slowly regenerates health (0.25 HP/s on Normal; see
-[Difficulty](#difficulty)).
+Players can pick the same role if you want. There is **no passive regeneration** by default (owner Nov 20; every preset is 0 HP/s, a Custom difficulty can add it, see
+[Difficulty](#difficulty)): only upgrades such as Regeneration give it.
 
 Enemies sometimes drop **health orbs** (in co-op each player gets their own copy, and you only see and drink yours; the Healer's
 orbs, Medkits' and the arena's are shared): small green ones heal 15 HP (12% chance on Normal; 18% on Easy), and rare large ones
@@ -466,7 +466,7 @@ brackets, and the lobby's digital keys for **Reroll** and **Choose Upgrade** (Ch
 card, then it lights up with a green lamp). Each card has its rarity in a small key-like label on top, the icon (in its own
 colours) in an outlined tile, and a soft glow (blue common, green uncommon, blue rare, purple very rare, orange legendary)
 while it bobs slowly (rare and better ones also shine); the one you pick lifts, glows stronger and outlines in white-blue.
-Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
+Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0 → 3 HP/s", or a new
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendary cards)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
@@ -480,8 +480,7 @@ you already have says what this copy is worth ("You have 4 · this copy 50% stre
 real change. Cards with a stack limit (the squares) keep full strength.
 
 **Wounds.** 10% of every hit you take is a **wound**: it can't be healed back (heals, regeneration, orbs, lifesteal,
-revives) until the wave is cleared. Your health bar shows it as a dark red end with a bright line where healing stops;
-it clears with the wave. A Healer's overheal shield only takes what goes past full health. Both arenas.
+revives). Wounds **carry across waves** but never take more than **30% of your max health**. They clear when a **boss falls**, at a **health shrine**, with the **Medic's heal** (now buyable when only wounded) or at a Boss Hunt **Rest**. Saves keep them. Your health bar shows it as a dark red end with a bright line where healing stops. A Healer's overheal shield only takes what goes past full health. Both arenas.
 
 | Rarity | Color | What you get |
 |---|---|---|
@@ -885,6 +884,9 @@ big Dawn).
 
 ## Bosses
 
+**Red aimed shots.** A boss's red aimed shots are barbed spearheads with a black heart and a red streak, pointing where
+they fly. They hit for 30 and most blockers can't stop them (the walls and shields that say "red aimed shots too" can).
+
 **Every boss sounds like itself.** Each mechanic has a sound for its warning and for its strike, from a palette of
 synthesized boss sounds: a rising whine before lasers and aimed attacks and a buzzing beam when they fire, a crack and
 deep thud for slams and landings, a rush for charges and dives, the Warden's prison siren, the Queen's swarm buzz
@@ -1098,7 +1100,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Your own drops:** in co-op every player gets a **full copy** of each drop: coins, vector pickups, health orbs and Magnets (a Gold chest's coins and a breach's gold too). You only see your own and only you can pick them up (your Magnet pulls only yours); a teammate's copy stays where it fell. Every 8th kill's 1-vector pickup is the killer's alone. A player who leaves takes their copies with them. **As the next wave starts, your own coins, vector pickups and unclaimed chest cards still lying about come to you** (your coins stream in and **+n GOLD COLLECTED** pops over you), so readying early loses nothing; a vector pickup waits while your stock is full, a chest card that no longer fits your build is thrown away, and health orbs and Magnets stay where they are.
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to you within 90 px.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. While you're full, pickups near you show **FULL** (a Stash's **+10** too) and the **VECTORS** chip turns amber and pulses. The vectors go to whoever collects it, never past their cap. Whenever your vectors go up, **+n VECTORS** pops over you, shards fly into the **VECTORS** chip, and the chip lights up and counts up; the show scales with the amount (a +1 is a small blip, +12 the whole thing).
-- **Gadgets (the Magnet):** a rare drop you carry in your free hand and can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), rolled for each player while they have none. Walk over it with empty hands to pick it up. **Tap X** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **60 s of pull** in all, then it's gone. **Hold X and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet.
+- **Gadgets (the Magnet and Recall):** you carry one gadget in your free hand and up to **4 more in a bag**. **Hold X** (with the bag not empty) to open the **gadget wheel** at your cursor: a slice for the gadget in hand and one for each in the bag. Move to a slice and let go to swap it into your hand; let go in the middle to throw what's in hand (to where the cursor was). A chip over the keys shows what's in hand and a pip for each gadget in the bag; a used-up gadget is replaced from the bag. **Gadget chests** (red, a magnet on the lock; 1 in 4 middle-tier chest nodes, 15 to 30 tiles out) give every player one gadget, a Recall twice as often as a Magnet; it goes in the hand or bag, else it spills at your feet as your own copy. **Recall** (cyan, a house in a ring): tap X to channel for **3 s**, then you're set down by the hub's middle and it's used up; a hit, a swap or tapping X again breaks the channel (the 3 s start over); it won't switch on in the hub. The **Magnet**: a rare drop you can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), rolled for each player while they have none. Walk over it with empty hands to pick it up. **Tap X** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **60 s of pull** in all, then it's gone. **Hold X and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet.
 - **Vectors**: every player holds a building budget (chip under the wave plate, "Vectors 40 / 70"): pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards.
   You start with 40 and can hold 70; each cleared wave gives 4 (8 in Quick Play), every 8th kill drops a small 1-vector pickup where the enemy fell, and a cleared boss wave refills
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
@@ -1109,7 +1111,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - Built at once. Teleporters, gates and traps work on any room.
   - **Nodes and chests** sit at the middle of a room-sized cell, so building out along the grid claims them; a chest or relic stands in the middle of the cell it was built in (in a 2 x 2 room, one of its four cells, not the room's centre).
   - Bots build on door spots too.
-  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or with a **modifier**: today a floor, such as Burning Grounds; about 1 in 4 dropped pieces has one, and the Builder Shop's last card always does; more modifier kinds to come) and one-cell service cards. They come as the room cards do: a starting hand of one random plain piece (1 to 4 cells), a **wave pick** after each wave (take one of two: the round's basic piece or a dropped card; no reroll, after any boss pick), wave drops, chests, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run. Service cards and the Builder Shop can't be built on a chest, vector chest or relic node.
+  - **Pieces** (in progress, [`Docs/GridPieces.md`](Docs/GridPieces.md)): in a Grid run the hand holds **piece cards** (1 to 4 cells, plain or with **modifiers**, rolled whenever a card is offered, each on its own 30% chance so a piece can carry none, one or both: a **floor** (the room gets that ground, such as Burning Grounds) and **combat** (enemies wait inside); the Builder Shop's last card always carries one and each modifier adds 8 vectors to a card's price; more kinds slot in through `PieceMods`, [`Docs/PieceMods.md`](Docs/PieceMods.md)) and one-cell service cards. They come as the room cards do: a starting hand of one random piece (1 to 4 cells), a **wave pick** after each wave (take one of two: the round's basic piece or a dropped card; no reroll, after any boss pick), wave drops, chests, the Builder Shop and the boss pick. Playing one is free. The build screen's first tool is **Pieces**: pick one from your hand, point at a glowing door spot, **R** turns it, click to build. Drawn rooms are refused in a Grid run. Service cards and the Builder Shop can't be built on a chest, vector chest or relic node.
   - **Build map** (Grid): the core is drawn as one room; a faint lattice of cells fades out from the map; a piece you place slides in from a cell out and slams into the wall (a flash, the wall pulsing gold, sparks at the door). The tool rail shows **Teleporter** and **Trap** only while you own one; there is **no Open wall** in a Grid run.
   - **Mystery doors** (Grid): the room behind is a piece on the lattice, any of the nine shapes (small: a single; medium: a domino, corner, square, T, S or L; hallway: a line of 3 or 4); a shop, Black Market, Arms Dealer or Medic behind one is exactly one cell.
   - **Surprise and breach rooms** (Grid): a boss's surprise room is a 4-cell piece on the lattice (an L, a T or a square), a breach's Stash is the one cell behind it, and the gold breach's room and the Engineer's Breach land on the lattice too.
@@ -1144,25 +1146,33 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Room fog** ([`Docs/FogOfWar.md`](Docs/FogOfWar.md)): every room the map gets after the core (pieces, mystery-door rooms, surprise
   rooms, breach Stashes, the mini-boss room) starts **unseen**: dark with a **?** on the minimap and the build map, and under a dark,
-  slowly hatched veil in the world (its walls, doors and breaches stay bright). Its enemies, coins and orbs are hidden unless a player
-  stands within 4.5 tiles of them (from the doorway). Enemies still spawn in unseen rooms. The first standing player to walk in reveals
-  the whole room for the whole team (a gold scan line lifts the veil), for the rest of the map. The core, and the room kept through a
-  map reset, start seen. With nothing to fight, bots scout the nearest unseen room.
+  slowly hatched veil in the world (its walls, doors and breaches stay bright). You see through a **line-of-sight cone**: 90 degrees the
+  way you aim, 9 tiles long, plus a 1.7 tile circle round you; walls and fins stop it, so you can look in through a doorway. Everything
+  the cone sweeps over is **explored for good** for the whole team (it stays dimly lit and lightens the room on the maps), but enemies,
+  coins and orbs in an unseen room show only while somebody's cone or circle is on them. Once about 90% of a room is explored the
+  whole room is seen (a gold scan line lifts the rest of the veil). A sleeping group wakes when a player sees it from within 6 tiles.
+  Enemies still spawn in unseen rooms. The core, and the room kept through a map reset, start seen. With nothing to fight, bots walk
+  to the nearest unexplored spot, looking that way.
+- **Dormant groups**: when a piece card with the **combat** modifier is built (a plain or floor-only piece holds no enemies), each of its cells has a **40%** chance (at least one group in all) of holding a sleeping group of the faction
+  enemies of the wave it was built on (one type per group; 3 enemies, one more every 15 waves, at most 6), clustered in the cell's middle.
+  They stand still with drifting z's over them: no moving, no shooting, and they don't hold the wave open. When the room is seen, or
+  one of them is hit (from the doorway), every group in that room wakes and fights. A map reset takes them away with the old rooms.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour.
+- **Health shrines and room chests** (owner Nov 20): the **health shrine** is the only node the map places now: three ring the hub in the first boss cycle (one per side in turn) and each later cycle adds one. Build a room over its cell and the cell becomes the shrine: a stone plinth with corner posts and a floating green cross. **Walk up to it once per player**: it fills your health and adds **50% of your max health past max** (gold: a **+n** after your max on the HUD, a gold strip over the health cells, a gold ring round you). That extra health never fades; damage takes it after any shield, and going down loses it. A shrine you've used turns grey and still for you. **Chests come from rooms instead:** every basic piece a player places (modifiers or not) and every mystery room that opens to enemies or empty has a **30% chance to hold a treasure chest** in the middle of one of its cells. The kind sets how rare it is: Gold 30, Vector 25, Piece 16, Buildables 10, Upgrade 8, Gadget 8, Relic 3 (out of 100). Vendor rooms (shop, Black Market, Arms Dealer, Medic, Builder Shop) never hold one. The old chest and relic nodes below are no longer placed; an old save's still work.
 - **Chest nodes**: every boss cycle the game places a **chest node**: a point 10 to 16 tiles straight out from the map (at least 8 tiles from other nodes;
   chest and relic nodes keep 6 tiles clear of every room), never within 10 tiles of the start room. Nodes are always in plain view: a big lit ring in the
   node's colour with its mark at full size and a beacon rippling out, and a bold square on the minimap. Shop, Black Market (Black Market) and mini-boss rooms are no
   longer placed on the map: they come from **service cards** and **mystery doors** only (old saves keep their sealed rooms, which still open when a built room
   shares 2 tiles of wall with one).
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest of one of four **kinds**, rolled from the map (its marker and tip show which):
-  **Node tiers:** chest, vector chest and relic nodes hold better prizes the farther they sit from the hub's wall: **inner** (under 15 tiles: Gold or vector chests),
-  **middle** (15 to 30 tiles: Piece chest or Buildables chests; Buildables with room cards off) and **outer** (30+ tiles: Upgrade chests or relics). A node's tier shows round its
-  marker as corner brackets in bronze, silver or gold and a row of three square cells, one filled per tier; its tip names the tier, and its minimap square gets an edge and halo in the same metal. The first cycle's ring round the hub is two inner, two middle and two outer nodes; each later cycle adds an outer relic and a chest whose tier takes turns (middle, outer, inner), so the better prizes are always out there to build toward.
+  **Node tiers:** chest, vector chest and relic nodes hold better prizes the farther they sit from the hub's wall (measured in square zones, so a corner counts by its farther side): **inner** (under 15 tiles: Gold or vector chests),
+  **middle** (15 to 30 tiles: Gadget chests (1 in 4), Piece chests or Buildables chests; Buildables with room cards off) and **outer** (30+ tiles: Upgrade chests or relics). A node's tier shows round its
+  marker as corner brackets in bronze, silver or gold and a row of three square cells, one filled per tier; its tip names the tier, and its minimap square gets an edge and halo in the same metal. The first cycle's ring round the hub is two inner, two middle and two outer nodes; each later cycle adds an outer relic and a chest whose tier takes turns (middle, outer, inner), so the better prizes are always out there to build toward. On the ground outside the hub the tiers show as square zones: a light wash of bronze, silver and gold, dashed contour lines at 15 and 30 tiles and chevrons (one, two, three) pointing out.
   **Gold** (gold trim, a coin: bursts open like a relic node, a big spinning coin climbing out, and spills 14 gold coins worth 40 + 4 per wave for each player, for anyone to pick up), **Piece chest** (orange, a T piece on the lock: every player gets their own piece to **take** into their hand or **discard**, like an upgrade chest's item; the card says whether your hand is full),
   **Buildables** (pink, blueprint grid, a wrench: every player gets their own Black Market build card, a kind with room under the 5 cap, to **take** into their stash or **discard**) or **Upgrade** (green, chevrons: every
   player gets their own item, like a wave chest). It opens once and never holds the wave up. No cover stands on a node. Nothing respawns: new ones
-  appear around the current map. A **vector chest** is the other inner-tier kind alongside Gold (cyan, chevrons on the base and the vector arrow on the lock): once a room encloses one, walk up to it and it bursts open like a relic node (flash, rings, the lid up, the vector arrow climbing out and shooting off) into 4 vector pickups (24 vectors) that fly to the nearest player. Nothing drops within 10 tiles of the start room.
+  appear around the current map. A **vector chest** is the other inner-tier kind alongside Gold (cyan, chevrons on the base and the vector arrow on the lock). Every chest node holds a real treasure chest, vector chests included: once a room encloses one, touch it and it bursts open (flash, rings, the lid up, the vector arrow climbing out and shooting off) into 4 vector pickups (24 vectors) that fly to the nearest player. Nothing drops within 10 tiles of the start room.
   Bots build toward a rule node's room, then chest and relic nodes (and an old save's sealed rooms; they don't walk to chests' loot).
   Old saves with shop or Black Market nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (a violet diamond; once claimed, a violet **Relic chest** with cut corners and a gem on the lock). Build a room round it and walk up to
@@ -1172,9 +1182,6 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
     Enemy shots, grenades and other lobbed shots, and stuck shuriken don't bounce.
   - **Backup**: the first time you would go down, you get straight back up with half your health and 2 s of grace. Then it's gone (your slot is empty).
   - **Hallway Runner**: you move 25% faster in hallways (boxes 3 tiles wide or less).
-- **Gold veins** (no fog: every node shows what it is from the moment it appears; scout towers are no longer placed, old saves keep theirs):
-  - **Gold vein** (gold nuggets in rock; one every boss cycle): build a room round it and every cleared wave pays **every player 10 gold + 1 per wave number**.
-    Veins stack.
 - **Rule nodes** (in progress, Docs/RuleRooms.md): a **rule node** is no longer placed by default (owner Nov 18; the first cycle rings the hub with chest and relic nodes instead), but where one exists it is (an orange square, 8 x 8 tiles, off to the left or right of the
   map). Only a room that **encloses all of it** (at least 9 x 9 tiles; a drawn outline of any shape counts as one room) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
   Burning, Swarm or Elite. The room you build round it takes that path's ground and rule **in that room only** (Dark: you only see about 350 px round you; Frozen: ice;
@@ -1207,9 +1214,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   wall, shown as a ghost portal, and a click on the floor does nothing): the pair is **built at once** from your stash (no
   vectors). Like the classic arena's edge gates, each end turns **2 tiles of that wall into a portal**: a dark gap in its pair's colour inside
   corner brackets, with scanlines rolling out of it across the floor into the room (the build map shows the same, in small). Walk into it and you come out of the other wall, keeping your place along it
-  (enemies use them too, and steer through them when it's shorter). It must save at least 6 tiles of walking. Each end needs a connected room on
+  (**enemies never use them**; bot players do). It must save at least 6 tiles of walking. Each end needs a connected room on
   one side and nothing on the other, 2 tiles of plain wall (no corner or door in it), nothing standing just in front, 150 px from a door and
-  250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. Bots don't build them. (Pairs
+  250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. **Dismantle** a pair in a build round: with the Teleporter tool, click either built end (it turns red) and the pair comes down, the teleporter going back to your stash. Bots don't build them. (Pairs
   from older saves, standing in the middle of a room, still work as floor portals.)
 - **Black Market turret and traps**: the Black Market also sells a **Turret** (120), a **Landmine** (80) and a **Slow field** (90). Switch the
   draw screen to **Trap**, pick one from your stash and click a spot in a room (90 px off walls, 150 px from doors, 120 px from portals and other
@@ -1234,7 +1241,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
   the room's far corners, at most 2 up). Below half health: a quarter faster, it charges twice, 4 fans, 4 canisters.
 - **Shop and Black Market rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and add stock in the **shop room**, buildables at the **Black Market** (the Black Market room: Buildables and Services categories; it sells no cards); selling, the Floor kit and the Vector pack work in either room. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**, buildables at the **Black Market** (one Buildables category, like the Arms Dealer and the Medic; it sells nothing else); selling, the Floor kit and the Vector pack are the shop room's only. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room with a gun rack and a rifle on its counter, from its service card or a
   mystery door. While the shop is open, stand in it to buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,
@@ -1351,7 +1358,7 @@ and green when it's easier. Hover a number for what it does.
 | Elites (chance, from wave 23) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
 | Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
 | Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |
-| Regeneration | 0.5 HP/s | **0.25 HP/s** | 0.15 HP/s | 0 | 0-3 HP/s |
+| Regeneration | 0 | **0** | 0 | 0 | 0-3 HP/s |
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
@@ -1522,7 +1529,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Alternative fire (Kunai blink, Twin Fang, Sunlance, Hook & Haul, Shuriken's Great Star stance, Bo Staff shove, Kusarigama whirl) | Left Alt |
 | Ultimate | F |
 | Take / discard your chest item (standing on it) | G / B |
-| Gadget: tap to switch on / off, hold and let go to throw it where you aim | X |
+| Gadget: tap to switch on / off, hold to open the gadget wheel (with an empty bag: hold and let go to throw it where you aim) | X |
 | 2nd, 3rd and 4th abilities | Q, E and Left Shift (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
@@ -1544,9 +1551,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Aim debug overlay | F3 |
 | Save / load a run snapshot (host, dev) | F6 saves the run as it is now; F7 loads the newest (see *Run snapshots*, under *Testing tricks*) |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
-| DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
-| Open the folder with `Player.log` (menus, lobby, results; in a run F2 is the DPS meter) | F2 |
-| Freeze time with no menu (dev) | P, once the F1 VIEW drawer's freeze-time key is on; everything holds, attacks and effects mid-swing included; P again resumes. Pausing is shared, so it stops everyone |
+| Open the folder with `Player.log` (menus, lobby, results; not in a run) | F2 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory; not in a Boss Hunt); with a life left, Y = respawn, N = give up |
 | Click debug readout (temporary) | F9 |
 
@@ -2126,7 +2131,7 @@ TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 ```
 
 Also: `--name=X`, `--port=N`, `--class=soldier|elementalist|summoner|knight|ninja|hemomancer|engineer`, `--weapon=1-4`, `--ability=1-4`, `--ultimate=N`, `--start-wave=N`
-(jump ahead), `--bot` (your player moves and shoots by itself), `--record` and `--record-replays`.
+(jump ahead), `--bot` (your player moves and shoots by itself), and `--record`.
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs Mono). The default suite is
@@ -2139,7 +2144,7 @@ Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). I
 match the game keeps running behind it (the mouse only stops shooting while it's over the dock); in the lobby and menus it covers the
 screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE**, **KILL ALL** and **SNAP** (run snapshots, below) pinned for one click, four keys that
 open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
-as a drawer on the right, and the bigger tools (DPS meter and dummies, Replays, Balance test) open as one sheet. While you type in one of
+as a drawer on the right, and the bigger tools (Spawn an enemy, Spawn an upgrade, Run snapshots) open as one sheet. While you type in one of
 its fields the game's keys are off. Outside a run only VIEW and LABS show.
 
 - **WAVE drawer (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
@@ -2176,28 +2181,11 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to mastery 5). Joining players can see everyone's stats but not change them.
-- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
-  (a saved switch: P freezes the whole picture, effects and animations included, without opening the pause menu; press it again to resume;
-  hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
   **Account rank** (PARTY drawer) sets this computer's rank without playing for it: **+1**, **+10**,
   **30**, **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
   unlocks everything (every Boss Hunt, every perk, all perk slots, the Wildcard; saved on the profile) and **RESET** locks it
   again. Outside a run (main menu or lobby) the dock bar has a **MAX RANK + UNLOCK ALL** key instead.
-- **VIEW > DPS DETAILS AND TARGET DUMMIES… (host, in a run):** the DPS meter and target dummies, below.
-- **LABS > REPLAYS…:** record the runs you host and watch them back, below.
-- **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
-  F1 > LABS > Balance test…, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
-  runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
-  that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
-  wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
-  damage taken, downs, accuracy), tabs for **Waves**, **Weapons and abilities** (damage by source: your weapon, each ability's
-  own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
-  to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
-  that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
-  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 5, summarised by
-  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Every weapon hit (swings, beams, companions included) counts
-  as the weapon; damage from ability zones, minions and other lasting effects can't be traced to the cast that made it and
-  shows as "Other". Health paid for blood costs is listed as health spent, not damage taken. Design and fields: `Docs/BalanceTest.md`.
 
 ### Run snapshots (F6 / F7)
 
@@ -2211,40 +2199,6 @@ bot does the same thing again too). Files are kept in the profile's `snapshots` 
 - Loading marks the run as dev-touched (no records), like god mode. Your BOT and REC switches stay as they are.
 - Snapshots still load after code changes: a field that's gone is skipped and a new one keeps its current value (the
   sheet's note says how many). A renamed class can't load; the note says which.
-
-### Replays (F1)
-
-**F1 → LABS → Replays…** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
-default) and saves it as a `.replay` file in the `replays` folder when the run ends (or press **Stop and save**). The tab has
-**Open folder**, **Refresh** and a list of your replays, newest first: name, date, mode, wave reached, length, size and who played. Each has **Open**,
-**Rename** (type, then Enter or Save) and **Delete** (asks "Delete for good?" first). Runs under a second, the Practice Range's lobby preview and
-Boss Lab fights aren't saved.
-
-**Open** (from the main menu, not in a lobby) plays the run back in the game window as a spectator, with a **timeline** along the bottom:
-a **wave lane** (a block per wave, red for a boss; click one to jump to where it starts), a **time bar** to click or drag (blue ticks are waves,
-red a boss, amber a player going down), and buttons for **Pause / Play**, **-1 f / +1 f** (one frame), **|< Wave / Wave >|**, and speeds
-**0.1x, 0.5x, 1x, 2x, 4x, 10x forward and 10x, 4x, 1x, 0.5x, 0.1x backward**. Keys: **Space** pause, **, .** step a frame, **[ ]** next slower / faster
-speed (through backward too), **Left / Right** 5 s, **Home / End**, **V** (or the Following button) switch which player's screen you watch, **Esc** or
-**Close replay** back to the menu. It plays to the end and holds there.
-A replay is what a second player on the host's game would have seen, so it shows the run, not your inputs: you can watch, pause, rewind and scrub, but not
-take over and play from a point. Seeking anywhere takes a few milliseconds; shots that were already in the air for more than 6 s before the spot you jumped to
-aren't drawn. Nothing about a replay changes the network protocol.
-
-### DPS meter and target dummy (F2)
-
-For balancing. **F2** (or F1 → VIEW → *DPS details and target dummies…*) shows a **DPS meter** at the top left: for every player, the damage a second over
-the last second (big number), the last 5 seconds, the average, the best second, the total, and how much of it was
-burning, bleeding or poison. Every source counts (shots, minions, burning). The average only counts the time you
-were hitting something, so walking about doesn't drag it down. Next to it is **sim**, the no-upgrades figure the
-lobby shows for that weapon (`Defs.WeaponDps`), and how close you are to it. **Shift+F2** (or the **Reset** button)
-starts the meter over. Only the host sees it; nothing is sent over the network.
-
-**F1 → VIEW → DPS details and target dummies… → Spawn one in front of you** puts a **target dummy** down: a Thug that never dies, never shoots,
-never hurts to touch and can't be pushed, frozen or caged. It heals to full every tick and counts what it took (the
-meter shows "took N"). It doesn't count as an enemy, so the wave ends with it standing. Up to four; **Patrol side to
-side** makes them strafe to test moving targets, and **Remove all** clears them. Kill all (B) leaves them alone. Using
-the dummy marks the run as a dev run, like god mode. In the Practice Range, a wave with no enemies and **Loop** off is
-the quietest place to test.
 
 ### Editing text in the game (F4)
 
@@ -2282,6 +2236,11 @@ boss plays out and what to change.
   Mender's Bow arrow or Transfusion Dart through a hurt teammate within 420 px. A Roar tank roars when a teammate is
   hurt or down with enemies on top of them (or when it is under half health); a Knight tank plants **Last Stand** over
   a downed ally and keeps it up while they're being stood back up. Tests: `Tools/SimTest/run.sh 1 30 botteam`.
+- **Bot dodge and sprint** (same bots): a bot **dodges** when every step it could walk still gets it hit and a dodge
+  clears it (hits only count once the dodge's invulnerability ends; a shot a ready perfect parry would take is left to the
+  parry), and when it has a long way to go (over 450 px past where it wants to be) with nothing to shoot and nothing
+  coming, it holds the dodge on into a **sprint**. It doesn't spam it: it waits a gap on top of the cooldown, Casual 3 s
+  (and needs more danger), Good 2.2 s, Expert 1.5 s, and 7 / 5 / 3.5 s between sprints. Tests: `run.sh 1 30 botdodge`.
 - **Bot parry and weapon Alts** (same bots): a bot raises the **parry** toward a shot or a sword cut it can't step out of,
   timed for a perfect parry (a Casual bot's timing drifts, a Good one blocks once its best step still looks risky, an
   Expert takes any clean perfect parry), keeps it up while more come from that side, and drops it when the side is clear
@@ -2320,34 +2279,12 @@ From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
-### Wave editor (F1)
+### Designed waves (.waves files)
 
-**F1 → LABS → Wave editor** designs waves on a timeline. A design is a set of waves; each wave has a **level** (how
-strong its enemies are, as that wave of a run), **groups** and **props**.
-
-- **Waves strip** (under the title): one numbered key per wave (click to open it), **+ NEW WAVE**, **DUPLICATE**,
-  **DELETE**, `<` `>` to move the wave earlier or later, its **LEVEL**, and **Loop the waves**. **UNDO** / **REDO**
-  (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z) cover every change, including deletes.
-- **Arena map** (top left): the five **spawn points A-E** (drag a letter to move it, for every wave) and the wave's
-  props. With a group selected, click a letter to send the group from it too (click it again to stop), or click empty
-  ground to send it from the nearest point. **Props** mode: click to place the picked prop (crate, big crate,
-  barrel, chest), drag to move, right-click to remove. The map also shows the wave at the playhead: who has arrived
-  and where they're heading.
-- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else; scroll for more),
-  **Squads** (the regular squads and the bosses' own, like the Riot line) and **Bosses**. **Drag** one onto the
-  timeline (a new group that starts where you let go), onto the map (a new group from the nearest spawn point, at the
-  playhead) or onto an existing group's bar (adds that enemy to it). A plain click adds a group at the playhead;
-  Shift-click an enemy to add one more to the selected group.
-- **Selected group** (top right): its name, which spawn points it comes from (several take turns), when it starts,
-  how it arrives (**one by one** with a **gap** between enemies, **together**, side by side in a **line**, or in a
-  **ring** round a player) and how many of each enemy. A squad keeps its own members and formation. **COPY** and
-  **DELETE** (or Ctrl+D and Delete).
-- **Timeline** (bottom): one track per group. Drag a bar to change when it starts, drag its right edge to spread
-  its enemies out; click or drag on the tracks to move the playhead; **PLAY** (or Space) runs the wave on the map.
-  The line under it says what you can do next. A wave ends once every group has arrived and everyone is down.
-- **SAVE** writes `<name>.waves` to the `waves` folder next to the practice folder; **OPEN** opens one (or starts a
-  new set). **TEST IN PRACTICE** plays the waves in the Practice Range, hosted by you, starting on the wave you're
-  editing (from the main menu, the lobby, or a run you host; it replaces that run).
+A designed wave set is a plain-text `.waves` file: spawn points A-E, then each wave's **level** (how strong its enemies
+are, as that wave of a run), its **groups** (who arrives, from which points, when and how: one by one with a gap,
+together, in a line or in a ring round a player; or a squad) and its **props**. Edit one by hand or in **Wave Lab**
+(`Tools/WaveLab/run.sh`), which also plays it.
 
 The `.waves` file is plain text, e.g.
 
@@ -2359,8 +2296,7 @@ wave 6 level 6
   prop crate 610,330
 ```
 
-**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder (in the Unity
-editor, the Load panel's **Save to project** writes it there), then run
+**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder, then run
 
 ```bash
 Tools/WaveGen/build.sh
@@ -2368,8 +2304,7 @@ Tools/WaveGen/build.sh
 
 It reads every file with the game's own parser and writes `Assets/Scripts/Core/DesignedWaves.Generated.cs`, code that
 builds each set, so a final build carries them with no loose files (`DesignedWaves.Get("<name>")`). A file with a
-problem stops it with the file, the line and what's wrong, and nothing is written. The Load panel lists the built-in
-sets under **Built into the game** (open one to look at or change a copy). The `wavegen` sim test fails if a file
+problem stops it with the file, the line and what's wrong, and nothing is written. The `wavegen` sim test fails if a file
 was added or changed without running the script.
 
 ### Session recording (for balancing)

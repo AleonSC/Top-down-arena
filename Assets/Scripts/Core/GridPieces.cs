@@ -4,9 +4,6 @@ using System.IO;
 
 namespace Arena
 {
-    /// A piece's modifier kind (GridPieces.cs): Unknown is a number kept for a modifier not defined yet.
-    public enum RoomTypeKind : byte { None, Floor, Unknown }
-
     public static partial class Expansion
     {
         /// Pieces (Docs/GridPieces.md step 2): the hand holds Piece codes (Hand.cs). Codes from here up are pieces: PieceCodeBase + mod * 16 + the
@@ -14,52 +11,19 @@ namespace Arena
         /// (Shop, Market, Arms, Builder Shop), which in a Grid run build one cell.
         public const int PieceCodeBase = 32;
 
-        /// A piece's modifier slot (owner Nov 18: "each piece has a chance of a modifier, floor or enemy; specifics later"). A mod is a number 0..RoomTypeMax
-        /// in the card code: 1 to 10 are the floors (the PathId, so older hands read the same), 11 up are kept for the modifiers still to come (enemy and the like).
-        /// To add one: give it a number from FirstFreeRoomType, a kind in RoomTypeOf, a name and blurb, add it to RollRoomTypes if it drops, and apply it in ApplyRoomType.
-        public const int RoomTypeMax = (255 - PieceCodeBase) / 16;  // 13: the most a byte card code holds
-        public const int FirstFreeRoomType = (int)PathId.Bazaar + 1;     // 11: the first number not taken by a floor
-
+        /// A shape card's modifiers (PieceMods.cs, Docs/PieceMods.md): code = PieceCodeBase + shape + 16 * mods, where `mods` packs every modifier the card
+        /// carries (each in its own bits; 0 = a plain empty room). Floor-only cards keep their old codes (floor 1-10 in the low bits).
         public static bool IsShapePieceCard(PieceCard c) => (int)c >= PieceCodeBase;
-        public static PieceCard MakePieceCard(PieceShape p, PathId floor = PathId.None) => MakePieceCardRoomType(p, (int)floor);
-        public static PieceCard MakePieceCardRoomType(PieceShape p, int mod) => (PieceCard)(PieceCodeBase + mod * 16 + (int)p);
-        public static PieceShape ShapeOfPieceCard(PieceCard c) => (PieceShape)(((int)c - PieceCodeBase) % 16);
-        public static int PieceCardRoomType(PieceCard c) => IsShapePieceCard(c) ? ((int)c - PieceCodeBase) / 16 : 0;
-        public static PathId PieceCardFloor(PieceCard c) => RoomTypeOf(PieceCardRoomType(c)) == RoomTypeKind.Floor ? (PathId)PieceCardRoomType(c) : PathId.None;
+        public static PieceCard MakePieceCard(PieceShape p, PathId floor = PathId.None) => MakePieceCardMods(p, PieceMods.Floor.Set(0, (int)floor));
+        public static PieceCard MakePieceCardMods(PieceShape p, int mods) => (PieceCard)(PieceCodeBase + (PieceMods.Clean(mods) << 4) + (int)p);
+        public static PieceShape ShapeOfPieceCard(PieceCard c) => (PieceShape)(((int)c - PieceCodeBase) & 15);
+        /// The modifiers a card carries (0 for a service card or a plain piece), with any undefined bits cleared.
+        public static int PieceCardMods(PieceCard c) => IsShapePieceCard(c) ? PieceMods.Clean(((int)c - PieceCodeBase) >> 4) : 0;
+        public static PathId PieceCardFloor(PieceCard c) => (PathId)PieceMods.Floor.Get(PieceCardMods(c));
+        public static bool PieceCardCombat(PieceCard c) => PieceMods.Combat.Get(PieceCardMods(c)) != 0;
 
-        /// What a modifier number is: none, a floor, or not yet defined (11 up, so not playable).
-        public static RoomTypeKind RoomTypeOf(int mod) => mod == 0 ? RoomTypeKind.None : mod <= (int)PathId.Bazaar ? RoomTypeKind.Floor : RoomTypeKind.Unknown;
-
-        public static string RoomTypeName(int mod) => RoomTypeOf(mod) == RoomTypeKind.Floor ? Paths.Get((PathId)mod).Name : "";
-
-        public static string RoomTypeBlurb(int mod) => RoomTypeOf(mod) == RoomTypeKind.Floor ? "with " + Paths.Get((PathId)mod).Name + " ground: " + Paths.Get((PathId)mod).Blurb : "a plain combat room";
-
-        /// What a modifier adds to a piece's price.
-        public static int RoomTypePrice(int mod) => RoomTypeOf(mod) == RoomTypeKind.None ? 0 : 8;
-
-        /// The modifiers a piece can roll at this wave: every unlocked floor (enemy modifiers join here once they exist).
-        static List<int> RollRoomTypes(int wave)
-        {
-            var open = new List<int>();
-            foreach (var f in Floors)
-                if (ThemeUnlocked(f, wave))
-                    open.Add((int)f);
-            return open;
-        }
-
-        /// Puts a piece's modifier on one of the rooms it builds.
-        public static ExpansionRoom ApplyRoomType(ExpansionRoom q, int mod)
-        {
-            if (RoomTypeOf(mod) == RoomTypeKind.Floor)
-            {
-                q.Kind = RoomKind.Floor;
-                q.Floor = (PathId)mod;
-            }
-            return q;
-        }
-
-        /// A card a Grid run can play: a piece (with a known modifier), or a service card (one cell).
-        public static bool IsGridPieceCard(PieceCard c) => IsShapePieceCard(c) ? (int)ShapeOfPieceCard(c) < pieceShapeBase.Length && RoomTypeOf(PieceCardRoomType(c)) != RoomTypeKind.Unknown : IsServiceCard(c) || c == PieceCard.BuilderShop;
+        /// A card a Grid run can play: a piece, or a service card (one cell).
+        public static bool IsGridPieceCard(PieceCard c) => IsShapePieceCard(c) ? (int)ShapeOfPieceCard(c) < pieceShapeBase.Length : IsServiceCard(c) || c == PieceCard.BuilderShop;
 
         /// The shape a Grid card builds: its piece, or a single cell for a service card.
         public static PieceShape PieceShapeOf(PieceCard c) => IsShapePieceCard(c) ? ShapeOfPieceCard(c) : PieceShape.Mono;
@@ -72,7 +36,7 @@ namespace Arena
         {
             foreach (var n in nodes)
             {
-                if (n.Kind != NodeKind.Chest && n.Kind != NodeKind.VectorChest && n.Kind != NodeKind.Relic)
+                if (!CentresInRoom(n.Kind))
                     continue;
                 foreach (var r in made)
                     if (NodeEncloses(r, n))
@@ -90,57 +54,63 @@ namespace Arena
             return res;
         }
 
-        /// What the Builder Shop charges for a piece: 6 vectors a cell, plus its modifier (8 for a floor).
-        public static int PieceCardPrice(PieceCard c) => PieceShapeCells(ShapeOfPieceCard(c)) * 6 + RoomTypePrice(PieceCardRoomType(c));
+        /// What the Builder Shop charges for a piece: 6 vectors a cell, plus each modifier's price (8 a modifier).
+        public static int PieceCardPrice(PieceCard c) => PieceShapeCells(ShapeOfPieceCard(c)) * 6 + PieceMods.Price(PieceCardMods(c));
 
-        public static string PieceCardName(PieceCard c) => (PieceCardRoomType(c) != 0 ? RoomTypeName(PieceCardRoomType(c)) + " " : "") + PieceShapeName(ShapeOfPieceCard(c));
+        public static string PieceCardName(PieceCard c)
+        {
+            var names = PieceMods.Names(PieceCardMods(c));
+            names.Add(PieceShapeName(ShapeOfPieceCard(c)));
+            return string.Join(" ", names);
+        }
 
         public static string PieceCardBlurb(PieceCard c)
         {
             int n = PieceShapeCells(ShapeOfPieceCard(c));
-            return (n == 1 ? "One cell" : n + " cells joined into one open room") + ", " + RoomTypeBlurb(PieceCardRoomType(c)) + ". Place it on a door spot; R turns it.";
+            return (n == 1 ? "One cell" : n + " cells joined into one open room") + ", " + PieceMods.Blurb(PieceCardMods(c)) + ". Place it on a door spot; R turns it.";
         }
 
         static readonly PieceShape[] gridSmall = { PieceShape.Mono, PieceShape.Domino };
         static readonly PieceShape[] gridTri = { PieceShape.TriI, PieceShape.TriL };
         static readonly PieceShape[] gridTet = { PieceShape.TetI, PieceShape.TetO, PieceShape.TetT, PieceShape.TetS, PieceShape.TetL };
 
-        /// A modifier a piece carries at this wave (an unlocked one, seeded): 1 in plainIn pieces gets one, else 0 (plain).
-        static int GridModRoll(DetRandom rng, int wave, int plainIn)
-        {
-            if (rng.Int(plainIn) != 0)
-                return 0;
-            var open = RollRoomTypes(wave);
-            return open.Count == 0 ? 0 : open[rng.Int(open.Count)];
-        }
-
         static readonly PieceShape[] gridStart = { PieceShape.Mono, PieceShape.Domino, PieceShape.TriI, PieceShape.TriL, PieceShape.TetI, PieceShape.TetO, PieceShape.TetT, PieceShape.TetS, PieceShape.TetL };
 
-        /// The starting hand: one seeded piece card (any 1 to 4 cell shape), a plain combat room.
-        public static PieceCard[] GridStartHand(int seed) => new[] { MakePieceCard(gridStart[new DetRandom(seed).Int(gridStart.Length)]) };
+        /// The starting hand: one seeded piece card (any 1 to 4 cell shape), its modifiers rolled like any offered card.
+        public static PieceCard[] GridStartHand(int seed)
+        {
+            var rng = new DetRandom(seed);
+            var shape = gridStart[rng.Int(gridStart.Length)];
+            return new[] { MakePieceCardMods(shape, PieceMods.Roll(rng, 1)) };
+        }
 
-        /// The basic card each build round gives: a domino after odd waves, a single after even ones.
-        public static PieceCard GridRoundCard(int wave) => MakePieceCard(wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono);
+        /// The basic card each build round gives: a domino after odd waves, a single after even ones, its modifiers rolled.
+        public static PieceCard GridRoundCard(DetRandom rng, int wave) => MakePieceCardMods(wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono, PieceMods.Roll(rng, wave));
 
-        /// A dropped card (a wave drop, a chest): a service card 1 in ServiceCardChance times, else a piece (a single or domino 35%, a tromino 30%, a tetromino 35%),
-        /// 1 in 4 of them with a modifier.
+        /// A dropped card (a wave drop, a chest, a boss pick): a service card 1 in ServiceCardChance times, else a piece (a single or domino 35%, a tromino 30%,
+        /// a tetromino 35%) with its modifiers rolled (service cards carry none).
         public static PieceCard GridDropCard(DetRandom rng, int wave)
         {
             if (rng.Int(ServiceCardChance) == 0)
                 return ServiceCards[rng.Int(ServiceCards.Length)];
             int roll = rng.Int(100);
             var set = roll < 35 ? gridSmall : roll < 65 ? gridTri : gridTet;
-            return MakePieceCardRoomType(set[rng.Int(set.Length)], GridModRoll(rng, wave, 4));
+            var shape = set[rng.Int(set.Length)];
+            return MakePieceCardMods(shape, PieceMods.Roll(rng, wave));
         }
 
-        /// The Builder Shop's shelf in a Grid run: a single, a domino, a tromino, a tetromino and a floor piece (seeded by wave).
+        /// The Builder Shop's shelf in a Grid run: a single, a domino, a tromino, a tetromino and a modified tetromino (seeded by wave); every card rolls modifiers.
         public static PieceCard[] GridBuilderOffers(int seed, int wave)
         {
             var rng = new DetRandom(seed * 7919 + wave * 389 + 43);
+            var tri = gridTri[rng.Int(gridTri.Length)];
+            var tet = gridTet[rng.Int(gridTet.Length)];
+            var tet2 = gridTet[rng.Int(gridTet.Length)];
             return new[]
             {
-                MakePieceCard(PieceShape.Mono), MakePieceCard(PieceShape.Domino), MakePieceCard(gridTri[rng.Int(gridTri.Length)]), MakePieceCard(gridTet[rng.Int(gridTet.Length)]),
-                MakePieceCardRoomType(gridTet[rng.Int(gridTet.Length)], GridModRoll(rng, wave, 1)),
+                MakePieceCardMods(PieceShape.Mono, PieceMods.Roll(rng, wave)), MakePieceCardMods(PieceShape.Domino, PieceMods.Roll(rng, wave)),
+                MakePieceCardMods(tri, PieceMods.Roll(rng, wave)), MakePieceCardMods(tet, PieceMods.Roll(rng, wave)),
+                MakePieceCardMods(tet2, PieceMods.Roll(rng, wave, true)),
             };
         }
     }
@@ -236,7 +206,7 @@ namespace Arena
 
         public void OnPieceShape(int peer, BinaryReader r) => HostPlayPieceCard(peer, r.ReadByte(), r.ReadByte(), r.ReadInt16(), r.ReadInt16());
 
-        /// Host: the card in this slot is built at once as its piece if it fits there, and leaves the hand. Playing costs nothing; a floor piece is a floor room, a service
+        /// Host: the card in this slot is built at once as its piece if it fits there, and leaves the hand. Playing costs nothing; each modifier it carries is applied (a floor, enemies, ...), a service
         /// card's one cell a shop, Black Market, Arms Dealer or Builder Shop.
         void HostPlayPieceCard(int id, int slot, int orient, int x, int y)
         {
@@ -259,12 +229,13 @@ namespace Arena
                 return;
             }
             bool piece = Expansion.IsShapePieceCard(card);
+            int mods = Expansion.PieceCardMods(card);
             for (int i = 0; i < made.Count; i++)
             {
                 var q = made[i];
                 q.Owner = id;
                 if (piece)
-                    q = Expansion.ApplyRoomType(q, Expansion.PieceCardRoomType(card));
+                    q = PieceMods.ApplyRoom(q, mods);
                 else
                     q.Kind = Expansion.CardRoomKind(card);
                 made[i] = q;
@@ -272,6 +243,11 @@ namespace Arena
             TakeCard(p, slot);
             DoLog(p.Name + " plays a " + Expansion.CardName(card) + " card at " + x + "," + y);
             BuildNow(id, made[0], made.GetRange(1, made.Count - 1));
+            if (piece)
+            {
+                PieceMods.OnPlaced(this, made, mods);
+                RollRoomChest(made, "piece");  // (owner Nov 20: a shape piece may hold a chest, modifiers or not; RoomChests.cs)
+            }  // (the room went out unseen in BuildNow's list: RoomFog.cs)
         }
 
         /// Bot: plays the first card in its hand that fits somewhere, at the spot nearest what it builds toward (Pieces.cs BotCardGoal), else the first spot. False if none fits.

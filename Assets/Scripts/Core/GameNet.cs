@@ -158,6 +158,9 @@ namespace Arena
                 case Msg.ExpandState:
                     ReadExpandState(r);
                     break;
+                case Msg.FogCells:
+                    ReadFogCells(r);  // RoomFog.cs
+                    break;
                 case Msg.GateState:
                     ReadGateState(r);
                     break;
@@ -470,7 +473,7 @@ namespace Arena
             s.Vec(ref pos);
             s.Float(ref aim);
             s.Float(ref hp);
-            s.Float(ref p.Wound);  // (Combat.cs: the part of your health no heal can bring back this wave)
+            s.Float(ref p.Wound);  // (Combat.cs: the part of your health no heal can bring back (carried across waves))
             s.Bool(ref p.Downed);
             s.Float(ref p.Revive);
             s.Float(ref p.BarrierT);
@@ -504,6 +507,13 @@ namespace Arena
             p.Gadget = (GadgetId)gadget;
             s.Float(ref p.GadgetLeft);
             s.Bool(ref p.GadgetOn);
+            for (int i = 0; i < p.BagKind.Length; i++)  // the gadget bag (Gadgets.cs)
+            {
+                byte bk = (byte)p.BagKind[i];
+                s.Byte(ref bk);
+                p.BagKind[i] = (GadgetId)bk;
+                s.Float(ref p.BagLeft[i]);
+            }
             bool sprayOn = p.SprayOn;
             s.Bool(ref sprayOn);  // Arterial Spray (ArterialSpray.cs)
             bool standOn = p.StandOn;
@@ -511,6 +521,8 @@ namespace Arena
             s.Float(ref p.StandAim);
             s.Float(ref p.ShieldHp);
             s.Float(ref p.ShieldT);
+            s.Float(ref p.OverHp);       // a health shrine's health past max (Shrines.cs)
+            s.ULong(ref p.ShrinesUsed);
             s.Float(ref p.EnergyMax);
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
@@ -707,10 +719,7 @@ namespace Arena
             s.Byte(ref p.RepelMeter);   // the Repulsion Cannon's Undertow (Repulsion.cs)
             s.Bool(ref p.RepelPull);
             s.Byte(ref p.Embers);       // the Censer's Embers (Censer.cs)
-            s.Byte(ref p.GreatStep);    // the Greatsword's chain, Temper and guard (Greatsword.cs)
-            s.Byte(ref p.GreatTemper);
-            s.Bool(ref p.GreatGuard);
-            s.Bool(ref p.GreatPrimed);
+            s.Byte(ref p.GreatStep);    // the Greatsword's chain (Greatsword.cs)
             s.Bool(ref p.LancePrimed);  // the Lance's hook primed the Breaching Thrust (Lance.cs)
             s.Byte(ref p.RapierTempo);  // the Rapier's Tempo and its grace period, drawn as diamonds behind you (Game/MeleeLooks.cs)
             s.Byte(ref p.RapierGraceLeft);
@@ -891,7 +900,7 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
-            bool winding = false, penned = false, wet = false, hit = false, venom = false;
+            bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
             {
@@ -900,6 +909,7 @@ namespace Arena
                 winding = e.Winding;
                 hit = e.Flash > 0f;  // a real hit in the last 0.06 s (snapshots are 0.05 s apart); burning and bleeding don't count
                 penned = e.PenId != 0;
+                dormant = e.Dormant;
                 wet = e.WetT > 0f;
                 e.Wet = wet;
                 wetTenths = wet ? (int)Math.Min(255f, Math.Ceiling(e.WetT * 10f)) : 0;
@@ -952,6 +962,7 @@ namespace Arena
                 s.Int(ref cells);  // the bubble's twelve cells (Variety.cs)
             s.Bool(ref winding);  // about to fire (Readability.cs)
             s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
+            s.Bool(ref dormant);  // asleep in an unseen room (DormantGroups.cs)
             s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
             s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
             s.Byte(ref wetTenths);  // ...and its tenths of a second left, for the effect bar (Game/EffectBar.cs)
@@ -1013,6 +1024,7 @@ namespace Arena
                 e.Cells = bubble > 0 ? cells : 0;
                 e.Winding = winding;
                 e.Penned = penned;
+                e.Dormant = dormant;
                 e.BleedHits = bleedHits;
                 e.Wet = wet;
                 e.WetLeft = wetTenths / 10f;

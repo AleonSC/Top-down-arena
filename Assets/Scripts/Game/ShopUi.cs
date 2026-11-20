@@ -36,10 +36,10 @@ namespace Arena
         }
 
         bool shopAtArms, shopAtMedic;  // this frame's shop screen is the Arms Dealer's, or the Medic's
-        bool shopSingle;               // this frame's shop has one category (the Arms Dealer, the Medic): no category panels
+        bool shopSingle;               // this frame's shop has one category (the Arms Dealer, the Medic, the Black Market): no category panels
 
         // The Bazaar and Gold Rush shops sell heals and revives; in the room shops only the Medic does (Medic.cs).
-        static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, ShopRoomServices = { 0, 1, 4, 5 }, MarketItems = { 6, 7, 8, 9, 1, 5, 4 }, MedicItems = { 2, 3 };
+        static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, ShopRoomServices = { 0, 1, 4, 5 }, MarketItems = { 6, 7, 8, 9 }, MedicItems = { 2, 3 };
         static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
 
         /// Esc in the shop or Black Market: closes a popup, then the open category, then leaves (Done shopping).
@@ -94,8 +94,8 @@ namespace Arena
             // The list: the shelf's cards, then the services.
             int count = market || arms || medic ? 0 : Game.ShelfCount(me);  // (the Black Market, the Arms Dealer and the Medic have no shelf)
             int[] svc = arms ? ArmsItems : medic ? MedicItems : market ? MarketItems : game.ServiceRooms ? ShopRoomServices : game.ExpandingOn ? AllServices : BazaarServices;  // (the room kit and vector pack are sold in the Expanding arena)
-            int nSvc = svc.Length, n = count + nSvc, split = arms || medic ? nSvc : market ? Market.Count : count, nSecond = n - split;
-            shopSingle = arms || medic;
+            int nSvc = svc.Length, n = count + nSvc, split = arms || medic || market ? nSvc : count, nSecond = n - split;
+            shopSingle = arms || medic || market;
             if (shopSingle)
                 shopCat = 0;  // (one category: straight to its carousel)
             if (shopSel < 0)

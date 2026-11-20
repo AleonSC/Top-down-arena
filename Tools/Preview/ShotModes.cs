@@ -2,18 +2,6 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // Shot.cs screens: DrawMode draws the screen named by the mode argument (hud, gameover, dev, pause, guide, bg,
 // lobby, kitgrid, practicehud, labsetup, labpanel, tab, shop, picker, ...).
 static partial class Shot {
-  // A made-up replay for the Replays tab and the timeline bar: n waves over `frames` frames, a boss every fifth, a couple of downs.
-  static ReplayFile SampleReplay(string name, int frames, int waves, string mode, string party)
-  {
-    var f = new ReplayFile { Created = Shot.Now.AddHours(-3), Mode = mode, Party = party, MaxWave = waves, Players = 1 };
-    for (int i = 0; i < frames; i++) f.Dts.Add(1f / 60f);
-    for (int w = 1; w <= waves; w++) f.Marks.Add(new ReplayMark { Frame = (w - 1) * frames / waves, Kind = w % 5 == 0 ? ReplayMark.Boss : ReplayMark.Wave, Value = w });
-    f.Marks.Add(new ReplayMark { Frame = frames * 3 / 10, Kind = ReplayMark.Down, Value = 1 });
-    f.Marks.Add(new ReplayMark { Frame = frames * 6 / 10, Kind = ReplayMark.Down, Value = 1 });
-    f.Seconds = frames / 60f;
-    f.Path = Path.Combine("/tmp/replays", name + ReplayFile.Ext);
-    return f;
-  }
   static void DrawMode() {
     if (mode == "hud") {
       // TILEFX=moment,seconds: every ability tile that long into a reaction (HudTiles.cs): ready, charge, use or deny
@@ -71,20 +59,6 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("RANKPAGE") != null) { set("rankGainSeen", gg.LastGain); set("resultsRankPage", true); set("rankPageAt", float.Parse(Environment.GetEnvironmentVariable("RANKPAGE"), System.Globalization.CultureInfo.InvariantCulture)); }  // RANKPAGE=<start time>: the rank report, that many seconds in (-10: all of it)
       typeof(ArenaApp).GetMethod(gg.RetryReady ? "DrawLifePrompt" : "DrawRunSummary", f2).Invoke(app, null);
     }
-    else if (mode == "replay")
-    {
-      // The timeline over a replay (ReplayUi.cs). RSPEED=-4 (a speed), RPAUSE=1, RAT=0..1 (how far along).
-      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
-      var rf = SampleReplay("Boss practice, Warden", 60 * 1100, 12, "Standard", "Mia (Knight)");
-      var rp = new ReplayPlayer(); rp.Load(rf);
-      rp.Seek((int)(rf.Frames * float.Parse(Environment.GetEnvironmentVariable("RAT") ?? "0.42")));
-      rp.Paused = Environment.GetEnvironmentVariable("RPAUSE") != null;
-      rp.Rate = float.Parse(Environment.GetEnvironmentVariable("RSPEED") ?? "1");
-      set("replay", rp);
-      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
-      typeof(ArenaApp).GetMethod("DrawReplayBar", f2).Invoke(app, null);
-      GL.ToUi = false;
-    }
     else if (mode == "huntmap")
     {
       // The hunt map screen (HuntMapUi.cs): HMSEED=<n> the map (default 5), HMSTEP=<n> rows cleared (default 4), HMVOTE=1 you have voted for
@@ -116,17 +90,7 @@ static partial class Shot {
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
       if (Environment.GetEnvironmentVariable("DEVMENU") != null) host.Screen = AppScreen.Menu;  // the dock as opened from the main menu
-      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1..3 (DPS, replays, balance), DEVMENU=1 (outside a run)
-      if (Environment.GetEnvironmentVariable("DEVSHEET") == "2")
-      {
-        // Sample replays in the replays folder (the stub's persistent data path is /tmp).
-        if (Directory.Exists("/tmp/replays")) Directory.Delete("/tmp/replays", true);
-        SampleReplay("Boss practice, Warden", 60 * 292, 5, "Boss Hunt", "Mia (Knight)").Save("/tmp/replays/Boss practice, Warden.replay");
-        SampleReplay("Co-op test, 3 players", 60 * 668, 12, "Standard", "Mia (Ninja), Bo (Healer), Cy (Tank)").Save("/tmp/replays/Co-op test, 3 players.replay");
-        SampleReplay("Run 2026-11-02 16-05", 60 * 1110, 21, "Endless", "Mia (Hemomancer)").Save("/tmp/replays/Run 2026-11-02 16-05.replay");
-        if (Environment.GetEnvironmentVariable("RENAME") != null) { set("replayRenamePath", "/tmp/replays/Co-op test, 3 players.replay"); set("replayRenameText", "Co-op test, 3 players"); }
-        if (Environment.GetEnvironmentVariable("DELETE") != null) set("replayDeletePath", "/tmp/replays/Boss practice, Warden.replay");
-      }
+      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1 (DPS), 3 (balance), 4 (upgrades), 5 (enemies), 6 (snapshots), DEVMENU=1 (outside a run)
       if (Environment.GetEnvironmentVariable("DEVSHEET") == "6")  // run snapshots (SnapshotUi.cs): three in the profile's folder; SNAPDEL=1 asks to delete the second, SNAPREN=1 renames the first
       {
         if (Profile.Folder == null) Profile.Folder = Path.Combine(Path.GetTempPath(), "arena-preview-snaps");
@@ -598,45 +562,6 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawLabPanel", f2).Invoke(app, null);
       if (Environment.GetEnvironmentVariable("RESULT") != null) { lab.Outcome = LabOutcome.Won; typeof(ArenaApp).GetMethod("DrawLabResult", f2).Invoke(app, null); }
     }
-    else if (mode == "waveeditor")
-    {
-      // The F1 wave editor (WaveEditorUi.cs) on a Warden drill: EDT=<seconds> puts the playhead there; EDPROPS=1 the
-      // map in Props mode; EDGROUP=n selects a group; EDLOAD=1 shows the saved files.
-      GL.Tris.Clear();
-      set("drawScale", 1f);
-      set("glMaterial", new Material(null));
-      Event.current.type = EventType.Repaint;
-      var ws = new WaveSet { Name = "warden drills" };
-      var dw = new DesignWave { Level = 6 };
-      var r1 = new DesignGroup { Name = "Breakout rush", From = "B", At = 0f, Every = 0.4f };
-      for (int i = 0; i < 6; i++) r1.Members.Add(EnemyType.Rioter);
-      r1.Members.Add(EnemyType.Guard);
-      dw.Groups.Add(r1);
-      var r2 = new DesignGroup { Name = "Gas pair", From = "CD", At = 5f, Arrive = ArriveMode.Together };
-      r2.Members.Add(EnemyType.GasGrenadier); r2.Members.Add(EnemyType.GasGrenadier);
-      dw.Groups.Add(r2);
-      var r3 = new DesignGroup { Name = "Guards", From = "E", At = 8f, Every = 0.6f };
-      for (int i = 0; i < 3; i++) r3.Members.Add(EnemyType.Guard);
-      dw.Groups.Add(r3);
-      dw.Groups.Add(new DesignGroup { Name = "Riot line", Squad = "Riot line", From = "A", At = 11f });
-      foreach (var pp in new[] { new V2(610f, 330f), new V2(990f, 330f) }) dw.Props.Add(new DesignProp { Kind = PropKind.Crate, Pos = pp });
-      dw.Props.Add(new DesignProp { Kind = PropKind.Barrel, Pos = new V2(800f, 640f) });
-      ws.Waves.Add(new DesignWave { Level = 5 });
-      ws.Waves.Add(dw);
-      set("edSet", ws);
-      set("edWave", 1);
-      set("edGroup", int.Parse(Environment.GetEnvironmentVariable("EDGROUP") ?? "1"));
-      set("edT", float.Parse(Environment.GetEnvironmentVariable("EDT") ?? "6.7"));
-      typeof(ArenaApp).GetProperty("waveEdOpen", f2).SetValue(app, true, null);
-      if (Environment.GetEnvironmentVariable("EDPROPS") != null) set("edPropsMode", true);
-      if (Environment.GetEnvironmentVariable("EDLOAD") != null) set("edLoadOpen", true);
-      var hv2 = Environment.GetEnvironmentVariable("MOUSE");
-      if (hv2 != null) { var xy = hv2.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
-      typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
-      GL.ToUi = true;  // its models (the palette) over the panels
-      typeof(ArenaApp).GetMethod("DrawWaveEditor", f2).Invoke(app, null);
-      GL.ToUi = false;
-    }
     else if (mode == "tab")
     {
       var rng = new System.Random(4);
@@ -671,14 +596,14 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("STATSTAB") == "3" && Environment.GetEnvironmentVariable("INVEMPTY") == null) {  // STATSTAB=3: the Inventory page, stocked (INVEMPTY=1: nothing held, Classic arena)
           g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
           me.Gold = 245; me.Vectors = 52; me.VectorCap = 90; me.ReviveToken = true; me.Gadget = GadgetId.Magnet; me.GadgetLeft = 6.4f; me.Relic = RelicId.WallBounce;
-          me.Hand[0] = (byte)PieceCard.Ring; me.Hand[1] = (byte)PieceCard.Hall; me.Hand[2] = (byte)PieceCard.Cross; me.Hand[3] = (byte)PieceCard.MiniBoss;
+          me.Hand[0] = (int)PieceCard.Ring; me.Hand[1] = (int)PieceCard.Hall; me.Hand[2] = (int)PieceCard.Cross; me.Hand[3] = (int)PieceCard.MiniBoss;
           me.Stash[(int)BuildKind.Teleporter] = 1; me.Stash[(int)BuildKind.Turret] = 3;
           g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake }); g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Shop });
           g.ExpandOpen = Environment.GetEnvironmentVariable("INVOPEN") != null;  // INVOPEN=1: a build round is open (cards and buildables are usable; MOUSE=x,y hovers one)
-          foreach (var tm2 in g.Players.Values) if (tm2.Id != me.Id) { tm2.Gold = 90; tm2.Vectors = 18; tm2.VectorCap = 70; tm2.Hand[0] = (byte)PieceCard.Box; tm2.Hand[1] = (byte)PieceCard.THall; tm2.Stash[(int)BuildKind.Landmine] = 2; tm2.Relic = RelicId.WallBounce; }
+          foreach (var tm2 in g.Players.Values) if (tm2.Id != me.Id) { tm2.Gold = 90; tm2.Vectors = 18; tm2.VectorCap = 70; tm2.Hand[0] = (int)PieceCard.Box; tm2.Hand[1] = (int)PieceCard.THall; tm2.Stash[(int)BuildKind.Landmine] = 2; tm2.Relic = RelicId.WallBounce; }
           if (Environment.GetEnvironmentVariable("INVVIEW") != null) set("invView", int.Parse(Environment.GetEnvironmentVariable("INVVIEW")));  // INVVIEW=<player id>: a teammate's inventory
           var im = Environment.GetEnvironmentVariable("MOUSE"); if (im != null) { var xy = im.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
-          if (Environment.GetEnvironmentVariable("INVFULL") != null) { foreach (var fl in new[] { PathId.SniperRidge, PathId.SwarmFields, PathId.Sanctuary, PathId.BurningGrounds }) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = fl }); me.Hand[4] = (byte)PieceCard.Box; me.Hand[5] = (byte)PieceCard.LHall; }  // INVFULL=1: six kits (the list scrolls) and a full hand
+          if (Environment.GetEnvironmentVariable("INVFULL") != null) { foreach (var fl in new[] { PathId.SniperRidge, PathId.SwarmFields, PathId.Sanctuary, PathId.BurningGrounds }) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = fl }); me.Hand[4] = (int)PieceCard.Box; me.Hand[5] = (int)PieceCard.LHall; }  // INVFULL=1: six kits (the list scrolls) and a full hand
         }
         if (Environment.GetEnvironmentVariable("SOLOTAB") != null) set("tabPaused", true);
         // The screen as if already open (its panels settled); HOLOAT=<s>: that far into the page's panels switching on (TabHolo.cs).
@@ -744,10 +669,10 @@ static partial class Shot {
       else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Barrage") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
       else if (mode == "bosscards") {  // the boss card pick (BossCards.cs): BOSSFULL=1 fills your hand so the cards grey out
         host.Game.Diff.Set(DiffKnob.ArenaExpanding, 1f);
-        me.Hand[0] = (byte)PieceCard.Box; me.Hand[1] = (byte)PieceCard.Hall;
-        if (Environment.GetEnvironmentVariable("BOSSFULL") != null) for (int hi = 0; hi < me.Hand.Length; hi++) me.Hand[hi] = (byte)PieceCard.Box;
+        me.Hand[0] = (int)PieceCard.Box; me.Hand[1] = (int)PieceCard.Hall;
+        if (Environment.GetEnvironmentVariable("BOSSFULL") != null) for (int hi = 0; hi < me.Hand.Length; hi++) me.Hand[hi] = (int)PieceCard.Box;
         me.Offer = new[] { (int)PieceCard.Ring, (int)PieceCard.Arms, BossCards.KitCode(PathId.SniperRidge), (int)PieceCard.MiniBoss, (int)PieceCard.LHall }; me.OfferCards = true; me.PendingCards = 1;
-        if (Environment.GetEnvironmentVariable("WAVECARDS") != null) { me.Offer = new[] { (int)Expansion.GridRoundCard(3), (int)Expansion.MakePieceCard(PieceShape.TetT) }; me.OfferWave = true; me.WavePicks = 1; } }  // WAVECARDS=1: the wave card pick
+        if (Environment.GetEnvironmentVariable("WAVECARDS") != null) { me.Offer = new[] { (int)Expansion.GridRoundCard(new DetRandom(3), 3), (int)Expansion.MakePieceCard(PieceShape.TetT) }; me.OfferWave = true; me.WavePicks = 1; } }  // WAVECARDS=1: the wave card pick
       else if (mode == "legendary") { me.Offer = new[] { U("Warden's Guard"), U("Stun Gun"), U("Searchlight") }; me.OfferLegendary = true; }
       else { me.Offer = Upgrades.ModOffer(OfferCtx.Of(me, false)); me.OfferMod = true; }
       me.PendingPicks = 2;

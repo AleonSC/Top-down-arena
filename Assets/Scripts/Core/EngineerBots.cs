@@ -27,8 +27,17 @@ namespace Arena
 
         public static bool IsBotWeapon(WeaponId w) => BotFor(w) != MinionKind.None;
 
-        public static MinionKind BotFor(WeaponId w) =>
-            w == WeaponId.IronFist ? MinionKind.TankBot : w == WeaponId.StasisGun ? MinionKind.MedicBot : w == WeaponId.VectorBlade ? MinionKind.AssaultBot : MinionKind.None;
+        /// The robot each robot weapon summons (its own case each: the summon is how these weapons fire, TickBotWeapon).
+        public static MinionKind BotFor(WeaponId w)
+        {
+            switch (w)
+            {
+                case WeaponId.IronFist: return MinionKind.TankBot;
+                case WeaponId.StasisGun: return MinionKind.MedicBot;
+                case WeaponId.VectorBlade: return MinionKind.AssaultBot;
+                default: return MinionKind.None;
+            }
+        }
 
         public static float BotMaxHp(int wave, MinionKind k) =>
             (k == MinionKind.TankBot ? TankBotHp : k == MinionKind.MedicBot ? MedicBotHp : AssaultBotHp) * (1f + BotHpPerWave * Math.Max(0, wave - 1));

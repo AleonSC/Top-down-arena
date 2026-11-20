@@ -171,19 +171,19 @@ static partial class Program
         me.Offer = new[] { (int)PieceCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)PieceCard.Arms, (int)PieceCard.Box, (int)PieceCard.MiniBoss };
         me.PendingCards = 2;
         g.PickUpgrade(2);
-        Check(me.Hand[0] == (byte)PieceCard.Arms && me.PendingCards == 1 && me.OfferCards, "a picked card goes to your hand, and the next pick comes");
+        Check(me.Hand[0] == (int)PieceCard.Arms && me.PendingCards == 1 && me.OfferCards, "a picked card goes to your hand, and the next pick comes");
         me.Offer = new[] { (int)PieceCard.Ring, BossCards.KitCode(PathId.FrozenLake), (int)PieceCard.Arms, (int)PieceCard.Box, (int)PieceCard.MiniBoss };
         g.PickUpgrade(1);
         Check(g.RoomTokens.Count == 1 && g.RoomTokens[0].Kind == RoomKind.Floor && g.RoomTokens[0].Floor == PathId.FrozenLake && me.PendingCards == 0 && me.Offer == null,
             "a picked kit goes to the team's kits");
 
         // A full hand: cards are refused, a kit still works; full kits too: the pick is skipped.
-        for (int i = 0; i < me.Hand.Length; i++) me.Hand[i] = (byte)PieceCard.Box;
+        for (int i = 0; i < me.Hand.Length; i++) me.Hand[i] = (int)PieceCard.Box;
         me.PendingCards = 1;
         me.Offer = new[] { (int)Expansion.MakePieceCard(PieceShape.Mono), BossCards.KitCode(PathId.BloodMoon), (int)PieceCard.Arms, (int)PieceCard.Shop, (int)PieceCard.BuilderShop };
         me.OfferCards = true;  // (set by hand: a rolled offer may hold no kit, and then a full hand skips the pick)
         g.PickUpgrade(0);
-        Check(me.PendingCards == 1 && me.Hand.All(h => h == (byte)PieceCard.Box), "with a full hand a card can't be taken");
+        Check(me.PendingCards == 1 && me.Hand.All(h => h == (int)PieceCard.Box), "with a full hand a card can't be taken");
         while (g.RoomTokens.Count < Expansion.MaxTokens) g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.Sanctuary });
         nextOffer.Invoke(g, new object[] { me });
         Check(me.PendingCards == 0 && !me.OfferCards, "with a full hand and full kits the pick is skipped");
@@ -201,7 +201,7 @@ static partial class Program
         int want = friend.Offer[0];
         cg.PickUpgrade(0);
         Run(s, dt, 1f, () => friend.PendingCards == 0, hold);
-        Check(friend.PendingCards == 0 && (BossCards.IsKit(want) ? g.RoomTokens.Count == 1 : friend.Hand[0] == (byte)want), "and their pick (" + BossCards.Name(want) + ") lands");
+        Check(friend.PendingCards == 0 && (BossCards.IsKit(want) ? g.RoomTokens.Count == 1 : friend.Hand[0] == (int)want), "and their pick (" + BossCards.Name(want) + ") lands");
 
         // A bot takes a service card the map lacks over the rest.
         me.Offer = new[] { (int)PieceCard.Box, BossCards.KitCode(PathId.FrozenLake), (int)PieceCard.Arms, (int)PieceCard.MiniBoss, (int)PieceCard.Ring };

@@ -130,7 +130,7 @@ namespace Arena
             s.Short(ref p.Vectors);
             s.Short(ref p.VectorCap);
             for (int i = 0; i < p.Hand.Length; i++)
-                s.Byte(ref p.Hand[i]);  // room cards (Pieces.cs)
+                s.Short(ref p.Hand[i]);  // room cards (Pieces.cs): 2 bytes, a shape card carries its modifiers in its code
         }
 
         // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
@@ -174,8 +174,8 @@ namespace Arena
 
         public bool InServiceRoom(Player p) => InShopRoom(p) || InBlackMarketRoom(p) || InArmsRoom(p) || InMedicRoom(p);
 
-        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the Black Market (the Black Market), mods at the
-        /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) at the shop or vendor.
+        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables only at the Black Market (Docs/BlackMarket.md), mods at the
+        /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) in the shop room: each vendor sells its own wares only.
         bool ServiceAllowed(Player p, ShopAction action)
         {
             if (!ServiceRooms)
@@ -191,7 +191,7 @@ namespace Arena
                 case ShopAction.Sell:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
-                    return InShopRoom(p) || InBlackMarketRoom(p);
+                    return InShopRoom(p);
                 case ShopAction.BuyBuild:
                     return InBlackMarketRoom(p);
                 case ShopAction.BuyCard:
@@ -274,30 +274,19 @@ namespace Arena
             floatCycle = cycle;
             bool added = false;
             // (no floating rooms any more, owner Nov 18: shop, Black Market and Gatekeeper rooms come from room cards and mystery doors only; old saves keep theirs)
-            // (owner Nov 18: no rule nodes by default; the first cycle starts with a ring of chests and relics round the hub, later cycles add a chest, a relic every other cycle and a vein)
-            if (cycle == 0)
-            {
-                var ringKinds = new[] { NodeKind.Chest, NodeKind.Chest, NodeKind.Relic, NodeKind.VectorChest, NodeKind.Chest, NodeKind.Relic };
-                for (int i = 0; i < ringKinds.Length; i++)
-                {
-                    var rn = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, ringKinds[i], i, Expansion.RingTier(i));  // (two of each tier: inner, middle, outer)
-                    if (!rn.HasValue)
-                        continue;
-                    Nodes.Add(Expansion.Tiered(expandSeed, rn.Value));  // (owner Nov 18: what a prize node holds follows its tier)
-                    added = true;
-                    DoLog("a " + ringKinds[i] + " node rings the hub at " + rn.Value.X + "," + rn.Value.Y);
-                }
-            }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Vein } : new[] { NodeKind.Chest, NodeKind.Vein })
+            // (owner Nov 20: the health shrine is the only node; chests roll in the rooms players build instead, RoomChests.cs. The first cycle rings the hub with
+            // ShrineRing shrines, one per side in turn; each later cycle adds one)
+            int count = cycle == 0 ? Shrines.Ring : 1;
+            for (int i = 0; i < count; i++)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
-                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, kind, -1, Expansion.CycleTier(kind, cycle));
+                var nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, NodeKind.Shrine, cycle == 0 ? i : -1, cycle == 0 ? Expansion.RingTier(i) : Expansion.CycleTier(NodeKind.Chest, cycle));
                 if (!nd.HasValue)
                     continue;
-                Nodes.Add(Expansion.Tiered(expandSeed, nd.Value));
+                Nodes.Add(nd.Value);
                 added = true;
-                DoLog("a " + kind + " node appears at " + nd.Value.X + "," + nd.Value.Y);
+                DoLog("a health shrine node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
             added |= PlaceGridMini(cycle);  // GridPieces.cs: a Grid run's mini-boss waits on the lattice
             if (added)
@@ -364,65 +353,36 @@ namespace Arena
         }
 
         public const int VectorChestPickups = 4;  // a vector chest bursts into this many vector pickups (VectorDropSmall each: 24 vectors)
-        public const float VectorChestReach = 46f;  // walk this close (plus your body) to open one
 
-        /// Host, every tick of a wave (from TickNodes): a claimed vector chest opens when a player walks up to it and bursts into vector
-        /// pickups (Coins.cs: they fly to the nearest player); the node is spent.
-        void TickVectorChests()
-        {
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                var nd = Nodes[i];
-                if (nd.Kind != NodeKind.VectorChest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
-                    continue;
-                bool touched = false;
-                foreach (var p in Players.Values)
-                    touched |= !p.Downed && p.Pos.CloserThan(NodeSpot(i), VectorChestReach + p.Def.BodyR);
-                if (!touched)
-                    continue;
-                for (int k = 0; k < VectorChestPickups; k++)
-                    DropVectorAt(NodeSpot(i), VectorDropSmall);
-                nd.Spent = true;
-                Nodes[i] = nd;
-                BroadcastFx(FxKind.Ring, NodeSpot(i), new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
-                DoLog("a vector chest was opened");
-                BroadcastExpansion();
-            }
-        }
-
-        /// Host: a claimed chest node holds a real treasure chest (Props.cs: everyone gets their own item). Not synced: node index -> prop id.
-        readonly Dictionary<int, int> nodeChests = new Dictionary<int, int>();
-
-        /// Host, every tick of a wave: a chest node whose room is built holds a treasure chest (put back each wave if it was cleared away).
-        /// Once it is opened the node is spent. The wave never waits on it (`IsNodeChest`).
+        /// Host, every tick of a wave: a chest node whose room is built holds a treasure chest (SpawnChest; put back each wave if it was cleared
+        /// away). Once it is opened the node is spent (its `onOpened` hook). The wave never waits on it. A rule room's chest comes out once the room is cleared.
         void TickNodes()
         {
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
                 return;
             TickRelicNodes();  // Relics.cs
-            TickVectorChests();
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
                 if (nd.Kind != NodeKind.Chest && !(Expansion.RuleHoldsChest(nd) && nd.Cleared) || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
-                    continue;  // (a rule room's chest comes out once the room is cleared)
-                int id;
-                Prop pr;
-                if (nodeChests.TryGetValue(i, out id) && Props.TryGetValue(id, out pr))
-                {
-                    if (!pr.Open)
-                        continue;
-                    nd.Spent = true;
-                    Nodes[i] = nd;
-                    nodeChests.Remove(i);
-                    DoLog("a chest node's chest was opened");
-                    BroadcastExpansion();
                     continue;
-                }
-                var chest = AddProp(PropKind.Chest, NodeSpot(i));
-                chest.Chest = NodeChestKind(nd);
-                nodeChests[i] = chest.Id;
+                if (ChestAt(NodeSpot(i)) != null)
+                    continue;
+                int node = i;
+                SpawnChest(NodeSpot(i), NodeChestKind(nd), c => SpendNode(node), false, i);
             }
+        }
+
+        /// Host: a node's chest has opened, so the node is spent.
+        void SpendNode(int i)
+        {
+            if (!IsHost || i < 0 || i >= Nodes.Count)
+                return;
+            var nd = Nodes[i];
+            nd.Spent = true;
+            Nodes[i] = nd;
+            DoLog("a chest node's chest was opened");
+            BroadcastExpansion();
         }
 
         /// Host, as a wave is cleared: every claimed rule room has been through that wave, so its prize comes out (Docs/RuleRooms.md): a chest at the
@@ -458,45 +418,9 @@ namespace Arena
 
         const int RuleGold = 40, RuleGoldPerWave = 4, RuleVectors = 8;  // (a cleared Frozen room's prize; first guesses, tune with vecbal)
 
-        /// Host: the node holding this chest, or -1.
-        int NodeIndexOfChest(Prop c)
-        {
-            foreach (var kv in nodeChests)
-                if (kv.Value == c.Id)
-                    return kv.Key;
-            return -1;
-        }
-
-        /// Host: the moment a node's chest opens, the node is spent (the opened chest is removed soon after, maybe between waves when TickNodes doesn't run).
-        void SpendNodeOfChest(Prop c)
-        {
-            if (!IsHost)
-                return;
-            foreach (var kv in nodeChests)
-                if (kv.Value == c.Id)
-                {
-                    var nd = Nodes[kv.Key];
-                    nd.Spent = true;
-                    Nodes[kv.Key] = nd;
-                    nodeChests.Remove(kv.Key);
-                    DoLog("a chest node's chest was opened");
-                    BroadcastExpansion();
-                    return;
-                }
-        }
-
         /// What a chest node's chest holds: seeded from the map and the node's spot, so every machine knows it before it opens
         /// (the node's look). Room card only with room cards on.
-        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd.X, nd.Y, ExpandingOn);
-
-        /// Host: is this prop the chest of a chest node (it never holds the wave)?
-        bool IsNodeChest(Prop p)
-        {
-            foreach (var kv in nodeChests)
-                if (kv.Value == p.Id)
-                    return true;
-            return false;
-        }
+        public ChestKind NodeChestKind(MapNode nd) => Expansion.NodeChestKind(expandSeed, nd, ExpandingOn);
 
         /// Host: the team gains a room kit (at most Expansion.MaxTokens held).
         void GrantRoomToken(RoomToken t)
@@ -643,21 +567,63 @@ namespace Arena
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
                 return;
             string why;
-            int price = Expansion.LinkPrice(ExpansionWorld, Links.Count, l, out why);
             if (p.Stash[(int)BuildKind.Teleporter] == 0)
             {
                 DoLog("portal refused (no teleporter in your stash: buy one at the Black Market)");
                 return;
             }
-            if (price <= 0)
+            if (!Expansion.LinkFits(ExpansionWorld, Links.Count, l, out why))
             {
                 DoLog("portal refused (" + why + ")");
                 return;
             }
             p.Stash[(int)BuildKind.Teleporter]--;  // (a teleporter pair from the stash: no vectors)
-            var linkRoom = Expansion.LinkProposal(l, 0);
+            var linkRoom = Expansion.LinkProposal(l);
             linkRoom.Owner = id;
             BuildNow(id, linkRoom, null);
+            SendSnapshot();
+        }
+
+        /// This game's player dismantles the portal pair with an end at this wall spot (the pair goes back to their stash).
+        public void ProposeUnlink(V2 end)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostUnlink(MyId, end);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandUnlink);
+            pw.Write((short)end.X); pw.Write((short)end.Y);
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandUnlink(int peer, BinaryReader r) => HostUnlink(peer, new V2(r.ReadInt16(), r.ReadInt16()));
+
+        /// Host, in a build round: the pair with an end at `end` is taken down and its teleporter goes to the dismantler's stash.
+        void HostUnlink(int id, V2 end)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            int at = -1;
+            for (int i = 0; i < Links.Count && at < 0; i++)
+                if (Links[i].A.CloserThan(end, 1f) || Links[i].B.CloserThan(end, 1f))
+                    at = i;
+            if (at < 0)
+            {
+                DoLog("dismantle refused (no portal pair there)");
+                return;
+            }
+            Links.RemoveAt(at);
+            p.Stash[(int)BuildKind.Teleporter]++;
+            expWorld = null;
+            LayoutAge = 0f;
+            RaiseRoomsNow();
+            DoLog("portal pair dismantled by " + p.Name + " (back to their stash)");
+            Sounds.Add(Sfx.Pick);
+            BroadcastExpansion();
             SendSnapshot();
         }
 
@@ -681,7 +647,6 @@ namespace Arena
             else if (room.Kind == Arena.RoomKind.Link)
             {
                 Links.Add(Expansion.LinkOf(room));
-                PayVectors(Players[pick], room.Price);
                 DoLog("portal pair built by " + Players[pick].Name);
             }
             else
@@ -711,8 +676,9 @@ namespace Arena
         void TickExpansion(float dt)
         {
             TickNodeFog(dt);  // NodeScouting.cs
+            TickShrines();    // Shrines.cs (host: in waves and between them)
             TickGridCore();  // GridRooms.cs
-            TickRoomFog();  // RoomFog.cs
+            TickRoomFog(dt);  // RoomFog.cs
             if (!ExpandOpen)
             {
                 botBuildT = 0f;
@@ -758,6 +724,9 @@ namespace Arena
                 room.Owner = r.Owner != 0 && seatOf.TryGetValue(r.Owner, out seat) ? seat + 1 : 0;
                 save.Rooms.Add(room);
             }
+            for (int i = 0; i < Expanded.Count && i < fogCells.Length; i++)
+                if (Expanded[i].Unseen && fogCells[i] != null)
+                    save.Fog[i] = FogHex(fogCells[i]);  // (the explored cells, RoomFog.cs)
             save.Cuts.AddRange(Openings);
             save.Portals.AddRange(Links);
             save.Builds.AddRange(Placed);
@@ -808,6 +777,7 @@ namespace Arena
                 room.Owner = r.Owner > 0 && playerOf.TryGetValue(r.Owner - 1, out id) ? id : 0;
                 Expanded.Add(room);
             }
+            LoadFogCells(save.Fog);  // (RoomFog.cs)
             Openings.Clear();
             Openings.AddRange(save.Cuts);
             Links.Clear();
@@ -841,7 +811,7 @@ namespace Arena
                     p.Stash[i] = (byte)Math.Min(Market.StashMax, s.Stash[i]);
                 Array.Clear(p.Hand, 0, p.Hand.Length);
                 for (int i = 0; i < s.Hand.Count && i < p.Hand.Length; i++)
-                    p.Hand[i] = (byte)s.Hand[i];
+                    p.Hand[i] = s.Hand[i];
                 p.CardsDealt = s.Hand.Count > 0 || s.Vectors >= 0;  // (a saved seat had its starting hand)
                 p.ShelfSold = s.ShelfSold;
                 p.Restocks = Math.Min(255, s.Restocks);
@@ -941,6 +911,7 @@ namespace Arena
             w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
             WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
+            WriteFogCells(w);  // the explored cells of the unseen rooms (RoomFog.cs)
             session.Broadcast(Proto.End(w));
         }
 
@@ -1040,6 +1011,7 @@ namespace Arena
             ReadMapNumber(r.ReadByte(), oldMap);  // (MapReset.cs)
             ReadKeepsake(r);
             ExpandOpen = r.ReadBoolean();
+            ReadFogCells(r);  // (RoomFog.cs)
         }
     }
 }

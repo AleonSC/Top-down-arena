@@ -56,28 +56,41 @@ static partial class Program
             foreach (var f in new[] { PathId.None, PathId.SwarmFields, PathId.Bazaar })
             {
                 var c = Expansion.MakePieceCard(p, f);
-                ok &= Expansion.IsShapePieceCard(c) && Expansion.ShapeOfPieceCard(c) == p && Expansion.PieceCardFloor(c) == f && Expansion.IsGridPieceCard(c) && (int)c < BossCards.KitBase && (int)c <= 255;
+                ok &= Expansion.IsShapePieceCard(c) && Expansion.ShapeOfPieceCard(c) == p && Expansion.PieceCardFloor(c) == f && Expansion.IsGridPieceCard(c) && (int)c < BossCards.KitBase;
             }
         Check(ok, "every piece, plain or on a floor, is a hand code that reads back (32 up, below the kit codes)");
         Check(!Expansion.IsShapePieceCard(PieceCard.Box) && !Expansion.IsGridPieceCard(PieceCard.Box) && !Expansion.IsGridPieceCard(PieceCard.MiniBoss) && Expansion.IsGridPieceCard(PieceCard.Shop) && Expansion.IsGridPieceCard(PieceCard.BuilderShop), "the old shape cards and the Mini-boss card aren't played in a Grid run; service cards are");
         Check(Expansion.PieceShapeOf(PieceCard.Market) == PieceShape.Mono && Expansion.PieceShapeOf(Expansion.MakePieceCard(PieceShape.TetL)) == PieceShape.TetL, "a service card is a single cell");
         Check(Expansion.CardName(Expansion.MakePieceCard(PieceShape.TriL)) == "Corner" && Expansion.CardName(Expansion.MakePieceCard(PieceShape.TetT, PathId.FrozenLake)).EndsWith(" T") && Expansion.CardPrice(Expansion.MakePieceCard(PieceShape.TetO)) == 24 && Expansion.CardPrice(Expansion.MakePieceCard(PieceShape.Mono, PathId.Sanctuary)) == 14,
-            "names and prices: a cell is 6 vectors, a floor 8 more");
-        Check(Expansion.RoomTypeMax == 13 && Expansion.FirstFreeRoomType == (int)PathId.Bazaar + 1 && Expansion.RoomTypeOf(0) == RoomTypeKind.None && Expansion.RoomTypeOf((int)PathId.FrozenLake) == RoomTypeKind.Floor && Expansion.RoomTypeOf(Expansion.FirstFreeRoomType) == RoomTypeKind.Unknown
-            && Expansion.MakePieceCardRoomType(PieceShape.TetS, (int)PathId.BloodMoon) == Expansion.MakePieceCard(PieceShape.TetS, PathId.BloodMoon) && (int)Expansion.MakePieceCardRoomType(PieceShape.TetL, Expansion.RoomTypeMax) <= 255,
-            "the modifier slot: 0 plain, 1-10 the floors (same codes as before), 11-13 kept for modifiers to come, all inside a byte");
-        var free = Expansion.MakePieceCardRoomType(PieceShape.Domino, Expansion.FirstFreeRoomType);
-        Check(Expansion.IsShapePieceCard(free) && Expansion.ShapeOfPieceCard(free) == PieceShape.Domino && Expansion.PieceCardRoomType(free) == Expansion.FirstFreeRoomType && Expansion.PieceCardFloor(free) == PathId.None && !Expansion.IsGridPieceCard(free), "a card with a modifier not defined yet reads back but isn't playable");
-        var modded = Expansion.ApplyRoomType(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, (int)PathId.Sanctuary);
-        var plainRoom = Expansion.ApplyRoomType(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, 0);
-        Check(modded.Kind == Arena.RoomKind.Floor && modded.Floor == PathId.Sanctuary && plainRoom.Kind == Arena.RoomKind.Combat && Expansion.PieceCardRoomType(PieceCard.Shop) == 0, "a floor modifier makes the room a floor room; no modifier leaves it a combat room");
+            "names and prices: a cell is 6 vectors, a modifier 8 more");
+        Check(PieceMods.Check() && PieceMods.All.Length >= 2 && PieceMods.Floor.Get(PieceMods.Floor.Set(0, (int)PathId.FrozenLake)) == (int)PathId.FrozenLake
+            && Expansion.MakePieceCardMods(PieceShape.TetS, PieceMods.Floor.Set(0, (int)PathId.BloodMoon)) == Expansion.MakePieceCard(PieceShape.TetS, PathId.BloodMoon),
+            "the modifier list: each owns its own bits, floors keep their old codes");
+        int both = PieceMods.Combat.Set(PieceMods.Floor.Set(0, (int)PathId.BurningGrounds), 1);
+        var two = Expansion.MakePieceCardMods(PieceShape.TetL, both);
+        Check(Expansion.IsShapePieceCard(two) && Expansion.ShapeOfPieceCard(two) == PieceShape.TetL && Expansion.PieceCardMods(two) == both && Expansion.PieceCardFloor(two) == PathId.BurningGrounds && Expansion.PieceCardCombat(two)
+            && Expansion.IsGridPieceCard(two) && (int)two < BossCards.KitBase && (int)two < 32768 && Expansion.CardName(two) == "Burning Grounds Combat L" && Expansion.CardPrice(two) == 24 + 16,
+            "a card can carry a floor and combat together: it reads back, is playable, costs 8 a modifier (" + Expansion.CardName(two) + ")");
+        var stale = (PieceCard)(Expansion.PieceCodeBase + (1 << (PieceMods.Bits - 1) << 4) + (int)PieceShape.Domino);
+        Check(Expansion.PieceCardMods(stale) == 0 && Expansion.IsGridPieceCard(stale) && Expansion.ShapeOfPieceCard(stale) == PieceShape.Domino, "a modifier that isn't in the list (removed, or not added yet) is ignored: the card stays playable as plain");
+        var modded = PieceMods.ApplyRoom(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, both);
+        var plainRoom = PieceMods.ApplyRoom(new ExpansionRoom { Kind = Arena.RoomKind.Combat }, 0);
+        Check(modded.Kind == Arena.RoomKind.Floor && modded.Floor == PathId.BurningGrounds && plainRoom.Kind == Arena.RoomKind.Combat && Expansion.PieceCardMods(PieceCard.Shop) == 0, "a floor modifier makes the room a floor room; no modifier leaves it a combat room");
+        int none = 0, flo = 0, com = 0, bo = 0;
+        for (int i = 0; i < 1000; i++)
+        {
+            int m = PieceMods.Roll(new DetRandom(i * 17 + 3), 30);
+            bool f = PieceMods.Floor.Get(m) != 0, c = PieceMods.Combat.Get(m) != 0;
+            if (!f && !c) none++; else if (f && c) bo++; else if (f) flo++; else com++;
+        }
+        Check(none > 400 && flo > 100 && com > 100 && bo > 30 && PieceMods.Roll(new DetRandom(1), 1, true) != 0, "rolls: each modifier on its own chance, so a card gets none, one or both (" + none + " plain, " + flo + " floor, " + com + " combat, " + bo + " both)");
         var allPieces = new[] { MysteryRoom.Small, MysteryRoom.Medium, MysteryRoom.Hallway }.SelectMany(Mystery.PiecesOf).Distinct().Count();
         Check(allPieces == Enum.GetValues(typeof(PieceShape)).Length, "every piece shape can come from a mystery door (" + allPieces + " shapes)");
         var hand = Expansion.GridStartHand(5);
-        Check(hand.Length == 1 && Expansion.IsShapePieceCard(hand[0]) && Expansion.PieceCardRoomType(hand[0]) == 0 && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: one plain piece card, the same each time");
+        Check(hand.Length == 1 && Expansion.IsShapePieceCard(hand[0]) && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: one piece card (modifiers rolled), the same each time");
         Check(Enumerable.Range(0, 40).Select(s => Expansion.GridStartHand(s)[0]).Distinct().Count() > 3, "the starting piece varies with the seed");
-        Check(Expansion.GridRoundCard(1) == Expansion.MakePieceCard(PieceShape.Domino) && Expansion.GridRoundCard(2) == Expansion.MakePieceCard(PieceShape.Mono), "the round card: a domino after odd waves, a single after even");
-        int service = 0, themed = 0, tet = 0, pieces = 0, bad = 0;
+        Check(Expansion.ShapeOfPieceCard(Expansion.GridRoundCard(new DetRandom(4), 1)) == PieceShape.Domino && Expansion.ShapeOfPieceCard(Expansion.GridRoundCard(new DetRandom(4), 2)) == PieceShape.Mono, "the round card: a domino after odd waves, a single after even");
+        int service = 0, themed = 0, fighting = 0, tet = 0, pieces = 0, bad = 0;
         for (int i = 0; i < 600; i++)
         {
             var c = Expansion.GridDropCard(new DetRandom(i * 37 + 1), 30);
@@ -85,11 +98,13 @@ static partial class Program
             if (!Expansion.IsShapePieceCard(c)) { service++; continue; }
             pieces++;
             if (Expansion.PieceCardFloor(c) != PathId.None) themed++;
+            if (Expansion.PieceCardCombat(c)) fighting++;
             if (Expansion.PieceShapeCells(Expansion.ShapeOfPieceCard(c)) == 4) tet++;
         }
-        Check(bad == 0 && service >= 80 && service <= 160 && themed >= 60 && themed <= 200 && tet >= 120, "drops: about 1 in 5 a service card, a quarter of the pieces on a floor, a third tetrominoes (" + service + " service, " + themed + " floor, " + tet + " of " + pieces + " pieces)");
+        Check(bad == 0 && service >= 80 && service <= 160 && themed >= 80 && themed <= 220 && fighting >= 80 && fighting <= 220 && tet >= 120, "drops: about 1 in 5 a service card, about 3 in 10 pieces on a floor and 3 in 10 Combat, a third tetrominoes (" + service + " service, " + themed + " floor, " + fighting + " combat, " + tet + " of " + pieces + " pieces)");
         var shelf = Expansion.GridBuilderOffers(7, 3);
         Check(shelf.Length == Expansion.BuilderOfferCount && shelf.All(Expansion.IsGridPieceCard) && Expansion.BuilderPrice(shelf[0]) < Expansion.CardPrice(shelf[0]), "the Builder Shop's five are grid cards at a quarter off");
+        Check(Expansion.PieceCardMods(shelf[4]) != 0 && Enumerable.Range(0, 30).All(w => Expansion.PieceCardMods(Expansion.GridBuilderOffers(w, 4)[4]) != 0), "the Builder Shop's last card always carries a modifier");
         var spoils = BossCards.Offer(new DetRandom(3), Expansion.GridCore(), new List<RoomToken>(), 12);
         Check(spoils.Length == BossCards.OfferSize && spoils.Distinct().Count() == spoils.Length && spoils.All(c => BossCards.IsKit(c) || Expansion.IsGridPieceCard((PieceCard)c)) && !spoils.Contains((int)PieceCard.MiniBoss), "a Grid boss pick: pieces, service cards and floor kits, no Mini-boss card");
         Check(new Difficulty().ToText() == "Normal" && Difficulty.Parse("Normal").SameAs(new Difficulty()), "a preset saves as its name alone (the retired building knobs aren't written)");
@@ -167,7 +182,7 @@ static partial class Program
         var friend = g.Players[2];
         Check(Game.HandCount(friend) == 1 && Expansion.IsShapePieceCard((PieceCard)friend.Hand[0]), "the first round deals one piece (" + friend.Hand[0] + ")");
         Check(friend.OfferCards && friend.OfferWave && friend.PendingCards == 1 && friend.WavePicks == 1 && friend.Offer.Length == 2
-            && friend.Offer[0] == (int)Expansion.GridRoundCard(g.Wave) && friend.Offer[1] != friend.Offer[0], "and a wave pick of two: the round's basic piece and a dropped card (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
+            && Expansion.IsShapePieceCard((PieceCard)friend.Offer[0]) && Expansion.ShapeOfPieceCard((PieceCard)friend.Offer[0]) == (g.Wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono) && friend.Offer[1] != friend.Offer[0], "and a wave pick of two: the round's basic piece and a dropped card (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
         var fought = g.State;
         g.State = MatchState.Intermission;  // (picks only count in a break; called on the host directly, so the round isn't ticked through)
         friend.Rerolls = 3;
@@ -175,7 +190,7 @@ static partial class Program
         Check(friend.Rerolls == 3 && friend.OfferWave, "a wave pick can't be rerolled");
         int wantWave = friend.Offer[1];
         typeof(Game).GetMethod("HostPick", flags).Invoke(g, new object[] { 2, 1, 0 });
-        Check(friend.PendingCards == 0 && friend.WavePicks == 0 && !friend.OfferWave && Game.HandCount(friend) == 2 && friend.Hand[1] == (byte)wantWave, "the picked card goes to the hand (" + BossCards.Name(wantWave) + ")");
+        Check(friend.PendingCards == 0 && friend.WavePicks == 0 && !friend.OfferWave && Game.HandCount(friend) == 2 && friend.Hand[1] == (int)wantWave, "the picked card goes to the hand (" + BossCards.Name(wantWave) + ")");
         g.State = fought;
         Run(s, dt, 1f, () => cg.ExpandOpen && Game.HandCount(cg.Players[2]) == 2, noPicks);
         Check(cg.Players[2].Hand.SequenceEqual(friend.Hand), "the friend's game sees the same hand");
@@ -195,19 +210,19 @@ static partial class Program
         var held = friend.Hand.ToArray();
         cg.PlayPieceCard(0, 0, opt.X + 100, opt.Y);
         cg.PlayPieceCard(5, 0, opt.X, opt.Y);
-        friend.Hand[1] = (byte)PieceCard.Box;
+        friend.Hand[1] = (int)PieceCard.Box;
         cg.PlayPieceCard(1, 0, opt.X, opt.Y);
         Run(s, dt, 0.6f, null, noPicks);
-        Check(g.Expanded.Count == n && friend.Hand[0] == held[0] && friend.Hand[1] == (byte)PieceCard.Box, "an off-lattice spot, an empty slot and an old Box card are refused, the cards stay");
+        Check(g.Expanded.Count == n && friend.Hand[0] == held[0] && friend.Hand[1] == (int)PieceCard.Box, "an off-lattice spot, an empty slot and an old Box card are refused, the cards stay");
 
         // A floor piece is a floor room; a service card is one cell with its job.
-        friend.Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.Domino, PathId.BurningGrounds);
+        friend.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Domino, PathId.BurningGrounds);
         var fo = Expansion.PlacementsFor(g.Expanded, PieceShape.Domino).First();
         cg.PlayPieceCard(0, fo.Orient, fo.X, fo.Y);
         Run(s, dt, 1f, () => g.Expanded.Count > n, noPicks);
         var made = g.Expanded.Skip(n).ToList();
         Check(made.Count > 0 && made.All(r => r.Kind == Arena.RoomKind.Floor && r.Floor == PathId.BurningGrounds), "a Burning Grounds domino builds a floor room");
-        friend.Hand[0] = (byte)PieceCard.Shop;
+        friend.Hand[0] = (int)PieceCard.Shop;
         int n2 = g.Expanded.Count;
         var so = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).First();
         cg.PlayPieceCard(0, 0, so.X, so.Y);
@@ -221,11 +236,11 @@ static partial class Program
         g.Nodes.Add(relic);
         bool listed = Expansion.PlacementsForCard(g.Expanded, g.Nodes, PieceCard.Market).Any(o => o.X == spot.X && o.Y == spot.Y);
         bool plainListed = Expansion.PlacementsForCard(g.Expanded, g.Nodes, Expansion.MakePieceCard(PieceShape.Mono)).Any(o => o.X == spot.X && o.Y == spot.Y);
-        friend.Hand[0] = (byte)PieceCard.BuilderShop;
+        friend.Hand[0] = (int)PieceCard.BuilderShop;
         int n5 = g.Expanded.Count;
         cg.PlayPieceCard(0, spot.Orient, spot.X, spot.Y);
         Run(s, dt, 0.6f, null, noPicks);
-        Check(!listed && plainListed && g.Expanded.Count == n5 && friend.Hand[0] == (byte)PieceCard.BuilderShop, "a stall card can't be placed on a relic node (not offered, the host refuses, the card stays); a plain piece can");
+        Check(!listed && plainListed && g.Expanded.Count == n5 && friend.Hand[0] == (int)PieceCard.BuilderShop, "a stall card can't be placed on a relic node (not offered, the host refuses, the card stays); a plain piece can");
         g.Nodes.Remove(relic);
         friend.Hand[0] = 0;
 
@@ -236,7 +251,7 @@ static partial class Program
 
         // A bot plays a piece from its hand.
         foreach (var p in g.Players.Values) Array.Clear(p.Hand, 0, p.Hand.Length);
-        g.Players[1].Hand[0] = (byte)Expansion.MakePieceCard(PieceShape.TriL);
+        g.Players[1].Hand[0] = (int)Expansion.MakePieceCard(PieceShape.TriL);
         int n3 = g.Expanded.Count;
         bool played = (bool)typeof(Game).GetMethod("BotPlayPieceCard", flags).Invoke(g, null);
         Check(played && g.Expanded.Count > n3 && Game.HandCount(g.Players[1]) == 0, "a bot plays its piece at a door spot");
@@ -268,7 +283,7 @@ static partial class Program
     static Placement? PlayPieceCard(Session[] s, float dt, Game host, Game who, PieceShape piece, PathId floor = PathId.None, Func<Placement, bool> where = null)
     {
         var hand = host.Players[who.MyId].Hand;
-        hand[hand.Length - 1] = (byte)Expansion.MakePieceCard(piece, floor);
+        hand[hand.Length - 1] = (int)Expansion.MakePieceCard(piece, floor);
         var opts = Expansion.PlacementsFor(host.Expanded, piece).Where(o => where == null || where(o)).ToList();
         if (opts.Count == 0)
             return null;

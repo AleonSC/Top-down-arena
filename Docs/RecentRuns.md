@@ -21,7 +21,7 @@ what happened during it (damage over time, what hurt you, health, accuracy, team
 | `Msg.RunStatsLive`: the host sends every player's tallies about once a second, but **only with 2+ players** | `RunStats.cs` (`TickLiveStats`) | Solo has the numbers locally; party clients get everyone's. |
 | `Player.Hp` is in every snapshot | | Health over time can be sampled by any client. |
 | The run's end is recorded in `RunSaves.cs` (`RecordKind.End`), gated on `me != null`, not dev, no bot, once (`runRecorded`) | `Core/RunSaves.cs` | This is the place to finish and keep a run's history. |
-| `.replay` and the session JSON recorder | `Replay.cs`, `SessionRecorder.cs` | Too heavy and developer-only; not used here. |
+| The session JSON recorder | `SessionRecorder.cs` | Too heavy and developer-only; not used here. |
 
 ## Design
 

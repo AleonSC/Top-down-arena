@@ -38,10 +38,6 @@ namespace Arena
         bool recordSessions;             // dev: record each run for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
         bool devKillAllKey;              // F1 dev tool: the discard key (B) kills every enemy on the field (host only; saved)
-        bool devPauseKey;                // F1 dev tool: P freezes the run with no menu, for screenshots (saved)
-        /// The frame time for things the drawing moves by itself (sweeping lasers, spark rates): zero while P has frozen the run.
-        float ViewDt => devFrozen ? 0f : Time.deltaTime;
-        bool devFrozen, devFrozenAck;    // P has frozen the run (Ack: the pause has come back from the host, so a later resume is someone else's)
         bool aimLine = true;             // V: a soft line from your gun to the crosshair, at most your weapon's range (saved per player)
 
         void SetAimLine(bool on)
@@ -57,7 +53,6 @@ namespace Arena
         void ApplyRecording()
         {
             game.RecordFolder = recordSessions ? SessionsFolder : null;
-            game.BalanceFolder = BalanceFolderPath;  // (the balance test records whatever this is set to; BalanceTestUi.cs)
         }
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         bool tabSuppress;  // a room card or buildable was used from the Tab screen's Inventory (InventoryUi.cs): the screen stays shut until Tab is let go
@@ -197,10 +192,7 @@ namespace Arena
             game.Bot = opts.ContainsKey("bot");
             recordSessions = PlayerPrefs.GetInt("record_sessions", 1) == 1 || opts.ContainsKey("record");
             devKillAllKey = PlayerPrefs.GetInt("dev_killall", 0) == 1;
-            devPauseKey = PlayerPrefs.GetInt("dev_pausekey", 0) == 1;
             ApplyRecording();
-            recordReplays = PlayerPrefs.GetInt("record_replays", 0) == 1 || opts.ContainsKey("record-replays");
-            ApplyReplayRecording();
             if (opts.ContainsKey("host"))
                 HostGame();
             else if (opts.TryGetValue("join", out v))
@@ -239,15 +231,10 @@ namespace Arena
 
         void Update()
         {
-            if (replay != null)
-            {
-                ReplayUpdate();  // watching a replay: nobody is at the controls (ReplayUi.cs)
-                return;
-            }
             TickFrameSystems();
             var me = game.Me;
             bool tabKey = UpdatePauseStates(me);
-            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || ModalScreenOpen;
+            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || ModalScreenOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             UpdatePointerAndBlocking(me, tabKey, menuUp, choosing);
             if (!menuUp)
@@ -264,10 +251,9 @@ namespace Arena
             Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
             session.Poll();
             PacmanUpdate();  // the Pac-Man game, when a Pac profile's Play opened it (PacmanUi.cs)
-            game.Update(devFrozen ? 0f : Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs); nothing ages while P has frozen it
+            game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
-            WaveEditorUpdate(Time.unscaledDeltaTime);  // the wave editor's playhead and keys (WaveEditorUi.cs)
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
@@ -330,31 +316,6 @@ namespace Arena
                     game.RequestPause(false);
                 tabPaused = false;
             }
-            // The F1 pause key (P): freezes the run without opening the pause menu, so a screenshot shows only the game.
-            // P again resumes. Opening the pause menu, or anyone resuming, ends it.
-            if (devFrozen && (pauseMenuOpen || session.Screen != AppScreen.Game || game.State == MatchState.GameOver || game.State == MatchState.Victory))
-                devFrozen = false;  // the menu or the end of the run takes over
-            if (devFrozen && game.Paused)
-                devFrozenAck = true;
-            else if (devFrozen && devFrozenAck)
-                devFrozen = false;  // someone else resumed
-            if (!devFrozen)
-                devFrozenAck = false;
-            if (devPauseKey && Input.GetKeyDown(KeyCode.P) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game && me != null && !LabRunning
-                && !pauseMenuOpen && !ModalScreenOpen && !RecallActive && !tabPaused
-                && (game.State == MatchState.Fighting || game.State == MatchState.Intermission))
-            {
-                if (devFrozen)
-                {
-                    devFrozen = false;
-                    game.RequestPause(false);
-                }
-                else if (!game.Paused)
-                {
-                    devFrozen = true;
-                    game.RequestPause(true);
-                }
-            }
             return tabKey;
         }
 
@@ -386,7 +347,7 @@ namespace Arena
             else if (!chatOpen)
                 Keybinds.ChatOpen = false;
             // Fire and Parry (a key or a mouse button, Keybinds) pressed while a menu was up stay off until let go.
-            if ((overlay || emoteBarOpen || pingWheelOpen) && Keybinds.Down(KeyAction.Fire))
+            if ((overlay || emoteBarOpen || pingWheelOpen || gadgetWheelOpen) && Keybinds.Down(KeyAction.Fire))
                 fireOnMenu = true;
             if (overlay && Keybinds.Down(KeyAction.Parry))
                 parryOnMenu = true;
@@ -394,10 +355,10 @@ namespace Arena
                 fireOnMenu = false;
             if (!Keybinds.Held(KeyAction.Parry))
                 parryOnMenu = false;
-            fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
+            fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen || gadgetWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             bool inMenus = session.Screen != AppScreen.Game;
-            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me) || PracticeDownedUp(me) || BalanceReportUp()
+            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me) || PracticeDownedUp(me)
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
             // The system pointer is always hidden: wherever a pointer is wanted we draw the Corner pointer of your cursor look, and it
             // morphs into the crosshair when the run takes over (CursorLooks.cs).
@@ -460,6 +421,19 @@ namespace Arena
             }
         }
 
+        /// Opens the folder with Player.log (Application.consoleLogPath), for sending it in when something looks wrong on one machine.
+        static void OpenLogFolder()
+        {
+            try
+            {
+                string log = Application.consoleLogPath, dir = string.IsNullOrEmpty(log) ? null : System.IO.Path.GetDirectoryName(log);
+                if (string.IsNullOrEmpty(dir) || !System.IO.Directory.Exists(dir))
+                    dir = Application.persistentDataPath;  // no log path (editor, some platforms): the save folder is next to it
+                Application.OpenURL("file:///" + dir.Replace('\\', '/'));
+            }
+            catch (System.Exception ex) { Diag.Warn("couldn't open the log folder", ex); }
+        }
+
         /// Toggle keys (aim line, F2-F7, HUD, mute) and the screen transitions that tick every frame.
         void UpdateToggleKeys()
         {
@@ -468,7 +442,8 @@ namespace Arena
                 SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
                 aimDebug = !aimDebug;  // aim debug overlay
-            DpsMeterKeys();  // F2: the DPS meter (DpsMeterUi.cs)
+            if (Input.GetKeyDown(KeyCode.F2) && session.Screen != AppScreen.Game)
+                OpenLogFolder();  // outside a run F2 opens the folder holding Player.log
             TextEditKeys();  // F4: the dev text editor
             SnapshotKeys();  // F6 / F7: take / load a run snapshot (SnapshotUi.cs)
             if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
@@ -546,7 +521,7 @@ namespace Arena
         /// Esc on every screen, and the end-of-run keys (retry, restart, lobby, continue).
         void HandleEscAndEndKeys(Player me, bool menuUp)
         {
-            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
+            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
                 if (inspectId >= 0)
@@ -660,11 +635,6 @@ namespace Arena
 
         void FixedUpdate()
         {
-            if (replay != null)
-            {
-                ReplayFixedStep(Time.fixedDeltaTime);  // (ReplayUi.cs)
-                return;
-            }
             session.Poll();
             var input = new PlayerInput
             {
@@ -872,11 +842,9 @@ namespace Arena
                     DrawRecallFade();  // back to the lobby: the screen going dark (Recall.cs)
                     break;
             }
-            if (replay != null && (!modal || Event.current.type == EventType.Repaint))
-                DrawReplayBar();  // the timeline (ReplayUi.cs)
             if (!textEditOpen || Event.current.type == EventType.Repaint)
             {
-                DrawScreens();  // the top tool screen: F1 menu, wave editor or Boss Lab setup (UiScreens.cs)
+                DrawScreens();  // the top tool screen: F1 menu or Boss Lab setup (UiScreens.cs)
             }
             TextEditEndGui();
             DrawCabEdges();  // the cabinet menus' soft edges, over them (CrtWindows.cs)

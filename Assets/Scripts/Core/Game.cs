@@ -147,16 +147,11 @@ namespace Arena
             get
             {
                 Player p;
-                Players.TryGetValue(Replaying ? ViewId : MyId, out p);
+                Players.TryGetValue(MyId, out p);
                 return p;
             }
         }
 
-        // Replays (Replay.cs): a replay watches the recorded match as a spectator (nobody is "you"), seeing the player ViewId's screen.
-        public bool Replaying;
-        public int ViewId;
-        public ReplayRecorder Replay;  // recording this run (HostStart sets it when ReplayFolder is)
-        public string ReplayFolder;    // dev: where to save replays of the matches this game hosts (null = don't record)
 
         float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
         float RandAngle() => Rand(0f, MathX.Tau);           // a random heading
@@ -202,12 +197,6 @@ namespace Arena
             var r = new BinaryReader(new MemoryStream(msg));
             r.ReadByte();
             ReadStart(r);
-            if (ReplayFolder != null && !ShowcaseMode && !Unrecorded && !Replaying)
-            {
-                Replay = new ReplayRecorder(this, session, ReplayFolder);
-                Replay.Capture(msg);  // (the broadcast went out before there was a recorder)
-                Replay.SetParty();
-            }
             if (ResumeFrom != null)
                 ApplyResume(ResumeFrom);
             ResumeFrom = null;
@@ -262,8 +251,6 @@ namespace Arena
                 }
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;
-                for (int k = 0; k < p.HpHistory.Length; k++)
-                    p.HpHistory[k] = p.Hp;
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
                 Recalc(p);
@@ -317,7 +304,7 @@ namespace Arena
             if (Recorder != null && !Recorder.Ended)
                 Recorder.End(this, "restarted");  // a new run started over one still going: finish its file first
             Recorder = null;
-            if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight, a replay or the lobby's preview)
+            if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight or the lobby's preview)
             {
                 try
                 {
@@ -338,22 +325,14 @@ namespace Arena
         /// Ends the run; `how` is what its recording says happened ("left", or "quit" when the game is closed).
         public void Stop(string how = "left")
         {
-            if (Replay != null)
-            {
-                Replay.Finish();
-                Replay = null;
-            }
             if (Running)
                 LogQuitRun();  // (not while a retry is on offer or starting: the run isn't over)
             SettleRetry(how);  // a retry left untaken ends the run for good (Checkpoints.cs)  // RunSaves.cs (the run you walk away from still shows in Recent runs)
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
-            if (TestRunning)
-                TestRunEnded("left the run");
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
-            Test = null;
             State = MatchState.Idle;
             HuntedId = 0;
             Wave = 0;
@@ -579,6 +558,8 @@ namespace Arena
                 p.PendingMilestones = Math.Min(255, p.PendingMilestones + 1);
             if (p.Stats.ExtraPickChance > 0f && rng.NextDouble() < p.Stats.ExtraPickChance)
                 p.PendingPicks++;
+            if (State == MatchState.Intermission && p.Offer == null)
+                NextOffer(p);  // a level gained in the break (a dormant group woken between waves, DormantGroups.cs): its pick is offered now, or the countdown would wait on it
         }
 
         /// Called by the front end when the local player clicks an upgrade card.
@@ -923,15 +904,10 @@ namespace Arena
                     SendSnapshot();
                 return;
             }
-            if (IsHost)
-                Replay?.Tick(dt);
             if (BreachWarnOn)
                 input = new PlayerInput { AimAt = input.AimAt };  // the breach warning: everyone stands still while the cameras tour (Breaches.cs)
-            if (!Replaying)
-            {
-                LocalControl(dt, input);  // (a replay has nobody at the controls)
-                TickTutorial(dt, input);  // the first-run tutorial's prompts (Tutorial.cs)
-            }
+            LocalControl(dt, input);
+            TickTutorial(dt, input);  // the first-run tutorial's prompts (Tutorial.cs)
             if (Bot)
                 botTouched = true;  // the bot played: this run doesn't count for your profile (RunSaves.cs)
             if (!IsHost && (pingT -= dt) <= 0f)
@@ -1102,6 +1078,7 @@ namespace Arena
             V2 before = me.Pos;
             me.Aim = (aimAt - me.Pos).Angle;
             bool parry = input.Parry || HoldParry, weaponAction = input.WeaponAction;  // (the smart bot sets its own: BotBrain.cs)
+            bool dodgePress = input.Dodge, dodgeHeld = input.DodgeHeld;  // (and its own dodge: BotDodge.cs)
             me.Parrying = parry && !me.Downed;
             bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
             var held = heldScratch;  // (one array, filled each tick)
@@ -1110,7 +1087,7 @@ namespace Arena
             if (Bot && BotLevel != BotSkill.Off)
             {
                 botT += dt;
-                SmartBot(me, dt, ref move, ref aimAt, ref firing, held, ref weaponAction, ref parry);  // BotBrain.cs
+                SmartBot(me, dt, ref move, ref aimAt, ref firing, held, ref weaponAction, ref parry, ref dodgePress, ref dodgeHeld);  // BotBrain.cs
                 me.Parrying = parry && !me.Downed;
                 if (me.ParryActive)
                     firing = false;
@@ -1344,7 +1321,7 @@ namespace Arena
                 }
             }
 
-            LocalDodge(me, move, input.Dodge, input.DodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
+            LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
             LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
@@ -1443,7 +1420,7 @@ namespace Arena
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
             TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
-            TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
+            TickGreat(dt);      // Greatsword.cs: the chain forgetting its place
             TickArcKnuckles(dt);  // ArcKnuckles.cs: an unused Counter Hammer fading
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
@@ -1486,7 +1463,6 @@ namespace Arena
             TickHelis(dt);    // AttackHelicopter.cs: the gunship's targets and rounds
             TickDogmas(dt);   // DragonsDogma.cs: the dragon's flight and bites
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
-            TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();
 
             if (pendingSpawns.Count > 0)
@@ -1629,7 +1605,7 @@ namespace Arena
                     TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);
@@ -1662,7 +1638,6 @@ namespace Arena
             }
 
             TickZones(dt);
-            RecordHistory(dt);
 
             // Standing next to a downed ally slowly brings them back.
             foreach (var p in Players.Values)
