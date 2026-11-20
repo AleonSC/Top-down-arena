@@ -410,6 +410,7 @@ namespace Arena
                 BuildCover();  // CoverSoundBank.cs
                 BuildDecoy();  // DecoyDummySoundBank.cs
                 BuildDeployTurret();  // DeployTurretSoundBank.cs
+                BuildOneWayDoor();  // OneWayDoorSoundBank.cs
                 BuildDogma();  // DogmaSoundBank.cs
                 BuildCeremonialArmor();  // CeremonialArmorSoundBank.cs
                 BuildFrost();  // FrostSoundBank.cs

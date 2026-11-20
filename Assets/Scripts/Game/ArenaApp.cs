@@ -262,6 +262,7 @@ namespace Arena
             TickArcLockSounds();  // Arc Lightning's tags, hops, forks and charge hum (ArcLockSoundBank.cs)
             TickVectorGain(Time.unscaledDeltaTime);  // vectors coming in: the bursts, the "+10 VECTORS" and the chip (VectorGainLook.cs)
             TickLootSweep(Time.unscaledDeltaTime);  // your coins swept to you as the wave starts (LootSweepLook.cs)
+            TickOneWayBump();  // a One-way piece's door holding you back: the bump (OneWayDoorLook.cs)
             TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
             TickFootsteps(Time.deltaTime);  // footsteps from everyone's speed (Footsteps.cs)
             UpdateMusic();

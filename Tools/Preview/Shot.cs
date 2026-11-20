@@ -874,10 +874,16 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's building round (ExpansionUi.cs)
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;  // (free building: the team vote is gone)
-      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, PieceShapes.cs); GRIDCARDS=tril,tetl:burninggrounds+combat+loot_piece,mono:combat,shop,... the hand (piece[:floor][+combat] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
+      string gridEnv = Environment.GetEnvironmentVariable("GRID");  // GRID=1: a Grid run (GridRooms.cs, PieceShapes.cs); GRIDCARDS=tril,tetl:burninggrounds+combat+loot_piece+oneway,mono:combat,shop,... the hand (piece[:floor][+combat] or a service card); GRIDSEL=n the picked slot; MOUSE=x,y the pointer; EXPANDBUILT=x,y,w,h;... rooms already built
       if (gridEnv != null) {
         eg.RoomsUp = true; eg.LayoutAge = 5f; if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (the core a Grid run starts with, once)
         if (Environment.GetEnvironmentVariable("GRIDMINI") != null && Expansion.GridMinisWaiting(eg.Expanded) == 0) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridPieces.cs)
+        string gow = Environment.GetEnvironmentVariable("ONEWAY");  // ONEWAY=<shape>: a One-way piece built first, at the spot with the most one-way doors (OneWayDoors.cs)
+        if (gow != null) {
+          var owShape = (PieceShape)Enum.Parse(typeof(PieceShape), gow, true); System.Collections.Generic.List<ExpansionRoom> owBest = null; int owMost = 0;
+          foreach (var oo in Expansion.PlacementsFor(eg.Expanded, owShape)) { var ol = new System.Collections.Generic.List<ExpansionRoom>(eg.Expanded); foreach (var orr in oo.Rooms) { var o2 = orr; o2.OneWay = true; o2.Owner = 1; ol.Add(o2); } int on = System.Linq.Enumerable.Count(Expansion.Build(ol, eg.Openings).Doors, dd => dd.Pass != 0); if (on > owMost) { owMost = on; owBest = ol; } }
+          if (owBest != null) { eg.Expanded.Clear(); eg.Expanded.AddRange(owBest); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); }
+        }
         var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {
@@ -886,6 +892,7 @@ static partial class Shot {
           if (gp.Length > 1) foreach (var gmod in gp[1].Split('+')) {  // modifiers: a floor name and/or combat, e.g. tetl:burninggrounds+combat
             PathId pf;
             if (gmod.Equals("combat", StringComparison.OrdinalIgnoreCase)) gmods = PieceMods.Combat.Set(gmods, 1);
+            else if (gmod.Equals("oneway", StringComparison.OrdinalIgnoreCase)) gmods = PieceMods.OneWay.Set(gmods, 1);
             else if (gmod.StartsWith("loot", StringComparison.OrdinalIgnoreCase)) { ChestKind lk = ChestKind.Gold; if (gmod.Length > 5) Enum.TryParse(gmod.Substring(5), true, out lk); gmods = PieceMods.Loot.Set(gmods, (int)lk + 1); }  // loot or loot_<chestkind>
             else if (Enum.TryParse(gmod, true, out pf)) gmods = PieceMods.Floor.Set(gmods, (int)pf);
             else Console.Error.WriteLine("GRIDCARDS: no modifier " + gmod);
