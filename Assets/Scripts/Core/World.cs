@@ -285,7 +285,7 @@ namespace Arena
             // stubs where two room walls meet leave corners the steering graph's body can't get away from); the hub's floor
             // plan keeps its own, so its narrow doors still have corners to route through.
             var wps = new List<V2>();
-            foreach (var p in Layouts.MakeWaypoints(d, Min, Max, DoorSpots()))
+            foreach (var p in Layouts.MakeWaypoints(d, Min, Max, DoorSpots(), 18f, true))
             {
                 bool tight = false;
                 foreach (var w in Walls())

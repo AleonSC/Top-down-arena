@@ -184,7 +184,9 @@ namespace Arena
         static V2[] MakeWaypoints(LayoutDef d) => MakeWaypoints(d, V2.Zero, new V2(W, H), null);
 
         /// The same for any bounds (lo..hi), plus extra spots of the caller's (Rooms.cs: either side of each door).
-        internal static V2[] MakeWaypoints(LayoutDef d, V2 lo, V2 hi, IEnumerable<V2> extra, float clear = 18f)
+        /// squarePillars: a pillar gets the four corners of its square, as a box does, not eight spots round it (the walled
+        /// worlds: their many pillars would make the route graph, all pairs of spots, slow to build).
+        internal static V2[] MakeWaypoints(LayoutDef d, V2 lo, V2 hi, IEnumerable<V2> extra, float clear = 18f, bool squarePillars = false)
         {
             var pts = new List<V2>();
             if (extra != null)
@@ -193,7 +195,10 @@ namespace Arena
             {
                 if (s.Edge)
                     continue;
-                if (s.Round)
+                if (s.Round && squarePillars)
+                    for (int i = 0; i < 4; i++)
+                        pts.Add(s.Pos + new V2((i % 2 == 0 ? -1f : 1f) * (s.R + WayPad), (i < 2 ? -1f : 1f) * (s.R + WayPad)));
+                else if (s.Round)
                     for (int i = 0; i < 8; i++)
                         pts.Add(s.Pos + V2.FromAngle(MathX.Tau * i / 8f + 0.39f) * (s.R + WayPad));
                 else
