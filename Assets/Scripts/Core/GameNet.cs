@@ -473,7 +473,7 @@ namespace Arena
             s.Vec(ref pos);
             s.Float(ref aim);
             s.Float(ref hp);
-            s.Float(ref p.Wound);  // (Combat.cs: the part of your health no heal can bring back this wave)
+            s.Float(ref p.Wound);  // (Combat.cs: the part of your health no heal can bring back (carried across waves))
             s.Bool(ref p.Downed);
             s.Float(ref p.Revive);
             s.Float(ref p.BarrierT);

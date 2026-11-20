@@ -183,7 +183,7 @@ namespace Arena
         public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)
         public float Hp, MaxHp;
         public float PortalT;   // your own game: just came out of a Rooms portal (Rooms.cs)
-        public float Wound;     // health a hit took that can't be healed back until the wave is cleared (WoundShare of each hit; synced)
+        public float Wound;     // health hits took that no heal brings back: WoundShare of each hit, up to WoundCap of max; carried across waves, cleared by a boss falling, a health shrine, the Medic's heal or a Rest (synced, saved)
         /// The most healing can bring you to: max health less the wound.
         public float HealCap => Math.Max(1f, MaxHp - Wound);
         public bool Downed;

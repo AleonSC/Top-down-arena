@@ -234,9 +234,10 @@ namespace Arena
                     DoLog(p.Role + " sold " + Upgrades.All[arg].Name + " for " + SellPrice(arg));
                     break;
                 case ShopAction.Heal:
-                    if (!shopping || p.Gold < HealPrice || p.Downed || p.Hp >= p.MaxHp)
+                    if (!shopping || p.Gold < HealPrice || p.Downed || p.Hp >= p.MaxHp && p.Wound <= 0f)
                         return;
                     p.Gold -= HealPrice;
+                    p.Wound = 0f;  // the Medic's heal clears wounds too
                     p.Hp = p.MaxHp;
                     break;
                 case ShopAction.Revive:

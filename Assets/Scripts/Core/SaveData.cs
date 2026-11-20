@@ -21,6 +21,7 @@ namespace Arena
         public RelicId Relic = RelicId.None;  // the relic slot (Relics.cs)
         public ulong ShrinesUsed;  // the health shrines they've used (Shrines.cs)
         public float OverHp;       // and the health past max one gave them
+        public float Wound;        // their wound (Combat.cs: carried across waves)
         public float Xp, HpFrac = 1f;
         public bool ReviveToken;
         public readonly Dictionary<string, float> Mastery = new Dictionary<string, float>();  // ability name -> XP
@@ -149,6 +150,7 @@ namespace Arena
                 Line(sb, "rerolls", s.Rerolls);
                 Line(sb, "gold", s.Gold);
                 if (s.Relic != RelicId.None) Line(sb, "relic", s.Relic);
+                if (s.Wound > 0f) Line(sb, "wound", F(s.Wound));
                 if (s.ShrinesUsed != 0 || s.OverHp > 0f) Line(sb, "shrine", s.ShrinesUsed.ToString(CultureInfo.InvariantCulture) + " " + F(s.OverHp));
                 Line(sb, "token", s.ReviveToken ? 1 : 0);
                 Line(sb, "hp", s.HpFrac);
@@ -332,6 +334,7 @@ namespace Arena
                 case "rerolls": s.Rerolls = Math.Max(0, I(val)); break;
                 case "gold": s.Gold = Math.Max(0, I(val)); break;
                 case "relic": s.Relic = Enum<RelicId>(val); break;
+                case "wound": s.Wound = Math.Max(0f, Fl(val)); break;
                 case "shrine":
                 {
                     var f = val.Split(' ');

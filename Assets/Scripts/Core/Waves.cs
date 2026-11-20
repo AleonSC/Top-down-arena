@@ -235,11 +235,12 @@ namespace Arena
                 OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
-                p.Wound = 0f;  // wounds heal between waves (Combat.cs)
+                if (BossSlot)
+                    p.Wound = 0f;  // wounds carry across waves (owner Nov 20) and clear when a boss falls (Combat.cs)
                 if (p.Downed)
                     RevivePlayer(p, 0.4f);
                 else
-                    p.Hp = Math.Min(p.MaxHp, p.Hp + p.MaxHp * 0.3f);
+                    p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + p.MaxHp * 0.3f));
                 if (p.Offer == null)
                     NextOffer(p);
             }

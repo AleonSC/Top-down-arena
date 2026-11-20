@@ -78,7 +78,7 @@ namespace Arena
             if (amount > 0f && !tickDamage)
                 SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
             lastTaken = Math.Max(0f, amount);
-            p.Wound = Math.Min(p.MaxHp - 1f, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share that can't be healed back this wave
+            p.Wound = Math.Min(p.MaxHp * WoundCap, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share no heal brings back until a boss falls or a shrine, Medic or Rest clears it (capped)
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;

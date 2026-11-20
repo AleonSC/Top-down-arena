@@ -19,7 +19,7 @@ the Eclipse took 1.8 million damage in 149 s, and nothing threatened you. Three 
 
 1. **Diminishing returns**, not hard per-card limits.
 2. **Both arenas** (Classic and Rooms). The Rooms arena's 1.3x enemy damage stays Rooms-only.
-3. **Wounds**: 10% of each hit can't be healed back until the wave is cleared.
+3. **Wounds**: 10% of each hit can't be healed back. Owner Nov 20: they carry across waves, capped at 30% of max (`WoundCap`), and clear when a boss falls, at a health shrine, with the Medic's heal or at a Rest.
 4. **Parry stays as it is** (a timing skill; its cards are already capped).
 
 ## How it works
@@ -32,7 +32,7 @@ the Eclipse took 1.8 million damage in 149 s, and nothing threatened you. Three 
   next copy is worth (`HudPicker.cs` `UpgradeNote`); the stat preview already shows the real change.
 - **Wounds** (`Player.Wound`, `HealCap`, `Game.WoundShare` 0.1): each hit adds 10% of the health it took to the wound;
   every heal (`Heal`, regeneration, orbs, lifesteal, heal on kill, revives) stops at max health less the wound; the
-  wound clears when the wave is cleared (`WaveCleared`, before its 30% heal). A Healer's overheal shield only counts
+  wound clears when a boss wave is cleared (`WaveCleared`, before its 30% heal, which stops at `HealCap`), at a shrine (`UseShrine`), with the Medic's heal (`ShopAction.Heal`) or at a Rest; capped at `WoundCap`; saved with the seat. A Healer's overheal shield only counts
   healing past full health. Synced in the snapshot (protocol 237). Drawn as a dark red end on the HUD card's health bar
   and the bar over each player (`HealthBars.cs` `DrawWound`, `WorldPlayers.cs`).
 - **Tests**: `run.sh 1 30 stacking`. The test parties that used to stack Fortitude / Regeneration / Hollow Points
