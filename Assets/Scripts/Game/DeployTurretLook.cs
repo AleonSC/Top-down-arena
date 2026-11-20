@@ -17,7 +17,7 @@ namespace Arena
         class DtVis
         {
             public Zone Z; public int Seen;
-            public float Aim, Spool, Heat, Next, Flash, Ring, Age, FireEnd;
+            public float Aim, Spool, Heat, Next, Flash, Ring, Age, FireEnd, Frac = 1f, HitT;
             public readonly float[] Rec = new float[2];
             public int Side; public bool Landed, Mine, Out, Hot, Firing;
         }
@@ -89,6 +89,16 @@ namespace Arena
                 for (int i = 0; i < 2; i++)
                     v.Rec[i] = Mathf.Max(0f, v.Rec[i] - dt * 14f);
                 v.Flash = Mathf.Max(0f, v.Flash - dt);
+                v.HitT = Mathf.Max(0f, v.HitT - dt);
+                if (z.GuardFrac < v.Frac - 0.001f)  // it took a hit: a white flash and a spray of sparks
+                {
+                    v.HitT = 0.12f;
+                    if (Juicy)
+                        Sparks(z.Pos + new V2(Rnd(-18f, 18f), Rnd(-18f, 18f)), DtWhiteHot, 4, 280f, 0.25f, 2f);
+                    if (v.Mine)
+                        Shake(0.15f);
+                }
+                v.Frac = z.GuardFrac;
                 if (v.Age < Game.DtDeploy)
                     continue;
                 if (p != null)
@@ -280,6 +290,26 @@ namespace Arena
             }
         }
 
+        /// Its health: a bar under the turret (gold, going red as it wears, in quarters, white on a hit), once it has landed and while you are in it.
+        void DrawTurretHealth(DtVis m, V2 c, float age)
+        {
+            if (age < Game.DtLand || m.Out)
+                return;
+            float fade = Mathf.Clamp01((age - Game.DtLand) / 0.3f), f = Mathf.Clamp01(m.Frac), w = 70f;
+            V2 a = c + new V2(-w * 0.5f, 74f), b = c + new V2(w * 0.5f, 74f);
+            Line(a + new V2(-2f, 0f), b + new V2(2f, 0f), 10f, new Rgba(0f, 0f, 0f, 0.7f * fade));
+            if (f > 0f)
+            {
+                Rgba col = m.HitT > 0f ? Rgba.White : DtGold.Mix(DtDanger, 1f - f);
+                Line(a, a + (b - a) * f, 6f, col.WithAlpha(fade));
+            }
+            for (int i = 1; i < 4; i++)
+            {
+                V2 t = a + (b - a) * (i / 4f);
+                Line(t + new V2(0f, -3f), t + new V2(0f, 3f), 1f, new Rgba(0f, 0f, 0f, 0.8f * fade));
+            }
+        }
+
         void DrawDeployTurretBody(DtVis m, float t)
         {
             V2 c = m.Z.Pos;
@@ -373,6 +403,9 @@ namespace Arena
                     Tri(tip + ss * 5f, tip + dd * L, tip - ss * 5f);
                 }
             }
+            if (m.HitT > 0f)
+                Circle(c, 30f, new Rgba(1f, 1f, 1f, 0.45f * m.HitT / 0.12f), 16);
+            DrawTurretHealth(m, c, age);
             if (age >= Game.DtDeploy)
             {
                 float frac = Mathf.Clamp01((end - age) / (end - Game.DtDeploy));

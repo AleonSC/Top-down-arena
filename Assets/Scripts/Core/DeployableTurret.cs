@@ -5,7 +5,9 @@ namespace Arena
     /// Deployable Turret, the DPS Soldier's 4th choice (`AbilityId.DeployableTurret`, `AbilityDef.Fourth`: the lobby's 4th ability
     /// key), from Docs/Mockups/deployable-turret.html. A crate drops on your spot (DtLand s), unfolds (until DtDeploy s) and you
     /// sit in it for DtLife s; a `ZoneKind.DeployTurret` zone: Pos the turret, Aim where its twin barrels point, Radius the seat
-    /// (DtSeat), DamageCut what the armoured seat takes off damage you (or an ally in it) take (DtCut):
+    /// (DtSeat), BlockHp its health (DtHp; GuardFrac its fraction, replicated):
+    ///   it takes the damage meant for you while you sit in it, after your armour and shields (`TurretSoak` from `Damage`); at 0
+    ///   health it is wrecked: you are thrown clear (as stepping out) and it overheats and blows;
     ///   while it stands you are rooted (no walking, dodging or moving abilities) and it fires instead of your weapon: hold Fire
     ///   and it turns onto your aim (DtTurn rad/s) and fires hitscan rounds of DtDamage down the lane (they pierce DtPierce
     ///   enemies, DtPierceMastered mastered); the rate spools up from DtRateLow to DtRateHigh rounds a second over DtSpool s,
@@ -19,7 +21,7 @@ namespace Arena
     {
         public const float DtCooldown = 45f, DtLand = 0.55f, DtDeploy = 1.1f, DtLife = 10f, DtLifeMastered = 14f, DtDying = 0.8f;
         public const float DtRange = 560f, DtDamage = 22f, DtRateLow = 7f, DtRateHigh = 30f, DtSpool = 1.2f, DtTurn = 8f;
-        public const float DtBlast = 160f, DtBlastDamage = 80f, DtSeat = 44f, DtCut = 0.3f;
+        public const float DtBlast = 160f, DtBlastDamage = 80f, DtSeat = 44f, DtHp = 350f;
         public const int DtPierce = 2, DtPierceMastered = 4;
 
         /// Seconds since the turret was cast.
@@ -56,7 +58,21 @@ namespace Arena
                 return;
             z.T = Math.Min(z.T, DtDying);
             z.Radius = 0f;
-            z.DamageCut = 0f;
+        }
+
+        /// Host, from Damage: a hit meant for the player in the turret's seat wears the turret first; what's left over goes on to them.
+        /// At 0 health it is wrecked: the owner steps out as if they had pressed the key.
+        float TurretSoak(Player p, float amount)
+        {
+            var z = TurretOf(p);
+            if (z == null || z.Radius <= 0f || amount <= 0f)
+                return amount;
+            float soak = Math.Min(z.BlockHp, amount);
+            z.BlockHp -= soak;
+            z.GuardFrac = z.SoakMax > 0f ? Math.Max(0f, z.BlockHp / z.SoakMax) : 0f;
+            if (z.BlockHp <= 0f)
+                DismountTurret(p);
+            return amount - soak;
         }
 
         /// Is this player holding Fire, as this machine knows it (their own screen, or the host's, has it in Firing; everyone else's in FiringSeen)?
@@ -69,7 +85,8 @@ namespace Arena
             float life = (cap ? DtLifeMastered : DtLife) + p.Stats.DtBonusTime;
             var z = AddZone(ZoneKind.DeployTurret, p, p.Pos, DtSeat, DtDeploy + life + DtDying);
             z.Aim = p.Aim;
-            z.DamageCut = DtCut;
+            z.SoakMax = z.BlockHp = DtHp;
+            z.GuardFrac = 1f;
             z.Cap = cap;
         }
 
