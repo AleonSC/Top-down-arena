@@ -792,9 +792,9 @@ static partial class Program
         var fb0 = fireE(WeaponId.Fireball, "Wildfire", 0)[0]; var fb1 = fireE(WeaponId.Fireball, "Wildfire", 1)[0];
         Check(near(fb1.Ignite / fb0.Ignite, 1.5f, 0.001f) && near(fb1.IgniteBonus - fb0.IgniteBonus, 1f, 0.001f), "Wildfire: the Fireball burns 50% hotter and 1 s longer");
 
-        arm(WeaponId.ArcLightning, "Static Field", 0); float ac0 = g.BowFull(me);
-        arm(WeaponId.ArcLightning, "Static Field", 1); float ac1 = g.BowFull(me);
-        Check(near(ac1 / ac0, 0.75f, 0.001f) && near(me.Stats.ArcStunBonus, 0.2f, 0.001f), "Static Field: Arc Lightning's full charge comes 25% sooner and stuns 0.2 s longer");
+        arm(WeaponId.ArcLightning, "Static Field", 0); float ac0 = g.ArcTagGap(me);
+        arm(WeaponId.ArcLightning, "Static Field", 1); float ac1 = g.ArcTagGap(me);
+        Check(near(ac1 / ac0, 0.75f, 0.001f) && near(me.Stats.ArcStunBonus, 0.2f, 0.001f), "Static Field: Arc Lightning tags enemies 25% faster and stuns 0.2 s longer");
 
         arm(WeaponId.IceShards, "Frozen Halo", 0); int oc0 = Game.OrbitCap(0, me);
         arm(WeaponId.IceShards, "Frozen Halo", 1); int oc1 = Game.OrbitCap(0, me);
