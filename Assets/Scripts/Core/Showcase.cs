@@ -26,6 +26,7 @@ namespace Arena
         float rodShotT;  // a Lightning Rod demo: until a dummy next fires at you
         int rodShots;
         int ultPick;  // the Ultimate row's key (LobbyEntry.Ult)
+        int oathClick;  // ticks into Guardian's Oath's pick (it clicks on the second)
         float t, castT;
         bool castHeld;
         float ultEvery = UltimateEvery;    // the Titan stays 17 s, so its demo waits for it to crumble
@@ -193,6 +194,14 @@ namespace Arena
                 if (draw || aimTicks == 0)  // (the cursor goes to a teammate for a cast only between strokes)
                     input.AimAt = aim;
             }
+            if (Game.OathPickSlot >= 0)
+            {
+                // Guardian's Oath waits for a click on a teammate (GuardiansOath.cs): the cursor on one, Fire let go a tick, then pressed.
+                input.AimAt = Game.ShowcaseAllyPos(castCount % 2);
+                input.Fire = oathClick++ % 2 == 1;
+            }
+            else
+                oathClick = 0;
             Game.FixedStep(dt, input);
             Game.Update(dt);
             float far = Distance;
