@@ -61,6 +61,7 @@ namespace Arena
         public bool HasHold;             // the Bunker's hold point
         public V2 HoldPos;
         public float HoldR;
+        public SolidGrid Grid;           // its walls by cell, for quick line tests (SolidGrid.cs; built on first use)
 
         /// This plan with more solids added (the same corners and portal links): for steering round a shut gate (Gates.cs).
         public LayoutDef WithSolids(Solid[] extra)

@@ -19,7 +19,7 @@
 # NONSHOOT=1 (the Hook Thrower caught mid-move: aiming, harpoon out, spinning, open after a miss).
 # PORTALS=1 (spawn portals: opening, letting a burst out, a flank behind you with its arrow, closing; SpawnPortalLook.cs; PORTALSURGE=1 in a surge, PORTALSEAL=<0-1> a sealed flash that far through).
 # CULT=1 (the Twin Reapers' cult mid-move: Wisps, Acolyte, Gravedigger, Shade, Bound pairs (tether, revive), Scythe Wraith, Lamplighters, Mourner).
-# PERFRUN=<secs>[,boss] PERFIDLE=<secs> (draw cost: a Quick Play breach wave drawn every frame, printing vertices and draw ms; ShotPerf.cs; e.g. shot.sh x hud 7 1 2; with SURVIVAL=840 SURVMARKS=55: Survival's room).
+# PERFRUN=<secs>[,boss] PERFIDLE=<secs> [PERFMAP=<pieces>] (draw cost: a Quick Play breach wave drawn every frame, printing vertices and draw ms; PERFMAP: a grown map; ShotPerf.cs; e.g. shot.sh x hud 7 1 2; with SURVIVAL=840 SURVMARKS=55: Survival's room).
 # SWORD=1 (the Acolyte's sickle cut in each phase: closing in, wind-up, cut, recovery).
 # LUNGE=0.5 (the Lunger, Shiv, Scythe Wraith and Riot Shield part-way through their wind-up: the shared lane).
 # TASER=0.3 (the Taser Guard charging, a Fork Bolt in flight over a field of bullets, and the hit on you 0.3 s ago; TASER=-1 for no hit; mode hud).

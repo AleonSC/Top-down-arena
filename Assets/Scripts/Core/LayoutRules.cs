@@ -328,6 +328,9 @@ namespace Arena
         /// Does the straight line from a to b, for something of radius r, run into a wall or pillar (the edge wall aside)?
         bool SegBlocked(LayoutDef d, V2 a, V2 b, float r)
         {
+            var grid = r <= SolidGrid.Margin ? SolidGrid.For(d) : null;  // (a big map: only the walls along the line, SolidGrid.cs)
+            if (grid != null)
+                return grid.Blocks(a, b, r);
             foreach (var s in d.Solids)
                 if (!s.Edge && SolidBlocks(s, a, b, r))
                     return true;
@@ -335,7 +338,7 @@ namespace Arena
         }
 
         /// Does the straight line from a to b, for something of radius r, run into this wall or pillar?
-        static bool SolidBlocks(Solid s, V2 a, V2 b, float r)
+        internal static bool SolidBlocks(Solid s, V2 a, V2 b, float r)
         {
             if (s.Round)
             {
@@ -370,27 +373,54 @@ namespace Arena
         static V2 ClearOfWalls(LayoutDef d, V2 p, float r)
         {
             r += 0.5f;
+            var grid = r <= SolidGrid.Margin ? SolidGrid.For(d) : null;
             for (int pass = 0; pass < 2; pass++)
-                foreach (var s in d.Solids)
+            {
+                if (grid != null)
                 {
-                    if (s.Edge)
-                        continue;
-                    if (s.Round)
+                    // A big map: only the walls filed in p's cell can touch it, taken in the same order as below; a push
+                    // that moves p on to another cell carries on through that cell's walls (SolidGrid.cs).
+                    var list = grid.CellAt(p);
+                    int last = -1;
+                    for (int k = 0; k < list.Length; k++)
                     {
-                        float dist = p.DistanceTo(s.Pos);
-                        if (dist < s.R + r)
-                            p = s.Pos + (dist > 0.5f ? (p - s.Pos) / dist : new V2(1f, 0f)) * (s.R + r);
-                        continue;
+                        int i = list[k];
+                        if (i <= last)
+                            continue;
+                        last = i;
+                        V2 was = p;
+                        p = PushClear(d.Solids[i], p, r);
+                        if (p.X != was.X || p.Y != was.Y)
+                        {
+                            list = grid.CellAt(p);
+                            k = -1;
+                        }
                     }
-                    float hw = s.HW + r, hh = s.HH + r, dx = p.X - s.Pos.X, dy = p.Y - s.Pos.Y;
-                    if (Math.Abs(dx) >= hw || Math.Abs(dy) >= hh)
-                        continue;
-                    if (hw - Math.Abs(dx) < hh - Math.Abs(dy))
-                        p = new V2(s.Pos.X + (dx < 0f ? -hw : hw), p.Y);
-                    else
-                        p = new V2(p.X, s.Pos.Y + (dy < 0f ? -hh : hh));
+                    continue;
                 }
+                foreach (var s in d.Solids)
+                    if (!s.Edge)
+                        p = PushClear(s, p, r);
+            }
             return p;
+        }
+
+        /// p moved just clear of one wall or pillar (padded by r), if it was inside it.
+        static V2 PushClear(Solid s, V2 p, float r)
+        {
+            if (s.Round)
+            {
+                float dist = p.DistanceTo(s.Pos);
+                if (dist < s.R + r)
+                    p = s.Pos + (dist > 0.5f ? (p - s.Pos) / dist : new V2(1f, 0f)) * (s.R + r);
+                return p;
+            }
+            float hw = s.HW + r, hh = s.HH + r, dx = p.X - s.Pos.X, dy = p.Y - s.Pos.Y;
+            if (Math.Abs(dx) >= hw || Math.Abs(dy) >= hh)
+                return p;
+            if (hw - Math.Abs(dx) < hh - Math.Abs(dy))
+                return new V2(s.Pos.X + (dx < 0f ? -hw : hw), p.Y);
+            return new V2(p.X, s.Pos.Y + (dy < 0f ? -hh : hh));
         }
 
         // Waypoint graph: which corners see each other (for a fat enemy), and the shortest walk between any two.
@@ -398,6 +428,7 @@ namespace Arena
         {
             public float[,] Direct;  // the straight line between corners that see each other (else MaxValue)
             public int[][] Out, In;  // each corner's direct links out (Direct[i, k] set) and in (Direct[k, i] set)
+            public float[][] OutW, InW;  // their lengths: OutW[i][j] = Direct[i, Out[i][j]], InW[k][j] = Direct[In[k][j], k]
         }
 
         sealed class GoalInfo
@@ -509,6 +540,8 @@ namespace Arena
         {
             var outs = new int[n][];
             var ins = new int[n][];
+            var outW = new float[n][];
+            var inW = new float[n][];
             var tmp = new List<int>();
             for (int i = 0; i < n; i++)
             {
@@ -517,14 +550,22 @@ namespace Arena
                     if (k != i && dist[i, k] != float.MaxValue)
                         tmp.Add(k);
                 outs[i] = tmp.ToArray();
+                outW[i] = new float[tmp.Count];
+                for (int j = 0; j < tmp.Count; j++)
+                    outW[i][j] = dist[i, tmp[j]];
                 tmp.Clear();
                 for (int k = 0; k < n; k++)
                     if (k != i && dist[k, i] != float.MaxValue)
                         tmp.Add(k);
                 ins[i] = tmp.ToArray();
+                inW[i] = new float[tmp.Count];
+                for (int j = 0; j < tmp.Count; j++)
+                    inW[i][j] = dist[tmp[j], i];
             }
-            return new WayGraph { Direct = dist, Out = outs, In = ins };
+            return new WayGraph { Direct = dist, Out = outs, In = ins, OutW = outW, InW = inW };
         }
+
+        const float GoalCell = 24f;  // GoalCosts shares one answer for targets in the same square this wide (a bigger map's rebuild is dear)
 
         /// For each corner, the length of the best walk from it to tpos (through other corners if need be).
         GoalInfo GoalCosts(LayoutDef d, V2 tpos, float r, bool portals)
@@ -536,14 +577,13 @@ namespace Arena
                 goalStamp = stamp;
                 goalDef = d;
             }
-            long key = ((long)(int)(tpos.X / 8f) << 32) ^ ((long)(int)(tpos.Y / 8f) << 8) ^ (long)(int)r ^ (portals ? 0L : 1L << 62);
+            long key = ((long)(int)(tpos.X / GoalCell) << 32) ^ ((long)(int)(tpos.Y / GoalCell) << 8) ^ (long)(int)r ^ (portals ? 0L : 1L << 62);
             GoalInfo info;
             if (goalCost.TryGetValue(key, out info))
                 return info;
             var w = d.Waypoints;
             var oneWay = OneWayWorld;
             var graph = GraphFor(d, portals);
-            var direct = graph.Direct;
             int n = w.Length;
             // The best walk to the target from every corner at once: a Dijkstra out from the target, backwards along the
             // links, starting from the corners that see it (their last leg).
@@ -564,9 +604,12 @@ namespace Arena
                 if (done[k])
                     continue;
                 done[k] = true;
-                foreach (int i in graph.In[k])
+                var into = graph.In[k];
+                var intoW = graph.InW[k];
+                for (int j = 0; j < into.Length; j++)
                 {
-                    float c = top.Key + direct[i, k];
+                    int i = into[j];
+                    float c = top.Key + intoW[j];
                     if (c < cost[i])
                     {
                         cost[i] = c;
@@ -586,17 +629,24 @@ namespace Arena
                 if (last[i] != float.MaxValue && last[i] <= cost[i] + 0.01f)
                     continue;  // sees the target: go straight
                 float nb = float.MaxValue;
-                foreach (int k in graph.Out[i])
-                    if (direct[i, k] + cost[k] < nb)
+                var outOf = graph.Out[i];
+                var outW = graph.OutW[i];
+                for (int j = 0; j < outOf.Length; j++)
+                {
+                    int k = outOf[j];
+                    if (outW[j] + cost[k] < nb)
                     {
-                        nb = direct[i, k] + cost[k];
+                        nb = outW[j] + cost[k];
                         next[i] = k;
                     }
+                }
             }
             goalCost[key] = info = new GoalInfo { Cost = cost, Next = next };
             return info;
         }
 
+        float[] steerKeys = new float[0];  // SteerDir's corners by walk length (reused)
+        int[] steerOrder = new int[0];
         const float SteerGoalSlack = 60f;  // a remembered corner holds while the goal stays this close to where it was
 
         /// The way a walking enemy heads for a spot of its own choosing (a formation place, a herding spot, another
@@ -689,19 +739,34 @@ namespace Arena
                 // (the Rooms arena: a corner with no way on from it and the target still behind a wall: pick another
                 // corner below rather than walk straight into the wall)
             }
-            int best = -1;
-            float bestScore = float.MaxValue;
+            // The corner it can see with the shortest walk on (ties: the lowest corner). Tried cheapest first, so only a few
+            // lines are tested, not one to every corner (a grown Expanding map has about a thousand).
+            if (steerKeys.Length < wps.Length)
+            {
+                steerKeys = new float[wps.Length];
+                steerOrder = new int[wps.Length];
+            }
+            int cnt = 0;
             for (int i = 0; i < wps.Length; i++)
             {
                 float toW = pos.DistanceTo(wps[i]);
-                if (toW < 14f || SegBlocked(d, pos, wps[i], r) || oneWay != null && oneWay.OneWayBlocks(pos, wps[i]))
+                if (toW < 14f)
                     continue;
-                float score = toW + cost[i];
-                if (score < bestScore)
-                {
-                    bestScore = score;
-                    best = i;
-                }
+                steerKeys[cnt] = toW + cost[i];
+                steerOrder[cnt++] = i;
+            }
+            Array.Sort(steerKeys, steerOrder, 0, cnt);
+            int best = -1;
+            float bestScore = 0f;
+            for (int k = 0; k < cnt; k++)
+            {
+                if (best >= 0 && steerKeys[k] > bestScore)
+                    break;
+                int i = steerOrder[k];
+                if (best >= 0 && i > best || SegBlocked(d, pos, wps[i], r) || oneWay != null && oneWay.OneWayBlocks(pos, wps[i]))
+                    continue;
+                best = i;
+                bestScore = steerKeys[k];
             }
             if (best < 0)
                 return dir;

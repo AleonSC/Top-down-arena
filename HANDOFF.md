@@ -292,7 +292,11 @@ The lobby fits about 8 class cards in a row before they get too small.
   Play breach wave (default the Twin Reapers' cult, two rooms built) with the bots standing still `PERFIDLE` s so a crowd
   builds, drawing every frame; every 2 s it prints enemies, particles, GL vertices a frame and draw ms, plus the top
   vertex sources of one traced frame (`GL.Trace` in `Stubs.cs`). Unity's GL immediate mode pays per vertex, so the
-  vertex count is what to cut (`OffScreen`, `SegsFor` in `WorldRenderer.cs`; `PartCrowd` in `Juice.cs`).
+  vertex count is what to cut (`OffScreen`, `SegsFor` in `WorldRenderer.cs`; `PartCrowd` in `Juice.cs`). `PERFMAP=<n>`: on a grown
+  map (the grid core and n pieces). Its stdout goes to `/dev/null` in `shot.sh`: run `mono shot.exe` in `Tools/Preview/out`.
+- **Sim cost on a big map (lag):** `run.sh 1 1 breachcrowd [secs] [wave]` (`Tests/BreachCrowd.cs`) plays a Warden breach wave
+  with timed spawning on a six-breach map, bots fighting: alive enemies by type and host ms a frame. Enemy steering
+  (`SteerDir`, `GoalCosts` in `LayoutRules.cs`) was the cost there; `SolidGrid.cs` keeps its line tests to nearby walls.
 - **GIF clips:** `Tools/Preview/clip.sh <name> <mode> [wave secs players]` keeps the run running after the shot
   (`CLIP=<frames>` in `ShotClip.cs`; `FRAMES=30`, `CLIPSTEP=3` fixed steps a frame = 20 fps, `CLIPHURT=1`), or with
   `VAR=from:to:step` draws one frame per value of a scene's time flag (`CASTT`, `THRUST`, `KDT`, ...). Writes
