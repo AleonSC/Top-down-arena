@@ -204,7 +204,7 @@ namespace Arena
             Bullets[id] = b;
             if (owner == MyId && owner != 0 && kind != Defs.GrenadeShot && kind != Defs.MedkitShot)
                 NoteShot(b);
-            if (owner == 0)
+            if (owner == 0 && kind != Defs.BottleShot)  // (a bottle has its own whoosh, RiotBrains.cs)
                 Sounds.Add(new SoundCue { Sfx = Sfx.EnemyShot, Quiet = QuietAt(pos) });  // quieter from across the arena (MeleeSounds.cs)
             else
                 Sounds.Add(new SoundCue { Sfx = ShotSound(kind, owner), Ally = owner != MyId });

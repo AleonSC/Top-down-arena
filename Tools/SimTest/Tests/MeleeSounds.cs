@@ -99,6 +99,29 @@ static partial class Program
         Check(pops.Count == 1 && pops[0].Quiet == 0f, "a near and a far Brute dying together sound at the near one's volume");
 
         clear();
+
+        // The Rioter (the Mob voice): one yell on coming within earshot, a hit, the bottle's wind-up, running steps, its death,
+        // and a bottle that's gone breaking where it was.
+        {
+            var r = put(EnemyType.Rioter, new V2(1500f, 800f));
+            tick(dt); tick(dt); g.Sounds.Clear();
+            Check(heard(Sfx.RiotYell).Count == 0, "a far Rioter doesn't yell");
+            r.Pos = p.Pos + new V2(200f, 0f); tick(dt);
+            Check(heard(Sfx.RiotYell).Count == 1, "a Rioter yells when it comes within earshot");
+            g.Sounds.Clear(); r.Pos += new V2(1f, 0f); tick(0.3f); r.Pos += new V2(3f, 0f); tick(0.3f);
+            Check(heard(Sfx.RiotYell).Count == 0 && heard(Sfx.RiotStep).Count >= 1, "it yells once, then its steps are heard");
+            r.Phase = 1; g.Sounds.Clear(); tick(dt);
+            Check(heard(Sfx.RiotHup).Count == 1, "a bottle Rioter cocking its arm shouts");
+            r.Pos = p.Pos + new V2(5f, 0f); g.Sounds.Clear(); tick(dt);
+            Check(heard(Sfx.RiotAttack).Count == 1, "a Rioter hitting you shouts");
+            var bottle = new Bullet { Id = 990001, Kind = Defs.BottleShot, Pos = p.Pos + new V2(150f, 0f) };
+            g.Bullets[bottle.Id] = bottle; tick(dt); g.Sounds.Clear();
+            g.Bullets.Remove(bottle.Id); tick(dt);
+            Check(heard(Sfx.RiotShatter).Count == 1 && heard(Sfx.RiotShatter)[0].Quiet == 0f, "a bottle that's gone shatters where it was");
+            g.Enemies.Remove(r.Id); g.Sounds.Clear(); tick(dt);
+            Check(heard(Sfx.RiotDie).Count == 1, "a Rioter has its own death");
+        }
+        clear();
         s[0].Leave(""); s[1].Leave("");
     }
 }
