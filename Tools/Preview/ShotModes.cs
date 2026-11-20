@@ -90,7 +90,7 @@ static partial class Shot {
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
       if (Environment.GetEnvironmentVariable("DEVMENU") != null) host.Screen = AppScreen.Menu;  // the dock as opened from the main menu
-      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1 (DPS), 3 (balance), 4 (upgrades), 5 (enemies), 6 (snapshots), DEVMENU=1 (outside a run)
+      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1 (DPS), 3 (balance), 4 (upgrades), 5 (enemies), 6 (snapshots), 7 (gadgets and relics), DEVMENU=1 (outside a run)
       if (Environment.GetEnvironmentVariable("DEVSHEET") == "6")  // run snapshots (SnapshotUi.cs): three in the profile's folder; SNAPDEL=1 asks to delete the second, SNAPREN=1 renames the first
       {
         if (Profile.Folder == null) Profile.Folder = Path.Combine(Path.GetTempPath(), "arena-preview-snaps");
@@ -106,6 +106,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("DEVDRAWER") != null) set("devDrawer", int.Parse(Environment.GetEnvironmentVariable("DEVDRAWER")));
       if (Environment.GetEnvironmentVariable("DEVSIDE") != null) set("devSide", true);
       if (Environment.GetEnvironmentVariable("DEVSHEET") != null) set("devSheet", int.Parse(Environment.GetEnvironmentVariable("DEVSHEET")));
+      if (Environment.GetEnvironmentVariable("SPAWNERMODE") != null) set("devSpawnerMode", true);  // the Spawn-an-enemy sheet's Spawner row on (DEVSHEET=5)
       if (Environment.GetEnvironmentVariable("FILTER") != null) set("devFilter", Environment.GetEnvironmentVariable("FILTER"));
       if (Environment.GetEnvironmentVariable("UPRARITY") != null) set("devUpRarity", int.Parse(Environment.GetEnvironmentVariable("UPRARITY")));  // the Spawn-an-upgrade sheet (DEVSHEET=4): 0 common ... 6 milestone, UPSCROLL=px
       if (Environment.GetEnvironmentVariable("UPSCROLL") != null) set("devUpScroll", float.Parse(Environment.GetEnvironmentVariable("UPSCROLL")));
