@@ -101,6 +101,7 @@ namespace Arena
                     break;
                 }
                 case 3:  // the Momentum Burst: the blade goes into the ground
+                    BroadcastSound(Sfx.KatanaWindup);  // drawn back, its click as the blade goes in (KatanaBurstAt)
                     Later(p, KatanaBurstAt, () => MomentumBurst(p, w, extra));
                     break;
                 case 8:
@@ -226,11 +227,15 @@ namespace Arena
         }
 
         /// Host: a cut landed. Sent as an effect that draws nothing: it carries the cut's sound, and the striker's own game holds
-        /// the picture a moment (Game/Juice.cs; harder for the Burst).
+        /// the picture a moment (Game/Juice.cs; harder for the Burst). A chime after it rings the step's place in its stance's
+        /// combo, up a pentatonic line (KatanaChain1-5), so you hear how close the finisher is.
         void KatanaHitCue(Player p, bool heavy, int hits)
         {
             BroadcastFx(FxKind.KatanaHitCue, p.Pos, new V2(p.Id, 0f), KatanaRose.WithAlpha(heavy ? 1f : 0.5f), hits, 0.2f, Sfx.KatanaHit);
+            BroadcastSound(KatanaChainSfx[heavy ? KatanaChainSfx.Length - 1 : Math.Min(p.KatanaStep & 7, KatanaChainSfx.Length - 1)]);  // (the Burst: the top note)
         }
+
+        static readonly Sfx[] KatanaChainSfx = { Sfx.KatanaChain1, Sfx.KatanaChain2, Sfx.KatanaChain3, Sfx.KatanaChain4, Sfx.KatanaChain5 };
 
         // --- The finishers --------------------------------------------------------------------------------------------------
 
