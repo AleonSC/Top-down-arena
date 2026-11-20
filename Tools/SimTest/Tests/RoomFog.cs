@@ -91,9 +91,11 @@ static partial class Program
         Check(!g.FogHides(mid + new V2(200f, 0f)) && g.FogHides(mid + new V2(-260f, 0f)), "what the cone is on shows, what it isn't on stays hidden");
 
         float spin = 0f; int tick = 0;
-        var stops = new[] { V2.Zero, new V2(180f, 150f), new V2(-180f, -150f), new V2(-180f, 150f), new V2(180f, -150f) };
+        // (the stops are the middle, then the four corners and the four edge middles of the box, 110 px in: fins inside cast shadows, so a few spots in the middle leave the corners dark)
+        V2 half = (area.Max - area.Min) * 0.5f - new V2(110f, 110f);
+        var stops = new[] { V2.Zero, new V2(half.X, half.Y), new V2(-half.X, -half.Y), new V2(-half.X, half.Y), new V2(half.X, -half.Y), new V2(half.X, 0f), new V2(-half.X, 0f), new V2(0f, half.Y), new V2(0f, -half.Y) };
         // The host's player turns on the spot at a few points (fins inside cast shadows): the cone sweeps the whole piece, and it's seen on both screens; the second stays unseen.
-        Run(s, dt, 14f, () => cg.Expanded.Count > aHead && !cg.Expanded[aHead].Unseen, () => { noPicks(); g.Players[1].Pos = mid + stops[(tick++ / 150) % stops.Length]; spin += 0.05f; aimOverride = mid + V2.FromAngle(spin) * 1000f; });
+        Run(s, dt, 24f, () => cg.Expanded.Count > aHead && !cg.Expanded[aHead].Unseen, () => { noPicks(); g.Players[1].Pos = mid + stops[(tick++ / 120) % stops.Length]; spin += 0.05f; aimOverride = mid + V2.FromAngle(spin) * 1000f; });
         var group = Expansion.GroupOf(g.Expanded, aHead);
         Check(group.All(i => !g.Expanded[i].Unseen) && group.All(i => !cg.Expanded[i].Unseen), "exploring most of it reveals the whole piece for everyone (" + group.Count + " boxes)");
         Check(g.Expanded[bHead].Unseen && cg.Expanded[bHead].Unseen, "the other room stays unseen");
