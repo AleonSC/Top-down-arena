@@ -258,7 +258,9 @@ namespace Arena
                         case "node":
                         {
                             var p = val.Split(' ');
-                            save.Nodes.Add(new MapNode { Kind = Expansion.Current(Enum<NodeKind>(p[0])), X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Cleared = p.Length > 5 && I(p[5]) != 0, Hidden = p.Length > 6 && I(p[6]) != 0, Drop = (byte)(p.Length > 7 ? I(p[7]) : 0) });
+                            NodeKind nk;  // (an older save's vector chest, scout tower and gold vein nodes are chest nodes now; its shop and Black Market nodes are gone, and so are skipped)
+                            if (System.Enum.TryParse(p[0] == "VectorChest" || p[0] == "Tower" || p[0] == "Vein" ? "Chest" : p[0], out nk))
+                                save.Nodes.Add(new MapNode { Kind = nk, X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Cleared = p.Length > 5 && I(p[5]) != 0, Hidden = p.Length > 6 && I(p[6]) != 0, Drop = (byte)(p.Length > 7 ? I(p[7]) : 0) });
                             break;
                         }
                         case "cut":

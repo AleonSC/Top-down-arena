@@ -467,7 +467,7 @@ static partial class Program
         // Nodes survive a saved run (where they are placed: GridNodeFor, the gridrooms suite).
         {
             var saved = new RunSave { Wave = 6, HasExpansion = true };
-            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.BlackMarket });
+            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Rule });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
             saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Relic, Hidden = true });
             saved.Seats.Add(new SeatSave());
@@ -887,7 +887,6 @@ static partial class Program
                 V2 hub = new V2(Game.Width / 2f, Game.Height / 2f), dir = (tw.Value.Pos - hub) * (1f / (tw.Value.Pos - hub).Length);
                 V2 farP = tw.Value.Pos + dir * 3600f;
                 var old = new MapNode { X = (short)farP.X, Y = (short)farP.Y, Kind = NodeKind.Chest, Hidden = true };
-                Check(Expansion.Current(NodeKind.Tower) == NodeKind.Chest && Expansion.Current(NodeKind.Vein) == NodeKind.Chest && Expansion.Current(NodeKind.Relic) == NodeKind.Relic, "a retired scout tower or gold vein in an old save loads as a chest");
                 foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
                 g.Nodes.Add(old);
                 tickFog.Invoke(g, new object[] { 1f });

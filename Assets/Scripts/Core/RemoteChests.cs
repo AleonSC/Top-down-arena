@@ -4,11 +4,9 @@ using System.IO;
 
 namespace Arena
 {
-    /// An unopened chest the wave box's Chests tab lists (Docs/RoundFlow.md step 5): a treasure chest prop (Id: its prop id). `Node` is
-    /// always false now (a vector chest is a prop too); it stays so Msg.CollectChest keeps its format.
+    /// An unopened chest the wave box's Chests tab lists (Docs/RoundFlow.md step 5): a treasure chest prop (Id: its prop id).
     public struct ChestSpot
     {
-        public bool Node;
         public int Id;
         public ChestKind Kind;
         public V2 Pos;
@@ -18,7 +16,7 @@ namespace Arena
     /// (ChestCollectFee, paid by whoever presses Collect) instead of walking to it. It opens where it stands and everyone gets their
     /// share, as in person: a Gold chest's gold straight into each wallet, a vector chest's vectors straight to each stock, an upgrade
     /// chest's card at each player's feet (take it or throw it away; it's swept to you as the wave starts), a piece chest's cards and
-    /// a Buildables chest's builds as usual. Walking there stays free. Client -> host: Msg.CollectChest (node bool, id int).
+    /// a Buildables chest's builds as usual. Walking there stays free. Client -> host: Msg.CollectChest (id int).
     public partial class Game
     {
         public const int ChestCollectBase = 15, ChestCollectPerWave = 2;
@@ -46,23 +44,21 @@ namespace Arena
                 return;
             if (IsHost)
             {
-                HostCollectChest(MyId, c.Node, c.Id);
+                HostCollectChest(MyId, c.Id);
                 return;
             }
             var w = Proto.Begin(Msg.CollectChest);
-            w.Write(c.Node);
             w.Write(c.Id);
             session.SendToHost(Proto.End(w));
         }
 
         public void OnCollectChest(int peer, BinaryReader r)
         {
-            bool node = r.ReadBoolean();
-            HostCollectChest(peer, node, r.ReadInt32());
+            HostCollectChest(peer, r.ReadInt32());
         }
 
         /// Host: a player collects a chest from afar, if it's the break, the chest is still there and they can pay.
-        void HostCollectChest(int playerId, bool node, int id)
+        void HostCollectChest(int playerId, int id)
         {
             Player by;
             if (!IsHost || !CanCollectChests || !Players.TryGetValue(playerId, out by))
@@ -71,7 +67,7 @@ namespace Arena
             if (by.Gold < fee)
                 return;
             Prop c;
-            if (node || !Props.TryGetValue(id, out c) || c.Kind != PropKind.Chest || c.Open || c.Hp <= 0f)
+            if (!Props.TryGetValue(id, out c) || c.Kind != PropKind.Chest || c.Open || c.Hp <= 0f)
                 return;
             by.Gold -= fee;
             OpenChest(c, true);

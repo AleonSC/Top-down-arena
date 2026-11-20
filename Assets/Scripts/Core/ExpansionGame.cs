@@ -962,7 +962,7 @@ namespace Arena
             int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = Expansion.Current((NodeKind)r.ReadByte()), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean(), Hidden = r.ReadBoolean(), Drop = r.ReadByte() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean(), Hidden = r.ReadBoolean(), Drop = r.ReadByte() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);
