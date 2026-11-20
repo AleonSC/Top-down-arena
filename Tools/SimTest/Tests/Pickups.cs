@@ -106,6 +106,31 @@ static partial class Program
         Check(!g.Loots.ContainsKey(7301), "an unclaimed chest card is dealt with as the wave starts (taken if it still fits)");
         Run(s, dt, 0.3f);
         Check(!cg.Coins.ContainsKey(7202) && cg.Players[2].Gold == 120, "the client's screen agrees (its coins gone, its gold up)");
+
+        // Coins in the snapshot (Coins.cs SyncCoins): resting coins are sent once, not every snapshot; the client still sees every
+        // coin dropped, moved and taken, and a client that lost track is put right by the next full list.
+        var sync = typeof(Game).GetMethod("SyncSnapshot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Func<int> Bytes = () => { var ms = new System.IO.MemoryStream(); sync.Invoke(g, new object[] { new NetSync(new System.IO.BinaryWriter(ms)) }); return (int)ms.Length; };
+        g.Coins.Clear();
+        Run(s, dt, 0.2f, null, () => { Quiet(); Put(); });
+        int none = Bytes();
+        for (int i = 0; i < 1000; i++)
+        {
+            var at = new V2(200f + (i % 40) * 30f, 600f + (i / 40) * 12f);
+            g.Coins[8000 + i] = new Coin { Id = 8000 + i, Value = 1, Owner = 1 + i % 2, Pos = at, Disp = at };
+        }
+        Run(s, dt, 0.2f, null, () => { Quiet(); Put(); });
+        int rest = Bytes();
+        Check(rest - none < 200, "1000 resting coins add almost nothing to a snapshot (" + none + " -> " + rest + " bytes)");
+        Check(cg.Coins.Count == 1000 && cg.Coins.ContainsKey(8999), "...yet the client has every one (" + cg.Coins.Count + ")");
+        g.Coins.Remove(8001);
+        g.Coins[8002].Pos += new V2(40f, 0f);
+        Run(s, dt, 0.2f, null, () => { Quiet(); Put(); });
+        Check(!cg.Coins.ContainsKey(8001) && cg.Coins[8002].Pos.DistanceTo(g.Coins[8002].Pos) < 0.01f, "a coin taken goes and a coin pulled moves on the client too");
+        cg.Coins.Clear();  // (the client lost track)
+        Run(s, dt, Game.CoinFullEvery * 3 * dt + 0.3f, null, () => { Quiet(); Put(); });
+        Check(cg.Coins.Count == g.Coins.Count, "a full list puts a client that lost track right within " + (Game.CoinFullEvery * 3 * dt).ToString("0.0") + " s (" + cg.Coins.Count + "/" + g.Coins.Count + ")");
+        g.Coins.Clear();
         s[0].Leave(""); s[1].Leave("");
     }
 }
