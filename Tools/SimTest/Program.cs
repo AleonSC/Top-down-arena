@@ -299,6 +299,7 @@ static partial class Program
         Test("queenloot", "the Hive Queen's legendaries: Hive Drones, Royal Dive, Bomber Escort", () => QueenLootTest(Dt)),
         Test("captain", "the Riot Captain: its shield, the charge into a wall, the whistle, its attacks, its room over the network", () => RiotCaptainTest(Dt)),
         Test("guardswing", "the riot Guard swings its baton fast, forehand then backhand, only when you're close and without stopping", () => GuardSwingTest(Dt)),
+        Test("thugpunch", "the Thug plants and winds up a short punch when you're close; it lands in its wedge and a sidestep dodges it", () => ThugPunchTest(Dt)),
         Test("guardrally", "a Rioter near a Guard runs faster than one alone", () => GuardRallyTest(Dt)),
         Test("riotercrowd", "Rioters touching you slow your walk, compounding: barely with one, a lot with a pile", () => RioterCrowdTest(Dt)),
         Test("rioterbottle", "from wave 2 some Rioters carry one bottle and throw it at a player 110-300 px away", () => RioterBottleTest(Dt)),
@@ -390,6 +391,7 @@ static partial class Program
         Test("devourer", "the Devourer's three phases and last meal", () => DevourerTest(Dt)),
         Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("pacman", "the Pac-Man maze game: maze, steering, tunnel, dots and pellets, the four role ghosts, lives, levels, the ghost house, co-op", () => PacmanTest(Dt)),
+        Test("corelayouts", "core layouts (Docs/Mockups/core-layouts.html): ten floor plans for the Grid core, door lanes and the gate floor clear, one a run, a new one each Campaign map, synced and saved", () => CoreLayoutsTest(Dt)),
         Test("mapreset", "the Campaign map resets after each boss: kits kept, half the spent vectors back, saved", () => MapResetTest(Dt)),
         Test("longrun", "the 100-wave Campaign: two legs a track wave, the boss after every tenth, half XP, saves and continuing, the party's level at the first boss", () => LongRunTest(Dt), () => LongRunPaceTest(Dt)),
         Test("wardencycle", "the Campaign's Warden cycle: one lesson a wave (Rioters, guards, shields, gas, tasers, squads, the Riot line) (one guaranteed star enemy each)", () => WardenCycleTest(Dt)),
@@ -559,7 +561,7 @@ static partial class Program
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
     static int Main(string[] args)

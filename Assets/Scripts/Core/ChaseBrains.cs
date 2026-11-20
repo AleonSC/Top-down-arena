@@ -32,11 +32,12 @@ namespace Arena
         {
             var chase = new ChaseMove();
             var brute = new Brain { Move = chase, Roles = BrainRole.Brute };
-            foreach (var type in new[] { EnemyType.Brute, EnemyType.Thug, EnemyType.Bumble, EnemyType.Gravedigger })
+            foreach (var type in new[] { EnemyType.Brute, EnemyType.Bumble, EnemyType.Gravedigger })
                 t[(int)type] = brute;
             var plain = new Brain { Move = chase };
             t[(int)EnemyType.Swarmer] = plain;
             t[(int)EnemyType.Wisp] = plain;
+            t[(int)EnemyType.Thug] = new Brain { Move = chase, Special = new ThugPunchSpecial(), Roles = BrainRole.Brute };  // its charged punch (ThugPunch.cs)
             t[(int)EnemyType.Stomper] = new Brain { Move = chase, Special = new StompSpecial(), Roles = BrainRole.Brute };
             t[(int)EnemyType.Gulper] = new Brain { Move = chase, Special = new GulpSpecial(), Roles = BrainRole.Brute };
             t[(int)EnemyType.Harlequin] = new Brain { Move = chase, Special = new CrossingSpecial(), Roles = BrainRole.Brute };

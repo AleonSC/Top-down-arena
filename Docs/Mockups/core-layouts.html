@@ -1,0 +1,182 @@
+<title>Core Room Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a header strip, then a two-column wall of big map plates; click a plate to inspect it full size. Single dark CRT look by choice. */
+:root{
+  --bg:#05070f; --panel:#0a0f1f; --line:#1a2547; --ink:#d9e4ff; --muted:#7f8db3;
+  --wall:#4d7cff; --pillar:#7aa2ff; --crate:#c98a3f; --heavy:#e0a64d; --door:#3ee6b4; --gate:#ffd166; --danger:#ff4d6a;
+  --display:"Orbitron","Eurostile",ui-sans-serif,system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
+.wrap{max-width:1280px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font:700 26px/1.1 var(--display);letter-spacing:.08em;margin:0 0 8px;text-transform:uppercase;text-wrap:balance}
+.lede{color:var(--muted);max-width:72ch;margin:0 0 16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 20px;font:12px var(--mono);color:var(--muted)}
+.bar i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.bar label{display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;cursor:zoom-in;min-width:0;transition:border-color .15s}
+.card:hover,.card:focus-visible{border-color:var(--wall);outline:none}
+canvas{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:2400/1800;border-radius:3px;background:#000}
+.meta{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin:10px 2px 2px;flex-wrap:wrap}
+.meta b{font:700 15px var(--display);letter-spacing:.07em;text-transform:uppercase}
+.meta span{font:11px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card p{margin:4px 2px 2px;color:var(--muted);font-size:13.5px}
+.sym{font:10px var(--mono);color:var(--gate);border:1px solid #ffd16655;border-radius:3px;padding:1px 5px;margin-left:8px;vertical-align:2px}
+.zoom{position:fixed;inset:0;background:#000d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:20;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));cursor:zoom-out}
+.zoom canvas{width:min(100%,calc((100vh - 120px) * 4 / 3));}
+.zoom div{font:13px var(--mono);color:var(--muted);max-width:90ch;text-align:center}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap">
+
+<div class="wrap">
+  <h1>Core room layouts</h1>
+  <p class="lede">Ten default floor plans for the 4 × 3 cell core (2400 × 1800 px). Built only from pieces the game already has: walls (boxes), pillars (discs), crates and heavy crates. Every plan keeps the 14 door spots and a 260 px circle round the boss gate clear, so bosses still get an open floor. Approximate mockup, not the real draw code. Click a map to enlarge.</p>
+  <div class="bar">
+    <span><i style="background:var(--wall)"></i>wall</span>
+    <span><i style="background:var(--pillar);border-radius:50%"></i>pillar</span>
+    <span><i style="background:var(--crate)"></i>crate</span>
+    <span><i style="background:var(--heavy)"></i>heavy crate</span>
+    <span><i style="background:var(--door)"></i>door spot</span>
+    <span><i style="background:var(--gate);border-radius:50%"></i>boss gate</span>
+    <label><input type="checkbox" id="optOld" checked> old 1600 × 900 arena</label>
+    <label><input type="checkbox" id="optCells" checked> cell lines</label>
+    <label><input type="checkbox" id="optLanes"> door lanes</label>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+// ===== LAYOUTS (units: px in the core, 0..2400 x 0..1800; real world = x-400, y-400) =====
+// sym "m4": pieces drawn for the top-left quarter, mirrored to all four. "r2": the left half, turned 180° for the right.
+// ['w',x,y,w,h] wall · ['p',x,y,r] pillar · ['c',x,y] crate · ['h',x,y] heavy crate
+const LAYOUTS=[
+{n:"Colonnade",sym:"m4",d:"A nave of pillar rows leads from every door to the gate. Short screens and crate stacks make side aisles to flank down.",
+ q:[['p',560,330,30],['p',700,330,30],['p',1100,330,30],['p',150,600,30],['p',600,520,34],['p',820,520,34],['p',1040,520,34],['p',600,700,30],['p',930,760,26],
+    ['w',420,560,24,200],['w',300,440,140,24],['w',1150,150,50,24],
+    ['c',760,620],['c',800,660],['h',760,660],['c',300,760],['c',140,140],['h',1080,200]]},
+{n:"Citadel",sym:"m4",d:"Two broken rings of wall round the gate. The outer ring opens at the middle doors; the inner one only at the corners, so the fight spirals in.",
+ q:[['w',440,340,600,24],['w',440,340,24,300],['w',740,570,200,24],['w',740,570,24,160],['p',452,352,44],['p',752,582,30],
+    ['w',300,560,140,24],['p',600,150,30],['p',1110,240,30],['c',110,110],['h',150,140],['c',150,560],['c',600,180],['c',640,200],['h',1100,150],['c',580,460],['c',620,470],['c',880,470]]},
+{n:"Circuit Board",sym:"m4",d:"Thin traces wired between pads, a chip block on each side of the top middle. Lots of long sight lines broken at right angles.",
+ q:[['w',300,300,400,16],['w',684,300,16,220],['w',684,504,260,16],['p',300,308,22],['p',944,512,22],
+    ['w',130,560,16,200],['w',130,560,290,16],['p',420,568,22],['p',138,760,22],
+    ['w',500,700,16,200],['w',500,700,240,16],['p',740,708,22],
+    ['w',1040,180,120,90],
+    ['p',560,160,34],['p',620,160,34],['c',860,380],['c',900,410],['h',300,450],['c',820,840]]},
+{n:"Bastions",sym:"m4",d:"A walled fort in each quarter, open toward the gate, with crates inside to hold. Flank walls along the edges stop easy wraps round them.",
+ q:[['w',470,380,300,24],['w',470,380,24,240],['w',470,596,160,24],['w',746,380,24,120],['p',470,380,30],['p',770,620,22],
+    ['c',540,450],['h',580,480],['c',540,520],['w',520,150,180,24],['w',1080,260,24,200],['w',130,520,24,180],
+    ['c',300,700],['c',340,720],['c',900,700],['h',950,320],['c',1120,620],['p',900,480,26],['p',300,300,26]]},
+{n:"Terraces",sym:"m4",d:"Stepped walls run like stairs down toward the gate, one big flight and one small per quarter. Every step is a corner to peek from.",
+ q:[['w',300,300,160,24],['w',436,300,24,120],['w',436,396,160,24],['w',572,396,24,120],['w',572,492,160,24],['w',708,492,24,120],['w',708,588,140,24],
+    ['w',560,140,200,24],['w',736,140,24,130],['w',736,250,200,24],['w',912,250,24,120],['w',912,346,160,24],
+    ['w',140,500,120,24],['w',140,500,24,160],['p',820,720,22],['p',1000,520,26],
+    ['c',380,420],['c',660,560],['h',1100,150],['c',420,820],['c',460,840]]},
+{n:"Shattered Plaza",sym:"r2",d:"Broken shards of wall in stepped diagonals and fallen pillar rubble. Turned 180° instead of mirrored, so each side reads differently.",
+ q:[['w',400,500,80,40],['w',460,540,80,40],['w',520,580,80,40],['w',580,620,80,40],['w',700,250,120,40],['w',780,290,40,140],
+    ['w',300,1100,40,200],['w',340,1260,160,40],['w',760,1300,200,30],['w',930,1150,30,180],
+    ['p',600,900,40],['p',640,940,18],['p',1000,600,30],['p',300,1500,26],['p',1050,1450,34],
+    ['c',500,300],['h',540,330],['c',860,820],['c',700,1500],['c',150,1200],['h',1100,1550],['c',1150,300],['c',380,800],['c',420,830]]},
+{n:"Hedge Maze",sym:"m4",d:"A maze ring round an open middle. Crates sit in the dead ends; the gate floor stays clear for bosses.",
+ q:[['w',300,280,300,20],['w',580,280,20,200],['w',300,280,20,140],['w',420,400,20,200],['w',420,580,280,20],['w',680,460,20,140],
+    ['w',700,300,220,20],['w',900,300,20,160],['w',1040,160,20,240],['w',1040,400,100,20],
+    ['w',160,520,20,220],['w',160,520,140,20],['w',300,700,200,20],['w',300,700,20,120],['w',780,600,20,180],['w',600,760,180,20],
+    ['p',960,560,20],['c',360,340],['c',480,640],['h',860,360],['c',1100,250]]},
+{n:"Reactor",sym:"m4",d:"A ring of pillars round the gate like a reactor core, spokes out to the walls and a big coolant tower in each quarter.",
+ q:[['p',899,791,28],['p',974,674,28],['p',1091,599,28],
+    ['w',760,520,100,24],['w',760,520,24,100],['w',520,888,240,24],['w',1188,240,24,180],
+    ['p',480,320,56],['w',260,600,24,140],['w',600,160,140,24],
+    ['c',680,420],['c',720,440],['h',1080,200],['c',340,840],['c',600,640],['h',640,600]]},
+{n:"Trenches",sym:"r2",d:"Long trench walls cross the room in staggered rows with gaps to push through. Crate lines sit behind each trench.",
+ q:[['w',260,380,500,24],['w',860,380,340,24],['w',120,640,340,24],['w',560,640,400,24],['w',300,1160,380,24],['w',780,1160,180,24],
+    ['w',260,1420,500,24],['w',860,1420,340,24],
+    ['c',400,420],['c',440,420],['c',620,680],['h',700,680],['c',380,1120],['c',420,1120],['c',900,1380],['c',1100,1460],
+    ['p',810,520,26],['p',510,900,30],['p',700,900,30],['p',600,1290,26]]},
+{n:"Pinball",sym:"m4",d:"Bumper pillars of every size and short deflector walls. Hard to line up shots, easy to dodge round: good for swarm waves.",
+ q:[['p',560,420,50],['p',760,300,34],['p',380,560,34],['p',900,520,40],['p',1080,400,34],['p',680,780,24],['p',260,300,18],
+    ['w',300,760,220,24],['w',500,640,24,140],['w',480,120,240,24],['w',1060,110,24,160],['w',120,500,24,240],
+    ['c',700,560],['c',740,600],['h',720,700],['c',900,760]]},
+];
+
+// ===== geometry =====
+const W=2400,H=1800,CX=1200,CY=900,GATE_R=260,CRATE=36,HEAVY=46;
+const DOORS=[];[300,900,1500,2100].forEach(x=>{DOORS.push([x,0,'h']);DOORS.push([x,H,'h'])});[300,900,1500].forEach(y=>{DOORS.push([0,y,'v']);DOORS.push([W,y,'v'])});
+function expand(L){
+  const out=[];
+  const mx=e=>e[0]=='w'?['w',W-e[1]-e[3],e[2],e[3],e[4]]:e[0]=='p'?['p',W-e[1],e[2],e[3]]:[e[0],W-e[1],e[2]];
+  const my=e=>e[0]=='w'?['w',e[1],H-e[2]-e[4],e[3],e[4]]:e[0]=='p'?['p',e[1],H-e[2],e[3]]:[e[0],e[1],H-e[2]];
+  const key=e=>e.join(',');const seen=new Set();
+  const add=e=>{const k=key(e);if(!seen.has(k)){seen.add(k);out.push(e)}};
+  for(const e of L.q){ if(L.sym=='m4'){add(e);add(mx(e));add(my(e));add(mx(my(e)))} else {add(e);add(mx(my(e)))} }
+  return out;
+}
+// lane checks (also used offline)
+function clash(e){
+  let x0,y0,x1,y1;
+  if(e[0]=='w'){x0=e[1];y0=e[2];x1=e[1]+e[3];y1=e[2]+e[4]}
+  else{const r=e[0]=='p'?e[3]:(e[0]=='h'?HEAVY:CRATE)/2;x0=e[1]-r;y0=e[2]-r;x1=e[1]+r;y1=e[2]+r}
+  const lanes=[];for(const[d0,d1,o] of DOORS){ if(o=='h') lanes.push([d0-110,d1?H-240:0,d0+110,d1?H:240]); else lanes.push([d0?W-240:0,d1-110,d0?W:240,d1+110]); }
+  for(const l of lanes) if(x0<l[2]&&x1>l[0]&&y0<l[3]&&y1>l[1]) return 'door lane';
+  const nx=Math.max(x0,Math.min(CX,x1)),ny=Math.max(y0,Math.min(CY,y1));
+  if(Math.hypot(nx-CX,ny-CY)<GATE_R) return 'gate';
+  if(x0<14||y0<14||x1>W-14||y1>H-14) return 'outer wall';
+  return null;
+}
+if(typeof module!=='undefined'){module.exports={LAYOUTS,expand,clash};}
+
+// ===== drawing =====
+function draw(cv,L,opt){
+  const x=cv.getContext('2d'),s=cv.width/W;x.setTransform(s,0,0,s,0,0);
+  x.fillStyle='#03050c';x.fillRect(0,0,W,H);
+  // floor grid (100 px tiles) + cell lines (600 px)
+  x.lineWidth=2;x.strokeStyle='#0c1530';x.beginPath();for(let i=0;i<=W;i+=100){x.moveTo(i,0);x.lineTo(i,H)}for(let j=0;j<=H;j+=100){x.moveTo(0,j);x.lineTo(W,j)}x.stroke();
+  if(opt.cells){x.lineWidth=3;x.setLineDash([18,14]);x.strokeStyle='#1b2a5c';x.beginPath();for(let i=600;i<W;i+=600){x.moveTo(i,0);x.lineTo(i,H)}for(let j=600;j<H;j+=600){x.moveTo(0,j);x.lineTo(W,j)}x.stroke();x.setLineDash([])}
+  if(opt.old){x.lineWidth=4;x.setLineDash([30,18]);x.strokeStyle='#ff4d6a66';x.strokeRect(400,400,1600,900);x.setLineDash([])}
+  if(opt.lanes){x.fillStyle='#3ee6b414';for(const[d0,d1,o] of DOORS){if(o=='h')x.fillRect(d0-110,d1?H-240:0,220,240);else x.fillRect(d0?W-240:0,d1-110,240,220)}}
+  // gate
+  const g=x.createRadialGradient(CX,CY,20,CX,CY,GATE_R);g.addColorStop(0,'#ffd16626');g.addColorStop(1,'#ffd16600');x.fillStyle=g;x.beginPath();x.arc(CX,CY,GATE_R,0,7);x.fill();
+  x.strokeStyle='#ffd166aa';x.lineWidth=4;x.setLineDash([22,16]);x.beginPath();x.arc(CX,CY,150,0,7);x.stroke();x.setLineDash([]);
+  x.strokeStyle='#ffd16655';x.lineWidth=2;x.beginPath();x.arc(CX,CY,110,0,7);x.stroke();
+  for(let k=0;k<6;k++){const a=k*Math.PI/3;x.beginPath();x.moveTo(CX+Math.cos(a)*110,CY+Math.sin(a)*110);x.lineTo(CX+Math.cos(a+2*Math.PI/3)*110,CY+Math.sin(a+2*Math.PI/3)*110);x.stroke()}
+  const items=expand(L);
+  // crates
+  for(const e of items) if(e[0]=='c'||e[0]=='h'){const z=e[0]=='h'?HEAVY:CRATE,c=e[0]=='h'?'#e0a64d':'#c98a3f';
+    x.fillStyle=c+'33';x.strokeStyle=c;x.lineWidth=4;x.fillRect(e[1]-z/2,e[2]-z/2,z,z);x.strokeRect(e[1]-z/2,e[2]-z/2,z,z);
+    x.beginPath();x.moveTo(e[1]-z/2,e[2]-z/2);x.lineTo(e[1]+z/2,e[2]+z/2);if(e[0]=='h'){x.moveTo(e[1]+z/2,e[2]-z/2);x.lineTo(e[1]-z/2,e[2]+z/2)}x.stroke()}
+  // walls + pillars, phosphor glow
+  x.shadowColor='#4d7cff';x.shadowBlur=18;
+  for(const e of items) if(e[0]=='w'){x.fillStyle='#0d1a44';x.fillRect(e[1],e[2],e[3],e[4]);x.strokeStyle='#5d88ff';x.lineWidth=5;x.strokeRect(e[1]+2.5,e[2]+2.5,e[3]-5,e[4]-5)}
+  for(const e of items) if(e[0]=='p'){x.fillStyle='#0d1a44';x.strokeStyle='#8fb0ff';x.lineWidth=5;x.beginPath();x.arc(e[1],e[2],e[3],0,7);x.fill();x.stroke();
+    if(e[3]>=30){x.lineWidth=2;x.beginPath();x.arc(e[1],e[2],e[3]*0.5,0,7);x.stroke()}}
+  x.shadowBlur=0;
+  // outer wall + doors
+  x.strokeStyle='#4d7cff';x.lineWidth=28;x.shadowColor='#4d7cff';x.shadowBlur=20;x.strokeRect(14,14,W-28,H-28);x.shadowBlur=0;
+  x.fillStyle='#3ee6b4';for(const[d0,d1,o] of DOORS){if(o=='h')x.fillRect(d0-80,d1?H-28:0,160,28);else x.fillRect(d0?W-28:0,d1-80,28,160)}
+  // players at the start (round the gate)
+  for(const[px,py,c] of [[1110,900,'#5ef0ff'],[1290,900,'#ff7ad9'],[1200,990,'#b6ff6a']]){x.fillStyle=c;x.beginPath();x.arc(px,py,20,0,7);x.fill()}
+  return items;
+}
+function stats(items){let w=0,p=0,c=0,area=0;for(const e of items){if(e[0]=='w'){w++;area+=e[3]*e[4]}else if(e[0]=='p'){p++;area+=Math.PI*e[3]*e[3]}else c++}
+  return `${w} walls · ${p} pillars · ${c} crates · ${(area/(W*H)*100).toFixed(1)}% blocked`}
+
+if(typeof document!=='undefined'){
+  const grid=document.getElementById('grid'),opt={old:true,cells:true,lanes:false},cards=[];
+  for(const L of LAYOUTS){
+    const card=document.createElement('div');card.className='card';card.tabIndex=0;
+    const cv=document.createElement('canvas');cv.width=1200;cv.height=900;card.appendChild(cv);
+    const items=draw(cv,L,opt);
+    card.insertAdjacentHTML('beforeend',`<div class="meta"><b>${L.n}<span class="sym">${L.sym=='m4'?'MIRRORED ×4':'TURNED 180°'}</span></b><span>${stats(items)}</span></div><p>${L.d}</p>`);
+    const open=()=>{const z=document.createElement('div');z.className='zoom';const big=document.createElement('canvas');big.width=2400;big.height=1800;draw(big,L,opt);
+      z.appendChild(big);z.insertAdjacentHTML('beforeend',`<div><b style="color:var(--ink)">${L.n}</b> · ${stats(items)} · click or Esc to close</div>`);
+      const close=()=>{z.remove();document.removeEventListener('keydown',esc)};const esc=ev=>{if(ev.key=='Escape')close()};
+      z.onclick=close;document.addEventListener('keydown',esc);document.body.appendChild(z)};
+    card.onclick=open;card.onkeydown=ev=>{if(ev.key=='Enter'||ev.key==' '){ev.preventDefault();open()}};
+    grid.appendChild(card);cards.push([cv,L]);
+  }
+  const redraw=()=>cards.forEach(([cv,L])=>draw(cv,L,opt));
+  for(const[id,k] of [['optOld','old'],['optCells','cells'],['optLanes','lanes']]) document.getElementById(id).onchange=ev=>{opt[k]=ev.target.checked;redraw()};
+}
+</script>

@@ -171,7 +171,7 @@ namespace Arena
             behind = default(V2);
             var all = new List<ExpansionRoom>(Expanded);
             all.AddRange(plan.Rooms);
-            var w = Expansion.Build(all, Openings, Links, Nodes);
+            var w = Expansion.Build(all, Openings, Links, Nodes, CoreLayout);
             int oldAreas = Expanded.Count + 1;  // (area 0 is the hub, area i is Expanded[i - 1])
             foreach (var d in w.Doors)
             {

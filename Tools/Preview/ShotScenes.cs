@@ -317,6 +317,22 @@ static partial class Shot {
       }
       }
     }
+    if (Environment.GetEnvironmentVariable("THUG") != null) {
+      // THUG=1: the Thug's charged punch (ThugPunch.cs, PrisonLook.cs DrawThugFloor): walking, early in the wind-up, late in
+      // the wind-up, mid-jab, left to right, each facing you above; mode hud with KNIGHT=1 ZOOM=2.6.
+      var tgm = host.Game; tgm.Bot = false; tgm.Enemies.Clear(); tgm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(800f, 300f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      foreach (var pl in tgm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var tspawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var tstages = new[] { Game.LarderIdle, Game.LarderWinding, Game.LarderWinding, Game.LarderActing };
+      var tleft = new[] { 0f, Game.PunchWind * 0.8f, Game.PunchWind * 0.15f, Game.PunchFlash * 0.6f };
+      for (int i = 0; i < 4; i++) {
+        var at = new V2(800f + (i - 1.5f) * 110f, 420f);
+        var en = (Enemy)tspawn.Invoke(tgm, new object[] { EnemyType.Thug, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = -MathX.Pi / 2f;
+        en.LarderStage = tstages[i]; en.LarderT = tleft[i]; en.Traits = 0;
+      }
+    }
     if (Environment.GetEnvironmentVariable("RALLY") != null) {
       // RALLY=1: a Guard with Rioters round it (amber rally ring), a lone Rioter at each end; bottle Rioters carry a bottle,
       // one rcocked to throw, one bottle in flight. KNIGHT=1 ZOOM=2.2.
@@ -2321,6 +2337,10 @@ static partial class Shot {
       string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: plain boxes added in order (no checks)
       if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why = null; var cr = Box(q[0], q[1], q[2], q[3]); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
       if (Environment.GetEnvironmentVariable("GRIDCORE") != null) { xg.Expanded.InsertRange(0, Expansion.GridCore()); xg.Openings.AddRange(Expansion.GridCoreCuts()); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); }  // GRIDCORE=1 (with EXPANDMAP=0): a Grid run's core (GridRooms.cs); EXPANDAT=x,y ZOOM=z to look at it
+      if (Environment.GetEnvironmentVariable("CORELAYOUT") != null) {  // CORELAYOUT=<0-9> (with GRIDCORE=1 or EXPANDMAP=n): that core floor plan (CoreLayouts.cs), its walls and crates
+        xg.CoreLayout = (CoreLayoutId)int.Parse(Environment.GetEnvironmentVariable("CORELAYOUT")); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+        xg.Props.Clear(); foreach (var cc in CoreLayouts.Crates(xg.CoreLayout)) xg.AddProp(cc.Heavy ? PropKind.HeavyCrate : PropKind.Crate, cc.Pos).Age = 5f;
+      }
       string xsur = Environment.GetEnvironmentVariable("EXPANDSURPRISE");  // EXPANDSURPRISE=ring|cross|l|t|chamfer: that surprise room built, SURPRISEAGE=<s since it appeared> (default 0.6)
       if (xsur != null) {
         var xsh = (SurpriseShape)Array.IndexOf(new[] { "ring", "cross", "l", "t", "chamfer" }, xsur); string xwhy;
