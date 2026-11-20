@@ -1148,6 +1148,7 @@ namespace Arena
             }
             if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4) && DashT <= 0f)
                 move = V2.Zero;  // the Arc Knuckles' Flurry and Grab & Throw: rooted while they run (ArcKnucklesChain.cs)
+            bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
             float bowRelease = LocalBow(me, firing, dt);
             if (me.Downed)
                 DashT = 0f;
@@ -1221,6 +1222,21 @@ namespace Arena
             {
                 bool pressed = held[slot] && !abilityWasDown[slot];
                 abilityWasDown[slot] = held[slot];
+                if (OathPickSlot == slot)
+                {
+                    if (pressed)
+                    {
+                        OathPickSlot = -1;  // the key again: never mind
+                        continue;
+                    }
+                    pressed = oathClick;  // the click on an ally is the cast
+                }
+                else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.GuardiansOath && !me.Downed)
+                {
+                    if (me.Slots[slot].Charges > 0 && OathTarget(me, aimAt, OathRangeFor(me)) != null)
+                        OathPickSlot = slot;  // now click the ally to grab (nobody in reach: nothing happens, no cooldown spent)
+                    continue;
+                }
                 if (!pressed || me.Downed || State == MatchState.GameOver)
                     continue;
                 if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
@@ -1257,7 +1273,8 @@ namespace Arena
                         break;
                     }
                     case AbilityId.GuardiansOath:
-                        target = LocalOathCharge(me, aimAt);  // GuardiansOath.cs: charge to the player nearest your cursor
+                        target = LocalOathCharge(me, aimAt, Bot ? OathTarget(me, aimAt, OathRangeFor(me)) : OathPickTarget(me, aimAt));  // GuardiansOath.cs: charge to the ally you clicked
+                        OathPickSlot = -1;
                         break;
                     case AbilityId.RoyalDive:
                     {

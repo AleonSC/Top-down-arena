@@ -1517,6 +1517,19 @@ static partial class Shot {
       foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; en.Pos = en.Disp = me.Pos + V2.FromAngle(0.9f + k * 2.1f) * (110f + 40f * k); if (++k >= 3) break; }
       foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && k-- <= 0) { en.Pos = en.Disp = new V2(150f, 120f); }
     }
+    // OATHPICK=1|0 (Guardian's Oath waiting for the click: 1 with the cursor on an ally, 0 off them; GuardiansOathLook.cs; 3 players).
+    if (Environment.GetEnvironmentVariable("OATHPICK") != null) {
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      me.Kit = Kit.Knight; me.Role = Role.Healer; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Knight, 0);
+      me.Slots[1].Id = AbilityId.GuardiansOath; gm.OathPickSlot = 1;
+      me.Pos = me.Disp = new V2(520f, 480f); me.Flash = 0f;
+      int k = 0;
+      foreach (var q in gm.Players.Values) if (q.Id != me.Id) { q.Pos = q.Disp = me.Pos + (k == 0 ? new V2(330f, -170f) : new V2(-120f, -300f)); k++; }
+      Player tgt = null; foreach (var q in gm.Players.Values) if (q.Id != me.Id) { tgt = q; break; }
+      me.AimAt = Environment.GetEnvironmentVariable("OATHPICK") == "1" && tgt != null ? tgt.Pos + new V2(6f, 4f) : me.Pos + new V2(200f, 120f);
+      me.Aim = (me.AimAt - me.Pos).Angle;
+      foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; en.Pos = en.Disp = me.Pos + new V2(380f, -40f + 30f * (k++ % 3)); }
+    }
     // GREATSTAR=held|draw|fly GSAT=<px along the route> (the DPS Shuriken's Great Star stance: in your hand, a route being drawn,
     // or the star thrown along one, that far along; GreatStarLook.cs). Any NINJA= works: it puts the Shuriken in your hand.
     if (Environment.GetEnvironmentVariable("GREATSTAR") != null) {

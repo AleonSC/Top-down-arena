@@ -782,7 +782,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.GuardiansOath, Kit = Kit.Knight, Role = Role.Healer, Choice = 1,
-                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Charge to the player nearest your cursor (up to 600 px), downed or not, and drag them clear. A Ward of Light then cuts damage by half for everyone inside for 5 s, and downed allies in it revive twice as fast.",
+                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Press, then click a player (up to 600 px), downed or not: charge to them, grab them and haul them back to where you stood. A Ward of Light then cuts damage by half for everyone inside for 5 s, and downed allies in it revive twice as fast.",
                 Capstone = "Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health.",
                 Bot = b => b.AllyHurt,
             },
