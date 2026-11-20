@@ -477,7 +477,7 @@ namespace Arena
             if (kind == MysteryKind.Enemies)  // (owner Nov 20: they sleep in the fog at the layout's sleeper slots, and wake when seen; no burst on opening)
             {
                 if (size == MysteryRoom.Small)
-                    PlantDormantGroups(rooms, true, MysteryPackType(), (Mystery.SmallPack + Math.Max(1, CellLayouts.SleeperSlots(rooms).Count) - 1) / Math.Max(1, CellLayouts.SleeperSlots(rooms).Count), true);  // (the pack split over the slots)
+                    PlantDormantGroups(rooms, true, MysteryPackType(), (Mystery.SmallPack + Math.Max(1, CellLayouts.SleeperSlots(rooms, Expanded).Count) - 1) / Math.Max(1, CellLayouts.SleeperSlots(rooms, Expanded).Count), true);  // (the pack split over the slots)
                 else
                     PlantDormantGroups(rooms, true);
             }

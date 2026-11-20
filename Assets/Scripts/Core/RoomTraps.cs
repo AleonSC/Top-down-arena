@@ -47,6 +47,7 @@ namespace Arena
                 grid |= Expansion.IsGridCore(r);
             if (!grid)
                 return list;
+            var plans = CellLayouts.Plans(rooms);
             foreach (var r in rooms)
             {
                 if (!Eligible(r))
@@ -54,7 +55,9 @@ namespace Arena
                 foreach (var o in CellLayouts.CellOrigins(r))
                 {
                     CellLayouts.CellOf(o.X + 1, o.Y + 1, out int cx, out int cy);
-                    var slots = CellLayouts.All[CellLayouts.Pick(cx, cy)].Traps;
+                    if (!CellLayouts.TryPlan(plans, cx, cy, out var plan))
+                        continue;
+                    var slots = CellLayouts.TurnedOf(plan).Traps;
                     var rng = new DetRandom(cx * 83492791 ^ cy * 2654435 ^ 0x2545f491);
                     foreach (var s in slots)
                     {
