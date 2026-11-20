@@ -6,13 +6,13 @@ namespace Arena
 {
     /// The F1 developer tools as a dock (Docs/Mockups option C): a slim bar over the live game with the things you reach for most pinned
     /// (God, Full heal, Skip wave, Kill all), four keys (WAVE, PARTY, VIEW, LABS) that each open a small drawer under them, the stat editor
-    /// as a side drawer and the bigger tools (Spawn an upgrade or enemy, Snapshots) as one sheet. In a match the game keeps running and
+    /// as a side drawer and the bigger tools (Spawn an upgrade, enemy, gadget or relic; Snapshots) as one sheet. In a match the game keeps running and
     /// only the mouse is blocked over the dock; in the lobby and menus it is modal. Esc and F1 close it (UiScreens.cs).
     public partial class ArenaApp
     {
         int devDrawer;            // 0 none, 1 wave, 2 party, 3 view, 4 labs
         bool devSide;             // the stat editor, as a side drawer
-        int devSheet;             // 0 none, 4 Spawn an upgrade, 5 Spawn an enemy, 6 Snapshots
+        int devSheet;             // 0 none, 4 Spawn an upgrade, 5 Spawn an enemy, 6 Snapshots, 7 Spawn a gadget or relic
         readonly List<Rect> dockHit = new List<Rect>();  // the dock's rects as last drawn (the mouse over one doesn't shoot)
 
         static readonly Rect DockBar = new Rect(16f, 10f, W - 32f, 52f);
@@ -67,7 +67,7 @@ namespace Arena
                 dockHit.Clear();
             bool inMatch = session.Screen == AppScreen.Game;
             bool host = session.IsHost;
-            if (!inMatch && (devDrawer == 1 || devDrawer == 2 || devSide || devSheet == 4 || devSheet == 5))
+            if (!inMatch && (devDrawer == 1 || devDrawer == 2 || devSide || devSheet == 4 || devSheet == 5 || devSheet == 7))
             {
                 devDrawer = devDrawer == 1 || devDrawer == 2 ? 0 : devDrawer;
                 devSide = false;
@@ -276,9 +276,15 @@ namespace Arena
             GUI.enabled = was;
             if (DkKey(col.Next(36f), "EDIT STATS…", CrtStyle.Head, devSide, 14))
                 devSide = !devSide;
-            if (DkKey(col.Next(36f), "SPAWN AN UPGRADE…", CrtStyle.Head, false, 14))
+            var sp = DkStack.Cells(col.Next(36f), 2, 6f);
+            if (DkKey(sp[0], "SPAWN AN UPGRADE…", CrtStyle.Head, false, 13))
             {
                 devSheet = 4;
+                devDrawer = 0;
+            }
+            if (DkKey(sp[1], "GADGET / RELIC…", CrtStyle.Head, false, 13))
+            {
+                devSheet = 7;
                 devDrawer = 0;
             }
             var prof = Profile.Current;
@@ -358,7 +364,7 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
+            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 7 ? "Spawn a gadget or relic" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;
@@ -367,6 +373,10 @@ namespace Arena
             else if (devSheet == 4)
             {
                 if (inMatch) DrawDockUpgrades(inner); else DevNotInMatch(inner, "spawn an upgrade");
+            }
+            else if (devSheet == 7)
+            {
+                if (inMatch) DrawDockGadgetsRelics(inner); else DevNotInMatch(inner, "spawn a gadget or relic");  // DevSpawnItems.cs
             }
             else if (inMatch)
                 DrawDockEnemies(inner);

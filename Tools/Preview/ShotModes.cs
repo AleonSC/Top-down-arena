@@ -90,7 +90,7 @@ static partial class Shot {
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
       if (Environment.GetEnvironmentVariable("DEVMENU") != null) host.Screen = AppScreen.Menu;  // the dock as opened from the main menu
-      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1 (DPS), 3 (balance), 4 (upgrades), 5 (enemies), 6 (snapshots), DEVMENU=1 (outside a run)
+      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1 (DPS), 3 (balance), 4 (upgrades), 5 (enemies), 6 (snapshots), 7 (gadgets and relics), DEVMENU=1 (outside a run)
       if (Environment.GetEnvironmentVariable("DEVSHEET") == "6")  // run snapshots (SnapshotUi.cs): three in the profile's folder; SNAPDEL=1 asks to delete the second, SNAPREN=1 renames the first
       {
         if (Profile.Folder == null) Profile.Folder = Path.Combine(Path.GetTempPath(), "arena-preview-snaps");

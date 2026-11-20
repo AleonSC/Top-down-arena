@@ -165,6 +165,19 @@ static partial class Program
         Check(g.Players[1].Gadget != GadgetId.None && g.Gadgets.Count == 0, "a Gadget chest's gadget goes in your hand");
         for (int i = 0; i < 12; i++) chestGive.Invoke(g, new object[] { g.Players[1], a });
         Check(g.Players[1].BagKind.All(k => k != GadgetId.None) && g.Gadgets.Count > 0 && g.Gadgets.Values.All(x => x.Owner == 1), "with the hand and bag full the rest spills as your own copies");
+
+        // The F1 dock's Spawn-a-gadget-or-relic sheet (Core/DevTools.cs): a full gadget at the player's feet as their own copy; a relic straight into the slot.
+        g.Gadgets.Clear();
+        Check(!cg.DevSpawnGadget(2, GadgetId.Recall) && !cg.DevSetRelic(2, RelicId.StoneHeart), "only the host can spawn a gadget or set a relic");
+        Check(g.DevSpawnGadget(2, GadgetId.EnergyDrink) && g.Gadgets.Count == 1 && g.Gadgets.Values.First().Owner == 2
+            && g.Gadgets.Values.First().Kind == GadgetId.EnergyDrink && Math.Abs(g.Gadgets.Values.First().Left - Game.EnergyTime) < 0.01f, "the dev spawn drops a full gadget, the player's own copy");
+        Check(!g.DevSpawnGadget(2, GadgetId.None), "no gadget for None");
+        float hpBefore = g.Players[2].MaxHp;
+        Check(g.DevSetRelic(2, RelicId.StoneHeart) && g.Players[2].Relic == RelicId.StoneHeart && g.Players[2].MaxHp > hpBefore, "the dev relic goes in the slot and its stats apply");
+        Check(!g.DevSetRelic(2, RelicId.StoneHeart), "setting the relic held again does nothing");
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(cg.Players[2].Relic == RelicId.StoneHeart && cg.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "the client sees the dev relic and gadget");
+        Check(g.DevSetRelic(2, RelicId.None) && g.Players[2].Relic == RelicId.None && Math.Abs(g.Players[2].MaxHp - hpBefore) < 0.01f, "removing the relic takes its stats away");
         client.Leave(""); host.Leave("");
     }
 }
