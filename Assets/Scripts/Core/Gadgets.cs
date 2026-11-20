@@ -6,7 +6,7 @@ namespace Arena
 {
     /// A gadget: a pickup a player carries in one free hand and can use, switch off, or throw to a teammate. New kinds go at the
     /// end, before None.
-    public enum GadgetId : byte { Magnet, Lodestone, EnergyDrink, ShieldGenerator, DefibKit, Grenade, SmokeBomb, GasGrenade, Incendiary, None }
+    public enum GadgetId : byte { Magnet, Lodestone, EnergyDrink, ShieldGenerator, DefibKit, Grenade, SmokeBomb, GasGrenade, Incendiary, Cloak, OverclockChip, LandMine, Emp, None }
 
     /// A gadget on the floor or in the air (thrown). It never despawns; a living player with empty hands who walks over it
     /// (or catches it mid-flight) picks it up, keeping the time and uses it has left.
@@ -30,7 +30,9 @@ namespace Arena
     ///     Energy Drink (EnergySpeed move speed), the Shield Generator (a dome that wipes enemy bullets out, ShieldGenR round you).
     ///   The Lodestone: a LodestoneChannel cast (a hit or a swap breaks it) carries you to the hub's middle; LodestoneUses casts.
     ///   The Defib Kit: tap to stand the nearest downed teammate up (DefibRange); go down carrying it and it stands you up after DefibSelfTime.
-    ///   Throwables (ThrowUses each, ThrowGap apart, lobbed to the cursor): the Grenade (a blast, Grenade launcher HE), the Smoke Bomb (a
+    ///   More timed ones: the Cloak (enemies can't pick you out: Player.VanishT), the Overclock Chip (OverclockMult fire rate and cooldowns).
+    ///   The EMP: EmpUses pulses round you (EmpPulse: wipes enemy bullets, stuns and hurts enemies).
+    ///   Throwables (ThrowUses each, ThrowGap apart, lobbed to the cursor): the Land Mine (a Flak Cannon mine lying armed), the Grenade (a blast, Grenade launcher HE), the Smoke Bomb (a
     ///     Grenade launcher smoke cloud: enemies in it are slowed and can't attack), the Gas Grenade (ZoneKind.ToxicGas: hurts and slows),
     ///     the Incendiary (burning ground, a Flame Wall zone). Their damage grows with the wave (GadgetPower).
     public partial class Game
@@ -55,6 +57,15 @@ namespace Arena
         public const float SmokeBombLife = 7f, SmokeBombRadius = 115f;
         public const float GadgetGasLife = 6f, GadgetGasRadius = 100f, GadgetGasDps = 22f, GadgetGasSlow = 0.3f;
         public const float GadgetFireLife = 5f, GadgetFireRadius = 85f;
+        /// The Cloak (CloakTime s in all) and the Overclock Chip (OverclockTime s in all, OverclockMult fire rate and cooldowns).
+        public const float CloakTime = 15f, OverclockTime = 30f, OverclockMult = 1.4f;
+        /// The Land Mine: lobbed like a throwable, it lies armed for LandMineLife s; an enemy stepping on it sets off a Flak mine burst
+        /// (LandMineDmg in Flak Cannon MineBurst px).
+        public const float LandMineLife = 45f, LandMineDmg = 100f;
+        /// The EMP: EmpUses pulses round you, EmpRadius px: every enemy bullet in it is wiped out, every enemy stunned EmpStun s (bosses
+        /// EmpBossStun) and hurt EmpDmg.
+        public const int EmpUses = 2;
+        public const float EmpRadius = 280f, EmpStun = 1.6f, EmpBossStun = 0.4f, EmpDmg = 20f;
 
         public static string GadgetName(GadgetId g)
         {
@@ -69,25 +80,35 @@ namespace Arena
                 case GadgetId.SmokeBomb: return "Smoke Bomb";
                 case GadgetId.GasGrenade: return "Gas Grenade";
                 case GadgetId.Incendiary: return "Incendiary";
+                case GadgetId.Cloak: return "Cloak";
+                case GadgetId.OverclockChip: return "Overclock Chip";
+                case GadgetId.LandMine: return "Land Mine";
+                case GadgetId.Emp: return "EMP";
                 default: return "";
             }
         }
 
         /// A fresh gadget's time: the timed ones' seconds of use, the Lodestone's cast.
         public static float GadgetTime(GadgetId g) => g == GadgetId.Magnet ? MagnetTime : g == GadgetId.Lodestone ? LodestoneChannel : g == GadgetId.EnergyDrink ? EnergyTime
-            : g == GadgetId.ShieldGenerator ? ShieldGenTime : 0f;
+            : g == GadgetId.ShieldGenerator ? ShieldGenTime : g == GadgetId.Cloak ? CloakTime : g == GadgetId.OverclockChip ? OverclockTime : 0f;
         /// A fresh gadget's uses (0: a timed one).
-        public static byte GadgetUses(GadgetId g) => (byte)(g == GadgetId.Lodestone ? LodestoneUses : g == GadgetId.DefibKit ? 1 : Throwable(g) ? ThrowUses : 0);
+        public static byte GadgetUses(GadgetId g) => (byte)(g == GadgetId.Lodestone ? LodestoneUses : g == GadgetId.DefibKit ? 1 : g == GadgetId.Emp ? EmpUses : Throwable(g) ? ThrowUses : 0);
         /// A gadget that runs down while on and shows its seconds left (the Magnet, the Energy Drink, the Shield Generator).
-        public static bool GadgetTimed(GadgetId g) => g == GadgetId.Magnet || g == GadgetId.EnergyDrink || g == GadgetId.ShieldGenerator;
+        public static bool GadgetTimed(GadgetId g) => g == GadgetId.Magnet || g == GadgetId.EnergyDrink || g == GadgetId.ShieldGenerator || g == GadgetId.Cloak || g == GadgetId.OverclockChip;
         /// A gadget the Gadget key lobs a charge of (the Grenade, the Smoke Bomb, the Gas Grenade, the Incendiary).
-        public static bool Throwable(GadgetId g) => g == GadgetId.Grenade || g == GadgetId.SmokeBomb || g == GadgetId.GasGrenade || g == GadgetId.Incendiary;
+        public static bool Throwable(GadgetId g) => g == GadgetId.Grenade || g == GadgetId.SmokeBomb || g == GadgetId.GasGrenade || g == GadgetId.Incendiary || g == GadgetId.LandMine;
 
         /// This player's Magnet is pulling (coins and vector pickups from anywhere fly to them; Coins.cs).
         public static bool MagnetOn(Player p) => p.Gadget == GadgetId.Magnet && p.GadgetOn && !p.Downed;
 
         /// This player's Energy Drink is on: they move EnergySpeed times as fast (Player.Speed).
         public static bool EnergyDrinkOn(Player p) => p.Gadget == GadgetId.EnergyDrink && p.GadgetOn && !p.Downed;
+
+        /// This player's Cloak is on: enemies can't pick them out (it keeps Player.VanishT up, as the Ninja's Vanish does).
+        public static bool CloakOn(Player p) => p.Gadget == GadgetId.Cloak && p.GadgetOn && !p.Downed;
+
+        /// This player's Overclock Chip is on: OverclockMult times the fire rate and the ability cooldowns' speed.
+        public static bool OverclockOn(Player p) => p.Gadget == GadgetId.OverclockChip && p.GadgetOn && !p.Downed;
 
         /// This player's Shield Generator is up.
         public static bool ShieldGenOn(Player p) => p.Gadget == GadgetId.ShieldGenerator && p.GadgetOn && !p.Downed;
@@ -202,7 +223,8 @@ namespace Arena
         /// What a Gadget chest gives, by weight (the Lodestone the most often).
         static readonly GadgetId[] ChestGadgets = { GadgetId.Lodestone, GadgetId.Lodestone, GadgetId.Lodestone, GadgetId.Magnet, GadgetId.Magnet, GadgetId.EnergyDrink, GadgetId.EnergyDrink,
             GadgetId.ShieldGenerator, GadgetId.ShieldGenerator, GadgetId.DefibKit, GadgetId.DefibKit, GadgetId.Grenade, GadgetId.Grenade, GadgetId.SmokeBomb, GadgetId.SmokeBomb,
-            GadgetId.GasGrenade, GadgetId.GasGrenade, GadgetId.Incendiary, GadgetId.Incendiary };
+            GadgetId.GasGrenade, GadgetId.GasGrenade, GadgetId.Incendiary, GadgetId.Incendiary, GadgetId.Cloak, GadgetId.Cloak, GadgetId.OverclockChip, GadgetId.OverclockChip,
+            GadgetId.LandMine, GadgetId.LandMine, GadgetId.Emp, GadgetId.Emp };
 
         /// Host: what a Gadget chest holds for this player (ChestGadgets). Into the hand or bag, else on the floor at `at` (their own copy).
         void GiveChestGadget(Player pl, V2 at)
@@ -216,7 +238,7 @@ namespace Arena
 
         /// What a kill can drop: every kind but the Lodestone (Gadget chests only).
         static readonly GadgetId[] KillGadgets = { GadgetId.Magnet, GadgetId.EnergyDrink, GadgetId.ShieldGenerator, GadgetId.DefibKit, GadgetId.Grenade,
-            GadgetId.SmokeBomb, GadgetId.GasGrenade, GadgetId.Incendiary };
+            GadgetId.SmokeBomb, GadgetId.GasGrenade, GadgetId.Incendiary, GadgetId.Cloak, GadgetId.OverclockChip, GadgetId.LandMine, GadgetId.Emp };
         readonly List<GadgetId> dropPool = new List<GadgetId>();
 
         /// Host: a kill in the Expanding arena may drop a gadget (DropCoins), rolled for each player: 1 in GadgetDropChance (an elite 1 in
@@ -289,6 +311,9 @@ namespace Arena
             }
             TickShieldGens();
             TickToxicGas(dt);
+            foreach (var p in Players.Values)
+                if (CloakOn(p))
+                    p.VanishT = Math.Max(p.VanishT, 0.2f);  // (the Ninja's tick runs it down; it lapses 0.2 s after the Cloak goes off)
             if (Gadgets.Count == 0)
                 return;
             foreach (var g in Gadgets.Values)
@@ -413,7 +438,29 @@ namespace Arena
             }
         }
 
-        public static readonly Rgba ShieldInk = new Rgba(0.4f, 0.72f, 1f);
+        public static readonly Rgba ShieldInk = new Rgba(0.4f, 0.72f, 1f), EmpInk = new Rgba(0.7f, 0.92f, 1f);
+
+        /// Host: an EMP pulse round `p`: enemy bullets in EmpRadius wiped out, enemies stunned and hurt.
+        void EmpPulse(Player p)
+        {
+            shieldWiped.Clear();
+            foreach (var b in Bullets.Values)
+                if (b.Owner == 0 && Defs.IsEnemyShot(b.Kind) && !Defs.Unblockable(b.Kind) && b.Pos.CloserThan(p.Pos, EmpRadius + b.Radius))
+                    shieldWiped.Add(b.Id);
+            foreach (int id in shieldWiped)
+                KillBullet(id);
+            float dmg = EmpDmg * GadgetPower(p);
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e) || e.Pos.FartherThan(p.Pos, EmpRadius + e.Radius))
+                    continue;
+                Stun(e, e.Def.IsBoss || e.Def.Mini ? EmpBossStun : EmpStun);
+                HurtEnemy(e, dmg, p.Id);
+            }
+            p.GadgetCd = ThrowGap;
+            BroadcastFx(FxKind.Ring, p.Pos, EmpInk, EmpRadius, 0.5f, Sfx.SpellZap);
+            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 1f, 1f, 0.8f), EmpRadius * 0.6f, 0.3f, Sfx.None);
+        }
 
         // --- Throwables ----------------------------------------------------------------------------------------------
 
@@ -451,6 +498,14 @@ namespace Arena
                     var z = AddZone(ZoneKind.SmokeShell, p, rest, SmokeBombRadius, GlSmokeLand(dist) + SmokeBombLife);
                     z.Aim = dir.Angle;
                     z.GuardFrac = dist;
+                    break;
+                }
+                case GadgetId.LandMine:
+                {
+                    var m = AddZone(ZoneKind.FlakMine, p, at, MineTrigger, LandMineLife);
+                    m.Aim = dir.Angle;
+                    m.Radius = MineBurst;  // (drawn as the burst's reach; it goes off at MineTrigger: TickTankAlts)
+                    m.DmgMult = power * LandMineDmg / MineDamage;
                     break;
                 }
                 case GadgetId.GasGrenade:
@@ -571,12 +626,23 @@ namespace Arena
                     FinishGadget(p);
                 return;
             }
+            if (p.Gadget == GadgetId.Emp)
+            {
+                if (p.GadgetCd > 0f)
+                    return;
+                EmpPulse(p);
+                if (--p.GadgetUses == 0)
+                    FinishGadget(p);
+                return;
+            }
+            if (p.Gadget == GadgetId.Cloak && !p.GadgetOn)
+                p.VanishFrom = p.Pos;  // (enemies search where they last saw you)
             if (p.Gadget == GadgetId.Lodestone && !p.GadgetOn && (InHub(p.Pos, -1f) || p.WarpT > 0f))
                 return;  // (already home)
             p.GadgetOn = !p.GadgetOn;
             if (p.Gadget == GadgetId.Lodestone && !p.GadgetOn)
                 p.GadgetLeft = LodestoneChannel;
-            Rgba ink = p.Gadget == GadgetId.ShieldGenerator ? ShieldInk : new Rgba(0.95f, 0.3f, 0.3f);
+            Rgba ink = p.Gadget == GadgetId.ShieldGenerator ? ShieldInk : p.Gadget == GadgetId.Cloak ? new Rgba(0.5f, 0.46f, 0.95f) : p.Gadget == GadgetId.OverclockChip ? new Rgba(1f, 0.8f, 0.25f) : new Rgba(0.95f, 0.3f, 0.3f);
             BroadcastFx(FxKind.Ring, p.Pos, ink, p.GadgetOn ? 60f : 20f, 0.4f, p.GadgetOn ? Sfx.Ability : Sfx.Pick);
         }
 

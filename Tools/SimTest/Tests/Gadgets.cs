@@ -249,6 +249,46 @@ static partial class Program
         hp0 = dummy.Hp;
         Run(s, dt, 0.5f, null, Target);
         Check(g.Zones.Values.Any(z => z.Kind == ZoneKind.FlameWall && z.Owner == 1 && z.Pos.DistanceTo(spot) < 40f) && dummy.Hp < hp0, "an Incendiary lands as burning ground that hurts the enemy on it");
+        // The Land Mine: lobbed to the cursor, it lies armed; the enemy standing there sets it off.
+        Hold(p1, GadgetId.LandMine);
+        g.Zones.Clear();
+        hp0 = dummy.Hp;
+        g.UseGadget(spot);
+        Run(s, dt, 0.1f, null, Target);
+        Check(p1.GadgetUses == Game.ThrowUses - 1 && g.Zones.Values.Any(z => z.Kind == ZoneKind.FlakMine && z.Owner == 1), "a Land Mine tap lobs a mine (a charge spent)");
+        Run(s, dt, 1f, null, Target);
+        Check(dummy.Hp < hp0 && !g.Zones.Values.Any(z => z.Kind == ZoneKind.FlakMine), "the enemy on it sets it off (" + (hp0 - dummy.Hp).ToString("0") + " damage)");
+
+        // The EMP: a pulse round you wipes out the enemy bullets in it and stuns (and hurts) the enemies; 2 pulses.
+        Hold(p1, GadgetId.Emp);
+        var near = EnemyShot(p1.Pos + new V2(0f, 150f));
+        hp0 = dummy.Hp;
+        g.UseGadget(spot);
+        Check(!g.Bullets.ContainsKey(near.Id) && dummy.StunT > 0f && dummy.Hp < hp0 && p1.GadgetUses == Game.EmpUses - 1, "an EMP pulse wipes out the enemy bullets round you and stuns and hurts the enemies in it");
+        Run(s, dt, 0.7f, null, Target);
+        g.UseGadget(spot);
+        Check(p1.Gadget != GadgetId.Emp, "its second pulse uses it up");
+
+        // The Cloak: on, enemies can't pick you out (VanishT, on the client's screen too); off, it lapses.
+        Hold(p1, GadgetId.Cloak);
+        g.UseGadget();
+        Run(s, dt, 0.3f, null, Target);
+        Check(p1.GadgetOn && p1.VanishT > 0f && cg.Players[1].VanishT > 0f, "the Cloak on: you vanish from enemies (on both screens)");
+        g.UseGadget();
+        Run(s, dt, 0.5f, null, Target);
+        Check(!p1.GadgetOn && p1.VanishT <= 0f, "switched off, you're seen again");
+
+        // The Overclock Chip: on, fire rate and ability cooldowns run OverclockMult as fast.
+        var fireRate = typeof(Game).GetMethod("FireRate", bf);
+        Hold(p1, GadgetId.OverclockChip);
+        float rate0 = (float)fireRate.Invoke(g, new object[] { p1 });
+        g.UseGadget();
+        Run(s, dt, 0.1f, null, Target);
+        float rate1 = (float)fireRate.Invoke(g, new object[] { p1 });
+        Check(p1.GadgetOn && Math.Abs(rate1 / rate0 - Game.OverclockMult) < 0.01f, "the Overclock Chip on: " + Game.OverclockMult + "x fire rate");
+        g.UseGadget();
+        Run(s, dt, 0.1f, null, Target);
+
         dummy.Hp = 0f; g.Zones.Clear();
 
         // Gadget chests: one each, into the hand or the bag; a full one spills at your feet (your own copy).
