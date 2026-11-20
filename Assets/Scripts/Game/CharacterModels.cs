@@ -470,7 +470,7 @@ namespace Arena
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
-                case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
+                case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
 
@@ -518,6 +518,7 @@ namespace Arena
             // ---- Summoner
             d[(int)WeaponId.GolemStaff] = DrawHeldGolemStaff;
             d[(int)WeaponId.BoneGuard] = DrawHeldBoneGuard;
+            d[(int)WeaponId.WyvernStaff] = DrawHeldWyvernStaff;
             d[(int)WeaponId.BearTotem] = DrawHeldBearTotem;
             d[(int)WeaponId.SpriteStaff] = DrawHeldSpriteStaff;
             d[(int)WeaponId.TreantRod] = DrawHeldTreantRod;
@@ -809,6 +810,17 @@ namespace Arena
             float a = t * 6f;
             MCirc(20f + Mathf.Cos(a) * 9f, Mathf.Sin(a) * 9f, 1.6f, Hx(0xffc53d), 6); MCirc(20f + Mathf.Cos(a - 0.35f) * 9f, Mathf.Sin(a - 0.35f) * 9f, 1.1f, Hx(0x2a1a05), 5);
         }
+        }
+
+        void DrawHeldWyvernStaff(Player p, float t, int hold)
+        {
+            MLine(-8f, 0f, 18f, 0f, 2.6f, Hx(0x6b4a2b));  // a pole topped with a carved wyvern head holding a teal gem
+            MPoly(Hx(0x2f9a90), 17f, -3.2f, 25f, -2.2f, 29f, 0f, 25f, 2.2f, 17f, 3.2f);
+            MLine(19f, -3f, 15f, -7f, 1.4f, Hx(0xf2c14e)); MLine(19f, 3f, 15f, 7f, 1.4f, Hx(0xf2c14e));
+            MCirc(23f, -1.6f, 0.9f, Hx(0xf2c14e), 5); MCirc(23f, 1.6f, 0.9f, Hx(0xf2c14e), 5);
+            float glow = p.Firing ? 0.5f + 0.2f * Mathf.Sin(t * 30f) : 0.18f;
+            MCirc(30f, 0f, 7f, Hx(p.Firing ? 0xff7a3d : 0x6fe0cf, glow), 12);
+            MCirc(30f, 0f, 3.2f, Hx(p.Firing ? 0xffd76a : 0x9ff3e6), 8);
         }
 
         void DrawHeldImpCaller(Player p, float t, int hold)

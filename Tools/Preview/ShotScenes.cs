@@ -1203,6 +1203,33 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // WYVERN=<s>: the Tank Summoner's Wyvern Staff (Core/WyvernStaff.cs, Game/WyvernStaffLook.cs) that long into a scripted loop: the
+    // Wyvern hovers over you with its gale on the grunts until 1.0 s, then Fire is held (it flies out and breathes at the cursor).
+    // WYALT=1: Alt (Wyrm Slam) at 1.0 s instead.
+    if (Environment.GetEnvironmentVariable("WYVERN") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Summoner; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Summoner, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      bool alt = Environment.GetEnvironmentVariable("WYALT") != null;
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = new[] { new V2(-70f, -130f), new V2(40f, -110f), new V2(100f, -60f), new V2(-120f, -50f), new V2(0f, -175f), new V2(290f, -20f), new V2(320f, 35f), new V2(255f, 20f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("WYVERN"), ci) * 60f));
+      V2 cursor = home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt && f >= 60, WeaponAction = alt && f >= 60 && f < 63 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // BLOODBLAST=<s>: the Tank Hemomancer's Blood Blast (Core/BloodBlast.cs, Game/BloodBlastLook.cs) that long into its chain, Fire held
     // from 0: Crimson Slash at 0, Backcut 0.42 s, Thorn Flurry 0.82 s, Vein Whirl 1.32 s, Sanguine Cleave 1.9 s, Crescent Flight 2.68 s.
     // BBSTEP=<1-6>: start the chain at that step instead. BBALT=1: Alt (Crimson Tide) at 0 instead. BBSTACKS=<n>: the grunts start with
@@ -2247,15 +2274,16 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("SHRINEUSED") != null) foreach (var pl in xg.Players.Values) pl.ShrinesUsed = ulong.MaxValue;  // SHRINEUSED=1: everyone has used every health shrine (ShrineLook.cs)
       string overHp = Environment.GetEnvironmentVariable("OVERHP");  // OVERHP=<n>: everyone carries n health past max from a shrine (the HUD's gold, the gold ring)
       if (overHp != null) foreach (var pl in xg.Players.Values) pl.OverHp = float.Parse(overHp, System.Globalization.CultureInfo.InvariantCulture);
+      if (Environment.GetEnvironmentVariable("RELICSHEET") != null) { ArenaApp.PreviewRelicSheet = true; ArenaApp.PreviewRelicPage = int.Parse(Environment.GetEnvironmentVariable("RELICSHEET")); }  // RELICSHEET=0|1 (page): the relic artefact sheet beside the map (RelicLook.cs; mode hud ZOOM=1 CAMAT=640,470)
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
-      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
+      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null || Environment.GetEnvironmentVariable("RELICPED") != null) {  // RELICPED=<RelicId number>: the same room with that faction relic waiting on its pedestal (unspent)  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
-        ArenaApp.PreviewOpenAge = float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
+        string ped = Environment.GetEnvironmentVariable("RELICPED"); ArenaApp.PreviewOpenAge = ped != null ? 0f : float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
         ExpansionRoom? rr = null;
         for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Box(rx, ry, 600, 600); if (cand.HasValue) rr = cand; }
         if (rr.HasValue) {
           xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = ped == null, Rule = ped != null ? (byte)(int.Parse(ped) + 1) : (byte)0 }; xg.Nodes.Add(rn);
           foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
         }
       }

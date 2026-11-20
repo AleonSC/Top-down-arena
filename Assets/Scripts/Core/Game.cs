@@ -406,6 +406,7 @@ namespace Arena
                 p.Stats.DmgMult *= WildcardDmgMult;  // the price of mixing classes
                 p.Stats.CdMult *= WildcardCdMult;
             }
+            Relics.Apply(p.Relic, p.Stats);  // Relics.cs
             ApplyStatOverrides(p);
             p.VectorCap = VectorCapBase + p.Stats.VectorCap;  // the Expanding arena's vector cap (ExpansionGame.cs)
             float oldMax = p.MaxHp;
@@ -1555,6 +1556,8 @@ namespace Arena
                     ClearHoneybee(p);  // (HoneybeeStaff.cs)
                 if (p.Weapon.Id == WeaponId.HoneybeeStaff && !p.Downed)
                     TickHoneybee(p, dt);  // the honey spray and its meter; Fire is the usual trigger below (HoneybeeStaff.cs)
+                if ((p.Weapon.Id != WeaponId.WyvernStaff || p.Downed) && p.WyvTick != 0f)
+                    ClearWyvernStaff(p);  // (WyvernStaff.cs)
                 if ((p.Weapon.Id != WeaponId.Stonespear || p.Downed) && (p.SsMask != 0 || p.SsWindT > 0f || p.SsQueue.Count > 0))
                     ClearStonespear(p);  // (Stonespear.cs)
                 if ((p.Weapon.Id != WeaponId.EmbolusSpears || p.Downed) && (p.EsSt[0] != EsInHand || p.EsSt[1] != EsInHand))
@@ -1592,6 +1595,8 @@ namespace Arena
                     TickStonespear(p, dt);  // the slam, the hovering spears, the volley (Stonespear.cs)
                 else if (p.Weapon.Id == WeaponId.WindClash)
                     TickWindClash(p, dt);  // (WindClash.cs)
+                else if (p.Weapon.Id == WeaponId.WyvernStaff)
+                    TickWyvernStaff(p, dt);  // the gale, the Cinder meter, the breath; Fire is held, never a volley (WyvernStaff.cs)
                 else if (p.Weapon.Id == WeaponId.FrostLance)
                     TickFrostLance(p, dt);  // the five-step chain (FrostLance.cs)
                 else if (p.Weapon.Id == WeaponId.EmbolusSpears)

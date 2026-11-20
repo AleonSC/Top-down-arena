@@ -336,6 +336,8 @@ namespace Arena
                     return Tap(v.Incoming >= 3, 1f);
                 case WeaponId.WindClash:  // the Tempest into a barrage or a crowd
                     return Tap(TempestLocalCd <= 0f && me.WcTempestT <= 0f && (v.Incoming >= 3 || EnemiesNear(me.Pos, 120f) >= 3), 1f);
+                case WeaponId.WyvernStaff:  // the Wyrm Slam on a group
+                    return Tap(WyvernSlamLocalCd <= 0f && EnemiesNear(me.Pos, 200f) >= 3, 1f);
                 case WeaponId.EmbolusSpears:  // burst the spears where they sit among enemies
                     if (late || !(EsOut(me.EsSt[0]) || EsOut(me.EsSt[1])))
                         return false;

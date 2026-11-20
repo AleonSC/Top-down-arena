@@ -696,7 +696,7 @@ namespace Arena
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
             byte relic = (byte)p.Relic;
             s.Byte(ref relic);          // the relic slot (Relics.cs)
-            p.Relic = (RelicId)relic;
+            if (s.Reading && (RelicId)relic != p.Relic) { p.Relic = (RelicId)relic; Recalc(p); } else p.Relic = (RelicId)relic;  // (a faction relic changes stats)
             s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
             s.Byte(ref p.TwinNext);
             s.Byte(ref p.TwinCharge);
@@ -810,6 +810,7 @@ namespace Arena
             s.Int(ref p.SsLock);
             s.Float(ref p.HoneyFill);  // the Honeybee Staff (HoneybeeStaff.cs)
             s.Bool(ref p.HoneyOn);
+            s.Float(ref p.Cinder);  // the Wyvern Staff (WyvernStaff.cs)
             s.Bool(ref p.NunGuard);  // the Nunchaku (Nunchaku.cs)
             s.Byte(ref p.NunSwats);
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)

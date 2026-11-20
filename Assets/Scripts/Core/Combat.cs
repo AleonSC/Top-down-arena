@@ -257,6 +257,7 @@ namespace Arena
             bool lensUp = PrepareLenses();  // the Singularity's Lenses (Infall.cs)
             V2 wind = HeraldWind(WindDrift);  // the Storm Herald's Gale bends every bullet (Herald.cs)
             PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
+            PrepareWyvGales();  // the Wyvern Staff's gales slow enemy shots (WyvernStaff.cs)
             // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
             V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
             lo -= margin;
@@ -274,7 +275,7 @@ namespace Arena
                     PullIntoWells(b, dt);
                 if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
                     BendRoundLenses(b, dt);  // round a Lens's face (Infall.cs)
-                b.Pos += b.Vel * (dt * SmokeSpeed(b));
+                b.Pos += b.Vel * (dt * SmokeSpeed(b) * WyvGaleSpeed(b));
                 if (!wind.IsZero && !Lobbed(b.Kind))
                     b.Pos += wind * dt;
                 b.Life -= dt;

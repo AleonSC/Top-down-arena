@@ -74,6 +74,7 @@ namespace Arena
             { WeaponId.Implosion, 75f },
             { WeaponId.BloodBrawler, 80f },
             { WeaponId.BloodBlast, 53f },
+            { WeaponId.WyvernStaff, 12f },
             { WeaponId.IronFist, 53f },
             { WeaponId.StasisGun, 37f },
             { WeaponId.VectorBlade, 64f },
