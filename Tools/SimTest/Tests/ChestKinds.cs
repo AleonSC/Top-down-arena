@@ -124,7 +124,7 @@ static partial class Program
             var cl = g.Loots.Values.First(l => l.Owner == 1);
             g.Players[1].Pos = cl.Pos;
             hostLoot.Invoke(g, new object[] { 1, cl.Id, true });
-            Check(Game.HandCount(g.Players[1]) == 1 && g.Players[1].Hand[0] == (byte)cl.Item, "taking it puts the card in the hand");
+            Check(Game.HandCount(g.Players[1]) == 1 && g.Players[1].Hand[0] == (int)cl.Item, "taking it puts the card in the hand");
         }
     }
 }

@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 424: a shape piece card's code carries a set of modifiers (floor, combat, ...) in `PieceCodeBase + shape + 16 * mods`; `Player.Hand` goes out as 2 bytes a card (was 1) in the player snapshot; floor kit offer codes `BossCards.KitBase` 1000 -> 20000
 - 421: `NodeKind` drops Shop, BlackMarket, VectorChest, Tower and Vein (now Chest, Relic, Rule, BreachLoot: the node kind byte in `Msg.ExpansionState` renumbers); `Msg.CollectChest` drops its `node` bool (just the chest's prop id)
 - 420: line-of-sight room fog: `Msg.FogCells` (host -> all: a ushort count, then per unseen box its index and explored-cell bytes); `Msg.ExpandState` ends with the same list after `ExpandOpen`
 - 419: dormant groups: the enemy snapshot adds a `Dormant` bool after `penned`

@@ -10,7 +10,7 @@ namespace Arena
     public static class BossCards
     {
         public const int OfferSize = 5;
-        public const int KitBase = 1000;
+        public const int KitBase = 20000;
 
         /// The pool's groups and their weights: pieces 65, service cards 20, floor kits 15 (the mini-boss waits on the lattice instead, Docs/GridPieces.md).
         static readonly int[] Weights = { 65, 20, 15 };

@@ -130,7 +130,7 @@ namespace Arena
             s.Short(ref p.Vectors);
             s.Short(ref p.VectorCap);
             for (int i = 0; i < p.Hand.Length; i++)
-                s.Byte(ref p.Hand[i]);  // room cards (Pieces.cs)
+                s.Short(ref p.Hand[i]);  // room cards (Pieces.cs): 2 bytes, a shape card carries its modifiers in its code
         }
 
         // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
@@ -174,8 +174,8 @@ namespace Arena
 
         public bool InServiceRoom(Player p) => InShopRoom(p) || InBlackMarketRoom(p) || InArmsRoom(p) || InMedicRoom(p);
 
-        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the Black Market (the Black Market), mods at the
-        /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) at the shop or vendor.
+        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables only at the Black Market (Docs/BlackMarket.md), mods at the
+        /// Arms Dealer, heals and revive tokens only at the Medic, and the other services (sell, Floor kit, vectors) in the shop room: each vendor sells its own wares only.
         bool ServiceAllowed(Player p, ShopAction action)
         {
             if (!ServiceRooms)
@@ -191,7 +191,7 @@ namespace Arena
                 case ShopAction.Sell:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
-                    return InShopRoom(p) || InBlackMarketRoom(p);
+                    return InShopRoom(p);
                 case ShopAction.BuyBuild:
                     return InBlackMarketRoom(p);
                 case ShopAction.BuyCard:
@@ -780,7 +780,7 @@ namespace Arena
                     p.Stash[i] = (byte)Math.Min(Market.StashMax, s.Stash[i]);
                 Array.Clear(p.Hand, 0, p.Hand.Length);
                 for (int i = 0; i < s.Hand.Count && i < p.Hand.Length; i++)
-                    p.Hand[i] = (byte)s.Hand[i];
+                    p.Hand[i] = s.Hand[i];
                 p.CardsDealt = s.Hand.Count > 0 || s.Vectors >= 0;  // (a saved seat had its starting hand)
                 p.ShelfSold = s.ShelfSold;
                 p.Restocks = Math.Min(255, s.Restocks);
