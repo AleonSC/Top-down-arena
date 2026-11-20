@@ -17,36 +17,36 @@ small{color:var(--muted);font:12px/1.4 ui-monospace,monospace}
 .key i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 </style></head><body><div class="wrap">
 <h1>Single-cell layouts</h1>
-<p>Layouts 1-6 are lighter, 7-12 carry more obstacles. One 600 px cell, doors on all four sides. Every layout is hand-designed with fixed slots: one chest spot and sleeper spots, so nothing is random except which slots fill. Approximate mockup, not the real draw code.</p>
-<div class="key"><span><i style="background:#3b6dff"></i>wall / cover</span><span><i style="background:#ffd166"></i>chest spot</span><span><i style="background:#ff4d6a"></i>sleeper spot</span><span><i style="background:#3ee6b4"></i>door</span><span><i style="background:#ffb347"></i>bonus loot spot</span></div>
+<p>Layouts 1-6 are lighter, 7-12 carry more obstacles. One 600 px cell, doors on all four sides. Every layout is hand-designed with fixed slots: one chest spot, sleeper spots and trap spots (turret, spike, slow; each slot rolls a trap type or stays empty), so nothing is random except which slots fill. Approximate mockup, not the real draw code.</p>
+<div class="key"><span><i style="background:#3b6dff"></i>wall / cover</span><span><i style="background:#ffd166"></i>chest spot</span><span><i style="background:#ff4d6a"></i>sleeper spot</span><span><i style="background:#3ee6b4"></i>door</span><span><i style="background:#ffb347"></i>bonus loot spot</span><span><i style="background:#ff8a3d"></i>T turret</span><span><i style="background:#e8e8e8"></i>^ spike trap</span><span><i style="background:#9b6bff"></i>~ slow trap</span></div>
 <div class="grid" id="g"></div></div>
 <script>
 // units: 0..600. w = wall rects [x,y,w,h]; c = chest [x,y]; s = sleepers [x,y]; l = bonus loot [x,y]
 const L=[
  {n:"1 Open Plaza",d:"No cover. Chest centre; sleepers tucked behind two corner blocks, so a fight starts only if you wake them.",
-  w:[[40,40,80,40],[480,520,80,40]],c:[300,300],s:[[90,110],[510,490]],l:[]},
+  w:[[40,40,80,40],[480,520,80,40]],c:[300,300],s:[[90,110],[510,490]],l:[],t:[[300,150,'s'],[300,450,'s'],[160,300,'w'],[440,300,'w']]},
  {n:"2 Four Pillars",d:"A pillar in each quadrant. Chest centre between them; sleepers in two opposite corners.",
-  w:[[150,150,44,44],[406,150,44,44],[150,406,44,44],[406,406,44,44]],c:[300,300],s:[[70,70],[530,530]],l:[]},
+  w:[[150,150,44,44],[406,150,44,44],[150,406,44,44],[406,406,44,44]],c:[300,300],s:[[70,70],[530,530]],l:[],t:[[300,60,'t'],[300,540,'t'],[300,200,'s'],[300,400,'w']]},
  {n:"3 Vault",d:"Chest ringed by four short walls (gaps on the diagonals). Sleepers guard two corners.",
-  w:[[230,240,140,20],[230,340,140,20],[240,230,20,40],[340,230,20,40],[240,330,20,40],[340,330,20,40]],c:[300,300],s:[[80,80],[520,80]],l:[]},
+  w:[[230,240,140,20],[230,340,140,20],[240,230,20,40],[340,230,20,40],[240,330,20,40],[340,330,20,40]],c:[300,300],s:[[80,80],[520,80]],l:[],t:[[100,300,'t'],[500,300,'t'],[300,130,'s'],[300,470,'s']]},
  {n:"4 Side Alcoves",d:"Two long bars split off the east and west alcoves. Sleepers sit in the alcoves; chest in the open middle.",
-  w:[[140,170,320,22],[140,408,320,22]],c:[300,300],s:[[60,300],[540,300]],l:[]},
+  w:[[140,170,320,22],[140,408,320,22]],c:[300,300],s:[[60,300],[540,300]],l:[],t:[[300,60,'t'],[300,540,'t'],[200,300,'w'],[400,300,'s']]},
  {n:"5 Corner Nooks",d:"An L in each corner makes four nooks: two hold sleepers, two hold small bonus loot. Chest centre.",
-  w:[[50,50,90,20],[50,50,20,90],[460,50,90,20],[530,50,20,90],[50,530,90,20],[50,460,20,90],[460,530,90,20],[530,460,20,90]],c:[300,300],s:[[100,100],[500,500]],l:[[500,100],[100,500]]},
+  w:[[50,50,90,20],[50,50,20,90],[460,50,90,20],[530,50,20,90],[50,530,90,20],[50,460,20,90],[460,530,90,20],[530,460,20,90]],c:[300,300],s:[[100,100],[500,500]],l:[[500,100],[100,500]],t:[[300,150,'s'],[300,450,'s'],[150,300,'w'],[450,300,'w'],[300,60,'t']]},
  {n:"6 Crossfire",d:"Two staggered bars make an S-lane. Chest at one end, sleepers in the pocket behind the other.",
-  w:[[130,200,260,22],[210,378,260,22]],c:[500,300],s:[[100,110],[100,490]],l:[[300,300]]},
+  w:[[130,200,260,22],[210,378,260,22]],c:[500,300],s:[[100,110],[100,490]],l:[[300,300]],t:[[540,100,'t'],[540,500,'t'],[300,240,'w'],[300,340,'s']]},
  {n:"7 Maze Lite",d:"Staggered walls force zig-zag routes. Chest in the centre pocket; sleepers at the far corners.",
-  w:[[100,120,200,22],[300,120,22,120],[300,358,22,120],[300,458,200,22],[120,250,22,100],[458,250,22,100]],c:[300,300],s:[[70,70],[530,530]],l:[[520,80]]},
+  w:[[100,120,200,22],[300,120,22,120],[300,358,22,120],[300,458,200,22],[120,250,22,100],[458,250,22,100]],c:[300,300],s:[[70,70],[530,530]],l:[[520,80]],t:[[60,300,'t'],[540,300,'t'],[210,300,'w'],[400,300,'s']]},
  {n:"8 Pillar Field",d:"A dense grid of pillars: lots of cover, sleepers hidden between them, chest in the middle gap.",
-  w:[[110,110,36,36],[260,110,36,36],[410,110,36,36],[110,260,36,36],[410,260,36,36],[110,410,36,36],[260,410,36,36],[410,410,36,36]],c:[300,300],s:[[200,200],[400,400],[200,400]],l:[[400,200]]},
+  w:[[110,110,36,36],[260,110,36,36],[410,110,36,36],[110,260,36,36],[410,260,36,36],[110,410,36,36],[260,410,36,36],[410,410,36,36]],c:[300,300],s:[[200,200],[400,400],[200,400]],l:[[400,200]],t:[[300,60,'t'],[300,540,'t'],[60,300,'t'],[200,300,'s'],[400,300,'w']]},
  {n:"9 Bunker",d:"A walled inner room with two openings. Chest inside; sleepers on guard in the outer ring.",
-  w:[[190,190,220,20],[190,390,220,20],[190,190,20,70],[190,340,20,70],[390,190,20,70],[390,340,20,70]],c:[300,300],s:[[80,80],[520,80],[80,520]],l:[[520,520]]},
+  w:[[190,190,220,20],[190,390,220,20],[190,190,20,70],[190,340,20,70],[390,190,20,70],[390,340,20,70]],c:[300,300],s:[[80,80],[520,80],[80,520]],l:[[520,520]],t:[[300,60,'t'],[300,540,'t'],[150,300,'s'],[450,300,'w']]},
  {n:"10 Barricades",d:"Three horizontal barricades with offset gaps. Sleepers behind the last one, chest in the first lane.",
-  w:[[60,170,330,22],[210,290,330,22],[60,410,330,22]],c:[300,100],s:[[110,350],[490,490]],l:[[500,230]]},
+  w:[[60,170,330,22],[210,290,330,22],[60,410,330,22]],c:[300,100],s:[[110,350],[490,490]],l:[[500,230]],t:[[60,60,'t'],[540,540,'t'],[430,230,'w'],[150,350,'s']]},
  {n:"11 Diagonal Cross",d:"Blocks along both diagonals leave the door lanes open. Chest centre; sleepers in all four wedges.",
-  w:[[120,120,60,60],[420,120,60,60],[120,420,60,60],[420,420,60,60],[230,230,30,30],[340,230,30,30],[230,340,30,30],[340,340,30,30]],c:[300,300],s:[[300,70],[300,530],[70,300],[530,300]],l:[]},
+  w:[[120,120,60,60],[420,120,60,60],[120,420,60,60],[420,420,60,60],[230,230,30,30],[340,230,30,30],[230,340,30,30],[340,340,30,30]],c:[300,300],s:[[300,70],[300,530],[70,300],[530,300]],l:[],t:[[150,300,'w'],[450,300,'w'],[300,150,'s'],[300,450,'s']]},
  {n:"12 Fortress Corners",d:"Big L-walls close off each corner as a pocket. Two pockets hide sleepers, two hide bonus loot.",
-  w:[[40,40,150,24],[40,40,24,150],[410,40,150,24],[536,40,24,150],[40,536,150,24],[40,410,24,150],[410,536,150,24],[536,410,24,150],[240,240,120,20],[240,340,120,20]],c:[300,300],s:[[100,100],[500,500]],l:[[500,100],[100,500]]}
+  w:[[40,40,150,24],[40,40,24,150],[410,40,150,24],[536,40,24,150],[40,536,150,24],[40,410,24,150],[410,536,150,24],[536,410,24,150],[240,240,120,20],[240,340,120,20]],c:[300,300],s:[[100,100],[500,500]],l:[[500,100],[100,500]],t:[[300,130,'t'],[300,470,'t'],[130,300,'s'],[470,300,'w']]}
 ];
 const g=document.getElementById('g');
 for(const o of L){
@@ -62,6 +62,8 @@ for(const o of L){
  const dot=(p,col,t,r)=>{x.strokeStyle=col;x.fillStyle=col+'33';x.lineWidth=4;x.beginPath();x.arc(p[0],p[1],r,0,7);x.fill();x.stroke();x.fillStyle=col;x.font='bold 26px monospace';x.textAlign='center';x.fillText(t,p[0],p[1]+9);};
  for(const p of o.s)dot(p,'#ff4d6a','Z',34);
  for(const p of o.l)dot(p,'#ffb347','$',24);
+ const TR={t:['#ff8a3d','T'],s:['#e8e8e8','^'],w:['#9b6bff','~']};
+ for(const p of o.t)dot(p,TR[p[2]][0],TR[p[2]][1],24);
  dot(o.c,'#ffd166','▣',34);
 }
 </script></body></html>
