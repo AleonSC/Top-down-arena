@@ -2203,6 +2203,15 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("FOG") != null)  // FOG=1: every room but the core unseen (room fog, RoomFogLook.cs)
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
+      string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
+      if (fogRoom != null) { var fro = xg.Expanded[int.Parse(fogRoom)]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(fro.X + 120, fro.Y + fro.H / 2); }
+      string fogAim = Environment.GetEnvironmentVariable("FOGAIM");  // FOGAIM=<degrees>[,trail]: every player faces that way (0 east, 90 south); "trail" first sweeps the cone round to there, exploring what it passes over (the explored memory)
+      if (fogAim != null) {
+        var fa = fogAim.Split(','); float fdeg = float.Parse(fa[0], System.Globalization.CultureInfo.InvariantCulture);
+        var scan = typeof(Game).GetMethod("ScanFog", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (fa.Length > 1 && fa[1] == "trail") for (float d = fdeg - 170f; d < fdeg; d += 8f) { foreach (var pl in xg.Players.Values) pl.Aim = d * (float)Math.PI / 180f; scan.Invoke(xg, null); }
+        foreach (var pl in xg.Players.Values) pl.Aim = fdeg * (float)Math.PI / 180f;
+      }
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
       if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;

@@ -69,6 +69,7 @@ namespace Arena
         public bool KeepsakePending;  // left during the keepsake vote (MapReset.cs): it opens again on Continue
         public int ExpandSeed, FloatCycle = -1, MapNumber = 1;  // MapNumber: which map of the run (MapReset.cs)
         public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
+        public readonly Dictionary<int, string> Fog = new Dictionary<int, string>();  // room fog: a box's explored cells as hex (RoomFog.cs)
         public readonly List<WallCut> Cuts = new List<WallCut>();
         public readonly List<MapNode> Nodes = new List<MapNode>();
         public readonly List<PortalLink> Portals = new List<PortalLink>();
@@ -123,6 +124,8 @@ namespace Arena
                 Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber + " " + (KeepsakePending ? 1 : 0));
                 foreach (var r in Rooms)
                     Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Piece, r.Surprise, r.Claimed ? 1 : 0, r.Mini, r.Unseen ? 1 : 0 }));
+                foreach (var kv in Fog)
+                    Line(sb, "fog", kv.Key + " " + kv.Value);
                 foreach (var c in Cuts)
                     Line(sb, "cut", (c.Vertical ? 1 : 0) + " " + c.At + " " + c.From + " " + c.Till);
                 foreach (var l in Portals)
@@ -243,6 +246,13 @@ namespace Arena
                             var p = val.Split(' ');
                             save.Rooms.Add(new ExpansionRoom { Parent = I(p[0]), X = I(p[1]), Y = I(p[2]), W = I(p[3]), H = I(p[4]), Kind = Enum<RoomKind>(p[5]), Floor = Enum<PathId>(p[6]),
                                 Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Piece = (byte)I(p[10]), Surprise = p.Length > 11 ? (byte)I(p[11]) : (byte)0, Claimed = p.Length > 12 && I(p[12]) != 0, Mini = p.Length > 13 ? (byte)I(p[13]) : (byte)0, Unseen = p.Length > 14 && I(p[14]) != 0 });
+                            break;
+                        }
+                        case "fog":
+                        {
+                            var p = val.Split(' ');
+                            if (p.Length > 1)
+                                save.Fog[I(p[0])] = p[1];
                             break;
                         }
                         case "node":

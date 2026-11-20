@@ -247,6 +247,7 @@ namespace Arena
             }
             V2 anchor = target != null ? target.Pos : ArenaMid;
             V2? scout = target == null ? NearestUnseen(me.Pos) : null;
+            botScoutAt = scout;  // (BotAim turns the cone onto it)
             if (scout.HasValue)  // nothing to fight: scout the nearest unseen room (room fog, RoomFog.cs)
             {
                 anchor = scout.Value;
@@ -287,6 +288,8 @@ namespace Arena
             return anchor;
         }
 
+        V2? botScoutAt;  // the unexplored cell a scouting bot walks to: it looks that way (room fog)
+
         /// Turns the aim onto the shot's lead (with a skill wobble), or onto something already in reach. False while it is still swinging round.
         bool BotAim(Player me, SkillParams sk, float dt, ref Enemy shootAt, float pref, ref V2 aimAt)
         {
@@ -303,6 +306,8 @@ namespace Arena
                 aimSettled = TurnAim(me, (lead - me.Pos).Angle + wobble, sk.Turn * dt);
                 aimAt = me.Pos + V2.FromAngle(me.Aim) * dist;
             }
+            else if (botScoutAt.HasValue)
+                TurnAim(me, (botScoutAt.Value - me.Pos).Angle, sk.Turn * dt);
 
             // --- Reach: don't shoot from across the arena. Only fire once the target is within the weapon's reach
             // (or where the bot likes to stand with it); until then keep closing in, and use anything already in reach.
