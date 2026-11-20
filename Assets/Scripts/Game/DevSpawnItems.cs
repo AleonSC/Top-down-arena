@@ -67,12 +67,12 @@ namespace Arena
                 bool hover = host && cell.Contains(ev.mousePosition);
                 Ui.Fill(cell, ink.WithAlpha(hover ? 0.16f : 0.05f));
                 CrtKit.Frame(cell, 1f, ink.WithAlpha(hover ? 0.85f : 0.3f));
-                DrawGadgetGlyph(g, new Vector2(cell.x + 24f, cell.center.y), 17f, host ? ink : ink.WithAlpha(0.45f));
-                Ui.Label(new Rect(cell.x + 48f, cell.y + 3f, cell.width - 52f, 24f), ChipName(g), 12, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
+                DrawGadgetGlyph(g, new Vector2(cell.x + 16f, cell.center.y), 12f, host ? ink : ink.WithAlpha(0.45f));
+                Ui.Label(new Rect(cell.x + 31f, cell.y + 4f, cell.width - 33f, 22f), WheelName(g), 11, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
                 float secs = Game.GadgetTime(g);
-                string blurb = Game.GadgetTimed(g) ? secs.ToString("0") + " s of use" : g == GadgetId.Lodestone ? Game.LodestoneUses + " casts to the hub"
-                    : g == GadgetId.DefibKit ? "1 revive" : Game.GadgetUses(g) + " charges";
-                Ui.Label(new Rect(cell.x + 48f, cell.y + 24f, cell.width - 52f, 20f), blurb, 11, CrtStyle.Desc, TextAnchor.MiddleLeft);
+                string blurb = Game.GadgetTimed(g) ? secs.ToString("0") + " s" : g == GadgetId.Lodestone ? Game.LodestoneUses + " casts"
+                    : g == GadgetId.DefibKit ? "1 revive" : g == GadgetId.Emp ? Game.EmpUses + " pulses" : Game.GadgetUses(g) + " charges";
+                Ui.Label(new Rect(cell.x + 31f, cell.y + 24f, cell.width - 33f, 20f), blurb, 10, CrtStyle.Desc, TextAnchor.MiddleLeft);
                 if (hover)
                     hoverNote = "Drop a full " + Game.GadgetName(g) + " in front of " + whoName + " (only " + (who.Id == game.MyId ? "you see" : "they see") + " it; walk onto it).";
                 if (host && Ui.HitArea(cell))

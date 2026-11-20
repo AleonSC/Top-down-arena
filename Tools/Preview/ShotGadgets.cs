@@ -2,8 +2,8 @@ using System;
 using System.Reflection;
 using Arena;
 
-// GADGETS=wheel|wheel2|floor|clouds|recall|energy|shield|defib (mode hud): wheel2 = the wheel with the newer kinds (a Grenade in hand, x2);
-// clouds = a Smoke Bomb's, a Gas Grenade's and an Incendiary's ground; shield = your Shield Generator's dome; defib = you downed, your Defib Kit charging; wheel = the gadget wheel open at the cursor (a Magnet in hand, a Recall, an Energy Drink and a Magnet in the
+// GADGETS=wheel|wheel2|floor|clouds|cloak|overclock|recall|energy|shield|defib (mode hud): wheel2 = the wheel with the newer kinds (a Grenade in hand, x2);
+// cloak / overclock = yours switched on; clouds = a Smoke Bomb's, a Gas Grenade's and an Incendiary's ground; shield = your Shield Generator's dome; defib = you downed, your Defib Kit charging; wheel = the gadget wheel open at the cursor (a Magnet in hand, a Recall, an Energy Drink and a Magnet in the
 // bag) with the chip beside the keys; floor = every kind lying on the floor (plus a part-used Energy Drink and a Grenade with one charge); recall = you channelling a Recall (rings rising,
 // the progress arc); energy = you running on an Energy Drink (speed lines, the time ring). Use ZOOM=2 CAMAT=<x,y> for the close views.
 static partial class Shot {
@@ -32,11 +32,12 @@ static partial class Shot {
       return;
     }
     me.Gadget = mode == "recall" ? GadgetId.Lodestone : mode == "energy" ? GadgetId.EnergyDrink : mode == "shield" ? GadgetId.ShieldGenerator
-      : mode == "defib" ? GadgetId.DefibKit : mode == "wheel2" ? GadgetId.Grenade : GadgetId.Magnet;
-    me.GadgetLeft = mode == "recall" ? 1.2f : mode == "energy" ? 38f : mode == "shield" ? 12f : mode == "defib" ? 0.8f : 42f;
+      : mode == "defib" ? GadgetId.DefibKit : mode == "wheel2" ? GadgetId.Grenade : mode == "cloak" ? GadgetId.Cloak : mode == "overclock" ? GadgetId.OverclockChip : GadgetId.Magnet;
+    me.GadgetLeft = mode == "recall" ? 1.2f : mode == "energy" ? 38f : mode == "shield" ? 12f : mode == "defib" ? 0.8f : mode == "cloak" ? 9f : mode == "overclock" ? 21f : 42f;
     me.GadgetUses = Game.GadgetUses(me.Gadget);
     if (mode == "wheel2") me.GadgetUses = 2;
-    me.GadgetOn = mode == "recall" || mode == "energy" || mode == "shield" || mode == "defib";
+    me.GadgetOn = mode == "recall" || mode == "energy" || mode == "shield" || mode == "defib" || mode == "cloak" || mode == "overclock";
+    if (mode == "cloak") me.VanishT = 0.2f;
     if (mode == "defib") { me.Downed = true; me.Hp = 0f; }
     me.BagKind[0] = GadgetId.Lodestone; me.BagLeft[0] = Game.LodestoneChannel; me.BagUses[0] = 2;
     me.BagKind[1] = GadgetId.EnergyDrink; me.BagLeft[1] = Game.EnergyTime;

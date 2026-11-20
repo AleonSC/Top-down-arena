@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The newer gadgets' looks (Core/Gadgets.cs): the Shield Generator, the Defib Kit and the four throwables (the Grenade, the Smoke
-    /// Bomb, the Gas Grenade, the Incendiary) as world shapes (on the floor, thrown, held) and HUD glyphs (the wheel and the chip), plus
+    /// The newer gadgets' looks (Core/Gadgets.cs): the Shield Generator, the Defib Kit, the Cloak, the Overclock Chip, the EMP and the
+    /// throwables (the Grenade, the Smoke Bomb, the Gas Grenade, the Incendiary, the Land Mine) as world shapes (on the floor, thrown, held) and HUD glyphs (the wheel and the chip), plus
     /// the Shield Generator's dome and the Defib Kit's stand-up countdown. DrawGadgetShape picks any kind's shape (GadgetLook.cs has the
     /// Magnet, the Lodestone and the Energy Drink).
     public partial class ArenaApp
@@ -13,6 +13,10 @@ namespace Arena
         static readonly Rgba NadeKhaki = new Rgba(0.6f, 0.64f, 0.36f), NadeDark = new Rgba(0.2f, 0.23f, 0.1f);
         static readonly Rgba SmokeTeal = new Rgba(0.37f, 0.83f, 0.74f), SmokeGrey = new Rgba(0.62f, 0.66f, 0.7f), CanDark = new Rgba(0.12f, 0.14f, 0.17f);
         static readonly Rgba GasPurple = new Rgba(0.72f, 0.42f, 1f);
+        static readonly Rgba CloakIndigo = new Rgba(0.5f, 0.46f, 0.95f), CloakDeep = new Rgba(0.1f, 0.08f, 0.24f);
+        static readonly Rgba ChipGold = new Rgba(1f, 0.8f, 0.25f), ChipBoard = new Rgba(0.1f, 0.24f, 0.16f);
+        static readonly Rgba MineSalmon = new Rgba(0.95f, 0.55f, 0.38f), MineBody = new Rgba(0.32f, 0.35f, 0.3f);
+        static readonly Rgba EmpIce = new Rgba(0.7f, 0.92f, 1f);
         static readonly Rgba BurnOrange = new Rgba(1f, 0.5f, 0.15f), BurnYellow = new Rgba(1f, 0.85f, 0.35f), BottleBrown = new Rgba(0.55f, 0.3f, 0.14f);
 
         /// A gadget's colour: its floor ring, held glow, wheel tile and chip.
@@ -28,6 +32,10 @@ namespace Arena
                 case GadgetId.SmokeBomb: return SmokeTeal;
                 case GadgetId.GasGrenade: return GasPurple;
                 case GadgetId.Incendiary: return BurnOrange;
+                case GadgetId.Cloak: return CloakIndigo;
+                case GadgetId.OverclockChip: return ChipGold;
+                case GadgetId.LandMine: return MineSalmon;
+                case GadgetId.Emp: return EmpIce;
                 default: return MagRed;
             }
         }
@@ -45,6 +53,10 @@ namespace Arena
                 case GadgetId.SmokeBomb: DrawCanShape(c, s, Mathf.Sin(spin) * 0.5f, SmokeGrey, SmokeTeal, glow); break;
                 case GadgetId.GasGrenade: DrawCanShape(c, s, Mathf.Sin(spin) * 0.5f, GasPurple, BurnYellow, glow); break;
                 case GadgetId.Incendiary: DrawBottleShape(c, s, Mathf.Sin(spin) * 0.4f, t, glow); break;
+                case GadgetId.Cloak: DrawCloakShape(c, s, Mathf.Sin(spin) * 0.25f, t, glow); break;
+                case GadgetId.OverclockChip: DrawChipShape(c, s, spin * 0.3f, t, glow); break;
+                case GadgetId.LandMine: DrawLandMineShape(c, s, t, glow); break;
+                case GadgetId.Emp: DrawEmpShape(c, s, spin, t, glow); break;
                 default: DrawMagnetShape(c, s, -Mathf.PI / 2f + Mathf.Sin(spin) * 0.5f, 1f, glow); break;
             }
         }
@@ -129,6 +141,109 @@ namespace Arena
             Circle(rag + up * s * 0.5f, s * 0.24f * f, BurnYellow, 8);
         }
 
+        /// The Cloak: a folded indigo cloak, its hood up, a faint shimmer running down it.
+        void DrawCloakShape(V2 c, float s, float tilt, float t, bool glow)
+        {
+            V2.Axes(tilt - Mathf.PI / 2f, out V2 up, out V2 side);
+            if (glow)
+                Circle(c, s * 2.4f, CloakIndigo.WithAlpha(0.13f), 16);
+            V2 hood = c + up * s * 0.55f, hem = c - up * s * 0.9f;
+            Line(hood, hem - side * s * 0.75f, s * 0.55f + 1.6f, CloakDeep);  // the folds, outlined
+            Line(hood, hem + side * s * 0.75f, s * 0.55f + 1.6f, CloakDeep);
+            Line(hem - side * s * 0.85f, hem + side * s * 0.85f, s * 0.4f + 1.6f, CloakDeep);
+            Circle(hood, s * 0.6f + 1.2f, CloakDeep, 12);
+            Line(hood, hem - side * s * 0.75f, s * 0.55f, CloakIndigo);
+            Line(hood, hem + side * s * 0.75f, s * 0.55f, CloakIndigo);
+            Line(hem - side * s * 0.85f, hem + side * s * 0.85f, s * 0.4f, CloakIndigo);
+            Line(hood - up * s * 0.2f, hem, s * 0.5f, CloakIndigo.Mix(CloakDeep, 0.3f));
+            Circle(hood, s * 0.6f, CloakIndigo, 12);
+            Circle(hood - up * s * 0.08f, s * 0.36f, CloakDeep, 10);  // the dark under the hood
+            float f = Mathf.Repeat(t * 0.9f, 1f);  // the shimmer
+            Line(hood - up * s * (0.2f + 1.2f * f) - side * s * 0.4f, hood - up * s * (0.2f + 1.2f * f) + side * s * 0.4f, Mathf.Max(1f, s * 0.14f), new Rgba(0.85f, 0.85f, 1f, 0.5f * (1f - f)));
+        }
+
+        /// The Overclock Chip: a green board with a gold die, pins down two sides, a pulse of light along its traces.
+        void DrawChipShape(V2 c, float s, float tilt, float t, bool glow)
+        {
+            V2.Axes(tilt, out V2 x, out V2 y);
+            if (glow)
+                Circle(c, s * 2.4f, ChipGold.WithAlpha(0.14f), 16);
+            for (int i = -2; i <= 2; i++)  // the pins
+            {
+                V2 o = x * (i * s * 0.36f);
+                Line(c + o - y * s * 1.15f, c + o + y * s * 1.15f, Mathf.Max(1f, s * 0.16f), MagSteel);
+            }
+            Line(c - x * (s + 1f), c + x * (s + 1f), s * 1.7f + 2f, new Rgba(0.03f, 0.08f, 0.05f));
+            Line(c - x * s, c + x * s, s * 1.7f, ChipBoard);
+            Line(c - x * s * 0.45f, c + x * s * 0.45f, s * 0.9f, ChipGold);  // the die
+            float f = Mathf.Repeat(t * 1.4f, 1f);
+            Circle(c + x * s * (-0.9f + 1.8f * f) + y * s * 0.62f, Mathf.Max(1f, s * 0.13f), new Rgba(1f, 0.95f, 0.6f, 0.9f), 6);  // a pulse along a trace
+            Line(c - x * s * 0.9f + y * s * 0.62f, c + x * s * 0.9f + y * s * 0.62f, Mathf.Max(0.8f, s * 0.07f), ChipGold.WithAlpha(0.5f));
+        }
+
+        /// The Land Mine: a squat olive disc with a pressure plate and a blinking salmon light.
+        void DrawLandMineShape(V2 c, float s, float t, bool glow)
+        {
+            if (glow)
+                Circle(c, s * 2.3f, MineSalmon.WithAlpha(0.12f), 16);
+            Circle(c, s * 1.05f + 1.2f, new Rgba(0.08f, 0.09f, 0.08f), 16);
+            Circle(c, s * 1.05f, MineBody, 16);
+            Arc(c, s * 0.7f, Mathf.Max(1f, s * 0.14f), new Rgba(0.18f, 0.2f, 0.17f), 16);  // the plate's rim
+            Circle(c, s * 0.45f, MineBody.Mix(MagSteel, 0.3f), 12);
+            bool blink = Mathf.Repeat(t * 1.5f, 1f) < 0.3f;
+            Circle(c, s * 0.2f, blink ? MineSalmon : MineSalmon.Mix(MineBody, 0.6f), 8);
+            if (blink)
+                Circle(c, s * 0.5f, MineSalmon.WithAlpha(0.3f), 10);
+        }
+
+        /// The EMP: a steel coil puck, an ice-blue core and a spark crawling round it.
+        void DrawEmpShape(V2 c, float s, float spin, float t, bool glow)
+        {
+            if (glow)
+                Circle(c, s * 2.4f, EmpIce.WithAlpha(0.14f), 16);
+            Circle(c, s + 1.2f, new Rgba(0.08f, 0.12f, 0.18f), 16);
+            Circle(c, s, new Rgba(0.3f, 0.36f, 0.45f), 16);
+            for (int i = 0; i < 3; i++)  // the coil
+                Arc(c, s * (0.45f + i * 0.17f), Mathf.Max(0.8f, s * 0.08f), new Rgba(0.85f, 0.6f, 0.3f), 14);
+            Circle(c, s * 0.3f, EmpIce, 10);
+            V2 sp = c + V2.FromAngle(spin * 3f + t * 5f) * s * 0.8f;
+            Circle(sp, Mathf.Max(1f, s * 0.18f), Rgba.White, 6);
+            Line(sp, c + V2.FromAngle(spin * 3f + t * 5f + 0.5f) * s * 0.55f, Mathf.Max(0.8f, s * 0.08f), EmpIce);
+        }
+
+        /// A player with the Cloak on: an indigo shimmer drifting round them (the body itself is drawn faded: Juice.cs, Player.VanishT).
+        void DrawCloakAura(Player p, float t)
+        {
+            float r = p.Def.BodyR;
+            if (fxOn)
+                for (int i = 0; i < 6; i++)
+                {
+                    float a = t * 1.2f + i * MathX.Tau / 6f, f = Mathf.Repeat(t * 0.8f + i * 0.31f, 1f);
+                    Arc(p.Disp, r + 5f + f * 8f, 1.4f, CloakIndigo.WithAlpha(0.35f * (1f - f)), 6, a, 0.6f);
+                }
+            Arc(p.Disp, r + 4f, 2.2f, CloakIndigo.WithAlpha(0.7f), 30, -Mathf.PI / 2f, MathX.Tau * Mathf.Clamp01(p.GadgetLeft / Game.CloakTime));
+        }
+
+        /// A player with the Overclock Chip on: gold sparks jumping off them, a ticking ring, the time left.
+        void DrawOverclockAura(Player p, float t)
+        {
+            float r = p.Def.BodyR;
+            if (fxOn)
+                for (int i = 0; i < 5; i++)
+                {
+                    float f = Mathf.Repeat(t * 2.6f + i * 0.23f, 1f), a = i * 1.7f + Mathf.Floor(t * 2.6f + i * 0.23f) * 2.3f;
+                    V2 d = V2.FromAngle(a), from = p.Disp + d * (r + 2f + f * 14f);
+                    Line(from, from + d * 5f + d.Orthogonal() * 3f * Mathf.Sin(a * 3f), 1.6f, ChipGold.WithAlpha(0.8f * (1f - f)));
+                }
+            int ticks = 12;
+            for (int i = 0; i < ticks; i++)  // a clock face ticking round fast
+            {
+                float a = i * MathX.Tau / ticks, lit = Mathf.Repeat(t * 3f - i / (float)ticks, 1f);
+                Arc(p.Disp, r + 8f, 2f, ChipGold.WithAlpha(0.15f + 0.5f * (1f - lit)), 3, a, MathX.Tau / ticks * 0.5f);
+            }
+            Arc(p.Disp, r + 4f, 2.4f, ChipGold.WithAlpha(0.85f), 30, -Mathf.PI / 2f, MathX.Tau * Mathf.Clamp01(p.GadgetLeft / Game.OverclockTime));
+        }
+
         /// A player's Shield Generator switched on: a blue dome round them, its emitters turning, the time left round the body.
         void DrawShieldDome(Player p, float t)
         {
@@ -194,6 +309,32 @@ namespace Arena
                     Ui.Fill(new Rect(can.x, c.y + k * 0.05f, can.width, t), g == GadgetId.SmokeBomb ? Color.white : BurnYellow.ToColor());  // the band
                     return true;
                 }
+                case GadgetId.Cloak:
+                    Ui.Dot(new Rect(c.x - k * 0.55f, c.y - k * 1f, k * 1.1f, k * 1.1f), col);  // the hood
+                    Ui.Dot(new Rect(c.x - k * 0.3f, c.y - k * 0.75f, k * 0.6f, k * 0.6f), dark);
+                    Ui.Fill(new Rect(c.x - k * 0.55f, c.y - k * 0.1f, k * 1.1f, k * 0.5f), col);  // the cloak, widening down
+                    Ui.Fill(new Rect(c.x - k * 0.8f, c.y + k * 0.35f, k * 1.6f, k * 0.55f), col);
+                    return true;
+                case GadgetId.OverclockChip:
+                    for (int i = -1; i <= 1; i++)  // the pins
+                    {
+                        Ui.Fill(new Rect(c.x + i * k * 0.5f - t * 0.3f, c.y - k * 1.05f, t * 0.6f, k * 2.1f), steel);
+                        Ui.Fill(new Rect(c.x - k * 1.05f, c.y + i * k * 0.5f - t * 0.3f, k * 2.1f, t * 0.6f), steel);
+                    }
+                    Ui.Fill(new Rect(c.x - k * 0.75f, c.y - k * 0.75f, k * 1.5f, k * 1.5f), ChipBoard.ToColor());
+                    Ui.Fill(new Rect(c.x - k * 0.42f, c.y - k * 0.42f, k * 0.84f, k * 0.84f), col);
+                    return true;
+                case GadgetId.LandMine:
+                    Ui.Dot(new Rect(c.x - k, c.y - k * 0.6f, k * 2f, k * 1.4f), MineBody.ToColor());
+                    Ui.Dot(new Rect(c.x - k, c.y - k * 0.6f, k * 2f, k * 1.4f), col, true);
+                    Ui.Dot(new Rect(c.x - k * 0.25f, c.y - k * 0.15f, k * 0.5f, k * 0.5f), col);
+                    return true;
+                case GadgetId.Emp:
+                    Ui.Dot(new Rect(c.x - r * 0.85f, c.y - r * 0.85f, r * 1.7f, r * 1.7f), col, true);
+                    Ui.Fill(new Rect(c.x - t * 0.1f, c.y - k * 0.95f, t, k * 0.95f), col);  // a bolt: two offset bars
+                    Ui.Fill(new Rect(c.x - t * 0.9f, c.y - t * 0.4f, t * 1.8f, t * 0.8f), col);
+                    Ui.Fill(new Rect(c.x - t * 0.9f, c.y, t, k * 0.95f), col);
+                    return true;
                 case GadgetId.Incendiary:
                     Ui.Dot(new Rect(c.x - k * 0.7f, c.y - k * 0.2f, k * 1.4f, k * 1.2f), col);
                     Ui.Fill(new Rect(c.x - k * 0.22f, c.y - k * 0.75f, k * 0.44f, k * 0.7f), col);  // the neck
