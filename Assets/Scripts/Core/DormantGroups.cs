@@ -61,23 +61,27 @@ namespace Arena
         }
 
         /// Host, as a piece card is built: each cell rolls for a sleeping group of this wave's faction enemies. Returns how many groups.
-        internal int PlantDormantGroups(IList<ExpansionRoom> boxes, bool atLeastOne = false)
+        internal int PlantDormantGroups(IList<ExpansionRoom> boxes, bool atLeastOne = false, EnemyType? only = null, int groupSize = 0, bool all = false)
         {
             if (!IsHost || !ExpandingOn || boxes.Count == 0)
                 return 0;
-            var pool = DormantPool(Wave);
+            var pool = only.HasValue ? new List<EnemyType> { only.Value } : DormantPool(Wave);
             var roll = new DetRandom(expandSeed * 31 + boxes[0].X * 7 + boxes[0].Y * 13 + Wave);
-            int groups = 0, size = DormantGroups.GroupSize(Wave);
-            var mids = DormantGroups.CellMids(boxes);
+            int groups = 0, size = groupSize > 0 ? groupSize : DormantGroups.GroupSize(Wave);
+            var mids = Expanded.Exists(Expansion.IsGridCore) ? CellLayouts.SleeperSlots(boxes) : new List<V2>();  // (a cell layout's sleeper slots; rooms off the lattice use their cells' middles)
+            bool slots = mids.Count > 0;
+            if (!slots)
+                mids = DormantGroups.CellMids(boxes);
             for (int c = 0; c < mids.Count; c++)
             {
                 var mid = mids[c];
-                if (roll.Float() >= DormantGroups.CellChance && !(atLeastOne && groups == 0 && c == mids.Count - 1))  // (a Combat piece always holds at least one group)
+                if (!all && roll.Float() >= DormantGroups.CellChance && !(atLeastOne && groups == 0 && c == mids.Count - 1))  // (a Combat piece always holds at least one group)
                     continue;
                 var type = pool[roll.Int(pool.Count)];
                 for (int k = 0; k < size; k++)
                 {
-                    var e = SpawnEnemyAt(type, DormantGroups.Spot(mid, k, size), 0f, 0);
+                    V2 spot = DormantGroups.Spot(mid, k, size);
+                    var e = SpawnEnemyAt(type, slots ? CellLayouts.Clear(spot, mid) : spot, 0f, 0);
                     e.Dormant = true;
                     e.Facing = (float)(roll.Float() * MathX.Tau);
                 }

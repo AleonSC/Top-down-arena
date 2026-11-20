@@ -81,19 +81,17 @@ static partial class Program
             var again = Expansion.Build(built);
             coverSeen += w.Cover.Length;
             if (again.Cover.Length != w.Cover.Length || w.Cover.Where((c, i) => c.Pos.DistanceTo(again.Cover[i].Pos) > 0.01f).Any()) badCover++;
-            foreach (var c in w.Cover)
+            foreach (var c in w.Cover)  // (a Grid run's cells use CellLayouts: inside their room, with every door's lane open)
             {
-                var host = w.Areas.Skip(1).Where(ar2 => ar2.Contains(c.Pos, -(Strip(ar2) ? Expansion.StripCoverWall + Expansion.StripCoverR : Expansion.CoverWall) + 5f)).ToList();
-                if (host.Count != 1) badCover++;
-                else if (Strip(host[0])) { hallCover++; float r = c.Round ? c.R : c.HW; if (Math.Min(host[0].Size.X, host[0].Size.Y) - Expansion.StripCoverWall - 2f * r < 150f) badCover++; }  // a 150 px lane past it
-                if (w.Doors.Any(d => d.Pos.DistanceTo(c.Pos) < 200f)) badCover++;
+                if (!w.Areas.Skip(1).Any(ar2 => ar2.Contains(c.Pos, 5f))) badCover++;
+                if (w.Doors.Any(d => Layouts.Inside(c, d.Pos, 40f))) badCover++;
             }
             // every room's centre is in the open and in its own area
             for (int i = 0; i < w.Areas.Length; i++)
                 if (plan.Solids.Any(sd => Layouts.Inside(sd, w.Areas[i].Mid, 0f)) || w.AreaAt(w.Areas[i].Mid) != i) badWall++;
         }
         Check(piecesSeen > 600, "pieces keep going down until the cap (" + piecesSeen + " over " + worlds + " maps)");
-        Check(badCover == 0 && coverSeen > 60, "built rooms hold obstacles and bars of wall: inside their room clear of its walls, off every door, the same on every build (" + coverSeen + " over " + worlds + " maps, " + badCover + " bad)");
+        Check(badCover == 0 && coverSeen > 60, "built rooms hold their cells' layout walls: inside their room, off every door, the same on every build (" + coverSeen + " over " + worlds + " maps, " + badCover + " bad)");
         Check(badWallGap == 0, "every wall is closed all the way along, even where a room is wider than the one it joins (" + badWallGap + " gaps)");
         Check(loopDoors > worlds * 3, "rooms touching along a door's width get a door, so loops form (" + loopDoors + " doors over " + worlds + " maps)");
         Check(badFit == 0, "rooms never overlap, never touch in a sliver, and every shared stretch of wall has its door (" + badFit + " bad)");
