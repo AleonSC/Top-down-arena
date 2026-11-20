@@ -21,7 +21,7 @@ namespace Arena
         /// A chest node's colour once seen: its chest kind's ink (Gold, Piece chest, Buildables or Upgrade).
         Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
 
-        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Piece chest", "Buildables chest" };
+        static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Piece chest", "Buildables chest", "Gadget chest" };
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
         string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);

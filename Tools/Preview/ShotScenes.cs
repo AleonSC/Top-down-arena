@@ -58,6 +58,7 @@ static partial class Shot {
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
     CauterizeScene();  // CAUTER=1 (ShotCauterize.cs)
     ChestLooksScene();  // CHESTLOOKS=1 (ShotChests.cs)
+    GadgetsScene();  // GADGETS=wheel|floor|recall (ShotGadgets.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     WolfPackScene();  // WOLFPACK=pack|alpha|merge [WOLFT=<s>] (ShotWolfPack.cs)

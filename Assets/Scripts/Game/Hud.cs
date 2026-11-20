@@ -99,6 +99,8 @@ namespace Arena
             if (me != null && !me.Downed)
                 DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
+            DrawGadgetWheel();  // hold the Gadget key with gadgets in the bag: the wheel at the cursor (GadgetWheel.cs)
+            DrawGadgetChip(me);  // the gadget in hand and the bag beside the keys (GadgetWheel.cs)
             DrawChat();  // the chat box, bottom right above the player cards (ChatBox.cs)
             DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
 

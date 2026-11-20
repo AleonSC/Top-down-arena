@@ -16,6 +16,7 @@ namespace Arena
             new Rgba(0.78f, 0.5f, 1f),    // Relic
             new Rgba(1f, 0.55f, 0.3f),    // Piece chest
             new Rgba(1f, 0.4f, 0.72f),    // Buildables (Black Market)
+            new Rgba(0.92f, 0.2f, 0.22f), // Gadget chest (MagRed)
         };
 
         static Rgba ChestInkOf(ChestKind k) => (int)k < ChestKindInk.Length ? ChestKindInk[(int)k] : ChestKindInk[0];
@@ -116,6 +117,10 @@ namespace Arena
                     for (int k = 0; k < 3; k++)
                         GlowLine(new V2(c.X - hw + 6f + k * 2f, c.Y - hh - 3f - k * 2.5f), new V2(c.X + hw - 6f - k * 2f, c.Y - hh - 3f - k * 2.5f), 0.9f, col.WithAlpha((0.75f - 0.2f * k) * a));
                     break;
+                case ChestKind.Gadget:  // two steel pole tips on the lid
+                    for (int k = -1; k <= 1; k += 2)
+                        GlowLine(new V2(c.X + k * 5f, c.Y - hh - 1f), new V2(c.X + k * 5f, c.Y - hh - 5f), 1.6f, MagSteel.WithAlpha(0.9f * a));
+                    break;
                 case ChestKind.Buildable:  // hazard ticks on the base
                     for (float x = -hw + 4f; x < hw - 4f; x += 6f)
                         GlowLine(new V2(c.X + x, c.Y + hh - 1.5f), new V2(c.X + x + 3f, c.Y + hh - 5f), 1f, col.WithAlpha(0.8f * a));
@@ -206,6 +211,9 @@ namespace Arena
                     }
                     break;
                 }
+                case ChestKind.Gadget:  // a horseshoe magnet
+                    DrawMagnetShape(m + new V2(0f, -2f * s), 3.2f * s, -Mathf.PI / 2f, hot.A, false);
+                    break;
                 case ChestKind.Buildable:  // a wrench
                 {
                     V2 head = m + new V2(3f, -3f) * s, tail = m + new V2(-5f, 5f) * s;

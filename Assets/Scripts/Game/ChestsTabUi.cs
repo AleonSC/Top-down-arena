@@ -18,12 +18,12 @@ namespace Arena
         void RefreshWcChests() => game.UncollectedChests(wcChests);
 
         static string ChestKindName(ChestKind k) => k == ChestKind.Upgrade ? "UPGRADE CHEST" : k == ChestKind.Gold ? "GOLD CHEST" : k == ChestKind.Vector ? "VECTOR CHEST"
-            : k == ChestKind.Relic ? "RELIC CHEST" : k == ChestKind.Piece ? "PIECE CHEST" : "BUILDABLES CHEST";
+            : k == ChestKind.Relic ? "RELIC CHEST" : k == ChestKind.Piece ? "PIECE CHEST" : k == ChestKind.Gadget ? "GADGET CHEST" : "BUILDABLES CHEST";
 
         /// What it gives each player, one line.
         string ChestGives(ChestKind k) => k == ChestKind.Gold ? (Game.ChestGold + Game.ChestGoldPerWave * Mathf.Max(1, game.Wave)) + " GOLD EACH"
             : k == ChestKind.Vector ? (Game.VectorChestPickups * Game.VectorDropSmall) + " VECTORS EACH" : k == ChestKind.Piece ? "PIECE CARDS"
-            : k == ChestKind.Buildable ? "A BUILD EACH" : "A CARD EACH";
+            : k == ChestKind.Buildable ? "A BUILD EACH" : k == ChestKind.Gadget ? "A GADGET EACH" : "A CARD EACH";
 
         static readonly string[] Compass = { "EAST", "SOUTH-EAST", "SOUTH", "SOUTH-WEST", "WEST", "NORTH-WEST", "NORTH", "NORTH-EAST" };
 

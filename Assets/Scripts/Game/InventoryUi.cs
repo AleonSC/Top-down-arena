@@ -155,7 +155,7 @@ namespace Arena
             var rows = new string[,]
             {
                 { "Revive token", me.ReviveToken ? "1" : "0" },
-                { "Gadget", me.Gadget == GadgetId.None ? "—" : "MAGNET " + Mathf.CeilToInt(me.GadgetLeft) + "s" },
+                { "Gadget", GadgetSummary(me) },
                 { "Rerolls", mine ? me.Rerolls.ToString() : "—" },  // (not sent for teammates)
             };
             HoloRows(r.x + 12f, r.y + 134f, r.width - 24f, rows);

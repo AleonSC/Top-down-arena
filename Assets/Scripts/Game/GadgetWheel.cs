@@ -1,0 +1,146 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Arena
+{
+    /// The gadget bag's front end (Core/Gadgets.cs): hold the Gadget key with gadgets in the bag and a wheel opens at the cursor, one slice
+    /// for the gadget in hand and one for each in the bag. Move to a slice and let go to swap it into your hand; let go in the middle
+    /// to throw what's in hand where the cursor was. A small chip beside the keys shows the gadget in hand and the bag. With an empty
+    /// bag the key works as it always did (tap: on / off, hold: throw).
+    public partial class ArenaApp
+    {
+        bool gadgetWheelOpen;
+        float gadgetWheelK;
+        Vector2 gadgetAnchor;   // where the wheel is centred on the HUD canvas
+        int gadgetHover = -1;   // the hovered slice (an index into gadgetWheelSlots), -1: the middle
+        readonly List<int> gadgetWheelSlots = new List<int>();  // each slice's source: -1 the hand, else a bag slot
+
+        static int BagCount(Player p)
+        {
+            int n = 0;
+            for (int i = 0; i < p.BagKind.Length; i++)
+                if (p.BagKind[i] != GadgetId.None)
+                    n++;
+            return n;
+        }
+
+        static Color GadgetInk(GadgetId g) => g == GadgetId.Recall ? new Color(0.45f, 0.9f, 1f) : new Color(0.92f, 0.2f, 0.22f);
+
+        /// "MAGNET 42s", "RECALL", with "+2" for what's in the bag; "—" with nothing.
+        static string GadgetSummary(Player me)
+        {
+            int bag = BagCount(me);
+            string hand = me.Gadget == GadgetId.None ? "—" : Game.GadgetName(me.Gadget).ToUpperInvariant() + (me.Gadget == GadgetId.Magnet ? " " + Mathf.CeilToInt(me.GadgetLeft) + "s" : "");
+            return bag > 0 ? hand + "  +" + bag : hand;
+        }
+
+        void OpenGadgetWheel(Player me)
+        {
+            gadgetWheelSlots.Clear();
+            if (me.Gadget != GadgetId.None)
+                gadgetWheelSlots.Add(-1);
+            for (int i = 0; i < me.BagKind.Length; i++)
+                if (me.BagKind[i] != GadgetId.None)
+                    gadgetWheelSlots.Add(i);
+            var m = MouseUi();
+            gadgetAnchor = new Vector2(Mathf.Clamp(m.x, 130f, W - 130f), Mathf.Clamp(m.y, 130f, H - 130f));
+            gadgetHover = -1;
+            gadgetWheelOpen = true;
+        }
+
+        void TickGadgetWheelHover()
+        {
+            Vector2 d = MouseUi() - gadgetAnchor;
+            int n = gadgetWheelSlots.Count;
+            if (d.magnitude < 30f || n == 0)
+            {
+                gadgetHover = -1;
+                return;
+            }
+            float step = 360f / n, a = (Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg + 90f + step / 2f + 720f) % 360f;  // 0 = the top slice's left edge
+            gadgetHover = Mathf.FloorToInt(a / step) % n;
+        }
+
+        GadgetId GadgetOfSlot(Player me, int slot) => slot < 0 ? me.Gadget : me.BagKind[slot];
+        float GadgetLeftOfSlot(Player me, int slot) => slot < 0 ? me.GadgetLeft : me.BagLeft[slot];
+
+        /// A gadget's glyph centred on c (HUD pixels, from fills and dots like the ping glyphs): the Magnet's horseshoe, the Recall's house in a ring.
+        void DrawGadgetGlyph(GadgetId g, Vector2 c, float r, Color col)
+        {
+            float t = Mathf.Max(2f, r * 0.16f), k = r * 0.55f;
+            if (g == GadgetId.Recall)
+            {
+                Ui.Dot(new Rect(c.x - r * 0.85f, c.y - r * 0.85f, r * 1.7f, r * 1.7f), col, true);
+                Ui.Fill(new Rect(c.x - k * 0.5f, c.y - k * 0.1f, k, k * 0.7f), col);  // walls
+                Ui.Fill(new Rect(c.x - k * 0.7f, c.y - k * 0.5f, k * 1.4f, t), col);  // roof
+                Ui.Fill(new Rect(c.x - k * 0.3f, c.y - k * 0.8f, k * 0.6f, t), col);
+                return;
+            }
+            Ui.Fill(new Rect(c.x - k, c.y - k * 0.9f, t * 1.6f, k * 1.5f), col);   // left leg
+            Ui.Fill(new Rect(c.x + k - t * 1.6f, c.y - k * 0.9f, t * 1.6f, k * 1.5f), col);  // right leg
+            Ui.Fill(new Rect(c.x - k, c.y + k * 0.6f - t * 1.6f, k * 2f, t * 1.6f), col);  // the bend
+            Ui.Fill(new Rect(c.x - k, c.y - k * 0.9f, t * 1.6f, t * 1.2f), new Color(0.86f, 0.9f, 0.96f));  // steel tips
+            Ui.Fill(new Rect(c.x + k - t * 1.6f, c.y - k * 0.9f, t * 1.6f, t * 1.2f), new Color(0.86f, 0.9f, 0.96f));
+        }
+
+        /// The wheel, centred on gadgetAnchor (HUD pass).
+        void DrawGadgetWheel()
+        {
+            var me = game.Me;
+            if (gadgetWheelK <= 0.01f || me == null || gadgetWheelSlots.Count == 0)
+                return;
+            float oldAlpha = Ui.Alpha;
+            Ui.Alpha = oldAlpha * gadgetWheelK;
+            Ui.Fill(new Rect(0f, 0f, W, H), new Color(0.02f, 0.03f, 0.04f, 0.4f));
+            int n = gadgetWheelSlots.Count;
+            float mid = n > 3 ? 112f : 92f;  // (the tiles are 70 wide: far enough out to clear the middle)
+            for (int i = 0; i < n; i++)
+            {
+                int slot = gadgetWheelSlots[i];
+                GadgetId g = GadgetOfSlot(me, slot);
+                float a = (-90f + i * 360f / n) * Mathf.Deg2Rad;
+                var c = gadgetAnchor + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * (mid + (gadgetHover == i ? 6f : 0f)) * (0.7f + 0.3f * gadgetWheelK);
+                bool hot = gadgetHover == i;
+                Color tone = GadgetInk(g);
+                var tile = new Rect(c.x - 35f, c.y - 29f, 70f, 58f);
+                Ui.Fill(tile, hot ? tone.WithAlpha(0.35f) : new Color(0.07f, 0.09f, 0.11f, 0.92f));
+                Ui.Fill(new Rect(tile.x, tile.y, tile.width, 2f), hot ? tone : slot < 0 ? tone.WithAlpha(0.8f) : new Color(1f, 1f, 1f, 0.15f));
+                DrawGadgetGlyph(g, new Vector2(c.x, c.y - 7f), 22f, hot ? Color.white : tone);
+                string label = Game.GadgetName(g).ToUpperInvariant() + (g == GadgetId.Magnet ? " " + Mathf.CeilToInt(GadgetLeftOfSlot(me, slot)) + "s" : "");
+                Ui.Label(new Rect(tile.x, tile.yMax - 17f, tile.width, 14f), label, 9, hot ? Color.white : new Color(0.57f, 0.63f, 0.68f), TextAnchor.MiddleCenter, true);
+                if (slot < 0)
+                    Ui.Label(new Rect(tile.x, tile.y + 3f, tile.width, 11f), "IN HAND", 7, tone.WithAlpha(0.9f), TextAnchor.MiddleCenter, true);
+            }
+            var hub = new Rect(gadgetAnchor.x - 26f, gadgetAnchor.y - 26f, 52f, 52f);
+            Ui.Dot(hub, new Color(0.03f, 0.04f, 0.07f, 0.9f));
+            Ui.Dot(hub, new Color(0.35f, 0.4f, 0.45f), true);
+            Ui.Label(hub, gadgetHover >= 0 ? "SWAP" : me.Gadget != GadgetId.None ? "THROW" : "CANCEL", 8, new Color(0.57f, 0.63f, 0.68f), TextAnchor.MiddleCenter, true);
+            Ui.Alpha = oldAlpha;
+        }
+
+        /// The chip beside the keys: the gadget in hand (glyph, name, use left) and a pip for each gadget in the bag.
+        void DrawGadgetChip(Player me)
+        {
+            if (me == null || me.Downed || (me.Gadget == GadgetId.None && BagCount(me) == 0))
+                return;
+            var r = new Rect(W / 2f - 75f, HudChestHint.y - 30f, 150f, 26f);  // (just over the chest hint, centred)
+            Ui.Fill(r, new Color(0.03f, 0.04f, 0.07f, 0.85f));
+            Color tone = me.Gadget == GadgetId.None ? new Color(0.57f, 0.63f, 0.68f) : GadgetInk(me.Gadget);
+            Ui.Fill(new Rect(r.x, r.y, 2f, r.height), tone);
+            if (me.Gadget != GadgetId.None)
+                DrawGadgetGlyph(me.Gadget, new Vector2(r.x + 16f, r.center.y), 10f, tone);
+            string key = Keybinds.NameOrNull(KeyAction.Gadget) ?? "";
+            string text = me.Gadget == GadgetId.None ? "HOLD " + key + " TO EQUIP" : me.Gadget == GadgetId.Recall && me.GadgetOn ? "RECALLING " + Mathf.CeilToInt(me.GadgetLeft) + "s"
+                : Game.GadgetName(me.Gadget).ToUpperInvariant() + (me.GadgetOn ? " ON" : "");
+            Ui.Label(new Rect(r.x + 30f, r.y, r.width - 62f, r.height), text, 10, Color.white, TextAnchor.MiddleLeft, true);
+            for (int i = 0; i < me.BagKind.Length; i++)  // a pip per bag slot, lit in the gadget's ink
+            {
+                var pip = new Rect(r.xMax - 8f - (me.BagKind.Length - i) * 8f, r.center.y - 3f, 6f, 6f);
+                if (me.BagKind[i] == GadgetId.None)
+                    Ui.Fill(pip, new Color(1f, 1f, 1f, 0.12f));
+                else
+                    Ui.Fill(pip, GadgetInk(me.BagKind[i]));
+            }
+        }
+    }
+}
