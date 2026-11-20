@@ -348,7 +348,7 @@ namespace Arena
         /// until its last wave is cleared.
         bool ArenaRule(PathId id) => CurrentPath == id && (OnPath || Wave + 1 == PathFrom) && ModeRules.Extras;
 
-        /// The local player stands in a dark rule room (a Fogbound rule room, Docs/RuleRooms.md): the mist is on for them there only.
+        /// The local player stands on Fogbound ground in the Expanding arena: the mist is on for them there only.
         bool InDarkRoom => ExpandingOn && Expanded.Count > 0 && Me != null && !BossNow && State != MatchState.Idle && FloorAt(Me.Disp) == PathId.Fogbound;
 
         void TickArenaRules(float dt)
