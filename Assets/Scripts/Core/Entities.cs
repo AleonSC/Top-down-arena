@@ -291,6 +291,8 @@ namespace Arena
         public GadgetId Gadget = GadgetId.None;       // the gadget in your free hand (replicated; Gadgets.cs)
         public float GadgetLeft;                      // its seconds of use left (replicated)
         public bool GadgetOn;                         // switched on: using up GadgetLeft (replicated)
+        public readonly GadgetId[] BagKind = { GadgetId.None, GadgetId.None, GadgetId.None, GadgetId.None };  // gadgets carried besides the one in hand (replicated; Gadgets.cs)
+        public readonly float[] BagLeft = new float[4];  // each one's seconds of use left
         public bool SprayOn;                          // Arterial Spray is gushing (replicated; ArterialSpray.cs)
         public float SprayT, SprayTick, SprayPower = 1f;  // host: how long it has run, until the next damage tick, mastery power
         public bool SprayMastered;                    // host: a mastered spray washes away enemy bullets

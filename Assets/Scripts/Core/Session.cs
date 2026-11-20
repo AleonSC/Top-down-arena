@@ -56,7 +56,7 @@ namespace Arena
         GateState,    // host -> all: a gate's clocks: index, seconds shut, seconds of cooldown (Gates.cs)
         ExpandOutline, // retired (Nov 18, Free draw removed): no longer sent or read
         PlaceBuild,   // client -> host: put a trap from this player's stash on the map (kind, x, y) (Market.cs)
-        Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to) (Gadgets.cs)
+        Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to / 2 take the gadget in bag slot at.X into your hand) (Gadgets.cs)
         HuntMapState, // host -> all: the hunt map: its seed, the nodes cleared, the one being fought, and the vote on the next so far (HuntMapGame.cs)
         HuntMapVote,  // client -> host: this player's vote on the next node (its index in the row, -1 for none) and whether they have locked it in (HuntMapGame.cs)
         StarThrow,    // client -> host: the Shuriken's Great Star thrown along a drawn route (a byte count, then the points); host -> all: (bullet id, owner, count, points) to fly it along (GreatStar.cs)
@@ -131,7 +131,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 424;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 425;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

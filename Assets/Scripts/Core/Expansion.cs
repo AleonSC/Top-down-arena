@@ -289,6 +289,8 @@ namespace Arena
             int tier = NodeTier(x, y);
             if (tier != 1)
                 return tier == 0 ? (InnerCoin(seed, x, y) ? ChestKind.Gold : ChestKind.Vector) : ChestKind.Upgrade;
+            if (new DetRandom(seed * 31 + x * 7919 + y * 104729 + 9).Int(4) == 0)
+                return ChestKind.Gadget;  // (1 in 4 middle-tier chests; its own roll, so the rest of the map stays as it was)
             var r = new DetRandom(seed * 31 + x * 7919 + y * 104729 + 5);
             return cards && r.Int(2) == 0 ? ChestKind.Piece : ChestKind.Buildable;
         }
@@ -297,7 +299,7 @@ namespace Arena
 
         public const int TierMid = 1500, TierOuter = 3000;  // a node this far (15 / 30 tiles) or more off the hub's wall is middle / outer tier
 
-        /// A point's tier from its distance to the hub's box (square zones: the farther axis): 0 inner (gold and vector chests), 1 middle (piece and buildables chests),
+        /// A point's tier from its distance to the hub's box (square zones: the farther axis): 0 inner (gold and vector chests), 1 middle (gadget, piece and buildables chests),
         /// 2 outer (upgrade chests and relics). A pure function of the point, so it needs nothing on the wire or in saves.
         public static int NodeTier(int x, int y)
         {

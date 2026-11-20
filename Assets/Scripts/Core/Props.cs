@@ -18,7 +18,7 @@ namespace Arena
     /// What a chest holds, and so how it looks (Game/ChestLooks.cs). A wave's chest is Upgrade (everyone's own card);
     /// an Expanding chest node rolls Gold (a burst of coins), Piece chest (a piece each), Buildables (one Black Market build each) or Upgrade.
     /// Vector and Relic are the vector chest and relic nodes' looks (they are nodes, not props). New kinds go at the end.
-    public enum ChestKind : byte { Upgrade, Gold, Vector, Relic, Piece, Buildable }
+    public enum ChestKind : byte { Upgrade, Gold, Vector, Relic, Piece, Buildable, Gadget }
 
     public class Prop
     {
@@ -695,6 +695,10 @@ namespace Arena
                     }
                     break;
                 }
+                case ChestKind.Gadget:  // a gadget each, into the hand or the bag (Gadgets.cs)
+                    foreach (var pl in Players.Values)
+                        GiveChestGadget(pl, remote ? pl.Pos : c.Pos);
+                    break;
                 case ChestKind.Piece:  // a piece each (Grid runs), to take or throw away
                 {
                     if (!ExpandingOn)
@@ -727,7 +731,7 @@ namespace Arena
         public static Rgba LootInk(Loot l) => l.Kind == LootKind.Build ? new Rgba(1f, 0.4f, 0.72f) : l.Kind == LootKind.Card ? new Rgba(1f, 0.55f, 0.3f)
             : l.Upgrade >= 0 && l.Upgrade < Upgrades.All.Length ? Upgrades.RarityColor(Upgrades.All[l.Upgrade].Rarity) : new Rgba(0.4f, 1f, 0.5f);
 
-        static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.Vector ? new Rgba(0.3f, 0.88f, 1f) : k == ChestKind.Piece ? new Rgba(1f, 0.55f, 0.3f)
+        static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.Vector ? new Rgba(0.3f, 0.88f, 1f) : k == ChestKind.Piece ? new Rgba(1f, 0.55f, 0.3f) : k == ChestKind.Gadget ? new Rgba(0.92f, 0.2f, 0.22f)
             : k == ChestKind.Buildable ? new Rgba(1f, 0.4f, 0.72f) : new Rgba(0.4f, 1f, 0.5f);
 
         /// Host: a Gold chest's coins, `perPlayer` gold for each player (their own copy), spread in a ring round pos (ChestGoldCoins
