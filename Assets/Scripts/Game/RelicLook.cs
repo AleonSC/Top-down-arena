@@ -25,6 +25,20 @@ namespace Arena
 
         internal static int PreviewRelicPage;  // preview RELICPAGE=0|1: page 0 = the node before and after + the first five factions, page 1 = the other five
 
+        /// A relic's look: its faction's ink and its artefact's shape (RelicGlyph); the three classic relics are a violet gem.
+        static void RelicStyle(RelicId r, out Rgba ink, out int shape)
+        {
+            int f = Relics.FactionOf(r);
+            if (f < 0)
+            {
+                ink = RelicInk;
+                shape = 15;
+                return;
+            }
+            ink = RelicFactions[f].Ink;
+            shape = RelicFactions[f].Shapes[(int)r - (int)Relics.OfFaction(f, 0)];
+        }
+
         /// The sheet, laid round the player (the camera's middle stays empty): page 0 shows the node before and after a room is built round it,
         /// then boss factions in columns, each relic on its pedestal.
         void DrawRelicSheet()
@@ -79,7 +93,8 @@ namespace Arena
             Circle(at, 26f * k, ink.WithAlpha(0.10f + 0.05f * pulse), 20);
             Arc(at, 24f * k, 1.5f, ink.WithAlpha(0.45f), 24, t * 0.9f, 1.6f);
             Arc(at, 24f * k, 1.5f, ink.WithAlpha(0.45f), 24, t * 0.9f + MathX.Pi, 1.6f);
-            RelicGlyph(at, k, shape, ink, Mathf.Sin(t * 1.2f));
+            if (shape >= 0)
+                RelicGlyph(at, k, shape, ink, Mathf.Sin(t * 1.2f));
         }
 
         V2 rgC; float rgK, rgSx; Rgba rgCol;

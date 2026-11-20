@@ -14,7 +14,7 @@ namespace Arena
         static readonly Rgba FogInk = new Rgba(0.72f, 0.78f, 0.88f);
 
         /// A node's colour: a fogged one is grey.
-        static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : NodeInk(n.Kind);
+        static Rgba NodeInkOf(MapNode n) { if (n.Hidden) return FogInk; if (n.Kind == NodeKind.Relic) { Rgba ri; int sh; RelicStyle(Relics.Held(n), out ri, out sh); return ri; } return NodeInk(n.Kind); }
 
         /// A chest node's colour once seen: its chest kind's ink (Gold, Piece chest, Buildables or Upgrade).
         Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
@@ -69,7 +69,7 @@ namespace Arena
             }
             if (claimed)
             {
-                DrawNodeFixture(at, n.Kind, n.Spent, n.Kind == NodeKind.Chest ? game.NodeChestKind(n) : ChestKind.Upgrade);  // (a chest or relic stands in its room's middle: Game.NodeSpot)
+                DrawNodeFixture(at, n.Kind, n.Spent, n.Kind == NodeKind.Chest ? game.NodeChestKind(n) : ChestKind.Upgrade, n.Kind == NodeKind.Relic ? Relics.Held(n) : RelicId.None);  // (a chest or relic stands in its room's middle: Game.NodeSpot)
                 return;
             }
             // (owner, Nov 18: nodes stand out: a lit disc, a bold double ring, a beacon ping rippling out and turning dashes, the glyph at full size)
@@ -97,7 +97,7 @@ namespace Arena
             }
             switch (n.Kind)
             {
-                case NodeKind.Relic: RelicGem(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.25f, col); break;
+                case NodeKind.Relic: { Rgba ri; int sh; RelicStyle(Relics.Held(n), out ri, out sh); RelicGlyph(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.25f, sh, col, Mathf.Sin(t * 1.2f)); break; }
                 case NodeKind.Shrine: ShrineCross(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.5f, col); break;
                 default:
                     ChestBox(c + new V2(0f, 6f), 1.2f, col, false);
@@ -135,7 +135,7 @@ namespace Arena
         }
 
         /// A node's fixture (the relic, vector arrow or chest), centred on the node.
-        void DrawNodeFixture(V2 c, NodeKind kind, bool spent, ChestKind chest = ChestKind.Upgrade)
+        void DrawNodeFixture(V2 c, NodeKind kind, bool spent, ChestKind chest = ChestKind.Upgrade, RelicId relic = RelicId.None)
         {
             var ink = kind == NodeKind.Chest ? ChestInkOf(chest) : NodeInk(kind);
             float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
@@ -143,21 +143,10 @@ namespace Arena
             {
                 case NodeKind.Relic:
                 {
-                    long key = OpenKey(c, ChestKind.Relic);
-                    if (spent)
-                    {
-                        DrawNodeOpening(c, t, NodeOpenAge(key, t), ChestKind.Relic);
-                        break;
-                    }
-                    nodeSeenShut.Add(key);
-                    nodeOpenedAt.Remove(key);
-                    Arc(c, Relics.TakeReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
-                    DrawChestLook(c, 1f, t, ChestKind.Relic, false, 0f);  // ChestLooks.cs
-                    for (int k = 0; k < 3; k++)  // motes turning round it
-                    {
-                        float a = t * 1.4f + k * MathX.Tau / 3f;
-                        Circle(c + new V2(Mathf.Cos(a) * 40f, Mathf.Sin(a) * 40f * 0.6f), 2.5f, ink.WithAlpha(0.7f), 8);
-                    }
+                    // (a relic node's pedestal, RelicLook.cs: the artefact it holds floats above it; once taken it stands empty and dim)
+                    Rgba rink; int shape;
+                    RelicStyle(relic, out rink, out shape);
+                    DrawRelicPedestal(c, t, spent ? -1 : shape, spent ? rink.WithAlpha(0.35f) : rink, 1f);
                     break;
                 }
                 default:

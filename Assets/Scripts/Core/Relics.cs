@@ -5,7 +5,22 @@ namespace Arena
 {
     /// A relic: a map-themed modifier, one slot per player (a new one replaces the old). Earned by building a room round a
     /// relic node on the Expanding arena (Docs/Nodes.md, "Relic nodes"). Separate from the bosses' weapon mods.
-    public enum RelicId : byte { WallBounce, Backup, HallwayRunner, None }
+    public enum RelicId : byte
+    {
+        WallBounce, Backup, HallwayRunner,
+        // Faction relics (Docs/RelicNodes.md), in boss order (Game.BossCycle): Warden 1, Hive Queen 3, Reaper of Dusk 2, Singularity 2, Colossus 1, Duelist 2, Lich 3, Storm Herald 2, Devourer 1, Eclipse 3.
+        WardensSeal,
+        BroodCrown, RoyalJelly, Stinger,
+        TwinScythe, DuskLantern,
+        EventHorizon, GravityWell,
+        StoneHeart,
+        SilverFoil, DuelGem,
+        Phylactery, GraveFang, ColdHeart,
+        StormCoil, StaticCell,
+        MawTooth,
+        BlackSun, CoronaSpiral, UmbraShard,
+        None
+    }
 
     public static class Relics
     {
@@ -17,18 +32,92 @@ namespace Arena
         public const float HallSpeed = 1.25f;    // Hallway Runner: move speed in a hallway
         public const float HallWidth = 300f;     // a box this narrow or less (3 tiles) is a hallway
         public const int Count = (int)RelicId.None;
+        public const int Classic = 3;                  // the first three relics (Wall Bounce, Backup, Hallway Runner) are not a faction's
+        public static readonly int[] PerFaction = { 1, 3, 2, 2, 1, 2, 3, 2, 1, 3 };  // 1-3 guaranteed relic nodes for each boss in Game.BossCycle order
 
-        public static string Name(RelicId r) => r == RelicId.WallBounce ? "Wall Bounce" : r == RelicId.Backup ? "Backup" : r == RelicId.HallwayRunner ? "Hallway Runner" : "";
+        static readonly string[] FactionNames =
+        {
+            "Warden's Seal", "Brood Crown", "Royal Jelly", "Stinger", "Twin Scythe", "Dusk Lantern", "Event Horizon", "Gravity Well", "Stone Heart",
+            "Silver Foil", "Duel Gem", "Phylactery", "Grave Fang", "Cold Heart", "Storm Coil", "Static Cell", "Maw Tooth", "Black Sun", "Corona Spiral", "Umbra Shard",
+        };
+
+        static readonly string[] FactionDescs =
+        {
+            "You take 12% less damage.", "You fire 12% faster.", "You regenerate 1.5 health a second.", "Your damage is up 10%.",
+            "Your damage is up 8% and your shots pierce one more enemy.", "You move 8% faster.", "Your abilities recharge 12% faster.", "Your shots pierce one more enemy.",
+            "You have 30 more max health.", "You fire 10% faster and deal 5% more damage.", "Your damage is up 12%, but you take 8% more.",
+            "You have 20 more max health and regenerate 1 a second.", "Your damage is up 10%.", "You take 8% less damage and have 10 more max health.",
+            "Your abilities recharge 10% faster.", "You fire 8% faster and move 5% faster.", "You regenerate 2 health a second and deal 5% more damage.",
+            "Your damage is up 12%.", "Your abilities recharge 10% faster and you move 4% faster.", "You take 10% less damage and deal 4% more.",
+        };
+
+        public static bool IsFaction(RelicId r) => r >= RelicId.WardensSeal && r < RelicId.None;
+
+        /// The boss (index into Game.BossCycle) whose faction a relic belongs to; -1 for a classic relic.
+        public static int FactionOf(RelicId r)
+        {
+            if (!IsFaction(r))
+                return -1;
+            int n = (int)r - Classic;
+            for (int f = 0; f < PerFaction.Length; f++)
+            {
+                if (n < PerFaction[f])
+                    return f;
+                n -= PerFaction[f];
+            }
+            return -1;
+        }
+
+        /// A faction's i-th relic.
+        public static RelicId OfFaction(int faction, int i)
+        {
+            int n = Classic;
+            for (int f = 0; f < faction && f < PerFaction.Length; f++)
+                n += PerFaction[f];
+            return (RelicId)(n + i);
+        }
+
+        public static string Name(RelicId r) => r == RelicId.WallBounce ? "Wall Bounce" : r == RelicId.Backup ? "Backup" : r == RelicId.HallwayRunner ? "Hallway Runner" : IsFaction(r) ? FactionNames[(int)r - Classic] : "";
 
         public static string Desc(RelicId r) => r == RelicId.WallBounce ? "Your shots bounce off walls and pillars once, keeping 70% of their damage."
             : r == RelicId.Backup ? "The first time you would go down, you get straight back up with half your health. Then it's gone."
-            : r == RelicId.HallwayRunner ? "You move 25% faster in hallways (3 tiles wide or less)." : "";
+            : r == RelicId.HallwayRunner ? "You move 25% faster in hallways (3 tiles wide or less)." : IsFaction(r) ? FactionDescs[(int)r - Classic] : "";
+
+        /// A faction relic's stat changes, applied to a player's stats (Game.Recalc, on every peer).
+        public static void Apply(RelicId r, Stats s)
+        {
+            switch (r)
+            {
+                case RelicId.WardensSeal: s.DamageTaken *= 0.88f; break;
+                case RelicId.BroodCrown: s.FireRateMult *= 1.12f; break;
+                case RelicId.RoyalJelly: s.Regen += 1.5f; break;
+                case RelicId.Stinger: s.DmgMult *= 1.10f; break;
+                case RelicId.TwinScythe: s.DmgMult *= 1.08f; s.Pierce += 1; break;
+                case RelicId.DuskLantern: s.SpeedMult *= 1.08f; break;
+                case RelicId.EventHorizon: s.CdMult *= 0.88f; break;
+                case RelicId.GravityWell: s.Pierce += 1; break;
+                case RelicId.StoneHeart: s.BonusHp += 30f; break;
+                case RelicId.SilverFoil: s.FireRateMult *= 1.10f; s.DmgMult *= 1.05f; break;
+                case RelicId.DuelGem: s.DmgMult *= 1.12f; s.DamageTaken *= 1.08f; break;
+                case RelicId.Phylactery: s.BonusHp += 20f; s.Regen += 1f; break;
+                case RelicId.GraveFang: s.DmgMult *= 1.10f; break;
+                case RelicId.ColdHeart: s.DamageTaken *= 0.92f; s.BonusHp += 10f; break;
+                case RelicId.StormCoil: s.CdMult *= 0.90f; break;
+                case RelicId.StaticCell: s.FireRateMult *= 1.08f; s.SpeedMult *= 1.05f; break;
+                case RelicId.MawTooth: s.Regen += 2f; s.DmgMult *= 1.05f; break;
+                case RelicId.BlackSun: s.DmgMult *= 1.12f; break;
+                case RelicId.CoronaSpiral: s.CdMult *= 0.90f; s.SpeedMult *= 1.04f; break;
+                case RelicId.UmbraShard: s.DamageTaken *= 0.90f; s.DmgMult *= 1.04f; break;
+            }
+        }
 
         /// The relic a node starts with: rolled from its spot (the same on every machine).
         public static RelicId ForNode(MapNode n)
         {
+            if (n.Rule > 0 && n.Rule <= Count)
+                return (RelicId)(n.Rule - 1);  // a faction relic node: PlaceRelicNodes set it
             uint h = (uint)(n.X * 73856093 ^ n.Y * 19349663);
-            return (RelicId)(int)(h % (uint)Count);
+            return (RelicId)(int)(h % (uint)Classic);
         }
 
         /// The relic a node holds now: the one a player left in it, else the one rolled from its spot.
@@ -84,6 +173,7 @@ namespace Arena
                     continue;
                 var old = taker.Relic;
                 taker.Relic = r;
+                Recalc(taker);  // (a faction relic changes stats)
                 if (old == RelicId.None)
                 {
                     nd.Spent = true;
@@ -99,6 +189,29 @@ namespace Arena
                 DoLog("player " + taker.Id + " took a relic: " + Relics.Name(r) + (old != RelicId.None ? " (left " + Relics.Name(old) + ")" : ""));
                 BroadcastExpansion();
             }
+        }
+
+        /// Host, from PlaceFloatingRooms each boss cycle: the 1-3 relic nodes of that cycle's boss faction (Game.BossCycle order), each holding one of its
+        /// relics. They are guaranteed: the waiting-nodes cap doesn't apply. Returns whether any was placed.
+        bool PlaceRelicNodes(int cycle)
+        {
+            int faction = cycle % BossCycle.Length;
+            bool added = false;
+            for (int i = 0; i < Relics.PerFaction[faction]; i++)
+            {
+                // (guaranteed: if the outer tier has no room left, try nearer tiers, then each side of the hub)
+                MapNode? nd = null;
+                for (int attempt = 0; attempt < 7 && !nd.HasValue; attempt++)
+                    nd = Expansion.GridNodeFor(expandSeed, cycle, Expanded, Nodes, NodeKind.Relic, attempt < 3 ? -1 : attempt - 3, attempt < 3 ? Expansion.CycleTier(NodeKind.Relic, cycle) - attempt : 0);
+                if (!nd.HasValue)
+                    continue;
+                var n = nd.Value;
+                n.Rule = (byte)((int)Relics.OfFaction(faction, i) + 1);
+                Nodes.Add(n);
+                added = true;
+                DoLog("a relic node appears at " + n.X + "," + n.Y + ": " + Relics.Name(Relics.OfFaction(faction, i)));
+            }
+            return added;
         }
 
         /// Host, as a player would go down (DownIfDead): Backup gets them straight back up once, then the relic is gone.
