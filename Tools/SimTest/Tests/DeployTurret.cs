@@ -74,7 +74,7 @@ static partial class Program
         var off = make(EnemyType.Grunt, home + new V2(250f, 120f));
         hostAbility.Invoke(g, new object[] { 1, 0, home + new V2(300f, 0f), false });
         var z = turret();
-        Check(z != null && Math.Abs(z.Duration - (Game.DtDeploy + Game.DtLife + Game.DtDying)) < 0.01f && z.DamageCut == Game.DtCut && z.Pos.DistanceTo(home) < 1f, "the cast drops a turret on your spot for 1.1 + 10 + 0.8 s with a 30% seat");
+        Check(z != null && Math.Abs(z.Duration - (Game.DtDeploy + Game.DtLife + Game.DtDying)) < 0.01f && z.BlockHp == Game.DtHp && z.GuardFrac == 1f && z.Pos.DistanceTo(home) < 1f, "the cast drops a turret on your spot for 1.1 + 10 + 0.8 s with 350 health");
         step(0.1f, false);
         Check(client.Game.Zones.Values.Any(q => q.Kind == ZoneKind.DeployTurret && q.Owner == 1), "the other screen sees it");
         pin = false;
@@ -118,6 +118,25 @@ static partial class Program
         me.Downed = true;
         step(0.2f, false);
         Check(turret() == null && lost(q1) == 0f, "going down folds it away with no blast");
+
+        // Its health: hits meant for you wear the turret first; what is left goes on to you; at 0 it is wrecked and throws you clear.
+        reset();
+        var damage = typeof(Game).GetMethod("Damage", flags);
+        me.DevGod = false;
+        g.DevSetGod(2, true);
+        hostAbility.Invoke(g, new object[] { 1, 0, home + new V2(300f, 0f), false });
+        step(0.2f, false);
+        float hp0 = me.Hp;
+        damage.Invoke(g, new object[] { me, 100f, "Test" });
+        var zh = turret();
+        Check(me.Hp == hp0 && zh.BlockHp < Game.DtHp - 1f && zh.BlockHp > 0f, "a hit meant for you wears the turret instead of your health");
+        step(0.3f, false);
+        Check(client.Game.Zones.Values.Any(q => q.Kind == ZoneKind.DeployTurret && q.GuardFrac < 1f && Math.Abs(q.GuardFrac - zh.GuardFrac) < 0.01f), "the other screen sees its health fall");
+        damage.Invoke(g, new object[] { me, 5000f, "Test" });
+        Check(turret() != null && turret().Radius == 0f && !g.Seated(me) && me.Hp < hp0, "wrecked: you are thrown clear (the rest of the hit reaches you) and it starts to overheat");
+        step(1f, false);
+        Check(turret() == null, "and it blows");
+        me.DevGod = true;
 
         // Pressing the key again steps you out early: the guns stop, you are free, no cooldown is spent, and it still blows after 0.8 s.
         reset();
