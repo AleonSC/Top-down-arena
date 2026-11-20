@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Arena;
 
-// DEPLOYTURRET=<seconds since the cast>: the DPS Soldier's Deployable Turret mockup (Game/DeployTurretLook.cs) drawn in the real
-// arena: you at (800, 470), grunts, runners and a Heavy walking in from every side and a fresh one every few frames, the turret
+// DEPLOYTURRET=<seconds since the cast>: the DPS Soldier's Deployable Turret mockup (Core/DeployableTurret.cs, Game/DeployTurretLook.cs) played through the real
+// game (DEPLOYCAP=1 mastered): you at (800, 470), grunts, runners and a Heavy walking in from every side and a fresh one every few frames, the turret
 // cast 0.3 s into the scene. It drops (0-0.55 s), unfolds (to 1.1), fires for 10 s (spool full about 1.2 s in), overheats and blows
-// at 11.9 s. Try 0.3, 0.8, 3, 6, 10, 11.5, 12. FXOFF=1 the plain look. Use with mode hud.
+// at 11.9 s. Try 0.3, 0.8, 3, 6, 10, 11.5, 12. FXOFF=1 the plain look. Use with `shot.sh x hud 1 6 1` (6 s in, so the wave is fighting).
 static partial class Shot {
   static void DeployTurretScene() {
     string ts = Environment.GetEnvironmentVariable("DEPLOYTURRET");
@@ -14,7 +15,8 @@ static partial class Shot {
     var gm = host.Game; gm.Bot = false;
     var flags = BindingFlags.NonPublic | BindingFlags.Instance;
     var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
-    var look = typeof(ArenaApp).GetMethod("UpdateDeployTurret", flags);
+    var look = typeof(ArenaApp).GetMethod("UpdateDeployTurrets", flags);
+    var cast = typeof(Game).GetMethod("HostAbility", flags, null, new[] { typeof(int), typeof(int), typeof(V2), typeof(bool) }, null);
     typeof(ArenaApp).GetField("juiceGame", flags).SetValue(app, gm);  // so the first drawn frame doesn't clear what the look saw
     foreach (var e in gm.Enemies.Values) e.Hp = 0f;
     gm.Props.Clear(); gm.Layout = LayoutId.Open;
@@ -35,19 +37,23 @@ static partial class Shot {
       e.SpawnT = 0f; e.Hp = e.MaxHp = i % 9 == 4 ? 260f : 70f; e.Pos = e.Disp = at; e.FireT = 99f; mobs.Add(e); return e;
     };
     for (int i = 0; i < 28; i++) add(i);
-    var mock = new DeployTurretMock { Pos = home, Aim = -0.6f };
+    me.Slots[0].Id = AbilityId.DeployableTurret; me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f;
+    if (Environment.GetEnvironmentVariable("DEPLOYCAP") != null) me.MasteryXp[AbilityId.DeployableTurret] = 99999f;
+    V2 aimAt = home + new V2(100f, 0f);
     int frames = (int)Math.Round((float.Parse(ts, System.Globalization.CultureInfo.InvariantCulture) + 0.3f) * 60f), n = 100;
     for (int f = 0; f < frames; f++) {
-      if (f == 18) ArenaApp.deployTurretMock = mock;
+      if (f == 18) { cast.Invoke(gm, new object[] { me.Id, 0, aimAt, false }); }
       mobs.RemoveAll(e => e.Hp <= 0f);
       if (f % 5 == 0 && mobs.Count < 40) add(n++);
       foreach (var e in mobs) { e.FireT = 99f; if (!e.Pos.CloserThan(home, 70f)) e.Pos += (home - e.Pos).Normalized() * (e.Def.Heavy ? 30f : 55f) / 60f; e.Disp = e.Pos; }
-      me.Pos = me.Disp = home; me.InvulnT = 1f; me.Aim = mock.Aim;
-      host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(100f, 0f) }); gm.Update(1f / 60f);
+      me.Pos = me.Disp = home; me.InvulnT = 1f; me.Firing = me.FiringSeen = f > 18;  // holding Fire once it's cast
+      var nearest = mobs.Count > 0 ? mobs.OrderBy(e => e.Pos.DistanceSq(home)).First() : null;
+      if (nearest != null) { aimAt = nearest.Pos; me.Aim = (aimAt - home).Angle; }
+      host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = f > 18 }); gm.Update(1f / 60f);
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
       look.Invoke(app, new object[] { gm.AnimT });
     }
-    Console.Error.WriteLine("deployturret: t {0:0.0} spool {1:0.00} heat {2:0.00} enemies {3}", mock.T, mock.Spool, mock.Heat, gm.Enemies.Count);
+    Console.Error.WriteLine("deployturret: enemies {0} zones {1}", gm.Enemies.Count, gm.Zones.Count);
   }
 }

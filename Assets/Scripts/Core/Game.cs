@@ -1146,6 +1146,11 @@ namespace Arena
                 move = V2.Zero;  // the Katana's Momentum Burst: planted for a moment (Katana.cs)
                 firing = false;
             }
+            if (Seated(me))
+            {
+                move = V2.Zero;  // sitting in your Deployable Turret: rooted, and it fires instead of your weapon (DeployableTurret.cs)
+                DashT = 0f;
+            }
             if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4) && DashT <= 0f)
                 move = V2.Zero;  // the Arc Knuckles' Flurry and Grab & Throw: rooted while they run (ArcKnucklesChain.cs)
             bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
@@ -1245,7 +1250,7 @@ namespace Arena
                     continue;  // every drop already out: don't waste the cooldown (WaterWard.cs)
                 if (me.Slots[slot].Id == AbilityId.CeremonialArmor && me.PlateN >= CerePlateMax)
                     continue;  // Ceremonial Armor with all 10 plates up: don't waste the cooldown
-                if (me.StandOn && MovesYou(me.Slots[slot].Id))
+                if ((me.StandOn || Seated(me)) && MovesYou(me.Slots[slot].Id))
                     continue;  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
                 bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
@@ -1599,7 +1604,11 @@ namespace Arena
                 }
                 if (p.Downed || p.SwallowT > 0f || p.WarpT > 0f)
                     continue;  // (nothing to shoot from inside the Devourer, or mid beam-in)
-                if (p.StunShots > 0)
+                if (Seated(p))
+                {
+                    // sitting in a Deployable Turret: it fires (TickDeployTurret), not your weapon
+                }
+                else if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Revolver)
                 {

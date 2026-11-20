@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 441: Deployable Turret (DPS Soldier 4th choice): `AbilityId.DeployableTurret`, `ZoneKind.DeployTurret` (no new fields: the zone's Pos, Aim, T and Duration are enough; the guns' fire is drawn on each screen from its owner's aim and trigger)
 - 440: Decoy Dummy (Healer Soldier 4th choice): `AbilityId.DecoyDummy`, `ZoneKind.DecoyDummy` (its snapshot adds `Marched`, its GuardFrac is its health), `FxKind.DecoyHit`/`DecoyPop`/`DecoyFold`, `Sfx.DecoyThrow`/`DecoySqueak`/`DecoyPop`/`DecoyFold`.
 - 439: the Fireball's variants: `WeaponId.Waterball`, `Earthball` (Elementalist DPS picks 4 and 5); bullet kinds `WaterballShot` 71, `EarthballShot` 72.
 - 438: Twin Pistols (Healer Soldier 4th weapon): `WeaponId.TwinPistols`; Player snapshot gains `TpSide` (byte), `TpLaserT`, `TpCd` (floats); `Msg.WeaponDash` kind 50 (`DashLaser`); the Wyvern Staff's slam moves from kind 48 (shared with the Nodachi's stance, which swallowed it) to 49.

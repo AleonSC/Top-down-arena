@@ -769,6 +769,11 @@ namespace Arena
                     TickDecoy(z, dt);  // DecoyDummy.cs
                     continue;  // (nothing below applies)
                 }
+                if (z.Kind == ZoneKind.DeployTurret)
+                {
+                    TickDeployTurret(z, dt);  // DeployableTurret.cs
+                    continue;  // (not a circle: nothing below applies)
+                }
                 if (z.Kind == ZoneKind.Stampede)
                 {
                     TickStampede(z);  // Stampede.cs
@@ -800,6 +805,8 @@ namespace Arena
             }
             foreach (var z in expired)
             {
+                if (z.Kind == ZoneKind.DeployTurret)
+                    TurretBlow(z);  // the overheat blast (DeployableTurret.cs)
                 if (z.Kind == ZoneKind.Ward)
                     WardEnds(z);  // Ninja.cs
                 if (z.Def.BlastDamage > 0f)  // the meteor lands
