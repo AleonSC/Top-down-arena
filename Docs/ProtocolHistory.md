@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 424: `Msg.ExpandUnlink` (x, y shorts): dismantle a portal pair in a build round, its teleporter returns to the stash; a portal `ExpansionRoom` proposal no longer carries a price.
 - 423: removed `FxKind.Rewind` (Time Rewind's old clock effect); every `FxKind` after `Link` shifts down by one.
 - 422: removed the Greatsword's old guard and Rend input (`Msg.WeaponDash` kinds 8 and 9) and its replicated `Player.GreatTemper`, `GreatGuard` and `GreatPrimed` (the snapshot loses three fields).
 - 421: `NodeKind` drops Shop, BlackMarket, VectorChest, Tower and Vein (now Chest, Relic, Rule, BreachLoot: the node kind byte in `Msg.ExpansionState` renumbers); `Msg.CollectChest` drops its `node` bool (just the chest's prop id)

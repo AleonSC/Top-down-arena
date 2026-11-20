@@ -69,6 +69,7 @@ namespace Arena
         CollectChest, // client -> host: collect a chest from the wave box's Chests tab (node bool, id int) (Docs/RoundFlow.md step 5, RemoteChests.cs)
         MysteryBuy,   // client -> host: open or save the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y, save) (MysteryDoors.cs)
         FogCells,     // host -> all: the explored cells of every unseen room, a few times a second while someone explores (RoomFog.cs)
+        ExpandUnlink, // client -> host: dismantle the portal pair with an end at this wall spot (x, y shorts) in a build round; its teleporter goes back to their stash (ExpansionGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -131,7 +132,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 423;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 424;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -640,6 +641,9 @@ namespace Arena
                     break;
                 case Msg.ExpandLink:
                     Game.OnExpandLink(peer, r);
+                    break;
+                case Msg.ExpandUnlink:
+                    Game.OnExpandUnlink(peer, r);
                     break;
                 case Msg.ExpandGate:
                     Game.OnExpandGate(peer, r);

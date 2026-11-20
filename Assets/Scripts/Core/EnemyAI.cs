@@ -580,13 +580,6 @@ namespace Arena
                 else
                     MoveEnemy(e, tpos, dt);
                 RoomsKeepHome(e);  // a mini-boss can't charge out of its locked room (Rooms.cs)
-                if (RoomsOn && !e.Def.IsBoss)
-                {
-                    V2 was = e.Pos;
-                    e.Pos = RoomsPortal(e.Pos, ref e.PortalT, dt, e.Radius);  // wraparound portals (Rooms.cs)
-                    if (e.Pos.FartherThan(was, 600f))
-                        steerMem.Remove(e.Id);  // a fresh route from the far side
-                }
                 if (Battle && (e.DazeT > 0f || e.SmokeT > 0f))
                 {
                     // Dazed (Daze.cs) or jammed in smoke (GrenadeLauncher.cs): no attacking, and a wind-up starts over once it wears off.

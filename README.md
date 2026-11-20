@@ -1214,9 +1214,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   wall, shown as a ghost portal, and a click on the floor does nothing): the pair is **built at once** from your stash (no
   vectors). Like the classic arena's edge gates, each end turns **2 tiles of that wall into a portal**: a dark gap in its pair's colour inside
   corner brackets, with scanlines rolling out of it across the floor into the room (the build map shows the same, in small). Walk into it and you come out of the other wall, keeping your place along it
-  (enemies use them too, and steer through them when it's shorter). It must save at least 6 tiles of walking. Each end needs a connected room on
+  (**enemies never use them**; bot players do). It must save at least 6 tiles of walking. Each end needs a connected room on
   one side and nothing on the other, 2 tiles of plain wall (no corner or door in it), nothing standing just in front, 150 px from a door and
-  250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. Bots don't build them. (Pairs
+  250 px from another portal; breaches never open on a portal's wall. At most **3 pairs**, not counted as rooms. **Dismantle** a pair in a build round: with the Teleporter tool, click either built end (it turns red) and the pair comes down, the teleporter going back to your stash. Bots don't build them. (Pairs
   from older saves, standing in the middle of a room, still work as floor portals.)
 - **Black Market turret and traps**: the Black Market also sells a **Turret** (120), a **Landmine** (80) and a **Slow field** (90). Switch the
   draw screen to **Trap**, pick one from your stash and click a spot in a room (90 px off walls, 150 px from doors, 120 px from portals and other
