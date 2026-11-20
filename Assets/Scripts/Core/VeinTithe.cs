@@ -3,8 +3,8 @@ using System;
 namespace Arena
 {
     /// Vein Tithe (Tank Hemomancer ultimate, replaces Blood Rite), from Docs/Mockups/blood-rite-vein-tithe.html.
-    /// A blood tendril grows from you to every enemy in the arena (those still spawning or training dummies are skipped, and so is anything
-    /// that turns up later) and holds it for TitheLen s (mastered TitheLenMastered): a held enemy can't move or shoot (`Enemy.GraspT`, kept
+    /// A blood tendril grows from you to every enemy within TitheRadius of you (those still spawning or training dummies are skipped); an enemy
+    /// that comes inside the radius while it lasts is tethered too (it stays held if it's later out of range) and holds it for TitheLen s (mastered TitheLenMastered): a held enemy can't move or shoot (`Enemy.GraspT`, kept
     /// topped up every tick). You pay TitheCost of your max health a second for each one held (TitheBossMult times that for a boss, mastered
     /// times TitheMasteredCost), and deal TitheOutputMult of your damage while it lasts. The drain is not a hit: it gives no hit grace and
     /// nothing cuts it, and it takes you down if it empties your health. You move at TitheSlow speed while it lasts (`Player.Speed`). It ends when the time runs out, when you go down, or when the
@@ -15,6 +15,7 @@ namespace Arena
     {
         public const float TitheLen = 15f, TitheLenMastered = 20f, TitheReach = 1.2f, TitheReachStep = 0.05f, TitheReachTime = 0.55f;
         public const float TitheCost = 0.004f, TitheBossMult = 4f, TitheMasteredCost = 0.75f, TitheOutputMult = 0.6f, TitheSlow = 0.65f;
+        public const float TitheRadius = 380f;  // max reach around the player: only enemies inside it are tethered
         const float TitheHold = 0.25f;  // how long each tick tops up an enemy's hold
 
         /// A Vein Tithe is holding enemies for this player.
@@ -50,7 +51,7 @@ namespace Arena
             p.Tithed.Clear();
             var near = new System.Collections.Generic.List<Enemy>();
             foreach (var e in Enemies.Values)
-                if (Targetable(e))
+                if (Targetable(e) && e.Pos.DistanceTo(p.Pos) <= TitheRadius)
                     near.Add(e);
             near.Sort((a, b) =>
             {
@@ -98,6 +99,9 @@ namespace Arena
                 }
                 p.TitheClock += dt;
                 p.Tithed.RemoveAll(id => { Enemy d; return !Enemies.TryGetValue(id, out d) || d.Hp <= 0f; });
+                foreach (var e in Enemies.Values)
+                    if (Targetable(e) && p.Tithed.Count < 255 && e.Pos.DistanceTo(p.Pos) <= TitheRadius && !p.Tithed.Contains(e.Id))
+                        p.Tithed.Add(e.Id);
                 foreach (int id in p.Tithed)
                     Enemies[id].GraspT = Math.Max(Enemies[id].GraspT, TitheHold);
                 if (p.TitheClock < TitheReach || p.DevGod)

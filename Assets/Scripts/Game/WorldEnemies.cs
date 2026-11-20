@@ -275,6 +275,9 @@ namespace Arena
                 case ZoneKind.BloodWall:
                     DrawBloodWallNode(z, t);  // BloodWallLook.cs
                     return;  // no timer ring: it's a wall
+                case ZoneKind.Stampede:
+                    DrawStampede(z, t);  // StampedeLook.cs
+                    return;  // no timer ring: the herd is its own clock
                 case ZoneKind.Phalanx:
                     DrawPhalanx(z, t);  // BonePhalanxLook.cs
                     return;  // no timer ring: the line is its own clock

@@ -41,18 +41,25 @@ static partial class Program
         // Casting: every enemy on screen is held, except one still spawning.
         reset();
         var foes = new List<Enemy>();
-        for (int i = 0; i < 5; i++) foes.Add(make(new V2(600f + i * 150f, 300f + (i % 2) * 300f)));
-        var spawning = make(new V2(900f, 700f)); spawning.SpawnT = 5f;
+        for (int i = 0; i < 5; i++) foes.Add(make(new V2(450f + i * 40f, 350f + (i % 2) * 200f)));
+        var spawning = make(new V2(500f, 600f)); spawning.Pos = new V2(500f, 600f); spawning.SpawnT = 5f;
         float normal = dealt(100f);
         float walk = me.Speed;
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         Check(me.UltT == Game.TitheLen && Game.TitheActive(me) && me.Tithed.Count == 5 && !me.Tithed.Contains(spawning.Id), "casting holds every enemy on screen (not one still spawning) for 15 s");
+        var far = make(new V2(300f + Game.TitheRadius + 100f, 450f)); var edge = make(new V2(300f + Game.TitheRadius + 100f, 450f));
+        step(0.1f);
+        Check(!me.Tithed.Contains(far.Id), "an enemy outside the radius isn't tethered");
+        edge.Pos = new V2(300f + Game.TitheRadius - 20f, 450f); step(0.1f);
+        Check(me.Tithed.Contains(edge.Id) && !me.Tithed.Contains(far.Id), "an enemy that enters the radius while it's active becomes tethered");
+        g.Enemies.Remove(far.Id); g.Enemies.Remove(edge.Id); mine.Remove(far.Id); mine.Remove(edge.Id); me.Tithed.Remove(edge.Id);
         Check(me.Tithed.Select(id => g.Enemies[id].Pos.DistanceTo(mePos)).SequenceEqual(me.Tithed.Select(id => g.Enemies[id].Pos.DistanceTo(mePos)).OrderBy(d => d)), "the tendrils reach the nearest first");
         float cut = dealt(100f);
         Console.WriteLine("  tithe: damage {0:0.0} -> {1:0.0}", normal, cut);
         Check(Math.Abs(cut / normal - Game.TitheOutputMult) < 0.01f, "you deal 40% less damage while it lasts");
         Check(Math.Abs(me.Speed / walk - Game.TitheSlow) < 0.01f, "you move at 65% speed while it lasts");
 
+        spawning.SpawnT = 1e6f;  // keep it spawning for the rest of the test
         // Held enemies don't move or shoot.
         var before = foes.Select(e => e.Pos).ToList();
         step(3f);
@@ -84,7 +91,7 @@ static partial class Program
 
         // Going down ends it at once, and the enemies are freed.
         reset();
-        make(new V2(700f, 450f));
+        make(new V2(500f, 450f));
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         step(Game.TitheReach + 0.1f);
         me.Hp = 0.01f * me.MaxHp * 0.01f;
@@ -93,12 +100,12 @@ static partial class Program
         reset();
 
         // Bosses cost four times as much; mastered costs 25% less and lasts 20 s.
-        make(new V2(800f, 450f));
+        make(new V2(520f, 450f));
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         float one = g.TitheRate(me);
         Check(Math.Abs(one - Game.TitheCost) < 1e-6f, "one enemy costs 0.4% of max health a second");
         reset();
-        make(new V2(800f, 450f));
+        make(new V2(520f, 450f));
         me.MasteryXp[AbilityId.VeinTithe] = 1e6f;
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         Check(me.UltT == Game.TitheLenMastered && Math.Abs(g.TitheRate(me) - Game.TitheCost * Game.TitheMasteredCost) < 1e-6f, "mastered it lasts 20 s and costs 25% less");
