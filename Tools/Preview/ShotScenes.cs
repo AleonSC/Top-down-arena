@@ -2340,6 +2340,14 @@ static partial class Shot {
           foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (int)Expansion.MakePieceCard(PieceShape.TetL); }
         }
       }
+      string xow = Environment.GetEnvironmentVariable("ONEWAY");  // ONEWAY=domino|tetl|...: a One-way piece on the lattice (the spot with the most one-way doors; OneWayDoors.cs), everyone by its first one-way door
+      if (xow != null) {
+        var owShape = (PieceShape)Enum.Parse(typeof(PieceShape), xow, true); System.Collections.Generic.List<ExpansionRoom> owBest = null; int owMost = 0;
+        foreach (var oo in Expansion.PlacementsFor(xg.Expanded, owShape)) { var ol = new System.Collections.Generic.List<ExpansionRoom>(xg.Expanded); foreach (var orr in oo.Rooms) { var o2 = orr; o2.OneWay = true; o2.Owner = 1; ol.Add(o2); } int on = System.Linq.Enumerable.Count(Expansion.Build(ol, xg.Openings).Doors, dd => dd.Pass != 0); if (on > owMost) { owMost = on; owBest = ol; } }
+        if (owBest != null) { xg.Expanded.Clear(); xg.Expanded.AddRange(owBest); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+          var ow = xg.ExpansionWorld; var od = ow.Doors[ow.OneWays[0]]; int pi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = od.Pos + od.Along * (-60f + 120f * pi) - od.Across * 260f; pi++; } }
+        else Console.Error.WriteLine("ONEWAY: no spot gives one-way doors");
+      }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind chest|relic|shrine; a third part "spent" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there

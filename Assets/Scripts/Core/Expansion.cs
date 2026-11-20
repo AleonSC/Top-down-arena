@@ -56,6 +56,7 @@ namespace Arena
         public bool Claimed;    // a breach Stash's vector cache has been taken (Docs/BreachRooms.md)
         public bool Unseen;     // room fog (RoomFog.cs): nobody has walked in yet, so it is dark on the maps and what's inside is hidden
         public byte Mini;       // a mini-boss room's foe (an EnemyType, FactionMinis.cs): its boss cycle's faction's; 0: unset (an old save: the current one's)
+        public bool OneWay;     // built from a One-way piece card (PieceMods.cs): all its doors but one let you through one way only (OneWayDoors.cs)
         public byte Piece;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
         public int X1 => X + W;
         public int Y1 => Y + H;
@@ -1191,6 +1192,7 @@ namespace Arena
                             doors.Add(new RoomDoor { Pos = c.Vertical ? new V2(c.At, (c.From + c.Till) / 2f) : new V2((c.From + c.Till) / 2f, c.At), Vertical = c.Vertical, Width = c.Till - c.From, A = a, B = b });
                         }
             DropSecondGridDoors(doors);
+            MarkOneWayDoors(rooms, group, doors);  // a One-way piece's doors (OneWayDoors.cs)
             for (int a = 1; a < n; a++)  // a floating room with no door is sealed
                 if (areas[a].Floating)
                 {

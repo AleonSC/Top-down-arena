@@ -1194,6 +1194,8 @@ namespace Arena
             StomperPush(me);             // a Stomper's small rings (QuarryFaction.cs)
             if (IsHost && Props.Count > 0 && !me.Downed)
                 ShoveProps(me.Pos, me.Def.HitR + PropPad, PushSpeed(me), dt, 0f, V2.Zero);  // leaning on a crate or barrel slides it (Props.cs)
+            if (LayoutOn && !me.Downed)
+                me.Pos = OneWayStep(before, me.Pos, me.Def.HitR + PropPad);  // a One-way piece's doors: no dashing through the wrong way (OneWayDoors.cs)
             if ((Props.Count > 0 || LayoutOn) && !me.Downed)
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
             // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).

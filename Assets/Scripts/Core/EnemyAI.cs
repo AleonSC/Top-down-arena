@@ -849,6 +849,7 @@ namespace Arena
 
         void MoveEnemy(Enemy e, V2 tpos, float dt)
         {
+            V2 start = e.Pos;
             V2 to = tpos - e.Pos;
             float dist = to.Length;
             V2 dir = dist > 0.01f ? to / dist : V2.Zero;
@@ -907,6 +908,8 @@ namespace Arena
             e.Pos = ClampToArena(e.Pos, e.Radius);
             if (IsHost && Props.Count > 0 && !e.Def.IsBoss)
                 ShoveProps(e.Pos, e.Radius * 0.8f, PushEnemy, dt, 0f, V2.Zero);  // they shove crates and barrels, very slowly (Props.cs)
+            if (LayoutOn && !e.Def.IsBoss)
+                e.Pos = OneWayStep(start, e.Pos, e.Radius * 0.8f);  // a One-way piece's doors hold them too (OneWayDoors.cs)
             if ((Props.Count > 0 || LayoutOn) && !e.Def.IsBoss)
                 e.Pos = PushOutOfProps(e.Pos, e.Radius * 0.8f);  // they walk round crates and barrels (Props.cs)
         }
