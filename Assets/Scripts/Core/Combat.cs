@@ -1388,7 +1388,7 @@ namespace Arena
                 }
                 Player nearest = null;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && CanTake(p, o.Owner) && p.Hp < p.MaxHp && p.Pos.CloserThan(o.Pos, OrbMagnetRange) &&
+                    if (!p.Downed && CanTake(p, o.Owner) && p.Hp < p.HealCap && p.Pos.CloserThan(o.Pos, OrbMagnetRange) &&
                         (nearest == null || p.Pos.DistanceSq(o.Pos) < nearest.Pos.DistanceSq(o.Pos)))
                         nearest = p;
                 if (nearest == null && o.Med)
