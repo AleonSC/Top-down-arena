@@ -70,6 +70,15 @@ namespace Arena
                 Line(c + side * (4.5f * s) + dir * 6f, c + side * (4.5f * s) + dir * 32f, 4f, RoomTrapRed.WithAlpha(0.95f));
             Circle(c, 12f, RoomTrapRed.WithAlpha(0.3f), 16);
             Arc(c, 12f, 2.5f, RoomTrapRed, 16);
+            float hp = game.TurretHpFrac(c);  // a damaged turret wears a health bar over it, red on a dark slot, flashing white when just hit
+            if (hp < 1f)
+            {
+                float ago = game.TurretHitAgo(c), flashT = Mathf.Clamp01(1f - ago / 0.15f);
+                float bw = 46f, bh = 6f, bx = c.X - bw / 2f, by = c.Y - 46f;
+                FillRect(bx - 1f, by - 1f, bw + 2f, bh + 2f, new Rgba(0.02f, 0.01f, 0.02f, 0.9f));
+                FillRect(bx, by, bw * hp, bh, RoomTrapRed.Mix(new Rgba(1f, 1f, 1f), flashT).WithAlpha(0.95f));
+                NodeFrame(bx - 1f, by - 1f, bw + 2f, bh + 2f, 1.5f, RoomTrapRed.WithAlpha(0.8f));
+            }
             if (locked)
             {
                 float flash = 0.5f + 0.5f * Mathf.Sin(t * 20f);
