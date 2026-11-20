@@ -270,6 +270,7 @@ namespace Arena
             }
             DrawVectorBursts(t);  // a Stash's cache or a vector pickup flying into whoever took it (VectorGainLook.cs)
             DrawGadgets(t);  // the Magnet on the floor or thrown (GadgetLook.cs)
+            DrawDevSpawners(t);  // the F1 dock's enemy spawners (DevSpawnerLook.cs)
             DrawReaperTether(t);
             DrawSingularityHazards(t);
             DrawHeraldHazards(t);  // rods, arcs, the Conductor and the spokes (HeraldLook.cs)

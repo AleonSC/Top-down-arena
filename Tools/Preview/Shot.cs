@@ -260,6 +260,14 @@ static partial class Shot {
     app = new ArenaApp();
     f2 = BindingFlags.NonPublic | BindingFlags.Instance;
     if (Environment.GetEnvironmentVariable("LIVESUSED") != null) { host.Game.Quick = false; host.Game.LivesUsed = int.Parse(Environment.GetEnvironmentVariable("LIVESUSED")); }  // the lives on the HUD (a Campaign run)
+    if (Environment.GetEnvironmentVariable("DEVSPAWNER") != null)  // dev spawners (DevSpawnerLook.cs): a Grunt one 2 of 5 alive and filling, an elite one full; DEVSPAWNERAT=x,y moves the first
+    {
+      var sp = host.Game.DevSpawners;
+      int a1 = host.Game.DevPlaceSpawner(1, EnemyType.Grunt, 2f, 5, false), a2 = host.Game.DevPlaceSpawner(1, EnemyType.Sniper, 4f, 3, true);
+      var at = (Environment.GetEnvironmentVariable("DEVSPAWNERAT") ?? (me.Pos.X + 220f) + "," + (me.Pos.Y - 120f)).Split(',');
+      sp[a1].Pos = new V2(float.Parse(at[0]), float.Parse(at[1])); sp[a1].T = 0.7f; sp[a1].Alive = 2;
+      sp[a2].Pos = sp[a1].Pos + new V2(170f, 40f); sp[a2].Alive = 3;
+    }
     if (Environment.GetEnvironmentVariable("GOLD") != null) me.Gold = int.Parse(Environment.GetEnvironmentVariable("GOLD"));  // the Bazaar's gold on the HUD
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
@@ -301,6 +309,16 @@ static partial class Shot {
       if (win) { foreach (var en in host.Game.Enemies.Values) if (en.Def.IsBoss) focus = en.Disp; var shots = (System.Collections.Generic.List<V2>)typeof(ArenaApp).GetField("endShots", f2).GetValue(app); foreach (var b in host.Game.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) shots.Add(b.Pos); }
       else foreach (var pl in host.Game.Players.Values) pl.Downed = true;
       set("endT", endingAt); set("endWin", win); set("endFocus", focus); set("endWasOver", true); set("endStamped", endingAt > 1.3f);
+    }
+    // WOUNDFLASH=<s>: everyone's wound grew that many seconds ago, so the wound tick is flashing (HealthBars.cs WoundFlash). Use with WOUND=<share>.
+    string wfl = Environment.GetEnvironmentVariable("WOUNDFLASH");
+    if (wfl != null) {
+      var wf = typeof(ArenaApp).GetMethod("WoundFlash", f2);
+      foreach (var pl in host.Game.Players.Values) {
+        float w = pl.Wound; pl.Wound = w * 0.8f; Time.unscaledTime = 99f; wf.Invoke(app, new object[] { pl });
+        pl.Wound = w; Time.unscaledTime = 100f; wf.Invoke(app, new object[] { pl });
+      }
+      Time.unscaledTime = 100f + float.Parse(wfl, System.Globalization.CultureInfo.InvariantCulture);
     }
     // DOWNED=<phase>:<value>: you going down or getting back up (DownedLooks.cs). down:<seconds since the hit>, revive:<0-1 revive progress with an ally standing by>, up:<seconds since you stood back up>. Use with mode hud and 2 players.
     string dwn = Environment.GetEnvironmentVariable("DOWNED");

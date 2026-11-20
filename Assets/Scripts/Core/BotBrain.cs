@@ -769,7 +769,7 @@ namespace Arena
             ms.lurePos = V2.Zero;
             ms.lureR = 0f;
             float lureD = 450f;
-            if (me.Hp < me.MaxHp * 0.7f)
+            if (me.Hp < Math.Min(me.MaxHp * 0.7f, me.HealCap - 1f))  // (not when only the wound is missing: orbs and zones would heal nothing)
             {
                 foreach (var o in Orbs.Values)
                 {

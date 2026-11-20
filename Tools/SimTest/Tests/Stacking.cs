@@ -50,6 +50,13 @@ static partial class Program
         Check(Math.Abs(p.Hp - (p.MaxHp - p.Wound)) < 0.01f && p.HealCap < p.MaxHp, "healing stops at max health less the wound (" + p.Hp.ToString("0.0") + " / " + p.MaxHp.ToString("0") + ")");
         Run(s, dt, 2f);
         Check(Math.Abs(p.Hp - p.HealCap) < 0.05f, "regeneration stops there too");
+        // A health orb leaves you alone once only the wound is missing (it would heal 0), so a teammate can have it.
+        var spawnOrb = typeof(Game).GetMethod("SpawnOrb", flags);
+        p.InvulnT = 5f;
+        var orb = (Orb)spawnOrb.Invoke(g, new object[] { p.Pos, false, false, 1f, p.Id });
+        Run(s, dt, 0.5f);
+        Check(g.Orbs.ContainsKey(orb.Id), "a health orb isn't used up on a player who is full but for the wound");
+        g.Orbs.Remove(orb.Id);
         var cp = s[1].Game.Players[1];
         Check(Math.Abs(cp.Wound - p.Wound) < 0.01f, "the other player's game knows the wound (for the health bars)");
         // A Healer's overheal shield only takes what goes past full health, not the wound's share.

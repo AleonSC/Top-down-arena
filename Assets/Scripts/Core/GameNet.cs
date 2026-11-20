@@ -436,6 +436,7 @@ namespace Arena
                     SyncOrb(s, o);
             SyncCoins(s);  // Coins.cs: only the coins dropped, moved or taken since the last snapshot (a full list now and then)
             SyncGadgets(s);  // Gadgets.cs
+            SyncDevSpawners(s);  // DevSpawners.cs
             SyncProps(s);  // crates, barrels, chests and chest items (Props.cs)
             SyncLayout(s);  // the floor plan (LayoutRules.cs)
         }
