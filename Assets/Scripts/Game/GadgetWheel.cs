@@ -25,15 +25,26 @@ namespace Arena
             return n;
         }
 
-        static Color GadgetInk(GadgetId g) => g == GadgetId.Recall ? new Color(0.45f, 0.9f, 1f) : g == GadgetId.EnergyDrink ? new Color(0.6f, 1f, 0.25f) : new Color(0.92f, 0.2f, 0.22f);
+        static Color GadgetInk(GadgetId g) => GadgetTone(g).ToColor();  // (GadgetShapes.cs)
 
-        /// "MAGNET 42s", "RECALL", with "+2" for what's in the bag; "—" with nothing.
+        /// "MAGNET 42s", "GRENADE x3", with "+2" for what's in the bag; "—" with nothing.
         static string GadgetSummary(Player me)
         {
             int bag = BagCount(me);
-            string hand = me.Gadget == GadgetId.None ? "—" : Game.GadgetName(me.Gadget).ToUpperInvariant() + (Game.GadgetTimed(me.Gadget) ? " " + Mathf.CeilToInt(me.GadgetLeft) + "s" : "");
+            string hand = me.Gadget == GadgetId.None ? "—" : ChipName(me.Gadget) + (Game.GadgetTimed(me.Gadget) ? " " + Mathf.CeilToInt(me.GadgetLeft) + "s" : "") + UsesTag(me.Gadget, me.GadgetUses);
             return bag > 0 ? hand + "  +" + bag : hand;
         }
+
+        /// A gadget's name on the wheel's small tiles.
+        static string WheelName(GadgetId g) => g == GadgetId.EnergyDrink ? "ENERGY" : g == GadgetId.ShieldGenerator ? "SHIELD" : g == GadgetId.DefibKit ? "DEFIB"
+            : g == GadgetId.SmokeBomb ? "SMOKE" : g == GadgetId.GasGrenade ? "GAS" : g == GadgetId.OverclockChip ? "OVERCLOCK" : g == GadgetId.LandMine ? "MINE"
+            : Game.GadgetName(g).ToUpperInvariant();
+
+        /// A gadget's name on the chip and the Inventory page.
+        static string ChipName(GadgetId g) => g == GadgetId.ShieldGenerator ? "SHIELD GEN" : g == GadgetId.OverclockChip ? "OVERCLOCK" : Game.GadgetName(g).ToUpperInvariant();
+
+        /// " x3" for a gadget with uses (the Lodestone, the throwables), "" otherwise (a timed one, the Defib Kit's single use).
+        static string UsesTag(GadgetId g, byte uses) => Game.GadgetUses(g) > 1 ? " x" + uses : "";
 
         void OpenGadgetWheel(Player me)
         {
@@ -65,11 +76,13 @@ namespace Arena
         GadgetId GadgetOfSlot(Player me, int slot) => slot < 0 ? me.Gadget : me.BagKind[slot];
         float GadgetLeftOfSlot(Player me, int slot) => slot < 0 ? me.GadgetLeft : me.BagLeft[slot];
 
-        /// A gadget's glyph centred on c (HUD pixels, from fills and dots like the ping glyphs): the Magnet's horseshoe, the Recall's house in a
+        /// A gadget's glyph centred on c (HUD pixels, from fills and dots like the ping glyphs): the Magnet's horseshoe, the Lodestone's house in a
         /// ring, the Energy Drink's can with a bolt.
         void DrawGadgetGlyph(GadgetId g, Vector2 c, float r, Color col)
         {
             float t = Mathf.Max(2f, r * 0.16f), k = r * 0.55f;
+            if (DrawNewGadgetGlyph(g, c, r, col))  // GadgetShapes.cs
+                return;
             if (g == GadgetId.EnergyDrink)
             {
                 var can = new Rect(c.x - k * 0.62f, c.y - k * 0.95f, k * 1.24f, k * 1.9f);
@@ -83,7 +96,7 @@ namespace Arena
                 Ui.Fill(new Rect(c.x - bw * 0.8f, c.y, bw, k * 0.6f), dark);
                 return;
             }
-            if (g == GadgetId.Recall)
+            if (g == GadgetId.Lodestone)
             {
                 Ui.Dot(new Rect(c.x - r * 0.85f, c.y - r * 0.85f, r * 1.7f, r * 1.7f), col, true);
                 Ui.Fill(new Rect(c.x - k * 0.5f, c.y - k * 0.1f, k, k * 0.7f), col);  // walls
@@ -121,7 +134,11 @@ namespace Arena
                 Ui.Fill(tile, hot ? tone.WithAlpha(0.35f) : new Color(0.07f, 0.09f, 0.11f, 0.92f));
                 Ui.Fill(new Rect(tile.x, tile.y, tile.width, 2f), hot ? tone : slot < 0 ? tone.WithAlpha(0.8f) : new Color(1f, 1f, 1f, 0.15f));
                 DrawGadgetGlyph(g, new Vector2(c.x, c.y - 7f), 22f, hot ? Color.white : tone);
-                string label = (g == GadgetId.EnergyDrink ? "ENERGY" : Game.GadgetName(g).ToUpperInvariant()) + (Game.GadgetTimed(g) ? " " + Mathf.CeilToInt(GadgetLeftOfSlot(me, slot)) + "s" : "");
+                string label = WheelName(g) + (Game.GadgetTimed(g) ? " " + Mathf.CeilToInt(GadgetLeftOfSlot(me, slot)) + "s" : "");
+                if (slot < 0)
+                    label += UsesTag(g, me.GadgetUses);  // (the hand's tile has IN HAND across its top)
+                else if (Game.GadgetUses(g) > 1)  // uses left, in the tile's corner
+                    Ui.Label(new Rect(tile.x, tile.y + 3f, tile.width - 4f, 11f), "x" + (slot < 0 ? me.GadgetUses : me.BagUses[slot]), 8, hot ? Color.white : tone, TextAnchor.MiddleRight, true);
                 Ui.Label(new Rect(tile.x, tile.yMax - 17f, tile.width, 14f), label, 9, hot ? Color.white : new Color(0.57f, 0.63f, 0.68f), TextAnchor.MiddleCenter, true);
                 if (slot < 0)
                     Ui.Label(new Rect(tile.x, tile.y + 3f, tile.width, 11f), "IN HAND", 7, tone.WithAlpha(0.9f), TextAnchor.MiddleCenter, true);
@@ -145,8 +162,8 @@ namespace Arena
             if (me.Gadget != GadgetId.None)
                 DrawGadgetGlyph(me.Gadget, new Vector2(r.x + 16f, r.center.y), 10f, tone);
             string key = Keybinds.NameOrNull(KeyAction.GadgetWheel) ?? Keybinds.NameOrNull(KeyAction.Gadget) ?? "";
-            string text = me.Gadget == GadgetId.None ? "HOLD " + key + " TO EQUIP" : me.Gadget == GadgetId.Recall && me.GadgetOn ? "RECALLING " + Mathf.CeilToInt(me.GadgetLeft) + "s"
-                : Game.GadgetName(me.Gadget).ToUpperInvariant() + (me.GadgetOn ? " ON" : "");
+            string text = me.Gadget == GadgetId.None ? "HOLD " + key + " TO EQUIP" : me.Gadget == GadgetId.Lodestone && me.GadgetOn ? "CASTING " + Mathf.CeilToInt(me.GadgetLeft) + "s" + UsesTag(me.Gadget, me.GadgetUses)
+                : ChipName(me.Gadget) + (me.GadgetOn ? " ON" : "") + UsesTag(me.Gadget, me.GadgetUses);
             Ui.Label(new Rect(r.x + 30f, r.y, r.width - 62f, r.height), text, 10, Color.white, TextAnchor.MiddleLeft, true);
             for (int i = 0; i < me.BagKind.Length; i++)  // a pip per bag slot, lit in the gadget's ink
             {

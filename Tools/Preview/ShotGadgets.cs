@@ -2,8 +2,9 @@ using System;
 using System.Reflection;
 using Arena;
 
-// GADGETS=wheel|floor|recall|energy (mode hud): wheel = the gadget wheel open at the cursor (a Magnet in hand, a Recall, an Energy Drink and a Magnet in the
-// bag) with the chip beside the keys; floor = a Magnet, a Recall and an Energy Drink lying on the floor; recall = you channelling a Recall (rings rising,
+// GADGETS=wheel|wheel2|floor|clouds|cloak|overclock|recall|energy|shield|defib (mode hud): wheel2 = the wheel with the newer kinds (a Grenade in hand, x2);
+// cloak / overclock = yours switched on; clouds = a Smoke Bomb's, a Gas Grenade's and an Incendiary's ground; shield = your Shield Generator's dome; defib = you downed, your Defib Kit charging; wheel = the gadget wheel open at the cursor (a Magnet in hand, a Recall, an Energy Drink and a Magnet in the
+// bag) with the chip beside the keys; floor = every kind lying on the floor (plus a part-used Energy Drink and a Grenade with one charge); recall = you channelling a Recall (rings rising,
 // the progress arc); energy = you running on an Energy Drink (speed lines, the time ring). Use ZOOM=2 CAMAT=<x,y> for the close views.
 static partial class Shot {
   static void GadgetsScene() {
@@ -15,19 +16,38 @@ static partial class Shot {
     gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear(); gm.Minions.Clear(); gm.Orbs.Clear();
     foreach (var q in gm.Players.Values) if (q != me) q.Pos = q.Disp = new V2(150f, 850f);
     me.Hp = me.MaxHp; me.InvulnT = 99f; me.LevelFlash = 0f;
-    if (mode == "floor") {
-      gm.SpawnGadget(GadgetId.Magnet, new V2(560f, 450f), Game.MagnetTime);
-      gm.SpawnGadget(GadgetId.Recall, new V2(660f, 450f), Game.RecallChannel);
-      gm.SpawnGadget(GadgetId.EnergyDrink, new V2(760f, 450f), Game.EnergyTime);
-      gm.SpawnGadget(GadgetId.EnergyDrink, new V2(860f, 450f), 25f);
+    if (mode == "clouds") {  // what the throwables leave: a Smoke Bomb's cloud, a Gas Grenade's, an Incendiary's burning ground
+      var sm = gm.AddZone(ZoneKind.SmokeShell, me, new V2(470f, 450f), Game.SmokeBombRadius, Game.GlSmokeLand(200f) + Game.SmokeBombLife); sm.GuardFrac = 200f; sm.T = Game.SmokeBombLife - 1f;
+      var gas = gm.AddZone(ZoneKind.ToxicGas, me, new V2(700f, 450f), Game.GadgetGasRadius, Game.TearGasFlight + Game.GadgetGasLife); gas.T = Game.GadgetGasLife - 1.5f;
+      var fire = gm.AddZone(ZoneKind.FlameWall, me, new V2(920f, 450f), Game.GadgetFireRadius, Game.GadgetFireLife); fire.T = Game.GadgetFireLife - 1f; fire.BlockHp = 0f;
       me.Pos = me.Disp = new V2(150f, 900f);
       return;
     }
-    me.Gadget = mode == "recall" ? GadgetId.Recall : mode == "energy" ? GadgetId.EnergyDrink : GadgetId.Magnet;
-    me.GadgetLeft = mode == "recall" ? 1.2f : mode == "energy" ? 38f : 42f;
-    me.GadgetOn = mode == "recall" || mode == "energy";
-    me.BagKind[0] = GadgetId.Recall; me.BagLeft[0] = Game.RecallChannel;
+    if (mode == "floor") {
+      for (int k = 0; k < (int)GadgetId.None; k++)  // every kind in a row, a part-used Energy Drink and a Grenade with one charge left after
+        gm.SpawnGadget((GadgetId)k, new V2(470f + (k % 5) * 70f, 410f + (k / 5) * 80f), Game.GadgetTime((GadgetId)k));
+      gm.SpawnGadget(GadgetId.EnergyDrink, new V2(820f, 490f), 25f);
+      gm.SpawnGadget(GadgetId.Grenade, new V2(890f, 490f), 0f).Uses = 1;
+      me.Pos = me.Disp = new V2(150f, 900f);
+      return;
+    }
+    me.Gadget = mode == "recall" ? GadgetId.Lodestone : mode == "energy" ? GadgetId.EnergyDrink : mode == "shield" ? GadgetId.ShieldGenerator
+      : mode == "defib" ? GadgetId.DefibKit : mode == "wheel2" ? GadgetId.Grenade : mode == "cloak" ? GadgetId.Cloak : mode == "overclock" ? GadgetId.OverclockChip : GadgetId.Magnet;
+    me.GadgetLeft = mode == "recall" ? 1.2f : mode == "energy" ? 38f : mode == "shield" ? 12f : mode == "defib" ? 0.8f : mode == "cloak" ? 9f : mode == "overclock" ? 21f : 42f;
+    me.GadgetUses = Game.GadgetUses(me.Gadget);
+    if (mode == "wheel2") me.GadgetUses = 2;
+    me.GadgetOn = mode == "recall" || mode == "energy" || mode == "shield" || mode == "defib" || mode == "cloak" || mode == "overclock";
+    if (mode == "cloak") me.VanishT = 0.2f;
+    if (mode == "defib") { me.Downed = true; me.Hp = 0f; }
+    me.BagKind[0] = GadgetId.Lodestone; me.BagLeft[0] = Game.LodestoneChannel; me.BagUses[0] = 2;
     me.BagKind[1] = GadgetId.EnergyDrink; me.BagLeft[1] = Game.EnergyTime;
+    if (mode == "wheel2") {  // the newer kinds in the bag
+      me.BagKind[0] = GadgetId.ShieldGenerator; me.BagLeft[0] = Game.ShieldGenTime;
+      me.BagKind[1] = GadgetId.DefibKit; me.BagUses[1] = 1;
+      me.BagKind[2] = GadgetId.SmokeBomb; me.BagUses[2] = 3;
+      me.BagKind[3] = GadgetId.Incendiary; me.BagUses[3] = 3;
+      return;
+    }
     me.BagKind[2] = GadgetId.Magnet; me.BagLeft[2] = 18f;
   }
 
@@ -37,9 +57,11 @@ static partial class Shot {
       ((System.Collections.Generic.Dictionary<int, V2>)typeof(ArenaApp).GetField("energyLast", f2).GetValue(app))[me.Id] = me.Disp;
       ((System.Collections.Generic.Dictionary<int, V2>)typeof(ArenaApp).GetField("energyVel", f2).GetValue(app))[me.Id] = new V2(420f, -120f);
     }
-    if (Environment.GetEnvironmentVariable("GADGETS") != "wheel") return;
+    string wm = Environment.GetEnvironmentVariable("GADGETS");
+    if (wm != "wheel" && wm != "wheel2") return;
     var slots = (System.Collections.Generic.List<int>)typeof(ArenaApp).GetField("gadgetWheelSlots", f2).GetValue(app);
     slots.Clear(); slots.Add(-1); slots.Add(0); slots.Add(1); slots.Add(2);
+    if (wm == "wheel2") slots.Add(3);
     set("gadgetWheelOpen", true); set("gadgetWheelK", 1f); set("gadgetHover", 2);
     set("gadgetAnchor", new UnityEngine.Vector2(640f, 330f));
   }

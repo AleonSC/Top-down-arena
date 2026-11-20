@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Gadgets (Core/Gadgets.cs): the Magnet, the Recall and the Energy Drink on the floor, in the air when thrown, in a player's hand
+    /// Gadgets (Core/Gadgets.cs): every gadget on the floor (shapes: GadgetShapes.cs), in the air when thrown, in a player's hand
     /// and switched on; the Gadget key (tap: on / off, hold and let go: throw), the Gadget wheel key, and the HUD pill.
     public partial class ArenaApp
     {
@@ -59,7 +59,7 @@ namespace Arena
                     game.ThrowGadget(gadgetAimAt);  // let go in the middle: throw what's in hand
             }
             else if (gadgetHold < GadgetHoldToThrow)
-                game.UseGadget();
+                game.UseGadget(MouseArena());
             else
                 game.ThrowGadget(MouseArena());
             gadgetHold = -1f;
@@ -169,7 +169,7 @@ namespace Arena
         }
 
         /// A recall beacon: a ring round a house-like chevron pointing home. s = its radius.
-        void DrawRecallShape(V2 c, float s, float alpha, float spin)
+        void DrawLodestoneShape(V2 c, float s, float alpha, float spin)
         {
             Circle(c, s * 1.9f, GadgetCyan.WithAlpha(0.12f * alpha), 16);
             Arc(c, s, 3.4f, GadgetCyanDark.WithAlpha(alpha), 20);
@@ -184,15 +184,14 @@ namespace Arena
             Line(c + new V2(-s * 0.3f, s * 0.5f), c + new V2(s * 0.3f, s * 0.5f), 1.4f, GadgetCyan.WithAlpha(alpha));
         }
 
-        /// The gadgets on the floor (bobbing, a slow turn, a red ring) and in the air (an arc over its shadow).
+        /// The gadgets on the floor (bobbing, a slow turn, a ring in its colour) and in the air (an arc over its shadow).
         void DrawGadgets(float t)
         {
             foreach (var g in game.Gadgets.Values)
             {
                 if (!game.MinePickup(g.Owner))
                     continue;
-                bool recall = g.Kind == GadgetId.Recall, drink = g.Kind == GadgetId.EnergyDrink;
-                Rgba ring = recall ? GadgetCyan : drink ? EnergyLime : MagRed;
+                Rgba ring = GadgetTone(g.Kind);
                 float lift = 0f, spin = t * 0.8f + g.Id;
                 V2 ground = g.Disp;
                 if (g.Flying)
@@ -209,28 +208,28 @@ namespace Arena
                     Arc(ground, 18f + pulse * 18f, 1.6f, ring.WithAlpha(0.5f * (1f - pulse)), 20);
                 }
                 Circle(ground + new V2(0f, 7f), 10f - lift * 0.05f, new Rgba(0f, 0f, 0f, 0.3f), 10);  // shadow
-                if (recall)
-                    DrawRecallShape(ground - new V2(0f, lift + 3f), 11f, 1f, spin);
-                else if (drink)
-                    DrawEnergyShape(ground - new V2(0f, lift + 4f), 8f, 1f, Mathf.Sin(spin) * 0.35f, true);
-                else
-                    DrawMagnetShape(ground - new V2(0f, lift + 3f), 8.5f, -Mathf.PI / 2f + Mathf.Sin(spin) * 0.5f, 1f, true);
+                DrawGadgetShape(g.Kind, ground - new V2(0f, lift + 3f), 8.5f, spin, t, true);
                 if (Game.GadgetTimed(g.Kind) && !g.Flying && g.Left < Game.GadgetTime(g.Kind) - 0.05f)  // part used: what's left as a thin arc
-                    Arc(ground, 17f, 2f, (drink ? EnergyLime : MagSteel).WithAlpha(0.7f), 18, -Mathf.PI / 2f, MathX.Tau * Mathf.Clamp01(g.Left / Game.GadgetTime(g.Kind)));
+                    Arc(ground, 17f, 2f, ring.WithAlpha(0.7f), 18, -Mathf.PI / 2f, MathX.Tau * Mathf.Clamp01(g.Left / Game.GadgetTime(g.Kind)));
+                else if (!g.Flying && g.Uses > 0 && g.Uses < Game.GadgetUses(g.Kind))  // uses spent: a pip for each left
+                    for (int i = 0; i < g.Uses; i++)
+                        Circle(ground + new V2((i - (g.Uses - 1) * 0.5f) * 6f, 15f), 2f, ring, 6);
             }
         }
 
         /// A player's held gadget beside them; switched on, field lines drawing in and a timer ring.
         void DrawHeldGadget(Player p, float t)
         {
+            if (p.Downed)
+                DrawDefibCharge(p, t);  // GadgetShapes.cs
             if (p.Gadget == GadgetId.None || p.Downed)
                 return;
             float r = p.Def.BodyR;
-            if (p.Gadget == GadgetId.Recall)
+            if (p.Gadget == GadgetId.Lodestone)
             {
                 if (p.GadgetOn)  // the channel: rings rising off the feet and a progress arc
                 {
-                    float prog = 1f - Mathf.Clamp01(p.GadgetLeft / Game.RecallChannel);
+                    float prog = 1f - Mathf.Clamp01(p.GadgetLeft / Game.LodestoneChannel);
                     for (int i = 0; i < 3; i++)
                     {
                         float f = Mathf.Repeat(t * 1.1f + i / 3f, 1f);
@@ -238,7 +237,7 @@ namespace Arena
                     }
                     Arc(p.Disp, r + 4f, 2.6f, GadgetCyan.WithAlpha(0.9f), 30, -Mathf.PI / 2f, MathX.Tau * prog);
                 }
-                DrawRecallShape(p.Disp + V2.FromAngle(p.Aim + 2.1f) * (r + 9f), 5.5f, 1f, t * 2f);
+                DrawLodestoneShape(p.Disp + V2.FromAngle(p.Aim + 2.1f) * (r + 9f), 5.5f, 1f, t * 2f);
                 return;
             }
             if (p.Gadget == GadgetId.EnergyDrink)
@@ -249,7 +248,16 @@ namespace Arena
                 return;
             }
             if (p.Gadget != GadgetId.Magnet)
+            {
+                if (p.Gadget == GadgetId.ShieldGenerator && p.GadgetOn)
+                    DrawShieldDome(p, t);  // GadgetShapes.cs
+                else if (p.Gadget == GadgetId.Cloak && p.GadgetOn)
+                    DrawCloakAura(p, t);
+                else if (p.Gadget == GadgetId.OverclockChip && p.GadgetOn)
+                    DrawOverclockAura(p, t);
+                DrawGadgetShape(p.Gadget, p.Disp + V2.FromAngle(p.Aim + 2.1f) * (r + 9f), 5f, 0f, t, p.GadgetOn);
                 return;
+            }
             if (p.GadgetOn)
             {
                 for (int i = 0; i < 3; i++)  // field rings closing in

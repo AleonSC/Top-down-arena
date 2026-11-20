@@ -4,7 +4,7 @@ using Arena;
 
 // Gadgets (Core/Gadgets.cs): the Magnet lies on the floor, a player walks over it, switches it on (every coin on the map flies to
 // them), throws it to a teammate who catches it with the time it had left, switches it on over the network until it's used up;
-// going down drops it.
+// going down drops it. The bag, the Lodestone's uses, the Energy Drink, the Shield Generator, the Defib Kit and the throwables.
 static partial class Program
 {
     static void GadgetTest(float dt)
@@ -99,8 +99,8 @@ static partial class Program
             drop.Invoke(g, new object[] { e0 });
             max = Math.Max(max, g.Gadgets.Count);
         }
-        Check(max >= 1 && max <= g.Players.Count * 2, "kills drop gadgets now and then, at most one of each kind per player (" + max + ")");
-        Check(g.Gadgets.Values.Any(x => x.Kind == GadgetId.Magnet) && g.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "both the Magnet and the Energy Drink drop from kills");
+        Check(max >= 1 && g.Gadgets.Values.GroupBy(x => x.Owner * 100 + (int)x.Kind).All(x => x.Count() == 1), "kills drop gadgets now and then, at most one of each kind per player (" + max + ")");
+        Check(g.Gadgets.Values.Select(x => x.Kind).Distinct().Count() >= 6 && !g.Gadgets.Values.Any(x => x.Kind == GadgetId.Lodestone), "every kind but the Lodestone drops from kills (" + g.Gadgets.Values.Select(x => x.Kind).Distinct().Count() + " kinds)");
 
         // The bag: a second gadget goes in the bag, the wheel's pick swaps it into the hand (over the network too), a used-up one is replaced from the bag.
         var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -111,37 +111,42 @@ static partial class Program
         for (int i = 0; i < p2.BagKind.Length; i++) p2.BagKind[i] = GadgetId.None;
         var give = typeof(Game).GetMethod("GiveGadget", bf);
         Check((bool)give.Invoke(g, new object[] { p2, GadgetId.Magnet, 20f }) && p2.Gadget == GadgetId.Magnet && p2.GadgetLeft == 20f, "the first gadget goes in the hand");
-        Check((bool)give.Invoke(g, new object[] { p2, GadgetId.Recall, Game.RecallChannel }) && p2.BagKind[0] == GadgetId.Recall, "the second goes in the bag");
-        for (int i = 0; i < 2; i++) give.Invoke(g, new object[] { p2, GadgetId.Recall, Game.RecallChannel });
+        Check((bool)give.Invoke(g, new object[] { p2, GadgetId.Lodestone, Game.LodestoneChannel }) && p2.BagKind[0] == GadgetId.Lodestone, "the second goes in the bag");
+        for (int i = 0; i < 2; i++) give.Invoke(g, new object[] { p2, GadgetId.Lodestone, Game.LodestoneChannel });
         give.Invoke(g, new object[] { p2, GadgetId.Magnet, 7f });
         Check(!(bool)give.Invoke(g, new object[] { p2, GadgetId.Magnet, 1f }) && !Game.CanHoldGadget(p2), "a full hand and bag takes no more");
         Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
-        Check(cg.Players[2].BagKind[0] == GadgetId.Recall && cg.Players[2].BagKind[3] == GadgetId.Magnet && Math.Abs(cg.Players[2].BagLeft[3] - 7f) < 0.01f, "the bag reaches the client's screen");
+        Check(cg.Players[2].BagKind[0] == GadgetId.Lodestone && cg.Players[2].BagKind[3] == GadgetId.Magnet && Math.Abs(cg.Players[2].BagLeft[3] - 7f) < 0.01f, "the bag reaches the client's screen");
         cg.EquipGadget(3);
         Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
         Check(p2.Gadget == GadgetId.Magnet && Math.Abs(p2.GadgetLeft - 7f) < 0.01f && p2.BagKind[3] == GadgetId.Magnet && Math.Abs(p2.BagLeft[3] - 20f) < 0.01f, "a client swaps a bag slot into the hand (Msg.Gadget 2), the old one takes its slot with its time");
         p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
         Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
-        Check(p2.Gadget == GadgetId.Recall && p2.BagKind[0] == GadgetId.None && !p2.GadgetOn, "a used-up gadget is replaced from the bag");
+        Check(p2.Gadget == GadgetId.Lodestone && p2.BagKind[0] == GadgetId.None && !p2.GadgetOn, "a used-up gadget is replaced from the bag");
 
-        // Recall: refused at home; a hit breaks the channel; finishing it sets you down in the hub and uses it up.
-        p2.GadgetLeft = Game.RecallChannel;
+        // The Lodestone: refused at home; a hit breaks the cast; finishing it sets you down in the hub and spends one of its 3 uses.
+        p2.GadgetLeft = Game.LodestoneChannel;
         cg.UseGadget();
         Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
-        Check(!p2.GadgetOn, "Recall won't switch on in the hub");
+        Check(!p2.GadgetOn, "the Lodestone won't cast in the hub");
+        Check(p2.GadgetUses == Game.LodestoneUses && cg.Players[2].GadgetUses == Game.LodestoneUses, "a Lodestone has " + Game.LodestoneUses + " uses (on the client's screen too)");
         p2.GadgetOn = true; p2.GadgetLeft = 2f;
         typeof(Game).GetMethod("Damage", bf).Invoke(g, new object[] { p2, 1f, "Test" });
-        Check(!p2.GadgetOn && p2.GadgetLeft == Game.RecallChannel, "a hit breaks the Recall channel and restarts the 3 s");
+        Check(!p2.GadgetOn && p2.GadgetLeft == Game.LodestoneChannel && p2.GadgetUses == Game.LodestoneUses, "a hit breaks the cast and restarts the 3 s, no use spent");
         p2.Hp = p2.MaxHp;
         p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
         g.DevSetGod(2, true);
-        int bagBefore = p2.BagKind.Count(k => k != GadgetId.None);
         Run(s, dt, 0.3f, null, () => { Quiet(); });
-        Check(p2.Gadget != GadgetId.Recall || p2.BagKind.Count(k => k != GadgetId.None) < bagBefore, "a finished Recall is used up");
+        Check(p2.Gadget == GadgetId.Lodestone && p2.GadgetUses == Game.LodestoneUses - 1 && !p2.GadgetOn && p2.GadgetLeft == Game.LodestoneChannel, "a finished cast spends a use; the Lodestone stays in hand, ready again");
         Check(p2.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 160f, "and sets you down by the hub's middle");
+        p2.GadgetUses = 1; p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
+        for (int i = 0; i < p2.BagKind.Length; i++) p2.BagKind[i] = GadgetId.None;
+        Run(s, dt, 0.3f, null, () => { Quiet(); });
+        Check(p2.Gadget != GadgetId.Lodestone, "its last use spent, it's gone");
 
         // The Energy Drink: switched on, a big speed boost (on the client's screen too) that runs down like the Magnet; off, normal speed.
         p2.Gadget = GadgetId.EnergyDrink; p2.GadgetLeft = Game.EnergyTime; p2.GadgetOn = false;
+        Run(s, dt, 0.2f, null, () => { Quiet(); Put(); });
         float baseSpeed = p2.Speed;
         cg.UseGadget();
         Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
@@ -153,6 +158,138 @@ static partial class Program
         p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
         Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
         Check(p2.Gadget != GadgetId.EnergyDrink && Math.Abs(p2.Speed - baseSpeed) < 0.01f, "a finished Energy Drink is used up");
+
+        // The newer gadgets, on the host's own player.
+        var p1 = g.Players[1];
+        Action Clear = () =>
+        {
+            foreach (var q in g.Players.Values)
+            {
+                q.Gadget = GadgetId.None; q.GadgetOn = false;
+                for (int i = 0; i < q.BagKind.Length; i++) q.BagKind[i] = GadgetId.None;
+            }
+            g.Gadgets.Clear();
+        };
+        Action<Player, GadgetId> Hold = (q, k) => { q.Gadget = k; q.GadgetLeft = Game.GadgetTime(k); q.GadgetUses = Game.GadgetUses(k); q.GadgetOn = false; q.GadgetCd = 0f; };
+        var spawnBullet = typeof(Game).GetMethods(bf).First(m => m.Name == "SpawnBullet" && m.GetParameters().Length == 9);
+        Func<V2, Bullet> EnemyShot = at => (Bullet)spawnBullet.Invoke(g, new object[] { (byte)10, at, default(V2), 0f, 5f, 1f, 0, false, 0f });
+        Action Calm = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = 0; p.LegendaryQueue.Clear(); p.Offer = null; } Put(); };
+
+        // The Shield Generator: up, it wipes out the enemy bullets inside its dome; down, they stay.
+        Clear(); Quiet(); Hold(p1, GadgetId.ShieldGenerator);
+        g.UseGadget();
+        var shot = EnemyShot(a + new V2(Game.ShieldGenR - 14f, 0f));
+        Run(s, dt, 0.15f, null, Calm);
+        Check(p1.GadgetOn && !g.Bullets.ContainsKey(shot.Id), "the Shield Generator up: an enemy bullet inside its dome is wiped out");
+        g.UseGadget();
+        shot = EnemyShot(a + new V2(Game.ShieldGenR - 14f, 0f));
+        Run(s, dt, 0.15f, null, Calm);
+        Check(!p1.GadgetOn && g.Bullets.ContainsKey(shot.Id) && p1.GadgetLeft < Game.ShieldGenTime, "switched off: the bullet stays, the rest of its time saved");
+        Quiet();
+
+        // The Defib Kit: tap to stand a downed teammate up; go down carrying one and it stands you up after 2 s.
+        Clear(); Hold(p1, GadgetId.DefibKit);
+        p2.Downed = true; p2.Hp = 0f;
+        p2.Pos = p1.Pos + new V2(150f, 0f);
+        g.UseGadget();
+        Run(s, dt, 0.15f, null, Calm);
+        Check(!p2.Downed && p2.Hp > 0f && p1.Gadget == GadgetId.None, "the Defib Kit stands a downed teammate up from range, and it's used up");
+        Hold(p2, GadgetId.Grenade);
+        p2.BagKind[1] = GadgetId.DefibKit; p2.BagUses[1] = 1;
+        p2.Downed = true; p2.Hp = 0f;
+        Run(s, dt, 1f, null, Calm);
+        Check(p2.Downed && p2.Gadget == GadgetId.DefibKit && p2.GadgetOn && cg.Players[2].Gadget == GadgetId.DefibKit, "going down with a Defib Kit in the bag: it comes into the hand and charges");
+        Run(s, dt, 1.4f, null, Calm);
+        Check(!p2.Downed && p2.Gadget == GadgetId.Grenade && !p2.BagKind.Contains(GadgetId.DefibKit), "after 2 s it stands you up, used up; your other gadget kept");
+
+        // Throwables: a tap lobs one of their 3 charges to the cursor; each lands on an enemy there.
+        var spawnEnemy = typeof(Game).GetMethod("SpawnEnemyAt", bf);
+        V2 spot = p1.Pos + new V2(220f, 0f);
+        Enemy dummy = null;
+        Action Target = () =>
+        {
+            Calm();
+            foreach (var q in g.Bullets.Values.Where(q => Defs.IsEnemyShot(q.Kind)).ToList()) g.Bullets.Remove(q.Id);
+            if (dummy == null || !g.Enemies.ContainsKey(dummy.Id))
+            {
+                dummy = (Enemy)spawnEnemy.Invoke(g, new object[] { EnemyType.Grunt, spot, 0f, 0, false });
+                dummy.Hp = 1e5f;
+            }
+            dummy.Pos = spot; dummy.SpawnT = 0f;
+            p1.AimAt = spot;
+        };
+        Clear(); Quiet(); Target();
+        Hold(p1, GadgetId.Grenade);
+        float hp0 = dummy.Hp;
+        g.UseGadget(spot); g.UseGadget(spot);
+        Run(s, dt, 0.05f, null, Target);
+        Check(p1.GadgetUses == Game.ThrowUses - 1 && g.Bullets.Values.Any(q => q.Kind == Defs.GrenadeShot && q.Owner == 1), "a Grenade tap lobs one grenade (a second tap at once waits), a charge spent");
+        Run(s, dt, 1f, null, Target);
+        Check(dummy.Hp < hp0, "the grenade bursts on the enemy at the cursor (" + (hp0 - dummy.Hp).ToString("0") + " damage)");
+        p1.GadgetUses = 1; p1.GadgetCd = 0f;
+        g.UseGadget(spot);
+        Run(s, dt, 0.05f, null, Target);
+        Check(p1.Gadget == GadgetId.None, "its last charge thrown, it's gone");
+
+        Hold(p1, GadgetId.SmokeBomb);
+        g.UseGadget(spot);
+        Run(s, dt, 1.2f, null, Target);
+        Check(g.Zones.Values.Any(z => z.Kind == ZoneKind.SmokeShell && z.Owner == 1) && g.InGlSmoke(dummy), "a Smoke Bomb lands as a smoke cloud: the enemy in it can't attack");
+
+        Hold(p1, GadgetId.GasGrenade);
+        hp0 = dummy.Hp;
+        g.UseGadget(spot);
+        Run(s, dt, 1.5f, null, Target);
+        Check(g.Zones.Values.Any(z => z.Kind == ZoneKind.ToxicGas) && cg.Zones.Values.Any(z => z.Kind == ZoneKind.ToxicGas) && dummy.Hp < hp0, "a Gas Grenade's cloud (on both screens) hurts the enemy in it (" + (hp0 - dummy.Hp).ToString("0") + ")");
+
+        Hold(p1, GadgetId.Incendiary);
+        g.Zones.Clear();
+        g.UseGadget(spot);
+        Run(s, dt, 1f, null, Target);
+        hp0 = dummy.Hp;
+        Run(s, dt, 0.5f, null, Target);
+        Check(g.Zones.Values.Any(z => z.Kind == ZoneKind.FlameWall && z.Owner == 1 && z.Pos.DistanceTo(spot) < 40f) && dummy.Hp < hp0, "an Incendiary lands as burning ground that hurts the enemy on it");
+        // The Land Mine: lobbed to the cursor, it lies armed; the enemy standing there sets it off.
+        Hold(p1, GadgetId.LandMine);
+        g.Zones.Clear();
+        hp0 = dummy.Hp;
+        g.UseGadget(spot);
+        Run(s, dt, 0.1f, null, Target);
+        Check(p1.GadgetUses == Game.ThrowUses - 1 && g.Zones.Values.Any(z => z.Kind == ZoneKind.FlakMine && z.Owner == 1), "a Land Mine tap lobs a mine (a charge spent)");
+        Run(s, dt, 1f, null, Target);
+        Check(dummy.Hp < hp0 && !g.Zones.Values.Any(z => z.Kind == ZoneKind.FlakMine), "the enemy on it sets it off (" + (hp0 - dummy.Hp).ToString("0") + " damage)");
+
+        // The EMP: a pulse round you wipes out the enemy bullets in it and stuns (and hurts) the enemies; 2 pulses.
+        Hold(p1, GadgetId.Emp);
+        var near = EnemyShot(p1.Pos + new V2(0f, 150f));
+        hp0 = dummy.Hp;
+        g.UseGadget(spot);
+        Check(!g.Bullets.ContainsKey(near.Id) && dummy.StunT > 0f && dummy.Hp < hp0 && p1.GadgetUses == Game.EmpUses - 1, "an EMP pulse wipes out the enemy bullets round you and stuns and hurts the enemies in it");
+        Run(s, dt, 0.7f, null, Target);
+        g.UseGadget(spot);
+        Check(p1.Gadget != GadgetId.Emp, "its second pulse uses it up");
+
+        // The Cloak: on, enemies can't pick you out (VanishT, on the client's screen too); off, it lapses.
+        Hold(p1, GadgetId.Cloak);
+        g.UseGadget();
+        Run(s, dt, 0.3f, null, Target);
+        Check(p1.GadgetOn && p1.VanishT > 0f && cg.Players[1].VanishT > 0f, "the Cloak on: you vanish from enemies (on both screens)");
+        g.UseGadget();
+        Run(s, dt, 0.5f, null, Target);
+        Check(!p1.GadgetOn && p1.VanishT <= 0f, "switched off, you're seen again");
+
+        // The Overclock Chip: on, fire rate and ability cooldowns run OverclockMult as fast.
+        var fireRate = typeof(Game).GetMethod("FireRate", bf);
+        Hold(p1, GadgetId.OverclockChip);
+        float rate0 = (float)fireRate.Invoke(g, new object[] { p1 });
+        g.UseGadget();
+        Run(s, dt, 0.1f, null, Target);
+        float rate1 = (float)fireRate.Invoke(g, new object[] { p1 });
+        Check(p1.GadgetOn && Math.Abs(rate1 / rate0 - Game.OverclockMult) < 0.01f, "the Overclock Chip on: " + Game.OverclockMult + "x fire rate");
+        g.UseGadget();
+        Run(s, dt, 0.1f, null, Target);
+
+        dummy.Hp = 0f; g.Zones.Clear();
 
         // Gadget chests: one each, into the hand or the bag; a full one spills at your feet (your own copy).
         foreach (var q in g.Players.Values)
@@ -169,7 +306,7 @@ static partial class Program
 
         // The F1 dock's Spawn-a-gadget-or-relic sheet (Core/DevTools.cs): a full gadget at the player's feet as their own copy; a relic straight into the slot.
         g.Gadgets.Clear();
-        Check(!cg.DevSpawnGadget(2, GadgetId.Recall) && !cg.DevSetRelic(2, RelicId.StoneHeart), "only the host can spawn a gadget or set a relic");
+        Check(!cg.DevSpawnGadget(2, GadgetId.Lodestone) && !cg.DevSetRelic(2, RelicId.StoneHeart), "only the host can spawn a gadget or set a relic");
         Check(g.DevSpawnGadget(2, GadgetId.EnergyDrink) && g.Gadgets.Count == 1 && g.Gadgets.Values.First().Owner == 2
             && g.Gadgets.Values.First().Kind == GadgetId.EnergyDrink && Math.Abs(g.Gadgets.Values.First().Left - Game.EnergyTime) < 0.01f, "the dev spawn drops a full gadget, the player's own copy");
         Check(!g.DevSpawnGadget(2, GadgetId.None), "no gadget for None");

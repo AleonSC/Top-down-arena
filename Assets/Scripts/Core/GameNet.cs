@@ -500,12 +500,14 @@ namespace Arena
             p.Gadget = (GadgetId)gadget;
             s.Float(ref p.GadgetLeft);
             s.Bool(ref p.GadgetOn);
+            s.Byte(ref p.GadgetUses);
             for (int i = 0; i < p.BagKind.Length; i++)  // the gadget bag (Gadgets.cs)
             {
                 byte bk = (byte)p.BagKind[i];
                 s.Byte(ref bk);
                 p.BagKind[i] = (GadgetId)bk;
                 s.Float(ref p.BagLeft[i]);
+                s.Byte(ref p.BagUses[i]);
             }
             bool sprayOn = p.SprayOn;
             s.Bool(ref sprayOn);  // Arterial Spray (ArterialSpray.cs)
@@ -1059,8 +1061,8 @@ namespace Arena
                 SyncStomper(s, e);   // QuarryFaction.cs
             else if (kind == EnemyType.Driller || kind == EnemyType.Geomancer)
                 SyncCrack(s, e);     // QuarryFaction.cs
-            else if (kind == EnemyType.Butcher || kind == EnemyType.Gulper || kind == EnemyType.Gnawling || kind == EnemyType.Gutworm || kind == EnemyType.Guard)
-                SyncLarder(s, e);    // LarderFaction.cs (a Guard's swing: GuardSwing.cs)
+            else if (kind == EnemyType.Butcher || kind == EnemyType.Gulper || kind == EnemyType.Gnawling || kind == EnemyType.Gutworm || kind == EnemyType.Guard || kind == EnemyType.Thug)
+                SyncLarder(s, e);    // LarderFaction.cs (a Guard's swing: GuardSwing.cs, a Thug's punch: ThugPunch.cs)
             else if (IsNonShooter(kind))
                 SyncNonShooter(s, e);  // NonShooters.cs: the fuse, the aim, the harpoon, a pod's arming
             if (s.Reading)
