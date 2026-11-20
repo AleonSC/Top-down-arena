@@ -461,6 +461,7 @@ static partial class Program
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
         Test("armsdealer", "the Arms Dealer and the Medic (Docs/ArmsDealer.md): service rooms selling every weapon mod for gold, priced by your stacks, and heals and revives; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),
         Test("mysterydoor", "mystery doors (Docs/MysteryDoors.md): sealed doors rolled on the outer wall, paid to open any time, one save per player, the rest expire", () => MysteryDoorsTest(Dt), () => MysteryContentsTest(Dt), () => MysteryBotsTest(Dt)),
+        Test("shrines", "health shrines (the only node: one use each, health past max) and room chests (pieces and mystery rooms roll one by rarity, vendors never)", () => ShrinesTest(Dt)),
         Test("chests", "chest kinds (Props.cs ChestKind): the node roll, each kind's reward, the kind in the snapshot", () => ChestKindsTest(Dt)),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("bossgate", "the boss gate (BossGate.cs): opens before the boss, holds the wave until everyone stands in it, bots walk in", () => BossGateTest(Dt)),

@@ -521,6 +521,8 @@ namespace Arena
             s.Float(ref p.StandAim);
             s.Float(ref p.ShieldHp);
             s.Float(ref p.ShieldT);
+            s.Float(ref p.OverHp);       // a health shrine's health past max (Shrines.cs)
+            s.ULong(ref p.ShrinesUsed);
             s.Float(ref p.EnergyMax);
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);

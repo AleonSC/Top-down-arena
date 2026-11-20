@@ -56,6 +56,8 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 |---|---|---|
 | **perk** | picked before a run; unlocked by beating bosses | `Perks.cs`, `PerkId` |
 | **relic** | found on the map mid-run; one slot | `Relics.cs`, `RelicId` |
+| **health shrine** | the map node a room claims; one use per player: full health plus health past max | `Shrines.cs`, `NodeKind.Shrine`, `Player.OverHp` |
+| **room chest** | a treasure chest a placed piece or mystery room may hold (never a vendor's room) | `RoomChests.cs` |
 | **legendary card** | a boss's rare upgrade card ("legendary" is its rarity, never a noun on its own) | `Rarity.Legendary` |
 | **gadget** | an item you carry (one in hand, up to 4 in the bag) and can hand over (the Magnet, Recall) | `Gadget` |
 | **gadget chest** | the red chest that gives every player a gadget | `ChestKind.Gadget` |

@@ -170,8 +170,15 @@ namespace Arena
                 string hp = Mathf.CeilToInt(me.Hp).ToString();
                 MiniText(new Rect(hr.x, hr.y, hr.width, 16f), "HEALTH", 16, dim, a);
                 MiniText(new Rect(hr.x, hr.y + 12f, hr.width, 50f), hp, 52, hc, a);
-                MiniText(new Rect(hr.x + CrtUi.TitleWidth(hp, 52) + 8f, hr.y + 30f, 120f, 26f), "/ " + Mathf.CeilToInt(me.MaxHp), 24, low ? red : dim, a);
+                string max = "/ " + Mathf.CeilToInt(me.MaxHp);
+                float mx = hr.x + CrtUi.TitleWidth(hp, 52) + 8f;
+                MiniText(new Rect(mx, hr.y + 30f, 120f, 26f), max, 24, low ? red : dim, a);
                 MiniCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), frac, 20, hc, low ? MiniBlink(a) : a);
+                if (me.OverHp > 0f)  // a health shrine's health past max (Shrines.cs): gold, after the max and as a gold strip over the cells
+                {
+                    MiniText(new Rect(mx + CrtUi.TitleWidth(max, 24) + 8f, hr.y + 30f, 90f, 26f), "+" + Mathf.CeilToInt(me.OverHp), 24, CrtStyle.Gold, a);
+                    MiniCells(new Rect(hr.x, hr.y + 59f, hr.width, 3f), Mathf.Clamp01(me.OverHp / Mathf.Max(1f, me.MaxHp)), 20, CrtStyle.Gold, a);
+                }
             }
             if (!me.Downed)  // the level's progress: a thin gold line under the health cells
             {
@@ -196,7 +203,7 @@ namespace Arena
                 var row = new Rect(hr.x, ty, hr.width, 22f);
                 MiniText(new Rect(row.x, row.y, 110f, 16f), p.Name.ToUpperInvariant(), 16, dim, a);
                 MiniText(new Rect(row.x + 110f, row.y, row.width - 110f, 16f),
-                    p.Downed ? "DOWNED " + Mathf.RoundToInt(p.Revive * 100f) + "%" : Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 16, pc, a, TextAnchor.MiddleRight);
+                    p.Downed ? "DOWNED " + Mathf.RoundToInt(p.Revive * 100f) + "%" : Mathf.CeilToInt(p.Hp) + (p.OverHp > 0f ? "+" + Mathf.CeilToInt(p.OverHp) : "") + " / " + Mathf.CeilToInt(p.MaxHp), 16, pc, a, TextAnchor.MiddleRight);
                 MiniCells(new Rect(row.x, row.y + 17f, row.width, 4f), p.Downed ? p.Revive : pf, 20, pc, plow ? MiniBlink(a) : a);
                 ty -= 28f;
             }

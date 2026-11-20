@@ -286,10 +286,9 @@ static partial class Program
         Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, Black Market or Gatekeeper)");
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
-        Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : 9;
-        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k))
-              && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
-            "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests and relics as fit, none fogged, the same on the client");
+        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => n.Kind == NodeKind.Shrine) >= 1 && newNodes.All(n => n.Kind == NodeKind.Shrine)
+              && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
+            "a new cycle places only health shrines (owner Nov 20; no chest, relic or rule nodes), none fogged, the same on the client");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // A sealed room waiting on the lattice (the cycle's mini-boss room, GridPieces.cs): no crowd, no spawns, until a piece reaches it.

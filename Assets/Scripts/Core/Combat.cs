@@ -66,6 +66,12 @@ namespace Arena
                         EnergyPayback(p);
                 }
             }
+            if (p.OverHp > 0f)  // then a health shrine's health past max (Shrines.cs)
+            {
+                float soak = Math.Min(p.OverHp, amount);
+                p.OverHp -= soak;
+                amount -= soak;
+            }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
@@ -97,6 +103,7 @@ namespace Arena
             if (UseBackup(p))  // the Backup relic (Relics.cs)
                 return;
             p.Hp = 0f;
+            p.OverHp = 0f;
             p.Downed = true;
             p.Run.Downs++;
             Recorder?.Downed(this, p, source);

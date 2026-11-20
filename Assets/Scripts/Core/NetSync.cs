@@ -18,6 +18,7 @@ namespace Arena
 
         public void Float(ref float v) { if (r != null) v = r.ReadSingle(); else w.Write(v); }
         public void Int(ref int v) { if (r != null) v = r.ReadInt32(); else w.Write(v); }
+        public void ULong(ref ulong v) { if (r != null) v = r.ReadUInt64(); else w.Write(v); }
         public void Bool(ref bool v) { if (r != null) v = r.ReadBoolean(); else w.Write(v); }
         public void Vec(ref V2 v) { if (r != null) v = r.ReadV2(); else w.Write(v); }
         public void Byte(ref byte v) { if (r != null) v = r.ReadByte(); else w.Write(v); }
