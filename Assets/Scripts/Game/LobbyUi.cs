@@ -1597,6 +1597,13 @@ namespace Arena
                     SwitchToGlow(false);
                 }
                 foreach (var p in sg.Players.Values)
+                    if (p.Weapon.Id == WeaponId.Greatsword)
+                    {
+                        DrawGreatWindup(p);  // each step's own pose: the held sword hides while one shows (GreatswordLook.cs)
+                        DrawGreatWheel(p);   // the Moonwheel
+                        DrawGreatPips(p);
+                    }
+                foreach (var p in sg.Players.Values)
                     if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                         DrawBowDraw(p, true, sg.AnimT);
                     else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)
