@@ -19,7 +19,7 @@ static partial class Program
         var made = new RunSave { Id = "m1", Wave = 12, LongRun = true, HasExpansion = true, ExpandSeed = 77, FloatCycle = 2, MapNumber = 3, KeepsakePending = true };
         made.Seats.Add(new SeatSave { Name = "A", Vectors = 30, VectorCap = 70, MapSpent = 44 });
         var back = RunSave.Parse(made.ToText(), "m1");
-        var old = RunSave.Parse(made.ToText().Replace("expand 77 2 3 1", "expand 77 2").Replace("vectors 30 70 44", "vectors 30 70"), "m0");
+        var old = RunSave.Parse(made.ToText().Replace("expand 77 2 3 1 10 0", "expand 77 2").Replace("vectors 30 70 44", "vectors 30 70"), "m0");
         Check(back != null && back.MapNumber == 3 && back.Seats[0].MapSpent == 44 && back.Seats[0].Vectors == 30 && back.KeepsakePending, "a save keeps the map number, what each seat spent on it and a keepsake vote left open");
         Check(old != null && old.MapNumber == 1 && old.Seats[0].MapSpent == 0 && old.Seats[0].Vectors == 30 && !old.KeepsakePending, "an older save is the first map, nothing spent, no vote");
 
@@ -105,6 +105,7 @@ static partial class Program
             Run(s, dt, 1f, () => cg.Expanded.Count == roomBoxes.Count, quiet);
             Check(cg.Expanded.Count == roomBoxes.Count, "the client has the rooms");
 
+            var coreBefore = g.CoreLayout;
             // The boss dies: the keepsake vote opens on every game and holds the break.
             killBoss = true;
             Run(s, dt, 10f, () => g.State == MatchState.Intermission, clear);
@@ -122,6 +123,7 @@ static partial class Program
             Console.WriteLine("  after the boss: map {0} (client {1}), rooms {2}/{3}, nodes {4}, kits {5}, vectors {6} {7} (refill {8}), refund {9}",
                 g.MapNumber, cg.MapNumber, g.Expanded.Count, cg.Expanded.Count, g.Nodes.Count, g.RoomTokens.Count, a.Vectors, b.Vectors, cap, g.MapRefund);
             Check(g.MapNumber == 2 && cg.MapNumber == 2 && cg.MapResetAge < 2f, "the boss's death starts map 2 on every game");
+            Check(coreBefore != CoreLayoutId.None && g.CoreLayout != coreBefore && cg.CoreLayout == g.CoreLayout, "a new faction's map gets a new core layout on every game (" + CoreLayouts.Name(coreBefore) + " to " + CoreLayouts.Name(g.CoreLayout) + ")");
             Check(cg.FoldRooms.Count == roomBoxes.Count && g.FoldRooms.Count == roomBoxes.Count, "every game keeps the old map's boxes to fold away");
             Check(cg.MapRefunds.TryGetValue(2, out int cback) && cback == 7 && cg.MapRefunds.TryGetValue(1, out int hback) && hback == 20, "the client knows what each player got back");
             Check(g.MapsInRun == 10, "a Campaign plays ten maps (" + g.MapsInRun + ")");

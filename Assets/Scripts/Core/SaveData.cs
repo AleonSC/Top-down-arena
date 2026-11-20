@@ -69,6 +69,8 @@ namespace Arena
         // The Expanding arena (ExpansionGame.cs): the map the team built. A room's Owner is its drawer's seat + 1 here (0: none),
         // so it can go back to whoever takes that seat.
         public bool HasExpansion;
+        public CoreLayoutId CoreLayout = CoreLayoutId.None;  // the core's floor plan (CoreLayouts.cs); None in older saves
+        public int CoreLayoutsUsed;
         public bool KeepsakePending;  // left during the keepsake vote (MapReset.cs): it opens again on Continue
         public int ExpandSeed, FloatCycle = -1, MapNumber = 1;  // MapNumber: which map of the run (MapReset.cs)
         public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
@@ -124,7 +126,7 @@ namespace Arena
             Line(sb, "route", string.Join(",", Route));
             if (HasExpansion)
             {
-                Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber + " " + (KeepsakePending ? 1 : 0));
+                Line(sb, "expand", ExpandSeed + " " + FloatCycle + " " + MapNumber + " " + (KeepsakePending ? 1 : 0) + " " + (int)CoreLayout + " " + CoreLayoutsUsed);
                 foreach (var r in Rooms)
                     Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Piece, r.Surprise, r.Claimed ? 1 : 0, r.Mini, r.Unseen ? 1 : 0 }));
                 foreach (var kv in Fog)
@@ -244,6 +246,8 @@ namespace Arena
                             save.FloatCycle = I(p[1]);
                             save.MapNumber = p.Length > 2 ? Math.Max(1, I(p[2])) : 1;  // (older saves: the first map)
                             save.KeepsakePending = p.Length > 3 && I(p[3]) == 1;
+                            save.CoreLayout = p.Length > 4 && I(p[4]) >= 0 && I(p[4]) < (int)CoreLayoutId.None ? (CoreLayoutId)I(p[4]) : CoreLayoutId.None;
+                            save.CoreLayoutsUsed = p.Length > 5 ? I(p[5]) : 0;
                             break;
                         }
                         case "room":

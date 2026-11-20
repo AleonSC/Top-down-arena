@@ -1093,7 +1093,7 @@ namespace Arena
 
         /// The World for the hub plus these rooms. With no rooms it is the hub alone, walled in (the Single world has no walls).
         /// Rooms sharing a stretch of wall of at least MinDoorRun have a door there (the parent's, and loops).
-        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null, IList<PortalLink> links = null, IList<MapNode> nodes = null)
+        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null, IList<PortalLink> links = null, IList<MapNode> nodes = null, CoreLayoutId core = CoreLayoutId.None)
         {
             int n = rooms.Count + 1;
             var areas = new RoomArea[n];
@@ -1213,8 +1213,14 @@ namespace Arena
                 var cr = rooms[a - 1];
                 if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
+                if (gridRun && core != CoreLayoutId.None && IsGridCore(cr))
+                    continue;  // (the core's floor plan covers it: CoreLayouts.cs)
                 AddCover(cover, cr, doorSpots, gridRun ? plans : null);
             }
+            if (gridRun && core != CoreLayoutId.None)
+                CoreLayouts.AddSolids(cover, core);  // the core's floor plan (Docs/Mockups/core-layouts.html)
+            else
+                core = CoreLayoutId.None;
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
                 if (FinStyle >= 0 && !rooms[a - 1].Floating && !(gridRun && CellLayouts.OnLattice(rooms[a - 1])) && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
                     AddFins(spans, cover, rooms, group, a, doors, nodes);
@@ -1240,7 +1246,7 @@ namespace Arena
                 Name = "Expanding",
                 Areas = areas, Doors = doors.ToArray(), Portals = portals, Spans = spans.ToArray(), Cover = cover.ToArray(), NodeSpots = spots,
                 Min = new V2(minX, minY), Max = new V2(maxX, maxY),
-                Hub = 0,
+                Hub = 0, Core = core,
             };
         }
     }

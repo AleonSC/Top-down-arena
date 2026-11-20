@@ -63,7 +63,7 @@ namespace Arena
             return w != null && w.NodeSpots != null && i < w.NodeSpots.Length ? w.NodeSpots[i] : Nodes[i].Pos;
         }
 
-        public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings, Links, Nodes));
+        public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings, Links, Nodes, CoreLayout));
 
         /// More floor means more enemies (Rooms.EnemyDamageMult also makes its enemies hit harder).
         public float ExpansionScale
@@ -450,6 +450,9 @@ namespace Arena
             botProposed = false;
             expandSeed = sideRng.Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run; Game.cs)
             MapNumber = 1;
+            CoreLayoutsUsed = 0;
+            CoreLayout = CoreLayoutId.None;
+            PickCoreLayout();  // (CoreLayouts.cs)
             MapResetAge = 99f;
             KeepsakeOpen = false;
             KeepsakeVotes.Clear();
@@ -684,6 +687,8 @@ namespace Arena
             save.ExpandSeed = expandSeed;
             save.FloatCycle = floatCycle;
             save.MapNumber = MapNumber;
+            save.CoreLayout = CoreLayout;
+            save.CoreLayoutsUsed = CoreLayoutsUsed;
             save.KeepsakePending = KeepsakeOpen;  // (left mid-vote: the vote opens again on Continue)
             foreach (var r in Expanded)
             {
@@ -732,6 +737,12 @@ namespace Arena
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
             MapNumber = Math.Max(1, save.MapNumber);
+            CoreLayoutsUsed = save.CoreLayoutsUsed;
+            CoreLayout = save.CoreLayout;
+            if (CoreLayout == CoreLayoutId.None)  // (a save from before core layouts)
+                PickCoreLayout();
+            else
+                layoutFresh = true;
             KeepsakeOpen = false;
             KeepsakeVotes.Clear();
             KeptHead = -1;
@@ -877,6 +888,7 @@ namespace Arena
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
             WriteMysteryDoors(w);  // the sealed doors (MysteryDoors.cs)
             w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
+            w.Write((byte)CoreLayout);  // the core's floor plan (CoreLayouts.cs)
             WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
             WriteFogCells(w);  // the explored cells of the unseen rooms (RoomFog.cs)
@@ -978,6 +990,7 @@ namespace Arena
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
             ReadMysteryDoors(r);
             ReadMapNumber(r.ReadByte(), oldMap);  // (MapReset.cs)
+            ReadCoreLayout(r.ReadByte());  // (CoreLayouts.cs)
             ReadKeepsake(r);
             ExpandOpen = r.ReadBoolean();
             ReadFogCells(r);  // (RoomFog.cs)
