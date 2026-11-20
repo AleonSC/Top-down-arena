@@ -119,6 +119,27 @@ static partial class Program
         step(0.2f, false);
         Check(turret() == null && lost(q1) == 0f, "going down folds it away with no blast");
 
+        // Pressing the key again steps you out early: the guns stop, you are free, no cooldown is spent, and it still blows after 0.8 s.
+        reset();
+        var d1 = make(EnemyType.Grunt, home + new V2(0f, 90f));
+        hostAbility.Invoke(g, new object[] { 1, 0, home + new V2(300f, 0f), false });
+        step(1.6f, true);
+        float dealt = lost(d1);
+        int chargesBefore = me.Slots[0].Charges;
+        float cdBefore = me.Slots[0].Timer;
+        hostS.Poll(); client.Poll();
+        g.FixedStep(dt, new PlayerInput { Ability = true, AimAt = home + new V2(300f, 0f) });
+        var zo = turret();
+        Check(zo != null && zo.Radius == 0f && zo.T <= Game.DtDying + 0.05f && !g.Seated(me), "pressing the key again lets you out and starts the overheat now");
+        Check(me.Slots[0].Charges == chargesBefore && me.Slots[0].Timer >= cdBefore - 0.5f, "stepping out spends no extra cooldown");
+        pin = false;
+        Vector2Move(g, me, dt, hostS, client, true);
+        pin = true;
+        step(0.3f, true);
+        Check(turret() != null && lost(d1) == dealt, "once you are out it fires no more");
+        step(0.8f, false);
+        Check(turret() == null && lost(d1) >= dealt + Game.DtBlastDamage * 0.95f, "it still blows after its fuse");
+
         // Mastery and the card.
         reset();
         me.MasteryXp[AbilityId.DeployableTurret] = 99999f;
@@ -131,7 +152,7 @@ static partial class Program
         Check(lost(m4) > 0f && lost(m5) == 0f, "mastered: rounds pierce 4");
     }
 
-    static void Vector2Move(Game g, Player me, float dt, Session hostS, Session client)
+    static void Vector2Move(Game g, Player me, float dt, Session hostS, Session client, bool free = false)
     {
         V2 at = me.Pos;
         for (int f = 0; f < 0.4f / dt; f++)
@@ -139,6 +160,9 @@ static partial class Program
             hostS.Poll(); client.Poll();
             g.FixedStep(dt, new PlayerInput { Move = new V2(1f, 0f), AimAt = at + new V2(300f, 0f) });
         }
-        Check(me.Pos.DistanceTo(at) < 1f, "sitting in it you are rooted: holding a direction goes nowhere");
+        if (free)
+            Check(me.Pos.DistanceTo(at) > 20f, "out of the seat you can walk again");
+        else
+            Check(me.Pos.DistanceTo(at) < 1f, "sitting in it you are rooted: holding a direction goes nowhere");
     }
 }

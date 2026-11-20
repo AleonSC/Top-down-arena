@@ -19,7 +19,7 @@ namespace Arena
             public Zone Z; public int Seen;
             public float Aim, Spool, Heat, Next, Flash, Ring, Age, FireEnd;
             public readonly float[] Rec = new float[2];
-            public int Side; public bool Landed, Mine;
+            public int Side; public bool Landed, Mine, Out, Hot, Firing;
         }
 
         struct TurretTracer { public V2 From, To; public float Age, Len; }
@@ -81,6 +81,11 @@ namespace Arena
                     v.Landed = true;
                     DeployTurretLand(z, v);
                 }
+                if (!v.Out && z.Radius <= 0f)
+                {
+                    v.Out = true;  // the owner stepped out early (Radius 0): it is overheating on its own
+                    DtSound(Sfx.DtLatch, z, v);
+                }
                 for (int i = 0; i < 2; i++)
                     v.Rec[i] = Mathf.Max(0f, v.Rec[i] - dt * 14f);
                 v.Flash = Mathf.Max(0f, v.Flash - dt);
@@ -90,6 +95,9 @@ namespace Arena
                     v.Aim += Mathf.Clamp(MathX.WrapPi(p.Aim - v.Aim), -dt * Game.DtTurn, dt * Game.DtTurn);
                 bool fire = p != null && !p.Downed && !p.ParryActive && game.HoldingFire(p) && v.Age < v.FireEnd;
                 v.Spool = fire ? Mathf.Min(1f, v.Spool + dt / Game.DtSpool) : Mathf.Max(0f, v.Spool - dt / 0.6f);
+                if (fire && !v.Firing && v.Spool < 0.05f)
+                    DtSound(Sfx.DtSpool, z, v);  // the barrels spinning up from rest
+                v.Firing = fire;
                 if (fire)
                 {
                     float sm = v.Spool * v.Spool * (3f - 2f * v.Spool);
@@ -118,6 +126,11 @@ namespace Arena
                 }
                 if (v.Age >= v.FireEnd)  // overheating: it shakes and throws white sparks
                 {
+                    if (!v.Hot)
+                    {
+                        v.Hot = true;
+                        DtSound(Sfx.DtHeat, z, v);
+                    }
                     v.Heat = 1.1f;
                     if (v.Mine)
                         Shake(dt * 2.5f);
@@ -138,8 +151,12 @@ namespace Arena
             DeployTurretMoveBits(dt);
         }
 
+        void DtSound(Sfx sfx, Zone z, DtVis v) =>
+            sounds?.Play(new SoundCue { Sfx = sfx, Ally = !v.Mine, Quiet = v.Mine ? 0f : game.QuietAt(z.Pos) }, Time.unscaledTime);
+
         void DeployTurretLand(Zone z, DtVis v)
         {
+            DtSound(Sfx.DtDrop, z, v);
             if (v.Mine)
                 Shake(0.8f);
             Ring(z.Pos, 190f, 0.6f, DtGold);
@@ -155,6 +172,7 @@ namespace Arena
         void DeployTurretBlow(DtVis v)
         {
             V2 at = v.Z.Pos;
+            DtSound(Sfx.DtBlast, v.Z, v);
             Shake(v.Mine ? 1f : 0.5f);
             Ring(at, Game.DtBlast * 1.6f, 0.7f, Rgba.White);
             Ring(at, Game.DtBlast * 1.2f, 0.6f, DtOrange);
@@ -207,8 +225,7 @@ namespace Arena
             if (v.Mine)
                 Shake(0.02f + 0.03f * v.Spool);
             v.Heat = Mathf.Min(1.1f, v.Heat + 0.0042f);
-            if (sounds != null && (v.Next > 0.5f || v.Spool > 0f))
-                sounds.Play(Sfx.HeliShot, v.Mine ? 0.3f : 0.15f, Time.unscaledTime);
+            DtSound(Sfx.DtShot, z, v);
         }
 
         readonly List<float> hitProbe = new List<float>();
@@ -329,8 +346,11 @@ namespace Arena
             SetColor(DtPlate);
             Quad(HeliPt(c, f, s, k, 0f, -14f), HeliPt(c, f, s, k, 7f, -20f), HeliPt(c, f, s, k, 7f, 20f), HeliPt(c, f, s, k, 0f, 14f));
             Line(HeliPt(c, f, s, k, 10f, 0f), HeliPt(c, f, s, k, 18f, 0f), 3f * k, DtGold);
-            Circle(HeliPt(c, f, s, k, -10f, 0f), 7f * k, new Rgba(0.3f, 0.88f, 1f), 12);
-            Circle(HeliPt(c, f, s, k, -8f, 0f), 3.5f * k, new Rgba(0.04f, 0.16f, 0.2f), 8);
+            if (!m.Out)  // the gunner in the seat
+            {
+                Circle(HeliPt(c, f, s, k, -10f, 0f), 7f * k, new Rgba(0.3f, 0.88f, 1f), 12);
+                Circle(HeliPt(c, f, s, k, -8f, 0f), 3.5f * k, new Rgba(0.04f, 0.16f, 0.2f), 8);
+            }
 
             // Heat on the barrels, the muzzle star, the timer ring.
             if (Juicy && m.Heat > 0.35f)
