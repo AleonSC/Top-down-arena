@@ -1570,6 +1570,7 @@ namespace Arena
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 TickNunchaku(p, dt);  // the Nunchaku's guard: its discs swat shots back (Nunchaku.cs)
+                TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                 {
                     string orbSrc = CreditTo("weapon");
@@ -1599,7 +1600,7 @@ namespace Arena
                     TickEmbolus(p, dt);  // the spears thrown, stuck, recalled and hardening; Fire throws or recalls (EmbolusSpears.cs)  // the four-step combo of air waves (WindClash.cs)
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
-                else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
+                else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff || p.Weapon.Id == WeaponId.Nodachi)
                     TickKatanaFire(p);  // the Katana's dash or swipe, or the Bo Staff's slash, jab, spin, with the next one queued if you tap ahead (Katana.cs)
                 else if (p.Weapon.Id == WeaponId.OutOfAmmo)
                     TickOutOfAmmo(p, dt);  // the swats, the knife chain and Alt's spin, no trigger (OutOfAmmo.cs)

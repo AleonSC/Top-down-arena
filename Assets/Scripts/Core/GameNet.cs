@@ -812,6 +812,11 @@ namespace Arena
             s.Bool(ref p.HoneyOn);
             s.Bool(ref p.NunGuard);  // the Nunchaku (Nunchaku.cs)
             s.Byte(ref p.NunSwats);
+            s.Byte(ref p.NodStance);  // the Nodachi (Nodachi.cs)
+            s.Byte(ref p.NodStorm);
+            s.Byte(ref p.NodGuard);
+            s.Byte(ref p.NodCode);
+            s.Byte(ref p.NodCount);
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
             {
                 s.Byte(ref p.EsSt[k]);

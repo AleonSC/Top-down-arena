@@ -1175,6 +1175,42 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // NODACHI=<s>: the Tank Ninja's Nodachi (Core/Nodachi.cs, Game/NodachiLook.cs) that long after Fire is first held (held throughout,
+    // so the stance's combo plays on). NODGUARD=1 starts in Mamori (the Guard: shots fly in from the right); NODALT=<s> presses Alt then.
+    if (Environment.GetEnvironmentVariable("NODACHI") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Ninja; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      bool guard = Environment.GetEnvironmentVariable("NODGUARD") != null;
+      float altAt = Environment.GetEnvironmentVariable("NODALT") != null ? float.Parse(Environment.GetEnvironmentVariable("NODALT"), ci) : -1f;
+      V2 home = new V2(480f, 360f); me.Pos = me.Disp = home; me.Aim = 0f; me.NodStance = (byte)(guard ? 1 : 0); me.NodStorm = me.NodGuard = 0;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(120f, -40f), new V2(150f, 50f), new V2(60f, -130f), new V2(-40f, 140f), new V2(-140f, -60f), new V2(200f, -5f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      float[] ys = { -8f, 14f, -22f, 4f, 24f, -14f, 10f, -28f, 18f, -4f };
+      int shot = 0;
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("NODACHI"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = home + new V2(200f, 0f);
+        bool alt = altAt >= 0f && tt >= altAt && tt < altAt + 3f / 60f;
+        if (me.NodStance == 1 && f % 8 == 0) {
+          V2 from = home + new V2(360f, ys[shot++ % ys.Length] * 2f);
+          shoot.Invoke(gm, new object[] { Defs.SmallShot, from, (home - from).Normalized() * 340f, 0f, 3f, 5f, 0, false, 0f });
+        }
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f; Time.time += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = true, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Hp = me.MaxHp;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // WINDCLASH=<s>: the Tank Elementalist's Wind Clash (Core/WindClash.cs, Game/WindClashLook.cs) that long into the combo, Fire held from 0:
     // crescent at 0, back crescent at 0.34 s, gale lance at 0.68 s, clash ring at 1.12 s. WCALT=1: Alt (Tempest) at 0 instead, the
     // enemies shooting at you (their shots are caught and spin round you).

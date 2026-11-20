@@ -197,6 +197,7 @@ One Rare card per Ninja weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), o
 | Katana | Honed Edge | The Momentum Burst shoves 30% farther, and caltrops last 2 s longer |
 | Kunai | Shadow Mark | The blink's hit deals 40% more, and marks last 2 s longer |
 | Nunchaku | Iron Links | The Twin Windmill's discs are 25% wider, and each shot they swat adds 2 more to the Twin Counter |
+| Nodachi | Tamahagane | The sweeps and Tenchi's ring reach 15% farther, and Mamori's jabs block shots in a 30° wider cone |
 
 Built (owner approved all nine): in `Game.NinjaCards`. Hooks: `StartKusariThrow` (reach) and `KusariImpact` (stun),
 the Bo Staff's shove push (`BoStaff.cs`) and full spin, the Fuma throw's starting speed (the oval scales with it) and

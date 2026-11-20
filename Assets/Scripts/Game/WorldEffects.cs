@@ -164,6 +164,7 @@ namespace Arena
             d[(int)FxKind.GreatRend] = (fx, f, t) => DrawGreatRendFx(fx, f);  // GreatswordLook.cs
             d[(int)FxKind.TwinStep] = (fx, f, t) => DrawTwinStepFx(fx);  // TwinBladesLook.cs
             d[(int)FxKind.NunStep] = (fx, f, t) => DrawNunStepFx(fx);  // the Twin Crush's shockwave (NunchakuLook.cs)
+            d[(int)FxKind.NodStep] = (fx, f, t) => DrawNodStepFx(fx);  // the Nodachi's crescents, moon, shockwave and jabs (NodachiLook.cs)
             d[(int)FxKind.NunCounter] = (fx, f, t) => DrawNunCounterFx(fx);  // NunchakuLook.cs
             d[(int)FxKind.KnuckleStep] = (fx, f, t) => DrawKnuckleStepFx(fx);  // ArcKnucklesLook.cs
             d[(int)FxKind.KnuckleDash] = (fx, f, t) => DrawKnuckleDashFx(fx);  // ArcKnucklesLook.cs

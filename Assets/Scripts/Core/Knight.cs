@@ -59,6 +59,7 @@ namespace Arena
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
         public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
+        public bool Nod;              // a Nodachi hit (Nodachi.cs): the parry and the stance switch take back one still winding up
         public int BlastPress;        // != 0: a Blood Blast cut, this press's number: what it hits gets one blood stack per press (BloodBlast.cs)
     }
 
