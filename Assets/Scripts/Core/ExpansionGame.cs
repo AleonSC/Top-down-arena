@@ -647,7 +647,7 @@ namespace Arena
         {
             TickNodeFog(dt);  // NodeScouting.cs
             TickGridCore();  // GridRooms.cs
-            TickRoomFog();  // RoomFog.cs
+            TickRoomFog(dt);  // RoomFog.cs
             if (!ExpandOpen)
             {
                 botBuildT = 0f;
@@ -693,6 +693,9 @@ namespace Arena
                 room.Owner = r.Owner != 0 && seatOf.TryGetValue(r.Owner, out seat) ? seat + 1 : 0;
                 save.Rooms.Add(room);
             }
+            for (int i = 0; i < Expanded.Count && i < fogCells.Length; i++)
+                if (Expanded[i].Unseen && fogCells[i] != null)
+                    save.Fog[i] = FogHex(fogCells[i]);  // (the explored cells, RoomFog.cs)
             save.Cuts.AddRange(Openings);
             save.Portals.AddRange(Links);
             save.Builds.AddRange(Placed);
@@ -743,6 +746,7 @@ namespace Arena
                 room.Owner = r.Owner > 0 && playerOf.TryGetValue(r.Owner - 1, out id) ? id : 0;
                 Expanded.Add(room);
             }
+            LoadFogCells(save.Fog);  // (RoomFog.cs)
             Openings.Clear();
             Openings.AddRange(save.Cuts);
             Links.Clear();
@@ -876,6 +880,7 @@ namespace Arena
             w.Write((byte)Math.Min(255, MapNumber));  // which map of the run (MapReset.cs)
             WriteKeepsake(w);  // the kept room and the keepsake vote (MapReset.cs)
             w.Write(ExpandOpen);
+            WriteFogCells(w);  // the explored cells of the unseen rooms (RoomFog.cs)
             session.Broadcast(Proto.End(w));
         }
 
@@ -975,6 +980,7 @@ namespace Arena
             ReadMapNumber(r.ReadByte(), oldMap);  // (MapReset.cs)
             ReadKeepsake(r);
             ExpandOpen = r.ReadBoolean();
+            ReadFogCells(r);  // (RoomFog.cs)
         }
     }
 }

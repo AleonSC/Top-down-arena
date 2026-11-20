@@ -158,6 +158,9 @@ namespace Arena
                 case Msg.ExpandState:
                     ReadExpandState(r);
                     break;
+                case Msg.FogCells:
+                    ReadFogCells(r);  // RoomFog.cs
+                    break;
                 case Msg.GateState:
                     ReadGateState(r);
                     break;

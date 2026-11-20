@@ -97,12 +97,12 @@ namespace Arena
                     e.Dormant = false;
         }
 
-        /// Host, every frame (from TickRoomFog): a dormant enemy whose room is seen (or gone) wakes.
+        /// Host, every frame (from TickRoomFog): a dormant enemy whose room is seen, or that a player looks at from close, wakes.
         void TickDormant()
         {
             List<V2> wake = null;
             foreach (var e in Enemies.Values)
-                if (e.Dormant && !UnseenAt(e.Pos))
+                if (e.Dormant && (!UnseenAt(e.Pos) || FogSees(e.Pos, RoomFog.WakeReach)))
                     (wake ?? (wake = new List<V2>())).Add(e.Pos);
             if (wake != null)
                 foreach (var p in wake)
