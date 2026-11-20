@@ -137,6 +137,9 @@ namespace Arena
                 case AbilityId.ForcePact:
                     ForcePactCast(p, target, cap);  // ForcePact.cs
                     break;
+                case AbilityId.Stampede:
+                    CastStampede(p, target, cap);  // Stampede.cs
+                    break;
                 case AbilityId.SpiritSwarm:
                 {
                     int sprites = cap ? 8 : 5;
@@ -754,6 +757,11 @@ namespace Arena
                 if (z.Kind == ZoneKind.Cover)
                 {
                     TickCover(z);  // DeployableCover.cs
+                    continue;  // (not a circle: nothing below applies)
+                }
+                if (z.Kind == ZoneKind.Stampede)
+                {
+                    TickStampede(z);  // Stampede.cs
                     continue;  // (not a circle: nothing below applies)
                 }
                 if (z.Kind == ZoneKind.Phalanx)
