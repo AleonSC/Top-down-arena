@@ -500,12 +500,14 @@ namespace Arena
             p.Gadget = (GadgetId)gadget;
             s.Float(ref p.GadgetLeft);
             s.Bool(ref p.GadgetOn);
+            s.Byte(ref p.GadgetUses);
             for (int i = 0; i < p.BagKind.Length; i++)  // the gadget bag (Gadgets.cs)
             {
                 byte bk = (byte)p.BagKind[i];
                 s.Byte(ref bk);
                 p.BagKind[i] = (GadgetId)bk;
                 s.Float(ref p.BagLeft[i]);
+                s.Byte(ref p.BagUses[i]);
             }
             bool sprayOn = p.SprayOn;
             s.Bool(ref sprayOn);  // Arterial Spray (ArterialSpray.cs)

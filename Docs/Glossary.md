@@ -61,10 +61,14 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **health shrine** | the map node a room claims; one use per player: full health plus health past max | `Shrines.cs`, `NodeKind.Shrine`, `Player.OverHp` |
 | **room chest** | a treasure chest a placed piece or mystery room may hold (never a vendor's room) | `RoomChests.cs` |
 | **legendary card** | a boss's rare upgrade card ("legendary" is its rarity, never a noun on its own) | `Rarity.Legendary` |
-| **gadget** | an item you carry (one in hand, up to 4 in the bag) and can hand over (the Magnet, Recall, Energy Drink) | `Gadget` |
+| **gadget** | an item you carry (one in hand, up to 4 in the bag) and can hand over (Magnet, Lodestone, Energy Drink, Shield Generator, Defib Kit, Grenade, Smoke Bomb, Gas Grenade, Incendiary) | `Gadget` |
 | **gadget chest** | the red chest that gives every player a gadget | `ChestKind.Gadget` |
 | **gadget wheel** | the wheel you hold the Gadget key (or its own Gadget wheel key) to open, to swap the gadget in hand | `OpenGadgetWheel` |
 | **Energy Drink** | the gadget that makes you move 60% faster while on (60 s in all) | `GadgetId.EnergyDrink` |
+| **Lodestone** | the gadget that carries you to the hub's middle after a 3 s cast (3 uses; was the Recall) | `GadgetId.Lodestone` |
+| **Shield Generator** | the gadget whose dome wipes out enemy bullets round you while on (20 s in all) | `GadgetId.ShieldGenerator` |
+| **Defib Kit** | the gadget that stands a downed teammate up, or you 2 s after you go down | `GadgetId.DefibKit` |
+| **throwable** | a gadget whose tap lobs one of its 3 charges: Grenade, Smoke Bomb, Gas Grenade, Incendiary | `Game.Throwable` |
 
 ## Runs
 

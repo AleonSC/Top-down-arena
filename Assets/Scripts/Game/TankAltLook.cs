@@ -158,8 +158,9 @@ namespace Arena
         }
 
         /// Tear Gas: the canister tumbling in, then a pale churning cloud, the canister still hissing in its middle.
-        void DrawTearGas(Zone z, float t)
+        void DrawTearGas(Zone z, float t, bool toxic = false)
         {
+            Rgba GasPale = toxic ? ToxicPale : ArenaApp.GasPale;  // (a Gas Grenade's cloud: purple; Gadgets.cs)
             float age = z.Duration - z.T;
             if (age < Game.TearGasFlight)
             {
@@ -189,15 +190,17 @@ namespace Arena
             V2 cn = z.Pos + new V2(0f, -hop), ax = V2.FromAngle(spin) * 6f;
             Circle(z.Pos + new V2(1f, 2f), 5f, new Rgba(0f, 0f, 0f, 0.25f * fade), 8);
             Line(cn - ax, cn + ax, 5f, CanisterGrey.WithAlpha(fade));
-            Line(cn + ax * 0.6f, cn + ax, 5.4f, new Rgba(0.85f, 0.75f, 0.3f, fade));  // the yellow band
+            Line(cn + ax * 0.6f, cn + ax, 5.4f, (toxic ? new Rgba(0.72f, 0.42f, 1f, fade) : new Rgba(0.85f, 0.75f, 0.3f, fade)));  // the yellow band (a Gas Grenade's: purple)
             if (fxOn)
                 for (int end = -1; end <= 1; end += 2)  // a jet of gas out of each end
                     for (int k = 0; k < 4; k++)
                     {
                         float f = Mathf.Repeat(t * 2.2f + k / 4f + (end > 0 ? 0.125f : 0f), 1f);
                         V2 jet = cn + ax * end * (1f + 3.5f * f) + ax.Orthogonal() * (0.6f * f * Mathf.Sin(t * 9f + k));
-                        Circle(jet, 2f + 6f * f, Rgba.White.WithAlpha(0.4f * (1f - f) * fade), 8);
+                        Circle(jet, 2f + 6f * f, (toxic ? ToxicPale : Rgba.White).WithAlpha(0.4f * (1f - f) * fade), 8);
                     }
         }
+
+        static readonly Rgba ToxicPale = new Rgba(0.74f, 0.5f, 1f);
     }
 }

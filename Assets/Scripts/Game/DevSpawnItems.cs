@@ -51,7 +51,14 @@ namespace Arena
             Ui.Label(gh, "GADGETS", 10, CrtStyle.Head, TextAnchor.MiddleLeft, true);
             Ui.Label(gh, "in hand: " + (who.Gadget == GadgetId.None ? "nothing" : Game.GadgetName(who.Gadget)) + "  ·  bag " + bagUsed + "/" + who.BagKind.Length,
                 10, CrtStyle.Desc, TextAnchor.MiddleRight);
-            var gc = DkStack.Cells(col.Next(48f), (int)GadgetId.None, 8f);
+            int kinds = (int)GadgetId.None, perRow = (kinds + 1) / 2;  // two rows of cells
+            var gc = new Rect[kinds];
+            for (int row = 0; row * perRow < kinds; row++)
+            {
+                var cells = DkStack.Cells(col.Next(48f), perRow, 8f);
+                for (int k = 0; k < perRow && row * perRow + k < kinds; k++)
+                    gc[row * perRow + k] = cells[k];
+            }
             for (int i = 0; i < gc.Length; i++)
             {
                 var g = (GadgetId)i;
@@ -60,11 +67,12 @@ namespace Arena
                 bool hover = host && cell.Contains(ev.mousePosition);
                 Ui.Fill(cell, ink.WithAlpha(hover ? 0.16f : 0.05f));
                 CrtKit.Frame(cell, 1f, ink.WithAlpha(hover ? 0.85f : 0.3f));
-                DrawGadgetGlyph(g, new Vector2(cell.x + 30f, cell.center.y), 19f, host ? ink : ink.WithAlpha(0.45f));
-                Ui.Label(new Rect(cell.x + 64f, cell.y + 3f, cell.width - 70f, 24f), Game.GadgetName(g).ToUpperInvariant(), 14, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
+                DrawGadgetGlyph(g, new Vector2(cell.x + 24f, cell.center.y), 17f, host ? ink : ink.WithAlpha(0.45f));
+                Ui.Label(new Rect(cell.x + 48f, cell.y + 3f, cell.width - 52f, 24f), ChipName(g), 12, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
                 float secs = Game.GadgetTime(g);
-                Ui.Label(new Rect(cell.x + 64f, cell.y + 24f, cell.width - 70f, 20f), (Game.GadgetTimed(g) ? secs.ToString("0") + " s of use" : secs.ToString("0") + " s channel to the hub"),
-                    11, CrtStyle.Desc, TextAnchor.MiddleLeft);
+                string blurb = Game.GadgetTimed(g) ? secs.ToString("0") + " s of use" : g == GadgetId.Lodestone ? Game.LodestoneUses + " casts to the hub"
+                    : g == GadgetId.DefibKit ? "1 revive" : Game.GadgetUses(g) + " charges";
+                Ui.Label(new Rect(cell.x + 48f, cell.y + 24f, cell.width - 52f, 20f), blurb, 11, CrtStyle.Desc, TextAnchor.MiddleLeft);
                 if (hover)
                     hoverNote = "Drop a full " + Game.GadgetName(g) + " in front of " + whoName + " (only " + (who.Id == game.MyId ? "you see" : "they see") + " it; walk onto it).";
                 if (host && Ui.HitArea(cell))

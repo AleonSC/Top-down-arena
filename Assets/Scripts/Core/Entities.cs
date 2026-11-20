@@ -304,6 +304,9 @@ namespace Arena
         public bool GadgetOn;                         // switched on: using up GadgetLeft (replicated)
         public readonly GadgetId[] BagKind = { GadgetId.None, GadgetId.None, GadgetId.None, GadgetId.None };  // gadgets carried besides the one in hand (replicated; Gadgets.cs)
         public readonly float[] BagLeft = new float[4];  // each one's seconds of use left
+        public byte GadgetUses;                       // the gadget in hand's uses left (the Lodestone, the Defib Kit, the throwables; replicated)
+        public readonly byte[] BagUses = new byte[4];  // each bagged gadget's uses left
+        public float GadgetCd;                        // host: until the next throwable charge can go
         public bool SprayOn;                          // Arterial Spray is gushing (replicated; ArterialSpray.cs)
         public float SprayT, SprayTick, SprayPower = 1f;  // host: how long it has run, until the next damage tick, mastery power
         public bool SprayMastered;                    // host: a mastered spray washes away enemy bullets
@@ -763,6 +766,7 @@ namespace Arena
         public float FragDmg, FragSpeed, FragLife, FragSplash;
         public bool FragSideways; // fragments fly out to the sides (shatter, shrapnel) rather than all around (bomblets)
         public bool GlNade;       // host only: a Grenade Launcher HE grenade (it bursts with GlBlast: GrenadeLauncher.cs)
+        public bool Incendiary;   // host only: an Incendiary gadget's bottle: it lands as burning ground (IncendiaryBurst: Gadgets.cs; Dmg is its damage multiplier)
         public bool Bomblet;      // host only: a Flak Cannon bomblet; it pops where it lands (Burst marks it as landing)
         public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
         public bool StunBack;     // host only: a Warden's stun shot sent back by a perfect parry (stuns the Warden)
