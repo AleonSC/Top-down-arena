@@ -501,7 +501,7 @@ namespace Arena
                 var s = p.Slots[i];
                 if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.CaughtSteel && p.SteelT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
-                s.Timer -= dt;
+                s.Timer -= OverclockOn(p) ? dt * OverclockMult : dt;  // (an Overclock Chip: Gadgets.cs)
                 if (s.Timer <= 0f)
                 {
                     s.Charges++;

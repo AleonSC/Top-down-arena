@@ -251,6 +251,10 @@ namespace Arena
             {
                 if (p.Gadget == GadgetId.ShieldGenerator && p.GadgetOn)
                     DrawShieldDome(p, t);  // GadgetShapes.cs
+                else if (p.Gadget == GadgetId.Cloak && p.GadgetOn)
+                    DrawCloakAura(p, t);
+                else if (p.Gadget == GadgetId.OverclockChip && p.GadgetOn)
+                    DrawOverclockAura(p, t);
                 DrawGadgetShape(p.Gadget, p.Disp + V2.FromAngle(p.Aim + 2.1f) * (r + 9f), 5f, 0f, t, p.GadgetOn);
                 return;
             }
