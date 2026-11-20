@@ -259,34 +259,28 @@ static partial class Program
         PollBoth(host, client);
         Check(cg.HasShopRoom && cg.HasBlackMarketRoom && cg.HasArmsRoom && cg.HasMedicRoom && cg.Nodes.Count == g.Nodes.Count, "the friend gets them too");
 
-        // Enemies: mid-wave they appear in the room at once; between waves they wait for the wave to start. A small room holds fewer.
+        // Enemies (owner Nov 20): they sleep in the fog at the layout's sleeper slots, mid-wave or between waves, and wake when the room is seen.
         g.State = MatchState.Fighting;
         g.Enemies.Clear();
-        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
-        var queueWas = new List<EnemyType>(queue);
-        queue.Clear(); queue.Add(EnemyType.Rioter); queue.Add(EnemyType.Guard);  // (this wave's own types: a Warden wave)
         int e0 = g.Enemies.Count;
         var med = open(PieceShape.TetO, MysteryKind.Enemies);
-        int want = Mystery.AmbushCount(g.Wave, MysteryRoom.Medium);
-        int inRoom = g.Enemies.Values.Count(e => med.Any(r => e.Pos.X >= r.X - 20 && e.Pos.X <= r.X1 + 20 && e.Pos.Y >= r.Y - 20 && e.Pos.Y <= r.Y1 + 20));
-        Check(med.Count == 1 && med[0].W == 1200 && med[0].H == 1200 && g.Enemies.Count - e0 == want && inRoom >= want, "mid-wave a medium room's " + want + " enemies appear in it (" + (g.Enemies.Count - e0) + " new, " + inRoom + " in the room)");
-        var kinds = g.Enemies.Values.Select(e => e.Type).Distinct().ToList();
-        Check(kinds.All(t => t == EnemyType.Rioter || t == EnemyType.Guard), "they're the wave's own types, not the old basic pool's Grunts (" + string.Join(", ", kinds) + ")");
-        queue.Clear(); queue.AddRange(queueWas);
+        var asleep = g.Enemies.Values.Where(e => e.Dormant && med.Any(r => e.Pos.X >= r.X && e.Pos.X <= r.X1 && e.Pos.Y >= r.Y && e.Pos.Y <= r.Y1)).ToList();
+        Check(med.Count == 1 && med[0].W == 1200 && med[0].H == 1200 && asleep.Count >= DormantGroups.GroupSize(g.Wave) && asleep.Count == g.Enemies.Count - e0,
+            "mid-wave a medium room's enemies are planted asleep in it, not sprung (" + asleep.Count + " asleep)");
+        var slots = CellLayouts.SleeperSlots(med);
+        Check(asleep.All(e => slots.Any(sl => sl.DistanceTo(e.Pos) < 100f)), "each stands at one of the layout's sleeper slots");
         g.State = MatchState.Intermission;
         e0 = g.Enemies.Count;
         var sm = open(PieceShape.Mono, MysteryKind.Enemies);
-        var pend = (List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g);
-        Check(sm.Count == 1 && g.Enemies.Count == e0 && pend.Count == 1, "between waves they wait");
-        typeof(Game).GetMethod("SpringPendingAmbushes", flags).Invoke(g, null);
         var pack = g.Enemies.Values.Where(e => !(e.Pos.X < sm[0].X - 20 || e.Pos.X > sm[0].X1 + 20 || e.Pos.Y < sm[0].Y - 20 || e.Pos.Y > sm[0].Y1 + 20)).ToList();
-        Check(g.Enemies.Count - e0 == Mystery.SmallPack && pend.Count == 0 && pack.Count == Mystery.SmallPack && pack.All(e => e.Type == g.MysteryPackType()),
-            "and come out as the wave starts: a small room's pack of " + Mystery.SmallPack + " " + g.MysteryPackType() + ", grouped in the room (" + pack.Count + ")");
+        int slotsIn = CellLayouts.SleeperSlots(sm).Count;
+        Check(sm.Count == 1 && pack.Count >= Mystery.SmallPack && pack.Count == g.Enemies.Count - e0 && pack.All(e => e.Dormant && e.Type == g.MysteryPackType()),
+            "between waves a small room's pack of " + Mystery.SmallPack + "+ " + g.MysteryPackType() + " sleeps over its " + slotsIn + " slots (" + pack.Count + ")");
         Check(Game.FactionFor(EnemyType.Warden).Members[0].Type == EnemyType.Rioter, "a Warden stretch's pack is Rioters");
 
         e0 = g.Enemies.Count;
         var empty = open(PieceShape.Domino, MysteryKind.Empty);
-        Check(empty.Count == 1 && empty[0].W * empty[0].H == 2 * 600 * 600 && empty[0].Kind == RoomKind.Combat && g.Enemies.Count == e0 && ((List<V2>)typeof(Game).GetField("ambushPending", flags).GetValue(g)).Count == 0, "an empty room (7 x 6 here) is just floor");
+        Check(empty.Count == 1 && empty[0].W * empty[0].H == 2 * 600 * 600 && empty[0].Kind == RoomKind.Combat && g.Enemies.Count == e0, "an empty room (7 x 6 here) is just floor");
     }
 }
 

@@ -453,7 +453,6 @@ namespace Arena
             V2 doorAt = MysteryDoors[i].Pos;
             RemoveMysteryDoor(i);
             var head = rooms[0];
-            V2 mid = new V2((head.X + head.X1) / 2f, (head.Y + head.Y1) / 2f);
             if (kind == MysteryKind.Chest)
             {
                 V2 end = Mystery.FarEnd(head, doorAt);
@@ -472,15 +471,12 @@ namespace Arena
             NoteOpenedDoors(doorsBefore);  // the reveal (MysteryDoorLook.cs)
             Sounds.Add(Sfx.Pick);
             DoLog(p.Name + " opens a mystery door: " + kind + " (" + Expansion.SurpriseName(plan.Value.Shape) + ") for " + price + " vectors");
-            if (kind == MysteryKind.Enemies)
+            if (kind == MysteryKind.Enemies)  // (owner Nov 20: they sleep in the fog at the layout's sleeper slots, and wake when seen; no burst on opening)
             {
-                if (State == MatchState.Fighting)
-                    SpringAmbush(mid, size);
+                if (size == MysteryRoom.Small)
+                    PlantDormantGroups(rooms, true, MysteryPackType(), (Mystery.SmallPack + Math.Max(1, CellLayouts.SleeperSlots(rooms).Count) - 1) / Math.Max(1, CellLayouts.SleeperSlots(rooms).Count), true);  // (the pack split over the slots)
                 else
-                {
-                    ambushPending.Add(mid);  // (between waves: they wait in the dark and come out as the wave starts)
-                    ambushSizes.Add(size);
-                }
+                    PlantDormantGroups(rooms, true);
             }
             BroadcastExpansion();
             return true;

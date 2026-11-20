@@ -165,7 +165,8 @@ static partial class Program
             var sleepers = g.Enemies.Values.Where(e => !before.Contains(e.Id) && e.Dormant).ToList();
             int size = DormantGroups.GroupSize(g.Wave);
             var pool = g.DormantPool(g.Wave);
-            Check(sleepers.Count == 2 * size, "a Combat piece: every cell of a two-cell piece holds a group of " + size + " (" + sleepers.Count + ")");
+            int slotCount = CellLayouts.SleeperSlots(g.Expanded.Skip(4).ToList()).Count;
+            Check(sleepers.Count == slotCount * size && slotCount >= 2, "a Combat piece: every sleeper slot of its two cells holds a group of " + size + " (" + sleepers.Count + " over " + slotCount + " slots)");
             Check(sleepers.All(e => pool.Contains(e.Type)) && pool.All(t => !Defs.Get(t).IsBoss), "they are the wave's faction enemies (" + string.Join(",", pool) + ")");
             Check(sleepers.All(e => g.UnseenAt(e.Pos)), "they sleep in the unseen room");
             Run(s, dt, 0.4f, null, noPicks);
@@ -193,7 +194,7 @@ static partial class Program
             cg.PlayPieceCard(slot, b.Orient, b.X, b.Y);
             Run(s, dt, 1f, () => g.Expanded.Count > n0, noPicks);
             var second = g.Enemies.Values.Where(e => !before.Contains(e.Id) && e.Dormant).ToList();
-            Check(second.Count == size, "the one-cell piece holds one group");
+            Check(second.Count == size * CellLayouts.SleeperSlots(g.Expanded.Skip(n0).ToList()).Count && second.Count >= size, "the one-cell piece holds a group at each of its slots");
             var room = g.Expanded[n0];
             var mid = new V2((room.X + room.X1) / 2f, (room.Y + room.Y1) / 2f);
             // (a fin inside the room can stand in the way: take a spot with a clear line to the first sleeper)

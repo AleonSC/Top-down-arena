@@ -188,7 +188,7 @@ namespace Arena
                 else if (pt.Kind == PatchKind.Slick)
                     slow = Math.Min(slow, SlickSlow);  // a Turnkey's mop slick (Turnkey.cs)
             }
-            return slow;
+            return Math.Min(slow, TrapSlowAt(pos));  // a room's slow field (RoomTraps.cs)
         }
 
         // --- Moving ---------------------------------------------------------------------------------
