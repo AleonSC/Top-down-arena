@@ -267,13 +267,13 @@ static partial class Program
         var asleep = g.Enemies.Values.Where(e => e.Dormant && med.Any(r => e.Pos.X >= r.X && e.Pos.X <= r.X1 && e.Pos.Y >= r.Y && e.Pos.Y <= r.Y1)).ToList();
         Check(med.Count == 1 && med[0].W == 1200 && med[0].H == 1200 && asleep.Count >= DormantGroups.GroupSize(g.Wave) && asleep.Count == g.Enemies.Count - e0,
             "mid-wave a medium room's enemies are planted asleep in it, not sprung (" + asleep.Count + " asleep)");
-        var slots = CellLayouts.SleeperSlots(med);
+        var slots = CellLayouts.SleeperSlots(med, g.Expanded);
         Check(asleep.All(e => slots.Any(sl => sl.DistanceTo(e.Pos) < 100f)), "each stands at one of the layout's sleeper slots");
         g.State = MatchState.Intermission;
         e0 = g.Enemies.Count;
         var sm = open(PieceShape.Mono, MysteryKind.Enemies);
         var pack = g.Enemies.Values.Where(e => !(e.Pos.X < sm[0].X - 20 || e.Pos.X > sm[0].X1 + 20 || e.Pos.Y < sm[0].Y - 20 || e.Pos.Y > sm[0].Y1 + 20)).ToList();
-        int slotsIn = CellLayouts.SleeperSlots(sm).Count;
+        int slotsIn = CellLayouts.SleeperSlots(sm, g.Expanded).Count;
         Check(sm.Count == 1 && pack.Count >= Mystery.SmallPack && pack.Count == g.Enemies.Count - e0 && pack.All(e => e.Dormant && e.Type == g.MysteryPackType()),
             "between waves a small room's pack of " + Mystery.SmallPack + "+ " + g.MysteryPackType() + " sleeps over its " + slotsIn + " slots (" + pack.Count + ")");
         Check(Game.FactionFor(EnemyType.Warden).Members[0].Type == EnemyType.Rioter, "a Warden stretch's pack is Rioters");
@@ -287,7 +287,7 @@ static partial class Program
         BonusLoot.Chance = 1f;
         int coins0 = g.Coins.Count;
         int stashes = g.PlantBonusLoot(empty);
-        int lootSlots = CellLayouts.LootSlots(empty).Count;
+        int lootSlots = CellLayouts.LootSlots(empty, g.Expanded).Count;
         BonusLoot.Chance = lootChance;
         Check(lootSlots >= 2 && stashes == lootSlots && g.Coins.Count - coins0 >= lootSlots * 3 && g.Coins.Values.Skip(coins0).All(c => empty.Any(r => c.Pos.X > r.X && c.Pos.X < r.X1 && c.Pos.Y > r.Y && c.Pos.Y < r.Y1)),
             "bonus loot: every loot slot of a plain room holds a stash of coins in the room (" + stashes + " stashes, " + (g.Coins.Count - coins0) + " coins)");

@@ -30,7 +30,7 @@ namespace Arena
                     eligible.Add(b);
             var roll = new DetRandom(expandSeed * 53 + boxes[0].X * 11 + boxes[0].Y * 5 + Wave);
             int stashes = 0;
-            foreach (var at in CellLayouts.LootSlots(eligible))
+            foreach (var at in CellLayouts.LootSlots(eligible, Expanded))
             {
                 if (roll.Float() >= BonusLoot.Chance)
                     continue;
