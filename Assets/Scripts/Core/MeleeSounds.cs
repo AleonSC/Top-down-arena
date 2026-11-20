@@ -33,8 +33,40 @@ namespace Arena
         readonly Dictionary<Sfx, float> stepQuiet = new Dictionary<Sfx, float>();  // this frame's footsteps: the nearest one per sound
         float meleeClock;
 
+        readonly Dictionary<int, V2> bottlesFlying = new Dictionary<int, V2>();  // Rioters' bottles in the air, where last seen
+        readonly List<int> bottlesGone = new List<int>();
+
+        /// A Rioter's bottle that was in the air and is gone has broken: the shatter where it was last seen (once a frame, the nearest).
+        void UpdateBottleSounds()
+        {
+            foreach (var b in Bullets.Values)
+                if (b.Kind == Defs.BottleShot)
+                    bottlesFlying[b.Id] = b.Pos;
+            bottlesGone.Clear();
+            float best = 2f;
+            foreach (var kv in bottlesFlying)
+                if (!Bullets.ContainsKey(kv.Key))
+                {
+                    bottlesGone.Add(kv.Key);
+                    best = Math.Min(best, QuietAt(kv.Value));
+                }
+            foreach (int id in bottlesGone)
+                bottlesFlying.Remove(id);
+            if (best <= 1f)
+                MeleeCue(Sfx.RiotShatter, best);
+        }
+
+        bool AnyBottle()
+        {
+            foreach (var b in Bullets.Values)
+                if (b.Kind == Defs.BottleShot)
+                    return true;
+            return false;
+        }
+
         void ResetMeleeSounds()
         {
+            bottlesFlying.Clear();
             meleeVoices.Clear();
             lastMeleeDeath.Clear();
             meleeClock = 0f;
@@ -76,7 +108,7 @@ namespace Arena
 
         static bool IsMeleeVoice(EnemyType t)
         {
-            return t == EnemyType.Swarmer || t == EnemyType.Wisp || IsBrute(t) || IsLunger(t);
+            return t == EnemyType.Swarmer || t == EnemyType.Wisp || t == EnemyType.Rioter || IsBrute(t) || IsLunger(t);
         }
 
         /// A walker's step: how often it steps, and what that sounds like (null if it doesn't walk).
@@ -87,6 +119,7 @@ namespace Arena
                 case EnemyType.Swarmer: case EnemyType.Wisp: every = 0.28f; return Sfx.SwarmerPatter;
                 case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger: every = 0.3f; return Sfx.BruteStep;
                 case EnemyType.Lunger: case EnemyType.Shiv: case EnemyType.ScytheWraith: every = 0.3f; return Sfx.LungerPad;
+                case EnemyType.Rioter: every = 0.26f; return Sfx.RiotStep;
                 default: every = 0f; return Sfx.None;
             }
         }
@@ -112,13 +145,14 @@ namespace Arena
                 case EnemyType.Swarmer: case EnemyType.Wisp: return Sfx.SwarmerDie;
                 case EnemyType.Brute: case EnemyType.Thug: case EnemyType.Gravedigger: return Sfx.BruteDie;
                 case EnemyType.Lunger: case EnemyType.Shiv: case EnemyType.ScytheWraith: return Sfx.LungerDie;
+                case EnemyType.Rioter: return Sfx.RiotDie;
                 default: return Sfx.None;
             }
         }
 
         void UpdateMeleeSounds(float dt)
         {
-            if (Enemies.Count == 0 && meleeVoices.Count == 0)
+            if (Enemies.Count == 0 && meleeVoices.Count == 0 && bottlesFlying.Count == 0 && !AnyBottle())
                 return;
             meleeClock += dt;
             stepQuiet.Clear();
@@ -164,6 +198,17 @@ namespace Arena
                         if (bite)
                             MeleeCue(Sfx.BruteBash, q);
                         break;
+                    case EnemyType.Rioter:  // Phase 1 is a bottle Rioter cocking its arm (RiotBrains.cs)
+                        if (!fresh && !m.Alerted && q <= 0.2f)
+                        {
+                            m.Alerted = true;  // one yell when it first comes within earshot (the sound's gap keeps a crowd from drowning you)
+                            MeleeCue(Sfx.RiotYell, q);
+                        }
+                        if (bite)
+                            MeleeCue(Sfx.RiotAttack, q);
+                        if (changed && e.Phase == 1)
+                            MeleeCue(Sfx.RiotHup, q);
+                        break;
                     case EnemyType.Lunger: case EnemyType.Shiv: case EnemyType.ScytheWraith:  // Phase 1 is the pink line, 2 the leap, 3 the recovery
                         if (changed && e.Phase == 1)
                             MeleeCue(Sfx.LungerTell, q);
@@ -187,6 +232,7 @@ namespace Arena
             }
             foreach (var kv in stepQuiet)
                 MeleeCue(kv.Key, kv.Value);
+            UpdateBottleSounds();
 
             // Anything that was here and now isn't has died. One sound per type per DeathWindow, at the nearest one's volume.
             goneVoices.Clear();

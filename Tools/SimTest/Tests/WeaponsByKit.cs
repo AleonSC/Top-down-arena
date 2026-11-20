@@ -1193,6 +1193,7 @@ static partial class Program
             "Kiri cuts everything along its dash (and nothing off it)");
         Check(me.KatanaHay == 1 && client.Game.Players[1].KatanaHay == 1 && me.KatanaDashes == (byte)(dashes0 + 1) && heard(Sfx.KatanaLunge)
             && client.Game.Effects.Any(fx => fx.Kind == FxKind.KatanaDash), "the combo moves on, your game dashes you, and every screen sees it");
+        Check(heard(Sfx.KatanaChain1) && !heard(Sfx.KatanaChain2), "Kiri landing rings the combo's first chime");
         reset();
 
         // A dash that kills brings the next step at once.
@@ -1252,6 +1253,7 @@ static partial class Program
         Check(shoved.KatanaShockT > 0f && seenShoved != null && seenShoved.KatanaShocked && !g.Bullets.ContainsKey(shot.Id) && heard(Sfx.KatanaBurstSfx),
             "it marks what it hit (every screen sees it) and cuts the small bullets in its ring");
         Check(me.KatanaHay == 0, "the Burst ends the Hayate combo");
+        Check(heard(Sfx.KatanaWindup) && heard(Sfx.KatanaChain5), "the Burst winds up and lands on the top chime");
         reset();
 
         // Caltrops: thrown round you, lying still; one stepped on hurts and slows (and breaks).

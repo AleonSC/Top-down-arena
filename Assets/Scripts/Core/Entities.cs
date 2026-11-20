@@ -151,6 +151,9 @@ namespace Arena
         DtDrop, DtShot, DtSpool, DtHeat, DtBlast, DtLatch,
         // A One-way piece's door bumped from the wrong side (OneWayDoorSoundBank.cs): played by your own screen when it holds you back, never sent.
         OneWayBump,
+        // The Rioter (RioterSoundBank.cs, the Mob voice): the yell on coming within earshot, the hit, the bottle's wind-up, its
+        // throw (sent), the bottle breaking, the death, a running step. Played by each screen from what it sees (MeleeSounds.cs), never sent but the throw.
+        RiotYell, RiotAttack, RiotHup, RiotWhoosh, RiotShatter, RiotDie, RiotStep,
     }
 
     public struct SoundCue

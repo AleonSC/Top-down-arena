@@ -337,7 +337,7 @@ namespace Arena
             Sfx.BossCrack, Sfx.BossCage, Sfx.BossChomp, Sfx.ZombieGroan, Sfx.ZombieRise, Sfx.ZombieSpit, Sfx.ZombieGrab, Sfx.ZombieShriek,
             Sfx.ZombieBurst, Sfx.ZombieMend, Sfx.SwarmerChomp, Sfx.SwarmerDie, Sfx.BruteStep,
             Sfx.BruteGrunt, Sfx.BruteBash, Sfx.BruteDie, Sfx.LungerTell, Sfx.LungerLeap, Sfx.LungerLand, Sfx.LungerDie,
-            Sfx.SwarmerPatter, Sfx.LungerPad })
+            Sfx.SwarmerPatter, Sfx.LungerPad, Sfx.RiotYell, Sfx.RiotAttack, Sfx.RiotHup, Sfx.RiotWhoosh, Sfx.RiotShatter, Sfx.RiotDie, Sfx.RiotStep })
                 c[(int)s] = Category.Enemies;
             return c;
         }
@@ -416,6 +416,7 @@ namespace Arena
                 BuildFrost();  // FrostSoundBank.cs
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
                 BuildWarhorn();  // WarhornSoundBank.cs
+                BuildRioter();  // RioterSoundBank.cs
             }
             catch (Exception ex)
             {

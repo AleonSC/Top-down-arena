@@ -3,11 +3,12 @@ namespace Arena
     /// The Katana's sounds (cues raised in Core/Katana.cs, Core/Ninja.cs and Core/Knight.cs), the Steel set of
     /// Docs/Mockups/katana-sounds.html: airy whooshes with a metallic ring on top, hard cracks, bell tails.
     /// Senbon's swipes, Hayate's dash-cut (KatanaLunge) and a cut landing use the Weapons volume (the Categories() table in SoundBank.cs); the rest are
-    /// Effects. The two stances (Katana.cs) reuse the old strike's sounds: its cut and a chain chime per hop.
+    /// Effects. The two stances (Katana.cs) reuse the old strike's sounds: its cut (Senbon's slashes), a chain chime per landed step (its place in the combo,
+    /// KatanaHitCue) and the wind-up (the Momentum Burst's blade going in).
     public partial class SoundBank
     {
         const float KatanaRing = 2600f, KatanaRingVol = 0.07f, KatanaRoom = 0.25f, KatanaChime = 0.2f;
-        const float KatanaAfterBlow = 0.4f;  // the chain cues are raised as the blow lands and start this much later
+        const float KatanaAfterBlow = 0.07f;  // the chain cues are raised with the cut landing and start this much later, so the cut is heard first
         static readonly float[] KatanaChainPitch = { 523.25f, 587.33f, 659.25f, 783.99f, 880f };
 
 
