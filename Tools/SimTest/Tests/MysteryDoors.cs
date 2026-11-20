@@ -359,8 +359,10 @@ static partial class Program
         };
         int turretsBefore = g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret);
         bool hurt = turretsBefore > 0 && shoot(1f) && g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore;
+        PollBoth(host, client);
+        bool barSynced = turretsBefore > 0 && g.TurretHpFrac(turret.Pos) < 1f && cg.TurretHpFrac(turret.Pos) < 1f && cg.TurretHpFrac(turret.Pos) > 0f;  // (a hit shows as a health bar on both screens)
         bool wrecked = turretsBefore > 0 && shoot(9999f) && g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore - 1;
         PollBoth(host, client);
-        Check(hurt && wrecked && cg.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore - 1, "a room turret takes your shots, is wrecked at zero health, and the friend's game loses it too (" + turretsBefore + " turrets)");
+        Check(hurt && barSynced && wrecked && cg.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret) == turretsBefore - 1, "a room turret takes your shots, shows a health bar on both screens, is wrecked at zero health, and the friend's game loses it too (" + turretsBefore + " turrets)");
     }
 }

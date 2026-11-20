@@ -2296,6 +2296,8 @@ static partial class Shot {
         var plant = typeof(Game).GetMethod("PlantDormantGroups", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         foreach (var dr in xg.Expanded.ToArray()) if (RoomFog.StartsUnseen(dr)) plant.Invoke(xg, new object[] { new System.Collections.Generic.List<ExpansionRoom> { dr }, false, null, 0, false });
       }
+      string trapHp = Environment.GetEnvironmentVariable("TRAPHP");  // TRAPHP=<0-1>: every room turret is damaged to that health (its health bar, RoomTrapLook.cs)
+      if (trapHp != null) { var nth = typeof(Game).GetMethod("NoteTrapHit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance); foreach (var tr in xg.RoomTrapList.ToArray()) if (tr.Kind == TrapKind.Turret) nth.Invoke(xg, new object[] { tr.Pos, float.Parse(trapHp, System.Globalization.CultureInfo.InvariantCulture) }); }
       if (Environment.GetEnvironmentVariable("FOG") != null)  // FOG=1: every room but the core unseen (room fog, RoomFogLook.cs)
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
       string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge

@@ -70,6 +70,7 @@ namespace Arena
         MysteryBuy,   // client -> host: open or save the sealed door at (x, y) from the build map, wherever you stand, in a build round (x, y, save) (MysteryDoors.cs)
         FogCells,     // host -> all: the explored cells of every unseen room, a few times a second while someone explores (RoomFog.cs)
         ExpandUnlink, // client -> host: dismantle the portal pair with an end at this wall spot (x, y shorts) in a build round; its teleporter goes back to their stash (ExpansionGame.cs)
+        TrapHit,      // host -> all: a room turret was hit: its x, y (shorts) and its health left (byte, 0-255 of full); drawn as a bar over it (RoomTraps.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
