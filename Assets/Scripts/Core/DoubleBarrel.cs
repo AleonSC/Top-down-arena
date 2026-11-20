@@ -43,7 +43,7 @@ namespace Arena
                 p.DbReload = DbReloadTime * p.Stats.DbReloadMult;  // (Quick Loader: faster)
                 return;
             }
-            if (p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver)
+            if (p.Firing && !p.ParryActive && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver)
             {
                 p.FireCd = DbInterval / FireRate(p);
                 FirePlayer(p);  // (FireVolley: one barrel)

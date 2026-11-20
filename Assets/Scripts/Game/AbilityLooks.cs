@@ -10,7 +10,7 @@ namespace Arena
     ///   each timed buff shows a shrinking arc under the player, in the buff's colour (DrawBuffTimers);
     ///   enemies a taunt has turned get an eye over them, watching the taunter (DrawTauntMarks);
     ///   an ability that reaches an ally sends a beam of light to them (FxKind.Link);
-    ///   and a few buffs' own looks (Blade Tempest, Alpha Call's frenzy, Time Rewind's clock).
+    ///   and a few buffs' own looks (Blade Tempest, Alpha Call's frenzy).
     public partial class ArenaApp
     {
         bool fxCallouts = true;
@@ -213,26 +213,6 @@ namespace Arena
             Circle(head, 5f * fade + 1f, fx.Color.Mix(Rgba.White, 0.5f).WithAlpha(fade), 12);
             if (reach >= 1f)
                 Arc(fx.Pos2, 14f + 16f * (f - 0.35f), 2.5f, fx.Color.WithAlpha(fade), 20);
-        }
-
-        /// Time Rewind on a player (FxKind.Rewind): a clock face round them, its hand sweeping backwards twice, a trail
-        /// behind it.
-        void DrawRewindFx(Effect fx, float f)
-        {
-            Player p;
-            V2 at = game.Players.TryGetValue((int)fx.Pos2.X, out p) ? p.Disp : fx.Pos;
-            float r = fx.Radius, fade = f < 0.75f ? 1f : (1f - f) / 0.25f;
-            var c = fx.Color;
-            Arc(at, r, 2f, c.WithAlpha(0.8f * fade), 32);
-            for (int k = 0; k < 12; k++)
-            {
-                V2 d = V2.FromAngle(k * MathX.Tau / 12f);
-                Line(at + d * (r - (k % 3 == 0 ? 6f : 3f)), at + d * r, 1.5f, c.WithAlpha(0.8f * fade));
-            }
-            float hand = -MathX.Pi / 2f - f * MathX.Tau * 2f;  // anticlockwise: back in time
-            Arc(at, r - 4f, 4f, c.WithAlpha(0.3f * fade), 16, hand, 1.4f);
-            Line(at, at + V2.FromAngle(hand) * (r - 3f), 2.5f, Rgba.White.WithAlpha(0.9f * fade));
-            Line(at, at + V2.FromAngle(hand * 0.08f - MathX.Pi / 2f) * (r * 0.55f), 3f, c.Mix(Rgba.White, 0.3f).WithAlpha(0.9f * fade));
         }
     }
 }
