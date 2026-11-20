@@ -22,7 +22,7 @@ namespace Arena
                 return;  // mid-rush in Bladed Dive: nothing touches you, whatever checks InvulnT (BladedDive.cs)
             if (!tickDamage && RiotBlocks(p, source))
                 return;  // Riot Gear took the hit (RiotGear.cs)
-            CancelRecall(p);  // a hit breaks the Recall channel (Gadgets.cs)
+            CancelLodestone(p);  // a hit breaks a Lodestone cast (Gadgets.cs)
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             amount *= RoomsDamageMult;  // a grown Expanding arena's waves hit harder (Rooms.cs)
             if (p.TauntT > 0f)
@@ -232,6 +232,11 @@ namespace Arena
 
         void ExplodeGrenade(Bullet b)
         {
+            if (b.Incendiary)
+            {
+                IncendiaryBurst(b);  // an Incendiary gadget (Gadgets.cs)
+                return;
+            }
             if (b.GlNade)
             {
                 GlBlast(b);  // the Grenade Launcher's HE (GrenadeLauncher.cs)
