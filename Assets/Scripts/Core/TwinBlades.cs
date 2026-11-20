@@ -57,18 +57,18 @@ namespace Arena
             {
                 case 1:
                 case 2:
-                    TwinSwing(p, aim, w.Reach, TwinCutArc, hit, d.Dur * 0.5f, step == 1 ? Sfx.TwinCut1 : Sfx.TwinCut2, step);
+                    TwinSwing(p, aim, w.Reach, TwinCutArc, hit, d.Dur * 0.5f, TwinSfx(p, step == 1 ? Sfx.TwinCut1 : Sfx.TwinCut2), step);
                     break;
                 case 3:
                     for (int k = 0; k < 2; k++)
                     {
-                        var s = TwinSwing(p, aim, TwinJabReach, 0f, hit, d.Dur * (k == 0 ? 0.27f : 0.59f), Sfx.TwinJab, step);
+                        var s = TwinSwing(p, aim, TwinJabReach, 0f, hit, d.Dur * (k == 0 ? 0.27f : 0.59f), TwinSfx(p, Sfx.TwinJab), step);
                         s.HalfWidth = TwinJabHalfWidth;
                         s.Thrust = true;
                     }
                     break;
                 case 4:
-                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.35f, Sfx.TwinSpin, step);
+                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.35f, TwinSfx(p, Sfx.TwinSpin), step);
                     var spin = TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.7f, Sfx.None, step);  // (the first's whirl covers both turns)
                     spin.Waves = extra;  // the +1 upgrade: the Pirouette throws crescents too
                     spin.WaveDmg = w.Damage * dmg * TwinWaveMult;
@@ -84,7 +84,7 @@ namespace Arena
             }
             // The whole move, drawn from its age: Radius carries who and which step.
             BroadcastFx(FxKind.TwinStep, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, w.Reach), TwinMoon, p.Id * 10 + step,
-                d.Dur + TwinBladesMotion.Recover, step == 5 ? Sfx.TwinShear : Sfx.None);  // (the Shear's sound starts with its wind-up)
+                d.Dur + TwinBladesMotion.Recover, step == 5 ? TwinSfx(p, Sfx.TwinShear) : Sfx.None);  // (the Shear's sound starts with its wind-up)
         }
 
         /// One hit of a step. `sound` plays as it lands (Sfx.None: nothing, as the Shear's and the second turn's are already playing).
@@ -130,7 +130,7 @@ namespace Arena
                     p.FangOut = 0;
                     p.FangCd = r.Great ? WheelCooldown : FangCooldown;
                     if (!p.Downed)
-                        BroadcastSound(Sfx.TwinCatch);  // both sabres (or the greatsword) back in hand
+                        BroadcastSound(TwinSfx(p, Sfx.TwinCatch));  // both sabres (or the greatsword) back in hand
                 }
             }
         }
@@ -167,7 +167,7 @@ namespace Arena
                 if (FangHitsWall(r.Pos))
                 {
                     r.Back = true;
-                    BroadcastFx(FxKind.Ring, r.Pos, TwinMoon, 26f, 0.25f, Sfx.TwinCross);  // the clang on the wall
+                    BroadcastFx(FxKind.Ring, r.Pos, TwinMoon, 26f, 0.25f, TwinSfx(p, Sfx.TwinCross));  // the clang on the wall
                     TwinHitCue(p, 7, 0);
                 }
                 else if (r.T >= TwinBladesMotion.FangRelease + r.Follow)
@@ -251,14 +251,14 @@ namespace Arena
             p.Combo &= ~7;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Twin && s.Delay > 0f);  // a step still winding up never lands
             fangRuns.Add(new FangRun { Owner = p.Id, Pos = p.Pos, Follow = FangFollow * p.Stats.FangTimeMult });
-            BroadcastFx(FxKind.TwinFang, p.Pos, aimAt, TwinMoon, p.Id, TwinBladesMotion.FangRelease + 0.3f, Sfx.TwinThrow);
+            BroadcastFx(FxKind.TwinFang, p.Pos, aimAt, TwinMoon, p.Id, TwinBladesMotion.FangRelease + 0.3f, TwinSfx(p, Sfx.TwinThrow));
         }
 
         /// Host: a step (1-5) or the thrown sabres (6 cutting, 7 striking a wall) cut `hits` enemies. Sent as an effect that draws nothing: it
         /// carries the cut's sound, and the swordsman's own game holds the picture and shakes (Game/Juice.cs, TwinHitFeel).
         void TwinHitCue(Player p, int kind, int hits)
         {
-            BroadcastFx(FxKind.TwinHit, p.Pos, new V2(p.Id, kind), TwinMoon, hits, 0.2f, kind == 5 || kind == 7 ? Sfx.TwinHitHeavy : Sfx.TwinHit);
+            BroadcastFx(FxKind.TwinHit, p.Pos, new V2(p.Id, kind), TwinMoon, hits, 0.2f, TwinSfx(p, kind == 5 || kind == 7 ? Sfx.TwinHitHeavy : Sfx.TwinHit));
         }
 
         /// Raising the parry cancels the chain (ResetAttackChains): back to the first step, a step still winding up never lands.

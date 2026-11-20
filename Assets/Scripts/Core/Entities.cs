@@ -140,6 +140,9 @@ namespace Arena
         BlastSlash, BlastFlurry, BlastWhirl, BlastCleave, BlastFlight, BlastHit, BlastTideGather, BlastTideWave, BlastReturn,
         // Warhorn Volley (WarhornSoundBank.cs): the war horn and the whole volley after it (hiss, whistles, thuds, crackle) in one take. Sent.
         Warhorn,
+        // The Rubber Chicken skin's sound pack for the Twin Blades (ChickenSoundBank.cs), one for each Twin cue: picked by the host from
+        // the swinger's skin (Game.TwinSfx). Sent.
+        ChickCut1, ChickCut2, ChickJab, ChickSpin, ChickShear, ChickHit, ChickHitHeavy, ChickThrow, ChickCross, ChickCatch,
     }
 
     public struct SoundCue

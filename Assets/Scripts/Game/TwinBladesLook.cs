@@ -45,6 +45,7 @@ namespace Arena
         {
             if (p.Weapon.Id != WeaponId.TwinBlades)
                 return;
+            chickenOn = IsChicken(p);  // ChickenLook.cs
             float caught = WatchFang(p);
             Effect fang;
             var step = TwinFxOf(p.Id, out fang);
@@ -70,6 +71,8 @@ namespace Arena
                 return;
             }
             var m = TwinBladesMotion.Ready;
+            chickR = ChickIdle(t, true);
+            chickL = ChickIdle(t, false);
             m.Rr += 0.5f * b; m.Lr += 0.5f * b; m.Rb += 0.02f * b; m.Lb -= 0.02f * b;
             DrawTwinPose(p.Disp, p.Aim, m, arm, true, true, 1f);
             DrawTwinPips(p, t);
@@ -158,9 +161,21 @@ namespace Arena
                     return;  // a newer step (or a throw) by the same player has taken over
             }
             var s = TwinBladesMotion.Steps[step - 1];
+            chickenOn = IsChicken(owner);
             V2 o = owner != null ? owner.Disp : fx.Pos;
             float aim = TwinAim(fx, owner, s.Dur), c = fx.T;
             Rgba arm = owner != null ? owner.Def.Color : new Rgba(0.29f, 0.66f, 0.61f);
+            if (chickenOn)
+            {
+                DrawChickenTrail(s, o, aim, c, true);
+                DrawChickenTrail(s, o, aim, c, false);
+                chickR = ChickAt(s, c, true);
+                chickL = ChickAt(s, c, false);
+                DrawTwinPose(o, aim, TwinBladesMotion.At(s, c), arm, true, true, 1f);
+                if (owner != null)
+                    DrawTwinPips(owner, Time.time);
+                return;
+            }
             // the pale trail off each blade while it cuts
             for (int h = 0; h < 2; h++)
             {
@@ -219,6 +234,7 @@ namespace Arena
             }
             if (fx.T >= TwinBladesMotion.FangRelease)
                 return;
+            chickenOn = IsChicken(owner);
             V2 o = owner != null ? owner.Disp : fx.Pos;
             float aim = (fx.Pos2 - fx.Pos).Angle;
             DrawTwinPose(o, aim, TwinBladesMotion.At(TwinBladesMotion.Fang, fx.T), owner != null ? owner.Def.Color : new Rgba(0.29f, 0.66f, 0.61f), true, true, 1f);
@@ -240,7 +256,9 @@ namespace Arena
             TwinHand(o, aim, m, true, out hR, out dR);
             TwinHand(o, aim, m, false, out hL, out dL);
             V2 sh = new V2(3f, 5f);
+            chickCur = chickR;
             if (bladeR) DrawSabre(hR + sh, dR.Angle, alpha, true);
+            chickCur = chickL;
             if (bladeL) DrawSabre(hL + sh, dL.Angle, alpha, true);
             float body = aim + m.Sp + m.Tw;
             for (int k = 0; k < 2; k++)
@@ -258,8 +276,11 @@ namespace Arena
                 Circle(s, 5.6f, new Rgba(0.7f, 0.76f, 0.84f, alpha), 12);
                 Circle(s - new V2(0.8f, 1.2f), 2.3f, new Rgba(0.86f, 0.9f, 0.95f, alpha), 8);
             }
+            chickCur = chickR;
             if (bladeR) DrawSabre(hR, dR.Angle, alpha, false);
+            chickCur = chickL;
             if (bladeL) DrawSabre(hL, dL.Angle, alpha, false);
+            chickCur = default(ChickState);
             foreach (var h in new[] { hR, hL })
             {
                 Circle(h, 5.6f, new Rgba(0.16f, 0.11f, 0.06f, alpha), 12);
@@ -272,6 +293,13 @@ namespace Arena
         /// toward its edge side, a bright edge line. `shadow`: its shadow only.
         void DrawSabre(V2 hand, float ang, float alpha, bool shadow)
         {
+            if (chickenOn)
+            {
+                var cs = chickCur;
+                if (cs.Stretch == 0f) cs.Stretch = 1f;  // (the thrown pair: no pose state)
+                DrawChicken(hand, ang, alpha, shadow, cs);
+                return;
+            }
             V2.Axes(ang, out V2 dir, out V2 side);
             float L = TwinBladesMotion.BladeLen;
             const int N = 7;

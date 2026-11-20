@@ -1697,8 +1697,12 @@ Design: [`Docs/Rank.md`](Docs/Rank.md); mockups: `Docs/Mockups/rank-screens.html
 **Class expertise and weapon skins:** every run's XP also goes to the class you played, as that class's **expertise**
 (level 0 to 10; level *n* to *n+1* costs 1,000 x (*n*+1) XP, 55,000 for level 10). Expertise unlocks that class's
 **weapon skins**, one equipped per weapon. Pick them in Profile > Look > **Weapon skin**: it shows the class you picked in
-the lobby, a key per weapon of your role, each weapon's skins with a live preview, and your expertise level and bar. No
-weapon has skins yet. Not ability **mastery**, which is per run.
+the lobby, a key per weapon of your role, each weapon's skins with a live preview, and your expertise level and bar.
+Everyone in the run sees and hears your skin. Not ability **mastery**, which is per run.
+
+| Skin | Weapon | Unlock | What changes |
+|---|---|---|---|
+| **Rubber Chicken** | Twin Blades | Knight expertise 3 | Both sabres become rubber chickens held by the feet. The necks flop behind every swing and stretch with its speed (the Double Jab becomes a peck), the beaks open and squeak while they cut, the eyes go to X on the hit, and feathers come off instead of the blade trail, with a puff where each cut ends. Every Twin Blades sound becomes a squeak: an "eek" on the cuts, "bwek bwek" on the jabs, a warbling squeal on the Pirouette, a wheeze and full scream on the Crescent Shear, a rubber thwap and honk on hits, a squeal on Twin Fang. Cosmetic only: the swings, timing and hits are the Twin Blades' own. |
 
 **XP for a run:** 20 per wave cleared, 150 per boss defeated, 40 per ally revived and 500 for a win, times
 (1 + each active modifier's bonus: **Harder +25%**, **Risky +15%**, **Easier +0%**, at most x3) and the difficulty's

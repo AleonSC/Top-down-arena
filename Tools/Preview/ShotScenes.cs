@@ -1457,6 +1457,9 @@ static partial class Shot {
       // SWINGW=<WeaponId>: any melee weapon in your hand (e.g. Greatsword, Rapier, Halberd, Warhammer, Katana, BoStaff).
       var wn = Environment.GetEnvironmentVariable("SWINGW");
       if (wn != null) { var wd = System.Array.Find(Defs.Weapons, x => x.Id.ToString() == wn); if (wd != null) { me.Weapon = wd; me.Kit = wd.Kit; } }
+      // SKIN=<skin id>: your weapon skin, as your lobby entry carries it (Expertise.cs), e.g. SKIN=twin-chicken with SWINGW=TwinBlades.
+      var skinId = Environment.GetEnvironmentVariable("SKIN");
+      if (skinId != null && Expertise.Skin(skinId) != null) { LobbyEntry le; if (!host.Lobby.TryGetValue(me.Id, out le)) host.Lobby[me.Id] = le = new LobbyEntry { Id = me.Id, Name = me.Name }; le.Skins = new byte[] { (byte)Expertise.Skin(skinId).Weapon, Expertise.IndexOf(skinId) }; }
       me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.15f; me.DrawT = 0f; me.Flash = 0f;  // (no hit flash: the model shows its own colours)
       int k = 0;
       foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; float a = me.Aim + (k - 1) * 0.55f; en.Pos = en.Disp = me.Pos + V2.FromAngle(a) * (70f + 25f * (k % 2)); if (++k >= 3) break; }

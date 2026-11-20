@@ -10,7 +10,7 @@ namespace Arena
         string SkinIcon => "class_" + kitChoice.ToString().ToLowerInvariant();
         int skinWeapon = -1;  // the weapon key picked in the section (-1: the lobby's weapon, set when it opens)
 
-        const string SkinSub = "Your weapon's shots and muzzle flash. One per weapon, earned with expertise in the class you pick in the lobby.";
+        const string SkinSub = "How your weapon looks and sounds to everyone in the run. One per weapon, earned with expertise in the class you pick in the lobby.";
 
         /// The lobby's weapons for your role and class.
         static WeaponDef[] LobbyWeapons(Role role, Kit kit)
@@ -40,6 +40,43 @@ namespace Arena
             }
             if (flash)
                 GlowDisc(from + dir * 3f, 11f, tint, 0.6f);
+        }
+
+        /// The Twin Blades' preview: the Crescent Waltz on a loop (each step, then its settle), with the sabres or the chickens
+        /// (model space, facing right).
+        void DrawTwinSkinPreview(bool chicken, float t)
+        {
+            float loop = 0f;
+            foreach (var st in TwinBladesMotion.Steps)
+                loop += st.Dur + TwinBladesMotion.Recover;
+            float c = Mathf.Repeat(t, loop + 0.4f);
+            var arm = new Rgba(0.5f, 0.58f, 0.76f);
+            Circle(V2.Zero, 17f, arm, 24);  // the body and head (the pose draws the arms and shoulders)
+            Circle(new V2(1f, 0f), 9f, new Rgba(0.86f, 0.88f, 0.95f), 16);
+            chickenOn = chicken;
+            foreach (var st in TwinBladesMotion.Steps)
+            {
+                float len = st.Dur + TwinBladesMotion.Recover;
+                if (c < len)
+                {
+                    float sc = Mathf.Min(c, st.Dur);
+                    if (chicken)
+                    {
+                        DrawChickenTrail(st, V2.Zero, 0f, c, true);
+                        DrawChickenTrail(st, V2.Zero, 0f, c, false);
+                        chickR = ChickAt(st, sc, true);
+                        chickL = ChickAt(st, sc, false);
+                    }
+                    DrawTwinPose(V2.Zero, 0f, TwinBladesMotion.At(st, sc), arm, true, true, 1f);
+                    chickenOn = false;
+                    return;
+                }
+                c -= len;
+            }
+            chickR = ChickIdle(t, true);  // a breath at the ready before it starts again
+            chickL = ChickIdle(t, false);
+            DrawTwinPose(V2.Zero, 0f, TwinBladesMotion.Ready, arm, true, true, 1f);
+            chickenOn = false;
         }
 
         void DrawSkinWindow(Profile p, float t)
@@ -90,9 +127,20 @@ namespace Arena
                 Ui.Pill(th, new Color(0.05f, 0.07f, 0.12f, 0.95f));
                 if (BeginUiGl())
                 {
-                    UiModelAt(new V2(th.x + 4f, th.center.y + 2f), 0.5f);
-                    var tint = c == null ? Expertise.StandardTint : c.Tint;
-                    DrawSkinShots(ok ? tint : tint.WithAlpha(0.35f), 0f, 70f, 0.4f, true);
+                    if (weapon != null && weapon.Id == WeaponId.TwinBlades)
+                    {
+                        UiModelAt(new V2(th.x + 8f, th.center.y + 2f), 0.72f);  // the sabre or chicken itself, lying across the thumb
+                        chickenOn = c != null && c.Id == Expertise.RubberChicken;
+                        chickCur = ChickIdle(1.2f, true);
+                        DrawSabre(new V2(0f, 0f), -0.12f, ok ? 1f : 0.4f, false);
+                        chickenOn = false;
+                    }
+                    else
+                    {
+                        UiModelAt(new V2(th.x + 4f, th.center.y + 2f), 0.5f);
+                        var tint = c == null ? Expertise.StandardTint : c.Tint;
+                        DrawSkinShots(ok ? tint : tint.WithAlpha(0.35f), 0f, 70f, 0.4f, true);
+                    }
                     EndUiGl();
                 }
                 CrtKit.Frame(th, 1f, ink.WithAlpha(ok ? 0.5f : 0.25f));
@@ -128,10 +176,18 @@ namespace Arena
             {
                 BackgroundThumb(pv, CrtStyle.Ink, 0.4f);
                 UiClip(pv);  // (EndUiGl lifts the clip)
-                UiModelAt(new V2(pv.x + 90f, pv.center.y), 1.4f);
-                float aim = -0.5f + 0.9f * Mathf.Sin(t * 0.7f);  // (DrawGenericPlayer's aim)
-                DrawSkinShots(shown == null ? Expertise.StandardTint : shown.Tint, aim, 150f, t, true);
-                DrawGenericPlayer(t);
+                if (weapon != null && weapon.Id == WeaponId.TwinBlades)
+                {
+                    UiModelAt(new V2(pv.center.x - 30f, pv.center.y), 1.9f);
+                    DrawTwinSkinPreview(shown != null && shown.Id == Expertise.RubberChicken, t);
+                }
+                else
+                {
+                    UiModelAt(new V2(pv.x + 90f, pv.center.y), 1.4f);
+                    float aim = -0.5f + 0.9f * Mathf.Sin(t * 0.7f);  // (DrawGenericPlayer's aim)
+                    DrawSkinShots(shown == null ? Expertise.StandardTint : shown.Tint, aim, 150f, t, true);
+                    DrawGenericPlayer(t);
+                }
                 EndUiGl();
             }
             CrtKit.Frame(pv, 1f, ink.WithAlpha(0.5f));

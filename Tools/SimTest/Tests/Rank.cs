@@ -118,6 +118,28 @@ static partial class Program
         client.ShareCosmetics(); host.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).Trail == 5 && entry(client, cid).Trail == 5 && entry(client, 1).Trail == 1 && Rank.TrailId(5) == "trail-gold" && Rank.TrailIndex("trail-ember") == 1, "everyone's lobby knows each player's trail, so it can be drawn in the run");
+        // Weapon skins (Expertise.cs): the Rubber Chicken reaches everyone's lobby, and the host plays its squeaks for that swinger only.
+        var chick = Expertise.Skin(Expertise.RubberChicken);
+        Check(chick != null && chick.Weapon == WeaponId.TwinBlades && chick.Level == 3 && Expertise.ClassOf(WeaponId.TwinBlades) == Kit.Knight && Expertise.IndexOf(Expertise.RubberChicken) == 1 && Expertise.At(1) == chick, "the Rubber Chicken is the Twin Blades' skin, at Knight expertise 3, number 1 on the wire");
+        byte tb = (byte)WeaponId.TwinBlades, other = (byte)WeaponId.Greatsword;
+        var cleaned = Expertise.Clean(new byte[] { other, 1, tb, 9, tb, 1 });
+        Check(cleaned.Length == 2 && cleaned[0] == tb && Expertise.SkinIn(cleaned, WeaponId.TwinBlades) == Expertise.RubberChicken && Expertise.SkinIn(cleaned, WeaponId.Greatsword) == "", "a skin paired with another weapon, or one that doesn't exist, is dropped");
+        Check(!cp.EquipSkin(WeaponId.TwinBlades, Expertise.RubberChicken) && Expertise.Pack(cp).Length == 0, "below Knight expertise 3 the chicken can't be equipped or sent");
+        cp.ClassXp[Expertise.Key(Kit.Knight)] = 6000;  // (1,000 + 2,000 + 3,000: level 3)
+        Check(cp.EquipSkin(WeaponId.TwinBlades, Expertise.RubberChicken) && Expertise.Pack(cp).Length == 2, "at Knight expertise 3 it equips and is sent");
+        client.ShareCosmetics();
+        PollBoth(host, client);
+        Check(host.Game.SkinOf(cid, WeaponId.TwinBlades) == Expertise.RubberChicken && client.Game.SkinOf(cid, WeaponId.TwinBlades) == Expertise.RubberChicken && host.Game.SkinOf(1, WeaponId.TwinBlades) == "" && client.Game.SkinOf(cid, WeaponId.Greatsword) == "", "the friend's chicken reaches the host and everyone's lobby; the host's blades stay sabres");
+        var swinger = new Player { Id = cid, Weapon = Defs.WeaponOf(WeaponId.TwinBlades) };
+        var plain = new Player { Id = 1, Weapon = Defs.WeaponOf(WeaponId.TwinBlades) };
+        Check(host.Game.TwinSfx(swinger, Sfx.TwinCut1) == Sfx.ChickCut1 && host.Game.TwinSfx(swinger, Sfx.TwinShear) == Sfx.ChickShear && host.Game.TwinSfx(swinger, Sfx.TwinCatch) == Sfx.ChickCatch
+              && host.Game.TwinSfx(plain, Sfx.TwinCut1) == Sfx.TwinCut1, "the chicken swinger's cuts squeak; another swordsman's still ring");
+        swinger.Weapon = Defs.WeaponOf(WeaponId.Greatsword);
+        Check(host.Game.TwinSfx(swinger, Sfx.TwinThrow) == Sfx.TwinThrow, "the skin only touches the Twin Blades (the Greatsword's throw keeps its sound)");
+        cp.EquipSkin(WeaponId.TwinBlades, "");
+        client.ShareCosmetics();
+        PollBoth(host, client);
+        Check(host.Game.SkinOf(cid, WeaponId.TwinBlades) == "", "taking the skin off reaches the host too");
         Check(Rank.RewardsAt(15)[0].Id == "trail-frost" && Rank.RewardsAt(19)[0].Id == "trail-storm" && Rank.RewardsAt(23)[0].Id == "trail-void" && Rank.RewardsAt(36)[0].Id == "trail-prism"
               && Rank.OfKind(CosmeticKind.Trail).Count == 7 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(8) == "", "Frost, Storm, Void and Prism unlock at 15, 19, 23 and 36, and every trail has its own lobby number");
         Check(Rank.RewardsAt(46).Count == 1 && Rank.RewardsAt(46)[0].Id == "trail-lightcycle" && Rank.TrailIndex("trail-lightcycle") == 7 && Rank.TrailId(7) == "trail-lightcycle" && !Rank.Owns(45, "trail-lightcycle") && Rank.Owns(46, "trail-lightcycle") && Rank.TrailIndex("trail-gold") == 5, "the Light Cycle trail unlocks at rank 46 as the last trail, and no earlier trail's number moves");

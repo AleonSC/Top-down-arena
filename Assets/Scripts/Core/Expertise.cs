@@ -52,8 +52,69 @@ namespace Arena
 
         // --- Weapon skins ----------------------------------------------------------------------------
 
-        /// Every weapon skin. None yet: add a def here (and its look where the weapon is drawn) to give a weapon one.
-        public static WeaponSkinDef[] Skins = new WeaponSkinDef[0];  // (not readonly: the rank test swaps in its own)
+        public const string RubberChicken = "twin-chicken";
+
+        /// Every weapon skin. To add one: a def here (new ones at the end: the index is sent), its look where the weapon is drawn,
+        /// and any sounds it swaps. The Rubber Chicken: Game/ChickenLook.cs, Game/ChickenSoundBank.cs, Game.TwinSfx.
+        public static WeaponSkinDef[] Skins =  // (not readonly: the rank test swaps in its own)
+        {
+            new WeaponSkinDef { Id = RubberChicken, Name = "Rubber Chicken", Weapon = WeaponId.TwinBlades, Level = 3, Tint = new Rgba(1f, 0.83f, 0.18f) },
+        };
+
+        /// A skin's number on the wire: its place in Skins plus one (0 the standard look).
+        public static byte IndexOf(string id)
+        {
+            for (int i = 0; i < Skins.Length && i < 254; i++)
+                if (Skins[i].Id == id)
+                    return (byte)(i + 1);
+            return 0;
+        }
+
+        public static WeaponSkinDef At(int index) => index >= 1 && index <= Skins.Length ? Skins[index - 1] : null;
+
+        public static readonly byte[] NoSkins = new byte[0];
+        public const int MaxSent = 16;  // skins a player sends at most (pairs)
+
+        /// A player's equipped skins as sent in the lobby: pairs of (weapon, skin index), only the ones the profile owns.
+        public static byte[] Pack(Profile p)
+        {
+            var l = new List<byte>();
+            foreach (var s in Skins)
+                if (l.Count < MaxSent * 2 && p.SkinOf(s.Weapon) == s.Id)
+                {
+                    l.Add((byte)s.Weapon);
+                    l.Add(IndexOf(s.Id));
+                }
+            return l.ToArray();
+        }
+
+        /// Pairs read off the wire, keeping only skins that exist and belong to the weapon they are paired with.
+        public static byte[] Clean(IList<byte> raw)
+        {
+            var l = new List<byte>();
+            for (int i = 0; i + 1 < raw.Count && l.Count < MaxSent * 2; i += 2)
+            {
+                var s = At(raw[i + 1]);
+                if (s != null && (byte)s.Weapon == raw[i])
+                {
+                    l.Add(raw[i]);
+                    l.Add(raw[i + 1]);
+                }
+            }
+            return l.ToArray();
+        }
+
+        /// The skin id a lobby entry's pairs give a weapon ("" the standard look).
+        public static string SkinIn(byte[] pairs, WeaponId weapon)
+        {
+            for (int i = 0; pairs != null && i + 1 < pairs.Length; i += 2)
+                if (pairs[i] == (byte)weapon)
+                {
+                    var s = At(pairs[i + 1]);
+                    return s != null ? s.Id : "";
+                }
+            return "";
+        }
 
         public static WeaponSkinDef Skin(string id)
         {
@@ -91,6 +152,37 @@ namespace Arena
                 if (ClassOf(s.Weapon) == kit && s.Level > level && (best == null || s.Level < best.Level))
                     best = s;
             return best;
+        }
+    }
+
+    public partial class Game
+    {
+        /// The skin a player shows on a weapon, from their lobby entry ("" the standard look, or no entry: a bot).
+        public string SkinOf(int playerId, WeaponId weapon)
+        {
+            LobbyEntry e;
+            return session != null && session.Lobby.TryGetValue(playerId, out e) ? Expertise.SkinIn(e.Skins, weapon) : "";
+        }
+
+        /// Host: a Twin Blades cue in the swinger's skin's sound pack (the Rubber Chicken squeaks; any other weapon keeps it).
+        internal Sfx TwinSfx(Player p, Sfx s)
+        {
+            if (p == null || p.Weapon.Id != WeaponId.TwinBlades || SkinOf(p.Id, WeaponId.TwinBlades) != Expertise.RubberChicken)
+                return s;
+            switch (s)
+            {
+                case Sfx.TwinCut1: return Sfx.ChickCut1;
+                case Sfx.TwinCut2: return Sfx.ChickCut2;
+                case Sfx.TwinJab: return Sfx.ChickJab;
+                case Sfx.TwinSpin: return Sfx.ChickSpin;
+                case Sfx.TwinShear: return Sfx.ChickShear;
+                case Sfx.TwinHit: return Sfx.ChickHit;
+                case Sfx.TwinHitHeavy: return Sfx.ChickHitHeavy;
+                case Sfx.TwinThrow: return Sfx.ChickThrow;
+                case Sfx.TwinCross: return Sfx.ChickCross;
+                case Sfx.TwinCatch: return Sfx.ChickCatch;
+                default: return s;
+            }
         }
     }
 }
