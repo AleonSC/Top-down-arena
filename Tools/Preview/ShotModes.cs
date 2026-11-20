@@ -327,7 +327,17 @@ static partial class Shot {
         if (ultDemo) set("detailSel", 2);  // (the ultimate's detail box, and the preview casting it)
         sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.FirstAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo, le.Ult);
         float st = float.Parse(Environment.GetEnvironmentVariable("SHOWT") ?? "2.5");
-        for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
+        // A Greatsword's cuts are timed on the clock from when the look first saw each step (GreatswordLook.cs WatchGreatMove):
+        // run the clock with the preview and let the look see every step, as the game's frames would.
+        var watchGreat = typeof(ArenaApp).GetMethod("WatchGreatMove", f2);
+        bool great = false;
+        foreach (var gp in sc.Game.Players.Values) great |= gp.Weapon.Id == WeaponId.Greatsword;
+        for (int f = 0; f < (int)(st * 60f); f++) {
+          sc.Step(1f / 60f);
+          if (!great) continue;
+          Time.unscaledTime += 1f / 60f;
+          foreach (var gp in sc.Game.Players.Values) if (gp.Weapon.Id == WeaponId.Greatsword) watchGreat.Invoke(app, new object[] { gp });
+        }
         set("showcase", sc);
       }
       // TEXTEDIT=1: the dev text editor's mode (outlines the text under MOUSE); TEXTEDIT=<text>: its edit box for that text
