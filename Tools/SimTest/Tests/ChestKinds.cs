@@ -34,8 +34,8 @@ static partial class Program
             int tier = Expansion.NodeTier(tn);
             if (tier == 0 ? Expansion.IsChest(tn.Kind) : tier == 1 ? tn.Kind == NodeKind.Chest : tn.Kind == NodeKind.Chest || tn.Kind == NodeKind.Relic) tieredOk++;
         }
-        Check(tieredOk == 300 && Expansion.Tiered(7, new MapNode { X = 3000, Y = 450, Kind = NodeKind.Vein }).Kind == NodeKind.Vein,
-            "a prize node takes its tier's kind (inner gold or vector chest, middle chest, outer chest or relic); a vein stays a vein");
+        Check(tieredOk == 300 && Expansion.Tiered(7, new MapNode { X = 3000, Y = 450, Kind = NodeKind.Rule }).Kind == NodeKind.Rule,
+            "a prize node takes its tier's kind (inner gold or vector chest, middle chest, outer chest or relic); a rule node stays one");
 
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         int port = nextPort++;

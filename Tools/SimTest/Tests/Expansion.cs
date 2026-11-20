@@ -286,10 +286,10 @@ static partial class Program
         Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, Black Market or Gatekeeper)");
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
-        Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : n.Kind == NodeKind.Vein ? 3 : 9;
-        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic || n.Kind == NodeKind.Vein) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k)) && !newNodes.Any(n => n.Kind == NodeKind.Tower)
+        Func<MapNode, int> nodeOrder = n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic ? 1 : n.Kind == NodeKind.Rule ? 2 : 9;
+        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic) >= 1 && newNodes.All(n => nodeOrder(n) < 9) && newNodes.Select(nodeOrder).SequenceEqual(newNodes.Select(nodeOrder).OrderBy(k => k))
               && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
-            "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests, relics and veins as fit, none fogged, the same on the client");
+            "a new cycle places no rule node (owner Nov 18; the first cycle rings the hub with chests and relics), only chests and relics as fit, none fogged, the same on the client");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // A sealed room waiting on the lattice (the cycle's mini-boss room, GridPieces.cs): no crowd, no spawns, until a piece reaches it.
@@ -469,10 +469,10 @@ static partial class Program
             var saved = new RunSave { Wave = 6, HasExpansion = true };
             saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.BlackMarket });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
-            saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Tower, Hidden = true });
+            saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Relic, Hidden = true });
             saved.Seats.Add(new SeatSave());
             var back = RunSave.Parse(saved.ToText());
-            Check(back != null && back.Nodes.Count == 3 && back.Nodes[0].Equals(saved.Nodes[0]) && back.Nodes[1].Equals(saved.Nodes[1]) && back.Nodes[2].Equals(saved.Nodes[2]), "nodes survive a saved run (a fogged scout tower too)");
+            Check(back != null && back.Nodes.Count == 3 && back.Nodes[0].Equals(saved.Nodes[0]) && back.Nodes[1].Equals(saved.Nodes[1]) && back.Nodes[2].Equals(saved.Nodes[2]), "nodes survive a saved run (a fogged one too)");
         }
 
         // The map stops growing at the cap: no piece has a place once the rooms reach it.
@@ -874,11 +874,10 @@ static partial class Program
             }
         }
 
-        // No fog (owner, Nov 18): nodes are placed in plain view, and an old save's fogged node clears at once; gold veins (NodeScouting.cs).
+        // No fog (owner, Nov 18): nodes are placed in plain view, and an old save's fogged node clears at once; a retired tower or vein in an old save is a chest.
         {
             var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
             var tickFog = typeof(Game).GetMethod("TickNodeFog", flags);
-            var payVeins = typeof(Game).GetMethod("PayVeins", flags);
             var tw = Expansion.GridNodeFor(5, 1, Expansion.GridCore(), new List<MapNode>(), NodeKind.Chest);
             Check(tw.HasValue && !tw.Value.Hidden, "a node is placed unfogged");
             if (tw.HasValue)
@@ -887,7 +886,8 @@ static partial class Program
                 var homes = g.Players.Values.Select(p => p.Pos).ToList();
                 V2 hub = new V2(Game.Width / 2f, Game.Height / 2f), dir = (tw.Value.Pos - hub) * (1f / (tw.Value.Pos - hub).Length);
                 V2 farP = tw.Value.Pos + dir * 3600f;
-                var old = new MapNode { X = (short)farP.X, Y = (short)farP.Y, Kind = NodeKind.Vein, Hidden = true };
+                var old = new MapNode { X = (short)farP.X, Y = (short)farP.Y, Kind = NodeKind.Chest, Hidden = true };
+                Check(Expansion.Current(NodeKind.Tower) == NodeKind.Chest && Expansion.Current(NodeKind.Vein) == NodeKind.Chest && Expansion.Current(NodeKind.Relic) == NodeKind.Relic, "a retired scout tower or gold vein in an old save loads as a chest");
                 foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
                 g.Nodes.Add(old);
                 tickFog.Invoke(g, new object[] { 1f });
@@ -895,23 +895,6 @@ static partial class Program
                 Run(s, dt, 3f, () => cg.Nodes.Count == g.Nodes.Count && cg.Nodes.All(n => !n.Hidden));
                 Check(cg.Nodes.Count == 1 && cg.Nodes.All(n => !n.Hidden), "the client sees it revealed too");
                 pl.Pos = homes[0];
-                // A gold vein pays every player each cleared wave while its room stands.
-                var vn = Expansion.GridNodeFor(5, 0, Expansion.GridCore(), new List<MapNode>(), NodeKind.Vein);
-                Check(vn.HasValue, "a gold vein node is placed");
-                if (vn.HasValue)
-                {
-                    var vein = vn.Value; vein.Hidden = false;
-                    var vp = GridChainTo(Expansion.GridCore(), vein, 3) ?? Expansion.GridCore();
-                    var golds = g.Players.Values.ToDictionary(p => p.Id, p => p.Gold);
-                    g.Expanded.Clear(); g.Expanded.AddRange(vp.Take(vp.Count - 1)); typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-                    g.Nodes.Clear(); g.Nodes.Add(vein);
-                    payVeins.Invoke(g, null);
-                    Check(g.Players.Values.All(p => p.Gold == golds[p.Id]), "an unclaimed gold vein pays nothing");
-                    g.Expanded.Add(vp[vp.Count - 1]); typeof(Game).GetField("expWorld", flags).SetValue(g, null);
-                    payVeins.Invoke(g, null);
-                    Check(Expansion.NodeClaimed(vp, vein) && g.Players.Values.All(p => p.Gold == golds[p.Id] + NodeScouting.VeinPay(g.Wave)), "a claimed gold vein pays every player " + NodeScouting.VeinPay(g.Wave) + " gold as a wave is cleared");
-                    foreach (var p in g.Players.Values) p.Gold = golds[p.Id];
-                }
             }
             foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(saveRooms); gg.Nodes.Clear(); gg.Nodes.AddRange(saveNodes); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
         }
