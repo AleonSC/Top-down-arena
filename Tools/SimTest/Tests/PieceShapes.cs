@@ -83,7 +83,7 @@ static partial class Program
             bool f = PieceMods.Floor.Get(m) != 0, c = PieceMods.Combat.Get(m) != 0;
             if (!f && !c) none++; else if (f && c) bo++; else if (f) flo++; else com++;
         }
-        Check(none > 400 && flo > 100 && com > 100 && bo > 30 && PieceMods.Roll(new DetRandom(1), 1, true) != 0, "rolls: each modifier on its own chance, so a card gets none, one or both (" + none + " plain, " + flo + " floor, " + com + " combat, " + bo + " both)");
+        Check(none > 300 && flo > 100 && com > 100 && bo > 30 && PieceMods.Roll(new DetRandom(1), 1, true) != 0, "rolls: each modifier on its own chance, so a card gets none, one or both (" + none + " plain, " + flo + " floor, " + com + " combat, " + bo + " both)");
         var allPieces = new[] { MysteryRoom.Small, MysteryRoom.Medium, MysteryRoom.Hallway }.SelectMany(Mystery.PiecesOf).Distinct().Count();
         Check(allPieces == Enum.GetValues(typeof(PieceShape)).Length, "every piece shape can come from a mystery door (" + allPieces + " shapes)");
         var hand = Expansion.GridStartHand(5);

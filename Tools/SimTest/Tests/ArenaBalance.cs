@@ -146,9 +146,8 @@ static partial class Program
             }
         }
         ending = (stalled ? "STALLED (a wave ran over " + StallSeconds + " s) at wave " : g.State + " at wave ") + g.Wave + " (" + g.RunTime.ToString("0") + " s)";
-        arenaNodeStats = !expanding ? "" : string.Join(", ", new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule }.Select(k =>
-            k + " " + g.Nodes.Count(n => n.Kind == k && Expansion.NodeClaimed(g.Expanded, n)) + "/" + g.Nodes.Count(n => n.Kind == k) + " claimed, " + g.Nodes.Count(n => n.Kind == k && n.Spent) + " spent"
-            + (k == NodeKind.Rule ? " (" + string.Join(" ", g.Nodes.Where(n => n.Kind == k).Select(n => (NodeRule)n.Rule + (Expansion.NodeClaimed(g.Expanded, n) ? n.Cleared ? "+cleared" : "+claimed" : "")).ToArray()) + ")" : "")).ToArray());
+        arenaNodeStats = !expanding ? "" : string.Join(", ", new[] { NodeKind.Chest, NodeKind.Relic }.Select(k =>
+            k + " " + g.Nodes.Count(n => n.Kind == k && Expansion.NodeClaimed(g.Expanded, n)) + "/" + g.Nodes.Count(n => n.Kind == k) + " claimed, " + g.Nodes.Count(n => n.Kind == k && n.Spent) + " spent").ToArray());
         foreach (var w in waves.Values) if (w.Samples > 0) { w.ViewAvg /= w.Samples; w.Shots /= w.Samples; }
         host.Leave(""); c.Leave("");
         return waves;

@@ -11,12 +11,10 @@ namespace Arena
 
         static readonly Rgba RelicInk = new Rgba(0.78f, 0.5f, 1f);  // (the Relic chest's violet, ChestLooks.cs)
 
-        static readonly Rgba RuleInk = new Rgba(1f, 0.5f, 0.3f);
-
         static readonly Rgba FogInk = new Rgba(0.72f, 0.78f, 0.88f);
 
-        /// A node's colour: a fogged one is grey, a rule node wears its rule's path colour.
-        static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : n.Kind == NodeKind.Rule ? Paths.Get(Expansion.RuleFloor(n.Rule)).Accent : NodeInk(n.Kind);
+        /// A node's colour: a fogged one is grey.
+        static Rgba NodeInkOf(MapNode n) => n.Hidden ? FogInk : NodeInk(n.Kind);
 
         /// A chest node's colour once seen: its chest kind's ink (Gold, Piece chest, Buildables or Upgrade).
         Rgba NodeInkOfChest(MapNode n) => !n.Hidden && n.Kind == NodeKind.Chest ? ChestInkOf(game.NodeChestKind(n)) : NodeInkOf(n);
@@ -24,9 +22,9 @@ namespace Arena
         static readonly string[] ChestKindNames = { "Upgrade chest", "Gold chest", "Vector chest", "Relic chest", "Piece chest", "Buildables chest", "Gadget chest" };
 
         /// A node's name for tips and the legend ("Unknown" while fogged).
-        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Shrine ? "Health shrine" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : n.Kind == NodeKind.Rule ? "Rule node: " + RuleName(n.Rule) : NodeName(n.Kind);
+        string NodeName(MapNode n) => n.Hidden ? "Unknown node" : n.Kind == NodeKind.Shrine ? "Health shrine" : n.Kind == NodeKind.Chest ? ChestKindNames[(int)game.NodeChestKind(n)] : n.Kind == NodeKind.Relic ? "Relic: " + Relics.Name(Relics.Held(n)) : NodeName(n.Kind);
 
-        /// What a node does, for its tip (the rule nodes' blurb is ExpansionUi's RuleBlurb).
+        /// What a node does, for its tip.
         string NodeBlurb(MapNode n) => (Expansion.IsChest(n.Kind) || n.Kind == NodeKind.Relic ? TierNames[Expansion.NodeTier(n)] + " tier. " : "") + NodeBlurbOf(n);
 
         static readonly string[] TierNames = { "Inner", "Middle", "Outer" };
@@ -34,7 +32,7 @@ namespace Arena
         string NodeBlurbOf(MapNode n)
         {
             if (n.Hidden)
-                return (n.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " : "Build a room round it to claim it. ")
+                return "Build a room round it to claim it. "
                     + "Walk within 8 tiles of it to see what it is.";
             if (n.Kind == NodeKind.Shrine)
                 return "Build a room round it, then walk up to it: once per player, it fills your health and adds " + Mathf.RoundToInt(Shrines.OverFrac * 100f) + "% of your max health past max (kept until you take damage or go down).";
@@ -51,9 +49,7 @@ namespace Arena
             return "Build a room round it to claim it.";
         }
 
-        static string RuleName(byte rule) => (NodeRule)rule == NodeRule.BloodMoon ? "Blood Moon" : ((NodeRule)rule).ToString();
-
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shrine ? ShrineInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk : ChestInk;
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shrine ? ShrineInk : k == NodeKind.Relic ? RelicInk : ChestInk;
 
         /// A node kind's name for tips and legends.
         static string NodeName(NodeKind k) => k == NodeKind.BreachLoot ? "Breach loot" : k == NodeKind.Shrine ? "Health shrine" : k.ToString();
@@ -73,20 +69,7 @@ namespace Arena
             }
             if (claimed)
             {
-                if (n.Kind == NodeKind.Rule)  // a rule room's prize shows once it is cleared (a chest, or a relic to walk up to); Frozen pays at once
-                {
-                    if (n.Cleared && Expansion.RuleHoldsRelic(n))
-                        DrawNodeFixture(n.Pos, NodeKind.Relic, n.Spent);
-                    else if (n.Cleared && Expansion.RuleHoldsChest(n))
-                        DrawNodeFixture(n.Pos, NodeKind.Chest, n.Spent, game.NodeChestKind(n));
-                    return;
-                }
                 DrawNodeFixture(at, n.Kind, n.Spent, n.Kind == NodeKind.Chest ? game.NodeChestKind(n) : ChestKind.Upgrade);  // (a chest or relic stands in its room's middle: Game.NodeSpot)
-                return;
-            }
-            if (n.Kind == NodeKind.Rule)
-            {
-                DrawRuleNode(n);
                 return;
             }
             // (owner, Nov 18: nodes stand out: a lit disc, a bold double ring, a beacon ping rippling out and turning dashes, the glyph at full size)
@@ -119,88 +102,6 @@ namespace Arena
                 default:
                     ChestBox(c + new V2(0f, 6f), 1.2f, col, false);
                     ChestEmblem(game.NodeChestKind(n), c + new V2(0f, -34f + Mathf.Sin(t * 2.6f) * 3f), 1.8f, col, col, col.A);  // what it holds
-                    break;
-            }
-        }
-
-        /// A rule node (Docs/RuleRooms.md): the whole 8 x 8 tile area a claiming room must enclose, in its rule's colour: a faint tint, hazard hatching,
-        /// breathing corner brackets and the rule's mark in the middle.
-        void DrawRuleNode(MapNode n)
-        {
-            var ink = NodeInkOf(n);
-            float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.5f), h = Expansion.RuleHalf, s = 2f * h;
-            V2 c = n.Pos;
-            float x0 = c.X - h, y0 = c.Y - h;
-            FillRect(x0, y0, s, s, ink.WithAlpha(0.04f + 0.03f * pulse));
-            for (float d = 100f; d < 2f * s; d += 100f)  // 45 degree hatching, cut off at the square's edges
-            {
-                V2 a = d <= s ? new V2(x0, y0 + d) : new V2(x0 + d - s, y0 + s);
-                V2 b = d <= s ? new V2(x0 + d, y0) : new V2(x0 + s, y0 + d - s);
-                Line(a, b, 2f, ink.WithAlpha(0.1f));
-            }
-            var edge = ink.WithAlpha(0.35f + 0.2f * pulse);
-            NodeFrame(x0, y0, s, s, 2f, edge);
-            var br = ink.WithAlpha(0.65f + 0.3f * pulse);
-            for (int sx = 0; sx < 2; sx++)  // corner brackets
-                for (int sy = 0; sy < 2; sy++)
-                {
-                    float cx = sx == 0 ? x0 : x0 + s, cy = sy == 0 ? y0 : y0 + s, dx = sx == 0 ? 1f : -1f, dy = sy == 0 ? 1f : -1f;
-                    Line(new V2(cx, cy), new V2(cx + dx * 110f, cy), 8f, br);
-                    Line(new V2(cx, cy), new V2(cx, cy + dy * 110f), 8f, br);
-                }
-            Circle(c, 70f, ink.WithAlpha(0.08f + 0.05f * pulse), 32);
-            Arc(c, 56f, 3f, ink.WithAlpha(0.6f), 32);
-            for (int k = 0; k < 4; k++)  // dashes turning slowly round the mark
-                Arc(c, 66f, 3f, ink.WithAlpha(0.45f), 8, t * 0.6f + k * MathX.Tau / 4f, 0.8f);
-            var m = ink.WithAlpha(0.95f);
-            if (n.Hidden)  // fogged: its rule shows once someone walks near
-            {
-                FogMark(c, 1.1f, m);
-                return;
-            }
-            switch ((NodeRule)n.Rule)
-            {
-                case NodeRule.Dark:  // an eye behind drifting mist
-                    Arc(c, 26f, 4f, m, 24, 0f, MathX.Tau);
-                    Circle(c, 9f, m, 12);
-                    Line(c - new V2(40f, 0f), c - new V2(26f, 0f), 4f, m);
-                    Line(c + new V2(26f, 0f), c + new V2(40f, 0f), 4f, m);
-                    break;
-                case NodeRule.Frozen:  // a snowflake
-                    for (int k = 0; k < 3; k++)
-                    {
-                        float a = k * MathX.Tau / 6f + 0.3f;
-                        V2 d = new V2(Mathf.Cos(a), Mathf.Sin(a)) * 32f;
-                        Line(c - d, c + d, 4f, m);
-                    }
-                    break;
-                case NodeRule.BloodMoon:  // a moon with a drop of blood
-                    Circle(c, 24f, m.WithAlpha(0.35f), 24);
-                    Arc(c, 24f, 4f, m, 24);
-                    Circle(c + new V2(0f, 38f + Mathf.Sin(t * 3f) * 3f), 5f, m, 10);
-                    break;
-                case NodeRule.Burning:  // a flame: a round base drawn up to a flickering tip, a small flame inside
-                {
-                    float fl = Mathf.Sin(t * 7f) * 3f;
-                    Arc(c + new V2(0f, 10f), 16f, 5f, m, 24);
-                    Line(c + new V2(-14f, 2f), c + new V2(fl, -36f), 5f, m);
-                    Line(c + new V2(14f, 2f), c + new V2(fl, -36f), 5f, m);
-                    Arc(c + new V2(0f, 14f), 7f, 4f, m.WithAlpha(0.7f), 12);
-                    break;
-                }
-                case NodeRule.Swarm:  // a crowd of dots
-                    for (int k = 0; k < 7; k++)
-                    {
-                        float a = k * 2.4f + t * 0.5f, r = 8f + 5f * k;
-                        Circle(c + new V2(Mathf.Cos(a) * r, Mathf.Sin(a) * r * 0.8f), 4f, m, 8);
-                    }
-                    break;
-                default:  // Elite: a diamond with a star inside
-                    Line(c + new V2(0f, -32f), c + new V2(28f, 0f), 4f, m);
-                    Line(c + new V2(28f, 0f), c + new V2(0f, 32f), 4f, m);
-                    Line(c + new V2(0f, 32f), c + new V2(-28f, 0f), 4f, m);
-                    Line(c + new V2(-28f, 0f), c + new V2(0f, -32f), 4f, m);
-                    Circle(c, 7f, m, 12);
                     break;
             }
         }

@@ -10,6 +10,7 @@ namespace Arena
     {
         static readonly Rgba InkCore = new Rgba(0.82f, 0.93f, 1f), InkGlow = new Rgba(0.45f, 0.7f, 1f), InkSealed = new Rgba(1f, 0.9f, 0.6f);
         readonly Dictionary<int, List<V2>> inkRings = new Dictionary<int, List<V2>>();
+        static readonly Rgba FireOut = new Rgba(1f, 0.32f, 0.05f), FireMid = new Rgba(1f, 0.62f, 0.12f), FireIn = new Rgba(1f, 0.93f, 0.55f);
 
         struct InkVert { public V2 P; public float Fade; public bool Sealed; }
         readonly List<InkVert> inkRun = new List<InkVert>(), inkSmooth = new List<InkVert>();
@@ -34,8 +35,9 @@ namespace Arena
                 ring.Add(d.Pos);
             }
             // A loop's inside, faintly, so you can see what it holds.
-            foreach (var ring in inkRings.Values)
+            foreach (var kv in inkRings)
             {
+                var ring = kv.Value;
                 if (ring.Count < 3)
                     continue;
                 V2 c = V2.Zero;
@@ -72,6 +74,12 @@ namespace Arena
                 game.Players.TryGetValue(owner, out who);
                 DrawInkRun(inkRun, Game.ChalkDotR * 2f * (who != null ? Game.AreaMult(who) : 1f));
                 i = j;
+            }
+            foreach (var kv in inkRings)
+            {
+                float since;
+                if (kv.Value.Count >= 3 && game.InkLitAt.TryGetValue(kv.Key, out since))
+                    DrawLitRing(kv.Value, t - since, t);
             }
             // Dust (look C, Docs/Mockups/chalk-fade.html): the older a dot, the more grains lift off it and drift. Stateless: each grain's
             // phase comes from the dot's position and the clock, so there is nothing to keep in sync.
@@ -160,6 +168,55 @@ namespace Arena
             }
         }
 
+        /// A loop set alight: an orange wash inside, and an ember glow with a flame every other dot round its ring. It flares up over 0.25 s.
+        void DrawLitRing(List<V2> ring, float age, float t)
+        {
+            float ramp = Mathf.Clamp01(age / 0.25f);
+            int n = ring.Count;
+            V2 c = V2.Zero;
+            foreach (var q in ring)
+                c += q;
+            c = c / n;
+            SetColor(FireOut.WithAlpha(0.1f * ramp));
+            for (int k = 0; k < n; k++)
+                Tri(c, ring[k], ring[(k + 1) % n]);
+            for (int k = 0; k < n; k++)
+            {
+                V2 p = ring[k];
+                Circle(p, 13f, FireOut.WithAlpha(0.3f * ramp), 10);
+                Circle(p, 6f, FireMid.WithAlpha(0.7f * ramp), 8);
+                if (k % 2 == 0)
+                    DrawFlame(p, ((p - c).Normalized() * 0.25f + new V2(0f, -1f)).Normalized(), 19f + 8f * Hash01(k * 1.7f), 5f, k * 2.3f, t, ramp);
+            }
+        }
+
+        /// One flame tongue: red outside, orange, a pale core; it sways and flickers.
+        void DrawFlame(V2 b, V2 up, float h, float w, float seed, float t, float a)
+        {
+            if (a <= 0.01f)
+                return;
+            float fl = 0.75f + 0.25f * Mathf.Sin(t * 11f + seed * 2f);
+            V2 side = up.Orthogonal();
+            V2 tip = b + up * h * fl + side * Mathf.Sin(t * 8f + seed) * w * 0.5f;
+            VTri(b - side * w, FireOut.WithAlpha(0.8f * a), b + side * w, FireOut.WithAlpha(0.8f * a), tip, FireOut.WithAlpha(0f));
+            V2 tip2 = b + (tip - b) * 0.62f, tip3 = b + (tip - b) * 0.34f;
+            VTri(b - side * w * 0.55f, FireMid.WithAlpha(0.95f * a), b + side * w * 0.55f, FireMid.WithAlpha(0.95f * a), tip2, FireMid.WithAlpha(0f));
+            VTri(b - side * w * 0.3f, FireIn.WithAlpha(a), b + side * w * 0.3f, FireIn.WithAlpha(a), tip3, FireIn.WithAlpha(0f));
+        }
+
+        /// A ring of flames round an enemy burning inside a loop.
+        void DrawPennedFire(Enemy e, float t)
+        {
+            float r = e.Radius;
+            Circle(e.Disp, r + 14f, FireOut.WithAlpha(0.16f), 18);
+            Circle(e.Disp, r + 5f, FireMid.WithAlpha(0.18f), 16);
+            for (int k = 0; k < 6; k++)
+            {
+                V2 u = V2.FromAngle(k * MathX.Tau / 6f + e.Id * 1.7f);
+                DrawFlame(e.Disp + u * (r * 0.7f), (u * 0.35f + new V2(0f, -1f)).Normalized(), (r + 8f) * 1.35f, 5.5f, e.Id * 1.7f + k * 3.1f, t, 1f);
+            }
+        }
+
         /// A ring and four turning ticks round each enemy a loop is holding.
         void DrawPennedMarks(float t)
         {
@@ -168,6 +225,8 @@ namespace Arena
                 if (!e.Penned || e.Hp <= 0f)
                     continue;
                 float r = e.Radius + 8f;
+                if (e.Burning)
+                    DrawPennedFire(e, t);
                 Arc(e.Disp, r, 2f, InkSealed.WithAlpha(0.8f), 24);
                 for (int k = 0; k < 4; k++)
                 {

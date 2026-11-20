@@ -214,7 +214,6 @@ namespace Arena
 
         void WaveCleared()
         {
-            ClearRuleRooms();  // a claimed rule room has been through the wave: its prize (ExpansionGame.cs)
             EndRoomsWave();  // an unbeaten Gatekeeper duel ends with the wave (Rooms.cs)
             Recorder?.WaveEnd(this);
             SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
