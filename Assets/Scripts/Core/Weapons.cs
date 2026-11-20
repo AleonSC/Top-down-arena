@@ -531,6 +531,7 @@ namespace Arena
                 case WeaponId.TwinRifleAuto:  // the rounds start out at the guns' muzzles, out to your sides (TwinAuto.cs)
                     return p.Def.BodyR + AutoShoulder + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Fireball:  // Piercing Rounds roll it farther (Minions.cs)
+                case WeaponId.Waterball:
                     return p.Def.BodyR + w.Speed * w.Life * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.FrostLance:  // the sweeps' reach (FrostLance.cs)
                     return p.Def.BodyR + FlArcR * AreaMult(p) * (1f + 0.1f * x) * p.Stats.IceReachMult;

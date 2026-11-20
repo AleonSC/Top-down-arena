@@ -1152,6 +1152,7 @@ namespace Arena
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
             SeedHit(b, e);      // Sprite Staff seeds and fireflies stick (KitWeapons.cs)
+            ElementBallHit(b, e);  // the Waterball soaks, the Earthball stuns (ElementBalls.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (KitWeapons.cs)
             if (b.Kind == Defs.HammerShot)
