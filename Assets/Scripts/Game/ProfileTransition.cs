@@ -61,7 +61,8 @@ namespace Arena
             if (Input.anyKeyDown && profTrAge > 0.25f)
             {
                 profTrT = profTrFwd ? ProfTrLen : 0f;  // skipped: straight to the end, silently
-                StartSkipStatic();  // under the channel flip (SkipStatic.cs)
+                if (!profTrFwd || !MenuIntroBuilt)
+                    StartSkipStatic();  // under the channel flip (SkipStatic.cs), unless the menu is already fully drawn
             }
             else
             {

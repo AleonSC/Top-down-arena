@@ -19,6 +19,9 @@ namespace Arena
         bool menuIntroDone;                // it has started once this launch
         AppScreen menuLastScreen = AppScreen.Lobby;
 
+        const float MenuIntroBuiltAt = 2.55f;  // the last piece (the bottom bar) is drawn by now: a skip after it has nothing left to flip over
+        bool MenuIntroBuilt => menuIntroT >= MenuIntroBuiltAt;
+
         bool MenuIntroFull => fxOn && !fxReduced;
         float MenuIntroLen => MenuIntroFull ? MenuIntroLenFull : MenuIntroLenFade;
         bool MenuIntroPlaying => menuIntroT >= 0f && menuIntroT < MenuIntroLen;
@@ -53,7 +56,7 @@ namespace Arena
                 return;
             if (!onMenu || Input.anyKeyDown)
             {
-                if (onMenu && MenuIntroFull)
+                if (onMenu && MenuIntroFull && !MenuIntroBuilt)
                     StartSkipStatic();  // the channel flip (SkipStatic.cs)
                 menuIntroT = MenuIntroLen;  // skipped (or the menu went away)
             }
