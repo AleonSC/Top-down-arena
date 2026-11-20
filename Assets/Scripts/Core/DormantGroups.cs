@@ -8,7 +8,8 @@ namespace Arena
     /// wave) in the unseen room until it is seen (RoomFog.cs) or one of them is hit; then the room's groups wake and fight.
     public static class DormantGroups
     {
-        public static float CellChance = 0.4f;  // each cell of a built piece: the chance it holds a group (static: tests set it)
+        public static float CellChance = 0.65f;  // each sleeper slot of a Combat piece: the chance it holds a group (static: tests set it; owner Nov 20: combat rooms hold the majority)
+        public static float PlainChance = 0.2f;  // each sleeper slot of a plain piece (no combat modifier): a few hold one
         public const float Spread = 46f;        // the group's spacing, a tight cluster round the cell's middle
 
         /// How many enemies a group holds on this wave: 3, then one more every 15 waves, at most 6.
@@ -61,7 +62,7 @@ namespace Arena
         }
 
         /// Host, as a piece card is built: each cell rolls for a sleeping group of this wave's faction enemies. Returns how many groups.
-        internal int PlantDormantGroups(IList<ExpansionRoom> boxes, bool atLeastOne = false, EnemyType? only = null, int groupSize = 0, bool all = false)
+        internal int PlantDormantGroups(IList<ExpansionRoom> boxes, bool atLeastOne = false, EnemyType? only = null, int groupSize = 0, bool all = false, float? chance = null)
         {
             if (!IsHost || !ExpandingOn || boxes.Count == 0)
                 return 0;
@@ -76,7 +77,7 @@ namespace Arena
             for (int c = 0; c < mids.Count; c++)
             {
                 var mid = mids[c];
-                if (!all && roll.Float() >= DormantGroups.CellChance && !(atLeastOne && groups == 0 && c == mids.Count - 1))  // (a Combat piece always holds at least one group)
+                if (!all && roll.Float() >= (chance ?? DormantGroups.CellChance) && !(atLeastOne && groups == 0 && c == mids.Count - 1))  // (a Combat piece always holds at least one group)
                     continue;
                 var type = pool[roll.Int(pool.Count)];
                 for (int k = 0; k < size; k++)

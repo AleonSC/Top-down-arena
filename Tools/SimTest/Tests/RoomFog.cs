@@ -206,6 +206,8 @@ static partial class Program
 
             // A plain piece holds nobody; a Combat piece holds at least one group even when no cell rolls one.
             DormantGroups.CellChance = 0f;
+            float plainWas = DormantGroups.PlainChance;
+            DormantGroups.PlainChance = 0f;
             foreach (bool combat in new[] { false, true })
             {
                 friend.Hand[0] = (int)Expansion.MakePieceCardMods(PieceShape.Mono, combat ? PieceMods.Combat.Set(0, 1) : 0);
@@ -215,10 +217,20 @@ static partial class Program
                 cg.PlayPieceCard(0, pl.Orient, pl.X, pl.Y);
                 Run(s, dt, 1f, () => g.Expanded.Count > n1, noPicks);
                 int slept = g.Enemies.Values.Count(e => !before2.Contains(e.Id) && e.Dormant);
-                Check(combat ? slept == size : slept == 0, combat ? "a Combat piece always holds a group (" + slept + " of " + size + ")" : "a plain piece holds no enemies (" + slept + ")");
+                Check(combat ? slept == size : slept == 0, combat ? "a Combat piece always holds a group (" + slept + " of " + size + ")" : "a plain piece holds none when no slot rolls one (" + slept + ")");
             }
+            DormantGroups.PlainChance = 1f;  // (owner Nov 20: a plain piece's slots roll too, at PlainChance)
+            friend.Hand[0] = (int)Expansion.MakePieceCardMods(PieceShape.Mono, 0);
+            int n2 = g.Expanded.Count;
+            var pl2 = Expansion.PlacementsFor(g.Expanded, PieceShape.Mono).Last();
+            var before3 = new HashSet<int>(g.Enemies.Keys);
+            cg.PlayPieceCard(0, pl2.Orient, pl2.X, pl2.Y);
+            Run(s, dt, 1f, () => g.Expanded.Count > n2, noPicks);
+            int plainSlept = g.Enemies.Values.Count(e => !before3.Contains(e.Id) && e.Dormant);
+            Check(plainSlept == size * CellLayouts.SleeperSlots(g.Expanded.Skip(n2).ToList(), g.Expanded).Count && plainSlept > 0, "a plain piece's slots hold sleepers too (" + plainSlept + ")");
+            DormantGroups.PlainChance = plainWas;
         }
-        finally { DormantGroups.CellChance = chance; aimOverride = null; }
+        finally { DormantGroups.CellChance = chance; DormantGroups.PlainChance = 0.2f; aimOverride = null; }
         host.Leave(""); client.Leave("");
     }
 }
