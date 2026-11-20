@@ -329,40 +329,40 @@ namespace Arena
         bool SegBlocked(LayoutDef d, V2 a, V2 b, float r)
         {
             foreach (var s in d.Solids)
-            {
-                if (s.Edge)
-                    continue;
-                if (s.Round)
-                {
-                    V2 ab = b - a;
-                    float len2 = ab.X * ab.X + ab.Y * ab.Y, t = len2 > 0.0001f ? Math.Max(0f, Math.Min(1f, ((s.Pos.X - a.X) * ab.X + (s.Pos.Y - a.Y) * ab.Y) / len2)) : 0f;
-                    if ((a + ab * t).DistanceTo(s.Pos) < s.R + r)
-                        return true;
-                    continue;
-                }
-                float x0 = s.Pos.X - s.HW - r, x1 = s.Pos.X + s.HW + r, y0 = s.Pos.Y - s.HH - r, y1 = s.Pos.Y + s.HH + r;
-                float t0 = 0f, t1 = 1f, dx = b.X - a.X, dy = b.Y - a.Y;
-                bool hit = true;
-                for (int axis = 0; axis < 2 && hit; axis++)
-                {
-                    float o = axis == 0 ? a.X : a.Y, dd = axis == 0 ? dx : dy, lo = axis == 0 ? x0 : y0, hi = axis == 0 ? x1 : y1;
-                    if (Math.Abs(dd) < 1e-6f)
-                    {
-                        if (o < lo || o > hi)
-                            hit = false;
-                        continue;
-                    }
-                    float ta = (lo - o) / dd, tb = (hi - o) / dd;
-                    if (ta > tb) { float sw = ta; ta = tb; tb = sw; }
-                    t0 = Math.Max(t0, ta);
-                    t1 = Math.Min(t1, tb);
-                    if (t0 > t1)
-                        hit = false;
-                }
-                if (hit)
+                if (!s.Edge && SolidBlocks(s, a, b, r))
                     return true;
-            }
             return false;
+        }
+
+        /// Does the straight line from a to b, for something of radius r, run into this wall or pillar?
+        static bool SolidBlocks(Solid s, V2 a, V2 b, float r)
+        {
+            if (s.Round)
+            {
+                V2 ab = b - a;
+                float len2 = ab.X * ab.X + ab.Y * ab.Y, t = len2 > 0.0001f ? Math.Max(0f, Math.Min(1f, ((s.Pos.X - a.X) * ab.X + (s.Pos.Y - a.Y) * ab.Y) / len2)) : 0f;
+                return (a + ab * t).DistanceTo(s.Pos) < s.R + r;
+            }
+            float x0 = s.Pos.X - s.HW - r, x1 = s.Pos.X + s.HW + r, y0 = s.Pos.Y - s.HH - r, y1 = s.Pos.Y + s.HH + r;
+            float t0 = 0f, t1 = 1f, dx = b.X - a.X, dy = b.Y - a.Y;
+            bool hit = true;
+            for (int axis = 0; axis < 2 && hit; axis++)
+            {
+                float o = axis == 0 ? a.X : a.Y, dd = axis == 0 ? dx : dy, lo = axis == 0 ? x0 : y0, hi = axis == 0 ? x1 : y1;
+                if (Math.Abs(dd) < 1e-6f)
+                {
+                    if (o < lo || o > hi)
+                        hit = false;
+                    continue;
+                }
+                float ta = (lo - o) / dd, tb = (hi - o) / dd;
+                if (ta > tb) { float sw = ta; ta = tb; tb = sw; }
+                t0 = Math.Max(t0, ta);
+                t1 = Math.Min(t1, tb);
+                if (t0 > t1)
+                    hit = false;
+            }
+            return hit;
         }
 
         /// The nearest spot to p that a body of radius r can stand on: out of every wall and pillar that SegBlocked
@@ -396,7 +396,8 @@ namespace Arena
         // Waypoint graph: which corners see each other (for a fat enemy), and the shortest walk between any two.
         sealed class WayGraph
         {
-            public float[,] Dist, Direct;  // shortest walk, and the straight line between corners that see each other (else MaxValue)
+            public float[,] Direct;  // the straight line between corners that see each other (else MaxValue)
+            public int[][] Out, In;  // each corner's direct links out (Direct[i, k] set) and in (Direct[k, i] set)
         }
 
         sealed class GoalInfo
@@ -412,6 +413,37 @@ namespace Arena
         int goalStamp = -1;
         LayoutDef goalDef;
 
+        static void HeapPush(List<KeyValuePair<float, int>> h, float key, int val)
+        {
+            h.Add(new KeyValuePair<float, int>(key, val));
+            for (int i = h.Count - 1; i > 0;)
+            {
+                int p = (i - 1) / 2;
+                if (h[p].Key <= h[i].Key)
+                    break;
+                var t = h[p]; h[p] = h[i]; h[i] = t;
+                i = p;
+            }
+        }
+
+        static KeyValuePair<float, int> HeapPop(List<KeyValuePair<float, int>> h)
+        {
+            var top = h[0];
+            h[0] = h[h.Count - 1];
+            h.RemoveAt(h.Count - 1);
+            for (int i = 0; ;)
+            {
+                int l = 2 * i + 1, r = l + 1, m = i;
+                if (l < h.Count && h[l].Key < h[m].Key) m = l;
+                if (r < h.Count && h[r].Key < h[m].Key) m = r;
+                if (m == i)
+                    break;
+                var t = h[m]; h[m] = h[i]; h[i] = t;
+                i = m;
+            }
+            return top;
+        }
+
         WayGraph GraphFor(LayoutDef d, bool portals)
         {
             WayGraph g;
@@ -422,28 +454,76 @@ namespace Arena
             int n = w.Length;
             var oneWay = OneWayWorld;
             var dist = new float[n, n];
+            WayGraph other;  // the same map's graph with (or without) the portals: its lines are these, the portals' hops aside
+            if ((portals ? plainGraphs : wayGraphs).TryGetValue(d, out other) && other.Direct.GetLength(0) == n)
+            {
+                Array.Copy(other.Direct, dist, n * n);
+                if (d.Links != null)
+                    for (int l = 0; l + 1 < d.Links.Length; l += 2)
+                    {
+                        int la = d.Links[l], lb = d.Links[l + 1];
+                        bool lblocked = SegBlocked(d, w[la], w[lb], GraphR);
+                        dist[la, lb] = portals ? PortalHop : lblocked || oneWay != null && oneWay.OneWayBlocks(w[la], w[lb]) ? float.MaxValue : w[la].DistanceTo(w[lb]);
+                        dist[lb, la] = portals ? PortalHop : lblocked || oneWay != null && oneWay.OneWayBlocks(w[lb], w[la]) ? float.MaxValue : w[la].DistanceTo(w[lb]);
+                    }
+                return cache[d] = g = Linked(dist, n);
+            }
+            var solids = d.Solids;
+            int lastHit = -1;  // the solid that blocked the last line: the next one is often blocked by it too
+            var box = new float[d.Solids.Length * 4];  // each solid's box padded by GraphR: x0, x1, y0, y1 (the edge wall's empty)
+            for (int k = 0; k < d.Solids.Length; k++)
+            {
+                var so = d.Solids[k];
+                float hw = (so.Round ? so.R : so.HW) + GraphR, hh = (so.Round ? so.R : so.HH) + GraphR;
+                if (so.Edge)
+                    hw = hh = -1e9f;
+                box[4 * k] = so.Pos.X - hw; box[4 * k + 1] = so.Pos.X + hw; box[4 * k + 2] = so.Pos.Y - hh; box[4 * k + 3] = so.Pos.Y + hh;
+            }
             for (int i = 0; i < n; i++)
-                for (int j = 0; j < n; j++)
-                    dist[i, j] = i == j ? 0f : (SegBlocked(d, w[i], w[j], GraphR) || oneWay != null && oneWay.OneWayBlocks(w[i], w[j]) ? float.MaxValue : w[i].DistanceTo(w[j]));  // (one way through a One-way piece's door)
+                for (int j = i; j < n; j++)
+                {
+                    if (i == j)
+                    {
+                        dist[i, i] = 0f;
+                        continue;
+                    }
+                    float sx0 = Math.Min(w[i].X, w[j].X), sx1 = Math.Max(w[i].X, w[j].X), sy0 = Math.Min(w[i].Y, w[j].Y), sy1 = Math.Max(w[i].Y, w[j].Y);
+                    bool blocked = lastHit >= 0 && SolidBlocks(solids[lastHit], w[i], w[j], GraphR);  // (the same both ways: tested once a pair; SegBlocked's test)
+                    for (int k = 0; k < solids.Length && !blocked; k++)
+                        if (box[4 * k] <= sx1 && box[4 * k + 1] >= sx0 && box[4 * k + 2] <= sy1 && box[4 * k + 3] >= sy0 && SolidBlocks(solids[k], w[i], w[j], GraphR))
+                        {
+                            blocked = true;  // (only a solid whose padded box meets the line's box can block it)
+                            lastHit = k;
+                        }
+                    dist[i, j] = blocked || oneWay != null && oneWay.OneWayBlocks(w[i], w[j]) ? float.MaxValue : w[i].DistanceTo(w[j]);  // (one way through a One-way piece's door)
+                    dist[j, i] = blocked || oneWay != null && oneWay.OneWayBlocks(w[j], w[i]) ? float.MaxValue : w[i].DistanceTo(w[j]);
+                }
             if (portals && d.Links != null)  // portals: their two spots count as next to each other (Rooms.cs)
                 for (int l = 0; l + 1 < d.Links.Length; l += 2)
                     dist[d.Links[l], d.Links[l + 1]] = dist[d.Links[l + 1], d.Links[l]] = PortalHop;
-            var direct = (float[,])dist.Clone();
-            for (int k = 0; k < n; k++)  // Floyd-Warshall: corner to corner, round as many walls as it takes
-                for (int i = 0; i < n; i++)
-                {
-                    float ik = dist[i, k];
-                    if (ik == float.MaxValue)
-                        continue;
-                    for (int j = 0; j < n; j++)
-                    {
-                        float kj = dist[k, j];
-                        if (kj != float.MaxValue && ik + kj < dist[i, j])
-                            dist[i, j] = ik + kj;
-                    }
-                }
-            cache[d] = g = new WayGraph { Dist = dist, Direct = direct };
-            return g;
+            return cache[d] = g = Linked(dist, n);
+        }
+
+        /// A graph from its direct lines: each corner's links out and in.
+        static WayGraph Linked(float[,] dist, int n)
+        {
+            var outs = new int[n][];
+            var ins = new int[n][];
+            var tmp = new List<int>();
+            for (int i = 0; i < n; i++)
+            {
+                tmp.Clear();
+                for (int k = 0; k < n; k++)
+                    if (k != i && dist[i, k] != float.MaxValue)
+                        tmp.Add(k);
+                outs[i] = tmp.ToArray();
+                tmp.Clear();
+                for (int k = 0; k < n; k++)
+                    if (k != i && dist[k, i] != float.MaxValue)
+                        tmp.Add(k);
+                ins[i] = tmp.ToArray();
+            }
+            return new WayGraph { Direct = dist, Out = outs, In = ins };
         }
 
         /// For each corner, the length of the best walk from it to tpos (through other corners if need be).
@@ -463,20 +543,42 @@ namespace Arena
             var w = d.Waypoints;
             var oneWay = OneWayWorld;
             var graph = GraphFor(d, portals);
-            var dist = graph.Dist;
+            var direct = graph.Direct;
             int n = w.Length;
-            var last = new float[n];  // corners that see the target: the walk's last leg
-            for (int j = 0; j < n; j++)
-                last[j] = SegBlocked(d, w[j], tpos, r) || oneWay != null && oneWay.OneWayBlocks(w[j], tpos) ? float.MaxValue : w[j].DistanceTo(tpos);
+            // The best walk to the target from every corner at once: a Dijkstra out from the target, backwards along the
+            // links, starting from the corners that see it (their last leg).
             var cost = new float[n];
+            var done = new bool[n];
+            var heap = new List<KeyValuePair<float, int>>();
+            for (int j = 0; j < n; j++)
+            {
+                cost[j] = SegBlocked(d, w[j], tpos, r) || oneWay != null && oneWay.OneWayBlocks(w[j], tpos) ? float.MaxValue : w[j].DistanceTo(tpos);
+                if (cost[j] != float.MaxValue)
+                    HeapPush(heap, cost[j], j);
+            }
+            var last = (float[])cost.Clone();  // corners that see the target: the walk's last leg
+            while (heap.Count > 0)
+            {
+                var top = HeapPop(heap);
+                int k = top.Value;
+                if (done[k])
+                    continue;
+                done[k] = true;
+                foreach (int i in graph.In[k])
+                {
+                    float c = top.Key + direct[i, k];
+                    if (c < cost[i])
+                    {
+                        cost[i] = c;
+                        HeapPush(heap, c, i);
+                    }
+                }
+            }
             var next = new int[n];
             for (int i = 0; i < n; i++)
             {
-                float best = float.MaxValue;
-                for (int j = 0; j < n; j++)
-                    if (last[j] != float.MaxValue && dist[i, j] != float.MaxValue && dist[i, j] + last[j] < best)
-                        best = dist[i, j] + last[j];
-                cost[i] = best == float.MaxValue ? 500f + w[i].DistanceTo(tpos) : best;  // no clean route: the nearest corner will do
+                if (cost[i] == float.MaxValue)
+                    cost[i] = 500f + w[i].DistanceTo(tpos);  // no clean route: the nearest corner will do
                 next[i] = -1;
             }
             for (int i = 0; i < n; i++)
@@ -484,10 +586,10 @@ namespace Arena
                 if (last[i] != float.MaxValue && last[i] <= cost[i] + 0.01f)
                     continue;  // sees the target: go straight
                 float nb = float.MaxValue;
-                for (int k = 0; k < n; k++)
-                    if (k != i && graph.Direct[i, k] != float.MaxValue && graph.Direct[i, k] + cost[k] < nb)
+                foreach (int k in graph.Out[i])
+                    if (direct[i, k] + cost[k] < nb)
                     {
-                        nb = graph.Direct[i, k] + cost[k];
+                        nb = direct[i, k] + cost[k];
                         next[i] = k;
                     }
             }

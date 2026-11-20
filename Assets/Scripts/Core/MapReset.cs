@@ -89,6 +89,7 @@ namespace Arena
             expWorld = null;
             LayoutAge = 0f;
             expandSeed = newSeed;
+            PickCoreLayout();  // a new faction, a new floor plan for the core (CoreLayouts.cs)
             if (RoomsUp)
             {
                 RoomsUp = false;

@@ -48,6 +48,7 @@ namespace Arena
         public V2[] NodeSpots;             // the Expanding map's nodes (same order): where each stands now. A claimed chest or relic stands at the middle of its room (Expansion.NodeSpotIn); null if none
         public V2 Min, Max;                // the world's box
         public int Hub;                    // the hub's area index
+        public CoreLayoutId Core = CoreLayoutId.None;  // a Grid run's core floor plan (CoreLayouts.cs): it takes the place of the boss cycle's plan in the hub
         public float PortalR = 42f, PortalExit = 70f;
 
         Solid[] walls;
@@ -258,23 +259,25 @@ namespace Arena
             if (plans.TryGetValue(key, out d))
                 return d;
             var plan = Layouts.Get(hub);
+            bool core = Core != CoreLayoutId.None;  // (the core's own walls are in Cover already; its crates go down in place of the plan's)
             var solids = new List<Solid>();
-            foreach (var s in plan.Solids)
-                if (!s.Edge)
-                    solids.Add(s);
+            if (!core)
+                foreach (var s in plan.Solids)
+                    if (!s.Edge)
+                        solids.Add(s);
             solids.AddRange(Walls());
             solids.AddRange(Cover);
             d = new LayoutDef
             {
                 Id = hub,
-                Name = hub == LayoutId.Open ? Name : plan.Name + " · " + Name,
-                Blurb = plan.Blurb,
+                Name = core ? CoreLayouts.Name(Core) + " · " + Name : hub == LayoutId.Open ? Name : plan.Name + " · " + Name,
+                Blurb = core ? CoreLayouts.Get(Core).Blurb : plan.Blurb,
                 Edge = EdgeGates.Open,
                 Solids = solids.ToArray(),
-                Crates = plan.Crates,
+                Crates = core ? CoreLayouts.Crates(Core) : plan.Crates,
                 PlayerGates = new EdgeSpan[0],
                 EnemyGates = new EdgeSpan[0],
-                HasHold = plan.HasHold,
+                HasHold = !core && plan.HasHold,
                 HoldPos = plan.HoldPos,
                 HoldR = plan.HoldR,
             };
@@ -282,7 +285,7 @@ namespace Arena
             // stubs where two room walls meet leave corners the steering graph's body can't get away from); the hub's floor
             // plan keeps its own, so its narrow doors still have corners to route through.
             var wps = new List<V2>();
-            foreach (var p in Layouts.MakeWaypoints(d, Min, Max, DoorSpots()))
+            foreach (var p in Layouts.MakeWaypoints(d, Min, Max, DoorSpots(), 18f, true))
             {
                 bool tight = false;
                 foreach (var w in Walls())
