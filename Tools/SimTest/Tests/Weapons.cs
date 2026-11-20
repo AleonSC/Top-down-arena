@@ -555,6 +555,7 @@ static partial class Program
             me.Stats.ExtraShots = extra;
             me.AmmoUsed = 0;
             me.ReloadT = 0f;
+            me.Cinder = Game.CinderMax;  // (the Wyvern Staff's meter starts full each trial)
             me.CompanionCd = 0f;
             me.PackStarted = false;  // (the Wolf Whistle's starting wolves come again: WolfPack.cs)
             me.SsMask = 0; me.SsWindT = 0f; me.SsCdT = 0f; me.SsQueue.Clear();  // (the Stonespear starts each trial with no spears up)
@@ -604,6 +605,7 @@ static partial class Program
                 case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
                 case WeaponId.Greatsword: ok = b[1] > a[1] && ratio > 1.05f; break;      // Eclipse's sword waves: only one step in ten has them
                 case WeaponId.TwinBlades: ok = b[1] > a[1] && ratio > 1.1f; break;       // crescents off the Pirouette and the Shear: two steps in five have them
+                case WeaponId.WyvernStaff: ok = b[2] == a[2] && ratio > 1.1f; break;     // one Wyvern, breathing harder
                 case WeaponId.BearTotem: ok = ratio > 1.1f; break;                        // claws plus the Bear's cleave (it wanders)
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
                 case WeaponId.Quarterstaff: ok = me.StaffStacks == Game.StaffBaseStacks + 2; break;  // each extra projectile stores one more Jab stack (the swipes fill it)
