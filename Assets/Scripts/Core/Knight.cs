@@ -17,7 +17,7 @@ namespace Arena
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
         public bool FromWeapon;       // queued by the player's weapon (QueueSwing): the session recording credits its hits to the weapon
-        public bool Rend;             // a long box drawn as a lance of light (the Greatsword's Eclipse, and its old guard's Rend), Power = Temper / GreatTemperMax (1: gold)
+        public bool Rend;             // a long box drawn as a lance of light (the Greatsword's Eclipse), Power = Temper / GreatTemperMax (1: gold)
         public byte Great;            // a Greatsword chain hit (Game.GreatMove; GreatswordChain.cs): the parry takes back one still winding up, a ring draws as one
         public int Waves;             // sword waves launched as it lands (the Greatsword's Eclipse with extra projectiles)
         public float WaveDmg;

@@ -377,12 +377,8 @@ namespace Arena
         public float RepelHumT;      // host: till the pull's hum plays again
         public byte GreatStep;       // Greatsword: which cut of the chain landed last, 0 to 3 (replicated, drawn as pips behind you)
         public float BlinkBoost = 1f; // host: Shadow Mark's extra on the hit after a Kunai blink
-        public float TemperCarry;    // host: Greatsword Temper toward the next pip (Tempered Blade builds it in fractions)
         public float LightCarry;     // host: Lightbringer light toward the next pip (Daybreak fills it in fractions)
-        public byte GreatTemper;     // Greatsword: Temper stored while guarding, 0 to 6 (replicated, drawn as pips and on the blade)
-        public bool GreatGuard;      // Greatsword: the weapon-action key is held, the guard arc is up (replicated; you move at half speed and can't swing)
-        public bool GreatPrimed;     // Greatsword: a full-Temper Rend was fired, so the next chain starts on the overhead rend (replicated)
-        public float GreatGap, GreatLock, GreatBlockT;  // host: seconds since the last cut; seconds the guard can't go up again after a Rend; a guard clang just sounded (not another for a moment)
+        public float GreatGap;       // host: seconds since the last cut
         public int RapierTempo;      // Rapier: Tempo stacks, 0 to Game.RapierTempoMax: one per enemy a thrust hits; each makes the thrusts quicker (replicated, drawn as diamonds behind you; Rapier.cs)
         public float RapierTempoF;   // host: the exact Tempo (it drains a little at a time)
         public float RapierHitAgo = 99f;  // host: seconds since a Rapier thrust last hit an enemy (Tempo holds for RapierGrace, then drains)
@@ -504,9 +500,6 @@ namespace Arena
         public int EnergyBy;                     // host: who cast it
         public float WardT, WardFrac, WardInvuln;  // Martyr's ward: going down while it lasts gets you straight back up (WardT replicated)
         public float CompanionCd;              // host: summoner companion timer
-        public readonly float[] HpHistory = new float[16];   // host: unused since Time Rewind was replaced by Healing Rain (every 0.25 s)
-        public readonly bool[] DownHistory = new bool[16];
-        public int HistoryIdx;
 
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
@@ -569,7 +562,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (GreatGuard ? Game.GreatGuardSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }

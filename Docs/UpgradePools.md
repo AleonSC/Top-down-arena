@@ -177,7 +177,7 @@ Built (owner approved all ten): in `Game.KnightCards`, each with `Weapons = { it
 (the slam and its charge outline, `WorldShots.cs`), the Breaching Thrust's `Knock` and `LanceBump` / `LanceWallImpact`,
 the Halberd's reach and `sweep`, the Quarterstaff's `HealPerHit` and `StaffCap`, `LightLanded` (`Player.LightCarry`
 keeps the fraction) and `LandSunlance`, `AddZone` for every `ZoneKind.Incense` cloud, `HostTwinFang` and `FangHurt`,
-the guard's Rend and `GreatGuardBlock` (`Player.TemperCarry`), `TickRapier`'s grace and the Rapier's skewer cap,
+`TickRapier`'s grace and the Rapier's skewer cap,
 `KnuckleLockTarget` / `HostRocketDash` (and the reticle in `ArcKnucklesLook.cs`) and the Twin Hammer's stun.
 Test: suite `abilitycards`, its Knight weapon checks.
 

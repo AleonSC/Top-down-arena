@@ -720,7 +720,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -996,20 +996,6 @@ namespace Arena
                 }
                 return;
             }
-            if (GreatGuardOn && me.Weapon.Id == WeaponId.Greatsword && (pressed || released))  // the Greatsword's old guard: held, so both edges go to the host (Greatsword.cs; unused)
-            {
-                byte guardKind = pressed ? DashGuardOn : DashGuardOff;
-                if (IsHost)
-                    HostWeaponDash(MyId, guardKind, aimAt);
-                else
-                {
-                    var gw = Proto.Begin(Msg.WeaponDash);
-                    gw.Write(guardKind);
-                    gw.Write(aimAt);
-                    session.SendToHost(Proto.End(gw));
-                }
-                return;
-            }
             if ((me.Weapon.Id == WeaponId.RepulsionCannon || me.Weapon.Id == WeaponId.BloodLash) && (pressed || released))  // the Repulsion Cannon's Undertow and the Blood Lash's Martyr's Leash: held, so both edges go to the host (Repulsion.cs, BloodLash.cs)
             {
                 byte pullKind = pressed ? DashPullOn : DashPullOff;
@@ -1250,11 +1236,6 @@ namespace Arena
             if (kind == DashBraceOn || kind == DashBraceOff)
             {
                 HostBrace(p, kind == DashBraceOn);  // the Bulwark Barrier's Brace (BulwarkBarrier.cs)
-                return;
-            }
-            if (kind == DashGuardOn || kind == DashGuardOff)
-            {
-                HostGreatGuard(p, kind == DashGuardOn, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashRocket)

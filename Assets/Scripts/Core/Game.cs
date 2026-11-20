@@ -251,8 +251,6 @@ namespace Arena
                 }
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;
-                for (int k = 0; k < p.HpHistory.Length; k++)
-                    p.HpHistory[k] = p.Hp;
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
                 Recalc(p);
@@ -1422,7 +1420,7 @@ namespace Arena
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
             TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
-            TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
+            TickGreat(dt);      // Greatsword.cs: the chain forgetting its place
             TickArcKnuckles(dt);  // ArcKnuckles.cs: an unused Counter Hammer fading
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
@@ -1607,7 +1605,7 @@ namespace Arena
                     TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);
@@ -1640,7 +1638,6 @@ namespace Arena
             }
 
             TickZones(dt);
-            RecordHistory(dt);
 
             // Standing next to a downed ally slowly brings them back.
             foreach (var p in Players.Values)

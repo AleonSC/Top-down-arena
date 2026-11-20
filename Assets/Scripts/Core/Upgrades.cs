@@ -141,7 +141,6 @@ namespace Arena
         public float LightGainMult = 1f, SunlanceHealMult = 1f;            // Lightbringer: Daybreak
         public float IncenseSizeMult = 1f, IncenseBonusTime;               // Censer: Thick Incense
         public float FangTimeMult = 1f, FangDmgMult = 1f;                  // Twin Blades: Whirling Sabres
-        public float GreatRendMult = 1f, TemperGainMult = 1f;              // Greatsword: the old guard's (unused since the Moonwheel)
         public float WheelRangeMult = 1f, WheelDmgMult = 1f;               // Greatsword: Lunar Arc (the Moonwheel)
         public int SkewerBonus; public float TempoHoldBonus;               // Rapier: Duelist's Edge
         public float KnuckleDashMult = 1f, KnuckleStunBonus;               // Arc Knuckles: Live Wire
