@@ -47,6 +47,7 @@ namespace Arena
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - CereCut(p);  // the Ninja's Ceremonial Armor at full regalia (CeremonialArmor.cs)
+            amount *= 1f - NodArmor(p);  // the Nodachi's Storm wind-ups (Nodachi.cs)
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = PackSoak(p, amount);  // the Wolf Whistle's pack takes a share (WolfPack.cs)
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
@@ -1146,6 +1147,7 @@ namespace Arena
             BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (KitWeapons.cs)
             WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (KitWeapons.cs)
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
+            TwinShedHit(b, e);  // Twin Pistols rounds knock health orbs loose (TwinPistols.cs)
             PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)

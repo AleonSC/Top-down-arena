@@ -100,6 +100,11 @@ namespace Arena
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Revolver && game.Me.StunShots == 0)
                 DrawCylinder(game.Me, t);
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.TwinPistols)
+                    DrawTwinLasers(p, t);  // Laser Sights' beams (TwinPistolsLook.cs)
+            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.TwinPistols)
+                DrawTwinLaserReady(game.Me);  // its key over your head
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Rapier)
                 {
                     DrawRapierPips(p);  // MeleeLooks.cs
@@ -309,6 +314,7 @@ namespace Arena
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
                 DrawKnuckleIdle(p, t);  // the Arc Knuckles up in a guard (ArcKnucklesLook.cs)
                 DrawNunIdle(p, t);  // the Nunchaku tucked, swung or spinning its guard (NunchakuLook.cs)
+                DrawNodIdle(p, t);  // the Nodachi at the ready or mid-step (NodachiLook.cs)
                 DrawKnucklePrompt(p, t);  // the Arc Knuckles' dash chain: Fire now (ArcKnucklesLook.cs)
                 DrawKnuckleLock(p, t);  // the Arc Knuckles' lock-on reticle (ArcKnucklesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
@@ -370,6 +376,8 @@ namespace Arena
                 DrawBoStaffPips(p, t);
             if (p.Id == game.MyId && Game.InGreatStar(p))
                 DrawGreatStarRoute(p, t);  // the Great Star's ink route as you draw it (GreatStarLook.cs)
+            if (p.Id == game.MyId && game.OathPickSlot >= 0)
+                DrawOathPick(p, t);  // Guardian's Oath waiting for you to click the ally to grab (GuardiansOathLook.cs)
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);

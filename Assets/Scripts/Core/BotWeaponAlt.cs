@@ -117,6 +117,8 @@ namespace Arena
                     return !late && e != null && v.InReach && Tap(GasLocalCd <= 0f && (e.Def.IsBoss || EnemiesNear(e.Pos, 100f) >= 3), 2f);
                 case WeaponId.TwinRifle:  // a loaded grenade at a crowd or the boss
                     return !late && e != null && v.InReach && Tap(me.TwinNades > 0 && (e.Def.IsBoss || EnemiesNear(e.Pos, 90f) >= 2), 0.6f);
+                case WeaponId.TwinPistols:  // Laser Sights on the boss or a crowd in reach
+                    return !late && e != null && v.InReach && me.TpCd <= 0f && Tap(e.Def.IsBoss || EnemiesNear(e.Pos, 140f) >= 3, 1f);
                 case WeaponId.Revolver:  // Pistol Whip: bullets on top of you, or something in your face
                     return !late && Tap(v.Incoming >= 2 || e != null && v.ShootD < 110f, WhipCd);
                 case WeaponId.RepulsionCannon:  // Undertow: pull a spread-out group in, then let go and blast

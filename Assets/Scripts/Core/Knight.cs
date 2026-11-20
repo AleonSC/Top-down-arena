@@ -59,6 +59,7 @@ namespace Arena
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
         public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
+        public bool Nod;              // a Nodachi hit (Nodachi.cs): the parry and the stance switch take back one still winding up
         public int BlastPress;        // != 0: a Blood Blast cut, this press's number: what it hits gets one blood stack per press (BloodBlast.cs)
     }
 
@@ -353,7 +354,7 @@ namespace Arena
             }
             if (s.NoFx)
             {
-                if (!s.Silent && !((s.Twin || s.LanceKind > 0 || s.Knuckle > 0) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
+                if (!s.Silent && !((s.Twin || s.LanceKind > 0 || s.Knuckle > 0 || s.Nod) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
                     BroadcastSound(s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);  // a Halberd sweep's or Twin Blades step's whoosh (its effect was sent at the click)
             }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -470,6 +471,8 @@ namespace Arena
                 TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
             if (hits.Count > 0 && s.LanceKind > 0)
                 LanceHitCue(p, s.LanceKind, hits.Count);  // a Lance step hit something: its sound, your hit-pause and shake (Lance.cs)
+            if (s.Nod && hits.Count > 0)
+                BroadcastSound(Sfx.NodHit);  // the Nodachi bit something (the step's own sound was sent at the press)
             if (s.Nun && hits.Count > 0)
                 BroadcastSound(Sfx.NunHit);  // a Nunchaku stick landed (the step's own sound was sent at the press)
             if (s.Rapier && hits.Count > 0)
@@ -779,7 +782,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.GuardiansOath, Kit = Kit.Knight, Role = Role.Healer, Choice = 1,
-                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Charge to the player nearest your cursor (up to 600 px), downed or not, and drag them clear. A Ward of Light then cuts damage by half for everyone inside for 5 s, and downed allies in it revive twice as fast.",
+                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Press, then click a player (up to 600 px), downed or not: charge to them, grab them and haul them back to where you stood. A Ward of Light then cuts damage by half for everyone inside for 5 s, and downed allies in it revive twice as fast.",
                 Capstone = "Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health.",
                 Bot = b => b.AllyHurt,
             },

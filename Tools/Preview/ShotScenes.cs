@@ -976,6 +976,30 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // TWINPISTOLS=<s>: the Healer Soldier's Twin Pistols (Core/TwinPistols.cs, Game/TwinPistolsLook.cs) that long into a fight: fire held at a
+    // pack of grunts 260 px ahead (TPLASER=1: Alt pressed 0.1 s in, Laser Sights on; TPIDLE=1: not firing).
+    if (Environment.GetEnvironmentVariable("TWINPISTOLS") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Orbs.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 330f); me.Pos = me.Disp = home; me.Aim = 0f; me.TpLaserT = me.TpCd = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at in new[] { new V2(250f, -45f), new V2(275f, 10f), new V2(240f, 55f), new V2(330f, -5f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool laser = Environment.GetEnvironmentVariable("TPLASER") != null, idle = Environment.GetEnvironmentVariable("TPIDLE") != null;
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("TWINPISTOLS"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; for (int i = 0; i < foes.Count; i++) foes[i].Pos = foes[i].Disp = keep[i]; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(265f, 0f), Fire = !idle, WeaponAction = laser && f >= 6 && f < 9 });
+        me.Disp = me.Pos = home; me.Aim = 0f; me.Hp = me.MaxHp; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i]; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // GRENADE=<s>: the Tank Soldier's Grenade Launcher (Core/GrenadeLauncher.cs, Game/GrenadeLauncherLook.cs) that long into a fight: a pack of
     // grunts and a brute GLAT px ahead (default 250), fire held (HE; the drum empties at 2.5 s and reloads). GLSMOKE=1: Alt at 0.1 s (the smoke drum),
     // then fire held from 0.75 s (three canisters); GLSWAP=1: Alt at 0.1 s and nothing else; GLIDLE=1: not firing; GLONE=1: one shot only.
@@ -1168,6 +1192,42 @@ static partial class Shot {
         foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
         Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f; Time.time += 1f / 60f;
         gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Hp = me.MaxHp;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // NODACHI=<s>: the Tank Ninja's Nodachi (Core/Nodachi.cs, Game/NodachiLook.cs) that long after Fire is first held (held throughout,
+    // so the stance's combo plays on). NODGUARD=1 starts in Mamori (the Guard: shots fly in from the right); NODALT=<s> presses Alt then.
+    if (Environment.GetEnvironmentVariable("NODACHI") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Ninja; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      bool guard = Environment.GetEnvironmentVariable("NODGUARD") != null;
+      float altAt = Environment.GetEnvironmentVariable("NODALT") != null ? float.Parse(Environment.GetEnvironmentVariable("NODALT"), ci) : -1f;
+      V2 home = new V2(480f, 360f); me.Pos = me.Disp = home; me.Aim = 0f; me.NodStance = (byte)(guard ? 1 : 0); me.NodStorm = me.NodGuard = 0;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(120f, -40f), new V2(150f, 50f), new V2(60f, -130f), new V2(-40f, 140f), new V2(-140f, -60f), new V2(200f, -5f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      float[] ys = { -8f, 14f, -22f, 4f, 24f, -14f, 10f, -28f, 18f, -4f };
+      int shot = 0;
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("NODACHI"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = home + new V2(200f, 0f);
+        bool alt = altAt >= 0f && tt >= altAt && tt < altAt + 3f / 60f;
+        if (me.NodStance == 1 && f % 8 == 0) {
+          V2 from = home + new V2(360f, ys[shot++ % ys.Length] * 2f);
+          shoot.Invoke(gm, new object[] { Defs.SmallShot, from, (home - from).Normalized() * 340f, 0f, 3f, 5f, 0, false, 0f });
+        }
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f; Time.time += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = true, WeaponAction = alt });
         gm.Update(1f / 60f);
         me.Pos = home; me.Hp = me.MaxHp;
         me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
@@ -1480,6 +1540,19 @@ static partial class Shot {
       int k = 0;
       foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; en.Pos = en.Disp = me.Pos + V2.FromAngle(0.9f + k * 2.1f) * (110f + 40f * k); if (++k >= 3) break; }
       foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && k-- <= 0) { en.Pos = en.Disp = new V2(150f, 120f); }
+    }
+    // OATHPICK=1|0 (Guardian's Oath waiting for the click: 1 with the cursor on an ally, 0 off them; GuardiansOathLook.cs; 3 players).
+    if (Environment.GetEnvironmentVariable("OATHPICK") != null) {
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      me.Kit = Kit.Knight; me.Role = Role.Healer; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Knight, 0);
+      me.Slots[1].Id = AbilityId.GuardiansOath; gm.OathPickSlot = 1;
+      me.Pos = me.Disp = new V2(520f, 480f); me.Flash = 0f;
+      int k = 0;
+      foreach (var q in gm.Players.Values) if (q.Id != me.Id) { q.Pos = q.Disp = me.Pos + (k == 0 ? new V2(330f, -170f) : new V2(-120f, -300f)); k++; }
+      Player tgt = null; foreach (var q in gm.Players.Values) if (q.Id != me.Id) { tgt = q; break; }
+      me.AimAt = Environment.GetEnvironmentVariable("OATHPICK") == "1" && tgt != null ? tgt.Pos + new V2(6f, 4f) : me.Pos + new V2(200f, 120f);
+      me.Aim = (me.AimAt - me.Pos).Angle;
+      foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; en.Pos = en.Disp = me.Pos + new V2(380f, -40f + 30f * (k++ % 3)); }
     }
     // GREATSTAR=held|draw|fly GSAT=<px along the route> (the DPS Shuriken's Great Star stance: in your hand, a route being drawn,
     // or the star thrown along one, that far along; GreatStarLook.cs). Any NINJA= works: it puts the Shuriken in your hand.

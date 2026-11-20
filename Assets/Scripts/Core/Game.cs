@@ -1148,6 +1148,7 @@ namespace Arena
             }
             if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4) && DashT <= 0f)
                 move = V2.Zero;  // the Arc Knuckles' Flurry and Grab & Throw: rooted while they run (ArcKnucklesChain.cs)
+            bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
             float bowRelease = LocalBow(me, firing, dt);
             if (me.Downed)
                 DashT = 0f;
@@ -1221,6 +1222,21 @@ namespace Arena
             {
                 bool pressed = held[slot] && !abilityWasDown[slot];
                 abilityWasDown[slot] = held[slot];
+                if (OathPickSlot == slot)
+                {
+                    if (pressed)
+                    {
+                        OathPickSlot = -1;  // the key again: never mind
+                        continue;
+                    }
+                    pressed = oathClick;  // the click on an ally is the cast
+                }
+                else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.GuardiansOath && !me.Downed)
+                {
+                    if (me.Slots[slot].Charges > 0 && OathTarget(me, aimAt, OathRangeFor(me)) != null)
+                        OathPickSlot = slot;  // now click the ally to grab (nobody in reach: nothing happens, no cooldown spent)
+                    continue;
+                }
                 if (!pressed || me.Downed || State == MatchState.GameOver)
                     continue;
                 if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
@@ -1257,7 +1273,8 @@ namespace Arena
                         break;
                     }
                     case AbilityId.GuardiansOath:
-                        target = LocalOathCharge(me, aimAt);  // GuardiansOath.cs: charge to the player nearest your cursor
+                        target = LocalOathCharge(me, aimAt, Bot ? OathTarget(me, aimAt, OathRangeFor(me)) : OathPickTarget(me, aimAt));  // GuardiansOath.cs: charge to the ally you clicked
+                        OathPickSlot = -1;
                         break;
                     case AbilityId.RoyalDive:
                     {
@@ -1572,6 +1589,8 @@ namespace Arena
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 TickNunchaku(p, dt);  // the Nunchaku's guard: its discs swat shots back (Nunchaku.cs)
+                TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
+                TickTwinPistols(p, dt);  // Laser Sights running down, its key cooling down (TwinPistols.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                 {
                     string orbSrc = CreditTo("weapon");
@@ -1603,7 +1622,7 @@ namespace Arena
                     TickEmbolus(p, dt);  // the spears thrown, stuck, recalled and hardening; Fire throws or recalls (EmbolusSpears.cs)  // the four-step combo of air waves (WindClash.cs)
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
-                else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
+                else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff || p.Weapon.Id == WeaponId.Nodachi)
                     TickKatanaFire(p);  // the Katana's dash or swipe, or the Bo Staff's slash, jab, spin, with the next one queued if you tap ahead (Katana.cs)
                 else if (p.Weapon.Id == WeaponId.OutOfAmmo)
                     TickOutOfAmmo(p, dt);  // the swats, the knife chain and Alt's spin, no trigger (OutOfAmmo.cs)

@@ -12,6 +12,7 @@
 # QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
 # TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
+# OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
@@ -61,6 +62,7 @@
 # HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).
 # BONESPEAR=<s> (the Hemomancer DPS Blood Brawler that long into its loop: Pulse 0 s, Reel 0.45, Heart Lift 0.95, Marrow Burst 1.5, Alt (Sympathy) 2.4, Pulse 2.7 and Reel 3.1 echoing; BSAIM=<deg> tilts it; BSHAND=1 centres on the bleeding hand; BloodBrawlerLook.cs).
 # EMBOLUS=<s> (the Hemomancer DPS Embolus Spears that long into the mockup's loop: throws at 0 and 0.3 s, recall at 1.7 s, throws at 2.6 and 2.9 s, Alt burst at 4.1 s; ESAIM=<deg> tilts the aim; EmbolusLook.cs).
+# NODACHI=<s> (the Tank Ninja Nodachi that long after Fire is first held: NODGUARD=1 starts in Mamori with shots flying in, NODALT=<s> presses Alt then; NodachiLook.cs).
 # NUNCHAKU=<s> (the Ninja DPS Nunchaku, Twin Storm, that long into the mockup's loop: Fire held 0-1.85 s for the combo, Alt at 2.1 s (the Twin Windmill swats shots from the right), the Twin Counter at 3.7 s; NunchakuLook.cs).
 # BULWARK=<s> BBMODE=chain|guard|brace|bash|melee (the Tank Knight's Bulwark Barrier that long into a scene: Fire held (the chain, then the Shield Throw from about 1 s), shots at the plate, braced soaking them, a full-Ram Shield Bash at 0.3 s, or braced with Brutes walking into the plate; mode hud; BulwarkBarrierLook.cs).
 # FROSTLANCE=<s> (the Tank Elementalist's Frost Lance that long into its chain, Fire held: Shiver Crescent at 0, Backhand Rime 0.34 s, Frost Waltz 0.68 s, Crystal Fan 1.08 s, Avalanche Slam 1.5 s; FLALT=1: Absolute Zero at 0; FLCHILL=<n> chill on the grunts; mode hud; FrostLanceLook.cs).
@@ -70,6 +72,7 @@
 # STONESPEAR=<s> (the Elementalist DPS Stonespear that long into the mockup's loop: slam at 0, throws at 1.3 and 1.85 s, Alt volley at 2.6 s; SSMOVE=1 walking down (the spears trail); SSTECT=1 with Tectonic; mode hud; StonespearLook.cs).
 # GRENADE=<s> (the Tank Soldier's Grenade Launcher that long into a fight: fire held at a pack GLAT px ahead; GLSMOKE=1 Alt then smoke canisters from 0.6 s; GLSWAP=1 Alt only; GLIDLE=1; mode hud; GrenadeLauncherLook.cs).
 # DOUBLEBARREL=<s> (the Soldier DPS Double Barrel that long into a fight: fire held at three dummies in a line; DBBOTH=1 Alt both barrels at 0.3 s; DBIDLE=1 not firing; mode hud; DoubleBarrelLook.cs).
+# TWINPISTOLS=<s> (the Healer Soldier Twin Pistols that long into a fight: fire held at a pack 260 px ahead; TPLASER=1 Alt (Laser Sights) at 0.1 s; TPIDLE=1 not firing; TwinPistolsLook.cs).
 # WHIP=<s> (the Revolver's Pistol Whip that long into a fight: grunts and enemy shots in front, Alt at 0.1 s; WHIPIDLE=1 no press; mode hud; PistolWhipLook.cs).
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).

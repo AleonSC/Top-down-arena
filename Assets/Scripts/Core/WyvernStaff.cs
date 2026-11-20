@@ -26,7 +26,7 @@ namespace Arena
         public const float WyvernSlamCd = 7f, WyvernSlamR = 130f, WyvernSlamDmg = 30f, SlamStun = 1.2f, SlamStunHeavy = 0.6f, SlamStunBoss = 0.4f;
         public const float CinderBack = 10f, CinderBackMax = 4f, WyvDiveSpeed = 1400f, WyvFollow = 240f, WyvReturn = 90f, WyvFly = 420f;
         public static readonly Rgba WyvColor = new Rgba(0.44f, 0.88f, 0.81f);
-        const byte DashWyvernSlam = 48;
+        const byte DashWyvernSlam = 49;  // (48 is the Nodachi's stance)
 
         /// How hard Stormwing and extra projectiles make the gale's shove and slow.
         static float WyvGaleBoost(Player p) => 1f + p.Stats.WyvernPower;

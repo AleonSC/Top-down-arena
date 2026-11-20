@@ -201,6 +201,8 @@ namespace Arena
             }
             else if (spread)
                 TwinSpreadPose(p, wk, ref rhx, ref rhy, ref lhx, ref lhy, out twist, out climbR, out climbL);
+            else if (p.Weapon.Id == WeaponId.TwinPistols)
+                TpHandPose(p, wk, ref rhx, ref rhy, ref lhx, ref lhy, out twist);  // held out in front, turned in with Laser Sights (TwinPistolsLook.cs)
             bool ownArms = LookDrawsArms(p);
             if (!ownArms)
             {
@@ -242,8 +244,8 @@ namespace Arena
             {
                 case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.ArcKnuckles:
                     return true;  // TwinBladesLook.cs, LightbringerLook.cs, LanceLook.cs, ArcKnucklesLook.cs
-                case WeaponId.Nunchaku:
-                    return !p.Downed;  // NunchakuLook.cs
+                case WeaponId.Nunchaku: case WeaponId.Nodachi:
+                    return !p.Downed;  // NunchakuLook.cs, NodachiLook.cs
                 case WeaponId.Halberd:
                     return fxOn;  // HalberdLook.cs
                 case WeaponId.Katana:
@@ -468,7 +470,7 @@ namespace Arena
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
-                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: hold = 2; break;
+                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
                 case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
@@ -495,6 +497,7 @@ namespace Arena
             d[(int)WeaponId.RepulsionCannon] = DrawHeldRepulsionCannon;
             d[(int)WeaponId.Revolver] = DrawHeldRevolver;
             d[(int)WeaponId.MendersBow] = DrawHeldMendersBow;
+            d[(int)WeaponId.TwinPistols] = DrawHeldTwinPistols;  // TwinPistolsLook.cs
             d[(int)WeaponId.TwinRifle] = DrawHeldTwinRifle;
             d[(int)WeaponId.TwinRifleAuto] = DrawHeldTwinRifle;
             d[(int)WeaponId.OutOfAmmo] = DrawHeldTwinRifle;

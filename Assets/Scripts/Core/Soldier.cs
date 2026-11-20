@@ -39,6 +39,9 @@ namespace Arena
                 Sound = Sfx.ShotPistol },
             new WeaponDef { Id = WeaponId.MendersBow, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw hits hard, pierces enemies and heals allies it passes. Let go right at full draw for a perfect shot.",
                 Sound = Sfx.ShotBow },
+            new WeaponDef { Id = WeaponId.TwinPistols, Kit = Kit.Soldier, Role = Role.Healer, Choice = 3, Speed = 780f, Life = 0.8f, Damage = 10f, BotRange = 380f, ExtraDesc = "+1 round a shot, fanned a little, and Laser Sights lasts 1.5 s longer", Name = "Twin Pistols", FireInterval = 0.16f,
+                Desc = "A pistol in each hand, firing in turn. Hits knock tiny health orbs loose. Alt: Laser Sights, both guns fire together down two red beams that meet at your cursor, for harder rounds.",
+                Sound = Sfx.ShotPistol },
             // DPS
             new WeaponDef { Id = WeaponId.TwinRifle, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, Speed = 820f, Life = 0.7f, Damage = 4f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.125f,
                 Desc = "Two streams from wide-set barrels, angled to cross at your cursor. Hits where they cross are crossfire and do 1.5×.",

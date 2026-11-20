@@ -639,6 +639,8 @@ namespace Arena
                 bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f + (Game.IsTwinRifle(owner.Weapon.Id) ? Game.TwinMuzzleOut + 30f : 0f);  // (the Twin Rifle's rounds start out at its wide-held muzzles, 30 px to each side)
                 if (fromGun && owner.Weapon.Id == WeaponId.Revolver && b.Kind == Defs.HealerShot)
                     OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
+                else if (fromGun && owner.Weapon.Id == WeaponId.TwinPistols && b.Kind == Defs.HealerShot)
+                    OnTwinPistolShot(owner, b);  // which gun fired, its flash and casing (TwinPistolsLook.cs)
                 else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
                     OnTankGunShot(owner, b);  // the Tank guns' flash, smoke and brass (TankGunLooks.cs)
                 else if (fromGun && (Game.IsTwinRifle(owner.Weapon.Id) && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.BurstSmg && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.Railgun && b.Kind == Defs.RailShot))
