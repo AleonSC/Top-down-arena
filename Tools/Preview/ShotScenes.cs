@@ -2405,6 +2405,14 @@ static partial class Shot {
         var ar = xg.CurrentWorld.Areas[xi++ % xg.CurrentWorld.Areas.Length];
         en.Pos = en.Disp = xg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.X - 120f), ar.Min.Y + 50f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.Y - 100f)), en.Radius);
       }
+      string xlink = Environment.GetEnvironmentVariable("EXPANDLINK");  // EXPANDLINK=ax,ay,bx,by: that portal pair built (no checks), you standing by its first end
+      if (xlink != null) {
+        var lq = Array.ConvertAll(xlink.Split(','), int.Parse);
+        var ln = new PortalLink { AX = (short)lq[0], AY = (short)lq[1], BX = (short)lq[2], BY = (short)lq[3] };
+        xg.Links.Add(ln); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+        V2 lin = xg.ExpansionWorld.Portals[xg.ExpansionWorld.Portals.Length - 1].InA;
+        int pi3 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = ln.A + lin * (160f + 40f * pi3) + lin.Orthogonal() * (60f * pi3); pi3++; }
+      }
       if (Environment.GetEnvironmentVariable("EXPANDPORTAL") != null) {  // EXPANDPORTAL=1: the best portal pair built, you standing by one end
         var bl = Expansion.BestLink(xg.ExpansionWorld, 0);
         if (bl.HasValue) {
