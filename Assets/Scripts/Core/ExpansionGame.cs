@@ -567,21 +567,63 @@ namespace Arena
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
                 return;
             string why;
-            int price = Expansion.LinkPrice(ExpansionWorld, Links.Count, l, out why);
             if (p.Stash[(int)BuildKind.Teleporter] == 0)
             {
                 DoLog("portal refused (no teleporter in your stash: buy one at the Black Market)");
                 return;
             }
-            if (price <= 0)
+            if (!Expansion.LinkFits(ExpansionWorld, Links.Count, l, out why))
             {
                 DoLog("portal refused (" + why + ")");
                 return;
             }
             p.Stash[(int)BuildKind.Teleporter]--;  // (a teleporter pair from the stash: no vectors)
-            var linkRoom = Expansion.LinkProposal(l, 0);
+            var linkRoom = Expansion.LinkProposal(l);
             linkRoom.Owner = id;
             BuildNow(id, linkRoom, null);
+            SendSnapshot();
+        }
+
+        /// This game's player dismantles the portal pair with an end at this wall spot (the pair goes back to their stash).
+        public void ProposeUnlink(V2 end)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostUnlink(MyId, end);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandUnlink);
+            pw.Write((short)end.X); pw.Write((short)end.Y);
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandUnlink(int peer, BinaryReader r) => HostUnlink(peer, new V2(r.ReadInt16(), r.ReadInt16()));
+
+        /// Host, in a build round: the pair with an end at `end` is taken down and its teleporter goes to the dismantler's stash.
+        void HostUnlink(int id, V2 end)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            int at = -1;
+            for (int i = 0; i < Links.Count && at < 0; i++)
+                if (Links[i].A.CloserThan(end, 1f) || Links[i].B.CloserThan(end, 1f))
+                    at = i;
+            if (at < 0)
+            {
+                DoLog("dismantle refused (no portal pair there)");
+                return;
+            }
+            Links.RemoveAt(at);
+            p.Stash[(int)BuildKind.Teleporter]++;
+            expWorld = null;
+            LayoutAge = 0f;
+            RaiseRoomsNow();
+            DoLog("portal pair dismantled by " + p.Name + " (back to their stash)");
+            Sounds.Add(Sfx.Pick);
+            BroadcastExpansion();
             SendSnapshot();
         }
 
@@ -605,7 +647,6 @@ namespace Arena
             else if (room.Kind == Arena.RoomKind.Link)
             {
                 Links.Add(Expansion.LinkOf(room));
-                PayVectors(Players[pick], room.Price);
                 DoLog("portal pair built by " + Players[pick].Name);
             }
             else
