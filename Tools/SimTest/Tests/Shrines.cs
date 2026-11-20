@@ -84,13 +84,15 @@ static partial class Program
         Run(s, dt, 0.5f, () => cg.Nodes.Count == g.Nodes.Count, noPicks);
         Check(cg.Nodes.SequenceEqual(g.Nodes), "the client gets the room chests");
 
-        // A new boss cycle places only health shrines.
+        // A new boss cycle places health shrines and its faction's relic nodes (Relics.cs).
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
         typeof(Game).GetField("floatCycle", flags).SetValue(g, -1);
         int nodes2 = g.Nodes.Count;
         placeFloating.Invoke(g, null);
         var fresh = g.Nodes.Skip(nodes2).ToList();
-        Check(fresh.Count >= 1 && fresh.All(nd => nd.Kind == NodeKind.Shrine), "a boss cycle places only health shrines (" + fresh.Count + ")");
+        var freshRelics = fresh.Where(nd => nd.Kind == NodeKind.Relic).ToList();
+        Check(fresh.Count >= 1 && fresh.All(nd => nd.Kind == NodeKind.Shrine || nd.Kind == NodeKind.Relic) && fresh.Any(nd => nd.Kind == NodeKind.Shrine), "a boss cycle places health shrines and relic nodes only (" + fresh.Count + ")");
+        Check(freshRelics.Count >= 1 && freshRelics.Count <= 3 && freshRelics.All(nd => Relics.IsFaction(Relics.Held(nd)) && Relics.FactionOf(Relics.Held(nd)) == ((g.Wave - 1) / Expansion.Milestone) % 10 && freshRelics.Count == Relics.PerFaction[((g.Wave - 1) / Expansion.Milestone) % 10]), "a cycle places its boss faction's relic nodes (" + freshRelics.Count + " wave " + g.Wave + " faction " + string.Join(",", freshRelics.Select(nd => Relics.FactionOf(Relics.Held(nd)))) + ")");
 
         // A shrine claimed in a room: once per player, full health plus half of max past it; damage takes that first; going down loses it.
         var room = g.Expanded.First(r => r.Piece != 0 || r.Owner != 0);

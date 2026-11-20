@@ -284,9 +284,9 @@ static partial class Program
         Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, Black Market or Gatekeeper)");
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
-        Check(g.Nodes.Count(n => n.Kind == NodeKind.Shrine) >= 1 && newNodes.All(n => n.Kind == NodeKind.Shrine)
+        Check(g.Nodes.Count(n => n.Kind == NodeKind.Shrine) >= 1 && newNodes.All(n => n.Kind == NodeKind.Shrine || n.Kind == NodeKind.Relic)
               && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
-            "a new cycle places only health shrines (owner Nov 20; no chest, relic or rule nodes), none fogged, the same on the client");
+            "a new cycle places health shrines and its faction's relic nodes (owner Nov 20; no chest or rule nodes), none fogged, the same on the client");
         placeFloating.Invoke(g, null);
         Check(g.Expanded.Count == allNow && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         // A sealed room waiting on the lattice (the cycle's mini-boss room, GridPieces.cs): no crowd, no spawns, until a piece reaches it.
@@ -434,7 +434,7 @@ static partial class Program
         {
             var rolled = new HashSet<RelicId>();
             for (int x = 0; x < 40; x++) rolled.Add(Relics.ForNode(new MapNode { X = (short)(x * 100 + 50), Y = (short)(x * 300 - 650), Kind = NodeKind.Relic }));
-            Check(rolled.Count == Relics.Count && !rolled.Contains(RelicId.None), "relic nodes roll every relic across spots (" + rolled.Count + ")");
+            Check(rolled.Count == Relics.Classic && !rolled.Contains(RelicId.None), "unset relic nodes roll each classic relic across spots (" + rolled.Count + ")");
             var rn = new MapNode { X = 1250, Y = -650, Kind = NodeKind.Relic };
             var keepRel = g.Players.Values.ToDictionary(q => q.Id, q => q.Relic);
             Check(Relics.Held(rn) == Relics.ForNode(rn) && Relics.Held(new MapNode { X = rn.X, Y = rn.Y, Kind = NodeKind.Relic, Drop = (byte)((int)RelicId.Backup + 1) }) == RelicId.Backup, "a node holds the relic left in it, else the rolled one");

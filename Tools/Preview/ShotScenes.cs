@@ -2247,15 +2247,16 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("SHRINEUSED") != null) foreach (var pl in xg.Players.Values) pl.ShrinesUsed = ulong.MaxValue;  // SHRINEUSED=1: everyone has used every health shrine (ShrineLook.cs)
       string overHp = Environment.GetEnvironmentVariable("OVERHP");  // OVERHP=<n>: everyone carries n health past max from a shrine (the HUD's gold, the gold ring)
       if (overHp != null) foreach (var pl in xg.Players.Values) pl.OverHp = float.Parse(overHp, System.Globalization.CultureInfo.InvariantCulture);
+      if (Environment.GetEnvironmentVariable("RELICSHEET") != null) { ArenaApp.PreviewRelicSheet = true; ArenaApp.PreviewRelicPage = int.Parse(Environment.GetEnvironmentVariable("RELICSHEET")); }  // RELICSHEET=0|1 (page): the relic artefact sheet beside the map (RelicLook.cs; mode hud ZOOM=1 CAMAT=640,470)
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
-      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
+      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null || Environment.GetEnvironmentVariable("RELICPED") != null) {  // RELICPED=<RelicId number>: the same room with that faction relic waiting on its pedestal (unspent)  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
-        ArenaApp.PreviewOpenAge = float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
+        string ped = Environment.GetEnvironmentVariable("RELICPED"); ArenaApp.PreviewOpenAge = ped != null ? 0f : float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
         ExpansionRoom? rr = null;
         for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Box(rx, ry, 600, 600); if (cand.HasValue) rr = cand; }
         if (rr.HasValue) {
           xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = ped == null, Rule = ped != null ? (byte)(int.Parse(ped) + 1) : (byte)0 }; xg.Nodes.Add(rn);
           foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
         }
       }

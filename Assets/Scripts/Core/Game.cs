@@ -406,6 +406,7 @@ namespace Arena
                 p.Stats.DmgMult *= WildcardDmgMult;  // the price of mixing classes
                 p.Stats.CdMult *= WildcardCdMult;
             }
+            Relics.Apply(p.Relic, p.Stats);  // Relics.cs
             ApplyStatOverrides(p);
             p.VectorCap = VectorCapBase + p.Stats.VectorCap;  // the Expanding arena's vector cap (ExpansionGame.cs)
             float oldMax = p.MaxHp;

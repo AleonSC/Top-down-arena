@@ -288,6 +288,7 @@ namespace Arena
                 added = true;
                 DoLog("a health shrine node appears at " + nd.Value.X + "," + nd.Value.Y);
             }
+            added |= PlaceRelicNodes(cycle);  // Relics.cs: this cycle's boss faction's relics
             added |= PlaceGridMini(cycle);  // GridPieces.cs: a Grid run's mini-boss waits on the lattice
             if (added)
             {

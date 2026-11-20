@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 432: faction relics (Docs/RelicNodes.md): `RelicId` gains 20 values (before `None`, so `None` is now 23) in `Player.Relic`, the saved `relic` line and a relic node's `Drop`; a relic node's `Rule` is its relic + 1 (same wire format); relic nodes are placed 1-3 a boss cycle
 - 431: Stampede (`ZoneKind.Stampede`, `AbilityId.Stampede`): a Stampede zone sends its `Marched` float after the common zone fields (as a Bone Phalanx does before its bones)
 - 430: weapon skins: `Msg.Cosmetics` and each `Msg.Lobby` entry end with a count and (weapon, skin index) byte pairs (`Expertise.Pack`); `Sfx.ChickCut1` … `ChickCatch` (the Rubber Chicken sound pack) added at the end.
 - 429: Spirit Chalk ignite: `Msg.WeaponDash` kind 47 (`DashIgnite`); a snapshot ink dot's pen short carries a lit flag (bit 14, pen id now 14 bits)
