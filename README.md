@@ -1173,7 +1173,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Buildables** (pink, blueprint grid, a wrench: every player gets their own Black Market build card, a kind with room under the 5 cap, to **take** into their stash or **discard**) or **Upgrade** (green, chevrons: every
   player gets their own item, like a wave chest). It opens once and never holds the wave up. No cover stands on a node. Nothing respawns: new ones
   appear around the current map. A **vector chest** is the other inner-tier kind alongside Gold (cyan, chevrons on the base and the vector arrow on the lock). Every chest node holds a real treasure chest, vector chests included: once a room encloses one, touch it and it bursts open (flash, rings, the lid up, the vector arrow climbing out and shooting off) into 4 vector pickups (24 vectors) that fly to the nearest player. Nothing drops within 10 tiles of the start room.
-  Bots build toward a rule node's room, then chest and relic nodes (and an old save's sealed rooms; they don't walk to chests' loot).
+  Bots build toward chest and relic nodes (and an old save's sealed rooms; they don't walk to chests' loot).
   Old saves with shop or Black Market nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (a violet diamond; once claimed, a violet **Relic chest** with cut corners and a gem on the lock). Build a room round it and walk up to
   it: **you** get its relic in your **relic slot** (one each, never shared; it stays for the run, saves included). If your slot was full, your **old relic is left in the node** in its place for anyone to take (walk away and back to swap again). Relics are
@@ -1182,12 +1182,6 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
     Enemy shots, grenades and other lobbed shots, and stuck shuriken don't bounce.
   - **Backup**: the first time you would go down, you get straight back up with half your health and 2 s of grace. Then it's gone (your slot is empty).
   - **Hallway Runner**: you move 25% faster in hallways (boxes 3 tiles wide or less).
-- **Rule nodes** (in progress, Docs/RuleRooms.md): a **rule node** is no longer placed by default (owner Nov 18; the first cycle rings the hub with chest and relic nodes instead), but where one exists it is (an orange square, 8 x 8 tiles, off to the left or right of the
-  map). Only a room that **encloses all of it** (at least 9 x 9 tiles; a drawn outline of any shape counts as one room) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
-  Burning, Swarm or Elite. The room you build round it takes that path's ground and rule **in that room only** (Dark: you only see about 350 px round you; Frozen: ice;
-  Blood Moon: no regeneration or orbs, kills heal; Burning: fire patches; Swarm: a doubled melee crowd; Elite: a doubled all-elite crowd). Clear a wave there and it pays:
-  a **chest** (Dark, Burning, Swarm, Elite), a **relic** to walk up to (Blood Moon) or **gold and vectors** at once (Frozen).
-  (The Gatekeeper has its own room, below.)
 - **Map reset (Campaign)**: every boss you clear starts a **fresh map**. The rooms, openings, portals, gates, traps,
   nodes and mystery doors go, and the team stands in the bare hub again, so a 100-wave run plays on ten maps of about ten
   waves each. First the **KEEP ONE ROOM** vote opens (15 s, it holds the break): every room is a card with its outline to scale,

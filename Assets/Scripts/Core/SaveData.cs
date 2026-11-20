@@ -135,7 +135,7 @@ namespace Arena
                 foreach (var k in Kits)
                     Line(sb, "kit", k.Kind + " " + k.Floor);
                 foreach (var nd in Nodes)
-                    Line(sb, "node", nd.Kind + " " + nd.X + " " + nd.Y + " " + (nd.Spent ? 1 : 0) + " " + nd.Rule + " " + (nd.Cleared ? 1 : 0) + " " + (nd.Hidden ? 1 : 0) + " " + nd.Drop);
+                    Line(sb, "node", nd.Kind + " " + nd.X + " " + nd.Y + " " + (nd.Spent ? 1 : 0) + " " + nd.Rule + " 0 " + (nd.Hidden ? 1 : 0) + " " + nd.Drop);  // (field 5 was a rule node's Cleared; kept as 0 so older saves still line up)
             }
             foreach (var s in Seats)
             {
@@ -258,9 +258,9 @@ namespace Arena
                         case "node":
                         {
                             var p = val.Split(' ');
-                            NodeKind nk;  // (an older save's vector chest, scout tower and gold vein nodes are chest nodes now; its shop and Black Market nodes are gone, and so are skipped)
+                            NodeKind nk;  // (an older save's vector chest, scout tower and gold vein nodes are chest nodes now; its shop, Black Market and rule nodes are gone, and so are skipped)
                             if (System.Enum.TryParse(p[0] == "VectorChest" || p[0] == "Tower" || p[0] == "Vein" ? "Chest" : p[0], out nk))
-                                save.Nodes.Add(new MapNode { Kind = nk, X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Cleared = p.Length > 5 && I(p[5]) != 0, Hidden = p.Length > 6 && I(p[6]) != 0, Drop = (byte)(p.Length > 7 ? I(p[7]) : 0) });
+                                save.Nodes.Add(new MapNode { Kind = nk, X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0, Rule = (byte)(p.Length > 4 ? I(p[4]) : 0), Hidden = p.Length > 6 && I(p[6]) != 0, Drop = (byte)(p.Length > 7 ? I(p[7]) : 0) });
                             break;
                         }
                         case "cut":

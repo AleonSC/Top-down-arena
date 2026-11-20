@@ -26,10 +26,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Chest, Relic, Rule, BreachLoot }  // (a chest node holds a treasure chest, Props.cs SpawnChest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md; a scout tower and a gold vein: NodeScouting.cs)
-
-    /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
-    public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
+    public enum NodeKind : byte { Chest, Relic, BreachLoot }  // (a chest node holds a treasure chest, Props.cs SpawnChest, Docs/Chests.md; a relic fills the relic slot of the player who walks up to it and takes their old relic's place, Relics.cs; a scout tower and a gold vein: NodeScouting.cs)
 
     /// A point on the Expanding map, at the centre of a 100 px tile: locked until a built room encloses it, then a fixture of that room.
     public struct MapNode : IEquatable<MapNode>
@@ -37,11 +34,10 @@ namespace Arena
         public short X, Y;
         public NodeKind Kind;
         public bool Spent;   // a chest that has been opened
-        public byte Rule;    // a rule node: its NodeRule
-        public bool Cleared; // a rule node whose claimed room has been through a wave: its prize is out (Docs/RuleRooms.md)
+        public byte Rule;    // a Breach loot node: its kind (Engineer.cs)
         public bool Hidden;  // fogged: its kind shows as "?" (off since Nov 18; NodeScouting.cs clears an old save's)
         public byte Drop;    // a relic node: the relic a player left in it, as RelicId + 1 (0: it still holds the relic rolled from its spot; Relics.cs)
-        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared && Hidden == o.Hidden && Drop == o.Drop;
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Hidden == o.Hidden && Drop == o.Drop;
         public V2 Pos => new V2(X, Y);
     }
 
@@ -260,28 +256,6 @@ namespace Arena
         public const int NodeApart = 800;                 // and at least this far from every other node
         public const int MaxNodesWaiting = 8;             // unclaimed nodes on the map at once
 
-        public const int RuleHalf = 400;  // a rule node covers 8 x 8 tiles round its point; the claiming room must enclose all of it
-
-/// The ground a rule node's room takes on: the old path whose rule it carries (Dark is Fogbound).
-        public static PathId RuleFloor(byte rule)
-        {
-            switch ((NodeRule)rule)
-            {
-                case NodeRule.Dark: return PathId.Fogbound;
-                case NodeRule.Frozen: return PathId.FrozenLake;
-                case NodeRule.BloodMoon: return PathId.BloodMoon;
-                case NodeRule.Burning: return PathId.BurningGrounds;
-                case NodeRule.Swarm: return PathId.SwarmFields;
-                default: return PathId.EliteGauntlet;
-            }
-        }
-
-        /// A cleared rule room's prize: a chest (Dark, Burning, Swarm, Elite), a relic (Blood Moon) or gold and vectors paid at once (Frozen).
-        public static bool RuleHoldsChest(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule != NodeRule.Frozen && (NodeRule)n.Rule != NodeRule.BloodMoon;
-        public static bool RuleHoldsRelic(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule == NodeRule.BloodMoon;
-
-        public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
-
         /// A chest node's kind (Props.cs ChestKind), by its tier (NodeTier): inner Gold or Vector (a coin seeded from the spot), middle Piece chest or Buildables
         /// (Buildables with room cards off), outer Upgrade.
         public static ChestKind NodeChestKind(int seed, int x, int y, bool cards)
@@ -333,8 +307,7 @@ namespace Arena
 
         public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1)
         {
-            int h = NodeHalf(n);
-            return n.X - h > x0 && n.X + h < x1 && n.Y - h > y0 && n.Y + h < y1;
+            return n.X > x0 && n.X < x1 && n.Y > y0 && n.Y < y1;
         }
 
         /// Can this built room claim a node round it (any built room that encloses it)?
@@ -347,28 +320,7 @@ namespace Arena
             var r = rooms[index];
             if (r.Floating)
                 return false;
-            if (NodeEncloses(r, n))
-                return true;
-            int h = NodeHalf(n);
-            if (h == 0 || n.X + h <= r.X || n.X - h >= r.X1 || n.Y + h <= r.Y || n.Y - h >= r.Y1)
-                return false;
-            var group = GroupOf(rooms, index);
-            if (group.Count < 2)
-                return false;
-            // Every tile centre of the area (nodes sit on tile centres, walls on the grid) lies inside one of the room's boxes.
-            for (int y = n.Y - h; y <= n.Y + h; y += Step)
-                for (int x = n.X - h; x <= n.X + h; x += Step)
-                {
-                    bool inBox = false;
-                    foreach (int i in group)
-                    {
-                        var b = rooms[i];
-                        if (!b.Floating && x > b.X && x < b.X1 && y > b.Y && y < b.Y1) { inBox = true; break; }
-                    }
-                    if (!inBox)
-                        return false;
-                }
-            return true;
+            return NodeEncloses(r, n);
         }
 
         /// The nodes whose fixture stands in the middle of the room that claims them (owner Nov 18): chests, vector chests and relics.
@@ -1237,23 +1189,6 @@ namespace Arena
                     foreach (var d in doors)
                         open |= d.Joins(a);
                     areas[a].Sealed = !open;
-                }
-            if (nodes != null)  // a built room that encloses a rule node takes that rule's ground (Docs/RuleRooms.md); a multi-box room all of it
-                foreach (var nd in nodes)
-                {
-                    if (nd.Kind != NodeKind.Rule)
-                        continue;
-                    for (int a = 1; a < n; a++)
-                        if (areas[a].Kind == RoomKind.Combat && NodeEnclosedBy(rooms, a - 1, nd))
-                        {
-                            for (int b = 1; b < n; b++)
-                                if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
-                                {
-                                    areas[b].Kind = RoomKind.Floor;
-                                    areas[b].Floor = RuleFloor(nd.Rule);
-                                }
-                            break;
-                        }
                 }
             var cover = new List<Solid>();
             for (int a = 1; a < n; a++)
