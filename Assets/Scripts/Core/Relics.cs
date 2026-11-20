@@ -68,7 +68,7 @@ namespace Arena
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
-                if (nd.Kind != NodeKind.Relic && !(Expansion.RuleHoldsRelic(nd) && nd.Cleared) || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
+                if (nd.Kind != NodeKind.Relic || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
                     continue;
                 var r = Relics.Held(nd);
                 Player taker = null;

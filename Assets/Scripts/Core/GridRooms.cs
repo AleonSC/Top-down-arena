@@ -124,7 +124,7 @@ namespace Arena
                         if (NodeTier((int)o.Mid.X, (int)o.Mid.Y) < tier)
                             return false;
                         foreach (var nd in nodes)
-                            if (nd.Pos.DistanceTo(o.Mid) < NodeApart + NodeHalf(nd))
+                            if (nd.Pos.DistanceTo(o.Mid) < NodeApart)
                                 return false;
                         return true;
                     });

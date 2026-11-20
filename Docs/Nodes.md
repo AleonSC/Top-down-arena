@@ -131,3 +131,5 @@ Hallways (3 tiles wide or less) are the exception: their chest stays where it wa
 - Look (`Game/ShrineLook.cs`): ghost marker with a green cross; claimed: octagon stone plinth, four lit corner posts, a floating cross over a glow with rising motes and a walk-up ring; grey and still once you've used it. HUD: gold "+n" after max, a gold strip over the health cells; a gold ring with turning ticks round a player carrying it.
 - Wire: `NodeKind.Shrine` (end of the enum), `Player.OverHp` and `ShrinesUsed` in the player snapshot. Tests: suite `shrines`.
 - Open: the numbers (30%, the weights, 50%) are first guesses; bots don't seek shrines out (they build toward them like any node).
+
+**Nov 20 (owner): no rule nodes.** `NodeKind.Rule`, `NodeRule`, `MapNode.Cleared`, `ClearRuleRooms`, the rule floor in `Expansion.Build`, `RuleHalf`/`NodeHalf` (every node is a point again) and the rule node's look are gone; nodes are now Chest, Relic and BreachLoot. Protocol 428; an old save's rule node is skipped on load.

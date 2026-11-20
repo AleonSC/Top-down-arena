@@ -286,7 +286,7 @@ static partial class Program
         Check(g.Expanded.Count == allNow && cg.Expanded.Count == allNow && Expansion.BoughtCount(g.Expanded) == boughtNow, "a new boss cycle places no floating rooms (no shop, Black Market or Gatekeeper)");
         var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
         int newCount = newNodes.Count;
-        Check(!g.Nodes.Any(n => n.Kind == NodeKind.Rule) && g.Nodes.Count(n => n.Kind == NodeKind.Shrine) >= 1 && newNodes.All(n => n.Kind == NodeKind.Shrine)
+        Check(g.Nodes.Count(n => n.Kind == NodeKind.Shrine) >= 1 && newNodes.All(n => n.Kind == NodeKind.Shrine)
               && newNodes.All(n => !n.Hidden) && cg.Nodes.SequenceEqual(g.Nodes),
             "a new cycle places only health shrines (owner Nov 20; no chest, relic or rule nodes), none fogged, the same on the client");
         placeFloating.Invoke(g, null);
@@ -466,7 +466,7 @@ static partial class Program
         // Nodes survive a saved run (where they are placed: GridNodeFor, the gridrooms suite).
         {
             var saved = new RunSave { Wave = 6, HasExpansion = true };
-            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Rule });
+            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Chest });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
             saved.Nodes.Add(new MapNode { X = 2850, Y = -650, Kind = NodeKind.Relic, Hidden = true });
             saved.Seats.Add(new SeatSave());
@@ -826,51 +826,6 @@ static partial class Program
                 for (int k = 0; k < 4 && p.Offer != null; k++) hostPick.Invoke(g, new object[] { p.Id, 0, 0 });
             g.SetMyReady(true);
             Check(g.Me.PrizePicks == 0 && g.Me.Ready, "after picking it, Ready works between waves");
-        }
-
-        // A rule node is a big area: only a room that encloses all of it claims it.
-        {
-            var rn = RuleNodeMap(out var rplan);
-            Check(!Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 250, Y = rn.Y - 250, W = 500, H = 500 }, rn) && !Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 400, Y = rn.Y - 400, W = 800, H = 800 }, rn)
-                && Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 450, Y = rn.Y - 450, W = 900, H = 900 }, rn), "a 5 x 5 or 8 x 8 room round a rule node does not claim it, a 9 x 9 room does (the whole area must be inside the walls)");
-            Check(Expansion.NodeClaimed(rplan, rn), "a 2 x 2 cell piece round it claims it");
-        }
-
-        // A claimed rule room takes the rule's ground, and its prize comes out when a wave is cleared.
-        {
-            MapNode? rn = RuleNodeMap(out var plan);
-            {
-                var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
-                foreach (NodeRule rule in System.Enum.GetValues(typeof(NodeRule)))
-                {
-                    var nd = rn.Value; nd.Rule = (byte)rule;
-                    var wld = Expansion.Build(plan, null, null, new List<MapNode> { nd });
-                    var rule1 = wld.Areas.Skip(1).Where(a => a.Kind == RoomKind.Floor && a.Floor == Expansion.RuleFloor(nd.Rule)).ToList();
-                    Check(rule1.Count >= 1, "a room round a " + rule + " node has " + Expansion.RuleFloor(nd.Rule) + " ground");
-                }
-                var wUn = Expansion.Build(plan.Take(plan.Count - 1).ToList(), null, null, new List<MapNode> { rn.Value });
-                Check(wUn.Areas.All(a => a.Kind != RoomKind.Floor), "the map without it has no rule room");
-                var clearRules = typeof(Game).GetMethod("ClearRuleRooms", flags);
-                var tickNodes2 = typeof(Game).GetMethod("TickNodes", flags);
-                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(plan); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
-                var frozen = rn.Value; frozen.Rule = (byte)NodeRule.Frozen;
-                var dark = rn.Value; dark.Rule = (byte)NodeRule.Dark;
-                g.Nodes.Add(frozen);
-                int gold0 = g.Players.Values.Sum(p => p.Gold);
-                clearRules.Invoke(g, null);
-                Check(g.Nodes[0].Cleared && g.Nodes[0].Spent && g.Players.Values.Sum(p => p.Gold) > gold0, "clearing a Frozen rule room pays gold at once and spends the node");
-                int gold1 = g.Players.Values.Sum(p => p.Gold);
-                clearRules.Invoke(g, null);
-                Check(g.Players.Values.Sum(p => p.Gold) == gold1, "and only once");
-                g.Nodes.Clear(); g.Nodes.Add(dark);
-                tickNodes2.Invoke(g, null);
-                Check(!g.Props.Values.Any(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f), "a Dark rule room holds no chest before it is cleared");
-                clearRules.Invoke(g, null);
-                tickNodes2.Invoke(g, null);
-                Check(g.Nodes[0].Cleared && !g.Nodes[0].Spent && g.Props.Values.Count(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f) == 1, "and one chest at the node once it is");
-                foreach (var q in g.Props.Values.Where(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f).ToList()) g.Props.Remove(q.Id);
-                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(saveRooms); gg.Nodes.Clear(); gg.Nodes.AddRange(saveNodes); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
-            }
         }
 
         // No fog (owner, Nov 18): nodes are placed in plain view, and an old save's fogged node clears at once; a retired tower or vein in an old save is a chest.
@@ -1336,15 +1291,6 @@ static partial class Program
         g.ApplyRoomToken(0, 0);
         Check(g.Expanded[0].Kind == RoomKind.Shop && g.RoomTokens.Count == 0, "a Shop kit makes a shop room");
         g.ExpandOpen = false; cg.ExpandOpen = false;
-    }
-
-    /// Test helper: the Grid core with a 2 x 2 cell piece east of it, and a rule node at that piece's middle (claimed by it).
-    static MapNode RuleNodeMap(out List<ExpansionRoom> plan)
-    {
-        plan = GridMap(PieceShape.TetO);
-        var r = plan[plan.Count - 1];
-        int x0 = plan.Skip(4).Min(q => q.X), y0 = plan.Skip(4).Min(q => q.Y), x1 = plan.Skip(4).Max(q => q.X1), y1 = plan.Skip(4).Max(q => q.Y1);
-        return new MapNode { X = (short)((x0 + x1) / 2), Y = (short)((y0 + y1) / 2), Kind = NodeKind.Rule };
     }
 
 }

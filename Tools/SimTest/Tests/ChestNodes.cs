@@ -103,14 +103,14 @@ static partial class Program
             new MapNode { X = (short)(W + 150), Y = 350, Kind = NodeKind.Chest },
             new MapNode { X = (short)(W + 850), Y = 550, Kind = NodeKind.Relic },
             new MapNode { X = (short)(W + 150), Y = 550, Kind = NodeKind.Chest },
-            new MapNode { X = (short)(W + 850), Y = 350, Kind = NodeKind.Rule },
+            new MapNode { X = (short)(W + 850), Y = 350, Kind = NodeKind.BreachLoot },
             new MapNode { X = (short)(W + 5000), Y = 450, Kind = NodeKind.Chest },  // (nobody has built round it)
         };
         var mid = new V2(W + 500f, 450f);
         var wd = Expansion.Build(built, null, null, nodes);
         Check(wd.NodeSpots != null && wd.NodeSpots.Length == nodes.Count, "the world gives every node a spot");
         Check(wd.NodeSpots[0].Equals(mid) && wd.NodeSpots[1].Equals(mid) && wd.NodeSpots[2].Equals(mid), "a claimed chest, relic and second chest stand in the room's middle");
-        Check(wd.NodeSpots[3].Equals(nodes[3].Pos) && wd.NodeSpots[4].Equals(nodes[4].Pos), "a shop node and an unclaimed chest stay where they are");
+        Check(wd.NodeSpots[3].Equals(nodes[3].Pos) && wd.NodeSpots[4].Equals(nodes[4].Pos), "a Breach loot node and an unclaimed chest stay where they are");
         // Owner Nov 19: in a grid room the node stands in the middle of the cell it was built in (a 2 x 2 room: one of its four cells, not the room's middle).
         int gx = Expansion.GridX0 + 4 * Expansion.GridCell, gy = Expansion.GridY0, c = Expansion.GridCell;
         var grid = new List<ExpansionRoom> { Box(gx, gy, 2 * c, 2 * c).Value };

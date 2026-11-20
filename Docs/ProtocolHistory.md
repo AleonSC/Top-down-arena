@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 428: Spirit Chalk ignite: `Msg.WeaponDash` kind 47 (`DashIgnite`); a snapshot ink dot's pen short carries a lit flag (bit 14, pen id now 14 bits)
+- 428: `NodeKind` drops Rule (now Chest, Relic, BreachLoot, Shrine: Shrine and BreachLoot renumber) and `MapNode` drops `Cleared`: the node kind byte renumbers and `Msg.ExpandState`'s per-node bytes lose the `Cleared` bool (saves keep a 0 in that field)
 - 427: `Msg.ExpandUnlink` (x, y shorts): dismantle a portal pair in a build round, its teleporter returns to the stash; a portal `ExpansionRoom` proposal no longer carries a price.
 - 426: `NodeKind.Shrine` (health shrines); the player snapshot gains `OverHp` and `ShrinesUsed` (Shrines.cs).
 - 425: gadget bag: `Player` snapshot adds 4 `(GadgetId byte, float left)` bag slots after `GadgetOn`; `GadgetId.Recall` added (`GadgetId.None` is now 2); `Msg.Gadget` action 2 (take bag slot `at.X` into the hand); `ChestKind.Gadget` added.
