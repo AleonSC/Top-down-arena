@@ -2189,7 +2189,9 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **G** takes it and **B** throws it away (the wave waits for it, like a chest's). Only
   upgrades their build could be offered are clickable (greyed: another class, a missing ability or weapon). Marks the run as a dev run.
-- **PARTY > ITEMS & CHESTS… (host, in a run):** pick whose it is with several players. Click a gadget (Magnet, Recall, Energy Drink) and a full
+- **PARTY > ITEMS & CHESTS… (host, in a run):** pick whose it is with several players. **GOLD +10 / +50 / +250 / +1000** and **VECTORS
+  +1 / +5 / +20 / +100** scatter that much in front of them as their own coins or vector pickups: walk over them (a full vector wallet
+  leaves vectors lying). Click a gadget (Magnet, Recall, Energy Drink) and a full
   one drops in front of that player as their own copy: walk onto it to pick it up. Click a chest (Upgrade, Gold, Vector, Relic, Piece,
   Buildables, Gadget) and one stands in front of them, opened like any chest (everyone gets their own item); it doesn't hold the wave. Click a relic (every one, by boss faction) and it goes
   straight into their relic slot, replacing the old one (hover for what it does); **REMOVE RELIC** empties the slot. Marks the run as a dev run.
