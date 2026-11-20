@@ -74,6 +74,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.DeployableCover, MaxStacks = 2, Name = "Reinforced Plating", Desc = "Deployable Cover takes 40% more damage, and one more can stand at once",
                 Apply = s => { s.CoverHpMult += 0.4f; s.CoverExtra += 1; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.DeployableTurret, MaxStacks = 2, Name = "Overclocked Barrels", Desc = "Deployable Turret rounds hit 25% harder, and it fires 2 s longer",
+                Apply = s => { s.DtDmgMult += 0.25f; s.DtBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.DecoyDummy, MaxStacks = 2, Name = "Double-Ply", Desc = "Decoy Dummy has 50% more health",
                 Apply = s => s.DecoyHpMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MendPulse, MaxStacks = 2, Name = "Greater Mending", Desc = "Mend Pulse heals 60% more and reaches 25% farther",
@@ -225,6 +227,13 @@ namespace Arena
                 Name = "Mark for Death", Cooldown = 12f, Desc = "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s.",
                 Capstone = "Marks the three enemies nearest your cursor.",
                 Bot = b => b.HaveTarget && !b.TargetMarked && b.TargetD < 700f,  // on the boss (or the team's focus), and not again while it's marked
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.DeployableTurret, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (DeployableTurret.cs)
+                Name = "Deployable Turret", Cooldown = DtCooldown, Desc = "Drop a heavy twin-barrel turret on your spot and climb in for 10 s: you can't move, and it fires instead of your weapon. Hold Fire and it turns onto your cursor, spooling up from 7 to 30 rounds a second of 22 damage that pierce 2 enemies. The seat takes 30% off the damage you take. It overheats and blows after, for 80 damage within 160 px.",
+                Capstone = "Fires 14 s, rounds pierce 4, and the blast does double.",
+                Bot = b => b.HaveTarget && b.NearEnemies >= 3 && b.TargetD < 480f,
             },
         };
     }
