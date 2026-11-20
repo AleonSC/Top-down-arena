@@ -58,6 +58,7 @@ namespace Arena
             { WeaponId.Kusarigama, 37f },
             { WeaponId.BoStaff, 48f },
             { WeaponId.FumaShuriken, 6f },
+            { WeaponId.Nodachi, 52f },
             { WeaponId.MedicineDarts, 50f },
             { WeaponId.SpiritFan, 75f },
             { WeaponId.Ofuda, 50f },

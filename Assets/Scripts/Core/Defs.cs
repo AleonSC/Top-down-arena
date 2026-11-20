@@ -148,6 +148,8 @@ namespace Arena
         IronFist, StasisGun, VectorBlade,
         // the Tank Summoner's fourth (WyvernStaff.cs): a wind Wyvern that blows enemies back, breathes fire and slams
         WyvernStaff,
+        // the Tank Ninja's fourth (Nodachi.cs): a katana as tall as you, two stances
+        Nodachi,
     }
 
     public class WeaponDef

@@ -165,6 +165,9 @@ namespace Arena
                         SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(Fanned(aim, i, n, StarFan)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (switching to the Great Star stance recalls them: GreatStar.cs)
                     break;
                 }
+                case WeaponId.Nodachi:
+                    FireNodachi(p, aim, dmg, extra);  // the next step of the stance you're in (Nodachi.cs)
+                    break;
                 case WeaponId.Nunchaku:
                     FireNunchaku(p, aim, dmg, extra);  // the Twin Storm combo, or the Twin Counter from the guard (Nunchaku.cs)
                     break;
@@ -296,6 +299,8 @@ namespace Arena
                 Desc = "Click for a never-ending chain of three swings: a cone slash, a jab, then a full spin that starts it over. Every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you and restarts the chain." },
             new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
                 Desc = "A giant spinning star thrown in a wide loop out in front of you and back, cutting through everything both ways." },
+            new WeaponDef { Id = WeaponId.Nodachi, Kit = Kit.Ninja, Role = Role.Tank, Choice = 3, Damage = 20f, Reach = 150f, Melee = true, BotRange = 140f, ExtraDesc = "+1 ring after Tenchi's slam, 45 px farther out (60%)", Name = "Nodachi", FireInterval = 0.3f,
+                Desc = "A katana as tall as you, with two stances on your weapon-action key, each with its own five-step combo that keeps its place. Arashi sweeps wide round you with armoured wind-ups and ends in Tenchi, a spin into a stunning slam. Mamori jabs fast and blocks shots in front of you while it does. Raising the parry starts both combos over." },
             // Healer
             new WeaponDef { Id = WeaponId.MedicineDarts, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
                 Desc = "Fast needles that dose what they hit. Enemies get poisoned and hurt allies get healed, and doses stack." },
@@ -359,6 +364,8 @@ namespace Arena
                 Apply = s => { s.KunaiBlinkMult += 0.4f; s.KunaiMarkBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Nunchaku }, MaxStacks = 2, Name = "Iron Links", Desc = "The Twin Windmill's discs are 25% wider, and each shot they swat adds 2 more to the Twin Counter",
                 Apply = s => { s.NunDiscMult += 0.25f; s.NunSwatBonus += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Nodachi }, MaxStacks = 2, Name = "Tamahagane", Desc = "The Nodachi's sweeps and Tenchi's ring reach 15% farther, and Mamori's jabs block shots in a 30° wider cone",
+                Apply = s => { s.NodReachMult += 0.15f; s.NodConeBonus += 30f; } },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
@@ -986,6 +993,8 @@ namespace Arena
                 return;  // the Honeybee Staff's honey spray, held (HoneybeeStaff.cs)
             if (LocalNunGuard(me, aimAt, pressed, dt))
                 return;  // the Nunchaku's guard switch (Nunchaku.cs)
+            if (LocalNodachi(me, aimAt, pressed, dt))
+                return;  // the Nodachi's stance switch, Nagi's walk and Hiki-zuki's hop (Nodachi.cs)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
             {
                 byte whirlKind = pressed ? DashWhirlOn : DashWhirlOff;
@@ -1316,6 +1325,11 @@ namespace Arena
             if (kind == DashFork)
             {
                 HostForkVolley(p, target);  // Arc Lightning's Forked Volley (ArcLock.cs)
+                return;
+            }
+            if (kind == DashNodStance)
+            {
+                HostNodSwitch(p);  // the Nodachi's Storm to Guard and back (Nodachi.cs)
                 return;
             }
             if (kind == DashNunGuard)
