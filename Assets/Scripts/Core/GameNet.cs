@@ -1157,6 +1157,8 @@ namespace Arena
                 for (int i = 0; i < n; i++)
                     s.Byte(ref z.Bones[i]);
             }
+            if (z.Kind == ZoneKind.Stampede)  // the herd's walk (Stampede.cs)
+                s.Float(ref z.Marched);
             if (s.Reading)
                 Zones[z.Id] = z;
         }
