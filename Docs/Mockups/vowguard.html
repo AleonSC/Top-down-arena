@@ -1,0 +1,419 @@
+<title>Vowguard Sword and Shield</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one live stage playing your combo (both stances), then the combo builder (a stance panel each:
+   four slots, stats, a pool of moves with live loops), then the rules. Page tokens match the other weapon mockups
+   (Barlow family); the canvases are the game's night-blue arena. Valor is gold, Sanctuary is jade. */
+:root{
+  --bg:#efeee8; --fg:#1f1d17; --muted:#5f5b4e; --panel:#faf9f4; --line:#d6d2c4; --chip:#e5e2d6; --chip-on:#1f1d17; --chip-on-fg:#f6f4ec;
+  --valor:#9a6b08; --sanct:#1f7a63; --heal:#2e7d3d;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12110e; --fg:#ebe7da; --muted:#a29c89; --panel:#1a1914; --line:#2f2c23; --chip:#26241c; --chip-on:#ebe7da; --chip-on-fg:#12110e;
+  --valor:#ffd36a; --sanct:#7fe3c0; --heal:#8fe0a0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12110e; --fg:#ebe7da; --muted:#a29c89; --panel:#1a1914; --line:#2f2c23; --chip:#26241c; --chip-on:#ebe7da; --chip-on-fg:#12110e;
+  --valor:#ffd36a; --sanct:#7fe3c0; --heal:#8fe0a0; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+header h1{font:700 clamp(40px,7vw,68px)/.95 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px}
+header h1 span{color:var(--valor)} header h1 em{font-style:normal;color:var(--sanct)}
+header p{margin:0 0 8px;max-width:70ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px;text-wrap:balance}
+.lede{margin:0 0 16px;color:var(--muted);max-width:72ch}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118;max-width:100%}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+#stage{aspect-ratio:1000/470;touch-action:manipulation;outline:none;cursor:pointer}
+#stage:focus-visible{box-shadow:inset 0 0 0 2px var(--valor)}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.help{margin:10px 0 0;font-size:14px;color:var(--muted)}
+kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--panel);color:var(--fg)}
+.touch{display:flex;gap:10px;margin-top:10px}
+.touch button{flex:1;padding:14px}
+/* builder */
+.stances{display:flex;flex-direction:column;gap:28px}
+.stance{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.stance[data-st="V"]{--c:var(--valor)} .stance[data-st="S"]{--c:var(--sanct)}
+.st-head{display:flex;gap:6px 18px;align-items:baseline;flex-wrap:wrap}
+.st-head h3{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;color:var(--c)}
+.st-head p{margin:0;color:var(--muted);font-size:15px;flex:1 1 320px;min-width:0}
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slot{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;min-width:0}
+.slot .k{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.slot .n{font:700 19px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02em}
+.slot.fin .k{color:var(--c)}
+.slot[aria-pressed="true"]{border-color:var(--c);box-shadow:inset 0 0 0 2px var(--c)}
+.slot.playing .n{color:var(--c)}
+.stats{display:flex;gap:6px 20px;flex-wrap:wrap;font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.stats b{color:var(--fg);font-weight:500}
+.pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px}
+.card{display:flex;flex-direction:column;gap:6px;text-align:left;padding:0 0 10px;overflow:hidden;background:var(--bg);border:1px solid var(--line);border-radius:6px;min-width:0}
+.card canvas{aspect-ratio:260/140;background:#0c1118}
+.card .row{display:flex;gap:8px;align-items:baseline;justify-content:space-between;padding:0 10px}
+.card .nm{font:700 18px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02em}
+.card .tag{font:500 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.card.fin .tag{color:var(--c)}
+.card .num{font:500 12px var(--mono);color:var(--fg);padding:0 10px;font-variant-numeric:tabular-nums}
+.card .ds{font-size:14px;color:var(--muted);padding:0 10px;line-height:1.4}
+.card .in{font:600 11px var(--mono);color:var(--c);padding:0 10px;min-height:16px;letter-spacing:.04em;text-transform:uppercase}
+.card.dim{opacity:.5}
+.card.used{border-color:var(--c)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.rule{border-top:2px solid var(--line);padding-top:10px}
+.rule h3{font:700 19px var(--display);text-transform:uppercase;letter-spacing:.04em;margin:0 0 4px}
+.rule p{margin:0;color:var(--muted);font-size:15px}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding:4px 0 4px 12px;max-width:80ch}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<main>
+<header>
+  <p class="eyebrow">Healer · Knight · 4th weapon key · mockup (approximate: a browser sketch, not the game's draw code)</p>
+  <h1>Vow<span>guard</span> <em>·</em> sword &amp; shield</h1>
+  <p>An arming sword and a heater shield with two stances. <b>Valor</b> fights with both: cuts, thrusts and shield bashes. <b>Sanctuary</b> holds the shield up front, blocks shots and turns blocks into healing. Each stance plays a four-step combo you build yourself from a pool of nine moves: three links, then a finisher.</p>
+</header>
+
+<section aria-labelledby="h-stage">
+  <h2 id="h-stage">Live stage</h2>
+  <p class="lede">Your two combos from the builder below, played in a fight. Shots come in from the right; watch the shield.</p>
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Speed">
+      <button class="chip" id="sp1" data-sp="1" aria-pressed="true">1×</button>
+      <button class="chip" id="sp2" data-sp="0.5" aria-pressed="false">0.5×</button>
+      <button class="chip" id="sp3" data-sp="0.25" aria-pressed="false">0.25×</button>
+    </div>
+    <label class="tg"><input type="checkbox" id="auto" checked> Hold Fire (auto)</label>
+    <label class="tg"><input type="checkbox" id="autosw" checked> Switch stance after each finisher</label>
+    <span class="sub" id="readout"></span>
+  </div>
+  <div class="frame"><canvas id="stage" tabindex="0" aria-label="Live stage: the knight plays your combo"></canvas></div>
+  <div class="touch"><button id="bFire">Fire (next step)</button><button id="bShift">Shift stance</button></div>
+  <p class="help"><kbd>Space</kbd> or click the stage: next step · <kbd>Q</kbd> / <kbd>Alt</kbd>: shift stance · the diamonds over the knight are the combo (top row: this stance, dim row: the other), the dots under it are Faith.</p>
+</section>
+
+<section aria-labelledby="h-build">
+  <h2 id="h-build">Build your combos</h2>
+  <p class="lede">Pick a slot, then a move. Slots 1-3 take links, slot 4 takes a finisher; picking a move already in the combo swaps the two. The stage plays your edit straight away.</p>
+  <div class="bar"><span class="sub">Presets</span>
+    <div class="chips" id="presets">
+      <button class="chip" data-p="crusader">Crusader (damage)</button>
+      <button class="chip" data-p="shepherd">Shepherd (healing)</button>
+      <button class="chip" data-p="bastion">Bastion (control)</button>
+    </div>
+  </div>
+  <div class="stances">
+    <div class="stance" data-st="V">
+      <div class="st-head"><h3>Valor</h3><p>Sword forward, shield on the arm. Full speed; the shield only blocks during shield moves. Hits light Faith.</p></div>
+      <div class="slots" id="slotsV"></div>
+      <div class="stats" id="statsV"></div>
+      <div class="pool" id="poolV"></div>
+    </div>
+    <div class="stance" data-st="S">
+      <div class="st-head"><h3>Sanctuary</h3><p>Shield up front, sword tucked. 80% speed; small shots in a 100° front arc are always blocked, and each block lights Faith.</p></div>
+      <div class="slots" id="slotsS"></div>
+      <div class="stats" id="statsS"></div>
+      <div class="pool" id="poolS"></div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-rules">
+  <h2 id="h-rules">How it plays</h2>
+  <div class="rules">
+    <div class="rule"><h3>Fire</h3><p>Plays the next step of this stance's combo. Hold to keep going; a press counts once a step is 70% through. The combo starts over 0.8 s after a step ends without one.</p></div>
+    <div class="rule"><h3>Shift (weapon-action key)</h3><p>0.25 s to change stance. Each stance keeps its own place, like the Nodachi. Going into Sanctuary blocks at once; going into Valor shoves with the rim (6, 40 px).</p></div>
+    <div class="rule"><h3>Faith</h3><p>Up to 6. Valor lights one per enemy hit, Sanctuary one per shot blocked. A finisher spends it all: +2 healing and +3 damage per Faith. A perfect parry fills it.</p></div>
+    <div class="rule"><h3>Parry</h3><p>Raising the parry starts both combos over (as on the Arc Knuckles), so you can reset into your opener.</p></div>
+    <div class="rule"><h3>Building a combo</h3><p>In the lobby, the weapon's detail box gets a Combo row per stance: four <code>DkKey</code> slots and the move list. Saved with the loadout; bots use the Crusader preset.</p></div>
+    <div class="rule"><h3>Mastery card</h3><p>Proposed: +1 combo slot in each stance (four links, then the finisher).</p></div>
+  </div>
+  <p class="note">Numbers are first guesses sized against the Lightbringer and Censer (about 45-55 damage a second, 8-15 healing a second in a full rotation). Moves, names and numbers are all open to change.</p>
+</section>
+</main>
+
+<script>
+(function(){
+const D=Math.PI/180, TAU=Math.PI*2;
+const COL={gold:'#ffcf5a',jade:'#7fe3c0',heal:'#8fe08f',shot:'#ff7550',ward:'#bfe4ff',bg:'#0c1118',grid:'#16202d',enemy:'#c9483f',ally:'#6aa8ff'};
+const REST={V:[35,1,-60,15,0,0,1],S:[60,.75,0,24,0,0,1.1]};   // sword°, sword reach, shield°, shield dist, dx, dy, shield size
+const EN=[[95,-20],[125,40],[80,95]], AL=[[-130,40],[120,-100]];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const win=(t,a,b)=>t<a||t>b?-1:(t-a)/(b-a);
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const lerp=(a,b,u)=>a+(b-a)*u;
+function rgba(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${n>>8&255},${n&255},${cl(a)})`}
+function wedge(c,x,y,r0,r1,a0,a1,fill){if(a1<a0)[a0,a1]=[a1,a0];c.beginPath();c.arc(x,y,r1,a0*D,a1*D);c.arc(x,y,r0,a1*D,a0*D,true);c.closePath();c.fillStyle=fill;c.fill()}
+function ring(c,x,y,r,lw,col){c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);c.lineWidth=Math.max(.1,lw);c.strokeStyle=col;c.stroke()}
+function arcS(c,x,y,r,a0,a1,lw,col){c.beginPath();c.arc(x,y,r,a0*D,a1*D);c.lineWidth=lw;c.strokeStyle=col;c.stroke()}
+function hex(c,x,y,r,col,lw){c.beginPath();for(let i=0;i<6;i++){const a=i*60*D+Math.PI/6;c[i?'lineTo':'moveTo'](x+Math.cos(a)*r,y+Math.sin(a)*r)}c.closePath();c.lineWidth=lw;c.strokeStyle=col;c.stroke()}
+function shieldPos(P){return [P[4]+Math.cos(P[2]*D)*P[3],P[5]+Math.sin(P[2]*D)*P[3]]}
+
+// --- fx helpers, all in the knight's local frame (aim = +x) ---
+function sweep(c,P,t,t0,t1,a0,a1,r,col){
+  if(t<t0||t>t1+.2)return;const q=ease(cl((t-t0)/(t1-t0))),al=t<=t1?1:1-(t-t1)/.2,cur=a0+(a1-a0)*q;
+  wedge(c,P[4],P[5],20,r,a0,cur,rgba(col,.22*al));
+  const lo=Math.min(a0,cur),hi=Math.max(a0,cur);arcS(c,P[4],P[5],r,lo,hi,3,rgba(col,.85*al));
+  arcS(c,P[4],P[5],r*.7,lo,hi,1.5,rgba('#ffffff',.35*al));
+}
+function burst(c,x,y,t,t0,t1,col,R=30){const p=win(t,t0,t1);if(p<0)return;ring(c,x,y,8+R*ease(p),4*(1-p)+.5,rgba(col,1-p));
+  c.strokeStyle=rgba(col,1-p);c.lineWidth=2;for(let i=0;i<7;i++){const a=i/7*TAU+.3,r0=10+R*.6*p,r1=r0+8;c.beginPath();c.moveTo(x+Math.cos(a)*r0,y+Math.sin(a)*r0);c.lineTo(x+Math.cos(a)*r1,y+Math.sin(a)*r1);c.stroke()}}
+function lane(c,x0,len,w,t,t0,t1,col,y=0){const p=win(t,t0,t1);if(p<0)return;const a=1-p;c.fillStyle=rgba(col,.28*a);c.fillRect(x0,y-w/2,len*cl(p*3),w);
+  c.fillStyle=rgba('#ffffff',.6*a);c.fillRect(x0,y-1,len*cl(p*3),2)}
+function healRing(c,x,y,R,t,t0,t1,col=COL.heal){const p=win(t,t0,t1);if(p<0)return;const r=R*ease(p);
+  c.beginPath();c.arc(x,y,r,0,TAU);c.fillStyle=rgba(col,.08*(1-p));c.fill();ring(c,x,y,r,6*(1-p)+.5,rgba(col,.9*(1-p)))}
+
+// --- moves ---
+// keys: [t, sword°, reach, shield°, shield dist, dx, dy, shield size]; hits: [t, shape, dmg]; heals: [t, radius or ally index, amount]
+const M={};
+function mv(o){M[o.id]=o}
+mv({id:'edge',st:'V',name:'Edge Cut',dur:.30,dmg:16,heal:0,num:'16 · 110° · 115 px',ds:'A forehand cut. Cuts small shots in its arc.',
+  keys:[[.28,100,.95,-70,13,0,0,1],[.62,-65,1.1,-45,15,8,0,1]],hits:[[.5,{k:'arc',h:55,r:115},16]],cut:{t0:.3,t1:.65,h:55,r:115},
+  fx:(c,P,t)=>sweep(c,P,t,.28,.62,100,-65,115,COL.gold)});
+mv({id:'bash',st:'V',name:'Rim Bash',dur:.32,dmg:12,heal:0,num:'12 · 75 px · stun 0.4 s',ds:'The shield rim punched forward. Blocks while it is out.',
+  keys:[[.3,50,.9,-25,10,-6,0,1],[.5,45,.9,0,44,10,0,1.1],[.68,40,.9,-10,30,8,0,1]],hits:[[.5,{k:'arc',h:35,r:80},12]],guard:{t0:.35,t1:.7,h:40},
+  fx:(c,P,t)=>burst(c,58,0,t,.45,.75,COL.gold)});
+mv({id:'thrust',st:'V',name:'Lunge Thrust',dur:.34,dmg:20,heal:0,num:'20 · 160 px lane · pierces',ds:'Steps 30 px in and runs the point through a line.',
+  keys:[[.3,20,.6,-55,13,-8,0,1],[.55,2,1.7,-50,14,30,0,1],[.75,4,1.5,-50,14,26,0,1]],hits:[[.55,{k:'lane',l:165,w:28},20]],
+  fx:(c,P,t)=>lane(c,P[4]+14,165,28,t,.45,.85,COL.gold)});
+mv({id:'hook',st:'V',name:'Shield Hook',dur:.36,dmg:10,heal:0,num:'10 · 95 px · drags 50 px',ds:'Hooks the nearest enemy with the rim and hauls it in; slowed 30% for 1 s.',
+  keys:[[.3,45,.9,-70,20,0,0,1],[.48,45,.9,-15,60,6,0,1],[.75,40,.9,-45,18,-6,0,1]],hits:[[.48,{k:'arc',h:35,r:100},10]],
+  fx:(c,P,t)=>{const p=win(t,.42,.9);if(p<0)return;const tx=170-60*ease(p);c.strokeStyle=rgba(COL.gold,1-p);c.lineWidth=2.5;
+    for(let i=0;i<3;i++){const x=tx-14-i*14;c.beginPath();c.moveTo(x+6,-8);c.lineTo(x,0);c.lineTo(x+6,8);c.stroke()}}});
+mv({id:'twin',st:'V',name:'Twin Strike',dur:.42,dmg:20,heal:0,num:'10 + 10 · 100 px · stun 0.3 s',ds:'A cut, then the shield follows through as a bash.',
+  keys:[[.2,100,1,-60,13,0,0,1],[.42,-60,1.1,-40,14,6,0,1],[.55,-50,1,-10,20,6,0,1],[.72,-30,1,10,42,12,0,1.1]],
+  hits:[[.35,{k:'arc',h:60,r:105},10],[.72,{k:'arc',h:35,r:85},10]],guard:{t0:.55,t1:.85,h:40},
+  fx:(c,P,t)=>{sweep(c,P,t,.2,.42,100,-60,105,COL.gold);burst(c,62,8,t,.68,.95,COL.gold)}});
+mv({id:'spin',st:'V',name:'Mercy Spin',dur:.40,dmg:13,heal:3,num:'13 · 95 px circle · heals you 3',ds:'A full turn. Cuts every small shot around you.',
+  keys:[[.15,80,1,-70,14,0,0,1],[.5,-100,1.1,-250,14,0,0,1],[.85,-325,1.1,-425,15,0,0,1]],wrap:-360,
+  hits:[[.5,{k:'ring',r:95},13]],heals:[[.6,'self',3]],cut:{t0:.15,t1:.85,h:180,r:95},
+  fx:(c,P,t)=>{sweep(c,P,t,.15,.85,80,-280,95,COL.gold)}});
+mv({id:'cleave',st:'V',name:'Judgment Cleave',fin:1,dur:.58,dmg:52,heal:8,num:'34 + crescent 18 · heals 8',ds:'Overhead down the aim; a crescent of light flies on 300 px, healing each ally it passes.',
+  keys:[[.35,170,.55,-30,12,-10,0,1],[.58,0,1.45,-50,14,20,0,1],[.8,5,1.4,-50,14,18,0,1]],hits:[[.58,{k:'lane',l:360,w:70},52]],heals:[[.7,'line',8]],
+  fx:(c,P,t)=>{lane(c,P[4]+14,130,34,t,.52,.85,COL.gold);const p=win(t,.55,1);if(p<0)return;const x=P[4]+70+p*300,a=1-p*.7;
+    c.beginPath();c.arc(x-46,0,46,-62*D,62*D);c.arc(x-58,0,42,58*D,-58*D,true);c.closePath();c.fillStyle=rgba(COL.gold,.55*a);c.fill();
+    arcS(c,x-46,0,46,-55,55,2,rgba('#ffffff',.8*a))}});
+mv({id:'charge',st:'V',name:'Shield Charge',fin:1,dur:.60,dmg:30,heal:0,num:'30 · 140 px dash · shove 80 px',ds:'Shield first and untouchable; everything in the way is shoved aside. You stay where you land.',
+  keys:[[.2,60,.8,0,20,-10,0,1.15],[.55,60,.8,0,24,140,0,1.15],[.8,55,.8,-20,18,136,0,1.05]],keep:1,
+  hits:[[.5,{k:'lane',l:60,w:60,from:'pose'},30]],guard:{t0:.15,t1:.65,h:50},
+  fx:(c,P,t)=>{const p=win(t,.2,.62);if(p>=0){c.strokeStyle=rgba(COL.gold,.7*(1-p));c.lineWidth=2;for(let i=-2;i<=2;i++){c.beginPath();c.moveTo(P[4]-70,i*7);c.lineTo(P[4]-16,i*7);c.stroke()}}
+    burst(c,P[4]+34,0,t,.52,.8,COL.gold,36)}});
+mv({id:'slam',st:'V',name:'Hallowed Slam',fin:1,dur:.62,dmg:28,heal:20,num:'28 · 120 px ring · stun 0.6 s · heals 10',ds:'The shield slammed into the ground; allies within 160 px heal 10.',
+  keys:[[.35,40,.8,0,6,0,0,1.2],[.55,40,.8,0,30,4,0,1.25],[.8,40,.8,0,28,4,0,1.2]],hits:[[.56,{k:'ring',r:120},28]],heals:[[.62,160,10]],
+  fx:(c,P,t)=>{const p=win(t,.52,.98);if(p<0)return;const r=20+100*ease(p);c.beginPath();c.arc(P[4],0,r,0,TAU);c.fillStyle=rgba(COL.gold,.14*(1-p));c.fill();
+    ring(c,P[4],0,r,7*(1-p)+.5,rgba(COL.gold,1-p));healRing(c,P[4],0,160,t,.58,1)}});
+
+mv({id:'guard',st:'S',name:'Raise Guard',dur:.50,dmg:0,heal:4,num:'160° block · each block heals 2',ds:'Shield high and wide. Each shot it stops heals the most hurt ally 2.',
+  keys:[[.15,70,.7,0,28,0,0,1.35],[.85,70,.7,0,28,0,0,1.35]],guard:{t0:.1,t1:.9,h:80},blockHeal:2,
+  fx:(c,P,t)=>{const p=win(t,.1,.9);if(p<0)return;const a=Math.sin(p*Math.PI);wedge(c,0,0,28,44,-80,80,rgba(COL.jade,.12*a));arcS(c,0,0,42,-80,80,3,rgba(COL.jade,.9*a))}});
+mv({id:'jab',st:'S',name:'Guarded Jab',dur:.26,dmg:10,heal:0,num:'10 · 140 px · guard stays up',ds:'The point darts out over the rim. The quickest step.',
+  keys:[[.3,30,.6,0,24,0,0,1.1],[.55,8,1.6,0,24,6,0,1.1]],hits:[[.55,{k:'lane',l:145,w:20},10]],
+  fx:(c,P,t)=>lane(c,P[4]+20,140,16,t,.45,.8,COL.jade,6)});
+mv({id:'sweep',st:'S',name:'Deflect Sweep',dur:.34,dmg:8,heal:0,num:'8 · 140° · 80 px · reflects',ds:'The shield swept across: small shots in the arc fly back as your shots (12).',
+  keys:[[.25,60,.75,-70,30,0,0,1.15],[.6,60,.75,70,30,0,0,1.15]],hits:[[.45,{k:'arc',h:70,r:85},8]],reflect:{t0:.2,t1:.7,h:75,r:85},
+  fx:(c,P,t)=>sweep(c,P,t,.25,.6,-70,70,82,COL.jade)});
+mv({id:'step',st:'S',name:'Sidestep',dur:.24,dmg:0,heal:0,num:'60 px · untouchable 0.2 s',ds:'A hop to the side behind the shield. You stay where you land.',
+  keys:[[.5,60,.75,0,24,0,-60,1.1]],keep:1,
+  fx:(c,P,t)=>{const p=win(t,.02,.7);if(p<0)return;c.beginPath();c.arc(0,0,14,0,TAU);c.fillStyle=rgba(COL.jade,.3*(1-p));c.fill();
+    c.strokeStyle=rgba(COL.jade,.6*(1-p));c.lineWidth=2;c.setLineDash([4,5]);c.beginPath();c.moveTo(0,0);c.lineTo(P[4],P[5]);c.stroke();c.setLineDash([])}});
+mv({id:'cover',st:'S',name:'Cover Ally',dur:.44,dmg:0,heal:4,num:'220 px dash · ally takes 30% less 2 s · heals 4',ds:'Dash in front of the ally nearest your cursor, shield toward the danger.',
+  keys:[[.6,60,.75,-20,26,100,-70,1.2],[.85,60,.75,-15,26,100,-70,1.2]],keep:1,heals:[[.62,1,4]],guard:{t0:.3,t1:1,h:60},
+  fx:(c,P,t)=>{const p=win(t,.05,.65);if(p>=0){c.strokeStyle=rgba(COL.jade,.7*(1-p));c.lineWidth=2;c.setLineDash([3,6]);c.beginPath();c.moveTo(0,0);c.lineTo(100,-70);c.stroke();c.setLineDash([])}
+    const q=win(t,.55,1);if(q>=0)hex(c,AL[1][0],AL[1][1],22+4*Math.sin(q*9),rgba(COL.ward,1-q*.5),2.5)}});
+mv({id:'tap',st:'S',name:'Rally Tap',dur:.32,dmg:0,heal:8,num:'allies within 160 px heal 4',ds:'The flat of the blade rung against the shield.',
+  keys:[[.35,-20,.6,0,22,0,0,1.1],[.5,-5,.55,0,20,0,0,1.1]],heals:[[.55,160,4]],
+  fx:(c,P,t)=>{const s=shieldPos(P);burst(c,s[0],s[1],t,.42,.65,COL.jade,16);healRing(c,0,0,160,t,.45,1)}});
+mv({id:'absorb',st:'S',name:'Bulwark Absorb',fin:1,dur:.90,dmg:12,heal:24,num:'soak 0.7 s · pulse 12 · heals 6 + 2 a shot',ds:'Soak every shot in front, then release them as a 170 px pulse that heals allies and hurts enemies.',
+  keys:[[.12,60,.7,0,26,-4,0,1.4],[.75,60,.7,0,24,-10,0,1.45],[.85,60,.7,0,34,4,0,1.3]],guard:{t0:.1,t1:.82,h:90},hits:[[.86,{k:'ring',r:170},12]],heals:[[.88,170,12]],
+  fx:(c,P,t)=>{const p=win(t,.1,.82);if(p>=0){const s=shieldPos(P);c.beginPath();c.arc(s[0],s[1],8+12*p,0,TAU);c.fillStyle=rgba(COL.jade,.15+.3*p);c.fill();
+    arcS(c,0,0,40,-90,90,2+5*p,rgba(COL.jade,.5+.4*p))}healRing(c,0,0,170,t,.82,1)}});
+mv({id:'dome',st:'S',name:'Aegis Dome',fin:1,dur:1.0,dmg:0,heal:12,num:'110 px dome 2 s · allies inside heal 3/s',ds:'Plant the shield: enemy shots stop at the dome. You are rooted while you plant it.',
+  keys:[[.3,60,.8,0,30,0,0,1.2],[.45,60,.8,0,38,0,0,1.3],[.95,60,.8,0,38,0,0,1.3]],dome:{t:.45,r:110,life:2},
+  fx:(c,P,t)=>{const p=win(t,.42,1);if(p<0)return;const r=110*ease(cl(p*2.5));c.beginPath();c.arc(0,0,r,0,TAU);c.fillStyle=rgba(COL.jade,.1);c.fill();ring(c,0,0,r,2.5,rgba(COL.jade,.85))}});
+mv({id:'ward',st:'S',name:'Sanctified Ward',fin:1,dur:.52,dmg:0,heal:38,num:'15 HP ward 3 s · heals 4 · 180 px',ds:'The shield flares: every ally within 180 px gets a ward and a small heal.',
+  keys:[[.3,60,.7,0,16,0,0,1.2],[.5,60,.7,0,26,0,0,1.35]],heals:[[.55,180,4]],wardAt:.55,
+  fx:(c,P,t)=>{healRing(c,0,0,180,t,.45,1,COL.ward);const q=win(t,.55,1);if(q<0)return;for(const a of AL)hex(c,a[0],a[1],22,rgba(COL.ward,1-q*.6),2.5)}});
+
+const POOL={V:Object.values(M).filter(m=>m.st==='V'),S:Object.values(M).filter(m=>m.st==='S')};
+const PRESETS={crusader:{V:['edge','thrust','spin','cleave'],S:['jab','sweep','step','ward']},
+  shepherd:{V:['bash','edge','twin','slam'],S:['tap','guard','cover','dome']},
+  bastion:{V:['hook','bash','edge','charge'],S:['guard','sweep','jab','absorb']}};
+let combo=JSON.parse(JSON.stringify(PRESETS.crusader));
+try{const s=JSON.parse(localStorage.getItem('vowguard-combo')||'null');if(s&&s.V&&s.S&&s.V.every(i=>M[i])&&s.S.every(i=>M[i]))combo=s}catch(e){}
+function save(){try{localStorage.setItem('vowguard-combo',JSON.stringify(combo))}catch(e){}}
+
+function poseAt(m,t,st){const R=REST[m?m.st:st];if(!m)return R.slice();
+  const last=m.keys[m.keys.length-1];let end=R.slice();
+  if(m.keep){end[4]=last[5];end[5]=last[6]}if(m.wrap){end[0]+=m.wrap;end[2]+=m.wrap}
+  const ks=[[0,...R],...m.keys,[1,...end]];
+  for(let i=0;i<ks.length-1;i++){const a=ks[i],b=ks[i+1];if(t<=b[0]){const u=ease(cl((t-a[0])/((b[0]-a[0])||1)));return a.slice(1).map((v,j)=>lerp(v,b[j+1],u))}}
+  return end;}
+
+// --- drawing ---
+function drawGround(c,x0,y0,w,h){c.fillStyle=COL.bg;c.fillRect(x0,y0,w,h);c.strokeStyle=COL.grid;c.lineWidth=1;
+  for(let x=Math.floor(x0/40)*40;x<x0+w;x+=40){c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+h);c.stroke()}
+  for(let y=Math.floor(y0/40)*40;y<y0+h;y+=40){c.beginPath();c.moveTo(x0,y);c.lineTo(x0+w,y);c.stroke()}}
+function drawAlly(c,x,y,hp){c.beginPath();c.arc(x,y,12,0,TAU);c.fillStyle='#2b4a78';c.fill();ring(c,x,y,12,2,COL.ally);
+  c.fillStyle='#1b2433';c.fillRect(x-14,y-22,28,4);c.fillStyle=COL.heal;c.fillRect(x-14,y-22,28*hp,4)}
+function drawEnemy(c,x,y,fl){c.save();c.translate(x,y);c.rotate(Math.PI/4);c.fillStyle=fl>0?'#ffffff':COL.enemy;c.fillRect(-11,-11,22,22);
+  c.strokeStyle='#ff9a8a';c.lineWidth=1.5;c.strokeRect(-11,-11,22,22);c.restore()}
+function drawKnight(c,P,st){const x=P[4],y=P[5],col=st==='S'?COL.jade:COL.gold;
+  // sword under the shield in Valor, over in Sanctuary? keep: sword first, body, shield
+  const a=P[0]*D,r0=12,r1=12+50*P[1];
+  c.lineCap='round';
+  c.strokeStyle='#5b4632';c.lineWidth=4;c.beginPath();c.moveTo(x+Math.cos(a)*(r0-8),y+Math.sin(a)*(r0-8));c.lineTo(x+Math.cos(a)*r0,y+Math.sin(a)*r0);c.stroke();
+  c.beginPath();c.arc(x,y,14,0,TAU);c.fillStyle='#8e96a6';c.fill();
+  c.beginPath();c.arc(x,y,9.5,0,TAU);c.fillStyle='#ece6d4';c.fill();
+  c.fillStyle=col;c.fillRect(x-1.5,y-6,3,12);c.fillRect(x-6,y-1.5,12,3);
+  c.strokeStyle='#2a2f3a';c.lineWidth=2.5;c.beginPath();c.arc(x,y,14,-28*D,28*D);c.stroke();
+  // blade
+  c.strokeStyle='#2a2f3a';c.lineWidth=6;c.beginPath();c.moveTo(x+Math.cos(a)*(r0+3),y+Math.sin(a)*(r0+3));c.lineTo(x+Math.cos(a)*r1,y+Math.sin(a)*r1);c.stroke();
+  c.strokeStyle='#eef2f7';c.lineWidth=3.5;c.stroke();
+  const gx=x+Math.cos(a)*(r0+2),gy=y+Math.sin(a)*(r0+2),px=-Math.sin(a)*6,py=Math.cos(a)*6;
+  c.strokeStyle='#d9a93c';c.lineWidth=3;c.beginPath();c.moveTo(gx-px,gy-py);c.lineTo(gx+px,gy+py);c.stroke();
+  // shield (top-down: a curved plate)
+  const s=shieldPos(P);c.save();c.translate(s[0],s[1]);c.rotate(P[2]*D);c.scale(P[6],P[6]);
+  c.beginPath();c.moveTo(-3,-15);c.quadraticCurveTo(8,0,-3,15);c.lineTo(-8,13);c.quadraticCurveTo(1,0,-8,-13);c.closePath();
+  c.fillStyle='#d4d9e2';c.fill();c.lineWidth=2;c.strokeStyle=col;c.stroke();
+  c.beginPath();c.moveTo(1,-6);c.lineTo(3,0);c.lineTo(1,6);c.strokeStyle='#7b8494';c.lineWidth=1.5;c.stroke();
+  c.restore();c.lineCap='butt';}
+function hitTest(sh,kx,ky,ex,ey){const dx=ex-kx,dy=ey-ky,d=Math.hypot(dx,dy);
+  if(sh.k==='ring')return d<=sh.r+12;
+  if(sh.k==='arc')return d<=sh.r+12&&Math.abs(Math.atan2(dy,dx)/D)<=sh.h+8;
+  if(sh.k==='lane')return dx>=-10&&dx<=sh.l+12&&Math.abs(dy)<=sh.w/2+12;return false}
+
+// --- minis ---
+const minis=[];
+function buildPools(){for(const st of ['V','S']){const el=document.getElementById('pool'+st);el.innerHTML='';
+  for(const m of POOL[st]){const b=document.createElement('button');b.className='card'+(m.fin?' fin':'');b.dataset.id=m.id;b.id='card-'+m.id;
+    b.innerHTML=`<canvas width="520" height="280" aria-hidden="true"></canvas><div class="row"><span class="nm">${m.name}</span><span class="tag">${m.fin?'Finisher':'Link'} · ${m.dur.toFixed(2)} s</span></div><div class="num">${m.num}</div><div class="ds">${m.ds}</div><div class="in"></div>`;
+    b.addEventListener('click',()=>pick(st,m.id));el.appendChild(b);minis.push({c:b.querySelector('canvas').getContext('2d'),m,st,off:Math.random()})}}}
+function drawMini(o,now){const c=o.c,m=o.m,per=m.dur*2+.5;let t=reduce?.58:(((now/1000+o.off*per)%per)/(m.dur*2));t=cl(t);
+  c.setTransform(1,0,0,1,0,0);c.fillStyle=COL.bg;c.fillRect(0,0,520,280);const sc=.88;c.setTransform(sc,0,0,sc,170,150);
+  drawGround(c,-170/sc,-150/sc,520/sc,280/sc);
+  const P=poseAt(m,t,m.st);
+  if(m.dome&&t>=m.dome.t){}
+  for(const a of AL)drawAlly(c,a[0],a[1],.6);
+  for(const e of EN){let fl=0;for(const h of (m.hits||[])){if(t>=h[0]&&t<h[0]+.15){const kx=h[1].from==='pose'?P[4]:poseAt(m,h[0],m.st)[4];if(hitTest(h[1],kx,poseAt(m,h[0],m.st)[5],e[0],e[1]))fl=1}}drawEnemy(c,e[0],e[1],fl)}
+  m.fx(c,P,t);drawKnight(c,P,m.st);
+  for(const h of (m.heals||[])){const p=win(t,h[0],h[0]+.4);if(p<0)continue;c.font='700 16px Barlow, sans-serif';c.fillStyle=rgba(COL.heal,1-p);
+    const tg=h[1]==='self'?[[P[4],P[5]]]:h[1]==='line'?[AL[1]]:typeof h[1]==='number'&&h[1]<10?[AL[h[1]]]:AL;for(const a of tg)c.fillText('+'+h[2],a[0]+14,a[1]-14-p*16)}}
+
+// --- builder ---
+let sel={st:'V',i:0};
+function slotOk(st,i,m){return m.st===st&&(i===3?!!m.fin:!m.fin)}
+function pick(st,id){const m=M[id],arr=combo[st];let i=sel.st===st?sel.i:(m.fin?3:0);
+  if(!slotOk(st,i,m))i=m.fin?3:(arr.indexOf(id)>=0?arr.indexOf(id):0);
+  const j=arr.indexOf(id);if(j>=0&&j!==i)arr[j]=arr[i];arr[i]=id;
+  sel={st,i:i<2?i+1:i};save();renderBuilder();resetStage()}
+function renderBuilder(){for(const st of ['V','S']){const el=document.getElementById('slots'+st);el.innerHTML='';
+  combo[st].forEach((id,i)=>{const b=document.createElement('button');b.className='slot'+(i===3?' fin':'');b.id=`slot-${st}${i}`;
+    b.setAttribute('aria-pressed',String(sel.st===st&&sel.i===i));b.innerHTML=`<span class="k">${i===3?'Finisher':'Step '+(i+1)}</span><span class="n">${M[id].name}</span>`;
+    b.addEventListener('click',()=>{sel={st,i};renderBuilder()});el.appendChild(b)});
+  const ms=combo[st].map(i=>M[i]),time=ms.reduce((s,m)=>s+m.dur,0)+.2,dmg=ms.reduce((s,m)=>s+m.dmg,0),heal=ms.reduce((s,m)=>s+m.heal,0);
+  const g=ms.reduce((s,m)=>s+(m.guard?(m.guard.t1-m.guard.t0)*m.dur:0),0);
+  document.getElementById('stats'+st).innerHTML=`<span>combo <b>${time.toFixed(2)} s</b></span><span>damage <b>${dmg}</b> (${Math.round(dmg/time)}/s)</span><span>healing <b>${heal}</b> (${Math.round(heal/time)}/s)</span><span>${st==='S'?'guard <b>always up</b>':'shield blocks <b>'+Math.round(g/time*100)+'%</b> of the combo'}</span><span>+ Faith on the finisher</span>`;
+  for(const m of POOL[st]){const card=document.getElementById('card-'+m.id),k=combo[st].indexOf(m.id);
+    card.classList.toggle('used',k>=0);card.querySelector('.in').textContent=k>=0?(k===3?'In the finisher slot':'In step '+(k+1)):'';
+    card.classList.toggle('dim',sel.st===st&&!slotOk(st,sel.i,m))}}}
+document.getElementById('presets').addEventListener('click',e=>{const p=e.target.closest('[data-p]');if(!p)return;combo=JSON.parse(JSON.stringify(PRESETS[p.dataset.p]));save();renderBuilder();resetStage()});
+
+// --- stage ---
+const cv=document.getElementById('stage'),ctx=cv.getContext('2d');const HOME=[300,245],ZS=1.3;
+let S;function resetStage(){S={st:'V',step:{V:0,S:0},cur:null,t:0,hitI:0,healI:0,idle:0,queued:false,faith:0,base:[0,0],sw:0,swFrom:'V',
+  bullets:S?S.bullets:[],zones:[],floats:[],sparks:[],ef:[0,0,0],spawn:0,tot:{dmg:0,heal:0,blk:0},domeDone:false,hitFlash:0}}
+resetStage();let speed=1;
+function sizeStage(){const r=devicePixelRatio||1;cv.width=Math.round(1000*r);cv.height=Math.round(470*r)}sizeStage();
+const kpos=P=>[S.base[0]+P[4],S.base[1]+P[5]];
+function curPose(){if(S.sw>0){const u=ease(1-S.sw/.25);return REST[S.swFrom].map((v,j)=>lerp(v,REST[S.st][j],u))}return poseAt(S.cur,S.t,S.st)}
+function float(x,y,txt,col){S.floats.push({x,y,txt,col,life:1})}
+function start(){S.cur=M[combo[S.st][S.step[S.st]]];S.t=0;S.hitI=0;S.healI=0;S.idle=0;S.queued=false;S.domeDone=false}
+function press(){if(S.sw>0){S.queued=true;return}if(!S.cur)start();else if(S.t>.7)S.queued=true}
+function shift(){S.swFrom=S.st;S.st=S.st==='V'?'S':'V';S.cur=null;S.sw=.25;S.queued=false;
+  if(S.st==='V'){const kp=kpos(REST.S);EN.forEach((e,i)=>{if(Math.hypot(e[0]-kp[0],e[1]-kp[1])<90){S.ef[i]=.15;float(e[0],e[1]-16,'6',COL.gold)}})}}
+function guardHalf(){if(S.sw>0)return S.st==='S'?50:0;const m=S.cur;if(m&&m.guard&&S.t>=m.guard.t0&&S.t<=m.guard.t1)return m.guard.h;return S.st==='S'?50:0}
+function healAllies(h,P){const kp=kpos(P);let n=0;
+  const tg=h[1]==='self'?[[kp[0],kp[1]]]:h[1]==='line'?AL.filter(a=>a[0]>kp[0]):typeof h[1]==='number'&&h[1]<10?[AL[h[1]]]:AL.filter(a=>Math.hypot(a[0]-kp[0],a[1]-kp[1])<=h[1]+12);
+  let amt=h[2];if(S.cur.fin&&S.faith){amt+=2*S.faith}
+  for(const a of tg){float(a[0],a[1]-18,'+'+amt,COL.heal);n+=amt}S.tot.heal+=n}
+function step(dt){
+  if(S.sw>0){S.sw-=dt;if(S.sw<=0){S.sw=0;if(S.queued||auto.checked)start()}}
+  else if(S.cur){const m=S.cur;S.t+=dt/m.dur;const P=poseAt(m,Math.min(S.t,1),m.st),kp=kpos(P);
+    while(m.hits&&S.hitI<m.hits.length&&S.t>=m.hits[S.hitI][0]){const h=m.hits[S.hitI++];let dmg=h[2];const last=S.hitI===m.hits.length;
+      if(m.fin&&last&&S.faith){dmg+=3*S.faith}
+      EN.forEach((e,i)=>{if(hitTest(h[1],kp[0],kp[1],e[0],e[1])){S.ef[i]=.14;float(e[0],e[1]-16,String(dmg),m.st==='V'?COL.gold:COL.jade);S.tot.dmg+=dmg;if(m.st==='V'&&!m.fin)S.faith=Math.min(6,S.faith+1)}})}
+    while(m.heals&&S.healI<m.heals.length&&S.t>=m.heals[S.healI][0])healAllies(m.heals[S.healI++],P);
+    if(m.dome&&!S.domeDone&&S.t>=m.dome.t){S.domeDone=true;S.zones.push({x:kp[0],y:kp[1],r:m.dome.r,life:m.dome.life,max:m.dome.life})}
+    if(m.wardAt&&S.t>=m.wardAt&&!S.domeDone){S.domeDone=true;for(const a of AL)float(a[0]+16,a[1]+8,'ward 15',COL.ward)}
+    if(S.t>=1){if(m.keep){S.base[0]+=P[4];S.base[1]+=P[5]}
+      if(m.fin&&S.faith){float(kp[0],kp[1]-48,'Faith ×'+S.faith,COL.gold);S.faith=0}
+      S.cur=null;S.idle=0;S.step[S.st]=(S.step[S.st]+1)%4;
+      if(auto.checked&&m.fin&&autosw.checked)shift();else if(S.queued||auto.checked)start()}}
+  else{S.idle+=dt;if(S.idle>.8)S.step[S.st]=0;if(auto.checked&&S.idle>.12)start()}
+  if(!S.cur||!S.cur.keep){for(let k=0;k<2;k++){const v=S.base[k],d=Math.min(Math.abs(v),110*dt);S.base[k]-=Math.sign(v)*d}}
+  // bullets
+  S.spawn-=dt;if(S.spawn<=0){S.spawn=.26+Math.random()*.18;const y=-200+Math.random()*400,x=680,P=curPose(),kp=kpos(P),a=Math.atan2(kp[1]-y,kp[0]-x)+(Math.random()-.5)*.12;
+    S.bullets.push({x,y,vx:Math.cos(a)*300,vy:Math.sin(a)*300,ref:false})}
+  const P=curPose(),kp=kpos(P),m=S.cur;
+  for(const b of S.bullets){b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.dead)continue;
+    if(b.ref){EN.forEach((e,i)=>{if(!b.dead&&Math.hypot(e[0]-b.x,e[1]-b.y)<14){b.dead=true;S.ef[i]=.12;float(e[0],e[1]-16,'12',COL.jade);S.tot.dmg+=12}});continue}
+    for(const z of S.zones){if(Math.hypot(b.x-z.x,b.y-z.y)<=z.r){b.dead=true;spark(b.x,b.y,COL.jade);S.tot.blk++;S.faith=Math.min(6,S.faith+1)}}
+    if(b.dead)continue;const dx=b.x-kp[0],dy=b.y-kp[1],d=Math.hypot(dx,dy),ang=Math.abs(Math.atan2(dy,dx)/D);
+    if(m&&m.cut&&S.t>=m.cut.t0&&S.t<=m.cut.t1&&d<=m.cut.r&&ang<=m.cut.h){b.dead=true;spark(b.x,b.y,COL.gold);continue}
+    if(m&&m.reflect&&S.t>=m.reflect.t0&&S.t<=m.reflect.t1&&d<=m.reflect.r&&ang<=m.reflect.h){b.ref=true;b.vx=-b.vx*1.3;b.vy=-b.vy*1.3+(Math.random()-.5)*60;spark(b.x,b.y,COL.jade);continue}
+    if(d<=34){const h=guardHalf();b.dead=true;if(ang<=h){spark(b.x,b.y,COL.jade);S.tot.blk++;if(S.st==='S')S.faith=Math.min(6,S.faith+1);
+        if(m&&m.blockHeal){const a=AL[0];float(a[0],a[1]-18,'+'+m.blockHeal,COL.heal);S.tot.heal+=m.blockHeal}}
+      else{S.hitFlash=.15}}}
+  S.bullets=S.bullets.filter(b=>!b.dead&&b.x>-400&&b.x<720&&Math.abs(b.y)<300);
+  S.zones=S.zones.filter(z=>(z.life-=dt)>0);S.floats=S.floats.filter(f=>(f.life-=dt*1.1)>0);S.sparks=S.sparks.filter(s=>(s.life-=dt*3)>0);
+  S.ef=S.ef.map(v=>Math.max(0,v-dt));S.hitFlash=Math.max(0,S.hitFlash-dt);}
+function spark(x,y,col){S.sparks.push({x,y,col,life:1})}
+function drawStage(){const r=devicePixelRatio||1;ctx.setTransform(r,0,0,r,0,0);ctx.clearRect(0,0,1000,470);ctx.translate(HOME[0],HOME[1]);ctx.scale(ZS,ZS);
+  drawGround(ctx,-HOME[0]/ZS,-HOME[1]/ZS,1000/ZS,470/ZS);
+  for(const z of S.zones){const a=cl(z.life/.3);ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,TAU);ctx.fillStyle=rgba(COL.jade,.1*a);ctx.fill();ring(ctx,z.x,z.y,z.r,2.5,rgba(COL.jade,.85*a))}
+  AL.forEach((a,i)=>drawAlly(ctx,a[0],a[1],i?.55:.4));EN.forEach((e,i)=>drawEnemy(ctx,e[0],e[1],S.ef[i]));
+  const P=curPose();ctx.save();ctx.translate(S.base[0],S.base[1]);if(S.cur)S.cur.fx(ctx,P,S.t);
+  if(S.st==='S'&&!(S.cur&&S.cur.guard)){const h=guardHalf();if(h)arcS(ctx,P[4],P[5],36,-h,h,1.5,rgba(COL.jade,.35))}
+  if(S.hitFlash>0){ctx.beginPath();ctx.arc(P[4],P[5],18,0,TAU);ctx.fillStyle=rgba(COL.shot,S.hitFlash*4);ctx.fill()}
+  drawKnight(ctx,P,S.st);ctx.restore();
+  for(const b of S.bullets){ctx.beginPath();ctx.arc(b.x,b.y,4.5,0,TAU);ctx.fillStyle=b.ref?COL.jade:COL.shot;ctx.fill();ctx.beginPath();ctx.arc(b.x,b.y,2,0,TAU);ctx.fillStyle='#fff3e0';ctx.fill()}
+  for(const s of S.sparks){ctx.strokeStyle=rgba(s.col,s.life);ctx.lineWidth=2;for(let i=0;i<5;i++){const a=i*1.26,r0=4+(1-s.life)*10;ctx.beginPath();ctx.moveTo(s.x+Math.cos(a)*r0,s.y+Math.sin(a)*r0);ctx.lineTo(s.x+Math.cos(a)*(r0+5),s.y+Math.sin(a)*(r0+5));ctx.stroke()}}
+  // hud over the knight
+  const kp=kpos(P);for(const [row,st] of [[0,S.st],[1,S.st==='V'?'S':'V']]){const y=kp[1]-40+row*11,sz=row?3.2:5,col=st==='V'?COL.gold:COL.jade;
+    for(let i=0;i<4;i++){const x=kp[0]-24+i*16,done=i<S.step[st],playing=st===S.st&&S.cur&&i===S.step[st];ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);
+      ctx.fillStyle=rgba(i===3?COL.gold:col,(done||playing?1:.22)*(row?.45:1));if(i===3&&st==='S')ctx.fillStyle=rgba(COL.jade,(done||playing?1:.22)*(row?.45:1));
+      ctx.fillRect(-sz,-sz,sz*2,sz*2);if(i===3&&!row){ctx.strokeStyle=rgba('#ffffff',.6);ctx.lineWidth=1;ctx.strokeRect(-sz-1.5,-sz-1.5,sz*2+3,sz*2+3)}ctx.restore()}}
+  for(let i=0;i<6;i++){ctx.beginPath();ctx.arc(kp[0]-20+i*8,kp[1]+26,2.6,0,TAU);ctx.fillStyle=i<S.faith?'#fff1b8':'rgba(255,241,184,.18)';ctx.fill()}
+  for(const f of S.floats){ctx.font='700 15px Barlow, sans-serif';ctx.textAlign='center';ctx.fillStyle=rgba(f.col,f.life);ctx.fillText(f.txt,f.x,f.y-(1-f.life)*22)}
+  ctx.textAlign='left';
+  // corner labels
+  ctx.setTransform(r,0,0,r,0,0);const col=S.st==='V'?COL.gold:COL.jade;ctx.fillStyle=col;ctx.font='700 30px "Barlow Condensed", sans-serif';
+  ctx.fillText(S.st==='V'?'VALOR':'SANCTUARY',20,42);ctx.font='600 15px Barlow, sans-serif';ctx.fillStyle='#d8dde6';
+  ctx.fillText(S.sw>0?'Shifting stance…':S.cur?S.cur.name:'Ready',20,64);
+  ctx.font='500 12px "IBM Plex Mono", monospace';ctx.fillStyle='#8b96a8';ctx.fillText(`damage ${S.tot.dmg}   healing ${S.tot.heal}   shots blocked ${S.tot.blk}`,20,452);
+  for(const st of ['V','S'])document.querySelectorAll(`#slots${st} .slot`).forEach((el,i)=>el.classList.toggle('playing',st===S.st&&!!S.cur&&i===S.step[st]))}
+const auto=document.getElementById('auto'),autosw=document.getElementById('autosw');
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!reduce||true)step(dt*speed);drawStage();for(const o of minis)drawMini(o,now);requestAnimationFrame(frame)}
+cv.addEventListener('click',()=>{cv.focus();press()});
+cv.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();press()}if(e.code==='KeyQ'||e.key==='Alt'){e.preventDefault();shift()}});
+document.addEventListener('keydown',e=>{if(document.activeElement===cv)return;if(e.key==='Alt'){e.preventDefault();shift()}});
+document.getElementById('bFire').onclick=press;document.getElementById('bShift').onclick=shift;
+document.querySelectorAll('[data-sp]').forEach(b=>b.addEventListener('click',()=>{speed=+b.dataset.sp;document.querySelectorAll('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
+buildPools();renderBuilder();requestAnimationFrame(frame);
+})();
+</script>
