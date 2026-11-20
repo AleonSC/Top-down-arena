@@ -23,7 +23,7 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.G, KeyCode.B, KeyCode.X, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.None,
+            KeyCode.G, KeyCode.B, KeyCode.X, KeyCode.None, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.C,
         };
         static readonly string[] Titles =
         {
@@ -37,12 +37,12 @@ namespace Arena
             "Picked in the lobby", "Picked in the lobby, one per role and class", "Filled by a very rare upgrade card", "Filled by a very rare upgrade card",
             "Filled by a very rare upgrade card", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
-            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim (or open the gadget wheel, with no Gadget wheel key)", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
+            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
             "Cycles the minimap, the full map and no map",
-            "Hold to open the gadget wheel: let go on a gadget to swap it into your hand (no key: hold Use gadget instead)",
+            "Hold to open the gadget wheel: let go on a gadget to swap it into your hand, in the middle to cancel",
         };
         /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one, except PushWall
-        /// (retired with wall push, Nov 18) and OpenDoors (door picker removed): both kept so saved keys keep their slots).
+        /// (retired with wall push, Nov 18; no key, its C went to the Gadget wheel) and OpenDoors (door picker removed): both kept so saved keys keep their slots).
         public static readonly string[] GroupNames = { "MOVEMENT", "ABILITIES", "WEAPON", "ITEMS AND PICKS", "TOGGLES" };
         public static readonly KeyAction[][] Groups =
         {
@@ -281,6 +281,7 @@ namespace Arena
                     Save();
                 }
             }
+            keys[(int)KeyAction.PushWall] = keys2[(int)KeyAction.PushWall] = KeyCode.None;  // (retired: its old C goes to the Gadget wheel)
             for (int i = 0; i < keys.Length; i++)  // a hand-edited save with a key on two actions: the later one goes back
             {
                 for (int j = 0; j < i; j++)
