@@ -37,5 +37,30 @@ namespace Arena
                 }
             }
         }
+
+        /// The build map (BuildMapLook.cs): each one-way door as an amber bar across the doorway with an arrow through it the way it opens, gently pulsing along.
+        void DrawHoloOneWays(World wd, System.Func<V2, V2> M, float k)
+        {
+            var ow = wd.OneWays;
+            for (int i = 0; i < ow.Length; i++)
+            {
+                var d = wd.Doors[ow[i]];
+                int into = d.Pass > 0 ? d.B : d.A;
+                V2 dir = (wd.Areas[into].Mid - d.Pos).Dot(d.Across) >= 0f ? d.Across : -d.Across;
+                V2 c = M(d.Pos);
+                float half = Mathf.Max(6f, d.W / 2f * k), sz = Mathf.Clamp(half * 1.4f, 9f, 16f);
+                Line(c - d.Along * half, c + d.Along * half, 2.5f, OneWayInk.WithAlpha(0.9f));
+                float nudge = Mathf.Repeat(game.AnimT * 0.8f + i * 0.37f, 1f) * sz * 0.35f;
+                V2 tail = c - dir * sz * 0.8f, tip = c + dir * (sz + nudge), wing = d.Along * sz * 0.65f, back = dir * sz * 0.75f;
+                foreach (var pass in new[] { 0, 1 })  // a dark outline under the amber, so it reads over walls and floor
+                {
+                    float w = pass == 0 ? 5f : 2.5f;
+                    var col = pass == 0 ? new Rgba(0f, 0f, 0f, 0.7f) : OneWayInk;
+                    Line(tail, tip, w, col);
+                    Line(tip - back + wing, tip, w, col);
+                    Line(tip - back - wing, tip, w, col);
+                }
+            }
+        }
     }
 }

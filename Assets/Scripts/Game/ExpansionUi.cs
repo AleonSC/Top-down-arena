@@ -463,6 +463,7 @@ namespace Arena
                     RoomMapFrame(bp.X - 8f, bp.Y - 8f, 16f, 16f, 2f, bi);
                 }
                 DrawHoloGates(wd, M, k);  // the gates fitted (BuildMapLook.cs)
+                DrawHoloOneWays(wd, M, k);  // a One-way piece's doors: an arrow the way each opens (OneWayDoorLook.cs)
                 DrawHoloMystery(M, k, mystHover);  // sealed mystery doors (MysteryDoorLook.cs)
                 DrawHoloBreaches(M, k, map);  // this wave's breaches
                 if (expGateMode)  // the doors a gate can go on, and the one under the mouse
@@ -808,6 +809,8 @@ namespace Arena
                 items.Add(new KeyValuePair<string, Rgba>("BREACH", HoloBreachInk));
             if (game.GateFits.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("GATE", HoloGateInk));
+            if (game.ExpansionWorld.OneWays.Length > 0)
+                items.Add(new KeyValuePair<string, Rgba>("ONE-WAY DOOR", OneWayInk));  // (OneWayDoorLook.cs)
             if (game.MysteryDoors.Count > 0)
                 items.Add(new KeyValuePair<string, Rgba>("MYSTERY DOOR", MysteryHolo));  // (MysteryDoorLook.cs)
             if (game.Links.Count > 0)

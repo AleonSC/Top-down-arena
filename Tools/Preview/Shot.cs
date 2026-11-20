@@ -860,6 +860,12 @@ static partial class Shot {
       if (gridEnv != null) {
         eg.RoomsUp = true; eg.LayoutAge = 5f; if (!eg.Expanded.Exists(Expansion.IsGridCore)) { eg.Expanded.AddRange(Expansion.GridCore()); eg.Openings.AddRange(Expansion.GridCoreCuts()); }  // (the core a Grid run starts with, once)
         if (Environment.GetEnvironmentVariable("GRIDMINI") != null && Expansion.GridMinisWaiting(eg.Expanded) == 0) { var gmr = Expansion.GridMiniFor(3, 0, eg.Expanded, eg.Nodes); if (gmr.HasValue) { var gq = gmr.Value; gq.Mini = (byte)eg.MiniBossNow(); eg.Expanded.Add(gq); } }  // GRIDMINI=1: a mini-boss room waiting on the lattice (GridPieces.cs)
+        string gow = Environment.GetEnvironmentVariable("ONEWAY");  // ONEWAY=<shape>: a One-way piece built first, at the spot with the most one-way doors (OneWayDoors.cs)
+        if (gow != null) {
+          var owShape = (PieceShape)Enum.Parse(typeof(PieceShape), gow, true); System.Collections.Generic.List<ExpansionRoom> owBest = null; int owMost = 0;
+          foreach (var oo in Expansion.PlacementsFor(eg.Expanded, owShape)) { var ol = new System.Collections.Generic.List<ExpansionRoom>(eg.Expanded); foreach (var orr in oo.Rooms) { var o2 = orr; o2.OneWay = true; o2.Owner = 1; ol.Add(o2); } int on = System.Linq.Enumerable.Count(Expansion.Build(ol, eg.Openings).Doors, dd => dd.Pass != 0); if (on > owMost) { owMost = on; owBest = ol; } }
+          if (owBest != null) { eg.Expanded.Clear(); eg.Expanded.AddRange(owBest); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); }
+        }
         var gcards = Environment.GetEnvironmentVariable("GRIDCARDS") ?? "mono,domino,tril,tett:burninggrounds,shop";
         int gi = 0;
         foreach (var gc in gcards.Split(',')) {
