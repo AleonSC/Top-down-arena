@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piece Layouts</title>
+<style>
+:root{--bg:#070a14;--fg:#dfe8ff;--muted:#8190b6;--line:#243055;--panel:#0d1226}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif;margin:0;padding:28px 16px 48px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font-size:28px;margin:0 0 6px}
+p{color:var(--muted);margin:0 0 18px;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
+canvas{width:100%;height:auto;display:block;background:#000;border-radius:4px}
+b{display:block;margin:8px 0 2px;letter-spacing:.04em;text-transform:uppercase}
+small{color:var(--muted);font:12px/1.4 ui-monospace,monospace}
+.key{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 16px;font:13px ui-monospace,monospace;color:var(--muted)}
+.key i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+</style></head><body><div class="wrap">
+<h1>Piece layouts</h1>
+<p>Layouts for the bigger shapes (domino, three- and four-cell pieces). Cells are open to each other, so each layout is drawn for the whole piece; walls leave every cell middle (a chest can stand in any of them, faint squares) and every door lane open. Slots are fixed; each trap and loot slot still rolls. Approximate mockup, not the real draw code.</p>
+<div class="key"><span><i style="background:#3b6dff"></i>wall / cover</span><span><i style="background:#ffd166"></i>chest (any cell middle)</span><span><i style="background:#ff4d6a"></i>sleeper slot</span><span><i style="background:#3ee6b4"></i>door spots</span><span><i style="background:#ffb347"></i>bonus loot</span><span><i style="background:#ff8a3d"></i>T turret</span><span><i style="background:#e8e8e8"></i>^ spike</span><span><i style="background:#9b6bff"></i>~ slow</span></div>
+<div class="grid" id="g"></div></div>
+<script>
+// units: cell = 600. cells [col,row]; w = walls [x,y,w,h]; z sleepers; l loot; t traps [x,y,kind]
+const L=[
+{n:"Domino: Pillar Hall",cells:[[0,0],[1,0]],d:"Two pillar pairs flank the seam; sleepers on opposite diagonals.",
+ w:[[260,150,44,44],[260,406,44,44],[896,150,44,44],[896,406,44,44]],z:[[130,470],[1070,130]],l:[[130,130],[1070,470]],t:[[600,60,'t'],[600,540,'t'],[600,300,'s']]},
+{n:"Domino: Divider",cells:[[0,0],[1,0]],d:"A wall with a 200 px gap splits the cells. A spike plate guards the gap; sleepers in the west cell.",
+ w:[[590,14,20,190],[590,396,20,190]],z:[[130,130],[130,470]],l:[[1070,100],[1070,500]],t:[[600,300,'s'],[300,60,'t'],[900,540,'t'],[900,200,'w']]},
+{n:"Tri line: Gauntlet",cells:[[0,0],[1,0],[2,0]],d:"Staggered baffles force a zig-zag; sleepers at both ends, loot in the corners.",
+ w:[[400,14,22,200],[800,386,22,200],[1200,14,22,200],[1500,386,22,200]],z:[[130,300],[1670,300],[1000,500]],l:[[1670,100],[130,500]],t:[[900,60,'t'],[600,300,'s'],[1200,300,'s'],[1050,200,'w']]},
+{n:"Four line: Long Hall",cells:[[0,0],[1,0],[2,0],[3,0]],d:"Three chokepoints, one per seam; turrets cover each, sleepers alternate sides.",
+ w:[[590,14,20,180],[590,406,20,180],[1190,14,20,180],[1190,406,20,180],[1790,14,20,180],[1790,406,20,180]],z:[[300,130],[900,470],[1500,130],[2100,470]],l:[[2270,300],[130,300]],t:[[1200,60,'t'],[1200,540,'t'],[600,300,'s'],[1800,300,'s'],[1050,300,'w']]},
+{n:"Tri L: Dogleg",cells:[[0,0],[0,1],[1,1]],d:"Bars and pillars bend the route round the elbow; sleepers at both arm ends.",
+ w:[[160,180,280,22],[150,750,44,44],[406,1006,44,44],[800,880,22,200]],z:[[300,110],[1070,1070]],l:[[130,460],[1070,700]],t:[[60,300,'t'],[1140,900,'t'],[300,640,'s'],[600,900,'w']]},
+{n:"Square: Plaza",cells:[[0,0],[1,0],[0,1],[1,1]],d:"A central block with a pillar on every seam; sleepers in all four corners.",
+ w:[[520,520,160,160],[278,578,44,44],[878,578,44,44],[578,278,44,44],[578,878,44,44]],z:[[130,130],[1070,130],[130,1070],[1070,1070]],l:[[600,110],[600,1090]],t:[[300,60,'t'],[900,1140,'t'],[450,600,'s'],[750,600,'s'],[600,430,'w']]},
+{n:"Square: Ring Court",cells:[[0,0],[1,0],[0,1],[1,1]],d:"A big block leaves a ring corridor. Sleepers hide in two corners; loot in the other two.",
+ w:[[440,440,320,320]],z:[[130,130],[1070,1070]],l:[[1070,130],[130,1070]],t:[[600,60,'t'],[600,1140,'t'],[60,600,'t'],[1140,600,'t'],[300,600,'w'],[900,600,'s']]},
+{n:"T: Crossroads",cells:[[0,0],[1,0],[2,0],[1,1]],d:"Vault-like arms flank the chest cells; the stem is the ambush end.",
+ w:[[200,150,200,22],[200,430,200,22],[1400,150,200,22],[1400,430,200,22],[700,760,44,44],[1056,1006,44,44]],z:[[110,300],[1690,300],[900,1070]],l:[[900,110],[600,300]],t:[[900,1140,'t'],[900,640,'s'],[600,60,'t'],[1200,540,'t'],[1050,300,'w']]},
+{n:"S: Zig-Zag",cells:[[1,0],[2,0],[0,1],[1,1]],d:"Baffles drop from the top and rise from the bottom, so the S bends twice.",
+ w:[[1200,14,22,200],[600,986,22,200],[878,578,44,44]],z:[[1670,130],[130,1070],[1070,1070]],l:[[1670,470],[130,730]],t:[[1500,60,'t'],[300,1140,'t'],[1200,300,'s'],[600,800,'w']]},
+{n:"L: Long Arm",cells:[[0,0],[0,1],[0,2],[1,2]],d:"Alternating bars down the long arm, a pocket at the foot for the sleepers.",
+ w:[],z:[[300,110],[110,900],[1070,1470]],l:[[900,1700],[500,700]],t:[[60,900,'t'],[600,1500,'s'],[300,1200,'w'],[60,1500,'t']]}
+];
+L[9].w=[[14,590,200,20],[386,1190,200,20],[700,1400,20,100]];
+const g=document.getElementById('g');
+for(const o of L){
+ const card=document.createElement('div');card.className='card';
+ const cs=o.cells,minx=Math.min(...cs.map(c=>c[0])),miny=Math.min(...cs.map(c=>c[1]));
+ const cells=cs.map(c=>[c[0]-minx,c[1]-miny]);
+ const W=(Math.max(...cells.map(c=>c[0]))+1)*600,H=(Math.max(...cells.map(c=>c[1]))+1)*600;
+ const cv=document.createElement('canvas');cv.width=W;cv.height=H;card.appendChild(cv);if(W>=2400)card.style.gridColumn='1/-1';else if(W>=1800&&H<=600)card.style.gridColumn='span 2';
+ card.insertAdjacentHTML('beforeend',`<b>${o.n}</b><small>${o.d}</small>`);g.appendChild(card);
+ const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,W,H);
+ const has=(a,b)=>cells.some(c=>c[0]==a&&c[1]==b);
+ for(const[c,r] of cells){x.fillStyle='#050813';x.fillRect(c*600,r*600,600,600);
+  x.strokeStyle='#14204a';x.lineWidth=1;for(let i=0;i<=600;i+=100){x.beginPath();x.moveTo(c*600+i,r*600);x.lineTo(c*600+i,r*600+600);x.moveTo(c*600,r*600+i);x.lineTo(c*600+600,r*600+i);x.stroke();}}
+ // outer walls with door gaps at cell side middles
+ for(const[c,r] of cells)for(const[dx,dy] of [[0,-1],[1,0],[0,1],[-1,0]]){
+  if(has(c+dx,r+dy))continue;
+  const ex=c*600+(dx==1?600:0),ey=r*600+(dy==1?600:0);
+  x.lineWidth=14;x.strokeStyle='#3b6dff';
+  const horiz=dy!=0;
+  const a=horiz?[ex,ey]:[ex,ey],b=horiz?[ex+600,ey]:[ex,ey+600];
+  x.beginPath();
+  if(horiz){x.moveTo(ex,ey);x.lineTo(ex+220,ey);x.moveTo(ex+380,ey);x.lineTo(ex+600,ey);}
+  else{x.moveTo(ex,ey);x.lineTo(ex,ey+220);x.moveTo(ex,ey+380);x.lineTo(ex,ey+600);}
+  x.stroke();x.strokeStyle='#3ee6b4';x.beginPath();
+  if(horiz){x.moveTo(ex+220,ey);x.lineTo(ex+380,ey);}else{x.moveTo(ex,ey+220);x.lineTo(ex,ey+380);}x.stroke();}
+ x.fillStyle='#3b6dff';x.shadowColor='#3b6dff';x.shadowBlur=10;for(const r of o.w)x.fillRect(...r);x.shadowBlur=0;
+ const dot=(p,col,t,r,a)=>{x.globalAlpha=a||1;x.strokeStyle=col;x.fillStyle=col+'33';x.lineWidth=4;x.beginPath();x.arc(p[0],p[1],r,0,7);x.fill();x.stroke();x.fillStyle=col;x.font='bold 26px monospace';x.textAlign='center';x.fillText(t,p[0],p[1]+9);x.globalAlpha=1;};
+ for(const[c,r] of cells)dot([c*600+300,r*600+300],'#ffd166','▣',30,.35);
+ for(const p of o.z)dot(p,'#ff4d6a','Z',34);
+ for(const p of o.l)dot(p,'#ffb347','$',24);
+ const TR={t:['#ff8a3d','T'],s:['#e8e8e8','^'],w:['#9b6bff','~']};
+ for(const p of o.t)dot(p,TR[p[2]][0],TR[p[2]][1],24);
+}
+</script></body></html>
