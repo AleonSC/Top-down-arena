@@ -69,6 +69,17 @@ static partial class Program
         Expansion.RoomChestChance = 0;
         place(Expansion.MakePieceCard(PieceShape.Mono), PieceShape.Mono);
         Check(g.Nodes.Count == nodes1, "with the roll against it a piece holds none");
+        var lootCard = Expansion.MakePieceCardMods(PieceShape.Mono, PieceMods.Loot.Set(0, (int)ChestKind.Piece + 1));
+        Check(Expansion.PieceCardLoot(lootCard) && Expansion.CardName(lootCard) == "Piece Loot Single" && Expansion.CardPrice(lootCard) == 6 + 8, "a Loot card names its chest kind and costs 8 more");
+        var lootMade = place(lootCard, PieceShape.Mono);
+        var lootNode = g.Nodes.Skip(nodes1).FirstOrDefault();
+        Check(lootMade.Count == 1 && g.Nodes.Count == nodes1 + 1 && lootNode.Kind == NodeKind.Chest && lootNode.Rule == (int)ChestKind.Piece + 1 && Expansion.NodeEncloses(lootMade[0], lootNode),
+            "a Loot piece holds its chest even with the room roll at 0%");
+        Expansion.RoomChestChance = 100;
+        int nodes1b = g.Nodes.Count;
+        place(Expansion.MakePieceCardMods(PieceShape.Mono, PieceMods.Loot.Set(0, (int)ChestKind.Gold + 1)), PieceShape.Mono);
+        Check(g.Nodes.Count == nodes1b + 1 && g.Nodes.Last().Rule == (int)ChestKind.Gold + 1, "and only that one: a Loot piece skips the random room chest");
+        nodes1 = g.Nodes.Count;
         Expansion.RoomChestChance = keep;
         Run(s, dt, 0.5f, () => cg.Nodes.Count == g.Nodes.Count, noPicks);
         Check(cg.Nodes.SequenceEqual(g.Nodes), "the client gets the room chests");

@@ -17,6 +17,12 @@ namespace Arena
         {
             if (rng.Int(100) >= RoomChestChance)
                 return null;
+            return RollChestKind(rng);
+        }
+
+        /// A chest kind by rarity (RoomChestWeights): what a Loot piece guarantees, and what a room's chest roll holds.
+        public static ChestKind RollChestKind(DetRandom rng)
+        {
             int total = 0;
             foreach (int w in RoomChestWeights)
                 total += w;
@@ -55,10 +61,18 @@ namespace Arena
             var kind = Expansion.RollRoomChest(rng);
             if (!kind.HasValue)
                 return;
+            PlaceRoomChest(made, what, kind.Value, rng);
+        }
+
+        /// Host: a chest of this kind stands in the middle of one of these rooms' cells (a Loot piece's guarantee, or a rolled room chest).
+        internal void PlaceRoomChest(IList<ExpansionRoom> made, string what, ChestKind kind, DetRandom rng)
+        {
+            if (!IsHost || made == null || made.Count == 0)
+                return;
             var cells = Expansion.CellMiddles(made);
             V2 at = cells[rng.Int(cells.Count)];
-            Nodes.Add(new MapNode { X = (short)at.X, Y = (short)at.Y, Kind = NodeKind.Chest, Rule = (byte)((int)kind.Value + 1) });
-            DoLog("the " + what + " holds a " + kind.Value + " chest at " + (int)at.X + "," + (int)at.Y);
+            Nodes.Add(new MapNode { X = (short)at.X, Y = (short)at.Y, Kind = NodeKind.Chest, Rule = (byte)((int)kind + 1) });
+            DoLog("the " + what + " holds a " + kind + " chest at " + (int)at.X + "," + (int)at.Y);
             expWorld = null;  // (its chest stands where the rebuilt world says: TickNodes, after the caller builds the room)
             TickNodes();
             BroadcastExpansion();
