@@ -442,6 +442,11 @@ namespace Arena
                 switch (d.Move)
                 {
                     case MinionMove.Orbit:
+                        if (m.Kind == MinionKind.Phoenix)
+                        {
+                            PhoenixFlies(m, owner, dt);  // Phoenix.cs: glides after your cursor, pulsing heals
+                            break;
+                        }
                         m.Ang += speed * dt;
                         if (m.Kind == MinionKind.LightOrb && owner.RadiantOn)  // Radiant Orb's light orbs circle the orb while it's out
                             m.Pos += (owner.RadiantPos + V2.FromAngle(m.Ang) * LightOrbRing - m.Pos).LimitLength(LightOrbSpeed * dt);
@@ -511,11 +516,13 @@ namespace Arena
                         var e = NearestEnemy(m.Pos, d.Range);
                         if (e == null)
                             break;
-                        m.Aim = (e.Pos - m.Pos).Angle;
+                        float shotAim = (e.Pos - m.Pos).Angle;
+                        if (m.Kind != MinionKind.Phoenix)
+                            m.Aim = shotAim;  // the phoenix faces where it flies
                         if (m.Cd <= 0f && Battle)
                         {
                             m.Cd = d.Interval;
-                            V2 dir = V2.FromAngle(m.Aim);
+                            V2 dir = V2.FromAngle(shotAim);
                             byte kind = m.Kind == MinionKind.Turret ? Defs.TurretShot : m.Kind == MinionKind.Phoenix ? Defs.FireShot : Defs.MinionShot;
                             SpawnBullet(kind, m.Pos + dir * d.Radius, dir * 650f, 0f, d.Range / 650f, dmg, m.Owner);
                         }
@@ -602,7 +609,7 @@ namespace Arena
                         if (q.Downed)
                         {
                             RevivePlayer(q, Math.Min(1f, (m.Mastered ? 1f : 0.5f) + owner.Stats.PhoenixReviveBonus), owner);  // Rebirth Flame
-                            BroadcastFx(FxKind.Ring, q.Pos, d.Color, 90f, 0.6f, Sfx.Revive);
+                            BroadcastFx(FxKind.Ring, q.Pos, d.Color, PhoenixPulseRange, 0.6f, Sfx.Revive);  // a last, wide burst of fire
                             if (!m.Mastered)
                                 expired.Add(m);
                             break;

@@ -1094,6 +1094,24 @@ static partial class Program
         Check(Breaches.Candidates(wl).All(c => c.Key.Pos.FartherThan(link.A, Expansion.LinkHalf + Breaches.Len / 2f) && c.Key.Pos.FartherThan(link.B, Expansion.LinkHalf + Breaches.Len / 2f)), "breaches never open on a portal's wall");
         var best = Expansion.BestLink(w, 0);
         Check(best.HasValue && Expansion.OuterWall(w, best.Value.A).HasValue && Expansion.OuterWall(w, best.Value.B).HasValue, "the bots' pick is on outer walls too");
+        {  // every spot the teleporter tool lands on builds as a wall portal, also on a room of several boxes (the core, pieces)
+            var gl = new List<ExpansionRoom>(Expansion.GridCore());
+            for (int k = 0; k < 6; k++) { var mo = Expansion.PlacementsFor(gl, k % 3 == 0 ? PieceShape.TetL : k % 3 == 1 ? PieceShape.Domino : PieceShape.Mono); if (mo.Count == 0) break; gl.AddRange(mo[(k * 7) % mo.Count].Rooms); }
+            var gcut = Expansion.GridCoreCuts();
+            var gww = Expansion.Build(gl, gcut);
+            var spots = new List<V2>();
+            for (float x = gww.Min.X; x <= gww.Max.X; x += 100f)
+                for (float y = gww.Min.Y; y <= gww.Max.Y; y += 100f)
+                    if (Expansion.OuterWall(gww, new V2(x, y)).HasValue) spots.Add(new V2(x, y));
+            int bad = 0;
+            foreach (var sp in spots)
+            {
+                var far = spots.OrderByDescending(q => q.DistanceTo(sp)).First();
+                var bw = Expansion.Build(gl, gcut, new List<PortalLink> { new PortalLink { AX = (short)sp.X, AY = (short)sp.Y, BX = (short)far.X, BY = (short)far.Y } });
+                if (!bw.Portals[0].Wall) bad++;
+            }
+            Check(spots.Count > 10 && bad == 0, "every outer-wall spot builds as a wall portal, seams of a many-box room too (" + bad + " of " + spots.Count + " fell back to floor portals)");
+        }
         V2 fa = new V2(1900, 400), fb = new V2(400, 1200);  // an older save's pair: inside the rooms, a floor portal still
         var wf = Expansion.Build(list, null, new List<PortalLink> { new PortalLink { AX = (short)fa.X, AY = (short)fa.Y, BX = (short)fb.X, BY = (short)fb.Y } });
         var fexit = wf.PortalExitFor(fa);

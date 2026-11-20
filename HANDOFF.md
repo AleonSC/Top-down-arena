@@ -96,7 +96,8 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 - **Networking:** host-authoritative TCP. Clients send inputs; **clients are authoritative for their own
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
-  sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
+  sides with periodic `BulletSync`. Coins go as changes (`SyncCoins`, Coins.cs: dropped/moved/taken since the last snapshot, a full list every 60): they
+  pile up all wave, and sending every one 20 times a second swamped the link. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
   **`Session.ProtocolVersion` (see `Core/Session.cs`) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`

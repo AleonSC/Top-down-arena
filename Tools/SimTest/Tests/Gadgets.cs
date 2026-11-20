@@ -99,7 +99,8 @@ static partial class Program
             drop.Invoke(g, new object[] { e0 });
             max = Math.Max(max, g.Gadgets.Count);
         }
-        Check(max >= 1 && max <= g.Players.Count, "kills drop a Magnet now and then, at most one per player (" + max + ")");
+        Check(max >= 1 && max <= g.Players.Count * 2, "kills drop gadgets now and then, at most one of each kind per player (" + max + ")");
+        Check(g.Gadgets.Values.Any(x => x.Kind == GadgetId.Magnet) && g.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "both the Magnet and the Energy Drink drop from kills");
 
         // The bag: a second gadget goes in the bag, the wheel's pick swaps it into the hand (over the network too), a used-up one is replaced from the bag.
         var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -138,6 +139,20 @@ static partial class Program
         Run(s, dt, 0.3f, null, () => { Quiet(); });
         Check(p2.Gadget != GadgetId.Recall || p2.BagKind.Count(k => k != GadgetId.None) < bagBefore, "a finished Recall is used up");
         Check(p2.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 160f, "and sets you down by the hub's middle");
+
+        // The Energy Drink: switched on, a big speed boost (on the client's screen too) that runs down like the Magnet; off, normal speed.
+        p2.Gadget = GadgetId.EnergyDrink; p2.GadgetLeft = Game.EnergyTime; p2.GadgetOn = false;
+        float baseSpeed = p2.Speed;
+        cg.UseGadget();
+        Run(s, dt, 0.5f, null, () => { Quiet(); Put(); });
+        Check(p2.GadgetOn && Math.Abs(p2.Speed - baseSpeed * Game.EnergySpeed) < 0.01f && p2.GadgetLeft < Game.EnergyTime, "the Energy Drink switched on: " + Game.EnergySpeed + "x move speed, its minute running down");
+        Check(cg.Players[2].GadgetOn && Math.Abs(cg.Players[2].Speed - p2.Speed) < 0.01f, "...and the client moves at the same speed");
+        cg.UseGadget();
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(!p2.GadgetOn && Math.Abs(p2.Speed - baseSpeed) < 0.01f, "switched off: normal speed, the rest saved");
+        p2.GadgetOn = true; p2.GadgetLeft = 0.05f;
+        Run(s, dt, 0.3f, null, () => { Quiet(); Put(); });
+        Check(p2.Gadget != GadgetId.EnergyDrink && Math.Abs(p2.Speed - baseSpeed) < 0.01f, "a finished Energy Drink is used up");
 
         // Gadget chests: one each, into the hand or the bag; a full one spills at your feet (your own copy).
         foreach (var q in g.Players.Values)

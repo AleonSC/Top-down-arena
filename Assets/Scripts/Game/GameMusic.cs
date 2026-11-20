@@ -74,6 +74,14 @@ namespace Arena
                         Kick = "x...x...x...x...", Snare = "....x.......x...", Hat = "o.o.o.o.o.o.o.o.",
                         Lead = true, LeadTone = Tone.Square, LeadSeed = 5,
                     };
+                case EnemyType.RiotCaptain:  // the Warden's mini-boss, "Riot Line": a marching snare and gritty Phrygian fifths
+                    return new Recipe
+                    {
+                        Bpm = 118f, Chords = new[] { "E5", "F5", "E5", "D5", "E5", "F5", "G5", "F5" }, Passes = 2,
+                        PowerChords = true, BassStyle = Bass.Eighths, BassLevel = 0.26f, BassDrive = 0.45f, Pad = 0.03f, PadCutoff = 1000f,
+                        Kick = "x.......x.x.....", Snare = "o.oox.o.o.oox.xo", Hat = "x...x...x...x...", Toms = true, DrumLevel = 1.1f,
+                        Lead = true, LeadTone = Tone.Square, LeadSeed = 61, LeadLevel = 0.06f, Reverb = 0.45f,
+                    };
                 case EnemyType.HiveQueen:  // buzzing, insectile
                     return new Recipe
                     {

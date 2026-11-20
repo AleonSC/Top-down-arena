@@ -855,6 +855,7 @@ static partial class Shot {
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)
     ChalkFireScene();  // CHALKFIRE=A|B|C (ShotChalkFire.cs)
     FlameWallScene();  // FLAMEWALL=<s since the cast> [FXOFF=1] (ShotFlameWall.cs)
+    PhoenixScene();  // PHOENIX=<s since the cast> (ShotPhoenix.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
     LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
@@ -2359,6 +2360,14 @@ static partial class Shot {
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
       string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
       if (fogRoom != null) { var fro = xg.Expanded[int.Parse(fogRoom)]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(fro.X + 120, fro.Y + fro.H / 2); }
+      string trapStand = Environment.GetEnvironmentVariable("TRAPSTAND");  // TRAPSTAND=slow|spike[,dx,dy]: you stand on the trap of that kind nearest you, offset by dx,dy (RoomTrapLook.cs)
+      if (trapStand != null) {
+        var ts = trapStand.Split(','); var kind = ts[0] == "spike" ? TrapKind.Spike : TrapKind.Slow; Player me0 = null; foreach (var pl in xg.Players.Values) { me0 = pl; break; }
+        V2 near = me0.Pos; float tsBest = float.MaxValue;
+        foreach (var r in xg.RoomTrapList) if (r.Kind == kind && (r.Pos - me0.Pos).LengthSq < tsBest) { tsBest = (r.Pos - me0.Pos).LengthSq; near = r.Pos; }
+        var off = ts.Length > 2 ? new V2(float.Parse(ts[1], System.Globalization.CultureInfo.InvariantCulture), float.Parse(ts[2], System.Globalization.CultureInfo.InvariantCulture)) : new V2(0f, 0f);
+        me0.Pos = me0.Disp = near + off;
+      }
       string fogAim = Environment.GetEnvironmentVariable("FOGAIM");  // FOGAIM=<degrees>[,trail]: every player faces that way (0 east, 90 south); "trail" first sweeps the cone round to there, exploring what it passes over (the explored memory)
       if (fogAim != null) {
         var fa = fogAim.Split(','); float fdeg = float.Parse(fa[0], System.Globalization.CultureInfo.InvariantCulture);
@@ -2405,6 +2414,14 @@ static partial class Shot {
         if (en.Def.IsBoss || en.Dormant) continue;  // (a dormant group stays where it was planted)
         var ar = xg.CurrentWorld.Areas[xi++ % xg.CurrentWorld.Areas.Length];
         en.Pos = en.Disp = xg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.X - 120f), ar.Min.Y + 50f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.Y - 100f)), en.Radius);
+      }
+      string xlink = Environment.GetEnvironmentVariable("EXPANDLINK");  // EXPANDLINK=ax,ay,bx,by: that portal pair built (no checks), you standing by its first end
+      if (xlink != null) {
+        var lq = Array.ConvertAll(xlink.Split(','), int.Parse);
+        var ln = new PortalLink { AX = (short)lq[0], AY = (short)lq[1], BX = (short)lq[2], BY = (short)lq[3] };
+        xg.Links.Add(ln); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+        V2 lin = xg.ExpansionWorld.Portals[xg.ExpansionWorld.Portals.Length - 1].InA;
+        int pi3 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = ln.A + lin * (160f + 40f * pi3) + lin.Orthogonal() * (60f * pi3); pi3++; }
       }
       if (Environment.GetEnvironmentVariable("EXPANDPORTAL") != null) {  // EXPANDPORTAL=1: the best portal pair built, you standing by one end
         var bl = Expansion.BestLink(xg.ExpansionWorld, 0);

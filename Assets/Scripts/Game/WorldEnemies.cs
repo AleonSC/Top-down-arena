@@ -439,14 +439,16 @@ namespace Arena
                 DrawBat(m, t);  // BatLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Phoenix)
+            {
+                DrawPhoenix(m, t);  // PhoenixLook.cs
+                return;
+            }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;
             if (m.Kind == MinionKind.Wisp || m.Kind == MinionKind.Sprite)
                 Circle(m.Disp, d.Radius * 2.2f, c.WithAlpha(0.2f), 12);
             if (m.Kind == MinionKind.LightOrb)  // a soft halo that pulses
                 Circle(m.Disp, rad * (2.4f + 0.3f * Mathf.Sin(t * 6f + m.Id)), c.WithAlpha(0.22f), 16);
-            if (m.Kind == MinionKind.Phoenix)
-                for (int k = 0; k < 2; k++)  // flapping wings
-                    Line(m.Disp, m.Disp + V2.FromAngle(m.Aim + MathX.Pi * (0.6f + k * 0.8f) + 0.4f * Mathf.Sin(t * 12f)) * 20f, 4f, c);
             Polygon(m.Disp, rad, d.Sides, rot, c);
             if (d.Attack == MinionAttack.Shoot)
                 Line(m.Disp, m.Disp + V2.FromAngle(m.Aim) * (rad + 7f), 4f, c);

@@ -5,7 +5,8 @@ namespace Arena
 {
     /// The gadget bag's front end (Core/Gadgets.cs): hold the Gadget key with gadgets in the bag and a wheel opens at the cursor, one slice
     /// for the gadget in hand and one for each in the bag. Move to a slice and let go to swap it into your hand; let go in the middle
-    /// to throw what's in hand where the cursor was. A small chip beside the keys shows the gadget in hand and the bag. With an empty
+    /// to throw what's in hand where the cursor was. With a Gadget wheel key bound, holding that key opens it instead (its middle cancels)
+    /// and holding the Gadget key always throws. A small chip beside the keys shows the gadget in hand and the bag. With an empty
     /// bag the key works as it always did (tap: on / off, hold: throw).
     public partial class ArenaApp
     {
@@ -24,13 +25,13 @@ namespace Arena
             return n;
         }
 
-        static Color GadgetInk(GadgetId g) => g == GadgetId.Recall ? new Color(0.45f, 0.9f, 1f) : new Color(0.92f, 0.2f, 0.22f);
+        static Color GadgetInk(GadgetId g) => g == GadgetId.Recall ? new Color(0.45f, 0.9f, 1f) : g == GadgetId.EnergyDrink ? new Color(0.6f, 1f, 0.25f) : new Color(0.92f, 0.2f, 0.22f);
 
         /// "MAGNET 42s", "RECALL", with "+2" for what's in the bag; "—" with nothing.
         static string GadgetSummary(Player me)
         {
             int bag = BagCount(me);
-            string hand = me.Gadget == GadgetId.None ? "—" : Game.GadgetName(me.Gadget).ToUpperInvariant() + (me.Gadget == GadgetId.Magnet ? " " + Mathf.CeilToInt(me.GadgetLeft) + "s" : "");
+            string hand = me.Gadget == GadgetId.None ? "—" : Game.GadgetName(me.Gadget).ToUpperInvariant() + (Game.GadgetTimed(me.Gadget) ? " " + Mathf.CeilToInt(me.GadgetLeft) + "s" : "");
             return bag > 0 ? hand + "  +" + bag : hand;
         }
 
@@ -64,10 +65,24 @@ namespace Arena
         GadgetId GadgetOfSlot(Player me, int slot) => slot < 0 ? me.Gadget : me.BagKind[slot];
         float GadgetLeftOfSlot(Player me, int slot) => slot < 0 ? me.GadgetLeft : me.BagLeft[slot];
 
-        /// A gadget's glyph centred on c (HUD pixels, from fills and dots like the ping glyphs): the Magnet's horseshoe, the Recall's house in a ring.
+        /// A gadget's glyph centred on c (HUD pixels, from fills and dots like the ping glyphs): the Magnet's horseshoe, the Recall's house in a
+        /// ring, the Energy Drink's can with a bolt.
         void DrawGadgetGlyph(GadgetId g, Vector2 c, float r, Color col)
         {
             float t = Mathf.Max(2f, r * 0.16f), k = r * 0.55f;
+            if (g == GadgetId.EnergyDrink)
+            {
+                var can = new Rect(c.x - k * 0.62f, c.y - k * 0.95f, k * 1.24f, k * 1.9f);
+                Ui.Fill(can, col);
+                Ui.Fill(new Rect(can.x, can.y, can.width, t), new Color(0.86f, 0.9f, 0.96f));  // rim
+                Ui.Fill(new Rect(can.x, can.yMax - t * 0.7f, can.width, t * 0.7f), new Color(0.86f, 0.9f, 0.96f, 0.8f));
+                var dark = new Color(0.08f, 0.2f, 0.04f);
+                float bw = Mathf.Max(1.5f, t * 0.8f);  // the bolt: two offset bars
+                Ui.Fill(new Rect(c.x - bw * 0.2f, c.y - k * 0.55f, bw, k * 0.6f), dark);
+                Ui.Fill(new Rect(c.x - bw * 1.2f, c.y - bw * 0.2f, bw * 2.4f, bw), dark);
+                Ui.Fill(new Rect(c.x - bw * 0.8f, c.y, bw, k * 0.6f), dark);
+                return;
+            }
             if (g == GadgetId.Recall)
             {
                 Ui.Dot(new Rect(c.x - r * 0.85f, c.y - r * 0.85f, r * 1.7f, r * 1.7f), col, true);
@@ -106,7 +121,7 @@ namespace Arena
                 Ui.Fill(tile, hot ? tone.WithAlpha(0.35f) : new Color(0.07f, 0.09f, 0.11f, 0.92f));
                 Ui.Fill(new Rect(tile.x, tile.y, tile.width, 2f), hot ? tone : slot < 0 ? tone.WithAlpha(0.8f) : new Color(1f, 1f, 1f, 0.15f));
                 DrawGadgetGlyph(g, new Vector2(c.x, c.y - 7f), 22f, hot ? Color.white : tone);
-                string label = Game.GadgetName(g).ToUpperInvariant() + (g == GadgetId.Magnet ? " " + Mathf.CeilToInt(GadgetLeftOfSlot(me, slot)) + "s" : "");
+                string label = (g == GadgetId.EnergyDrink ? "ENERGY" : Game.GadgetName(g).ToUpperInvariant()) + (Game.GadgetTimed(g) ? " " + Mathf.CeilToInt(GadgetLeftOfSlot(me, slot)) + "s" : "");
                 Ui.Label(new Rect(tile.x, tile.yMax - 17f, tile.width, 14f), label, 9, hot ? Color.white : new Color(0.57f, 0.63f, 0.68f), TextAnchor.MiddleCenter, true);
                 if (slot < 0)
                     Ui.Label(new Rect(tile.x, tile.y + 3f, tile.width, 11f), "IN HAND", 7, tone.WithAlpha(0.9f), TextAnchor.MiddleCenter, true);
@@ -114,7 +129,7 @@ namespace Arena
             var hub = new Rect(gadgetAnchor.x - 26f, gadgetAnchor.y - 26f, 52f, 52f);
             Ui.Dot(hub, new Color(0.03f, 0.04f, 0.07f, 0.9f));
             Ui.Dot(hub, new Color(0.35f, 0.4f, 0.45f), true);
-            Ui.Label(hub, gadgetHover >= 0 ? "SWAP" : me.Gadget != GadgetId.None ? "THROW" : "CANCEL", 8, new Color(0.57f, 0.63f, 0.68f), TextAnchor.MiddleCenter, true);
+            Ui.Label(hub, gadgetHover >= 0 ? (gadgetWheelSlots[gadgetHover] < 0 ? "KEEP" : "SWAP") : me.Gadget != GadgetId.None && !gadgetWheelByKey ? "THROW" : "CANCEL", 8, new Color(0.57f, 0.63f, 0.68f), TextAnchor.MiddleCenter, true);
             Ui.Alpha = oldAlpha;
         }
 
@@ -123,13 +138,13 @@ namespace Arena
         {
             if (me == null || me.Downed || (me.Gadget == GadgetId.None && BagCount(me) == 0))
                 return;
-            var r = new Rect(W / 2f - 75f, HudChestHint.y - 30f, 150f, 26f);  // (just over the chest hint, centred)
+            var r = new Rect(W / 2f - 90f, HudChestHint.y - 30f, 180f, 26f);  // (just over the chest hint, centred)
             Ui.Fill(r, new Color(0.03f, 0.04f, 0.07f, 0.85f));
             Color tone = me.Gadget == GadgetId.None ? new Color(0.57f, 0.63f, 0.68f) : GadgetInk(me.Gadget);
             Ui.Fill(new Rect(r.x, r.y, 2f, r.height), tone);
             if (me.Gadget != GadgetId.None)
                 DrawGadgetGlyph(me.Gadget, new Vector2(r.x + 16f, r.center.y), 10f, tone);
-            string key = Keybinds.NameOrNull(KeyAction.Gadget) ?? "";
+            string key = Keybinds.NameOrNull(KeyAction.GadgetWheel) ?? Keybinds.NameOrNull(KeyAction.Gadget) ?? "";
             string text = me.Gadget == GadgetId.None ? "HOLD " + key + " TO EQUIP" : me.Gadget == GadgetId.Recall && me.GadgetOn ? "RECALLING " + Mathf.CeilToInt(me.GadgetLeft) + "s"
                 : Game.GadgetName(me.Gadget).ToUpperInvariant() + (me.GadgetOn ? " ON" : "");
             Ui.Label(new Rect(r.x + 30f, r.y, r.width - 62f, r.height), text, 10, Color.white, TextAnchor.MiddleLeft, true);
