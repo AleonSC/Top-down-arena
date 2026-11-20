@@ -22,6 +22,7 @@ static partial class Program
             var b = boss;
             recipes.Add(new KeyValuePair<string, Func<float[]>>(b.ToString(), () => GameMusic.Render(GameMusic.ForBoss(b))));
         }
+        recipes.Add(new KeyValuePair<string, Func<float[]>>("RiotCaptain", () => GameMusic.Render(GameMusic.ForBoss(EnemyType.RiotCaptain))));
         bool ok = true;
         var lengths = new List<string>();
         foreach (var kv in recipes)
@@ -41,7 +42,7 @@ static partial class Program
             ok &= good;
         }
         Console.WriteLine("  music: " + string.Join(", ", lengths.ToArray()));
-        Check(ok && bosses.Count == 10, "menu, battle and all 10 boss tracks render cleanly and loop");
+        Check(ok && bosses.Count == 10, "menu, battle, all 10 boss tracks and the Riot Captain's render cleanly and loop");
     }
 
     // The music player's library: unique ids, every extra mood renders cleanly and loops, and the Jukebox steps sensibly.
@@ -51,7 +52,7 @@ static partial class Program
         bool unique = true;
         foreach (var e in MusicLibrary.All)
             unique &= ids.Add(e.Id) && e.Title.Length > 0 && Array.IndexOf(MusicLibrary.Moods, e.Mood) >= 0;
-        Check(unique && MusicLibrary.All.Count == 22, "music library: 22 tracks, unique ids, known moods");
+        Check(unique && MusicLibrary.All.Count == 23, "music library: 23 tracks, unique ids, known moods");
 
         bool ok = true;
         foreach (var e in MusicLibrary.All)
