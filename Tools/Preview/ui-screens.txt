@@ -9,6 +9,8 @@ menu-play         menu      PLAY=1
 who               who
 profile           profile
 cosmetics         cosmetics
+cosmetics-skin    cosmetics SECTION=7
+cosmetics-chicken cosmetics SECTION=7 SKINKIT=Knight,Dps,0 SKINXP=6500 SKINEQ=twin-chicken
 records           records
 records-recent    records   SECTION=4
 howto             lobby     LOBBYMENU=howto

@@ -1688,6 +1688,16 @@ A **cosmetic account rank**. Every finished run (and Boss Hunt) earns XP; XP rai
 cosmetics only, never power. It is separate from the **Level** on the results cards, which is the in-run level.
 Design: [`Docs/Rank.md`](Docs/Rank.md); mockups: `Docs/Mockups/rank-screens.html`.
 
+**Class expertise and weapon skins:** every run's XP also goes to the class you played, as that class's **expertise**
+(level 0 to 10; level *n* to *n+1* costs 1,000 x (*n*+1) XP, 55,000 for level 10). Expertise unlocks that class's
+**weapon skins**, one equipped per weapon. Pick them in Profile > Look > **Weapon skin**: it shows the class you picked in
+the lobby, a key per weapon of your role, each weapon's skins with a live preview, and your expertise level and bar.
+Everyone in the run sees and hears your skin. Not ability **mastery**, which is per run.
+
+| Skin | Weapon | Unlock | What changes |
+|---|---|---|---|
+| **Rubber Chicken** | Twin Blades | Knight expertise 3 | Both sabres become rubber chickens held by the feet. The necks flop behind every swing and stretch with its speed (the Double Jab becomes a peck), the beaks open and squeak while they cut, the eyes go to X on the hit, and feathers come off instead of the blade trail, with a puff where each cut ends. Every Twin Blades sound becomes a squeak: an "eek" on the cuts, "bwek bwek" on the jabs, a warbling squeal on the Pirouette, a wheeze and full scream on the Crescent Shear, a rubber thwap and honk on hits, a squeal on Twin Fang. Cosmetic only: the swings, timing and hits are the Twin Blades' own. |
+
 **XP for a run:** 20 per wave cleared, 150 per boss defeated, 40 per ally revived and 500 for a win, times
 (1 + each active modifier's bonus: **Harder +25%**, **Risky +15%**, **Easier +0%**, at most x3) and the difficulty's
 step (Easy x0.75, Normal x1, Hard x1.25, Nightmare x1.5, Custom x1). A hunt counts its waves and the boss, with no
@@ -1918,7 +1928,7 @@ out (Back or Esc), and only then does the window really close.
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
   HUD, **camera lean**, **scroll-wheel zoom**, **Enemy names on hover** (off by default), the lag chart and lag log, **Teammate shots**, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one).
-- **Profile:** four tabs. **Look** (the cosmetics), **Rank** (Progress, Reward ladder, Tiers, XP sources), **Records** (Overview, Bosses with each one moving beside its count, Classes, **Recent runs**, **Challenge rooms** with each room played and
+- **Profile:** four tabs. **Look** (the cosmetics and **Weapon skin**), **Rank** (Progress, Reward ladder, Tiers, XP sources), **Records** (Overview, Bosses with each one moving beside its count, Classes, **Recent runs**, **Challenge rooms** with each room played and
   won) and **Unlocks**. Mid-run and in the lobby it has no Look tab.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
   basics, Fighting, Between waves, Data Gates (with a little animated gate), Paths and modifiers, Playing

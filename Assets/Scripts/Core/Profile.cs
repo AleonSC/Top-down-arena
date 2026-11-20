@@ -101,6 +101,39 @@ namespace Arena
         public const int RecentKept = 20;  // (the Rank page lists the newest RankPageRuns)
         public const int RankPageRuns = 6;
 
+        // Class expertise (Expertise.cs): XP per class ("Soldier" -> XP), and the weapon skin equipped per weapon ("TwinRifle" -> skin id).
+        public readonly Dictionary<string, long> ClassXp = new Dictionary<string, long>();
+        public readonly Dictionary<string, string> WeaponSkins = new Dictionary<string, string>();
+        public long ExpertiseXp(Kit kit) { long v; return ClassXp.TryGetValue(Expertise.Key(kit), out v) ? v : 0; }
+        public int ExpertiseLevel(Kit kit) => Expertise.Of(ExpertiseXp(kit)).Level;
+
+        /// The skin equipped on a weapon ("" the standard look, also when the skin is no longer yours).
+        public string SkinOf(WeaponId weapon)
+        {
+            string id;
+            if (!WeaponSkins.TryGetValue(weapon.ToString(), out id))
+                return "";
+            var s = Expertise.Skin(id);
+            return s != null && s.Weapon == weapon && OwnsSkin(s) ? id : "";
+        }
+
+        public bool OwnsSkin(WeaponSkinDef s) => s != null && (DevAllUnlocked || ExpertiseLevel(Expertise.ClassOf(s.Weapon)) >= s.Level);
+
+        /// Equips a skin on its weapon (id "" goes back to the standard look). False: not that weapon's, or not yours yet.
+        public bool EquipSkin(WeaponId weapon, string id)
+        {
+            if (id == "")
+            {
+                WeaponSkins.Remove(weapon.ToString());
+                return true;
+            }
+            var s = Expertise.Skin(id);
+            if (s == null || s.Weapon != weapon || !OwnsSkin(s))
+                return false;
+            WeaponSkins[weapon.ToString()] = id;
+            return true;
+        }
+
         // Weapon variants (Docs/Variants.md): Cores earned from runs, hunts and drops, spent on a weapon's variant tiers (weapon name -> tiers bought).
         public int Cores;
         public readonly Dictionary<string, int> VariantTiers = new Dictionary<string, int>();
@@ -145,10 +178,19 @@ namespace Arena
         public int RankNow => Rank.Of(Xp).Rank;
 
         /// Adds a finished run's or hunt's XP, logs it, and says what it unlocked. result: 0 lost, 1 won, 2 hunt lost, 3 hunt won.
-        public RankGain AwardXp(XpAward a, int wave, int result)
+        /// kit: the class played, whose expertise gets the same XP (null: none, e.g. a test).
+        public RankGain AwardXp(XpAward a, int wave, int result, Kit? kit = null)
         {
             var gain = new RankGain { Award = a, Before = Xp, RankBefore = Rank.Of(Xp).Rank };
             Xp += a.Total;
+            if (kit.HasValue)
+            {
+                long was = ExpertiseXp(kit.Value);
+                ClassXp[Expertise.Key(kit.Value)] = was + Math.Max(0, a.Total);
+                gain.ExpertiseKit = kit;
+                gain.ExpertiseBefore = Expertise.Of(was).Level;
+                gain.ExpertiseAfter = ExpertiseLevel(kit.Value);
+            }
             gain.After = Xp;
             gain.RankAfter = Rank.Of(Xp).Rank;
             for (int r = gain.RankBefore + 1; r <= gain.RankAfter; r++)
@@ -383,6 +425,8 @@ namespace Arena
             if (DevAllUnlocked) RunSave.Line(sb, "devall", 1);
             if (Cores > 0) RunSave.Line(sb, "cores", Cores);
             foreach (var kv in VariantTiers) RunSave.Line(sb, "variant", Dash(kv.Key.Replace(' ', '_')) + " " + kv.Value);
+            foreach (var kv in ClassXp) RunSave.Line(sb, "expertise", kv.Key + " " + kv.Value);
+            foreach (var kv in WeaponSkins) RunSave.Line(sb, "skin", kv.Key + " " + kv.Value);
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine) + " " + Dash(Cursor));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')) + " " + Dash(l.Class.Replace(' ', '_')) + " " + Dash(l.Mode) + " " + RunSave.F(l.Seconds) + " " + RunSave.F(l.Dealt) + " " + RunSave.F(l.Taken) + " " + RunSave.F(l.Heal) + " " + l.Players + " " + Dash(l.File));
             RunSave.Line(sb, "end", 1);
@@ -444,6 +488,8 @@ namespace Arena
                         case "devall": p.DevAllUnlocked = RunSave.I(f[0]) != 0; break;
                         case "cores": p.Cores = Math.Max(0, RunSave.I(f[0])); break;
                         case "variant": p.VariantTiers[UnDash(f[0]).Replace('_', ' ')] = Math.Max(0, Math.Min(Variants.Tiers, RunSave.I(f[1]))); break;
+                        case "expertise": p.ClassXp[f[0]] = Math.Max(0, long.Parse(f[1], System.Globalization.CultureInfo.InvariantCulture)); break;
+                        case "skin": if (Expertise.Skin(f[1]) != null) p.WeaponSkins[f[0]] = f[1]; break;  // (a skin that no longer exists is dropped)
                         case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); if (f.Length > 6) p.Cursor = UnDash(f[6]); break;
                         case "rlog":
                             if (p.Recent.Count < RecentKept)

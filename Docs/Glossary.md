@@ -33,6 +33,8 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **Wildcard ability** | the Wildcard's extra starting ability, on the 2nd, 3rd or 4th slot | `Player.WildcardAbility` |
 | **Ultimate** | picked in the lobby, one per role and class (never "ult" in text; the key cap keeps "ULT") | `AbilityDef.Ult`, `Slots[4]`, `KeyAction.Ultimate` |
 | **mastery** | an ability's 1-5 rank from use; **mastery 5** unlocks its capstone (never "ability level") | `Mastery.cs`, `MasteryLevel` |
+| **expertise** | a class's 0-10 level from the XP of runs played as it (account-wide, cosmetic); unlocks its **weapon skins** (never "class mastery") | `Expertise.cs`, `Profile.ExpertiseLevel` |
+| **weapon skin** | a look for one weapon, one equipped per weapon, earned by expertise | `WeaponSkinDef`, `Profile.SkinOf` |
 | **enemy level** | an enemy's strength in a wave file (`level 3`) | `DesignWave.Level` |
 
 ## Helpers

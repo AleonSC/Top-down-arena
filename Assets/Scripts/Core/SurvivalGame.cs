@@ -58,7 +58,7 @@ namespace Arena
             float time = SurvTime;
             int wave = Survival.WaveAt(time);
             AddUnlockToasts(Profile.SurvivalEnded(Arena.Profile.ClassKey(me.Role, me.Kit), time, SurvPhase + 1));
-            LastGain = Profile.AwardXp(Rank.Award(false, Math.Max(0, wave - 1), 0, me.Run.Revives, Modifiers.Active(Mods, true), Diff.Level), wave, 0);
+            LastGain = Profile.AwardXp(Rank.Award(false, Math.Max(0, wave - 1), 0, me.Run.Revives, Modifiers.Active(Mods, true), Diff.Level), wave, 0, me.Kit);
             PayCores(Variants.RunCores(false, 0, false), found);
             var logged = Profile.Recent[0];
             logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
