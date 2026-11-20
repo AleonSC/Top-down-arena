@@ -38,9 +38,8 @@ namespace Arena
         public readonly Dictionary<int, Gadget> Gadgets = new Dictionary<int, Gadget>();
         int nextGadgetId = 1;
         public const float MagnetTime = 60f, MagnetPull = 620f, GadgetThrowRange = 340f, GadgetFlyTime = 0.5f, GadgetGrabR = 18f, GadgetNoCatchT = 0.15f;
-        /// The Magnet and the Energy Drink each drop 1 kill in MagnetDropChance (an elite: 1 in MagnetEliteChance) for each player, rolled for
-        /// each, while that player has none of that kind (held, bagged, or their own on the floor).
-        public const int MagnetDropChance = 90, MagnetEliteChance = 10;
+        /// A gadget drops 1 kill in GadgetDropChance (an elite: 1 in GadgetEliteChance) for each player (DropGadget).
+        public const int GadgetDropChance = 45, GadgetEliteChance = 5;
         public const int GadgetBagSize = 4;
         public const float LodestoneChannel = 3f;
         public const int LodestoneUses = 3, ThrowUses = 3;
@@ -215,21 +214,31 @@ namespace Arena
             g.Owner = pl.Id;
         }
 
-        /// Host: a kill in the Expanding arena may drop a Magnet or an Energy Drink (DropCoins), each rolled for each player while they have
-        /// none of that kind: their own copy.
+        /// What a kill can drop: every kind but the Lodestone (Gadget chests only).
+        static readonly GadgetId[] KillGadgets = { GadgetId.Magnet, GadgetId.EnergyDrink, GadgetId.ShieldGenerator, GadgetId.DefibKit, GadgetId.Grenade,
+            GadgetId.SmokeBomb, GadgetId.GasGrenade, GadgetId.Incendiary };
+        readonly List<GadgetId> dropPool = new List<GadgetId>();
+
+        /// Host: a kill in the Expanding arena may drop a gadget (DropCoins), rolled for each player: 1 in GadgetDropChance (an elite 1 in
+        /// GadgetEliteChance), a kind from KillGadgets they don't have yet (held, bagged or their own on the floor); their own copy.
         void DropGadget(Enemy e)
         {
             if (e.Def.IsBoss)
                 return;
             foreach (var p in Players.Values)
-                for (int k = 0; k < 2; k++)
-                {
-                    GadgetId kind = k == 0 ? GadgetId.Magnet : GadgetId.EnergyDrink;
-                    if (HasGadget(p, kind) || rng.Next(e.Elite ? MagnetEliteChance : MagnetDropChance) != 0)
-                        continue;
-                    var g = SpawnGadget(kind, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), GadgetTime(kind));
-                    g.Owner = p.Id;
-                }
+            {
+                if (rng.Next(e.Elite ? GadgetEliteChance : GadgetDropChance) != 0)
+                    continue;
+                dropPool.Clear();
+                foreach (var k in KillGadgets)
+                    if (!HasGadget(p, k))
+                        dropPool.Add(k);
+                if (dropPool.Count == 0)
+                    continue;
+                GadgetId kind = dropPool[rng.Next(dropPool.Count)];
+                var g = SpawnGadget(kind, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), GadgetTime(kind));
+                g.Owner = p.Id;
+            }
         }
 
         /// Host: a gadget lying on the floor at pos (also the F1 dock and tests), with its full uses.

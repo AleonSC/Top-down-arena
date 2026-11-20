@@ -99,8 +99,8 @@ static partial class Program
             drop.Invoke(g, new object[] { e0 });
             max = Math.Max(max, g.Gadgets.Count);
         }
-        Check(max >= 1 && max <= g.Players.Count * 2, "kills drop gadgets now and then, at most one of each kind per player (" + max + ")");
-        Check(g.Gadgets.Values.Any(x => x.Kind == GadgetId.Magnet) && g.Gadgets.Values.Any(x => x.Kind == GadgetId.EnergyDrink), "both the Magnet and the Energy Drink drop from kills");
+        Check(max >= 1 && g.Gadgets.Values.GroupBy(x => x.Owner * 100 + (int)x.Kind).All(x => x.Count() == 1), "kills drop gadgets now and then, at most one of each kind per player (" + max + ")");
+        Check(g.Gadgets.Values.Select(x => x.Kind).Distinct().Count() >= 6 && !g.Gadgets.Values.Any(x => x.Kind == GadgetId.Lodestone), "every kind but the Lodestone drops from kills (" + g.Gadgets.Values.Select(x => x.Kind).Distinct().Count() + " kinds)");
 
         // The bag: a second gadget goes in the bag, the wheel's pick swaps it into the hand (over the network too), a used-up one is replaced from the bag.
         var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
