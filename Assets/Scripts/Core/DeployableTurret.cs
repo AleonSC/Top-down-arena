@@ -38,7 +38,26 @@ namespace Arena
         }
 
         /// In a Deployable Turret: rooted, and it fires instead of your weapon.
-        public bool Seated(Player p) => p != null && !p.Downed && TurretOf(p) != null;
+        public bool Seated(Player p)
+        {
+            var z = p != null && !p.Downed ? TurretOf(p) : null;
+            return z != null && z.Radius > 0f;  // (a Radius of 0 is an owner who has stepped out: it overheats on its own)
+        }
+
+        /// Is this slot the Deployable Turret with you in its seat and its guns still up? Pressing it again steps you out early.
+        public bool TurretPress(Player p, int slot) => p.Slots[slot].Id == AbilityId.DeployableTurret && Seated(p) && DtAge(TurretOf(p)) < DtFireEnd(TurretOf(p));
+
+        /// Host: step out. The guns stop, the overheat starts now, you are free and the seat's cut goes; it still blows when it ends,
+        /// so the way out is also a fuse.
+        void DismountTurret(Player p)
+        {
+            var z = TurretOf(p);
+            if (z == null)
+                return;
+            z.T = Math.Min(z.T, DtDying);
+            z.Radius = 0f;
+            z.DamageCut = 0f;
+        }
 
         /// Is this player holding Fire, as this machine knows it (their own screen, or the host's, has it in Firing; everyone else's in FiringSeen)?
         public bool HoldingFire(Player p) => p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing;
