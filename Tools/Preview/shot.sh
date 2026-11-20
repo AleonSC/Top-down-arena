@@ -58,6 +58,7 @@
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
+# DEPLOYTURRET=<s since the cast> [DEPLOYCAP=1 mastered] (the DPS Soldier's Deployable Turret played through the game, shot.sh x hud 1 6 1: drop 0-0.55, unfolds to 1.1, fires to 11.1 (spool full by ~2.3), overheats, blows at 11.9; use 0.3, 0.8, 3, 6, 10, 11.5, 12; FXOFF=1 plain; ShotDeployTurret.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
 # HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).

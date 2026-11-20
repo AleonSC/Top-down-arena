@@ -817,6 +817,7 @@ namespace Arena
         public int Leg = -1;        // host, a Stampede: which charge it is on (0 out, 1 back)
         public float Blast;         // host, a Decoy Dummy: how far its confetti blast reaches when it pops (DecoyDummy.cs)
         public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
+        public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret: Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
         public ZoneDef Def => Kits.Get(Kind);
     }
 
