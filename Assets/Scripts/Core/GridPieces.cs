@@ -72,7 +72,7 @@ namespace Arena
         {
             foreach (var n in nodes)
             {
-                if (n.Kind != NodeKind.Chest && n.Kind != NodeKind.VectorChest && n.Kind != NodeKind.Relic)
+                if (n.Kind != NodeKind.Chest && n.Kind != NodeKind.Relic)
                     continue;
                 foreach (var r in made)
                     if (NodeEncloses(r, n))

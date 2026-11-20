@@ -18,10 +18,10 @@ static partial class Program
             seen.Add(k);
             if (k != Expansion.NodeChestKind(7, x, y, true)) unstable++;
             if (Expansion.NodeChestKind(7, x, y, false) == ChestKind.Piece) cardsOff++;
-            if (tier == 0 ? k != ChestKind.Gold : tier == 1 ? k != ChestKind.Piece && k != ChestKind.Buildable : k != ChestKind.Upgrade) wrongTier++;
+            if (tier == 0 ? k != ChestKind.Gold && k != ChestKind.Vector : tier == 1 ? k != ChestKind.Piece && k != ChestKind.Buildable : k != ChestKind.Upgrade) wrongTier++;
         }
-        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.Piece, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0 && wrongTier == 0,
-            "a chest node's kind follows its tier: Gold inner, Piece chest or Buildables middle, Upgrade outer, the same each time (" + string.Join(",", seen) + ")");
+        Check(seen.SetEquals(new[] { ChestKind.Gold, ChestKind.Vector, ChestKind.Piece, ChestKind.Buildable, ChestKind.Upgrade }) && unstable == 0 && wrongTier == 0,
+            "a chest node's kind follows its tier: Gold or Vector inner, Piece chest or Buildables middle, Upgrade outer, the same each time (" + string.Join(",", seen) + ")");
         Check(Expansion.NodeTier((int)Game.Width + Expansion.TierMid - 10, 450) == 0 && Expansion.NodeTier((int)Game.Width + Expansion.TierMid, 450) == 1
             && Expansion.NodeTier(800, -Expansion.TierOuter) == 2 && Expansion.NodeTier(800, 450) == 0, "tiers by distance from the hub's wall (15 and 30 tiles)");
         Check(Expansion.NodeTier((int)Game.Width + Expansion.TierMid, -Expansion.TierMid) == 1 && Expansion.NodeTier(-Expansion.TierOuter, -Expansion.TierMid) == 2

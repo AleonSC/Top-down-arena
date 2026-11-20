@@ -260,7 +260,7 @@ namespace Arena
                 case HuntNodeType.Ambush:
                     foreach (var p in Players.Values)
                         GrantXpTo(p, HuntAmbushXp(Wave));
-                    TryAdd(PropKind.Chest);
+                    TrySpawnChest(ChestKind.Upgrade);
                     DoLog("hunt map: Ambush reward");
                     break;
                 case HuntNodeType.Contraband:

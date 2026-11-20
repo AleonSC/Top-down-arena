@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// Chest nodes (Docs/Nodes.md): a vector chest opens into vector pickups, and nodes sit at the middle of a cell (the room that claims one holds it in its middle).
+// Chest nodes (Docs/Nodes.md, Docs/Chests.md): a chest node holds a real chest, a Vector one opens into vector pickups, and nodes sit at the middle of a cell (the room that claims one holds it in its middle).
 static partial class Program
 {
     static void ExpandingVectorChestTest(float dt)
@@ -34,25 +34,35 @@ static partial class Program
         }
         Check(tries >= 20 && gotChest == 0, "surprise rooms drop no chest node (" + gotChest + " of " + tries + ")");
 
-        // A claimed vector chest: nothing until someone walks up, then vector pickups and the node is spent, on both screens.
+        // A claimed chest node in the inner tier holds a Vector chest on half the seeds (the old vector chest node, now one chest): a real chest prop that
+        // bursts into vector pickups when touched, spends the node, and never holds the wave.
         foreach (var gg in new[] { g, cg }) gg.Nodes.Clear();
         UseMap(new[] { g, cg }, GridMap(PieceShape.Mono));
         var cell = g.Expanded[4];  // (a single cell east of the core)
         var mid = new V2((cell.X + cell.X1) / 2f, (cell.Y + cell.Y1) / 2f);
-        g.Nodes.Add(new MapNode { X = (short)mid.X, Y = (short)mid.Y, Kind = NodeKind.VectorChest });
+        int vseed = 1;
+        while (Expansion.NodeChestKind(vseed, (int)mid.X, (int)mid.Y, true) != ChestKind.Vector && vseed < 200) vseed++;
+        seedField.SetValue(g, vseed);
+        Check(Expansion.NodeChestKind(vseed, (int)mid.X, (int)mid.Y, true) == ChestKind.Vector && Expansion.NodeTier((int)mid.X, (int)mid.Y) == 0, "an inner-tier chest node holds a Vector chest on some seed (" + vseed + ")");
+        g.Nodes.Add(new MapNode { X = (short)mid.X, Y = (short)mid.Y, Kind = NodeKind.Chest });
         typeof(Game).GetMethod("BroadcastExpansion", flags).Invoke(g, null);
         g.State = MatchState.Fighting;
         foreach (var p in g.Players.Values) p.Pos = p.Disp = new V2(800f, 450f);
-        Run(s, dt, 1f, () => cg.Nodes.Count == 1, noPicks);
-        Check(cg.Nodes.Count == 1 && cg.Nodes[0].Kind == NodeKind.VectorChest && !g.Nodes[0].Spent, "the vector chest reaches the client, shut");
+        Run(s, dt, 1f, () => cg.Nodes.Count == 1 && cg.Props.Values.Any(p => p.Kind == PropKind.Chest), noPicks);
+        Check(cg.Nodes.Count == 1 && cg.Nodes[0].Kind == NodeKind.Chest && !g.Nodes[0].Spent, "the chest node reaches the client, shut");
         Check(g.NodeSpot(0).Equals(mid) && cg.NodeSpot(0).Equals(g.NodeSpot(0)), "it stands in the middle of its room, on both screens (" + g.NodeSpot(0).X + "," + g.NodeSpot(0).Y + ")");
+        var chest = g.Props.Values.FirstOrDefault(p => p.Kind == PropKind.Chest);
+        Check(chest != null && chest.Chest == ChestKind.Vector && chest.Pos.Equals(mid) && g.Props.Values.Count(p => p.Kind == PropKind.Chest) == 1, "it holds one real Vector chest prop");
+        Check(!g.PropsHoldWave(), "a node's chest never holds the wave");
+        Run(s, dt, 0.5f, null, noPicks);
+        Check(g.Props.Values.Count(p => p.Kind == PropKind.Chest) == 1, "ticking again does not stack a second chest on it");
         int coins0 = g.Coins.Values.Count(c => c.Vec);
         int vec0 = g.Players.Values.Sum(p => p.Vectors);
         var me = g.Players[1];
-        me.Pos = me.Disp = g.NodeSpot(0) + new V2(20f, 0f);  // (a claimed chest stands in its room's middle)
-        Run(s, dt, 0.3f, () => g.Nodes[0].Spent, noPicks);
+        me.Pos = me.Disp = mid + new V2(10f, 0f);
+        Run(s, dt, 0.5f, () => g.Nodes[0].Spent, noPicks);
         Check(g.Nodes[0].Spent && g.Coins.Values.Count(c => c.Vec) - coins0 + (g.Players.Values.Sum(p => p.Vectors) > vec0 ? Game.VectorChestPickups : 0) >= Game.VectorChestPickups,
-            "walking up to it opens it: " + Game.VectorChestPickups + " vector pickups burst out");
+            "touching it opens it: " + Game.VectorChestPickups + " vector pickups burst out and the node is spent");
         Run(s, dt, 3f, () => g.Players.Values.Sum(p => p.Vectors) >= vec0 + Game.VectorChestPickups * Game.VectorDropSmall, noPicks);
         Check(g.Players.Values.Sum(p => p.Vectors) >= vec0 + Game.VectorChestPickups * Game.VectorDropSmall || g.Players.Values.All(p => p.Vectors >= p.VectorCap),
             "and the players pick up " + Game.VectorChestPickups * Game.VectorDropSmall + " vectors (" + vec0 + " -> " + g.Players.Values.Sum(p => p.Vectors) + ")");
@@ -60,7 +70,20 @@ static partial class Program
         Check(cg.Nodes[0].Spent, "the client sees it spent");
         int coins1 = g.Coins.Count;
         Run(s, dt, 0.5f, null, noPicks);
-        Check(g.Nodes[0].Spent && g.Coins.Values.Count(c => c.Vec) <= coins1, "it opens only once");
+        Check(g.Nodes[0].Spent && g.Coins.Values.Count(c => c.Vec) <= coins1 && g.Props.Values.Count(p => p.Kind == PropKind.Chest && !p.Open) == 0, "it opens only once, and the spent node puts no chest back");
+
+        // The one spawn call: a chest with a hook calls it once as it opens; a plain one holds the wave; the legacy vector chest node is a chest node now.
+        int hooked = 0;
+        var hc = g.SpawnChest(new V2(300f, 300f), ChestKind.Gold, c => hooked++, false);
+        var pc = g.SpawnChest(new V2(600f, 300f), ChestKind.Upgrade);
+        Check(g.PropsHoldWave() && g.Props.ContainsKey(pc.Id) && !hc.Open, "SpawnChest makes a chest; an ordinary one holds the wave");
+        g.Props.Remove(pc.Id);
+        Check(!g.PropsHoldWave(), "a chest that does not hold the wave lets it end");
+        me.Pos = me.Disp = hc.Pos;
+        Run(s, dt, 0.5f, () => hc.Open, noPicks);
+        Run(s, dt, 0.3f, null, noPicks);
+        Check(hc.Open && hooked == 1, "its hook runs once, as it opens (" + hooked + ")");
+        Check(Expansion.Current(NodeKind.VectorChest) == NodeKind.Chest && Expansion.Current(NodeKind.Relic) == NodeKind.Relic, "a legacy vector chest node loads as a chest node");
     }
 
     // Owner Nov 18: a claimed chest or relic stands in the middle of its room (World.NodeSpots), clear of a card room's obstacles.
@@ -76,14 +99,14 @@ static partial class Program
         {
             new MapNode { X = (short)(W + 150), Y = 350, Kind = NodeKind.Chest },
             new MapNode { X = (short)(W + 850), Y = 550, Kind = NodeKind.Relic },
-            new MapNode { X = (short)(W + 150), Y = 550, Kind = NodeKind.VectorChest },
+            new MapNode { X = (short)(W + 150), Y = 550, Kind = NodeKind.Chest },
             new MapNode { X = (short)(W + 850), Y = 350, Kind = NodeKind.Shop },
             new MapNode { X = (short)(W + 5000), Y = 450, Kind = NodeKind.Chest },  // (nobody has built round it)
         };
         var mid = new V2(W + 500f, 450f);
         var wd = Expansion.Build(built, null, null, nodes);
         Check(wd.NodeSpots != null && wd.NodeSpots.Length == nodes.Count, "the world gives every node a spot");
-        Check(wd.NodeSpots[0].Equals(mid) && wd.NodeSpots[1].Equals(mid) && wd.NodeSpots[2].Equals(mid), "a claimed chest, relic and vector chest stand in the room's middle");
+        Check(wd.NodeSpots[0].Equals(mid) && wd.NodeSpots[1].Equals(mid) && wd.NodeSpots[2].Equals(mid), "a claimed chest, relic and second chest stand in the room's middle");
         Check(wd.NodeSpots[3].Equals(nodes[3].Pos) && wd.NodeSpots[4].Equals(nodes[4].Pos), "a shop node and an unclaimed chest stay where they are");
         // Owner Nov 19: in a grid room the node stands in the middle of the cell it was built in (a 2 x 2 room: one of its four cells, not the room's middle).
         int gx = Expansion.GridX0 + 4 * Expansion.GridCell, gy = Expansion.GridY0, c = Expansion.GridCell;

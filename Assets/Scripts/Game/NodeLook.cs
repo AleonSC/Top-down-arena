@@ -60,10 +60,10 @@ namespace Arena
         static string RuleName(byte rule) => (NodeRule)rule == NodeRule.BloodMoon ? "Blood Moon" : ((NodeRule)rule).ToString();
 
         static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.BlackMarket ? BlackMarketInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk
-            : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : k == NodeKind.VectorChest ? VecCyan : ChestInk;
+            : k == NodeKind.Tower ? TowerInk : k == NodeKind.Vein ? VeinInk : ChestInk;
 
         /// A node kind's name for tips and legends.
-        static string NodeName(NodeKind k) => k == NodeKind.BreachLoot ? "Breach loot" : k == NodeKind.VectorChest ? "Vector chest" : k == NodeKind.Tower ? "Scout tower" : k == NodeKind.Vein ? "Gold vein" : k.ToString();
+        static string NodeName(NodeKind k) => k == NodeKind.BreachLoot ? "Breach loot" : k == NodeKind.Tower ? "Scout tower" : k == NodeKind.Vein ? "Gold vein" : k.ToString();
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
         void DrawNodeMark(MapNode n, bool claimed, V2 at)
@@ -124,10 +124,6 @@ namespace Arena
                     Line(c - new V2(0f, 24f), c + new V2(0f, 24f), 6f, col);
                     break;
                 case NodeKind.Relic: RelicGem(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f), 1.25f, col); break;
-                case NodeKind.VectorChest:
-                    ChestBox(c + new V2(0f, 8f), 1.1f, col, false);
-                    VectorMark(c + new V2(0f, -34f + Mathf.Sin(t * 2.6f) * 3f), 0.9f, col);
-                    break;
                 default:
                     ChestBox(c + new V2(0f, 6f), 1.2f, col, false);
                     ChestEmblem(game.NodeChestKind(n), c + new V2(0f, -34f + Mathf.Sin(t * 2.6f) * 3f), 1.8f, col, col, col.A);  // what it holds
@@ -293,25 +289,6 @@ namespace Arena
                         V2 p = c + new V2(Mathf.Cos(a) * 38f, Mathf.Sin(a) * 28f);
                         Line(p - new V2(sz, 0f), p + new V2(sz, 0f), 2f, ink.WithAlpha(0.9f));
                         Line(p - new V2(0f, sz), p + new V2(0f, sz), 2f, ink.WithAlpha(0.9f));
-                    }
-                    break;
-                }
-                case NodeKind.VectorChest:
-                {
-                    long key = OpenKey(c, ChestKind.Vector);
-                    if (spent)
-                    {
-                        DrawNodeOpening(c, t, NodeOpenAge(key, t), ChestKind.Vector);
-                        break;
-                    }
-                    nodeSeenShut.Add(key);
-                    nodeOpenedAt.Remove(key);
-                    Arc(c, Game.VectorChestReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
-                    DrawChestLook(c, 1f, t, ChestKind.Vector, false, 0f);  // ChestLooks.cs
-                    for (int k = 0; k < 3; k++)  // motes turning round it
-                    {
-                        float a = t * 1.4f + k * MathX.Tau / 3f;
-                        Circle(c + new V2(Mathf.Cos(a) * 42f, Mathf.Sin(a) * 42f * 0.6f), 2.5f, ink.WithAlpha(0.7f), 8);
                     }
                     break;
                 }

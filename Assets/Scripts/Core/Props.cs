@@ -343,7 +343,7 @@ namespace Arena
                 DoLog("Contraband: a cycle chest");
             }
             if (chest)
-                TryAdd(PropKind.Chest);
+                TrySpawnChest(ChestKind.Upgrade);
         }
 
         void TryAdd(PropKind kind)
@@ -351,6 +351,43 @@ namespace Arena
             V2 at;
             if (FreeSpot(Math.Max(HalfW(kind), HalfH(kind)), out at))
                 AddProp(kind, at);
+        }
+
+        /// Host: what spawned a chest and what to do about it (not synced, not saved: a source that matters spawns its chest again, as a node does).
+        class ChestSource
+        {
+            public Action<Prop> OnOpened;  // called once, as the chest opens
+            public bool HoldsWave = true;  // an unopened chest holds the wave (PropsHoldWave); a node's never does
+            public int Seed = -1;          // a piece chest's cards are seeded from this (else the chest's id)
+        }
+
+        readonly Dictionary<int, ChestSource> chestSources = new Dictionary<int, ChestSource>();
+
+        /// Host: **the one way to make a chest** (Docs/Chests.md): a treasure chest holding `kind`, for everyone's own item. `onOpened` runs once as it
+        /// opens (a node spends itself with it); `holdsWave` false lets the wave end with it still shut.
+        public Prop SpawnChest(V2 pos, ChestKind kind, Action<Prop> onOpened = null, bool holdsWave = true, int seed = -1)
+        {
+            var c = AddProp(PropKind.Chest, pos);
+            c.Chest = kind;
+            if (onOpened != null || !holdsWave || seed >= 0)
+                chestSources[c.Id] = new ChestSource { OnOpened = onOpened, HoldsWave = holdsWave, Seed = seed };
+            return c;
+        }
+
+        /// Host: a chest at a free spot in the arena (a wave's drop, an Ambush's reward). Null if there is no room.
+        Prop TrySpawnChest(ChestKind kind, Action<Prop> onOpened = null)
+        {
+            V2 at;
+            return FreeSpot(Math.Max(HalfW(PropKind.Chest), HalfH(PropKind.Chest)), out at) ? SpawnChest(at, kind, onOpened) : null;
+        }
+
+        /// Host: the unopened chest standing at this spot, if any.
+        Prop ChestAt(V2 pos)
+        {
+            foreach (var p in Props.Values)
+                if (p.Kind == PropKind.Chest && !p.Open && p.Pos.DistanceTo(pos) < 1f)
+                    return p;
+            return null;
         }
 
         /// Dev and tests: put a prop somewhere.
@@ -409,14 +446,14 @@ namespace Arena
                 foreach (var p in Props.Values)
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.8f, 0.75f, 0.6f, 0.6f), 30f, 0.3f, Sfx.None);
             Props.Clear();
-            nodeChests.Clear();
+            chestSources.Clear();
             Loots.Clear();
         }
 
         void ResetProps()
         {
             Props.Clear();
-            nodeChests.Clear();
+            chestSources.Clear();
             Loots.Clear();
             lootSent.Clear();
             nextPropId = nextLootId = 1;
@@ -622,8 +659,12 @@ namespace Arena
         {
             c.Open = true;
             c.OpenT = 0f;
-            int seedIdx = NodeIndexOfChest(c);  // (a piece chest's cards are seeded from its node, before the node lets go of it)
-            SpendNodeOfChest(c);
+            ChestSource src;
+            chestSources.TryGetValue(c.Id, out src);
+            int seedIdx = src != null ? src.Seed : -1;  // (a piece chest's cards are seeded from its node)
+            if (src != null)
+                chestSources.Remove(c.Id);
+            src?.OnOpened?.Invoke(c);
             BroadcastFx(FxKind.Ring, c.Pos, ChestFxInk(c.Chest), 70f, 0.6f, Sfx.LevelUp);
             switch (c.Chest)
             {
@@ -633,6 +674,14 @@ namespace Arena
                             pl.Gold += ChestGold + ChestGoldPerWave * Math.Max(1, Wave);
                     else
                         DropGoldBurst(c.Pos, ChestGold + ChestGoldPerWave * Math.Max(1, Wave));  // (each player's own burst, the same gold each as before)
+                    break;
+                case ChestKind.Vector:  // bursts into vector pickups (they fly to the nearest player), or straight into each stock
+                    if (remote)
+                        foreach (var pl in Players.Values)
+                            AddVectors(pl, VectorChestPickups * VectorDropSmall);
+                    else
+                        for (int k = 0; k < VectorChestPickups; k++)
+                            DropVectorAt(c.Pos, VectorDropSmall);
                     break;
                 case ChestKind.Buildable:  // a build card each (a kind they still have room for), to take or throw away
                 {
@@ -678,7 +727,7 @@ namespace Arena
         public static Rgba LootInk(Loot l) => l.Kind == LootKind.Build ? new Rgba(1f, 0.4f, 0.72f) : l.Kind == LootKind.Card ? new Rgba(1f, 0.55f, 0.3f)
             : l.Upgrade >= 0 && l.Upgrade < Upgrades.All.Length ? Upgrades.RarityColor(Upgrades.All[l.Upgrade].Rarity) : new Rgba(0.4f, 1f, 0.5f);
 
-        static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.Piece ? new Rgba(1f, 0.55f, 0.3f)
+        static Rgba ChestFxInk(ChestKind k) => k == ChestKind.Gold ? new Rgba(1f, 0.85f, 0.35f) : k == ChestKind.Vector ? new Rgba(0.3f, 0.88f, 1f) : k == ChestKind.Piece ? new Rgba(1f, 0.55f, 0.3f)
             : k == ChestKind.Buildable ? new Rgba(1f, 0.4f, 0.72f) : new Rgba(0.4f, 1f, 0.5f);
 
         /// Host: a Gold chest's coins, `perPlayer` gold for each player (their own copy), spread in a ring round pos (ChestGoldCoins
@@ -777,7 +826,7 @@ namespace Arena
         public bool PropsHoldWave()
         {
             foreach (var p in Props.Values)
-                if (p.Kind == PropKind.Chest && !p.Open && p.Hp > 0f && !IsNodeChest(p))
+                if (p.Kind == PropKind.Chest && !p.Open && p.Hp > 0f && (!chestSources.ContainsKey(p.Id) || chestSources[p.Id].HoldsWave))
                     return true;
             foreach (var l in Loots.Values)
                 if (Players.ContainsKey(l.Owner))

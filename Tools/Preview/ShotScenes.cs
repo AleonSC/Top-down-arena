@@ -2220,7 +2220,7 @@ static partial class Shot {
         for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Box(rx, ry, 600, 600); if (cand.HasValue) rr = cand; }
         if (rr.HasValue) {
           xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          var rn = new MapNode { Kind = vecOpen ? NodeKind.VectorChest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
           foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
         }
       }

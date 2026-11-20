@@ -4,8 +4,8 @@ using System.IO;
 
 namespace Arena
 {
-    /// An unopened chest the wave box's Chests tab lists (Docs/RoundFlow.md step 5): a treasure chest prop (Id: its prop id) or a claimed
-    /// vector chest node (Node, Id: the node's index).
+    /// An unopened chest the wave box's Chests tab lists (Docs/RoundFlow.md step 5): a treasure chest prop (Id: its prop id). `Node` is
+    /// always false now (a vector chest is a prop too); it stays so Msg.CollectChest keeps its format.
     public struct ChestSpot
     {
         public bool Node;
@@ -29,20 +29,13 @@ namespace Arena
         /// The break, when the Chests tab can collect (not the Practice Range).
         public bool CanCollectChests => State == MatchState.Intermission && Practice == null;
 
-        /// Every unopened chest on the map: treasure chests, then claimed vector chest nodes. Fills `into` (cleared first).
+        /// Every unopened chest on the map. Fills `into` (cleared first).
         public List<ChestSpot> UncollectedChests(List<ChestSpot> into)
         {
             into.Clear();
             foreach (var p in Props.Values)
                 if (p.Kind == PropKind.Chest && !p.Open && p.Hp > 0f)
                     into.Add(new ChestSpot { Id = p.Id, Kind = p.Chest, Pos = p.Pos });
-            if (ExpandingOn)
-                for (int i = 0; i < Nodes.Count; i++)
-                {
-                    var nd = Nodes[i];
-                    if (nd.Kind == NodeKind.VectorChest && !nd.Spent && Expansion.NodeClaimed(Expanded, nd))
-                        into.Add(new ChestSpot { Node = true, Id = i, Kind = ChestKind.Vector, Pos = NodeSpot(i) });
-                }
             return into;
         }
 
@@ -77,29 +70,11 @@ namespace Arena
             int fee = ChestCollectFee;
             if (by.Gold < fee)
                 return;
-            if (node)
-            {
-                if (!ExpandingOn || id < 0 || id >= Nodes.Count)
-                    return;
-                var nd = Nodes[id];
-                if (nd.Kind != NodeKind.VectorChest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
-                    return;
-                by.Gold -= fee;
-                foreach (var p in Players.Values)
-                    AddVectors(p, VectorChestPickups * VectorDropSmall);  // (what its pickups add up to, straight to each stock)
-                nd.Spent = true;
-                Nodes[id] = nd;
-                BroadcastFx(FxKind.Ring, NodeSpot(id), new Rgba(0.3f, 0.88f, 1f), 110f, 0.5f, Sfx.Pick);
-                BroadcastExpansion();
-            }
-            else
-            {
-                Prop c;
-                if (!Props.TryGetValue(id, out c) || c.Kind != PropKind.Chest || c.Open || c.Hp <= 0f)
-                    return;
-                by.Gold -= fee;
-                OpenChest(c, true);
-            }
+            Prop c;
+            if (node || !Props.TryGetValue(id, out c) || c.Kind != PropKind.Chest || c.Open || c.Hp <= 0f)
+                return;
+            by.Gold -= fee;
+            OpenChest(c, true);
             BroadcastFx(FxKind.Ring, by.Pos, new Rgba(1f, 0.85f, 0.4f), 46f, 0.4f, Sfx.PickupBig);  // (on whoever paid)
             DoLog(by.Role + " collected a chest from afar for " + fee + " gold");
             SendSnapshot();
