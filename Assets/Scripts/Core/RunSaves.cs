@@ -166,8 +166,6 @@ namespace Arena
                 NextOffer(p);
                 Recalc(p);
                 p.Hp = p.MaxHp * s.HpFrac;
-                for (int k = 0; k < p.HpHistory.Length; k++)
-                    p.HpHistory[k] = p.Hp;
                 lastLevel[p.Id] = p.Level;
                 BroadcastUpgrades(p);
             }

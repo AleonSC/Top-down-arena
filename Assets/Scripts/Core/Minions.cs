@@ -823,23 +823,5 @@ namespace Arena
             return false;
         }
 
-        // --- Time Rewind -------------------------------------------------------
-
-        float historyT;
-
-        /// Every 0.25 s, remember each player's health, overwriting the entry from 4 s ago.
-        void RecordHistory(float dt)
-        {
-            historyT += dt;
-            if (historyT < 0.25f)
-                return;
-            historyT = 0f;
-            foreach (var p in Players.Values)
-            {
-                p.HpHistory[p.HistoryIdx] = p.Hp;
-                p.DownHistory[p.HistoryIdx] = p.Downed;
-                p.HistoryIdx = (p.HistoryIdx + 1) % p.HpHistory.Length;
-            }
-        }
     }
 }

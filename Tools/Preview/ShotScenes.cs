@@ -1534,10 +1534,9 @@ static partial class Shot {
           if (Environment.GetEnvironmentVariable("STAFFJAB") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.StaffJabReach), -Game.StaffJabArc * MathX.Pi / 360f, 0f, 0.24f);
           else fx(FxKind.Slash, to, Game.StaffSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
           break;
-        case WeaponId.Greatsword:  // GREATSTEP=1..10 a step of the chain (SWING = seconds after the press: its own pose, then its Slash, ring or lance once it lands), GREATSTEP=wheel the Moonwheel 180 px out; GREAT=guard (TEMPER=<n>) the old guard
+        case WeaponId.Greatsword:  // GREATSTEP=1..10 a step of the chain (SWING = seconds after the press: its own pose, then its Slash, ring or lance once it lands), GREATSTEP=wheel the Moonwheel 180 px out
         {
           string gsn = Environment.GetEnvironmentVariable("GREATSTEP") ?? "1";
-          if (Environment.GetEnvironmentVariable("GREAT") == "guard") { me.GreatGuard = true; me.GreatTemper = (byte)int.Parse(Environment.GetEnvironmentVariable("TEMPER") ?? "3"); break; }
           if (gsn == "wheel") { me.FangOut = 2; me.FangAt = me.Pos + V2.FromAngle(me.Aim) * 180f; break; }
           int gi = int.Parse(gsn);
           var gm2 = Game.GreatMoveOf(gi);

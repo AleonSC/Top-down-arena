@@ -76,13 +76,9 @@ No other value shifts. The meaning of that slot changes, so:
 
 Nothing here is removed until you say so:
 
-- `Player.HpHistory`, `DownHistory`, `HistoryIdx` (`Core/Entities.cs`) and their reset loops in `Core/Game.cs` and
-  `Core/RunSaves.cs`
-- `RecordHistory` and `historyT` (`Core/Minions.cs`)
-- `FxKind.Rewind` and `DrawRewindFx` (`Game/WorldEffects.cs`, `Game/AbilityLooks.cs`)
+- (`Player.HpHistory`, `DownHistory`, `HistoryIdx` and `RecordHistory` were removed in protocol 422.)
 
-Removing `FxKind.Rewind` would shift later `FxKind` values, so it should be kept as a placeholder or removed in the
-same protocol bump. That's a decision for when we delete.
+(`FxKind.Rewind` and `DrawRewindFx` were removed in protocol 423.)
 
 ## Open decisions
 

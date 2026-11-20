@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Greatsword's ten-step chain, Moonwheel, and its old guard and Rend (Docs/Mockups/greatsword-chain-forge.html; the Moonlit
+    /// The Greatsword's ten-step chain, Moonwheel and Eclipse's Rend lance (Docs/Mockups/greatsword-chain-forge.html; the Moonlit
     /// Crescent look). Drawing only, with Visual effects on.
     ///   - the sweeps (Undertow, Cross Cut, Backstep Reap, Full Moon) are ordinary Slash effects drawn by MeleeLooks.cs; GreatSlashSign
     ///     says which way each goes (Backstep Reap and Cross Cut's second cut come back), and DrawSteelWallFx (WorldEffects.cs) hangs
@@ -15,7 +15,6 @@ namespace Arena
     ///   - ten diamonds behind you for the chain (DrawGreatPips), the tenth gold (Eclipse);
     ///   - the Moonwheel (DrawGreatWheel): the sword spinning where the host says it is (Player.FangOut, FangAt), smoothed, and a ring
     ///     under your own feet while it comes back;
-    ///   - the old guard (DrawGreatGuard, DrawGreatGuardPose) and Rend, unused since the Moonwheel (Greatsword.cs).
     public partial class ArenaApp
     {
         static readonly Rgba GreatMoon = new Rgba(0.78f, 0.88f, 1f), GreatGold = new Rgba(1f, 0.84f, 0.51f);
@@ -421,7 +420,7 @@ namespace Arena
         }
 
         /// The Greatsword held at the ready in both gloved hands, drawn over the body in place of the model's own blade. A cut, the
-        /// rend's wind-up and the guard pose each start from this pose and come back to it, and it waits while they draw the sword.
+        /// rend's wind-up each starts from this pose and comes back to it, and it waits while it draws the sword.
         void DrawGreatswordIdle(Player p, float t)
         {
             float ang, reach, bend;
@@ -430,86 +429,22 @@ namespace Arena
             DrawMeleeModel(WeaponId.Greatsword, p.Disp, ang, reach, 1f, GreatMoon, false, bend, ArmColor(p.Id));
         }
 
-        /// True while a step's own pose, the Moonwheel or the old guard pose (with its thrust) draws the sword.
+        /// True while a step's own pose, or the Moonwheel draws the sword.
         bool GreatPoseShowing(Player p)
         {
-            float at;
             if (p.FangOut != 0 || DrawGreatMove(p, false))
                 return true;
-            return p.GreatGuard || (greatKickAt.TryGetValue(p.Id, out at) && Time.unscaledTime - at < GreatKickTime);
+            return false;
         }
 
-        const float GreatKickTime = 0.22f, GreatRaiseTime = 0.08f, GreatRestOff = 0.45f;  // the guard's thrust back to the ready; raising it; the held pose's angle off the aim (MeleeRest)
-        readonly Dictionary<int, bool> greatGuardSeen = new Dictionary<int, bool>();
-        readonly Dictionary<int, float> greatKickAt = new Dictionary<int, float>(), greatRaiseAt = new Dictionary<int, float>();
+        const float GreatRestOff = 0.45f;  // the held pose's angle off the aim (MeleeRest)
 
-        /// The sword while you guard: braced out along the aim and trembling a little, brighter with every point of Temper, then thrust
-        /// forward for GreatKickTime when you let go (the Rend). The held sword phases out while this one is drawn.
-        void DrawGreatGuardPose(Player p)
-        {
-            bool prev;
-            greatGuardSeen.TryGetValue(p.Id, out prev);
-            greatGuardSeen[p.Id] = p.GreatGuard;
-            float now = Time.unscaledTime, kick;
-            if (prev && !p.GreatGuard && !p.Downed)
-                greatKickAt[p.Id] = now;
-            if (!prev && p.GreatGuard)
-                greatRaiseAt[p.Id] = now;
-            float since = greatKickAt.TryGetValue(p.Id, out kick) ? now - kick : 99f;
-            bool kicking = !p.GreatGuard && since >= 0f && since < GreatKickTime;
-            if (!fxOn || p.Downed || !(p.GreatGuard || kicking))
-                return;
-            float fill = Mathf.Clamp01((float)p.GreatTemper / Game.GreatTemperMax);
-            bool full = p.GreatTemper >= Game.GreatTemperMax;
-            V2 o = p.Disp;
-            V2 dir = V2.FromAngle(p.Aim);
-            float reach = Game.MeleeReach(p, p.Weapon.Reach), t = now;
-            float push = 0f, ang = p.Aim + (p.GreatGuard ? 0.015f * Mathf.Sin(t * 38f) * (0.4f + fill) : 0f);
-            float rest = p.Aim - GreatRestOff + 0.02f * Mathf.Sin(game.AnimT * 2.6f), raise;
-            if (kicking)
-            {
-                float q = since / GreatKickTime;
-                push = 16f * (1f - q) * (1f - q);  // a thrust that eases back to the ready, turning down into the held pose
-                ang += (rest - ang) * q * q * (3f - 2f * q);
-            }
-            else if (greatRaiseAt.TryGetValue(p.Id, out raise) && now - raise < GreatRaiseTime)
-            {
-                float q = (now - raise) / GreatRaiseTime;  // raised from the held pose
-                ang = rest + (ang - rest) * q * (2f - q);
-            }
-            Rgba col = full ? GreatGold : GreatMoon;
-            DrawMeleeModel(WeaponId.Greatsword, o + dir * push, ang, reach, 1f, col, full || kicking || fill > 0.5f, 1f, ArmColor(p.Id));
-            if (fill > 0f && p.GreatGuard)  // the edge lights along its length as Temper builds
-            {
-                V2 a = o + dir * 40f, b = o + dir * (40f + (reach - 46f) * fill);
-                Line(a, b, 4f, col.WithAlpha(0.35f + 0.2f * fill));
-                GlowDisc(b, 12f + 10f * fill, col, 0.35f + 0.25f * fill);
-            }
-            if (kicking)
-                GlowDisc(o + dir * (reach + push), 22f * (1f - since / GreatKickTime), col, 0.6f * (1f - since / GreatKickTime));
-        }
-
-        /// The chain's three diamonds, or the Temper's six, on an arc behind you.
+        /// The chain's ten diamonds on an arc behind you.
         void DrawGreatPips(Player p)
         {
             if (!fxOn || p.Downed)
                 return;
             float t = Time.unscaledTime;
-            bool temper = p.GreatGuard || p.GreatTemper > 0 || p.GreatPrimed;
-            if (temper)
-            {
-                int n = p.GreatPrimed && !p.GreatGuard ? Game.GreatTemperMax : Mathf.Min(Game.GreatTemperMax, (int)p.GreatTemper);
-                bool gold = n >= Game.GreatTemperMax;
-                for (int d = 0; d < Game.GreatTemperMax; d++)
-                {
-                    float da = p.Aim + MathX.Pi + (d - 2.5f) * 0.34f;
-                    V2 c = p.Disp + V2.FromAngle(da) * 30f;
-                    Polygon(c, 4.3f + (gold ? 0.8f * Mathf.Sin(t * 10f) + 0.8f : 0f), 4, 0f, d < n ? (gold ? GreatGold : GreatMoon) : new Rgba(1f, 1f, 1f, 0.14f));
-                }
-                if (gold)
-                    Arc(p.Disp, 26f, 3f, GreatGold.WithAlpha(0.25f + 0.1f * Mathf.Sin(t * 9f)), 32);
-                return;
-            }
             if (p.GreatStep == 0)
                 return;
             int steps = Game.GreatChain.Length;
@@ -525,47 +460,7 @@ namespace Arena
             }
         }
 
-        /// The guard arc while the weapon-action key is held.
-        void DrawGreatGuard(Player p)
-        {
-            if (!fxOn || p.Downed || !p.GreatGuard)
-                return;
-            float t = Time.unscaledTime, r = Game.GreatGuardRadius, half = Game.GreatGuardHalfArc;
-            float fill = Mathf.Clamp01((float)p.GreatTemper / Game.GreatTemperMax);
-            bool full = p.GreatTemper >= Game.GreatTemperMax;
-            Rgba col = full ? GreatGold : GreatMoon;
-            V2 o = p.Disp;
-            float a0 = p.Aim - half, sweep = 2f * half;
-            Arc(o, r, Game.GreatGuardBand * 2f, col.WithAlpha(0.13f), 24, a0, sweep);
-            Arc(o, r, 7f, col.WithAlpha(0.4f + 0.15f * fill), 24, a0, sweep);
-            Arc(o, r, 2.4f, Rgba.White.WithAlpha(0.7f), 24, a0, sweep);
-            float gl = Mathf.Repeat(t * 1.1f, 1.3f) - 0.15f;
-            if (gl > 0f && gl < 1f)
-            {
-                float ga = a0 + sweep * gl;
-                GlowDisc(o + V2.FromAngle(ga) * r, 22f, Rgba.White, 0.55f);
-                Arc(o, r, 2.4f, Rgba.White.WithAlpha(0.9f), 6, ga - 0.07f, 0.14f);
-            }
-            var hitCol = Defs.BulletColor(Defs.KnightSlash);
-            foreach (var sp in game.Effects)  // the host's spark where a bullet died: the arc brightens there
-            {
-                if (sp.Kind != FxKind.Spark || sp.Radius != 8f || sp.Color.R != hitCol.R || sp.Color.G != hitCol.G || sp.Color.B != hitCol.B)
-                    continue;
-                V2 rel = sp.Pos - o;
-                float d = rel.Length, an = rel.Angle;
-                float diff = Mathf.Repeat(an - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi;
-                if (Mathf.Abs(d - r) > Game.GreatGuardBand + 12f || Mathf.Abs(diff) > half + 0.1f)
-                    continue;
-                float q = Mathf.Clamp01(sp.T / 0.4f);
-                if (q >= 1f)
-                    continue;
-                GlowDisc(o + V2.FromAngle(an) * r, 20f * (1f - q * 0.4f), Rgba.White, 0.8f * (1f - q));
-                float run = 0.5f * EaseOut3(q);
-                Arc(o, r, 2f, Rgba.White.WithAlpha(0.55f * (1f - q)), 12, an - run, 2f * run);
-            }
-        }
-
-        /// The Rend: a lance of light flying out along the aim with a crescent head, wider for every point of Temper, gold at six.
+        /// Eclipse's Rend: a lance of light flying out along the aim with a crescent head (Power, in the colour's alpha, sets its width; gold at full).
         void DrawGreatRendFx(Effect fx, float f)
         {
             V2 to = fx.Pos2 - fx.Pos;

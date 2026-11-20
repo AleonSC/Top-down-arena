@@ -1,6 +1,6 @@
 # Rule rooms: big nodes that force a bigger room
 
-Status: **retired Nov 20, 2026 (owner): rule nodes are gone from the code (`NodeKind.Rule`, `NodeRule`, `MapNode.Cleared`; protocol 422); an old save's rule node is skipped on load. Kept as history; the rule *rooms* a piece card can build are separate.** Was: built, steps 1-4 (protocol 307). Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
+Status: **retired Nov 20, 2026 (owner): rule nodes are gone from the code (`NodeKind.Rule`, `NodeRule`, `MapNode.Cleared`; protocol 424); an old save's rule node is skipped on load. Kept as history; the rule *rooms* a piece card can build are separate.** Was: built, steps 1-4 (protocol 307). Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
 bigger room**. First pool: all four below. Sits beside [`Nodes.md`](Nodes.md); the rules come from [`Paths.md`](Paths.md).
 
 ## The idea

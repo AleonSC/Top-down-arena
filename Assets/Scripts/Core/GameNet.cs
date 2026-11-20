@@ -710,10 +710,7 @@ namespace Arena
             s.Byte(ref p.RepelMeter);   // the Repulsion Cannon's Undertow (Repulsion.cs)
             s.Bool(ref p.RepelPull);
             s.Byte(ref p.Embers);       // the Censer's Embers (Censer.cs)
-            s.Byte(ref p.GreatStep);    // the Greatsword's chain, Temper and guard (Greatsword.cs)
-            s.Byte(ref p.GreatTemper);
-            s.Bool(ref p.GreatGuard);
-            s.Bool(ref p.GreatPrimed);
+            s.Byte(ref p.GreatStep);    // the Greatsword's chain (Greatsword.cs)
             s.Bool(ref p.LancePrimed);  // the Lance's hook primed the Breaching Thrust (Lance.cs)
             s.Byte(ref p.RapierTempo);  // the Rapier's Tempo and its grace period, drawn as diamonds behind you (Game/MeleeLooks.cs)
             s.Byte(ref p.RapierGraceLeft);

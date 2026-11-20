@@ -136,7 +136,6 @@ namespace Arena
             d[(int)FxKind.VeinCut] = (fx, f, t) => DrawVeinCutFx(fx, t);  // VeinRushLook.cs
             d[(int)FxKind.WallSplash] = (fx, f, t) => DrawWallSplashFx(fx, f);  // BloodWallLook.cs
             d[(int)FxKind.Link] = DrawFxLink;
-            d[(int)FxKind.Rewind] = (fx, f, t) => DrawRewindFx(fx, f);
             d[(int)FxKind.Callout] = (fx, f, t) => DrawTankCastFx(fx);  // Roar and Bulldoze's floor looks (TankLooks.cs); the name over the caster is on the HUD (AbilityLooks.cs)
             d[(int)FxKind.Repulse] = (fx, f, t) => DrawRepulseFx(fx, f);
             d[(int)FxKind.Knock] = (fx, f, t) => DrawKnockFx(fx);
@@ -309,7 +308,7 @@ namespace Arena
         void DrawFxLink(Effect fx, float f, float t)
         {
             if (!IsLifelinePlain(fx))  // (Lifeline's own beams: LifelineLook.cs)
-                DrawLinkFx(fx, f);  // AbilityLooks.cs, like Rewind
+                DrawLinkFx(fx, f);  // AbilityLooks.cs
         }
 
         void DrawFxNimbusStorm(Effect fx, float f, float t)

@@ -123,4 +123,4 @@ Hallways (3 tiles wide or less) are the exception: their chest stays where it wa
 
 **Nov 20 (owner): no scout towers, no gold veins.** `NodeKind.Tower`/`Vein` stay in the enum so the numbers don't shift, but `Expansion.Current` turns them into a Chest on load (network and saves). A cycle now places a chest, and a relic every other cycle. `PayVeins`, `NodeScouting`'s tower and vein code and their looks are gone. No protocol change.
 
-**Nov 20 (owner): no rule nodes.** `NodeKind.Rule`, `NodeRule`, `MapNode.Cleared`, `ClearRuleRooms`, the rule floor in `Expansion.Build`, `RuleHalf`/`NodeHalf` (every node is a point again) and the rule node's look are gone; nodes are now Chest, Relic and BreachLoot. Protocol 422; an old save's rule node is skipped on load.
+**Nov 20 (owner): no rule nodes.** `NodeKind.Rule`, `NodeRule`, `MapNode.Cleared`, `ClearRuleRooms`, the rule floor in `Expansion.Build`, `RuleHalf`/`NodeHalf` (every node is a point again) and the rule node's look are gone; nodes are now Chest, Relic and BreachLoot. Protocol 424; an old save's rule node is skipped on load.
