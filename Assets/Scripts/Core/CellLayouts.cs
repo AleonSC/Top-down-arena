@@ -87,7 +87,41 @@ namespace Arena
                 Sleepers = new[] { P(140, 140), P(460, 460) },
                 Traps = new[] { T(300, 130, 0), T(300, 470, 0), T(130, 300, 0), T(470, 300, 0) },
                 Loot = new[] { P(480, 110), P(110, 490) } },
+            new CellLayout { Name = "Corner Closets",
+                Walls = new[] { W(214, 14, 20, 200), W(14, 214, 50, 20), W(164, 214, 70, 20), W(366, 386, 20, 200), W(366, 366, 70, 20), W(536, 366, 50, 20) },
+                Sleepers = new[] { P(124, 124), P(476, 476) },
+                Traps = new[] { T(300, 60, 1), T(300, 540, 1), T(200, 300, 0), T(400, 300, 0) },
+                Loot = new[] { P(500, 110), P(110, 500) } },
+            new CellLayout { Name = "Vault Room",
+                Walls = new[] { W(170, 170, 260, 20), W(170, 410, 260, 20), W(170, 190, 20, 60), W(170, 350, 20, 60), W(410, 190, 20, 60), W(410, 350, 20, 60) },
+                Sleepers = new[] { P(100, 100), P(500, 500) },
+                Traps = new[] { T(300, 60, 1), T(300, 540, 1), T(90, 300, 0), T(510, 300, 0) },
+                Loot = new[] { P(500, 100), P(100, 500) } },
+            new CellLayout { Name = "Barracks",
+                Walls = new[] { W(14, 200, 226, 20), W(360, 200, 226, 20) },
+                Sleepers = new[] { P(130, 100), P(470, 100) },
+                Traps = new[] { T(60, 400, 1), T(540, 400, 1), T(300, 420, 0), T(200, 320, 0) },
+                Loot = new[] { P(500, 500), P(100, 500) } },
+            new CellLayout { Name = "Corner Vaults",
+                Walls = new[] { W(214, 14, 20, 200), W(14, 214, 50, 20), W(164, 214, 70, 20), W(366, 14, 20, 200), W(366, 214, 70, 20), W(536, 214, 50, 20), W(214, 386, 20, 200), W(14, 366, 50, 20), W(164, 366, 70, 20), W(366, 386, 20, 200), W(366, 366, 70, 20), W(536, 366, 50, 20) },
+                Sleepers = new[] { P(124, 124), P(476, 476) },
+                Traps = new[] { T(300, 60, 1), T(300, 540, 1), T(150, 300, 0), T(450, 300, 0) },
+                Loot = new[] { P(476, 124), P(124, 476) } },
+            new CellLayout { Name = "Hall & Alcoves",
+                Walls = new[] { W(14, 170, 230, 20), W(356, 170, 230, 20), W(14, 410, 230, 20), W(356, 410, 230, 20) },
+                Sleepers = new[] { P(130, 90), P(470, 90) },
+                Traps = new[] { T(60, 300, 1), T(540, 300, 1), T(200, 300, 0), T(400, 300, 0) },
+                Loot = new[] { P(130, 510), P(470, 510) } },
+            new CellLayout { Name = "Safe Room",
+                Walls = new[] { W(150, 150, 300, 20), W(150, 150, 20, 300), W(430, 150, 20, 300), W(150, 430, 100, 20), W(350, 430, 100, 20) },
+                Sleepers = new[] { P(100, 100), P(500, 500) },
+                Traps = new[] { T(300, 60, 1), T(60, 300, 1), T(300, 520, 0), T(540, 300, 1) },
+                Loot = new[] { P(500, 100), P(100, 500) } },
         };
+
+        // Indices of the room-like layouts (the order of `All`).
+        const int CornerClosets = 12, VaultRoom = 13, Barracks = 14, CornerVaults = 15, HallAlcoves = 16, SafeRoom = 17;
+        static readonly int[] Junction = { CornerVaults, 1, 7, 10 };  // (Four Pillars, Pillar Field, Diagonal Cross)
 
         /// The lattice cell index (column, row) holding this point.
         public static void CellOf(float x, float y, out int cx, out int cy)
@@ -96,11 +130,62 @@ namespace Arena
             cy = (int)Math.Floor((y - Expansion.GridY0) / (double)Cell);
         }
 
-        /// The layout a cell uses: seeded from its place on the lattice.
-        public static int Pick(int cx, int cy)
+        static long Key(int cx, int cy) => ((long)cx << 32) ^ (uint)cy;
+
+        /// A cell's layout and how many quarter turns (clockwise) it is turned.
+        public struct CellPlan { public int Layout, Rot; }
+
+        /// A layout turned `rot` quarter turns clockwise about the cell's middle: (x, y) goes to (600 - y, x).
+        public sealed class Turned
         {
-            var rng = new DetRandom(cx * 73856093 ^ cy * 19349663 ^ 0x5bd1e995);
-            return rng.Int(All.Length);
+            public int[][] Walls, Sleepers, Loot, Traps;
+        }
+
+        static readonly Dictionary<int, Turned> turnedCache = new Dictionary<int, Turned>();
+
+        public static Turned TurnedOf(CellPlan plan)
+        {
+            int key = plan.Layout * 4 + (plan.Rot & 3);
+            Turned t;
+            lock (turnedCache)
+            {
+                if (turnedCache.TryGetValue(key, out t))
+                    return t;
+                var l = All[plan.Layout];
+                int k = plan.Rot & 3;
+                t = new Turned { Walls = new int[l.Walls.Length][], Sleepers = new int[l.Sleepers.Length][], Loot = new int[l.Loot.Length][], Traps = new int[l.Traps.Length][] };
+                for (int i = 0; i < l.Walls.Length; i++) t.Walls[i] = TurnRect(l.Walls[i], k);
+                for (int i = 0; i < l.Sleepers.Length; i++) t.Sleepers[i] = TurnPoint(l.Sleepers[i], k);
+                for (int i = 0; i < l.Loot.Length; i++) t.Loot[i] = TurnPoint(l.Loot[i], k);
+                for (int i = 0; i < l.Traps.Length; i++) t.Traps[i] = TurnPoint(l.Traps[i], k);
+                turnedCache[key] = t;
+            }
+            return t;
+        }
+
+        static int[] TurnRect(int[] w, int k)
+        {
+            int x = w[0], y = w[1], ww = w[2], hh = w[3];
+            for (int i = 0; i < k; i++)
+            {
+                int nx = Cell - (y + hh), ny = x;
+                x = nx; y = ny;
+                int t = ww; ww = hh; hh = t;
+            }
+            return new[] { x, y, ww, hh };
+        }
+
+        static int[] TurnPoint(int[] p, int k)
+        {
+            int x = p[0], y = p[1];
+            for (int i = 0; i < k; i++)
+            {
+                int nx = Cell - y, ny = x;
+                x = nx; y = ny;
+            }
+            var r = (int[])p.Clone();
+            r[0] = x; r[1] = y;
+            return r;
         }
 
         /// A box that sits whole cells on the lattice (what grid pieces are).
@@ -117,19 +202,84 @@ namespace Arena
                     yield return new V2(x, y);
         }
 
+        /// The plan of every lattice cell in these rooms (the whole room list, so a piece's boxes are seen together). A cell's role
+        /// comes from where the rest of its piece lies: a dead end gets a Safe Room, a Vault Room or a Barracks turned to face its
+        /// way in, a corridor cell a Hall or Vault Room along the corridor, a corner cell closets or vaults, a junction or a lone
+        /// cell one of the others; seeded from the cell's place, so every machine agrees.
+        public static Dictionary<long, CellPlan> Plans(IList<ExpansionRoom> rooms)
+        {
+            var plans = new Dictionary<long, CellPlan>();
+            var done = new HashSet<int>();
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                if (done.Contains(i) || !OnLattice(rooms[i]))
+                    continue;
+                var group = Expansion.GroupOf(rooms, i);
+                var cells = new HashSet<long>();
+                var list = new List<int[]>();
+                foreach (int gi in group)
+                {
+                    done.Add(gi);
+                    if (!OnLattice(rooms[gi]))
+                        continue;
+                    foreach (var o in CellOrigins(rooms[gi]))
+                    {
+                        CellOf(o.X + 1, o.Y + 1, out int cx, out int cy);
+                        if (cells.Add(Key(cx, cy)))
+                            list.Add(new[] { cx, cy });
+                    }
+                }
+                foreach (var c in list)
+                    plans[Key(c[0], c[1])] = PlanOf(cells, c[0], c[1]);
+            }
+            return plans;
+        }
+
+        static CellPlan PlanOf(HashSet<long> cells, int cx, int cy)
+        {
+            bool[] nb = { cells.Contains(Key(cx, cy - 1)), cells.Contains(Key(cx + 1, cy)), cells.Contains(Key(cx, cy + 1)), cells.Contains(Key(cx - 1, cy)) };  // N, E, S, W
+            int count = (nb[0] ? 1 : 0) + (nb[1] ? 1 : 0) + (nb[2] ? 1 : 0) + (nb[3] ? 1 : 0);
+            var rng = new DetRandom(cx * 73856093 ^ cy * 19349663 ^ 0x5bd1e995);
+            switch (count)
+            {
+                case 0:
+                    return new CellPlan { Layout = rng.Int(All.Length), Rot = rng.Int(4) };
+                case 1:
+                {
+                    int d = nb[0] ? 0 : nb[1] ? 1 : nb[2] ? 2 : 3;  // the way in
+                    int pick = rng.Int(3);
+                    if (pick == 2)  // (doorways east and west: turned so they line up with the way in)
+                        return new CellPlan { Layout = VaultRoom, Rot = d == 1 || d == 3 ? 0 : 1 };
+                    return new CellPlan { Layout = pick == 0 ? SafeRoom : Barracks, Rot = (d + 2) & 3 };  // (their door or strip is on the far side from the way in)
+                }
+                case 2:
+                    if (nb[0] == nb[2])  // a corridor: N-S or E-W
+                    {
+                        bool eastWest = nb[1];
+                        return new CellPlan { Layout = rng.Int(10) < 6 ? HallAlcoves : VaultRoom, Rot = eastWest ? 0 : 1 };
+                    }
+                    return new CellPlan { Layout = rng.Int(2) == 0 ? CornerClosets : CornerVaults, Rot = rng.Int(4) };
+                default:
+                    return new CellPlan { Layout = Junction[rng.Int(Junction.Length)], Rot = rng.Int(4) };
+            }
+        }
+
+        public static bool TryPlan(Dictionary<long, CellPlan> plans, int cx, int cy, out CellPlan plan) => plans.TryGetValue(Key(cx, cy), out plan);
+
         /// A room's walls from its cells' layouts.
-        public static void AddWalls(List<Solid> to, ExpansionRoom r)
+        public static void AddWalls(List<Solid> to, ExpansionRoom r, Dictionary<long, CellPlan> plans)
         {
             foreach (var o in CellOrigins(r))
             {
                 CellOf(o.X + 1, o.Y + 1, out int cx, out int cy);
-                foreach (var w in All[Pick(cx, cy)].Walls)
+                if (!plans.TryGetValue(Key(cx, cy), out var plan))
+                    continue;
+                foreach (var w in TurnedOf(plan).Walls)
                     to.Add(World.Box(o.X + w[0], o.Y + w[1], o.X + w[0] + w[2], o.Y + w[1] + w[3]));
             }
         }
 
-        /// The middles of every sleeper slot in these boxes (lattice boxes only).
-        public static List<V2> SleeperSlots(IList<ExpansionRoom> boxes)
+        static List<V2> SlotsOf(IList<ExpansionRoom> boxes, Dictionary<long, CellPlan> plans, Func<Turned, int[][]> pick)
         {
             var list = new List<V2>();
             foreach (var b in boxes)
@@ -137,45 +287,40 @@ namespace Arena
                     foreach (var o in CellOrigins(b))
                     {
                         CellOf(o.X + 1, o.Y + 1, out int cx, out int cy);
-                        foreach (var s in All[Pick(cx, cy)].Sleepers)
+                        if (!plans.TryGetValue(Key(cx, cy), out var plan))
+                            continue;
+                        foreach (var s in pick(TurnedOf(plan)))
                             list.Add(new V2(o.X + s[0], o.Y + s[1]));
                     }
             return list;
         }
 
+        /// The middles of every sleeper slot in these boxes (lattice boxes only); `all` is the whole room list the plans come from.
+        public static List<V2> SleeperSlots(IList<ExpansionRoom> boxes, IList<ExpansionRoom> all) => SlotsOf(boxes, Plans(all), t => t.Sleepers);
+
         /// The middles of every bonus loot slot in these boxes (lattice boxes only).
-        public static List<V2> LootSlots(IList<ExpansionRoom> boxes)
-        {
-            var list = new List<V2>();
-            foreach (var b in boxes)
-                if (OnLattice(b))
-                    foreach (var o in CellOrigins(b))
-                    {
-                        CellOf(o.X + 1, o.Y + 1, out int cx, out int cy);
-                        foreach (var l in All[Pick(cx, cy)].Loot)
-                            list.Add(new V2(o.X + l[0], o.Y + l[1]));
-                    }
-            return list;
-        }
+        public static List<V2> LootSlots(IList<ExpansionRoom> boxes, IList<ExpansionRoom> all) => SlotsOf(boxes, Plans(all), t => t.Loot);
 
         /// Is this point (grown by pad) inside a wall of the layout of the cell it is in?
-        public static bool Blocked(V2 p, float pad)
+        public static bool Blocked(V2 p, float pad, Dictionary<long, CellPlan> plans)
         {
             CellOf(p.X, p.Y, out int cx, out int cy);
+            if (!plans.TryGetValue(Key(cx, cy), out var plan))
+                return false;
             float ox = Expansion.GridX0 + cx * Cell, oy = Expansion.GridY0 + cy * Cell;
-            foreach (var w in All[Pick(cx, cy)].Walls)
+            foreach (var w in TurnedOf(plan).Walls)
                 if (p.X > ox + w[0] - pad && p.X < ox + w[0] + w[2] + pad && p.Y > oy + w[1] - pad && p.Y < oy + w[1] + w[3] + pad)
                     return true;
             return false;
         }
 
         /// Where a group's member stands: the wanted spot, or one nearer the slot's middle if a wall is there.
-        public static V2 Clear(V2 want, V2 mid)
+        public static V2 Clear(V2 want, V2 mid, Dictionary<long, CellPlan> plans)
         {
             for (int s = 0; s <= 4; s++)
             {
                 V2 p = mid + (want - mid) * (1f - s * 0.25f);
-                if (!Blocked(p, 22f))
+                if (!Blocked(p, 22f, plans))
                     return p;
             }
             return mid;

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piece Layouts</title>
+<style>
+:root{--bg:#070a14;--fg:#dfe8ff;--muted:#8190b6;--line:#243055;--panel:#0d1226}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif;margin:0;padding:28px 16px 48px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font-size:28px;margin:0 0 6px}
+p{color:var(--muted);margin:0 0 18px;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
+canvas{width:100%;height:auto;display:block;background:#000;border-radius:4px}
+b{display:block;margin:8px 0 2px;letter-spacing:.04em;text-transform:uppercase}
+small{color:var(--muted);font:12px/1.4 ui-monospace,monospace}
+.key{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 16px;font:13px ui-monospace,monospace;color:var(--muted)}
+.key i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+</style></head><body><div class="wrap">
+<h1>Piece layouts</h1>
+<p>Layouts for the bigger shapes, built from room-like cells (closets, vaults, halls and barracks with doorways, from cell layouts 13-18). Cells are open to each other; walls leave every cell middle (a chest can stand in any of them, faint squares) and every door lane open. Slots are fixed; each trap and loot slot still rolls. Approximate mockup, not the real draw code.</p>
+<div class="key"><span><i style="background:#3b6dff"></i>wall / cover</span><span><i style="background:#ffd166"></i>chest (any cell middle)</span><span><i style="background:#ff4d6a"></i>sleeper slot</span><span><i style="background:#3ee6b4"></i>door spots</span><span><i style="background:#ffb347"></i>bonus loot</span><span><i style="background:#ff8a3d"></i>T turret</span><span><i style="background:#e8e8e8"></i>^ spike</span><span><i style="background:#9b6bff"></i>~ slow</span></div>
+<div class="grid" id="g"></div></div>
+<script>
+// units: cell = 600. cells [col,row]; w = walls [x,y,w,h]; z sleepers; l loot; t traps [x,y,kind]
+const ROOMS={"Corner Closets": {"w": [[214, 14, 20, 200], [14, 214, 50, 20], [164, 214, 70, 20], [366, 386, 20, 200], [366, 366, 70, 20], [536, 366, 50, 20]], "z": [[124, 124], [476, 476]], "l": [[500, 110], [110, 500]], "t": [[300, 60, 1, "t"], [300, 540, 1, "t"], [200, 300, 0, "s"], [400, 300, 0, "w"]]}, "Vault Room": {"w": [[170, 170, 260, 20], [170, 410, 260, 20], [170, 190, 20, 60], [170, 350, 20, 60], [410, 190, 20, 60], [410, 350, 20, 60]], "z": [[100, 100], [500, 500]], "l": [[500, 100], [100, 500]], "t": [[300, 60, 1, "t"], [300, 540, 1, "t"], [90, 300, 0, "s"], [510, 300, 0, "w"]]}, "Barracks": {"w": [[14, 200, 226, 20], [360, 200, 226, 20]], "z": [[130, 100], [470, 100]], "l": [[500, 500], [100, 500]], "t": [[60, 400, 1, "t"], [540, 400, 1, "t"], [300, 420, 0, "s"], [200, 320, 0, "w"]]}, "Corner Vaults": {"w": [[214, 14, 20, 200], [14, 214, 50, 20], [164, 214, 70, 20], [366, 14, 20, 200], [366, 214, 70, 20], [536, 214, 50, 20], [214, 386, 20, 200], [14, 366, 50, 20], [164, 366, 70, 20], [366, 386, 20, 200], [366, 366, 70, 20], [536, 366, 50, 20]], "z": [[124, 124], [476, 476]], "l": [[476, 124], [124, 476]], "t": [[300, 60, 1, "t"], [300, 540, 1, "t"], [150, 300, 0, "s"], [450, 300, 0, "w"]]}, "Hall & Alcoves": {"w": [[14, 170, 230, 20], [356, 170, 230, 20], [14, 410, 230, 20], [356, 410, 230, 20]], "z": [[130, 90], [470, 90]], "l": [[130, 510], [470, 510]], "t": [[60, 300, 1, "t"], [540, 300, 1, "t"], [200, 300, 0, "s"], [400, 300, 0, "w"]]}, "Safe Room": {"w": [[150, 150, 300, 20], [150, 150, 20, 300], [430, 150, 20, 300], [150, 430, 100, 20], [350, 430, 100, 20]], "z": [[100, 100], [500, 500]], "l": [[500, 100], [100, 500]], "t": [[300, 60, 1, "t"], [60, 300, 1, "t"], [300, 520, 0, "s"], [540, 300, 1, "t"]]}};
+const P=[{"n": "Domino: Suite", "cells": [[0, 0], [1, 0]], "d": "A safe room for the chest next to a barracks of sleepers.", "rooms": ["Safe Room", "Barracks"]}, {"n": "Domino: Twin Vaults", "cells": [[0, 0], [1, 0]], "d": "A vault room beside a cell of two closets.", "rooms": ["Vault Room", "Corner Closets"]}, {"n": "Tri line: Wing", "cells": [[0, 0], [1, 0], [2, 0]], "d": "Sleeper room, a hall with alcoves, then the safe room at the end.", "rooms": ["Barracks", "Hall & Alcoves", "Safe Room"]}, {"n": "Four line: Long Wing", "cells": [[0, 0], [1, 0], [2, 0], [3, 0]], "d": "Two halls between a closet cell and a vault room.", "rooms": ["Corner Closets", "Hall & Alcoves", "Hall & Alcoves", "Vault Room"]}, {"n": "Tri L: Elbow Suite", "cells": [[0, 0], [0, 1], [1, 1]], "d": "A safe room at the top, a hall at the elbow, closets at the foot.", "rooms": ["Safe Room", "Hall & Alcoves", "Corner Closets"]}, {"n": "Square: Quad Rooms", "cells": [[0, 0], [1, 0], [0, 1], [1, 1]], "d": "Four different rooms round one open middle.", "rooms": ["Corner Closets", "Corner Vaults", "Hall & Alcoves", "Vault Room"]}, {"n": "Square: Barracks Block", "cells": [[0, 0], [1, 0], [0, 1], [1, 1]], "d": "Two barracks facing outward on top, two safe rooms below.", "rooms": ["Barracks", "Barracks", "Safe Room", "Safe Room"]}, {"n": "T: Hall Crossing", "cells": [[0, 0], [1, 0], [2, 0], [1, 1]], "d": "Two barracks at the arm ends, a hall between, a safe room in the stem.", "rooms": ["Barracks", "Hall & Alcoves", "Barracks", "Safe Room"]}, {"n": "S: Twin Wings", "cells": [[1, 0], [2, 0], [0, 1], [1, 1]], "d": "A vault room and barracks above, closets and a hall below.", "rooms": ["Vault Room", "Barracks", "Corner Closets", "Hall & Alcoves"]}, {"n": "L: Long Wing", "cells": [[0, 0], [0, 1], [0, 2], [1, 2]], "d": "Barracks at the head, a hall, corner vaults, and a safe room in the foot.", "rooms": ["Barracks", "Hall & Alcoves", "Corner Vaults", "Safe Room"]}];
+const L=P.map(p=>{const o={n:p.n,cells:p.cells,d:p.d,w:[],z:[],l:[],t:[]};
+ const minx=Math.min(...p.cells.map(c=>c[0])),miny=Math.min(...p.cells.map(c=>c[1]));
+ p.cells.forEach((c,i)=>{const r=ROOMS[p.rooms[i]],ox=(c[0]-minx)*600,oy=(c[1]-miny)*600;
+  for(const w of r.w)o.w.push([w[0]+ox,w[1]+oy,w[2],w[3]]);
+  for(const z of r.z)o.z.push([z[0]+ox,z[1]+oy]);
+  for(const l of r.l)o.l.push([l[0]+ox,l[1]+oy]);
+  for(const t of r.t)o.t.push([t[0]+ox,t[1]+oy,t[3]]);});
+ o.d+=" ("+p.rooms.join(" / ")+")";return o;});
+const g=document.getElementById('g');
+for(const o of L){
+ const card=document.createElement('div');card.className='card';
+ const cs=o.cells,minx=Math.min(...cs.map(c=>c[0])),miny=Math.min(...cs.map(c=>c[1]));
+ const cells=cs.map(c=>[c[0]-minx,c[1]-miny]);
+ const W=(Math.max(...cells.map(c=>c[0]))+1)*600,H=(Math.max(...cells.map(c=>c[1]))+1)*600;
+ const cv=document.createElement('canvas');cv.width=W;cv.height=H;card.appendChild(cv);if(W>=2400)card.style.gridColumn='1/-1';else if(W>=1800&&H<=600)card.style.gridColumn='span 2';
+ card.insertAdjacentHTML('beforeend',`<b>${o.n}</b><small>${o.d}</small>`);g.appendChild(card);
+ const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,W,H);
+ const has=(a,b)=>cells.some(c=>c[0]==a&&c[1]==b);
+ for(const[c,r] of cells){x.fillStyle='#050813';x.fillRect(c*600,r*600,600,600);
+  x.strokeStyle='#14204a';x.lineWidth=1;for(let i=0;i<=600;i+=100){x.beginPath();x.moveTo(c*600+i,r*600);x.lineTo(c*600+i,r*600+600);x.moveTo(c*600,r*600+i);x.lineTo(c*600+600,r*600+i);x.stroke();}}
+ // outer walls with door gaps at cell side middles
+ for(const[c,r] of cells)for(const[dx,dy] of [[0,-1],[1,0],[0,1],[-1,0]]){
+  if(has(c+dx,r+dy))continue;
+  const ex=c*600+(dx==1?600:0),ey=r*600+(dy==1?600:0);
+  x.lineWidth=14;x.strokeStyle='#3b6dff';
+  const horiz=dy!=0;
+  const a=horiz?[ex,ey]:[ex,ey],b=horiz?[ex+600,ey]:[ex,ey+600];
+  x.beginPath();
+  if(horiz){x.moveTo(ex,ey);x.lineTo(ex+220,ey);x.moveTo(ex+380,ey);x.lineTo(ex+600,ey);}
+  else{x.moveTo(ex,ey);x.lineTo(ex,ey+220);x.moveTo(ex,ey+380);x.lineTo(ex,ey+600);}
+  x.stroke();x.strokeStyle='#3ee6b4';x.beginPath();
+  if(horiz){x.moveTo(ex+220,ey);x.lineTo(ex+380,ey);}else{x.moveTo(ex,ey+220);x.lineTo(ex,ey+380);}x.stroke();}
+ x.fillStyle='#3b6dff';x.shadowColor='#3b6dff';x.shadowBlur=10;for(const r of o.w)x.fillRect(...r);x.shadowBlur=0;
+ const dot=(p,col,t,r,a)=>{x.globalAlpha=a||1;x.strokeStyle=col;x.fillStyle=col+'33';x.lineWidth=4;x.beginPath();x.arc(p[0],p[1],r,0,7);x.fill();x.stroke();x.fillStyle=col;x.font='bold 26px monospace';x.textAlign='center';x.fillText(t,p[0],p[1]+9);x.globalAlpha=1;};
+ for(const[c,r] of cells)dot([c*600+300,r*600+300],'#ffd166','▣',30,.35);
+ for(const p of o.z)dot(p,'#ff4d6a','Z',34);
+ for(const p of o.l)dot(p,'#ffb347','$',24);
+ const TR={t:['#ff8a3d','T'],s:['#e8e8e8','^'],w:['#9b6bff','~']};
+ for(const p of o.t)dot(p,TR[p[2]][0],TR[p[2]][1],24);
+}
+</script></body></html>

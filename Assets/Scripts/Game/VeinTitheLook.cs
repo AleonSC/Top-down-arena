@@ -5,7 +5,7 @@ namespace Arena
     /// Vein Tithe (Core/VeinTithe.cs), from Docs/Mockups/blood-rite-vein-tithe.html. A heart hovers over the Hemomancer and beats once a
     /// second (a ring goes out with each beat). An artery runs from the Hemomancer to every held enemy (`Player.Tithed`, in the order they
     /// reach: `Game.TitheGrown`): thick at the Hemomancer and thinner at the enemy, swelling on the beat, with a bright pulse running out
-    /// along it each beat. Each held enemy wears a blood cuff with roots creeping over it and a drip below. When it ends, each artery pulls
+    /// along it each beat. A faint dashed ring marks the reach (`Game.TitheRadius`). Each held enemy wears a blood cuff with roots creeping over it and a drip below. When it ends, each artery pulls
     /// back from its enemy as one FxKind.TitheSnap (Pos = the Hemomancer, Pos2 = the enemy), drawn from its age alone.
     public partial class ArenaApp
     {
@@ -42,11 +42,25 @@ namespace Arena
                 return;
             float el = p.TitheClock, beat = TvBeat(el);
             V2 from = p.Disp;
+            DrawTitheRing(from, el, t);
             foreach (int id in p.Tithed)
                 if (game.Enemies.TryGetValue(id, out var e) && e.Hp > 0f)
                     DrawArtery(from, e, p.Tithed.IndexOf(id), el, t, beat);
             Arc(from, 16f + (1f - beat) * 46f, 2f, TvLight.WithAlpha(beat * 0.5f), 32);
             TvHeart(from + new V2(0f, -28f), 8f, beat);
+        }
+
+        /// The reach (Game.TitheRadius): a faint ring that opens out from the Hemomancer on the cast, then a slow dashed turn, brightening on the beat.
+        void DrawTitheRing(V2 from, float el, float t)
+        {
+            float open = Mathf.Clamp01(el / Game.TitheReachTime), r = Game.TitheRadius * (1f - (1f - open) * (1f - open));
+            float beat = TvBeat(el);
+            const int N = 48;
+            for (int i = 0; i < N; i += 2)
+            {
+                float a0 = (i + t * 0.6f) / N * MathX.Tau, a1 = (i + 1.2f + t * 0.6f) / N * MathX.Tau;
+                Line(from + V2.FromAngle(a0) * r, from + V2.FromAngle(a1) * r, 2f, TvLight.WithAlpha(0.22f + 0.2f * beat));
+            }
         }
 
         void DrawArtery(V2 from, Enemy e, int k, float el, float t, float beat)

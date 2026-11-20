@@ -68,7 +68,8 @@ namespace Arena
             var pool = only.HasValue ? new List<EnemyType> { only.Value } : DormantPool(Wave);
             var roll = new DetRandom(expandSeed * 31 + boxes[0].X * 7 + boxes[0].Y * 13 + Wave);
             int groups = 0, size = groupSize > 0 ? groupSize : DormantGroups.GroupSize(Wave);
-            var mids = Expanded.Exists(Expansion.IsGridCore) ? CellLayouts.SleeperSlots(boxes) : new List<V2>();  // (a cell layout's sleeper slots; rooms off the lattice use their cells' middles)
+            var plans = Expanded.Exists(Expansion.IsGridCore) ? CellLayouts.Plans(Expanded) : null;
+            var mids = plans != null ? CellLayouts.SleeperSlots(boxes, Expanded) : new List<V2>();  // (a cell layout's sleeper slots; rooms off the lattice use their cells' middles)
             bool slots = mids.Count > 0;
             if (!slots)
                 mids = DormantGroups.CellMids(boxes);
@@ -81,7 +82,7 @@ namespace Arena
                 for (int k = 0; k < size; k++)
                 {
                     V2 spot = DormantGroups.Spot(mid, k, size);
-                    var e = SpawnEnemyAt(type, slots ? CellLayouts.Clear(spot, mid) : spot, 0f, 0);
+                    var e = SpawnEnemyAt(type, slots ? CellLayouts.Clear(spot, mid, plans) : spot, 0f, 0);
                     e.Dormant = true;
                     e.Facing = (float)(roll.Float() * MathX.Tau);
                 }

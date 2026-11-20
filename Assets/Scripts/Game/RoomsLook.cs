@@ -121,6 +121,8 @@ namespace Arena
                         Line(seg[0], seg[1], 2f, oi);
                 }
             }
+            if (PreviewRelicSheet)
+                DrawRelicSheet();
             if (game.ArenaKind == ArenaLayout.Expanding)
                 for (int i = 0; i < game.Nodes.Count; i++)
                     DrawNodeMark(game.Nodes[i], Expansion.NodeClaimed(game.Expanded, game.Nodes[i]), game.NodeSpot(i), i);

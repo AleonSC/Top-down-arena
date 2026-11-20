@@ -731,6 +731,34 @@ static partial class Shot {
         for (int k = 0; k < 3; k++)
           gm.Effects.Add(new Effect { Kind = FxKind.BathHeal, Pos = me.Pos + new V2(k * 7f, 0f), Pos2 = new V2(me.Id, 0f), Color = new Rgba(1f, 0.35f, 0.4f), Radius = 6f + k * 3f, Dur = Game.BathHealFxTime, T = 0.1f + k * 0.28f });
     }
+    if (Environment.GetEnvironmentVariable("STAMPEDE") != null) {
+      // A tank Summoner's Stampede (StampedeLook.cs): STAMPEDE=<seconds since the cast> (the gate opens to 0.35 s, the herd charges to 0.92 s, then fades by 1.52;
+      // use 0.2, 0.7 or 1.2), with grunts carried along ahead of the line. STAMPEDEMASTERED=1: nine beasts. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear(); gm.Props.Clear(); gm.Layout = LayoutId.Open;
+      me.Kit = Kit.Summoner; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[0].Id = AbilityId.Stampede;
+      V2 from = new V2(420f, 480f);
+      me.Pos = me.Disp = from; me.Aim = 0f; me.AimAt = from + new V2(300f, 0f);
+      float st = float.Parse(Environment.GetEnvironmentVariable("STAMPEDE"));
+      bool cap = Environment.GetEnvironmentVariable("STAMPEDEMASTERED") != null;
+      int beasts = cap ? Game.StampedeCapBeasts : Game.StampedeBeasts;
+      float life = Game.StampedeLife(cap), dist;
+      V2 gate = from + new V2(Game.StampedeAhead, 0f);
+      var sz = new Zone { Id = 9102, Kind = ZoneKind.Stampede, Owner = me.Id, Pos = gate, Radius = Game.StampedeSpacing * (beasts - 1) / 2f, Duration = life, Aim = 0f };
+      sz.T = Math.Max(0.01f, life - st);
+      int leg = Game.StampedeLeg(st, cap, out dist);
+      sz.Marched = dist; sz.Pos = gate + new V2(dist, 0f); sz.Aim = leg == 1 ? MathX.Tau / 2f : 0f;
+      gm.Zones[sz.Id] = sz;
+      V2[] spots = { new V2(-30f, -120f), new V2(60f, -60f), new V2(10f, 0f), new V2(80f, 70f), new V2(-20f, 130f), new V2(220f, -90f), new V2(250f, 40f), new V2(300f, 150f), new V2(160f, -170f), new V2(140f, 190f) };
+      for (int i = 0; i < spots.Length; i++) {
+        V2 at = gate + new V2(Game.StampedeReach * 0.45f, 0f) + spots[i];
+        float front = sz.Pos.X + Game.StampedeFace + 16f;
+        if (st > Game.StampedeWind && Math.Abs(at.Y - sz.Pos.Y) < sz.Radius + 20f && at.X < front) at.X = front;  // carried ahead of the herd
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 7 ? EnemyType.Thunderhead : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
+      }
+    }
     if (Environment.GetEnvironmentVariable("FLOOD") != null) {
       // A tank Elementalist's Flood (FloodLook.cs): FLOOD=<seconds since the cast> (the crest spreads to 0.5 s, it floods to 6 s, then drains over 0.8;
       // use 0.3, 3 or 6.4), with enemies wading in it and around it, the wading ones wet. FLOODMASTERED=1: 247 px. Use with mode hud.
@@ -2246,15 +2274,16 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("SHRINEUSED") != null) foreach (var pl in xg.Players.Values) pl.ShrinesUsed = ulong.MaxValue;  // SHRINEUSED=1: everyone has used every health shrine (ShrineLook.cs)
       string overHp = Environment.GetEnvironmentVariable("OVERHP");  // OVERHP=<n>: everyone carries n health past max from a shrine (the HUD's gold, the gold ring)
       if (overHp != null) foreach (var pl in xg.Players.Values) pl.OverHp = float.Parse(overHp, System.Globalization.CultureInfo.InvariantCulture);
+      if (Environment.GetEnvironmentVariable("RELICSHEET") != null) { ArenaApp.PreviewRelicSheet = true; ArenaApp.PreviewRelicPage = int.Parse(Environment.GetEnvironmentVariable("RELICSHEET")); }  // RELICSHEET=0|1 (page): the relic artefact sheet beside the map (RelicLook.cs; mode hud ZOOM=1 CAMAT=640,470)
       if (Environment.GetEnvironmentVariable("RELIC") != null) foreach (var pl in xg.Players.Values) pl.Relic = RelicId.WallBounce;  // RELIC=1: everyone holds Wall Bounce (the HUD chip)
-      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null) {  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
+      if (Environment.GetEnvironmentVariable("RELICOPEN") != null || Environment.GetEnvironmentVariable("VECOPEN") != null || Environment.GetEnvironmentVariable("RELICPED") != null) {  // RELICPED=<RelicId number>: the same room with that faction relic waiting on its pedestal (unspent)  // RELICOPEN=<s> / VECOPEN=<s>: a 6 x 6 room built beside the map with a spent relic (or vector chest) node in it, opened that long ago, you standing beside it (NodeLook.cs)
         bool vecOpen = Environment.GetEnvironmentVariable("VECOPEN") != null;
-        ArenaApp.PreviewOpenAge = float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
+        string ped = Environment.GetEnvironmentVariable("RELICPED"); ArenaApp.PreviewOpenAge = ped != null ? 0f : float.Parse(Environment.GetEnvironmentVariable(vecOpen ? "VECOPEN" : "RELICOPEN"), System.Globalization.CultureInfo.InvariantCulture);
         ExpansionRoom? rr = null;
         for (int ry = -800; ry <= 1200 && !rr.HasValue; ry += 100) for (int rx = -800; rx <= 2400 && !rr.HasValue; rx += 100) { string wn; var cand = Box(rx, ry, 600, 600); if (cand.HasValue) rr = cand; }
         if (rr.HasValue) {
           xg.Expanded.Add(rr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
-          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = true }; xg.Nodes.Add(rn);
+          var rn = new MapNode { Kind = vecOpen ? NodeKind.Chest : NodeKind.Relic, X = (short)(rr.Value.X + 350), Y = (short)(rr.Value.Y + 250), Spent = ped == null, Rule = ped != null ? (byte)(int.Parse(ped) + 1) : (byte)0 }; xg.Nodes.Add(rn);
           foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(rr.Value.X + 560, rr.Value.Y + 300);
         }
       }

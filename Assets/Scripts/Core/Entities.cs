@@ -798,9 +798,13 @@ namespace Arena
         public float Soak, SoakMax, Soaked;  // host: a Spirit Ward's damage left to take for allies, its most, and what it has taken (Ninja.cs)
         public float TickT, HealBack;        // host: a Bloodbath's time toward its next bleed tick, and the share of it that heals its owner (Bloodbath.cs)
         public byte[] Bones;        // replicated, a Bone Phalanx: each skeleton's health as a fraction of 255 (0 = broken); its length is how many (BonePhalanx.cs)
-        public float Marched;       // replicated, a Bone Phalanx: px the line has walked from the gate
+        public float Marched;       // replicated, a Bone Phalanx or a Stampede: px the line has walked from the gate
         public float[] BoneHp, SpearT;  // host, a Bone Phalanx: each skeleton's health and time to its next spear
         public float BoneMax;       // host, a Bone Phalanx: a skeleton's full health
+        public V2 Origin;           // host, a Stampede: where its gate opened
+        public float Heading;       // host, a Stampede: the way it charges out (Aim flips to face back on the return)
+        public int Leg = -1;        // host, a Stampede: which charge it is on (0 out, 1 back)
+        public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
         public ZoneDef Def => Kits.Get(Kind);
     }
 

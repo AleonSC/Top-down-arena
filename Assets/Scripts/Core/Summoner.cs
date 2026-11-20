@@ -75,6 +75,8 @@ namespace Arena
                 Apply = s => { s.QuakeBonusTime += 1.5f; s.QuakeDmgMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ForcePact, MaxStacks = 2, Name = "Kindred Bond", Desc = "Force Pact's ally has 50% more health and comes back 5 s sooner",
                 Apply = s => { s.PactHpMult += 0.5f; s.PactReturnCut += 5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Stampede, MaxStacks = 2, Name = "Thundering Herd", Desc = "Stampede tramples and slams 50% harder",
+                Apply = s => s.StampedeDmgMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritSwarm, MaxStacks = 2, Name = "Sprite Choir", Desc = "Spirit Swarm's sprites heal 40% more and last 2 s longer",
                 Apply = s => { s.SpriteHealMult += 0.4f; s.SpriteBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Phoenix, MaxStacks = 2, Name = "Rebirth Flame", Desc = "The phoenix stays 4 s longer, and whoever it revives gets 25% more health",
@@ -132,6 +134,13 @@ namespace Arena
                 Name = "Force Pact", Cooldown = 12f, Desc = "Take the regular enemy nearest your cursor (not bosses) and make it fight for you. It stays near you with its own attack and comes back 15 s after it falls. Cast again on another enemy to switch the pact to that type.",
                 Capstone = "A second thrall: the pact keeps the last two types you chose.",
                 Bot = b => b.HaveTarget,  // it takes whatever is nearest the cursor, so any target will do
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Stampede, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (Stampede.cs)
+                Name = "Stampede", Cooldown = StampedeCooldown, Desc = "Call a line of 7 spirit beasts across your aim. They charge 320 px, trampling every enemy for 20 damage and shoving them along ahead of the herd. An enemy driven into a wall takes 15 more and is stunned for 0.5 s. Bosses and heavy enemies are trampled but not shoved.",
+                Capstone = "9 beasts, and the herd turns and charges back.",
+                Bot = b => b.HaveTarget && b.TargetD < 380f,
             },
             new AbilityDef
             {

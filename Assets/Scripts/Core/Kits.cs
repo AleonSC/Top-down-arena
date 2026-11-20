@@ -46,7 +46,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede }
 
     public class ZoneDef
     {
@@ -166,6 +166,7 @@ namespace Arena
             new ZoneDef { Name = "Med Pylon", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 10f },  // the Healer Engineer's 1st ability: heals allies inside; stays until the next one
             new ZoneDef { Name = "Safe Room", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 20f },  // the Healer Engineer's ultimate: a room (or dome) that heals and cuts damage (Zone.DamageCut)  // the Engineer's 1st ability (Engineer.cs): slows enemies inside by its own tick; stays until the next one  // the Tank Soldier's Deployable Cover (DeployableCover.cs): Pos its middle, Aim the way it faces, GuardFrac its health left; blocks by CoverStops, not as a circle
             new ZoneDef { Name = "Stasis", Color = new Rgba(0.55f, 0.85f, 1f) },  // the Stasis Gun's field (EngineerBots.cs): at your cursor while you hold Fire; holds enemies in place and hurts them by its own tick
+            new ZoneDef { Name = "Stampede", Color = new Rgba(0.5f, 0.88f, 0.67f) },  // the Tank Summoner's 4th choice (Stampede.cs): Pos the middle of the line (it moves), Aim the heading, Radius half its length
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

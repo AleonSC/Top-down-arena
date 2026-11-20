@@ -696,7 +696,7 @@ namespace Arena
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
             byte relic = (byte)p.Relic;
             s.Byte(ref relic);          // the relic slot (Relics.cs)
-            p.Relic = (RelicId)relic;
+            if (s.Reading && (RelicId)relic != p.Relic) { p.Relic = (RelicId)relic; Recalc(p); } else p.Relic = (RelicId)relic;  // (a faction relic changes stats)
             s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
             s.Byte(ref p.TwinNext);
             s.Byte(ref p.TwinCharge);
@@ -1158,6 +1158,8 @@ namespace Arena
                 for (int i = 0; i < n; i++)
                     s.Byte(ref z.Bones[i]);
             }
+            if (z.Kind == ZoneKind.Stampede)  // the herd's walk (Stampede.cs)
+                s.Float(ref z.Marched);
             if (s.Reading)
                 Zones[z.Id] = z;
         }
