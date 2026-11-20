@@ -1167,7 +1167,7 @@ namespace Arena
             }
             else
             {
-                V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos) * RelicSpeedAt(me);
+                V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos) * CrowdSlow(me) * RelicSpeedAt(me);  // CrowdSlow: Rioters piled on you (RiotBrains.cs)
                 if (OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake)
                 {
                     // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
