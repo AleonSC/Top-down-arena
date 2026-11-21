@@ -628,8 +628,12 @@ namespace Arena
         {
             DrawerIn("settings", true);
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
+            if (!cabWin && !WindowClosing)
+                OpenCabWindow(1);  // the section's window opens with the cabinet: its X is how Settings closes
+            cabHolo = true;  // the holo look (MenuHolo.cs, Docs/Mockups/settings-holo.html)
             DrawCabWindow();  // (first: it comes out from behind the cabinet)
             DrawSettingsCabinet(false);
+            cabHolo = false;
         }
 
         /// The cabinet's list as Audio / Visual effects / Gameplay / Keybinds with a digital Back key under them. `paused`: in the pause or
@@ -641,10 +645,12 @@ namespace Arena
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change your controls" };
             string[] gicons = { "pulse", "nova", "crosshair", "ui_pencil" };
             Color[] gcols = { new Color(0.5f, 0.69f, 1f), CrtStyle.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
-            float y = cabScreen.y + 10f;
+            float y = cabScreen.y + 10f, linkY = -1f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
                 bool on = cabWin && cabKind == 1 && cabWinOutAt < 0f && settingsGroup == i;
+                if (on)
+                    linkY = CabY + 1f + y + 38f;  // (on screen: the row's middle)
                 if (DrawerRow(new Rect(34f, y, CabRowW, 76f), PixelArt.Get(gicons[i]), SettingsGroups[i], lines[i], null, null, gcols[i], on))
                 {
                     settingsGroup = i;
@@ -653,6 +659,13 @@ namespace Arena
                 y += 80f;
             }
             EndDrawerScreen();
+            if (!paused)
+            {
+                EndDrawer();
+                if (linkY >= 0f)
+                    DrawSettingsLink(linkY, gcols[settingsGroup]);  // the open section's row, linked to its window (MenuHolo.cs)
+                return;  // (no Back key: the window's X closes Settings, as does Esc)
+            }
             if (CabBackKey(y, paused ? "Back to the menu" : "Close settings"))
             {
                 Keybinds.Listening = -1;

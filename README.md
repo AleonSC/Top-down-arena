@@ -1939,7 +1939,7 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   box opens and its buttons rise into it (2.75 s; any key or click skips it with a quick TV-static channel flip, as do skips of New run's boot and the profile disk moves; with Reduced effects or Visual effects
   off, a short fade). Starting a run grows the box into the lobby's loadout while the rest of the menu fades out and
   the lobby fades in. (How to play is in the lobby's and the pause menu's drawer.)
-- **Settings** (main menu, the lobby's menu, and the pause menu): four groups, **Audio** (level-meter volume sliders: 100 thin bars that turn amber then red near the top and ripple only while you drag, for
+- **Settings** (main menu, the lobby's menu, and the pause menu; opened from the main menu or the lobby's button it has the holo look: neon edges and glowing corners on the list and its window, a glowing line with packets of light from the open group across to the window, the window open from the start, and its **X** (or Esc) closes Settings, so there's no Back key): four groups, **Audio** (level-meter volume sliders: 100 thin bars that turn amber then red near the top and ripple only while you drag, for
   **Master**, **Music** (all music; the **Music player** tab picks the track), **Your Weapons** (your and your friends' shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
