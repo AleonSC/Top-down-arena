@@ -267,7 +267,7 @@ namespace Arena
             if (e.Phase == 0 && e.PhaseT <= 0f)
             {
                 e.Waypoint = ClampToArena(tpos + RandDir() * Rand(220f, 300f), e.Radius);
-                for (int i = 0; i < 8 && NearSolid(e.Waypoint, e.Radius + 8f); i++)  // not into a wall or pillar (LayoutRules.cs)
+                for (int i = 0; i < 24 && NearSolid(e.Waypoint, e.Radius + 8f); i++)  // not into a wall or pillar (LayoutRules.cs)
                     e.Waypoint = ClampToArena(tpos + RandDir() * Rand(220f, 300f), e.Radius);
                 e.Phase = 1;
                 e.PhaseT = ShadeWarn;

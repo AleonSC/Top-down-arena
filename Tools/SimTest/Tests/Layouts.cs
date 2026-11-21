@@ -146,9 +146,9 @@ static partial class Program
         Check(Math.Abs(pushed.Y - 300f) >= 22f - 0.1f, "a wall pushes you out (" + pushed.Y + ")");
         var ring = Layouts.Get(LayoutId.PillarRing);
         g.DevSetLayout(LayoutId.PillarRing);
-        var pil = ring.Solids.First(x => x.Round);
+        var pil = ring.Solids.First(x => !x.Edge);  // (a square wall block now)
         V2 pp = g.PushOutOfSolids(pil.Pos + new V2(5f, 0f), 10f);
-        Check(Math.Abs(pp.DistanceTo(pil.Pos) - (pil.R + 10f)) < 0.1f, "a pillar pushes you out round its edge");
+        Check(Math.Abs(Math.Max(Math.Abs(pp.X - pil.Pos.X) - pil.HW, Math.Abs(pp.Y - pil.Pos.Y) - pil.HH) - 10f) < 0.1f, "a pillar pushes you out to its edge");
         g.DevSetLayout(LayoutId.TwinLanes);
         me.Pos = new V2(100f, 100f);
         var foe = (Bullet)spawnBullet.Invoke(g, new object[] { Defs.SmallShot, new V2(500f, 200f), new V2(0f, 300f), 0f, 3f, 10f, 0, false, 0f });

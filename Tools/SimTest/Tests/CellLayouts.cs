@@ -102,6 +102,26 @@ static partial class Program
         var shop = new List<ExpansionRoom>(Expansion.GridCore());
         var sp = Expansion.PlacementsFor(shop, PieceShape.Mono).First().Rooms[0]; sp.Kind = RoomKind.Shop; shop.Add(sp);
         Check(RoomTraps.For(shop).Count == 0, "a shop gets none");
+        var plates = t1.Where(t => t.Kind != TrapKind.Turret).ToList();
+        Check(plates.Count > 0 && plates.All(t => t.HalfX >= 24f && t.HalfY >= 24f) && plates.Select(t => t.HalfX + t.HalfY * 1000f).Distinct().Count() > 1, "spike plates and slow fields come in different sizes (" + string.Join("/", plates.Select(t => t.HalfX + "x" + t.HalfY).Distinct()) + ")");
+        bool fits = true;
+        foreach (var l in CellLayouts.All)
+            foreach (var s in l.Traps)
+            {
+                float fit = RoomTraps.Fit(l.Walls, s[0], s[1]);
+                var rr = new DetRandom(s[0] * 31 + s[1]);
+                fits &= RoomTraps.PickHalf(RoomTraps.SlowSizes, fit, rr) <= Math.Max(fit, RoomTraps.SlowSizes[0]) && RoomTraps.PickHalf(RoomTraps.SpikeSizes, fit, rr) <= Math.Max(fit, RoomTraps.SpikeSizes[0]);
+            }
+        Check(fits, "a plate never outgrows the room around its slot");
+        bool stripsOk = true; int strips = 0;
+        foreach (var l in CellLayouts.All)
+            foreach (var s in l.Traps)
+                for (int sd = 0; sd < 40; sd++)
+                {
+                    RoomTraps.PickSize(l.Walls, s[0], s[1], RoomTraps.SlowSizes, RoomTraps.SlowLongs, new DetRandom(sd * 7 + s[0]), out float hx, out float hy);
+                    if (hx != hy) { strips++; stripsOk &= RoomTraps.RectFree(l.Walls, s[0], s[1], hx, hy); }
+                }
+        Check(strips > 0 && stripsOk, "pinched slots grow strips along the open way, clear of every wall (" + strips + " strips)");
         var kinds = new HashSet<TrapKind>(); int empty = 0, total = 0;
         for (int i = 0; i < 400; i++) { var k = RoomTraps.Roll(new DetRandom(i), i % 2 == 0); total++; if (k.HasValue) kinds.Add(k.Value); else empty++; }
         Check(kinds.Count == 3 && empty > 100 && empty < 180, "a slot rolls a turret, a spike plate, a slow field or nothing (" + empty + " of " + total + " empty)");

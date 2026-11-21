@@ -1,0 +1,378 @@
+<title>Pause Menu Transitions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one 16:9 stage that replays the menu, tabs for each option, transport controls, beat list. Single dark look (the game's). */
+:root{
+  --bg:#060b16; --surface:#0d1730; --line:#22407a; --bright:#4f8cff;
+  --ink:#dbe6ff; --desc:#8ea3c8; --gold:#f2c14e; --danger:#e0606e;
+  --display:"Chakra Petch", "Rajdhani", system-ui, sans-serif;
+  --body:Inter, system-ui, sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);}
+.page{max-width:1100px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:26px;margin:0;letter-spacing:.02em}
+.lede{color:var(--desc);margin:0;font-size:13px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.04em;background:var(--surface);color:var(--desc);border:1px solid var(--line);padding:8px 14px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--ink);border-color:var(--bright);background:#13285a}
+.tab:focus-visible,.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.viewport{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);background:#050a14}
+.stage{position:absolute;left:0;top:0;width:1440px;height:810px;transform-origin:0 0;font-family:var(--display)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.05em;background:var(--surface);color:var(--ink);border:1px solid var(--line);padding:7px 12px;cursor:pointer}
+.btn.on{border-color:var(--gold);color:var(--gold)}
+.ctrl input[type=range]{flex:1;min-width:140px;accent-color:var(--gold)}
+.time{font-variant-numeric:tabular-nums;color:var(--desc);font-size:12px;min-width:110px;text-align:right}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.info{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);padding:14px 16px;min-width:0}
+.card h2{font-family:var(--display);font-size:13px;letter-spacing:.08em;color:var(--gold);margin:0 0 8px}
+.card ul{margin:0;padding-left:18px;color:var(--ink);font-size:13px;line-height:1.55}
+.card li span{color:var(--desc);font-variant-numeric:tabular-nums}
+
+/* ---- in-game stage ---- */
+#world{position:absolute;inset:0}
+#dim{position:absolute;inset:0;background:#030712;opacity:.62}
+.wrap{position:absolute}
+.box{position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,#10244c,#0a1733 60%,#08132b);border:1px solid #22407a;box-shadow:0 0 0 1px #0a1630 inset}
+.brk{position:absolute;width:26px;height:26px;border:0 solid #3d7bff}
+.brk.tl{left:-6px;top:-6px;border-left-width:3px;border-top-width:3px}
+.brk.tr{right:-6px;top:-6px;border-right-width:3px;border-top-width:3px}
+.brk.bl{left:-6px;bottom:-6px;border-left-width:3px;border-bottom-width:3px}
+.brk.br{right:-6px;bottom:-6px;border-right-width:3px;border-bottom-width:3px}
+.flash{position:absolute;inset:0;background:#cfe0ff;opacity:0;pointer-events:none}
+.scan{position:absolute;left:0;right:0;height:3px;background:#8fb6ff;box-shadow:0 0 0 1px #4f8cff;opacity:0}
+.edge{position:absolute;top:-2px;bottom:-2px;width:3px;background:#cfe0ff;opacity:0}
+.ghost{position:absolute;border:2px solid #4f8cff;opacity:0}
+.hr{height:1px;background:#1d3566;margin:0}
+/* drawer */
+.dhead{position:absolute;left:50px;top:52px;right:30px}
+.ptitle{font-size:44px;font-weight:700;color:#7fb0ff;letter-spacing:.04em;line-height:1}
+.cursor{display:inline-block;width:16px;height:34px;background:#4f8cff;margin-left:6px;vertical-align:-2px}
+.psub{font-size:14px;font-weight:600;color:#c9d4ff;letter-spacing:.06em;margin-top:22px;min-height:18px}
+.statbtn{position:absolute;right:6px;top:4px;width:40px;height:40px;border:1px solid #5a6a8a;background:#121a2c;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding-bottom:10px;box-sizing:border-box}
+.statbtn i{display:block;width:6px;background:var(--gold)}
+#dhr{position:absolute;left:30px;right:30px;top:150px}
+.row{position:absolute;left:40px;width:350px;height:62px;border:1px solid #2a3f6e;background:#0c1832;display:flex;align-items:center;gap:16px;padding:0 16px;box-sizing:border-box}
+.row.sel{border:2px solid var(--bright);background:#16306a}
+.row.quit{border-color:#5a2a3a;background:#1a1426}
+.row .ic{width:26px;text-align:center;font-size:24px;color:#aab8d6}
+.row .nm{font-size:20px;font-weight:700;letter-spacing:.03em;color:var(--ink)}
+.row.quit .nm,.row.quit .ic{color:#e8808c}
+.row .ds{font-family:var(--body);font-size:12px;color:var(--desc);margin-top:2px}
+.row .key{position:absolute;right:10px;top:9px;font-size:11px;font-weight:700;border:1px solid #c9d4ff;padding:1px 4px}
+.dfoot{position:absolute;left:34px;bottom:24px;font-size:12px;color:#5d6f94;letter-spacing:.05em}
+/* panel */
+.pin{position:absolute;inset:26px 26px 22px;display:flex;flex-direction:column}
+.lbl{font-size:12px;font-weight:600;color:#a9b8d8;letter-spacing:.06em}
+.wave{display:flex;align-items:center;gap:20px;margin-top:8px}
+.wave b{font-size:48px;color:var(--gold);letter-spacing:.03em;line-height:1}
+.wave div{font-size:15px;color:var(--ink);line-height:1.4}
+.chip{display:inline-block;margin-top:14px;font-size:12px;font-weight:700;background:#24365e;padding:4px 10px;color:#c9d4ff}
+.sec{padding:16px 0}
+.boss{display:flex;gap:16px;align-items:center}
+.bicon{width:72px;height:72px;border:2px solid var(--gold);background:#1a1426;display:flex;align-items:center;justify-content:center}
+.bicon i{width:46px;height:46px;background:#c5304e;clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)}
+.boss .bn{font-size:24px;font-weight:700;color:var(--gold)}
+.boss .bd{font-size:13px;color:var(--desc);font-family:var(--body)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.tile{height:64px;border:1px solid #22407a;background:#0c1a38;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.tile b{font-size:26px;color:var(--gold);font-variant-numeric:tabular-nums}
+.tile small{font-size:11px;font-weight:700;letter-spacing:.06em;color:#c9d4ff}
+.prow{margin-top:10px;border:1px solid #7a5a2a;background:#1a1524;height:52px;position:relative;display:flex;align-items:center;gap:14px;padding:0 14px}
+.prow .av{width:26px;height:26px;background:#3a3f4c;border:1px solid #6b7180}
+.prow .pn{font-size:16px;font-weight:700;color:var(--ink)}
+.prow .pc{font-size:13px;color:#f0a040}
+.prow .bar{position:absolute;left:54px;right:80px;bottom:8px;height:4px;background:#2fbf5a}
+.prow .lv{position:absolute;right:10px;top:15px;font-size:11px;font-weight:700;background:#c9a23a;color:#1a1200;padding:2px 8px}
+@media (prefers-reduced-motion: reduce){.cursor{animation:none}}
+</style>
+
+<div class="page">
+  <h1>Pause menu: intro / outro</h1>
+  <p class="lede">Three new options plus the current one, replaying in a loop. Approximate browser mockup: every effect here is rects, clipping, alpha and movement, so each maps onto <code>Ui.cs</code> / <code>CrtWindows.cs</code> drawing (no blur or glow).</p>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <div class="viewport" id="vp"><div class="stage" id="stage">
+    <canvas id="world" width="1440" height="810"></canvas>
+    <div id="dim"></div>
+
+    <div class="ghost" id="gD0"></div><div class="ghost" id="gD1"></div>
+    <div class="ghost" id="gP0"></div><div class="ghost" id="gP1"></div>
+
+    <div class="wrap" id="wD" style="left:28px;top:30px;width:420px;height:750px">
+      <div class="box" id="bD">
+        <div class="dhead">
+          <div class="ptitle"><span id="title">PAUSED</span><span class="cursor"></span></div>
+          <div class="psub" id="sub">THE ARENA IS WAITING</div>
+          <div class="statbtn"><i style="height:10px"></i><i style="height:18px"></i><i style="height:13px"></i></div>
+        </div>
+        <div class="hr" id="dhr"></div>
+        <div class="row sel" style="top:180px"><span class="ic">▶</span><div><div class="nm">RESUME</div><div class="ds">Back into wave 1</div></div><span class="key">ESC</span></div>
+        <div class="row" style="top:252px"><span class="ic">⚙</span><div><div class="nm">SETTINGS</div><div class="ds">Audio, visual effects, aim line</div></div></div>
+        <div class="row" style="top:324px"><span class="ic">?</span><div><div class="nm">HOW TO PLAY</div><div class="ds">Controls and tips</div></div></div>
+        <div class="row quit" style="top:396px"><span class="ic">⏻</span><div><div class="nm">QUIT</div><div class="ds">Back to the lobby, or out to the desktop</div></div></div>
+        <div class="dfoot">HOLD TAB RUN STATS &amp; BUILD &nbsp; H HIDE HUD</div>
+        <div class="flash" id="fD"></div><div class="scan" id="sD"></div>
+      </div>
+      <div class="brk tl"></div><div class="brk tr"></div><div class="brk bl"></div><div class="brk br"></div>
+      <div class="edge" id="eD"></div>
+    </div>
+
+    <div class="wrap" id="wP" style="left:480px;top:40px;width:920px;height:730px">
+      <div class="box" id="bP">
+        <div class="pin">
+          <div class="sec">
+            <div class="lbl">THIS RUN</div>
+            <div class="wave"><b>WAVE 1</b><div>0:19<br>Score 15</div></div>
+            <span class="chip">NORMAL</span>
+          </div>
+          <div class="hr"></div>
+          <div class="sec boss">
+            <div class="bicon"><i></i></div>
+            <div><div class="lbl" style="font-size:11px">NEXT BOSS · AFTER WAVE 20</div><div class="bn">The Warden</div><div class="bd">18 waves before it</div></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sec">
+            <div class="lbl">YOUR RUN</div>
+            <div class="tiles">
+              <div class="tile"><b data-v="196">196</b><small>DAMAGE</small></div>
+              <div class="tile"><b data-v="5">5</b><small>KILLS</small></div>
+              <div class="tile"><b data-v="78" data-s="%">78%</b><small>ACCURACY</small></div>
+              <div class="tile"><b data-v="0">0</b><small>DOWNED</small></div>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div class="sec" style="padding-bottom:0">
+            <div class="lbl">PLAYERS</div>
+            <div class="prow"><span class="av"></span><span class="pn">Antaleon (you)</span><span class="pc">Ninja DPS · Katana</span><span class="bar"></span><span class="lv">LV 1</span></div>
+          </div>
+        </div>
+        <div class="flash" id="fP"></div><div class="scan" id="sP"></div>
+      </div>
+      <div class="brk tl"></div><div class="brk tr"></div><div class="brk bl"></div><div class="brk br"></div>
+      <div class="edge" id="eP"></div>
+    </div>
+  </div></div>
+
+  <div class="ctrl">
+    <button class="btn" id="pIn">▶ Intro</button>
+    <button class="btn" id="pOut">▶ Outro</button>
+    <button class="btn on" id="loop">Loop</button>
+    <button class="btn on" data-sp="1">1×</button>
+    <button class="btn" data-sp="0.5">½×</button>
+    <button class="btn" data-sp="0.2">⅕×</button>
+    <input type="range" id="scrub" min="0" max="1000" value="1000" aria-label="Scrub">
+    <span class="time" id="time"></span>
+  </div>
+
+  <div class="info">
+    <div class="card"><h2 id="inH">INTRO</h2><ul id="inL"></ul></div>
+    <div class="card"><h2 id="outH">OUTRO</h2><ul id="outL"></ul></div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const cl = v => Math.max(0, Math.min(1, v));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const oc = p => 1 - Math.pow(1 - p, 3), ic = p => p * p * p;
+const ob = p => { const c = 1.9; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+
+/* world */
+(() => {
+  const g = $('world').getContext('2d');
+  g.fillStyle = '#0b1424'; g.fillRect(0, 0, 1440, 810);
+  g.strokeStyle = '#132038'; g.lineWidth = 1;
+  for (let x = 0; x < 1440; x += 48) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, 810); g.stroke(); }
+  for (let y = 0; y < 810; y += 48) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(1440, y + .5); g.stroke(); }
+  g.strokeStyle = '#2a4a8a'; g.lineWidth = 3; g.strokeRect(14, 14, 1412, 782);
+  const en = [[300,200],[1180,170],[1000,620],[220,640],[760,120],[1300,430]];
+  en.forEach(([x,y]) => { g.fillStyle = '#c5304e'; g.beginPath(); g.arc(x, y, 18, 0, 7); g.fill(); });
+  g.fillStyle = '#ff9a3c';
+  for (let i = 0; i < 40; i++) { const a = i * 0.7, r = 120 + (i % 5) * 40; g.beginPath(); g.arc(720 + Math.cos(a) * r, 420 + Math.sin(a) * r * .7, 5, 0, 7); g.fill(); }
+  g.fillStyle = '#7fe3ff'; g.fillRect(704, 404, 32, 32);
+})();
+
+const E = {
+  dim: $('dim'), wD: $('wD'), wP: $('wP'), bD: $('bD'), bP: $('bP'),
+  fD: $('fD'), fP: $('fP'), sD: $('sD'), sP: $('sP'), eD: $('eD'), eP: $('eP'),
+  gD: [$('gD0'), $('gD1')], gP: [$('gP0'), $('gP1')],
+  title: $('title'), sub: $('sub'),
+  rows: [...document.querySelectorAll('.row')], dhr: $('dhr'),
+  secs: [...document.querySelectorAll('.pin > .sec')],
+  nums: [...document.querySelectorAll('.tile b')],
+  brD: [...$('wD').querySelectorAll('.brk')], brP: [...$('wP').querySelectorAll('.brk')],
+};
+const R = { D: { x: 28, y: 30, w: 420, h: 750 }, P: { x: 480, y: 40, w: 920, h: 730 } };
+const DIM = .62, TITLE = 'PAUSED', SUB = 'THE ARENA IS WAITING';
+const dirs = [[-1,-1],[1,-1],[-1,1],[1,1]];
+['D','P'].forEach(k => E['g' + k].forEach(g => Object.assign(g.style, { left: R[k].x + 'px', top: R[k].y + 'px', width: R[k].w + 'px', height: R[k].h + 'px' })));
+
+const tf = (el, x = 0, y = 0, sx = 1, sy = 1) => el.style.transform = `translate(${x}px,${y}px) scale(${sx},${sy})`;
+const op = (el, o) => el.style.opacity = o;
+const type = (el, full, p) => el.textContent = full.slice(0, Math.round(full.length * cl(p)));
+const count = p => E.nums.forEach(n => n.textContent = Math.round(+n.dataset.v * oc(cl(p))) + (n.dataset.s || ''));
+const content = o => { [...E.rows, ...E.secs, E.dhr].forEach(e => op(e, o)); op(E.title.parentNode, o); op(E.sub, o); };
+
+function reset() {
+  op(E.dim, DIM);
+  [E.wD, E.wP, E.bD, E.bP, ...E.rows, ...E.secs, ...E.brD, ...E.brP, E.title.parentNode, E.sub, E.dhr].forEach(e => { e.style.transform = ''; e.style.opacity = ''; e.style.clipPath = ''; });
+  [E.fD, E.fP, E.sD, E.sP, E.eD, E.eP, ...E.gD, ...E.gP].forEach(e => { e.style.opacity = 0; e.style.transform = ''; });
+  E.title.textContent = TITLE; E.sub.textContent = SUB; count(1);
+}
+const rowsIn = (t, a, step, dx) => E.rows.forEach((r, i) => { const p = oc(seg(t, a + i * step, a + i * step + .14)); op(r, p); tf(r, dx * (1 - p)); });
+const secsIn = (t, a, step, dx, dy) => E.secs.forEach((s, i) => { const p = oc(seg(t, a + i * step, a + i * step + .16)); op(s, p); tf(s, dx * (1 - p), dy * (1 - p)); });
+
+const OPTS = [
+{
+  key: 'now', name: 'Current', introLen: .9, outroLen: .3,
+  intro: ['Box sweeps in top-down under a soft edge <span>0–0.45 s</span>', 'Title and sub-line type in <span>0.15–0.7 s</span>', 'Run panel sweeps in after the box <span>0.25–0.65 s</span>'],
+  outro: ['Everything slides out to the left <span>0.3 s</span>'],
+  in(t) {
+    op(E.dim, DIM * seg(t, 0, .3));
+    const sw = (w, b, a) => { const p = oc(seg(t, a, a + .4)); w.style.clipPath = `inset(-10px -10px ${(1 - p) * 100}% -10px)`; op(w, t < a ? 0 : 1); };
+    sw(E.wD, E.bD, 0); sw(E.wP, E.bP, .25);
+    type(E.title, TITLE, seg(t, .15, .5)); type(E.sub, SUB, seg(t, .3, .7));
+    E.rows.forEach((r, i) => op(r, seg(t, .12 + i * .06, .2 + i * .06)));
+    E.secs.forEach((s, i) => op(s, seg(t, .3 + i * .08, .4 + i * .08)));
+    const sc = seg(t, .4, .85); op(E.sD, sc > 0 && sc < 1 ? .8 : 0); E.sD.style.transform = `translateY(${sc * 750}px)`;
+  },
+  out(t) {
+    const p = ic(seg(t, 0, .3)); tf(E.wD, -1500 * p); tf(E.wP, -1500 * p); op(E.dim, DIM * (1 - p));
+  }
+},
+{
+  key: 'a', name: 'A · Power on', introLen: .62, outroLen: .26,
+  intro: ['Each box starts as a bright line that stretches wide <span>0–0.12 s</span>', 'Line opens tall into the box, phosphor flash fades <span>0.1–0.42 s</span>', 'Panel follows one beat later <span>+0.06 s</span>', 'Keys slide in, sections rise, stats count up <span>0.28–0.6 s</span>'],
+  outro: ['Content blinks off <span>0–0.06 s</span>', 'Box flashes and squeezes to a line <span>0.03–0.14 s</span>', 'Line shrinks to a dot and vanishes, like a CRT switching off <span>0.13–0.26 s</span>'],
+  in(t) {
+    op(E.dim, DIM * seg(t, 0, .2));
+    [[E.wD, E.fD, 0], [E.wP, E.fP, .06]].forEach(([w, f, d]) => {
+      const sx = Math.max(.002, oc(seg(t, d, d + .12))), sy = Math.max(.004, oc(seg(t, d + .1, d + .3)));
+      tf(w, 0, 0, sx, sy); op(w, t < d ? 0 : 1); op(f, t < d ? 0 : .9 * (1 - seg(t, d + .2, d + .42)));
+    });
+    type(E.title, TITLE, seg(t, .24, .4)); type(E.sub, SUB, seg(t, .3, .52)); op(E.dhr, seg(t, .26, .34));
+    rowsIn(t, .28, .04, -18); secsIn(t, .32, .05, 0, 12); count(seg(t, .38, .6));
+  },
+  out(t) {
+    content(1 - seg(t, 0, .06));
+    [[E.wD, E.fD], [E.wP, E.fP]].forEach(([w, f]) => {
+      const sy = Math.max(.004, 1 - ic(seg(t, .03, .14))), sx = Math.max(.002, 1 - ic(seg(t, .13, .24)));
+      tf(w, 0, 0, sx, sy); op(f, .9 * seg(t, .02, .1)); op(w, 1 - seg(t, .22, .26));
+    });
+    op(E.dim, DIM * (1 - seg(t, .05, .26)));
+  }
+},
+{
+  key: 'b', name: 'B · Bracket lock', introLen: .64, outroLen: .26,
+  intro: ['Corner brackets fly in and snap onto each box (slight overshoot) <span>0–0.24 s</span>', 'Fill wipes left to right behind a bright edge <span>0.16–0.38 s</span>', 'Panel trails by <span>0.05 s</span>', 'Keys slide in, sections rise, stats count up <span>0.3–0.62 s</span>'],
+  outro: ['Content blinks off <span>0–0.06 s</span>', 'Fill wipes back right to left <span>0.02–0.14 s</span>', 'Brackets spring outward and fade <span>0.1–0.24 s</span>'],
+  in(t) {
+    op(E.dim, DIM * seg(t, 0, .18));
+    [[E.brD, E.bD, E.eD, R.D, 0], [E.brP, E.bP, E.eP, R.P, .05]].forEach(([br, b, e, r, d]) => {
+      const p = ob(seg(t, d, d + .24)), o = seg(t, d, d + .08);
+      br.forEach((el, i) => { tf(el, dirs[i][0] * 70 * (1 - p), dirs[i][1] * 70 * (1 - p)); op(el, o); });
+      const w = oc(seg(t, d + .16, d + .38));
+      b.style.clipPath = `inset(0 ${(1 - w) * 100}% 0 0)`;
+      op(e, w > 0 && w < 1 ? 1 : 0); e.style.transform = `translateX(${w * r.w - 1}px)`;
+    });
+    type(E.title, TITLE, seg(t, .26, .42)); type(E.sub, SUB, seg(t, .32, .54)); op(E.dhr, seg(t, .28, .36));
+    rowsIn(t, .3, .035, -24); secsIn(t, .34, .05, 0, 12); count(seg(t, .4, .62));
+  },
+  out(t) {
+    content(1 - seg(t, 0, .06));
+    [[E.brD, E.bD, E.eD, R.D], [E.brP, E.bP, E.eP, R.P]].forEach(([br, b, e, r]) => {
+      const w = 1 - ic(seg(t, .02, .14));
+      b.style.clipPath = `inset(0 ${(1 - w) * 100}% 0 0)`;
+      op(e, w > 0 && w < 1 ? 1 : 0); e.style.transform = `translateX(${w * r.w - 1}px)`;
+      const p = oc(seg(t, .1, .24)); br.forEach((el, i) => { tf(el, dirs[i][0] * 50 * p, dirs[i][1] * 50 * p); op(el, 1 - p); });
+    });
+    op(E.dim, DIM * (1 - seg(t, .06, .26)));
+  }
+},
+{
+  key: 'c', name: 'C · Split dock', introLen: .48, outroLen: .22,
+  intro: ['Box docks from the left, panel from the right, each with two fading frame trails <span>0–0.32 s</span>', 'Small flash on landing, scan line runs down both <span>0.26–0.46 s</span>', 'Keys slide right, sections slide left, stats count up <span>0.18–0.46 s</span>'],
+  outro: ['Box drops back left, panel back right (fastest option) <span>0.2 s</span>', 'Dim lifts as they leave <span>0–0.22 s</span>'],
+  in(t) {
+    op(E.dim, DIM * seg(t, 0, .2));
+    const xD = tt => -520 * (1 - oc(seg(tt, 0, .28))), xP = tt => 1000 * (1 - oc(seg(tt, .04, .32)));
+    tf(E.wD, xD(t)); tf(E.wP, xP(t));
+    [0, 1].forEach(i => {
+      const lag = t - (i + 1) * .035, o = (.4 / (i + 1)) * (1 - seg(t, .26, .34)) * (t > .02 ? 1 : 0);
+      tf(E.gD[i], xD(lag)); op(E.gD[i], o); tf(E.gP[i], xP(lag)); op(E.gP[i], o);
+    });
+    [[E.fD, E.sD, R.D, .26], [E.fP, E.sP, R.P, .3]].forEach(([f, s, r, a]) => {
+      op(f, .35 * (1 - seg(t, a, a + .12)) * (t >= a ? 1 : 0));
+      const p = seg(t, a, a + .18); op(s, p > 0 && p < 1 ? .8 : 0); s.style.transform = `translateY(${p * r.h}px)`;
+    });
+    type(E.title, TITLE, seg(t, .14, .3)); type(E.sub, SUB, seg(t, .2, .42)); op(E.dhr, seg(t, .16, .24));
+    rowsIn(t, .18, .03, -30); secsIn(t, .22, .04, 30, 0); count(seg(t, .26, .46));
+  },
+  out(t) {
+    tf(E.wD, -520 * ic(seg(t, 0, .2))); tf(E.wP, 1000 * ic(seg(t, 0, .22)));
+    op(E.dim, DIM * (1 - seg(t, 0, .22)));
+  }
+}];
+
+/* playback */
+let opt = OPTS[1], mode = 'intro', t = opt.introLen, playing = false, speed = 1, loop = true, hold = 0;
+const len = () => mode === 'intro' ? opt.introLen : opt.outroLen;
+function draw() {
+  reset();
+  if (mode === 'intro') opt.in(Math.min(t, opt.introLen)); else opt.out(Math.min(t, opt.outroLen));
+  $('scrub').value = Math.round(1000 * t / len());
+  $('time').textContent = `${mode} ${Math.round(t * 1000)} / ${Math.round(len() * 1000)} ms`;
+}
+function play(m) { mode = m; t = 0; hold = 0; playing = true; draw(); }
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (playing) {
+    t += dt * speed;
+    if (t >= len()) { t = len(); playing = false; hold = 0; }
+    draw();
+  } else if (loop) {
+    hold += dt;
+    if (hold > (mode === 'intro' ? 1.1 : .6)) play(mode === 'intro' ? 'outro' : 'intro');
+  }
+  requestAnimationFrame(tick);
+}
+
+const tabs = $('tabs');
+OPTS.forEach(o => {
+  const b = document.createElement('button'); b.className = 'tab'; b.role = 'tab'; b.textContent = o.name;
+  b.onclick = () => select(o); o.btn = b; tabs.appendChild(b);
+});
+function select(o) {
+  opt = o; OPTS.forEach(x => x.btn.setAttribute('aria-selected', x === o));
+  $('inH').textContent = `INTRO · ${Math.round(o.introLen * 1000)} ms`;
+  $('outH').textContent = `OUTRO · ${Math.round(o.outroLen * 1000)} ms`;
+  $('inL').innerHTML = o.intro.map(s => `<li>${s}</li>`).join('');
+  $('outL').innerHTML = o.outro.map(s => `<li>${s}</li>`).join('');
+  play('intro');
+}
+$('pIn').onclick = () => play('intro');
+$('pOut').onclick = () => { if (mode === 'outro') { mode = 'intro'; t = opt.introLen; } play('outro'); };
+$('loop').onclick = e => { loop = !loop; e.target.classList.toggle('on', loop); hold = 0; };
+document.querySelectorAll('[data-sp]').forEach(b => b.onclick = () => {
+  speed = +b.dataset.sp; document.querySelectorAll('[data-sp]').forEach(x => x.classList.toggle('on', x === b));
+});
+$('scrub').oninput = e => { playing = false; loop = false; $('loop').classList.remove('on'); t = len() * e.target.value / 1000; draw(); };
+
+/* fit stage */
+const vp = $('vp'), st = $('stage');
+const fit = () => st.style.transform = `scale(${vp.clientWidth / 1440})`;
+new ResizeObserver(fit).observe(vp); fit();
+
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) { loop = false; $('loop').classList.remove('on'); }
+OPTS[1].btn.setAttribute('aria-selected', true);
+select(OPTS[1]); playing = false; t = opt.introLen; draw();
+requestAnimationFrame(tick);
+})();
+</script>
