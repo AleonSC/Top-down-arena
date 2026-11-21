@@ -1581,6 +1581,7 @@ namespace Arena
             {
                 TrackMotion(p, dt);  // Variety.cs
                 TickSlots(p, dt);
+                TickGraze(p, dt);  // Graze.cs
                 p.BarrierT = Math.Max(0f, p.BarrierT - dt);
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
                 TickRiot(p, dt);
