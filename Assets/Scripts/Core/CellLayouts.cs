@@ -143,6 +143,13 @@ namespace Arena
 
         static readonly Dictionary<int, Turned> turnedCache = new Dictionary<int, Turned>();
 
+        /// Make the turned copies again (after a layout was edited: `CellLayoutEdits.Set`).
+        public static void ForgetTurned()
+        {
+            lock (turnedCache)
+                turnedCache.Clear();
+        }
+
         public static Turned TurnedOf(CellPlan plan)
         {
             int key = plan.Layout * 4 + (plan.Rot & 3);

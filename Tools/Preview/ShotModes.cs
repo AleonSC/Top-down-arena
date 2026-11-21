@@ -578,6 +578,13 @@ static partial class Shot {
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
       typeof(ArenaApp).GetMethod("DrawLabSetup", f2).Invoke(app, null);
     }
+    else if (mode == "celled")
+    {
+      int ci = int.Parse(Environment.GetEnvironmentVariable("CELLED") ?? "0");
+      typeof(ArenaApp).GetField("cedIndex", f2).SetValue(app, ci);
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
+      typeof(ArenaApp).GetMethod("DrawCellEditor", f2).Invoke(app, null);
+    }
     else if (mode == "labpanel")
     {
       var lab = (BossLab)typeof(ArenaApp).GetField("lab", f2).GetValue(app);

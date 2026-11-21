@@ -19,6 +19,7 @@ namespace Arena
             bool parry = r.ReadBoolean();
             float draw = r.ReadSingle(), release = r.ReadSingle();
             byte sprint = r.ReadByte();
+            bool bot = r.ReadBoolean();
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
@@ -31,6 +32,7 @@ namespace Arena
                 p.Pos = KeepInArena(pos, 0f);
             p.Aim = aim;
             p.AimAt = aimAt;
+            p.IsBot = bot;
             p.Firing = firing;
             p.Parrying = parry;
             p.Sprint = p.Downed ? (byte)0 : sprint;  // only a look: the owner's game moves it
