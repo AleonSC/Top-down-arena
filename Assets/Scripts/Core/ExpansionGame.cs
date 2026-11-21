@@ -311,7 +311,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (r.Surprise > 0 && r.Surprise != 1 + (int)SurpriseShape.Stash && r.Piece == 0)  // (the breach Stashes aren't gifts: they don't turn the rotation)
+                if (r.Surprise > 0 && r.Surprise != 1 + (int)SurpriseShape.Stash && r.Surprise != RelicGauntlet.Mark && r.Piece == 0)  // (the breach Stashes and the Relic Gauntlet aren't gifts: they don't turn the rotation)
                     n++;
             return n;
         }
@@ -896,6 +896,7 @@ namespace Arena
             w.Write(ExpandOpen);
             WriteFogCells(w);  // the explored cells of the unseen rooms (RoomFog.cs)
             WriteTrapWrecks(w);  // the room turrets shot to bits (RoomTraps.cs)
+            WriteRelicGauntletClock(w);  // the lasers' clock (Gauntlet.cs)
             session.Broadcast(Proto.End(w));
         }
 
@@ -998,6 +999,7 @@ namespace Arena
             ExpandOpen = r.ReadBoolean();
             ReadFogCells(r);  // (RoomFog.cs)
             ReadTrapWrecks(r);  // (RoomTraps.cs)
+            ReadRelicGauntletClock(r);  // (Gauntlet.cs)
         }
     }
 }

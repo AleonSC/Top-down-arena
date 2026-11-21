@@ -119,6 +119,8 @@ namespace Arena
             var plans = CellLayouts.Plans(rooms);
             foreach (var r in rooms)
             {
+                if (RelicGauntlet.Is(r))
+                    RelicGauntlet.AddTurrets(list, r);  // (the Relic Gauntlet's four wall turrets)
                 if (!Eligible(r))
                     continue;
                 foreach (var o in CellLayouts.CellOrigins(r))

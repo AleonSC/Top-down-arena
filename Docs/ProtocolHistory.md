@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 460: `Msg.ExpandState` ends with the host's clock (float) for the Relic Gauntlet's lasers; `MysteryKind.Gauntlet` and `SurpriseShape.Gauntlet` added at the end (a room's `Surprise` byte can be 14).
 - 459: `RelicId.Thorns` added before `None` (the relic slot byte can now be 23; a plain relic node rolls one of four classic relics).
 - 458: Thorn Bloom (DPS Hemomancer 4th choice): `AbilityId.ThornBloom`, `FxKind.ThornBloom`/`ThornNeedle`/`ThornTendril`, the Rare card Thornwork (card ids shift)
 - 457: `Msg.DevTraps` (host -> all): the Dev Kit's hand-placed traps, the whole list (count; kind, x, y, half width, half height each)

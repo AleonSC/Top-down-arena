@@ -873,6 +873,8 @@ namespace Arena
                 AddStashCover(to, r, doors);
                 return;
             }
+            if (RelicGauntlet.Is(r))
+                return;  // (the Relic Gauntlet: bare floor, its hazards are pits, turrets and lasers, Gauntlet.cs)
             if (plans != null && CellLayouts.OnLattice(r))
             {
                 CellLayouts.AddWalls(to, r, plans);  // (a grid room: its cells' hand-made layouts, not random obstacles; owner Nov 20)
@@ -1210,7 +1212,9 @@ namespace Arena
                 if (gridRun && core != CoreLayoutId.None && IsGridCore(cr))
                     continue;  // (the core's floor plan covers it: CoreLayouts.cs)
                 AddCover(cover, cr, doorSpots, gridRun ? plans : null);
-                if (gridRun && !cr.Floating && CellLayouts.OnLattice(cr))
+                if (gridRun && RelicGauntlet.Is(cr))
+                    RelicGauntlet.AddPits(pits, cr);  // (the Relic Gauntlet's voids)
+                else if (gridRun && !cr.Floating && CellLayouts.OnLattice(cr))
                     CellLayouts.AddPits(pits, cr, plans);  // a pit variant's voids (CellVariants.cs)
             }
             if (gridRun && core != CoreLayoutId.None)

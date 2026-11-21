@@ -112,3 +112,15 @@ Replaces step 2's contents (no Stash, no mini-boss room, no surprise shapes behi
 - Test `MysteryBotsTest` (suite `mysterydoor`): a bot inside its reserve leaves doors shut, with vectors it opens one; a 2-bot run.
 - First numbers (2 god-mode bots, waves 1-10, seed of the run): 3 doors opened for 40 vectors, 21 rooms on the map in all, 2 doors
   waiting at wave 10. Doors are a small share of the map's growth; the price share (60%) and the 1-2 doors a wave look fine for now.
+
+## Built (Relic Gauntlet, owner Nov 21: "build it, surprise me")
+
+A hallway behind a door is now a **Relic Gauntlet** 40% of the time (`Mystery.GauntletChance`), else the chest hallway. Mockups: `Docs/Mockups/mystery-hallway.html`, `laser-patterns.html`.
+
+- A line of **3 cells** (`MysteryKind.Gauntlet`, always `TriI`, door on a short end), marked `Surprise == 1 + SurpriseShape.Gauntlet` (`RelicGauntlet.Mark`): bare floor, no layout walls, no enemies.
+- **Middle cell**: a faction relic on its pedestal (`RelicGauntlet.RelicFor`, any of the 20; a relic `MapNode`), safe floor. **Far end**: a chest node, the greedy prize.
+- **Near cell**: 4 void pits and two sweep lasers in anti-phase (`SweepPeriod` 4.4 s). **Far cell**: 4 void pits and a two armed spinning laser (`SpinPeriod` 7 s). 4 wall turrets in all (the normal room turrets, `RoomTraps.For`).
+- A laser hurts `LaserDamage(wave)` (10 + 0.6 a wave), at most every 0.7 s a player (host, `TickRelicGauntlets`). Pits fall as usual (`Pits.cs`).
+- The beams are a pure function of a clock: the host's, sent at the end of `Msg.ExpandState` (protocol 460), kept on a client as an offset (`RelicGauntletClock`).
+- Files: `Core/RelicGauntlet.cs`, `Game/RelicGauntletLook.cs`; test `MysteryContentsTest` (suite `mysterydoor`); preview `GAUNTLET=<clock s> GRIDCORE=1 EXPANDMAP=0 [GAUNTLETAT=<u>] ZOOM=0.45` (`clip.sh ... GAUNTLET=0:7:0.1` for the animation).
+- Only one entrance (a mystery hallway has one door); the far end stays a wall. Open: more laser patterns (the six in `laser-patterns.html`), a pick-up banner, bots skipping gauntlets.

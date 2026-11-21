@@ -2422,6 +2422,19 @@ static partial class Shot {
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
+      if (Environment.GetEnvironmentVariable("GAUNTLET") != null) {  // GAUNTLET=<s> (with GRIDCORE=1 EXPANDMAP=0): the Relic Gauntlet (RelicGauntlet.cs) built on the lattice at laser clock <s>, you in its middle cell (GAUNTLETAT=<0-1800> along it); ZOOM=0.4 sees it whole, GAUNTLETSPOT=<n>
+        var gpl = Expansion.PlacementsFor(xg.Expanded, PieceShape.TriI);
+        gpl.RemoveAll(q => !Mystery.DoorAtEnd(q.Rooms[0], new MysteryDoor { X = (short)q.SX, Y = (short)q.SY }));
+        int gi = Math.Min(gpl.Count - 1, int.Parse(Environment.GetEnvironmentVariable("GAUNTLETSPOT") ?? "0"));
+        if (gi >= 0) {
+          var gr = gpl[gi].Rooms[0]; gr.Owner = 1; gr.Surprise = RelicGauntlet.Mark; xg.Expanded.Add(gr);
+          var rs = RelicGauntlet.RelicSpot(gr); xg.Nodes.Add(new MapNode { X = (short)rs.X, Y = (short)rs.Y, Kind = NodeKind.Relic, Rule = (byte)((int)RelicGauntlet.RelicFor(1, gr) + 1) });
+          typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+          typeof(Game).GetField("hostClock", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, float.Parse(Environment.GetEnvironmentVariable("GAUNTLET"), System.Globalization.CultureInfo.InvariantCulture));
+          float gu = float.Parse(Environment.GetEnvironmentVariable("GAUNTLETAT") ?? "900", System.Globalization.CultureInfo.InvariantCulture);
+          foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = RelicGauntlet.ToWorld(gr, gu, 300f);
+        } else Console.Error.WriteLine("GAUNTLET: no spot fits");
+      }
       string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=buildershop|shop|market|arms|medic: that card's one-cell room built on the lattice, everyone in it; CARDSPOT=<n> picks its nth door spot
       if (xcard != null) {
         var xc = (PieceCard)Enum.Parse(typeof(PieceCard), xcard, true);
