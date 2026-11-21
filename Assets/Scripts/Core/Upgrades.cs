@@ -45,6 +45,7 @@ namespace Arena
         Stampede,      // the Tank Summoner's 4th choice (Stampede.cs), the lobby's 4th choice
         DecoyDummy,    // the Healer Soldier's 4th choice (DecoyDummy.cs), the lobby's 4th choice
         DeployableTurret,  // the DPS Soldier's 4th choice (DeployableTurret.cs), the lobby's 4th choice
+        ThornBloom,    // the DPS Hemomancer's 4th choice (ThornBloom.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -103,6 +104,7 @@ namespace Arena
         public float SprayMult = 1f, SprayReach = 1f;          // Arterial Spray: High Pressure
         public float DebtRepay, DebtBonusTime;                 // Blood Debt: Usury
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
+        public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
         // Elementalist abilities (Docs/UpgradePools.md step 5)
         public float AegisBonusTime, AegisReflectBonus;                    // Aeroaegis: Eye of the Storm

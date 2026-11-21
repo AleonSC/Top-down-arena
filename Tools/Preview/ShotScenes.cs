@@ -898,6 +898,7 @@ static partial class Shot {
     CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
+    ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)
     ChalkFireScene();  // CHALKFIRE=A|B|C (ShotChalkFire.cs)
