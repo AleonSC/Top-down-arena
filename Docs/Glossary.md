@@ -96,8 +96,8 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | Term | Means | Code |
 |---|---|---|
 | **cell** | one 600 px square of the lattice | |
-| **cell variant** | a version of a cell layout (plain, pits, ...) each Combat cell rolls | planned, Docs/CellVariants.md |
-| **pit** | a void in a cell's floor: enemies that fall in die, players lose 15% HP and climb out | planned |
+| **cell variant** | another version of a cell layout (the pit variants so far) a plain Combat cell may roll | `CellPlan.Variant`, `CellVariants.cs` |
+| **pit** | a void in a cell's floor: enemies shoved in die, players lose 15% HP and climb out | `World.Pits`, `Pits.cs` |
 | **shape** | the 1-4 cell polyomino: Mono, Domino, ... TetL | `PieceShape` |
 | **piece card** | what sits in your hand: a shape plus its modifiers; the service ones (Shop, Black Market, Arms Dealer, Builder Shop) are one cell. "Piece" on its own is the shape on the map. | `PieceCard`, `GridPieces.cs` |
 | **modifier** | something a shape piece card carries, rolled when it is offered: a floor (the room's ground), combat (enemies inside) or loot (a guaranteed chest kind) or one-way (all its doors but one one way); a card can carry several | `PieceMod`, `PieceMods.cs` |

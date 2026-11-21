@@ -1193,6 +1193,7 @@ namespace Arena
                     areas[a].Sealed = !open;
                 }
             var cover = new List<Solid>();
+            var pits = new List<Solid>();
             bool gridRun = false;  // (a Grid run has its core: only there do cells get layouts)
             foreach (var q in rooms)
                 gridRun |= IsGridCore(q);
@@ -1209,6 +1210,8 @@ namespace Arena
                 if (gridRun && core != CoreLayoutId.None && IsGridCore(cr))
                     continue;  // (the core's floor plan covers it: CoreLayouts.cs)
                 AddCover(cover, cr, doorSpots, gridRun ? plans : null);
+                if (gridRun && !cr.Floating && CellLayouts.OnLattice(cr))
+                    CellLayouts.AddPits(pits, cr, plans);  // a pit variant's voids (CellVariants.cs)
             }
             if (gridRun && core != CoreLayoutId.None)
                 CoreLayouts.AddSolids(cover, core);  // the core's floor plan (Docs/Mockups/core-layouts.html)
@@ -1234,7 +1237,7 @@ namespace Arena
             var built = new World
             {
                 Name = "Expanding",
-                Areas = areas, Doors = doors.ToArray(), Portals = new WorldPortal[0], Spans = spans.ToArray(), Cover = cover.ToArray(), NodeSpots = spots,
+                Areas = areas, Doors = doors.ToArray(), Portals = new WorldPortal[0], Spans = spans.ToArray(), Cover = cover.ToArray(), Pits = pits.ToArray(), NodeSpots = spots,
                 Min = new V2(minX, minY), Max = new V2(maxX, maxY),
                 Hub = 0, Core = core,
             };

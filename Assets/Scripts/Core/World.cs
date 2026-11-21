@@ -45,6 +45,7 @@ namespace Arena
         public WorldPortal[] Portals;
         public WallSpan[] Spans;
         public Solid[] Cover;
+        public Solid[] Pits = new Solid[0];  // voids in the floor: a grid cell's pit variant (CellVariants.cs, Pits.cs). Not walls: shots fly over, bodies fall in
         public V2[] NodeSpots;             // the Expanding map's nodes (same order): where each stands now. A claimed chest or relic stands at the middle of its room (Expansion.NodeSpotIn); null if none
         public V2 Min, Max;                // the world's box
         public int Hub;                    // the hub's area index
@@ -285,7 +286,7 @@ namespace Arena
             // stubs where two room walls meet leave corners the steering graph's body can't get away from); the hub's floor
             // plan keeps its own, so its narrow doors still have corners to route through.
             var wps = new List<V2>();
-            foreach (var p in Layouts.MakeWaypoints(d, Min, Max, DoorSpots(), 18f, true))
+            foreach (var p in Layouts.MakeWaypoints(Pits.Length > 0 ? d.WithSolids(Pits) : d, Min, Max, DoorSpots(), 18f, true))  // (corners round the pits too: steering walks round them, Pits.cs)
             {
                 bool tight = false;
                 foreach (var w in Walls())

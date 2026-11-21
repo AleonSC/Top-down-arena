@@ -13,11 +13,12 @@ namespace Arena
         public int[][] Sleepers;  // each: x, y (a sleeping group's middle)
         public int[][] Traps;     // each: x, y, wall (1: leans on a wall, so a turret is likelier there)
         public int[][] Loot;      // each: x, y (a bonus loot stash: gold, now and then vectors or a health orb; BonusLoot.cs)
+        public int[][] Pits = new int[0][];  // each: x, y, w, h (a box) or x, y, r (a round pit): voids in the floor (Pits.cs)
     }
 
     /// The layouts that replace the random obstacles in grid rooms (owner Nov 20): `Pick` seeds one per cell from its place on
     /// the lattice, so every machine builds the same room. Rooms off the lattice keep `Expansion.AddCover`.
-    public static class CellLayouts
+    public static partial class CellLayouts
     {
         public const int Cell = 600;
 
@@ -133,12 +134,12 @@ namespace Arena
         static long Key(int cx, int cy) => ((long)cx << 32) ^ (uint)cy;
 
         /// A cell's layout and how many quarter turns (clockwise) it is turned.
-        public struct CellPlan { public int Layout, Rot; }
+        public struct CellPlan { public int Layout, Rot, Variant; }  // Variant 0: the plain layout; n: its n-th variant (CellVariants.cs)
 
         /// A layout turned `rot` quarter turns clockwise about the cell's middle: (x, y) goes to (600 - y, x).
         public sealed class Turned
         {
-            public int[][] Walls, Sleepers, Loot, Traps;
+            public int[][] Walls, Sleepers, Loot, Traps, Pits;
         }
 
         static readonly Dictionary<int, Turned> turnedCache = new Dictionary<int, Turned>();
@@ -152,19 +153,20 @@ namespace Arena
 
         public static Turned TurnedOf(CellPlan plan)
         {
-            int key = plan.Layout * 4 + (plan.Rot & 3);
+            int key = (plan.Layout * 8 + plan.Variant) * 4 + (plan.Rot & 3);
             Turned t;
             lock (turnedCache)
             {
                 if (turnedCache.TryGetValue(key, out t))
                     return t;
-                var l = All[plan.Layout];
+                var l = LayoutOf(plan);
                 int k = plan.Rot & 3;
-                t = new Turned { Walls = new int[l.Walls.Length][], Sleepers = new int[l.Sleepers.Length][], Loot = new int[l.Loot.Length][], Traps = new int[l.Traps.Length][] };
+                t = new Turned { Walls = new int[l.Walls.Length][], Sleepers = new int[l.Sleepers.Length][], Loot = new int[l.Loot.Length][], Traps = new int[l.Traps.Length][], Pits = new int[l.Pits.Length][] };
                 for (int i = 0; i < l.Walls.Length; i++) t.Walls[i] = TurnRect(l.Walls[i], k);
                 for (int i = 0; i < l.Sleepers.Length; i++) t.Sleepers[i] = TurnPoint(l.Sleepers[i], k);
                 for (int i = 0; i < l.Loot.Length; i++) t.Loot[i] = TurnPoint(l.Loot[i], k);
                 for (int i = 0; i < l.Traps.Length; i++) t.Traps[i] = TurnPoint(l.Traps[i], k);
+                for (int i = 0; i < l.Pits.Length; i++) t.Pits[i] = l.Pits[i].Length == 3 ? TurnPoint(l.Pits[i], k) : TurnRect(l.Pits[i], k);
                 turnedCache[key] = t;
             }
             return t;
@@ -236,8 +238,14 @@ namespace Arena
                             list.Add(new[] { cx, cy });
                     }
                 }
+                bool vary = CanVary(rooms, group);
                 foreach (var c in list)
-                    plans[Key(c[0], c[1])] = PlanOf(cells, c[0], c[1]);
+                {
+                    var plan = PlanOf(cells, c[0], c[1]);
+                    if (vary)
+                        plan.Variant = RollVariant(plan.Layout, c[0], c[1]);
+                    plans[Key(c[0], c[1])] = plan;
+                }
             }
             return plans;
         }
@@ -250,6 +258,8 @@ namespace Arena
             switch (count)
             {
                 case 0:
+                    if (ForcedBase() >= 0)
+                        return new CellPlan { Layout = ForcedBase(), Rot = rng.Int(4) };  // (dev: the forced variant's layout, CellVariants.cs)
                     return new CellPlan { Layout = rng.Int(All.Length), Rot = rng.Int(4) };
                 case 1:
                 {
@@ -315,8 +325,12 @@ namespace Arena
             if (!plans.TryGetValue(Key(cx, cy), out var plan))
                 return false;
             float ox = Expansion.GridX0 + cx * Cell, oy = Expansion.GridY0 + cy * Cell;
-            foreach (var w in TurnedOf(plan).Walls)
+            var t = TurnedOf(plan);
+            foreach (var w in t.Walls)
                 if (p.X > ox + w[0] - pad && p.X < ox + w[0] + w[2] + pad && p.Y > oy + w[1] - pad && p.Y < oy + w[1] + w[3] + pad)
+                    return true;
+            foreach (var w in t.Pits)  // (a pit stops standing as a wall does: sleepers and loot keep off it)
+                if (InPit(w, p.X - ox, p.Y - oy, pad))
                     return true;
             return false;
         }

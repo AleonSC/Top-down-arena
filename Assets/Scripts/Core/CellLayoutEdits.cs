@@ -33,6 +33,7 @@ namespace Arena
             Sleepers = CopyOf(l.Sleepers),
             Traps = CopyOf(l.Traps),
             Loot = CopyOf(l.Loot),
+            Pits = CopyOf(l.Pits),
         };
 
         static int[][] CopyOf(int[][] a)
@@ -63,6 +64,7 @@ namespace Arena
             Snapshot();
             l = Clone(l);
             l.Name = CellLayouts.All[index].Name;
+            l.Pits = CellLayouts.All[index].Pits;  // (the Cell Editor edits walls and slots; a plain layout has no pits)
             CellLayouts.All[index] = l;
             CellLayouts.ForgetTurned();
         }

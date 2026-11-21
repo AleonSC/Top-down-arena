@@ -235,6 +235,7 @@ namespace Arena
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
+            DrawPits(t);  // a pit variant's voids, gold-and-black rims (PitLook.cs)
             DrawRoomFogVeil(t);  // unseen rooms under a dark veil, under their walls (RoomFogLook.cs)
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)

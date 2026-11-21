@@ -71,6 +71,7 @@ namespace Arena
         FogCells,     // host -> all: the explored cells of every unseen room, a few times a second while someone explores (RoomFog.cs)
         ExpandUnlink, // client -> host: dismantle the portal pair with an end at this wall spot (x, y shorts) in a build round; its teleporter goes back to their stash (ExpansionGame.cs)
         TrapHit,      // host -> all: a room turret was hit: its x, y (shorts) and its health left (byte, 0-255 of full); drawn as a bar over it (RoomTraps.cs)
+        PitFall,      // client -> host: you fell into a pit at (x, y) and climbed out at (x, y) (floats); the host takes the health (Pits.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -135,7 +136,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 454;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 455;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -654,6 +655,9 @@ namespace Arena
                     break;
                 case Msg.GateUse:
                     Game.OnGateUse(peer, r);
+                    break;
+                case Msg.PitFall:
+                    Game.OnPitFall(peer, r);  // Pits.cs
                     break;
                 case Msg.MysteryDoor:
                     Game.OnMysteryDoor(peer, r);
