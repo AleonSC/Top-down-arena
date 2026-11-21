@@ -543,10 +543,10 @@ namespace Arena
                     OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)
                 else if (settingsOpen)
                 {
-                    if (CabWindowOpen)
-                        CloseCabWindow();  // the section's window slides back in first (CrtWindows.cs)
+                    if (Keybinds.Listening >= 0)
+                        Keybinds.Listening = -1;  // a key waiting to be rebound: Esc only cancels that
                     else
-                        CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
+                        CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, the section's window going with it (WindowAnim.cs)
                 }
                 else if (profileOpen)
                 {

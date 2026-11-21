@@ -78,7 +78,7 @@ namespace Arena
             DockTrails(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a), CrtStyle.Ink);  // (docking: WindowAnim.cs)
             float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
-            CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
+            CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), !cabHolo);
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
@@ -131,6 +131,8 @@ namespace Arena
             GUI.EndGroup();
             HoloBoot.SoftOver(cabBootRect, cabBootE);
             DockLand(cabBootRect, 0.26f);
+            if (cabHolo)
+                DrawPanelNeon(cabBootRect, cabBootE, 7f, 1.4f);  // Settings: the neon edge and glowing corners (MenuHolo.cs)
         }
 
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -371,7 +373,7 @@ namespace Arena
             if (cabWinBooting)
                 GUI.BeginGroup(new Rect(0f, 0f, W, HoloBoot.SoftClip(cabWinRect, cabWinBootE)));
             if (cabWinOn)
-                CrtKit.LoadoutBox(cabWinRect);
+                CrtKit.LoadoutBox(cabWinRect, !cabHolo);
             cabWinEnabledWas = GUI.enabled;
             if (!cabWinOn || cabWinOutAt >= 0f)
                 GUI.enabled = false;
@@ -419,6 +421,8 @@ namespace Arena
             cabWinBooting = false;
             if (cabWinOn)
                 HoloBoot.SoftOver(cabWinRect, cabWinBootE);
+            if (cabWinOn && cabHolo)
+                DrawPanelNeon(cabWinRect, cabWinBootE, 9f, 3f);
         }
 
         /// The window's heading: its title (big, typed, with the cursor), a small line under it and a rule; an X key at the
@@ -437,7 +441,21 @@ namespace Arena
                 Ui.Label(new Rect(x + 2f, y + 54f, w - 4f, 34f), WinText("win.sub", sub), 13, CabSoft, TextAnchor.UpperLeft, false, true);
             DashLine(x, y + 90f, w);
             if (cabKind != 0 && DkKey(new Rect(DrawerPanel.xMax - 28f - 46f, y + 16f, 46f, 36f), "X", false, FxCalm, size: 18))
-                CloseCabWindow();
+            {
+                if (cabHolo)
+                {
+                    Keybinds.Listening = -1;
+                    CloseWindow(() => settingsOpen = false);  // Settings: its X closes the whole screen (there's no Back key), sliding out (WindowAnim.cs)
+                }
+                else
+                    CloseCabWindow();
+            }
+            if (cabHolo && cabKind != 0)  // the Esc tag under it
+            {
+                var er = new Rect(DrawerPanel.xMax - 28f - 23f - 14f, y + 56f, 28f, 14f);
+                CrtKit.Frame(er, 1f, CabSoft.WithAlpha(0.6f));
+                Ui.Label(er, "ESC", 9, CabSoft, TextAnchor.MiddleCenter, true);
+            }
         }
 
         static void DashLine(float x, float y, float w)

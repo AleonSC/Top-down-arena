@@ -96,11 +96,6 @@ namespace Arena
 
             // The disk drive under the title (DriveSlot.cs) is gone before the box grows up over it, and drawn first so the box covers any
             // of it that is left (leaving plays this backwards: the drive comes back as the box settles below it).
-            if (BeginUiGl())  // the menu's honeycomb band fades out (MenuHolo.cs)
-            {
-                DrawMenuHexBand(t, 1f - Seg(e, 0f, 0.35f));
-                EndUiGl();
-            }
             float driveA = fade ? 1f - Seg(e, 0.1f, 0.4f) : 1f - Seg(k, 0f, 0.25f);
             DrawDriveBay(driveA);  // the ledge it sits in goes with it
             DrawDriveSlot(driveA, DriveIdle());

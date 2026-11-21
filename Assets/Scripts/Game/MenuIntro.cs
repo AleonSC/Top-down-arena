@@ -8,7 +8,7 @@ namespace Arena
     ///   0.35 s  the empty CRT screen drops in from above and bounces onto the axis (a flash as it lands); from 0.95 s the title types out
         ///   1.65 s  the box opens out of its middle and its plot corners snap on
     ///   1.75 s  your name card, then PLAY rise into it, then Join game and Settings; Quit slides up; the box's neon lights (2.0 s)
-    ///   2.2 s   the honeycomb band along the bottom fades up (MenuHolo.cs); the rooms start once the intro is over
+    ///   2.75 s  the rooms (MenuHolo.cs) start once the intro is over
     /// Any key or click skips to the end, under a quick channel flip (SkipStatic.cs). Nothing in the menu takes a click until it's over (MenuIntroPlaying). Coming back
     /// from the lobby or a run doesn't play it again. Reduced effects or Visual effects off: a 0.45 s fade instead.
     /// Each piece of the menu asks MenuIntroK(a, b) how far in it is (1 when no intro is playing).
