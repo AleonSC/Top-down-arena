@@ -328,13 +328,14 @@ namespace Arena
 
         /// The lobby loadout's box (Docs/Mockups/pause-settings-loadout-box.html): a navy fill, a thin blue rim and the blue bracket corners.
         /// The pause, lobby, Settings and How to play menus sit on it, the cabinet's left box and the window to its right alike. Static.
-        public static void LoadoutBox(Rect r)
+        public static void LoadoutBox(Rect r, bool corners = true)
         {
             if (Event.current.type != EventType.Repaint)
                 return;
             LobbyKit.Wash(r, CrtUi.T(CrtStyle.BoxWash));  // the lobby's gradient (a dark diagonal and a glow from the top left), in the menus' blue
             Frame(r, 1f, CrtUi.T(CrtStyle.BoxRim));
-            LobbyKit.Corners(r);
+            if (corners)  // (Settings has the glowing ones instead, MenuHolo.cs)
+                LobbyKit.Corners(r);
         }
 
         /// The "Soft edges" of the cabinet menus (the mockup's `.edges::after`): the whole screen darkens toward its edges (about 190 px

@@ -1,0 +1,261 @@
+<title>Settings Holo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=VT323&display=swap">
+<style>
+/* Layout: one 1280x720 stage scaled to fit; the settings cabinet (left) and its window (right) over the holo floor */
+:root{--bg:#07080d;--panel:#0e1526;--ink:#e8eeff;--dim:#7f8db3;--gold:#f2c14e;--blue:#a9cbff;
+  --f:"Chakra Petch",system-ui,sans-serif;--crt:"VT323",ui-monospace,monospace;color-scheme:dark;
+  --neon:0 0 2px #e4efff,0 0 8px #6f9dff,0 0 18px #4a78f0aa,inset 0 0 2px #e4efff,inset 0 0 10px #5b8cff55}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);padding-block:20px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar h1{margin:0 auto 0 0;font-size:20px;letter-spacing:.04em}
+.bar button{font:600 14px var(--f);color:var(--gold);background:var(--panel);border:1px solid #5a4a20;padding:8px 14px;border-radius:6px;cursor:pointer}
+.bar button:focus-visible,.stage button:focus-visible{outline:2px solid #9fc0ff;outline-offset:2px}
+.note{color:var(--dim);font-size:13px;line-height:1.5;margin:0}
+.viewport{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;overflow:hidden;border-radius:8px;border:1px solid #1b2440;background:#000}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden}
+.stage button{font-family:var(--f);cursor:pointer}
+canvas{position:absolute;inset:0;width:1280px;height:720px}
+@keyframes blink{50%{opacity:0}}
+@keyframes neon{0%,90%,100%{filter:none}91%{filter:brightness(.55)}92%{filter:none}93.5%{filter:brightness(.65)}94.5%{filter:none}}
+@keyframes slidein{from{opacity:0;transform:translateX(-30px)}}
+@keyframes winin{from{opacity:0;transform:translateX(40px) scaleX(.96)}}
+
+.panel{position:absolute;box-sizing:border-box;border:2px solid var(--blue);border-radius:4px;
+  background:linear-gradient(#0d1530f0,#080d1ef0);box-shadow:var(--neon),0 24px 60px #000c}
+.panel::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(#0000 0 3px,#5b84e809 3px 4px)}
+/* corner brackets just outside each panel, like the game's plot corners */
+.cn{position:absolute;width:22px;height:22px;border:3px solid #cfe0ff;filter:drop-shadow(0 0 4px #6f9dff) drop-shadow(0 0 10px #4a78f0);pointer-events:none}
+.cn.tl{left:-11px;top:-11px;border-right:0;border-bottom:0}.cn.tr{right:-11px;top:-11px;border-left:0;border-bottom:0}
+.cn.bl{left:-11px;bottom:-11px;border-right:0;border-top:0}.cn.br{right:-11px;bottom:-11px;border-left:0;border-top:0}
+.cab{left:24px;top:24px;width:372px;height:672px;animation:slidein .6s both,neon 7s 1.4s infinite}
+.win{left:440px;top:24px;width:816px;height:672px;animation:winin .6s .15s both,neon 9s 3s infinite}
+/* CRT header plates */
+.crt{position:absolute;box-sizing:border-box;border-radius:3px;background:#02040b;border:1px solid #2c3f78;overflow:hidden}
+.crt::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(#0000 0 2px,#0007 2px 4px);animation:roll 1s linear infinite;pointer-events:none}
+@keyframes roll{to{background-position:0 4px}}
+.crt h2{margin:0;font:400 46px/1 var(--crt);letter-spacing:.06em;color:#b8d0ff;text-shadow:0 0 8px #6f9dff,0 0 22px #3e6fe0}
+.crt h2 .c{display:inline-block;width:20px;height:6px;margin-left:8px;background:#9fc0ff;box-shadow:0 0 8px #6f9dff;animation:blink 1.1s steps(1) infinite}
+.crt p{margin:4px 0 0;font:600 12px var(--f);letter-spacing:.12em;color:#6f8fd8}
+.cab .crt{left:18px;top:18px;right:18px;height:92px;padding:14px 18px}
+.win .crt{left:22px;top:18px;right:84px;height:80px;padding:10px 18px}
+.win .crt h2{font-size:40px}
+.close{position:absolute;right:22px;top:18px;width:50px;height:50px;border-radius:5px;background:linear-gradient(#4a68c8,#2e4592);border:1px solid #87a6ff;
+  box-shadow:0 6px 0 #1c2a5e,0 7px 0 #000;color:#fff;display:grid;place-items:center;transition:transform .1s,background .15s,color .15s}
+.close:hover{transform:translateY(-2px);background:linear-gradient(#e0566a,#a8283e);border-color:#ff9aa8;box-shadow:0 8px 0 #5e1c28,0 9px 0 #000,0 0 18px #ff5a6eaa}
+.close .esc{position:absolute;left:50%;top:60px;transform:translateX(-50%);font:700 10px var(--f);color:#8fa0d0;border:1px solid #3a4f88;border-radius:3px;padding:0 5px;background:#070c1e}
+/* the cabinet's rows */
+.rows{position:absolute;left:18px;right:18px;top:128px;display:flex;flex-direction:column;gap:10px}
+.row{position:relative;height:78px;box-sizing:border-box;border-radius:4px;border:1px solid #2a3c74;background:#0a1128;display:flex;align-items:center;gap:14px;
+  padding:0 16px;text-align:left;color:var(--ink);transition:border-color .2s,background .2s,box-shadow .2s,transform .15s}
+.row .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:#0003;box-shadow:inset 0 0 0 1px currentColor;flex:none}
+.row b{display:block;font:700 19px var(--f);color:#dbe6ff}
+.row small{display:block;font:500 12px var(--f);color:#7f8db3;margin-top:3px}
+.row:hover{transform:translateX(4px);border-color:#6f8fd8}
+.row.on{border-color:var(--rc);background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 18%,#0a1128),#0a1128 80%);
+  box-shadow:0 0 0 1px var(--rc),0 0 16px color-mix(in srgb,var(--rc) 50%,transparent)}
+.row.on::after{content:"";position:absolute;right:-21px;top:50%;width:20px;height:2px;background:var(--rc);box-shadow:0 0 8px var(--rc)}
+.row .k{position:absolute;right:10px;top:8px;font:700 11px var(--f);color:#a9b8e0;border:1px solid #4a5a88;border-radius:3px;padding:1px 6px}
+.back{position:absolute;left:18px;right:18px;bottom:18px;height:60px;border-radius:5px;background:linear-gradient(#2b3a70,#1c2750);border:1px solid #5a74c0;
+  box-shadow:0 6px 0 #0f1838,0 7px 0 #000;color:#cdd9ff;font:700 17px var(--f);display:flex;align-items:center;justify-content:center;gap:10px}
+.back:hover{box-shadow:0 6px 0 #0f1838,0 7px 0 #000,0 0 18px #5b84e888}
+/* the link from the open row to the window */
+.link{position:absolute;left:396px;width:44px;height:2px;background:#a9cbff;box-shadow:0 0 6px #6f9dff,0 0 14px #4a78f0;transition:top .35s cubic-bezier(.3,1.3,.5,1)}
+.link i{position:absolute;top:-2px;width:6px;height:6px;background:#fff;box-shadow:0 0 8px #9fc0ff;animation:pkt 1.1s linear infinite}
+.link i:nth-child(2){animation-delay:.37s}.link i:nth-child(3){animation-delay:.74s}
+@keyframes pkt{from{left:-6px}to{left:44px}}
+/* the window's body */
+.body{position:absolute;left:22px;right:22px;top:116px;bottom:20px}
+.body.retype{animation:retype .35s steps(6)}
+@keyframes retype{0%{clip-path:inset(0 0 100% 0);opacity:.6}100%{clip-path:inset(0 0 0 0)}}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 26px}
+.set{border-bottom:1px dashed #2a3c74;padding-bottom:9px;display:flex;align-items:center;gap:14px;min-width:0}
+.set .t{flex:1;min-width:0}
+.set b{display:block;font:700 17px var(--f);color:#8fb0ff}
+.set small{display:block;font:500 12px var(--f);color:#8090c0;margin-top:2px}
+.full{grid-column:1/-1}
+.sw{width:86px;height:34px;border-radius:4px;border:1px solid #3a4f88;background:#070c1e;color:#7f8db3;font:700 14px var(--f);display:flex;align-items:center;gap:8px;padding:0 10px;flex:none;transition:all .2s}
+.sw::before{content:"";width:12px;height:12px;border-radius:2px;background:#26345e;transition:all .2s}
+.sw.on{color:#e4efff;border-color:var(--blue);box-shadow:0 0 10px #5b84e866,inset 0 0 8px #5b84e833}
+.sw.on::before{background:#cfe0ff;box-shadow:0 0 8px #9fc0ff}
+.seg{display:flex;gap:6px;width:100%}
+.seg button{flex:1;height:34px;border-radius:3px;border:1px solid #2a3c74;background:#070c1e;color:#8fa0d0;font-weight:700;font-size:13px;transition:all .2s}
+.seg button:hover{border-color:#6f8fd8;color:#cfe0ff}
+.seg button.on{border-color:var(--blue);color:#fff;background:#14204a;box-shadow:0 0 12px #5b84e877,inset 0 0 8px #5b84e844}
+.slider{position:relative;flex:1;height:10px;border-radius:5px;background:#070c1e;border:1px solid #2a3c74;cursor:pointer}
+.slider i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:linear-gradient(90deg,#3a5fd8,#9fc0ff);box-shadow:0 0 10px #5b84e8}
+.slider u{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#e4efff;box-shadow:0 0 10px #9fc0ff,0 0 0 3px #1b2a5a}
+.vol{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px dashed #2a3c74}
+.vol b{width:120px;font:700 17px var(--f);color:#8fb0ff}
+.vol em{width:48px;text-align:right;font:400 26px var(--crt);font-style:normal;color:#cfe0ff;text-shadow:0 0 8px #6f9dff}
+.meter{display:flex;gap:3px;height:16px;align-items:flex-end;width:90px}
+.meter span{flex:1;background:#5b84e8;box-shadow:0 0 4px #5b84e8;border-radius:1px}
+.prev{position:relative;height:84px;border-radius:3px;border:1px solid #2c3f78;background:#02040b;overflow:hidden;margin-bottom:14px}
+.prev canvas{width:100%;height:100%;position:static}
+.bgcard{display:flex;gap:14px;align-items:center;padding:6px 10px;border:1px solid #2c3f78;border-radius:4px;background:#070c1e}
+.bgcard .thumb{width:100px;height:50px;border:1px solid var(--blue);border-radius:2px;background:linear-gradient(#0c1130,#171340 52%,#05060c);position:relative;overflow:hidden;flex:none}
+.bgcard .thumb::after{content:"";position:absolute;left:0;right:0;top:26px;bottom:0;background:repeating-linear-gradient(90deg,#5b84e855 0 1px,#0000 1px 12px),repeating-linear-gradient(#5b84e855 0 1px,#0000 1px 8px)}
+.keys{display:grid;grid-template-columns:1fr 1fr;gap:8px 26px}
+.kb{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed #2a3c74;font:600 15px var(--f);color:#b8c8f0}
+.cap{min-width:44px;height:32px;padding:0 10px;box-sizing:border-box;border-radius:4px;background:linear-gradient(#4a68c8,#2e4592);border:1px solid #87a6ff;box-shadow:0 4px 0 #1c2a5e;
+  color:#fff;font:700 13px var(--f);display:inline-grid;place-items:center}
+.cap.listen{background:#14204a;color:#f2c14e;border-color:#f2c14e;box-shadow:0 0 12px #f2c14e88;animation:blink .8s steps(1) infinite}
+.field{flex:none;width:140px;height:34px;border-radius:3px;border:1px solid var(--blue);background:#02040b;color:#cfe0ff;font:400 24px/32px var(--crt);padding:0 10px;box-sizing:border-box;box-shadow:inset 0 0 10px #5b84e833}
+@media (prefers-reduced-motion:reduce){.stage *,.stage *::before,.stage *::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="bar"><h1>Settings · holo</h1><button id="replay">↻ Replay intro</button></div>
+  <div class="viewport" id="vp"><div class="stage" id="stage"></div></div>
+  <p class="note">Same look as the main menu and Who's playing?: holo floor, neon panels, CRT headers with a cursor. Click a section on the left: its row lights in its own colour, the link to the window slides to it with packets running across, and the window retypes. Switches, segments and sliders all work; on Keybinds click a key to see it listening. HTML approximation.</p>
+</div>
+<script>
+const W=1280,H=720,HZ=372,VPX=640;
+const stage=document.getElementById('stage'),vp=document.getElementById('vp');
+const fit=()=>stage.style.transform=`scale(${vp.clientWidth/W})`;addEventListener('resize',fit);
+let raf=0,group=1;
+const CORNERS='<i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>';
+const GROUPS=[
+  {name:'Audio',line:'Volume for each kind of sound',ic:'∿',col:'#7fb0ff',sub:'How loud each kind of sound is'},
+  {name:'Visual effects',line:'What the fight looks like',ic:'✦',col:'#f2c14e',sub:'What the fight looks like'},
+  {name:'Gameplay',line:'Aim line, the HUD, the network port',ic:'⌖',col:'#8cff8c',sub:'Aim line, the HUD, the network port'},
+  {name:'Keybinds',line:'Change your controls',ic:'✎',col:'#ff9e80',sub:'Click a key, then press the new one'},
+];
+const sw=(on,id)=>`<button class="sw${on?' on':''}" data-sw>${on?'ON':'OFF'}</button>`;
+const seg=(opts,on)=>`<div class="seg">${opts.map((o,i)=>`<button class="${i===on?'on':''}" data-seg>${o}</button>`).join('')}</div>`;
+const set=(t,s,ctl,cls='')=>`<div class="set ${cls}"><div class="t"><b>${t}</b>${s?`<small>${s}</small>`:''}</div>${ctl}</div>`;
+const setCol=(t,s,ctl,cls='')=>`<div class="set ${cls}" style="flex-direction:column;align-items:stretch;gap:8px"><div class="t"><b>${t}</b>${s?`<small>${s}</small>`:''}</div>${ctl}</div>`;
+const vol=(n,v)=>`<div class="vol"><b>${n}</b><div class="slider" data-sl><i style="width:${v}%"></i><u style="left:${v}%"></u></div><em>${v}</em><div class="meter">${Array.from({length:8},()=>'<span></span>').join('')}</div></div>`;
+
+const BODY=[
+  ()=>vol('Master',80)+vol('Music',55)+vol('Effects',90)+vol('Interface',70)+
+    `<div class="grid" style="margin-top:14px">${set('Mute when unfocused','Quiet while the game is in the background',sw(true))}${set('Music player','Your own tracks and the mood mixes',`<button class="sw on" style="width:110px">OPEN ▸</button>`)}</div>`,
+  ()=>`<div class="prev"><canvas id="pv" width="772" height="84"></canvas></div>
+    <div class="grid">${set('Visual effects','Glow, sparks, shattering enemies, lighting',sw(true))}${set('Damage numbers',"Small numbers rising off what's hit",sw(true))}
+    ${setCol('Screen shake','',seg(['OFF','LOW','FULL'],1))}${setCol('Arena floor','',seg(['GRID','FLUX','SEISMO','PLATES','CIRCUIT'],0))}
+    ${set('Ability names',"Each ability's name over whoever casts it",sw(true))}${set('Reduced effects','No screen shake, hit-pause or white flashes',sw(false))}
+    <div class="full bgcard"><div class="thumb"></div><div style="flex:1"><small style="font:700 11px var(--f);letter-spacing:.1em;color:#8fa8e0">MENU BACKGROUND</small>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px"><button class="sw" style="width:34px;justify-content:center">‹</button><b style="flex:1;text-align:center;font:700 18px var(--f);color:#dbe6ff">Holo Floor</b><button class="sw" style="width:34px;justify-content:center">›</button></div></div>
+      <button class="sw on">LIVE</button></div>
+    ${setCol('CRT colour','',seg(['BLUE','GREEN','AMBER','RED','VIOLET','WHITE'],0),'full')}</div>`,
+  ()=>`<div class="grid">${set('Aim line','A faint line from you to the cursor',sw(true))}${set('Show FPS','Frames per second in the corner',sw(false))}
+    ${setCol('HUD size','',seg(['SMALL','NORMAL','LARGE'],1))}${setCol('Health bars','',seg(['ALWAYS','HURT','NEVER'],1))}
+    ${set('Auto-pickup','Walk over loot to take it',sw(true))}${set('Hold to fire','Keep shooting while the button is held',sw(true))}
+    ${set('Network port','Used when you host a game',`<div class="field">7777</div>`,'full')}</div>`,
+  ()=>`<div class="keys">${[['Move up','W'],['Move down','S'],['Move left','A'],['Move right','D'],['Shoot','LMB'],['Alt fire','RMB'],['Ability 1','Q'],['Ability 2','E'],['Dodge','SPACE'],['Ultimate','R'],['Gadget','F'],['Ping','MMB'],['Emote wheel','T'],['Pause','ESC']]
+    .map(([a,k])=>`<div class="kb">${a}<span class="cap" data-cap>${k}</span></div>`).join('')}</div>`,
+];
+
+function build(){
+  cancelAnimationFrame(raf);
+  stage.innerHTML=`<canvas id="floor" width="${W}" height="${H}"></canvas>
+  <div class="panel cab">${CORNERS}<div class="crt"><h2>SETTINGS<span class="c"></span></h2><p>PICK ONE TO OPEN IT</p></div>
+    <div class="rows">${GROUPS.map((g,i)=>`<button class="row" data-g="${i}" style="--rc:${g.col};animation:slidein .4s ${.25+i*.07}s both"><span class="ic" style="color:${g.col}">${g.ic}</span><span><b>${g.name}</b><small>${g.line}</small></span></button>`).join('')}</div>
+    </div>
+  <div class="link" id="link"><i></i><i></i><i></i></div>
+  <div class="panel win">${CORNERS}<div class="crt"><h2 id="wt"></h2><p id="ws"></p></div><button class="close" aria-label="Close settings" title="Close settings (Esc)"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M4 4L16 16M16 4L4 16" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg><span class="esc">ESC</span></button><div class="body" id="body"></div></div>`;
+  fit();
+  stage.querySelectorAll('.row').forEach(r=>r.onclick=()=>show(+r.dataset.g));
+  show(group,true);
+  run(stage.querySelector('#floor').getContext('2d'));
+}
+function show(g,first){
+  group=g;
+  stage.querySelectorAll('.row').forEach((r,i)=>r.classList.toggle('on',i===g));
+  const row=stage.querySelectorAll('.row')[g];
+  stage.querySelector('#link').style.top=(24+128+g*88+39)+'px';
+  stage.querySelector('#wt').innerHTML=GROUPS[g].name.toUpperCase()+'<span class="c"></span>';
+  stage.querySelector('#ws').textContent=GROUPS[g].sub.toUpperCase();
+  const body=stage.querySelector('#body');body.innerHTML=BODY[g]();
+  body.classList.remove('retype');void body.offsetWidth;if(!first)body.classList.add('retype');
+  body.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.textContent=b.classList.contains('on')?'ON':'OFF'});
+  body.querySelectorAll('.seg').forEach(s=>s.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}));
+  body.querySelectorAll('[data-sl]').forEach(sl=>{const set=e=>{const r=sl.getBoundingClientRect(),v=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*100);
+    sl.querySelector('i').style.width=v+'%';sl.querySelector('u').style.left=v+'%';sl.parentNode.querySelector('em').textContent=v};
+    sl.onpointerdown=e=>{set(e);sl.setPointerCapture(e.pointerId);sl.onpointermove=set};sl.onpointerup=()=>sl.onpointermove=null});
+  body.querySelectorAll('[data-cap]').forEach(c=>c.onclick=()=>{body.querySelectorAll('.cap.listen').forEach(x=>{x.classList.remove('listen');x.textContent=x.dataset.k});c.dataset.k=c.textContent;c.classList.add('listen');c.textContent='PRESS…'});
+}
+/* the Visual effects preview strip: a shockwave, shots and damage numbers on a grid */
+function preview(t){
+  const cv=stage.querySelector('#pv');if(!cv)return;const c=cv.getContext('2d'),w=cv.width,h=cv.height;
+  c.fillStyle='#02040b';c.fillRect(0,0,w,h);c.strokeStyle='rgba(91,132,232,.12)';c.lineWidth=1;c.beginPath();
+  for(let x=0;x<w;x+=24){c.moveTo(x+.5,0);c.lineTo(x+.5,h)}for(let y=0;y<h;y+=24){c.moveTo(0,y+.5);c.lineTo(w,y+.5)}c.stroke();
+  const k=(t%2.4)/2.4,px=130;
+  c.strokeStyle=`rgba(127,168,255,${1-k})`;c.lineWidth=3;c.beginPath();c.arc(px,50,6+k*40,0,7);c.stroke();
+  c.fillStyle='#cfe0ff';c.font='600 13px Chakra Petch';c.fillText('Shockwave',px-34,18);
+  for(let i=0;i<3;i++){const x=220+((t*260+i*110)%380);c.fillStyle='#bfe6ff';c.shadowColor='#7fd0ff';c.shadowBlur=10;c.beginPath();c.arc(x,50,4,0,7);c.fill()}
+  c.shadowBlur=0;const ex=650,ey=50,hit=(t*1.6)%1;
+  c.fillStyle=`rgba(255,255,255,${.6+.4*Math.sin(t*20)})`;c.beginPath();c.moveTo(ex,ey-18);c.lineTo(ex+18,ey+12);c.lineTo(ex-18,ey+12);c.closePath();c.fill();
+  [12,15,18].forEach((n,i)=>{const a=((hit+i/3)%1);c.fillStyle=`rgba(242,193,78,${1-a})`;c.font='700 15px Chakra Petch';c.fillText(n,ex+20+i*6,ey-12-a*22)});
+  c.fillStyle='#8090c0';c.font='600 11px Chakra Petch';c.fillText('Effects on  ·  shake low  ·  numbers  ·  ability names',14,h-12);
+}
+/* level meters on the Audio page */
+function meters(t){stage.querySelectorAll('.meter').forEach((m,j)=>m.querySelectorAll('span').forEach((s,i)=>{s.style.height=(20+80*Math.abs(Math.sin(t*3+i*.7+j)))+'%'}))}
+function run(fc){const t0=performance.now();let last=0;
+  const step=n=>{const t=(n-t0)/1000,dt=Math.min(.05,t-last);last=t;floor(fc,t,dt);preview(t);if(group===0)meters(t);raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}
+document.getElementById('replay').onclick=build;
+/* ---------- floor ---------- */
+const stars=Array.from({length:110},()=>({x:Math.random()*W,y:Math.random()*(HZ-20),b:Math.random()*9}));
+const motes=Array.from({length:40},()=>({x:Math.random()*W,y:HZ+Math.random()*(H-HZ),s:.3+Math.random(),p:Math.random()*9}));
+let pulses=[];
+function floor(c,t,dt){
+  let g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#04050b');g.addColorStop(.48,'#0c1130');g.addColorStop(.52,'#171340');g.addColorStop(1,'#04050b');
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  for(const s of stars){c.fillStyle=`rgba(180,200,255,${.15+.45*Math.abs(Math.sin(t*.7+s.b))})`;c.fillRect(s.x,s.y,1.5,1.5)}
+  const br=.3+.08*Math.sin(t*.9);
+  g=c.createRadialGradient(VPX,HZ,0,VPX,HZ,560);g.addColorStop(0,`rgba(95,135,255,${br})`);g.addColorStop(1,'#0000');c.fillStyle=g;c.fillRect(0,0,W,H);
+  // lanes
+  c.lineWidth=1.2;c.strokeStyle='rgba(91,132,232,.5)';c.beginPath();
+  for(let i=-24;i<=24;i++){c.moveTo(VPX+i*8,HZ);c.lineTo(VPX+i*150,H)}
+  const off=(t*.75)%1;
+  for(let k=0;k<16;k++){const z=k+1-off,y=HZ+(H-HZ)*.9/z;if(y>HZ+1&&y<H){c.moveTo(0,y);c.lineTo(W,y)}}
+  c.stroke();
+  // light pulses running down random lanes
+  if(Math.random()<dt*3)pulses.push({i:((Math.random()*36)|0)-18,z:0,c:Math.random()<.2?'242,193,78':'150,190,255'});
+  pulses=pulses.filter(p=>{p.z+=dt*.55;const e=Math.pow(p.z,2.2),e0=Math.pow(Math.max(0,p.z-.12),2.2);
+    const x0=VPX+p.i*8,x1=VPX+p.i*150,ya=HZ+(H-HZ)*e0,yb=HZ+(H-HZ)*e;
+    const xa=x0+(x1-x0)*e0,xb=x0+(x1-x0)*e;
+    const gg=c.createLinearGradient(xa,ya,xb,yb);gg.addColorStop(0,`rgba(${p.c},0)`);gg.addColorStop(1,`rgba(${p.c},.95)`);
+    c.strokeStyle=gg;c.lineWidth=1+e*3;c.beginPath();c.moveTo(xa,ya);c.lineTo(xb,yb);c.stroke();return p.z<1.05});
+  // horizon line + fade into floor
+  c.fillStyle='rgba(140,175,255,.75)';c.fillRect(0,HZ-1,W,2);
+  g=c.createLinearGradient(0,HZ,0,HZ+60);g.addColorStop(0,'rgba(23,19,64,.8)');g.addColorStop(1,'#0000');c.fillStyle=g;c.fillRect(0,HZ,W,60);
+  for(const m of motes){m.y-=dt*12*m.s;if(m.y<HZ-80){m.y=H;m.x=Math.random()*W}
+    c.fillStyle=`rgba(150,185,255,${.25+.25*Math.sin(t*2+m.p)})`;c.fillRect(m.x+Math.sin(t+m.p)*4,m.y,2,2)}
+}
+/* bottom edge: a honeycomb band that lights in travelling waves, under a notched rail carrying data packets */
+const HR=13,HW=Math.sqrt(3)*HR,HEX=[];
+for(let row=0;row<5;row++)for(let x=-HW;x<W+HW;x+=HW){
+  const cx=x+(row%2?HW/2:0),cy=H+6-row*HR*1.5;HEX.push({cx,cy,row,sp:Math.random()*20,on:0})}
+const hexPath=(c,x,y,r)=>{c.beginPath();for(let k=0;k<6;k++){const a=Math.PI/6+k*Math.PI/3;k?c.lineTo(x+r*Math.cos(a),y+r*Math.sin(a)):c.moveTo(x+r*Math.cos(a),y+r*Math.sin(a))}c.closePath()};
+const RAIL=H-74;let packets=[];
+function aurora(c,t){
+  let g=c.createLinearGradient(0,RAIL-10,0,H);g.addColorStop(0,'#0000');g.addColorStop(1,'rgba(40,50,140,.45)');c.fillStyle=g;c.fillRect(0,RAIL-10,W,H);
+  c.save();c.globalCompositeOperation='lighter';
+  for(const h of HEX){
+    const fade=1-h.row/5;
+    const wave=Math.pow(Math.max(0,Math.sin(h.cx*.012-t*2.2+h.row*.6)),6)+Math.pow(Math.max(0,Math.sin(-h.cx*.008-t*1.3+3)),8)*.7;
+    if(Math.random()<.0025)h.on=1;h.on*=.95;
+    const b=Math.min(1,(wave+h.on)*fade);
+    const col=h.cx/W<.5?`${91+ (h.cx/W)*140|0},${132-(h.cx/W)*20|0},${232+(h.cx/W)*40|0}`:`${163-(h.cx/W-.5)*60|0},${123+(h.cx/W-.5)*150|0},255`;
+    hexPath(c,h.cx,h.cy,HR-1.5);
+    c.lineWidth=1;c.strokeStyle=`rgba(${col},${.10*fade+.6*b})`;c.stroke();
+    if(b>.05){hexPath(c,h.cx,h.cy,HR-4.5);c.fillStyle=`rgba(${col},${.45*b})`;c.fill()}
+  }
+  // notched rail
+  c.strokeStyle='rgba(150,185,255,.75)';c.lineWidth=1.5;c.shadowColor='#6f9dff';c.shadowBlur=8;c.beginPath();c.moveTo(0,RAIL);
+  for(let x=80;x<W;x+=160){c.lineTo(x,RAIL);c.lineTo(x+10,RAIL-8);c.lineTo(x+50,RAIL-8);c.lineTo(x+60,RAIL)}c.lineTo(W,RAIL);c.stroke();
+  // tick marks under the rail
+  c.shadowBlur=0;c.fillStyle='rgba(150,185,255,.35)';for(let x=0;x<W;x+=16)c.fillRect(x,RAIL+4,x%80?1:2,x%80?3:6);
+  // data packets
+  if(Math.random()<.03)packets.push({x:-10,v:120+Math.random()*220,s:Math.random()<.25?6:4,c:Math.random()<.2?'242,193,78':'200,225,255'});
+  c.shadowBlur=10;
+  packets=packets.filter(p=>{p.x+=p.v/60;const ph=(p.x-80+160*10)%160,y=ph>10&&ph<60?RAIL-8:RAIL;
+    c.shadowColor=`rgb(${p.c})`;c.fillStyle=`rgba(${p.c},.95)`;c.fillRect(p.x-p.s/2,y-p.s/2,p.s,p.s);
+    c.fillStyle=`rgba(${p.c},.25)`;c.fillRect(p.x-p.s/2-24,y-1,24,2);return p.x<W+20});
+  c.restore();
+}
+build();
+</script>

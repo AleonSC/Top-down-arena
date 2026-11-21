@@ -150,6 +150,45 @@ namespace Arena
             DrawWhoGhost(r, Color.Lerp(new Color(0.5f, 0.66f, 1f, 0.5f * a), new Color(0.81f, 0.88f, 1f, 0.95f * a), hover));
         }
 
+        // --- Settings ---------------------------------------------------------------------------------------------------------
+
+        bool cabHolo;  // drawing Settings from the main menu or the lobby: its cabinet and window get the holo look
+
+        /// IMGUI: a settings panel's neon edge and glowing corners, coming on as its soft sweep finishes (e: seconds into it).
+        void DrawPanelNeon(Rect r, float e, float period, float offset)
+        {
+            float a = Mathf.Clamp01(e / HoloBoot.SoftLen) * Ui.Alpha;
+            if (a <= 0f || !BeginUiGl())
+                return;
+            UiModelAt(V2.Zero, 1f);
+            NeonRect(r, a * NeonFlicker(Time.unscaledTime, period, offset));
+            HoloCorners(r, a);
+            EndUiGl();
+        }
+
+        /// IMGUI: the link from the open section's row (y on screen) across to its window: a glowing line in the section's colour
+        /// with three packets of light running along it.
+        void DrawSettingsLink(float y, Color col)
+        {
+            if (!cabWinOn || cabWinOutAt >= 0f || !BeginUiGl())
+                return;
+            UiModelAt(V2.Zero, 1f);
+            float x0 = cabBootRect.xMax, x1 = cabWinRect.x, a = Mathf.Clamp01(cabWinBootE / HoloBoot.SoftLen) * Ui.Alpha;
+            if (x1 > x0 + 4f && a > 0f)
+            {
+                var c = new Rgba(col.r, col.g, col.b);
+                Line(new V2(x0, y), new V2(x1, y), 8f, c.WithAlpha(0.18f * a));
+                Line(new V2(x0, y), new V2(x1, y), 2f, c.Mix(Rgba.White, 0.4f).WithAlpha(0.95f * a));
+                if (!fxReduced && fxOn)
+                    for (int i = 0; i < 3; i++)
+                    {
+                        float u = MathX.Fmod(Time.unscaledTime / 1.1f + i / 3f, 1f), x = Mathf.Lerp(x0 - 3f, x1 - 3f, u);
+                        FillRect(x, y - 3f, 6f, 6f, new Rgba(1f, 1f, 1f, a));
+                    }
+            }
+            EndUiGl();
+        }
+
         // --- The Play key's chevrons ------------------------------------------------------------------------------------------
 
         const float PlayChevW = 46f;
