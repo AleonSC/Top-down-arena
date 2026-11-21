@@ -8,11 +8,54 @@ namespace Arena
     ///   - a bright streak joining the gun to its round on the round's first frame;
     ///   - brass that flips out of the port, lands, bounces once, slides and fades after about 1.4 s, so a long burst leaves
     ///     the floor littered;
-    ///   - recoil through the body: the elbows fold with each gun's kick (TwinArm) and the whole body jolts back.
+    ///   - recoil through the body: the elbows fold with each gun's kick (TwinArm) and the whole body jolts back;
+    ///   - the screen kick, your own Twin Rifle only (Docs/Mockups/twin-rifle-screen-kick.html, "Push + punch"): each volley
+    ///     pushes the picture TwinPushPx along your aim and pulses it TwinPunchStep bigger round you, both springing back;
+    ///     off with Screen shake off or Reduced effects, softer with Screen shake on Low (applied in Juice.cs and Px).
     public partial class ArenaApp
     {
         const byte PBrass = 15, PStreak = 16, PPool = 17;  // particle kinds (Juice.cs ages PBrass through BrassStep, draws all three through DrawTwinPart)
         const float BrassGravity = 420f, TwinJoltPx = 1.1f, TwinJoltTime = 0.06f;
+        const float TwinPushPx = 2.2f, TwinPushBack = 18f, TwinPunchStep = 0.008f, TwinPunchMax = 0.03f, TwinPunchBack = 14f;
+
+        V2 twinPush;           // the screen kick: how far the picture is pushed (arena units, along your aim), springing back
+        float twinPunch;       // ... and how much bigger it is drawn round you (0.01 = 1%)
+        float punchX, punchY;  // the punch while the world is drawn: the screen point it scales round (0 punch: none)
+        float punchK;
+
+        /// Your own Twin Rifle fired a volley along `dir`: kick the screen (push and punch).
+        void TwinScreenKick(V2 dir)
+        {
+            if (fxShake == 0 || fxReduced)
+                return;
+            float k = fxShake == 1 ? 0.45f : 1f;
+            twinPush += dir * (TwinPushPx * k);
+            twinPunch = Mathf.Min(TwinPunchMax, twinPunch + TwinPunchStep * k);
+        }
+
+        /// Once a frame (real time): the kick springs back.
+        void TwinKickStep(float realDt)
+        {
+            twinPush *= Mathf.Exp(-realDt * TwinPushBack);
+            twinPunch *= Mathf.Exp(-realDt * TwinPunchBack);
+            if (twinPunch < 0.0005f)
+                twinPunch = 0f;
+        }
+
+        /// BeginJuiceFrame: the kick's share of this frame's offset, and the punch's centre (you on screen).
+        void BeginTwinKick(Player me)
+        {
+            shakeX += twinPush.X * drawScale;  // the picture moves the way you fire, as if the camera kicked back
+            shakeY -= twinPush.Y * drawScale;  // (GL's y runs up the screen)
+            punchK = 0f;
+            if (twinPunch <= 0f || me == null)
+                return;
+            V2 c = camZoomOn ? ZoomPoint(me.Disp) : me.Disp;
+            var v = CanvasPx(glShift + c * glZoom);
+            punchX = v.x + shakeX;  // (Px adds the camera lean, set after this)
+            punchY = v.y + shakeY;
+            punchK = twinPunch;
+        }
         static readonly Rgba BrassShine = new Rgba(1f, 0.95f, 0.75f), TwinPoolCol = new Rgba(1f, 0.67f, 0.31f);
 
         /// One Twin Rifle round seen leaving `muzzle` (now at `round`, flying along `bd`); `port` is the gun's ejection port and
