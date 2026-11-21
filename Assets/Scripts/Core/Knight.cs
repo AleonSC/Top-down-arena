@@ -448,6 +448,22 @@ namespace Arena
                 float slack = BodySlack(d, lr);
                 return full || AngleTo(origin, q, s.Aim) <= s.HalfArc + slack || d <= lr + p.Def.BodyR;
             });
+            if (s.Dmg > 0f)  // a room turret in reach takes the cut too (RoomTraps.cs)
+                MeleeHitRoomTurrets(s.Dmg, (q, lr) =>
+                {
+                    if (circle)
+                        return q.WithinReach(circleAt, s.Circle + lr);
+                    if (box)
+                    {
+                        V2 rel = q - origin;
+                        float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
+                        return along >= -lr - p.Def.BodyR && along <= s.Reach + lr && across <= s.HalfWidth + lr && across >= s.Hollow;
+                    }
+                    float d = q.DistanceTo(origin);
+                    if (d - lr > s.Reach)
+                        return false;
+                    return full || AngleTo(origin, q, s.Aim) <= s.HalfArc + BodySlack(d, lr) || d <= lr + p.Def.BodyR;
+                });
             if (s.Sweep > 0)
             {
                 hits.RemoveAll(e => e.SweepMark == s.Sweep);  // already hit by an earlier step of this sweep

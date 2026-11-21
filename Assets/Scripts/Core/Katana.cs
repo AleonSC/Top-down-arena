@@ -268,6 +268,7 @@ namespace Arena
                 hit++;
             }
             Free(snap3);
+            MeleeHitRoomTurrets(w * KatanaBurstMult, (q, lr) => q.WithinReach(p.Pos, r + lr));  // a room turret in the ring
             CutBulletsInCircle(p.Pos, r, false);  // the small bullets in the ring
             BroadcastFx(FxKind.KatanaBurst, p.Pos, new V2(p.Id, p.Aim), KatanaSteel, r, 0.9f, Sfx.KatanaBurstSfx);
             if (hit > 0)
