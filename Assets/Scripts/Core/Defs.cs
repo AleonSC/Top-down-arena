@@ -112,7 +112,7 @@ namespace Arena
     /// Soldier is the original gun-based kit; Elementalist and Summoner are the alternatives for each role.
     /// The classes, in lobby order (the order is sent over the network and indexes the class tables: add new ones at the end).
     /// Each has a KitDef (Classes.cs). Run saves from before the October 2026 rename say "Mage" and "BloodMage" (KitFromSave).
-    public enum Kit : byte { Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer, Engineer }
+    public enum Kit : byte { Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer, Engineer, Arcanist }
 
     public enum WeaponId : byte
     {
@@ -156,6 +156,8 @@ namespace Arena
         Waterball, Earthball,
         // the Healer Knight's fourth (Vowguard.cs): a sword and shield, two stances, chains you build
         Vowguard,
+        // the Arcanist (Arcanist.cs): Tank Orbit Shards, Healer Glyph Stylus, DPS Dancing Blades (one weapon per role so far)
+        OrbitShards, GlyphStylus, DancingBlades,
     }
 
     public class WeaponDef
@@ -489,7 +491,7 @@ namespace Arena
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
         public const int MaxWeapons = 6;  // (the fifth and sixth are the Twin Rifle's variant weapons, Choice 4 and 5: the Auto and Out of Ammo; the Soldier DPS's fourth is the Double Barrel)
 
-        public const int KitCount = 7;
+        public const int KitCount = 8;
 
         /// Every weapon, in lobby order (Role, then Kit, then Choice), gathered from each class's list: Weapons.cs (Soldier),
         /// Minions.cs (Elementalist, Summoner), Knight.cs, Ninja.cs, Hemomancer.cs. Every place must be filled exactly once.
@@ -766,6 +768,8 @@ namespace Arena
             HoneyGlob = 69,    // a Honeybee Staff honey glob: flies over enemies and lands as a honey puddle (HoneybeeStaff.cs, Game/HoneybeeLook.cs)
             BottleShot = 70,   // a Rioter's thrown bottle: spins as it flies, then shatters (RiotBrains.cs, Game/WardenLook.cs)
             WaterballShot = 71, // the Waterball: rolls on through enemies and soaks them (ElementBalls.cs, Game/ElementBallLook.cs)
+            GlyphShot = 73,    // a Glyph Stylus rune bolt: goes through enemies and heals the allies it passes (Arcanist.cs, Game/ArcanistLook.cs)
+            SpectralBlade = 74, // a spectral blade: Runic Array's volleys and the shots a Grand Sigil sends back (Arcanist.cs, Game/ArcanistLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -844,7 +848,9 @@ namespace Arena
             Row(table, MedkitShot, radius: 11f, color: new Rgba(0.95f, 0.97f, 1f));
             Row(table, FireballShot, radius: 15f, color: new Rgba(1f, 0.5f, 0.15f));
             Row(table, WaterballShot, radius: 15f, color: new Rgba(0.3f, 0.65f, 1f));
-            Row(table, EarthballShot, radius: 16f, color: new Rgba(0.82f, 0.6f, 0.36f));  // (R over 0.8: its rubble isn't read as a crate's, PropsLook.IsCrateDebris)
+            Row(table, EarthballShot, radius: 16f, color: new Rgba(0.82f, 0.6f, 0.36f));
+            Row(table, GlyphShot, radius: 6f, color: new Rgba(1f, 0.85f, 0.45f));     // the Arcanist's rune bolt (Arcanist.cs)
+            Row(table, SpectralBlade, radius: 5f, color: new Rgba(0.78f, 0.62f, 1f));  // Runic Array's and the Grand Sigil's spectral blades  // (R over 0.8: its rubble isn't read as a crate's, PropsLook.IsCrateDebris)
             Row(table, HoneyShot, radius: 9f, color: new Rgba(1f, 0.67f, 0.16f), damage: 14f);  // the Hive Queen's nectar spray
             Row(table, HollowShot, radius: 7f, color: new Rgba(0.9f, 0.91f, 1f), damage: 0f);  // a Duelist decoy's shot: a harmless ring; the Duelist's decoys fire these: they pass through you
             Row(table, CrescentShot, radius: 14f, color: new Rgba(0.89f, 0.83f, 1f), damage: 18f);  // the Eclipse's crescent blade; the Eclipse's crescent blades

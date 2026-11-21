@@ -23,6 +23,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee; tricks and misdirection. Fast (+12% speed), 85% health. |
 | Hemomancer | x1 | x1 | Blood spells that drain and heal. Abilities cost health; hits harder the lower your health. |
 | Engineer | x1 | x0.95 | Builds in vectors: robots, walls, fields and breaches. Draftsman: +25% vectors. Full health, a little slower. |
+| Arcanist | x0.9 | x1 | Telekinesis, runes and enchantments. Kinetic Field: enemy shots slow down near you. 90% health. |
 
 ## Weapons
 
@@ -90,6 +91,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Quarterstaff | Healer | 0.5 s | 18 | - | 120 | 36 | Left and right staff swipes that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies and stores a Jab stack (up to 3); the weapon-action key spends one on a cone jab. |
 | Lightbringer | Healer | 0.5 s | 17 | - | 80 | 58 | A three-step chain. Dawn Cut's crescent heals the allies it passes, Mercy Cut's wards them, and Noon Sunburst plants the sword in a ring that heals everyone near you. Hits fill a light gauge: full, the next Noon is Radiant. The weapon-action key spends the light on a Sunlance that heals the ally nearest your cursor. |
 | Censer | Healer | 0.26 s | 13 | - | 85 | 35 | A censer on a chain, swung in a three-step rite: a sweep, a return sweep and a Benediction that goes all the way round. Every step heals allies near you and leaves incense that heals allies in it and makes enemy shots fired from inside it stray. Each enemy hit lights an Ember; the weapon-action key throws the censer to your cursor, spending them on a burst and a big healing cloud. |
+| Vowguard | Healer | 0.3 s | 16 | - | 115 | 74 | A sword and shield with two stances, each playing a chain of up to 10 steps you build in the lobby. Valor cuts, thrusts and bashes, and its hits light Faith. Sanctuary holds the shield up front: small shots there stop, light Faith, and its moves guard, heal and ward allies. Finishers spend Faith for more damage and healing. The weapon-action key switches stance. |
 | Twin Blades | Dps | 0.18 s | 16 | - | 90 | 98 | Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back. |
 | Greatsword | Dps | 0.5 s | 40 | - | 125 | 87 | A ten-step chain: Undertow drags enemies in, Pommel Bash stuns, Cross Cut, Backstep Reap hops you back behind a crescent that stops bullets, Comet Leap jumps in and crashes down, then Full Moon spins and Eclipse brings down a golden lance of light. The weapon-action key throws the sword spinning to your cursor and back. |
 | Rapier | Dps | 0.48 s | 18 | - | 130 | 85 | Precise thrusts at the nearest enemy in front, and they skewer enemy bullets along their line. The first thrust is slow, but every enemy you hit adds Tempo, and Tempo makes the thrusts quicker. Stop hitting and it holds a moment, then drains. The weapon-action key spends it on a Flourish: the blade whips back and forth, each swing throwing a crescent wave. |
@@ -141,6 +143,20 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
 
+### Arcanist
+
+| Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
+|---|---|---|---|---|---|---|---|
+| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Four crystal shards circle you, cutting small enemy bullets out of the air. Fire flings one at your cursor (up to 360 px): it cuts everything it passes, 18 on the way out and 18 on the way back. Hold Alt for Shard Guard: they pull in tight and stop every bullet that reaches them, but you move at 55% speed and can't fling them. |
+| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Four crystal shards circle you, cutting small enemy bullets out of the air. Fire flings one at your cursor (up to 360 px): it cuts everything it passes, 18 on the way out and 18 on the way back. Hold Alt for Shard Guard: they pull in tight and stop every bullet that reaches them, but you move at 55% speed and can't fling them. |
+| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Four crystal shards circle you, cutting small enemy bullets out of the air. Fire flings one at your cursor (up to 360 px): it cuts everything it passes, 18 on the way out and 18 on the way back. Hold Alt for Shard Guard: they pull in tight and stop every bullet that reaches them, but you move at 55% speed and can't fling them. |
+| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Writes rune bolts in the air: each goes through two enemies (10 each), and one that passes through an ally heals them for 7. |
+| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Writes rune bolts in the air: each goes through two enemies (10 each), and one that passes through an ally heals them for 7. |
+| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Writes rune bolts in the air: each goes through two enemies (10 each), and one that passes through an ally heals them for 7. |
+| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Three enchanted swords hover behind you. Fire launches one at your cursor (up to 380 px, onto the enemy nearest it): it cuts what it passes, then dances on the spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. Alt calls them all home at once, cutting on the way. |
+| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Three enchanted swords hover behind you. Fire launches one at your cursor (up to 380 px, onto the enemy nearest it): it cuts what it passes, then dances on the spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. Alt calls them all home at once, cutting on the way. |
+| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Three enchanted swords hover behind you. Fire launches one at your cursor (up to 380 px, onto the enemy nearest it): it cuts what it passes, then dances on the spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. Alt calls them all home at once, cutting on the way. |
+
 ## Abilities
 
 ### Soldier
@@ -171,6 +187,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Mark for Death | Dps | 1st, choice 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark the enemy nearest your cursor: it takes 50% more damage for 6 s. |
 | Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | For 6 s you fire three times as fast, with +2 extra projectiles. |
 | Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | Call in a gunship for 10 s. It circles you and locks one enemy at a time, the one nearest you, hosing it with a chaingun (20 rounds a second, 8 damage each) until it dies, then the next. It can't be hit. |
+| Deployable Turret | Dps | 1st, choice 5 | 45 s | - | Fires 14 s, rounds pierce 4, and the blast does double. | Drop a heavy twin-barrel turret on your spot and climb in for 10 s: you can't move, and it fires instead of your weapon. Hold Fire and it turns onto your cursor, spooling up from 7 to 30 rounds a second of 22 damage that pierce 2 enemies. The turret takes the damage meant for you (350 health); if it is wrecked you are thrown clear and it blows early. It overheats and blows after, for 80 damage within 160 px. |
 
 ### Elementalist
 
@@ -265,6 +282,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow against your blood: your health drops to 25% (or 5% of your max, if you're already that low) and the rest becomes a debt. For 8 s, kills pay it back (a Grunt 4% of your max health, a Heavy or an elite 10%, hurting a boss 10% of the damage) and your hits heal 15% instead of 3%. Pay it all and you keep the 15% for 2 s more; what's unpaid after 8 s is lost. |
 | Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Pay 10% of your max health and rush 280 px toward your cursor as a streak of blood, untouchable. Every enemy you pass through takes 25 and bleeds, and gives back 2% of your max health. You leave a trail of blood that slows enemies 30% for 2 s. |
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy in the arena (20 damage each) into a floating ball, bigger the more enemies fed it. Press again to throw it at your cursor for a huge blast; it throws itself after 5 s. |
+| Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Pay 12% of your max health: twelve blood needles burst out of you all round, 240 px. Each stops on the first enemy it meets for 45 and a bleed stack, and whips a tendril on to the nearest enemy no tendril has reached yet (180 px) for 30, which chains on: 3 jumps a needle, 20% less each jump. |
 
 ### Engineer
 
@@ -276,6 +294,17 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Safe Room | Healer | ultimate | 80 s | - | It lasts 18 s. | The Breach hammer opens the wall you aim at: in the Expanding arena a room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. No room: a healing dome (160 px) at your cursor. |
 | Drag Pylon | Dps | 1st, choice 1 | 6 s | - | Its field is 40% wider. | Plant a pylon at your cursor (up to 320 px away). Its field slows enemies inside by 45% (bosses 20%). It stays until you plant the next one. |
 | Breach | Dps | ultimate | 70 s | - | The blast is twice as wide. | Smash the wall you aim at (up to 220 px): 80 damage and a shove by the wall. In the Expanding arena a free random room opens behind it with one thing inside: vectors, gold or an ambush. No wall in reach: the blast and the loot land at your cursor. |
+
+### Arcanist
+
+| Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
+|---|---|---|---|---|---|---|
+| Kinetic Grasp | Tank | 1st, choice 1 | 10 s | - | The throw hits 50% harder and stuns for twice as long. | Lift the biggest enemy near your cursor (not a boss) and hold it in front of you as a shield: it soaks the bullets that hit it. Press again, or wait 4 s, to throw it along your aim: 50 damage to it and to the enemy it hits, which is knocked back and stunned. Nothing in reach: most of the cooldown comes back. |
+| Grand Sigil | Tank | ultimate | 75 s | - | It lasts 12 s. | Draw a rune circle round you (200 px) for 8 s. Enemies inside are bound for 1 s, then slowed by half and drawn to you. Enemy bullets freeze where they meet its rim; when it ends, every frozen bullet flies back out as a spectral blade. |
+| Arcane Tether | Healer | 1st, choice 1 | 12 s | - | It heals twice as much. | Pull the ally nearest your cursor (up to 480 px away, downed or not) to your side. They can't be hurt on the way and land healed for 30. Nobody in reach: most of the cooldown comes back. |
+| Sanctum Sigil | Healer | ultimate | 80 s | - | It lasts 12 s. | A healing circle (170 px) follows you for 8 s: allies inside heal 25 a second. Six runes turn on its rim; each bursts on the first enemy that touches it (50 damage round it and a shove). |
+| Telekinetic Crush | Dps | 1st, choice 1 | 9 s | - | It grabs 40% wider. | Lift the enemies at your cursor (120 px, up to 400 px away) and pull them together for half a second, then slam them: 40 damage, +12 for each other enemy caught (up to +60), and a short stun. Bosses aren't lifted. |
+| Runic Array | Dps | ultimate | 65 s | - | It lasts 9 s. | Four sigils open behind you for 6 s: every Fire also sends a spectral blade from each of them at your cursor (16 each, through one enemy), even while your blades are out. |
 
 ## Enemies
 
@@ -305,7 +334,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lunger | Melee | 45 | 95 | 12 | 18 | 12 | 12 | melee | Circles in close, flashes a pink line, then leaps along it. |
 | Hive Bomber | Hidden | 30 | 330 | 10 | - | 2 | 0 | melee |  |
 | Cage Well | Hidden | 40 | 0 | 11 | - | 5 | 2 | melee |  |
-| Rioter | Hidden | 40 | 110 | 12 | 10 | 3 | 7 | melee | A prisoner in an orange jumpsuit throwing cuffed punches. Some drag a ball and chain and run slower. |
+| Rioter | Hidden | 40 | 110 | 12 | 15 | 3 | 7 | melee | A prisoner in an orange jumpsuit throwing cuffed punches. Some drag a ball and chain and run slower. |
 | Hive Egg | Hidden | 60 | 0 | 15 | - | 4 | 3 | melee |  |
 | Guard | Hidden | 90 | 125 | 13 | 14 | 6 | 15 | melee | A corrections officer in khaki with a peaked cap and a nightstick. Up close it swings forehand then backhand: step out of the amber arc. |
 | The Dual Reaper | Hidden | 5200 | 150 | 58 | - | 500 | 200 | boss |  |
@@ -327,17 +356,17 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Swarmer | Melee | 14 | 115 | 9 | 6 | 3 | 3 | melee | The simplest melee rusher: a white chomper with no eyes that walks straight at you. Weak alone, and it comes in packs. |
 | Taser Guard | Ranged | 70 | 80 | 13 | - | 9 | 11 |  | An officer in slate with a hi-vis band. Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it. |
 | Security Guard | Ranged | 45 | 70 | 15 | - | 9 | 9 |  | An officer in navy with a service pistol. Strafes, locks on and fires one tracer round at a time: seven shots, then a long reload. Sidestep the lane, or rush it while it reloads. |
-| Thug | Melee | 140 | 62 | 19 | 20 | 10 | 10 | melee | A hunched prisoner brute with giant taped fists. Slow and tough, hits hard when it reaches you. |
-| Shiv | Melee | 45 | 95 | 12 | 18 | 9 | 9 | melee | A prisoner with a taped shank: hooded, or shirtless with one in each hand. Circles in close, flashes a line, then lunges along it. |
+| Thug | Melee | 175 | 62 | 19 | 25 | 10 | 10 | melee | A hunched prisoner brute with giant taped fists. Slow and tough, hits hard when it reaches you. |
+| Shiv | Melee | 45 | 115 | 12 | 18 | 9 | 9 | melee | A prisoner with a taped shank: hooded, or shirtless with one in each hand. Circles in close, flashes a line, then lunges along it. |
 | Spawn Portal | Hidden | 200 | 0 | 30 | - | 30 | 20 | melee, heavy | A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held. |
-| Worker | Melee | 40 | 110 | 12 | 10 | 3 | 7 | melee | A small, quick worker bee that weaves at you, in loose pairs. |
+| Worker | Melee | 40 | 110 | 12 | 15 | 3 | 7 | melee | A small, quick worker bee that weaves at you, in loose pairs. |
 | Soldier | Melee | 90 | 125 | 13 | 14 | 6 | 15 | melee | An armoured bee that rushes straight at you, jaws snapping. |
 | Comb Shield | Melee | 60 | 120 | 16 | 8 | 10 | 10 | melee | A bee behind a plate of wax cells that stops shots and bashes you back. Break the cells, or go round it. |
 | Honey Lobber | Ranged | 50 | 75 | 14 | - | 8 | 9 |  | Lobs honey at you. A ring marks the spot; the puddle slows whoever stands in it. |
 | Stinger | Ranged | 105 | 80 | 13 | - | 9 | 11 |  | Keeps its distance, charges a venom lance and fires one barbed dart that stuns you. Strafe across the line, or parry it. |
 | Needler | Ranged | 70 | 70 | 15 | - | 9 | 9 |  | Hovers and strafes, locks on, then fires one white needle at a time: seven shots, then a long reload. |
-| Bumble | Melee | 140 | 62 | 19 | 20 | 10 | 10 | melee | A huge, furry bumblebee. Slow and tough, hits hard when it reaches you. |
-| Hornet | Melee | 45 | 95 | 12 | 18 | 9 | 9 | melee | Circles in close, flashes a red lane, then darts along it. |
+| Bumble | Melee | 175 | 62 | 19 | 25 | 10 | 10 | melee | A huge, furry bumblebee. Slow and tough, hits hard when it reaches you. |
+| Hornet | Melee | 45 | 115 | 12 | 18 | 9 | 9 | melee | Circles in close, flashes a red lane, then darts along it. |
 | Wisp | Melee | 14 | 120 | 9 | 6 | 3 | 3 | melee | A soul flame that drifts straight at you in a loose pack and burns on touch. Thin them before they reach you. |
 | Acolyte | Melee | 90 | 120 | 13 | 8 | 14 | 12 | melee | A hooded chaser. Stops just short, raises its sickle over a pale cone, then one wide swing. Step back out of the cone. |
 | Bound Wraith | Melee | 60 | 95 | 12 | 8 | 10 | 9 | melee | Comes as a pair circling near you, joined by a tether that hurts. Kill one and the other brings it back in 3 s, unless you kill both. |
@@ -356,12 +385,12 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Implosion | Hidden | 1000000 | 0 | 10 | - | 0 | 0 | melee |  |
 | Lens | Melee | 90 | 70 | 14 | 12 | 9 | 11 | melee | Carries a gravity lens in front of it. Shots into its face curve round it and away; it turns slowly, so hit it from the side. |
 | White Dwarf | Melee | 40 | 230 | 9 | 10 | 8 | 10 | melee | A small hot star that darts in, flashes white, then shoves you back and turns your shots near it round at you. Stop shooting when it flashes. |
-| Rubble | Melee | 40 | 110 | 12 | 10 | 3 | 7 | melee | A fist-sized chunk of the Colossus that rolls at you, weaving, in pairs. |
+| Rubble | Melee | 40 | 110 | 12 | 15 | 3 | 7 | melee | A fist-sized chunk of the Colossus that rolls at you, weaving, in pairs. |
 | Quarryman | Melee | 90 | 125 | 13 | 14 | 6 | 15 | melee | A quarry worker with a hard hat, a headlamp and a pickaxe. Walks straight at you. |
-| Stomper | Melee | 180 | 58 | 21 | 20 | 12 | 20 | melee | A slab-shouldered stone brute. Every few seconds it lifts a foot and stomps out a small ring of push blocks with one green gap: step into the gap. |
+| Stomper | Melee | 180 | 58 | 21 | 25 | 12 | 20 | melee | A slab-shouldered stone brute. Every few seconds it lifts a foot and stomps out a small ring of push blocks with one green gap: step into the gap. |
 | Slab Bearer | Melee | 60 | 120 | 16 | 8 | 10 | 10 | melee | Carries a quarried slab that stops shots and bashes you back. Break the slab and it drops it as cover for a few seconds; then the bearer falls fast. |
 | Rock Hurler | Ranged | 50 | 75 | 14 | - | 8 | 9 |  | Lobs a boulder where you're heading. Walk out of the ring: it lands hard, bursts into shards and leaves a rubble pile that stops shots. |
-| Driller | Melee | 45 | 95 | 12 | 18 | 9 | 9 | melee | Circles in close with a jackhammer, shows a lane, then drills along it. The crack it leaves erupts a moment later: get off the line. |
+| Driller | Melee | 45 | 115 | 12 | 18 | 9 | 9 | melee | Circles in close with a jackhammer, shows a lane, then drills along it. The crack it leaves erupts a moment later: get off the line. |
 | Geomancer | Ranged | 70 | 80 | 13 | - | 9 | 11 |  | Keeps its distance, plants its crystal staff and sends a crack racing at you. It glows, then erupts: step off the line. |
 | Cinder Priest | Ranged | 70 | 80 | 13 | - | 9 | 11 |  | Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it. |
 | Riot Captain | Hidden | 3000 | 70 | 30 | 20 | 150 | 80 | mini-boss, heavy | The Warden's mini-boss: a tower shield blocks the front. Bait its shield charge into a wall to daze it; it also fires buckshot, lobs tear gas and whistles for Taser Guards. |
@@ -371,13 +400,13 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Second | Ranged | 45 | 70 | 13 | - | 9 | 9 |  | Hangs back, glints gold, then throws an aimed fan of five daggers. Slip between them. |
 | Marshal | Ranged | 55 | 75 | 14 | - | 8 | 9 |  | The duel's referee: raises its baton and draws a gold circle round you. For 4 s you can't leave it, and leaning on the edge hurts: fight in the middle. |
 | Gallant | Ranged | 80 | 90 | 14 | 20 | 10 | 12 |  | Salutes with its sword raised, then lunges at you. Parry it perfectly as it arrives and it reels, open to 50% more damage; dodge it and it rakes the spot. |
-| Harlequin | Melee | 240 | 60 | 20 | 20 | 14 | 22 | melee | A heavy two-sworded jester. It marks a line through you and dashes it, vaults to the other arm and dashes across: an X of blades that fire out sideways. Stand in a gap of the X. |
+| Harlequin | Melee | 240 | 60 | 20 | 25 | 14 | 22 | melee | A heavy two-sworded jester. It marks a line through you and dashes it, vaults to the other arm and dashes across: an X of blades that fire out sideways. Stand in a gap of the X. |
 | Mummer | Melee | 40 | 150 | 11 | 14 | 9 | 10 | melee | A masked player that blinks and becomes three. They circle you and all fire, but only the real one's shots are solid; the copies' are hollow rings. Find the real one. |
 | Mummer | Hidden | 1 | 0 | 11 | - | 0 | 0 | melee | One of a Mummer's two copies: its shots are hollow rings that pass through you. It vanishes when its time is up. |
 | Grave Caller | Ranged | 60 | 60 | 14 | - | 12 | 16 |  | Zombie: hangs back and cracks three graves open round you; a Shambler claws out of each. Step out of the ring, then kill it: its risen crumble. |
-| Gnawling | Melee | 40 | 110 | 11 | 10 | 3 | 7 | melee | A mouth on legs, the Devourer in miniature. Weaves at you in pairs. |
+| Gnawling | Melee | 40 | 110 | 11 | 15 | 3 | 7 | melee | A mouth on legs, the Devourer in miniature. Weaves at you in pairs. |
 | Butcher | Melee | 90 | 125 | 13 | 14 | 6 | 15 | melee | A hooded butcher with a bone mask. Close in, it raises its cleaver and chops a half-circle in front: step out of it. |
-| Gulper | Melee | 180 | 58 | 22 | 20 | 12 | 25 | melee | A swollen gut. Its cheeks swell, then it breathes in and pulls you toward its mouth: step out of the cone sideways. |
+| Gulper | Melee | 180 | 58 | 22 | 25 | 12 | 25 | melee | A swollen gut. Its cheeks swell, then it breathes in and pulls you toward its mouth: step out of the cone sideways. |
 | Carcass Bearer | Melee | 60 | 120 | 16 | 8 | 10 | 10 | melee | Carries a side of meat that stops shots and bashes you back. Break it and it drops as a morsel: shoot it or walk over it before a Gnawling eats it. |
 | Bile Spitter | Ranged | 50 | 75 | 14 | - | 8 | 9 |  | Lobs a glob of bile where you're heading. Walk out of the ring: it leaves a pool of acid for a few seconds. |
 | Ember | Melee | 16 | 135 | 9 | 8 | 3 | 6 | melee | A scrap of solar flare that weaves in at you, dropping sparks that hang in the air behind it. |

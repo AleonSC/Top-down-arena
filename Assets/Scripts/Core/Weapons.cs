@@ -489,6 +489,10 @@ namespace Arena
                     return WispReach * PierceReach(p);
                 case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)
                     return ImpReach * PierceReach(p);
+                case WeaponId.OrbitShards:  // how far a shard is flung (Arcanist.cs)
+                    return ShardReach * PierceReach(p);
+                case WeaponId.DancingBlades:  // how far a blade is launched (Arcanist.cs)
+                    return BladeReach * PierceReach(p);
                 case WeaponId.HoneybeeStaff:  // how far from you a bee can hatch (HoneybeeStaff.cs)
                     return HatchReach;
                 case WeaponId.WyvernStaff:  // how far from you the breath can be aimed (WyvernStaff.cs)

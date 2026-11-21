@@ -23,6 +23,7 @@ namespace Arena
         VectorBlock,  // one tile of a Vector Wall or Bastion: stops enemy shots until its soak is gone or it times out (Engineer.cs)
         TankBot, MedicBot, AssaultBot,  // the Engineer's robots (Iron Fist, Stasis Gun, Vector Blade): summoned by a click, they fight and draw aggro (EngineerBots.cs)
         Wyvern,       // the Wyvern Staff's wind Wyvern: hovers over you, its gale slows and shoves, it breathes fire at your cursor and slams (WyvernStaff.cs)
+        ArcShard, ArcBlade,  // the Arcanist's Orbit Shards (circle you, cut small shots, flung at the cursor and back) and Dancing Blades (hover behind you, launched to slash at the cursor) (Arcanist.cs)
         None = 255,
     }
 
@@ -46,7 +47,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GrandSigil, SanctumSigil, ArcCrush }
 
     public class ZoneDef
     {
@@ -125,6 +126,8 @@ namespace Arena
             new MinionDef { Name = "Assault Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static, Speed = 175f,
                 Interval = 0.22f, Damage = 11f, Range = 340f },
             new MinionDef { Name = "Wyvern", Radius = 22f, Sides = 6, Color = new Rgba(0.44f, 0.88f, 0.81f), Move = MinionMove.FollowOwner, Speed = 240f },  // flown by WyvernStaff.cs (MoveWyvern)
+            new MinionDef { Name = "Orbit Shard", Radius = 7f, Sides = 4, Color = new Rgba(0.72f, 0.55f, 1f), Move = MinionMove.Static },   // flown by Arcanist.cs (MoveArcane)
+            new MinionDef { Name = "Dancing Blade", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.83f, 0.42f), Move = MinionMove.Static },  // flown by Arcanist.cs (MoveArcane)
         };
 
         // Indexed by ZoneKind.
@@ -170,6 +173,9 @@ namespace Arena
             new ZoneDef { Name = "Decoy Dummy", Color = new Rgba(0.95f, 0.85f, 0.71f) },  // the Healer Soldier's 4th choice (DecoyDummy.cs): Pos where it stands, Aim and Marched its throw, GuardFrac its health left
             new ZoneDef { Name = "Deployable Turret", Color = new Rgba(1f, 0.78f, 0.29f) },  // the DPS Soldier's 4th choice (DeployableTurret.cs): Pos where it stands (you sit in it), Aim the way the guns point, Radius the seat
             new ZoneDef { Name = "Gas Grenade", Color = new Rgba(0.72f, 0.42f, 1f) },  // a Gas Grenade gadget's cloud (Gadgets.cs): lobbed in like Tear Gas, Aim the way it flew; hurts and slows by its own tick
+            new ZoneDef { Name = "Grand Sigil", Color = new Rgba(0.72f, 0.55f, 1f) },     // the Tank Arcanist's ultimate (Arcanist.cs): binds and taunts enemies inside, freezes enemy shots at its rim, sends them back as it ends
+            new ZoneDef { Name = "Sanctum Sigil", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 25f },  // the Healer Arcanist's ultimate (Arcanist.cs): follows its caster; Aim = the six runes left (a bit mask)
+            new ZoneDef { Name = "Telekinetic Crush", Color = new Rgba(0.72f, 0.55f, 1f) },  // the DPS Arcanist's 1st ability (Arcanist.cs): lifts and pulls enemies in, then slams them together as it ends
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

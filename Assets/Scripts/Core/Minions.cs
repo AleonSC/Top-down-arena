@@ -413,6 +413,12 @@ namespace Arena
                     m.Pos = ClampToArena(m.Pos, d.Radius);
                     continue;
                 }
+                if ((m.Kind == MinionKind.ArcShard || m.Kind == MinionKind.ArcBlade) && m.Companion)
+                {
+                    MoveArcane(m, owner, dt);  // the Arcanist's Orbit Shards and Dancing Blades (Arcanist.cs)
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
                 if (m.Kind == MinionKind.HiveBomber)
                 {
                     if (MoveBomber(m, dt))  // QueenLoot.cs
@@ -730,6 +736,8 @@ namespace Arena
                     z.Pos = follow.Pos;
                 if (z.T <= 0f)
                 {
+                    if (z.Kind == ZoneKind.GrandSigil || z.Kind == ZoneKind.ArcCrush)
+                        ArcZoneEnds(z);  // the sigil sends its frozen shots back, the crush slams (Arcanist.cs)
                     expired.Add(z);
                     continue;
                 }

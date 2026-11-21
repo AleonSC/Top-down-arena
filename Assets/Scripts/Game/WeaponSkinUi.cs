@@ -110,7 +110,7 @@ namespace Arena
             const float rowH = 52f, step = 56f;
             const int fit = 5;
             Ui.Label(new Rect(lx, top, lw, 18f), "CLASS  ·  ROLE", 12, CabSoft, TextAnchor.MiddleLeft, true);
-            const int kitCount = (int)Kit.Engineer + 1;
+            const int kitCount = Defs.KitCount;
             float ck = (lw - 4f * 3f) / 4f;
             for (int i = 0; i < kitCount; i++)
                 if (DkKey(new Rect(lx + (i % 4) * (ck + 4f), top + 20f + (i / 4) * 32f, ck, 28f), Defs.KitName((Kit)i).ToUpperInvariant(), (int)kit == i, FxCalm, size: 11, minSize: 8) && (int)kit != i)

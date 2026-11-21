@@ -869,6 +869,12 @@ static partial class Program
                     if (Math.Abs(range - (w.Id == WeaponId.WispLantern ? Game.WispReach : Game.ImpReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.OrbitShards || w.Id == WeaponId.DancingBlades)
+                {
+                    // No shots: a shard or blade is sent out (arcanist test); the aim line shows how far.
+                    if (Math.Abs(range - (w.Id == WeaponId.OrbitShards ? Game.ShardReach : Game.BladeReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.Nimbus || w.Id == WeaponId.SpiritChalk)
                 {
                     // No shots: the cloud drifts to your cursor (and no further than its leash); the chalk draws to it (and no further than its reach).

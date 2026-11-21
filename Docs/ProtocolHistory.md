@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 462: the Arcanist class: `Kit.Arcanist`; `WeaponId` OrbitShards, GlyphStylus, DancingBlades; six `AbilityId`s (KineticGrasp ... RunicArray); `MinionKind` ArcShard, ArcBlade; `ZoneKind` GrandSigil, SanctumSigil, ArcCrush; bullet kinds 73-74; the player snapshot ends with the Arcanist's fields (`SyncArcanist`)
 - 461: the holo menu sounds `Sfx.MenuPlay`, `MenuKey`, `MenuQuit`, `MenuEject`, `MenuRooms`, `NeonSpark`, `BayVault`, `BayBack`, `RunContinue`, `RunDelArm`, `RunDelete` added at the end (played locally, never sent)
 - 460: `Msg.ExpandState` ends with the host's clock (float) for the Relic Gauntlet's lasers; `MysteryKind.Gauntlet` and `SurpriseShape.Gauntlet` added at the end (a room's `Surprise` byte can be 14).
 - 459: `RelicId.Thorns` added before `None` (the relic slot byte can now be 23; a plain relic node rolls one of four classic relics).

@@ -409,6 +409,7 @@ static partial class Program
         Test("tsunami", "Tsunami: the wave, wet, the slow, lightning arcing to every wet enemy, wearing off, the mastered return", () => TsunamiTest(Dt)),
         Test("holycross", "Consecrate's Holy Cross: it grows as it flies, heals and hastens allies, hurts, slows and knocks back enemies, hits each once, the mastered fan", () => HolyCrossTest(Dt)),
         Test("engineer", "the Engineer: one robot weapon a role (the forges gone), Drag Pylon (slows, one at a time, 320 px reach) and Breach (the blast; a room behind the Expanding arena's wall)", () => EngineerTest(Dt)),
+        Test("arcanist", "the Arcanist: Dancing Blades (launch, dance, recall), Runic Array, Telekinetic Crush, Kinetic Field; Orbit Shards (cut, Shard Guard), Kinetic Grasp (hold, throw), Grand Sigil (rim freeze, release); Glyph Stylus heals, Arcane Tether, Sanctum Sigil", () => ArcanistTest(Dt)),
         Test("engbots", "the Engineer's robot weapons: a click summons the role's robot (sent at the enemy clicked), it shoots and draws enemies, rebuilt-able after 8 s; the Vector Blade's swipe, the Iron Fist's shove, the Stasis Gun's held field; the Medic Bot heals", () => EngineerBotsTest(Dt)),
         Test("cover", "Deployable Cover: the Tank Soldier's 4th choice, two charges, planted 64 px ahead, solid after 0.4 s, stops enemy shots on its plates and wears, keeps enemies off, three at most (a fourth folds the oldest), breaks, replicated, folds at wave end, mastered", () => DeployableCoverTest(Dt)),
         Test("decoy", "Decoy Dummy: the Healer Soldier's 4th choice, three charges, thrown to the cursor (280 px at most), up after 0.7 s, draws regular enemies within 240 px (bosses glance), shots and bites wear it, three at most, the pop's confetti blast, deflating, replicated, mastered, Double-Ply", () => DecoyDummyTest(Dt)),
@@ -567,7 +568,7 @@ static partial class Program
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "arcanist", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
     static int Main(string[] args)

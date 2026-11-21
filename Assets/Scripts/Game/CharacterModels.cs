@@ -102,6 +102,7 @@ namespace Arena
             Pal(0x2a2a38, 0x13131a, 0x1d1d28, 0x0e0e14),  // Ninja: charcoal
             Pal(0x8c1626, 0x3a0a12, 0x6a101c, 0x2a0a10),  // Hemomancer: crimson
             Pal(0x2c3e5c, 0x172238, 0x354a6e, 0xd98a2b),  // Engineer: navy coveralls, amber gloves (its own model: EngineerModel.cs)
+            Pal(0x2e2a6b, 0x14123a, 0x3b3684, 0xe8c25a),  // Arcanist: indigo robes, gold gloves
         };
         static readonly Rgba MSteel = Hx(0xcfd8e6), MDark = Hx(0x3a4250), MWood = Hx(0x8a6a45), MGold = Hx(0xe8c25a), MBone = Hx(0xefe9d8), MWhite = Hx(0xffffff);
 
@@ -330,6 +331,18 @@ namespace Arena
                         }
                     }
                     break;
+                case Kit.Arcanist:  // a long indigo mantle with a gold rune hem
+                {
+                    MPoly(K.Dark, -1f, 0f, -1f, -ry - 1f, -16f, -ry - 3f + w, -25f, -6f, -27f, 0f, -25f, 6f, -16f, ry + 3f - w, -1f, ry + 1f);
+                    MPoly(K.Base, -1f, 0f, -1f, -ry + 1.5f, -15f, -ry + w * 0.5f, -22f, -4.5f, -24f, 0f, -22f, 4.5f, -15f, ry - w * 0.5f, -1f, ry - 1.5f);
+                    MArc(-6f, 0f, 17f, MathX.Pi * 0.7f, MathX.Pi * 1.3f, 1.4f, MGold);
+                    for (int i = -2; i <= 2; i++)
+                    {
+                        float a = MathX.Pi + i * 0.15f;
+                        MCirc(-6f + Mathf.Cos(a) * 17f, Mathf.Sin(a) * 17f, 1.1f, i % 2 == 0 ? ArcanistLookViolet : MGold, 6);
+                    }
+                    break;
+                }
                 default:  // Hemomancer: a tattered cloak, dripping
                 {
                     float[] jag = new float[20];
@@ -429,6 +442,19 @@ namespace Arena
                     if (role == 1) MRect(x - 1f, -3.5f, 4f, 7f, Hx(0xfff0cf));
                     if (role == 2) MLine(x - 1f, 0f, x - r - 8f, 0f, 2f, K.Base);
                     break;
+                case Kit.Arcanist:  // a deep hood with violet eyes and a gold circlet; a rune turns over the head
+                {
+                    MPoly(K.Dark, x - r + 1f, 0f, x - r + 1f, -6f, x - r - 9f - w, 0f, x - r + 1f, 6f);
+                    MCirc(x, 0f, r + 1.2f, K.Dark, 14); MCirc(x, 0f, r - 0.4f, K.Base, 14);
+                    MArc(x, 0f, r - 2f, -1.1f, 1.1f, 1.6f, MGold);
+                    MCirc(x + r * 0.55f, -2.8f, 1.4f, ArcanistLookViolet, 6); MCirc(x + r * 0.55f, 2.8f, 1.4f, ArcanistLookViolet, 6);
+                    if (role == 0) { MRect(x - 3f, -r - 1.5f, 6f, 2.6f, MGold); MRect(x - 3f, r - 1.1f, 6f, 2.6f, MGold); }
+                    if (role == 1) MArc(x, 0f, r - 3.6f, 2.2f, 4.1f, 1.4f, Hx(0xfff0c0));
+                    if (role == 2) MLine(x - r, 0f, x - r - 6f, 0f, 2f, RC);
+                    for (int k = 0; k < 3; k++)
+                        DrawRuneMote(mO + V2.FromAngle(t * 1.4f + MathX.Tau * k / 3f) * (bodyR + 8f), t + k);
+                    break;
+                }
                 default:  // Hemomancer: a crimson hood, a blood-drop gem, drops circling that glow as health falls
                 {
                     MPoly(K.Dark, x - r + 2f, 0f, x - r + 2f, -5f, x - r - 8f, 0f, x - r + 2f, 5f);
@@ -473,6 +499,7 @@ namespace Arena
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.Waterball: case WeaponId.Earthball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
                 case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
+                case WeaponId.OrbitShards: case WeaponId.DancingBlades: hold = 3; break;  // the Arcanist casts from an open palm (ArcanistLook.cs)
             }
         }
 
@@ -563,6 +590,10 @@ namespace Arena
             d[(int)WeaponId.BloodBolts] = DrawHeldBloodBolts;
             d[(int)WeaponId.Implosion] = DrawHeldImplosion;
             d[(int)WeaponId.BloodBrawler] = (p, t, hold) => DrawBsHand(t);  // an open, bleeding hand (BloodBrawlerLook.cs)
+            // ---- Arcanist (ArcanistLook.cs)
+            d[(int)WeaponId.OrbitShards] = DrawHeldArcGlyph;
+            d[(int)WeaponId.DancingBlades] = DrawHeldArcGlyph;
+            d[(int)WeaponId.GlyphStylus] = DrawHeldGlyphStylus;
             return d;
         }
 

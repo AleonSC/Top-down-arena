@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// A class's own hooks into the game loop. Each class keeps its KitDef beside its code (Weapons.cs: Soldier,
-    /// Minions.cs: Elementalist and Summoner, Knight.cs, Ninja.cs, Hemomancer.cs); Classes.All gathers them in Kit order.
+    /// Minions.cs: Elementalist and Summoner, Knight.cs, Ninja.cs, Hemomancer.cs, Engineer.cs, Arcanist.cs); Classes.All gathers them in Kit order.
     /// Every hook is optional: leave it null when the class has nothing to do there.
     public delegate void KitFireFn(Game g, Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra);
     public delegate bool KitAbilityFn(Game g, Player p, AbilityId id, V2 target);
@@ -55,6 +55,7 @@ namespace Arena
             new KitLists(Game.NinjaKit, Game.NinjaWeapons, Game.NinjaAbilities),
             new KitLists(Game.HemomancerKit, Game.HemomancerWeapons, Game.HemomancerAbilities),
             new KitLists(Game.EngineerKit, Game.EngineerWeapons, Game.EngineerAbilities),
+            new KitLists(Game.ArcanistKit, Game.ArcanistWeapons, Game.ArcanistAbilities),
         };
 
         /// Every class's weapon list, for Defs.Weapons.
@@ -74,7 +75,7 @@ namespace Arena
         }
 
         /// Every class, in Kit order. The game refuses to start if one is missing, doubled or out of place.
-        public static readonly KitDef[] All = Registry(Lists[0].Kit, Lists[1].Kit, Lists[2].Kit, Lists[3].Kit, Lists[4].Kit, Lists[5].Kit, Lists[6].Kit);
+        public static readonly KitDef[] All = Registry(Lists[0].Kit, Lists[1].Kit, Lists[2].Kit, Lists[3].Kit, Lists[4].Kit, Lists[5].Kit, Lists[6].Kit, Lists[7].Kit);
 
         public static KitDef Get(Kit k) => All[(int)k];
 
