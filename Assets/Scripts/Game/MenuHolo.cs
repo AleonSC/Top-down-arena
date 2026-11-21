@@ -53,6 +53,7 @@ namespace Arena
             {
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(TitleNeonRect, a * NeonFlicker(Time.unscaledTime, 9f, 3f));
+                NeonSparkSound(9f, 3f, a);
                 HoloCorners(TitleNeonRect, a);
                 EndUiGl();
             }
@@ -146,6 +147,116 @@ namespace Arena
                 }
             }
             DrawWhoGhost(r, Color.Lerp(new Color(0.5f, 0.66f, 1f, 0.5f * a), new Color(0.81f, 0.88f, 1f, 0.95f * a), hover));
+        }
+
+        // --- Sounds (MenuSoundBank.cs) -----------------------------------------------------------------------------------------
+
+        int roomsHeard = -1, neonHeard = -1;
+
+        /// A menu key's own sound, in place of the generic click (Ui.TakeClick takes this event's click so it doesn't play too).
+        void MenuSound(Sfx s, float vol = 0.7f)
+        {
+            if (sounds != null)
+                sounds.Play(s, vol, Time.unscaledTime);
+            Ui.TakeClick();
+        }
+
+        float quitAt = -1f;
+
+        /// Quit: the tube switching off, then the game closes once it has played (TickMenuSounds).
+        void QuitWithSound()
+        {
+            MenuSound(Sfx.MenuQuit, 0.8f);
+            if (quitAt < 0f)
+                quitAt = Time.unscaledTime + 0.45f;
+        }
+
+        /// The neon's two tiny sparks as it flickers (the same clock as NeonFlicker), once per flicker.
+        void NeonSparkSound(float period, float offset, float a)
+        {
+            if (sounds == null || a <= 0f || fxReduced || !fxOn || Event.current.type != EventType.Repaint)
+                return;
+            float t = Time.unscaledTime + offset;
+            int cycle = Mathf.FloorToInt(t / period);
+            if (MathX.Fmod(t, period) / period >= 0.91f && cycle != neonHeard)
+            {
+                neonHeard = cycle;
+                sounds.Play(Sfx.NeonSpark, 0.4f * a, Time.unscaledTime);
+            }
+        }
+
+        string runHoverId;
+        int runHoverFrame = -10;
+
+        /// A saved run's row on the Play screen: the menu keys' phosphor tick as the mouse comes onto it.
+        void RunRowHover(Rect r, string id)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            if (runHoverFrame < Time.frameCount - 1)
+                runHoverId = null;  // (no row was under the mouse last frame)
+            if (!r.Contains(Event.current.mousePosition) || !GUI.enabled)
+                return;
+            if (runHoverId != id && sounds != null)
+                sounds.Play(Sfx.MenuHover, 0.5f, Time.unscaledTime);
+            runHoverId = id;
+            runHoverFrame = Time.frameCount;
+        }
+
+        // The menu's ambient hum: a low drone (55 Hz with a fifth and an octave over it) breathing slowly, a seamless 4 s loop, very quiet
+        // (on the Music volume), fading in on the main menu and the Who's playing? screen and out everywhere else.
+        AudioSource humSource;
+        float humLevel;
+        const float HumVolume = 0.05f;
+
+        AudioClip MakeHumClip()
+        {
+            const int rate = 22050;
+            const float len = 4f;  // every partial and the breath fit a whole number of cycles in it, so the loop has no seam
+            int n = (int)(rate * len);
+            var data = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / rate, breath = 0.75f + 0.25f * Mathf.Sin(2f * Mathf.PI * 0.25f * t);
+                float x = 0.5f * Mathf.Sin(2f * Mathf.PI * 55f * t) + 0.18f * Mathf.Sin(2f * Mathf.PI * 110f * t) + 0.08f * Mathf.Sin(2f * Mathf.PI * 165f * t)
+                    + 0.22f * breath * Mathf.Sin(2f * Mathf.PI * 82.5f * t) + 0.12f * breath * Mathf.Sin(2f * Mathf.PI * 110.25f * t);
+                data[i] = x * 0.6f;
+            }
+            var clip = AudioClip.Create("menu_hum", n, 1, rate, false);
+            clip.SetData(data, 0);
+            return clip;
+        }
+
+        /// Update: the hum's fade, and a pending quit once its sound has played.
+        void TickMenuSounds(float dt)
+        {
+            if (quitAt >= 0f && Time.unscaledTime >= quitAt)
+            {
+                quitAt = -1f;
+                Application.Quit();
+            }
+            if (sounds == null)
+                return;
+            bool want = session.Screen == AppScreen.Menu;
+            humLevel = Mathf.MoveTowards(humLevel, want ? 1f : 0f, dt / 1.2f);
+            if (humLevel <= 0f)
+            {
+                if (humSource != null && humSource.isPlaying)
+                    humSource.Stop();
+                return;
+            }
+            if (humSource == null)
+            {
+                humSource = gameObject.AddComponent<AudioSource>();
+                humSource.playOnAwake = false;
+                humSource.loop = true;
+                humSource.spatialBlend = 0f;
+                humSource.priority = 64;
+                humSource.clip = MakeHumClip();
+            }
+            humSource.volume = HumVolume * humLevel * sounds.Master * sounds.Music;
+            if (!humSource.isPlaying)
+                humSource.Play();
         }
 
         // --- Settings ---------------------------------------------------------------------------------------------------------
@@ -326,6 +437,12 @@ namespace Arena
                 return;
             int cycle = Mathf.FloorToInt(t / RoomEvery);
             float age = t - cycle * RoomEvery;
+            if (Event.current.type == EventType.Repaint && cycle != roomsHeard && age < RoomBuild)
+            {
+                roomsHeard = cycle;
+                if (sounds != null)
+                    sounds.Play(Sfx.MenuRooms, 0.5f * a, Time.unscaledTime);  // quiet bleeps while the walls draw (MenuSoundBank.cs)
+            }
             var titleSet = TitleRoomSets[(int)(Hash(cycle * 7 + 1) * TitleRoomSets.Length) % TitleRoomSets.Length];
             var boxSet = lower[(int)(Hash(cycle * 7 + 4) * lower.Length) % lower.Length];
             for (int i = 0; i < titleSet.Length; i++)

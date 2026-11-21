@@ -30,19 +30,12 @@ namespace Arena
         }
 
         // t: where it plays going forward; d: how long it lasts (going backwards it plays at its end); back: what plays going backwards.
+        // The holo look's sounds (MenuSoundBank.cs): one Data vault sound going forward, the two-note Back going back. (The older
+        // Bay* recipes in SoundBank.cs are no longer played; BayClack still clicks the header's flaps.)
         static readonly ServoCue[] ServoCues =
         {
-            new ServoCue(0.07f, 0f, Sfx.BayBeep, Sfx.BayBeep, 0.6f),
-            new ServoCue(ServoDoorA, 0.32f, Sfx.BayServo, Sfx.BayServoBack, 0.6f),     // the doors' rising whine
-            new ServoCue(ServoDropS, 0.24f, Sfx.BayWhirr, Sfx.BayWhirr, 0.6f),         // each key leaving
-            new ServoCue(ServoDropS + ServoDropGap, 0.24f, Sfx.BayWhirr, Sfx.BayWhirr, 0.6f),
-            new ServoCue(ServoDropS + ServoDropLen * 0.88f, 0f, Sfx.BayTick, Sfx.BayTick, 0.6f),    // and landing
-            new ServoCue(ServoDropS + ServoDropGap + ServoDropLen * 0.88f, 0f, Sfx.BayTick, Sfx.BayTick, 0.6f),
-            new ServoCue(0.38f, 0.26f, Sfx.BayLift, Sfx.BayLift, 0.45f),               // the screen's frame coming out
-            new ServoCue(ServoDoorB, 0f, Sfx.BayClamp, Sfx.BayClamp, 0.6f),
-            new ServoCue(0.44f, 0f, Sfx.BayZap, Sfx.BayZap, 0.5f),
-            new ServoCue(0.60f, 0.24f, Sfx.BayLift, Sfx.BayLift, 0.6f),                // New run lifting
-            new ServoCue(0.84f, 0f, Sfx.BaySeat, Sfx.BaySeat, 0.7f),
+            new ServoCue(0.12f, 0f, Sfx.BayVault, Sfx.None, 0.7f),
+            new ServoCue(0.98f, 0f, Sfx.None, Sfx.BayBack, 0.7f),
         };
 
         /// Plays each cue menuPlayK passed between a and b, and a flap click for each header letter that stepped.
@@ -53,7 +46,7 @@ namespace Arena
             float now = Time.unscaledTime;
             foreach (var c in ServoCues)
             {
-                if (b > a && a < c.t && c.t <= b)
+                if (b > a && a < c.t && c.t <= b && c.fwd != Sfx.None)
                     sounds.Play(c.fwd, c.vol, now);
                 else if (b < a && b <= c.t + c.d && c.t + c.d < a && c.back != Sfx.None)
                     sounds.Play(c.back, c.vol, now);

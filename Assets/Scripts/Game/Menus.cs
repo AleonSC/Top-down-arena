@@ -179,7 +179,7 @@ namespace Arena
                     var qr = MenuQuitKey;  // the same keycap as the picker's Back (MenuServo.cs swaps the legend between them)
                     bool quit = MenuVhs.Draw(qr, "TRK 05", live, fxReduced, () => KeyUi.Key(qr, "Quit", PixelArt.Get("ui_power"), 15));
                     if (live && quit)
-                        Application.Quit();
+                        QuitWithSound();  // MenuHolo.cs: the CRT-off sound, then quit
                 });
             if (host > 0f)
                 MenuRise(host, 60f, () =>
@@ -187,6 +187,7 @@ namespace Arena
                     Ui.PulseRing(KeyUi.Well(MenuHostRect), Ui.Primary, t);
                     if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => PlayKey(MenuHostRect)) && live)
                     {
+                        MenuSound(Sfx.MenuPlay);  // MenuSoundBank.cs
                         if (PacSkin)
                             OpenPacman();  // a Pac profile's Play is the Pac-Man game (PacmanUi.cs)
                         else
@@ -197,13 +198,19 @@ namespace Arena
                 MenuRise(join, 24f, () =>
                 {
                     if (MenuVhs.Draw(MenuJoinRect, "TRK 02", live, fxReduced, () => KeyUi.Key(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", PixelArt.Get("ui_arrow"), 20, menuJoinOpen)) && live)
+                    {
+                        MenuSound(Sfx.MenuKey);
                         menuJoinOpen = !menuJoinOpen;
+                    }
                 });
             if (cont > 0f)
                 MenuRise(cont, 24f, () =>
                 {
                     if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => KeyUi.Key(MenuSettingsRect, "Settings", PixelArt.Get("ui_gear"), 20)) && live)
+                    {
+                        MenuSound(Sfx.MenuKey);
                         settingsOpen = true;
+                    }
                 });
         }
 

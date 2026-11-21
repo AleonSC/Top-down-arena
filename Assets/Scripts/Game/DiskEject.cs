@@ -120,7 +120,7 @@ namespace Arena
 
         static readonly (float t, Sfx sfx, float vol)[] EjCues =
         {
-            (0.00f, Sfx.DiskClick, 0.6f),   // the key
+            (0.00f, Sfx.MenuEject, 0.7f),   // the key: three falling beeps (MenuSoundBank.cs)
             (0.45f, Sfx.DiskClick, 0.8f),   // the latch lets go
             (0.50f, Sfx.DiskEject, 0.7f),   // the spring kicks the disk out
             (1.70f, Sfx.DiskFly, 0.6f),     // it flies to the shelf
