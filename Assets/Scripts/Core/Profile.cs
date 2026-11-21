@@ -104,6 +104,7 @@ namespace Arena
         // Class expertise (Expertise.cs): XP per class ("Soldier" -> XP), and the weapon skin equipped per weapon ("TwinRifle" -> skin id).
         public readonly Dictionary<string, long> ClassXp = new Dictionary<string, long>();
         public readonly Dictionary<string, string> WeaponSkins = new Dictionary<string, string>();
+        public byte[] VgChain = VowguardMotion.DefaultPack;  // the Vowguard's chains, Valor then Sanctuary (VowguardMotion.Pack; the lobby's chain editor)
         public long ExpertiseXp(Kit kit) { long v; return ClassXp.TryGetValue(Expertise.Key(kit), out v) ? v : 0; }
         public int ExpertiseLevel(Kit kit) => Expertise.Of(ExpertiseXp(kit)).Level;
 
@@ -427,6 +428,7 @@ namespace Arena
             foreach (var kv in VariantTiers) RunSave.Line(sb, "variant", Dash(kv.Key.Replace(' ', '_')) + " " + kv.Value);
             foreach (var kv in ClassXp) RunSave.Line(sb, "expertise", kv.Key + " " + kv.Value);
             foreach (var kv in WeaponSkins) RunSave.Line(sb, "skin", kv.Key + " " + kv.Value);
+            if (!VowguardMotion.SamePack(VgChain, VowguardMotion.DefaultPack)) RunSave.Line(sb, "vgchain", VowguardMotion.ToLine(VgChain));
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine) + " " + Dash(Cursor));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')) + " " + Dash(l.Class.Replace(' ', '_')) + " " + Dash(l.Mode) + " " + RunSave.F(l.Seconds) + " " + RunSave.F(l.Dealt) + " " + RunSave.F(l.Taken) + " " + RunSave.F(l.Heal) + " " + l.Players + " " + Dash(l.File));
             RunSave.Line(sb, "end", 1);
@@ -489,6 +491,7 @@ namespace Arena
                         case "cores": p.Cores = Math.Max(0, RunSave.I(f[0])); break;
                         case "variant": p.VariantTiers[UnDash(f[0]).Replace('_', ' ')] = Math.Max(0, Math.Min(Variants.Tiers, RunSave.I(f[1]))); break;
                         case "expertise": p.ClassXp[f[0]] = Math.Max(0, long.Parse(f[1], System.Globalization.CultureInfo.InvariantCulture)); break;
+                        case "vgchain": p.VgChain = VowguardMotion.FromLine(f[0]); break;
                         case "skin": if (Expertise.Skin(f[1]) != null) p.WeaponSkins[f[0]] = f[1]; break;  // (a skin that no longer exists is dropped)
                         case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); if (f.Length > 6) p.Cursor = UnDash(f[6]); break;
                         case "rlog":

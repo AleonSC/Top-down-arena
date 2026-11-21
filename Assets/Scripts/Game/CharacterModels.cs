@@ -244,8 +244,8 @@ namespace Arena
             {
                 case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.ArcKnuckles:
                     return true;  // TwinBladesLook.cs, LightbringerLook.cs, LanceLook.cs, ArcKnucklesLook.cs
-                case WeaponId.Nunchaku: case WeaponId.Nodachi:
-                    return !p.Downed;  // NunchakuLook.cs, NodachiLook.cs
+                case WeaponId.Nunchaku: case WeaponId.Nodachi: case WeaponId.Vowguard:
+                    return !p.Downed;  // NunchakuLook.cs, NodachiLook.cs, VowguardLook.cs
                 case WeaponId.Halberd:
                     return fxOn;  // HalberdLook.cs
                 case WeaponId.Katana:
@@ -264,7 +264,7 @@ namespace Arena
         {
             switch (p.Weapon.Id)
             {
-                case WeaponId.Halberd: case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.Censer:
+                case WeaponId.Halberd: case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.Censer: case WeaponId.Vowguard:
                     return LookDrawsArms(p);
                 default:
                     return false;

@@ -188,6 +188,7 @@ namespace Arena
                 w.Write((byte)perks.Length);
                 foreach (var id in perks)
                     w.Write((byte)id);
+                Session.WriteVgChain(w, e.Chain);  // their Vowguard chains (Vowguard.cs)
             }
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
             w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
@@ -237,9 +238,11 @@ namespace Arena
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
                     perkBytes.Add(r.ReadByte());
+                var chain = Session.ReadVgChain(r);
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f, ScatShells = ScatShellMax };
                 p.Kit = kit;
+                p.VgChain = chain;
                 p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponLimit(role, kit) ? weapon : 0);
                 p.FirstAbility = Upgrades.FirstAbility(role, kit, ability);
                 p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
@@ -1437,6 +1440,7 @@ namespace Arena
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.IceShards) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
+            TickVowguard(dt);  // Vowguard.cs: steps, timed heals, Aegis Domes, Cover Ally
             TickBulwark(dt);  // BulwarkBarrier.cs: the Brace held or dropped, Ram draining, a full bash's shards
             TickLance(dt);  // Lance.cs: Hook & Haul's cooldown and hooks landing
             TickCenser(dt);      // Censer.cs: the rite forgetting its place, Censer Cast landing

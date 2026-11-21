@@ -1271,6 +1271,47 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // VOWGUARD=<s>: the Healer Knight's Vowguard (Core/Vowguard.cs, Game/VowguardLook.cs) that long after Fire is first held (held
+    // throughout, so the stance's chain plays on). VGSANCT=1 starts in Sanctuary (shots fly in from the right); VGALT=<s> presses Alt
+    // then; VGCHAIN=<line> plays that chain pair ("EdgeCut,LungeThrust;RallyTap,AegisDome", VowguardMotion.FromLine); VGFREEZE=1 stops
+    // Fire on the last frame's step (so a still catches a move mid-swing).
+    if (Environment.GetEnvironmentVariable("VOWGUARD") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Knight; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Knight, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      bool sanct = Environment.GetEnvironmentVariable("VGSANCT") != null;
+      float altAt = Environment.GetEnvironmentVariable("VGALT") != null ? float.Parse(Environment.GetEnvironmentVariable("VGALT"), ci) : -1f;
+      if (Environment.GetEnvironmentVariable("VGCHAIN") != null) me.VgChain = VowguardMotion.FromLine(Environment.GetEnvironmentVariable("VGCHAIN"));
+      V2 home = new V2(480f, 360f); me.Pos = me.Disp = home; me.Aim = 0f; me.VgStance = (byte)(sanct ? 1 : 0); me.VgAtV = me.VgAtS = 0; me.VgFaith = 3;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(95f, -25f), new V2(125f, 40f), new V2(80f, 95f), new V2(190f, -70f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      foreach (var q0 in gm.Players.Values) if (q0 != me) { q0.Pos = q0.Disp = home + new V2(-120f, 50f); q0.Hp = q0.MaxHp * 0.6f; }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      float[] ys = { -8f, 14f, -22f, 4f, 24f, -14f, 10f, -28f, 18f, -4f };
+      int shot = 0;
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("VOWGUARD"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = home + new V2(200f, 0f);
+        bool alt = altAt >= 0f && tt >= altAt && tt < altAt + 3f / 60f;
+        if (me.VgStance == 1 && f % 10 == 0) {
+          V2 from = home + new V2(360f, ys[shot++ % ys.Length] * 2f);
+          shoot.Invoke(gm, new object[] { Defs.SmallShot, from, (home - from).Normalized() * 340f, 0f, 3f, 5f, 0, false, 0f });
+        }
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        foreach (var q0 in gm.Players.Values) if (q0 != me) { q0.Pos = q0.Disp = home + new V2(-120f, 50f); }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f; Time.time += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = true, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Hp = me.MaxHp;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // WINDCLASH=<s>: the Tank Elementalist's Wind Clash (Core/WindClash.cs, Game/WindClashLook.cs) that long into the combo, Fire held from 0:
     // crescent at 0, back crescent at 0.34 s, gale lance at 0.68 s, clash ring at 1.12 s. WCALT=1: Alt (Tempest) at 0 instead, the
     // enemies shooting at you (their shots are caught and spin round you).
@@ -2541,6 +2582,7 @@ static partial class Shot {
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }
+    if (Environment.GetEnvironmentVariable("WALLGLOW") != null) ArenaApp.WallBrightness = float.Parse(Environment.GetEnvironmentVariable("WALLGLOW"), System.Globalization.CultureInfo.InvariantCulture);  // WALLGLOW=<0-1>: walls and pillars brightness (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("FLOORTINT") != null) ArenaApp.FloorTintAmt = float.Parse(Environment.GetEnvironmentVariable("FLOORTINT"), System.Globalization.CultureInfo.InvariantCulture);  // FLOORTINT=<0-1>: the boss floor wash (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("FLOORBEND") == "0") ArenaApp.PreviewFloorStatic = true;
     if (Environment.GetEnvironmentVariable("FLOORSTYLE") != null) ArenaApp.PreviewFloorStyle = int.Parse(Environment.GetEnvironmentVariable("FLOORSTYLE"));  // FLOORSTYLE=<n>: the arena floor pattern, 1 Flux 2 Seismo 3 Plates 4 Circuit (FloorStylesLook.cs)

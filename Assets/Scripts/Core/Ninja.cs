@@ -993,6 +993,8 @@ namespace Arena
                 return;  // the Honeybee Staff's honey spray, held (HoneybeeStaff.cs)
             if (LocalNunGuard(me, aimAt, pressed, dt))
                 return;  // the Nunchaku's guard switch (Nunchaku.cs)
+            if (LocalVowguard(me, aimAt, pressed, dt))
+                return;  // the Vowguard's stance switch and its dashes (Vowguard.cs)
             if (LocalNodachi(me, aimAt, pressed, dt))
                 return;  // the Nodachi's stance switch, Nagi's walk and Hiki-zuki's hop (Nodachi.cs)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
@@ -1327,6 +1329,11 @@ namespace Arena
             if (kind == DashFork)
             {
                 HostForkVolley(p, target);  // Arc Lightning's Forked Volley (ArcLock.cs)
+                return;
+            }
+            if (kind == DashVgStance)
+            {
+                HostVgSwitch(p);  // the Vowguard's Valor to Sanctuary and back (Vowguard.cs)
                 return;
             }
             if (kind == DashNodStance)

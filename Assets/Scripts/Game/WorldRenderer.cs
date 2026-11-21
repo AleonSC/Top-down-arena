@@ -320,6 +320,7 @@ namespace Arena
                 DrawKnuckleIdle(p, t);  // the Arc Knuckles up in a guard (ArcKnucklesLook.cs)
                 DrawNunIdle(p, t);  // the Nunchaku tucked, swung or spinning its guard (NunchakuLook.cs)
                 DrawNodIdle(p, t);  // the Nodachi at the ready or mid-step (NodachiLook.cs)
+                DrawVgIdle(p, t);  // the Vowguard's sword and shield at the ready or mid-step (VowguardLook.cs)
                 DrawKnucklePrompt(p, t);  // the Arc Knuckles' dash chain: Fire now (ArcKnucklesLook.cs)
                 DrawKnuckleLock(p, t);  // the Arc Knuckles' lock-on reticle (ArcKnucklesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
@@ -694,6 +695,12 @@ namespace Arena
             var v = CanvasPx(glShift + p * glZoom);
             v.x += shakeX - leanPxX;  // screen shake (Juice.cs) and camera lean (CameraLean.cs) while the world is drawn; 0 otherwise
             v.y += shakeY + leanPxY;  // (GL's y runs up the screen, the arena's runs down)
+            if (punchK > 0f)
+            {
+                float cx = punchX - leanPxX, cy = punchY + leanPxY;  // the Twin Rifle's punch: a hair bigger round you (TwinRifleFx.cs)
+                v.x = cx + (v.x - cx) * (1f + punchK);
+                v.y = cy + (v.y - cy) * (1f + punchK);
+            }
             return v;
         }
 

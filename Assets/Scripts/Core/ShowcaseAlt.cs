@@ -99,7 +99,8 @@ namespace Arena
             { WeaponId.Kusarigama, (g, me, t, dt) => Hold(t, 6f, 1f, 2.5f) },        // the whirl, held; let go for the snap
             { WeaponId.FumaShuriken, (g, me, t, dt) => Tap(t, dt, 6f, 1.5f) || Tap(t, dt, 6f, 4.5f) },  // Orbit, then Throw again
             { WeaponId.Katana, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },            // the stance switch
-            { WeaponId.Nodachi, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },           // the stance switch
+            { WeaponId.Nodachi, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },
+            { WeaponId.Vowguard, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },        // the stance switch           // the stance switch
             { WeaponId.Kunai, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },             // blink to the mark
             { WeaponId.Shuriken, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the fan to the Great Star and back
             { WeaponId.Nunchaku, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the guard up, then down

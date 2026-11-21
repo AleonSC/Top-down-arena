@@ -120,6 +120,7 @@ namespace Arena
         public int Kills, BossKills;  // public records shown on the inspect card (client-reported, cosmetic)
         public byte NameFx;   // their equipped name effect: 0 none, else Rank.NameFxIndex (how their name is drawn, Game/NameEffects.cs)
         public byte[] Skins = Expertise.NoSkins;  // their weapon skins: pairs of (weapon, skin index), Expertise.Pack (everyone draws and hears them)
+        public byte[] Chain = VowguardMotion.DefaultPack;  // their Vowguard chains (VowguardMotion.Pack; the lobby's chain editor, Game/VowguardUi.cs)
         public byte CardBg;   // their equipped card background: 0 none, else Rank.CardBgIndex (the fill of their party card)
         public PerkId[] PerkIds = Perks.Empty;      // the perks they will bring (Perks.cs): what they picked, or on a continued run what their seat was saved with
         public PerkId[] ChosenPerks = Perks.Empty;  // host: what they picked (sanitised); PerkIds follows it unless a saved run overrides
@@ -134,7 +135,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 452;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 453;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -205,7 +206,8 @@ namespace Arena
             Leave("");
             Net = NetPeer.Offline();
             MyId = 1;
-            Lobby[1] = new LobbyEntry { Id = 1, Name = "Preview", Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability), Wild = (byte)wild, Ult = (byte)ClampUltByte(ult) };
+            Lobby[1] = new LobbyEntry { Id = 1, Name = "Preview", Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability), Wild = (byte)wild, Ult = (byte)ClampUltByte(ult),
+                Chain = VowguardMotion.Clean(Game?.Profile?.VgChain) };  // (the lobby's preview plays your own Vowguard chains)
             ClampLoadout(Lobby[1]);
             for (int k = 0; k < Math.Min(2, allies); k++)
                 Lobby[2 + k] = new LobbyEntry { Id = 2 + k, Name = "Ally " + (k + 1), Role = k == 0 ? Role.Dps : Role.Tank, Kit = Kit.Soldier, Weapon = 0, Ability = 0 };
@@ -748,6 +750,7 @@ namespace Arena
                     for (int pn = r.ReadByte(); pn > 0; pn--)
                         perkBytes.Add(r.ReadByte());
                     var skins = ReadSkins(r);
+                    var chain = ReadVgChain(r);
                     LobbyEntry who;
                     if (Lobby.TryGetValue(peer, out who))
                     {
@@ -759,6 +762,7 @@ namespace Arena
                         who.NameFx = Arena.Rank.Owns(rank, Arena.Rank.NameFxId(namefx)) ? (byte)namefx : (byte)0;
                         who.ChosenPerks = Perks.Sanitize(perkBytes);
                         who.Skins = skins;
+                        who.Chain = chain;
                         BroadcastLobby();
                     }
                     break;
@@ -1109,6 +1113,7 @@ namespace Arena
             me.NameFx = Arena.Rank.Owns(me.Rank, p.NameFx) ? Arena.Rank.NameFxIndex(p.NameFx) : (byte)0;
             me.ChosenPerks = Perks.Brought(p);
             me.Skins = Expertise.Pack(p);
+            me.Chain = VowguardMotion.Clean(p.VgChain);
             me.XpPct = (byte)Math.Round(Arena.Rank.Of(p.Xp).Fraction * 100f);
             me.BestWave = (short)Math.Min(9999, p.BestWave);
             me.Kills = p.Kills;
@@ -1142,6 +1147,7 @@ namespace Arena
             foreach (var id in mine)
                 w.Write((byte)id);
             WriteSkins(w, Expertise.Pack(p));
+            WriteVgChain(w, p.VgChain);
             SendToHost(Proto.End(w));
         }
 
@@ -1170,6 +1176,20 @@ namespace Arena
             w.Write((byte)n);
             for (int i = 0; i < n * 2; i++)
                 w.Write(pairs[i]);
+        }
+
+        /// Vowguard chains on the wire: the pack's length, then the pack (VowguardMotion.Pack); a broken one reads as the default.
+        public static void WriteVgChain(BinaryWriter w, byte[] pack)
+        {
+            pack = VowguardMotion.Clean(pack);
+            w.Write((byte)pack.Length);
+            w.Write(pack);
+        }
+
+        public static byte[] ReadVgChain(BinaryReader r)
+        {
+            int n = r.ReadByte();
+            return VowguardMotion.Clean(r.ReadBytes(n));
         }
 
         static byte[] ReadSkins(BinaryReader r)
@@ -1214,6 +1234,7 @@ namespace Arena
                 foreach (var id in e.PerkIds)
                     w.Write((byte)id);
                 WriteSkins(w, e.Skins);
+                WriteVgChain(w, e.Chain);
             }
             w.Write((int)Modifiers);
             Diff.Write(w);
@@ -1664,6 +1685,7 @@ namespace Arena
                             perkBytes.Add(r.ReadByte());
                         e.PerkIds = Perks.Sanitize(perkBytes);
                         e.Skins = ReadSkins(r);
+                        e.Chain = ReadVgChain(r);
                         Lobby[e.Id] = e;
                     }
                     SyncAvatars();
