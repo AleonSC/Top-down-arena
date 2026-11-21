@@ -803,11 +803,13 @@ namespace Arena
                         DrawWho();  // ProfilesUi.cs
                     else if (settingsOpen)
                     {
+                        DrawerIn("settings", true);  // clock first, as for the profile below
                         DrawMenuUnderDrawer(bgBig);
                         DrawSettings();
                     }
                     else if (profileOpen)
                     {
+                        DrawerIn("profile", true);  // start the window's clock first: the menu's fade-out under it reads WindowVis (a stale clock flashed the menu for a frame)
                         DrawMenuUnderDrawer(false);
                         DrawProfile();  // ProfileUi.cs
                     }
