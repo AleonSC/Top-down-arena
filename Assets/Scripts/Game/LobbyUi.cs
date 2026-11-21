@@ -717,7 +717,6 @@ namespace Arena
                         abilityChoice = 0;
                         ultChoice = 0;
                         wildSecond = 1;
-                        wildKey = 1;
                         wildTab = 0;
                         wildBrowseFor = -1;
                         detailSecond = false;
@@ -1089,7 +1088,7 @@ namespace Arena
         {
             bool calm = fxReduced;
             var ev = Event.current;
-            int second = Defs.WildSecond(me.Wild), key = 1;  // the Wildcard ability always sits on the 2nd ability key
+            int second = Defs.WildSecond(me.Wild);  // the Wildcard ability, on the 2nd ability key
             const int per = 3;  // weapons and abilities a class (Defs.WeaponsPerRole, Upgrades.FirstAbilityChoices)
             if (wildBrowseFor != me.Id)
             {
@@ -1198,7 +1197,7 @@ namespace Arena
                 if (DkKey(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
                 {
                     if (me.Weapon != idx)
-                        tgt.RequestWildcard(idx, me.Ability, second, key);
+                        tgt.RequestWildcard(idx, me.Ability, second);
                     if (self)
                         weaponChoice = idx;
                     detailSel = 0;
@@ -1236,7 +1235,7 @@ namespace Arena
                         a2 = idx;
                     }
                     if (a1 != me.Ability || a2 != second)
-                        tgt.RequestWildcard(me.Weapon, a1, a2, key);
+                        tgt.RequestWildcard(me.Weapon, a1, a2);
                     if (self)
                     {
                         abilityChoice = a1;

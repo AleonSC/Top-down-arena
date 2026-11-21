@@ -236,7 +236,6 @@ namespace Arena
             abilityChoice = f.Ability;
             ultChoice = f.Ult;
             wildSecond = Defs.WildSecond(f.Wild);
-            wildKey = Defs.WildKey(f.Wild);
             wildBrowseFor = -1;
             detailSel = 0;
             favNote = "Loaded \"" + f.Name + "\"";

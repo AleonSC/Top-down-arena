@@ -594,10 +594,10 @@ namespace Arena
         /// How many weapons (or 1st abilities) a Wildcard can pick from: every class's three DPS ones, numbered kit * 3 + choice.
         public const int WildcardChoices = KitCount * WeaponsPerRole;
 
-        /// A Wildcard's lobby "wild" byte: its Wildcard ability (0-17, same numbering as the first) and the key it sits on (1 the 2nd ability, 2 the 3rd, 3 the 4th).
+        /// A Wildcard's lobby "wild" byte: its Wildcard ability (0-17, same numbering as the first), which starts on the 2nd ability key.
+        /// (Older favourites also stored a key as 18 * (key - 1); WildSecond drops it.)
         public static int WildSecond(int wild) => wild % WildcardChoices;
-        public static int WildKey(int wild) => 1 + Math.Min(2, wild / WildcardChoices);
-        public static byte MakeWild(int second, int key) => (byte)(Math.Max(0, Math.Min(WildcardChoices - 1, second)) + WildcardChoices * (Math.Max(1, Math.Min(3, key)) - 1));
+        public static byte MakeWild(int second) => (byte)Math.Max(0, Math.Min(WildcardChoices - 1, second));
 
         public static WeaponDef Weapon(Role role, Kit kit, int index)
         {

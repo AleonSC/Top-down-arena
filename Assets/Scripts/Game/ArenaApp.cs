@@ -28,7 +28,7 @@ namespace Arena
         Role? joinRole;
         int weaponChoice, abilityChoice;
         int ultChoice;  // the key picked on the lobby's Ultimate row (LobbyEntry.Ult; 0 the default ultimate)
-        int wildSecond = 1, wildKey = 1;  // a Wildcard ability (0-17) and its key (1 the 2nd ability, 2 the 3rd, 3 the 4th); see Defs.MakeWild
+        int wildSecond = 1;  // a Wildcard ability (0-17), on the 2nd ability key; see Defs.MakeWild
         int wildTab;                      // the lobby's Wildcard picker: 0 edits the 1st ability, 1 the second
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, wasPaused;
@@ -199,7 +199,7 @@ namespace Arena
             else if (opts.TryGetValue("join", out v))
             {
                 addressText = v;
-                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond, wildKey), ultChoice);
+                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond), ultChoice);
             }
         }
 
