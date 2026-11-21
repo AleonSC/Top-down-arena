@@ -85,6 +85,7 @@ namespace Arena
         /// The Warhammer's slam radius for this player: Reach upgrades widen it, and Quake Hammer.
         public static float HammerR(Player p) => HammerRadius * MeleeReach(p, p.Weapon.Reach) / p.Weapon.Reach * p.Stats.HammerAreaMult;
 
+        const float HammerKnockMin = 30f, HammerKnockMax = 55f;  // the slam's shockwave push, px, by charge (it radiates from the slam's centre)
         const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
         // The Halberd: a thin 18-degree cone swept across 80 degrees in six steps.
         public const int HalberdSteps = 6;
@@ -131,6 +132,7 @@ namespace Arena
                         s.CircleAt = HammerCentre(s.Reach);
                         s.Power = c;
                         s.Stun = stun;
+                        s.Knock = HammerKnockMin + (HammerKnockMax - HammerKnockMin) * c;  // the shockwave: a charged slam shoves further
                         s.Heavy = true;
                         s.Thrust = true;
                         s.Delay = 0.2f * k;
@@ -539,7 +541,7 @@ namespace Arena
                 }
                 else if (knock > 0f && !Heavy(e))
                 {
-                    V2 away = (e.Pos - origin).Normalized();
+                    V2 away = (e.Pos - (circle && p.Weapon.Id == WeaponId.Warhammer ? circleAt : origin)).Normalized();  // the Warhammer's shockwave spreads from the slam's centre
                     KnockEnemy(e, (away.IsZero ? dir : away) * knock);  // slides (Knock.cs)
                 }
                 else if (knock < 0f && !Heavy(e))  // pulled in (Kusarigama), but never into you
