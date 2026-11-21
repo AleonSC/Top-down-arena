@@ -394,7 +394,6 @@ namespace Arena
         {
             public Rect r;
             public char door;   // the wall facing the menu ('t', 'r', 'b', 'l'), drawn with a doorway gap
-            public float delay; // seconds after the set starts
         }
 
         static MenuRoom Rm(float x, float y, float w, float h, char door) => new MenuRoom { r = new Rect(x, y, w, h), door = door };
@@ -424,40 +423,103 @@ namespace Arena
             new[] { Rm(14, 328, 64, 130, 'r'), Rm(808, 606, 96, 66, 'l') },
         };
 
-        const float RoomEvery = 9f, RoomBuild = 1.3f, RoomHold = 3.4f, RoomFold = 0.9f, RoomBoxAfter = 0.5f, RoomStagger = 0.15f;
+        // The rooms come one at a time: the first RoomDelay seconds after the screen shows (or the menu's intro ends), then one every
+        // RoomGap seconds. Each draws in over RoomBuild; once RoomMax are up, each new one starts as the oldest un-draws (RoomFold).
+        const float RoomDelay = 4f, RoomGap = 3.5f, RoomBuild = 1.3f, RoomFold = 0.9f;
+        const int RoomMax = 3;
 
-        /// GL: every RoomEvery seconds a set of rooms draws itself round the title, then round the box: each outline traced by a
-        /// bright pen point, then a faint grid and a scan line fill it; it holds, then un-draws. Off with Reduced effects.
+        float roomsStart;
+        int roomsFrame = -10;
+        MenuRoom[][] roomsLower;
+        readonly System.Collections.Generic.List<MenuRoom> roomPool = new System.Collections.Generic.List<MenuRoom>();
+        readonly System.Collections.Generic.List<int> roomSeq = new System.Collections.Generic.List<int>();
+
+        /// GL: the main menu's rooms (round the title and the box). Off with Reduced effects.
         void DrawMenuRooms(float t, float a) => DrawRooms(t, a, BoxRoomSets);
 
-        /// The rooms round the title, then a set from `lower` (round the menu box, or the Who's playing? rack and its Manage key).
+        /// GL: rooms drawing themselves round the title and round `lower` (the menu box, or the Who's playing? rack and its Manage key),
+        /// one at a time: each outline traced by a bright pen point, then a faint grid and a scan line fill it; it stays until RoomMax
+        /// newer ones are up, then un-draws as the next one starts. Each new room picks a spot clear of the ones still showing.
         void DrawRooms(float t, float a, MenuRoom[][] lower)
         {
             if (a <= 0f || fxReduced || !fxOn)
                 return;
-            int cycle = Mathf.FloorToInt(t / RoomEvery);
-            float age = t - cycle * RoomEvery;
-            if (Event.current.type == EventType.Repaint && cycle != roomsHeard && age < RoomBuild)
+            if (Time.frameCount - roomsFrame > 2 || !ReferenceEquals(lower, roomsLower))
             {
-                roomsHeard = cycle;
-                if (sounds != null)
-                    sounds.Play(Sfx.MenuRooms, 0.5f * a, Time.unscaledTime);  // quiet bleeps while the walls draw (MenuSoundBank.cs)
+                // the screen has just come up (or changed): start again, after a pause
+                roomsStart = t + RoomDelay;
+                roomsHeard = -1;
+                roomSeq.Clear();
+                if (!ReferenceEquals(lower, roomsLower))
+                {
+                    roomsLower = lower;
+                    roomPool.Clear();
+                    foreach (var set in TitleRoomSets)
+                        foreach (var m in set)
+                            AddRoomSpot(m);
+                    foreach (var set in lower)
+                        foreach (var m in set)
+                            AddRoomSpot(m);
+                }
             }
-            var titleSet = TitleRoomSets[(int)(Hash(cycle * 7 + 1) * TitleRoomSets.Length) % TitleRoomSets.Length];
-            var boxSet = lower[(int)(Hash(cycle * 7 + 4) * lower.Length) % lower.Length];
-            for (int i = 0; i < titleSet.Length; i++)
-                DrawRoom(titleSet[i], age - i * RoomStagger, t, a);
-            for (int i = 0; i < boxSet.Length; i++)
-                DrawRoom(boxSet[i], age - RoomBoxAfter - i * RoomStagger, t, a);
+            roomsFrame = Time.frameCount;
+            float e = t - roomsStart;
+            if (e < 0f || roomPool.Count == 0)
+                return;
+            int now = Mathf.FloorToInt(e / RoomGap);
+            if (now != roomsHeard && e - now * RoomGap < RoomBuild)
+            {
+                roomsHeard = now;
+                if (sounds != null)
+                    sounds.Play(Sfx.MenuRooms, 0.4f * a, Time.unscaledTime);  // quiet bleeps while its walls draw (MenuSoundBank.cs)
+            }
+            for (int k = Mathf.Max(0, now - RoomMax); k <= now; k++)
+                DrawRoom(roomPool[RoomAt(k)], e - k * RoomGap, RoomMax * RoomGap - RoomBuild, t, a);
+        }
+
+        void AddRoomSpot(MenuRoom m)
+        {
+            foreach (var o in roomPool)
+                if (o.r.x == m.r.x && o.r.y == m.r.y && o.r.width == m.r.width && o.r.height == m.r.height)
+                    return;
+            roomPool.Add(m);
+        }
+
+        /// Which spot the k-th room takes: a hashed pick, moved on past any spot that overlaps the rooms before it still on screen.
+        int RoomAt(int k)
+        {
+            while (roomSeq.Count <= k)
+            {
+                int i = roomSeq.Count, n = roomPool.Count, pick = (int)(Hash(i * 13 + 5) * n) % n;
+                for (int j = 0; j < n; j++)
+                {
+                    int c = (pick + j) % n;
+                    bool clear = true;
+                    for (int back = 1; back <= RoomMax && back <= i && clear; back++)
+                    {
+                        var o = roomPool[roomSeq[i - back]].r;
+                        var cr = roomPool[c].r;
+                        if (c == roomSeq[i - back] || (cr.x < o.xMax + 6f && cr.xMax > o.x - 6f && cr.y < o.yMax + 6f && cr.yMax > o.y - 6f))
+                            clear = false;
+                    }
+                    if (clear)
+                    {
+                        pick = c;
+                        break;
+                    }
+                }
+                roomSeq.Add(pick);
+            }
+            return roomSeq[k];
         }
 
         static readonly V2[] roomPts = new V2[16];
 
-        void DrawRoom(MenuRoom m, float age, float t, float a)
+        void DrawRoom(MenuRoom m, float age, float hold, float t, float a)
         {
             if (age <= 0f)
                 return;
-            float p = age < RoomBuild ? age / RoomBuild : age < RoomBuild + RoomHold ? 1f : 1f - (age - RoomBuild - RoomHold) / RoomFold;
+            float p = age < RoomBuild ? age / RoomBuild : age < RoomBuild + hold ? 1f : 1f - (age - RoomBuild - hold) / RoomFold;
             if (p <= 0f)
                 return;
             var r = m.r;
