@@ -501,6 +501,8 @@ namespace Arena
                 actingEnemy = e;  // its shots are stamped with it (Lightning Rod; LightningRod.cs)
                 e.T += dt;
                 TickKnock(e, dt);  // a push sliding (Knock.cs)
+                if (PitEnemy(e))
+                    continue;  // shoved into a pit: gone (Pits.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
                 TickSlow(e, dt);
                 if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
@@ -579,7 +581,11 @@ namespace Arena
                 if (mine)
                     PossessMoveEnemy(e, tpos, dt);  // your keys, or its own moves while it attacks (DevArena.cs)
                 else
+                {
+                    V2 stepFrom = e.Pos;
                     MoveEnemy(e, tpos, dt);
+                    KeepEnemyOffPits(e, stepFrom);  // walking never takes it into a pit (Pits.cs)
+                }
                 RoomsKeepHome(e);  // a mini-boss can't charge out of its locked room (Rooms.cs)
                 if (Battle && (e.DazeT > 0f || e.SmokeT > 0f))
                 {

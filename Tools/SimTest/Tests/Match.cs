@@ -547,11 +547,23 @@ static partial class Program
             for (int k = 0; k < 60; k++) host.Game.GrantUpgrade(id, U("Fortitude"));  // (enough to outlive the Warden: this test is about the recording)
             for (int k = 0; k < 25; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
         }
+        host.Game.GrantUpgrade(1, U("Regeneration"));  // (the difficulty's passive regeneration is 0: this makes sure the host regenerates)
         Run(s, dt, 600, () => host.Game.Wave >= 6 && host.Game.State == MatchState.Fighting || host.Game.State == MatchState.GameOver);  // (wave 5, then its boss)
         Console.WriteLine("  session test reached wave {0}, boss slot {1}, state {2}, run time {3:0}", host.Game.Wave, host.Game.BossSlot, host.Game.State, host.Game.RunTime);
         // Make sure someone has been hurt and regenerates, however cleanly the bots played (healing by source is checked below).
-        typeof(Game).GetMethod("Damage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-            .Invoke(host.Game, new object[] { host.Game.Players[1], 20f, "test" });
+        // (a shield, a dome or a dodge can take a hit: keep hitting until one lands, mid-wave, so the recorder sees the regeneration)
+        var hurt = typeof(Game).GetMethod("Damage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var p1 = host.Game.Players[1];
+        for (int tries = 0; tries < 40; tries++)
+        {
+            if (host.Game.State != MatchState.Fighting) { Run(s, dt, 0.5f); continue; }
+            float hpBefore = p1.Hp;
+            p1.ShieldHp = 0f;
+            hurt.Invoke(host.Game, new object[] { p1, 20f, "test" });
+            if (p1.Hp < hpBefore - 1f && !p1.Downed)
+                break;
+            Run(s, dt, 0.25f);
+        }
         Run(s, dt, 3);
         string path = host.Game.Recorder != null ? host.Game.Recorder.Path : null;
         // Saved as it goes: before anyone leaves, the file already holds the run so far (a closed window or crash keeps it).

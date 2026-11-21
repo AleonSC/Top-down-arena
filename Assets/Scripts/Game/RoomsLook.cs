@@ -344,6 +344,15 @@ namespace Arena
                 if (!core)
                     RimFrame(wd, i, M, 1f, line, true);
             }
+            foreach (var s in wd.Pits)  // the pits: black with a gold edge (PitLook.cs)
+            {
+                if (game.FogHidesStill(s.Pos))
+                    continue;
+                float pw = s.Round ? s.R : s.HW, ph = s.Round ? s.R : s.HH;
+                V2 q0 = M(s.Pos - new V2(pw, ph)), q1 = M(s.Pos + new V2(pw, ph));
+                MapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, new Rgba(1f, 0.82f, 0.4f, 0.8f));
+                MapRect(q0.X + 1f, q0.Y + 1f, q1.X - q0.X - 2f, q1.Y - q0.Y - 2f, new Rgba(0f, 0f, 0f, 0.9f));
+            }
             if (CoreArea(1))  // the core's one outline (GridRooms.cs)
             {
                 V2 c0 = M(new V2(Expansion.GridX0, Expansion.GridY0)), c1 = M(new V2(Expansion.GridX0 + 4 * Expansion.GridCell, Expansion.GridY0 + 3 * Expansion.GridCell));

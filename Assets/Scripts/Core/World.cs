@@ -45,6 +45,7 @@ namespace Arena
         public WorldPortal[] Portals;
         public WallSpan[] Spans;
         public Solid[] Cover;
+        public Solid[] Pits = new Solid[0];  // voids in the floor: a grid cell's pit variant (CellVariants.cs, Pits.cs). Not walls: shots fly over, bodies fall in
         public V2[] NodeSpots;             // the Expanding map's nodes (same order): where each stands now. A claimed chest or relic stands at the middle of its room (Expansion.NodeSpotIn); null if none
         public V2 Min, Max;                // the world's box
         public int Hub;                    // the hub's area index
@@ -250,6 +251,25 @@ namespace Arena
             }
         }
 
+        /// Steering spots round each pit (its corners, or eight round a round one), clear of the walls and of every pit.
+        void PitSpots(List<V2> wps, LayoutDef d)
+        {
+            const float gap = 30f;
+            foreach (var s in Pits)
+                for (int k = 0; k < (s.Round ? 8 : 4); k++)
+                {
+                    V2 p = s.Round ? s.Pos + V2.FromAngle(k * MathX.Pi / 4f) * (s.R + gap)
+                        : s.Pos + new V2((k & 1) == 0 ? -(s.HW + gap) : s.HW + gap, k < 2 ? -(s.HH + gap) : s.HH + gap);
+                    bool ok = p.X > Min.X && p.Y > Min.Y && p.X < Max.X && p.Y < Max.Y;
+                    foreach (var w in d.Solids)
+                        ok &= !Layouts.Inside(w, p, 18f);
+                    foreach (var q in Pits)
+                        ok &= !Layouts.Inside(q, p, 18f);
+                    if (ok)
+                        wps.Add(p);
+                }
+        }
+
         /// The boss cycle's floor plan with this world round it: the plan's own walls, pillars and crates stay in the hub
         /// (Docs/Rooms.md decision 11), its edge wall and gates go (the world's walls and doors take their place).
         public LayoutDef With(LayoutId hub)
@@ -293,6 +313,7 @@ namespace Arena
                 if (!tight)
                     wps.Add(p);
             }
+            PitSpots(wps, d);  // (round the pits too: steering walks round them, Pits.cs)
             // The portals: a steering spot in each, linked to its partner (LayoutRules.cs GraphFor), so enemies route through them.
             var links = new List<int>();
             var mouths = new List<PortalMouth>();

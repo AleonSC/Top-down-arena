@@ -33,7 +33,7 @@ Swarmer 906da2475e8ba6d1 at (686,450) phase 0 hp 1169 shots 0
 TaserGuard 6ee95d50c38c4598 at (707,143) phase 0 hp 0 shots 4
 SecurityGuard 88690bb27c8b6da8 at (479,441) phase 6 hp 0 shots 8
 Thug 41207e900c4135e2 at (647,450) phase 0 hp 805 shots 0
-Shiv 6139d7d1a32faab0 at (738,584) phase 1 hp 714 shots 0
+Shiv 60af6db8a0b89cbd at (788,597) phase 1 hp 707 shots 0
 Worker 4400616a14158a9b at (682,459) phase 0 hp 1127 shots 0
 Soldier d2b48b3bdf50b0af at (686,450) phase 1 hp 861 shots 0
 CombShield 0bfe7356c10506b0 at (924,412) phase 44 hp 977 shots 0
@@ -41,7 +41,7 @@ HoneyLobber f3c9d8c195d94faa at (511,588) phase 0 hp 0 shots 0
 Stinger 5fcecfaac7c71607 at (501,565) phase 0 hp 0 shots 4
 Needler 96637a91217c330c at (480,480) phase 6 hp 0 shots 8
 Bumble b8dbce031c392c52 at (647,450) phase 0 hp 805 shots 0
-Hornet 38b1aeaf6a75f370 at (912,370) phase 1 hp 721 shots 0
+Hornet f34f66956c1294b2 at (820,312) phase 1 hp 707 shots 0
 Wisp a39048dfc3e34997 at (688,450) phase 0 hp 1225 shots 0
 Acolyte 54901816e64c3c62 at (662,450) phase 3 hp 756 shots 0
 BoundWraith a779925856275a45 at (856,347) phase 0 hp 980 shots 0
@@ -65,7 +65,7 @@ Quarryman b49581e982ec6c41 at (690,450) phase 0 hp 1281 shots 0
 Stomper 6e14797e9fe33fee at (660,450) phase 0 hp 686 shots 0
 SlabBearer 6565dfa5c2c7db5b at (886,423) phase 44 hp 777 shots 0
 RockHurler 5eb054617cae9d79 at (542,259) phase 0 hp 0 shots 24
-Driller cef7b4ce3c5906d7 at (814,410) phase 2 hp 581 shots 0
+Driller 8b68a7f35cd8574d at (747,506) phase 2 hp 693 shots 0
 Geomancer b4fcc8c73a142422 at (588,690) phase 0 hp 0 shots 0
 CinderPriest f1739d9a22692402 at (494,353) phase 0 hp 0 shots 4
 RiotCaptain b5213b385ed95825 at (948,450) phase 0 hp 252 shots 48

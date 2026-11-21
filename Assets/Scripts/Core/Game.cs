@@ -1258,6 +1258,8 @@ namespace Arena
                 shoveT = 0f;
                 knockLeft = 0f;
             }
+            else
+                PitLocal(me, before);  // over a pit: fall, climb out on the rim (Pits.cs)
 
             for (int slot = 0; slot < held.Length; slot++)
             {

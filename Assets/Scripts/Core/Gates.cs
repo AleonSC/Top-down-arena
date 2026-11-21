@@ -184,7 +184,7 @@ namespace Arena
         {
             get
             {
-                var d = ActiveLayout;
+                var d = PitSteerLayout(ActiveLayout);  // (the pits as walls: enemies and bots walk round them, Pits.cs)
                 if (d == null || GateFits.Count == 0)
                     return d;
                 long mask = 0;
