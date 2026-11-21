@@ -31,8 +31,8 @@ namespace Arena
             drawScale = game.Running ? scale * WorldToUi : scale;
             if (game.Running)
                 DrawWorld();
-            else if (LobbyScanLeaving)
-                DrawScanLeaveBackdrop(Time.time);  // the menu's background above the scan line, the lobby's below (LobbyScanLeave.cs)
+            else if (LobbyCrtLeaving)
+                DrawCrtLeaveBackdrop(Time.time);  // squashed with the screen, the lobby's then the menu's (LobbyCrtLeave.cs)
             else
                 DrawMenuBackground(Time.time);
             GL.End();
@@ -709,7 +709,16 @@ namespace Arena
         }
 
         /// A point on the UI canvas (or, while the world is drawn, in the arena) in screen pixels.
-        Vector3 CanvasPx(V2 u) => new Vector3(offX + (u.X + uiShift.X) * drawScale, UnityEngine.Screen.height - (offY + (u.Y + uiShift.Y) * drawScale), 0f);  // (uiShift: a menu panel sliding, WindowAnim.cs)
+        Vector3 CanvasPx(V2 u)
+        {
+            float x = u.X + uiShift.X, y = u.Y + uiShift.Y;  // (uiShift: a menu panel sliding, WindowAnim.cs)
+            if (crtSquashOn)  // the lobby's power-cycle leave squashing the screen about its middle (LobbyCrtLeave.cs)
+            {
+                x = W / 2f + (x - W / 2f) * crtSqX;
+                y = H / 2f + (y - H / 2f) * crtSqY;
+            }
+            return new Vector3(offX + x * drawScale, UnityEngine.Screen.height - (offY + y * drawScale), 0f);
+        }
 
         /// Start drawing game models (GL) on top of the menus, in UI canvas coordinates. IMGUI draws in order
         /// on Repaint, so models land above the panels drawn before and below those drawn after. Returns

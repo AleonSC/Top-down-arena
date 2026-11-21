@@ -391,15 +391,15 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("CRTSTYLE") != null) set("crtStyle", int.Parse(Environment.GetEnvironmentVariable("CRTSTYLE")));
       if (crtIn != null) set("enterT", float.Parse(crtIn, System.Globalization.CultureInfo.InvariantCulture));
       Action<string> crtDraw = n => { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod(n, f2, null, new[] { typeof(float) }, null).Invoke(app, new object[] { 7.3f }); };
-      // LOBBYSCAN=<seconds>: that far into leaving for the menu under the scan line (LobbyScanLeave.cs; 0 to 1.1).
-      var lobbyScan = Environment.GetEnvironmentVariable("LOBBYSCAN");
+      // LOBBYCRTOUT=<seconds>: that far into leaving for the menu through the CRT power-cycle (LobbyCrtLeave.cs; 0 to 1.05).
+      var lobbyScan = Environment.GetEnvironmentVariable("LOBBYCRTOUT");
       if (lobbyScan == null) crtDraw("DrawLobbyCrtBack");
       if (lobbyScan != null) {
-        set("leaveT", float.Parse(lobbyScan, System.Globalization.CultureInfo.InvariantCulture)); set("scanLeave", true);
+        set("leaveT", float.Parse(lobbyScan, System.Globalization.CultureInfo.InvariantCulture)); set("crtLeave", true);
         GL.Tris.Clear(); GL.ToUi = false; set("drawScale", 1f);
-        typeof(ArenaApp).GetMethod("DrawScanLeaveBackdrop", f2).Invoke(app, new object[] { 3.7f });
+        typeof(ArenaApp).GetMethod("DrawCrtLeaveBackdrop", f2).Invoke(app, new object[] { 3.7f });
         GL.ToUi = true; Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
-        typeof(ArenaApp).GetMethod("DrawLobbyScanLeave", f2).Invoke(app, null);
+        typeof(ArenaApp).GetMethod("DrawLobbyCrtLeave", f2).Invoke(app, null);
       }
       else if (crtIn != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEnteringCrt", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
       else if (lobbyBack != null) { set("returnT", float.Parse(lobbyBack, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyReturning", f2).Invoke(app, null); }
