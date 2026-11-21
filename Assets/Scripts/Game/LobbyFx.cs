@@ -273,6 +273,63 @@ namespace Arena
             Ui.Fill(new Rect(Mathf.Round(hp.x - 2f), Mathf.Round(hp.y - 2f), 4f, 4f), Color.Lerp(c, Color.white, 0.75f));
         }
 
+        /// The line across the loadout between the preview and picks above and the title and detail box below: a hairline in the role's
+        /// colour fading out at both ends over a soft glow band, end ticks, a diamond in the middle with two small ones beside it, and
+        /// (unless Reduced effects) a bright glint sweeping along it every few seconds.
+        void DrawLoadoutSeparator(float x0, float x1, float y, Color c, float t)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            bool calm = fxReduced;
+            y = Mathf.Round(y);
+            float w = x1 - x0, mid = Mathf.Round((x0 + x1) / 2f);
+            const int steps = 48;
+            for (int i = 0; i < steps; i++)  // the hairline and its glow, strongest in the middle
+            {
+                float u = (i + 0.5f) / steps, k = 1f - Mathf.Abs(u * 2f - 1f);
+                float a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(k * 2.2f));
+                float sx = x0 + w * i / steps, sw = w / steps + 1f;
+                if (!calm)
+                    Ui.Fill(new Rect(sx, y - 2f, sw, 5f), c.WithAlpha(0.07f * a));
+                Ui.Fill(new Rect(sx, y, sw, 1f), c.WithAlpha(0.65f * a));
+            }
+            for (int side = -1; side <= 1; side += 2)
+            {
+                float ex = side < 0 ? x0 : x1 - 2f;  // end ticks
+                Ui.Fill(new Rect(ex, y - 3f, 2f, 7f), c.WithAlpha(0.5f));
+                for (int n = 1; n <= 2; n++)  // the small diamonds beside the middle one
+                    Diamond(new Vector2(mid + side * (14f + n * 10f), y + 0.5f), 2f, c.WithAlpha(0.75f - n * 0.2f));
+                Ui.Fill(new Rect(side < 0 ? mid - 13f : mid + 8f, y, 5f, 1f), Color.Lerp(c, Color.white, 0.5f));
+            }
+            if (!calm)
+                Ui.Glow(new Rect(mid - 4f, y - 4f, 8f, 9f), c, 0.6f);
+            Diamond(new Vector2(mid, y + 0.5f), 6f, c);
+            Diamond(new Vector2(mid, y + 0.5f), 3f, Color.Lerp(c, Color.white, 0.8f));
+            if (calm)
+                return;
+            float g = (t % 5f) / 1.6f;  // the glint: 1.6 s across, then a rest
+            if (g < 1f)
+            {
+                float gx = x0 + w * Mathf.SmoothStep(0f, 1f, g), fade = Mathf.Sin(g * Mathf.PI);
+                for (int k = 0; k < 12; k++)
+                {
+                    float f = 1f - k / 12f;
+                    Ui.Fill(new Rect(gx - k * 4f, y, 4f, 1f), Color.Lerp(c, Color.white, 0.7f).WithAlpha(fade * f));
+                }
+                Ui.Glow(new Rect(gx - 2f, y - 1f, 4f, 3f), c, 0.8f * fade);
+            }
+        }
+
+        /// A filled pixel diamond centred on p, `r` px from the centre to each point.
+        static void Diamond(Vector2 p, float r, Color col)
+        {
+            for (int k = -(int)r; k <= (int)r; k++)
+            {
+                float half = r - Mathf.Abs(k);
+                Ui.Fill(new Rect(Mathf.Round(p.x - half), Mathf.Round(p.y + k - 0.5f), half * 2f + 1f, 1f), col);
+            }
+        }
+
         /// The point `d` px clockwise round r's edge from its top-left corner.
         static Vector2 RunnerAt(Rect r, float d)
         {

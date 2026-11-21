@@ -629,7 +629,8 @@ namespace Arena
             const float lw = 300f;
             var view = ShowcaseRect(r);
             DrawShowcase(me, view, roleColor);
-            DrawPreviewRunner(view, roleColor, t);  // the neon dot running round the frame (LobbyFx.cs)
+            DrawPreviewRunner(view, roleColor, t);
+            DrawLoadoutSeparator(view.x, r.x + 334f + 454f, r.y + SeparatorY, roleColor, t);  // across the loadout, over the bottom boxes (LobbyFx.cs)  // the neon dot running round the frame (LobbyFx.cs)
             DrawShowcaseZoom(view);  // (outside DrawShowcase: that returns early on every event but Repaint, and the slider needs the mouse events)
             if (!self)
             {
@@ -648,9 +649,9 @@ namespace Arena
                     partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
             // The role / class title (look B: the role small over the class), then the stats.
-            DrawRoleClassTitle(new Rect(lx, view.yMax + 8f, lw, 58f), me, roleColor, calm);
+            DrawRoleClassTitle(new Rect(lx, r.y + BottomTop, lw, 58f), me, roleColor, calm);
             if (self && session.Resume == null)
-                DrawPerksKey(new Rect(lx, view.yMax + 8f, lw, 58f), calm);  // PerksUi.cs: opens the Perks view
+                DrawPerksKey(new Rect(lx, r.y + BottomTop, lw, 58f), calm);  // PerksUi.cs: opens the Perks view
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
             previewPlayer.Role = me.Role;  // (set here too: the party cards' live models set it, but they can be paused)
@@ -658,7 +659,7 @@ namespace Arena
             previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
-            float sy = view.yMax + 72f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
+            float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
             LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
             LobbyKit.StatBar(new Rect(lx, sy + sStep, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
@@ -864,7 +865,7 @@ namespace Arena
             }
             EndCarousel();
 
-            float dy = view.yMax + 11f;  // level with the class title's letters under the preview
+            float dy = r.y + BottomTop + 3f;  // level with the class title's letters
             var ability = Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)));
             DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), me, wdef, ability, ult);
 

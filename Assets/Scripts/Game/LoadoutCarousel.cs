@@ -11,9 +11,11 @@ namespace Arena
         public const int CarClass = 0, CarWeapon = 1, CarAbility = 2, CarUlt = 3, CarRows = 4;
         const float CarKeyY = 31f, CarKeyH = 36f, CarRowStep = 74f;  // a row's keys under its heading, and one row to the next
         /// The loadout's grid: the right column's first heading (Role) is LoadoutTop below the body's top (just above it), so its
-        /// letters (HeadingInk lower) sit on the preview's top, PreviewTop down. The preview ends PreviewEnd down, where the class
-        /// title and the detail box start (kept where they were when the carousels moved up).
-        const float LoadoutTop = -1f, HeadingInk = 17f, LoadoutRows = 5f, PreviewTop = 16f, PreviewEnd = 379f;
+        /// letters (HeadingInk lower) sit on the preview's top, PreviewTop down. The preview ends on the Ultimate keys' bottom
+        /// (PreviewEnd), a separator runs across the gap (SeparatorY), and the class title and detail box start BottomTop down.
+        const float LoadoutTop = -1f, HeadingInk = 17f, LoadoutRows = 5f, PreviewTop = 16f, BottomTop = 387f;
+        const float PreviewEnd = LoadoutTop + (LoadoutRows - 1f) * CarRowStep + CarKeyY + CarKeyH - 1f;  // (its 1.5 px frame line centred on the keys' bottom edge)
+        const float SeparatorY = (PreviewEnd + 6f + BottomTop) / 2f;  // (between the carousel track and the boxes)
         const int ClassesInView = 4, KeysInView = 3;   // keys in view: classes (icon over name), weapons / abilities / ultimates
         /// The detail box's role and class pages (`detailSel`; 0-2 are the weapon, ability and ultimate).
         public const int DetailRole = 3, DetailClass = 4;
