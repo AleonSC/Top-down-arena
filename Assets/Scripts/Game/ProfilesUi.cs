@@ -19,7 +19,7 @@ namespace Arena
         List<ProfileInfo> whoList = new List<ProfileInfo>();
         bool profileChosen;           // a profile was picked on this screen: the name field now edits its name
 
-        const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 60f, WhoCardTop = 252f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
+        const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 60f, WhoCardTop = 280f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
         const int WhoSlots = ProfileStore.MaxProfiles;  // profile slots; the New profile box is the box after them
 
         /// Where box i sits (0 to 2: the slots; 3: New profile). Always four, so the layout never changes.
