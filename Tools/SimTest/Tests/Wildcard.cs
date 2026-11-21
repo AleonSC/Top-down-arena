@@ -10,13 +10,13 @@ static partial class Program
 {
     static void WildcardTest(float dt)
     {
-        // Picks: weapon = Ninja's second DPS weapon; first ability = Elementalist's first (Meteor); Wildcard ability = Hemomancer's first, on the 3rd slot.
+        // Picks: weapon = Ninja's second DPS weapon; first ability = Elementalist's first (Meteor); Wildcard ability = Hemomancer's first, on the 2nd slot.
         int weapon = (int)Kit.Ninja * Defs.WeaponsPerRole + 1;
         int first = (int)Kit.Elementalist * Defs.WeaponsPerRole;
         int second = (int)Kit.Hemomancer * Defs.WeaponsPerRole;
         int port = nextPort++;
         var host = new Session { AutoStart = 2 };
-        host.Host(port, "Host", Role.Wildcard, weapon, first, Kit.Soldier, Defs.MakeWild(second, 2), Upgrades.WildUlt(Kit.Ninja, 0));
+        host.Host(port, "Host", Role.Wildcard, weapon, first, Kit.Soldier, Defs.MakeWild(second), Upgrades.WildUlt(Kit.Ninja, 0));
         var client = JoinAs(port, false, "Friend", Role.Tank, 0);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
@@ -30,8 +30,8 @@ static partial class Program
         Check(p.Weapon.Id == Defs.Weapon(Role.Dps, Kit.Ninja, 1).Id, "the weapon is the Ninja's second DPS weapon");
         Check(p.FirstAbility == Upgrades.FirstAbility(Role.Dps, Kit.Elementalist, 0), "the first ability is the Elementalist's Meteor");
         var bonus = Upgrades.FirstAbility(Role.Dps, Kit.Hemomancer, 0);
-        Check(p.Slots[2].Id == bonus && p.Slots[1].Id == AbilityId.None && p.Slots[3].Id == AbilityId.None,
-            "the Wildcard ability sits on the 3rd slot (slot 2) and the 2nd and 4th are free");
+        Check(p.Slots[1].Id == bonus && p.Slots[2].Id == AbilityId.None && p.Slots[3].Id == AbilityId.None,
+            "the Wildcard ability sits on the 2nd slot (slot 1) and the 3rd and 4th are free");
         Check(p.Slots[Upgrades.UltSlot].Id == AbilityId.DeathLotus && p.WildKit == Kit.Ninja, "the ultimate is the one picked (the Ninja's Death Lotus), not the first ability's class's");
         Check(p.Slots.Length == Upgrades.SlotCount, "a Wildcard has the same number of ability slots");
 
@@ -46,11 +46,11 @@ static partial class Program
         // A client sees the same slots.
         Run(s, dt, 1, () => false);
         var seen = client.Game.Players[1];
-        Check(seen.Role == Role.Wildcard && seen.Slots[2].Id == bonus, "the client sees the Wildcard ability on the 3rd slot");
+        Check(seen.Role == Role.Wildcard && seen.Slots[1].Id == bonus, "the client sees the Wildcard ability on the 2nd slot");
 
         // Move the Wildcard ability to the 4th slot: charges follow, the key it left is free.
         g.SetAbilityKey(bonus, 3);
-        Check(p.Slots[3].Id == bonus && p.Slots[2].Id == AbilityId.None, "the Wildcard ability moves to the 4th slot");
+        Check(p.Slots[3].Id == bonus && p.Slots[1].Id == AbilityId.None, "the Wildcard ability moves to the 4th slot");
         Run(s, dt, 1, () => false);
         Check(client.Game.Players[1].Slots[3].Id == bonus, "the client sees it move");
 
@@ -62,14 +62,14 @@ static partial class Program
         lobby.RequestRole(Role.Wildcard);
         e = lobby.Lobby[1];
         Check(e.Role == Role.Wildcard && e.Kit == Kit.Soldier, "choosing Wildcard clears the class");
-        lobby.RequestWildcard(5, 4, 4, 2);
+        lobby.RequestWildcard(5, 4, 4);
         e = lobby.Lobby[1];
-        Check(Defs.WildSecond(e.Wild) != e.Ability && Defs.WildKey(e.Wild) == 2, "a Wildcard ability equal to the first is moved on, the key kept");
-        lobby.RequestWildcard(99, 99, 99, 9);
+        Check(Defs.WildSecond(e.Wild) != e.Ability, "a Wildcard ability equal to the first is moved on");
+        lobby.RequestWildcard(99, 99, 99);
         e = lobby.Lobby[1];
-        Check(e.Weapon < Defs.WildcardChoices && e.Ability < Defs.WildcardChoices && Defs.WildKey(e.Wild) == 3, "out-of-range Wildcard picks are clamped");
+        Check(e.Weapon < Defs.WildcardChoices && e.Ability < Defs.WildcardChoices && e.Wild < Defs.WildcardChoices, "out-of-range Wildcard picks are clamped");
         int knuckles = Defs.WildWeaponPick(Kit.Knight, 3);
-        lobby.RequestWildcard(knuckles, 2, 5, 1);
+        lobby.RequestWildcard(knuckles, 2, 5);
         e = lobby.Lobby[1];
         int barrel = Defs.WildWeaponPick(Kit.Soldier, 3);
         Check(barrel == Defs.WildcardChoices && Defs.Weapon(Role.Wildcard, Kit.Soldier, barrel).Id == WeaponId.DoubleBarrel,
