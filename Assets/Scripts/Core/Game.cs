@@ -233,7 +233,7 @@ namespace Arena
                 var kit = (Kit)r.ReadByte();
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
-                int wild = r.ReadByte();  // a Wildcard ability and its key (Defs.WildSecond / WildKey)
+                int wild = r.ReadByte();  // a Wildcard ability (Defs.WildSecond)
                 int ult = r.ReadByte();   // the Ultimate row's key (LobbyEntry.Ult)
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
@@ -250,7 +250,7 @@ namespace Arena
                 {
                     p.WildKit = Upgrades.UltKitOf(role, kit, p.UltPick);  // the class its Ultimate pick is from
                     p.WildcardAbility = Upgrades.FirstAbility(role, kit, Defs.WildSecond(wild));
-                    p.CardAbilities[Defs.WildKey(wild) - 1] = p.WildcardAbility;
+                    p.CardAbilities[0] = p.WildcardAbility;  // on the 2nd ability key
                 }
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;

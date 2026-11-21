@@ -16,7 +16,7 @@ namespace Arena
 
         /// The same picks as this seat (the drawer marks it EQUIPPED). Perks aren't compared: they live on the profile.
         public bool Matches(LobbyEntry e) => e != null && e.Role == Role && e.Kit == Kit && e.Weapon == Weapon && e.Ability == Ability
-            && e.Ult == Ult && (Role != Role.Wildcard || e.Wild == Wild);
+            && e.Ult == Ult && (Role != Role.Wildcard || Defs.WildSecond(e.Wild) == Defs.WildSecond(Wild));
     }
 
     /// Saved favourite loadouts, kept on the profile ("fav" lines, Profile format 8).
@@ -72,7 +72,7 @@ namespace Arena
         {
             s.RequestRole(f.Role);
             if (f.Role == Role.Wildcard)
-                s.RequestWildcard(f.Weapon, f.Ability, Defs.WildSecond(f.Wild), Defs.WildKey(f.Wild));
+                s.RequestWildcard(f.Weapon, f.Ability, Defs.WildSecond(f.Wild));
             else
             {
                 s.RequestKit(f.Kit);

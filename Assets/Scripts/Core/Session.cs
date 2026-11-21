@@ -108,7 +108,7 @@ namespace Arena
         public Kit Kit;       // Soldier, Elementalist or Summoner
         public byte Weapon;   // index into Defs.Weapon(Role, Kit, i)
         public byte Ability;  // index into Upgrades.FirstAbility(Role, Kit, i)
-        public byte Wild;     // Wildcard only: its Wildcard ability and the key it sits on (Defs.MakeWild)
+        public byte Wild;     // Wildcard only: its Wildcard ability, on the 2nd ability key (Defs.MakeWild)
         public byte Ult;      // the key picked on the Ultimate row: 0 the role and class's default ultimate, 1-3 another (Upgrades.Ultimate(role, kit, Ult)); a Wildcard's is always 0
         public Kit UltKit => Upgrades.UltKitOf(Role, Kit, Ult);  // whose ultimate you get (a Wildcard: the class in its Ult pick)
         public AbilityId UltId => Upgrades.Ultimate(Role, UltKit, Ult);  // the ultimate they will have on F
@@ -704,9 +704,9 @@ namespace Arena
                     break;
                 case Msg.WildcardRequest:
                 {
-                    int ww = r.ReadByte(), wa = r.ReadByte(), ws = r.ReadByte(), wk = r.ReadByte();
+                    int ww = r.ReadByte(), wa = r.ReadByte(), ws = r.ReadByte();
                     if (!Game.Running)
-                        SetWildcard(peer, ww, wa, ws, wk);
+                        SetWildcard(peer, ww, wa, ws);
                     break;
                 }
                 case Msg.ReadyRequest:
@@ -960,7 +960,7 @@ namespace Arena
             }
             e.Role = (Role)role;
             if (e.Role == Role.Wildcard)
-                e.Wild = Defs.MakeWild(1, 1);  // the 1st and Wildcard abilities differ; the Wildcard ability starts on the 2nd slot
+                e.Wild = Defs.MakeWild(1);  // the 1st and Wildcard abilities differ; the Wildcard ability starts on the 2nd slot
             ClampLoadout(e);
             e.Ready = false;  // changing your loadout takes back your Ready
             BroadcastLobby();
@@ -972,7 +972,7 @@ namespace Arena
         static int ClampUltByte(int ult) => ult >= 0 && ult < Defs.KitCount * Upgrades.UltKeys ? ult : 0;  // (a Wildcard's runs to 23; checked against the role and class by ClampLoadout)
 
         /// Puts an entry's picks in range for its role: three weapons (four where the class has a fourth) and abilities for a normal role, eighteen for a Wildcard
-        /// (plus a second ability that differs from the first, on a key from 1 to 3).
+        /// (plus a second ability that differs from the first, always on the 2nd ability key).
         static void ClampLoadout(LobbyEntry e)
         {
             if (e.Role == Role.Wildcard)
@@ -985,7 +985,7 @@ namespace Arena
                 int first = Defs.WildSecond(e.Ability), second = Defs.WildSecond(e.Wild);
                 if (second == first)
                     second = (second + 1) % Defs.WildcardChoices;
-                e.Wild = Defs.MakeWild(second, Defs.WildKey(e.Wild));
+                e.Wild = Defs.MakeWild(second);
                 e.Ult = (byte)Upgrades.ClampUlt(Role.Wildcard, e.Kit, e.Ult);  // any class's DPS ultimate: class * UltKeys + key (Upgrades.WildUlt)
             }
             else
@@ -1043,14 +1043,14 @@ namespace Arena
         }
 
         /// A Wildcard's whole loadout in one go (the lobby sends this instead of the separate requests).
-        void SetWildcard(int id, int weapon, int ability, int second, int key)
+        void SetWildcard(int id, int weapon, int ability, int second)
         {
             LobbyEntry e;
             if (!Lobby.TryGetValue(id, out e) || Resume != null || e.Role != Role.Wildcard)
                 return;
             e.Weapon = (byte)ClampWeapon(weapon);
             e.Ability = (byte)ClampAbility(ability);
-            e.Wild = Defs.MakeWild(second, key);
+            e.Wild = Defs.MakeWild(second);
             ClampLoadout(e);
             e.Ready = false;
             BroadcastLobby();
@@ -1567,12 +1567,12 @@ namespace Arena
             }
         }
 
-        /// A Wildcard's whole loadout: weapon and 1st ability (0-17: kit * 3 + choice), Wildcard ability (same), and its key (1 the 2nd ability, 2 the 3rd, 3 the 4th).
-        public void RequestWildcard(int weapon, int ability, int second, int key)
+        /// A Wildcard's whole loadout: weapon and 1st ability (0-17: kit * 3 + choice), and Wildcard ability (same; it starts on the 2nd ability key).
+        public void RequestWildcard(int weapon, int ability, int second)
         {
             if (IsHost)
             {
-                SetWildcard(1, weapon, ability, second, key);
+                SetWildcard(1, weapon, ability, second);
             }
             else
             {
@@ -1580,7 +1580,6 @@ namespace Arena
                 w.Write((byte)weapon);
                 w.Write((byte)ability);
                 w.Write((byte)second);
-                w.Write((byte)key);
                 SendToHost(Proto.End(w));
             }
         }
