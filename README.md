@@ -55,6 +55,8 @@ no hover tips.
   health; full health (see below).
 - **Engineer** (a locked class: win a run to unlock it; open to everyone for now): a builder who works in vectors; one robot weapon, one 1st ability and one ultimate per role for now (its other keys
   are locked); full health, 95% speed (see below).
+- **Arcanist**: telekinesis, runes and enchantments; one weapon, one 1st ability and one ultimate per role for now (its other keys
+  are locked); 90% health (see below).
 
 | | Soldier | Elementalist | Summoner |
 |---|---|---|---|
@@ -199,6 +201,50 @@ Its health grows 8% a wave and it is patched up between waves.
 - **Vector Blade** (DPS): the **Assault Bot** (380 health, draws enemies from 150 px) fires a rapid rivet gun (11, 0.22 s).
   The basic attack is a melee swipe of a cyan blade in front of you (88 px) for 24, every 0.4 s. Each extra projectile: the
   swipe reaches 12 px further.
+
+### The Arcanist
+
+A mage of telekinesis, runes and enchantments: violet force and gold glyphs (Docs/Arcanist.md). Each role has one weapon, one
+1st ability and one ultimate for now; the lobby locks its other keys. It wears indigo robes and a deep hood with a gold
+circlet, small runes drifting round its head. 90% health, normal speed.
+
+- **Kinetic Field** (passive): enemy bullets within 90 px of an Arcanist fly at 75% speed (a faint dashed ring shows it).
+
+The **Tank** Arcanist:
+
+- **Orbit Shards** (weapon): four violet crystal shards circle you (44 px), cutting small enemy bullets out of the air. Fire
+  flings the shard most in front of you at your cursor (up to 360 px; Piercing Rounds send it farther): it cuts everything it
+  passes for 18 on the way out and again on the way back. Hold **Alt** for **Shard Guard**: the shards pull in tight and spin
+  fast, every bullet that reaches their ring (46 px) stops (not bosses' aimed shots), and you move at 55% speed and can't fling
+  them. Each extra projectile: +1 shard, and one more flung with each click.
+- **Kinetic Grasp** (1st ability, 10 s): lifts the biggest enemy (not a boss) within 150 px of your cursor (and 450 px of you)
+  and holds it in front of you, stunned, as a shield: each bullet that hits it is stopped and hurts it for 10. Press again, or
+  wait 4 s, to throw it along your aim (up to 380 px): it and the enemy it hits take 50, the one hit is knocked back and
+  stunned (0.6 s). Nothing in reach: 80% of the cooldown comes back. Mastered: the throw hits 50% harder and stuns twice as long.
+- **Grand Sigil** (ultimate, 75 s): a 200 px rune circle round you for 8 s. Enemies inside are bound for 1 s (not bosses),
+  then slowed by half (bosses 20%) and drawn to you. Enemy bullets freeze where they meet its rim; when it ends, every frozen
+  bullet (up to 80) flies straight back out as a spectral blade (14). Mastered: 12 s.
+
+The **Healer** Arcanist:
+
+- **Glyph Stylus** (weapon): writes gold rune bolts (10, 0.26 s) that go through two enemies; one that passes through an
+  ally heals them for 7. Each extra projectile: +1 bolt, fanned out.
+- **Arcane Tether** (1st ability, 12 s): pulls the ally nearest your cursor (up to 480 px, downed or not) to your side. They
+  can't be hurt on the way and are healed for 30. Nobody in reach: 80% of the cooldown comes back. Mastered: heals 60.
+- **Sanctum Sigil** (ultimate, 80 s): a 170 px healing circle follows you for 8 s: allies inside heal 25 a second. Six runes
+  turn on its rim; each bursts on the first enemy to touch it (50 damage within 70 px and a shove) and is spent. Mastered: 12 s.
+
+The **DPS** Arcanist:
+
+- **Dancing Blades** (weapon): three enchanted swords hover behind you. Fire launches the one most in front at your cursor
+  (up to 380 px; it homes onto the enemy nearest the cursor, within 70 px): it cuts what it passes (5), then dances on the
+  spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. **Alt** calls every blade home at
+  once, cutting on the way. Each extra projectile: +1 blade.
+- **Telekinetic Crush** (1st ability, 9 s): lifts the enemies at your cursor (120 px, up to 400 px away) and pulls them
+  together for half a second (bosses aren't lifted), then slams: 40 damage, +12 for each other enemy caught (up to +60), and a
+  0.4 s stun. Mastered: it grabs 40% wider.
+- **Runic Array** (ultimate, 65 s): four gold sigils open behind you for 6 s. Every Fire also sends a spectral blade from each
+  at your cursor (16, through one enemy), even while your blades are out. Mastered: 9 s.
 
 ### Weapons
 

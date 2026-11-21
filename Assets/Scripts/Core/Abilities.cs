@@ -72,6 +72,12 @@ namespace Arena
                 EndBloodWall(p);
                 return;
             }
+            if (GraspRelease(p, slot))  // Kinetic Grasp pressed again: the held enemy is thrown (no cooldown spent; Arcanist.cs)
+            {
+                p.Run.AbilitiesUsed++;
+                ThrowGrasp(p);
+                return;
+            }
             if (SteelRelease(p, slot))  // Caught Steel pressed again: the cut throws the shards (no cooldown spent for the press)
             {
                 p.Run.AbilitiesUsed++;

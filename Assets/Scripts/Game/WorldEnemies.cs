@@ -278,6 +278,15 @@ namespace Arena
                 case ZoneKind.SafeRoom:
                     DrawSafeRoom(z, t);  // EngineerLook.cs (its own time ring)
                     return;
+                case ZoneKind.GrandSigil:
+                    DrawGrandSigil(z, t);  // ArcanistLook.cs (its own time ring)
+                    return;
+                case ZoneKind.SanctumSigil:
+                    DrawSanctumSigil(z, t);  // ArcanistLook.cs (its own time ring)
+                    return;
+                case ZoneKind.ArcCrush:
+                    DrawArcCrush(z, t);  // ArcanistLook.cs
+                    return;
                 case ZoneKind.Flood:
                     DrawFlood(z, t);  // FloodLook.cs (its own time ring when Visual effects are off)
                     return;
@@ -423,6 +432,16 @@ namespace Arena
             if (m.Kind == MinionKind.ThrownScythe)
             {
                 DrawThrownScythe(m, t);  // ReaperLootLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.ArcShard)
+            {
+                DrawArcShard(m, t);  // ArcanistLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.ArcBlade)
+            {
+                DrawArcBlade(m, t);  // ArcanistLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Wolf)

@@ -1301,7 +1301,8 @@ namespace Arena
                 bool wallOut = WallRelease(me, slot);  // Blood Wall pressed again: the host stops it (BloodWall.cs)
                 bool galeOut = GalePress(me, slot);  // Gale Wall pressed again: the host unleashes it (GaleWall.cs)
                 bool turretOut = TurretPress(me, slot);  // Deployable Turret pressed again: the host lets you out (DeployableTurret.cs)
-                if (!turretOut && !galeOut && !orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
+                bool graspOut = GraspRelease(me, slot);  // Kinetic Grasp pressed again: the host throws the held enemy (Arcanist.cs)
+                if (!graspOut && !turretOut && !galeOut && !orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)

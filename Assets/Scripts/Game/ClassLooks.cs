@@ -29,6 +29,8 @@ namespace Arena
                           Shot = (a, b, c, t) => a.DrawBloodShot(b, c, t) },
             new KitLook { Body = (a, p, r, t, col) => a.DrawEngineerBody(p, r, t),             // Engineer (EngineerModel.cs)
                           Shot = (a, b, c, t) => a.DrawEngineerShot(b, c, t) },
+            new KitLook { Body = (a, p, r, t, col) => a.DrawArcanistBody(p, r, t, col),       // Arcanist (ArcanistLook.cs)
+                          Shot = (a, b, c, t) => a.DrawArcanistShot(b, c, t) },
         };
 
         static KitLook LookOf(Kit k)

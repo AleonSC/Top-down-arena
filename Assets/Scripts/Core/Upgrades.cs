@@ -46,6 +46,7 @@ namespace Arena
         DecoyDummy,    // the Healer Soldier's 4th choice (DecoyDummy.cs), the lobby's 4th choice
         DeployableTurret,  // the DPS Soldier's 4th choice (DeployableTurret.cs), the lobby's 4th choice
         ThornBloom,    // the DPS Hemomancer's 4th choice (ThornBloom.cs), the lobby's 4th choice
+        KineticGrasp, GrandSigil, ArcaneTether, SanctumSigil, TelekineticCrush, RunicArray,  // the Arcanist's 1st abilities and ultimates (Arcanist.cs)
         None = 255,
     }
 
