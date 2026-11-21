@@ -1215,7 +1215,11 @@ namespace Arena
                 }
             }
             if ((Props.Count > 0 || LayoutOn) && !me.Downed)
+            {
+                V2 kickWant = me.Pos;
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
+                WallKick(me, kickWant);  // a Dodge into it bounces off (Dodge.cs)
+            }
             // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
@@ -1368,7 +1372,10 @@ namespace Arena
             LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
-            me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
+            V2 edgeWant = RoomsHold(before, me.Pos, me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
+            me.Pos = KeepInArena(edgeWant, me.Def.BodyR);
+            if (Walled)
+                WallKick(me, edgeWant);  // a Dodge into the arena's wall bounces off (Dodge.cs)
             me.Pos = KeepInMarshalCircles(before, me.Pos, me.Def.BodyR);  // a Marshal's circle holds you (CourtFaction.cs)
             me.Pos = RoomsPortal(me.Pos, ref me.PortalT, dt, me.Def.BodyR);  // wraparound portals (Rooms.cs)
             if (me.Pos.FartherThan(before, 600f))

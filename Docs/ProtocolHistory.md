@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 455: pits: `Msg.PitFall` (client -> host: fell at, climbed out at), `FxKind.PitFall`; a grid cell's pit variant is rolled from its place (no wire data)
+- 455: `Msg.Dodge` ends with a bool: the free dodge a wall kick gave back (the host lets it in under the cooldown)
 - 454: `Msg.Input` ends with a bool, the sender's `Game.Bot` (host: `Player.IsBot`), so the cursor pickup skips bots
 - 453: the Vowguard (Healer Knight's fourth weapon): `WeaponId.Vowguard`, `FxKind.VgStep`/`VgDome`, Alt kind 51 (`DashVgStance`); the player snapshot adds `VgStance`, `VgAtV`, `VgAtS`, `VgMoveId`, `VgCount`, `VgFaith`, `VgDashTo`; `Msg.Cosmetics`, `Msg.Lobby` and `Msg.Start` carry each player's chain pack (a length byte, then `VowguardMotion.Pack`)
 - 452: the Rioter's sounds `Sfx.RiotYell`, `RiotAttack`, `RiotHup`, `RiotWhoosh`, `RiotShatter`, `RiotDie`, `RiotStep` added at the end (the bottle's throw now sends `RiotWhoosh` instead of `Throw`; the rest played locally, never sent)

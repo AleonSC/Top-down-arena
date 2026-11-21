@@ -290,6 +290,20 @@ static partial class Shot {
         en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle; en.Phase = phases[i];
       }
     }
+    if (Environment.GetEnvironmentVariable("THUGRAGE") != null) {
+      // THUGRAGE=1: four Thugs at full, 2/3, 1/3 and 5% health, left to right: the red halo growing as they enrage
+      // (OfficerGlowLook.cs); mode hud, NINJA=0 ZOOM=3.
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(1010f, 690f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var hp = new[] { 1f, 0.66f, 0.33f, 0.05f };
+      for (int i = 0; i < hp.Length; i++) {
+        var at = new V2(1010f + (i - 1.5f) * 80f, 600f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.Thug, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle; en.Hp = en.MaxHp * hp[i];
+      }
+    }
     if (Environment.GetEnvironmentVariable("GUARD") != null) {
       // GUARD=1: the riot Guard (WardenLook.cs DrawGuardBody, GuardSwing.cs) walking, drawing back a forehand, mid-forehand,
       // drawing back a backhand, mid-backhand, left to right, each facing you below; mode hud with KNIGHT=1 ZOOM=2.6.
