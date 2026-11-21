@@ -343,6 +343,8 @@ namespace Arena
             var inner = DockBox(r, "View and helpers");
             var col = DkStack.Column(inner, 6f);
             aimDebug = DockSwitch(col.Next(28f), aimDebug, "Aim debug overlay", "F3");
+            devNames = DockSwitch(col.Next(28f), devNames, "Name labels (everyone and every enemy)", "N");
+            DrawDevTrapControls(col, inMatch);
             bool editText = DockSwitch(col.Next(28f), textEditMode, "Edit any text on screen", "F4");
             if (editText != textEditMode)
             {

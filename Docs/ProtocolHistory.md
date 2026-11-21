@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 457: `Msg.DevTraps` (host -> all): the Dev Kit's hand-placed traps, the whole list (count; kind, x, y, half width, half height each)
 - 456: pits: `Msg.PitFall` (client -> host: fell at, climbed out at), `FxKind.PitFall`; a grid cell's pit variant is rolled from its place (no wire data)
 - 455: `Msg.Dodge` ends with a bool: the free dodge a wall kick gave back (the host lets it in under the cooldown)
 - 454: `Msg.Input` ends with a bool, the sender's `Game.Bot` (host: `Player.IsBot`), so the cursor pickup skips bots

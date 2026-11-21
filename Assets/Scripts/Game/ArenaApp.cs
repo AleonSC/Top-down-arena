@@ -444,6 +444,9 @@ namespace Arena
                 SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
                 aimDebug = !aimDebug;  // aim debug overlay
+            if (Input.GetKeyDown(KeyCode.N) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game && !(game.RetryReady && game.State == MatchState.GameOver))
+                devNames = !devNames;  // name labels over everyone (Hud.cs)
+            TickDevTrapClicks();  // click to place a Dev Kit trap (DevTrapUi.cs)
             if (Input.GetKeyDown(KeyCode.F2) && session.Screen != AppScreen.Game)
                 OpenLogFolder();  // outside a run F2 opens the folder holding Player.log
             TextEditKeys();  // F4: the dev text editor
@@ -656,7 +659,7 @@ namespace Arena
             {
                 Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
                 AimAt = MouseArena(),
-                Fire = Keybinds.Held(KeyAction.Fire) && !fireBlocked,
+                Fire = Keybinds.Held(KeyAction.Fire) && !fireBlocked && !DevTrapPlacing,
                 Ability = wantAbility[0] || Keybinds.Held(KeyAction.Ability1),
                 AbilityQ = wantAbility[1] || Keybinds.Held(KeyAction.Ability2),
                 AbilityE = wantAbility[2] || Keybinds.Held(KeyAction.Ability3),

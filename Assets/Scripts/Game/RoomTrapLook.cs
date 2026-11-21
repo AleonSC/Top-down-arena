@@ -10,7 +10,7 @@ namespace Arena
 
         void DrawRoomTraps(float t)
         {
-            if (!game.ExpandingOn)
+            if (!game.ExpandingOn && game.DevTrapCount == 0)
                 return;
             foreach (var tr in game.RoomTrapList)
             {

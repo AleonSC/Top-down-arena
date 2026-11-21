@@ -160,6 +160,9 @@ namespace Arena
                 case Msg.ExpandState:
                     ReadExpandState(r);
                     break;
+                case Msg.DevTraps:
+                    ReadDevTraps(r);  // DevTraps.cs
+                    break;
                 case Msg.TrapHit:
                     ReadTrapHit(r);  // RoomTraps.cs
                     break;

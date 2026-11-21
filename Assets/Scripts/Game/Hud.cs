@@ -49,6 +49,7 @@ namespace Arena
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).
             bool banner = game.State == MatchState.Intermission && (me == null || me.Offer == null);
+            DrawDevNames();  // the name labels overview (DevTrapUi.cs)
             foreach (var p in game.Players.Values)
             {
                 float r = p.Def.BodyR;
