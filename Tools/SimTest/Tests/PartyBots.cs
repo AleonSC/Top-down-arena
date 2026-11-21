@@ -131,6 +131,7 @@ static partial class Program
         run(12f, () =>
         {
             tank.StandOn = true;  // planted (the plates themselves aren't needed to see where the bot goes)
+            g.Enemies.Clear(); g.Bullets.Clear();  // (no enemies: the wave's would crowd the tank in some seeds, and dodging them outweighs the lee)
             tank.Pos = new V2(Game.Width / 2f, Game.Height / 2f);
             tank.Hp = tank.MaxHp; bot.Hp = bot.MaxHp;
             if (g.State == MatchState.Fighting && ++frames > 8 * 60)  // the last 4 s
