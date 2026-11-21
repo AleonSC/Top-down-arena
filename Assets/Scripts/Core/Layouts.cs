@@ -170,6 +170,33 @@ namespace Arena
 
         static LayoutDef Make(LayoutId id, string name, string blurb, EdgeGates edge, List<Solid> solids, List<LayoutCrate> crates, bool[] spawn = null)
         {
+            HubLayoutEdits.Committed(id, ref solids, ref crates);  // (edits folded into the code: HubLayouts.Generated.cs)
+            return MakeRaw(id, name, blurb, edge, solids, crates, spawn);
+        }
+
+        /// The walls and crates `d` was built from (not the edge wall).
+        public static void PartsOf(LayoutDef d, out List<Solid> solids, out List<LayoutCrate> crates)
+        {
+            solids = new List<Solid>();
+            foreach (var s in d.Solids)
+                if (!s.Edge)
+                    solids.Add(s);
+            crates = new List<LayoutCrate>(d.Crates);
+        }
+
+        /// Put new walls and crates in a floor plan (the Cell Editor's Hub tab): same name, edge gates and spawn sides, its corners made again.
+        public static void Replace(LayoutId id, List<Solid> solids, List<LayoutCrate> crates)
+        {
+            var old = defs[(int)id];
+            var d = MakeRaw(id, old.Name, old.Blurb, old.Edge, solids, crates, old.SpawnSide);
+            d.HasHold = old.HasHold;
+            d.HoldPos = old.HoldPos;
+            d.HoldR = old.HoldR;
+            defs[(int)id] = d;
+        }
+
+        static LayoutDef MakeRaw(LayoutId id, string name, string blurb, EdgeGates edge, List<Solid> solids, List<LayoutCrate> crates, bool[] spawn)
+        {
             var d = new LayoutDef { Id = id, Name = name, Blurb = blurb, Edge = edge, Crates = crates.ToArray() };
             if (spawn != null)
                 d.SpawnSide = spawn;

@@ -434,6 +434,7 @@ namespace Arena
 
         void ResetExpansion()
         {
+            CellLayouts.ClearForced();  // (a layout test's cells, LayoutTest.cs)
             RoomTokens.Clear();
             duelBoss.Clear();  // (GatekeeperRoom.cs: a duel from the last run's map must not outlive it)
             floatCycle = -1;
