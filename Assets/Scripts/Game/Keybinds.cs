@@ -94,20 +94,22 @@ namespace Arena
             return false;
         }
 
-        /// How many number keys (1, 2, ...) the upgrade picker (its cards) and the emote bar (its slots) are using right now,
+        /// How many number keys (1, 2, ...) the upgrade picker (its cards), the emote bar (its slots) and a number-key screen (SetScreenNumbers) are using right now,
         /// set each frame by ArenaApp.Update and EmoteBar.TickEmoteBar. An action bound to one of those keys sits out meanwhile.
         /// A count not set this frame or the last has gone stale (the screen that set it has closed) and counts as 0.
-        static int pickerNumbers, emoteNumbers, pickerFrame = -10, emoteFrame = -10;
+        static int pickerNumbers, emoteNumbers, screenNumbers, pickerFrame = -10, emoteFrame = -10, screenFrame = -10;
 
         public static void SetPickerNumbers(int n) { pickerNumbers = n; pickerFrame = Time.frameCount; }
         public static void SetEmoteNumbers(int n) { emoteNumbers = n; emoteFrame = Time.frameCount; }
+        /// A screen drawn in OnGUI that picks with the number keys (the Hunt map's vote, the build window's tool rail): set each time it draws.
+        public static void SetScreenNumbers(int n) { screenNumbers = n; screenFrame = Time.frameCount; }
 
         static bool NumberTaken(KeyAction a, KeyCode k)
         {
             if (k < KeyCode.Alpha1 || k > KeyCode.Alpha9)
                 return false;
             int n = k - KeyCode.Alpha0;
-            if (Time.frameCount - pickerFrame <= 1 && n <= pickerNumbers)
+            if (Time.frameCount - pickerFrame <= 1 && n <= pickerNumbers || Time.frameCount - screenFrame <= 1 && n <= screenNumbers)
                 return true;
             return a != KeyAction.Emote && Time.frameCount - emoteFrame <= 1 && n <= emoteNumbers;  // (the Emote key itself keeps the bar open)
         }

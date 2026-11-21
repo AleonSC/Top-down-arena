@@ -234,7 +234,8 @@ namespace Arena
 
             DrawHuntGlyphs();
 
-            // Keys 1-3 vote.
+            // Keys 1-3 vote (abilities bound to them sit out meanwhile).
+            Keybinds.SetScreenNumbers(3);
             var ev = Event.current;
             if (ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode <= KeyCode.Alpha3)
             {

@@ -767,6 +767,7 @@ namespace Arena
             int cur = BuildTool;
             var ev = Event.current;
             int pick = -1;
+            Keybinds.SetScreenNumbers(shown.Count);  // (its tool keys win over abilities bound to those numbers)
             if (ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode < KeyCode.Alpha1 + shown.Count)
             {
                 pick = shown[ev.keyCode - KeyCode.Alpha1];
