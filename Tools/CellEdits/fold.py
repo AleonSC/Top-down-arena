@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Writes cell layouts edited in the game (CellLayoutEdits.txt, from F1 > LABS > CELL EDITOR) into Core/CellLayouts.cs.
+"""Writes layouts edited in the game (F1 > LABS > CELL EDITOR) into the code: cell layouts (CellLayoutEdits.txt) into Core/CellLayouts.cs and hub
+floor plans (HubLayoutEdits.txt) into Core/HubLayouts.Generated.cs.
 
 Each line of the file replaces the `new CellLayout { Name = "...", ... }` entry with that name. Folded lines are removed from
-the file (the file is deleted when none is left).
+the file (the file is deleted when none is left). A hub line replaces the line of the same name in HubLayouts.Generated.cs.
 
 Usage: python3 Tools/CellEdits/fold.py [--dry-run] [repo root]
 """
@@ -32,8 +33,38 @@ def entry(name, walls, sleepers, traps, loot):
             '                Loot = %s }') % (name, points(walls, 4, 'W'), points(sleepers, 2, 'P'), points(traps, 3, 'T'), points(loot, 2, 'P'))
 
 
+hub_path = os.path.join(root, 'HubLayoutEdits.txt')
+hub_code = os.path.join(root, 'Assets', 'Scripts', 'Core', 'HubLayouts.Generated.cs')
+
+
+def fold_hub():
+    if not os.path.exists(hub_path):
+        return
+    text = open(hub_code).read()
+    m = re.search(r'Data = "(.*)";', text)
+    old = m.group(1).replace('\\t', '\t').replace('\\n', '\n') if m else ''
+    lines = {}
+    for ln in old.split('\n'):
+        if ln:
+            lines[ln.split('\t')[0]] = ln
+    folded = []
+    for raw in open(hub_path).read().split('\n'):
+        ln = raw.rstrip('\r')
+        if not ln or ln.startswith('#!'):
+            continue
+        if len(ln.split('\t')) == 4:
+            lines[ln.split('\t')[0]] = ln
+            folded.append(ln.split('\t')[0])
+    data = ''.join(l + '\n' for l in (lines[k] for k in sorted(lines)))
+    esc = data.replace('\t', '\\t').replace('\n', '\\n')
+    print('Folded hub plans:', ', '.join(folded) if folded else 'nothing')
+    if not dry:
+        open(hub_code, 'w').write(text[:m.start(1)] + esc + text[m.end(1):])
+        os.remove(hub_path)
+
+
+fold_hub()
 if not os.path.exists(edits_path):
-    print('No CellLayoutEdits.txt in', os.path.abspath(root))
     sys.exit(0)
 
 code = open(code_path).read()

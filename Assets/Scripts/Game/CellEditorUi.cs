@@ -34,6 +34,7 @@ namespace Arena
 
         void LoadCellLayoutEdits()
         {
+            LoadHubLayoutEdits();  // (HubEditorUi.cs)
             try { CellLayoutEdits.Load(CellEditPath); }
             catch (Exception e) { Debug.Log("Couldn't read " + CellEditPath + ": " + e.Message); }
         }
@@ -80,12 +81,38 @@ namespace Arena
             try
             {
                 CellLayoutEdits.Save(CellEditPath);
-                cedNote = n == 0 ? "Nothing new to save." : "Saved " + n + " layout" + (n == 1 ? "" : "s") + " to " + CellLayoutEdits.FileName + ". New rooms use them.";
+                bool any = n > 0 || cedTested;
+                cedTested = false;
+                cedNote = !any ? "Nothing new to save." : "Saved " + n + " layout" + (n == 1 ? "" : "s") + " to " + CellLayoutEdits.FileName + ". New rooms use them.";
             }
             catch (Exception e)
             {
                 cedNote = "Couldn't write the file: " + e.Message;
             }
+        }
+
+        /// TEST: apply the edits in this game (not saved) and build this layout as a single cell in the run, standing you in it.
+        void CedTestCell()
+        {
+            CedApplyAll();
+            string why = game.DevTestCells(PieceShape.Mono, 0, new[] { new CellLayouts.CellPlan { Layout = cedIndex, Rot = cedRot } });
+            if (why.Length > 0)
+            {
+                cedNote = why;
+                return;
+            }
+            cellEditorOpen = false;
+        }
+
+        /// Put every working copy into the game (not the file): what a test builds from.
+        void CedApplyAll()
+        {
+            for (int i = 0; i < cedWork.Length; i++)
+                if (CedDirty(i))
+                {
+                    CellLayoutEdits.Set(i, cedWork[i]);
+                    cedTested = true;
+                }
         }
 
         static int[][] CedAdd(int[][] a, int[] item)
@@ -173,20 +200,50 @@ namespace Arena
             return new[] { x0, y0, w, h };
         }
 
+        int cedTab;  // 0 cells, 1 room view (RoomViewUi.cs), 2 hub (HubEditorUi.cs)
+        static readonly string[] CedTabNames = { "CELLS", "ROOM VIEW", "HUB" };
+        bool cedTested;  // layouts were applied by a test without SAVE
+
         void DrawCellEditor()
         {
             var panel = DevPanel;
-            var body = DkWindow(panel, "CELL EDITOR", "Drag out walls (drag a wall to move it, Shift draws over one), click to place spots, drag a spot to move it, right click to remove. SAVE puts the edits into the game. Esc to close.",
-                () => cellEditorOpen = false, CrtStyle.Gold);
+            string sub = cedTab == 0 ? "Drag out walls (drag a wall to move it, Shift draws over one), click to place spots, drag a spot to move it, right click to remove. SAVE keeps the edits. Esc to close."
+                : cedTab == 1 ? "A piece as the game builds it: every cell's layout together. Click a cell to edit its layout. Esc to close."
+                : "The hub's floor plans (1600 x 900): drag walls and crates, right click to remove. SAVE keeps the edits. Esc to close.";
+            var body = DkWindow(panel, "CELL EDITOR", sub, () => cellEditorOpen = false, CrtStyle.Gold);
+            var tabs = DkStack.Cells(new Rect(body.x, body.y - 6f, 3 * 150f + 16f, 28f), 3, 8f);
+            for (int i = 0; i < 3; i++)
+                if (DkChoice(tabs[i], CedTabNames[i], cedTab == i, CrtStyle.Gold) && cedTab != i)
+                {
+                    cedTab = i;
+                    if (i == 1)
+                        CedApplyAll();  // (the room view shows what the game would build: your edits too)
+                    cedDragging = false;
+                    cedMoveSet = -1;
+                    cedWallIdx = -1;
+                }
+            body = new Rect(body.x, body.y + 30f, body.width, body.height - 30f);
+            if (cedTab == 1)
+                DrawCedRooms(body);
+            else if (cedTab == 2)
+                DrawCedHub(body);
+            else
+                DrawCedCells(body);
+        }
+
+        int cedRot;  // the quarter turns TEST LAYOUT builds the cell with
+
+        void DrawCedCells(Rect body)
+        {
             var l = CedLayout();
 
             // The layouts, one column
             var listArea = new Rect(body.x, body.y, 210f, body.height);
-            var col = DkStack.Column(listArea, 3f);
+            var col = DkStack.Column(listArea, 2f);
             for (int i = 0; i < CellLayouts.All.Length; i++)
             {
                 bool edited = CedDirty(i) || CellLayoutEdits.IsEdited(i);
-                if (DkChoice(col.Next(26f), (edited ? "* " : "") + CellLayouts.All[i].Name, i == cedIndex, edited ? CrtStyle.Gold : Ui.Primary) && i != cedIndex)
+                if (DkChoice(col.Next(24f), (edited ? "* " : "") + CellLayouts.All[i].Name, i == cedIndex, edited ? CrtStyle.Gold : Ui.Primary) && i != cedIndex)
                 {
                     cedIndex = i;
                     cedUndo.Clear();
@@ -198,19 +255,19 @@ namespace Arena
             }
 
             // The cell
-            const float size = 520f;
+            const float size = 480f;
             var cell = new Rect(body.x + 226f, body.y + 4f, size, size);
             DrawCedCanvas(cell, l);
 
             // Tools
             var tools = new Rect(cell.xMax + 16f, body.y, body.xMax - cell.xMax - 16f, body.height);
-            var tc = DkStack.Column(tools, 5f);
+            var tc = DkStack.Column(tools, 4f);
             Ui.Heading(tools.x, tc.Next(20f).y, tools.width, "Tool");
             for (int i = 0; i < CellToolNames.Length; i++)
-                if (DkChoice(tc.Next(28f), CellToolNames[i], (int)cedTool == i, CrtStyle.Gold))
+                if (DkChoice(tc.Next(26f), CellToolNames[i], (int)cedTool == i, CrtStyle.Gold))
                     cedTool = (CellTool)i;
             tc.Space(6f);
-            var ur = DkStack.Cells(tc.Next(28f), 2, 4f);
+            var ur = DkStack.Cells(tc.Next(26f), 2, 4f);
             bool canUndo = cedUndo.Count > 0;
             bool was = GUI.enabled;
             GUI.enabled = was && canUndo;
@@ -229,13 +286,13 @@ namespace Arena
                 l.Traps = new int[0][];
                 l.Loot = new int[0][];
             }
-            if (DkKey(tc.Next(28f), "REVERT", Ui.Neutral, false, 11))
+            if (DkKey(tc.Next(26f), "REVERT", Ui.Neutral, false, 11))
             {
                 CedPush();
                 cedWork[cedIndex] = CellLayoutEdits.Clone(CellLayouts.All[cedIndex]);
                 cedNote = "Back to the last save.";
             }
-            if (DkKey(tc.Next(28f), "BACK TO CODE", Ui.Neutral, false, 11))
+            if (DkKey(tc.Next(26f), "BACK TO CODE", Ui.Neutral, false, 11))
             {
                 CedPush();
                 cedWork[cedIndex] = CellLayoutEdits.Original(cedIndex);
@@ -244,8 +301,14 @@ namespace Arena
             bool anyDirty = false;
             for (int i = 0; i < cedWork.Length; i++)
                 anyDirty |= CedDirty(i);
-            if (DkKey(tc.Next(34f), anyDirty ? "SAVE *" : "SAVE", CrtStyle.Gold, anyDirty, 14))
+            anyDirty |= cedTested;
+            if (DkKey(tc.Next(30f), anyDirty ? "SAVE *" : "SAVE", CrtStyle.Gold, anyDirty, 14))
                 CedSave();
+            var tr = DkStack.Cells(tc.Next(30f), 2, 4f);
+            if (DkKey(tr[0], "TURN " + cedRot * 90, Ui.Neutral, false, 10))
+                cedRot = (cedRot + 1) & 3;
+            if (DkKey(tr[1], "TEST", CrtStyle.Head, false, 12))
+                CedTestCell();
 
             tc.Space(4f);
             var info = tc.Rest();
