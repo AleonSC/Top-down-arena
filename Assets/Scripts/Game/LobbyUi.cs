@@ -301,10 +301,10 @@ namespace Arena
                 var kr = new Rect(Mathf.Round(cx + d * step - w / 2f), Mathf.Round(r.center.y - h / 2f), Mathf.Round(w), Mathf.Round(h));
                 bool top = i == mode && ad < 0.5f;
                 Ui.Alpha = oldAlpha * a;
-                if (top && !calm)
-                    Ui.Glow(kr, ModeAccent(i) ?? CrtStyle.Ink, 0.35f * (1f - ad * 2f));
                 bool click = DkKey(kr, ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
                     accent: ModeAccent(i));
+                if (top)  // a neon tube round the mode in play, fading as it slides off the middle
+                    Ui.NeonRim(kr, ModeAccent(i) ?? CrtStyle.Ink, 1f - ad * 2f);
                 Ui.Alpha = oldAlpha;
                 if (click && i != mode)
                     turnTo = modeTurn + (d > 0f ? 1 : -1);

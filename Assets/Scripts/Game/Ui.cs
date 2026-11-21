@@ -521,6 +521,34 @@ namespace Arena
             GUI.backgroundColor = old;
         }
 
+        /// A neon tube round a rect: a 2 px line in colour c with a whiter core, and a halo fading out 7 px either side
+        /// of it (stronger outside). strength 0..1 scales it all. Draw it after the thing it outlines.
+        public static void NeonRim(Rect r, Color c, float strength)
+        {
+            float a = Mathf.Clamp01(strength);
+            if (a <= 0.01f)
+                return;
+            for (int k = 7; k >= 1; k--)
+            {
+                float f = 1f - k / 8f;
+                RectEdge(new Rect(r.x - k, r.y - k, r.width + 2 * k, r.height + 2 * k), 1f, c.WithAlpha(a * 0.55f * f * f));
+                RectEdge(new Rect(r.x + 1 + k, r.y + 1 + k, r.width - 2 - 2 * k, r.height - 2 - 2 * k), 1f, c.WithAlpha(a * 0.3f * f * f * f));
+            }
+            RectEdge(r, 2f, c.WithAlpha(a));
+            RectEdge(new Rect(r.x + 0.5f, r.y + 0.5f, r.width - 1f, r.height - 1f), 1f, Color.Lerp(c, Color.white, 0.55f).WithAlpha(a * 0.9f));
+        }
+
+        /// The four edges of a rect, w px thick, inside it.
+        public static void RectEdge(Rect r, float w, Color c)
+        {
+            if (r.width <= 2f * w || r.height <= 2f * w)
+                return;
+            Fill(new Rect(r.x, r.y, r.width, w), c);
+            Fill(new Rect(r.x, r.yMax - w, r.width, w), c);
+            Fill(new Rect(r.x, r.y + w, w, r.height - 2f * w), c);
+            Fill(new Rect(r.xMax - w, r.y + w, w, r.height - 2f * w), c);
+        }
+
         /// A filled circle (or just its ring, when ring is true), in a colour: for stack counters.
         public static void Dot(Rect r, Color c, bool ring = false)
         {
