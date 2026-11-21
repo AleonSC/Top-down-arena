@@ -78,7 +78,7 @@ namespace Arena
             DockTrails(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a), CrtStyle.Ink);  // (docking: WindowAnim.cs)
             float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
-            CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), !cabHolo);
+            CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), !CabNeon);
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
@@ -131,8 +131,8 @@ namespace Arena
             GUI.EndGroup();
             HoloBoot.SoftOver(cabBootRect, cabBootE);
             DockLand(cabBootRect, 0.26f);
-            if (cabHolo)
-                DrawPanelNeon(cabBootRect, cabBootE, 7f, 1.4f);  // Settings: the neon edge and glowing corners (MenuHolo.cs)
+            if (CabNeon)
+                DrawPanelNeon(cabBootRect, cabBootE, 7f, 1.4f);  // Settings and Profile: the neon edge and glowing corners (MenuHolo.cs)
         }
 
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -373,7 +373,7 @@ namespace Arena
             if (cabWinBooting)
                 GUI.BeginGroup(new Rect(0f, 0f, W, HoloBoot.SoftClip(cabWinRect, cabWinBootE)));
             if (cabWinOn)
-                CrtKit.LoadoutBox(cabWinRect, !cabHolo);
+                CrtKit.LoadoutBox(cabWinRect, !CabNeon);
             cabWinEnabledWas = GUI.enabled;
             if (!cabWinOn || cabWinOutAt >= 0f)
                 GUI.enabled = false;
@@ -421,7 +421,7 @@ namespace Arena
             cabWinBooting = false;
             if (cabWinOn)
                 HoloBoot.SoftOver(cabWinRect, cabWinBootE);
-            if (cabWinOn && cabHolo)
+            if (cabWinOn && CabNeon)
                 DrawPanelNeon(cabWinRect, cabWinBootE, 9f, 3f);
         }
 

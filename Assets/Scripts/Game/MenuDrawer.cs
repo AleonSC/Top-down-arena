@@ -190,7 +190,9 @@ namespace Arena
             if (SkipWhileClosing)
                 return;
             docking = true;  // it docks in from the sides like the pause menu (WindowAnim.cs)
+            cabNeon = true;  // the main menu's neon edges and glowing corners on its box and windows (MenuHolo.cs)
             DrawLobbyMenuIn();
+            cabNeon = false;
             docking = false;
         }
 
