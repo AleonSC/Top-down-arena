@@ -46,11 +46,18 @@ namespace Arena
             }
             float now = Time.unscaledTime;
             bool dirty = false;
+            var typesUp = tagTypesUp;  // one tag per type at a time: a squad of three Guards spends one sighting, not all three
+            typesUp.Clear();
+            foreach (var kv in tagUntil)
+                if (kv.Value > now && game.Enemies.TryGetValue(kv.Key, out var te))
+                    typesUp.Add(te.Type);
             foreach (var e in game.Enemies.Values)
             {
                 if (!HasJobMarker(e) || tagChecked.Contains(e.Id))
                     continue;
                 tagChecked.Add(e.Id);
+                if (!typesUp.Add(e.Type))
+                    continue;
                 string key = e.Type.ToString();
                 prof.TagSeen.TryGetValue(key, out int seen);
                 if (seen >= Profile.TagShows)
@@ -64,6 +71,7 @@ namespace Arena
             if (tagUntil.Count == 0)
                 return;
             var gone = DrawScratch.FreshIds();  // (only labels are drawn while it fills)
+            tagBoxes.Clear();
             foreach (var kv in tagUntil)
             {
                 Enemy e;
@@ -73,14 +81,15 @@ namespace Arena
                     gone.Add(kv.Key);
                     continue;
                 }
-                int job = (int)Game.JobOf(e.Type);
                 V2 at = ToUi(e.Disp);
                 float r = e.Radius * UiWorldScale;
-                Color c = JobColors[job].ToColor();
-                c.a = Mathf.Clamp01(left / TagFade);
-                var box = new Rect(at.X - 70f, at.Y - r - 44f, 140f, 14f);
-                Ui.Label(box, e.Def.Name.ToUpperInvariant(), 11, new Color(1f, 1f, 1f, c.a), TextAnchor.MiddleCenter, true);
-                Ui.Label(new Rect(box.x, box.y + 12f, box.width, 12f), JobNames[job], 9, c, TextAnchor.MiddleCenter, true);
+                tagBoxes.Add(new TagBox { E = e, Box = new Rect(at.X - TagW / 2f, at.Y - r - 44f, TagW, TagH), A = Mathf.Clamp01(left / TagFade) });
+            }
+            LayOutTags(tagBoxes);
+            foreach (var t in tagBoxes)
+            {
+                int job = (int)Game.JobOf(t.E.Type);
+                DrawTag(t.Box, t.E.Def.Name.ToUpperInvariant(), JobNames[job], JobColors[job].ToColor(), t.A);
             }
             foreach (var id in gone)
                 tagUntil.Remove(id);
@@ -110,12 +119,60 @@ namespace Arena
                 return;
             V2 at = ToUi(best.Disp);
             float r = best.Radius * UiWorldScale;
-            var box = new Rect(at.X - 70f, at.Y - r - 44f, 140f, 14f);
-            Ui.Label(box, best.Def.Name.ToUpperInvariant(), 11, Color.white, TextAnchor.MiddleCenter, true);
-            if (HasJobMarker(best))
+            tagBoxes.Clear();
+            tagBoxes.Add(new TagBox { E = best, Box = new Rect(at.X - TagW / 2f, at.Y - r - 44f, TagW, TagH), A = 1f });
+            LayOutTags(tagBoxes);
+            var tb = tagBoxes[0];
+            int jb = (int)Game.JobOf(best.Type);
+            DrawTag(tb.Box, best.Def.Name.ToUpperInvariant(), HasJobMarker(best) ? JobNames[jb] : null, JobColors[jb].ToColor(), tb.A);
+        }
+
+        // --- Laying the tags out: no two overlap, none sits on the console ----------------------------------------------------------
+
+        const float TagW = 140f, TagH = 26f, TagGap = 2f;
+        struct TagBox { public Enemy E; public Rect Box; public float A; }
+        readonly List<TagBox> tagBoxes = new List<TagBox>();
+        readonly HashSet<EnemyType> tagTypesUp = new HashSet<EnemyType>();
+
+        /// Top to bottom, each tag that would overlap one already placed moves up past it (its text is narrower than TagW, so
+        /// only the text's width counts). A tag over the bottom console fades to a ghost: the enemy is under the HUD anyway.
+        static void LayOutTags(List<TagBox> tags)
+        {
+            tags.Sort((a, b) => a.Box.y.CompareTo(b.Box.y));
+            for (int i = 0; i < tags.Count; i++)
             {
-                int job = (int)Game.JobOf(best.Type);
-                Ui.Label(new Rect(box.x, box.y + 12f, box.width, 12f), JobNames[job], 9, JobColors[job].ToColor(), TextAnchor.MiddleCenter, true);
+                var t = tags[i];
+                var box = t.Box;
+                for (int guard = 0; guard < 8; guard++)
+                {
+                    bool hit = false;
+                    for (int j = 0; j < i; j++)
+                    {
+                        var o = tags[j].Box;
+                        if (Mathf.Abs(o.center.x - box.center.x) < 96f && box.y < o.yMax + TagGap && box.yMax > o.y - TagGap)
+                        {
+                            box.y = o.y - TagH - TagGap;
+                            hit = true;
+                        }
+                    }
+                    if (!hit)
+                        break;
+                }
+                if (box.yMax > HudXpStrip.y)
+                    t.A *= 0.25f;
+                t.Box = box;
+                tags[i] = t;
+            }
+        }
+
+        /// One tag: the name in white over the job in its colour.
+        static void DrawTag(Rect box, string name, string job, Color jobC, float a)
+        {
+            Ui.Label(new Rect(box.x, box.y, box.width, 14f), name, 11, new Color(1f, 1f, 1f, a), TextAnchor.MiddleCenter, true);
+            if (job != null)
+            {
+                jobC.a = a;
+                Ui.Label(new Rect(box.x, box.y + 12f, box.width, 12f), job, 9, jobC, TextAnchor.MiddleCenter, true);
             }
         }
     }

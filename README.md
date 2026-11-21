@@ -623,7 +623,7 @@ A Shade shows a ring where it is about to blink (half a second before it does, a
 
 **Enemy names on hover** (Settings → Gameplay, off by default): point at any enemy to see its name, and its job for the regular ones.
 
-**Name tags.** The first three times you see each kind of enemy it carries its name and job for a couple of seconds. Your profile remembers which ones, so you are only taught once.
+**Name tags.** The first three times you see each kind of enemy it carries its name and job for a couple of seconds (one at a time per kind, so a squad of three costs one showing). Tags never overlap: one that would sits just above the other, and a tag over the bottom HUD fades out. Your profile remembers which ones, so you are only taught once.
 
 Shooters that fire straight at you (Sniper, Shard, Shade, Grunt, Taser Guard, Security Guard) share one **shooting line**: for the instant before they fire, a slim lane in their colour fills from the muzzle along the shot, brighter at its head, and caps off when the shot is due; the Grunt shows all three of its shots.
 
