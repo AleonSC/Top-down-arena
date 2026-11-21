@@ -45,7 +45,7 @@ namespace Arena
         }
 
         /// A Healer's heal past full health: a short shield, up to 20% of max health (a bigger shield already
-        /// up, like Energy Ward's, is kept).
+        /// up is kept).
         void OverhealShield(Player target, float excess)
         {
             float cap = target.MaxHp * OverhealCap;
