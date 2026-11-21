@@ -72,7 +72,6 @@ namespace Arena
             Ink = WallFill = wallInkNow;
             NeonCore = Ink.Mix(new Rgba(1f, 1f, 1f), 0.7f);
             PropHoloCyan = Ink;
-            PropHoloBlue = Ink.Mix(new Rgba(1f, 1f, 1f), 0.3f);
         }
 
         /// How bright the walls, pillars and edge gates draw (1 = full): well under, so the fight reads over them (owner's pick, Nov 2026; previews: WALLGLOW).
