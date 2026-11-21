@@ -58,6 +58,7 @@ static partial class Shot {
     GrazeScene();  // GRAZE=<s into the scene> (ShotGraze.cs)
     GaleWallScene();  // GALEWALL=<s into the scene> [GALEBLAST=<s>] [GALECAP=1] (ShotGaleWall.cs)
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
+    GustGateScene();  // GUSTGATE=<s into the scene> (ShotGustGate.cs)
     CauterizeScene();  // CAUTER=1 (ShotCauterize.cs)
     ChestLooksScene();  // CHESTLOOKS=1 (ShotChests.cs)
     GadgetsScene();  // GADGETS=wheel|floor|recall (ShotGadgets.cs)

@@ -32,7 +32,7 @@ namespace Arena
         /// The Loadout's preview window (the live mini-arena on the hero card): the Hangout grows out of it. DrawLoadout uses this too.
         static Rect ShowcaseRect(Rect body)
         {
-            return new Rect(body.x + 16f, body.y + 16f, 300f, 398f);  // tall: the ultimate moved to the right column and the preview fills the left (the mockup's 300 x 398)
+            return new Rect(body.x + 16f, body.y + PreviewTop, 300f, PreviewEnd - PreviewTop);  // its top level with the Role heading's letters
         }
 
         static Rect HangoutView(Rect body) => new Rect(body.x + 4f, body.y + 30f, body.width - 8f, body.height - 34f);

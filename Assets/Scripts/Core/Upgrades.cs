@@ -11,7 +11,7 @@ namespace Arena
         Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Starburst, Turret,
         Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
         // Elementalist
-        Aeroaegis, FrostNova, FlameWall, HealingRain, EnergyWard, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
+        Aeroaegis, FrostNova, FlameWall, HealingRain, GustGate, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number); Gust Gate (GustGate.cs) took Energy Ward's
         // Summoner
         GolemWall, Earthquake, ForcePact, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
         // Ultimates (F): one per role and class
@@ -111,7 +111,7 @@ namespace Arena
         public float NovaFreezeBonus, NovaRangeMult = 1f;                  // Frost Nova: Permafrost
         public float FlameWallBonusTime, FlameWallBurnMult = 1f;           // Flame Wall: Inferno
         public float RainRadiusMult = 1f, RainHealMult = 1f;               // Healing Rain: Monsoon
-        public float EnergySoakMult = 1f, EnergyRepayBonus;                // Energy Ward: Overcharged Ward
+        public float GustLifeBonus, GustBoostBonus;                         // Gust Gate: Jet Stream
         public float LumenBonusTime, LumenHealMult = 1f;                   // Lumen Ward: Dawnlight
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout

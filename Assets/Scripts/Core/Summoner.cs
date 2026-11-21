@@ -11,7 +11,7 @@ namespace Arena
         internal static readonly KitDef SummonerKit = new KitDef
         {
             Id = Kit.Summoner, Name = "Summoner", Icon = "class_summoner", HpMult = 0.9f,
-            Blurb = "Fights alongside minions that come with your weapon. 90% health.",
+            Blurb = "Fights through minions. Your weapon brings its own creatures (wolves, wisps, imps, bees) that hunt, bite and soak hits, and they stay with you between waves. Point them at what matters. 90% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKitWeapon(p, aim, dir, muzzle, dmg, extra),  // the Bear Totem has its own case
         };
 

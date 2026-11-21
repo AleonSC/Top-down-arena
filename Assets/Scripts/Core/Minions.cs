@@ -67,22 +67,8 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.HealingRain).Color, rain.Radius, 0.4f, Sfx.SpellHoly);
                     break;
                 }
-                case AbilityId.EnergyWard:
-                    foreach (var q in Players.Values)
-                        if (!q.Downed && q.Pos.CloserThan(p.Pos, 300f))
-                        {
-                            if (q.EnergyOn)
-                                EnergyPayback(q);  // a fresh ward pays out the old one first
-                            q.ShieldHp = q.EnergyMax = (cap ? 120f : 60f) * pw * s.EnergySoakMult;  // Overcharged Ward
-                            q.ShieldT = 8f;
-                            q.EnergyOn = true;
-                            q.EnergyStore = 0f;
-                            q.EnergyBy = p.Id;
-                            castHits++;
-                            if (q != p)
-                                BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(0.5f, 0.7f, 1f), 0f, 0.45f, Sfx.None);
-                        }
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 300f, 0.5f, Sfx.Ability);
+                case AbilityId.GustGate:  // Gust Gate (GustGate.cs)
+                    CastGustGate(p, target, cap);
                     break;
                 case AbilityId.LumenWard:  // Lumen Ward (LumenWard.cs)
                     CastLumenWard(p, target, cap);
@@ -689,21 +675,6 @@ namespace Arena
             return z;
         }
 
-        public const float EnergyRepay = 0.5f;  // an Energy Ward pays back this share of what it soaked, as healing, when it ends or breaks
-
-        void EnergyPayback(Player p)
-        {
-            p.EnergyOn = false;
-            p.EnergyMax = 0f;
-            var by = PlayerOrNull(p.EnergyBy);
-            float heal = p.EnergyStore * (EnergyRepay + (by != null ? by.Stats.EnergyRepayBonus : 0f));  // Overcharged Ward gives back more
-            p.EnergyStore = 0f;
-            if (heal <= 0f || p.Downed)
-                return;
-            Heal(p, heal, PlayerOrNull(p.EnergyBy));
-            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 40f, 0.4f, Sfx.SpellHoly);
-        }
-
         // Reused every tick by TickMinions and TickZones.
         readonly List<Minion> scratchMinionsExpired = new List<Minion>();
         readonly List<Minion> scratchMinionsExploding = new List<Minion>();
@@ -766,6 +737,8 @@ namespace Arena
                     TickBloodbath(z, dt);  // Bloodbath.cs
                 if (z.Kind == ZoneKind.Flood)
                     TickFlood(z);  // Flood.cs
+                if (z.Kind == ZoneKind.GustGate)
+                    TickGustGate(z, dt);  // GustGate.cs
                 if (z.Kind == ZoneKind.Cover)
                 {
                     TickCover(z);  // DeployableCover.cs
@@ -810,6 +783,7 @@ namespace Arena
                         }
                     }
             }
+            RememberGustSteps();  // GustGate.cs: where everyone stood, for next tick's crossing test
             foreach (var z in expired)
             {
                 if (z.Kind == ZoneKind.DeployTurret)
