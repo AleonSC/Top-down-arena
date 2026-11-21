@@ -157,7 +157,7 @@ namespace Arena
         }
 
         /// Over the text: rolling scanlines, a glow along the screen's edge, a glare, and a blinking cursor in the bottom corner.
-        void DrawCrtFront()
+        void DrawCrtFront(string text = CrtTitleText)
         {
             var box = CrtBox;
             float t = Time.unscaledTime;
@@ -184,7 +184,7 @@ namespace Arena
             else if ((int)(t * 1.2f) % 2 == 0)
             {
                 // Typed out: the cursor waits just after the last letter, on the line it was typed on.
-                float fw = Ui.TextWidth("VECTOR COLOSSEUM", (int)MenuTitleSize, true);
+                float fw = Ui.TextWidth(text, (int)MenuTitleSize, true);
                 Ui.Fill(new Rect(W / 2f + fw / 2f + 10f, MenuTitleY + 15f + crtDy, 30f, 7f), CrtGreen.WithAlpha(0.85f));
             }
         }
