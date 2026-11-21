@@ -92,7 +92,7 @@ namespace Arena
         /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html): the rooms
         /// behind, then WHO'S PLAYING? on the menu's CRT title screen with its neon, and the drive bay ledge under it. a: its opacity
         /// (the picker fades in the moves to and from the menu, ProfileTransition.cs, DiskEject.cs).
-        void DrawWhoChrome(float a)
+        void DrawWhoChrome(float a, bool title = true)
         {
             if (a <= 0f)
                 return;
@@ -104,13 +104,28 @@ namespace Arena
                     DrawRooms(t, 1f, WhoRoomSets);
                     EndUiGl();
                 }
-                DrawCrtBack();
-                float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
-                Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f), WhoTitleText, (int)MenuTitleSize, CrtGreen.WithAlpha(flick), TextAnchor.MiddleCenter, CrtGlow);
-                DrawCrtFront(WhoTitleText);
-                DrawTitleNeon(1f);
+                if (title)
+                    DrawTitleRetype(WhoTitleText, -1);
             });
-            DrawDriveBay(a);
+            if (title)
+                DrawDriveBay(a);
+        }
+
+        /// The title screen showing `text` with its first n letters up (-1: all, with the cursor waiting after it), flat and in place:
+        /// the moves between the picker and the menu keep the screen and only erase and retype its line.
+        void DrawTitleRetype(string text, int n)
+        {
+            crtFull = text;
+            crtFlat = true;
+            crtTyped = n >= text.Length ? -1 : n;
+            DrawCrtBack();
+            if (crtTyped != 0)
+                DrawCrtTitle(new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f));
+            DrawCrtFront();
+            DrawTitleNeon(1f);
+            crtFull = CrtTitleText;
+            crtFlat = false;
+            crtTyped = -1;
         }
 
         /// IMGUI: a slot's plate on the shelf: a dark CRT tag, lit in neon while its slot is under the mouse.
@@ -118,8 +133,6 @@ namespace Arena
         {
             Ui.Pill(r, new Color(0.012f, 0.024f, 0.07f));
             Ui.Rim(r, Color.Lerp(new Color(0.17f, 0.25f, 0.47f), new Color(0.66f, 0.8f, 1f), lit), 0.8f);
-            if (lit > 0f)
-                Ui.Glow(r, new Color(0.43f, 0.6f, 1f), 0.35f * lit);
             Ui.Label(r, text, 14, Color.Lerp(new Color(0.5f, 0.63f, 0.91f), new Color(0.9f, 0.95f, 1f), lit), TextAnchor.MiddleCenter, true);
         }
 

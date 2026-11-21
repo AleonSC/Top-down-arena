@@ -68,6 +68,8 @@ namespace Arena
         /// The title, drawn in ink then filled during the intro.
         void DrawMenuTitle(float t, float alpha = 1f)
         {
+            if (profEj)
+                return;  // the eject move draws the title screen itself, at full strength (DiskEject.cs)
             var r = new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f);
             DrawMenuTitleText(r);
         }

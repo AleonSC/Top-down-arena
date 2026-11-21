@@ -252,7 +252,6 @@ namespace Arena
             Ui.Pill(new Rect(left, top + 12f, w, 48f), new Color(0f, 0f, 0f, 0.35f));
             WhoBand(new Rect(left, top, w, 14f), new Color(0.53f, 0.63f, 0.93f), new Color(0.27f, 0.35f, 0.6f), 2f);
             Ui.Fill(new Rect(left + 3f, top, w - 6f, 2f), new Color(0.9f, 0.95f, 1f, 0.9f));  // its lit lip, glowing
-            Ui.Glow(new Rect(left + 3f, top - 2f, w - 6f, 6f), new Color(0.62f, 0.75f, 1f), 0.4f);
             WhoBand(new Rect(left, top + 14f, w, 40f), new Color(0.24f, 0.3f, 0.55f), new Color(0.1f, 0.14f, 0.32f), 3f);
             Ui.Rim(new Rect(left, top, w, 54f), new Color(0.42f, 0.52f, 0.84f), 0.6f);
             WhoVent(new Rect(left + 20f, top + 22f, 100f, 24f));
@@ -603,7 +602,6 @@ namespace Arena
 
         void DrawWhoCard(Rect r, ProfileInfo p, float t, bool live)
         {
-            var tier = RankLook.TierColor(p.Rank);
             int slot = Mathf.Clamp(whoList.IndexOf(p), 0, WhoSlots);
             bool hover = live && !whoManage && r.Contains(Event.current.mousePosition);
             bool current = p.Id == ProfileStore.ActiveId;
@@ -612,8 +610,13 @@ namespace Arena
             float lift = live && !whoManage ? whoLift[slot] : 0f;
             var d = new Rect(r.x, r.y - 12f * lift, r.width, r.height);
             DrawWhoDisk(d, p, current);
-            if (current || hover)  // a soft glow of the tier colour round the disk
-                Ui.Rim(new Rect(d.x - 4f, d.y - 4f, d.width + 8f, d.height + 8f), tier, hover ? 0.28f : 0.14f);
+            float sel = whoManage ? 0f : whoLift[slot];  // selected (under the mouse, or picked and lifting): a neon border round the disk (MenuHolo.cs)
+            if (sel > 0.01f && BeginUiGl())
+            {
+                UiModelAt(V2.Zero, 1f);
+                NeonRect(new Rect(d.x - 6f, d.y - 6f, d.width + 12f, d.height + 12f), sel);
+                EndUiGl();
+            }
             if (whoManage && live)
             {
                 float by = WhoShelfTop + 54f + 22f, bx = r.center.x - 78f;
@@ -661,8 +664,6 @@ namespace Arena
             // the + pulses (a glow behind it swelling), unless the slots are full
             float pulse = full || fxReduced || !fxOn ? 0f : 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 3.9f);
             var plusR = new Rect(r.x, r.y + r.height / 2f - 50f, r.width, 60f);
-            if (!full)
-                Ui.Glow(new Rect(plusR.center.x - 14f, plusR.center.y - 14f, 28f, 28f), new Color(0.5f, 0.66f, 1f), 0.25f + 0.35f * pulse);
             Ui.Label(plusR, "+", 44 + Mathf.RoundToInt(5f * pulse), full ? dim : hover ? Color.white : new Color(0.84f, 0.89f, 1f), TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(r.x, r.y + r.height / 2f + 8f, r.width, 24f), "New profile", 17, full ? dim : hover ? Color.white : new Color(0.66f, 0.75f, 0.94f), TextAnchor.MiddleCenter, true);
             if (full)
