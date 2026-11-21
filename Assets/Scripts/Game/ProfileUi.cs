@@ -30,7 +30,7 @@ namespace Arena
             profileOpen = true;
             profileTab = Mathf.Clamp(tab, 0, ProfileTabs.Length - 1);
             cosmeticsSection = 0;
-            skinWeapon = -1;  // (the Weapon skin section opens on the lobby's weapon)
+            skinWeapon = -1;  // (the Weapon skin section opens on the lobby's class, role and weapon)
             rankSection = 0;
             unlocksSection = 0;
             recordsSection = Mathf.Clamp(recordsSection, 0, RecordRowCount - 1);

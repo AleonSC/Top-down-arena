@@ -1718,8 +1718,8 @@ Design: [`Docs/Rank.md`](Docs/Rank.md); mockups: `Docs/Mockups/rank-screens.html
 
 **Class expertise and weapon skins:** every run's XP also goes to the class you played, as that class's **expertise**
 (level 0 to 10; level *n* to *n+1* costs 1,000 x (*n*+1) XP, 55,000 for level 10). Expertise unlocks that class's
-**weapon skins**, one equipped per weapon. Pick them in Profile > Look > **Weapon skin**: it shows the class you picked in
-the lobby, a key per weapon of your role, each weapon's skins with a live preview, and your expertise level and bar.
+**weapon skins**, one equipped per weapon. Pick them in Profile > Look > **Weapon skin**: pick any class and role (it starts on
+your lobby pick), then a weapon, to see its skins with a live preview and your expertise level and bar for that class.
 Everyone in the run sees and hears your skin. Not ability **mastery**, which is per run.
 
 | Skin | Weapon | Unlock | What changes |
