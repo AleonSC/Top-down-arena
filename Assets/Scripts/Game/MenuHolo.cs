@@ -296,6 +296,8 @@ namespace Arena
         // --- Settings ---------------------------------------------------------------------------------------------------------
 
         bool cabHolo;  // drawing Settings from the main menu or the lobby: its cabinet and window get the holo look
+        bool cabNeon;  // drawing the Profile from the main menu or the lobby: the same neon edges and corners (look only)
+        bool CabNeon => cabHolo || cabNeon;
 
         /// IMGUI: a settings panel's neon edge and glowing corners, coming on as its soft sweep finishes (e: seconds into it).
         void DrawPanelNeon(Rect r, float e, float period, float offset)

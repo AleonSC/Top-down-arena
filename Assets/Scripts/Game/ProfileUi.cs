@@ -54,8 +54,11 @@ namespace Arena
                 profileTab = 1;
             if (inMenu)
                 editingName = false;
+            bool neonWas = cabNeon;
+            cabNeon = neonWas || !inMenu;  // from the main menu, the lobby or its Esc menu: Settings' neon edges and corners (MenuHolo.cs)
             DrawCabWindow();  // CrtWindows.cs: DrawProfileSection (ProfileWindows.cs) when an option is open
             DrawProfileCabinet(inMenu);
+            cabNeon = neonWas;
         }
 
         /// One key of the cabinet's option list.
@@ -314,10 +317,12 @@ namespace Arena
             }
 
             // The options of the open tab.
-            float y = cabScreen.y + 6f;
+            float y = cabScreen.y + 6f, linkY = -1f;
             for (int i = 0; i < n; i++)
             {
                 bool on = cabWin && cabKind == 3 && cabWinOutAt < 0f && ProfSel == i;
+                if (on)
+                    linkY = CabY + 1f + y + rowH / 2f;  // (on screen: the row's middle)
                 var o = opts[i];
                 if (DrawerRow(new Rect(34f, y, CabRowW, rowH), PixelArt.Get(o.Icon), o.Name, oneLine ? null : o.Line, null, o.Tag, Ui.Accent, on))
                 {
@@ -338,6 +343,8 @@ namespace Arena
                     CloseWindow(() => profileOpen = false);
             }
             EndDrawer();
+            if (cabNeon && linkY >= 0f)
+                DrawSettingsLink(linkY, Ui.Accent);  // the open option's row, linked to its window (MenuHolo.cs)
         }
 
         // --- The nudge on the main menu ----------------------------------------------------------------------------------------
