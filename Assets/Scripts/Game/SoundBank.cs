@@ -885,6 +885,13 @@ namespace Arena
         /// take: which take (-1: the next in turn); pitch: an exact pitch (0: 1 plus the sound's own wander). False when it didn't play.
         bool Play(Sfx s, float volume, float now, int take, float pitch = 0f)
         {
+            if (Hush)
+                return false;
+            if (Muffle)
+            {
+                PlayMuffled(s, volume, now);  // (the lobby preview's draw-time sounds: Stonespear, Nova, Gale Wall, ...)
+                return true;
+            }
             int i = (int)s;
             if (Muted || table == null || i <= 0 || i >= count)
                 return false;
@@ -905,6 +912,8 @@ namespace Arena
 
         // --- Muffled playback (the lobby's loadout preview) ------------------------
         // A copy of each clip run through a low-pass filter, built the first time it's needed.
+        /// While set (the lobby preview is being drawn), every Play comes out muffled, and the Gale hum is quieter.
+        public bool Muffle, Hush;  // Hush: the preview's MUTE key, nothing plays
         const float MuffleHz = 450f, MuffleVolume = 0.4f, MuffleLowHz = 140f, MuffleLevel = 0.55f;
 
         /// Like Play, but dull and quieter: the sound as heard through a wall.
