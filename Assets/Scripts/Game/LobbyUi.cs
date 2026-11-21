@@ -726,12 +726,12 @@ namespace Arena
                     }
                 }
             }
-            y += CarRowStep;
+            y += RoleRowStep;
             float ultY;
             int from, to;
             if (me.Role == Role.Wildcard)
             {
-                ultY = r.y + LoadoutTop + (LoadoutRows - 1f) * CarRowStep;  // (the Ultimate row where the others have it)
+                ultY = r.y + LoadoutTop + RoleRowStep + (LoadoutRows - 2f) * CarRowStep;  // (the Ultimate row where the others have it)
                 DrawWildcardPicks(me, tgt, self, x, y, w, ultY - 6f);
             }
             else
@@ -740,9 +740,10 @@ namespace Arena
                 LobbyKit.Heading(x, y, w, "Class", null, calm, 15);
                 int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
                 BeginCarousel(CarClass, new Rect(x, y + CarKeyY, w, CarKeyH), classSlots, ClassesInView, (int)me.Kit, out from, out to);
-                for (int i = from; i <= to; i++)
+                for (int j = from; j <= to; j++)
                 {
-                    var b = CarItem(i);
+                    int i = CarIndex(j);
+                    var b = CarItem(j);
                     if (i >= Defs.KitCount)
                     {
                         LockedSlot(b, null, true);
@@ -787,9 +788,10 @@ namespace Arena
                     if (weaponOn < 0 && WeaponKeyOn(me, i))
                         weaponOn = i;
                 BeginCarousel(CarWeapon, new Rect(x, y + CarKeyY, w, CarKeyH), weaponSlots, KeysInView, weaponOn, out from, out to);
-                for (int i = from; i <= to; i++)
+                for (int j = from; j <= to; j++)
                 {
-                    var b = CarItem(i);
+                    int i = CarIndex(j);
+                    var b = CarItem(j);
                     if (i >= weaponCount || Defs.WeaponGap(me.Role, me.Kit, i))  // (the 4th key is a weapon where the class has a fourth: the Knight DPS's Arc Knuckles; a class still being built has locked keys)
                     {
                         LockedSlot(b, null, true);
@@ -812,9 +814,10 @@ namespace Arena
                 LobbyKit.Heading(x, y, w, "Ability", null, calm, 15);
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.FirstAbilityChoices);
                 BeginCarousel(CarAbility, new Rect(x, y + CarKeyY, w, CarKeyH), abilitySlots, KeysInView, me.Ability, out from, out to);
-                for (int i = from; i <= to; i++)
+                for (int j = from; j <= to; j++)
                 {
-                    var b = CarItem(i);
+                    int i = CarIndex(j);
+                    var b = CarItem(j);
                     if (i >= Upgrades.AbilityLimit(me.Role, me.Kit) || Upgrades.AbilityGap(me.Role, me.Kit, i))
                     {
                         LockedSlot(b, null, true);
@@ -844,9 +847,10 @@ namespace Arena
                 if (me.Ult == (wildRow ? Upgrades.WildUlt(rowKit, i) : i))
                     ultOn = i;
             BeginCarousel(CarUlt, new Rect(x, ultY + CarKeyY, w, CarKeyH), Upgrades.UltKeys, KeysInView, ultOn, out from, out to);
-            for (int i = from; i <= to; i++)
+            for (int j = from; j <= to; j++)
             {
-                var b = CarItem(i);
+                int i = CarIndex(j);
+                var b = CarItem(j);
                 var id = i == 0 ? Upgrades.Ultimate(me.Role, wildRow ? rowKit : me.UltKit) : Upgrades.AltUltimate(me.Role, rowKit, i);
                 if (id == AbilityId.None)
                 {
