@@ -54,7 +54,7 @@ namespace Arena
         }
 
         /// During a run the background sits behind the arena: it ignores the pointer (that is your aim) and clicks (your shots) and
-        /// answers game events instead (BackgroundGameEvents, below), gently.
+        /// only drifts on its own; the arena floor (FloorGridLook.cs) does the reacting.
         bool BgInRun => game != null && game.Running;
 
         void AddRipple(V2 uiAt, float time, float power = 1f)
@@ -96,22 +96,6 @@ namespace Arena
             at = (bgClickUi - bgViewOrigin) / bgViewScale;
             at = new V2(Mathf.Clamp(at.X, 0f, W), Mathf.Clamp(at.Y, 0f, H));
             return true;
-        }
-
-        const float BgDashPower = 0.3f;  // a dash is a small nudge to the background, not a click
-        Game bgEventGame;
-        int bgDodges;
-
-        /// Behind a run: the reactive backgrounds feel each Dodge, softly (a third of a click), where it started.
-        void BackgroundGameEvents(float time)
-        {
-            bool fresh = bgEventGame != game;  // (a new game counts from 0 again: no nudge for that)
-            if (!fresh && game.Dodges == bgDodges)
-                return;
-            bgEventGame = game;
-            bgDodges = game.Dodges;
-            if (!fresh && game.Me != null)
-                ReactKick(ToUi(game.DodgeFrom), time, BgDashPower);
         }
 
         /// A quick random number for backgrounds' own use (0..1), so they don't touch the game's random state.

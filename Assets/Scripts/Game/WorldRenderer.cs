@@ -48,7 +48,6 @@ namespace Arena
             // Behind the arena: the background this player picked in the lobby, dimmed so the fight stays easy to read.
             float worldScale = drawScale;
             drawScale = worldScale / WorldToUi;  // the backgrounds draw in UI canvas coordinates
-            BackgroundGameEvents(Time.time);  // BackgroundReact.cs
             DrawMenuBackground(Time.time);
             drawScale = worldScale;
             BeginEndingWorld();  // a run ending: the camera eased in on the blow, the colour draining (RunEnding.cs)

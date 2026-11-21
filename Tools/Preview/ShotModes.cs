@@ -163,6 +163,7 @@ static partial class Shot {
         var pp = ptr.Split(',');
         set("bgReactFrame", UnityEngine.Time.frameCount);
         set("bgPointerUi", new V2(float.Parse(pp[0]), float.Parse(pp[1])));
+        ((Game)typeof(ArenaApp).GetField("game", f2).GetValue(app)).Running = false;  // the menus: the reactions are on
         set("bgEnergy", Environment.GetEnvironmentVariable("PENERGY") != null ? float.Parse(Environment.GetEnvironmentVariable("PENERGY")) : 0.5f);
         var pc = Environment.GetEnvironmentVariable("PCLICK");
         if (pc != null)
@@ -173,6 +174,7 @@ static partial class Shot {
           var one = Activator.CreateInstance(rt);
           rt.GetField("At").SetValue(one, new V2(float.Parse(cc[0]), float.Parse(cc[1])));
           rt.GetField("Born").SetValue(one, 7.3f - float.Parse(cc[2]));
+          rt.GetField("Power").SetValue(one, 1f);
           rip.SetValue(one, 0);
         }
       }
