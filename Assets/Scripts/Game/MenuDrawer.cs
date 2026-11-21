@@ -181,7 +181,7 @@ namespace Arena
             GUIUtility.keyboardControl = 0;
         }
 
-        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = pauseRecords = false; });
+        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = pauseRecords = false; }, DockOutLen);
 
         /// The lobby's menu: back to the lobby, Settings (the cabinet's list switches to its sections), the Field guide, leaving
         /// for the main menu, or quitting. The lobby stays behind it, dimmed.
@@ -189,6 +189,13 @@ namespace Arena
         {
             if (SkipWhileClosing)
                 return;
+            docking = true;  // it docks in from the sides like the pause menu (WindowAnim.cs)
+            DrawLobbyMenuIn();
+            docking = false;
+        }
+
+        void DrawLobbyMenuIn()
+        {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.6f * WindowVis));
             if (pauseRecords)
             {
@@ -324,18 +331,23 @@ namespace Arena
         /// The run's screen on the right, fading as a window comes out over it.
         void DrawRunScreen(float t)
         {
-            float a = 1f - CabWinSlideK();
-            if (!FxCalm)
+            float a = 1f - CabWinSlideK(false);
+            if (!FxCalm && !docking)
                 a *= Mathf.Clamp01((CabAge - RunCardAt) / 0.45f);  // fades in after the cabinet's opening (no pop)
             if (a <= 0.01f)
                 return;
-            if (a < 0.99f)
-                PushShift(0f, 0f, a);
+            float dx = docking ? DockPanelX : 0f;  // docking: in from the right with the cabinet, out to the right as the menu closes (WindowAnim.cs)
+            if (docking)
+                DockTrails(DrawerPanel, DockPanelIn, CrtStyle.Gold);
+            if (a < 0.99f || dx != 0f)
+                PushShift(dx, 0f, a);
             float oldGl = glAlpha;
             glAlpha = a;  // the boss model fades with it
             DrawRunCard(DrawerPanel, t);  // in the window's place, right of the box
             glAlpha = oldGl;
             PopShift();
+            if (docking)
+                DockLand(new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height), 0.3f);
         }
 
         static readonly Color LobbyConfirmColor = new Color(1f, 0.6f, 0.45f);
@@ -465,7 +477,7 @@ namespace Arena
                     chips.Add(new KeyValuePair<string, Color>(m.Name.ToUpperInvariant(), m.Lean == ModLean.Easier ? Ui.Good : new Color(1f, 0.6f, 0.6f)));
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
             var r = at;
-            float powerAge = CabAge - RunCardAt;  // the box fades in after the cabinet's opening (DrawRunScreen)
+            float powerAge = docking ? 1f : CabAge - RunCardAt;  // the box fades in after the cabinet's opening (DrawRunScreen; docking: it slides in at once)
             if (!FxCalm && powerAge < 0f)
                 return;
             CrtKit.LoadoutBox(r);

@@ -1920,7 +1920,10 @@ blocky bar sliders with - / + keys, and keybind keys that read "PRESS KEY_" whil
 box and its keys **sweep in** together in place (a wide, soft feathered edge glides down the box in 0.55 s with a faint glow just under it, showing it as it goes; no hard line, no flicker), the title types, its sub-line types a boot log (`> LINK OK > SAVE OK > WAVE n`)
 and then the real line, a scan bar sweeps the keys and their texts type in; then nothing
 animates. With Reduced effects or Visual effects off there is no animation at all (the box slides in instead). Closing slides the cabinet and window
-out (Back or Esc), and only then does the window really close.
+out (Back or Esc), and only then does the window really close. The **pause menu** and the **lobby's Esc menu** **dock** instead (`Docs/Mockups/pause-dock.html`, option C): the box comes in from the
+left (0.28 s) and the run summary (or the open window) from the right a beat later, each trailed by two fading frame outlines; as they land a soft
+flash and a scan line run down them, the title types and the keys slide in one by one (0.18 s on, 0.03 s apart). Closing sends them back out to
+their sides in 0.22 s. With Reduced effects they slide in and out with no trails, flash or scan line.
 
 - **Pause menu:** **Resume** (Esc), **Settings**, **How to play** (a window beside the list, its topics as keys along the top), **Settings** (the list switches to Audio, Visual
   effects, Gameplay, Keybinds and a Back key; each is a window), **Quit**, which asks first; **Run stats** (the Tab screen, so a paused party can look at it together) is a small key beside the list
