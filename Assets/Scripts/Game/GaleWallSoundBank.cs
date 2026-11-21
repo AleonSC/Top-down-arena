@@ -78,7 +78,7 @@ namespace Arena
                     return;
                 galeHumVoice.clip = c[0];
             }
-            float v = Muted ? 0f : level * Master * Effects;
+            float v = Muted || Hush ? 0f : level * Master * Effects * (Muffle ? MuffleVolume : 1f);
             if (v <= 0.002f)
             {
                 if (galeHumVoice.isPlaying)
