@@ -360,6 +360,7 @@ namespace Arena
             float w = Ui.TextWidth(text, 14, true) + 28f;
             var r = new Rect(card.xMax + 24f + bob, card.center.y - 15f, w, 30f);
             var violet = new Color(0.6f, 0.37f, 0.9f);
+            Ui.Glow(r, new Color(0.64f, 0.48f, 1f), fxReduced ? 0.35f : 0.3f + 0.15f * Mathf.Sin(t * 2.1f));  // a soft purple glow, breathing
             Ui.Pill(r, new Color(0.2f, 0.1f, 0.38f, 0.96f));
             Ui.Rim(r, violet, 0.9f);
             for (int i = 0; i < 9; i++)  // the wedge pointing back at the card

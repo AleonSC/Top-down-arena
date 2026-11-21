@@ -140,7 +140,6 @@ namespace Arena
         /// The blue the big boxes (the menu card, the lobby's body) are lit with.
         public static readonly Color PanelBlue = new Color(0.42f, 0.6f, 1f);
 
-        public static void BodyGlow(Rect r, float scale = 1f) => Glow(r, PanelBlue, 0.14f * scale);  // (the menu card only: the lobby's box has none)
 
         public static void Label(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, bool bold = false, bool wrap = false)
         {

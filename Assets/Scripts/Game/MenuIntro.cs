@@ -6,9 +6,9 @@ namespace Arena
     /// Docs/Mockups/menu-d.html), 2.75 s:
     ///   0.0 s   the background fades up; the x-axis draws out from the origin
     ///   0.35 s  the empty CRT screen drops in from above and bounces onto the axis (a flash as it lands); from 0.95 s the title types out
-    ///   1.4 s   the pen traces the shot's arc over the title; at 1.9 s the shot sets off along it
-    ///   1.65 s  the box opens out of its middle and its plot corners snap on
-    ///   1.75 s  your name card, then PLAY rise into it, then Join game and Settings; Quit slides up; the line under the title types out
+        ///   1.65 s  the box opens out of its middle and its plot corners snap on
+    ///   1.75 s  your name card, then PLAY rise into it, then Join game and Settings; Quit slides up; the box's neon lights (2.0 s)
+    ///   2.2 s   the honeycomb band along the bottom fades up (MenuHolo.cs); the rooms start once the intro is over
     /// Any key or click skips to the end, under a quick channel flip (SkipStatic.cs). Nothing in the menu takes a click until it's over (MenuIntroPlaying). Coming back
     /// from the lobby or a run doesn't play it again. Reduced effects or Visual effects off: a 0.45 s fade instead.
     /// Each piece of the menu asks MenuIntroK(a, b) how far in it is (1 when no intro is playing).
@@ -114,6 +114,7 @@ namespace Arena
                 DrawCrtBack();
                 DrawCrtTitle(r);
                 DrawCrtFront();
+                DrawTitleNeon(1f);  // MenuHolo.cs
                 return;
             }
             // The empty screen falls in from above the window and bounces onto the axis (with a flash), then the title types out.
@@ -131,6 +132,7 @@ namespace Arena
             if (crtTyped != 0)
                 DrawCrtTitle(r);
             DrawCrtFront();
+            DrawTitleNeon(Seg(T, CrtDropAt, CrtDropAt + CrtFallLen));
             crtDy = 0f; crtFlash = 0f; crtTyped = -1;
         }
 
@@ -181,7 +183,9 @@ namespace Arena
             }
             else if ((int)(t * 1.2f) % 2 == 0)
             {
-                Ui.Fill(new Rect(box.xMax - 58f, box.yMax - 18f, 30f, 7f), CrtGreen.WithAlpha(0.85f));
+                // Typed out: the cursor waits just after the last letter, on the line it was typed on.
+                float fw = Ui.TextWidth("VECTOR COLOSSEUM", (int)MenuTitleSize, true);
+                Ui.Fill(new Rect(W / 2f + fw / 2f + 10f, MenuTitleY + 15f + crtDy, 30f, 7f), CrtGreen.WithAlpha(0.85f));
             }
         }
 
@@ -200,24 +204,6 @@ namespace Arena
             const string full = "VECTOR COLOSSEUM";
             float fw = Ui.TextWidth(full, (int)MenuTitleSize, true);
             Ui.Glitch(new Rect(W / 2f - fw / 2f, r.y, fw + 60f, r.height), full.Substring(0, crtTyped), (int)MenuTitleSize, c, TextAnchor.MiddleLeft, CrtGlow);
-        }
-
-        /// GL (inside BeginUiGl): the pen's glowing tip, tracing the arc.
-        void DrawMenuIntroPen(float t)
-        {
-            if (!(MenuIntroPlaying && MenuIntroFull))
-                return;
-            UiModelAt(V2.Zero, 1f);
-            float arc = Seg(menuIntroT, 1.4f, 1.9f);
-            if (arc > 0f && arc < 1f)
-                PenTip(ArcAt(arc));
-        }
-
-        void PenTip(V2 p)
-        {
-            Circle(p, 16f, new Rgba(0.59f, 0.78f, 1f, 0.12f), 18);
-            Circle(p, 9f, new Rgba(0.59f, 0.78f, 1f, 0.3f), 14);
-            Circle(p, 3.5f, new Rgba(1f, 1f, 1f, 0.95f), 10);
         }
     }
 }

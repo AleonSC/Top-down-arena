@@ -12,7 +12,12 @@ namespace Arena
                 "Ember Storm", "Constellations", "Radar", "Blueprint", "Bullet Curtain", "Frost Peaks", "Circuit", "Event Horizon", "Firefly Wood", "Plotter",
                 // Rank rewards (Rank.cs, Kind Background): locked until the rank. Each needs a row in RewardBackgrounds below.
                 "Dusk Grid", "Ripples", "Boot Log", "Vector Rocks", "Life Grid", "Phosphor Pond", "Vector Tunnel", "Signal Lost",
+                // Free again (after the rewards, so saved picks keep their numbers): the main menu's own look (MenuHolo.cs), the default.
+                "Holo Floor",
             };
+
+        /// The Holo Floor background: the default, and everyone is switched to it once when it arrives (they can pick another after).
+        const int HoloFloorBg = 28;
 
         /// Where the rank-reward backgrounds start in BackgroundNames. Everything from here on is a Background cosmetic in Rank.cs.
         const int FirstRewardBg = 20;
@@ -33,7 +38,13 @@ namespace Arena
 
         void LoadBackgroundSettings()
         {
-            menuBg = Mathf.Clamp(PlayerPrefs.GetInt("menu_bg", 0), 0, BackgroundNames.Length - 1);
+            menuBg = Mathf.Clamp(PlayerPrefs.GetInt("menu_bg", HoloFloorBg), 0, BackgroundNames.Length - 1);
+            if (PlayerPrefs.GetInt("menu_bg_holo", 0) == 0)
+            {
+                menuBg = HoloFloorBg;
+                PlayerPrefs.SetInt("menu_bg_holo", 1);
+                SaveBackgroundSettings();
+            }
             if (BackgroundLocked(menuBg))
                 menuBg = 0;
             menuBgAnimate = PlayerPrefs.GetInt("menu_bg_anim", 1) == 1;
@@ -80,6 +91,7 @@ namespace Arena
                 case 25: BgPhosphorPond(t); break;
                 case 26: BgVectorTunnel(t); break;
                 case 27: BgSignalLost(t); break;
+                case 28: BgHoloFloor(t); break;  // MenuHolo.cs
                 default: BgSpiral(t); break;
             }
         }
@@ -115,6 +127,7 @@ namespace Arena
             new Color(0.5f, 1f, 0.4f),     // Phosphor Pond
             new Color(0.85f, 0.45f, 1f),   // Vector Tunnel
             new Color(1f, 0.6f, 0.4f),     // Signal Lost
+            new Color(0.45f, 0.62f, 1f),   // Holo Floor
         };
 
         float bgChangedAt = -100f;   // when the background last changed (the name slides in)

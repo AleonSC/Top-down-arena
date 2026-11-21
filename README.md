@@ -969,8 +969,8 @@ continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the dr
 ## Menu backgrounds
 
 **Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
-lobby. There are 28:
-Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
+lobby. There are 29:
+**Holo Floor** (the default: a starry sky over a glowing horizon and a grid floor rolling toward you, light running down its lanes), Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
 Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter, **Dusk Grid** (a
 rank-16 reward) and seven **reactive** backgrounds that answer your pointer and clicks (frozen with STILL), all rank rewards:
 **Ripples** (26: rings spread from your clicks and a soft light follows the pointer), **Boot Log** (29: a green BIOS terminal
@@ -1945,7 +1945,7 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   switches, like the pause menu's), **HOW TO PLAY** (in the drawer too) and **Quit game** (no Profile or Main menu
   rows: your lobby card opens the profile and the lobby's red back arrow leaves). The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
-- **The main menu**: the title over a small disk drive (it says DRIVE A: EMPTY on the picker and your name and READY once a profile is loaded) with a shot arcing over it on a tapered vector stroke. In a box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
+- **The main menu**: the title on a CRT screen edged in neon tube light (it flickers now and then), with a blinking cursor just after it; under it a ledge housing a small disk drive (it says DRIVE A: EMPTY on the picker and your name and READY once a profile is loaded) and the drive's eject key, which has a green lamp. Every 9 seconds flat outline rooms draw themselves round the title and then round the box, hold, and un-draw (not with Reduced effects). Along the bottom of the screen a honeycomb band lights up in waves under a notched rail that carries packets of light. In a neon-edged box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
   **your player card** (your party card in small; click it to open your **Profile**, where the pencil next to your name renames you; it's remembered; hover it for **Switch
   profile**). Until you have opened your profile once (and for at most your first five launches on that profile), a small purple **YOUR PROFILE** tag beside the card bounces toward it; clicking the tag opens the profile too, and it holds still with Reduced effects; it fades out while the Join row is open. **Join game** opens a row
   under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Settings or any button in the saved-runs picker and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see

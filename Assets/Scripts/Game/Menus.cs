@@ -8,17 +8,16 @@ namespace Arena
     /// The main menu, How to play, and the pause menu and audio settings.
     public partial class ArenaApp
     {
-        // The main menu ("Big play", Docs/Mockups/menu-d.html, player card below: Docs/Mockups/menu-card-bottom.html): the title on its
-        // x-axis with a shot arcing over it; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big Play
+        // The main menu ("Big play", Docs/Mockups/menu-d.html, player card below: Docs/Mockups/menu-card-bottom.html, holo floor look:
+        // Docs/Mockups/menu-holo-floor.html, MenuHolo.cs): the title in neon over the drive bay; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big Play
         // button over Join game and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect), which opens your
         // profile (ProfileUi.cs) and wears a "YOUR PROFILE" nudge until it has (DrawProfileHint). Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
         // under the box. A header CRT screen ("MAIN MENU_") sits over the buttons with a physical Quit key beside it, like the picker's Back (Docs/Mockups/menu-screen-key-pairs.html, look E). The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
-        const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
         static readonly Rect MenuCard = new Rect(W / 2f - 340f, 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra)
-        static readonly Rect MenuPlayerRect = new Rect(W / 2f - 310f, MenuCard.yMax + 22f, 620f, 64f);  // your player card, under the box
+        static readonly Rect MenuPlayerRect = new Rect(MenuCard.x, MenuCard.yMax + 22f, MenuCard.width, 64f);  // your player card, under the box (lined up with its sides)
         static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 68f, 620f, 140f);  // the Play button
         static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 303f, 64f);
         static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 347f, MenuCard.y + 224f, 303f, 64f);
@@ -36,20 +35,26 @@ namespace Arena
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
             float box = MenuIntroK(1.65f, 2.0f);
-            if (box > 0f)  // the card's glow first, so it sits under the title, the tip box and everything else
-                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyGlow(MenuCard)));
+            if (BeginUiGl())  // under everything: the honeycomb band along the bottom and the rooms (MenuHolo.cs)
+            {
+                DrawMenuHexBand(t, MenuIntroK(2.2f, 2.6f));
+                DrawMenuRooms(t, MenuIntroPlaying ? 0f : 1f);
+                EndUiGl();
+            }
             DrawMenuTitle(t);
-            DrawDriveSlot(EaseOut(MenuAxisK), DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
-            DrawDriveEject(EaseOut(MenuAxisK), !MenuIntroPlaying);  // its eject key, right of it (DiskEject.cs)
+            float axis = EaseOut(MenuAxisK);
+            DrawDriveBay(axis);  // the ledge under the title that houses the drive (MenuHolo.cs)
+            DrawDriveSlot(axis, DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
+            DrawDriveEject(axis, !MenuIntroPlaying);  // its eject key, right of it (DiskEject.cs)
+            DrawEjectLamp(axis);
             if (box > 0f)
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => DkPanel(MenuCard)));
             if (BeginUiGl())
             {
-                DrawMenuArc(t, 1f);
+                DrawBoxNeon(MenuCard, MenuIntroK(2.0f, 2.3f));  // the box's neon edge (MenuHolo.cs)
                 float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
                 if (snap > 0f)
-                    DrawPlotCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * snap));
-                DrawMenuIntroPen(t);  // the pen writing the title and tracing the arc (MenuIntro.cs)
+                    DrawPlotCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), 7f, 22f, new Rgba(0.75f, 0.85f, 1f, 0.9f * snap));
                 EndUiGl();
             }
             bool live = !MenuIntroPlaying;  // nothing takes a click until it has all landed
@@ -77,97 +82,6 @@ namespace Arena
             menuBottomHide = Mathf.MoveTowards(menuBottomHide, menuJoinOpen ? 1f : 0f, Time.unscaledDeltaTime / 0.25f);
             return intro * (1f - EaseOut(menuBottomHide));
         }
-
-        /// GL (inside BeginUiGl): the shot's dashed arc over the title, the shot flying along it, and its label.
-        /// The shot's arc over the title as a vector path (look 3, "Tapered stroke", of Docs/Mockups/floppy-slot.html): a filled shape thin at the
-        /// ends and fuller at the peak with a soft glow under it, small dots at the ends, and the shot as a pointed comet. Drawn on as the pen traces it.
-        void DrawMenuArc(float t, float alpha)
-        {
-            UiModelAt(V2.Zero, 1f);
-            float upTo = MenuIntroK(1.4f, 1.9f);
-            if (upTo <= 0f || alpha <= 0f)
-                return;
-            var blue = new Rgba(0.45f, 0.65f, 1f);
-            const int Segs = 90;
-            int n = Mathf.Max(1, Mathf.CeilToInt(Segs * upTo));
-            for (int i = 0; i < n; i++)  // the glow
-            {
-                float u0 = upTo * i / n, u1 = upTo * (i + 1) / n;
-                float bk = ArcShow(ArcAt(u0));
-                Line(ArcAt(u0), ArcAt(u1), 12f, blue.WithAlpha(0.05f * alpha * bk));
-                Line(ArcAt(u0), ArcAt(u1), 6f, blue.WithAlpha(0.08f * alpha * bk));
-            }
-            V2 prevUp = default, prevDn = default;
-            for (int i = 0; i <= n; i++)  // the body: a strip of quads along the curve, widest at the peak
-            {
-                float u = upTo * i / n;
-                ArcEdge(u, ArcWidth(u) / 2f, out V2 up, out V2 dn);
-                if (i > 0)
-                {
-                    float mid = Mathf.Sin(Mathf.PI * (u - 0.5f * upTo / n));
-                    SetColor(new Rgba(Mathf.Lerp(0.59f, 0.75f, mid), Mathf.Lerp(0.75f, 0.84f, mid), 1f, Mathf.Lerp(0.55f, 0.98f, mid) * alpha * ArcShow(ArcAt(u))));
-                    Tri(prevUp, prevDn, up);
-                    Tri(prevDn, dn, up);
-                }
-                prevUp = up;
-                prevDn = dn;
-            }
-            float ends = Seg(upTo, 0.05f, 0.2f);
-            Circle(ArcAt(0f), 2.6f * ends, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha * ArcShow(ArcAt(0f))), 10);
-            if (upTo >= 1f)
-                Circle(ArcAt(1f), 2.6f, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha * ArcShow(ArcAt(1f))), 10);
-            float shotIn = MenuIntroK(1.9f, 2.2f) * alpha;
-            if (shotIn > 0f)
-            {
-                float u = MathX.Fmod(t * 0.22f, 1f);
-                shotIn *= ArcShow(ArcAt(u));
-                const int Tail = 22;
-                const float Len = 0.16f;
-                V2 pl = default, pr = default;
-                for (int i = 0; i <= Tail; i++)  // the comet's tail: a pointed strip behind the shot
-                {
-                    float uu = Mathf.Max(0f, u - Len * i / Tail);
-                    ArcEdge(uu, (1f - (float)i / Tail) * 3.2f + 0.1f, out V2 l, out V2 r);
-                    if (i > 0)
-                    {
-                        SetColor(new Rgba(1f, 0.47f, 0.59f, 0.85f * shotIn));
-                        Tri(pl, pr, l);
-                        Tri(pr, r, l);
-                    }
-                    pl = l;
-                    pr = r;
-                }
-                Circle(ArcAt(u), 10f, new Rgba(1f, 0.47f, 0.59f, 0.2f * shotIn), 14);
-                Circle(ArcAt(u), 2.2f, new Rgba(1f, 1f, 1f, 0.95f * shotIn), 8);
-            }
-        }
-
-        /// How much of the arc shows at p: it passes behind the title's letters (faint there) and comes out clear over them,
-        /// so the stroke never cuts through the words.
-        float ArcShow(V2 p)
-        {
-            float half = MenuTitleHalfW + 10f, top = MenuTitleY - MenuTitleSize * 0.52f;
-            float inX = Mathf.Clamp01((half - Mathf.Abs(p.X - W / 2f)) / 14f);
-            float inY = Mathf.Clamp01((p.Y - top) / 12f);
-            return 1f - 0.82f * inX * inY;
-        }
-
-        float menuTitleHalfW;
-        float MenuTitleHalfW => menuTitleHalfW > 0f ? menuTitleHalfW : (menuTitleHalfW = Ui.TextWidth("VECTOR COLOSSEUM", (int)MenuTitleSize, true) / 2f);  // (as DrawCrtTitle measures it)
-
-        static float ArcWidth(float u) => 0.6f + 3.2f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Mathf.PI * u)), 1.1f);
-
-        /// The two edges of the arc's stroke at u, half a width either side of the curve.
-        static void ArcEdge(float u, float half, out V2 up, out V2 dn)
-        {
-            V2 p = ArcAt(u);
-            float dx = ArcX1 - ArcX0, dy = -(ArcBase - ArcTop) * 4f * (1f - 2f * u), l = Mathf.Sqrt(dx * dx + dy * dy);
-            float nx = -dy / l * half, ny = dx / l * half;
-            up = new V2(p.X + nx, p.Y + ny);
-            dn = new V2(p.X - nx, p.Y - ny);
-        }
-
-        static V2 ArcAt(float u) => new V2(Mathf.Lerp(ArcX0, ArcX1, u), ArcBase - (ArcBase - ArcTop) * 4f * u * (1f - u));
 
         /// The box's insides: your name card, Play, Join game and Settings, or (after Play) the saved-runs picker,
         /// then the address row Join opens and how joining is going.
@@ -246,6 +160,7 @@ namespace Arena
             r.y += 12f * (1f - show);  // rises into place
             WithAlpha(a, () =>
             {
+                Ui.Fill(r, new Color(0.03f, 0.04f, 0.08f));  // a solid back, so the honeycomb band behind it doesn't show through (MenuHolo.cs)
                 DrawNameCard(r, 0f, live && show >= 1f, t);
                 DrawProfileHint(r, t, live && show >= 1f);  // ProfileUi.cs
             });
