@@ -670,6 +670,14 @@ namespace Arena
 
             // Right column: role, class, weapon and ability, the ultimate, then one detail box.
             float x = r.x + 334f, w = 454f, y = r.y + 16f;
+            vgEditable = self && session.Resume == null;
+            if (!vgEditable || wdef.Id != WeaponId.Vowguard)
+                vgEditOpen = false;
+            if (vgEditOpen)
+            {
+                DrawVgEditor(new Rect(x - 12f, r.y + 6f, w + 24f, r.height - 12f), calm);  // the Vowguard's chain editor (VowguardUi.cs)
+                return;
+            }
             if (self && favOpen && session.Resume == null)
             {
                 DrawFavorites(me, new Rect(x - 12f, r.y + 6f, w + 24f, r.height - 12f), calm);  // the Saved loadouts drawer (FavoritesUi.cs)
@@ -1024,6 +1032,8 @@ namespace Arena
             SpecTiles(new Rect(inner.xMax - tw, inner.y, tw, 38f), tiles, calm);
             var head = new Rect(inner.x, inner.y, inner.width - tw - 12f, 40f);
             SpecHeader(head, kind, name, calm);
+            if (detailSel == 0 && wdef.Id == WeaponId.Vowguard && vgEditable)
+                DrawVgEditKey(new Rect(head.xMax - 120f, inner.y + 4f, 120f, 30f), calm);  // opens the chain editor (VowguardUi.cs)
             Ui.Fill(new Rect(inner.x, inner.y + 46f, inner.width, 1f), CrtStyle.Ink.WithAlpha(0.25f));
             var body = new Rect(inner.x, inner.y + 54f, inner.width, inner.height - 54f);
             var text = new Color(0.8f, 0.84f, 0.94f);

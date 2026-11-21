@@ -86,6 +86,7 @@ namespace Arena
             {
                 if (p.Stats.CounterFireRate > 0f)
                     p.CounterT = CounterTime;  // Counterstance
+                ArmVgFaith(p);  // the Vowguard's Faith fills (Vowguard.cs)
                 ArmKnuckleCounter(p);  // the Arc Knuckles' next press is the Counter Hammer (ArcKnuckles.cs)
                 PrimeRime(p);  // the Frost Lance's next step is a Rime Counter (FrostLance.cs)
                 // The flash (every screen): Pos is where the shot met the shield, Pos2 the parrier's id and aim, Radius half the

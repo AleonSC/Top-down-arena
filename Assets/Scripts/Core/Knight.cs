@@ -59,6 +59,7 @@ namespace Arena
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
         public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
+        public byte Vg;               // a Vowguard hit (Vowguard.cs): 1 a Valor link (lights Faith), 2 any other; the parry and the switch take back one still winding up
         public bool Nod;              // a Nodachi hit (Nodachi.cs): the parry and the stance switch take back one still winding up
         public int BlastPress;        // != 0: a Blood Blast cut, this press's number: what it hits gets one blood stack per press (BloodBlast.cs)
     }
@@ -197,6 +198,9 @@ namespace Arena
                     break;
                 case WeaponId.Greatsword:
                     FireGreatsword(p, aim, dmg, extra);  // the ten-step chain's next step (GreatswordChain.cs)
+                    break;
+                case WeaponId.Vowguard:
+                    FireVowguard(p, aim, dmg, extra);  // the next step of the stance's chain (Vowguard.cs)
                     break;
                 case WeaponId.ArcKnuckles:
                     FireArcKnuckles(p, aim, dmg, extra);  // the next punch, or the Counter Hammer (ArcKnuckles.cs)
@@ -354,7 +358,7 @@ namespace Arena
             }
             if (s.NoFx)
             {
-                if (!s.Silent && !((s.Twin || s.LanceKind > 0 || s.Knuckle > 0 || s.Nod) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
+                if (!s.Silent && !((s.Twin || s.LanceKind > 0 || s.Knuckle > 0 || s.Nod || s.Vg > 0) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
                     BroadcastSound(s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);  // a Halberd sweep's or Twin Blades step's whoosh (its effect was sent at the click)
             }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -473,6 +477,11 @@ namespace Arena
                 LanceHitCue(p, s.LanceKind, hits.Count);  // a Lance step hit something: its sound, your hit-pause and shake (Lance.cs)
             if (s.Nod && hits.Count > 0)
                 BroadcastSound(Sfx.NodHit);  // the Nodachi bit something (the step's own sound was sent at the press)
+            if (s.Vg > 0 && hits.Count > 0)
+            {
+                VgLanded(p, s, hits.Count);  // a Vowguard link lights Faith (Vowguard.cs)
+                BroadcastSound(Sfx.TwinHit);
+            }
             if (s.Nun && hits.Count > 0)
                 BroadcastSound(Sfx.NunHit);  // a Nunchaku stick landed (the step's own sound was sent at the press)
             if (s.Rapier && hits.Count > 0)
@@ -689,6 +698,8 @@ namespace Arena
                 Desc = "A three-step chain. Dawn Cut's crescent heals the allies it passes, Mercy Cut's wards them, and Noon Sunburst plants the sword in a ring that heals everyone near you. Hits fill a light gauge: full, the next Noon is Radiant. The weapon-action key spends the light on a Sunlance that heals the ally nearest your cursor." },
             new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 13f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, +1 HP on every heal and +1 Ember", Name = "Censer", FireInterval = 0.26f,
                 Desc = "A censer on a chain, swung in a three-step rite: a sweep, a return sweep and a Benediction that goes all the way round. Every step heals allies near you and leaves incense that heals allies in it and makes enemy shots fired from inside it stray. Each enemy hit lights an Ember; the weapon-action key throws the censer to your cursor, spending them on a burst and a big healing cloud." },
+            new WeaponDef { Id = WeaponId.Vowguard, Kit = Kit.Knight, Role = Role.Healer, Choice = 3, Damage = 16f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "The last step of each chain hits 25% harder and heals 25% more", Name = "Vowguard", FireInterval = 0.3f,
+                Desc = "A sword and shield with two stances, each playing a chain of up to 10 steps you build in the lobby. Valor cuts, thrusts and bashes, and its hits light Faith. Sanctuary holds the shield up front: small shots there stop, light Faith, and its moves guard, heal and ward allies. Finishers spend Faith for more damage and healing. The weapon-action key switches stance." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 16f, Reach = 90f, Melee = true, ExtraDesc = "+1 crescent: the Pirouette and the Crescent Shear each launch one more wave, fanned out", Name = "Twin Blades", FireInterval = 0.18f,
                 Desc = "Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back." },

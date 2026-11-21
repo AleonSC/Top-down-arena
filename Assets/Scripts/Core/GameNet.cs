@@ -813,6 +813,13 @@ namespace Arena
             s.Byte(ref p.NodGuard);
             s.Byte(ref p.NodCode);
             s.Byte(ref p.NodCount);
+            s.Byte(ref p.VgStance);  // the Vowguard (Vowguard.cs)
+            s.Byte(ref p.VgAtV);
+            s.Byte(ref p.VgAtS);
+            s.Byte(ref p.VgMoveId);
+            s.Byte(ref p.VgCount);
+            s.Byte(ref p.VgFaith);
+            s.Vec(ref p.VgDashTo);
             s.Byte(ref p.TpSide);  // the Twin Pistols (TwinPistols.cs)
             s.Float(ref p.TpLaserT);
             s.Float(ref p.TpCd);
