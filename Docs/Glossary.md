@@ -32,6 +32,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **2nd, 3rd, 4th ability** | filled by very rare upgrade cards ("2nd–4th abilities" together) | `Player.CardAbilities`, `Slots[1..3]`, `KeyAction.Ability2..4` |
 | **Wildcard ability** | the Wildcard's extra starting ability, on the 2nd, 3rd or 4th slot | `Player.WildcardAbility` |
 | **Ultimate** | picked in the lobby, one per role and class (never "ult" in text; the key cap keeps "ULT") | `AbilityDef.Ult`, `Slots[4]`, `KeyAction.Ultimate` |
+| **Interact** | the one "use what you stand by" key (F by default): take a chest item, open a mystery door, shut a gate, open a room shop again; never "take item" or "use key" | `KeyAction.Interact` |
 | **mastery** | an ability's 1-5 rank from use; **mastery 5** unlocks its capstone (never "ability level") | `Mastery.cs`, `MasteryLevel` |
 | **expertise** | a class's 0-10 level from the XP of runs played as it (account-wide, cosmetic); unlocks its **weapon skins** (never "class mastery") | `Expertise.cs`, `Profile.ExpertiseLevel` |
 | **weapon skin** | a look for one weapon, one equipped per weapon, earned by expertise | `WeaponSkinDef`, `Profile.SkinOf` |

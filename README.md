@@ -319,7 +319,7 @@ Parry upgrades show up like any other card:
 
 ### Ultimates
 
-**F** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
+**Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and the Tank Elementalist: **Lightning Rod**, below the table; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
 Tank Ninja: **Dragon's Dogma**, below; and the DPS Soldier: **Attack Helicopter**, below; and the DPS Knight: **Warhorn Volley**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
@@ -998,7 +998,7 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 | **Iron-bound crate** | From wave 23, about a third of the crates: twice as tough |
 | **Barrel** | Rare (from wave 5, a 25-45% chance of one every two waves, sometimes two from wave 39). Any shot or blast sets it fizzing; 0.4 s later it blows up 120 px round: 40 + 10 per two waves damage to enemies, 16 to players caught in it (scaled like enemy damage), smashing crates and setting off other barrels. It can be pushed like a crate, fizzing or not |
 | **Health barrel** | Boss fights only: a green barrel with a white cross drops in every 18-26 s (the first after 15 s; two at most), away from the boss. Shoot it or walk into it and it breaks into 2 health orbs |
-| **Treasure chest** | An **Upgrade chest** (green, chevrons on the lock; every chest bursts open with a flash and rings, its emblem climbing out and shooting off; chests come in kinds, each its own colour and emblem: Upgrade, Gold, Vector, Relic, Piece chest, Buildables; the others are Expanding-arena nodes). Rare (8% of every two regular waves from wave 3; always on the first wave after a boss if a player has the Contraband perk). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card (mid-wave or between waves), then **G** takes it or **B** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
+| **Treasure chest** | An **Upgrade chest** (green, chevrons on the lock; every chest bursts open with a flash and rings, its emblem climbing out and shooting off; chests come in kinds, each its own colour and emblem: Upgrade, Gold, Vector, Relic, Piece chest, Buildables; the others are Expanding-arena nodes). Rare (8% of every two regular waves from wave 3; always on the first wave after a boss if a player has the Contraband perk). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card (mid-wave or between waves), then **F** (Interact) takes it or **B** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
 
 ## Arena layouts
 
@@ -1155,7 +1155,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   spot and the hand closes up behind it; after the slam a ring rolls out, the new door spots pop in one by one and **+1 ROOM** rises. The tool
   frame slides between tools and the panel title types in; spending vectors rolls the number down, floats **−8** and drains the bar.
 - **Buying a mystery room from the build map**: hover a mystery door's diamond for its price, click to open it from wherever you stand, or **right click** to save it (right click your
-  own saved door to let it go); a saved door carries a lime **SAVED** tag on the build map (**SAVED · YOURS** for your own). Only while the build round is open; the same price, rooms and one-save rule as **G** and **B** by the door.
+  own saved door to let it go); a saved door carries a lime **SAVED** tag on the build map (**SAVED · YOURS** for your own). Only while the build round is open; the same price, rooms and one-save rule as **F** and **B** by the door.
 - **Room kits**: a one-use modifier the team holds (up to 6; the Build step counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
@@ -1222,7 +1222,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   holds a **vector cache** (a teal diamond marked **+10**): the first player to walk in, during a wave or between waves, takes **+10 vectors** (up to their cap), once; a full stock leaves it for later. Taking it bursts the diamond and streams cyan shards into you. It has a block and a pillar for cover, builds in with a teal flash and
   scan line and a **STASH** chip, and stays for good (no vote, no cost; it stops within 2 rooms of the map's size cap, and a breach only opens on a wall with space behind it for a Stash). The breach itself **never closes**:
   each breach lets its share of the wave in (the wave's enemies split evenly over its breaches), then nothing more comes through it; if every breach has had its share the rest come in at the usual spots. When zoomed out, a teal edge arrow points to a cache nobody has taken.
-- **Mystery doors** (Docs/MysteryDoors.md): every cleared wave puts **1 or 2 sealed doors** on the map's outer wall (at most **3** at once): a magenta-violet hologram over a dark plate, with corner brackets and a white **?**, and a **? price** tag over it (red when you can't afford it). They show as violet marks on the minimap and the build map (*MYSTERY DOOR* in its key). A room is already rolled behind each, but you can't see what it is. Stand by one and press **G** to pay its price from your own vectors (**4 + 5 a cell** behind it: 9 for one cell, 24 for four) and it opens at once, **mid-wave too**; the room is yours, like one you placed: the hologram splits and slides into the wall and a ring goes out from the doorway. **What's behind** (never shown; roughly): a piece on the lattice. A third of doors open a **small room** (one cell), **never empty**: usually a pack of **25 of the current faction's basic enemy** (Rioters in a Warden stretch, Swarmers where the boss has no faction yet) **asleep** in the room's sleeper slots (they wake when you see them, as in any dormant group), and sometimes a **shop**, a **Black Market**, an **Arms Dealer** or a **Medic** (each 1 in 25). A third open a **medium room** (a domino, an L of three, or a square, T, S or L of four cells): usually **sleeping groups** (they stay asleep in the fog until a player's view reaches them or the room is revealed), sometimes **empty**. The rest open a **long hallway** (a straight line of three or four cells) with a **treasure chest at the far end**. Enemies opened between waves come out as the next wave starts; around a boss the medium rooms come empty, but a small room's pack still comes. Bigger rooms cost more. Doors nobody opened **expire when the next wave is cleared**, unless a player **saves** one: press **B** by a door (it turns lime, *SAVED* on its tag). Each player saves **one** door at a time (saving another moves your save, B on your own lets it go, and you can't take over someone else's); a saved door stays until it's opened. If a piece takes a door's space, the door gets another room behind the same spot, or goes. **Bots** open doors too: between waves a bot walks to the nearest door it can pay for while keeping 10 vectors back for building.
+- **Mystery doors** (Docs/MysteryDoors.md): every cleared wave puts **1 or 2 sealed doors** on the map's outer wall (at most **3** at once): a magenta-violet hologram over a dark plate, with corner brackets and a white **?**, and a **? price** tag over it (red when you can't afford it). They show as violet marks on the minimap and the build map (*MYSTERY DOOR* in its key). A room is already rolled behind each, but you can't see what it is. Stand by one and press **F** (Interact) to pay its price from your own vectors (**4 + 5 a cell** behind it: 9 for one cell, 24 for four) and it opens at once, **mid-wave too**; the room is yours, like one you placed: the hologram splits and slides into the wall and a ring goes out from the doorway. **What's behind** (never shown; roughly): a piece on the lattice. A third of doors open a **small room** (one cell), **never empty**: usually a pack of **25 of the current faction's basic enemy** (Rioters in a Warden stretch, Swarmers where the boss has no faction yet) **asleep** in the room's sleeper slots (they wake when you see them, as in any dormant group), and sometimes a **shop**, a **Black Market**, an **Arms Dealer** or a **Medic** (each 1 in 25). A third open a **medium room** (a domino, an L of three, or a square, T, S or L of four cells): usually **sleeping groups** (they stay asleep in the fog until a player's view reaches them or the room is revealed), sometimes **empty**. The rest open a **long hallway** (a straight line of three or four cells) with a **treasure chest at the far end**. Enemies opened between waves come out as the next wave starts; around a boss the medium rooms come empty, but a small room's pack still comes. Bigger rooms cost more. Doors nobody opened **expire when the next wave is cleared**, unless a player **saves** one: press **B** by a door (it turns lime, *SAVED* on its tag). Each player saves **one** door at a time (saving another moves your save, B on your own lets it go, and you can't take over someone else's); a saved door stays until it's opened. If a piece takes a door's space, the door gets another room behind the same spot, or goes. **Bots** open doors too: between waves a bot walks to the nearest door it can pay for while keeping 10 vectors back for building.
 - **Teleporters (portals)**: buy a **Teleporter pair** (150 gold) at the **Black Market** (the Black Market room), then on the draw screen switch to
   **Teleporter** and click a room's **outer wall**, then another room's outer wall (the tool only lands on walls: it snaps to the nearest outer
   wall, shown as a ghost portal, and a click on the floor does nothing): the pair is **built at once** from your stash (no
@@ -1240,7 +1240,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
     It fights **5 waves** (a lit pip under it for each wave left) and goes when the 5th is cleared. You can have **3** up at once. Enemies don't attack it.
   - The **Landmine** and **Slow field** have **no effect yet**. (The Spike trap is gone; an old save's placed ones are dropped.)
 - **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate is fitted at once,
-  for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
+  for **8 vectors**. Once fitted, stand within 150 px of it and press **F** (the Interact key) to shut it: a red laser grid fills the doorway
   for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its
   posts). Anyone on the team can work it. Enemies (and bots) route round a shut gate through another door; with no other way in, they wait at it. Plain doors only (not an opened wall), one gate a door, at most **6** on the map. A red bar marks
   each on the minimap, bright while shut.
@@ -1257,7 +1257,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   gritty fifths).
 - **Shop and Black Market rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and add stock in the **shop room**, buildables at the **Black Market** (one Buildables category, like the Arms Dealer and the Medic; it sells nothing else); selling, the Floor kit and the Vector pack are the shop room's only. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
-  (the shelf is new each boss cycle).
+  (the shelf is new each boss cycle). The shop room's stall: a rug and a warm pool of light, posts with swinging lanterns, a striped awning
+  with a scalloped edge and a gem crest, a planked counter with a coin stack, an upgrade card, a potion and a coin sack, a big coin turning over it and sparkles drifting up.
+  Walking into any of these rooms opens its screen; after **Done shopping** (or Esc) a gold **F  OPEN THE SHOP** tag over you opens it again,
+  any time between waves (the room shops stay open until the wave starts, even once everyone is done).
 - **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room with a gun rack and a rifle on its counter, from its service card or a
   mystery door. While the shop is open, stand in it to buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,
   **400** the third (3 stacks at most, as before). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead).
@@ -1540,14 +1543,14 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Aim | Mouse |
 | Dodge | Ctrl, or double tap a movement key (changeable). A tiny 95 px dash with 0.22 s of invulnerability; 1.1 s cooldown; a soft cloth swish plays. With no direction held it steps back from your aim. **Hold** the key (or the double-tapped movement key) after the dodge for 0.2 s to **sprint**: +50% move speed, fading away over 2.2 s, with a pale-blue wake everyone sees; a tap doesn't sprint. **Wall kick**: dodge into a wall or a solid prop (crate, barrel, pillar, a walled arena's edge) and you bounce off it with a gold ring, and the dodge comes back at once for one free dodge (that one can't kick again) |
 | Shoot | Hold left click (changeable) |
-| 1st ability | Space (changeable) |
+| 1st ability | 1 (changeable) |
 | Parry | Hold right click (changeable) |
 | Alternative fire (Kunai blink, Twin Fang, Sunlance, Hook & Haul, Shuriken's Great Star stance, Bo Staff shove, Kusarigama whirl) | Left Alt |
-| Ultimate | F |
-| Take / discard your chest item (standing on it) | G / B |
+| Ultimate | Q |
+| Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again | F |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim | X |
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
-| 2nd, 3rd and 4th abilities | Q, E and Left Shift (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
+| 2nd, 3rd and 4th abilities | 2, 3 and 4 (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
 | Ready for the next wave | Ready button or Y (rebindable), once your upgrade picks are done. Auto-ready switch beside it |
@@ -1576,7 +1579,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 
 **Settings → Keybinds** (main menu, lobby and pause menu) lists every control: the four move keys, the role
 ability, the Ultimate, the three 2nd–4th ability keys, **Fire** and **Parry** (left and right click by default; each can
-be any key or mouse button), the weapon secondary (Left Alt), Dodge, the gadget, take and discard a chest item, reroll, Ready, Emotes, Ping, and the aim line,
+be any key or mouse button), the weapon secondary (Left Alt), Dodge, the gadget, Interact (F), discard a chest item, reroll, Ready, Emotes, Ping, and the aim line,
 map, HUD and mute toggles (mute starts with no key). For Fire and Parry, a "Left click / Right click" pair of buttons appears while you're picking
 (the page can't take a click as a key press, since the click is how you chose the row). Left and right click can't go on
 any other action, since they click everything else. Click a key, press the new one (a middle or side mouse button works too), and it
@@ -2126,7 +2129,7 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
 
 Open `Tools/WaveLab/standalone/wavelab.html` in any browser (double-click it, or open the file on a phone): one page, no server, works
 offline. Build a wave set (enemy palette, squads, spawn points A-E you can drag, props, timing, level), load a built-in set or a `.waves`
-file, pick a class, weapon, 1st ability and gear tier, then **Play**. Play by hand (WASD, mouse, Space, F, Ctrl; on a phone two thumb
+file, pick a class, weapon, 1st ability and gear tier, then **Play**. Play by hand (WASD, mouse, 1, Q, Ctrl; on a phone two thumb
 sticks and buttons) or switch the **bot** (Casual / Good / Expert) on at any time; God mode and a start wave are optional. When a run
 ends, or on **Report**, a per-wave table (clear time, kills, damage dealt/taken, healing, lowest HP, downs) appears, with Copy CSV.
 It is a **simplified simulation**: enemies have the real health, size, speed and colour, but move and shoot in a few generic styles
@@ -2199,13 +2202,13 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   die** (a switch, on by default): its health refills and a killing blow leaves it standing; off, a dead enemy lets go by itself. Marks
   the run as a dev run.
   **Hero dummies** (up to 6): stand-in heroes for enemies to hit. **ADD HERO DUMMY** puts one in front of you; while playing an enemy,
-  **Q** drops one at the cursor and **E** takes away the one nearest it; **CLEAR DUMMIES** removes them all (Clear arena keeps them).
+  **2** (the 2nd ability key) drops one at the cursor and **3** (the 3rd) takes away the one nearest it; **CLEAR DUMMIES** removes them all (Clear arena keeps them).
   Enemy shots and body touches land on them (counted at what an unbuffed hero would take); each shows its last hit, then DPS (last 3 s),
   hits and total. **Enemies aim at dummies** (on by default): every other enemy goes for the nearest dummy instead of the players.
   Blasts, beams, zones and other area attacks still only hit players. Only the host sees the dummies.
 - **PARTY > SPAWN AN UPGRADE… (host, in a run):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
-  chest's item does: only they see it, walk onto it, then **G** takes it and **B** throws it away (the wave waits for it, like a chest's). Only
+  chest's item does: only they see it, walk onto it, then **F** takes it and **B** throws it away (the wave waits for it, like a chest's). Only
   upgrades their build could be offered are clickable (greyed: another class, a missing ability or weapon). Marks the run as a dev run.
 - **PARTY > ITEMS & CHESTS… (host, in a run):** pick whose it is with several players. **GOLD +10 / +50 / +250 / +1000** and **VECTORS
   +1 / +5 / +20 / +100** scatter that much in front of them as their own coins or vector pickups: walk over them (a full vector wallet

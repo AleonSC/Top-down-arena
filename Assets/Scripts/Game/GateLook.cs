@@ -76,7 +76,7 @@ namespace Arena
                 return;
             float shut = game.GateShut(i), cool = game.GateCool(i);
             V2 at = ToUi(game.GateFits[i].Pos);
-            string key = Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant();
+            string key = Keybinds.KeyName(Keybinds.Get(KeyAction.Interact)).ToUpperInvariant();
             string text = shut > 0f ? "GATE SHUT  ·  " + Mathf.CeilToInt(shut) + " s" : cool > 0f ? "GATE READY IN " + Mathf.CeilToInt(cool) + " s" : key + "   SHUT GATE";
             var r = new Rect(at.X - 80f, at.Y - 54f, 160f, 22f);
             bool ready = shut <= 0f && cool <= 0f;

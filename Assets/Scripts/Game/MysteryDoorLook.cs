@@ -116,7 +116,7 @@ namespace Arena
                 bool afford = game.SpendableVectors(me) >= d.Price;
                 if (i == near)
                 {
-                    string open = Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant(), save = Keybinds.KeyName(Keybinds.Get(KeyAction.DiscardItem)).ToUpperInvariant();
+                    string open = Keybinds.KeyName(Keybinds.Get(KeyAction.Interact)).ToUpperInvariant(), save = Keybinds.KeyName(Keybinds.Get(KeyAction.DiscardItem)).ToUpperInvariant();
                     string text = open + "  OPEN  " + d.Price + " VECTORS   ·   " + save + (mine ? "  UNSAVE" : saved ? "  SAVED" : "  SAVE");
                     V2 over = ToUi(me.Disp);  // (over you, not over the door it would hide)
                     var r = new Rect(over.X - 130f, over.Y - 78f, 260f, 22f);

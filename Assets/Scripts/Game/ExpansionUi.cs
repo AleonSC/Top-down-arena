@@ -67,11 +67,18 @@ namespace Arena
         /// The shop covers your screen: in the Expanding arena, only while you stand in a shop room (and haven't clicked Done).
         bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ServiceRooms || game.InServiceRoom(me) && !me.ShopDone) && !BeamShowing;  // (not over the boss beam-in: BossBeamLook.cs)
 
-        /// The shop is open but you're not in a shop room: a banner and a way to skip it.
+        /// Standing in a room shop (shop room, Black Market, Arms Dealer, Medic) between waves after Done shopping: Interact (F) opens it again.
+        bool ShopReopenable(Player me) => me != null && !me.Downed && game.ShopOpen && game.ServiceRooms && me.ShopDone && game.InServiceRoom(me);
+
+        /// The shop is open but you're not in a shop room: a banner and a way to skip it. In a room shop you're done with: the key that opens it again.
         void DrawShopRoomHint(Player me)
         {
             if (game.ServiceRooms)
+            {
+                if (ShopReopenable(me))
+                    DrawShopReopenHint(me);
                 return;  // (the room shops hold nothing up: the HUD chip says they're open)
+            }
             Ui.Alpha = 1f;
             bool calm = FxCalm;
             float dy = 0f;
@@ -84,6 +91,24 @@ namespace Arena
             Ui.Label(new Rect(0, 156f + dy, W, 20f), "You have " + me.Gold + " gold. Leftover gold becomes XP when the shop closes.", 13, Ui.Muted, TextAnchor.MiddleCenter);
             if (DkKey(new Rect(W / 2f - 120f, 180f + dy, 240f, 32f), "SKIP THE SHOP", false, calm, size: 18, rawSize: true))
                 game.Shop(ShopAction.Done, 1);
+        }
+
+        /// Over you in a room shop you're done with: a gold key pill "F  OPEN THE SHOP" (or the room's own name), breathing gently.
+        void DrawShopReopenHint(Player me)
+        {
+            string key = Keybinds.NameOrNull(KeyAction.Interact);
+            if (key == null)
+                return;
+            string what = game.InShopRoom(me) ? "OPEN THE SHOP" : game.InArmsRoom(me) ? "OPEN THE ARMS DEALER" : game.InMedicRoom(me) ? "OPEN THE MEDIC" : "OPEN THE BLACK MARKET";
+            V2 over = ToUi(me.Disp);
+            float w = 64f + what.Length * 7f, breathe = FxCalm ? 1f : 0.85f + 0.15f * Mathf.Sin(Time.unscaledTime * 3f);
+            var r = new Rect(over.X - w / 2f, over.Y - 80f, w, 24f);
+            Ui.Glow(r, CrtStyle.Gold, 0.35f * breathe);
+            Ui.Pill(r, new Color(0.1f, 0.07f, 0.02f, 0.9f));
+            var k = new Rect(r.x + 4f, r.y + 3f, 22f + (key.Length - 1) * 7f, 18f);
+            Ui.Pill(k, CrtStyle.Gold.WithAlpha(breathe));
+            Ui.Label(k, key.ToUpperInvariant(), 11, new Color(0.1f, 0.07f, 0.02f), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(k.xMax + 8f, r.y, r.xMax - k.xMax - 12f, r.height), what, 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
         }
 
         // --- The building window -----------------------------------------------------------------------------
@@ -892,7 +917,7 @@ namespace Arena
             if (tool == 2)
             {
                 title = "FIT A GATE";
-                steps = new[] { "Point at a door (gold squares)", "Click it to fit a gate: " + Gates.Price + " vectors", "In a wave, by it press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() };
+                steps = new[] { "Point at a door (gold squares)", "Click it to fit a gate: " + Gates.Price + " vectors", "In a wave, by it press " + Keybinds.KeyName(Keybinds.Get(KeyAction.Interact)).ToUpperInvariant() };
                 tip = "Shuts for " + (int)Gates.CloseTime + " s, " + (int)Gates.Cooldown + " s to recharge.  " + game.GateFits.Count + " of " + Gates.Max + " fitted.";
             }
             else if (tool == 1)

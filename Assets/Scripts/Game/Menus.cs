@@ -443,7 +443,7 @@ namespace Arena
                         new[] { K(KeyAction.Dodge) }, new[] { K(KeyAction.Ability1) }, new[] { K(KeyAction.WeaponAction) }, new[] { K(KeyAction.Ultimate) },
                         new[] { K(KeyAction.Ability2), K(KeyAction.Ability3), K(KeyAction.Ability4) },
                         new[] { "1", "2", "3" },
-                        new[] { K(KeyAction.TakeItem), K(KeyAction.DiscardItem) }, new[] { K(KeyAction.Ping), K(KeyAction.Emote) }, new[] { K(KeyAction.ReadyUp) }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
+                        new[] { K(KeyAction.Interact), K(KeyAction.DiscardItem) }, new[] { K(KeyAction.Ping), K(KeyAction.Emote) }, new[] { K(KeyAction.ReadyUp) }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
                         new[] { "Esc" }, Keybinds.Get(KeyAction.Mute) == KeyCode.None ? new[] { K(KeyAction.Map) } : new[] { K(KeyAction.Map), K(KeyAction.Mute) }, new[] { "R", "L", "C" }, new[] { "F1" },
                     };
                 }
