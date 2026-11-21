@@ -52,7 +52,7 @@ static partial class Program
         bool unique = true;
         foreach (var e in MusicLibrary.All)
             unique &= ids.Add(e.Id) && e.Title.Length > 0 && Array.IndexOf(MusicLibrary.Moods, e.Mood) >= 0;
-        Check(unique && MusicLibrary.All.Count == 23, "music library: 23 tracks, unique ids, known moods");
+        Check(unique && MusicLibrary.All.Count == 24, "music library: 24 tracks, unique ids, known moods");
 
         bool ok = true;
         foreach (var e in MusicLibrary.All)
