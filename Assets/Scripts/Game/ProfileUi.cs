@@ -326,7 +326,8 @@ namespace Arena
                 y += step;
             }
             EndDrawerScreen();
-            if (cabScreenOn && CabBackKey(y, "Close your profile", rowH))
+            // An X at the cabinet's top right closes the profile (the Back key used to).
+            if (cabScreenOn && DkKey(new Rect(26f + CabInW - 40f, 30f, 40f, 32f), "X", false, calm, size: 18))
             {
                 if (CabWindowOpen)
                     CloseCabWindow();  // the window slides back in first
