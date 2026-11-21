@@ -106,20 +106,6 @@ namespace Arena
             }
         }
 
-        /// An opened shop room's stall (RoomsLook.cs).
-        public void DrawShopStall(V2 c)
-        {
-            var ink = ShopInk;
-            float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
-            Circle(c, 74f, ink.WithAlpha(0.06f + 0.03f * pulse), 28);
-            FillRect(c.X - 52f, c.Y - 14f, 104f, 28f, ink.WithAlpha(0.2f));
-            NodeFrame(c.X - 52f, c.Y - 14f, 104f, 28f, 3f, ink.WithAlpha(0.9f));
-            for (int i = 0; i < 5; i++)  // the awning
-                FillRect(c.X - 50f + i * 20f, c.Y - 36f, 20f, 18f, ink.WithAlpha(i % 2 == 0 ? 0.55f : 0.18f));
-            NodeFrame(c.X - 50f, c.Y - 36f, 100f, 18f, 2f, ink.WithAlpha(0.8f));
-            Arc(new V2(c.X, c.Y + Mathf.Sin(t * 3f) * 2f), 7f, 3f, ink.WithAlpha(0.95f), 14);  // a coin on the counter
-        }
-
         /// An opened Black Market room's pedestal (RoomsLook.cs).
         public void DrawMarketPedestal(V2 c)
         {

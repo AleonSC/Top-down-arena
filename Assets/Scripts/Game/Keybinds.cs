@@ -12,7 +12,7 @@ namespace Arena
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability1, Ultimate, Ability2, Ability3, Ability4, Fire, Parry, WeaponAction,
-        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map, GadgetWheel,
+        Interact, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map, GadgetWheel,
     }
 
     public static class Keybinds
@@ -21,14 +21,14 @@ namespace Arena
 
         static readonly KeyCode[] Defaults =
         {
-            KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
+            KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Alpha1, KeyCode.Q, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.G, KeyCode.B, KeyCode.X, KeyCode.None, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.C,
+            KeyCode.F, KeyCode.B, KeyCode.X, KeyCode.None, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.C,
         };
         static readonly string[] Titles =
         {
             "Move up", "Move down", "Move left", "Move right", "Dodge", "1st ability", "Ultimate", "2nd ability", "3rd ability",
-            "4th ability", "Fire", "Parry", "Alternative fire", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map", "Gadget wheel",
+            "4th ability", "Fire", "Parry", "Alternative fire", "Interact", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map", "Gadget wheel",
         };
         static readonly string[] Lines =
         {
@@ -37,7 +37,7 @@ namespace Arena
             "Picked in the lobby", "Picked in the lobby, one per role and class", "Filled by a very rare upgrade card", "Filled by a very rare upgrade card",
             "Filled by a very rare upgrade card", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
-            "While standing on it", "While standing on it", "Tap: use your gadget (switch it on or off, cast it, lob a charge). Hold and let go: throw it to a teammate where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
+            "Take a chest item, open a mystery door, shut a gate, open the shop again in a shop room", "While standing on it", "Tap: use your gadget (switch it on or off, cast it, lob a charge). Hold and let go: throw it to a teammate where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
             "Cycles the minimap, the full map and no map",
             "Hold to open the gadget wheel: let go on a gadget to swap it into your hand, in the middle to cancel",
         };
@@ -49,7 +49,7 @@ namespace Arena
             new[] { KeyAction.MoveUp, KeyAction.MoveDown, KeyAction.MoveLeft, KeyAction.MoveRight, KeyAction.Dodge },
             new[] { KeyAction.Ability1, KeyAction.Ultimate, KeyAction.Ability2, KeyAction.Ability3, KeyAction.Ability4 },
             new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
-            new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.GadgetWheel, KeyAction.Reroll },
+            new[] { KeyAction.Interact, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.GadgetWheel, KeyAction.Reroll },
             new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
         };
 
@@ -243,7 +243,7 @@ namespace Arena
         }
 
         /// The name an action's key is saved under: the new name once saved, else the one before the abilities were
-        /// renamed 1st-4th (Ability, AbilityQ, AbilityE, AbilityShift), so old keybinds still load.
+        /// renamed 1st-4th (Ability, AbilityQ, AbilityE, AbilityShift) and Interact (TakeItem), so old keybinds still load.
         static string SavedName(KeyAction a)
         {
             string now = a.ToString();
@@ -255,8 +255,39 @@ namespace Arena
                 case KeyAction.Ability2: return "AbilityQ";
                 case KeyAction.Ability3: return "AbilityE";
                 case KeyAction.Ability4: return "AbilityShift";
+                case KeyAction.Interact: return "TakeItem";
                 default: return now;
             }
+        }
+
+        /// Nov 21's layout (a save from before it): each action still on its old default moves to its new one (Space, Q, E, Left Shift to
+        /// 1-4, F to Q for the Ultimate, G to F for Interact), unless another action holds the new key: then it keeps the old one.
+        static void MoveOldDefaults()
+        {
+            PlayerPrefs.SetInt("key_interact_f", 1);
+            var acts = new[] { KeyAction.Ability1, KeyAction.Ability2, KeyAction.Ability3, KeyAction.Ability4, KeyAction.Ultimate, KeyAction.Interact };
+            var old = new[] { KeyCode.Space, KeyCode.Q, KeyCode.E, KeyCode.LeftShift, KeyCode.F, KeyCode.G };
+            var moving = new bool[acts.Length];
+            bool any = false;
+            for (int i = 0; i < acts.Length; i++)
+                if (keys[(int)acts[i]] == old[i])
+                {
+                    moving[i] = any = true;
+                    keys[(int)acts[i]] = KeyCode.None;
+                }
+            for (int i = 0; i < acts.Length; i++)
+                if (moving[i])
+                    keys[(int)acts[i]] = KeyUsed(Defaults[(int)acts[i]]) ? (KeyUsed(old[i]) ? KeyCode.None : old[i]) : Defaults[(int)acts[i]];
+            if (any)
+                Save();
+        }
+
+        static bool KeyUsed(KeyCode k)
+        {
+            for (int j = 0; j < keys.Length; j++)
+                if (keys[j] == k || keys2[j] == k)
+                    return true;
+            return false;
         }
 
         public static void Load()
@@ -281,6 +312,8 @@ namespace Arena
                     Save();
                 }
             }
+            if (!PlayerPrefs.HasKey("key_interact_f"))  // a save from before Nov 21's layout: abilities on 1-4, Q the Ultimate, F Interact
+                MoveOldDefaults();
             keys[(int)KeyAction.PushWall] = keys2[(int)KeyAction.PushWall] = KeyCode.None;  // (retired: its old C goes to the Gadget wheel)
             for (int i = 0; i < keys.Length; i++)  // a hand-edited save with a key on two actions: the later one goes back
             {
