@@ -11,7 +11,7 @@ namespace Arena
         internal static readonly KitDef ElementalistKit = new KitDef
         {
             Id = Kit.Elementalist, Name = "Elementalist", Icon = "class_elementalist", HpMult = 0.85f,
-            Blurb = "Spells: fire, frost, lightning, water, wind, earth and light. 85% health.",
+            Blurb = "Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, burning ones keep burning, frozen ones slow down. Big area damage, at 85% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKitWeapon(p, aim, dir, muzzle, dmg, extra),
         };
 

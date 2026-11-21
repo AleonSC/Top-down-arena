@@ -11,7 +11,7 @@ namespace Arena
         internal static readonly KitDef SoldierKit = new KitDef
         {
             Id = Kit.Soldier, Name = "Soldier", Icon = "class_soldier",
-            Blurb = "Guns and gear. Full health.",
+            Blurb = "Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Full health and normal speed: the steady pick.",
         };
 
         /// The Soldier's weapons (fired in FireVolley below).

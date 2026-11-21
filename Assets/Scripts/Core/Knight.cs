@@ -689,7 +689,7 @@ namespace Arena
         internal static readonly KitDef KnightKit = new KitDef
         {
             Id = Kit.Knight, Name = "Knight", Icon = "class_knight", HpMult = 1.15f,
-            Blurb = "Melee: swings cut small bullets out of the air. Armoured: 115% health.",
+            Blurb = "Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKnightWeapon(p, aim, dmg, extra),
             Ability = (g, p, id, target) => g.KnightAbility(p, id, target),
             OnKill = (g, e) => g.GauntletKill(e),  // a Challenged enemy's death sends the gauntlet back (Gauntlet.cs)

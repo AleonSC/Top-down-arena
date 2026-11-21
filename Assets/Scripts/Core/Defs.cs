@@ -218,19 +218,19 @@ namespace Arena
             {
                 Name = "Tank", Ability = "Barrier", Color = new Rgba(0.35f, 0.6f, 1f),
                 Hp = 200f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
-                Desc = "Big HP pool. Enemies prefer to target you.",
+                Desc = "The front line. The biggest health pool and a slower step, and enemies prefer to target you, so stand between them and your team. Your weapons and abilities block, shove and soak: barriers, shields and cover that buy your allies room to work.",
             },
             new RoleDef
             {
                 Name = "Healer", Ability = "Mend Pulse", Color = new Rgba(0.35f, 1f, 0.55f),
                 Hp = 140f, Speed = 215f, HitR = 7f, BodyR = 14f, FireInterval = 0.25f, AbilityCd = 10f,  // 140 (was 120): healers took 7 of 9 downs in a recorded run
-                Desc = "Your aura slowly heals an ally standing near you, and you a little.",
+                Desc = "Keeps the team standing. Your aura heals allies within 170 px for 9 HP a second and you for 1; healing past full health becomes a short shield. Your abilities boost, protect and bring the fallen back, and they work on you when you fight alone.",
             },
             new RoleDef
             {
                 Name = "DPS", Ability = "Dash", Color = new Rgba(1f, 0.55f, 0.25f),
                 Hp = 110f, Speed = 240f, HitR = 6f, BodyR = 12f, FireInterval = 0.1f, AbilityCd = 3.5f,
-                Desc = "Fragile, but deals the most damage.",
+                Desc = "The damage. The lowest health but the fastest feet and the hardest-hitting weapons. Momentum: each kill adds a stack (up to 5) for +3% move speed and fire rate, and the stacks fade 4 s after your last kill, so keep the kills coming.",
             },
             new RoleDef
             {
@@ -238,7 +238,7 @@ namespace Arena
                 // and the price is WildcardDmgMult / WildcardCdMult (Game.cs).
                 Name = "Wildcard", Ability = "Any DPS ability", Color = new Rgba(0.78f, 0.45f, 1f),
                 Hp = 125f, Speed = 225f, HitR = 6.5f, BodyR = 14f, FireInterval = 0.1f, AbilityCd = 3.5f,
-                Desc = "Mix any class's DPS weapon and two DPS abilities. Weaker shots and slower cooldowns.",
+                Desc = "Build your own. Take any class's DPS weapon, any two DPS abilities on the keys you choose, and any class's DPS ultimate. The price: weaker shots, slower cooldowns, middle health and no role passive.",
             },
         };
 
