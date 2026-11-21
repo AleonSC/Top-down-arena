@@ -66,6 +66,17 @@ static partial class Program
             make(EnemyType.Grunt, new V2(1500f, 120f));  // far off: the wave goes on
         };
 
+        // The real key path (no direct HostAbility call): a press of the 4th-pick ability key from cold, then Fire.
+        reset();
+        make(EnemyType.Grunt, home + new V2(150f, 0f));
+        hostS.Poll(); client.Poll();
+        g.FixedStep(dt, new PlayerInput { Ability = true, AimAt = home + new V2(300f, 0f) });
+        g.FixedStep(dt, new PlayerInput { AimAt = home + new V2(300f, 0f) });
+        Check(turret() != null, "pressing the ability key casts it (the real input path)");
+        step(1.5f, true);
+        var keyed = g.Enemies.Values.First(e => mine.Contains(e.Id) && e.Pos.X < home.X + 200f);
+        Check(lost(keyed) > 0f, "and holding Fire then shoots (the real input path)");
+
         // The cast: a zone on both screens lasting drop + 10 s + overheat, a 30% seat, you rooted.
         reset();
         var e1 = make(EnemyType.Grunt, home + new V2(150f, 0f));
