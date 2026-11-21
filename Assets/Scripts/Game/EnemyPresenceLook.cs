@@ -33,7 +33,7 @@ namespace Arena
         {
             foreach (var e in game.Enemies.Values)
             {
-                if (!HasPresence(e) || IsOfficer(e.Type))  // (the Warden's officers have their own: OfficerGlowLook.cs)
+                if (!HasPresence(e) || HasWardenHalo(e.Type))  // (the Warden's faction has its own: OfficerGlowLook.cs)
                     continue;
                 GlowDisc(e.Disp, e.Radius * JuiceScale(e) * GlowRadius, e.Def.Color, GlowAlpha);
             }

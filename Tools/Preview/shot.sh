@@ -50,6 +50,7 @@
 # NIMBUS=<s since a strike, -1 none> [NIMBUSSTORM=<s into the Eye of the Storm> NIMBUSBOLT=1] (the Nimbus, Anvil look; mode hud).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
 # RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
+# THUGRAGE=1 (four Thugs at full, 2/3, 1/3 and 5% health: the red halo growing; NINJA=0 ZOOM=3).
 # PRISONERS=1 (Thugs and Shivs, both Shiv kinds walking, winding up and lunging; mode hud, ZOOM=3).
 # TURNKEY=1 (the Turnkey running, planting, building; Cell Doors working and jammed; Floor Mines, Shackle Traps, a Mop Slick; NINJA=0 ZOOM=2.2; TurnkeyLook.cs).
 # WARDENCREW=1 (Guard, Riot Shield, Gas Grenadier, Taser Guard, Security Guard in a row; WARDENCREW=2 mid-move; NINJA=0 ZOOM=3.2; OfficerLook.cs).
