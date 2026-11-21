@@ -11,7 +11,8 @@ namespace Arena
     ///           left, the tabs from above, the bottom bar from below; the loadout fills in
     ///   1.1 s   your party card arrives last, with a ring
     /// The lobby isn't usable until it settles (it's drawn on Repaint only, so it takes no clicks; its live models wait).
-    /// Leave plays it backwards (1 s, without the party card's ring): your card goes first, the pieces slide out, the
+    /// With Reduced effects or Visual effects off, Leave plays it backwards (1 s, without the party card's ring; with effects on
+    /// it's the scan line of LobbyScanLeave.cs): your card goes first, the pieces slide out, the
     /// panel shrinks back into the menu card and LOBBY flies back to the middle as the title. You actually leave as it
     /// ends (StartLobbyLeave), so the lobby is still there to draw.
     public partial class ArenaApp
@@ -33,6 +34,7 @@ namespace Arena
                 return;
             leaveT = 0f;
             enterT = -1f;
+            scanLeave = LobbyFxOn;  // with effects on: the scan line (LobbyScanLeave.cs)
             settingsOpen = false;
             // The card shrinks back into the menu's box; show the state the menu will reset to (the buttons, not the Play
             // picker you may have launched from) so it doesn't jump when the menu takes over (MenuIntro.cs does the same reset).
@@ -50,7 +52,7 @@ namespace Arena
             {
                 if (session.Screen != AppScreen.Lobby)
                     leaveT = -1f;  // gone some other way (the host closed it)
-                else if ((leaveT += dt) >= LeaveLen)
+                else if ((leaveT += dt) >= LeaveLenNow)
                 {
                     leaveT = -1f;
                     session.Leave("");  // the menu's last frame is where this ends

@@ -60,7 +60,7 @@ namespace Arena
             ReactTick(time);  // BackgroundReact.cs: pointer and clicks for the reactive backgrounds
             if (!bgThumb && bgProfile != Profile.Current)
                 LoadBackgroundSettings();
-            int bg = !bgThumb && session != null && session.Screen == AppScreen.Menu && !menuBgOverride ? HoloFloorBg : menuBg;
+            int bg = !bgThumb && session != null && (session.Screen == AppScreen.Menu || scanBgMenu) && !menuBgOverride ? HoloFloorBg : menuBg;
             switch (bg)
             {
                 case 1: BgDeepField(time); break;

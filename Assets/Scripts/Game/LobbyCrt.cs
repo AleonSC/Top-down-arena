@@ -92,7 +92,7 @@ namespace Arena
         float LobbyCrtBackA()
         {
             if (LobbyLeaving)
-                return 1f - Seg(leaveT, 0f, LeaveLen * 0.8f);
+                return scanLeave ? 1f : 1f - Seg(leaveT, 0f, LeaveLen * 0.8f);  // (the scan line cuts it off instead, LobbyScanLeave.cs)
             if (LobbyEntering)
                 return crtEntry ? (enterT >= CrtGrowTo ? 1f : 0f) : Seg(enterT, 0.3f, 1.2f);  // (the boot draws its own growing screen until then)
             return 1f;
@@ -101,7 +101,7 @@ namespace Arena
         float LobbyCrtGlassA()
         {
             if (LobbyLeaving)
-                return 1f - Seg(leaveT, 0f, LeaveLen * 0.8f);
+                return scanLeave ? 1f : 1f - Seg(leaveT, 0f, LeaveLen * 0.8f);  // (the scan line cuts it off instead, LobbyScanLeave.cs)
             if (LobbyEntering)
                 return crtEntry ? (enterT >= CrtGrowTo ? 1f : 0f) : Seg(enterT, 0.5f, 1.3f);  // (the growing screen already wears its own glass)
             return 1f;
