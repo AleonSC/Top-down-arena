@@ -1152,7 +1152,7 @@ namespace Arena
                 var ab = new Rect(side < 0 ? wr.x : wr.xMax - arrowW, wr.y, arrowW, wr.height);
                 bool hov = GUI.enabled && ab.Contains(ev.mousePosition);
                 bool click = Ui.HitArea(ab);  // no key box: the chevron floats beside the class
-                TallChevron(new Vector2(ab.center.x, iconY + big / 2f + 8f), side, CrtKit.SoftText(CrtStyle.Ink, hov));
+                TallChevron(ab.center, side, CrtKit.SoftText(CrtStyle.Ink, hov));
                 if (click)
                     wildBrowse += side;
             }
