@@ -2541,6 +2541,7 @@ static partial class Shot {
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }
+    if (Environment.GetEnvironmentVariable("WALLGLOW") != null) ArenaApp.WallBrightness = float.Parse(Environment.GetEnvironmentVariable("WALLGLOW"), System.Globalization.CultureInfo.InvariantCulture);  // WALLGLOW=<0-1>: walls and pillars brightness (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("FLOORTINT") != null) ArenaApp.FloorTintAmt = float.Parse(Environment.GetEnvironmentVariable("FLOORTINT"), System.Globalization.CultureInfo.InvariantCulture);  // FLOORTINT=<0-1>: the boss floor wash (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("FLOORBEND") == "0") ArenaApp.PreviewFloorStatic = true;
     if (Environment.GetEnvironmentVariable("FLOORSTYLE") != null) ArenaApp.PreviewFloorStyle = int.Parse(Environment.GetEnvironmentVariable("FLOORSTYLE"));  // FLOORSTYLE=<n>: the arena floor pattern, 1 Flux 2 Seismo 3 Plates 4 Circuit (FloorStylesLook.cs)
