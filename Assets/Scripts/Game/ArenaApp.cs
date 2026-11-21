@@ -141,6 +141,7 @@ namespace Arena
             LoadBackgroundSettings();
             InitLobbyCrt();  // build the lobby CRT's textures now, not on the New run boot's first frame (LobbyCrt.cs)
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
+            LoadCellLayoutEdits();  // cell layouts edited in the Cell Editor (CellEditorUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
             ParseCommandLine();
         }
