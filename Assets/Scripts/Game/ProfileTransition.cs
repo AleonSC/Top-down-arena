@@ -117,6 +117,8 @@ namespace Arena
         void PlayProfTrCues(float a, float b)
         {
             float now = Time.unscaledTime;
+            if (b > a)
+                TitleFlapCues(WhoTitleText, a, b, 2.4f, 3.2f, false);  // WHO'S PLAYING? flapping away (the menu's title then types with its own sounds)
             foreach (var c in ProfCues)
             {
                 if (b > a && a < c.t && c.t <= b)

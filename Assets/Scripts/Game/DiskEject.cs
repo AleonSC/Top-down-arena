@@ -133,6 +133,9 @@ namespace Arena
             foreach (var c in EjCues)
                 if (a < c.t && c.t <= b)
                     sounds.Play(c.sfx, c.vol, now);
+            // the title screen: VECTOR COLOSSEUM flaps away, then WHO'S PLAYING? clacks on (MenuHolo.cs DrawTitleRetype)
+            TitleFlapCues(CrtTitleText, a, b, 1.1f, 1.7f, false);
+            TitleFlapCues(WhoTitleText, a, b, 1.9f, 2.5f, true);
         }
 
         /// The drive for the eject clock E: the cells drain with an amber light, a flash as the disk kicks out, TAKE DISK blinking, then empty.
