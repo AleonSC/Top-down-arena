@@ -1926,7 +1926,7 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   and the difficulty, the next boss (moving), and this stretch's Data Gate (won, lost, or when the next one
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
   (class, level, health; the Tab screen has the rest), stacked from the bottom up.
-- **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (the cabinet's list
+- **The lobby's menu** (Esc in the lobby; the main menu's neon edges and glowing corners on its box and windows): **Back to the lobby** (Esc again), **Settings** (the cabinet's list
   switches, like the pause menu's), **HOW TO PLAY** (in the drawer too) and **Quit game** (no Profile or Main menu
   rows: your lobby card opens the profile and the lobby's red back arrow leaves: a scan line sweeps down the screen, redrawing the main menu behind it as the lobby breaks into blocks ahead of it; with Reduced effects or effects off the lobby folds back into the menu). The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.

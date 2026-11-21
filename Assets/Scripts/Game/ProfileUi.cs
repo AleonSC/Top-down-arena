@@ -54,10 +54,11 @@ namespace Arena
                 profileTab = 1;
             if (inMenu)
                 editingName = false;
-            cabNeon = !inMenu;  // from the main menu or the lobby: Settings' neon edges and corners (MenuHolo.cs)
+            bool neonWas = cabNeon;
+            cabNeon = neonWas || !inMenu;  // from the main menu, the lobby or its Esc menu: Settings' neon edges and corners (MenuHolo.cs)
             DrawCabWindow();  // CrtWindows.cs: DrawProfileSection (ProfileWindows.cs) when an option is open
             DrawProfileCabinet(inMenu);
-            cabNeon = false;
+            cabNeon = neonWas;
         }
 
         /// One key of the cabinet's option list.
