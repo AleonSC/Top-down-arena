@@ -1,6 +1,6 @@
 # Cell variants and pits
 
-Status: **all four steps built** (protocol 455, Nov 21, 2026; decided with the owner the same day). Variant chance 40% for a first look. Mockup: `Docs/Mockups/cell-pits.html`
+Status: **all four steps built** (protocol 456, Nov 21, 2026; decided with the owner the same day). Variant chance 40% for a first look. Mockup: `Docs/Mockups/cell-pits.html`
 (approximate HTML, not the real draw code). Builds on `CellLayouts.cs` (the 18 cell layouts) and Docs/GridPieces.md.
 
 ## Decisions
@@ -29,6 +29,6 @@ Status: **all four steps built** (protocol 455, Nov 21, 2026; decided with the o
 1. **Variants in data** (`CellVariants.cs`): variants by the plain layout's name, `CellPlan.Variant`, the seeded roll for
    plain Combat cells, pits (boxes or discs) turned with the cell, `World.Pits`.
 2. **Falling** (`Pits.cs`): enemies shoved in die (kill credit, coins on the rim), walking never goes in, steering and bots
-   go round; players climb out, 15% max HP never below 1, 1 s shield, `Msg.PitFall` (protocol 455).
+   go round; players climb out, 15% max HP never below 1, 1 s shield, `Msg.PitFall` (protocol 456).
 3. **Look** (`Game/PitLook.cs`): the Hazard rim, the fall effect, minimap marks; preview `PITCELL=<name> [PITFALL=<s>]`.
 4. **Tune**: `VariantChance` 40%; README. Next ideas: more variant kinds (floors, extra cover), a fall sound.
