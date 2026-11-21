@@ -6,7 +6,7 @@ namespace Arena
     /// and the rank-reward backgrounds are gone; the reward plumbing stays so new unlockable ones can be added.
     public partial class ArenaApp
     {
-        public static readonly string[] BackgroundNames = { "Holo Floor" };
+        public static readonly string[] BackgroundNames = { "Holo Floor", "Lattice", "Circuit Run", "Hex Scan" };  // 1-3: reactive mockups (BackgroundArena.cs), not unlockable yet
 
         const int HoloFloorBg = 0;
 
@@ -43,13 +43,17 @@ namespace Arena
         /// Behind the menus, in UI canvas coordinates.
         void DrawMenuBackground(float time)
         {
+            ReactTick(time);  // BackgroundReact.cs: pointer and clicks for the reactive backgrounds
             switch (menuBg)
             {
+                case 1: BgLattice(time); break;
+                case 2: BgCircuitRun(time); break;
+                case 3: BgHexScan(time); break;
                 default: BgHoloFloor(time); break;  // MenuHolo.cs
             }
         }
 
-        static readonly Color[] BackgroundAccents = { new Color(0.45f, 0.62f, 1f) };  // Holo Floor
+        static readonly Color[] BackgroundAccents = { new Color(0.45f, 0.62f, 1f), new Color(0.3f, 0.85f, 1f), new Color(0.25f, 0.92f, 0.82f), new Color(0.4f, 0.75f, 1f) };  // Holo Floor, Lattice, Circuit Run, Hex Scan
 
 
 
@@ -70,7 +74,13 @@ namespace Arena
             var org = new V2(thumb.x - (W * sc - thumb.width) / 2f, thumb.y - (H * sc - thumb.height) / 2f);
             UiModelAt(org, sc);
             UiClip(thumb);
+            bgViewOrigin = org;  // (BackgroundReact.cs: the pointer is only over this view if it is in the thumbnail)
+            bgViewScale = sc;
+            bgViewRect = thumb;
             DrawMenuBackground(Time.time);
+            bgViewOrigin = V2.Zero;
+            bgViewScale = 1f;
+            bgViewRect = new Rect(0f, 0f, W, H);
             UiNoClip();
             UiModelAt(V2.Zero, 1f);
             var edge = accent.ToRgba(rimAlpha);
