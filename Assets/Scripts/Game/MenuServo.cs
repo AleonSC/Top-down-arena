@@ -129,9 +129,8 @@ namespace Arena
                 float mid = host.center.x;
                 float lx0 = Mathf.Max(c.x + 12f, well.x - dx), lx1 = mid - dx;
                 float rx0 = mid + dx, rx1 = Mathf.Min(c.xMax - 12f, well.xMax + dx);
-                var key = PixelArt.Get("ui_play");
-                ServoClip(new Rect(lx0, well.y, lx1 - lx0, well.height + 4f), () => KeyUi.Key(new Rect(host.x - dx, host.y + press, host.width, host.height), "PLAY", key, 34));
-                ServoClip(new Rect(rx0, well.y, rx1 - rx0, well.height + 4f), () => KeyUi.Key(new Rect(host.x + dx, host.y + press, host.width, host.height), "PLAY", key, 34));
+                ServoClip(new Rect(lx0, well.y, lx1 - lx0, well.height + 4f), () => PlayKey(new Rect(host.x - dx, host.y + press, host.width, host.height)));
+                ServoClip(new Rect(rx0, well.y, rx1 - rx0, well.height + 4f), () => PlayKey(new Rect(host.x + dx, host.y + press, host.width, host.height)));
             }
             GUI.EndGroup();
 
