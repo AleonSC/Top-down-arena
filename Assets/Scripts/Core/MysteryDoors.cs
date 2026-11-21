@@ -20,12 +20,13 @@ namespace Arena
 
     /// What is in it (host only, never sent): enemies (most square rooms), nothing (rarer), a shop, a Black Market, an Arms Dealer or a Medic (small
     /// rooms only), or a chest at the far end (hallways).
-    public enum MysteryKind : byte { Enemies, Empty, Shop, BlackMarket, Chest, Arms, Medic }
+    public enum MysteryKind : byte { Enemies, Empty, Shop, BlackMarket, Chest, Arms, Medic, Gauntlet }  // (Gauntlet: a 3 cell hallway, a relic in the middle, hazards in the outer cells; Gauntlet.cs)
 
     /// The rules of mystery doors.
     public static class Mystery
     {
         public const int AmbushBase = 4, AmbushMax = 10;  // a medium room's enemies: this many, +1 every 5 waves, at most AmbushMax
+        public const int GauntletChance = 40;              // a hallway is a Relic Gauntlet this often (percent), else a chest at the far end (owner Nov 21)
         public const int SmallPack = 25;                   // a small room: a pack of this many of the faction's basic enemy, grouped (owner Nov 19)
 
         /// Room weights: small 35, medium 35, hallway 30.
@@ -54,7 +55,7 @@ namespace Arena
         public static MysteryKind KindFor(int seed, int wave, int n, MysteryRoom room, bool enemies)
         {
             var rg = new DetRandom(seed * 5167 + wave * 211 + n * 89 + 7);
-            MysteryKind k = room == MysteryRoom.Hallway ? MysteryKind.Chest : room == MysteryRoom.Small ? SmallKinds[Pick(rg, SmallWeights)] : (MysteryKind)Pick(rg, MediumWeights);
+            MysteryKind k = room == MysteryRoom.Hallway ? (rg.Int(100) < GauntletChance ? MysteryKind.Gauntlet : MysteryKind.Chest) : room == MysteryRoom.Small ? SmallKinds[Pick(rg, SmallWeights)] : (MysteryKind)Pick(rg, MediumWeights);
             return k == MysteryKind.Enemies && !enemies && room != MysteryRoom.Small ? MysteryKind.Empty : k;
         }
 
@@ -85,6 +86,13 @@ namespace Arena
         {
             int n = Math.Min(AmbushMax, AmbushBase + wave / 5);
             return r == MysteryRoom.Small ? SmallPack : n;
+        }
+
+        /// Is the door at one of the short ends of this hallway? (A gauntlet is entered from an end, never from the side.)
+        public static bool DoorAtEnd(ExpansionRoom r, MysteryDoor d)
+        {
+            float edge = r.W > r.H ? Math.Min(Math.Abs(d.X - r.X), Math.Abs(d.X - r.X1)) : Math.Min(Math.Abs(d.Y - r.Y), Math.Abs(d.Y - r.Y1));
+            return edge < 4f;
         }
 
         /// Where a hallway's chest goes: the middle of its far end, 70 px in.
@@ -233,7 +241,7 @@ namespace Arena
             {
                 var room = Mystery.RoomFor(expandSeed, Wave, n + Expanded.Count * 7);
                 var kind = Mystery.KindFor(expandSeed, Wave, n + Expanded.Count * 7, room, enemies);
-                var pieces = Mystery.PiecesOf(room);  // (the room behind is a piece on the lattice, a shop or Black Market one cell; owner Nov 18)
+                var pieces = kind == MysteryKind.Gauntlet ? new[] { PieceShape.TriI } : Mystery.PiecesOf(room);  // (the room behind is a piece on the lattice, a shop or Black Market one cell; owner Nov 18)
                 int nShapes = pieces.Length;
                 int first = rg.Int(nShapes);
                 bool placed = false;
@@ -247,6 +255,8 @@ namespace Arena
                         var o = opts[(start + k) % opts.Count];
                         MysteryDoor d; V2 behind;
                         if (!MysteryDoorOf(o, out d, out behind) || MysteryClashes(o, d, -1))
+                            continue;
+                        if (kind == MysteryKind.Gauntlet && !Mystery.DoorAtEnd(o.Rooms[0], d))
                             continue;
                         MysteryDoors.Add(d);
                         mysteryPlans.Add(o);
@@ -440,7 +450,7 @@ namespace Arena
             for (int k = 0; k < plan.Value.Rooms.Count; k++)
             {
                 var q = plan.Value.Rooms[k];
-                q.Surprise = 0;  // (a bought room, not a gift)
+                q.Surprise = kind == MysteryKind.Gauntlet ? RelicGauntlet.Mark : (byte)0;  // (a bought room, not a gift; the Relic Gauntlet's mark makes its hazards, Gauntlet.cs)
                 q.Price = k == 0 ? price : 0;
                 q.Owner = p.Id;
                 if (kind == MysteryKind.Shop) q.Kind = Arena.RoomKind.Shop;
@@ -457,6 +467,13 @@ namespace Arena
             {
                 V2 end = Mystery.FarEnd(head, doorAt);
                 Nodes.Add(new MapNode { X = (short)end.X, Y = (short)end.Y, Kind = NodeKind.Chest });  // (TickNodes puts the chest there)
+            }
+            if (kind == MysteryKind.Gauntlet)
+            {
+                V2 end = Mystery.FarEnd(head, doorAt);
+                V2 relicAt = RelicGauntlet.RelicSpot(head);
+                Nodes.Add(new MapNode { X = (short)relicAt.X, Y = (short)relicAt.Y, Kind = NodeKind.Relic, Rule = (byte)((int)RelicGauntlet.RelicFor(expandSeed, head) + 1) });  // (the pedestal in the middle cell)
+                Nodes.Add(new MapNode { X = (short)end.X, Y = (short)end.Y, Kind = NodeKind.Chest });  // (and the greedy chest past the hazards)
             }
             Expanded.AddRange(rooms);
             if (kind == MysteryKind.Enemies || kind == MysteryKind.Empty)

@@ -1518,6 +1518,7 @@ namespace Arena
             TickMinions(dt);
             TickTurrets(dt);  // Turret.cs: the Black Market's turrets shoot
             TickRoomTraps(dt);  // RoomTraps.cs: a room's spike plates and turrets
+            TickRelicGauntlets(dt);  // Gauntlet.cs: the Relic Gauntlet's lasers
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
             TickCoins(dt);  // Coins.cs

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// The well-shaped rooms the game gives the Expanding arena for free (Docs/SurpriseRooms.md, step 1).
-    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash, Tiny, Duel, Box, Hall, SmallRect, Medium, LongHall }  // (Tiny, SmallRect, Medium, Box, LongHall: mystery door rooms, MysteryDoors.cs; Duel, Box and Hall: room cards, Pieces.cs)
+    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash, Tiny, Duel, Box, Hall, SmallRect, Medium, LongHall, Gauntlet }  // (Tiny, SmallRect, Medium, Box, LongHall: mystery door rooms, MysteryDoors.cs; Duel, Box and Hall: room cards, Pieces.cs)
 
     /// A spot for a surprise room: its boxes (Price 0), how many loops it closes and its score.
     public struct SurpriseOption
@@ -37,6 +37,7 @@ namespace Arena
                 case SurpriseShape.SmallRect: return "Small room";
                 case SurpriseShape.Medium: return "Medium room";
                 case SurpriseShape.LongHall: return "Long hallway";
+                case SurpriseShape.Gauntlet: return "Relic gauntlet";
                 case SurpriseShape.Duel: return "Duel room";
                 case SurpriseShape.Box: return "Box";
                 case SurpriseShape.Hall: return "Hall";
@@ -70,6 +71,8 @@ namespace Arena
                     cols = rows = 6; f = (c, r) => true; break;
                 case SurpriseShape.LongHall:  // 12 x 3: a mystery door's long hallway, a chest at its far end
                     cols = 12; rows = 3; f = (c, r) => true; break;
+                case SurpriseShape.Gauntlet:  // 18 x 6: three cells in a line (Gauntlet.cs)
+                    cols = 18; rows = 6; f = (c, r) => true; break;
                 case SurpriseShape.Duel:  // 8 x 6: a mystery door's mini-boss room (the floating one's size)
                     cols = 8; rows = 6; f = (c, r) => true; break;
                 case SurpriseShape.Box:  // 7 x 6: a room card's plain room

@@ -248,6 +248,7 @@ namespace Arena
             DrawProps(t);  // crates, barrels and the chest (PropsLook.cs)
             DrawTurrets();  // the Black Market's turrets (TurretLook.cs)
             DrawRoomTraps(t);  // a room's spike plates, slow fields and turrets (RoomTrapLook.cs)
+            DrawRelicGauntlets(t);  // the Relic Gauntlet's lasers (RelicGauntletLook.cs)
             DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, the Drawbridge's slam (KnightDpsLook.cs)
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)

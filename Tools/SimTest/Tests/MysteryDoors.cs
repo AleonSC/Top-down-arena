@@ -59,7 +59,7 @@ static partial class Program
         var w1 = g.CurrentWorld;
         Check(g.Expanded.Count > rooms0 && fp.Vectors == 5 && g.MysteryDoors.Count == n0 - 1, "paying " + d0.Price + " opens it: a room is built and the payer charged (" + fp.Vectors + " left)");
         Check(w1.Doors.Any(x => x.Pos.CloserThan(d0.Pos, 2f)), "the room's door is where the sealed door was");
-        Check(g.Expanded.Skip(rooms0).All(r => r.Surprise == 0 && r.Owner == cg.MyId) && g.Expanded[rooms0].Price == d0.Price, "it is a bought room: the payer's, its price on it, not a gift");
+        Check(g.Expanded.Skip(rooms0).All(r => (r.Surprise == 0 || RelicGauntlet.Is(r)) && r.Owner == cg.MyId) && g.Expanded[rooms0].Price == d0.Price, "it is a bought room: the payer's, its price on it, not a gift");
         Check(cg.Expanded.Count == g.Expanded.Count && cg.MysteryDoors.Count == g.MysteryDoors.Count, "the friend gets the room and loses the door");
 
         // Saving: one door per player; a saved door outlives the next roll, the others expire.
@@ -168,7 +168,7 @@ static partial class Program
         var flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
         // The roll: the three rooms near their weights; what each holds.
-        var rooms = new int[3]; var small = new int[7]; var medium = new int[7]; bool hallsChest = true, quiet = true;
+        var rooms = new int[3]; var small = new int[7]; var medium = new int[7]; bool hallsChest = true, quiet = true; int gauntlets = 0, halls = 0;
         for (int sd = 1; sd <= 6000; sd++)
         {
             var r = Mystery.RoomFor(sd, 9, 0);
@@ -176,7 +176,7 @@ static partial class Program
             var k = Mystery.KindFor(sd, 9, 0, r, true);
             if (r == MysteryRoom.Small) small[(int)k]++;
             if (r == MysteryRoom.Medium) medium[(int)k]++;
-            if (r == MysteryRoom.Hallway) hallsChest &= k == MysteryKind.Chest;
+            if (r == MysteryRoom.Hallway) { hallsChest &= k == MysteryKind.Chest || k == MysteryKind.Gauntlet; gauntlets += k == MysteryKind.Gauntlet ? 1 : 0; halls++; }
             var kq = Mystery.KindFor(sd, 9, 0, r, false);
             quiet &= r == MysteryRoom.Small ? kq == k : kq != MysteryKind.Enemies;
         }
@@ -185,7 +185,7 @@ static partial class Program
             "a small room is mostly enemies, never empty, rarely a shop, a Black Market, an Arms Dealer or a Medic (" + string.Join(" ", small) + ")");
         Check(medium[(int)MysteryKind.Enemies] > 2 * medium[(int)MysteryKind.Empty] && medium[(int)MysteryKind.Empty] > 0 && medium[(int)MysteryKind.Shop] + medium[(int)MysteryKind.BlackMarket] + medium[(int)MysteryKind.Medic] + medium[(int)MysteryKind.Chest] == 0,
             "a medium room is mostly enemies, rarely empty, never a shop (" + string.Join(" ", medium) + ")");
-        Check(hallsChest, "a hallway always holds a chest");
+        Check(hallsChest && gauntlets > halls / 4 && gauntlets < halls * 3 / 5, "a hallway holds a chest or is a Relic Gauntlet, about " + Mystery.GauntletChance + "% of the time (" + gauntlets + " of " + halls + ")");
         Check(quiet, "round a boss no medium room holds enemies, but a small room keeps its pack");
         Check(Mystery.AmbushCount(5) == 5 && Mystery.AmbushCount(100) == Mystery.AmbushMax && Mystery.AmbushCount(5, MysteryRoom.Small) == Mystery.SmallPack && Mystery.SmallPack == 25, "enemies grow with the waves; a small room is a pack of 25");
         Check(Mystery.PiecesOf(MysteryRoom.Small).All(pc => pc == PieceShape.Mono) && Mystery.PiecesOf(MysteryRoom.Hallway).All(pc => pc == PieceShape.TriI || pc == PieceShape.TetI), "a small room is one cell, a hallway a straight line of cells");
@@ -247,6 +247,33 @@ static partial class Program
         Check(g.Nodes.Count == nodes0 + 1 && chestNode.Kind == NodeKind.Chest && Expansion.NodeClaimed(g.Expanded, chestNode) && doorToChest > 600f, "its chest is away from the door (" + doorToChest.ToString("0") + " px from the door)");
         V2 chestSpot = g.NodeSpot(g.Nodes.Count - 1);  // (a claimed chest stands in the middle of the room that claims it)
         Check(g.Props.Values.Any(pr => pr.Kind == PropKind.Chest && pr.Pos.DistanceTo(chestSpot) < 2f), "the chest is there at once");
+
+        // The Relic Gauntlet (owner Nov 21): a line of 3 cells, a relic in the middle, pits, turrets and lasers in the outer cells, a chest at the far end.
+        int nodesG = g.Nodes.Count;
+        var gaunt = open(PieceShape.TriI, MysteryKind.Gauntlet);
+        var gr = gaunt.Count == 1 ? gaunt[0] : default(ExpansionRoom);
+        Check(gaunt.Count == 1 && RelicGauntlet.Is(gr) && Math.Max(gr.W, gr.H) == 1800 && Math.Min(gr.W, gr.H) == 600, "a Relic Gauntlet is a line of three cells, marked (" + gr.W + " x " + gr.H + ")");
+        var relicNode = g.Nodes.Count == nodesG + 2 ? g.Nodes[nodesG] : default(MapNode);
+        Check(g.Nodes.Count == nodesG + 2 && relicNode.Kind == NodeKind.Relic && relicNode.Pos.DistanceTo(RelicGauntlet.RelicSpot(gr)) < 2f && Relics.IsFaction((RelicId)(relicNode.Rule - 1)) && g.Nodes[nodesG + 1].Kind == NodeKind.Chest,
+            "its relic stands in the middle cell and a chest at the far end");
+        Check(g.CurrentWorld.Pits.Length >= 8 && g.RoomTrapList.Count(tr => tr.Kind == TrapKind.Turret && RelicGauntlet.ToLocal(gr, tr.Pos).X >= 0 && RelicGauntlet.ToLocal(gr, tr.Pos).X <= 1800) >= 4, "the outer cells hold void pits and four turrets");
+        var gb = new List<RelicBeam>();
+        RelicGauntlet.Beams(gr, g.RelicGauntletClock, gb);
+        Check(gb.Count == 3 && gb.All(b => RelicGauntlet.ToLocal(gr, b.A).X < 600f || RelicGauntlet.ToLocal(gr, b.A).X > 1200f || RelicGauntlet.ToLocal(gr, b.B).X > 1200f), "three beams, all in the outer cells");
+        g.State = MatchState.Fighting;
+        hp.Hp = hp.MaxHp; hp.InvulnT = 0f;
+        V2 onBeam = (gb[0].A + gb[0].B) * 0.5f;
+        hp.Pos = hp.Disp = onBeam;
+        float hpBefore = hp.Hp;
+        for (int i = 0; i < 4; i++) typeof(Game).GetMethod("TickRelicGauntlets", flags).Invoke(g, new object[] { dt });
+        Check(hp.Hp < hpBefore, "a laser hurts a player standing on it");
+        hp.Pos = hp.Disp = RelicGauntlet.RelicSpot(gr);
+        hp.InvulnT = 0f; hpBefore = hp.Hp = hp.MaxHp;
+        for (int i = 0; i < 4; i++) typeof(Game).GetMethod("TickRelicGauntlets", flags).Invoke(g, new object[] { dt });
+        Check(hp.Hp >= hpBefore, "the middle cell is safe");
+        PollBoth(host, client);
+        Check(cg.Expanded.Any(RelicGauntlet.Is) && Math.Abs(cg.RelicGauntletClock - g.RelicGauntletClock) < 1.5f, "the friend gets the room and the lasers' clock");
+        typeof(Game).GetMethod("ResetMysteryDoors", flags).Invoke(g, null);
 
         var shop = open(PieceShape.Mono, MysteryKind.Shop);
         Check(shop.Count == 1 && shop[0].W == 600 && shop[0].H == 600 && shop[0].Kind == RoomKind.Shop && g.HasShopRoom, "a small room (one cell) can be a shop");
