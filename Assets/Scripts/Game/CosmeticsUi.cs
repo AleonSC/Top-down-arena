@@ -394,14 +394,7 @@ namespace Arena
             }
         }
 
-        static int LadderTierOf(int rank)
-        {
-            int[] at = { 0, 5, 10, 20, 30 };
-            int t = 0;
-            for (int i = 0; i < at.Length; i++)
-                if (at[i] <= rank) t = i;
-            return t;
-        }
+        static int LadderTierOf(int rank) => Rank.Tier(rank);
 
         void DrawLadderPanel(Profile p, float k)
         {
@@ -494,8 +487,8 @@ namespace Arena
                 if (it.Kind == 0)
                 {
                     var tc = RankLook.TierColor(it.Rank);
-                    int[] at = { 0, 5, 10, 20, 30 };
-                    string range = it.Tier + 1 < at.Length ? "ranks " + Mathf.Max(1, at[it.Tier]) + " to " + (at[it.Tier + 1] - 1) : "rank " + at[it.Tier] + " and up";
+                    var at = Rank.TierStarts;
+                    string range = it.Tier + 1 < at.Length ? "ranks " + Mathf.Max(1, at[it.Tier]) + " to " + (at[it.Tier + 1] - 1) : "rank " + at[it.Tier];
                     string head = (Rank.TierNames[it.Tier] + " tier").ToUpper() + "  ·  " + range;
                     Ui.Label(new Rect(cx + 40f, iy + 8f, rw - cx - 40f, 22f), head, 12, tc, TextAnchor.MiddleLeft, true);
                     float lx = cx + 40f + Ui.TextWidth(head, 12, true) + 12f;

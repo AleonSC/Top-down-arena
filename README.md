@@ -1730,9 +1730,7 @@ Everyone in the run sees and hears your skin. Not ability **mastery**, which is 
 (1 + each active modifier's bonus: **Harder +25%**, **Risky +15%**, **Easier +0%**, at most x3) and the difficulty's
 step (Easy x0.75, Normal x1, Hard x1.25, Nightmare x1.5, Custom x1). A hunt counts its waves and the boss, with no
 win bonus. The Practice Range and runs where dev tools (F1) or the bot were used earn nothing, like Records.
-**Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). The tiers have titles: **Recruit** (1-9),
-**Challenger** (10-19), **Veteran** (20-29), **Champion** (30-39), **Legend** (40+), shown by the badge's colour (steel,
-blue, teal, violet, gold) and a chevron per step.
+**Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). Tiers start every 10 ranks up to 100, every 50 up to 500 and every 100 up to **1000** (the max): Recruit (1-9), Challenger 10, Veteran 20, Champion 30, Legend 40, Elite 50, Master 60, Grandmaster 70, Warlord 80, Overlord 90, Mythic 100, Ascendant 150, Paragon 200, Titan 250, Colossus 300, Sovereign 350, Immortal 400, Eternal 450, Celestial 500, Cosmic 600, Astral 700, Radiant 800, Transcendent 900, Apex 1000. Each tier has its own badge colour (wings from 30, a star from 50, three stars from 150), and every rank adds a **mark** under the number (up to 9; the 50 and 100 rank tiers add one per fifth or tenth of their span), starting again at each new tier.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
 yours, the XP), on the main menu's name chip (a generic player figure with your name, rank title, the badge and a thin
@@ -1746,7 +1744,7 @@ each kind at a time:
 
 | Rank | Reward |
 |---|---|
-| 10 / 20 / 30 / 40 | Titles: Challenger, Veteran, Champion, Legend (automatic) |
+| every tier (10, 20, ... 1000) | A new title and badge colour (automatic) |
 | 9 | **Ember trail**: embers drift behind you as you move |
 | 13 | **Steel frame**: a lit rim on your lobby party card and name chip |
 | 15 | **Frost trail**: a pale chill line with ice crystals that stay where they formed, glint and melt |
@@ -2225,7 +2223,7 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   (every ability they have to mastery 5). Joining players can see everyone's stats but not change them.
 - **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
   **Account rank** (PARTY drawer) sets this computer's rank without playing for it: **+1**, **+10**,
-  **30**, **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
+  **30**, **MAX** (1000) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
   unlocks everything (every Boss Hunt, every perk, all perk slots, the Wildcard; saved on the profile) and **RESET** locks it
   again. Outside a run (main menu or lobby) the dock bar has a **MAX RANK + UNLOCK ALL** key instead.
 

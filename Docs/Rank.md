@@ -3,7 +3,7 @@
 Status: **built** (Nov 2026, protocol 135): `Core/Rank.cs`, the profile fields, the `rank` test suite, the results strip,
 the lobby badge and frame, the menu chip, Records > Rank, the Ember and Gold trails (Frost, Storm, Void and Prism added later, protocol 136; Light Cycle 139) and the Dusk Grid background.
 Mockups: [`Mockups/rank-screens.html`](Mockups/rank-screens.html) (https://claude.ai/artifact/6jPzqJeT4sFbfWhm1Ewkf9).
-**The badge is the "Engraved crest" (option A of `Docs/Mockups/rank-badges.html`): a bevelled shield with tier chevrons, wings from Champion and a star on Legend, drawn procedurally in `RankLook.cs`. (Earlier: style B, a pixel shield.)** All numbers below are placeholders to tune now that
+**The badge is the "Engraved crest" (option A of `Docs/Mockups/rank-badges.html`): a bevelled shield with level marks under the number, wings from rank 30, a star from 50 and three from 150, drawn procedurally in `RankLook.cs`. (Earlier: style B, a pixel shield.)** All numbers below are placeholders to tune now that
 it's playable. What was built differently from the mockup is listed under "As built".
 
 ## What it is
@@ -30,8 +30,7 @@ number, always labelled RANK and drawn as a shield badge, never as a "Level".
 - Cosmetic only. Gameplay items stay on conditions, not on rank.
 - Per player, like Records. In co-op each player's own computer works out their XP and keeps their rank.
 - Badge style B: a shield with the rank number and tier chevrons (the chevrons drop out below ~18 px radius).
-- Tiers: 1-4 **Recruit** (steel), 5-9 **Challenger** (blue), 10-19 **Veteran** (teal), 20-29 **Champion** (violet),
-  30+ **Legend** (gold). Chevrons: 1, 2, 3, 4, 5 by tier.
+- Tiers (`Rank.TierStarts`, 24 of them): every 10 ranks from 10 to 100, every 50 to 500, every 100 to 1000 (the max). Each has a title and colour; each rank adds a mark to the badge (`Rank.Marks`, up to 9: one per rank in a 10-rank tier, one per fifth or tenth of a 50 or 100-rank tier). The Recruit to Legend tiers now sit at 1, 10, 20, 30 and 40.
 
 ## XP
 
