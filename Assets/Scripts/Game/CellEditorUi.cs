@@ -22,6 +22,8 @@ namespace Arena
         CellLayout[] cedWork;                       // a working copy per layout, kept while the editor is open
         readonly List<CellLayout> cedUndo = new List<CellLayout>();
         bool cedDragging;
+        int cedWallIdx = -1;                        // a wall being dragged (its index) from cedWallGrab, which started at cedWallOrig
+        Vector2 cedWallGrab, cedWallOrig;
         int cedMoveSet = -1, cedMoveIdx;            // a spot being dragged: which list (0 sleepers, 1 traps, 2 loot) and where in it
         Vector2 cedFrom, cedTo;                     // a wall being dragged, cell-local
         string cedNote = "";
@@ -45,6 +47,7 @@ namespace Arena
             cedUndo.Clear();
             cedDragging = false;
             cedMoveSet = -1;
+            cedWallIdx = -1;
             cedNote = "";
             cellEditorOpen = true;
         }
@@ -146,6 +149,18 @@ namespace Arena
             return false;
         }
 
+        /// The newest wall under a cell-local point, or -1.
+        static int CedWallAt(CellLayout l, float x, float y)
+        {
+            for (int i = l.Walls.Length - 1; i >= 0; i--)
+            {
+                var w = l.Walls[i];
+                if (x >= w[0] && x <= w[0] + w[2] && y >= w[1] && y <= w[1] + w[3])
+                    return i;
+            }
+            return -1;
+        }
+
         static int CedSnapTo(float v) => Mathf.Clamp(Mathf.RoundToInt(v / CellSnap) * CellSnap, 0, CellLayouts.Cell);
 
         /// The wall a drag from `a` to `b` makes: at least 20 each way, inside the cell.
@@ -161,7 +176,7 @@ namespace Arena
         void DrawCellEditor()
         {
             var panel = DevPanel;
-            var body = DkWindow(panel, "CELL EDITOR", "Drag out walls, click to place spots, drag a spot to move it, right click to remove. SAVE puts the edits into the game. Esc to close.",
+            var body = DkWindow(panel, "CELL EDITOR", "Drag out walls (drag a wall to move it, Shift draws over one), click to place spots, drag a spot to move it, right click to remove. SAVE puts the edits into the game. Esc to close.",
                 () => cellEditorOpen = false, CrtStyle.Gold);
             var l = CedLayout();
 
@@ -177,6 +192,7 @@ namespace Arena
                     cedUndo.Clear();
                     cedDragging = false;
                     cedMoveSet = -1;
+                    cedWallIdx = -1;
                     l = CedLayout();
                 }
             }
@@ -302,6 +318,13 @@ namespace Arena
                     cedMoveSet = ms;
                     cedMoveIdx = mi;
                 }
+                else if (e.button == 0 && cedTool == CellTool.Wall && !e.shift && CedWallAt(l, lx, ly) >= 0)
+                {
+                    CedPush();  // grab a wall (hold Shift to draw a new one over it)
+                    cedWallIdx = CedWallAt(l, lx, ly);
+                    cedWallGrab = new Vector2(sx, sy);
+                    cedWallOrig = new Vector2(l.Walls[cedWallIdx][0], l.Walls[cedWallIdx][1]);
+                }
                 else if (e.button == 0)
                 {
                     if (cedTool == CellTool.Wall)
@@ -327,6 +350,15 @@ namespace Arena
                 sp[1] = sy;
                 if (e.type == EventType.MouseUp)
                     cedMoveSet = -1;
+                e.Use();
+            }
+            else if (cedWallIdx >= 0 && (e.type == EventType.MouseDrag || e.type == EventType.MouseUp))
+            {
+                var wl = l.Walls[cedWallIdx];
+                wl[0] = Mathf.Clamp((int)(cedWallOrig.x + sx - cedWallGrab.x), 0, CellLayouts.Cell - wl[2]);
+                wl[1] = Mathf.Clamp((int)(cedWallOrig.y + sy - cedWallGrab.y), 0, CellLayouts.Cell - wl[3]);
+                if (e.type == EventType.MouseUp)
+                    cedWallIdx = -1;
                 e.Use();
             }
             else if (cedDragging && (e.type == EventType.MouseDrag || e.type == EventType.MouseUp))
