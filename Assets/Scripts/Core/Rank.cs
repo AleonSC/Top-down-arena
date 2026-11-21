@@ -50,7 +50,7 @@ namespace Arena
     {
         public const int XpPerWave = 20, XpPerBoss = 150, XpPerRevive = 40, XpWin = 500;
         public const float HarderBonus = 0.25f, RiskyBonus = 0.15f, ModCap = 3f;  // modifiers: x(1 + sum of bonuses), at most x3
-        public const int MaxRank = 999;
+        public const int MaxRank = 1000;
 
         static readonly float[] DifficultyMult = { 0.75f, 1f, 1.25f, 1.5f, 1f };  // Easy, Normal, Hard, Nightmare, Custom
 
@@ -88,12 +88,47 @@ namespace Arena
 
         // --- Tiers: a title, a colour and a number of chevrons each ----------------------------------
 
-        public static int Tier(int rank) => rank >= 40 ? 4 : rank >= 30 ? 3 : rank >= 20 ? 2 : rank >= 10 ? 1 : 0;
-        public static readonly string[] TierNames = { "Recruit", "Challenger", "Veteran", "Champion", "Legend" };
+        /// First rank of each tier: 10 to 100 every 10, then every 50 up to 500, then every 100 up to 1000 (the cap).
+        public static readonly int[] TierStarts =
+        {
+            0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+            150, 200, 250, 300, 350, 400, 450, 500,
+            600, 700, 800, 900, 1000,
+        };
+        public static readonly string[] TierNames =
+        {
+            "Recruit", "Challenger", "Veteran", "Champion", "Legend", "Elite", "Master", "Grandmaster", "Warlord", "Overlord", "Mythic",
+            "Ascendant", "Paragon", "Titan", "Colossus", "Sovereign", "Immortal", "Eternal", "Celestial",
+            "Cosmic", "Astral", "Radiant", "Transcendent", "Apex",
+        };
+        public const int MarkCount = 9;  // the most level marks a badge shows
+
+        public static int Tier(int rank)
+        {
+            int t = TierStarts.Length - 1;
+            while (t > 0 && rank < TierStarts[t])
+                t--;
+            return t;
+        }
         public static string Title(int rank) => TierNames[Tier(rank)];
+
+        /// The level marks on a badge: the levels climbed since its tier began, up to 9 (a tier 10 ranks long adds one per
+        /// rank; the 50 and 100 rank tiers add one per fifth or tenth of their span, so the icon stays readable). The last tier is all 9.
+        public static int Marks(int rank)
+        {
+            int t = Tier(rank);
+            if (t == TierStarts.Length - 1)
+                return MarkCount;
+            int span = TierStarts[t + 1] - TierStarts[t];
+            return Math.Min(MarkCount, (rank - TierStarts[t]) * 10 / span);
+        }
+
         public static readonly Rgba[] TierColors =
         {
             new Rgba(0.54f, 0.58f, 0.69f), new Rgba(0.35f, 0.59f, 1f), new Rgba(0.31f, 0.82f, 0.71f), new Rgba(0.71f, 0.45f, 1f), new Rgba(1f, 0.8f, 0.35f),
+            new Rgba(1f, 0.55f, 0.35f), new Rgba(0.95f, 0.38f, 0.45f), new Rgba(0.93f, 0.4f, 0.8f), new Rgba(0.6f, 0.45f, 1f), new Rgba(0.4f, 0.7f, 1f), new Rgba(0.45f, 0.95f, 0.95f),
+            new Rgba(0.5f, 0.95f, 0.6f), new Rgba(0.8f, 0.95f, 0.4f), new Rgba(1f, 0.9f, 0.4f), new Rgba(1f, 0.7f, 0.3f), new Rgba(1f, 0.5f, 0.3f), new Rgba(1f, 0.35f, 0.4f), new Rgba(1f, 0.4f, 0.7f), new Rgba(0.85f, 0.5f, 1f),
+            new Rgba(0.6f, 0.6f, 1f), new Rgba(0.5f, 0.85f, 1f), new Rgba(0.7f, 1f, 0.95f), new Rgba(1f, 0.95f, 0.75f), new Rgba(1f, 1f, 1f),
         };
         public static Rgba TierColor(int rank) => TierColors[Tier(rank)];
 

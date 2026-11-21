@@ -2,13 +2,15 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Look tab's Weapon skin section (CosmeticsUi.cs opens it as section 7): the lobby's class, a key per weapon of its role,
+    /// The Look tab's Weapon skin section (CosmeticsUi.cs opens it as section 7): keys for any class and role (starting on the lobby's), a key per weapon,
     /// that weapon's skins to equip (Expertise.cs; one per weapon) and your expertise in the class. Equipping saves the profile.
     public partial class ArenaApp
     {
         const int SkinSection = 7;  // the Look tab's Weapon skin option
         string SkinIcon => "class_" + kitChoice.ToString().ToLowerInvariant();
-        int skinWeapon = -1;  // the weapon key picked in the section (-1: the lobby's weapon, set when it opens)
+        int skinWeapon = -1;  // the weapon key picked in the section (-1: the lobby's class, role and weapon, set when it opens)
+        Kit skinKit;          // the class and role browsed in the section (any of them, not just the lobby's)
+        Role skinRole;
 
         const string SkinSub = "How your weapon looks and sounds to everyone in the run. One per weapon, earned with expertise in the class you pick in the lobby.";
 
@@ -86,10 +88,17 @@ namespace Arena
             var ink = CrtStyle.Ink;
             var ev = Event.current;
             var m = ev.mousePosition;
-            Kit kit = kitChoice;
-            var weapons = LobbyWeapons(hostRole, kit);
-            if (skinWeapon < 0 || skinWeapon >= weapons.Length)
-                skinWeapon = Mathf.Clamp(weaponChoice, 0, Mathf.Max(0, weapons.Length - 1));
+            if (skinWeapon < 0)  // just opened: start on the lobby's class, role and weapon
+            {
+                skinKit = kitChoice;
+                skinRole = hostRole == Role.Wildcard ? Role.Dps : hostRole;
+                skinWeapon = hostRole == Role.Wildcard ? 0 : weaponChoice;
+            }
+            Kit kit = skinKit;
+            Role role = skinRole;
+            var weapons = LobbyWeapons(role, kit);
+            if (skinWeapon >= weapons.Length)
+                skinWeapon = Mathf.Clamp(skinWeapon, 0, Mathf.Max(0, weapons.Length - 1));
             var weapon = weapons.Length > 0 ? weapons[skinWeapon] : null;
             var skins = weapon != null ? Expertise.For(weapon.Id) : new System.Collections.Generic.List<WeaponSkinDef>();
             skins.Insert(0, null);  // null: the standard look
@@ -99,13 +108,39 @@ namespace Arena
             // Right: the weapon keys, then its skins.
             float lx = px + 364f, lw = DrawerPanel.xMax - 28f - lx;
             const float rowH = 52f, step = 56f;
-            const int fit = 7;
-            Ui.Label(new Rect(lx, top, lw, 18f), "WEAPON  ·  " + Defs.KitName(kit).ToUpperInvariant() + " " + Defs.Get(hostRole).Name.ToUpperInvariant(), 12, CabSoft, TextAnchor.MiddleLeft, true);
+            const int fit = 5;
+            Ui.Label(new Rect(lx, top, lw, 18f), "CLASS  ·  ROLE", 12, CabSoft, TextAnchor.MiddleLeft, true);
+            const int kitCount = (int)Kit.Engineer + 1;
+            float ck = (lw - 4f * 3f) / 4f;
+            for (int i = 0; i < kitCount; i++)
+                if (DkKey(new Rect(lx + (i % 4) * (ck + 4f), top + 20f + (i / 4) * 32f, ck, 28f), Defs.KitName((Kit)i).ToUpperInvariant(), (int)kit == i, FxCalm, size: 11, minSize: 8) && (int)kit != i)
+                {
+                    skinKit = (Kit)i;
+                    if (Defs.KitLocked(skinRole, skinKit))
+                        skinRole = Role.Dps;
+                    skinWeapon = 0;
+                }
+            for (int r = 0; r < 3; r++)
+            {
+                var rk = (Role)r;
+                bool locked = Defs.KitLocked(rk, kit);
+                bool was = GUI.enabled;
+                GUI.enabled = was && !locked;
+                float rw = (lw - 8f) / 3f;
+                if (DkKey(new Rect(lx + r * (rw + 4f), top + 88f, rw, 28f), Defs.Get(rk).Name.ToUpperInvariant(), role == rk, FxCalm, size: 12, minSize: 9) && role != rk)
+                {
+                    skinRole = rk;
+                    skinWeapon = 0;
+                }
+                GUI.enabled = was;
+            }
+            float wy = top + 124f;
+            Ui.Label(new Rect(lx, wy, lw, 18f), "WEAPON  ·  " + Defs.KitName(kit).ToUpperInvariant() + " " + Defs.Get(role).Name.ToUpperInvariant(), 12, CabSoft, TextAnchor.MiddleLeft, true);
             float kw = (lw - 6f * Mathf.Max(0, weapons.Length - 1)) / Mathf.Max(1, weapons.Length);
             for (int i = 0; i < weapons.Length; i++)
-                if (DkKey(new Rect(lx + i * (kw + 6f), top + 22f, kw, 32f), weapons[i].Name.ToUpperInvariant(), i == skinWeapon, FxCalm, size: 13, minSize: 9))
+                if (DkKey(new Rect(lx + i * (kw + 6f), wy + 22f, kw, 32f), weapons[i].Name.ToUpperInvariant(), i == skinWeapon, FxCalm, size: 13, minSize: 9))
                     skinWeapon = i;
-            float ly = top + 72f;
+            float ly = wy + 70f;
             Ui.Label(new Rect(lx, ly, 200f, 18f), "CHOOSE", 12, CabSoft, TextAnchor.MiddleLeft, true);
             var view = new Rect(lx, ly + 22f, lw, fit * step - 4f);
             int hover = -1;

@@ -30,7 +30,7 @@ namespace Arena
             profileOpen = true;
             profileTab = Mathf.Clamp(tab, 0, ProfileTabs.Length - 1);
             cosmeticsSection = 0;
-            skinWeapon = -1;  // (the Weapon skin section opens on the lobby's weapon)
+            skinWeapon = -1;  // (the Weapon skin section opens on the lobby's class, role and weapon)
             rankSection = 0;
             unlocksSection = 0;
             recordsSection = Mathf.Clamp(recordsSection, 0, RecordRowCount - 1);
@@ -326,7 +326,8 @@ namespace Arena
                 y += step;
             }
             EndDrawerScreen();
-            if (cabScreenOn && CabBackKey(y, "Close your profile", rowH))
+            // An X at the cabinet's top right closes the profile (the Back key used to).
+            if (cabScreenOn && DkKey(new Rect(26f + CabInW - 40f, 30f, 40f, 32f), "X", false, calm, size: 18))
             {
                 if (CabWindowOpen)
                     CloseCabWindow();  // the window slides back in first

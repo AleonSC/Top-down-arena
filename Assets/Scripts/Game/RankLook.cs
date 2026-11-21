@@ -88,18 +88,18 @@ namespace Arena
             if (tier >= 3 && detail)  // wings
             {
                 var wing = new float[] { 12, 38, -6, 30, 0, 44, -8, 50, 2, 56, -2, 68, 14, 64 };
-                Color wf = tier == 4 ? Lit(c) : c;
+                Color wf = tier >= 4 ? Lit(c) : c;
                 layers.Add(Make(wing, (x, y) => wf, 1.5f, edge));
                 layers.Add(Make(Mirror(wing), (x, y) => wf, 1.5f, edge));
             }
-            if (tier == 4 && detail)  // the star over the top
+            if (tier >= 5 && detail)  // the star over the top; from 150 two small ones beside it
             {
-                var s = new List<float>();
-                float cx = 50f, cy = -2f;
-                float[][] d = { new[] { 4f, 9f }, new[] { 10f, 1f }, new[] { -8f, 7f }, new[] { 3f, 10f }, new[] { -9f, -6f }, new[] { -9f, 6f }, new[] { 3f, -10f }, new[] { -8f, -7f }, new[] { 10f, -1f } };
-                Line(s, cx, cy);
-                foreach (var v in d) { cx += v[0]; cy += v[1]; Line(s, cx, cy); }
-                layers.Add(Make(s.ToArray(), (x, y) => Lit(c), 1.5f, edge));
+                layers.Add(Make(Star(50f, -2f, 1f), (x, y) => Lit(c), 1.5f, edge));
+                if (tier >= 11)
+                {
+                    layers.Add(Make(Star(24f, 6f, 0.6f), (x, y) => Lit(c), 1.2f, edge));
+                    layers.Add(Make(Star(76f, 6f, 0.6f), (x, y) => Lit(c), 1.2f, edge));
+                }
             }
             Color lit = Lit(c), mid = c, low = Dim(c);
             layers.Add(Make(ShieldPath(false), (x, y) => { float t = Mathf.Clamp01((y - ShieldTop) / ShieldH); return t < 0.5f ? Mix(lit, mid, t * 2f) : Mix(mid, low, (t - 0.5f) * 2f); }, 2.5f, edge));
@@ -112,13 +112,16 @@ namespace Arena
             Curve(band, 50, 29, 42, 30, 34, 34, 21, 40);
             Line(band, 21, 26);
             layers.Add(Make(band.ToArray(), (x, y) => new Color(1f, 1f, 1f, 0.1f)));
-            if (detail)
-                for (int i = 0; i <= tier; i++)
-                {
-                    float y = 84f - i * 5.5f;
-                    layers.Add(Make(new float[] { 40, y, 50, y - 6, 60, y, 60, y + 2.5f, 50, y - 3.5f, 40, y + 2.5f }, (x, yy) => lit));
-                }
             return layers;
+        }
+
+        static float[] Star(float cx, float cy, float k)
+        {
+            var s = new List<float>();
+            float[][] d = { new[] { 4f, 9f }, new[] { 10f, 1f }, new[] { -8f, 7f }, new[] { 3f, 10f }, new[] { -9f, -6f }, new[] { -9f, 6f }, new[] { 3f, -10f }, new[] { -8f, -7f }, new[] { 10f, -1f } };
+            Line(s, cx, cy);
+            foreach (var v in d) { cx += v[0] * k; cy += v[1] * k; Line(s, cx, cy); }
+            return s.ToArray();
         }
 
         static bool Inside(float[] p, float x, float y)
@@ -196,8 +199,27 @@ namespace Arena
             return tex;
         }
 
+        /// The level marks: nine slots under the number (5 over 4), one lit per level climbed in the tier (Rank.Marks).
+        static void DrawMarks(float cx, float cy, float s, Color c, int lit, float alpha)
+        {
+            float d = Math.Max(2f, 6f * s);
+            for (int i = 0; i < Rank.MarkCount; i++)
+            {
+                bool top = i < 5;
+                float ux = top ? 32f + i * 9f : 36.5f + (i - 5) * 9f, uy = top ? 78f : 87f;
+                var rect = new Rect(cx + (ux - 50f) * s - d / 2f, cy + (uy - 60f) * s - d / 2f, d, d);
+                if (i < lit)
+                {
+                    Ui.Dot(rect, Deep(c).WithAlpha(alpha));
+                    Ui.Dot(new Rect(rect.x + d * 0.1f, rect.y + d * 0.1f, d * 0.8f, d * 0.8f), Lit(c).WithAlpha(alpha));
+                }
+                else
+                    Ui.Dot(rect, new Color(1f, 1f, 1f, 0.12f * alpha));
+            }
+        }
+
         /// The badge in a square: the shield (its height is 92% of the square's), then the number. Fits any size from about
-        /// 16 px to 120 px; the chevrons, wings and star appear from 40 px.
+        /// 16 px to 120 px; the level marks, wings and stars appear from 40 px.
         public static void Draw(Rect r, int rank, float alpha = 1f)
         {
             int tier = Rank.Tier(rank);
@@ -206,9 +228,11 @@ namespace Arena
             float cx = r.center.x, cy = r.center.y;
             var dest = new Rect(cx - (50f - X0) * s, cy - (60f - Y0) * s, VW * s, VH * s);  // the shield's middle (50, 60) sits at the centre
             Ui.Icon(dest, Build(tier, detail), alpha);
+            if (detail)
+                DrawMarks(cx, cy, s, Rank.TierColor(rank).ToColor(), Rank.Marks(rank), alpha);
             string text = rank.ToString();
             float baseSize = detail ? 34f : 42f;
-            float size = baseSize * (text.Length >= 3 ? 0.62f : text.Length == 2 ? 0.8f : 1f) * s;
+            float size = baseSize * (text.Length >= 4 ? 0.5f : text.Length >= 3 ? 0.62f : text.Length == 2 ? 0.8f : 1f) * s;
             int fs = Math.Max(8, (int)Math.Round(size));
             float ny = detail ? 46f : 55f;
             var tr = new Rect(cx - 50f * s, cy + (ny - 60f) * s - fs, 100f * s, fs * 2f);
