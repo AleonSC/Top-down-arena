@@ -85,8 +85,10 @@ namespace Arena
             if (deleteArmed != s.Id)
             {
                 deleteArmed = s.Id;
+                MenuSound(Sfx.RunDelArm);
                 return;
             }
+            MenuSound(Sfx.RunDelete);
             if (!SaveStore.Trash(s.Id))
                 SaveStore.Delete(s.Id);  // (couldn't move it: erase it, as the key always did)
             savedRuns = SaveStore.List();
@@ -173,11 +175,17 @@ namespace Arena
             if (servoPicker)
                 return;
             if (MenuVhs.Draw(newRun, "TRK 03", live, fxReduced, () => KeyUi.Key(newRun, "New run", PixelArt.Get("ui_play"), 20)) && live)
+            {
+                MenuSound(Sfx.MenuPlay);  // the Play key's power chord (MenuSoundBank.cs)
                 StartNewRun();
+            }
             if (!inside)
                 return;
             if (toContinue != null)
+            {
+                MenuSound(Sfx.RunContinue);
                 ContinueSave(toContinue);
+            }
             else if (toDelete != null)
                 DeleteRun(toDelete);
         }
@@ -187,6 +195,7 @@ namespace Arena
         void DrawRunRow(Rect r, RunSave s, bool latest, bool calm, ref RunSave toContinue, ref RunSave toDelete)
         {
             bool armed = deleteArmed == s.Id;
+            RunRowHover(r, s.Id);  // the phosphor tick as the mouse comes onto a run (MenuHolo.cs)
             var rule = CrtStyle.Ink.WithAlpha(0.25f);
             if (armed)
                 Ui.Fill(r, CrtStyle.Danger.WithAlpha(0.08f));
@@ -284,7 +293,10 @@ namespace Arena
             bool back = MenuVhs.Draw(br, "TRK 02", live, fxReduced, () =>
                 KeyUi.Key(br, "Back", PixelArt.Get("ui_back"), 15, true));  // a keycap with its lamp always lit
             if (live && back)
+            {
+                Ui.TakeClick();  // (the bay doors' Back sound plays instead, MenuServo.cs)
                 PlayPickerBack();
+            }
         }
 
         static string ClipName(string n, int max) => n == null ? "" : n.Length <= max ? n : n.Substring(0, max - 1) + "…";

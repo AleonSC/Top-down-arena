@@ -154,6 +154,8 @@ namespace Arena
         // The Rioter (RioterSoundBank.cs, the Mob voice): the yell on coming within earshot, the hit, the bottle's wind-up, its
         // throw (sent), the bottle breaking, the death, a running step. Played by each screen from what it sees (MeleeSounds.cs), never sent but the throw.
         RiotYell, RiotAttack, RiotHup, RiotWhoosh, RiotShatter, RiotDie, RiotStep,
+        // The main menu and saved-runs screen in the holo look (MenuSoundBank.cs): played by your own screen, never sent.
+        MenuPlay, MenuKey, MenuQuit, MenuEject, MenuRooms, NeonSpark, BayVault, BayBack, RunContinue, RunDelArm, RunDelete,
     }
 
     public struct SoundCue

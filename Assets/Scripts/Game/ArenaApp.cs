@@ -456,6 +456,7 @@ namespace Arena
             TickMapView(Time.unscaledDeltaTime);  // M: minimap > full map > off (MapView.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
+            TickMenuSounds(Time.unscaledDeltaTime);  // the menu's hum, and quitting after Quit's sound (MenuHolo.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
             TickRecall(Time.unscaledDeltaTime);      // back to the lobby from a run: the beam-out (Recall.cs)
             TickWindowClose();  // a menu window sliding out, then closing (WindowAnim.cs)
