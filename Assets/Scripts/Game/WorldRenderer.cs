@@ -31,6 +31,8 @@ namespace Arena
             drawScale = game.Running ? scale * WorldToUi : scale;
             if (game.Running)
                 DrawWorld();
+            else if (LobbyScanLeaving)
+                DrawScanLeaveBackdrop(Time.time);  // the menu's background above the scan line, the lobby's below (LobbyScanLeave.cs)
             else
                 DrawMenuBackground(Time.time);
             GL.End();

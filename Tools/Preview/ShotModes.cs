@@ -391,8 +391,17 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("CRTSTYLE") != null) set("crtStyle", int.Parse(Environment.GetEnvironmentVariable("CRTSTYLE")));
       if (crtIn != null) set("enterT", float.Parse(crtIn, System.Globalization.CultureInfo.InvariantCulture));
       Action<string> crtDraw = n => { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod(n, f2, null, new[] { typeof(float) }, null).Invoke(app, new object[] { 7.3f }); };
-      crtDraw("DrawLobbyCrtBack");
-      if (crtIn != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEnteringCrt", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
+      // LOBBYSCAN=<seconds>: that far into leaving for the menu under the scan line (LobbyScanLeave.cs; 0 to 1.1).
+      var lobbyScan = Environment.GetEnvironmentVariable("LOBBYSCAN");
+      if (lobbyScan == null) crtDraw("DrawLobbyCrtBack");
+      if (lobbyScan != null) {
+        set("leaveT", float.Parse(lobbyScan, System.Globalization.CultureInfo.InvariantCulture)); set("scanLeave", true);
+        GL.Tris.Clear(); GL.ToUi = false; set("drawScale", 1f);
+        typeof(ArenaApp).GetMethod("DrawScanLeaveBackdrop", f2).Invoke(app, new object[] { 3.7f });
+        GL.ToUi = true; Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
+        typeof(ArenaApp).GetMethod("DrawLobbyScanLeave", f2).Invoke(app, null);
+      }
+      else if (crtIn != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEnteringCrt", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
       else if (lobbyBack != null) { set("returnT", float.Parse(lobbyBack, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyReturning", f2).Invoke(app, null); }
       else if (lobbyOut != null) { set("leaveT", float.Parse(lobbyOut, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyLeavingToMenu", f2).Invoke(app, null); }
       else if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
@@ -404,7 +413,7 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("READYFX") != null) { var ra = (System.Collections.Generic.Dictionary<int, float>)typeof(ArenaApp).GetField("readyAt", f2).GetValue(app); ra[host.MyId] = Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("READYFX"), System.Globalization.CultureInfo.InvariantCulture); }
         typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       }
-      crtDraw("DrawLobbyCrtGlass");
+      if (lobbyScan == null) crtDraw("DrawLobbyCrtGlass");
       // INSPECT=2: the holo card of lobby player 2 (PlayerInspect.cs), wearing FRAME / CARD / NAMEFX / TRAIL (ids, as above) with made-up records.
       if (Environment.GetEnvironmentVariable("INSPECT") != null) {
         int iid = int.Parse(Environment.GetEnvironmentVariable("INSPECT")); var ie = host.Lobby[iid];
