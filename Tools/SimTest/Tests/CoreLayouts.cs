@@ -50,6 +50,24 @@ static partial class Program
                     float gap = Gap(solid[i], solid[j], boxOf);
                     if (gap > 0.5f && gap < 50f) { bad++; Console.WriteLine("  " + l.Name + ": a " + (int)gap + " px slot between pieces at " + solid[i][1] + "," + solid[i][2] + " and " + solid[j][1] + "," + solid[j][2]); }
                 }
+            foreach (var pl in pieces.Where(q => q[0] == 1))  // a pillar never sits on a wall's corner or end (owner Nov 21)
+                foreach (var wl in pieces.Where(q => q[0] == 0))
+                    if (Gap(pl, wl, boxOf) < 14f) { bad++; Console.WriteLine("  " + l.Name + ": a pillar at " + pl[1] + "," + pl[2] + " touches a wall"); }
+            Func<int[], int[]> crateBox = q => new[] { q[1] - (q[0] == 3 ? 27 : 22), q[2] - (q[0] == 3 ? 27 : 22), q[1] + (q[0] == 3 ? 27 : 22), q[2] + (q[0] == 3 ? 27 : 22) };
+            var crates = pieces.Where(q => q[0] >= 2).ToList();  // no crate overlaps another crate, a wall or a pillar
+            foreach (var c in crates)
+            {
+                var cb = crateBox(c);
+                foreach (var o in pieces)
+                {
+                    if (o == c) continue;
+                    bool hit;
+                    if (o[0] >= 2) { var ob = crateBox(o); hit = cb[0] < ob[2] && ob[0] < cb[2] && cb[1] < ob[3] && ob[1] < cb[3]; }
+                    else { var ob = boxOf(o); float nx = Math.Max(cb[0], Math.Min(o[1], cb[2])), ny = Math.Max(cb[1], Math.Min(o[2], cb[3]));
+                           hit = o[0] == 1 ? Math.Sqrt((nx - o[1]) * (nx - o[1]) + (ny - o[2]) * (ny - o[2])) < o[3] : cb[0] < ob[2] && ob[0] < cb[2] && cb[1] < ob[3] && ob[1] < cb[3]; }
+                    if (hit) { bad++; Console.WriteLine("  " + l.Name + ": a crate at " + c[1] + "," + c[2] + " overlaps a piece at " + o[1] + "," + o[2]); }
+                }
+            }
             int open, reached;
             Flood(pieces, boxOf, out open, out reached);
             if (reached < open) { bad++; Console.WriteLine("  " + l.Name + ": " + (open - reached) + " of " + open + " open spots are walled off"); }
