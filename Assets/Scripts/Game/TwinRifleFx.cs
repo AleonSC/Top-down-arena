@@ -16,10 +16,12 @@ namespace Arena
     {
         const byte PBrass = 15, PStreak = 16, PPool = 17;  // particle kinds (Juice.cs ages PBrass through BrassStep, draws all three through DrawTwinPart)
         const float BrassGravity = 420f, TwinJoltPx = 1.1f, TwinJoltTime = 0.06f;
-        const float TwinPushPx = 5f, TwinPushBack = 12f, TwinPunchStep = 0.015f, TwinPunchMax = 0.04f, TwinPunchBack = 10f;
+        const float TwinPushPx = 3f, TwinPushBack = 9f, TwinPunchStep = 0.009f, TwinPunchMax = 0.025f, TwinPunchBack = 8f, TwinEase = 22f;  // (TwinEase: how fast the picture follows the kick, so each shot eases in instead of jumping)
 
         V2 twinPush;           // the screen kick: how far the picture is pushed (arena units, along your aim), springing back
         float twinPunch;       // ... and how much bigger it is drawn round you (0.01 = 1%)
+        V2 twinPushIn;         // the kick as fired; twinPush/twinPunch ease toward it
+        float twinPunchIn;
         float punchX, punchY;  // the punch while the world is drawn: the screen point it scales round (0 punch: none)
         float punchK;
 
@@ -29,17 +31,20 @@ namespace Arena
             if (fxShake == 0 || fxReduced)
                 return;
             float k = fxShake == 1 ? 1f : 1.6f;  // Low (the default) is the mockup's 1x; Full a stronger kick
-            twinPush += dir * (TwinPushPx * k);
-            twinPunch = Mathf.Min(TwinPunchMax, twinPunch + TwinPunchStep * k);
+            twinPushIn += dir * (TwinPushPx * k);
+            twinPunchIn = Mathf.Min(TwinPunchMax, twinPunchIn + TwinPunchStep * k);
         }
 
         /// Once a frame (real time): the kick springs back.
         void TwinKickStep(float realDt)
         {
-            twinPush *= Mathf.Exp(-realDt * TwinPushBack);
-            twinPunch *= Mathf.Exp(-realDt * TwinPunchBack);
-            if (twinPunch < 0.0005f)
-                twinPunch = 0f;
+            twinPushIn *= Mathf.Exp(-realDt * TwinPushBack);
+            twinPunchIn *= Mathf.Exp(-realDt * TwinPunchBack);
+            float e = 1f - Mathf.Exp(-realDt * TwinEase);
+            twinPush += (twinPushIn - twinPush) * e;
+            twinPunch += (twinPunchIn - twinPunch) * e;
+            if (twinPunch < 0.0005f && twinPunchIn < 0.0005f)
+                twinPunch = twinPunchIn = 0f;
         }
 
         /// BeginJuiceFrame: the kick's share of this frame's offset, and the punch's centre (you on screen).
