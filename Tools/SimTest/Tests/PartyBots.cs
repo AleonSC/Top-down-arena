@@ -1,4 +1,3 @@
-using System.Linq;
 using System;
 using System.Threading;
 using Arena;
@@ -132,10 +131,9 @@ static partial class Program
         run(12f, () =>
         {
             tank.StandOn = true;  // planted (the plates themselves aren't needed to see where the bot goes)
+            g.Enemies.Clear(); g.Bullets.Clear();  // (no enemies: the wave's would crowd the tank in some seeds, and dodging them outweighs the lee)
             tank.Pos = new V2(Game.Width / 2f, Game.Height / 2f);
             tank.Hp = tank.MaxHp; bot.Hp = bot.MaxHp;
-            foreach (var mid in g.Enemies.Where(kv => kv.Value.Def.Melee).Select(kv => kv.Key).ToList())
-                g.Enemies.Remove(mid);  // (the plates stop shots, not rushers: a melee crowd in the lee rightly moves the bot on, which this test isn't about)
             if (g.State == MatchState.Fighting && ++frames > 8 * 60)  // the last 4 s
             {
                 V2 rel = bot.Pos - tank.Pos;

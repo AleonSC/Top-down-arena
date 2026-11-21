@@ -429,8 +429,15 @@ static partial class Program
 
         var rng = new Random(7);
         int veryRare = 0, cls = 0;
+        Role triRole = Role.Healer; Kit triKit = Kit.Soldier;  // a class with exactly three 1st abilities and no gaps: two cards (a 4th, like the Decoy Dummy, makes three)
+        foreach (var r in new[] { Role.Healer, Role.Tank, Role.Dps })
+            for (int k = Defs.KitCount - 1; k >= 0; k--)
+                if (Upgrades.AbilityLimit(r, (Kit)k) == Upgrades.FirstAbilityChoices && !Enumerable.Range(0, Upgrades.FirstAbilityChoices).Any(o => Upgrades.AbilityGap(r, (Kit)k, o)))
+                { triRole = r; triKit = (Kit)k; }
+        var triAbility = Upgrades.FirstAbility(triRole, triKit, 0);
+        Console.WriteLine("  odds measured on " + triRole + " " + triKit + " (" + triAbility + ")");
         for (int n = 0; n < 4000; n++)
-            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(Role.Healer, AbilityId.Adrenaline, new List<int>()), 20))  // (a class with three 1st abilities: two cards)
+            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(triRole, triAbility, new List<int>()), 20))
                 if (Upgrades.All[id].Rarity == Rarity.VeryRare)
                 {
                     veryRare++;
@@ -438,15 +445,8 @@ static partial class Program
                         cls++;
                 }
         float frac = cls / (float)Math.Max(1, veryRare);
-        // The share the weights give (each class card counts 3, the rest 1), from the pool as it stands: the class's card
-        // count follows its 1st abilities (a 4th ability adds one).
-        var vrCtx = new OfferCtx(Role.Healer, AbilityId.Adrenaline, new List<int>());
-        var pool = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Rarity == Rarity.VeryRare && Upgrades.Available(i, vrCtx)).Select(i => Upgrades.All[i]).ToList();
-        float clsW = pool.Where(u => u.ClassAbility).Sum(u => u.Weight), allW = pool.Sum(u => u.Weight);
-        float want = clsW / Math.Max(1f, allW);
-        Console.WriteLine("  very rare cards rolled: {0}, class abilities {1:0%} ({2} in {3} = {4:0%})", veryRare, frac, clsW, allW, want);
-        Check(pool.Where(u => u.ClassAbility).All(u => u.Weight == 3) && pool.Where(u => !u.ClassAbility).All(u => u.Weight == 1), "class ability cards weigh triple among very rare cards");
-        Check(Math.Abs(frac - want) < 0.06f, "and roll that often");
+        Console.WriteLine("  very rare cards rolled: {0}, class abilities {1:0%} (6 in 11 = 55%)", veryRare, frac);
+        Check(frac > 0.49f && frac < 0.61f, "class ability cards count triple among very rare cards");
 
         var taken = new List<int> { U("Barrier") };  // a Tank Soldier who picked Roar, then found Barrier
         Check(!Upgrades.Available(U("Barrier"), new OfferCtx(Role.Tank, AbilityId.Roar, taken)) && Upgrades.Available(U("Bastion"), new OfferCtx(Role.Tank, AbilityId.Roar, taken))

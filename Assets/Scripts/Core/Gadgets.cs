@@ -220,6 +220,11 @@ namespace Arena
             BroadcastFx(FxKind.Ring, at, tint, 60f, 0.5f, Sfx.Blink);
         }
 
+        /// Gadget rolls (chests, kill drops) come from their own Random, so they don't shift every other random choice of the run (made
+        /// on the first roll, after the run's start has made its own side Randoms).
+        Random gadgetRng;
+        Random GadgetRng => gadgetRng ?? (gadgetRng = NewSideRandom());
+
         /// What a Gadget chest gives, by weight (the Lodestone the most often).
         static readonly GadgetId[] ChestGadgets = { GadgetId.Lodestone, GadgetId.Lodestone, GadgetId.Lodestone, GadgetId.Magnet, GadgetId.Magnet, GadgetId.EnergyDrink, GadgetId.EnergyDrink,
             GadgetId.ShieldGenerator, GadgetId.ShieldGenerator, GadgetId.DefibKit, GadgetId.DefibKit, GadgetId.Grenade, GadgetId.Grenade, GadgetId.SmokeBomb, GadgetId.SmokeBomb,
@@ -229,10 +234,10 @@ namespace Arena
         /// Host: what a Gadget chest holds for this player (ChestGadgets). Into the hand or bag, else on the floor at `at` (their own copy).
         void GiveChestGadget(Player pl, V2 at)
         {
-            GadgetId kind = ChestGadgets[rng.Next(ChestGadgets.Length)];
+            GadgetId kind = ChestGadgets[GadgetRng.Next(ChestGadgets.Length)];
             if (GiveGadget(pl, kind, GadgetTime(kind)))
                 return;
-            var g = SpawnGadget(kind, ClampToArena(at + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 24f, 14f), GadgetTime(kind));
+            var g = SpawnGadget(kind, ClampToArena(at + V2.FromAngle((float)GadgetRng.NextDouble() * MathX.Tau) * 24f, 14f), GadgetTime(kind));
             g.Owner = pl.Id;
         }
 
@@ -249,7 +254,7 @@ namespace Arena
                 return;
             foreach (var p in Players.Values)
             {
-                if (rng.Next(e.Elite ? GadgetEliteChance : GadgetDropChance) != 0)
+                if (GadgetRng.Next(e.Elite ? GadgetEliteChance : GadgetDropChance) != 0)
                     continue;
                 dropPool.Clear();
                 foreach (var k in KillGadgets)
@@ -257,8 +262,8 @@ namespace Arena
                         dropPool.Add(k);
                 if (dropPool.Count == 0)
                     continue;
-                GadgetId kind = dropPool[rng.Next(dropPool.Count)];
-                var g = SpawnGadget(kind, ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * 16f, 14f), GadgetTime(kind));
+                GadgetId kind = dropPool[GadgetRng.Next(dropPool.Count)];
+                var g = SpawnGadget(kind, ClampToArena(e.Pos + V2.FromAngle((float)GadgetRng.NextDouble() * MathX.Tau) * 16f, 14f), GadgetTime(kind));
                 g.Owner = p.Id;
             }
         }
