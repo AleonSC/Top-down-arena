@@ -218,7 +218,16 @@ namespace Arena
                         inside = true;
                         break;
                     }
-                if (!inside)
+                if (inside)
+                    continue;
+                bool twin = false;  // two walls' padded corners can coincide: twin spots point at each other and trap an enemy standing on them
+                foreach (var k in keep)
+                    if (k.CloserThan(p, 1f))
+                    {
+                        twin = true;
+                        break;
+                    }
+                if (!twin)
                     keep.Add(p);
             }
             return keep.ToArray();
