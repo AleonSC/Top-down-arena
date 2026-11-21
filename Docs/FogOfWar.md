@@ -23,6 +23,7 @@ inside a room is the surprise.
 ## Rules (as built; the cone, Nov 20)
 
 - **Starts seen:** the 4 x 3 core, and any room kept through a map reset.
+- **Never fogged:** a vendor's room (shop, Black Market, Arms Dealer, Medic, Builder Shop): `RoomFog.IsVendorRoom`.
 - **Starts unseen:** every piece you build, a mystery door's room, a surprise room, a breach Stash and the mini-boss room.
 - **The cone** (`RoomFog.Sees`): a standing player sees 90 degrees the way they aim (`ConeHalf`), `ConeReach` 900 px long, plus a
   `CloseReach` 170 px circle all round. Walls and fins stop it (`RoomFog.Blocked`, a segment against the world's wall boxes), so a
