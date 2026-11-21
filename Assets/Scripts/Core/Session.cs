@@ -972,7 +972,7 @@ namespace Arena
         static int ClampUltByte(int ult) => ult >= 0 && ult < Defs.KitCount * Upgrades.UltKeys ? ult : 0;  // (a Wildcard's runs to 23; checked against the role and class by ClampLoadout)
 
         /// Puts an entry's picks in range for its role: three weapons (four where the class has a fourth) and abilities for a normal role, eighteen for a Wildcard
-        /// (plus a second ability that differs from the first, on a key from 1 to 3).
+        /// (plus a second ability that differs from the first, always on the 2nd ability key).
         static void ClampLoadout(LobbyEntry e)
         {
             if (e.Role == Role.Wildcard)
@@ -985,7 +985,7 @@ namespace Arena
                 int first = Defs.WildSecond(e.Ability), second = Defs.WildSecond(e.Wild);
                 if (second == first)
                     second = (second + 1) % Defs.WildcardChoices;
-                e.Wild = Defs.MakeWild(second, Defs.WildKey(e.Wild));
+                e.Wild = Defs.MakeWild(second, 1);  // always on the 2nd ability key (older picks of the 3rd or 4th move there)
                 e.Ult = (byte)Upgrades.ClampUlt(Role.Wildcard, e.Kit, e.Ult);  // any class's DPS ultimate: class * UltKeys + key (Upgrades.WildUlt)
             }
             else
