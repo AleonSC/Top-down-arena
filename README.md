@@ -39,6 +39,12 @@ other keys are locked. Click a key to pick it (inverse video, like the weapon an
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
 
+The **Class**, **Weapon**, **Ability** and **Ultimate** rows are each one long row that slides sideways (four classes in view,
+three keys on the others): click the arrow keys at its ends or roll the mouse wheel over it; a thin track under the row shows
+where you are, and the picked key slides into view. Click a **role** or **class** key and the detail box shows that role's or
+class's description with its health and speed; a weapon, ability or ultimate key shows that as before. Role and class keys have
+no hover tips.
+
 - **Soldier**: guns and gear, full health.
 - **Elementalist**: spells (fire, frost, lightning, water, wind, earth and light), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.

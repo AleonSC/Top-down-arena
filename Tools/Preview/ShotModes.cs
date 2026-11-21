@@ -343,6 +343,11 @@ static partial class Shot {
       // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability[,ultimate pick]; ABILITY=n clicks that ability key: it's picked, its detail box opens and the preview casts it (the lobby has no hover state since the declutter).
       var lo = Environment.GetEnvironmentVariable("LOADOUT");
       if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); if (q.Length > 4) le.Ult = byte.Parse(q[4]); }  // (a fifth number: the Ultimate row's key)
+      var dsel = Environment.GetEnvironmentVariable("DETAIL");  // DETAIL=role|class: the detail box's role or class page (as after clicking that key)
+      if (dsel != null) set("detailSel", dsel == "role" ? ArenaApp.DetailRole : ArenaApp.DetailClass);
+      var car = Environment.GetEnvironmentVariable("CAROUSEL");  // CAROUSEL=row,first: a loadout carousel row (0 class, 1 weapon, 2 ability, 3 ultimate) scrolled to that key
+      if (car != null) { var cq = car.Split(','); var cf = typeof(ArenaApp).GetField("carFirst", f2); var cp = typeof(ArenaApp).GetField("carPos", f2); var cs = typeof(ArenaApp).GetField("carSeen", f2);
+        int crow = int.Parse(cq[0]), cfirst = int.Parse(cq[1]); ((int[])cf.GetValue(app))[crow] = cfirst; ((float[])cp.GetValue(app))[crow] = cfirst; ((int[])cs.GetValue(app))[crow] = -1; }
       var ab = Environment.GetEnvironmentVariable("ABILITY");
       if (ab != null) { host.Lobby[host.MyId].Ability = byte.Parse(ab); set("detailSel", 1); }
       {
