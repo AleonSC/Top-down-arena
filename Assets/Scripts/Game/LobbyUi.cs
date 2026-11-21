@@ -779,8 +779,8 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.74f), b.height);
-                    if (DkKey(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 9))
+                    var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.78f), b.height);  // (a bit more of the key for the name: FLAMETHROWER is one long word)
+                    if (DkKey(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 7))
                     {
                         tgt.RequestWeapon(i);
                         if (self)
