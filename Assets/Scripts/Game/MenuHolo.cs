@@ -398,14 +398,7 @@ namespace Arena
 
         static MenuRoom Rm(float x, float y, float w, float h, char door) => new MenuRoom { r = new Rect(x, y, w, h), door = door };
 
-        // Rooms round the title (it spans 112-1168 by 66-186) and round the menu box (300-980 by 268-588, its corner brackets 7 px out).
-        static readonly MenuRoom[][] TitleRoomSets =
-        {
-            new[] { Rm(34, 80, 74, 92, 'r'), Rm(1172, 80, 74, 92, 'l') },
-            new[] { Rm(330, 14, 190, 44, 'b'), Rm(545, 14, 190, 44, 'b'), Rm(760, 14, 190, 44, 'b') },
-            new[] { Rm(34, 74, 74, 52, 'r'), Rm(34, 130, 74, 50, 'r'), Rm(1172, 74, 74, 52, 'l'), Rm(1172, 130, 74, 50, 'l') },
-            new[] { Rm(34, 80, 74, 92, 'r'), Rm(860, 14, 200, 44, 'b') },
-        };
+        // Rooms round the menu box (300-980 by 268-588, its corner brackets 9 px out).
         static readonly MenuRoom[][] BoxRoomSets =
         {
             new[] { Rm(214, 372, 72, 96, 'r'), Rm(994, 372, 72, 96, 'l') },
@@ -434,10 +427,10 @@ namespace Arena
         readonly System.Collections.Generic.List<MenuRoom> roomPool = new System.Collections.Generic.List<MenuRoom>();
         readonly System.Collections.Generic.List<int> roomSeq = new System.Collections.Generic.List<int>();
 
-        /// GL: the main menu's rooms (round the title and the box). Off with Reduced effects.
+        /// GL: the main menu's rooms (round the box). Off with Reduced effects.
         void DrawMenuRooms(float t, float a) => DrawRooms(t, a, BoxRoomSets);
 
-        /// GL: rooms drawing themselves round the title and round `lower` (the menu box, or the Who's playing? rack and its Manage key),
+        /// GL: rooms drawing themselves round `lower` only (the menu box, or the Who's playing? rack and its Manage key; not the title),
         /// one at a time: each outline traced by a bright pen point, then a faint grid and a scan line fill it; it stays until RoomMax
         /// newer ones are up, then un-draws as the next one starts. Each new room picks a spot clear of the ones still showing.
         void DrawRooms(float t, float a, MenuRoom[][] lower)
@@ -454,10 +447,7 @@ namespace Arena
                 {
                     roomsLower = lower;
                     roomPool.Clear();
-                    foreach (var set in TitleRoomSets)
-                        foreach (var m in set)
-                            AddRoomSpot(m);
-                    foreach (var set in lower)
+                    foreach (var set in lower)  // (only round the box, never the title)
                         foreach (var m in set)
                             AddRoomSpot(m);
                 }
