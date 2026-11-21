@@ -4,6 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 452: the Rioter's sounds `Sfx.RiotYell`, `RiotAttack`, `RiotHup`, `RiotWhoosh`, `RiotShatter`, `RiotDie`, `RiotStep` added at the end (the bottle's throw now sends `RiotWhoosh` instead of `Throw`; the rest played locally, never sent)
+- 451: gadgets `Cloak`, `OverclockChip`, `LandMine`, `Emp` (`GadgetId.None` moves from 9 to 13).
 - 450: gadgets: `GadgetId.Recall` renamed `Lodestone`; new `ShieldGenerator`, `DefibKit`, `Grenade`, `SmokeBomb`, `GasGrenade`, `Incendiary` (`None` moves from 3 to 9); uses (a byte) after `GadgetOn` and after each bag slot's time in the Player snapshot, and after `Left` in each gadget's; `ZoneKind.ToxicGas` (the Gas Grenade's cloud).
 - 449: Thugs now send `SyncLarder` (`LarderStage`, `LarderT`) for their charged punch (ThugPunch.cs)
 - 448: `Msg.ExpandState` adds a byte after the map number: the core's floor plan (`Game.CoreLayout`, `CoreLayoutId`, CoreLayouts.cs).

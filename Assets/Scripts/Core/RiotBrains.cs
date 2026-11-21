@@ -48,7 +48,7 @@ namespace Arena
                 var b = SpawnBullet(Defs.BottleShot, e.Pos + dir * e.Radius, dir * BottleSpeed, 0f, BottleLife, Defs.BulletDamage(Defs.BottleShot), 0, false);
                 b.Source = e.Type;
                 b.Shooter = e.Id;
-                BroadcastFx(FxKind.Spark, e.Pos + dir * (e.Radius + 10f), new Rgba(0.6f, 0.9f, 0.5f), 14f, 0.15f, Sfx.Throw);
+                BroadcastFx(FxKind.Spark, e.Pos + dir * (e.Radius + 10f), new Rgba(0.6f, 0.9f, 0.5f), 14f, 0.15f, Sfx.RiotWhoosh);
                 return;
             }
             e.LarderCd -= dt;

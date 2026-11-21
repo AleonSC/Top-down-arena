@@ -58,10 +58,15 @@ static partial class Program
         far.Pos = spot + new V2(Game.TurretRange + 400f, 0f);
         Run(s, dt, 0.4f, null, () => { far.Pos = spot + new V2(Game.TurretRange + 400f, 0f); far.Hp = far.MaxHp; noPicks(); });
         Check(!g.Bullets.Values.Any(b => b.Kind == Defs.TurretShot && b.Owner == 2), "with no enemy in range it holds fire");
-        var near = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, spot + new V2(250f, 0f), 0f, 0, false });
+        // (the core has walls inside it since its floor plans, CoreLayouts.cs: put the target where the line from the turret is open)
+        Func<V2, bool> open = q => g.ActiveLayout == null || Enumerable.Range(0, 26).All(k => g.ActiveLayout.Solids.All(so => so.Edge || !Layouts.Inside(so, spot + (q - spot) * (k / 25f), 14f)));
+        var opens = Enumerable.Range(0, 16).Select(k => spot + V2.FromAngle(k * MathX.Tau / 16f) * 250f).Where(open).ToList();
+        V2 nearAt = opens.Count > 0 ? opens[0] : spot + new V2(250f, 0f);
+        Check(opens.Count > 0, "there's an open line from the turret to a spot in range");
+        var near = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, nearAt, 0f, 0, false });
         float hp0 = near.Hp;
         bool shot = false;
-        Run(s, dt, 1.5f, null, () => { near.Pos = spot + new V2(250f, 0f); far.Hp = far.MaxHp; shot |= g.Bullets.Values.Any(b => b.Kind == Defs.TurretShot && b.Owner == 2); noPicks(); });
+        Run(s, dt, 1.5f, null, () => { near.Pos = nearAt; far.Hp = far.MaxHp; shot |= g.Bullets.Values.Any(b => b.Kind == Defs.TurretShot && b.Owner == 2); noPicks(); });
         Check(shot && near.Hp < hp0, "in a wave it shoots the enemy in range, as the friend's shots (" + hp0.ToString("0") + " -> " + near.Hp.ToString("0") + " hp)");
         Check(Game.TurretDamage(20) > Game.TurretDamage(6), "its shots hit harder in later waves");
         near.Hp = 0f; far.Hp = 0f;
