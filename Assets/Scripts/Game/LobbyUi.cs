@@ -308,7 +308,7 @@ namespace Arena
                 Ui.Alpha = oldAlpha;
                 if (click && i != mode)
                     turnTo = modeTurn + (d > 0f ? 1 : -1);
-                if (ad < 0.5f && kr.Contains(ev.mousePosition))  // the description is a hover tip, on the middle mode only
+                if (ModeHoverTips && ad < 0.5f && kr.Contains(ev.mousePosition))  // the description is a hover tip, on the middle mode only
                 {
                     TipStart(kr, ModeTitle(i), CrtStyle.Ink);
                     TipAdd(ModeSub(i), 13, Ui.Text);
@@ -1385,6 +1385,9 @@ namespace Arena
         static readonly string[] Numerals = { "I", "II", "III", "IV", "V" };
 
         /// The "Coming soon" tooltip over the hovered locked slot (call after everything else is drawn).
+        /// Retired for now: the mode window describes the mode, so its button shows no hover tip. Set true to bring it back.
+        static readonly bool ModeHoverTips = false;
+
         void DrawLockedTip()
         {
             if (!lockedTipOn)
