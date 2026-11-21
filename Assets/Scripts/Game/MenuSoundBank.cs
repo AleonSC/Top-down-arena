@@ -2,7 +2,8 @@ namespace Arena
 {
     /// The main menu's and the saved-runs screen's sounds in the holo look (the picks from Docs/Mockups/menu-sound-lab.html). All played
     /// by your own screen, never sent, on the Effects volume. Render: Tools/SoundCheck/render.sh Menu (and Bay, Run, Title, Neon, Disk).
-    ///   MenuHover    a key under the mouse, and a saved run's row: a tiny glassy phosphor tick (replaces the tape-head tick)
+    ///   MenuHover    a key under the mouse, and a saved run's row: a tiny glassy phosphor tick (replaces the tape-head tick);
+    ///                UiHover, every other menu's button hover, is the same tick
     ///   MenuPlay     Play (and New run): a thunk, then a power chord that opens up
     ///   MenuKey      Join game and Settings: a two-step digital chirp
     ///   MenuQuit     Quit: the pop and fizz of a tube switching off (the game waits for it before closing)
@@ -25,6 +26,8 @@ namespace Arena
                 hover[k] = Finish(Mix(Tone(0.035f, Osc.Sine, 3200f * hz[k], 2900f * hz[k], 0.14f, attack: 0.001f, decay: 3f),
                     Tone(0.02f, Osc.Sine, 6000f, 6000f, 0.05f, noise: 1f, lowpass: 0.8f, attack: 0.001f, decay: 3f)), 0.11f);
             Set(Sfx.MenuHover, hover, 0.04f);
+            Set(Sfx.UiHover, hover, 0.04f);  // every other menu's hover tick is the same glassy tick (played at MenuHoverVolume)
+            Jitter(table[(int)Sfx.MenuHover].Jitter, Sfx.UiHover);
 
             // a thunk and a click, then four saw voices (A2 E3 A3 E4) whose dark layer gives way to a brighter one: the filter opening
             float[] power = { 110f, 164.8f, 220f, 329.6f };
