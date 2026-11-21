@@ -418,6 +418,7 @@ namespace Arena
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
                 BuildWarhorn();  // WarhornSoundBank.cs
                 BuildRioter();  // RioterSoundBank.cs
+                BuildGraze();  // GrazeSoundBank.cs
                 BuildMenuHolo();  // MenuSoundBank.cs (last: it replaces some of the menu's older sounds)
             }
             catch (Exception ex)

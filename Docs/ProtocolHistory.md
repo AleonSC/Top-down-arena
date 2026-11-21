@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 464: Graze: `Msg.Graze` (host -> all: player id, where the shot passed, its velocity); `FxKind.Graze` and `Sfx.Graze` added at the end (both local, never sent)
 - 463: Gust Gate replaces Energy Ward: `Player.EnergyMax` in the snapshot is now `GustT` (the boost left); `ZoneKind.GustGate` added at the end; `AbilityId.EnergyWard` renamed `GustGate` (same number)
 - 462: `Msg.WildcardRequest` drops its key byte (weapon, ability, Wildcard ability); the lobby `Wild` byte is the Wildcard ability only (0-17), always on the 2nd ability key
 - 461: the holo menu sounds `Sfx.MenuPlay`, `MenuKey`, `MenuQuit`, `MenuEject`, `MenuRooms`, `NeonSpark`, `BayVault`, `BayBack`, `RunContinue`, `RunDelArm`, `RunDelete` added at the end (played locally, never sent)

@@ -631,6 +631,8 @@ namespace Arena
             CrtKeyBox(r, keyCol.WithAlpha(ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
             if (look.White > 0f)
                 CrtKit.Frame(r, 2f, new Color(1f, 1f, 1f, 0.9f * look.White));
+            if (look.Graze > 0f)  // an enemy shot skimmed past: the ultimate's rim flashes pale blue (Core/Graze.cs)
+                CrtKit.Frame(r, 2f, new Color(0.6f, 0.92f, 1f, 0.85f * look.Graze));
 
             // Cooldown: a dark shade over the tile that drains downward as it recharges.
             if (!ready)

@@ -295,6 +295,14 @@ out to the side (8° steps, alternating sides), at 60% damage. It stacks with th
 Rifle with Multishot and Barrage fires several side-by-side barrels in a fan. A Revolver round fans out for a single
 round of ammo.
 
+### Graze
+
+An enemy shot that **skims past you** without hitting (within 16 px of your hit circle) charges your **ultimate**: 0.3 s off
+its recharge per graze. Each shot grazes once, and at most one graze counts every 0.2 s, so weaving through a dense
+pattern tops out around 1.5 s of ultimate a second. It doesn't count while you're invulnerable (a dodge, the moment after
+a hit), so dodging through a shot isn't a graze: brushing past it is. A pale crescent flares round you where the shot went
+by, with a soft "tsip" on your screen, and your ultimate's key flashes pale blue.
+
 ### Parry
 
 Hold **right click** (or your Parry key) to raise a small shield on the side facing your cursor. It blocks enemy bullets from that side

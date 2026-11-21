@@ -679,6 +679,7 @@ namespace Arena
                     ShotHitsPlayer(p, b);
                     break;
                 }
+                TryGraze(p, b, r);  // skimmed past: charges their ultimate (Graze.cs)
             }
         }
 

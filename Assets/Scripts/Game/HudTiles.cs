@@ -8,6 +8,7 @@ namespace Arena
     ///   use        a charge is spent: the tile presses in to 93% and springs back
     ///   too early  you press while it's recharging: a short side-to-side shake, the rim and the timer flash red
     ///   ultimate   its ready pop is bigger (12%) and longer, in gold
+    ///   graze      an enemy shot skimmed past you (Core/Graze.cs): the ultimate's rim flashes pale blue and it nods 3%
     /// The rim ("Rim runner", look D of Docs/Mockups/hud-animations.html): recharging draws the border round clockwise from
     /// the top left as a loading ring; a ready tile has a spark with a tail circling it; using it snuffs the rim out with a
     /// small burst at the key cap. Reduced effects: the ring only.
@@ -16,7 +17,7 @@ namespace Arena
     /// Visual effects off: nothing, the bar draws exactly as before.
     public partial class ArenaApp
     {
-        const float TileReadyTime = 0.3f, TileUltReadyTime = 0.4f, TileChargeTime = 0.35f, TileUseTime = 0.2f, TileDenyTime = 0.32f;
+        const float TileReadyTime = 0.3f, TileUltReadyTime = 0.4f, TileChargeTime = 0.35f, TileUseTime = 0.2f, TileDenyTime = 0.32f, TileGrazeTime = 0.25f;
         const float TileNever = 99f;
 
         readonly int[] tileCharges = new int[Upgrades.SlotCount];
@@ -24,6 +25,8 @@ namespace Arena
         readonly float[] tileReady = Filled(TileNever), tileCharge = Filled(TileNever), tileUse = Filled(TileNever), tileDeny = Filled(TileNever);
         readonly int[] tilePip = new int[Upgrades.SlotCount];  // which pip the last charge came back into
         int tilesFor = -1;
+        float tileGraze = TileNever;  // since your last graze (the ultimate's tile only)
+        int tileGrazes;               // your graze count last frame
 
         static float[] Filled(float v)
         {
@@ -41,6 +44,7 @@ namespace Arena
             {
                 tileReady[i] += dt; tileCharge[i] += dt; tileUse[i] += dt; tileDeny[i] += dt;
             }
+            tileGraze += dt;
             TickMasteryTiles(me, dt);  // (HudMastery.cs)
             if (me == null)
             {
@@ -49,6 +53,9 @@ namespace Arena
             }
             bool fresh = tilesFor != me.Id;
             tilesFor = me.Id;
+            if (!fresh && me.Grazes > tileGrazes && fxOn)
+                tileGraze = 0f;
+            tileGrazes = me.Grazes;
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
                 var s = me.Slots[i];
@@ -92,6 +99,7 @@ namespace Arena
         {
             public float Scale, Dx;        // around the tile's centre
             public float White, Red;       // rim flashes (0..1)
+            public float Graze;            // the ultimate's pale-blue graze flash (0..1)
             public float ReadyIn;          // READY sliding in: 0 just started .. 1 in place
             public int Pip;                // the pip that popped (-1 none)
             public float PipPop, PipHalo;  // its extra size, and its halo's spread 0..1
@@ -127,6 +135,12 @@ namespace Arena
                 float k = tileUse[i] / TileUseTime;
                 l.Scale = k < 0.35f ? 1f - 0.07f * half * (k / 0.35f) : 1f - 0.07f * half * (1f - EaseOutBack((k - 0.35f) / 0.65f));
             }
+            if (ultimate && tileGraze < TileGrazeTime)
+            {
+                float k = tileGraze / TileGrazeTime;
+                l.Graze = 1f - k;
+                l.Scale = Mathf.Max(l.Scale, 1f + 0.03f * half * Mathf.Sin(Mathf.PI * k));
+            }
             if (tileDeny[i] < TileDenyTime)
             {
                 float k = tileDeny[i] / TileDenyTime;
@@ -135,6 +149,16 @@ namespace Arena
                 l.Red = 1f - k;
             }
             return l;
+        }
+
+        /// The compact HUDs' ultimate key: a pale-blue frame flashes round its cap (centred on cx) on a graze (Core/Graze.cs).
+        void MiniGrazeFlash(float cx, float y, float w, float h, float a)
+        {
+            if (!fxOn || tileGraze >= TileGrazeTime)
+                return;
+            float k = 1f - tileGraze / TileGrazeTime;
+            float grow = 1f + 3f * (1f - k);
+            CrtKit.Frame(new Rect(cx - w / 2f - grow, y - grow, w + 2f * grow, h + 2f * grow), 2f, new Color(0.6f, 0.92f, 1f, 0.9f * k * a));
         }
 
         static float EaseOut3(float k) => 1f - (1f - k) * (1f - k) * (1f - k);
@@ -172,6 +196,7 @@ namespace Arena
                 else if (moment == "use") tileUse[i] = ago;
                 else if (moment == "deny") tileDeny[i] = ago;
             }
+            if (moment == "graze") tileGraze = ago;
         }
     }
 }
