@@ -968,14 +968,15 @@ continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the dr
 
 ## Menu backgrounds
 
-The animated background behind the menus and lobby is the **Holo Floor**: a starry sky over a glowing horizon and a grid
-floor rolling toward you, light running down its lanes. Three quiet **reactive** rank rewards (Look window > Background) answer your
-pointer and clicks gently and have no lines or grids, so they never fight the arena floor's grid:
-**Deep Field** (rank 16: three layers of drifting stars the pointer tilts and brightens; a click makes the stars it passes
-flare), **Nebula Drift** (29: slow clouds of blue and violet light that part round the pointer; a click sends a swell of
-light) and **Aurora Veil** (44: soft curtains of light along the top and bottom edges that lean toward the pointer; a click
-sends a shimmer along them). They also show faintly behind the arena during runs, where they only drift on their own
-(the arena floor does the reacting).
+The **main menu** always shows the **Holo Floor**: a starry sky over a glowing horizon and a grid floor rolling toward
+you, light running down its lanes. The **lobby** and the space **behind runs** show your own pick from the Look window >
+Background. Turn on **Override menu background** there to show your pick on the main menu too.
+The picks are quiet and **reactive** (they answer your pointer and clicks gently in the menus), with no lines or grids so they
+never fight the arena floor's grid: **Deep Field** (the free default: three layers of drifting stars the pointer tilts and
+brightens; a click makes the stars it passes flare), **Nebula Drift** (rank 29: slow clouds of blue and violet light that
+part round the pointer; a click sends a swell of light) and **Aurora Veil** (44: soft curtains of light along the top and
+bottom edges that lean toward the pointer; a click sends a shimmer along them). Behind a run they show faintly and only drift
+on their own (the arena floor does the reacting).
 
 ## Arena props
 
@@ -1749,7 +1750,6 @@ each kind at a time:
 | 41 | **Legend Foil frame**: gold with a bright band sweeping across the rim and twinkling corner stars |
 | 36 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
 | 46 | **Light Cycle trail**: a wall of light that follows where you've been but snaps to straight runs with right-angle corners; the floor tiles it crosses light up, and the wall breaks into squares that drift off as it ages (about 2.4 s). Cyan only. With Visual effects off it is one flat line |
-| 16 | **Deep Field**: a reactive menu background (drifting stars the pointer tilts; a click makes them flare) |
 | 29 | **Nebula Drift**: a reactive menu background (slow clouds of light that part round the pointer) |
 | 44 | **Aurora Veil**: a reactive menu background (soft curtains of light along the top and bottom edges) |
 | 51 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |

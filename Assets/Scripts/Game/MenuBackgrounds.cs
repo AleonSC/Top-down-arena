@@ -2,39 +2,53 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The animated background behind the menus and lobby: the Holo Floor (MenuHolo.cs). The picker, the old backgrounds
-    /// and the rank-reward backgrounds are gone; the reward plumbing stays so new unlockable ones can be added.
+    /// The animated background behind the menus, lobby and runs. The main menu always shows the Holo Floor (MenuHolo.cs) unless
+    /// the player turns on "Override menu background" (Look window > Background); everywhere else shows the player's pick: Deep
+    /// Field (the free default) or a rank-reward one (BackgroundArena.cs).
     public partial class ArenaApp
     {
-        public static readonly string[] BackgroundNames = { "Holo Floor", "Deep Field", "Nebula Drift", "Aurora Veil" };  // 1-3: the quiet reactive rank rewards (BackgroundArena.cs)
+        public static readonly string[] BackgroundNames = { "Holo Floor", "Deep Field", "Nebula Drift", "Aurora Veil" };  // 1: the default pick, 2-3: rank rewards (BackgroundArena.cs)
 
-        const int HoloFloorBg = 0;
+        const int HoloFloorBg = 0;   // the main menu's own
+        const int DeepFieldBg = 1;   // everyone's pick until they equip a reward one
 
-        /// Where the rank-reward backgrounds start in BackgroundNames . Each is a Background cosmetic in Rank.cs.
-        const int FirstRewardBg = 1;
+        /// Where the rank-reward backgrounds start in BackgroundNames. Each is a Background cosmetic in Rank.cs.
+        const int FirstRewardBg = 2;
 
         /// The cosmetic id of each reward background, in BackgroundNames order from FirstRewardBg. To add one: a name here and in
         /// BackgroundNames, an accent, a `case` in DrawMenuBackground, a CosmeticDef in Rank.cs.
-        static readonly string[] RewardBackgrounds = { "bg-react-deepfield", "bg-react-nebula", "bg-react-aurora" };
+        static readonly string[] RewardBackgrounds = { "bg-react-nebula", "bg-react-aurora" };
 
         static string BackgroundCosmeticId(int i) => i >= FirstRewardBg && i - FirstRewardBg < RewardBackgrounds.Length ? RewardBackgrounds[i - FirstRewardBg] : null;
-        static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? 0 : FirstRewardBg + k; }
+        static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? DeepFieldBg : FirstRewardBg + k; }
         static bool BackgroundReactive(int i) => Rank.IsReactiveBackground(BackgroundCosmeticId(i));
         static bool BackgroundLocked(int i) { var id = BackgroundCosmeticId(i); return id != null && !Rank.Owns(Profile.Current.RankNow, id); }
         static int BackgroundRank(int i) { var c = Rank.Cosmetic(BackgroundCosmeticId(i)); return c != null ? c.Rank : 0; }
 
-        int menuBg = HoloFloorBg;
+        int menuBg = DeepFieldBg;    // the player's pick
+        bool menuBgOverride;         // pref "menu_bg_override": the pick shows on the main menu too, instead of the Holo Floor
+        bool bgThumb;                // drawing a thumbnail: always the background asked for
+        Profile bgProfile;           // the profile menuBg was read from (a profile switch reads it again)
 
         void LoadBackgroundSettings()
         {
-            menuBg = BackgroundIndexOfCosmetic(Profile.Current.Background);  // the equipped reward one, else the default
+            bgProfile = Profile.Current;
+            menuBg = BackgroundIndexOfCosmetic(bgProfile.Background);  // the equipped reward one, else Deep Field
             if (BackgroundLocked(menuBg))
-                menuBg = HoloFloorBg;
+                menuBg = DeepFieldBg;
+            menuBgOverride = PlayerPrefs.GetInt("menu_bg_override", 0) == 1;
+        }
+
+        void SetMenuBgOverride(bool on)
+        {
+            menuBgOverride = on;
+            PlayerPrefs.SetInt("menu_bg_override", on ? 1 : 0);
+            PlayerPrefs.Save();
         }
 
         void SetBackground(int i)
         {
-            menuBg = BackgroundLocked(i) || i < 0 || i >= BackgroundNames.Length ? HoloFloorBg : i;
+            menuBg = BackgroundLocked(i) || i < FirstRewardBg || i >= BackgroundNames.Length ? DeepFieldBg : i;
             var prof = Profile.Current;
             prof.Background = BackgroundCosmeticId(menuBg) ?? "";  // what Records shows as equipped
             prof.Save();
@@ -44,7 +58,10 @@ namespace Arena
         void DrawMenuBackground(float time)
         {
             ReactTick(time);  // BackgroundReact.cs: pointer and clicks for the reactive backgrounds
-            switch (menuBg)
+            if (!bgThumb && bgProfile != Profile.Current)
+                LoadBackgroundSettings();
+            int bg = !bgThumb && session != null && session.Screen == AppScreen.Menu && !menuBgOverride ? HoloFloorBg : menuBg;
+            switch (bg)
             {
                 case 1: BgDeepField(time); break;
                 case 2: BgNebulaDrift(time); break;
@@ -77,7 +94,9 @@ namespace Arena
             bgViewOrigin = org;  // (BackgroundReact.cs: the pointer is only over this view if it is in the thumbnail)
             bgViewScale = sc;
             bgViewRect = thumb;
+            bgThumb = true;
             DrawMenuBackground(Time.time);
+            bgThumb = false;
             bgViewOrigin = V2.Zero;
             bgViewScale = 1f;
             bgViewRect = new Rect(0f, 0f, W, H);

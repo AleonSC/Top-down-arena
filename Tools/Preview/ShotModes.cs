@@ -155,7 +155,9 @@ static partial class Shot {
     {
       GL.Tris.Clear();
       set("drawScale", 1f);
+      set("bgProfile", Profile.Current);
       set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG")));
+      set("menuBgOverride", true);  // (the main menu would show the Holo Floor otherwise)
       // POINTER=x,y (the pointer, in 1280x720 canvas coordinates), PCLICK=x,y,age (a click that long ago), PENERGY=0-1: for the reactive ones.
       var ptr = Environment.GetEnvironmentVariable("POINTER");
       if (ptr != null)
