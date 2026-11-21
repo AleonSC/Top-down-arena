@@ -2041,8 +2041,8 @@ has its own track** that crossfades in while it's on the field (`Assets/Scripts/
 track is a short recipe: tempo, key, chords and which instruments play). Tracks render in the background, and
 the next boss's track is prepared ahead of time. The **Music** slider controls all of it.
 
-**Music player** (Settings > Audio > *Music player*): 23 tracks to pick from, which play everywhere (menus and matches)
-instead of the automatic music until you pick **Automatic** again. Besides the menu theme, the wave battle track and the
+**Music player** (Settings > Audio > *Music player*): 24 tracks to pick from, which play everywhere (menus and matches)
+instead of the automatic music until you pick **Automatic** again. Besides the menu theme, the lobby theme (a mix of *Lo-fi Lounge*, *Crystal Caves* and *Deep Freeze*), the wave battle track and the
 ten boss themes (plus the Riot Captain's *Riot Line*) there are ten extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lounge*, *Crystal Caves* and *Deep Freeze*
 (Chill); *Neon Highway*, *Sunrise Run*, *Arcade Heist* and *Dust Road* (Action); *Haunted Hollow* and *Iron Rain* (Dark);
 *Last Stand* (Epic). Controls: Prev / Play-Pause / Next, Shuffle, Repeat (all, or this one), a progress bar, and

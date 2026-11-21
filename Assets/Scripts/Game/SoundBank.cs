@@ -142,6 +142,7 @@ namespace Arena
                 musicVoices[v].volume = 0f;
             }
             RequestTrack("menu", MenuMusic.Render, 0.6f);
+            RequestTrack("lobby", () => GameMusic.Render(MusicLibrary.LobbyMix), 0.5f);
             RequestTrack("battle", () => GameMusic.Render(GameMusic.Battle), 0.42f);  // soft, under the gunfire
         }
 
