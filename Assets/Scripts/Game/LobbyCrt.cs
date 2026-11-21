@@ -322,7 +322,11 @@ namespace Arena
             if (away < 1f)
             {
                 float k = 1f - away;
-                Ui.BodyGlow(MenuCard, k);
+                if (BeginUiGl())  // the menu's honeycomb band (MenuHolo.cs)
+                {
+                    DrawMenuHexBand(t, k);
+                    EndUiGl();
+                }
                 WithAlpha(k, () =>
                 {
                     DkPanel(MenuCard);
@@ -335,10 +339,11 @@ namespace Arena
                     float lift = away * away * 30f;
                     Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize - lift, W, MenuTitleSize * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(MenuTitleSize), Color.white, TextAnchor.MiddleCenter, Ui.Accent);
                 });
+                DrawDriveBay(k);
                 DrawDriveSlot(k, DriveIdle());
                 if (BeginUiGl())
                 {
-                    DrawMenuArc(t, k);
+                    DrawBoxNeon(MenuCard, k);
                     DrawPlotCorners(MenuCard, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * k));
                     EndUiGl();
                 }

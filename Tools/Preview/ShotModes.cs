@@ -483,6 +483,8 @@ static partial class Shot {
       // MENUINTRO=<seconds>: the main menu that far into its intro (MenuIntro.cs); JOINOPEN=1: Join's address row open.
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuBottomHide", 1f); }
+      // MENUT=<s>: the menu's clock (Time.unscaledTime), e.g. MENUT=3 for the rooms drawn round the title and box (MenuHolo.cs).
+      if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;
     }

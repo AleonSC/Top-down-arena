@@ -93,12 +93,17 @@ namespace Arena
             bool fade = session.Resume != null;
             float cardA = fade ? 1f - Seg(e, 0f, 0.5f) : 1f;
             var r = fade ? MenuCard : LerpRect(MenuCard, LobbyBodyRect, k);
-            if (fade ? cardA > 0f : (k < 1f || e < 1.05f))
-                Ui.BodyGlow(r, fade ? cardA : 1f - k);  // first, so it sits under everything else; it fades as the card becomes the lobby's box, which has none
 
             // The disk drive under the title (DriveSlot.cs) is gone before the box grows up over it, and drawn first so the box covers any
             // of it that is left (leaving plays this backwards: the drive comes back as the box settles below it).
-            DrawDriveSlot(fade ? 1f - Seg(e, 0.1f, 0.4f) : 1f - Seg(k, 0f, 0.25f), DriveIdle());
+            if (BeginUiGl())  // the menu's honeycomb band fades out (MenuHolo.cs)
+            {
+                DrawMenuHexBand(t, 1f - Seg(e, 0f, 0.35f));
+                EndUiGl();
+            }
+            float driveA = fade ? 1f - Seg(e, 0.1f, 0.4f) : 1f - Seg(k, 0f, 0.25f);
+            DrawDriveBay(driveA);  // the ledge it sits in goes with it
+            DrawDriveSlot(driveA, DriveIdle());
 
             // The bottom bar and your player card drop away and fade.
             float drop = Seg(e, 0f, 0.35f);
@@ -139,9 +144,9 @@ namespace Arena
             // GL: the card's plot corners and the ring off your party card.
             if (BeginUiGl())
             {
-                float arcA = 1f - Seg(e, 0f, 0.3f);  // the shot's arc over the title fades
-                if (arcA > 0f)
-                    DrawMenuArc(t, arcA);
+                float neonA = fade ? cardA : 1f - Seg(e, 0f, 0.3f);  // the box's neon edge fades as it starts to grow (MenuHolo.cs)
+                if (neonA > 0f)
+                    DrawBoxNeon(r, neonA);
                 float cornersA = fade ? cardA : 1f - Seg(e, 0.75f, 1.1f);
                 if (cornersA > 0f)
                     DrawPlotCorners(r, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * cornersA));
