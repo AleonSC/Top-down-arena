@@ -63,5 +63,22 @@ namespace Arena
             DoLog("dev: hub layout test " + id);
             return "";
         }
+
+        /// Host, in a Grid run: put this core floor plan down now (its crates too) and stand the host's player in the middle of the core.
+        public string DevTestCore(CoreLayoutId id)
+        {
+            if (!IsHost || State == MatchState.Idle || !ExpandingOn || Me == null || !Expanded.Exists(Expansion.IsGridCore))
+                return "Start a Grid run first (Quick Play or the Campaign), then open the editor from F1.";
+            DevUsed("tested a core layout");
+            CoreLayout = id;
+            expWorld = null;
+            layoutFresh = true;
+            LayoutAge = 0f;
+            PlaceLayoutCrates();
+            BroadcastExpansion();
+            Me.Pos = new V2(Expansion.GridX0 + CoreLayouts.W / 2f, Expansion.GridY0 + CoreLayouts.H / 2f);
+            DoLog("dev: core layout test " + CoreLayouts.Name(id));
+            return "";
+        }
     }
 }

@@ -35,6 +35,7 @@ namespace Arena
         void LoadCellLayoutEdits()
         {
             LoadHubLayoutEdits();  // (HubEditorUi.cs)
+            LoadCoreLayoutEdits();  // (CoreEditorUi.cs)
             try { CellLayoutEdits.Load(CellEditPath); }
             catch (Exception e) { Debug.Log("Couldn't read " + CellEditPath + ": " + e.Message); }
         }
@@ -201,7 +202,7 @@ namespace Arena
         }
 
         int cedTab;  // 0 cells, 1 room view (RoomViewUi.cs), 2 hub (HubEditorUi.cs)
-        static readonly string[] CedTabNames = { "CELLS", "ROOM VIEW", "HUB" };
+        static readonly string[] CedTabNames = { "CELLS", "ROOM VIEW", "HUB", "CORE" };
         bool cedTested;  // layouts were applied by a test without SAVE
 
         void DrawCellEditor()
@@ -209,10 +210,11 @@ namespace Arena
             var panel = DevPanel;
             string sub = cedTab == 0 ? "Drag out walls (drag a wall to move it, Shift draws over one), click to place spots, drag a spot to move it, right click to remove. SAVE keeps the edits. Esc to close."
                 : cedTab == 1 ? "A piece as the game builds it: every cell's layout together. Click a cell to edit its layout. Esc to close."
-                : "The hub's floor plans (1600 x 900): drag walls and crates, right click to remove. SAVE keeps the edits. Esc to close.";
+                : cedTab == 2 ? "The hub's floor plans (1600 x 900): drag walls and crates, right click to remove. SAVE keeps the edits. Esc to close."
+                : "The core's ten floor plans: edit the bright part, the dim copies are its mirrors. Drag walls, click pillars and crates in, right click to remove. Esc to close.";
             var body = DkWindow(panel, "CELL EDITOR", sub, () => cellEditorOpen = false, CrtStyle.Gold);
-            var tabs = DkStack.Cells(new Rect(body.x, body.y - 6f, 3 * 150f + 16f, 28f), 3, 8f);
-            for (int i = 0; i < 3; i++)
+            var tabs = DkStack.Cells(new Rect(body.x, body.y - 6f, 4 * 150f + 24f, 28f), 4, 8f);
+            for (int i = 0; i < 4; i++)
                 if (DkChoice(tabs[i], CedTabNames[i], cedTab == i, CrtStyle.Gold) && cedTab != i)
                 {
                     cedTab = i;
@@ -221,12 +223,18 @@ namespace Arena
                     cedDragging = false;
                     cedMoveSet = -1;
                     cedWallIdx = -1;
+                    coreDragging = false;
+                    coreMoveIdx = -1;
+                    hubDragging = false;
+                    hubMoveKind = -1;
                 }
             body = new Rect(body.x, body.y + 30f, body.width, body.height - 30f);
             if (cedTab == 1)
                 DrawCedRooms(body);
             else if (cedTab == 2)
                 DrawCedHub(body);
+            else if (cedTab == 3)
+                DrawCedCore(body);
             else
                 DrawCedCells(body);
         }
