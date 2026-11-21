@@ -11,19 +11,20 @@ namespace Arena
     ///   bgRipples                clicks, in screen UI coordinates; use ReactRipple(i, t, out at, out age) to read them in background coordinates
     ///   ReactKick(at, ...)       add a ripple from code (e.g. a future "something happened" hook), at in background coordinates
     ///   ReactStepOnce / ReactClick / ReactRand   for ones that keep state: step a simulation once a frame, read this frame's click
-    /// BgRipples below is the reference one: copy its shape for the next. Nothing here goes on the wire or into a save.
+    /// BackgroundArena.cs has the reactive ones. Nothing here goes on the wire or into a save.
     public partial class ArenaApp
     {
         const int BgRippleSlots = 8;
         const float BgRippleLife = 2.6f;
 
-        struct BgRipple { public V2 At; public float Born; }  // At in screen UI coordinates, Born in Time.time
+        struct BgRipple { public V2 At; public float Born; public float Power; }  // At in screen UI coordinates, Born in Time.time, Power 1 for a click (less for game events)
 
         readonly BgRipple[] bgRipples = new BgRipple[BgRippleSlots];
         int bgRippleNext;
         int bgReactFrame = -1;
         V2 bgPointerUi, bgPointerPrev;
         float bgEnergy;
+        bool menuBgAnimate = true;
         int bgClickFrame = -1;  // the frame a click happened, and where (screen UI coordinates)
         V2 bgClickUi;
         uint bgRng = 2463534242u;
@@ -44,7 +45,7 @@ namespace Arena
             float speed = (bgPointerUi - bgPointerPrev).Length / Mathf.Max(0.001f, Time.unscaledDeltaTime) / 900f;
             bgPointerPrev = bgPointerUi;
             bgEnergy = Mathf.Lerp(bgEnergy, Mathf.Clamp01(speed), 1f - Mathf.Exp(-6f * Time.unscaledDeltaTime));
-            if (menuBgAnimate && Input.GetMouseButtonDown(0))
+            if (menuBgAnimate && Input.GetMouseButtonDown(0) && !BgInRun)
             {
                 AddRipple(bgPointerUi, time);
                 bgClickFrame = Time.frameCount;
@@ -52,20 +53,24 @@ namespace Arena
             }
         }
 
-        void AddRipple(V2 uiAt, float time)
+        /// During a run the background sits behind the arena: it ignores the pointer (that is your aim) and clicks (your shots) and
+        /// answers game events instead (BackgroundGameEvents, below), gently.
+        bool BgInRun => game != null && game.Running;
+
+        void AddRipple(V2 uiAt, float time, float power = 1f)
         {
-            bgRipples[bgRippleNext] = new BgRipple { At = uiAt, Born = time };
+            bgRipples[bgRippleNext] = new BgRipple { At = uiAt, Born = time, Power = power };
             bgRippleNext = (bgRippleNext + 1) % BgRippleSlots;
         }
 
         /// Add a ripple from code; `at` is in the background's own coordinates.
-        void ReactKick(V2 at, float time) => AddRipple(bgViewOrigin + at * bgViewScale, time);
+        void ReactKick(V2 at, float time, float power = 1f) => AddRipple(bgViewOrigin + at * bgViewScale, time, power);
 
         /// The pointer in the background's own coordinates, or false if it isn't over what is being drawn (or the background is STILL).
         bool ReactPointer(out V2 at)
         {
             at = V2.Zero;
-            if (!menuBgAnimate || !bgViewRect.Contains(new Vector2(bgPointerUi.X, bgPointerUi.Y)))
+            if (!menuBgAnimate || BgInRun || !bgViewRect.Contains(new Vector2(bgPointerUi.X, bgPointerUi.Y)))
                 return false;
             at = (bgPointerUi - bgViewOrigin) / bgViewScale;
             return true;
@@ -93,6 +98,22 @@ namespace Arena
             return true;
         }
 
+        const float BgDashPower = 0.3f;  // a dash is a small nudge to the background, not a click
+        Game bgEventGame;
+        int bgDodges;
+
+        /// Behind a run: the reactive backgrounds feel each Dodge, softly (a third of a click), where it started.
+        void BackgroundGameEvents(float time)
+        {
+            bool fresh = bgEventGame != game;  // (a new game counts from 0 again: no nudge for that)
+            if (!fresh && game.Dodges == bgDodges)
+                return;
+            bgEventGame = game;
+            bgDodges = game.Dodges;
+            if (!fresh && game.Me != null)
+                ReactKick(ToUi(game.DodgeFrom), time, BgDashPower);
+        }
+
         /// A quick random number for backgrounds' own use (0..1), so they don't touch the game's random state.
         float ReactRand()
         {
@@ -113,42 +134,6 @@ namespace Arena
             age = time - r.Born;
             at = (r.At - bgViewOrigin) / bgViewScale;
             return r.Born > 0f && age >= 0f && age < BgRippleLife && menuBgAnimate;
-        }
-
-        /// Ripples (a rank reward, reactive): a dark teal pond; rings spread from where you click and from drops that fall by
-        /// themselves, and a soft light follows the pointer, brighter the faster it moves.
-        void BgRipples(float t)
-        {
-            GradQuad(new V2(0, 0), new V2(W, 0), new V2(W, H), new V2(0, H), new Rgba(0.02f, 0.08f, 0.12f), new Rgba(0.03f, 0.16f, 0.2f));
-            var ink = new Rgba(0.45f, 0.92f, 0.95f);
-            // Drops that fall by themselves, so it is alive with nobody touching it.
-            for (int k = 0; k < 3; k++)
-            {
-                float period = 3.4f + k * 0.7f, ph = MathX.Fmod(t + k * 1.9f, period), n = Mathf.FloorToInt((t + k * 1.9f) / period);
-                var at = new V2(W * (0.15f + 0.7f * Hash((int)n * 3 + k)), H * (0.2f + 0.6f * Hash((int)n * 3 + k + 50)));
-                Ring(at, ph, 0.55f, ink);
-            }
-            for (int i = 0; i < BgRippleSlots; i++)
-                if (ReactRipple(i, t, out var at, out float age))
-                    Ring(at, age, 1f, ink);
-            if (ReactPointer(out var p))
-            {
-                SoftGlow(p, 150f + 160f * ReactEnergy, ink.WithAlpha(0.1f + 0.18f * ReactEnergy));
-                Circle(p, 3f, ink.WithAlpha(0.7f), 10);
-            }
-        }
-
-        /// Three rings spreading from `at`, each fainter and wider than the one before.
-        void Ring(V2 at, float age, float strength, Rgba col)
-        {
-            for (int k = 0; k < 3; k++)
-            {
-                float a = age - k * 0.22f;
-                if (a <= 0f || a >= BgRippleLife)
-                    continue;
-                float f = a / BgRippleLife, fade = (1f - f) * (1f - f) * strength / (1f + k * 0.6f);
-                Arc(at, 14f + a * 190f, 2f, col.WithAlpha(0.6f * fade), 64);
-            }
         }
     }
 }

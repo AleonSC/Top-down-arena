@@ -156,6 +156,26 @@ static partial class Shot {
       GL.Tris.Clear();
       set("drawScale", 1f);
       set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG")));
+      // POINTER=x,y (the pointer, in 1280x720 canvas coordinates), PCLICK=x,y,age (a click that long ago), PENERGY=0-1: for the reactive ones.
+      var ptr = Environment.GetEnvironmentVariable("POINTER");
+      if (ptr != null)
+      {
+        var pp = ptr.Split(',');
+        set("bgReactFrame", UnityEngine.Time.frameCount);
+        set("bgPointerUi", new V2(float.Parse(pp[0]), float.Parse(pp[1])));
+        set("bgEnergy", Environment.GetEnvironmentVariable("PENERGY") != null ? float.Parse(Environment.GetEnvironmentVariable("PENERGY")) : 0.5f);
+        var pc = Environment.GetEnvironmentVariable("PCLICK");
+        if (pc != null)
+        {
+          var cc = pc.Split(',');
+          var rip = (Array)typeof(ArenaApp).GetField("bgRipples", f2).GetValue(app);
+          var rt = rip.GetType().GetElementType();
+          var one = Activator.CreateInstance(rt);
+          rt.GetField("At").SetValue(one, new V2(float.Parse(cc[0]), float.Parse(cc[1])));
+          rt.GetField("Born").SetValue(one, 7.3f - float.Parse(cc[2]));
+          rip.SetValue(one, 0);
+        }
+      }
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
     }
     else if (mode == "lobby" || mode == "lobbypr")

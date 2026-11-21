@@ -203,12 +203,6 @@ namespace Arena
                 return;
             }
             DrawerIn("pause", false);
-            if (bgBig && pauseSettings && settingsGroup == 1 && cabWin)
-            {
-                DrawBackgroundBig();  // MenuBackgrounds.cs: only the background and its controls
-                return;
-            }
-            bgBig = false;
             DrawCabWindow();
             if (pauseSettings)
             {
@@ -269,12 +263,6 @@ namespace Arena
                 return;
             }
             DrawerIn("pause", false);
-            if (bgBig && pauseSettings && settingsGroup == 1 && cabWin)
-            {
-                DrawBackgroundBig();  // MenuBackgrounds.cs: only the background and its controls
-                return;
-            }
-            bgBig = false;
             DrawCabWindow();  // (first: it comes out from behind the cabinet)
             if (pauseSettings)
             {
@@ -638,12 +626,6 @@ namespace Arena
         /// (The pause and lobby menus switch their own cabinet to the same list, DrawSettingsCabinet.)
         void DrawSettingsWindow()
         {
-            if (bgBig && settingsGroup == 1 && cabWin)
-            {
-                DrawBackgroundBig();  // MenuBackgrounds.cs: only the background and its controls
-                return;
-            }
-            bgBig = false;
             DrawerIn("settings", true);
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
             DrawCabWindow();  // (first: it comes out from behind the cabinet)
@@ -816,8 +798,7 @@ namespace Arena
             if (names != fxCallouts) { fxCallouts = names; changed = true; }
             bool calm = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxReduced, "Reduced effects", "No screen shake, hit-pause or white flashes");
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
-            DrawBackgroundRow(new Rect(x, y + 70f, w, 92f));  // MenuBackgrounds.cs
-            float cy = y + 172f;
+            float cy = y + 72f;
             WinLabel(new Rect(x, cy, w, 24f), "CRT colour", null, false);
             int theme = WinChoices(new Rect(x, cy + 26f, w, 34f), CrtUi.ThemeNames, CrtUi.Theme);
             if (theme != CrtUi.Theme) { CrtUi.Theme = theme; changed = true; }
