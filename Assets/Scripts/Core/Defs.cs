@@ -154,6 +154,8 @@ namespace Arena
         TwinPistols,
         // the Fireball's variants (ElementBalls.cs): the Waterball soaks (wet), the Earthball stops on the first enemy and stuns it
         Waterball, Earthball,
+        // the Healer Knight's fourth (Vowguard.cs): a sword and shield, two stances, chains you build
+        Vowguard,
     }
 
     public class WeaponDef

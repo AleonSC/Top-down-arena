@@ -315,6 +315,7 @@ static partial class Shot {
       set("glMaterial", new Material(null));
       set("addressList", "100.123.48.122, 192.168.1.163");
       if (Environment.GetEnvironmentVariable("INFO") != null) set("connInfoOpen", true);
+      if (Environment.GetEnvironmentVariable("VGEDIT") != null) { set("vgEditOpen", true); if (Environment.GetEnvironmentVariable("VGEDIT") != "1") { set("vgSelSt", 0); set("vgSelIdx", int.Parse(Environment.GetEnvironmentVariable("VGEDIT"))); } }  // VGEDIT=1: the Vowguard's chain editor open (LOADOUT=1,3,3,0); VGEDIT=<n>: with Valor step n selected
       // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability[,ultimate pick]; ABILITY=n clicks that ability key: it's picked, its detail box opens and the preview casts it (the lobby has no hover state since the declutter).
       var lo = Environment.GetEnvironmentVariable("LOADOUT");
       if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); if (q.Length > 4) le.Ult = byte.Parse(q[4]); }  // (a fifth number: the Ultimate row's key)

@@ -47,6 +47,7 @@ namespace Arena
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - CereCut(p);  // the Ninja's Ceremonial Armor at full regalia (CeremonialArmor.cs)
+            amount *= 1f - VgCover(p);  // Cover Ally (Vowguard.cs)
             amount *= 1f - NodArmor(p);  // the Nodachi's Storm wind-ups (Nodachi.cs)
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = PackSoak(p, amount);  // the Wolf Whistle's pack takes a share (WolfPack.cs)
@@ -626,6 +627,11 @@ namespace Arena
                 scratchIds.Add(b.Id);  // a Bone Phalanx's shields: everything from the front stops, red aimed shots too (BonePhalanx.cs)
                 return;
             }
+            if (VgDomeStops(b))
+            {
+                scratchIds.Add(b.Id);  // an Aegis Dome: enemy shots stop at its rim (Vowguard.cs)
+                return;
+            }
             if (BridgeStops(b))
             {
                 scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)
@@ -707,6 +713,12 @@ namespace Arena
             {
                 scratchIds.Add(b.Id);  // Last Stand: stops everything from the front, red aimed shots too, and you take a tenth of it (LastStand.cs)
                 StandHit(p, b);
+                return true;
+            }
+            if (VgBlocks(p, b))
+            {
+                scratchIds.Add(b.Id);  // the Vowguard's shield: small shots at its front stop (Vowguard.cs)
+                VgBlockHit(p, b);
                 return true;
             }
             if (BulwarkBlocks(p, b))

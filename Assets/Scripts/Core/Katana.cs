@@ -500,6 +500,11 @@ namespace Arena
                 ResetNunChain(p);  // Nunchaku.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Vowguard)
+            {
+                ResetVgChain(p);  // both chains back to their first step (Vowguard.cs)
+                return;
+            }
             if (p.Weapon.Id == WeaponId.Nodachi)
             {
                 ResetNodChain(p);  // both stances back to their first step (Nodachi.cs)

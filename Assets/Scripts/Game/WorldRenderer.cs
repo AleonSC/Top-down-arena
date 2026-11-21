@@ -320,6 +320,7 @@ namespace Arena
                 DrawKnuckleIdle(p, t);  // the Arc Knuckles up in a guard (ArcKnucklesLook.cs)
                 DrawNunIdle(p, t);  // the Nunchaku tucked, swung or spinning its guard (NunchakuLook.cs)
                 DrawNodIdle(p, t);  // the Nodachi at the ready or mid-step (NodachiLook.cs)
+                DrawVgIdle(p, t);  // the Vowguard's sword and shield at the ready or mid-step (VowguardLook.cs)
                 DrawKnucklePrompt(p, t);  // the Arc Knuckles' dash chain: Fire now (ArcKnucklesLook.cs)
                 DrawKnuckleLock(p, t);  // the Arc Knuckles' lock-on reticle (ArcKnucklesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
