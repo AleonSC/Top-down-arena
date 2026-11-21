@@ -4,8 +4,7 @@ namespace Arena
 {
     /// The main menu's "holo floor" look (Docs/Mockups/menu-holo-floor.html): neon tube edges on the title and the menu box, the drive bay
     /// ledge hanging under the title (it houses the disk drive and the eject key, which has a green lamp), flat 2D rooms that draw
-    /// themselves round the title and the box now and then, and a honeycomb band along the bottom of the screen with a notched rail
-    /// carrying data packets. The floor itself is the Holo Floor menu background (BgHoloFloor, below).
+    /// themselves round the title and the box now and then. The floor itself is the Holo Floor menu background (BgHoloFloor, below).
     public partial class ArenaApp
     {
         // --- Neon ---------------------------------------------------------------------------------------------------------
@@ -54,7 +53,27 @@ namespace Arena
             {
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(TitleNeonRect, a * NeonFlicker(Time.unscaledTime, 9f, 3f));
+                HoloCorners(TitleNeonRect, a);
                 EndUiGl();
+            }
+        }
+
+        /// GL: glowing corner brackets just outside a panel (the settings windows' look, Docs/Mockups/settings-holo.html): a soft halo
+        /// under a bright 3 px stroke, 22 px along each side, 9 px out from the panel's neon edge.
+        void HoloCorners(Rect r, float a, float gap = 9f, float len = 22f)
+        {
+            if (a <= 0f)
+                return;
+            UiModelAt(V2.Zero, 1f);
+            float x0 = r.x - gap, x1 = r.xMax + gap, y0 = r.y - gap, y1 = r.yMax + gap;
+            foreach (var corner in new[] { new V2(x0, y0), new V2(x1, y0), new V2(x0, y1), new V2(x1, y1) })
+            {
+                float sx = corner.X < r.center.x ? 1f : -1f, sy = corner.Y < r.center.y ? 1f : -1f;
+                V2 h = corner + new V2(sx * len, 0f), v = corner + new V2(0f, sy * len), back = new V2(-sx * 1.5f, 0f), up = new V2(0f, -sy * 1.5f);
+                Line(corner + back, h, 9f, HoloHalo.WithAlpha(0.14f * a));
+                Line(corner + up, v, 9f, HoloHalo.WithAlpha(0.14f * a));
+                Line(corner + back, h, 3f, HoloHot.WithAlpha(0.95f * a));
+                Line(corner + up, v, 3f, HoloHot.WithAlpha(0.95f * a));
             }
         }
 
@@ -69,7 +88,7 @@ namespace Arena
 
         const string WhoTitleText = "WHO'S PLAYING?";
 
-        /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html): the honeycomb band and rooms
+        /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html): the rooms
         /// behind, then WHO'S PLAYING? on the menu's CRT title screen with its neon, and the drive bay ledge under it. a: its opacity
         /// (the picker fades in the moves to and from the menu, ProfileTransition.cs, DiskEject.cs).
         void DrawWhoChrome(float a)
@@ -81,7 +100,6 @@ namespace Arena
             {
                 if (BeginUiGl())
                 {
-                    DrawMenuHexBand(t, 1f);
                     DrawRooms(t, 1f, WhoRoomSets);
                     EndUiGl();
                 }
@@ -128,6 +146,45 @@ namespace Arena
                 }
             }
             DrawWhoGhost(r, Color.Lerp(new Color(0.5f, 0.66f, 1f, 0.5f * a), new Color(0.81f, 0.88f, 1f, 0.95f * a), hover));
+        }
+
+        // --- Settings ---------------------------------------------------------------------------------------------------------
+
+        bool cabHolo;  // drawing Settings from the main menu or the lobby: its cabinet and window get the holo look
+
+        /// IMGUI: a settings panel's neon edge and glowing corners, coming on as its soft sweep finishes (e: seconds into it).
+        void DrawPanelNeon(Rect r, float e, float period, float offset)
+        {
+            float a = Mathf.Clamp01(e / HoloBoot.SoftLen) * Ui.Alpha;
+            if (a <= 0f || !BeginUiGl())
+                return;
+            UiModelAt(V2.Zero, 1f);
+            NeonRect(r, a * NeonFlicker(Time.unscaledTime, period, offset));
+            HoloCorners(r, a);
+            EndUiGl();
+        }
+
+        /// IMGUI: the link from the open section's row (y on screen) across to its window: a glowing line in the section's colour
+        /// with three packets of light running along it.
+        void DrawSettingsLink(float y, Color col)
+        {
+            if (!cabWinOn || cabWinOutAt >= 0f || !BeginUiGl())
+                return;
+            UiModelAt(V2.Zero, 1f);
+            float x0 = cabBootRect.xMax, x1 = cabWinRect.x, a = Mathf.Clamp01(cabWinBootE / HoloBoot.SoftLen) * Ui.Alpha;
+            if (x1 > x0 + 4f && a > 0f)
+            {
+                var c = new Rgba(col.r, col.g, col.b);
+                Line(new V2(x0, y), new V2(x1, y), 8f, c.WithAlpha(0.18f * a));
+                Line(new V2(x0, y), new V2(x1, y), 2f, c.Mix(Rgba.White, 0.4f).WithAlpha(0.95f * a));
+                if (!fxReduced && fxOn)
+                    for (int i = 0; i < 3; i++)
+                    {
+                        float u = MathX.Fmod(Time.unscaledTime / 1.1f + i / 3f, 1f), x = Mathf.Lerp(x0 - 3f, x1 - 3f, u);
+                        FillRect(x, y - 3f, 6f, 6f, new Rgba(1f, 1f, 1f, a));
+                    }
+            }
+            EndUiGl();
         }
 
         // --- The Play key's chevrons ------------------------------------------------------------------------------------------
@@ -344,98 +401,6 @@ namespace Arena
             if (p >= 1f)
                 foreach (var q in c)
                     FillRect(q.X - 2f, q.Y - 2f, 4f, 4f, new Rgba(0.82f, 0.88f, 1f, 0.9f * a));
-        }
-
-        // --- The bottom band ------------------------------------------------------------------------------------------------
-
-        const float HexR = 13f, BandRail = H - 74f;
-        const int HexRows = 5;
-
-        /// GL: along the bottom of the screen, a honeycomb band (fading out upward) lit by two waves crossing it and the odd cell
-        /// flashing, blue on the left to violet on the right; over it a notched rail with tick marks, and packets of light sliding along it.
-        void DrawMenuHexBand(float t, float a)
-        {
-            if (a <= 0f)
-                return;
-            UiModelAt(V2.Zero, 1f);
-            bool still = fxReduced || !fxOn;
-            if (still)
-                t = 20f;
-            GradQuad(new V2(0f, BandRail - 10f), new V2(W, BandRail - 10f), new V2(W, H), new V2(0f, H), new Rgba(0.16f, 0.2f, 0.55f, 0f), new Rgba(0.16f, 0.2f, 0.55f, 0.45f * a));
-            float hw = 1.7320508f * HexR;
-            var blue = new Rgba(0.36f, 0.52f, 0.91f);
-            var violet = new Rgba(0.64f, 0.5f, 1f);
-            int cell = 0;
-            for (int row = 0; row < HexRows; row++)
-            {
-                float fade = 1f - row / (float)HexRows, cy = H + 6f - row * HexR * 1.5f;
-                for (float x = -hw; x < W + hw; x += hw, cell++)
-                {
-                    float cx = x + (row % 2 == 1 ? hw / 2f : 0f);
-                    float wave = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(cx * 0.012f - t * 2.2f + row * 0.6f)), 6f)
-                        + 0.7f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(-cx * 0.008f - t * 1.3f + 3f)), 8f);
-                    float slot = t * 0.6f + Hash(cell) * 50f;
-                    int s = Mathf.FloorToInt(slot);
-                    float flash = Hash(cell * 7 + s * 131) < 0.05f ? 1f - (slot - s) : 0f;
-                    float b = Mathf.Min(1f, (wave + flash) * fade);
-                    var col = blue.Mix(violet, Mathf.Clamp01(cx / W));
-                    var at = new V2(cx, cy);
-                    Arc(at, HexR - 1.5f, 1f, col.WithAlpha((0.1f * fade + 0.6f * b) * a), 6, MathX.Pi / 6f);
-                    if (b > 0.05f)
-                        PointyHexFill(at, HexR - 4.5f, col.WithAlpha(0.45f * b * a));
-                }
-            }
-            // the rail: a line with a raised notch every 160 px, ticks under it
-            var rail = new Rgba(0.59f, 0.73f, 1f, 0.75f * a);
-            V2 prev = new V2(0f, BandRail);
-            for (float x = 80f; x < W; x += 160f)
-            {
-                V2 a0 = new V2(x, BandRail), a1 = new V2(x + 10f, BandRail - 8f), a2 = new V2(x + 50f, BandRail - 8f), a3 = new V2(x + 60f, BandRail);
-                RailLine(prev, a0, rail); RailLine(a0, a1, rail); RailLine(a1, a2, rail); RailLine(a2, a3, rail);
-                prev = a3;
-            }
-            RailLine(prev, new V2(W, BandRail), rail);
-            for (float x = 0f; x < W; x += 16f)
-            {
-                bool major = MathX.Fmod(x, 80f) < 1f;
-                FillRect(x, BandRail + 4f, major ? 2f : 1f, major ? 6f : 3f, new Rgba(0.59f, 0.73f, 1f, 0.35f * a));
-            }
-            // packets of light sliding along it, each with a short tail
-            for (int k = 0; k < 10; k++)
-            {
-                float v = 120f + Hash(k * 5 + 1) * 220f, period = (W + 60f) / v + 0.5f + Hash(k * 5 + 2) * 2.5f;
-                float x = MathX.Fmod(t + Hash(k * 5 + 3) * period, period) * v - 30f;
-                if (x > W + 20f)
-                    continue;
-                bool gold = Hash(k * 5 + 4) < 0.2f, big = Hash(k * 5 + 9) < 0.25f;
-                var pc = gold ? new Rgba(0.95f, 0.76f, 0.31f) : new Rgba(0.78f, 0.88f, 1f);
-                float y = RailY(x), sz = big ? 6f : 4f;
-                FillRect(x - 24f - sz / 2f, y - 1f, 24f, 2f, pc.WithAlpha(0.25f * a));
-                Circle(new V2(x, y), 6f, pc.WithAlpha(0.25f * a), 10);
-                FillRect(x - sz / 2f, y - sz / 2f, sz, sz, pc.WithAlpha(0.95f * a));
-            }
-        }
-
-        void RailLine(V2 p, V2 q, Rgba c)
-        {
-            Line(p, q, 6f, c.WithAlpha(c.A * 0.2f));
-            Line(p, q, 1.5f, c);
-        }
-
-        /// The rail's height at x (up on the notches).
-        static float RailY(float x)
-        {
-            float ph = MathX.Fmod(x - 80f + 1600f, 160f);
-            float up = ph < 10f ? ph / 10f : ph < 50f ? 1f : ph < 60f ? (60f - ph) / 10f : 0f;
-            return BandRail - 8f * up;
-        }
-
-        /// A filled pointy-topped hexagon.
-        void PointyHexFill(V2 at, float r, Rgba c)
-        {
-            SetColor(c);
-            for (int i = 0; i < 6; i++)
-                Tri(at, at + V2.FromAngle(MathX.Pi / 6f + MathX.Tau * i / 6f) * r, at + V2.FromAngle(MathX.Pi / 6f + MathX.Tau * (i + 1) / 6f) * r);
         }
 
         // --- The Holo Floor background ------------------------------------------------------------------------------------

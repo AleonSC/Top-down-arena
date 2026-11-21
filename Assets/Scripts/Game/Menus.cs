@@ -35,9 +35,8 @@ namespace Arena
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
             float box = MenuIntroK(1.65f, 2.0f);
-            if (BeginUiGl())  // under everything: the honeycomb band along the bottom and the rooms (MenuHolo.cs)
+            if (BeginUiGl())  // under everything: the rooms (MenuHolo.cs)
             {
-                DrawMenuHexBand(t, MenuIntroK(2.2f, 2.6f));
                 DrawMenuRooms(t, MenuIntroPlaying ? 0f : 1f);
                 EndUiGl();
             }
@@ -54,7 +53,7 @@ namespace Arena
                 DrawBoxNeon(MenuCard, MenuIntroK(2.0f, 2.3f));  // the box's neon edge (MenuHolo.cs)
                 float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
                 if (snap > 0f)
-                    DrawPlotCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), 7f, 22f, new Rgba(0.75f, 0.85f, 1f, 0.9f * snap));
+                    HoloCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), snap);  // MenuHolo.cs
                 EndUiGl();
             }
             bool live = !MenuIntroPlaying;  // nothing takes a click until it has all landed
@@ -160,7 +159,7 @@ namespace Arena
             r.y += 12f * (1f - show);  // rises into place
             WithAlpha(a, () =>
             {
-                Ui.Fill(r, new Color(0.03f, 0.04f, 0.08f));  // a solid back, so the honeycomb band behind it doesn't show through (MenuHolo.cs)
+                Ui.Fill(r, new Color(0.03f, 0.04f, 0.08f));  // a solid back, so the floor behind it doesn't show through
                 DrawNameCard(r, 0f, live && show >= 1f, t);
                 DrawProfileHint(r, t, live && show >= 1f);  // ProfileUi.cs
             });
