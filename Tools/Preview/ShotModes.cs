@@ -507,6 +507,14 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuBottomHide", 1f); }
       // MENUT=<s>: the menu's clock (Time.unscaledTime), e.g. MENUT=3 for the rooms drawn round the title and box (MenuHolo.cs).
       if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);
+      // ROOMS=<s>: the rooms that far into their sequence (MenuHolo.cs DrawRooms: one every 3.5 s, three at most).
+      if (Environment.GetEnvironmentVariable("ROOMS") != null) {
+        var sets = typeof(ArenaApp).GetField(mode == "who" ? "WhoRoomSets" : "BoxRoomSets", f2 | System.Reflection.BindingFlags.Static).GetValue(null);
+        set("roomsLower", sets); set("roomsFrame", Time.frameCount); set("roomsStart", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("ROOMS"), System.Globalization.CultureInfo.InvariantCulture));
+        var pool = typeof(ArenaApp).GetField("roomPool", f2).GetValue(app) as System.Collections.IList; var add = typeof(ArenaApp).GetMethod("AddRoomSpot", f2);
+        foreach (var setArr in new[] { typeof(ArenaApp).GetField("TitleRoomSets", f2 | System.Reflection.BindingFlags.Static).GetValue(null), sets })
+          foreach (var row in (System.Array)setArr) foreach (var m in (System.Array)row) add.Invoke(app, new object[] { m });
+      }
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;
     }
