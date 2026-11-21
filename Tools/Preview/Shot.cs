@@ -846,6 +846,10 @@ static partial class Shot {
       host.Game.MasteryToasts.Add(new MasteryToast { Ability = me.Slots[1].Id, Level = 3, T = 2f });
       if (Environment.GetEnvironmentVariable("HOVER") != null) Event.current.mousePosition = new Vector2 { x = 500, y = 400 };
     }
+    if (Environment.GetEnvironmentVariable("PICKHELD") != null) {  // PICKHELD=1: a level-up won mid-fight between waves, its cards held while enemies are near (Game.PickHeld)
+      var pg = host.Game; pg.State = MatchState.Intermission; pg.StateTimer = 12f; me.Offer = new[] { 0, 1, 2 }; me.PendingPicks = 2;
+      if (!pg.PickHeld(me)) Console.Error.WriteLine("PICKHELD: no awake enemy near you in this scene");
+    }
     if (Environment.GetEnvironmentVariable("WAVECLEARED") != null) {  // the between-waves box: WAVECLEARED=1 (waiting), =auto (everyone on auto-ready), =boss (the boss is next), =beaten (the boss was just beaten)
       var wg = host.Game; string wc = Environment.GetEnvironmentVariable("WAVECLEARED");
       wg.State = MatchState.Intermission; wg.Wave = Environment.GetEnvironmentVariable("WCWAVE") != null ? int.Parse(Environment.GetEnvironmentVariable("WCWAVE")) : wc == "boss" || wc == "beaten" ? 5 : 4; wg.BossSlot = wc == "beaten"; wg.Leg = 1;  // (a Campaign: both legs of the wave cleared; boss: the boss comes next; beaten: it was just beaten; WCWAVE=<n>: the wave just cleared)

@@ -64,3 +64,4 @@ path              hud       PATHOFFER=bazaar
 shop              shop
 gameover          gameover
 victory           victory
+pickheld hud PICKHELD=1

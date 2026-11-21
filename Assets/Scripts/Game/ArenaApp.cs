@@ -236,7 +236,7 @@ namespace Arena
             var me = game.Me;
             bool tabKey = UpdatePauseStates(me);
             bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || ModalScreenOpen;
-            bool choosing = me != null && me.Offer != null && !menuUp;
+            bool choosing = me != null && me.Offer != null && !menuUp && !game.PickHeld(me);  // (cards held back while enemies are near: Game.PickHeld)
             UpdatePointerAndBlocking(me, tabKey, menuUp, choosing);
             if (!menuUp)
                 ReadPlayKeys();
@@ -685,7 +685,7 @@ namespace Arena
         /// Forget the highlighted card whenever a new set of cards is shown.
         void SyncSelection(Player me)
         {
-            string key = me.Offer == null ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count + "," + Game.HandCount(me) + "," + game.RoomTokens.Count;  // (a boss card pick changes the hand or kits, not Taken)
+            string key = me.Offer == null || game.PickHeld(me) ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count + "," + Game.HandCount(me) + "," + game.RoomTokens.Count;  // (a boss card pick changes the hand or kits, not Taken)
             if (key != shownOffer)
             {
                 // The same picks taken and different cards: a reroll (the opening skips its fanfare; PickIntro.cs).

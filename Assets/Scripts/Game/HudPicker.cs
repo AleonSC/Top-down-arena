@@ -13,6 +13,18 @@ namespace Arena
         /// tall cards with the icon big on a rarity backdrop (the picked one lifts and glows, the others step back; rare
         /// and better shine), one line saying what your pick changes, and the lobby's fancy buttons. Weapon mods (more than
         /// three cards) use a grid of smaller cards. Hold Tab for your full stats.
+        /// A level-up won mid-fight between waves (Game.PickHeld): a plate near the top instead of the cards, which come up
+        /// once no enemy is near. It pulses gently so it's seen without stealing the fight.
+        void DrawPickHeld(Player me)
+        {
+            int n = Math.Max(1, me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingCards + me.PendingMilestones + me.PrizePicks);
+            var box = new Rect(W / 2f - 170f, 96f, 340f, 52f);
+            float pulse = FxCalm ? 1f : 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f);
+            DkHud(box, CrtStyle.Gold.WithAlpha(pulse));
+            DkTitle(new Rect(box.x, box.y + 5f, box.width, 20f), n > 1 ? "LEVEL UP  ×" + n : "LEVEL UP", 15, CrtStyle.Gold, TextAnchor.MiddleCenter);
+            DkTitle(new Rect(box.x, box.y + 27f, box.width, 18f), "CARDS AFTER THE FIGHT", 12, CrtStyle.Ink.WithAlpha(0.8f), TextAnchor.MiddleCenter);
+        }
+
         void DrawUpgradePicker(Player me)
         {
             SyncSelection(me);
