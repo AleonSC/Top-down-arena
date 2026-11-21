@@ -278,9 +278,11 @@ namespace Arena
             DrawEclipseMoon(t);    // EclipseLook.cs
             DrawLichScene(t);  // LichLook.cs
             PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
+            segTol = CrowdTol();
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !(e.Dormant ? game.FogHidesStill(e.Pos) : game.FogHides(e.Pos)))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
                     DrawEnemy(e, t);
+            segTol = SegTol;
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
@@ -931,6 +933,25 @@ namespace Arena
                            (a.x > cullW && b.x > cullW && c.x > cullW) || (a.y > cullH && b.y > cullH && c.y > cullH));
 
         const float SegTol = 0.35f;  // px: how far a segment's middle may sit inside the true curve
+        const float CrowdTolMax = 0.8f;  // px: the same while a big crowd is drawn (CrowdTol)
+        const int CrowdFrom = 30, CrowdFull = 90;  // enemies on screen: the tolerance starts to grow, and is at its widest
+        float segTol = SegTol;  // the tolerance in use (CrowdTol raises it while the enemies are drawn)
+
+        /// The curve tolerance for drawing the enemies this frame: SegTol with up to CrowdFrom on screen, growing to
+        /// CrowdTolMax at CrowdFull. A breach flood of a hundred bodies is a third fewer vertices, each curve still within a
+        /// pixel of true; a normal wave looks exactly as it did.
+        float CrowdTol()
+        {
+            int n = 0;
+            foreach (var e in game.Enemies.Values)
+            {
+                Vector3 p = Px(e.Disp);
+                if (cullW <= 0f || p.x > -40f && p.y > -40f && p.x < cullW + 40f && p.y < cullH + 40f)
+                    n++;
+            }
+            float k = Mathf.Clamp01((n - CrowdFrom) / (float)(CrowdFull - CrowdFrom));
+            return SegTol + (CrowdTolMax - SegTol) * k;
+        }
 
         /// How many of `segs` segments a curve of radius r (arena units) over `sweep` radians needs on screen. Only ever
         /// fewer: counts of 8 or less are left alone (a hexagon drawn as a 6-segment circle stays a hexagon).
@@ -940,11 +961,12 @@ namespace Arena
                 return segs;
             Vector3 p0 = Px(center), p1 = Px(center + new V2(r, 0f));
             float px = Mathf.Sqrt((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
-            if (px <= SegTol * 2f)
-                return 8;
-            float step = 2f * Mathf.Acos(1f - SegTol / px);  // the widest angle a segment may span
+            int least = Mathf.Max(3, Mathf.CeilToInt(8f * Mathf.Abs(sweep) / MathX.Tau - 0.01f));  // (8 a full turn: a half turn 4)
+            if (px <= segTol * 2f)
+                return least;
+            float step = 2f * Mathf.Acos(1f - segTol / px);  // the widest angle a segment may span
             int need = Mathf.CeilToInt(Mathf.Abs(sweep) / Mathf.Max(step, 1e-3f));
-            return Mathf.Clamp(need, 8, segs);
+            return Mathf.Clamp(need, least, segs);
         }
 
         void Circle(V2 center, float r, Rgba c, int segs)

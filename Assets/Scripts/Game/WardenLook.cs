@@ -524,9 +524,30 @@ namespace Arena
         /// A line with round ends (no square corners at the elbows and shoulders).
         void Cap(V2 a, V2 b, float w, Rgba c)
         {
+            V2 d = b - a;
+            if (d.Length < 0.01f)
+            {
+                Circle(a, w / 2f, c, 16);
+                return;
+            }
             Line(a, b, w, c);
-            Circle(a, w / 2f, c, 16);
-            Circle(b, w / 2f, c, 16);
+            float ang = d.Angle;
+            HalfDisc(a, w / 2f, ang + MathX.Pi, c);  // (only the half past each end shows: the line covers the rest)
+            HalfDisc(b, w / 2f, ang, c);
+        }
+
+        /// The half of a disc facing `ang`.
+        void HalfDisc(V2 c, float r, float ang, Rgba col)
+        {
+            int segs = SegsFor(c, r, MathX.Pi, 12);
+            SetColor(col);
+            V2 prev = c + V2.FromAngle(ang - MathX.Pi / 2f) * r;
+            for (int k = 1; k <= segs; k++)
+            {
+                V2 next = c + V2.FromAngle(ang - MathX.Pi / 2f + MathX.Pi * k / segs) * r;
+                Tri(c, prev, next);
+                prev = next;
+            }
         }
 
         void Oval(V2 c, float rx, float ry, float rot, Rgba col) => Ellipse(c, rx, ry, rot, col, 40);
