@@ -19,7 +19,13 @@ static partial class Shot {
     bool surv = g.SurvivalOn;  // with SURVIVAL=<clock s> (and SURVMARKS=<n> for a crowd): Survival's room as it is
     string why; var rooms = new System.Collections.Generic.List<ExpansionRoom>();
     foreach (var box in new[] { new[] { 1600, 100, 800, 600 }, new[] { -900, 100, 800, 600 } }) { rooms.Add(new ExpansionRoom { X = box[0], Y = box[1], W = box[2], H = box[3] }); }
-    if (!surv) foreach (var gg in new[] { g }.Concat(others.Select(o => o.Game))) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(rooms); }
+    string bigMap = Environment.GetEnvironmentVariable("PERFMAP");  // PERFMAP=<n>: a grown map instead (the grid core and n pieces round it, about 2n+2 breaches' worth)
+    if (bigMap != null) {
+      rooms = Expansion.GridCore(); var core = Expansion.GridCoreCuts();
+      for (int k = 0; k < int.Parse(bigMap); k++) { var mo = Expansion.PlacementsFor(rooms, k % 3 == 0 ? PieceShape.TetL : k % 3 == 1 ? PieceShape.TetT : PieceShape.TriI); if (mo.Count == 0) break; rooms.AddRange(mo[(k * 7) % mo.Count].Rooms); }
+      foreach (var gg in new[] { g }.Concat(others.Select(o => o.Game))) { gg.Openings.Clear(); gg.Openings.AddRange(core); }
+    }
+    if (!surv) foreach (var gg in new[] { g }.Concat(others.Select(o => o.Game))) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(rooms); typeof(Game).GetField("expWorld", f2).SetValue(gg, null); }
     var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
     var partN = typeof(ArenaApp).GetField("partN", f2);
     var sw = new Stopwatch(); double ms = 0, worst = 0; long verts = 0; int maxV = 0, maxP = 0, frames = 0, kills0 = 0;

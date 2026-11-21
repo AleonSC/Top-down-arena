@@ -376,6 +376,23 @@ static partial class Shot {
         if (types[i] == EnemyType.Guard && act) { en.LarderStage = Game.BatonActing; en.LarderT = Game.BatonFlash * 0.45f; }
       }
     }
+    if (Environment.GetEnvironmentVariable("CROWD") != null) {
+      // CROWD=<n>: a Warden breach mob of n round you (Rioters, Guards, Security Guards, Riot Shields, Thugs), all on screen,
+      // for the crowd's draw cost (WorldRenderer.cs CrowdTol); prints the GL vertices of the frame. NINJA=0.
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      int cn = int.Parse(Environment.GetEnvironmentVariable("CROWD"));
+      me.Pos = me.Disp = new V2(800f, 450f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(760f, 470f);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var mix = new[] { EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Guard, EnemyType.SecurityGuard, EnemyType.Rioter, EnemyType.RiotShield, EnemyType.Thug };
+      var crng = new System.Random(3);
+      for (int i = 0; i < cn; i++) {
+        float ca = i * 2.39996f, cr = 110f + 330f * (float)Math.Sqrt((i + 0.5f) / cn);
+        var at = me.Pos + new V2((float)Math.Cos(ca) * cr * 1.6f, (float)Math.Sin(ca) * cr * 0.95f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { mix[i % mix.Length], at, 0f, 0, false });
+        en.SpawnT = 0f; en.Spawning = false; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle + (float)(crng.NextDouble() - 0.5);
+      }
+    }
     if (Environment.GetEnvironmentVariable("TURNKEY") != null) {
       // TURNKEY=1: the Turnkey (Turnkey.cs, TurnkeyLook.cs) running, planting and building; a working Cell Door mid-swing and a
       // jammed one; Floor Mines arming, armed and beeping; Shackle Traps open and snapped; a Mop Slick. NINJA=0 ZOOM=2.2.

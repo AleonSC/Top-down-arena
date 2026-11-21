@@ -26,6 +26,7 @@ namespace Arena
         /// A filled ellipse (centre, radii, tilt), drawn as a fan.
         void Ellipse(V2 c, float rx, float ry, float rot, Rgba col, int segs = 10)
         {
+            segs = SegsFor(c, Mathf.Max(Mathf.Abs(rx), Mathf.Abs(ry)), MathX.Tau, segs);  // (as many as its size on screen needs: WorldRenderer.cs)
             SetColor(col);
             V2 ux = V2.FromAngle(rot), uy = new V2(-ux.Y, ux.X);
             V2 prev = c + ux * rx;

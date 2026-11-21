@@ -971,7 +971,11 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null || Environment.GetEnvironmentVariable("EXPANDVOTE") != null || Environment.GetEnvironmentVariable("EXPANDSHOP") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("miniT", ht); }  // (the corner HUD easing in; the full console is retired)
     if (Environment.GetEnvironmentVariable("HUDMODE") != null) { int hm = int.Parse(Environment.GetEnvironmentVariable("HUDMODE")); set("hudMode", hm); set("miniT", hm < 2 ? 1f : 0f); }  // HUDMODE=0 corner (default), 1 on the player, 2 hidden
+    var vtxBy = new System.Collections.Generic.Dictionary<string, int>();  // VTXTRACE=1: the frame's top vertex sources, printed (GL.Trace in Stubs.cs)
+    if (Environment.GetEnvironmentVariable("VTXTRACE") != null) GL.Trace = () => { var st = new System.Diagnostics.StackTrace(2, false); string key = ""; for (int fi = 0; fi < Math.Min(5, st.FrameCount); fi++) key += st.GetFrame(fi).GetMethod().Name + " < "; int c0; vtxBy.TryGetValue(key, out c0); vtxBy[key] = c0 + 1; };
+    if (GL.Trace != null) { int keep = GL.Tris.Count; Event.current = new Event { mousePosition = new Vector2 { x = -100, y = -100 } }; typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null); GL.Tris.RemoveRange(keep, GL.Tris.Count - keep); GL.Trace = null; }  // (one world frame traced; the shot itself drawn as usual below)
     DrawMode();
+    if (vtxBy.Count > 0) { Console.WriteLine("vertices {0}", System.Linq.Enumerable.Sum(vtxBy.Values)); foreach (var kv in System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(vtxBy, k => k.Value), 14)) Console.WriteLine("  {0,7} {1}", kv.Value, kv.Key); }
     Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawCabEdges", f2).Invoke(app, null);  // the cabinet menus' soft edges, as ArenaApp.OnGUI draws them (CrtWindows.cs)
     using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);
     File.WriteAllLines(args[0] + ".ui", GUI.Log.ToArray());
