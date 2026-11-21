@@ -210,7 +210,13 @@ namespace Arena
                     float beat = 0.5f + 0.5f * Mathf.Sin(t * 3.2f + g.Id);
                     Circle(ground - new V2(0f, lift), 17f + beat * 3f, ring.WithAlpha(0.07f + 0.08f * beat), 20);
                     Circle(ground - new V2(0f, lift), 12f + beat * 2f, ring.WithAlpha(0.1f + 0.1f * beat), 18);
-                    Arc(ground - new V2(0f, lift), 14f + beat * 1.5f, 1.8f, ring.WithAlpha(0.55f + 0.4f * beat), 24);
+                    // shape-hugging outline: the gadget's silhouette in its colour, nudged round it
+                    glFlatOn = true;
+                    glFlat = ring.WithAlpha(0.45f + 0.5f * beat);
+                    float o = 1.3f + beat * 0.9f;
+                    for (int i = 0; i < 8; i++)
+                        DrawGadgetShape(g.Kind, ground - new V2(0f, lift + 3f) + V2.FromAngle(i * MathX.Tau / 8f) * o, 8.5f, spin, t, false);
+                    glFlatOn = false;
                 }
                 Circle(ground + new V2(0f, 7f), 10f - lift * 0.05f, new Rgba(0f, 0f, 0f, 0.3f), 10);  // shadow
                 DrawGadgetShape(g.Kind, ground - new V2(0f, lift + 3f), 8.5f, spin, t, true);

@@ -777,8 +777,13 @@ namespace Arena
             glZoom = zoom;
         }
 
+        static bool glFlatOn;
+        static Rgba glFlat;
+
         static void SetColor(Rgba c)
         {
+            if (glFlatOn)  // a silhouette pass (floor gadgets' outline, GadgetLook.cs): every colour becomes one
+                c = new Rgba(glFlat.R, glFlat.G, glFlat.B, c.A * glFlat.A);
             glCur = new Color(c.R, c.G, c.B, c.A);  // remembered for a held frame's replay (Juice.cs)
             if (glShadow)  // a Mirror Match's shadow: its player's look in dark violet (ChallengeLook.cs)
                 glCur = ShadowTint(glCur);
