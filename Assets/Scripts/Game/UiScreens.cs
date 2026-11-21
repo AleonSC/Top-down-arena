@@ -45,6 +45,7 @@ namespace Arena
                 return;
             screenDev = new UiScreen("dev", DrawDevMenu) { Modal = false, ModalFn = () => session.Screen != AppScreen.Game, EscNeedsFreeFocus = true };
             screenLab = new UiScreen("lab", DrawLabSetup);
+            screenCellEd = new UiScreen("cellEd", DrawCellEditor);
         }
 
         bool devMenuOpen { get { InitScreens(); return screenDev.IsOpen; } set { InitScreens(); SetScreen(screenDev, value); } }

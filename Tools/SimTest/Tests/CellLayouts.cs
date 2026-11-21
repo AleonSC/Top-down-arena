@@ -31,6 +31,23 @@ static partial class Program
             }
         Check(CellLayouts.All.Length == 18 && bad == 0, "eighteen layouts, each turned four ways: the middle and door lanes open, walls and slots inside the cell (" + bad + " bad)");
 
+        // the Cell Editor's file: an edit round-trips, shows in the turned copies, and reverts
+        {
+            var saved = CellLayoutEdits.Original(3);
+            var edit = CellLayoutEdits.Clone(saved);
+            edit.Walls = edit.Walls.Concat(new[] { new[] { 20, 20, 60, 20 } }).ToArray();
+            CellLayoutEdits.Set(3, edit);
+            string file = CellLayoutEdits.Serialize();
+            bool edited = CellLayoutEdits.IsEdited(3) && file.Contains(saved.Name + "\t") && CellLayouts.TurnedOf(new CellLayouts.CellPlan { Layout = 3, Rot = 0 }).Walls.Length == saved.Walls.Length + 1;
+            CellLayoutEdits.Revert(3);
+            bool back = !CellLayoutEdits.IsEdited(3) && CellLayoutEdits.Serialize().IndexOf('\t') < 0;
+            int n = CellLayoutEdits.Parse(file);
+            bool again = n == 1 && CellLayouts.All[3].Walls.Length == saved.Walls.Length + 1;
+            CellLayoutEdits.Revert(3);
+            Check(edited && back && again && CellLayoutEdits.Problems(CellLayouts.All[3]).Count == 0 && CellLayoutEdits.Problems(edit).Count == 0,
+                "an edited layout is saved as one line, read back, used by the turned copies and reverts");
+        }
+
         var rooms = new List<ExpansionRoom>(Expansion.GridCore());
         var spot = Expansion.PlacementsFor(rooms, PieceShape.TetO).First();
         rooms.AddRange(spot.Rooms);

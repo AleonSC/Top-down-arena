@@ -224,7 +224,7 @@ namespace Arena
                     case 1: DrawDockWave(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 340f), host); break;
                     case 2: DrawDockParty(new Rect(Mathf.Min(kr.x, edge - 380f), 70f, 380f, 282f), host); break;
                     case 3: DrawDockView(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 160f), inMatch); break;
-                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 216f), inMatch); break;
+                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 258f), inMatch); break;
                 }
             }
             if (devSide && inMatch)
@@ -371,6 +371,8 @@ namespace Arena
                 devMenuOpen = false;
                 labSetupOpen = true;
             }
+            if (DkKey(col.Next(36f), "CELL EDITOR (ROOM LAYOUTS)", CrtStyle.Gold, false, 13))
+                OpenCellEditor();  // CellEditorUi.cs
             bool wasArena = GUI.enabled;
             GUI.enabled = wasArena && (session.IsHost || session.Screen == AppScreen.Menu);
             if (DkKey(col.Next(36f), game.DevArena ? "LEAVE DEV ARENA" : "DEV ARENA (PLAY AS ENEMIES)", CrtStyle.Gold, game.DevArena, 13))
