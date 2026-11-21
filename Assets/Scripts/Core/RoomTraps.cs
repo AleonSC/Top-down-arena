@@ -155,31 +155,50 @@ namespace Arena
                 var t = traps[i];
                 if (t.Kind != TrapKind.Turret || t.Pos.FartherOrAt(b.Pos, RoomTraps.TurretHitR + b.Radius))
                     continue;
-                long key = TrapKey(t.Pos);
-                if (!trapHp.TryGetValue(key, out float hp))
-                    hp = RoomTraps.TurretHp(Wave);
-                hp -= Math.Max(1f, b.Dmg);
-                if (hp > 0f)
-                {
-                    trapHp[key] = hp;
-                    BroadcastFx(FxKind.Ring, t.Pos, new Rgba(1f, 0.45f, 0.4f), 38f, 0.25f, Sfx.Hit);
-                    var tw = Proto.Begin(Msg.TrapHit);  // everyone's game draws the bar (RoomTrapLook.cs)
-                    tw.Write((short)Math.Round(t.Pos.X)); tw.Write((short)Math.Round(t.Pos.Y)); tw.Write((byte)Math.Max(1, Math.Min(255, (int)(255f * hp / RoomTraps.TurretHp(Wave)))));
-                    session.Broadcast(Proto.End(tw));
-                    NoteTrapHit(t.Pos, hp / RoomTraps.TurretHp(Wave));
-                    return true;
-                }
-                trapHp.Remove(key);
-                trapWrecks.Add(key);
-                roomTrapKey = int.MinValue;  // (rebuilt without it)
-                BroadcastFx(FxKind.Boom, t.Pos, new Rgba(1f, 0.5f, 0.3f), 70f, 0.4f, Sfx.Explode);
-                foreach (int owner in LootOwners())  // (a few coins, a full copy each)
-                    AddCoin(owner, 5, false, t.Pos, 8f, 14f);
-                DoLog("a room turret is destroyed");
-                BroadcastExpansion();
+                HurtRoomTurret(t, b.Dmg);
                 return true;
             }
             return false;
+        }
+
+        /// Host: a melee cut (swing or Burst) wears down every room turret `reaches` says it touches (Katana.cs, Knight.cs).
+        void MeleeHitRoomTurrets(float dmg, Func<V2, float, bool> reaches)
+        {
+            if (!IsHost || !ExpandingOn)
+                return;
+            var traps = RoomTrapList;
+            for (int i = traps.Count - 1; i >= 0; i--)
+            {
+                var t = traps[i];
+                if (t.Kind == TrapKind.Turret && reaches(t.Pos, RoomTraps.TurretHitR))
+                    HurtRoomTurret(t, dmg);
+            }
+        }
+
+        void HurtRoomTurret(RoomTrap t, float dmg)
+        {
+            long key = TrapKey(t.Pos);
+            if (!trapHp.TryGetValue(key, out float hp))
+                hp = RoomTraps.TurretHp(Wave);
+            hp -= Math.Max(1f, dmg);
+            if (hp > 0f)
+            {
+                trapHp[key] = hp;
+                BroadcastFx(FxKind.Ring, t.Pos, new Rgba(1f, 0.45f, 0.4f), 38f, 0.25f, Sfx.Hit);
+                var tw = Proto.Begin(Msg.TrapHit);  // everyone's game draws the bar (RoomTrapLook.cs)
+                tw.Write((short)Math.Round(t.Pos.X)); tw.Write((short)Math.Round(t.Pos.Y)); tw.Write((byte)Math.Max(1, Math.Min(255, (int)(255f * hp / RoomTraps.TurretHp(Wave)))));
+                session.Broadcast(Proto.End(tw));
+                NoteTrapHit(t.Pos, hp / RoomTraps.TurretHp(Wave));
+                return;
+            }
+            trapHp.Remove(key);
+            trapWrecks.Add(key);
+            roomTrapKey = int.MinValue;  // (rebuilt without it)
+            BroadcastFx(FxKind.Boom, t.Pos, new Rgba(1f, 0.5f, 0.3f), 70f, 0.4f, Sfx.Explode);
+            foreach (int owner in LootOwners())  // (a few coins, a full copy each)
+                AddCoin(owner, 5, false, t.Pos, 8f, 14f);
+            DoLog("a room turret is destroyed");
+            BroadcastExpansion();
         }
 
         void NoteTrapHit(V2 pos, float frac)
