@@ -265,6 +265,9 @@ namespace Arena
                 case ZoneKind.DecoyDummy:
                     DrawDecoy(z, t);  // DecoyDummyLook.cs
                     return;
+                case ZoneKind.GustGate:
+                    DrawGustGateZone(z, t);  // GustGateLook.cs (its own timer arc)
+                    return;
                 case ZoneKind.DragPylon:
                 case ZoneKind.MedPylon:
                     DrawDragPylonZone(z, t);  // EngineerLook.cs

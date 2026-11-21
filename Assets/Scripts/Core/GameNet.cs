@@ -523,7 +523,7 @@ namespace Arena
             s.Float(ref p.ShieldT);
             s.Float(ref p.OverHp);       // a health shrine's health past max (Shrines.cs)
             s.ULong(ref p.ShrinesUsed);
-            s.Float(ref p.EnergyMax);
+            s.Float(ref p.GustT);  // Gust Gate's boost (GustGate.cs)
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
             s.Float(ref p.SwallowT);

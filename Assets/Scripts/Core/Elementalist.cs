@@ -79,8 +79,8 @@ namespace Arena
                 Apply = s => { s.FlameWallBonusTime += 2f; s.FlameWallBurnMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingRain, MaxStacks = 2, Name = "Monsoon", Desc = "Healing Rain is 40% wider and heals 40% more",
                 Apply = s => { s.RainRadiusMult += 0.4f; s.RainHealMult += 0.4f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.EnergyWard, MaxStacks = 2, Name = "Overcharged Ward", Desc = "Energy Ward soaks 50% more, and gives back 25% more of it as healing",
-                Apply = s => { s.EnergySoakMult += 0.5f; s.EnergyRepayBonus += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GustGate, MaxStacks = 2, Name = "Jet Stream", Desc = "Gust Gate's ring lasts 3 s longer, and its speed boost 1 s longer",
+                Apply = s => { s.GustLifeBonus += 3f; s.GustBoostBonus += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LumenWard, MaxStacks = 2, Name = "Dawnlight", Desc = "Lumen Ward shines 2 s longer and heals 30% more",
                 Apply = s => { s.LumenBonusTime += 2f; s.LumenHealMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Meteor, MaxStacks = 2, Name = "Cataclysm", Desc = "Meteor hits 50% harder and 30% wider",
@@ -158,9 +158,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.EnergyWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Instant = true,
-                Name = "Energy Ward", Cooldown = 14f, Desc = "Wrap you and allies within 300 px in a bubble of water that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing.",
-                Capstone = "The shield soaks 120 damage.",
+                Id = AbilityId.GustGate, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1,  // Gust Gate (GustGate.cs)
+                Name = "Gust Gate", Cooldown = GgCooldown, Desc = "A ring of wind at your cursor for 8 s. Anyone who walks through it, you included, gets +80% move speed for 3 s. Enemies inside are pushed gently out.",
+                Capstone = "The ring is 40% wider and pushes enemies twice as hard.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
