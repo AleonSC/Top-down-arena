@@ -782,6 +782,8 @@ namespace Arena
                 Apply = s => { s.DebtRepay += 0.25f; s.DebtBonusTime += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.VeinRush, MaxStacks = 2, Name = "Crimson Tide", Desc = "Vein Rush goes 25% farther, and each enemy it cuts gives back 1% more health",
                 Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ThornBloom, MaxStacks = 2, Name = "Thornwork", Desc = "Thorn Bloom's needles and tendrils hit 20% harder, and each tendril jumps once more",
+                Apply = s => { s.TbDmgMult += 0.2f; s.TbExtraJumps++; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Hemomancer, MaxStacks = 2, Name = "Bloodthirst", Desc = "Your abilities cost 20% less health, and each kill heals you 2",
                 Apply = s => { s.HealthCostMult *= 0.8f; s.KillHeal += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodLash }, MaxStacks = 2, Name = "Crimson Whip", Desc = "The Blood Lash reaches 20% farther, each enemy holds one more link, and each Clot stack cuts 1% more damage",
@@ -869,6 +871,13 @@ namespace Arena
                 Name = "Vein Rush", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health and rush 280 px toward your cursor as a streak of blood, untouchable. Every enemy you pass through takes 25 and bleeds, and gives back 2% of your max health. You leave a trail of blood that slows enemies 30% for 2 s.",
                 Capstone = "The trail bursts after 1 s for 20 to everything on it.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.3f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.ThornBloom, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ThornBloom.cs)
+                Name = "Thorn Bloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Pay 12% of your max health: twelve blood needles burst out of you all round, 240 px. Each stops on the first enemy it meets for 45 and a bleed stack, and whips a tendril on to the nearest enemy no tendril has reached yet (180 px) for 30, which chains on: 3 jumps a needle, 20% less each jump.",
+                Capstone = "Tendrils jump 5 times.",
+                Bot = b => b.NearEnemies >= 3 && b.TargetD < 240f && b.Me.Hp > b.Me.MaxHp * 0.4f,
             },
             new AbilityDef
             {
@@ -990,6 +999,9 @@ namespace Arena
                 case AbilityId.VeinRush:
                     CastVeinRush(p, target, pw, cap);  // VeinRush.cs
                     return true;
+                case AbilityId.ThornBloom:
+                    CastThornBloom(p, pw, cap);  // ThornBloom.cs
+                    return true;
 
                 // Ultimates
                 case AbilityId.VeinTithe:
@@ -1024,6 +1036,7 @@ namespace Arena
             TickReels(dt);  // Exsanguinate.cs
             TickBloodLash(dt);  // BloodLash.cs: chains, Reap, Martyr's Leash
             TickBloodBrawler(dt);  // BloodBrawler.cs: the string, the mark, Sympathy
+            TickThornBloom(dt);  // ThornBloom.cs: needles and tendrils landing
             foreach (var p in Players.Values)
             {
                 TickGrasp(p, dt);  // Leech Tendrils: cooldown, charge, cost, bursts

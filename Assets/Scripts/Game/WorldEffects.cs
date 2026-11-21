@@ -139,6 +139,9 @@ namespace Arena
             d[(int)FxKind.SteelHit] = DrawFxSteelCatch;
             d[(int)FxKind.SteelDrop] = DrawFxSteelCatch;
             d[(int)FxKind.VeinCut] = (fx, f, t) => DrawVeinCutFx(fx, t);  // VeinRushLook.cs
+            d[(int)FxKind.ThornBloom] = (fx, f, t) => DrawThornBloomFx(fx);  // ThornBloomLook.cs
+            d[(int)FxKind.ThornNeedle] = (fx, f, t) => DrawThornNeedleFx(fx);
+            d[(int)FxKind.ThornTendril] = (fx, f, t) => DrawThornTendrilFx(fx, t);
             d[(int)FxKind.WallSplash] = (fx, f, t) => DrawWallSplashFx(fx, f);  // BloodWallLook.cs
             d[(int)FxKind.Link] = DrawFxLink;
             d[(int)FxKind.Callout] = (fx, f, t) => DrawTankCastFx(fx);  // Roar and Bulldoze's floor looks (TankLooks.cs); the name over the caster is on the HUD (AbilityLooks.cs)
