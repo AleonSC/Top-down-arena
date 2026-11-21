@@ -16,14 +16,14 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Class | Health | Speed | About |
 |---|---|---|---|
-| Soldier | x1 | x1 | Guns and gear. Full health. |
-| Elementalist | x0.85 | x1 | Spells: fire, frost, lightning, water, wind, earth and light. 85% health. |
-| Summoner | x0.9 | x1 | Fights alongside minions that come with your weapon. 90% health. |
-| Knight | x1.15 | x1 | Melee: swings cut small bullets out of the air. Armoured: 115% health. |
-| Ninja | x0.85 | x1.12 | Thrown blades and quick melee; tricks and misdirection. Fast (+12% speed), 85% health. |
-| Hemomancer | x1 | x1 | Blood spells that drain and heal. Abilities cost health; hits harder the lower your health. |
-| Engineer | x1 | x0.95 | Builds in vectors: robots, walls, fields and breaches. Draftsman: +25% vectors. Full health, a little slower. |
-| Arcanist | x0.9 | x1 | Telekinesis, runes and enchantments. Kinetic Field: enemy shots slow down near you. 90% health. |
+| Soldier | x1 | x1 | Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Full health and normal speed: the steady pick. |
+| Elementalist | x0.85 | x1 | Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, burning ones keep burning, frozen ones slow down. Big area damage, at 85% health. |
+| Summoner | x0.9 | x1 | Fights through minions. Your weapon brings its own creatures (wolves, wisps, imps, bees) that hunt, bite and soak hits, and they stay with you between waves. Point them at what matters. 90% health. |
+| Knight | x1.15 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health. |
+| Ninja | x0.85 | x1.12 | Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed) but lightly protected (85% health): hit, slip away, hit again. |
+| Hemomancer | x1 | x1 | Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 1 HP), every hit heals you for 3% of its damage, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge. |
+| Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now. Full health, a little slower (95%). |
+| Arcanist | x0.9 | x1 | A mage of telekinesis, runes and enchantments: shards and blades that fly at your will, enemies lifted and thrown, sigils on the floor. Kinetic Field: enemy shots slow down near you. One weapon, ability and ultimate per role for now. 90% health. |
 
 ## Weapons
 
@@ -200,7 +200,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lightning Rod | Tank | ultimate | 70 s | - | Lasts 8 s and each bolt arcs to 3 enemies. | For 6 s you crackle with charge: you take 80% less damage and every enemy, bosses too, goes for you. Each enemy hit on you calls a bolt from the sky on whoever landed it (30), which arcs on to the 2 enemies nearest it (15 each). Wet enemies take extra arcs. |
 | Flood | Tank | 1st, choice 5 | 16 s | - | Deluge: the flood is 30% wider and lasts 9 s. | Stamp and flood the ground 190 px round you for 6 s: enemies touching you are thrown back 60 px (10 damage), and every enemy wading in the water is slowed 40% (heavies and bosses 20%) and soaked wet, so lightning arcs to it, while it's in and 3 s after. |
 | Healing Rain | Healer | 1st, choice 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor for 6 s: heals allies inside 8 HP/s and slows enemies by 30%. |
-| Energy Ward | Healer | 1st, choice 2 | 14 s | - | The shield soaks 120 damage. | Wrap you and allies within 300 px in a bubble of water that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing. |
+| Gust Gate | Healer | 1st, choice 2 | 14 s | - | The ring is 40% wider and pushes enemies twice as hard. | A ring of wind at your cursor for 8 s. Anyone who walks through it, you included, gets +80% move speed for 3 s. Enemies inside are pushed gently out. |
 | Lumen Ward | Healer | 1st, choice 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A huge cone of light toward your cursor for 6 s that turns as you aim: heals everyone inside 9 HP/s and burns away enemy bullets in it or touching it. |
 | Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger). |
 | Water Ward | Healer | 1st, choice 5 | 3 s | - | Splashes and bursts reach 40% farther. | Call 2 drops of water down round you; they circle you, up to 10. A drop that touches an enemy splashes: 12 damage to every enemy within 52 px, and they're soaked wet (slowed 30%, lightning arcs to them) for 4 s. A drop that meets an enemy shot eats it and bursts into a mist that soaks everything within 72 px. |

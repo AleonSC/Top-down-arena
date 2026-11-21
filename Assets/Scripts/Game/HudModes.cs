@@ -262,7 +262,9 @@ namespace Arena
                     bool full = ult ? me.Slots[i].Charges > 0 : ready;
                     Color c = ult ? CrtStyle.Gold : ready ? KeyGreen : dim;
                     float cx = x + colW / 2f;
-                    MiniCap(cx, y, 20f, ult ? "ULT·" + SlotKeys[i] : SlotKeys[i], 18, c, full, ult && full ? 0.7f * a + 0.3f * a * Mathf.Sin(Time.unscaledTime * 4f) : a, true);
+                    float capW2 = MiniCap(cx, y, 20f, ult ? "ULT·" + SlotKeys[i] : SlotKeys[i], 18, c, full, ult && full ? 0.7f * a + 0.3f * a * Mathf.Sin(Time.unscaledTime * 4f) : a, true);
+                    if (ult)
+                        MiniGrazeFlash(cx, y, capW2, 20f, a);  // an enemy shot skimmed past you (HudTiles.cs)
                     string val = ult ? (full ? "READY" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : MiniSecs(me.Slots[i].Timer);
                     MiniText(new Rect(x - 10f, y + 24f, colW + 20f, 24f), val, 24, ult ? CrtStyle.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleCenter);
                     MiniCells(new Rect(barX, y + 52f, minW, 4f), f, 6, ult ? CrtStyle.Gold : ready ? KeyGreen : ink, a);
@@ -411,7 +413,9 @@ namespace Arena
                 bool full = ult ? me.Slots[i].Charges > 0 : ready;
                 Color c = ult ? CrtStyle.Gold : ready ? KeyGreen : dim;
                 float ca = ult && full && !FxCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
-                MiniCap(cx + capW / 2f, y, 16f, MiniShortKey(SlotKeys[i]), 15, c, full, ca, true);
+                float kw = MiniCap(cx + capW / 2f, y, 16f, MiniShortKey(SlotKeys[i]), 15, c, full, ca, true);
+                if (ult)
+                    MiniGrazeFlash(cx + capW / 2f, y, kw, 16f, a);  // an enemy shot skimmed past you (HudTiles.cs)
                 MiniText(new Rect(cx + capW + 6f, y, cw - capW - valW - 12f, 17f), MiniName(me, i), (int)nameSize, ult ? CrtStyle.Gold : ready ? ink : dim, a);
                 string val = ult ? (full ? "ULT" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : Mathf.CeilToInt(me.Slots[i].Timer).ToString();
                 MiniText(new Rect(cx + cw - valW, y, valW, 17f), val, 15, ult ? CrtStyle.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleRight);

@@ -36,6 +36,7 @@ namespace Arena
             d[(int)FxKind.Target] = DrawFxTarget;
             d[(int)FxKind.PortalSeal] = (fx, f, t) => DrawPortalSeal(fx, f);  // SpawnPortalLook.cs
             d[(int)FxKind.PitFall] = (fx, f, t) => DrawPitFall(fx, f);  // PitLook.cs
+            d[(int)FxKind.Graze] = (fx, f, t) => DrawGrazeFx(fx, f);  // GrazeLook.cs
             d[(int)FxKind.GasLob] = (fx, f, t) => DrawGasLobFx(fx, t);  // GasLobLook.cs
             d[(int)FxKind.Slash] = DrawFxSlash;
             d[(int)FxKind.Jab] = (fx, f, t) => DrawJabFx(fx, f);

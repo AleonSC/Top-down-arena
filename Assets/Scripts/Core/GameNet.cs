@@ -233,6 +233,16 @@ namespace Arena
                         ApplyCooldownCut(Me, ab, share);
                     break;
                 }
+                case Msg.Graze:  // an enemy shot skimmed past someone (Graze.cs)
+                {
+                    int id = r.ReadInt32();
+                    V2 at = r.ReadV2();
+                    V2 vel = r.ReadV2();
+                    Player gp;
+                    if (!IsHost && Players.TryGetValue(id, out gp))
+                        LandGraze(gp, at, vel);
+                    break;
+                }
                 case Msg.Carry:  // a Knight ability carries someone (the Gauntlet's charge, Bladed Dive's rush); only their own game moves them (Gauntlet.cs)
                 {
                     int id = r.ReadInt32();
@@ -523,7 +533,7 @@ namespace Arena
             s.Float(ref p.ShieldT);
             s.Float(ref p.OverHp);       // a health shrine's health past max (Shrines.cs)
             s.ULong(ref p.ShrinesUsed);
-            s.Float(ref p.EnergyMax);
+            s.Float(ref p.GustT);  // Gust Gate's boost (GustGate.cs)
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
             s.Float(ref p.SwallowT);

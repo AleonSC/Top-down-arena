@@ -18,7 +18,7 @@ namespace Arena
         internal static readonly KitDef EngineerKit = new KitDef
         {
             Id = Kit.Engineer, Name = "Engineer", Icon = "class_engineer", HpMult = 1f, SpeedMult = 0.95f,
-            Blurb = "Builds in vectors: robots, walls, fields and breaches. Draftsman: +25% vectors. Full health, a little slower.",
+            Blurb = "A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now. Full health, a little slower (95%).",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => { },  // the robot weapons: the summon and the basic attacks are TickBotWeapon's (EngineerBots.cs)
             Ability = (g, p, id, target) => g.EngineerAbility(p, id, target),
             Tick = (g, dt) => g.TickEngineer(dt),

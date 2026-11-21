@@ -55,19 +55,13 @@ namespace Arena
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
-            if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)
+            if (p.ShieldHp > 0f)  // shields soak damage next (Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
                 p.ShieldHp -= soak;
                 amount -= soak;
                 if (p.MercyT > 0f && soak > 0f)  // a Lightbringer's ward took it: the plate facing the shot flashes (Lightbringer.cs)
                     LightMark(p, 3, (RiotImpactPoint(p) - p.Pos).Angle, false);
-                if (p.EnergyOn)
-                {
-                    p.EnergyStore += soak;  // an Energy Ward keeps it, to pay back
-                    if (p.ShieldHp <= 0f)
-                        EnergyPayback(p);
-                }
             }
             if (p.OverHp > 0f)  // then a health shrine's health past max (Shrines.cs)
             {
@@ -114,6 +108,7 @@ namespace Arena
             p.BarrierT = 0f;
             p.OverdriveT = 0f;
             p.AdrenalineT = 0f;
+            p.GustT = 0f;
             p.Firing = false;
         }
 
@@ -687,6 +682,7 @@ namespace Arena
                     ShotHitsPlayer(p, b);
                     break;
                 }
+                TryGraze(p, b, r);  // skimmed past: charges their ultimate (Graze.cs)
             }
         }
 

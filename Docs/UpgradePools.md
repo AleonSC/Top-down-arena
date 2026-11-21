@@ -94,7 +94,8 @@ and a sim check that the number changes. They go in the class's own list (`Game.
 | Frost Nova | Permafrost | Freezes 1 s longer and reaches 30% farther |
 | Flame Wall | Inferno | The wall stands 2 s longer and burns 50% hotter |
 | Healing Rain | Monsoon | The rain is 40% wider and heals 40% more |
-| Energy Ward | Overcharged Ward | The bubble soaks 50% more, and gives back 25% more of what it soaked as healing (50% → 75%) |
+| Gust Gate | Jet Stream | The ring lasts 3 s longer and its speed boost 1 s longer |
+| ~~Energy Ward~~ | ~~Overcharged Ward~~ | (retired with Energy Ward) The bubble soaks 50% more, and gives back 25% more of what it soaked as healing (50% → 75%) |
 | Lumen Ward | Dawnlight | The cone lasts 2 s longer and heals 30% more |
 | Meteor | Cataclysm | Hits 50% harder and 30% wider |
 | Blizzard | Whiteout | The storm is 40% bigger and lasts 2 s longer |

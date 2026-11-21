@@ -608,7 +608,7 @@ namespace Arena
         readonly int[] ascEquipTo = new int[2];       // the weapon pick each Equip button would set
         int ascEquipPick = -1;                        // a click waiting to be applied
         string ascWeapon;  // the weapon whose variants window is open   // the weapon slot whose ascension window is open (-1 = closed; any click closes it)
-        int detailSel;      // what the detail box shows: 0 = weapon, 1 = ability, 2 = ultimate (whichever was clicked last)
+        int detailSel;      // what the detail box shows: 0 = weapon, 1 = ability, 2 = ultimate, DetailRole, DetailClass (whichever was clicked last)
 
         /// The ability the detail box and the preview show: a Wildcard's second when that was clicked last, else the first.
         int ShownAbility(LobbyEntry me) => me.Role == Role.Wildcard && detailSecond ? Defs.WildSecond(me.Wild) : me.Ability;
@@ -629,6 +629,8 @@ namespace Arena
             const float lw = 300f;
             var view = ShowcaseRect(r);
             DrawShowcase(me, view, roleColor);
+            DrawPreviewRunner(view, roleColor, t);
+            DrawLoadoutSeparator(view.x, r.x + 334f + 454f, r.y + SeparatorY, roleColor, t);  // across the loadout, over the bottom boxes (LobbyFx.cs)  // the neon dot running round the frame (LobbyFx.cs)
             DrawShowcaseZoom(view);  // (outside DrawShowcase: that returns early on every event but Repaint, and the slider needs the mouse events)
             if (!self)
             {
@@ -647,9 +649,9 @@ namespace Arena
                     partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
             // The role / class title (look B: the role small over the class), then the stats.
-            DrawRoleClassTitle(new Rect(lx, view.yMax + 8f, lw, 58f), me, roleColor, calm);
+            DrawRoleClassTitle(new Rect(lx, r.y + BottomTop, lw, 58f), me, roleColor, calm);
             if (self && session.Resume == null)
-                DrawPerksKey(new Rect(lx, view.yMax + 8f, lw, 58f), calm);  // PerksUi.cs: opens the Perks view
+                DrawPerksKey(new Rect(lx, r.y + BottomTop, lw, 58f), calm);  // PerksUi.cs: opens the Perks view
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
             previewPlayer.Role = me.Role;  // (set here too: the party cards' live models set it, but they can be paused)
@@ -657,19 +659,19 @@ namespace Arena
             previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
-            float sy = view.yMax + 72f;
+            float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
             LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
-            LobbyKit.StatBar(new Rect(lx, sy + 26f, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
-            LobbyKit.StatBar(new Rect(lx, sy + 52f, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
+            LobbyKit.StatBar(new Rect(lx, sy + sStep, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
+            LobbyKit.StatBar(new Rect(lx, sy + 2f * sStep, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
             // The weapon's damage a second with no upgrades (measured in the sim: Defs.WeaponDps), against the strongest weapon.
             float dps = Defs.WeaponDps(wdef.Id);
-            LobbyKit.StatBar(new Rect(lx, sy + 78f, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
+            LobbyKit.StatBar(new Rect(lx, sy + 3f * sStep, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
                 dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.36f, 0.36f), calm);
             var ult = Upgrades.Ability(me.UltId);  // the one picked on the Ultimate row
 
             // Right column: role, class, weapon and ability, the ultimate, then one detail box.
-            float x = r.x + 334f, w = 454f, y = r.y + 16f;
+            float x = r.x + 334f, w = 454f, y = r.y + LoadoutTop;
             vgEditable = self && session.Resume == null;
             if (!vgEditable || wdef.Id != WeaponId.Vowguard)
                 vgEditOpen = false;
@@ -684,13 +686,13 @@ namespace Arena
                 return;
             }
             const float gap = 6f;
-            float quarter = (w - gap * 3f) / 4f;  // roles, classes and ultimates: 4 per row
+            float quarter = (w - gap * 3f) / 4f;  // roles: 4 in a row
             LobbyKit.Heading(x, y, w, "Role", null, calm, 15);
             // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)
             {
-                var b = new Rect(x + i * (quarter + gap), y + 32f, quarter, 34f);
+                var b = new Rect(x + i * (quarter + gap), y + CarKeyY, quarter, CarKeyH);
                 if (i >= Defs.Roles.Length)
                 {
                     LockedSlot(b);
@@ -701,7 +703,7 @@ namespace Arena
                     LockedSlot(b, WildcardLockText);  // Practice Range too: the role can't be picked until it's unlocked
                     continue;
                 }
-                if (b.Contains(Event.current.mousePosition))  // the description is a hover tip
+                if (!LoadoutHoverTipsRetired && b.Contains(Event.current.mousePosition))  // (retired: the detail box shows the role on a click)
                 {
                     TipStart(b, Defs.Roles[i].Name, (Defs.Roles[i].Color).ToColor());
                     TipAdd(Defs.Roles[i].Desc, 13, Ui.Text);
@@ -709,6 +711,7 @@ namespace Arena
                 if (DkKey(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: (Defs.Roles[i].Color).ToColor()))
                 {
                     tgt.RequestRole((Role)i);
+                    detailSel = DetailRole;
                     if (self)
                     {
                         hostRole = (Role)i;
@@ -717,28 +720,29 @@ namespace Arena
                         abilityChoice = 0;
                         ultChoice = 0;
                         wildSecond = 1;
-                        wildKey = 1;
                         wildTab = 0;
                         wildBrowseFor = -1;
                         detailSecond = false;
                     }
                 }
             }
-            y += 76f;
+            y += CarRowStep;
             float ultY;
+            int from, to;
             if (me.Role == Role.Wildcard)
             {
-                ultY = r.y + 16f + 322f;
+                ultY = r.y + LoadoutTop + (LoadoutRows - 1f) * CarRowStep;  // (the Ultimate row where the others have it)
                 DrawWildcardPicks(me, tgt, self, x, y, w, ultY - 6f);
             }
             else
             {
-                // Classes: rows of 4, the icon above the name so long names fit.
+                // Each of Class, Weapon, Ability is one long row that slides sideways (LoadoutCarousel.cs).
                 LobbyKit.Heading(x, y, w, "Class", null, calm, 15);
                 int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
-                for (int i = 0; i < classSlots; i++)
+                BeginCarousel(CarClass, new Rect(x, y + CarKeyY, w, CarKeyH), classSlots, ClassesInView, (int)me.Kit, out from, out to);
+                for (int i = from; i <= to; i++)
                 {
-                    var b = new Rect(x + (i % 4) * (quarter + gap), y + 32f + (i / 4) * 40f, quarter, 36f);
+                    var b = CarItem(i);
                     if (i >= Defs.KitCount)
                     {
                         LockedSlot(b, null, true);
@@ -754,7 +758,7 @@ namespace Arena
                         LockedSlot(b, Defs.KitName((Kit)i) + ": DPS only for now", true);  // a class still being built (the Engineer)
                         continue;
                     }
-                    if (b.Contains(Event.current.mousePosition))
+                    if (!LoadoutHoverTipsRetired && b.Contains(Event.current.mousePosition))  // (retired: the detail box shows the class on a click)
                     {
                         TipStart(b, Defs.KitName((Kit)i), Ui.Text);
                         TipAdd(KitBlurb((Kit)i), 13, Ui.Text);
@@ -762,6 +766,7 @@ namespace Arena
                     if (DkKey(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9))
                     {
                         tgt.RequestKit((Kit)i);
+                        detailSel = DetailClass;
                         if (self)
                         {
                             kitChoice = (Kit)i;
@@ -771,23 +776,26 @@ namespace Arena
                         }
                     }
                 }
-                y += 32f + ((classSlots + 3) / 4) * 40f - 4f + 10f;
+                EndCarousel();
+                y += CarRowStep;
 
-                // Weapon and ability: side by side, each a 2 x 2 grid. Each weapon key gives its right quarter to an ascension button.
-                const float col = 220f;
-                float ax = x + w - col, cell = (col - gap) / 2f;
-                LobbyKit.Heading(x, y, col, "Weapon", null, calm, 15);
-                LobbyKit.Heading(ax, y, col, "Ability", null, calm, 15);
+                // Weapons: each key gives its right part to the variants (ascension) button.
+                LobbyKit.Heading(x, y, w, "Weapon", null, calm, 15);
                 int weaponCount = Defs.WeaponCount(me.Role, me.Kit), weaponSlots = Mathf.Max(WeaponSlots, weaponCount);
-                for (int i = 0; i < weaponSlots; i++)
+                int weaponOn = -1;
+                for (int i = 0; i < weaponCount; i++)
+                    if (weaponOn < 0 && WeaponKeyOn(me, i))
+                        weaponOn = i;
+                BeginCarousel(CarWeapon, new Rect(x, y + CarKeyY, w, CarKeyH), weaponSlots, KeysInView, weaponOn, out from, out to);
+                for (int i = from; i <= to; i++)
                 {
-                    var b = new Rect(x + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
+                    var b = CarItem(i);
                     if (i >= weaponCount || Defs.WeaponGap(me.Role, me.Kit, i))  // (the 4th key is a weapon where the class has a fourth: the Knight DPS's Arc Knuckles; a class still being built has locked keys)
                     {
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.78f), b.height);  // (a bit more of the key for the name: FLAMETHROWER is one long word)
+                    var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.8f), b.height);  // (most of the key for the name: FLAMETHROWER is one long word)
                     if (DkKey(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 7))
                     {
                         tgt.RequestWeapon(i);
@@ -798,10 +806,15 @@ namespace Arena
                     if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), Defs.Weapon(me.Role, me.Kit, i).Name, WeaponKeyOn(me, i), calm))
                         ascOpen = i;
                 }
+                EndCarousel();
+                y += CarRowStep;
+
+                LobbyKit.Heading(x, y, w, "Ability", null, calm, 15);
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.FirstAbilityChoices);
-                for (int i = 0; i < abilitySlots; i++)
+                BeginCarousel(CarAbility, new Rect(x, y + CarKeyY, w, CarKeyH), abilitySlots, KeysInView, me.Ability, out from, out to);
+                for (int i = from; i <= to; i++)
                 {
-                    var b = new Rect(ax + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
+                    var b = CarItem(i);
                     if (i >= Upgrades.AbilityLimit(me.Role, me.Kit) || Upgrades.AbilityGap(me.Role, me.Kit, i))
                     {
                         LockedSlot(b, null, true);
@@ -816,23 +829,28 @@ namespace Arena
                         detailSecond = false;
                     }
                 }
-                y += 32f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 40f - 6f + 10f;
+                EndCarousel();
+                y += CarRowStep;
                 ultY = y;
             }
 
-            ultY = Mathf.Max(ultY, view.yMax - 72f);  // the Ultimate keys end on the line the preview ends on
             // The ultimate: key 0 is the role and class's default one, keys 1-3 the others it has (the Tank Soldier's Juggernaut Suit on
             // key 1), locked while empty. Click one to pick it (inverse video, like the weapon and ability keys) and watch it in the preview.
             LobbyKit.Heading(x, ultY, w, "Ultimate", me.Role == Role.Wildcard ? Defs.KitName((Kit)WildBrowseKit) + "'s ultimates" : null, calm, 15);
             bool wildRow = me.Role == Role.Wildcard;  // a Wildcard: the class wheel's class's DPS ultimates (pick = class * UltKeys + key)
             var rowKit = wildRow ? (Kit)WildBrowseKit : me.Kit;
+            int ultOn = -1;
             for (int i = 0; i < Upgrades.UltKeys; i++)
+                if (me.Ult == (wildRow ? Upgrades.WildUlt(rowKit, i) : i))
+                    ultOn = i;
+            BeginCarousel(CarUlt, new Rect(x, ultY + CarKeyY, w, CarKeyH), Upgrades.UltKeys, KeysInView, ultOn, out from, out to);
+            for (int i = from; i <= to; i++)
             {
-                var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
+                var b = CarItem(i);
                 var id = i == 0 ? Upgrades.Ultimate(me.Role, wildRow ? rowKit : me.UltKit) : Upgrades.AltUltimate(me.Role, rowKit, i);
                 if (id == AbilityId.None)
                 {
-                    LockedSlot(b);
+                    LockedSlot(b, null, true);
                     continue;
                 }
                 int pick = wildRow ? Upgrades.WildUlt(rowKit, i) : i;
@@ -845,10 +863,11 @@ namespace Arena
                     detailSel = 2;  // (the preview then casts it until you click something else)
                 }
             }
+            EndCarousel();
 
-            float dy = ultY + 82f;
+            float dy = r.y + BottomTop + 3f;  // level with the class title's letters
             var ability = Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)));
-            DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), wdef, ability, ult);
+            DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), me, wdef, ability, ult);
 
             if (ascEquipPick >= 0)
             {
@@ -997,9 +1016,9 @@ namespace Arena
             Ui.Label(new Rect(win.x, win.yMax - 26f, win.width, 18f), "CLICK ANYWHERE ELSE TO CLOSE", 10, CrtStyle.Dim, TextAnchor.MiddleCenter, true);
         }
 
-        /// One detail box for whichever weapon, ability or ultimate was clicked last: the kind and name on the left, the number tiles on
-        /// the right, a rule, then the description (and what mastering it adds, for an ability or ultimate).
-        void DrawDetailBox(Rect r, WeaponDef wdef, AbilityDef ability, AbilityDef ult)
+        /// One detail box for whichever role, class, weapon, ability or ultimate was clicked last: the kind and name on the left, the
+        /// number tiles on the right, a rule, then the description (and what mastering it adds, for an ability or ultimate).
+        void DrawDetailBox(Rect r, LobbyEntry me, WeaponDef wdef, AbilityDef ability, AbilityDef ult)
         {
             if (r.height < 90f)
                 return;
@@ -1007,10 +1026,20 @@ namespace Arena
             Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.04f));
             CrtKit.Frame(r, 1f, CrtStyle.Ink.WithAlpha(0.35f));
             var inner = new Rect(r.x + 14f, r.y + 8f, r.width - 28f, r.height - 16f);
-            string kind = detailSel == 1 ? "ABILITY" : detailSel == 2 ? "ULTIMATE" : "WEAPON";
-            string name = detailSel == 1 ? ability.Name : detailSel == 2 ? ult.Name : wdef.Name;
+            bool rolePage = detailSel == DetailRole, classPage = detailSel == DetailClass && me.Role != Role.Wildcard;
+            if (detailSel == DetailClass && !classPage)
+                rolePage = true;  // (a Wildcard has no class: its role)
+            var roleDef = Defs.Get(me.Role);
+            string kind = rolePage ? "ROLE" : classPage ? "CLASS" : detailSel == 1 ? "ABILITY" : detailSel == 2 ? "ULTIMATE" : "WEAPON";
+            string name = rolePage ? roleDef.Name : classPage ? Defs.KitName(me.Kit) : detailSel == 1 ? ability.Name : detailSel == 2 ? ult.Name : wdef.Name;
             var tiles = new System.Collections.Generic.List<string[]>();
-            if (detailSel == 0)
+            if (rolePage || classPage)
+            {
+                float hpMult = classPage ? Defs.KitHpMult(me.Kit) : 1f, spMult = classPage ? Defs.KitSpeedMult(me.Kit) : 1f;
+                tiles.Add(new[] { Mathf.RoundToInt(roleDef.Hp * hpMult).ToString(), "HEALTH" });
+                tiles.Add(new[] { Mathf.RoundToInt(roleDef.Speed * spMult).ToString(), "SPEED" });
+            }
+            else if (detailSel == 0)
             {
                 if (wdef.Companion != MinionKind.None && wdef.CompanionCount > 0)
                     tiles.Add(new[] { wdef.CompanionCount.ToString(), "COMPANIONS" });
@@ -1037,7 +1066,9 @@ namespace Arena
             Ui.Fill(new Rect(inner.x, inner.y + 46f, inner.width, 1f), CrtStyle.Ink.WithAlpha(0.25f));
             var body = new Rect(inner.x, inner.y + 54f, inner.width, inner.height - 54f);
             var text = new Color(0.8f, 0.84f, 0.94f);
-            if (detailSel == 0)
+            if (rolePage || classPage)
+                FitText(body, rolePage ? roleDef.Desc : KitBlurb(me.Kit), 13, text);
+            else if (detailSel == 0)
                 FitText(body, KeyText.Fill(wdef.Desc), 13, text);
             else
                 DrawDescAndMastery(body, KeyText.Fill(detailSel == 1 ? ability.Desc : ult.Desc), detailSel == 1 ? ability.Id : ult.Id, 13, text);
@@ -1082,14 +1113,14 @@ namespace Arena
 
         /// A Wildcard's picks (Docs/Wildcard.md, look: Docs/Mockups/wildcard-gear-carousel.html): a wheel of the six classes on the
         /// left (arrows, the mouse wheel or the dots turn it), and the class on top's three DPS weapons and three DPS abilities as keys
-        /// beside it, with the second ability's key under them. Under those, the loadout: weapon, 1st, 2nd and ultimate, each with
+        /// beside it. Under those, the loadout: weapon, 1st, 2nd and ultimate, each with
         /// its class's icon; a click turns the wheel to that class (the 1st and 2nd choose which ability an ability key fills).
         /// Fills y to yEnd; the Ultimate row under it lists the wheel's class's ultimates.
         void DrawWildcardPicks(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
         {
             bool calm = fxReduced;
             var ev = Event.current;
-            int second = Defs.WildSecond(me.Wild), key = Defs.WildKey(me.Wild);
+            int second = Defs.WildSecond(me.Wild);  // the Wildcard ability, on the 2nd ability key
             const int per = 3;  // weapons and abilities a class (Defs.WeaponsPerRole, Upgrades.FirstAbilityChoices)
             if (wildBrowseFor != me.Id)
             {
@@ -1179,16 +1210,17 @@ namespace Arena
                 }
             }
 
-            // Beside the wheel: the class's weapons, abilities, then the second ability's key.
+            // Beside the wheel: the class's weapons, then its abilities, the two rows filling the wheel's height.
             float px = wr.xMax + 12f, pw = x + w - px;
             float cw = (pw - 8f) / 3f;
+            float bh = Mathf.Clamp((wheelH - 38f) / 2f, 32f, 60f);
             LobbyKit.Lab(new Rect(px, y - 2f, pw, 16f), "Weapon", 11, calm);
             int wn = Defs.WeaponCount(Role.Dps, (Kit)bk);  // three, or four with a class's fourth (the Knight's Arc Knuckles)
             float ww = (pw - 4f * (wn - 1)) / wn;
             for (int c = 0; c < wn; c++)
             {
                 int idx = Defs.WildWeaponPick((Kit)bk, c);
-                var b = new Rect(px + c * (ww + 4f), y + 15f, ww, 32f);
+                var b = new Rect(px + c * (ww + 4f), y + 15f, ww, bh);
                 if (Defs.WeaponGap(Role.Dps, (Kit)bk, c) || !KitOpen((Kit)bk))
                 {
                     LockedSlot(b, KitOpen((Kit)bk) ? null : EngineerLockText, true);  // a class still being built (the Engineer), or one not unlocked yet
@@ -1197,20 +1229,20 @@ namespace Arena
                 if (DkKey(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
                 {
                     if (me.Weapon != idx)
-                        tgt.RequestWildcard(idx, me.Ability, second, key);
+                        tgt.RequestWildcard(idx, me.Ability, second);
                     if (self)
                         weaponChoice = idx;
                     detailSel = 0;
                 }
             }
-            float ay = y + 55f;
+            float ay = y + 23f + bh;
             LobbyKit.Lab(new Rect(px, ay - 2f, 80f, 16f), "Ability", 11, calm);
             string fills = wildTab == 0 ? "CLICK FILLS 1ST" : "CLICK FILLS 2ND";
             Ui.Label(new Rect(px + 80f, ay - 2f, pw - 80f, 16f), fills, 10, wild, TextAnchor.MiddleRight, true);
             for (int c = 0; c < per; c++)
             {
                 int idx = bk * per + c;
-                var b = new Rect(px + c * (cw + 4f), ay + 15f, cw, 32f);
+                var b = new Rect(px + c * (cw + 4f), ay + 15f, cw, bh);
                 if (Upgrades.AbilityGap(Role.Dps, (Kit)bk, c) || !KitOpen((Kit)bk))
                 {
                     LockedSlot(b, KitOpen((Kit)bk) ? null : EngineerLockText, true);  // a class still being built (the Engineer), or one not unlocked yet
@@ -1235,7 +1267,7 @@ namespace Arena
                         a2 = idx;
                     }
                     if (a1 != me.Ability || a2 != second)
-                        tgt.RequestWildcard(me.Weapon, a1, a2, key);
+                        tgt.RequestWildcard(me.Weapon, a1, a2);
                     if (self)
                     {
                         abilityChoice = a1;
@@ -1247,23 +1279,6 @@ namespace Arena
                 if (inSlot > 0)
                     SlotBadge(new Rect(b.xMax - 13f, b.y + 2f, 11f, 11f), inSlot, wild);
             }
-            float ky = ay + 55f;
-            LobbyKit.Lab(new Rect(px, ky, 110f, 24f), "2nd ability key", 11, calm);
-            string[] keyNames =
-            {
-                Keybinds.KeyName(Keybinds.Get(KeyAction.Ability2)).ToUpperInvariant(),
-                Keybinds.KeyName(Keybinds.Get(KeyAction.Ability3)).ToUpperInvariant(),
-                Keybinds.KeyName(Keybinds.Get(KeyAction.Ability4)).ToUpperInvariant(),
-            };
-            float kw = Mathf.Min(60f, (pw - 114f - 8f) / 3f);
-            for (int k = 1; k <= 3; k++)
-                if (DkKey(new Rect(x + w - 3f * kw - 8f + (k - 1) * (kw + 4f), ky, kw, 24f), keyNames[k - 1], key == k, calm, size: 13, minSize: 9) && key != k)
-                {
-                    tgt.RequestWildcard(me.Weapon, me.Ability, second, k);
-                    if (self)
-                        wildKey = k;
-                }
-
             // The loadout: what you have from every class. The 1st and 2nd keys choose which slot an ability click fills.
             float ly = wr.yMax + 8f, lh = Mathf.Max(34f, yEnd - ly);
             float chipW = (w - 3f * 6f) / 4f;
@@ -1276,7 +1291,7 @@ namespace Arena
                 var b = new Rect(x + i * (chipW + 6f), ly, chipW, lh);
                 int from = i == 0 ? (int)Defs.WildWeaponKit(me.Weapon) : i == 1 ? me.Ability / per : i == 2 ? second / per : ultKit;
                 string name = ChipName(me, i, second);
-                string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability1)).ToUpperInvariant() : i == 2 ? "2ND · " + keyNames[key - 1] : "ULTIMATE · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant();
+                string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability1)).ToUpperInvariant() : i == 2 ? "2ND · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability2)).ToUpperInvariant() : "ULTIMATE · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant();
                 bool editing = (i == 1 && wildTab == 0) || (i == 2 && wildTab == 1);
                 bool hover = GUI.enabled && b.Contains(ev.mousePosition);
                 // The box from a bare key; the class icon on the left, the name over what it is.
@@ -1562,7 +1577,7 @@ namespace Arena
             // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
             int shown = ShownAbility(me);
             bool ult = detailSel == 2;  // what you last clicked (a weapon, an ability or the ultimate) is what it shows
-            bool demo = detailSel != 0;
+            bool demo = detailSel == 1 || ult;  // (the role and class pages show the weapon)
             if (showcase == null)
                 showcase = new Showcase();
             showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);

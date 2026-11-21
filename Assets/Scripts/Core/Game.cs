@@ -233,7 +233,7 @@ namespace Arena
                 var kit = (Kit)r.ReadByte();
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
-                int wild = r.ReadByte();  // a Wildcard ability and its key (Defs.WildSecond / WildKey)
+                int wild = r.ReadByte();  // a Wildcard ability (Defs.WildSecond)
                 int ult = r.ReadByte();   // the Ultimate row's key (LobbyEntry.Ult)
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
@@ -250,7 +250,7 @@ namespace Arena
                 {
                     p.WildKit = Upgrades.UltKitOf(role, kit, p.UltPick);  // the class its Ultimate pick is from
                     p.WildcardAbility = Upgrades.FirstAbility(role, kit, Defs.WildSecond(wild));
-                    p.CardAbilities[Defs.WildKey(wild) - 1] = p.WildcardAbility;
+                    p.CardAbilities[0] = p.WildcardAbility;  // on the 2nd ability key
                 }
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;
@@ -1582,11 +1582,13 @@ namespace Arena
             {
                 TrackMotion(p, dt);  // Variety.cs
                 TickSlots(p, dt);
+                TickGraze(p, dt);  // Graze.cs
                 p.BarrierT = Math.Max(0f, p.BarrierT - dt);
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
                 TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
+                TickGustTimers(p, dt);  // GustGate.cs
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
                 p.GhostT = Math.Max(0f, p.GhostT - dt);  // Ghost Step
                 TickMomentum(p, dt);  // Momentum.cs
@@ -1610,8 +1612,6 @@ namespace Arena
                 p.WardT = Math.Max(0f, p.WardT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
-                if (p.EnergyOn && p.ShieldHp <= 0f)
-                    EnergyPayback(p);  // the Energy Ward ran out: what it soaked comes back as healing (Minions.cs)
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
                 if (p.Downed)
                     p.TauntT = 0f;

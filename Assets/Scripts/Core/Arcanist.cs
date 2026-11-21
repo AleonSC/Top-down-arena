@@ -22,7 +22,7 @@ namespace Arena
         internal static readonly KitDef ArcanistKit = new KitDef
         {
             Id = Kit.Arcanist, Name = "Arcanist", Icon = "class_arcanist", HpMult = 0.9f, SpeedMult = 1f,
-            Blurb = "Telekinesis, runes and enchantments. Kinetic Field: enemy shots slow down near you. 90% health.",
+            Blurb = "A mage of telekinesis, runes and enchantments: shards and blades that fly at your will, enemies lifted and thrown, sigils on the floor. Kinetic Field: enemy shots slow down near you. One weapon, ability and ultimate per role for now. 90% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireArcanist(p, aim, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.ArcanistAbility(p, id, target),
             Tick = (g, dt) => g.TickArcanist(dt),

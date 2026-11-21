@@ -33,10 +33,12 @@
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
 # GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
 # WWARD=<s into the scene> (Water Ward: a cast every 3 s from 0.2 s; grunts walk in from WWENEMY s (default 6.5, -1 none); WWSHOOT=1 shots from above from 7 s; ShotWaterWard.cs).
+# GUSTGATE=<s into the scene> (Gust Gate: the ring cast at 0.2 s, an ally running through it from 0.5 s, a grunt inside pushed out; mode hud, 2 players, ZOOM=2.2; ShotGustGate.cs).
 # ENGINEER=pylon|breach|real|bots ENGT=<s> (the Engineer mockup in the real arena; breach needs EXPANDMAP=0, BREACHSHAPE=stash|cross|..., BREACHLOOT=0|1|4; ENGMODEL=0-2 the Engineer look; ShotEngineer.cs). Mode englook: ENGSHEET=0 looks, 1 kit (EngineerModel.cs).
 # ARCANIST=tank|healer|dps (the Arcanist's kit drawn by the game: shards, Kinetic Grasp and Grand Sigil; Glyph Stylus and Sanctum Sigil; Dancing Blades, Runic Array and Telekinetic Crush; ShotArcanist.cs).
 # COVER=<s into the scene> (Deployable Cover like the mockup: covers thrown at 0.5, 1.5 and 2.5 s; COVERWEAR=1 wears two; COVERBREAK=<s> breaks the first then; ShotCover.cs).
 # DECOY=<s into the scene> (Decoy Dummy: dummies thrown at 0.3, 1.0 and 1.7 s, grunts shooting the nearest; DECOYWEAR=1 wears the second; DECOYPOP=<s> pops the first then; ShotDecoy.cs).
+# GRAZE=<s into the scene> (Graze: shots skimming past you above and below from 0.3 s, the streaks and the ultimate's tile flash; ShotGraze.cs; ZOOM=2).
 # CAUTER=1 (Cauterize on four bleeding Brutes at four stages of its look; ZOOM=2.4; ShotCauterize.cs).
 # DART=<s into the scene> (Poison Dart played through the game like the mockup: dart at 0.5 s, deaths at 2.2 and 3.9 s; DARTCAP=1 mastered; ShotPoisonDart.cs).
 # MOMENT=multi|clear|level|lowhp|marks MOMENTN=<n> MOMENTT=<s> MULTISTYLE=1 (the juice moments: multikill call, last kill, level shock, heartbeat, floor marks; ShotJuice.cs).

@@ -203,7 +203,7 @@ static partial class Shot {
       // LOBBYULT=0|1: your card is an Elementalist Tank with that ultimate picked (1 Lightning Rod), its detail box open (DETAIL=2 is implied).
       if (Environment.GetEnvironmentVariable("LOBBYULT") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Elementalist; host.Lobby[1].Weapon = 0; host.Lobby[1].Ability = 0; host.Lobby[1].Ult = byte.Parse(Environment.GetEnvironmentVariable("LOBBYULT")); set("detailSel", 2); }
       if (Environment.GetEnvironmentVariable("WILDCARD") != null) { host.Lobby[1].Role = Role.Wildcard; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = (byte)int.Parse(Environment.GetEnvironmentVariable("WILDWEAPON") ?? "9");  // WILDWEAPON=<pick>: 18 the Arc Knuckles
-       host.Lobby[1].Ability = 12; host.Lobby[1].Wild = Defs.MakeWild(14, 1); host.Lobby[1].Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0); }  // WILDCARD=1: Twin Blades, Shadow Step, Blade Fan as the Wildcard ability on the 2nd slot, Death Lotus
+       host.Lobby[1].Ability = 12; host.Lobby[1].Wild = Defs.MakeWild(14); host.Lobby[1].Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0); }  // WILDCARD=1: Twin Blades, Shadow Step, Blade Fan as the Wildcard ability on the 2nd slot, Death Lotus
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
       // VARIANTS=1: your weapon's variants window open with 25 Cores and tier I bought (VARIANTS=0: none bought, 5 Cores).
       if (Environment.GetEnvironmentVariable("VARIANTS") != null) {
@@ -343,6 +343,11 @@ static partial class Shot {
       // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability[,ultimate pick]; ABILITY=n clicks that ability key: it's picked, its detail box opens and the preview casts it (the lobby has no hover state since the declutter).
       var lo = Environment.GetEnvironmentVariable("LOADOUT");
       if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); if (q.Length > 4) le.Ult = byte.Parse(q[4]); }  // (a fifth number: the Ultimate row's key)
+      var dsel = Environment.GetEnvironmentVariable("DETAIL");  // DETAIL=role|class: the detail box's role or class page (as after clicking that key)
+      if (dsel != null) set("detailSel", dsel == "role" ? ArenaApp.DetailRole : ArenaApp.DetailClass);
+      var car = Environment.GetEnvironmentVariable("CAROUSEL");  // CAROUSEL=row,first: a loadout carousel row (0 class, 1 weapon, 2 ability, 3 ultimate) scrolled to that key
+      if (car != null) { var cq = car.Split(','); var cf = typeof(ArenaApp).GetField("carFirst", f2); var cp = typeof(ArenaApp).GetField("carPos", f2); var cs = typeof(ArenaApp).GetField("carSeen", f2);
+        int crow = int.Parse(cq[0]), cfirst = int.Parse(cq[1]); ((int[])cf.GetValue(app))[crow] = cfirst; ((float[])cp.GetValue(app))[crow] = cfirst; ((int[])cs.GetValue(app))[crow] = -1; }
       var ab = Environment.GetEnvironmentVariable("ABILITY");
       if (ab != null) { host.Lobby[host.MyId].Ability = byte.Parse(ab); set("detailSel", 1); }
       {

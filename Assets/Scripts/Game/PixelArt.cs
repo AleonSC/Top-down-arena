@@ -135,7 +135,7 @@ namespace Arena
             { "Frost Nova", "snow" },
             { "Flame Wall", "flame" },
             { "Healing Rain", "rain" },
-            { "Energy Ward", "shield" },
+            { "Gust Gate", "galewall" },
             { "Lumen Ward", "aura" },
             { "Meteor", "explode" },
             { "Blizzard", "snow" },

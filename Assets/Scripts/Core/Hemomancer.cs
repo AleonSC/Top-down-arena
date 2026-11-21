@@ -705,7 +705,7 @@ namespace Arena
         internal static readonly KitDef HemomancerKit = new KitDef
         {
             Id = Kit.Hemomancer, Name = "Hemomancer", Icon = "class_hemomancer",
-            Blurb = "Blood spells that drain and heal. Abilities cost health; hits harder the lower your health.",
+            Blurb = "Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 1 HP), every hit heals you for 3% of its damage, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireBloodWeapon(p, aim, dir, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickHemomancers(dt),

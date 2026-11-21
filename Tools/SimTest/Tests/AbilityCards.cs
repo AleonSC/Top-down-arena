@@ -30,7 +30,7 @@ static partial class Program
         var anchor = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(1700f, 100f), 0f, 0, false });  // keeps the wave from ending
         anchor.Hp = anchor.MaxHp = 1e6f; anchor.SpawnT = 0f;
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
-        Check(new[] { "Eye of the Storm", "Permafrost", "Inferno", "Monsoon", "Overcharged Ward", "Dawnlight", "Cataclysm", "Whiteout", "Riptide",
+        Check(new[] { "Eye of the Storm", "Permafrost", "Inferno", "Monsoon", "Jet Stream", "Dawnlight", "Cataclysm", "Whiteout", "Riptide",
             "Basalt Hide", "Deep Tremor", "Kindred Bond", "Sprite Choir", "Rebirth Flame", "Blood Bats", "Venom Glands", "Pack Leader", "Field Surgeon" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Rarity == Rarity.Rare && Upgrades.All[U(n)].MaxStacks == 2), "all 18 ability cards exist, Rare, 2 stacks each");
 
@@ -88,18 +88,10 @@ static partial class Program
         castWith(AbilityId.HealingRain, "Monsoon", 2, there);
         Check(near(zone(ZoneKind.HealingRain).Radius / rR, 1.8f, 0.01f) && near(zone(ZoneKind.HealingRain).HealMult / rH, 1.8f, 0.01f), "Monsoon: Healing Rain is 40% wider and heals 40% more per card");
 
-        var payback = typeof(Game).GetMethod("EnergyPayback", flags);
-        Func<int, float[]> ward = n =>
-        {
-            castWith(AbilityId.EnergyWard, "Overcharged Ward", n, me.Pos);
-            float soak = me.ShieldHp;
-            me.Hp = me.MaxHp - 200f; me.EnergyStore = 100f;
-            float hp = me.Hp;
-            payback.Invoke(g, new object[] { me });
-            return new[] { soak, me.Hp - hp };
-        };
-        var w0 = ward(0); var w1 = ward(1);
-        Check(near(w1[0] / w0[0], 1.5f, 0.01f) && near(w0[1], 50f, 0.5f) && near(w1[1], 75f, 0.5f), "Overcharged Ward: Energy Ward soaks 50% more and gives back 75% instead of 50% (" + w0[1] + " -> " + w1[1] + " HP of 100 soaked)");
+        castWith(AbilityId.GustGate, "Jet Stream", 0, there);
+        float gD = zone(ZoneKind.GustGate).Duration;
+        castWith(AbilityId.GustGate, "Jet Stream", 2, there);
+        Check(near(zone(ZoneKind.GustGate).Duration - gD, 6f, 0.01f) && near(me.Stats.GustBoostBonus, 2f, 0.01f), "Jet Stream: Gust Gate's ring lasts 3 s longer per card and its boost 1 s longer");
 
         castWith(AbilityId.LumenWard, "Dawnlight", 0, there);
         float lD = zone(ZoneKind.LumenWard).Duration, lH = zone(ZoneKind.LumenWard).HealMult;
@@ -218,7 +210,7 @@ static partial class Program
         {
             g.DevSetGod(1, false);
             me.InvulnT = 0f; me.Hp = me.MaxHp;
-            me.ShieldHp = 0f; me.ShieldT = 0f; me.EnergyOn = false; me.BarrierT = 0f; me.BarrierHp = 0f;  // (earlier casts' wards and shields would soak it)
+            me.ShieldHp = 0f; me.ShieldT = 0f; me.BarrierT = 0f; me.BarrierHp = 0f;  // (earlier casts' wards and shields would soak it)
             g.Zones.Clear();
             float hp0 = me.Hp;
             damage.Invoke(g, new object[] { me, 100f, "test" });

@@ -16,7 +16,7 @@ namespace Arena
     {
         public Kit Id;
         public string Name;           // what players see ("Elementalist" for Kit.Elementalist)
-        public string Blurb;          // the lobby's and the Field guide's one line about it
+        public string Blurb;          // the lobby detail box's description of it (a few sentences)
         public string Icon;           // its PixelArt icon (the lobby's class card)
         public float HpMult = 1f;     // share of the role's health
         public float SpeedMult = 1f;  // share of the role's speed
