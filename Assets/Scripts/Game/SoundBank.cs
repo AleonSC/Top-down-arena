@@ -796,12 +796,11 @@ namespace Arena
             Set(Sfx.Downed, Tone(0.4f, Osc.Square, 400f, 100f, 0.3f, lowpass: 0.3f));
             Set(Sfx.Revive, Tone(0.3f, Osc.Sine, 300f, 800f, 0.3f, attack: 0.02f));
 
-            // Menus: a soft, short tick when the mouse moves onto a button (never sent; BuildMenuHolo replaces it with the main menu's glassy tick)...
-            Set(Sfx.UiHover, Tone(0.045f, Osc.Sine, 1500f, 2100f, 0.09f, lowpass: 0.5f, attack: 0.002f, decay: 3f), 0.04f);
-            // ...and a soft, rounder click when one is pressed.
-            Set(Sfx.UiClick, Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f), 0.05f);
-            Jitter(0.06f, Sfx.UiHover);
-            Jitter(0.05f, Sfx.UiClick);
+            // Menus: the hover tick and click are set only in BuildMenuHolo (the main menu's glassy tick and chirp). Setting the old ones
+            // here let a hover during the build (Who's playing? is up by then) turn them into clips that the new ones couldn't replace.
+            // Their recipes still run, unused, so the shared noise generator keeps its place for every sound after them.
+            Tone(0.045f, Osc.Sine, 1500f, 2100f, 0.09f, lowpass: 0.5f, attack: 0.002f, decay: 3f);
+            Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f);
         }
 
         /// The menus' click (the main menu's two-step chirp), at the Effects volume.
