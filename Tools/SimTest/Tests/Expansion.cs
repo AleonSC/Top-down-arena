@@ -433,8 +433,8 @@ static partial class Program
         // Rolled relics, Backup and Hallway Runner (Relics.cs).
         {
             var rolled = new HashSet<RelicId>();
-            for (int x = 0; x < 40; x++) rolled.Add(Relics.ForNode(new MapNode { X = (short)(x * 100 + 50), Y = (short)(x * 300 - 650), Kind = NodeKind.Relic }));
-            Check(rolled.Count == Relics.Classic && !rolled.Contains(RelicId.None), "unset relic nodes roll each classic relic across spots (" + rolled.Count + ")");
+            for (int x = 0; x < 40; x++) rolled.Add(Relics.ForNode(new MapNode { X = (short)(x * 37 + (x & 3)), Y = (short)(x * 91 + (x >> 2) - 650), Kind = NodeKind.Relic }));
+            Check(rolled.Count == Relics.Classic + 1 && rolled.Contains(RelicId.Thorns) && !rolled.Contains(RelicId.None), "unset relic nodes roll each classic relic across spots (" + rolled.Count + ")");
             var rn = new MapNode { X = 1250, Y = -650, Kind = NodeKind.Relic };
             var keepRel = g.Players.Values.ToDictionary(q => q.Id, q => q.Relic);
             Check(Relics.Held(rn) == Relics.ForNode(rn) && Relics.Held(new MapNode { X = rn.X, Y = rn.Y, Kind = NodeKind.Relic, Drop = (byte)((int)RelicId.Backup + 1) }) == RelicId.Backup, "a node holds the relic left in it, else the rolled one");

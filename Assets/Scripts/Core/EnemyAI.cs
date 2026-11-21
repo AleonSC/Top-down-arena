@@ -661,6 +661,8 @@ namespace Arena
                             p.BossContactT = BossContactEvery;
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
+                        if (p.Relic == RelicId.Thorns)
+                            HurtEnemy(e, Relics.ThornsDmg * p.Stats.DmgMult, p.Id);  // the Thorns relic (Relics.cs)
                         RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
                         DevilTouched(p, e);  // a Dust Devil shoves you (Squall.cs)
                     }
