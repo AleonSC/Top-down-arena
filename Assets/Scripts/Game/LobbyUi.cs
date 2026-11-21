@@ -1150,8 +1150,9 @@ namespace Arena
             for (int side = -1; side <= 1; side += 2)
             {
                 var ab = new Rect(side < 0 ? wr.x : wr.xMax - arrowW, wr.y, arrowW, wr.height);
-                bool click = DkKey(ab, "", false, calm);
-                TallChevron(ab.center, side, CrtKit.SoftText(CrtStyle.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
+                bool hov = GUI.enabled && ab.Contains(ev.mousePosition);
+                bool click = Ui.HitArea(ab);  // no key box: the chevron floats beside the class
+                TallChevron(ab.center, side, CrtKit.SoftText(CrtStyle.Ink, hov));
                 if (click)
                     wildBrowse += side;
             }
