@@ -140,7 +140,6 @@ namespace Arena
             new CosmeticDef { Id = "frame-steel", Name = "Steel frame", Kind = CosmeticKind.Frame, Rank = 13 },
             new CosmeticDef { Id = "frame-circuit", Name = "Circuit frame", Kind = CosmeticKind.Frame, Rank = 17 },
             new CosmeticDef { Id = "trail-frost", Name = "Frost trail", Kind = CosmeticKind.Trail, Rank = 15 },
-            new CosmeticDef { Id = "bg-react-deepfield", Name = "Deep Field", Kind = CosmeticKind.Background, Rank = 16 },  // drifting stars the pointer tilts; a click makes them flare
             new CosmeticDef { Id = "bg-react-nebula", Name = "Nebula Drift", Kind = CosmeticKind.Background, Rank = 29 },  // slow clouds of light that part round the pointer
             new CosmeticDef { Id = "bg-react-aurora", Name = "Aurora Veil", Kind = CosmeticKind.Background, Rank = 44 },  // soft curtains of light along the top and bottom edges
             new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 21 },

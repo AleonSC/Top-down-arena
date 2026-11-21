@@ -19,7 +19,7 @@ namespace Arena
         static string EquippedName(Profile p, CosmeticKind kind)
         {
             var c = Rank.Cosmetic(p.Equipped(kind));
-            return c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
+            return c != null ? c.Name : kind == CosmeticKind.Background ? "Deep Field" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
         }
 
 
@@ -31,7 +31,7 @@ namespace Arena
         {
             "A rim on your lobby party card and your menu chip.",
             "Drawn behind you in the run, for everyone to see.",
-            "Your menu background. The ones here are rank rewards, and the reactive ones follow your pointer. The others are in Settings > Visual effects.",
+            "Your background in the lobby and behind runs; they follow your pointer in the menus. The main menu keeps the Holo Floor unless you override it.",
             "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
             "How your name looks to everyone: the lobby, the Hangout, and over your head in a run.",
             "The line from your weapon to the crosshair in a run. Only you see it. Classic is the default.",
@@ -42,7 +42,7 @@ namespace Arena
         int lookScrollFor = -1;  // the section lookScroll belongs to
         bool lookBarDrag;        // the scroll bar is being dragged
 
-        static string NoneName(CosmeticKind kind) => kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
+        static string NoneName(CosmeticKind kind) => kind == CosmeticKind.Background ? "Deep Field" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
 
         void DrawLookWindow(Profile p, float t, int section)
         {
@@ -179,6 +179,13 @@ namespace Arena
             Ui.Label(new Rect(px, pv.yMax + 10f, 340f, 18f), "HOW OTHERS SEE YOU", 12, CabSoft, TextAnchor.MiddleLeft, true);
             DrawLookCard(new Rect(px, pv.yMax + 32f, 340f, 88f), p, t, tryKind, tryId);
             Ui.Label(new Rect(px, pv.yMax + 132f, 340f, 36f), "Hover a row to try it on. Press Equip to keep it.", 13, CabSoft, TextAnchor.UpperLeft, false, true);
+            if (kind == CosmeticKind.Background)  // the main menu shows the Holo Floor unless this is on (MenuBackgrounds.cs)
+            {
+                bool ov = DkSwitch(new Rect(px, pv.yMax + 172f, 340f, 24f), menuBgOverride, "Override menu background");
+                if (ov != menuBgOverride)
+                    SetMenuBgOverride(ov);
+                Ui.Label(new Rect(px + 24f, pv.yMax + 196f, 316f, 36f), "Show your background on the main menu too, instead of the Holo Floor.", 12, CabSoft, TextAnchor.UpperLeft, false, true);
+            }
 
             // Right: what to choose.
             Ui.Label(new Rect(lx, top, 200f, 18f), "CHOOSE", 12, CabSoft, TextAnchor.MiddleLeft, true);
@@ -204,7 +211,7 @@ namespace Arena
                     CrtUi.Text(new Rect(nx, rr.y + 3f, nw, 32f), shown, 14, ok ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.UpperLeft, true, FxCalm, true);
                 else
                     CrtUi.Text(new Rect(nx, rr.y + 5f, nw, 24f), shown, size, ok ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleLeft, true, FxCalm);
-                string sub = c == null ? (kind == CosmeticKind.Background ? "default: what you chose in Settings" : "default") : ok ? (Rank.IsReactiveBackground(c.Id) ? "reactive · unlocked" : "unlocked") : (Rank.IsReactiveBackground(c.Id) ? "reactive · " : "") + "locked: rank " + c.Rank;
+                string sub = c == null ? (kind == CosmeticKind.Background ? "default · reactive" : "default") : ok ? (Rank.IsReactiveBackground(c.Id) ? "reactive · unlocked" : "unlocked") : (Rank.IsReactiveBackground(c.Id) ? "reactive · " : "") + "locked: rank " + c.Rank;
                 Ui.Label(new Rect(nx, rr.y + 31f, nw, 18f), sub, 13, c != null && ok ? Ui.Good : CrtStyle.Dim, TextAnchor.MiddleLeft);
                 var kr = new Rect(rr.xMax - 8f - 92f, rr.y + (rowH - 32f) / 2f, 92f, 32f);
                 if (!ok)
@@ -561,27 +568,10 @@ namespace Arena
             }
         }
 
-        /// The menu background you had before a reward one (what "Your pick" goes back to).
-        int PreviousBackground()
-        {
-            int i = menuBg >= FirstRewardBg ? PlayerPrefs.GetInt("menu_bg_prev", 0) : menuBg;
-            return Mathf.Clamp(i, 0, FirstRewardBg - 1);
-        }
+        /// What the Background slot's "none" row is: Deep Field, the default.
+        int PreviousBackground() => DeepFieldBg;
 
-        /// Equip a reward background by cosmetic id (remembering your pick), or with "" go back to your pick.
-        void SetRewardBackgroundEquipped(string id)
-        {
-            if (id != "")
-            {
-                if (menuBg < FirstRewardBg)
-                {
-                    PlayerPrefs.SetInt("menu_bg_prev", menuBg);
-                    PlayerPrefs.Save();
-                }
-                SetBackground(BackgroundIndexOfCosmetic(id));
-            }
-            else
-                SetBackground(PreviousBackground());
-        }
+        /// Equip a reward background by cosmetic id, or with "" go back to Deep Field.
+        void SetRewardBackgroundEquipped(string id) => SetBackground(id != "" ? BackgroundIndexOfCosmetic(id) : DeepFieldBg);
     }
 }
