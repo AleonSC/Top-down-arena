@@ -31,6 +31,7 @@ namespace Arena
                     if (t != null)
                         AddProjectClip(entries, ids, used, t.Title, t.Clip, t.Mood.ToString(), t.Volume);
                 ReplaceTrack(MusicLibrary.Menu, pack.MainMenu);
+                ReplaceTrack(MusicLibrary.Lobby, pack.Lobby);
                 ReplaceTrack(MusicLibrary.Battle, pack.WaveBattle);
                 foreach (var bs in pack.Bosses)
                     if (bs != null)
