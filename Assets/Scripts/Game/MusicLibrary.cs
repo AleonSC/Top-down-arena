@@ -19,7 +19,7 @@ namespace Arena
             public EnemyType? Boss;   // set for boss themes (their id is SoundBank.BossTrackId)
         }
 
-        public const string Menu = "menu", Battle = "battle";
+        public const string Menu = "menu", Lobby = "lobby", Battle = "battle";
 
         /// Ids that are rendered on demand and let go again when nothing needs them (a few MB each).
         public static bool IsTransient(string id) => id != null && (id.StartsWith("boss:") || id.StartsWith("juke:") || id.StartsWith(CustomMusic.IdPrefix));
@@ -41,6 +41,18 @@ namespace Arena
             ArpRate = 8, ArpTone = GameMusic.Tone.Pluck, ArpLevel = 0.06f,
             Kick = "x.....x...x.....", Snare = "....x.......x...", Hat = "..o...o...o...o.", DrumLevel = 0.55f,
             Lead = true, LeadTone = GameMusic.Tone.Bell, LeadSeed = 61, LeadLevel = 0.05f, Reverb = 0.6f,
+        };
+
+        /// The lobby theme: Lo-fi Lounge's dusty, sparse beat, Crystal Caves' suspended chords and call-and-response bells,
+        /// and Deep Freeze's low, wobbling pad and wide reverb.
+        public static readonly GameMusic.Recipe LobbyMix = new GameMusic.Recipe
+        {
+            Bpm = 68f, Chords = new[] { "Dsus2", "Bm", "Gsus2", "A" }, Passes = 4, Gain = 0.9f,
+            Pad = 0.055f, PadCutoff = 950f, PadWobble = 0.35f, PadOctave = -12, Choir = 0.025f,
+            BassStyle = GameMusic.Bass.Offbeat, BassLevel = 0.17f,
+            ArpRate = 8, ArpTone = GameMusic.Tone.Bell, ArpLevel = 0.06f, ArpCallResponse = true, ArpFromSecondPass = true,
+            Kick = "x.......x.......", Snare = "............x...", Hat = "....o.......o...", DrumLevel = 0.5f,
+            Lead = true, LeadTone = GameMusic.Tone.Bell, LeadSeed = 107, LeadLevel = 0.05f, Reverb = 0.85f,
         };
 
         public static readonly GameMusic.Recipe Neon = new GameMusic.Recipe
@@ -130,6 +142,7 @@ namespace Arena
             return new List<Entry>
             {
                 new Entry { Id = Menu, Title = "Main Menu", Mood = "Chill", Blurb = "Slow synthwave in A minor", Gain = 0.6f, Render = MenuMusic.Render },
+                new Entry { Id = Lobby, Title = "Lobby", Mood = "Chill", Blurb = "Lo-fi beat, crystal bells, a deep freeze pad", Gain = 0.5f, Render = () => GameMusic.Render(LobbyMix) },
                 Extra("lofi", "Lo-fi Lounge", "Chill", "Dusty beat, soft bells, nowhere to be", Lofi),
                 Extra("crystal", "Crystal Caves", "Chill", "Slow ambient bells, no drums", Crystal),
                 Extra("frost", "Deep Freeze", "Chill", "Cold, wide and quiet", Frost),

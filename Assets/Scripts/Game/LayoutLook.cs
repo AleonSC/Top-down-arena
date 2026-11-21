@@ -75,8 +75,8 @@ namespace Arena
             PropHoloBlue = Ink.Mix(new Rgba(1f, 1f, 1f), 0.3f);
         }
 
-        /// How bright the walls, pillars and edge gates draw (1 = full): a touch under, so the fight reads over them.
-        const float WallBrightness = 0.95f;
+        /// How bright the walls, pillars and edge gates draw (1 = full): well under, so the fight reads over them (owner's pick, Nov 2026; previews: WALLGLOW).
+        public static float WallBrightness = 0.45f;
 
         /// Under the props: walls and pillars (they rise out of the floor when a new cycle starts), then the edge gates.
         void DrawLayout(float t)

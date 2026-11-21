@@ -594,12 +594,12 @@ namespace Arena
 
         static readonly KeyCode[] CardKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8 };
 
-        /// Menu theme on the menus; the soft battle track in a run; each boss's own track while
+        /// Menu theme on the main menu, the lobby theme in the lobby; the soft battle track in a run; each boss's own track while
         /// it's on the field. The next boss's track is rendered ahead of time.
         void UpdateMusic()
         {
             TickDecodes();
-            string wanted = "menu", keep = null;
+            string wanted = session.Screen == AppScreen.Lobby ? MusicLibrary.Lobby : MusicLibrary.Menu, keep = null;
             if (session.Screen == AppScreen.Game && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
                 wanted = "battle";
