@@ -23,13 +23,19 @@ namespace Arena
             return new Vector2(r.x, r.yMax - d);
         }
 
-        /// A line as a run of small discs (a rotated draw is not worth the trouble for a few pixels).
+        /// A line `rad` * 2 px thick (at least 1), drawn as one 1 px strip per step along its long axis, so strips never overlap and
+        /// a faint colour stays faint. (Not discs: the pill style is 9-sliced, so Unity draws any disc under 8 px as an 8 px blob.)
         static void FrameLine(Vector2 a, Vector2 b, float rad, Color c)
         {
-            float len = Vector2.Distance(a, b);
-            int n = Mathf.Max(1, (int)Mathf.Ceil(len / 2.5f));
-            for (int i = 0; i <= n; i++)
-                FrameDot(Mathf.Lerp(a.x, b.x, i / (float)n), Mathf.Lerp(a.y, b.y, i / (float)n), rad, c);
+            float th = Mathf.Max(1f, rad * 2f), dx = b.x - a.x, dy = b.y - a.y;
+            bool flat = Mathf.Abs(dx) >= Mathf.Abs(dy);
+            float len = flat ? Mathf.Abs(dx) : Mathf.Abs(dy);
+            int n = Mathf.Max(1, Mathf.FloorToInt(len));  // (strips at least 1 px long)
+            for (int i = 0; i < n; i++)
+            {
+                float f = (i + 0.5f) / n, px = a.x + dx * f, py = a.y + dy * f;
+                Ui.Fill(flat ? new Rect(px - 0.5f * len / n, py - th / 2f, len / n, th) : new Rect(px - th / 2f, py - 0.5f * len / n, th, len / n), c);
+            }
         }
 
         static void FrameOutlineRect(Rect q, float th, Color c)

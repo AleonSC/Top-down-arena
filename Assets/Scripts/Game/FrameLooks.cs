@@ -56,7 +56,7 @@ namespace Arena
             return new Vector2(r.x, r.yMax - 8f - d);
         }
 
-        static void FrameDot(float x, float y, float rad, Color c) => Ui.Pill(new Rect(x - rad, y - rad, rad * 2f, rad * 2f), c);
+        static void FrameDot(float x, float y, float rad, Color c) => Ui.Dot(new Rect(x - rad, y - rad, rad * 2f, rad * 2f), c);  // (a texture disc: the pill style is 9-sliced, so it can't go under 8 px)
 
         static void FrameSpark(float x, float y, float r, Color c)
         {
