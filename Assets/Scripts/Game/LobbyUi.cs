@@ -1586,6 +1586,14 @@ namespace Arena
             Circle(Showcase.Home, 46f, rc.WithAlpha(0.08f), 32);  // where you stand
             var real = game;
             game = sg;  // the drawing code reads `game`
+            bool muffle = false, hush = false;
+            if (sounds != null)
+            {
+                muffle = sounds.Muffle;
+                hush = sounds.Hush;
+                sounds.Muffle = true;  // sounds the look code plays while drawing the preview come out muffled (the MUTE key: not at all)
+                sounds.Hush = showcaseMute;
+            }
             try
             {
                 // Visual effects (Juice.cs) follow the preview while the lobby is up: the new shot looks, trails,
@@ -1624,6 +1632,11 @@ namespace Arena
             finally
             {
                 game = real;
+                if (sounds != null)
+                {
+                    sounds.Muffle = muffle;
+                    sounds.Hush = hush;
+                }
             }
             UiModelAt(V2.Zero, 1f);
             UiClip(view);
