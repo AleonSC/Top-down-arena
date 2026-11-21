@@ -514,7 +514,7 @@ static partial class Shot {
         var sets = typeof(ArenaApp).GetField(mode == "who" ? "WhoRoomSets" : "BoxRoomSets", f2 | System.Reflection.BindingFlags.Static).GetValue(null);
         set("roomsLower", sets); set("roomsFrame", Time.frameCount); set("roomsStart", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("ROOMS"), System.Globalization.CultureInfo.InvariantCulture));
         var pool = typeof(ArenaApp).GetField("roomPool", f2).GetValue(app) as System.Collections.IList; var add = typeof(ArenaApp).GetMethod("AddRoomSpot", f2);
-        foreach (var setArr in new[] { typeof(ArenaApp).GetField("TitleRoomSets", f2 | System.Reflection.BindingFlags.Static).GetValue(null), sets })
+        foreach (var setArr in new[] { sets })
           foreach (var row in (System.Array)setArr) foreach (var m in (System.Array)row) add.Invoke(app, new object[] { m });
       }
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
