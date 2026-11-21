@@ -1,0 +1,347 @@
+<title>Thorn Bloom</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: short masthead, one animated stage with look switch and controls, then the rules card, a cost/damage comparison and open questions.
+   Single dark look: wet arterial reds on near-black tissue, matching the other Hemomancer mockups. */
+:root{
+  --bg:#0f0507; --panel:#1b0a0e; --fg:#f3e5e6; --muted:#b98e95; --line:#3b1520;
+  --acc:#ff3f55; --acc2:#7d0b1f; --arena:#090405; --pink:#ff9fb0;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
+h1{font:700 clamp(40px,7vw,68px)/.95 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 12px;text-wrap:balance}
+.lede{margin:0;max-width:62ch;color:var(--muted);font-size:17px}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;color:var(--acc);text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 0 0 1px #0006,0 18px 50px -20px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:720/400;cursor:crosshair;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:700 16px var(--display);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;background:var(--panel);color:var(--fg)}
+.seg input:checked+label{background:var(--acc);color:#14050a}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)}
+button:focus-visible,input[type=range]:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.ctl{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.ctl output{font:500 13px var(--mono);color:var(--fg);min-width:1.5ch}
+input[type=range]{accent-color:var(--acc);width:110px}
+input[type=checkbox]{accent-color:var(--acc)}
+.hint{font:400 13px var(--mono);color:var(--muted);margin:0}
+.lookdesc{margin:0;color:var(--muted);font-size:15px;min-height:1.5em}
+.lookdesc b{color:var(--fg);font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px 22px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px 28px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px}
+dt{color:var(--muted);font:500 13px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+dd{margin:0;font-variant-numeric:tabular-nums}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums;min-width:520px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+tr.me td{color:var(--acc);font-weight:600}
+.num{text-align:right}
+</style>
+
+<main>
+<header>
+  <p class="eyebrow">DPS Hemomancer · ability mockup · built: look B, 4th choice, needles stop on the first enemy</p>
+  <h1>Thorn Bloom</h1>
+  <p class="lede">Blood spikes burst out of you in every direction. Each one that lands whips a tendril to the next enemy, and that one chains on. It cuts you too, so it hits hard.</p>
+</header>
+
+<section class="stage" aria-label="Animated preview">
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Thorn Bloom animation: spikes radiate from the player, tendrils chain between enemies"></canvas></div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Look">
+      <input type="radio" name="look" id="lookA" value="A" checked><label for="lookA">A · Thorn Crown</label>
+      <input type="radio" name="look" id="lookB" value="B"><label for="lookB">B · Needle Volley</label>
+      <input type="radio" name="look" id="lookC" value="C"><label for="lookC">C · Thorn Wake</label>
+    </div>
+    <button id="replay" type="button">Cast again</button>
+    <label class="ctl">Chain jumps <input type="range" id="jumps" min="1" max="5" value="3"><output id="jumpsOut">3</output></label>
+    <label class="ctl"><input type="checkbox" id="slow"> Slow-mo</label>
+  </div>
+  <p class="lookdesc" id="lookdesc"></p>
+  <p class="hint">Click the arena to aim the spike ring and recast. HTML approximation; the real look would be drawn in Ui.cs.</p>
+</section>
+
+<section class="card">
+  <h2>Rules (proposed)</h2>
+  <div class="rules">
+    <dl>
+      <dt>Slot</dt><dd>DPS ability (beside Arterial Spray, Blood Debt, Vein Rush)</dd>
+      <dt>Cost</dt><dd>12% max health, taken at the burst</dd>
+      <dt>Cooldown</dt><dd>8 s</dd>
+      <dt>Spikes</dt><dd>12, evenly round you, 240 px, stop on the first enemy</dd>
+      <dt>Spike hit</dt><dd>45 + a bleed stack</dd>
+      <dt>Tendril</dt><dd>to the nearest enemy not yet tendrilled, within 180 px: 30, then −20% a jump</dd>
+      <dt>Jumps</dt><dd>3 per spike (mastered: 5)</dd>
+    </dl>
+    <ul>
+      <li>Point blank on a crowd: up to 12 spikes + 36 tendril hits.</li>
+      <li>Each enemy takes one tendril per cast, and never one if a needle struck it, so chains fan out instead of looping.</li>
+      <li>Several spikes can land on one big enemy (Heavy, boss).</li>
+      <li>Blood Price applies to both spikes and tendrils.</li>
+      <li>Your hits heal 3% as usual, so landing a lot pays some cost back.</li>
+      <li>Can't down you: the cost never takes you below 1 health.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Against the other DPS abilities</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Ability</th><th>Cost</th><th>Cooldown</th><th class="num">Damage on one enemy</th><th class="num">Damage, crowd of 8</th></tr></thead>
+      <tbody>
+        <tr class="me"><td>Thorn Bloom</td><td>12%</td><td>8 s</td><td class="num">45–135</td><td class="num">~600</td></tr>
+        <tr><td>Vein Rush</td><td>10%</td><td>6 s</td><td class="num">25</td><td class="num">~200 (in a line)</td></tr>
+        <tr><td>Arterial Spray</td><td>4%/s</td><td>after it stops</td><td class="num">30/s</td><td class="num">240/s (in the 60° jet)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Open questions</h2>
+  <ul>
+    <li>Which look: Thorn Crown, Needle Volley or Thorn Wake?</li>
+    <li>Name: Thorn Bloom, Hemorrhage, or Bloodthorn?</li>
+    <li>Replace an existing DPS ability, or add a 4th?</li>
+    <li>Spikes stop on the first enemy (shown) or pierce?</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const W=720,H=400,P={x:W/2,y:H/2,r:13};
+const dpr=Math.min(2,window.devicePixelRatio||1);
+cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+const decal=document.createElement('canvas');decal.width=W*dpr;decal.height=H*dpr;const dctx=decal.getContext('2d');dctx.setTransform(dpr,0,0,dpr,0,0);
+
+const LOOKS={
+  A:{spd:900,name:'Thorn Crown',desc:'<b>Thorn Crown.</b> Thick rooted thorns grow out of you like a crown, hold for a beat and sink back.'},
+  B:{spd:1150,name:'Needle Volley',desc:'<b>Needle Volley.</b> Twelve thin blood needles fire out with streaks and burst on contact.'},
+  C:{spd:720,name:'Thorn Wake',desc:'<b>Thorn Wake.</b> Thorns erupt out of the floor in twelve lines rolling outward from you.'}
+};
+const N=12,REACH=240,CHAIN_R=180,WIND=0.32,SPIKE_DMG=45,TEND_DMG=30,COST=0.12,LOOP=3.6;
+let look='A',jumps=3,slow=false,aim=-Math.PI/2,seed=1;
+let t=0,enemies=[],spikes=[],tendrils=[],hits=[],nums=[],drops=[],dealt=0,hp=1,ghost=1,selfHitDone=false,flash=0;
+
+function rnd(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646}
+function layout(){
+  enemies=[];let tries=0;
+  const heavy={x:P.x+150*Math.cos(aim+0.9),y:P.y+110*Math.sin(aim+0.9),r:19,max:220,heavy:true};
+  enemies.push(heavy);
+  while(enemies.length<16&&tries<800){tries++;
+    const a=rnd()*Math.PI*2,d=70+rnd()*290;
+    const e={x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d*0.85,r:11,max:60};
+    if(e.x<20||e.x>W-20||e.y<20||e.y>H-20)continue;
+    if(enemies.some(o=>Math.hypot(o.x-e.x,o.y-e.y)<o.r+e.r+16))continue;
+    enemies.push(e)}
+  enemies.forEach((e,i)=>{e.hp=e.max;e.flash=0;e.dead=-1;e.bob=rnd()*6;e.id=i;e.bleed=0});
+}
+function cast(){
+  t=0;dealt=0;hp=1;ghost=1;selfHitDone=false;nums=[];drops=[];tendrils=[];hits=[];spikes=[];
+  dctx.clearRect(0,0,W,H);
+  layout();
+  const spd=LOOKS[look].spd;
+  const spikeHits=[];
+  for(let i=0;i<N;i++){
+    const a=aim+i*Math.PI*2/N,dx=Math.cos(a),dy=Math.sin(a);
+    let best=null,bestAlong=REACH;
+    for(const e of enemies){const rx=e.x-P.x,ry=e.y-P.y,along=rx*dx+ry*dy;if(along<=0)continue;
+      const perp=Math.abs(rx*dy-ry*dx);if(perp<e.r+5){const a2=along-Math.sqrt(Math.max(0,(e.r+5)**2-perp*perp));if(a2<bestAlong){bestAlong=a2;best=e}}}
+    const len=Math.max(10,bestAlong-P.r);
+    const sp={a,dx,dy,len,hit:best,tHit:WIND+len/spd};
+    spikes.push(sp);
+    if(best){spikeHits.push(sp);hits.push({t:sp.tHit,e:best,dmg:SPIKE_DMG,kind:'spike',x:P.x+dx*(P.r+len),y:P.y+dy*(P.r+len),dx,dy})}
+  }
+  spikeHits.sort((a,b)=>a.tHit-b.tHit);
+  const tagged=new Set();
+  for(const sp of spikeHits){
+    let from=sp.hit,t0=sp.tHit+0.04,dmg=TEND_DMG;
+    for(let j=0;j<jumps;j++){
+      let best=null,bd=CHAIN_R;
+      for(const e of enemies){if(e===from||tagged.has(e))continue;const d=Math.hypot(e.x-from.x,e.y-from.y);if(d<bd){bd=d;best=e}}
+      if(!best)break;tagged.add(best);
+      const dur=0.1+bd/1500;
+      tendrils.push({a:from,b:best,t0,t1:t0+dur,seed:rnd()*10,dmg:Math.round(dmg)});
+      hits.push({t:t0+dur,e:best,dmg:Math.round(dmg),kind:'tendril'});
+      from=best;t0=t0+dur+0.05;dmg*=0.8;
+    }
+  }
+  hits.sort((a,b)=>a.t-b.t);
+}
+
+function burst(x,y,n,spd,dirx,diry){for(let i=0;i<n;i++){const a=Math.atan2(diry||0,dirx||0)+(dirx||diry?(rnd()-0.5)*1.6:rnd()*Math.PI*2),s=spd*(0.3+rnd());
+  drops.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:0.4+rnd()*0.4,age:0,r:1+rnd()*2.2})}}
+function splat(x,y,r){dctx.fillStyle='rgba(110,8,22,0.55)';for(let i=0;i<5;i++){const a=rnd()*Math.PI*2,d=rnd()*r;dctx.beginPath();dctx.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,1+rnd()*r*0.45,0,7);dctx.fill()}}
+
+function update(dt){
+  t+=dt;
+  if(!selfHitDone&&t>=WIND){selfHitDone=true;hp=1-COST;flash=1;burst(P.x,P.y,26,170);splat(P.x,P.y,16);
+    nums.push({x:P.x,y:P.y-30,txt:'−12%',col:'#ffd0d8',age:0,big:true,self:true})}
+  if(t>WIND+0.35)ghost=Math.max(hp,ghost-dt*0.35);
+  flash=Math.max(0,flash-dt*3);
+  for(const h of hits){if(h.done||t<h.t)continue;h.done=true;const e=h.e;
+    e.hp-=h.dmg;e.flash=1;dealt+=h.dmg;
+    if(h.kind==='spike'){e.bleed=Math.min(5,e.bleed+1);burst(h.x,h.y,9,140,h.dx,h.dy);splat(h.x,h.y,7)}else{burst(e.x,e.y,6,90)}
+    nums.push({x:e.x+(rnd()-0.5)*10,y:e.y-e.r-6,txt:String(h.dmg),col:h.kind==='spike'?'#fff1f2':'#ff9fb0',age:0,big:h.kind==='spike'});
+    if(e.hp<=0&&e.dead<0){e.dead=t;burst(e.x,e.y,22,200);splat(e.x,e.y,e.r+8)}}
+  for(const e of enemies)e.flash=Math.max(0,e.flash-dt*5);
+  for(const n of nums)n.age+=dt;nums=nums.filter(n=>n.age<1);
+  for(const d of drops){d.age+=dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.vx*=0.9;d.vy*=0.9;if(d.age>=d.life&&!d.landed){d.landed=true;dctx.fillStyle='rgba(120,10,25,0.5)';dctx.beginPath();dctx.arc(d.x,d.y,d.r*0.9,0,7);dctx.fill()}}
+  drops=drops.filter(d=>d.age<d.life);
+  if(t>LOOP){seed+=7;cast()}
+}
+
+const ease=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3);
+function drawFloor(){
+  ctx.fillStyle='#0b0506';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,63,85,0.045)';ctx.lineWidth=1;
+  for(let x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  ctx.drawImage(decal,0,0,W,H);
+  // reach ring during windup
+  if(t<WIND+0.6){const k=t<WIND?ease(t/WIND):1-ease((t-WIND)/0.6);ctx.strokeStyle=`rgba(255,63,85,${0.18*k})`;ctx.setLineDash([4,6]);ctx.beginPath();ctx.arc(P.x,P.y,P.r+REACH,0,7);ctx.stroke();ctx.setLineDash([])}
+}
+function drawEnemy(e){
+  let a=1,s=1;if(e.dead>=0){const k=(t-e.dead)/0.35;if(k>1)return;a=1-k;s=1+k*0.4}
+  const y=e.y+Math.sin(t*3+e.bob)*1.2;
+  ctx.globalAlpha=a;
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.ellipse(e.x,e.y+e.r*0.9,e.r*1.05,e.r*0.4,0,0,7);ctx.fill();
+  ctx.fillStyle=e.flash>0?`rgb(255,${200+55*e.flash|0},${200+55*e.flash|0})`:(e.heavy?'#6b6a52':'#4f6a4a');
+  ctx.beginPath();ctx.arc(e.x,y,e.r*s,0,7);ctx.fill();
+  ctx.strokeStyle=e.heavy?'#9b9a74':'#7c9a73';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#120708';ctx.beginPath();ctx.arc(e.x-e.r*0.33,y-e.r*0.15,e.r*0.17,0,7);ctx.arc(e.x+e.r*0.33,y-e.r*0.15,e.r*0.17,0,7);ctx.fill();
+  if(e.dead<0&&e.hp<e.max){const w=e.r*2.2;ctx.fillStyle='#200a0d';ctx.fillRect(e.x-w/2,y-e.r-8,w,3);ctx.fillStyle='#ff3f55';ctx.fillRect(e.x-w/2,y-e.r-8,w*Math.max(0,e.hp/e.max),3)}
+  for(let i=0;i<e.bleed;i++){const ang=t*2+i*Math.PI*2/e.bleed;ctx.fillStyle='#c8102e';ctx.beginPath();ctx.arc(e.x+Math.cos(ang)*(e.r+6),y+Math.sin(ang)*(e.r+6)*0.6,1.8,0,7);ctx.fill()}
+  ctx.globalAlpha=1;
+}
+function spikeState(sp,spd){ // returns extension 0..1 of len, and fade
+  const tt=t-WIND;if(tt<0)return null;const travel=sp.len/spd;
+  const ext=Math.min(1,tt/travel);const hold=travel+0.28;
+  const fade=tt<hold?1:Math.max(0,1-(tt-hold)/0.3);if(fade<=0)return null;
+  return{ext,fade,tt,travel}}
+function drawSpikes(){
+  const spd=LOOKS[look].spd;
+  for(const sp of spikes){const st=spikeState(sp,spd);if(!st)continue;
+    const bx=P.x+sp.dx*P.r,by=P.y+sp.dy*P.r,nx=-sp.dy,ny=sp.dx;
+    if(look==='A'){
+      const L=sp.len*ease(st.ext)*(st.fade<1?st.fade:1);const w=8;
+      const tx=bx+sp.dx*L,ty=by+sp.dy*L;
+      const g=ctx.createLinearGradient(bx,by,tx,ty);g.addColorStop(0,'#3a0610');g.addColorStop(0.6,'#a50f26');g.addColorStop(1,'#ff5a6e');
+      ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(bx+nx*w,by+ny*w);
+      ctx.quadraticCurveTo(bx+sp.dx*L*0.5+nx*w*0.55,by+sp.dy*L*0.5+ny*w*0.55,tx,ty);
+      ctx.quadraticCurveTo(bx+sp.dx*L*0.5-nx*w*0.55,by+sp.dy*L*0.5-ny*w*0.55,bx-nx*w,by-ny*w);ctx.closePath();ctx.fill();
+      ctx.strokeStyle='rgba(255,190,200,0.55)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx+nx*2,by+ny*2);ctx.lineTo(bx+sp.dx*L*0.85+nx*0.6,by+sp.dy*L*0.85+ny*0.6);ctx.stroke();
+      // side barbs
+      for(let k=1;k<4;k++){const u=k/4.3;if(u*sp.len>L)break;const px=bx+sp.dx*L*u,py=by+sp.dy*L*u,side=k%2?1:-1,ww=w*(1-u)*0.9;
+        ctx.fillStyle='#8a0c20';ctx.beginPath();ctx.moveTo(px+nx*ww*side*0.6,py+ny*ww*side*0.6);ctx.lineTo(px+nx*side*(ww+7)+sp.dx*8,py+ny*side*(ww+7)+sp.dy*8);ctx.lineTo(px+sp.dx*6,py+sp.dy*6);ctx.fill()}
+    }else if(look==='B'){
+      if(st.ext>=1)continue;
+      const d=sp.len*st.ext,hx=bx+sp.dx*d,hy=by+sp.dy*d,trail=Math.min(d,70);
+      const g=ctx.createLinearGradient(hx-sp.dx*trail,hy-sp.dy*trail,hx,hy);g.addColorStop(0,'rgba(255,63,85,0)');g.addColorStop(1,'rgba(255,63,85,0.85)');
+      ctx.strokeStyle=g;ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(hx-sp.dx*trail,hy-sp.dy*trail);ctx.lineTo(hx,hy);ctx.stroke();
+      ctx.fillStyle='#ffe3e7';ctx.beginPath();ctx.moveTo(hx+sp.dx*9,hy+sp.dy*9);ctx.lineTo(hx+nx*2.6-sp.dx*8,hy+ny*2.6-sp.dy*8);ctx.lineTo(hx-nx*2.6-sp.dx*8,hy-ny*2.6-sp.dy*8);ctx.fill();
+      ctx.fillStyle='rgba(255,63,85,0.35)';ctx.beginPath();ctx.arc(hx,hy,6,0,7);ctx.fill();
+    }else{
+      const step=15;const front=sp.len*st.ext;
+      for(let d=6;d<=sp.len;d+=step){if(d>front)break;
+        const born=WIND+d/spd,age=t-born,grow=ease(age/0.09);const ff=st.fade;
+        const px=bx+sp.dx*d,py=by+sp.dy*d,jit=Math.sin(d*0.7+sp.a*5)*3;const hgt=(9+d/sp.len*9+Math.sin(d+sp.a)*3)*grow*ff,wd=4.5;
+        const x0=px+nx*jit,y0=py+ny*jit;
+        ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(x0,y0+1,wd+2,2.2,0,0,7);ctx.fill();
+        const g=ctx.createLinearGradient(x0,y0,x0,y0-hgt);g.addColorStop(0,'#4a0712');g.addColorStop(1,'#ff4d63');
+        ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x0-wd,y0);ctx.lineTo(x0+sp.dx*2,y0-hgt);ctx.lineTo(x0+wd,y0);ctx.fill();
+        if(age<0.12){ctx.fillStyle=`rgba(255,120,140,${0.5*(1-age/0.12)})`;ctx.beginPath();ctx.arc(x0,y0,7,0,7);ctx.fill()}
+      }
+    }
+  }
+}
+function drawTendril(td){
+  if(t<td.t0)return;const A=td.a,B=td.b;
+  const life=td.t1-td.t0,p=Math.min(1,(t-td.t0)/life),after=t-td.t1;
+  let alpha=1,start=0;if(after>0.35){const k=(after-0.35)/0.25;if(k>1)return;start=k;alpha=1-k*0.5}
+  const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L,amp=Math.min(16,L*0.12);
+  const seg=28,pts=[];
+  for(let s=0;s<=seg;s++){const u=s/seg;if(u>p)break;if(u<start)continue;
+    const off=Math.sin(u*Math.PI)*amp*Math.sin(td.seed+u*8-t*12);pts.push([A.x+dx*u+nx*off,A.y+dy*u+ny*off,u])}
+  if(pts.length<2)return;
+  ctx.lineCap='round';
+  for(let i=1;i<pts.length;i++){const u=pts[i][2];ctx.strokeStyle=`rgba(${120+u*60|0},8,26,${alpha})`;ctx.lineWidth=5.5-u*2.5;ctx.beginPath();ctx.moveTo(pts[i-1][0],pts[i-1][1]);ctx.lineTo(pts[i][0],pts[i][1]);ctx.stroke()}
+  ctx.strokeStyle=`rgba(255,110,130,${0.8*alpha})`;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(const q of pts)ctx.lineTo(q[0],q[1]);ctx.stroke();
+  // blood beads travelling
+  for(let k=0;k<3;k++){const idx=Math.floor(((t*2.2+k/3)%1)*(pts.length-1));const q=pts[idx];ctx.fillStyle=`rgba(255,180,190,${alpha})`;ctx.beginPath();ctx.arc(q[0],q[1],1.6,0,7);ctx.fill()}
+  // hook head while travelling
+  if(p<1){const h=pts[pts.length-1],h2=pts[pts.length-2],ax=h[0]-h2[0],ay=h[1]-h2[1],al=Math.hypot(ax,ay)||1,ux=ax/al,uy=ay/al;
+    ctx.fillStyle='#ffd6dc';ctx.beginPath();ctx.moveTo(h[0]+ux*7,h[1]+uy*7);ctx.lineTo(h[0]-uy*4,h[1]+ux*4);ctx.lineTo(h[0]+uy*4,h[1]-ux*4);ctx.fill()}
+  else if(after<0.15){ctx.strokeStyle=`rgba(255,63,85,${1-after/0.15})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(B.x,B.y,B.r+4+after*60,0,7);ctx.stroke()}
+}
+function drawPlayer(){
+  const gather=t<WIND?ease(t/WIND):0;
+  // gathering motes
+  if(t<WIND){for(let i=0;i<14;i++){const a=i*0.449+t*1.5,d=(1-((t/WIND+i/14)%1))*60+P.r;ctx.fillStyle=`rgba(255,63,85,${0.6*gather})`;ctx.beginPath();ctx.arc(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,1.6,0,7);ctx.fill()}}
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();ctx.ellipse(P.x,P.y+P.r*0.9,P.r*1.1,P.r*0.42,0,0,7);ctx.fill();
+  const sq=1-gather*0.12;
+  ctx.fillStyle=flash>0?`rgb(255,${130+120*flash|0},${140+110*flash|0})`:'#5a0d1b';
+  ctx.beginPath();ctx.arc(P.x,P.y,P.r*sq,0,7);ctx.fill();
+  ctx.strokeStyle='#c8203a';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#ff9fb0';ctx.beginPath();ctx.arc(P.x+Math.cos(aim)*5,P.y+Math.sin(aim)*5,3,0,7);ctx.fill();
+  // self-piercing spikes out of the body
+  if(t>=WIND&&t<WIND+0.22){const k=(t-WIND)/0.22,L=ease(k)*10*(1-k*0.6);ctx.fillStyle='#ffd0d8';
+    for(let i=0;i<N;i++){const a=aim+(i+0.5)*Math.PI*2/N,dx=Math.cos(a),dy=Math.sin(a);ctx.beginPath();ctx.moveTo(P.x+dx*(P.r+L),P.y+dy*(P.r+L));ctx.lineTo(P.x-dy*2,P.y+dx*2);ctx.lineTo(P.x+dy*2,P.y-dx*2);ctx.fill()}}
+  // health bar
+  const w=44,x=P.x-w/2,y=P.y+P.r+9;
+  ctx.fillStyle='#200a0d';ctx.fillRect(x,y,w,5);
+  ctx.fillStyle='#ffd0d8';ctx.fillRect(x,y,w*ghost,5);
+  ctx.fillStyle='#ff3f55';ctx.fillRect(x,y,w*hp,5);
+  ctx.strokeStyle='#3b1520';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,4);
+}
+function drawDrops(){for(const d of drops){const a=1-d.age/d.life;ctx.fillStyle=`rgba(200,16,46,${a})`;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,7);ctx.fill()}}
+function drawNums(){ctx.textAlign='center';for(const n of nums){const k=n.age;const a=k<0.7?1:1-(k-0.7)/0.3;const y=n.y-k*26;
+  ctx.font=`700 ${n.big?(n.self?18:16):13}px 'Barlow Condensed','Arial Narrow',sans-serif`;ctx.lineWidth=3;ctx.strokeStyle=`rgba(10,3,5,${a})`;ctx.strokeText(n.txt,n.x,y);
+  ctx.fillStyle=n.col;ctx.globalAlpha=a;ctx.fillText(n.txt,n.x,y);ctx.globalAlpha=1}}
+function drawHud(){
+  ctx.textAlign='left';ctx.font="500 12px 'IBM Plex Mono',ui-monospace,monospace";
+  ctx.fillStyle='rgba(15,5,7,0.75)';ctx.fillRect(10,10,214,46);ctx.strokeStyle='#3b1520';ctx.strokeRect(10.5,10.5,213,45);
+  ctx.fillStyle='#b98e95';ctx.fillText('DEALT',20,28);ctx.fillText('SPENT',20,46);
+  ctx.fillStyle='#ff3f55';ctx.font="700 18px 'Barlow Condensed','Arial Narrow',sans-serif";ctx.fillText(String(dealt),72,30);
+  ctx.fillStyle='#ffd0d8';ctx.fillText(selfHitDone?'12% health':'—',72,48);
+  const kills=enemies.filter(e=>e.dead>=0).length;ctx.fillStyle='#b98e95';ctx.font="500 12px 'IBM Plex Mono',ui-monospace,monospace";ctx.fillText(kills+' down',150,28);
+  ctx.textAlign='right';ctx.fillText(LOOKS[look].name.toUpperCase()+(slow?' · 0.25×':''),W-14,24);
+}
+function frame(){
+  drawFloor();
+  enemies.forEach(drawEnemy);
+  drawSpikes();
+  tendrils.forEach(drawTendril);
+  drawPlayer();drawDrops();drawNums();drawHud();
+}
+let last=performance.now();
+function loop(now){const dt=Math.min(0.05,(now-last)/1000)*(slow?0.25:1);last=now;update(dt);frame();requestAnimationFrame(loop)}
+
+const desc=document.getElementById('lookdesc');
+function setLook(v){look=v;desc.innerHTML=LOOKS[v].desc;cast()}
+document.querySelectorAll('input[name=look]').forEach(r=>r.addEventListener('change',()=>setLook(r.value)));
+document.getElementById('replay').addEventListener('click',()=>{seed+=7;cast()});
+const j=document.getElementById('jumps'),jo=document.getElementById('jumpsOut');
+j.addEventListener('input',()=>{jumps=+j.value;jo.textContent=j.value;cast()});
+document.getElementById('slow').addEventListener('change',e=>{slow=e.target.checked});
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;aim=Math.atan2(y-P.y,x-P.x);cast()});
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){slow=true;document.getElementById('slow').checked=true}
+setLook('A');
+requestAnimationFrame(loop);
+})();
+</script>
