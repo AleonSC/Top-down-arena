@@ -26,6 +26,7 @@ static partial class Program
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Check(me.Weapon.Id == WeaponId.Nodachi && me.Weapon.Melee && Defs.WeaponCount(Role.Tank, Kit.Ninja) == 4, "the Tank Ninja's fourth key is the Nodachi (" + me.Weapon.Id + ")");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+        var squads = (System.Collections.IList)typeof(Game).GetField("squadQueue", flags).GetValue(g);  // (a Warden squad's Thug punches with the plain heavy swing)
         V2 from = new V2(400f, 450f), far = from + new V2(400f, 0f);
         Func<V2, EnemyType, Enemy> Dummy = (at, type) =>
         {
@@ -38,7 +39,7 @@ static partial class Program
         {
             for (int f = 0; f < secs / dt; f++)
             {
-                me.Pos = from; queue.Clear();
+                me.Pos = from; queue.Clear(); squads.Clear();
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = far, Fire = fire && f < 2, WeaponAction = alt && f < 3 } : new PlayerInput()); }
                 foreach (var c in client.Game.Sounds) heard.Add(c.Sfx);
             }
