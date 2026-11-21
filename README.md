@@ -1922,7 +1922,9 @@ and then the real line, a scan bar sweeps the keys and their texts type in; then
 animates. With Reduced effects or Visual effects off there is no animation at all (the box slides in instead). Closing slides the cabinet and window
 out (Back or Esc), and only then does the window really close. The **pause menu** and the **lobby's Esc menu** **dock** instead (`Docs/Mockups/pause-dock.html`, option C): the box comes in from the
 left (0.28 s) and the run summary (or the open window) from the right a beat later, each trailed by two fading frame outlines; as they land a soft
-flash and a scan line run down them, the title types and the keys slide in one by one (0.18 s on, 0.03 s apart). Closing sends them back out to
+flash and a scan line run down them, the title types and the keys slide in one by one (0.18 s on, 0.03 s apart). The run summary's
+parts (the wave, the next boss, the Data Gate, your run's stats, the players) slide in from the right in turn (0.22 s on, 0.04 s apart) and the
+stats count up from 0. Closing sends them back out to
 their sides in 0.22 s. With Reduced effects they slide in and out with no trails, flash or scan line.
 
 - **Pause menu:** **Resume** (Esc), **Settings**, **How to play** (a window beside the list, its topics as keys along the top), **Settings** (the list switches to Audio, Visual
