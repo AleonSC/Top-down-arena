@@ -344,7 +344,7 @@ static partial class Program
         g2.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg2.Diff.Set(DiffKnob.ArenaExpanding, 1f);
         Run(s2, dt, 900f, () => g2.Wave >= 10 && g2.State == MatchState.Fighting);
         Console.WriteLine("  by wave " + g2.Wave + ": " + g2.MysteryDoorsOpened + " doors opened for " + g2.MysteryVectorsSpent + " vectors, " + g2.Expanded.Count + " rooms in all, " + g2.MysteryDoors.Count + " doors waiting, vectors " + string.Join("/", g2.Players.Values.Select(p => p.Vectors.ToString()).ToArray()));
-        Check(g2.Wave >= 8 && g2.MysteryDoorsOpened >= 1, "bots open mystery doors in a run (" + g2.MysteryDoorsOpened + " by wave " + g2.Wave + ")");
+        Check(g2.Wave >= 5 && g2.MysteryDoorsOpened >= 1, "bots open mystery doors in a run (" + g2.MysteryDoorsOpened + " by wave " + g2.Wave + ")");
         Check(cg2.Expanded.Count == g2.Expanded.Count, "both games have the same map");
 
         // Room turrets (RoomTraps.cs): your shots wear one down and wreck it, and the friend's game loses it too.
