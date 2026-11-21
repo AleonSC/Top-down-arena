@@ -247,13 +247,13 @@ namespace Arena
             new[] { Rm(214, 470, 72, 110, 'r'), Rm(994, 470, 72, 110, 'l'), Rm(994, 350, 72, 112, 'l') },
         };
 
-        // Rooms on the Who's playing? screen: beside its rack (90-1190 by 244-484) and either side of Manage profiles (490-790 by 602-676).
+        // Rooms on the Who's playing? screen: beside its rack (90-1190 by 272-512) and either side of Manage profiles (490-790 by 602-676).
         static readonly MenuRoom[][] WhoRoomSets =
         {
-            new[] { Rm(14, 280, 64, 96, 'r'), Rm(1202, 280, 64, 96, 'l') },
-            new[] { Rm(14, 262, 64, 86, 'r'), Rm(14, 354, 64, 86, 'r'), Rm(1202, 262, 64, 86, 'l'), Rm(1202, 354, 64, 86, 'l') },
+            new[] { Rm(14, 308, 64, 96, 'r'), Rm(1202, 308, 64, 96, 'l') },
+            new[] { Rm(14, 290, 64, 86, 'r'), Rm(14, 382, 64, 86, 'r'), Rm(1202, 290, 64, 86, 'l'), Rm(1202, 382, 64, 86, 'l') },
             new[] { Rm(376, 606, 96, 66, 'r'), Rm(808, 606, 96, 66, 'l') },
-            new[] { Rm(14, 300, 64, 130, 'r'), Rm(808, 606, 96, 66, 'l') },
+            new[] { Rm(14, 328, 64, 130, 'r'), Rm(808, 606, 96, 66, 'l') },
         };
 
         const float RoomEvery = 9f, RoomBuild = 1.3f, RoomHold = 3.4f, RoomFold = 0.9f, RoomBoxAfter = 0.5f, RoomStagger = 0.15f;
