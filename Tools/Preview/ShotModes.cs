@@ -470,7 +470,7 @@ static partial class Shot {
       if (mode == "settings") set("settingsOpen", true);
       if (Environment.GetEnvironmentVariable("NOWIN") == null) {
         if (mode == "settings") { if (secEnv == null) set("settingsGroup", 1); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 1 }); set("cabWinInAt", Time.unscaledTime - winWin); }
-        else if (mode == "records" || mode == "cosmetics" || mode == "profile") { set("profileTab", mode == "records" ? 2 : mode == "cosmetics" ? 0 : (Environment.GetEnvironmentVariable("TAB") != null ? int.Parse(Environment.GetEnvironmentVariable("TAB")) : 0)); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 3 }); set("cabWinInAt", Time.unscaledTime - winWin); }
+        else if (mode == "records" || mode == "cosmetics" || mode == "profile") { ArenaApp.ProfileFlair = int.Parse(Environment.GetEnvironmentVariable("PROFLAIR") ?? "0"); set("profileTab", mode == "records" ? 2 : mode == "cosmetics" ? 0 : (Environment.GetEnvironmentVariable("TAB") != null ? int.Parse(Environment.GetEnvironmentVariable("TAB")) : 0)); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 3 }); set("cabWinInAt", Time.unscaledTime - winWin); }
       }
       if (Environment.GetEnvironmentVariable("RTAB") != null) set("recentTab", int.Parse(Environment.GetEnvironmentVariable("RTAB")));  // Recent runs: 0 Overview, 1 Trends (SECTION=4 opens the page)
       if (Environment.GetEnvironmentVariable("RSEL") != null) set("recentSel", int.Parse(Environment.GetEnvironmentVariable("RSEL")));

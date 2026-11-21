@@ -239,6 +239,8 @@ namespace Arena
             bool oneLine = n > 7;
             float rowH = oneLine ? 29f : 36f, step = rowH + 3f;
             BeginDrawer("PROFILE", CrtStyle.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f));
+            FlairBackdrop(new Rect(0f, 0f, CabW, CabH), tc);
+            FlairFrame(new Rect(0f, 0f, CabW, CabH), new Rect(26f, 22f, CabInW, 78f), tc);
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
             var ps = new Rect(26f, 112f, CabInW, 126f);
@@ -247,6 +249,7 @@ namespace Arena
                 var badge = new Rect(ps.x + 12f, ps.y + 8f, 76f, 76f);
                 if (!calm)
                     Ui.Pill(new Rect(badge.x - 4f, badge.y + 2f, badge.width + 8f, badge.height - 4f), tc.WithAlpha(0.07f + 0.07f * (0.5f + 0.5f * Mathf.Sin(WinNow * 2f))));
+                FlairBadge(badge, tc);
                 RankLook.Draw(badge, info.Rank);
                 int nsize = 28;
                 float nameW = 190f;
@@ -286,6 +289,7 @@ namespace Arena
                 if (!calm)
                     Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), tc.WithAlpha(0.18f));
                 Ui.Fill(new Rect(bar.x, bar.y, bar.width * info.Fraction, bar.height), tc);
+                FlairBar(bar, info.Fraction, tc);
                 Ui.Label(new Rect(ps.x + 14f, ps.y + 106f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtStyle.Dim, TextAnchor.MiddleRight, true);
                 CabScreenEnd(ps, 0.9f);
             }
@@ -299,6 +303,8 @@ namespace Arena
                 for (int i = 0; i < nt; i++)
                 {
                     int id = first + i;
+                    if (profileTab == id)
+                        FlairTab(new Rect(ts.x + 6f + i * (tw + gap), ts.y + 11f, tw, 32f), tc);
                     string label = CabText("cab.tab" + id, ProfileTabs[id].ToUpperInvariant(), 1.15f + i * 0.06f);
                     if (QuietTab(new Rect(ts.x + 6f + i * (tw + gap), ts.y + 11f, tw, 32f), label, profileTab == id) && profileTab != id)
                     {
@@ -318,6 +324,7 @@ namespace Arena
             {
                 bool on = cabWin && cabKind == 3 && cabWinOutAt < 0f && ProfSel == i;
                 var o = opts[i];
+                FlairRow(new Rect(34f, y, CabRowW, rowH), on, tc);
                 if (DrawerRow(new Rect(34f, y, CabRowW, rowH), PixelArt.Get(o.Icon), o.Name, oneLine ? null : o.Line, null, o.Tag, Ui.Accent, on))
                 {
                     ProfSel = i;
