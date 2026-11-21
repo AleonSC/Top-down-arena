@@ -192,6 +192,7 @@ namespace Arena
         public V2 Pos, Disp;
         public V2 Motion, MotionFrom;  // host only: how fast and which way they're moving, smoothed (Props.cs shoves crates with it; Variety.cs)
         public float Aim;
+        public bool IsBot;       // host: a bot plays this player (a lobby bot, or F1's "Bot plays for you"); sent in Msg.Input, so cursor pickups skip it (Coins.cs)
         public V2 AimAt;         // the point they're aiming at (Implosion picks the enemy under it; sent with inputs)
         public bool Firing;
         public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)

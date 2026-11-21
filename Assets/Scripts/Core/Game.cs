@@ -1376,6 +1376,7 @@ namespace Arena
             }
             me.FiringSeen = firing;
             me.AimAt = aimAt;
+            me.IsBot = Bot;
             if (IsHost)
             {
                 me.Firing = firing;
@@ -1393,6 +1394,7 @@ namespace Arena
                 w.Write(me.DrawT);
                 w.Write(bowRelease);
                 w.Write(me.Sprint);  // the Dodge's sprint, for the others' wake (Dodge.cs)
+                w.Write(Bot);
                 session.SendToHost(Proto.End(w));
             }
         }

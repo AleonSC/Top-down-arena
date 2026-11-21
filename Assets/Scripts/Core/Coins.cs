@@ -21,7 +21,7 @@ namespace Arena
         int nextCoinId = 1;
         const float CoinMagnetRange = 90f;
         /// A coin or vector pickup under a player's cursor (`Player.AimAt`, sent with every input) is taken on the spot, however far away
-        /// they stand (the weird hover mechanic, Nov 2026; gadgets, health orbs and cards still need walking to).
+        /// they stand (the weird hover mechanic, Nov 2026; humans only, a bot's aim point doesn't count; gadgets, health orbs and cards still need walking to).
         const float CoinHoverRange = 14f;
         public const int MaxCoinsPerKill = 6;
         /// Vector pickups (Docs/VectorBuilding.md): a rare drop that adds vectors to whoever collects it. A normal kill drops one
@@ -147,7 +147,7 @@ namespace Arena
                 }
                 Player hover = null;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && CanTake(p, c.Owner) && (!c.Vec || p.Vectors < p.VectorCap) && p.AimAt.CloserThan(c.Pos, CoinHoverRange + c.Radius))
+                    if (!p.Downed && !p.IsBot && CanTake(p, c.Owner) && (!c.Vec || p.Vectors < p.VectorCap) && p.AimAt.CloserThan(c.Pos, CoinHoverRange + c.Radius))
                     {
                         hover = p;
                         break;

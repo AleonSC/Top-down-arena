@@ -146,6 +146,12 @@ static partial class Program
         Run(s, dt, Game.CoinFullEvery * 3 * dt + 0.3f, null, () => { Quiet(); Put(); });
         Check(cg.Coins.Count == g.Coins.Count, "a full list puts a client that lost track right within " + (Game.CoinFullEvery * 3 * dt).ToString("0.0") + " s (" + cg.Coins.Count + "/" + g.Coins.Count + ")");
         g.Coins.Clear();
+        g.Bot = true;  // (the smart bot plays the host and aims where it likes)
+        Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
+        Check(g.Players[1].IsBot, "a bot's input marks its player as a bot");
+        g.Bot = false;
+        Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
+        Check(!g.Players[1].IsBot, "a human's input does not");
         s[0].Leave(""); s[1].Leave("");
     }
 }
