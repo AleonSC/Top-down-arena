@@ -71,9 +71,9 @@ namespace Arena
         // is worn down (pink below a third health), a heavy crate with an inner frame and corner nodes. With Visual effects
         // off the wood below draws as before; Reduced effects drops the scanlines, flicker and glitch slice.
 
-        static readonly Rgba HoloCyanBase = new Rgba(0.31f, 0.89f, 1f), HoloBlueBase = new Rgba(0.56f, 0.82f, 1f);
-        Rgba PropHoloCyan = HoloCyanBase, PropHoloBlue = HoloBlueBase;  // themed with the walls for the coming boss (WallInk, LayoutLook.cs)
-        static readonly Rgba PropHoloPink = new Rgba(1f, 0.42f, 0.6f);
+        static readonly Rgba HoloCyanBase = new Rgba(0.31f, 0.89f, 1f);
+        Rgba PropHoloCyan = HoloCyanBase;  // themed with the walls for the coming boss (WallInk, LayoutLook.cs)
+        static readonly Rgba PropHoloPink = new Rgba(1f, 0.42f, 0.6f), PropHoloOrange = new Rgba(1f, 0.55f, 0.2f);
 
         /// The mockup's hash (so the dropouts fall exactly where the mockup's do), 0..1.
         static float PropHash(int n)
@@ -112,12 +112,14 @@ namespace Arena
             bool heavy = p.Kind == PropKind.HeavyCrate;
             float h = Game.HalfW(p), hp = p.MaxHp > 0f ? p.Hp / p.MaxHp : 1f, dmg = 1f - hp;
             int seed = p.Seed;
-            var col = (hp < 0.34f ? PropHoloPink : heavy ? PropHoloBlue : PropHoloCyan).WithAlpha(al);
+            // Breakable cover is warm (amber, heavy: orange) so it never reads as a wall or pillar, which keep the cool boss ink.
+            var tint = heavy ? PropHoloOrange : PropHoloAmber;
+            var col = (hp < 0.34f ? PropHoloPink : tint).WithAlpha(al);
             // The projected pane and its scanlines.
-            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, (heavy ? PropHoloBlue : PropHoloCyan).WithAlpha((heavy ? 0.13f : 0.11f) * al));
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, tint.WithAlpha((heavy ? 0.13f : 0.11f) * al));
             if (!fxReduced)
                 for (float y = -h + 1f; y < h; y += 3f)
-                    FillRect(c.X - h, c.Y + y, h * 2f, 1f, PropHoloCyan.WithAlpha(0.10f * al));
+                    FillRect(c.X - h, c.Y + y, h * 2f, 1f, tint.WithAlpha(0.10f * al));
             // The frame: 6 segments a side; worn crates lose some and the lost ones flicker back now and then.
             float lw = heavy ? 2f : 1.5f;
             // (Each run of lit segments in a row is drawn as one line: the same picture for a fifth of the vertices.)
