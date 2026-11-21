@@ -796,7 +796,7 @@ namespace Arena
             Set(Sfx.Downed, Tone(0.4f, Osc.Square, 400f, 100f, 0.3f, lowpass: 0.3f));
             Set(Sfx.Revive, Tone(0.3f, Osc.Sine, 300f, 800f, 0.3f, attack: 0.02f));
 
-            // Menus: a soft, short tick when the mouse moves onto a button (never sent)...
+            // Menus: a soft, short tick when the mouse moves onto a button (never sent; BuildMenuHolo replaces it with the main menu's glassy tick)...
             Set(Sfx.UiHover, Tone(0.045f, Osc.Sine, 1500f, 2100f, 0.09f, lowpass: 0.5f, attack: 0.002f, decay: 3f), 0.04f);
             // ...and a soft, rounder click when one is pressed.
             Set(Sfx.UiClick, Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f), 0.05f);
@@ -804,15 +804,19 @@ namespace Arena
             Jitter(0.05f, Sfx.UiClick);
         }
 
-        /// The menus' click, at the Effects volume.
+        /// The menus' click (the main menu's two-step chirp), at the Effects volume.
         public void PlayUiClick(float now)
         {
-            if (Play(Sfx.UiClick, 1f, now, -1))
+            if (Play(Sfx.UiClick, MenuSoundVolume, now, -1))
                 table[(int)Sfx.UiHover].Last = now;  // no hover tick right on top of the click
         }
 
-        /// The menus' hover tick, at the Effects volume. Rapid sweeps across a row play at most every 40 ms.
-        public void PlayUiHover(float now) => Play(Sfx.UiHover, 1f, now);
+        /// The main menu's hover tick and key volume (ArenaApp's MenuVhs.OnHover, MenuHolo's MenuSound); every menu's hover and click play at it.
+        public const float MenuSoundVolume = 0.7f;
+
+        /// The menus' hover tick (the main menu's glassy tick), at the Effects volume; half as loud when calm (Reduced effects).
+        /// Rapid sweeps across a row play at most every 40 ms.
+        public void PlayUiHover(float now, bool calm) => Play(Sfx.UiHover, MenuSoundVolume * (calm ? 0.5f : 1f), now);
 
         void SetGun(Sfx s, float gap, Gun g)
         {

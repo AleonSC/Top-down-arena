@@ -119,6 +119,24 @@ namespace Arena
             }
             // The empty screen falls in from above the window and bounces onto the axis (with a flash), then the title types out.
             float T = menuIntroT;
+            if (profTr)
+            {
+                // From the picker: the screen never left, so it doesn't drop in. WHO'S PLAYING? backspaces away once the disk is in,
+                // then the menu's title types on as usual.
+                float typing = Seg(T, CrtTypeAt, CrtTypeAt + CrtTypeLen);
+                if (typing <= 0f)
+                {
+                    DrawTitleRetype(WhoTitleText, Mathf.RoundToInt(WhoTitleText.Length * (1f - Seg(profTrT, 2.4f, 3.2f))));
+                    return;
+                }
+                crtTyped = T >= CrtTypeAt + CrtTypeLen + CrtFlipLen ? -1 : Mathf.FloorToInt(typing * CrtTitleText.Length);
+                DrawCrtBack();
+                DrawCrtTitle(r);
+                DrawCrtFront();
+                DrawTitleNeon(1f);
+                crtTyped = -1;
+                return;
+            }
             if (T < CrtDropAt)
                 return;
             float bt = T - CrtDropAt, fall = CrtFallLen;
@@ -140,6 +158,8 @@ namespace Arena
         const float CrtDropAt = 0.35f, CrtFallLen = 0.32f, CrtTypeAt = 0.95f, CrtTypeLen = 0.6f;  // intro seconds
         static float crtDy, crtFlash;  // while the screen is falling in: how far it is from home, and the flash as it lands
         static int crtTyped = -1;      // letters typed so far; -1 = all of them
+        static string crtFull = CrtTitleText;  // the line on the screen (WHO'S PLAYING? while the moves to and from the picker retype it)
+        static bool crtFlat;           // its letters are shown flat (no flip-in): a line being erased or retyped by DrawTitleRetype
         static Rect CrtBox => new Rect(W / 2f - 520f, MenuTitleY - 52f + crtDy, 1040f, 104f);
 
         /// The title as text on a CRT (Docs/Mockups/title-styles.html, look 4): a bezel round a dark blue glass screen.
@@ -157,8 +177,9 @@ namespace Arena
         }
 
         /// Over the text: rolling scanlines, a glow along the screen's edge, a glare, and a blinking cursor in the bottom corner.
-        void DrawCrtFront(string text = CrtTitleText)
+        void DrawCrtFront(string text = null)
         {
+            text = text ?? crtFull;
             var box = CrtBox;
             float t = Time.unscaledTime;
             GUI.BeginGroup(box);
@@ -173,7 +194,7 @@ namespace Arena
             if (crtTyped >= 0)
             {
                 // Typing: the cursor sits after the last letter typed (blinking), the way a terminal does.
-                const string full = "VECTOR COLOSSEUM";
+                string full = text;
                 float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), cx = W / 2f - fw / 2f + Ui.TextWidth(full.Substring(0, crtTyped), (int)MenuTitleSize, true);
                 // The cursor is as wide as the letter it sits under (the next one to type; an M once the line is done).
                 string under = crtTyped < full.Length && full[crtTyped] != ' ' ? full[crtTyped].ToString() : "M";
@@ -198,10 +219,10 @@ namespace Arena
             r.y += crtDy;
             if (crtTyped < 0)
             {
-                Ui.Glitch(r, "VECTOR COLOSSEUM", (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
+                Ui.Glitch(r, crtFull, (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
                 return;
             }
-            const string full = "VECTOR COLOSSEUM";
+            string full = crtFull;
             float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), x0 = W / 2f - fw / 2f;
             // Each letter flips in as it's typed (Docs/Mockups/menu-holo-floor.html): it drops a little and unfolds from a sliver
             // about its middle line, overshooting a touch, over CrtFlipLen.
@@ -210,7 +231,7 @@ namespace Arena
                 if (full[i] == ' ')
                     continue;
                 float typedAt = CrtTypeAt + CrtTypeLen * i / full.Length;
-                float k = Mathf.Clamp01((menuIntroT - typedAt) / CrtFlipLen);
+                float k = crtFlat ? 1f : Mathf.Clamp01((menuIntroT - typedAt) / CrtFlipLen);
                 float sy = Mathf.Max(0.05f, EaseBack(k)), dy = -18f * (1f - EaseOut(k));
                 float lx = x0 + Ui.TextWidth(full.Substring(0, i), (int)MenuTitleSize, true);
                 var lr = new Rect(lx, r.y + dy, Ui.TextWidth(full[i].ToString(), (int)MenuTitleSize, true) + 30f, r.height);

@@ -117,6 +117,8 @@ namespace Arena
         void PlayProfTrCues(float a, float b)
         {
             float now = Time.unscaledTime;
+            if (b > a)
+                TitleFlapCues(WhoTitleText, a, b, 2.4f, 3.2f, false);  // WHO'S PLAYING? flapping away (the menu's title then types with its own sounds)
             foreach (var c in ProfCues)
             {
                 if (b > a && a < c.t && c.t <= b)
@@ -158,7 +160,7 @@ namespace Arena
             var R = WhoBox(profTrSlot);
             float hover = EaseOut(Seg(T, 0.1f, 0.5f)), flight = EaseInOut(Seg(T, 0.9f, 2.0f)), fade = 1f - Seg(T, 0.8f, 1.5f);
             whoLift[profTrSlot] = hover * (1f - flight);  // the clamps open as it lifts
-            DrawWhoChrome(fade);  // the picker's title screen, band and rooms (MenuHolo.cs)
+            DrawWhoChrome(fade, false);  // the picker's rooms (MenuHolo.cs); its title screen stays and retypes (the menu draws it, DrawMenuTitleText)
             if (fade > 0f)
                 WithAlpha(fade, () =>
                 {
@@ -192,6 +194,13 @@ namespace Arena
             {
                 float c = Seg(T, 0.5f, 0.9f);
                 Ui.Rim(new Rect(R.x - 4f - 14f * c, R.y - 16f - 14f * c, R.width + 8f + 28f * c, R.height + 8f + 28f * c), WhoColor(info), 0.8f * (1f - c));
+            }
+            float sel = hover * (1f - Seg(T, 1.6f, 2.0f));  // the picked disk keeps its neon border (MenuHolo.cs) until it nears the drive
+            if (sel > 0.01f && BeginUiGl())
+            {
+                UiModelAt(V2.Zero, 1f);
+                NeonRect(new Rect(x - 6f, y - 6f, s + 12f, s + 12f), sel);
+                EndUiGl();
             }
             var oldMatrix = GUI.matrix;
             GUI.matrix = Matrix4x4.TRS(new Vector3(offX + (x + s * (1f - sx) / 2f) * scale, offY + y * scale, 0f), Quaternion.identity,

@@ -92,7 +92,7 @@ namespace Arena
         /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html): the rooms
         /// behind, then WHO'S PLAYING? on the menu's CRT title screen with its neon, and the drive bay ledge under it. a: its opacity
         /// (the picker fades in the moves to and from the menu, ProfileTransition.cs, DiskEject.cs).
-        void DrawWhoChrome(float a)
+        void DrawWhoChrome(float a, bool title = true)
         {
             if (a <= 0f)
                 return;
@@ -104,13 +104,28 @@ namespace Arena
                     DrawRooms(t, 1f, WhoRoomSets);
                     EndUiGl();
                 }
-                DrawCrtBack();
-                float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
-                Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f), WhoTitleText, (int)MenuTitleSize, CrtGreen.WithAlpha(flick), TextAnchor.MiddleCenter, CrtGlow);
-                DrawCrtFront(WhoTitleText);
-                DrawTitleNeon(1f);
+                if (title)
+                    DrawTitleRetype(WhoTitleText, -1);
             });
-            DrawDriveBay(a);
+            if (title)
+                DrawDriveBay(a);
+        }
+
+        /// The title screen showing `text` with its first n letters up (-1: all, with the cursor waiting after it), flat and in place:
+        /// the moves between the picker and the menu keep the screen and only erase and retype its line.
+        void DrawTitleRetype(string text, int n)
+        {
+            crtFull = text;
+            crtFlat = true;
+            crtTyped = n >= text.Length ? -1 : n;
+            DrawCrtBack();
+            if (crtTyped != 0)
+                DrawCrtTitle(new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f));
+            DrawCrtFront();
+            DrawTitleNeon(1f);
+            crtFull = CrtTitleText;
+            crtFlat = false;
+            crtTyped = -1;
         }
 
         /// IMGUI: a slot's plate on the shelf: a dark CRT tag, lit in neon while its slot is under the mouse.
@@ -118,8 +133,6 @@ namespace Arena
         {
             Ui.Pill(r, new Color(0.012f, 0.024f, 0.07f));
             Ui.Rim(r, Color.Lerp(new Color(0.17f, 0.25f, 0.47f), new Color(0.66f, 0.8f, 1f), lit), 0.8f);
-            if (lit > 0f)
-                Ui.Glow(r, new Color(0.43f, 0.6f, 1f), 0.35f * lit);
             Ui.Label(r, text, 14, Color.Lerp(new Color(0.5f, 0.63f, 0.91f), new Color(0.9f, 0.95f, 1f), lit), TextAnchor.MiddleCenter, true);
         }
 
@@ -154,11 +167,32 @@ namespace Arena
         int roomsHeard = -1, neonHeard = -1;
 
         /// A menu key's own sound, in place of the generic click (Ui.TakeClick takes this event's click so it doesn't play too).
-        void MenuSound(Sfx s, float vol = 0.7f)
+        void MenuSound(Sfx s, float vol = SoundBank.MenuSoundVolume)
         {
             if (sounds != null)
                 sounds.Play(s, vol, Time.unscaledTime);
             Ui.TakeClick();
+        }
+
+        /// The split-flap clacks of the title screen's line changing as a move's clock goes from a to b: typing `text` on over
+        /// [t0, t1] (a clack per letter, the space softer, Enter's thock on the last), or erasing it (softer clacks), letter by letter
+        /// at the moments DrawTitleRetype shows them.
+        void TitleFlapCues(string text, float a, float b, float t0, float t1, bool typing)
+        {
+            if (sounds == null || b <= a)
+                return;
+            int n = text.Length;
+            float now = Time.unscaledTime;
+            for (int i = 0; i < n; i++)
+            {
+                float at = typing ? t0 + (t1 - t0) * (i + 1f) / n : t0 + (t1 - t0) * (i + 0.5f) / n;
+                if (a >= at || at > b)
+                    continue;
+                if (!typing)
+                    sounds.Play(Sfx.TitleKey, 0.35f, now);
+                else
+                    sounds.Play(i == n - 1 ? Sfx.TitleEnter : text[i] == ' ' ? Sfx.TitleSpace : Sfx.TitleKey, 0.6f, now);
+            }
         }
 
         float quitAt = -1f;
