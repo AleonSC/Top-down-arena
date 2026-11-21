@@ -186,7 +186,7 @@ namespace Arena
                 MenuRise(host, 60f, () =>
                 {
                     Ui.PulseRing(KeyUi.Well(MenuHostRect), Ui.Primary, t);
-                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => KeyUi.Key(MenuHostRect, "PLAY", PixelArt.Get("ui_play"), 34)) && live)
+                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => PlayKey(MenuHostRect)) && live)
                     {
                         if (PacSkin)
                             OpenPacman();  // a Pac profile's Play is the Pac-Man game (PacmanUi.cs)

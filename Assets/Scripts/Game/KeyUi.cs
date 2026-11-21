@@ -12,12 +12,15 @@ namespace Arena
         static readonly Color LampOn = new Color(0.42f, 1f, 0.6f);
         static int pressedKey;  // the key the mouse went down on (until it comes up)
 
-        static void Legend(Rect cap, string text, Texture2D icon, int size, float a)
+        static void Legend(Rect cap, string text, Texture2D icon, int size, float a, System.Action<Rect, float> drawIcon = null, float iconW = 0f)
         {
             float isz = Mathf.Min(size * 1.1f, cap.height * 0.5f);
-            float tw = Ui.TextWidth(text, size, true) - 6f, gap = icon != null ? 12f : 0f, ic = icon != null ? isz : 0f;
+            bool hasIcon = icon != null || drawIcon != null;
+            float tw = Ui.TextWidth(text, size, true) - 6f, gap = hasIcon ? 12f : 0f, ic = drawIcon != null && iconW > 0f ? iconW : hasIcon ? isz : 0f;
             float x = cap.center.x - (ic + gap + tw) / 2f;
-            if (icon != null)
+            if (drawIcon != null)
+                drawIcon(new Rect(x, cap.center.y - isz / 2f, ic, isz), a);  // a drawn icon (the main menu's Play chevrons, MenuHolo.cs)
+            else if (icon != null)
                 Ui.Icon(new Rect(x, cap.center.y - isz / 2f, isz, isz), icon, new Color(1f, 1f, 1f, a));
             var tr = new Rect(x + ic + gap, cap.y, tw + 12f, cap.height);
             Ui.Label(new Rect(tr.x, tr.y + 1f, tr.width, tr.height), text, size, new Color(0f, 0f, 0f, 0.5f * a), TextAnchor.MiddleLeft, true);
@@ -63,7 +66,8 @@ namespace Arena
         /// A keycap in rect r (its full height, travel included). lampOn keeps the lamp lit; otherwise it lights under the mouse.
         /// True when clicked. text2 / icon2 / mix swap the legend to a second label (mix 0 = the first, 1 = the second; the menu's
         /// Quit becoming Back, MenuServo.cs), and dip pushes the cap down that many extra pixels.
-        public static bool Key(Rect r, string text, Texture2D icon, int size, bool lampOn = false, string text2 = null, Texture2D icon2 = null, float mix = 0f, float dip = 0f)
+        public static bool Key(Rect r, string text, Texture2D icon, int size, bool lampOn = false, string text2 = null, Texture2D icon2 = null, float mix = 0f, float dip = 0f,
+            System.Action<Rect, float> drawIcon = null, float iconW = 0f)
         {
             var e = Event.current;
             int id = Mathf.RoundToInt(r.y * 17f + r.width) + Mathf.FloorToInt(r.x / 8f) * 7919;
@@ -98,7 +102,7 @@ namespace Arena
             Ui.Fill(new Rect(dish.x + 3f, dish.yMax - 1f, dish.width - 6f, 1f), new Color(1f, 1f, 1f, 0.22f));     // light on its bottom lip
             // The label, engraved: a dark copy under it, then the text; the icon sits before it, the pair centred.
             if (text2 == null)
-                Legend(cap, text, icon, size, 1f);
+                Legend(cap, text, icon, size, 1f, drawIcon, iconW);
             else
             {
                 if (mix < 1f)
