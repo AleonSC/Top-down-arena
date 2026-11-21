@@ -11,7 +11,7 @@ namespace Arena
     ///   - recoil through the body: the elbows fold with each gun's kick (TwinArm) and the whole body jolts back;
     ///   - the screen kick, your own Twin Rifle only (Docs/Mockups/twin-rifle-screen-kick.html, "Push + punch"): each volley
     ///     pushes the picture TwinPushPx along your aim and pulses it TwinPunchStep bigger round you, both springing back;
-    ///     off with Screen shake off or Reduced effects, softer with Screen shake on Low (applied in Juice.cs and Px).
+    ///     off with Screen shake off or Reduced effects, 1.6x with Screen shake on Full (applied in Juice.cs and Px).
     public partial class ArenaApp
     {
         const byte PBrass = 15, PStreak = 16, PPool = 17;  // particle kinds (Juice.cs ages PBrass through BrassStep, draws all three through DrawTwinPart)
@@ -28,7 +28,7 @@ namespace Arena
         {
             if (fxShake == 0 || fxReduced)
                 return;
-            float k = fxShake == 1 ? 0.45f : 1f;
+            float k = fxShake == 1 ? 1f : 1.6f;  // Low (the default) is the mockup's 1x; Full a stronger kick
             twinPush += dir * (TwinPushPx * k);
             twinPunch = Mathf.Min(TwinPunchMax, twinPunch + TwinPunchStep * k);
         }

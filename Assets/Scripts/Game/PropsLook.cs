@@ -172,7 +172,7 @@ namespace Arena
                 for (int i = 0; i < 4; i++)
                 {
                     float nx = (i & 1) != 0 ? h - 9f : -h + 5f, ny = (i & 2) != 0 ? h - 9f : -h + 5f;
-                    FillRect(nx - 2f, c.Y + ny - 2f, 8f, 8f, col.WithAlpha(col.A * 0.12f));
+                    FillRect(c.X + nx - 2f, c.Y + ny - 2f, 8f, 8f, col.WithAlpha(col.A * 0.12f));
                     FillRect(c.X + nx, c.Y + ny, 4f, 4f, col);
                 }
                 NeonLine(c + new V2(-4f, 0f), c + new V2(4f, 0f), 1f, col);
