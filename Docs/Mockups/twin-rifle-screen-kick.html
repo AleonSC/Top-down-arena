@@ -1,0 +1,282 @@
+<title>Twin Rifle Screen Kick</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Chakra+Petch:wght@500;700&display=swap">
+<style>
+/* Layout: one arena viewport with a fixed HUD, the option keys under it, then a live camera trace. Single dark CRT look. */
+:root{
+  --bg:#0b0d10; --panel:#12161b; --line:#25303a; --ink:#d8e1e8; --dim:#7b8a96;
+  --gold:#f2c14e; --danger:#ff5a4f; --cyan:#57d6e8;
+  --mono:"Share Tech Mono",ui-monospace,Menlo,Consolas,monospace;
+  --head:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+h1{font-family:var(--head);font-weight:700;font-size:1.35rem;letter-spacing:.04em;margin:0;color:var(--gold);text-transform:uppercase}
+p.sub{margin:0;color:var(--dim);font-size:.85rem;line-height:1.5}
+.stage{position:relative;border:1px solid var(--line);background:#07090b;overflow:hidden;touch-action:none;cursor:crosshair}
+canvas{display:block;width:100%}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.key{font:inherit;text-align:left;background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:10px 12px;cursor:pointer;display:grid;gap:4px;min-width:0}
+.key b{font-family:var(--head);font-weight:500;font-size:.95rem;letter-spacing:.03em}
+.key span{color:var(--dim);font-size:.75rem;line-height:1.35}
+.key kbd{color:var(--gold);font-family:var(--mono);margin-right:6px}
+.key[aria-pressed="true"]{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);background:#1a1810}
+.key:focus-visible,.row input:focus-visible,.row button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:.8rem;color:var(--dim)}
+.row label{display:flex;gap:8px;align-items:center}
+.row input[type=range]{accent-color:var(--gold);width:140px}
+.row output{color:var(--ink);min-width:3ch;font-variant-numeric:tabular-nums}
+.row button{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
+.row button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.trace{border:1px solid var(--line);background:var(--panel)}
+.note{font-size:.75rem;color:var(--dim);line-height:1.5;margin:0}
+.note em{color:var(--gold);font-style:normal}
+</style>
+
+<div class="wrap">
+  <h1>Twin Rifle · Screen Kick</h1>
+  <p class="sub">Hold the mouse (or touch) on the arena to fire at 8 volleys a second, the real rate. Compare the camera options below. The HUD frame stays still so you can see the world move.</p>
+
+  <div class="stage" id="stage"><canvas id="cv"></canvas></div>
+
+  <div class="keys" id="keys">
+    <button class="key" data-m="0" id="m0"><b><kbd>1</kbd>Off</b><span>Today: only the body jolt, no camera move.</span></button>
+    <button class="key" data-m="1" id="m1"><b><kbd>2</kbd>Recoil push</b><span>Each volley nudges the view ~2 px back along your aim, then springs home.</span></button>
+    <button class="key" data-m="2" id="m2"><b><kbd>3</kbd>Rumble</b><span>The current Shake() trauma, a little per volley: random jitter.</span></button>
+    <button class="key" data-m="3" id="m3"><b><kbd>4</kbd>Push + lean</b><span>Recoil push, the view leans toward the crossing, and a heat rumble builds on long bursts.</span></button>
+    <button class="key" data-m="4" id="m4"><b><kbd>5</kbd>Push + punch</b><span>Recoil push plus a tiny zoom pulse on every volley.</span></button>
+  </div>
+
+  <div class="row">
+    <label for="amt">Strength <input id="amt" type="range" min="0.25" max="2" step="0.05" value="1"><output id="amtOut">1.0×</output></label>
+    <button id="auto" aria-pressed="false">Auto-fire: off</button>
+    <span>Keys 1-5 switch option · Space toggles auto-fire</span>
+  </div>
+
+  <canvas class="trace" id="tr" height="90"></canvas>
+  <p class="note"><em>Gold</em>: camera offset along your aim (px, + is toward the cursor) · <em style="color:var(--cyan)">Cyan</em>: sideways · last 3 s. Approximate HTML mockup: in the game the offset would feed <code>shakeX/shakeY</code> in Juice.cs and respect the Screen shake setting.</p>
+</div>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const tr = document.getElementById('tr'), tctx = tr.getContext('2d');
+const stage = document.getElementById('stage');
+const W = 640, H = 400;                 // world view in game px
+let scale = 1, dpr = Math.min(2, window.devicePixelRatio || 1);
+
+function resize(){
+  const w = stage.clientWidth; scale = w / W;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(H * scale * dpr);
+  cv.style.height = (H * scale) + 'px';
+  const tw = tr.clientWidth || w; tr.width = Math.round(tw * dpr); tr.height = Math.round(90 * dpr);
+  tr.style.height = '90px';
+}
+window.addEventListener('resize', resize);
+
+// --- options ----------------------------------------------------------------------------------------------------
+let mode = 1, amt = 1, auto = false;
+const keys = [...document.querySelectorAll('.key')];
+function setMode(m){ mode = m; keys.forEach(k => k.setAttribute('aria-pressed', String(+k.dataset.m === m))); }
+keys.forEach(k => k.addEventListener('click', () => setMode(+k.dataset.m)));
+setMode(1);
+const amtEl = document.getElementById('amt'), amtOut = document.getElementById('amtOut');
+amtEl.addEventListener('input', () => { amt = +amtEl.value; amtOut.textContent = amt.toFixed(1) + '×'; });
+const autoBtn = document.getElementById('auto');
+function setAuto(v){ auto = v; autoBtn.setAttribute('aria-pressed', String(v)); autoBtn.textContent = 'Auto-fire: ' + (v ? 'on' : 'off'); }
+autoBtn.addEventListener('click', () => setAuto(!auto));
+window.addEventListener('keydown', e => {
+  if (e.key >= '1' && e.key <= '5') setMode(+e.key - 1);
+  if (e.code === 'Space' && e.target === document.body){ e.preventDefault(); setAuto(!auto); }
+});
+
+// --- input ------------------------------------------------------------------------------------------------------
+const P = { x: W/2, y: H*0.62 };
+let cursor = { x: W/2 + 40, y: H*0.22 }, held = false, mouseSeen = false, t = 0;
+function toWorld(e){ const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale }; }
+stage.addEventListener('pointermove', e => { cursor = toWorld(e); mouseSeen = true; });
+stage.addEventListener('pointerdown', e => { cursor = toWorld(e); mouseSeen = true; held = true; stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointerup', () => held = false);
+stage.addEventListener('pointercancel', () => held = false);
+stage.addEventListener('pointerleave', () => { if (!held) mouseSeen = false; });
+
+// --- world ------------------------------------------------------------------------------------------------------
+const bullets = [], sparks = [], brass = [];
+const enemies = Array.from({length: 6}, (_, i) => ({ x: 80 + i*95, y: 60 + (i%3)*45, r: 13, hp: 30, flash: 0, ph: i*1.7 }));
+const SPEED = 820, LIFE = 0.7, INTERVAL = 0.125, HALF = 30, MUZ = 34;
+let fireT = 0, holdT = 0, jolt = 0, gunKick = 0, flash = 0;
+
+// camera state
+let push = { x: 0, y: 0 }, lean = { x: 0, y: 0 }, trauma = 0, zoom = 0, rumbleAmp = 0;
+const hist = [];
+
+function fire(dir, dist){
+  const nx = -dir.y, ny = dir.x;
+  for (const s of [-1, 1]){
+    const mx = P.x + dir.x*MUZ + nx*HALF*s, my = P.y + dir.y*MUZ + ny*HALF*s;
+    const cx = P.x + dir.x*dist, cy = P.y + dir.y*dist;
+    let a = Math.atan2(cy - my, cx - mx) + (Math.random()*2 - 1) * 2 * Math.PI/180;
+    bullets.push({ x: mx, y: my, vx: Math.cos(a)*SPEED, vy: Math.sin(a)*SPEED, life: LIFE, px: mx, py: my });
+    brass.push({ x: P.x + nx*HALF*s*0.8, y: P.y + ny*HALF*s*0.8, vx: nx*s*90 + (Math.random()-.5)*40 - dir.x*30, vy: ny*s*90 + (Math.random()-.5)*40 - dir.y*30, life: 0.5, rot: Math.random()*6 });
+  }
+  jolt = 1; gunKick = 1; flash = 1;
+  // camera response per option
+  const k = amt;
+  if (mode === 1 || mode === 3 || mode === 4){
+    const p = (mode === 3 ? 1.5 : 2.2) * k;
+    push.x -= dir.x * p; push.y -= dir.y * p;
+  }
+  if (mode === 2) trauma = Math.min(1, trauma + 0.25 * k);
+  if (mode === 4) zoom = Math.min(0.03, zoom + 0.008 * k);
+}
+
+function step(dt){
+  t += dt;
+  if (!mouseSeen){ cursor = { x: W/2 + Math.sin(t*0.7)*170, y: H*0.24 + Math.cos(t*1.1)*30 }; }
+  let dx = cursor.x - P.x, dy = cursor.y - P.y, d = Math.hypot(dx, dy) || 1;
+  const dir = { x: dx/d, y: dy/d }, dist = Math.max(120, Math.min(575, d));
+  const firing = held || auto;
+  fireT -= dt;
+  if (firing){ holdT += dt; if (fireT <= 0){ fire(dir, dist); fireT += INTERVAL; if (fireT < 0) fireT = 0; } }
+  else { holdT = 0; fireT = Math.max(0, fireT); }
+
+  // decays
+  const e18 = Math.exp(-dt*18);
+  push.x *= e18; push.y *= e18;
+  trauma = Math.max(0, trauma - dt*1.8);
+  zoom *= Math.exp(-dt*14);
+  jolt = Math.max(0, jolt - dt/0.06); gunKick *= Math.exp(-dt*22); flash = Math.max(0, flash - dt*14);
+  const leanTarget = (mode === 3 && firing) ? { x: dir.x*dist*0.035*amt, y: dir.y*dist*0.035*amt } : { x: 0, y: 0 };
+  const le = 1 - Math.exp(-dt*(firing ? 5 : 3));
+  lean.x += (leanTarget.x - lean.x)*le; lean.y += (leanTarget.y - lean.y)*le;
+  rumbleAmp = mode === 3 && firing ? Math.min(1, holdT/1.6) * 0.9 * amt : rumbleAmp * Math.exp(-dt*8);
+
+  // enemies
+  for (const en of enemies){
+    en.x += Math.sin(t*0.6 + en.ph)*20*dt; en.y += Math.cos(t*0.5 + en.ph)*12*dt;
+    en.flash = Math.max(0, en.flash - dt*8);
+    if (en.hp <= 0){ en.hp = 30; en.x = 60 + Math.random()*(W-120); en.y = 40 + Math.random()*110; }
+  }
+  // bullets
+  for (let i = bullets.length-1; i >= 0; i--){
+    const b = bullets[i]; b.px = b.x; b.py = b.y; b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
+    let hit = false;
+    for (const en of enemies){ if (Math.hypot(b.x-en.x, b.y-en.y) < en.r){ en.hp -= 4; en.flash = 1; hit = true;
+      for (let j=0;j<3;j++){ const a=Math.random()*6.28; sparks.push({x:b.x,y:b.y,vx:Math.cos(a)*120,vy:Math.sin(a)*120,life:.18}); } break; } }
+    if (hit || b.life <= 0 || b.x < -20 || b.x > W+20 || b.y < -20 || b.y > H+20) bullets.splice(i,1);
+  }
+  for (let i = sparks.length-1; i >= 0; i--){ const s=sparks[i]; s.x+=s.vx*dt; s.y+=s.vy*dt; s.life-=dt; if(s.life<=0) sparks.splice(i,1); }
+  for (let i = brass.length-1; i >= 0; i--){ const s=brass[i]; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vx*=Math.exp(-dt*6); s.vy*=Math.exp(-dt*6); s.rot+=dt*14; s.life-=dt; if(s.life<=0) brass.splice(i,1); }
+
+  // camera offset this frame
+  let ox = push.x + lean.x, oy = push.y + lean.y;
+  if (trauma > 0){ const k = trauma*trauma*12; ox += k*Math.sin(t*61.3)*Math.cos(t*17.1); oy += k*Math.sin(t*53.7+1.3); }
+  if (rumbleAmp > 0.01){ ox += rumbleAmp*Math.sin(t*83.1)*Math.cos(t*23.7); oy += rumbleAmp*Math.sin(t*71.9+0.7); }
+  const along = ox*dir.x + oy*dir.y, side = -ox*dir.y + oy*dir.x;
+  hist.push({ t, a: along, s: side });
+  while (hist.length && hist[0].t < t - 3) hist.shift();
+  return { ox, oy, dir, dist, firing };
+}
+
+// --- drawing ----------------------------------------------------------------------------------------------------
+function draw(st){
+  const { ox, oy, dir, dist, firing } = st;
+  ctx.setTransform(dpr*scale, 0, 0, dpr*scale, 0, 0);
+  ctx.fillStyle = '#07090b'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  const z = 1 + zoom;
+  ctx.translate(P.x, P.y); ctx.scale(z, z); ctx.translate(-P.x, -P.y);
+  ctx.translate(-ox, -oy);   // the camera moving by +o makes the world move by -o
+
+  // floor grid
+  ctx.strokeStyle = '#141b22'; ctx.lineWidth = 1;
+  for (let x = -40; x <= W+40; x += 32){ ctx.beginPath(); ctx.moveTo(x, -40); ctx.lineTo(x, H+40); ctx.stroke(); }
+  for (let y = -40; y <= H+40; y += 32){ ctx.beginPath(); ctx.moveTo(-40, y); ctx.lineTo(W+40, y); ctx.stroke(); }
+  ctx.strokeStyle = '#1d2832'; ctx.lineWidth = 2; ctx.strokeRect(8, 8, W-16, H-16);
+
+  // brass
+  for (const b of brass){ ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.fillStyle = `rgba(214,170,80,${Math.min(1,b.life*3)})`; ctx.fillRect(-2.5,-1,5,2); ctx.restore(); }
+
+  // enemies
+  for (const en of enemies){
+    ctx.beginPath(); ctx.arc(en.x, en.y, en.r, 0, 6.283);
+    ctx.fillStyle = en.flash > 0 ? `rgb(255,${200+55*en.flash|0},${200+55*en.flash|0})` : '#7a2a2a'; ctx.fill();
+    ctx.strokeStyle = '#ff5a4f'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#2a0e0e'; ctx.fillRect(en.x-12, en.y-21, 24, 3);
+    ctx.fillStyle = '#ff5a4f'; ctx.fillRect(en.x-12, en.y-21, 24*Math.max(0,en.hp)/30, 3);
+  }
+
+  // aim crossing X
+  const cx = P.x + dir.x*dist, cy = P.y + dir.y*dist;
+  ctx.strokeStyle = 'rgba(242,193,78,.55)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx-6, cy-6); ctx.lineTo(cx+6, cy+6); ctx.moveTo(cx+6, cy-6); ctx.lineTo(cx-6, cy+6); ctx.stroke();
+  ctx.setLineDash([3,6]); ctx.strokeStyle = 'rgba(242,193,78,.18)';
+  ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.lineTo(cx, cy); ctx.stroke(); ctx.setLineDash([]);
+
+  // bullets
+  ctx.lineCap = 'round';
+  for (const b of bullets){
+    ctx.strokeStyle = 'rgba(255,226,140,.95)'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(b.x - b.vx*0.012, b.y - b.vy*0.012); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+  for (const s of sparks){ ctx.fillStyle = `rgba(255,220,150,${s.life/.18})`; ctx.fillRect(s.x-1, s.y-1, 2, 2); }
+
+  // player with the two rifles
+  const ang = Math.atan2(dir.y, dir.x), jb = jolt * 1.1;
+  ctx.save(); ctx.translate(P.x - dir.x*jb, P.y - dir.y*jb); ctx.rotate(ang);
+  for (const s of [-1, 1]){
+    const kb = gunKick * 3;
+    ctx.strokeStyle = '#3b4a57'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(2, s*8); ctx.lineTo(16 - kb, s*HALF*0.9); ctx.stroke(); // arm
+    ctx.fillStyle = '#2b333b'; ctx.fillRect(12 - kb, s*HALF - 3.5, 24, 7);
+    ctx.fillStyle = '#56636e'; ctx.fillRect(30 - kb, s*HALF - 1.5, 6, 3);
+    if (flash > 0){ ctx.fillStyle = `rgba(255,214,120,${flash})`; ctx.beginPath();
+      ctx.moveTo(36 - kb, s*HALF - 4*flash); ctx.lineTo(36 - kb + 13*flash, s*HALF); ctx.lineTo(36 - kb, s*HALF + 4*flash); ctx.fill(); }
+  }
+  ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.283); ctx.fillStyle = '#1e2a33'; ctx.fill();
+  ctx.strokeStyle = '#f2c14e'; ctx.lineWidth = 2.2; ctx.stroke();
+  ctx.fillStyle = '#f2c14e'; ctx.beginPath(); ctx.arc(7, 0, 2.6, 0, 6.283); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+
+  // fixed HUD (does not shake)
+  ctx.strokeStyle = 'rgba(242,193,78,.35)'; ctx.lineWidth = 1;
+  const c = 14; for (const [x,y,sx,sy] of [[6,6,1,1],[W-6,6,-1,1],[6,H-6,1,-1],[W-6,H-6,-1,-1]]){ ctx.beginPath(); ctx.moveTo(x, y+sy*c); ctx.lineTo(x,y); ctx.lineTo(x+sx*c, y); ctx.stroke(); }
+  ctx.font = '12px "Share Tech Mono", monospace'; ctx.fillStyle = '#7b8a96';
+  const names = ['OFF','RECOIL PUSH','RUMBLE','PUSH + LEAN','PUSH + PUNCH'];
+  ctx.fillText('CAMERA ▸ ' + names[mode], 16, 24);
+  const mag = Math.hypot(ox, oy);
+  ctx.fillText(`OFFSET ${mag.toFixed(1).padStart(4,' ')} px${zoom>0.001?`  ZOOM +${(zoom*100).toFixed(1)}%`:''}`, 16, 40);
+  ctx.fillStyle = firing ? '#f2c14e' : '#4a5660';
+  ctx.fillText(firing ? '● FIRING' : (mouseSeen ? 'HOLD TO FIRE' : 'HOLD ON THE ARENA TO FIRE'), 16, H - 16);
+}
+
+function drawTrace(){
+  const w = tr.width / dpr, h = 90;
+  tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  tctx.fillStyle = '#12161b'; tctx.fillRect(0, 0, w, h);
+  const mid = h/2, pxPer = 6; // 1 px of camera = 6 px tall
+  tctx.strokeStyle = '#25303a'; tctx.lineWidth = 1;
+  for (const v of [-6,-3,0,3,6]){ const y = mid - v*pxPer*0.6; tctx.beginPath(); tctx.moveTo(30, y); tctx.lineTo(w, y); tctx.stroke(); }
+  tctx.fillStyle = '#7b8a96'; tctx.font = '10px "Share Tech Mono", monospace';
+  for (const v of [-6,0,6]){ tctx.fillText((v>0?'+':'')+v, 4, mid - v*pxPer*0.6 + 3); }
+  const plot = (key, col) => {
+    tctx.strokeStyle = col; tctx.lineWidth = 1.5; tctx.beginPath();
+    hist.forEach((p, i) => { const x = 30 + (w-30) * (1 - (t - p.t)/3); const y = mid - Math.max(-7, Math.min(7, p[key]))*pxPer*0.6; i ? tctx.lineTo(x, y) : tctx.moveTo(x, y); });
+    tctx.stroke();
+  };
+  plot('s', '#57d6e8'); plot('a', '#f2c14e');
+}
+
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now - last)/1000); last = now;
+  const st = step(dt); draw(st); drawTrace();
+  requestAnimationFrame(frame);
+}
+resize();
+// show the effect at rest: a short burst already in the air
+setAuto(true); setTimeout(() => setAuto(false), 2200);
+requestAnimationFrame(frame);
+})();
+</script>

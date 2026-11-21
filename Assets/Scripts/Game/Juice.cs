@@ -772,6 +772,7 @@ namespace Arena
                 if (nb.T >= NumberLife) numbers.RemoveAt(i); else numbers[i] = nb;
             }
             trauma = Mathf.Max(0f, trauma - realDt * 1.8f);
+            TwinKickStep(realDt);  // the Twin Rifle's screen kick (TwinRifleFx.cs)
             hurtTint = Mathf.Max(0f, hurtTint - realDt * 2.2f);
             introT = Mathf.Max(0f, introT - realDt);
             TickWardenIntro(realDt);  // WardenIntro.cs
@@ -985,16 +986,21 @@ namespace Arena
         {
             RefreshCull();  // the screen's size for skipping off-screen triangles (WorldRenderer.cs)
             shakeX = shakeY = 0f;
-            if (!Juicy || trauma <= 0f)
+            punchK = 0f;
+            if (!Juicy)
                 return;  // (frozen with P: the picture holds still)
-            float k = trauma * trauma * (fxShake == 1 ? 0.45f : 1f) * 12f * drawScale, s = Time.unscaledTime;
-            shakeX = k * Mathf.Sin(s * 61.3f) * Mathf.Cos(s * 17.1f);
-            shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
+            if (trauma > 0f)
+            {
+                float k = trauma * trauma * (fxShake == 1 ? 0.45f : 1f) * 12f * drawScale, s = Time.unscaledTime;
+                shakeX = k * Mathf.Sin(s * 61.3f) * Mathf.Cos(s * 17.1f);
+                shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
+            }
+            BeginTwinKick(game.Me);  // the Twin Rifle's push and punch (TwinRifleFx.cs)
         }
 
         void EndJuiceFrame()
         {
-            shakeX = shakeY = 0f;
+            shakeX = shakeY = punchK = 0f;
             EndLeanFrame();  // CameraLean.cs
         }
 
