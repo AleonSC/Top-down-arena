@@ -175,6 +175,7 @@ namespace Arena
                 m.BiteT -= dt;
                 m.StepT -= dt;
                 float q = QuietAt(e.Pos);
+                float qv = e.Type == EnemyType.Thug ? q + (1f - q) * 0.5f : q;  // a Thug is half as loud as a Brute
                 bool moved = e.Pos.FartherThan(m.Last, 0.3f);
                 m.Last = e.Pos;
                 bool touching = !fresh && TouchingPlayer(e);
@@ -193,10 +194,10 @@ namespace Arena
                         if (!fresh && !m.Alerted && q <= 0.2f)
                         {
                             m.Alerted = true;  // one bark when it first comes within earshot
-                            MeleeCue(Sfx.BruteGrunt, q);
+                            MeleeCue(Sfx.BruteGrunt, qv);
                         }
                         if (bite)
-                            MeleeCue(Sfx.BruteBash, q);
+                            MeleeCue(Sfx.BruteBash, qv);
                         break;
                     case EnemyType.Rioter:  // Phase 1 is a bottle Rioter cocking its arm (RiotBrains.cs)
                         if (!fresh && !m.Alerted && q <= 0.2f)
@@ -225,8 +226,8 @@ namespace Arena
                 {
                     m.StepT = every;
                     float best;
-                    if (!stepQuiet.TryGetValue(step, out best) || q < best)
-                        stepQuiet[step] = q;
+                    if (!stepQuiet.TryGetValue(step, out best) || qv < best)
+                        stepQuiet[step] = qv;
                 }
                 m.Phase = e.Phase;
             }
@@ -243,6 +244,8 @@ namespace Arena
                     continue;
                 goneVoices.Add(kv.Key);
                 float q = QuietAt(kv.Value.Pos), best;
+                if (kv.Value.Type == EnemyType.Thug)
+                    q += (1f - q) * 0.5f;
                 if (!deathQuiet.TryGetValue(kv.Value.Type, out best) || q < best)
                     deathQuiet[kv.Value.Type] = q;
             }
