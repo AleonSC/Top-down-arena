@@ -6,7 +6,7 @@ namespace Arena
     /// and the rank-reward backgrounds are gone; the reward plumbing stays so new unlockable ones can be added.
     public partial class ArenaApp
     {
-        public static readonly string[] BackgroundNames = { "Holo Floor", "Lattice", "Circuit Run", "Hex Scan" };  // 1-3: reactive mockups (BackgroundArena.cs)
+        public static readonly string[] BackgroundNames = { "Holo Floor", "Deep Field", "Nebula Drift", "Aurora Veil" };  // 1-3: the quiet reactive rank rewards (BackgroundArena.cs)
 
         const int HoloFloorBg = 0;
 
@@ -15,7 +15,7 @@ namespace Arena
 
         /// The cosmetic id of each reward background, in BackgroundNames order from FirstRewardBg. To add one: a name here and in
         /// BackgroundNames, an accent, a `case` in DrawMenuBackground, a CosmeticDef in Rank.cs.
-        static readonly string[] RewardBackgrounds = { "bg-react-lattice", "bg-react-circuit", "bg-react-hex" };
+        static readonly string[] RewardBackgrounds = { "bg-react-deepfield", "bg-react-nebula", "bg-react-aurora" };
 
         static string BackgroundCosmeticId(int i) => i >= FirstRewardBg && i - FirstRewardBg < RewardBackgrounds.Length ? RewardBackgrounds[i - FirstRewardBg] : null;
         static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? 0 : FirstRewardBg + k; }
@@ -46,14 +46,14 @@ namespace Arena
             ReactTick(time);  // BackgroundReact.cs: pointer and clicks for the reactive backgrounds
             switch (menuBg)
             {
-                case 1: BgLattice(time); break;
-                case 2: BgCircuitRun(time); break;
-                case 3: BgHexScan(time); break;
+                case 1: BgDeepField(time); break;
+                case 2: BgNebulaDrift(time); break;
+                case 3: BgAuroraVeil(time); break;
                 default: BgHoloFloor(time); break;  // MenuHolo.cs
             }
         }
 
-        static readonly Color[] BackgroundAccents = { new Color(0.45f, 0.62f, 1f), new Color(0.3f, 0.85f, 1f), new Color(0.25f, 0.92f, 0.82f), new Color(0.4f, 0.75f, 1f) };  // Holo Floor, Lattice, Circuit Run, Hex Scan
+        static readonly Color[] BackgroundAccents = { new Color(0.45f, 0.62f, 1f), new Color(0.72f, 0.82f, 1f), new Color(0.45f, 0.4f, 0.95f), new Color(0.2f, 0.75f, 0.85f) };  // Holo Floor, Deep Field, Nebula Drift, Aurora Veil
 
 
 
