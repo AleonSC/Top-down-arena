@@ -39,9 +39,9 @@ other keys are locked. Click a key to pick it (inverse video, like the weapon an
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
 
-The **Class**, **Weapon**, **Ability** and **Ultimate** rows are each one long row that slides sideways (four keys in view on
-every row, all the size of the class keys): click the arrow keys at its ends or roll the mouse wheel over it. The row stops at
-its first and last key, where the arrow on that side greys out, and the picked key slides into view. Click a **role** or **class** key and the detail box shows that role's or
+The **Class**, **Weapon**, **Ability** and **Ultimate** rows show four keys each, all the same size. The **Class** row slides
+sideways: click the arrow keys at its ends or roll the mouse wheel over it. It stops at its first and last class, where the
+arrow on that side greys out, and the picked class slides into view. The Weapon, Ability and Ultimate rows are fixed. Click a **role** or **class** key and the detail box shows that role's or
 class's description with its health and speed; a weapon, ability or ultimate key shows that as before. Role and class keys have
 no hover tips.
 

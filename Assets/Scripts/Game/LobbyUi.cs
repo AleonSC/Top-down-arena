@@ -787,7 +787,7 @@ namespace Arena
                 for (int i = 0; i < weaponCount; i++)
                     if (weaponOn < 0 && WeaponKeyOn(me, i))
                         weaponOn = i;
-                BeginCarousel(CarWeapon, new Rect(x, y + CarKeyY, w, CarKeyH), weaponSlots, KeysInView, weaponOn, out from, out to);
+                BeginCarousel(CarWeapon, new Rect(x, y + CarKeyY, w, CarKeyH), weaponSlots, KeysInView, weaponOn, out from, out to, CarScrolls[CarWeapon]);
                 for (int j = from; j <= to; j++)
                 {
                     int i = CarIndex(j);
@@ -813,7 +813,7 @@ namespace Arena
 
                 LobbyKit.Heading(x, y, w, "Ability", null, calm, 15);
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.FirstAbilityChoices);
-                BeginCarousel(CarAbility, new Rect(x, y + CarKeyY, w, CarKeyH), abilitySlots, KeysInView, me.Ability, out from, out to);
+                BeginCarousel(CarAbility, new Rect(x, y + CarKeyY, w, CarKeyH), abilitySlots, KeysInView, me.Ability, out from, out to, CarScrolls[CarAbility]);
                 for (int j = from; j <= to; j++)
                 {
                     int i = CarIndex(j);
@@ -846,7 +846,7 @@ namespace Arena
             for (int i = 0; i < Upgrades.UltKeys; i++)
                 if (me.Ult == (wildRow ? Upgrades.WildUlt(rowKit, i) : i))
                     ultOn = i;
-            BeginCarousel(CarUlt, new Rect(x, ultY + CarKeyY, w, CarKeyH), Upgrades.UltKeys, KeysInView, ultOn, out from, out to);
+            BeginCarousel(CarUlt, new Rect(x, ultY + CarKeyY, w, CarKeyH), Upgrades.UltKeys, KeysInView, ultOn, out from, out to, CarScrolls[CarUlt]);
             for (int j = from; j <= to; j++)
             {
                 int i = CarIndex(j);

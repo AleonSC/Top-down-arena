@@ -19,6 +19,9 @@ namespace Arena
         const float PreviewEnd = LoadoutTop + RoleRowStep + (LoadoutRows - 2f) * CarRowStep + CarKeyY + CarKeyH - 1f;  // (its 1.5 px frame line centred on the keys' bottom edge)
         const float SeparatorY = (PreviewEnd + 6f + BottomTop) / 2f;  // (between the Ultimate keys and the boxes)
         const int ClassesInView = 4, KeysInView = 4;   // keys in view on every row (the same size as the class keys)
+        /// Which rows scroll: only Class for now. Weapon, Ability and Ultimate are fixed rows of four (they never have more);
+        /// set one true to give it the arrows and the wheel again.
+        static readonly bool[] CarScrolls = { true, false, false, false };
         /// The detail box's role and class pages (`detailSel`; 0-2 are the weapon, ability and ultimate).
         public const int DetailRole = 3, DetailClass = 4;
         /// The role and class keys' hover tips, retired for now (the detail box shows them on a click). False brings them back.
@@ -36,11 +39,12 @@ namespace Arena
 
         /// Starts carousel `row` in r: `count` keys, `visible` at a time, `sel` the picked one (-1: none). The row stops at its ends:
         /// the arrow on that side greys out and the wheel goes no further. Gives the keys to draw (`from..to`, at `CarItem(i)`).
-        void BeginCarousel(int row, Rect r, int count, int visible, int sel, out int from, out int to)
+        /// `scroll` false: a fixed row (no arrows, no wheel) with its keys where a scrolling row's would be.
+        void BeginCarousel(int row, Rect r, int count, int visible, int sel, out int from, out int to, bool scroll = true)
         {
             var ev = Event.current;
             bool calm = fxReduced;
-            int maxFirst = Mathf.Max(0, count - visible);
+            int maxFirst = scroll ? Mathf.Max(0, count - visible) : 0;
             if (sel != carSeen[row])
             {
                 bool first = carSeen[row] == -2;
@@ -59,7 +63,7 @@ namespace Arena
             }
             carFirst[row] = Mathf.Clamp(carFirst[row], 0, maxFirst);
             var view = new Rect(r.x + CarArrowW + CarGap, r.y, r.width - 2f * (CarArrowW + CarGap), r.height);
-            for (int side = -1; side <= 1; side += 2)  // an arrow greys out (dashed, dim chevron) at its end of the row
+            for (int side = -1; side <= 1 && scroll; side += 2)  // an arrow greys out (dashed, dim chevron) at its end of the row
             {
                 var ab = new Rect(side < 0 ? r.x : r.xMax - CarArrowW, r.y, CarArrowW, r.height);
                 bool can = side < 0 ? carFirst[row] > 0 : carFirst[row] < maxFirst;
@@ -84,7 +88,7 @@ namespace Arena
             carTipPrev = lockedTip;
             GUI.BeginGroup(new Rect(view.x, view.y - CarPad, view.width, view.height + 2f * CarPad));
             from = Mathf.Max(0, Mathf.FloorToInt(pos));
-            to = Mathf.Min(count - 1, Mathf.CeilToInt(pos + visible) - 1);  // (one more while it slides)
+            to = Mathf.Min(count - 1, Mathf.CeilToInt(pos + visible) - 1);  // (one more while it slides; a fixed row: the first `visible`)
         }
 
         /// The key in slot j (the rows don't loop: slot j is key j).
