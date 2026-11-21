@@ -9,7 +9,7 @@ namespace Arena
     ///   - brass that flips out of the port, lands, bounces once, slides and fades after about 1.4 s, so a long burst leaves
     ///     the floor littered;
     ///   - recoil through the body: the elbows fold with each gun's kick (TwinArm) and the whole body jolts back;
-    ///   - the screen kick, your own Twin Rifle only (Docs/Mockups/twin-rifle-screen-kick.html, "Push + punch"): each volley
+    ///   - the screen kick, your own Twin Rifle or Twin Rifle Auto (Docs/Mockups/twin-rifle-screen-kick.html, "Push + punch"): each volley
     ///     pushes the picture TwinPushPx along your aim and pulses it TwinPunchStep bigger round you, both springing back;
     ///     off with Screen shake off or Reduced effects, 1.6x with Screen shake on Full (applied in Juice.cs and Px).
     public partial class ArenaApp

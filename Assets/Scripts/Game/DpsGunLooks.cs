@@ -98,7 +98,7 @@ namespace Arena
                     {
                         s.Heat = Mathf.Min(1f, Mathf.Max(0f, s.Heat - TwinHeatDown * (juiceClock - s.T)) + TwinHeatUp);
                         s.T = juiceClock;
-                        if (owner == game.Me && owner.Weapon.Id == WeaponId.TwinRifle)
+                        if (owner == game.Me)  // (the Twin Rifle and its Auto)
                             TwinScreenKick(dir);  // TwinRifleFx.cs
                     }
                     break;
