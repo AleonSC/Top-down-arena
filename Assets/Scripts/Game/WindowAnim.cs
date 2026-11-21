@@ -7,15 +7,20 @@ namespace Arena
     ///   Opening: the cabinet soft-sweeps in place (HoloBoot.SoftClip/SoftOver, LobbyFx.cs; with Reduced effects or Visual effects off it slides in from the left,
     ///   0.3 s); then its screens power on and type (CrtWindows.cs).
     ///   Closing: the cabinet and its window slide back out (0.3 s); the window really closes when that's done.
+    ///   The pause menu and the lobby's Esc menu DOCK instead (`docking`, Docs/Mockups/pause-dock.html): the cabinet comes in from the left
+    ///   and the run card (or the window out) from the right, each with two fading frame trails, a small flash and a scan line as they land;
+    ///   the keys slide in one by one. They leave the same ways, faster (DockOutLen). Reduced effects: a plain slide, no trails.
     /// GL drawn inside a moving window (a boss preview, the effects preview) moves with it through `uiShift`.
     public partial class ArenaApp
     {
         const float WinCloseLen = 0.3f;
+        const float DockOutLen = 0.22f;  // the pause and lobby menus leave faster than the other windows
 
         float winOpenAt = -10f;         // when the window now drawn opened (or, for the pause menu, where its opening is)
         float winCloseK;                // 0..1: how far it has closed
         float winClosingAt = -1f;       // a window closing (not the pause menu's): when it started
         System.Action winAfterClose;    // what closes it for real, once it has slid out
+        float winCloseLen = WinCloseLen;  // how long this closing takes
         V2 uiShift;                     // added to the UI canvas's GL while a panel is moving (CanvasPx)
         Matrix4x4 shiftMatrix;          // GUI.matrix before PushShift
         bool shifted;
@@ -35,11 +40,12 @@ namespace Arena
         float WindowVis => Mathf.Clamp01(WinT / 0.3f) * (1f - winCloseK);
 
         /// Close a window with its slide: `done` closes it once it's out.
-        void CloseWindow(System.Action done)
+        void CloseWindow(System.Action done, float len = WinCloseLen)
         {
             if (WindowClosing)
                 return;
             winClosingAt = WinNow;
+            winCloseLen = len;
             winAfterClose = done;
         }
 
@@ -54,7 +60,7 @@ namespace Arena
             }
             if (!WindowClosing)
                 return;
-            winCloseK = Mathf.Clamp01((WinNow - winClosingAt) / WinCloseLen);
+            winCloseK = Mathf.Clamp01((WinNow - winClosingAt) / winCloseLen);
             if (winCloseK < 1f)
                 return;
             var done = winAfterClose;
@@ -77,7 +83,52 @@ namespace Arena
 
         /// The drawer's slide (BeginDrawer): in from the left as it opens, out as it closes.
         /// With effects on it holo-boots in place instead of sliding in (CrtWindows.cs, BeginDrawer); it still slides out.
-        float DrawerSlide => (FxCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : 0f) - EaseIn3(winCloseK) * DrawerSlideW;
+        float DrawerSlide => (FxCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : docking ? DockDrawerIn(WinT) : 0f) - EaseIn3(winCloseK) * DrawerSlideW;
+
+        // --- Docking (the pause menu and the lobby's Esc menu) ---------------------------------------------------------
+
+        bool docking;  // drawing the pause menu or the lobby's menu: they dock in from the sides (DockDrawerIn, DockPanelX)
+        bool Dock => docking && !FxCalm;
+
+
+        /// The cabinet's x offset `age` seconds into the opening: in from the left (0.28 s).
+        static float DockDrawerIn(float age) => -(1f - EaseOut(Seg(age, 0f, 0.28f))) * DrawerSlideW;
+
+        float DockPanelW => W - DrawerPanel.x + 40f;  // how far right the run card goes to be out of sight
+
+        /// The run card's (or the window's) x offset `age` seconds in: in from the right a beat after the cabinet (0.04-0.32 s).
+        float DockPanelIn(float age) => (1f - EaseOut(Seg(age, 0.04f, 0.32f))) * DockPanelW;
+
+        /// Where the run card or the window is: docking in, or (the menu closing) back out to the right.
+        float DockPanelX => (Dock ? DockPanelIn(WinT) : 0f) + EaseIn3(winCloseK) * DockPanelW;
+
+        /// The two frames trailing a box as it docks (drawn under it), `lag` seconds behind where `xAt` puts it.
+        void DockTrails(Rect r, System.Func<float, float> xAt, Color c)
+        {
+            float age = WinT;
+            if (!Dock || winCloseK > 0f || age < 0.02f || age > 0.34f)
+                return;
+            for (int i = 0; i < 2; i++)
+            {
+                float a = 0.4f / (i + 1) * (1f - Seg(age, 0.26f, 0.34f));
+                CrtKit.Frame(new Rect(r.x + xAt(age - (i + 1) * 0.035f), r.y, r.width, r.height), 2f, c.WithAlpha(a));
+            }
+        }
+
+        /// A docked box landing (drawn over it): a short flash, then a scan line down it.
+        void DockLand(Rect r, float at)
+        {
+            float age = WinT;
+            if (!Dock || winCloseK > 0f || age < at || age > at + 0.2f)
+                return;
+            Ui.Fill(r, new Color(0.81f, 0.88f, 1f, 0.22f * (1f - Seg(age, at, at + 0.12f))));
+            float p = Seg(age, at, at + 0.18f);
+            if (p > 0f && p < 1f)
+                Ui.Fill(new Rect(r.x, r.y + p * (r.height - 3f), r.width, 3f), new Color(0.56f, 0.71f, 1f, 0.8f));
+        }
+
+        /// A key in a docking cabinet: how far it has come in (0..1); it slides in from the left after the box (0.18 s on, 0.03 s apart).
+        float DockKeyK(int i) => Dock ? EaseOut(Seg(WinT, 0.18f + i * 0.03f, 0.3f + i * 0.03f)) : 1f;
 
         /// Move everything drawn (IMGUI and the canvas's GL) by (dx, dy) and fade it, until PopShift.
         void PushShift(float dx, float dy, float alpha)
@@ -105,7 +156,7 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        float pauseAnim;     // 0 closed .. 1 fully slid in; opening and closing take 0.3 s
+        float pauseAnim;     // 0 closed .. 1 fully in; opening takes 0.3 s, closing DockOutLen
         float pauseOpenedAt = -10f;  // when the pause menu last opened: its cabinet's clock (the opening plays once from here, CrtWindows.cs)
         float pauseClosedAt = -1f;   // when it started closing (-1: it isn't): its opening's clock stops there, so nothing pops in as it slides out
 
@@ -117,7 +168,7 @@ namespace Arena
         {
             bool want = PauseMenuWanted;
             float before = pauseAnim;
-            pauseAnim = want ? Mathf.Min(1f, pauseAnim + dt / 0.3f) : Mathf.Max(0f, pauseAnim - dt / WinCloseLen);
+            pauseAnim = want ? Mathf.Min(1f, pauseAnim + dt / 0.3f) : Mathf.Max(0f, pauseAnim - dt / DockOutLen);
             if (session.Screen != AppScreen.Game)
             {
                 pauseAnim = 0f;
@@ -158,7 +209,9 @@ namespace Arena
             winCloseK = closing ? 1f - pauseAnim : 0f;
             winFreeze = closing && pauseClosedAt >= 0f ? WinNow - pauseClosedAt : 0f;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f * WindowVis));
+            docking = true;
             DrawPauseWindow();
+            docking = false;
             winFreeze = 0f;
             if (closing)
             {

@@ -73,8 +73,9 @@ namespace Arena
                 CrtKit.SeedRows(16, now);
             cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
             // The soft sweep (HoloBoot, LobbyFx.cs): the box shows top-down under a feathered edge as it opens (EndDrawer).
-            cabBootE = calm ? 99f : age;  // (closing, the pause menu's clock is stopped: a half-swept box slides out as it is)
+            cabBootE = calm || Dock ? 99f : age;  // (closing, the pause menu's clock is stopped: a half-swept box slides out as it is; docking: no sweep)
             cabBootRect = new Rect(dx + CabX, CabY, CabW + 2f, CabH + 2f);
+            DockTrails(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a), CrtStyle.Ink);  // (docking: WindowAnim.cs)
             float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
@@ -84,7 +85,7 @@ namespace Arena
             var hr = header ?? new Rect(26f, 26f, CabInW, 100f);
             bool tight = hr.height < 90f;
             float ty = tight ? 2f : 6f, th = tight ? 46f : 56f, sy = tight ? 50f : 64f;
-            float ha = age - 0.5f;
+            float ha = age - (Dock ? 0.14f : 0.5f);  // (docking, the title types as the box lands)
             if (ha > 0f || calm)  // a thin rule under the title and its line
                 Ui.Fill(new Rect(hr.x, hr.yMax + 4f, hr.width, 1f), CrtUi.T(new Color(0.12f, 0.23f, 0.4f)));
             if (calm || ha >= 0f)
@@ -92,7 +93,7 @@ namespace Arena
                 int size = Mathf.Min(titleSize, 40);
                 while (size > 16 && CrtUi.TitleWidth(title, size) > hr.width - 60f)
                     size--;
-                string t = CabText("cab.title", title, 0.8f);
+                string t = CabText("cab.title", title, Dock ? 0.16f : 0.8f);
                 CrtUi.Title(new Rect(hr.x + 18f, hr.y + ty, hr.width - 36f, th), t, size, CrtStyle.Ink, TextAnchor.MiddleLeft, calm);
                 if (calm || Mathf.FloorToInt(now * 2f) % 2 == 0)  // the blinking block after the text
                 {
@@ -102,7 +103,7 @@ namespace Arena
                 string subFull = string.IsNullOrEmpty(sub) ? "" : sub.ToUpperInvariant();
                 string subShown = CrtKit.Typed("cab.sub", subFull, now, calm, -10f);
                 if (!calm && age < CabOpenEnd && CrtKit.Settled("cab.sub", now))
-                    subShown = CrtKit.BootLine(cabBootLog, subFull, age - 0.98f, false);  // the opening: a boot log first
+                    subShown = CrtKit.BootLine(cabBootLog, subFull, age - (Dock ? 0.3f : 0.98f), false);  // the opening: a boot log first
                 Ui.Label(new Rect(hr.x + 20f, hr.y + sy, hr.width - 40f, 20f), subShown, 12, CabSoft, TextAnchor.MiddleLeft, true);
             }
 
@@ -129,6 +130,7 @@ namespace Arena
             GUI.EndGroup();
             GUI.EndGroup();
             HoloBoot.SoftOver(cabBootRect, cabBootE);
+            DockLand(cabBootRect, 0.26f);
         }
 
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -155,6 +157,26 @@ namespace Arena
             float ka;
             if (!KeyOpening(r, i, out ka))
                 return false;
+            float dk = DockKeyK(i);  // docking: the keys slide in one by one, faded and not clickable yet (WindowAnim.cs)
+            if (dk <= 0f)
+                return false;
+            if (dk >= 1f)
+                return DrawerKey(r, i, icon, name, line, key, tag, col, on, tagColor, danger);
+            float oldA = Ui.Alpha;
+            var oldC = GUI.color;
+            bool oldE = GUI.enabled;
+            Ui.Alpha = oldA * dk;
+            GUI.color = oldC.WithAlpha(oldC.a * dk);
+            GUI.enabled = false;
+            DrawerKey(new Rect(r.x - 30f * (1f - dk), r.y, r.width, r.height), i, icon, name, line, key, tag, col, on, tagColor, danger);
+            Ui.Alpha = oldA;
+            GUI.color = oldC;
+            GUI.enabled = oldE;
+            return false;
+        }
+
+        bool DrawerKey(Rect r, int i, Texture2D icon, string name, string line, string key, string tag, Color col, bool on, Color? tagColor, bool danger)
+        {
             string slot = "cab.r" + i;
             // The texts are there as soon as the key is (blank keys read as broken while they typed in); they still retype when the list switches.
             string n = CrtKit.Typed(slot + ".n", name, WinNow, FxCalm, -10f);
@@ -292,13 +314,13 @@ namespace Arena
         bool CabWindowOpen => cabWin && cabKind != 0 && cabWinOutAt < 0f;
 
         /// How far out the window is, 0 hidden .. 1 in place (the run card fades as it comes).
-        float CabWinSlideK()
+        float CabWinSlideK(bool menuClose = true)
         {
             if (!cabWin)
                 return 0f;
             const float inK = 1f;  // no slide out: with effects on it soft-sweeps in place (BeginPanelAnim), and calm it is just there
             float outK = cabWinOutAt >= 0f ? EaseIn3(Mathf.Clamp01((WinNow - cabWinOutAt) / WinCloseLen)) : 0f;
-            return inK * (1f - outK) * (1f - EaseIn3(winCloseK));
+            return inK * (1f - outK) * (menuClose ? 1f - EaseIn3(winCloseK) : 1f);
         }
 
         /// Each frame the cabinet is up: draw the window it holds (behind the cabinet, so it comes out from under it).
@@ -337,8 +359,9 @@ namespace Arena
                 cabWinInAt = WinT < 1.3f ? WinClock + 1.3f - WinT : WinClock;
                 CrtKit.Forget("win.");
             }
-            float k = CabWinSlideK();
-            float dx = -(DrawerPanel.xMax + 20f) * (1f - k);
+            // (In a docking menu it comes and goes with the menu from the right, DockPanelX; on its own it goes back in behind the cabinet.)
+            float k = CabWinSlideK(!docking);
+            float dx = -(DrawerPanel.xMax + 20f) * (1f - k) + (docking ? DockPanelX : 0f);
             cabWinPower = cabKind == 0 || !FxCalm ? WinClock - cabWinInAt : WinClock - cabWinInAt - 0.2f;
             cabWinRect = new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height);
             cabWinOn = FxCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
