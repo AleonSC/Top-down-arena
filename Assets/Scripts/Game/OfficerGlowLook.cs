@@ -7,6 +7,8 @@ namespace Arena
     ///   - a breathing halo in the officer's own colour, in place of the quiet glow other enemies get (EnemyPresenceLook.cs);
     ///   - its kit lit: the Guard's baton tip and cap badge, the Riot Shield's face, the Gas Grenadier's mask lenses and
     ///     canister, the Taser Guard's prongs crackling, the Security Guard's pistol light; and a blinking radio LED.
+    /// The prisoners (Rioter, Thug, Shiv) and the Turnkey get the halo too, no kit; the Thug's is a faint red that grows
+    /// bigger, brighter and quicker as it enrages (Game.BruteRage: the health it has lost).
     /// The kit's spots follow the bodies' own drawing (OfficerLook.cs, SecurityLook.cs, WardenLook.cs).
     public partial class ArenaApp
     {
@@ -21,20 +23,35 @@ namespace Arena
             ty == EnemyType.Guard || ty == EnemyType.RiotShield || ty == EnemyType.GasGrenadier || ty == EnemyType.TaserGuard ||
             ty == EnemyType.SecurityGuard;
 
-        /// DrawGlowPass: every officer's halo and kit.
+        /// The Warden's faction members with a halo: the officers, the prisoners and the Turnkey.
+        static bool HasWardenHalo(EnemyType ty) =>
+            IsOfficer(ty) || ty == EnemyType.Rioter || ty == EnemyType.Thug || ty == EnemyType.Shiv || ty == EnemyType.Turnkey;
+
+        static readonly Rgba ThugRage = new Rgba(1f, 0.16f, 0.12f);
+
+        /// DrawGlowPass: every officer's halo and kit, the prisoners' and Turnkey's halos.
         void DrawOfficerGlow()
         {
             float t = game.AnimT;
             foreach (var e in game.Enemies.Values)
             {
-                if (!IsOfficer(e.Type) || !HasPresence(e))
+                if (!HasWardenHalo(e.Type) || !HasPresence(e))
                     continue;
                 V2 pos = e.Disp - new V2(0f, BsLiftOf(e));
                 float r = e.Radius * JuiceScale(e);
+                if (e.Type == EnemyType.Thug)
+                {
+                    float rage = Game.BruteRage(e);  // 0 fresh, 1 near death
+                    float beat = 0.85f + 0.15f * Mathf.Sin(t * (2.4f + 6f * rage) + e.Id * 1.3f);
+                    GlowDisc(pos, r * (3f + 2.6f * rage), ThugRage, (0.14f + 0.36f * rage) * beat);
+                    GlowDisc(pos, r * (1.6f + 0.6f * rage), ThugRage, 0.12f + 0.25f * rage);
+                    continue;
+                }
                 float breath = 0.85f + 0.15f * Mathf.Sin(t * 2.4f + e.Id * 1.3f);
                 GlowDisc(pos, r * OfficerHaloR, e.Def.Color, OfficerHaloA * breath);
                 GlowDisc(pos, r * OfficerCoreR, e.Def.Color, OfficerCoreA);
-                OfficerKitGlow(e, pos, r, t);
+                if (IsOfficer(e.Type))
+                    OfficerKitGlow(e, pos, r, t);
             }
         }
 

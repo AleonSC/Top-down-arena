@@ -68,7 +68,7 @@ static partial class Program
         {
             var ms = new System.IO.MemoryStream();
             var bw = new System.IO.BinaryWriter(ms);
-            bw.Write(pos); bw.Write(aim); bw.Write(new V2(500f, 500f)); bw.Write(false); bw.Write(false); bw.Write(0f); bw.Write(0f); bw.Write((byte)0);
+            bw.Write(pos); bw.Write(aim); bw.Write(new V2(500f, 500f)); bw.Write(false); bw.Write(false); bw.Write(0f); bw.Write(0f); bw.Write((byte)0); bw.Write(false);  // ..., sprint, bot (Msg.Input)
             ms.Position = 0;
             return new System.IO.BinaryReader(ms);
         };
@@ -79,13 +79,18 @@ static partial class Program
         g.OnInput(1, input(new V2(400f, 400f), 0.5f));
         Check(me.Pos.DistanceTo(new V2(400f, 400f)) < 0.01f, "...and good input still moves you");
         // A client's dodges: the host grants the invulnerability at most once per cooldown.
-        Func<System.IO.BinaryReader> dodgeMsg = () => { var ms = new System.IO.MemoryStream(); new System.IO.BinaryWriter(ms).Write(V2.Zero); ms.Position = 0; return new System.IO.BinaryReader(ms); };
+        Func<bool, System.IO.BinaryReader> dodgeMsg = free => { var ms = new System.IO.MemoryStream(); var bw = new System.IO.BinaryWriter(ms); bw.Write(V2.Zero); bw.Write(free); ms.Position = 0; return new System.IO.BinaryReader(ms); };
         me.InvulnT = 0f;
-        g.OnDodge(1, dodgeMsg());
+        g.OnDodge(1, dodgeMsg(false));
         bool first = me.InvulnT > 0f;
         me.InvulnT = 0f;
-        g.OnDodge(1, dodgeMsg());
+        g.OnDodge(1, dodgeMsg(false));
         Check(first && me.InvulnT == 0f, "a second dodge message inside the cooldown is ignored");
+        g.OnDodge(1, dodgeMsg(true));
+        bool freeIn = me.InvulnT > 0f;
+        me.InvulnT = 0f;
+        g.OnDodge(1, dodgeMsg(true));
+        Check(freeIn && me.InvulnT == 0f, "one wall kick's free dodge gets in under the cooldown, a second doesn't");
 
         // Run saves: a save cut short (no end line) isn't loaded; old saves without one still are.
         var runText = "arena-run 2\nwave 3\nseat\nname Host\n";
