@@ -124,7 +124,7 @@ namespace Arena
             SessionRecorder.Log = msg => Debug.LogWarning("Arena: " + msg);
             Diag.Sink = msg => Debug.LogWarning("Arena: " + msg);  // (recovered file, save and sound failures, Diag.cs)
             sounds = new SoundBank(gameObject);
-            MenuVhs.OnHover = calm => sounds.Play(Sfx.MenuHover, SoundBank.MenuHoverVolume * (calm ? 0.5f : 1f), Time.unscaledTime);
+            MenuVhs.OnHover = calm => sounds.Play(Sfx.MenuHover, SoundBank.MenuSoundVolume * (calm ? 0.5f : 1f), Time.unscaledTime);
             LoadMusicPack();  // clips you assigned in Unity replace / join the generated music (MusicPack.cs)
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
@@ -878,9 +878,9 @@ namespace Arena
             bool clicked = Ui.TakeClick();
             ClickLogEnd(clicked);
             if (Ui.EndHoverFrame() && sounds != null && !clicked)
-                sounds.PlayUiHover(Time.unscaledTime);  // a soft tick when the mouse moves onto a button
+                sounds.PlayUiHover(Time.unscaledTime, fxReduced);  // the glassy tick when the mouse moves onto a button
             if (clicked && sounds != null)
-                sounds.PlayUiClick(Time.unscaledTime);  // and a soft click when one is pressed
+                sounds.PlayUiClick(Time.unscaledTime);  // and the chirp when one is pressed
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)

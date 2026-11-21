@@ -167,7 +167,7 @@ namespace Arena
         int roomsHeard = -1, neonHeard = -1;
 
         /// A menu key's own sound, in place of the generic click (Ui.TakeClick takes this event's click so it doesn't play too).
-        void MenuSound(Sfx s, float vol = 0.7f)
+        void MenuSound(Sfx s, float vol = SoundBank.MenuSoundVolume)
         {
             if (sounds != null)
                 sounds.Play(s, vol, Time.unscaledTime);
