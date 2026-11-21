@@ -13,12 +13,12 @@ static partial class Program
         Check(Favorites.Save(p, "  Lance|Wall  ", knight) && p.Favorites[0].Name == "LanceWall" && p.Favorites[0].Matches(knight), "a loadout saves under a clean name (no '|', trimmed) and matches its seat");
         Check(Favorites.Save(p, "", knight) && p.Favorites[1].Name == "Knight Tank", "an empty name becomes the class and role");
         Check(Favorites.Save(p, new string('x', 40), knight) && p.Favorites[2].Name.Length == Favorites.NameMax, "a long name is cut to " + Favorites.NameMax + " letters");
-        var wild = new LobbyEntry { Role = Role.Wildcard, Kit = Kit.Soldier, Weapon = 9, Ability = 12, Wild = Defs.MakeWild(14, 2), Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0) };
+        var wild = new LobbyEntry { Role = Role.Wildcard, Kit = Kit.Soldier, Weapon = 9, Ability = 12, Wild = Defs.MakeWild(14), Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0) };
         p.PerkNames.Add("RiotGear");
         Favorites.Save(p, "Wild one", wild);
         while (Favorites.Save(p, "fill", knight)) { }
         Check(p.Favorites.Count == Favorites.Slots, "there are " + Favorites.Slots + " slots and no more");
-        Check(!p.Favorites[3].Matches(new LobbyEntry { Role = Role.Wildcard, Kit = Kit.Soldier, Weapon = 9, Ability = 12, Wild = Defs.MakeWild(13, 2), Ult = wild.Ult }), "a Wildcard ability counts towards a run");
+        Check(!p.Favorites[3].Matches(new LobbyEntry { Role = Role.Wildcard, Kit = Kit.Soldier, Weapon = 9, Ability = 12, Wild = Defs.MakeWild(13), Ult = wild.Ult }), "a Wildcard ability counts towards a run");
 
         var back = Profile.Parse(p.ToText());
         Check(back.Valid && back.Favorites.Count == Favorites.Slots && back.Favorites.Select(Favorites.ToLine).SequenceEqual(p.Favorites.Select(Favorites.ToLine))

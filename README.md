@@ -64,7 +64,7 @@ no hover tips.
 
 **Wildcard** (a fourth role, locked until you have won a run as a Tank, a Healer and a DPS; a co-op win counts): it
 has no class. You pick any class's DPS weapon, any DPS 1st ability, a Wildcard ability (any DPS ability)
-that sits on the 2nd, 3rd or 4th slot (your choice, changeable in the Tab menu like any 2nd–4th ability), and any class's DPS ultimate.
+that starts on the 2nd ability key (movable in the Tab menu like any 2nd–4th ability), and any class's DPS ultimate.
 The lobby's Gear box has a class wheel (arrows, the mouse wheel or the dots turn it) with that class's DPS weapons (four for every class that has a fourth: Double Barrel, Stonespear, Honeybee Staff, Arc Knuckles, Nunchaku, Embolus Spears) and
 three abilities beside it, and the Ultimate row lists its ultimates. Under the wheel, the loadout shows each pick with its
 class's icon (click one to turn the wheel to it); the 1st and 2nd chips choose which slot an ability click fills (the
