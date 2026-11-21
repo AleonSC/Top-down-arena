@@ -129,7 +129,7 @@ static partial class Program
                 {
                     case AbilityId.Aeroaegis: abilityOk = aegis; break;
                     case AbilityId.FlameWall: abilityOk = zones.Contains(ZoneKind.FlameWall); break;
-                    case AbilityId.EnergyWard: abilityOk = shield; break;
+                    case AbilityId.GustGate: abilityOk = zones.Contains(ZoneKind.GustGate); break;
                     case AbilityId.Meteor: abilityOk = zones.Contains(ZoneKind.Meteor); break;
                     case AbilityId.Blizzard: abilityOk = zones.Contains(ZoneKind.Blizzard); break;
                     case AbilityId.Tsunami: abilityOk = wave; break;

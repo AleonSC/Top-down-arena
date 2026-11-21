@@ -1586,6 +1586,7 @@ namespace Arena
                 TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
+                TickGustTimers(p, dt);  // GustGate.cs
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
                 p.GhostT = Math.Max(0f, p.GhostT - dt);  // Ghost Step
                 TickMomentum(p, dt);  // Momentum.cs
@@ -1609,8 +1610,6 @@ namespace Arena
                 p.WardT = Math.Max(0f, p.WardT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
-                if (p.EnergyOn && p.ShieldHp <= 0f)
-                    EnergyPayback(p);  // the Energy Ward ran out: what it soaked comes back as healing (Minions.cs)
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
                 if (p.Downed)
                     p.TauntT = 0f;

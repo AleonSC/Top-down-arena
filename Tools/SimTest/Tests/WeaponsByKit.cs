@@ -1392,7 +1392,7 @@ static partial class Program
 
     static void HealerWardsTest(float dt)
     {
-        // Spirit Ward takes allies' damage and pays some back; Healing Mist sheds dew to pick up; Energy Ward pays back what it soaked.
+        // Spirit Ward takes allies' damage and pays some back; Healing Mist sheds dew to pick up.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var cast = typeof(Game).GetMethod("HostAbility", flags);
         var damage = typeof(Game).GetMethod("Damage", flags);
@@ -1468,29 +1468,6 @@ static partial class Program
         allyAt = new V2(500f, 450f);
         play(0.2f);
 
-        // Energy Ward: a shield that soaks damage, paying back half of it as healing when it breaks or runs out.
-        use(AbilityId.EnergyWard, from);
-        float shieldMe = me.ShieldHp, shieldAlly = ally.ShieldHp;
-        play(0.2f);  // a few ticks, so the client has the snapshot
-        var cMe = client.Game.Players[1];
-        bool wardSynced = me.EnergyMax >= 59f && cMe.EnergyMax >= 59f && cMe.ShieldHp > 0f && cMe.ShieldT > 6f;  // the bubble's look reads these (Game/EnergyWardLook.cs)
-        shieldMe = me.ShieldHp; shieldAlly = ally.ShieldHp;
-        g.DevSetGod(1, false); g.DevSetGod(2, false);
-        me.Hp = me.MaxHp * 0.5f; ally.Hp = ally.MaxHp * 0.5f;
-        float m0 = me.Hp, b0 = ally.Hp;
-        hurt(me, 40f);       // soaked; then it runs out
-        me.ShieldT = 0.01f;
-        hurt(ally, 70f);     // breaks it: 10 gets through, 30 comes back
-        float allyNet = ally.Hp - b0;
-        play(0.05f);
-        float meNet = me.Hp - m0;
-        g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Console.WriteLine("  energy ward: shields {0:0} / {1:0}; you soaked 40 and got back {2:0.0} when it ran out; the ally took 70, net {3:+0.0;-0.0}",
-            shieldMe, shieldAlly, meNet, allyNet);
-        Check(shieldMe >= 59f && shieldAlly >= 59f, "Energy Ward shields you and your ally");
-        Check(wardSynced, "an Energy Ward's full size and timer reach the client, for the bubble to shrink by");
-        Check(me.EnergyMax == 0f, "the ward's size is cleared once it has paid out");
-        Check(Math.Abs(meNet - 40f * Game.EnergyRepay) < 2f && Math.Abs(allyNet - (-10f + 60f * Game.EnergyRepay)) < 1f, "an Energy Ward pays back half of what it soaked when it runs out or breaks");
         host.Leave(""); client.Leave("");
     }
 }
