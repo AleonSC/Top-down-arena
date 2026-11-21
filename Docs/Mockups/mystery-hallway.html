@@ -1,0 +1,82 @@
+<!doctype html><meta charset="utf-8"><title>Mystery room: Relic Gauntlet (mockup)</title>
+<style>
+body{margin:0;background:#070b14;color:#9fb;font:13px/1.4 monospace;display:flex;flex-direction:column;align-items:center;padding:12px}
+svg{width:min(100%,1800px);height:auto;background:#0a1020;border:1px solid #123}
+.k{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;color:#8aa}.k b{color:#fc6}
+</style>
+<svg viewBox="-80 -80 1960 760" id="s">
+<defs>
+ <pattern id="h" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#0c2236"/><line x1="0" y1="0" x2="0" y2="10" stroke="#1d6c88" stroke-width="3"/></pattern>
+ <pattern id="g" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0H0V100" fill="none" stroke="#12203a" stroke-width="1"/></pattern>
+ <radialGradient id="pit"><stop offset="0" stop-color="#000"/><stop offset=".7" stop-color="#05030c"/><stop offset="1" stop-color="#2a0f46"/></radialGradient>
+ <filter id="gl"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<rect x="0" y="0" width="1800" height="600" fill="#0b1224"/><rect x="0" y="0" width="1800" height="600" fill="url(#g)"/>
+<!-- cell tints -->
+<rect x="0" y="0" width="600" height="600" fill="#2a0a14" opacity=".35"/>
+<rect x="1200" y="0" width="600" height="600" fill="#2a0a14" opacity=".35"/>
+<rect x="600" y="0" width="600" height="600" fill="#2a2208" opacity=".25"/>
+<g stroke="#22405a" stroke-dasharray="8 10" stroke-width="2"><line x1="600" y1="0" x2="600" y2="600"/><line x1="1200" y1="0" x2="1200" y2="600"/></g>
+<!-- walls: top/bottom full, ends open 200 wide -->
+<g fill="url(#h)" stroke="#39d0f0" stroke-width="3">
+ <rect x="-40" y="-40" width="1880" height="40"/><rect x="-40" y="600" width="1880" height="40"/>
+ <rect x="-40" y="0" width="40" height="200"/><rect x="-40" y="400" width="40" height="200"/>
+ <rect x="1800" y="0" width="40" height="200"/><rect x="1800" y="400" width="40" height="200"/>
+</g>
+<g fill="#39d0f0" opacity=".9"><path d="M-40 200h40v-14h-40z M-40 400h40v14h-40z M1800 200h40v-14h-40z M1800 400h40v14h-40z"/></g>
+<text x="-70" y="305" fill="#39d0f0" font-size="22" transform="rotate(-90 -70 305)" text-anchor="middle">OPEN ▸ doorway</text>
+<text x="1870" y="305" fill="#39d0f0" font-size="22" transform="rotate(90 1870 305)" text-anchor="middle">OPEN ▸ doorway</text>
+
+<!-- LEFT CELL: void pits + sweeping lasers + turrets -->
+<g id="pitsL">
+ <rect x="150" y="40" width="130" height="190" rx="16" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+ <rect x="320" y="370" width="130" height="190" rx="16" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+ <rect x="470" y="40" width="90" height="120" rx="14" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+ <rect x="70" y="440" width="90" height="120" rx="14" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+</g>
+<g id="laserL">
+ <g><rect x="-6" y="0" width="12" height="600" fill="#ff3b50" filter="url(#gl)" opacity=".9"/><rect x="-2" y="0" width="4" height="600" fill="#fff"/>
+  <animateTransform attributeName="transform" type="translate" values="90 0;510 0;90 0" dur="3.2s" repeatCount="indefinite"/></g>
+ <g><rect x="-6" y="0" width="12" height="600" fill="#ff3b50" filter="url(#gl)" opacity=".9"/><rect x="-2" y="0" width="4" height="600" fill="#fff"/>
+  <animateTransform attributeName="transform" type="translate" values="510 0;90 0;510 0" dur="3.2s" repeatCount="indefinite"/></g>
+ <g fill="#ff3b50"><rect x="80" y="-12" width="22" height="14"/><rect x="80" y="598" width="22" height="14"/><rect x="500" y="-12" width="22" height="14"/><rect x="500" y="598" width="22" height="14"/></g>
+ <text x="300" y="320" fill="#ff7a88" font-size="18" text-anchor="middle">rails: lasers sweep ←→ in anti-phase</text>
+</g>
+<g id="turL"><g transform="translate(40,300)"><rect x="-26" y="-26" width="52" height="52" rx="8" fill="#14202c" stroke="#ffa030" stroke-width="3"/><rect x="2" y="-12" width="34" height="8" fill="#ffa030"/><rect x="2" y="4" width="34" height="8" fill="#ffa030"/><circle r="7" fill="#ffa030"/></g>
+<text x="40" y="350" fill="#fa6" font-size="16" text-anchor="middle">turret</text></g>
+
+<!-- RIGHT CELL: rotating laser + pits + turrets -->
+<g>
+ <rect x="1250" y="440" width="130" height="120" rx="16" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+ <rect x="1500" y="40" width="130" height="120" rx="16" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+ <rect x="1660" y="400" width="100" height="160" rx="14" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+ <rect x="1240" y="50" width="100" height="100" rx="14" fill="url(#pit)" stroke="#a040ff" stroke-width="3"/>
+</g>
+<g transform="translate(1500,300)">
+ <circle r="26" fill="#14202c" stroke="#ff3b50" stroke-width="4"/>
+ <g><rect x="0" y="-5" width="270" height="10" fill="#ff3b50" filter="url(#gl)" opacity=".9"/><rect x="0" y="-2" width="270" height="4" fill="#fff"/>
+  <rect x="-270" y="-5" width="270" height="10" fill="#ff3b50" filter="url(#gl)" opacity=".9"/><rect x="-270" y="-2" width="270" height="4" fill="#fff"/>
+  <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="7s" repeatCount="indefinite"/></g>
+ <text y="64" fill="#ff7a88" font-size="18" text-anchor="middle">spinning beam</text>
+</g>
+<g transform="translate(1760,300) rotate(180)"><rect x="-26" y="-26" width="52" height="52" rx="8" fill="#14202c" stroke="#ffa030" stroke-width="3"/><rect x="2" y="-12" width="34" height="8" fill="#ffa030"/><rect x="2" y="4" width="34" height="8" fill="#ffa030"/><circle r="7" fill="#ffa030"/></g>
+<g transform="translate(1400,-4)"><rect x="-26" y="0" width="52" height="30" rx="8" fill="#14202c" stroke="#ffa030" stroke-width="3"/><rect x="-8" y="28" width="6" height="26" fill="#ffa030"/><rect x="2" y="28" width="6" height="26" fill="#ffa030"/></g>
+<g transform="translate(200,604)"><rect x="-26" y="-30" width="52" height="30" rx="8" fill="#14202c" stroke="#ffa030" stroke-width="3"/><rect x="-8" y="-54" width="6" height="26" fill="#ffa030"/><rect x="2" y="-54" width="6" height="26" fill="#ffa030"/></g>
+
+<!-- CENTER: relic, safe cell -->
+<g transform="translate(900,300)">
+ <circle r="170" fill="#c9a24a" opacity=".07"/><circle r="110" fill="none" stroke="#c9a24a" stroke-width="2" stroke-dasharray="4 8" opacity=".6"/>
+ <circle r="60" fill="#241c0a" stroke="#c9a24a" stroke-width="3"/>
+ <rect x="-30" y="14" width="60" height="9" fill="#c9a24a"/><rect x="-20" y="2" width="40" height="12" fill="#c9a24a" opacity=".7"/>
+ <g transform="translate(0,-34)" stroke="#d8a8ff" stroke-width="4" fill="none"><animateTransform attributeName="transform" type="translate" values="0 -34;0 -44;0 -34" dur="2.4s" repeatCount="indefinite"/><path d="M0 -24L18 0L0 24L-18 0Z"/><path d="M-18 0H18M0 -24V24" stroke-width="2" opacity=".6"/></g>
+ <text y="110" fill="#c9a24a" font-size="18" text-anchor="middle">RELIC · safe cell</text>
+</g>
+<text x="300" y="-50" fill="#f88" font-size="20" text-anchor="middle">CELL 1: hazards</text>
+<text x="900" y="-50" fill="#fc6" font-size="20" text-anchor="middle">CELL 2: relic</text>
+<text x="1500" y="-50" fill="#f88" font-size="20" text-anchor="middle">CELL 3: hazards</text>
+<!-- path hint -->
+<path d="M0 300H600" stroke="#6f6" stroke-width="3" stroke-dasharray="3 10" opacity=".5"/><path d="M1200 300H1800" stroke="#6f6" stroke-width="3" stroke-dasharray="3 10" opacity=".5"/>
+</svg>
+<div class="k"><span><b>■</b> void pit (fall = damage + respawn at door)</span><span><b>│</b> laser (red)</span><span><b>▣</b> turret (amber)</span><span><b>◆</b> relic (centre)</span><span>mockup: approximate, not the game's draw code</span></div>
+<script>/* t param freezes animation for screenshots */
+const t=new URLSearchParams(location.search).get('t');if(t!==null){const s=document.getElementById('s');s.pauseAnimations();s.setCurrentTime(parseFloat(t));}</script>
