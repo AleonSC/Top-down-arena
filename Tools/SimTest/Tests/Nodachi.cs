@@ -27,9 +27,11 @@ static partial class Program
         Check(me.Weapon.Id == WeaponId.Nodachi && me.Weapon.Melee && Defs.WeaponCount(Role.Tank, Kit.Ninja) == 4, "the Tank Ninja's fourth key is the Nodachi (" + me.Weapon.Id + ")");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         V2 from = new V2(400f, 450f), far = from + new V2(400f, 0f);
+        var dummies = new HashSet<int>();  // the test's own enemies; anything else the wave brings in (a faction squad, a portal) is cleared each step
         Func<V2, EnemyType, Enemy> Dummy = (at, type) =>
         {
             var d = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
+            dummies.Add(d.Id);
             d.MaxHp = d.Hp = 1e6f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
             return d;
         };
@@ -39,6 +41,7 @@ static partial class Program
             for (int f = 0; f < secs / dt; f++)
             {
                 me.Pos = from; queue.Clear();
+                foreach (var id in g.Enemies.Keys.Where(id => !dummies.Contains(id)).ToList()) g.Enemies.Remove(id);
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = far, Fire = fire && f < 2, WeaponAction = alt && f < 3 } : new PlayerInput()); }
                 foreach (var c in client.Game.Sounds) heard.Add(c.Sfx);
             }
