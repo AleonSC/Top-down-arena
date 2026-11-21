@@ -20,8 +20,13 @@ namespace Arena
         public const float WallInset = 16f;     // a cell or foe inside a wall's thickness is looked at up to its near face
         public const float RevealTime = 0.6f;   // the gold sweep across a room as it's seen (the look)
 
-        /// Whether a room the map gets starts unseen: everything but the core (a kept room is settled by the map reset).
-        public static bool StartsUnseen(ExpansionRoom r) => !Expansion.IsGridCore(r);
+        /// Whether a room the map gets starts unseen: everything but the core and the vendors' rooms (Shop, Black Market, Arms
+        /// Dealer, Medic, Builder Shop), which are never fogged (a kept room is settled by the map reset).
+        public static bool StartsUnseen(ExpansionRoom r) => !Expansion.IsGridCore(r) && !IsVendorRoom(r.Kind);
+
+        /// A vendor's room: never under fog.
+        public static bool IsVendorRoom(RoomKind k) =>
+            k == RoomKind.Shop || k == RoomKind.BlackMarket || k == RoomKind.Arms || k == RoomKind.Medic || k == RoomKind.Builder;
 
         /// How many rooms (pieces, not boxes) are still unseen.
         public static int UnseenCount(IList<ExpansionRoom> rooms)
