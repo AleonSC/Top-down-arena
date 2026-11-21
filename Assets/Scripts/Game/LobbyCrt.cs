@@ -322,11 +322,6 @@ namespace Arena
             if (away < 1f)
             {
                 float k = 1f - away;
-                if (BeginUiGl())  // the menu's honeycomb band (MenuHolo.cs)
-                {
-                    DrawMenuHexBand(t, k);
-                    EndUiGl();
-                }
                 WithAlpha(k, () =>
                 {
                     DkPanel(MenuCard);
