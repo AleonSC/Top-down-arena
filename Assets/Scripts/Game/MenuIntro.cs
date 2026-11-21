@@ -127,7 +127,7 @@ namespace Arena
             crtDy = dy;
             crtFlash = Mathf.Max(0f, 1f - Mathf.Abs(bt - fall) / 0.12f);
             float typeK = Seg(T, CrtTypeAt, CrtTypeAt + CrtTypeLen);
-            crtTyped = typeK >= 1f ? -1 : Mathf.FloorToInt(typeK * "VECTOR COLOSSEUM".Length);
+            crtTyped = T >= CrtTypeAt + CrtTypeLen + CrtFlipLen ? -1 : Mathf.FloorToInt(typeK * "VECTOR COLOSSEUM".Length);  // (held until the last letter has flipped in)
             DrawCrtBack();
             if (crtTyped != 0)
                 DrawCrtTitle(r);
@@ -202,8 +202,26 @@ namespace Arena
                 return;
             }
             const string full = "VECTOR COLOSSEUM";
-            float fw = Ui.TextWidth(full, (int)MenuTitleSize, true);
-            Ui.Glitch(new Rect(W / 2f - fw / 2f, r.y, fw + 60f, r.height), full.Substring(0, crtTyped), (int)MenuTitleSize, c, TextAnchor.MiddleLeft, CrtGlow);
+            float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), x0 = W / 2f - fw / 2f;
+            // Each letter flips in as it's typed (Docs/Mockups/menu-holo-floor.html): it drops a little and unfolds from a sliver
+            // about its middle line, overshooting a touch, over CrtFlipLen.
+            for (int i = 0; i < crtTyped; i++)
+            {
+                if (full[i] == ' ')
+                    continue;
+                float typedAt = CrtTypeAt + CrtTypeLen * i / full.Length;
+                float k = Mathf.Clamp01((menuIntroT - typedAt) / CrtFlipLen);
+                float sy = Mathf.Max(0.05f, EaseBack(k)), dy = -18f * (1f - EaseOut(k));
+                float lx = x0 + Ui.TextWidth(full.Substring(0, i), (int)MenuTitleSize, true);
+                var lr = new Rect(lx, r.y + dy, Ui.TextWidth(full[i].ToString(), (int)MenuTitleSize, true) + 30f, r.height);
+                var old = GUI.matrix;
+                if (sy != 1f)
+                    GUIUtility.ScaleAroundPivot(new Vector2(1f, sy), new Vector2(lr.x, lr.center.y));
+                Ui.Glitch(lr, full[i].ToString(), (int)MenuTitleSize, c.WithAlpha(c.a * Mathf.Clamp01(k * 3f)), TextAnchor.MiddleLeft, CrtGlow);
+                GUI.matrix = old;
+            }
         }
+
+        const float CrtFlipLen = 0.3f;  // seconds for a typed letter to flip into place
     }
 }

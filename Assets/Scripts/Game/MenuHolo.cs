@@ -65,6 +65,38 @@ namespace Arena
             NeonRect(r, a * NeonFlicker(Time.unscaledTime, 7f, 1.4f));
         }
 
+        // --- The Play key's chevrons ------------------------------------------------------------------------------------------
+
+        const float PlayChevW = 46f;
+
+        /// The main menu's Play key (also its split halves in the bay-doors move, MenuServo.cs): three chevrons before PLAY.
+        bool PlayKey(Rect r) => KeyUi.Key(r, "PLAY", null, 34, drawIcon: DrawPlayChevrons, iconW: PlayChevW);
+
+        /// Three chevrons in r, lighting one after another (a 1.2 s wave, each 0.15 s behind the one before); steady with Reduced effects.
+        void DrawPlayChevrons(Rect r, float a)
+        {
+            const float cw = 12f, gap = 5f, thick = 5f;
+            float h = Mathf.Min(26f, r.height), y0 = r.center.y - h / 2f, t = Time.unscaledTime;
+            for (int i = 0; i < 3; i++)
+            {
+                float glow = 1f;
+                if (!fxReduced && fxOn)
+                {
+                    float u = MathX.Fmod(t - i * 0.15f, 1.2f) / 1.2f;
+                    glow = u < 0.4f ? Mathf.Lerp(0.25f, 1f, u / 0.4f) : Mathf.Lerp(1f, 0.25f, (u - 0.4f) / 0.6f);
+                }
+                float x0 = r.x + i * (cw + gap);
+                var c = new Color(1f, 1f, 1f, a * glow);
+                var shade = new Color(0f, 0f, 0f, 0.4f * a * glow);
+                for (int y = 0; y < (int)h; y++)
+                {
+                    float d = Mathf.Abs(y + 0.5f - h / 2f) / (h / 2f), x = x0 + (1f - d) * (cw - thick);
+                    Ui.Fill(new Rect(x, y0 + y + 1f, thick, 1f), shade);  // engraved, like the legend
+                    Ui.Fill(new Rect(x, y0 + y, thick, 1f), c);
+                }
+            }
+        }
+
         // --- The drive bay ledge ------------------------------------------------------------------------------------------
 
         /// The ledge under the title: it runs out to halfway between the title's ends and the box's sides, from the title's

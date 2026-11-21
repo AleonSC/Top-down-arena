@@ -138,7 +138,7 @@ namespace Arena
         /// One layout as a line: name, then walls, sleepers, traps and loot (`x,y,w,h;...`), tab separated.
         public static string Line(CellLayout l) => l.Name + "\t" + Join(l.Walls) + "\t" + Join(l.Sleepers) + "\t" + Join(l.Traps) + "\t" + Join(l.Loot);
 
-        static int[][] Split(string s, int n)
+        internal static int[][] Split(string s, int n)
         {
             var list = new List<int[]>();
             if (s.Length == 0)

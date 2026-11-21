@@ -172,13 +172,14 @@ namespace Arena
         {
             get
             {
-                int key = Expanded.Count;
+                int key = Expanded.Count + devTrapVer * 977;
                 foreach (var r in Expanded)
                     key = key * 31 + r.X * 7 + r.Y * 3 + (int)r.Kind + (r.Floating ? 1 : 0) + r.Surprise;
                 if (key != roomTrapKey)
                 {
                     roomTrapKey = key;
                     roomTrapList = RoomTraps.For(Expanded);
+                    roomTrapList.AddRange(devTraps);  // (DevTraps.cs)
                     roomTrapList.RemoveAll(t => t.Kind == TrapKind.Turret && trapWrecks.Contains(TrapKey(t.Pos)));  // (a wrecked turret stays gone)
                     var posts = new List<V2>();
                     foreach (var t in roomTrapList)
@@ -207,7 +208,7 @@ namespace Arena
         /// A slow field's pull on a mover: 1, or RoomTraps.SlowMult while standing in one.
         float TrapSlowAt(V2 pos)
         {
-            if (!ExpandingOn)
+            if (!ExpandingOn && devTraps.Count == 0)
                 return 1f;
             foreach (var t in RoomTrapList)
                 if (t.Kind == TrapKind.Slow && RoomTraps.InRect(t.Pos, pos, t.HalfX, t.HalfY))
@@ -218,7 +219,7 @@ namespace Arena
         /// In WorldStops, for each bullet: your shot hits a turret (it wears down and finally wrecks); true if it stopped there.
         bool RoomTrapStops(Bullet b)
         {
-            if (!IsHost || !ExpandingOn || Defs.IsEnemyShot(b.Kind) || b.Owner == 0)
+            if (!IsHost || !ExpandingOn && devTraps.Count == 0 || Defs.IsEnemyShot(b.Kind) || b.Owner == 0)
                 return false;
             var traps = RoomTrapList;
             for (int i = 0; i < traps.Count; i++)
@@ -235,7 +236,7 @@ namespace Arena
         /// Host: a melee cut (swing or Burst) wears down every room turret `reaches` says it touches (Katana.cs, Knight.cs).
         void MeleeHitRoomTurrets(float dmg, Func<V2, float, bool> reaches)
         {
-            if (!IsHost || !ExpandingOn)
+            if (!IsHost || !ExpandingOn && devTraps.Count == 0)
                 return;
             var traps = RoomTrapList;
             for (int i = traps.Count - 1; i >= 0; i--)
@@ -326,7 +327,7 @@ namespace Arena
         /// Host, every tick: spike plates hurt whoever stands on them, turrets shoot the nearest player in a wave.
         void TickRoomTraps(float dt)
         {
-            if (!IsHost || !ExpandingOn)
+            if (!IsHost || !ExpandingOn && devTraps.Count == 0)
                 return;
             var traps = RoomTrapList;
             for (int i = 0; i < traps.Count; i++)

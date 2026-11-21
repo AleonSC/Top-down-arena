@@ -72,6 +72,7 @@ namespace Arena
         ExpandUnlink, // client -> host: dismantle the portal pair with an end at this wall spot (x, y shorts) in a build round; its teleporter goes back to their stash (ExpansionGame.cs)
         TrapHit,      // host -> all: a room turret was hit: its x, y (shorts) and its health left (byte, 0-255 of full); drawn as a bar over it (RoomTraps.cs)
         PitFall,      // client -> host: you fell into a pit at (x, y) and climbed out at (x, y) (floats); the host takes the health (Pits.cs)
+        DevTraps,     // host -> all: the Dev Kit's hand-placed traps, the whole list (count byte; each: kind byte, x, y, half width, half height floats) (DevTraps.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
