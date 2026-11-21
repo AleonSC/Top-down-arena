@@ -129,17 +129,17 @@ namespace Arena
         void BuildRioter()
         {
             Set(Sfx.RiotYell, new[] {
-                Finish(Room(Concat(Mob(0.28f, 170f, 230f, 190f, VowEH, VowEE, 0.05f, 0.8f), new float[(int)(0.12f * Rate)], Mob(0.28f, 180f, 240f, 200f, VowEH, VowEE, 0.05f, 0.8f)), 0.12f), 0.5f),
-                Finish(Room(Mob(0.4f, 160f, 220f, 180f, VowOH, VowEE, 0f, 0.7f), 0.12f), 0.5f),
-                Finish(Room(Mob(0.42f, 165f, 235f, 185f, VowEH, VowEE, 0.06f, 0.8f), 0.12f), 0.5f) }, 0.7f);
-            Set(Sfx.RiotAttack, Takes(2, () => Finish(Room(Mix(Mob(0.5f, 130f, 210f, 160f, VowUH, VowAA, 0f, 0.3f, rise: 0.25f), Delay(RiotSlap(0.6f), 0.3f)), 0.12f), 0.5f)), 0.35f);
-            Set(Sfx.RiotHup, Finish(Room(Mob(0.18f, 170f, 220f, 160f, VowUH, VowUH, 0.04f, 0.5f), 0.12f), 0.45f), 0.3f);
+                Finish(Room(Concat(Mob(0.28f, 170f, 230f, 190f, VowEH, VowEE, 0.05f, 0.8f), new float[(int)(0.12f * Rate)], Mob(0.28f, 180f, 240f, 200f, VowEH, VowEE, 0.05f, 0.8f)), 0.12f), 0.25f),
+                Finish(Room(Mob(0.4f, 160f, 220f, 180f, VowOH, VowEE, 0f, 0.7f), 0.12f), 0.25f),
+                Finish(Room(Mob(0.42f, 165f, 235f, 185f, VowEH, VowEE, 0.06f, 0.8f), 0.12f), 0.25f) }, 0.7f);
+            Set(Sfx.RiotAttack, Takes(2, () => Finish(Room(Mix(Mob(0.5f, 130f, 210f, 160f, VowUH, VowAA, 0f, 0.3f, rise: 0.25f), Delay(RiotSlap(0.6f), 0.3f)), 0.12f), 0.25f)), 0.35f);
+            Set(Sfx.RiotHup, Finish(Room(Mob(0.18f, 170f, 220f, 160f, VowUH, VowUH, 0.04f, 0.5f), 0.12f), 0.22f), 0.3f);
             Set(Sfx.RiotWhoosh, Finish(Tremolo(Tone(0.4f, Osc.Sine, 400f, 1100f, 0.35f, noise: 0.9f, lowpass: 0.2f, attack: 0.05f, decay: 1.2f), 13f, 0.85f), 0.3f), 0.1f);
-            Set(Sfx.RiotShatter, Takes(2, () => Finish(RiotGlass(), 0.4f)), 0.1f);
+            Set(Sfx.RiotShatter, Takes(2, () => Finish(RiotGlass(), 0.25f)), 0.1f);
             Set(Sfx.RiotDie, Takes(2, () => Finish(Room(Mix(
                 Mob(0.7f, 230f, 250f, 100f, VowAA, VowUH, 0f, 1f, rise: 0.1f, choke: 0.35f),
-                Delay(Tone(0.18f, Osc.Sine, 120f, 45f, 0.5f, noise: 0.25f, lowpass: 0.25f, decay: 2.2f), 0.56f)), 0.12f), 0.5f)), 0.2f);
-            Set(Sfx.RiotStep, Takes(3, () => Finish(RiotSlap(0.5f), 0.3f)), 0.12f);
+                Delay(Tone(0.18f, Osc.Sine, 120f, 45f, 0.5f, noise: 0.25f, lowpass: 0.25f, decay: 2.2f), 0.56f)), 0.12f), 0.25f)), 0.2f);
+            Set(Sfx.RiotStep, Takes(3, () => Finish(RiotSlap(0.5f), 0.15f)), 0.12f);
             Jitter(0.12f, Sfx.RiotYell, Sfx.RiotAttack, Sfx.RiotHup, Sfx.RiotDie);
         }
     }
