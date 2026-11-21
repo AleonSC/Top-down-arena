@@ -467,7 +467,7 @@ Mastery resets each run.
 ## Levels and upgrades
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when the wave is
-cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to select a card, then
+cleared, each player picks one of **3 upgrades per level gained** (a level gained between waves, in a woken room, a duel or an extra room, keeps its cards back while an awake enemy is within about a screen of you: a gold **LEVEL UP · CARDS AFTER THE FIGHT** plate shows instead, since co-op can't pause): click (or press 1/2/3) to select a card, then
 **Choose Upgrade** (or Enter). The screen wears the lobby's blue CRT look: a glowing VT323 title, boxed cards with corner
 brackets, and the lobby's digital keys for **Reroll** and **Choose Upgrade** (Choose is the dashed, locked key until you pick a
 card, then it lights up with a green lamp). Each card has its rarity in a small key-like label on top, the icon (in its own

@@ -514,6 +514,7 @@ static partial class Program
         Test("enemynumbers", "every weapon has a damage a second, spawn health at your wave, the fire-rate ramp", () => EnemyNumbersTest(Dt)),
         Test("labtest", "the Boss Lab", () => BossLabTest(Dt)),
         Test("botweapon", "the smart bot's parry and weapon Alts", () => BotParryTest(Dt), () => BotAltTest(Dt), () => BotKatanaTest(Dt)),
+        Test("pickheld", "level-up cards held while an awake enemy is near between waves (Game.PickHeld)", () => PickHeldTest(Dt)),
         Test("botpicks", "the bots' level-up picks and shopping", () => BotPicksTest(Dt), () => BotShopTest(Dt)),
         Test("botteam", "the smart bot's team play: Roar, Last Stand, Mark, healing orbs and zones", () => BotTeamplayTest(Dt)),
         Test("partybots", "bots in the lobby's open slots", () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }),

@@ -111,6 +111,12 @@ namespace Arena
                     // While the pause menu is up these full-screen choices stay out of its way: they're drawn first, so their click
                     // areas would take the clicks that belong to the menu (Leave to lobby did nothing while a pick was on screen).
                     bool pauseUp = PauseMenuWanted;
+                    if (me != null && game.PickHeld(me))
+                    {
+                        if (!tabHeld && !pauseUp)
+                            DrawPickHeld(me);  // a level-up won mid-fight: its cards wait until no enemy is near (Game.PickHeld)
+                        break;
+                    }
                     if (me != null && me.Offer != null)
                     {
                         if (!tabHeld && !PickOutroPlaying && !pauseUp)
