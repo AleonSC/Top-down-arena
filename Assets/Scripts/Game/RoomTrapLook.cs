@@ -16,26 +16,26 @@ namespace Arena
             {
                 if (game.FogHidesStill(tr.Pos))  // (a trap you've seen stays shown)
                     continue;
-                if (tr.Kind == TrapKind.Spike) DrawSpikePlate(tr.Pos, t);
-                else if (tr.Kind == TrapKind.Slow) DrawSlowField(tr.Pos, t);
+                if (tr.Kind == TrapKind.Spike) DrawSpikePlate(tr.Pos, tr.Half, t);
+                else if (tr.Kind == TrapKind.Slow) DrawSlowField(tr.Pos, tr.Half, t);
                 else DrawTrapTurret(tr.Pos, t);
             }
         }
 
         /// A recessed grate, hatched red, with corner brackets; its slots jab steel points on the damage tick.
-        void DrawSpikePlate(V2 c, float t)
+        void DrawSpikePlate(V2 c, float h, float t)
         {
-            float h = RoomTraps.SpikeHalf;
             var hot = new Rgba(1f, 0.36f, 0.3f);
             float cyc = (t / RoomTraps.SpikeTick) % 1f, up = cyc < 0.35f ? Mathf.Sin(cyc / 0.35f * MathX.Pi) : 0f;
             FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, new Rgba(0.05f, 0.03f, 0.05f, 0.9f));
             HatchRect(c.X - h, c.Y - h, h * 2f, h * 2f, hot.WithAlpha(0.13f));
             NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1f, hot.WithAlpha(0.35f));
-            TrapBrackets(c, h, 13f, 2f, hot.WithAlpha(0.95f));
-            for (int i = -1; i <= 1; i++)  // a 3 x 3 field of slots
-                for (int j = -1; j <= 1; j++)
+            TrapBrackets(c, h, Mathf.Min(13f, h * 0.45f), 2f, hot.WithAlpha(0.95f));
+            int n = h < 28f ? 2 : h < 38f ? 3 : 4;  // an n x n field of slots
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
                 {
-                    V2 p = c + new V2(i, j) * (h * 0.56f);
+                    V2 p = c + new V2(i + 0.5f - n * 0.5f, j + 0.5f - n * 0.5f) * (h * 2f / n);
                     FillRect(p.X - 7f, p.Y - 2.5f, 14f, 5f, new Rgba(0f, 0f, 0f, 0.9f));
                     FillRect(p.X - 7f, p.Y + 1.5f, 14f, 1f, hot.WithAlpha(0.4f + 0.6f * up));
                     float l = 2f + 9f * up;
@@ -45,16 +45,15 @@ namespace Arena
         }
 
         /// A violet gravity well: a flat grid in corner brackets that sags under every player standing on it.
-        void DrawSlowField(V2 c, float t)
+        void DrawSlowField(V2 c, float h, float t)
         {
-            float h = RoomTraps.SlowHalf;
             var vi = RoomTrapViolet;
             int nw = 0;
             foreach (var p in game.Players.Values)
                 if (nw < wellAt.Length && RoomTraps.InSquare(c, p.Pos, h + SlowSagR))
                     wellAt[nw++] = p.Pos;
             FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, vi.WithAlpha(0.08f));
-            const int cells = 6, sub = 4;  // grid lines, each cut in short pieces so it can bend
+            int cells = Mathf.Clamp(Mathf.RoundToInt(h / 8f), 4, 10); const int sub = 4;  // grid lines, each cut in short pieces so it can bend
             for (int a = 1; a < cells; a++)
                 for (int axis = 0; axis < 2; axis++)
                 {
@@ -74,7 +73,7 @@ namespace Arena
                 if (RoomTraps.InSquare(c, wellAt[i], h))
                     Circle(wellAt[i], SlowSagR * 0.6f, vi.WithAlpha(0.1f), 16);
             NodeFrame(c.X - h, c.Y - h, h * 2f, h * 2f, 1f, vi.WithAlpha(0.4f));
-            TrapBrackets(c, h, 16f, 2f, vi.WithAlpha(0.95f));
+            TrapBrackets(c, h, Mathf.Min(16f, h * 0.4f), 2f, vi.WithAlpha(0.95f));
         }
 
         const float SlowSagR = 54f;  // how far round a player the grid sags

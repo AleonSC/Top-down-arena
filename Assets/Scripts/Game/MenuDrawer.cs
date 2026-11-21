@@ -181,7 +181,7 @@ namespace Arena
             GUIUtility.keyboardControl = 0;
         }
 
-        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = pauseRecords = false; });
+        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = pauseRecords = false; }, DockOutLen);
 
         /// The lobby's menu: back to the lobby, Settings (the cabinet's list switches to its sections), the Field guide, leaving
         /// for the main menu, or quitting. The lobby stays behind it, dimmed.
@@ -189,6 +189,13 @@ namespace Arena
         {
             if (SkipWhileClosing)
                 return;
+            docking = true;  // it docks in from the sides like the pause menu (WindowAnim.cs)
+            DrawLobbyMenuIn();
+            docking = false;
+        }
+
+        void DrawLobbyMenuIn()
+        {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.6f * WindowVis));
             if (pauseRecords)
             {
@@ -324,18 +331,23 @@ namespace Arena
         /// The run's screen on the right, fading as a window comes out over it.
         void DrawRunScreen(float t)
         {
-            float a = 1f - CabWinSlideK();
-            if (!FxCalm)
+            float a = 1f - CabWinSlideK(false);
+            if (!FxCalm && !docking)
                 a *= Mathf.Clamp01((CabAge - RunCardAt) / 0.45f);  // fades in after the cabinet's opening (no pop)
             if (a <= 0.01f)
                 return;
-            if (a < 0.99f)
-                PushShift(0f, 0f, a);
+            float dx = docking ? DockPanelX : 0f;  // docking: in from the right with the cabinet, out to the right as the menu closes (WindowAnim.cs)
+            if (docking)
+                DockTrails(DrawerPanel, DockPanelIn, CrtStyle.Gold);
+            if (a < 0.99f || dx != 0f)
+                PushShift(dx, 0f, a);
             float oldGl = glAlpha;
             glAlpha = a;  // the boss model fades with it
             DrawRunCard(DrawerPanel, t);  // in the window's place, right of the box
             glAlpha = oldGl;
             PopShift();
+            if (docking)
+                DockLand(new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height), 0.3f);
         }
 
         static readonly Color LobbyConfirmColor = new Color(1f, 0.6f, 0.45f);
@@ -465,12 +477,16 @@ namespace Arena
                     chips.Add(new KeyValuePair<string, Color>(m.Name.ToUpperInvariant(), m.Lean == ModLean.Easier ? Ui.Good : new Color(1f, 0.6f, 0.6f)));
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
             var r = at;
-            float powerAge = CabAge - RunCardAt;  // the box fades in after the cabinet's opening (DrawRunScreen)
+            float powerAge = docking ? 1f : CabAge - RunCardAt;  // the box fades in after the cabinet's opening (DrawRunScreen; docking: it slides in at once)
             if (!FxCalm && powerAge < 0f)
                 return;
             CrtKit.LoadoutBox(r);
-            DrawPartyStack(r);  // the players, stacked up from its bottom
-            float x = r.x + 20f, y = r.y + 16f;
+            runSecA = Ui.Alpha;
+            runSecC = GUI.color;
+            float x0 = r.x + 20f;
+            float px = RunSecIn(4);  // docking: each part slides in from the right in turn (RunSecIn), the players last
+            DrawPartyStack(new Rect(r.x + px, r.y, r.width, r.height));  // the players, stacked up from its bottom
+            float x = x0 + RunSecIn(0), y = r.y + 16f;
             Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
             string wave = game.Practice != null ? "WAVE " + Mathf.Max(1, game.PracticeIndex + 1) : "WAVE " + Mathf.Max(1, game.ShownWave);
@@ -495,6 +511,8 @@ namespace Arena
             y += 34f;
             Ui.Fill(new Rect(x, y, r.width - 40f, 1f), new Color(1f, 1f, 1f, 0.08f));
             y += 14f;
+            x = x0 + RunSecIn(1);
+            float bossK = runSecK;
             // The next boss, moving in its tile.
             int next = game.NextBossWave(game.Wave, game.State == MatchState.Fighting);
             var boss = game.BossAt(Mathf.Min(Game.MaxWave, Mathf.Max(5, next)));
@@ -511,15 +529,42 @@ namespace Arena
             var bossAt = new V2(tile.center.x, tile.center.y);
             y += 78f;
             if (game.Hunt == null && !game.Quick)
-                y = DrawRunCardGate(x, y);
-            DrawRunCardStats(r, x, y + 6f);
-            if (gl && BeginUiGl())
+                y = DrawRunCardGate(x0 + RunSecIn(2), y);
+            DrawRunCardStats(r, x0 + RunSecIn(3), y + 6f);
+            RunSecEnd();
+            if (gl && bossK > 0.01f && BeginUiGl())
             {
+                float oldGl = glAlpha;
+                glAlpha = oldGl * bossK;  // (the boss fades in with its part)
                 UiClip(tile);
                 DrawEnemyPreview(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss, bossAt, 52f, t, true);
                 EndUiGl();
+                glAlpha = oldGl;
             }
         }
+
+        // The run card's parts docking in (the pause menu, WindowAnim.cs): 0 the wave, 1 the next boss, 2 the Data Gate, 3 your run's
+        // stats, 4 the players. Each slides in 30 px from the right and fades in, 0.04 s apart from 0.22 s; the stats count up (0.26-0.5 s).
+        float runSecA = 1f, runSecK = 1f;
+        Color runSecC = Color.white;
+
+        /// Start drawing part `i`: sets its fade and returns how far right it still is.
+        float RunSecIn(int i)
+        {
+            runSecK = Dock ? EaseOut(Seg(WinT, 0.22f + i * 0.04f, 0.38f + i * 0.04f)) : 1f;
+            Ui.Alpha = runSecA * runSecK;
+            GUI.color = runSecC.WithAlpha(runSecC.a * runSecK);
+            return 30f * (1f - runSecK);
+        }
+
+        void RunSecEnd()
+        {
+            Ui.Alpha = runSecA;
+            GUI.color = runSecC;
+        }
+
+        /// How far the stats have counted up (0..1).
+        float RunCountK => Dock ? EaseOut(Seg(WinT, 0.26f, 0.5f)) : 1f;
 
         /// The run card's YOUR RUN row: four tiles (damage, kills, accuracy, downs), when there's room above the players.
         void DrawRunCardStats(Rect card, float x, float y)
@@ -536,7 +581,8 @@ namespace Arena
             Ui.Label(new Rect(x, y, 200f, 14f), "YOUR RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 22f;
             var s = me.Run;
-            string[] vals = { ShortNumber(s.DamageDealt), s.Kills.ToString("N0"), s.ShotsFired > 0 ? Mathf.RoundToInt(s.Accuracy * 100f) + "%" : "—", s.Downs.ToString() };
+            float c = RunCountK;  // docking: they count up from 0
+            string[] vals = { ShortNumber(s.DamageDealt * c), Mathf.RoundToInt(s.Kills * c).ToString("N0"), s.ShotsFired > 0 ? Mathf.RoundToInt(s.Accuracy * 100f * c) + "%" : "—", Mathf.RoundToInt(s.Downs * c).ToString() };
             string[] names = { "DAMAGE", "KILLS", "ACCURACY", "DOWNED" };
             const float gap = 8f;
             float w = (card.width - 40f - gap * 3f) / 4f;

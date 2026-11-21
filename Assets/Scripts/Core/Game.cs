@@ -1010,7 +1010,8 @@ namespace Arena
                         e.SeenT += dt;  // clients only get PhaseT every snapshot, so the swing is timed from here
                 }
             }
-            UpdateMeleeSounds(dt);  // the melee rushers' cues, quieter with distance (MeleeSounds.cs)
+            if (!Paused)  // (silent while paused: the bite and step timers would keep firing)
+                UpdateMeleeSounds(dt);  // the melee rushers' cues, quieter with distance (MeleeSounds.cs)
             foreach (var o in Orbs.Values)
                 o.Disp = IsHost ? o.Pos : V2.Lerp(o.Disp, o.Pos, k);
             foreach (var c in Coins.Values)
