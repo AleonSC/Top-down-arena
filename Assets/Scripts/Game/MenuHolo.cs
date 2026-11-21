@@ -174,6 +174,27 @@ namespace Arena
             Ui.TakeClick();
         }
 
+        /// The split-flap clacks of the title screen's line changing as a move's clock goes from a to b: typing `text` on over
+        /// [t0, t1] (a clack per letter, the space softer, Enter's thock on the last), or erasing it (softer clacks), letter by letter
+        /// at the moments DrawTitleRetype shows them.
+        void TitleFlapCues(string text, float a, float b, float t0, float t1, bool typing)
+        {
+            if (sounds == null || b <= a)
+                return;
+            int n = text.Length;
+            float now = Time.unscaledTime;
+            for (int i = 0; i < n; i++)
+            {
+                float at = typing ? t0 + (t1 - t0) * (i + 1f) / n : t0 + (t1 - t0) * (i + 0.5f) / n;
+                if (a >= at || at > b)
+                    continue;
+                if (!typing)
+                    sounds.Play(Sfx.TitleKey, 0.35f, now);
+                else
+                    sounds.Play(i == n - 1 ? Sfx.TitleEnter : text[i] == ' ' ? Sfx.TitleSpace : Sfx.TitleKey, 0.6f, now);
+            }
+        }
+
         float quitAt = -1f;
 
         /// Quit: the tube switching off, then the game closes once it has played (TickMenuSounds).
