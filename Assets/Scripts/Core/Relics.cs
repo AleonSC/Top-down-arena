@@ -19,6 +19,7 @@ namespace Arena
         StormCoil, StaticCell,
         MawTooth,
         BlackSun, CoronaSpiral, UmbraShard,
+        Thorns,  // a classic relic added after the factions' (Classic stays 3; it rolls on a plain relic node)
         None
     }
 
@@ -30,6 +31,7 @@ namespace Arena
         public const float BackupHp = 0.5f;      // Backup: the share of max health you get back up with (owner Nov 17: an auto revive, gone after use)
         public const float BackupInvuln = 2f;    // and the grace after it
         public const float HallSpeed = 1.25f;    // Hallway Runner: move speed in a hallway
+        public const float ThornsDmg = 14f;      // Thorns: damage an enemy takes each time its touch hurts you (times your damage stat)
         public const float HallWidth = 300f;     // a box this narrow or less (3 tiles) is a hallway
         public const int Count = (int)RelicId.None;
         public const int Classic = 3;                  // the first three relics (Wall Bounce, Backup, Hallway Runner) are not a faction's
@@ -51,7 +53,7 @@ namespace Arena
             "Your damage is up 12%.", "Your abilities recharge 10% faster and you move 4% faster.", "You take 10% less damage and deal 4% more.",
         };
 
-        public static bool IsFaction(RelicId r) => r >= RelicId.WardensSeal && r < RelicId.None;
+        public static bool IsFaction(RelicId r) => r >= RelicId.WardensSeal && r < RelicId.Thorns;
 
         /// The boss (index into Game.BossCycle) whose faction a relic belongs to; -1 for a classic relic.
         public static int FactionOf(RelicId r)
@@ -77,11 +79,11 @@ namespace Arena
             return (RelicId)(n + i);
         }
 
-        public static string Name(RelicId r) => r == RelicId.WallBounce ? "Wall Bounce" : r == RelicId.Backup ? "Backup" : r == RelicId.HallwayRunner ? "Hallway Runner" : IsFaction(r) ? FactionNames[(int)r - Classic] : "";
+        public static string Name(RelicId r) => r == RelicId.WallBounce ? "Wall Bounce" : r == RelicId.Backup ? "Backup" : r == RelicId.HallwayRunner ? "Hallway Runner" : r == RelicId.Thorns ? "Thorns" : IsFaction(r) ? FactionNames[(int)r - Classic] : "";
 
         public static string Desc(RelicId r) => r == RelicId.WallBounce ? "Your shots bounce off walls and pillars once, keeping 70% of their damage."
             : r == RelicId.Backup ? "The first time you would go down, you get straight back up with half your health. Then it's gone."
-            : r == RelicId.HallwayRunner ? "You move 25% faster in hallways (3 tiles wide or less)." : IsFaction(r) ? FactionDescs[(int)r - Classic] : "";
+            : r == RelicId.HallwayRunner ? "You move 25% faster in hallways (3 tiles wide or less)." : r == RelicId.Thorns ? "Enemies that hurt you by touch take 14 damage back." : IsFaction(r) ? FactionDescs[(int)r - Classic] : "";
 
         /// A faction relic's stat changes, applied to a player's stats (Game.Recalc, on every peer).
         public static void Apply(RelicId r, Stats s)
@@ -117,7 +119,8 @@ namespace Arena
             if (n.Rule > 0 && n.Rule <= Count)
                 return (RelicId)(n.Rule - 1);  // a faction relic node: PlaceRelicNodes set it
             uint h = (uint)(n.X * 73856093 ^ n.Y * 19349663);
-            return (RelicId)(int)(h % (uint)Classic);
+            int k = (int)(h % (uint)(Classic + 1));
+            return k < Classic ? (RelicId)k : RelicId.Thorns;
         }
 
         /// The relic a node holds now: the one a player left in it, else the one rolled from its spot.

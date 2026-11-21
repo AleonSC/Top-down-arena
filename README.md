@@ -1202,6 +1202,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
     Enemy shots, grenades and other lobbed shots, and stuck shuriken don't bounce.
   - **Backup**: the first time you would go down, you get straight back up with half your health and 2 s of grace. Then it's gone (your slot is empty).
   - **Hallway Runner**: you move 25% faster in hallways (boxes 3 tiles wide or less).
+  - **Thorns**: an enemy that hurts you by touching you takes 14 damage back (times your damage stat), once per hit.
 - **Map reset (Campaign)**: every boss you clear starts a **fresh map**. The rooms, openings, portals, gates, traps,
   nodes and mystery doors go, and the team stands in the bare hub again, so a 100-wave run plays on ten maps of about ten
   waves each. First the **KEEP ONE ROOM** vote opens (15 s, it holds the break): every room is a card with its outline to scale,
