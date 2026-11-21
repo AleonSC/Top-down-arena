@@ -184,7 +184,13 @@ namespace Arena
             whoLift[profTrSlot] = 1f - Seg(E, EjLandAt, EjLen);  // its clamps stay open until it lands
             if (menuA > 0f)
                 WithAlpha(menuA, DrawMenu);
-            DrawWhoChrome(whoA);  // the picker's title screen, band and rooms (MenuHolo.cs)
+            DrawWhoChrome(whoA, false);  // the picker's rooms (MenuHolo.cs)
+            // The title screen and the drive bay stay put at full strength: VECTOR COLOSSEUM backspaces away, then WHO'S PLAYING? types on.
+            DrawDriveBay(1f);
+            if (E < 1.9f)
+                DrawTitleRetype(CrtTitleText, Mathf.RoundToInt(CrtTitleText.Length * (1f - Seg(E, 1.1f, 1.7f))));
+            else
+                DrawTitleRetype(WhoTitleText, Mathf.FloorToInt(WhoTitleText.Length * Seg(E, 1.9f, 2.5f)));
             if (whoA > 0f)
                 WithAlpha(whoA, () =>
                 {
