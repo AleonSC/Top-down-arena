@@ -5,7 +5,7 @@ namespace Arena
     ///   MenuHover    a key under the mouse, and a saved run's row: a tiny glassy phosphor tick (replaces the tape-head tick);
     ///                UiHover, every other menu's button hover, is the same tick
     ///   MenuPlay     Play (and New run): a thunk, then a power chord that opens up
-    ///   MenuKey      Join game and Settings: a two-step digital chirp
+    ///   MenuKey      Join game and Settings: a two-step digital chirp; UiClick, every other menu's button click, is the same chirp
     ///   MenuQuit     Quit: the pop and fizz of a tube switching off (the game waits for it before closing)
     ///   MenuEject    the drive's eject key: three falling beeps (then DiskEject, now a whoosh, as the disk kicks out)
     ///   TitleKey/Space/Enter  each title letter landing: the clack of a split-flap board (Enter: with a low thock)
@@ -26,7 +26,7 @@ namespace Arena
                 hover[k] = Finish(Mix(Tone(0.035f, Osc.Sine, 3200f * hz[k], 2900f * hz[k], 0.14f, attack: 0.001f, decay: 3f),
                     Tone(0.02f, Osc.Sine, 6000f, 6000f, 0.05f, noise: 1f, lowpass: 0.8f, attack: 0.001f, decay: 3f)), 0.11f);
             Set(Sfx.MenuHover, hover, 0.04f);
-            Set(Sfx.UiHover, hover, 0.04f);  // every other menu's hover tick is the same glassy tick (played at MenuHoverVolume)
+            Set(Sfx.UiHover, hover, 0.04f);  // every other menu's hover tick is the same glassy tick (played at MenuSoundVolume; quieter with Reduced effects)
             Jitter(table[(int)Sfx.MenuHover].Jitter, Sfx.UiHover);
 
             // a thunk and a click, then four saw voices (A2 E3 A3 E4) whose dark layer gives way to a brighter one: the filter opening
@@ -40,8 +40,11 @@ namespace Arena
             Set(Sfx.MenuPlay, Finish(Mix(Mix(chord), Tone(0.12f, Osc.Sine, 140f, 55f, 0.45f, attack: 0.002f, decay: 3f),
                 Tone(0.03f, Osc.Sine, 3000f, 3000f, 0.15f, noise: 1f, lowpass: 0.5f, attack: 0.001f, decay: 3f)), 0.42f), 0.15f);
 
-            Set(Sfx.MenuKey, Finish(Mix(Tone(0.04f, Osc.Square, 880f, 880f, 0.06f, lowpass: 0.4f, attack: 0.002f, decay: 1.5f),
-                Delay(Tone(0.05f, Osc.Square, 1320f, 1320f, 0.06f, lowpass: 0.4f, attack: 0.002f, decay: 1.5f), 0.045f)), 0.17f), 0.05f);
+            var chirp = Finish(Mix(Tone(0.04f, Osc.Square, 880f, 880f, 0.06f, lowpass: 0.4f, attack: 0.002f, decay: 1.5f),
+                Delay(Tone(0.05f, Osc.Square, 1320f, 1320f, 0.06f, lowpass: 0.4f, attack: 0.002f, decay: 1.5f), 0.045f)), 0.17f);
+            Set(Sfx.MenuKey, chirp, 0.05f);
+            Set(Sfx.UiClick, chirp, 0.05f);  // every other menu's click is the same chirp (played at MenuSoundVolume)
+            Jitter(table[(int)Sfx.MenuKey].Jitter, Sfx.UiClick);
 
             Set(Sfx.MenuQuit, Finish(Mix(Tone(0.04f, Osc.Sine, 300f, 300f, 0.3f, noise: 1f, lowpass: 0.1f, attack: 0.001f, decay: 3f),
                 Tone(0.5f, Osc.Sine, 15000f, 8000f, 0.03f, attack: 0.002f, decay: 1.5f),
