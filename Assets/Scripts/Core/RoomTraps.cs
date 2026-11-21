@@ -11,6 +11,7 @@ namespace Arena
     {
         public V2 Pos;
         public TrapKind Kind;
+        public float Half;  // a spike plate's or slow field's half side (sized to the room around it; 0 for a turret)
     }
 
     /// Room traps: every Combat cell's trap slots each roll a trap or stay empty, seeded from the cell (no wire data: every machine
@@ -19,7 +20,9 @@ namespace Arena
     public static class RoomTraps
     {
         public const float EmptyChance = 0.35f;
-        public const float SpikeHalf = 32f, SpikeTick = 0.6f, SlowHalf = 48f, SlowMult = 0.55f;  // (the plates are squares: half a side)
+        public const float SpikeTick = 0.6f, SlowMult = 0.55f;
+        public static readonly float[] SpikeSizes = { 24f, 32f, 42f }, SlowSizes = { 32f, 48f, 64f, 84f };  // (the plates are squares: half a side; a slot takes the biggest that fits, or one smaller)
+        public const float SizeGap = 10f;  // (a plate keeps this far from walls and the cell's edge)
         public const float TurretRange = 520f, TurretInterval = 1.5f, TurretShotSpeed = 330f, TurretLife = 1.8f;
 
         public static float SpikeDamage(int wave) => 6f + 0.4f * Math.Max(0, wave);
@@ -28,6 +31,31 @@ namespace Arena
 
         /// A turret's health: your shots wear it down, and at zero it is wrecked for the rest of the map.
         public static float TurretHp(int wave) => 40f + 4f * Math.Max(0, wave);
+
+        /// Room around a slot: how big a square (half side) fits at cell-local (x, y) without touching a wall or leaving the cell.
+        public static float Fit(int[][] walls, float x, float y)
+        {
+            float fit = Math.Min(Math.Min(x, y), Math.Min(CellLayouts.Cell - x, CellLayouts.Cell - y));
+            foreach (var w in walls)
+            {
+                float dx = Math.Max(Math.Max(w[0] - x, x - (w[0] + w[2])), 0f), dy = Math.Max(Math.Max(w[1] - y, y - (w[1] + w[3])), 0f);
+                fit = Math.Min(fit, Math.Max(dx, dy));
+            }
+            return fit - SizeGap;
+        }
+
+        /// A plate's half side: the biggest size that fits, now and then (a third) the one below, so neighbours differ.
+        public static float PickHalf(float[] sizes, float fit, DetRandom rng)
+        {
+            int k = 0;
+            while (k + 1 < sizes.Length && sizes[k + 1] <= fit)
+                k++;
+            if (k > 0 && rng.Float() < 0.34f)
+                k--;
+            else
+                rng.Float();
+            return sizes[k];
+        }
 
         public static bool InSquare(V2 centre, V2 p, float half) => Math.Abs(p.X - centre.X) <= half && Math.Abs(p.Y - centre.Y) <= half;
 
@@ -64,13 +92,19 @@ namespace Arena
                     CellLayouts.CellOf(o.X + 1, o.Y + 1, out int cx, out int cy);
                     if (!CellLayouts.TryPlan(plans, cx, cy, out var plan))
                         continue;
-                    var slots = CellLayouts.TurnedOf(plan).Traps;
+                    var turned = CellLayouts.TurnedOf(plan);
+                    var slots = turned.Traps;
+                    var sizeRng = new DetRandom(cx * 40503 ^ cy * 69069 ^ 0x1b873593);  // (its own stream: the kinds roll as before)
                     var rng = new DetRandom(cx * 83492791 ^ cy * 2654435 ^ 0x2545f491);
                     foreach (var s in slots)
                     {
                         var kind = Roll(rng, s[2] == 1);
-                        if (kind.HasValue)
-                            list.Add(new RoomTrap { Pos = new V2(o.X + s[0], o.Y + s[1]), Kind = kind.Value });
+                        if (!kind.HasValue)
+                            continue;
+                        float half = 0f;
+                        if (kind.Value != TrapKind.Turret)
+                            half = PickHalf(kind.Value == TrapKind.Spike ? SpikeSizes : SlowSizes, Fit(turned.Walls, s[0], s[1]), sizeRng);
+                        list.Add(new RoomTrap { Pos = new V2(o.X + s[0], o.Y + s[1]), Kind = kind.Value, Half = half });
                     }
                 }
             }
@@ -139,7 +173,7 @@ namespace Arena
             if (!ExpandingOn)
                 return 1f;
             foreach (var t in RoomTrapList)
-                if (t.Kind == TrapKind.Slow && RoomTraps.InSquare(t.Pos, pos, RoomTraps.SlowHalf))
+                if (t.Kind == TrapKind.Slow && RoomTraps.InSquare(t.Pos, pos, t.Half))
                     return RoomTraps.SlowMult;
             return 1f;
         }
@@ -250,7 +284,7 @@ namespace Arena
                 {
                     if (cd <= 0f)
                         foreach (var p in Players.Values)
-                            if (!p.Downed && RoomTraps.InSquare(t.Pos, p.Pos, RoomTraps.SpikeHalf + p.Def.HitR * 0.5f))
+                            if (!p.Downed && RoomTraps.InSquare(t.Pos, p.Pos, t.Half + p.Def.HitR * 0.5f))
                             {
                                 Damage(p, RoomTraps.SpikeDamage(Wave), "Spike trap");
                                 cd = RoomTraps.SpikeTick;
