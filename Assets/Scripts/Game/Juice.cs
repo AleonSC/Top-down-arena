@@ -1160,6 +1160,8 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))
                     GlowDisc(e.Disp, e.Radius * 2.6f, e.Def.Color, 0.22f + 0.05f * Mathf.Sin(game.AnimT * 3f));
+            DrawWallSpill();  // the walls' and pillars' light on the floor (WallSpillLook.cs)
+            DrawOfficerGlow();  // the Warden's officers: halo and lit kit (OfficerGlowLook.cs)
             DrawEnemyPresenceGlow();  // a soft glow round regular enemies (EnemyPresenceLook.cs)
             foreach (var p in game.Players.Values)
                 if (!p.Downed)
