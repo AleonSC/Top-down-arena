@@ -428,7 +428,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `FileListCache.cs`: the newest files in a folder for the saved-file lists (Practice setups, wave sets), read from disk at most once a second
 - `Ui.cs`: IMGUI drawing primitives (fills, labels, bars, glows, pills, the CRT slider); the widgets (buttons, panels, switches, fields, cards, titles) are `DevKit.cs`'s `Dk...` and the CRT keys
 - `ColorX.cs`: colour helpers: `c.WithAlpha(a)`, `c.ScaleAlpha(k)`, `rgba.ToColor()`, `c.ToRgba(a)` (use them instead of `new Color(c.r, c.g, c.b, a)`)
-- `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/lobby/settings/how-to menus (CRT cabinet), slide clocks
+- `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/lobby/settings/how-to menus (CRT cabinet), slide clocks; the pause and lobby Esc menus dock in from the sides (`docking`, `DockPanelX`, `DockTrails`, `DockLand`; `Docs/Mockups/pause-dock.html`)
 - `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`: the lobby's gradient wash, `LobbyKit.Wash`, in `CrtStyle.BoxWash`) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
 - `MenuServo.cs`: the Play move (bay doors, Servo): split-flap header, split Play key, floor drop-outs, runs screen opening, shared Quit/Back key, `Sfx.Bay*` cues
 - `MenuVhs.cs`: the main menu buttons' VHS hover (with the `Sfx.MenuHover` tape-head tick on enter, via `MenuVhs.OnHover`; `Ui.SilentHover` mutes the generic hover tick for these buttons) and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs` and `SavesUi.cs`)
