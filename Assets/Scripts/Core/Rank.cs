@@ -105,14 +105,6 @@ namespace Arena
             new CosmeticDef { Id = "frame-steel", Name = "Steel frame", Kind = CosmeticKind.Frame, Rank = 13 },
             new CosmeticDef { Id = "frame-circuit", Name = "Circuit frame", Kind = CosmeticKind.Frame, Rank = 17 },
             new CosmeticDef { Id = "trail-frost", Name = "Frost trail", Kind = CosmeticKind.Trail, Rank = 15 },
-            new CosmeticDef { Id = "bg-dusk", Name = "Dusk grid", Kind = CosmeticKind.Background, Rank = 16 },
-            new CosmeticDef { Id = "bg-react-ripples", Name = "Ripples", Kind = CosmeticKind.Background, Rank = 26 },  // the first reactive background (a reference for the rest)
-            new CosmeticDef { Id = "bg-react-bootlog", Name = "Boot Log", Kind = CosmeticKind.Background, Rank = 29 },  // a BIOS terminal that logs your pointer and clicks
-            new CosmeticDef { Id = "bg-react-rocks", Name = "Vector Rocks", Kind = CosmeticKind.Background, Rank = 40 },  // an asteroid field with a ship on your pointer
-            new CosmeticDef { Id = "bg-react-life", Name = "Life Grid", Kind = CosmeticKind.Background, Rank = 44 },  // Conway's Life in phosphor, seeded where you go
-            new CosmeticDef { Id = "bg-react-pond", Name = "Phosphor Pond", Kind = CosmeticKind.Background, Rank = 48 },  // a dot grid that ripples where you go and click
-            new CosmeticDef { Id = "bg-react-tunnel", Name = "Vector Tunnel", Kind = CosmeticKind.Background, Rank = 50 },  // neon gates rushing past, steered by the pointer
-            new CosmeticDef { Id = "bg-react-signal", Name = "Signal Lost", Kind = CosmeticKind.Background, Rank = 53 },  // a test card that tears at the pointer and rolls on a click
             new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 21 },
             new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 19 },
             new CosmeticDef { Id = "frame-void", Name = "Void Pulse frame", Kind = CosmeticKind.Frame, Rank = 25 },
@@ -271,7 +263,7 @@ namespace Arena
         public static string FrameId(int index) => IdOf(CosmeticKind.Frame, index);
         public static byte TrailIndex(string id) => IndexOf(CosmeticKind.Trail, id);
         public static string TrailId(int index) => IdOf(CosmeticKind.Trail, index);
-        /// Reactive menu backgrounds (Game/BackgroundReact.cs) react to the pointer and clicks. They are Background cosmetics whose id starts with "bg-react-".
+        /// Reactive menu backgrounds react to the pointer and clicks (none exist now). They are Background cosmetics whose id starts with "bg-react-".
         public static bool IsReactiveBackground(string id) => id != null && id.StartsWith("bg-react-", StringComparison.Ordinal);
         public static byte CardBgIndex(string id) => IndexOf(CosmeticKind.CardBackground, id);
         /// Emotes (Game/EmoteLooks.cs): not equipped, every one your rank has is on the emote bar. Their number on the wire is 1.. in table order.
