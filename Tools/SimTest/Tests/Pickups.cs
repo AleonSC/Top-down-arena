@@ -42,6 +42,21 @@ static partial class Program
         Check(!g.Coins.ContainsKey(7002) && g.Players[2].Gold == 5, "its owner walks over it and takes it");
         b = new V2(900f, 450f);
 
+        // Hover: a coin or vector pickup under the cursor is taken from across the room, each takes only their own copy, and a full stock refuses a vector.
+        {
+            var far = new V2(1500f, 700f);
+            g.Players[1].Gold = 0; g.Players[1].Vectors = 0; g.Players[2].Gold = 0;
+            g.Coins[7010] = new Coin { Id = 7010, Value = 5, Owner = 1, Pos = far, Disp = far };
+            g.Coins[7011] = new Coin { Id = 7011, Value = 5, Owner = 2, Pos = far + new V2(3f, 0f), Disp = far };
+            g.Coins[7012] = new Coin { Id = 7012, Value = 6, Owner = 1, Vec = true, Pos = far + new V2(8f, 0f), Disp = far };
+            aimOverride = far;
+            Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
+            aimOverride = null;
+            Check(!g.Coins.ContainsKey(7010) && !g.Coins.ContainsKey(7012) && g.Players[1].Gold == 5 && g.Players[1].Vectors > 0, "hovering the cursor over your own coin and vector pickup takes them from across the room");
+            Check(g.Players[2].Gold >= 5 && g.Players[1].Gold == 5, "each player's hover takes only their own copy (host " + g.Players[1].Gold + ", friend " + g.Players[2].Gold + ")");
+            g.Coins.Clear();
+        }
+
         // A Magnet pulls only its holder's own coins and vector pickups.
         g.Players[1].Gadget = GadgetId.Magnet; g.Players[1].GadgetLeft = 30f; g.Players[1].GadgetOn = true;
         g.Coins[7003] = new Coin { Id = 7003, Value = 5, Owner = 1, Pos = new V2(1300f, 200f), Disp = new V2(1300f, 200f) };

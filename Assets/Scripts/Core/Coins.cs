@@ -20,6 +20,9 @@ namespace Arena
         public readonly Dictionary<int, Coin> Coins = new Dictionary<int, Coin>();
         int nextCoinId = 1;
         const float CoinMagnetRange = 90f;
+        /// A coin or vector pickup under a player's cursor (`Player.AimAt`, sent with every input) is taken on the spot, however far away
+        /// they stand (the weird hover mechanic, Nov 2026; gadgets, health orbs and cards still need walking to).
+        const float CoinHoverRange = 14f;
         public const int MaxCoinsPerKill = 6;
         /// Vector pickups (Docs/VectorBuilding.md): a rare drop that adds vectors to whoever collects it. A normal kill drops one
         /// 1 time in VectorDropChance, an elite 1 in 8 (a big one), a boss always (a big one). It never despawns and waits while
@@ -142,6 +145,19 @@ namespace Arena
                     gone.Add(c.Id);  // its player left
                     continue;
                 }
+                Player hover = null;
+                foreach (var p in Players.Values)
+                    if (!p.Downed && CanTake(p, c.Owner) && (!c.Vec || p.Vectors < p.VectorCap) && p.AimAt.CloserThan(c.Pos, CoinHoverRange + c.Radius))
+                    {
+                        hover = p;
+                        break;
+                    }
+                if (hover != null)
+                {
+                    TakeCoin(hover, c);
+                    gone.Add(c.Id);
+                    continue;
+                }
                 Player nearest = null;
                 foreach (var p in Players.Values)  // a switched-on Magnet (Gadgets.cs) pulls it from anywhere, ahead of anyone's reach
                     if (CanTake(p, c.Owner) && MagnetOn(p) && (!c.Vec || p.Vectors < p.VectorCap) && (nearest == null || p.Pos.DistanceSq(c.Pos) < nearest.Pos.DistanceSq(c.Pos)))
@@ -158,21 +174,26 @@ namespace Arena
                 c.Pos += to.LimitLength((pulled ? MagnetPull : 280f) * dt);
                 if (to.Length < nearest.Def.BodyR + c.Radius)
                 {
-                    if (c.Vec)
-                    {
-                        AddVectors(nearest, c.Value);
-                        BroadcastFx(FxKind.Ring, c.Pos, new Rgba(0.3f, 0.88f, 1f), c.Value >= Coin.VectorDropBigAt ? 40f : 26f, 0.4f, c.Value >= Coin.VectorDropBigAt ? Sfx.PickupBig : Sfx.Pickup);
-                    }
-                    else
-                    {
-                        nearest.Gold += c.Value;
-                        BroadcastFx(FxKind.Spark, c.Pos, new Rgba(1f, 0.82f, 0.3f), 12f, 0.25f, Sfx.Pickup);
-                    }
+                    TakeCoin(nearest, c);
                     gone.Add(c.Id);
                 }
             }
             foreach (int id in gone)
                 Coins.Remove(id);
+        }
+
+        void TakeCoin(Player p, Coin c)
+        {
+            if (c.Vec)
+            {
+                AddVectors(p, c.Value);
+                BroadcastFx(FxKind.Ring, c.Pos, new Rgba(0.3f, 0.88f, 1f), c.Value >= Coin.VectorDropBigAt ? 40f : 26f, 0.4f, c.Value >= Coin.VectorDropBigAt ? Sfx.PickupBig : Sfx.Pickup);
+            }
+            else
+            {
+                p.Gold += c.Value;
+                BroadcastFx(FxKind.Spark, c.Pos, new Rgba(1f, 0.82f, 0.3f), 12f, 0.25f, Sfx.Pickup);
+            }
         }
 
         /// Host: the coins as the clients last heard of them (id: position), so a snapshot sends only what changed. Coins mostly lie
