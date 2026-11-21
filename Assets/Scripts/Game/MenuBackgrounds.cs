@@ -95,6 +95,12 @@ namespace Arena
         /// A quad shaded from `top` (a, b) to `bottom` (c, d).
         void GradQuad(V2 a, V2 b, V2 c, V2 d, Rgba top, Rgba bottom)
         {
+            if (glClipOn)  // a clipped thumbnail (WorldRenderer.cs UiClip): cut like Tri, so the picture stays inside its frame
+            {
+                VTri(a, top, b, top, c, bottom);
+                VTri(a, top, c, bottom, d, bottom);
+                return;
+            }
             SetColor(top); Vtx(Px(a)); Vtx(Px(b));
             SetColor(bottom); Vtx(Px(c));
             SetColor(top); Vtx(Px(a));
