@@ -20,7 +20,7 @@ Status: built (protocol 453). Mockup: https://claude.ai/artifact/Ca5cn1c4Hd88Zna
 - Sanctuary: 80% speed, and small shots in a 100° front arc always stop on the shield. Valor's shield only guards during
   shield moves.
 - Raising the parry starts both chains over.
-- Extra projectiles: the last step of each chain hits 25% harder and heals 25% more.
+- Extra projectiles: +15% damage and healing on every step.
 
 Every number is in README.md (Knight weapons table) and `Core/VowguardMotion.cs`.
 

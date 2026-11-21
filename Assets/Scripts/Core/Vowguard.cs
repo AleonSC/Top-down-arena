@@ -19,14 +19,14 @@ namespace Arena
     ///   - Raising the parry starts both chains over (ResetVgChain). A perfect parry fills Faith (ArmVgFaith).
     ///   - Shield Charge, Sidestep and Cover Ally move you: your own game does when Player.VgCount changes (LocalVowguard), to
     ///     Player.VgDashTo.
-    ///   - Extra projectiles: the last step of each chain hits harder and heals more (VgLastBonus each).
+    ///   - Extra projectiles: every step hits harder and heals more (VgExtraBonus each).
     /// Each step is one effect (FxKind.VgStep: Pos the knight, Pos2 along the aim, Radius = id * 100 + the move, Dur = the move
     /// + VgFxTail), drawn from its age; an Aegis Dome is FxKind.VgDome for its life (Game/VowguardLook.cs).
     public partial class Game
     {
         const byte DashVgStance = 51;
         public const float VgSanctSlow = 0.8f, VgSanctHalf = 50f * MathX.Pi / 180f, VgGuardGap = 12f, VgSwitchCd = 0.25f;
-        public const float VgNext = 0.75f, VgChainWindow = 0.8f, VgFxTail = 0.25f, VgLastBonus = 0.25f;
+        public const float VgNext = 0.75f, VgChainWindow = 0.8f, VgFxTail = 0.25f, VgExtraBonus = 0.15f;
         public const int VgFaithMax = 6;
         public const float VgFaithDmg = 3f, VgFaithHeal = 2f, VgShoveDmg = 6f, VgShoveReach = 50f, VgShoveKnock = 40f, VgBlockSoundGap = 0.08f;
         public const float VgBaseDamage = 16f;  // the moves' damage is written against this (the weapon's Damage)
@@ -83,7 +83,6 @@ namespace Arena
             int st = p.VgStance;
             var chain = VgChainOf(p, st);
             int idx = VgAt(p, st) % chain.Length;
-            bool last = idx == chain.Length - 1;
             var m = VowguardMotion.Of(chain[idx]);
             if (st == 0) p.VgAtV = (byte)((idx + 1) % chain.Length);
             else p.VgAtS = (byte)((idx + 1) % chain.Length);
@@ -96,7 +95,7 @@ namespace Arena
             p.VgSoak = 0;
             p.VgIdle = 0f;
             p.FireCd = dur * VgNext;
-            float lastMult = last ? 1f + VgLastBonus * extra : 1f;
+            float lastMult = 1f + VgExtraBonus * extra;  // (each extra projectile: every step harder)
             float faith = m.Fin ? p.VgFaith : 0f;
             if (m.Fin)
                 p.VgFaith = 0;
@@ -165,7 +164,7 @@ namespace Arena
                 }
                 p.VgDashTo = ClampToArena(to, p.Def.BodyR);
             }
-            BroadcastFx(FxKind.VgStep, p.Pos, p.Pos + dir * 100f, st == 0 ? VgGold : VgJade, p.Id * 100 + (int)m.Id, dur + VgFxTail, m.Sound);
+            BroadcastFx(FxKind.VgStep, p.Pos, p.Pos + dir * MeleeReach(p, p.Weapon.Reach), st == 0 ? VgGold : VgJade, p.Id * 100 + (int)m.Id, dur + VgFxTail, m.Sound);
         }
 
         /// Cover Ally's ally: the one nearest your aim within CoverRange (downed ones too), or null.
