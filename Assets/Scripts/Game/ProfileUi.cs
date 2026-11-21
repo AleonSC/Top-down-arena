@@ -280,7 +280,8 @@ namespace Arena
                         SaveMenuFields();
                     }
                 }
-                CrtUi.Text(new Rect(ps.x + 100f, ps.y + 50f, 250f, 28f), CabText("cab.ptitle", Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 1.3f), 22, tc, TextAnchor.MiddleLeft, true, calm);
+                string rankLine = Rank.Title(info.Rank) + "  ·  Rank " + info.Rank;
+                CrtUi.Text(new Rect(ps.x + 100f, ps.y + 50f, ps.width - 114f, 28f), CabText("cab.ptitle", rankLine, 1.3f), rankLine.Length > 18 ? 17 : 22, tc, TextAnchor.MiddleLeft, true, calm);
                 var bar = new Rect(ps.x + 14f, ps.y + 98f, ps.width - 28f, 8f);
                 Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
                 if (!calm)
