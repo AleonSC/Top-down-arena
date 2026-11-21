@@ -35,6 +35,7 @@ lobby-menu        lobby     LOBBYMENU=1
 lobby-enter       lobby     LOBBYIN=0.75
 lobby-enter-late  lobby     LOBBYIN=1.0
 lobby-leave       lobby     LOBBYOUT=0.5
+lobby-scan-leave  lobby     LOBBYSCAN=0.55
 lobby-return      lobby     RETURN=0.5
 lobby-newrun      lobby     CRT=6.0
 lobby-launch      hud       LAUNCH=0.25

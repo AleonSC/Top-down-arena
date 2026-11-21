@@ -818,6 +818,11 @@ namespace Arena
                         DrawMenu();
                     break;
                 case AppScreen.Lobby:
+                    if (LobbyScanLeaving)
+                    {
+                        DrawLobbyScanLeave();  // Leave with effects on: the scan line, the menu above it and the lobby below (LobbyScanLeave.cs)
+                        break;
+                    }
                     // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
                     DrawLobbyCrtBack(Time.unscaledTime);  // the cyan CRT screen behind the panels (LobbyCrt.cs)
                     if (LobbyReturning)
