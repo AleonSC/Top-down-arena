@@ -46,7 +46,7 @@ button small{display:block;font-size:10px;opacity:.7;font-weight:400}
 const $=id=>document.getElementById(id);
 const cv=$("c");let ctx=cv.getContext("2d",{alpha:false,desynchronized:true});const mainCtx=ctx;
 const INKS=[["#5ff0ff","Cyan"],["#ff8c1f","Warden"],["#ffe026","Hive"],["#ff4de6","Dusk"],["#ad59ff","Void"],["#40ff80","Lich"],["#ff3359","Devourer"],["#e6ebff","Silver"]];
-const GATE="#3fd6c4",GRID=100,TILE=100; // the game sizes rooms in tiles of 100 px (Expansion.Step): sides 2-24 tiles, at most 144 tiles of floor
+const TRAPS={slow:"#4da6ff",turret:"#ffb020",spike:"#ff3b3b"},GATE="#3fd6c4",GRID=100,TILE=100; // the game sizes rooms in tiles of 100 px (Expansion.Step): sides 2-24 tiles, at most 144 tiles of floor
 const CELL=600,GX0=-400,GY0=-400; // the game's grid lattice (Expansion.GridCell, GridX0/GridY0): a cell is a 6 x 6 tile room
 const PIECES=[["Single",[[0,0]]],["Domino",[[0,0],[1,0]]],["Line of 3",[[0,0],[1,0],[2,0]]],["Corner",[[0,0],[0,1],[1,1]]],["Line of 4",[[0,0],[1,0],[2,0],[3,0]]],
  ["Square",[[0,0],[1,0],[0,1],[1,1]]],["T",[[0,0],[1,0],[2,0],[1,1]]],["S",[[1,0],[2,0],[0,1],[1,1]]],["L",[[0,0],[0,1],[0,2],[1,2]]],
@@ -73,7 +73,7 @@ let saveT=0;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localS
 function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,1600)}
 
 /* ---------- UI ---------- */
-const TOOLS=[["pen","Pen","free"],["line","Line","wall"],["rect","Room","box"],["ell","Circle","arena"],["pillar","Pillar","solid"],["gate","Gate","door"],["spawn","Spawn","pt"],["label","Text","abc"],["piece","Piece","grid"],["edit","Edit","move·size"],["erase","Erase","x"],["hand","Move","pan"]];
+const TOOLS=[["pen","Pen","free"],["line","Line","wall"],["rect","Room","box"],["ell","Circle","arena"],["pillar","Pillar","solid"],["gate","Gate","door"],["spawn","Spawn","pt"],["slow","Slow","trap"],["turret","Turret","trap"],["spike","Spikes","trap"],["label","Text","abc"],["piece","Piece","grid"],["edit","Edit","move·size"],["erase","Erase","x"],["hand","Move","pan"]];
 const tools=$("tools");
 TOOLS.forEach(([id,n,s])=>{const b=document.createElement("button");b.dataset.t=id;b.innerHTML=n+"<small>"+s+"</small>";b.onclick=()=>{S.tool=id;ui()};tools.appendChild(b)});
 const inks=$("inks");
@@ -125,7 +125,7 @@ function pt(e,snap){let p=toWorld(e.clientX,e.clientY);if(snap&&S.snap)p={x:snap
 const lw=()=>[1.6,2.6,4.2][S.size-1];
 function bounds(sh){
  let xs=[],ys=[];
- if(sh.t==="pillar"||sh.t==="spawn"||sh.t==="label"){return{x0:sh.x-(sh.r||40),y0:sh.y-(sh.r||40),x1:sh.x+(sh.r||40),y1:sh.y+(sh.r||40)}}
+ if(sh.t==="pillar"||sh.t==="spawn"||sh.t==="label"||sh.t==="trap"){return{x0:sh.x-(sh.r||40),y0:sh.y-(sh.r||40),x1:sh.x+(sh.r||40),y1:sh.y+(sh.r||40)}}
  if(sh.t==="piece"){const[w,h]=cellsSize(sh.cells);return{x0:sh.x,y0:sh.y,x1:sh.x+w*CELL,y1:sh.y+h*CELL}}
  const P=sh.pts;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
  for(const p of P){x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y)}
@@ -139,7 +139,7 @@ function polyOf(sh){
  return sh.pts;
 }
 function hit(sh,p,tol){
- if(sh.t==="pillar"||sh.t==="spawn")return Math.hypot(p.x-sh.x,p.y-sh.y)<=sh.r+tol;
+ if(sh.t==="pillar"||sh.t==="spawn"||sh.t==="trap")return Math.hypot(p.x-sh.x,p.y-sh.y)<=sh.r+tol;
  if(sh.t==="label")return Math.abs(p.x-sh.x)<sh.s*sh.txt.length*.3+tol&&Math.abs(p.y-sh.y)<sh.s*.6+tol;
  const P=polyOf(sh);
  for(let i=0;i<P.length-1;i++)if(segDist(p,P[i],P[i+1])<tol)return true;
@@ -187,6 +187,11 @@ function drawShape(sh,a=1){
   case"spawn":{const P=[];for(let i=0;i<=24;i++){const q=i/24*Math.PI*2;P.push({x:sh.x+Math.cos(q)*sh.r,y:sh.y+Math.sin(q)*sh.r})}
    neon(P,c,w,true,a);neon([{x:sh.x-sh.r*1.5,y:sh.y},{x:sh.x-sh.r*.5,y:sh.y}],c,w*.7,false,a);neon([{x:sh.x+sh.r*.5,y:sh.y},{x:sh.x+sh.r*1.5,y:sh.y}],c,w*.7,false,a);
    neon([{x:sh.x,y:sh.y-sh.r*1.5},{x:sh.x,y:sh.y-sh.r*.5}],c,w*.7,false,a);neon([{x:sh.x,y:sh.y+sh.r*.5},{x:sh.x,y:sh.y+sh.r*1.5}],c,w*.7,false,a);break}
+  case"trap":{const K=TRAPS[sh.k],r=sh.r,X=sh.x,Y=sh.y,ring=[];for(let i=0;i<=24;i++){const q=i/24*Math.PI*2;ring.push({x:X+Math.cos(q)*r,y:Y+Math.sin(q)*r})}
+   if(sh.k==="slow"){neon(ring,K,w,true,a,[8/S.cam.z,6/S.cam.z]);const in2=ring.map(p=>({x:X+(p.x-X)*.55,y:Y+(p.y-Y)*.55}));neon(in2,K,w*.7,true,a*.7)}
+   else if(sh.k==="turret"){neon(ring,K,w,true,a);const q=r*.45;neon([{x:X-q,y:Y-q},{x:X+q,y:Y-q},{x:X+q,y:Y+q},{x:X-q,y:Y+q}],K,w,true,a);neon([{x:X,y:Y},{x:X+r*1.4,y:Y}],K,w*1.3,false,a)}
+   else{const sq=[{x:X-r,y:Y-r},{x:X+r,y:Y-r},{x:X+r,y:Y+r},{x:X-r,y:Y+r}];neon(sq,K,w,true,a);for(const[dx,dy]of[[-.5,-.5],[.5,-.5],[.5,.5],[-.5,.5],[0,0]]){const cx=X+dx*r,cy=Y+dy*r,t=r*.28;neon([{x:cx-t,y:cy+t},{x:cx,y:cy-t},{x:cx+t,y:cy+t}],K,w*.8,true,a)}}
+   break}
   case"label":ctx.font="600 "+sh.s+"px 'Courier New',monospace";ctx.textAlign="center";ctx.textBaseline="middle";
    ctx.shadowColor=c;ctx.shadowBlur=10;ctx.fillStyle=hex(c,a);ctx.fillText(sh.txt,sh.x,sh.y);ctx.shadowBlur=0;break;
  }
@@ -307,7 +312,7 @@ function dimsOf(sh){
  return null;
 }
 function bodyHit(sh,p,tol){
- if(sh.t==="pillar"||sh.t==="spawn")return Math.hypot(p.x-sh.x,p.y-sh.y)<=sh.r+tol;
+ if(sh.t==="pillar"||sh.t==="spawn"||sh.t==="trap")return Math.hypot(p.x-sh.x,p.y-sh.y)<=sh.r+tol;
  if(sh.t==="piece")return sh.cells.some(([x,y])=>p.x>=sh.x+x*CELL-tol&&p.x<=sh.x+(x+1)*CELL+tol&&p.y>=sh.y+y*CELL-tol&&p.y<=sh.y+(y+1)*CELL+tol);
  if(sh.t==="rect"||sh.t==="ell"){const[a,b]=sh.pts;return p.x>=Math.min(a.x,b.x)-tol&&p.x<=Math.max(a.x,b.x)+tol&&p.y>=Math.min(a.y,b.y)-tol&&p.y<=Math.max(a.y,b.y)+tol}
  return hit(sh,p,tol);
@@ -352,6 +357,7 @@ function begin(e){
  }
  if(t==="erase"){push();erased=false;drawing={t};eraseAt(p);return}
  if(t==="piece"){S.sel=null;drawing={t};live=pieceAt(p);draw();return}
+ if(t==="slow"||t==="turret"||t==="spike"){addShape({t:"trap",k:t,x:p.x,y:p.y,r:t==="slow"?60:30,ink:S.ink,w:lw()});return}
  if(t==="spawn"){addShape({t:"spawn",x:p.x,y:p.y,r:24,ink:S.ink,w:lw()});return}
  if(t==="pillar"){S.sel=null;syncDim();drawing={t,p0:p};live={t:"pillar",x:p.x,y:p.y,r:GRID/2,ink:S.ink,w:lw()};draw();return}
  if(t==="label"){const s=prompt("Label text");if(s)addShape({t:"label",x:p.x,y:p.y,txt:s.slice(0,40),s:28,ink:S.ink});return}
