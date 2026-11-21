@@ -41,7 +41,7 @@ row lists its class wheel's class, and a saved run's seats keep theirs.
 
 The **Class**, **Weapon**, **Ability** and **Ultimate** rows are each one long row that slides sideways and loops round (four
 keys in view on every row, all the size of the class keys): click the arrow keys at its ends or roll the mouse wheel over it;
-a thin track under the row shows where you are round the loop, and the picked key slides into view the short way round. Click a **role** or **class** key and the detail box shows that role's or
+a small gold diamond between two keys marks where the row starts over, and the picked key slides into view the short way round. Click a **role** or **class** key and the detail box shows that role's or
 class's description with its health and speed; a weapon, ability or ultimate key shows that as before. Role and class keys have
 no hover tips.
 
