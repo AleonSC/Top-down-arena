@@ -29,11 +29,11 @@ namespace Arena
         }
 
         /// How strongly click ripple `i` is lit at distance `dist` from where it was made: a travelling band that fades as it ages.
-        float ArenaWave(float age, float dist, float speed, float width)
+        float ArenaWave(float age, float dist, float speed, float width, float power = 1f)
         {
             float life = 1f - age / BgRippleLife;
             float d = dist - age * speed;
-            return Mathf.Exp(-d * d / (2f * width * width)) * life * life;
+            return Mathf.Exp(-d * d / (2f * width * width)) * life * life * power;
         }
 
         // --- Lattice -------------------------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ namespace Arena
                         if (ReactRipple(r, t, out var at, out float age))
                         {
                             var o = b - at;
-                            float w = ArenaWave(age, o.Length, 380f, 42f);
+                            float w = ArenaWave(age, o.Length, 380f, 42f, bgRipples[r].Power);
                             disp += o.Normalized() * (w * 24f);
                             hot += w;
                         }
@@ -251,7 +251,7 @@ namespace Arena
                         float reach = Mathf.Clamp01(1f - cd / 520f), front = Mathf.Max(0f, age - cd / 900f) * 520f, life = 1f - age / BgRippleLife;
                         if (reach <= 0f || front <= 0f)
                             continue;
-                        float a = life * life * (0.35f + 0.65f * reach);
+                        float a = life * life * (0.35f + 0.65f * reach) * bgRipples[c].Power;
                         for (int dir = -1; dir <= 1; dir += 2)
                         {
                             float hs = sc + dir * front;
@@ -320,7 +320,7 @@ namespace Arena
                     float wave = 0f;
                     for (int r = 0; r < BgRippleSlots; r++)
                         if (ReactRipple(r, t, out var at, out float age))
-                            wave += ArenaWave(age, (c - at).Length, 520f, 58f) * 1.3f;
+                            wave += ArenaWave(age, (c - at).Length, 520f, 58f, bgRipples[r].Power) * 1.3f;
                     float v = Mathf.Min(1f, Mathf.Max(lit, Mathf.Max(glint, wave)));
                     var col = ArenaInkDim.Mix(ArenaInkLit, v);
                     if (v > 0.2f)  // a lit cell is filled, a little different each (the data)

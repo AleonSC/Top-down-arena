@@ -143,8 +143,9 @@ static partial class Program
         Check(Rank.RewardsAt(15)[0].Id == "trail-frost" && Rank.RewardsAt(19)[0].Id == "trail-storm" && Rank.RewardsAt(23)[0].Id == "trail-void" && Rank.RewardsAt(36)[0].Id == "trail-prism"
               && Rank.OfKind(CosmeticKind.Trail).Count == 7 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(8) == "", "Frost, Storm, Void and Prism unlock at 15, 19, 23 and 36, and every trail has its own lobby number");
         Check(Rank.RewardsAt(46).Count == 1 && Rank.RewardsAt(46)[0].Id == "trail-lightcycle" && Rank.TrailIndex("trail-lightcycle") == 7 && Rank.TrailId(7) == "trail-lightcycle" && !Rank.Owns(45, "trail-lightcycle") && Rank.Owns(46, "trail-lightcycle") && Rank.TrailIndex("trail-gold") == 5, "the Light Cycle trail unlocks at rank 46 as the last trail, and no earlier trail's number moves");
-        // Menu backgrounds: none are rank rewards for now (the plumbing stays).
-        Check(Rank.OfKind(CosmeticKind.Background).Count == 0, "no menu backgrounds are rank rewards");
+        // Menu backgrounds: Lattice, Circuit Run and Hex Scan are the (reactive) rank rewards.
+        Check(Rank.OfKind(CosmeticKind.Background).Count == 3 && Rank.Owns(16, "bg-react-lattice") && !Rank.Owns(15, "bg-react-lattice") && Rank.Owns(29, "bg-react-circuit") && !Rank.Owns(28, "bg-react-circuit") && Rank.Owns(44, "bg-react-hex") && !Rank.Owns(43, "bg-react-hex")
+              && Rank.IsReactiveBackground("bg-react-lattice") && Rank.IsReactiveBackground("bg-react-circuit") && Rank.IsReactiveBackground("bg-react-hex"), "Lattice (16), Circuit Run (29) and Hex Scan (44) are reactive menu backgrounds");
         // Card backgrounds: ten of them, numbered in rank order, shared through the lobby like frames and trails.
         Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 18 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "card-radar" && Rank.CardBgId(19) == "" && Rank.Owns(54, "card-prism") && !Rank.Owns(53, "card-prism") && Rank.RewardsAt(7)[0].Id == "card-dusk",
             "ten card backgrounds, Dusk Grid at rank 7 to Prism Shards at 54, numbered for the lobby, and the eight newer ones after them");

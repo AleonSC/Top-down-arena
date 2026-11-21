@@ -17,7 +17,7 @@ namespace Arena
         const int BgRippleSlots = 8;
         const float BgRippleLife = 2.6f;
 
-        struct BgRipple { public V2 At; public float Born; }  // At in screen UI coordinates, Born in Time.time
+        struct BgRipple { public V2 At; public float Born; public float Power; }  // At in screen UI coordinates, Born in Time.time, Power 1 for a click (less for game events)
 
         readonly BgRipple[] bgRipples = new BgRipple[BgRippleSlots];
         int bgRippleNext;
@@ -45,7 +45,7 @@ namespace Arena
             float speed = (bgPointerUi - bgPointerPrev).Length / Mathf.Max(0.001f, Time.unscaledDeltaTime) / 900f;
             bgPointerPrev = bgPointerUi;
             bgEnergy = Mathf.Lerp(bgEnergy, Mathf.Clamp01(speed), 1f - Mathf.Exp(-6f * Time.unscaledDeltaTime));
-            if (menuBgAnimate && Input.GetMouseButtonDown(0))
+            if (menuBgAnimate && Input.GetMouseButtonDown(0) && !BgInRun)
             {
                 AddRipple(bgPointerUi, time);
                 bgClickFrame = Time.frameCount;
@@ -53,20 +53,24 @@ namespace Arena
             }
         }
 
-        void AddRipple(V2 uiAt, float time)
+        /// During a run the background sits behind the arena: it ignores the pointer (that is your aim) and clicks (your shots) and
+        /// answers game events instead (BackgroundGameEvents, below), gently.
+        bool BgInRun => game != null && game.Running;
+
+        void AddRipple(V2 uiAt, float time, float power = 1f)
         {
-            bgRipples[bgRippleNext] = new BgRipple { At = uiAt, Born = time };
+            bgRipples[bgRippleNext] = new BgRipple { At = uiAt, Born = time, Power = power };
             bgRippleNext = (bgRippleNext + 1) % BgRippleSlots;
         }
 
         /// Add a ripple from code; `at` is in the background's own coordinates.
-        void ReactKick(V2 at, float time) => AddRipple(bgViewOrigin + at * bgViewScale, time);
+        void ReactKick(V2 at, float time, float power = 1f) => AddRipple(bgViewOrigin + at * bgViewScale, time, power);
 
         /// The pointer in the background's own coordinates, or false if it isn't over what is being drawn (or the background is STILL).
         bool ReactPointer(out V2 at)
         {
             at = V2.Zero;
-            if (!menuBgAnimate || !bgViewRect.Contains(new Vector2(bgPointerUi.X, bgPointerUi.Y)))
+            if (!menuBgAnimate || BgInRun || !bgViewRect.Contains(new Vector2(bgPointerUi.X, bgPointerUi.Y)))
                 return false;
             at = (bgPointerUi - bgViewOrigin) / bgViewScale;
             return true;
@@ -92,6 +96,22 @@ namespace Arena
             at = (bgClickUi - bgViewOrigin) / bgViewScale;
             at = new V2(Mathf.Clamp(at.X, 0f, W), Mathf.Clamp(at.Y, 0f, H));
             return true;
+        }
+
+        const float BgDashPower = 0.3f;  // a dash is a small nudge to the background, not a click
+        Game bgEventGame;
+        int bgDodges;
+
+        /// Behind a run: the reactive backgrounds feel each Dodge, softly (a third of a click), where it started.
+        void BackgroundGameEvents(float time)
+        {
+            bool fresh = bgEventGame != game;  // (a new game counts from 0 again: no nudge for that)
+            if (!fresh && game.Dodges == bgDodges)
+                return;
+            bgEventGame = game;
+            bgDodges = game.Dodges;
+            if (!fresh && game.Me != null)
+                ReactKick(ToUi(game.DodgeFrom), time, BgDashPower);
         }
 
         /// A quick random number for backgrounds' own use (0..1), so they don't touch the game's random state.

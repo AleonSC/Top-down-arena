@@ -6,16 +6,16 @@ namespace Arena
     /// and the rank-reward backgrounds are gone; the reward plumbing stays so new unlockable ones can be added.
     public partial class ArenaApp
     {
-        public static readonly string[] BackgroundNames = { "Holo Floor", "Lattice", "Circuit Run", "Hex Scan" };  // 1-3: reactive mockups (BackgroundArena.cs), not unlockable yet
+        public static readonly string[] BackgroundNames = { "Holo Floor", "Lattice", "Circuit Run", "Hex Scan" };  // 1-3: reactive mockups (BackgroundArena.cs)
 
         const int HoloFloorBg = 0;
 
-        /// Where the rank-reward backgrounds start in BackgroundNames (none now). Each is a Background cosmetic in Rank.cs.
+        /// Where the rank-reward backgrounds start in BackgroundNames . Each is a Background cosmetic in Rank.cs.
         const int FirstRewardBg = 1;
 
         /// The cosmetic id of each reward background, in BackgroundNames order from FirstRewardBg. To add one: a name here and in
         /// BackgroundNames, an accent, a `case` in DrawMenuBackground, a CosmeticDef in Rank.cs.
-        static readonly string[] RewardBackgrounds = { };
+        static readonly string[] RewardBackgrounds = { "bg-react-lattice", "bg-react-circuit", "bg-react-hex" };
 
         static string BackgroundCosmeticId(int i) => i >= FirstRewardBg && i - FirstRewardBg < RewardBackgrounds.Length ? RewardBackgrounds[i - FirstRewardBg] : null;
         static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? 0 : FirstRewardBg + k; }

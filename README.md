@@ -969,8 +969,13 @@ continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the dr
 ## Menu backgrounds
 
 The animated background behind the menus and lobby is the **Holo Floor**: a starry sky over a glowing horizon and a grid
-floor rolling toward you, light running down its lanes. It also shows faintly behind the arena during runs. The old
-picker (Settings > Visual effects) and the rank-reward backgrounds are gone; new unlockable ones are planned.
+floor rolling toward you, light running down its lanes. Three **reactive** rank rewards (Look window > Background) answer
+your pointer and clicks, and are dark navy and neon cyan so they sit behind every arena:
+**Lattice** (rank 16: a square grid the pointer pulls in like a gravity well; a click sends a shockwave through it),
+**Circuit Run** (29: circuit traces with data packets that quicken near the pointer; a click sends a pulse both ways down
+the nearest trace) and **Hex Scan** (44: a hex field under a scanner ring and sweep arm that follow the pointer; a click
+sends a ring through the field). They also show faintly behind the arena during runs, where they ignore the pointer and
+your shots and only give a soft nudge for each Dodge, a third of a click's strength.
 
 ## Arena props
 
@@ -1745,6 +1750,9 @@ each kind at a time:
 | 41 | **Legend Foil frame**: gold with a bright band sweeping across the rim and twinkling corner stars |
 | 36 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
 | 46 | **Light Cycle trail**: a wall of light that follows where you've been but snaps to straight runs with right-angle corners; the floor tiles it crosses light up, and the wall breaks into squares that drift off as it ages (about 2.4 s). Cyan only. With Visual effects off it is one flat line |
+| 16 | **Lattice**: a reactive menu background (a square grid the pointer pulls in; a click sends a shockwave) |
+| 29 | **Circuit Run**: a reactive menu background (circuit traces with packets; a click pulses down the nearest trace) |
+| 44 | **Hex Scan**: a reactive menu background (a hex field under a scanner that follows the pointer) |
 | 51 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |
 | 56 | **Neon Tube frame**: a magenta tube with a cyan tube inside it; the outer one buzzes and drops out now and then |
 | 58 | **Hazard Tape frame**: yellow and black warning tape marching round the card |
