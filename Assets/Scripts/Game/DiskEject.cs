@@ -184,10 +184,10 @@ namespace Arena
             whoLift[profTrSlot] = 1f - Seg(E, EjLandAt, EjLen);  // its clamps stay open until it lands
             if (menuA > 0f)
                 WithAlpha(menuA, DrawMenu);
+            DrawWhoChrome(whoA);  // the picker's title screen, band and rooms (MenuHolo.cs)
             if (whoA > 0f)
                 WithAlpha(whoA, () =>
                 {
-                    Ui.Glitch(new Rect(0f, MenuTitleY - 56f, W, 80f), "WHO'S PLAYING?", 58, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
                     DrawWhoShelf();
                     for (int i = 0; i <= WhoSlots; i++)
                         if (i != profTrSlot)

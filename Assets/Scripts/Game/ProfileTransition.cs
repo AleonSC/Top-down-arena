@@ -158,10 +158,10 @@ namespace Arena
             var R = WhoBox(profTrSlot);
             float hover = EaseOut(Seg(T, 0.1f, 0.5f)), flight = EaseInOut(Seg(T, 0.9f, 2.0f)), fade = 1f - Seg(T, 0.8f, 1.5f);
             whoLift[profTrSlot] = hover * (1f - flight);  // the clamps open as it lifts
+            DrawWhoChrome(fade);  // the picker's title screen, band and rooms (MenuHolo.cs)
             if (fade > 0f)
                 WithAlpha(fade, () =>
                 {
-                    Ui.Glitch(new Rect(0f, MenuTitleY - 56f, W, 80f), "WHO'S PLAYING?", 58, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
                     DrawWhoShelf();
                     for (int i = 0; i <= WhoSlots; i++)
                         if (i != profTrSlot)

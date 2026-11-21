@@ -65,6 +65,71 @@ namespace Arena
             NeonRect(r, a * NeonFlicker(Time.unscaledTime, 7f, 1.4f));
         }
 
+        // --- The Who's playing? screen ----------------------------------------------------------------------------------------
+
+        const string WhoTitleText = "WHO'S PLAYING?";
+
+        /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html): the honeycomb band and rooms
+        /// behind, then WHO'S PLAYING? on the menu's CRT title screen with its neon, and the drive bay ledge under it. a: its opacity
+        /// (the picker fades in the moves to and from the menu, ProfileTransition.cs, DiskEject.cs).
+        void DrawWhoChrome(float a)
+        {
+            if (a <= 0f)
+                return;
+            float t = Time.unscaledTime;
+            WithAlpha(a, () =>
+            {
+                if (BeginUiGl())
+                {
+                    DrawMenuHexBand(t, 1f);
+                    DrawRooms(t, 1f, WhoRoomSets);
+                    EndUiGl();
+                }
+                DrawCrtBack();
+                float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
+                Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f), WhoTitleText, (int)MenuTitleSize, CrtGreen.WithAlpha(flick), TextAnchor.MiddleCenter, CrtGlow);
+                DrawCrtFront(WhoTitleText);
+                DrawTitleNeon(1f);
+            });
+            DrawDriveBay(a);
+        }
+
+        /// IMGUI: a slot's plate on the shelf: a dark CRT tag, lit in neon while its slot is under the mouse.
+        void DrawWhoTag(Rect r, string text, float lit)
+        {
+            Ui.Pill(r, new Color(0.012f, 0.024f, 0.07f));
+            Ui.Rim(r, Color.Lerp(new Color(0.17f, 0.25f, 0.47f), new Color(0.66f, 0.8f, 1f), lit), 0.8f);
+            if (lit > 0f)
+                Ui.Glow(r, new Color(0.43f, 0.6f, 1f), 0.35f * lit);
+            Ui.Label(r, text, 14, Color.Lerp(new Color(0.5f, 0.63f, 0.91f), new Color(0.9f, 0.95f, 1f), lit), TextAnchor.MiddleCenter, true);
+        }
+
+        /// IMGUI: an empty slot or New profile as a hologram disk: a faint blue body with scanlines, a scan band sliding down it, a
+        /// flicker now and then, and the dashed outline (DrawWhoGhost) on top. hover brightens it.
+        void DrawWhoHolo(Rect r, float a, float hover)
+        {
+            float t = Time.unscaledTime;
+            float flick = fxReduced || !fxOn ? 1f : MathX.Fmod(t, 4f) > 1.92f && MathX.Fmod(t, 4f) < 2.08f ? 0.6f : 1f;
+            a *= flick;
+            const float ch = 24f;  // the chamfered top right corner, as DrawWhoGhost draws it
+            var body = new Color(0.36f, 0.52f, 0.91f, (0.07f + 0.07f * hover) * a);
+            Ui.Fill(new Rect(r.x, r.y + ch, r.width, r.height - ch), body);
+            Ui.Fill(new Rect(r.x, r.y, r.width - ch, ch), body);
+            for (float y = r.y + 2f; y < r.yMax; y += 3f)  // scanlines
+                Ui.Fill(new Rect(r.x + 2f, y, (y < r.y + ch ? r.width - ch : r.width) - 4f, 1f), new Color(0.5f, 0.66f, 1f, 0.06f * a));
+            if (!fxReduced && fxOn)
+            {
+                float sy = r.y + MathX.Fmod(t * 60f, r.height + 30f) - 30f;
+                for (int i = 0; i < 10; i++)  // the scan band: brightest in its middle
+                {
+                    float y = sy + i * 3f;
+                    if (y >= r.y && y < r.yMax - 3f)
+                        Ui.Fill(new Rect(r.x + 2f, y, (y < r.y + ch ? r.width - ch : r.width) - 4f, 3f), new Color(0.62f, 0.75f, 1f, 0.12f * Mathf.Sin(Mathf.PI * (i + 0.5f) / 10f) * a));
+                }
+            }
+            DrawWhoGhost(r, Color.Lerp(new Color(0.5f, 0.66f, 1f, 0.5f * a), new Color(0.81f, 0.88f, 1f, 0.95f * a), hover));
+        }
+
         // --- The Play key's chevrons ------------------------------------------------------------------------------------------
 
         const float PlayChevW = 46f;
@@ -182,18 +247,30 @@ namespace Arena
             new[] { Rm(214, 470, 72, 110, 'r'), Rm(994, 470, 72, 110, 'l'), Rm(994, 350, 72, 112, 'l') },
         };
 
+        // Rooms on the Who's playing? screen: beside its rack (90-1190 by 244-484) and either side of Manage profiles (490-790 by 602-676).
+        static readonly MenuRoom[][] WhoRoomSets =
+        {
+            new[] { Rm(14, 280, 64, 96, 'r'), Rm(1202, 280, 64, 96, 'l') },
+            new[] { Rm(14, 262, 64, 86, 'r'), Rm(14, 354, 64, 86, 'r'), Rm(1202, 262, 64, 86, 'l'), Rm(1202, 354, 64, 86, 'l') },
+            new[] { Rm(376, 606, 96, 66, 'r'), Rm(808, 606, 96, 66, 'l') },
+            new[] { Rm(14, 300, 64, 130, 'r'), Rm(808, 606, 96, 66, 'l') },
+        };
+
         const float RoomEvery = 9f, RoomBuild = 1.3f, RoomHold = 3.4f, RoomFold = 0.9f, RoomBoxAfter = 0.5f, RoomStagger = 0.15f;
 
         /// GL: every RoomEvery seconds a set of rooms draws itself round the title, then round the box: each outline traced by a
         /// bright pen point, then a faint grid and a scan line fill it; it holds, then un-draws. Off with Reduced effects.
-        void DrawMenuRooms(float t, float a)
+        void DrawMenuRooms(float t, float a) => DrawRooms(t, a, BoxRoomSets);
+
+        /// The rooms round the title, then a set from `lower` (round the menu box, or the Who's playing? rack and its Manage key).
+        void DrawRooms(float t, float a, MenuRoom[][] lower)
         {
             if (a <= 0f || fxReduced || !fxOn)
                 return;
             int cycle = Mathf.FloorToInt(t / RoomEvery);
             float age = t - cycle * RoomEvery;
             var titleSet = TitleRoomSets[(int)(Hash(cycle * 7 + 1) * TitleRoomSets.Length) % TitleRoomSets.Length];
-            var boxSet = BoxRoomSets[(int)(Hash(cycle * 7 + 4) * BoxRoomSets.Length) % BoxRoomSets.Length];
+            var boxSet = lower[(int)(Hash(cycle * 7 + 4) * lower.Length) % lower.Length];
             for (int i = 0; i < titleSet.Length; i++)
                 DrawRoom(titleSet[i], age - i * RoomStagger, t, a);
             for (int i = 0; i < boxSet.Length; i++)

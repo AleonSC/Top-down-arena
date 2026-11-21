@@ -1,0 +1,267 @@
+<title>Who's Playing Holo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Permanent+Marker&display=swap">
+<style>
+/* Layout: one 1280x720 stage scaled to fit; the holo floor behind the "Who's playing?" shelf, same chrome as the main menu */
+:root{--bg:#07080d;--panel:#0e1526;--ink:#e8eeff;--dim:#7f8db3;--gold:#f2c14e;
+  --f:"Chakra Petch",system-ui,sans-serif;--hand:"Permanent Marker","Comic Sans MS",cursive;color-scheme:dark;
+  --neon:0 0 2px #e4efff,0 0 8px #6f9dff,0 0 18px #4a78f0aa,inset 0 0 2px #e4efff,inset 0 0 10px #5b8cff55}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);padding-block:20px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar h1{margin:0 auto 0 0;font-size:20px;letter-spacing:.04em}
+.bar button{font:600 14px var(--f);color:var(--gold);background:var(--panel);border:1px solid #5a4a20;padding:8px 14px;border-radius:6px;cursor:pointer}
+.bar button:focus-visible{outline:2px solid #9fc0ff;outline-offset:2px}
+.note{color:var(--dim);font-size:13px;line-height:1.5;margin:0}
+.viewport{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;overflow:hidden;border-radius:8px;border:1px solid #1b2440;background:#000}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden}
+canvas{position:absolute;inset:0;width:1280px;height:720px}
+@keyframes blink{50%{opacity:0}}
+@keyframes rise{from{opacity:0;transform:perspective(900px) rotateX(18deg) translateY(40px)}}
+@keyframes neon{0%,90%,100%{filter:none}91%{filter:brightness(.55)}92%{filter:none}93.5%{filter:brightness(.65)}94.5%{filter:none}}
+
+/* title + drive bay: identical to the main menu */
+.title{position:absolute;left:112px;top:66px;width:1056px;height:120px;box-sizing:border-box;border-radius:6px;
+  background:linear-gradient(#0a0c12f2,#020306f2);border:2px solid #a9cbff;box-shadow:var(--neon),0 10px 30px #0008;animation:neon 9s 3s infinite}
+.title .word{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 74px/1 var(--f);letter-spacing:.02em;white-space:nowrap;perspective:600px}
+.title .word span{display:inline-block;color:#d6e4ff;text-shadow:0 2px 0 #3557b8,0 4px 0 #1d306a,0 0 30px #4b7cf255;animation:assemble .7s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes assemble{from{opacity:0;transform:translateY(-50px) rotateX(90deg)}}
+.title .word .cur{width:30px;height:7px;margin-left:10px;align-self:flex-end;margin-bottom:30px;background:#8fb0f0;box-shadow:0 0 10px #5b84e8;animation:blink 1.1s steps(1) infinite 1.2s}
+.bay{box-sizing:border-box;position:absolute;left:206px;top:186px;width:868px;height:64px;border-radius:0 0 10px 10px;
+  background:linear-gradient(#0a0d16,#121a30 70%,#0b1020);border:2px solid #a9cbff;border-top:0;box-shadow:var(--neon),0 8px 20px #000a;animation:neon 9s 3s infinite}
+.bay::before{content:"";position:absolute;left:0;right:0;top:-4px;height:6px;background:#0a0d16}
+.vents{position:absolute;top:22px;height:18px;background:repeating-linear-gradient(90deg,#3a4f88 0 6px,#0000 6px 10px);opacity:.6}
+.drive{position:absolute;left:475px;top:190px;width:330px;height:32px;box-sizing:border-box;border-radius:4px;background:#121a33;border:1px solid #4a64a8;
+  display:flex;align-items:center;gap:10px;padding:0 12px;font:700 11px var(--f);color:#a0bfff}
+.drive .lamp{width:9px;height:9px;border-radius:50%;background:#45589a;box-shadow:0 0 8px #45589a}
+.drive .slit{flex:1;height:8px;background:#01020a;border-radius:2px;border-bottom:1px solid #c0d4ff88}
+.drive-lbl{position:absolute;left:0;right:0;top:228px;text-align:center;font:700 11px var(--f);color:#a0bfffaa;letter-spacing:.06em;transition:color .2s}
+
+/* the rack */
+.rack{position:absolute;left:96px;top:272px;width:1088px;height:208px;box-sizing:border-box;border:2px solid #a9cbff;border-radius:4px;
+  background:linear-gradient(#0c1328ee,#0a0f22ee);box-shadow:var(--neon),0 20px 50px #000a;animation:rise .8s .5s both,neon 7s 1.4s infinite}
+.rack::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,#0000 0 3px,#5b84e80a 3px 4px);pointer-events:none}
+.plank{position:absolute;left:78px;top:474px;width:1124px;height:54px;box-sizing:border-box;border-radius:4px;
+  background:linear-gradient(#5f78c8,#3a4f94 40%,#26356a);border:1px solid #8fb0ff;box-shadow:0 0 12px #5b84e866,0 10px 24px #000c;animation:rise .8s .6s both}
+.plank::before{content:"";position:absolute;left:4px;right:4px;top:0;height:2px;background:#e4efff;box-shadow:0 0 8px #9fc0ff}
+.plank .vents{top:16px;height:20px;width:96px;opacity:.9;background:repeating-linear-gradient(90deg,#0a1230 0 8px,#0000 8px 12px)}
+.tag{position:absolute;top:13px;width:100px;height:30px;margin-left:-50px;box-sizing:border-box;border-radius:3px;background:#030612;border:1px solid #2c3f78;
+  font:700 14px/28px var(--f);text-align:center;color:#7fa0e8;letter-spacing:.04em;transition:all .2s}
+.tag.on{color:#e4efff;border-color:#a9cbff;box-shadow:var(--neon);text-shadow:0 0 8px #7fa8ff}
+
+/* slots */
+.slot{position:absolute;top:280px;width:220px;height:190px;margin-left:-110px;cursor:pointer;animation:rise .7s both}
+.post{position:absolute;bottom:0;width:20px;height:84px;border-radius:5px;background:linear-gradient(90deg,#26356a,#4f69bd 50%,#26356a);border:1px solid #7f9cf0;transition:transform .25s}
+.post.l{left:0}.post.r{right:0}
+.post i{position:absolute;left:5px;top:8px;width:8px;height:8px;border-radius:50%;background:#1b2550;box-shadow:inset 0 0 0 1px #4a64a8}
+.post b{position:absolute;left:5px;bottom:6px;width:8px;height:8px;border-radius:50%;background:#2b3a70}
+.slot.full .post i{background:#7dffb0;box-shadow:0 0 6px #7dffb0,0 0 14px #3fe08a}
+.slot:hover .post.l{transform:translateX(-4px)}.slot:hover .post.r{transform:translateX(4px)}
+.cradle{position:absolute;left:14px;right:14px;bottom:-6px;height:8px;border-radius:2px;background:#2c3c78;border:1px solid #7f9cf0;
+  background-image:repeating-linear-gradient(90deg,#0b1430 0 8px,#0000 8px 12px)}
+.disk{position:absolute;left:22px;bottom:2px;width:176px;height:182px;transition:transform .3s cubic-bezier(.3,1.4,.5,1),filter .3s}
+.slot:hover .disk{transform:translateY(-14px)}
+.floppy{position:absolute;inset:0;border-radius:4px 4px 4px 4px;background:linear-gradient(135deg,#2e3fb8,#1b2584);clip-path:polygon(0 0,92% 0,100% 6%,100% 100%,0 100%);
+  box-shadow:inset 0 0 0 2px #4659d8}
+.slot:hover .floppy{filter:drop-shadow(0 0 10px #7fa8ff)}
+.shutter{position:absolute;left:38px;top:0;width:100px;height:62px;background:linear-gradient(#d8dde6,#a6afbd);border-radius:0 0 3px 3px}
+.shutter::after{content:"";position:absolute;left:22px;top:10px;width:26px;height:44px;background:#1b2584}
+.label{position:absolute;left:14px;right:14px;bottom:10px;height:72px;background:#f4f1e6;border-radius:2px;
+  background-image:repeating-linear-gradient(#0000 0 17px,#9db3e0 17px 18px);display:grid;place-items:center}
+.label span{font:30px var(--hand);color:#1d2a8a;transform:rotate(-3deg)}
+.holo{position:absolute;inset:0;border:2px dashed #7fa8ff88;border-radius:4px;clip-path:polygon(0 0,92% 0,100% 6%,100% 100%,0 100%);
+  background:linear-gradient(#5b84e810,#5b84e81c);overflow:hidden;display:grid;place-items:center;text-align:center;animation:holo 4s infinite}
+.holo::before{content:"";position:absolute;left:0;right:0;height:30px;top:-30px;background:linear-gradient(#0000,#9fc0ff33,#0000);animation:scan 3s linear infinite}
+.holo::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(#0000 0 2px,#7fa8ff10 2px 3px)}
+@keyframes scan{to{top:100%}}
+@keyframes holo{0%,100%{opacity:.85}48%{opacity:.85}50%{opacity:.5}52%{opacity:.9}}
+.holo em{font:600 20px var(--f);font-style:normal;color:#8fa8e0;letter-spacing:.04em}
+.holo .plus{font:700 44px/1 var(--f);color:#d6e4ff;text-shadow:0 0 12px #7fa8ff;display:block;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.15);text-shadow:0 0 22px #9fc0ff}}
+.slot:hover .holo{border-color:#cfe0ff;background:linear-gradient(#5b84e822,#5b84e83a)}
+.slot:hover .holo em{color:#e4efff}
+
+/* manage key */
+.key{position:absolute;left:490px;top:556px;width:300px;height:64px;border-radius:5px;background:linear-gradient(#4a68c8,#2e4592);border:1px solid #87a6ff;
+  box-shadow:0 8px 0 #1c2a5e,0 9px 0 #000,0 0 18px #5b84e866;display:flex;align-items:center;justify-content:center;gap:14px;
+  font:700 24px var(--f);color:#f2f5ff;cursor:pointer;transition:transform .12s,box-shadow .12s;animation:rise .7s 1s both}
+.key::before{content:"";position:absolute;inset:7px;border:1px solid #ffffff22;border-radius:3px}
+.key::after{content:"";position:absolute;right:8px;top:8px;width:7px;height:7px;border-radius:50%;background:#0b1430;box-shadow:inset 0 0 0 1px #6f8de0}
+.key:hover{transform:translateY(-3px);box-shadow:0 11px 0 #1c2a5e,0 12px 0 #000,0 0 26px #5b84e8aa}
+.key:hover::after{background:#7fe0c4;box-shadow:0 0 8px #7fe0c4}
+.key .gear{display:inline-block;animation:spin 6s linear infinite}
+.key:hover .gear{animation-duration:1.5s}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.stage *,.stage *::before,.stage *::after{animation:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="bar"><h1>Who's playing? · holo</h1><button id="rooms">Build rooms now</button><button id="replay">↻ Replay intro</button></div>
+  <div class="viewport" id="vp"><div class="stage" id="stage"></div></div>
+  <p class="note">Same chrome as the main menu: neon title plate and drive bay, holo floor, honeycomb band, rooms. The shelf is a neon rack with a lit plank; slot tags light up on hover, the disk lifts and its clamps open; empty slots are flickering hologram disks, New profile pulses. Hover a slot to see the drive readout change. HTML approximation.</p>
+</div>
+<script>
+const W=1280,H=720,HZ=372,VPX=640,TITLE="WHO'S PLAYING?";
+const stage=document.getElementById('stage'),vp=document.getElementById('vp');
+const fit=()=>stage.style.transform=`scale(${vp.clientWidth/W})`;addEventListener('resize',fit);
+let raf=0,roomSet=null,nextRooms=0;
+const SLOTS=[{x:275,kind:'full',name:'Player',tag:'SLOT 1'},{x:518,kind:'empty',tag:'SLOT 2'},{x:762,kind:'empty',tag:'SLOT 3'},{x:1005,kind:'new',tag:'NEW'}];
+
+function build(){
+  cancelAnimationFrame(raf);
+  const letters=[...TITLE].map((c,i)=>`<span style="animation-delay:${(i*.05).toFixed(2)}s">${c===' '?'&nbsp;':c}</span>`).join('');
+  const slots=SLOTS.map((s,i)=>{
+    const inner=s.kind==='full'?`<div class="floppy"></div><div class="shutter"></div><div class="label"><span>${s.name}</span></div>`
+      :s.kind==='new'?`<div class="holo"><div><span class="plus">+</span><em>New profile</em></div></div>`:`<div class="holo"><em>Empty</em></div>`;
+    return `<div class="slot ${s.kind}" data-i="${i}" style="left:${s.x}px;animation-delay:${.7+i*.1}s">
+      <div class="disk">${inner}</div><div class="cradle"></div><div class="post l"><i></i><b></b></div><div class="post r"><i></i><b></b></div></div>`}).join('');
+  const tags=SLOTS.map((s,i)=>`<div class="tag" id="tag${i}" style="left:${s.x-78}px">${s.tag}</div>`).join('');
+  stage.innerHTML=`<canvas id="floor" width="${W}" height="${H}"></canvas><canvas id="roomc" width="${W}" height="${H}"></canvas>
+  <div class="title"><div class="word">${letters}<span class="cur"></span></div></div>
+  <div class="bay"><div class="vents" style="left:24px;width:220px"></div><div class="vents" style="right:24px;width:220px"></div></div>
+  <div class="drive"><span class="lamp"></span>A:<span class="slit"></span></div>
+  <div class="drive-lbl" id="dl">DRIVE A: EMPTY</div>
+  <div class="rack"></div>
+  ${slots}
+  <div class="plank"><div class="vents" style="left:22px"></div><div class="vents" style="right:22px"></div>${tags}</div>
+  <div class="key"><span class="gear">⚙</span> Manage profiles</div>`;
+  fit();roomSet=null;nextRooms=2.4;
+  const dl=stage.querySelector('#dl');
+  stage.querySelectorAll('.slot').forEach(el=>{const i=+el.dataset.i,s=SLOTS[i],tag=stage.querySelector('#tag'+i);
+    el.onmouseenter=()=>{tag.classList.add('on');dl.textContent=s.kind==='full'?'INSERT: '+s.name.toUpperCase():s.kind==='new'?'FORMAT NEW DISK':'DRIVE A: EMPTY';dl.style.color='#e4efff'};
+    el.onmouseleave=()=>{tag.classList.remove('on');dl.textContent='DRIVE A: EMPTY';dl.style.color=''}});
+  run(stage.querySelector('#floor').getContext('2d'),stage.querySelector('#roomc').getContext('2d'));
+}
+/* ---------- floor ---------- */
+const stars=Array.from({length:110},()=>({x:Math.random()*W,y:Math.random()*(HZ-20),b:Math.random()*9}));
+const motes=Array.from({length:40},()=>({x:Math.random()*W,y:HZ+Math.random()*(H-HZ),s:.3+Math.random(),p:Math.random()*9}));
+let pulses=[];
+function floor(c,t,dt){
+  let g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#04050b');g.addColorStop(.48,'#0c1130');g.addColorStop(.52,'#171340');g.addColorStop(1,'#04050b');
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  for(const s of stars){c.fillStyle=`rgba(180,200,255,${.15+.45*Math.abs(Math.sin(t*.7+s.b))})`;c.fillRect(s.x,s.y,1.5,1.5)}
+  const br=.3+.08*Math.sin(t*.9);
+  g=c.createRadialGradient(VPX,HZ,0,VPX,HZ,560);g.addColorStop(0,`rgba(95,135,255,${br})`);g.addColorStop(1,'#0000');c.fillStyle=g;c.fillRect(0,0,W,H);
+  // lanes
+  c.lineWidth=1.2;c.strokeStyle='rgba(91,132,232,.5)';c.beginPath();
+  for(let i=-24;i<=24;i++){c.moveTo(VPX+i*8,HZ);c.lineTo(VPX+i*150,H)}
+  const off=(t*.75)%1;
+  for(let k=0;k<16;k++){const z=k+1-off,y=HZ+(H-HZ)*.9/z;if(y>HZ+1&&y<H){c.moveTo(0,y);c.lineTo(W,y)}}
+  c.stroke();
+  // light pulses running down random lanes
+  if(Math.random()<dt*3)pulses.push({i:((Math.random()*36)|0)-18,z:0,c:Math.random()<.2?'242,193,78':'150,190,255'});
+  pulses=pulses.filter(p=>{p.z+=dt*.55;const e=Math.pow(p.z,2.2),e0=Math.pow(Math.max(0,p.z-.12),2.2);
+    const x0=VPX+p.i*8,x1=VPX+p.i*150,ya=HZ+(H-HZ)*e0,yb=HZ+(H-HZ)*e;
+    const xa=x0+(x1-x0)*e0,xb=x0+(x1-x0)*e;
+    const gg=c.createLinearGradient(xa,ya,xb,yb);gg.addColorStop(0,`rgba(${p.c},0)`);gg.addColorStop(1,`rgba(${p.c},.95)`);
+    c.strokeStyle=gg;c.lineWidth=1+e*3;c.beginPath();c.moveTo(xa,ya);c.lineTo(xb,yb);c.stroke();return p.z<1.05});
+  // horizon line + fade into floor
+  c.fillStyle='rgba(140,175,255,.75)';c.fillRect(0,HZ-1,W,2);
+  g=c.createLinearGradient(0,HZ,0,HZ+60);g.addColorStop(0,'rgba(23,19,64,.8)');g.addColorStop(1,'#0000');c.fillStyle=g;c.fillRect(0,HZ,W,60);
+  for(const m of motes){m.y-=dt*12*m.s;if(m.y<HZ-80){m.y=H;m.x=Math.random()*W}
+    c.fillStyle=`rgba(150,185,255,${.25+.25*Math.sin(t*2+m.p)})`;c.fillRect(m.x+Math.sin(t+m.p)*4,m.y,2,2)}
+  aurora(c,t);
+}
+/* bottom edge: a honeycomb band that lights in travelling waves, under a notched rail carrying data packets */
+const HR=13,HW=Math.sqrt(3)*HR,HEX=[];
+for(let row=0;row<5;row++)for(let x=-HW;x<W+HW;x+=HW){
+  const cx=x+(row%2?HW/2:0),cy=H+6-row*HR*1.5;HEX.push({cx,cy,row,sp:Math.random()*20,on:0})}
+const hexPath=(c,x,y,r)=>{c.beginPath();for(let k=0;k<6;k++){const a=Math.PI/6+k*Math.PI/3;k?c.lineTo(x+r*Math.cos(a),y+r*Math.sin(a)):c.moveTo(x+r*Math.cos(a),y+r*Math.sin(a))}c.closePath()};
+const RAIL=H-74;let packets=[];
+function aurora(c,t){
+  let g=c.createLinearGradient(0,RAIL-10,0,H);g.addColorStop(0,'#0000');g.addColorStop(1,'rgba(40,50,140,.45)');c.fillStyle=g;c.fillRect(0,RAIL-10,W,H);
+  c.save();c.globalCompositeOperation='lighter';
+  for(const h of HEX){
+    const fade=1-h.row/5;
+    const wave=Math.pow(Math.max(0,Math.sin(h.cx*.012-t*2.2+h.row*.6)),6)+Math.pow(Math.max(0,Math.sin(-h.cx*.008-t*1.3+3)),8)*.7;
+    if(Math.random()<.0025)h.on=1;h.on*=.95;
+    const b=Math.min(1,(wave+h.on)*fade);
+    const col=h.cx/W<.5?`${91+ (h.cx/W)*140|0},${132-(h.cx/W)*20|0},${232+(h.cx/W)*40|0}`:`${163-(h.cx/W-.5)*60|0},${123+(h.cx/W-.5)*150|0},255`;
+    hexPath(c,h.cx,h.cy,HR-1.5);
+    c.lineWidth=1;c.strokeStyle=`rgba(${col},${.10*fade+.6*b})`;c.stroke();
+    if(b>.05){hexPath(c,h.cx,h.cy,HR-4.5);c.fillStyle=`rgba(${col},${.45*b})`;c.fill()}
+  }
+  // notched rail
+  c.strokeStyle='rgba(150,185,255,.75)';c.lineWidth=1.5;c.shadowColor='#6f9dff';c.shadowBlur=8;c.beginPath();c.moveTo(0,RAIL);
+  for(let x=80;x<W;x+=160){c.lineTo(x,RAIL);c.lineTo(x+10,RAIL-8);c.lineTo(x+50,RAIL-8);c.lineTo(x+60,RAIL)}c.lineTo(W,RAIL);c.stroke();
+  // tick marks under the rail
+  c.shadowBlur=0;c.fillStyle='rgba(150,185,255,.35)';for(let x=0;x<W;x+=16)c.fillRect(x,RAIL+4,x%80?1:2,x%80?3:6);
+  // data packets
+  if(Math.random()<.03)packets.push({x:-10,v:120+Math.random()*220,s:Math.random()<.25?6:4,c:Math.random()<.2?'242,193,78':'200,225,255'});
+  c.shadowBlur=10;
+  packets=packets.filter(p=>{p.x+=p.v/60;const ph=(p.x-80+160*10)%160,y=ph>10&&ph<60?RAIL-8:RAIL;
+    c.shadowColor=`rgb(${p.c})`;c.fillStyle=`rgba(${p.c},.95)`;c.fillRect(p.x-p.s/2,y-p.s/2,p.s,p.s);
+    c.fillStyle=`rgba(${p.c},.25)`;c.fillRect(p.x-p.s/2-24,y-1,24,2);return p.x<W+20});
+  c.restore();
+}
+/* ---------- 2D rooms round the title plate and the menu box ---------- */
+// title plate x114..1166 y68..184; menu box x300..980 y268..588 (corner brackets reach 8px out)
+const R=(x,y,w,h,door)=>({x,y,w,h,door});
+const TITLE_OPTS=[
+  ()=>[R(34,80,74,92,'r'),R(1172,80,74,92,'l')],
+  ()=>[R(330,14,190,44,'b'),R(545,14,190,44,'b'),R(760,14,190,44,'b')],
+  ()=>[R(34,74,74,52,'r'),R(34,130,74,50,'r'),R(1172,74,74,52,'l'),R(1172,130,74,50,'l')],
+];
+const BOX_OPTS=[
+  ()=>[R(14,290,64,90,'r'),R(1202,290,64,90,'l')],
+  ()=>[R(14,290,64,80,'r'),R(14,376,64,80,'r'),R(1202,290,64,80,'l'),R(1202,376,64,80,'l')],
+  ()=>[R(376,560,96,70,'r'),R(808,560,96,70,'l')],
+  ()=>[R(14,330,64,120,'r'),R(808,560,96,70,'l')],
+];
+const pick=a=>a[(Math.random()*a.length)|0]();
+function pickRooms(){
+  const t=pick(TITLE_OPTS).map((r,i)=>({...r,d:i*.15}));
+  const b=pick(BOX_OPTS).map((r,i)=>({...r,d:.5+i*.15}));
+  return [...t,...b].map(r=>({...r,segs:roomSegs(r)}));
+}
+// perimeter as one pen path (clockwise from the top-left), with a doorway gap in the door wall
+function roomSegs({x,y,w,h,door}){
+  const C=[[x,y],[x+w,y],[x+w,y+h],[x,y+h]],names=['t','r','b','l'],out=[];
+  names.forEach((n,i)=>{const a=C[i],b=C[(i+1)%4];
+    if(n===door){const m=(k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];out.push([a,m(.32)],[m(.68),b])}
+    else out.push([a,b])});
+  // inner divider line for bigger rooms, drawn last
+  if(h>100)out.push([[x,y+h*.5],[x+w*.55,y+h*.5]]);
+  if(w>150)out.push([[x+w*.5,y],[x+w*.5,y+h*.6]]);
+  return out.map(([a,b])=>({a,b,l:Math.hypot(b[0]-a[0],b[1]-a[1])}));
+}
+function drawRoom(c,r,p,t){
+  const tot=r.segs.reduce((s,q)=>s+q.l,0);let left=tot*Math.max(0,Math.min(1,p)),tip=null;
+  // fill fades in once the outline is done
+  const fa=Math.max(0,Math.min(1,(p-.85)/.15));
+  if(fa>0){c.fillStyle=`rgba(40,70,150,${.16*fa})`;c.fillRect(r.x,r.y,r.w,r.h);
+    c.save();c.beginPath();c.rect(r.x,r.y,r.w,r.h);c.clip();c.strokeStyle=`rgba(110,150,240,${.1*fa})`;c.lineWidth=1;c.beginPath();
+    for(let gx=r.x+12;gx<r.x+r.w;gx+=12){c.moveTo(gx+.5,r.y);c.lineTo(gx+.5,r.y+r.h)}
+    for(let gy=r.y+12;gy<r.y+r.h;gy+=12){c.moveTo(r.x,gy+.5);c.lineTo(r.x+r.w,gy+.5)}c.stroke();
+    const sy=r.y+((t*28)%r.h);c.fillStyle=`rgba(150,190,255,${.14*fa})`;c.fillRect(r.x,sy,r.w,2);c.restore()}
+  c.lineWidth=2;c.lineCap='square';c.strokeStyle='rgba(150,185,255,.9)';c.shadowColor='#5b84e8';c.shadowBlur=8;c.beginPath();
+  for(const s of r.segs){if(left<=0)break;const k=Math.min(1,left/s.l);
+    c.moveTo(s.a[0],s.a[1]);const e=[s.a[0]+(s.b[0]-s.a[0])*k,s.a[1]+(s.b[1]-s.a[1])*k];c.lineTo(...e);tip=k<1?e:null;left-=s.l}
+  c.stroke();c.shadowBlur=0;
+  if(tip){c.fillStyle='#fff';c.shadowColor='#9fc0ff';c.shadowBlur=14;c.fillRect(tip[0]-2.5,tip[1]-2.5,5,5);c.shadowBlur=0}
+  if(p>=1){c.fillStyle='rgba(210,225,255,.9)';[[r.x,r.y],[r.x+r.w,r.y],[r.x+r.w,r.y+r.h],[r.x,r.y+r.h]].forEach(q=>c.fillRect(q[0]-2,q[1]-2,4,4))}
+}
+function rooms(c,t,dt){
+  c.clearRect(0,0,W,H);
+  if(!roomSet&&t>nextRooms){roomSet={t0:t,rs:pickRooms()}}
+  if(!roomSet)return;
+  const age=t-roomSet.t0,BUILD=1.3,HOLD=3.4,FOLD=.9;
+  for(const r of roomSet.rs){
+    const a=age-r.d;let p;
+    if(a<BUILD)p=a/BUILD;else if(a<BUILD+HOLD)p=1;else p=1-(a-BUILD-HOLD)/FOLD;
+    if(p>0)drawRoom(c,r,p*(a<BUILD?1:1),t);
+  }
+  // flicker on the way out
+  if(age>BUILD+HOLD+FOLD+.6){roomSet=null;nextRooms=t+5+Math.random()*3}
+}
+
+function run(fc,rc){
+  const t0=performance.now();let last=0;
+  const step=n=>{const t=(n-t0)/1000,dt=Math.min(.05,t-last);last=t;floor(fc,t,dt);rooms(rc,t,dt);raf=requestAnimationFrame(step)};
+  raf=requestAnimationFrame(step);
+}
+document.getElementById('rooms').onclick=()=>{roomSet=null;nextRooms=0};
+document.getElementById('replay').onclick=build;
+build();
+</script>
