@@ -887,6 +887,22 @@ namespace Arena
             BroadcastUpgrades(p);
         }
 
+        /// How close an awake enemy holds back your level-up cards between waves (about a screen).
+        public const float PickHoldReach = 900f;
+
+        /// Between waves the run can't pause (co-op), so a level-up won in a fight (a woken dormant group, a duel, an extra
+        /// room) keeps its cards hidden while an awake enemy is near you; they come up once it's clear. The pick stays pending
+        /// (the countdown waits on it as before). Both sides work it out from the replicated enemies: no message.
+        public bool PickHeld(Player p)
+        {
+            if (p == null || p.Offer == null || State != MatchState.Intermission || SurvivalOn)
+                return false;  // (Survival freezes the world for a pick instead: SurvivalGame.cs)
+            foreach (var e in Enemies.Values)
+                if (!e.Dormant && e.Hp > 0f && !IsPlanted(e.Type) && e.Pos.CloserThan(p.Pos, PickHoldReach))
+                    return true;
+            return false;
+        }
+
         public bool AnyonePicking()
         {
             foreach (var p in Players.Values)

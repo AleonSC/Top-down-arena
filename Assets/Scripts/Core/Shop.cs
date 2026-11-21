@@ -299,11 +299,11 @@ namespace Arena
             SendSnapshot();
         }
 
-        /// Host, in the intermission: the shop closes once everyone is done.
+        /// Host, in the intermission: the Bazaar's shop closes once everyone is done.
         void TickShop(float dt)
         {
-            if (!ShopOpen)
-                return;
+            if (!ShopOpen || ServiceRooms)
+                return;  // (the room shops stay open all intermission, so Done shopping can be undone with Interact; they close as the wave starts, Waves.cs)
             ShopT += dt;
             foreach (var p in Players.Values)
                 if (!p.ShopDone)

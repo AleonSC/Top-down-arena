@@ -2428,6 +2428,7 @@ static partial class Shot {
         int xci = Math.Min(xco.Count - 1, int.Parse(Environment.GetEnvironmentVariable("CARDSPOT") ?? "0"));
         if (xci >= 0) { var r2 = xco[xci].Rooms[0]; r2.Owner = 1; r2.Kind = Expansion.CardRoomKind(xc); xg.Expanded.Add(r2); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = xco[xci].Mid + new V2(0f, float.Parse(Environment.GetEnvironmentVariable("CARDDY") ?? "0")); }  // (CARDDY=<px>: stand that far below the room's middle)
         else Console.Error.WriteLine("CARDROOM: no spot fits");
+        if (Environment.GetEnvironmentVariable("SHOPDONE") != null) { xg.ShopOpen = true; xg.State = MatchState.Intermission; foreach (var pl in xg.Players.Values) pl.ShopDone = true; }  // SHOPDONE=1 (with CARDROOM=shop|market|arms|medic): the room shop open, you done with it: the F tag to open it again (ExpansionUi.cs DrawShopReopenHint)
         if (Environment.GetEnvironmentVariable("BUILDEROPEN") != null) {  // BUILDEROPEN=1 (with CARDROOM=buildershop): a build round, so the Builder Shop's shelf shows (BuilderShopUi.cs)
           xg.ExpandOpen = true; xg.State = MatchState.Intermission;
           foreach (var pl in xg.Players.Values) { pl.Vectors = int.Parse(Environment.GetEnvironmentVariable("BUILDERVEC") ?? "40"); pl.VectorCap = 90; pl.Hand[0] = (int)Expansion.MakePieceCard(PieceShape.Mono); pl.Hand[1] = (int)Expansion.MakePieceCard(PieceShape.TetL); }

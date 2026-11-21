@@ -582,6 +582,10 @@ static partial class Shot {
     {
       int ci = int.Parse(Environment.GetEnvironmentVariable("CELLED") ?? "0");
       typeof(ArenaApp).GetField("cedIndex", f2).SetValue(app, ci);
+      foreach (var kv in new[] { "CEDTAB:cedTab", "CEDSHAPE:cedShape", "CEDORIENT:cedOrient", "CEDX:cedPosX", "CEDY:cedPosY" })
+      { var pr = kv.Split(':'); var v = Environment.GetEnvironmentVariable(pr[0]); if (v != null) typeof(ArenaApp).GetField(pr[1], f2).SetValue(app, int.Parse(v)); }
+      if (Environment.GetEnvironmentVariable("COREID") != null) typeof(ArenaApp).GetField("coreIndex", f2).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("COREID")));
+      if (Environment.GetEnvironmentVariable("HUBID") != null) typeof(ArenaApp).GetField("hubId", f2).SetValue(app, (LayoutId)int.Parse(Environment.GetEnvironmentVariable("HUBID")));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
       typeof(ArenaApp).GetMethod("DrawCellEditor", f2).Invoke(app, null);
     }

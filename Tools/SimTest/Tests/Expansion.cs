@@ -677,11 +677,17 @@ static partial class Program
         g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
-        Check(!g.ShopOpen && !cg.ShopOpen, "everyone clicking Done closes the shop");
-        Check(pm.Gold == gold1 - (gold1 - pm.Gold) && pm.Gold > 0, "closing the shop keeps your gold (" + pm.Gold + ")");
+        Check(g.ShopOpen && cg.ShopOpen && pm.ShopDone, "everyone clicking Done leaves the room shop open (Interact opens it again)");
+        g.Shop(ShopAction.Done, 0);
+        Run(s, dt, 0.2f);
+        Check(!pm.ShopDone && g.ShopOpen, "Done undone: shopping again");
+        int gold3 = pm.Gold;
+        g.Shop(ShopAction.Buy, Enumerable.Range(0, Game.ShelfSize).FirstOrDefault(i => pm.Shelf[i] >= 0 && !Game.Sold(pm, i)));
+        Check(pm.Gold < gold3, "and buying works again after reopening");
+        Check(pm.Gold > 0, "the room shop keeps your gold (" + pm.Gold + ")");
 
         // The cleared wave opened a building round; it doesn't hold the wave up, and it closes as the next wave starts.
-        Check(g.ExpandOpen && cg.ExpandOpen && !g.ShopOpen, "the cleared wave opened a building round, on both screens");
+        Check(g.ExpandOpen && cg.ExpandOpen && g.ShopOpen, "the cleared wave opened a building round, on both screens, beside the open room shop");
         int rooms0 = Expansion.BoughtCount(g.Expanded);
         Run(s, dt, 0.4f);
         Check(g.ExpandOpen, "the round stays open while the countdown ticks on");

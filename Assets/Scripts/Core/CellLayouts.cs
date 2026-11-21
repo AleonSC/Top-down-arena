@@ -133,6 +133,32 @@ namespace Arena
 
         static long Key(int cx, int cy) => ((long)cx << 32) ^ (uint)cy;
 
+        public static long CellKey(int cx, int cy) => Key(cx, cy);
+
+        /// Cells whose plan a layout test fixed (the Cell Editor's TEST LAYOUT: `Game.DevTestCells`); `Plans` puts them over the rolled ones. Dev only, one local game.
+        static readonly Dictionary<long, CellPlan> forced = new Dictionary<long, CellPlan>();
+
+        public static void ForcePlan(int cx, int cy, CellPlan plan)
+        {
+            lock (forced)
+                forced[Key(cx, cy)] = plan;
+        }
+
+        public static void ClearForced()
+        {
+            lock (forced)
+                forced.Clear();
+        }
+
+        /// The plan each of these cells (keys from `CellKey`) would get as one piece, the way `Plans` rolls them: for the Cell Editor's room view.
+        public static Dictionary<long, CellPlan> PlansOfCells(HashSet<long> cells)
+        {
+            var plans = new Dictionary<long, CellPlan>();
+            foreach (long k in cells)
+                plans[k] = PlanOf(cells, (int)(k >> 32), (int)(uint)k);
+            return plans;
+        }
+
         /// A cell's layout and how many quarter turns (clockwise) it is turned.
         public struct CellPlan { public int Layout, Rot, Variant; }  // Variant 0: the plain layout; n: its n-th variant (CellVariants.cs)
 
@@ -247,6 +273,10 @@ namespace Arena
                     plans[Key(c[0], c[1])] = plan;
                 }
             }
+            lock (forced)
+                foreach (var kv in forced)
+                    if (plans.ContainsKey(kv.Key))
+                        plans[kv.Key] = kv.Value;
             return plans;
         }
 

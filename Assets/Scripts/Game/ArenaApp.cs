@@ -236,7 +236,7 @@ namespace Arena
             var me = game.Me;
             bool tabKey = UpdatePauseStates(me);
             bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || ModalScreenOpen;
-            bool choosing = me != null && me.Offer != null && !menuUp;
+            bool choosing = me != null && me.Offer != null && !menuUp && !game.PickHeld(me);  // (cards held back while enemies are near: Game.PickHeld)
             UpdatePointerAndBlocking(me, tabKey, menuUp, choosing);
             if (!menuUp)
                 ReadPlayKeys();
@@ -495,22 +495,26 @@ namespace Arena
         /// Keys used on things in the arena: a chest item, a mystery door, a gate, the kill-all key and the gadget.
         void UpdateWorldKeys(Player me, bool menuUp)
         {
-            // Standing on your chest item: G takes it, B throws it away (Props.cs).
+            // Standing on your chest item: F (Interact) takes it, B throws it away (Props.cs).
             if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.MyLootInReach != null)
             {
-                if (Keybinds.Down(KeyAction.TakeItem))
+                if (Keybinds.Down(KeyAction.Interact))
                     game.ResolveLoot(true);
                 else if (Keybinds.Down(KeyAction.DiscardItem))
                     game.ResolveLoot(false);
             }
-            // By a sealed mystery door (the Expanding arena): G pays to open it, B saves it from expiring (MysteryDoors.cs).
+            // By a sealed mystery door (the Expanding arena): F pays to open it, B saves it from expiring (MysteryDoors.cs).
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.MysteryNear(game.Me.Pos) >= 0
-                     && (Keybinds.Down(KeyAction.TakeItem) || Keybinds.Down(KeyAction.DiscardItem)))
+                     && (Keybinds.Down(KeyAction.Interact) || Keybinds.Down(KeyAction.DiscardItem)))
                 game.UseMysteryDoor(Keybinds.Down(KeyAction.DiscardItem));
-            // By a shutter gate (the Expanding arena): G shuts it (Gates.cs).
+            // By a shutter gate (the Expanding arena): F shuts it (Gates.cs).
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.GateNear(game.Me.Pos) >= 0
-                     && Keybinds.Down(KeyAction.TakeItem))
+                     && Keybinds.Down(KeyAction.Interact))
                 game.UseGate();
+            // In a shop room you've left (Done shopping): F opens its screen again, any time between waves (ExpansionUi.cs DrawShopReopenHint).
+            else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && ShopReopenable(game.Me)
+                     && Keybinds.Down(KeyAction.Interact))
+                game.Shop(ShopAction.Done, 0);
             // The F1 kill-all key (the discard key, B), when it's on: every enemy on the field dies as your kill. Not while you're standing
             // on a chest item (that key throws it away), and only the host can (DevTools.cs).
             else if (devKillAllKey && session.IsHost && session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0
@@ -681,7 +685,7 @@ namespace Arena
         /// Forget the highlighted card whenever a new set of cards is shown.
         void SyncSelection(Player me)
         {
-            string key = me.Offer == null ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count + "," + Game.HandCount(me) + "," + game.RoomTokens.Count;  // (a boss card pick changes the hand or kits, not Taken)
+            string key = me.Offer == null || game.PickHeld(me) ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count + "," + Game.HandCount(me) + "," + game.RoomTokens.Count;  // (a boss card pick changes the hand or kits, not Taken)
             if (key != shownOffer)
             {
                 // The same picks taken and different cards: a reroll (the opening skips its fanfare; PickIntro.cs).
