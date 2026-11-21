@@ -247,4 +247,43 @@ namespace Arena
                 Arc(c, 70f * i, 1f, new Rgba(CrtStyle.Ink.r, CrtStyle.Ink.g, CrtStyle.Ink.b, 0.07f), 48);
         }
     }
+
+    public partial class ArenaApp
+    {
+        const float RunnerLap = 7f, RunnerTrail = 90f;  // seconds a lap; trail length in px
+
+        /// The neon dot running round the loadout preview's frame (clockwise, a lap every RunnerLap s): a white-hot head with a glow
+        /// in the role's colour and a tail fading out behind it along the edge. Off with Reduced effects.
+        void DrawPreviewRunner(Rect view, Color c, float t)
+        {
+            if (fxReduced || Event.current.type != EventType.Repaint)
+                return;
+            float per = 2f * (view.width + view.height);
+            float head = (t / RunnerLap % 1f) * per;
+            const int steps = 30;
+            for (int k = steps; k >= 0; k--)  // the tail first, the head on top
+            {
+                float f = 1f - k / (float)steps;
+                var p = RunnerAt(view, head - RunnerTrail * k / steps);
+                float sz = k == 0 ? 4f : 2f + f;
+                Ui.Fill(new Rect(Mathf.Round(p.x - sz / 2f), Mathf.Round(p.y - sz / 2f), sz, sz), c.WithAlpha(0.85f * f * f));
+            }
+            var hp = RunnerAt(view, head);
+            Ui.Glow(new Rect(hp.x - 3f, hp.y - 3f, 6f, 6f), c, 0.9f);
+            Ui.Fill(new Rect(Mathf.Round(hp.x - 2f), Mathf.Round(hp.y - 2f), 4f, 4f), Color.Lerp(c, Color.white, 0.75f));
+        }
+
+        /// The point `d` px clockwise round r's edge from its top-left corner.
+        static Vector2 RunnerAt(Rect r, float d)
+        {
+            float per = 2f * (r.width + r.height);
+            d = (d % per + per) % per;
+            if (d < r.width) return new Vector2(r.x + d, r.y);
+            d -= r.width;
+            if (d < r.height) return new Vector2(r.xMax, r.y + d);
+            d -= r.height;
+            if (d < r.width) return new Vector2(r.xMax - d, r.yMax);
+            return new Vector2(r.x, r.yMax - (d - r.width));
+        }
+    }
 }

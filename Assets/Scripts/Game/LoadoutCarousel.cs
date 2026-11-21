@@ -9,7 +9,11 @@ namespace Arena
     public partial class ArenaApp
     {
         public const int CarClass = 0, CarWeapon = 1, CarAbility = 2, CarUlt = 3, CarRows = 4;
-        const float CarKeyY = 31f, CarRowStep = 74f;  // a row's keys under its heading, and one row to the next
+        const float CarKeyY = 31f, CarKeyH = 36f, CarRowStep = 74f;  // a row's keys under its heading, and one row to the next
+        /// The loadout's grid: the right column's first heading (Role) is LoadoutTop below the body's top (just above it), so its
+        /// letters (HeadingInk lower) sit on the preview's top, PreviewTop down. The preview ends PreviewEnd down, where the class
+        /// title and the detail box start (kept where they were when the carousels moved up).
+        const float LoadoutTop = -1f, HeadingInk = 17f, LoadoutRows = 5f, PreviewTop = 16f, PreviewEnd = 379f;
         const int ClassesInView = 4, KeysInView = 3;   // keys in view: classes (icon over name), weapons / abilities / ultimates
         /// The detail box's role and class pages (`detailSel`; 0-2 are the weapon, ability and ultimate).
         public const int DetailRole = 3, DetailClass = 4;

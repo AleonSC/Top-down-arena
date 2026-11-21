@@ -629,6 +629,7 @@ namespace Arena
             const float lw = 300f;
             var view = ShowcaseRect(r);
             DrawShowcase(me, view, roleColor);
+            DrawPreviewRunner(view, roleColor, t);  // the neon dot running round the frame (LobbyFx.cs)
             DrawShowcaseZoom(view);  // (outside DrawShowcase: that returns early on every event but Repaint, and the slider needs the mouse events)
             if (!self)
             {
@@ -657,19 +658,19 @@ namespace Arena
             previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
-            float sy = view.yMax + 72f;
+            float sy = view.yMax + 72f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
             LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
-            LobbyKit.StatBar(new Rect(lx, sy + 26f, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
-            LobbyKit.StatBar(new Rect(lx, sy + 52f, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
+            LobbyKit.StatBar(new Rect(lx, sy + sStep, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
+            LobbyKit.StatBar(new Rect(lx, sy + 2f * sStep, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
             // The weapon's damage a second with no upgrades (measured in the sim: Defs.WeaponDps), against the strongest weapon.
             float dps = Defs.WeaponDps(wdef.Id);
-            LobbyKit.StatBar(new Rect(lx, sy + 78f, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
+            LobbyKit.StatBar(new Rect(lx, sy + 3f * sStep, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
                 dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.36f, 0.36f), calm);
             var ult = Upgrades.Ability(me.UltId);  // the one picked on the Ultimate row
 
             // Right column: role, class, weapon and ability, the ultimate, then one detail box.
-            float x = r.x + 334f, w = 454f, y = r.y + 16f;
+            float x = r.x + 334f, w = 454f, y = r.y + LoadoutTop;
             vgEditable = self && session.Resume == null;
             if (!vgEditable || wdef.Id != WeaponId.Vowguard)
                 vgEditOpen = false;
@@ -690,7 +691,7 @@ namespace Arena
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)
             {
-                var b = new Rect(x + i * (quarter + gap), y + 32f, quarter, 34f);
+                var b = new Rect(x + i * (quarter + gap), y + CarKeyY, quarter, CarKeyH);
                 if (i >= Defs.Roles.Length)
                 {
                     LockedSlot(b);
@@ -724,21 +725,20 @@ namespace Arena
                     }
                 }
             }
-            y += 72f;
+            y += CarRowStep;
             float ultY;
             int from, to;
             if (me.Role == Role.Wildcard)
             {
-                ultY = r.y + 16f + 322f;
+                ultY = r.y + LoadoutTop + (LoadoutRows - 1f) * CarRowStep;  // (the Ultimate row where the others have it)
                 DrawWildcardPicks(me, tgt, self, x, y, w, ultY - 6f);
-                ultY = Mathf.Max(ultY, view.yMax - 72f);  // the Ultimate keys end on the line the preview ends on
             }
             else
             {
                 // Each of Class, Weapon, Ability is one long row that slides sideways (LoadoutCarousel.cs).
                 LobbyKit.Heading(x, y, w, "Class", null, calm, 15);
                 int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
-                BeginCarousel(CarClass, new Rect(x, y + CarKeyY, w, 36f), classSlots, ClassesInView, (int)me.Kit, out from, out to);
+                BeginCarousel(CarClass, new Rect(x, y + CarKeyY, w, CarKeyH), classSlots, ClassesInView, (int)me.Kit, out from, out to);
                 for (int i = from; i <= to; i++)
                 {
                     var b = CarItem(i);
@@ -785,7 +785,7 @@ namespace Arena
                 for (int i = 0; i < weaponCount; i++)
                     if (weaponOn < 0 && WeaponKeyOn(me, i))
                         weaponOn = i;
-                BeginCarousel(CarWeapon, new Rect(x, y + CarKeyY, w, 36f), weaponSlots, KeysInView, weaponOn, out from, out to);
+                BeginCarousel(CarWeapon, new Rect(x, y + CarKeyY, w, CarKeyH), weaponSlots, KeysInView, weaponOn, out from, out to);
                 for (int i = from; i <= to; i++)
                 {
                     var b = CarItem(i);
@@ -810,7 +810,7 @@ namespace Arena
 
                 LobbyKit.Heading(x, y, w, "Ability", null, calm, 15);
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.FirstAbilityChoices);
-                BeginCarousel(CarAbility, new Rect(x, y + CarKeyY, w, 36f), abilitySlots, KeysInView, me.Ability, out from, out to);
+                BeginCarousel(CarAbility, new Rect(x, y + CarKeyY, w, CarKeyH), abilitySlots, KeysInView, me.Ability, out from, out to);
                 for (int i = from; i <= to; i++)
                 {
                     var b = CarItem(i);
@@ -842,7 +842,7 @@ namespace Arena
             for (int i = 0; i < Upgrades.UltKeys; i++)
                 if (me.Ult == (wildRow ? Upgrades.WildUlt(rowKit, i) : i))
                     ultOn = i;
-            BeginCarousel(CarUlt, new Rect(x, ultY + CarKeyY, w, 36f), Upgrades.UltKeys, KeysInView, ultOn, out from, out to);
+            BeginCarousel(CarUlt, new Rect(x, ultY + CarKeyY, w, CarKeyH), Upgrades.UltKeys, KeysInView, ultOn, out from, out to);
             for (int i = from; i <= to; i++)
             {
                 var b = CarItem(i);
@@ -864,7 +864,7 @@ namespace Arena
             }
             EndCarousel();
 
-            float dy = ultY + CarRowStep + 6f;
+            float dy = view.yMax + 11f;  // level with the class title's letters under the preview
             var ability = Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)));
             DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), me, wdef, ability, ult);
 
