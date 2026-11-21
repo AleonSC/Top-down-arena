@@ -273,7 +273,7 @@ namespace Arena
         }
 
         /// The line across the loadout between the preview and picks above and the title and detail box below: a hairline in the role's
-        /// colour fading out at both ends over a soft glow band, end ticks, a diamond in the middle with two small ones beside it, and
+        /// colour fading out at both ends over a soft glow band, end ticks, an unlit diamond in the middle with two small ones beside it, and
         /// (unless Reduced effects) a bright glint sweeping along it every few seconds.
         void DrawLoadoutSeparator(float x0, float x1, float y, Color c, float t)
         {
@@ -300,9 +300,7 @@ namespace Arena
                     Diamond(new Vector2(mid + side * (14f + n * 10f), y + 0.5f), 2f, c.WithAlpha(0.75f - n * 0.2f));
                 Ui.Fill(new Rect(side < 0 ? mid - 13f : mid + 8f, y, 5f, 1f), Color.Lerp(c, Color.white, 0.5f));
             }
-            if (!calm)
-                Ui.Glow(new Rect(mid - 4f, y - 4f, 8f, 9f), c, 0.6f);
-            Diamond(new Vector2(mid, y + 0.5f), 6f, c);
+            Diamond(new Vector2(mid, y + 0.5f), 6f, c);  // (no glow behind it)
             Diamond(new Vector2(mid, y + 0.5f), 3f, Color.Lerp(c, Color.white, 0.8f));
             if (calm)
                 return;
