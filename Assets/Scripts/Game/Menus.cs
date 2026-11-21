@@ -54,7 +54,7 @@ namespace Arena
                 DrawBoxNeon(MenuCard, MenuIntroK(2.0f, 2.3f));  // the box's neon edge (MenuHolo.cs)
                 float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
                 if (snap > 0f)
-                    DrawPlotCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), 7f, 22f, new Rgba(0.75f, 0.85f, 1f, 0.9f * snap));
+                    HoloCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), snap);  // MenuHolo.cs
                 EndUiGl();
             }
             bool live = !MenuIntroPlaying;  // nothing takes a click until it has all landed
