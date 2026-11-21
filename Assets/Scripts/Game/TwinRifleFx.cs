@@ -16,7 +16,7 @@ namespace Arena
     {
         const byte PBrass = 15, PStreak = 16, PPool = 17;  // particle kinds (Juice.cs ages PBrass through BrassStep, draws all three through DrawTwinPart)
         const float BrassGravity = 420f, TwinJoltPx = 1.1f, TwinJoltTime = 0.06f;
-        const float TwinPushPx = 2.2f, TwinPushBack = 18f, TwinPunchStep = 0.008f, TwinPunchMax = 0.03f, TwinPunchBack = 14f;
+        const float TwinPushPx = 5f, TwinPushBack = 12f, TwinPunchStep = 0.015f, TwinPunchMax = 0.04f, TwinPunchBack = 10f;
 
         V2 twinPush;           // the screen kick: how far the picture is pushed (arena units, along your aim), springing back
         float twinPunch;       // ... and how much bigger it is drawn round you (0.01 = 1%)
