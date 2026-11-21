@@ -14,6 +14,8 @@ namespace Arena
             int sel = ProfSel;
             if (profileTab != 1 || sel != 1)
                 ladderScroll = -1f;  // the ladder opens at your rank each time
+            if (profileTab != 1 || sel != 2)
+                tierScroll = -1f;
             BeginPanelAnim("profile" + profileTab + "_" + sel);
             switch (profileTab)
             {
@@ -129,30 +131,46 @@ namespace Arena
             }
         }
 
-        static readonly int[] TierStarts = { 1, 10, 20, 30, 40 };
+        float tierScroll = -1f;  // the tier list's scroll in px (-1: it opens at your tier)
 
         void DrawRankTiers(Profile p)
         {
-            int rank = p.RankNow, mine = Rank.Tier(rank);
-            OpenSectionPanel("TIERS", CrtStyle.Ink, "Five titles. Your colour and the chevrons on your badge come from your tier.", 1f);
-            float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y + 102f;
-            for (int i = 0; i < Rank.TierNames.Length; i++)
+            int rank = p.RankNow, mine = Rank.Tier(rank), n = Rank.TierNames.Length;
+            OpenSectionPanel("TIERS", CrtStyle.Ink, "Tiers run every 10 ranks to 100, every 50 to 500, every 100 to 1000. Each rank adds a mark to your badge.", 1f);
+            float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, top = DrawerPanel.y + 102f;
+            const float rowH = 76f, step = 84f;
+            var view = new Rect(x, top, w, DrawerPanel.yMax - 24f - top);
+            var ev = Event.current;
+            if (tierScroll < 0f)
+                tierScroll = mine * step - view.height * 0.4f;
+            if (ev.type == EventType.ScrollWheel && view.Contains(ev.mousePosition))
             {
-                var tc = RankLook.TierColor(TierStarts[i]);
+                tierScroll += ev.delta.y * 30f;
+                ev.Use();
+            }
+            tierScroll = Mathf.Clamp(tierScroll, 0f, Mathf.Max(0f, n * step - view.height));
+            GUI.BeginGroup(view);
+            for (int i = 0; i < n; i++)
+            {
+                float y = i * step - tierScroll;
+                if (y + rowH < 0f || y > view.height)
+                    continue;
+                int start = Rank.TierStarts[i];
+                var tc = RankLook.TierColor(Mathf.Max(1, start));
                 bool you = i == mine;
-                var r = new Rect(x, y, w, 84f);
+                var r = new Rect(0f, y, w, rowH);
                 Ui.Fill(r, you ? tc.WithAlpha(0.1f) : CrtStyle.Ink.WithAlpha(0.04f));
                 CrtKit.Frame(r, 1f, you ? tc : CrtStyle.Ink.WithAlpha(0.25f));
-                RankLook.Draw(new Rect(r.x + 14f, r.y + 10f, 56f, 56f), TierStarts[i], you || rank >= TierStarts[i] ? 1f : 0.6f);
-                string range = i + 1 < TierStarts.Length ? "Ranks " + TierStarts[i] + " to " + (TierStarts[i + 1] - 1) : "Rank " + TierStarts[i] + " and up";
-                CrtUi.Text(new Rect(r.x + 92f, r.y + 10f, 360f, 36f), WinText("win.tier" + i, Rank.TierNames[i]), 28, tc, TextAnchor.MiddleLeft, true, FxCalm);
-                Ui.Label(new Rect(r.x + 92f, r.y + 48f, 360f, 20f), range + "  ·  " + (i + 1) + (i == 0 ? " chevron" : " chevrons"), 14, CabSoft, TextAnchor.MiddleLeft);
+                RankLook.Draw(new Rect(r.x + 12f, r.y + 8f, 60f, 60f), Mathf.Max(1, start), you || rank >= start ? 1f : 0.6f);
+                string range = i + 1 < n ? "Ranks " + Mathf.Max(1, start) + " to " + (Rank.TierStarts[i + 1] - 1) : "Rank " + start + " (max)";
+                CrtUi.Text(new Rect(r.x + 92f, r.y + 8f, 360f, 34f), WinText("win.tier" + i, Rank.TierNames[i]), 26, tc, TextAnchor.MiddleLeft, true, FxCalm);
+                Ui.Label(new Rect(r.x + 92f, r.y + 44f, 400f, 20f), range, 14, CabSoft, TextAnchor.MiddleLeft);
                 if (you)
-                    DkKey(new Rect(r.xMax - 20f - 150f, r.y + 24f, 150f, 36f), "< YOU", false, FxCalm, size: 20, accent: tc, lamp: false, lampLit: true, isStatic: true);
+                    DkKey(new Rect(r.xMax - 20f - 150f, r.y + 20f, 150f, 36f), "< YOU", false, FxCalm, size: 20, accent: tc, lamp: false, lampLit: true, isStatic: true);
                 else
-                    Ui.Label(new Rect(r.xMax - 20f - 150f, r.y + 24f, 150f, 36f), rank >= TierStarts[i] ? "reached" : "rank " + TierStarts[i], 15, rank >= TierStarts[i] ? Ui.Good : CrtStyle.Dim, TextAnchor.MiddleRight, true);
-                y += 92f;
+                    Ui.Label(new Rect(r.xMax - 20f - 150f, r.y + 20f, 150f, 36f), rank >= start ? "reached" : "rank " + start, 15, rank >= start ? Ui.Good : CrtStyle.Dim, TextAnchor.MiddleRight, true);
             }
+            GUI.EndGroup();
         }
 
         void DrawXpSources()

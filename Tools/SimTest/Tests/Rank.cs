@@ -18,7 +18,8 @@ static partial class Program
         Check(r2.Rank == 1 && r2.Into == 199 && r3.Rank == 2 && r3.Into == 0 && r3.Need == 400, "200 XP is exactly rank 2");
         Check(Rank.Of(Rank.XpAt(8) + 115).Rank == 8 && Rank.Of(Rank.XpAt(8) + 115).Into == 115 && Rank.Of(Rank.XpAt(8)).Need == 1600, "rank 8 is 1,600 XP long (200 a rank), with 115 into it");
         Check(Rank.Of(-50).Rank == 1 && Rank.Of(long.MaxValue / 4).Rank == Rank.MaxRank, "negative XP is rank 1 and rank stops at the cap");
-        Check(Rank.Title(9) == "Recruit" && Rank.Title(10) == "Challenger" && Rank.Title(20) == "Veteran" && Rank.Title(30) == "Champion" && Rank.Title(40) == "Legend" && Rank.Tier(99) == 4, "tiers start at 10, 20, 30 and 40");
+        Check(Rank.Title(9) == "Recruit" && Rank.Title(10) == "Challenger" && Rank.Title(20) == "Veteran" && Rank.Title(30) == "Champion" && Rank.Title(40) == "Legend" && Rank.Tier(99) == 9 && Rank.Tier(100) == 10 && Rank.Tier(149) == 10 && Rank.Tier(150) == 11 && Rank.Tier(499) == 17 && Rank.Tier(500) == 18 && Rank.Tier(599) == 18 && Rank.Tier(600) == 19 && Rank.Tier(999) == 22 && Rank.Tier(1000) == 23 && Rank.MaxRank == 1000 && Rank.TierNames.Length == Rank.TierStarts.Length && Rank.TierColors.Length == Rank.TierStarts.Length, "tiers: every 10 to 100, every 50 to 500, every 100 to 1000 (max)");
+        Check(Rank.Marks(10) == 0 && Rank.Marks(14) == 4 && Rank.Marks(19) == 9 && Rank.Marks(9) == 9 && Rank.Marks(1) == 1 && Rank.Marks(150) == 0 && Rank.Marks(154) == 0 && Rank.Marks(155) == 1 && Rank.Marks(199) == 9 && Rank.Marks(650) == 5 && Rank.Marks(1000) == 9, "a mark per level in a tier, per fifth or tenth of a 50 or 100 rank tier");
 
         // Cosmetics: owned from their rank, one frame number each.
         Check(!Rank.Owns(8, "trail-ember") && Rank.Owns(9, "trail-ember") && !Rank.Owns(99, "nonsense") && Rank.Owns(31, "frame-gold"), "a cosmetic is yours from its rank, and unknown ids never are");
