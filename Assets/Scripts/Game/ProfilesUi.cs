@@ -244,6 +244,7 @@ namespace Arena
             {
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(wall, NeonFlicker(Time.unscaledTime, 7f, 1.4f));
+                HoloCorners(new Rect(left, wall.y, w, wall.height), 1f);  // round the rack and its shelf (the shelf is the wider)
                 EndUiGl();
             }
 

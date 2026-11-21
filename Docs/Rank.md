@@ -88,7 +88,7 @@ Every rank from 2 to 87 gives something (generated from `Rank.Cosmetics`; the ti
 | 13 | Frame: Steel frame, Emote: Laugh emote |
 | 14 | Card background: Blueprint card, Name effect: Ember name |
 | 15 | Trail: Frost trail, Aim line: Ruler aim line |
-| 16 | Menu background: Dusk grid, Emote: Question emote, Cursor: Frost Snowflake cursor |
+| 16 | Menu background: Lattice, Emote: Question emote, Cursor: Frost Snowflake cursor |
 | 17 | Frame: Circuit frame |
 | 18 | Emote: Sleep emote, Aim line: Ember Wisp aim line, Cursor: Circuit Sight cursor |
 | 19 | Trail: Storm trail, Name effect: Neon name |
@@ -98,10 +98,10 @@ Every rank from 2 to 87 gives something (generated from `Rank.Cosmetics`; the ti
 | 23 | Trail: Void trail, Name effect: Wave name |
 | 24 | Card background: Aurora card |
 | 25 | Frame: Void Pulse frame |
-| 26 | Menu background: Ripples, Trail: Gold stardust, Emote: Spin emote |
+| 26 | Trail: Gold stardust, Emote: Spin emote |
 | 27 | Aim line: Storm Arc aim line, Cursor: Void Eye cursor |
 | 28 | Card background: Circuit Board card, Name effect: Shimmer name |
-| 29 | Menu background: Boot Log |
+| 29 | Menu background: Circuit Run |
 | 30 | Title: Champion, Aim line: Pixel Beam aim line |
 | 31 | Frame: Gold frame |
 | 32 | Emote: Salute emote, Cursor: Gold Diamond cursor |
@@ -112,20 +112,17 @@ Every rank from 2 to 87 gives something (generated from `Rank.Cosmetics`; the ti
 | 37 | Name effect: Glitchy name |
 | 38 | Card background: Void Rift card |
 | 39 | Name effect: Fire name, Cursor: Prism Ring cursor |
-| 40 | Title: Legend, Menu background: Vector Rocks |
+| 40 | Title: Legend |
 | 41 | Frame: Legend Foil frame |
 | 42 | Emote: Fireworks emote |
 | 43 | Card background: Gilded Foil card |
-| 44 | Menu background: Life Grid |
+| 44 | Menu background: Hex Scan |
 | 45 | Name effect: Gold Foil name |
 | 46 | Trail: Light Cycle trail |
 | 47 | Aim line: Prism aim line, Cursor: Light Cycle cursor |
-| 48 | Menu background: Phosphor Pond |
 | 49 | Name effect: Void name |
-| 50 | Menu background: Vector Tunnel |
 | 51 | Frame: Prism frame |
 | 52 | Emote: Steam emote |
-| 53 | Menu background: Signal Lost |
 | 54 | Card background: Prism Shards card |
 | 55 | Name effect: Rainbow name |
 | 56 | Frame: Neon Tube frame |
@@ -171,7 +168,7 @@ Every rank from 2 to 87 gives something (generated from `Rank.Cosmetics`; the ti
 - **Aim line**: the line from your weapon to the crosshair (`Game/AimLineLooks.cs`, `DrawAimLook`; mockup `Docs/Mockups/aim-lines.html`). Classic is free; nine unlock: Dotted Tracer 5, Chevron Flow 11, Ruler 14, Ember Wisp 17, Frost Shard 21, Storm Arc 26, Pixel Beam 29, Helix 34, Prism 46. Only you see your own line, so it is not in the lobby and there is no protocol change. `Profile.AimLine`, saved as the sixth field of the `equip` line.
 - **Cursor**: your crosshair in a match (`Game/CursorLooks.cs`, `DrawCursorLook`; mockup `Docs/Mockups/cursors.html`). Classic is free; ten unlock: Fine Cross 3, Corner Sight 4, Ember Ring 11, Frost Snowflake 15, Circuit Sight 17, Storm Arc 21, Void Eye 26, Gold Diamond 31, Prism Ring 38, Light Cycle 46. Each look also has a Corner pointer for menus and overlays that morphs into it (`DrawLookPointer`/`DrawLookMorph`). Local only, no protocol change. `Profile.Cursor`, the seventh field of the `equip` line.
 - **Emote**: a bubble over your head for 2.4 s, seen by everyone in the Hangout and in a match (`Game/EmoteLooks.cs`, the bar in `Game/EmoteBar.cs`; mockups `Docs/Mockups/emotes.html`, `emote-bar.html`). Thirteen, rank 1 to 52, nothing to equip: hold the Emote key (T) for the bar; the number keys 1-6 play the bar's slots (the leftmost in view is 1), so they play whatever you have scrolled to. Some move the model (`EmoteBody` in `EmoteLooks.cs`, applied in `DrawPlayer` and the Hangout avatar). `Msg.Emote` (protocol 141); the host checks the rank and keeps the pause (2 s in a match, 0.75 s in the lobby).
-- **Menu background**: an extra entry in the Settings > Visual effects picker (`MenuBackgrounds.cs`). Dusk Grid (15) and the **reactive** Ripples (25), Boot Log (28), Vector Rocks (39), Life Grid (43), Phosphor Pond (47), Vector Tunnel (49) and Signal Lost (53) so far (mockup `Docs/Mockups/crt-backgrounds.html`). All but Ripples keep a little state, stepped once a frame with `ReactStepOnce`, and read `ReactClick` / `ReactEnergy` (`Game/BackgroundReactSet.cs`). A reactive background is one whose id starts with `bg-react-` (`Rank.IsReactiveBackground`) and reads the pointer, its speed and click ripples from `Game/BackgroundReact.cs`. To add one: a `CosmeticDef` in `Rank.cs`, a name, accent, `case` and `RewardBackgrounds` entry in `MenuBackgrounds.cs`, a `BgXxx(t)` using `ReactPointer` / `ReactRipple` (copy `BgRipples`). Local only, no protocol change.
+- **Menu background** (Lattice 16, Circuit Run 29, Hex Scan 44, all reactive; `MenuBackgrounds.cs`, `BackgroundArena.cs`; the next sentence is the older list): an extra entry in the Settings > Visual effects picker (`MenuBackgrounds.cs`). Dusk Grid (15) and the **reactive** Ripples (25), Boot Log (28), Vector Rocks (39), Life Grid (43), Phosphor Pond (47), Vector Tunnel (49) and Signal Lost (53) so far (mockup `Docs/Mockups/crt-backgrounds.html`). All but Ripples keep a little state, stepped once a frame with `ReactStepOnce`, and read `ReactClick` / `ReactEnergy` (`Game/BackgroundReactSet.cs`). A reactive background is one whose id starts with `bg-react-` (`Rank.IsReactiveBackground`) and reads the pointer, its speed and click ripples from `Game/BackgroundReact.cs`. To add one: a `CosmeticDef` in `Rank.cs`, a name, accent, `case` and `RewardBackgrounds` entry in `MenuBackgrounds.cs`, a `BgXxx(t)` using `ReactPointer` / `ReactRipple` (copy `BgRipples`). Local only, no protocol change.
 - Equipped on a Cosmetics tab in the lobby (or Records). One of each kind at a time. Everyone sees your frame and
   title; the trail is seen by the players in the match.
 

@@ -731,7 +731,7 @@ namespace Arena
         static float Axis(KeyAction a) => Keybinds.MoveHeld(a) ? 1f : 0f;
 
         /// Esc, unless it just cancelled a rebind (Keybinds.cs).
-        static bool EscPressed => Input.GetKeyDown(KeyCode.Escape) && !Keybinds.Busy && !bgBig;  // (the bigger background view takes its own Esc, MenuBackgrounds.cs)
+        static bool EscPressed => Input.GetKeyDown(KeyCode.Escape) && !Keybinds.Busy;
 
         void UpdateLayout()
         {
@@ -804,7 +804,7 @@ namespace Arena
                     else if (settingsOpen)
                     {
                         DrawerIn("settings", true);  // clock first, as for the profile below
-                        DrawMenuUnderDrawer(bgBig);
+                        DrawMenuUnderDrawer(false);
                         DrawSettings();
                     }
                     else if (profileOpen)
