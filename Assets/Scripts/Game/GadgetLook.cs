@@ -206,6 +206,11 @@ namespace Arena
                     lift = 3f + Mathf.Sin(t * 3f + g.Id) * 2f;
                     float pulse = Mathf.Repeat(t * 0.7f + g.Id * 0.3f, 1f);
                     Arc(ground, 18f + pulse * 18f, 1.6f, ring.WithAlpha(0.5f * (1f - pulse)), 20);
+                    // pickup glow: soft halo plus a steady outline, both breathing together
+                    float beat = 0.5f + 0.5f * Mathf.Sin(t * 3.2f + g.Id);
+                    Circle(ground - new V2(0f, lift), 17f + beat * 3f, ring.WithAlpha(0.07f + 0.08f * beat), 20);
+                    Circle(ground - new V2(0f, lift), 12f + beat * 2f, ring.WithAlpha(0.1f + 0.1f * beat), 18);
+                    Arc(ground - new V2(0f, lift), 14f + beat * 1.5f, 1.8f, ring.WithAlpha(0.55f + 0.4f * beat), 24);
                 }
                 Circle(ground + new V2(0f, 7f), 10f - lift * 0.05f, new Rgba(0f, 0f, 0f, 0.3f), 10);  // shadow
                 DrawGadgetShape(g.Kind, ground - new V2(0f, lift + 3f), 8.5f, spin, t, true);
