@@ -818,9 +818,9 @@ namespace Arena
                         DrawMenu();
                     break;
                 case AppScreen.Lobby:
-                    if (LobbyScanLeaving)
+                    if (LobbyCrtLeaving)
                     {
-                        DrawLobbyScanLeave();  // Leave with effects on: the scan line, the menu above it and the lobby below (LobbyScanLeave.cs)
+                        DrawLobbyCrtLeave();  // Leave with effects on: the CRT power-cycle, lobby off, menu on (LobbyCrtLeave.cs)
                         break;
                     }
                     // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
