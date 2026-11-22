@@ -31,7 +31,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Scattergun | Tank | 0.45 s | 7 | 520 x 0.5 s | - | 154 | Primary Fire: A short-range shotgun spread, brutal up close.  Alternative Fire: Fire all your loaded shells at once. |
+| Scattergun | Tank | 0.45 s | 7 | 520 x 0.5 s | - | 154 | Primary Fire: A short-range shotgun spread, brutal up close.  Alternative Fire: Lob a shock grenade that stuns enemies where it lands. |
 | Flak Cannon | Tank | 0.8 s | 30 | 380 x 1.1 s | - | 36 | Primary Fire: Shells that burst in the air at your cursor and destroy enemy bullets.  Alternative Fire: Lay a proximity shell that bursts when an enemy steps on it. |
 | Riot Repeater | Tank | 0.18 s | 11 | 600 x 0.8 s | - | 60 | Primary Fire: Steady shots that suppress enemies so they shoot slower.  Alternative Fire: Lob tear gas that slows and suppresses. |
 | Grenade Launcher | Tank | 0.42 s | 34 | 900 x 0.42 s | - | 49 | Primary Fire: Lob a drum of grenades that burst where they land.  Alternative Fire: Swap to smoke that slows enemies and stops them attacking. |

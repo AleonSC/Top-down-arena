@@ -20,7 +20,7 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.Scattergun, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f,
-                Desc = "Primary Fire: A short-range shotgun spread, brutal up close.\n\nAlternative Fire: Fire all your loaded shells at once.",
+                Desc = "Primary Fire: A short-range shotgun spread, brutal up close.\n\nAlternative Fire: Lob a shock grenade that stuns enemies where it lands.",
                 Sound = Sfx.ShotShotgun },
             new WeaponDef { Id = WeaponId.FlakCannon, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets", Name = "Flak Cannon", FireInterval = 0.8f,
                 Desc = "Primary Fire: Shells that burst in the air at your cursor and destroy enemy bullets.\n\nAlternative Fire: Lay a proximity shell that bursts when an enemy steps on it.",
