@@ -1722,6 +1722,9 @@ namespace Arena
         /// The loadout preview runs only while the hero card is on screen.
         void ShowcaseFixedStep(float dt)
         {
+            bool warming = session.Screen == AppScreen.Lobby && OnModeScreen && !LobbyLeaving;
+            if (warming)
+                WarmShowcase();  // built while the Game Mode screen is up, so the lobby doesn't build a whole Game on its first frame
             if (showcase == null)
                 return;
             if (session.Screen != AppScreen.Lobby || Time.unscaledTime - showcaseSeen > 0.5f)
@@ -1735,9 +1738,22 @@ namespace Arena
             showcase.Step(dt);
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)
-                if (!showcaseMute)
+                if (!showcaseMute && !warming)
                     sounds.PlayMuffled(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             showcase.Game.Sounds.Clear();
+        }
+
+        /// The Game Mode screen: start your loadout's preview now (not drawn) and keep it alive, so the lobby opens onto a ready one.
+        void WarmShowcase()
+        {
+            LobbyEntry me;
+            if (!session.Lobby.TryGetValue(session.MyId, out me))
+                return;
+            if (showcase == null)
+                showcase = new Showcase();
+            showcase.SetControl(showcasePlay);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)), false, false, me.Ult);
+            showcaseSeen = Time.unscaledTime;
         }
 
         static float maxWeaponDps;
