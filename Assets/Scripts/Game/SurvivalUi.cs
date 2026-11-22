@@ -75,6 +75,7 @@ namespace Arena
         /// stretch lit, your best time marked), your records and the rules.
         void DrawSurvivalTab(Rect r, float t)
         {
+            if (modeLook != 0 && DrawModePage(r, t, SurvivalPage())) return;
             LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
             float bodyY = ModeHeader(r, "SURVIVAL", "ONE CLOCK  ·  NO WAVES  ·  LAST AS LONG AS YOU CAN",

@@ -12,6 +12,7 @@ namespace Arena
 
         void DrawCampaignTab(Rect r, float t)
         {
+            if (modeLook != 0 && DrawModePage(r, t, CampaignPage())) return;
             LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
             var ink = CrtStyle.Ink;

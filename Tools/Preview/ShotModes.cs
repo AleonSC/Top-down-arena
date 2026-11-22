@@ -251,6 +251,7 @@ static partial class Shot {
         for (int i = 0; i < cn; i++) cp.BossBeaten(BossSchedule.Campaign.BossAt((i + 1) * 5), (i + 1) * 10);
         host.Game.ProfileOverride = cp;
       }
+      if (Environment.GetEnvironmentVariable("MODELOOK") != null) ArenaApp.modeLook = int.Parse(Environment.GetEnvironmentVariable("MODELOOK"));  // MODELOOK=1|2: the reworked Game Mode page (ModePageUi.cs mockup)
       if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.Mode = GameMode.Survival; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
       // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).

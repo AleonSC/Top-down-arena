@@ -44,6 +44,7 @@ namespace Arena
 
         void DrawHuntPicker(Rect r, float t)
         {
+            if (modeLook != 0 && DrawModePage(r, t, HuntPage())) return;
             LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
             bool host = session.IsHost;
             var profile = game.Profile;

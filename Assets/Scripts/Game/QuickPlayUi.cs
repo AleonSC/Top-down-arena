@@ -16,6 +16,7 @@ namespace Arena
         /// through the bosses you've met (the hovered one while the mouse is on a row), then the run's ladder, records and rules.
         void DrawQuickPlayTab(Rect r, float t)
         {
+            if (modeLook != 0 && DrawModePage(r, t, QuickPage(t))) return;
             LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
             var ink = CrtStyle.Ink;
