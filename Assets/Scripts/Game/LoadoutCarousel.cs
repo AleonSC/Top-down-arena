@@ -2,13 +2,13 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The lobby loadout's carousel rows (Class, Weapon, Ability, Ultimate): one long row of keys that slides sideways, a slim
+    /// The lobby loadout's carousel rows (Class, Weapon, Ability, Ultimate; the Modifiers tab's tier rows use them too): one long row of keys that slides sideways, a slim
     /// arrow key at each end, the mouse wheel over the row, and it stops at its ends, where the arrow on that side greys out. The picked key
     /// is scrolled into view when the pick changes. Use: `BeginCarousel` (clips to the row's window), draw slots `from..to` (key
     /// `CarIndex(j)`) at `CarItem(j)`, then `EndCarousel`. Preview `CAROUSEL=row,first` (mode lobby) scrolls a row.
     public partial class ArenaApp
     {
-        public const int CarClass = 0, CarWeapon = 1, CarAbility = 2, CarUlt = 3, CarRows = 4;
+        public const int CarClass = 0, CarWeapon = 1, CarAbility = 2, CarUlt = 3, CarModEasier = 4, CarRows = 7;  // 4-6: the Modifiers tab's tier rows (ModifiersUi.cs)
         const float CarKeyY = 31f, CarKeyH = 36f, CarRowStep = 74f;  // a row's keys under its heading, and one carousel row to the next
         /// The Role row to the Class heading: the same step as the carousels', so every section is the same distance above the next.
         const float RoleRowStep = CarRowStep;
@@ -30,7 +30,7 @@ namespace Arena
 
         readonly int[] carFirst = new int[CarRows];    // the first key in view (the target)
         readonly float[] carPos = new float[CarRows];  // where the row is drawn (slides to carFirst)
-        readonly int[] carSeen = { -2, -2, -2, -2 };   // the pick last scrolled into view
+        readonly int[] carSeen = { -2, -2, -2, -2, -2, -2, -2 };   // the pick last scrolled into view
         int carRow;
         Rect carView;
         float carCell, carH;

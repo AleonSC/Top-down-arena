@@ -40,7 +40,10 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, -LobbyLift, W, H));
             var oldShift = uiShift;
             uiShift = new V2(oldShift.X, oldShift.Y - LobbyLift);  // its live models (GL) move with it
-            DrawLobbyContent();
+            if (ModeBlinking)
+                DrawModeBlink();  // just left the Game Mode screen: the CRT blink (ModeBlink.cs)
+            else
+                DrawLobbyContent();
             uiShift = oldShift;
             GUI.EndGroup();
         }
@@ -1719,6 +1722,9 @@ namespace Arena
         /// The loadout preview runs only while the hero card is on screen.
         void ShowcaseFixedStep(float dt)
         {
+            bool warming = session.Screen == AppScreen.Lobby && OnModeScreen && !LobbyLeaving;
+            if (warming)
+                WarmShowcase();  // built while the Game Mode screen is up, so the lobby doesn't build a whole Game on its first frame
             if (showcase == null)
                 return;
             if (session.Screen != AppScreen.Lobby || Time.unscaledTime - showcaseSeen > 0.5f)
@@ -1732,9 +1738,22 @@ namespace Arena
             showcase.Step(dt);
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)
-                if (!showcaseMute)
+                if (!showcaseMute && !warming)
                     sounds.PlayMuffled(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             showcase.Game.Sounds.Clear();
+        }
+
+        /// The Game Mode screen: start your loadout's preview now (not drawn) and keep it alive, so the lobby opens onto a ready one.
+        void WarmShowcase()
+        {
+            LobbyEntry me;
+            if (!session.Lobby.TryGetValue(session.MyId, out me))
+                return;
+            if (showcase == null)
+                showcase = new Showcase();
+            showcase.SetControl(showcasePlay);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)), false, false, me.Ult);
+            showcaseSeen = Time.unscaledTime;
         }
 
         static float maxWeaponDps;
@@ -1776,7 +1795,7 @@ namespace Arena
                 CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
-                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (!session.HuntMode || (session.LobbyHunt != null && !huntBrowsingLocked));  // (a locked hunt can't start)
+                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (!session.HuntMode || (session.LobbyHunt != null));  // (a locked hunt can't start)
                 if (DkKey(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
                     session.StartMatch();
             }

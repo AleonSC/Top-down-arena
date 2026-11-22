@@ -15,7 +15,7 @@ namespace Arena
         void DrawModifiers(Rect r, float t)
         {
             LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
-            bool host = session.IsHost;
+            bool host = session.IsHost, calm = fxReduced;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
             int n = Modifiers.Count(session.Modifiers);
             // Terminal-style readout: a prompt, the status in caps, a blinking block cursor; the hint underneath is a "//" comment.
@@ -23,121 +23,90 @@ namespace Arena
             var sc = n == 0 ? Ui.Muted : ModLit;
             Ui.Label(new Rect(x, y, 16f, 28f), ">", 12, ModLit, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x + 16f, y, w, 28f), status, 12, sc, TextAnchor.MiddleLeft, true);
-            if (fxReduced || Mathf.Repeat(t * 1.6f, 1f) < 0.6f)
+            if (calm || Mathf.Repeat(t * 1.6f, 1f) < 0.6f)
                 Ui.Fill(new Rect(x + 16f + Ui.TextWidth(status, 12, true) + 5f, y + 8f, 7f, 12f), ModLit.WithAlpha(0.8f));
-            if (n > 0 && host && DkKey(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off", Ui.Neutral))
+            if (n > 0 && host && DkKey(new Rect(x + w - 110f, y + 2f, 110f, 24f), "Turn all off", Ui.Neutral))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
-            Ui.Label(new Rect(x, y + 28f, w, 18f), "// " + (host ? "click a tile to turn it on or off. they last the whole run, for everyone (Practice Range too)."
+            Ui.Label(new Rect(x, y + 28f, w, 18f), "// " + (host ? "click a card to turn it on or off. they last the whole run, for everyone (Practice Range too)."
                 : "the host picks these. they last the whole run, for everyone."), 11, Ui.Muted);
-            y += 54f;
+            y += 46f;
 
-            // Grouped by tier (Easier, Risky, Harder): each group starts on its own row under a heading that spans the panel.
-            // Click a heading to fold its group away (remembered on this computer); folded, it says how many are on.
-            // Under each heading the modifiers are tiles in two columns (icon, name, what it does, an ON/OFF key); when the open
-            // groups don't fit the panel, the list scrolls. Docs/Mockups/modifiers-crt-icons.html (C1).
-            const float gap = 8f, head = 22f, tileH = 112f;
-            int rows = 0;
-            foreach (var lean in LeanOrder)
-                if (!ModTierFolded(lean))
-                    rows += (ModsIn(lean).Count + 1) / 2;
-            var area = new Rect(x - 4f, y, w + 8f, r.yMax - 10f - y);
-            float content = LeanOrder.Length * head + rows * (tileH + gap);
-            float maxScroll = Mathf.Max(0f, content - area.height);
-            var ev = Event.current;
-            if (ev.type == EventType.ScrollWheel && area.Contains(ev.mousePosition))
+            // One carousel row per tier (Easier, Risky, Harder), headed like the Loadout's rows (LoadoutCarousel.cs): three cards
+            // in view, a bare arrow at each end, the wheel over the row. The Enabled box along the bottom holds what's on.
+            float trayTop = r.yMax - 12f - ModTrayH - CarKeyY;
+            float rowStep = (trayTop - 4f - y) / LeanOrder.Length, cardH = rowStep - CarKeyY - 8f;
+            for (int k = 0; k < LeanOrder.Length; k++)
             {
-                modsScroll += ev.delta.y * 24f;
-                ev.Use();
-            }
-            modsScroll = Mathf.Clamp(modsScroll, 0f, maxScroll);
-            if (maxScroll > 0f)
-            {
-                // A thin bar on the right: how much is showing, and where.
-                float bh = area.height * area.height / content, by = area.y + (area.height - bh) * modsScroll / maxScroll;
-                Ui.Pill(new Rect(r.xMax - 9f, by, 4f, bh), new Color(1f, 1f, 1f, 0.18f));
-            }
-            GUI.BeginGroup(area);
-            x = 4f;
-            y = -modsScroll;
-            foreach (var lean in LeanOrder)
-            {
+                var lean = LeanOrder[k];
                 var mods = ModsIn(lean);
-                bool folded = ModTierFolded(lean);
-                // The heading: a fold marker, its tier, a few words, a line to the panel's edge; folded, how many are on.
-                var lc = LeanColor(lean);
-                var hr = new Rect(x, y, w, head - 4f);
-                bool hover = hr.Contains(Event.current.mousePosition);
-                if (hover)
-                    Ui.Pill(hr, lc.WithAlpha(0.08f));
-                float hh = head - 4f;
-                Ui.Fill(new Rect(x, y, 2f, hh), lc);  // a tier-coloured edge, like a console row
-                Ui.Label(new Rect(x + 6f, y, 28f, hh), folded ? "[+]" : "[−]", 11, lc, TextAnchor.MiddleLeft, true);
-                string tag = LeanTag(lean), blurb = "// " + LeanBlurb(lean);
-                float tx = x + 38f, tw = Ui.TextWidth(tag, 11, true) + 14f, bw = Ui.TextWidth(blurb, 11);
-                Ui.Fill(new Rect(tx, y + 2f, tw, hh - 4f), lc.WithAlpha(0.16f));  // the tag as a lit chip
-                ModEdge(new Rect(tx, y + 2f, tw, hh - 4f), lc.WithAlpha(0.55f));
-                Ui.Label(new Rect(tx, y, tw, hh), tag, 11, lc, TextAnchor.MiddleCenter, true);
-                Ui.Label(new Rect(tx + tw + 8f, y, bw + 4f, hh), blurb, 11, Ui.Muted, TextAnchor.MiddleLeft);
                 int onCount = mods.FindAll(d => (session.Modifiers & d.Mod) != 0).Count;
-                string count = folded ? "[" + mods.Count.ToString("00") + " HIDDEN" + (onCount > 0 ? " · " + onCount.ToString("00") + " ON" : "") + "]" : onCount > 0 ? "[" + onCount.ToString("00") + " ON]" : "";
-                float cwid = count.Length > 0 ? Ui.TextWidth(count, 11, true) + 8f : 0f;
-                if (count.Length > 0)
-                    Ui.Label(new Rect(x + w - cwid, y, cwid, hh), count, 11, onCount > 0 ? ModLit : Ui.Muted, TextAnchor.MiddleRight, true);
-                float lx = tx + tw + 8f + bw + 12f, lend = x + w - cwid - 10f;
-                // A dashed rule of small segments with an end tick, instead of a solid hairline.
-                float ly = y + hh / 2f;
-                for (float sx = lx; sx + 4f <= lend; sx += 7f)
-                    Ui.Fill(new Rect(sx, ly, 4f, 1f), lc.WithAlpha(0.3f));
-                if (lend - lx > 10f)
-                    Ui.Fill(new Rect(lend - 1f, ly - 3f, 1f, 7f), lc.WithAlpha(0.5f));
-                if (Ui.HitArea(hr))
-                    FoldModTier(lean, !folded);
-                y += head;
-                if (folded)
-                    continue;
-                float tw2 = (w - (maxScroll > 0f ? 8f : 0f) - gap) / 2f;
-                for (int i = 0; i < mods.Count; i++)
+                LobbyKit.Heading(x, y, w, LeanTag(lean), LeanBlurb(lean) + "  ·  " + onCount + "/" + mods.Count + " on", calm, 15);
+                int from, to;
+                BeginCarousel(CarModEasier + k, new Rect(x, y + CarKeyY, w, cardH), mods.Count, ModsInView, -1, out from, out to);
+                for (int j = from; j <= to; j++)
                 {
-                    var d = mods[i];
-                    var c = new Rect(x + (i % 2) * (tw2 + gap), y + (i / 2) * (tileH + gap), tw2, tileH);
+                    var d = mods[CarIndex(j)];
                     bool on = (session.Modifiers & d.Mod) != 0;
                     bool inert = session.SurvivalMode && (Modifiers.NotInSurvival & d.Mod) != 0;
-                    if (DrawModTile(c, d, on, host, t, inert))
+                    if (DrawModCard(CarItem(j), d, on, host, t, inert))
                         session.SetModifier(d.Mod, !on);
                 }
-                y += (mods.Count + 1) / 2 * (tileH + gap);
+                EndCarousel();
+                y += rowStep;
             }
-            GUI.EndGroup();
+            DrawModTray(x, trayTop, w, host, calm);
         }
 
-        float modsScroll;  // the Modifiers tab's list, scrolled this far down
+        const int ModsInView = 3;      // cards in view on each tier's row
+        const float ModTrayH = 46f;    // the Enabled box under its heading: one line of keys
+
+        /// The Enabled box: a key per modifier that's on (its tier's colour, its icon, its name), in the tiers' order. A click
+        /// (host only) turns it off. When the names don't fit on one line, the keys show only their icons.
+        void DrawModTray(float x, float y, float w, bool host, bool calm)
+        {
+            var on = new List<ModDef>();
+            foreach (var lean in LeanOrder)
+                foreach (var d in ModsIn(lean))
+                    if ((session.Modifiers & d.Mod) != 0)
+                        on.Add(d);
+            LobbyKit.Heading(x, y, w, "Enabled modifiers", on.Count == 0 ? "none on" : on.Count + " on" + (host ? "  ·  click one to turn it off" : ""), calm, 15);
+            var box = new Rect(x, y + CarKeyY, w, ModTrayH);
+            DkSub(box);
+            if (on.Count == 0)
+            {
+                Ui.Label(new Rect(box.x + 12f, box.y, box.width - 24f, box.height), "// none on: a normal run. pick from the rows above.", 11, Ui.Muted);
+                return;
+            }
+            const float gap = 6f, pad = 8f;
+            float kh = box.height - 2f * pad, full = -gap;
+            foreach (var d in on)
+                full += Ui.TextWidth(d.Name.ToUpperInvariant(), 12, true) + 50f + gap;
+            bool iconsOnly = full > box.width - 2f * pad;
+            float kx = box.x + pad;
+            foreach (var d in on)
+            {
+                float kw = iconsOnly ? kh + 6f : Ui.TextWidth(d.Name.ToUpperInvariant(), 12, true) + 50f;
+                var kr = new Rect(kx, box.y + pad, kw, kh);
+                if (DkKey(kr, iconsOnly ? "" : d.Name.ToUpperInvariant(), true, calm, PixelArt.Get(ModIconKey(d.Mod)), colorIcon: true,
+                    size: 12, minSize: 10, enabled: host, accent: LeanColor(d.Lean), rawSize: true) && host)
+                    session.SetModifier(d.Mod, false);
+                if (iconsOnly && kr.Contains(Event.current.mousePosition))
+                {
+                    TipStart(kr, d.Name, LeanColor(d.Lean));
+                    TipAdd(d.Desc, 13, Ui.Text);
+                }
+                kx += kw + gap;
+            }
+        }
 
         static List<ModDef> ModsIn(ModLean lean) => new List<ModDef>(System.Array.FindAll(Modifiers.All, d => d.Lean == lean));
 
-        /// Which tiers are folded away in the Modifiers tab (a bit per ModLean, kept in PlayerPrefs "mods_folded").
-        int modsFolded = -1;
-
-        bool ModTierFolded(ModLean lean)
-        {
-            if (modsFolded < 0)
-                modsFolded = PlayerPrefs.GetInt("mods_folded", 0);
-            return (modsFolded & (1 << (int)lean)) != 0;
-        }
-
-        void FoldModTier(ModLean lean, bool folded)
-        {
-            ModTierFolded(lean);
-            modsFolded = folded ? modsFolded | (1 << (int)lean) : modsFolded & ~(1 << (int)lean);
-            PlayerPrefs.SetInt("mods_folded", modsFolded);
-            PlayerPrefs.Save();
-        }
-
         static readonly ModLean[] LeanOrder = { ModLean.Easier, ModLean.Risky, ModLean.Harder };
 
-        static string LeanTag(ModLean l) => l == ModLean.Harder ? "HARDER" : l == ModLean.Easier ? "EASIER" : "RISKY";
+        static string LeanTag(ModLean l) => l == ModLean.Harder ? "Harder" : l == ModLean.Easier ? "Easier" : "Risky";
 
-        static string LeanBlurb(ModLean l) => l == ModLean.Harder ? "a tougher run" : l == ModLean.Easier ? "a helping hand" : "a trade: something gained, something lost";
+        static string LeanBlurb(ModLean l) => l == ModLean.Harder ? "a tougher run" : l == ModLean.Easier ? "a helping hand" : "something gained, something lost";
 
         static string ModIconKey(RunMod m)
         {
@@ -166,39 +135,28 @@ namespace Arena
             }
         }
 
-        static void ModEdge(Rect r, Color c)
-        {
-            Ui.Fill(new Rect(r.x, r.y, r.width, 1f), c);
-            Ui.Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), c);
-            Ui.Fill(new Rect(r.x, r.y, 1f, r.height), c);
-            Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
-        }
-
-        /// One modifier as a tile: an icon plate (its tier's colour, lit blue when on), the name, what it does, and an ON/OFF key
-        /// along the bottom (the same key as READY?). The whole tile is the click target. Returns true on a click.
-        bool DrawModTile(Rect c, ModDef d, bool on, bool canClick, float t, bool inert = false)  // inert: does nothing in this mode (Modifiers.NotInSurvival)
+        /// One modifier as a carousel card: its tier's colour along the top, an icon plate and the name, what it does across the
+        /// card, and an ON/OFF key along the bottom (shown, not clicked: the card takes the click). Returns true on a click.
+        bool DrawModCard(Rect c, ModDef d, bool on, bool canClick, float t, bool inert = false)  // inert: does nothing in this mode (Modifiers.NotInSurvival)
         {
             var lean = LeanColor(d.Lean);
             bool hover = canClick && c.Contains(Event.current.mousePosition);
             Ui.Fill(c, on ? new Color(0.12f, 0.27f, 0.58f, 0.3f + (fxReduced ? 0f : 0.03f * Mathf.Sin(t * 3f))) : new Color(0.03f, 0.07f, 0.17f, hover ? 0.8f : 0.6f));
-            ModEdge(c, on ? ModLit.WithAlpha(0.75f) : new Color(0.27f, 0.41f, 0.72f, hover ? 0.75f : 0.4f));
-            Ui.Fill(new Rect(c.x, c.y, 28f, 2f), lean);  // its tier
+            CrtKit.Frame(c, 1f, on ? ModLit.WithAlpha(0.75f) : new Color(0.27f, 0.41f, 0.72f, hover ? 0.75f : 0.4f));
+            Ui.Fill(new Rect(c.x, c.y, c.width, 2f), lean.WithAlpha(on ? 1f : 0.7f));  // its tier
 
-            var plate = new Rect(c.x + 12f, c.y + 12f, 44f, 44f);
-            var pc = on ? ModLit.WithAlpha(0.9f) : lean.WithAlpha(0.45f);
+            var plate = new Rect(c.x + 10f, c.y + 10f, 34f, 34f);
             Ui.Fill(plate, on ? new Color(0.16f, 0.35f, 0.74f, 0.4f) : new Color(0.01f, 0.03f, 0.09f, 0.7f));
-            ModEdge(plate, pc);
+            CrtKit.Frame(plate, 1f, on ? ModLit.WithAlpha(0.9f) : lean.WithAlpha(0.45f));
             var icon = PixelArt.Get(ModIconKey(d.Mod));
             if (icon != null)
-                Ui.Icon(new Rect(plate.x + 8f, plate.y + 8f, 28f, 28f), icon, on ? Color.white : lean);
-
-            float tx = plate.xMax + 12f, tw = c.xMax - 12f - tx;
-            Ui.Glitch(new Rect(tx, c.y + 10f, tw, 22f), d.Name, 16, on ? Color.Lerp(ModLit, Color.white, 0.75f) : new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(tx, c.y + 33f, tw, 44f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
-
-            // The key: shown, not clicked (the tile takes the click); a guest sees the host's choice, so it never goes hot.
-            DkKey(new Rect(c.x + 12f, c.yMax - 36f, c.width - 24f, 26f), inert ? (on ? "ON · " : "") + "NO EFFECT IN SURVIVAL" : on ? "ON" : "OFF", on, fxReduced,
-                on && !inert ? PixelArt.Get("ui_check") : null, size: 15, minSize: 11, enabled: false, accent: on ? ModLit : (Color?)null);
+                Ui.Icon(new Rect(plate.x + 6f, plate.y + 6f, 22f, 22f), icon, on ? Color.white : lean);
+            float tx = plate.xMax + 10f;
+            Ui.Glitch(new Rect(tx, plate.y, c.xMax - 8f - tx, plate.height), d.Name, 15, on ? Color.Lerp(ModLit, Color.white, 0.75f) : new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleLeft);
+            float keyY = c.yMax - 32f;
+            Ui.Label(new Rect(c.x + 10f, plate.yMax + 5f, c.width - 20f, keyY - plate.yMax - 7f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
+            DkKey(new Rect(c.x + 10f, keyY, c.width - 20f, 24f), inert ? (on ? "ON · " : "") + "NO EFFECT IN SURVIVAL" : on ? "ON" : "OFF", on, fxReduced,
+                on && !inert ? PixelArt.Get("ui_check") : null, size: 14, minSize: 10, enabled: false, accent: on ? ModLit : (Color?)null);
             if (inert)
                 Ui.Fill(c, new Color(0.01f, 0.02f, 0.06f, 0.55f));  // dimmed: Survival's room has nothing for it to act on
             return canClick && Ui.HitArea(c);

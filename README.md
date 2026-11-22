@@ -1371,15 +1371,17 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab (on the tab row after Difficulty; it shows how many are on) lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
-headings, each tile marked with its tier's colour; click anywhere on a tile to switch it) that change the whole run, for everyone (Practice
-Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
-ones show as chips above the wave panel during the run, and session recordings list them. Each tier has its own heading;
-click its heading to fold it away (folded, it says how many are hidden and how many are on; remembered on your
-computer). When the open tiers don't fit, the list scrolls with the mouse wheel.
+The lobby's **Modifiers** tab (on the tab row after Difficulty; it shows how many are on) lists 19 switches that change the
+whole run, for everyone (Practice Range too). They sit in three carousel rows, **Easier**, **Risky** and **Harder**, headed like
+the Loadout's rows (the tier, a few words and how many of it are on): three cards in view, a bare arrow at each end and the
+mouse wheel to slide along. Each card has its tier's colour along the top, an icon, its name, what it does and an ON/OFF key
+like Ready's; click anywhere on a card to switch it. The **Enabled modifiers** box along the bottom holds a key for each one
+that's on, in its tier's colour (click one to turn it off; when they don't fit on one line they show only their icons, with
+the name on hover). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
+ones show as chips above the wave panel during the run, and session recordings list them.
 
 **In Survival** every modifier works except four that have nothing to act on in its one walled room: **Tiny Arena**,
-**Solid Walls**, **Gold Rush** (no shop) and **Simple Arena**. Their tiles are dimmed and say *NO EFFECT IN SURVIVAL*,
+**Solid Walls**, **Gold Rush** (no shop) and **Simple Arena**. Their cards are dimmed and say *NO EFFECT IN SURVIVAL*,
 they don't count toward rank XP there, and no chip shows for them. **Zombie Infection** turns every Survival spawn into a
 horde zombie of the clock's wave (zombies count for less of the spawner's budget, as in a horde wave); **Hunted** picks a
 new quarry and **Second Wind** comes back on the clock's waves (every 30 s, and every 2.5 min); **Cluttered** fills the room
@@ -1493,14 +1495,14 @@ stretch lit, your best time a gold line).
 
 ## Boss Hunt
 
-A new lobby opens on the **Game Mode** screen: the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it), and the mode's own page fills the screen under it (Practice has two: its waves and Training). **TO THE LOBBY** (top right, with the party count and how many are ready), Back or Esc go to the lobby; the screen is part of the lobby, so going back to it never closes the lobby or drops anyone. In the lobby, the **mode card** at the top of the left column names the mode with its line; **CHANGE** (the host) or **VIEW** (a guest) opens the Game Mode screen again. Folder tabs stand on the big screen's top edge (the open one is lit in your role's colour and opens into the screen): the Saved loadouts star, **Loadout**, **Difficulty** and **Modifiers** at the left, and the **Hangout** at the right end; a second click on an open tab goes back to the Loadout. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); the Loadout tab takes you back (in the Practice Range too, where you can set them up but the range plays without them). A Boss Hunt is a short run that ends
+A new lobby opens on the **Game Mode** screen: the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it), and the mode's own page fills the screen under it (Practice has two: its waves and Training). **TO THE LOBBY** (top right, with the party count and how many are ready), Back or Esc go to the lobby (with Visual effects on, the screen blinks like a CRT changing channel: the mode page squashes to a bright line and the lobby opens out of it); the screen is part of the lobby, so going back to it never closes the lobby or drops anyone. In the lobby, the **mode card** at the top of the left column names the mode with its line; **CHANGE** (the host) or **VIEW** (a guest) opens the Game Mode screen again. Folder tabs stand on the big screen's top edge (the open one is lit in your role's colour and opens into the screen): the Saved loadouts star, **Loadout**, **Difficulty** and **Modifiers** at the left, and the **Hangout** at the right end; a second click on an open tab goes back to the Loadout. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); the Loadout tab takes you back (in the Practice Range too, where you can set them up but the range plays without them). A Boss Hunt is a short run that ends
 with one boss: **twenty steps** (see Hunt map below). Steps 1-19 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on steps 10 and
 19); step 20 is the boss. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
 path offer, no Data Gate, and a hunt saves only at its step-10 checkpoint. Modifiers and the difficulty apply as in a run,
 and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's steps (n / 20).
 
-The **Boss hunt** tab is a dossier: a looping drum of the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN; mouse wheel, PREV / NEXT or a click rolls one to the top, and the list never ends). A boss you've never beaten is a **???** row with a "?" for its portrait (and a "?" in the scope), as in the Quick Play tab's boss pool. The boss on top is the picked one: the host can scroll onto a locked or coming-soon boss to look at it, but START stays off until the top boss's hunt is open. For the top boss it shows a green-edged target scope with its live model, the wave ladder, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
+Every mode's page (Quick Play, Campaign, Boss Hunt, Survival) has the same layout: a header (a progress ring, the mode's name, its facts and a line), the mode's list under its heading on the left (bosses or factions; hover one to show it), a green target scope with its live model and a dossier box (status, name, what happens, the run's ladder) on the right, then **Your records** as tiles and **Rules** as lamp tags (lit: what the mode adds; dim: what it takes away) along the bottom. On the **Boss hunt** page the list is the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN); a boss you've never beaten is a **???** row with a "?" for its portrait (and in the scope). The host clicks an open hunt to pick it; hovering any boss shows it. For the shown boss it gives the map's steps, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
 run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the run won't start on a
 locked one. **Only the Warden has a hunt so far**: every boss has a faction now, but later bosses' hunts will need the party
 handed a build that fits their strength (levels, legendary cards and mods). Records keep each hunt's plays, wins and best time per player

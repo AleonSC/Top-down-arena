@@ -253,8 +253,8 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.Mode = GameMode.Survival; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
-      // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).
-      if (Environment.GetEnvironmentVariable("MODSCROLL") != null) set("modsScroll", float.Parse(Environment.GetEnvironmentVariable("MODSCROLL")));
+      // MODEBLINK=<s>: that long into the CRT blink back to the lobby from the Game Mode screen (LOBBYTAB=8 for its page; ModeBlink.cs).
+      if (Environment.GetEnvironmentVariable("MODEBLINK") != null) { set("modeBlinkFrom", Environment.GetEnvironmentVariable("LOBBYTAB") != null ? int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB")) : 8); set("lobbyTab", 0); set("modeBlinkAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("MODEBLINK"), System.Globalization.CultureInfo.InvariantCulture)); }
       // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and
       // mid-stride (so the trail shows), e.g. HANGOUT=trail-void,trail-prism,trail-frost.
       if (Environment.GetEnvironmentVariable("HANGOUT") != null) {
@@ -299,8 +299,6 @@ static partial class Shot {
         }
         host.MyId = 1;
       }
-      // MODSFOLD=n: the Modifiers tab with those tiers folded (a bit per ModLean: 1 Harder, 2 Easier, 4 Risky).
-      set("modsFolded", int.Parse(Environment.GetEnvironmentVariable("MODSFOLD") ?? "0"));
       // DIFF=Hard (a preset) or DIFF=Custom (Hard with a few numbers changed): the lobby's Difficulty tab (LOBBYTAB=3).
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=<n>: Boss Hunt mode, its tab (the Warden's hunt open, won once), the nth boss on top (n > 1: a never-met "???" boss).
@@ -345,7 +343,7 @@ static partial class Shot {
       if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); if (q.Length > 4) le.Ult = byte.Parse(q[4]); }  // (a fifth number: the Ultimate row's key)
       var dsel = Environment.GetEnvironmentVariable("DETAIL");  // DETAIL=role|class: the detail box's role or class page (as after clicking that key)
       if (dsel != null) set("detailSel", dsel == "role" ? ArenaApp.DetailRole : ArenaApp.DetailClass);
-      var car = Environment.GetEnvironmentVariable("CAROUSEL");  // CAROUSEL=row,first: a loadout carousel row (0 class, 1 weapon, 2 ability, 3 ultimate) scrolled to that key
+      var car = Environment.GetEnvironmentVariable("CAROUSEL");  // CAROUSEL=row,first: a loadout carousel row (0 class, 1 weapon, 2 ability, 3 ultimate; 4-6 the Modifiers tab's Easier, Risky, Harder) scrolled to that key
       if (car != null) { var cq = car.Split(','); var cf = typeof(ArenaApp).GetField("carFirst", f2); var cp = typeof(ArenaApp).GetField("carPos", f2); var cs = typeof(ArenaApp).GetField("carSeen", f2);
         int crow = int.Parse(cq[0]), cfirst = int.Parse(cq[1]); ((int[])cf.GetValue(app))[crow] = cfirst; ((float[])cp.GetValue(app))[crow] = cfirst; ((int[])cs.GetValue(app))[crow] = -1; }
       var ab = Environment.GetEnvironmentVariable("ABILITY");
