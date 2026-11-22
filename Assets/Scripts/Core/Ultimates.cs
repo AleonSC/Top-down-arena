@@ -43,82 +43,80 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Fortress, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Fortress", Cooldown = 70f, Desc = "Raises a fixed, impenetrable dome here for 10 s. Only players and player bullets cross it: enemies and their shots can't get in or shoot through.",
+                Name = "Fortress", Cooldown = 70f, Desc = "A dome only players and their bullets can cross.",
                 Capstone = "Lasts 14 s.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.JuggernautSuit, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
-                Name = "Juggernaut Suit", Cooldown = 75f, Desc = "Steel plates clamp on: for 10 s you carry 300 armour that takes damage before your health. You move 25% slower and every enemy, bosses too, comes for you. Each enemy bullet the armour takes throws a 12-damage flak shard straight back at whoever fired it. It ends early if the armour is gone or you go down.",
+                Name = "Juggernaut Suit", Cooldown = 75f, Desc = "Heavy armour draws every enemy and throws flak back at shooters.",
                 Capstone = "450 armour, and each shard does 18.",
                 Bot = b => b.Crowd >= Game.JuggBotCrowd,
             },
             new AbilityDef
             {
                 Id = AbilityId.GlacialTomb, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Ult, Instant = true,
-                Name = "Glacial Tomb", Cooldown = 75f, Desc = "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead).",
+                Name = "Glacial Tomb", Cooldown = 75f, Desc = "Erase every enemy bullet and freeze every enemy.",
                 Capstone = "Enemies stay frozen for 6 s and bosses take 500.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.Titan, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Titan", Cooldown = 80f, Desc = "Summon a huge stone titan for 17 s. It rises from rubble, stomps after enemies, slams them after a short wind-up and blocks bullets with its whole body (it soaks 1000 boss damage).",
+                Name = "Titan", Cooldown = 80f, Desc = "Summon a huge stone titan that stomps enemies and blocks bullets.",
                 Capstone = "The titan is 30% bigger and stays for 27 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.BonePhalanx, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
-                Name = "Bone Phalanx", Cooldown = 75f, Desc = "A bone gate opens ahead of you and 8 skeletons with tower shields march a line 260 px along your aim over 6 s. "
-                    + "Their shields stop every enemy shot from the front (red aimed shots too) while your team shoots through; enemies are shoved ahead and speared for 15 every 0.5 s. "
-                    + "Each skeleton has 120 health; a broken one leaves a gap. Bosses and walls stop the line.",
+                Name = "Bone Phalanx", Cooldown = 75f, Desc = "Skeletons with tower shields march ahead, blocking shots and spearing enemies.",
                 Capstone = "10 skeletons with 180 health each.",
                 Bot = b => b.HaveTarget && b.TargetD < 460f || b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.Lifeline, Kit = Kit.Soldier, Role = Role.Healer, Choice = AbilityDef.Ult, Instant = true,
-                Name = "Lifeline", Cooldown = 90f, Desc = "Instantly revive and fully heal the whole party, with 3 s of invulnerability.",
+                Name = "Lifeline", Cooldown = 90f, Desc = "Revive and fully heal the whole party, with brief invulnerability.",
                 Capstone = "Everyone also gets 4 s of Overdrive.",
                 Bot = b => b.AllyDown || b.Me.Hp < b.Me.MaxHp * 0.3f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Sanctum, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "Sanctum", Cooldown = 80f, Desc = "A dome of light for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger).",
+                Name = "Sanctum", Cooldown = 80f, Desc = "A dome of light that blocks bullets, keeps allies up and heals them.",
                 Capstone = "The dome is half again as wide (300 px).",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.WorldTree, Kit = Kit.Summoner, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "World Tree", Cooldown = 80f, Desc = "Grow a great tree for 15 s that heals and slows around it and sends a wave of healing butterflies to every ally every 1.9 s.",
+                Name = "World Tree", Cooldown = 80f, Desc = "Grow a tree that heals and slows around it and sends healing butterflies.",
                 Capstone = "Lasts 16 s with 8 sprites.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.ArtilleryAssault, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Artillery Assault", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles.",
+                Name = "Artillery Assault", Cooldown = 60f, Desc = "Fire three times as fast with extra projectiles.",
                 Capstone = "+4 extra projectiles instead of +2.",
             },
             new AbilityDef
             {
                 Id = AbilityId.AttackHelicopter, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,
-                Name = "Attack Helicopter", Cooldown = 70f, Desc = "Call in a gunship for 10 s. It circles you and locks one enemy at a time, the one nearest you, hosing it with a chaingun (20 rounds a second, 8 damage each) until it dies, then the next. It can't be hit.",
+                Name = "Attack Helicopter", Cooldown = 70f, Desc = "A gunship locks enemies one at a time and can't be hit.",
                 Capstone = "A second gun on the wing: two targets at once.",
             },
             new AbilityDef
             {
                 Id = AbilityId.BulletRain, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Bullet Rain", Cooldown = 70f, Desc = "Call a downpour over a big square (520 px) at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet.",
+                Name = "Bullet Rain", Cooldown = 70f, Desc = "A downpour of needles that hurts and soaks everything in a big square.",
                 Capstone = "Lasts 9 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Legion, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Legion", Cooldown = 70f, Desc = "A blood moon rises. Summon 4 wolves and 4 bats that circle you, then run 40% faster for 10 s; your other minions frenzy.",
+                Name = "Legion", Cooldown = 70f, Desc = "A blood moon: wolves and bats circle you, you run faster and your minions frenzy.",
                 Capstone = "Summons 7 wolves and 7 bats.",
             },
         };

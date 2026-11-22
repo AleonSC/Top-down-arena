@@ -117,69 +117,69 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.GolemWall, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0,
-                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three basalt golems in front of you. They block every enemy bullet and stay until they are broken (200 health each); casting again replaces them.",
+                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three golems that block every enemy bullet.",
                 Capstone = "Raises five golems.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.Earthquake, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Instant = true,
-                Name = "Earthquake", Cooldown = 10f, Desc = "You slam the ground (25 damage, slows), then a Burrower breaks out at your cursor and tunnels through the enemies for 3 s, hurting each one it passes under (30 damage).",
+                Name = "Earthquake", Cooldown = 10f, Desc = "Slam the ground, then a Burrower tunnels through enemies.",
                 Capstone = "Also freezes everything it hurts for 1 s (not bosses).",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
             },
             new AbilityDef
             {
                 Id = AbilityId.ForcePact, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2,
-                Name = "Force Pact", Cooldown = 12f, Desc = "Take the regular enemy nearest your cursor (not bosses) and make it fight for you. It stays near you with its own attack and comes back 15 s after it falls. Cast again on another enemy to switch the pact to that type.",
+                Name = "Force Pact", Cooldown = 12f, Desc = "Make a regular enemy fight for you.",
                 Capstone = "A second thrall: the pact keeps the last two types you chose.",
                 Bot = b => b.HaveTarget,  // it takes whatever is nearest the cursor, so any target will do
             },
             new AbilityDef
             {
                 Id = AbilityId.Stampede, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (Stampede.cs)
-                Name = "Stampede", Cooldown = StampedeCooldown, Desc = "Call a line of 7 spirit beasts across your aim. They charge 320 px, trampling every enemy for 20 damage and shoving them along ahead of the herd. An enemy driven into a wall takes 15 more and is stunned for 0.5 s. Bosses and heavy enemies are trampled but not shoved.",
+                Name = "Stampede", Cooldown = StampedeCooldown, Desc = "A line of spirit beasts tramples everything ahead.",
                 Capstone = "9 beasts, and the herd turns and charges back.",
                 Bot = b => b.HaveTarget && b.TargetD < 380f,
             },
             new AbilityDef
             {
                 Id = AbilityId.SpiritSwarm, Kit = Kit.Summoner, Role = Role.Healer, Choice = 0,
-                Name = "Spirit Swarm", Cooldown = 14f, Desc = "Release 5 healing sprites for 6 s.",
+                Name = "Spirit Swarm", Cooldown = 14f, Desc = "Release healing sprites.",
                 Capstone = "Releases 8 sprites.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.Phoenix, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1,
-                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix follows your cursor for 10 s, shooting and pulsing 8% max health to everyone near it every 2 s. If anyone goes down (you too), it revives them instantly.",
+                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix follows your cursor, shooting and healing, and revives anyone who goes down.",
                 Capstone = "Revives at full health, and the phoenix keeps fighting.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.SoulLantern, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2,
-                Name = "Soul Lantern", Cooldown = 18f, Desc = "A lantern appears beside the ally nearest your cursor (you, alone) and links to them for 6 s: it follows, heals 8 health a second and flames nearby enemies.",
+                Name = "Soul Lantern", Cooldown = 18f, Desc = "A lantern links to an ally, healing them and burning nearby enemies.",
                 Capstone = "Lasts 9 s, and the linked player can't go down.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.BatSwarm, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0,
-                Name = "Bat Swarm", Cooldown = 12f, Desc = "Release 8 bats that hunt enemies for 6 s.",
+                Name = "Bat Swarm", Cooldown = 12f, Desc = "Release bats that hunt enemies.",
                 Capstone = "Releases 14 bats.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Hydra, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1,
-                Name = "Hydra", Cooldown = 18f, Desc = "A three-headed hydra rises at your cursor for 8 s. Each head picks its own enemy and spits venom at it (10 damage, every 0.6 s per head).",
+                Name = "Hydra", Cooldown = 18f, Desc = "A three-headed hydra spits venom at enemies.",
                 Capstone = "A fourth head.",
                 Bot = b => b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.AlphaCall, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2,
-                Name = "Alpha Call", Cooldown = 14f, Desc = "Blood Scent for 6 s: your minions start at 2 stacks, and each bite adds one (up to 5): faster, and quicker bites. At 5 stacks the next bite lunges for triple damage and drops back to 2.",
+                Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions bite faster, then lunge for triple damage.",
                 Capstone = "Also summons 3 wolves for 6 s.",
             },
         };

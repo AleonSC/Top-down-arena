@@ -374,84 +374,84 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShadowClone, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0,
-                Name = "Shadow Clone", Cooldown = 14f, Desc = "Summon a wall of 9 clones for 7 s. Every enemy targets them and each soaks 50 damage. They never fight: walk into them to shove the wall.",
+                Name = "Shadow Clone", Cooldown = 14f, Desc = "A wall of clones that every enemy attacks.",
                 Capstone = "Every clone has double the health.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.SmokeBomb, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1,
-                Name = "Smoke Bomb", Cooldown = 14f, Desc = "A 140 px cloud at your feet for 5 s: enemy bullets inside slow to half speed, and allies inside take 30% less damage.",
+                Name = "Smoke Bomb", Cooldown = 14f, Desc = "A smoke cloud that slows enemy bullets and shields allies.",
                 Capstone = "Enemies inside the smoke are also slowed by 40%.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.CeremonialArmor, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2,
-                Name = "Ceremonial Armor", Cooldown = 2.5f, Desc = "Summon a lacquered armour plate that circles you until it breaks: up to 10, 4 on an inner ring and 6 further out. Each has 45 health, stops the enemy bullets it touches and pushes enemies away. With all 10 up you take 20% less damage.",
+                Name = "Ceremonial Armor", Cooldown = 2.5f, Desc = "Armour plates circle you, blocking bullets and shoving enemies.",
                 Capstone = "A plate that breaks bursts for 30 damage to enemies within 60 px.",
                 Bot = b => b.Me.PlateN < Game.CerePlateMax,
             },
             new AbilityDef
             {
                 Id = AbilityId.HealingDash, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0,
-                Name = "Healing Dash", Cooldown = 15f, Desc = "Sprint 70% faster for 3 s, leaving glowing footprints that last 6 s. You and your allies heal 12 HP a second while standing near one (overlapping footprints don't stack).",
+                Name = "Healing Dash", Cooldown = 15f, Desc = "Sprint, leaving footprints that heal you and allies.",
                 Capstone = "The sprint lasts 4.5 s.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.Substitution, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1,
-                Name = "Substitution", Cooldown = 12f, Desc = "Swap places with the ally nearest your cursor and shield them for 60 for 6 s. Alone: slip to your cursor and shield yourself.",
+                Name = "Substitution", Cooldown = 12f, Desc = "Swap places with an ally and shield them.",
                 Capstone = "You and your ally are both invulnerable for 1 s after the swap.",
                 Bot = b => b.AllyDown || b.AllyHurt && b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.SpiritWard, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2,
-                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: it takes the damage allies near it would take (up to 150). When it breaks or ends, a quarter of what it took heals allies near it.",
+                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman that absorbs damage for allies, then heals them.",
                 Capstone = "The ward follows you.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.ShadowStep, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, CapstoneCharge = true,
-                Name = "Shadow Step", Cooldown = 7f, Desc = "Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80.",
+                Name = "Shadow Step", Cooldown = 7f, Desc = "Teleport behind an enemy and strike it hard.",
                 Capstone = "+1 charge.",
                 Bot = b => b.HaveTarget && b.TargetD > 120f && b.TargetD < 440f || b.BotDanger > 2.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Vanish, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1,
-                Name = "Vanish", Cooldown = 16f, Desc = "For 3 s enemies lose track of you. Your next hit (within 4 s) deals double damage.",
+                Name = "Vanish", Cooldown = 16f, Desc = "Enemies lose track of you and your next hit deals double.",
                 Capstone = "Erases enemy bullets around you when you vanish.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.BladeFan, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2,
-                Name = "Blade Fan", Cooldown = 12f, Desc = "12 kunai spin around you for 4 s, cutting enemies they touch for 18 (once every 0.5 s each) and erasing enemy bullets. Press again, or wait, and they fly out in a ring, 18 each.",
+                Name = "Blade Fan", Cooldown = 12f, Desc = "Spinning kunai cut enemies around you, then fly out in a ring.",
                 Capstone = "Throws twice as many kunai.",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
             {
                 Id = AbilityId.ThousandClones, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Thousand Clones", Cooldown = 70f, Desc = "Twelve clones appear all over the map. Every enemy goes for the nearest one at once. They soak 100 damage each and last until they die or the round ends; each bursts for 60 when killed.",
+                Name = "Thousand Clones", Cooldown = 70f, Desc = "Twelve clones appear all over the map and draw every enemy.",
                 Capstone = "Twenty clones.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.BlossomStorm, Kit = Kit.Ninja, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "Blossom Storm", Cooldown = 80f, Desc = "For 5 s petals heal the whole party 20 HP/s and erase enemy bullets near every ally.",
+                Name = "Blossom Storm", Cooldown = 80f, Desc = "Petals heal the whole party and erase enemy bullets.",
                 Capstone = "Lasts 8 s.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.DeathLotus, Kit = Kit.Ninja, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Death Lotus", Cooldown = 65f, Desc = "Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each.",
+                Name = "Death Lotus", Cooldown = 65f, Desc = "A flurry of cuts on up to 8 enemies near your cursor.",
                 Capstone = "Strikes up to 14 enemies.",
             },
         };

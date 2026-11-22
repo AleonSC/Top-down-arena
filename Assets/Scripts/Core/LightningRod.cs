@@ -44,7 +44,7 @@ namespace Arena
             {
                 Id = AbilityId.LightningRod, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
                 Name = "Lightning Rod", Cooldown = 70f,
-                Desc = "For 6 s you crackle with charge: you take 80% less damage and every enemy, bosses too, goes for you. Each enemy hit on you calls a bolt from the sky on whoever landed it (30), which arcs on to the 2 enemies nearest it (15 each). Wet enemies take extra arcs.",
+                Desc = "You draw every enemy while taking much less damage, and lightning strikes whoever hits you.",
                 Capstone = "Lasts 8 s and each bolt arcs to 3 enemies.",
                 Bot = b => b.Shooters >= RodBotShooters,
             },

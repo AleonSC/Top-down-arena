@@ -783,83 +783,83 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShieldWall, Kit = Kit.Knight, Role = Role.Tank, Choice = 0,
-                Name = "Shield Wall", Cooldown = 12f, Desc = "Raise a wall of 7 steel plates: it stops every enemy bullet coming at your front (120°), even red aimed shots. Every shot wears down the plate it hits (400 damage in all, shared between the plates) and a broken plate leaves a gap. The wall stays up until every plate is gone.",
+                Name = "Shield Wall", Cooldown = 12f, Desc = "Raise a wall of steel plates that blocks bullets at your front.",
                 Capstone = "Bullets that hit the shield are reflected back as your own.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.LeapSlam, Kit = Kit.Knight, Role = Role.Tank, Choice = 1,
-                Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor (up to 320 px), untouchable in the air. Landing deals 50 damage around you and stuns enemies for 1 s.",
+                Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor untouchable, then slam and stun.",
                 Capstone = "The landing also erases enemy bullets within 160 px.",
                 Bot = b => b.HaveTarget && b.TargetD > 140f && b.TargetD < 340f || b.BotDanger > 2.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.CavalryCall, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
-                Name = "Cavalry Call", Cooldown = 18f, Desc = "Two lancers ride in at your sides and charge across the map along your aim. Each enemy they meet takes 35, is shoved out of the lane and slowed 45% for 3 s (Heavy enemies and bosses barely move and are slowed less). You take 20% less damage for 3 s.",
+                Name = "Cavalry Call", Cooldown = 18f, Desc = "Two lancers charge across the map, shoving and slowing enemies.",
                 Capstone = "Two more lancers ride outside the first pair, and the guard lasts 5 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Consecrate, Kit = Kit.Knight, Role = Role.Healer, Choice = 0,
-                Name = "Consecrate", Cooldown = 14f, Desc = "Throw a Holy Cross along your aim. It grows as it flies: allies it crosses heal 35 and run 30% faster for 4 s; enemies take 25, are slowed 40% for 3 s and are knocked back.",
+                Name = "Consecrate", Cooldown = 14f, Desc = "Throw a Holy Cross that heals and speeds allies and hurts enemies.",
                 Capstone = "Two more crosses fly out at 22 degrees either side (each target is hit once).",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.GuardiansOath, Kit = Kit.Knight, Role = Role.Healer, Choice = 1,
-                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Press, then click a player (up to 600 px), downed or not: charge to them, grab them and haul them back to where you stood. A Ward of Light then cuts damage by half for everyone inside for 5 s, and downed allies in it revive twice as fast.",
+                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Haul an ally to safety and protect everyone in a ward of light.",
                 Capstone = "Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.LayOnHands, Kit = Kit.Knight, Role = Role.Healer, Choice = 2,
-                Name = "Lay on Hands", Cooldown = 18f, Desc = "Heal the most hurt ally within 300 px (or yourself) for 70, or instantly revive them at half health if they're down.",
+                Name = "Lay on Hands", Cooldown = 18f, Desc = "Heal the most hurt ally, or revive a downed one.",
                 Capstone = "Also heals everyone else near them for half as much.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.BladedDive, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Bladed Dive (BladedDive.cs) so the numbers stay put
-                Name = "Bladed Dive", Cooldown = 10f, Desc = "Rush toward your cursor (up to 240 px), untouchable, your blade spinning round you: four cuts land along the way, each hitting every enemy within 64 px of you for 18. Kill anything with it and the cooldown resets.",
+                Name = "Bladed Dive", Cooldown = 10f, Desc = "Rush forward untouchable with a spinning blade; a kill resets the cooldown.",
                 Capstone = "Each kill heals you 5% of your health.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Gauntlet, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true,  // The Gauntlet (Gauntlet.cs); the id is Lunge's
-                Name = "The Gauntlet", Cooldown = 9f, Desc = "Throw down the gauntlet at the enemy nearest your cursor along your aim (up to 380 px; it flies over anything in between): it takes 12 and is Challenged for 5 s. You shoulder-charge to it, untouchable, bowling everything in the way aside (18 and a shove), and hit it for 30. Kill the Challenged enemy before the Challenge runs out and the gauntlet flies back: the cooldown resets.",
+                Name = "The Gauntlet", Cooldown = 9f, Desc = "Challenge an enemy and charge it; kill it in time to reset the cooldown.",
                 Capstone = "The Challenge lasts 8 s, and the charge's impact stuns for 1 s.",
                 Bot = b => b.HaveTarget && b.TargetD > 90f && b.TargetD < 380f,
             },
             new AbilityDef
             {
                 Id = AbilityId.CaughtSteel, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caught Steel (CaughtSteel.cs)
-                Name = "Caught Steel", Cooldown = 16f, Desc = "For 6 s, enemy bullets that skim past you without touching you are caught and hang round you as steel (up to 12). Press again (or let the time run out) and a sweeping cut hurls them out along your aim: each shard cuts the bullets in its way and hits the first enemy for 22. A hit knocks a third of them loose. The cooldown starts when you throw them.",
+                Name = "Caught Steel", Cooldown = 16f, Desc = "Catch passing bullets as steel, then hurl them back.",
                 Capstone = "Holds up to 18 shards.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Last Stand", Cooldown = 70f, Desc = "You plant yourself and brace a wall of steel plates 120 px out, 178° wide, facing your cursor (it turns slowly). It stops every enemy bullet from the front; your teammates' shots pass out through it. You take 10% of the damage it stops. You can't move while it stands, and it has no timer: it stays until you go down or press the ability again, and the cooldown starts when it comes down.",
+                Name = "Last Stand", Cooldown = 70f, Desc = "Plant yourself behind a wall of steel plates that blocks every bullet in front.",
                 Capstone = "You take 5% of the damage instead of 10%.",
                 Bot = b => b.Danger || b.AllyDown && b.DownedD < 70f,  // planted over a downed ally, the reviver stands in the lee
             },
             new AbilityDef
             {
                 Id = AbilityId.HallowedBlade, Kit = Kit.Knight, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword falls at your cursor: 200 damage around it, then it stays planted for 8 s (allies in the ring heal 15 HP/s, enemies burn), and every 2 s a pulse crosses the whole arena healing allies and hurting enemies for a third as much.",
+                Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword lands, healing allies and burning enemies for a while.",
                 Capstone = "Three swords fall: one at your cursor and one either side.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Drawbridge, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,  // the Drawbridge (Drawbridge.cs)
-                Name = "Drawbridge", Cooldown = 75f, Desc = "A gatehouse rises behind you and its drawbridge falls along your aim: 500 px long and 100 wide, it crushes everything in the lane for 260 and throws enemies at its edges aside (45). Then it lies there for 5 s as a walkway: enemies can't step onto it and the rails grind any pressed against them (80 a second), and their shots stop at its rails, red aimed shots too.",
+                Name = "Drawbridge", Cooldown = 75f, Desc = "A drawbridge crushes the lane ahead, then blocks enemies and shots.",
                 Capstone = "The bridge stands for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 450f,
             },
@@ -867,7 +867,7 @@ namespace Arena
             {
                 Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,  // picked instead of the Drawbridge on the lobby's Ultimate row (WarhornVolley.cs)
                 Name = "Warhorn Volley", Cooldown = 70f,
-                Desc = "Blow a warhorn and a volley of fire arrows falls behind you and sweeps across the field along your aim (1,400 px ahead, 700 wide). Every enemy it reaches takes 120, burns for 20 a second for 5 s and is pinned (40% slower for 3 s). Enemy shots in its path are knocked out of the air (red aimed shots fly on).",
+                Desc = "A volley of fire arrows sweeps the field, burning and pinning enemies.",
                 Capstone = "The volley is 40% wider and the fire burns for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 900f,
             },

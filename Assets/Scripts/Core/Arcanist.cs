@@ -72,8 +72,7 @@ namespace Arena
             {
                 Id = AbilityId.KineticGrasp, Kit = Kit.Arcanist, Role = Role.Tank, Choice = 0, FillsGaps = true,
                 Name = "Kinetic Grasp", Cooldown = 10f,
-                Desc = "Lift the biggest enemy near your cursor (not a boss) and hold it in front of you as a shield: it soaks the bullets that hit it. "
-                    + "Press again, or wait 4 s, to throw it along your aim: 50 damage to it and to the enemy it hits, which is knocked back and stunned. Nothing in reach: most of the cooldown comes back.",
+                Desc = "Lift the biggest nearby enemy as a shield, then throw it.",
                 Capstone = "The throw hits 50% harder and stuns for twice as long.",
                 Bot = b => b.HaveTarget && b.TargetD < GraspRange,
             },
@@ -81,15 +80,14 @@ namespace Arena
             {
                 Id = AbilityId.GrandSigil, Kit = Kit.Arcanist, Role = Role.Tank, Choice = AbilityDef.Ult, FillsGaps = true,
                 Name = "Grand Sigil", Cooldown = 75f,
-                Desc = "Draw a rune circle round you (200 px) for 8 s. Enemies inside are bound for 1 s, then slowed by half and drawn to you. "
-                    + "Enemy bullets freeze where they meet its rim; when it ends, every frozen bullet flies back out as a spectral blade.",
+                Desc = "A rune circle around you binds and slows enemies and freezes their bullets, then fires them back.",
                 Capstone = "It lasts 12 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.ArcaneTether, Kit = Kit.Arcanist, Role = Role.Healer, Choice = 0, FillsGaps = true,
                 Name = "Arcane Tether", Cooldown = 12f,
-                Desc = "Pull the ally nearest your cursor (up to 480 px away, downed or not) to your side. They can't be hurt on the way and land healed for 30. Nobody in reach: most of the cooldown comes back.",
+                Desc = "Pull the ally nearest your cursor to your side, safe and healed.",
                 Capstone = "It heals twice as much.",
                 Bot = b => b.AllyDown || b.AllyThreatened,
             },
@@ -97,14 +95,14 @@ namespace Arena
             {
                 Id = AbilityId.SanctumSigil, Kit = Kit.Arcanist, Role = Role.Healer, Choice = AbilityDef.Ult, FillsGaps = true,
                 Name = "Sanctum Sigil", Cooldown = 80f,
-                Desc = "A healing circle (170 px) follows you for 8 s: allies inside heal 25 a second. Six runes turn on its rim; each bursts on the first enemy that touches it (50 damage round it and a shove).",
+                Desc = "A healing circle follows you and its runes burst on enemies.",
                 Capstone = "It lasts 12 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.TelekineticCrush, Kit = Kit.Arcanist, Role = Role.Dps, Choice = 0, FillsGaps = true,
                 Name = "Telekinetic Crush", Cooldown = 9f,
-                Desc = "Lift the enemies at your cursor (120 px, up to 400 px away) and pull them together for half a second, then slam them: 40 damage, +12 for each other enemy caught (up to +60), and a short stun. Bosses aren't lifted.",
+                Desc = "Lift enemies at your cursor, pull them together and slam them.",
                 Capstone = "It grabs 40% wider.",
                 Bot = b => b.HaveTarget && b.TargetD < CrushRange,
             },
@@ -112,7 +110,7 @@ namespace Arena
             {
                 Id = AbilityId.RunicArray, Kit = Kit.Arcanist, Role = Role.Dps, Choice = AbilityDef.Ult, FillsGaps = true,
                 Name = "Runic Array", Cooldown = 65f,
-                Desc = "Four sigils open behind you for 6 s: every Fire also sends a spectral blade from each of them at your cursor (16 each, through one enemy), even while your blades are out.",
+                Desc = "Four sigils behind you fire a spectral blade with every shot.",
                 Capstone = "It lasts 9 s.",
             },
         };

@@ -81,7 +81,7 @@ namespace Arena
             {
                 Id = AbilityId.DragPylon, Kit = Kit.Engineer, Role = Role.Dps, Choice = 0, FillsGaps = true,
                 Name = "Drag Pylon", Cooldown = 6f,
-                Desc = "Plant a pylon at your cursor (up to 320 px away). Its field slows enemies inside by 45% (bosses 20%). It stays until you plant the next one.",
+                Desc = "Plant a pylon whose field slows enemies.",
                 Capstone = "Its field is 40% wider.",
                 Bot = b => b.Danger,
             },
@@ -89,7 +89,7 @@ namespace Arena
             {
                 Id = AbilityId.VectorWall, Kit = Kit.Engineer, Role = Role.Tank, Choice = 0, FillsGaps = true,
                 Name = "Vector Wall", Cooldown = 10f,
-                Desc = "Draw a 5-tile wall across your aim at the cursor (up to 220 px away). It stops enemy shots for 8 s, or until it has soaked its fill.",
+                Desc = "Draw a wall that stops enemy shots.",
                 Capstone = "Seven tiles, and it lasts 12 s.",
                 Bot = b => b.Danger,
             },
@@ -97,14 +97,14 @@ namespace Arena
             {
                 Id = AbilityId.Bastion, Kit = Kit.Engineer, Role = Role.Tank, Choice = AbilityDef.Ult, FillsGaps = true,
                 Name = "Bastion", Cooldown = 75f,
-                Desc = "Raise a ring of vector walls round you (130 px) for 10 s, with four gaps to shoot out of. The walls stop enemy shots.",
+                Desc = "Raise a ring of walls around you with gaps to shoot through.",
                 Capstone = "No gaps for the first 3 s, and it lasts 14 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.MedPylon, Kit = Kit.Engineer, Role = Role.Healer, Choice = 0, FillsGaps = true,
                 Name = "Med Pylon", Cooldown = 6f,
-                Desc = "Plant a pylon at your cursor (up to 320 px away). Its field heals allies inside for 10 a second. It stays until you plant the next one.",
+                Desc = "Plant a pylon whose field heals allies.",
                 Capstone = "Its field is 40% wider.",
                 Bot = b => b.Danger,
             },
@@ -112,16 +112,14 @@ namespace Arena
             {
                 Id = AbilityId.SafeRoom, Kit = Kit.Engineer, Role = Role.Healer, Choice = AbilityDef.Ult, FillsGaps = true,
                 Name = "Safe Room", Cooldown = 80f,
-                Desc = "The Breach hammer opens the wall you aim at: in the Expanding arena a room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. "
-                    + "No room: a healing dome (160 px) at your cursor.",
+                Desc = "Open a wall into a room that heals and protects everyone inside.",
                 Capstone = "It lasts 18 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Breach, Kit = Kit.Engineer, Role = Role.Dps, Choice = AbilityDef.Ult, FillsGaps = true,
                 Name = "Breach", Cooldown = 70f,
-                Desc = "Smash the wall you aim at (up to 220 px): 80 damage and a shove by the wall. In the Expanding arena a free random room opens behind it "
-                    + "with one thing inside: vectors, gold or an ambush. No wall in reach: the blast and the loot land at your cursor.",
+                Desc = "Smash a wall to open a random room with loot or an ambush.",
                 Capstone = "The blast is twice as wide.",
             },
         };

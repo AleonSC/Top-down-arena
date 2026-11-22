@@ -216,7 +216,7 @@ namespace Arena
             {
                 Id = AbilityId.RoyalDive,
                 Name = "Royal Dive", Cooldown = 12f,
-                Desc = "Leap (nothing can hit you) and crash down at your cursor, up to 380 px away: 120 damage to everything within 110 px, enemies knocked back and enemy bullets there wiped out. The landing leaves a honey pool for 4 s that slows enemies 40% and heals allies 6 a second.",
+                Desc = "Leap and crash down at your cursor, leaving a honey pool.",
                 Capstone = "A wider honey pool (150 px) that lasts 6 s.",
                 Bot = b => b.HaveTarget && b.TargetD > 120f && b.TargetD < 380f || b.BotDanger > 2.5f,
             },
