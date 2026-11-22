@@ -48,12 +48,10 @@ namespace Arena
                     Unknown = !known, Model = b, Name = known ? BossName(b).ToUpperInvariant() : "???",
                     Copy = bt > 0 ? BossName(b) + " holds wave " + wave + " of the 100. Beaten " + bt + (bt == 1 ? " time." : " times.")
                         : known ? "Wave " + wave + ": you've reached " + BossName(b) + " but not beaten it yet." : "Wave " + wave + ": reach it in a Campaign run to meet this boss.",
-                    CopyCol = known ? Color.white : Ui.Muted, LadderHead = "BOSSES",
+                    CopyCol = known ? Color.white : Ui.Muted,
                     RecVals = new[] { profile.RunsStarted.ToString(), profile.RunsWon.ToString(), profile.BestWave > 0 ? profile.BestWave.ToString() : "-",
                         profile.BestEndlessWave > 0 ? profile.BestEndlessWave.ToString() : "-", profile.BestScore.ToString("N0"), profile.Kills.ToString("N0"), profile.BossKills.ToString(), profile.Revives.ToString() },
                     RecLabels = new[] { "RUNS", "WON", "BEST WAVE", "BEST ENDLESS", "BEST SCORE", "KILLS", "BOSSES DOWN", "REVIVES" } };
-                for (int k = 0; k < 10; k++)
-                    f.Ladder.Add(new ModePip2 { Label = ((k + 1) * 10).ToString(), Col = profile.Beaten(bosses[k]) > 0 || k == i ? CampaignColor : CrtStyle.Ink, Strong = k == i, W = 34f });
                 return f;
             };
             return p;
