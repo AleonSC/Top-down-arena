@@ -40,7 +40,10 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, -LobbyLift, W, H));
             var oldShift = uiShift;
             uiShift = new V2(oldShift.X, oldShift.Y - LobbyLift);  // its live models (GL) move with it
-            DrawLobbyContent();
+            if (ModeBlinking)
+                DrawModeBlink();  // just left the Game Mode screen: the CRT blink (ModeBlink.cs)
+            else
+                DrawLobbyContent();
             uiShift = oldShift;
             GUI.EndGroup();
         }

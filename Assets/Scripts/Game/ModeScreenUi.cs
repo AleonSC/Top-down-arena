@@ -63,7 +63,7 @@ namespace Arena
             var back = new Rect(PartyX, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
             LobbyGlowBox(back);
             if (DkKey(back, "", false, calm, PixelArt.Get("ui_back"), size: 22))
-                lobbyTab = 0;
+                LeaveModeScreen();  // (the CRT blink, ModeBlink.cs)
             DrawModeScreenTitle(LobbyTitleRect, 1f);
             DrawModeSwitch(new Rect(W / 2f - 260f, 24f, 520f, 52f), t);
             // Back to the lobby at the right end, with who's in it (the lobby is still open behind this).
@@ -75,7 +75,7 @@ namespace Arena
             LobbyGlowBox(go);
             if (DkKey(go, "TO THE LOBBY  >", true, calm, size: 18, minSize: 13, accent: acc,
                     sub: "PARTY " + session.Lobby.Count + "/" + Session.MaxPlayers + "  ·  " + ready + " READY"))
-                lobbyTab = 0;
+                LeaveModeScreen();
 
             // The mode's page; Practice has two (its waves and Training), as folder tabs on the page's top edge.
             var page = new Rect(PartyX, ModePageTop, W - 2f * PartyX, ModePageBottom - ModePageTop);

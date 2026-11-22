@@ -253,6 +253,8 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.Mode = GameMode.Survival; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
+      // MODEBLINK=<s>: that long into the CRT blink back to the lobby from the Game Mode screen (LOBBYTAB=8 for its page; ModeBlink.cs).
+      if (Environment.GetEnvironmentVariable("MODEBLINK") != null) { set("modeBlinkFrom", Environment.GetEnvironmentVariable("LOBBYTAB") != null ? int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB")) : 8); set("lobbyTab", 0); set("modeBlinkAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("MODEBLINK"), System.Globalization.CultureInfo.InvariantCulture)); }
       // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).
       if (Environment.GetEnvironmentVariable("MODSCROLL") != null) set("modsScroll", float.Parse(Environment.GetEnvironmentVariable("MODSCROLL")));
       // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and

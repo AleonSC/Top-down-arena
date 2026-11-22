@@ -544,7 +544,7 @@ namespace Arena
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
                 else if (session.Screen == AppScreen.Lobby && OnModeScreen && !settingsOpen && GUIUtility.keyboardControl == 0)
-                    lobbyTab = 0;  // Esc on the Game Mode screen: back to the lobby (never out of it)
+                    LeaveModeScreen();  // Esc on the Game Mode screen: back to the lobby (never out of it; ModeBlink.cs)
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
                     OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)
                 else if (settingsOpen)
