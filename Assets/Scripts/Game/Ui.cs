@@ -319,7 +319,38 @@ namespace Arena
         {
             if (area == null)
                 area = new GUIStyle(field) { wordWrap = true, alignment = TextAnchor.UpperLeft, padding = new RectOffset(10, 10, 8, 8), fontSize = 15 };
-            return GUI.TextArea(r, value, area);
+            // The skin's own cursor and selection are hidden and drawn here, so they always show (and match the CRT look).
+            var st = GUI.skin.settings;
+            Color oldCursor = st.cursorColor, oldSel = st.selectionColor;
+            st.cursorColor = st.selectionColor = new Color(0f, 0f, 0f, 0f);
+            value = GUI.TextArea(r, value, area);
+            st.cursorColor = oldCursor;
+            st.selectionColor = oldSel;
+            int id = GUIUtility.keyboardControl;
+            var te = id != 0 && GUI.GetNameOfFocusedControl() == "textedit" ? GUIUtility.GetStateObject(typeof(TextEditor), id) as TextEditor : null;
+            if (te != null && Event.current.type == EventType.Repaint)
+            {
+                int cur = Mathf.Clamp(te.cursorIndex, 0, value.Length), sel = Mathf.Clamp(te.selectIndex, 0, value.Length);
+                var c = new GUIContent(value);
+                float lh = area.CalcSize(new GUIContent("Ag")).y;
+                if (cur != sel)
+                {
+                    for (int i = Mathf.Min(cur, sel); i < Mathf.Max(cur, sel); i++)
+                    {
+                        if (value[i] == '\n')
+                            continue;
+                        Vector2 a = area.GetCursorPixelPosition(r, c, i), b = area.GetCursorPixelPosition(r, c, i + 1);
+                        if (Mathf.Abs(a.y - b.y) < 1f && b.x > a.x)
+                            Fill(new Rect(a.x, a.y, b.x - a.x, lh), new Color(0.35f, 0.55f, 1f, 0.45f));
+                    }
+                }
+                if (Time.unscaledTime % 1f < 0.6f)
+                {
+                    Vector2 p = area.GetCursorPixelPosition(r, c, cur);
+                    Fill(new Rect(p.x, p.y, 2f, lh), Color.white);
+                }
+            }
+            return value;
         }
 
         // --- Dev text editing (DevTextEdit.cs) -----------------------------------------
