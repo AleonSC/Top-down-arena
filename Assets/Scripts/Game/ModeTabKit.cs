@@ -9,21 +9,41 @@ namespace Arena
     {
         const float ModeListW = 268f, ModeGap = 14f;
 
-        /// The header: the mode's name letter-spaced and a rule, then the mode's facts as outlined chips (`tag`, split on "·") and
-        /// a short line under them. Returns where the body starts.
-        static float ModeHeader(Rect r, string title, string tag, string sub, Color subCol)
+        /// The header (the Dossier look): a progress ring (when `pct` is 0-1; `ringText` in its middle), the mode's name big and
+        /// letter-spaced in `acc` with a rule, the mode's facts as outlined chips (`tag`, split on "·") and a short line under
+        /// them. Returns where the body starts.
+        static float ModeHeader(Rect r, string title, string tag, string sub, Color subCol, Color acc = default, float pct = -1f, string ringText = null)
         {
             var ink = CrtStyle.Ink;
-            float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            LobbyKit.Spaced(new Rect(x, y, w * 0.5f, 20f), title, 14, ink.WithAlpha(0.9f), TextAnchor.MiddleLeft, 3.6f);
-            float l0 = x + LobbyKit.SpacedWidth(title, 14, 3.6f) + 20f;
-            Ui.Fill(new Rect(l0, y + 10f, x + w - l0, 1f), ink.WithAlpha(0.25f));
-            y += 26f;
-            ModeChips(x, y, tag, ink);
-            if (string.IsNullOrEmpty(sub)) return y + 30f;
-            y += 24f;
-            Ui.Label(new Rect(x, y, w, 18f), sub, 12, subCol);
-            return y + 28f;
+            if (acc.a <= 0f) acc = ink;
+            float x = r.x + 18f, w = r.width - 36f, y = r.y + 12f;
+            float tx = x;
+            if (pct >= 0f)
+            {
+                ModeRing(new Vector2(x + 32f, y + 32f), 29f, pct, acc, ringText);
+                tx = x + 78f;
+            }
+            LobbyKit.Spaced(new Rect(tx, y, w * 0.5f, 26f), title, 20, acc, TextAnchor.MiddleLeft, 4.4f);
+            float l0 = tx + LobbyKit.SpacedWidth(title, 20, 4.4f) + 20f;
+            Ui.Fill(new Rect(l0, y + 13f, x + w - l0, 1f), acc.WithAlpha(0.35f));
+            ModeChips(tx, y + 32f, tag, acc);
+            if (!string.IsNullOrEmpty(sub))
+                Ui.Label(new Rect(tx, y + 56f, x + w - tx, 18f), sub, 12, subCol);
+            return y + 82f;
+        }
+
+        /// A progress ring: 40 dots round `c` (radius `rad`), the first `pct` of them lit in `acc`, `text` in the middle.
+        static void ModeRing(Vector2 c, float rad, float pct, Color acc, string text)
+        {
+            const int n = 40;
+            int lit = Mathf.RoundToInt(Mathf.Clamp01(pct) * n);
+            for (int k = 0; k < n; k++)
+            {
+                float a = -Mathf.PI / 2f + k * Mathf.PI * 2f / n;
+                Ui.Fill(new Rect(c.x + Mathf.Cos(a) * rad - 1.5f, c.y + Mathf.Sin(a) * rad - 1.5f, 3f, 3f), k < lit ? acc : CrtStyle.Dim.WithAlpha(0.45f));
+            }
+            if (!string.IsNullOrEmpty(text))
+                CrtUi.Text(new Rect(c.x - rad + 5f, c.y - 11f, rad * 2f - 10f, 22f), text, 13, Color.white, TextAnchor.MiddleCenter, true, false);
         }
 
         /// The mode's facts as outlined chips in `c`, left to right from x (`tags` split on "·"). Returns the x after the last one.
@@ -128,22 +148,21 @@ namespace Arena
             Ui.Label(pr, label, 10, strong ? Color.white : Ui.Muted, TextAnchor.MiddleCenter);
         }
 
-        /// The rule tags, wrapping to more rows. Returns the y of the last row.
+        /// The rules as a short list, a marker before each, in two columns when wide. Returns the y of the last row.
         static float ModeRules(float x, float y, float w, string[] rules)
         {
-            var ink = CrtStyle.Ink;
-            var dim = ink.WithAlpha(0.7f);
-            float rx = x;
-            foreach (var rule in rules)
+            var ink = CrtStyle.Ink.WithAlpha(0.75f);
+            bool two = w > 520f && rules.Length > 3;
+            int per = two ? (rules.Length + 1) / 2 : rules.Length;
+            float cw = two ? w / 2f : w, last = y;
+            for (int i = 0; i < rules.Length; i++)
             {
-                float rw = LobbyKit.SpacedWidth(rule, 10, 1f) + 12f;
-                if (rx + rw > x + w) { rx = x; y += 22f; }
-                var rr = new Rect(rx, y, rw, 18f);
-                HuntBox(rr, ink.WithAlpha(0.3f));
-                LobbyKit.Spaced(rr, rule, 10, dim, TextAnchor.MiddleCenter, 1f);
-                rx += rw + 6f;
+                float rx = x + (i / per) * cw, ry = y + (i % per) * 18f;
+                Ui.Label(new Rect(rx, ry, 14f, 16f), ">", 11, CrtStyle.Gold.WithAlpha(0.8f), TextAnchor.MiddleLeft);
+                Ui.Label(new Rect(rx + 14f, ry, cw - 14f, 16f), rules[i].Substring(0, 1) + rules[i].Substring(1).ToLowerInvariant(), 12, ink, TextAnchor.MiddleLeft);
+                last = Mathf.Max(last, ry);
             }
-            return y;
+            return last;
         }
 
         /// A row of record tiles across w.

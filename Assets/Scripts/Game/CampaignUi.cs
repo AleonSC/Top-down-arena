@@ -15,8 +15,10 @@ namespace Arena
             LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
             var ink = CrtStyle.Ink;
+            int beatenN = 0;
+            for (int bi = 1; bi <= 10; bi++) if (profile.Beaten(BossSchedule.Campaign.BossAt(bi * 5)) > 0) beatenN++;
             float bodyY = ModeHeader(r, "CAMPAIGN", "100 WAVES  ·  A BOSS EVERY 10TH  ·  THEN ENDLESS",
-                "One long run on a growing arena. Build as you go.", Ui.Muted);
+                "One long run on a growing arena. Build as you go.", Ui.Muted, CampaignColor, beatenN / 10f, beatenN + "/10");
             float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
             var ev = Event.current;
 
