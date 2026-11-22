@@ -461,6 +461,8 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("PACOVER") != null) pg.State = PacState.Over;
         if (Environment.GetEnvironmentVariable("PACPAUSE") != null) set("pacPaused", true);
       }
+      if (mode == "who" && Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); }
+      if (mode == "who" && Environment.GetEnvironmentVariable("WHOKEY") != null) KeyUi.WhoStyle = int.Parse(Environment.GetEnvironmentVariable("WHOKEY"));  // WHOKEY=1|2: Manage profiles as Graphite or Machined
       if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null); }
       // records: the Records page, with made-up saves and a profile (SavesUi.cs).
       if (mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "menu") PreviewSaves();

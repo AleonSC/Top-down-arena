@@ -174,8 +174,11 @@ namespace Arena
             if (!editing && whoList.Count > 0)
             {
                 // Manage profiles is a keycap like the main menu's Play (KeyUi.cs), with the same VHS hover.
-                var kr = new Rect(W / 2f - 150f, H - 118f, 300f, 74f);
-                if (MenuVhs.Draw(kr, "TRK 03", true, fxReduced, () => KeyUi.Key(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage)))
+                float kw = KeyUi.WhoStyle == 2 ? 380f : KeyUi.WhoStyle == 1 ? 330f : 300f;
+                var kr = new Rect(W / 2f - kw / 2f, H - 118f, kw, 74f);
+                if (MenuVhs.Draw(kr, "TRK 03", true, fxReduced, () => KeyUi.WhoStyle > 0
+                    ? KeyUi.Graphite(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage, KeyUi.WhoStyle == 2)
+                    : KeyUi.Key(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage)))
                 {
                     whoManage = !whoManage;
                     whoArmed = null;
