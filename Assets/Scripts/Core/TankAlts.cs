@@ -5,9 +5,10 @@ namespace Arena
 {
     /// The Tank Soldier's weapon-action (Alt) fires, one per gun. Your game sends Msg.WeaponDash (DashDouble, DashMine, DashGas) with your
     /// aim; the host checks the weapon, the stock or cooldown, and fires.
-    ///   Scattergun, Double Barrel: ScatShellMax shells (Player.ScatShells) that load over time, one every ScatRegen s (Player.ScatCharge is
-    ///     the percent toward the next). Each Alt press fires one: a wide wall of ScatDumpPellets pellets at ScatDumpDamage x, and the recoil
-    ///     kicks you back ScatKick px (your own game moves you, like a dodge, with no invulnerability): a movement ability if you want one.
+    ///   Scattergun, Shock Grenade: ScatShellMax grenades (Player.ScatShells) that load over time, one every ScatRegen s (Player.ScatCharge is
+    ///     the percent toward the next). Each Alt press lobs one to your cursor (ZoneKind.ShockGrenade, up to ScatLobRange px out); after
+    ///     ScatFlight it goes off: every enemy within ScatShockRadius takes ScatShockDamage and is stunned ScatStun s (ScatBossStun on
+    ///     bosses), with bolts jumping to each. The zone lingers ScatShockLinger s for the flash.
     ///   Flak Cannon, Proximity Shell: Alt lobs a shell to your cursor (as far as the cannon reaches) that lands, arms after MineArm and lies
     ///     there for MineLife (ZoneKind.FlakMine, MineCap a player, the oldest goes). An enemy stepping within MineTrigger sets it off: a flak
     ///     burst (FlakAirburst) of MineDamage in MineBurst, shredding enemy bullets too. Cooldown MineCd.
@@ -16,8 +17,9 @@ namespace Arena
     /// Zone.Aim carries the direction the shell or canister came in from, for drawing its flight (Game/TankAltLook.cs).
     public partial class Game
     {
-        public const int ScatShellMax = 8, ScatDumpPellets = 9;
-        public const float ScatDumpDamage = 1.5f, ScatDumpCone = 0.85f, ScatKick = 75f, ScatKickTime = 0.16f, ScatDumpCd = 0.3f, ScatRegen = 1.5f;
+        public const int ScatShellMax = 3;
+        public const float ScatDumpCd = 0.4f, ScatRegen = 5f, ScatFlight = 0.5f, ScatShockLinger = 0.45f, ScatLobRange = 380f;
+        public const float ScatShockRadius = 110f, ScatShockDamage = 30f, ScatStun = 1.8f, ScatBossStun = 0.7f;
         public const int MineCap = 3;
         public const float MineCd = 5f, MineArm = 0.55f, MineLife = 15f, MineTrigger = 40f, MineBurst = 95f, MineDamage = 45f;
         public const float TearGasCd = 9f, TearGasFlight = 0.5f, TearGasLife = 5.5f, TearGasRadius = 100f, TearGasSlow = 0.3f;
@@ -44,13 +46,6 @@ namespace Arena
                         return false;
                     scatLocalCd = ScatDumpCd;
                     kind = DashDouble;
-                    // The recoil: kicked straight back from your aim, farther for each shell (like a dodge, no invulnerability).
-                    V2 back = -V2.FromAngle((aimAt - me.Pos).Length > 1f ? (aimAt - me.Pos).Angle : me.Aim);
-                    float far = ScatKick;
-                    V2 to = ClampToArena(me.Pos + back * far, me.Def.BodyR);
-                    DashDir = back;
-                    dashSpeed = far / ScatKickTime;
-                    DashT = to.DistanceTo(me.Pos) / dashSpeed;
                     break;
                 case WeaponId.FlakCannon:
                     if (mineLocalCd > 0f)
@@ -93,26 +88,36 @@ namespace Arena
             return ClampToArena(p.Pos + V2.FromAngle(aim) * Math.Max(FlakMin, Math.Min(reach, toward.Length)), 12f);
         }
 
-        /// Host: Double Barrel. Every loaded shell goes at once.
+        /// Host: Shock Grenade. Lobbed to the cursor; it goes off ScatFlight later (TickTankAlts).
         void HostDoubleBarrel(Player p, V2 aimAt)
         {
             if (p.Weapon.Id != WeaponId.Scattergun || p.StunT > 0f || p.ScatShells == 0 || p.ScatCd > 0f || State == MatchState.GameOver)
                 return;
-            var w = p.Weapon;
-            V2 toward = aimAt - p.Pos;
-            float aim = toward.Length > 1f ? toward.Angle : p.Aim;
-            V2 muzzle = p.Pos + V2.FromAngle(aim) * p.Def.BodyR;
-            int n = ScatDumpPellets;
-            float cone = ScatDumpCone;
-            for (int i = 0; i < n; i++)
-            {
-                float a = aim + (i / (n - 1f) - 0.5f) * cone + Rand(-0.03f, 0.03f);
-                var b = SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(a) * w.Speed * Rand(0.9f, 1.1f), 0f, w.Life, w.Damage * ScatDumpDamage * p.Stats.DmgMult, p.Id);
-                b.PointBlank = true;  // still double up close
-            }
+            V2 at = TankAltLanding(p, aimAt, ScatLobRange);
+            var z = AddZone(ZoneKind.ShockGrenade, p, at, ScatShockRadius * AreaMult(p), ScatFlight + ScatShockLinger);
+            z.Aim = (at - p.Pos).Angle;
             p.ScatShells--;
             p.ScatCd = ScatDumpCd;
-            BroadcastFx(FxKind.DoubleBarrel, muzzle, muzzle + V2.FromAngle(aim) * 100f, Defs.BulletColor(Defs.TankShot), p.Id * 10 + 1, 0.45f, Sfx.TankDouble);
+            BroadcastFx(FxKind.DoubleBarrel, p.Pos + V2.FromAngle(z.Aim) * p.Def.BodyR, p.Pos + V2.FromAngle(z.Aim) * (p.Def.BodyR + 100f), ShockColor, p.Id * 10 + 1, 0.45f, Sfx.TankDouble);
+        }
+
+        public static readonly Rgba ShockColor = new Rgba(0.45f, 0.85f, 1f);
+
+        /// Host: a shock grenade lands: damage, stun and a bolt to every enemy in its reach.
+        void ShockGrenadeBurst(Zone z)
+        {
+            Player owner;
+            Players.TryGetValue(z.Owner, out owner);
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e) || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
+                    continue;
+                BroadcastFx(FxKind.Bolt, z.Pos, e.Pos, ShockColor, 0f, 0.25f, Sfx.None);
+                HurtEnemy(e, ScatShockDamage * z.DmgMult, z.Owner);
+                if (e.Hp > 0f)
+                    Stun(e, e.Def.IsBoss ? ScatBossStun : ScatStun);
+            }
+            BroadcastFx(FxKind.Ring, z.Pos, ShockColor, z.Radius, 0.35f, Sfx.TankMineBurst);
         }
 
         /// Host: Proximity Shell. Lobbed to the cursor; your oldest goes if you have MineCap.
@@ -156,7 +161,7 @@ namespace Arena
         public static readonly Rgba TearGasColor = new Rgba(0.92f, 0.9f, 0.7f);
 
         /// Is a mine or gas zone still in the air (its flight not done)?
-        public static bool TankAltInFlight(Zone z) => z.Duration - z.T < (z.Kind == ZoneKind.FlakMine ? MineArm : TearGasFlight);
+        public static bool TankAltInFlight(Zone z) => z.Duration - z.T < (z.Kind == ZoneKind.FlakMine ? MineArm : z.Kind == ZoneKind.ShockGrenade ? ScatFlight : TearGasFlight);
 
         /// Host, every tick: the cooldowns, the shells emptied when the Scattergun is put away, mines going off, gas suppressing.
         void TickTankAlts(float dt)
@@ -170,26 +175,39 @@ namespace Arena
                 {
                     p.ScatShells = ScatShellMax;  // ready again when you pick it back up
                     p.ScatCharge = 0;
+                    p.ScatAcc = 0f;
                 }
                 else if (p.ScatShells >= ScatShellMax)
+                {
                     p.ScatCharge = 0;
+                    p.ScatAcc = 0f;
+                }
                 else
                 {
-                    float c = p.ScatCharge + dt / ScatRegen * 100f;  // percent toward the next shell
-                    if (c >= 100f)
+                    p.ScatAcc += dt / ScatRegen * 100f;  // percent toward the next grenade
+                    if (p.ScatAcc >= 100f)
                     {
-                        c -= 100f;
+                        p.ScatAcc -= 100f;
                         p.ScatShells++;
-                        BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.TankShot), 24f, 0.25f, Sfx.TankShellLoad);
+                        BroadcastFx(FxKind.Ring, p.Pos, ShockColor, 24f, 0.25f, Sfx.TankShellLoad);
                     }
-                    p.ScatCharge = (byte)Math.Min(99f, c);
+                    p.ScatCharge = (byte)Math.Min(99f, p.ScatAcc);
                 }
             }
             List<Zone> burst = null;
             foreach (var z in Zones.Values)
             {
-                if (z.Kind != ZoneKind.FlakMine && z.Kind != ZoneKind.TearGas || TankAltInFlight(z))
+                if (z.Kind != ZoneKind.FlakMine && z.Kind != ZoneKind.TearGas && z.Kind != ZoneKind.ShockGrenade || TankAltInFlight(z))
                     continue;
+                if (z.Kind == ZoneKind.ShockGrenade)
+                {
+                    if (!z.Landed)
+                    {
+                        z.Landed = true;
+                        ShockGrenadeBurst(z);
+                    }
+                    continue;
+                }
                 if (!z.Landed)
                 {
                     z.Landed = true;  // down: the mine clunks and arms, the canister clatters and starts to hiss (TankAltSoundBank.cs)
