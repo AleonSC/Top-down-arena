@@ -58,6 +58,12 @@ namespace Arena
         // --- The Game Mode screen (ModeScreenUi.cs): its page under the header row, down to the big screen's bottom ----------------
 
         const float ModePageTop = 108f, ModePageBottom = 684f;
+        static Rect ModePageRect => new Rect(PartyX, ModePageTop, W - 2f * PartyX, ModePageBottom - ModePageTop);  // the menu card grows into it (LobbyEnter.cs)
+        // Its pieces for the entrance (with the Back and title bands above): the carousel, TO THE LOBBY, and the page (with Practice's tabs).
+        const float ModeHeadBandEnd = 78f, ModeGoBandX = 930f;
+        static Rect ModeCarouselBand => new Rect(LobbyTitleBand.xMax, 0f, ModeGoBandX - LobbyTitleBand.xMax, ModeHeadBandEnd);
+        static Rect ModeGoBand => new Rect(ModeGoBandX, 0f, W - ModeGoBandX, ModeHeadBandEnd);
+        static Rect ModePageBand => new Rect(0f, ModeHeadBandEnd, W, H - ModeHeadBandEnd);
 
         // --- The bands the entrances and exits cut the lobby into ----------------------------------------------------------------------
 

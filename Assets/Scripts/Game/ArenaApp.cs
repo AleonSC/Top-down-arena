@@ -834,7 +834,7 @@ namespace Arena
                         DrawLobbyReturning();  // back from a run: the dark lifting, the sides sliding in (Recall.cs)
                     else if (LobbyLeaving)
                         DrawLobbyLeavingToMenu();  // Leave: the way in, backwards (LobbyEnter.cs)
-                    else if (LobbyEntering && !OnModeScreen)  // (a lobby opening on the Game Mode screen skips the entrance)
+                    else if (LobbyEntering)
                     {
                         if (crtEntry)
                             DrawLobbyEnteringCrt();  // New run: the saved-runs screen opens into the lobby (LobbyCrt.cs)
