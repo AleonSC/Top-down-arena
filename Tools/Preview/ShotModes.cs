@@ -527,7 +527,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);
       // ROOMS=<s>: the rooms that far into their sequence (MenuHolo.cs DrawRooms: one every 3.5 s, three at most).
       if (Environment.GetEnvironmentVariable("ROOMS") != null) {
-        var sets = typeof(ArenaApp).GetField(mode == "who" ? "WhoRoomSets" : "BoxRoomSets", f2 | System.Reflection.BindingFlags.Static).GetValue(null);
+        var sets = typeof(ArenaApp).GetField("BoxRoomSets", f2 | System.Reflection.BindingFlags.Static).GetValue(null);
         set("roomsLower", sets); set("roomsFrame", Time.frameCount); set("roomsStart", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("ROOMS"), System.Globalization.CultureInfo.InvariantCulture));
         var pool = typeof(ArenaApp).GetField("roomPool", f2).GetValue(app) as System.Collections.IList; var add = typeof(ArenaApp).GetMethod("AddRoomSpot", f2);
         foreach (var setArr in new[] { sets })
