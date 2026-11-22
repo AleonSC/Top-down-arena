@@ -48,26 +48,31 @@ static partial class Program
         };
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
 
-        // --- Double Barrel
-        Check(me.ScatShells == Game.ScatShellMax, "the Scattergun starts with all its shells");
-        foePos = from + new V2(0f, 400f);
+        // --- Shock Grenade
+        Check(me.ScatShells == Game.ScatShellMax && Game.ScatShellMax == 3, "the Scattergun starts with its three grenades");
+        foePos = from + new V2(0f, 150f);
         g.Bullets.Clear();
         hold = false;
         me.Pos = from;
-        float x0 = me.Pos.X;
+        var shockFoe = Dummy(foePos);
+        float shockHp0 = shockFoe.Hp;
+        aimAt = foePos;
         Step(dt * 2f, false, true);
-        int pellets = g.Bullets.Values.Count(b => b.Kind == Defs.TankShot && b.Owner == 1);
-        Step(0.3f, false, false);
-        Console.WriteLine("  double barrel: {0} pellets, kicked back {1:0} px", pellets, x0 - me.Pos.X);
-        Check(pellets == Game.ScatDumpPellets, "one shell a press (" + pellets + " pellets)");
-        Check(me.ScatShells == Game.ScatShellMax - 1, "one shell is spent");
-        Check(x0 - me.Pos.X > Game.ScatKick * 0.8f, "the recoil kicks you back");
+        Check(g.Zones.Values.Any(z => z.Kind == ZoneKind.ShockGrenade && z.Owner == 1), "Alt lobs a grenade");
+        Check(me.ScatShells == Game.ScatShellMax - 1, "one grenade is spent");
         Check(client.Game.Players[1].ScatShells == Game.ScatShellMax - 1, "the other screen sees it");
+        Check(shockFoe.Hp == shockHp0 && shockFoe.StunT <= 0f, "it hasn't gone off in flight");
+        Step(Game.ScatFlight + 0.1f, false, false);
+        Check(shockFoe.Hp < shockHp0, "the burst hurts the enemy");
+        Check(shockFoe.StunT > 0f, "and stuns it");
+        Step(Game.ScatShockLinger + 0.2f, false, false);
+        Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.ShockGrenade), "the flash clears");
         Step(Game.ScatRegen + 0.2f, false, false);
-        Check(me.ScatShells == Game.ScatShellMax, "a shell loads back over time");
+        Check(me.ScatShells == Game.ScatShellMax, "a grenade loads back over time (" + me.ScatShells + ", charge " + me.ScatCharge + ", weapon " + me.Weapon.Id + ")");
+        g.Enemies.Remove(shockFoe.Id);
         me.ScatShells = 0;
         Step(0.3f, false, true);
-        Check(g.Bullets.Values.Count(b => b.Kind == Defs.TankShot && b.Owner == 1) == 0, "Alt does nothing with no shells loaded");
+        Check(g.Bullets.Values.Count(b => b.Kind == Defs.TankShot && b.Owner == 1) == 0 && !g.Zones.Values.Any(z => z.Kind == ZoneKind.ShockGrenade), "Alt does nothing with no grenades loaded");
         me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 1);
         Step(0.1f, false, false);
         Check(me.ScatShells == Game.ScatShellMax, "putting the Scattergun away refills it");

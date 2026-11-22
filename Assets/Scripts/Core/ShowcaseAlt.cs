@@ -66,7 +66,7 @@ namespace Arena
 
             // --- Soldier ---
             // The Scattergun: Double Barrel, shells topped up first (they refill slowly); the kick sends you back, and you walk home.
-            { WeaponId.Scattergun, (g, me, t, dt) => Fill(Tap(t, dt, 3f, 1.5f), () => { if (me.ScatShells < 4) me.ScatShells = 8; }) },
+            { WeaponId.Scattergun, (g, me, t, dt) => Fill(Tap(t, dt, 3f, 1.5f), () => { if (me.ScatShells < 2) me.ScatShells = Game.ScatShellMax; }) },
             { WeaponId.FlakCannon, (g, me, t, dt) => Tap(t, dt, 5.5f, 1.5f) },      // a proximity mine (5 s cooldown)
             { WeaponId.RiotRepeater, (g, me, t, dt) => Tap(t, dt, 9.5f, 1.5f) },    // tear gas (9 s cooldown)
             { WeaponId.TwinPistols, (g, me, t, dt) => Tap(t, dt, 12.5f, 1.5f) },    // Laser Sights (12 s cooldown)

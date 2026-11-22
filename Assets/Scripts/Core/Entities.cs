@@ -395,8 +395,9 @@ namespace Arena
         public int AmmoCombo;            // host: the next move of the chain, 0-4
         public float AmmoT, AmmoIdle, AmmoCd, AmmoSwatCdL, AmmoSwatCdR, AmmoTick;  // host: seconds into the move, since the last one, Alt's cooldown, each rifle's swat recovery, the spin's tick
         public bool AmmoHit;             // host: this move has landed
-        public byte ScatShells;      // Scattergun: Double Barrel shells loaded, 0 to 8, refilling over time (replicated; TankAlts.cs)
-        public byte ScatCharge;      // Scattergun: percent toward the next shell (replicated)
+        public byte ScatShells;      // Scattergun: Shock Grenades loaded, 0 to 3, refilling over time (replicated; TankAlts.cs)
+        public float ScatAcc;        // host: ScatCharge's exact value (the byte would drop each tick's fraction at the slow reload)
+        public byte ScatCharge;      // Scattergun: percent toward the next grenade (replicated)
         public float ScatCd, MineCd, GasCd;  // host: the Tank Soldier's Alt fires cool down (TankAlts.cs)
         public float ChalkIgniteCd;  // host: the Spirit Chalk's Alt (ignite your loops) cooling down (Chalk.cs)
         public float NimbusStormCd, NimbusStormT, NimbusZapT;  // host: the Nimbus's Eye of the Storm cooling down, blowing, until its next bolt (Nimbus.cs)
