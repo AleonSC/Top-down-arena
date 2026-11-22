@@ -8,8 +8,8 @@ namespace Arena
     /// bands, so moving a box here carries those animations along. Check a change with `Tools/Preview/uishots.sh -r HEAD lobby`.
     ///
     /// Today's numbers are Docs/Mockups/crt-lobby-softer.html (1280 x 720): a 36 px margin all round; the party column is 376 wide at
-    /// x=36 (header 30..70, mode keys 82..134, the Party line 142..168, cards from 176, Ready 586..634 over Start 640..684); the big
-    /// screen runs 440..1244 by 70..684; above it at y=32 (30 tall) the Loadout key (440..590), the Saved star and the mode's tab keys.
+    /// x=36 (header 30..70, the mode card 82..134, the Party line 146..168, cards from 176, Ready 586..634 over Start 640..684); the big
+    /// screen runs 440..1244 by 70..684; above it at y=34 the Saved star, the Loadout, Difficulty and Modifiers tabs, and the Hangout tab at the right end.
     public partial class ArenaApp
     {
         // --- Left column: header, mode keys, the party, Ready and Start -------------------------------------------------------------
@@ -26,14 +26,12 @@ namespace Arena
         static Rect LobbyInfoKey => new Rect(PartyX + PartyW - LobbyHeadKey, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
         /// Campaign / Boss Hunt / Practice (or the Resume banner).
         static Rect LobbyModeRect => new Rect(PartyX, 82f, PartyW, 52f);
-        /// "PARTY (n/3)", and the Hangout key at the right end of the same line.
+        /// "PARTY (n/3)", the line over the party cards.
         static Rect LobbyPartyLabel => new Rect(PartyX, 146f, 220f, 22f);
-        static Rect LobbyHangoutKey => new Rect(PartyX + PartyW - 104f, 142f, 104f, 26f);
         const float PartyTop = 176f;      // the top of the first party card
         const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
         const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
-        /// The Difficulty and Modifiers keys, side by side over Ready (DrawLobbySetupKeys, LobbyUi.cs).
-        const float LobbySetupY = 512f, LobbySetupH = 28f, LobbySetupGap = 8f;
+        const float LobbySetupY = 512f;   // the top of the actions band (who we're waiting for, Ready and Start)
         const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
 
         // --- Right: the tab keys and the big screen ---------------------------------------------------------------------------------
@@ -41,17 +39,25 @@ namespace Arena
         const float LobbyBodyTop = 70f;   // the top of the big screen (under the tab keys)
         /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout); the menu card grows into it (LobbyEnter.cs).
         static readonly Rect LobbyBodyRect = new Rect(440f, LobbyBodyTop, 804f, 614f);
-        /// The tab row: folder tabs standing on the big screen's top edge, as tall as the header row's keys. The Saved star and the
-        /// Loadout tab are fixed at the left; the mode's own tabs sit apart at the right end.
+        /// The tab row: folder tabs standing on the big screen's top edge, as tall as the header row's keys: the Saved star, Loadout,
+        /// Difficulty and Modifiers from the left, the Hangout alone at the right end. (The modes' own pages are on the Game Mode
+        /// screen, ModeScreenUi.cs.)
         const float LobbyTabY = 34f, LobbyTabH = LobbyBodyTop - LobbyTabY;
-        const float LobbyLoadoutKeyW = 150f, LobbyTabsGap = 12f, LobbySavedW = 40f;
+        const float LobbyLoadoutKeyW = 150f, LobbySavedW = 40f;
         /// The Saved loadouts star (FavoritesUi.cs): a small tab at the far left, before the Loadout tab.
         static Rect LobbySavedKey => new Rect(LobbyBodyRect.x + 30f, LobbyTabY, LobbySavedW, LobbyTabH);
         /// The Loadout tab, fixed right of the star (lit on the loadout and on the Perks view it opens).
         static Rect LobbyLoadoutKey => new Rect(LobbySavedKey.xMax + 4f, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
-        /// The mode's own tabs (Loadout-sized), right-aligned at the big screen's right end.
         const float LobbyTabKeyGap = 4f;
-        static Rect LobbyTabsRect => new Rect(LobbyLoadoutKey.xMax + LobbyTabsGap, LobbyTabY, LobbyBodyRect.xMax - 30f - (LobbyLoadoutKey.xMax + LobbyTabsGap), LobbyTabH);
+        /// Difficulty and Modifiers, Loadout-sized, right after the Loadout tab.
+        static Rect LobbyDiffKey => new Rect(LobbyLoadoutKey.xMax + LobbyTabKeyGap, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
+        static Rect LobbyModsKey => new Rect(LobbyDiffKey.xMax + LobbyTabKeyGap, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
+        /// The Hangout (LobbyRoom.cs), alone at the big screen's right end.
+        static Rect LobbyHangoutKey => new Rect(LobbyBodyRect.xMax - 30f - LobbyLoadoutKeyW, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
+
+        // --- The Game Mode screen (ModeScreenUi.cs): its page under the header row, down to the big screen's bottom ----------------
+
+        const float ModePageTop = 108f, ModePageBottom = 684f;
 
         // --- The bands the entrances and exits cut the lobby into ----------------------------------------------------------------------
 
@@ -63,7 +69,7 @@ namespace Arena
         // The pieces that slide in one by one (DrawLobbyPieces, LobbyEnter.cs), each cut a few px outside the boxes it holds.
         static float LobbyHeadBandH => LobbyModeRect.y - 6f;              // the header row's band: down to just above the mode keys
         static float LobbyModeBandY => LobbyModeRect.y - 4f;
-        static float LobbyPartyBandY => LobbyHangoutKey.y - 4f;
+        static float LobbyPartyBandY => LobbyPartyLabel.y - 8f;
         const float LobbyCardsBandY = PartyTop - 2f, LobbyCardsBandEnd = PartyTop + PartyCardH + PartyGap;  // your party card's band
         const float LobbyTabsBandEnd = LobbyBodyTop - 6f;                 // the tab keys' band: down to just above the big screen
         static Rect LobbyBackBand => new Rect(0f, 0f, LobbyBackKey.xMax + 12f, LobbyHeadBandH);

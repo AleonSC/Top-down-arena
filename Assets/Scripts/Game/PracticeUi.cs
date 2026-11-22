@@ -58,8 +58,8 @@ namespace Arena
 
             // --- Waves (left): the rack, then what you can do to the selected wave.
             float x0 = r.x + 16f, w0 = 196f, y = r.y + PracticeTop;
-            const int rows = 5;
             const float rowH = 46f, rowStep = 51f;
+            int rows = Mathf.Clamp(5 - Mathf.CeilToInt((614f - r.height) / rowStep), 2, 5);  // five on a 614 px page, fewer on a shorter one
             LobbyKit.Heading(x0, y, w0, "Waves", plan.Waves.Count.ToString(), calm, 16);
             y += 38f;
             practiceScroll = Mathf.Clamp(practiceScroll, 0, Mathf.Max(0, plan.Waves.Count - rows));

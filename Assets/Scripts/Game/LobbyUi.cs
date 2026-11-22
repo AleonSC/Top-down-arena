@@ -50,6 +50,7 @@ namespace Arena
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
             bool practice = session.PracticeMode;
+            bool onModeScreen = IsModeTab(lobbyTab);  // (before the checks below close a page the mode no longer has)
             // A mode change keeps the open tab (the Loadout stays up) unless it was the old mode's own.
             if (!practice && (lobbyTab == 1 || lobbyTab == TrainingTab))
                 lobbyTab = 0;
@@ -65,14 +66,17 @@ namespace Arena
             bool campaign = session.Mode == GameMode.Campaign && session.Resume == null;
             if (!campaign && lobbyTab == CampaignTab)
                 lobbyTab = 0;
-            // Picking a mode opens that mode's own window (Quick Play, Survival, Boss hunt, Practice) over the loadout; Normal shows the loadout.
+            // On the Game Mode screen (ModeScreenUi.cs), turning the carousel shows the new mode's page; in the lobby a mode change
+            // (the host's, seen by a guest) leaves the open tab alone.
             int modeNow = practice ? 3 : hunt ? 2 : survival ? 4 : quick ? 0 : 1;
             if (lastLobbyMode != modeNow)
             {
-                if (lastLobbyMode >= 0 && session.Resume == null && lobbyTab != HangoutTab)
-                    lobbyTab = modeNow == 3 ? 1 : modeNow == 2 ? 4 : modeNow == 4 ? SurvivalTab : modeNow == 0 ? QuickTab : CampaignTab;
+                if (onModeScreen && session.Resume == null)
+                    lobbyTab = ModeTabNow();
                 lastLobbyMode = modeNow;
             }
+            if (session.Resume != null && IsModeTab(lobbyTab))
+                lobbyTab = 0;  // a saved run being resumed has no mode to pick
             // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
             LobbyEntry washFor = me;
             var washBot = session.IsHost ? partyBots.Find(editBotId) : null;
@@ -104,6 +108,17 @@ namespace Arena
                 Event.current.Use();
             }
 
+            // The Game Mode screen takes the whole lobby while it's open (the party and connection carry on behind it).
+            if (OnModeScreen)
+            {
+                TipClear();
+                DrawModeScreen(t);
+                DrawTip(true);
+                if (connInfoOpen)
+                    connInfoOpen = false;
+                return;
+            }
+
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
             // then the mode keys (a choice for the whole lobby, so they sit with the party).
             if (DkKey(LobbyBackKey, "", false, calm, PixelArt.Get("ui_back"), size: 22, accent: Color.Lerp(CrtStyle.Ink, CrtStyle.Danger, 0.55f)))  // a slight red: it leaves the lobby
@@ -117,15 +132,11 @@ namespace Arena
             if (session.Resume != null)
                 DrawResumeBanner(modeR, t);  // continuing a saved run (SavesUi.cs)
             else
-                DrawModeSwitch(modeR, t);
+                DrawModeCard(modeR, t);  // the mode, and CHANGE to the Game Mode screen (ModeScreenUi.cs)
 
             // --- Left: the party, under the mode keys.
             const float lx = PartyX, lw = PartyW;
             LobbyKit.Spaced(LobbyPartyLabel, "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, CrtStyle.Head, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
-            // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
-            bool inRoom = lobbyTab == HangoutTab;
-            if (DkKey(LobbyHangoutKey, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
-                lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             float y = PartyTop;
             int slot = 0;
             foreach (var e in session.Lobby.Values)
@@ -151,18 +162,6 @@ namespace Arena
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
                 DrawHangoutTransition(me, body, t);  // the preview window growing into the Hangout (or shrinking back)
-            else if (lobbyTab == 1 && practice)
-                DrawPracticeEditor(body, t);
-            else if (lobbyTab == TrainingTab && practice)
-                DrawTraining(body, t);  // TrainingUi.cs
-            else if (lobbyTab == 4 && hunt)
-                DrawHuntPicker(body, t);  // HuntUi.cs
-            else if (lobbyTab == QuickTab && quick)
-                DrawQuickPlayTab(body, t);  // QuickPlayUi.cs
-            else if (lobbyTab == CampaignTab && campaign)
-                DrawCampaignTab(body, t);  // CampaignUi.cs
-            else if (lobbyTab == SurvivalTab && survival)
-                DrawSurvivalTab(body, t);  // SurvivalUi.cs
             else if (lobbyTab == 2)
                 DrawModifiers(body, t);
             else if (lobbyTab == 3)
@@ -196,10 +195,9 @@ namespace Arena
                 lobbyTab = 0;  // the fixed Loadout tab (LobbyLayout.cs); Perks opens from a key on the loadout
                 CloseFavorites();  // (also closes the Saved loadouts drawer)
             }
-            DrawLobbyTabs(LobbyTabsRect, practice);  // the mode's tabs, at the right end (LobbyLayout.cs)
+            DrawLobbyTabs();  // Difficulty, Modifiers and the Hangout (LobbyLayout.cs)
             DrawLobbyActions(me, practice);
             LobbyGlowBox(LobbyBackKey);
-            LobbyGlowBox(LobbyHangoutKey);
             LobbyGlowBox(LobbyLoadoutKey);
             if (session.Resume == null)
                 LobbyGlowBox(LobbySavedKey);
@@ -337,36 +335,23 @@ namespace Arena
         }
 
         /// The mode's own tab keys right of the Saved star (Loadout and Perks have their own keys; Difficulty and Modifiers are rows over Ready).
-        void DrawLobbyTabs(Rect r, bool practice)
+        /// The tab row after Loadout: Difficulty and Modifiers (each naming what's set when it isn't the default), and the Hangout
+        /// alone at the right end. A second click on an open tab goes back to the loadout.
+        void DrawLobbyTabs()
         {
             int mods = Modifiers.Count(session.Modifiers);
-            bool hunt = session.HuntMode;
-            // Indexed by tab id (0 loadout and 5 perks: not here; 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
-            string[] names = { null, practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty", hunt ? "Boss hunt" : null, null, null, practice ? "Training" : null,
-                session.QuickMode ? "Quick Play" : null,
-                session.SurvivalMode ? "Survival" : null,
-                session.Mode == GameMode.Campaign && session.Resume == null ? "Campaign" : null };  // Hangout has its own key on the Party line
-            int[] order = { 4, QuickTab, SurvivalTab, CampaignTab, 1, TrainingTab };  // the mode's own (Loadout and Perks have keys; Difficulty and Modifiers are rows over Ready)
-            var shown = new System.Collections.Generic.List<int>();
-            foreach (int i in order)
-                if (names[i] != null)
-                    shown.Add(i);
-            int n = shown.Count;
-            // A row of tabs at the right end, the size of the Loadout tab, in the order above.
-            float x = r.xMax - n * LobbyLoadoutKeyW - (n - 1) * LobbyTabKeyGap;
-            for (int k = 0; k < n; k++)
+            var rects = new[] { LobbyDiffKey, LobbyModsKey, LobbyHangoutKey };
+            string[] names = { "DIFFICULTY", mods > 0 ? "MODIFIERS  (" + mods + ")" : "MODIFIERS", "HANGOUT" };
+            int[] tabs = { 3, 2, HangoutTab };
+            for (int k = 0; k < 3; k++)
             {
-                int i = shown[k];
-                bool on = lobbyTab == i;
-                var kr = new Rect(x, r.y, LobbyLoadoutKeyW, r.height);
-                LobbyGlowBox(kr);
-                if (LobbyKit.FolderTab(kr, names[i].ToUpperInvariant(), on) && !on)
+                bool on = lobbyTab == tabs[k];
+                LobbyGlowBox(rects[k]);
+                if (LobbyKit.FolderTab(rects[k], names[k], on))
                 {
-                    lobbyTab = i;
+                    lobbyTab = on ? 0 : tabs[k];
                     CloseFavorites();
                 }
-                x += LobbyLoadoutKeyW + LobbyTabKeyGap;
             }
         }
 
@@ -1717,41 +1702,11 @@ namespace Arena
 
         /// Ready and Start, the two big keys at the bottom of the party column (a guest's Ready takes the Start slot). Ready is lit
         /// once you are ready; Start is dim and dashed until everyone is.
-        /// Difficulty and Modifiers over Ready: two small keys side by side, each naming what's set ("DIFFICULTY · NORMAL",
-        /// "MODIFIERS · 2 ON"), lit while its tab is open; a click opens the tab (a second click goes back to the loadout).
-        const float SetupKeyRestAlpha = 0.45f;
-
-        void DrawLobbySetupKeys(float lx, float lw, bool calm)
-        {
-            int mods = Modifiers.Count(session.Modifiers);
-            string[] text = { "DIFFICULTY  ·  " + session.Diff.Name.ToUpperInvariant(), "MODIFIERS  ·  " + (mods > 0 ? mods + " ON" : "NONE") };
-            int[] tab = { 3, 2 };
-            string[] icon = { "ui_skull", "ui_card" };
-            float kw = Mathf.Floor((lw - LobbySetupGap) / 2f);
-            for (int i = 0; i < 2; i++)
-            {
-                var r = new Rect(i == 0 ? lx : lx + lw - kw, LobbySetupY, kw, LobbySetupH);
-                LobbyGlowBox(r);
-                bool on = lobbyTab == tab[i];
-                float oldAlpha = Ui.Alpha;
-                if (!on && !(GUI.enabled && r.Contains(Event.current.mousePosition)))
-                    Ui.Alpha = oldAlpha * SetupKeyRestAlpha;  // faded at rest (less clutter by Ready): full under the mouse or while open
-                bool click = DkKey(r, text[i], on, calm, PixelArt.Get(icon[i]), size: 12, minSize: 9);
-                Ui.Alpha = oldAlpha;
-                if (click)
-                {
-                    lobbyTab = lobbyTab == tab[i] ? 0 : tab[i];
-                    CloseFavorites();
-                }
-            }
-        }
-
         void DrawLobbyActions(LobbyEntry me, bool practice)
         {
             const float lx = PartyX, lw = PartyW;
             bool host = session.IsHost, calm = fxReduced;
             bool ready = me != null && me.Ready;
-            DrawLobbySetupKeys(lx, lw, calm);
             var readyRect = host ? new Rect(lx, LobbyReadyY, lw, LobbyReadyH) : new Rect(lx, LobbyStartY, lw, LobbyStartH);
             LobbyGlowBox(readyRect);
             if (host)
