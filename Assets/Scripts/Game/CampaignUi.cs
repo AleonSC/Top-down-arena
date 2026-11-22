@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -10,85 +11,52 @@ namespace Arena
         const int CampaignTab = 10;
         static readonly Color CampaignColor = new Color(0.45f, 0.85f, 1f);
 
-        void DrawCampaignTab(Rect r, float t)
-        {
-            LobbyKit.Panel(r);
-            var profile = game.Profile ?? new Profile();
-            var ink = CrtStyle.Ink;
-            int beatenN = 0;
-            for (int bi = 1; bi <= 10; bi++) if (profile.Beaten(BossSchedule.Campaign.BossAt(bi * 5)) > 0) beatenN++;
-            float bodyY = ModeHeader(r, "CAMPAIGN", "100 WAVES  ·  A BOSS EVERY 10TH  ·  THEN ENDLESS",
-                "One long run on a growing arena. Build as you go.", Ui.Muted, CampaignColor, beatenN / 10f, beatenN + "/10");
-            float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
-            var ev = Event.current;
 
-            // Left: the ladder's ten bosses, wave 10 to 100.
-            const int n = 10;
-            float step = Mathf.Min(50f, (bodyH - 8f) / n), rowH = step - 6f;
-            var rows = new Rect[n];
-            var bosses = new EnemyType[n];
-            var known = new bool[n];
-            int next = n - 1, hoverI = -1;
-            for (int i = n - 1; i >= 0; i--)
+        void DrawCampaignTab(Rect r, float t) => DrawModePage(r, t, CampaignPage());
+
+        /// The page (ModePageUi.cs): the ladder's ten bosses (named once reached or beaten), the next one in the scope, your records.
+        ModePage CampaignPage()
+        {
+            var profile = game.Profile ?? new Profile();
+            var p = new ModePage { Title = "CAMPAIGN", Facts = "100 WAVES  ·  A BOSS EVERY 10TH  ·  THEN ENDLESS", Acc = CampaignColor,
+                Tagline = "One long run on a growing arena. Build as you go.", ListHead = "THE LADDER",
+                Rules = new[] { "PATHS + SHOPS", "LIVES", "SAVING", "CHALLENGES", "MODIFIERS + DIFFICULTY APPLY" } };
+            var bosses = new EnemyType[10];
+            int beatenN = 0, next = 9;
+            for (int i = 9; i >= 0; i--)
             {
                 bosses[i] = BossSchedule.Campaign.BossAt((i + 1) * 5);
-                known[i] = profile.Beaten(bosses[i]) > 0 || profile.BestWave >= (i + 1) * 10;
-                if (profile.Beaten(bosses[i]) == 0)
-                    next = i;  // the first boss not beaten yet
-                rows[i] = new Rect(x, bodyY + 8f + i * step, ModeListW, rowH);
-                if (rows[i].Contains(ev.mousePosition))
-                    hoverI = i;
+                if (profile.Beaten(bosses[i]) == 0) next = i;
             }
-            int shown = hoverI >= 0 ? hoverI : next;
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < 10; i++)
             {
-                int beaten = profile.Beaten(bosses[i]);
-                string chip = beaten > 0 ? "BEATEN x" + beaten : known[i] ? "REACHED" : "LOCKED";
-                Color cc = beaten > 0 ? CrtStyle.Gold : known[i] ? new Color(0.5f, 0.88f, 0.69f) : CrtStyle.Ink.WithAlpha(0.55f);
-                ModeRow(rows[i], ((i + 1) * 10).ToString(), BossName(bosses[i]), known[i], known[i], i == shown, i == hoverI, CampaignColor, chip, cc);
+                int bt = profile.Beaten(bosses[i]);
+                bool known = bt > 0 || profile.BestWave >= (i + 1) * 10;
+                if (bt > 0) beatenN++;
+                p.Rows.Add(new ModeRowData { Num = ((i + 1) * 10).ToString(), Name = BossName(bosses[i]), Known = known, Lit = known, Model = bosses[i],
+                    Chip = bt > 0 ? "BEATEN x" + bt : known ? "REACHED" : "LOCKED", ChipCol = bt > 0 ? CrtStyle.Gold : known ? new Color(0.5f, 0.88f, 0.69f) : CrtStyle.Ink.WithAlpha(0.55f) });
             }
-
-            // Right: the target's dossier.
-            float x2 = x + ModeListW + ModeGap, w2 = w - ModeListW - ModeGap, y2 = bodyY;
-            var sb = bosses[shown];
-            int wave = (shown + 1) * 10, sBeaten = profile.Beaten(sb);
-            var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
-            ModeScope(scope, shown == next && sBeaten == 0 ? "NEXT TARGET" : "TARGET", "WAVE " + wave);
-            if (!known[shown])
-                CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
-            y2 += scope.height + 12f;
-            Ui.Glitch(new Rect(x2, y2, w2, 28f), known[shown] ? BossName(sb).ToUpperInvariant() : "???", 20, Color.white, TextAnchor.MiddleLeft);
-            y2 += 32f;
-            string copy = sBeaten > 0 ? BossName(sb) + " holds wave " + wave + " of the 100. Beaten " + sBeaten + (sBeaten == 1 ? " time." : " times.")
-                : known[shown] ? "Wave " + wave + ": you've reached " + BossName(sb) + " but not beaten it yet."
-                : "Wave " + wave + ": reach it in a Campaign run to meet this boss.";
-            Ui.Label(new Rect(x2, y2, w2, 42f), copy, 13, known[shown] ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
-            y2 += 48f;
-            float pw = Mathf.Min(40f, (w2 - 5f * (n - 1)) / n);
-            for (int i = 0; i < n; i++)
-            {
-                bool beaten = profile.Beaten(bosses[i]) > 0;
-                ModePip(new Rect(x2 + i * (pw + 5f), y2, pw, 20f), ((i + 1) * 10).ToString(), beaten || i == shown ? CampaignColor : ink.WithAlpha(1f), i == shown);
-            }
-            y2 += 30f;
-            ModeTiles(x2, y2, w2, 46f, new[] { profile.RunsStarted.ToString(), profile.RunsWon.ToString(), profile.RunsLost.ToString(),
-                profile.BestWave > 0 ? profile.BestWave.ToString() : "-", profile.BestEndlessWave > 0 ? profile.BestEndlessWave.ToString() : "-" },
-                new[] { "RUNS", "WON", "LOST", "BEST WAVE", "BEST ENDLESS" });
-            y2 += 54f;
-            ModeTiles(x2, y2, w2, 46f, new[] { profile.BestScore.ToString("N0"), profile.Kills.ToString("N0"), profile.BossKills.ToString(),
-                profile.Downs.ToString(), profile.Revives.ToString() },
-                new[] { "BEST SCORE", "KILLS", "BOSSES DOWN", "TIMES DOWNED", "REVIVES" });
-
-            if (BeginUiGl())
-            {
-                for (int i = 0; i < n; i++)
-                    if (known[i])
-                        ModeRowModel(rows[i], bosses[i], t, i == shown);
-                if (known[shown])
-                    ModeScopeModel(scope, sb, t);
-                EndUiGl();
-            }
-            ModeScopeFinish(scope);
+            p.Pct = beatenN / 10f;
+            p.Ring = beatenN + "/10";
+            p.ListCap = beatenN + " of 10 beaten";
+            p.Default = next;
+            p.Focus = i => {
+                var b = bosses[i];
+                int wave = (i + 1) * 10, bt = profile.Beaten(b);
+                bool known = p.Rows[i].Known;
+                var f = new ModeFocus { Eyebrow = i == next && bt == 0 ? "NEXT TARGET" : "TARGET", ScopeL = i == next && bt == 0 ? "NEXT TARGET" : "TARGET", ScopeR = "WAVE " + wave,
+                    Unknown = !known, Model = b, Name = known ? BossName(b).ToUpperInvariant() : "???",
+                    Copy = bt > 0 ? BossName(b) + " holds wave " + wave + " of the 100. Beaten " + bt + (bt == 1 ? " time." : " times.")
+                        : known ? "Wave " + wave + ": you've reached " + BossName(b) + " but not beaten it yet." : "Wave " + wave + ": reach it in a Campaign run to meet this boss.",
+                    CopyCol = known ? Color.white : Ui.Muted, LadderHead = "BOSSES",
+                    RecVals = new[] { profile.RunsStarted.ToString(), profile.RunsWon.ToString(), profile.BestWave > 0 ? profile.BestWave.ToString() : "-",
+                        profile.BestEndlessWave > 0 ? profile.BestEndlessWave.ToString() : "-", profile.BestScore.ToString("N0"), profile.Kills.ToString("N0"), profile.BossKills.ToString(), profile.Revives.ToString() },
+                    RecLabels = new[] { "RUNS", "WON", "BEST WAVE", "BEST ENDLESS", "BEST SCORE", "KILLS", "BOSSES DOWN", "REVIVES" } };
+                for (int k = 0; k < 10; k++)
+                    f.Ladder.Add(new ModePip2 { Label = ((k + 1) * 10).ToString(), Col = profile.Beaten(bosses[k]) > 0 || k == i ? CampaignColor : CrtStyle.Ink, Strong = k == i, W = 34f });
+                return f;
+            };
+            return p;
         }
     }
 }

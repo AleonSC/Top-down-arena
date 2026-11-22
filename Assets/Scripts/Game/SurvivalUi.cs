@@ -73,66 +73,34 @@ namespace Arena
         /// The lobby's Survival tab (Docs/Survival.md step 4), in the Boss Hunt tab's layout (ModeTabKit.cs): the factions in the
         /// order they join as a list, a scope with the pressure climbing over the clock (the hovered or furthest faction's
         /// stretch lit, your best time marked), your records and the rules.
-        void DrawSurvivalTab(Rect r, float t)
+
+        void DrawSurvivalTab(Rect r, float t) => DrawModePage(r, t, SurvivalPage());
+
+        /// The page (ModePageUi.cs): the factions in the order they join, the pressure graph, your records and the rules.
+        ModePage SurvivalPage()
         {
-            LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
-            float bodyY = ModeHeader(r, "SURVIVAL", "ONE CLOCK  ·  NO WAVES  ·  LAST AS LONG AS YOU CAN",
-                "Pressure climbs with the clock until everyone is down.", Ui.Muted, SurvivalColor, Mathf.Clamp01(profile.SurvivalBestTime / 960f), ModeClock(profile.SurvivalBestTime));
-            float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
-            var ev = Event.current;
-
-            // Left: the factions, in the order they join.
             var all = Survival.FactionsAt(99999f);
-            int n = all.Count, best = profile.SurvivalBestPhase, hoverI = -1;
-            var rows = new Rect[n];
+            int n = all.Count, best = profile.SurvivalBestPhase;
+            var p = new ModePage { Title = "SURVIVAL", Facts = "ONE CLOCK  ·  NO WAVES  ·  LAST AS LONG AS YOU CAN", Acc = SurvivalColor, Rules = SurvivalRules,
+                Tagline = "Pressure climbs with the clock until everyone is down.", ListHead = "FACTIONS", ListCap = "one joins every " + (int)(Survival.PhaseLength / 60f) + " min",
+                Pct = Mathf.Clamp01(profile.SurvivalBestTime / 960f), Ring = ModeClock(profile.SurvivalBestTime),
+                Note = "Two and three players face 1.5x and 2x the enemies." };
             for (int i = 0; i < n; i++)
-            {
-                rows[i] = new Rect(x, bodyY + 8f + i * 50f, ModeListW, 44f);
-                if (rows[i].Contains(ev.mousePosition))
-                    hoverI = i;
-            }
-            int shown = hoverI >= 0 ? hoverI : Mathf.Clamp(best - 1, 0, n - 1);
-            for (int i = 0; i < n; i++)
-            {
-                bool reached = i < best;
-                string name = i == 0 ? "The basics" : BossName(all[i].Boss);
-                ModeRow(rows[i], (i + 1).ToString("00"), name, true, true, i == shown, i == hoverI, SurvivalColor,
-                    Game.SurvClock(i * Survival.PhaseLength), reached ? SurvivalColor : CrtStyle.Ink.WithAlpha(0.55f));
-            }
-
-            // Right: the pressure over the clock.
-            float x2 = x + ModeListW + ModeGap, w2 = w - ModeListW - ModeGap, y2 = bodyY;
-            var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
-            ModeScope(scope, "PRESSURE", profile.SurvivalBestTime > 0f ? "BEST " + Game.SurvClock(profile.SurvivalBestTime) : "NO RUNS YET", false);
-            DrawSurvivalGraph(new Rect(scope.x + 14f, scope.y + 30f, scope.width - 28f, scope.height - 48f), n, shown, profile.SurvivalBestTime);
-            y2 += scope.height + 12f;
-            Ui.Glitch(new Rect(x2, y2, w2, 28f), SurvRowTitle(all, shown), 20, Color.white, TextAnchor.MiddleLeft);
-            y2 += 32f;
-            string copy = shown == 0 ? "From the first second: the basic enemies, singles topping the field up and a squad every 45 s."
-                : "Joins at " + Game.SurvClock(shown * Survival.PhaseLength) + ": " + SurvOwn(all[shown]) + " own enemies come in with the rest, and the pressure keeps climbing.";
-            Ui.Label(new Rect(x2, y2, w2, 42f), copy, 13, Ui.Text, TextAnchor.UpperLeft, false, true);
-            y2 += 48f;
-
-            // Your records: plays, the longest run, the longest with this class, the furthest faction.
+                p.Rows.Add(new ModeRowData { Num = (i + 1).ToString("00"), Name = i == 0 ? "The basics" : BossName(all[i].Boss), Known = true, Lit = true,
+                    Model = i == 0 ? EnemyType.Grunt : all[i].Boss, Chip = Game.SurvClock(i * Survival.PhaseLength), ChipCol = i < best ? SurvivalColor : CrtStyle.Ink.WithAlpha(0.55f) });
+            p.Default = Mathf.Clamp(best - 1, 0, n - 1);
+            p.ScopeDraw = (g, shown) => DrawSurvivalGraph(g, n, shown, profile.SurvivalBestTime);
             LobbyEntry mine;
             session.Lobby.TryGetValue(session.MyId, out mine);
             float classBest = mine != null ? profile.SurvivalBest(Arena.Profile.ClassKey(mine.Role, mine.Kit)) : 0f;
-            ModeTiles(x2, y2, w2, 46f, new[] { profile.SurvivalPlays.ToString(), ModeClock(profile.SurvivalBestTime), ModeClock(classBest),
-                best > 0 ? best.ToString() : "-" }, new[] { "PLAYED", "BEST TIME", "AS THIS CLASS", "BEST PHASE" });
-            y2 += 56f;
-            y2 = ModeRules(x2, y2, w2, SurvivalRules);
-            Ui.Label(new Rect(x2, y2 + 26f, w2, 16f), "Two and three players face 1.5x and 2x the enemies.", 11, Ui.Muted);
-
-            if (BeginUiGl())
-            {
-                for (int i = 0; i < n; i++)
-                    ModeRowModel(rows[i], i == 0 ? EnemyType.Grunt : all[i].Boss, t, i == shown);
-                EndUiGl();
-            }
-            ModeScopeFinish(scope);
+            p.Focus = i => new ModeFocus { Eyebrow = "PRESSURE", ScopeL = "PRESSURE", ScopeR = profile.SurvivalBestTime > 0f ? "BEST " + Game.SurvClock(profile.SurvivalBestTime) : "NO RUNS YET",
+                Name = SurvRowTitle(all, i), Copy = i == 0 ? "From the first second: the basic enemies, singles topping the field up and a squad every 45 s."
+                    : "Joins at " + Game.SurvClock(i * Survival.PhaseLength) + ": " + SurvOwn(all[i]) + " own enemies come in with the rest, and the pressure keeps climbing.",
+                RecVals = new[] { profile.SurvivalPlays.ToString(), ModeClock(profile.SurvivalBestTime), ModeClock(classBest), best > 0 ? best.ToString() : "-" },
+                RecLabels = new[] { "PLAYED", "BEST TIME", "AS THIS CLASS", "BEST PHASE" } };
+            return p;
         }
-
         static string SurvOwn(FactionDef f) => BossName(f.Boss) + (BossName(f.Boss).EndsWith("s") ? "'" : "'s");
 
         static string SurvRowTitle(System.Collections.Generic.List<FactionDef> all, int i) => i == 0 ? "THE BASIC FACTION" : SurvFactionName(all[i]);
