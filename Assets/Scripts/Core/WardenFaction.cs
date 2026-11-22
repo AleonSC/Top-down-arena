@@ -426,6 +426,9 @@ namespace Arena
         /// A Rioter's bottle or a Shiv's blade that hurts you leaves a cut: BottleBleedDps a second for BottleBleedTime s (a second hit refreshes it).
         public const float BottleBleedDps = 4f, BottleBleedTime = 3f, BottleBleedTick = 0.5f;
 
+        /// The Shiv and the enemies that play like it: their hit cuts.
+        static bool CutsOnHit(EnemyType t) => t == EnemyType.Shiv || t == EnemyType.Fencer || t == EnemyType.Mummer || t == EnemyType.Driller;
+
         void BleedCut(Player p)
         {
             p.BleedT = BottleBleedTime;

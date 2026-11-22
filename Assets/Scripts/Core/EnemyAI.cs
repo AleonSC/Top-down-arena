@@ -661,8 +661,8 @@ namespace Arena
                             p.BossContactT = BossContactEvery;
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
-                        if (e.Type == EnemyType.Shiv && lastTaken > 0f)
-                            BleedCut(p);  // the Shiv's blade cuts: a short bleed (WardenFaction.cs)
+                        if (CutsOnHit(e.Type) && lastTaken > 0f)
+                            BleedCut(p);  // the Shiv's blade (and its kin's) cuts: a short bleed (WardenFaction.cs)
                         if (p.Relic == RelicId.Thorns)
                             HurtEnemy(e, Relics.ThornsDmg * p.Stats.DmgMult, p.Id);  // the Thorns relic (Relics.cs)
                         RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
