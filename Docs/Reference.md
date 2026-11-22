@@ -31,7 +31,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Scattergun | Tank | 0.45 s | 7 | 520 x 0.5 s | - | 154 | Primary Fire: A short-range shotgun spread, brutal up close.  Alternative Fire: Fire all your loaded shells at once. |
+| Scattergun | Tank | 0.45 s | 7 | 520 x 0.5 s | - | 154 | Primary Fire: A short-range shotgun spread, brutal up close.  Alternative Fire: Lob a shock grenade that stuns enemies where it lands. |
 | Flak Cannon | Tank | 0.8 s | 30 | 380 x 1.1 s | - | 36 | Primary Fire: Shells that burst in the air at your cursor and destroy enemy bullets.  Alternative Fire: Lay a proximity shell that bursts when an enemy steps on it. |
 | Riot Repeater | Tank | 0.18 s | 11 | 600 x 0.8 s | - | 60 | Primary Fire: Steady shots that suppress enemies so they shoot slower.  Alternative Fire: Lob tear gas that slows and suppresses. |
 | Grenade Launcher | Tank | 0.42 s | 34 | 900 x 0.42 s | - | 49 | Primary Fire: Lob a drum of grenades that burst where they land.  Alternative Fire: Swap to smoke that slows enemies and stops them attacking. |
@@ -163,148 +163,148 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Barrier | Tank | 1st, choice 1 | 12 s | - | Bullets that hit the barrier are reflected back as your own. | A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage). |
-| Roar | Tank | 1st, choice 2 | 14 s | - | Also knocks enemies within 250 px back and slows them for 2 s. | Every enemy targets you for 5 s, and you take 40% less damage meanwhile. |
+| Barrier | Tank | 1st, choice 1 | 12 s | - | Bullets that hit the barrier are reflected back as your own. | A bubble that stops enemy bullets. |
+| Roar | Tank | 1st, choice 2 | 14 s | - | Also knocks enemies within 250 px back and slows them for 2 s. | Every enemy targets you, and you take less damage. |
 | Bulldoze | Tank | 1st, choice 3 | 9 s | - | Erases enemy bullets along the charge. | Charge forward, damaging and knocking back everything in your path. |
-| Fortress | Tank | ultimate | 70 s | - | Lasts 14 s. | Raises a fixed, impenetrable dome here for 10 s. Only players and player bullets cross it: enemies and their shots can't get in or shoot through. |
-| Juggernaut Suit | Tank | ultimate | 75 s | - | 450 armour, and each shard does 18. | Steel plates clamp on: for 10 s you carry 300 armour that takes damage before your health. You move 25% slower and every enemy, bosses too, comes for you. Each enemy bullet the armour takes throws a 12-damage flak shard straight back at whoever fired it. It ends early if the armour is gone or you go down. |
-| Deployable Cover | Tank | 1st, choice 5 | 12 s (+1 charges) | - | Covers take 600 damage, and each charge comes back 25% sooner. | Two charges. Plant a bracket of steel plate in front of you that stops enemy bullets and enemies until it has taken 400 damage; your team's shots pass through. Up to 3 stand at once (another folds away the oldest), and they fold away when the wave is cleared. |
-| Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave runs out 230 px from you: it erases enemy bullets, hits enemies for 60 and shoves them back 120 px. |
-| Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double fire rate for 5 seconds. |
+| Fortress | Tank | ultimate | 70 s | - | Lasts 14 s. | A dome only players and their bullets can cross. |
+| Juggernaut Suit | Tank | ultimate | 75 s | - | 450 armour, and each shard does 18. | Heavy armour draws every enemy and throws flak back at shooters. |
+| Deployable Cover | Tank | 1st, choice 5 | 12 s (+1 charges) | - | Covers take 600 damage, and each charge comes back 25% sooner. | Plant steel cover that stops enemy bullets while your team shoots through. |
+| Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave erases bullets and shoves enemies back. |
+| Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double your fire rate for a few seconds. |
 | Blink | Tank | card | 7 s | - | Erases enemy bullets where you leave and where you land. | Teleport toward your cursor. |
-| Starburst | Tank | card | 9 s | - | Fires 48 shots instead of 24. | Fire a ring of 24 heavy shots. |
-| Turret | Tank | card | 20 s | - | Deploys two turrets. | Deploy a turret that shoots for 10 seconds. |
-| Stun Gun | Tank | card | 14 s | - | Nine shots instead of six. | Draw a stun gun: your next 6 shots are stun bolts (15 damage) that stun enemies for 1.5 s (bosses are only slowed). The cooldown starts once all 6 are fired. |
-| Royal Dive | Tank | card | 12 s | - | A wider honey pool (150 px) that lasts 6 s. | Leap (nothing can hit you) and crash down at your cursor, up to 380 px away: 120 damage to everything within 110 px, enemies knocked back and enemy bullets there wiped out. The landing leaves a honey pool for 4 s that slows enemies 40% and heals allies 6 a second. |
-| Scythe Throw | Tank | card | 9 s | - | Catching it takes 60% off, and it cuts 50% harder. | Throw a giant scythe at your cursor (up to 380 px). It cuts everything it passes, 45 on the way out and 45 on the way back, and slices small enemy bullets. Catch it as it comes back to take 40% off the cooldown. |
+| Starburst | Tank | card | 9 s | - | Fires 48 shots instead of 24. | Fire a ring of heavy shots. |
+| Turret | Tank | card | 20 s | - | Deploys two turrets. | Deploy a turret that shoots for a while. |
+| Stun Gun | Tank | card | 14 s | - | Nine shots instead of six. | Your next shots are stun bolts. |
+| Royal Dive | Tank | card | 12 s | - | A wider honey pool (150 px) that lasts 6 s. | Leap and crash down at your cursor, leaving a honey pool. |
+| Scythe Throw | Tank | card | 9 s | - | Catching it takes 60% off, and it cuts 50% harder. | Throw a giant scythe that cuts out and back; catch it to cool down faster. |
 | Mend Pulse | Healer | 1st, choice 1 | 10 s | - | Also erases enemy bullets within its range. | Heal everyone nearby and revive downed allies. |
-| Adrenaline Shot | Healer | 1st, choice 2 | 14 s | - | Also gives the nearest other ally within 250 px a half-length (4 s) dose. | Inject the player closest to your cursor (you, if alone): 8 s of +30% move speed, +40% fire rate and 30% less damage taken. |
-| Deployable Medkit | Healer | 1st, choice 3 | 14 s | - | Bursts into 9 orbs worth 20 health each. | Throw a medkit at your cursor: it bursts into 6 healing orbs (15 health each) that anyone can pick up for 6 s. |
-| Lifeline | Healer | ultimate | 90 s | - | Everyone also gets 4 s of Overdrive. | Instantly revive and fully heal the whole party, with 3 s of invulnerability. |
-| Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Three charges. Throw an inflatable soldier at your cursor: regular enemies within 240 px go for it and shoot at it instead of you (bosses only glance at it for a second). It has 40 health (+4 a wave) and lasts 12 s; up to 3 stand at once. When it's popped, a confetti blast shoves enemies within 90 px back and stuns them for 0.4 s. |
-| Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Dart the enemy nearest your cursor: 20 damage, then poison for 18 a second over 5 s. If it dies poisoned, the poison spreads to the 3 nearest enemies (80% as strong), and on from them. |
-| Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Throw a flare at your cursor: a jet carpets a line across the arena through it, across your aim (55 a bomb), and the line burns for 3 s. |
-| Mark for Death | Dps | 1st, choice 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark the enemy nearest your cursor: it takes 50% more damage for 6 s. |
-| Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | For 6 s you fire three times as fast, with +2 extra projectiles. |
-| Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | Call in a gunship for 10 s. It circles you and locks one enemy at a time, the one nearest you, hosing it with a chaingun (20 rounds a second, 8 damage each) until it dies, then the next. It can't be hit. |
-| Deployable Turret | Dps | 1st, choice 5 | 45 s | - | Fires 14 s, rounds pierce 4, and the blast does double. | Drop a heavy twin-barrel turret on your spot and climb in for 10 s: you can't move, and it fires instead of your weapon. Hold Fire and it turns onto your cursor, spooling up from 7 to 30 rounds a second of 22 damage that pierce 2 enemies. The turret takes the damage meant for you (350 health); if it is wrecked you are thrown clear and it blows early. It overheats and blows after, for 80 damage within 160 px. |
+| Adrenaline Shot | Healer | 1st, choice 2 | 14 s | - | Also gives the nearest other ally within 250 px a half-length (4 s) dose. | Boost a player's speed and fire rate and cut their damage taken. |
+| Deployable Medkit | Healer | 1st, choice 3 | 14 s | - | Bursts into 9 orbs worth 20 health each. | Throw a medkit that bursts into health orbs anyone can grab. |
+| Lifeline | Healer | ultimate | 90 s | - | Everyone also gets 4 s of Overdrive. | Revive and fully heal the whole party, with brief invulnerability. |
+| Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Throw an inflatable soldier that enemies shoot at instead of you. |
+| Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Poison the nearest enemy; the poison spreads when it dies. |
+| Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Call a jet to carpet a line with bombs. |
+| Mark for Death | Dps | 1st, choice 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark an enemy so it takes more damage. |
+| Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | Fire three times as fast with extra projectiles. |
+| Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | A gunship locks enemies one at a time and can't be hit. |
+| Deployable Turret | Dps | 1st, choice 5 | 45 s | - | Fires 14 s, rounds pierce 4, and the blast does double. | Climb into a heavy turret that spools up to a fast piercing fire. |
 
 ### Elementalist
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Aeroaegis | Tank | 1st, choice 1 | 11 s | - | Lasts 4.5 s and reflects bullets for double damage. | For 3 s, a wind vortex wraps the player your cursor is nearest: enemies can't get in, and bullets that touch it are reflected back as your own. |
-| Frost Nova | Tank | 1st, choice 2 | 12 s | - | Also erases enemy bullets around you. | Freeze every enemy near you for 3 s and deal 40 damage. |
-| Flame Wall | Tank | 1st, choice 3 | 14 s | - | The fire also slows enemies by 40%. | A wall of fire at your cursor for 5 s: burns enemies and blocks bullets. |
-| Glacial Tomb | Tank | ultimate | 75 s | - | Enemies stay frozen for 6 s and bosses take 500. | Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead). |
-| Lightning Rod | Tank | ultimate | 70 s | - | Lasts 8 s and each bolt arcs to 3 enemies. | For 6 s you crackle with charge: you take 80% less damage and every enemy, bosses too, goes for you. Each enemy hit on you calls a bolt from the sky on whoever landed it (30), which arcs on to the 2 enemies nearest it (15 each). Wet enemies take extra arcs. |
-| Flood | Tank | 1st, choice 5 | 16 s | - | Deluge: the flood is 30% wider and lasts 9 s. | Stamp and flood the ground 190 px round you for 6 s: enemies touching you are thrown back 60 px (10 damage), and every enemy wading in the water is slowed 40% (heavies and bosses 20%) and soaked wet, so lightning arcs to it, while it's in and 3 s after. |
-| Healing Rain | Healer | 1st, choice 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor for 6 s: heals allies inside 8 HP/s and slows enemies by 30%. |
-| Gust Gate | Healer | 1st, choice 2 | 14 s | - | The ring is 40% wider and pushes enemies twice as hard. | A ring of wind at your cursor for 8 s. Anyone who walks through it, you included, gets +80% move speed for 3 s. Enemies inside are pushed gently out. |
-| Lumen Ward | Healer | 1st, choice 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A huge cone of light toward your cursor for 6 s that turns as you aim: heals everyone inside 9 HP/s and burns away enemy bullets in it or touching it. |
-| Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light for 7 s: bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (the last is bigger). |
-| Water Ward | Healer | 1st, choice 5 | 3 s | - | Splashes and bursts reach 40% farther. | Call 2 drops of water down round you; they circle you, up to 10. A drop that touches an enemy splashes: 12 damage to every enemy within 52 px, and they're soaked wet (slowed 30%, lightning arcs to them) for 4 s. A drop that meets an enemy shot eats it and bursts into a mist that soaks everything within 72 px. |
-| Meteor | Dps | 1st, choice 1 | 10 s | - | Leaves burning ground for 3 s. | Call a meteor at your cursor: after a short warning it hits for 150 damage. |
-| Blizzard | Dps | 1st, choice 2 | 14 s | - | Lasts 10 s. | A storm at your cursor for 5 s that slows and damages enemies. |
-| Tsunami | Dps | 1st, choice 3 | 16 s | - | Wet lasts 14 s, and the wave rolls back to you, wetting what it missed. | A wave rolls out where you aim: 12 damage, and it leaves enemies wet for 8 s, slowed 30%. Lightning (Arc Lightning, Storm Hammer, Chain Light, Nimbus) arcs to every wet enemy on the map. |
-| Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | Call a downpour over a big square (520 px) at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet. |
-| Gale Wall | Dps | 1st, choice 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A curved wall of wind in front of you for 5 s: enemy shots that reach it stop and hang in it, each one a charge (up to 40). Press again (or when it ends) to unleash a big cone toward your cursor: 40 damage + 6 per charge, and enemies are shoved back. |
+| Aeroaegis | Tank | 1st, choice 1 | 11 s | - | Lasts 4.5 s and reflects bullets for double damage. | A wind vortex wraps a player: enemies can't enter and bullets reflect back. |
+| Frost Nova | Tank | 1st, choice 2 | 12 s | - | Also erases enemy bullets around you. | Freeze every enemy near you and damage them. |
+| Flame Wall | Tank | 1st, choice 3 | 14 s | - | The fire also slows enemies by 40%. | A wall of fire at your cursor that burns enemies and blocks bullets. |
+| Glacial Tomb | Tank | ultimate | 75 s | - | Enemies stay frozen for 6 s and bosses take 500. | Erase every enemy bullet and freeze every enemy. |
+| Lightning Rod | Tank | ultimate | 70 s | - | Lasts 8 s and each bolt arcs to 3 enemies. | You draw every enemy while taking much less damage, and lightning strikes whoever hits you. |
+| Flood | Tank | 1st, choice 5 | 16 s | - | Deluge: the flood is 30% wider and lasts 9 s. | Flood the ground around you: it throws enemies back, slows them and soaks them. |
+| Healing Rain | Healer | 1st, choice 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor that heals allies and slows enemies. |
+| Gust Gate | Healer | 1st, choice 2 | 14 s | - | The ring is 40% wider and pushes enemies twice as hard. | A wind ring that gives anyone passing through a speed boost. |
+| Lumen Ward | Healer | 1st, choice 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A cone of light that heals allies and burns away enemy bullets. |
+| Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light that blocks bullets, keeps allies up and heals them. |
+| Water Ward | Healer | 1st, choice 5 | 3 s | - | Splashes and bursts reach 40% farther. | Water drops orbit you and splash enemies and eat shots. |
+| Meteor | Dps | 1st, choice 1 | 10 s | - | Leaves burning ground for 3 s. | Call a meteor down at your cursor. |
+| Blizzard | Dps | 1st, choice 2 | 14 s | - | Lasts 10 s. | A storm at your cursor that slows and damages enemies. |
+| Tsunami | Dps | 1st, choice 3 | 16 s | - | Wet lasts 14 s, and the wave rolls back to you, wetting what it missed. | A wave that soaks enemies, so lightning arcs to every one. |
+| Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | A downpour of needles that hurts and soaks everything in a big square. |
+| Gale Wall | Dps | 1st, choice 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A wind wall that traps enemy shots, then unleashes them as a blast. |
 
 ### Summoner
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Golem Wall | Tank | 1st, choice 1 | 13 s | - | Raises five golems. | Raise three basalt golems in front of you. They block every enemy bullet and stay until they are broken (200 health each); casting again replaces them. |
-| Earthquake | Tank | 1st, choice 2 | 10 s | - | Also freezes everything it hurts for 1 s (not bosses). | You slam the ground (25 damage, slows), then a Burrower breaks out at your cursor and tunnels through the enemies for 3 s, hurting each one it passes under (30 damage). |
-| Force Pact | Tank | 1st, choice 3 | 12 s | - | A second thrall: the pact keeps the last two types you chose. | Take the regular enemy nearest your cursor (not bosses) and make it fight for you. It stays near you with its own attack and comes back 15 s after it falls. Cast again on another enemy to switch the pact to that type. |
-| Titan | Tank | ultimate | 80 s | - | The titan is 30% bigger and stays for 27 s. | Summon a huge stone titan for 17 s. It rises from rubble, stomps after enemies, slams them after a short wind-up and blocks bullets with its whole body (it soaks 1000 boss damage). |
-| Bone Phalanx | Tank | ultimate | 75 s | - | 10 skeletons with 180 health each. | A bone gate opens ahead of you and 8 skeletons with tower shields march a line 260 px along your aim over 6 s. Their shields stop every enemy shot from the front (red aimed shots too) while your team shoots through; enemies are shoved ahead and speared for 15 every 0.5 s. Each skeleton has 120 health; a broken one leaves a gap. Bosses and walls stop the line. |
-| Stampede | Tank | 1st, choice 5 | 14 s | - | 9 beasts, and the herd turns and charges back. | Call a line of 7 spirit beasts across your aim. They charge 320 px, trampling every enemy for 20 damage and shoving them along ahead of the herd. An enemy driven into a wall takes 15 more and is stunned for 0.5 s. Bosses and heavy enemies are trampled but not shoved. |
-| Spirit Swarm | Healer | 1st, choice 1 | 14 s | - | Releases 8 sprites. | Release 5 healing sprites for 6 s. |
-| Phoenix | Healer | 1st, choice 2 | 22 s | - | Revives at full health, and the phoenix keeps fighting. | A phoenix follows your cursor for 10 s, shooting and pulsing 8% max health to everyone near it every 2 s. If anyone goes down (you too), it revives them instantly. |
-| Soul Lantern | Healer | 1st, choice 3 | 18 s | - | Lasts 9 s, and the linked player can't go down. | A lantern appears beside the ally nearest your cursor (you, alone) and links to them for 6 s: it follows, heals 8 health a second and flames nearby enemies. |
-| World Tree | Healer | ultimate | 80 s | - | Lasts 16 s with 8 sprites. | Grow a great tree for 15 s that heals and slows around it and sends a wave of healing butterflies to every ally every 1.9 s. |
-| Bat Swarm | Dps | 1st, choice 1 | 12 s | - | Releases 14 bats. | Release 8 bats that hunt enemies for 6 s. |
-| Hydra | Dps | 1st, choice 2 | 18 s | - | A fourth head. | A three-headed hydra rises at your cursor for 8 s. Each head picks its own enemy and spits venom at it (10 damage, every 0.6 s per head). |
-| Alpha Call | Dps | 1st, choice 3 | 14 s | - | Also summons 3 wolves for 6 s. | Blood Scent for 6 s: your minions start at 2 stacks, and each bite adds one (up to 5): faster, and quicker bites. At 5 stacks the next bite lunges for triple damage and drops back to 2. |
-| Legion | Dps | ultimate | 70 s | - | Summons 7 wolves and 7 bats. | A blood moon rises. Summon 4 wolves and 4 bats that circle you, then run 40% faster for 10 s; your other minions frenzy. |
+| Golem Wall | Tank | 1st, choice 1 | 13 s | - | Raises five golems. | Raise three golems that block every enemy bullet. |
+| Earthquake | Tank | 1st, choice 2 | 10 s | - | Also freezes everything it hurts for 1 s (not bosses). | Slam the ground, then a Burrower tunnels through enemies. |
+| Force Pact | Tank | 1st, choice 3 | 12 s | - | A second thrall: the pact keeps the last two types you chose. | Make a regular enemy fight for you. |
+| Titan | Tank | ultimate | 80 s | - | The titan is 30% bigger and stays for 27 s. | Summon a huge stone titan that stomps enemies and blocks bullets. |
+| Bone Phalanx | Tank | ultimate | 75 s | - | 10 skeletons with 180 health each. | Skeletons with tower shields march ahead, blocking shots and spearing enemies. |
+| Stampede | Tank | 1st, choice 5 | 14 s | - | 9 beasts, and the herd turns and charges back. | A line of spirit beasts tramples everything ahead. |
+| Spirit Swarm | Healer | 1st, choice 1 | 14 s | - | Releases 8 sprites. | Release healing sprites. |
+| Phoenix | Healer | 1st, choice 2 | 22 s | - | Revives at full health, and the phoenix keeps fighting. | A phoenix follows your cursor, shooting and healing, and revives anyone who goes down. |
+| Soul Lantern | Healer | 1st, choice 3 | 18 s | - | Lasts 9 s, and the linked player can't go down. | A lantern links to an ally, healing them and burning nearby enemies. |
+| World Tree | Healer | ultimate | 80 s | - | Lasts 16 s with 8 sprites. | Grow a tree that heals and slows around it and sends healing butterflies. |
+| Bat Swarm | Dps | 1st, choice 1 | 12 s | - | Releases 14 bats. | Release bats that hunt enemies. |
+| Hydra | Dps | 1st, choice 2 | 18 s | - | A fourth head. | A three-headed hydra spits venom at enemies. |
+| Alpha Call | Dps | 1st, choice 3 | 14 s | - | Also summons 3 wolves for 6 s. | Your minions bite faster, then lunge for triple damage. |
+| Legion | Dps | ultimate | 70 s | - | Summons 7 wolves and 7 bats. | A blood moon: wolves and bats circle you, you run faster and your minions frenzy. |
 
 ### Knight
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Shield Wall | Tank | 1st, choice 1 | 12 s | - | Bullets that hit the shield are reflected back as your own. | Raise a wall of 7 steel plates: it stops every enemy bullet coming at your front (120°), even red aimed shots. Every shot wears down the plate it hits (400 damage in all, shared between the plates) and a broken plate leaves a gap. The wall stays up until every plate is gone. |
-| Leap Slam | Tank | 1st, choice 2 | 9 s | - | The landing also erases enemy bullets within 160 px. | Leap to your cursor (up to 320 px), untouchable in the air. Landing deals 50 damage around you and stuns enemies for 1 s. |
-| Cavalry Call | Tank | 1st, choice 3 | 18 s | - | Two more lancers ride outside the first pair, and the guard lasts 5 s. | Two lancers ride in at your sides and charge across the map along your aim. Each enemy they meet takes 35, is shoved out of the lane and slowed 45% for 3 s (Heavy enemies and bosses barely move and are slowed less). You take 20% less damage for 3 s. |
-| Last Stand | Tank | ultimate | 70 s | - | You take 5% of the damage instead of 10%. | You plant yourself and brace a wall of steel plates 120 px out, 178° wide, facing your cursor (it turns slowly). It stops every enemy bullet from the front; your teammates' shots pass out through it. You take 10% of the damage it stops. You can't move while it stands, and it has no timer: it stays until you go down or press the ability again, and the cooldown starts when it comes down. |
-| Consecrate | Healer | 1st, choice 1 | 14 s | - | Two more crosses fly out at 22 degrees either side (each target is hit once). | Throw a Holy Cross along your aim. It grows as it flies: allies it crosses heal 35 and run 30% faster for 4 s; enemies take 25, are slowed 40% for 3 s and are knocked back. |
-| Guardian's Oath | Healer | 1st, choice 2 | 15 s | - | Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health. | Press, then click a player (up to 600 px), downed or not: charge to them, grab them and haul them back to where you stood. A Ward of Light then cuts damage by half for everyone inside for 5 s, and downed allies in it revive twice as fast. |
-| Lay on Hands | Healer | 1st, choice 3 | 18 s | - | Also heals everyone else near them for half as much. | Heal the most hurt ally within 300 px (or yourself) for 70, or instantly revive them at half health if they're down. |
-| Hallowed Blade | Healer | ultimate | 80 s | - | Three swords fall: one at your cursor and one either side. | A giant holy sword falls at your cursor: 200 damage around it, then it stays planted for 8 s (allies in the ring heal 15 HP/s, enemies burn), and every 2 s a pulse crosses the whole arena healing allies and hurting enemies for a third as much. |
-| Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush toward your cursor (up to 240 px), untouchable, your blade spinning round you: four cuts land along the way, each hitting every enemy within 64 px of you for 18. Kill anything with it and the cooldown resets. |
-| The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Throw down the gauntlet at the enemy nearest your cursor along your aim (up to 380 px; it flies over anything in between): it takes 12 and is Challenged for 5 s. You shoulder-charge to it, untouchable, bowling everything in the way aside (18 and a shove), and hit it for 30. Kill the Challenged enemy before the Challenge runs out and the gauntlet flies back: the cooldown resets. |
-| Caught Steel | Dps | 1st, choice 3 | 16 s | - | Holds up to 18 shards. | For 6 s, enemy bullets that skim past you without touching you are caught and hang round you as steel (up to 12). Press again (or let the time run out) and a sweeping cut hurls them out along your aim: each shard cuts the bullets in its way and hits the first enemy for 22. A hit knocks a third of them loose. The cooldown starts when you throw them. |
-| Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A gatehouse rises behind you and its drawbridge falls along your aim: 500 px long and 100 wide, it crushes everything in the lane for 260 and throws enemies at its edges aside (45). Then it lies there for 5 s as a walkway: enemies can't step onto it and the rails grind any pressed against them (80 a second), and their shots stop at its rails, red aimed shots too. |
-| Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | Blow a warhorn and a volley of fire arrows falls behind you and sweeps across the field along your aim (1,400 px ahead, 700 wide). Every enemy it reaches takes 120, burns for 20 a second for 5 s and is pinned (40% slower for 3 s). Enemy shots in its path are knocked out of the air (red aimed shots fly on). |
+| Shield Wall | Tank | 1st, choice 1 | 12 s | - | Bullets that hit the shield are reflected back as your own. | Raise a wall of steel plates that blocks bullets at your front. |
+| Leap Slam | Tank | 1st, choice 2 | 9 s | - | The landing also erases enemy bullets within 160 px. | Leap to your cursor untouchable, then slam and stun. |
+| Cavalry Call | Tank | 1st, choice 3 | 18 s | - | Two more lancers ride outside the first pair, and the guard lasts 5 s. | Two lancers charge across the map, shoving and slowing enemies. |
+| Last Stand | Tank | ultimate | 70 s | - | You take 5% of the damage instead of 10%. | Plant yourself behind a wall of steel plates that blocks every bullet in front. |
+| Consecrate | Healer | 1st, choice 1 | 14 s | - | Two more crosses fly out at 22 degrees either side (each target is hit once). | Throw a Holy Cross that heals and speeds allies and hurts enemies. |
+| Guardian's Oath | Healer | 1st, choice 2 | 15 s | - | Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health. | Haul an ally to safety and protect everyone in a ward of light. |
+| Lay on Hands | Healer | 1st, choice 3 | 18 s | - | Also heals everyone else near them for half as much. | Heal the most hurt ally, or revive a downed one. |
+| Hallowed Blade | Healer | ultimate | 80 s | - | Three swords fall: one at your cursor and one either side. | A giant holy sword lands, healing allies and burning enemies for a while. |
+| Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush forward untouchable with a spinning blade; a kill resets the cooldown. |
+| The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Challenge an enemy and charge it; kill it in time to reset the cooldown. |
+| Caught Steel | Dps | 1st, choice 3 | 16 s | - | Holds up to 18 shards. | Catch passing bullets as steel, then hurl them back. |
+| Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
+| Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
 
 ### Ninja
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Shadow Clone | Tank | 1st, choice 1 | 14 s | - | Every clone has double the health. | Summon a wall of 9 clones for 7 s. Every enemy targets them and each soaks 50 damage. They never fight: walk into them to shove the wall. |
-| Smoke Bomb | Tank | 1st, choice 2 | 14 s | - | Enemies inside the smoke are also slowed by 40%. | A 140 px cloud at your feet for 5 s: enemy bullets inside slow to half speed, and allies inside take 30% less damage. |
-| Ceremonial Armor | Tank | 1st, choice 3 | 2.5 s | - | A plate that breaks bursts for 30 damage to enemies within 60 px. | Summon a lacquered armour plate that circles you until it breaks: up to 10, 4 on an inner ring and 6 further out. Each has 45 health, stops the enemy bullets it touches and pushes enemies away. With all 10 up you take 20% less damage. |
-| Thousand Clones | Tank | ultimate | 70 s | - | Twenty clones. | Twelve clones appear all over the map. Every enemy goes for the nearest one at once. They soak 100 damage each and last until they die or the round ends; each bursts for 60 when killed. |
-| Dragon's Dogma | Tank | ultimate | 70 s | - | Hunts for 7 s, and every enemy it devours heals you 3%. | A great spirit dragon bursts out of you and hunts across the arena for 5 s, devouring every enemy its jaws reach and swallowing their shots. Bosses and heavy enemies take a 150 bite instead. Then it coils back into you. |
-| Healing Dash | Healer | 1st, choice 1 | 15 s | - | The sprint lasts 4.5 s. | Sprint 70% faster for 3 s, leaving glowing footprints that last 6 s. You and your allies heal 12 HP a second while standing near one (overlapping footprints don't stack). |
-| Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with the ally nearest your cursor and shield them for 60 for 6 s. Alone: slip to your cursor and shield yourself. |
-| Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman at your cursor for 8 s: it takes the damage allies near it would take (up to 150). When it breaks or ends, a quarter of what it took heals allies near it. |
-| Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | For 5 s petals heal the whole party 20 HP/s and erase enemy bullets near every ally. |
-| Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80. |
-| Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | For 3 s enemies lose track of you. Your next hit (within 4 s) deals double damage. |
-| Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | 12 kunai spin around you for 4 s, cutting enemies they touch for 18 (once every 0.5 s each) and erasing enemy bullets. Press again, or wait, and they fly out in a ring, 18 each. |
-| Death Lotus | Dps | ultimate | 65 s | - | Strikes up to 14 enemies. | Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each. |
+| Shadow Clone | Tank | 1st, choice 1 | 14 s | - | Every clone has double the health. | A wall of clones that every enemy attacks. |
+| Smoke Bomb | Tank | 1st, choice 2 | 14 s | - | Enemies inside the smoke are also slowed by 40%. | A smoke cloud that slows enemy bullets and shields allies. |
+| Ceremonial Armor | Tank | 1st, choice 3 | 2.5 s | - | A plate that breaks bursts for 30 damage to enemies within 60 px. | Armour plates circle you, blocking bullets and shoving enemies. |
+| Thousand Clones | Tank | ultimate | 70 s | - | Twenty clones. | Twelve clones appear all over the map and draw every enemy. |
+| Dragon's Dogma | Tank | ultimate | 70 s | - | Hunts for 7 s, and every enemy it devours heals you 3%. | A spirit dragon hunts across the arena, devouring enemies and their shots. |
+| Healing Dash | Healer | 1st, choice 1 | 15 s | - | The sprint lasts 4.5 s. | Sprint, leaving footprints that heal you and allies. |
+| Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |
+| Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
+| Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | Petals heal the whole party and erase enemy bullets. |
+| Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
+| Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
+| Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
+| Death Lotus | Dps | ultimate | 65 s | - | Strikes up to 14 enemies. | A flurry of cuts on up to 8 enemies near your cursor. |
 
 ### Hemomancer
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Blood Shell | Tank | 1st, choice 1 | 9 s | - | The burst also erases enemy bullets within 160 px. | Hold to wrap yourself in a big bubble of blood. It blocks bullets and enemies; allies can stand inside. Each bullet it stops costs you 7 health and heals every ally inside for 4. It bursts at a third of your health, or when you let go. |
-| Blood Wall | Tank | 1st, choice 2 | 8 s | - | Enemies against the wall take double and are slowed 40%. | Toggle: a wall of blood is laid behind you as you walk. It stops enemy bullets and enemies can't cross it (they bleed 12 a second against it); allies walk through. It stands 6 s. It drains 1% of your max health a second, doubling every 4 s, until you press again or go down. |
-| Exsanguinate | Tank | 1st, choice 3 | 8 s | 10% of max health | Also slows the enemies it drains by 50% for 2 s. | Pay 10% of your max health: barbed blood whips hook every enemy within 220 px and yank them in to you, stunned on the way. Each drains 20 health into you as it lands. Heavy enemies and bosses stay put but are still drained. |
-| Vein Tithe | Tank | ultimate | 75 s | - | Lasts 40 s and costs 25% less. | Blood tendrils bind every enemy on screen for 30 s: they can't move or shoot. You pay 0.25% of your max health a second for each one held (a boss costs four times that), and deal 40% less damage. It ends when the time runs out or you go down. |
-| Bloodbath | Tank | ultimate | 75 s | - | The pool spreads to 220 px and gives back 35% of the bleed. | Channel: blood floods the floor 170 px round you (it stays where you cast it) for up to 10 s, draining 4% of your max health a second. Enemies wading in it are slowed 50% (Heavy enemies 35%, bosses 20%) and bleed 15 a second, and every drop heals you for 25% of it, wherever you are. Allies standing in it, you included, take 20% less damage. Press again to stop; it also stops at 15% health or if you go down. |
-| Blood Gift | Healer | 1st, choice 1 | 8 s | 25% of current health | Also heals everyone else within 200 px of them for half as much. | Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you. |
-| Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Pay 25% of your max health: a shockwave bursts out 260 px around you and freezes every enemy it reaches for 5 s (bosses for 3 s). Frozen enemies can't move or shoot. |
-| Martyr | Healer | 1st, choice 3 | 16 s | 40% of max health | You're invulnerable for 2 s after the sacrifice. | Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally (you, if you're alone) is warded for 12 s: if they go down, they get straight back up at 50%. |
-| Sanguine Rain | Healer | ultimate | 80 s | - | Lasts 14 s and heals 4% a tick. | Draw 12% of your health into a blood orb (1.8 s), then rain circles follow your allies for 10 s, trickling 3% of their health every 0.5 s. It drains you 3% a second and ends when you press it again or fall to 15%. |
-| Arterial Spray | Dps | 1st, choice 1 | 8 s | - | The spray also washes away enemy bullets it touches. | Press to open a vein: a 60° jet of blood, 200 px long, follows your aim, 30 damage a second to everything in it (more the lower your health), slowing them 20% and making them bleed. It drains 4% of your max health a second. Press again to stop; it sputters out at 15% health. The cooldown starts when it stops. |
-| Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow against your blood: your health drops to 25% (or 5% of your max, if you're already that low) and the rest becomes a debt. For 8 s, kills pay it back (a Grunt 4% of your max health, a Heavy or an elite 10%, hurting a boss 10% of the damage) and your hits heal 15% instead of 3%. Pay it all and you keep the 15% for 2 s more; what's unpaid after 8 s is lost. |
-| Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Pay 10% of your max health and rush 280 px toward your cursor as a streak of blood, untouchable. Every enemy you pass through takes 25 and bleeds, and gives back 2% of your max health. You leave a trail of blood that slows enemies 30% for 2 s. |
-| Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy in the arena (20 damage each) into a floating ball, bigger the more enemies fed it. Press again to throw it at your cursor for a huge blast; it throws itself after 5 s. |
-| Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Pay 12% of your max health: twelve blood needles burst out of you all round, 240 px. Each stops on the first enemy it meets for 45 and a bleed stack, and whips a tendril on to the nearest enemy no tendril has reached yet (180 px) for 30, which chains on: 3 jumps a needle, 20% less each jump. |
+| Blood Shell | Tank | 1st, choice 1 | 9 s | - | The burst also erases enemy bullets within 160 px. | Hold to wrap yourself and allies in a bubble that blocks bullets. |
+| Blood Wall | Tank | 1st, choice 2 | 8 s | - | Enemies against the wall take double and are slowed 40%. | Toggle a wall of blood behind you that blocks bullets and hurts enemies. |
+| Exsanguinate | Tank | 1st, choice 3 | 8 s | 10% of max health | Also slows the enemies it drains by 50% for 2 s. | Yank every nearby enemy in, stunned, and drain them. |
+| Vein Tithe | Tank | ultimate | 75 s | - | Lasts 40 s and costs 25% less. | Bind every enemy on screen at the cost of your health. |
+| Bloodbath | Tank | ultimate | 75 s | - | The pool spreads to 220 px and gives back 35% of the bleed. | Flood the floor with blood that slows and bleeds enemies and heals you. |
+| Blood Gift | Healer | 1st, choice 1 | 8 s | 25% of current health | Also heals everyone else within 200 px of them for half as much. | Pay health to heal the most hurt ally twice as much. |
+| Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Freeze every enemy near you at a cost of health. |
+| Martyr | Healer | 1st, choice 3 | 16 s | 40% of max health | You're invulnerable for 2 s after the sacrifice. | Pay health to revive a downed ally, or ward the most hurt one. |
+| Sanguine Rain | Healer | ultimate | 80 s | - | Lasts 14 s and heals 4% a tick. | Rain healing circles that follow your allies. |
+| Arterial Spray | Dps | 1st, choice 1 | 8 s | - | The spray also washes away enemy bullets it touches. | Open a vein: a jet of blood hurts and bleeds everything in front of you. |
+| Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow health to heal on hit, and pay it back with kills. |
+| Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Rush toward your cursor untouchable, bleeding enemies on the way. |
+| Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy into a ball, then throw it as a huge blast. |
+| Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies. |
 
 ### Engineer
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Vector Wall | Tank | 1st, choice 1 | 10 s | - | Seven tiles, and it lasts 12 s. | Draw a 5-tile wall across your aim at the cursor (up to 220 px away). It stops enemy shots for 8 s, or until it has soaked its fill. |
-| Bastion | Tank | ultimate | 75 s | - | No gaps for the first 3 s, and it lasts 14 s. | Raise a ring of vector walls round you (130 px) for 10 s, with four gaps to shoot out of. The walls stop enemy shots. |
-| Med Pylon | Healer | 1st, choice 1 | 6 s | - | Its field is 40% wider. | Plant a pylon at your cursor (up to 320 px away). Its field heals allies inside for 10 a second. It stays until you plant the next one. |
-| Safe Room | Healer | ultimate | 80 s | - | It lasts 18 s. | The Breach hammer opens the wall you aim at: in the Expanding arena a room behind it heals everyone inside for 20 a second and cuts the damage they take by 30% for 12 s. No room: a healing dome (160 px) at your cursor. |
-| Drag Pylon | Dps | 1st, choice 1 | 6 s | - | Its field is 40% wider. | Plant a pylon at your cursor (up to 320 px away). Its field slows enemies inside by 45% (bosses 20%). It stays until you plant the next one. |
-| Breach | Dps | ultimate | 70 s | - | The blast is twice as wide. | Smash the wall you aim at (up to 220 px): 80 damage and a shove by the wall. In the Expanding arena a free random room opens behind it with one thing inside: vectors, gold or an ambush. No wall in reach: the blast and the loot land at your cursor. |
+| Vector Wall | Tank | 1st, choice 1 | 10 s | - | Seven tiles, and it lasts 12 s. | Draw a wall that stops enemy shots. |
+| Bastion | Tank | ultimate | 75 s | - | No gaps for the first 3 s, and it lasts 14 s. | Raise a ring of walls around you with gaps to shoot through. |
+| Med Pylon | Healer | 1st, choice 1 | 6 s | - | Its field is 40% wider. | Plant a pylon whose field heals allies. |
+| Safe Room | Healer | ultimate | 80 s | - | It lasts 18 s. | Open a wall into a room that heals and protects everyone inside. |
+| Drag Pylon | Dps | 1st, choice 1 | 6 s | - | Its field is 40% wider. | Plant a pylon whose field slows enemies. |
+| Breach | Dps | ultimate | 70 s | - | The blast is twice as wide. | Smash a wall to open a random room with loot or an ambush. |
 
 ### Arcanist
 
 | Ability | Role | Slot | Cooldown | Cost | Mastery (level 5) | What it does |
 |---|---|---|---|---|---|---|
-| Kinetic Grasp | Tank | 1st, choice 1 | 10 s | - | The throw hits 50% harder and stuns for twice as long. | Lift the biggest enemy near your cursor (not a boss) and hold it in front of you as a shield: it soaks the bullets that hit it. Press again, or wait 4 s, to throw it along your aim: 50 damage to it and to the enemy it hits, which is knocked back and stunned. Nothing in reach: most of the cooldown comes back. |
-| Grand Sigil | Tank | ultimate | 75 s | - | It lasts 12 s. | Draw a rune circle round you (200 px) for 8 s. Enemies inside are bound for 1 s, then slowed by half and drawn to you. Enemy bullets freeze where they meet its rim; when it ends, every frozen bullet flies back out as a spectral blade. |
-| Arcane Tether | Healer | 1st, choice 1 | 12 s | - | It heals twice as much. | Pull the ally nearest your cursor (up to 480 px away, downed or not) to your side. They can't be hurt on the way and land healed for 30. Nobody in reach: most of the cooldown comes back. |
-| Sanctum Sigil | Healer | ultimate | 80 s | - | It lasts 12 s. | A healing circle (170 px) follows you for 8 s: allies inside heal 25 a second. Six runes turn on its rim; each bursts on the first enemy that touches it (50 damage round it and a shove). |
-| Telekinetic Crush | Dps | 1st, choice 1 | 9 s | - | It grabs 40% wider. | Lift the enemies at your cursor (120 px, up to 400 px away) and pull them together for half a second, then slam them: 40 damage, +12 for each other enemy caught (up to +60), and a short stun. Bosses aren't lifted. |
-| Runic Array | Dps | ultimate | 65 s | - | It lasts 9 s. | Four sigils open behind you for 6 s: every Fire also sends a spectral blade from each of them at your cursor (16 each, through one enemy), even while your blades are out. |
+| Kinetic Grasp | Tank | 1st, choice 1 | 10 s | - | The throw hits 50% harder and stuns for twice as long. | Lift the biggest nearby enemy as a shield, then throw it. |
+| Grand Sigil | Tank | ultimate | 75 s | - | It lasts 12 s. | A rune circle around you binds and slows enemies and freezes their bullets, then fires them back. |
+| Arcane Tether | Healer | 1st, choice 1 | 12 s | - | It heals twice as much. | Pull the ally nearest your cursor to your side, safe and healed. |
+| Sanctum Sigil | Healer | ultimate | 80 s | - | It lasts 12 s. | A healing circle follows you and its runes burst on enemies. |
+| Telekinetic Crush | Dps | 1st, choice 1 | 9 s | - | It grabs 40% wider. | Lift enemies at your cursor, pull them together and slam them. |
+| Runic Array | Dps | ultimate | 65 s | - | It lasts 9 s. | Four sigils behind you fire a spectral blade with every shot. |
 
 ## Enemies
 
