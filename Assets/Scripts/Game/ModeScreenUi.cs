@@ -49,6 +49,10 @@ namespace Arena
             }
         }
 
+        /// GAME MODE, where the lobby's title sits (the menu's entrance flies VECTOR COLOSSEUM into it, LobbyEnter.cs). `a` fades it.
+        void DrawModeScreenTitle(Rect r, float a) =>
+            LobbyKit.Spaced(new Rect(r.x, r.y, 300f, r.height), "GAME MODE", 16, new Color(0.56f, 0.71f, 1f, a), TextAnchor.MiddleLeft, 4.8f);
+
         /// The mode screen itself (drawn by DrawLobbyContent in place of the lobby).
         void DrawModeScreen(float t)
         {
@@ -60,7 +64,7 @@ namespace Arena
             LobbyGlowBox(back);
             if (DkKey(back, "", false, calm, PixelArt.Get("ui_back"), size: 22))
                 lobbyTab = 0;
-            LobbyKit.Spaced(new Rect(back.xMax + 14f, LobbyHeadY, 260f, LobbyHeadKey), "GAME MODE", 16, new Color(0.56f, 0.71f, 1f), TextAnchor.MiddleLeft, 4.8f);
+            DrawModeScreenTitle(LobbyTitleRect, 1f);
             DrawModeSwitch(new Rect(W / 2f - 260f, 24f, 520f, 52f), t);
             // Back to the lobby at the right end, with who's in it (the lobby is still open behind this).
             int ready = 0;
