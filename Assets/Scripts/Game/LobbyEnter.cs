@@ -94,7 +94,8 @@ namespace Arena
             // Continuing a saved run: the Seats tab has no box to grow into, so the card stays put and fades out instead.
             bool fade = session.Resume != null;
             float cardA = fade ? 1f - Seg(e, 0f, 0.5f) : 1f;
-            var r = fade ? MenuCard : LerpRect(MenuCard, LobbyBodyRect, k);
+            bool modeScreen = OnModeScreen;  // a new lobby opens on the Game Mode screen (ModeScreenUi.cs): the card grows into its page
+            var r = fade ? MenuCard : LerpRect(MenuCard, modeScreen ? ModePageRect : LobbyBodyRect, k);
 
             // The disk drive under the title (DriveSlot.cs) is gone before the box grows up over it, and drawn first so the box covers any
             // of it that is left (leaving plays this backwards: the drive comes back as the box settles below it).
@@ -128,15 +129,18 @@ namespace Arena
             DrawLobbyPieces(e, false);
             GUI.color = oldColor;
 
-            // The title flies to the top left, shrinking, and turns into LOBBY on the way.
+            // The title flies to the top left, shrinking, and turns into LOBBY (or GAME MODE) on the way.
             float tk = EaseInOut(Seg(e, 0f, 0.6f));
             var to = LobbyTitleAnchor;  // where the small LOBBY title's text sits (LobbyLayout.cs)
             float cx = Lerp(W / 2f, to.X, tk), cy = Lerp(MenuTitleY, to.Y, tk), size = Lerp(MenuTitleSize, 18f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
                 WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
-            if (newA > 0f)
-                WithAlpha(newA, () => DrawLobbyTitle(new Rect(LobbyTitleRect.x + (cx - to.X), LobbyTitleRect.y + (cy - to.Y), LobbyTitleRect.width, LobbyTitleRect.height), 1f, fxReduced, t));  // (the lobby's own title, so the hand-over at the end shows no change)
+            var titleR = new Rect(LobbyTitleRect.x + (cx - to.X), LobbyTitleRect.y + (cy - to.Y), LobbyTitleRect.width, LobbyTitleRect.height);
+            if (newA > 0f && modeScreen)
+                WithAlpha(newA, () => DrawModeScreenTitle(titleR, 1f));
+            else if (newA > 0f)
+                WithAlpha(newA, () => DrawLobbyTitle(titleR, 1f, fxReduced, t));  // (the lobby's own title, so the hand-over at the end shows no change)
 
             // GL: the card's plot corners and the ring off your party card.
             if (BeginUiGl())
@@ -148,7 +152,7 @@ namespace Arena
                 if (cornersA > 0f)
                     DrawPlotCorners(r, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * cornersA));
                 float ring = Seg(e, 1.1f, 1.6f);
-                if (ring > 0f && ring < 1f && !leaving)
+                if (ring > 0f && ring < 1f && !leaving && !modeScreen)
                     DrawPartyCardRing(ring);
                 EndUiGl();
             }
@@ -161,6 +165,18 @@ namespace Arena
             // Repaint only, so nothing in them takes a click (GUI.enabled = false would also draw them half see-through).
             // Its live models wait.
             uiGlBlocked = true;
+            if (OnModeScreen)
+            {
+                // The Game Mode screen's pieces (ModeScreenUi.cs): Back, the carousel and TO THE LOBBY from above, then its page.
+                LobbyPiece(LobbyBackBand, e, 0.5f, 0.8f, -60f, 0f);
+                if (title)
+                    LobbyPiece(LobbyTitleBand, e, 0.45f, 0.8f, 0f, -20f);
+                LobbyPiece(ModeCarouselBand, e, 0.5f, 0.85f, 0f, -30f);
+                LobbyPiece(ModeGoBand, e, 0.6f, 0.95f, 0f, -30f);
+                LobbyPiece(ModePageBand, e, 0.65f, 1.05f, 0f, 0f, true);
+                uiGlBlocked = false;
+                return;
+            }
             // (the bands are LobbyLayout.cs's, so they follow the boxes)
             LobbyPiece(LobbyBackBand, e, 0.5f, 0.8f, -60f, 0f);            // the Back key
             if (title)
