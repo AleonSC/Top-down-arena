@@ -70,7 +70,7 @@ namespace Arena
             }
         }
 
-        static readonly Color[] BackgroundAccents = { new Color(0.45f, 0.62f, 1f), new Color(0.72f, 0.82f, 1f), new Color(0.45f, 0.4f, 0.95f), new Color(0.2f, 0.75f, 0.85f) };  // Holo Floor, Deep Field, Nebula Drift, Aurora Veil
+        static readonly Color[] BackgroundAccents = { new Color(1f, 0.45f, 0.5f), new Color(0.72f, 0.82f, 1f), new Color(0.45f, 0.4f, 0.95f), new Color(0.2f, 0.75f, 0.85f) };  // Holo Floor, Deep Field, Nebula Drift, Aurora Veil
 
 
 
