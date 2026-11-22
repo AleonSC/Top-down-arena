@@ -349,6 +349,11 @@ namespace Arena
                 LobbyGlowBox(rects[k]);
                 if (LobbyKit.FolderTab(rects[k], names[k], on))
                 {
+                    if (k == 2)  // the Hangout is a real match, held between waves (HangoutGame.cs): the key opens it for the party
+                    {
+                        session.StartHangout();
+                        continue;
+                    }
                     lobbyTab = on ? 0 : tabs[k];
                     CloseFavorites();
                 }

@@ -528,7 +528,7 @@ namespace Arena
                     continue;  // asleep in an unseen room: still until the room is seen or it is hit (DormantGroups.cs)
                 if (DevFreeze)
                     continue;  // F1 dev tool: frozen in place, no moving or shooting (DevTools.cs)
-                if (ShowcaseMode)
+                if (Quiet)
                 {
                     if (e.FrozenT > 0f)  // (still thaws: a Glacial Tomb's ice must end in the preview)
                     {

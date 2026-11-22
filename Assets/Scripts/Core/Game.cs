@@ -164,7 +164,7 @@ namespace Arena
             var w = Proto.Begin(Msg.Start);
             w.Write(session.StartWave);
             // Quick Play (QuickPlay.cs): its boss order, drawn here so every machine plays the same bosses.
-            bool quick = session.QuickMode && session.LobbyHunt == null && ResumeFrom == null;
+            bool quick = session.QuickMode && session.LobbyHunt == null && ResumeFrom == null && !HangoutStart;
             w.Write(quick);
             if (quick)
             {
@@ -191,8 +191,9 @@ namespace Arena
                 Session.WriteVgChain(w, e.Chain);  // their Vowguard chains (Vowguard.cs)
             }
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
-            w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
-            WriteSurvivalStart(w, quick);  // Survival mode: the flag and its seed (SurvivalGame.cs)
+            w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick && !HangoutStart);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
+            WriteSurvivalStart(w, quick || HangoutStart);  // Survival mode: the flag and its seed (SurvivalGame.cs)
+            w.Write(HangoutStart);  // the Hangout (HangoutGame.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
@@ -280,6 +281,7 @@ namespace Arena
             bool resumed = r.ReadBoolean();
             LongRun = r.ReadBoolean();  // a 100-wave Campaign (Hunts.cs)
             ReadSurvivalStart(r);  // SurvivalGame.cs
+            HangoutRead(r.ReadBoolean());  // HangoutGame.cs
             if (resumed && !IsHost)
                 foreach (var p in entries)
                     p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
@@ -294,6 +296,11 @@ namespace Arena
                 Wave = Math.Max(0, startWave - 1);
                 BossSlot = IsBossWave(Wave);  // starting after a boss: its wave is done (a saved run says so itself: ApplyResume)
             }
+            if (HangoutOn)
+            {
+                Wave = 1;  // (no wave counts in the Hangout)
+                BossSlot = false;
+            }
             retrying = false;  // (Stop above has let the retried run go without recording it: Checkpoints.cs)
             LivesUsed = 0;  // (a continued run gets its own back: ApplyResume)
             RetryReady = false;
@@ -307,7 +314,7 @@ namespace Arena
             if (Recorder != null && !Recorder.Ended)
                 Recorder.End(this, "restarted");  // a new run started over one still going: finish its file first
             Recorder = null;
-            if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight or the lobby's preview)
+            if (IsHost && RecordFolder != null && !Unrecorded && !Quiet)  // (not a Boss Lab fight or the lobby's preview)
             {
                 try
                 {
@@ -336,6 +343,7 @@ namespace Arena
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
+            HangoutOn = false;  // HangoutGame.cs
             State = MatchState.Idle;
             HuntedId = 0;
             Wave = 0;
@@ -535,8 +543,8 @@ namespace Arena
 
         void GrantXp(float amount)
         {
-            if (ShowcaseMode)
-                return;  // no levelling up in the loadout preview
+            if (Quiet)
+                return;  // no levelling up in the loadout preview or the Hangout
             foreach (var p in Players.Values)
                 GrantXpTo(p, amount);
         }

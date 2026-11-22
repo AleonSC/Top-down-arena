@@ -74,7 +74,7 @@ namespace Arena
         /// Run stats screen (Tab, or the pause menu) shows the whole party's numbers on every player's game.
         void TickLiveStats(float dt, bool now = false)
         {
-            if (!IsHost || ShowcaseMode || Players.Count < 2)
+            if (!IsHost || Quiet || Players.Count < 2)
                 return;
             liveStatsT -= dt;
             if (!now && liveStatsT > 0f)
