@@ -57,21 +57,15 @@ namespace Arena
             // each role's one weapon: a robot Engineer of the role, and a basic attack (EngineerBots.cs); it fills the class's other lobby places
             new WeaponDef { Id = WeaponId.IronFist, Kit = Kit.Engineer, FillsGaps = true, Role = Role.Tank, Choice = 0, Melee = true, Reach = 95f, Grow = 15f, Damage = 10f,
                 FireInterval = 0.7f, BotRange = 80f, Name = "Iron Fist", Sound = Sfx.SwingHeavy,
-                Desc = "Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. "
-                    + "Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, "
-                    + "10 damage and a long push. A broken robot can be summoned again after 8 s.",
+                Desc = "Primary Fire: Summon a heavy Tank Bot that draws enemies and shoots nails.\n\nAlternative Fire: With the bot out, shove enemies away with a robotic fist.",
                 ExtraDesc = "the fist's arc reaches 15 px further" },
             new WeaponDef { Id = WeaponId.StasisGun, Kit = Kit.Engineer, FillsGaps = true, Role = Role.Healer, Choice = 0, Reach = StasisReach, Damage = 14f,
                 FireInterval = 0.1f, BotRange = 250f, Name = "Stasis Gun", Sound = Sfx.Ability,
-                Desc = "Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. "
-                    + "Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): "
-                    + "enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s.",
+                Desc = "Primary Fire: Summon a Medic Bot that shoots rivets and heals nearby allies.\n\nAlternative Fire: With the bot out, hold to freeze enemies in place at your cursor.",
                 ExtraDesc = "the stasis field is 8 px wider" },
             new WeaponDef { Id = WeaponId.VectorBlade, Kit = Kit.Engineer, FillsGaps = true, Role = Role.Dps, Choice = 0, Melee = true, Reach = 88f, Grow = 12f, Damage = 24f,
                 FireInterval = 0.4f, BotRange = 75f, Name = "Vector Blade", Sound = Sfx.SwingLight,
-                Desc = "Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. "
-                    + "Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. "
-                    + "A broken robot can be summoned again after 8 s.",
+                Desc = "Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.\n\nAlternative Fire: With the bot out, swipe a cyan blade in front of you.",
                 ExtraDesc = "the swipe reaches 12 px further" },
         };
 
