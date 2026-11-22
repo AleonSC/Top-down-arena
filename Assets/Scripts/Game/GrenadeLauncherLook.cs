@@ -732,7 +732,7 @@ namespace Arena
             for (int i = 0; i < Game.GlSmokeMax; i++)
             {
                 V2 at = c + side * (24f + i * 11f);
-                Rgba body = i < smoke ? GlTeal.WithAlpha(mode == 1 ? 1f : 0.55f) : new Rgba(0.11f, 0.13f, 0.1f, 0.8f);
+                Rgba body = i < smoke ? GlTeal : new Rgba(0.11f, 0.13f, 0.1f, 0.8f);
                 SetColor(body);
                 Quad(at + new V2(-3.5f, -4.5f), at + new V2(3.5f, -4.5f), at + new V2(3.5f, 4.5f), at + new V2(-3.5f, 4.5f));
                 if (i == smoke && p.GlCharge > 0f)

@@ -67,15 +67,13 @@ static partial class Program
         Step(0.5f, from + new V2(250f, 0f), false, false);
         Check(me.GlUsed == 0 && me.GlReload <= 0f, "it comes back full");
 
-        // Alt: the smoke drum, after the swap
+        // Alt: lobs a smoke canister while the HE drum stays loaded
         g.Bullets.Clear(); g.Zones.Clear();
         Step(dt * 4f, from + new V2(250f, 0f), false, true);
-        Check(me.GlMode == 1 && me.GlSwap > 0f, "Alt swaps to the smoke drum");
-        shot = me.GlShot;
-        Step(0.3f, from + new V2(250f, 0f), true, false);
-        Check(me.GlShot == shot, "nothing fires mid-swap");
+        Check(me.GlMode == 0 && me.GlSmokeUsed == 1 && g.Zones.Values.Any(z => z.Kind == ZoneKind.SmokeShell), "Alt lobs a smoke canister without swapping");
         Step(0.5f, from + new V2(250f, 0f), false, false);
-        Check(client.Game.Players[1].GlMode == 1, "the other screen sees the smoke drum");
+        Check(client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.SmokeShell), "the other screen sees the canister");
+        g.Zones.Clear(); me.GlSmokeUsed = 0; me.GlCharge = 0f;
 
         // a regular enemy shoots until a cloud opens on it; then it's jammed and slowed. A mini-boss is only slowed.
         var miniType = ((EnemyType[])Enum.GetValues(typeof(EnemyType))).First(t => (int)t < Defs.Enemies.Length && Defs.Get(t).Mini);
@@ -86,9 +84,10 @@ static partial class Program
         watched = shooter;
         Step(1.2f, from + new V2(600f, -300f), false, false);
         Check(enemyShots > 0, "the grunt shoots while no cloud is on it (" + enemyShots + ")");
-        Step(dt * 2f, shooter.Pos - new V2(Game.GlSmokeHop1 + Game.GlSmokeHop2, 0f), true, false);
+        mini.Pos = shooter.Pos + new V2(20f, 50f);  // (it wandered while the grunt shot)
+        Step(dt * 2f, shooter.Pos - new V2(Game.GlSmokeHop1 + Game.GlSmokeHop2, 0f), false, true);
         var cloud = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.SmokeShell);
-        Check(cloud != null && me.GlSmokeUsed == 1, "a click lobs a smoke canister");
+        Check(cloud != null && me.GlSmokeUsed == 1, "Alt lobs a smoke canister");
         Step(1.5f, from, false, false);
         Check(client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.SmokeShell), "the other screen has the cloud");
         enemyShots = 0;
@@ -109,9 +108,8 @@ static partial class Program
         Check(me.GlSmokeUsed == 0, "the canister came back after 6 s (" + me.GlSmokeUsed + " spent)");
         for (int i = 0; i < 4; i++)
         {
-            me.FireCd = 0f;
-            Step(dt * 2f, from + new V2(200f, 0f), true, false);
-            Step(0.4f, from + new V2(200f, 0f), false, false);
+            Step(dt * 2f, from + new V2(200f, 0f), false, true);
+            Step(0.7f, from + new V2(200f, 0f), false, false);
         }
         Check(me.GlSmokeUsed == Game.GlSmokeMax, "three canisters, then it's dry (" + me.GlSmokeUsed + ")");
 

@@ -1097,7 +1097,7 @@ namespace Arena
             if (LocalTankAlt(me, aimAt, pressed, dt))
                 return;  // the Tank Soldier's Double Barrel, Proximity Shell and Tear Gas (TankAlts.cs)
             if (LocalDrumSwap(me, aimAt, pressed, dt))
-                return;  // the Grenade Launcher's drum swap (GrenadeLauncher.cs)
+                return;  // the Grenade Launcher's smoke canister (GrenadeLauncher.cs)
             if (LocalPackMerge(me, pressed, aimAt, dt))
                 return;  // the Wolf Whistle's alpha (WolfPack.cs)
             starSwitchLocalCd -= dt;
@@ -1426,7 +1426,7 @@ namespace Arena
             }
             if (kind == DashDrum)
             {
-                HostDrumSwap(p);  // the Grenade Launcher's Alt (GrenadeLauncher.cs)
+                HostSmokeLob(p, target);  // the Grenade Launcher's Alt (GrenadeLauncher.cs)
                 return;
             }
             if (kind == DashBoneWall)
