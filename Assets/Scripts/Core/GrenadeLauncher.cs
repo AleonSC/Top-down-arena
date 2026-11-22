@@ -7,9 +7,8 @@ namespace Arena
     ///     GlRange px), GlGap apart. It flies GlFlight(distance), hops GlHop px in GlHopTime, then bursts: WeaponDef damage in GlRadius,
     ///     half at the edge, and a small shove (ExplodeGrenade in Combat.cs calls GlBlast). GlDrum rounds (Heavy Drum: more), then a
     ///     reload of GlReloadTime (Player.GlReload counts it down, speeding up with fire rate). Player.GlUsed counts the rounds spent.
-    ///   Alt (Msg.WeaponDash, DashDrum): swaps the drum in GlSwapTime (Player.GlSwap counts it down; no firing meanwhile). The mode flips
-    ///     at once on the host; the look shows the old drum until GlSwapFlip of the way through.
-    ///   Smoke drum (Player.GlMode 1): each click lobs a canister to the cursor (ZoneKind.SmokeShell). It flies like a grenade, bounces
+    ///   Alt (Msg.WeaponDash, DashDrum): lobs a smoke canister to the cursor (like the Riot Repeater's Tear Gas), GlSmokeGap apart, while the
+    ///     HE drum keeps firing. Player.GlMode and GlSwap stay 0 (the old drum swap, kept in the snapshot). The canister (ZoneKind.SmokeShell) flies like a grenade, bounces
     ///     twice (GlSmokeHops) and opens into a cloud GlSmokeRadius round for GlSmokeLife. Regular enemies in it are slowed GlSmokeSlow
     ///     and can't attack (Enemy.SmokeT, read with the daze in EnemyAI.cs); bosses and mini-bosses are only slowed GlSmokeBossSlow.
     ///     GlSmokeMax canisters (Player.GlSmokeUsed counts the spent ones), one back every GlSmokeRegen s in either drum (Player.GlCharge).
@@ -19,7 +18,7 @@ namespace Arena
     {
         public const int GlDrum = 6, GlSmokeMax = 3;
         public const float GlGap = 0.42f, GlReloadTime = 1.5f, GlRadius = 72f, GlRange = 380f, GlMin = 60f, GlEdge = 0.5f, GlShove = 22f;
-        public const float GlHop = 12f, GlHopTime = 0.16f, GlSwapTime = 0.55f, GlSwapFlip = 0.42f, GlMuzzle = 30f;
+        public const float GlHop = 12f, GlHopTime = 0.16f, GlSwapTime = 0.55f, GlSmokeGap = 0.55f, GlSwapFlip = 0.42f, GlMuzzle = 30f;
         public const float GlSmokeRadius = 105f, GlSmokeLife = 6f, GlSmokeRegen = 6f, GlSmokeSlow = 0.45f, GlSmokeBossSlow = 0.3f, GlSmokeGrow = 0.7f;
         public const float GlSmokeHop1 = 16f, GlSmokeHop2 = 6f, GlSmokeHopT1 = 0.16f, GlSmokeHopT2 = 0.1f;
         public static readonly Rgba GlBoomColor = new Rgba(1f, 0.62f, 0.27f);  // a Grenade Launcher blast's Boom (nothing else uses it)
@@ -60,7 +59,7 @@ namespace Arena
             return false;
         }
 
-        float glLocalCd;  // your own game: until Alt swaps again
+        float glLocalCd;  // your own game: until Alt lobs again
 
         /// Host, every tick the launcher is out: the swap, the reload, the smoke coming back, and the trigger.
         void TickGrenadeLauncher(Player p, float dt)
@@ -89,29 +88,16 @@ namespace Arena
             }
             else if (p.GlUsed >= GlDrumOf(p))
                 p.GlReload = GlReloadTime;
-            if (p.GlSwap > 0f)
-            {
-                p.GlSwap = Math.Max(0f, p.GlSwap - dt);
-                return;
-            }
             if (!p.Firing || p.ParryActive || p.FireCd > 0f || State == MatchState.GameOver)
                 return;
-            if (p.GlMode == 0)
-            {
-                if (p.GlReload > 0f || p.GlUsed >= GlDrumOf(p))
-                    return;
-                p.FireCd = GlGap / FireRate(p);
-                FirePlayer(p);  // FireVolley: LaunchGrenade (and Barrage's copies)
-                p.GlUsed++;
-                p.GlShot = (byte)(p.GlShot + 1);
-                if (p.GlUsed >= GlDrumOf(p))
-                    p.GlReload = GlReloadTime;
-            }
-            else if (p.GlSmokeUsed < GlSmokeMax)
-            {
-                p.FireCd = GlGap / FireRate(p);
-                LaunchSmoke(p);
-            }
+            if (p.GlReload > 0f || p.GlUsed >= GlDrumOf(p))
+                return;
+            p.FireCd = GlGap / FireRate(p);
+            FirePlayer(p);  // FireVolley: LaunchGrenade (and Barrage's copies)
+            p.GlUsed++;
+            p.GlShot = (byte)(p.GlShot + 1);
+            if (p.GlUsed >= GlDrumOf(p))
+                p.GlReload = GlReloadTime;
         }
 
         /// Host, every tick: a launcher put away is ready again when it comes back out.
@@ -124,11 +110,11 @@ namespace Arena
         }
 
         /// Where a lob from `p` along `aim` lands: the cursor's distance (GlMin to GlRange), inside the arena. `from` is the muzzle.
-        V2 GlTarget(Player p, float aim, out V2 from)
+        V2 GlTarget(Player p, float aim, out V2 from, V2? at = null)
         {
             V2 dir = V2.FromAngle(aim);
             from = p.Pos + dir * GlMuzzle;
-            float dist = Math.Max(GlMin, Math.Min(GlRange * p.Stats.ShotSpeedMult, p.AimAt.DistanceTo(p.Pos)));
+            float dist = Math.Max(GlMin, Math.Min(GlRange * p.Stats.ShotSpeedMult, (at ?? p.AimAt).DistanceTo(p.Pos)));
             return ClampToArena(p.Pos + dir * dist, 12f);
         }
 
@@ -171,11 +157,11 @@ namespace Arena
         public static readonly Rgba GlSmokeColor = new Rgba(0.37f, 0.83f, 0.74f);
 
         /// Host: a smoke canister to the cursor (the smoke drum's shot).
-        void LaunchSmoke(Player p)
+        void LaunchSmoke(Player p, V2 aimAt)
         {
-            V2 toward = p.AimAt - p.Pos;
+            V2 toward = aimAt - p.Pos;
             float aim = toward.Length > 1f ? toward.Angle : p.Aim;
-            V2 from, at = GlTarget(p, aim, out from);
+            V2 from, at = GlTarget(p, aim, out from, aimAt);
             V2 dir = (at - from).Length > 1f ? (at - from).Normalized() : V2.FromAngle(aim);
             float dist = at.DistanceTo(from);
             V2 rest = ClampToArena(at + dir * (GlSmokeHop1 + GlSmokeHop2), 12f);
@@ -187,14 +173,13 @@ namespace Arena
             Sounds.Add(Sfx.TankGasLaunch);
         }
 
-        /// Host: Alt. Swap the drum (not mid-swap).
-        void HostDrumSwap(Player p)
+        /// Host: Alt. Lob a smoke canister to the cursor (if one is loaded).
+        void HostSmokeLob(Player p, V2 aimAt)
         {
-            if (p.Weapon.Id != WeaponId.GrenadeLauncher || p.StunT > 0f || p.GlSwap > 0f || State == MatchState.GameOver)
+            if (p.Weapon.Id != WeaponId.GrenadeLauncher || p.StunT > 0f || p.GasCd > 0f || p.GlSmokeUsed >= GlSmokeMax || State == MatchState.GameOver)
                 return;
-            p.GlMode = (byte)(1 - p.GlMode);
-            p.GlSwap = GlSwapTime;
-            Sounds.Add(Sfx.TankShellLoad);
+            p.GasCd = GlSmokeGap;
+            LaunchSmoke(p, aimAt);
         }
 
         /// Host, every tick: smoke clouds land, then slow and jam what's in them; the launcher refills when put away.
@@ -226,13 +211,13 @@ namespace Arena
             }
         }
 
-        /// Your own game: Alt with the launcher out. True when it sent the swap.
+        /// Your own game: Alt with the launcher out. True when it sent the smoke lob.
         bool LocalDrumSwap(Player me, V2 aimAt, bool pressed, float dt)
         {
             glLocalCd = Math.Max(0f, glLocalCd - dt);
             if (!pressed || me.Weapon.Id != WeaponId.GrenadeLauncher || glLocalCd > 0f)
                 return false;
-            glLocalCd = GlSwapTime;
+            glLocalCd = GlSmokeGap;
             if (IsHost)
                 HostWeaponDash(MyId, DashDrum, aimAt);
             else
