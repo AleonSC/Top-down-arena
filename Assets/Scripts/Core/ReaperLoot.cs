@@ -170,7 +170,7 @@ namespace Arena
             {
                 Id = AbilityId.ScytheThrow,
                 Name = "Scythe Throw", Cooldown = 9f,
-                Desc = "Throw a giant scythe at your cursor (up to 380 px). It cuts everything it passes, 45 on the way out and 45 on the way back, and slices small enemy bullets. Catch it as it comes back to take 40% off the cooldown.",
+                Desc = "Throw a giant scythe that cuts out and back; catch it to cool down faster.",
                 Capstone = "Catching it takes 60% off, and it cuts 50% harder.",
                 Bot = b => b.HaveTarget && b.TargetD < 380f,
             },

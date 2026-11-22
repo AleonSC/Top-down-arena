@@ -43,7 +43,7 @@ namespace Arena
             {
                 Id = AbilityId.DragonsDogma, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
                 Name = "Dragon's Dogma", Cooldown = 70f,
-                Desc = "A great spirit dragon bursts out of you and hunts across the arena for 5 s, devouring every enemy its jaws reach and swallowing their shots. Bosses and heavy enemies take a 150 bite instead. Then it coils back into you.",
+                Desc = "A spirit dragon hunts across the arena, devouring enemies and their shots.",
                 Capstone = "Hunts for 7 s, and every enemy it devours heals you 3%.",
                 Bot = b => b.NearEnemies >= DogmaBotCrowd,
             },

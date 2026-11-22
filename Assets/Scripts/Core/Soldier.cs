@@ -20,7 +20,7 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.Scattergun, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f,
-                Desc = "Primary Fire: A short-range shotgun spread, brutal up close.\n\nAlternative Fire: Fire all your loaded shells at once.",
+                Desc = "Primary Fire: A short-range shotgun spread, brutal up close.\n\nAlternative Fire: Lob a shock grenade that stuns enemies where it lands.",
                 Sound = Sfx.ShotShotgun },
             new WeaponDef { Id = WeaponId.FlakCannon, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets", Name = "Flak Cannon", FireInterval = 0.8f,
                 Desc = "Primary Fire: Shells that burst in the air at your cursor and destroy enemy bullets.\n\nAlternative Fire: Lay a proximity shell that bursts when an enemy steps on it.",
@@ -123,7 +123,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Barrier, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0,
-                Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage).",
+                Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops enemy bullets.",
                 Capstone = "Bullets that hit the barrier are reflected back as your own.",
                 Bot = b => b.Danger,
             },
@@ -137,21 +137,21 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.PoisonDart, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0,
-                Name = "Poison Dart", Cooldown = 8f, Desc = "Dart the enemy nearest your cursor: 20 damage, then poison for 18 a second over 5 s. If it dies poisoned, the poison spreads to the 3 nearest enemies (80% as strong), and on from them.",
+                Name = "Poison Dart", Cooldown = 8f, Desc = "Poison the nearest enemy; the poison spreads when it dies.",
                 Capstone = "Spreads to 5 enemies at a time, at full strength.",
                 Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Shockwave, Instant = true,
-                Name = "Shockwave", Cooldown = 14f, Desc = "A shockwave runs out 230 px from you: it erases enemy bullets, hits enemies for 60 and shoves them back 120 px.",
+                Name = "Shockwave", Cooldown = 14f, Desc = "A shockwave erases bullets and shoves enemies back.",
                 Capstone = "The wave runs out 300 px.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.Overdrive,
-                Name = "Overdrive", Cooldown = 18f, Desc = "Double fire rate for 5 seconds.",
+                Name = "Overdrive", Cooldown = 18f, Desc = "Double your fire rate for a few seconds.",
                 Capstone = "+1 extra projectile while it lasts.",
             },
             new AbilityDef
@@ -164,20 +164,20 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Starburst, Instant = true,
-                Name = "Starburst", Cooldown = 9f, Desc = "Fire a ring of 24 heavy shots.",
+                Name = "Starburst", Cooldown = 9f, Desc = "Fire a ring of heavy shots.",
                 Capstone = "Fires 48 shots instead of 24.",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Turret,
-                Name = "Turret", Cooldown = 20f, Desc = "Deploy a turret that shoots for 10 seconds.",
+                Name = "Turret", Cooldown = 20f, Desc = "Deploy a turret that shoots for a while.",
                 Capstone = "Deploys two turrets.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Roar, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Instant = true,
-                Name = "Roar", Cooldown = 14f, Desc = "Every enemy targets you for 5 s, and you take 40% less damage meanwhile.",
+                Name = "Roar", Cooldown = 14f, Desc = "Every enemy targets you, and you take less damage.",
                 Capstone = "Also knocks enemies within 250 px back and slows them for 2 s.",
                 Bot = b => b.HaveTarget && b.Players > 1 && (b.AllyThreatened || b.Me.Hp < b.Me.MaxHp * 0.5f),  // draw the enemies off a teammate in trouble
             },
@@ -190,48 +190,48 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th choice (DeployableCover.cs)
-                Name = "Deployable Cover", Cooldown = CoverCooldown, Desc = "Two charges. Plant a bracket of steel plate in front of you that stops enemy bullets and enemies until it has taken 400 damage; your team's shots pass through. Up to 3 stand at once (another folds away the oldest), and they fold away when the wave is cleared.",
+                Name = "Deployable Cover", Cooldown = CoverCooldown, Desc = "Plant steel cover that stops enemy bullets while your team shoots through.",
                 Capstone = "Covers take 600 damage, and each charge comes back 25% sooner.",
                 Bot = b => b.Danger || b.NearEnemies >= 3,
             },
             new AbilityDef
             {
                 Id = AbilityId.Adrenaline, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
-                Name = "Adrenaline Shot", Cooldown = AdrenalineCooldown, Desc = "Inject the player closest to your cursor (you, if alone): 8 s of +30% move speed, +40% fire rate and 30% less damage taken.",
+                Name = "Adrenaline Shot", Cooldown = AdrenalineCooldown, Desc = "Boost a player's speed and fire rate and cut their damage taken.",
                 Capstone = "Also gives the nearest other ally within 250 px a half-length (4 s) dose.",
                 Bot = b => b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.Medkit, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2,
-                Name = "Deployable Medkit", Cooldown = MedkitCooldown, Desc = "Throw a medkit at your cursor: it bursts into 6 healing orbs (15 health each) that anyone can pick up for 6 s.",
+                Name = "Deployable Medkit", Cooldown = MedkitCooldown, Desc = "Throw a medkit that bursts into health orbs anyone can grab.",
                 Capstone = "Bursts into 9 orbs worth 20 health each.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.DecoyDummy, Kit = Kit.Soldier, Role = Role.Healer, Choice = AbilityDef.Fourth, ExtraCharges = DecoyCharges - 1,  // the lobby's 4th choice (DecoyDummy.cs)
-                Name = "Decoy Dummy", Cooldown = DecoyCooldown, Desc = "Three charges. Throw an inflatable soldier at your cursor: regular enemies within 240 px go for it and shoot at it instead of you (bosses only glance at it for a second). It has 40 health (+4 a wave) and lasts 12 s; up to 3 stand at once. When it's popped, a confetti blast shoves enemies within 90 px back and stuns them for 0.4 s.",
+                Name = "Decoy Dummy", Cooldown = DecoyCooldown, Desc = "Throw an inflatable soldier that enemies shoot at instead of you.",
                 Capstone = "Dummies have 50% more health, and the confetti blast reaches 130 px.",
                 Bot = b => b.Danger || b.NearEnemies >= 3,
             },
             new AbilityDef
             {
                 Id = AbilityId.Airstrike, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1,
-                Name = "Airstrike", Cooldown = 16f, Desc = "Throw a flare at your cursor: a jet carpets a line across the arena through it, across your aim (55 a bomb), and the line burns for 3 s.",
+                Name = "Airstrike", Cooldown = 16f, Desc = "Call a jet to carpet a line with bombs.",
                 Capstone = "A second wall lands 160 px further out, half a second later.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Mark, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Instant = true,
-                Name = "Mark for Death", Cooldown = 12f, Desc = "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s.",
+                Name = "Mark for Death", Cooldown = 12f, Desc = "Mark an enemy so it takes more damage.",
                 Capstone = "Marks the three enemies nearest your cursor.",
                 Bot = b => b.HaveTarget && !b.TargetMarked && b.TargetD < 700f,  // on the boss (or the team's focus), and not again while it's marked
             },
             new AbilityDef
             {
                 Id = AbilityId.DeployableTurret, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (DeployableTurret.cs)
-                Name = "Deployable Turret", Cooldown = DtCooldown, Desc = "Drop a heavy twin-barrel turret on your spot and climb in for 10 s: you can't move, and it fires instead of your weapon. Hold Fire and it turns onto your cursor, spooling up from 7 to 30 rounds a second of 22 damage that pierce 2 enemies. The turret takes the damage meant for you (350 health); if it is wrecked you are thrown clear and it blows early. It overheats and blows after, for 80 damage within 160 px.",
+                Name = "Deployable Turret", Cooldown = DtCooldown, Desc = "Climb into a heavy turret that spools up to a fast piercing fire.",
                 Capstone = "Fires 14 s, rounds pierce 4, and the blast does double.",
                 Bot = b => b.HaveTarget && b.NearEnemies >= 3 && b.TargetD < 480f,
             },
