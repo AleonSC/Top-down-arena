@@ -282,8 +282,9 @@ static partial class Program
         Check(stun > 0.5f && near.Hp == nearAtMark, "once it's marked, the wolves hunt the prey (not the nearer enemy) and a pack takedown stuns it");
         reset();
 
-        // Railgun.
+        // Railgun (a full charge: RailBeam.cs; the rest is the railgun suite).
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Railgun);
+        me.BowShotDraw = 1.6f;
         g.Minions.Clear();
         var onLine = dummy(from + new V2(300f, 0f));
         volley.Invoke(g, new object[] { me, 0f, 0 });
@@ -295,7 +296,7 @@ static partial class Program
         var after = dummy(from + new V2(200f, 0f));  // long after
         play(0.5f);
         Console.WriteLine("  railgun: on the line {0:0.0}; stepped into the path just after {1:0.0}; long after {2:0.0}", onLine.MaxHp - onLine.Hp, lateHit, after.MaxHp - after.Hp);
-        Check(lateHit > 5f && after.Hp == after.MaxHp && onLine.MaxHp - onLine.Hp > me.Weapon.Damage, "a Railgun shot leaves its path charged for a second, hurting what steps into it");
+        Check(lateHit > 5f && after.Hp == after.MaxHp && onLine.MaxHp - onLine.Hp > me.Weapon.Damage, "a charged Railgun shot leaves its path charged, hurting what steps into it");
         host.Leave(""); client.Leave("");
     }
 

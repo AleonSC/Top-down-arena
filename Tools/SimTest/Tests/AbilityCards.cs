@@ -712,6 +712,7 @@ static partial class Program
         {
             arm(WeaponId.Railgun, "Supercharge", n);
             ((IList)trailsF.GetValue(g)).Clear();
+            me.BowShotDraw = 1.6f;  // a full charge (not perfect): only a charged shot leaves a path
             fireV(WeaponId.Railgun, "Supercharge", n);
             var tr = ((IList)trailsF.GetValue(g))[0];
             var ret2 = new[] { (float)tr.GetType().GetField("Time").GetValue(tr), (float)tr.GetType().GetField("Dps").GetValue(tr) };

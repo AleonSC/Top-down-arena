@@ -115,6 +115,8 @@ namespace Arena
                     return !late && e != null && v.ShootD < 320f && Tap(MineLocalCd <= 0f, 2f);
                 case WeaponId.RiotRepeater:  // tear gas on a crowd or the boss
                     return !late && e != null && v.InReach && Tap(GasLocalCd <= 0f && (e.Def.IsBoss || EnemiesNear(e.Pos, 100f) >= 3), 2f);
+                case WeaponId.Railgun:  // Heat Dump on a crowd in front once it's hot, or on anything in its face
+                    return Tap(me.RailHeat >= 60 && EnemiesAhead(me, DumpReach(me.RailHeat) * 0.8f, DumpHalf) >= 2 || me.RailHeat >= DumpMin && EnemiesAhead(me, 110f, DumpHalf) >= 1, DumpCd);
                 case WeaponId.TwinRifle:  // a loaded grenade at a crowd or the boss
                     return !late && e != null && v.InReach && Tap(me.TwinNades > 0 && (e.Def.IsBoss || EnemiesNear(e.Pos, 90f) >= 2), 0.6f);
                 case WeaponId.TwinPistols:  // Laser Sights on the boss or a crowd in reach

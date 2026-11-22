@@ -32,6 +32,7 @@ static partial class Program
                     foreach (var b in host.Game.Bullets.Values)
                         if (b.Kind < Defs.SmallShot)
                             fired++;
+                    fired += host.Game.Effects.Count(fx => fx.Kind == FxKind.RailBeam);  // (the Railgun's beam has no bullets)
                     if (i % 30 == 0)
                     {
                         for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
@@ -836,6 +837,13 @@ static partial class Program
                 {
                     // No shots: the knife chain and the rifles' swats work close in front of you (OutOfAmmo.cs); the aim line shows that reach.
                     if (Math.Abs(range - (me.Def.BodyR + Game.AmmoReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
+                if (w.Id == WeaponId.Railgun)
+                {
+                    // No shots: the beam runs to the first wall, then bounces (railgun test); the aim line shows the first stretch.
+                    float want = me.Def.BodyR + (g.ArenaMax.X - (120f + me.Def.BodyR));
+                    if (Math.Abs(range - want) < 1f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + want.ToString("0") + " vs " + range.ToString("0") + ")");
                     continue;
                 }
                 if (w.Id == WeaponId.EmbolusSpears)

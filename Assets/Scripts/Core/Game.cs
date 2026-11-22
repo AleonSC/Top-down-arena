@@ -1644,6 +1644,7 @@ namespace Arena
                 TickNunchaku(p, dt);  // the Nunchaku's guard: its discs swat shots back (Nunchaku.cs)
                 TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
                 TickTwinPistols(p, dt);  // Laser Sights running down, its key cooling down (TwinPistols.cs)
+                p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                 {
                     string orbSrc = CreditTo("weapon");

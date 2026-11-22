@@ -11,6 +11,7 @@
 # DOWNED=down:<s since the hit>|revive:<0-1>|up:<s since standing> (you downed, being revived, getting up; mode hud, 2 players).
 # QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
 # TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
+# RAILGUN=<s> (the Railgun's scripted shot: RAILHOLD=<s> held, default 1.6; RAILAIM=<deg>; RAILHEAT=<0-100>; RAILDUMP=1 Heat Dump instead; mode hud).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).

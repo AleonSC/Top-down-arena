@@ -1053,6 +1053,39 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // RAILGUN=<s>: the Soldier DPS's Railgun (Core/RailBeam.cs, Game/RailBeamLook.cs) that long into a scripted shot: fire held from 0 for
+    // RAILHOLD s (default 1.6, a full charge; 1.15 is a perfect one), then let go, aimed RAILAIM degrees (default 25: down into the
+    // bottom wall, so it bounces) at a pack of grunts. RAILHEAT=<0-100>: the heat meter starts there. RAILDUMP=1: no shot; Alt at 0.05 s (Heat Dump).
+    if (Environment.GetEnvironmentVariable("RAILGUN") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 1); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 330f); me.Pos = me.Disp = home;
+      bool dump = Environment.GetEnvironmentVariable("RAILDUMP") != null;
+      float aimDeg = float.Parse(Environment.GetEnvironmentVariable("RAILAIM") ?? (dump ? "0" : "25"), ci), hold = float.Parse(Environment.GetEnvironmentVariable("RAILHOLD") ?? "1.6", ci);
+      float heat = float.Parse(Environment.GetEnvironmentVariable("RAILHEAT") ?? "0", ci);
+      me.RailHeatF = heat; me.RailHeat = (byte)Math.Ceiling(heat);
+      float aim = aimDeg * MathX.Pi / 180f; me.Aim = aim;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = dump ? new[] { new V2(150f, -40f), new V2(190f, 20f), new V2(120f, 50f), new V2(240f, -10f), new V2(260f, 60f) }
+                       : new[] { new V2(160f, 40f), new V2(260f, 150f), new V2(560f, 200f), new V2(700f, 20f), new V2(860f, -90f) };
+      for (int i = 0; i < spots.Length; i++) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { i == 3 ? EnemyType.Brute : EnemyType.Grunt, home + spots[i], 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("RAILGUN"), ci) * 60f));
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      V2 aimAt = home + V2.FromAngle(aim) * 300f;
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = aim; for (int i = 0; i < foes.Count; i++) foes[i].Pos = foes[i].Disp = keep[i]; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = !dump && f < hold * 60f, WeaponAction = dump && f >= 3 && f < 6 }); gm.Update(1f / 60f);
+        me.Disp = me.Pos = home; me.Aim = aim; me.Flash = 0f; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i]; draw.Invoke(app, null);
+      }
+      me.Flash = 0f; me.Hp = me.MaxHp;
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // GRENADE=<s>: the Tank Soldier's Grenade Launcher (Core/GrenadeLauncher.cs, Game/GrenadeLauncherLook.cs) that long into a fight: a pack of
     // grunts and a brute GLAT px ahead (default 250), fire held (HE; the drum empties at 2.5 s and reloads). GLSMOKE=1: Alt at 0.1 s (the smoke drum),
     // then fire held from 0.75 s (three canisters); GLSWAP=1: Alt at 0.1 s and nothing else; GLIDLE=1: not firing; GLONE=1: one shot only.
