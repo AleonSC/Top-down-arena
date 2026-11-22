@@ -46,9 +46,10 @@ static partial class Program
         Check(Survival.Pressure(100f, 2) >= Survival.Pressure(100f, 1) * 1.45f && Survival.Pressure(100f, 3) > Survival.Pressure(100f, 2), "more players, more pressure (1.5x, 2x)");
         Check(Survival.Cost(EnemyType.Grunt) == 1f && Survival.Cost(EnemyType.Brute) > Survival.Cost(EnemyType.Swarmer), "a Grunt costs 1, a Brute more than a Swarmer");
 
-        // Phases: the basic faction alone, then one more every four minutes.
-        Check(Survival.PhaseAt(0f) == 0 && Survival.PhaseAt(239f) == 0 && Survival.PhaseAt(240f) == 1 && Survival.PhaseAt(480f) == 2 && Survival.PhaseAt(99999f) == 4, "a faction phase opens every 240 s (up to 4)");
-        Check(Survival.FactionsAt(0f).Count == 1 && Survival.FactionsAt(0f)[0] == BasicFaction.Def && Survival.FactionsAt(1000f).Count == 5, "the basic faction first, four more by the end");
+        // Phases: the basic faction alone, then one more every three minutes, each fading in.
+        Check(Survival.PhaseAt(0f) == 0 && Survival.PhaseAt(179f) == 0 && Survival.PhaseAt(180f) == 1 && Survival.PhaseAt(360f) == 2 && Survival.PhaseAt(99999f) == 10, "a faction phase opens every 180 s (up to 10)");
+        Check(Survival.IntroShare(1, 179f) == 0f && Survival.IntroShare(1, 240f) > 0.4f && Survival.IntroShare(1, 240f) < 0.6f && Survival.IntroShare(1, 180f + Survival.IntroRamp) == 1f && Survival.IntroShare(0, 0f) == 1f, "a faction fades in linearly over its intro ramp");
+        Check(Survival.FactionsAt(0f).Count == 1 && Survival.FactionsAt(0f)[0] == BasicFaction.Def && Survival.FactionsAt(99999f).Count == 11, "the basic faction first, all ten boss factions by the end");
 
         // A run.
         var sv = new Survival(7, 1);
@@ -63,10 +64,10 @@ static partial class Program
         Check(!run.Any(r => r.t < Survival.RangedFrom && !Defs.Get(r.s.Type).Melee), "the first two minutes are melee only: no shooter, alone or in a squad");
         Check(run.Any(r => r.t >= Survival.RangedFrom + Survival.RangedRamp && !Defs.Get(r.s.Type).Melee), "shooters join after that");
         Check(Survival.Pressure(0f) < 0.5f * Survival.Pressure(120f) && Survival.Pressure(120f) < Survival.Pressure(300f), "the budget starts slow: under half of its two-minute level at the start");
-        var early = run.Where(r => r.t < 240f && r.s.Squad == null).Select(r => r.s.Type).Distinct().ToList();
-        Check(early.All(t => BasicFaction.Types.Contains(t)), "before four minutes only the basic faction's enemies come as singles");
+        var early = run.Where(r => r.t < 180f && r.s.Squad == null).Select(r => r.s.Type).Distinct().ToList();
+        Check(early.All(t => BasicFaction.Types.Contains(t)), "before three minutes only the basic faction's enemies come as singles");
         var wardenOnly = Approaches.For(EnemyType.Warden).Members.Select(m => m.Type).Where(t => !BasicFaction.Types.Contains(t)).ToList();
-        Check(run.Any(r => r.t >= 240f && wardenOnly.Contains(r.s.Type)) && !run.Any(r => r.t < 240f && wardenOnly.Contains(r.s.Type)), "the Warden's enemies join at four minutes, not before");
+        Check(run.Any(r => r.t >= 180f && wardenOnly.Contains(r.s.Type)) && !run.Any(r => r.t < 180f && wardenOnly.Contains(r.s.Type)), "the Warden's enemies join at three minutes, not before");
         var squads = run.Where(r => r.s.Squad != null).Select(r => r.t).ToList();
         Check(squads.Count > 0 && run.Where(r => r.s.Squad != null).Select(r => r.s.Squad).Distinct().Count() >= 3, "squads arrive on the timer, in a few kinds");
         Check(run.Any(r => r.s.Elite) && !run.Any(r => r.t < 10f && r.s.Elite), "Elites show up as the clock runs, none in the first seconds");
