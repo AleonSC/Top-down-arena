@@ -372,15 +372,20 @@ namespace Arena
             float top = WhoShelfTop, left = WhoDrawer ? WhoEdge : 70f, w = W - 2f * left;
             float inset = WhoDrawer ? 0f : 20f;  // (the drawer layouts: rack, shelf and drawer share the title's edges)
             var wall = new Rect(left + inset, WhoCardTop - 8f, w - 2f * inset, top - WhoCardTop + 8f + (WhoDrawer ? 30f : 54f));  // (layout 3: its bottom edge hides behind the shelf, off the drawer's seam)
-            // the wall: a dark see-through rack with faint scanlines and a neon edge (Docs/Mockups/whos-playing-holo.html)
-            Ui.Pill(new Rect(wall.x, wall.y + 6f, wall.width, wall.height), new Color(0f, 0f, 0f, 0.4f));
-            WhoBand(wall, new Color(0.047f, 0.075f, 0.16f, 0.93f), new Color(0.04f, 0.06f, 0.13f, 0.93f), 6f);
-            for (float y = wall.y + 3f; y < wall.yMax; y += 4f)
-                Ui.Fill(new Rect(wall.x + 2f, y, wall.width - 4f, 1f), new Color(0.36f, 0.52f, 0.91f, 0.04f));
+            // the wall: a dark see-through rack with faint scanlines and a neon edge (Docs/Mockups/whos-playing-holo.html); the drawer
+            // layouts have none: the disks and their clamps stand on the shelf in the open, over the floor
+            if (!WhoDrawer)
+            {
+                Ui.Pill(new Rect(wall.x, wall.y + 6f, wall.width, wall.height), new Color(0f, 0f, 0f, 0.4f));
+                WhoBand(wall, new Color(0.047f, 0.075f, 0.16f, 0.93f), new Color(0.04f, 0.06f, 0.13f, 0.93f), 6f);
+                for (float y = wall.y + 3f; y < wall.yMax; y += 4f)
+                    Ui.Fill(new Rect(wall.x + 2f, y, wall.width - 4f, 1f), new Color(0.36f, 0.52f, 0.91f, 0.04f));
+            }
             if (BeginUiGl())
             {
                 UiModelAt(V2.Zero, 1f);
-                NeonRect(wall, NeonFlicker(Time.unscaledTime, 7f, 1.4f));
+                if (!WhoDrawer)
+                    NeonRect(wall, NeonFlicker(Time.unscaledTime, 7f, 1.4f));
                 HoloCorners(new Rect(left, wall.y, w, WhoDrawer ? WhoConsole.yMax - wall.y : wall.height), 1f, top: !WhoDrawer);  // (the drawer layouts: one frame from the title to the drawer, its top pair the title's)  // round the rack and its shelf (the shelf is the wider)
                 EndUiGl();
             }
