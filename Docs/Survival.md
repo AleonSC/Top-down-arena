@@ -41,8 +41,9 @@ A time-driven spawner replaces the wave builder (`Spawns.md` and `WaveRefactor.m
   spawner keeps a *budget* of on-screen threat near `P(t)` and spawns enemies to fill it, so killing fast brings more.
 - **Tier ramp:** enemy health and damage scale with `t` on the same scale the waves use (wave 1 at 0:00, "wave 30" by
   about 15 min), so the existing balance data applies.
-- **Faction phases:** 0:00 basic faction; a second faction joins around 4:00, a third around 8:00, and so on. Each
-  phase adds that faction's roster and squads; earlier ones thin out rather than vanish.
+- **Faction phases:** 0:00 basic faction; a boss faction starts to join every 3:00 (Warden 3:00 ... Eclipse 30:00), all ten, each fading in
+  over 2:00. Each has its own spawn weight (`FactionWeight`, basic `BasicWeight`) that splits among its members and squads;
+  earlier factions keep their weight, so the mix grows richer rather than thinning.
 - **Elite share** grows with `t` (the Elite variants from hunt-map Elite nodes).
 - **Squads and set pieces** (Riot line, Last stand, ...) fire on a timer from the faction's own definitions instead of
   on wave numbers.

@@ -22,16 +22,31 @@ namespace Arena
         public const float Tick = 0.5f;           // how often the budget is topped up
         public const int MaxLive = 60;            // enemies alive at once, whatever the budget says
         public const int MaxPerTick = 6;          // singles added in one top-up (squads come on top)
-        public const float PhaseLength = 240f;    // a new faction joins every four minutes
+        public const float PhaseLength = 180f;    // a new faction starts to join every three minutes (ten of them: all in by 30 min)
+        public const float IntroRamp = 120f;      // a joining faction's weight climbs from 0 to full over this long
         public const float SquadEvery = 45f;      // a squad on this timer
         public const float WaveSeconds = 30f;     // 30 s of the clock count as one wave of scaling
-        public const float OldFactionFade = 0.6f; // an earlier faction's weight, once per phase after it joined
+        public const float BasicWeight = 4f;      // the basic faction's share of the mix, against each boss faction's FactionWeight
         public const float RangedFrom = 120f;     // no shooters before this (two minutes of melee), then they ramp in...
         public const float RangedRamp = 180f;     // ...over this long
         public const float EaseIn = 117f;         // the budget starts at about a third and reaches its full line by here
 
-        /// The factions that join, in order: the basic eight first, then the boss factions (Approaches).
-        static readonly EnemyType[] JoinOrder = { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity };
+        /// The factions that join, in order: the basic eight first, then all ten boss factions (Approaches, Campaign order).
+        static readonly EnemyType[] JoinOrder =
+        {
+            EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
+            EnemyType.StormHerald, EnemyType.Duelist, EnemyType.Lich, EnemyType.Devourer, EnemyType.Eclipse,
+        };
+
+        /// Each boss faction's spawn weight once fully in (same order as JoinOrder); the basic faction's is BasicWeight.
+        /// A faction's members split its weight by their own Weight, so this is its share of the mix, not a head count.
+        static readonly float[] FactionWeight = { 2f, 2f, 2f, 2f, 2f, 2f, 2f, 2f, 2f, 2f };
+
+        /// How far faction index fi (0 = basic) is in at time t, 0 to 1: the basic one always, the others ramp in over IntroRamp from fi * PhaseLength.
+        public static float IntroShare(int fi, float t) => fi <= 0 ? 1f : Math.Max(0f, Math.Min(1f, (t - fi * PhaseLength) / IntroRamp));
+
+        /// The faction's spawn weight at time t: its set weight times how far in it is.
+        static float WeightAt(int fi, float t) => (fi <= 0 ? BasicWeight : FactionWeight[fi - 1]) * IntroShare(fi, t);
 
         public readonly int Seed;
         public readonly int Players;
@@ -132,8 +147,9 @@ namespace Arena
             return outList;
         }
 
-        // The singles to pick from: every open faction's members that have come in (From against the time reach), earlier
-        // factions thinned by OldFactionFade for each phase since they joined.
+        // The singles to pick from: every open faction's members that have come in (From against the time reach). A faction's
+        // weight (WeightAt) is shared out among its members by their own weights (over its whole roster), so each faction
+        // gets its set share of the mix and a new one fades in over IntroRamp.
         static List<KeyValuePair<EnemyType, float>> Pool(float t)
         {
             var pool = new List<KeyValuePair<EnemyType, float>>();
@@ -141,10 +157,12 @@ namespace Arena
             var fs = FactionsAt(t);
             for (int fi = 0; fi < fs.Count; fi++)
             {
-                float fade = (float)Math.Pow(OldFactionFade, fs.Count - 1 - fi);
+                float fw = WeightAt(fi, t), sum = 0f;
+                if (fw <= 0f) continue;
+                foreach (var m in fs[fi].Members) sum += m.Weight;
                 foreach (var m in fs[fi].Members)
                     if (m.From <= reach && RangedShare(m.Type, t) > 0f)
-                        pool.Add(new KeyValuePair<EnemyType, float>(m.Type, m.Weight * fade * RangedShare(m.Type, t)));
+                        pool.Add(new KeyValuePair<EnemyType, float>(m.Type, fw * m.Weight / sum * RangedShare(m.Type, t)));
             }
             return pool;
         }
@@ -166,15 +184,29 @@ namespace Arena
         {
             int reach = 1 + (int)(Math.Max(0f, t) / 60f);
             var fs = FactionsAt(t);
-            var opts = new List<SquadDef>();
+            var opts = new List<KeyValuePair<SquadDef, float>>();
+            float total = 0f;
             for (int fi = 0; fi < fs.Count; fi++)
             {
-                int copies = fi == fs.Count - 1 ? 2 : 1;  // the newest faction's squads come a bit more often
+                float fw = WeightAt(fi, t);  // a faction's squads come in proportion to its weight
+                int n = 0;
+                foreach (var s in fs[fi].Squads) if (s.From <= reach && Array.TrueForAll(s.Members, m => RangedShare(m, t) >= 1f)) n++;  // (no squad with a shooter until they have all come in)
+                if (fw <= 0f || n == 0) continue;
                 foreach (var s in fs[fi].Squads)
-                    if (s.From <= reach && Array.TrueForAll(s.Members, m => RangedShare(m, t) >= 1f))  // (no squad with a shooter until they have all come in)
-                        for (int c = 0; c < copies; c++) opts.Add(s);
+                    if (s.From <= reach && Array.TrueForAll(s.Members, m => RangedShare(m, t) >= 1f))
+                    {
+                        opts.Add(new KeyValuePair<SquadDef, float>(s, fw / n));
+                        total += fw / n;
+                    }
             }
-            return opts.Count == 0 ? null : opts[rng.Next(opts.Count)];
+            if (opts.Count == 0) return null;
+            float r = (float)rng.NextDouble() * total;
+            foreach (var o in opts)
+            {
+                r -= o.Value;
+                if (r <= 0f) return o.Key;
+            }
+            return opts[opts.Count - 1].Key;
         }
     }
 }
