@@ -89,21 +89,15 @@ namespace Arena
 
         const string WhoTitleText = "WHO'S PLAYING?";
 
-        /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html): the rooms
-        /// behind, then WHO'S PLAYING? on the menu's CRT title screen with its neon, and the drive bay ledge under it. a: its opacity
+        /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html), without its rooms:
+        /// WHO'S PLAYING? on the menu's CRT title screen with its neon, and the drive bay ledge under it. a: its opacity
         /// (the picker fades in the moves to and from the menu, ProfileTransition.cs, DiskEject.cs).
         void DrawWhoChrome(float a, bool title = true)
         {
             if (a <= 0f)
                 return;
-            float t = Time.unscaledTime;
             WithAlpha(a, () =>
             {
-                if (BeginUiGl())
-                {
-                    DrawRooms(t, 1f, WhoRoomSets);
-                    EndUiGl();
-                }
                 if (title)
                     DrawTitleRetype(WhoTitleText, -1);
             });
@@ -443,14 +437,6 @@ namespace Arena
             new[] { Rm(214, 470, 72, 110, 'r'), Rm(994, 470, 72, 110, 'l'), Rm(994, 350, 72, 112, 'l') },
         };
 
-        // Rooms on the Who's playing? screen: beside its rack (90-1190 by 272-512) and either side of Manage profiles (490-790 by 602-676).
-        static readonly MenuRoom[][] WhoRoomSets =
-        {
-            new[] { Rm(14, 308, 64, 96, 'r'), Rm(1202, 308, 64, 96, 'l') },
-            new[] { Rm(14, 290, 64, 86, 'r'), Rm(14, 382, 64, 86, 'r'), Rm(1202, 290, 64, 86, 'l'), Rm(1202, 382, 64, 86, 'l') },
-            new[] { Rm(376, 606, 96, 66, 'r'), Rm(808, 606, 96, 66, 'l') },
-            new[] { Rm(14, 328, 64, 130, 'r'), Rm(808, 606, 96, 66, 'l') },
-        };
 
         // The rooms come one at a time: the first RoomDelay seconds after the screen shows (or the menu's intro ends), then one every
         // RoomGap seconds. Each draws in over RoomBuild; once RoomMax are up, each new one starts as the oldest un-draws (RoomFold).
@@ -466,7 +452,7 @@ namespace Arena
         /// GL: the main menu's rooms (round the box). Off with Reduced effects.
         void DrawMenuRooms(float t, float a) => DrawRooms(t, a, BoxRoomSets);
 
-        /// GL: rooms drawing themselves round `lower` only (the menu box, or the Who's playing? rack and its Manage key; not the title),
+        /// GL: rooms drawing themselves round `lower` only (the menu box; not the title),
         /// one at a time: each outline traced by a bright pen point, then a faint grid and a scan line fill it; it stays until RoomMax
         /// newer ones are up, then un-draws as the next one starts. Each new room picks a spot clear of the ones still showing.
         void DrawRooms(float t, float a, MenuRoom[][] lower)
@@ -612,16 +598,16 @@ namespace Arena
 
         const float HoloHorizon = 372f;
 
-        /// A starry sky over a glowing horizon and a perspective grid floor scrolling toward you, with light running down its lanes
+        /// Red: a starry sky over a glowing horizon and a perspective grid floor scrolling toward you, with light running down its lanes
         /// (now and then a gold one) and motes drifting up.
         void BgHoloFloor(float t)
         {
             float hz = HoloHorizon;
-            GradQuad(new V2(0, 0), new V2(W, 0), new V2(W, hz), new V2(0, hz), new Rgba(0.016f, 0.02f, 0.043f), new Rgba(0.047f, 0.067f, 0.19f));
+            GradQuad(new V2(0, 0), new V2(W, 0), new V2(W, hz), new V2(0, hz), new Rgba(0.043f, 0.016f, 0.02f), new Rgba(0.19f, 0.047f, 0.067f));
             Stars(110, t, 0.55f, 4100);
-            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, H), new V2(0, H), new Rgba(0.09f, 0.075f, 0.25f), new Rgba(0.016f, 0.02f, 0.043f));
-            SoftGlow(new V2(W / 2f, hz), 560f, new Rgba(0.37f, 0.53f, 1f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f)));
-            var grid = new Rgba(0.36f, 0.52f, 0.91f, 0.5f);
+            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, H), new V2(0, H), new Rgba(0.25f, 0.075f, 0.09f), new Rgba(0.043f, 0.016f, 0.02f));
+            SoftGlow(new V2(W / 2f, hz), 560f, new Rgba(1f, 0.37f, 0.45f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f)));
+            var grid = new Rgba(0.91f, 0.36f, 0.42f, 0.5f);
             for (int i = -24; i <= 24; i++)  // lanes to the vanishing point
                 Line(new V2(W / 2f + i * 8f, hz), new V2(W / 2f + i * 150f, H), 1.2f, grid);
             float off = MathX.Fmod(t * 0.75f, 1f);
@@ -637,7 +623,7 @@ namespace Arena
                 int pass = Mathf.FloorToInt(run);
                 float z = (run - pass) * 1.05f;
                 int lane = Mathf.FloorToInt(Hash(s * 31 + pass * 17) * 36f) - 18;
-                var pc = Hash(s * 13 + pass * 7) < 0.2f ? new Rgba(0.95f, 0.76f, 0.31f) : new Rgba(0.59f, 0.75f, 1f);
+                var pc = Hash(s * 13 + pass * 7) < 0.2f ? new Rgba(0.95f, 0.76f, 0.31f) : new Rgba(1f, 0.59f, 0.62f);
                 for (int j = 0; j < 6; j++)
                 {
                     float z0 = Mathf.Max(0f, z - 0.12f * (6 - j) / 6f), z1 = Mathf.Max(0f, z - 0.12f * (5 - j) / 6f);
@@ -648,14 +634,14 @@ namespace Arena
                     Line(p0, p1, 1f + e1 * 3f, pc.WithAlpha(0.95f * (j + 1) / 6f));
                 }
             }
-            FillRect(0, hz - 1f, W, 2f, new Rgba(0.55f, 0.69f, 1f, 0.75f));
-            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, hz + 60f), new V2(0, hz + 60f), new Rgba(0.09f, 0.075f, 0.25f, 0.8f), new Rgba(0.09f, 0.075f, 0.25f, 0f));
+            FillRect(0, hz - 1f, W, 2f, new Rgba(1f, 0.55f, 0.6f, 0.75f));
+            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, hz + 60f), new V2(0, hz + 60f), new Rgba(0.25f, 0.075f, 0.09f, 0.8f), new Rgba(0.25f, 0.075f, 0.09f, 0f));
             for (int i = 0; i < 40; i++)  // motes drifting up off the floor
             {
                 float sp = 0.3f + Hash(i * 5 + 2), span = H - hz + 80f;
                 float y = H - MathX.Fmod(t * 12f * sp + Hash(i * 5 + 3) * span, span);
                 float x = Hash(i * 5 + 4) * W + Mathf.Sin(t + i) * 4f;
-                FillRect(x, y, 2f, 2f, new Rgba(0.59f, 0.73f, 1f, 0.25f + 0.25f * Mathf.Sin(t * 2f + i)));
+                FillRect(x, y, 2f, 2f, new Rgba(1f, 0.59f, 0.63f, 0.25f + 0.25f * Mathf.Sin(t * 2f + i)));
             }
         }
 
