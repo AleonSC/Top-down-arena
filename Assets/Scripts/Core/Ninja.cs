@@ -294,30 +294,30 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +20% damage", Name = "Kusarigama", FireInterval = 0.55f,
-                Desc = "Cut with the sickle, then throw the weight to drag the first enemy in its lane to you. Hold the weapon-action key to whirl the weight around you, pulling everything near into the chain." },
+                Desc = "Primary Fire: Cut with the sickle, then throw the weight to drag an enemy to you.\n\nAlternative Fire: Whirl the weight around you, pulling enemies in." },
             new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +15% damage on every swing and the shove, and +20 px on the shove's push", Name = "Bo Staff", FireInterval = 0.47f,
-                Desc = "Click for a never-ending chain of three swings: a cone slash, a jab, then a full spin that starts it over. Every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you and restarts the chain." },
+                Desc = "Primary Fire: A three-swing staff combo that cuts small bullets.\n\nAlternative Fire: Shove a wall of staff ahead of you." },
             new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
-                Desc = "A giant spinning star thrown in a wide loop out in front of you and back, cutting through everything both ways." },
+                Desc = "Primary Fire: A giant star thrown in a loop that cuts everything both ways." },
             new WeaponDef { Id = WeaponId.Nodachi, Kit = Kit.Ninja, Role = Role.Tank, Choice = 3, Damage = 20f, Reach = 150f, Melee = true, BotRange = 140f, ExtraDesc = "+1 ring after Tenchi's slam, 45 px farther out (60%)", Name = "Nodachi", FireInterval = 0.3f,
-                Desc = "A katana as tall as you, with two stances on your weapon-action key, each with its own five-step combo that keeps its place. Arashi sweeps wide round you with armoured wind-ups and ends in Tenchi, a spin into a stunning slam. Mamori jabs fast and blocks shots in front of you while it does. Raising the parry starts both combos over." },
+                Desc = "Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.\n\nAlternative Fire: Switch stance." },
             // Healer
             new WeaponDef { Id = WeaponId.MedicineDarts, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
-                Desc = "Fast needles that dose what they hit. Enemies get poisoned and hurt allies get healed, and doses stack." },
+                Desc = "Primary Fire: Fast needles that poison enemies and heal allies." },
             new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
-                Desc = "A short gust that heals allies and pushes small enemy bullets back. Shots alternate between blowing enemies away and drawing them in." },
+                Desc = "Primary Fire: A short gust that heals allies and pushes small bullets back." },
             new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
-                Desc = "Paper charms fly to your cursor and lie there as wards. An enemy that steps on one sets it off, hurting enemies around it and healing allies near it.",
+                Desc = "Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them.",
                 AreaDesc = "bursts 25% wider, for damage and healing" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
-                Desc = "Tight fans of spinning stars that stick in what they hit. After a while each rips out for another hit and flies back to you, cutting through what it passes. Your weapon-action key switches to the Great Star stance, pulling stuck stars back: hold fire to draw a route, let go to throw one huge star along it and home again, cutting everything both ways." },
+                Desc = "Primary Fire: Tight fans of stars that stick, then rip out and fly back.\n\nAlternative Fire: Switch to a huge star thrown along a route you draw." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 120f, Melee = true, ExtraDesc = "+1: each dash strikes once more (60%), two more caltrops and a wider Momentum Burst", Name = "Katana", FireInterval = 0.3f,
-                Desc = "Two stance combos; your weapon-action key switches between them, and the one you leave keeps its place. Hayate dashes and slices and ends in a Momentum Burst that shoves enemies away. Senbon cuts, spins and slashes and ends in a storm of caltrops. The burst flings caltrops on the ground; caltrops thrown after a burst seek what it hit." },
+                Desc = "Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.\n\nAlternative Fire: Switch stance." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 42f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
-                Desc = "Slow, heavy throwing knives that hit harder against enemies not targeting you. Every throw leaves a mark where it lands: press your weapon-action key to blink there, and your next hit lands double." },
+                Desc = "Primary Fire: Slow, heavy throwing knives that leave a mark where they land.\n\nAlternative Fire: Blink to the mark, and your next hit lands double." },
             new WeaponDef { Id = WeaponId.Nunchaku, Kit = Kit.Ninja, Role = Role.Dps, Choice = 3, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 aftershock ring after the Twin Crush, 40 px farther out (60%)", Name = "Nunchaku", FireInterval = 0.3f,
-                Desc = "Twin Storm: a nunchaku in each hand. Fire is a four-step combo: Snap, Backhand, Double Figure-8, then the Twin Crush, an overhead slam that stuns. Your weapon-action key switches to the Twin Windmill guard: two spinning discs swat small shots back at enemies, and Fire lashes out with a Twin Counter that hits harder for every shot swatted." },
+                Desc = "Primary Fire: A four-step twin-nunchaku combo that ends in a stunning slam.\n\nAlternative Fire: Guard with spinning discs that swat shots back." },
         };
 
         /// The Ninja's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
