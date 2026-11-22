@@ -194,8 +194,9 @@ namespace Arena
                     Quad(new V2(c.x, c.yMax - cut), new V2(c.xMax, c.yMax - cut), new V2(c.xMax - cut, c.yMax), new V2(c.x + cut, c.yMax));
                     EndUiGl();
                 }
-                Ui.Fill(new Rect(c.x, c.y, c.width, 2f), new Color(0.02f, 0.025f, 0.05f, 0.9f));       // the seam: a dark groove
-                Ui.Fill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, 1f), new Color(1f, 1f, 1f, 0.12f));  // and the drawer's lit lip under it
+                // the shelf rests on the box's top: the box's top edge catches the light either side, and the shelf casts a soft shadow down its face
+                for (int i = 0; i < 12; i++)
+                    Ui.Fill(new Rect(c.x + 1f, c.y + i, c.width - 2f, 1f), new Color(0f, 0f, 0f, 0.6f * (1f - i / 12f) * (1f - i / 12f)));
                 // the bay round the drive (layout 4: round the drive and the key), in the middle
                 var bay = WhoLayout == 4 ? new Rect(W / 2f - 205f, c.y + 12f, 410f, c.height - 20f) : new Rect(W / 2f - 200f, c.y + 12f, 400f, c.height - 30f);
                 if (WhoLayout == 4)
@@ -234,16 +235,15 @@ namespace Arena
             }
         }
 
-        /// Layout 3: one neon line from the shelf's top edge down both sides and round the drawer's chamfered bottom, so the shelf and
-        /// the drawer read as one unit (drawn after the shelf, over its ends).
+        /// The drawer layouts: the box's neon, down its sides and round its chamfered bottom (its top is under the shelf that rests on it).
         void DrawWhoDrawerNeon()
         {
             var c = WhoConsole;
-            float cut = 14f, top = WhoShelfTop;
+            float cut = 14f;
             if (!BeginUiGl())
                 return;
             UiModelAt(V2.Zero, 1f);
-            NeonPath(new[] { new V2(c.x, top), new V2(c.x, c.yMax - cut), new V2(c.x + cut, c.yMax), new V2(c.xMax - cut, c.yMax), new V2(c.xMax, c.yMax - cut), new V2(c.xMax, top) }, false, NeonFlicker(Time.unscaledTime, 11f, 2f));
+            NeonPath(new[] { new V2(c.x, c.y), new V2(c.x, c.yMax - cut), new V2(c.x + cut, c.yMax), new V2(c.xMax - cut, c.yMax), new V2(c.xMax, c.yMax - cut), new V2(c.xMax, c.y) }, false, NeonFlicker(Time.unscaledTime, 11f, 2f));
             EndUiGl();
         }
 
@@ -349,18 +349,37 @@ namespace Arena
         /// One cradle's clamp post: a metal post with a lamp at its top and a bolt at its foot. open (0..1) slides it outwards.
         static void WhoClamp(Rect r, bool lit, bool left)
         {
-            // A slim satin post: a dark rim, a smooth face lit on its outer edge, a slit LED near the top, and a rubber grip down the
-            // side that holds the disk.
-            Ui.Pill(new Rect(r.x + 1f, r.y + 4f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
-            Ui.Pill(r, new Color(0.07f, 0.075f, 0.085f));
-            var face = new Rect(r.x + 1.5f, r.y + 1.5f, r.width - 3f, r.height - 3f);
+            // A clamp arm on a hinge: a mount block bolted to the pedestal, a round knuckle with its pin, a slim satin arm lit on its
+            // outer edge with a slit LED, a rubber grip down the side that holds the disk, and a jaw at the top that hooks over its edge.
+            float d = r.width + 4f;                                   // the knuckle's size
+            var knuckle = new Rect(r.center.x - d / 2f, r.yMax - d - 2f, d, d);
+            var mount = new Rect(r.x - 4f, r.yMax - d / 2f - 2f, r.width + 8f, d / 2f + 4f);
+            var arm = new Rect(r.x, r.y + 4f, r.width, knuckle.center.y - r.y - 4f);
+            float side = left ? 1f : -1f;                             // toward the disk
+            // the shadow, then the mount block
+            Ui.Pill(new Rect(r.x + 1f, r.y + 5f, r.width, r.height), new Color(0f, 0f, 0f, 0.3f));
+            Ui.Pill(mount, new Color(0.06f, 0.065f, 0.075f));
+            WhoBand(new Rect(mount.x + 1.5f, mount.y + 1.5f, mount.width - 3f, mount.height - 3f), new Color(0.3f, 0.31f, 0.35f), new Color(0.14f, 0.15f, 0.17f), 1f);
+            // the arm
+            Ui.Pill(arm, new Color(0.07f, 0.075f, 0.085f));
+            var face = new Rect(arm.x + 1.5f, arm.y + 1.5f, arm.width - 3f, arm.height - 3f);
             Ui.Pill(face, new Color(0.3f, 0.31f, 0.35f));
             WhoBand(new Rect(face.x + 1f, face.y + 3f, face.width - 2f, face.height - 6f), new Color(0.52f, 0.54f, 0.59f), new Color(0.25f, 0.26f, 0.3f), 1f);
-            float edge = left ? face.x + 1f : face.xMax - 2f;
-            Ui.Fill(new Rect(edge, face.y + 4f, 1f, face.height - 8f), new Color(1f, 1f, 1f, 0.22f));        // the lit outer edge
-            float grip = left ? face.xMax - 3f : face.x;
-            Ui.Fill(new Rect(grip, face.y + 22f, 3f, face.height - 30f), new Color(0.04f, 0.042f, 0.05f));  // the rubber grip on the disk side
-            var slit = new Rect(r.center.x - 1.5f, r.y + 7f, 3f, 12f);
+            Ui.Fill(new Rect(left ? face.x + 1f : face.xMax - 2f, face.y + 4f, 1f, face.height - 8f), new Color(1f, 1f, 1f, 0.22f));   // the lit outer edge
+            Ui.Fill(new Rect(left ? face.xMax - 3f : face.x, face.y + 24f, 3f, face.height - 30f), new Color(0.04f, 0.042f, 0.05f));  // the rubber grip
+            // the jaw: a short block at the top reaching over the disk's edge, with a grip pad under it
+            var jaw = new Rect(left ? r.xMax - 4f : r.x - 6f, r.y, 10f, 12f);
+            Ui.Pill(jaw, new Color(0.07f, 0.075f, 0.085f));
+            WhoBand(new Rect(jaw.x + 1.5f, jaw.y + 1.5f, jaw.width - 3f, jaw.height - 3f), new Color(0.55f, 0.57f, 0.62f), new Color(0.3f, 0.31f, 0.35f), 1f);
+            Ui.Fill(new Rect(jaw.x + 2f, jaw.yMax - 3f, jaw.width - 4f, 2f), new Color(0.04f, 0.042f, 0.05f));
+            // the knuckle and its pin
+            Ui.Dot(new Rect(knuckle.x - 1f, knuckle.y - 1f, d + 2f, d + 2f), new Color(0.05f, 0.055f, 0.065f));
+            Ui.Dot(knuckle, new Color(0.42f, 0.44f, 0.49f));
+            Ui.Dot(new Rect(knuckle.x + d * 0.18f, knuckle.y + d * 0.12f, d * 0.5f, d * 0.4f), new Color(0.62f, 0.64f, 0.69f));  // its highlight
+            Ui.Dot(new Rect(knuckle.center.x - 2.5f, knuckle.center.y - 2.5f, 5f, 5f), new Color(0.1f, 0.105f, 0.12f));          // the pin
+            Ui.Dot(new Rect(knuckle.center.x - 1f, knuckle.center.y - 1.5f, 2f, 2f), new Color(1f, 1f, 1f, 0.35f));
+            // the LED slit
+            var slit = new Rect(arm.center.x - 1.5f, arm.y + 18f, 3f, 12f);
             if (lit)
             {
                 Ui.Pill(new Rect(slit.x - 3f, slit.y - 3f, slit.width + 6f, slit.height + 6f), new Color(0.42f, 1f, 0.6f, 0.25f));
@@ -403,6 +422,12 @@ namespace Arena
             WhoBand(new Rect(left, top + 14f, w, 40f), new Color(0.24f, 0.3f, 0.55f), new Color(0.1f, 0.14f, 0.32f), 3f);
             if (!WhoDrawer)
                 Ui.Rim(new Rect(left, top, w, 54f), new Color(0.42f, 0.52f, 0.84f), 0.6f);
+            else
+            {
+                // a slab resting on the box: a light rim of its own, and a dark underside where it meets the box
+                Ui.Rim(new Rect(left, top, w, 54f), new Color(0.75f, 0.77f, 0.82f), 0.45f);
+                Ui.Fill(new Rect(left + 2f, top + 51f, w - 4f, 3f), new Color(0.03f, 0.032f, 0.04f));
+            }
             float vw = WhoDrawer ? 80f : 100f;  // (narrower on the drawer layouts' narrower shelf, clear of the slot tags)
             WhoVent(new Rect(left + 20f, top + 22f, vw, 24f));
             WhoVent(new Rect(left + w - 20f - vw, top + 22f, vw, 24f));
