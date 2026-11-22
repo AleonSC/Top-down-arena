@@ -423,10 +423,10 @@ namespace Arena
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), Defs.BulletColor(bolt), 22f, 0.2f, Sfx.SpellZap);
         }
 
-        /// A Rioter's bottle that hurts you leaves a cut: BottleBleedDps a second for BottleBleedTime s (a second hit refreshes it).
+        /// A Rioter's bottle or a Shiv's blade that hurts you leaves a cut: BottleBleedDps a second for BottleBleedTime s (a second hit refreshes it).
         public const float BottleBleedDps = 4f, BottleBleedTime = 3f, BottleBleedTick = 0.5f;
 
-        void BottleCut(Player p)
+        void BleedCut(Player p)
         {
             p.BleedT = BottleBleedTime;
             p.BleedDps = BottleBleedDps;

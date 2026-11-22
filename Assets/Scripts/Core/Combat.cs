@@ -786,7 +786,7 @@ namespace Arena
                 if (grounded)
                     RodShot(p, b, p.DevGod ? b.Dmg * EnemyDamageScale(Math.Max(1, Wave)) * (1f - RodCut) : lastTaken);  // (the preview's god mode takes nothing: show what it would have)
                 if (b.Kind == Defs.BottleShot && !p.Downed && lastTaken > 0f)
-                    BottleCut(p);  // the glass cuts: a short bleed (WardenFaction.cs)
+                    BleedCut(p);  // the glass cuts: a short bleed (WardenFaction.cs)
                 if (b.Kind == Defs.StunShot && !p.Downed)
                 {
                     p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)
