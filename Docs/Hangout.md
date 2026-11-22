@@ -1,7 +1,10 @@
 # Lobby Hangout
 
-> **Status (protocol 468): rebuilt as a real game mode.** The Hangout key now opens `GameMode.Hangout`, the real match held between
-> waves for good (`Core/HangoutGame.cs`; below, "The Hangout mode"). The room described in the rest of this file (a lobby tab with
+> **Status: the Hangout is PLAY in the loadout's preview window.** The Hangout key (and the PLAY key on the window's top bar) hands
+> you the character in the mini window: WASD, mouse aim, fire, abilities, ultimate and Alt, your real loadout on the preview's three
+> dummies (`Showcase.Control`/`Play`, `LobbyUi.ShowcasePlayInput`; the mouse must be over the window; the ultimate is topped up every 8 s).
+> It is solo and offline, like the preview. The full-match `GameMode.Hangout` (protocol 468, `Core/HangoutGame.cs`, below) is built
+> and tested but no key opens it now; it is the base for party play and PvP later. The room described in the rest of this file (a lobby tab with
 > its own light shots, `LobbyCombat.cs`, `LobbyRoom.cs`) is no longer reachable from the lobby; its code is kept until the owner
 > says to remove it.
 
