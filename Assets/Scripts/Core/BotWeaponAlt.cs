@@ -305,13 +305,8 @@ namespace Arena
                     return false;
                 case WeaponId.Stonespear:  // the volley at the boss or out of reach, with a few spears up
                     return !late && e != null && CountBits(me.SsMask) >= 2 && Tap(e.Def.IsBoss || !v.InReach || EnemiesNear(e.Pos, 120f) >= 2, 2f);
-                case WeaponId.GrenadeLauncher:  // smoke when a pack closes in, back to HE when it's spent or clear
-                {
-                    if (late || me.GlSwap > 0f)
-                        return false;
-                    bool smoke = EnemiesNear(me.Pos, 220f) >= 3 && me.GlSmokeUsed < GlSmokeMax;
-                    return Tap(me.GlMode == 1 ? !smoke : smoke, 2f);
-                }
+                case WeaponId.GrenadeLauncher:  // a smoke canister when a pack closes in
+                    return !late && me.GlSmokeUsed < GlSmokeMax && Tap(EnemiesNear(me.Pos, 220f) >= 3, 2f);
             }
             return null;
         }
