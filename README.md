@@ -1019,7 +1019,7 @@ the other players), so it always matches how weapons and abilities really behave
 
 ## Saved loadouts
 
-The **star** key just right of the **Loadout** key (gold once anything is saved; hover for the count) opens **Saved loadouts** over the right column (click the star again, the **Loadout** key or Esc to close it; the
+The **star** tab just left of the **Loadout** tab (gold once anything is saved; hover for the count) opens **Saved loadouts** over the right column (click the star again, the **Loadout** key or Esc to close it; the
 preview and stats stay beside it). Up to **6** favourites, each a card with its name, class and role, weapon, ability
 and ultimate; the one you're wearing says **EQUIPPED**. The pencil after a name renames it (Enter or the tick keeps it, Esc cancels). **LOAD** puts on every pick at once (and the perks it was saved
 with, if they're still unlocked); **X** then **SURE?** deletes one. **SAVE CURRENT LOADOUT** asks for a name (up to 20
@@ -1454,7 +1454,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 **The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**,
 **Practice** or **Survival** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
-Picking it adds a **Quick Play** tab key beside the Loadout key: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
+Picking it adds a **Quick Play** tab at the right end of the tab row: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
 records (played, won, best wave, bosses), and **the boss pool**: a row for each of the ten bosses, with its model and name once
 you've beaten it anywhere, a **???** until then (on your first Quick Play the Warden shows, marked FIRST). It is laid out like the
 Boss hunt tab: the pool on the left, a green **BOSS DRAW** scope on the right rolling through the bosses you've met (hover a row to
@@ -1493,7 +1493,7 @@ stretch lit, your best time a gold line).
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it); hovering the middle mode shows its description. Over the big screen sit the **Loadout** key, the Saved loadouts star, then a key for each of the mode's own tabs (Quick Play, Campaign, Survival, Boss hunt, Practice, Training). **Difficulty** and **Modifiers** are two small keys side by side over Ready, naming what's set; they fade while the mouse isn't on them. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there (or goes back to it if the old mode's tab was open). A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it); hovering the middle mode shows its description. Folder tabs stand on the big screen's top edge (the open one is lit in your role's colour and opens into the screen): the Saved loadouts star and the **Loadout** tab at the left, and the mode's own tabs (Quick Play, Campaign, Survival, Boss hunt, Practice, Training) at the right end. **Difficulty** and **Modifiers** are two small keys side by side over Ready, naming what's set; they fade while the mouse isn't on them. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there (or goes back to it if the old mode's tab was open). A Boss Hunt is a short run that ends
 with one boss: **twenty steps** (see Hunt map below). Steps 1-19 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on steps 10 and
 19); step 20 is the boss. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no

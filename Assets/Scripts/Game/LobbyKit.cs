@@ -303,6 +303,38 @@ namespace Arena
             GUI.EndGroup();
         }
 
+        /// A folder tab standing on a panel's top edge (the lobby's Loadout, Saved star and mode tabs): its bottom is the panel's top line.
+        /// Lit, it takes the role colour and opens into the panel (the line under it is wiped); unlit, a dim tab behind the panel.
+        /// Returns true on a click.
+        public static bool FolderTab(Rect r, string text, bool on, Texture2D icon = null, Color? iconTint = null)
+        {
+            bool hover = r.Contains(Event.current.mousePosition);
+            if (Event.current.type == EventType.Repaint)
+            {
+                Color d0 = CrtUi.T(new Color(0.031f, 0.063f, 0.157f));
+                Color fill = on ? Mix(washCol, 0.24f, d0) : Mix(washCol, hover ? 0.10f : 0.05f, d0);
+                Ui.Fill(r, fill);
+                Color rim = on ? washCol : washCol.WithAlpha(hover ? 0.55f : 0.32f);
+                Ui.Fill(new Rect(r.x, r.y, r.width, 1f), rim);              // top
+                Ui.Fill(new Rect(r.x, r.y, 1f, r.height), rim);             // sides, down to the panel's line
+                Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), rim);
+                if (on)
+                {
+                    Ui.Glow(new Rect(r.x + 1f, r.y, r.width - 2f, 2f), washCol, 0.25f);
+                    Ui.Fill(new Rect(r.x + 1f, r.y, r.width - 2f, 2f), washCol);  // a lit bar along the top
+                    Ui.Fill(new Rect(r.x + 1f, r.yMax - 1f, r.width - 2f, 2f), fill);  // open into the panel: wipe its top line under the tab
+                }
+                if (icon != null)
+                {
+                    const float isz = 16f;
+                    Ui.Icon(new Rect(r.center.x - isz / 2f, r.center.y - isz / 2f + 1f, isz, isz), icon, iconTint ?? (on ? Color.white : CrtStyle.Ink.WithAlpha(0.7f)));
+                }
+                else
+                    Spaced(new Rect(r.x, r.y + 2f, r.width, r.height - 2f), text, 13, on ? Color.white : CrtStyle.Ink.WithAlpha(hover ? 0.85f : 0.6f), TextAnchor.MiddleCenter, 1.3f);
+            }
+            return Ui.HitArea(r);
+        }
+
         /// share of colour `c` mixed with `rest` (CSS color-mix(in srgb, c share, rest)).
         static Color Mix(Color c, float share, Color rest) => new Color(c.r * share + rest.r * (1f - share), c.g * share + rest.g * (1f - share), c.b * share + rest.b * (1f - share), 1f);
 

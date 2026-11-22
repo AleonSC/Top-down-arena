@@ -41,14 +41,17 @@ namespace Arena
         const float LobbyBodyTop = 70f;   // the top of the big screen (under the tab keys)
         /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout); the menu card grows into it (LobbyEnter.cs).
         static readonly Rect LobbyBodyRect = new Rect(440f, LobbyBodyTop, 804f, 614f);
-        /// The Loadout key, fixed left of the Saved star and the tab keys (lit on the loadout and on the Perks view it opens).
-        const float LobbyLoadoutKeyW = 150f, LobbyTabsGap = 12f;
-        static Rect LobbyLoadoutKey => new Rect(LobbyBodyRect.x, 32f, LobbyLoadoutKeyW, 30f);
-        /// The Saved loadouts star (FavoritesUi.cs): a small square key just right of the Loadout key.
-        static Rect LobbySavedKey => new Rect(LobbyLoadoutKey.xMax + 3f, 32f, 30f, 30f);
-        /// The mode's own tab keys (Loadout-sized, in a row; Difficulty and Modifiers are rows over Ready), beside the Saved star.
-        const float LobbyTabKeyGap = 6f;
-        static Rect LobbyTabsRect => new Rect(LobbySavedKey.xMax + LobbyTabsGap, 32f, LobbyBodyRect.xMax - LobbySavedKey.xMax - LobbyTabsGap, 30f);
+        /// The tab row: folder tabs standing on the big screen's top edge, as tall as the header row's keys. The Saved star and the
+        /// Loadout tab are fixed at the left; the mode's own tabs sit apart at the right end.
+        const float LobbyTabY = 34f, LobbyTabH = LobbyBodyTop - LobbyTabY;
+        const float LobbyLoadoutKeyW = 150f, LobbyTabsGap = 12f, LobbySavedW = 40f;
+        /// The Saved loadouts star (FavoritesUi.cs): a small tab at the far left, before the Loadout tab.
+        static Rect LobbySavedKey => new Rect(LobbyBodyRect.x + 30f, LobbyTabY, LobbySavedW, LobbyTabH);
+        /// The Loadout tab, fixed right of the star (lit on the loadout and on the Perks view it opens).
+        static Rect LobbyLoadoutKey => new Rect(LobbySavedKey.xMax + 4f, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
+        /// The mode's own tabs (Loadout-sized), right-aligned at the big screen's right end.
+        const float LobbyTabKeyGap = 4f;
+        static Rect LobbyTabsRect => new Rect(LobbyLoadoutKey.xMax + LobbyTabsGap, LobbyTabY, LobbyBodyRect.xMax - 30f - (LobbyLoadoutKey.xMax + LobbyTabsGap), LobbyTabH);
 
         // --- The bands the entrances and exits cut the lobby into ----------------------------------------------------------------------
 
