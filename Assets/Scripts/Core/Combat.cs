@@ -696,7 +696,10 @@ namespace Arena
                 scratchIds.Add(b.Id);
                 MagmaParried(b);  // (no lava at your feet: QuarryFaction.cs)
                 bool perfect = PerfectNow(p);
-                if (ParryHit(p, b.Dmg, b.Pos) && !(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
+                bool sentBack = ParryHit(p, b.Dmg, b.Pos);
+                if (b.Kind == Defs.BottleShot)
+                    return true;  // a bottle just smashes on the shield: never sent back (it shatters as it goes)
+                if (sentBack &&!(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
                     reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
                 return true;
             }
@@ -782,6 +785,8 @@ namespace Arena
                 scratchIds.Add(b.Id);
                 if (grounded)
                     RodShot(p, b, p.DevGod ? b.Dmg * EnemyDamageScale(Math.Max(1, Wave)) * (1f - RodCut) : lastTaken);  // (the preview's god mode takes nothing: show what it would have)
+                if (b.Kind == Defs.BottleShot && !p.Downed && lastTaken > 0f)
+                    BottleCut(p);  // the glass cuts: a short bleed (WardenFaction.cs)
                 if (b.Kind == Defs.StunShot && !p.Downed)
                 {
                     p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)

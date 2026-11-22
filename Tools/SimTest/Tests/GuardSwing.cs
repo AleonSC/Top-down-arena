@@ -156,5 +156,29 @@ static partial class Program
         Check(!keptBottle, "after its throw it has no bottle left");
         Check(plain == 0, "a plain Rioter never throws");
         Check(bottleReach > 150f, "a bottle flies straight out, not in circles (got " + bottleReach.ToString("0") + " px from the thrower)");
+
+        // A bottle that hits cuts: a short bleed. A parried one smashes: nothing comes back, no cut.
+        g.DevSetGod(1, false); friend.Downed = true; g.Bullets.Clear();
+        foreach (var e0 in g.Enemies.Values) e0.Hp = 0f;
+        Run(s, dt, 0.3f);
+        me.Pos = new V2(1000f, 450f); me.Hp = me.MaxHp; me.InvulnT = 0f; me.Parrying = false; me.BleedT = 0f;
+        var cut = typeof(Game).GetMethod("ShotHitsPlayer", flags);
+        var bot = (Bullet)typeof(Game).GetMethod("SpawnBullet", flags).Invoke(g, new object[] { Defs.BottleShot, me.Pos, new V2(0f, 0f), 0f, 1f, Defs.BulletDamage(Defs.BottleShot), 0, false, 0f });
+        cut.Invoke(g, new object[] { me, bot });
+        Check(me.BleedT > 2f, "a bottle that hits leaves you bleeding (" + me.BleedT.ToString("0.0") + " s)");
+        float hp0 = me.Hp;
+        Run(s, dt, 0.2f, null, () => { anchor.FrozenT = 1f; anchor.FireT = 99f; anchor.Pos = new V2(1500f, 80f); me.Pos = new V2(1000f, 450f); });
+        me.InvulnT = 0f;
+        float afterHit = me.Hp;
+        Run(s, dt, 3.5f, null, () => { anchor.FrozenT = 1f; anchor.FireT = 99f; anchor.Pos = new V2(1500f, 80f); me.Pos = new V2(1000f, 450f); });
+        Check(me.BleedT <= 0f, "the bleed runs out");
+        Check(me.Hp < afterHit - 3f, "the bleed hurts a little over its time (" + (afterHit - me.Hp).ToString("0.0") + " hp)");
+        g.Bullets.Clear(); me.BleedT = 0f; me.Parrying = true; me.ParryBroken = 0f; me.Aim = 0f; me.Hp = me.MaxHp; me.InvulnT = 0f;
+        var bot2 = (Bullet)typeof(Game).GetMethod("SpawnBullet", flags).Invoke(g, new object[] { Defs.BottleShot, me.Pos + new V2(me.Def.BodyR + 6f, 0f), new V2(-330f, 0f), 0f, 1f, Defs.BulletDamage(Defs.BottleShot), 0, false, 0f });
+        var reflects = (List<Bullet>)typeof(Game).GetField("reflects", flags).GetValue(g);
+        reflects.Clear();
+        bool stopped = (bool)typeof(Game).GetMethod("ShieldsStop", flags).Invoke(g, new object[] { me, bot2 });
+        Check(stopped && reflects.Count == 0, "a parried bottle smashes on the shield, nothing is sent back");
+        Check(me.BleedT <= 0f, "a parried bottle doesn't cut");
     }
 }

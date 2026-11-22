@@ -423,6 +423,38 @@ namespace Arena
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), Defs.BulletColor(bolt), 22f, 0.2f, Sfx.SpellZap);
         }
 
+        /// A Rioter's bottle that hurts you leaves a cut: BottleBleedDps a second for BottleBleedTime s (a second hit refreshes it).
+        public const float BottleBleedDps = 4f, BottleBleedTime = 3f, BottleBleedTick = 0.5f;
+
+        void BottleCut(Player p)
+        {
+            p.BleedT = BottleBleedTime;
+            p.BleedDps = BottleBleedDps;
+        }
+
+        /// Host: a bleeding player loses a tick's damage every BottleBleedTick s. Like burns and gas it goes through Riot Gear, and
+        /// it gives no hit grace (the tick puts back the invulnerability the damage would set).
+        void TickBottleBleed(Player p, float dt)
+        {
+            if (p.BleedT <= 0f)
+                return;
+            if (p.Downed)
+            {
+                p.BleedT = 0f;
+                return;
+            }
+            float before = p.BleedT;
+            p.BleedT = Math.Max(0f, p.BleedT - dt);
+            // a tick each time the timer crosses a multiple of BottleBleedTick
+            if ((int)(before / BottleBleedTick) == (int)(p.BleedT / BottleBleedTick))
+                return;
+            float grace = p.InvulnT, flash = p.Flash;
+            DamageOverTime(p, p.BleedDps * BottleBleedTick, "Rioter's bottle (bleed)");
+            p.InvulnT = grace;
+            p.Flash = flash;
+            BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), 6f, 0.5f, Sfx.None);
+        }
+
         float looseGasT;
 
         /// Host, every tick: tear gas hurts with no Warden about (the Warden's fight ticks its own, TickWardenGas), and
@@ -430,7 +462,10 @@ namespace Arena
         void TickWardenFaction(float dt)
         {
             foreach (var p in Players.Values)
+            {
                 p.BashGraceT = Math.Max(0f, p.BashGraceT - dt);
+                TickBottleBleed(p, dt);
+            }
             looseGasT -= dt;
             if (looseGasT > 0f)
                 return;

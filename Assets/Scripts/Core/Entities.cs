@@ -431,6 +431,7 @@ namespace Arena
         public float BossContactT;  // host: a boss's body can only hurt you once a second
         public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)
         public float BashGraceT;    // host: until a Riot Shield can bash this player again (WardenFaction.cs)
+        public float BleedT, BleedDps;  // host: a Rioter's bottle cut them: bleeds this much a second for this long (WardenFaction.cs)
         public float WarpT;         // beamed into the hub before a boss wave: can't move or shoot (replicated; BossBeam.cs)
         public float SwallowT;      // inside the Devourer: hidden, can't fire or be hit from outside (replicated; your own game holds you in it)
         public float UltT;                     // ultimate time left (Fortress: its dome's time, too)
