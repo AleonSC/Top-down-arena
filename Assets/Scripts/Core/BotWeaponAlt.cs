@@ -356,7 +356,7 @@ namespace Arena
                             firing = true;  // the Shield Bash
                         return botAltHoldT < 4f && (v.Incoming >= 1 || BotDanger > 0.8f);
                     }
-                    return Tap(v.Incoming >= 3 || EnemiesAhead(me, 70f, 1.2f) >= 2, 0.8f);
+                    return Tap(v.Incoming >= 3 || EnemiesAhead(me, 70f, 1.2f) >= 2 || v.Near >= 3, 0.8f);  // (or a crowd close round it)
             }
             return null;
         }
