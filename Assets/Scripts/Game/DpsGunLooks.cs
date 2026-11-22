@@ -12,9 +12,10 @@ namespace Arena
     ///                its charging handle, flashes at its muzzle with side-port puffs and flips brass out of its port; the barrels
     ///                heat from the tip the longer you hold fire (+0.045 a volley, cooling 0.28 a second), shimmer when hot and
     ///                smoke after a burst. Its grenade tubes' launch (Rocket assist), breech and reload are TwinNadeLook.cs.
-    ///   Railgun      three coils light one after another over the gap between shots, a ring closes on the muzzle when it is
-    ///                ready; firing is a white flash, arcs between the rails, a 0.2 s kick that shoves the rails apart and
-    ///                steam off the coils.
+    ///   Railgun      three coils light one after another as you hold fire to charge, a ring closes on the muzzle (gold in
+    ///                the perfect window); the rails heat from steel to white-hot with the heat meter and shimmer when hot;
+    ///                firing is a white flash, arcs between the rails, a kick that shoves the rails apart (all bigger with the
+    ///                charge) and steam off the coils. The beam, the fire cone and the heat gauge are RailBeamLook.cs.
     ///   Burst SMG    three barrel tubes that turn faster as it spins up and heat from steel to white-hot (the spin ring is
     ///                WorldRenderer's), a flash that grows with the spin, brass every other round, smoke once it is hot, and
     ///                the real spray cone drawn while it is spinning (WorldRenderer.cs).
@@ -47,7 +48,8 @@ namespace Arena
         // the pose the model reads while it draws (set by DpsGunPose)
         bool mDpsOn;
         float mTwinKick, mTwinClimb;  // the Twin Rifle's recoil, back along each barrel and turned outward (TwinSpreadPose)
-        float mBolt, mDHeat, mCharge = 1f, mDAge = 99f, mSpinPhase, mSpinUp;
+        float mBolt, mDHeat, mCharge = 1f, mDAge = 99f, mSpinPhase, mSpinUp, mRailHeat, mRailShotC = 1f;
+        bool mRailPerfect;
 
         void ClearDpsGunLooks() { dpsSeen.Clear(); nadeSeen.Clear(); }
 
@@ -104,11 +106,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.Railgun:
-                    s.T = juiceClock;
-                    AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.1f, Max = 0.1f, Size = 34f, Col = Rgba.White });
-                    AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.09f, Max = 0.09f, Size = 46f, Col = RailFlashCol });
-                    AddPart(new Part { Kind = PRing, Pos = at, Life = 0.2f, Max = 0.2f, Size = 30f, Col = RailCyan });
-                    Sparks(at, RailFlashCol, 10, 360f, 0.16f, 1.6f);
+                    OnRailgunShot(owner, at, bd, 1f);
                     break;
                 case WeaponId.BurstSmg:
                 {
@@ -206,8 +204,11 @@ namespace Arena
                     break;
                 case WeaponId.Railgun:
                     if (age < RailKick)
-                        kick = 10f * Sq(1f - age / RailKick);
-                    mCharge = Mathf.Clamp01((age - 0.08f) / RailCharge);
+                        kick = (3f + 9f * s.Heat) * Sq(1f - age / RailKick);  // (s.Heat: the last shot's charge)
+                    mCharge = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;  // the coils light as you hold fire
+                    mRailPerfect = p.DrawT > 0f && game.BowPerfect(p, p.DrawT);
+                    mRailHeat = Mathf.Clamp01(p.RailHeat / Game.RailHeatMax);
+                    mRailShotC = s.Heat;
                     break;
                 case WeaponId.BurstSmg:
                     mSpinUp = p.SpinUp;
@@ -361,15 +362,23 @@ namespace Arena
 
         void DrawRailgunFx()
         {
-            float flash = mDAge < RailFlash ? 1f - mDAge / RailFlash : 0f, kick = mDAge < RailKick ? 10f * Sq(1f - mDAge / RailKick) : 0f, sp = 3f + 0.12f * kick;
+            float flash = mDAge < RailFlash ? (1f - mDAge / RailFlash) * (0.4f + 0.6f * mRailShotC) : 0f, kick = mDAge < RailKick ? (3f + 9f * mRailShotC) * Sq(1f - mDAge / RailKick) : 0f, sp = 3f + 0.12f * kick;
+            var lit3 = mRailPerfect ? new Rgba(1f, 0.8f, 0.35f) : RailCyan;
+            var rail = MSteel.Mix(RailHot, Mathf.Clamp01(mRailHeat * 1.4f)).Mix(RailWhiteHot, Mathf.Clamp01(mRailHeat * 2.5f - 1.5f));  // the rails heat up with the meter
             MRect(-8f, -3f, 10f, 6f, MDark);
-            MLine(2f, -sp, 38f, -sp, 2.2f, MSteel); MLine(2f, sp, 38f, sp, 2.2f, MSteel);  // the rails shove apart on a shot
-            for (int i = 0; i < 3; i++)                                                      // three coils light up one after another
+            MLine(2f, -sp, 38f, -sp, 2.2f, rail); MLine(2f, sp, 38f, sp, 2.2f, rail);  // the rails shove apart on a shot
+            for (int i = 0; i < 3; i++)                                                      // three coils light up one after another as it charges
             {
                 float lit = Mathf.Clamp01(mCharge * 3f - i);
-                MRect(10f + i * 8f, -4.6f, 3f, 9.2f, CoilOff.Mix(RailCyan.Mix(Rgba.White, 0.4f * lit), lit));
+                MRect(10f + i * 8f, -4.6f, 3f, 9.2f, CoilOff.Mix(lit3.Mix(Rgba.White, 0.4f * lit), lit));
             }
             MLine(4f, 0f, 36f, 0f, 1.5f, new Rgba(0.75f, 0.95f, 1f, 0.25f + 0.75f * Mathf.Max(flash, mCharge)));
+            if (mRailHeat > 0.45f)  // hot air shimmering off the rails
+                for (int x = 6; x < 36; x += 3)
+                {
+                    float y0 = -sp - 2f + Mathf.Sin(x * 0.9f + juiceClock * 22f) * 0.6f, y1 = -sp - 2f + Mathf.Sin((x + 3) * 0.9f + juiceClock * 22f) * 0.6f;
+                    MLine(x, y0, x + 3f, y1, 0.8f, new Rgba(1f, 0.86f, 0.7f, 0.25f * (mRailHeat - 0.45f) / 0.55f));
+                }
             if (flash > 0f)                                                                  // arcs jumping between the rails
                 for (int i = 0; i < 5; i++)
                 {
@@ -377,11 +386,20 @@ namespace Arena
                     MLine(x, -sp, x + 2f, j, 1.4f, Rgba.White.WithAlpha(flash));
                     MLine(x + 2f, j, x + 4f, sp, 1.4f, Rgba.White.WithAlpha(flash));
                 }
-            if (mDAge > 0.35f)                                                               // ready: a ring closing on the muzzle
-            {
-                float f = Mathf.Clamp01((mDAge - 0.35f) / 0.35f);
-                MArc(40f, 0f, 15f - 9f * f, 0f, MathX.Tau, 1.4f, RailCyan.WithAlpha(0.2f + 0.5f * f));
-            }
+            if (mCharge > 0f)                                                                // charging: a ring closing on the muzzle, gold in the perfect window
+                MArc(40f, 0f, 15f - 9f * mCharge, 0f, MathX.Tau, 1.4f + mCharge, lit3.WithAlpha(0.25f + 0.65f * mCharge));
+        }
+
+        /// A Railgun beam left the muzzle (RailBeamLook.cs RailBeamFeel): a white flash, a ring and sparks, bigger with the charge (0-1).
+        void OnRailgunShot(Player owner, V2 at, V2 bd, float c)
+        {
+            var s = DpsOf(owner.Id);
+            s.T = juiceClock;
+            s.Heat = c;  // (how hard it kicks)
+            AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.1f, Max = 0.1f, Size = 18f + 22f * c, Col = Rgba.White });
+            AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.09f, Max = 0.09f, Size = 24f + 30f * c, Col = RailFlashCol });
+            AddPart(new Part { Kind = PRing, Pos = at, Life = 0.2f, Max = 0.2f, Size = 16f + 20f * c, Col = RailCyan });
+            Sparks(at, RailFlashCol, 4 + (int)(10f * c), 360f, 0.16f, 1.6f);
         }
 
         void DrawBurstSmgFx()

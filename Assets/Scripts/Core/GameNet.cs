@@ -728,6 +728,7 @@ namespace Arena
             s.Byte(ref p.ScatCharge);
             s.Byte(ref p.RepelMeter);   // the Repulsion Cannon's Undertow (Repulsion.cs)
             s.Bool(ref p.RepelPull);
+            s.Byte(ref p.RailHeat);     // the Railgun's heat (RailBeam.cs)
             s.Byte(ref p.Embers);       // the Censer's Embers (Censer.cs)
             s.Byte(ref p.GreatStep);    // the Greatsword's chain (Greatsword.cs)
             s.Bool(ref p.LancePrimed);  // the Lance's hook primed the Breaching Thrust (Lance.cs)

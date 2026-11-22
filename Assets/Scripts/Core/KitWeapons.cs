@@ -571,7 +571,7 @@ namespace Arena
         {
             public int Owner;
             public V2 From, Dir;
-            public float Speed, Len, Age, Dps, Time = IonTrailTime;
+            public float Speed, Len, Age, Dps, Time = IonTrailTime, Width = IonTrailWidth;
         }
 
         readonly List<Trail> ionTrails = new List<Trail>();
@@ -586,8 +586,12 @@ namespace Arena
             BroadcastFx(FxKind.IonTrail, from, from + dir * len, Defs.BulletColor(Defs.RailShot), speed, time + life, Sfx.None);
         }
 
+        readonly Dictionary<int, Trail> trailOn = new Dictionary<int, Trail>();  // each enemy's hottest trail this tick
+
+        /// Charged paths don't stack: an enemy standing in several (a beam and its bounce, or shot after shot) burns in the hottest.
         void TickIonTrails(float dt)
         {
+            trailOn.Clear();
             for (int i = ionTrails.Count - 1; i >= 0; i--)
             {
                 var tr = ionTrails[i];
@@ -604,10 +608,14 @@ namespace Arena
                         continue;
                     V2 rel = e.Pos - tr.From;
                     float along = Dot(rel, tr.Dir), across = Math.Abs(Dot(rel, tr.Dir.Orthogonal()));
-                    if (along >= tail - e.Radius && along <= head + e.Radius && across <= IonTrailWidth + e.Radius)
-                        WeaponHurt(e, tr.Dps * dt, tr.Owner);
+                    if (along >= tail - e.Radius && along <= head + e.Radius && across <= tr.Width + e.Radius
+                        && (!trailOn.TryGetValue(e.Id, out Trail was) || was.Dps < tr.Dps))
+                        trailOn[e.Id] = tr;
                 }
             }
+            foreach (var kv in trailOn)
+                if (Enemies.TryGetValue(kv.Key, out Enemy e))
+                    WeaponHurt(e, kv.Value.Dps * dt, kv.Value.Owner);
         }
 
         // --- Wolf Whistle: the pack hunt ----------------------------------------------------------

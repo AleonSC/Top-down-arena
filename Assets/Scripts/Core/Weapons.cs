@@ -194,10 +194,10 @@ namespace Arena
         public const float BowDrawSlow = 0.85f;  // move speed while drawing
 
         public float BowFull(Player p) => p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? ArcTagGap(p) * ArcTagMax(p) + 0.05f  // Arc Lightning: every tag in (ArcLock.cs)
-            : BowFullDraw / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
+            : (p.Weapon != null && p.Weapon.Id == WeaponId.Railgun ? RailFullDraw : BowFullDraw) / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
 
-        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Gore Mortar.
-        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.GoreMortar;
+        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Railgun, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Gore Mortar.
+        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Railgun || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.GoreMortar;
 
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
@@ -438,15 +438,8 @@ namespace Arena
                     FireTwinPistols(p, aim, dmg, extra);  // TwinPistols.cs
                     break;
                 case WeaponId.Railgun:
-                {
-                    var b = SpawnBullet(Defs.RailShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Pierce += 3;
-                    b.Bolts = true;  // it pierces: Ricochet flings bounce bolts off it
-                    IonTrail(p, muzzle, dir, b.Vel.Length, w.Life, dmg);  // its path stays charged (KitWeapons.cs)
-                    if (extra > 0)
-                        SetFrags(b, 2 * extra, Defs.DpsShot, 11f * dmg, 600f, 0.3f, 0f, true);
+                    FireRailgun(p, muzzle, dir, dmg, extra);  // the charged ricochet beam (RailBeam.cs)
                     break;
-                }
                 case WeaponId.BurstSmg:
                 {
                     // Spun up (SpinUp), the spray tightens and every bullet hits harder. +1 bullet per shot per extra
@@ -499,6 +492,8 @@ namespace Arena
                     return BreathReach;
                 case WeaponId.BloodBlast:  // the next step's reach (BloodBlast.cs)
                     return BlastNextReach(p);
+                case WeaponId.Railgun:  // the beam runs to the first wall (RailBeam.cs)
+                    return RailFirstReach(p);
                 case WeaponId.EmbolusSpears:  // a spear flies until a wall stops it (EmbolusSpears.cs)
                     return EsRange;
                 case WeaponId.ArcLightning:  // the tagging cone's reach (ArcLock.cs)

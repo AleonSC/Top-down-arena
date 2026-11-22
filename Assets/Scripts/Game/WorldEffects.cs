@@ -169,6 +169,8 @@ namespace Arena
             d[(int)FxKind.ArcFork] = (fx, f, t) => DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
             d[(int)FxKind.ChainThrow] = (fx, f, t) => DrawChainThrowFx(fx, f);
             d[(int)FxKind.IonTrail] = (fx, f, t) => DrawIonTrailFx(fx);
+            d[(int)FxKind.RailBeam] = (fx, f, t) => DrawRailBeamFx(fx);  // RailBeamLook.cs
+            d[(int)FxKind.HeatDump] = (fx, f, t) => DrawHeatDumpFx(fx);
             d[(int)FxKind.SteelWall] = (fx, f, t) => DrawSteelWallFx(fx, f);
             d[(int)FxKind.GreatRend] = (fx, f, t) => DrawGreatRendFx(fx, f);  // GreatswordLook.cs
             d[(int)FxKind.TwinStep] = (fx, f, t) => DrawTwinStepFx(fx);  // TwinBladesLook.cs

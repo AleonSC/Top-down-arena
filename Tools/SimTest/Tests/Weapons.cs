@@ -838,6 +838,13 @@ static partial class Program
                     if (Math.Abs(range - (me.Def.BodyR + Game.AmmoReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.Railgun)
+                {
+                    // No shots: the beam runs to the first wall, then bounces (railgun test); the aim line shows the first stretch.
+                    float want = me.Def.BodyR + (g.ArenaMax.X - (120f + me.Def.BodyR));
+                    if (Math.Abs(range - want) < 1f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + want.ToString("0") + " vs " + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.EmbolusSpears)
                 {
                     // No bullets: a spear flies until a wall stops it, or EsRange (EmbolusSpears test); the aim line shows that.

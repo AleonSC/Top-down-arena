@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 466: the Railgun rework: the player snapshot carries `RailHeat` (byte, after `RepelPull`); `Msg.WeaponDash` kind 55 `DashHeatDump`; `FxKind.RailBeam` and `FxKind.HeatDump` added at the end; the Railgun no longer fires `RailShot` bullets
 - 465: the Arcanist class: `Kit.Arcanist`; `WeaponId` OrbitShards, GlyphStylus, DancingBlades; six `AbilityId`s (KineticGrasp ... RunicArray); `MinionKind` ArcShard, ArcBlade; `ZoneKind` GrandSigil, SanctumSigil, ArcCrush; bullet kinds 73-74; the player snapshot ends with the Arcanist's fields (`SyncArcanist`)
 - 464: Graze: `Msg.Graze` (host -> all: player id, where the shot passed, its velocity); `FxKind.Graze` and `Sfx.Graze` added at the end (both local, never sent)
 - 463: Gust Gate replaces Energy Ward: `Player.EnergyMax` in the snapshot is now `GustT` (the boost left); `ZoneKind.GustGate` added at the end; `AbilityId.EnergyWard` renamed `GustGate` (same number)

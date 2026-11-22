@@ -408,6 +408,9 @@ namespace Arena
             }
             if (fx.Kind == FxKind.DoubleBarrel)
                 DoubleBarrelFeel(fx);  // TankAltFx.cs
+            RailBeamFeel(fx, me);  // a Railgun beam leaving its gun (RailBeamLook.cs)
+            if (fx.Kind == FxKind.HeatDump && me != null && fx.Pos.DistanceTo(me.Pos) < 30f)
+                Shake(0.08f + 0.25f * fx.Radius / Game.RailHeatMax);  // your own Heat Dump
             if (fx.Kind == FxKind.CoverBreak && me != null && me.Pos.DistanceTo(fx.Pos) < 450f)
                 Shake(0.22f);  // a Deployable Cover bursting near you (DeployableCoverLook.cs)
             if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && me != null && fx.Pos.DistanceTo(me.Pos) < 500f)

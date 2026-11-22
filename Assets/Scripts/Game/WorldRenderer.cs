@@ -141,6 +141,12 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.WyvernStaff)
                     DrawCinderMeter(p);  // WyvernStaffLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.Railgun)
+                {
+                    DrawRailAim(p);   // RailBeamLook.cs: your charge's beam and bounces
+                    DrawRailHeat(p);  // the heat gauge
+                }
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.RepulsionCannon)
                 {
                     DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter
