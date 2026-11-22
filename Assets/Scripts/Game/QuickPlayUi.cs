@@ -20,8 +20,10 @@ namespace Arena
             var profile = game.Profile ?? new Profile();
             var ink = CrtStyle.Ink;
             bool first = profile.QuickPlays == 0;
+            int metN = 0;
+            foreach (var mb in Game.BossCycle) if (profile.Beaten(mb) > 0) metN++;
             float bodyY = ModeHeader(r, "QUICK PLAY", "10 WAVES  ·  A RANDOM BOSS  ·  ENDLESS", first ? "Your first Quick Play is the tutorial, and it ends on the Warden."
-                : "Every boss comes up once before any repeats.", first ? QuickColor : Ui.Muted);
+                : "Every boss comes up once before any repeats.", first ? QuickColor : Ui.Muted, QuickColor, metN / (float)Game.BossCycle.Length, metN + "/" + Game.BossCycle.Length);
             float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
             var ev = Event.current;
 
