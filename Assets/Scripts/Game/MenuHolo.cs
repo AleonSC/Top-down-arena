@@ -27,6 +27,7 @@ namespace Arena
             if (a <= 0f)
                 return;
             int n = closed ? pts.Length : pts.Length - 1;
+            glNeon = true;
             for (int layer = 0; layer < 5; layer++)
             {
                 float w = layer == 0 ? 16f : layer == 1 ? 9f : layer == 2 ? 5f : layer == 3 ? 2.2f : 1f;
@@ -38,6 +39,7 @@ namespace Arena
                     Line(p - d, q + d, w, c);
                 }
             }
+            glNeon = false;
         }
 
         void NeonRect(Rect r, float a) =>
@@ -67,6 +69,7 @@ namespace Arena
                 return;
             UiModelAt(V2.Zero, 1f);
             float x0 = r.x - gap, x1 = r.xMax + gap, y0 = r.y - gap, y1 = r.yMax + gap;
+            glNeon = true;
             foreach (var corner in new[] { new V2(x0, y0), new V2(x1, y0), new V2(x0, y1), new V2(x1, y1) })
             {
                 float sx = corner.X < r.center.x ? 1f : -1f, sy = corner.Y < r.center.y ? 1f : -1f;
@@ -76,6 +79,7 @@ namespace Arena
                 Line(corner + back, h, 3f, HoloHot.WithAlpha(0.95f * a));
                 Line(corner + up, v, 3f, HoloHot.WithAlpha(0.95f * a));
             }
+            glNeon = false;
         }
 
         /// GL: the neon round the menu box.
@@ -101,7 +105,7 @@ namespace Arena
                 if (title)
                     DrawTitleRetype(WhoTitleText, -1);
             });
-            if (title)
+            if (title && WhoLayout == 0)
                 DrawDriveBay(a);
         }
 

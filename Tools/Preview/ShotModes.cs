@@ -461,9 +461,10 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("PACOVER") != null) pg.State = PacState.Over;
         if (Environment.GetEnvironmentVariable("PACPAUSE") != null) set("pacPaused", true);
       }
-      if (mode == "who" && Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); }
+      if (mode == "who") { ArenaApp.WhoLayout = int.Parse(Environment.GetEnvironmentVariable("WHOLAYOUT") ?? "0"); ArenaApp.WhoGraphite = Environment.GetEnvironmentVariable("WHODARK") != "0"; }  // WHOLAYOUT=0-3: layout mockups; WHODARK=0: the blue look
       if (mode == "who" && Environment.GetEnvironmentVariable("WHOKEY") != null) KeyUi.WhoStyle = int.Parse(Environment.GetEnvironmentVariable("WHOKEY"));  // WHOKEY=1|2: Manage profiles as Graphite or Machined
-      if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null); }
+      if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
+        if (Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); } }  // BG=0: the Holo Floor behind it
       // records: the Records page, with made-up saves and a profile (SavesUi.cs).
       if (mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "menu") PreviewSaves();
       // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; SCROLL=n: scroll the list n px).

@@ -19,7 +19,20 @@ namespace Arena
         List<ProfileInfo> whoList = new List<ProfileInfo>();
         bool profileChosen;           // a profile was picked on this screen: the name field now edits its name
 
-        const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 60f, WhoCardTop = 280f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
+        const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 60f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
+        static float WhoCardTop => WhoLayout == 0 ? 280f : 222f;
+
+        /// The screen's graphite look (Ui.Graphite: the blues drawn as greys; the disks and the neon keep their colours).
+        public static bool WhoGraphite = true;
+
+        /// Layout mockups (preview WHOLAYOUT=): 0 the drive under the title; with the drive and Manage profiles in a console under the shelf:
+        /// 1 hanging, side by side; 2 hanging, stacked; 3 a full-width drawer flush under the shelf.
+        public static int WhoLayout;
+
+        /// The console under the shelf (layouts 1 to 3).
+        static Rect WhoConsole => WhoLayout == 1 ? new Rect(W / 2f - 390f, WhoShelfTop + 54f + 24f, 780f, 112f)
+            : WhoLayout == 2 ? new Rect(W / 2f - 215f, WhoShelfTop + 54f + 20f, 430f, 190f)
+            : new Rect(70f, WhoShelfTop + 54f, W - 140f, 116f);
         const int WhoSlots = ProfileStore.MaxProfiles;  // profile slots; the New profile box is the box after them
 
         /// Where box i sits (0 to 2: the slots; 3: New profile). Always four, so the layout never changes.
@@ -121,6 +134,67 @@ namespace Arena
 
         void DrawWho()
         {
+            Ui.Graphite = WhoGraphite;
+            if (WhoLayout != 0)
+            {
+                var c = WhoConsole;
+                DriveCx = WhoLayout == 1 ? c.x + 34f + DriveW / 2f : WhoLayout == 2 ? W / 2f : W / 2f - 210f;
+                DriveY = WhoLayout == 1 ? c.y + 42f : WhoLayout == 2 ? c.y + 38f : c.y + 46f;
+            }
+            try { DrawWhoBody(); }
+            finally { Ui.Graphite = false; DriveCx = W / 2f; DriveY = 206f; }
+        }
+
+        /// The key's rect: under the shelf in the middle, or in the console (layouts 1 to 3).
+        Rect WhoManageRect(float kw)
+        {
+            if (WhoLayout == 0)
+                return new Rect(W / 2f - kw / 2f, H - 118f, kw, 74f);
+            var c = WhoConsole;
+            if (WhoLayout == 2)
+                return new Rect(W / 2f - kw / 2f, c.y + 92f, kw, 74f);
+            if (WhoLayout == 1)
+                return new Rect(c.xMax - 34f - kw, c.y + 20f, kw, 74f);
+            return new Rect(W / 2f + 60f, c.y + 22f, kw, 74f);
+        }
+
+        /// The console under the shelf that holds the drive and Manage profiles (layouts 1 to 3): hung from two struts, or a drawer
+        /// flush under the shelf; a dark body with faint scanlines and neon round its open sides.
+        void DrawWhoConsole()
+        {
+            var c = WhoConsole;
+            float shelfBottom = WhoShelfTop + 54f, cut = 14f;
+            if (WhoLayout != 3)
+                foreach (float sx in new[] { c.x + 60f, c.xMax - 74f })
+                {
+                    var strut = new Rect(sx, shelfBottom - 2f, 14f, c.y - shelfBottom + 6f);
+                    Ui.Fill(strut, new Color(0.08f, 0.1f, 0.2f));
+                    WhoBand(new Rect(strut.x + 2f, strut.y, strut.width - 4f, strut.height), new Color(0.35f, 0.42f, 0.66f), new Color(0.16f, 0.2f, 0.38f), 2f);
+                    KeyUi.Bolt(new Vector2(strut.center.x, strut.y + 8f), 6f);
+                }
+            Ui.Pill(new Rect(c.x, c.y + 6f, c.width, c.height), new Color(0f, 0f, 0f, 0.45f));
+            WhoBand(c, new Color(0.06f, 0.08f, 0.16f, 0.96f), new Color(0.035f, 0.05f, 0.1f, 0.96f), 4f);
+            for (float y = c.y + 3f; y < c.yMax - 2f; y += 4f)
+                Ui.Fill(new Rect(c.x + 2f, y, c.width - 4f, 1f), new Color(0.36f, 0.52f, 0.91f, 0.035f));
+            if (WhoLayout == 3)
+            {
+                WhoVent(new Rect(c.x + 20f, c.y + 46f, 100f, 24f));
+                WhoVent(new Rect(c.xMax - 120f, c.y + 46f, 100f, 24f));
+            }
+            if (BeginUiGl())
+            {
+                UiModelAt(V2.Zero, 1f);
+                float n = NeonFlicker(Time.unscaledTime, 11f, 2f);
+                if (WhoLayout == 3)  // a drawer: the top joins the shelf, so the neon runs down the sides and along the bottom
+                    NeonPath(new[] { new V2(c.x, c.y), new V2(c.x, c.yMax - cut), new V2(c.x + cut, c.yMax), new V2(c.xMax - cut, c.yMax), new V2(c.xMax, c.yMax - cut), new V2(c.xMax, c.y) }, false, n);
+                else
+                    NeonPath(new[] { new V2(c.x, c.y), new V2(c.xMax, c.y), new V2(c.xMax, c.yMax - cut), new V2(c.xMax - cut, c.yMax), new V2(c.x + cut, c.yMax), new V2(c.x, c.yMax - cut) }, true, n);
+                EndUiGl();
+            }
+        }
+
+        void DrawWhoBody()
+        {
             float t = Time.unscaledTime;
             if (whoList.Count == 0 && ProfileStore.Root != null && !whoAutoNew && whoEdit == null)
             {
@@ -149,11 +223,12 @@ namespace Arena
                 drive.text = "INSERT: " + WhoInSlot(hot).Name.ToUpperInvariant();
             else if (hot == WhoSlots)
                 drive.text = "FORMAT NEW DISK";
-            DrawDriveSlot(1f, drive);
-
             if (Event.current.type == EventType.Repaint)
                 for (int i = 0; i <= WhoSlots; i++)
                     whoTagLit[i] = Mathf.MoveTowards(whoTagLit[i], i == hot ? 1f : 0f, Time.unscaledDeltaTime * 7f);
+            if (WhoLayout != 0)
+                DrawWhoConsole();
+            DrawDriveSlot(1f, drive);
             DrawWhoShelf();
             for (int i = 0; i <= WhoSlots; i++)
             {
@@ -175,7 +250,7 @@ namespace Arena
             {
                 // Manage profiles is a keycap like the main menu's Play (KeyUi.cs), with the same VHS hover.
                 float kw = KeyUi.WhoStyle == 2 ? 380f : KeyUi.WhoStyle == 1 ? 330f : 300f;
-                var kr = new Rect(W / 2f - kw / 2f, H - 118f, kw, 74f);
+                var kr = WhoManageRect(kw);
                 if (MenuVhs.Draw(kr, "TRK 03", true, fxReduced, () => KeyUi.WhoStyle > 0
                     ? KeyUi.Graphite(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage, KeyUi.WhoStyle == 2)
                     : KeyUi.Key(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage)))
@@ -193,7 +268,7 @@ namespace Arena
         readonly float[] whoTagLit = new float[WhoSlots + 1];  // how lit each slot's tag on the shelf is (0..1, eased; on under the mouse)
 
         /// Where the shelf's top edge is: the disks stand on their pedestals just above it.
-        const float WhoShelfTop = WhoCardTop + WhoCardH + 16f;
+        static float WhoShelfTop => WhoCardTop + WhoCardH + 16f;
 
         /// A vertical gradient drawn as thin strips (the game's boxes are flat, so depth is built from strips).
         static void WhoBand(Rect r, Color top, Color bottom, float step = 3f)
@@ -247,7 +322,7 @@ namespace Arena
             {
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(wall, NeonFlicker(Time.unscaledTime, 7f, 1.4f));
-                HoloCorners(new Rect(left, wall.y, w, wall.height), 1f);  // round the rack and its shelf (the shelf is the wider)
+                HoloCorners(new Rect(left, wall.y, w, wall.height + (WhoLayout == 3 ? WhoConsole.height : 0f)), 1f);  // round the rack and its shelf (the shelf is the wider)
                 EndUiGl();
             }
 
@@ -612,7 +687,10 @@ namespace Arena
                 whoLift[slot] = Mathf.MoveTowards(whoLift[slot], hover ? 1f : 0f, Time.unscaledDeltaTime * 7f);
             float lift = live && !whoManage ? whoLift[slot] : 0f;
             var d = new Rect(r.x, r.y - 12f * lift, r.width, r.height);
+            bool graphite = Ui.Graphite;
+            Ui.Graphite = false;  // the disks keep their own colours
             DrawWhoDisk(d, p, current);
+            Ui.Graphite = graphite;
             float sel = whoManage ? 0f : whoLift[slot];  // selected (under the mouse, or picked and lifting): a neon border round the disk (MenuHolo.cs)
             if (sel > 0.01f && BeginUiGl())
             {

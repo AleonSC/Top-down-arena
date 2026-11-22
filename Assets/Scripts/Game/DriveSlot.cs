@@ -8,7 +8,8 @@ namespace Arena
     /// rank colour, with your name. The slit's lower lip is drawn again over the disk (DrawDriveLip) so the disk reads as going in through it.
     public partial class ArenaApp
     {
-        const float DriveY = 206f;                 // the slit's centre line (the CRT title's bezel ends at 186)
+        static float DriveY = 206f;                // the slit's centre line (the CRT title's bezel ends at 186; the picker's layout mockups move it)
+        static float DriveCx = W / 2f;             // the drive's centre (the middle; the picker's layout mockups move it)
         const float DriveDiskSize = 166f;          // a disk's width when it reaches the slot
         const float DriveW = 330f, DriveH = 32f, DriveSlitW = 190f;
         static readonly Color DriveAmber = new Color(1f, 0.71f, 0.28f), DriveDim = new Color(0.27f, 0.35f, 0.59f);
@@ -83,7 +84,7 @@ namespace Arena
                 return;
             WithAlpha(alpha, () =>
             {
-                float cx = W / 2f, x0 = cx - DriveW / 2f, y0 = DriveY - DriveH / 2f;
+                float cx = DriveCx, x0 = cx - DriveW / 2f, y0 = DriveY - DriveH / 2f;
                 var edge = new Color(0.45f, 0.65f, 1f, 0.5f);
                 Ui.Pill(new Rect(x0, y0 + 4f, DriveW, DriveH), new Color(0f, 0f, 0f, 0.35f));
                 Ui.Pill(new Rect(x0, y0, DriveW, DriveH), edge);
@@ -114,7 +115,7 @@ namespace Arena
 
         void DrawDriveLipLine(DriveState S)
         {
-            float cx = W / 2f;
+            float cx = DriveCx;
             Ui.Fill(new Rect(cx - DriveSlitW / 2f + 2f, DriveY + 4f, DriveSlitW - 4f, 1f), new Color(0.75f, 0.83f, 1f, 0.5f));
             if (S.flash > 0f)
                 Ui.Fill(new Rect(cx - DriveSlitW / 2f, DriveY - 3f, DriveSlitW, 2f), new Color(1f, 1f, 1f, S.flash));

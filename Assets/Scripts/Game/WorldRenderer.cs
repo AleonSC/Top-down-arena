@@ -805,6 +805,8 @@ namespace Arena
                 float l = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
                 glCur = new Color(c.R + (l - c.R) * glDesat, c.G + (l - c.G) * glDesat, c.B + (l - c.B) * glDesat, c.A);
             }
+            if (Ui.Graphite && !glNeon)  // the Who's playing? screen's graphite look (Ui.Gray), the neon kept
+                glCur = Ui.Gray(glCur);
             if (glAlpha < 1f)
                 glCur.a *= glAlpha;
             GL.Color(glCur);
@@ -812,6 +814,9 @@ namespace Arena
 
         /// UI GL's opacity (BeginUiGl takes Ui.Alpha, EndUiGl puts it back to 1); the arena's own drawing is always 1.
         static float glAlpha = 1f;
+
+        /// Set while the neon draws (MenuHolo.cs NeonPath): it keeps its colour under Ui.Graphite.
+        static bool glNeon;
 
         void Tri(V2 a, V2 b, V2 c)
         {
