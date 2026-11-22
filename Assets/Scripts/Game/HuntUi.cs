@@ -42,7 +42,7 @@ namespace Arena
             var bosses = new EnemyType[10];
             int huntN = 0;
             int steps = session.HuntLong ? Hunts.LongLength : Hunts.Length;
-            var p = new ModePage { Title = "BOSS HUNT", Facts = steps + "-STEP MAP  ·  ONE BOSS", Acc = HuntColor, ListHead = "HUNTS",
+            var p = new ModePage { Title = "BOSS HUNT", Acc = HuntColor, ListHead = "HUNTS",
                 Tagline = host ? "Pick a boss. Beat one in a run to open its hunt." : "The host picks the boss (from the hunts they've opened).",
                 Rules = new[] { "NO PATHS", "NO DATA GATES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" } };
             for (int i = 0; i < 10; i++)

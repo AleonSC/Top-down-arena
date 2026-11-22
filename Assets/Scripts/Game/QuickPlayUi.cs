@@ -24,7 +24,7 @@ namespace Arena
             var profile = game.Profile ?? new Profile();
             bool first = profile.QuickPlays == 0;
             var bosses = Game.BossCycle;
-            var p = new ModePage { Title = "QUICK PLAY", Facts = "10 WAVES  ·  A RANDOM BOSS  ·  ENDLESS", Acc = QuickColor, Rules = QuickRules,
+            var p = new ModePage { Title = "QUICK PLAY", Acc = QuickColor, Rules = QuickRules,
                 Tagline = first ? "Your first Quick Play is the tutorial, and it ends on the Warden." : "Every boss comes up once before any repeats." };
             var met = new List<int>();
             for (int i = 0; i < bosses.Length; i++)
