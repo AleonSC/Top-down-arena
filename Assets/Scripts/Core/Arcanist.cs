@@ -52,17 +52,15 @@ namespace Arena
         {
             new WeaponDef { Id = WeaponId.OrbitShards, Kit = Kit.Arcanist, FillsGaps = true, Role = Role.Tank, Choice = 0, Speed = ShardOut, Life = ShardReach / ShardOut,
                 Damage = 18f, FireInterval = 0.3f, BotRange = 260f, Companion = MinionKind.ArcShard, CompanionCount = 4, Name = "Orbit Shards", Sound = Sfx.SpellArcane,
-                Desc = "Four crystal shards circle you, cutting small enemy bullets out of the air. Fire flings one at your cursor (up to 360 px): it cuts everything it passes, "
-                    + "18 on the way out and 18 on the way back. Hold Alt for Shard Guard: they pull in tight and stop every bullet that reaches them, but you move at 55% speed and can't fling them.",
+                Desc = "Primary Fire: Fling one of four orbiting shards that cuts everything it passes, out and back.\n\nAlternative Fire: Pull the shards in tight to stop every bullet, but you move slower.",
                 ExtraDesc = "+1 shard, and one more flung with each click" },
             new WeaponDef { Id = WeaponId.GlyphStylus, Kit = Kit.Arcanist, FillsGaps = true, Role = Role.Healer, Choice = 0, Speed = 650f, Life = 0.7f, Damage = 10f,
                 FireInterval = 0.26f, BotRange = 330f, Name = "Glyph Stylus", Sound = Sfx.SpellArcane,
-                Desc = "Writes rune bolts in the air: each goes through two enemies (10 each), and one that passes through an ally heals them for 7.",
+                Desc = "Primary Fire: Writes rune bolts that pierce two enemies and heal an ally they pass through.",
                 ExtraDesc = "+1 bolt, fanned out" },
             new WeaponDef { Id = WeaponId.DancingBlades, Kit = Kit.Arcanist, FillsGaps = true, Role = Role.Dps, Choice = 0, Speed = BladeOut, Life = BladeReach / BladeOut,
                 Damage = 10f, FireInterval = 0.3f, BotRange = 300f, Companion = MinionKind.ArcBlade, CompanionCount = 3, Name = "Dancing Blades", Sound = Sfx.SwingLight,
-                Desc = "Three enchanted swords hover behind you. Fire launches one at your cursor (up to 380 px, onto the enemy nearest it): it cuts what it passes, "
-                    + "then dances on the spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. Alt calls them all home at once, cutting on the way.",
+                Desc = "Primary Fire: Launch a floating sword that cuts, dances on the enemy, then returns.\n\nAlternative Fire: Call every sword home at once, cutting on the way.",
                 ExtraDesc = "+1 blade" },
         };
 

@@ -719,40 +719,36 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
-                Desc = "A whip of blood, a four-step string: Crack, Backhand, Snap, Reap. Every lash that lands hooks a blood chain on the enemy (+1 link, +2 from the cracking tip or the Snap). "
-                    + "Reap yanks every chained enemy in and turns the links into Clot (4% less damage taken each, up to 5). Alt: hold for Martyr's Leash." },
+                Desc = "Primary Fire: A four-step blood whip that chains enemies, then yanks them in.\n\nAlternative Fire: Hold for Martyr's Leash." },
             new WeaponDef { Id = WeaponId.GoreMortar, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
-                Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still.",
+                Desc = "Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing, healing pool.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
             new WeaponDef { Id = WeaponId.LeechTendrils, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
-                Desc = "Hold to lash out blood tendrils that grasp nearby enemies and hold them stunned. The longer you hold, the more blood builds up in them, and after 5 seconds they burst. Let go early and they burst for the share built up so far. Holding costs 2% of your max health a second, and the tendrils need 1 second to recover after a burst.",
+                Desc = "Primary Fire: Hold to grab and stun nearby enemies; they burst when the blood builds up.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
             new WeaponDef { Id = WeaponId.BloodBlast, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 3, Damage = 22f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "+15% damage and reach", Name = "Blood Blast", FireInterval = 0.42f,
-                Desc = "Your blood shaped into a blade, a six-step chain that never times out: Crimson Slash, Backcut, Thorn Flurry, Vein Whirl, Sanguine Cleave, Crescent Flight. "
-                    + "Every attack costs 1.3-3% of your max health and puts a blood stack on each enemy it hits (up to 10). When a stacked enemy dies, its blood flies back and heals you 2 a stack." },
+                Desc = "Primary Fire: A six-step blood sword combo; every hit marks enemies, and their deaths heal you." },
             // Healer
             new WeaponDef { Id = WeaponId.TransfusionDarts, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
-                Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them more health than it costs you. Each enemy hit steals a sliver back." },
+                Desc = "Primary Fire: Darts that heal hurt allies for more than they cost you." },
             new WeaponDef { Id = WeaponId.SanguineOrb, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f, BotRange = 380f,
-                Desc = "Orbs of blood that home in at the last moment, circle an enemy and cover it, making it bleed and charging your heal reserve. "
-                    + "With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s).",
+                Desc = "Primary Fire: Homing orbs that make enemies bleed, or heal a hurt ally once charged.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.VeinTether, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
-                Desc = "A draining beam that hurts whatever you hold it on. Part of its damage heals, split between you and the nearest ally.",
+                Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
             // DPS
             new WeaponDef { Id = WeaponId.BloodBolts, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
-                Desc = "Fast bolts of blood that make enemies bleed. A bolt that fills an enemy's bleed bursts it, hurting it and the enemies around it.",
+                Desc = "Primary Fire: Rapid bolts that make enemies bleed, then burst them when the bleed fills.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
-                Desc = "Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in.",
+                Desc = "Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
             new WeaponDef { Id = WeaponId.BloodBrawler, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
-                Desc = "Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too.",
+                Desc = "Primary Fire: Click an enemy to work its blood from range, ending in a bone-shard burst.\n\nAlternative Fire: Bind the enemies near it so your moves hit them too.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.EmbolusSpears, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
-                Desc = "Arms out, a hardened blood spear in each hand. Fire throws the left, then the right, for 20% of your max health each: they pierce every enemy and stick in the wall. "
-                    + "Fire again to recall both: they pierce again on the way back and give the health back. Alt bursts them where they are instead, for half the health back.",
+                Desc = "Primary Fire: Throw a spear from each hand that pierces everything, then recall them to get health back.\n\nAlternative Fire: Burst the spears where they are.",
                 Sound = Sfx.Throw, AreaDesc = "the burst 25% wider" },
         };
 

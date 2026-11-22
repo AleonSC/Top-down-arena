@@ -1,5 +1,30 @@
 # Lobby Hangout
 
+> **Status (protocol 468): rebuilt as a real game mode.** The Hangout key now opens `GameMode.Hangout`, the real match held between
+> waves for good (`Core/HangoutGame.cs`; below, "The Hangout mode"). The room described in the rest of this file (a lobby tab with
+> its own light shots, `LobbyCombat.cs`, `LobbyRoom.cs`) is no longer reachable from the lobby; its code is kept until the owner
+> says to remove it.
+
+## The Hangout mode
+
+- **Hidden mode**: `GameMode.Hangout` (end of the enum, before `None`), one `ModeDef` row (nothing recorded, saved or built). The
+  carousel shows only the first five, and `Session.SetMode` refuses it. The lobby's **Hangout key** calls `Session.StartHangout`: the
+  host starts it for everyone (nobody has to be ready); a client sends `Msg.HangoutOpen` and the host does it.
+- **On the wire**: one flag at the end of `Msg.Start` (`Game.HangoutOn`, protocol 468). The lobby's own pick (Quick Play, a hunt,
+  Practice, Survival) never leaks in: the host writes the start as no quick, no survival, and `HangoutRead` drops the lobby's Practice
+  plan and hunt.
+- **Between waves for good**: `TickWaves` hands over to `TickHangout`, which pins `State = Intermission` and `StateTimer = 60` every
+  tick. No wave, no countdown, no level-ups (`Game.Quiet`: no XP, mastery, tutorial, recording or run stats; enemies stand still), and
+  the host puts everyone in god mode.
+- **Target dummies**: the loadout preview's three (`TickDummies`, shared with `Showcase`), 260 health, standing in a row 140 px above
+  the arena's middle; one that falls is back a second later.
+- **HUD**: the GET READY / WAVE CLEARED band is replaced by a small HANGOUT chip (`Game/HangoutUi.cs`).
+- **Leaving**: the pause menu's Back to lobby, like any run.
+- Test: `Tools/SimTest/run.sh 1 30 hangoutmode`.
+- **Not built yet**: PvP between players in the real sim, a spawn-an-enemy key, kit swapping inside the Hangout.
+
+## The first build (retired room)
+
 A walkable room in the lobby. Every player has their character in it, wearing what their rank has earned, and moves
 it with WASD (or the arrow keys, or whatever the movement keys are rebound to). Nothing to shoot, no abilities, no
 collisions: it is somewhere to stand while the party sorts out loadouts and readies up. Cosmetic first, like Rank, with an optional

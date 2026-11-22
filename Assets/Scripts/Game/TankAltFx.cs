@@ -57,36 +57,24 @@ namespace Arena
         /// Juice's effects pass: a Double Barrel blast (FxKind.DoubleBarrel).
         void DoubleBarrelFeel(Effect fx)
         {
-            int owner = (int)(fx.Radius / 10f), shells = Mathf.Max(1, (int)fx.Radius % 10);
+            int owner = (int)(fx.Radius / 10f);
             AltOf(owner).DumpT = juiceClock;
-            V2 dir = (fx.Pos2 - fx.Pos).Normalized(), side = dir.Orthogonal(), at = fx.Pos;
-            float aim = dir.Angle;
-            for (int b = -1; b <= 1; b += 2)  // both barrels, side by side
+            V2 dir = (fx.Pos2 - fx.Pos).Normalized(), at = fx.Pos;
+            AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = dir.Angle, Life = 0.08f, Max = 0.08f, Size = 30f, Col = new Rgba(0.6f, 0.9f, 1f) });
+            AddPart(new Part { Kind = PFlash, Pos = at + dir * 8f, Life = 0.1f, Max = 0.1f, Size = 22f, Col = Rgba.White });
+            Ring(at + dir * 14f, 40f, 0.25f, new Rgba(0.45f, 0.85f, 1f, 0.8f));
+            for (int i = 0; i < 8; i++)
             {
-                V2 m = at + side * (3.5f * b);
-                AddPart(new Part { Kind = PMuzzle, Pos = m, Rot = aim + b * 0.08f, Life = 0.1f, Max = 0.1f, Size = 46f + 12f * shells, Col = new Rgba(1f, 0.9f, 0.6f) });
+                float a = dir.Angle + Rnd(-0.5f, 0.5f), sp = Rnd(150f, 380f);
+                AddPart(new Part { Kind = PSpark, Pos = at, Vel = V2.FromAngle(a) * sp, Life = Rnd(0.1f, 0.22f), Max = 0.22f, Size = Rnd(1.4f, 2.2f), Col = new Rgba(0.5f, 0.9f, 1f) });
             }
-            for (int k = -2; k <= 2; k++)
-                AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = aim + k * 0.28f, Life = 0.08f, Max = 0.08f, Size = 26f, Col = new Rgba(1f, 0.55f, 0.2f) });
-            AddPart(new Part { Kind = PFlash, Pos = at + dir * 10f, Life = 0.12f, Max = 0.12f, Size = 30f + 8f * shells, Col = Rgba.White });
-            Ring(at + dir * 18f, 70f + 30f * shells, 0.3f, new Rgba(1f, 0.85f, 0.6f, 0.8f));
-            for (int i = 0; i < 18 + 8 * shells; i++)  // sparks thrown forward in the cone
+            for (int i = 0; i < 6; i++)
             {
-                float a = aim + Rnd(-0.5f, 0.5f), sp = Rnd(250f, 620f);
-                AddPart(new Part { Kind = PSpark, Pos = at, Vel = V2.FromAngle(a) * sp, Life = Rnd(0.12f, 0.26f), Max = 0.26f, Size = Rnd(1.4f, 2.4f), Col = new Rgba(1f, Rnd(0.6f, 0.9f), 0.4f) });
+                float life = Rnd(0.5f, 0.9f);
+                AddPart(new Part { Kind = PDust, Pos = at + dir * Rnd(0f, 14f), Vel = dir * Rnd(40f, 140f) + new V2(0f, -Rnd(10f, 30f)), Life = life, Max = life, Size = Rnd(5f, 9f), Col = SmokeCol });
             }
-            for (int i = 0; i < 10 + 4 * shells; i++)  // smoke rolling forward, then lifting
-            {
-                float life = Rnd(0.6f, 1.1f);
-                AddPart(new Part { Kind = PDust, Pos = at + dir * Rnd(0f, 20f), Vel = dir * Rnd(60f, 220f) + side * Rnd(-90f, 90f) + new V2(0f, -Rnd(10f, 40f)), Life = life, Max = life, Size = Rnd(7f, 13f), Col = SmokeCol });
-            }
-            for (int s = 0; s < shells; s++)  // the spent shells kicked out of the breech
-                AddPart(new Part { Kind = PCasing, Pos = at - dir * 14f, Vel = side * ((s == 0 ? 1f : -1f) * Rnd(110f, 150f)) - dir * Rnd(40f, 80f), Rot = aim + MathX.Pi / 2f, Spin = (s == 0 ? 1f : -1f) * Rnd(14f, 20f), Life = 1f, Max = 1f, Size = 5f, Col = ShellRed });
             if (owner == game.MyId)
-            {
-                Shake(0.22f + 0.08f * shells);
-                Hold(0.035f, 0.2f);
-            }
+                Shake(0.12f);
         }
 
         /// Each frame: shells popping into their pips, and the mines' and canisters' flight, landing, bursting and gas.
@@ -99,8 +87,8 @@ namespace Arena
                 {
                     s.LoadT = juiceClock;
                     V2 c = ShellPipAt(p, p.ScatShells - 1);
-                    Sparks(c, ShellBrass, 6, 90f, 0.25f, 1.4f);
-                    Ring(c, 14f, 0.25f, ShellBrass.WithAlpha(0.8f));
+                    Sparks(c, ShockBlue, 6, 90f, 0.25f, 1.4f);
+                    Ring(c, 14f, 0.25f, ShockBlue.WithAlpha(0.8f));
                 }
                 s.Shells = p.ScatShells;
             }

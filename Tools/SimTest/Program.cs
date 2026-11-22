@@ -430,7 +430,7 @@ static partial class Program
         Test("tithe", "Vein Tithe: a tendril to every enemy on screen, held enemies frozen for 15 s, a per-enemy health drain, a slow, 40% less damage, ends on time or on death", () => TitheTest(Dt)),
         Test("bloodbath", "Bloodbath and the lobby's ultimate pick: 15% cost, a 170 px pool for 10 s, 50/35/20% slow, a bleed only while in it, 25% back with no extra 3%, 20% guard, Blood Price, ends on time or between waves (not on going down), the pick reaching the run", () => BloodbathTest(Dt)),
         Test("rain", "Sanguine Rain: a 1.8 s siphon costing 12%, rings that heal every ally 3% a tick for 10 s, the healer's 3% drain, cancel by pressing again, the 15% floor", () => RainTest(Dt)),
-        Test("tankalts", "the Tank Soldier's Alt fires: Double Barrel (shells from point-blank hits, both at once, the kick), Proximity Shell (lies at the cursor, bursts under an enemy), Tear Gas (suppresses to the cap and slows)", () => TankAltTest(Dt)),
+        Test("tankalts", "the Tank Soldier's Alt fires: Shock Grenade (three grenades, lobbed, a burst that stuns), Proximity Shell (lies at the cursor, bursts under an enemy), Tear Gas (suppresses to the cap and slows)", () => TankAltTest(Dt)),
         Test("twinnades", "the Twin Rifle's grenade tubes: hits load two, Alt fires left then right, the order holds through a refill", () => TwinGrenadeTest(Dt)),
         Test("grenadelauncher", "the Grenade Launcher: HE bursts at the cursor (less at the rim), six to a drum then a reload, Alt swaps to smoke, the cloud jams a regular enemy and slows it, a mini-boss is only slowed, three canisters back one per 6 s, the other screen sees it", () => GrenadeLauncherTest(Dt)),
         Test("pistolwhip", "the Revolver's Pistol Whip: Alt swings a wide arc that hurts and shoves back what's in it, destroys enemy shots in it (big ones too), cools down 4 s, works from a client's key", () => PistolWhipTest(Dt)),
@@ -501,6 +501,7 @@ static partial class Program
         Test("spawners", "the F1 dock's enemy spawners: placed, spawning on a timer up to the cap, seen by a client, removed", () => DevSpawnerTest(Dt)),
         Test("gadgets", "gadgets: the Magnet picked up, switched on (pulls every coin), thrown and caught over the network, used up, dropped when downed", () => GadgetTest(Dt)),
         Test("pings", "pings: tap/wheel marks, host pause and cap, Focus following an enemy, lapsing", () => PingTest(Dt)),
+        Test("hangoutmode", "the Hangout mode (HangoutGame.cs): opened by a client, held between waves, dummies, real weapon, no XP, back to lobby", () => HangoutModeTest(Dt)),
         Test("hangout", "the lobby's Hangout room: everyone's character, moves over the network, the walls", () => HangoutTest(Dt)),
         Test("zombies", "Zombie Infection: melee hordes, the cap, the dead rising", () => ZombieTest(Dt)),
         Test("scratch", "V2 distance tests without the square root, the bullet table, and the reusable lists", ScratchTest),
@@ -570,7 +571,7 @@ static partial class Program
         "snapshot", "turnkey", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
-        "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "three", "wrap", "ready", "wavekinds", "landmarks",
         "arcanist", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 

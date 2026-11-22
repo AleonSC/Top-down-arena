@@ -1,8 +1,8 @@
 namespace Arena
 {
-    /// The game modes, in the lobby carousel's order (LobbyUi.DrawModeSwitch). The lobby holds the one picked
+    /// The game modes, in the lobby carousel's order (LobbyUi.DrawModeSwitch: the first five; the Hangout is hidden, opened from its own key). The lobby holds the one picked
     /// (Session.Mode, sent as one byte); a run works its own out from what the start set up (Game.Mode).
-    public enum GameMode : byte { Quick, Campaign, Hunt, Practice, Survival, None }
+    public enum GameMode : byte { Quick, Campaign, Hunt, Practice, Survival, Hangout, None }
 
     /// What a mode allows: one row per mode, so a rule that differs between modes is read here instead of being
     /// spelled out as a chain of mode checks wherever it's needed. A new mode adds an enum value and a row.
@@ -32,6 +32,8 @@ namespace Arena
             new ModeDef { Mode = GameMode.Practice, Key = "practice", Name = "Practice Range", Blurb = "Build your own waves, or train a mechanic", Extras = false, Records = false },
             // Survival: one clock, never saved (so no lives), no wave clears (so no challenges), its own faction phases (no legs).
             new ModeDef { Mode = GameMode.Survival, Key = "survival", Name = "Survival", Blurb = "One clock, no waves, no end", RunEvents = true },
+            // Hangout: a hidden mode that never leaves the between-waves state (HangoutGame.cs): nothing recorded, saved or built.
+            new ModeDef { Mode = GameMode.Hangout, Key = "hangout", Name = "Hangout", Blurb = "Your real loadout, always between waves", Extras = false, Records = false },
         };
 
         public static ModeDef For(GameMode m) => (int)m < all.Length ? all[(int)m] : all[(int)GameMode.Campaign];
@@ -49,7 +51,7 @@ namespace Arena
     public partial class Game
     {
         /// This match's mode, from what the start set up (Practice, Hunt, SurvivalOn, Quick; none of them: the Campaign).
-        public GameMode Mode => Practice != null ? GameMode.Practice : Hunt != null ? GameMode.Hunt : SurvivalOn ? GameMode.Survival
+        public GameMode Mode => HangoutOn ? GameMode.Hangout : Practice != null ? GameMode.Practice : Hunt != null ? GameMode.Hunt : SurvivalOn ? GameMode.Survival
             : Quick ? GameMode.Quick : GameMode.Campaign;
 
         /// What this run's mode allows (ModeDef).

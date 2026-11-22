@@ -7,11 +7,11 @@ namespace Arena
     /// shell or canister comes back.
     public partial class ArenaApp
     {
-        static readonly Rgba DbShellRed = new Rgba(0.82f, 0.2f, 0.16f), ShellBrass = new Rgba(0.95f, 0.75f, 0.35f);
+        static readonly Rgba GrenadeBody = new Rgba(0.3f, 0.34f, 0.4f), ShockBlue = new Rgba(0.45f, 0.85f, 1f);
         static readonly Rgba MineSteel = new Rgba(0.3f, 0.32f, 0.36f), MineAmber = new Rgba(1f, 0.72f, 0.3f);
         static readonly Rgba GasPale = new Rgba(0.92f, 0.9f, 0.7f), CanisterGrey = new Rgba(0.55f, 0.58f, 0.6f);
 
-        /// Behind you: the Scattergun's eight shells (red with brass caps, lit when loaded, the next one filling ringed by its progress).
+        /// Behind you: the Scattergun's three shock grenades (grey with a glowing band, lit when loaded, the next one filling ringed by its progress).
         /// Under your own feet: the Proximity Shell's or Tear Gas's cooldown filling.
         void DrawTankAltPips(Player p)
         {
@@ -52,14 +52,13 @@ namespace Arena
                 }
                 c += new V2(0f, drop);
                 if (on && fxOn)
-                    Circle(c, 10f * sc, DbShellRed.WithAlpha(0.14f + 0.1f * pulse), 12);
-                Rgba body = on ? DbShellRed : new Rgba(1f, 1f, 1f, 0.14f), cap = on ? ShellBrass : new Rgba(1f, 1f, 1f, 0.2f);
-                Line(c + new V2(0f, -7f * sc), c + new V2(0f, 4f * sc), 6.5f * sc, body);       // the hull, standing upright
-                Line(c + new V2(0f, 4f * sc), c + new V2(0f, 8f * sc), 7.4f * sc, cap);        // the brass head
-                if (on && fxOn)
-                    Line(c + new V2(-1.6f * sc, -5f * sc), c + new V2(-1.6f * sc, 2f * sc), 1.4f, new Rgba(1f, 1f, 1f, 0.35f));  // a highlight down the hull
+                    Circle(c, 10f * sc, ShockBlue.WithAlpha(0.14f + 0.1f * pulse), 12);
+                Rgba body = on ? GrenadeBody : new Rgba(1f, 1f, 1f, 0.14f), cap = on ? ShockBlue : new Rgba(1f, 1f, 1f, 0.2f);
+                Circle(c, 6.5f * sc, body, 12);                                   // the round body
+                Arc(c, 6.5f * sc, 1.6f, cap, 12);                                 // its glowing band
+                Line(c + new V2(0f, -6f * sc), c + new V2(0f, -9f * sc), 3f * sc, cap);  // the fuse cap
                 if (i == p.ScatShells && p.ScatCharge > 0)  // a ring closing round the next one as your point-blank hits load it
-                    Arc(c, 11f, 1.8f, ShellBrass.WithAlpha(0.75f), 16, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(p.ScatCharge / 100f));
+                    Arc(c, 11f, 1.8f, ShockBlue.WithAlpha(0.75f), 16, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(p.ScatCharge / 100f));
             }
         }
 
@@ -70,38 +69,51 @@ namespace Arena
             return p.Disp + back * 30f + side * ((i - (Game.ScatShellMax - 1) / 2f) * 10f);
         }
 
-        /// Double Barrel going off: a fat cone of flame along the aim, both barrels' smoke rolling back, a shell or two kicked out.
+        /// A shock grenade popped from the launcher: a blue flash and a small ring at the muzzle, a puff of smoke.
         void DrawDoubleBarrelFx(Effect fx)
         {
             float f = Mathf.Clamp01(fx.T / Mathf.Max(0.01f, fx.Dur));
-            int shells = Mathf.Max(1, (int)fx.Radius % 10);
-            V2 dir = (fx.Pos2 - fx.Pos).Normalized(), side = dir.Orthogonal();
-            float flash = Mathf.Clamp01(1f - f / 0.35f), len = (60f + 22f * shells) * (0.6f + 0.4f * flash);
+            V2 dir = (fx.Pos2 - fx.Pos).Normalized();
+            float flash = Mathf.Clamp01(1f - f / 0.4f);
             if (flash > 0f)
-            {
-                for (int k = 0; k < 3; k++)  // the cone of flame, white-hot in the middle
-                {
-                    float w = (0.42f - k * 0.12f) * len;
-                    Rgba col = (k == 2 ? Rgba.White : k == 1 ? ShellBrass : new Rgba(1f, 0.45f, 0.15f)).WithAlpha(0.75f * flash);
-                    V2 tip = fx.Pos + dir * len * (1f - k * 0.2f);
-                    Quad(fx.Pos + side * 4f, fx.Pos - side * 4f, tip - side * w, tip + side * w, col);
-                }
-                Circle(fx.Pos, 10f + 6f * shells * flash, Rgba.White.WithAlpha(0.6f * flash), 14);
-            }
+                Circle(fx.Pos + dir * 8f, 8f + 10f * flash, ShockBlue.WithAlpha(0.6f * flash), 14);
             if (!fxOn)
                 return;
-            for (int k = 0; k < 6; k++)  // smoke rolling out and up
+            for (int k = 0; k < 4; k++)
             {
-                float a = (k - 2.5f) * 0.25f, d = 18f + 70f * f * (0.6f + 0.1f * k);
-                V2 at = fx.Pos + V2.FromAngle(dir.Angle + a) * d + new V2(0f, -14f * f);
-                Circle(at, 7f + 14f * f, new Rgba(0.6f, 0.6f, 0.62f, 0.28f * (1f - f)), 12);
+                float a = (k - 1.5f) * 0.3f, d = 14f + 40f * f * (0.6f + 0.15f * k);
+                Circle(fx.Pos + V2.FromAngle(dir.Angle + a) * d + new V2(0f, -10f * f), 5f + 9f * f, new Rgba(0.6f, 0.6f, 0.62f, 0.25f * (1f - f)), 12);
             }
-            for (int s = 0; s < shells; s++)  // the spent shells spinning out behind
+        }
+
+        /// A Shock Grenade: tumbling in with a ring where it lands, then a crackling blue flash that fades (ScatShockLinger).
+        void DrawShockGrenade(Zone z, float t)
+        {
+            float age = z.Duration - z.T;
+            if (age < Game.ScatFlight)
             {
-                V2 at = fx.Pos - dir * (14f + 40f * f) + side * ((s == 0 ? 1f : -1f) * (10f + 30f * f)) + new V2(0f, -30f * f * (1f - f) * 4f);
-                V2 u = V2.FromAngle(f * 14f + s * 2f) * 4f;
-                Line(at - u, at + u, 3.6f, DbShellRed.WithAlpha(1f - f));
+                float k = age / Game.ScatFlight, lift;
+                V2 at = LobbedAt(z, k, out lift);
+                Arc(z.Pos, z.Radius, 2f, ShockBlue.WithAlpha(0.2f + 0.3f * k), 32);
+                Arc(z.Pos, z.Radius * (1f - k), 1.5f, ShockBlue.WithAlpha(0.5f), 32);
+                Circle(at, 4f, new Rgba(0f, 0f, 0f, 0.25f), 8);
+                V2 g = at + new V2(0f, -lift);
+                Circle(g, 5f, GrenadeBody, 10);
+                Arc(g, 5f, 1.5f, ShockBlue, 10, t * 14f, MathX.Pi);
+                return;
             }
+            float since = age - Game.ScatFlight, f = Mathf.Clamp01(since / Game.ScatShockLinger), fade = 1f - f;
+            Circle(z.Pos, z.Radius * (0.5f + 0.5f * Mathf.Sqrt(f)), ShockBlue.WithAlpha(0.18f * fade), 36);
+            Arc(z.Pos, z.Radius * (0.5f + 0.5f * Mathf.Sqrt(f)), 2f, ShockBlue.WithAlpha(0.8f * fade), 40);
+            int arcs = fxOn ? 9 : 5;
+            for (int k = 0; k < arcs; k++)  // crackling forks from the middle, jumping about each frame
+            {
+                float a = k * MathX.Tau / arcs + Mathf.Floor(t * 30f) * 0.9f, r = z.Radius * (0.35f + 0.65f * ((k * 37 + (int)(t * 30f)) % 10) / 10f) * (0.6f + 0.4f * f);
+                V2 mid = z.Pos + V2.FromAngle(a + 0.25f) * r * 0.55f, end = z.Pos + V2.FromAngle(a) * r;
+                Line(z.Pos, mid, 1.8f, ShockBlue.WithAlpha(0.9f * fade));
+                Line(mid, end, 1.4f, Rgba.White.WithAlpha(0.8f * fade));
+            }
+            Circle(z.Pos, 9f * fade + 3f, Rgba.White.WithAlpha(0.8f * fade), 14);
         }
 
         /// Where a lobbed shell or canister is on its way in (an arc from 140 px back along its flight, over its shadow).

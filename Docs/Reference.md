@@ -31,131 +31,131 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Scattergun | Tank | 0.45 s | 7 | 520 x 0.5 s | - | 154 | A short-range spread of pellets. Up close every pellet hits much harder and shoves the enemy back. Point-blank hits load shells: Alt fires them all at once and the kick throws you back. |
-| Flak Cannon | Tank | 0.8 s | 30 | 380 x 1.1 s | - | 36 | Shells fly to your cursor and burst in the air there, hurting enemies and destroying enemy bullets caught in the burst. Alt lays a proximity shell that bursts when an enemy steps on it. |
-| Riot Repeater | Tank | 0.18 s | 11 | 600 x 0.8 s | - | 60 | Steady single shots. Every hit suppresses the enemy so it shoots slower, building up the more you hit it and fading when you stop. Alt lobs tear gas that suppresses and slows everything in it. |
-| Grenade Launcher | Tank | 0.42 s | 34 | 900 x 0.42 s | - | 49 | A six-round drum of HE grenades lobbed over enemies to your cursor, bursting where they land. Alt swaps in the smoke drum: canisters that open into a cloud where regular enemies are slowed and can't attack, and bosses are slowed. |
-| Repulsion Cannon | Healer | 0.7 s | 6 | - | 240 | 9 | Blasts enemies away in a cone for light damage. Enemies it hits shed tiny health orbs. Hits fill the Undertow: hold Alt to pull enemies in. |
-| Revolver | Healer | 0.45 s | 24 | 700 x 1.1 s | - | 82 | Tap for aimed shots, or hold to fan the hammer and empty the cylinder in a quick spray. The last round in the cylinder is heavy. Alt: a pistol whip, a wide swing that destroys bullets and shoves enemies back. |
-| Mender's Bow | Healer | 0.9 s | 0 | - | - | 40 | Hold to draw, release to fire. A full draw hits hard, pierces enemies and heals allies it passes. Let go right at full draw for a perfect shot. |
-| Twin Pistols | Healer | 0.16 s | 10 | 780 x 0.8 s | - | 60 | A pistol in each hand, firing in turn. Hits knock tiny health orbs loose. Alt: Laser Sights, both guns fire together down two red beams that meet at your cursor, for harder rounds. |
-| Twin Rifle | Dps | 0.13 s | 4 | 820 x 0.7 s | - | 90 | Two streams from wide-set barrels, angled to cross at your cursor. Hits where they cross are crossfire and do 1.5×. |
-| Railgun | Dps | 0.7 s | 120 | 1600 x 0.7 s | - | 116 | Hold to charge, let go to fire a beam that ricochets off walls. Longer charges hit harder, wider and bounce more, and heat the gun. Alt dumps the heat as a cone of fire. |
-| Burst SMG | Dps | 0.06 s | 5 | 760 x 0.8 s | - | 120 | Sprays very fast shots. Keep firing to spin it up: the spray tightens and damage climbs. It winds down fast when you stop. |
-| Double Barrel | Dps | 0.32 s | 7 | 900 x 0.5 s | - | 82 | A side-by-side shotgun: 9 pellets a barrel, strongest up close, each pellet passing through 2 enemies. Two shells, then a break-open reload. Alt fires both barrels at once. |
-| Twin Rifle Auto (variant) | Dps | 0.13 s | 4 | 820 x 0.5 s | - | 60 | Two rifles held out to your sides, each aiming and firing on its own at the nearest enemy on its side. You can't shoot. Alt locks both onto the enemy nearest your cursor until it dies: their streams meet on it for crossfire (1.5×). |
-| Out of Ammo (variant) | Dps | 0.5 s | 12 | - | 80 | 52 | The rifles are out of rounds, so they swat. Each rifle knocks the nearest enemy bullet out of the air (one each, then a half-second recovery). Enemies close in front of you get a five-move chain: left bash, cross cut, right bash, reverse cut, then a rifle clap with a shockwave. Alt spins you for 1.2 s: it cuts everything round you and swats every bullet. |
+| Scattergun | Tank | 0.45 s | 7 | 520 x 0.5 s | - | 154 | Primary Fire: A short-range shotgun spread, brutal up close.  Alternative Fire: Fire all your loaded shells at once. |
+| Flak Cannon | Tank | 0.8 s | 30 | 380 x 1.1 s | - | 36 | Primary Fire: Shells that burst in the air at your cursor and destroy enemy bullets.  Alternative Fire: Lay a proximity shell that bursts when an enemy steps on it. |
+| Riot Repeater | Tank | 0.18 s | 11 | 600 x 0.8 s | - | 60 | Primary Fire: Steady shots that suppress enemies so they shoot slower.  Alternative Fire: Lob tear gas that slows and suppresses. |
+| Grenade Launcher | Tank | 0.42 s | 34 | 900 x 0.42 s | - | 49 | Primary Fire: Lob a drum of grenades that burst where they land.  Alternative Fire: Swap to smoke that slows enemies and stops them attacking. |
+| Repulsion Cannon | Healer | 0.7 s | 6 | - | 240 | 9 | Primary Fire: Blasts enemies away in a cone and knocks health orbs loose.  Alternative Fire: Hold to pull enemies in. |
+| Revolver | Healer | 0.45 s | 24 | 700 x 1.1 s | - | 82 | Primary Fire: Tap for aimed shots, or hold to fan the hammer for a quick spray.  Alternative Fire: Pistol whip: a wide swing that destroys bullets and shoves enemies. |
+| Mender's Bow | Healer | 0.9 s | 0 | - | - | 40 | Primary Fire: Hold to draw, release to fire a piercing arrow that heals allies it passes. |
+| Twin Pistols | Healer | 0.16 s | 10 | 780 x 0.8 s | - | 60 | Primary Fire: A pistol in each hand, firing in turn; hits knock health orbs loose.  Alternative Fire: Laser Sights: both guns fire together for harder rounds. |
+| Twin Rifle | Dps | 0.13 s | 4 | 820 x 0.7 s | - | 90 | Primary Fire: Two rifles whose streams cross at your cursor for crossfire damage. |
+| Railgun | Dps | 0.7 s | 120 | 1600 x 0.7 s | - | 116 | Primary Fire: Hold to charge a beam that ricochets off walls.  Alternative Fire: Dump the gun's heat as a cone of fire. |
+| Burst SMG | Dps | 0.06 s | 5 | 760 x 0.8 s | - | 120 | Primary Fire: A very fast spray that tightens and hits harder the longer you fire. |
+| Double Barrel | Dps | 0.32 s | 7 | 900 x 0.5 s | - | 82 | Primary Fire: A two-shell shotgun, strongest up close, with pellets that pierce.  Alternative Fire: Fire both barrels at once. |
+| Twin Rifle Auto (variant) | Dps | 0.13 s | 4 | 820 x 0.5 s | - | 60 | Primary Fire: Two rifles that aim and fire on their own at the nearest enemies.  Alternative Fire: Lock both onto the enemy nearest your cursor. |
+| Out of Ammo (variant) | Dps | 0.5 s | 12 | - | 80 | 52 | Primary Fire: Empty rifles swat bullets away and bash enemies in a five-move chain.  Alternative Fire: Spin for a moment, cutting everything and swatting every bullet. |
 
 ### Elementalist
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Flamethrower | Tank | 0.06 s | 3 | 480 x 0.4 s | - | 94 | A short-range stream of fire. Each flame hits the first enemy hard and carries on through the rest, setting them all burning. |
-| Frost Lance | Tank | 0.4 s | 18 | - | 178 | 65 | A five-step chain: Shiver Crescent, Backhand Rime, Frost Waltz, Crystal Fan, Avalanche Slam. Hits chill; 3 chill freezes; the slam shatters frozen enemies. Parry cancels a step. Alt: Absolute Zero. |
-| Storm Hammer | Tank | 0.7 s | 40 | 460 x 1.1 s | - | 60 | Throws a spinning hammer that smashes one enemy and electrifies it, so it arcs lightning to the enemies around it. |
-| Wind Clash | Tank | 0.34 s | 18 | - | 170 | 50 | Hold Fire for a combo of air waves that hurt and shove every enemy they pass: two crescents that cross, a gale lance straight out, then a ring that bursts round you. Alt: Tempest, a storm of wind round you for 3 s that hurts enemies in it and catches every enemy shot that comes in; you move 30% slower and can't attack while it blows. |
-| Radiant Orb | Healer | 0.2 s | 8 | - | 520 | 37 | Hold to cast an orb of light out to your cursor; it stays there while you hold. Drag it through enemies to burn them and over allies to heal them. |
-| Chain Light | Healer | 0.5 s | 40 | - | - | 80 | A great cone of light in front of you. Its damage is shared between every enemy in it, so one alone takes it all. |
-| Nimbus | Healer | 0.6 s | 16 | - | 380 | 26 | A storm cloud floats over your cursor. Click to call lightning down beneath it. Rain falls under the cloud, healing every ally standing in it and soaking enemies (wet). Alt: Eye of the Storm, the cloud spins into a hurricane for 4 s that drags enemies round, tears up their shots and heals allies in its eye. |
-| Fireball | Dps | 0.5 s | 32 | 430 x 1.4 s | - | 71 | A big, slow fireball that rolls on through every enemy in its path, hurting each and setting it burning. |
-| Arc Lightning | Dps | 0.25 s | 16 | - | - | 116 | Hold to tag enemies in a wide cone in front of you, up to 10; they stay tagged if they walk out of it. Let go: lightning chains through every tagged enemy, harder the more you tagged, and stuns them. Alt fires three forked bolts at the enemies nearest your cursor. |
-| Ice Shards | Dps | 0.3 s | 7 | 520 x 1 s | - | 70 | Each cast conjures shards of ice that orbit you. They launch at nearby enemies, homing, one after another. With the orbit full, a cast flies at your aim. |
-| Stonespear | Dps | 0.18 s | 24 | 900 x 0.6 s | - | 60 | Slam the ground: it hurts everything round you and six earth spears tear out of it to hover at your sides. Each click throws one at your cursor, passing through an enemy. Alt hurls every spear left at the enemy nearest your cursor. Throw the last and the next click slams again. |
-| Waterball (variant) | Dps | 0.5 s | 28 | 430 x 1.4 s | - | 56 | A big, slow ball of water that rolls on through every enemy in its path, hurting each and soaking it (wet for 4 s): wet enemies are slowed, and lightning arcs to them. |
-| Earthball (variant) | Dps | 0.6 s | 48 | 360 x 1.4 s | - | 82 | A heavy ball of rock that stops on the first enemy it hits, stunning it (0.8 s; shorter on heavies and bosses), and breaks into rubble that hurts everything round it. |
+| Flamethrower | Tank | 0.06 s | 3 | 480 x 0.4 s | - | 94 | Primary Fire: A short stream of fire that burns everything it hits. |
+| Frost Lance | Tank | 0.4 s | 18 | - | 178 | 65 | Primary Fire: A five-step lance combo that chills, freezes, then shatters frozen enemies.  Alternative Fire: Absolute Zero: a freezing burst around you. |
+| Storm Hammer | Tank | 0.7 s | 40 | 460 x 1.1 s | - | 60 | Primary Fire: Throw a hammer that smashes one enemy and arcs lightning to its neighbours. |
+| Wind Clash | Tank | 0.34 s | 18 | - | 170 | 50 | Primary Fire: Hold for a wind combo that hurts and shoves every enemy it passes.  Alternative Fire: A storm around you hurts enemies and catches their shots, but slows you. |
+| Radiant Orb | Healer | 0.2 s | 8 | - | 520 | 37 | Primary Fire: Hold to guide an orb of light: it burns enemies and heals allies it passes over. |
+| Chain Light | Healer | 0.5 s | 40 | - | - | 80 | Primary Fire: A cone of light whose damage is shared between every enemy in it. |
+| Nimbus | Healer | 0.6 s | 16 | - | 380 | 26 | Primary Fire: A storm cloud over your cursor: click to call lightning, and its rain heals allies and soaks enemies.  Alternative Fire: The cloud becomes a hurricane that drags enemies in and heals allies. |
+| Fireball | Dps | 0.5 s | 32 | 430 x 1.4 s | - | 71 | Primary Fire: A big, slow fireball that rolls through enemies and sets them burning. |
+| Arc Lightning | Dps | 0.25 s | 16 | - | - | 116 | Primary Fire: Hold to tag up to 10 enemies, let go to chain lightning through them and stun.  Alternative Fire: Three forked bolts at the enemies nearest your cursor. |
+| Ice Shards | Dps | 0.3 s | 7 | 520 x 1 s | - | 70 | Primary Fire: Ice shards orbit you, then launch homing at nearby enemies. |
+| Stonespear | Dps | 0.18 s | 24 | 900 x 0.6 s | - | 60 | Primary Fire: Slam the ground, then throw the earth spears that rise from it, one per click.  Alternative Fire: Hurl every spear at once. |
+| Waterball (variant) | Dps | 0.5 s | 28 | 430 x 1.4 s | - | 56 | Primary Fire: A big, slow water ball that soaks everything it rolls through: wet enemies are slowed. |
+| Earthball (variant) | Dps | 0.6 s | 48 | 360 x 1.4 s | - | 82 | Primary Fire: A heavy rock ball that stuns the first enemy it hits, then shatters into rubble. |
 
 ### Summoner
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Golem Staff | Tank | 0.5 s | 40 | - | - | 79 | Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A rune-carved stone Golem (a small Titan) rises beside you, slams enemies and blocks bullets. |
-| Bone Guard | Tank | 0.3 s | 7 | 720 x 0.8 s | - | 37 | Bone darts that stick in enemies: enough in one cages it in place (not bosses), and darts into different enemies thread them together so a cage reels its neighbours in. Skeleton guards circle you, block bullets, and shoot at caged enemies. Alt: Ossuary Wall. |
-| Bear Totem | Tank | 0.45 s | 11 | - | 85 | 99 | Two quick claw swipes in front of you that make enemies bleed. A Bear companion mauls nearby enemies. |
-| Wyvern Staff | Tank | 0.1 s | 22 | - | - | 12 | A wind Wyvern hovers over you: its gale slows and shoves back the enemies under it, and slows their shots. Hold Fire and it flies out to breathe fire at your cursor for as long as the Cinder meter lasts; the gale refills it. Alt: Wyrm Slam, a dive that stuns and hurts. |
-| Sprite Staff | Healer | 0.5 s | 7 | 540 x 1 s | - | 14 | A firefly that seeds the enemy it hits, then hops to nearby enemies that aren't seeded yet. Sprites fly to whoever is hurt and heal them, and every seeded enemy you kill frees another sprite for a while. |
-| Treant Rod | Healer | 0.55 s | 15 | - | 250 | 34 | A thorny root whips out along your aim and snaps back, hitting everything on the line and healing allies it touches. Your Treant roots where it stands and blocks bullets; a root runs from you to it, healing allies who cross it and slowing enemies. |
-| Spirit Chalk | Healer | 0.1 s | 26 | - | 450 | 26 | Hold and drag to draw a line of spirit ink. It burns and slows enemies touching it and heals allies standing on it. Draw a circle round enemies to trap them inside (not bosses). Alt: Ignite, sets your loops alight to burn what they hold. |
-| Wolf Whistle | Dps | 0.3 s | 6.5 | 720 x 0.8 s | - | 150 | Darts mark prey for your wolves; every wolf biting it at once is a takedown. Kills grow the pack (up to 5); Alt merges it into an alpha. The pack takes 10% of the damage you take. |
-| Wisp Lantern | Dps | 0.25 s | 22 | - | - | 84 | Wisps orbit you, and they are your shots: each time you fire, one flies at the enemy nearest your cursor, strikes it and comes back. |
-| Imp Caller | Dps | 0.35 s | 0 | - | - | 77 | Imps arrive over time and wait by you. Tap fire to send one charging at your cursor to explode; hold to merge them all into one big imp whose blast is bigger than theirs put together. |
-| Honeybee Staff | Dps | 0.4 s | 22 | - | - | 60 | Each click hatches a bee at your cursor: it buzzes a moment, then stings the nearest enemy once and dies. Three stings in a row on one enemy swarm it for more. Hold Alt to spray honey that slows; an enemy that dies in your honey bursts into two free bees. |
+| Golem Staff | Tank | 0.5 s | 40 | - | - | 79 | Primary Fire: Hold to heave a boulder that crushes where it lands; a stone Golem fights beside you. |
+| Bone Guard | Tank | 0.3 s | 7 | 720 x 0.8 s | - | 37 | Primary Fire: Bone darts that cage enemies; skeleton guards block bullets and shoot caged enemies.  Alternative Fire: Raise an Ossuary Wall. |
+| Bear Totem | Tank | 0.45 s | 11 | - | 85 | 99 | Primary Fire: Quick claw swipes that make enemies bleed; a Bear mauls nearby enemies. |
+| Wyvern Staff | Tank | 0.1 s | 22 | - | - | 12 | Primary Fire: A Wyvern slows and shoves enemies under it; hold to make it breathe fire.  Alternative Fire: Wyrm Slam: a stunning dive. |
+| Sprite Staff | Healer | 0.5 s | 7 | 540 x 1 s | - | 14 | Primary Fire: A firefly that seeds an enemy and hops on; sprites heal whoever is hurt. |
+| Treant Rod | Healer | 0.55 s | 15 | - | 250 | 34 | Primary Fire: A thorny root whips out along your aim; your Treant blocks bullets and heals along its root. |
+| Spirit Chalk | Healer | 0.1 s | 26 | - | 450 | 26 | Primary Fire: Hold and drag to draw ink that burns enemies and heals allies; circle enemies to trap them.  Alternative Fire: Ignite your loops to burn what they hold. |
+| Wolf Whistle | Dps | 0.3 s | 6.5 | 720 x 0.8 s | - | 150 | Primary Fire: Darts mark prey for your wolves; kills grow the pack.  Alternative Fire: Merge the pack into an alpha. |
+| Wisp Lantern | Dps | 0.25 s | 22 | - | - | 84 | Primary Fire: Wisps orbit you; each shot sends one to strike the nearest enemy and return. |
+| Imp Caller | Dps | 0.35 s | 0 | - | - | 77 | Primary Fire: Imps wait by you: tap to send one to explode at your cursor.  Alternative Fire: Hold to merge them into one big imp. |
+| Honeybee Staff | Dps | 0.4 s | 22 | - | - | 60 | Primary Fire: Click to hatch a bee that stings the nearest enemy; three stings in a row swarm it.  Alternative Fire: Spray slowing honey; enemies that die in it burst into bees. |
 
 ### Knight
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Warhammer | Tank | 0.75 s | 80 | - | 130 | 64 | Hold to charge, let go to slam the ground in front of you. The longer the charge, the harder it hits and the longer it stuns. |
-| Lance | Tank | 0.24 s | 14 | - | 178 | 60 | A four-step chain with a lance and shield: two quick jabs, a wide sweep that bats enemies aside, then a Breaching Thrust that shoves everything in front far back and stuns it. Shoved enemies that hit another enemy or a wall take Impact damage. The weapon-action key hooks the enemy nearest your cursor, hauls it in and makes your next attack the Breaching Thrust. |
-| Halberd | Tank | 0.6 s | 30 | - | 200 | 48 | Sweeps a long, thin blade across in front of you, hitting each enemy once per sweep. |
-| Bulwark Barrier | Tank | 0.3 s | 12 | - | 80 | 45 | A kite shield that always guards your front half: every enemy shot that hits it stops, red aimed shots too. Fire is a three-hit chain: Rim Cut, Backhand, then a Boss Slam that shoves and stuns. Hold the weapon-action key to brace: you move slower, the guard widens and every shot it stops fills Ram. Fire while braced for a Shield Bash: a dash that hits, shoves and stuns harder with more Ram; at full Ram the soaked shots burst out as steel shards. |
-| Quarterstaff | Healer | 0.5 s | 18 | - | 120 | 36 | Left and right staff swipes that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies and stores a Jab stack (up to 3); the weapon-action key spends one on a cone jab. |
-| Lightbringer | Healer | 0.5 s | 17 | - | 80 | 58 | A three-step chain. Dawn Cut's crescent heals the allies it passes, Mercy Cut's wards them, and Noon Sunburst plants the sword in a ring that heals everyone near you. Hits fill a light gauge: full, the next Noon is Radiant. The weapon-action key spends the light on a Sunlance that heals the ally nearest your cursor. |
-| Censer | Healer | 0.26 s | 13 | - | 85 | 35 | A censer on a chain, swung in a three-step rite: a sweep, a return sweep and a Benediction that goes all the way round. Every step heals allies near you and leaves incense that heals allies in it and makes enemy shots fired from inside it stray. Each enemy hit lights an Ember; the weapon-action key throws the censer to your cursor, spending them on a burst and a big healing cloud. |
-| Vowguard | Healer | 0.3 s | 16 | - | 115 | 74 | A sword and shield with two stances, each playing a chain of up to 10 steps you build in the lobby. Valor cuts, thrusts and bashes, and its hits light Faith. Sanctuary holds the shield up front: small shots there stop, light Faith, and its moves guard, heal and ward allies. Finishers spend Faith for more damage and healing. The weapon-action key switches stance. |
-| Twin Blades | Dps | 0.18 s | 16 | - | 90 | 98 | Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back. |
-| Greatsword | Dps | 0.5 s | 40 | - | 125 | 87 | A ten-step chain: Undertow drags enemies in, Pommel Bash stuns, Cross Cut, Backstep Reap hops you back behind a crescent that stops bullets, Comet Leap jumps in and crashes down, then Full Moon spins and Eclipse brings down a golden lance of light. The weapon-action key throws the sword spinning to your cursor and back. |
-| Rapier | Dps | 0.48 s | 18 | - | 130 | 85 | Precise thrusts at the nearest enemy in front, and they skewer enemy bullets along their line. The first thrust is slow, but every enemy you hit adds Tempo, and Tempo makes the thrusts quicker. Stop hitting and it holds a moment, then drains. The weapon-action key spends it on a Flourish: the blade whips back and forth, each swing throwing a crescent wave. |
-| Arc Knuckles | Dps | 0.24 s | 22 | - | 80 | 88 | Coiled blue fists in a five-punch chain: jab, cross, a hook that sweeps a crowd, an uppercut that launches, and the Twin Hammer, a ground slam whose shockwave stuns. Raising the parry cancels a punch and starts the chain over; a perfect parry arms the gold Counter Hammer for your next press. The weapon-action key is a Rocket Dash; land it and press Fire as each move lands to chain a Flurry, a Grab & Throw and a Rocket Punch. |
+| Warhammer | Tank | 0.75 s | 80 | - | 130 | 64 | Primary Fire: Hold to charge, let go to slam the ground: longer charges hit harder and stun longer. |
+| Lance | Tank | 0.24 s | 14 | - | 178 | 60 | Primary Fire: A four-step lance combo that ends in a thrust that shoves and stuns.  Alternative Fire: Hook the nearest enemy and haul it in. |
+| Halberd | Tank | 0.6 s | 30 | - | 200 | 48 | Primary Fire: A long, thin sweep that hits each enemy once. |
+| Bulwark Barrier | Tank | 0.3 s | 12 | - | 80 | 45 | Primary Fire: A shield that stops every shot at your front, plus a three-hit combo that ends in a stun.  Alternative Fire: Hold to brace, then bash with a dash. |
+| Quarterstaff | Healer | 0.5 s | 18 | - | 120 | 36 | Primary Fire: Staff swipes that knock enemies and bullets back, and heal you and allies.  Alternative Fire: Spend a Jab stack on a cone jab. |
+| Lightbringer | Healer | 0.5 s | 17 | - | 80 | 58 | Primary Fire: A three-step sword combo that heals allies it passes and ends in a healing ring.  Alternative Fire: Fire a Sunlance that heals the ally nearest your cursor. |
+| Censer | Healer | 0.26 s | 13 | - | 85 | 35 | Primary Fire: A three-step censer swing that heals allies and leaves incense that makes enemy shots stray.  Alternative Fire: Throw the censer to your cursor for a burst and a big healing cloud. |
+| Vowguard | Healer | 0.3 s | 16 | - | 115 | 74 | Primary Fire: A sword and shield with two stances and chains you build in the lobby.  Alternative Fire: Switch stance. |
+| Twin Blades | Dps | 0.18 s | 16 | - | 90 | 98 | Primary Fire: A five-step sabre combo that carries you forward and ends in a crescent wave.  Alternative Fire: Hurl both sabres to cross at your cursor and fly back. |
+| Greatsword | Dps | 0.5 s | 40 | - | 125 | 87 | Primary Fire: A ten-step sword combo that drags in, stuns, leaps and ends in a golden lance.  Alternative Fire: Throw the sword spinning to your cursor and back. |
+| Rapier | Dps | 0.48 s | 18 | - | 130 | 85 | Primary Fire: Fast thrusts at the nearest enemy that skewer bullets and build Tempo.  Alternative Fire: Spend Tempo on a Flourish: a whipping blade that throws crescent waves. |
+| Arc Knuckles | Dps | 0.24 s | 22 | - | 80 | 88 | Primary Fire: A five-punch combo that ends in a stunning ground slam.  Alternative Fire: Rocket Dash, then chain extra moves. |
 
 ### Ninja
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Kusarigama | Tank | 0.55 s | 26 | - | 280 | 37 | Cut with the sickle, then throw the weight to drag the first enemy in its lane to you. Hold the weapon-action key to whirl the weight around you, pulling everything near into the chain. |
-| Bo Staff | Tank | 0.47 s | 16 | - | 105 | 48 | Click for a never-ending chain of three swings: a cone slash, a jab, then a full spin that starts it over. Every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you and restarts the chain. |
-| Fuma Shuriken | Tank | 0.7 s | 30 | - | - | 6 | A giant spinning star thrown in a wide loop out in front of you and back, cutting through everything both ways. |
-| Nodachi | Tank | 0.3 s | 20 | - | 150 | 52 | A katana as tall as you, with two stances on your weapon-action key, each with its own five-step combo that keeps its place. Arashi sweeps wide round you with armoured wind-ups and ends in Tenchi, a spin into a stunning slam. Mamori jabs fast and blocks shots in front of you while it does. Raising the parry starts both combos over. |
-| Medicine Darts | Healer | 0.18 s | 7 | 900 x 0.8 s | - | 50 | Fast needles that dose what they hit. Enemies get poisoned and hurt allies get healed, and doses stack. |
-| Spirit Fan | Healer | 0.4 s | 6 | 420 x 0.3 s | - | 75 | A short gust that heals allies and pushes small enemy bullets back. Shots alternate between blowing enemies away and drawing them in. |
-| Ofuda | Healer | 0.5 s | 25 | 360 x 1.6 s | - | 50 | Paper charms fly to your cursor and lie there as wards. An enemy that steps on one sets it off, hurting enemies around it and healing allies near it. |
-| Shuriken | Dps | 0.35 s | 9 | 700 x 0.75 s | - | 140 | Tight fans of spinning stars that stick in what they hit. After a while each rips out for another hit and flies back to you, cutting through what it passes. Your weapon-action key switches to the Great Star stance, pulling stuck stars back: hold fire to draw a route, let go to throw one huge star along it and home again, cutting everything both ways. |
-| Katana | Dps | 0.3 s | 20 | - | 120 | 65 | Two stance combos; your weapon-action key switches between them, and the one you leave keeps its place. Hayate dashes and slices and ends in a Momentum Burst that shoves enemies away. Senbon cuts, spins and slashes and ends in a storm of caltrops. The burst flings caltrops on the ground; caltrops thrown after a burst seek what it hit. |
-| Kunai | Dps | 0.7 s | 42 | 1400 x 0.5 s | - | 88 | Slow, heavy throwing knives that hit harder against enemies not targeting you. Every throw leaves a mark where it lands: press your weapon-action key to blink there, and your next hit lands double. |
-| Nunchaku | Dps | 0.3 s | 20 | - | 95 | 95 | Twin Storm: a nunchaku in each hand. Fire is a four-step combo: Snap, Backhand, Double Figure-8, then the Twin Crush, an overhead slam that stuns. Your weapon-action key switches to the Twin Windmill guard: two spinning discs swat small shots back at enemies, and Fire lashes out with a Twin Counter that hits harder for every shot swatted. |
+| Kusarigama | Tank | 0.55 s | 26 | - | 280 | 37 | Primary Fire: Cut with the sickle, then throw the weight to drag an enemy to you.  Alternative Fire: Whirl the weight around you, pulling enemies in. |
+| Bo Staff | Tank | 0.47 s | 16 | - | 105 | 48 | Primary Fire: A three-swing staff combo that cuts small bullets.  Alternative Fire: Shove a wall of staff ahead of you. |
+| Fuma Shuriken | Tank | 0.7 s | 30 | - | - | 6 | Primary Fire: A giant star thrown in a loop that cuts everything both ways. |
+| Nodachi | Tank | 0.3 s | 20 | - | 150 | 52 | Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.  Alternative Fire: Switch stance. |
+| Medicine Darts | Healer | 0.18 s | 7 | 900 x 0.8 s | - | 50 | Primary Fire: Fast needles that poison enemies and heal allies. |
+| Spirit Fan | Healer | 0.4 s | 6 | 420 x 0.3 s | - | 75 | Primary Fire: A short gust that heals allies and pushes small bullets back. |
+| Ofuda | Healer | 0.5 s | 25 | 360 x 1.6 s | - | 50 | Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them. |
+| Shuriken | Dps | 0.35 s | 9 | 700 x 0.75 s | - | 140 | Primary Fire: Tight fans of stars that stick, then rip out and fly back.  Alternative Fire: Switch to a huge star thrown along a route you draw. |
+| Katana | Dps | 0.3 s | 20 | - | 120 | 65 | Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.  Alternative Fire: Switch stance. |
+| Kunai | Dps | 0.7 s | 42 | 1400 x 0.5 s | - | 88 | Primary Fire: Slow, heavy throwing knives that leave a mark where they land.  Alternative Fire: Blink to the mark, and your next hit lands double. |
+| Nunchaku | Dps | 0.3 s | 20 | - | 95 | 95 | Primary Fire: A four-step twin-nunchaku combo that ends in a stunning slam.  Alternative Fire: Guard with spinning discs that swat shots back. |
 
 ### Hemomancer
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Blood Lash | Tank | 0.32 s | 24 | - | 130 | 96 | A whip of blood, a four-step string: Crack, Backhand, Snap, Reap. Every lash that lands hooks a blood chain on the enemy (+1 link, +2 from the cracking tip or the Snap). Reap yanks every chained enemy in and turns the links into Clot (4% less damage taken each, up to 5). Alt: hold for Martyr's Leash. |
-| Gore Mortar | Tank | 0.75 s | 34 | - | - | 133 | Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still. |
-| Leech Tendrils | Tank | 0.1 s | 80 | - | 160 | 31 | Hold to lash out blood tendrils that grasp nearby enemies and hold them stunned. The longer you hold, the more blood builds up in them, and after 5 seconds they burst. Let go early and they burst for the share built up so far. Holding costs 2% of your max health a second, and the tendrils need 1 second to recover after a burst. |
-| Blood Blast | Tank | 0.42 s | 22 | - | 115 | 53 | Your blood shaped into a blade, a six-step chain that never times out: Crimson Slash, Backcut, Thorn Flurry, Vein Whirl, Sanguine Cleave, Crescent Flight. Every attack costs 1.3-3% of your max health and puts a blood stack on each enemy it hits (up to 10). When a stacked enemy dies, its blood flies back and heals you 2 a stack. |
-| Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Darts that transfuse your blood: one that reaches a hurt ally gives them more health than it costs you. Each enemy hit steals a sliver back. |
-| Sanguine Orb | Healer | 0.45 s | 16 | 420 x 1.4 s | - | 57 | Orbs of blood that home in at the last moment, circle an enemy and cover it, making it bleed and charging your heal reserve. With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s). |
-| Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | A draining beam that hurts whatever you hold it on. Part of its damage heals, split between you and the nearest ally. |
-| Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Fast bolts of blood that make enemies bleed. A bolt that fills an enemy's bleed bursts it, hurting it and the enemies around it. |
-| Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in. |
-| Blood Brawler | Dps | 0.26 s | 18 | - | 520 | 80 | Click an enemy and work its blood from range: Pulse, Reel, Heart Lift, then Marrow Burst bursts it into bone shards. Alt binds the enemies near it, so your moves land on them too. |
-| Embolus Spears | Dps | 0.25 s | 30 | 1100 x 0 s | - | 63 | Arms out, a hardened blood spear in each hand. Fire throws the left, then the right, for 20% of your max health each: they pierce every enemy and stick in the wall. Fire again to recall both: they pierce again on the way back and give the health back. Alt bursts them where they are instead, for half the health back. |
+| Blood Lash | Tank | 0.32 s | 24 | - | 130 | 96 | Primary Fire: A four-step blood whip that chains enemies, then yanks them in.  Alternative Fire: Hold for Martyr's Leash. |
+| Gore Mortar | Tank | 0.75 s | 34 | - | - | 133 | Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing, healing pool. |
+| Leech Tendrils | Tank | 0.1 s | 80 | - | 160 | 31 | Primary Fire: Hold to grab and stun nearby enemies; they burst when the blood builds up. |
+| Blood Blast | Tank | 0.42 s | 22 | - | 115 | 53 | Primary Fire: A six-step blood sword combo; every hit marks enemies, and their deaths heal you. |
+| Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Primary Fire: Darts that heal hurt allies for more than they cost you. |
+| Sanguine Orb | Healer | 0.45 s | 16 | 420 x 1.4 s | - | 57 | Primary Fire: Homing orbs that make enemies bleed, or heal a hurt ally once charged. |
+| Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally. |
+| Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Primary Fire: Rapid bolts that make enemies bleed, then burst them when the bleed fills. |
+| Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in. |
+| Blood Brawler | Dps | 0.26 s | 18 | - | 520 | 80 | Primary Fire: Click an enemy to work its blood from range, ending in a bone-shard burst.  Alternative Fire: Bind the enemies near it so your moves hit them too. |
+| Embolus Spears | Dps | 0.25 s | 30 | 1100 x 0 s | - | 63 | Primary Fire: Throw a spear from each hand that pierces everything, then recall them to get health back.  Alternative Fire: Burst the spears where they are. |
 
 ### Engineer
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, 10 damage and a long push. A broken robot can be summoned again after 8 s. |
-| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, 10 damage and a long push. A broken robot can be summoned again after 8 s. |
-| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Click to summon a Tank Bot at your cursor: a heavy robot Engineer (850 health) with a nail shotgun that draws enemies from 240 px. Click an enemy to send it there. With the robot out, a click is a robotic fist: a shove in an arc in front of you, 10 damage and a long push. A broken robot can be summoned again after 8 s. |
-| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s. |
-| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s. |
-| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Click to summon a Medic Bot at your cursor: a robot Engineer (420 health) that shoots rivets and heals allies near it for 9 a second. Click an enemy to send it there. With the robot out, hold Fire for a stasis field at your cursor (60 px, up to 300 px away): enemies in it are held in place (bosses slowed) and take 14 damage a second. A broken robot can be summoned again after 8 s. |
-| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
-| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
-| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Click to summon an Assault Bot at your cursor: a fast robot Engineer (380 health) with a rapid rivet gun. Click an enemy to send it there. With the robot out, a click swipes a cyan blade in front of you for 24. A broken robot can be summoned again after 8 s. |
+| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Primary Fire: Summon a heavy Tank Bot that draws enemies and shoots nails.  Alternative Fire: With the bot out, shove enemies away with a robotic fist. |
+| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Primary Fire: Summon a heavy Tank Bot that draws enemies and shoots nails.  Alternative Fire: With the bot out, shove enemies away with a robotic fist. |
+| Iron Fist | Tank | 0.7 s | 10 | - | 95 | 53 | Primary Fire: Summon a heavy Tank Bot that draws enemies and shoots nails.  Alternative Fire: With the bot out, shove enemies away with a robotic fist. |
+| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Primary Fire: Summon a Medic Bot that shoots rivets and heals nearby allies.  Alternative Fire: With the bot out, hold to freeze enemies in place at your cursor. |
+| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Primary Fire: Summon a Medic Bot that shoots rivets and heals nearby allies.  Alternative Fire: With the bot out, hold to freeze enemies in place at your cursor. |
+| Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Primary Fire: Summon a Medic Bot that shoots rivets and heals nearby allies.  Alternative Fire: With the bot out, hold to freeze enemies in place at your cursor. |
+| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
+| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
+| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
 
 ### Arcanist
 
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
-| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Four crystal shards circle you, cutting small enemy bullets out of the air. Fire flings one at your cursor (up to 360 px): it cuts everything it passes, 18 on the way out and 18 on the way back. Hold Alt for Shard Guard: they pull in tight and stop every bullet that reaches them, but you move at 55% speed and can't fling them. |
-| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Four crystal shards circle you, cutting small enemy bullets out of the air. Fire flings one at your cursor (up to 360 px): it cuts everything it passes, 18 on the way out and 18 on the way back. Hold Alt for Shard Guard: they pull in tight and stop every bullet that reaches them, but you move at 55% speed and can't fling them. |
-| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Four crystal shards circle you, cutting small enemy bullets out of the air. Fire flings one at your cursor (up to 360 px): it cuts everything it passes, 18 on the way out and 18 on the way back. Hold Alt for Shard Guard: they pull in tight and stop every bullet that reaches them, but you move at 55% speed and can't fling them. |
-| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Writes rune bolts in the air: each goes through two enemies (10 each), and one that passes through an ally heals them for 7. |
-| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Writes rune bolts in the air: each goes through two enemies (10 each), and one that passes through an ally heals them for 7. |
-| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Writes rune bolts in the air: each goes through two enemies (10 each), and one that passes through an ally heals them for 7. |
-| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Three enchanted swords hover behind you. Fire launches one at your cursor (up to 380 px, onto the enemy nearest it): it cuts what it passes, then dances on the spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. Alt calls them all home at once, cutting on the way. |
-| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Three enchanted swords hover behind you. Fire launches one at your cursor (up to 380 px, onto the enemy nearest it): it cuts what it passes, then dances on the spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. Alt calls them all home at once, cutting on the way. |
-| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Three enchanted swords hover behind you. Fire launches one at your cursor (up to 380 px, onto the enemy nearest it): it cuts what it passes, then dances on the spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. Alt calls them all home at once, cutting on the way. |
+| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Primary Fire: Fling one of four orbiting shards that cuts everything it passes, out and back.  Alternative Fire: Pull the shards in tight to stop every bullet, but you move slower. |
+| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Primary Fire: Fling one of four orbiting shards that cuts everything it passes, out and back.  Alternative Fire: Pull the shards in tight to stop every bullet, but you move slower. |
+| Orbit Shards | Tank | 0.3 s | 18 | 800 x 0.45 s | - | 122 | Primary Fire: Fling one of four orbiting shards that cuts everything it passes, out and back.  Alternative Fire: Pull the shards in tight to stop every bullet, but you move slower. |
+| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Primary Fire: Writes rune bolts that pierce two enemies and heal an ally they pass through. |
+| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Primary Fire: Writes rune bolts that pierce two enemies and heal an ally they pass through. |
+| Glyph Stylus | Healer | 0.26 s | 10 | 650 x 0.7 s | - | 38 | Primary Fire: Writes rune bolts that pierce two enemies and heal an ally they pass through. |
+| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Primary Fire: Launch a floating sword that cuts, dances on the enemy, then returns.  Alternative Fire: Call every sword home at once, cutting on the way. |
+| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Primary Fire: Launch a floating sword that cuts, dances on the enemy, then returns.  Alternative Fire: Call every sword home at once, cutting on the way. |
+| Dancing Blades | Dps | 0.3 s | 10 | 950 x 0.4 s | - | 117 | Primary Fire: Launch a floating sword that cuts, dances on the enemy, then returns.  Alternative Fire: Call every sword home at once, cutting on the way. |
 
 ## Abilities
 

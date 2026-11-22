@@ -66,6 +66,11 @@ namespace Arena
                 TickShowcase(dt);  // the loadout preview's target dummies instead of waves (Showcase.cs)
                 return;
             }
+            if (HangoutOn)
+            {
+                TickHangout(dt);  // the between-waves state, held for good (HangoutGame.cs)
+                return;
+            }
             if (InRoom)
             {
                 TickRoom(dt);  // a challenge room instead of a wave (Challenges.cs)

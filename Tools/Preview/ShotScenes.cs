@@ -1591,8 +1591,8 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
-    // TANKALT=<s>: the Tank Soldier's Alt fires (TankAltLook.cs): you with the Scattergun and two shells loaded (the third filling),
-    // Double Barrel fired that long ago, an armed Proximity Shell, one still flying in, and a Tear Gas cloud. FXOFF=1 for plain looks.
+    // TANKALT=<s>: the Tank Soldier's Alt fires (TankAltLook.cs): you with the Scattergun and one Shock Grenade loaded (the next filling),
+    // a Shock Grenade lobbed that long ago (flight 0.5 s, then the burst), an armed Proximity Shell, one still flying in, and a Tear Gas cloud. FXOFF=1 for plain looks.
     if (Environment.GetEnvironmentVariable("TANKALT") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
@@ -1606,7 +1606,7 @@ static partial class Shot {
       Z(ZoneKind.FlakMine, new V2(760f, 220f), Game.MineBurst, Game.MineLife, 3f);
       Z(ZoneKind.FlakMine, new V2(600f, 600f), Game.MineBurst, Game.MineLife, Game.MineArm * 0.55f);
       Z(ZoneKind.TearGas, new V2(800f, 520f), Game.TearGasRadius, Game.TearGasFlight + Game.TearGasLife, 2f);
-      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; foreach (var z in gm.Zones.Values) z.T += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); me.Disp = me.Pos = home; me.Aim = 0f; draw.Invoke(app, null); };
+      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; foreach (var z in gm.Zones.Values) if (z.Kind != ZoneKind.ShockGrenade) z.T += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); me.Disp = me.Pos = home; me.Aim = 0f; draw.Invoke(app, null); };
       for (int f = 0; f < 6; f++) frame();
       me.ScatShells = 2;
       typeof(Game).GetMethod("HostDoubleBarrel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { me, aimAt });
