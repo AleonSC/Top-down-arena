@@ -1371,7 +1371,7 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab (the **MODIFIERS** row over Ready, which shows how many are on) lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
+The lobby's **Modifiers** tab (on the tab row after Difficulty; it shows how many are on) lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
 headings, each tile marked with its tier's colour; click anywhere on a tile to switch it) that change the whole run, for everyone (Practice
 Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the run, and session recordings list them. Each tier has its own heading;
@@ -1409,7 +1409,7 @@ with 1.6x its crates. **Nightfall** covers wherever the camera is, in every mode
 
 ## Difficulty
 
-The lobby's **Difficulty** tab (the **DIFFICULTY** row over Ready, which names the current one): the host picks one of five cards, and everyone sees it (changing it takes back
+The lobby's **Difficulty** tab (on the tab row after Loadout): the host picks one of five cards, and everyone sees it (changing it takes back
 everyone's Ready). It applies to the whole run, Practice Range too, is kept in saved runs (a continued run keeps its
 difficulty), shows as a chip above the wave panel during the run (not on Normal), and is written in session
 recordings. **Custom** lets the host set every number below with a slider or by typing it in the box beside it
@@ -1493,7 +1493,7 @@ stretch lit, your best time a gold line).
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it); hovering the middle mode shows its description. Folder tabs stand on the big screen's top edge (the open one is lit in your role's colour and opens into the screen): the Saved loadouts star and the **Loadout** tab at the left, and the mode's own tabs (Quick Play, Campaign, Survival, Boss hunt, Practice, Training) at the right end. **Difficulty** and **Modifiers** are two small keys side by side over Ready, naming what's set; they fade while the mouse isn't on them. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there (or goes back to it if the old mode's tab was open). A Boss Hunt is a short run that ends
+A new lobby opens on the **Game Mode** screen: the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it), and the mode's own page fills the screen under it (Practice has two: its waves and Training). **TO THE LOBBY** (top right, with the party count and how many are ready), Back or Esc go to the lobby; the screen is part of the lobby, so going back to it never closes the lobby or drops anyone. In the lobby, the **mode card** at the top of the left column names the mode with its line; **CHANGE** (the host) or **VIEW** (a guest) opens the Game Mode screen again. Folder tabs stand on the big screen's top edge (the open one is lit in your role's colour and opens into the screen): the Saved loadouts star, **Loadout**, **Difficulty** and **Modifiers** at the left, and the **Hangout** at the right end; a second click on an open tab goes back to the Loadout. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); the Loadout tab takes you back (in the Practice Range too, where you can set them up but the range plays without them). A Boss Hunt is a short run that ends
 with one boss: **twenty steps** (see Hunt map below). Steps 1-19 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on steps 10 and
 19); step 20 is the boss. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
@@ -1740,7 +1740,7 @@ again, go back to the lobby, or keep going after a victory.
 
 ## Lobby Hangout
 
-The lobby's **Hangout** (a key on the Party line, which becomes **< Loadout** while you are in the room) is a room where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
+The lobby's **Hangout** (the tab at the right end of the tab row; Loadout or a second click takes you back) is a room where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
 or your rebound movement keys); the others in the lobby move theirs, and everyone sees everyone. Each character is
 your real class and weapon model, with the **trail** you have equipped behind it, your **rank badge** and a name plate
 with your **frame's** colour (and a green dot once you've readied up). Works in every lobby mode. Design: [`Docs/Hangout.md`](Docs/Hangout.md).

@@ -26,7 +26,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   Storm Herald, Devourer, Eclipse (`Game.BossCycle`, EnemyAI.cs). **Every boss has its own faction** of themed enemies,
   squads and a finale set piece (`Approaches.cs`: Warden's prison, Hive, Dusk and Dawn cult, Infall, Quarry, Masked
   Court, the dead, Squall, Larder, Penumbral Court).
-- **Lobby modes** (host picks on the mode carousel; a new profile starts on Quick Play):
+- **Lobby modes** (host picks on the Game Mode screen's carousel, `ModeScreenUi.cs`; a new profile starts on Quick Play):
   - **Quick Play** (`QuickPlay.cs`): 10 waves of one boss's faction, then that boss (the Warden on a profile's first
     play, then a shuffled bag). Boss health tuned to ~2 min. Then optional endless: 10 more waves + a new boss, repeat.
     Has the tutorial. No paths, Data Gates, lives or saves.

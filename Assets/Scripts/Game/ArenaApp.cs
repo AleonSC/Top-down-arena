@@ -213,7 +213,10 @@ namespace Arena
         {
             SaveMenuFields();
             if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice, kitChoice, ult: ultChoice))
+            {
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
+                lobbyTab = ModeTabNow();  // a new lobby opens on the Game Mode screen (ModeScreenUi.cs)
+            }
         }
 
         // Closing the game ends a run in progress, so its recording is saved as "quit".
@@ -540,6 +543,8 @@ namespace Arena
                     MenuBack();  // a window closes first; then the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
+                else if (session.Screen == AppScreen.Lobby && OnModeScreen && !settingsOpen && GUIUtility.keyboardControl == 0)
+                    lobbyTab = 0;  // Esc on the Game Mode screen: back to the lobby (never out of it)
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
                     OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)
                 else if (settingsOpen)
@@ -829,7 +834,7 @@ namespace Arena
                         DrawLobbyReturning();  // back from a run: the dark lifting, the sides sliding in (Recall.cs)
                     else if (LobbyLeaving)
                         DrawLobbyLeavingToMenu();  // Leave: the way in, backwards (LobbyEnter.cs)
-                    else if (LobbyEntering)
+                    else if (LobbyEntering && !OnModeScreen)  // (a lobby opening on the Game Mode screen skips the entrance)
                     {
                         if (crtEntry)
                             DrawLobbyEnteringCrt();  // New run: the saved-runs screen opens into the lobby (LobbyCrt.cs)
