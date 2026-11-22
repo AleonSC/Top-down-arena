@@ -40,7 +40,7 @@ namespace Arena
 
         /// Each boss faction's spawn weight once fully in (same order as JoinOrder); the basic faction's is BasicWeight.
         /// A faction's members split its weight by their own Weight, so this is its share of the mix, not a head count.
-        static readonly float[] FactionWeight = { 2f, 2f, 2f, 2f, 2f, 2f, 2f, 2f, 2f, 2f };
+        static readonly float[] FactionWeight = { 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f };
 
         /// How far faction index fi (0 = basic) is in at time t, 0 to 1: the basic one always, the others ramp in over IntroRamp from fi * PhaseLength.
         public static float IntroShare(int fi, float t) => fi <= 0 ? 1f : Math.Max(0f, Math.Min(1f, (t - fi * PhaseLength) / IntroRamp));
