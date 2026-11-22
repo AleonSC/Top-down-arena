@@ -11,17 +11,6 @@ namespace Arena
     /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
     public partial class ArenaApp
     {
-        static List<ModePip2> ModeLadder(int waves, Color acc, bool endless, int every = 1)
-        {
-            var l = new List<ModePip2>();
-            for (int i = 1; i < waves; i++)
-                l.Add(new ModePip2 { Label = every == 1 || i % every == 0 ? i.ToString() : "", Col = CrtStyle.Ink, W = every == 1 ? 22f : 12f });
-            l.Add(new ModePip2 { Label = "BOSS", Col = acc, Strong = true, W = 36f });
-            if (endless)
-                l.Add(new ModePip2 { Label = "ENDLESS", Col = CrtStyle.Gold, Strong = true, W = 62f });
-            return l;
-        }
-
         class ModeRowData
         {
             public string Num, Name, Chip;
@@ -30,23 +19,13 @@ namespace Arena
             public Color ChipCol;
         }
 
-        class ModePip2
-        {
-            public string Label;
-            public Color Col;
-            public bool Strong;
-            public float W;
-        }
-
-        /// What the page shows for one row: the scope's labels and model, the name, the copy, the ladder and the records.
+        /// What the page shows for one row: the scope's labels and model, the name, the copy and the records.
         class ModeFocus
         {
             public string ScopeL, ScopeR, Eyebrow, Name, Copy;
             public bool Unknown;
             public EnemyType Model;
             public Color CopyCol = Color.white;
-            public List<ModePip2> Ladder = new List<ModePip2>();
-            public string LadderHead = "THE RUN";
             public string[] RecVals, RecLabels;
         }
 
@@ -73,7 +52,7 @@ namespace Arena
             var f = p.Focus(shown);
 
             // Middle: the scope under its heading, then the dossier.
-            const float sideW = 250f, dosH = 150f;
+            const float sideW = 250f, dosH = 112f;
             float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top;
             LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
             y2 += 36f;
@@ -162,19 +141,6 @@ namespace Arena
             LobbyKit.Spaced(new Rect(x, y, w, 14f), shownChip, 10, shownCol, TextAnchor.MiddleLeft, 1.6f);
             Ui.Glitch(new Rect(x, y + 14f, w, 28f), f.Name, 20, Color.white, TextAnchor.MiddleLeft);
             Ui.Label(new Rect(x, y + 44f, w, 36f), f.Copy, 12, f.CopyCol, TextAnchor.UpperLeft, false, true);
-            if (f.Ladder.Count > 0)
-            {
-                float ly = b.yMax - 28f;
-                LobbyKit.Spaced(new Rect(x, ly, 70f, 20f), f.LadderHead, 9, CrtStyle.Dim, TextAnchor.MiddleLeft, 1.4f);
-                float total = 0f;
-                foreach (var pp in f.Ladder) total += pp.W + 4f;
-                float px = x + 76f, k = Mathf.Min(1f, (w - 76f) / total);
-                foreach (var pp in f.Ladder)
-                {
-                    ModePip(new Rect(px, ly, pp.W * k, 20f), pp.Label, pp.Col, pp.Strong);
-                    px += (pp.W + 4f) * k;
-                }
-            }
         }
 
         void ModeScopeArea(Rect scope, ModePage p, ModeFocus f)

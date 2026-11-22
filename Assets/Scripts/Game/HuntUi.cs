@@ -75,8 +75,7 @@ namespace Arena
                     Copy = h == null ? (known ? name + " has no hunt yet." : "Unknown boss: meet it in a run to learn more.")
                         : !can ? (host ? "Locked: beat " + name + " in a run to open this hunt." : "Locked for the host.")
                         : "Steps 1-" + (steps - 1) + ": only " + name + "'s own enemies, tougher ones joining as you go. Step " + steps + ": " + name + ".",
-                    CopyCol = can ? Color.white : h == null ? Ui.Muted : Ui.Warn, LadderHead = "THE MAP",
-                    Ladder = h == null ? new List<ModePip2>() : ModeLadder(steps, HuntColor, false, 5),
+                    CopyCol = can ? Color.white : h == null ? Ui.Muted : Ui.Warn,
                     RecVals = new[] { can ? profile.HuntWon(b, true) + " / " + played : "-", ModeClock(best), can ? "OPEN" : "LOCKED" },
                     RecLabels = new[] { "HUNTS WON", "BEST TIME", "STATUS" } };
             };

@@ -44,7 +44,6 @@ namespace Arena
                 Eyebrow = "BOSS DRAW", ScopeL = "BOSS DRAW", ScopeR = met.Count.ToString("00") + " / " + bosses.Length.ToString("00") + " MET",
                 Unknown = !p.Rows[i].Known, Model = bosses[i], Name = p.Rows[i].Known ? BossName(bosses[i]).ToUpperInvariant() : "???",
                 Copy = "Ten waves of the boss's own enemies, then the boss with about two minutes of health. Beat it, then keep going: a new boss every ten.",
-                Ladder = ModeLadder(QuickPlay.Length + 1, QuickColor, true),
                 RecVals = new[] { profile.QuickPlays.ToString(), profile.QuickWins.ToString(), profile.QuickBestWave > 0 ? profile.QuickBestWave.ToString() : "-", profile.QuickBosses.ToString() },
                 RecLabels = new[] { "PLAYED", "WON", "BEST WAVE", "BOSSES" } };
             return p;

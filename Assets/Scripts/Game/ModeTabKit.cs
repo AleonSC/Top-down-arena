@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The pieces of the Game Mode page (ModePageUi.cs): the progress ring, the fact chips (also the Practice header's), the list
-    /// rows (soft keys with a number, a portrait or "?", a name and a status chip), the phosphor scope and the ladder pips.
+    /// rows (soft keys with a number, a portrait or "?", a name and a status chip) and the phosphor scope.
     public partial class ArenaApp
     {
         
@@ -115,16 +115,6 @@ namespace Arena
             }
         }
 
-        /// One pip of a wave ladder: a tinted box, outlined, its label centred (white on a `strong` one).
-        static void ModePip(Rect pr, string label, Color pc, bool strong)
-        {
-            Ui.Fill(pr, pc.WithAlpha(strong ? 0.3f : 0.15f));
-            HuntBox(pr, pc.WithAlpha(0.7f));
-            Ui.Label(pr, label, 10, strong ? Color.white : Ui.Muted, TextAnchor.MiddleCenter);
-        }
-
-        
-        
         static string ModeClock(float s) => s > 0f ? (int)(s / 60f) + ":" + ((int)s % 60).ToString("00") : "-";
     }
 }
