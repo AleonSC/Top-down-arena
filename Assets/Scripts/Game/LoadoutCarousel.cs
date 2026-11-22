@@ -63,13 +63,14 @@ namespace Arena
             }
             carFirst[row] = Mathf.Clamp(carFirst[row], 0, maxFirst);
             var view = new Rect(r.x + CarArrowW + CarGap, r.y, r.width - 2f * (CarArrowW + CarGap), r.height);
-            for (int side = -1; side <= 1 && scroll; side += 2)  // an arrow greys out (dashed, dim chevron) at its end of the row
+            for (int side = -1; side <= 1 && scroll; side += 2)  // a floating arrow (no key box) that fades almost out at its end of the row
             {
                 var ab = new Rect(side < 0 ? r.x : r.xMax - CarArrowW, r.y, CarArrowW, r.height);
                 bool can = side < 0 ? carFirst[row] > 0 : carFirst[row] < maxFirst;
-                bool click = DkKey(ab, "", false, calm, enabled: can, quiet: !can);
-                Chevron(ab.center, side, can ? CrtKit.SoftText(CrtStyle.Ink, GUI.enabled && ab.Contains(ev.mousePosition)) : CrtStyle.Dim.WithAlpha(0.35f));
-                if (click && can)
+                bool hover = can && GUI.enabled && ab.Contains(ev.mousePosition);
+                if (ev.type == EventType.Repaint)
+                    FloatArrow(ab.center, side, can ? (hover ? Color.white : CrtStyle.Ink.WithAlpha(0.75f)) : CrtStyle.Dim.WithAlpha(0.25f), hover);
+                if (Ui.HitArea(ab) && can)
                     carFirst[row] += side;
             }
             carFirst[row] = Mathf.Clamp(carFirst[row], 0, maxFirst);
@@ -89,6 +90,19 @@ namespace Arena
             GUI.BeginGroup(new Rect(view.x, view.y - CarPad, view.width, view.height + 2f * CarPad));
             from = Mathf.Max(0, Mathf.FloorToInt(pos));
             to = Mathf.Min(count - 1, Mathf.CeilToInt(pos + visible) - 1);  // (one more while it slides; a fixed row: the first `visible`)
+        }
+
+        /// A carousel's arrow: a bare pixel chevron, 2 px strokes, pointing left (dir -1) or right (1); `glow` adds a soft halo (hover).
+        static void FloatArrow(Vector2 c, int dir, Color col, bool glow)
+        {
+            if (glow)
+                Ui.Glow(new Rect(c.x - 5f, c.y - 8f, 10f, 16f), col, 0.25f);
+            for (int i = 0; i < 7; i++)
+            {
+                float off = (3 - Mathf.Abs(i - 3)) * 2f * dir;
+                Ui.Fill(new Rect(Mathf.Round(c.x + off - 3f * dir - 1f), Mathf.Round(c.y - 7f + i * 2f), 2f, 2f), col);
+                Ui.Fill(new Rect(Mathf.Round(c.x + off - 3f * dir - 1f + dir), Mathf.Round(c.y - 7f + i * 2f), 2f, 2f), col);
+            }
         }
 
         /// The key in slot j (the rows don't loop: slot j is key j).

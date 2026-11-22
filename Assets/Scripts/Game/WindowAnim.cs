@@ -115,13 +115,12 @@ namespace Arena
             }
         }
 
-        /// A docked box landing (drawn over it): a short flash, then a scan line down it.
+        /// A docked box landing (drawn over it): a scan line down it (no full-box flash).
         void DockLand(Rect r, float at)
         {
             float age = WinT;
             if (!Dock || winCloseK > 0f || age < at || age > at + 0.2f)
                 return;
-            Ui.Fill(r, new Color(0.81f, 0.88f, 1f, 0.22f * (1f - Seg(age, at, at + 0.12f))));
             float p = Seg(age, at, at + 0.18f);
             if (p > 0f && p < 1f)
                 Ui.Fill(new Rect(r.x, r.y + p * (r.height - 3f), r.width, 3f), new Color(0.56f, 0.71f, 1f, 0.8f));

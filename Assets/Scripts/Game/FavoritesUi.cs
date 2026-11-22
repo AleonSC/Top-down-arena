@@ -22,9 +22,8 @@ namespace Arena
         {
             var prof = session.Game.Profile;
             int n = prof != null ? prof.Favorites.Count : 0;
-            bool hit = DkKey(key, "", favOpen && lobbyTab == 0, calm);
-            const float isz = 16f;
-            Ui.Icon(new Rect(key.center.x - isz / 2f, key.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_star"), n > 0 ? CrtStyle.Gold : Color.white);  // gold once anything is saved
+            bool on = favOpen && lobbyTab == 0;
+            bool hit = LobbyKit.FolderTab(key, "", on, PixelArt.Get("ui_star"), n > 0 ? CrtStyle.Gold : on ? Color.white : CrtStyle.Ink.WithAlpha(0.7f));  // gold once anything is saved
             if (key.Contains(Event.current.mousePosition))
             {
                 lockedTip = key;  // (LobbyUi.cs's hover tip, drawn last)
