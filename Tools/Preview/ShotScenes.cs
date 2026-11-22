@@ -1029,6 +1029,43 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // STATICSHOCK=<s>: the Healer Elementalist's Static Shock (Core/StaticShock.cs, Game/StaticShockLook.cs) that long into a fight: fire
+    // held at a pack of grunts ahead, the other players beside the cone (one inside it gets Overcharge). SSALT=1: Alt (Arc Cannon) pressed at
+    // 0.1 s through a teammate toward the pack, no Fire. Run with 3 players (shot.sh x hud 3 1 3).
+    if (Environment.GetEnvironmentVariable("STATICSHOCK") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Orbs.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Elementalist; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Elementalist, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; q0.OverchargeT = 0f; }
+      bool alt = Environment.GetEnvironmentVariable("SSALT") != null;
+      V2 home = new V2(380f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var mates = new System.Collections.Generic.List<Player>();
+      foreach (var q in gm.Players.Values) if (q != me) mates.Add(q);
+      var mateAt = alt ? new[] { new V2(170f, 10f), new V2(120f, 130f) } : new[] { new V2(120f, 60f), new V2(60f, -150f) };
+      for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Firing = false; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = alt ? new[] { new V2(330f, -40f), new V2(360f, 30f), new V2(300f, 60f), new V2(410f, -10f), new V2(220f, -160f) }
+                      : new[] { new V2(90f, -30f), new V2(150f, 10f), new V2(175f, -55f), new V2(205f, 40f), new V2(320f, -20f), new V2(260f, 150f) };
+      foreach (var at in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("STATICSHOCK"), ci) * 60f));
+      V2 cursor = alt ? home + new V2(360f, 10f) : home + new V2(260f, 0f);
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; for (int i = 0; i < foes.Count; i++) { foes[i].Pos = foes[i].Disp = keep[i]; foes[i].FireT = 99f; }
+        for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Hp = mates[i].MaxHp; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f >= 6 && f < 9 });
+        gm.Update(1f / 60f);
+        me.Disp = me.Pos = home; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i];
+        for (int i = 0; i < mates.Count && i < 2; i++) mates[i].Pos = mates[i].Disp = home + mateAt[i];
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // TWINPISTOLS=<s>: the Healer Soldier's Twin Pistols (Core/TwinPistols.cs, Game/TwinPistolsLook.cs) that long into a fight: fire held at a
     // pack of grunts 260 px ahead (TPLASER=1: Alt pressed 0.1 s in, Laser Sights on; TPIDLE=1: not firing).
     if (Environment.GetEnvironmentVariable("TWINPISTOLS") != null) {

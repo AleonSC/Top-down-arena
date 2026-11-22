@@ -108,6 +108,7 @@ namespace Arena
             p.BarrierT = 0f;
             p.OverdriveT = 0f;
             p.AdrenalineT = 0f;
+            p.OverchargeT = 0f;
             p.GustT = 0f;
             p.Firing = false;
         }
@@ -133,6 +134,11 @@ namespace Arena
             {
                 p = Players[owner];
                 vel *= p.Stats.ShotSpeedMult;  // Velocity Rounds
+                if (p.OverchargeT > 0f && !Lobbed(kind))
+                {
+                    vel *= OverchargeShot;  // Overcharge: faster shots, same reach (StaticShock.cs)
+                    life /= OverchargeShot;
+                }
                 if (!AreaWeapon(p.Weapon.Id))  // area weapons get bigger areas instead (AreaMult)
                     homing = Math.Max(homing, p.Stats.Homing);
                 dmg *= HomingCost(p);  // Homing Rounds trade damage for forgiveness

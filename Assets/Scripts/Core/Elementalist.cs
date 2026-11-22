@@ -43,6 +43,9 @@ namespace Arena
                 Desc = "Primary Fire: A storm cloud over your cursor: click to call lightning, and its rain heals allies and soaks enemies.\n\nAlternative Fire: The cloud becomes a hurricane that drags enemies in and heals allies.",
                 Sound = Sfx.SpellZap, AreaDesc = "the strike, the rain and the hurricane are 25% wider",
                 Companion = MinionKind.Nimbus, CompanionCount = 1 },
+            new WeaponDef { Id = WeaponId.StaticShock, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 3, Damage = 10f, Reach = Game.StaticRange, BotRange = 190f, ExtraDesc = "+1 enemy wired into the circuit and 15% more shock", Name = "Static Shock", FireInterval = Game.StaticTick,
+                Desc = "Primary Fire: Hold for a short cone of static that wires enemies into one circuit and shocks them, harder the longer they stay. Teammates it touches get Overcharge: faster movement and shots for 10 s.\n\nAlternative Fire: Arc Cannon: a giant ball of lightning rolls through everyone to your cursor and bursts into a stunning shock.",
+                Sound = Sfx.SpellZap, AreaDesc = "the cone and the Arc Cannon's burst 25% bigger" },
             // DPS
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "Primary Fire: A big, slow fireball that rolls through enemies and sets them burning.",

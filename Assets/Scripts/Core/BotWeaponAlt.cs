@@ -338,6 +338,8 @@ namespace Arena
                         return Tap(v.Incoming == 0 && BotDanger < 0.5f, 1f);
                     }
                     return Tap(v.Incoming >= 3, 1f);
+                case WeaponId.StaticShock:  // the Arc Cannon into a crowd or the boss (StaticShock.cs)
+                    return !late && e != null && v.ShootD < CannonReach && Tap(ArcLocalCd <= 0f && (e.Def.IsBoss || EnemiesNear(e.Pos, CannonBurstR) >= 3), 1f);
                 case WeaponId.WindClash:  // the Tempest into a barrage or a crowd
                     return Tap(TempestLocalCd <= 0f && me.WcTempestT <= 0f && (v.Incoming >= 3 || EnemiesNear(me.Pos, 120f) >= 3), 1f);
                 case WeaponId.WyvernStaff:  // the Wyrm Slam on a group

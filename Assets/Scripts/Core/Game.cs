@@ -1493,6 +1493,7 @@ namespace Arena
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
             TickSmokeShells(dt);  // GrenadeLauncher.cs: smoke clouds; the launcher refills when put away
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
+            TickArcBalls(dt);   // StaticShock.cs: Arc Cannon balls and bursts
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
@@ -1596,6 +1597,7 @@ namespace Arena
                 TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
+                p.OverchargeT = Math.Max(0f, p.OverchargeT - dt);  // StaticShock.cs
                 TickGustTimers(p, dt);  // GustGate.cs
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
                 p.GhostT = Math.Max(0f, p.GhostT - dt);  // Ghost Step
@@ -1653,6 +1655,14 @@ namespace Arena
                 TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
                 TickTwinPistols(p, dt);  // Laser Sights running down, its key cooling down (TwinPistols.cs)
                 p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
+                if (p.Weapon.Id != WeaponId.StaticShock && p.StaticOn)
+                    ClearStaticShock(p);  // (StaticShock.cs)
+                if (p.Weapon.Id == WeaponId.StaticShock)
+                {
+                    string ssSrc = CreditTo("weapon");
+                    TickStaticShock(p, dt);  // held, not fired (StaticShock.cs); it stops when you're down
+                    dmgSrc = ssSrc;
+                }
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                 {
                     string orbSrc = CreditTo("weapon");
@@ -1696,7 +1706,7 @@ namespace Arena
                     TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);
