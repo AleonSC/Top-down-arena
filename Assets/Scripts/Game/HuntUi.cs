@@ -49,8 +49,10 @@ namespace Arena
             var profile = game.Profile;
             var ink = CrtStyle.Ink;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
+            int huntN = 0;
+            foreach (var hb in Game.BossCycle) if (profile != null && profile.Beaten(hb) > 0) huntN++;
             y = ModeHeader(r, "BOSS HUNT", "10 WAVES  ·  ONE BOSS", host ? "Pick a boss. Beat one in a run to open its hunt."
-                : "The host picks the boss (from the hunts they've opened).", Ui.Muted);
+                : "The host picks the boss (from the hunts they've opened).", Ui.Muted, HuntColor, huntN / (float)Game.BossCycle.Length, huntN + "/" + Game.BossCycle.Length);
             float bodyY = y, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
 
             // Left: the ten bosses as a looping drum, the picked one on top.
