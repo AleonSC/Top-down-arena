@@ -347,22 +347,27 @@ namespace Arena
         }
 
         /// One cradle's clamp post: a metal post with a lamp at its top and a bolt at its foot. open (0..1) slides it outwards.
-        static void WhoClamp(Rect r, bool lit)
+        static void WhoClamp(Rect r, bool lit, bool left)
         {
-            Ui.Pill(new Rect(r.x + 1f, r.y + 4f, r.width, r.height), new Color(0f, 0f, 0f, 0.4f));
-            Ui.Pill(r, new Color(0.47f, 0.58f, 0.88f));
-            var inner = new Rect(r.x + 1.5f, r.y + 1.5f, r.width - 3f, r.height - 3f);
-            Ui.Pill(inner, new Color(0.15f, 0.2f, 0.44f));
-            Ui.Fill(new Rect(inner.x + inner.width * 0.28f, inner.y + 3f, inner.width * 0.34f, inner.height - 6f), new Color(0.45f, 0.55f, 0.82f, 0.75f));
-            var lamp = new Rect(r.center.x - 5f, r.y + 9f, 10f, 10f);
+            // A slim satin post: a dark rim, a smooth face lit on its outer edge, a slit LED near the top, and a rubber grip down the
+            // side that holds the disk.
+            Ui.Pill(new Rect(r.x + 1f, r.y + 4f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
+            Ui.Pill(r, new Color(0.07f, 0.075f, 0.085f));
+            var face = new Rect(r.x + 1.5f, r.y + 1.5f, r.width - 3f, r.height - 3f);
+            Ui.Pill(face, new Color(0.3f, 0.31f, 0.35f));
+            WhoBand(new Rect(face.x + 1f, face.y + 3f, face.width - 2f, face.height - 6f), new Color(0.52f, 0.54f, 0.59f), new Color(0.25f, 0.26f, 0.3f), 1f);
+            float edge = left ? face.x + 1f : face.xMax - 2f;
+            Ui.Fill(new Rect(edge, face.y + 4f, 1f, face.height - 8f), new Color(1f, 1f, 1f, 0.22f));        // the lit outer edge
+            float grip = left ? face.xMax - 3f : face.x;
+            Ui.Fill(new Rect(grip, face.y + 22f, 3f, face.height - 30f), new Color(0.04f, 0.042f, 0.05f));  // the rubber grip on the disk side
+            var slit = new Rect(r.center.x - 1.5f, r.y + 7f, 3f, 12f);
             if (lit)
             {
-                Ui.Dot(new Rect(lamp.x - 4f, lamp.y - 4f, 18f, 18f), new Color(0.42f, 1f, 0.6f, 0.22f));
-                Ui.Dot(lamp, new Color(0.42f, 1f, 0.6f));
+                Ui.Pill(new Rect(slit.x - 3f, slit.y - 3f, slit.width + 6f, slit.height + 6f), new Color(0.42f, 1f, 0.6f, 0.25f));
+                Ui.Fill(slit, new Color(0.55f, 1f, 0.7f));
             }
             else
-                Ui.Dot(lamp, new Color(0.07f, 0.1f, 0.25f));
-            KeyUi.Bolt(new Vector2(r.center.x, r.yMax - 12f), 8f);
+                Ui.Fill(slit, new Color(0.05f, 0.06f, 0.06f));
         }
 
         /// The wall, the shelf, and under every disk its cradle: a pedestal with a clamp post either side, which open as the
@@ -408,18 +413,18 @@ namespace Arena
                 var info = i < WhoSlots ? WhoInSlot(i) : null;
                 bool lit = info != null && info.Id == ProfileStore.ActiveId;
                 float open = whoManage ? 0f : whoLift[i] * 9f, k = r.width / 200f;
-                // the pedestal under the disk
-                var ped = new Rect(r.x - 18f * k, r.yMax - 4f * k, r.width + 36f * k, 20f * k);
-                Ui.Pill(new Rect(ped.x + 2f, ped.y + 6f, ped.width - 4f, ped.height), new Color(0f, 0f, 0f, 0.45f));
-                Ui.Pill(ped, new Color(0.47f, 0.58f, 0.88f));
-                WhoBand(new Rect(ped.x + 1.5f, ped.y + 1.5f, ped.width - 3f, ped.height - 3f), new Color(0.32f, 0.41f, 0.71f), new Color(0.1f, 0.14f, 0.31f), 2f);
-                Ui.Fill(new Rect(ped.x + 4f, ped.y + 1f, ped.width - 8f, 1f), new Color(1f, 1f, 1f, 0.3f));
-                for (float gx = ped.x + 14f * k; gx < ped.xMax - 24f * k; gx += 16f * k)
-                    Ui.Fill(new Rect(gx, ped.y + 8f * k, 10f * k, 3f), new Color(0.04f, 0.055f, 0.13f));
-                // the clamps, either side of the disk
-                float ch = 84f * k, cw = 22f * k;
-                WhoClamp(new Rect(r.x - 28f * k - open, r.yMax - ch + 6f * k, cw, ch), lit);
-                WhoClamp(new Rect(r.xMax + 6f * k + open, r.yMax - ch + 6f * k, cw, ch), lit);
+                // the pedestal under the disk: a smooth satin plate, lit along its top, with one groove along it
+                var ped = new Rect(r.x - 16f * k, r.yMax - 3f * k, r.width + 32f * k, 14f * k);
+                Ui.Pill(new Rect(ped.x + 3f, ped.y + 5f, ped.width - 6f, ped.height), new Color(0f, 0f, 0f, 0.4f));
+                Ui.Pill(ped, new Color(0.07f, 0.075f, 0.085f));
+                WhoBand(new Rect(ped.x + 1.5f, ped.y + 1.5f, ped.width - 3f, ped.height - 3f), new Color(0.36f, 0.38f, 0.43f), new Color(0.15f, 0.16f, 0.19f), 1f);
+                Ui.Fill(new Rect(ped.x + 6f, ped.y + 1.5f, ped.width - 12f, 1f), new Color(1f, 1f, 1f, 0.35f));
+                Ui.Fill(new Rect(ped.x + 10f, ped.center.y + 1f, ped.width - 20f, 1f), new Color(0f, 0f, 0f, 0.35f));
+                Ui.Fill(new Rect(ped.x + 10f, ped.center.y + 2f, ped.width - 20f, 1f), new Color(1f, 1f, 1f, 0.07f));
+                // the clamps, either side of the disk (their grips face it)
+                float ch = 80f * k, cw = 16f * k;
+                WhoClamp(new Rect(r.x - 22f * k - open, r.yMax - ch + 4f * k, cw, ch), lit, true);
+                WhoClamp(new Rect(r.xMax + 6f * k + open, r.yMax - ch + 4f * k, cw, ch), lit, false);
                 // the slot's plate on the shelf face
                 var plate = new Rect(r.center.x - 50f, top + 19f, 100f, 30f);
                 if (whoManage)
