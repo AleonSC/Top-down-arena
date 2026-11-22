@@ -32,6 +32,7 @@ static partial class Program
                     foreach (var b in host.Game.Bullets.Values)
                         if (b.Kind < Defs.SmallShot)
                             fired++;
+                    fired += host.Game.Effects.Count(fx => fx.Kind == FxKind.RailBeam);  // (the Railgun's beam has no bullets)
                     if (i % 30 == 0)
                     {
                         for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
