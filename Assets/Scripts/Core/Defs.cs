@@ -158,6 +158,8 @@ namespace Arena
         Vowguard,
         // the Arcanist (Arcanist.cs): Tank Orbit Shards, Healer Glyph Stylus, DPS Dancing Blades (one weapon per role so far)
         OrbitShards, GlyphStylus, DancingBlades,
+        // the Healer Elementalist's fourth (StaticShock.cs): a held cone of static, the Arc Cannon on Alt
+        StaticShock,
     }
 
     public class WeaponDef

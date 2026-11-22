@@ -115,6 +115,7 @@ namespace Arena
             { WeaponId.ArcKnuckles, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },       // Rocket Dash
             { WeaponId.Stonespear, (g, me, t, dt) => Tap(t, dt, 4f, 2f) },          // the spear volley
             { WeaponId.GrenadeLauncher, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the drum: smoke, then back to HE
+            { WeaponId.StaticShock, (g, me, t, dt) => Tap(t, dt, 5.5f, 1.5f) },     // the Arc Cannon (5 s cooldown)
             { WeaponId.WindClash, (g, me, t, dt) => Tap(t, dt, 9.5f, 1.5f) },       // the Tempest (9 s cooldown)
         };
 

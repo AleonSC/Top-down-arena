@@ -498,7 +498,7 @@ namespace Arena
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.Waterball: case WeaponId.Earthball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
-                case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
+                case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: case WeaponId.StaticShock: hold = 3; break;
                 case WeaponId.OrbitShards: case WeaponId.DancingBlades: hold = 3; break;  // the Arcanist casts from an open palm (ArcanistLook.cs)
             }
         }
@@ -546,6 +546,7 @@ namespace Arena
             d[(int)WeaponId.EmbolusSpears] = (p, t, hold) => DrawEsHeld(p, mHeldTube, t);
             d[(int)WeaponId.Stonespear] = DrawHeldStonespear;
             d[(int)WeaponId.WindClash] = DrawHeldWindClash;
+            d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;  // a crackling spark on the palm
             d[(int)WeaponId.IceShards] = DrawHeldIceShards;
             // ---- Summoner
             d[(int)WeaponId.GolemStaff] = DrawHeldGolemStaff;
@@ -756,6 +757,18 @@ namespace Arena
         {
             MCirc(9f, 0f, 6f, Hx(0x8fe3f2, 0.25f), 12); MCirc(9f, 0f, 2.4f, Hx(0xf2fdff), 8);
             for (int i = 0; i < 3; i++) { float a0 = t * 7f + i * 2.1f; MArc(9f, 0f, 4.2f + i * 1.4f, a0, a0 + 1.7f, 1.1f, Hx(0xbff3ff, 0.85f)); }
+        }
+
+        void DrawHeldStaticShock(Player p, float t, int hold)
+        {
+            MCirc(9f, 0f, 6.5f, Hx(0x9fe3ff, 0.25f), 12); MCirc(9f, 0f, 2.6f, Hx(0xffffff), 8);
+            int strike = Mathf.FloorToInt(t * 18f);
+            for (int i = 0; i < 4; i++)  // little arcs jumping off it, re-struck 18 times a second
+            {
+                float a = RodHash(strike * 5 + i + p.Id * 31) * MathX.Tau, ca = Mathf.Cos(a), sa = Mathf.Sin(a), k = 0.4f * (RodHash(strike * 7 + i) - 0.5f);
+                float mx = 9f + ca * 5f - sa * k * 6f, my = sa * 5f + ca * k * 6f;
+                MLine(9f + ca * 2.5f, sa * 2.5f, mx, my, 1f, Hx(0xe9f8ff, 0.9f)); MLine(mx, my, 9f + ca * 9f, sa * 9f, 0.8f, Hx(0x9fe3ff, 0.8f));
+            }
         }
 
         void DrawHeldIceShards(Player p, float t, int hold)
