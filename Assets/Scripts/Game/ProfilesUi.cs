@@ -30,9 +30,15 @@ namespace Arena
         public static int WhoLayout;
 
         /// The console under the shelf (layouts 1 to 3).
-        static Rect WhoConsole => WhoLayout == 1 ? new Rect(W / 2f - 390f, WhoShelfTop + 54f + 24f, 780f, 112f)
+        /// Layouts 3 and 4: a drawer flush under the shelf (3: the drive in the middle, the key at the right; 4: the drive over the key, both
+        /// in the middle). Their title, rack, shelf and drawer all share the title's left and right edges (WhoEdge).
+        static bool WhoDrawer => WhoLayout >= 3;
+        const float WhoEdge = 112f;  // the title's neon line (CrtBox is 1040 wide, its bezel 8 more each side)
+
+        static Rect WhoConsole => WhoDrawer ? new Rect(WhoEdge, WhoShelfTop + 54f, W - 2f * WhoEdge, WhoLayout == 4 ? 180f : 116f)
+            : WhoLayout == 1 ? new Rect(W / 2f - 390f, WhoShelfTop + 54f + 24f, 780f, 112f)
             : WhoLayout == 2 ? new Rect(W / 2f - 215f, WhoShelfTop + 54f + 20f, 430f, 190f)
-            : new Rect(70f, WhoShelfTop + 54f, W - 140f, 116f);
+            : new Rect(W / 2f - 215f, WhoShelfTop + 54f + 20f, 430f, 190f);
         const int WhoSlots = ProfileStore.MaxProfiles;  // profile slots; the New profile box is the box after them
 
         /// Where box i sits (0 to 2: the slots; 3: New profile). Always four, so the layout never changes.
@@ -138,12 +144,14 @@ namespace Arena
             if (WhoLayout != 0)
             {
                 var c = WhoConsole;
-                DriveCx = WhoLayout == 1 ? c.x + 34f + DriveW / 2f : WhoLayout == 2 ? W / 2f : W / 2f - 210f;
-                DriveY = WhoLayout == 1 ? c.y + 42f : WhoLayout == 2 ? c.y + 38f : c.y + 46f;
+                DriveCx = WhoLayout == 1 ? c.x + 34f + DriveW / 2f : W / 2f;
+                DriveY = WhoLayout == 1 ? c.y + 42f : WhoLayout == 3 ? c.y + 46f : c.y + 38f;
             }
             try { DrawWhoBody(); }
             finally { Ui.Graphite = false; DriveCx = W / 2f; DriveY = 206f; }
         }
+
+        const float WhoSideKeyW = 270f;  // layout 3's key, smaller so the drive can sit in the middle
 
         /// The key's rect: under the shelf in the middle, or in the console (layouts 1 to 3).
         Rect WhoManageRect(float kw)
@@ -151,11 +159,11 @@ namespace Arena
             if (WhoLayout == 0)
                 return new Rect(W / 2f - kw / 2f, H - 118f, kw, 74f);
             var c = WhoConsole;
-            if (WhoLayout == 2)
+            if (WhoLayout == 2 || WhoLayout == 4)
                 return new Rect(W / 2f - kw / 2f, c.y + 92f, kw, 74f);
             if (WhoLayout == 1)
                 return new Rect(c.xMax - 34f - kw, c.y + 20f, kw, 74f);
-            return new Rect(W / 2f + 60f, c.y + 22f, kw, 74f);
+            return new Rect(c.xMax - 30f - WhoSideKeyW, c.y + 22f, WhoSideKeyW, 74f);  // layout 3: at the right, past the drive's bay
         }
 
         /// The console under the shelf that holds the drive and Manage profiles (layouts 1 to 3): hung from two struts, or a drawer
@@ -164,7 +172,7 @@ namespace Arena
         {
             var c = WhoConsole;
             float shelfBottom = WhoShelfTop + 54f, cut = 14f;
-            if (WhoLayout != 3)
+            if (!WhoDrawer)
                 foreach (float sx in new[] { c.x + 60f, c.xMax - 74f })
                 {
                     var strut = new Rect(sx, shelfBottom - 2f, 14f, c.y - shelfBottom + 6f);
@@ -172,7 +180,7 @@ namespace Arena
                     WhoBand(new Rect(strut.x + 2f, strut.y, strut.width - 4f, strut.height), new Color(0.35f, 0.42f, 0.66f), new Color(0.16f, 0.2f, 0.38f), 2f);
                     KeyUi.Bolt(new Vector2(strut.center.x, strut.y + 8f), 6f);
                 }
-            if (WhoLayout == 3)
+            if (WhoDrawer)
             {
                 // A drawer built into the shelf: its face carries on from the shelf's front face (same metal, a shade darker), a
                 // panel seam where they meet, vents under the shelf's vents, and a recessed bay holding the drive and the key.
@@ -188,9 +196,24 @@ namespace Arena
                 }
                 Ui.Fill(new Rect(c.x, c.y, c.width, 2f), new Color(0.02f, 0.025f, 0.05f, 0.9f));       // the seam: a dark groove
                 Ui.Fill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, 1f), new Color(1f, 1f, 1f, 0.12f));  // and the drawer's lit lip under it
-                WhoVent(new Rect(c.x + 20f, c.y + 38f, 100f, 24f));
-                WhoVent(new Rect(c.xMax - 120f, c.y + 38f, 100f, 24f));
-                var bay = new Rect(c.x + 150f, c.y + 10f, c.width - 300f, c.height - 22f);
+                // the bay round the drive (layout 4: round the drive and the key), in the middle
+                var bay = WhoLayout == 4 ? new Rect(W / 2f - 205f, c.y + 12f, 410f, c.height - 20f) : new Rect(W / 2f - 200f, c.y + 12f, 400f, c.height - 30f);
+                if (WhoLayout == 4)
+                {
+                    WhoVent(new Rect(c.x + 20f, c.y + 70f, 100f, 24f));
+                    WhoVent(new Rect(c.xMax - 120f, c.y + 70f, 100f, 24f));
+                }
+                else
+                {
+                    // the left balances the key on the right: a recessed readout plate of the same size
+                    var plate = new Rect(c.x + 30f, c.y + 22f, WhoSideKeyW, 64f);
+                    Ui.Pill(new Rect(plate.x - 1f, plate.y - 1f, plate.width + 2f, plate.height + 2f), new Color(1f, 1f, 1f, 0.07f));
+                    Ui.Pill(plate, new Color(0.025f, 0.03f, 0.06f));
+                    Ui.Fill(new Rect(plate.x + 6f, plate.y + 1f, plate.width - 12f, 3f), new Color(0f, 0f, 0f, 0.5f));
+                    WhoVent(new Rect(plate.x + 14f, plate.y + 20f, 100f, 24f));
+                    Ui.Label(new Rect(plate.x + 124f, plate.y + 12f, plate.width - 134f, 20f), "PROFILES", 11, new Color(0.55f, 0.62f, 0.8f), TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(plate.x + 124f, plate.y + 30f, plate.width - 134f, 22f), whoList.Count + " / " + WhoSlots, 18, new Color(0.85f, 0.9f, 1f), TextAnchor.MiddleLeft, true);
+                }
                 Ui.Pill(new Rect(bay.x - 1f, bay.y - 1f, bay.width + 2f, bay.height + 2f), new Color(1f, 1f, 1f, 0.07f));
                 Ui.Pill(bay, new Color(0.025f, 0.03f, 0.06f));
                 Ui.Fill(new Rect(bay.x + 6f, bay.y + 1f, bay.width - 12f, 3f), new Color(0f, 0f, 0f, 0.5f));      // its inner shadow at the top
@@ -261,7 +284,7 @@ namespace Arena
                 DrawWhoConsole();
             DrawDriveSlot(1f, drive);
             DrawWhoShelf();
-            if (WhoLayout == 3)
+            if (WhoDrawer)
                 DrawWhoDrawerNeon();
             for (int i = 0; i <= WhoSlots; i++)
             {
@@ -283,9 +306,11 @@ namespace Arena
             {
                 // Manage profiles is a keycap like the main menu's Play (KeyUi.cs), with the same VHS hover.
                 float kw = KeyUi.WhoStyle == 2 ? 380f : KeyUi.WhoStyle == 1 ? 330f : 300f;
+                if (WhoLayout == 3)
+                    kw = WhoSideKeyW;
                 var kr = WhoManageRect(kw);
                 if (MenuVhs.Draw(kr, "TRK 03", true, fxReduced, () => KeyUi.WhoStyle > 0
-                    ? KeyUi.Graphite(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage, KeyUi.WhoStyle == 2)
+                    ? KeyUi.Graphite(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), WhoLayout == 3 ? 22 : 26, whoManage, KeyUi.WhoStyle == 2)
                     : KeyUi.Key(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage)))
                 {
                     whoManage = !whoManage;
@@ -344,8 +369,9 @@ namespace Arena
         /// disk lifts (look "Mechanical 2, Clamp cradles" of Docs/Mockups/whos-playing-mechanical.html). Drawn under the disks.
         void DrawWhoShelf()
         {
-            float top = WhoShelfTop, left = 70f, w = W - 140f;
-            var wall = new Rect(left + 20f, WhoCardTop - 8f, w - 40f, top - WhoCardTop + 8f + (WhoLayout == 3 ? 30f : 54f));  // (layout 3: its bottom edge hides behind the shelf, off the drawer's seam)
+            float top = WhoShelfTop, left = WhoDrawer ? WhoEdge : 70f, w = W - 2f * left;
+            float inset = WhoDrawer ? 0f : 20f;  // (the drawer layouts: rack, shelf and drawer share the title's edges)
+            var wall = new Rect(left + inset, WhoCardTop - 8f, w - 2f * inset, top - WhoCardTop + 8f + (WhoDrawer ? 30f : 54f));  // (layout 3: its bottom edge hides behind the shelf, off the drawer's seam)
             // the wall: a dark see-through rack with faint scanlines and a neon edge (Docs/Mockups/whos-playing-holo.html)
             Ui.Pill(new Rect(wall.x, wall.y + 6f, wall.width, wall.height), new Color(0f, 0f, 0f, 0.4f));
             WhoBand(wall, new Color(0.047f, 0.075f, 0.16f, 0.93f), new Color(0.04f, 0.06f, 0.13f, 0.93f), 6f);
@@ -355,20 +381,21 @@ namespace Arena
             {
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(wall, NeonFlicker(Time.unscaledTime, 7f, 1.4f));
-                HoloCorners(new Rect(left, wall.y, w, WhoLayout == 3 ? WhoConsole.yMax - wall.y : wall.height), 1f);  // round the rack and its shelf (the shelf is the wider)
+                HoloCorners(new Rect(left, wall.y, w, WhoDrawer ? WhoConsole.yMax - wall.y : wall.height), 1f, top: !WhoDrawer);  // (the drawer layouts: one frame from the title to the drawer, its top pair the title's)  // round the rack and its shelf (the shelf is the wider)
                 EndUiGl();
             }
 
             // the shelf: a lit top edge, then the front face with a vent at each end and a plate for each slot
-            if (WhoLayout != 3)  // (layout 3: the drawer carries on under the shelf, so no shadow and no rim along the bottom)
+            if (!WhoDrawer)  // (layout 3: the drawer carries on under the shelf, so no shadow and no rim along the bottom)
                 Ui.Pill(new Rect(left, top + 12f, w, 48f), new Color(0f, 0f, 0f, 0.35f));
             WhoBand(new Rect(left, top, w, 14f), new Color(0.53f, 0.63f, 0.93f), new Color(0.27f, 0.35f, 0.6f), 2f);
             Ui.Fill(new Rect(left + 3f, top, w - 6f, 2f), new Color(0.9f, 0.95f, 1f, 0.9f));  // its lit lip, glowing
             WhoBand(new Rect(left, top + 14f, w, 40f), new Color(0.24f, 0.3f, 0.55f), new Color(0.1f, 0.14f, 0.32f), 3f);
-            if (WhoLayout != 3)
+            if (!WhoDrawer)
                 Ui.Rim(new Rect(left, top, w, 54f), new Color(0.42f, 0.52f, 0.84f), 0.6f);
-            WhoVent(new Rect(left + 20f, top + 22f, 100f, 24f));
-            WhoVent(new Rect(left + w - 120f, top + 22f, 100f, 24f));
+            float vw = WhoDrawer ? 80f : 100f;  // (narrower on the drawer layouts' narrower shelf, clear of the slot tags)
+            WhoVent(new Rect(left + 20f, top + 22f, vw, 24f));
+            WhoVent(new Rect(left + w - 20f - vw, top + 22f, vw, 24f));
 
             for (int i = 0; i <= WhoSlots; i++)
             {

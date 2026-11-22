@@ -56,14 +56,14 @@ namespace Arena
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(TitleNeonRect, a * NeonFlicker(Time.unscaledTime, 9f, 3f));
                 NeonSparkSound(9f, 3f, a);
-                HoloCorners(TitleNeonRect, a);
+                HoloCorners(TitleNeonRect, a, bottom: !(whoOpen && WhoDrawer));  // (the picker's drawer layouts: one frame from the title to the drawer)
                 EndUiGl();
             }
         }
 
         /// GL: glowing corner brackets just outside a panel (the settings windows' look, Docs/Mockups/settings-holo.html): a soft halo
         /// under a bright 3 px stroke, 22 px along each side, 9 px out from the panel's neon edge.
-        void HoloCorners(Rect r, float a, float gap = 9f, float len = 22f)
+        void HoloCorners(Rect r, float a, float gap = 9f, float len = 22f, bool top = true, bool bottom = true)
         {
             if (a <= 0f)
                 return;
@@ -72,6 +72,8 @@ namespace Arena
             glNeon = true;
             foreach (var corner in new[] { new V2(x0, y0), new V2(x1, y0), new V2(x0, y1), new V2(x1, y1) })
             {
+                if (!top && corner.Y < r.center.y || !bottom && corner.Y > r.center.y)
+                    continue;  // (top/bottom false: leave that pair out, for boxes stacked inside one frame)
                 float sx = corner.X < r.center.x ? 1f : -1f, sy = corner.Y < r.center.y ? 1f : -1f;
                 V2 h = corner + new V2(sx * len, 0f), v = corner + new V2(0f, sy * len), back = new V2(-sx * 1.5f, 0f), up = new V2(0f, -sy * 1.5f);
                 Line(corner + back, h, 9f, HoloHalo.WithAlpha(0.14f * a));
