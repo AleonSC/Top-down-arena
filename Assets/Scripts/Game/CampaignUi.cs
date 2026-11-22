@@ -18,7 +18,7 @@ namespace Arena
         ModePage CampaignPage()
         {
             var profile = game.Profile ?? new Profile();
-            var p = new ModePage { Title = "CAMPAIGN", Facts = "100 WAVES  ·  A BOSS EVERY 10TH  ·  THEN ENDLESS", Acc = CampaignColor,
+            var p = new ModePage { Title = "CAMPAIGN", Acc = CampaignColor,
                 Tagline = "One long run on a growing arena. Build as you go.", ListHead = "THE LADDER",
                 Rules = new[] { "PATHS + SHOPS", "LIVES", "SAVING", "CHALLENGES", "MODIFIERS + DIFFICULTY APPLY" } };
             var bosses = new EnemyType[10];

@@ -82,7 +82,7 @@ namespace Arena
             var profile = game.Profile ?? new Profile();
             var all = Survival.FactionsAt(99999f);
             int n = all.Count, best = profile.SurvivalBestPhase;
-            var p = new ModePage { Title = "SURVIVAL", Facts = "ONE CLOCK  ·  NO WAVES  ·  LAST AS LONG AS YOU CAN", Acc = SurvivalColor, Rules = SurvivalRules,
+            var p = new ModePage { Title = "SURVIVAL", Acc = SurvivalColor, Rules = SurvivalRules,
                 Tagline = "Pressure climbs with the clock until everyone is down.", ListHead = "FACTIONS", ListCap = "one joins every " + (int)(Survival.PhaseLength / 60f) + " min",
                 Pct = Mathf.Clamp01(profile.SurvivalBestTime / 960f), Ring = ModeClock(profile.SurvivalBestTime),
                 Note = "Two and three players face 1.5x and 2x the enemies." };

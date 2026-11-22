@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Game Mode screen's page for Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`, built by
-    /// each mode's file) in the loadout's look: a slim header (ring, name, fact chips, tagline), the list under its heading on
+    /// each mode's file) in the loadout's look: a slim header (ring, name, tagline), the list under its heading on
     /// the left, the scope and a dossier box in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
     /// RULES (lit: what the mode adds; dim: what it takes away), with the mode's note at its foot.
     /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
@@ -31,7 +31,7 @@ namespace Arena
 
         class ModePage
         {
-            public string Title, Facts, Tagline, Ring, ListHead, ListCap, Note;
+            public string Title, Tagline, Ring, ListHead, ListCap, Note;
             public Color Acc;
             public float Pct = -1f;
             public List<ModeRowData> Rows = new List<ModeRowData>();
@@ -88,7 +88,7 @@ namespace Arena
             ModeModels(rows, scope, t, p, f, shown);
         }
 
-        /// The slim header: the ring, the name, the fact chips, the tagline to the right of the chips.
+        /// The slim header: the ring, the name and the tagline under it.
         static float ModeHeadBand(Rect r, ModePage p)
         {
             float x = r.x + 20f, y = r.y + 14f, tx = x;
@@ -98,8 +98,7 @@ namespace Arena
                 tx = x + 66f;
             }
             LobbyKit.Spaced(new Rect(tx, y - 2f, 400f, 28f), p.Title, 22, p.Acc, TextAnchor.MiddleLeft, 5f);
-            float cx = ModeChips(tx, y + 30f, p.Facts, p.Acc);
-            Ui.Label(new Rect(cx + 8f, y + 30f, r.xMax - 20f - cx - 8f, 18f), p.Tagline, 12, CrtStyle.Desc, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(tx, y + 30f, r.xMax - 20f - tx, 18f), p.Tagline, 12, CrtStyle.Desc, TextAnchor.MiddleLeft);
             Ui.Fill(new Rect(r.x + 20f, y + 60f, r.width - 40f, 1f), p.Acc.WithAlpha(0.3f));
             return y + 70f;
         }
