@@ -2,36 +2,11 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Boss Hunt tab's look (HuntUi.cs), shared by every game-mode tab (Quick Play, Campaign, Survival): the spaced header, the
-    /// list rows on the left (soft keys with a number, a portrait or "?", a name and a status chip), the phosphor scope on the
-    /// right, the pip ladder and the outlined rule tags.
+    /// The pieces of the Game Mode page (ModePageUi.cs): the progress ring, the fact chips (also the Practice header's), the list
+    /// rows (soft keys with a number, a portrait or "?", a name and a status chip), the phosphor scope and the ladder pips.
     public partial class ArenaApp
     {
-        const float ModeListW = 268f, ModeGap = 14f;
-
-        /// The header (the Dossier look): a progress ring (when `pct` is 0-1; `ringText` in its middle), the mode's name big and
-        /// letter-spaced in `acc` with a rule, the mode's facts as outlined chips (`tag`, split on "·") and a short line under
-        /// them. Returns where the body starts.
-        static float ModeHeader(Rect r, string title, string tag, string sub, Color subCol, Color acc = default, float pct = -1f, string ringText = null)
-        {
-            var ink = CrtStyle.Ink;
-            if (acc.a <= 0f) acc = ink;
-            float x = r.x + 18f, w = r.width - 36f, y = r.y + 12f;
-            float tx = x;
-            if (pct >= 0f)
-            {
-                ModeRing(new Vector2(x + 32f, y + 32f), 29f, pct, acc, ringText);
-                tx = x + 78f;
-            }
-            LobbyKit.Spaced(new Rect(tx, y, w * 0.5f, 26f), title, 20, acc, TextAnchor.MiddleLeft, 4.4f);
-            float l0 = tx + LobbyKit.SpacedWidth(title, 20, 4.4f) + 20f;
-            Ui.Fill(new Rect(l0, y + 13f, x + w - l0, 1f), acc.WithAlpha(0.35f));
-            ModeChips(tx, y + 32f, tag, acc);
-            if (!string.IsNullOrEmpty(sub))
-                Ui.Label(new Rect(tx, y + 56f, x + w - tx, 18f), sub, 12, subCol);
-            return y + 82f;
-        }
-
+        
         /// A progress ring: 40 dots round `c` (radius `rad`), the first `pct` of them lit in `acc`, `text` in the middle.
         static void ModeRing(Vector2 c, float rad, float pct, Color acc, string text)
         {
@@ -148,32 +123,8 @@ namespace Arena
             Ui.Label(pr, label, 10, strong ? Color.white : Ui.Muted, TextAnchor.MiddleCenter);
         }
 
-        /// The rules as a short list, a marker before each, in two columns when wide. Returns the y of the last row.
-        static float ModeRules(float x, float y, float w, string[] rules)
-        {
-            var ink = CrtStyle.Ink.WithAlpha(0.75f);
-            bool two = w > 520f && rules.Length > 3;
-            int per = two ? (rules.Length + 1) / 2 : rules.Length;
-            float cw = two ? w / 2f : w, last = y;
-            for (int i = 0; i < rules.Length; i++)
-            {
-                float rx = x + (i / per) * cw, ry = y + (i % per) * 18f;
-                Ui.Label(new Rect(rx, ry, 14f, 16f), ">", 11, CrtStyle.Gold.WithAlpha(0.8f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(rx + 14f, ry, cw - 14f, 16f), rules[i].Substring(0, 1) + rules[i].Substring(1).ToLowerInvariant(), 12, ink, TextAnchor.MiddleLeft);
-                last = Mathf.Max(last, ry);
-            }
-            return last;
-        }
-
-        /// A row of record tiles across w.
-        static void ModeTiles(float x, float y, float w, float h, string[] vals, string[] labels)
-        {
-            int n = vals.Length;
-            float tw = (w - 8f * (n - 1)) / n;
-            for (int i = 0; i < n; i++)
-                LobbyKit.Tile(new Rect(x + i * (tw + 8f), y, tw, h), vals[i], labels[i], false);
-        }
-
+        
+        
         static string ModeClock(float s) => s > 0f ? (int)(s / 60f) + ":" + ((int)s % 60).ToString("00") : "-";
     }
 }

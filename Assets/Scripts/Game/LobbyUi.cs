@@ -1776,7 +1776,7 @@ namespace Arena
                 CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
-                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (!session.HuntMode || (session.LobbyHunt != null && !huntBrowsingLocked));  // (a locked hunt can't start)
+                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (!session.HuntMode || (session.LobbyHunt != null));  // (a locked hunt can't start)
                 if (DkKey(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
                     session.StartMatch();
             }

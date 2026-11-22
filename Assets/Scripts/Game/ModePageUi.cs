@@ -4,13 +4,22 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// MOCKUP: a reworked Game Mode page shared by Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`)
-    /// in one of two layouts. `modeLook` 0 keeps the old tabs; 1 is layout A (loadout sections: list | scope + dossier, records
-    /// and rules side by side at the bottom), 2 is layout B (three columns: list | scope + dossier | records and rules sidebar).
-    /// Preview: `MODELOOK=1|2 LOBBYTAB=8 shot.sh x lobby` (10 Campaign, 9 Survival with SURVLOBBY, 4 Boss Hunt with HUNT=1).
+    /// The Game Mode screen's page for Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`, built by
+    /// each mode's file) in the loadout's look: a slim header (ring, name, fact chips, tagline), the list under its heading on
+    /// the left, the scope and a dossier box on the right, then YOUR RECORDS (tiles) and RULES (lamp tags) along the bottom.
+    /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
     public partial class ArenaApp
     {
-        internal static int modeLook;
+        static List<ModePip2> ModeLadder(int waves, Color acc, bool endless, int every = 1)
+        {
+            var l = new List<ModePip2>();
+            for (int i = 1; i < waves; i++)
+                l.Add(new ModePip2 { Label = every == 1 || i % every == 0 ? i.ToString() : "", Col = CrtStyle.Ink, W = every == 1 ? 22f : 12f });
+            l.Add(new ModePip2 { Label = "BOSS", Col = acc, Strong = true, W = 36f });
+            if (endless)
+                l.Add(new ModePip2 { Label = "ENDLESS", Col = CrtStyle.Gold, Strong = true, W = 62f });
+            return l;
+        }
 
         class ModeRowData
         {
@@ -46,23 +55,44 @@ namespace Arena
             public Color Acc;
             public float Pct = -1f;
             public List<ModeRowData> Rows = new List<ModeRowData>();
-            public int Default;
+            public int Default, Shown;
             public Func<int, ModeFocus> Focus;
             public Action<Rect, int> ScopeDraw;  // in place of the model (Survival's graph)
+            public Action<int> OnPick;           // a click on a known row (Boss Hunt's pick)
             public string[] Rules;
         }
 
-        /// Draws the page in the chosen layout. Returns false when the old tab should draw instead.
-        bool DrawModePage(Rect r, float t, ModePage p)
+        void DrawModePage(Rect r, float t, ModePage p)
         {
-            if (modeLook == 0)
-                return false;
             LobbyKit.Panel(r);
-            if (modeLook == 1)
-                ModeLayoutA(r, t, p);
-            else
-                ModeLayoutB(r, t, p);
-            return true;
+            float top = ModeHeadBand(r, p) + 6f;
+            float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
+            const float listW = 290f, gap = 22f;
+            int shown = ModeList(x, top, listW, bottom - top, p, out var rows);
+            var f = p.Focus(shown);
+
+            // Right: the scope under its heading, then the dossier.
+            float x2 = x + listW + gap, w2 = w - listW - gap, y2 = top;
+            LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
+            y2 += 36f;
+            const float lowH = 128f, dosH = 132f;
+            float scopeH = bottom - lowH - 14f - dosH - 10f - y2;
+            var scope = new Rect(x2, y2, w2, scopeH);
+            ModeScopeArea(scope, p, f);
+            y2 += scopeH + 10f;
+            ModeDossier(new Rect(x2, y2, w2, dosH), p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
+
+            // The bottom strip: records (tiles) and the rules (lamp tags).
+            float ly = bottom - lowH, rw = w2 * 0.5f, uw = w2 - rw - gap;
+            LobbyKit.Heading(x2, ly, rw, "YOUR RECORDS", null, fxReduced, 14);
+            int n = f.RecVals.Length, per = n == 3 ? 3 : n <= 4 ? 2 : (n + 1) / 2;
+            float tw = (rw - 8f * (per - 1)) / per;
+            for (int i = 0; i < n; i++)
+                LobbyKit.Tile(new Rect(x2 + (i % per) * (tw + 8f), ly + 36f + (i / per) * 48f, tw, 42f), f.RecVals[i], f.RecLabels[i], fxReduced);
+            float ux = x2 + rw + gap;
+            LobbyKit.Heading(ux, ly, uw, "RULES", null, fxReduced, 14);
+            ModeRuleTags(ux, ly + 36f, uw, p.Rules);
+            ModeModels(rows, scope, t, p, f, shown);
         }
 
         /// The slim header: the ring, the name, the fact chips, the tagline to the right of the chips.
@@ -98,7 +128,9 @@ namespace Arena
                 if (rows[i].Contains(mp) && p.Rows[i].Known)
                     hover = i;
             }
-            int shown = hover >= 0 ? hover : p.Default;
+            int shown = p.Shown = hover >= 0 ? hover : p.Default;
+            if (hover >= 0 && p.OnPick != null && Ui.HitArea(rows[hover]))
+                p.OnPick(hover);
             for (int i = 0; i < n; i++)
             {
                 var d = p.Rows[i];
@@ -116,7 +148,7 @@ namespace Arena
             LobbyKit.Spaced(new Rect(x, y, w, 14f), shownChip, 10, shownCol, TextAnchor.MiddleLeft, 1.6f);
             Ui.Glitch(new Rect(x, y + 14f, w, 28f), f.Name, 20, Color.white, TextAnchor.MiddleLeft);
             Ui.Label(new Rect(x, y + 44f, w, 36f), f.Copy, 12, f.CopyCol, TextAnchor.UpperLeft, false, true);
-            if (!string.IsNullOrEmpty(p.Note) && modeLook == 1)
+            if (!string.IsNullOrEmpty(p.Note))
                 Ui.Label(new Rect(x, y + 64f, w, 18f), p.Note, 11, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
             if (f.Ladder.Count > 0)
             {
@@ -157,11 +189,11 @@ namespace Arena
             return y + 24f;
         }
 
-        void ModeScopeArea(Rect scope, float t, ModePage p, ModeFocus f, int shown)
+        void ModeScopeArea(Rect scope, ModePage p, ModeFocus f)
         {
             ModeScope(scope, "", "", p.ScopeDraw == null);
             if (p.ScopeDraw != null)
-                p.ScopeDraw(new Rect(scope.x + 14f, scope.y + 30f, scope.width - 28f, scope.height - 48f), shown);
+                p.ScopeDraw(new Rect(scope.x + 14f, scope.y + 30f, scope.width - 28f, scope.height - 48f), p.Shown);
             else if (f.Unknown)
                 CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
         }
@@ -178,84 +210,6 @@ namespace Arena
                 EndUiGl();
             }
             ModeScopeFinish(scope);
-        }
-
-        /// Layout A: list | scope + dossier on the left two thirds, RECORDS and RULES side by side along the bottom.
-        void ModeLayoutA(Rect r, float t, ModePage p)
-        {
-            float top = ModeHeadBand(r, p) + 6f;
-            float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
-            const float listW = 290f, gap = 22f;
-            int shown = ModeList(x, top, listW, bottom - top, p, out var rows);
-            var f = p.Focus(shown);
-
-            float x2 = x + listW + gap, w2 = w - listW - gap, y2 = top;
-            LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
-            y2 += 36f;
-            const float lowH = 128f;
-            float scopeH = bottom - lowH - 14f - 132f - 10f - y2;
-            var scope = new Rect(x2, y2, w2, scopeH);
-            ModeScopeArea(scope, t, p, f, shown);
-            y2 += scopeH + 10f;
-            ModeDossier(new Rect(x2, y2, w2, 132f), p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
-
-            // The bottom strip: records (tiles, two rows) and the rules (lamp tags).
-            float ly = bottom - lowH, rw = w2 * 0.5f, uw = w2 - rw - gap;
-            LobbyKit.Heading(x2, ly, rw, "YOUR RECORDS", null, fxReduced, 14);
-            int n = f.RecVals.Length, per = n <= 4 ? 2 : (n + 1) / 2;
-            if (n == 3) per = 3;
-            float tw = (rw - 8f * (per - 1)) / per;
-            for (int i = 0; i < n; i++)
-                LobbyKit.Tile(new Rect(x2 + (i % per) * (tw + 8f), ly + 36f + (i / per) * 48f, tw, 42f), f.RecVals[i], f.RecLabels[i], fxReduced);
-            float ux = x2 + rw + gap;
-            LobbyKit.Heading(ux, ly, uw, "RULES", null, fxReduced, 14);
-            ModeRuleTags(ux, ly + 36f, uw, p.Rules);
-            ModeModels(rows, scope, t, p, f, shown);
-        }
-
-        /// Layout B: three columns: list | scope + dossier | a sidebar of records (label and value rows) and rules.
-        void ModeLayoutB(Rect r, float t, ModePage p)
-        {
-            float top = ModeHeadBand(r, p) + 6f;
-            float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
-            const float listW = 270f, sideW = 250f, gap = 22f;
-            int shown = ModeList(x, top, listW, bottom - top, p, out var rows);
-            var f = p.Focus(shown);
-
-            float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top;
-            LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
-            y2 += 36f;
-            const float dosH = 150f;
-            var scope = new Rect(x2, y2, w2, bottom - y2 - dosH - 10f);
-            ModeScopeArea(scope, t, p, f, shown);
-            ModeDossier(new Rect(x2, bottom - dosH, w2, dosH), p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
-
-            // The sidebar.
-            float sx = x2 + w2 + gap, sy = top;
-            LobbyKit.Heading(sx, sy, sideW, "YOUR RECORDS", null, fxReduced, 14);
-            sy += 38f;
-            for (int i = 0; i < f.RecVals.Length; i++)
-            {
-                var rr = new Rect(sx, sy, sideW, 26f);
-                if (i % 2 == 0)
-                    Ui.Fill(rr, CrtStyle.Ink.WithAlpha(0.05f));
-                Ui.Label(new Rect(rr.x + 10f, rr.y, sideW * 0.6f, rr.height), f.RecLabels[i], 11, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
-                LobbyKit.Fit(new Rect(rr.x + sideW * 0.45f, rr.y, sideW * 0.55f - 10f, rr.height), f.RecVals[i], 15, 10, CrtStyle.Gold, TextAnchor.MiddleRight, fxReduced, false);
-                sy += 27f;
-            }
-            sy += 14f;
-            LobbyKit.Heading(sx, sy, sideW, "RULES", null, fxReduced, 14);
-            sy += 38f;
-            foreach (var rule in p.Rules)
-            {
-                bool takes = rule.StartsWith("NO ");
-                Ui.Fill(new Rect(sx + 4f, sy + 7f, 6f, 6f), takes ? CrtStyle.Dim.WithAlpha(0.5f) : CrtStyle.Gold);
-                Ui.Label(new Rect(sx + 18f, sy, sideW - 18f, 20f), rule, 11, takes ? CrtStyle.Ink.WithAlpha(0.7f) : CrtStyle.Gold, TextAnchor.MiddleLeft, true);
-                sy += 22f;
-            }
-            if (!string.IsNullOrEmpty(p.Note))
-                Ui.Label(new Rect(sx, Mathf.Max(sy + 10f, bottom - 40f), sideW, 40f), p.Note, 11, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
-            ModeModels(rows, scope, t, p, f, shown);
         }
     }
 }
