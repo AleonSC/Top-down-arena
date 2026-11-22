@@ -172,25 +172,56 @@ namespace Arena
                     WhoBand(new Rect(strut.x + 2f, strut.y, strut.width - 4f, strut.height), new Color(0.35f, 0.42f, 0.66f), new Color(0.16f, 0.2f, 0.38f), 2f);
                     KeyUi.Bolt(new Vector2(strut.center.x, strut.y + 8f), 6f);
                 }
+            if (WhoLayout == 3)
+            {
+                // A drawer built into the shelf: its face carries on from the shelf's front face (same metal, a shade darker), a
+                // panel seam where they meet, vents under the shelf's vents, and a recessed bay holding the drive and the key.
+                Ui.Pill(new Rect(c.x + 4f, c.y + 8f, c.width - 8f, c.height), new Color(0f, 0f, 0f, 0.5f));
+                WhoBand(new Rect(c.x, c.y - 4f, c.width, c.height - cut + 4f), new Color(0.1f, 0.14f, 0.32f), new Color(0.055f, 0.075f, 0.17f), 3f);
+                if (BeginUiGl())  // the chamfered bottom corners, the same as the neon's
+                {
+                    UiModelAt(V2.Zero, 1f);
+                    var bot = new Rgba(0.055f, 0.075f, 0.17f);
+                    SetColor(bot);
+                    Quad(new V2(c.x, c.yMax - cut), new V2(c.xMax, c.yMax - cut), new V2(c.xMax - cut, c.yMax), new V2(c.x + cut, c.yMax));
+                    EndUiGl();
+                }
+                Ui.Fill(new Rect(c.x, c.y, c.width, 2f), new Color(0.02f, 0.025f, 0.05f, 0.9f));       // the seam: a dark groove
+                Ui.Fill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, 1f), new Color(1f, 1f, 1f, 0.12f));  // and the drawer's lit lip under it
+                WhoVent(new Rect(c.x + 20f, c.y + 38f, 100f, 24f));
+                WhoVent(new Rect(c.xMax - 120f, c.y + 38f, 100f, 24f));
+                var bay = new Rect(c.x + 150f, c.y + 10f, c.width - 300f, c.height - 22f);
+                Ui.Pill(new Rect(bay.x - 1f, bay.y - 1f, bay.width + 2f, bay.height + 2f), new Color(1f, 1f, 1f, 0.07f));
+                Ui.Pill(bay, new Color(0.025f, 0.03f, 0.06f));
+                Ui.Fill(new Rect(bay.x + 6f, bay.y + 1f, bay.width - 12f, 3f), new Color(0f, 0f, 0f, 0.5f));      // its inner shadow at the top
+                Ui.Fill(new Rect(bay.x + 8f, bay.yMax - 2f, bay.width - 16f, 1f), new Color(1f, 1f, 1f, 0.06f));  // and a faint lit lip at the bottom
+                foreach (var b in new[] { new Vector2(bay.x - 14f, c.y + 18f), new Vector2(bay.xMax + 14f, c.y + 18f), new Vector2(bay.x - 14f, c.yMax - 26f), new Vector2(bay.xMax + 14f, c.yMax - 26f) })
+                    KeyUi.Bolt(b, 6f);
+                return;
+            }
             Ui.Pill(new Rect(c.x, c.y + 6f, c.width, c.height), new Color(0f, 0f, 0f, 0.45f));
             WhoBand(c, new Color(0.06f, 0.08f, 0.16f, 0.96f), new Color(0.035f, 0.05f, 0.1f, 0.96f), 4f);
             for (float y = c.y + 3f; y < c.yMax - 2f; y += 4f)
                 Ui.Fill(new Rect(c.x + 2f, y, c.width - 4f, 1f), new Color(0.36f, 0.52f, 0.91f, 0.035f));
-            if (WhoLayout == 3)
-            {
-                WhoVent(new Rect(c.x + 20f, c.y + 46f, 100f, 24f));
-                WhoVent(new Rect(c.xMax - 120f, c.y + 46f, 100f, 24f));
-            }
             if (BeginUiGl())
             {
                 UiModelAt(V2.Zero, 1f);
-                float n = NeonFlicker(Time.unscaledTime, 11f, 2f);
-                if (WhoLayout == 3)  // a drawer: the top joins the shelf, so the neon runs down the sides and along the bottom
-                    NeonPath(new[] { new V2(c.x, c.y), new V2(c.x, c.yMax - cut), new V2(c.x + cut, c.yMax), new V2(c.xMax - cut, c.yMax), new V2(c.xMax, c.yMax - cut), new V2(c.xMax, c.y) }, false, n);
-                else
-                    NeonPath(new[] { new V2(c.x, c.y), new V2(c.xMax, c.y), new V2(c.xMax, c.yMax - cut), new V2(c.xMax - cut, c.yMax), new V2(c.x + cut, c.yMax), new V2(c.x, c.yMax - cut) }, true, n);
+                NeonPath(new[] { new V2(c.x, c.y), new V2(c.xMax, c.y), new V2(c.xMax, c.yMax - cut), new V2(c.xMax - cut, c.yMax), new V2(c.x + cut, c.yMax), new V2(c.x, c.yMax - cut) }, true, NeonFlicker(Time.unscaledTime, 11f, 2f));
                 EndUiGl();
             }
+        }
+
+        /// Layout 3: one neon line from the shelf's top edge down both sides and round the drawer's chamfered bottom, so the shelf and
+        /// the drawer read as one unit (drawn after the shelf, over its ends).
+        void DrawWhoDrawerNeon()
+        {
+            var c = WhoConsole;
+            float cut = 14f, top = WhoShelfTop;
+            if (!BeginUiGl())
+                return;
+            UiModelAt(V2.Zero, 1f);
+            NeonPath(new[] { new V2(c.x, top), new V2(c.x, c.yMax - cut), new V2(c.x + cut, c.yMax), new V2(c.xMax - cut, c.yMax), new V2(c.xMax, c.yMax - cut), new V2(c.xMax, top) }, false, NeonFlicker(Time.unscaledTime, 11f, 2f));
+            EndUiGl();
         }
 
         void DrawWhoBody()
@@ -230,6 +261,8 @@ namespace Arena
                 DrawWhoConsole();
             DrawDriveSlot(1f, drive);
             DrawWhoShelf();
+            if (WhoLayout == 3)
+                DrawWhoDrawerNeon();
             for (int i = 0; i <= WhoSlots; i++)
             {
                 var r = WhoBox(i);
@@ -312,7 +345,7 @@ namespace Arena
         void DrawWhoShelf()
         {
             float top = WhoShelfTop, left = 70f, w = W - 140f;
-            var wall = new Rect(left + 20f, WhoCardTop - 8f, w - 40f, top - WhoCardTop + 8f + 54f);
+            var wall = new Rect(left + 20f, WhoCardTop - 8f, w - 40f, top - WhoCardTop + 8f + (WhoLayout == 3 ? 30f : 54f));  // (layout 3: its bottom edge hides behind the shelf, off the drawer's seam)
             // the wall: a dark see-through rack with faint scanlines and a neon edge (Docs/Mockups/whos-playing-holo.html)
             Ui.Pill(new Rect(wall.x, wall.y + 6f, wall.width, wall.height), new Color(0f, 0f, 0f, 0.4f));
             WhoBand(wall, new Color(0.047f, 0.075f, 0.16f, 0.93f), new Color(0.04f, 0.06f, 0.13f, 0.93f), 6f);
@@ -322,16 +355,18 @@ namespace Arena
             {
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(wall, NeonFlicker(Time.unscaledTime, 7f, 1.4f));
-                HoloCorners(new Rect(left, wall.y, w, wall.height + (WhoLayout == 3 ? WhoConsole.height : 0f)), 1f);  // round the rack and its shelf (the shelf is the wider)
+                HoloCorners(new Rect(left, wall.y, w, WhoLayout == 3 ? WhoConsole.yMax - wall.y : wall.height), 1f);  // round the rack and its shelf (the shelf is the wider)
                 EndUiGl();
             }
 
             // the shelf: a lit top edge, then the front face with a vent at each end and a plate for each slot
-            Ui.Pill(new Rect(left, top + 12f, w, 48f), new Color(0f, 0f, 0f, 0.35f));
+            if (WhoLayout != 3)  // (layout 3: the drawer carries on under the shelf, so no shadow and no rim along the bottom)
+                Ui.Pill(new Rect(left, top + 12f, w, 48f), new Color(0f, 0f, 0f, 0.35f));
             WhoBand(new Rect(left, top, w, 14f), new Color(0.53f, 0.63f, 0.93f), new Color(0.27f, 0.35f, 0.6f), 2f);
             Ui.Fill(new Rect(left + 3f, top, w - 6f, 2f), new Color(0.9f, 0.95f, 1f, 0.9f));  // its lit lip, glowing
             WhoBand(new Rect(left, top + 14f, w, 40f), new Color(0.24f, 0.3f, 0.55f), new Color(0.1f, 0.14f, 0.32f), 3f);
-            Ui.Rim(new Rect(left, top, w, 54f), new Color(0.42f, 0.52f, 0.84f), 0.6f);
+            if (WhoLayout != 3)
+                Ui.Rim(new Rect(left, top, w, 54f), new Color(0.42f, 0.52f, 0.84f), 0.6f);
             WhoVent(new Rect(left + 20f, top + 22f, 100f, 24f));
             WhoVent(new Rect(left + w - 120f, top + 22f, 100f, 24f));
 
