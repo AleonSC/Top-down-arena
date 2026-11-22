@@ -147,15 +147,6 @@ namespace Arena
                 Ui.Label(new Rect(lx, y - 4f, lw, LobbySetupY - 6f - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: the tab keys, then your loadout or the practice waves.
-            bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
-            if (DkKey(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout, calm, size: 16, minSize: 11))
-            {
-                lobbyTab = 0;  // the fixed Loadout key (LobbyLayout.cs); Perks opens from a key on the loadout
-                CloseFavorites();  // (also closes the Saved loadouts drawer)
-            }
-            if (session.Resume == null)
-                DrawFavoritesKey(LobbySavedKey, calm);  // the Saved loadouts star (FavoritesUi.cs)
-            DrawLobbyTabs(LobbyTabsRect, practice);  // beside the Loadout key (LobbyLayout.cs)
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
@@ -195,6 +186,17 @@ namespace Arena
                 }
             }
 
+            // The tab row, drawn over the big screen's top edge so the lit tab opens into it (folder tabs, LobbyKit.FolderTab).
+            bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
+            if (session.Resume == null)
+                DrawFavoritesKey(LobbySavedKey, calm);  // the Saved loadouts star (FavoritesUi.cs), left of the Loadout tab
+            LobbyGlowBox(LobbyLoadoutKey);
+            if (LobbyKit.FolderTab(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout && !favOpen))
+            {
+                lobbyTab = 0;  // the fixed Loadout tab (LobbyLayout.cs); Perks opens from a key on the loadout
+                CloseFavorites();  // (also closes the Saved loadouts drawer)
+            }
+            DrawLobbyTabs(LobbyTabsRect, practice);  // the mode's tabs, at the right end (LobbyLayout.cs)
             DrawLobbyActions(me, practice);
             LobbyGlowBox(LobbyBackKey);
             LobbyGlowBox(LobbyHangoutKey);
@@ -351,15 +353,15 @@ namespace Arena
                 if (names[i] != null)
                     shown.Add(i);
             int n = shown.Count;
-            // A row of keys after the Saved star, the size of the Loadout key, in the order above.
-            float x = r.x;
+            // A row of tabs at the right end, the size of the Loadout tab, in the order above.
+            float x = r.xMax - n * LobbyLoadoutKeyW - (n - 1) * LobbyTabKeyGap;
             for (int k = 0; k < n; k++)
             {
                 int i = shown[k];
                 bool on = lobbyTab == i;
                 var kr = new Rect(x, r.y, LobbyLoadoutKeyW, r.height);
                 LobbyGlowBox(kr);
-                if (DkKey(kr, names[i].ToUpperInvariant(), on, fxReduced, size: 16, minSize: 11) && !on)
+                if (LobbyKit.FolderTab(kr, names[i].ToUpperInvariant(), on) && !on)
                 {
                     lobbyTab = i;
                     CloseFavorites();
