@@ -90,7 +90,7 @@ namespace Arena
             aimSet = false;
             var me = g.Me;
             var prof = g.Profile;
-            Active = g.Quick && me != null && prof != null && !prof.TutorialDone && !g.Bot && !g.ShowcaseMode && !g.Unrecorded;
+            Active = g.Quick && me != null && prof != null && !prof.TutorialDone && !g.Bot && !g.Quiet && !g.Unrecorded;
             takenAtStart = me != null ? me.Taken.Count : 0;
             boughtAtStart = Expansion.BoughtCount(g.Expanded);
             goldBefore = me != null ? me.Gold : 0;

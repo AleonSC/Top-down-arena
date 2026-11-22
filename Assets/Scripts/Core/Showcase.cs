@@ -355,6 +355,15 @@ namespace Arena
         void TickShowcase(float dt)
         {
             State = MatchState.Fighting;
+            TickDummies(dt);
+            JuggShowcaseShots(dummyIds, dt);  // the Juggernaut Suit's flak needs shots to throw back (Juggernaut.cs)
+            Orbs.Clear();
+            Remaining = Enemies.Count;
+        }
+
+        /// The target dummies (the preview's and the Hangout's): knocked-back ones walk home, a dead one comes back after a second.
+        void TickDummies(float dt)
+        {
             showT += dt;
             for (int i = 0; i < dummySpots.Count; i++)
             {
@@ -376,9 +385,6 @@ namespace Arena
                 dummyIds[i] = e.Id;
                 dummyRespawn[i] = DummyRespawn;
             }
-            JuggShowcaseShots(dummyIds, dt);  // the Juggernaut Suit's flak needs shots to throw back (Juggernaut.cs)
-            Orbs.Clear();
-            Remaining = Enemies.Count;
         }
     }
 }

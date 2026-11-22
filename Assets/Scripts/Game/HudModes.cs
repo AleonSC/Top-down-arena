@@ -163,6 +163,8 @@ namespace Arena
         /// The wave as "WAVE 06 / 50" (or the hunt's or practice's own count).
         string MiniWave()
         {
+            if (game.HangoutOn)
+                return "HANGOUT";  // (no waves: HangoutGame.cs)
             var practice = game.Practice;
             if (practice != null)
                 return "PRACTICE " + Math.Max(1, game.PracticeIndex + 1).ToString("00") + " / " + practice.Waves.Count;

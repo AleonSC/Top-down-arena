@@ -160,6 +160,11 @@ namespace Arena
                         DrawBuilderShop(me, Time.unscaledTime);  // standing in a Builder room in a build round: its card shelf (BuilderShopUi.cs)
                     if (game.ShopOpen && me != null && !pauseUp)
                         DrawShopRoomHint(me);  // the Expanding arena: walk to the shop room (ExpansionUi.cs)
+                    if (game.HangoutOn)
+                    {
+                        DrawHangoutTag();  // HangoutUi.cs: no countdown, no wave band
+                        break;
+                    }
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
                         if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingCards + p.PendingMilestones + p.PrizePicks > 0 && p.Id != game.MyId)

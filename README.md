@@ -1740,7 +1740,11 @@ again, go back to the lobby, or keep going after a victory.
 
 ## Lobby Hangout
 
-The lobby's **Hangout** (the tab at the right end of the tab row; Loadout or a second click takes you back) is a room where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
+The lobby's **Hangout** key (right end of the tab row) opens a hidden game mode for the whole party at once (any player can press it; nobody has to be ready): the **real match, held between waves for good**. You have your whole loadout exactly as in a run (weapon, Alt, abilities, ultimate, class perks), because it is the same game. No wave ever starts, there is no countdown, no levelling, nothing is saved, recorded or unlocked, and everyone is in god mode. Three **target dummies** stand ahead of the party (they never shoot back, and come back a second after they fall). Leave with the pause menu's **Back to lobby**. PvP between players is not in yet. Design: [`Docs/Hangout.md`](Docs/Hangout.md).
+
+### The old lobby room (no longer reachable)
+
+The first build's room (the lobby tab that used to sit here, still described below) is replaced by the mode above. The lobby's Hangout room was a tab where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
 or your rebound movement keys); the others in the lobby move theirs, and everyone sees everyone. Each character is
 your real class and weapon model, with the **trail** you have equipped behind it, your **rank badge** and a name plate
 with your **frame's** colour (and a green dot once you've readied up). Works in every lobby mode. Design: [`Docs/Hangout.md`](Docs/Hangout.md).

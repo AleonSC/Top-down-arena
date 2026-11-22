@@ -74,6 +74,7 @@ namespace Arena
         PitFall,      // client -> host: you fell into a pit at (x, y) and climbed out at (x, y) (floats); the host takes the health (Pits.cs)
         DevTraps,     // host -> all: the Dev Kit's hand-placed traps, the whole list (count byte; each: kind byte, x, y, half width, half height floats) (DevTraps.cs)
         Graze,        // host -> all: (player id, where the shot passed) an enemy shot skimmed past a player: everyone draws the streak, that player's own game takes the ultimate's share off (Graze.cs)
+        HangoutOpen,  // client -> host: open the Hangout (the hidden mode that sits in the between-waves state; HangoutGame.cs). The host answers with a Start whose Hangout flag is set
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -138,7 +139,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 467;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 468;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -690,6 +691,10 @@ namespace Arena
                     break;
                 case Msg.RoleRequest:
                     { int v = r.ReadByte(); if (!Game.Running) SetRole(peer, v); }  // (a late lobby request mid-run is ignored)
+                    break;
+                case Msg.HangoutOpen:
+                    if (!Game.Running && Screen == AppScreen.Lobby)
+                        StartHangout();  // any player can open it; the host does (HangoutGame.cs)
                     break;
                 case Msg.WeaponRequest:
                     { int v = r.ReadByte(); if (!Game.Running) SetWeapon(peer, v); }  // (a late lobby request mid-run is ignored)
@@ -1279,7 +1284,7 @@ namespace Arena
         /// Host: the lobby's mode (GameMode.cs).
         public void SetMode(GameMode mode)
         {
-            if (!IsHost || Game.Running || mode == GameMode.None)
+            if (!IsHost || Game.Running || mode == GameMode.None || mode == GameMode.Hangout)  // (the Hangout is hidden: HangoutGame.cs opens it, the carousel never picks it)
                 return;
             if (mode != GameMode.Practice)
                 DesignTest = null;
