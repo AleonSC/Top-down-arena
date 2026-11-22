@@ -21,6 +21,12 @@ namespace Arena
         float showcaseZoomA;       // the zoom meter's fade (0 hidden .. 1 shown)
         bool showcaseZoomDrag;
         float showcaseZoom = 1f;   // the preview's zoom meter (0.5 out .. 2 in), set by the slider under it or the mouse wheel over it
+        bool showcasePlay;         // the preview's PLAY key: you control the character in the window (Showcase.Control)
+        Vector2 showcaseMouse;     // the mouse over the window, as the last draw saw it
+        bool showcaseMouseOver;
+        V2 showcaseCamFocus;       // where the last draw looked, and how big (the mouse's place in the preview's world)
+        float showcaseCamZoom = 1f;
+        Rect showcaseCamView;
         bool showcaseIdle;         // the preview's IDLE key: the character stands still
         bool showcaseMute;         // the preview's MUTE key (next to the zoom slider)
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
@@ -345,13 +351,14 @@ namespace Arena
             int[] tabs = { 3, 2, HangoutTab };
             for (int k = 0; k < 3; k++)
             {
-                bool on = lobbyTab == tabs[k];
+                bool on = k == 2 ? showcasePlay : lobbyTab == tabs[k];  // (the Hangout key is lit while PLAY is on)
                 LobbyGlowBox(rects[k]);
                 if (LobbyKit.FolderTab(rects[k], names[k], on))
                 {
-                    if (k == 2)  // the Hangout is a real match, held between waves (HangoutGame.cs): the key opens it for the party
+                    if (k == 2)  // the Hangout: your real loadout in the preview window, yours to play (Showcase.Control)
                     {
-                        session.StartHangout();
+                        lobbyTab = 0;
+                        showcasePlay = !showcasePlay;
                         continue;
                     }
                     lobbyTab = on ? 0 : tabs[k];
@@ -1546,7 +1553,8 @@ namespace Arena
             var bar = new Rect(view.x, view.y, view.width, 18f);  // flush with the top of the window
             var muteKey = new Rect(bar.xMax - 50f, bar.y + 1f, 46f, bar.height - 2f);
             var idleKey = new Rect(muteKey.x - 50f, muteKey.y, 46f, muteKey.height);
-            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f - 100f, bar.height);
+            var playKey = new Rect(idleKey.x - 50f, muteKey.y, 46f, muteKey.height);
+            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f - 150f, bar.height);
             if (e.type == EventType.MouseDown && track.Contains(e.mousePosition))
                 showcaseZoomDrag = true;
             float oa = Ui.Alpha;
@@ -1562,6 +1570,8 @@ namespace Arena
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
             if (showcaseZoomA > 0.3f && DkKey(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? CrtStyle.Gold : Ui.Neutral, false, 10))
                 showcaseMute = !showcaseMute;
+            if (showcaseZoomA > 0.3f && DkKey(playKey, "PLAY", showcasePlay ? CrtStyle.Gold : Ui.Neutral, false, 10))
+                showcasePlay = !showcasePlay;  // WASD, the mouse, fire and your abilities work in the window while the mouse is over it
             if (showcaseZoomA > 0.3f && DkKey(idleKey, "IDLE", showcaseIdle ? CrtStyle.Gold : Ui.Neutral, false, 10))
                 showcaseIdle = !showcaseIdle;
             GUI.color = oc;
@@ -1579,15 +1589,26 @@ namespace Arena
             bool demo = detailSel == 1 || ult;  // (the role and class pages show the weapon)
             if (showcase == null)
                 showcase = new Showcase();
-            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);
+            showcase.SetControl(showcasePlay);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo && !showcasePlay, ult, me.Ult);
             showcaseSeen = Time.unscaledTime;
+            showcaseMouse = Event.current.mousePosition;
+            showcaseMouseOver = view.Contains(showcaseMouse) && GUI.enabled;
             if (!BeginUiGl())
                 return;
             var rc = new Rgba(roleColor.r, roleColor.g, roleColor.b);
             var sg = showcase.Game;
             float zoom = Mathf.Min(1.1f, view.height / (showcase.Extent + 190f)) * showcaseZoom;
             V2 focus = Showcase.Home + new V2(0f, -showcase.Extent / 2f);
+            if (showcasePlay && sg.Me != null)
+            {
+                zoom = Mathf.Min(1.1f, view.height / 460f) * showcaseZoom;  // PLAY: the view follows you
+                focus = sg.Me.Disp;
+            }
             V2 centre = new V2(view.center.x, view.center.y);
+            showcaseCamFocus = focus;
+            showcaseCamZoom = zoom;
+            showcaseCamView = view;
             UiModelAt(centre - focus * zoom, zoom);
             UiClip(view);
             // The floor: the arena's dark grid, scaled with the view.
@@ -1671,6 +1692,30 @@ namespace Arena
             }
         }
 
+        /// PLAY: your keys and mouse as the preview's input, only while the mouse is over the window (so typing in the lobby never plays it).
+        PlayerInput ShowcasePlayInput()
+        {
+            var me = showcase.Me;
+            V2 aim = me != null ? me.Pos + V2.FromAngle(me.Aim) * 100f : Showcase.Home;
+            if (showcaseMouseOver && showcaseCamZoom > 0f)
+                aim = showcaseCamFocus + new V2(showcaseMouse.x - showcaseCamView.center.x, showcaseMouse.y - showcaseCamView.center.y) / showcaseCamZoom;
+            if (!showcaseMouseOver)
+                return new PlayerInput { AimAt = aim };
+            return new PlayerInput
+            {
+                Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
+                AimAt = aim,
+                Fire = Keybinds.Held(KeyAction.Fire),
+                Ability = Keybinds.Held(KeyAction.Ability1),
+                AbilityQ = Keybinds.Held(KeyAction.Ability2),
+                AbilityE = Keybinds.Held(KeyAction.Ability3),
+                AbilityShift = Keybinds.Held(KeyAction.Ability4),
+                Ultimate = Keybinds.Held(KeyAction.Ultimate),
+                Parry = Keybinds.Held(KeyAction.Parry),
+                WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
+            };
+        }
+
         /// The loadout preview runs only while the hero card is on screen.
         void ShowcaseFixedStep(float dt)
         {
@@ -1683,6 +1728,7 @@ namespace Arena
                 return;
             }
             showcase.Idle = showcaseIdle;
+            showcase.Play = showcasePlay ? ShowcasePlayInput() : default(PlayerInput);
             showcase.Step(dt);
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)

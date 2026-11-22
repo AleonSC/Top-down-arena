@@ -14,6 +14,11 @@ namespace Arena
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
+        public bool Control;  // the lobby's PLAY key: the preview is yours to play (WASD, mouse, fire, abilities): `Play` is this tick's input
+        public PlayerInput Play;
+        bool restart;         // switching PLAY on or off starts the scene over
+        float ultT;           // PLAY: seconds the ultimate has sat empty
+        public const float PlayUltEvery = 8f;  // ...and it is topped up after this long (there are no kills to charge it)
         public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
         public Game Game => session.Game;
         public Player Me => Game.Me;
@@ -78,8 +83,9 @@ namespace Arena
         /// few seconds; ultimate: cast your ultimate (F) instead.
         public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false, int ultPick = 0)
         {
-            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultPick != this.ultPick)
+            if (!Game.Running || restart || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultPick != this.ultPick)
             {
+                restart = false;
                 this.ultPick = ultPick;
                 this.role = role;
                 this.kit = kit;
@@ -114,10 +120,46 @@ namespace Arena
             demoAbility = demo;
         }
 
+        /// Turn PLAY on or off (the scene starts over, so nothing from the other way plays on).
+        public void SetControl(bool on)
+        {
+            if (Control == on)
+                return;
+            Control = on;
+            restart = true;
+        }
+
+        /// PLAY: the real game with your own input, on the same dummies. Cooldowns are real; the ultimate is topped up every PlayUltEvery.
+        void StepControlled(float dt)
+        {
+            t += dt;
+            Game.ShowcaseIdle = false;
+            if (allies)
+                Game.ShowcaseHoldAllies();
+            var ult = Me.Slots[Upgrades.UltSlot];
+            if (ult.Id != AbilityId.None && ult.Charges < ult.MaxCharges)
+            {
+                if ((ultT += dt) >= PlayUltEvery)
+                {
+                    Game.ShowcaseRefill(Upgrades.UltSlot);
+                    ultT = 0f;
+                }
+            }
+            else
+                ultT = 0f;
+            Game.FixedStep(dt, Play);
+            Game.Update(dt);
+        }
+
         public void Step(float dt)
         {
             if (!Game.Running || Me == null)
                 return;
+            if (Control)
+            {
+                StepControlled(dt);
+                return;
+            }
             t += dt;
             Game.ShowcaseIdle = Idle;
             var me = Me;
