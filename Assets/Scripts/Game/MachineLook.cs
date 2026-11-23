@@ -160,8 +160,7 @@ namespace Arena
             var face = new Rect(cap.x + 2f, cap.y + 2f, cap.width - 4f, cap.height - 4f);
             Ui.Dot(face, hover ? new Color(0.2f, 0.21f, 0.235f) : new Color(0.165f, 0.173f, 0.192f));
             Ui.Dot(new Rect(face.x + face.width * 0.08f, face.y + 1f, face.width * 0.84f, face.height * 0.8f), hover ? new Color(0.27f, 0.28f, 0.31f) : new Color(0.235f, 0.245f, 0.27f));
-            Ui.RadialGlow(new Rect(face.x + face.width * 0.15f, face.y - face.height * 0.05f, face.width * 0.7f, face.height * 0.6f), new Color(0.45f, 0.47f, 0.52f, 0.6f));
-            Ui.Fill(new Rect(cap.center.x - cap.width * 0.28f, cap.y + 3f, cap.width * 0.56f, 1f), new Color(1f, 1f, 1f, 0.35f));
+            Ui.RadialGlow(new Rect(face.x + face.width * 0.2f, face.y + face.height * 0.06f, face.width * 0.6f, face.height * 0.5f), new Color(0.45f, 0.47f, 0.52f, 0.55f));  // the dome's light, inside its edge
             Ui.Label(new Rect(cap.x, cap.y - 2f, cap.width, cap.height), glyph, 26, new Color(0.81f, 0.878f, 1f), TextAnchor.MiddleCenter, true);
             return live && Ui.HitArea(r);
         }
