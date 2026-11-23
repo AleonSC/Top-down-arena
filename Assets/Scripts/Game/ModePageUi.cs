@@ -40,6 +40,8 @@ namespace Arena
             public Action<Rect, int> ScopeDraw;  // in place of the model (Survival's graph)
             public Action<int> OnPick;           // a click on a known row (Boss Hunt's pick)
             public string[] Rules;
+            public bool ShowLocked;   // locked rows still show their model (name hidden) and can be hovered (Campaign)
+            public bool ScopeCompact; // a smaller, narrower scope with the dossier under it, centred in the column (Campaign)
         }
 
         void DrawModePage(Rect r, float t, ModePage p)
@@ -57,8 +59,16 @@ namespace Arena
             LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
             y2 += 36f;
             var scope = new Rect(x2, y2, w2, bottom - y2 - dosH - 10f);
+            var dos = new Rect(x2, bottom - dosH, w2, dosH);
+            if (p.ScopeCompact)
+            {
+                float cw = Mathf.Min(w2, 460f), ch = Mathf.Min(scope.height, cw * 0.58f);
+                float cy = y2 + Mathf.Max(0f, (bottom - y2 - ch - 10f - dosH) * 0.5f);
+                scope = new Rect(x2 + (w2 - cw) * 0.5f, cy, cw, ch);
+                dos = new Rect(scope.x, scope.yMax + 10f, cw, dosH);
+            }
             ModeScopeArea(scope, p, f);
-            ModeDossier(new Rect(x2, bottom - dosH, w2, dosH), p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
+            ModeDossier(dos, p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
 
             // Right: the sidebar, records as label and value rows, then the rules, the note at the foot.
             float sx = x2 + w2 + gap, sy = top;
@@ -117,16 +127,16 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 rows[i] = new Rect(x, y + i * step, w, rowH);
-                if (rows[i].Contains(mp) && p.Rows[i].Known)
+                if (rows[i].Contains(mp) && (p.Rows[i].Known || p.ShowLocked))
                     hover = i;
             }
             int shown = p.Shown = hover >= 0 ? hover : p.Default;
-            if (hover >= 0 && p.OnPick != null && Ui.HitArea(rows[hover]))
+            if (hover >= 0 && p.Rows[hover].Known && p.OnPick != null && Ui.HitArea(rows[hover]))
                 p.OnPick(hover);
             for (int i = 0; i < n; i++)
             {
                 var d = p.Rows[i];
-                ModeRow(rows[i], d.Num, d.Name, d.Known, d.Lit, i == shown, i == hover, p.Acc, d.Chip, d.ChipCol);
+                ModeRow(rows[i], d.Num, d.Name, d.Known, d.Lit, i == shown, i == hover, p.Acc, d.Chip, d.ChipCol, p.ShowLocked);
             }
             return shown;
         }
@@ -147,7 +157,7 @@ namespace Arena
             ModeScope(scope, "", "", p.ScopeDraw == null);
             if (p.ScopeDraw != null)
                 p.ScopeDraw(new Rect(scope.x + 14f, scope.y + 30f, scope.width - 28f, scope.height - 48f), p.Shown);
-            else if (f.Unknown)
+            else if (f.Unknown && !p.ShowLocked)
                 CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
         }
 
@@ -156,9 +166,9 @@ namespace Arena
             if (BeginUiGl())
             {
                 for (int i = 0; i < rows.Length; i++)
-                    if (p.Rows[i].Known)
+                    if (p.Rows[i].Known || p.ShowLocked)
                         ModeRowModel(rows[i], p.Rows[i].Model, t, i == shown);
-                if (p.ScopeDraw == null && !f.Unknown)
+                if (p.ScopeDraw == null && (!f.Unknown || p.ShowLocked))
                     ModeScopeModel(scope, f.Model, t);
                 EndUiGl();
             }
