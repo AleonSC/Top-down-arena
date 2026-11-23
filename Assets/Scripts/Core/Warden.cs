@@ -68,7 +68,7 @@ namespace Arena
         // Going into the last stand it puts on armor (a 2 s phase change, plates locking on at these seconds in), worth
         // WardenArmorFrac of its max health; hits wear the armor before its health. It makes the last stand last without
         // touching the rest of the fight.
-        public const float WardenArmorFrac = 0.47f;  // Boss Lab (Good bots, Knight Tank + Elementalist DPS, LABLOG=1): the last stand runs about 30 s in all (armor 0.3: ~19 s, 0.42: ~24 s, 0.55: ~39 s; runs vary by +-8 s)
+        public const float WardenArmorFrac = 0.235f;  // half the old 0.47 (owner's call). Boss Lab (Good bots, Knight Tank + Elementalist DPS, LABLOG=1) at the old values: armor 0.3: ~19 s, 0.42: ~24 s, 0.47: ~30 s, 0.55: ~39 s (runs vary by +-8 s)
         public static readonly float[] ArmorPlateAt = { 0.55f, 0.8f, 1.05f, 1.3f, 1.55f };
 
         public const float LastStandGap = 1f, LastStandBurst = 2.2f, LastStandCycle = LastStandGap + LastStandBurst, LastStandStunEvery = 3f;
