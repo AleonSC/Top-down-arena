@@ -77,13 +77,13 @@ static partial class Program
         Check(behind.Hp >= 1e6f && far.Hp >= 1e6f, "an enemy behind you or past the cone's reach isn't touched");
         Check(me.StaticOn && client.Game.Players[1].StaticOn, "the other screen sees the cone out");
         // the shock grows the longer an enemy stays in
-        Step(1.6f, from + new V2(300f, 0f), true, false, false);
+        Step(3.6f, from + new V2(300f, 0f), true, false, false);
         float before = 1e6f - a.Hp;
         Step(0.5f, from + new V2(300f, 0f), true, false, false);
         float late = 1e6f - a.Hp - before;
         float full = me.Weapon.Damage * me.Stats.DmgMult;
-        Check(late > early * 1.8f, "the shock grows: " + early.ToString("0.0") + " in its first half second, " + late.ToString("0.0") + " after 2 s");
-        Check(Math.Abs(late - full * 0.5f) < full * 0.12f, "full shock is the weapon's damage a second (" + late.ToString("0.0") + " in 0.5 s, " + full + "/s)");
+        Check(late > early * 2.8f, "the shock grows: " + early.ToString("0.0") + " in its first half second, " + late.ToString("0.0") + " after 4 s");
+        Check(Math.Abs(late - full * 0.5f) < full * 0.05f, "full shock is the weapon's damage a second (" + late.ToString("0.0") + " in 0.5 s, " + full + "/s)");
         Step(0.2f, from + new V2(300f, 0f), false, false, false);
         Check(!me.StaticOn, "letting go puts the cone away");
         Step(0.5f, from + new V2(300f, 0f), false, false, false);
@@ -129,6 +129,24 @@ static partial class Program
         float plainV = seen.Count > 0 ? seen.Values.Average() : 0f;
         Check(plainV > 0f && Math.Abs(boostedV / plainV - Game.OverchargeShot) < 0.02f, "Overcharge: shots fly 35% faster (" + boostedV.ToString("0") + " vs " + plainV.ToString("0") + ")");
         Check(boosted > seen.Count, "Overcharge: more shots a second (" + boosted + " vs " + seen.Count + ")");
+
+        // room turrets: the cone shocks them, the burst hits them
+        Clear();
+        V2 post = from + new V2(130f, 0f);
+        Check(g.DevPlaceTrap(TrapKind.Turret, post, 0f), "a room turret stands in front of you");
+        Step(1.5f, from + new V2(300f, 0f), true, false, false);
+        Step(0.5f, from + new V2(300f, 0f), false, false, false);
+        float frac1 = g.TurretHpFrac(post);
+        Check(frac1 < 1f, "the cone shocks a room turret (" + (frac1 * 100f).ToString("0") + "% left)");
+        g.DevRemoveTrapAt(post);
+        V2 post2 = from + new V2(300f, 60f);
+        g.DevPlaceTrap(TrapKind.Turret, post2, 0f);
+        Step(5.2f, from + new V2(300f, 0f), false, false, false);
+        Step(0.05f, from + new V2(300f, 0f), false, true, false);
+        Step(1.2f, from + new V2(300f, 0f), false, false, false);
+        Check(g.TurretHpFrac(post2) < 1f, "the Arc Cannon's burst hits a room turret (" + (g.TurretHpFrac(post2) * 100f).ToString("0") + "% left)");
+        g.DevRemoveTrapAt(post2);
+        Step(5.2f, from + new V2(300f, 0f), false, false, false);
 
         // the Arc Cannon: through a teammate and an enemy on the way, bursting at the cursor
         Clear();

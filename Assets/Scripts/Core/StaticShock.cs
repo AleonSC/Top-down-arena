@@ -6,8 +6,9 @@ namespace Arena
     /// The Healer Elementalist's Static Shock (the healer weapon on the lobby's 4th key; mockup: the "Static Shock" artifact).
     ///   Fire (held): a short cone of constant crackle out of your hand (StaticRange, StaticHalf each side of your aim). Up to
     ///     StaticLinks enemies inside are wired into one circuit: each wires to the nearest point already in it (your hand
-    ///     first), and every StaticTick each takes a shock that grows from StaticLow to the full weapon Damage a second over
-    ///     StaticRamp seconds in the cone (it starts over StaticForget after it leaves). Teammates it touches get Overcharge.
+    ///     first), and every StaticTick each takes a shock that grows from StaticLow x to the full weapon Damage a second over
+    ///     StaticRamp seconds in the cone (6 a second up to 24; it starts over StaticForget after it leaves). Room turrets in
+    ///     the cone take the same shock (gathered, StaticTurretFlush at a time). Teammates it touches get Overcharge.
     ///     The host only sends Player.StaticOn: every screen works the circuit out itself (StaticCircuit), so the links you
     ///     see are the ones the host shocks.
     ///   Alt (Msg.WeaponDash DashArcCannon): the Arc Cannon. A giant ball of lightning (CannonBallR) rolls at CannonSpeed to your
@@ -23,10 +24,10 @@ namespace Arena
     public partial class Game
     {
         public const float StaticRange = 200f, StaticHalf = 0.56f;  // the cone: 200 px, 64 degrees across
-        public const float StaticTick = 0.1f, StaticLow = 0.4f, StaticRamp = 2f, StaticForget = 0.3f;
+        public const float StaticTick = 0.1f, StaticLow = 0.25f, StaticRamp = 4f, StaticForget = 0.3f, StaticTurretFlush = 5f;
         public const int StaticLinks = 6;
         public const float CannonBallR = 24f, CannonSpeed = 330f, CannonReach = 560f, CannonMin = 120f;
-        public const float CannonBurstR = 120f, CannonPassDmg = 1.2f, CannonBurstDmg = 3f, CannonStun = 0.8f, CannonCd = 5f, CannonBurstFx = 0.9f;
+        public const float CannonBurstR = 120f, CannonPassDmg = 0.5f, CannonBurstDmg = 1.25f, CannonStun = 0.8f, CannonCd = 5f, CannonBurstFx = 0.9f;
         public const float OverchargeTime = 10f, OverchargeMove = 1.25f, OverchargeFire = 1.3f, OverchargeShot = 1.35f;
         public static readonly Rgba StaticBlue = new Rgba(0.62f, 0.89f, 1f), CannonViolet = new Rgba(0.79f, 0.7f, 1f), OverchargeGold = new Rgba(1f, 0.8f, 0.35f);
         const byte DashArcCannon = 56;
@@ -116,8 +117,9 @@ namespace Arena
                 staticSeen.Remove(id);
                 staticShockT.Remove(id);
             }
+            ForgetTurretShocks();
             float gap = StaticTick / FireRate(p);
-            p.FireCd = gap;
+            p.FireCd = Math.Max(-gap, p.FireCd) + gap;  // (the overshoot carries, so ticks keep time with 60 fps steps)
             int extra = ExtraShots(p);
             V2 hand = StaticHand(p, p.Pos);
             StaticCircuit(hand, p.Aim, StaticRangeOf(p), Enemies.Values, e => e.Pos, Targetable, StaticLinks + extra, staticIn, staticFrom);
@@ -132,12 +134,77 @@ namespace Arena
                 float rate = full * (StaticLow + (1f - StaticLow) * Math.Min(1f, t / StaticRamp));
                 WeaponHurt(e, rate * StaticTick, p.Id);
             }
+            bool turret = ShockRoomTurrets(hand, p.Aim, StaticRangeOf(p), full, gap);
             foreach (var q in Players.Values)
                 if (q != p && !q.Downed && InStaticCone(hand, p.Aim, StaticRangeOf(p), q.Pos, q.Def.BodyR))
                     Overcharge(q, p);
             p.Run.ShotsFired++;
-            if (staticIn.Count > 0)
+            if (staticIn.Count > 0 || turret)
                 p.Run.ShotsHit++;
+        }
+
+        // Room turrets (RoomTraps.cs) in a cone take the same growing shock. A hit on one sends a message and a ring, so the
+        // shock gathers (turretPend) and lands StaticTurretFlush at a time, or what's left when it leaves the cone.
+        readonly Dictionary<long, float> turretShockT = new Dictionary<long, float>(), turretSeen = new Dictionary<long, float>(), turretPend = new Dictionary<long, float>();
+        readonly List<long> turretGone = new List<long>();
+
+        /// Host: shock every standing room turret in the cone. True when one was in it.
+        bool ShockRoomTurrets(V2 hand, float aim, float range, float full, float gap)
+        {
+            if (!ExpandingOn && devTraps.Count == 0)
+                return false;
+            bool any = false;
+            var traps = RoomTrapList;
+            for (int i = traps.Count - 1; i >= 0; i--)
+            {
+                var tr = traps[i];
+                if (tr.Kind != TrapKind.Turret || !InStaticCone(hand, aim, range, tr.Pos, RoomTraps.TurretHitR))
+                    continue;
+                any = true;
+                long key = TrapKey(tr.Pos);
+                float t, pend;
+                turretShockT.TryGetValue(key, out t);
+                t += gap;
+                turretShockT[key] = t;
+                turretSeen[key] = staticClock;
+                turretPend.TryGetValue(key, out pend);
+                pend += full * (StaticLow + (1f - StaticLow) * Math.Min(1f, t / StaticRamp)) * StaticTick;
+                if (pend >= StaticTurretFlush)
+                {
+                    HurtRoomTurret(tr, pend);
+                    pend = 0f;
+                }
+                turretPend[key] = pend;
+            }
+            return any;
+        }
+
+        /// Host: turrets out of every cone for a while start over; what they had gathered lands.
+        void ForgetTurretShocks()
+        {
+            if (turretSeen.Count == 0)
+                return;
+            turretGone.Clear();
+            foreach (var kv in turretSeen)
+                if (staticClock - kv.Value > StaticForget)
+                    turretGone.Add(kv.Key);
+            foreach (long key in turretGone)
+            {
+                float pend;
+                if (turretPend.TryGetValue(key, out pend) && pend > 0f)
+                {
+                    var traps = RoomTrapList;
+                    for (int i = traps.Count - 1; i >= 0; i--)
+                        if (traps[i].Kind == TrapKind.Turret && TrapKey(traps[i].Pos) == key)
+                        {
+                            HurtRoomTurret(traps[i], pend);
+                            break;
+                        }
+                }
+                turretSeen.Remove(key);
+                turretShockT.Remove(key);
+                turretPend.Remove(key);
+            }
         }
 
         /// Host: Overcharge for a teammate (refreshed, never stacked). The pop and its sound only when it was nearly out.
@@ -181,6 +248,7 @@ namespace Arena
             public V2 From, To;
             public float Age, Dur, Pass, Burst, BurstR;
             public readonly HashSet<int> HitE = new HashSet<int>(), HitP = new HashSet<int>();
+            public readonly HashSet<long> HitT = new HashSet<long>();  // room turrets it rolled through
         }
         readonly List<ArcBall> arcBalls = new List<ArcBall>();
 
@@ -224,6 +292,16 @@ namespace Arena
                         b.HitE.Add(e.Id);
                         WeaponHurt(e, b.Pass, b.Owner);
                     }
+                if (ExpandingOn || devTraps.Count > 0)
+                {
+                    var traps = RoomTrapList;
+                    for (int k = traps.Count - 1; k >= 0; k--)
+                    {
+                        var tr = traps[k];
+                        if (tr.Kind == TrapKind.Turret && tr.Pos.WithinReach(at, CannonBallR + RoomTraps.TurretHitR) && b.HitT.Add(TrapKey(tr.Pos)))
+                            HurtRoomTurret(tr, b.Pass);
+                    }
+                }
                 if (owner != null)
                     foreach (var q in Players.Values)
                         if (q != owner && !q.Downed && !b.HitP.Contains(q.Id) && q.Pos.WithinReach(at, CannonBallR + q.Def.BodyR))
@@ -244,6 +322,9 @@ namespace Arena
                         if (e.Hp > 0f && !Heavy(e))
                             Stun(e, CannonStun);
                     }
+                var burstAt = b.To;
+                float burstR = b.BurstR;
+                MeleeHitRoomTurrets(b.Burst, (q, lr) => q.WithinReach(burstAt, burstR + lr));  // room turrets in the burst (RoomTraps.cs)
                 if (owner != null)
                 {
                     foreach (var q in Players.Values)
