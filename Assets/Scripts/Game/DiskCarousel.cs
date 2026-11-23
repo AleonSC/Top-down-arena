@@ -166,11 +166,9 @@ namespace Arena
                 }
             }
             var band = new Rect(0f, 250f, W, 290f);
-            if (e.type == EventType.ScrollWheel && band.Contains(e.mousePosition))
-            {
-                CarStep(e.delta.y + e.delta.x > 0f ? 1 : -1);
-                e.Use();
-            }
+            float wheel = WheelOver(band, true);
+            if (wheel > 0.01f || wheel < -0.01f)
+                CarStep(wheel > 0f ? 1 : -1);
             if (e.type == EventType.MouseDown && e.button == 0 && band.Contains(e.mousePosition) && CarCount > 1)
             {
                 carDragX = e.mousePosition.x;

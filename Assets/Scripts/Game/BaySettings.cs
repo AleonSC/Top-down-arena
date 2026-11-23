@@ -179,11 +179,7 @@ namespace Arena
             }
             GUI.EndGroup();
             float content = y + menuSetScroll, maxScroll = Mathf.Max(0f, content - view.height);
-            if (live && e.type == EventType.ScrollWheel && inView)
-            {
-                menuSetScroll += e.delta.y * 24f;
-                e.Use();
-            }
+            menuSetScroll += WheelOver(view, live) * 24f;  // MachineLook.cs
             menuSetScroll = Mathf.Clamp(menuSetScroll, 0f, maxScroll);
             if (maxScroll > 0f)
             {

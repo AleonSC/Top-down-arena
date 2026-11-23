@@ -542,6 +542,15 @@ static partial class Shot {
         foreach (var setArr in new[] { sets })
           foreach (var row in (System.Array)setArr) foreach (var m in (System.Array)row) add.Invoke(app, new object[] { m });
       }
+      // WHEEL=<x>,<y>,<dy>: a mouse-wheel event there first (one draw on it), then the shot: to check scrolling.
+      if (Environment.GetEnvironmentVariable("WHEEL") != null) {
+        var wv = Environment.GetEnvironmentVariable("WHEEL").Split(',');
+        var keepPos = Event.current.mousePosition;
+        Event.current.type = EventType.ScrollWheel; Event.current.mousePosition = new Vector2(float.Parse(wv[0]), float.Parse(wv[1])); Event.current.delta = new Vector2(0f, float.Parse(wv[2]));
+        typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "who" ? "DrawWho" : "DrawProfTr", f2).Invoke(app, null);
+        Console.Error.WriteLine("after wheel: menuSetScroll=" + typeof(ArenaApp).GetField("menuSetScroll", f2).GetValue(app) + " menuListScroll=" + typeof(ArenaApp).GetField("menuListScroll", f2).GetValue(app) + " whoCarTarget=" + typeof(ArenaApp).GetField("whoCarTarget", f2).GetValue(app));
+        Event.current.type = EventType.Repaint; Event.current.mousePosition = keepPos;
+      }
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;
     }

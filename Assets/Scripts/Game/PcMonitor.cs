@@ -47,7 +47,7 @@ namespace Arena
             if (crtTyped != 0)
                 DrawCrtTitle(new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f));
             DrawCrtFront();
-            NeonBox(CrtBox, 1f);
+            NeonBox(new Rect(CrtBox.x - 3f, CrtBox.y - 3f, CrtBox.width + 6f, CrtBox.height + 6f), 1f, 0f, 8);
             crtFull = CrtTitleText;
             crtFlat = false;
             crtTyped = -1;
