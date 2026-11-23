@@ -115,6 +115,7 @@ namespace Arena
 
         void DrawTrapTurret(V2 home, float t)
         {
+            if (PreviewWallTurret > 0) { DrawWallTurretMock(home, t, PreviewWallTurret); return; }
             float hp = game.TurretHpFrac(home), ago = game.TurretHitAgo(home);
             float hit = Mathf.Clamp01(1f - ago / 0.2f);  // 1 at the moment of a hit, gone in 0.2 s
             V2 c = home + new V2(Mathf.Sin(ago * 95f + home.X), Mathf.Cos(ago * 83f + home.Y)) * (3.5f * hit);  // it shudders
